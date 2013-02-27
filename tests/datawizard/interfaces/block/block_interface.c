@@ -105,7 +105,7 @@ static void test_block_cpu_func(void *buffers[], void *args)
         unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
         unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
 	int *block = (int *) STARPU_BLOCK_GET_PTR(buffers[0]);
-	unsigned int i, j, k;
+	int i, j, k;
 	int val = 0;
 	block_config.copy_failed = SUCCESS;
 	for (k = 0; k < nz; k++)

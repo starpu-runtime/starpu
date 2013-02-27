@@ -44,7 +44,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 static int copy_opencl_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
 #endif
 
-static struct starpu_data_copy_methods block_copy_data_methods_s =
+static const struct starpu_data_copy_methods block_copy_data_methods_s =
 {
 	.ram_to_ram = copy_ram_to_ram,
 #ifdef STARPU_USE_CUDA
@@ -350,7 +350,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 	}
 	else
 	{
-		/* Default case: we transfer all lines one by one: ny*nz transfers */
+		/* Default case: we transfer all blocks one by one: nz transfers */
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{
@@ -420,7 +420,7 @@ static int copy_cuda_async_common(void *src_interface, unsigned src_node STARPU_
 	}
 	else
 	{
-		/* Default case: we transfer all lines one by one: ny*nz transfers */
+		/* Default case: we transfer all blocks one by one: nz 2D transfers */
 		unsigned layer;
 		for (layer = 0; layer < src_block->nz; layer++)
 		{
@@ -514,8 +514,8 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
 		/* Is that a single contiguous buffer ? */
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
-			ret = starpu_opencl_copy_async_sync(src_block->dev_handle, src_node, src_block->offset,
-								dst_block->dev_handle, dst_node, dst_block->offset,
+			ret = starpu_opencl_copy_async_sync(src_block->dev_handle, src_block->offset, src_node,
+								dst_block->dev_handle, dst_block->offset, dst_node,
 							       src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
 							       event);
                 }
@@ -535,10 +535,12 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
                         unsigned j;
                         for(j=0 ; j<src_block->ny ; j++)
 			{
-				ret = starpu_opencl_copy_async_sync(src_block->dev_handle, src_node,
+				ret = starpu_opencl_copy_async_sync(src_block->dev_handle,
 								    src_block->offset + layer*src_block->ldz*src_block->elemsize + j*src_block->ldy*src_block->elemsize,
-								    dst_block->dev_handle, dst_node,
+								    src_node,
+								    dst_block->dev_handle,
 								    dst_block->offset + layer*dst_block->ldz*dst_block->elemsize + j*dst_block->ldy*dst_block->elemsize,
+								    dst_node,
 								       src_block->nx*src_block->elemsize,
 								       event);
                         }

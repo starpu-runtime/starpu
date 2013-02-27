@@ -97,7 +97,7 @@ void* start_bench(void *val)
 	pthread_setspecific(key, &p->id);
 
 	if(p->ctx != 0)
-		starpu_task_set_context(&p->ctx);
+		starpu_sched_ctx_set_context(&p->ctx);
 
 	for(i = 0; i < NSAMPLES; i++)
 		p->bench(p->mat[i], p->size, p->nblocks);
@@ -241,7 +241,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	struct sched_ctx_hypervisor_policy policy;
 	policy.custom = 0;
 	policy.name = "idle";
-	struct starpu_performance_counters *perf_counters = sched_ctx_hypervisor_init(&policy);
+	struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx_hypervisor_init(&policy);
 	int nworkers1 = cpu1 + gpu + gpu1;
 	int nworkers2 = cpu2 + gpu + gpu2;
 	unsigned n_all_gpus = gpu + gpu1 + gpu2;
@@ -267,7 +267,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 		p1.workers[i] = i;
 
 	p1.ctx = starpu_sched_ctx_create("heft", p1.workers, nworkers1, "sched_ctx1");
-	starpu_set_perf_counters(p1.ctx, perf_counters);
+	starpu_sched_ctx_set_perf_counters(p1.ctx, perf_counters);
 	p2.the_other_ctx = (int)p1.ctx;
 	p1.nworkers = nworkers1;
 	sched_ctx_hypervisor_register_ctx(p1.ctx, 0.0);
@@ -303,7 +303,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	/* 	p2.workers[k++] = i; */
 
 	p2.ctx = starpu_sched_ctx_create("heft", p2.workers, 0, "sched_ctx2");
-	starpu_set_perf_counters(p2.ctx, perf_counters);
+	starpu_sched_ctx_set_perf_counters(p2.ctx, perf_counters);
 	p1.the_other_ctx = (int)p2.ctx;
 	p2.nworkers = 0;
 	sched_ctx_hypervisor_register_ctx(p2.ctx, 0.0);

@@ -189,6 +189,26 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 	return _starpu_get_worker_struct(n);
 }
 
+static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_config *config)
+{
+#if defined(STARPU_HAVE_HWLOC)
+        int depth_node;
+	struct starpu_machine_topology *topology = &config->topology;
+        depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
+
+	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
+	     return hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+	else
+	     return hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.local_memory;
+
+#else /* STARPU_HAVE_HWLOC */
+#ifdef STARPU_DEVEL
+#  warning use sysinfo when available to get global size
+#endif
+	return 0;
+#endif
+}
+
 int _starpu_cpu_driver_init(struct starpu_driver *d)
 {
 	struct _starpu_worker *cpu_worker;
@@ -198,7 +218,8 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 	int devid = cpu_worker->devid;
 
 	_starpu_worker_init(cpu_worker, _STARPU_FUT_CPU_KEY);
-	_starpu_memory_manager_init_global_memory(cpu_worker->memory_node, STARPU_CPU_WORKER, cpu_worker->devid, cpu_worker->config);
+	/* FIXME: when we have NUMA support, properly turn node number into NUMA node number */
+	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->memory_node, cpu_worker->config));
 
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
@@ -360,24 +381,4 @@ int _starpu_run_cpu(struct starpu_driver *d)
 	_starpu_cpu_worker(worker);
 
 	return 0;
-}
-
-size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_config *config)
-{
-#if defined(STARPU_HAVE_HWLOC)
-        int depth_node;
-	struct starpu_machine_topology *topology = &config->topology;
-        depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
-
-	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
-	     return hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
-	else
-	     return hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.local_memory;
-
-#else /* STARPU_HAVE_HWLOC */
-#ifdef STARPU_DEVEL
-#  warning use sysinfo when available to get global size
-#endif
-	return 0;
-#endif
 }

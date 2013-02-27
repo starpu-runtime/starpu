@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -207,17 +207,17 @@ static __inline int starpu_get_env_number(const char *str)
 	if (strval)
 	{
 		/* the env variable was actually set */
-		unsigned val;
+		long int val;
 		char *check;
 
-		val = (int)strtol(strval, &check, 10);
+		val = strtol(strval, &check, 10);
 		if (*check) {
 			fprintf(stderr,"The %s environment variable must contain an integer\n", str);
 			STARPU_ABORT();
 		}
 
 		/* fprintf(stderr, "ENV %s WAS %d\n", str, val); */
-		return val;
+		return (int)val;
 	}
 	else
 	{

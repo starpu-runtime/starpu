@@ -48,7 +48,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARP
 static int copy_opencl_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
 #endif
 
-static struct starpu_data_copy_methods matrix_copy_data_methods_s =
+static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
 {
 	.ram_to_ram = copy_ram_to_ram,
 #ifdef STARPU_USE_CUDA
@@ -516,8 +516,8 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
 
 	STARPU_ASSERT_MSG((src_matrix->ld == src_matrix->nx) && (dst_matrix->ld == dst_matrix->nx), "XXX non contiguous buffers are not properly supported in OpenCL yet. (TODO)");
 
-	ret = starpu_opencl_copy_async_sync(src_matrix->dev_handle, src_node, src_matrix->offset,
-					    dst_matrix->dev_handle, dst_node, dst_matrix->offset,
+	ret = starpu_opencl_copy_async_sync(src_matrix->dev_handle, src_matrix->offset, src_node,
+					    dst_matrix->dev_handle, dst_matrix->offset, dst_node,
 					    src_matrix->nx*src_matrix->ny*src_matrix->elemsize,
 					    event);
 

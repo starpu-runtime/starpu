@@ -38,13 +38,14 @@
 /* the number of CUDA devices */
 static int ncudagpus;
 
+static size_t global_mem[STARPU_NMAXWORKERS];
 #ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 static cudaStream_t out_transfer_streams[STARPU_NMAXWORKERS];
 static cudaStream_t in_transfer_streams[STARPU_NMAXWORKERS];
 static cudaStream_t peer_transfer_streams[STARPU_NMAXWORKERS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
-#endif
+#endif /* STARPU_USE_CUDA */
 
 void
 _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
@@ -64,16 +65,17 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 #endif
 }
 
-#ifdef STARPU_USE_CUDA
 /* In case we want to cap the amount of memory available on the GPUs by the
  * mean of the STARPU_LIMIT_CUDA_MEM, we decrease the value of
- * props[devid].totalGlobalMem which is the value returned by
- * starpu_cuda_get_global_mem_size() to indicate how much memory can
+ * global_mem[devid] which is the value returned by
+ * _starpu_cuda_get_global_mem_size() to indicate how much memory can
  * be allocated on the device
  */
 static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 {
-	int limit;
+	ssize_t limit;
+	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
+	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
 
 	limit = starpu_get_env_number("STARPU_LIMIT_CUDA_MEM");
@@ -87,24 +89,24 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 		return;
 	}
 
+	global_mem[devid] = limit * 1024*1024;
+
+#ifdef STARPU_USE_CUDA
 	/* Find the size of the memory on the device */
-	size_t totalGlobalMem = props[devid].totalGlobalMem;
+	totalGlobalMem = props[devid].totalGlobalMem;
 
 	/* How much memory to waste ? */
-	size_t to_waste = totalGlobalMem - (size_t)limit*1024*1024;
+	to_waste = totalGlobalMem - global_mem[devid];
 
 	props[devid].totalGlobalMem -= to_waste;
+#endif /* STARPU_USE_CUDA */
 
 	_STARPU_DEBUG("CUDA device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
-			devid, (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024),
-			(size_t)(totalGlobalMem - to_waste)/(1024*1024));
+			devid, (long) to_waste/(1024*1024), (long) limit, (long) totalGlobalMem/(1024*1024),
+			(long) (totalGlobalMem - to_waste)/(1024*1024));
 }
 
-size_t starpu_cuda_get_global_mem_size(unsigned devid)
-{
-	return (size_t)props[devid].totalGlobalMem;
-}
-
+#ifdef STARPU_USE_CUDA
 cudaStream_t starpu_cuda_get_local_in_transfer_stream(void)
 {
 	int worker = starpu_worker_get_id();
@@ -139,6 +141,7 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 	unsigned devid = config->workers[workerid].devid;
 	return &props[devid];
 }
+#endif /* STARPU_USE_CUDA */
 
 void starpu_cuda_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 {
@@ -272,7 +275,11 @@ static void deinit_context(int workerid)
 }
 #endif /* !SIMGRID */
 
-#endif /* STARPU_USE_CUDA */
+static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
+{
+	return global_mem[devid];
+}
+
 
 /* Return the number of devices usable in the system.
  * The value returned cannot be greater than MAXCUDADEVS */
@@ -386,27 +393,25 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 	init_context(devid);
 #endif
 
-#ifdef STARPU_USE_CUDA
 	_starpu_cuda_limit_gpu_mem_if_needed(devid);
-#endif
-	_starpu_memory_manager_init_global_memory(args->memory_node, STARPU_CUDA_WORKER, args->devid, args->config);
+	_starpu_memory_manager_set_global_memory_size(args->memory_node, _starpu_cuda_get_global_mem_size(devid));
 
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
 	args->status = STATUS_UNKNOWN;
 
+	float size = (float) global_mem[devid] / (1<<30);
 #ifdef STARPU_SIMGRID
 	const char *devname = "Simgrid";
-	snprintf(args->name, sizeof(args->name), "CUDA %u (%s TODO GiB)", devid, devname);
 #else
 	/* get the device's name */
 	char devname[128];
 	strncpy(devname, props[devid].name, 128);
-	float size = (float) props[devid].totalGlobalMem / (1<<30);
+#endif
 
-#ifdef STARPU_HAVE_BUSID
-#ifdef STARPU_HAVE_DOMAINID
+#if defined(STARPU_HAVE_BUSID) && !defined(STARPU_SIMGRID)
+#if defined(STARPU_HAVE_DOMAINID) && !defined(STARPU_SIMGRID)
 	if (props[devid].pciDomainID)
 		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %04x:%02x:%02x.0)", devid, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
 	else
@@ -414,7 +419,6 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %02x:%02x.0)", devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
 #else
 	snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB)", devid, devname, size);
-#endif
 #endif
 	snprintf(args->short_name, sizeof(args->short_name), "CUDA %u", devid);
 	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
@@ -568,7 +572,9 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
 	printf("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ABORT();
 }
+#endif /* STARPU_USE_CUDA */
 
+#ifdef STARPU_USE_CUDA
 int
 starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 			    void *dst_ptr, unsigned dst_node,
@@ -636,6 +642,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 
 	return -EAGAIN;
 }
+#endif /* STARPU_USE_CUDA */
 
 int _starpu_run_cuda(struct starpu_driver *d)
 {
@@ -659,5 +666,3 @@ int _starpu_run_cuda(struct starpu_driver *d)
 
 	return 0;
 }
-
-#endif /* STARPU_USE_CUDA */

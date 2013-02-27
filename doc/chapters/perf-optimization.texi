@@ -228,7 +228,7 @@ int workerids[3] = @{1, 3, 10@};
 int id_ctx = starpu_sched_ctx_create("heft", workerids, 3, "my_ctx");
 
 /* @b{let StarPU know that the folowing tasks will be submitted to this context} */
-starpu_task_set_context(id);
+starpu_sched_ctx_set_task_context(id);
 
 /* @b{submit the task to StarPU} */
 starpu_task_submit(task);
@@ -547,6 +547,11 @@ The number of devices can be chosen as usual with @code{STARPU_NCPU},
 @code{STARPU_NCUDA}, and @code{STARPU_NOPENCL}.  For now, only the number of
 cpus can be arbitrarily chosen. The number of CUDA and OpenCL devices have to be
 lower than the real number on the current machine.
+
+The amount of simulated GPU memory is for now unbound by default, but
+it can be chosen by hand through the @code{STARPU_LIMIT_CUDA_MEM},
+@code{STARPU_LIMIT_CUDA_devid_MEM}, @code{STARPU_LIMIT_OPENCL_MEM}, and
+@code{STARPU_LIMIT_OPENCL_devid_MEM} environment variables.
 
 The Simgrid default stack size is small; to increase it use the
 parameter @code{--cfg=contexts/stack_size}, for example:

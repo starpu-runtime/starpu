@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -102,6 +102,8 @@ struct starpu_perfmodel_history_entry
 #else
 	size_t size; /* in bytes */
 #endif
+
+	double flops; /* Provided by the application */
 };
 
 struct starpu_perfmodel_history_list
@@ -211,6 +213,10 @@ void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct star
 
 void starpu_bus_print_bandwidth(FILE *f);
 void starpu_bus_print_affinity(FILE *f);
+
+/* use bw & latency to compute the velocity of resources*/
+double starpu_get_bandwidth_RAM_CUDA(unsigned cudadev);
+double starpu_get_latency_RAM_CUDA(unsigned cudadev);
 
 #ifdef __cplusplus
 }

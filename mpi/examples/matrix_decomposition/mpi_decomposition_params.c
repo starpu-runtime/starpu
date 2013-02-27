@@ -25,8 +25,8 @@ unsigned nblocks = 16;
 unsigned nbigblocks = 2;
 unsigned noprio = 0;
 unsigned display = 0;
-unsigned dblockx = -1;
-unsigned dblocky = -1;
+int dblockx = -1;
+int dblocky = -1;
 
 void parse_args(int argc, char **argv, int nodes)
 {

@@ -32,10 +32,12 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 	int *sched_ctxs = in_sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 	
 	int w,s;
-	struct sched_ctx_hypervisor_wrapper* sc_w = NULL;
 
+	struct sched_ctx_hypervisor_wrapper* sc_w = NULL;
+	double total_flops = 0.0;
 	for(s = 0; s < ns; s++)
 	{
+		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]);
 		for(w = 0; w < nw; w++)
 		{
 			w_in_s[s][w] = 0.0;
@@ -44,7 +46,6 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 			draft_flops_on_w[s][w] = 0.0;
 			int worker = workers == NULL ? w : workers[w];
 
-			sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]);
 			velocity[s][w] = _get_velocity_per_worker(sc_w, worker);
 			if(velocity[s][w] == -1.0)
 			{
@@ -53,21 +54,20 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 				if(velocity[s][w] == -1.0)
 					velocity[s][w] = sc_w->ref_velocity[worker];
 				if(velocity[s][w] == -1.0)
-					velocity[s][w] = arch == STARPU_CPU_WORKER ? 5.0 : 150.0;
+					velocity[s][w] = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
 			}
 			
-			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
+//			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
 		}
 		struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
 		flops[s] = config->ispeed_ctx_sample/1000000000; /* in gflops */
 	}
-
-
+	
 	/* take the exec time of the slowest ctx 
 	   as starting point and then try to minimize it
 	   as increasing it a little for the faster ctxs */
 	double tmax = _get_slowest_ctx_exec_time();
-	double smallest_tmax = _get_fastest_ctx_exec_time(); //tmax - 0.5*tmax;
+ 	double smallest_tmax = _get_fastest_ctx_exec_time(); //tmax - 0.5*tmax; 
 //	printf("tmax %lf smallest %lf\n", tmax, smallest_tmax);
 
 	double res = 1.0;
@@ -413,8 +413,8 @@ static void ispeed_lp_end_ctx(unsigned sched_ctx)
 {
 	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 	int worker;
-	for(worker = 0; worker < 12; worker++)
-		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_velocity[worker]);
+/* 	for(worker = 0; worker < 12; worker++) */
+/* 		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_velocity[worker]); */
 
 	return;
 }

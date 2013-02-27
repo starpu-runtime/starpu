@@ -417,8 +417,20 @@ the @code{starpu_conf} structure passed to @code{starpu_init} is set.
 
 @defvr {Environment variable} @code{STARPU_SINGLE_COMBINED_WORKER}
 If set, StarPU will create several workers which won't be able to work
-concurrently. It will create combined workers which size goes from 1 to the
-total number of CPU workers in the system.
+concurrently. It will by default create combined workers which size goes from 1
+to the total number of CPU workers in the system. @code{STARPU_MIN_WORKERSIZE}
+and @code{STARPU_MAX_WORKERSIZE} can be used to change this default.
+@end defvr
+
+@defvr {Environment variable} @code{STARPU_MIN_WORKERSIZE}
+When @code{STARPU_SINGLE_COMBINED_WORKER} is set, @code{STARPU_MIN_WORKERSIZE}
+permits to specify the minimum size of the combined workers (instead of the default 1)
+@end defvr
+
+@defvr {Environment variable} @code{STARPU_MAX_WORKERSIZE}
+When @code{STARPU_SINGLE_COMBINED_WORKER} is set, @code{STARPU_MAX_WORKERSIZE}
+permits to specify the minimum size of the combined workers (instead of the
+number of CPU workers in the system)
 @end defvr
 
 @defvr {Environment variable} STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER

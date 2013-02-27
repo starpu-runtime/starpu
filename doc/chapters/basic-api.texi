@@ -1849,6 +1849,11 @@ A pointer to the next task. This should only be used by StarPU.
 This is only used for tasks that use multiformat handle. This should only be
 used by StarPU.
 
+@item @code{double flops}
+This can be set to the number of floating points operations that the task
+will have to achieve. This is useful for easily getting GFlops curves from
+@code{starpu_perfmodel_plot}, and for the hypervisor load balancing.
+
 @item @code{void *starpu_private}
 This is private to StarPU, do not modify. If the task is allocated by hand
 (without starpu_task_create), this field should be set to NULL.
@@ -1857,6 +1862,7 @@ This is private to StarPU, do not modify. If the task is allocated by hand
 This field is set when initializing a task. It prevents a task from being
 submitted if it has not been properly initialized.
 @end table
+
 @end deftp
 
 @deftypefun void starpu_task_init ({struct starpu_task} *@var{task})
@@ -1937,6 +1943,18 @@ functions and callbacks, provided that the @code{synchronous} field of the
 @deftypefun int starpu_task_wait_for_all (void)
 This function blocks until all the tasks that were submitted are terminated. It
 does not destroy these tasks.
+@end deftypefun
+
+@deftypefun int starpu_task_nready (void)
+@end deftypefun
+
+@deftypefun int starpu_task_nsubmitted (void)
+Return the number of submitted tasks which have not completed yet.
+@end deftypefun
+
+@deftypefun int starpu_task_nready (void)
+Return the number of submitted tasks which are ready for execution are already
+executing. It thus does not include tasks waiting for dependencies.
 @end deftypefun
 
 @deftypefun {struct starpu_task *} starpu_task_get_current (void)
@@ -2489,10 +2507,6 @@ This function returns a pointer to device properties for worker @var{workerid}
 (assumed to be a CUDA worker).
 @end deftypefun
 
-@deftypefun size_t starpu_cuda_get_global_mem_size (unsigned @var{devid})
-Return the size of the global memory of CUDA device @var{devid}.
-@end deftypefun
-
 @deftypefun void starpu_cuda_report_error ({const char *}@var{func}, {const char *}@var{file}, int @var{line}, cudaError_t @var{status})
 Report a CUDA error.
 @end deftypefun
@@ -2559,10 +2573,6 @@ OpenCL as shown in @ref{Full source code for the 'Scaling a Vector' example}.
 
 @node Writing OpenCL kernels
 @subsection Writing OpenCL kernels
-
-@deftypefun size_t starpu_opencl_get_global_mem_size (int @var{devid})
-Return the size of global device memory in bytes.
-@end deftypefun
 
 @deftypefun void starpu_opencl_get_context (int @var{devid}, {cl_context *}@var{context})
 Places the OpenCL context of the device designated by @var{devid} into @var{context}.
@@ -2780,7 +2790,7 @@ otherwise. The integer pointed to by @var{ret} is set to -EAGAIN if the asynchro
 was successful, or to 0 if event was NULL.
 @end deftypefun
 
-@deftypefun cl_int starpu_opencl_copy_async_sync (cl_mem @var{src}, unsigned @var{src_node}, size_t @var{src_offset}, cl_mem @var{dst}, unsigned @var{dst_node}, size_t @var{dst_offset}, size_t @var{size}, {cl_event *}@var{event})
+@deftypefun cl_int starpu_opencl_copy_async_sync (uintptr_t @var{src}, size_t @var{src_offset}, unsigned @var{src_node}, uintptr_t @var{dst}, size_t @var{dst_offset}, unsigned @var{dst_node}, size_t @var{size}, {cl_event *}@var{event})
 Copy @var{size} bytes from byte offset @var{src_offset} of
 @var{src} on @var{src_node} to byte offset @var{dst_offset} of @var{dst} on
 @var{dst_node}. if @var{event} is NULL, the copy is synchronous, i.e the queue is

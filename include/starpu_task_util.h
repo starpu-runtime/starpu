@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -45,7 +45,7 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_DATA_ARRAY       (1<<11) /* Array of data handles */
 #define STARPU_TAG       (1<<12) /* Tag */
 #define STARPU_HYPERVISOR_TAG	(1<<13)	/* Used to tag a task after whose execution we'll execute  a code */
-#define STARPU_HYPERVISOR_FLOPS	(1<<14)	/* Used to specify the number of flops needed to be executed by a task */
+#define STARPU_FLOPS	(1<<14)	/* Used to specify the number of flops needed to be executed by a task */
 
 /* Wrapper to create a task. */
 int starpu_insert_task(struct starpu_codelet *cl, ...);

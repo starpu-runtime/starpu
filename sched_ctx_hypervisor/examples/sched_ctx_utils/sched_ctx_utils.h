@@ -30,3 +30,4 @@ void end_contexts(void);
 void start_2benchs(void (*bench)(float *mat, unsigned size, unsigned nblocks));
 void start_1stbench(void (*bench)(float *mat, unsigned size, unsigned nblocks));
 void start_2ndbench(void (*bench)(float *mat, unsigned size, unsigned nblocks));
+void set_hypervisor_conf(int event, int task_tag);

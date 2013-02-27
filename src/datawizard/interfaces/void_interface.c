@@ -25,36 +25,11 @@
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
 
-static int dummy_copy(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-#ifdef STARPU_USE_CUDA
-static int dummy_cuda_copy_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
-#endif
-#ifdef STARPU_USE_OPENCL
-static int dummy_opencl_copy_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
-#endif
+static int dummy_copy(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
-static struct starpu_data_copy_methods void_copy_data_methods_s =
+static const struct starpu_data_copy_methods void_copy_data_methods_s =
 {
-	.ram_to_ram = dummy_copy,
-#ifdef STARPU_USE_CUDA
-	.ram_to_cuda = dummy_copy,
-	.cuda_to_ram = dummy_copy,
-	.cuda_to_cuda = dummy_copy,
-	.ram_to_cuda_async = dummy_cuda_copy_async,
-	.cuda_to_ram_async = dummy_cuda_copy_async,
-	.cuda_to_cuda_async = dummy_cuda_copy_async,
-#else
-#ifdef STARPU_SIMGRID
-	/* Enable GPU-GPU transfers in simgrid */
-	.cuda_to_cuda_async = 1,
-#endif
-#endif
-#ifdef STARPU_USE_OPENCL
-	.ram_to_opencl = dummy_copy,
-	.opencl_to_ram = dummy_copy,
-        .ram_to_opencl_async = dummy_opencl_copy_async,
-	.opencl_to_ram_async = dummy_opencl_copy_async,
-#endif
+	.any_to_any = dummy_copy,
 };
 
 static void register_void_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
@@ -135,29 +110,8 @@ static void free_void_buffer_on_node(void *data_interface STARPU_ATTRIBUTE_UNUSE
 static int dummy_copy(void *src_interface STARPU_ATTRIBUTE_UNUSED,
 			unsigned src_node STARPU_ATTRIBUTE_UNUSED,
 			void *dst_interface STARPU_ATTRIBUTE_UNUSED,
-			unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
+			unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
+			void *async_data STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
-
-#ifdef STARPU_USE_CUDA
-static int dummy_cuda_copy_async(void *src_interface STARPU_ATTRIBUTE_UNUSED,
-				unsigned src_node STARPU_ATTRIBUTE_UNUSED,
-				void *dst_interface STARPU_ATTRIBUTE_UNUSED,
-				unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
-				cudaStream_t stream __attribute__ ((unused)))
-{
-	return 0;
-}
-#endif // STARPU_USE_CUDA
-
-#ifdef STARPU_USE_OPENCL
-static int dummy_opencl_copy_async(void *src_interface STARPU_ATTRIBUTE_UNUSED,
-					unsigned src_node STARPU_ATTRIBUTE_UNUSED,
-					void *dst_interface STARPU_ATTRIBUTE_UNUSED,
-					unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
-					cl_event *event STARPU_ATTRIBUTE_UNUSED)
-{
-	return 0;
-}
-#endif // STARPU_USE_OPENCL

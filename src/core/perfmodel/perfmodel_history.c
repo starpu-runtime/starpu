@@ -180,7 +180,7 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 
 static void dump_history_entry(FILE *f, struct starpu_perfmodel_history_entry *entry)
 {
-	fprintf(f, "%08x\t%-15lu\t%-15le\t%-15le\t%-15le\t%-15le\t%u\n", entry->footprint, (unsigned long) entry->size, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
+	fprintf(f, "%08x\t%-15lu\t%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%u\n", entry->footprint, (unsigned long) entry->size, entry->flops, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
 
 static void scan_history_entry(FILE *f, struct starpu_perfmodel_history_entry *entry)
@@ -192,28 +192,36 @@ static void scan_history_entry(FILE *f, struct starpu_perfmodel_history_entry *e
 	/* In case entry is NULL, we just drop these values */
 	unsigned nsample;
 	uint32_t footprint;
-#ifdef STARPU_HAVE_WINDOWS
-	unsigned size; /* in bytes */
-#else
-	size_t size; /* in bytes */
-#endif
+	unsigned long size; /* in bytes */
+	double flops;
 	double mean;
 	double deviation;
 	double sum;
 	double sum2;
 
+	char line[256];
+	char *ret;
+
+	ret = fgets(line, sizeof(line), f);
+	STARPU_ASSERT(ret);
+	STARPU_ASSERT(strchr(line, '\n'));
+
 	/* Read the values from the file */
-	res = fscanf(f, "%x\t%"
-#ifndef STARPU_HAVE_WINDOWS
-	"z"
-#endif
-	"u\t%le\t%le\t%le\t%le\t%u\n", &footprint, &size, &mean, &deviation, &sum, &sum2, &nsample);
-	STARPU_ASSERT_MSG(res == 7, "Incorrect performance model file");
+	res = sscanf(line, "%x\t%lu\t%le\t%le\t%le\t%le\t%le\t%u", &footprint, &size, &flops, &mean, &deviation, &sum, &sum2, &nsample);
+
+	if (res != 8)
+	{
+		flops = 0.;
+		/* Read the values from the file */
+		res = sscanf(line, "%x\t%lu\t%le\t%le\t%le\t%le\t%u", &footprint, &size, &mean, &deviation, &sum, &sum2, &nsample);
+		STARPU_ASSERT_MSG(res == 7, "Incorrect performance model file");
+	}
 
 	if (entry)
 	{
 		entry->footprint = footprint;
 		entry->size = size;
+		entry->flops = flops;
 		entry->mean = mean;
 		entry->deviation = deviation;
 		entry->sum = sum;
@@ -393,7 +401,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, un
 	/* Dump the history into the model file in case it is necessary */
 	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 	{
-		fprintf(f, "# hash\t\tsize\t\tmean\t\tdev\t\tsum\t\tsum2\t\tn\n");
+		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean\t\tdev\t\tsum\t\tsum2\t\tn\n");
 		ptr = per_arch_model->list;
 		while (ptr)
 		{
@@ -956,7 +964,7 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 			char *symbol2 = strdup(symbol);
 			symbol2[dot-symbol] = '\0';
 			int ret;
-			fprintf(stderr,"note: loading history from %s instead of %s\n", symbol2, symbol);
+			_STARPU_DISP("note: loading history from %s instead of %s\n", symbol2, symbol);
 			ret = starpu_perfmodel_load_symbol(symbol2,model);
 			free(symbol2);
 			return ret;
@@ -1152,6 +1160,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				entry->sum2 = measured*measured;
 
 				entry->size = _starpu_job_get_data_size(model, arch, nimpl, j);
+				entry->flops = j->task->flops;
 
 				entry->footprint = key;
 				entry->nsample = 1;
@@ -1168,6 +1177,14 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				unsigned n = entry->nsample;
 				entry->mean = entry->sum / n;
 				entry->deviation = sqrt((entry->sum2 - (entry->sum*entry->sum)/n)/n);
+				if (j->task->flops != 0.)
+				{
+					if (entry->flops == 0.)
+						entry->flops = j->task->flops;
+					else if (entry->flops != j->task->flops)
+						/* Incoherent flops! forget about trying to record flops */
+						entry->flops = NAN;
+				}
 			}
 
 			STARPU_ASSERT(entry);

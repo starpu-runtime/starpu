@@ -73,10 +73,15 @@ struct starpu_data_copy_methods
 	int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 	int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 #endif
+
+	int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 };
+
+int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data);
 
 enum starpu_data_interface_id
 {
+	STARPU_UNKNOWN_INTERFACE_ID = -1,
 	STARPU_MATRIX_INTERFACE_ID=0,
 	STARPU_BLOCK_INTERFACE_ID=1,
 	STARPU_VECTOR_INTERFACE_ID=2,
@@ -99,7 +104,7 @@ struct starpu_data_interface_ops
 	/* Free data of the interface on a given node. */
 	void (*free_data_on_node)(void *data_interface, unsigned node);
 	/* ram/cuda/opencl synchronous and asynchronous transfer methods */
-	struct starpu_data_copy_methods *copy_methods;
+	const struct starpu_data_copy_methods *copy_methods;
 	/* Return the current pointer (if any) for the handle on the given node. */
 	void * (*handle_to_pointer)(starpu_data_handle_t handle, unsigned node);
 	/* Return an estimation of the size of data, for performance models */

@@ -38,7 +38,7 @@ The arguments following the codelets can be of the following types:
 @item
 the specific values @code{STARPU_VALUE}, @code{STARPU_CALLBACK},
 @code{STARPU_CALLBACK_ARG}, @code{STARPU_CALLBACK_WITH_ARG},
-@code{STARPU_PRIORITY}, @code{STARPU_TAG}, followed by the appropriated objects
+@code{STARPU_PRIORITY}, @code{STARPU_TAG}, @code{STARPU_FLOPS}, followed by the appropriated objects
 as defined below.
 @end itemize
 
@@ -83,6 +83,12 @@ followed by a integer defining a priority level
 @defmac STARPU_TAG
 this macro is used when calling @code{starpu_insert_task}, and must be
 followed by a tag.
+@end defmac
+
+@defmac STARPU_FLOPS
+this macro is used when calling @code{starpu_insert_task}, and must be followed
+by an amount of floating point operations, as a double. The user may have to
+explicitly cast into double, otherwise parameter passing will not work.
 @end defmac
 
 @deftypefun void starpu_codelet_pack_args ({char **}@var{arg_buffer}, {size_t *}@var{arg_buffer_size}, ...)
@@ -164,24 +170,6 @@ to the world size. Communications statistics must be enabled
 
 @node Communication
 @subsection Communication
-
-The standard point to point communications of MPI have been
-implemented. The semantic is similar to the MPI one, but adapted to
-the DSM provided by StarPU. A MPI request will only be submitted when
-the data is available in the main memory of the node submitting the
-request.
-
-There is two types of asynchronous communications: the classic
-asynchronous communications and the detached communications. The
-classic asynchronous communications (@code{starpu_mpi_isend} and
-@code{starpu_mpi_irecv}) need to be followed by a call to
-@code{starpu_mpi_wait} or to @code{starpu_mpi_test} to wait for or to
-test the completion of the communication. Waiting for or testing the
-completion of detached communications is not possible, this is done
-internally by StarPU-MPI, on completion, the resources are
-automatically released. This mechanism is similar to the pthread
-detach state attribute which determines whether a thread will be
-created in a joinable or a detached state.
 
 @deftypefun int starpu_mpi_send (starpu_data_handle_t @var{data_handle}, int @var{dest}, int @var{mpi_tag}, MPI_Comm @var{comm})
 Performs a standard-mode, blocking send of @var{data_handle} to the
@@ -354,50 +342,55 @@ Unpack the data handle from the contiguous buffer at the address @code{ptr} of s
 @end deftp
 
 @deftp {Data Type} {struct starpu_data_copy_methods}
-Defines the per-interface methods.
+Defines the per-interface methods. If the @code{any_to_any} method is provided,
+it will be used by default if no more specific method is provided. It can still
+be useful to provide more specific method in case of e.g. available particular
+CUDA or OpenCL support.
+
 @table @asis
-@item @code{int @{ram,cuda,opencl@}_to_@{ram,cuda,opencl@}(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
+@item @code{int (*@{ram,cuda,opencl@}_to_@{ram,cuda,opencl@})(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
 These 12 functions define how to copy data from the @var{src_interface}
 interface on the @var{src_node} node to the @var{dst_interface} interface
 on the @var{dst_node} node. They return 0 on success.
 
-@item @code{int (*ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (in RAM) to the @var{dst_interface} interface on the
-@var{dst_node} node (on a CUDA device), using the given @var{stream}. Return 0
-on success.
+@item @code{int (*@{ram,cuda@}_to_@{ram,cuda@}_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)}
+These 3 functions (@code{ram_to_ram} is not among these) define how to copy
+data from the @var{src_interface} interface on the @var{src_node} node to the
+@var{dst_interface} interface on the @var{dst_node} node, using the given
+@var{stream}. Must return 0 if the transfer was actually completed completely
+synchronously, or -EAGAIN if at least some transfers are still ongoing and
+should be awaited for by the core.
 
-@item @code{int (*cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (on a CUDA device) to the @var{dst_interface} interface on the
-@var{dst_node} node (in RAM), using the given @var{stream}. Return 0
-on success.
+@item @code{int (*@{ram,opencl@}_to_@{ram,opencl@}_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event)}
+These 3 functions (@code{ram_to_ram} is not among them) define how to copy
+data from the @var{src_interface} interface on the @var{src_node} node to the
+@var{dst_interface} interface on the @var{dst_node} node, by recording in
+@var{event}, a pointer to a cl_event, the event of the last submitted transfer.
+Must return 0 if the transfer was actually completed completely synchronously,
+or -EAGAIN if at least some transfers are still ongoing and should be awaited
+for by the core.
 
-@item @code{int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)}
+@item @code{int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)}
 Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (on a CUDA device) to the @var{dst_interface} interface on
-the @var{dst_node} node (on another CUDA device), using the given @var{stream}.
-Return 0 on success.
+@var{src_node} node to the @var{dst_interface} interface on the @var{dst_node}
+node. This is meant to be implemented through the @var{starpu_interface_copy}
+helper, to which @var{async_data} should be passed as such, and will be used to
+manage asynchronicity. This must return -EAGAIN if any of the
+@var{starpu_interface_copy} calls has returned -EAGAIN (i.e. at least some
+transfer is still ongoing), and return 0 otherwise.
 
-@item @code{int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event)}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (in RAM) to the @var{dst_interface} interface on the
-@var{dst_node} node (on an OpenCL device), using @var{event}, a pointer to a
-cl_event. Return 0 on success.
-
-@item @code{int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event)}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (on an OpenCL device) to the @var{dst_interface} interface
-on the @var{dst_node} node (in RAM), using the given @var{event}, a pointer to
-a cl_event. Return 0 on success.
-
-@item @code{int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event)}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node (on an OpenCL device) to the @var{dst_interface} interface
-on the @var{dst_node} node (on another OpenCL device), using the given
-@var{event}, a pointer to a cl_event. Return 0 on success.
 @end table
 @end deftp
+
+@deftypefun int starpu_interface_copy (uintptr_t @var{src}, size_t @var{src_offset}, unsigned @var{src_node}, uintptr_t @var{dst}, size_t @var{dst_offset}, unsigned @var{dst_node}, size_t @var{size}, {void *}@var{async_data})
+Copy @var{size} bytes from byte offset @var{src_offset} of @var{src} on
+@var{src_node} to byte offset @var{dst_offset} of @var{dst} on @var{dst_node}.
+This is to be used in the @var{any_to_any} copy method, which is provided with
+the @var{async_data} to be pased to @var{starpu_interface_copy}. this returns
+-EAGAIN if the transfer is still ongoing, or 0 if the transfer is already
+completed.
+@end deftypefun
+
 
 @deftypefun uint32_t starpu_crc32_be_n ({void *}@var{input}, size_t @var{n}, uint32_t @var{inputcrc})
 Compute the CRC of a byte buffer seeded by the inputcrc "current
@@ -457,7 +450,7 @@ void starpu_complex_data_register(starpu_data_handle_t *handle,
                 .nx = nx
         @};
 
-        if (interface_complex_ops.interfaceid == -1)
+        if (interface_complex_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
         @{
                 interface_complex_ops.interfaceid = starpu_data_interface_get_next_id();
         @}
@@ -483,7 +476,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
         .copy_methods = &complex_copy_methods,
         .get_size = complex_get_size,
         .footprint = complex_footprint,
-        .interfaceid = -1,
+        .interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
         .interface_size = sizeof(struct starpu_complex_interface),
 @};
 @end smallexample
@@ -837,7 +830,7 @@ The number of workerids
 @item @code{pthread_key_t cursor_key} (optional)
 The cursor needed to iterate the collection (depending on the data structure)
 @item @code{int type}
-The type of structure (currently STARPU_WORKER_LIST is the only one available)
+The type of structure (currently STARPU_SCHED_CTX_WORKER_LIST is the only one available)
 @item @code{unsigned (*has_next)(struct starpu_sched_ctx_worker_collection *workers)}
 Checks if there is a next worker
 @item @code{int (*get_next)(struct starpu_sched_ctx_worker_collection *workers)}
@@ -870,15 +863,15 @@ Delete the worker collection of the specified scheduling context
 Return the worker collection managed by the indicated context
 @end deftypefun
 
-@deftypefun pthread_mutex_t* starpu_get_changing_ctx_mutex (unsigned @var{sched_ctx_id})
+@deftypefun pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex (unsigned @var{sched_ctx_id})
 TODO
 @end deftypefun
 
-@deftypefun void starpu_task_set_context (unsigned *@var{sched_ctx_id})
+@deftypefun void starpu_sched_ctx_set_context (unsigned *@var{sched_ctx_id})
 Set the scheduling context the subsequent tasks will be submitted to
 @end deftypefun
 
-@deftypefun unsigned starpu_task_get_context (void)
+@deftypefun unsigned starpu_sched_ctx_get_context (void)
 Return the scheduling context the tasks are currently submitted to
 @end deftypefun
 

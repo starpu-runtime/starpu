@@ -81,6 +81,21 @@ AC_C_RESTRICT
 # Check if bash is available
 AC_CHECK_PROGS([BASH], [bash])
 
+# Check whether subversion is installed
+AC_PATH_PROG(svnversioncommand, svnversion)
+
+# use svnversion to record the current repository revision only if
+# subversion is installed and we are in a working copy
+if test "$svnversioncommand" = "" || test `LC_ALL=C $svnversioncommand -n $srcdir` = "exported" ; then
+   if test -f $srcdir/STARPU-REVISION ; then
+      cp $srcdir/STARPU-REVISION .
+   else
+      echo "unknown" > ./STARPU-REVISION
+   fi
+else
+   LC_ALL=C svnversion $srcdir > ./STARPU-REVISION
+fi
+
 AC_PATH_PROGS([STARPU_MS_LIB], [lib])
 AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])
@@ -1327,11 +1342,16 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 IS_SUPPORTED_CFLAG(-W)
 IS_SUPPORTED_CFLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Wextra)
-AC_SUBST(GLOBAL_AM_CFLAGS)
+IS_SUPPORTED_CFLAG(-Werror=implicit)
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
+	IS_SUPPORTED_CFLAG(-Wunused)
+	IS_SUPPORTED_CFLAG(-Wundef)
+	IS_SUPPORTED_CFLAG(-Wshadow)
 fi
+
+AC_SUBST(GLOBAL_AM_CFLAGS)
 
 # Same value as Automake's, for use in other places.
 pkglibdir="\${libdir}/$PACKAGE"

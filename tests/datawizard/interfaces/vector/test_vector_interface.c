@@ -90,7 +90,7 @@ static void test_vector_cpu_func(void *buffers[], void *args)
 	unsigned int i;
 	for (i = 0; i < n; i++)
 	{
-		if (val[i] != i*factor)
+		if (val[i] != (int)i*factor)
 		{
 			vector_config.copy_failed = FAILURE;
 			return;

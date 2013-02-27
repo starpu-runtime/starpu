@@ -126,7 +126,7 @@ test_csr_cpu_func(void *buffers[], void *args)
 	val = (int *) STARPU_CSR_GET_NZVAL(buffers[0]);
 	factor = *(int *) args;
 
-	for (i = 0; i < nnz; i++)
+	for (i = 0; i < (int)nnz; i++)
 	{
 		if (val[i] != (i+1) * factor)
 		{

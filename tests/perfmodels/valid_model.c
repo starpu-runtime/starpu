@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,7 +42,7 @@ static struct starpu_perfmodel hb_model =
 };
 #endif
 
-static struct starpu_codelet codelet =
+static struct starpu_codelet mycodelet =
 {
 	.cuda_funcs = {func, NULL},
 	.opencl_funcs = {func, NULL},
@@ -116,11 +116,11 @@ int main(int argc, char **argv)
 	int ret;
 
 	/* Use a linear regression model */
-	ret = submit(&codelet, &rb_model);
+	ret = submit(&mycodelet, &rb_model);
 	if (ret) return ret;
 
 	/* Use a non-linear regression model */
-	ret = submit(&codelet, &nlrb_model);
+	ret = submit(&mycodelet, &nlrb_model);
 	if (ret) return ret;
 
 #ifdef STARPU_DEVEL
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 #endif
 #if 0
 	/* Use a history model */
-	ret = submit(&codelet, &hb_model);
+	ret = submit(&mycodelet, &hb_model);
 	if (ret) return ret;
 #endif
 

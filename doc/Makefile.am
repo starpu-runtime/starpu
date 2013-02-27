@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2011  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # Permission is granted to copy, distribute and/or modify this document
 # under the terms of the GNU Free Documentation License, Version 1.3
@@ -12,7 +12,7 @@
 
 info_TEXINFOS = starpu.texi
 
-starpu_TEXINFOS = chapters/advanced-api.texi \
+chapters =	chapters/advanced-api.texi \
 	chapters/benchmarks.texi \
 	chapters/configuration.texi \
 	chapters/perf-feedback.texi \
@@ -35,8 +35,11 @@ starpu_TEXINFOS = chapters/advanced-api.texi \
 	chapters/using.texi \
 	chapters/vector_scal_opencl.texi \
 	chapters/socl.texi \
-	chapters/version.texi \
 	chapters/sched_ctx_hypervisor.texi
+
+starpu_TEXINFOS = 		\
+	chapters/version.texi 	\
+	$(chapters)
 
 MAINTAINERCLEANFILES = starpu.pdf starpu.html
 
@@ -50,7 +53,7 @@ AM_MAKEINFOHTMLFLAGS = --css-include=$(top_srcdir)/doc/starpu.css --no-headers -
 uninstall-local:
 	$(RM) $(DESTDIR)$(infodir)/dir
 
-chapters/version.texi:
+chapters/version.texi: $(chapters)
 	@-for f in $(starpu_TEXINFOS) ; do \
                 if test -f $(top_srcdir)/doc/$$f ; then stat --format=%Y $(top_srcdir)/doc/$$f 2>/dev/null ; fi \
         done | sort -r | head -1 > timestamp

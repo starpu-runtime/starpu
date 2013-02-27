@@ -443,12 +443,12 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	_STARPU_MPI_DEBUG("Test request %p - mpitag %d - TYPE %s %d\n", &req->request, req->mpi_tag, _starpu_mpi_request_type(req->request_type), req->srcdst);
 
 	TRACE_MPI_UTESTING_BEGIN(req->srcdst, req->mpi_tag);
-	
+
 	req->ret = MPI_Test(&req->request, testing_req->flag, testing_req->status);
 	STARPU_ASSERT(req->ret == MPI_SUCCESS);
 
 	TRACE_MPI_UTESTING_END(req->srcdst, req->mpi_tag);
-	
+
 	if (*testing_req->flag)
 	{
 		testing_req->ret = req->ret;
@@ -841,6 +841,17 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_starpu_mpi_print_thread_level_support(provided, " has been initialized with");
 	}
 
+	{
+	     int rank, worldsize;
+	     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	     MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
+	     TRACE_MPI_START(rank, worldsize);
+#ifdef STARPU_USE_FXT
+	     starpu_set_profiling_id(rank);
+#endif //STARPU_USE_FXT
+	}
+
+
 	/* notify the main thread that the progression thread is ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	running = 1;
@@ -862,7 +873,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			_STARPU_MPI_DEBUG("NO MORE REQUESTS TO HANDLE\n");
 
 			TRACE_MPI_SLEEP_BEGIN();
-			
+
 			if (barrier_running)
 				/* Tell mpi_barrier */
 				_STARPU_PTHREAD_COND_SIGNAL(&cond_finished);
@@ -967,23 +978,12 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 	argc_argv->argc = argc;
 	argc_argv->argv = argv;
 
-	int rank, worldsize;
-
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
-
-	TRACE_MPI_START(rank,worldsize);
-
 	_STARPU_PTHREAD_CREATE("MPI progress", &progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	while (!running)
 		_STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-
-#ifdef STARPU_USE_FXT
-	starpu_set_profiling_id(rank);
-#endif //STARPU_USE_FXT
 
 #ifdef USE_STARPU_ACTIVITY
 	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
@@ -1053,4 +1053,3 @@ int starpu_mpi_shutdown(void)
 
 	return 0;
 }
-

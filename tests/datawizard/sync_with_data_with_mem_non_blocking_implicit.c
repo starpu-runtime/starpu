@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,9 +27,9 @@
 #define NITER_DEF	128
 #define VECTORSIZE_DEF	1024
 
-static int nbuffers = NBUFFERS_DEF;
-static int niter = NITER_DEF;
-static int vectorsize = VECTORSIZE_DEF;
+static unsigned nbuffers = NBUFFERS_DEF;
+static unsigned niter = NITER_DEF;
+static unsigned vectorsize = VECTORSIZE_DEF;
 
 float *buffer[NBUFFERS_DEF];
 

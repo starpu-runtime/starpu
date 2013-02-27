@@ -56,8 +56,8 @@ test_coo_cpu_func(void *buffers[], void *args)
 	int *values = (int *) STARPU_COO_GET_VALUES(buffers[0]);
 	unsigned size = STARPU_COO_GET_NVALUES(buffers[0]);
 
-	unsigned i;
-	for (i = 0; i < size; i++)
+	int i;
+	for (i = 0; i < (int)size; i++)
 	{
 		if (values[i] != i * factor)
 		{

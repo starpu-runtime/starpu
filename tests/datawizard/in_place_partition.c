@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	unsigned *foo;
 	starpu_data_handle_t handle;
 	int ret;
-	int n, i, size;
+	unsigned n, i, size;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 	{
 		if (foo[i] != i*2)
 		{
-			FPRINTF(stderr,"value %d is %u instead of %d\n", i, foo[i], 2*i);
+			FPRINTF(stderr,"value %u is %u instead of %u\n", i, foo[i], 2*i);
 			ret = EXIT_FAILURE;
 		}
 	}

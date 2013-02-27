@@ -287,9 +287,9 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 			int hypervisor_tag = va_arg(varg_list, int);
 			(*task)->hypervisor_tag = hypervisor_tag;
 		}
-		else if (arg_type==STARPU_HYPERVISOR_FLOPS)
+		else if (arg_type==STARPU_FLOPS)
 		{
-			int flops = va_arg(varg_list, int);
+			double flops = va_arg(varg_list, double);
 			(*task)->flops = flops;
 		}
 

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -75,7 +75,7 @@ struct ppm_image *file_to_ppm(char *filename)
 	ret = fread(ppm->data, sizeof(struct ppm_color), ppm->ncols*ppm->nlines, file);
 	STARPU_ASSERT(ret == ppm->ncols*ppm->nlines);
 
-	unsigned i;
+	int i;
 	for (i = 0; i < ppm->ncols*ppm->nlines; i++)
 	{
 /*		fprintf(stderr, "READ (index %d) -> r %d g %d b %d\n", i, ppm->data[i].r, ppm->data[i].g, ppm->data[i].b); */
@@ -121,7 +121,7 @@ void dummy_downscale(struct ppm_image *input_ppm, struct ppm_image *output_ppm)
 	struct ppm_color *in = input_ppm->data;
 	struct ppm_color *out = output_ppm->data;
 
-	unsigned line, col;
+	int line, col;
 	for (line = 0; line < output_ppm->nlines; line++)
 	{
 		for (col = 0; col < output_ppm->ncols; col++)

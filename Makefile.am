@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2012  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -91,7 +91,7 @@ all-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE)
 clean-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE) clean ; $(RM) Makefile
-	$(RM) starpu_top.1 starpu-top/starpu_top
+	$(RM) starpu-top/starpu_top.1 starpu-top/starpu_top
 # TODO: resources
 install-exec-local:
 	$(MKDIR_P) $(DESTDIR)$(bindir)
@@ -102,10 +102,10 @@ uninstall-local:
 	$(RM) starpu-top/Makefile
 
 if STARPU_HAVE_HELP2MAN
-starpu_top.1: starpu-top/starpu_top$(EXEEXT)
+starpu-top/starpu_top.1: starpu-top/starpu_top$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ starpu-top/starpu_top$(EXEEXT)
 dist_man1_MANS =\
-	starpu_top.1
+	starpu-top/starpu_top.1
 endif
 endif
 
@@ -114,8 +114,8 @@ txtdir = ${prefix}
 else
 txtdir = ${docdir}
 endif
-txt_DATA = AUTHORS COPYING.LGPL README
-EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION build-aux/svn2cl.xsl
+txt_DATA = AUTHORS COPYING.LGPL README STARPU-REVISION
+EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl
 
 include starpu-top/extradist
 

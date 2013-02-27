@@ -91,7 +91,7 @@ struct _starpu_sched_ctx
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	/* a structure containing a series of performance counters determining the resize procedure */
-	struct starpu_performance_counters *perf_counters;
+	struct starpu_sched_ctx_performance_counters *perf_counters;
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 };
 
@@ -139,7 +139,7 @@ void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker
 unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_id);
 
 #if defined(_MSC_VER) || defined(STARPU_SIMGRID)
-_starpu_pthread_mutex_t* starpu_get_changing_ctx_mutex(unsigned sched_ctx_id);
+_starpu_pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
 #endif
 
 #endif // __SCHED_CONTEXT_H__

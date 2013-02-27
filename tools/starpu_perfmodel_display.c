@@ -42,7 +42,7 @@ static char *parch = NULL;
 static unsigned pdisplay_specific_footprint;
 static uint32_t pspecific_footprint;
 
-static void usage(char **argv)
+static void usage()
 {
 	fprintf(stderr, "Display a given perfmodel\n\n");
 	fprintf(stderr, "Usage: %s [ options ]\n", PROGNAME);
@@ -109,7 +109,7 @@ static void parse_args(int argc, char **argv)
 			break;
 
 		case 'h':
-			usage(argv);
+			usage();
 			exit(EXIT_SUCCESS);
 
 		case 'v':
@@ -125,7 +125,7 @@ static void parse_args(int argc, char **argv)
 	if (!psymbol && !plist)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
-                usage(argv);
+                usage();
 		exit(-1);
 	}
 }

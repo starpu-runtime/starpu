@@ -25,12 +25,12 @@ static void cpu_task(void **buffers, void *args)
 {
 	int *numbers;
 	int i;
-	size_t size;
+	int size;
 
 	numbers = (int *) STARPU_VECTOR_GET_PTR(buffers[0]);
 	starpu_codelet_unpack_args (args, &size);
 
-	for(i = 0; i < size; i++)
+	for(i = 0; i < (int)size; i++)
 	{
 		numbers[i] = i;
 	}
@@ -41,12 +41,12 @@ static void cuda_task(void **buffers, void *args)
 {
 	int *numbers;
 	int i;
-	size_t size;
+	int size;
 
 	numbers = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 	starpu_codelet_unpack_args (args, &size);
 
-	for(i = 0; i < size; i++)
+	for(i = 0; i < (int)size; i++)
 	{
 		cudaMemcpyAsync(&numbers[i], &i, sizeof(int), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
 	}
@@ -98,10 +98,10 @@ static struct starpu_codelet cl =
 int main(int argc, char *argv[])
 {
 	int err, ret;
-	size_t i;
+	int i;
 	int *pointer;
 	starpu_data_handle_t handle;
-	static const size_t count = 123;
+	static const int count = 123;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

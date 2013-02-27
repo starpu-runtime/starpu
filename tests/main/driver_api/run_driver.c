@@ -181,9 +181,9 @@ test_opencl(void)
 	struct starpu_conf conf;
 
 	cl_int err;
-        cl_uint dummy;
+        cl_uint pdummy;
         cl_platform_id platform;
-        err = clGetPlatformIDs(1, &platform, &dummy);
+        err = clGetPlatformIDs(1, &platform, &pdummy);
         if (err != CL_SUCCESS)
 	{
 		FPRINTF(stderr, "WARNING: No OpenCL platform found\n");

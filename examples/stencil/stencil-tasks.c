@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,7 +40,7 @@
  */
 
 /* R(z) = R(z+d) = local, just call the save kernel */
-static void create_task_save_local(unsigned iter, unsigned z, int dir, unsigned local_rank)
+static void create_task_save_local(unsigned iter, unsigned z, int dir, int local_rank)
 {
 	struct starpu_task *save_task = starpu_task_create();
 	struct block_description *descr = get_block_description(z);
@@ -81,7 +81,7 @@ static void send_done(void *arg)
 
 #ifdef STARPU_USE_MPI
 /* Post MPI send */
-static void create_task_save_mpi_send(unsigned iter, unsigned z, int dir, unsigned local_rank)
+static void create_task_save_mpi_send(unsigned iter, unsigned z, int dir, int local_rank)
 {
 	struct block_description *descr = get_block_description(z);
 	STARPU_ASSERT(descr->mpi_node == local_rank);
@@ -108,7 +108,7 @@ static void recv_done(void *arg)
 }
 
 /* Post MPI recv */
-static void create_task_save_mpi_recv(unsigned iter, unsigned z, int dir, unsigned local_rank)
+static void create_task_save_mpi_recv(unsigned iter, unsigned z, int dir, int local_rank)
 {
 	struct block_description *descr = get_block_description(z);
 	STARPU_ASSERT(descr->mpi_node != local_rank);
@@ -129,10 +129,10 @@ static void create_task_save_mpi_recv(unsigned iter, unsigned z, int dir, unsign
 /*
  * Schedule saving boundaries of blocks to communication buffers
  */
-void create_task_save(unsigned iter, unsigned z, int dir, unsigned local_rank)
+void create_task_save(unsigned iter, unsigned z, int dir, int local_rank)
 {
-	unsigned node_z = get_block_mpi_node(z);
-	unsigned node_z_and_d = get_block_mpi_node(z+dir);
+	int node_z = get_block_mpi_node(z);
+	int node_z_and_d = get_block_mpi_node(z+dir);
 
 #ifdef STARPU_USE_MPI
 	if (node_z == local_rank)
@@ -168,7 +168,7 @@ void create_task_save(unsigned iter, unsigned z, int dir, unsigned local_rank)
  * Schedule update computation in computation buffer
  */
 
-void create_task_update(unsigned iter, unsigned z, unsigned local_rank)
+void create_task_update(unsigned iter, unsigned z, int local_rank)
 {
 	STARPU_ASSERT(iter != 0);
 
@@ -253,8 +253,8 @@ void create_start_task(int z, int dir)
  */
 void create_tasks(int rank)
 {
-	unsigned iter;
-	unsigned bz;
+	int iter;
+	int bz;
 	int niter = get_niter();
 	int nbz = get_nbz();
 
@@ -288,7 +288,7 @@ void create_tasks(int rank)
  */
 void wait_end_tasks(int rank)
 {
-	unsigned bz;
+	int bz;
 	int nbz = get_nbz();
 
 	for (bz = 0; bz < nbz; bz++)

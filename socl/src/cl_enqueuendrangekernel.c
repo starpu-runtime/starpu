@@ -164,9 +164,6 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
       cl_event beforeEvent, afterEvent, totalEvent;
 
       totalEvent = event_create();
-      totalEvent->prof_start = _socl_nanotime();
-      totalEvent->prof_submit = totalEvent->prof_start;
-      totalEvent->prof_queued = totalEvent->prof_start;
       gc_entity_store(&totalEvent->cq, cq);
 
       command_marker cmd = command_marker_create();
@@ -197,7 +194,7 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
          /* Store perf */
          cl_ulong start,end;
          soclGetEventProfilingInfo(beforeEvent, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &start, NULL);
-         soclGetEventProfilingInfo(afterEvent, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &end, NULL);
+         soclGetEventProfilingInfo(afterEvent, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
          soclReleaseEvent(afterEvent);
 
          kernel->split_perfs[iter] = end-start;
@@ -205,6 +202,12 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
          pthread_mutex_unlock(&kernel->split_lock);
 
          event_complete(totalEvent);
+
+         totalEvent->prof_start = start;
+         totalEvent->prof_submit = start;
+         totalEvent->prof_queued = start;
+         totalEvent->prof_end = end;
+
          RETURN_EVENT(totalEvent,event);
       } else {
          soclReleaseEvent(totalEvent);

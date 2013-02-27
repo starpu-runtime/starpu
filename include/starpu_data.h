@@ -85,7 +85,7 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node, e
 void starpu_data_release(starpu_data_handle_t handle);
 void starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node);
 
-void starpu_malloc_set_align(size_t);
+void starpu_malloc_set_align(size_t align);
 int starpu_malloc(void **A, size_t dim);
 int starpu_free(void *A);
 void starpu_memory_display_stats();

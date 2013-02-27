@@ -54,7 +54,7 @@ test_multiformat_cpu_func(void *buffers[], void *args)
 	STARPU_SKIP_IF_VALGRIND;
 
 	struct point *aos;
-	unsigned int n, i;
+	int n, i;
 	int factor;
 
 	aos = (struct point *) STARPU_MULTIFORMAT_GET_CPU_PTR(buffers[0]);
@@ -63,7 +63,7 @@ test_multiformat_cpu_func(void *buffers[], void *args)
 
 	for (i = 0; i < n; i++)
 	{
-			FPRINTF(stderr, "(%d %d) [%d]", aos[i].x, aos[i].y, factor);
+		FPRINTF(stderr, "(%d %d) [%d]", aos[i].x, aos[i].y, factor);
 		if (aos[i].x != i * factor || aos[i].y != i * factor)
 		{
 			multiformat_config.copy_failed = FAILURE;
