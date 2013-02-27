@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 			const char *top_srcdir = getenv("top_srcdir");
 			if (top_builddir != NULL)
 			{
-				char *argv[100];
+				char *launcher_argv[100];
 				int i=3;
 				char libtool[strlen(top_builddir)
 					     + sizeof("libtool") + 1];
@@ -232,19 +232,19 @@ int main(int argc, char *argv[])
 
 				decode(&launcher_args, "@top_srcdir@", top_srcdir);
 
-				argv[0] = libtool;
-				argv[1] = "--mode=execute";
-				argv[2] = launcher;
-				argv[i] = strtok(launcher_args, " ");
-				while (argv[i])
+				launcher_argv[0] = libtool;
+				launcher_argv[1] = "--mode=execute";
+				launcher_argv[2] = launcher;
+				launcher_argv[i] = strtok(launcher_args, " ");
+				while (launcher_argv[i])
 				{
 					i++;
-					argv[i] = strtok(NULL, " ");
+					launcher_argv[i] = strtok(NULL, " ");
 				}
-				argv[i] = test_name;
-				argv[i+1] = test_args;
-				argv[i+2] = NULL;
-				execvp(*argv, argv);
+				launcher_argv[i] = test_name;
+				launcher_argv[i+1] = test_args;
+				launcher_argv[i+2] = NULL;
+				execvp(*launcher_argv, launcher_argv);
 			}
 			else
 			{
