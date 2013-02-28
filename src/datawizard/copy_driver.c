@@ -137,7 +137,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		if (copy_methods->ram_to_ram)
 			copy_methods->ram_to_ram(src_interface, src_node, dst_interface, dst_node);
 		else
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 		break;
 #ifdef STARPU_USE_CUDA
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
