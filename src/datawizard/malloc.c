@@ -21,6 +21,7 @@
 #include <common/config.h>
 #include <starpu.h>
 #include <drivers/opencl/driver_opencl.h>
+#include <datawizard/memory_manager.h>
 
 static size_t malloc_align = sizeof(void*);
 
