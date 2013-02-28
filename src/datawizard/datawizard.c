@@ -19,6 +19,7 @@
 #include <common/config.h>
 #include <datawizard/datawizard.h>
 #include <core/workers.h>
+#include <core/progress_hook.h>
 #ifdef STARPU_SIMGRID
 #include <msg/msg.h>
 #endif
