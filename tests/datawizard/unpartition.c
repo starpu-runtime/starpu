@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_vector_divide_in_2_filter_func,
+		.filter_func = starpu_vector_filter_divide_in_2,
 		/* there are only 2 children */
 		.nchildren = 2,
 		/* the length of the first part */

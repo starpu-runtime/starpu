@@ -138,6 +138,10 @@ Changes:
     instead.
   * StarPU can now use poti to generate paje traces.
   * Rename scheduling policy "parallel greedy" to "parallel eager"
+  * Rename all filter functions to follow the pattern
+    starpu_DATATYPE_filter_FILTERTYPE. The script
+    tools/dev/rename_filter.sh is provided to rename your existing
+    applications using filters.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is

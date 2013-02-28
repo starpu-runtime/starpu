@@ -20,7 +20,7 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-void starpu_vertical_block_filter_func_csr(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_csr_filter_vertical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
 	struct starpu_csr_interface *csr_father = (struct starpu_csr_interface *) father_interface;
 	struct starpu_csr_interface *csr_child = (struct starpu_csr_interface *) child_interface;

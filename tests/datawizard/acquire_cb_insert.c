@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 	/* Partition f */
 	struct starpu_data_filter filter =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = M,
 	};
 	starpu_data_partition(f_handle, &filter);

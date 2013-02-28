@@ -230,19 +230,19 @@ int main(int argc, char **argv)
 	 * combined. */
 	struct starpu_data_filter fz =
 	{
-		.filter_func = starpu_depth_block_shadow_filter_func_block,
+		.filter_func = starpu_block_filter_depth_block_shadow,
 		.nchildren = PARTSZ,
 		.filter_arg_ptr = (void*)(uintptr_t) SHADOWZ /* Shadow width */
 	};
 	struct starpu_data_filter fy =
 	{
-		.filter_func = starpu_vertical_block_shadow_filter_func_block,
+		.filter_func = starpu_block_filter_vertical_block_shadow,
 		.nchildren = PARTSY,
 		.filter_arg_ptr = (void*)(uintptr_t) SHADOWY /* Shadow width */
 	};
 	struct starpu_data_filter fx =
 	{
-		.filter_func = starpu_block_shadow_filter_func_block,
+		.filter_func = starpu_block_filter_block_shadow,
 		.nchildren = PARTSX,
 		.filter_arg_ptr = (void*)(uintptr_t) SHADOWX /* Shadow width */
 	};
@@ -251,17 +251,17 @@ int main(int argc, char **argv)
         /* Partition the destination matrix in PARTSZ*PARTSY*PARTSX sub-matrices */
 	struct starpu_data_filter fz2 =
 	{
-		.filter_func = starpu_depth_block_filter_func_block,
+		.filter_func = starpu_block_filter_depth_block,
 		.nchildren = PARTSZ,
 	};
 	struct starpu_data_filter fy2 =
 	{
-		.filter_func = starpu_vertical_block_filter_func_block,
+		.filter_func = starpu_block_filter_vertical_block,
 		.nchildren = PARTSY,
 	};
 	struct starpu_data_filter fx2 =
 	{
-		.filter_func = starpu_block_filter_func_block,
+		.filter_func = starpu_block_filter_block,
 		.nchildren = PARTSX,
 	};
 	starpu_data_map_filters(handle2, 3, &fz2, &fy2, &fx2);

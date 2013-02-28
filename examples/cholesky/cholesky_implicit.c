@@ -182,13 +182,13 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_vertical_block_filter_func,
+		.filter_func = starpu_matrix_filter_vertical_block,
 		.nchildren = nblocks
 	};
 
 	struct starpu_data_filter f2 =
 	{
-		.filter_func = starpu_block_filter_func,
+		.filter_func = starpu_matrix_filter_block,
 		.nchildren = nblocks
 	};
 

@@ -194,13 +194,13 @@ static void partition_mult_data(void)
 	 * name of the filters are a bit misleading */
 	struct starpu_data_filter vert =
 	{
-		.filter_func = starpu_vertical_block_filter_func,
+		.filter_func = starpu_matrix_filter_vertical_block,
 		.nchildren = nslicesx
 	};
 
 	struct starpu_data_filter horiz =
 	{
-		.filter_func = starpu_block_filter_func,
+		.filter_func = starpu_matrix_filter_block,
 		.nchildren = nslicesy
 	};
 

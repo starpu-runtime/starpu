@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 	 * combined. */
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_block_shadow_filter_func_vector,
+		.filter_func = starpu_vector_filter_block_shadow,
 		.nchildren = PARTS,
 		.filter_arg_ptr = (void*)(uintptr_t) SHADOW /* Shadow width */
 	};
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
         /* Partition the destination vector in PARTS sub-vectors */
 	struct starpu_data_filter f2 =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = PARTS,
 	};
 	starpu_data_partition(handle2, &f2);

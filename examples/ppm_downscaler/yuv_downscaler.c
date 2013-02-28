@@ -95,13 +95,13 @@ static struct starpu_codelet ds_codelet =
 /* each block contains BLOCK_HEIGHT consecutive lines */
 static struct starpu_data_filter filter_y =
 {
-	.filter_func = starpu_block_filter_func,
+	.filter_func = starpu_matrix_filter_block,
 	.nchildren= HEIGHT/BLOCK_HEIGHT
 };
 
 static struct starpu_data_filter filter_uv =
 {
-	.filter_func = starpu_block_filter_func,
+	.filter_func = starpu_matrix_filter_block,
 	.nchildren = (HEIGHT/2)/BLOCK_HEIGHT
 };
 

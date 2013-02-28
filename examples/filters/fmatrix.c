@@ -78,7 +78,7 @@ int main(int argc, char **argv)
         /* Partition the matrix in PARTS sub-matrices */
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_block_filter_func,
+		.filter_func = starpu_matrix_filter_block,
 		.nchildren = PARTS
 	};
 	starpu_data_partition(handle, &f);

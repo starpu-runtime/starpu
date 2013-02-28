@@ -197,10 +197,10 @@ static void partition_data(void)
 	 */
 
 	/* Partition into contiguous parts */
-	matrix_filter_1.filter_func = starpu_block_filter_func;
+	matrix_filter_1.filter_func = starpu_matrix_filter_block;
 	matrix_filter_1.nchildren = nblocks;
 	/* Partition into non-contiguous parts */
-	matrix_filter_2.filter_func = starpu_vertical_block_filter_func;
+	matrix_filter_2.filter_func = starpu_matrix_filter_vertical_block;
 	matrix_filter_2.nchildren = nblocks;
 
 	/* A is in FORTRAN ordering, starpu_data_get_sub_data(A_handle, 2, i,
@@ -211,7 +211,7 @@ static void partition_data(void)
 	 *	Partition the vectors
 	 */
 
-	vector_filter.filter_func = starpu_block_filter_func_vector;
+	vector_filter.filter_func = starpu_vector_filter_block;
 	vector_filter.nchildren = nblocks;
 
 	starpu_data_partition(b_handle, &vector_filter);

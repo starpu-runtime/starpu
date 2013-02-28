@@ -20,7 +20,7 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-void starpu_canonical_block_filter_bcsr(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nparts)
+void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nparts)
 {
 	struct starpu_bcsr_interface *bcsr_father = (struct starpu_bcsr_interface *) father_interface;
 	/* each chunk becomes a small dense matrix */

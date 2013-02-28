@@ -121,17 +121,17 @@ void call_filters(void)
 	struct starpu_data_filter bcsr_f;
 	struct starpu_data_filter vector_in_f, vector_out_f;
 
-	bcsr_f.filter_func    = starpu_canonical_block_filter_bcsr;
+	bcsr_f.filter_func    = starpu_bcsr_filter_canonical_block;
 	bcsr_f.get_nchildren = get_bcsr_nchildren;
 	/* the children use a matrix interface ! */
 	bcsr_f.get_child_ops = get_bcsr_child_ops;
 
-	vector_in_f.filter_func = starpu_block_filter_func_vector;
+	vector_in_f.filter_func = starpu_vector_filter_block;
 	vector_in_f.nchildren  = size/c;
 	vector_in_f.get_nchildren  = NULL;
 	vector_in_f.get_child_ops  = NULL;
 	
-	vector_out_f.filter_func = starpu_block_filter_func_vector;
+	vector_out_f.filter_func = starpu_vector_filter_block;
 	vector_out_f.nchildren  = size/r;
 	vector_out_f.get_nchildren  = NULL;
 	vector_out_f.get_child_ops  = NULL;
