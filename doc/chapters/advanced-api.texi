@@ -1034,6 +1034,10 @@ Check if the worker specified by workerid can execute the codelet. Schedulers ne
 Return the current date in µs
 @end deftypefun
 
+@deftypefun uint32_t starpu_task_footprint ({struct starpu_perfmodel *}@var{model}, {struct starpu_task *} @var{task}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
+Returns the footprint for a given task
+@end deftypefun
+
 @deftypefun double starpu_task_expected_length ({struct starpu_task *}@var{task}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
 Returns expected task duration in µs
 @end deftypefun
