@@ -175,6 +175,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t dat
 		starpu_data_handle_t size_handle;
 		starpu_variable_data_register(&size_handle, 0, (uintptr_t)&(size), sizeof(size));
 		starpu_mpi_send(size_handle, dest, mpi_tag, comm);
+		starpu_data_unregister(size_handle);
 	}
 
 	return _starpu_mpi_isend_irecv_common(data_handle, size, dest, mpi_tag, comm, detached, callback, arg, SEND_REQ, _starpu_mpi_isend_pack_func, STARPU_R);
@@ -590,7 +591,7 @@ int starpu_mpi_barrier(MPI_Comm comm)
 
 	ret = barrier_req->ret;
 
-	//free(waiting_req);
+	free(barrier_req);
 	_STARPU_MPI_LOG_OUT();
 	return ret;
 }
