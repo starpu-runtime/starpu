@@ -20,6 +20,7 @@
 {
    fprintf value error
    Memcheck:Value8
+   ...
    fun:vfprintf
    fun:buffered_vfprintf
    fun:vfprintf
