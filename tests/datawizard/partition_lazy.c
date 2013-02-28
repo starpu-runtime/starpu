@@ -20,7 +20,6 @@
 
 struct starpu_codelet mycodelet =
 {
-		
 	.cpu_funcs = { scal_func_cpu, NULL },
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = { scal_func_opencl, NULL },
