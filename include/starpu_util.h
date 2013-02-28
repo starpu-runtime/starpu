@@ -50,7 +50,7 @@ extern "C"
 #  define STARPU_ATTRIBUTE_INTERNAL
 #endif
 
-#if STARPU_GNUC_PREREQ(3, 1) && !defined(BUILDING_STARPU) && !defined(STARPU_USE_DEPRECATED_API)
+#if STARPU_GNUC_PREREQ(3, 1) && !defined(BUILDING_STARPU) && !defined(STARPU_USE_DEPRECATED_API) && !defined(STARPU_USE_DEPRECATED_ONE_ZERO_API)
 #define STARPU_DEPRECATED  __attribute__((__deprecated__))
 #else
 #define STARPU_DEPRECATED

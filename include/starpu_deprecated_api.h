@@ -23,8 +23,11 @@ extern "C"
 {
 #endif
 
+#if defined(STARPU_USE_DEPRECATED_API) || defined(STARPU_USE_DEPRECATED_ONE_ZERO_API)
 #warning Your application is using former types. You may want to update to use the latest API, by using tools/dev/rename.sh.
+#endif /* defined(STARPU_USE_DEPRECATED_API) || defined(STARPU_USE_DEPRECATED_ONE_ZERO_API) */
 
+#ifdef STARPU_USE_DEPRECATED_API
 typedef starpu_data_handle_t starpu_data_handle;
 typedef struct starpu_block_interface starpu_block_interface_t;
 typedef struct starpu_matrix_interface starpu_matrix_interface_t;
@@ -56,6 +59,10 @@ typedef enum starpu_access_mode starpu_access_mode;
 #define starpu_pack_cl_args   	       starpu_codelet_pack_args
 #define starpu_task_deinit	       starpu_task_clean
 
+#endif /* STARPU_USE_DEPRECATED_API */
+
+#ifdef STARPU_USE_DEPRECATED_ONE_ZERO_API
+
 #define starpu_allocate_buffer_on_node	starpu_malloc_on_node
 #define starpu_free_buffer_on_node	starpu_free_on_node
 #define starpu_helper_cublas_init	starpu_cublas_init
@@ -80,6 +87,8 @@ typedef enum starpu_access_mode starpu_access_mode;
 #define starpu_vertical_block_shadow_filter_func_block	starpu_block_filter_vertical_block_shadow
 #define starpu_depth_block_filter_func_block		starpu_block_filter_depth_block
 #define starpu_depth_block_shadow_filter_func_block	starpu_block_filter_depth_block_shadow
+
+#endif /* STARPU_USE_DEPRECATED_ONE_ZERO_API */
 
 #ifdef __cplusplus
 }

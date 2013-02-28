@@ -155,8 +155,6 @@ void starpu_display_stats();
 }
 #endif
 
-#if defined(STARPU_USE_DEPRECATED_API)
 #include "starpu_deprecated_api.h"
-#endif /* STARPU_USE_DEPRECATED_API */
 
 #endif /* __STARPU_H__ */
