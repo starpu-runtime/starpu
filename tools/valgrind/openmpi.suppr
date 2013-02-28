@@ -103,3 +103,14 @@
    ...
    fun:PMPI_Init_thread
 }
+
+{
+   suppr15
+   Memcheck:Leak
+   fun:malloc
+   fun:ompi_free_list_grow
+   ...
+   fun:opal_progress
+   fun:ompi_request_default_test
+   fun:PMPI_Test
+}

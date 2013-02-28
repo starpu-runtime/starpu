@@ -7,3 +7,13 @@
    fun:fscanf
    fun:scan_reg_model
 }
+
+{
+   fprintf error
+   Memcheck:Cond
+   ...
+   fun:vfprintf
+   fun:buffered_vfprintf
+   fun:vfprintf
+   fun:fprintf
+}
