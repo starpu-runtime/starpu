@@ -788,7 +788,7 @@ int main(int argc, char **argv)
 		if (check)
 			solve_system(DIM, newsize, result, RefArray, Bformer, A, B);
 
-		starpu_helper_cublas_shutdown();
+		starpu_cublas_shutdown();
 		starpu_shutdown();
 		free_system(A, B, newsize, pinned);
 	}

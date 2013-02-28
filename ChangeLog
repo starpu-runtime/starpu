@@ -142,6 +142,8 @@ Changes:
     starpu_DATATYPE_filter_FILTERTYPE. The script
     tools/dev/rename_filter.sh is provided to rename your existing
     applications using filters.
+  * Rename function starpu_helper_cublas_init to starpu_cublas_init
+  * Rename function starpu_helper_cublas_shutdown to starpu_cublas_shutdown
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is

@@ -42,12 +42,12 @@ int main(int argc, char **argv)
 	double shutdown_timing;
 
 	gettimeofday(&start, NULL);
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 	gettimeofday(&end, NULL);
 	init_timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
 	gettimeofday(&start, NULL);
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	gettimeofday(&end, NULL);
 	shutdown_timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 

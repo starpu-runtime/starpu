@@ -242,7 +242,7 @@ int main(int argc, char **argv)
 	/* Disable sequential consistency */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
@@ -300,7 +300,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 
 	starpu_shutdown();
 	return 0;

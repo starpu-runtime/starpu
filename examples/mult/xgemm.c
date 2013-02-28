@@ -296,7 +296,7 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	init_problem_data();
 	partition_mult_data();
@@ -356,7 +356,7 @@ enodev:
 	starpu_free(B);
 	starpu_free(C);
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 
 	return ret;

@@ -249,7 +249,7 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	if (pinned)
 	{
@@ -302,7 +302,7 @@ static void shutdown_system(float **matA, unsigned pinned)
 		free(*matA);
 	}
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 }
 

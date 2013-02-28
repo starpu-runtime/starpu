@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	/* This is equivalent to
 		vec_a = malloc(N*sizeof(TYPE));

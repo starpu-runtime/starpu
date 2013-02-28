@@ -201,7 +201,7 @@ int main(int argc, char **argv)
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	devices = starpu_cpu_worker_get_count();
 	if (devices)
@@ -224,7 +224,7 @@ int main(int argc, char **argv)
 
 error:
 	if (ret == -ENODEV) ret=STARPU_TEST_SKIPPED;
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 	STARPU_RETURN(ret);
 }

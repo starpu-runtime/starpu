@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nodes);
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	parse_args(argc, argv, nodes);
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	dw_cholesky_check_computation(bmat, rank, nodes, &correctness, &flops);
 
 	matrix_free(&bmat, rank, nodes, 1);
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 
 	assert(correctness);

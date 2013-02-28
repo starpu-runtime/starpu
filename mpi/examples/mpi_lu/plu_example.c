@@ -432,7 +432,7 @@ int main(int argc, char **argv)
 
 	STARPU_ASSERT(p*q == world_size);
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
@@ -563,7 +563,7 @@ int main(int argc, char **argv)
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 

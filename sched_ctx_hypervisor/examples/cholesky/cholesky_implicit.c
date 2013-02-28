@@ -342,7 +342,7 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	if(with_ctxs)
 	{
@@ -358,7 +358,7 @@ int main(int argc, char **argv)
 	else
 		execute_cholesky(size, nblocks);
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 
 	if(with_ctxs)

@@ -341,7 +341,7 @@ int main(int argc, char **argv)
                 return 77;
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	if(with_ctxs)
 	{
@@ -357,7 +357,7 @@ int main(int argc, char **argv)
 	else
 		execute_cholesky(size, nblocks);
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 
 	return ret;

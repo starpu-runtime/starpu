@@ -412,7 +412,7 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, niter*nsamples, sizeof(float));
 
@@ -462,7 +462,7 @@ int main(int argc, char **argv)
 	starpu_data_unpartition(A_handle, 0);
 	starpu_data_unregister(A_handle);
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 
 	/* we are done ! */
 	starpu_shutdown();

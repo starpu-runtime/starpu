@@ -175,7 +175,7 @@ int main(void)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	/* Initialize the K temporary buffers. No need to allocate it ourselves
 	 * Since it's the X and Y kernels which will fill the initial values. */

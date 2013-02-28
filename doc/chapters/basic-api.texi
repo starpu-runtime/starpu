@@ -2533,15 +2533,15 @@ whether @code{devid} is among the @code{cuda_opengl_interoperability} field of
 the @code{starpu_conf} structure.
 @end deftypefun
 
-@deftypefun void starpu_helper_cublas_init (void)
+@deftypefun void starpu_cublas_init (void)
 This function initializes CUBLAS on every CUDA device.
 The CUBLAS library must be initialized prior to any CUBLAS call. Calling
-@code{starpu_helper_cublas_init} will initialize CUBLAS on every CUDA device
+@code{starpu_cublas_init} will initialize CUBLAS on every CUDA device
 controlled by StarPU. This call blocks until CUBLAS has been properly
 initialized on every device.
 @end deftypefun
 
-@deftypefun void starpu_helper_cublas_shutdown (void)
+@deftypefun void starpu_cublas_shutdown (void)
 This function synchronously deinitializes the CUBLAS library on every CUDA device.
 @end deftypefun
 
