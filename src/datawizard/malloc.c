@@ -20,8 +20,6 @@
 #include <core/workers.h>
 #include <common/config.h>
 #include <starpu.h>
-#include <starpu_data.h>
-#include <starpu_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 
 static size_t malloc_align = sizeof(void*);
@@ -283,3 +281,145 @@ int starpu_free(void *A)
 
 	return 0;
 }
+
+#ifdef STARPU_SIMGRID
+static _starpu_pthread_mutex_t cuda_alloc_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static _starpu_pthread_mutex_t opencl_alloc_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+#endif
+
+uintptr_t
+starpu_allocate_buffer_on_node(unsigned dst_node, size_t size)
+{
+	uintptr_t addr = 0;
+
+#ifdef STARPU_USE_CUDA
+	cudaError_t status;
+#endif
+
+	if (_starpu_memory_manager_can_allocate_size(size, dst_node) == 0)
+		return 0;
+
+#ifdef STARPU_DEVEL
+#warning TODO: we need to use starpu_malloc which should itself inquire from the memory manager is there is enough available memory
+#endif
+	switch(starpu_node_get_kind(dst_node))
+	{
+		case STARPU_CPU_RAM:
+		{
+			addr = (uintptr_t)malloc(size);
+			break;
+		}
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+		case STARPU_CUDA_RAM:
+#ifdef STARPU_SIMGRID
+#ifdef STARPU_DEVEL
+#warning TODO: record used memory, using a simgrid property to know the available memory
+#endif
+			/* Sleep 10µs for the allocation */
+			_STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
+			MSG_process_sleep(0.000010);
+			addr = 1;
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
+#else
+			status = cudaMalloc((void **)&addr, size);
+			if (!addr || (status != cudaSuccess))
+			{
+				if (STARPU_UNLIKELY(status != cudaErrorMemoryAllocation))
+					STARPU_CUDA_REPORT_ERROR(status);
+				addr = 0;
+			}
+#endif
+			break;
+#endif
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+	        case STARPU_OPENCL_RAM:
+			{
+#ifdef STARPU_SIMGRID
+				/* Sleep 10µs for the allocation */
+				_STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
+				MSG_process_sleep(0.000010);
+				addr = 1;
+				_STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
+#else
+                                int ret;
+				cl_mem ptr;
+
+				ret = starpu_opencl_allocate_memory(&ptr, size, CL_MEM_READ_WRITE);
+				if (ret)
+				{
+					addr = 0;
+				}
+				else
+				{
+					addr = (uintptr_t)ptr;
+				}
+				break;
+#endif
+			}
+#endif
+		default:
+			STARPU_ABORT();
+	}
+
+	if (addr == 0)
+	{
+		// Allocation failed, gives the memory back to the memory manager
+		_starpu_memory_manager_deallocate_size(size, dst_node);
+	}
+	return addr;
+}
+
+void
+starpu_free_buffer_on_node(unsigned dst_node, uintptr_t addr, size_t size)
+{
+	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
+	switch(kind)
+	{
+#ifdef STARPU_DEVEL
+#warning TODO we need to call starpu_free
+#endif
+		case STARPU_CPU_RAM:
+			free((void*)addr);
+			_starpu_memory_manager_deallocate_size(size, dst_node);
+			break;
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+		case STARPU_CUDA_RAM:
+		{
+#ifdef STARPU_SIMGRID
+			_STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
+			/* Sleep 10µs for the free */
+			MSG_process_sleep(0.000010);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
+#else
+			cudaError_t err;
+			err = cudaFree((void*)addr);
+			if (STARPU_UNLIKELY(err != cudaSuccess))
+				STARPU_CUDA_REPORT_ERROR(err);
+			_starpu_memory_manager_deallocate_size(size, dst_node);
+#endif
+			break;
+		}
+#endif
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+                case STARPU_OPENCL_RAM:
+		{
+#ifdef STARPU_SIMGRID
+			_STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
+			/* Sleep 10µs for the free */
+			MSG_process_sleep(0.000010);
+			_STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
+#else
+			cl_int err;
+                        err = clReleaseMemObject((void*)addr);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS))
+				STARPU_OPENCL_REPORT_ERROR(err);
+			_starpu_memory_manager_deallocate_size(size, dst_node);
+#endif
+                        break;
+		}
+#endif
+		default:
+			STARPU_ABORT();
+	}
+}
+

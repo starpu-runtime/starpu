@@ -77,7 +77,8 @@ versinclude_HEADERS = 				\
 	include/starpu_hash.h			\
 	include/starpu_rand.h			\
 	include/starpu_cublas.h			\
-	include/starpu_driver.h
+	include/starpu_driver.h			\
+	include/starpu_stdlib.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
