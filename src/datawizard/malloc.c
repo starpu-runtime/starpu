@@ -288,7 +288,7 @@ static _starpu_pthread_mutex_t opencl_alloc_mutex = _STARPU_PTHREAD_MUTEX_INITIA
 #endif
 
 uintptr_t
-starpu_allocate_buffer_on_node(unsigned dst_node, size_t size)
+starpu_malloc_on_node(unsigned dst_node, size_t size)
 {
 	uintptr_t addr = 0;
 
@@ -370,7 +370,7 @@ starpu_allocate_buffer_on_node(unsigned dst_node, size_t size)
 }
 
 void
-starpu_free_buffer_on_node(unsigned dst_node, uintptr_t addr, size_t size)
+starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 {
 	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 	switch(kind)

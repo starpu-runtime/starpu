@@ -152,7 +152,9 @@ s/\bstarpu_pack_cl_args\b/starpu_codelet_pack_args/g
 s/\bstarpu_unpack_cl_args\b/starpu_codelet_unpack_args/g
 s/\bstarpu_task_deinit\b/starpu_task_clean/g
 
-
 s/\bstarpu_helper_cublas_init\b/starpu_cublas_init/g
 s/\bstarpu_helper_cublas_shutdown\b/starpu_cublas_shutdown/g
+
+s/\bstarpu_allocate_buffer_on_node\b/starpu_malloc_on_node/g
+s/\bstarpu_free_buffer_on_node\b/starpu_free_on_node/g
 

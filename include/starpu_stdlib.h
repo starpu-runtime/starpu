@@ -30,9 +30,9 @@ int starpu_malloc(void **A, size_t dim);
 int starpu_free(void *A);
 
 /* Allocate SIZE bytes on node NODE */
-uintptr_t starpu_allocate_buffer_on_node(unsigned dst_node, size_t size);
+uintptr_t starpu_malloc_on_node(unsigned dst_node, size_t size);
 /* Free ADDR on node NODE */
-void starpu_free_buffer_on_node(unsigned dst_node, uintptr_t addr, size_t size);
+void starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size);
 
 #ifdef __cplusplus
 }

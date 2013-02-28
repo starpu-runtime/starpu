@@ -265,7 +265,7 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned ds
 
 	ssize_t allocated_memory;
 
-	handle = starpu_allocate_buffer_on_node(dst_node, nx*ny*elemsize);
+	handle = starpu_malloc_on_node(dst_node, nx*ny*elemsize);
 
 	if (!handle)
 		return -ENOMEM;
@@ -291,7 +291,7 @@ static void free_matrix_buffer_on_node(void *data_interface, unsigned node)
 	uint32_t ny = matrix_interface->ny;
 	size_t elemsize = matrix_interface->elemsize;
 
-	starpu_free_buffer_on_node(node, matrix_interface->ptr, nx*ny*elemsize);
+	starpu_free_on_node(node, matrix_interface->ptr, nx*ny*elemsize);
 }
 
 #ifdef STARPU_USE_CUDA

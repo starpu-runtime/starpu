@@ -1221,12 +1221,12 @@ Return the size of the elements registered into the matrix designated by
 Applications can provide their own interface. An example is provided in
 @code{examples/interface}. A few helpers are provided.
 
-@deftypefun uintptr_t starpu_allocate_buffer_on_node (unsigned @var{dst_node}, size_t @var{size})
+@deftypefun uintptr_t starpu_malloc_on_node (unsigned @var{dst_node}, size_t @var{size})
 Allocate @var{size} bytes on node @var{dst_node}. This returns 0 if allocation
 failed, the allocation method should then return -ENOMEM as allocated size.
 @end deftypefun
 
-@deftypefun void starpu_free_buffer_on_node (unsigned @var{dst_node}, uintptr_t @var{addr}, size_t @var{size})
+@deftypefun void starpu_free_on_node (unsigned @var{dst_node}, uintptr_t @var{addr}, size_t @var{size})
 Free @var{addr} of @var{size} bytes on node @var{dst_node}.
 @end deftypefun
 

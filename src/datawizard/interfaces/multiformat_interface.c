@@ -243,14 +243,14 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, unsign
 
 	size = multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize;
 	allocated_memory += size;
-	addr = starpu_allocate_buffer_on_node(dst_node, size);
+	addr = starpu_malloc_on_node(dst_node, size);
 	if (!addr)
 		goto fail_cpu;
 	multiformat_interface->cpu_ptr = (void *) addr;
 #ifdef STARPU_USE_CUDA
 	size = multiformat_interface->nx * multiformat_interface->ops->cuda_elemsize;
 	allocated_memory += size;
-	addr = starpu_allocate_buffer_on_node(dst_node, size);
+	addr = starpu_malloc_on_node(dst_node, size);
 	if (!addr)
 		goto fail_cuda;
 	multiformat_interface->cuda_ptr = (void *) addr;
@@ -258,7 +258,7 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, unsign
 #ifdef STARPU_USE_OPENCL
 	size = multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize;
 	allocated_memory += size;
-	addr = starpu_allocate_buffer_on_node(dst_node, size);
+	addr = starpu_malloc_on_node(dst_node, size);
 	if (!addr)
 		goto fail_opencl;
 	multiformat_interface->opencl_ptr = (void *) addr;
@@ -269,13 +269,13 @@ static ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, unsign
 #ifdef STARPU_USE_OPENCL
 fail_opencl:
 #ifdef STARPU_USE_CUDA
-	starpu_free_buffer_on_node(dst_node, (uintptr_t) multiformat_interface->cuda_ptr, multiformat_interface->nx * multiformat_interface->ops->cuda_elemsize);
+	starpu_free_on_node(dst_node, (uintptr_t) multiformat_interface->cuda_ptr, multiformat_interface->nx * multiformat_interface->ops->cuda_elemsize);
 #endif
 #endif
 #ifdef STARPU_USE_CUDA
 fail_cuda:
 #endif
-	starpu_free_buffer_on_node(dst_node, (uintptr_t) multiformat_interface->cpu_ptr, multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize);
+	starpu_free_on_node(dst_node, (uintptr_t) multiformat_interface->cpu_ptr, multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize);
 fail_cpu:
 	return -ENOMEM;
 }
@@ -285,16 +285,16 @@ static void free_multiformat_buffer_on_node(void *data_interface, unsigned node)
 	struct starpu_multiformat_interface *multiformat_interface;
 	multiformat_interface = (struct starpu_multiformat_interface *) data_interface;
 
-	starpu_free_buffer_on_node(node, (uintptr_t) multiformat_interface->cpu_ptr,
+	starpu_free_on_node(node, (uintptr_t) multiformat_interface->cpu_ptr,
 				   multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize);
 	multiformat_interface->cpu_ptr = NULL;
 #ifdef STARPU_USE_CUDA
-	starpu_free_buffer_on_node(node, (uintptr_t) multiformat_interface->cuda_ptr,
+	starpu_free_on_node(node, (uintptr_t) multiformat_interface->cuda_ptr,
 				   multiformat_interface->nx * multiformat_interface->ops->cuda_elemsize);
 	multiformat_interface->cuda_ptr = NULL;
 #endif
 #ifdef STARPU_USE_OPENCL
-	starpu_free_buffer_on_node(node, (uintptr_t) multiformat_interface->opencl_ptr,
+	starpu_free_on_node(node, (uintptr_t) multiformat_interface->opencl_ptr,
 				   multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize);
 	multiformat_interface->opencl_ptr = NULL;
 #endif

@@ -144,6 +144,8 @@ Changes:
     applications using filters.
   * Rename function starpu_helper_cublas_init to starpu_cublas_init
   * Rename function starpu_helper_cublas_shutdown to starpu_cublas_shutdown
+  * Rename function starpu_allocate_buffer_on_node to starpu_malloc_on_node
+  * Rename function starpu_free_buffer_on_node to starpu_free_on_node
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is

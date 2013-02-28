@@ -189,7 +189,7 @@ static ssize_t allocate_vector_buffer_on_node(void *data_interface_, unsigned ds
 
 	ssize_t allocated_memory;
 
-	handle = starpu_allocate_buffer_on_node(dst_node, nx*elemsize);
+	handle = starpu_malloc_on_node(dst_node, nx*elemsize);
 	if (!handle)
 		return -ENOMEM;
 
@@ -212,7 +212,7 @@ static void free_vector_buffer_on_node(void *data_interface, unsigned node)
 	uint32_t nx = vector_interface->nx;
 	size_t elemsize = vector_interface->elemsize;
 
-	starpu_free_buffer_on_node(node, vector_interface->ptr, nx*elemsize);
+	starpu_free_on_node(node, vector_interface->ptr, nx*elemsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node,

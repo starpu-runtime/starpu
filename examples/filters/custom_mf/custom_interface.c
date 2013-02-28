@@ -150,16 +150,16 @@ static ssize_t allocate_custom_buffer_on_node(void *data_interface, unsigned nod
 	custom_interface = (struct custom_data_interface *) data_interface;
 
 	size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
-	custom_interface->cpu_ptr = (void*) starpu_allocate_buffer_on_node(node, size);
+	custom_interface->cpu_ptr = (void*) starpu_malloc_on_node(node, size);
 	if (!custom_interface->cpu_ptr)
 		goto fail_cpu;
 #ifdef STARPU_USE_CUDA
-	custom_interface->cuda_ptr = (void*) starpu_allocate_buffer_on_node(node, size);
+	custom_interface->cuda_ptr = (void*) starpu_malloc_on_node(node, size);
 	if (!custom_interface->cuda_ptr)
 		goto fail_cuda;
 #endif
 #ifdef STARPU_USE_OPENCL
-	custom_interface->opencl_ptr = (void*) starpu_allocate_buffer_on_node(node, size);
+	custom_interface->opencl_ptr = (void*) starpu_malloc_on_node(node, size);
 	if (!custom_interface->opencl_ptr)
 		goto fail_opencl;
 #endif
@@ -175,13 +175,13 @@ static ssize_t allocate_custom_buffer_on_node(void *data_interface, unsigned nod
 #ifdef STARPU_USE_OPENCL
 fail_opencl:
 #ifdef STARPU_USE_CUDA
-	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cuda_ptr, size);
+	starpu_free_on_node(node, (uintptr_t) custom_interface->cuda_ptr, size);
 #endif
 #endif
 #ifdef STARPU_USE_CUDA
 fail_cuda:
 #endif
-	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cpu_ptr, size);
+	starpu_free_on_node(node, (uintptr_t) custom_interface->cpu_ptr, size);
 fail_cpu:
 	return -ENOMEM;
 }
@@ -191,12 +191,12 @@ static void free_custom_buffer_on_node(void *data_interface, unsigned node)
 	struct custom_data_interface *custom_interface = (struct custom_data_interface *) data_interface;
 	size_t size = custom_interface->nx * custom_interface->ops->cpu_elemsize;
 
-	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cpu_ptr, size);
+	starpu_free_on_node(node, (uintptr_t) custom_interface->cpu_ptr, size);
 #ifdef STARPU_USE_CUDA
-	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->cuda_ptr, size);
+	starpu_free_on_node(node, (uintptr_t) custom_interface->cuda_ptr, size);
 #endif
 #ifdef STARPU_USE_OPENCL
-	starpu_free_buffer_on_node(node, (uintptr_t) custom_interface->opencl_ptr, size);
+	starpu_free_on_node(node, (uintptr_t) custom_interface->opencl_ptr, size);
 #endif
 }
 
