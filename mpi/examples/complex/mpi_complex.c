@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 	}
 	if (rank == 0 || rank == 1)
 	{
-		starpu_data_unregister(handle2);
+		starpu_data_unregister(handle);
 		starpu_data_unregister(foo_handle);
 	}
 
