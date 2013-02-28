@@ -74,6 +74,7 @@ int main(int argc, char **argv)
 		starpu_tag_wait(tag);
 	}
 
+	starpu_data_unregister(tab_handle);
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
