@@ -97,6 +97,15 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_HYPERVISOR_TAG)
+		{
+			(void)va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_FLOPS)
+		{
+			(void)va_arg(varg_list, double);
+		}
+
 		else if (arg_type==STARPU_TAG)
 		{
 			(void)va_arg(varg_list, starpu_tag_t);
@@ -171,6 +180,15 @@ int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_HYPERVISOR_TAG)
+		{
+			(void)va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_FLOPS)
+		{
+			(void)va_arg(varg_list, double);
+		}
+
 		else if (arg_type==STARPU_TAG)
 		{
 			(void)va_arg(varg_list, starpu_tag_t);
