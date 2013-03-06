@@ -297,31 +297,6 @@ unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now)
 	return _resize(sender_sched_ctx, STARPU_NMAX_SCHED_CTXS, 0, now);
 }
 
-static double _get_best_elapsed_flops(struct sched_ctx_hypervisor_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
-{
-	double ret_val = 0.0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
-        int worker;
-
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
-
-        while(workers->has_next(workers, &it))
-	{
-                worker = workers->get_next(workers, &it);
-                enum starpu_archtype arch = starpu_worker_get_type(worker);
-                if(arch == req_arch)
-                {
-			if(sc_w->elapsed_flops[worker] > ret_val)
-				ret_val = sc_w->elapsed_flops[worker];
-			(*npus)++;
-                }
-        }
-
-	return ret_val;
-}
-
 static double _get_ispeed_sample_for_type_of_worker(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype req_arch)
 {
 	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
@@ -487,7 +462,7 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
 		}
 			
                 double vel  = (elapsed_flops/elapsed_time);/* in Gflops/s */
-		sc_w->ref_velocity[worker] = sc_w->ref_velocity[worker] > 0.0 ? (sc_w->ref_velocity[worker] + vel) / 2 : vel; 
+		sc_w->ref_velocity[worker] = sc_w->ref_velocity[worker] > 1.0 ? (sc_w->ref_velocity[worker] + vel) / 2 : vel; 
                 return vel;
         }
 
@@ -496,7 +471,32 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
 
 }
 
-/* compute an average value of the cpu velocity */
+static double _get_best_elapsed_flops(struct sched_ctx_hypervisor_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
+{
+	double ret_val = 0.0;
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
+        int worker;
+
+	struct starpu_sched_ctx_iterator it;
+	if(workers->init_iterator)
+                workers->init_iterator(workers, &it);
+
+        while(workers->has_next(workers, &it))
+	{
+                worker = workers->get_next(workers, &it);
+                enum starpu_archtype arch = starpu_worker_get_type(worker);
+                if(arch == req_arch)
+                {
+			if(sc_w->elapsed_flops[worker] > ret_val)
+				ret_val = sc_w->elapsed_flops[worker];
+			(*npus)++;
+                }
+        }
+
+	return ret_val;
+}
+
+/* compute an average value of the cpu/cuda velocity */
 double _get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
 {
         int npus = 0;
@@ -504,19 +504,16 @@ double _get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, 
 	if(npus == 0)
 		return -1.0; 
 
-	double sample = _get_ispeed_sample_for_type_of_worker(sc_w, arch) / 1000000000.0;
-
         if( elapsed_flops != 0.0)
         {
                 double curr_time = starpu_timing_now();
                 double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
-		double velocity = elapsed_flops/elapsed_time; /* in Gflops/s */
+		double velocity = (elapsed_flops/elapsed_time); /* in Gflops/s */
                 return velocity;
         }
 
         return -1.0;
 }
-
 
 /* check if there is a big velocity gap between the contexts */
 int _velocity_gap_btw_ctxs()

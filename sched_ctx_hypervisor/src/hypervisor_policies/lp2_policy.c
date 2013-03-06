@@ -21,7 +21,7 @@
 static struct bound_task_pool *task_pools = NULL;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers);
+static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers, unsigned interger);
 static double _find_tmax(double t1, double t2);
 static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], double tasks[nw][nt], int *sched_ctxs, int *workers)
 {
@@ -66,7 +66,7 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 		/* find solution and save the values in draft tables
 		   only if there is a solution for the system we save them
 		   in the proper table */
-		res = _glp_resolve(ns, nw, nt, draft_tasks, tmax, draft_w_in_s, sched_ctxs, workers);
+		res = _glp_resolve(ns, nw, nt, draft_tasks, tmax, draft_w_in_s, sched_ctxs, workers, 1);
 		if(res != 0.0)
 		{
 			for(w = 0; w < nw; w++)
@@ -318,7 +318,7 @@ static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt], int *w
  */
 #ifdef STARPU_HAVE_GLPK_H
 #include <glpk.h>
-static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers)
+static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers, unsigned integer)
 {
 	struct bound_task_pool * tp;
 	int t, w, s;
@@ -362,7 +362,13 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 				char name[32];
 				snprintf(name, sizeof(name), "w%ds%dn", w, s);
 				glp_set_col_name(lp, nw*nt+s*nw+w+1, name);
-				glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0.0, 1.0);
+				if (integer)
+                                {
+                                        glp_set_col_kind(lp, nw*nt+s*nw+w+1, GLP_IV);
+                                        glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0, 1);
+                                }
+                                else
+					glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0.0, 1.0);
 			}
 
 		int *sched_ctxs = in_sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : in_sched_ctxs;
@@ -451,8 +457,10 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 				ar[n] = 1;
 				n++;
 			}
-
-			glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
+			if(integer)
+                                glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1, 1);
+			else
+				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
 		}
 		if(n != ne)
 			printf("ns= %d nw = %d nt = %d n = %d ne = %d\n", ns, nw, nt, n, ne);
@@ -472,6 +480,23 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 		return 0.0;
 	}
 
+	if (integer)
+        {
+                glp_iocp iocp;
+                glp_init_iocp(&iocp);
+                iocp.msg_lev = GLP_MSG_OFF;
+		glp_intopt(lp, &iocp);
+		int stat = glp_mip_status(lp);
+		/* if we don't have a solution return */
+		if(stat == GLP_NOFEAS)
+		{
+			glp_delete_prob(lp);
+			lp = NULL;
+			return 0.0;
+		}
+		
+        }
+
 	int stat = glp_get_prim_stat(lp);
 	/* if we don't have a solution return */
 	if(stat == GLP_NOFEAS)
@@ -488,7 +513,12 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 
 	for(s = 0; s < ns; s++)
 		for(w = 0; w < nw; w++)
-			w_in_s[s][w] = glp_get_col_prim(lp, nw*nt+s*nw+w+1);
+		{
+			if (integer)
+				w_in_s[s][w] = (double)glp_mip_col_val(lp, nw*nt+s*nw+w+1);
+                        else
+				w_in_s[s][w] = glp_get_col_prim(lp, nw*nt+s*nw+w+1);
+		}
 
 	glp_delete_prob(lp);
 	return res;
@@ -557,7 +587,7 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 						else
 						{
 							nworkers[s][1] += w_in_s[s][w];
-							if(w_in_s[s][w] > 0.3)
+							if(w_in_s[s][w] > 0.5)
 								nworkers_rounded[s][1]++;
 						}
 					}
