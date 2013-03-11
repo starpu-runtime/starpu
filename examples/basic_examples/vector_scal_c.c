@@ -41,7 +41,6 @@ static struct starpu_perfmodel vector_scal_model =
 static struct starpu_codelet cl =
 {
 	.modes = { STARPU_RW },
-	.where = STARPU_CPU | STARPU_CUDA,
 	/* CPU implementation of the codelet */
 	.cpu_funcs = {scal_cpu_func, NULL},
 #ifdef STARPU_USE_CUDA

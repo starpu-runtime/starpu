@@ -64,7 +64,10 @@ run(struct starpu_sched_policy *p)
 		task->destroy = 0;
 		ret = starpu_task_submit(task);
 		if (ret != 0)
+		{
+			FPRINTF(stderr,"task submission returned %d\n", ret);
 			return 1;
+		}
 	}
 
 	starpu_task_wait_for_all();

@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = ntasks
 	};
 	
@@ -129,7 +129,6 @@ int main(int argc, char **argv)
 
 	struct starpu_codelet cl =
 	{
-		.where = STARPU_CPU|STARPU_CUDA,
 		.cpu_funcs = {cpu_kernel, NULL},
 #ifdef STARPU_USE_CUDA
 		.cuda_funcs = {cuda_kernel, NULL},

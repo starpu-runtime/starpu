@@ -19,7 +19,7 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-void starpu_block_filter_func_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                                     unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
@@ -53,7 +53,7 @@ void starpu_block_filter_func_block(void *father_interface, void *child_interfac
 	}
 }
 
-void starpu_block_shadow_filter_func_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                                     unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
@@ -91,7 +91,7 @@ void starpu_block_shadow_filter_func_block(void *father_interface, void *child_i
 	}
 }
 
-void starpu_vertical_block_filter_func_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_vertical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                                     unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
@@ -125,7 +125,7 @@ void starpu_vertical_block_filter_func_block(void *father_interface, void *child
 	}
 }
 
-void starpu_vertical_block_shadow_filter_func_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_vertical_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                                     unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
@@ -164,7 +164,7 @@ void starpu_vertical_block_shadow_filter_func_block(void *father_interface, void
 	}
 }
 
-void starpu_depth_block_filter_func_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_depth_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                                     unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
@@ -199,7 +199,7 @@ void starpu_depth_block_filter_func_block(void *father_interface, void *child_in
 	}
 }
 
-void starpu_depth_block_shadow_filter_func_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                                     unsigned id, unsigned nparts)
 {
         struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;

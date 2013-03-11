@@ -29,7 +29,6 @@
 
 static struct starpu_codelet cl11 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
@@ -41,7 +40,6 @@ static struct starpu_codelet cl11 =
 
 static struct starpu_codelet cl21 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
@@ -53,7 +51,6 @@ static struct starpu_codelet cl21 =
 
 static struct starpu_codelet cl22 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
@@ -67,7 +64,7 @@ static struct starpu_codelet cl22 =
  *	code to bootstrap the factorization
  *	and construct the DAG
  */
-void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, int rank, int nodes, double *timing, double *flops)
+void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing, double *flops)
 {
 	struct timeval start;
 	struct timeval end;
@@ -169,7 +166,7 @@ void dw_cholesky(float ***matA, unsigned size, unsigned ld, unsigned nblocks, in
 	}
 }
 
-void dw_cholesky_check_computation(float ***matA, unsigned size, int rank, int nodes, int *correctness, double *flops)
+void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *correctness, double *flops)
 {
 	unsigned i,j,x,y;
 	float *rmat = malloc(size*size*sizeof(float));

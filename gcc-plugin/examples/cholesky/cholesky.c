@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 //	conf.calibrate = 1;
 #pragma starpu initialize
 
-        starpu_helper_cublas_init();
+        starpu_cublas_init();
 
 	float bmat[nblocks][nblocks][BLOCKSIZE * BLOCKSIZE] __heap;
 
@@ -247,7 +247,7 @@ int main(int argc, char **argv)
 		}
         }
 
-        starpu_helper_cublas_shutdown();
+        starpu_cublas_shutdown();
 #pragma starpu shutdown
 
 	assert(correctness);

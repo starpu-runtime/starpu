@@ -69,7 +69,6 @@ static struct starpu_perfmodel model =
 
 static struct starpu_codelet cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {codelet_sleep, NULL},
 	.cuda_funcs = {codelet_sleep, NULL},
         .opencl_funcs = {codelet_sleep, NULL},
@@ -99,7 +98,7 @@ int main(int argc, char **argv)
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = NTASKS
 	};
 

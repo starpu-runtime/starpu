@@ -72,7 +72,6 @@ static void func(void *descr[] __attribute__ ((unused)), void *arg)
 
 static struct starpu_codelet codelet =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {func, NULL},
 	.nbuffers = 0,
 	.modes = {STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R}

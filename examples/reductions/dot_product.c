@@ -333,7 +333,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	unsigned long nelems = nblocks*entries_per_block;
 	size_t size = nelems*sizeof(float);
@@ -400,7 +400,7 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "Reference : %e vs. %e (Delta %e)\n", reference_dot, dot, reference_dot - dot);
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_unload_opencl(&opencl_program);

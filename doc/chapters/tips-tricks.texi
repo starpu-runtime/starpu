@@ -61,7 +61,7 @@ static void fft(void *descr[], void *_args)
 Another way to go which may be needed is to execute some code from the workers
 themselves thanks to @code{starpu_execute_on_each_worker}. This may be required
 by CUDA to behave properly due to threading issues. For instance, StarPU's
-@code{starpu_helper_cublas_init} looks like the following to call
+@code{starpu_cublas_init} looks like the following to call
 @code{cublasInit} from the workers themselves:
 
 @cartouche
@@ -71,7 +71,7 @@ static void init_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
     cublasStatus cublasst = cublasInit();
     cublasSetKernelStream(starpu_cuda_get_local_stream());
 @}
-void starpu_helper_cublas_init(void)
+void starpu_cublas_init(void)
 @{
     starpu_execute_on_each_worker(init_cublas_func, NULL, STARPU_CUDA);
 @}

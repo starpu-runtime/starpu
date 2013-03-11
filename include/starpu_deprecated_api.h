@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,8 +23,11 @@ extern "C"
 {
 #endif
 
+#if defined(STARPU_USE_DEPRECATED_API) || defined(STARPU_USE_DEPRECATED_ONE_ZERO_API)
 #warning Your application is using former types. You may want to update to use the latest API, by using tools/dev/rename.sh.
+#endif /* defined(STARPU_USE_DEPRECATED_API) || defined(STARPU_USE_DEPRECATED_ONE_ZERO_API) */
 
+#ifdef STARPU_USE_DEPRECATED_API
 typedef starpu_data_handle_t starpu_data_handle;
 typedef struct starpu_block_interface starpu_block_interface_t;
 typedef struct starpu_matrix_interface starpu_matrix_interface_t;
@@ -55,6 +58,37 @@ typedef enum starpu_access_mode starpu_access_mode;
 #define starpu_unpack_cl_args          starpu_codelet_unpack_args
 #define starpu_pack_cl_args   	       starpu_codelet_pack_args
 #define starpu_task_deinit	       starpu_task_clean
+
+#endif /* STARPU_USE_DEPRECATED_API */
+
+#ifdef STARPU_USE_DEPRECATED_ONE_ZERO_API
+
+#define starpu_allocate_buffer_on_node	starpu_malloc_on_node
+#define starpu_free_buffer_on_node	starpu_free_on_node
+#define starpu_helper_cublas_init	starpu_cublas_init
+#define starpu_helper_cublas_shutdown	starpu_cublas_shutdown
+
+#define starpu_canonical_block_filter_bcsr	starpu_bcsr_filter_canonical_block
+#define starpu_vertical_block_filter_func_csr	starpu_csr_filter_vertical_block
+
+#define starpu_block_filter_func			starpu_matrix_filter_block
+#define starpu_block_shadow_filter_func			starpu_matrix_filter_block_shadow
+#define starpu_vertical_block_filter_func		starpu_matrix_filter_vertical_block
+#define starpu_vertical_block_shadow_filter_func	starpu_matrix_filter_vertical_block_shadow
+
+#define starpu_block_filter_func_vector		starpu_vector_filter_block
+#define starpu_block_shadow_filter_func_vector	starpu_vector_filter_block_shadow
+#define starpu_vector_list_filter_func		starpu_vector_filter_list
+#define starpu_vector_divide_in_2_filter_func	starpu_vector_filter_divide_in_2
+
+#define starpu_block_filter_func_block			starpu_block_filter_block
+#define starpu_block_shadow_filter_func_block		starpu_block_filter_block_shadow
+#define starpu_vertical_block_filter_func_block		starpu_block_filter_vertical_block
+#define starpu_vertical_block_shadow_filter_func_block	starpu_block_filter_vertical_block_shadow
+#define starpu_depth_block_filter_func_block		starpu_block_filter_depth_block
+#define starpu_depth_block_shadow_filter_func_block	starpu_block_filter_depth_block_shadow
+
+#endif /* STARPU_USE_DEPRECATED_ONE_ZERO_API */
 
 #ifdef __cplusplus
 }

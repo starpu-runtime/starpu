@@ -106,7 +106,6 @@ int main(int argc, char **argv)
 			/* increment a = v[0] */
 			struct starpu_codelet cl_inc_a =
 			{
-				.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 				.cpu_funcs = {cpu_codelet_incA, NULL},
 #ifdef STARPU_USE_CUDA
 				.cuda_funcs = {cuda_codelet_incA, NULL},
@@ -143,7 +142,6 @@ int main(int argc, char **argv)
 			/* increment c = v[2] */
 			struct starpu_codelet cl_inc_c =
 			{
-				.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 				.cpu_funcs = {cpu_codelet_incC, NULL},
 #ifdef STARPU_USE_CUDA
 				.cuda_funcs = {cuda_codelet_incC, NULL},

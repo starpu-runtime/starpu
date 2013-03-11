@@ -148,7 +148,6 @@ extern void custom_scal_cuda_func(void *buffers[], void *args);
 
 static struct starpu_codelet cpu_cl =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = { custom_scal_cpu_func, NULL},
 	.nbuffers = 1,
 	.modes = { STARPU_RW },
@@ -158,7 +157,6 @@ static struct starpu_codelet cpu_cl =
 #ifdef STARPU_USE_CUDA
 static struct starpu_codelet cuda_cl =
 {
-	.where = STARPU_CUDA,
 	.cuda_funcs = { custom_scal_cuda_func, NULL },
 	.nbuffers = 1,
 	.modes = { STARPU_RW },
@@ -171,7 +169,6 @@ extern void custom_scal_opencl_func(void *buffers[], void *args);
 
 static struct starpu_codelet opencl_cl =
 {
-	.where = STARPU_OPENCL,
 	.opencl_funcs = { custom_scal_opencl_func, NULL },
 	.nbuffers = 1,
 	.modes = { STARPU_RW },

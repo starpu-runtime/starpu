@@ -396,10 +396,12 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 						tmp_nw_move[w] -=  nw_move;
 					}
 
-					double needed = res[s2][w] - nw_ctx2 * 1.0;
-					double x_double = (double)nw_needed;
+					
+					double needed = res[s2][w] - (nw_ctx2 * 1.0);
+					int x = floor(needed);
+					double x_double = (double)x;
 					double diff = needed - x_double;
-					if(diff > 0.3 && tmp_nw_add[w] != 0)
+					if(diff > 0.3 && tmp_nw_add[w] > 0)
 					{
 						nw_add = tmp_nw_add[w];
 						int i = 0;

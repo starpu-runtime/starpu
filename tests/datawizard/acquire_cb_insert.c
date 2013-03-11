@@ -34,7 +34,6 @@ void which_index_cpu(void *descr[], void *_args)
 
 struct starpu_codelet which_index =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {which_index_cpu, NULL},
         .nbuffers = 1,
 	.modes = {STARPU_W}
@@ -53,7 +52,6 @@ void work_cpu(void *descr[], void *_args)
 
 struct starpu_codelet work =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {work_cpu, NULL},
         .nbuffers = 1,
 	.modes = {STARPU_W}
@@ -89,7 +87,7 @@ int main(int argc, char **argv)
 	/* Partition f */
 	struct starpu_data_filter filter =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = M,
 	};
 	starpu_data_partition(f_handle, &filter);

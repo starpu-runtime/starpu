@@ -39,7 +39,6 @@ static struct starpu_task *create_task(starpu_tag_t id)
 static struct starpu_codelet cl11 =
 {
 	.modes = { STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
@@ -75,7 +74,6 @@ static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned 
 static struct starpu_codelet cl21 =
 {
 	.modes = { STARPU_R, STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
@@ -121,7 +119,6 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j)
 static struct starpu_codelet cl22 =
 {
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
@@ -252,7 +249,7 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	if (pinned)
 	{
@@ -277,13 +274,13 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_vertical_block_filter_func,
+		.filter_func = starpu_matrix_filter_vertical_block,
 		.nchildren = nblocks
 	};
 
 	struct starpu_data_filter f2 =
 	{
-		.filter_func = starpu_block_filter_func,
+		.filter_func = starpu_matrix_filter_block,
 		.nchildren = nblocks
 	};
 
@@ -305,7 +302,7 @@ static void shutdown_system(float **matA, unsigned pinned)
 		free(*matA);
 	}
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 }
 

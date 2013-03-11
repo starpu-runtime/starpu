@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -183,6 +183,8 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
 /* Return the current date in us */
 double starpu_timing_now(void);
+/* Returns the perfmodel footprint for the task */
+uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Returns expected task duration in us */
 double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Returns an estimated speedup factor relative to CPU speed */

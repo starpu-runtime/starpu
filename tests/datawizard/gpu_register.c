@@ -125,7 +125,7 @@ test_cuda(void)
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = pieces,
 	};
 
@@ -221,7 +221,7 @@ test_opencl(void)
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = pieces,
 	};
 

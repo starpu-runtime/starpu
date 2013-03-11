@@ -68,6 +68,9 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 {
 	int i;
 	int nworkers = starpu_worker_get_count();
+
+	_starpu_codelet_check_deprecated_fields(task->cl);
+
 	for (i = 0; i < nworkers; i++)
 	{
 		if (starpu_worker_get_type(i) != arch)
@@ -114,6 +117,8 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
    that may execute the task or not */
 uint32_t _starpu_worker_exists(struct starpu_task *task)
 {
+	_starpu_codelet_check_deprecated_fields(task->cl);
+
 	if (!(task->cl->where & config.worker_mask))
 		return 0;
 
@@ -879,8 +884,9 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 #endif
 		}
 
-out:		
+out:
 		STARPU_ASSERT(starpu_task_list_empty(&worker->local_tasks));
+		_starpu_delete_sched_ctx_for_worker(workerid);
 		_starpu_job_list_delete(worker->terminated_jobs);
 	}
 }

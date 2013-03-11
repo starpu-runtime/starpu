@@ -150,7 +150,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, unsigned 
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *) data_interface_;
 	size_t elemsize = variable_interface->elemsize;
-	uintptr_t addr = starpu_allocate_buffer_on_node(dst_node, elemsize);
+	uintptr_t addr = starpu_malloc_on_node(dst_node, elemsize);
 
 	if (!addr)
 		return -ENOMEM;
@@ -164,7 +164,7 @@ static ssize_t allocate_variable_buffer_on_node(void *data_interface_, unsigned 
 static void free_variable_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *) data_interface;
-	starpu_free_buffer_on_node(node, variable_interface->ptr, variable_interface->elemsize);
+	starpu_free_on_node(node, variable_interface->ptr, variable_interface->elemsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)

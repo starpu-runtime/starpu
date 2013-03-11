@@ -283,7 +283,6 @@ struct starpu_perfmodel band_filter_model =
 static struct starpu_codelet band_filter_cl =
 {
 	.modes = { STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA,
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {band_filter_kernel_gpu, NULL},
 #endif
@@ -413,13 +412,13 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, niter*nsamples, sizeof(float));
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = niter
 	};
 
@@ -463,7 +462,7 @@ int main(int argc, char **argv)
 	starpu_data_unpartition(A_handle, 0);
 	starpu_data_unregister(A_handle);
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 
 	/* we are done ! */
 	starpu_shutdown();

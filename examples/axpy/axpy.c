@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	/* This is equivalent to
 		vec_a = malloc(N*sizeof(TYPE));
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 	/* Divide the vector into blocks */
 	struct starpu_data_filter block_filter =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = NBLOCKS
 	};
 

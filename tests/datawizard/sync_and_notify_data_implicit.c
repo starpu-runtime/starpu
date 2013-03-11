@@ -79,7 +79,6 @@ void cpu_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
 /* increment a = v[0] */
 static struct starpu_codelet cl_inc_a =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_incA, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_codelet_incA, NULL},
@@ -94,7 +93,6 @@ static struct starpu_codelet cl_inc_a =
 /* increment c = v[2] */
 struct starpu_codelet cl_inc_c =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {cpu_codelet_incC, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_codelet_incC, NULL},

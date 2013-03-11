@@ -189,11 +189,6 @@ static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 
 static struct starpu_codelet pi_cl =
 {
-	.where =
-#ifdef STARPU_HAVE_CURAND
-		STARPU_CUDA|
-#endif
-		STARPU_CPU,
 	.cpu_funcs = {pi_func_cpu, NULL},
 #ifdef STARPU_HAVE_CURAND
 	.cuda_funcs = {pi_func_cuda, NULL},
@@ -205,11 +200,6 @@ static struct starpu_codelet pi_cl =
 
 static struct starpu_codelet pi_cl_redux =
 {
-	.where =
-#ifdef STARPU_HAVE_CURAND
-		STARPU_CUDA|
-#endif
-		STARPU_CPU,
 	.cpu_funcs = {pi_func_cpu, NULL},
 #ifdef STARPU_HAVE_CURAND
 	.cuda_funcs = {pi_func_cuda, NULL},
@@ -240,11 +230,6 @@ static void init_cuda_func(void *descr[], void *cl_arg)
 
 static struct starpu_codelet init_codelet =
 {
-	.where =
-#ifdef STARPU_HAVE_CURAND
-		STARPU_CUDA|
-#endif
-		STARPU_CPU,
         .cpu_funcs = {init_cpu_func, NULL},
 #ifdef STARPU_HAVE_CURAND
         .cuda_funcs = {init_cuda_func, NULL},
@@ -282,11 +267,6 @@ static void redux_cpu_func(void *descr[], void *cl_arg)
 
 static struct starpu_codelet redux_codelet =
 {
-	.where =
-#ifdef STARPU_HAVE_CURAND
-		STARPU_CUDA|
-#endif
-		STARPU_CPU,
 	.cpu_funcs = {redux_cpu_func, NULL},
 #ifdef STARPU_HAVE_CURAND
 	.cuda_funcs = {redux_cuda_func, NULL},

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2011-2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -459,6 +459,19 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			va_arg(varg_list, int);
 		}
+		else if (arg_type==STARPU_HYPERVISOR_TAG)
+		{
+			(void)va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_FLOPS)
+		{
+			(void)va_arg(varg_list, double);
+		}
+		else if (arg_type==STARPU_TAG)
+		{
+			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
+		}
+
 	}
 	va_end(varg_list);
 
@@ -559,6 +572,18 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_HYPERVISOR_TAG)
+		{
+			(void)va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_FLOPS)
+		{
+			(void)va_arg(varg_list, double);
+		}
+		else if (arg_type==STARPU_TAG)
+		{
+			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
+		}
 	}
 	va_end(varg_list);
 
@@ -628,7 +653,19 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			{
 				va_arg(varg_list, starpu_data_handle_t);
 			}
-		}
+			else if (arg_type==STARPU_HYPERVISOR_TAG)
+			{
+				(void)va_arg(varg_list, int);
+			}
+			else if (arg_type==STARPU_FLOPS)
+			{
+				(void)va_arg(varg_list, double);
+			}
+			else if (arg_type==STARPU_TAG)
+			{
+				STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
+			}
+			}
 		va_end(varg_list);
 	}
 
@@ -685,6 +722,18 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		else if (arg_type==STARPU_EXECUTE_ON_DATA)
 		{
 			va_arg(varg_list, starpu_data_handle_t);
+		}
+		else if (arg_type==STARPU_HYPERVISOR_TAG)
+		{
+			(void)va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_FLOPS)
+		{
+			(void)va_arg(varg_list, double);
+		}
+		else if (arg_type==STARPU_TAG)
+		{
+			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
 		}
 	}
 

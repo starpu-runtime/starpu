@@ -119,12 +119,12 @@ static void partition_mult_data(void)
 
 	struct starpu_data_filter vert;
 	memset(&vert, 0, sizeof(vert));
-	vert.filter_func = starpu_vertical_block_filter_func;
+	vert.filter_func = starpu_matrix_filter_vertical_block;
 	vert.nchildren = nslicesx;
 
 	struct starpu_data_filter horiz;
 	memset(&horiz, 0, sizeof(horiz));
-	horiz.filter_func = starpu_block_filter_func;
+	horiz.filter_func = starpu_matrix_filter_block;
 	horiz.nchildren = nslicesy;
 
 	starpu_data_partition(B_handle, &vert);
@@ -202,7 +202,6 @@ static struct starpu_perfmodel starpu_gemm_model =
 
 static struct starpu_codelet cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {cpu_mult, NULL},
@@ -297,7 +296,7 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	init_problem_data();
 	partition_mult_data();
@@ -357,7 +356,7 @@ enodev:
 	starpu_free(B);
 	starpu_free(C);
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 
 	return ret;

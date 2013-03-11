@@ -37,7 +37,6 @@ static void task(void **buffers, void *args)
 
 static struct starpu_codelet cl =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {task, NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -109,7 +108,7 @@ static void test_filters(void)
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = CHILDREN_COUNT
 	};
 	starpu_data_partition(handle, &f);

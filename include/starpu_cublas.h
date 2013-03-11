@@ -23,8 +23,8 @@ extern "C"
 {
 #endif
 /* Some helper functions for application using CUBLAS kernels */
-void starpu_helper_cublas_init(void);
-void starpu_helper_cublas_shutdown(void);
+void starpu_cublas_init(void);
+void starpu_cublas_shutdown(void);
 
 #ifdef __cplusplus
 }

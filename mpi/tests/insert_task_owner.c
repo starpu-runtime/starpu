@@ -32,7 +32,6 @@ void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
 
 struct starpu_codelet mycodelet_r_w =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W}
@@ -40,7 +39,6 @@ struct starpu_codelet mycodelet_r_w =
 
 struct starpu_codelet mycodelet_rw_r =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R}
@@ -48,7 +46,6 @@ struct starpu_codelet mycodelet_rw_r =
 
 struct starpu_codelet mycodelet_rw_rw =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW}
@@ -56,7 +53,6 @@ struct starpu_codelet mycodelet_rw_rw =
 
 struct starpu_codelet mycodelet_w_r =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R}
@@ -64,7 +60,6 @@ struct starpu_codelet mycodelet_w_r =
 
 struct starpu_codelet mycodelet_r_r =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {func_cpu, NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R}

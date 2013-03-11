@@ -42,7 +42,6 @@ static struct starpu_task *create_task(starpu_tag_t id)
 static struct starpu_codelet cl11 =
 {
 	.modes = { STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
@@ -80,7 +79,6 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 static struct starpu_codelet cl21 =
 {
 	.modes = { STARPU_R, STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
@@ -127,7 +125,6 @@ static int create_task_21(unsigned k, unsigned j)
 static struct starpu_codelet cl22 =
 {
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
@@ -260,7 +257,7 @@ int main(int argc, char **argv)
 	/* Disable sequential consistency */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 #ifndef STARPU_SIMGRID
 	for (y = 0; y < nblocks; y++)
@@ -321,7 +318,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 
 	starpu_shutdown();
 	return ret;

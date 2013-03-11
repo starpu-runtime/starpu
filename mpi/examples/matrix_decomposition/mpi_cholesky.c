@@ -41,23 +41,23 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &nodes);
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	parse_args(argc, argv, nodes);
 
 	matrix_init(&bmat, rank, nodes, 1);
 	matrix_display(bmat, rank);
 
-	dw_cholesky(bmat, size, size/nblocks, nblocks, rank, nodes, &timing, &flops);
+	dw_cholesky(bmat, size/nblocks, rank, nodes, &timing, &flops);
 
 	starpu_mpi_shutdown();
 
 	matrix_display(bmat, rank);
 
-	dw_cholesky_check_computation(bmat, size, rank, nodes, &correctness, &flops);
+	dw_cholesky_check_computation(bmat, rank, nodes, &correctness, &flops);
 
 	matrix_free(&bmat, rank, nodes, 1);
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 
 	assert(correctness);

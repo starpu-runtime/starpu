@@ -217,7 +217,6 @@ static void null_func(void *descr[] __attribute__((unused)), void *arg __attribu
 static struct starpu_codelet null =
 {
 	.modes = { STARPU_W, STARPU_W },
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {null_func, NULL},
 	.cuda_funcs = {null_func, NULL},
 	.opencl_funcs = {null_func, NULL},

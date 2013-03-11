@@ -45,7 +45,6 @@ int main(int argc, char **argv)
 
         struct starpu_codelet cl =
 	{
-                .where = STARPU_CPU,
                 .cpu_funcs = {cpu_func, NULL},
                 .nbuffers = 1,
 		.modes = {STARPU_RW}
@@ -67,7 +66,7 @@ int main(int argc, char **argv)
         /* Partition the vector in PARTS sub-vectors */
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = PARTS
 	};
 	starpu_data_partition(handle, &f);

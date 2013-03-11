@@ -171,7 +171,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	datawizard/write_back.c					\
 	datawizard/coherency.c					\
 	datawizard/data_request.c				\
-	datawizard/progress.c					\
+	datawizard/datawizard.c					\
 	datawizard/copy_driver.c				\
 	datawizard/filters.c					\
 	datawizard/sort_data_handles.c				\

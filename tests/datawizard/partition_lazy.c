@@ -20,14 +20,6 @@
 
 struct starpu_codelet mycodelet =
 {
-        .where = STARPU_CPU
-#ifdef STARPU_USE_CUDA
-		| STARPU_CUDA
-#endif
-#ifdef STARPU_USE_OPENCL
-		| STARPU_OPENCL
-#endif
-		,
 	.cpu_funcs = { scal_func_cpu, NULL },
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = { scal_func_opencl, NULL },
@@ -64,7 +56,7 @@ int main(int argc, char **argv)
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_block_filter_func_vector,
+		.filter_func = starpu_vector_filter_block,
 		.nchildren = n > 1 ? n : 2,
 	};
 

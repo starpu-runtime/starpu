@@ -35,14 +35,14 @@ static void shutdown_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 }
 #endif
 
-void starpu_helper_cublas_init(void)
+void starpu_cublas_init(void)
 {
 #ifdef STARPU_USE_CUDA
 	starpu_execute_on_each_worker(init_cublas_func, NULL, STARPU_CUDA);
 #endif
 }
 
-void starpu_helper_cublas_shutdown(void)
+void starpu_cublas_shutdown(void)
 {
 #ifdef STARPU_USE_CUDA
 	starpu_execute_on_each_worker(shutdown_cublas_func, NULL, STARPU_CUDA);

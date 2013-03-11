@@ -194,13 +194,13 @@ static void partition_mult_data(void)
 	 * name of the filters are a bit misleading */
 	struct starpu_data_filter vert =
 	{
-		.filter_func = starpu_vertical_block_filter_func,
+		.filter_func = starpu_matrix_filter_vertical_block,
 		.nchildren = nslicesx
 	};
 
 	struct starpu_data_filter horiz =
 	{
-		.filter_func = starpu_block_filter_func,
+		.filter_func = starpu_matrix_filter_block,
 		.nchildren = nslicesy
 	};
 
@@ -263,7 +263,6 @@ static struct starpu_perfmodel mult_perf_model =
 static struct starpu_codelet cl =
 {
         /* we can only execute that kernel on a CPU yet */
-        .where = STARPU_CPU,
         /* CPU implementation of the codelet */
         .cpu_funcs = {cpu_mult, NULL},
         /* the codelet manipulates 3 buffers that are managed by the

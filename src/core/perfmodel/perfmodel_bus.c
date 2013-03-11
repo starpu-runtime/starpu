@@ -47,7 +47,7 @@
 #define NITER	128
 
 #ifndef STARPU_SIMGRID
-static void starpu_force_bus_sampling(void);
+static void _starpu_bus_force_sampling(void);
 #endif
 
 /* timing is in µs per byte (i.e. slowness, inverse of bandwidth) */
@@ -1491,7 +1491,7 @@ static void check_bus_config_file(void)
 	{
 		if (res)
 			_STARPU_DISP("No performance model for the bus, calibrating...\n");
-		starpu_force_bus_sampling();
+		_starpu_bus_force_sampling();
 		if (res)
 			_STARPU_DISP("... done\n");
         }
@@ -1530,19 +1530,19 @@ static void check_bus_config_file(void)
                 if (read_cpus != ncpus)
 		{
 			_STARPU_DISP("Current configuration does not match the bus performance model (CPUS: (stored) %u != (current) %u), recalibrating...\n", read_cpus, ncpus);
-                        starpu_force_bus_sampling();
+                        _starpu_bus_force_sampling();
 			_STARPU_DISP("... done\n");
                 }
                 else if (read_cuda != ncuda)
 		{
                         _STARPU_DISP("Current configuration does not match the bus performance model (CUDA: (stored) %d != (current) %d), recalibrating...\n", read_cuda, ncuda);
-                        starpu_force_bus_sampling();
+                        _starpu_bus_force_sampling();
 			_STARPU_DISP("... done\n");
                 }
                 else if (read_opencl != nopencl)
 		{
                         _STARPU_DISP("Current configuration does not match the bus performance model (OpenCL: (stored) %d != (current) %d), recalibrating...\n", read_opencl, nopencl);
-                        starpu_force_bus_sampling();
+                        _starpu_bus_force_sampling();
 			_STARPU_DISP("... done\n");
                 }
         }
@@ -1779,7 +1779,7 @@ static void check_bus_platform_file(void)
  *	Generic
  */
 
-static void starpu_force_bus_sampling(void)
+static void _starpu_bus_force_sampling(void)
 {
 	_STARPU_DEBUG("Force bus sampling ...\n");
 	_starpu_create_sampling_directory_if_needed();

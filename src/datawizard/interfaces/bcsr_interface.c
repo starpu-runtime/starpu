@@ -251,13 +251,13 @@ static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, unsigned dst_
 	uint32_t r = bcsr_interface->r;
 	uint32_t c = bcsr_interface->c;
 
-	addr_nzval = starpu_allocate_buffer_on_node(dst_node, nnz*r*c*elemsize);
+	addr_nzval = starpu_malloc_on_node(dst_node, nnz*r*c*elemsize);
 	if (!addr_nzval)
 		goto fail_nzval;
-	addr_colind = starpu_allocate_buffer_on_node(dst_node, nnz*sizeof(uint32_t));
+	addr_colind = starpu_malloc_on_node(dst_node, nnz*sizeof(uint32_t));
 	if (!addr_colind)
 		goto fail_colind;
-	addr_rowptr = starpu_allocate_buffer_on_node(dst_node, (nrow+1)*sizeof(uint32_t));
+	addr_rowptr = starpu_malloc_on_node(dst_node, (nrow+1)*sizeof(uint32_t));
 	if (!addr_rowptr)
 		goto fail_rowptr;
 
@@ -273,9 +273,9 @@ static ssize_t allocate_bcsr_buffer_on_node(void *data_interface_, unsigned dst_
 	return allocated_memory;
 
 fail_rowptr:
-	starpu_free_buffer_on_node(dst_node, addr_colind, nnz*sizeof(uint32_t));
+	starpu_free_on_node(dst_node, addr_colind, nnz*sizeof(uint32_t));
 fail_colind:
-	starpu_free_buffer_on_node(dst_node, addr_nzval, nnz*r*c*elemsize);
+	starpu_free_on_node(dst_node, addr_nzval, nnz*r*c*elemsize);
 fail_nzval:
 	/* allocation failed */
 	return -ENOMEM;
@@ -290,9 +290,9 @@ static void free_bcsr_buffer_on_node(void *data_interface, unsigned node)
 	uint32_t r = bcsr_interface->r;
 	uint32_t c = bcsr_interface->c;
 
-	starpu_free_buffer_on_node(node, bcsr_interface->nzval, nnz*r*c*elemsize);
-	starpu_free_buffer_on_node(node, (uintptr_t) bcsr_interface->colind, nnz*sizeof(uint32_t));
-	starpu_free_buffer_on_node(node, (uintptr_t) bcsr_interface->rowptr, (nrow+1)*sizeof(uint32_t));
+	starpu_free_on_node(node, bcsr_interface->nzval, nnz*r*c*elemsize);
+	starpu_free_on_node(node, (uintptr_t) bcsr_interface->colind, nnz*sizeof(uint32_t));
+	starpu_free_on_node(node, (uintptr_t) bcsr_interface->rowptr, (nrow+1)*sizeof(uint32_t));
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)

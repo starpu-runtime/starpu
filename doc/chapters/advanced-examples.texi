@@ -234,7 +234,7 @@ starpu_vector_data_register(&handle, 0, (uintptr_t)vector,
 /* Partition the vector in PARTS sub-vectors */
 starpu_data_filter f =
 @{
-    .filter_func = starpu_block_filter_func_vector,
+    .filter_func = starpu_vector_filter_block,
     .nchildren = PARTS
 @};
 starpu_data_partition(handle, &f);
@@ -430,11 +430,14 @@ a name which is different from the execution time performance model.
 
 The application can request time estimations from the StarPU performance
 models by filling a task structure as usual without actually submitting
-it. The data handles can be created by calling @code{starpu_data_register}
-functions with a @code{NULL} pointer (and need to be unregistered as usual)
-and the desired data sizes. The @code{starpu_task_expected_length} and
-@code{starpu_task_expected_power} functions can then be called to get an
-estimation of the task duration on a given arch. @code{starpu_task_destroy}
+it. The data handles can be created by calling @code{starpu_*_data_register}
+functions with a @code{NULL} pointer and @code{-1} node and the
+desired data sizes, and need to be unregistered as usual. The
+@code{starpu_task_expected_length} and @code{starpu_task_expected_power}
+functions can then be called to get an estimation of the task cost on a given
+arch. @code{starpu_task_footprint} can also be used to get the footprint used
+for indexing history-based performance models.
+@code{starpu_task_destroy}
 needs to be called to destroy the dummy task afterwards. See
 @code{tests/perfmodels/regression_based.c} for an example.
 

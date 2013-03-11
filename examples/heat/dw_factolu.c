@@ -36,7 +36,6 @@ static unsigned no_prio = 0;
 
 static struct starpu_codelet cl11 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dw_cublas_codelet_update_u11, NULL},
@@ -48,7 +47,6 @@ static struct starpu_codelet cl11 =
 
 static struct starpu_codelet cl12 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u12, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dw_cublas_codelet_update_u12, NULL},
@@ -60,7 +58,6 @@ static struct starpu_codelet cl12 =
 
 static struct starpu_codelet cl21 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dw_cublas_codelet_update_u21, NULL},
@@ -72,7 +69,6 @@ static struct starpu_codelet cl21 =
 
 static struct starpu_codelet cl22 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.cpu_funcs = {dw_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dw_cublas_codelet_update_u22, NULL},
@@ -705,7 +701,7 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	if (pinned)
 	{
@@ -759,13 +755,13 @@ void dw_factoLU(float *matA, unsigned size,
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_vertical_block_filter_func,
+		.filter_func = starpu_matrix_filter_vertical_block,
 		.nchildren = nblocks
 	};
 
 	struct starpu_data_filter f2 =
 	{
-		.filter_func = starpu_block_filter_func,
+		.filter_func = starpu_matrix_filter_block,
 		.nchildren = nblocks
 	};
 

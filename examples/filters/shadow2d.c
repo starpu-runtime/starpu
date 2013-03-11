@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -153,11 +153,6 @@ int main(int argc, char **argv)
 
         struct starpu_codelet cl =
 	{
-                .where = STARPU_CPU
-#ifdef STARPU_USE_CUDA
-			|STARPU_CUDA
-#endif
-			,
                 .cpu_funcs = {cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
                 .cuda_funcs = {cuda_func, NULL},
@@ -217,13 +212,13 @@ int main(int argc, char **argv)
 	 * combined. */
 	struct starpu_data_filter fy =
 	{
-		.filter_func = starpu_vertical_block_shadow_filter_func,
+		.filter_func = starpu_matrix_filter_vertical_block_shadow,
 		.nchildren = PARTSY,
 		.filter_arg_ptr = (void*)(uintptr_t) SHADOWY /* Shadow width */
 	};
 	struct starpu_data_filter fx =
 	{
-		.filter_func = starpu_block_shadow_filter_func,
+		.filter_func = starpu_matrix_filter_block_shadow,
 		.nchildren = PARTSX,
 		.filter_arg_ptr = (void*)(uintptr_t) SHADOWX /* Shadow width */
 	};
@@ -232,12 +227,12 @@ int main(int argc, char **argv)
         /* Partition the destination matrix in PARTSY*PARTSX sub-matrices */
 	struct starpu_data_filter fy2 =
 	{
-		.filter_func = starpu_vertical_block_filter_func,
+		.filter_func = starpu_matrix_filter_vertical_block,
 		.nchildren = PARTSY,
 	};
 	struct starpu_data_filter fx2 =
 	{
-		.filter_func = starpu_block_filter_func,
+		.filter_func = starpu_matrix_filter_block,
 		.nchildren = PARTSX,
 	};
 	starpu_data_map_filters(handle2, 2, &fy2, &fx2);

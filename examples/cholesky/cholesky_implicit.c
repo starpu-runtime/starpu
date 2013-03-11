@@ -24,7 +24,6 @@
 
 static struct starpu_codelet cl11 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
 #ifdef STARPU_USE_CUDA
@@ -39,7 +38,6 @@ static struct starpu_codelet cl11 =
 
 static struct starpu_codelet cl21 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
@@ -54,7 +52,6 @@ static struct starpu_codelet cl21 =
 
 static struct starpu_codelet cl22 =
 {
-	.where = STARPU_CPU|STARPU_CUDA,
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
@@ -185,13 +182,13 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_vertical_block_filter_func,
+		.filter_func = starpu_matrix_filter_vertical_block,
 		.nchildren = nblocks
 	};
 
 	struct starpu_data_filter f2 =
 	{
-		.filter_func = starpu_block_filter_func,
+		.filter_func = starpu_matrix_filter_block,
 		.nchildren = nblocks
 	};
 
@@ -344,7 +341,7 @@ int main(int argc, char **argv)
                 return 77;
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_helper_cublas_init();
+	starpu_cublas_init();
 
 	if(with_ctxs)
 	{
@@ -360,7 +357,7 @@ int main(int argc, char **argv)
 	else
 		execute_cholesky(size, nblocks);
 
-	starpu_helper_cublas_shutdown();
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 
 	return ret;

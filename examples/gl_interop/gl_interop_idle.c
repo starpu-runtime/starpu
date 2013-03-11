@@ -42,7 +42,6 @@ void dummy(void *buffers[], void *cl_arg)
 }
 
 struct starpu_codelet cl = {
-	.where = STARPU_CUDA,
 	.cuda_funcs = { dummy, NULL },
 	.nbuffers = 1,
 	.modes = { STARPU_W },

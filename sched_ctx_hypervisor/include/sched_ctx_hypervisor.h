@@ -145,6 +145,9 @@ struct sched_ctx_hypervisor_wrapper
 	/* the start time of the resizing sample of this context*/
 	double start_time;
 
+	/* the first time a task was pushed to this context*/
+	double real_start_time;
+
 	/* the workers don't leave the current ctx until the receiver ctx 
 	   doesn't ack the receive of these workers */
 	struct sched_ctx_hypervisor_resize_ack resize_ack;
@@ -223,6 +226,9 @@ void sched_ctx_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *w
 void sched_ctx_hypervisor_free_size_req(void);
 
 unsigned sched_ctx_hypervisor_can_resize(unsigned sched_ctx);
+
+/* compute an average value of the cpu/cuda velocity */
+double sched_ctx_hypervisor_get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
 
 #ifdef __cplusplus
 }

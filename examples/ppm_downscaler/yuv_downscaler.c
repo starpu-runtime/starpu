@@ -86,7 +86,6 @@ static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 
 static struct starpu_codelet ds_codelet =
 {
-	.where = STARPU_CPU,
 	.cpu_funcs = {ds_kernel_cpu, NULL},
 	.nbuffers = 2, /* input -> output */
 	.modes = {STARPU_R, STARPU_W},
@@ -96,13 +95,13 @@ static struct starpu_codelet ds_codelet =
 /* each block contains BLOCK_HEIGHT consecutive lines */
 static struct starpu_data_filter filter_y =
 {
-	.filter_func = starpu_block_filter_func,
+	.filter_func = starpu_matrix_filter_block,
 	.nchildren= HEIGHT/BLOCK_HEIGHT
 };
 
 static struct starpu_data_filter filter_uv =
 {
-	.filter_func = starpu_block_filter_func,
+	.filter_func = starpu_matrix_filter_block,
 	.nchildren = (HEIGHT/2)/BLOCK_HEIGHT
 };
 

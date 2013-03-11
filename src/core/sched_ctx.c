@@ -660,6 +660,12 @@ void _starpu_init_sched_ctx_for_worker(unsigned workerid)
 	return;
 }
 
+void _starpu_delete_sched_ctx_for_worker(unsigned workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	free(worker->sched_ctx);
+}
+
 /* sched_ctx aren't necessarly one next to another */
 /* for eg when we remove one its place is free */
 /* when we add  new one we reuse its place */

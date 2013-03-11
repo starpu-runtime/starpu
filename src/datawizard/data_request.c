@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -347,6 +347,8 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->refcnt);
 
 	_starpu_spin_unlock(&r->lock);
+
+	/* FIXME: the request may get upgraded from here to freeing it... */
 
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */

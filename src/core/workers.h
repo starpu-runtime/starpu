@@ -236,9 +236,6 @@ enum _starpu_worker_status _starpu_worker_get_status(int workerid);
  * doing (eg. executing a callback). */
 void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status);
 
-/* TODO move */
-unsigned _starpu_execute_registered_progression_hooks(void);
-
 /* We keep an initial sched ctx which might be used in case no other ctx is available */
 struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
 

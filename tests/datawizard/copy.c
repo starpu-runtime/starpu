@@ -30,7 +30,6 @@ static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attri
 
 static struct starpu_codelet cpu_codelet =
 {
-        .where = STARPU_CPU,
         .cpu_funcs = {dummy_func, NULL},
         .model = NULL,
         .nbuffers = 1,
@@ -39,7 +38,6 @@ static struct starpu_codelet cpu_codelet =
 
 static struct starpu_codelet gpu_codelet =
 {
-        .where = STARPU_CUDA|STARPU_OPENCL,
         .cuda_funcs = {dummy_func, NULL},
         .opencl_funcs = {dummy_func, NULL},
         .model = NULL,

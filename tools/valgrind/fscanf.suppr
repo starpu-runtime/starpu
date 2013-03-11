@@ -4,6 +4,24 @@
    fun:__GI___strncasecmp_l
    fun:____strtod_l_internal
    fun:_IO_vfscanf
-   fun:fscanf
-   fun:scan_reg_model
+}
+
+{
+   fprintf cond error
+   Memcheck:Cond
+   ...
+   fun:vfprintf
+   fun:buffered_vfprintf
+   fun:vfprintf
+   fun:fprintf
+}
+
+{
+   fprintf value error
+   Memcheck:Value8
+   ...
+   fun:vfprintf
+   fun:buffered_vfprintf
+   fun:vfprintf
+   fun:fprintf
 }

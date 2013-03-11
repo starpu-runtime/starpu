@@ -91,7 +91,6 @@ int main(int argc, char **argv)
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
-                .where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
                 .cpu_funcs = {cpu_func, NULL},
 #ifdef STARPU_USE_CUDA
                 .cuda_funcs = {cuda_func, NULL},
@@ -121,7 +120,7 @@ int main(int argc, char **argv)
         /* Partition the block in PARTS sub-blocks */
 	struct starpu_data_filter f =
 	{
-		.filter_func = starpu_block_filter_func_block,
+		.filter_func = starpu_block_filter_block,
 		.nchildren = PARTS
 	};
         starpu_data_partition(handle, &f);

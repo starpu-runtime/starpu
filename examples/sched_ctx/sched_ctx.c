@@ -32,7 +32,6 @@ static void sched_ctx_func(void *descr[] __attribute__ ((unused)), void *arg __a
 
 static struct starpu_codelet sched_ctx_codelet =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {sched_ctx_func, NULL},
 	.cuda_funcs = {sched_ctx_func, NULL},
 	.opencl_funcs = {sched_ctx_func, NULL},

@@ -220,13 +220,13 @@ static ssize_t allocate_csr_buffer_on_node(void *data_interface_, unsigned dst_n
 	uint32_t nrow = csr_interface->nrow;
 	size_t elemsize = csr_interface->elemsize;
 
-	addr_nzval = starpu_allocate_buffer_on_node(dst_node, nnz*elemsize);
+	addr_nzval = starpu_malloc_on_node(dst_node, nnz*elemsize);
 	if (!addr_nzval)
 		goto fail_nzval;
-	addr_colind = (uint32_t*) starpu_allocate_buffer_on_node(dst_node, nnz*sizeof(uint32_t));
+	addr_colind = (uint32_t*) starpu_malloc_on_node(dst_node, nnz*sizeof(uint32_t));
 	if (!addr_colind)
 		goto fail_colind;
-	addr_rowptr = (uint32_t*) starpu_allocate_buffer_on_node(dst_node, (nrow+1)*sizeof(uint32_t));
+	addr_rowptr = (uint32_t*) starpu_malloc_on_node(dst_node, (nrow+1)*sizeof(uint32_t));
 	if (!addr_rowptr)
 		goto fail_rowptr;
 
@@ -242,9 +242,9 @@ static ssize_t allocate_csr_buffer_on_node(void *data_interface_, unsigned dst_n
 	return allocated_memory;
 
 fail_rowptr:
-	starpu_free_buffer_on_node(dst_node, (uintptr_t) addr_colind, nnz*sizeof(uint32_t));
+	starpu_free_on_node(dst_node, (uintptr_t) addr_colind, nnz*sizeof(uint32_t));
 fail_colind:
-	starpu_free_buffer_on_node(dst_node, addr_nzval, nnz*elemsize);
+	starpu_free_on_node(dst_node, addr_nzval, nnz*elemsize);
 fail_nzval:
 	/* allocation failed */
 	return -ENOMEM;
@@ -257,9 +257,9 @@ static void free_csr_buffer_on_node(void *data_interface, unsigned node)
 	uint32_t nrow = csr_interface->nrow;
 	size_t elemsize = csr_interface->elemsize;
 
-	starpu_free_buffer_on_node(node, csr_interface->nzval, nnz*elemsize);
-	starpu_free_buffer_on_node(node, (uintptr_t) csr_interface->colind, nnz*sizeof(uint32_t));
-	starpu_free_buffer_on_node(node, (uintptr_t) csr_interface->rowptr, (nrow+1)*sizeof(uint32_t));
+	starpu_free_on_node(node, csr_interface->nzval, nnz*elemsize);
+	starpu_free_on_node(node, (uintptr_t) csr_interface->colind, nnz*sizeof(uint32_t));
+	starpu_free_on_node(node, (uintptr_t) csr_interface->rowptr, (nrow+1)*sizeof(uint32_t));
 }
 
 /* as not all platform easily have a BLAS lib installed ... */

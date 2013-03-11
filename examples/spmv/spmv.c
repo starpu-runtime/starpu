@@ -88,14 +88,13 @@ static struct starpu_data_filter csr_f =
 
 static struct starpu_data_filter vector_f =
 {
-	.filter_func = starpu_block_filter_func_vector,
+	.filter_func = starpu_vector_filter_block,
 	/* This value is defined later on */
 	.nchildren = -1,
 };
 
 static struct starpu_codelet spmv_cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {spmv_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {spmv_kernel_cuda, NULL},

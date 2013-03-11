@@ -23,7 +23,7 @@
 /*
  * an example of a dummy partition function : blocks ...
  */
-void starpu_block_filter_func(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_matrix_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
 	struct starpu_matrix_interface *matrix_father = (struct starpu_matrix_interface *) father_interface;
 	struct starpu_matrix_interface *matrix_child = (struct starpu_matrix_interface *) child_interface;
@@ -59,7 +59,7 @@ void starpu_block_filter_func(void *father_interface, void *child_interface, STA
 /*
  * an example of a dummy partition function : blocks ...
  */
-void starpu_block_shadow_filter_func(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_matrix_filter_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
 	struct starpu_matrix_interface *matrix_father = (struct starpu_matrix_interface *) father_interface;
 	struct starpu_matrix_interface *matrix_child = (struct starpu_matrix_interface *) child_interface;
@@ -97,7 +97,7 @@ void starpu_block_shadow_filter_func(void *father_interface, void *child_interfa
 	}
 }
 
-void starpu_vertical_block_filter_func(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_matrix_filter_vertical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
         struct starpu_matrix_interface *matrix_father = (struct starpu_matrix_interface *) father_interface;
         struct starpu_matrix_interface *matrix_child = (struct starpu_matrix_interface *) child_interface;
@@ -130,7 +130,7 @@ void starpu_vertical_block_filter_func(void *father_interface, void *child_inter
 	}
 }
 
-void starpu_vertical_block_shadow_filter_func(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
         struct starpu_matrix_interface *matrix_father = (struct starpu_matrix_interface *) father_interface;
         struct starpu_matrix_interface *matrix_child = (struct starpu_matrix_interface *) child_interface;

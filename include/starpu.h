@@ -43,6 +43,7 @@ typedef unsigned long long uint64_t;
 #include <starpu_data.h>
 #include <starpu_data_interfaces.h>
 #include <starpu_data_filters.h>
+#include <starpu_stdlib.h>
 #include <starpu_perfmodel.h>
 #include <starpu_worker.h>
 #include <starpu_task.h>
@@ -62,6 +63,7 @@ typedef unsigned long long uint64_t;
 #include <starpu_profiling.h>
 #include <starpu_top.h>
 #include <starpu_fxt.h>
+#include <starpu_driver.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -71,31 +73,6 @@ extern "C"
 #ifdef STARPU_SIMGRID
 #define main starpu_main
 #endif
-
-struct starpu_driver
-{
-	enum starpu_archtype type;
-	union
-	{
-		unsigned cpu_id;
-		unsigned cuda_id;
-#if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
-		cl_device_id opencl_id;
-#elif defined(STARPU_SIMGRID)
-		unsigned opencl_id;
-#endif
-		/*
-		 * HOWTO: add a new kind of device to the starpu_driver structure.
-		 * 1) Add a member to this union.
-		 * 2) Edit _starpu_launch_drivers() to make sure the driver is
-		 *    not always launched.
-		 * 3) Edit starpu_driver_run() so that it can handle another
-		 *    kind of architecture.
-		 * 4) Write _starpu_run_foobar() in the corresponding driver.
-		 * 5) Test the whole thing :)
-		 */
-	} id;
-};
 
 struct starpu_conf
 {
@@ -173,18 +150,11 @@ int starpu_asynchronous_opencl_copy_disabled(void);
 
 void starpu_profiling_init();
 void starpu_display_stats();
-int starpu_driver_run(struct starpu_driver *d);
-void starpu_drivers_request_termination(void);
 
-int starpu_driver_init(struct starpu_driver *d);
-int starpu_driver_run_once(struct starpu_driver *d);
-int starpu_driver_deinit(struct starpu_driver *d);
 #ifdef __cplusplus
 }
 #endif
 
-#if defined(STARPU_USE_DEPRECATED_API)
 #include "starpu_deprecated_api.h"
-#endif /* STARPU_USE_DEPRECATED_API */
 
 #endif /* __STARPU_H__ */

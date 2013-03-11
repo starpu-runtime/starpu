@@ -49,7 +49,6 @@ static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 
 static struct starpu_codelet cl_r =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {codelet_null, NULL},
 	.cuda_funcs = {codelet_null, NULL},
 	.opencl_funcs = {codelet_null, NULL},
@@ -59,7 +58,6 @@ static struct starpu_codelet cl_r =
 
 static struct starpu_codelet cl_w =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {codelet_null, NULL},
 	.cuda_funcs = {codelet_null, NULL},
 	.opencl_funcs = {codelet_null, NULL},
@@ -69,7 +67,6 @@ static struct starpu_codelet cl_w =
 
 static struct starpu_codelet cl_rw =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {codelet_null, NULL},
 	.cuda_funcs = {codelet_null, NULL},
 	.opencl_funcs = {codelet_null, NULL},
