@@ -75,7 +75,7 @@ unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
 	return sched_ctx;
 }
 
-int* _get_first_workers_in_list(int *workers, int nall_workers,  unsigned *nworkers, enum starpu_archtype arch)
+int* _get_first_workers_in_list(int *start, int *workers, int nall_workers,  unsigned *nworkers, enum starpu_archtype arch)
 {
 	int *curr_workers = (int*)malloc((*nworkers)*sizeof(int));
 
@@ -87,7 +87,11 @@ int* _get_first_workers_in_list(int *workers, int nall_workers,  unsigned *nwork
 		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
 		if(arch == STARPU_ANY_WORKER || curr_arch == arch)
 		{
-			curr_workers[nfound_workers++] = worker;
+			if(w >= *start)
+			{
+				curr_workers[nfound_workers++] = worker;
+				*start = w+1;
+			}
 		}
 		if(nfound_workers == *nworkers)
 			break;
@@ -513,6 +517,34 @@ double _get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, 
         }
 
         return -1.0;
+}
+
+/* compute an average value of the cpu/cuda old velocity */
+double _get_ref_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
+{
+	double ref_velocity = 0.0;
+	unsigned nw = 0;
+
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
+	int worker;
+
+	struct starpu_sched_ctx_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		if(sc_w->ref_velocity[worker] > 1.0)
+		{
+			ref_velocity += sc_w->ref_velocity[worker];
+			nw++;
+		}
+	}
+	
+	if(nw > 0)
+		return ref_velocity / nw;
+	return -1.0;
 }
 
 /* check if there is a big velocity gap between the contexts */

@@ -38,7 +38,7 @@ unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move);
 
 int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype arch);
 
-int* _get_first_workers_in_list(int *workers, int nall_workers,  unsigned *nworkers, enum starpu_archtype arch);
+int* _get_first_workers_in_list(int *start, int *workers, int nall_workers,  unsigned *nworkers, enum starpu_archtype arch);
 
 unsigned _get_potential_nworkers(struct sched_ctx_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_archtype arch);
 
@@ -57,6 +57,8 @@ double _get_fastest_ctx_exec_time(void);
 double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsigned worker); 
 
 double _get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
+
+double _get_ref_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
 
 int _velocity_gap_btw_ctxs(void);
 

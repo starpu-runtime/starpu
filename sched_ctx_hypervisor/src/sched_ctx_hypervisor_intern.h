@@ -58,6 +58,7 @@ struct sched_ctx_hypervisor
 	int sched_ctxs[STARPU_NMAX_SCHED_CTXS];
 	unsigned nsched_ctxs;
 	unsigned resize[STARPU_NMAX_SCHED_CTXS];
+	unsigned allow_remove[STARPU_NMAX_SCHED_CTXS];
 	int min_tasks;
 	struct sched_ctx_hypervisor_policy policy;
 

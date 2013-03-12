@@ -68,20 +68,38 @@ static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 	if(vmax != 0.0)
 	{
 		printf("********size\n");
-/* 		for( i = 0; i < nsched_ctxs; i++) */
-/* 		{ */
-/* 			printf("ctx %d/worker type %d: n = %lf \n", i, 0, res[i][0]); */
-/* 			printf("ctx %d/worker type %d: n = %lf \n", i, 1, res[i][1]); */
-/* 		} */
+		int i;
+		for( i = 0; i < nsched_ctxs; i++)
+		{
+			printf("ctx %d/worker type %d: n = %lf \n", i, 0, nworkers_per_type[i][0]);
+			printf("ctx %d/worker type %d: n = %lf \n", i, 1, nworkers_per_type[i][1]);
+		}
 		int nworkers_per_type_rounded[nsched_ctxs][2];
 		_lp_round_double_to_int(nsched_ctxs, 2, nworkers_per_type, nworkers_per_type_rounded);
-/*       		for( i = 0; i < nsched_ctxs; i++) */
-/* 		{ */
-/* 			printf("ctx %d/worker type %d: n = %d \n", i, 0, res_rounded[i][0]); */
-/* 			printf("ctx %d/worker type %d: n = %d \n", i, 1, res_rounded[i][1]); */
-/* 		} */
+      		for( i = 0; i < nsched_ctxs; i++)
+		{
+			printf("ctx %d/worker type %d: n = %d \n", i, 0, nworkers_per_type_rounded[i][0]);
+			printf("ctx %d/worker type %d: n = %d \n", i, 1, nworkers_per_type_rounded[i][1]);
+		}
+		int *current_sched_ctxs = sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : 
+			sched_ctxs;
 
-		_lp_distribute_resources_in_ctxs(sched_ctxs, nsched_ctxs, 2, nworkers_per_type_rounded, nworkers_per_type, workers, nworkers);
+		unsigned has_workers = 0;
+		int s;
+		for(s = 0; s < ns; s++)
+		{
+			int nworkers_ctx = sched_ctx_hypervisor_get_nworkers_ctx(current_sched_ctxs[s], 
+									     STARPU_ANY_WORKER);
+			if(nworkers_ctx != 0)
+			{
+				has_workers = 1;
+				break;
+			}
+		}
+		if(has_workers)
+			_lp_redistribute_resources_in_ctxs(nsched_ctxs, 2, nworkers_per_type_rounded, nworkers_per_type);
+		else
+			_lp_distribute_resources_in_ctxs(sched_ctxs, nsched_ctxs, 2, nworkers_per_type_rounded, nworkers_per_type, workers, nworkers);
 	}
 	pthread_mutex_unlock(&act_hypervisor_mutex);
 }

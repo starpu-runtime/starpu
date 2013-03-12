@@ -311,6 +311,14 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
                 glp_init_iocp(&iocp);
                 iocp.msg_lev = GLP_MSG_OFF;
                 glp_intopt(lp, &iocp);
+		int stat = glp_mip_status(lp);
+		/* if we don't have a solution return */
+		if(stat == GLP_NOFEAS)
+		{
+			glp_delete_prob(lp);
+			lp = NULL;
+			return 0.0;
+		}
         }
 
 	int stat = glp_get_prim_stat(lp);
