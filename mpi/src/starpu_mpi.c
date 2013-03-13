@@ -271,7 +271,6 @@ static void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	{
 		req->count = 1;
 		req->ptr = starpu_handle_get_local_ptr(req->data_handle);
-		_starpu_mpi_irecv_data_func(req);
 	}
 	else
 	{
@@ -279,8 +278,8 @@ static void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 		MPI_Recv(&req->count, sizeof(req->count), MPI_BYTE, req->srcdst, req->mpi_tag, req->comm, &status);
 		req->ptr = malloc(req->count);
 		STARPU_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
-		_starpu_mpi_irecv_data_func(req);
 	}
+	_starpu_mpi_irecv_data_func(req);
 }
 
 static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, unsigned detached, void (*callback)(void *), void *arg)
