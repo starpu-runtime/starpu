@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -143,12 +143,6 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-static void _starpu_mpi_isend_size_callback(void *arg)
-{
-	struct _starpu_mpi_req *req = (struct _starpu_mpi_req *) arg;
-	_starpu_mpi_isend_data_func(req);
-}
-
 static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 {
 	_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->user_datatype);
@@ -160,12 +154,9 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	}
 	else
 	{
-		starpu_data_handle_t count_handle;
-
 		starpu_handle_pack_data(req->data_handle, &req->ptr, &req->count);
-		starpu_variable_data_register(&count_handle, 0, (uintptr_t)&req->count, sizeof(req->count));
-		_starpu_mpi_isend_common(count_handle, req->srcdst, req->mpi_tag, req->comm, 1, _starpu_mpi_isend_size_callback, req);
-		starpu_data_unregister_submit(count_handle);
+		MPI_Isend(&req->count, sizeof(req->count), MPI_BYTE, req->srcdst, req->mpi_tag, req->comm, &req->size_req);
+		_starpu_mpi_isend_data_func(req);
 	}
 }
 
@@ -636,6 +627,14 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 	{
 		if (req->user_datatype == 1)
 		{
+			if (req->request_type == SEND_REQ)
+			{
+				// We already know the request to send the size is completed, we just call MPI_Test to make sure that the request object is deallocated
+				MPI_Status status;
+				int flag;
+				MPI_Test(&req->size_req, &flag, &status);
+				STARPU_ASSERT(flag == 1);
+			}
 			if (req->request_type == RECV_REQ)
 				// req->ptr is freed by starpu_handle_unpack_data
 				starpu_handle_unpack_data(req->data_handle, req->ptr, req->count);

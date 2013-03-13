@@ -108,6 +108,9 @@ LIST_TYPE(_starpu_mpi_req,
 	unsigned detached;
 	void *callback_arg;
 	void (*callback)(void *);
+
+        /* in the case of user-defined datatypes, we need to send the size of the data */
+	MPI_Request size_req;
 );
 
 #ifdef __cplusplus
