@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -95,11 +95,11 @@ int main(int argc, char **argv)
 	starpu_complex_data_register(&handle1, 0, &real, &imaginary, 1);
 	starpu_complex_data_register(&handle2, 0, &copy_real, &copy_imaginary, 1);
 
-	ret = starpu_insert_task(&cl_display, STARPU_R, handle1, 0);
+	ret = starpu_insert_task(&cl_display, STARPU_VALUE, "handle1", strlen("handle1"), STARPU_R, handle1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
-	ret = starpu_insert_task(&cl_display, STARPU_R, handle2, 0);
+	ret = starpu_insert_task(&cl_display, STARPU_VALUE, "handle2", strlen("handle2"), STARPU_R, handle2, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
@@ -124,11 +124,11 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
-	ret = starpu_insert_task(&cl_display, STARPU_R, handle1, 0);
+	ret = starpu_insert_task(&cl_display, STARPU_VALUE, "handle1", strlen("handle1"), STARPU_R, handle1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
-	ret = starpu_insert_task(&cl_display, STARPU_R, handle2, 0);
+	ret = starpu_insert_task(&cl_display, STARPU_VALUE, "handle2", strlen("handle2"), STARPU_R, handle2, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
 
