@@ -179,7 +179,7 @@ handle.
 
 @cartouche
 @smallexample
-static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, size_t *count)
+static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)
 @{
   STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 

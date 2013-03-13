@@ -782,14 +782,17 @@ Return the unique identifier of the interface associated with the given @var{han
 Return the size of the data associated with @var{handle}
 @end deftypefun
 
-@deftypefun int starpu_handle_pack_data (starpu_data_handle_t @var{handle}, {void **}@var{ptr}, {size_t *}@var{count})
+@deftypefun int starpu_handle_pack_data (starpu_data_handle_t @var{handle}, {void **}@var{ptr}, {ssize_t *}@var{count})
 Execute the packing operation of the interface of the data registered
 at @var{handle} (@pxref{struct starpu_data_interface_ops}). This
 packing operation must allocate a buffer large enough at @var{ptr} and
 copy into the newly allocated buffer the data associated to
-@var{handle}.
-The function also sets @var{count} to the size of the data handle by calling
-@code{starpu_handle_get_size()}.
+@var{handle}. @var{count} will be set to the size of the allocated
+buffer.
+If @var{ptr} is @code{NULL}, the function should not copy the data in the
+buffer but just set @var{count} to the size of the buffer which
+would have been allocated. The special value @code{-1} indicates the
+size is yet unknown.
 @end deftypefun
 
 @deftypefun int starpu_handle_unpack_data (starpu_data_handle_t @var{handle}, {void *}@var{ptr}, size_t @var{count})

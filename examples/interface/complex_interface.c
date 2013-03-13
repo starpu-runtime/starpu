@@ -118,7 +118,7 @@ static void *complex_handle_to_pointer(starpu_data_handle_t handle, unsigned nod
 	return (void*) complex_interface->real;
 }
 
-static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, size_t *count)
+static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 

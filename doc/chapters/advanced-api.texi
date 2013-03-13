@@ -332,8 +332,13 @@ todo
 @item @code{struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface)}
 todo
 
-@item @code{int (*pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, size_t *count)}
-Pack the data handle into a contiguous buffer at the address @code{ptr} and set the size of the newly created buffer in @code{count}
+@item @code{int (*pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)}
+Pack the data handle into a contiguous buffer at the address
+@code{ptr} and set the size of the newly created buffer in
+@code{count}. If @var{ptr} is @code{NULL}, the function should not copy the data in the
+buffer but just set @var{count} to the size of the buffer which
+would have been allocated. The special value @code{-1} indicates the
+size is yet unknown.
 
 @item @code{int (*unpack_data)(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)}
 Unpack the data handle from the contiguous buffer at the address @code{ptr} of size @var{count}
