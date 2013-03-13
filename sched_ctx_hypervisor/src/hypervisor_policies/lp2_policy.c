@@ -46,7 +46,7 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 	/* smallest possible tmax, difficult to obtain as we
 	   compute the nr of flops and not the tasks */
 	double smallest_tmax = _lp_get_tmax(nw, workers);
-	double tmax = smallest_tmax * ns;
+	double tmax = smallest_tmax * ns * 2;
 
 	double res = 1.0;
 	unsigned has_sol = 0;
@@ -231,11 +231,65 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 		nt++;
 
 	double w_in_s[ns][nw];
-
-	unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, NULL, sched_ctxs, workers);
+	double tasks[nw][nt];
+	unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, tasks, sched_ctxs, workers);
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
-		_redistribute_resources_in_ctxs(ns, nw, nt, w_in_s, 1, sched_ctxs, workers);
+	{
+		int w, s;
+		double nworkers[ns][2];
+		int nworkers_rounded[ns][2];
+		for(s = 0; s < ns; s++)
+		{
+			nworkers[s][0] = 0.0;
+			nworkers[s][1] = 0.0;
+			nworkers_rounded[s][0] = 0;
+			nworkers_rounded[s][1] = 0;
+			
+		}
+		
+		for(s = 0; s < ns; s++)
+		{
+			for(w = 0; w < nw; w++)
+			{
+				enum starpu_perf_archtype arch = starpu_worker_get_type(w);
+				
+				if(arch == STARPU_CUDA_WORKER)
+				{
+					nworkers[s][0] += w_in_s[s][w];
+					if(w_in_s[s][w] >= 0.3)
+						nworkers_rounded[s][0]++;
+				}
+				else
+				{
+					nworkers[s][1] += w_in_s[s][w];
+					if(w_in_s[s][w] > 0.5)
+						nworkers_rounded[s][1]++;
+				}
+			}
+		}
+
+		int *current_sched_ctxs = sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : 
+			sched_ctxs;
+
+		unsigned has_workers = 0;
+		for(s = 0; s < ns; s++)
+		{
+			int nworkers_ctx = sched_ctx_hypervisor_get_nworkers_ctx(current_sched_ctxs[s], 
+									     STARPU_ANY_WORKER);
+			if(nworkers_ctx != 0)
+			{
+				has_workers = 1;
+				break;
+			}
+		}
+		if(has_workers)
+			_lp_redistribute_resources_in_ctxs(nsched_ctxs, 2, nworkers_rounded, nworkers);
+		else
+			_lp_distribute_resources_in_ctxs(sched_ctxs, nsched_ctxs, 2, nworkers_rounded, nworkers, workers, nworkers);
+	
+//		_redistribute_resources_in_ctxs(ns, nw, nt, w_in_s, 1, sched_ctxs, workers);
+	}
 }
 
 static void size_if_required()
@@ -480,6 +534,16 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 		return 0.0;
 	}
 
+	int stat = glp_get_prim_stat(lp);
+	/* if we don't have a solution return */
+	if(stat == GLP_NOFEAS)
+	{
+		glp_delete_prob(lp);
+		lp = NULL;
+		return 0.0;
+	}
+
+
 	if (integer)
         {
                 glp_iocp iocp;
@@ -494,16 +558,6 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 			lp = NULL;
 			return 0.0;
 		}
-		
-        }
-
-	int stat = glp_get_prim_stat(lp);
-	/* if we don't have a solution return */
-	if(stat == GLP_NOFEAS)
-	{
-		glp_delete_prob(lp);
-		lp = NULL;
-		return 0.0;
 	}
 
 	double res = glp_get_obj_val(lp);

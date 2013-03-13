@@ -48,8 +48,6 @@ static unsigned _compute_max_velocity(int ns, int nw, double w_in_s[ns][nw], int
 				if(velocity[s][w] < 1.0)
 					velocity[s][w] = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
 			}
-			
-//			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
 		}
 	}
 	
@@ -66,12 +64,8 @@ static unsigned _compute_max_velocity(int ns, int nw, double w_in_s[ns][nw], int
 
 	float timing = (float)(diff_s*1000000 + diff_us)/1000;
 
-//        fprintf(stdout, "nd = %d total time: %f ms \n", nd, timing);
 	if(res > 0.0)
-	{
-//		printf("maxv = %lf\n", res);
 		return 1;
-	}
 	return 0;
 }
 
@@ -85,7 +79,6 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double w_in_
 	int w, s;
 	glp_prob *lp;
 
-//	printf("try with tmax %lf\n", tmax);
 	lp = glp_create_prob();
 	glp_set_prob_name(lp, "StarPU theoretical bound");
 	glp_set_obj_dir(lp, GLP_MAX);
@@ -202,6 +195,14 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double w_in_
                 glp_init_iocp(&iocp);
                 iocp.msg_lev = GLP_MSG_OFF;
                 glp_intopt(lp, &iocp);
+		int stat = glp_mip_status(lp);
+		/* if we don't have a solution return */
+		if(stat == GLP_NOFEAS)
+		{
+			glp_delete_prob(lp);
+			lp = NULL;
+			return 0.0;
+		}
         }
 
 	int stat = glp_get_prim_stat(lp);
@@ -223,7 +224,6 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double w_in_
 				w_in_s[s][w] = (double)glp_mip_col_val(lp, s*nw+w+1);
 			else
 				w_in_s[s][w] = glp_get_col_prim(lp, s*nw+w+1);
-//			printf("w_in_s[s%d][w%d] = %lf \n", s, w, w_in_s[s][w]);
 		}
 
 	glp_delete_prob(lp);
