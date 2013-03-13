@@ -70,7 +70,7 @@ void _starpu_mpi_cache_empty_tables(int world_size)
 
 	if (_cache_enabled == 0) return;
 
-	_STARPU_MPI_DEBUG("Clearing htable for cache\n");
+	_STARPU_DEBUG("Clearing htable for cache\n");
 
 	for(i=0 ; i<world_size ; i++)
 	{
