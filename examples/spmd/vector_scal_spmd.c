@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2010-2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,10 +43,10 @@ static int get_first_element_rank(int nel, int rank, int nb_workers)
 
 void scal_cpu_func(void *buffers[], void *_args)
 {
-	unsigned i;
+	int i;
 	float *factor = _args, f = *factor;
 	struct starpu_vector_interface *vector = buffers[0];
-	unsigned n = STARPU_VECTOR_GET_NX(vector);
+	int n = STARPU_VECTOR_GET_NX(vector);
 	float *val = (float *)STARPU_VECTOR_GET_PTR(vector);
 
 	int nb_workers = starpu_combined_worker_get_size();

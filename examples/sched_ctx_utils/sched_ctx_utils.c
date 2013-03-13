@@ -204,13 +204,13 @@ void start_2ndbench(void (*bench)(unsigned, unsigned))
 
 void construct_contexts(void (*bench)(unsigned, unsigned))
 {
-	int nprocs1 = cpu1 + gpu + gpu1;
-	int nprocs2 = cpu2 + gpu + gpu2;
+	unsigned nprocs1 = cpu1 + gpu + gpu1;
+	unsigned nprocs2 = cpu2 + gpu + gpu2;
 	unsigned n_all_gpus = gpu + gpu1 + gpu2;
 
 
 	int procs[nprocs1];
-	int i;
+	unsigned i;
 	int k = 0;
 
 	for(i = 0; i < gpu; i++)
