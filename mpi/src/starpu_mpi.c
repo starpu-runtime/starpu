@@ -239,26 +239,6 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-struct _starpu_mpi_irecv_size_callback
-{
-	starpu_data_handle_t handle;
-	struct _starpu_mpi_req *req;
-};
-
-static void _starpu_mpi_irecv_size_callback(void *arg)
-{
-	struct _starpu_mpi_irecv_size_callback *callback = (struct _starpu_mpi_irecv_size_callback *)arg;
-
-	starpu_data_unregister(callback->handle);
-	callback->req->ptr = malloc(callback->req->count);
-#ifdef STARPU_DEVEL
-#warning TODO: in some cases, callback->req->count is incorrect, we need to fix that
-#endif
-	STARPU_ASSERT_MSG(callback->req->ptr, "cannot allocate message of size %ld\n", callback->req->count);
-	_starpu_mpi_irecv_data_func(callback->req);
-	free(callback);
-}
-
 static void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
@@ -272,10 +252,11 @@ static void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	}
 	else
 	{
-		struct _starpu_mpi_irecv_size_callback *callback = malloc(sizeof(struct _starpu_mpi_irecv_size_callback));
-		callback->req = req;
-		starpu_variable_data_register(&callback->handle, 0, (uintptr_t)&(callback->req->count), sizeof(callback->req->count));
-		_starpu_mpi_irecv_common(callback->handle, req->srcdst, req->mpi_tag, req->comm, 1, _starpu_mpi_irecv_size_callback, callback);
+		MPI_Status status;
+		MPI_Recv(&req->count, sizeof(req->count), MPI_BYTE, req->srcdst, req->mpi_tag, req->comm, &status);
+		req->ptr = malloc(req->count);
+		STARPU_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
+		_starpu_mpi_irecv_data_func(req);
 	}
 }
 
