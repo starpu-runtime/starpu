@@ -470,9 +470,11 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL)
 		sched_ctx->perf_counters->notify_delete_context(sched_ctx_id);
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
 
 	unsigned inheritor_sched_ctx_id = sched_ctx->inheritor;
 	struct _starpu_sched_ctx *inheritor_sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx->inheritor);
