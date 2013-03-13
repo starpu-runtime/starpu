@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -34,12 +34,13 @@ typedef void (*device_func)(void **, void *);
 
 int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny, int pnz, float multiplier)
 {
-	struct starpu_codelet cl = {};
+	struct starpu_codelet cl;
 	starpu_data_handle_t block_handle;
         int i;
 
 	starpu_block_data_register(&block_handle, 0, (uintptr_t)block, pnx, pnx*pny, pnx, pny, pnz, sizeof(float));
 
+	starpu_codelet_init(&cl);
 	cl.where = where;
         cl.cuda_funcs[0] = func;
         cl.cpu_funcs[0] = func;
