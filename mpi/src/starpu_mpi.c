@@ -88,7 +88,8 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 	_STARPU_PTHREAD_COND_INIT(&req->req_cond, NULL);
 
 	req->request_type = request_type;
-
+	req->user_datatype = -1;
+	req->count = -1;
 	req->data_handle = data_handle;
 	req->srcdst = srcdst;
 	req->mpi_tag = mpi_tag;
