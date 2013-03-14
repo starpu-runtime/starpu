@@ -123,9 +123,9 @@ int starpu_malloc(void **A, size_t dim)
 
                 malloc_pinned_cl.where = STARPU_CUDA;
 		struct starpu_task *task = starpu_task_create();
-			task->callback_func = NULL;
-			task->cl = &malloc_pinned_cl;
-			task->cl_arg = &s;
+		task->callback_func = NULL;
+		task->cl = &malloc_pinned_cl;
+		task->cl_arg = &s;
 
 		task->synchronous = 1;
 
