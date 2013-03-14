@@ -122,7 +122,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 	STARPU_ASSERT(req->ptr);
 
-	_STARPU_MPI_DEBUG("post MPI isend tag %d dst %d ptr %p datatype %p count %d req %p\n", req->mpi_tag, req->srcdst, req->ptr, req->datatype, (int)req->count, &req->request);
+	_STARPU_MPI_DEBUG("post MPI isend request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 
 	_starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, req->datatype, req->count);
 
@@ -243,7 +243,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 
 	STARPU_ASSERT(req->ptr);
 
-	_STARPU_MPI_DEBUG("post MPI irecv tag %d src %d data %p ptr %p datatype %p count %d req %p \n", req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, &req->request);
+	_STARPU_MPI_DEBUG("post MPI irecv request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 
 	TRACE_MPI_IRECV_SUBMIT_BEGIN(req->srcdst, req->mpi_tag);
 
@@ -353,7 +353,7 @@ static void _starpu_mpi_probe_func(struct _starpu_mpi_req *req)
 	req->count = 1;
 	req->ptr = starpu_handle_get_local_ptr(req->data_handle);
 
-	_STARPU_MPI_DEBUG("MPI probe tag %d dst %d ptr %p datatype %p count %d req %p\n", req->mpi_tag, req->srcdst, req->ptr, req->datatype, (int)req->count, req);
+	_STARPU_MPI_DEBUG("MPI probe request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	_STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
@@ -453,7 +453,7 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	/* Which is the mpi request we are testing for ? */
 	struct _starpu_mpi_req *req = testing_req->other_request;
 
-	_STARPU_MPI_DEBUG("Test request %p - mpitag %d - TYPE %s %d\n", &req->request, req->mpi_tag, _starpu_mpi_request_type(req->request_type), req->srcdst);
+	_STARPU_MPI_DEBUG("Test request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 
 	TRACE_MPI_UTESTING_BEGIN(req->srcdst, req->mpi_tag);
 
@@ -634,7 +634,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG("complete MPI req %p (%s) srcdst %d - data %p - tag %d - user datatype %d\n", req, _starpu_mpi_request_type(req->request_type), req->srcdst, req->data_handle, req->mpi_tag, req->user_datatype);
+	_STARPU_MPI_DEBUG("complete MPI request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 	if (req->request_type == PROBE_REQ)
 	{
 #ifdef STARPU_DEVEL
@@ -693,7 +693,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	_starpu_mpi_req_list_push_front(new_requests, req);
 	newer_requests = 1;
-	_STARPU_MPI_DEBUG("Pushing new request type %p (%s)\n", req, _starpu_mpi_request_type(req->request_type));
+	_STARPU_MPI_DEBUG("Pushing new request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 	_STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	_STARPU_MPI_LOG_OUT();
@@ -806,7 +806,7 @@ static void _starpu_mpi_handle_new_request(struct _starpu_mpi_req *req)
 	STARPU_ASSERT(req);
 
 	/* submit the request to MPI */
-	_STARPU_MPI_DEBUG("Handling new request type %p (%s)\n", req, _starpu_mpi_request_type(req->request_type));
+	_STARPU_MPI_DEBUG("Handling new request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 	req->func(req);
 
 	_STARPU_MPI_LOG_OUT();
