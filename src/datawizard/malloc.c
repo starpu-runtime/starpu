@@ -290,6 +290,10 @@ int starpu_free(void *A)
 		free(A);
 	}
 
+#ifdef STARPU_DEVEL
+#warning FIXME: how do we know the size
+#endif
+//	_starpu_memory_manager_deallocate_size(size, 0);
 	return 0;
 }
 
