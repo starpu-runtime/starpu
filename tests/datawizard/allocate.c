@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 #endif
 
 	starpu_shutdown();
-	STARPU_RETURN(ret);
+	return 0;
 }
 
  #endif
