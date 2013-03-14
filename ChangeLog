@@ -92,6 +92,9 @@ New features:
     instead STARPU_LIMIT_CUDA_MEM and STARPU_LIMIT_OPENCL_MEM
   * Introduce new variables STARPU_LIMIT_CUDA_devid_MEM and
     STARPU_LIMIT_OPENCL_devid_MEM to limit memory per specific device
+  * Introduce new variables STARPU_LIMIT_CPU_MEM and
+    STARPU_LIMIT_CPU_devid_MEM to limit memory per all CPU or per
+    specific device
 
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid
