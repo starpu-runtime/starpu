@@ -30,6 +30,7 @@ struct _starpu_spinlock
 #elif defined(STARPU_SPINLOCK_CHECK)
 	pthread_mutexattr_t errcheck_attr;
 	_starpu_pthread_mutex_t errcheck_lock;
+	const char *last_taker;
 #elif defined(HAVE_PTHREAD_SPIN_LOCK)
 	_starpu_pthread_spinlock_t lock;
 #else
@@ -42,7 +43,22 @@ int _starpu_spin_init(struct _starpu_spinlock *lock);
 int _starpu_spin_destroy(struct _starpu_spinlock *lock);
 
 int _starpu_spin_lock(struct _starpu_spinlock *lock);
+#if defined(STARPU_SPINLOCK_CHECK)
+#define _starpu_spin_lock(lock) ({ \
+	_starpu_spin_lock(lock); \
+	(lock)->last_taker = __func__; \
+	0; \
+})
+#endif
 int _starpu_spin_trylock(struct _starpu_spinlock *lock);
+#if defined(STARPU_SPINLOCK_CHECK)
+#define _starpu_spin_trylock(lock) ({ \
+	int err = _starpu_spin_trylock(lock); \
+	if (!err) \
+		(lock)->last_taker = __func__; \
+	err; \
+})
+#endif
 int _starpu_spin_checklocked(struct _starpu_spinlock *lock);
 int _starpu_spin_unlock(struct _starpu_spinlock *lock);
 
