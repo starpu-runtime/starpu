@@ -83,15 +83,25 @@ static struct starpu_codelet malloc_pinned_cl =
 
 int starpu_malloc(void **A, size_t dim)
 {
-#ifdef STARPU_DEVEL
-#warning TODO: we need to request _starpu_memory_manager_can_allocate_size()
-#warning TODO: if it fails, we should reclaim memory
-#endif
-
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
 	STARPU_ASSERT(A);
+
+	if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
+	{
+		size_t freed;
+		size_t reclaim = 0.25*_starpu_memory_manager_get_global_memory_size(0);
+		if (2*dim > reclaim)
+			reclaim = 2*dim;
+		_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", 2*reclaim);
+		_STARPU_TRACE_START_MEMRECLAIM(0);
+		freed = _starpu_memory_reclaim_generic(0, 0, 2*reclaim);
+		_STARPU_TRACE_END_MEMRECLAIM(0);
+		if (freed < dim)
+			// We could not reclaim enough memory
+			return 1;
+	}
 
 #ifndef STARPU_SIMGRID
 	if (_starpu_can_submit_cuda_task())
