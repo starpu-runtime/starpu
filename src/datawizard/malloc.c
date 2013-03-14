@@ -91,12 +91,10 @@ int starpu_malloc(void **A, size_t dim)
 	if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
 	{
 		size_t freed;
-		size_t reclaim = 0.25*_starpu_memory_manager_get_global_memory_size(0);
-		if (2*dim > reclaim)
-			reclaim = 2*dim;
-		_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", 2*reclaim);
+		size_t reclaim = 2 * dim;
+		_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
 		_STARPU_TRACE_START_MEMRECLAIM(0);
-		freed = _starpu_memory_reclaim_generic(0, 0, 2*reclaim);
+		freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
 		_STARPU_TRACE_END_MEMRECLAIM(0);
 		if (freed < dim)
 		{
