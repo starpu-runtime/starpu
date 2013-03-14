@@ -193,14 +193,11 @@ static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_
 {
 	ssize_t global_mem;
 	ssize_t limit;
-	char name[30];
 
 	limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
-	if (limit == -1)
-	{
-		sprintf(name, "STARPU_LIMIT_CPU_%u_MEM", devid);
-		limit = starpu_get_env_number(name);
-	}
+#ifdef STARPU_DEVEL
+#  warning TODO: take into account NUMA node and check STARPU_LIMIT_CPU_numanode_MEM
+#endif
 
 #if defined(STARPU_HAVE_HWLOC)
         int depth_node;
