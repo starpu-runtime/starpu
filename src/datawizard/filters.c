@@ -357,11 +357,15 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 			}
 
 			if (local->allocated && local->automatically_allocated)
+			{
 				/* free the child data copy in a lazy fashion */
 #ifdef STARPU_DEVEL
 #warning FIXME!! this needs access to the child interface, which was freed above!
 #endif
+				_starpu_spin_lock(&root_handle->header_lock);
 				_starpu_request_mem_chunk_removal(child_handle, node, 1);
+				_starpu_spin_unlock(&root_handle->header_lock);
+			}
 		}
 
 		if (!root_handle->per_node[node].allocated)
