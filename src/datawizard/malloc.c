@@ -300,9 +300,6 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	if (_starpu_memory_manager_can_allocate_size(size, dst_node) == 0)
 		return 0;
 
-#ifdef STARPU_DEVEL
-#warning TODO: we need to use starpu_malloc which should itself inquire from the memory manager is there is enough available memory
-#endif
 	switch(starpu_node_get_kind(dst_node))
 	{
 		case STARPU_CPU_RAM:
