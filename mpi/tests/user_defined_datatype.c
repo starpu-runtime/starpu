@@ -24,36 +24,36 @@
 #  define ELEMENTS 1000
 #endif
 
-typedef void (*test_func)(starpu_data_handle_t *, int, int, int);
+typedef void (*test_func)(starpu_data_handle_t *, int, int);
 
-void test_handle_irecv_isend_detached(starpu_data_handle_t *handles, int nb_handles, int rank, int tag)
+void test_handle_irecv_isend_detached(starpu_data_handle_t *handles, int nb_handles, int rank)
 {
 	int i;
 
 	for(i=0 ; i<nb_handles ; i++)
 	{
 		starpu_data_set_rank(handles[i], 1);
-		starpu_data_set_tag(handles[i], tag);
+		starpu_data_set_tag(handles[i], i+100);
 	}
 
 	for(i=0 ; i<nb_handles ; i++)
 		starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, handles[i], 0, NULL, NULL);
 }
 
-void test_handle_recv_send(starpu_data_handle_t *handles, int nb_handles, int rank, int tag)
+void test_handle_recv_send(starpu_data_handle_t *handles, int nb_handles, int rank)
 {
 	int i;
 
 	if (rank == 1)
 	{
 		for(i=0 ; i<nb_handles ; i++)
-			starpu_mpi_send(handles[i], 0, tag, MPI_COMM_WORLD);
+			starpu_mpi_send(handles[i], 0, i+100, MPI_COMM_WORLD);
 	}
 	else if (rank == 0)
 	{
 		MPI_Status statuses[nb_handles];
 		for(i=0 ; i<nb_handles ; i++)
-			starpu_mpi_recv(handles[i], 1, tag, MPI_COMM_WORLD, &statuses[i]);
+			starpu_mpi_recv(handles[i], 1, i+100, MPI_COMM_WORLD, &statuses[i]);
 	}
 }
 
@@ -126,8 +126,8 @@ int main(int argc, char **argv)
 				starpu_variable_data_register(&handle_vars[i], 0, (uintptr_t)&foo[i], sizeof(double));
 			}
 
-			f(handle_vars, ELEMENTS, rank, 11);
-			f(handle_complex, ELEMENTS, rank, 22);
+			f(handle_vars, ELEMENTS, rank);
+			f(handle_complex, ELEMENTS, rank);
 
 			for(i=0 ; i<ELEMENTS ; i++)
 			{
