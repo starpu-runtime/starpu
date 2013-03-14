@@ -134,6 +134,7 @@ noinst_PROGRAMS =				\
 	main/starpu_init			\
 	main/starpu_worker_exists		\
 	main/submit				\
+	datawizard/allocate			\
 	datawizard/acquire_cb			\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
