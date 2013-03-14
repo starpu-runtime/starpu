@@ -69,5 +69,6 @@ size_t _starpu_free_all_automatically_allocated_buffers(unsigned node);
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node);
 
 void _starpu_display_memory_stats_by_node(int node);
+size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t reclaim);
 
 #endif

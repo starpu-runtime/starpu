@@ -591,7 +591,7 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 	return freed;
 }
 
-static size_t reclaim_memory_generic(unsigned node, unsigned force, size_t reclaim)
+size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t reclaim)
 {
 	size_t freed = 0;
 
@@ -619,7 +619,7 @@ static size_t reclaim_memory_generic(unsigned node, unsigned force, size_t recla
  */
 size_t _starpu_free_all_automatically_allocated_buffers(unsigned node)
 {
-	return reclaim_memory_generic(node, 1, 0);
+	return _starpu_memory_reclaim_generic(node, 1, 0);
 }
 
 static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_replicate *replicate, size_t interface_size, unsigned automatically_allocated)
@@ -804,7 +804,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 				_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
 			}
 			else
-				reclaim_memory_generic(dst_node, 0, reclaim);
+				_starpu_memory_reclaim_generic(dst_node, 0, reclaim);
 			_STARPU_TRACE_END_MEMRECLAIM(dst_node);
 
 		        while (_starpu_spin_trylock(&handle->header_lock))
