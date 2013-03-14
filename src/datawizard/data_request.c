@@ -223,7 +223,7 @@ void _starpu_data_request_append_callback(struct _starpu_data_request *r, void (
 	}
 }
 
-/* This method is called with handle's header_lock taken */
+/* This method is called with handle's header_lock taken, and unlocks it */
 static void starpu_handle_data_request_completion(struct _starpu_data_request *r)
 {
 	unsigned do_delete = 0;
