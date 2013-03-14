@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 
 	ret = starpu_malloc((void **)&buffer3, 1*1024*512);
-	STARPU_CHECK_RETURN_VALUE_IS(ret, 1, "starpu_malloc");
+	STARPU_CHECK_RETURN_VALUE_IS(ret, -ENOMEM, "starpu_malloc");
 
 #ifdef STARPU_DEVEL
 #warning we need to test the reclaim is working by calling starpu_free(buffer2) and re-trying to allocate buffer3

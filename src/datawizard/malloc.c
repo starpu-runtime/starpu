@@ -99,8 +99,11 @@ int starpu_malloc(void **A, size_t dim)
 		freed = _starpu_memory_reclaim_generic(0, 0, 2*reclaim);
 		_STARPU_TRACE_END_MEMRECLAIM(0);
 		if (freed < dim)
+		{
 			// We could not reclaim enough memory
-			return 1;
+			*A = NULL;
+			return -ENOMEM;
+		}
 	}
 
 #ifndef STARPU_SIMGRID
