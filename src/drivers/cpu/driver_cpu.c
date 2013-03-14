@@ -222,12 +222,12 @@ static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_
 	if (limit == -1)
 		// No limit is defined, we return the global memory size
 		return global_mem;
-	else if (limit > global_mem)
+	else if (limit*1024*1024 > global_mem)
 		// The requested limit is higher than what is available, we return the global memory size
 		return global_mem;
 	else
 		// We limit the memory
-		return limit;
+		return limit*1024*1024;
 }
 
 int _starpu_cpu_driver_init(struct starpu_driver *d)
