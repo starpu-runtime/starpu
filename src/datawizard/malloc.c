@@ -123,8 +123,8 @@ int starpu_malloc(void **A, size_t dim)
 
 		push_res = _starpu_task_submit_internally(task);
 		STARPU_ASSERT(push_res != -ENODEV);
-#endif
-#endif
+#endif /* HAVE_CUDA_MEMCPY_PEER */
+#endif /* STARPU_USE_CUDA */
 	}
 //	else if (_starpu_can_submit_opencl_task())
 //	{
@@ -149,10 +149,10 @@ int starpu_malloc(void **A, size_t dim)
 //
 //		push_res = _starpu_task_submit_internally(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
-//#endif
+//#endif /* STARPU_USE_OPENCL */
 //        }
         else
-#endif
+#endif /* STARPU_SIMGRID */
 	{
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 		if (malloc_align != sizeof(void*))
@@ -167,7 +167,7 @@ int starpu_malloc(void **A, size_t dim)
 			*A = memalign(malloc_align, dim);
 		}
 		else
-#endif
+#endif /* STARPU_HAVE_POSIX_MEMALIGN */
 		{
 			*A = malloc(dim);
 		}
@@ -242,9 +242,9 @@ int starpu_free(void *A)
 
                 free_pinned_cl.where = STARPU_CUDA;
 		struct starpu_task *task = starpu_task_create();
-			task->callback_func = NULL;
-			task->cl = &free_pinned_cl;
-			task->cl_arg = A;
+		task->callback_func = NULL;
+		task->cl = &free_pinned_cl;
+		task->cl_arg = A;
 
 		task->synchronous = 1;
 
