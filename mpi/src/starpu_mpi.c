@@ -655,7 +655,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 				MPI_Status status;
 				int flag;
 				MPI_Test(&req->size_req, &flag, &status);
-				STARPU_ASSERT(flag == 1);
+				STARPU_ASSERT(flag);
 			}
 			if (req->request_type == RECV_REQ)
 				// req->ptr is freed by starpu_handle_unpack_data
