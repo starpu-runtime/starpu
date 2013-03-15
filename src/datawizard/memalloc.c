@@ -543,10 +543,9 @@ static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 		free(mc->chunk_interface);
 		_starpu_mem_chunk_delete(mc);
 
+		_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 		if (reclaim && freed>reclaim)
 			break;
-
-		_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 	}
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 	return freed;
