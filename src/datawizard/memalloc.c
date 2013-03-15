@@ -694,18 +694,14 @@ static void register_mem_chunk(struct _starpu_data_replicate *replicate, unsigne
 /* This function is called when the handle is destroyed (eg. when calling
  * unregister or unpartition). It puts all the memchunks that refer to the
  * specified handle into the cache.
- * handle_deleted specifies whether the handle is deleted or not (and thus we
- * need to update it)
  */
-void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned node, int handle_deleted)
+void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned node, size_t size)
 {
 	_starpu_spin_checklocked(&handle->header_lock);
 
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
-	size_t size = _starpu_data_get_size(handle);
-
-	/* TODO: expensive, handle should its own list of chunks? */
+	/* TODO: expensive, handle should have its own list of chunks? */
 	/* iterate over the list of memory chunks and remove the entry */
 	struct _starpu_mem_chunk *mc, *next_mc;
 	for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
@@ -717,10 +713,13 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned nod
 		if (mc->data == handle)
 		{
 			/* we found the data */
+
+			/* Record the allocated size, so that later in memory
+			 * reclaiming we can estimate how much memory we free
+			 * by freeing this.  */
 			mc->size = size;
-			if (handle_deleted)
-				/* This memchunk doesn't have to do with the data any more. */
-				mc->data = NULL;
+			/* This memchunk doesn't have to do with the data any more. */
+			mc->data = NULL;
 
 			/* remove it from the main list */
 			_starpu_mem_chunk_list_erase(mc_list[node], mc);

@@ -273,6 +273,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 {
 	unsigned child;
 	unsigned node;
+	unsigned sizes[root_handle->nchildren];
 
 	_starpu_spin_lock(&root_handle->header_lock);
 
@@ -286,6 +287,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		/* make sure the intermediate children is unpartitionned as well */
 		if (child_handle->nchildren > 0)
 			starpu_data_unpartition(child_handle, gathering_node);
+
+		sizes[child] = _starpu_data_get_size(child_handle);
 
 		/* If this is a multiformat handle, we must convert the data now */
 #ifdef STARPU_DEVEL
@@ -362,9 +365,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 #ifdef STARPU_DEVEL
 #warning FIXME!! this needs access to the child interface, which was freed above!
 #endif
-				_starpu_spin_lock(&root_handle->header_lock);
-				_starpu_request_mem_chunk_removal(child_handle, node, 1);
-				_starpu_spin_unlock(&root_handle->header_lock);
+				_starpu_request_mem_chunk_removal(child_handle, node, sizes[child]);
 			}
 		}
 
@@ -375,7 +376,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 		if (!isvalid && root_handle->per_node[node].allocated && root_handle->per_node[node].automatically_allocated)
 			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(root_handle, node, 1);
+			_starpu_request_mem_chunk_removal(root_handle, node, _starpu_data_get_size(root_handle));
 
 		/* if there was no invalid copy, the node still has a valid copy */
 		still_valid[node] = isvalid;
