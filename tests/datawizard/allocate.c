@@ -55,17 +55,22 @@ int main(int argc, char **argv)
 
 	ret = starpu_malloc((void **)&buffer, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
+	FPRINTF(stderr, "Allocation succesfull for 1 b\n");
 
 	ret = starpu_malloc((void **)&buffer2, 1*1024*512);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
+	FPRINTF(stderr, "Allocation succesfull for %d b\n", 1*1024*512);
 
 	ret = starpu_malloc((void **)&buffer3, 1*1024*512);
 	STARPU_CHECK_RETURN_VALUE_IS(ret, -ENOMEM, "starpu_malloc");
+	FPRINTF(stderr, "Allocation failed for %d b\n", 1*1024*512);
 
 	starpu_free(buffer2);
+	FPRINTF(stderr, "Freeing %d b\n", 1*1024*512);
 
 	ret = starpu_malloc((void **)&buffer3, 1*1024*512);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
+	FPRINTF(stderr, "Allocation succesfull for %d b\n", 1*1024*512);
 
 	starpu_free(buffer3);
 	starpu_free(buffer);
