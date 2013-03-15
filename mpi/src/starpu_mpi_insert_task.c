@@ -121,12 +121,14 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 		if (avail)
 		{
 			_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data_handle);
+			free(avail);
 			HASH_DEL(_cache_sent_data[i], avail);
 		}
 		HASH_FIND_PTR(_cache_received_data[i], &data_handle, avail);
 		if (avail)
 		{
 			_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data_handle);
+			free(avail);
 			HASH_DEL(_cache_received_data[i], avail);
 		}
 	}
