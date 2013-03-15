@@ -379,16 +379,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 	size_on_nodes = (size_t *)calloc(1, nb_nodes * sizeof(size_t));
 
-	/* Get the number of buffers and the size of the arguments */
-	va_start(varg_list, codelet);
-	arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
-
-	if (arg_buffer_size)
-	{
-		va_start(varg_list, codelet);
-		_starpu_codelet_pack_args(arg_buffer_size, &arg_buffer, varg_list);
-	}
-
 	/* Find out whether we are to execute the data because we own the data to be written to. */
 	inconsistent_execute = 0;
 	do_execute = -1;
@@ -591,6 +581,17 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 	if (do_execute)
 	{
+		/* Get the number of buffers and the size of the arguments */
+		va_start(varg_list, codelet);
+		arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
+
+		/* Pack arguments if needed */
+		if (arg_buffer_size)
+		{
+			va_start(varg_list, codelet);
+			_starpu_codelet_pack_args(arg_buffer_size, &arg_buffer, varg_list);
+		}
+
 		_STARPU_MPI_DEBUG("Execution of the codelet %p (%s)\n", codelet, codelet->name);
 		va_start(varg_list, codelet);
 		struct starpu_task *task = starpu_task_create();
