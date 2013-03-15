@@ -110,13 +110,16 @@ static void launch_gdb(const char *exe)
 #endif	/* STARPU_GDB_PATH */
 }
 
+static char *test_name;
+
 static void test_cleaner(int sig)
 {
 	pid_t child_gid;
 
 	// send signal to all loader family members
-	fprintf(stderr, "[error] test has been blocked for %d seconds. Mark it as failed\n", timeout);
+	fprintf(stderr, "[error] test %s has been blocked for %d seconds. Mark it as failed\n", test_name, timeout);
 	child_gid = getpgid(child_pid);
+	launch_gdb(test_name);
 	kill(-child_gid, SIGKILL);
 	exit(EXIT_FAILURE);
 }
@@ -149,7 +152,6 @@ static void decode(char **src, char *motif, const char *value)
 int main(int argc, char *argv[])
 {
 	int   child_exit_status;
-	char *test_name;
 	char *test_args;
 	int   status;
 	char *launcher;
