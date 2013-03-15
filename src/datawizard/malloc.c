@@ -22,8 +22,18 @@
 #include <starpu.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <datawizard/memory_manager.h>
+#include <common/uthash.h>
 
 static size_t malloc_align = sizeof(void*);
+
+struct _starpu_malloc_entry
+{
+	UT_hash_handle hh;
+	void *data;
+        size_t size;
+};
+
+static struct _starpu_malloc_entry *_allocated_data = NULL;
 
 void starpu_malloc_set_align(size_t align)
 {
@@ -192,6 +202,15 @@ int starpu_malloc(void **A, size_t dim)
 	if (ret == 0)
 	{
 		STARPU_ASSERT(*A);
+
+		// Store the allocated pointer along with its size in the hashtable
+		struct _starpu_malloc_entry *entry;
+		entry = (struct _starpu_malloc_entry *) malloc(sizeof(*entry));
+		STARPU_ASSERT(entry != NULL);
+		entry->data = *A;
+		entry->size = dim;
+
+		HASH_ADD_PTR(_allocated_data, data, entry);
 	}
 
 	return ret;
@@ -239,7 +258,11 @@ int starpu_free(void *A)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	//_starpu_memory_manager_deallocate_size(dim, 0);
+	// Look for the pointer in the hashtable to find out its size
+	struct _starpu_malloc_entry *entry;
+	HASH_FIND_PTR(_allocated_data, &A, entry);
+	STARPU_ASSERT_MSG(entry, "Pointer %p was not allocated with starpu_malloc\n", A);
+	_starpu_memory_manager_deallocate_size(entry->size, 0);
 
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_USE_CUDA
