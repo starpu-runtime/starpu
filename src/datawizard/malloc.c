@@ -22,18 +22,8 @@
 #include <starpu.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <datawizard/memory_manager.h>
-#include <common/uthash.h>
 
 static size_t malloc_align = sizeof(void*);
-
-struct _starpu_malloc_entry
-{
-	UT_hash_handle hh;
-	void *data;
-        size_t size;
-};
-
-static struct _starpu_malloc_entry *_allocated_data = NULL;
 
 void starpu_malloc_set_align(size_t align)
 {
@@ -99,22 +89,6 @@ int starpu_malloc(void **A, size_t dim)
 		return -EDEADLK;
 
 	STARPU_ASSERT(A);
-
-	if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
-	{
-		size_t freed;
-		size_t reclaim = 2 * dim;
-		_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
-		_STARPU_TRACE_START_MEMRECLAIM(0);
-		freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
-		_STARPU_TRACE_END_MEMRECLAIM(0);
-		if (freed < dim)
-		{
-			// We could not reclaim enough memory
-			*A = NULL;
-			return -ENOMEM;
-		}
-	}
 
 #ifndef STARPU_SIMGRID
 	if (_starpu_can_submit_cuda_task())
@@ -202,15 +176,6 @@ int starpu_malloc(void **A, size_t dim)
 	if (ret == 0)
 	{
 		STARPU_ASSERT(*A);
-
-		// Store the allocated pointer along with its size in the hashtable
-		struct _starpu_malloc_entry *entry;
-		entry = (struct _starpu_malloc_entry *) malloc(sizeof(*entry));
-		STARPU_ASSERT(entry != NULL);
-		entry->data = *A;
-		entry->size = dim;
-
-		HASH_ADD_PTR(_allocated_data, data, entry);
 	}
 
 	return ret;
@@ -257,12 +222,6 @@ int starpu_free(void *A)
 {
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
-
-	// Look for the pointer in the hashtable to find out its size
-	struct _starpu_malloc_entry *entry;
-	HASH_FIND_PTR(_allocated_data, &A, entry);
-	STARPU_ASSERT_MSG(entry, "Pointer %p was not allocated with starpu_malloc\n", A);
-	_starpu_memory_manager_deallocate_size(entry->size, 0);
 
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_USE_CUDA
@@ -325,6 +284,34 @@ int starpu_free(void *A)
 	}
 
 	return 0;
+}
+
+
+int starpu_malloc_count(void **A, size_t dim)
+{
+	if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
+	{
+		size_t freed;
+		size_t reclaim = 2 * dim;
+		_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
+		_STARPU_TRACE_START_MEMRECLAIM(0);
+		freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
+		_STARPU_TRACE_END_MEMRECLAIM(0);
+		if (freed < dim)
+		{
+			// We could not reclaim enough memory
+			*A = NULL;
+			return -ENOMEM;
+		}
+	}
+
+	return starpu_malloc(A, dim);
+}
+
+int starpu_free_count(void *A, size_t dim)
+{
+	_starpu_memory_manager_deallocate_size(dim, 0);
+	starpu_free(A);
 }
 
 #ifdef STARPU_SIMGRID
