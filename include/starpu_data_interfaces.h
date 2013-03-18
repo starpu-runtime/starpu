@@ -78,6 +78,10 @@ struct starpu_data_copy_methods
 };
 
 int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data);
+/* Allocate SIZE bytes on node NODE */
+uintptr_t starpu_malloc_on_node(unsigned dst_node, size_t size);
+/* Free ADDR on node NODE */
+void starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size);
 
 enum starpu_data_interface_id
 {
@@ -124,7 +128,7 @@ struct starpu_data_interface_ops
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 
 	/* Pack the data handle into a contiguous buffer at the address ptr and store the size of the buffer in count */
-	int (*pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, size_t *count);
+	int (*pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
 	/* Unpack the data handle from the contiguous buffer at the address ptr */
 	int (*unpack_data)(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 };
@@ -422,7 +426,7 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, unsigned hom
 
 enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle);
 
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, size_t *count);
+int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, ssize_t *count);
 int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr, size_t count);
 size_t starpu_handle_get_size(starpu_data_handle_t handle);
 

@@ -114,3 +114,29 @@
    fun:ompi_request_default_test
    fun:PMPI_Test
 }
+
+{
+   suppr16
+   Memcheck:Leak
+   fun:malloc
+   fun:ompi_ddt_set_args
+   fun:PMPI_Type_vector
+}
+
+{
+   suppr17
+   Memcheck:Leak
+   fun:malloc
+   fun:ompi_ddt_optimize_short.constprop.0
+   fun:ompi_ddt_commit
+   fun:PMPI_Type_commit
+}
+
+{
+   suppr18
+   Memcheck:Leak
+   fun:calloc
+   fun:ompi_ddt_create
+   fun:ompi_ddt_create_vector
+   fun:PMPI_Type_vector
+}

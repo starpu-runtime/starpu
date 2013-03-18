@@ -83,10 +83,7 @@ static struct starpu_codelet malloc_pinned_cl =
 
 int starpu_malloc(void **A, size_t dim)
 {
-#ifdef STARPU_DEVEL
-#warning TODO: we need to request _starpu_memory_manager_can_allocate_size()
-#warning TODO: if it fails, we should reclaim memory
-#endif
+	int ret=0;
 
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
@@ -113,9 +110,9 @@ int starpu_malloc(void **A, size_t dim)
 
                 malloc_pinned_cl.where = STARPU_CUDA;
 		struct starpu_task *task = starpu_task_create();
-			task->callback_func = NULL;
-			task->cl = &malloc_pinned_cl;
-			task->cl_arg = &s;
+		task->callback_func = NULL;
+		task->cl = &malloc_pinned_cl;
+		task->cl_arg = &s;
 
 		task->synchronous = 1;
 
@@ -123,8 +120,8 @@ int starpu_malloc(void **A, size_t dim)
 
 		push_res = _starpu_task_submit_internally(task);
 		STARPU_ASSERT(push_res != -ENODEV);
-#endif
-#endif
+#endif /* HAVE_CUDA_MEMCPY_PEER */
+#endif /* STARPU_USE_CUDA */
 	}
 //	else if (_starpu_can_submit_opencl_task())
 //	{
@@ -149,16 +146,19 @@ int starpu_malloc(void **A, size_t dim)
 //
 //		push_res = _starpu_task_submit_internally(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
-//#endif
+//#endif /* STARPU_USE_OPENCL */
 //        }
         else
-#endif
+#endif /* STARPU_SIMGRID */
 	{
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 		if (malloc_align != sizeof(void*))
 		{
 			if (posix_memalign(A, malloc_align, dim))
+			{
+				ret = -ENOMEM;
 				*A = NULL;
+			}
 		}
 		else
 #elif defined(STARPU_HAVE_MEMALIGN)
@@ -167,15 +167,18 @@ int starpu_malloc(void **A, size_t dim)
 			*A = memalign(malloc_align, dim);
 		}
 		else
-#endif
+#endif /* STARPU_HAVE_POSIX_MEMALIGN */
 		{
 			*A = malloc(dim);
 		}
 	}
 
-	STARPU_ASSERT(*A);
+	if (ret == 0)
+	{
+		STARPU_ASSERT(*A);
+	}
 
-	return 0;
+	return ret;
 }
 
 #if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
@@ -242,9 +245,9 @@ int starpu_free(void *A)
 
                 free_pinned_cl.where = STARPU_CUDA;
 		struct starpu_task *task = starpu_task_create();
-			task->callback_func = NULL;
-			task->cl = &free_pinned_cl;
-			task->cl_arg = A;
+		task->callback_func = NULL;
+		task->cl = &free_pinned_cl;
+		task->cl_arg = A;
 
 		task->synchronous = 1;
 
@@ -283,6 +286,34 @@ int starpu_free(void *A)
 	return 0;
 }
 
+
+int starpu_malloc_count(void **A, size_t dim)
+{
+	if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
+	{
+		size_t freed;
+		size_t reclaim = 2 * dim;
+		_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
+		_STARPU_TRACE_START_MEMRECLAIM(0);
+		freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
+		_STARPU_TRACE_END_MEMRECLAIM(0);
+		if (freed < dim)
+		{
+			// We could not reclaim enough memory
+			*A = NULL;
+			return -ENOMEM;
+		}
+	}
+
+	return starpu_malloc(A, dim);
+}
+
+int starpu_free_count(void *A, size_t dim)
+{
+	_starpu_memory_manager_deallocate_size(dim, 0);
+	starpu_free(A);
+}
+
 #ifdef STARPU_SIMGRID
 static _starpu_pthread_mutex_t cuda_alloc_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
 static _starpu_pthread_mutex_t opencl_alloc_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
@@ -300,9 +331,6 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	if (_starpu_memory_manager_can_allocate_size(size, dst_node) == 0)
 		return 0;
 
-#ifdef STARPU_DEVEL
-#warning TODO: we need to use starpu_malloc which should itself inquire from the memory manager is there is enough available memory
-#endif
 	switch(starpu_node_get_kind(dst_node))
 	{
 		case STARPU_CPU_RAM:

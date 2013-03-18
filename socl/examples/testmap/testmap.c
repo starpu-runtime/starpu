@@ -82,7 +82,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    err = clGetPlatformIDs(sizeof(platforms)/sizeof(cl_platform_id), platforms, NULL);
    check(err, "clGetPlatformIDs");
 
-   unsigned int platform_idx = -1;
+   int platform_idx = -1;
    for (i=0; i<num_platforms;i++) {
     char vendor[256];
     clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);

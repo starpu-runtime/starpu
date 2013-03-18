@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,16 +56,20 @@ struct starpu_codelet cl_compare =
 	.name = "cl_compare"
 };
 
-void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void display_complex_codelet(void *descr[], void *_args)
 {
 	int nx = STARPU_COMPLEX_GET_NX(descr[0]);
 	double *real = STARPU_COMPLEX_GET_REAL(descr[0]);
 	double *imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
 	int i;
+	char msg[100];
+
+	if (_args)
+		starpu_codelet_unpack_args(_args, &msg);
 
 	for(i=0 ; i<nx ; i++)
 	{
-		fprintf(stderr, "Complex[%d] = %3.2f + %3.2f i\n", i, real[i], imaginary[i]);
+		fprintf(stderr, "[%s] Complex[%d] = %3.2f + %3.2f i\n", _args?msg:NULL, i, real[i], imaginary[i]);
 	}
 }
 

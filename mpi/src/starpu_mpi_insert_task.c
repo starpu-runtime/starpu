@@ -70,7 +70,7 @@ void _starpu_mpi_cache_empty_tables(int world_size)
 
 	if (_cache_enabled == 0) return;
 
-	_STARPU_MPI_DEBUG("Clearing htable for cache\n");
+	_STARPU_DEBUG("Clearing htable for cache\n");
 
 	for(i=0 ; i<world_size ; i++)
 	{
@@ -121,12 +121,14 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 		if (avail)
 		{
 			_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data_handle);
+			free(avail);
 			HASH_DEL(_cache_sent_data[i], avail);
 		}
 		HASH_FIND_PTR(_cache_received_data[i], &data_handle, avail);
 		if (avail)
 		{
 			_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data_handle);
+			free(avail);
 			HASH_DEL(_cache_received_data[i], avail);
 		}
 	}
@@ -377,16 +379,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 	size_on_nodes = (size_t *)calloc(1, nb_nodes * sizeof(size_t));
 
-	/* Get the number of buffers and the size of the arguments */
-	va_start(varg_list, codelet);
-	arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
-
-	if (arg_buffer_size)
-	{
-		va_start(varg_list, codelet);
-		_starpu_codelet_pack_args(arg_buffer_size, &arg_buffer, varg_list);
-	}
-
 	/* Find out whether we are to execute the data because we own the data to be written to. */
 	inconsistent_execute = 0;
 	do_execute = -1;
@@ -589,6 +581,17 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 	if (do_execute)
 	{
+		/* Get the number of buffers and the size of the arguments */
+		va_start(varg_list, codelet);
+		arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
+
+		/* Pack arguments if needed */
+		if (arg_buffer_size)
+		{
+			va_start(varg_list, codelet);
+			_starpu_codelet_pack_args(arg_buffer_size, &arg_buffer, varg_list);
+		}
+
 		_STARPU_MPI_DEBUG("Execution of the codelet %p (%s)\n", codelet, codelet->name);
 		va_start(varg_list, codelet);
 		struct starpu_task *task = starpu_task_create();

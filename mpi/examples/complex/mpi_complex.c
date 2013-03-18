@@ -37,10 +37,6 @@ int main(int argc, char **argv)
 	int ret;
 	int compare;
 
-	starpu_data_handle_t handle;
-	starpu_data_handle_t handle2;
-	starpu_data_handle_t foo_handle;
-
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_mpi_init(&argc, &argv, 1);
@@ -55,65 +51,48 @@ int main(int argc, char **argv)
 	}
 	else
 	{
+		starpu_data_handle_t handle;
+		starpu_data_handle_t handle2;
+
+		double real[2] = {4.0, 2.0};
+		double imaginary[2] = {7.0, 9.0};
+
+		double real2[2] = {14.0, 12.0};
+		double imaginary2[2] = {17.0, 19.0};
+
+		if (rank == 1)
+		{
+			real[0] = 0.0;
+			real[1] = 0.0;
+			imaginary[0] = 0.0;
+			imaginary[1] = 0.0;
+		}
+
+		starpu_complex_data_register(&handle, 0, real, imaginary, 2);
+		starpu_complex_data_register(&handle2, -1, real2, imaginary2, 2);
+
 		if (rank == 0)
 		{
-			double real[2] = {4.0, 2.0};
-			double imaginary[2] = {7.0, 9.0};
-
-			double real2[2] = {14.0, 12.0};
-			double imaginary2[2] = {17.0, 19.0};
-
 			int *compare_ptr = &compare;
 
-			starpu_complex_data_register(&handle, 0, real, imaginary, 2);
-			starpu_complex_data_register(&handle2, -1, real2, imaginary2, 2);
-
-			starpu_insert_task(&cl_display, STARPU_R, handle, 0);
+			starpu_insert_task(&cl_display, STARPU_VALUE, "node0 initial value", strlen("node0 initial value"), STARPU_R, handle, 0);
 			starpu_mpi_isend_detached(handle, 1, 10, MPI_COMM_WORLD, NULL, NULL);
 			starpu_mpi_irecv_detached(handle2, 1, 20, MPI_COMM_WORLD, NULL, NULL);
 
-			starpu_insert_task(&cl_display, STARPU_R, handle2, 0);
+			starpu_insert_task(&cl_display, STARPU_VALUE, "node0 received value", strlen("node0 received value"), STARPU_R, handle2, 0);
 			starpu_insert_task(&cl_compare, STARPU_R, handle, STARPU_R, handle2, STARPU_VALUE, &compare_ptr, sizeof(compare_ptr), 0);
-
-			{
-				// We send a dummy variable only to check communication with predefined datatypes
-				int foo=12;
-				starpu_variable_data_register(&foo_handle, 0, (uintptr_t)&foo, sizeof(foo));
-				starpu_mpi_isend_detached(foo_handle, 1, 40, MPI_COMM_WORLD, NULL, NULL);
-				starpu_insert_task(&foo_display, STARPU_R, foo_handle, 0);
-			}
 		}
 		else if (rank == 1)
 		{
-			double real[2] = {0.0, 0.0};
-			double imaginary[2] = {0.0, 0.0};
-
-			starpu_complex_data_register(&handle, 0, real, imaginary, 2);
 			starpu_mpi_irecv_detached(handle, 0, 10, MPI_COMM_WORLD, NULL, NULL);
-			starpu_insert_task(&cl_display, STARPU_R, handle, 0);
+			starpu_insert_task(&cl_display, STARPU_VALUE, "node1 received value", strlen("node1 received value"), STARPU_R, handle, 0);
 			starpu_mpi_isend_detached(handle, 0, 20, MPI_COMM_WORLD, NULL, NULL);
-
-			{
-				// We send a dummy variable only to check communication with predefined datatypes
-				int foo=12;
-				starpu_variable_data_register(&foo_handle, -1, (uintptr_t)NULL, sizeof(foo));
-				starpu_mpi_irecv_detached(foo_handle, 0, 40, MPI_COMM_WORLD, NULL, NULL);
-				starpu_insert_task(&foo_display, STARPU_R, foo_handle, 0);
-			}
-
 		}
-	}
 
-	starpu_task_wait_for_all();
+		starpu_task_wait_for_all();
 
-	if (rank == 0)
-	{
-		starpu_data_unregister(handle2);
-	}
-	if (rank == 0 || rank == 1)
-	{
 		starpu_data_unregister(handle);
-		starpu_data_unregister(foo_handle);
+		starpu_data_unregister(handle2);
 	}
 
 	starpu_mpi_shutdown();

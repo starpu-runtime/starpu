@@ -118,7 +118,7 @@ static void *complex_handle_to_pointer(starpu_data_handle_t handle, unsigned nod
 	return (void*) complex_interface->real;
 }
 
-static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, size_t *count)
+static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -126,9 +126,12 @@ static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **
 		starpu_data_get_interface_on_node(handle, node);
 
 	*count = complex_get_size(handle);
-	*ptr = malloc(*count);
-	memcpy(*ptr, complex_interface->real, complex_interface->nx*sizeof(double));
-	memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
+	if (ptr != NULL)
+	{
+		*ptr = malloc(*count);
+		memcpy(*ptr, complex_interface->real, complex_interface->nx*sizeof(double));
+		memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
+	}
 
 	return 0;
 }

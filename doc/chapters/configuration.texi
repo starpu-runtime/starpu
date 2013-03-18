@@ -627,6 +627,13 @@ intended to be used for experimental purposes as it emulates devices
 that have a limited amount of memory.
 @end defvr
 
+@defvr {Environment variable} STARPU_LIMIT_CPU_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on each CPU device. This variable is
+intended to be used for experimental purposes as it emulates devices
+that have a limited amount of memory.
+@end defvr
+
 @defvr {Environment variable} STARPU_GENERATE_TRACE
 When set to @code{1}, this variable indicates that StarPU should automatically
 generate a Paje trace when @code{starpu_shutdown()} is called.

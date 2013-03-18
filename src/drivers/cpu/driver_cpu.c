@@ -191,22 +191,40 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 
 static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_config *config)
 {
+	ssize_t global_mem;
+	ssize_t limit;
+
+	limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
+#ifdef STARPU_DEVEL
+#  warning TODO: take into account NUMA node and check STARPU_LIMIT_CPU_numanode_MEM
+#endif
+
 #if defined(STARPU_HAVE_HWLOC)
         int depth_node;
 	struct starpu_machine_topology *topology = &config->topology;
         depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
 
 	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
-	     return hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
+	     global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
 	else
-	     return hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.local_memory;
+	     global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.local_memory;
 
 #else /* STARPU_HAVE_HWLOC */
 #ifdef STARPU_DEVEL
 #  warning use sysinfo when available to get global size
 #endif
-	return 0;
+	global_mem = 0;
 #endif
+
+	if (limit == -1)
+		// No limit is defined, we return the global memory size
+		return global_mem;
+	else if (limit*1024*1024 > global_mem)
+		// The requested limit is higher than what is available, we return the global memory size
+		return global_mem;
+	else
+		// We limit the memory
+		return limit*1024*1024;
 }
 
 int _starpu_cpu_driver_init(struct starpu_driver *d)

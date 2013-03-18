@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009, 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -88,7 +88,8 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 	_STARPU_PTHREAD_COND_INIT(&req->req_cond, NULL);
 
 	req->request_type = request_type;
-
+	req->user_datatype = -1;
+	req->count = -1;
 	req->data_handle = data_handle;
 	req->srcdst = srcdst;
 	req->mpi_tag = mpi_tag;
@@ -121,7 +122,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 	STARPU_ASSERT(req->ptr);
 
-	_STARPU_MPI_DEBUG("post MPI isend tag %d dst %d ptr %p datatype %p count %d req %p\n", req->mpi_tag, req->srcdst, req->ptr, req->datatype, (int)req->count, &req->request);
+	_STARPU_MPI_DEBUG("post MPI isend request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 
 	_starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, req->datatype, req->count);
 
@@ -143,12 +144,6 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-static void _starpu_mpi_isend_size_callback(void *arg)
-{
-	struct _starpu_mpi_req *req = (struct _starpu_mpi_req *) arg;
-	_starpu_mpi_isend_data_func(req);
-}
-
 static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 {
 	_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->user_datatype);
@@ -156,17 +151,37 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	{
 		req->count = 1;
 		req->ptr = starpu_handle_get_local_ptr(req->data_handle);
-		_starpu_mpi_isend_data_func(req);
 	}
 	else
 	{
-		starpu_data_handle_t count_handle;
+		ssize_t psize;
 
+		// Do not pack the data, just try to find out the size
+		starpu_handle_pack_data(req->data_handle, NULL, &psize);
+
+		if (psize != -1)
+		{
+			// We already know the size of the data, let's send it to overlap with the packing of the data
+			MPI_Isend(&psize, sizeof(psize), MPI_BYTE, req->srcdst, req->mpi_tag, req->comm, &req->size_req);
+			req->count = psize;
+		}
+
+		// Pack the data
 		starpu_handle_pack_data(req->data_handle, &req->ptr, &req->count);
-		starpu_variable_data_register(&count_handle, 0, (uintptr_t)&req->count, sizeof(req->count));
-		_starpu_mpi_isend_common(count_handle, req->srcdst, req->mpi_tag, req->comm, 1, _starpu_mpi_isend_size_callback, req);
-		starpu_data_unregister_submit(count_handle);
+		if (psize == -1)
+		{
+			// We know the size now, let's send it
+			MPI_Isend(&req->count, sizeof(req->count), MPI_BYTE, req->srcdst, req->mpi_tag, req->comm, &req->size_req);
+		}
+		else
+		{
+			// We check the size returned with the 2 calls to pack is the same
+			STARPU_ASSERT(req->count == psize);
+		}
+
+		// We can send the data now
 	}
+	_starpu_mpi_isend_data_func(req);
 }
 
 static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle,
@@ -228,7 +243,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 
 	STARPU_ASSERT(req->ptr);
 
-	_STARPU_MPI_DEBUG("post MPI irecv tag %d src %d data %p ptr %p datatype %p count %d req %p \n", req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, &req->request);
+	_STARPU_MPI_DEBUG("post MPI irecv request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 
 	TRACE_MPI_IRECV_SUBMIT_BEGIN(req->srcdst, req->mpi_tag);
 
@@ -260,9 +275,6 @@ static void _starpu_mpi_irecv_size_callback(void *arg)
 
 	starpu_data_unregister(callback->handle);
 	callback->req->ptr = malloc(callback->req->count);
-#ifdef STARPU_DEVEL
-#warning TODO: in some cases, callback->req->count is incorrect, we need to fix that
-#endif
 	STARPU_ASSERT_MSG(callback->req->ptr, "cannot allocate message of size %ld\n", callback->req->count);
 	_starpu_mpi_irecv_data_func(callback->req);
 	free(callback);
@@ -286,6 +298,7 @@ static void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 		starpu_variable_data_register(&callback->handle, 0, (uintptr_t)&(callback->req->count), sizeof(callback->req->count));
 		_starpu_mpi_irecv_common(callback->handle, req->srcdst, req->mpi_tag, req->comm, 1, _starpu_mpi_irecv_size_callback, callback);
 	}
+
 }
 
 static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, unsigned detached, void (*callback)(void *), void *arg)
@@ -340,7 +353,7 @@ static void _starpu_mpi_probe_func(struct _starpu_mpi_req *req)
 	req->count = 1;
 	req->ptr = starpu_handle_get_local_ptr(req->data_handle);
 
-	_STARPU_MPI_DEBUG("MPI probe tag %d dst %d ptr %p datatype %p count %d req %p\n", req->mpi_tag, req->srcdst, req->ptr, req->datatype, (int)req->count, req);
+	_STARPU_MPI_DEBUG("MPI probe request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	_STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
@@ -440,7 +453,7 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	/* Which is the mpi request we are testing for ? */
 	struct _starpu_mpi_req *req = testing_req->other_request;
 
-	_STARPU_MPI_DEBUG("Test request %p - mpitag %d - TYPE %s %d\n", &req->request, req->mpi_tag, _starpu_mpi_request_type(req->request_type), req->srcdst);
+	_STARPU_MPI_DEBUG("Test request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 
 	TRACE_MPI_UTESTING_BEGIN(req->srcdst, req->mpi_tag);
 
@@ -621,7 +634,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG("complete MPI req %p (%s) srcdst %d - data %p - tag %d - user datatype %d\n", req, _starpu_mpi_request_type(req->request_type), req->srcdst, req->data_handle, req->mpi_tag, req->user_datatype);
+	_STARPU_MPI_DEBUG("complete MPI request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 	if (req->request_type == PROBE_REQ)
 	{
 #ifdef STARPU_DEVEL
@@ -636,6 +649,14 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 	{
 		if (req->user_datatype == 1)
 		{
+			if (req->request_type == SEND_REQ)
+			{
+				// We already know the request to send the size is completed, we just call MPI_Test to make sure that the request object is deallocated
+				MPI_Status status;
+				int flag;
+				MPI_Test(&req->size_req, &flag, &status);
+				STARPU_ASSERT(flag);
+			}
 			if (req->request_type == RECV_REQ)
 				// req->ptr is freed by starpu_handle_unpack_data
 				starpu_handle_unpack_data(req->data_handle, req->ptr, req->count);
@@ -672,7 +693,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	_starpu_mpi_req_list_push_front(new_requests, req);
 	newer_requests = 1;
-	_STARPU_MPI_DEBUG("Pushing new request type %p (%s)\n", req, _starpu_mpi_request_type(req->request_type));
+	_STARPU_MPI_DEBUG("Pushing new request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 	_STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	_STARPU_MPI_LOG_OUT();
@@ -785,7 +806,7 @@ static void _starpu_mpi_handle_new_request(struct _starpu_mpi_req *req)
 	STARPU_ASSERT(req);
 
 	/* submit the request to MPI */
-	_STARPU_MPI_DEBUG("Handling new request type %p (%s)\n", req, _starpu_mpi_request_type(req->request_type));
+	_STARPU_MPI_DEBUG("Handling new request %p type %s tag %d src %d data %p ptr %p datatype %p count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, req->datatype, (int)req->count, req->user_datatype);
 	req->func(req);
 
 	_STARPU_MPI_LOG_OUT();

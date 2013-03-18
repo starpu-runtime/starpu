@@ -56,7 +56,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    cl_kernel kernel;
    cl_mem s1m, s2m, dm;
    cl_command_queue cq;
-   int d;
+   unsigned int d;
    cl_int err;
 
    TYPE s1[SIZE],s2[SIZE],dst[SIZE];

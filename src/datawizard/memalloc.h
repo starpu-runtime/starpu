@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2012-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -42,7 +42,6 @@ LIST_TYPE(_starpu_mem_chunk,
 	struct starpu_data_interface_ops *ops;
 	void *chunk_interface;
 	unsigned automatically_allocated;
-	unsigned data_was_deleted;
 
 	/* the size is only set when calling _starpu_request_mem_chunk_removal(),
          * it is needed by free_memory_on_node() which is called when
@@ -63,11 +62,12 @@ LIST_TYPE(_starpu_mem_chunk_lru,
 
 void _starpu_init_mem_chunk_lists(void);
 void _starpu_deinit_mem_chunk_lists(void);
-void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned node, int handle_deleted);
+void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned node, size_t size);
 int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned is_prefetch);
 size_t _starpu_free_all_automatically_allocated_buffers(unsigned node);
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node);
 
 void _starpu_display_memory_stats_by_node(int node);
+size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t reclaim);
 
 #endif

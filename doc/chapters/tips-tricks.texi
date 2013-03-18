@@ -2,12 +2,13 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 @c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 @menu
 * Per-worker library initialization::  How to initialize a computation library once for each worker?
+* Limit memory::
 @end menu
 
 @node Per-worker library initialization
@@ -77,3 +78,14 @@ void starpu_cublas_init(void)
 @}
 @end smallexample
 @end cartouche
+
+@node Limit memory
+@section How to limit memory per node
+
+TODO
+
+Talk about
+@code{STARPU_LIMIT_CUDA_devid_MEM}, @code{STARPU_LIMIT_CUDA_MEM},
+@code{STARPU_LIMIT_OPENCL_devid_MEM}, @code{STARPU_LIMIT_OPENCL_MEM}
+and @code{STARPU_LIMIT_CPU_MEM}
+

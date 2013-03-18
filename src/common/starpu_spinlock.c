@@ -68,6 +68,7 @@ int _starpu_spin_destroy(struct _starpu_spinlock *lock STARPU_ATTRIBUTE_UNUSED)
 #endif
 }
 
+#undef _starpu_spin_lock
 int _starpu_spin_lock(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SIMGRID
@@ -120,6 +121,7 @@ int _starpu_spin_checklocked(struct _starpu_spinlock *lock)
 #endif
 }
 
+#undef _starpu_spin_trylock
 int _starpu_spin_trylock(struct _starpu_spinlock *lock)
 {
 #ifdef STARPU_SIMGRID

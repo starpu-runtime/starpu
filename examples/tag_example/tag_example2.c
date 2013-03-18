@@ -33,7 +33,7 @@
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 #define TAG(i, iter)	((starpu_tag_t)  (((uint64_t)iter)<<32 | (i)) )
 
-struct starpu_codelet cl = {};
+struct starpu_codelet cl;
 
 #define Ni	64
 #define Nk	256
@@ -123,6 +123,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	parse_args(argc, argv);
 
+	starpu_codelet_init(&cl);
 	cl.cpu_funcs[0] = cpu_codelet;
 	cl.cuda_funcs[0] = cpu_codelet;
 	cl.opencl_funcs[0] = cpu_codelet;

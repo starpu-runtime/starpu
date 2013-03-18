@@ -555,10 +555,11 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	/* Destroy the data now */
 	unsigned node;
+	size_t size = _starpu_data_get_size(handle);
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		/* free the data copy in a lazy fashion */
-		_starpu_request_mem_chunk_removal(handle, node, 1);
+		_starpu_request_mem_chunk_removal(handle, node, size);
 	}
 
 	_starpu_data_free_interfaces(handle);
@@ -595,6 +596,7 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 static void _starpu_data_invalidate(void *data)
 {
 	starpu_data_handle_t handle = data;
+	size_t size = _starpu_data_get_size(handle);
 	_starpu_spin_lock(&handle->header_lock);
 
 	unsigned node;
@@ -605,7 +607,9 @@ static void _starpu_data_invalidate(void *data)
 		if (local->allocated && local->automatically_allocated)
 		{
 			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(handle, node, 0);
+			_starpu_request_mem_chunk_removal(handle, node, size);
+			local->allocated = 0;
+			local->automatically_allocated = 0;
 		}
 
 		local->state = STARPU_INVALID;
@@ -648,7 +652,7 @@ int starpu_data_interface_get_next_id(void)
 	return _data_interface_number-1;
 }
 
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, size_t *count)
+int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, ssize_t *count)
 {
 	STARPU_ASSERT(handle->ops->pack_data);
 	return handle->ops->pack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
