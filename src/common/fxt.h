@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -367,49 +367,49 @@ do {										\
 #else // !STARPU_USE_FXT
 
 /* Dummy macros in case FxT is disabled */
-#define _STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0);
-#define _STARPU_TRACE_WORKER_INIT_START(a,b,c)	do {} while(0);
-#define _STARPU_TRACE_WORKER_INIT_END		do {} while(0);
-#define _STARPU_TRACE_START_CODELET_BODY(job)	do {} while(0);
-#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, a)	do {} while(0);
-#define _STARPU_TRACE_START_CALLBACK(job)	do {} while(0);
-#define _STARPU_TRACE_END_CALLBACK(job)		do {} while(0);
-#define _STARPU_TRACE_JOB_PUSH(task, prio)	do {} while(0);
-#define _STARPU_TRACE_JOB_POP(task, prio)	do {} while(0);
-#define _STARPU_TRACE_UPDATE_TASK_CNT(counter)	do {} while(0);
-#define _STARPU_TRACE_START_FETCH_INPUT(job)	do {} while(0);
-#define _STARPU_TRACE_END_FETCH_INPUT(job)	do {} while(0);
-#define _STARPU_TRACE_START_PUSH_OUTPUT(job)	do {} while(0);
-#define _STARPU_TRACE_END_PUSH_OUTPUT(job)	do {} while(0);
-#define _STARPU_TRACE_TAG(tag, job)	do {} while(0);
-#define _STARPU_TRACE_TAG_DEPS(a, b)	do {} while(0);
-#define _STARPU_TRACE_TASK_DEPS(a, b)		do {} while(0);
-#define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {} while(0);
-#define _STARPU_TRACE_TASK_DONE(a)		do {} while(0);
-#define _STARPU_TRACE_TAG_DONE(a)		do {} while(0);
-#define _STARPU_TRACE_DATA_COPY(a, b, c)		do {} while(0);
-#define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d)	do {} while(0);
-#define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d)	do {} while(0);
-#define _STARPU_TRACE_START_DRIVER_COPY_ASYNC(a,b)	do {} while(0);
-#define _STARPU_TRACE_END_DRIVER_COPY_ASYNC(a,b)	do {} while(0);
-#define _STARPU_TRACE_WORK_STEALING(a, b)	do {} while(0);
-#define _STARPU_TRACE_WORKER_DEINIT_START	do {} while(0);
-#define _STARPU_TRACE_WORKER_DEINIT_END(a)	do {} while(0);
-#define _STARPU_TRACE_WORKER_SLEEP_START		do {} while(0);
-#define _STARPU_TRACE_WORKER_SLEEP_END		do {} while(0);
-#define _STARPU_TRACE_USER_DEFINED_START		do {} while(0);
-#define _STARPU_TRACE_USER_DEFINED_END		do {} while(0);
-#define _STARPU_TRACE_START_ALLOC(memnode)	do {} while(0);
-#define _STARPU_TRACE_END_ALLOC(memnode)		do {} while(0);
-#define _STARPU_TRACE_START_ALLOC_REUSE(a)	do {} while(0);
-#define _STARPU_TRACE_END_ALLOC_REUSE(a)		do {} while(0);
-#define _STARPU_TRACE_START_MEMRECLAIM(memnode)	do {} while(0);
-#define _STARPU_TRACE_END_MEMRECLAIM(memnode)	do {} while(0);
-#define _STARPU_TRACE_START_PROGRESS(memnode)	do {} while(0);
-#define _STARPU_TRACE_END_PROGRESS(memnode)	do {} while(0);
-#define _STARPU_TRACE_USER_EVENT(code)		do {} while(0);
-#define _STARPU_TRACE_SET_PROFILING(status)	do {} while(0);
-#define _STARPU_TRACE_TASK_WAIT_FOR_ALL		do {} while(0);
+#define _STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0)
+#define _STARPU_TRACE_WORKER_INIT_START(a,b,c)	do {} while(0)
+#define _STARPU_TRACE_WORKER_INIT_END		do {} while(0)
+#define _STARPU_TRACE_START_CODELET_BODY(job)	do {} while(0)
+#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, a)	do {} while(0)
+#define _STARPU_TRACE_START_CALLBACK(job)	do {} while(0)
+#define _STARPU_TRACE_END_CALLBACK(job)		do {} while(0)
+#define _STARPU_TRACE_JOB_PUSH(task, prio)	do {} while(0)
+#define _STARPU_TRACE_JOB_POP(task, prio)	do {} while(0)
+#define _STARPU_TRACE_UPDATE_TASK_CNT(counter)	do {} while(0)
+#define _STARPU_TRACE_START_FETCH_INPUT(job)	do {} while(0)
+#define _STARPU_TRACE_END_FETCH_INPUT(job)	do {} while(0)
+#define _STARPU_TRACE_START_PUSH_OUTPUT(job)	do {} while(0)
+#define _STARPU_TRACE_END_PUSH_OUTPUT(job)	do {} while(0)
+#define _STARPU_TRACE_TAG(tag, job)	do {} while(0)
+#define _STARPU_TRACE_TAG_DEPS(a, b)	do {} while(0)
+#define _STARPU_TRACE_TASK_DEPS(a, b)		do {} while(0)
+#define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {} while(0)
+#define _STARPU_TRACE_TASK_DONE(a)		do {} while(0)
+#define _STARPU_TRACE_TAG_DONE(a)		do {} while(0)
+#define _STARPU_TRACE_DATA_COPY(a, b, c)		do {} while(0)
+#define _STARPU_TRACE_START_DRIVER_COPY(a,b,c,d)	do {} while(0)
+#define _STARPU_TRACE_END_DRIVER_COPY(a,b,c,d)	do {} while(0)
+#define _STARPU_TRACE_START_DRIVER_COPY_ASYNC(a,b)	do {} while(0)
+#define _STARPU_TRACE_END_DRIVER_COPY_ASYNC(a,b)	do {} while(0)
+#define _STARPU_TRACE_WORK_STEALING(a, b)	do {} while(0)
+#define _STARPU_TRACE_WORKER_DEINIT_START	do {} while(0)
+#define _STARPU_TRACE_WORKER_DEINIT_END(a)	do {} while(0)
+#define _STARPU_TRACE_WORKER_SLEEP_START		do {} while(0)
+#define _STARPU_TRACE_WORKER_SLEEP_END		do {} while(0)
+#define _STARPU_TRACE_USER_DEFINED_START		do {} while(0)
+#define _STARPU_TRACE_USER_DEFINED_END		do {} while(0)
+#define _STARPU_TRACE_START_ALLOC(memnode)	do {} while(0)
+#define _STARPU_TRACE_END_ALLOC(memnode)		do {} while(0)
+#define _STARPU_TRACE_START_ALLOC_REUSE(a)	do {} while(0)
+#define _STARPU_TRACE_END_ALLOC_REUSE(a)		do {} while(0)
+#define _STARPU_TRACE_START_MEMRECLAIM(memnode)	do {} while(0)
+#define _STARPU_TRACE_END_MEMRECLAIM(memnode)	do {} while(0)
+#define _STARPU_TRACE_START_PROGRESS(memnode)	do {} while(0)
+#define _STARPU_TRACE_END_PROGRESS(memnode)	do {} while(0)
+#define _STARPU_TRACE_USER_EVENT(code)		do {} while(0)
+#define _STARPU_TRACE_SET_PROFILING(status)	do {} while(0)
+#define _STARPU_TRACE_TASK_WAIT_FOR_ALL		do {} while(0)
 
 #endif // STARPU_USE_FXT
 

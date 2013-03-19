@@ -423,7 +423,7 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 	snprintf(args->short_name, sizeof(args->short_name), "CUDA %u", devid);
 	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
-	_STARPU_TRACE_WORKER_INIT_END
+	_STARPU_TRACE_WORKER_INIT_END;
 
 	/* tell the main thread that this one is ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
@@ -496,7 +496,7 @@ int _starpu_cuda_driver_deinit(struct starpu_driver *d)
 	STARPU_ASSERT(args);
 	unsigned memnode = args->memory_node;
 
-	_STARPU_TRACE_WORKER_DEINIT_START
+	_STARPU_TRACE_WORKER_DEINIT_START;
 
 	_starpu_handle_all_pending_node_data_requests(memnode);
 

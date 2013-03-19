@@ -621,7 +621,7 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
-	_STARPU_TRACE_WORKER_INIT_END
+	_STARPU_TRACE_WORKER_INIT_END;
 
 	/* tell the main thread that this one is ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
@@ -692,7 +692,7 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *d)
 
 int _starpu_opencl_driver_deinit(struct starpu_driver *d)
 {
-	_STARPU_TRACE_WORKER_DEINIT_START
+	_STARPU_TRACE_WORKER_DEINIT_START;
 
 	struct _starpu_worker* args;
 	args = _starpu_opencl_get_worker_from_driver(d);

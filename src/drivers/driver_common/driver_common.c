@@ -167,7 +167,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 
 		if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
 		{
-			_STARPU_TRACE_WORKER_SLEEP_START
+			_STARPU_TRACE_WORKER_SLEEP_START;
 			_starpu_worker_restart_sleeping(workerid);
 			_starpu_worker_set_status(workerid, STATUS_SLEEPING);
 		}
@@ -199,7 +199,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 
 	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
 	{
-		_STARPU_TRACE_WORKER_SLEEP_END
+		_STARPU_TRACE_WORKER_SLEEP_END;
 		_starpu_worker_stop_sleeping(workerid);
 		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
 	}
