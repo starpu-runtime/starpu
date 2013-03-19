@@ -81,6 +81,9 @@ int main(int argc, char **argv)
 		while (!finished);
 	}
 
+	starpu_data_unregister(tab_handle);
+	free(tab);
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
