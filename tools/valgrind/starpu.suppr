@@ -94,8 +94,16 @@
 {
    This is racy, but we don't care, if the function was called a bit earlier we would have had a different value
    Helgrind:Race
-   fun:  _starpu_fifo_empty
+   fun: _starpu_fifo_empty
    fun: pop_task_eager_policy
+   ...
+}
+
+{
+   This is the counterpart of the suppression above
+   Helgrind:Race
+   fun: _starpu_fifo_push_task
+   fun: push_task_eager_policy
    ...
 }
 
