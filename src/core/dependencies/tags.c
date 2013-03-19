@@ -141,10 +141,7 @@ void starpu_tag_remove(starpu_tag_t id)
 
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
-	{
-		int id = -1;
 		AYU_event(AYU_REMOVETASK, id + AYUDAME_OFFSET, NULL);
-	}
 #endif
 
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
