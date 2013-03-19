@@ -239,17 +239,42 @@ are disabled.
 @node Standard memory library
 @section Standard memory library
 
-@deftypefun int starpu_malloc (void **@var{A}, size_t @var{dim})
-This function allocates data of the given size in main memory. It will also try to pin it in
-CUDA or OpenCL, so that data transfers from this buffer can be asynchronous, and
-thus permit data transfer and computation overlapping. The allocated buffer must
-be freed thanks to the @code{starpu_free} function.
+@defmac STARPU_MALLOC_PINNED
+Value passed to the function @code{starpu_malloc_set_flags} to
+indicate further memory allocations should be pinned
+@end defmac
+
+@defmac STARPU_MALLOC_COUNT
+Value passed to the function @code{starpu_malloc_set_flags} to
+indicate further memory allocations should be in the limit defined by
+the environment variables @code{STARPU_LIMIT_CUDA_devid_MEM},
+@code{STARPU_LIMIT_CUDA_MEM}, @code{STARPU_LIMIT_OPENCL_devid_MEM},
+@code{STARPU_LIMIT_OPENCL_MEM} and @code{STARPU_LIMIT_CPU_MEM}
+(@pxref{Limit memory}). If no memory is available, it tries to reclaim
+memory from StarPU. Memory allocated this way needs to be freed thanks to the
+@code{starpu_free_count} function.
+@end defmac
+
+@deftypefun int starpu_malloc_set_flags (int @var{flags})
+Set the current flags used by the memory allocator. @var{flag} must be
+ a combinaison of the values defined above.
+@end deftypefun
+
+@deftypefun int starpu_malloc_get_flags ()
+Return the current value of the flags used by the memory allocator.
 @end deftypefun
 
 @deftypefun void starpu_malloc_set_align (size_t @var{align})
 This functions sets an alignment constraints for @code{starpu_malloc}
 allocations. @var{align} must be a power of two. This is for instance called
 automatically by the OpenCL driver to specify its own alignment constraints.
+@end deftypefun
+
+@deftypefun int starpu_malloc (void **@var{A}, size_t @var{dim})
+This function allocates data of the given size in main memory. It will also try to pin it in
+CUDA or OpenCL, so that data transfers from this buffer can be asynchronous, and
+thus permit data transfer and computation overlapping. The allocated buffer must
+be freed thanks to the @code{starpu_free} function.
 @end deftypefun
 
 @deftypefun int starpu_free (void *@var{A})

@@ -99,6 +99,13 @@ New features:
     environment variables STARPU_LIMIT_xxx (see above). When no memory
     is left, starpu_malloc_count tries to reclaim memory from StarPU
     and returns -ENOMEM on failure.
+  * New functions starpu_malloc_set_flags and starpu_malloc_get_flags
+    to define flags to be used by the memory allocator.
+    - STARPU_MALLOC_PINNED specifies memory should be pinned
+    - STARPU_MALLOC_COUNT specifies memory allocations should be in
+      the limits defined by the environment variables STARPU_LIMIT_xxx
+      (see above). When no memory is left, starpu_malloc tries
+      to reclaim memory from StarPU and returns -ENOMEM on failure.
 
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid

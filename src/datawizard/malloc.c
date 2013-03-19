@@ -24,6 +24,17 @@
 #include <datawizard/memory_manager.h>
 
 static size_t _malloc_align = sizeof(void*);
+static int _malloc_flags = 0;
+
+int starpu_malloc_set_flags(int flags)
+{
+	_malloc_flags = flags;
+}
+
+int starpu_malloc_get_flags()
+{
+	return _malloc_flags;
+}
 
 void starpu_malloc_set_align(size_t align)
 {
