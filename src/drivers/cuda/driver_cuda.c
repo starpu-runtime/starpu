@@ -73,7 +73,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
  */
 static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 {
-	ssize_t limit;
+	int limit;
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
@@ -101,8 +101,8 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	props[devid].totalGlobalMem -= to_waste;
 #endif /* STARPU_USE_CUDA */
 
-	_STARPU_DEBUG("CUDA device %u: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
-			devid, (long) to_waste/(1024*1024), (long) limit, (long) totalGlobalMem/(1024*1024),
+	_STARPU_DEBUG("CUDA device %u: Wasting %ld MB / Limit %d MB / Total %ld MB / Remains %ld MB\n",
+			devid, (long) to_waste/(1024*1024), limit, (long) totalGlobalMem/(1024*1024),
 			(long) (totalGlobalMem - to_waste)/(1024*1024));
 }
 
