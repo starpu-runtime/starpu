@@ -159,9 +159,12 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 	starpu_shutdown();
 	FPRINTF(stderr, "TEST DONE ...\n");
-	return EXIT_SUCCESS;
 
 enodev:
-	starpu_shutdown();
-	return 77;
+	for (i = 0; i < Nrolls; i++)
+	{
+		free(tasks[i]);
+	}
+
+	return ret;
 }
