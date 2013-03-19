@@ -93,6 +93,10 @@ static struct starpu_codelet malloc_pinned_cl =
 };
 #endif
 
+#ifdef STARPU_DEVEL
+#warning starpu_malloc should check if STARPU_MALLOC_PINNED is set, but that is going to break the compatibility with old code as memory which used to be pinned will no longer be (unless we force by default the flag STARPU_MALLOC_PINNED)
+#endif
+
 int starpu_malloc(void **A, size_t dim)
 {
 	int ret=0;
