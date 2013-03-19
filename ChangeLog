@@ -101,6 +101,8 @@ New features:
       the limits defined by the environment variables STARPU_LIMIT_xxx
       (see above). When no memory is left, starpu_malloc_flag tries
       to reclaim memory from StarPU and returns -ENOMEM on failure.
+  * starpu_malloc calls starpu_malloc_flags with a value of flag set
+    to STARPU_MALLOC_PINNED
   * Define new function starpu_free_count to
     be used for freeing memory with a specified size. This is needed
     to indicate the memory allocator the amount of memory.

@@ -81,12 +81,12 @@ static struct starpu_codelet malloc_pinned_cl =
 };
 #endif
 
-#ifdef STARPU_DEVEL
-#warning starpu_malloc_flags should check if STARPU_MALLOC_PINNED is set, but that is going to break the compatibility with old code as memory which used to be pinned will no longer be (unless we force by default the flag STARPU_MALLOC_PINNED)
-#endif
-
 int starpu_malloc_flags(void **A, size_t dim, int flags)
 {
+	int ret=0;
+
+	STARPU_ASSERT(A);
+
 	if (flags & STARPU_MALLOC_COUNT)
 	{
 		if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
@@ -105,79 +105,73 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			}
 		}
 	}
-	return starpu_malloc(A, dim);
-}
 
-int starpu_malloc(void **A, size_t dim)
-{
-	int ret=0;
-
-	STARPU_ASSERT(A);
-
-#ifndef STARPU_SIMGRID
-	if (_starpu_can_submit_cuda_task())
+	if (flags & STARPU_MALLOC_PINNED)
 	{
+#ifndef STARPU_SIMGRID
+		if (_starpu_can_submit_cuda_task())
+		{
 #ifdef STARPU_USE_CUDA
 #ifdef HAVE_CUDA_MEMCPY_PEER
-		cudaError_t cures;
-		cures = cudaHostAlloc(A, dim, cudaHostAllocPortable);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
+			cudaError_t cures;
+			cures = cudaHostAlloc(A, dim, cudaHostAllocPortable);
+			if (STARPU_UNLIKELY(cures))
+				STARPU_CUDA_REPORT_ERROR(cures);
 #else
-		int push_res;
+			int push_res;
 
-		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-			return -EDEADLK;
+			if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+				return -EDEADLK;
 
-		struct malloc_pinned_codelet_struct s =
-		{
-			.ptr = A,
-			.dim = dim
-		};
+			struct malloc_pinned_codelet_struct s =
+			{
+				.ptr = A,
+				.dim = dim
+			};
 
-                malloc_pinned_cl.where = STARPU_CUDA;
-		struct starpu_task *task = starpu_task_create();
-		task->callback_func = NULL;
-		task->cl = &malloc_pinned_cl;
-		task->cl_arg = &s;
+			malloc_pinned_cl.where = STARPU_CUDA;
+			struct starpu_task *task = starpu_task_create();
+			task->callback_func = NULL;
+			task->cl = &malloc_pinned_cl;
+			task->cl_arg = &s;
 
-		task->synchronous = 1;
+			task->synchronous = 1;
 
-		_starpu_exclude_task_from_dag(task);
+			_starpu_exclude_task_from_dag(task);
 
-		push_res = _starpu_task_submit_internally(task);
-		STARPU_ASSERT(push_res != -ENODEV);
+			push_res = _starpu_task_submit_internally(task);
+			STARPU_ASSERT(push_res != -ENODEV);
 #endif /* HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
-	}
-//	else if (_starpu_can_submit_opencl_task())
-//	{
-//#ifdef STARPU_USE_OPENCL
-//		int push_res;
-//
-//		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-//			return -EDEADLK;
-//
-//		struct malloc_pinned_codelet_struct s =
+		}
+//		else if (_starpu_can_submit_opencl_task())
 //		{
-//			.ptr = A,
-//			.dim = dim
-//		};
+//#ifdef STARPU_USE_OPENCL
+//			int push_res;
 //
-//                malloc_pinned_cl.where = STARPU_OPENCL;
-//		struct starpu_task *task = starpu_task_create();
+//			if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+//				return -EDEADLK;
+//
+//			struct malloc_pinned_codelet_struct s =
+//				{
+//					.ptr = A,
+//					.dim = dim
+//				};
+//
+//			malloc_pinned_cl.where = STARPU_OPENCL;
+//			struct starpu_task *task = starpu_task_create();
 //			task->callback_func = NULL;
 //			task->cl = &malloc_pinned_cl;
 //			task->cl_arg = &s;
+//			task->synchronous = 1;
 //
-//		task->synchronous = 1;
+//			_starpu_exclude_task_from_dag(task);
 //
-//		_starpu_exclude_task_from_dag(task);
-//
-//		push_res = _starpu_task_submit_internally(task);
-//		STARPU_ASSERT(push_res != -ENODEV);
+//			push_res = _starpu_task_submit_internally(task);
+//			STARPU_ASSERT(push_res != -ENODEV);
 //#endif /* STARPU_USE_OPENCL */
-//        }
+//		}
+	}
         else
 #endif /* STARPU_SIMGRID */
 	{
@@ -209,6 +203,11 @@ int starpu_malloc(void **A, size_t dim)
 	}
 
 	return ret;
+}
+
+int starpu_malloc(void **A, size_t dim)
+{
+	return starpu_malloc_flags(A, dim, STARPU_MALLOC_PINNED);
 }
 
 #if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
