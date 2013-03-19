@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
-	STARPU_CHECK_RETURN_VALUE_IS((int)global_size, 1*1024*1024, "get_global_memory_size");
+	STARPU_CHECK_RETURN_VALUE_IS((int)global_size, 1*1024*1024, "_starpu_memory_manager_get_global_memory_size");
 	FPRINTF(stderr, "Available memory size on node 0: %ld\n", global_size);
 
 	ret = starpu_malloc_count((void **)&buffer, 1);
