@@ -53,39 +53,32 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE_IS((int)global_size, 1*1024*1024, "_starpu_memory_manager_get_global_memory_size");
 	FPRINTF(stderr, "Available memory size on node 0: %ld\n", global_size);
 
-	starpu_malloc_set_flags(STARPU_MALLOC_COUNT);
-
-	ret = starpu_malloc((void **)&buffer, 1);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
+	ret = starpu_malloc_flags((void **)&buffer, 1, STARPU_MALLOC_COUNT);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
 	FPRINTF(stderr, "Allocation succesfull for 1 b\n");
 
-	ret = starpu_malloc((void **)&buffer2, 1*1024*512);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
+	ret = starpu_malloc_flags((void **)&buffer2, 1*1024*512, STARPU_MALLOC_COUNT);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
 	FPRINTF(stderr, "Allocation succesfull for %d b\n", 1*1024*512);
 
-	ret = starpu_malloc((void **)&buffer3, 1*1024*512);
-	STARPU_CHECK_RETURN_VALUE_IS(ret, -ENOMEM, "starpu_malloc");
+	ret = starpu_malloc_flags((void **)&buffer3, 1*1024*512, STARPU_MALLOC_COUNT);
+	STARPU_CHECK_RETURN_VALUE_IS(ret, -ENOMEM, "starpu_malloc_flags");
 	FPRINTF(stderr, "Allocation failed for %d b\n", 1*1024*512);
 
-	starpu_malloc_set_flags(0);
-
-	ret = starpu_malloc((void **)&buffer3, 1*1024*512);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
+	ret = starpu_malloc_flags((void **)&buffer3, 1*1024*512, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
 	FPRINTF(stderr, "Allocation successful for %d b\n", 1*1024*512);
-	starpu_free(buffer3);
+	starpu_free_flags(buffer3, 1*1024*512, 0);
 
-	starpu_malloc_set_flags(STARPU_MALLOC_COUNT);
-
-	starpu_free_count(buffer2, 1*1024*512);
+	starpu_free_flags(buffer2, 1*1024*512, STARPU_MALLOC_COUNT);
 	FPRINTF(stderr, "Freeing %d b\n", 1*1024*512);
 
-
-	ret = starpu_malloc((void **)&buffer3, 1*1024*512);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
+	ret = starpu_malloc_flags((void **)&buffer3, 1*1024*512, STARPU_MALLOC_COUNT);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
 	FPRINTF(stderr, "Allocation succesfull for %d b\n", 1*1024*512);
 
-	starpu_free_count(buffer3, 1*1024*512);
-	starpu_free_count(buffer, 1);
+	starpu_free_flags(buffer3, 1*1024*512, STARPU_MALLOC_COUNT);
+	starpu_free_flags(buffer, 1, STARPU_MALLOC_COUNT);
 
 	starpu_shutdown();
 	return 0;
