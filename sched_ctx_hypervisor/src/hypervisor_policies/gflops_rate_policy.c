@@ -289,7 +289,7 @@ static void gflops_rate_resize(unsigned sched_ctx)
 	}
 }
 
-void gflops_rate_handle_poped_task(unsigned sched_ctx, int worker)
+static void gflops_rate_handle_poped_task(unsigned sched_ctx, int worker)
 {
 	gflops_rate_resize(sched_ctx);
 }

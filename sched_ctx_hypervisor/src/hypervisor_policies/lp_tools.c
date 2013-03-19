@@ -22,6 +22,7 @@
 
 double _lp_compute_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], int  total_nw[nw])
 {
+	int integer = 1;
 	int s, w;
 	glp_prob *lp;
 
@@ -49,7 +50,13 @@ double _lp_compute_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double flo
 			char name[32];
 			snprintf(name, sizeof(name), "worker%dctx%d", w, s);
 			glp_set_col_name(lp, n, name);
-			glp_set_col_bnds(lp, n, GLP_LO, 0.3, 0.0);
+			if (integer)
+			{
+				glp_set_col_kind(lp, n, GLP_IV);
+				glp_set_col_bnds(lp, n, GLP_LO, 0, 0);
+			}
+			else
+				glp_set_col_bnds(lp, n, GLP_LO, 0.0, 0.0);
 			n++;
 		}
 	}
@@ -154,7 +161,42 @@ double _lp_compute_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double flo
 	glp_smcp parm;
 	glp_init_smcp(&parm);
 	parm.msg_lev = GLP_MSG_OFF;
-	glp_simplex(lp, &parm);
+	int ret = glp_simplex(lp, &parm);
+	if (ret)
+        {
+                printf("error in simplex\n");
+		glp_delete_prob(lp);
+                lp = NULL;
+                return 0.0;
+        }
+
+	int stat = glp_get_prim_stat(lp);
+        /* if we don't have a solution return */
+        if(stat == GLP_NOFEAS)
+        {
+                glp_delete_prob(lp);
+//              printf("no_sol in tmax = %lf\n", tmax);                                                                                                                                                             
+                lp = NULL;
+                return 0.0;
+        }
+
+
+	if (integer)
+        {
+                glp_iocp iocp;
+                glp_init_iocp(&iocp);
+                iocp.msg_lev = GLP_MSG_OFF;
+                glp_intopt(lp, &iocp);
+                int stat = glp_mip_status(lp);
+                /* if we don't have a solution return */
+                if(stat == GLP_NOFEAS)
+                {
+//                      printf("no int sol in tmax = %lf\n", tmax);                                                                                                                                                 
+                        glp_delete_prob(lp);
+                        lp = NULL;
+                        return 0.0;
+                }
+        }
 
 	double vmax = glp_get_obj_val(lp);
 
@@ -163,7 +205,11 @@ double _lp_compute_nworkers_per_ctx(int ns, int nw, double v[ns][nw], double flo
 	{
 		for(w = 0; w < nw; w++)
 		{
-			res[s][w] = glp_get_col_prim(lp, n);
+			if (integer)
+                                res[s][w] = (double)glp_mip_col_val(lp, n);
+			else
+				res[s][w] = glp_get_col_prim(lp, n);
+//			printf("%d/%d: res %lf flops = %lf v = %lf\n", w,s, res[s][w], flops[s], v[s][w]);
 			n++;
 		}
 	}
@@ -186,20 +232,11 @@ double _lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double r
 	for(i = 0; i < nsched_ctxs; i++)
 	{
 		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]);
-		v[i][0] = _get_velocity_per_worker_type(sc_w, STARPU_CUDA_WORKER);
-		if(v[i][0] == -1.0)
-			v[i][0] = _get_ref_velocity_per_worker_type(sc_w, STARPU_CUDA_WORKER);
-		if(v[i][0] == -1.0)
-			v[i][0] = 20.0;
-		v[i][1] = _get_velocity_per_worker_type(sc_w, STARPU_CPU_WORKER);
-
-		if(v[i][1] == -1.0)
-			v[i][0] = _get_ref_velocity_per_worker_type(sc_w, STARPU_CPU_WORKER);
-		if(v[i][1] == -1.0)
-			v[i][1] = 200.0;
+		v[i][0] = sched_ctx_hypervisor_get_velocity(sc_w, STARPU_CUDA_WORKER);
+		v[i][1] = sched_ctx_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
 
 		flops[i] = sc_w->remaining_flops/1000000000; //sc_w->total_flops/1000000000; /* in gflops*/
-//			printf("%d: flops %lf\n", sched_ctxs[i], flops[i]);
+//		printf("%d: flops %lf\n", sched_ctxs[i], flops[i]);
 	}
 
 	return 1/_lp_compute_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw);
@@ -272,6 +309,8 @@ void _lp_round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded
 					}
 				}
 			}
+			else 
+				res_rounded[s][w] = x;
 		}
 	}
 }
@@ -509,9 +548,7 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 
 void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *workers, int nworkers)
 {
-	int current_nworkers = workers == NULL ? starpu_worker_get_count() : nworkers;
-	int *current_sched_ctxs = sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : sched_ctxs;
-
+	unsigned current_nworkers = workers == NULL ? starpu_worker_get_count() : (unsigned)nworkers;
 	int s, w;
 	int start[nw];
 	for(w = 0; w < nw; w++)
@@ -546,29 +583,23 @@ void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_r
 				if(diff == 0.0)
 				{
 					int *workers_to_add = _get_first_workers_in_list(&start[w], workers, current_nworkers, &x, arch);
-					if(x > 0)
-					{
-						int i;
-						for(i = 0; i < x; i++)
-							workers_add[nw_add++] = workers_to_add[i];
-					}
+					int i;
+					for(i = 0; i < x; i++)
+						workers_add[nw_add++] = workers_to_add[i];
 					free(workers_to_add);
 				}
 				else
 				{
 					x+=1;
 					int *workers_to_add = _get_first_workers_in_list(&start[w], workers, current_nworkers, &x, arch);
-					if(x > 0)
-					{
-						int i;
-						if(diff >= 0.3)
-							for(i = 0; i < x; i++)
-								workers_add[nw_add++] = workers_to_add[i];
-						else
-							for(i = 0; i < x-1; i++)
-								workers_add[nw_add++] = workers_to_add[i];
+					int i;
+					if(diff >= 0.3)
+						for(i = 0; i < x; i++)
+							workers_add[nw_add++] = workers_to_add[i];
+					else
+						for(i = 0; i < x-1; i++)
+							workers_add[nw_add++] = workers_to_add[i];
 
-					}
 					free(workers_to_add);
 				}
 			}
@@ -581,4 +612,73 @@ void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_r
 
 //		sched_ctx_hypervisor_stop_resize(current_sched_ctxs[s]);
 	}
+}
+
+/* nw = all the workers (either in a list or on all machine) */
+void _lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][nw], int *sched_ctxs_input, int *workers_input, unsigned do_size)
+{
+	int w, s;
+	double nworkers[ns][2];
+	int nworkers_rounded[ns][2];
+	for(s = 0; s < ns; s++)
+	{
+		nworkers[s][0] = 0.0;
+		nworkers[s][1] = 0.0;
+		nworkers_rounded[s][0] = 0;
+		nworkers_rounded[s][1] = 0;
+		
+	}
+	
+	for(s = 0; s < ns; s++)
+	{
+		for(w = 0; w < nw; w++)
+		{
+			enum starpu_archtype arch = starpu_worker_get_type(w);
+			
+			if(arch == STARPU_CUDA_WORKER)
+			{
+				nworkers[s][0] += w_in_s[s][w];
+				if(w_in_s[s][w] >= 0.3)
+					nworkers_rounded[s][0]++;
+			}
+			else
+			{
+				nworkers[s][1] += w_in_s[s][w];
+				if(w_in_s[s][w] > 0.5)
+					nworkers_rounded[s][1]++;
+			}
+		}
+	}
+	
+/* 	for(s = 0; s < ns; s++) */
+/* 		printf("%d: cpus = %d gpus = %d \n", s, nworkers_rounded[s][1], nworkers_rounded[s][0]); */
+
+	if(!do_size)
+		_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
+	else
+	{
+		int *current_sched_ctxs = sched_ctxs_input == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : sched_ctxs_input;
+
+		unsigned has_workers = 0;
+		for(s = 0; s < ns; s++)
+		{
+			int nworkers_ctx = sched_ctx_hypervisor_get_nworkers_ctx(current_sched_ctxs[s], 
+										 STARPU_ANY_WORKER);
+			if(nworkers_ctx != 0)
+			{
+				has_workers = 1;
+				break;
+			}
+		}
+		if(has_workers)
+			_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
+		else
+			_lp_distribute_resources_in_ctxs(current_sched_ctxs, ns, 2, nworkers_rounded, nworkers, workers_input, nw);
+	}
+	return;
+}
+
+double _find_tmax(double t1, double t2)
+{
+	return t1 + ((t2 - t1)/2);
 }

@@ -19,8 +19,6 @@
 #include <math.h>
 
 static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops[ns], double tmax, double flops_on_w[ns][nw], double w_in_s[ns][nw], int *workers, unsigned integer);
-static double _find_tmax(double t1, double t2);
-
 
 static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_in_s[ns][nw], double flops_on_w[ns][nw], int *in_sched_ctxs, int *workers)
 {
@@ -50,11 +48,7 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 			if(velocity[s][w] == -1.0)
 			{
 				enum starpu_archtype arch = starpu_worker_get_type(worker);
-				velocity[s][w] = _get_velocity_per_worker_type(sc_w, arch);
-				if(velocity[s][w] == -1.0)
-					velocity[s][w] = sc_w->ref_velocity[worker];
-				if(velocity[s][w] == -1.0)
-					velocity[s][w] = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
+				velocity[s][w] = sched_ctx_hypervisor_get_velocity(sc_w, arch);
 			}
 			
 //			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
@@ -348,13 +342,7 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 }
 
 
-static double _find_tmax(double t1, double t2)
-{
-	return t1 + ((t2 - t1)/2);
-}
-
-
-static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker)
+static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
 	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 	_get_velocity_per_worker(sc_w, worker);

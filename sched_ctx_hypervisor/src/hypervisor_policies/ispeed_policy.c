@@ -141,7 +141,7 @@ static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_
 	return curr_workers;
 }			
 
-static void ispeed_handle_poped_task(unsigned sched_ctx, int worker)
+static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
 	int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)

@@ -141,6 +141,11 @@ void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker
 /* Check if the worker belongs to another sched_ctx */
 unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_id);
 
+#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+/* Notifies the hypervisor that a tasks was poped from the workers' list */
+void _starpu_sched_ctx_call_poped_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint);
+#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+
 #if defined(_MSC_VER) || defined(STARPU_SIMGRID)
 _starpu_pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
 #endif

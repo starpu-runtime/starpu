@@ -22,7 +22,6 @@ static struct bound_task_pool *task_pools = NULL;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers, unsigned interger);
-static double _find_tmax(double t1, double t2);
 static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], double tasks[nw][nt], int *sched_ctxs, int *workers)
 {
 	double draft_tasks[nw][nt];
@@ -45,12 +44,12 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 
 	/* smallest possible tmax, difficult to obtain as we
 	   compute the nr of flops and not the tasks */
-	double smallest_tmax = _lp_get_tmax(nw, workers);
-	double tmax = smallest_tmax * ns * 2;
-
+	double possible_tmax = _lp_get_tmax(nw, workers);
+	double smallest_tmax = possible_tmax / 2;
+	double tmax = possible_tmax * ns;
 	double res = 1.0;
 	unsigned has_sol = 0;
-	double tmin = 0.0;
+	double tmin = smallest_tmax;
 	double old_tmax = 0.0;
 	unsigned found_sol = 0;
 
@@ -114,118 +113,16 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 	float timing = (float)(diff_s*1000000 + diff_us)/1000;
 
 //        fprintf(stdout, "nd = %d total time: %f ms \n", nd, timing);
-
 	return found_sol;
 }
 
-static void _redistribute_resources_in_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], unsigned first_time, int *in_sched_ctxs, int *workers)
-{
-	int *sched_ctxs = in_sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : in_sched_ctxs;
-	int s, s2, w;
-
-	for(s = 0; s < ns; s++)
-	{
-		int workers_to_add[nw], workers_to_remove[nw];
-		int destination_ctx[nw][ns];
-
-		for(w = 0; w < nw; w++)
-		{
-			workers_to_add[w] = -1;
-			workers_to_remove[w] = -1;
-			for(s2 = 0; s2 < ns; s2++)
-				destination_ctx[w][s2] = -1;
-		}
-
-		int nadd = 0, nremove = 0;
-
-		for(w = 0; w < nw; w++)
-		{
-			enum starpu_perf_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
-				starpu_worker_get_type(workers[w]);
-
-			if(arch == STARPU_CPU_WORKER)
-			{
-				if(w_in_s[s][w] >= 0.5)
-				{
-					workers_to_add[nadd++] = workers == NULL ? w : workers[w];
-				}
-				else
-				{
-					workers_to_remove[nremove++] = workers == NULL ? w : workers[w];
-					for(s2 = 0; s2 < ns; s2++)
-						if(s2 != s && w_in_s[s2][w] >= 0.5)
-							destination_ctx[w][s2] = 1;
-						else
-							destination_ctx[w][s2] = 0;
-				}
-			}
-			else
-			{
-				if(w_in_s[s][w] >= 0.3)
-				{
-					workers_to_add[nadd++] = workers == NULL ? w : workers[w];
-				}
-				else
-				{
-					workers_to_remove[nremove++] = workers == NULL ? w : workers[w];
-					for(s2 = 0; s2 < ns; s2++)
-						if(s2 != s && w_in_s[s2][w] >= 0.3)
-							destination_ctx[w][s2] = 1;
-						else
-							destination_ctx[w][s2] = 0;
-				}
-			}
-
-		}
-
-		sched_ctx_hypervisor_add_workers_to_sched_ctx(workers_to_add, nadd, sched_ctxs[s]);
-		struct sched_ctx_hypervisor_policy_config *new_config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
-		int i;
-		for(i = 0; i < nadd; i++)
-			new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
-
-		if(!first_time)
-		{
-			/* do not remove workers if they can't go anywhere */
-			int w2;
-			unsigned found_one_dest[nremove];
-			unsigned all_have_dest = 1;
-			for(w2 = 0; w2 < nremove; w2++)
-				found_one_dest[w2] = 0;
-
-			for(w2 = 0; w2 < nremove; w2++)
-				for(s2 = 0; s2 < ns; s2++)
-				{
-					/* if the worker has to be removed we should find a destination
-					   otherwise we are not interested */
-					if(destination_ctx[w2][s2] == -1)
-						found_one_dest[w2] = -1;
-					if(destination_ctx[w2][s2] == 1)// && sched_ctx_hypervisor_can_resize(sched_ctxs[s2]))
-					{
-						found_one_dest[w2] = 1;
-						break;
-					}
-				}
-			for(w2 = 0; w2 < nremove; w2++)
-			{
-				if(found_one_dest[w2] == 0)
-				{
-					all_have_dest = 0;
-					break;
-				}
-			}
-			if(all_have_dest)
-				sched_ctx_hypervisor_remove_workers_from_sched_ctx(workers_to_remove, nremove, sched_ctxs[s], 0);
-		}
-	}
-
-}
 
 static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
 	int ns = sched_ctxs == NULL ? sched_ctx_hypervisor_get_nsched_ctxs() : nsched_ctxs;
-	int nw = workers == NULL ? starpu_worker_get_count() : nworkers; /* Number of different workers */
+	int nw = workers == NULL ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
 	int nt = 0; /* Number of different kinds of tasks */
+	pthread_mutex_lock(&mutex);
 	struct bound_task_pool * tp;
 	for (tp = task_pools; tp; tp = tp->next)
 		nt++;
@@ -233,63 +130,10 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 	double w_in_s[ns][nw];
 	double tasks[nw][nt];
 	unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, tasks, sched_ctxs, workers);
+	pthread_mutex_unlock(&mutex);
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
-	{
-		int w, s;
-		double nworkers[ns][2];
-		int nworkers_rounded[ns][2];
-		for(s = 0; s < ns; s++)
-		{
-			nworkers[s][0] = 0.0;
-			nworkers[s][1] = 0.0;
-			nworkers_rounded[s][0] = 0;
-			nworkers_rounded[s][1] = 0;
-			
-		}
-		
-		for(s = 0; s < ns; s++)
-		{
-			for(w = 0; w < nw; w++)
-			{
-				enum starpu_perf_archtype arch = starpu_worker_get_type(w);
-				
-				if(arch == STARPU_CUDA_WORKER)
-				{
-					nworkers[s][0] += w_in_s[s][w];
-					if(w_in_s[s][w] >= 0.3)
-						nworkers_rounded[s][0]++;
-				}
-				else
-				{
-					nworkers[s][1] += w_in_s[s][w];
-					if(w_in_s[s][w] > 0.5)
-						nworkers_rounded[s][1]++;
-				}
-			}
-		}
-
-		int *current_sched_ctxs = sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : 
-			sched_ctxs;
-
-		unsigned has_workers = 0;
-		for(s = 0; s < ns; s++)
-		{
-			int nworkers_ctx = sched_ctx_hypervisor_get_nworkers_ctx(current_sched_ctxs[s], 
-									     STARPU_ANY_WORKER);
-			if(nworkers_ctx != 0)
-			{
-				has_workers = 1;
-				break;
-			}
-		}
-		if(has_workers)
-			_lp_redistribute_resources_in_ctxs(nsched_ctxs, 2, nworkers_rounded, nworkers);
-		else
-			_lp_distribute_resources_in_ctxs(sched_ctxs, nsched_ctxs, 2, nworkers_rounded, nworkers, workers, nworkers);
-	
-//		_redistribute_resources_in_ctxs(ns, nw, nt, w_in_s, 1, sched_ctxs, workers);
-	}
+		_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, workers, 1);
 }
 
 static void size_if_required()
@@ -325,7 +169,7 @@ static void lp2_handle_submitted_job(struct starpu_task *task, uint32_t footprin
 
 	for (tp = task_pools; tp; tp = tp->next)
 	{
-		if (tp->cl == task->cl && tp->footprint == footprint && tp->sched_ctx_id == task->sched_ctx)
+		if (tp && tp->cl == task->cl && tp->footprint == footprint && tp->sched_ctx_id == task->sched_ctx)
 			break;
 	}
 
@@ -347,7 +191,38 @@ static void lp2_handle_submitted_job(struct starpu_task *task, uint32_t footprin
 	size_if_required();
 }
 
-static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt], int *workers)
+static void _remove_task_from_pool(struct starpu_task *task, uint32_t footprint)
+{
+	/* count the tasks of the same type */
+	pthread_mutex_lock(&mutex);
+	struct bound_task_pool *tp = NULL;
+
+	for (tp = task_pools; tp; tp = tp->next)
+	{
+		if (tp && tp->cl == task->cl && tp->footprint == footprint && tp->sched_ctx_id == task->sched_ctx)
+			break;
+	}
+
+	if (tp)
+	{
+		if(tp->n > 1)
+			tp->n--;
+		else
+		{
+			struct bound_task_pool *prev_tp = NULL;
+			for (prev_tp = task_pools; prev_tp; prev_tp = prev_tp->next)
+			{
+				if (prev_tp->next == tp)
+					prev_tp->next = tp->next;
+			}
+
+			free(tp);
+		}
+	}
+	pthread_mutex_unlock(&mutex);
+}
+
+static void _get_tasks_times(int nw, int nt, double times[nw][nt], int *workers)
 {
         struct bound_task_pool *tp;
         int w, t;
@@ -374,6 +249,8 @@ static void _starpu_get_tasks_times(int nw, int nt, double times[nw][nt], int *w
 #include <glpk.h>
 static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers, unsigned integer)
 {
+	if(task_pools == NULL)
+		return 0.0;
 	struct bound_task_pool * tp;
 	int t, w, s;
 	glp_prob *lp;
@@ -393,7 +270,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 		int ia[ne], ja[ne];
 		double ar[ne];
 
-		_starpu_get_tasks_times(nw, nt, times, workers);
+		_get_tasks_times(nw, nt, times, workers);
 
 		/* Variables: number of tasks i assigned to worker j, and tmax */
 		glp_add_cols(lp, nw*nt+ns*nw);
@@ -408,7 +285,13 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 				char name[32];
 				snprintf(name, sizeof(name), "w%dt%dn", w, t);
 				glp_set_col_name(lp, colnum(w, t), name);
-				glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0., 0.);
+/* 				if (integer) */
+/*                                 { */
+/*                                         glp_set_col_kind(lp, colnum(w, t), GLP_IV); */
+/* 					glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0, 0); */
+/*                                 } */
+/* 				else */
+					glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0.0, 0.0);
 			}
 		for(s = 0; s < ns; s++)
 			for(w = 0; w < nw; w++)
@@ -439,6 +322,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 			if (!someone)
 			{
 				/* This task does not have any performance model at all, abort */
+				printf("NO PERF MODELS\n");
 				glp_delete_prob(lp);
 				return 0.0;
 			}
@@ -454,7 +338,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 				glp_set_row_name(lp, curr_row_idx+s*nw+w+1, title);
 				for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 				{
-					if(tp->sched_ctx_id == sched_ctxs[s])
+					if((int)tp->sched_ctx_id == sched_ctxs[s])
 					{
 						ia[n] = curr_row_idx+s*nw+w+1;
 						ja[n] = colnum(w, t);
@@ -529,6 +413,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 	int ret = glp_simplex(lp, &parm);
 	if (ret)
 	{
+		printf("error in simplex\n");
 		glp_delete_prob(lp);
 		lp = NULL;
 		return 0.0;
@@ -539,6 +424,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 	if(stat == GLP_NOFEAS)
 	{
 		glp_delete_prob(lp);
+//		printf("no_sol in tmax = %lf\n", tmax);
 		lp = NULL;
 		return 0.0;
 	}
@@ -554,6 +440,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 		/* if we don't have a solution return */
 		if(stat == GLP_NOFEAS)
 		{
+//			printf("no int sol in tmax = %lf\n", tmax);
 			glp_delete_prob(lp);
 			lp = NULL;
 			return 0.0;
@@ -563,8 +450,12 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 	double res = glp_get_obj_val(lp);
 	for (w = 0; w < nw; w++)
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
-			tasks[w][t] = glp_get_col_prim(lp, colnum(w, t));
-
+/* 			if (integer) */
+/* 				tasks[w][t] = (double)glp_mip_col_val(lp, colnum(w, t)); */
+/*                         else */
+				tasks[w][t] = glp_get_col_prim(lp, colnum(w, t));
+	
+//	printf("for tmax %lf\n", tmax);
 	for(s = 0; s < ns; s++)
 		for(w = 0; w < nw; w++)
 		{
@@ -572,21 +463,18 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 				w_in_s[s][w] = (double)glp_mip_col_val(lp, nw*nt+s*nw+w+1);
                         else
 				w_in_s[s][w] = glp_get_col_prim(lp, nw*nt+s*nw+w+1);
+//			printf("w_in_s[%d][%d]=%lf\n", s, w, w_in_s[s][w]);
 		}
+//	printf("\n");
 
 	glp_delete_prob(lp);
 	return res;
 }
 
 
-static double _find_tmax(double t1, double t2)
+static void lp2_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
-	return t1 + ((t2 - t1)/2);
-}
-
-
-static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
-{
+	_remove_task_from_pool(task, footprint);
 	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 
 	int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
@@ -603,6 +491,7 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 			int ns = sched_ctx_hypervisor_get_nsched_ctxs();
 			int nw = starpu_worker_get_count(); /* Number of different workers */
 			int nt = 0; /* Number of different kinds of tasks */
+			pthread_mutex_lock(&mutex);
 			struct bound_task_pool * tp;
 			for (tp = task_pools; tp; tp = tp->next)
 				nt++;
@@ -611,48 +500,12 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker)
 			double tasks_per_worker[nw][nt];
 
 			unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, tasks_per_worker, NULL, NULL);
+			pthread_mutex_unlock(&mutex);
 			/* if we did find at least one solution redistribute the resources */
 			if(found_sol)
-			{
-				int w, s;
-				double nworkers[ns][2];
-				int nworkers_rounded[ns][2];
-				for(s = 0; s < ns; s++)
-				{
-					nworkers[s][0] = 0.0;
-					nworkers[s][1] = 0.0;
-					nworkers_rounded[s][0] = 0;
-					nworkers_rounded[s][1] = 0;
+				_lp_place_resources_in_ctx(ns, nw, w_in_s, NULL, NULL, 0);
 
-				}
 
-				for(s = 0; s < ns; s++)
-				{
-					for(w = 0; w < nw; w++)
-					{
-						enum starpu_perf_archtype arch = starpu_worker_get_type(w);
-
-						if(arch == STARPU_CUDA_WORKER)
-						{
-							nworkers[s][0] += w_in_s[s][w];
-							if(w_in_s[s][w] >= 0.3)
-								nworkers_rounded[s][0]++;
-						}
-						else
-						{
-							nworkers[s][1] += w_in_s[s][w];
-							if(w_in_s[s][w] > 0.5)
-								nworkers_rounded[s][1]++;
-						}
-					}
-				}
-/* 				for(s = 0; s < ns; s++) */
-/* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
-/* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
-
-				_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
-
-			}
 		}
 		pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
