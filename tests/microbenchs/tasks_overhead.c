@@ -130,6 +130,7 @@ int main(int argc, char **argv)
 			tasks[i].handles[buffer] = data_handles[buffer];
 		}
 	}
+	tasks[ntasks-1].detach = 0;
 
 	gettimeofday(&start_submit, NULL);
 	for (i = 1; i < ntasks; i++)
@@ -150,14 +151,15 @@ int main(int argc, char **argv)
 
 	/* wait for the execution of the tasks */
 	gettimeofday(&start_exec, NULL);
-	ret = starpu_tag_wait((starpu_tag_t)(ntasks - 1));
+	ret = starpu_task_wait(&tasks[ntasks-1]);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
 	gettimeofday(&end_exec, NULL);
 
+	for (i = 1; i < ntasks; i++)
+		starpu_task_clean(&tasks[i]);
+
 	for (buffer = 0; buffer < nbuffers; buffer++)
-	{
 		starpu_data_unregister(data_handles[buffer]);
-	}
 
 	timing_submit = (double)((end_submit.tv_sec - start_submit.tv_sec)*1000000 + (end_submit.tv_usec - start_submit.tv_usec));
 	timing_exec = (double)((end_exec.tv_sec - start_exec.tv_sec)*1000000 + (end_exec.tv_usec - start_exec.tv_usec));
