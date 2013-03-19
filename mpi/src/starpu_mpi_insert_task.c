@@ -70,7 +70,7 @@ void _starpu_mpi_cache_empty_tables(int world_size)
 
 	if (_cache_enabled == 0) return;
 
-	_STARPU_DEBUG("Clearing htable for cache\n");
+	_STARPU_MPI_DEBUG("Clearing htable for cache\n");
 
 	for(i=0 ; i<world_size ; i++)
 	{
@@ -121,15 +121,15 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 		if (avail)
 		{
 			_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data_handle);
-			free(avail);
 			HASH_DEL(_cache_sent_data[i], avail);
+			free(avail);
 		}
 		HASH_FIND_PTR(_cache_received_data[i], &data_handle, avail);
 		if (avail)
 		{
 			_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data_handle);
-			free(avail);
 			HASH_DEL(_cache_received_data[i], avail);
+			free(avail);
 		}
 	}
 }
@@ -327,6 +327,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 					{
 						_STARPU_MPI_DEBUG("Clearing send cache for data %p\n", data);
 						HASH_DEL(_cache_sent_data[n], already_sent);
+						free(already_sent);
 					}
 				}
 			}
@@ -342,6 +343,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 #endif
 					_STARPU_MPI_DEBUG("Clearing receive cache for data %p\n", data);
 					HASH_DEL(_cache_received_data[mpi_rank], already_received);
+					free(already_received);
 					starpu_data_invalidate_submit(data);
 				}
 			}
