@@ -29,12 +29,12 @@ extern "C"
 #define STARPU_MALLOC_COUNT	((1ULL)<<3)
 
 void starpu_malloc_set_align(size_t align);
+
 int starpu_malloc(void **A, size_t dim);
 int starpu_free(void *A);
 
 int starpu_malloc_flags(void **A, size_t dim, int flags);
-
-int starpu_free_count(void *A, size_t dim);
+int starpu_free_flags(void *A, size_t dim, int flags);
 
 #ifdef __cplusplus
 }

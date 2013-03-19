@@ -247,56 +247,66 @@ static struct starpu_codelet free_pinned_cl =
 };
 #endif
 
-int starpu_free(void *A)
+int starpu_free_flags(void *A, size_t dim, int flags)
 {
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-		return -EDEADLK;
+	if (flags & STARPU_MALLOC_COUNT)
+	{
+		_starpu_memory_manager_deallocate_size(dim, 0);
+	}
 
+	if (flags & STARPU_MALLOC_PINNED)
+	{
 #ifndef STARPU_SIMGRID
+		if (_starpu_can_submit_cuda_task())
+		{
 #ifdef STARPU_USE_CUDA
-	if (_starpu_can_submit_cuda_task())
-	{
 #ifndef HAVE_CUDA_MEMCPY_PEER
-	if (!_starpu_is_initialized())
-	{
+			if (!_starpu_is_initialized())
+			{
 #endif
-		/* This is especially useful when starpu_free is called from
- 		 * the GCC-plugin. starpu_shutdown will probably have already
-		 * been called, so we will not be able to submit a task. */
-		cudaError_t err = cudaFreeHost(A);
-		if (STARPU_UNLIKELY(err))
-			STARPU_CUDA_REPORT_ERROR(err);
+				/* This is especially useful when starpu_free is called from
+				 * the GCC-plugin. starpu_shutdown will probably have already
+				 * been called, so we will not be able to submit a task. */
+				cudaError_t err = cudaFreeHost(A);
+				if (STARPU_UNLIKELY(err))
+					STARPU_CUDA_REPORT_ERROR(err);
 #ifndef HAVE_CUDA_MEMCPY_PEER
-	}
-	else
-	{
-		int push_res;
+			}
+			else
+			{
+				int push_res;
 
-                free_pinned_cl.where = STARPU_CUDA;
-		struct starpu_task *task = starpu_task_create();
-		task->callback_func = NULL;
-		task->cl = &free_pinned_cl;
-		task->cl_arg = A;
+				if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+					return -EDEADLK;
 
-		task->synchronous = 1;
+				free_pinned_cl.where = STARPU_CUDA;
+				struct starpu_task *task = starpu_task_create();
+				task->callback_func = NULL;
+				task->cl = &free_pinned_cl;
+				task->cl_arg = A;
+				task->synchronous = 1;
 
-		_starpu_exclude_task_from_dag(task);
+				_starpu_exclude_task_from_dag(task);
 
-		push_res = _starpu_task_submit_internally(task);
-		STARPU_ASSERT(push_res != -ENODEV);
-	}
-#endif
+				push_res = _starpu_task_submit_internally(task);
+				STARPU_ASSERT(push_res != -ENODEV);
+			}
+#endif /* HAVE_CUDA_MEMCPY_PEER */
+#endif /* STARPU_USE_CUDA */
+		}
 //	else if (_starpu_can_submit_opencl_task())
 //	{
 //#ifdef STARPU_USE_OPENCL
 //		int push_res;
 //
+//		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+//			return -EDEADLK;
+//
 //                free_pinned_cl.where = STARPU_OPENCL;
 //		struct starpu_task *task = starpu_task_create();
-//			task->callback_func = NULL;
-//			task->cl = &free_pinned_cl;
-//			task->cl_arg = A;
-//
+//		task->callback_func = NULL;
+//		task->cl = &free_pinned_cl;
+//		task->cl_arg = A;
 //		task->synchronous = 1;
 //
 //		_starpu_exclude_task_from_dag(task);
@@ -306,8 +316,7 @@ int starpu_free(void *A)
 //#endif
 //	}
 	} else
-#endif
-#endif
+#endif /* STARPU_SIMGRID */
 	{
 		free(A);
 	}
@@ -315,11 +324,9 @@ int starpu_free(void *A)
 	return 0;
 }
 
-
-int starpu_free_count(void *A, size_t dim)
+int starpu_free(void *A)
 {
-	_starpu_memory_manager_deallocate_size(dim, 0);
-	return starpu_free(A);
+	return starpu_free_flags(A, 0, STARPU_MALLOC_PINNED);
 }
 
 #ifdef STARPU_SIMGRID
