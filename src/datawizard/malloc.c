@@ -85,9 +85,6 @@ int starpu_malloc(void **A, size_t dim)
 {
 	int ret=0;
 
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-		return -EDEADLK;
-
 	STARPU_ASSERT(A);
 
 #ifndef STARPU_SIMGRID
@@ -101,6 +98,9 @@ int starpu_malloc(void **A, size_t dim)
 			STARPU_CUDA_REPORT_ERROR(cures);
 #else
 		int push_res;
+
+		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+			return -EDEADLK;
 
 		struct malloc_pinned_codelet_struct s =
 		{
@@ -127,6 +127,9 @@ int starpu_malloc(void **A, size_t dim)
 //	{
 //#ifdef STARPU_USE_OPENCL
 //		int push_res;
+//
+//		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+//			return -EDEADLK;
 //
 //		struct malloc_pinned_codelet_struct s =
 //		{
