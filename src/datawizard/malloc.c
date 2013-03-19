@@ -23,13 +23,13 @@
 #include <drivers/opencl/driver_opencl.h>
 #include <datawizard/memory_manager.h>
 
-static size_t malloc_align = sizeof(void*);
+static size_t _malloc_align = sizeof(void*);
 
 void starpu_malloc_set_align(size_t align)
 {
 	STARPU_ASSERT_MSG(!(align & (align - 1)), "Alignment given to starpu_malloc_set_align must be a power of two");
-	if (malloc_align < align)
-		malloc_align = align;
+	if (_malloc_align < align)
+		_malloc_align = align;
 }
 
 #if (defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER))// || defined(STARPU_USE_OPENCL)
@@ -155,9 +155,9 @@ int starpu_malloc(void **A, size_t dim)
 #endif /* STARPU_SIMGRID */
 	{
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
-		if (malloc_align != sizeof(void*))
+		if (_malloc_align != sizeof(void*))
 		{
-			if (posix_memalign(A, malloc_align, dim))
+			if (posix_memalign(A, _malloc_align, dim))
 			{
 				ret = -ENOMEM;
 				*A = NULL;
@@ -165,9 +165,9 @@ int starpu_malloc(void **A, size_t dim)
 		}
 		else
 #elif defined(STARPU_HAVE_MEMALIGN)
-		if (malloc_align != sizeof(void*))
+		if (_malloc_align != sizeof(void*))
 		{
-			*A = memalign(malloc_align, dim);
+			*A = memalign(_malloc_align, dim);
 		}
 		else
 #endif /* STARPU_HAVE_POSIX_MEMALIGN */
