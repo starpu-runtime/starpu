@@ -28,12 +28,11 @@ extern "C"
 #define STARPU_MALLOC_PINNED	((1ULL)<<1)
 #define STARPU_MALLOC_COUNT	((1ULL)<<3)
 
-int starpu_malloc_set_flags(int flags);
-int starpu_malloc_get_flags();
-
 void starpu_malloc_set_align(size_t align);
 int starpu_malloc(void **A, size_t dim);
 int starpu_free(void *A);
+
+int starpu_malloc_flags(void **A, size_t dim, int flags);
 
 int starpu_free_count(void *A, size_t dim);
 

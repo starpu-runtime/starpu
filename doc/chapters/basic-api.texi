@@ -240,13 +240,13 @@ are disabled.
 @section Standard memory library
 
 @defmac STARPU_MALLOC_PINNED
-Value passed to the function @code{starpu_malloc_set_flags} to
-indicate further memory allocations should be pinned
+Value passed to the function @code{starpu_malloc_flags} to
+indicate the memory allocation should be pinned.
 @end defmac
 
 @defmac STARPU_MALLOC_COUNT
-Value passed to the function @code{starpu_malloc_set_flags} to
-indicate further memory allocations should be in the limit defined by
+Value passed to the function @code{starpu_malloc_flags} to
+indicate the memory allocation should be in the limit defined by
 the environment variables @code{STARPU_LIMIT_CUDA_devid_MEM},
 @code{STARPU_LIMIT_CUDA_MEM}, @code{STARPU_LIMIT_OPENCL_devid_MEM},
 @code{STARPU_LIMIT_OPENCL_MEM} and @code{STARPU_LIMIT_CPU_MEM}
@@ -255,13 +255,9 @@ memory from StarPU. Memory allocated this way needs to be freed thanks to the
 @code{starpu_free_count} function.
 @end defmac
 
-@deftypefun int starpu_malloc_set_flags (int @var{flags})
-Set the current flags used by the memory allocator. @var{flag} must be
- a combinaison of the values defined above.
-@end deftypefun
-
-@deftypefun int starpu_malloc_get_flags ()
-Return the current value of the flags used by the memory allocator.
+@deftypefun int starpu_malloc_flags (void **@var{A}, size_t @var{dim}, int @var{flags})
+Performs a memory allocation based on the constraints defined by the
+given @var{flag}.
 @end deftypefun
 
 @deftypefun void starpu_malloc_set_align (size_t @var{align})
@@ -278,14 +274,13 @@ be freed thanks to the @code{starpu_free} function.
 @end deftypefun
 
 @deftypefun int starpu_free (void *@var{A})
-This function frees memory which has previously allocated with
+This function frees memory which has previously been allocated with
 @code{starpu_malloc}.
 @end deftypefun
 
 @deftypefun int starpu_free_count (void *@var{A}, size_t @var{dim})
 This function frees memory by specifying its size. It should be used
-to free memory which was allocated following a call to
-@code{starpu_malloc_set_flags} with the value
+to free memory which was allocated by @code{starpu_malloc_flags} with the value
 @code{STARPU_MALLOC_COUNT}.
 @end deftypefun
 

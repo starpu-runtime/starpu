@@ -24,18 +24,6 @@
 #include <datawizard/memory_manager.h>
 
 static size_t _malloc_align = sizeof(void*);
-static int _malloc_flags = 0;
-
-int starpu_malloc_set_flags(int flags)
-{
-	_malloc_flags = flags;
-	return _malloc_flags;
-}
-
-int starpu_malloc_get_flags()
-{
-	return _malloc_flags;
-}
 
 void starpu_malloc_set_align(size_t align)
 {
@@ -94,16 +82,12 @@ static struct starpu_codelet malloc_pinned_cl =
 #endif
 
 #ifdef STARPU_DEVEL
-#warning starpu_malloc should check if STARPU_MALLOC_PINNED is set, but that is going to break the compatibility with old code as memory which used to be pinned will no longer be (unless we force by default the flag STARPU_MALLOC_PINNED)
+#warning starpu_malloc_flags should check if STARPU_MALLOC_PINNED is set, but that is going to break the compatibility with old code as memory which used to be pinned will no longer be (unless we force by default the flag STARPU_MALLOC_PINNED)
 #endif
 
-int starpu_malloc(void **A, size_t dim)
+int starpu_malloc_flags(void **A, size_t dim, int flags)
 {
-	int ret=0;
-
-	STARPU_ASSERT(A);
-
-	if (_malloc_flags & STARPU_MALLOC_COUNT)
+	if (flags & STARPU_MALLOC_COUNT)
 	{
 		if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
 		{
@@ -121,6 +105,14 @@ int starpu_malloc(void **A, size_t dim)
 			}
 		}
 	}
+	return starpu_malloc(A, dim);
+}
+
+int starpu_malloc(void **A, size_t dim)
+{
+	int ret=0;
+
+	STARPU_ASSERT(A);
 
 #ifndef STARPU_SIMGRID
 	if (_starpu_can_submit_cuda_task())
