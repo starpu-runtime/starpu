@@ -103,7 +103,7 @@ int starpu_malloc(void **A, size_t dim)
 
 	STARPU_ASSERT(A);
 
-	if (_malloc_flags && STARPU_MALLOC_COUNT)
+	if (_malloc_flags & STARPU_MALLOC_COUNT)
 	{
 		if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
 		{
