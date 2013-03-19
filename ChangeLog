@@ -94,11 +94,6 @@ New features:
     STARPU_LIMIT_OPENCL_devid_MEM to limit memory per specific device
   * Introduce new variable STARPU_LIMIT_CPU_MEM to limit memory for
     the CPU devices
-  * Define new functions starpu_malloc_count and starpu_free_count to
-    be used for allocating memory up to the limits defined by the
-    environment variables STARPU_LIMIT_xxx (see above). When no memory
-    is left, starpu_malloc_count tries to reclaim memory from StarPU
-    and returns -ENOMEM on failure.
   * New functions starpu_malloc_set_flags and starpu_malloc_get_flags
     to define flags to be used by the memory allocator.
     - STARPU_MALLOC_PINNED specifies memory should be pinned
@@ -106,6 +101,9 @@ New features:
       the limits defined by the environment variables STARPU_LIMIT_xxx
       (see above). When no memory is left, starpu_malloc tries
       to reclaim memory from StarPU and returns -ENOMEM on failure.
+  * Define new function starpu_free_count to
+    be used for freeing memory with a specified size. This is needed
+    to indicate the memory allocator the amount of memory.
 
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid

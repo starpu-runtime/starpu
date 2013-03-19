@@ -282,20 +282,11 @@ This function frees memory which has previously allocated with
 @code{starpu_malloc}.
 @end deftypefun
 
-@deftypefun int starpu_malloc_count (void **@var{A}, size_t @var{dim})
-This function is similar to @code{starpu_malloc}. It only allocates
-memory up to the limit defined by the environment variables
-@code{STARPU_LIMIT_CUDA_devid_MEM}, @code{STARPU_LIMIT_CUDA_MEM},
-@code{STARPU_LIMIT_OPENCL_devid_MEM}, @code{STARPU_LIMIT_OPENCL_MEM}
-and @code{STARPU_LIMIT_CPU_MEM} (@pxref{Limit memory}). If no memory
-is available, it tries to reclaim memory from StarPU.
-Memory allocated through this function needs to be freed thanks to the
-@code{starpu_free_count} function.
-@end deftypefun
-
 @deftypefun int starpu_free_count (void *@var{A}, size_t @var{dim})
-This function frees memory which has previously allocated with
-@code{starpu_malloc_count}.
+This function frees memory by specifying its size. It should be used
+to free memory which was allocated following a call to
+@code{starpu_malloc_set_flags} with the value
+@code{STARPU_MALLOC_COUNT}.
 @end deftypefun
 
 @node Workers' Properties

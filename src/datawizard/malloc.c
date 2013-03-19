@@ -29,6 +29,7 @@ static int _malloc_flags = 0;
 int starpu_malloc_set_flags(int flags)
 {
 	_malloc_flags = flags;
+	return _malloc_flags;
 }
 
 int starpu_malloc_get_flags()
@@ -97,6 +98,25 @@ int starpu_malloc(void **A, size_t dim)
 	int ret=0;
 
 	STARPU_ASSERT(A);
+
+	if (_malloc_flags && STARPU_MALLOC_COUNT)
+	{
+		if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
+		{
+			size_t freed;
+			size_t reclaim = 2 * dim;
+			_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
+			_STARPU_TRACE_START_MEMRECLAIM(0);
+			freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
+			_STARPU_TRACE_END_MEMRECLAIM(0);
+			if (freed < dim)
+			{
+				// We could not reclaim enough memory
+				*A = NULL;
+				return -ENOMEM;
+			}
+		}
+	}
 
 #ifndef STARPU_SIMGRID
 	if (_starpu_can_submit_cuda_task())
@@ -301,31 +321,10 @@ int starpu_free(void *A)
 }
 
 
-int starpu_malloc_count(void **A, size_t dim)
-{
-	if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
-	{
-		size_t freed;
-		size_t reclaim = 2 * dim;
-		_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
-		_STARPU_TRACE_START_MEMRECLAIM(0);
-		freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
-		_STARPU_TRACE_END_MEMRECLAIM(0);
-		if (freed < dim)
-		{
-			// We could not reclaim enough memory
-			*A = NULL;
-			return -ENOMEM;
-		}
-	}
-
-	return starpu_malloc(A, dim);
-}
-
 int starpu_free_count(void *A, size_t dim)
 {
 	_starpu_memory_manager_deallocate_size(dim, 0);
-	starpu_free(A);
+	return starpu_free(A);
 }
 
 #ifdef STARPU_SIMGRID

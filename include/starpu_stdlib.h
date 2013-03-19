@@ -35,7 +35,6 @@ void starpu_malloc_set_align(size_t align);
 int starpu_malloc(void **A, size_t dim);
 int starpu_free(void *A);
 
-int starpu_malloc_count(void **A, size_t dim);
 int starpu_free_count(void *A, size_t dim);
 
 #ifdef __cplusplus
