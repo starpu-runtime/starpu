@@ -19,7 +19,7 @@
 
 
 #ifdef STARPU_HAVE_GLPK_H
-static void lp_handle_poped_task(unsigned sched_ctx, int worker)
+static void lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
 	if(_velocity_gap_btw_ctxs())
 	{
@@ -67,20 +67,20 @@ static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 	double vmax = _lp_get_nworkers_per_ctx(nsched_ctxs, 2, nworkers_per_type, total_nw);
 	if(vmax != 0.0)
 	{
-		printf("********size\n");
-		int i;
-		for( i = 0; i < nsched_ctxs; i++)
-		{
-			printf("ctx %d/worker type %d: n = %lf \n", i, 0, nworkers_per_type[i][0]);
-			printf("ctx %d/worker type %d: n = %lf \n", i, 1, nworkers_per_type[i][1]);
-		}
+/*  		printf("********size\n"); */
+/* 		int i; */
+/* 		for( i = 0; i < nsched_ctxs; i++) */
+/* 		{ */
+/* 			printf("ctx %d/worker type %d: n = %lf \n", i, 0, nworkers_per_type[i][0]); */
+/* 			printf("ctx %d/worker type %d: n = %lf \n", i, 1, nworkers_per_type[i][1]); */
+/* 		} */
 		int nworkers_per_type_rounded[nsched_ctxs][2];
 		_lp_round_double_to_int(nsched_ctxs, 2, nworkers_per_type, nworkers_per_type_rounded);
-      		for( i = 0; i < nsched_ctxs; i++)
-		{
-			printf("ctx %d/worker type %d: n = %d \n", i, 0, nworkers_per_type_rounded[i][0]);
-			printf("ctx %d/worker type %d: n = %d \n", i, 1, nworkers_per_type_rounded[i][1]);
-		}
+/*       		for( i = 0; i < nsched_ctxs; i++) */
+/* 		{ */
+/* 			printf("ctx %d/worker type %d: n = %d \n", i, 0, nworkers_per_type_rounded[i][0]); */
+/* 			printf("ctx %d/worker type %d: n = %d \n", i, 1, nworkers_per_type_rounded[i][1]); */
+/* 		} */
 		int *current_sched_ctxs = sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : 
 			sched_ctxs;
 

@@ -167,7 +167,7 @@ struct sched_ctx_hypervisor_policy
 	void (*size_ctxs)(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
 	void (*handle_idle_cycle)(unsigned sched_ctx, int worker);
 	void (*handle_pushed_task)(unsigned sched_ctx, int worker);
-	void (*handle_poped_task)(unsigned sched_ctx, int worker);
+	void (*handle_poped_task)(unsigned sched_ctx, int worker,struct starpu_task *task, uint32_t footprint);
 	void (*handle_idle_end)(unsigned sched_ctx, int worker);
 
 	void (*handle_post_exec_hook)(unsigned sched_ctx, int task_tag);
@@ -229,6 +229,8 @@ unsigned sched_ctx_hypervisor_can_resize(unsigned sched_ctx);
 
 /* compute an average value of the cpu/cuda velocity */
 double sched_ctx_hypervisor_get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
+
+double sched_ctx_hypervisor_get_velocity(struct sched_ctx_hypervisor_wrapper *sc_w, enum starpu_archtype arch);
 
 #ifdef __cplusplus
 }

@@ -62,7 +62,7 @@ void scal_cpu_func(void *buffers[], void *_args)
 
 
 	for (i = 0; i < nel_worker; i++) {
-		int rank = i + begin;
+		rank = i + begin;
 
 		float v = val[rank];
 		int j;

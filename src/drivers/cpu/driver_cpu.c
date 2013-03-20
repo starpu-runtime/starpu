@@ -191,8 +191,8 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 
 static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_config *config)
 {
-	ssize_t global_mem;
-	ssize_t limit;
+	size_t global_mem;
+	int limit;
 
 	limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
 #ifdef STARPU_DEVEL
@@ -350,7 +350,7 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 
 int _starpu_cpu_driver_deinit(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 {
-	_STARPU_TRACE_WORKER_DEINIT_START
+	_STARPU_TRACE_WORKER_DEINIT_START;
 
 	struct _starpu_worker *cpu_worker;
 	cpu_worker = _starpu_get_local_worker_key();

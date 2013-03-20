@@ -34,8 +34,8 @@ extern void test_block_opencl_func(void *buffers[], void *args);
 #endif
 
 
-static starpu_data_handle_t block_handle;
-static starpu_data_handle_t block2_handle;
+static starpu_data_handle_t _block_handle;
+static starpu_data_handle_t _block2_handle;
 
 struct test_config block_config =
 {
@@ -46,14 +46,14 @@ struct test_config block_config =
 #ifdef STARPU_USE_OPENCL
 	.opencl_func   = test_block_opencl_func,
 #endif
-	.handle        = &block_handle,
-	.dummy_handle  = &block2_handle,
+	.handle        = &_block_handle,
+	.dummy_handle  = &_block2_handle,
 	.copy_failed   = SUCCESS,
 	.name          = "block_interface"
 };
 
-static int block[NX*NY*NZ];
-static int block2[NX*NY*NZ];
+static int _block[NX*NY*NZ];
+static int _block2[NX*NY*NZ];
 
 static void
 register_data(void)
@@ -64,34 +64,34 @@ register_data(void)
 	for (k = 0; k < NZ; k++)
 		for (j = 0; j < NY; j++)
 			for (i = 0; i < NX; i++)
-                                block[(k*NX*NY)+(j*NX)+i] = val++;
+                                _block[(k*NX*NY)+(j*NX)+i] = val++;
 
 	/* Registering data */
-	starpu_block_data_register(&block_handle,
+	starpu_block_data_register(&_block_handle,
                                     0,
-                                    (uintptr_t)block,
+                                    (uintptr_t)_block,
 				    NX,
 				    NX * NY,
 				    NX,
 				    NY,
 				    NZ,
-				    sizeof(block[0]));
-	starpu_block_data_register(&block2_handle,
+				    sizeof(_block[0]));
+	starpu_block_data_register(&_block2_handle,
                                     0,
-                                    (uintptr_t)block2,
+                                    (uintptr_t)_block2,
 				    NX,
 				    NX * NY,
 				    NX,
 				    NY,
 				    NZ,
-				    sizeof(block2[0]));
+				    sizeof(_block2[0]));
 }
 
 static void
 unregister_data(void)
 {
-	starpu_data_unregister(block_handle);
-	starpu_data_unregister(block2_handle);
+	starpu_data_unregister(_block_handle);
+	starpu_data_unregister(_block2_handle);
 }
 
 static void test_block_cpu_func(void *buffers[], void *args)

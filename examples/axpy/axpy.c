@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,11 +42,11 @@
 
 #define EPSILON 1e-6
 
-TYPE *vec_x, *vec_y;
-TYPE alpha = 3.41;
+TYPE *_vec_x, *_vec_y;
+TYPE _alpha = 3.41;
 
 /* descriptors for StarPU */
-starpu_data_handle_t handle_y, handle_x;
+starpu_data_handle_t _handle_y, _handle_x;
 
 void axpy_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
@@ -98,9 +98,9 @@ check(void)
 	int i;
 	for (i = 0; i < N; i++)
 	{
-		TYPE expected_value = alpha * vec_x[i] + 4.0;
-		if (fabs(vec_y[i] - expected_value) > expected_value * EPSILON) {
-			FPRINTF(stderr,"at %d, %f*%f+%f=%f, expected %f\n", i, alpha, vec_x[i], 4.0, vec_y[i], expected_value);
+		TYPE expected_value = _alpha * _vec_x[i] + 4.0;
+		if (fabs(_vec_y[i] - expected_value) > expected_value * EPSILON) {
+			FPRINTF(stderr,"at %d, %f*%f+%f=%f, expected %f\n", i, _alpha, _vec_x[i], 4.0, _vec_y[i], expected_value);
 			return EXIT_FAILURE;
 		}
 	}
@@ -134,25 +134,25 @@ int main(int argc, char **argv)
 		vec_a = malloc(N*sizeof(TYPE));
 		vec_b = malloc(N*sizeof(TYPE));
 	*/
-	starpu_malloc((void **)&vec_x, N*sizeof(TYPE));
-	assert(vec_x);
+	starpu_malloc((void **)&_vec_x, N*sizeof(TYPE));
+	assert(_vec_x);
 
-	starpu_malloc((void **)&vec_y, N*sizeof(TYPE));
-	assert(vec_y);
+	starpu_malloc((void **)&_vec_y, N*sizeof(TYPE));
+	assert(_vec_y);
 
 	unsigned i;
 	for (i = 0; i < N; i++)
 	{
-		vec_x[i] = 1.0f; /*(TYPE)starpu_drand48(); */
-		vec_y[i] = 4.0f; /*(TYPE)starpu_drand48(); */
+		_vec_x[i] = 1.0f; /*(TYPE)starpu_drand48(); */
+		_vec_y[i] = 4.0f; /*(TYPE)starpu_drand48(); */
 	}
 
-	FPRINTF(stderr, "BEFORE x[0] = %2.2f\n", vec_x[0]);
-	FPRINTF(stderr, "BEFORE y[0] = %2.2f\n", vec_y[0]);
+	FPRINTF(stderr, "BEFORE x[0] = %2.2f\n", _vec_x[0]);
+	FPRINTF(stderr, "BEFORE y[0] = %2.2f\n", _vec_y[0]);
 
 	/* Declare the data to StarPU */
-	starpu_vector_data_register(&handle_x, 0, (uintptr_t)vec_x, N, sizeof(TYPE));
-	starpu_vector_data_register(&handle_y, 0, (uintptr_t)vec_y, N, sizeof(TYPE));
+	starpu_vector_data_register(&_handle_x, 0, (uintptr_t)_vec_x, N, sizeof(TYPE));
+	starpu_vector_data_register(&_handle_y, 0, (uintptr_t)_vec_y, N, sizeof(TYPE));
 
 	/* Divide the vector into blocks */
 	struct starpu_data_filter block_filter =
@@ -161,8 +161,8 @@ int main(int argc, char **argv)
 		.nchildren = NBLOCKS
 	};
 
-	starpu_data_partition(handle_x, &block_filter);
-	starpu_data_partition(handle_y, &block_filter);
+	starpu_data_partition(_handle_x, &block_filter);
+	starpu_data_partition(_handle_y, &block_filter);
 
 	struct timeval start;
 	struct timeval end;
@@ -176,10 +176,10 @@ int main(int argc, char **argv)
 
 		task->cl = &axpy_cl;
 
-		task->cl_arg = &alpha;
+		task->cl_arg = &_alpha;
 
-		task->handles[0] = starpu_data_get_sub_data(handle_x, 1, b);
-		task->handles[1] = starpu_data_get_sub_data(handle_y, 1, b);
+		task->handles[0] = starpu_data_get_sub_data(_handle_x, 1, b);
+		task->handles[1] = starpu_data_get_sub_data(_handle_y, 1, b);
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV)
@@ -193,10 +193,10 @@ int main(int argc, char **argv)
 	starpu_task_wait_for_all();
 
 enodev:
-	starpu_data_unpartition(handle_x, 0);
-	starpu_data_unpartition(handle_y, 0);
-	starpu_data_unregister(handle_x);
-	starpu_data_unregister(handle_y);
+	starpu_data_unpartition(_handle_x, 0);
+	starpu_data_unpartition(_handle_y, 0);
+	starpu_data_unregister(_handle_x);
+	starpu_data_unregister(_handle_y);
 
 	gettimeofday(&end, NULL);
         double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
@@ -204,13 +204,13 @@ enodev:
 
 	FPRINTF(stderr, "timing -> %2.2f us %2.2f MB/s\n", timing, 3*N*sizeof(TYPE)/timing);
 
-	FPRINTF(stderr, "AFTER y[0] = %2.2f (ALPHA = %2.2f)\n", vec_y[0], alpha);
+	FPRINTF(stderr, "AFTER y[0] = %2.2f (ALPHA = %2.2f)\n", _vec_y[0], _alpha);
 
 	if (exit_value != 77)
 		exit_value = check();
 
-	starpu_free((void *)vec_x);
-	starpu_free((void *)vec_y);
+	starpu_free((void *)_vec_x);
+	starpu_free((void *)_vec_y);
 
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_unload_opencl(&opencl_program);

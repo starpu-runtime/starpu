@@ -140,3 +140,24 @@
    fun:ompi_ddt_create_vector
    fun:PMPI_Type_vector
 }
+
+{
+   suppr19
+   Memcheck:Leak
+   fun:malloc
+   fun:ompi_ddt_create
+   fun:ompi_ddt_create_vector
+   fun:PMPI_Type_vector
+}
+
+{
+   suppr20
+   Memcheck:Leak
+   fun:malloc
+   fun:ompi_free_list_grow
+   obj:*
+   obj:*
+   obj:*
+   fun:PMPI_Isend
+}
+

@@ -42,3 +42,9 @@ void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw],
 
 /* make the first distribution of ressource in contexts by assigning the first x available ressources to each one */
 void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *workers, int nworkers);
+
+/* place resources in contexts dependig on whether they already have workers or not */
+void _lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][nw], int *sched_ctxs, int *workers, unsigned do_size);
+
+/* dichotomy btw t1 & t2 */
+double _find_tmax(double t1, double t2);

@@ -61,7 +61,7 @@ _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 
 static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 {
-	ssize_t limit;
+	int limit;
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
@@ -90,8 +90,8 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	to_waste = totalGlobalMem - global_mem[devid];
 #endif
 
-	_STARPU_DEBUG("OpenCL device %d: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
-                      devid, (size_t)to_waste/(1024*1024), (size_t)limit, (size_t)totalGlobalMem/(1024*1024),
+	_STARPU_DEBUG("OpenCL device %d: Wasting %ld MB / Limit %d MB / Total %ld MB / Remains %ld MB\n",
+                      devid, (size_t)to_waste/(1024*1024), limit, (size_t)totalGlobalMem/(1024*1024),
                       (size_t)(totalGlobalMem - to_waste)/(1024*1024));
 
 }
@@ -621,7 +621,7 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
-	_STARPU_TRACE_WORKER_INIT_END
+	_STARPU_TRACE_WORKER_INIT_END;
 
 	/* tell the main thread that this one is ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
@@ -692,7 +692,7 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *d)
 
 int _starpu_opencl_driver_deinit(struct starpu_driver *d)
 {
-	_STARPU_TRACE_WORKER_DEINIT_START
+	_STARPU_TRACE_WORKER_DEINIT_START;
 
 	struct _starpu_worker* args;
 	args = _starpu_opencl_get_worker_from_driver(d);

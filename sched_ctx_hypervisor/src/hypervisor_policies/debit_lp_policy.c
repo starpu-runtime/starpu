@@ -38,16 +38,8 @@ static unsigned _compute_max_velocity(int ns, int nw, double w_in_s[ns][nw], int
 			w_in_s[s][w] = 0.0;
 			int worker = workers == NULL ? w : workers[w];
 
-			velocity[s][w] = _get_velocity_per_worker(sc_w, worker);
-			if(velocity[s][w] == -1.0)
-			{
-				enum starpu_archtype arch = starpu_worker_get_type(worker);
-				velocity[s][w] = _get_velocity_per_worker_type(sc_w, arch);
-				if(velocity[s][w] == -1.0)
-					velocity[s][w] = sc_w->ref_velocity[worker];
-				if(velocity[s][w] < 1.0)
-					velocity[s][w] = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
-			}
+			enum starpu_archtype arch = starpu_worker_get_type(worker);
+			velocity[s][w] = sched_ctx_hypervisor_get_velocity(sc_w, arch);
 		}
 	}
 	
@@ -231,7 +223,7 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double w_in_
 }
 
 
-static void debit_lp_handle_poped_task(unsigned sched_ctx, int worker)
+static void debit_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
 	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 	_get_velocity_per_worker(sc_w, worker);

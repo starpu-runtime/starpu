@@ -141,10 +141,7 @@ void starpu_tag_remove(starpu_tag_t id)
 
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
-	{
-		int id = -1;
 		AYU_event(AYU_REMOVETASK, id + AYUDAME_OFFSET, NULL);
-	}
 #endif
 
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
@@ -154,7 +151,11 @@ void starpu_tag_remove(starpu_tag_t id)
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 
-	if (entry)_starpu_tag_free(entry->tag);
+	if (entry)
+	{
+		_starpu_tag_free(entry->tag);
+		free(entry);
+	}
 }
 
 void _starpu_tag_clear(void)
@@ -171,6 +172,7 @@ void _starpu_tag_clear(void)
 	{
 		HASH_DEL(tag_htbl, entry);
 		_starpu_tag_free(entry->tag);
+		free(entry);
 	}
 
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);

@@ -20,11 +20,11 @@
 #include <starpu.h>
 
 #ifdef STARPU_QUICK_CHECK
-static unsigned nblocks = 512;
-static unsigned entries_per_bock = 64;
+static unsigned _nblocks = 512;
+static unsigned _entries_per_bock = 64;
 #else
-static unsigned nblocks = 8192;
-static unsigned entries_per_bock = 1024;
+static unsigned _nblocks = 8192;
+static unsigned _entries_per_bock = 1024;
 #endif
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
@@ -33,12 +33,12 @@ static unsigned entries_per_bock = 1024;
 #define TYPE_MAX	DBL_MAX
 #define TYPE_MIN	DBL_MIN
 
-static TYPE *x;
-static starpu_data_handle_t *x_handles;
+static TYPE *_x;
+static starpu_data_handle_t *_x_handles;
 
 /* The first element (resp. second) stores the min element (resp. max). */
-static TYPE minmax[2];
-static starpu_data_handle_t minmax_handle;
+static TYPE _minmax[2];
+static starpu_data_handle_t _minmax_handle;
 
 /*
  *	Codelet to create a neutral element
@@ -136,46 +136,46 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	unsigned long nelems = nblocks*entries_per_bock;
+	unsigned long nelems = _nblocks*_entries_per_bock;
 	size_t size = nelems*sizeof(TYPE);
 
-	x = (TYPE *) malloc(size);
-	x_handles = (starpu_data_handle_t *) calloc(nblocks, sizeof(starpu_data_handle_t));
-	
-	assert(x && x_handles);
+	_x = (TYPE *) malloc(size);
+	_x_handles = (starpu_data_handle_t *) calloc(_nblocks, sizeof(starpu_data_handle_t));
+
+	assert(_x && _x_handles);
 
 	/* Initialize the vector with random values */
         starpu_srand48(0);
 	for (i = 0; i < nelems; i++)
-		x[i] = (TYPE)starpu_drand48();
-	
+		_x[i] = (TYPE)starpu_drand48();
+
 	unsigned block;
-	for (block = 0; block < nblocks; block++)
+	for (block = 0; block < _nblocks; block++)
 	{
-		uintptr_t block_start = (uintptr_t)&x[entries_per_bock*block];
-		starpu_vector_data_register(&x_handles[block], 0, block_start,
-						entries_per_bock, sizeof(TYPE));
+		uintptr_t block_start = (uintptr_t)&_x[_entries_per_bock*block];
+		starpu_vector_data_register(&_x_handles[block], 0, block_start,
+					    _entries_per_bock, sizeof(TYPE));
 	}
 
 	/* Initialize current min */
-	minmax[0] = TYPE_MAX;
+	_minmax[0] = TYPE_MAX;
 
 	/* Initialize current max */
-	minmax[1] = TYPE_MIN;
+	_minmax[1] = TYPE_MIN;
 
-	starpu_variable_data_register(&minmax_handle, 0, (uintptr_t)minmax, 2*sizeof(TYPE));
+	starpu_variable_data_register(&_minmax_handle, 0, (uintptr_t)_minmax, 2*sizeof(TYPE));
 
 	/* Set the methods to define neutral elements and to perform the reduction operation */
-	starpu_data_set_reduction_methods(minmax_handle, &minmax_redux_codelet, &minmax_init_codelet);
+	starpu_data_set_reduction_methods(_minmax_handle, &minmax_redux_codelet, &minmax_init_codelet);
 
-	for (block = 0; block < nblocks; block++)
+	for (block = 0; block < _nblocks; block++)
 	{
 		struct starpu_task *task = starpu_task_create();
 
 		task->cl = &minmax_codelet;
 
-		task->handles[0] = x_handles[block];
-		task->handles[1] = minmax_handle;
+		task->handles[0] = _x_handles[block];
+		task->handles[1] = _minmax_handle;
 
 		ret = starpu_task_submit(task);
 		if (ret)
@@ -186,19 +186,19 @@ int main(int argc, char **argv)
 		}
 	}
 
-	for (block = 0; block < nblocks; block++)
+	for (block = 0; block < _nblocks; block++)
 	{
-		starpu_data_unregister(x_handles[block]);
+		starpu_data_unregister(_x_handles[block]);
 	}
-	starpu_data_unregister(minmax_handle);
+	starpu_data_unregister(_minmax_handle);
 
-	FPRINTF(stderr, "Min : %e\n", minmax[0]);
-	FPRINTF(stderr, "Max : %e\n", minmax[1]);
+	FPRINTF(stderr, "Min : %e\n", _minmax[0]);
+	FPRINTF(stderr, "Max : %e\n", _minmax[1]);
 
-	STARPU_ASSERT(minmax[0] <= minmax[1]);
+	STARPU_ASSERT(_minmax[0] <= _minmax[1]);
 
-	free(x);
-	free(x_handles);
+	free(_x);
+	free(_x_handles);
 	starpu_shutdown();
 
 	return 0;

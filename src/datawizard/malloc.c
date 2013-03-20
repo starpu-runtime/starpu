@@ -23,13 +23,13 @@
 #include <drivers/opencl/driver_opencl.h>
 #include <datawizard/memory_manager.h>
 
-static size_t malloc_align = sizeof(void*);
+static size_t _malloc_align = sizeof(void*);
 
 void starpu_malloc_set_align(size_t align)
 {
 	STARPU_ASSERT_MSG(!(align & (align - 1)), "Alignment given to starpu_malloc_set_align must be a power of two");
-	if (malloc_align < align)
-		malloc_align = align;
+	if (_malloc_align < align)
+		_malloc_align = align;
 }
 
 #if (defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER))// || defined(STARPU_USE_OPENCL)
@@ -81,104 +81,135 @@ static struct starpu_codelet malloc_pinned_cl =
 };
 #endif
 
-int starpu_malloc(void **A, size_t dim)
+int starpu_malloc_flags(void **A, size_t dim, int flags)
 {
 	int ret=0;
 
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-		return -EDEADLK;
-
 	STARPU_ASSERT(A);
 
-#ifndef STARPU_SIMGRID
-	if (_starpu_can_submit_cuda_task())
+	if (flags & STARPU_MALLOC_COUNT)
 	{
+		if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
+		{
+			size_t freed;
+			size_t reclaim = 2 * dim;
+			_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
+			_STARPU_TRACE_START_MEMRECLAIM(0);
+			freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
+			_STARPU_TRACE_END_MEMRECLAIM(0);
+			if (freed < dim)
+			{
+				// We could not reclaim enough memory
+				*A = NULL;
+				return -ENOMEM;
+			}
+		}
+	}
+
+#ifndef STARPU_SIMGRID
+	if (flags & STARPU_MALLOC_PINNED)
+	{
+		if (_starpu_can_submit_cuda_task())
+		{
 #ifdef STARPU_USE_CUDA
 #ifdef HAVE_CUDA_MEMCPY_PEER
-		cudaError_t cures;
-		cures = cudaHostAlloc(A, dim, cudaHostAllocPortable);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
+			cudaError_t cures;
+			cures = cudaHostAlloc(A, dim, cudaHostAllocPortable);
+			if (STARPU_UNLIKELY(cures))
+				STARPU_CUDA_REPORT_ERROR(cures);
+			goto end;
 #else
-		int push_res;
+			int push_res;
 
-		struct malloc_pinned_codelet_struct s =
-		{
-			.ptr = A,
-			.dim = dim
-		};
+			if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+				return -EDEADLK;
 
-                malloc_pinned_cl.where = STARPU_CUDA;
-		struct starpu_task *task = starpu_task_create();
-		task->callback_func = NULL;
-		task->cl = &malloc_pinned_cl;
-		task->cl_arg = &s;
+			struct malloc_pinned_codelet_struct s =
+			{
+				.ptr = A,
+				.dim = dim
+			};
 
-		task->synchronous = 1;
+			malloc_pinned_cl.where = STARPU_CUDA;
+			struct starpu_task *task = starpu_task_create();
+			task->callback_func = NULL;
+			task->cl = &malloc_pinned_cl;
+			task->cl_arg = &s;
 
-		_starpu_exclude_task_from_dag(task);
+			task->synchronous = 1;
 
-		push_res = _starpu_task_submit_internally(task);
-		STARPU_ASSERT(push_res != -ENODEV);
+			_starpu_exclude_task_from_dag(task);
+
+			push_res = _starpu_task_submit_internally(task);
+			STARPU_ASSERT(push_res != -ENODEV);
+			goto end;
 #endif /* HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
-	}
-//	else if (_starpu_can_submit_opencl_task())
-//	{
-//#ifdef STARPU_USE_OPENCL
-//		int push_res;
-//
-//		struct malloc_pinned_codelet_struct s =
+		}
+//		else if (_starpu_can_submit_opencl_task())
 //		{
-//			.ptr = A,
-//			.dim = dim
-//		};
+//#ifdef STARPU_USE_OPENCL
+//			int push_res;
 //
-//                malloc_pinned_cl.where = STARPU_OPENCL;
-//		struct starpu_task *task = starpu_task_create();
+//			if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+//				return -EDEADLK;
+//
+//			struct malloc_pinned_codelet_struct s =
+//				{
+//					.ptr = A,
+//					.dim = dim
+//				};
+//
+//			malloc_pinned_cl.where = STARPU_OPENCL;
+//			struct starpu_task *task = starpu_task_create();
 //			task->callback_func = NULL;
 //			task->cl = &malloc_pinned_cl;
 //			task->cl_arg = &s;
+//			task->synchronous = 1;
 //
-//		task->synchronous = 1;
+//			_starpu_exclude_task_from_dag(task);
 //
-//		_starpu_exclude_task_from_dag(task);
-//
-//		push_res = _starpu_task_submit_internally(task);
-//		STARPU_ASSERT(push_res != -ENODEV);
+//			push_res = _starpu_task_submit_internally(task);
+//			STARPU_ASSERT(push_res != -ENODEV);
+//			goto end;
 //#endif /* STARPU_USE_OPENCL */
-//        }
-        else
+//		}
+	}
 #endif /* STARPU_SIMGRID */
-	{
+
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
-		if (malloc_align != sizeof(void*))
+	if (_malloc_align != sizeof(void*))
+	{
+		if (posix_memalign(A, _malloc_align, dim))
 		{
-			if (posix_memalign(A, malloc_align, dim))
-			{
-				ret = -ENOMEM;
-				*A = NULL;
-			}
+			ret = -ENOMEM;
+			*A = NULL;
 		}
-		else
+	}
+	else
 #elif defined(STARPU_HAVE_MEMALIGN)
-		if (malloc_align != sizeof(void*))
+		if (_malloc_align != sizeof(void*))
 		{
-			*A = memalign(malloc_align, dim);
+			*A = memalign(_malloc_align, dim);
 		}
 		else
 #endif /* STARPU_HAVE_POSIX_MEMALIGN */
 		{
 			*A = malloc(dim);
 		}
-	}
 
+end:
 	if (ret == 0)
 	{
 		STARPU_ASSERT(*A);
 	}
 
 	return ret;
+}
+
+int starpu_malloc(void **A, size_t dim)
+{
+	return starpu_malloc_flags(A, dim, STARPU_MALLOC_PINNED);
 }
 
 #if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
@@ -218,100 +249,87 @@ static struct starpu_codelet free_pinned_cl =
 };
 #endif
 
-int starpu_free(void *A)
+int starpu_free_flags(void *A, size_t dim, int flags)
 {
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-		return -EDEADLK;
+	if (flags & STARPU_MALLOC_COUNT)
+	{
+		_starpu_memory_manager_deallocate_size(dim, 0);
+	}
 
 #ifndef STARPU_SIMGRID
+	if (flags & STARPU_MALLOC_PINNED)
+	{
+		if (_starpu_can_submit_cuda_task())
+		{
 #ifdef STARPU_USE_CUDA
-	if (_starpu_can_submit_cuda_task())
-	{
 #ifndef HAVE_CUDA_MEMCPY_PEER
-	if (!_starpu_is_initialized())
-	{
+			if (!_starpu_is_initialized())
+			{
 #endif
-		/* This is especially useful when starpu_free is called from
- 		 * the GCC-plugin. starpu_shutdown will probably have already
-		 * been called, so we will not be able to submit a task. */
-		cudaError_t err = cudaFreeHost(A);
-		if (STARPU_UNLIKELY(err))
-			STARPU_CUDA_REPORT_ERROR(err);
+				/* This is especially useful when starpu_free is called from
+				 * the GCC-plugin. starpu_shutdown will probably have already
+				 * been called, so we will not be able to submit a task. */
+				cudaError_t err = cudaFreeHost(A);
+				if (STARPU_UNLIKELY(err))
+					STARPU_CUDA_REPORT_ERROR(err);
+				return 0;
 #ifndef HAVE_CUDA_MEMCPY_PEER
-	}
-	else
-	{
-		int push_res;
+			}
+			else
+			{
+				int push_res;
 
-                free_pinned_cl.where = STARPU_CUDA;
-		struct starpu_task *task = starpu_task_create();
-		task->callback_func = NULL;
-		task->cl = &free_pinned_cl;
-		task->cl_arg = A;
+				if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+					return -EDEADLK;
 
-		task->synchronous = 1;
+				free_pinned_cl.where = STARPU_CUDA;
+				struct starpu_task *task = starpu_task_create();
+				task->callback_func = NULL;
+				task->cl = &free_pinned_cl;
+				task->cl_arg = A;
+				task->synchronous = 1;
 
-		_starpu_exclude_task_from_dag(task);
+				_starpu_exclude_task_from_dag(task);
 
-		push_res = _starpu_task_submit_internally(task);
-		STARPU_ASSERT(push_res != -ENODEV);
-	}
-#endif
+				push_res = _starpu_task_submit_internally(task);
+				STARPU_ASSERT(push_res != -ENODEV);
+				return 0;
+			}
+#endif /* HAVE_CUDA_MEMCPY_PEER */
+#endif /* STARPU_USE_CUDA */
+		}
 //	else if (_starpu_can_submit_opencl_task())
 //	{
 //#ifdef STARPU_USE_OPENCL
 //		int push_res;
 //
+//		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
+//			return -EDEADLK;
+//
 //                free_pinned_cl.where = STARPU_OPENCL;
 //		struct starpu_task *task = starpu_task_create();
-//			task->callback_func = NULL;
-//			task->cl = &free_pinned_cl;
-//			task->cl_arg = A;
-//
+//		task->callback_func = NULL;
+//		task->cl = &free_pinned_cl;
+//		task->cl_arg = A;
 //		task->synchronous = 1;
 //
 //		_starpu_exclude_task_from_dag(task);
 //
 //		push_res = starpu_task_submit(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
-//#endif
+//		return 0;
 //	}
-	} else
-#endif
-#endif
-	{
-		free(A);
+//#endif
 	}
+#endif /* STARPU_SIMGRID */
 
+	free(A);
 	return 0;
 }
 
-
-int starpu_malloc_count(void **A, size_t dim)
+int starpu_free(void *A)
 {
-	if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
-	{
-		size_t freed;
-		size_t reclaim = 2 * dim;
-		_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
-		_STARPU_TRACE_START_MEMRECLAIM(0);
-		freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
-		_STARPU_TRACE_END_MEMRECLAIM(0);
-		if (freed < dim)
-		{
-			// We could not reclaim enough memory
-			*A = NULL;
-			return -ENOMEM;
-		}
-	}
-
-	return starpu_malloc(A, dim);
-}
-
-int starpu_free_count(void *A, size_t dim)
-{
-	_starpu_memory_manager_deallocate_size(dim, 0);
-	starpu_free(A);
+	return starpu_free_flags(A, 0, STARPU_MALLOC_PINNED);
 }
 
 #ifdef STARPU_SIMGRID
@@ -404,12 +422,8 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 	switch(kind)
 	{
-#ifdef STARPU_DEVEL
-#warning TODO we need to call starpu_free
-#endif
 		case STARPU_CPU_RAM:
 			free((void*)addr);
-			_starpu_memory_manager_deallocate_size(size, dst_node);
 			break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
@@ -424,7 +438,6 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 			err = cudaFree((void*)addr);
 			if (STARPU_UNLIKELY(err != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(err);
-			_starpu_memory_manager_deallocate_size(size, dst_node);
 #endif
 			break;
 		}
@@ -442,7 +455,6 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
                         err = clReleaseMemObject((void*)addr);
 			if (STARPU_UNLIKELY(err != CL_SUCCESS))
 				STARPU_OPENCL_REPORT_ERROR(err);
-			_starpu_memory_manager_deallocate_size(size, dst_node);
 #endif
                         break;
 		}
@@ -450,5 +462,7 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 		default:
 			STARPU_ABORT();
 	}
+	_starpu_memory_manager_deallocate_size(size, dst_node);
+
 }
 

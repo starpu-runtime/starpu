@@ -25,7 +25,7 @@
 #include <sys/time.h>
 
 #define error(...) do { fprintf(stderr, "Error: " __VA_ARGS__); exit(EXIT_FAILURE); } while(0)
-#define check(exp) do { cl_int err = exp; if(err != CL_SUCCESS) { fprintf(stderr, "OpenCL Error (%d): " #exp "\n", err); exit(EXIT_FAILURE); }} while(0)
+#define check(exp) do { err = exp; if(err != CL_SUCCESS) { fprintf(stderr, "OpenCL Error (%d): " #exp "\n", err); exit(EXIT_FAILURE); }} while(0)
 #define check2(exp) exp; if(err != CL_SUCCESS) { fprintf(stderr, "OpenCL Error (%d): " #exp "\n", err); exit(EXIT_FAILURE); }
 
 // Thread block size
@@ -38,7 +38,7 @@
 #define HA (512L * BLOCK_SIZE) // Matrix A height
 #define WB (128L * BLOCK_SIZE) // Matrix B width
 #define HB WA  // Matrix B height
-#define WC WB  // Matrix C width 
+#define WC WB  // Matrix C width
 #define HC HA  // Matrix C height
 #define BLOCKS (HA / WORK_SIZE)
 
@@ -236,7 +236,7 @@ int main(int argc, const char** argv) {
 	for (p=0; p<platform_count; p++) {
 		cl_platform_id platform = platforms[p];
 
-		cl_int err = clGetDeviceIDs(platform, dev_type, 0, NULL, &devs[p]);
+		err = clGetDeviceIDs(platform, dev_type, 0, NULL, &devs[p]);
 		if (err == CL_DEVICE_NOT_FOUND) {
 			devs[p] = 0;
 			continue;
@@ -260,7 +260,7 @@ int main(int argc, const char** argv) {
 		cl_context_properties properties[] = {CL_CONTEXT_PLATFORM, (cl_context_properties)platform, 0};
 		check2(ctx[p] = clCreateContext(properties, devs[p], devices[p], NULL, NULL, &err));
 
-		for(i = 0; i < devs[p]; ++i) 
+		for(i = 0; i < devs[p]; ++i)
 		{
 			cl_device_id device = devices[p][i];
 			char name[2048];
@@ -281,7 +281,7 @@ int main(int argc, const char** argv) {
 
 	cl_kernel multiplicationKernel[platform_count];
 
-	printf("\nUsing Matrix Sizes: A(%lu x %lu), B(%lu x %lu), C(%lu x %lu)\n", 
+	printf("\nUsing Matrix Sizes: A(%lu x %lu), B(%lu x %lu), C(%lu x %lu)\n",
 			(unsigned long)WA, (unsigned long)HA, (unsigned long)WB, (unsigned long)HB, (unsigned long)WC, (unsigned long)HC);
 
 	// allocate host memory for matrices A, B and C
@@ -333,34 +333,34 @@ int main(int argc, const char** argv) {
 		}
 	}
 
-	for(i=0; i < BLOCKS; ++i) 
+	for(i=0; i < BLOCKS; ++i)
 	{
 		int d = i % device_count;
-		cl_uint p = 0;
+		cl_uint platform = 0;
 
 		// determine device platform
 		int dev = d;
-		for (p = 0; p < platform_count; p++) {
-			if ((cl_int)(dev - devs[p]) < 0)
+		for (platform = 0; platform < platform_count; platform++) {
+			if ((cl_int)(dev - devs[platform]) < 0)
 				break;
-			dev -= devs[p];
+			dev -= devs[platform];
 		}
 
-		workSize[i] = (i < sizeMod) ? sizePerGPU+1 : sizePerGPU;        
+		workSize[i] = (i < sizeMod) ? sizePerGPU+1 : sizePerGPU;
 
-		check2(d_A[i] = clCreateBuffer(ctx[p], CL_MEM_READ_ONLY  | CL_MEM_USE_HOST_PTR, workSize[i] * WA * sizeof(TYPE), &A_data[workOffset[i] * WA], &err));
-		check2(d_C[i] = clCreateBuffer(ctx[p], CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, workSize[i] * WC * sizeof(TYPE), &C_data[workOffset[i] * WC], &err));
+		check2(d_A[i] = clCreateBuffer(ctx[platform], CL_MEM_READ_ONLY  | CL_MEM_USE_HOST_PTR, workSize[i] * WA * sizeof(TYPE), &A_data[workOffset[i] * WA], &err));
+		check2(d_C[i] = clCreateBuffer(ctx[platform], CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, workSize[i] * WC * sizeof(TYPE), &C_data[workOffset[i] * WC], &err));
 
-		check(clSetKernelArg(multiplicationKernel[p], 0, sizeof(cl_int), &workSize[i]));
-		check(clSetKernelArg(multiplicationKernel[p], 1, sizeof(cl_int), &workSize[i]));
-		check(clSetKernelArg(multiplicationKernel[p], 2, sizeof(cl_int), &workSize[i]));
-		check(clSetKernelArg(multiplicationKernel[p], 3, sizeof(cl_mem), (void *) &d_A[i]));
-		check(clSetKernelArg(multiplicationKernel[p], 4, sizeof(cl_mem), (void *) &d_B[d]));
-		check(clSetKernelArg(multiplicationKernel[p], 5, sizeof(cl_mem), (void *) &d_C[i]));
+		check(clSetKernelArg(multiplicationKernel[platform], 0, sizeof(cl_int), &workSize[i]));
+		check(clSetKernelArg(multiplicationKernel[platform], 1, sizeof(cl_int), &workSize[i]));
+		check(clSetKernelArg(multiplicationKernel[platform], 2, sizeof(cl_int), &workSize[i]));
+		check(clSetKernelArg(multiplicationKernel[platform], 3, sizeof(cl_mem), (void *) &d_A[i]));
+		check(clSetKernelArg(multiplicationKernel[platform], 4, sizeof(cl_mem), (void *) &d_B[d]));
+		check(clSetKernelArg(multiplicationKernel[platform], 5, sizeof(cl_mem), (void *) &d_C[i]));
 
 		size_t globalWorkSize[] = {roundUp(BLOCK_SIZE,WC), roundUp(BLOCK_SIZE,workSize[i])};
 
-		check(clEnqueueNDRangeKernel(commandQueue[p][dev], multiplicationKernel[p], 2, NULL, globalWorkSize, localWorkSize, 0, NULL, &GPUExecution[i]));
+		check(clEnqueueNDRangeKernel(commandQueue[platform][dev], multiplicationKernel[platform], 2, NULL, globalWorkSize, localWorkSize, 0, NULL, &GPUExecution[i]));
 
 		// Non-blocking copy of result from device to host
 		 cqs[i] = commandQueue[p][dev];
@@ -386,7 +386,7 @@ int main(int argc, const char** argv) {
 	double dNumOps = 2.0 * (double)WA * (double)HA * (double)WB;
 	double gflops = 1.0e-9 * dNumOps/dSeconds;
 
-	printf("Throughput = %.4f GFlops/s, Time = %.5f s, Size = %.0f, NumDevsUsed = %d, Blocks = %ld, Workgroup = %zu\n", 
+	printf("Throughput = %.4f GFlops/s, Time = %.5f s, Size = %.0f, NumDevsUsed = %d, Blocks = %ld, Workgroup = %zu\n",
 			gflops, dSeconds, dNumOps, device_count, BLOCKS, localWorkSize[0] * localWorkSize[1]);
 
 	// compute reference solution
@@ -405,12 +405,12 @@ int main(int argc, const char** argv) {
 		free(reference);
 	}
 
-	for(i = 0; i < BLOCKS; i++) 
+	for(i = 0; i < BLOCKS; i++)
 	{
 		clEnqueueUnmapMemObject(cqs[i], d_C[i], ptrs[i], 0, NULL, NULL);
 	}
 
-	for(i = 0; i < BLOCKS; i++) 
+	for(i = 0; i < BLOCKS; i++)
 	{
 		clFinish(cqs[i]);
 	}
@@ -419,7 +419,7 @@ int main(int argc, const char** argv) {
 		clReleaseMemObject(d_B[i]);
 	}
 
-	for(i = 0; i < BLOCKS; i++) 
+	for(i = 0; i < BLOCKS; i++)
 	{
 		clReleaseMemObject(d_A[i]);
 		clReleaseMemObject(d_C[i]);
@@ -436,7 +436,7 @@ int main(int argc, const char** argv) {
 		check(clReleaseProgram(program[p]));
 		check(clReleaseContext(ctx[p]));
 		cl_uint k;
-		for(k = 0; k < devs[p]; ++k) 
+		for(k = 0; k < devs[p]; ++k)
 		{
 			check(clReleaseCommandQueue(commandQueue[p][k]));
 		}
@@ -460,7 +460,7 @@ void printDiff(TYPE *data1, TYPE *data2, int width, int height, int listLength, 
 		for (i = 0; i < width; i++) {
 			k = j * width + i;
 			float diff = fabs(data1[k] - data2[k]);
-			if (diff > listTol) {                
+			if (diff > listTol) {
 				if (error_count < listLength) {
 					printf("    Loc(%d,%d)\tCPU=%.5f\tGPU=%.5f\tDiff=%.6f\n", i, j, data1[k], data2[k], diff);
 				}
@@ -493,4 +493,3 @@ void computeReference(TYPE* C, const TYPE* A, const TYPE* B, unsigned int hA, un
 			C[i * wB + j] = (TYPE)sum;
 		}
 }
-

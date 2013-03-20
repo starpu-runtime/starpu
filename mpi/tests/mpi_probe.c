@@ -66,7 +66,6 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
 	tab = malloc(SIZE*sizeof(float));
-
 	starpu_vector_data_register(&tab_handle, 0, (uintptr_t)tab, SIZE, sizeof(float));
 
 	int nloops = NITER;
@@ -92,6 +91,8 @@ int main(int argc, char **argv)
 	}
 
 	starpu_data_unregister(tab_handle);
+	free(tab);
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 

@@ -86,25 +86,25 @@ static void parse_args(int argc, char **argv)
 void callback_cpu(void *argcb);
 static void express_deps(unsigned i, unsigned j, unsigned iter);
 
-static void tag_cleanup_grid(unsigned ni, unsigned nj, unsigned iter)
+static void tag_cleanup_grid(unsigned piter)
 {
 	unsigned i,j;
 
 	for (j = 0; j < nj; j++)
 	for (i = 0; i < ni; i++)
 	{
-		starpu_tag_remove(TAG(i,j,iter));
+		starpu_tag_remove(TAG(i,j,piter));
 	}
 
 
 } 
 
-static int create_task_grid(unsigned iter)
+static int create_task_grid(unsigned piter)
 {
 	unsigned i, j;
 	int ret;
 
-/*	FPRINTF(stderr, "start iter %d...\n", iter); */
+/*	FPRINTF(stderr, "start iter %d...\n", piter); */
 	callback_cnt = (ni*nj);
 
 	/* create non-entry tasks */
@@ -119,10 +119,10 @@ static int create_task_grid(unsigned iter)
 		task->cl_arg = NULL;
 
 		task->use_tag = 1;
-		task->tag_id = TAG(i, j, iter);
+		task->tag_id = TAG(i, j, piter);
 
 		/* express deps : (i,j) depends on (i-1, j-1) & (i-1, j+1) */
-		express_deps(i, j, iter);
+		express_deps(i, j, piter);
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) return 77;
@@ -140,7 +140,7 @@ static int create_task_grid(unsigned iter)
 
 		task->use_tag = 1;
 		/* this is an entry task */
-		task->tag_id = TAG(0, j, iter);
+		task->tag_id = TAG(0, j, piter);
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) return 77;
@@ -160,7 +160,7 @@ void callback_cpu(void *argcb __attribute__ ((unused)))
 		{
 			/* cleanup old grids ... */
 			if (iter > 2)
-				tag_cleanup_grid(ni, nj, iter-2);
+				tag_cleanup_grid(iter-2);
 
 			/* create a new iteration */
 			create_task_grid(iter);
@@ -174,7 +174,7 @@ void cpu_codelet(void *descr[] __attribute__((unused)),
 /*	printf("execute task\n"); */
 }
 
-static void express_deps(unsigned i, unsigned j, unsigned iter)
+static void express_deps(unsigned i, unsigned j, unsigned piter)
 {
 	if (j > 0)
 	{
@@ -182,12 +182,12 @@ static void express_deps(unsigned i, unsigned j, unsigned iter)
 		if (j < nj - 1)
 		{
 			/* (i,j+1) exists */
-			starpu_tag_declare_deps(TAG(i,j,iter), 2, TAG(i-1,j-1,iter), TAG(i-1,j+1,iter));
+			starpu_tag_declare_deps(TAG(i,j,piter), 2, TAG(i-1,j-1,piter), TAG(i-1,j+1,piter));
 		}
 		else
 		{
 			/* (i,j+1) does not exist */
-			starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j-1,iter));
+			starpu_tag_declare_deps(TAG(i,j,piter), 1, TAG(i-1,j-1,piter));
 		}
 	}
 	else
@@ -196,7 +196,7 @@ static void express_deps(unsigned i, unsigned j, unsigned iter)
 		if (j < nj - 1)
 		{
 			/* (i,j+1) exists */
-			starpu_tag_declare_deps(TAG(i,j,iter), 1, TAG(i-1,j+1,iter));
+			starpu_tag_declare_deps(TAG(i,j,piter), 1, TAG(i-1,j+1,piter));
 		}
 		else
 		{
@@ -229,8 +229,8 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	if (ret == 0)
 	     starpu_task_wait_for_all();
 
-	tag_cleanup_grid(ni, nj, nk-2);
-	tag_cleanup_grid(ni, nj, nk-1);
+	tag_cleanup_grid(nk-2);
+	tag_cleanup_grid(nk-1);
 
 	starpu_shutdown();
 
