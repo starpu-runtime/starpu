@@ -30,7 +30,7 @@
 
 
 /* used when changes (delete, modify) are applyed to contexts */
-extern _starpu_pthread_mutex_t changing_ctx_mutex[];
+//extern _starpu_pthread_mutex_t _changing_ctx_mutex[];
 
 struct _starpu_sched_ctx
 {
