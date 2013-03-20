@@ -117,6 +117,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			cures = cudaHostAlloc(A, dim, cudaHostAllocPortable);
 			if (STARPU_UNLIKELY(cures))
 				STARPU_CUDA_REPORT_ERROR(cures);
+			goto end;
 #else
 			int push_res;
 
@@ -141,6 +142,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 
 			push_res = _starpu_task_submit_internally(task);
 			STARPU_ASSERT(push_res != -ENODEV);
+			goto end;
 #endif /* HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
 		}
@@ -169,22 +171,22 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 //
 //			push_res = _starpu_task_submit_internally(task);
 //			STARPU_ASSERT(push_res != -ENODEV);
+//			goto end;
 //#endif /* STARPU_USE_OPENCL */
 //		}
 	}
-        else
 #endif /* STARPU_SIMGRID */
-	{
+
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
-		if (_malloc_align != sizeof(void*))
+	if (_malloc_align != sizeof(void*))
+	{
+		if (posix_memalign(A, _malloc_align, dim))
 		{
-			if (posix_memalign(A, _malloc_align, dim))
-			{
-				ret = -ENOMEM;
-				*A = NULL;
-			}
+			ret = -ENOMEM;
+			*A = NULL;
 		}
-		else
+	}
+	else
 #elif defined(STARPU_HAVE_MEMALIGN)
 		if (_malloc_align != sizeof(void*))
 		{
@@ -195,8 +197,8 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 		{
 			*A = malloc(dim);
 		}
-	}
 
+end:
 	if (ret == 0)
 	{
 		STARPU_ASSERT(*A);
@@ -270,6 +272,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 				cudaError_t err = cudaFreeHost(A);
 				if (STARPU_UNLIKELY(err))
 					STARPU_CUDA_REPORT_ERROR(err);
+				return 0;
 #ifndef HAVE_CUDA_MEMCPY_PEER
 			}
 			else
@@ -290,6 +293,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 
 				push_res = _starpu_task_submit_internally(task);
 				STARPU_ASSERT(push_res != -ENODEV);
+				return 0;
 			}
 #endif /* HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
@@ -313,14 +317,13 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 //
 //		push_res = starpu_task_submit(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
-//#endif
+//		return 0;
 //	}
-	} else
+//#endif
 #endif /* STARPU_SIMGRID */
-	{
-		free(A);
 	}
 
+	free(A);
 	return 0;
 }
 
