@@ -106,9 +106,9 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 		}
 	}
 
+#ifndef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_PINNED)
 	{
-#ifndef STARPU_SIMGRID
 		if (_starpu_can_submit_cuda_task())
 		{
 #ifdef STARPU_USE_CUDA
@@ -256,9 +256,9 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 		_starpu_memory_manager_deallocate_size(dim, 0);
 	}
 
+#ifndef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_PINNED)
 	{
-#ifndef STARPU_SIMGRID
 		if (_starpu_can_submit_cuda_task())
 		{
 #ifdef STARPU_USE_CUDA
@@ -320,8 +320,8 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 //		return 0;
 //	}
 //#endif
-#endif /* STARPU_SIMGRID */
 	}
+#endif /* STARPU_SIMGRID */
 
 	free(A);
 	return 0;
