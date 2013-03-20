@@ -175,9 +175,9 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
 
    printf("Data...\n");
    {
-      int i;
-      for (i=0; i<SIZE; i++) {
-        printf("%f ", d[i]);
+      int j;
+      for (j=0; j<SIZE; j++) {
+        printf("%f ", d[j]);
       }
       printf("\n");
    }
