@@ -422,12 +422,8 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 	switch(kind)
 	{
-#ifdef STARPU_DEVEL
-#warning TODO we need to call starpu_free
-#endif
 		case STARPU_CPU_RAM:
 			free((void*)addr);
-			_starpu_memory_manager_deallocate_size(size, dst_node);
 			break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
@@ -442,7 +438,6 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 			err = cudaFree((void*)addr);
 			if (STARPU_UNLIKELY(err != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(err);
-			_starpu_memory_manager_deallocate_size(size, dst_node);
 #endif
 			break;
 		}
@@ -460,7 +455,6 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
                         err = clReleaseMemObject((void*)addr);
 			if (STARPU_UNLIKELY(err != CL_SUCCESS))
 				STARPU_OPENCL_REPORT_ERROR(err);
-			_starpu_memory_manager_deallocate_size(size, dst_node);
 #endif
                         break;
 		}
@@ -468,5 +462,7 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 		default:
 			STARPU_ABORT();
 	}
+	_starpu_memory_manager_deallocate_size(size, dst_node);
+
 }
 
