@@ -66,7 +66,7 @@ static void parse_args(int argc, char **argv)
 
 void callback_cpu(void *argcb);
 
-static void tag_cleanup_grid(unsigned ni, unsigned iter)
+static void tag_cleanup_grid(unsigned iter)
 {
 	unsigned i;
 
@@ -140,13 +140,13 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 
 		/* cleanup old grids ... */
 		if (i > 1)
-			tag_cleanup_grid(ni, i-1);
+			tag_cleanup_grid(i-1);
 	}
 
 	starpu_task_wait_for_all();
 
 enodev:
-	tag_cleanup_grid(ni, nk-1);
+	tag_cleanup_grid(nk-1);
 
 	starpu_shutdown();
 

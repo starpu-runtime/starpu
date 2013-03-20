@@ -18,7 +18,7 @@
 #include "custom_types.h"
 #include "custom_interface.h"
 
-extern struct starpu_opencl_program opencl_program;
+extern struct starpu_opencl_program _opencl_program;
 
 void custom_scal_opencl_func(void *buffers[], void *args)
 {
@@ -38,7 +38,7 @@ void custom_scal_opencl_func(void *buffers[], void *args)
 
 	err = starpu_opencl_load_kernel(&kernel,
 					&queue,
-					&opencl_program,
+					&_opencl_program,
 					"custom_scal_opencl",
 					devid);
 	if (err != CL_SUCCESS)

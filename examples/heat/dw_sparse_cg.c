@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -38,18 +38,18 @@ static struct starpu_task *create_task(starpu_tag_t id)
 static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t *_nnz, uint32_t *_nrow, uint32_t **_colind, uint32_t **_rowptr)
 {
 	/* we need a sparse symetric (definite positive ?) matrix and a "dense" vector */
-	
+
 	/* example of 3-band matrix */
 	float *nzval;
 	uint32_t nnz;
 	uint32_t *colind;
 	uint32_t *rowptr;
 
-	nnz = 3*size-2;
+	nnz = 3*_size-2;
 
 	nzval = malloc(nnz*sizeof(float));
 	colind = malloc(nnz*sizeof(uint32_t));
-	rowptr = malloc(size*sizeof(uint32_t));
+	rowptr = malloc(_size*sizeof(uint32_t));
 
 	assert(nzval);
 	assert(colind);
@@ -59,7 +59,7 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 	/* fill the matrix */
 	unsigned row;
 	unsigned pos = 0;
-	for (row = 0; row < size; row++)
+	for (row = 0; row < _size; row++)
 	{
 		rowptr[row] = pos;
 
@@ -69,12 +69,12 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 			colind[pos] = row-1;
 			pos++;
 		}
-		
+
 		nzval[pos] = 5.0f;
 		colind[pos] = row;
 		pos++;
 
-		if (row < size - 1)
+		if (row < _size - 1)
 		{
 			nzval[pos] = 1.0f;
 			colind[pos] = row+1;
@@ -83,24 +83,24 @@ static void create_data(float **_nzvalA, float **_vecb, float **_vecx, uint32_t 
 	}
 
 	*_nnz = nnz;
-	*_nrow = size;
+	*_nrow = _size;
 	*_nzvalA = nzval;
 	*_colind = colind;
 	*_rowptr = rowptr;
 
 	STARPU_ASSERT(pos == nnz);
-	
+
 	/* initiate the 2 vectors */
 	float *invec, *outvec;
-	invec = malloc(size*sizeof(float));
+	invec = malloc(_size*sizeof(float));
 	assert(invec);
 
-	outvec = malloc(size*sizeof(float));
+	outvec = malloc(_size*sizeof(float));
 	assert(outvec);
 
 	/* fill those */
 	unsigned ind;
-	for (ind = 0; ind < size; ind++)
+	for (ind = 0; ind < _size; ind++)
 	{
 		invec[ind] = 2.0f;
 		outvec[ind] = 0.0f;
@@ -127,10 +127,10 @@ void init_problem(void)
 }
 
 /*
- *	cg initialization phase 
+ *	cg initialization phase
  */
 
-void init_cg(struct cg_problem *problem) 
+void init_cg(struct cg_problem *problem)
 {
 	int ret;
 
@@ -178,7 +178,7 @@ void init_cg(struct cg_problem *problem)
 
 	task3->callback_func = iteration_cg;
 	task3->callback_arg = problem;
-	
+
 	/* XXX 3 should only depend on 1 ... */
 	starpu_tag_declare_deps((starpu_tag_t)3UL, 1, (starpu_tag_t)2UL);
 
@@ -192,7 +192,7 @@ void init_cg(struct cg_problem *problem)
 }
 
 /*
- *	the inner iteration of the cg algorithm 
+ *	the inner iteration of the cg algorithm
  *		the codelet code launcher is its own callback !
  */
 
@@ -301,7 +301,7 @@ void launch_new_cg_iteration(struct cg_problem *problem)
 
 	task9->callback_func = iteration_cg;
 	task9->callback_arg = problem;
-	
+
 	/* launch the computation now */
 	ret = starpu_task_submit(task4);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -323,7 +323,7 @@ void iteration_cg(void *problem)
 
 	FPRINTF(stdout, "i : %d (MAX %d)\n\tdelta_new %f (%f)\n", pb->i, MAXITER, pb->delta_new, sqrt(pb->delta_new / pb->size));
 
-	if ((pb->i < MAXITER) && 
+	if ((pb->i < MAXITER) &&
 		(pb->delta_new > pb->epsilon) )
 	{
 		if (pb->i % 1000 == 0)
@@ -344,7 +344,7 @@ void iteration_cg(void *problem)
 }
 
 /*
- *	initializing the problem 
+ *	initializing the problem
  */
 
 void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
@@ -354,10 +354,10 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 
 	starpu_data_handle_t ds_matrixA;
 	starpu_data_handle_t ds_vecx, ds_vecb;
-	starpu_data_handle_t ds_vecr, ds_vecd, ds_vecq; 
+	starpu_data_handle_t ds_vecr, ds_vecd, ds_vecq;
 
 	/* first the user-allocated data */
-	starpu_csr_data_register(&ds_matrixA, 0, nnz, nrow, 
+	starpu_csr_data_register(&ds_matrixA, 0, nnz, nrow,
 			(uintptr_t)nzvalA, colind, rowptr, 0, sizeof(float));
 	starpu_vector_data_register(&ds_vecx, 0, (uintptr_t)vecx, nrow, sizeof(float));
 	starpu_vector_data_register(&ds_vecb, 0, (uintptr_t)vecb, nrow, sizeof(float));

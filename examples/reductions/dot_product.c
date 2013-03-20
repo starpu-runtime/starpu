@@ -28,19 +28,19 @@
 
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
-static float *x;
-static float *y;
-static starpu_data_handle_t *x_handles;
-static starpu_data_handle_t *y_handles;
+static float *_x;
+static float *_y;
+static starpu_data_handle_t *_x_handles;
+static starpu_data_handle_t *_y_handles;
 #ifdef STARPU_USE_OPENCL
-static struct starpu_opencl_program opencl_program;
+static struct starpu_opencl_program _opencl_program;
 #endif
 
-static unsigned nblocks = 4096;
-static unsigned entries_per_block = 1024;
+static unsigned _nblocks = 4096;
+static unsigned _entries_per_block = 1024;
 
-static DOT_TYPE dot = 0.0f;
-static starpu_data_handle_t dot_handle;
+static DOT_TYPE _dot = 0.0f;
+static starpu_data_handle_t _dot_handle;
 
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
@@ -148,7 +148,7 @@ void redux_opencl_func(void *buffers[], void *args)
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
 
-	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "_redux_opencl", devid);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &_opencl_program, "_redux_opencl", devid);
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -262,7 +262,7 @@ void dot_opencl_func(void *buffers[], void *args)
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
 
-	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "_dot_opencl", devid);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &_opencl_program, "_dot_opencl", devid);
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -329,22 +329,22 @@ int main(int argc, char **argv)
 
 #ifdef STARPU_USE_OPENCL
 	ret = starpu_opencl_load_opencl_from_file("examples/reductions/dot_product_opencl_kernels.cl",
-						  &opencl_program, NULL);
+						  &_opencl_program, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
 	starpu_cublas_init();
 
-	unsigned long nelems = nblocks*entries_per_block;
+	unsigned long nelems = _nblocks*_entries_per_block;
 	size_t size = nelems*sizeof(float);
 
-	x = (float *) malloc(size);
-	y = (float *) malloc(size);
+	_x = (float *) malloc(size);
+	_y = (float *) malloc(size);
 
-	x_handles = (starpu_data_handle_t *) calloc(nblocks, sizeof(starpu_data_handle_t));
-	y_handles = (starpu_data_handle_t *) calloc(nblocks, sizeof(starpu_data_handle_t));
+	_x_handles = (starpu_data_handle_t *) calloc(_nblocks, sizeof(starpu_data_handle_t));
+	_y_handles = (starpu_data_handle_t *) calloc(_nblocks, sizeof(starpu_data_handle_t));
 
-	assert(x && y);
+	assert(_x && _y);
 
         starpu_srand48(0);
 
@@ -353,67 +353,67 @@ int main(int argc, char **argv)
 	unsigned long i;
 	for (i = 0; i < nelems; i++)
 	{
-		x[i] = (float)starpu_drand48();
-		y[i] = (float)starpu_drand48();
+		_x[i] = (float)starpu_drand48();
+		_y[i] = (float)starpu_drand48();
 
-		reference_dot += (DOT_TYPE)x[i]*(DOT_TYPE)y[i];
+		reference_dot += (DOT_TYPE)_x[i]*(DOT_TYPE)_y[i];
 	}
 
 	unsigned block;
-	for (block = 0; block < nblocks; block++)
+	for (block = 0; block < _nblocks; block++)
 	{
-		starpu_vector_data_register(&x_handles[block], 0,
-			(uintptr_t)&x[entries_per_block*block], entries_per_block, sizeof(float));
-		starpu_vector_data_register(&y_handles[block], 0,
-			(uintptr_t)&y[entries_per_block*block], entries_per_block, sizeof(float));
+		starpu_vector_data_register(&_x_handles[block], 0,
+			(uintptr_t)&_x[_entries_per_block*block], _entries_per_block, sizeof(float));
+		starpu_vector_data_register(&_y_handles[block], 0,
+			(uintptr_t)&_y[_entries_per_block*block], _entries_per_block, sizeof(float));
 	}
 
-	starpu_variable_data_register(&dot_handle, 0, (uintptr_t)&dot, sizeof(DOT_TYPE));
+	starpu_variable_data_register(&_dot_handle, 0, (uintptr_t)&_dot, sizeof(DOT_TYPE));
 
 	/*
 	 *	Compute dot product with StarPU
 	 */
-	starpu_data_set_reduction_methods(dot_handle, &redux_codelet, &init_codelet);
+	starpu_data_set_reduction_methods(_dot_handle, &redux_codelet, &init_codelet);
 
-	for (block = 0; block < nblocks; block++)
+	for (block = 0; block < _nblocks; block++)
 	{
 		struct starpu_task *task = starpu_task_create();
 
 		task->cl = &dot_codelet;
 		task->destroy = 1;
 
-		task->handles[0] = x_handles[block];
-		task->handles[1] = y_handles[block];
-		task->handles[2] = dot_handle;
+		task->handles[0] = _x_handles[block];
+		task->handles[1] = _y_handles[block];
+		task->handles[2] = _dot_handle;
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_ASSERT(!ret);
 	}
 
-	for (block = 0; block < nblocks; block++)
+	for (block = 0; block < _nblocks; block++)
 	{
-		starpu_data_unregister(x_handles[block]);
-		starpu_data_unregister(y_handles[block]);
+		starpu_data_unregister(_x_handles[block]);
+		starpu_data_unregister(_y_handles[block]);
 	}
-	starpu_data_unregister(dot_handle);
+	starpu_data_unregister(_dot_handle);
 
-	FPRINTF(stderr, "Reference : %e vs. %e (Delta %e)\n", reference_dot, dot, reference_dot - dot);
+	FPRINTF(stderr, "Reference : %e vs. %e (Delta %e)\n", reference_dot, _dot, reference_dot - _dot);
 
 	starpu_cublas_shutdown();
 
 #ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
+        ret = starpu_opencl_unload_opencl(&_opencl_program);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	starpu_shutdown();
 
-	free(x);
-	free(y);
-	free(x_handles);
-	free(y_handles);
+	free(_x);
+	free(_y);
+	free(_x_handles);
+	free(_y_handles);
 
-	if (fabs(reference_dot - dot) < reference_dot * 1e-6)
+	if (fabs(reference_dot - _dot) < reference_dot * 1e-6)
 		return EXIT_SUCCESS;
 	else
 		return EXIT_FAILURE;

@@ -18,7 +18,7 @@
 #include "custom_types.h"
 #include "custom_interface.h"
 
-extern struct starpu_opencl_program opencl_conversion_program;
+extern struct starpu_opencl_program _opencl_conversion_program;
 
 void cpu_to_opencl_opencl_func(void *buffers[], void *args)
 {
@@ -39,7 +39,7 @@ void cpu_to_opencl_opencl_func(void *buffers[], void *args)
 
 	err = starpu_opencl_load_kernel(&kernel,
 					&queue,
-					&opencl_conversion_program,
+					&_opencl_conversion_program,
 					"custom_opencl_conversion",
 					devid);
 	if (err != CL_SUCCESS)

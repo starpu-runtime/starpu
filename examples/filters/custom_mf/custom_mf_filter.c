@@ -22,16 +22,16 @@
 #define DEBUG 1
 
 #ifdef STARPU_USE_CUDA
-static unsigned int ncuda;
+static unsigned int _ncuda;
 #endif
 #ifdef STARPU_USE_OPENCL
-static unsigned int nopencl;
+static unsigned int _nopencl;
 #endif
 
 
-static struct point array_of_structs[N];
-static starpu_data_handle_t handle;
-static unsigned int nchunks = 6;
+static struct point _array_of_structs[N];
+static starpu_data_handle_t _handle;
+static unsigned int _nchunks = 6;
 
 #ifdef STARPU_USE_CUDA
 extern struct starpu_codelet cpu_to_cuda_cl;
@@ -107,26 +107,26 @@ register_and_partition_data(void)
 	int i;
 	for (i = 0; i < N; i++)
 	{
-		array_of_structs[i].x = i+1.0;
-		array_of_structs[i].y = 42.0;
+		_array_of_structs[i].x = i+1.0;
+		_array_of_structs[i].y = 42.0;
 	}
-	custom_data_register(&handle, 0, &array_of_structs, N, &format_ops);
+	custom_data_register(&_handle, 0, &_array_of_structs, N, &format_ops);
 
 	struct starpu_data_filter f =
 	{
 		.filter_func   = custom_filter,
-		.nchildren     = nchunks,
+		.nchildren     = _nchunks,
 		.get_nchildren = NULL,
 		.get_child_ops = NULL
 	};
-	starpu_data_partition(handle, &f);
+	starpu_data_partition(_handle, &f);
 }
 
 static void
 unpartition_and_unregister_data(void)
 {
-	starpu_data_unpartition(handle, 0);
-	starpu_data_unregister(handle);
+	starpu_data_unpartition(_handle, 0);
+	starpu_data_unregister(_handle);
 }
 
 static void
@@ -181,7 +181,7 @@ create_and_submit_tasks(void)
 {
 	int err;
 	unsigned int i;
-	for (i = 0; i < nchunks; i++)
+	for (i = 0; i < _nchunks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
 		switch (i%3)
@@ -191,7 +191,7 @@ create_and_submit_tasks(void)
 			break;
 		case 1:
 #ifdef STARPU_USE_CUDA
-			if (ncuda > 0)
+			if (_ncuda > 0)
 				task->cl = &cuda_cl;
 			else
 #endif
@@ -199,7 +199,7 @@ create_and_submit_tasks(void)
 			break;
 		case 2:
 #ifdef STARPU_USE_OPENCL
-			if (nopencl > 0)
+			if (_nopencl > 0)
 				task->cl = &opencl_cl;
 			else
 #endif
@@ -210,7 +210,7 @@ create_and_submit_tasks(void)
 			assert(0);
 		}
 
-		task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
+		task->handles[0] = starpu_data_get_sub_data(_handle, 1, i);
 		err = starpu_task_submit(task);
 		if (err != 0)
 			return err;
@@ -232,8 +232,8 @@ print_it(void)
 	for (i = 0; i < N; i++)
 	{
 		FPRINTF(stderr, "(%.2f, %.2f) ",
-			array_of_structs[i].x,
-			array_of_structs[i].y);
+			_array_of_structs[i].x,
+			_array_of_structs[i].y);
 	}
 	FPRINTF(stderr, "\n");
 }
@@ -246,7 +246,7 @@ check_it(void)
 	for (i = 0; i < N; i++)
 	{
 		float expected_value = (i + 1.0)*42.0;
-		if (array_of_structs[i].x != expected_value)
+		if (_array_of_structs[i].x != expected_value)
 			return EXIT_FAILURE;
 	}
 
@@ -254,8 +254,8 @@ check_it(void)
 }
 
 #ifdef STARPU_USE_OPENCL
-struct starpu_opencl_program opencl_program;
-struct starpu_opencl_program opencl_conversion_program;
+struct starpu_opencl_program _opencl_program;
+struct starpu_opencl_program _opencl_conversion_program;
 #endif /* !STARPU_USE_OPENCL */
 
 int
@@ -271,20 +271,20 @@ main(void)
 		goto enodev;
 
 #ifdef STARPU_USE_CUDA
-	ncuda = starpu_cuda_worker_get_count();
+	_ncuda = starpu_cuda_worker_get_count();
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
-	nopencl = starpu_opencl_worker_get_count();
-	if (nopencl > 0)
+	_nopencl = starpu_opencl_worker_get_count();
+	if (_nopencl > 0)
 	{
 		char *f1 = "examples/filters/custom_mf/custom_opencl.cl";
 		char *f2 = "examples/filters/custom_mf/conversion_opencl.cl";
-		err = starpu_opencl_load_opencl_from_file(f1, &opencl_program,
+		err = starpu_opencl_load_opencl_from_file(f1, &_opencl_program,
 							  NULL);
 		assert(err == 0);
 		err = starpu_opencl_load_opencl_from_file(f2,
-						&opencl_conversion_program,
-						NULL);
+							  &_opencl_conversion_program,
+							  NULL);
 		assert(err == 0);
 	}
 #endif /* !STARPU_USE_OPENCL */
@@ -306,11 +306,11 @@ main(void)
 #endif
 
 #ifdef STARPU_USE_OPENCL
-	if (nopencl > 0)
+	if (_nopencl > 0)
 	{
-        	err = starpu_opencl_unload_opencl(&opencl_program);
+        	err = starpu_opencl_unload_opencl(&_opencl_program);
 		assert(err == 0);
-		err = starpu_opencl_unload_opencl(&opencl_conversion_program);
+		err = starpu_opencl_unload_opencl(&_opencl_conversion_program);
 		assert(err == 0);
 	}
 #endif /* !STARPU_USE_OPENCL */
