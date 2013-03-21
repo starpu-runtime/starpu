@@ -942,6 +942,7 @@ int starpu_perfmodel_list(FILE *output)
 
 /* This function is intended to be used by external tools that should read the
  * performance model files */
+/* TODO: write an clear function, to free symbol and history */
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model)
 {
 	model->symbol = strdup(symbol);
