@@ -139,6 +139,8 @@ static int register_worker_id(unsigned long tid)
 
 	HASH_FIND(hh, worker_ids, &tid, sizeof(tid), entry);
 
+	STARPU_ASSERT_MSG(workerid < STARPU_NMAXWORKERS, "Too many workers in this trace, please increase the maximum number of CPUs and GPUs to the same value as was used for execution");
+
 	/* only register a thread once */
 	STARPU_ASSERT(entry == NULL);
 
