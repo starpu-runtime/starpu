@@ -50,35 +50,35 @@
 {
    We do not care about the race on the entry->mean variable, we only want a good-enough estimation.
    Helgrind:Race
-   fun: _starpu_history_based_job_expected_perf
+   fun:_starpu_history_based_job_expected_perf
    ...
 }
 
 {
    We do not care about races on profiling statistics
    Helgrind:Race
-   fun: starpu_profiling_status_get
+   fun:starpu_profiling_status_get
    ...
 }
 
 {
    This is racy, but since we'll always put the same values, this is not a problem.
    Helgrind:Race
-   fun: _starpu_codelet_check_deprecated_fields
+   fun:_starpu_codelet_check_deprecated_fields
    ...
 }
 
 {
    This is racy, but we don't care, it's only a statistic
    Helgrind:Race
-   fun: starpu_task_nsubmitted
+   fun:starpu_task_nsubmitted
    ...
 }
 
 {
    This is racy, but we don't care, it's only a statistic
    Helgrind:Race
-   fun: starpu_task_nready
+   fun:starpu_task_nready
    ...
 }
 
@@ -94,16 +94,16 @@
 {
    This is racy, but we don't care, if the function was called a bit earlier we would have had a different value
    Helgrind:Race
-   fun: _starpu_fifo_empty
-   fun: pop_task_eager_policy
+   fun:_starpu_fifo_empty
+   fun:pop_task_eager_policy
    ...
 }
 
 {
    This is the counterpart of the suppression above
    Helgrind:Race
-   fun: _starpu_fifo_push_task
-   fun: push_task_eager_policy
+   fun:_starpu_fifo_push_task
+   fun:push_task_eager_policy
    ...
 }
 
