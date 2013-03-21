@@ -1234,6 +1234,13 @@ if test x$use_mpi = xyes; then
 	AC_DEFINE(STARPU_USE_MPI,[],[whether the StarPU MPI library is available])
 fi
 
+AC_ARG_ENABLE(mpi-progression-hook, [AS_HELP_STRING([--enable-mpi-progression-hook],
+				   [Enable StarPU MPI activity polling method])],
+				   enable_mpi_progression_hook=$enableval, enable_mpi_progression_hook=no)
+if  test x$enable_mpi_progression_hook = xyes; then
+	AC_DEFINE(STARPU_MPI_ACTIVITY, [1], [enable StarPU MPI activity polling method])
+fi
+
 ###############################################################################
 #                                                                             #
 #                               StarPU-Top                                    #

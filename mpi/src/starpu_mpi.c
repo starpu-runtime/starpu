@@ -23,11 +23,7 @@
 #include <starpu_profiling.h>
 #include <starpu_mpi_stats.h>
 #include <starpu_mpi_insert_task.h>
-
-#ifdef STARPU_DEVEL
-#  warning TODO find a better way to select the polling method (perhaps during the configuration)
-#endif
-//#define USE_STARPU_ACTIVITY	1
+#include <common/config.h>
 
 static void _starpu_mpi_submit_new_mpi_request(void *arg);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
@@ -699,7 +695,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 	_STARPU_MPI_LOG_OUT();
 }
 
-#ifdef USE_STARPU_ACTIVITY
+#ifdef STARPU_MPI_ACTIVITY
 static unsigned _starpu_mpi_progression_hook_func(void *arg __attribute__((unused)))
 {
 	unsigned may_block = 1;
@@ -714,7 +710,7 @@ static unsigned _starpu_mpi_progression_hook_func(void *arg __attribute__((unuse
 
 	return may_block;
 }
-#endif
+#endif /* STARPU_MPI_ACTIVITY */
 
 static void _starpu_mpi_test_detached_requests(void)
 {
@@ -885,9 +881,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		/* shall we block ? */
 		unsigned block = _starpu_mpi_req_list_empty(new_requests);
 
-#ifndef USE_STARPU_ACTIVITY
+#ifndef STARPU_MPI_ACTIVITY
 		block = block && _starpu_mpi_req_list_empty(detached_requests);
-#endif
+#endif /* STARPU_MPI_ACTIVITY */
 
 		if (block)
 		{
@@ -946,9 +942,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 /*                                                      */
 /********************************************************/
 
-#ifdef USE_STARPU_ACTIVITY
+#ifdef STARPU_MPI_ACTIVITY
 static int hookid = - 1;
-#endif
+#endif /* STARPU_MPI_ACTIVITY */
 
 static void _starpu_mpi_add_sync_point_in_fxt(void)
 {
@@ -1006,10 +1002,10 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 		_STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-#ifdef USE_STARPU_ACTIVITY
+#ifdef STARPU_MPI_ACTIVITY
 	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
 	STARPU_ASSERT(hookid >= 0);
-#endif
+#endif /* STARPU_MPI_ACTIVITY */
 
 	_starpu_mpi_add_sync_point_in_fxt();
 	_starpu_mpi_comm_amounts_init(MPI_COMM_WORLD);
@@ -1058,9 +1054,9 @@ int starpu_mpi_shutdown(void)
 
 	pthread_join(progress_thread, &value);
 
-#ifdef USE_STARPU_ACTIVITY
+#ifdef STARPU_MPI_ACTIVITY
 	starpu_progression_hook_deregister(hookid);
-#endif
+#endif /* STARPU_MPI_ACTIVITY */
 
 	TRACE_MPI_STOP(rank, world_size);
 

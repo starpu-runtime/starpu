@@ -209,8 +209,12 @@ enabled when the GCC compiler provides a plug-in support.
 @end defvr
 
 @defvr {Configure option} --with-mpicc=@var{path}
-Use the @command{mpicc} compiler at @var{path}, for starpumpi
+Use the @command{mpicc} compiler at @var{path}, for StarPU-MPI.
 (@pxref{StarPU MPI support}).
+@end defvr
+
+@defvr {Configure option} --enable-mpi-progression-hook
+Enable the activity polling method for StarPU-MPI.
 @end defvr
 
 @node Advanced configuration

@@ -116,6 +116,8 @@ Small features:
   * File STARPU-REVISION --- containing the SVN revision number from which
     StarPU was compiled --- is installed in the share/doc/starpu directory
   * starpu_perfmodel_plot can now directly draw GFlops curves.
+  * New configure option --enable-mpi-progression-hook to enable the
+    activity polling method for StarPU-MPI.
 
 Changes:
   * Fix the block filter functions.
