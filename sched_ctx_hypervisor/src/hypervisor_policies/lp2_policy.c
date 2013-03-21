@@ -45,7 +45,7 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 	/* smallest possible tmax, difficult to obtain as we
 	   compute the nr of flops and not the tasks */
 	double possible_tmax = _lp_get_tmax(nw, workers);
-	double smallest_tmax = possible_tmax / 2;
+	double smallest_tmax = possible_tmax / 3;
 	double tmax = possible_tmax * ns;
 	double res = 1.0;
 	unsigned has_sol = 0;
@@ -194,7 +194,6 @@ static void lp2_handle_submitted_job(struct starpu_task *task, uint32_t footprin
 static void _remove_task_from_pool(struct starpu_task *task, uint32_t footprint)
 {
 	/* count the tasks of the same type */
-	pthread_mutex_lock(&mutex);
 	struct bound_task_pool *tp = NULL;
 
 	for (tp = task_pools; tp; tp = tp->next)
@@ -209,17 +208,33 @@ static void _remove_task_from_pool(struct starpu_task *task, uint32_t footprint)
 			tp->n--;
 		else
 		{
-			struct bound_task_pool *prev_tp = NULL;
-			for (prev_tp = task_pools; prev_tp; prev_tp = prev_tp->next)
+			if(tp == task_pools)
 			{
-				if (prev_tp->next == tp)
-					prev_tp->next = tp->next;
-			}
+				struct bound_task_pool *next_tp = NULL;
+				if(task_pools->next)
+					next_tp = task_pools->next;
 
-			free(tp);
+				free(tp);
+				tp = NULL;
+				
+				if(next_tp)
+					task_pools = next_tp;
+				
+			}
+			else
+			{
+				struct bound_task_pool *prev_tp = NULL;
+				for (prev_tp = task_pools; prev_tp; prev_tp = prev_tp->next)
+				{
+					if (prev_tp->next == tp)
+						prev_tp->next = tp->next;
+				}
+				
+				free(tp);
+				tp = NULL;
+			}
 		}
 	}
-	pthread_mutex_unlock(&mutex);
 }
 
 static void _get_tasks_times(int nw, int nt, double times[nw][nt], int *workers)
@@ -230,14 +245,32 @@ static void _get_tasks_times(int nw, int nt, double times[nw][nt], int *workers)
         {
                 for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
                 {
-                        enum starpu_perf_archtype arch = workers == NULL ? starpu_worker_get_perf_archtype(w) :
-				starpu_worker_get_perf_archtype(workers[w]);
+			int worker = workers == NULL ? w : workers[w];
+                        enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(worker);
                         double length = starpu_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
 
                         if (isnan(length))
                                 times[w][t] = NAN;
-                       else
+			else
+			{
                                 times[w][t] = length / 1000.;
+
+				double transfer_time = 0.0;
+				unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
+				if(!worker_in_ctx)
+				{
+					enum starpu_archtype arch = starpu_worker_get_type(worker);
+					if(arch == STARPU_CUDA_WORKER)
+					{
+						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
+						transfer_time =  (tp->footprint / transfer_velocity) / 1000000 ;
+						double latency = starpu_get_latency_RAM_CUDA(worker);
+						transfer_time += (tp->n * latency)/1000000;
+					}
+					times[w][t] += transfer_time;
+				}
+//				printf("%d/%d %s x %d time = %lf transfer_time = %lf\n", w, tp->sched_ctx_id, tp->cl->model->symbol, tp->n, times[w][t], transfer_time);
+			}
                 }
         }
 }
@@ -280,7 +313,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 				glp_set_obj_coef(lp, nw*nt+s*nw+w+1, 1.);
 
 		for (w = 0; w < nw; w++)
-			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+			for (t = 0; t < nt; t++)
 			{
 				char name[32];
 				snprintf(name, sizeof(name), "w%dt%dn", w, t);
@@ -313,7 +346,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 		int curr_row_idx = 0;
 		/* Total worker execution time */
 		glp_add_rows(lp, nw*ns);
-		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+		for (t = 0; t < nt; t++)
 		{
 			int someone = 0;
 			for (w = 0; w < nw; w++)
@@ -449,7 +482,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 
 	double res = glp_get_obj_val(lp);
 	for (w = 0; w < nw; w++)
-		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+		for (t = 0; t < nt; t++)
 /* 			if (integer) */
 /* 				tasks[w][t] = (double)glp_mip_col_val(lp, colnum(w, t)); */
 /*                         else */
@@ -471,10 +504,8 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 	return res;
 }
 
-
 static void lp2_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
-	_remove_task_from_pool(task, footprint);
 	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 
 	int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
@@ -491,7 +522,9 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_
 			int ns = sched_ctx_hypervisor_get_nsched_ctxs();
 			int nw = starpu_worker_get_count(); /* Number of different workers */
 			int nt = 0; /* Number of different kinds of tasks */
-			pthread_mutex_lock(&mutex);
+
+//			pthread_mutex_lock(&mutex);
+
 			struct bound_task_pool * tp;
 			for (tp = task_pools; tp; tp = tp->next)
 				nt++;
@@ -500,7 +533,8 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_
 			double tasks_per_worker[nw][nt];
 
 			unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, tasks_per_worker, NULL, NULL);
-			pthread_mutex_unlock(&mutex);
+//			pthread_mutex_unlock(&mutex);
+
 			/* if we did find at least one solution redistribute the resources */
 			if(found_sol)
 				_lp_place_resources_in_ctx(ns, nw, w_in_s, NULL, NULL, 0);
@@ -509,6 +543,13 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_
 		}
 		pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
+	/* TODO: dangerous issue not taking this mutex... but too expensive to do it */
+	/* correct value of the number of tasks is not required but the linear progr
+	   can segfault if this changes during the exec */
+//	pthread_mutex_lock(&mutex);
+	_remove_task_from_pool(task, footprint);
+//	pthread_mutex_unlock(&mutex);
+
 }
 
 
