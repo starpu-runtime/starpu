@@ -86,7 +86,7 @@ static unsigned get_colour_symbol_blue(char *name)
 }
 
 static double last_codelet_start[STARPU_NMAXWORKERS];
-static char last_codelet_symbol[128][STARPU_NMAXWORKERS];
+static char last_codelet_symbol[STARPU_NMAXWORKERS][128];
 
 /* If more than a period of time has elapsed, we flush the profiling info,
  * otherwise they are accumulated everytime there is a new relevant event. */
@@ -508,7 +508,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	unsigned long has_name = ev->param[3];
 	char *name = has_name?(char *)&ev->param[4]:"unknown";
 
-	snprintf(last_codelet_symbol[worker], 128, "%s", name);
+	snprintf(last_codelet_symbol[worker], sizeof(last_codelet_symbol[worker]), "%s", name);
 
 	double start_codelet_time = get_event_time_stamp(ev, options);
 	last_codelet_start[worker] = start_codelet_time;
