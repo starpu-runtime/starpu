@@ -107,3 +107,13 @@
    ...
 }
 
+
+{
+   This is the counterpart of the suppression above
+   Helgrind:Race
+   fun:_starpu_fifo_push_sorted_task
+   fun:_starpu_fifo_push_task
+   fun:push_task_eager_policy
+   ...
+}
+
