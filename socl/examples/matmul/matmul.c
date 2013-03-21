@@ -363,7 +363,7 @@ int main(int argc, const char** argv) {
 		check(clEnqueueNDRangeKernel(commandQueue[platform][dev], multiplicationKernel[platform], 2, NULL, globalWorkSize, localWorkSize, 0, NULL, &GPUExecution[i]));
 
 		// Non-blocking copy of result from device to host
-		 cqs[i] = commandQueue[p][dev];
+		cqs[i] = commandQueue[platform][dev];
 		check2(ptrs[i] = clEnqueueMapBuffer(cqs[i], d_C[i], CL_FALSE, CL_MAP_READ, 0, WC * sizeof(TYPE) * workSize[i], 1, &GPUExecution[i], &GPUDone[i], &err));
 
 		if(i+1 < BLOCKS)
