@@ -76,7 +76,9 @@ versinclude_HEADERS = 				\
 	include/starpu_deprecated_api.h         \
 	include/starpu_hash.h			\
 	include/starpu_rand.h			\
-	include/starpu_cublas.h
+	include/starpu_cublas.h			\
+	include/starpu_driver.h			\
+	include/starpu_stdlib.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h
@@ -116,6 +118,8 @@ txtdir = ${docdir}
 endif
 txt_DATA = AUTHORS COPYING.LGPL README STARPU-REVISION
 EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl
+
+DISTCLEANFILES = STARPU-REVISION
 
 include starpu-top/extradist
 
