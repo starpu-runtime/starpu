@@ -76,6 +76,14 @@
 }
 
 {
+   We do not care about races on profiling statistics
+   Helgrind:Race
+   fun:_starpu_worker_get_status
+   fun:_starpu_worker_reset_profiling_info_with_lock
+   ...
+}
+
+{
    This is racy, but since we'll always put the same values, this is not a problem.
    Helgrind:Race
    fun:_starpu_codelet_check_deprecated_fields
