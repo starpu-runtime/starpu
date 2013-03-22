@@ -69,6 +69,13 @@
 }
 
 {
+   This is the counterpart of the suppression above.
+   Helgrind:Race
+   fun:starpu_profiling_status_set
+   ...
+}
+
+{
    This is racy, but since we'll always put the same values, this is not a problem.
    Helgrind:Race
    fun:_starpu_codelet_check_deprecated_fields
