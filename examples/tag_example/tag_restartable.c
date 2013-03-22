@@ -106,7 +106,7 @@ static int start_task_grid(unsigned iter)
 	return 0;
 }
 
-void cpu_codelet(void *descr[], void *_args __attribute__((unused)))
+void cpu_codelet(void *descr[] __attribute__((unused)), void *_args __attribute__((unused)))
 {
 /*	int i = (uintptr_t) _args;
 	printf("doing %x\n", i);
@@ -117,7 +117,7 @@ void cpu_codelet(void *descr[], void *_args __attribute__((unused)))
 
 int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 {
-	unsigned i;
+	unsigned i, j;
 	int ret;
 
 	ret = starpu_init(NULL);
@@ -161,9 +161,9 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	FPRINTF(stderr, "TEST DONE ...\n");
 
 enodev:
-	for (i = 0; i < Nrolls; i++)
-	{
-		starpu_task_clean(tasks[i]);
+	for (i = 0; i < Nrolls; i++) {
+		for (j = 0; j < ni; j++)
+			starpu_task_destroy(tasks[i][j]);
 		free(tasks[i]);
 	}
 
