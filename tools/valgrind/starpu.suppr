@@ -62,6 +62,20 @@
 }
 
 {
+   We do not care about the race on the entry->mean variable, we only want a good-enough estimation.
+   Helgrind:Race
+   fun:_starpu_non_linear_regression_based_job_expected_perf
+   ...
+}
+
+{
+   This is the counterpart of the suppressions above
+   Helgrind:Race
+   fun:_starpu_update_perfmodel_history
+   ...
+}
+
+{
    We do not care about races on profiling statistics
    Helgrind:Race
    fun:starpu_profiling_status_get
