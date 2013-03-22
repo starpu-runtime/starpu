@@ -696,8 +696,6 @@ static void register_mem_chunk(struct _starpu_data_replicate *replicate, unsigne
  */
 void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned node, size_t size)
 {
-	_starpu_spin_checklocked(&handle->header_lock);
-
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
 	/* TODO: expensive, handle should have its own list of chunks? */
