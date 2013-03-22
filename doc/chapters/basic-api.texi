@@ -1805,8 +1805,14 @@ contained in the @code{tag_id} field. Tag allow the application to synchronize
 with the task and to express task dependencies easily.
 
 @item @code{starpu_tag_t tag_id}
-This fields contains the tag associated to the task if the @code{use_tag} field
+This field contains the tag associated to the task if the @code{use_tag} field
 was set, it is ignored otherwise.
+
+@item @code{unsigned sequential_consistency}
+If this flag is set (which is the default), sequential consistency is enforced
+for the data parameters of this task for which sequential consistency is
+enabled. Clearing this flag permits to disable sequential consistency for this
+task, even if data have it enabled.
 
 @item @code{unsigned synchronous}
 If this flag is set, the @code{starpu_task_submit} function is blocking and

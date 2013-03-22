@@ -103,6 +103,7 @@ noinst_PROGRAMS =				\
 	main/deprecated_buffer			\
 	main/driver_api/init_run_deinit         \
 	main/driver_api/run_driver              \
+	main/deploop                            \
 	main/restart				\
 	main/execute_on_a_specific_worker	\
 	main/insert_task			\

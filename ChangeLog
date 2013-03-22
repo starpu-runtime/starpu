@@ -118,6 +118,7 @@ Small features:
   * starpu_perfmodel_plot can now directly draw GFlops curves.
   * New configure option --enable-mpi-progression-hook to enable the
     activity polling method for StarPU-MPI.
+  * Permit to disable sequential consistency for a given task.
 
 Changes:
   * Fix the block filter functions.

@@ -57,6 +57,8 @@ void starpu_task_init(struct starpu_task *task)
 	 * everywhere */
 	memset(task, 0, sizeof(struct starpu_task));
 
+	task->sequential_consistency = 1;
+
 	/* Now we can initialise fields which recquire custom value */
 #if STARPU_DEFAULT_PRIO != 0
 	task->priority = STARPU_DEFAULT_PRIO;
