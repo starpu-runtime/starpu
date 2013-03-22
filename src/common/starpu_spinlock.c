@@ -82,6 +82,7 @@ int _starpu_spin_lock(struct _starpu_spinlock *lock)
 		/* Give hand to another thread, hopefully the one which has the
 		 * spinlock and probably just has also a short-lived mutex. */
 		MSG_process_sleep(0.000001);
+		STARPU_UYIELD();
 	}
 #elif defined(STARPU_SPINLOCK_CHECK)
 	int ret = pthread_mutex_lock(&lock->errcheck_lock);
@@ -96,6 +97,8 @@ int _starpu_spin_lock(struct _starpu_spinlock *lock)
 	do
 	{
 		prev = STARPU_TEST_AND_SET(&lock->taken, 1);
+		if (prev)
+			STARPU_UYIELD();
 	}
 	while (prev);
 	return 0;
