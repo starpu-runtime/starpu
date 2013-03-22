@@ -13,6 +13,13 @@
 }
 
 {
+   counterpart of the above
+   Helgrind:Race
+   fun:starpu_drivers_request_termination
+   ...
+}
+
+{
    don't care about cache hit stats
    Helgrind:Race
    fun:_starpu_msi_cache_hit
@@ -116,4 +123,3 @@
    fun:push_task_eager_policy
    ...
 }
-
