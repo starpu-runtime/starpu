@@ -37,12 +37,14 @@ struct starpu_codelet stencil5_cl =
 };
 
 #ifdef STARPU_QUICK_CHECK
-#  define NITER_DEF	10
+#  define NITER_DEF	5
+#  define X         	3
+#  define Y         	3
 #else
 #  define NITER_DEF	500
+#  define X         	20
+#  define Y         	20
 #endif
-#define X         20
-#define Y         20
 
 int display = 0;
 int niter = NITER_DEF;
