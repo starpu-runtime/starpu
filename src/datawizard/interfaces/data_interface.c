@@ -553,16 +553,28 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	/* Wait for finished requests to release the handle */
 	_starpu_spin_lock(&handle->header_lock);
 
+	_starpu_data_free_interfaces(handle);
+
 	/* Destroy the data now */
-	unsigned node;
 	size_t size = _starpu_data_get_size(handle);
+	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
+		struct _starpu_data_replicate *local = &handle->per_node[node];
 		/* free the data copy in a lazy fashion */
-		_starpu_request_mem_chunk_removal(handle, node, size);
+		if (local->allocated && local->automatically_allocated)
+			_starpu_request_mem_chunk_removal(handle, local, node, size);
+	}
+	unsigned worker;
+	unsigned nworkers = starpu_worker_get_count();
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		struct _starpu_data_replicate *local = &handle->per_worker[worker];
+		/* free the data copy in a lazy fashion */
+		if (local->allocated && local->automatically_allocated)
+			_starpu_request_mem_chunk_removal(handle, local, starpu_worker_get_memory_node(worker), size);
 	}
 
-	_starpu_data_free_interfaces(handle);
 	_starpu_memory_stats_free(handle);
 	_starpu_data_requester_list_delete(handle->req_list);
 	_starpu_data_requester_list_delete(handle->reduction_req_list);
@@ -604,13 +616,22 @@ static void _starpu_data_invalidate(void *data)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
 
-		if (local->allocated && local->automatically_allocated)
-		{
+		if (local->mc && local->allocated && local->automatically_allocated)
 			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(handle, node, size);
-			local->allocated = 0;
-			local->automatically_allocated = 0;
-		}
+			_starpu_request_mem_chunk_removal(handle, local, node, size);
+
+		local->state = STARPU_INVALID;
+	}
+
+	unsigned worker;
+	unsigned nworkers = starpu_worker_get_count();
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		struct _starpu_data_replicate *local = &handle->per_worker[worker];
+
+		if (local->mc && local->allocated && local->automatically_allocated)
+			/* free the data copy in a lazy fashion */
+			_starpu_request_mem_chunk_removal(handle, local, starpu_worker_get_memory_node(worker), size);
 
 		local->state = STARPU_INVALID;
 	}
