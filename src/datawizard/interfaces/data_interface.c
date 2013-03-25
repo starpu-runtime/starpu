@@ -546,17 +546,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	/* Wait for all requests to finish (notably WT requests) */
 	_STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
-	while (1) {
-		int busy;
-		_starpu_spin_lock(&handle->header_lock);
-		busy = handle->busy_count;
-		_starpu_spin_unlock(&handle->header_lock);
-		if (!busy)
-			break;
-		/* This is woken by _starpu_data_check_not_busy, always called
-		 * after decrementing busy_count */
+	while (handle->busy_count)
 		_STARPU_PTHREAD_COND_WAIT(&handle->busy_cond, &handle->busy_mutex);
-	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 
 	/* Wait for finished requests to release the handle */
