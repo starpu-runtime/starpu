@@ -398,6 +398,10 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
 		_starpu_spin_unlock(&child_handle->header_lock);
 		_starpu_spin_destroy(&child_handle->header_lock);
+
+		_STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->busy_mutex);
+		_STARPU_PTHREAD_COND_DESTROY(&child_handle->busy_cond);
+		_STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->sequential_consistency_mutex);
 	}
 
 	/* there is no child anymore */

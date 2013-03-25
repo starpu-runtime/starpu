@@ -62,6 +62,8 @@ void _starpu_deinit_mem_chunk_lists(void)
 		_starpu_mem_chunk_list_delete(mc_list[i]);
 		_starpu_mem_chunk_list_delete(memchunk_cache[i]);
 		_starpu_mem_chunk_lru_list_delete(starpu_lru_list[i]);
+		_starpu_spin_destroy(&lru_rwlock[i]);
+		_STARPU_PTHREAD_RWLOCK_DESTROY(&mc_rwlock[i]);
 	}
 }
 

@@ -480,6 +480,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 					_STARPU_PTHREAD_COND_WAIT(&arg.cond, &arg.mutex);
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&arg.mutex);
 			}
+			_STARPU_PTHREAD_MUTEX_DESTROY(&arg.mutex);
+			_STARPU_PTHREAD_COND_DESTROY(&arg.cond);
 			_starpu_release_data_on_node(handle, 0, &handle->per_node[home_node]);
 		}
 
@@ -582,6 +584,10 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	_starpu_spin_unlock(&handle->header_lock);
 	_starpu_spin_destroy(&handle->header_lock);
+
+	_STARPU_PTHREAD_MUTEX_DESTROY(&handle->busy_mutex);
+	_STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
+	_STARPU_PTHREAD_MUTEX_DESTROY(&handle->sequential_consistency_mutex);
 
 	free(handle);
 }

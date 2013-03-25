@@ -55,6 +55,7 @@ void _starpu_memory_nodes_deinit(void)
 	_starpu_deinit_data_request_lists();
 	_starpu_deinit_mem_chunk_lists();
 
+	_STARPU_PTHREAD_RWLOCK_DESTROY(&descr.conditions_rwlock);
 	_STARPU_PTHREAD_KEY_DELETE(memory_node_key);
 }
 
