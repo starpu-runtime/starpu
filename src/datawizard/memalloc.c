@@ -504,7 +504,7 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 		 * now */
 		next_mc = _starpu_mem_chunk_list_next(mc);
 
-		if (mc->data->is_not_important && (mc->footprint == footprint))
+		if ((!mc->data || mc->data->is_not_important) && (mc->footprint == footprint))
 		{
 //			fprintf(stderr, "found a candidate ...\n");
 			if (try_to_reuse_mem_chunk(mc, node, replicate, 1))
