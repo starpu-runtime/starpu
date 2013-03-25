@@ -639,6 +639,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 		MPI_Status status;
 		memset(&status, 0, sizeof(MPI_Status));
 		req->ret = MPI_Recv(req->ptr, req->count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &status);
+		STARPU_ASSERT(req->ret == MPI_SUCCESS);
 	}
 
 	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ || req->request_type == PROBE_REQ)
@@ -951,11 +952,13 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 #ifdef STARPU_USE_FXT
 	int rank;
 	int worldsize;
+	int ret;
+
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
 
-	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
-	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
+	ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
 
 	/* We generate a "unique" key so that we can make sure that different
 	 * FxT traces come from the same MPI run. */
@@ -969,7 +972,8 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 		random_number = rand();
 	}
 
-	MPI_Bcast(&random_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	ret = MPI_Bcast(&random_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
 
 	TRACE_MPI_BARRIER(rank, worldsize, random_number);
 
