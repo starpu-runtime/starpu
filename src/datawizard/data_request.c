@@ -391,6 +391,7 @@ void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_list *new_data_requests;
 
+	/* Note: this is not racy: list_empty just reads a pointer */
 	if (_starpu_data_request_list_empty(data_requests[src_node]))
 		return;
 
