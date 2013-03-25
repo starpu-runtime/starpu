@@ -120,7 +120,7 @@ static void test_cleaner(int sig)
 	fprintf(stderr, "[error] test %s has been blocked for %d seconds. Mark it as failed\n", test_name, timeout);
 	child_gid = getpgid(child_pid);
 	launch_gdb(test_name);
-	kill(-child_gid, SIGKILL);
+	kill(-child_gid, SIGQUIT);
 	exit(EXIT_FAILURE);
 }
 
