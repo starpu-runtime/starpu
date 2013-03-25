@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <common/utils.h>
 #include <datawizard/datawizard.h>
 
 /* requests that have not been treated at all */
@@ -391,9 +392,18 @@ void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_list *new_data_requests;
 
-	/* Note: this is not racy: list_empty just reads a pointer */
+	/* Note: we here tell valgrind that list_empty (reading a pointer) is
+	 * as safe as if we had the lock held */
+	VALGRIND_HG_MUTEX_LOCK_PRE(&data_requests_list_mutex[src_node], 0);
+	VALGRIND_HG_MUTEX_LOCK_POST(&data_requests_list_mutex[src_node]);
 	if (_starpu_data_request_list_empty(data_requests[src_node]))
+	{
+		VALGRIND_HG_MUTEX_UNLOCK_PRE(&data_requests_list_mutex[src_node]);
+		VALGRIND_HG_MUTEX_UNLOCK_POST(&data_requests_list_mutex[src_node]);
 		return;
+	}
+	VALGRIND_HG_MUTEX_UNLOCK_PRE(&data_requests_list_mutex[src_node]);
+	VALGRIND_HG_MUTEX_UNLOCK_POST(&data_requests_list_mutex[src_node]);
 
 	/* take all the entries from the request list */
         _STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);

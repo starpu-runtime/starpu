@@ -31,6 +31,34 @@
 #include <msg/msg.h>
 #endif
 
+#ifdef STARPU_HAVE_HELGRIND_H
+#include <valgrind/helgrind.h>
+#else
+#define VALGRIND_HG_MUTEX_LOCK_PRE(mutex, istrylock) ((void)0)
+#define VALGRIND_HG_MUTEX_LOCK_POST(mutex) ((void)0)
+#define VALGRIND_HG_MUTEX_UNLOCK_PRE(mutex) ((void)0)
+#define VALGRIND_HG_MUTEX_UNLOCK_POST(mutex) ((void)0)
+#define DO_CREQ_v_WW(_creqF, _ty1F, _arg1F, _ty2F, _arg2F) ((void)0)
+#define DO_CREQ_v_W(_creqF, _ty1F, _arg1F) ((void)0)
+#define ANNOTATE_HAPPENS_BEFORE(obj) ((void)0)
+#define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
+#define ANNOTATE_RWLOCK_ACQUIRED(lock, is_w) ((void)0)
+#define ANNOTATE_RWLOCK_RELEASED(lock, is_w) ((void)0)
+#endif
+
+#define _STARPU_VALGRIND_HG_SPIN_LOCK_PRE(lock) \
+	DO_CREQ_v_WW(_VG_USERREQ__HG_PTHREAD_SPIN_LOCK_PRE, \
+			struct _starpu_spinlock *, lock, long, 0)
+#define _STARPU_VALGRIND_HG_SPIN_LOCK_POST(lock) \
+	DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_SPIN_LOCK_POST, \
+			struct _starpu_spinlock *, lock)
+#define _STARPU_VALGRIND_HG_SPIN_UNLOCK_PRE(lock) \
+	DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_SPIN_INIT_OR_UNLOCK_PRE, \
+			struct _starpu_spinlock *, lock)
+#define _STARPU_VALGRIND_HG_SPIN_UNLOCK_POST(lock) \
+	DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_SPIN_INIT_OR_UNLOCK_POST, \
+			struct _starpu_spinlock *, lock)
+
 #ifdef STARPU_VERBOSE
 #  define _STARPU_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args); fflush(stderr); }} while(0)
 #else

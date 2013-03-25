@@ -1,25 +1,4 @@
 {
-   config.running is not racy from starpu_shutdown
-   Helgrind:Race
-   fun:starpu_shutdown
-   ...
-}
-
-{
-   config.running is not racy from _starpu_machine_is_running
-   Helgrind:Race
-   fun:_starpu_machine_is_running
-   ...
-}
-
-{
-   counterpart of the above
-   Helgrind:Race
-   fun:starpu_drivers_request_termination
-   ...
-}
-
-{
    don't care about cache hit stats
    Helgrind:Race
    fun:_starpu_msi_cache_hit
@@ -51,27 +30,6 @@
    Helgrind:Race
    fun:_starpu_release_data_on_node
    fun:_starpu_push_task_output
-   ...
-}
-
-{
-   We do not care about the race on the entry->mean variable, we only want a good-enough estimation.
-   Helgrind:Race
-   fun:_starpu_history_based_job_expected_perf
-   ...
-}
-
-{
-   We do not care about the race on the entry->mean variable, we only want a good-enough estimation.
-   Helgrind:Race
-   fun:_starpu_non_linear_regression_based_job_expected_perf
-   ...
-}
-
-{
-   This is the counterpart of the suppressions above
-   Helgrind:Race
-   fun:_starpu_update_perfmodel_history
    ...
 }
 

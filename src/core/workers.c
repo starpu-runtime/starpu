@@ -895,6 +895,7 @@ unsigned _starpu_machine_is_running(void)
 {
 	/* running is just protected by a memory barrier */
 	STARPU_RMB();
+	ANNOTATE_HAPPENS_AFTER(&config.running);
 	return config.running;
 }
 
@@ -925,6 +926,7 @@ static void _starpu_kill_all_workers(struct _starpu_machine_config *pconfig)
 	/* set the flag which will tell workers to stop */
 	pconfig->running = 0;
 	/* running is just protected by a memory barrier */
+	ANNOTATE_HAPPENS_BEFORE(&config.running);
 	STARPU_WMB();
 	starpu_wake_all_blocked_workers();
 }
