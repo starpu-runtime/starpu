@@ -701,10 +701,18 @@ int _starpu_opencl_driver_deinit(struct starpu_driver *d)
 	unsigned memnode = args->memory_node;
 
 	_starpu_handle_all_pending_node_data_requests(memnode);
+
+	/* In case there remains some memory that was automatically
+	 * allocated by StarPU, we release it now. Note that data
+	 * coherency is not maintained anymore at that point ! */
+	_starpu_free_all_automatically_allocated_buffers(memnode);
+
 #ifndef STARPU_SIMGRID
 	unsigned devid   = args->devid;
         _starpu_opencl_deinit_context(devid);
 #endif
+
+	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_OPENCL_KEY);
 
 	return 0;
 }
