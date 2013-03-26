@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,16 +33,36 @@
 
 #ifdef STARPU_HAVE_HELGRIND_H
 #include <valgrind/helgrind.h>
-#else
+#endif
+
+#ifndef VALGRIND_HG_MUTEX_LOCK_PRE
 #define VALGRIND_HG_MUTEX_LOCK_PRE(mutex, istrylock) ((void)0)
+#endif
+#ifndef VALGRIND_HG_MUTEX_LOCK_POST
 #define VALGRIND_HG_MUTEX_LOCK_POST(mutex) ((void)0)
+#endif
+#ifndef VALGRIND_HG_MUTEX_UNLOCK_PRE
 #define VALGRIND_HG_MUTEX_UNLOCK_PRE(mutex) ((void)0)
+#endif
+#ifndef VALGRIND_HG_MUTEX_UNLOCK_POST
 #define VALGRIND_HG_MUTEX_UNLOCK_POST(mutex) ((void)0)
+#endif
+#ifndef DO_CREQ_v_WW
 #define DO_CREQ_v_WW(_creqF, _ty1F, _arg1F, _ty2F, _arg2F) ((void)0)
+#endif
+#ifndef DO_CREQ_v_W
 #define DO_CREQ_v_W(_creqF, _ty1F, _arg1F) ((void)0)
+#endif
+#ifndef ANNOTATE_HAPPENS_BEFORE
 #define ANNOTATE_HAPPENS_BEFORE(obj) ((void)0)
+#endif
+#ifndef ANNOTATE_HAPPENS_AFTER
 #define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
+#endif
+#ifndef ANNOTATE_RWLOCK_ACQUIRED
 #define ANNOTATE_RWLOCK_ACQUIRED(lock, is_w) ((void)0)
+#endif
+#ifndef ANNOTATE_RWLOCK_RELEASED
 #define ANNOTATE_RWLOCK_RELEASED(lock, is_w) ((void)0)
 #endif
 
