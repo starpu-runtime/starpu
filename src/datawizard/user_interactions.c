@@ -239,10 +239,11 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 		.handle = handle,
 		.mode = mode,
 		.node = node,
-		.cond = _STARPU_PTHREAD_COND_INITIALIZER,
-		.lock = _STARPU_PTHREAD_MUTEX_INITIALIZER,
 		.finished = 0
 	};
+
+	_STARPU_PTHREAD_COND_INIT(&wrapper.cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&wrapper.lock, NULL);
 
 //	_STARPU_DEBUG("TAKE sequential_consistency_mutex starpu_data_acquire\n");
 	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
