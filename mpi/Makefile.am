@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2012  Université de Bordeaux 1
+# Copyright (C) 2009-2013  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -160,7 +160,7 @@ examples_cholesky_mpi_cholesky_SOURCES	=		\
 
 examples_cholesky_mpi_cholesky_LDADD =			\
 	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la					\
-	$(STARPU_BLAS_LDFLAGS)
+	$(STARPU_BLAS_LDFLAGS) -lm
 
 examples_cholesky_mpi_cholesky_distributed_SOURCES =	\
 	examples/cholesky/mpi_cholesky_distributed.c	\
@@ -170,7 +170,7 @@ examples_cholesky_mpi_cholesky_distributed_SOURCES =	\
 
 examples_cholesky_mpi_cholesky_distributed_LDADD =	\
 	libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la					\
-	$(STARPU_BLAS_LDFLAGS)
+	$(STARPU_BLAS_LDFLAGS) -lm
 
 check_PROGRAMS +=					\
 	examples/cholesky/mpi_cholesky			\
