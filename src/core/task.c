@@ -709,7 +709,11 @@ void _starpu_decrement_nsubmitted_tasks(void)
 	if (--nsubmitted == 0)
 	{
 		if (!config->submitting)
+		{
+			ANNOTATE_HAPPENS_AFTER(&config->running);
 			config->running = 0;
+			ANNOTATE_HAPPENS_BEFORE(&config->running);
+		}
 		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 	}
 
@@ -729,7 +733,9 @@ starpu_drivers_request_termination(void)
 	config->submitting = 0;
 	if (nsubmitted == 0)
 	{
+		ANNOTATE_HAPPENS_AFTER(&config->running);
 		config->running = 0;
+		ANNOTATE_HAPPENS_BEFORE(&config->running);
 		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 	}
 
