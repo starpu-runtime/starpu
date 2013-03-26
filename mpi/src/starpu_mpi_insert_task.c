@@ -806,6 +806,8 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 	}
 }
 
+/* TODO: this should rather be implicitly called by starpu_mpi_insert_task when
+ * a data previously accessed in REDUX mode gets accessed in R mode. */
 void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 {
 	int me, rank, tag, nb_nodes;
@@ -843,6 +845,20 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 
 				_STARPU_MPI_DEBUG("Receiving redux handle from %d in %p ...\n", i, new_handle);
 
+				/* FIXME: we here allocate a lot of data: one
+				 * instance per MPI node and per number of
+				 * times we are called. We should rather do
+				 * that much later, e.g. after data_handle
+				 * finished its last read access, by submitting
+				 * an empty task A reading data_handle whose
+				 * callback submits the mpi comm, whose
+				 * callback submits the redux_cl task B with
+				 * sequential consistency set to 0, and submit
+				 * an empty task C writing data_handle and
+				 * depending on task B, just to replug with
+				 * implicit data dependencies with tasks
+				 * inserted after this reduction.
+				 */
 				starpu_mpi_irecv_detached(new_handle, i, tag, comm, NULL, NULL);
 				starpu_insert_task(data_handle->redux_cl,
 						   STARPU_RW, data_handle,
