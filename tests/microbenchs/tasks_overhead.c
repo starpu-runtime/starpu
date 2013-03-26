@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
 	gettimeofday(&end_exec, NULL);
 
-	for (i = 1; i < ntasks; i++)
+	for (i = 0; i < ntasks; i++)
 		starpu_task_clean(&tasks[i]);
 
 	for (buffer = 0; buffer < nbuffers; buffer++)

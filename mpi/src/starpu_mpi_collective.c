@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -42,26 +42,23 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 {
 	int rank;
 	int x;
-	struct _callback_arg *callback_arg;
-	void (*callback_func)(void *);
+	struct _callback_arg *callback_arg = NULL;
+	void (*callback_func)(void *) = NULL;
+	void (*callback)(void *);
 
 	MPI_Comm_rank(comm, &rank);
 
-	callback_func = _callback_collective;
-	callback_arg = malloc(sizeof(struct _callback_arg));
-	callback_arg->count = 0;
-	callback_arg->nb = 0;
-	callback_arg->callback = (rank == root) ? scallback : rcallback;
-	callback_arg->arg = (rank == root) ? sarg : rarg;
-	if (callback_arg->callback == NULL)
+	callback = (rank == root) ? scallback : rcallback;
+	if (callback)
 	{
-		free(callback_arg);
-		callback_arg = NULL;
-		callback_func = NULL;
-	}
+		callback_func = _callback_collective;
+		callback_arg = malloc(sizeof(struct _callback_arg));
+		callback_arg->count = 0;
+		callback_arg->nb = 0;
+		callback_arg->callback = (rank == root) ? scallback : rcallback;
+		callback_arg->arg = (rank == root) ? sarg : rarg;
+		if (callback_arg->callback == NULL)
 
-	if (callback_arg)
-	{
 		for(x = 0; x < count ; x++)
 		{
 			if (data_handles[x])
@@ -107,29 +104,23 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 {
 	int rank;
 	int x;
-	struct _callback_arg *callback_arg;
-	void (*callback_func)(void *);
+	struct _callback_arg *callback_arg = NULL;
+	void (*callback_func)(void *) = NULL;
+	void (*callback)(void *);
 
 	MPI_Comm_rank(comm, &rank);
 
-#ifdef STARPU_DEVEL
-#warning TODO: callback_arg needs to be free-ed
-#endif
-	callback_func = _callback_collective;
-	callback_arg = malloc(sizeof(struct _callback_arg));
-	callback_arg->count = 0;
-	callback_arg->nb = 0;
-	callback_arg->callback = (rank == root) ? scallback : rcallback;
-	callback_arg->arg = (rank == root) ? sarg : rarg;
-	if (callback_arg->callback == NULL)
+	callback = (rank == root) ? scallback : rcallback;
+	if (callback)
 	{
-		free(callback_arg);
-		callback_arg = NULL;
-		callback_func = NULL;
-	}
+		callback_func = _callback_collective;
 
-	if (callback_arg)
-	{
+		callback_arg = malloc(sizeof(struct _callback_arg));
+		callback_arg->count = 0;
+		callback_arg->nb = 0;
+		callback_arg->callback = callback;
+		callback_arg->arg = (rank == root) ? sarg : rarg;
+
 		for(x = 0; x < count ; x++)
 		{
 			if (data_handles[x])
@@ -170,4 +161,3 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 	}
 	return 0;
 }
-

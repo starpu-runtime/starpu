@@ -1,18 +1,4 @@
 {
-   config.running is not racy from starpu_shutdown
-   Helgrind:Race
-   fun:starpu_shutdown
-   ...
-}
-
-{
-   config.running is not racy from _starpu_machine_is_running
-   Helgrind:Race
-   fun:_starpu_machine_is_running
-   ...
-}
-
-{
    don't care about cache hit stats
    Helgrind:Race
    fun:_starpu_msi_cache_hit
@@ -48,37 +34,31 @@
 }
 
 {
-   We do not care about the race on the entry->mean variable, we only want a good-enough estimation.
-   Helgrind:Race
-   fun: _starpu_history_based_job_expected_perf
-   ...
-}
-
-{
    We do not care about races on profiling statistics
    Helgrind:Race
-   fun: starpu_profiling_status_get
+   fun:_starpu_worker_get_status
+   fun:_starpu_worker_reset_profiling_info_with_lock
    ...
 }
 
 {
    This is racy, but since we'll always put the same values, this is not a problem.
    Helgrind:Race
-   fun: _starpu_codelet_check_deprecated_fields
+   fun:_starpu_codelet_check_deprecated_fields
    ...
 }
 
 {
    This is racy, but we don't care, it's only a statistic
    Helgrind:Race
-   fun: starpu_task_nsubmitted
+   fun:starpu_task_nsubmitted
    ...
 }
 
 {
    This is racy, but we don't care, it's only a statistic
    Helgrind:Race
-   fun: starpu_task_nready
+   fun:starpu_task_nready
    ...
 }
 
@@ -92,18 +72,27 @@
 }
 
 {
-   This is racy, but we don't care, if the function was called a bit earlier we would have had a different value
+   This is racy, but keep it away for now, otherwise it clutters the buildbot log
    Helgrind:Race
-   fun: _starpu_fifo_empty
-   fun: pop_task_eager_policy
+   fun:_starpu_fifo_empty
+   fun:pop_task_eager_policy
    ...
 }
 
 {
    This is the counterpart of the suppression above
    Helgrind:Race
-   fun: _starpu_fifo_push_task
-   fun: push_task_eager_policy
+   fun:_starpu_fifo_push_task
+   fun:push_task_eager_policy
    ...
 }
 
+
+{
+   This is the counterpart of the suppression above
+   Helgrind:Race
+   fun:_starpu_fifo_push_sorted_task
+   fun:_starpu_fifo_push_task
+   fun:push_task_eager_policy
+   ...
+}

@@ -178,10 +178,8 @@ void _starpu_tag_clear(void)
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 }
 
-static struct _starpu_tag *gettag_struct(starpu_tag_t id)
+static struct _starpu_tag *_gettag_struct(starpu_tag_t id)
 {
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
-
 	/* search if the tag is already declared or not */
 	struct _starpu_tag_table *entry;
 	struct _starpu_tag *tag;
@@ -212,8 +210,15 @@ static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 #endif
 	}
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
+	return tag;
+}
 
+static struct _starpu_tag *gettag_struct(starpu_tag_t id)
+{
+	struct _starpu_tag *tag;
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+	tag = _gettag_struct(id);
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 	return tag;
 }
 
@@ -432,10 +437,11 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 		return -EDEADLK;
 	}
 
+	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 	/* only wait the tags that are not done yet */
 	for (i = 0, current = 0; i < ntags; i++)
 	{
-		struct _starpu_tag *tag = gettag_struct(id[i]);
+		struct _starpu_tag *tag = _gettag_struct(id[i]);
 
 		_starpu_spin_lock(&tag->lock);
 
@@ -450,6 +456,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 			current++;
 		}
 	}
+	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 
 	if (current == 0)
 	{

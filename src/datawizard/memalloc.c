@@ -62,6 +62,8 @@ void _starpu_deinit_mem_chunk_lists(void)
 		_starpu_mem_chunk_list_delete(mc_list[i]);
 		_starpu_mem_chunk_list_delete(memchunk_cache[i]);
 		_starpu_mem_chunk_lru_list_delete(starpu_lru_list[i]);
+		_starpu_spin_destroy(&lru_rwlock[i]);
+		_STARPU_PTHREAD_RWLOCK_DESTROY(&mc_rwlock[i]);
 	}
 }
 
@@ -694,59 +696,45 @@ static void register_mem_chunk(struct _starpu_data_replicate *replicate, unsigne
  * unregister or unpartition). It puts all the memchunks that refer to the
  * specified handle into the cache.
  */
-void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned node, size_t size)
+void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node, size_t size)
 {
-	_starpu_spin_checklocked(&handle->header_lock);
+	struct _starpu_mem_chunk *mc = replicate->mc;
+
+	STARPU_ASSERT(mc->data == handle);
+
+	/* Record the allocated size, so that later in memory
+	 * reclaiming we can estimate how much memory we free
+	 * by freeing this.  */
+	mc->size = size;
+
+	/* This memchunk doesn't have to do with the data any more. */
+	replicate->mc = NULL;
+	replicate->allocated = 0;
+	replicate->automatically_allocated = 0;
 
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
-	/* TODO: expensive, handle should have its own list of chunks? */
-	/* iterate over the list of memory chunks and remove the entry */
-	struct _starpu_mem_chunk *mc, *next_mc;
-	for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
-	     mc != _starpu_mem_chunk_list_end(mc_list[node]);
-	     mc = next_mc)
-	{
-		next_mc = _starpu_mem_chunk_list_next(mc);
+	mc->data = NULL;
+	/* remove it from the main list */
+	_starpu_mem_chunk_list_erase(mc_list[node], mc);
 
-		if (mc->data == handle)
-		{
-			/* we found the data */
-
-			/* Record the allocated size, so that later in memory
-			 * reclaiming we can estimate how much memory we free
-			 * by freeing this.  */
-			mc->size = size;
-			/* This memchunk doesn't have to do with the data any more. */
-			mc->data = NULL;
-
-			/* remove it from the main list */
-			_starpu_mem_chunk_list_erase(mc_list[node], mc);
-
-			/* We would never flush the node 0 cache, unless
-			 * malloc() returns NULL, which is very unlikely... */
-			/* This is particularly important when
-			 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
-			 * wouldn't even re-use these allocations! */
-			if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
-			{
-				free_memory_on_node(mc, node);
-
-				free(mc->chunk_interface);
-				_starpu_mem_chunk_delete(mc);
-			}
-			else
-				/* put it in the list of buffers to be removed */
-				_starpu_mem_chunk_list_push_front(memchunk_cache[node], mc);
-
-			/* Note that we do not stop here because there can be
-			 * multiple replicates associated to the same handle on
-			 * the same memory node.  */
-		}
-	}
-
-	/* there was no corresponding buffer ... */
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+
+	/* We would never flush the node 0 cache, unless
+	 * malloc() returns NULL, which is very unlikely... */
+	/* This is particularly important when
+	 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
+	 * wouldn't even re-use these allocations! */
+	if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
+	{
+		free_memory_on_node(mc, node);
+
+		free(mc->chunk_interface);
+		_starpu_mem_chunk_delete(mc);
+	}
+	else
+		/* put it in the list of buffers to be removed */
+		_starpu_mem_chunk_list_push_front(memchunk_cache[node], mc);
 }
 
 /*

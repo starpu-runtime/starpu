@@ -480,6 +480,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 					_STARPU_PTHREAD_COND_WAIT(&arg.cond, &arg.mutex);
 				_STARPU_PTHREAD_MUTEX_UNLOCK(&arg.mutex);
 			}
+			_STARPU_PTHREAD_MUTEX_DESTROY(&arg.mutex);
+			_STARPU_PTHREAD_COND_DESTROY(&arg.cond);
 			_starpu_release_data_on_node(handle, 0, &handle->per_node[home_node]);
 		}
 
@@ -546,29 +548,59 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	/* Wait for all requests to finish (notably WT requests) */
 	_STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
-	while (handle->busy_count)
+	while (1) {
+		int busy;
+		/* Note: we here tell valgrind that reading busy_count is as
+		 * safe is if we had the lock held */
+		_STARPU_VALGRIND_HG_SPIN_LOCK_PRE(&handle->header_lock);
+		_STARPU_VALGRIND_HG_SPIN_LOCK_POST(&handle->header_lock);
+		busy = handle->busy_count;
+		_STARPU_VALGRIND_HG_SPIN_UNLOCK_PRE(&handle->header_lock);
+		_STARPU_VALGRIND_HG_SPIN_UNLOCK_POST(&handle->header_lock);
+		if (!busy)
+			break;
+		/* This is woken by _starpu_data_check_not_busy, always called
+		 * after decrementing busy_count */
 		_STARPU_PTHREAD_COND_WAIT(&handle->busy_cond, &handle->busy_mutex);
+	}
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
 
 	/* Wait for finished requests to release the handle */
 	_starpu_spin_lock(&handle->header_lock);
 
-	/* Destroy the data now */
-	unsigned node;
 	size_t size = _starpu_data_get_size(handle);
-	for (node = 0; node < STARPU_MAXNODES; node++)
-	{
-		/* free the data copy in a lazy fashion */
-		_starpu_request_mem_chunk_removal(handle, node, size);
-	}
 
 	_starpu_data_free_interfaces(handle);
+
+	/* Destroy the data now */
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		struct _starpu_data_replicate *local = &handle->per_node[node];
+		/* free the data copy in a lazy fashion */
+		if (local->allocated && local->automatically_allocated)
+			_starpu_request_mem_chunk_removal(handle, local, node, size);
+	}
+	unsigned worker;
+	unsigned nworkers = starpu_worker_get_count();
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		struct _starpu_data_replicate *local = &handle->per_worker[worker];
+		/* free the data copy in a lazy fashion */
+		if (local->allocated && local->automatically_allocated)
+			_starpu_request_mem_chunk_removal(handle, local, starpu_worker_get_memory_node(worker), size);
+	}
+
 	_starpu_memory_stats_free(handle);
 	_starpu_data_requester_list_delete(handle->req_list);
 	_starpu_data_requester_list_delete(handle->reduction_req_list);
 
 	_starpu_spin_unlock(&handle->header_lock);
 	_starpu_spin_destroy(&handle->header_lock);
+
+	_STARPU_PTHREAD_MUTEX_DESTROY(&handle->busy_mutex);
+	_STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
+	_STARPU_PTHREAD_MUTEX_DESTROY(&handle->sequential_consistency_mutex);
 
 	free(handle);
 }
@@ -604,13 +636,22 @@ static void _starpu_data_invalidate(void *data)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
 
-		if (local->allocated && local->automatically_allocated)
-		{
+		if (local->mc && local->allocated && local->automatically_allocated)
 			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(handle, node, size);
-			local->allocated = 0;
-			local->automatically_allocated = 0;
-		}
+			_starpu_request_mem_chunk_removal(handle, local, node, size);
+
+		local->state = STARPU_INVALID;
+	}
+
+	unsigned worker;
+	unsigned nworkers = starpu_worker_get_count();
+	for (worker = 0; worker < nworkers; worker++)
+	{
+		struct _starpu_data_replicate *local = &handle->per_worker[worker];
+
+		if (local->mc && local->allocated && local->automatically_allocated)
+			/* free the data copy in a lazy fashion */
+			_starpu_request_mem_chunk_removal(handle, local, starpu_worker_get_memory_node(worker), size);
 
 		local->state = STARPU_INVALID;
 	}

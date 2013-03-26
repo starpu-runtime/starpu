@@ -57,6 +57,8 @@ void starpu_task_init(struct starpu_task *task)
 	 * everywhere */
 	memset(task, 0, sizeof(struct starpu_task));
 
+	task->sequential_consistency = 1;
+
 	/* Now we can initialise fields which recquire custom value */
 #if STARPU_DEFAULT_PRIO != 0
 	task->priority = STARPU_DEFAULT_PRIO;
@@ -707,7 +709,11 @@ void _starpu_decrement_nsubmitted_tasks(void)
 	if (--nsubmitted == 0)
 	{
 		if (!config->submitting)
+		{
+			ANNOTATE_HAPPENS_AFTER(&config->running);
 			config->running = 0;
+			ANNOTATE_HAPPENS_BEFORE(&config->running);
+		}
 		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 	}
 
@@ -727,7 +733,9 @@ starpu_drivers_request_termination(void)
 	config->submitting = 0;
 	if (nsubmitted == 0)
 	{
+		ANNOTATE_HAPPENS_AFTER(&config->running);
 		config->running = 0;
+		ANNOTATE_HAPPENS_BEFORE(&config->running);
 		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 	}
 

@@ -129,8 +129,13 @@ struct starpu_task
 	void (*callback_func)(void *);
 	void *callback_arg;
 
+	/* Whether tag_id should be considered */
 	unsigned use_tag;
+	/* Tag associated with this task */
 	starpu_tag_t tag_id;
+
+	/* Whether we should enforce sequential consistency for this task */
+	unsigned sequential_consistency;
 
 	/* options for the task execution */
 	unsigned synchronous; /* if set, a call to push is blocking */

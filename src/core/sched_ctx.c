@@ -490,7 +490,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 	unsigned nworkers = config->topology.nworkers;
 
-	if(nworkers_ctx > 0 && inheritor_sched_ctx_id != STARPU_NMAX_SCHED_CTXS && 
+	if(nworkers_ctx > 0 && inheritor_sched_ctx && inheritor_sched_ctx->id != STARPU_NMAX_SCHED_CTXS && 
 	   !(nworkers_ctx == nworkers && nworkers_ctx == inheritor_sched_ctx->workers->nworkers))
 	{
 		starpu_sched_ctx_add_workers(workerids, nworkers_ctx, inheritor_sched_ctx_id);

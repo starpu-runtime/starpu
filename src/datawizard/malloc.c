@@ -251,11 +251,6 @@ static struct starpu_codelet free_pinned_cl =
 
 int starpu_free_flags(void *A, size_t dim, int flags)
 {
-	if (flags & STARPU_MALLOC_COUNT)
-	{
-		_starpu_memory_manager_deallocate_size(dim, 0);
-	}
-
 #ifndef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_PINNED)
 	{
@@ -272,7 +267,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 				cudaError_t err = cudaFreeHost(A);
 				if (STARPU_UNLIKELY(err))
 					STARPU_CUDA_REPORT_ERROR(err);
-				return 0;
+				goto out;
 #ifndef HAVE_CUDA_MEMCPY_PEER
 			}
 			else
@@ -293,7 +288,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 
 				push_res = _starpu_task_submit_internally(task);
 				STARPU_ASSERT(push_res != -ENODEV);
-				return 0;
+				goto out;
 			}
 #endif /* HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
@@ -317,13 +312,20 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 //
 //		push_res = starpu_task_submit(task);
 //		STARPU_ASSERT(push_res != -ENODEV);
-//		return 0;
+//		goto out;
 //	}
 //#endif
 	}
 #endif /* STARPU_SIMGRID */
 
 	free(A);
+
+out:
+	if (flags & STARPU_MALLOC_COUNT)
+	{
+		_starpu_memory_manager_deallocate_size(dim, 0);
+	}
+
 	return 0;
 }
 

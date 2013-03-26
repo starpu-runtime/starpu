@@ -345,13 +345,14 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	/* still valid ? */
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
+		struct _starpu_data_replicate *local;
 		/* until an issue is found the data is assumed to be valid */
 		unsigned isvalid = 1;
 
 		for (child = 0; child < root_handle->nchildren; child++)
 		{
 			starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
-			struct _starpu_data_replicate *local = &child_handle->per_node[node];
+			local = &child_handle->per_node[node];
 
 			if (local->state == STARPU_INVALID)
 			{
@@ -359,24 +360,21 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 				isvalid = 0;
 			}
 
-			if (local->allocated && local->automatically_allocated)
-			{
+			if (local->mc && local->allocated && local->automatically_allocated)
 				/* free the child data copy in a lazy fashion */
-#ifdef STARPU_DEVEL
-#warning FIXME!! this needs access to the child interface, which was freed above!
-#endif
-				_starpu_request_mem_chunk_removal(child_handle, node, sizes[child]);
-			}
+				_starpu_request_mem_chunk_removal(child_handle, local, node, sizes[child]);
 		}
 
-		if (!root_handle->per_node[node].allocated)
+		local = &root_handle->per_node[node];
+
+		if (!local->allocated)
 			/* Even if we have all the bits, if we don't have the
 			 * whole data, it's not valid */
 			isvalid = 0;
 
-		if (!isvalid && root_handle->per_node[node].allocated && root_handle->per_node[node].automatically_allocated)
+		if (!isvalid && local->mc && local->allocated && local->automatically_allocated)
 			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(root_handle, node, _starpu_data_get_size(root_handle));
+			_starpu_request_mem_chunk_removal(root_handle, local, node, _starpu_data_get_size(root_handle));
 
 		/* if there was no invalid copy, the node still has a valid copy */
 		still_valid[node] = isvalid;
@@ -400,6 +398,10 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
 		_starpu_spin_unlock(&child_handle->header_lock);
 		_starpu_spin_destroy(&child_handle->header_lock);
+
+		_STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->busy_mutex);
+		_STARPU_PTHREAD_COND_DESTROY(&child_handle->busy_cond);
+		_STARPU_PTHREAD_MUTEX_DESTROY(&child_handle->sequential_consistency_mutex);
 	}
 
 	/* there is no child anymore */

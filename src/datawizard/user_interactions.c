@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -239,10 +239,11 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 		.handle = handle,
 		.mode = mode,
 		.node = node,
-		.cond = _STARPU_PTHREAD_COND_INITIALIZER,
-		.lock = _STARPU_PTHREAD_MUTEX_INITIALIZER,
 		.finished = 0
 	};
+
+	_STARPU_PTHREAD_COND_INIT(&wrapper.cond, NULL);
+	_STARPU_PTHREAD_MUTEX_INIT(&wrapper.lock, NULL);
 
 //	_STARPU_DEBUG("TAKE sequential_consistency_mutex starpu_data_acquire\n");
 	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
@@ -297,8 +298,9 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 		while (!wrapper.finished)
 			_STARPU_PTHREAD_COND_WAIT(&wrapper.cond, &wrapper.lock);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper.lock);
-		_STARPU_PTHREAD_MUTEX_DESTROY(&wrapper.lock);
 	}
+	_STARPU_PTHREAD_COND_DESTROY(&wrapper.cond);
+	_STARPU_PTHREAD_MUTEX_DESTROY(&wrapper.lock);
 
 	/* At that moment, the caller holds a reference to the piece of data.
 	 * We enqueue the "post" sync task in the list associated to the handle
@@ -381,6 +383,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 		/* we can immediately proceed */
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 
+		_STARPU_PTHREAD_COND_DESTROY(&wrapper->cond);
+		_STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
 		free(wrapper);
 
 		_starpu_fetch_data_on_node(handle, replicate, mode, async, async, NULL, NULL);
@@ -410,6 +414,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 		while (!wrapper->finished)
 			_STARPU_PTHREAD_COND_WAIT(&wrapper->cond, &wrapper->lock);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+		_STARPU_PTHREAD_COND_DESTROY(&wrapper->cond);
+		_STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
 		free(wrapper);
 	}
 

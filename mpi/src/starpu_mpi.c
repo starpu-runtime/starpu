@@ -23,11 +23,7 @@
 #include <starpu_profiling.h>
 #include <starpu_mpi_stats.h>
 #include <starpu_mpi_insert_task.h>
-
-#ifdef STARPU_DEVEL
-#  warning TODO find a better way to select the polling method (perhaps during the configuration)
-#endif
-//#define USE_STARPU_ACTIVITY	1
+#include <common/config.h>
 
 static void _starpu_mpi_submit_new_mpi_request(void *arg);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
@@ -643,6 +639,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 		MPI_Status status;
 		memset(&status, 0, sizeof(MPI_Status));
 		req->ret = MPI_Recv(req->ptr, req->count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &status);
+		STARPU_ASSERT(req->ret == MPI_SUCCESS);
 	}
 
 	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ || req->request_type == PROBE_REQ)
@@ -699,7 +696,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 	_STARPU_MPI_LOG_OUT();
 }
 
-#ifdef USE_STARPU_ACTIVITY
+#ifdef STARPU_MPI_ACTIVITY
 static unsigned _starpu_mpi_progression_hook_func(void *arg __attribute__((unused)))
 {
 	unsigned may_block = 1;
@@ -714,7 +711,7 @@ static unsigned _starpu_mpi_progression_hook_func(void *arg __attribute__((unuse
 
 	return may_block;
 }
-#endif
+#endif /* STARPU_MPI_ACTIVITY */
 
 static void _starpu_mpi_test_detached_requests(void)
 {
@@ -885,9 +882,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		/* shall we block ? */
 		unsigned block = _starpu_mpi_req_list_empty(new_requests);
 
-#ifndef USE_STARPU_ACTIVITY
+#ifndef STARPU_MPI_ACTIVITY
 		block = block && _starpu_mpi_req_list_empty(detached_requests);
-#endif
+#endif /* STARPU_MPI_ACTIVITY */
 
 		if (block)
 		{
@@ -946,20 +943,22 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 /*                                                      */
 /********************************************************/
 
-#ifdef USE_STARPU_ACTIVITY
+#ifdef STARPU_MPI_ACTIVITY
 static int hookid = - 1;
-#endif
+#endif /* STARPU_MPI_ACTIVITY */
 
 static void _starpu_mpi_add_sync_point_in_fxt(void)
 {
 #ifdef STARPU_USE_FXT
 	int rank;
 	int worldsize;
+	int ret;
+
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
 
-	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
-	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
+	ret = MPI_Barrier(MPI_COMM_WORLD);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
 
 	/* We generate a "unique" key so that we can make sure that different
 	 * FxT traces come from the same MPI run. */
@@ -973,7 +972,8 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 		random_number = rand();
 	}
 
-	MPI_Bcast(&random_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	ret = MPI_Bcast(&random_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	STARPU_ASSERT(ret == MPI_SUCCESS);
 
 	TRACE_MPI_BARRIER(rank, worldsize, random_number);
 
@@ -1006,10 +1006,10 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 		_STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-#ifdef USE_STARPU_ACTIVITY
+#ifdef STARPU_MPI_ACTIVITY
 	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
 	STARPU_ASSERT(hookid >= 0);
-#endif
+#endif /* STARPU_MPI_ACTIVITY */
 
 	_starpu_mpi_add_sync_point_in_fxt();
 	_starpu_mpi_comm_amounts_init(MPI_COMM_WORLD);
@@ -1058,9 +1058,9 @@ int starpu_mpi_shutdown(void)
 
 	pthread_join(progress_thread, &value);
 
-#ifdef USE_STARPU_ACTIVITY
+#ifdef STARPU_MPI_ACTIVITY
 	starpu_progression_hook_deregister(hookid);
-#endif
+#endif /* STARPU_MPI_ACTIVITY */
 
 	TRACE_MPI_STOP(rank, world_size);
 

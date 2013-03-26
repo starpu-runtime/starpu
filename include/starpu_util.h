@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -184,6 +184,14 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #else
 #define STARPU_RMB() STARPU_SYNCHRONIZE()
 #define STARPU_WMB() STARPU_SYNCHRONIZE()
+#endif
+
+/* This is needed in some places to make valgrind yield to another thread to be
+ * able to progress.  */
+#if defined(__i386__) || defined(__x86_64__)
+#define STARPU_UYIELD() __asm__ __volatile("rep; nop")
+#else
+#define STARPU_UYIELD() ((void)0)
 #endif
 
 #ifdef __cplusplus

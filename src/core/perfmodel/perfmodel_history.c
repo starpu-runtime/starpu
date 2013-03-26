@@ -942,6 +942,7 @@ int starpu_perfmodel_list(FILE *output)
 
 /* This function is intended to be used by external tools that should read the
  * performance model files */
+/* TODO: write an clear function, to free symbol and history */
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model)
 {
 	model->symbol = strdup(symbol);
@@ -1064,6 +1065,10 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		HASH_FIND_UINT32_T(history, &key, entry);
 		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
+		/* We do not care about racing access to the mean, we only want a
+		 * good-enough estimation, thus simulate taking the rdlock */
+		ANNOTATE_RWLOCK_ACQUIRED(&model->model_rwlock, 0);
+
 		if (entry && entry->history_entry && entry->history_entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
 			exp = entry->history_entry->mean;
 		else if (!model->benchmarking)
@@ -1075,6 +1080,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 			_starpu_set_calibrate_flag(1);
 			model->benchmarking = 1;
 		}
+		ANNOTATE_RWLOCK_RELEASED(&model->model_rwlock, 0);
 	}
 
 	return exp;
@@ -1097,6 +1103,10 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 	entry = (elt == NULL) ? NULL : elt->history_entry;
 	_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
+	/* We do not care about racing access to the mean, we only want a
+	 * good-enough estimation, thus simulate taking the rdlock */
+	ANNOTATE_RWLOCK_ACQUIRED(&model->model_rwlock, 0);
+
 	exp = entry?entry->mean:NAN;
 
 	if (entry && entry->nsample < _STARPU_CALIBRATION_MINIMUM)
@@ -1114,6 +1124,8 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 		_starpu_set_calibrate_flag(1);
 		model->benchmarking = 1;
 	}
+
+	ANNOTATE_RWLOCK_RELEASED(&model->model_rwlock, 0);
 
 	return exp;
 }

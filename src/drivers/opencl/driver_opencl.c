@@ -61,7 +61,7 @@ _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 
 static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 {
-	int limit;
+	ssize_t limit;
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
@@ -90,9 +90,9 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	to_waste = totalGlobalMem - global_mem[devid];
 #endif
 
-	_STARPU_DEBUG("OpenCL device %d: Wasting %ld MB / Limit %d MB / Total %ld MB / Remains %ld MB\n",
-                      devid, (size_t)to_waste/(1024*1024), limit, (size_t)totalGlobalMem/(1024*1024),
-                      (size_t)(totalGlobalMem - to_waste)/(1024*1024));
+	_STARPU_DEBUG("OpenCL device %d: Wasting %ld MB / Limit %ld MB / Total %ld MB / Remains %ld MB\n",
+			devid, (long)to_waste/(1024*1024), (long) limit, (long)totalGlobalMem/(1024*1024),
+			(long)(totalGlobalMem - to_waste)/(1024*1024));
 
 }
 
@@ -701,10 +701,18 @@ int _starpu_opencl_driver_deinit(struct starpu_driver *d)
 	unsigned memnode = args->memory_node;
 
 	_starpu_handle_all_pending_node_data_requests(memnode);
+
+	/* In case there remains some memory that was automatically
+	 * allocated by StarPU, we release it now. Note that data
+	 * coherency is not maintained anymore at that point ! */
+	_starpu_free_all_automatically_allocated_buffers(memnode);
+
 #ifndef STARPU_SIMGRID
 	unsigned devid   = args->devid;
         _starpu_opencl_deinit_context(devid);
 #endif
+
+	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_OPENCL_KEY);
 
 	return 0;
 }

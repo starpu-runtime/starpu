@@ -893,9 +893,13 @@ out:
 
 unsigned _starpu_machine_is_running(void)
 {
+	unsigned ret;
 	/* running is just protected by a memory barrier */
 	STARPU_RMB();
-	return config.running;
+	ANNOTATE_HAPPENS_AFTER(&config.running);
+	ret = config.running;
+	ANNOTATE_HAPPENS_BEFORE(&config.running);
+	return ret;
 }
 
 unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED)
@@ -923,8 +927,10 @@ unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 static void _starpu_kill_all_workers(struct _starpu_machine_config *pconfig)
 {
 	/* set the flag which will tell workers to stop */
+	ANNOTATE_HAPPENS_AFTER(&config.running);
 	pconfig->running = 0;
 	/* running is just protected by a memory barrier */
+	ANNOTATE_HAPPENS_BEFORE(&config.running);
 	STARPU_WMB();
 	starpu_wake_all_blocked_workers();
 }

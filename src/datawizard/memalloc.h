@@ -62,7 +62,7 @@ LIST_TYPE(_starpu_mem_chunk_lru,
 
 void _starpu_init_mem_chunk_lists(void);
 void _starpu_deinit_mem_chunk_lists(void);
-void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, unsigned node, size_t size);
+void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node, size_t size);
 int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned is_prefetch);
 size_t _starpu_free_all_automatically_allocated_buffers(unsigned node);
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node);
