@@ -88,7 +88,7 @@ examplebin_PROGRAMS +=				\
 	stencil/stencil5
 
 stencil_stencil5_LDADD =		\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la -lm
 
 starpu_mpi_EXAMPLES	+=	\
 	stencil/stencil5
@@ -106,7 +106,7 @@ examplebin_PROGRAMS += 			\
 mpi_lu_plu_example_float_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
-	$(STARPU_BLAS_LDFLAGS)
+	$(STARPU_BLAS_LDFLAGS) -lm
 
 mpi_lu_plu_example_float_SOURCES =	\
 	mpi_lu/plu_example_float.c	\
@@ -118,7 +118,7 @@ mpi_lu_plu_example_float_SOURCES =	\
 mpi_lu_plu_example_double_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
-	$(STARPU_BLAS_LDFLAGS)
+	$(STARPU_BLAS_LDFLAGS) -lm
 
 mpi_lu_plu_example_double_SOURCES =	\
 	mpi_lu/plu_example_double.c	\
