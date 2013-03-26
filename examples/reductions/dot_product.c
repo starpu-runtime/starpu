@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -114,6 +114,7 @@ static struct starpu_codelet init_codelet =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {init_opencl_func, NULL},
 #endif
+	.modes = {STARPU_R},
 	.nbuffers = 1
 };
 
@@ -194,6 +195,7 @@ static struct starpu_codelet redux_codelet =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {redux_opencl_func, NULL},
 #endif
+	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2
 };
 

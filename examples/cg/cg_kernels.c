@@ -98,6 +98,7 @@ struct starpu_codelet accumulate_variable_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {accumulate_variable_cuda, NULL},
 #endif
+	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2,
 	.model = &accumulate_variable_model
 };
@@ -136,6 +137,7 @@ struct starpu_codelet accumulate_vector_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {accumulate_vector_cuda, NULL},
 #endif
+	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2,
 	.model = &accumulate_vector_model
 };
@@ -176,6 +178,7 @@ struct starpu_codelet bzero_variable_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {bzero_variable_cuda, NULL},
 #endif
+	.modes = {STARPU_R},
 	.nbuffers = 1,
 	.model = &bzero_variable_model
 };
@@ -213,6 +216,7 @@ struct starpu_codelet bzero_vector_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {bzero_vector_cuda, NULL},
 #endif
+	.modes = {STARPU_R},
 	.nbuffers = 1,
 	.model = &bzero_vector_model
 };
