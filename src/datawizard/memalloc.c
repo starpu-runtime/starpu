@@ -506,7 +506,7 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 		 * now */
 		next_mc = _starpu_mem_chunk_list_next(mc);
 
-		if ((!mc->data || mc->data->is_not_important) && (mc->footprint == footprint))
+		if (mc->data->is_not_important && (mc->footprint == footprint))
 		{
 //			fprintf(stderr, "found a candidate ...\n");
 			if (try_to_reuse_mem_chunk(mc, node, replicate, 1))
@@ -706,14 +706,15 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	 * reclaiming we can estimate how much memory we free
 	 * by freeing this.  */
 	mc->size = size;
+
 	/* This memchunk doesn't have to do with the data any more. */
-	mc->data = NULL;
 	replicate->mc = NULL;
 	replicate->allocated = 0;
 	replicate->automatically_allocated = 0;
 
 	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
+	mc->data = NULL;
 	/* remove it from the main list */
 	_starpu_mem_chunk_list_erase(mc_list[node], mc);
 
