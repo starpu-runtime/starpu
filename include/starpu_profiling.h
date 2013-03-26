@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -101,8 +101,15 @@ int starpu_profiling_status_set(int status);
  * error. */
 int starpu_profiling_status_get(void);
 #ifdef BUILDING_STARPU
+#include <common/utils.h>
 extern int _starpu_profiling;
-#define starpu_profiling_status_get() _starpu_profiling
+#define starpu_profiling_status_get() ({ \
+	int __ret; \
+	ANNOTATE_HAPPENS_AFTER(&_starpu_profiling); \
+	__ret = _starpu_profiling; \
+	ANNOTATE_HAPPENS_BEFORE(&_starpu_profiling); \
+	__ret; \
+})
 #endif
 
 /* Get the profiling info associated to a worker, and reset the profiling
