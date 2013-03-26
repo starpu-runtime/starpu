@@ -315,7 +315,7 @@ static void free_block_buffer_on_node(void *data_interface, unsigned node)
 	uint32_t nz = block_interface->nz;
 	size_t elemsize = block_interface->elemsize;
 
-	starpu_free_on_node(node, block_interface->ptr, nx*ny*nz*elemsize);
+	starpu_free_on_node(node, block_interface->handle, nx*ny*nz*elemsize);
 }
 
 #ifdef STARPU_USE_CUDA
