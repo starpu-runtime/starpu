@@ -49,6 +49,16 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 			{
 				enum starpu_archtype arch = starpu_worker_get_type(worker);
 				velocity[s][w] = sched_ctx_hypervisor_get_velocity(sc_w, arch);
+				if(arch == STARPU_CUDA_WORKER)
+				{
+					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx);
+					if(!worker_in_ctx)
+					{
+						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker) / 1000;
+						velocity[s][w] = (velocity[s][w] * transfer_velocity) / (velocity[s][w] + transfer_velocity);
+					}
+				}
+
 			}
 			
 //			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
