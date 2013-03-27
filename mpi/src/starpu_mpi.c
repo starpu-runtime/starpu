@@ -158,8 +158,10 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		if (psize != -1)
 		{
 			// We already know the size of the data, let's send it to overlap with the packing of the data
-			MPI_Isend(&psize, sizeof(psize), MPI_BYTE, req->srcdst, req->mpi_tag, req->comm, &req->size_req);
+			_STARPU_MPI_DEBUG(1, "Sending size %ld (%ld %s) with tag %d to node %d (first call to pack)\n", psize, sizeof(req->count), _starpu_mpi_datatype(MPI_BYTE), req->mpi_tag, req->srcdst);
 			req->count = psize;
+			ret = MPI_Isend(&req->count, sizeof(req->count), MPI_BYTE, req->srcdst, req->mpi_tag, req->comm, &req->size_req);
+			STARPU_ASSERT(ret == MPI_SUCCESS);
 		}
 
 		// Pack the data
