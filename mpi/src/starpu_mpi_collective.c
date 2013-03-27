@@ -65,7 +65,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 			{
 				int owner = starpu_data_get_rank(data_handles[x]);
 				int mpi_tag = starpu_data_get_tag(data_handles[x]);
-				STARPU_ASSERT(mpi_tag >= 0);
+				STARPU_ASSERT_MSG(mpi_tag >= 0, "Invalid tag for data handle");
 				if ((rank == root) && (owner != root))
 				{
 					callback_arg->count ++;
@@ -84,7 +84,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 		{
 			int owner = starpu_data_get_rank(data_handles[x]);
 			int mpi_tag = starpu_data_get_tag(data_handles[x]);
-			STARPU_ASSERT(mpi_tag >= 0);
+			STARPU_ASSERT_MSG(mpi_tag >= 0, "Invalid tag for data handle");
 			if ((rank == root) && (owner != root))
 			{
 				//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, owner);
@@ -127,7 +127,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 			{
 				int owner = starpu_data_get_rank(data_handles[x]);
 				int mpi_tag = starpu_data_get_tag(data_handles[x]);
-				STARPU_ASSERT(mpi_tag >= 0);
+				STARPU_ASSERT_MSG(mpi_tag >= 0, "Invalid tag for data handle");
 				if ((rank == root) && (owner != root))
 				{
 					callback_arg->count ++;
@@ -146,7 +146,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 		{
 			int owner = starpu_data_get_rank(data_handles[x]);
 			int mpi_tag = starpu_data_get_tag(data_handles[x]);
-			STARPU_ASSERT(mpi_tag >= 0);
+			STARPU_ASSERT_MSG(mpi_tag >= 0, "Invalid tag for data handle");
 			if ((rank == root) && (owner != root))
 			{
 				//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, owner);

@@ -398,7 +398,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
 			xrank = starpu_data_get_rank(data);
 			_STARPU_MPI_DEBUG(1, "Executing on data node %d\n", xrank);
-			STARPU_ASSERT(xrank <= nb_nodes);
+			STARPU_ASSERT_MSG(xrank <= nb_nodes, "Node %d to execute codelet is not a valid node (%d)", xrank, nb_nodes);
 			do_execute = 1;
 		}
 		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
@@ -597,8 +597,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		va_start(varg_list, codelet);
 		struct starpu_task *task = starpu_task_create();
 		int ret = _starpu_insert_task_create_and_submit(arg_buffer, arg_buffer_size, codelet, &task, varg_list);
-		_STARPU_MPI_DEBUG(1, "ret: %d\n", ret);
-		STARPU_ASSERT(ret==0);
+		STARPU_ASSERT_MSG(ret==0, "_starpu_insert_task_create_and_submit failure %d", ret);
 	}
 
 	if (inconsistent_execute)

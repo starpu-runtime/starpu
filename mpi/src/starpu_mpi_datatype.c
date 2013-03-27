@@ -34,10 +34,10 @@ static void handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Data
 	size_t elemsize = starpu_matrix_get_elemsize(data_handle);
 
 	ret = MPI_Type_vector(ny, nx*elemsize, ld*elemsize, MPI_BYTE, datatype);
-	STARPU_ASSERT(ret == MPI_SUCCESS);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
 
 	ret = MPI_Type_commit(datatype);
-	STARPU_ASSERT(ret == MPI_SUCCESS);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 }
 
 /*
@@ -57,16 +57,16 @@ static void handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datat
 
 	MPI_Datatype datatype_2dlayer;
 	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_2dlayer);
-	STARPU_ASSERT(ret == MPI_SUCCESS);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
 
 	ret = MPI_Type_commit(&datatype_2dlayer);
-	STARPU_ASSERT(ret == MPI_SUCCESS);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 
 	ret = MPI_Type_hvector(nz, 1, ldz*elemsize, datatype_2dlayer, datatype);
-	STARPU_ASSERT(ret == MPI_SUCCESS);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
 
 	ret = MPI_Type_commit(datatype);
-	STARPU_ASSERT(ret == MPI_SUCCESS);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 }
 
 /*
@@ -81,10 +81,10 @@ static void handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Data
 	size_t elemsize = starpu_vector_get_elemsize(data_handle);
 
 	ret = MPI_Type_contiguous(nx*elemsize, MPI_BYTE, datatype);
-	STARPU_ASSERT(ret == MPI_SUCCESS);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
 
 	ret = MPI_Type_commit(datatype);
-	STARPU_ASSERT(ret == MPI_SUCCESS);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 }
 
 /*
@@ -98,10 +98,10 @@ static void handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Da
 	size_t elemsize = starpu_variable_get_elemsize(data_handle);
 
 	ret = MPI_Type_contiguous(elemsize, MPI_BYTE, datatype);
-	STARPU_ASSERT(ret == MPI_SUCCESS);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
 
 	ret = MPI_Type_commit(datatype);
-	STARPU_ASSERT(ret == MPI_SUCCESS);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 }
 
 /*
@@ -127,7 +127,7 @@ void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, MPI_
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
 		handle_to_datatype_func func = handle_to_datatype_funcs[id];
-		STARPU_ASSERT(func);
+		STARPU_ASSERT_MSG(func, "Handle To Datatype Function not defined for StarPU data interface %d", id);
 		func(data_handle, datatype);
 		*user_datatype = 0;
 	}
@@ -188,7 +188,7 @@ void _starpu_mpi_handle_free_datatype(starpu_data_handle_t data_handle, MPI_Data
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
 		handle_free_datatype_func func = handle_free_datatype_funcs[id];
-		STARPU_ASSERT(func);
+		STARPU_ASSERT_MSG(func, "Handle free datatype function not defined for StarPU data interface %d", id);
 		func(datatype);
 	}
 	/* else the datatype is not predefined by StarPU */
