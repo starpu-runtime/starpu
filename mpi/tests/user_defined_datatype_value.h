@@ -94,9 +94,9 @@ static int value_pack_data(starpu_data_handle_t handle, unsigned node, void **pt
 	struct starpu_value_interface *value_interface = (struct starpu_value_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
+	*count = sizeof(int);
 	if (ptr != NULL)
 	{
-		*count = sizeof(int);
 		*ptr = malloc(*count);
 		memcpy(*ptr, value_interface->value, sizeof(int));
 	}
