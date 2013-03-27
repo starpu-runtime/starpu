@@ -166,7 +166,9 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		if (psize == -1)
 		{
 			// We know the size now, let's send it
-			MPI_Isend(&req->count, sizeof(req->count), MPI_BYTE, req->srcdst, req->mpi_tag, req->comm, &req->size_req);
+			_STARPU_MPI_DEBUG(1, "Sending size %ld (%ld %s) with tag %d to node %d (second call to pack)\n", req->count, sizeof(req->count), _starpu_mpi_datatype(MPI_BYTE), req->mpi_tag, req->srcdst);
+			ret = MPI_Isend(&req->count, sizeof(req->count), MPI_BYTE, req->srcdst, req->mpi_tag, req->comm, &req->size_req);
+			STARPU_ASSERT(ret == MPI_SUCCESS);
 		}
 		else
 		{
