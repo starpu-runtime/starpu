@@ -17,9 +17,10 @@
 #include <starpu_mpi.h>
 #include <interface/complex_interface.h>
 #include <interface/complex_codelet.h>
+#include <user_defined_datatype_value.h>
 
 #ifdef STARPU_QUICK_CHECK
-#  define ELEMENTS 10
+#  define ELEMENTS 1
 #else
 #  define ELEMENTS 1000
 #endif
@@ -86,15 +87,18 @@ int main(int argc, char **argv)
 			int i;
 
 			starpu_data_handle_t handle_complex[ELEMENTS];
+			starpu_data_handle_t handle_values[ELEMENTS];
 			starpu_data_handle_t handle_vars[ELEMENTS];
 
 			double real[ELEMENTS][2];
 			double imaginary[ELEMENTS][2];
-			double foo[ELEMENTS];
+			float foo[ELEMENTS];
+			int values[ELEMENTS];
 
-			double foo_compare=42;
 			double real_compare[2] = {12.0, 45.0};
 			double imaginary_compare[2] = {7.0, 42.0};
+			float foo_compare=42.0;
+			int value_compare=36;
 
 			fprintf(stderr, "\nTesting with function %p\n", f);
 
@@ -102,36 +106,41 @@ int main(int argc, char **argv)
 			{
 				for(i=0 ; i<ELEMENTS; i++)
 				{
-					foo[i] = 8;
+					foo[i] = 8.0;
 					real[i][0] = 0.0;
 					real[i][1] = 0.0;
 					imaginary[i][0] = 0.0;
 					imaginary[i][1] = 0.0;
+					values[i] = 7;
 				}
 			}
 			if (rank == 1)
 			{
 				for(i=0 ; i<ELEMENTS; i++)
 				{
-					foo[i] = 42;
-					real[i][0] = 12.0;
-					real[i][1] = 45.0;
-					imaginary[i][0] = 7.0;
-					imaginary[i][1] = 42.0;
+					foo[i] = foo_compare;
+					real[i][0] = real_compare[0];
+					real[i][1] = real_compare[1];
+					imaginary[i][0] = imaginary_compare[0];
+					imaginary[i][1] = imaginary_compare[1];
+					values[i] = value_compare;
 				}
 			}
 			for(i=0 ; i<ELEMENTS ; i++)
 			{
 				starpu_complex_data_register(&handle_complex[i], 0, real[i], imaginary[i], 2);
-				starpu_variable_data_register(&handle_vars[i], 0, (uintptr_t)&foo[i], sizeof(double));
+				starpu_value_data_register(&handle_values[i], 0, &values[i]);
+				starpu_variable_data_register(&handle_vars[i], 0, (uintptr_t)&foo[i], sizeof(float));
 			}
 
 			f(handle_vars, ELEMENTS, rank, ELEMENTS);
-			f(handle_complex, ELEMENTS, rank, 4*ELEMENTS);
+			f(handle_complex, ELEMENTS, rank, 2*ELEMENTS);
+			f(handle_values, ELEMENTS, rank, 4*ELEMENTS);
 
 			for(i=0 ; i<ELEMENTS ; i++)
 			{
 				starpu_data_unregister(handle_complex[i]);
+				starpu_data_unregister(handle_values[i]);
 				starpu_data_unregister(handle_vars[i]);
 			}
 			starpu_task_wait_for_all();
@@ -145,6 +154,12 @@ int main(int argc, char **argv)
 					if (compare == 0)
 					{
 						fprintf(stderr, "ERROR. foo[%d] == %f != %f\n", i, foo[i], foo_compare);
+						goto end;
+					}
+					compare = (values[i] == value_compare);
+					if (compare == 0)
+					{
+						fprintf(stderr, "ERROR. value[%d] == %d != %d\n", i, values[i], value_compare);
 						goto end;
 					}
 					for(j=0 ; j<2 ; j++)
