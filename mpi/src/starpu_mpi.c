@@ -149,7 +149,8 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	}
 	else
 	{
-		ssize_t psize;
+		ssize_t psize = -1;
+		int ret;
 
 		// Do not pack the data, just try to find out the size
 		starpu_handle_pack_data(req->data_handle, NULL, &psize);
