@@ -20,7 +20,7 @@
 #include <user_defined_datatype_value.h>
 
 #ifdef STARPU_QUICK_CHECK
-#  define ELEMENTS 1
+#  define ELEMENTS 10
 #else
 #  define ELEMENTS 1000
 #endif
