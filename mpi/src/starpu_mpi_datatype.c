@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -192,4 +192,43 @@ void _starpu_mpi_handle_free_datatype(starpu_data_handle_t data_handle, MPI_Data
 		func(datatype);
 	}
 	/* else the datatype is not predefined by StarPU */
+}
+
+char *_starpu_mpi_datatype(MPI_Datatype datatype)
+{
+     switch (datatype)
+     {
+     case MPI_DATATYPE_NULL : return "MPI_DATATYPE_NULL";
+     case MPI_CHAR : return "MPI_CHAR";
+     case MPI_UNSIGNED_CHAR : return "MPI_UNSIGNED_CHAR";
+     case MPI_BYTE : return "MPI_BYTE";
+     case MPI_SHORT : return "MPI_SHORT";
+     case MPI_UNSIGNED_SHORT : return "MPI_UNSIGNED_SHORT";
+     case MPI_INT : return "MPI_INT";
+     case MPI_UNSIGNED : return "MPI_UNSIGNED";
+     case MPI_LONG : return "MPI_LONG";
+     case MPI_UNSIGNED_LONG : return "MPI_UNSIGNED_LONG";
+     case MPI_FLOAT : return "MPI_FLOAT";
+     case MPI_DOUBLE : return "MPI_DOUBLE";
+     case MPI_LONG_DOUBLE : return "MPI_LONG_DOUBLE";
+     case MPI_LONG_LONG : return "MPI_LONG_LONG";
+     case MPI_LONG_INT : return "MPI_LONG_INT";
+     case MPI_SHORT_INT : return "MPI_SHORT_INT";
+     case MPI_FLOAT_INT : return "MPI_FLOAT_INT";
+     case MPI_DOUBLE_INT : return "MPI_DOUBLE_INT";
+     case MPI_2INT : return "MPI_2INT";
+     case MPI_2DOUBLE_PRECISION : return "MPI_2DOUBLE_PRECISION";
+     case MPI_COMPLEX : return "MPI_COMPLEX";
+     case MPI_DOUBLE_COMPLEX : return "MPI_DOUBLE_COMPLEX";
+     case MPI_LOGICAL : return "MPI_LOGICAL";
+     case MPI_REAL : return "MPI_REAL";
+     case MPI_REAL4 : return "MPI_REAL4";
+     case MPI_REAL8 : return "MPI_REAL8";
+     case MPI_DOUBLE_PRECISION : return "MPI_DOUBLE_PRECISION";
+     case MPI_INTEGER : return "MPI_INTEGER";
+     case MPI_INTEGER4 : return "MPI_INTEGER4";
+     case MPI_INTEGER8 : return "MPI_INTEGER8";
+     case MPI_PACKED : return "MPI_PACKED";
+     default : return "User defined MPI Datatype";
+     }
 }
