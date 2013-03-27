@@ -114,7 +114,7 @@ static struct starpu_codelet init_codelet =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {init_opencl_func, NULL},
 #endif
-	.modes = {STARPU_R},
+	.modes = {STARPU_W},
 	.nbuffers = 1
 };
 

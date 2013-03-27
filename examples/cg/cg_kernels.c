@@ -178,7 +178,7 @@ struct starpu_codelet bzero_variable_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {bzero_variable_cuda, NULL},
 #endif
-	.modes = {STARPU_R},
+	.modes = {STARPU_W},
 	.nbuffers = 1,
 	.model = &bzero_variable_model
 };
@@ -216,7 +216,7 @@ struct starpu_codelet bzero_vector_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {bzero_vector_cuda, NULL},
 #endif
-	.modes = {STARPU_R},
+	.modes = {STARPU_W},
 	.nbuffers = 1,
 	.model = &bzero_vector_model
 };

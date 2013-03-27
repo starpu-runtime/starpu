@@ -51,7 +51,7 @@ static struct starpu_codelet display_codelet =
 {
 	.cpu_funcs = {display_cpu_func, NULL},
 	.nbuffers = 1,
-	.modes = {STARPU_R},
+	.modes = {STARPU_W},
 	.name = "display_codelet"
 };
 

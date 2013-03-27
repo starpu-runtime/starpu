@@ -139,7 +139,7 @@ static struct starpu_codelet neutral_cl =
 	.opencl_funcs = {neutral_opencl_kernel, NULL},
 #endif
 	.cpu_funcs = {neutral_cpu_kernel, NULL},
-	.modes = {STARPU_R},
+	.modes = {STARPU_W},
 	.nbuffers = 1
 };
 

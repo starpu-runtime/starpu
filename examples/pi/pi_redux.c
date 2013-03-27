@@ -234,7 +234,7 @@ static struct starpu_codelet init_codelet =
 #ifdef STARPU_HAVE_CURAND
         .cuda_funcs = {init_cuda_func, NULL},
 #endif
-	.modes = {STARPU_R},
+	.modes = {STARPU_W},
         .nbuffers = 1
 };
 

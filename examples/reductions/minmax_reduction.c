@@ -58,7 +58,7 @@ static void minmax_neutral_cpu_func(void *descr[], void *cl_arg)
 static struct starpu_codelet minmax_init_codelet =
 {
 	.cpu_funcs = {minmax_neutral_cpu_func, NULL},
-	.modes = {STARPU_R},
+	.modes = {STARPU_W},
 	.nbuffers = 1
 };
 
