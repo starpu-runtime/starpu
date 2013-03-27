@@ -17,7 +17,6 @@
 #include <starpu_mpi_stats.h>
 #include <common/config.h>
 #include <stdio.h>
-//#define STARPU_MPI_VERBOSE	1
 #include <starpu_mpi_private.h>
 
 /* measure the amount of data transfers between each pair of MPI nodes */
@@ -38,7 +37,7 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
 
 	MPI_Comm_size(comm, &world_size);
-	_STARPU_MPI_DEBUG("allocating for %d nodes\n", world_size);
+	_STARPU_MPI_DEBUG(1, "allocating for %d nodes\n", world_size);
 
 	comm_amount = (size_t *) calloc(world_size, sizeof(size_t));
 }
@@ -58,7 +57,7 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype data
 	MPI_Comm_rank(comm, &src);
 	MPI_Type_size(datatype, &size);
 
-	_STARPU_MPI_DEBUG("[%d] adding %d to %d\n", src, count*size, dst);
+	_STARPU_MPI_DEBUG(1, "[%d] adding %d to %d\n", src, count*size, dst);
 
 	comm_amount[dst] += count*size;
 }

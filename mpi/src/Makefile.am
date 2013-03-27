@@ -45,7 +45,8 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_datatype.c				\
 	starpu_mpi_insert_task.c			\
 	starpu_mpi_collective.c				\
-	starpu_mpi_stats.c
+	starpu_mpi_stats.c				\
+	starpu_mpi_private.c
 
 
 showcheck:
