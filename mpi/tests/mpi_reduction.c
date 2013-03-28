@@ -94,7 +94,8 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	if (my_rank == 0) {
+	if (my_rank == 0)
+	{
 		dot = 14;
 		sum = (nb_elements * (nb_elements + 1)) / 2;
 		sum *= loops;
@@ -123,7 +124,7 @@ int main(int argc, char **argv)
 		if (handles[x])
 		{
 			starpu_data_set_rank(handles[x], mpi_rank);
-			starpu_data_set_tag(handles[x], x);
+			starpu_data_set_tag(handles[x], x+1);
 		}
 	}
 
