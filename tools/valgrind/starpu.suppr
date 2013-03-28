@@ -70,29 +70,3 @@
    fun:_starpu_load_bus_performance_files
    ...
 }
-
-{
-   This is racy, but keep it away for now, otherwise it clutters the buildbot log
-   Helgrind:Race
-   fun:_starpu_fifo_empty
-   fun:pop_task_eager_policy
-   ...
-}
-
-{
-   This is the counterpart of the suppression above
-   Helgrind:Race
-   fun:_starpu_fifo_push_task
-   fun:push_task_eager_policy
-   ...
-}
-
-
-{
-   This is the counterpart of the suppression above
-   Helgrind:Race
-   fun:_starpu_fifo_push_sorted_task
-   fun:_starpu_fifo_push_task
-   fun:push_task_eager_policy
-   ...
-}

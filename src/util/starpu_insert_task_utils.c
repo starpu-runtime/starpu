@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -234,7 +234,8 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 			(*task)->handles[current_buffer] = handle;
 			if (cl->modes[current_buffer])
 			{
-				STARPU_ASSERT(cl->modes[current_buffer] == mode);
+				STARPU_ASSERT_MSG(cl->modes[current_buffer] == mode, "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_insert_task\n",
+						  cl->name, cl->modes[current_buffer], current_buffer, mode);
 			}
 			else
 			{

@@ -454,12 +454,18 @@ double _get_velocity_per_worker(struct sched_ctx_hypervisor_wrapper *sc_w, unsig
         if( elapsed_flops != 0.0)
         {
                 double curr_time = starpu_timing_now();
+		size_t elapsed_data_used = sc_w->elapsed_data[worker];
                 double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
  		enum starpu_archtype arch = starpu_worker_get_type(worker);
 		if(arch == STARPU_CUDA_WORKER)
 		{
-			double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
-			elapsed_time +=  (elapsed_data_used / transfer_velocity) / 1000000 ;
+/* 			unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx); */
+/* 			if(!worker_in_ctx) */
+/* 			{ */
+
+/* 				double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker); */
+/* 				elapsed_time +=  (elapsed_data_used / transfer_velocity) / 1000000 ; */
+/* 			} */
 			double latency = starpu_get_latency_RAM_CUDA(worker);
 //			printf("%d/%d: latency %lf elapsed_time before %lf ntasks %d\n", worker, sc_w->sched_ctx, latency, elapsed_time, elapsed_tasks);
 			elapsed_time += (elapsed_tasks * latency)/1000000;

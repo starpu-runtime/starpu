@@ -49,6 +49,9 @@ BUILT_SOURCES =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
+EXTRA_DIST = 					\
+	user_defined_datatype_value.h
+
 examplebindir = $(libdir)/starpu/examples/mpi
 
 examplebin_PROGRAMS =

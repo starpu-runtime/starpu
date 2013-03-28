@@ -217,12 +217,16 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 
 					redux_task->cl = handle->redux_cl;
 					STARPU_ASSERT(redux_task->cl);
+					if (!redux_task->cl->modes[0])
+						redux_task->cl->modes[0] = STARPU_RW;
+					if (!redux_task->cl->modes[1])
+						redux_task->cl->modes[1] = STARPU_R;
+
+					STARPU_ASSERT_MSG(redux_task->cl->modes[0] == STARPU_RW, "First parameter of reduction codelet has to be RW");
+					STARPU_ASSERT_MSG(redux_task->cl->modes[1] == STARPU_R, "Second parameter of reduction codelet has to be R");
 
 					redux_task->handles[0] = replicate_array[i];
-					redux_task->cl->modes[0] = STARPU_RW;
-
 					redux_task->handles[1] = replicate_array[i+step];
-					redux_task->cl->modes[1] = STARPU_R;
 
 					int ndeps = 0;
 					struct starpu_task *task_deps[2];
@@ -274,10 +278,9 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 
 			redux_task->cl = handle->init_cl;
 			STARPU_ASSERT(redux_task->cl);
-#ifdef STARPU_DEVEL
-#  warning the mode should already be set in the codelet. Only check they are valid?
-#endif
-			redux_task->cl->modes[0] = STARPU_W;
+			if (!redux_task->cl->modes[0])
+				redux_task->cl->modes[0] = STARPU_W;
+			STARPU_ASSERT_MSG(redux_task->cl->modes[0] == STARPU_W, "Parameter of initialization codelet has to be W");
 			redux_task->handles[0] = handle;
 
 			int ret = _starpu_task_submit_internally(redux_task);
@@ -300,11 +303,13 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			redux_task->cl = handle->redux_cl;
 			STARPU_ASSERT(redux_task->cl);
 
-#ifdef STARPU_DEVEL
-#  warning the modes should already be set in the codelet. Only check they are valid?
-#endif
-			redux_task->cl->modes[0] = STARPU_RW;
-			redux_task->cl->modes[1] = STARPU_R;
+			if (!redux_task->cl->modes[0])
+				redux_task->cl->modes[0] = STARPU_RW;
+			if (!redux_task->cl->modes[1])
+				redux_task->cl->modes[1] = STARPU_R;
+
+			STARPU_ASSERT_MSG(redux_task->cl->modes[0] == STARPU_RW, "First parameter of reduction codelet has to be RW");
+			STARPU_ASSERT_MSG(redux_task->cl->modes[1] == STARPU_R, "Second parameter of reduction codelet has to be R");
 
 			redux_task->handles[0] = handle;
 			redux_task->handles[1] = replicate_array[replicate];

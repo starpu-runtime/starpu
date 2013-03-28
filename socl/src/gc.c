@@ -108,10 +108,12 @@ void gc_stop(void) {
 
 int gc_entity_release_ex(entity e, const char * DEBUG_PARAM(caller)) {
 
+  DEBUG_MSG("[%s] Decrementing refcount of %s %p to ", caller, e->name, e);
+
   /* Decrement reference count */
   int refs = __sync_sub_and_fetch(&e->refs, 1);
 
-  DEBUG_MSG("[%s] Decrementing refcount of %s %p to %d\n", caller, e->name, e, refs);
+  DEBUG_MSG_NOHEAD("%d\n", refs);
 
   assert(refs >= 0);
 

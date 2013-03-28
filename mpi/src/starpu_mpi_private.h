@@ -30,19 +30,25 @@
 extern "C" {
 #endif
 
-//#define STARPU_MPI_VERBOSE	1
-
-#ifdef STARPU_MPI_VERBOSE
-static int _debug_rank=-1;
+#ifdef STARPU_VERBOSE
+extern int _debug_rank;
+extern int _debug_level;
+void _starpu_mpi_set_debug_level(int level);
 #endif
 
-#ifdef STARPU_MPI_VERBOSE
-#  define _STARPU_MPI_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) { \
-	                                        if (_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank); \
-                                                fprintf(stderr, "%*s[%d][starpu_mpi][%s] " fmt , (_debug_rank+1)*4, "", _debug_rank, __func__ ,##args); \
-                                                fflush(stderr); }} while(0);
+#ifdef STARPU_VERBOSE
+#  define _STARPU_MPI_DEBUG(level, fmt, args ...) \
+	do \
+	{								\
+		if (!getenv("STARPU_SILENT") && level <= _debug_level)	\
+		{							\
+			if (_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank); \
+			fprintf(stderr, "%*s[%d][starpu_mpi][%s] " fmt , (_debug_rank+1)*4, "", _debug_rank, __func__ ,##args); \
+			fflush(stderr); \
+		}			\
+	} while(0);
 #else
-#  define _STARPU_MPI_DEBUG(fmt, args ...)
+#  define _STARPU_MPI_DEBUG(level, fmt, args ...)
 #endif
 
 #define _STARPU_MPI_DISP(fmt, args ...) do { if (!getenv("STARPU_SILENT")) { \
@@ -50,7 +56,7 @@ static int _debug_rank=-1;
                                              fprintf(stderr, "%*s[%d][starpu_mpi][%s] " fmt , (_debug_rank+1)*4, "", _debug_rank, __func__ ,##args); \
                                              fflush(stderr); }} while(0);
 
-#ifdef STARPU_MPI_VERBOSE0
+#ifdef STARPU_VERBOSE0
 #  define _STARPU_MPI_LOG_IN()             do { if (!getenv("STARPU_SILENT")) { \
                                                if (_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);                        \
                                                fprintf(stderr, "%*s[%d][starpu_mpi][%s] -->\n", (_debug_rank+1)*4, "", _debug_rank, __func__ ); \
