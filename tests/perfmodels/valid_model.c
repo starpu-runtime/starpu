@@ -86,6 +86,7 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
         starpu_data_unregister(handle);
+	starpu_perfmodel_unload_model(&lmodel);
 	starpu_shutdown(); // To force dumping perf models on disk
 
 	ret = starpu_perfmodel_load_symbol(codelet->model->symbol, &lmodel);
@@ -98,6 +99,13 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	new_nsamples = 0;
 	for (archid = 0; archid < STARPU_NARCH_VARIATIONS; archid++)
 		new_nsamples += lmodel.per_arch[archid][0].regression.nsample;
+
+	ret = starpu_perfmodel_unload_model(&lmodel);
+	if (ret == 1)
+	{
+		FPRINTF(stderr, "The performance model for the symbol <%s> could not be UNloaded\n", codelet->model->symbol);
+		return 1;
+	}
 
 	if (old_nsamples + nloops == new_nsamples)
 	{
