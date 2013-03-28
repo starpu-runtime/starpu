@@ -2286,6 +2286,10 @@ regression.
 loads a given performance model. The @var{model} structure has to be completely zero, and will be filled with the information saved in @code{$STARPU_HOME/.starpu}.
 @end deftypefun
 
+@deftypefun int starpu_perfmodel_unload_model ({struct starpu_perfmodel} *@var{model})
+unloads the given model which has been previously loaded through the function @code{starpu_perfmodel_load_symbol}
+@end deftypefun
+
 @deftypefun void starpu_perfmodel_debugfilepath ({struct starpu_perfmodel} *@var{model}, {enum starpu_perf_archtype} @var{arch}, char *@var{path}, size_t @var{maxlen}, unsigned nimpl)
 returns the path to the debugging information for the performance model.
 @end deftypefun
