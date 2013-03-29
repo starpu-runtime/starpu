@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 		if (handles[x])
 		{
 			starpu_data_set_rank(handles[x], mpi_rank);
-			starpu_data_set_tag(handles[x], x+1);
+			starpu_data_set_tag(handles[x], x);
 		}
 	}
 
