@@ -323,11 +323,11 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node)
 {
 	STARPU_ASSERT(handle);
 
-	/* The application can now release the rw-lock */
-	_starpu_release_data_on_node(handle, 0, &handle->per_node[node]);
-
 	/* In case there are some implicit dependencies, unlock the "post sync" tasks */
 	_starpu_unlock_post_sync_tasks(handle);
+
+	/* The application can now release the rw-lock */
+	_starpu_release_data_on_node(handle, 0, &handle->per_node[node]);
 }
 
 void starpu_data_release(starpu_data_handle_t handle)
