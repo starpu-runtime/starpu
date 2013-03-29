@@ -68,32 +68,33 @@ static int push_task_dummy(struct starpu_task *task)
 
 	/* lock all workers when pushing tasks on a list where all
 	   of them would pop for tasks */
-	unsigned worker = 0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-
-	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
-		pthread_mutex_t *sched_mutex;
-		pthread_cond_t *sched_cond;
-		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		pthread_mutex_lock(sched_mutex);
-	}
+        pthread_mutex_lock(&data->policy_mutex);
 
 	starpu_task_list_push_front(&data->sched_list, task);
 
+	_starpu_push_task_end(task);
+	pthread_mutex_unlock(&data->policy_mutex);
+
+
+        /*if there are no tasks block */
+        /* wake people waiting for a task */
+        unsigned worker = 0;
+	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+
+        struct starpu_sched_ctx_iterator it;
+        if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+
 	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
+        {
+                worker = workers->get_next(workers, &it);
 		pthread_mutex_t *sched_mutex;
-		pthread_cond_t *sched_cond;
-		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		pthread_cond_signal(sched_cond);
-		pthread_mutex_unlock(sched_mutex);
-	}
+                pthread_cond_t *sched_cond;
+                starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+		pthread_mutex_lock(sched_mutex);
+                pthread_cond_signal(sched_cond);
+                pthread_mutex_unlock(sched_mutex);
+        }
 
 	return 0;
 }
