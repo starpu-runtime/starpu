@@ -94,7 +94,8 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	if (my_rank == 0) {
+	if (my_rank == 0)
+	{
 		dot = 14;
 		sum = (nb_elements * (nb_elements + 1)) / 2;
 		sum *= loops;

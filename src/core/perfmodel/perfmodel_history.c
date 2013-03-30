@@ -699,6 +699,41 @@ void _starpu_initialize_registered_performance_models(void)
 	_STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
 }
 
+void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
+{
+	unsigned arch;
+	unsigned nimpl;
+
+	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
+	{
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+		{
+			struct starpu_perfmodel_per_arch *archmodel = &model->per_arch[arch][nimpl];
+			struct starpu_perfmodel_history_list *list, *plist;
+			struct starpu_perfmodel_history_table *entry, *tmp;
+
+			HASH_ITER(hh, archmodel->history, entry, tmp)
+			{
+				HASH_DEL(archmodel->history, entry);
+				free(entry);
+			}
+			archmodel->history = NULL;
+
+			list = archmodel->list;
+			while (list)
+			{
+				free(list->entry);
+				plist = list;
+				list = list->next;
+				free(plist);
+			}
+			archmodel->list = NULL;
+		}
+	}
+
+	model->is_loaded = 0;
+}
+
 void _starpu_deinitialize_registered_performance_models(void)
 {
 	if (_starpu_get_calibrate_flag())
@@ -714,38 +749,9 @@ void _starpu_deinitialize_registered_performance_models(void)
 	while (node)
 	{
 		struct starpu_perfmodel *model = node->model;
-		unsigned arch;
-		unsigned nimpl;
 
 		_STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
-		for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
-		{
-			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-			{
-				struct starpu_perfmodel_per_arch *archmodel = &model->per_arch[arch][nimpl];
-				struct starpu_perfmodel_history_list *list, *plist;
-				struct starpu_perfmodel_history_table *entry, *tmp;
-
-				HASH_ITER(hh, archmodel->history, entry, tmp)
-				{
-					HASH_DEL(archmodel->history, entry);
-					free(entry);
-				}
-				archmodel->history = NULL;
-
-				list = archmodel->list;
-				while (list)
-				{
-					free(list->entry);
-					plist = list;
-					list = list->next;
-					free(plist);
-				}
-				archmodel->list = NULL;
-			}
-		}
-
-		model->is_loaded = 0;
+		_starpu_deinitialize_performance_model(model);
 		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
 		pnode = node;
@@ -981,6 +987,13 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 
 	STARPU_ASSERT(fclose(f) == 0);
 
+	return 0;
+}
+
+int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
+{
+	free((char *)model->symbol);
+	_starpu_deinitialize_performance_model(model);
 	return 0;
 }
 
