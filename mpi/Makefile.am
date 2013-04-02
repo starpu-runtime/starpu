@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2012  Université de Bordeaux 1
+# Copyright (C) 2009-2013  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 SUBDIRS=src tests examples
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libstarpumpi.pc starpumpi-1.0.pc
+pkgconfig_DATA = libstarpumpi.pc starpumpi-1.0.pc starpumpi-1.1.pc
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 					\
