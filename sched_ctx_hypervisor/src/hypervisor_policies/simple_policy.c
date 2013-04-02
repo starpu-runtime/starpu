@@ -23,7 +23,7 @@ static int _compute_priority(unsigned sched_ctx)
 
 	int total_priority = 0;
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 	int worker;
 	
 	starpu_iterator it;
@@ -80,7 +80,7 @@ int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_arch
 	for(i = 0; i < *nworkers; i++)
 		curr_workers[i] = -1;
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 	int index;
 	int worker;
 	int considered = 0;
@@ -146,7 +146,7 @@ int* _get_first_workers(unsigned sched_ctx, unsigned *nworkers, enum starpu_arch
 
 static unsigned _get_potential_nworkers(struct sched_ctx_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_archtype arch)
 {
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 
 	unsigned potential_workers = 0;
 	int worker;

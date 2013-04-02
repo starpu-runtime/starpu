@@ -341,7 +341,7 @@ void sched_ctx_hypervisor_unregister_ctx(unsigned sched_ctx)
 static double _get_best_total_elapsed_flops(struct sched_ctx_hypervisor_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
 {
 	double ret_val = 0.0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
         int worker;
 
 	struct starpu_sched_ctx_iterator it;
@@ -388,7 +388,7 @@ double _get_ref_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc
 	double ref_velocity = 0.0;
 	unsigned nw = 0;
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
 	int worker;
 
 	struct starpu_sched_ctx_iterator it;
@@ -439,7 +439,7 @@ static void _get_cpus(int *workers, int nworkers, int *cpus, int *ncpus)
 int sched_ctx_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch)
 {
 	int nworkers_ctx = 0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 	int worker;
 
 	struct starpu_sched_ctx_iterator it;

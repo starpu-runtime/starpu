@@ -34,6 +34,40 @@ enum starpu_archtype
 	STARPU_OPENCL_WORKER  /* OpenCL device */
 };
 
+struct starpu_sched_ctx_iterator
+{
+	int cursor;
+};
+
+
+/* generic structure used by the scheduling contexts to iterate the workers */
+struct starpu_worker_collection
+{
+	/* hidden data structure used to memorize the workers */
+	void *workerids;
+	/* the number of workers in the collection */
+	unsigned nworkers;
+	/* the type of structure (STARPU_WORKER_LIST,...) */
+	int type;
+	/* checks if there is another element in collection */
+	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
+	/* return the next element in the collection */
+	int (*get_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
+	/* add a new element in the collection */
+	int (*add)(struct starpu_worker_collection *workers, int worker);
+	/* remove an element from the collection */
+	int (*remove)(struct starpu_worker_collection *workers, int worker);
+	/* initialize the structure */
+	void (*init)(struct starpu_worker_collection *workers);
+	/* free the structure */
+	void (*deinit)(struct starpu_worker_collection *workers);
+	/* initialize the cursor if there is one */
+	void (*init_iterator)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
+};
+
+/* types of structures the worker collection can implement */
+#define STARPU_WORKER_LIST 0
+
 /* This function returns the number of workers (ie. processing units executing
  * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
 unsigned starpu_worker_get_count(void);

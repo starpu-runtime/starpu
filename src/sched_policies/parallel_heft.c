@@ -244,7 +244,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 {
 	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	unsigned nworkers_ctx = workers->nworkers;
 
 	unsigned worker, worker_ctx = 0;
@@ -535,7 +535,7 @@ static void parallel_heft_add_workers(unsigned sched_ctx_id, int *workerids, uns
 
 static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_SCHED_CTX_WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)malloc(sizeof(struct _starpu_pheft_data));
 	hd->alpha = _STARPU_DEFAULT_ALPHA;
 	hd->beta = _STARPU_DEFAULT_BETA;

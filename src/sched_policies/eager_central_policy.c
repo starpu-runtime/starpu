@@ -32,7 +32,7 @@ struct _starpu_eager_center_policy_data
 
 static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_SCHED_CTX_WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)malloc(sizeof(struct _starpu_eager_center_policy_data));
 
@@ -86,7 +86,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
 	unsigned worker = 0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	
 	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)
