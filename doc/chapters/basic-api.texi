@@ -284,6 +284,12 @@ This function frees memory by specifying its size. The given
 @code{starpu_malloc_flags} when allocating the memory.
 @end deftypefun
 
+@deftypefun ssize_t starpu_memory_get_available (unsigned @var{node})
+If a memory limit is defined on the given node (@pxref{Limit memory}),
+return the amount of available memory on the node. Otherwise return
+@code{-1}.
+@end deftypefun
+
 @node Workers' Properties
 @section Workers' Properties
 
