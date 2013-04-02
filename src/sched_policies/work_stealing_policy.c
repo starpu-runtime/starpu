@@ -59,10 +59,25 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 	unsigned worker = ws->last_pop_worker;
 	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
 
+	_starpu_pthread_mutex_t *victim_sched_mutex;
+	_starpu_pthread_cond_t *victim_sched_cond;
+
 	/* If the worker's queue is empty, let's try
 	 * the next ones */
-	while (!ws->queue_array[worker]->njobs)
+	while (1)
 	{
+		unsigned njobs;
+
+		starpu_worker_get_sched_condition(worker, &victim_sched_mutex, &victim_sched_cond);
+		VALGRIND_HG_MUTEX_LOCK_PRE(victim_sched_mutex, 0);
+		VALGRIND_HG_MUTEX_LOCK_POST(victim_sched_mutex);
+		njobs = ws->queue_array[worker]->njobs;
+		VALGRIND_HG_MUTEX_UNLOCK_PRE(victim_sched_mutex);
+		VALGRIND_HG_MUTEX_UNLOCK_POST(victim_sched_mutex);
+
+		if (njobs)
+			break;
+
 		worker = (worker + 1) % nworkers;
 		if (worker == ws->last_pop_worker)
 		{
