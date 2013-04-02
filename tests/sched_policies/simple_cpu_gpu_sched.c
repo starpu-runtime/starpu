@@ -143,11 +143,15 @@ run(struct starpu_sched_policy *policy)
 		exit(STARPU_TEST_SKIPPED);
 
 	/* At least 1 CPU and 1 GPU are needed. */
-	if (starpu_cpu_worker_get_count() == 0)
+	if (starpu_cpu_worker_get_count() == 0) {
+		starpu_shutdown();
 		exit(STARPU_TEST_SKIPPED);
+	}
 	if (starpu_cuda_worker_get_count() == 0 &&
-	    starpu_opencl_worker_get_count() == 0)
+	    starpu_opencl_worker_get_count() == 0) {
+		starpu_shutdown();
 		exit(STARPU_TEST_SKIPPED);
+	}
 
 	starpu_profiling_status_set(1);
 	init_perfmodels();
