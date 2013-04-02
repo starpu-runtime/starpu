@@ -85,7 +85,7 @@ static void synthesize_intermediate_workers(hwloc_obj_t *children, unsigned min,
 				unsigned sched_ctx_id  = starpu_sched_ctx_get_context();
 				if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 					sched_ctx_id = 0;
-				struct starpu_sched_ctx_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+				struct starpu_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 				_STARPU_DEBUG("Adding it\n");
 				ret = starpu_combined_worker_assign_workerid(nworkers, cpu_workers);
@@ -138,7 +138,7 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned
 		if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 			sched_ctx_id = 0;
 
-		struct starpu_sched_ctx_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+		struct starpu_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 		int newworkerid = starpu_combined_worker_assign_workerid(nworkers, cpu_workers);
 		STARPU_ASSERT(newworkerid >= 0);
@@ -200,7 +200,7 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	int min;
 	int max;
 
-	struct starpu_sched_ctx_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	/* We put the id of all CPU workers in this array */
 	int cpu_workers[STARPU_NMAXWORKERS];
@@ -253,7 +253,7 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 	unsigned sched_ctx_id  = starpu_sched_ctx_get_context();
 	if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 		sched_ctx_id = 0;
-	struct starpu_sched_ctx_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	int cpu_workers[STARPU_NMAXWORKERS];
 	int ncpus = 0;
 	struct _starpu_worker *worker;

@@ -72,7 +72,7 @@ static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_
 	for(i = 0; i < *nworkers; i++)
 		curr_workers[i] = -1;
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 	int index;
 	int worker;
 	int considered = 0;
