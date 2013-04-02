@@ -90,8 +90,13 @@ static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct 
 		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
 	}
 
-	if (!pre_sync_task->cl)
+	if (!pre_sync_task->cl) {
+		/* Add a reference to be released in _starpu_handle_job_termination */
+		_starpu_spin_lock(&handle->header_lock);
+		handle->busy_count++;
+		_starpu_spin_unlock(&handle->header_lock);
 		_starpu_get_job_associated_to_task(pre_sync_task)->implicit_dep_handle = handle;
+	}
 }
 
 /* Write after Read (WAR) */
@@ -155,8 +160,13 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 	handle->last_submitted_readers = NULL;
 	handle->last_submitted_writer = post_sync_task;
 
-	if (!post_sync_task->cl)
+	if (!post_sync_task->cl) {
+		/* Add a reference to be released in _starpu_handle_job_termination */
+		_starpu_spin_lock(&handle->header_lock);
+		handle->busy_count++;
+		_starpu_spin_unlock(&handle->header_lock);
 		_starpu_get_job_associated_to_task(post_sync_task)->implicit_dep_handle = handle;
+	}
 }
 
 /* Write after Write (WAW) */
@@ -199,8 +209,13 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
 
 	handle->last_submitted_writer = post_sync_task;
 
-	if (!post_sync_task->cl)
+	if (!post_sync_task->cl) {
+		/* Add a reference to be released in _starpu_handle_job_termination */
+		_starpu_spin_lock(&handle->header_lock);
+		handle->busy_count++;
+		_starpu_spin_unlock(&handle->header_lock);
 		_starpu_get_job_associated_to_task(post_sync_task)->implicit_dep_handle = handle;
+	}
 }
 
 /* This function adds the implicit task dependencies introduced by data

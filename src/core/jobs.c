@@ -173,8 +173,15 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the
 	 * tasks waiting for us */
-	if (j->implicit_dep_handle)
-		_starpu_release_data_enforce_sequential_consistency(j->task, j->implicit_dep_handle);
+	if (j->implicit_dep_handle) {
+		starpu_data_handle_t handle = j->implicit_dep_handle;
+		_starpu_release_data_enforce_sequential_consistency(j->task, handle);
+		/* Release reference taken while setting implicit_dep_handle */
+		_starpu_spin_lock(&handle->header_lock);
+		handle->busy_count--;
+		if (!_starpu_data_check_not_busy(handle))
+			_starpu_spin_unlock(&handle->header_lock);
+	}
 
 	/* in case there are dependencies, wake up the proper tasks */
 	_starpu_notify_dependencies(j);
