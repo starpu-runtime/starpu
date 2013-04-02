@@ -87,20 +87,20 @@ extern "C"
 } while(0)
 
 #if defined(STARPU_HAVE_STRERROR_R)
-#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (STARPU_UNLIKELY(err != 0)) { \
+#  define STARPU_CHECK_RETURN_VALUE(err, message, ...) {if (STARPU_UNLIKELY(err != 0)) { \
 			char xmessage[256]; strerror_r(-err, xmessage, 256); \
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
+			fprintf(stderr, "[starpu] Unexpected value: <%d:%s> returned for " message "\n", err, xmessage, ## __VA_ARGS__); \
 			STARPU_ABORT(); }}
-#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (STARPU_UNLIKELY(err != value)) { \
+#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message, ...) {if (STARPU_UNLIKELY(err != value)) { \
 			char xmessage[256]; strerror_r(-err, xmessage, 256); \
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d:%s>\n", message, err, xmessage); \
+			fprintf(stderr, "[starpu] Unexpected value: <%d!=%d:%s> returned for " message "\n", err, value, xmessage, ## __VA_ARGS__); \
 			STARPU_ABORT(); }}
 #else
-#  define STARPU_CHECK_RETURN_VALUE(err, message) {if (STARPU_UNLIKELY(err != 0)) {		\
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
+#  define STARPU_CHECK_RETURN_VALUE(err, message, ...) {if (STARPU_UNLIKELY(err != 0)) { \
+			fprintf(stderr, "[starpu] Unexpected value: <%d> returned for " message "\n", err, ## __VA_ARGS__); \
 			STARPU_ABORT(); }}
-#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message) {if (STARPU_UNLIKELY(err != value)) { \
-			fprintf(stderr, "StarPU function <%s> returned unexpected value: <%d>\n", message, err); \
+#  define STARPU_CHECK_RETURN_VALUE_IS(err, value, message, ...) {if (STARPU_UNLIKELY(err != value)) { \
+	       		fprintf(stderr, "[starpu] Unexpected value: <%d != %d> returned for " message "\n", err, value, ## __VA_ARGS__); \
 			STARPU_ABORT(); }}
 #endif /* STARPU_HAVE_STRERROR_R */
 
