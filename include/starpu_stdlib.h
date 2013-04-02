@@ -36,6 +36,8 @@ int starpu_free(void *A);
 int starpu_malloc_flags(void **A, size_t dim, int flags);
 int starpu_free_flags(void *A, size_t dim, int flags);
 
+ssize_t starpu_memory_get_available(unsigned node);
+
 #ifdef __cplusplus
 }
 #endif

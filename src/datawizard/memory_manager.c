@@ -68,3 +68,11 @@ void _starpu_memory_manager_deallocate_size(size_t size, unsigned node)
 {
 	used_size[node] -= size;
 }
+
+ssize_t starpu_memory_get_available(unsigned node)
+{
+	if (global_size[node] == 0)
+		return -1;
+	else
+		return global_size[node] - used_size[node];
+}

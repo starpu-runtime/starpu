@@ -89,3 +89,5 @@ Talk about
 @code{STARPU_LIMIT_OPENCL_devid_MEM}, @code{STARPU_LIMIT_OPENCL_MEM}
 and @code{STARPU_LIMIT_CPU_MEM}
 
+@code{starpu_memory_get_available}
+
