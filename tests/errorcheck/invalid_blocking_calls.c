@@ -86,6 +86,7 @@ int main(int argc, char **argv)
 	task->tag_id = TAG;
 
 	task->callback_func = wrong_callback;
+	task->detach = 0;
 
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV) goto enodev;
