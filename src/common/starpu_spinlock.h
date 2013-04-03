@@ -30,12 +30,14 @@ struct _starpu_spinlock
 #elif defined(STARPU_SPINLOCK_CHECK)
 	pthread_mutexattr_t errcheck_attr;
 	_starpu_pthread_mutex_t errcheck_lock;
-	const char *last_taker;
 #elif defined(HAVE_PTHREAD_SPIN_LOCK)
 	_starpu_pthread_spinlock_t lock;
 #else
 	/* we only have a trivial implementation yet ! */
 	uint32_t taken __attribute__ ((aligned(16)));
+#endif
+#ifdef STARPU_SPINLOCK_CHECK
+	const char *last_taker;
 #endif
 };
 
