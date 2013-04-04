@@ -17,7 +17,6 @@
  */
 
 #include <starpu.h>
-#include <pthread.h>
 
 static unsigned list_has_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
