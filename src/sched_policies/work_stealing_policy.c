@@ -59,10 +59,25 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 	unsigned worker = ws->last_pop_worker;
 	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
 
+	_starpu_pthread_mutex_t *victim_sched_mutex;
+	_starpu_pthread_cond_t *victim_sched_cond;
+
 	/* If the worker's queue is empty, let's try
 	 * the next ones */
-	while (!ws->queue_array[worker]->njobs)
+	while (1)
 	{
+		unsigned njobs;
+
+		starpu_worker_get_sched_condition(worker, &victim_sched_mutex, &victim_sched_cond);
+		VALGRIND_HG_MUTEX_LOCK_PRE(victim_sched_mutex, 0);
+		VALGRIND_HG_MUTEX_LOCK_POST(victim_sched_mutex);
+		njobs = ws->queue_array[worker]->njobs;
+		VALGRIND_HG_MUTEX_UNLOCK_PRE(victim_sched_mutex);
+		VALGRIND_HG_MUTEX_UNLOCK_POST(victim_sched_mutex);
+
+		if (njobs)
+			break;
+
 		worker = (worker + 1) % nworkers;
 		if (worker == ws->last_pop_worker)
 		{
@@ -146,7 +161,7 @@ static unsigned select_victim_overload(unsigned sched_ctx_id)
 	if (performed_total < calibration_value)
 		return select_victim_round_robin(sched_ctx_id);
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	struct starpu_sched_ctx_iterator it;
         if(workers->init_iterator)
@@ -186,7 +201,7 @@ static unsigned select_worker_overload(unsigned sched_ctx_id)
 	if (performed_total < calibration_value)
 		return select_worker_round_robin(sched_ctx_id);
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	struct starpu_sched_ctx_iterator it;
         if(workers->init_iterator)
@@ -335,7 +350,7 @@ int ws_push_task(struct starpu_task *task)
         }
 
 	unsigned worker = 0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
@@ -420,7 +435,7 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 
 static void initialize_ws_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_SCHED_CTX_WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)malloc(sizeof(struct _starpu_work_stealing_data));
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)ws);

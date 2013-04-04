@@ -19,7 +19,7 @@
 #include <starpu.h>
 #include <pthread.h>
 
-static unsigned list_has_next(struct starpu_sched_ctx_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
+static unsigned list_has_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	int nworkers = (int)workers->nworkers;
 	STARPU_ASSERT(it != NULL);
@@ -31,7 +31,7 @@ static unsigned list_has_next(struct starpu_sched_ctx_worker_collection *workers
 	return ret;
 }
 
-static int list_get_next(struct starpu_sched_ctx_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
+static int list_get_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	int *workerids = (int *)workers->workerids;
 	int nworkers = (int)workers->nworkers;
@@ -43,7 +43,7 @@ static int list_get_next(struct starpu_sched_ctx_worker_collection *workers, str
 	return ret;
 }
 
-static unsigned _worker_belongs_to_ctx(struct starpu_sched_ctx_worker_collection *workers, int workerid)
+static unsigned _worker_belongs_to_ctx(struct starpu_worker_collection *workers, int workerid)
 {
 	int *workerids = (int *)workers->workerids;
 	unsigned nworkers = workers->nworkers;
@@ -57,7 +57,7 @@ static unsigned _worker_belongs_to_ctx(struct starpu_sched_ctx_worker_collection
 	return 0;
 }
 
-static int list_add(struct starpu_sched_ctx_worker_collection *workers, int worker)
+static int list_add(struct starpu_worker_collection *workers, int worker)
 {
 	int *workerids = (int *)workers->workerids;
 	unsigned *nworkers = &workers->nworkers;
@@ -105,7 +105,7 @@ static void _rearange_workerids(int *workerids, int old_nworkers)
 	  }
 }
 
-static int list_remove(struct starpu_sched_ctx_worker_collection *workers, int worker)
+static int list_remove(struct starpu_worker_collection *workers, int worker)
 {
 	int *workerids = (int *)workers->workerids;
 	unsigned nworkers = workers->nworkers;
@@ -137,7 +137,7 @@ static void _init_workers(int *workerids)
 	return;
 }
 
-static void list_init(struct starpu_sched_ctx_worker_collection *workers)
+static void list_init(struct starpu_worker_collection *workers)
 {
 	int *workerids = (int*)malloc(STARPU_NMAXWORKERS * sizeof(int));
 	_init_workers(workerids);
@@ -148,17 +148,17 @@ static void list_init(struct starpu_sched_ctx_worker_collection *workers)
 	return;
 }
 
-static void list_deinit(struct starpu_sched_ctx_worker_collection *workers)
+static void list_deinit(struct starpu_worker_collection *workers)
 {
 	free(workers->workerids);
 }
 
-static void list_init_iterator(struct starpu_sched_ctx_worker_collection *workers STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_ctx_iterator *it)
+static void list_init_iterator(struct starpu_worker_collection *workers STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_ctx_iterator *it)
 {
 	*((int*)it) = 0;
 }
 
-struct starpu_sched_ctx_worker_collection worker_list =
+struct starpu_worker_collection worker_list =
 {
 	.has_next = list_has_next,
 	.get_next = list_get_next,
@@ -167,6 +167,6 @@ struct starpu_sched_ctx_worker_collection worker_list =
 	.init = list_init,
 	.deinit = list_deinit,
 	.init_iterator = list_init_iterator,
-	.type = STARPU_SCHED_CTX_WORKER_LIST
+	.type = STARPU_WORKER_LIST
 };
 

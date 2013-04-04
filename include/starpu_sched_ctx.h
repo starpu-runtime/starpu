@@ -24,41 +24,6 @@ extern "C"
 {
 #endif
 
-//struct starpu_sched_ctx_iterator;
-struct starpu_sched_ctx_iterator
-{
-	int cursor;
-};
-
-
-/* generic structure used by the scheduling contexts to iterate the workers */
-struct starpu_sched_ctx_worker_collection
-{
-	/* hidden data structure used to memorize the workers */
-	void *workerids;
-	/* the number of workers in the collection */
-	unsigned nworkers;
-	/* the type of structure (STARPU_SCHED_CTX_WORKER_LIST,...) */
-	int type;
-	/* checks if there is another element in collection */
-	unsigned (*has_next)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
-	/* return the next element in the collection */
-	int (*get_next)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
-	/* add a new element in the collection */
-	int (*add)(struct starpu_sched_ctx_worker_collection *workers, int worker);
-	/* remove an element from the collection */
-	int (*remove)(struct starpu_sched_ctx_worker_collection *workers, int worker);
-	/* initialize the structure */
-	void (*init)(struct starpu_sched_ctx_worker_collection *workers);
-	/* free the structure */
-	void (*deinit)(struct starpu_sched_ctx_worker_collection *workers);
-	/* initialize the cursor if there is one */
-	void (*init_iterator)(struct starpu_sched_ctx_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
-};
-
-/* types of structures the worker collection can implement */
-#define STARPU_SCHED_CTX_WORKER_LIST 0
-
 struct starpu_sched_ctx_performance_counters
 {
 	void (*notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time);
@@ -91,11 +56,11 @@ void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
 
 void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
 
-struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, int type);
+struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, int type);
 
 void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
 
-struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
+struct starpu_worker_collection* starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
 
 #if !defined(_MSC_VER) && !defined(STARPU_SIMGRID)
 pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);

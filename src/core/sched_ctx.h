@@ -46,7 +46,7 @@ struct _starpu_sched_ctx
 	/* data necessary for the policy */
 	void *policy_data;
 
-	struct starpu_sched_ctx_worker_collection *workers;
+	struct starpu_worker_collection *workers;
 
 	/* we keep an initial sched which we never delete */
 	unsigned is_initial_sched;

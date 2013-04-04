@@ -78,6 +78,10 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
 
+#ifdef STARPU_USE_CUDA
+	global_mem[devid] = props[devid].totalGlobalMem;
+#endif
+
 	limit = starpu_get_env_number("STARPU_LIMIT_CUDA_MEM");
 	if (limit == -1)
 	{

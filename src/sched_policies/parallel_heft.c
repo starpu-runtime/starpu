@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012 inria
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -185,10 +185,23 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 static double compute_expected_end(int workerid, double length)
 {
+	_starpu_pthread_mutex_t *sched_mutex;
+	_starpu_pthread_cond_t *sched_cond;
+
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+
 	if (!starpu_worker_is_combined_worker(workerid))
 	{
+		double res;
 		/* This is a basic worker */
-		return worker_exp_start[workerid] + worker_exp_len[workerid] + length;
+
+		VALGRIND_HG_MUTEX_LOCK_PRE(sched_mutex, 0);
+		VALGRIND_HG_MUTEX_LOCK_POST(sched_mutex);
+		res = worker_exp_start[workerid] + worker_exp_len[workerid] + length;
+		VALGRIND_HG_MUTEX_UNLOCK_PRE(sched_mutex);
+		VALGRIND_HG_MUTEX_UNLOCK_POST(sched_mutex);
+
+		return res;
 	}
 	else
 	{
@@ -199,6 +212,9 @@ static double compute_expected_end(int workerid, double length)
 
 		double exp_end = DBL_MIN;
 
+		VALGRIND_HG_MUTEX_LOCK_PRE(sched_mutex, 0);
+		VALGRIND_HG_MUTEX_LOCK_POST(sched_mutex);
+
 		int i;
 		for (i = 0; i < worker_size; i++)
 		{
@@ -208,6 +224,9 @@ static double compute_expected_end(int workerid, double length)
 			exp_end = STARPU_MAX(exp_end, local_exp_end);
 		}
 
+		VALGRIND_HG_MUTEX_UNLOCK_PRE(sched_mutex);
+		VALGRIND_HG_MUTEX_UNLOCK_POST(sched_mutex);
+
 		return exp_end;
 	}
 }
@@ -215,10 +234,23 @@ static double compute_expected_end(int workerid, double length)
 static double compute_ntasks_end(int workerid)
 {
 	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
+	_starpu_pthread_mutex_t *sched_mutex;
+	_starpu_pthread_cond_t *sched_cond;
+
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+
 	if (!starpu_worker_is_combined_worker(workerid))
 	{
+		double res;
 		/* This is a basic worker */
-		return ntasks[workerid] / starpu_worker_get_relative_speedup(perf_arch);
+
+		VALGRIND_HG_MUTEX_LOCK_PRE(sched_mutex, 0);
+		VALGRIND_HG_MUTEX_LOCK_POST(sched_mutex);
+		res = ntasks[workerid] / starpu_worker_get_relative_speedup(perf_arch);
+		VALGRIND_HG_MUTEX_UNLOCK_PRE(sched_mutex);
+		VALGRIND_HG_MUTEX_UNLOCK_POST(sched_mutex);
+
+		return res;
 	}
 	else
 	{
@@ -229,12 +261,18 @@ static double compute_ntasks_end(int workerid)
 
 		int ntasks_end=0;
 
+		VALGRIND_HG_MUTEX_LOCK_PRE(sched_mutex, 0);
+		VALGRIND_HG_MUTEX_LOCK_POST(sched_mutex);
+
 		int i;
 		for (i = 0; i < worker_size; i++)
 		{
 			/* XXX: this is actually bogus: not all pushed tasks are necessarily parallel... */
 			ntasks_end = STARPU_MAX(ntasks_end, (int) ((double) ntasks[combined_workerid[i]] / starpu_worker_get_relative_speedup(perf_arch)));
 		}
+
+		VALGRIND_HG_MUTEX_UNLOCK_PRE(sched_mutex);
+		VALGRIND_HG_MUTEX_UNLOCK_POST(sched_mutex);
 
 		return ntasks_end;
 	}
@@ -244,7 +282,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 {
 	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	unsigned nworkers_ctx = workers->nworkers;
 
 	unsigned worker, worker_ctx = 0;
@@ -535,7 +573,7 @@ static void parallel_heft_add_workers(unsigned sched_ctx_id, int *workerids, uns
 
 static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_SCHED_CTX_WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)malloc(sizeof(struct _starpu_pheft_data));
 	hd->alpha = _STARPU_DEFAULT_ALPHA;
 	hd->beta = _STARPU_DEFAULT_BETA;

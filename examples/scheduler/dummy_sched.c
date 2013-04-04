@@ -28,7 +28,7 @@ typedef struct dummy_sched_data {
 
 static void init_dummy_sched(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_SCHED_CTX_WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
 	struct dummy_sched_data *data = (struct dummy_sched_data*)malloc(sizeof(struct dummy_sched_data));
 	
@@ -79,7 +79,7 @@ static int push_task_dummy(struct starpu_task *task)
         /*if there are no tasks block */
         /* wake people waiting for a task */
         unsigned worker = 0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
         struct starpu_sched_ctx_iterator it;
         if(workers->init_iterator)

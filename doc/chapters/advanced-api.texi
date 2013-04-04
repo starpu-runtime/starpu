@@ -826,7 +826,7 @@ This function removes the workers indicated in the first argument from the conte
 A scheduling context manages a collection of workers that can be memorized using different data structures. Thus, a generic structure is available in order to simplify the choice of its type.
 Only the list data structure is available but further data structures(like tree) implementations are foreseen.
 
-@deftp {Data Type} {struct starpu_sched_ctx_worker_collection}
+@deftp {Data Type} {struct starpu_worker_collection}
 @table @asis
 @item @code{void *workerids}
 The workerids managed by the collection
@@ -835,28 +835,28 @@ The number of workerids
 @item @code{pthread_key_t cursor_key} (optional)
 The cursor needed to iterate the collection (depending on the data structure)
 @item @code{int type}
-The type of structure (currently STARPU_SCHED_CTX_WORKER_LIST is the only one available)
-@item @code{unsigned (*has_next)(struct starpu_sched_ctx_worker_collection *workers)}
+The type of structure (currently STARPU_WORKER_LIST is the only one available)
+@item @code{unsigned (*has_next)(struct starpu_worker_collection *workers)}
 Checks if there is a next worker
-@item @code{int (*get_next)(struct starpu_sched_ctx_worker_collection *workers)}
+@item @code{int (*get_next)(struct starpu_worker_collection *workers)}
 Gets the next worker
-@item @code{int (*add)(struct starpu_sched_ctx_worker_collection *workers, int worker)}
+@item @code{int (*add)(struct starpu_worker_collection *workers, int worker)}
 Adds a worker to the collection
-@item @code{int (*remove)(struct starpu_sched_ctx_worker_collection *workers, int worker)}
+@item @code{int (*remove)(struct starpu_worker_collection *workers, int worker)}
 Removes a worker from the collection
-@item @code{void* (*init)(struct starpu_sched_ctx_worker_collection *workers)}
+@item @code{void* (*init)(struct starpu_worker_collection *workers)}
 Initialize the collection
-@item @code{void (*deinit)(struct starpu_sched_ctx_worker_collection *workers)}
+@item @code{void (*deinit)(struct starpu_worker_collection *workers)}
 Deinitialize the colection
-@item @code{void (*init_cursor)(struct starpu_sched_ctx_worker_collection *workers)} (optional)
+@item @code{void (*init_cursor)(struct starpu_worker_collection *workers)} (optional)
 Initialize the cursor if there is one
-@item @code{void (*deinit_cursor)(struct starpu_sched_ctx_worker_collection *workers)} (optional)
+@item @code{void (*deinit_cursor)(struct starpu_worker_collection *workers)} (optional)
 Deinitialize the cursor if there is one
 
 @end table
 @end deftp
 
-@deftypefun struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_create_worker_collection (unsigned @var{sched_ctx_id}, int @var{type})
+@deftypefun struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection (unsigned @var{sched_ctx_id}, int @var{type})
 Create a worker collection of the type indicated by the last parameter for the context specified through the first parameter.
 @end deftypefun
 
@@ -864,7 +864,7 @@ Create a worker collection of the type indicated by the last parameter for the c
 Delete the worker collection of the specified scheduling context
 @end deftypefun
 
-@deftypefun struct starpu_sched_ctx_worker_collection* starpu_sched_ctx_get_worker_collection (unsigned @var{sched_ctx_id})
+@deftypefun struct starpu_worker_collection* starpu_sched_ctx_get_worker_collection (unsigned @var{sched_ctx_id})
 Return the worker collection managed by the indicated context
 @end deftypefun
 

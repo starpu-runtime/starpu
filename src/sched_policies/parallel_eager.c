@@ -128,7 +128,7 @@ static void peager_remove_workers(unsigned sched_ctx_id, int *workerids, unsigne
 
 static void initialize_peager_policy(unsigned sched_ctx_id)
 {
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_SCHED_CTX_WORKER_LIST);
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)malloc(sizeof(struct _starpu_peager_data));
 	/* masters pick tasks from that queue */
@@ -168,7 +168,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 	}
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int worker = 0;
-	struct starpu_sched_ctx_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	
 	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)

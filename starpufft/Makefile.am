@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2012  Université de Bordeaux 1
+# Copyright (C) 2009-2013  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ versinclude_HEADERS = 				\
 	starpufft.h
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libstarpufft.pc starpufft-1.0.pc
+pkgconfig_DATA = libstarpufft.pc starpufft-1.0.pc starpufft-1.1.pc
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = starpufft.c starpufftf.c starpufft_common.c
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS) $(FFTWF_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_CUFFT_LDFLAGS)
