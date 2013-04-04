@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "../helper.h"
+#include <common/thread.h>
 
 #ifdef STARPU_QUICK_CHECK
 #define NTASKS	1000

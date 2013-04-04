@@ -18,7 +18,7 @@
 #include <sys/types.h>
 #include <semaphore.h>
 #include <pthread.h>
-#include <common/utils.h>
+#include <common/thread.h>
 
 #ifndef __STARPU_TOP_MESSAGE_QUEUE_H__
 #define __STARPU_TOP_MESSAGE_QUEUE_H__

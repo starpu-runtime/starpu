@@ -23,7 +23,7 @@
 #include "starpu_mpi.h"
 #include "starpu_mpi_fxt.h"
 #include <common/list.h>
-#include <common/utils.h>
+#include <common/thread.h>
 #include <pthread.h>
 
 #ifdef __cplusplus

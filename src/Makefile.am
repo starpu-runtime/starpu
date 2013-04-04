@@ -101,6 +101,7 @@ noinst_HEADERS = 						\
 	common/starpu_spinlock.h				\
 	common/fxt.h						\
 	common/utils.h						\
+	common/thread.h						\
 	common/barrier.h					\
 	common/uthash.h						\
 	common/barrier_counter.h				\
