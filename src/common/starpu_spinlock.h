@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <starpu_thread.h>
 #include <common/config.h>
+#include <common/thread.h>
 
 struct _starpu_spinlock
 {
