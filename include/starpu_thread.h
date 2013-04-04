@@ -18,8 +18,6 @@
 #ifndef __STARPU_THREAD_H__
 #define __STARPU_THREAD_H__
 
-#include <starpu.h>
-
 #ifdef STARPU_SIMGRID
 #include <xbt/synchro_core.h>
 #include <msg/msg.h>
