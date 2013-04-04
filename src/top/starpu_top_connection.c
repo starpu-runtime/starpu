@@ -32,7 +32,6 @@
 #include <top/starpu_top_message_queue.h>
 #include <starpu_top.h>
 #include <common/utils.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
