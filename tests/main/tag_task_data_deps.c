@@ -19,7 +19,6 @@
  * This tests combinations of various tag/task/data dependencies
  */
 
-#include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
 

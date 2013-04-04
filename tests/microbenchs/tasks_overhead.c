@@ -18,7 +18,6 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <pthread.h>
 
 #include <starpu.h>
 #include "../helper.h"
