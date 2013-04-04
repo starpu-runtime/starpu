@@ -16,7 +16,7 @@
  */
 
 #include <starpu_mpi.h>
-#include <common/utils.h>
+#include <common/thread.h>
 #include "helper.h"
 
 #ifdef STARPU_QUICK_CHECK

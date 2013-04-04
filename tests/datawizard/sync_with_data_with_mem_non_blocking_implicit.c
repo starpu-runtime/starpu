@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include "../helper.h"
+#include <common/thread.h>
 
 #define NBUFFERS_DEF	64
 #define NITER_DEF	128

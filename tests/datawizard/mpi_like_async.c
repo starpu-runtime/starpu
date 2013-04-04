@@ -19,6 +19,7 @@
 #include <starpu.h>
 #include <pthread.h>
 #include "../helper.h"
+#include <common/thread.h>
 
 #ifdef STARPU_QUICK_CHECK
 #  define NTHREADS_DEFAULT	4

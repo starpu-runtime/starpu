@@ -18,6 +18,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/thread.h>
 #include <libgen.h>
 #include <errno.h>
 #include <unistd.h>
