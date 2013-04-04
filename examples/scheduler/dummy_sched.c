@@ -21,22 +21,23 @@
 #define NTASKS	32000
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
-typedef struct dummy_sched_data {
+struct dummy_sched_data
+{
 	struct starpu_task_list sched_list;
 	pthread_mutex_t policy_mutex;
-} dummy_sched_data;
+};
 
 static void init_dummy_sched(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
 	struct dummy_sched_data *data = (struct dummy_sched_data*)malloc(sizeof(struct dummy_sched_data));
-	
+
 
 	/* Create a linked-list of tasks and a condition variable to protect it */
 	starpu_task_list_init(&data->sched_list);
 
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);		
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 
 	pthread_mutex_init(&data->policy_mutex, NULL);
 	FPRINTF(stderr, "Initialising Dummy scheduler\n");
@@ -53,7 +54,7 @@ static void deinit_dummy_sched(unsigned sched_ctx_id)
 	pthread_mutex_destroy(&data->policy_mutex);
 
 	free(data);
-	
+
 	FPRINTF(stderr, "Destroying Dummy scheduler\n");
 }
 
@@ -163,10 +164,10 @@ int main(int argc, char **argv)
 	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
-	
+
 		task->cl = &dummy_codelet;
 		task->cl_arg = NULL;
-	
+
 		ret = starpu_task_submit(task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
