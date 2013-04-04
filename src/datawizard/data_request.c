@@ -23,11 +23,11 @@
 /* requests that have not been treated at all */
 static struct _starpu_data_request_list *data_requests[STARPU_MAXNODES];
 static struct _starpu_data_request_list *prefetch_requests[STARPU_MAXNODES];
-static _starpu_pthread_mutex_t data_requests_list_mutex[STARPU_MAXNODES];
+static starpu_pthread_mutex_t data_requests_list_mutex[STARPU_MAXNODES];
 
 /* requests that are not terminated (eg. async transfers) */
 static struct _starpu_data_request_list *data_requests_pending[STARPU_MAXNODES];
-static _starpu_pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES];
+static starpu_pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES];
 
 void _starpu_init_data_request_lists(void)
 {

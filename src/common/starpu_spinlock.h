@@ -21,15 +21,14 @@
 #include <stdint.h>
 #include <pthread.h>
 #include <common/config.h>
-#include <common/thread.h>
 
 struct _starpu_spinlock
 {
 #ifdef STARPU_SIMGRID
 	int taken;
 #elif defined(STARPU_SPINLOCK_CHECK)
-	pthread_mutexattr_t errcheck_attr;
-	_starpu_pthread_mutex_t errcheck_lock;
+	starpu_pthread_mutexattr_t errcheck_attr;
+	starpu_pthread_mutex_t errcheck_lock;
 #elif defined(HAVE_PTHREAD_SPIN_LOCK)
 	_starpu_pthread_spinlock_t lock;
 #else

@@ -153,7 +153,7 @@ static void deinitialize_peager_policy(unsigned sched_ctx_id)
 static int push_task_peager_policy(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
+	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
 	unsigned nworkers;
 	int ret_val = -1;
 	
@@ -181,8 +181,8 @@ static int push_task_peager_policy(struct starpu_task *task)
 		/* If this is not a CPU, then the worker simply grabs tasks from the fifo */
 		if (starpu_worker_get_type(worker) != STARPU_CPU_WORKER  || master == worker)
 		{
-			_starpu_pthread_mutex_t *sched_mutex;
-			_starpu_pthread_cond_t *sched_cond;
+			starpu_pthread_mutex_t *sched_mutex;
+			starpu_pthread_cond_t *sched_cond;
 			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 		}
@@ -199,8 +199,8 @@ static int push_task_peager_policy(struct starpu_task *task)
 		/* If this is not a CPU, then the worker simply grabs tasks from the fifo */
 		if (starpu_worker_get_type(worker) != STARPU_CPU_WORKER  || master == worker)
 		{
-			_starpu_pthread_mutex_t *sched_mutex;
-			_starpu_pthread_cond_t *sched_cond;
+			starpu_pthread_mutex_t *sched_mutex;
+			starpu_pthread_cond_t *sched_cond;
 			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 			_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
@@ -289,8 +289,8 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 				struct starpu_task *alias = _starpu_create_task_alias(task);
 				int local_worker = combined_workerid[i];
 				
-				_starpu_pthread_mutex_t *sched_mutex;
-				_starpu_pthread_cond_t *sched_cond;
+				starpu_pthread_mutex_t *sched_mutex;
+				starpu_pthread_cond_t *sched_cond;
 				starpu_worker_get_sched_condition(local_worker, &sched_mutex, &sched_cond);
 
 				_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);

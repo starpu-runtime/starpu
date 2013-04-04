@@ -15,7 +15,6 @@
  */
 
 #include <starpu.h>
-#include <pthread.h>
 
 #include "../../helper.h"
 
@@ -63,7 +62,7 @@ static int
 test_cpu(void)
 {
 	int ret, var = 0;
-	static pthread_t driver_thread;
+	static starpu_pthread_t driver_thread;
 	struct starpu_conf conf;
 	struct starpu_driver d =
 	{
@@ -82,7 +81,7 @@ test_cpu(void)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	ret = pthread_create(&driver_thread, NULL, run_driver, &d);
+	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, &d);
 	if (ret != 0)
 	{
 		ret = 1;
@@ -108,7 +107,7 @@ test_cpu(void)
 
 out:
 	starpu_drivers_request_termination();
-	if (pthread_join(driver_thread, NULL) != 0)
+	if (starpu_pthread_join(driver_thread, NULL) != 0)
 		return 1;
 	starpu_shutdown();
 	return ret;
@@ -120,7 +119,7 @@ static int
 test_cuda(void)
 {
 	int ret, var = 0;
-	static pthread_t driver_thread;
+	static starpu_pthread_t driver_thread;
 	struct starpu_conf conf;
 	struct starpu_driver d =
 	{
@@ -139,7 +138,7 @@ test_cuda(void)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	ret = pthread_create(&driver_thread, NULL, run_driver, &d);
+	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, &d);
 	if (ret == -1)
 	{
 		ret = 1;
@@ -165,7 +164,7 @@ test_cuda(void)
 
 out:
 	starpu_drivers_request_termination();
-	if (pthread_join(driver_thread, NULL) != 0)
+	if (starpu_pthread_join(driver_thread, NULL) != 0)
 		return 1;
 	starpu_shutdown();
 	return ret;
@@ -177,7 +176,7 @@ static int
 test_opencl(void)
 {
 	int ret, var = 0;
-	static pthread_t driver_thread;
+	static starpu_pthread_t driver_thread;
 	struct starpu_conf conf;
 
 	cl_int err;
@@ -222,7 +221,7 @@ test_opencl(void)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	ret = pthread_create(&driver_thread, NULL, run_driver, &d);
+	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, &d);
 	if (ret == -1)
 	{
 		ret = 1;
@@ -248,7 +247,7 @@ test_opencl(void)
 
 out:
 	starpu_drivers_request_termination();
-	if (pthread_join(driver_thread, NULL) != 0)
+	if (starpu_pthread_join(driver_thread, NULL) != 0)
 		return 1;
 	starpu_shutdown();
 	return ret;

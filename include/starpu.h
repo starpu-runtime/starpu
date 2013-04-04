@@ -39,6 +39,7 @@ typedef unsigned long long uint64_t;
 #include <starpu_opencl.h>
 #endif
 
+#include <starpu_thread.h>
 #include <starpu_util.h>
 #include <starpu_data.h>
 #include <starpu_data_interfaces.h>

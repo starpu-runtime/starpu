@@ -51,8 +51,8 @@ struct user_interaction_wrapper
 	starpu_data_handle_t handle;
 	enum starpu_access_mode mode;
 	unsigned node;
-	_starpu_pthread_cond_t cond;
-	_starpu_pthread_mutex_t lock;
+	starpu_pthread_cond_t cond;
+	starpu_pthread_mutex_t lock;
 	unsigned finished;
 	unsigned async;
 	void (*callback)(void *);

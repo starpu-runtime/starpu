@@ -17,8 +17,18 @@
 #ifndef __SIMGRID_H__
 #define __SIMGRID_H__
 
+#include <datawizard/data_request.h>
+
 #ifdef STARPU_SIMGRID
 #include <msg/msg.h>
+
+struct _starpu_pthread_args
+{
+	void *(*f)(void*);
+	void *arg;
+};
+
+#define MAX_TSD 16
 
 void _starpu_simgrid_execute_job(struct _starpu_job *job, enum starpu_perf_archtype perf_arch, double length);
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req);

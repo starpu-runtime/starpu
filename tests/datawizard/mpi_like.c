@@ -18,25 +18,25 @@
 #include <config.h>
 #include <starpu.h>
 #include <errno.h>
-#include <pthread.h>
 #include "../helper.h"
+#warning enlever la ligne ci dessous, aussi dans les autres fichiers en dehors de src
 #include <common/thread.h>
 
 #define NTHREADS	4
 #define NITER		2
 
-//static pthread_cond_t cond;
-//static pthread_mutex_t mutex;
+//static starpu_pthread_cond_t cond;
+//static starpu_pthread_mutex_t mutex;
 
 struct thread_data
 {
 	unsigned index;
 	unsigned val;
 	starpu_data_handle_t handle;
-	pthread_t thread;
+	starpu_pthread_t thread;
 
-	_starpu_pthread_cond_t recv_cond;
-	_starpu_pthread_mutex_t recv_mutex;
+	starpu_pthread_cond_t recv_cond;
+	starpu_pthread_mutex_t recv_mutex;
 	unsigned recv_flag; // set when a message is received
 	unsigned recv_buf;
 	struct thread_data *neighbour;
@@ -199,14 +199,14 @@ int main(int argc, char **argv)
 
 	for (t = 0; t < NTHREADS; t++)
 	{
-		ret = pthread_create(&problem_data[t].thread, NULL, thread_func, &problem_data[t]);
+		ret = starpu_pthread_create(&problem_data[t].thread, NULL, thread_func, &problem_data[t]);
 		STARPU_ASSERT(!ret);
 	}
 
 	for (t = 0; t < NTHREADS; t++)
 	{
 		void *retval;
-		ret = pthread_join(problem_data[t].thread, &retval);
+		ret = starpu_pthread_join(problem_data[t].thread, &retval);
 		STARPU_ASSERT(!ret);
 		STARPU_ASSERT(retval == NULL);
 	}

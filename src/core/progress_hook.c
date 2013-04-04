@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2010-2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
 #include <core/workers.h>
 #include <common/utils.h>
 #include <core/progress_hook.h>
@@ -30,7 +29,7 @@ struct progression_hook
 };
 
 /* protect the hook table */
-static _starpu_pthread_rwlock_t progression_hook_rwlock;
+static starpu_pthread_rwlock_t progression_hook_rwlock;
 
 static struct progression_hook hooks[NMAXHOOKS] = {{NULL, NULL, 0}};
 static int active_hook_cnt = 0;

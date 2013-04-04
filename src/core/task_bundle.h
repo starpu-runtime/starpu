@@ -19,11 +19,7 @@
 #ifndef __CORE_TASK_BUNDLE_H__
 #define __CORE_TASK_BUNDLE_H__
 
-#if ! defined(_MSC_VER)
-#  include <pthread.h>
-#endif
-
-#include <common/thread.h>
+#include <starpu_thread.h>
 
 /* struct _starpu_task_bundle_entry
  * ================================
@@ -70,7 +66,7 @@ struct _starpu_task_bundle
 #if defined(_MSC_VER)
 	void *mutex;
 #else
-	_starpu_pthread_mutex_t mutex;
+	starpu_pthread_mutex_t mutex;
 #endif
 
 	struct _starpu_task_bundle_entry *list;

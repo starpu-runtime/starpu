@@ -22,17 +22,16 @@
 #undef PTHREAD_BARRIER_SERIAL_THREAD
 #endif
 
-#include <pthread.h>
-#include <common/thread.h>
+#include <starpu_thread.h>
 
 struct _starpu_barrier
 {
 	int count;
 	int reached_start;
 	int reached_exit;
-	_starpu_pthread_mutex_t mutex;
-	_starpu_pthread_mutex_t mutex_exit;
-	_starpu_pthread_cond_t cond;
+	starpu_pthread_mutex_t mutex;
+	starpu_pthread_mutex_t mutex_exit;
+	starpu_pthread_cond_t cond;
 };
 
 int _starpu_barrier_init(struct _starpu_barrier *barrier, int count);

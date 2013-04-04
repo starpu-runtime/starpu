@@ -18,13 +18,13 @@
 #include <core/sched_ctx.h>
 #include <common/utils.h>
 
-_starpu_pthread_mutex_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
+starpu_pthread_mutex_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
 
 extern struct starpu_worker_collection worker_list;
-static _starpu_pthread_mutex_t sched_ctx_manag = _STARPU_PTHREAD_MUTEX_INITIALIZER;
-static _starpu_pthread_mutex_t finished_submit_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_mutex_t sched_ctx_manag = STARPU_PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_mutex_t finished_submit_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 struct starpu_task stop_submission_task = STARPU_TASK_INITIALIZER;
-pthread_key_t sched_ctx_key;
+starpu_pthread_key_t sched_ctx_key;
 unsigned with_hypervisor = 0;
 double max_time_worker_on_ctx = -1.0;
 
@@ -641,7 +641,7 @@ void starpu_sched_ctx_remove_workers(int *workers_to_remove, int nworkers_to_rem
 /* unused sched_ctx have the id STARPU_NMAX_SCHED_CTXS */
 void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 {
-	pthread_key_create(&sched_ctx_key, NULL);
+	starpu_pthread_key_create(&sched_ctx_key, NULL);
 
 	unsigned i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
@@ -767,12 +767,12 @@ void _starpu_increment_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 
 void starpu_sched_ctx_set_context(unsigned *sched_ctx)
 {
-	pthread_setspecific(sched_ctx_key, (void*)sched_ctx);
+	starpu_pthread_setspecific(sched_ctx_key, (void*)sched_ctx);
 }
 
 unsigned starpu_sched_ctx_get_context()
 {
-	unsigned *sched_ctx = (unsigned*)pthread_getspecific(sched_ctx_key);
+	unsigned *sched_ctx = (unsigned*)starpu_pthread_getspecific(sched_ctx_key);
 	if(sched_ctx == NULL)
 		return STARPU_NMAX_SCHED_CTXS;
 	STARPU_ASSERT(*sched_ctx < STARPU_NMAX_SCHED_CTXS);
@@ -883,7 +883,7 @@ int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu
 	return npus;
 }
 
-_starpu_pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id)
+starpu_pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id)
 {
 	return &changing_ctx_mutex[sched_ctx_id];
 }

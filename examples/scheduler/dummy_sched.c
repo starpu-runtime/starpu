@@ -15,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
 #include <starpu.h>
 
 #define NTASKS	32000
@@ -24,7 +23,7 @@
 struct dummy_sched_data
 {
 	struct starpu_task_list sched_list;
-	pthread_mutex_t policy_mutex;
+     	starpu_pthread_mutex_t policy_mutex;
 };
 
 static void init_dummy_sched(unsigned sched_ctx_id)
@@ -39,7 +38,7 @@ static void init_dummy_sched(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 
-	pthread_mutex_init(&data->policy_mutex, NULL);
+	starpu_pthread_mutex_init(&data->policy_mutex, NULL);
 	FPRINTF(stderr, "Initialising Dummy scheduler\n");
 }
 
@@ -51,7 +50,7 @@ static void deinit_dummy_sched(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 
-	pthread_mutex_destroy(&data->policy_mutex);
+	starpu_pthread_mutex_destroy(&data->policy_mutex);
 
 	free(data);
 
@@ -69,12 +68,12 @@ static int push_task_dummy(struct starpu_task *task)
 
 	/* lock all workers when pushing tasks on a list where all
 	   of them would pop for tasks */
-        pthread_mutex_lock(&data->policy_mutex);
+        starpu_pthread_mutex_lock(&data->policy_mutex);
 
 	starpu_task_list_push_front(&data->sched_list, task);
 
 	starpu_push_task_end(task);
-	pthread_mutex_unlock(&data->policy_mutex);
+	starpu_pthread_mutex_unlock(&data->policy_mutex);
 
 
         /*if there are no tasks block */
@@ -89,12 +88,12 @@ static int push_task_dummy(struct starpu_task *task)
 	while(workers->has_next(workers, &it))
         {
                 worker = workers->get_next(workers, &it);
-		pthread_mutex_t *sched_mutex;
-                pthread_cond_t *sched_cond;
+		starpu_pthread_mutex_t *sched_mutex;
+                starpu_pthread_cond_t *sched_cond;
                 starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		pthread_mutex_lock(sched_mutex);
-                pthread_cond_signal(sched_cond);
-                pthread_mutex_unlock(sched_mutex);
+		starpu_pthread_mutex_lock(sched_mutex);
+                starpu_pthread_cond_signal(sched_cond);
+                starpu_pthread_mutex_unlock(sched_mutex);
         }
 
 	return 0;
@@ -109,9 +108,9 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 	 * the calling worker. So we just take the head of the list and give it
 	 * to the worker. */
 	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	pthread_mutex_lock(&data->policy_mutex);
+	starpu_pthread_mutex_lock(&data->policy_mutex);
 	struct starpu_task *task = starpu_task_list_pop_back(&data->sched_list);
-	pthread_mutex_unlock(&data->policy_mutex);
+	starpu_pthread_mutex_unlock(&data->policy_mutex);
 	return task;
 }
 

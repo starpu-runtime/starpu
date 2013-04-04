@@ -45,7 +45,7 @@ struct _starpu_priority_taskq
 struct _starpu_eager_central_prio_data
 {
 	struct _starpu_priority_taskq *taskq;
-	_starpu_pthread_mutex_t policy_mutex;
+	starpu_pthread_mutex_t policy_mutex;
 };
 
 /*
@@ -110,7 +110,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	struct _starpu_priority_taskq *taskq = data->taskq;
 
 	/* if the context has no workers return */
-	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
+	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
 	unsigned nworkers;
 	int ret_val = -1;
 	
@@ -144,8 +144,8 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
-		_starpu_pthread_mutex_t *sched_mutex;
-		_starpu_pthread_cond_t *sched_cond;
+		starpu_pthread_mutex_t *sched_mutex;
+		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 		_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
@@ -181,8 +181,8 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	VALGRIND_HG_MUTEX_UNLOCK_POST(&data->policy_mutex);
 
 	/* release this mutex before trying to wake up other workers */
-	_starpu_pthread_mutex_t *curr_sched_mutex;
-	_starpu_pthread_cond_t *curr_sched_cond;
+	starpu_pthread_mutex_t *curr_sched_mutex;
+	starpu_pthread_cond_t *curr_sched_cond;
 	starpu_worker_get_sched_condition(workerid, &curr_sched_mutex, &curr_sched_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(curr_sched_mutex);
 	
@@ -234,8 +234,8 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 			worker = workers->get_next(workers, &it);
 			if(worker != workerid)
 			{
-				_starpu_pthread_mutex_t *sched_mutex;
-				_starpu_pthread_cond_t *sched_cond;
+				starpu_pthread_mutex_t *sched_mutex;
+				starpu_pthread_cond_t *sched_cond;
 				starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 				_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 				_STARPU_PTHREAD_COND_SIGNAL(sched_cond);

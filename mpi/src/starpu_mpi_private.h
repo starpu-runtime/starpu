@@ -23,8 +23,6 @@
 #include "starpu_mpi.h"
 #include "starpu_mpi_fxt.h"
 #include <common/list.h>
-#include <common/thread.h>
-#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,8 +100,8 @@ LIST_TYPE(_starpu_mpi_req,
 	int *flag;
 
 	int ret;
-	_starpu_pthread_mutex_t req_mutex;
-	_starpu_pthread_cond_t req_cond;
+	starpu_pthread_mutex_t req_mutex;
+	starpu_pthread_cond_t req_cond;
 
 	enum _starpu_mpi_request_type request_type; /* 0 send, 1 recv */
 

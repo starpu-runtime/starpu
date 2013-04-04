@@ -117,8 +117,8 @@ struct _starpu_data_state
 	unsigned busy_count;
 	/* Is starpu_data_unregister waiting for busy_count? */
 	unsigned busy_waiting;
-	_starpu_pthread_mutex_t busy_mutex;
-	_starpu_pthread_cond_t busy_cond;
+	starpu_pthread_mutex_t busy_mutex;
+	starpu_pthread_cond_t busy_cond;
 
 	/* In case we user filters, the handle may describe a sub-data */
 	struct _starpu_data_state *root_handle; /* root of the tree */
@@ -156,7 +156,7 @@ struct _starpu_data_state
 
 	/* This lock should protect any operation to enforce
 	 * sequential_consistency */
-	_starpu_pthread_mutex_t sequential_consistency_mutex;
+	starpu_pthread_mutex_t sequential_consistency_mutex;
 
 	/* The last submitted task (or application data request) that declared
 	 * it would modify the piece of data ? Any task accessing the data in a

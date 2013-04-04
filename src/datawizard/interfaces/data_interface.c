@@ -386,8 +386,8 @@ struct _starpu_unregister_callback_arg
 	unsigned memory_node;
 	starpu_data_handle_t handle;
 	unsigned terminated;
-	_starpu_pthread_mutex_t mutex;
-	_starpu_pthread_cond_t cond;
+	starpu_pthread_mutex_t mutex;
+	starpu_pthread_cond_t cond;
 };
 
 /* Check whether we should tell starpu_data_unregister that the data handle is

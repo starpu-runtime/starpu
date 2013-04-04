@@ -16,7 +16,6 @@
  */
 #include <sys/time.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <starpu.h>
 #include "../helper.h"
 
@@ -47,19 +46,19 @@ int main(int argc, char **argv)
 	struct timeval start;
 	struct timeval end;
 
-	pthread_t threads[NUM_THREADS];
+	starpu_pthread_t threads[NUM_THREADS];
 
 	gettimeofday(&start, NULL);
 
 	for (i = 0; i < NUM_THREADS; ++i)
 	{
-		int ret = pthread_create(&threads[i], NULL, launch_starpu, NULL);
+		int ret = starpu_pthread_create(&threads[i], NULL, launch_starpu, NULL);
 		STARPU_ASSERT(ret == 0);
 	}
 
 	for (i = 0; i < NUM_THREADS; ++i)
 	{
-		int ret = pthread_join(threads[i], NULL);
+		int ret = starpu_pthread_join(threads[i], NULL);
 		STARPU_ASSERT(ret == 0);
 	}
 
@@ -73,13 +72,13 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < NUM_THREADS; i++)
 	{
-		int ret = pthread_create(&threads[i], NULL, shutdown_starpu, NULL);
+		int ret = starpu_pthread_create(&threads[i], NULL, shutdown_starpu, NULL);
 		STARPU_ASSERT(ret == 0);
 	}
 
 	for (i = 0; i < NUM_THREADS; i++)
 	{
-		int ret = pthread_join(threads[i], NULL);
+		int ret = starpu_pthread_join(threads[i], NULL);
 		STARPU_ASSERT(ret == 0);
 	}
 
