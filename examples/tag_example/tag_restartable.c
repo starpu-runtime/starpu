@@ -19,7 +19,6 @@
 #include <semaphore.h>
 #include <string.h>
 #include <math.h>
-#include <pthread.h>
 #include <unistd.h>
 #include <signal.h>
 
