@@ -23,6 +23,7 @@
 #include <starpu_mpi_stats.h>
 #include <starpu_mpi_insert_task.h>
 #include <common/config.h>
+#include <common/thread.h>
 
 static void _starpu_mpi_submit_new_mpi_request(void *arg);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
@@ -40,18 +41,18 @@ static struct _starpu_mpi_req_list *new_requests;
 
 /* The list of detached requests that have already been submitted to MPI */
 static struct _starpu_mpi_req_list *detached_requests;
-static _starpu_pthread_mutex_t detached_requests_mutex;
+static starpu_pthread_mutex_t detached_requests_mutex;
 
 /* Condition to wake up progression thread */
-static _starpu_pthread_cond_t cond_progression;
+static starpu_pthread_cond_t cond_progression;
 /* Condition to wake up waiting for all current MPI requests to finish */
-static _starpu_pthread_cond_t cond_finished;
-static _starpu_pthread_mutex_t mutex;
-static pthread_t progress_thread;
+static starpu_pthread_cond_t cond_finished;
+static starpu_pthread_mutex_t mutex;
+static starpu_pthread_t progress_thread;
 static int running = 0;
 
 /* Count requests posted by the application and not yet submitted to MPI, i.e pushed into the new_requests list */
-static _starpu_pthread_mutex_t mutex_posted_requests;
+static starpu_pthread_mutex_t mutex_posted_requests;
 static int posted_requests = 0, newer_requests, barrier_running = 0;
 
 #define _STARPU_MPI_INC_POSTED_REQUESTS(value) { _STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); posted_requests += value; _STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); }
@@ -1068,7 +1069,7 @@ int starpu_mpi_shutdown(void)
 	_STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-	pthread_join(progress_thread, &value);
+	starpu_pthread_join(progress_thread, &value);
 
 #ifdef STARPU_MPI_ACTIVITY
 	starpu_progression_hook_deregister(hookid);

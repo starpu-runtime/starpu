@@ -18,7 +18,6 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <starpu.h>
 #include "../helper.h"
 #include <common/thread.h>
@@ -31,8 +30,8 @@ static unsigned ntasks = 65536;
 static unsigned cnt = 0;
 
 static unsigned completed = 0;
-static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
-static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
+static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 
 static void callback(void *arg __attribute__ ((unused)))
 {

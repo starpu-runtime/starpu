@@ -111,7 +111,7 @@ int _starpu_spin_checklocked(struct _starpu_spinlock *lock)
 	STARPU_ASSERT(lock->taken);
 	return !lock->taken;
 #elif defined(STARPU_SPINLOCK_CHECK)
-	int ret = _STARPU_PTHREAD_MUTEX_TRYLOCK(&lock->errcheck_lock);
+	int ret = starpu_pthread_mutex_trylock(&lock->errcheck_lock);
 	STARPU_ASSERT(ret != 0);
 	return ret == 0;
 #elif defined(HAVE_PTHREAD_SPIN_LOCK)
@@ -133,7 +133,7 @@ int _starpu_spin_trylock(struct _starpu_spinlock *lock)
 	lock->taken = 1;
 	return 0;
 #elif defined(STARPU_SPINLOCK_CHECK)
-	int ret = _STARPU_PTHREAD_MUTEX_TRYLOCK(&lock->errcheck_lock);
+	int ret = starpu_pthread_mutex_trylock(&lock->errcheck_lock);
 	STARPU_ASSERT(!ret || (ret == EBUSY));
 	return ret;
 #elif defined(HAVE_PTHREAD_SPIN_LOCK)

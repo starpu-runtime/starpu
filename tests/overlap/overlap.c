@@ -22,7 +22,6 @@
 #include <errno.h>
 #include <starpu.h>
 #include <stdlib.h>
-#include <pthread.h>
 #include "../helper.h"
 #include <common/thread.h>
 
@@ -36,8 +35,8 @@
 
 #define SYMBOL	"sleep"
 
-static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
-static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
+static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 
 static unsigned finished = 0;
 static unsigned cnt = NTASKS;

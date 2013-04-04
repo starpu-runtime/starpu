@@ -24,8 +24,6 @@
 #ifdef STARPU_SIMGRID
 #include <msg/msg.h>
 
-#define MAX_TSD 16
-
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
 
@@ -132,8 +130,8 @@ LIST_TYPE(transfer,
 
 	/* communication termination signalization */
 	unsigned *finished;
-	_starpu_pthread_mutex_t *mutex;
-	_starpu_pthread_cond_t *cond;
+	starpu_pthread_mutex_t *mutex;
+	starpu_pthread_cond_t *cond;
 
 	/* transfers which wait for this transfer */
 	struct transfer **wake;
@@ -282,8 +280,8 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	msg_host_t *hosts = calloc(2, sizeof(*hosts));
 	double *computation = calloc(2, sizeof(*computation));
 	double *communication = calloc(4, sizeof(*communication));
-	_starpu_pthread_mutex_t mutex;
-	_starpu_pthread_cond_t cond;
+	starpu_pthread_mutex_t mutex;
+	starpu_pthread_cond_t cond;
 	unsigned finished;
 
 	hosts[0] = _starpu_simgrid_memory_node_get_host(src_node);
@@ -343,43 +341,6 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return 0;
 	}
-}
-
-static int used_key[MAX_TSD];
-
-int _starpu_pthread_key_create(_starpu_pthread_key_t *key)
-{
-	unsigned i;
-
-	/* Note: no synchronization here, we are actually monothreaded anyway. */
-	for (i = 0; i < MAX_TSD; i++)
-		if (!used_key[i])
-		{
-			used_key[i] = 1;
-			break;
-		}
-	STARPU_ASSERT(i < MAX_TSD);
-	*key = i;
-	return 0;
-}
-
-int _starpu_pthread_key_delete(_starpu_pthread_key_t key)
-{
-	used_key[key] = 0;
-	return 0;
-}
-
-int _starpu_pthread_setspecific(_starpu_pthread_key_t key, void *ptr)
-{
-	void **array = MSG_host_get_data(MSG_host_self());
-	array[key] = ptr;
-	return 0;
-}
-
-void* _starpu_pthread_getspecific(_starpu_pthread_key_t key)
-{
-	void **array = MSG_host_get_data(MSG_host_self());
-	return array[key];
 }
 
 int

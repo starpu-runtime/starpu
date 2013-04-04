@@ -37,7 +37,7 @@
 static int nb_devices = -1;
 static int init_done = 0;
 
-static _starpu_pthread_mutex_t big_lock = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_mutex_t big_lock = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 static size_t global_mem[STARPU_MAXOPENCLDEVS];
 

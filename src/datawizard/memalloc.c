@@ -22,7 +22,7 @@
 
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
 /* Note: handle header lock is always taken before this */
-static _starpu_pthread_rwlock_t mc_rwlock[STARPU_MAXNODES];
+static starpu_pthread_rwlock_t mc_rwlock[STARPU_MAXNODES];
 
 /* This per-node spinlock protect lru_list */
 static struct _starpu_spinlock lru_rwlock[STARPU_MAXNODES];

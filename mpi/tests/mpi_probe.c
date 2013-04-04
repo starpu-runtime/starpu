@@ -29,8 +29,8 @@
 float *tab;
 starpu_data_handle_t tab_handle;
 
-static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
-static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
+static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 
 void callback(void *arg __attribute__((unused)))
 {

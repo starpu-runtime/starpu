@@ -15,6 +15,7 @@
  */
 
 #include <common/barrier_counter.h>
+#include <common/thread.h>
 
 int _starpu_barrier_counter_init(struct _starpu_barrier_counter *barrier_c, int count)
 {

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
 #include <stdio.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -22,24 +21,24 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
-static pthread_t thread[2];
+static starpu_pthread_t thread[2];
 static unsigned thread_is_initialized[2];
 
-static _starpu_pthread_cond_t cond;
-static _starpu_pthread_mutex_t mutex;
+static starpu_pthread_cond_t cond;
+static starpu_pthread_mutex_t mutex;
 
 static size_t buffer_size = 4;
 static void *cpu_buffer;
 static void *gpu_buffer[2];
 
-static pthread_cond_t cond_go;
+static starpu_pthread_cond_t cond_go;
 static unsigned ready = 0;
 static unsigned nready_gpu = 0;
 
 static unsigned niter = 250000;
 
-static _starpu_pthread_cond_t cond_gpu;
-static _starpu_pthread_mutex_t mutex_gpu;
+static starpu_pthread_cond_t cond_gpu;
+static starpu_pthread_mutex_t mutex_gpu;
 static unsigned data_is_available[2];
 
 static cudaStream_t stream[2];
@@ -172,7 +171,7 @@ int main(int argc, char **argv)
 	for (id = 0; id < 2; id++)
 	{
 		thread_is_initialized[id] = 0;
-		pthread_create(&thread[0], NULL, launch_gpu_thread, &id);
+		starpu_pthread_create(&thread[0], NULL, launch_gpu_thread, &id);
 
 		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		while (!thread_is_initialized[id])

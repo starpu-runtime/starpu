@@ -25,7 +25,6 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/jobs.h>
 #include <core/workers.h>
-#include <pthread.h>
 #include <datawizard/datawizard.h>
 #include <core/perfmodel/regression.h>
 #include <common/config.h>
@@ -50,7 +49,7 @@ struct starpu_perfmodel_history_table
 #define VALID_REGRESSION(reg_model) \
 	((reg_model)->minx < (9*(reg_model)->maxx)/10 && (reg_model)->nsample >= _STARPU_CALIBRATION_MINIMUM)
 
-static _starpu_pthread_rwlock_t registered_models_rwlock;
+static starpu_pthread_rwlock_t registered_models_rwlock;
 static struct _starpu_perfmodel_list *registered_models = NULL;
 
 size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j)

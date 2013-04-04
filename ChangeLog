@@ -104,6 +104,11 @@ New features:
   * starpu_malloc calls starpu_malloc_flags with a value of flag set
     to STARPU_MALLOC_PINNED
   * Define new function starpu_free_flags similarly to starpu_malloc_flags
+  * Define new public API starpu_pthread which is similar to the
+    pthread API. It is provided with 2 implementations: a pthread one
+    and a Simgrid one. Applications using StarPU and wishing to use
+    the Simgrid StarPU features should use it.
+
 
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid

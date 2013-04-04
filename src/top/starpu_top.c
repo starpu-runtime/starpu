@@ -24,9 +24,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include <pthread.h>
 #include <common/timing.h>
-#include <common/utils.h>
+#include <common/thread.h>
 #include <common/config.h>
 
 extern struct _starpu_top_message_queue*  _starpu_top_mt;
@@ -40,8 +39,8 @@ struct starpu_top_data** starpu_top_datas;
 struct starpu_top_param** starpu_top_params;
 
 sem_t starpu_top_wait_for_go;
-_starpu_pthread_mutex_t starpu_top_wait_for_continue_mutex;
-_starpu_pthread_cond_t starpu_top_wait_for_continue_cond = _STARPU_PTHREAD_COND_INITIALIZER;
+starpu_pthread_mutex_t starpu_top_wait_for_continue_mutex;
+starpu_pthread_cond_t starpu_top_wait_for_continue_cond = STARPU_PTHREAD_COND_INITIALIZER;
 
 #undef _starpu_top_status_get
 int _starpu_top_status_get(void)
