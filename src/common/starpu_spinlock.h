@@ -19,7 +19,7 @@
 
 #include <errno.h>
 #include <stdint.h>
-#include <pthread.h>
+#include <starpu_thread.h>
 #include <common/config.h>
 
 struct _starpu_spinlock
