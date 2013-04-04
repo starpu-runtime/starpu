@@ -36,9 +36,6 @@ int _starpu_push_task(struct _starpu_job *task);
 /* actually pushes the tasks to the specific worker or to the scheduler */
 int _starpu_push_task_to_workers(struct starpu_task *task);
 
-/* Called by scheduler to notify that the task has just been pushed */
-int _starpu_push_task_end(struct starpu_task *task);
-
 /* pop a task that can be executed on the worker */
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker);
 /* pop every task that can be executed on the worker */

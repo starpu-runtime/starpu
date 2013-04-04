@@ -278,7 +278,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 		/* Note: we have to call that early, or else the task may have
 		 * disappeared already */
-		_starpu_push_task_end(task);
+		starpu_push_task_end(task);
 
 		int j;
 		for (j = 0; j < worker_size; j++)
@@ -415,7 +415,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 /* This is called right after the scheduler has pushed a task to a queue
  * but just before releasing mutexes: we need the task to still be alive!
  */
-int _starpu_push_task_end(struct starpu_task *task)
+int starpu_push_task_end(struct starpu_task *task)
 {
 	_starpu_profiling_set_task_push_end_time(task);
 	task->scheduled = 1;
