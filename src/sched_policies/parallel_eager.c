@@ -190,7 +190,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 	
 	
 	ret_val = _starpu_fifo_push_task(data->fifo, task);
-	_starpu_push_task_end(task);
+	starpu_push_task_end(task);
 
 	while(workers->has_next(workers, &it))
 	{

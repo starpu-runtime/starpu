@@ -73,7 +73,7 @@ static int push_task_dummy(struct starpu_task *task)
 
 	starpu_task_list_push_front(&data->sched_list, task);
 
-	_starpu_push_task_end(task);
+	starpu_push_task_end(task);
 	pthread_mutex_unlock(&data->policy_mutex);
 
 

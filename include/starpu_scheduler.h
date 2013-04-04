@@ -139,6 +139,9 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
  * a FIFO ordering. */
 int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
 
+/* Called by scheduler to notify that the task has just been pushed */
+int starpu_push_task_end(struct starpu_task *task);
+
 /*
  *	Priorities
  */
