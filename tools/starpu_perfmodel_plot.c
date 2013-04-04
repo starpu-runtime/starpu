@@ -25,6 +25,7 @@
 #ifdef STARPU_USE_FXT
 #include <common/fxt.h>
 #endif
+#include <common/utils.h>
 
 #include <starpu.h>
 #include <core/perfmodel/perfmodel.h> // we need to browse the list associated to history-based models
