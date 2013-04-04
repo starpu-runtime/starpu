@@ -13,12 +13,14 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #include <common/utils.h>
 #include <common/barrier.h>
 
-struct _starpu_barrier_counter {
+struct _starpu_barrier_counter
+{
 	struct _starpu_barrier barrier;
-	_starpu_pthread_cond_t cond2;
+	starpu_pthread_cond_t cond2;
 };
 
 int _starpu_barrier_counter_init(struct _starpu_barrier_counter *barrier_c, int count);
