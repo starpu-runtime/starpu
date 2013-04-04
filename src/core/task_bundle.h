@@ -63,11 +63,7 @@ struct _starpu_task_bundle_entry
 struct _starpu_task_bundle
 {
 	/* Mutex protecting the bundle */
-#if defined(_MSC_VER)
-	void *mutex;
-#else
 	starpu_pthread_mutex_t mutex;
-#endif
 
 	struct _starpu_task_bundle_entry *list;
 
