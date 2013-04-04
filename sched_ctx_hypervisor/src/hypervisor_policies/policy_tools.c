@@ -15,7 +15,6 @@
  */
 
 /* #include <sched_ctx_hypervisor.h> */
-/* #include <pthread.h> */
 
 #include "policy_tools.h"
 
@@ -253,9 +252,9 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 {
 	int ret = 1;
 	if(force_resize)
-		pthread_mutex_lock(&act_hypervisor_mutex);
+		starpu_pthread_mutex_lock(&act_hypervisor_mutex);
 	else
-		ret = pthread_mutex_trylock(&act_hypervisor_mutex);
+		ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
 		int nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
@@ -289,7 +288,7 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 				free(workers_to_move);
 			}
 		}
-		pthread_mutex_unlock(&act_hypervisor_mutex);
+		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 		return 1;
 	}
 	return 0;

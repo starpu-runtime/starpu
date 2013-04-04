@@ -257,9 +257,9 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 		entry->task_tag = task_tag;
 		entry->configuration = config;
 
-		pthread_mutex_lock(&hypervisor.conf_mut[sched_ctx]);
+		starpu_pthread_mutex_lock(&hypervisor.conf_mut[sched_ctx]);
 		HASH_ADD_INT(hypervisor.configurations[sched_ctx], task_tag, entry);
-		pthread_mutex_unlock(&hypervisor.conf_mut[sched_ctx]);
+		starpu_pthread_mutex_unlock(&hypervisor.conf_mut[sched_ctx]);
 	}
 
 	return;

@@ -18,7 +18,6 @@
 #define SCHED_CTX_HYPERVISOR_H
 
 #include <starpu.h>
-#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -45,7 +44,7 @@ extern "C"
 #define	HYPERVISOR_ISPEED_W_SAMPLE -13
 #define HYPERVISOR_ISPEED_CTX_SAMPLE -14
 
-pthread_mutex_t act_hypervisor_mutex;
+starpu_pthread_mutex_t act_hypervisor_mutex;
 
 #define MAX_IDLE_TIME 5000000000
 #define MIN_WORKING_TIME 500
@@ -153,7 +152,7 @@ struct sched_ctx_hypervisor_wrapper
 	struct sched_ctx_hypervisor_resize_ack resize_ack;
 
 	/* mutex to protect the ack of workers */
-	pthread_mutex_t mutex;
+	starpu_pthread_mutex_t mutex;
 };
 
 /* Forward declaration of an internal data structure
