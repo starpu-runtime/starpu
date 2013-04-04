@@ -62,9 +62,7 @@ void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
 
 struct starpu_worker_collection* starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
 
-#if !defined(_MSC_VER) && !defined(STARPU_SIMGRID)
-pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
-#endif
+starpu_pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_context(unsigned *sched_ctx_id);
 
