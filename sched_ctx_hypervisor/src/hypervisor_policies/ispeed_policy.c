@@ -143,7 +143,7 @@ static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_
 
 static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
-	int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
+	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
 		if(_velocity_gap_btw_ctxs())
@@ -177,7 +177,7 @@ static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, struct star
 
 			}
 		}
-		pthread_mutex_unlock(&act_hypervisor_mutex);
+		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
 }
 

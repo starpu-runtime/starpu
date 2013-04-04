@@ -15,7 +15,6 @@
  */
 
 #include <sched_ctx_hypervisor.h>
-#include <pthread.h>
 
 #define HYPERVISOR_REDIM_SAMPLE 0.02
 #define HYPERVISOR_START_REDIM_SAMPLE 0.1

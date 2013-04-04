@@ -356,7 +356,7 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct s
 {
 	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 	_get_velocity_per_worker(sc_w, worker);
-	int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
+	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
 		if(_velocity_gap_btw_ctxs())
@@ -411,7 +411,7 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct s
 
 			}
 		}
-		pthread_mutex_unlock(&act_hypervisor_mutex);
+		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
 }
 

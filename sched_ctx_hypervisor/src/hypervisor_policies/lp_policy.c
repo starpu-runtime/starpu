@@ -27,7 +27,7 @@ static void lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_t
 
 		double nworkers[nsched_ctxs][2];
 
-		int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
+		int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 		if(ret != EBUSY)
 		{
 			int total_nw[2];
@@ -52,7 +52,7 @@ static void lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_t
 				_lp_round_double_to_int(nsched_ctxs, 2, nworkers, nworkers_rounded);
 				_lp_redistribute_resources_in_ctxs(nsched_ctxs, 2, nworkers_rounded, nworkers);
 			}
-			pthread_mutex_unlock(&act_hypervisor_mutex);
+			starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 		}
 	}
 }
@@ -63,7 +63,7 @@ static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 	int total_nw[2];
 	_get_total_nw(workers, nworkers, 2, total_nw);
 
-	pthread_mutex_lock(&act_hypervisor_mutex);
+	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
 	double vmax = _lp_get_nworkers_per_ctx(nsched_ctxs, 2, nworkers_per_type, total_nw);
 	if(vmax != 0.0)
 	{
@@ -101,7 +101,7 @@ static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 		else
 			_lp_distribute_resources_in_ctxs(sched_ctxs, nsched_ctxs, 2, nworkers_per_type_rounded, nworkers_per_type, workers, nworkers);
 	}
-	pthread_mutex_unlock(&act_hypervisor_mutex);
+	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }
 
 struct sched_ctx_hypervisor_policy lp_policy = {

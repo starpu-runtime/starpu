@@ -67,8 +67,8 @@ struct sched_ctx_hypervisor
 	/* Set of pending resize requests for any context/tag pair.  */
 	struct resize_request_entry *resize_requests[STARPU_NMAX_SCHED_CTXS];
 
-	pthread_mutex_t conf_mut[STARPU_NMAX_SCHED_CTXS];
-	pthread_mutex_t resize_mut[STARPU_NMAX_SCHED_CTXS];
+	starpu_pthread_mutex_t conf_mut[STARPU_NMAX_SCHED_CTXS];
+	starpu_pthread_mutex_t resize_mut[STARPU_NMAX_SCHED_CTXS];
 	struct size_request *sr;
 	int check_min_tasks[STARPU_NMAX_SCHED_CTXS];
 

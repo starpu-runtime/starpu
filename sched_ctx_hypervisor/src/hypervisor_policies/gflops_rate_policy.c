@@ -138,9 +138,9 @@ static unsigned _gflops_rate_resize(unsigned sender_sched_ctx, unsigned receiver
 {
         int ret = 1;
         if(force_resize)
-                pthread_mutex_lock(&act_hypervisor_mutex);
+                starpu_pthread_mutex_lock(&act_hypervisor_mutex);
         else
-                ret = pthread_mutex_trylock(&act_hypervisor_mutex);
+                ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
         if(ret != EBUSY)
         {
                 int nworkers_to_move = 0;
@@ -156,7 +156,7 @@ static unsigned _gflops_rate_resize(unsigned sender_sched_ctx, unsigned receiver
 
                         free(workers_to_move);
                 }
-                pthread_mutex_unlock(&act_hypervisor_mutex);
+                starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
                 return 1;
         }
         return 0;
