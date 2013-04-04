@@ -16,8 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
-
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>

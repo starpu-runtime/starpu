@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,7 +18,6 @@
 
 /* FIFO queues, ready for use by schedulers */
 
-#include <pthread.h>
 #include <sched_policies/fifo_queues.h>
 #include <errno.h>
 #include <common/utils.h>
