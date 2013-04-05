@@ -106,12 +106,12 @@ extern "C"
 
 #if defined(__i386__) || defined(__x86_64__)
 
-static __inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)
+static __starpu_inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)
 {
 	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
+static __starpu_inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
 {
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
@@ -121,7 +121,7 @@ static __inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
 #endif
 
 #define STARPU_ATOMIC_SOMETHING(name,expr) \
-static __inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) \
+static __starpu_inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) \
 { \
 	unsigned old, next; \
 	while (1) \
@@ -207,7 +207,7 @@ extern "C"
 {
 #endif
 
-static __inline int starpu_get_env_number(const char *str)
+static __starpu_inline int starpu_get_env_number(const char *str)
 {
 	char *strval;
 

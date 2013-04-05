@@ -89,6 +89,12 @@ typedef ssize_t starpu_ssize_t;
 #define __starpu_func__ __func__
 #endif
 
+#ifdef STARPU_HAVE_WINDOWS
+#define __starpu_inline __inline
+#else
+#define __starpu_inline inline
+#endif
+
 #undef STARPU_QUICK_CHECK
 #undef STARPU_USE_DRAND48
 #undef STARPU_USE_ERAND48_R
