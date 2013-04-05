@@ -80,7 +80,7 @@ static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
 
 static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 static void *matrix_handle_to_pointer(starpu_data_handle_t data_handle, unsigned node);
-static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node);
+static starpu_ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_matrix_buffer_on_node(void *data_interface, unsigned node);
 static size_t matrix_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle);
@@ -252,7 +252,7 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle)
 /* memory allocation/deallocation primitives for the matrix interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node)
+static starpu_ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node)
 {
 	uintptr_t addr = 0, handle;
 
@@ -263,7 +263,7 @@ static ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned ds
 	uint32_t ld = nx; // by default
 	size_t elemsize = matrix_interface->elemsize;
 
-	ssize_t allocated_memory;
+	starpu_ssize_t allocated_memory;
 
 	handle = starpu_malloc_on_node(dst_node, nx*ny*elemsize);
 

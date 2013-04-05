@@ -749,10 +749,10 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
  *
  */
 
-static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned dst_node, unsigned is_prefetch)
+static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned dst_node, unsigned is_prefetch)
 {
 	unsigned attempts = 0;
-	ssize_t allocated_memory;
+	starpu_ssize_t allocated_memory;
 	int ret;
 
 	_starpu_spin_checklocked(&handle->header_lock);
@@ -770,7 +770,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 	{
 		_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
 		_starpu_allocation_cache_hit(dst_node);
-		ssize_t data_size = _starpu_data_get_size(handle);
+		starpu_ssize_t data_size = _starpu_data_get_size(handle);
 		return data_size;
 	}
 
@@ -840,7 +840,7 @@ static ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _s
 
 int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned is_prefetch)
 {
-	ssize_t allocated_memory;
+	starpu_ssize_t allocated_memory;
 
 	unsigned dst_node = replicate->memory_node;
 

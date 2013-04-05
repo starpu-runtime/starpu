@@ -33,7 +33,7 @@ static const struct starpu_data_copy_methods variable_copy_data_methods_s =
 };
 
 static void register_variable_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
-static ssize_t allocate_variable_buffer_on_node(void *data_interface_, unsigned dst_node);
+static starpu_ssize_t allocate_variable_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void *variable_handle_to_pointer(starpu_data_handle_t data_handle, unsigned node);
 static void free_variable_buffer_on_node(void *data_interface, unsigned node);
 static size_t variable_interface_get_size(starpu_data_handle_t handle);
@@ -146,7 +146,7 @@ size_t starpu_variable_get_elemsize(starpu_data_handle_t handle)
 /* memory allocation/deallocation primitives for the variable interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_variable_buffer_on_node(void *data_interface_, unsigned dst_node)
+static starpu_ssize_t allocate_variable_buffer_on_node(void *data_interface_, unsigned dst_node)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *) data_interface_;
 	size_t elemsize = variable_interface->elemsize;
