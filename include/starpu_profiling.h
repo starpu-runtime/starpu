@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -125,16 +125,16 @@ int starpu_bus_get_profiling_info(int busid, struct starpu_bus_profiling_info *b
 
 /* Some helper functions to manipulate profiling API output */
 /* Reset timespec */
-static inline void starpu_timespec_clear(struct timespec *tsp)
+static __starpu_inline void starpu_timespec_clear(struct timespec *tsp)
 {
 	tsp->tv_sec = 0;
 	tsp->tv_nsec = 0;
 }
 
 /* Computes result = a + b */
-static inline void starpu_timespec_add(struct timespec *a,
-					struct timespec *b,
-					struct timespec *result)
+static __starpu_inline void starpu_timespec_add(struct timespec *a,
+						struct timespec *b,
+						struct timespec *result)
 {
 	result->tv_sec = a->tv_sec + b->tv_sec;
 	result->tv_nsec = a->tv_nsec + b->tv_nsec;
@@ -147,8 +147,8 @@ static inline void starpu_timespec_add(struct timespec *a,
 }
 
 /* Computes res += b */
-static inline void starpu_timespec_accumulate(struct timespec *result,
-						struct timespec *a)
+static __starpu_inline void starpu_timespec_accumulate(struct timespec *result,
+						       struct timespec *a)
 {
 	result->tv_sec += a->tv_sec;
 	result->tv_nsec += a->tv_nsec;
@@ -161,9 +161,9 @@ static inline void starpu_timespec_accumulate(struct timespec *result,
 }
 
 /* Computes result = a - b */
-static inline void starpu_timespec_sub(const struct timespec *a,
-					const struct timespec *b,
-					struct timespec *result)
+static __starpu_inline void starpu_timespec_sub(const struct timespec *a,
+						const struct timespec *b,
+						struct timespec *result)
 {
 	result->tv_sec = a->tv_sec - b->tv_sec;
 	result->tv_nsec = a->tv_nsec - b->tv_nsec;
