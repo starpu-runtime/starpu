@@ -19,7 +19,6 @@
 #include <starpu.h>
 #include <errno.h>
 #include "../helper.h"
-#warning enlever la ligne ci dessous, aussi dans les autres fichiers en dehors de src
 #include <common/thread.h>
 
 #define NTHREADS	4
