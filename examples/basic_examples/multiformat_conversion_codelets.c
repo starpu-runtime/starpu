@@ -50,7 +50,7 @@ struct starpu_codelet cuda_to_cpu_cl =
 #ifdef STARPU_USE_OPENCL
 void opencl_to_cpu(void *buffers[], void *arg)
 {
-	FPRINTF(stderr, "User Entering %s\n", __func__);
+	FPRINTF(stderr, "User Entering %s\n", __starpu_func__);
 	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_OPENCL_PTR(buffers[0]);
 	struct point *dst = STARPU_MULTIFORMAT_GET_CPU_PTR(buffers[0]);
 	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);

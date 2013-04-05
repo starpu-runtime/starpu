@@ -73,16 +73,16 @@ extern "C"
 #else
 #  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) *(int*)NULL = 0; } while(0)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __starpu_func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
 #  else
 #    define STARPU_ASSERT(x)		assert(x)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __func__, ## __VA_ARGS__); } ; assert(x); } while(0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __starpu_func__, ## __VA_ARGS__); } ; assert(x); } while(0)
 
 #  endif
 #endif
 
 #define STARPU_ABORT() do {                                          \
-	fprintf(stderr, "[starpu][abort] %s:%d %s\n", __FILE__, __LINE__, __func__); \
+	fprintf(stderr, "[starpu][abort] %s:%d %s\n", __FILE__, __LINE__, __starpu_func__); \
 	abort();                                                     \
 } while(0)
 

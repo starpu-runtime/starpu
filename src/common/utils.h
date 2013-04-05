@@ -75,25 +75,25 @@
 			struct _starpu_spinlock *, lock)
 
 #ifdef STARPU_VERBOSE
-#  define _STARPU_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args); fflush(stderr); }} while(0)
+#  define _STARPU_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,##args); fflush(stderr); }} while(0)
 #else
 #  define _STARPU_DEBUG(fmt, args ...) do { } while (0)
 #endif
 
 #ifdef STARPU_VERBOSE0
-#  define _STARPU_LOG_IN()             do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] -->\n", pthread_self(), __func__ ); }} while(0)
-#  define _STARPU_LOG_OUT()            do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] <--\n", pthread_self(), __func__ ); }} while(0)
-#  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] <-- (%s)\n", pthread_self(), __func__, outtag); }} while(0)
+#  define _STARPU_LOG_IN()             do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] -->\n", pthread_self(), __starpu_func__ ); }} while(0)
+#  define _STARPU_LOG_OUT()            do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] <--\n", pthread_self(), __starpu_func__ ); }} while(0)
+#  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] <-- (%s)\n", pthread_self(), __starpu_func__, outtag); }} while(0)
 #else
 #  define _STARPU_LOG_IN()
 #  define _STARPU_LOG_OUT()
 #  define _STARPU_LOG_OUT_TAG(outtag)
 #endif
 
-#define _STARPU_DISP(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__func__ ,##args); }} while(0)
+#define _STARPU_DISP(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,##args); }} while(0)
 #define _STARPU_ERROR(fmt, args ...)                                                  \
 	do {                                                                          \
-                fprintf(stderr, "\n\n[starpu][%s] Error: " fmt ,__func__ ,##args);    \
+                fprintf(stderr, "\n\n[starpu][%s] Error: " fmt ,__starpu_func__ ,##args);    \
 		fprintf(stderr, "\n\n");					      \
 		STARPU_ABORT();                                                       \
 	} while (0)
