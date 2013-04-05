@@ -251,6 +251,7 @@ static inline int pthread_mutex_destroy (pthread_mutex_t *mutex) {
 
 #define PTHREAD_RWLOCK_INITIALIZER NULL
 typedef pthread_mutex_t pthread_rwlock_t;
+typedef int pthread_rwlockattr_t;
 #define pthread_rwlock_init(lock, attr) pthread_mutex_init(lock, NULL)
 #define pthread_rwlock_wrlock(lock) pthread_mutex_lock(lock)
 #define pthread_rwlock_rdlock(lock) pthread_mutex_lock(lock)
