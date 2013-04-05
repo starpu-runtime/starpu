@@ -30,13 +30,13 @@
 
 typedef HANDLE sem_t;
 
-static inline int sem_init(sem_t *sem, int pshared, unsigned int value) {
+static __inline int sem_init(sem_t *sem, int pshared, unsigned int value) {
   (void)pshared;
   winPthreadAssertWindows(*sem = CreateSemaphore(NULL, value, MAXLONG, NULL));
   return 0;
 }
 
-static inline int do_sem_wait(sem_t *sem, DWORD timeout) {
+static __inline int do_sem_wait(sem_t *sem, DWORD timeout) {
   switch (WaitForSingleObject(*sem, timeout)) {
     default:
     case WAIT_FAILED:
@@ -54,12 +54,12 @@ static inline int do_sem_wait(sem_t *sem, DWORD timeout) {
 #define sem_wait(sem) do_sem_wait(sem, INFINITE)
 #define sem_trywait(sem) do_sem_wait(sem, 0)
 
-static inline int sem_post(sem_t *sem) {
+static __inline int sem_post(sem_t *sem) {
   winPthreadAssertWindows(ReleaseSemaphore(*sem, 1, NULL));
   return 0;
 }
 
-static inline int sem_destroy(sem_t *sem) {
+static __inline int sem_destroy(sem_t *sem) {
   winPthreadAssertWindows(CloseHandle(*sem));
   return 0;
 }
