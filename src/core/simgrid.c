@@ -102,7 +102,7 @@ void _starpu_simgrid_execute_job(struct _starpu_job *j, enum starpu_perf_archtyp
 	struct starpu_task *task = j->task;
 	msg_task_t simgrid_task;
 
-	if (j->exclude_from_dag)
+	if (j->internal)
 		/* This is not useful to include in simulation (and probably
 		 * doesn't have a perfmodel anyway) */
 		return;

@@ -365,7 +365,7 @@ int starpu_task_submit(struct starpu_task *task)
 	* allocated. */
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	if (task->sched_ctx == 0 && nsched_ctxs != 1 && !j->exclude_from_dag)
+	if (task->sched_ctx == 0 && nsched_ctxs != 1 && !j->internal)
 	{
 		set_sched_ctx = starpu_sched_ctx_get_context();
 		if (set_sched_ctx != STARPU_NMAX_SCHED_CTXS)
@@ -485,7 +485,8 @@ int starpu_task_submit(struct starpu_task *task)
 
 int _starpu_task_submit_internally(struct starpu_task *task)
 {
-	_starpu_exclude_task_from_dag(task);
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	j->internal = 1;
 	return starpu_task_submit(task);
 }
 
