@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -102,6 +102,9 @@ LIST_TYPE(_starpu_job,
 	/* Should that task appear in the debug tools ? (eg. the DAG generated
 	 * with dot) */
         unsigned exclude_from_dag;
+
+	/* Is that task internal to StarPU ? */
+	unsigned internal;
 
 	/* Each job is attributed a unique id. */
 	unsigned long job_id;
