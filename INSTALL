@@ -188,8 +188,8 @@ autogen.sh part.
 
    To fasten the compilation process, the option
    --disable-build-examples may also be used to disable the
-   compilation of the applications. They can be compiled and checked
-   by running make check.
+   compilation of the applications in the examples directory. Only the
+   applications in the test directory will be build.
 
    Also convert a couple of files to CRLF:
 
