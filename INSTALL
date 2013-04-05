@@ -177,12 +177,19 @@ autogen.sh part.
         --with-cuda-lib-dir=<CUDA installation directory>/lib/Win32 \
 	--with-opencl-dir=<CUDA installation directory>
         --disable-build-doc
+	--disable-build-examples --enable-quick-check
    make
+   make check   # not necessary but well advised
    make install
 
    The option --disable-build-doc is necessary if you do not have a
    working TeX binary installed as it is needed by texi2dvi to build
    the documentation.
+
+   To fasten the compilation process, the option
+   --disable-build-examples may also be used to disable the
+   compilation of the applications. They can be compiled and checked
+   by running make check.
 
    Also convert a couple of files to CRLF:
 
