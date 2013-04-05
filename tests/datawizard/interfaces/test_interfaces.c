@@ -396,7 +396,7 @@ ram_to_cuda(void)
 	if (err != 0)
 		return TASK_SUBMISSION_FAILURE;
 
-	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __starpu_func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 
@@ -415,7 +415,7 @@ cuda_to_cuda(void)
 	if (err != 0)
 		return TASK_SUBMISSION_FAILURE;
 
-	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __starpu_func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 #endif
@@ -434,7 +434,7 @@ cuda_to_ram(void)
 	if (err != 0)
 		return TASK_SUBMISSION_FAILURE;
 
-	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __starpu_func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 #endif /* !STARPU_USE_CUDA */
@@ -454,7 +454,7 @@ ram_to_opencl(void)
 	if (err != 0)
 		return TASK_SUBMISSION_FAILURE;
 
-	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __starpu_func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 
@@ -472,7 +472,7 @@ opencl_to_ram(void)
 	if (err != 0)
 		return TASK_SUBMISSION_FAILURE;
 
-	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __starpu_func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
 #endif /* !STARPU_USE_OPENCL */
@@ -569,7 +569,7 @@ ram_to_ram(void)
 		goto out;
 	}
 
-	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	FPRINTF(stderr, "[%s] : %d\n", __starpu_func__, current_config->copy_failed);
 	err = current_config->copy_failed;
 
 out:

@@ -48,7 +48,7 @@ int _starpu_spin_lock(struct _starpu_spinlock *lock);
 #if defined(STARPU_SPINLOCK_CHECK)
 #define _starpu_spin_lock(lock) ({ \
 	_starpu_spin_lock(lock); \
-	(lock)->last_taker = __func__; \
+	(lock)->last_taker = __starpu_func__; \
 	0; \
 })
 #endif
@@ -57,7 +57,7 @@ int _starpu_spin_trylock(struct _starpu_spinlock *lock);
 #define _starpu_spin_trylock(lock) ({ \
 	int err = _starpu_spin_trylock(lock); \
 	if (!err) \
-		(lock)->last_taker = __func__; \
+		(lock)->last_taker = __starpu_func__; \
 	err; \
 })
 #endif
