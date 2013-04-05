@@ -136,6 +136,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	cl.cuda_funcs[0] = cpu_codelet;
 	cl.opencl_funcs[0] = cpu_codelet;
 	cl.nbuffers = 0;
+	cl.name = "dummy";
 
 	FPRINTF(stderr, "ITER : %u\n", nk);
 

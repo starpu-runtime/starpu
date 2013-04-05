@@ -64,7 +64,8 @@ int main(int argc, char **argv)
 	{
                 .cpu_funcs = {cpu_func, NULL},
                 .nbuffers = 1,
-		.modes = {STARPU_RW}
+		.modes = {STARPU_RW},
+		.name = "matrix_scal"
         };
 
         ret = starpu_init(NULL);

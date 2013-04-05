@@ -115,7 +115,8 @@ static struct starpu_codelet init_codelet =
 	.opencl_funcs = {init_opencl_func, NULL},
 #endif
 	.modes = {STARPU_W},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.name = "init",
 };
 
 /*
@@ -196,7 +197,8 @@ static struct starpu_codelet redux_codelet =
 	.opencl_funcs = {redux_opencl_func, NULL},
 #endif
 	.modes = {STARPU_RW, STARPU_R},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.name = "redux"
 };
 
 /*
@@ -313,7 +315,8 @@ static struct starpu_codelet dot_codelet =
 	.opencl_funcs = {dot_opencl_func, NULL},
 #endif
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_REDUX}
+	.modes = {STARPU_R, STARPU_R, STARPU_REDUX},
+	.name = "dot"
 };
 
 /*

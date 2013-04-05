@@ -47,7 +47,8 @@ int main(int argc, char **argv)
 	{
                 .cpu_funcs = {cpu_func, NULL},
                 .nbuffers = 1,
-		.modes = {STARPU_RW}
+		.modes = {STARPU_RW},
+		.name = "vector_scal"
         };
 
         for(i=0 ; i<NX ; i++) vector[i] = i;
