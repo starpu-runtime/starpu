@@ -79,7 +79,7 @@ void _starpu_memory_manager_deallocate_size(size_t size, unsigned node)
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
 }
 
-ssize_t starpu_memory_get_available(unsigned node)
+starpu_ssize_t starpu_memory_get_available(unsigned node)
 {
 	if (global_size[node] == 0)
 		return -1;

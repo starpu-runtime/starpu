@@ -73,7 +73,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
  */
 static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 {
-	ssize_t limit;
+	starpu_ssize_t limit;
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
