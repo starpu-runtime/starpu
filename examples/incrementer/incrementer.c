@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -73,7 +73,8 @@ int main(int argc, char **argv)
 		.opencl_funcs = {opencl_codelet, NULL},
 #endif
 		.nbuffers = 1,
-		.modes = {STARPU_RW}
+		.modes = {STARPU_RW},
+		.name = "increment"
 	};
 
 	struct timeval start;

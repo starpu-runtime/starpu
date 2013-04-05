@@ -39,7 +39,8 @@ static struct starpu_codelet sched_ctx_codelet =
 	.cuda_funcs = {sched_ctx_func, NULL},
 	.opencl_funcs = {sched_ctx_func, NULL},
 	.model = NULL,
-	.nbuffers = 0
+	.nbuffers = 0,
+	.name = "sched_ctx"
 };
 
 

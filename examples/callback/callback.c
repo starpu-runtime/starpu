@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,7 +33,8 @@ struct starpu_codelet cl =
 {
 	.modes = { STARPU_RW },
 	.cpu_funcs = {cpu_codelet, NULL},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.name = "callback"
 };
 
 void callback_func(void *callback_arg)
