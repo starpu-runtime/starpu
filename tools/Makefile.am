@@ -97,7 +97,8 @@ STARPU_TOOLS	+=			\
 if !STARPU_HAVE_WINDOWS
 STARPU_TOOLS	+=			\
 	starpu_perfmodel_display	\
-	starpu_perfmodel_plot 		\
+	starpu_perfmodel_plot
+endif
 
 noinst_PROGRAMS =	cbc2paje lp2paje
 
