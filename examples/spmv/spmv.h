@@ -27,7 +27,7 @@
 
 #include <starpu.h>
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 #ifdef STARPU_USE_CUDA
 void spmv_kernel_cuda(void *descr[], void *args);

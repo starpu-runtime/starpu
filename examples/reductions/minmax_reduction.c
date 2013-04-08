@@ -27,7 +27,7 @@ static unsigned _nblocks = 8192;
 static unsigned _entries_per_bock = 1024;
 #endif
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 #define TYPE		double
 #define TYPE_MAX	DBL_MAX
