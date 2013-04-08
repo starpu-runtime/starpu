@@ -434,14 +434,19 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 						   enum starpu_node_kind node_kind)
 {
 	struct starpu_task *conversion_task;
+
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	struct starpu_multiformat_interface *format_interface;
+#endif
 
 	conversion_task = starpu_task_create();
 	conversion_task->synchronous = 0;
 	conversion_task->handles[0] = handle;
 
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	/* The node does not really matter here */
 	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
+#endif
 
 	_starpu_spin_lock(&handle->header_lock);
 	handle->refcnt++;
