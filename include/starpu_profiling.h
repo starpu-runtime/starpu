@@ -20,7 +20,7 @@
 
 #include <starpu.h>
 #include <errno.h>
-#include <sys/time.h>
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C"
