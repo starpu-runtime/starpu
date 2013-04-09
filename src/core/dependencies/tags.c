@@ -39,7 +39,7 @@ struct _starpu_tag_table
 #define HASH_FIND_UINT64_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint64_t),out)
 
 static struct _starpu_tag_table *tag_htbl = NULL;
-static _starpu_pthread_rwlock_t tag_global_rwlock;
+static starpu_pthread_rwlock_t tag_global_rwlock;
 
 static struct _starpu_cg *create_cg_apps(unsigned ntags)
 {

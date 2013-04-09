@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2012-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,12 +27,11 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
-#include <pthread.h>
 #include <signal.h>
 
 #include <starpu.h>
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define TAG(i, iter)	((starpu_tag_t)  (((uint64_t)iter)<<32 | (i)) )
 
 struct starpu_codelet cl;
@@ -130,6 +129,7 @@ int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
 	cl.cuda_funcs[0] = cpu_codelet;
 	cl.opencl_funcs[0] = cpu_codelet;
 	cl.nbuffers = 0;
+	cl.name = "dummy";
 
 	FPRINTF(stderr, "ITER : %u\n", nk);
 

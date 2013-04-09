@@ -27,6 +27,7 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long uint32_t;
 typedef unsigned long long uint64_t;
+typedef unsigned long int uintptr_t;
 #endif
 
 #include <starpu_config.h>
@@ -39,6 +40,7 @@ typedef unsigned long long uint64_t;
 #include <starpu_opencl.h>
 #endif
 
+#include <starpu_thread.h>
 #include <starpu_util.h>
 #include <starpu_data.h>
 #include <starpu_data_interfaces.h>

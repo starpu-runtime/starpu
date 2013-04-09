@@ -41,7 +41,7 @@ static __global__ void multiformat_cuda(struct struct_of_arrays *soa, unsigned n
 
 extern "C" void test_multiformat_cuda_func(void *buffers[], void *args)
 {
-	FPRINTF(stderr, "Entering %s\n", __func__);
+	FPRINTF(stderr, "Entering %s\n", __starpu_func__);
 	int factor;
 	int *ret;
 	cudaError_t error;

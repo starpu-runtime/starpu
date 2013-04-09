@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,7 @@
 
 #define _DISPLAY(fmt, args ...) do { \
 		int _display_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_display_rank);	\
-		fprintf(stderr, "[%d][%s] " fmt , _display_rank, __func__ ,##args); 	\
+		fprintf(stderr, "[%d][%s] " fmt , _display_rank, __starpu_func__ ,##args); 	\
 		fflush(stderr); } while(0)
 
 /*

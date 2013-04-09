@@ -20,10 +20,6 @@
 
 #include <starpu.h>
 
-#if ! defined(_MSC_VER)
-#  include <pthread.h>
-#endif
-
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
@@ -125,9 +121,7 @@ associated mutex) should be used to block (and to wake up) a worker. Note that
 multiple workers may use the same condition variable. For instance, in the case
 of a scheduling strategy with a single task queue, the same condition variable
 would be used to block and wake up all workers.   */
-#if !defined(_MSC_VER) && !defined(STARPU_SIMGRID)
-void starpu_worker_get_sched_condition(int workerid, pthread_mutex_t **sched_mutex, pthread_cond_t **sched_cond);
-#endif
+void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond);
 
 /* Check if the worker specified by workerid can execute the codelet. */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
@@ -138,6 +132,9 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
  * where the worker will pop tasks first. Setting "back" to 0 therefore ensures
  * a FIFO ordering. */
 int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
+
+/* Called by scheduler to notify that the task has just been pushed */
+int starpu_push_task_end(struct starpu_task *task);
 
 /*
  *	Priorities

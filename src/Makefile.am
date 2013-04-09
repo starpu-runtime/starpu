@@ -101,6 +101,7 @@ noinst_HEADERS = 						\
 	common/starpu_spinlock.h				\
 	common/fxt.h						\
 	common/utils.h						\
+	common/thread.h						\
 	common/barrier.h					\
 	common/uthash.h						\
 	common/barrier_counter.h				\
@@ -130,6 +131,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	common/timing.c						\
 	common/fxt.c						\
 	common/utils.c						\
+	common/thread.c						\
 	core/jobs.c						\
 	core/task.c						\
 	core/task_bundle.c					\

@@ -29,7 +29,7 @@ extern "C" void multiformat_scal_cuda_func(void *buffers[], void *_args)
 {
 	(void) _args;
 
-	FPRINTF(stderr, "Running the cuda kernel (%s)\n", __func__);
+	FPRINTF(stderr, "Running the cuda kernel (%s)\n", __starpu_func__);
 	unsigned int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
 	struct struct_of_arrays *soa;
 

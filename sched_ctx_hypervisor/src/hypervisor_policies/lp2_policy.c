@@ -20,7 +20,7 @@
 
 static struct bound_task_pool *task_pools = NULL;
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers, unsigned interger,
 			   struct bound_task_pool *tmp_task_pools, unsigned size_ctxs);
 static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], double tasks[nw][nt], 
@@ -125,7 +125,7 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 	int ns = sched_ctxs == NULL ? sched_ctx_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 	int nw = workers == NULL ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
 	int nt = 0; /* Number of different kinds of tasks */
-	pthread_mutex_lock(&mutex);
+	starpu_pthread_mutex_lock(&mutex);
 	struct bound_task_pool * tp;
 	for (tp = task_pools; tp; tp = tp->next)
 		nt++;
@@ -133,7 +133,7 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 	double w_in_s[ns][nw];
 	double tasks[nw][nt];
 	unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, tasks, sched_ctxs, workers, task_pools, 1);
-	pthread_mutex_unlock(&mutex);
+	starpu_pthread_mutex_unlock(&mutex);
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
 		_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, workers, 1);
@@ -150,7 +150,7 @@ static void size_if_required()
 		struct sched_ctx_hypervisor_wrapper* sc_w = NULL;
 		unsigned ready_to_size = 1;
 		int s;
-		pthread_mutex_lock(&act_hypervisor_mutex);
+		starpu_pthread_mutex_lock(&act_hypervisor_mutex);
 		for(s = 0; s < nsched_ctxs; s++)
 		{
 			sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]);
@@ -160,14 +160,14 @@ static void size_if_required()
 
 		if(ready_to_size)
 			_size_ctxs(sched_ctxs, nsched_ctxs, workers, nworkers);
-		pthread_mutex_unlock(&act_hypervisor_mutex);
+		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
 }
 
 static void lp2_handle_submitted_job(struct starpu_task *task, uint32_t footprint)
 {
 	/* count the tasks of the same type */
-	pthread_mutex_lock(&mutex);
+	starpu_pthread_mutex_lock(&mutex);
 	struct bound_task_pool *tp = NULL;
 
 	for (tp = task_pools; tp; tp = tp->next)
@@ -189,7 +189,7 @@ static void lp2_handle_submitted_job(struct starpu_task *task, uint32_t footprin
 
 	/* One more task of this kind */
 	tp->n++;
-	pthread_mutex_unlock(&mutex);
+	starpu_pthread_mutex_unlock(&mutex);
 
 	size_if_required();
 }
@@ -529,12 +529,12 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_
 {
 	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 
-	int ret = pthread_mutex_trylock(&act_hypervisor_mutex);
+	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
 		if(sc_w->submitted_flops < sc_w->total_flops)
 		{
-			pthread_mutex_unlock(&act_hypervisor_mutex);
+			starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 			return;
 		}
 
@@ -544,7 +544,7 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_
 			int nw = starpu_worker_get_count(); /* Number of different workers */
 			int nt = 0; /* Number of different kinds of tasks */
 
-//			pthread_mutex_lock(&mutex);
+//			starpu_pthread_mutex_lock(&mutex);
 
 			/* we don't take the mutex bc a correct value of the number of tasks is
 			   not required but we do a copy in order to be sure
@@ -562,7 +562,7 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_
 			double tasks_per_worker[nw][nt];
 
 			unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, tasks_per_worker, NULL, NULL, tmp_task_pools, 0);
-//			pthread_mutex_unlock(&mutex);
+//			starpu_pthread_mutex_unlock(&mutex);
 
 			/* if we did find at least one solution redistribute the resources */
 			if(found_sol)
@@ -580,12 +580,12 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_
 			
 
 		}
-		pthread_mutex_unlock(&act_hypervisor_mutex);
+		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
 	/* too expensive to take this mutex and correct value of the number of tasks is not compulsory */
-//	pthread_mutex_lock(&mutex);
+//	starpu_pthread_mutex_lock(&mutex);
 	_remove_task_from_pool(task, footprint);
-//	pthread_mutex_unlock(&mutex);
+//	starpu_pthread_mutex_unlock(&mutex);
 
 }
 

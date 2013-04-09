@@ -17,8 +17,7 @@
 
 #include <sys/types.h>
 #include <semaphore.h>
-#include <pthread.h>
-#include <common/utils.h>
+#include <common/thread.h>
 
 #ifndef __STARPU_TOP_MESSAGE_QUEUE_H__
 #define __STARPU_TOP_MESSAGE_QUEUE_H__
@@ -34,7 +33,7 @@ struct _starpu_top_message_queue
 	struct _starpu_top_message_queue_item* head;
 	struct _starpu_top_message_queue_item* tail;
 	sem_t semaphore;
-	_starpu_pthread_mutex_t mutex;
+	starpu_pthread_mutex_t mutex;
 };
 
 

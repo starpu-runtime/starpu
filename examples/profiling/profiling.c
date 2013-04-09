@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <unistd.h>
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 static unsigned niter = 500;
 
@@ -53,7 +53,8 @@ int main(int argc, char **argv)
 		.cpu_funcs = {sleep_codelet, NULL},
 		.cuda_funcs = {sleep_codelet, NULL},
 		.opencl_funcs = {sleep_codelet, NULL},
-		.nbuffers = 0
+		.nbuffers = 0,
+		.name = "sleep"
 	};
 
 	struct starpu_task **tasks = (struct starpu_task **) malloc(niter*sizeof(struct starpu_task *));

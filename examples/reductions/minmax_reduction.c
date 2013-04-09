@@ -27,7 +27,7 @@ static unsigned _nblocks = 8192;
 static unsigned _entries_per_bock = 1024;
 #endif
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 #define TYPE		double
 #define TYPE_MAX	DBL_MAX
@@ -59,7 +59,8 @@ static struct starpu_codelet minmax_init_codelet =
 {
 	.cpu_funcs = {minmax_neutral_cpu_func, NULL},
 	.modes = {STARPU_W},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.name = "init"
 };
 
 /*
@@ -86,7 +87,8 @@ static struct starpu_codelet minmax_redux_codelet =
 {
 	.cpu_funcs = {minmax_redux_cpu_func, NULL},
 	.modes = {STARPU_RW, STARPU_R},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.name = "redux"
 };
 
 /*
@@ -121,7 +123,8 @@ static struct starpu_codelet minmax_codelet =
 {
 	.cpu_funcs = {minmax_cpu_func, NULL},
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_REDUX}
+	.modes = {STARPU_R, STARPU_REDUX},
+	.name = "minmax"
 };
 
 /*

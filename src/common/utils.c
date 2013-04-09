@@ -18,6 +18,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/thread.h>
 #include <libgen.h>
 #include <errno.h>
 #include <unistd.h>
@@ -102,10 +103,10 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 	}
 }
 
-int _starpu_check_mutex_deadlock(_starpu_pthread_mutex_t *mutex)
+int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex)
 {
 	int ret;
-	ret = _STARPU_PTHREAD_MUTEX_TRYLOCK(mutex);
+	ret = starpu_pthread_mutex_trylock(mutex);
 	if (!ret)
 	{
 		_STARPU_PTHREAD_MUTEX_UNLOCK(mutex);

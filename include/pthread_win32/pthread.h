@@ -62,35 +62,35 @@ extern "C" {
 typedef DWORD pthread_attr_t;
 typedef HANDLE pthread_t;
 
-static inline pthread_t pthread_self(void) {
+static __inline pthread_t pthread_self(void) {
   return GetCurrentThread();
 }
 
-static inline int pthread_equal(pthread_t t1, pthread_t t2) {
+static __inline int pthread_equal(pthread_t t1, pthread_t t2) {
   return t1 == t2;
 }
 
-static inline int pthread_attr_init (pthread_attr_t *attr) {
+static __inline int pthread_attr_init (pthread_attr_t *attr) {
   *attr = 0;
   return 0;
 }
 
 #define PTHREAD_CREATE_DETACHED 1
-static inline int pthread_attr_setdetachstate (pthread_attr_t *attr, int yes) {
+static __inline int pthread_attr_setdetachstate (pthread_attr_t *attr, int yes) {
   (void)attr;
   (void)yes;
   /* not supported, ignore */
   return 0;
 }
 
-static inline int pthread_attr_setstacksize (pthread_attr_t *attr, size_t stacksize) {
+static __inline int pthread_attr_setstacksize (pthread_attr_t *attr, size_t stacksize) {
   (void)attr;
   (void)stacksize;
   /* not supported, ignore */
   return 0;
 }
 
-static inline int pthread_attr_destroy (pthread_attr_t *attr) {
+static __inline int pthread_attr_destroy (pthread_attr_t *attr) {
   (void)attr;
   return 0;
 }
@@ -110,7 +110,7 @@ void pthread_cleanup_pop (int execute);
   if (execute) __cleanup_handler.routine(__cleanup_handler.arg); \
 } while (0);
 
-static inline int pthread_create (
+static __inline int pthread_create (
   pthread_t *thread, const pthread_attr_t *attr,
   void * (*fun) (void *), void *arg
 ) {
@@ -120,24 +120,24 @@ static inline int pthread_create (
   return 0;
 }
 
-static inline int pthread_setcancelstate (int state, int *oldstate) {
+static __inline int pthread_setcancelstate (int state, int *oldstate) {
   (void)state;
   (void)oldstate;
   /* not yet implemented :( */
   return 0;
 }
 
-static inline int pthread_cancel (pthread_t thread) {
+static __inline int pthread_cancel (pthread_t thread) {
   /* This is quite harsh :( */
   winPthreadAssertWindows(TerminateThread(thread, 0));
   return 0;
 }
 
-static inline void pthread_exit (void *res) {
+static __inline void pthread_exit (void *res) {
   ExitThread((DWORD) (DWORD_PTR) res);
 }
 
-static inline int pthread_join (pthread_t thread, void **res) {
+static __inline int pthread_join (pthread_t thread, void **res) {
 again:
   switch (WaitForSingleObject(thread, INFINITE)) {
     default:
@@ -167,32 +167,32 @@ typedef HANDLE pthread_mutex_t;
 #define PTHREAD_MUTEX_ERRORCHECK 2
 typedef int pthread_mutexattr_t;
 
-static inline int pthread_mutexattr_init(pthread_mutexattr_t *attr) {
+static __inline int pthread_mutexattr_init(pthread_mutexattr_t *attr) {
   *attr = PTHREAD_MUTEX_RECURSIVE;
   return 0;
 }
 
-static inline int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type) {
+static __inline int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int type) {
   if (type != PTHREAD_MUTEX_RECURSIVE && type != PTHREAD_MUTEX_ERRORCHECK)
     return EINVAL;
   *attr = type;
   return 0;
 }
 
-static inline int pthread_mutex_init (pthread_mutex_t *mutex, pthread_mutexattr_t *attr) {
+static __inline int pthread_mutex_init (pthread_mutex_t *mutex, pthread_mutexattr_t *attr) {
   if (attr && *attr!=PTHREAD_MUTEX_RECURSIVE)
     return EINVAL;
   winPthreadAssertWindows(*mutex = CreateMutex(NULL, FALSE, NULL));
   return 0;
 }
 
-static inline int pthread_mutex_unlock (pthread_mutex_t *mutex) {
+static __inline int pthread_mutex_unlock (pthread_mutex_t *mutex) {
   winPthreadAssertWindows(ReleaseMutex(*mutex));
   return 0;
 }
 
-static inline int pthread_mutex_lock (pthread_mutex_t *mutex);
-static inline int __pthread_mutex_alloc_concurrently (pthread_mutex_t *mutex) {
+static __inline int pthread_mutex_lock (pthread_mutex_t *mutex);
+static __inline int __pthread_mutex_alloc_concurrently (pthread_mutex_t *mutex) {
   HANDLE mutex_init_mutex;
   /* Get access to one global named mutex to serialize mutex initialization */
   winPthreadAssertWindows((mutex_init_mutex = CreateMutex(NULL, FALSE, "StarPU mutex init")));
@@ -205,7 +205,7 @@ static inline int __pthread_mutex_alloc_concurrently (pthread_mutex_t *mutex) {
   return 0;
 }
 
-static inline int pthread_mutex_lock (pthread_mutex_t *mutex) {
+static __inline int pthread_mutex_lock (pthread_mutex_t *mutex) {
   if (!*mutex)
     __pthread_mutex_alloc_concurrently (mutex);
 again:
@@ -221,7 +221,7 @@ again:
   }
 }
 
-static inline int pthread_mutex_trylock (pthread_mutex_t *mutex) {
+static __inline int pthread_mutex_trylock (pthread_mutex_t *mutex) {
   if (!*mutex)
     __pthread_mutex_alloc_concurrently (mutex);
   switch (WaitForSingleObject(*mutex, 0)) {
@@ -236,7 +236,7 @@ static inline int pthread_mutex_trylock (pthread_mutex_t *mutex) {
   }
 }
 
-static inline int pthread_mutex_destroy (pthread_mutex_t *mutex) {
+static __inline int pthread_mutex_destroy (pthread_mutex_t *mutex) {
   winPthreadAssertWindows(CloseHandle(*mutex));
   *mutex = INVALID_HANDLE_VALUE;
   return 0;
@@ -251,6 +251,7 @@ static inline int pthread_mutex_destroy (pthread_mutex_t *mutex) {
 
 #define PTHREAD_RWLOCK_INITIALIZER NULL
 typedef pthread_mutex_t pthread_rwlock_t;
+typedef int pthread_rwlockattr_t;
 #define pthread_rwlock_init(lock, attr) pthread_mutex_init(lock, NULL)
 #define pthread_rwlock_wrlock(lock) pthread_mutex_lock(lock)
 #define pthread_rwlock_rdlock(lock) pthread_mutex_lock(lock)
@@ -279,7 +280,7 @@ struct timespec {
 
 typedef unsigned pthread_condattr_t;
 
-static inline int pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t *attr) {
+static __inline int pthread_cond_init (pthread_cond_t *cond, const pthread_condattr_t *attr) {
   if (attr)
     return EINVAL;
   winPthreadAssertWindows(cond->sem = CreateSemaphore(NULL, 0, MAXLONG, NULL));
@@ -287,7 +288,7 @@ static inline int pthread_cond_init (pthread_cond_t *cond, const pthread_condatt
   return 0;
 }
 
-static inline int pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *time) {
+static __inline int pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *time) {
   if (!cond->sem)
     winPthreadAssertPthread(pthread_cond_init(cond,NULL));
   cond->nbwait++;
@@ -312,7 +313,7 @@ again:
   return 0;
 }
 
-static inline int pthread_cond_wait (pthread_cond_t *cond, pthread_mutex_t *mutex) {
+static __inline int pthread_cond_wait (pthread_cond_t *cond, pthread_mutex_t *mutex) {
   if (!cond->sem)
     winPthreadAssertPthread(pthread_cond_init(cond,NULL));
   cond->nbwait++;
@@ -337,7 +338,7 @@ again:
   return 0;
 }
 
-static inline int pthread_cond_signal (pthread_cond_t *cond) {
+static __inline int pthread_cond_signal (pthread_cond_t *cond) {
   if (!cond->sem)
     winPthreadAssertPthread(pthread_cond_init(cond,NULL));
   if (cond->nbwait)
@@ -345,14 +346,14 @@ static inline int pthread_cond_signal (pthread_cond_t *cond) {
   return 0;
 }
 
-static inline int pthread_cond_broadcast (pthread_cond_t *cond) {
+static __inline int pthread_cond_broadcast (pthread_cond_t *cond) {
   if (!cond->sem)
     winPthreadAssertPthread(pthread_cond_init(cond,NULL));
   ReleaseSemaphore(cond->sem, cond->nbwait, NULL);
   return 0;
 }
 
-static inline int pthread_cond_destroy (pthread_cond_t *cond) {
+static __inline int pthread_cond_destroy (pthread_cond_t *cond) {
   if (cond->sem) {
     winPthreadAssertWindows(CloseHandle(cond->sem));
     cond->sem = NULL;
@@ -371,7 +372,7 @@ typedef struct {
   unsigned done;
 } pthread_once_t;
 
-static inline int pthread_once (pthread_once_t *once, void (*oncefun)(void)) {
+static __inline int pthread_once (pthread_once_t *once, void (*oncefun)(void)) {
   winPthreadAssertPthread(pthread_mutex_lock(&once->mutex));
   if (!once->done) {
     oncefun();
@@ -381,24 +382,23 @@ static inline int pthread_once (pthread_once_t *once, void (*oncefun)(void)) {
   return 0;
 }
 
-static inline int pthread_key_create (pthread_key_t *key, void (*freefun)(void *)) {
-  (void)freefun;
-  DWORD res;
+static __inline int pthread_key_create (pthread_key_t *key, void (*freefun)(void *)) {
+  pthread_key_t res;
   winPthreadAssertWindows((res = TlsAlloc()) != 0xFFFFFFFF);
   *key = res;
   return 0;
 }
 
-static inline int pthread_key_delete (pthread_key_t key) {
+static __inline int pthread_key_delete (pthread_key_t key) {
   winPthreadAssertWindows(TlsFree(key));
   return 0;
 }
 
-static inline void *pthread_getspecific (pthread_key_t key) {
+static __inline void *pthread_getspecific (pthread_key_t key) {
   return TlsGetValue(key);
 }
 
-static inline int pthread_setspecific (pthread_key_t key, const void *data) {
+static __inline int pthread_setspecific (pthread_key_t key, const void *data) {
   winPthreadAssertWindows(TlsSetValue(key, (LPVOID) data));
   return 0;
 }

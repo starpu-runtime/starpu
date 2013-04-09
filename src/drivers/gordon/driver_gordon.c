@@ -20,7 +20,6 @@
 #define _GNU_SOURCE
 #endif
 #include <sched.h>
-#include <pthread.h>
 #include <semaphore.h>
 #include <common/utils.h>
 #include "driver_gordon.h"
@@ -29,10 +28,10 @@
 
 static unsigned progress_thread_is_inited = 0;
 
-pthread_t progress_thread;
+starpu_pthread_t progress_thread;
 
-_starpu_pthread_cond_t progress_cond;
-_starpu_pthread_mutex_t progress_mutex;
+starpu_pthread_cond_t progress_cond;
+starpu_pthread_mutex_t progress_mutex;
 
 struct gordon_task_wrapper_s
 {

@@ -19,8 +19,6 @@
 #include <starpu.h>
 #include <sched_ctx_hypervisor.h>
 
-#include <pthread.h>
-
 #define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
 
 /* Every implementation of a codelet must have this prototype, the first                                                                                                                                             * argument (buffers) describes the buffers/streams that are managed by the
@@ -119,13 +117,13 @@ int main()
 	sched_ctx_hypervisor_register_ctx(sched_ctx1, 0.0);
 	sched_ctx_hypervisor_register_ctx(sched_ctx2, 0.0);
 
-	pthread_t tid[2];
+	starpu_pthread_t tid[2];
 
-	pthread_create(&tid[0], NULL, start_thread, (void*)&sched_ctx1);
-	pthread_create(&tid[1], NULL, start_thread, (void*)&sched_ctx2);
+	starpu_pthread_create(&tid[0], NULL, start_thread, (void*)&sched_ctx1);
+	starpu_pthread_create(&tid[1], NULL, start_thread, (void*)&sched_ctx2);
 
-	pthread_join(tid[0], NULL);
-	pthread_join(tid[1], NULL);
+	starpu_pthread_join(tid[0], NULL);
+	starpu_pthread_join(tid[1], NULL);
 
 	starpu_shutdown();
 	sched_ctx_hypervisor_shutdown();

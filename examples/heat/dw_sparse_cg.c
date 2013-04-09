@@ -20,7 +20,7 @@
  */
 
 #include "dw_sparse_cg.h"
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 static struct starpu_task *create_task(starpu_tag_t id)
 {

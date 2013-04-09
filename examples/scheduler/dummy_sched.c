@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,30 +15,30 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
 #include <starpu.h>
 
 #define NTASKS	32000
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-typedef struct dummy_sched_data {
+struct dummy_sched_data
+{
 	struct starpu_task_list sched_list;
-	pthread_mutex_t policy_mutex;
-} dummy_sched_data;
+     	starpu_pthread_mutex_t policy_mutex;
+};
 
 static void init_dummy_sched(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
 	struct dummy_sched_data *data = (struct dummy_sched_data*)malloc(sizeof(struct dummy_sched_data));
-	
+
 
 	/* Create a linked-list of tasks and a condition variable to protect it */
 	starpu_task_list_init(&data->sched_list);
 
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);		
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 
-	pthread_mutex_init(&data->policy_mutex, NULL);
+	starpu_pthread_mutex_init(&data->policy_mutex, NULL);
 	FPRINTF(stderr, "Initialising Dummy scheduler\n");
 }
 
@@ -50,10 +50,10 @@ static void deinit_dummy_sched(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 
-	pthread_mutex_destroy(&data->policy_mutex);
+	starpu_pthread_mutex_destroy(&data->policy_mutex);
 
 	free(data);
-	
+
 	FPRINTF(stderr, "Destroying Dummy scheduler\n");
 }
 
@@ -68,12 +68,12 @@ static int push_task_dummy(struct starpu_task *task)
 
 	/* lock all workers when pushing tasks on a list where all
 	   of them would pop for tasks */
-        pthread_mutex_lock(&data->policy_mutex);
+        starpu_pthread_mutex_lock(&data->policy_mutex);
 
 	starpu_task_list_push_front(&data->sched_list, task);
 
-	_starpu_push_task_end(task);
-	pthread_mutex_unlock(&data->policy_mutex);
+	starpu_push_task_end(task);
+	starpu_pthread_mutex_unlock(&data->policy_mutex);
 
 
         /*if there are no tasks block */
@@ -88,12 +88,12 @@ static int push_task_dummy(struct starpu_task *task)
 	while(workers->has_next(workers, &it))
         {
                 worker = workers->get_next(workers, &it);
-		pthread_mutex_t *sched_mutex;
-                pthread_cond_t *sched_cond;
+		starpu_pthread_mutex_t *sched_mutex;
+                starpu_pthread_cond_t *sched_cond;
                 starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		pthread_mutex_lock(sched_mutex);
-                pthread_cond_signal(sched_cond);
-                pthread_mutex_unlock(sched_mutex);
+		starpu_pthread_mutex_lock(sched_mutex);
+                starpu_pthread_cond_signal(sched_cond);
+                starpu_pthread_mutex_unlock(sched_mutex);
         }
 
 	return 0;
@@ -108,9 +108,9 @@ static struct starpu_task *pop_task_dummy(unsigned sched_ctx_id)
 	 * the calling worker. So we just take the head of the list and give it
 	 * to the worker. */
 	struct dummy_sched_data *data = (struct dummy_sched_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	pthread_mutex_lock(&data->policy_mutex);
+	starpu_pthread_mutex_lock(&data->policy_mutex);
 	struct starpu_task *task = starpu_task_list_pop_back(&data->sched_list);
-	pthread_mutex_unlock(&data->policy_mutex);
+	starpu_pthread_mutex_unlock(&data->policy_mutex);
 	return task;
 }
 
@@ -138,7 +138,8 @@ static struct starpu_codelet dummy_codelet =
 	.cuda_funcs = {dummy_func, NULL},
         .opencl_funcs = {dummy_func, NULL},
 	.model = NULL,
-	.nbuffers = 0
+	.nbuffers = 0,
+	.name = "dummy",
 };
 
 
@@ -163,10 +164,10 @@ int main(int argc, char **argv)
 	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
-	
+
 		task->cl = &dummy_codelet;
 		task->cl_arg = NULL;
-	
+
 		ret = starpu_task_submit(task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}

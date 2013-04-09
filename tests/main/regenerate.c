@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,9 +18,9 @@
 #include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <starpu.h>
 #include "../helper.h"
+#include <common/thread.h>
 
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 64;
@@ -30,8 +30,8 @@ static unsigned ntasks = 65536;
 static unsigned cnt = 0;
 
 static unsigned completed = 0;
-static _starpu_pthread_mutex_t mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
-static _starpu_pthread_cond_t cond = _STARPU_PTHREAD_COND_INITIALIZER;
+static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 
 static void callback(void *arg __attribute__ ((unused)))
 {

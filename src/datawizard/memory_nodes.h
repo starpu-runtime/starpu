@@ -34,8 +34,8 @@
 
 struct _starpu_cond_and_mutex
 {
-        _starpu_pthread_cond_t *cond;
-        _starpu_pthread_mutex_t *mutex;
+        starpu_pthread_cond_t *cond;
+        starpu_pthread_mutex_t *mutex;
 };
 
 struct _starpu_memory_node_descr
@@ -58,7 +58,7 @@ struct _starpu_memory_node_descr
 	 * multiple worker share the same condition variable, so we maintain a
 	 * list of all these condition variables so that we can wake up all
 	 * worker attached to a memory node that are waiting on a task. */
-	_starpu_pthread_rwlock_t conditions_rwlock;
+	starpu_pthread_rwlock_t conditions_rwlock;
 	struct _starpu_cond_and_mutex conditions_attached_to_node[STARPU_MAXNODES][STARPU_NMAXWORKERS];
 	struct _starpu_cond_and_mutex conditions_all[STARPU_MAXNODES*STARPU_NMAXWORKERS];
 	/* the number of queues attached to each node */
@@ -79,7 +79,7 @@ msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node);
 #endif
 unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
-void _starpu_memory_node_register_condition(_starpu_pthread_cond_t *cond, _starpu_pthread_mutex_t *mutex, unsigned memory_node);
+void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, unsigned memory_node);
 
 int _starpu_memory_node_get_devid(unsigned node);
 

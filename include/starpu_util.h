@@ -73,16 +73,16 @@ extern "C"
 #else
 #  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) *(int*)NULL = 0; } while(0)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __starpu_func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
 #  else
 #    define STARPU_ASSERT(x)		assert(x)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __func__, ## __VA_ARGS__); } ; assert(x); } while(0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "[starpu][%s][assert failure] " msg "\n", __starpu_func__, ## __VA_ARGS__); } ; assert(x); } while(0)
 
 #  endif
 #endif
 
 #define STARPU_ABORT() do {                                          \
-	fprintf(stderr, "[starpu][abort] %s:%d %s\n", __FILE__, __LINE__, __func__); \
+	fprintf(stderr, "[starpu][abort] %s:%d %s\n", __FILE__, __LINE__, __starpu_func__); \
 	abort();                                                     \
 } while(0)
 
@@ -106,12 +106,12 @@ extern "C"
 
 #if defined(__i386__) || defined(__x86_64__)
 
-static __inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)
+static __starpu_inline unsigned starpu_cmpxchg(unsigned *ptr, unsigned old, unsigned next)
 {
 	__asm__ __volatile__("lock cmpxchgl %2,%1": "+a" (old), "+m" (*ptr) : "q" (next) : "memory");
 	return old;
 }
-static __inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
+static __starpu_inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
 {
 	/* Note: xchg is always locked already */
 	__asm__ __volatile__("xchgl %1,%0": "+m" (*ptr), "+q" (next) : : "memory");
@@ -121,7 +121,7 @@ static __inline unsigned starpu_xchg(unsigned *ptr, unsigned next)
 #endif
 
 #define STARPU_ATOMIC_SOMETHING(name,expr) \
-static __inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) \
+static __starpu_inline unsigned starpu_atomic_##name(unsigned *ptr, unsigned value) \
 { \
 	unsigned old, next; \
 	while (1) \
@@ -207,7 +207,7 @@ extern "C"
 {
 #endif
 
-static __inline int starpu_get_env_number(const char *str)
+static __starpu_inline int starpu_get_env_number(const char *str)
 {
 	char *strval;
 

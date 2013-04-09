@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PI	3.14159265358979323846
 
 #if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CURAND)

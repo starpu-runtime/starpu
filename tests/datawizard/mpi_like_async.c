@@ -17,8 +17,8 @@
 
 #include <config.h>
 #include <starpu.h>
-#include <pthread.h>
 #include "../helper.h"
+#include <common/thread.h>
 
 #ifdef STARPU_QUICK_CHECK
 #  define NTHREADS_DEFAULT	4
@@ -33,17 +33,17 @@ static unsigned niter = NITER_DEFAULT;
 
 //#define DEBUG_MESSAGES	1
 
-//static pthread_cond_t cond;
-//static pthread_mutex_t mutex;
+//static starpu_pthread_cond_t cond;
+//static starpu_pthread_mutex_t mutex;
 
 struct thread_data
 {
 	unsigned index;
 	unsigned val;
 	starpu_data_handle_t handle;
-	pthread_t thread;
+	starpu_pthread_t thread;
 
-	_starpu_pthread_mutex_t recv_mutex;
+	starpu_pthread_mutex_t recv_mutex;
 	unsigned recv_flag; // set when a message is received
 	unsigned recv_buf;
 	struct thread_data *neighbour;
@@ -56,8 +56,8 @@ struct data_req
 	struct data_req *next;
 };
 
-static _starpu_pthread_mutex_t data_req_mutex;
-static _starpu_pthread_cond_t data_req_cond;
+static starpu_pthread_mutex_t data_req_mutex;
+static starpu_pthread_cond_t data_req_cond;
 struct data_req *data_req_list;
 unsigned progress_thread_running;
 
@@ -330,7 +330,7 @@ int main(int argc, char **argv)
 #endif
 
 	/* Create a thread to perform blocking calls */
-	pthread_t progress_thread;
+	starpu_pthread_t progress_thread;
 	_STARPU_PTHREAD_MUTEX_INIT(&data_req_mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&data_req_cond, NULL);
 	data_req_list = NULL;
@@ -346,7 +346,7 @@ int main(int argc, char **argv)
 		problem_data[t].neighbour = &problem_data[(t+1)%nthreads];
 	}
 
-	pthread_create(&progress_thread, NULL, progress_func, NULL);
+	starpu_pthread_create(&progress_thread, NULL, progress_func, NULL);
 
 	_STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 	while (!progress_thread_running)
@@ -355,13 +355,13 @@ int main(int argc, char **argv)
 
 	for (t = 0; t < nthreads; t++)
 	{
-		ret = pthread_create(&problem_data[t].thread, NULL, thread_func, &problem_data[t]);
+		ret = starpu_pthread_create(&problem_data[t].thread, NULL, thread_func, &problem_data[t]);
 		STARPU_ASSERT(!ret);
 	}
 
 	for (t = 0; t < nthreads; t++)
 	{
-		ret = pthread_join(problem_data[t].thread, &retval);
+		ret = starpu_pthread_join(problem_data[t].thread, &retval);
 		STARPU_ASSERT(!ret);
 		STARPU_ASSERT(retval == NULL);
 	}
@@ -371,7 +371,7 @@ int main(int argc, char **argv)
 	_STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
 
-	ret = pthread_join(progress_thread, &retval);
+	ret = starpu_pthread_join(progress_thread, &retval);
 	STARPU_ASSERT(!ret);
 	STARPU_ASSERT(retval == NULL);
 

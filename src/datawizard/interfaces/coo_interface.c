@@ -96,7 +96,7 @@ register_coo_handle(starpu_data_handle_t handle, unsigned home_node,
 	}
 }
 
-static ssize_t
+static starpu_ssize_t
 allocate_coo_buffer_on_node(void *data_interface, unsigned dst_node)
 {
 	uint32_t *addr_columns = NULL;

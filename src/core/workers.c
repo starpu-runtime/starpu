@@ -42,12 +42,12 @@
 #endif
 
 /* acquire/release semantic for concurrent initialization/de-initialization */
-static _starpu_pthread_mutex_t init_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
-static _starpu_pthread_cond_t init_cond = _STARPU_PTHREAD_COND_INITIALIZER;
+static starpu_pthread_mutex_t init_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_cond_t init_cond = STARPU_PTHREAD_COND_INITIALIZER;
 static int init_count = 0;
 static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
 
-static _starpu_pthread_key_t worker_key;
+static starpu_pthread_key_t worker_key;
 
 static struct _starpu_machine_config config;
 
@@ -257,8 +257,8 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 
 static void _starpu_init_worker_queue(struct _starpu_worker *workerarg)
 {
-	_starpu_pthread_cond_t *cond = &workerarg->sched_cond;
-	_starpu_pthread_mutex_t *mutex = &workerarg->sched_mutex;
+	starpu_pthread_cond_t *cond = &workerarg->sched_cond;
+	starpu_pthread_mutex_t *mutex = &workerarg->sched_mutex;
 
 	unsigned memory_node = workerarg->memory_node;
 
@@ -843,23 +843,17 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 			if (!set->joined)
 			{
 #ifdef STARPU_SIMGRID
-#ifdef STARPU_DEVEL
-#warning TODO: use a simgrid_join when it becomes available
-#endif
-				MSG_process_sleep(1);
+				status = starpu_pthread_join(set->worker_thread, NULL);
 #else
 				if (!pthread_equal(pthread_self(), set->worker_thread))
-				{
-					status = pthread_join(set->worker_thread, NULL);
-#ifdef STARPU_VERBOSE
-					if (status)
-					{
-						_STARPU_DEBUG("pthread_join -> %d\n", status);
-                                        }
+					status = starpu_pthread_join(set->worker_thread, NULL);
 #endif
+#ifdef STARPU_VERBOSE
+				if (status)
+				{
+					_STARPU_DEBUG("starpu_pthread_join -> %d\n", status);
 				}
 #endif
-
 				set->joined = 1;
 			}
 		}
@@ -869,17 +863,15 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 				goto out;
 
 #ifdef STARPU_SIMGRID
-			MSG_process_sleep(1);
+			status = starpu_pthread_join(set->worker_thread, NULL);
 #else
 			if (!pthread_equal(pthread_self(), worker->worker_thread))
-			{
-				status = pthread_join(worker->worker_thread, NULL);
-#ifdef STARPU_VERBOSE
-				if (status)
-				{
-					_STARPU_DEBUG("pthread_join -> %d\n", status);
-                                }
+				status = starpu_pthread_join(worker->worker_thread, NULL);
 #endif
+#ifdef STARPU_VERBOSE
+			if (status)
+			{
+				_STARPU_DEBUG("starpu_pthread_join -> %d\n", status);
 			}
 #endif
 		}
@@ -1261,7 +1253,7 @@ void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
 	config.workers[workerid].status = status;
 }
 
-void starpu_worker_get_sched_condition(int workerid, _starpu_pthread_mutex_t **sched_mutex, _starpu_pthread_cond_t **sched_cond)
+void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond)
 {
 	*sched_cond = &config.workers[workerid].sched_cond;
 	*sched_mutex = &config.workers[workerid].sched_mutex;

@@ -23,6 +23,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <common/list.h>
+#include <common/thread.h>
 
 /* Initialize a task bundle */
 void starpu_task_bundle_create(starpu_task_bundle_t *bundle)

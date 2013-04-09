@@ -20,9 +20,7 @@
 #define __WORKERS_H__
 
 #include <starpu.h>
-#include <starpu_scheduler.h>
 #include <common/config.h>
-#include <pthread.h>
 #include <common/timing.h>
 #include <common/fxt.h>
 #include <core/jobs.h>
@@ -48,22 +46,22 @@
 struct _starpu_worker
 {
 	struct _starpu_machine_config *config;
-        _starpu_pthread_mutex_t mutex;
+        starpu_pthread_mutex_t mutex;
 	enum starpu_archtype arch; /* what is the type of worker ? */
 	uint32_t worker_mask; /* what is the type of worker ? */
 	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
-	pthread_t worker_thread; /* the thread which runs the worker */
+	starpu_pthread_t worker_thread; /* the thread which runs the worker */
 	unsigned devid; /* which cpu/gpu/etc is controlled by the worker ? */
 	int bindid; /* which cpu is the driver bound to ? (logical index) */
 	int workerid; /* uniquely identify the worker among all processing units types */
 	int combined_workerid; /* combined worker currently using this worker */
 	int current_rank; /* current rank in case the worker is used in a parallel fashion */
 	int worker_size; /* size of the worker in case we use a combined worker */
-	_starpu_pthread_cond_t started_cond; /* indicate when the worker is ready */
-	_starpu_pthread_cond_t ready_cond; /* indicate when the worker is ready */
+	starpu_pthread_cond_t started_cond; /* indicate when the worker is ready */
+	starpu_pthread_cond_t ready_cond; /* indicate when the worker is ready */
 	unsigned memory_node; /* which memory node is the worker associated with ? */
-	_starpu_pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
-	_starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
+	starpu_pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
+        starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task *current_task; /* task currently executed by this worker */
 	struct _starpu_worker_set *set; /* in case this worker belongs to a set */
@@ -117,13 +115,13 @@ struct _starpu_combined_worker
  * accelerators (eg. Gordon for n SPUs) */
 struct _starpu_worker_set
 {
-        _starpu_pthread_mutex_t mutex;
-	pthread_t worker_thread; /* the thread which runs the worker */
+        starpu_pthread_mutex_t mutex;
+	starpu_pthread_t worker_thread; /* the thread which runs the worker */
 	unsigned nworkers;
 	unsigned joined; /* only one thread may call pthread_join*/
 	void *retval;
 	struct _starpu_worker *workers;
-        _starpu_pthread_cond_t ready_cond; /* indicate when the set is ready */
+        starpu_pthread_cond_t ready_cond; /* indicate when the set is ready */
 	unsigned set_is_initialized;
 };
 
@@ -199,7 +197,7 @@ unsigned _starpu_worker_can_block(unsigned memnode);
 /* This function must be called to block a worker. It puts the worker in a
  * sleeping state until there is some event that forces the worker to wake up.
  * */
-void _starpu_block_worker(int workerid, _starpu_pthread_cond_t *cond, _starpu_pthread_mutex_t *mutex);
+void _starpu_block_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
 
 /* The _starpu_worker structure describes all the state of a StarPU worker.
  * This function sets the pthread key which stores a pointer to this structure.
@@ -244,9 +242,5 @@ int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, in
 /* returns workers not belonging to any context, be careful no mutex is used, 
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *workerids, int maxsize);
-
-#if defined(_MSC_VER) || defined(STARPU_SIMGRID)
-void starpu_worker_get_sched_condition(int workerid, _starpu_pthread_mutex_t **sched_mutex, _starpu_pthread_cond_t **sched_cond);
-#endif
 
 #endif // __WORKERS_H__

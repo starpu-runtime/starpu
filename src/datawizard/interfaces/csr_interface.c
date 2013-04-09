@@ -36,7 +36,7 @@ static const struct starpu_data_copy_methods csr_copy_data_methods_s =
 };
 
 static void register_csr_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
-static ssize_t allocate_csr_buffer_on_node(void *data_interface_, unsigned dst_node);
+static starpu_ssize_t allocate_csr_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_csr_buffer_on_node(void *data_interface, unsigned node);
 static size_t csr_interface_get_size(starpu_data_handle_t handle);
 static int csr_compare(void *data_interface_a, void *data_interface_b);
@@ -207,11 +207,11 @@ static size_t csr_interface_get_size(starpu_data_handle_t handle)
 /* memory allocation/deallocation primitives for the BLAS interface */
 
 /* returns the size of the allocated area */
-static ssize_t allocate_csr_buffer_on_node(void *data_interface_, unsigned dst_node)
+static starpu_ssize_t allocate_csr_buffer_on_node(void *data_interface_, unsigned dst_node)
 {
 	uintptr_t addr_nzval = 0;
 	uint32_t *addr_colind = NULL, *addr_rowptr = NULL;
-	ssize_t allocated_memory;
+	starpu_ssize_t allocated_memory;
 
 	/* we need the 3 arrays to be allocated */
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *) data_interface_;

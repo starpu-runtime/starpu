@@ -47,7 +47,7 @@ struct _starpu_pheft_data
 	double idle_power;
 /* When we push a task on a combined worker we need all the cpu workers it contains
  * to be locked at once */
-	_starpu_pthread_mutex_t global_push_mutex;
+	starpu_pthread_mutex_t global_push_mutex;
 };
 
 static double worker_exp_start[STARPU_NMAXWORKERS];
@@ -72,8 +72,8 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 	if (isnan(model))
 		model = 0.0;
 
-	_starpu_pthread_mutex_t *sched_mutex;
-	_starpu_pthread_cond_t *sched_cond;
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 	/* Once we have executed the task, we can update the predicted amount
 	 * of work. */
@@ -106,8 +106,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
 		/* TODO */
 		task->predicted_transfer = 0;
-		_starpu_pthread_mutex_t *sched_mutex;
-		_starpu_pthread_cond_t *sched_cond;
+		starpu_pthread_mutex_t *sched_mutex;
+		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(best_workerid, &sched_mutex, &sched_cond);
 
 		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
@@ -160,8 +160,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 			alias->predicted = exp_end_predicted - worker_exp_end[local_worker];
 			/* TODO */
 			alias->predicted_transfer = 0;
-			_starpu_pthread_mutex_t *sched_mutex;
-			_starpu_pthread_cond_t *sched_cond;
+			starpu_pthread_mutex_t *sched_mutex;
+			starpu_pthread_cond_t *sched_cond;
 			starpu_worker_get_sched_condition(local_worker, &sched_mutex, &sched_cond);
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 			worker_exp_len[local_worker] += alias->predicted;
@@ -185,8 +185,8 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 static double compute_expected_end(int workerid, double length)
 {
-	_starpu_pthread_mutex_t *sched_mutex;
-	_starpu_pthread_cond_t *sched_cond;
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
 
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 
@@ -234,8 +234,8 @@ static double compute_expected_end(int workerid, double length)
 static double compute_ntasks_end(int workerid)
 {
 	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
-	_starpu_pthread_mutex_t *sched_mutex;
-	_starpu_pthread_cond_t *sched_cond;
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
 
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
 
@@ -321,8 +321,8 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 
 		if(!starpu_worker_is_combined_worker(worker))
 		{
-			_starpu_pthread_mutex_t *sched_mutex;
-			_starpu_pthread_cond_t *sched_cond;
+			starpu_pthread_mutex_t *sched_mutex;
+			starpu_pthread_cond_t *sched_cond;
 			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 			/* Sometimes workers didn't take the tasks as early as we expected */
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
@@ -489,7 +489,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 static int parallel_heft_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
+	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
 	unsigned nworkers;
 	int ret_val = -1;
 

@@ -24,10 +24,6 @@
 
 #include <starpu_util.h>
 
-#if ! defined(_MSC_VER)
-#  include <pthread.h>
-#endif
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -189,11 +185,7 @@ struct starpu_perfmodel
 	unsigned is_loaded;
 	unsigned benchmarking;
 
-#if defined(_MSC_VER) || defined(STARPU_SIMGRID)
-	void *model_rwlock;
-#else
-	pthread_rwlock_t model_rwlock;
-#endif
+	starpu_pthread_rwlock_t model_rwlock;
 };
 
 enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid);

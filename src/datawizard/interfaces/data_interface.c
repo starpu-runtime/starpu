@@ -386,8 +386,8 @@ struct _starpu_unregister_callback_arg
 	unsigned memory_node;
 	starpu_data_handle_t handle;
 	unsigned terminated;
-	_starpu_pthread_mutex_t mutex;
-	_starpu_pthread_cond_t cond;
+	starpu_pthread_mutex_t mutex;
+	starpu_pthread_cond_t cond;
 };
 
 /* Check whether we should tell starpu_data_unregister that the data handle is
@@ -693,7 +693,7 @@ int starpu_data_interface_get_next_id(void)
 	return _data_interface_number-1;
 }
 
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, ssize_t *count)
+int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(handle->ops->pack_data);
 	return handle->ops->pack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);

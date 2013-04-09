@@ -17,15 +17,13 @@
  */
 
 #include <sys/time.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <pthread.h>
 
 #include <starpu.h>
 #include "../helper.h"
 
-pthread_t threads[16];
+starpu_pthread_t threads[16];
 
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 64;
@@ -116,13 +114,13 @@ int main(int argc, char **argv)
 	unsigned t;
 	for (t = 0; t < nthreads; t++)
 	{
-		ret = pthread_create(&threads[t], NULL, thread_func, NULL);
+		ret = starpu_pthread_create(&threads[t], NULL, thread_func, NULL);
 		STARPU_ASSERT(ret == 0);
 	}
 
 	for (t = 0; t < nthreads; t++)
 	{
-		ret = pthread_join(threads[t], NULL);
+		ret = starpu_pthread_join(threads[t], NULL);
 		STARPU_ASSERT(ret == 0);
 	}
 

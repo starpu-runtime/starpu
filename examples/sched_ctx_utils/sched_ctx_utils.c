@@ -47,11 +47,11 @@ struct retvals
 
 #define NSAMPLES 1
 int first = 1;
-pthread_mutex_t mut;
+starpu_pthread_mutex_t mut;
 struct retvals rv[2];
 struct params p1, p2;
 
-pthread_key_t key;
+starpu_pthread_key_t key;
 
 void init()
 {
@@ -75,12 +75,12 @@ void init()
 
 	p1.id = 0;
 	p2.id = 1;
-	pthread_key_create(&key, NULL);
+	starpu_pthread_key_create(&key, NULL);
 }
 
 void update_sched_ctx_timing_results(double flops, double avg_timing)
 {
-	unsigned *id = pthread_getspecific(key);
+	unsigned *id = starpu_pthread_getspecific(key);
 	rv[*id].flops += flops;
 	rv[*id].avg_timing += avg_timing;
 }
@@ -90,7 +90,7 @@ void* start_bench(void *val)
 	struct params *p = (struct params*)val;
 	int i;
 
-	pthread_setspecific(key, &p->id);
+	starpu_pthread_setspecific(key, &p->id);
 
 	if(p->ctx != 0)
 		starpu_sched_ctx_set_context(&p->ctx);
@@ -100,14 +100,14 @@ void* start_bench(void *val)
 
 	if(p->ctx != 0)
 	{
-		pthread_mutex_lock(&mut);
+		starpu_pthread_mutex_lock(&mut);
 		if(first)
 		{
 			starpu_sched_ctx_delete(p->ctx);
 		}
 
 		first = 0;
-		pthread_mutex_unlock(&mut);
+		starpu_pthread_mutex_unlock(&mut);
 	}
 
 	rv[p->id].flops /= NSAMPLES;
@@ -128,23 +128,23 @@ void start_2benchs(void (*bench)(unsigned, unsigned))
 	printf("size %d\n", size2);
 	p2.nblocks = nblocks2;
 
-	pthread_t tid[2];
-	pthread_mutex_init(&mut, NULL);
+	starpu_pthread_t tid[2];
+	starpu_pthread_mutex_init(&mut, NULL);
 
 	struct timeval start;
 	struct timeval end;
 
 	gettimeofday(&start, NULL);
 
-	pthread_create(&tid[0], NULL, (void*)start_bench, (void*)&p1);
-	pthread_create(&tid[1], NULL, (void*)start_bench, (void*)&p2);
+	starpu_pthread_create(&tid[0], NULL, (void*)start_bench, (void*)&p1);
+	starpu_pthread_create(&tid[1], NULL, (void*)start_bench, (void*)&p2);
 
-	pthread_join(tid[0], NULL);
-	pthread_join(tid[1], NULL);
+	starpu_pthread_join(tid[0], NULL);
+	starpu_pthread_join(tid[1], NULL);
 
 	gettimeofday(&end, NULL);
 
-	pthread_mutex_destroy(&mut);
+	starpu_pthread_mutex_destroy(&mut);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	timing /= 1000000;
@@ -169,7 +169,7 @@ void start_1stbench(void (*bench)(unsigned, unsigned))
 
 	gettimeofday(&end, NULL);
 
-	pthread_mutex_destroy(&mut);
+	starpu_pthread_mutex_destroy(&mut);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	timing /= 1000000;
@@ -193,7 +193,7 @@ void start_2ndbench(void (*bench)(unsigned, unsigned))
 
 	gettimeofday(&end, NULL);
 
-	pthread_mutex_destroy(&mut);
+	starpu_pthread_mutex_destroy(&mut);
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	timing /= 1000000;

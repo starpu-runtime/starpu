@@ -192,7 +192,7 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_config *config)
 {
 	size_t global_mem;
-	ssize_t limit;
+	starpu_ssize_t limit;
 
 	limit = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
 #ifdef STARPU_DEVEL

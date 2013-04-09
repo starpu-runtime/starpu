@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <pthread.h>
 #include <sys/types.h>
 #include <sys/time.h>
 
@@ -216,7 +215,7 @@ static void band_filter_kernel_gpu(void *descr[], __attribute__((unused)) void *
 }
 #endif
 
-static pthread_mutex_t fftw_mutex = PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_mutex_t fftw_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void band_filter_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
@@ -231,7 +230,7 @@ static void band_filter_kernel_cpu(void *descr[], __attribute__((unused)) void *
 		plans[workerid].Acopy = malloc(nsamples*sizeof(float));
 
 		/* create plans, only "fftwf_execute" is thread safe in FFTW ... */
-		pthread_mutex_lock(&fftw_mutex);
+		starpu_pthread_mutex_lock(&fftw_mutex);
 		plans[workerid].plan_cpu = fftwf_plan_dft_r2c_1d(nsamples,
 					plans[workerid].Acopy,
 					plans[workerid].localout_cpu,
@@ -240,7 +239,7 @@ static void band_filter_kernel_cpu(void *descr[], __attribute__((unused)) void *
 					plans[workerid].localout_cpu,
 					plans[workerid].Acopy,
 					FFTW_ESTIMATE);
-		pthread_mutex_unlock(&fftw_mutex);
+		starpu_pthread_mutex_unlock(&fftw_mutex);
 
 		plans[workerid].is_initialized = 1;
 	}

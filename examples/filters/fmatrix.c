@@ -20,7 +20,7 @@
 #define NY    4
 #define PARTS 2
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
@@ -64,7 +64,8 @@ int main(int argc, char **argv)
 	{
                 .cpu_funcs = {cpu_func, NULL},
                 .nbuffers = 1,
-		.modes = {STARPU_RW}
+		.modes = {STARPU_RW},
+		.name = "matrix_scal"
         };
 
         ret = starpu_init(NULL);

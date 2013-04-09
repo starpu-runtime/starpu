@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,17 +22,16 @@
 #undef PTHREAD_BARRIER_SERIAL_THREAD
 #endif
 
-#include <pthread.h>
-#include <common/utils.h>
+#include <starpu_thread.h>
 
 struct _starpu_barrier
 {
 	int count;
 	int reached_start;
 	int reached_exit;
-	_starpu_pthread_mutex_t mutex;
-	_starpu_pthread_mutex_t mutex_exit;
-	_starpu_pthread_cond_t cond;
+	starpu_pthread_mutex_t mutex;
+	starpu_pthread_mutex_t mutex_exit;
+	starpu_pthread_cond_t cond;
 };
 
 int _starpu_barrier_init(struct _starpu_barrier *barrier, int count);

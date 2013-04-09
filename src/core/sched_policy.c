@@ -16,8 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
-
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
@@ -278,7 +276,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 		/* Note: we have to call that early, or else the task may have
 		 * disappeared already */
-		_starpu_push_task_end(task);
+		starpu_push_task_end(task);
 
 		int j;
 		for (j = 0; j < worker_size; j++)
@@ -415,7 +413,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 /* This is called right after the scheduler has pushed a task to a queue
  * but just before releasing mutexes: we need the task to still be alive!
  */
-int _starpu_push_task_end(struct starpu_task *task)
+int starpu_push_task_end(struct starpu_task *task)
 {
 	_starpu_profiling_set_task_push_end_time(task);
 	task->scheduled = 1;
@@ -436,14 +434,19 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 						   enum starpu_node_kind node_kind)
 {
 	struct starpu_task *conversion_task;
+
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	struct starpu_multiformat_interface *format_interface;
+#endif
 
 	conversion_task = starpu_task_create();
 	conversion_task->synchronous = 0;
 	conversion_task->handles[0] = handle;
 
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	/* The node does not really matter here */
 	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
+#endif
 
 	_starpu_spin_lock(&handle->header_lock);
 	handle->refcnt++;

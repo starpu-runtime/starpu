@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -59,8 +59,8 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 	unsigned worker = ws->last_pop_worker;
 	unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
 
-	_starpu_pthread_mutex_t *victim_sched_mutex;
-	_starpu_pthread_cond_t *victim_sched_cond;
+	starpu_pthread_mutex_t *victim_sched_mutex;
+	starpu_pthread_cond_t *victim_sched_cond;
 
 	/* If the worker's queue is empty, let's try
 	 * the next ones */
@@ -280,8 +280,8 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		q->njobs--;
 		return task;
 	}
-	_starpu_pthread_mutex_t *worker_sched_mutex;
-	_starpu_pthread_cond_t *worker_sched_cond;
+	starpu_pthread_mutex_t *worker_sched_mutex;
+	starpu_pthread_cond_t *worker_sched_cond;
 	starpu_worker_get_sched_condition(workerid, &worker_sched_mutex, &worker_sched_cond);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(worker_sched_mutex);
        
@@ -289,8 +289,8 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	/* we need to steal someone's job */
 	unsigned victim = select_victim(sched_ctx_id);
 
-	_starpu_pthread_mutex_t *victim_sched_mutex;
-	_starpu_pthread_cond_t *victim_sched_cond;
+	starpu_pthread_mutex_t *victim_sched_mutex;
+	starpu_pthread_cond_t *victim_sched_cond;
 
 	starpu_worker_get_sched_condition(victim, &victim_sched_mutex, &victim_sched_cond);
 	_STARPU_PTHREAD_MUTEX_LOCK(victim_sched_mutex);
@@ -336,7 +336,7 @@ int ws_push_task(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	int workerid = starpu_worker_get_id();
 
-	_starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
+	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
         unsigned nworkers;
         int ret_val = -1;
 
@@ -358,8 +358,8 @@ int ws_push_task(struct starpu_task *task)
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
-		_starpu_pthread_mutex_t *sched_mutex;
-		_starpu_pthread_cond_t *sched_cond;
+		starpu_pthread_mutex_t *sched_mutex;
+		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	}
@@ -382,13 +382,13 @@ int ws_push_task(struct starpu_task *task)
 #endif
 	_starpu_job_list_push_back(deque_queue->jobq, j);
 	deque_queue->njobs++;
-	_starpu_push_task_end(task);
+	starpu_push_task_end(task);
 
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
-		_starpu_pthread_mutex_t *sched_mutex;
-		_starpu_pthread_cond_t *sched_cond;
+		starpu_pthread_mutex_t *sched_mutex;
+		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 		_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);

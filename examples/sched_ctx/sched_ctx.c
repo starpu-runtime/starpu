@@ -16,7 +16,6 @@
  */
 
 #include <starpu.h>
-#include <pthread.h>
 
 #ifdef STARPU_QUICK_CHECK
 #define NTASKS 64
@@ -25,13 +24,13 @@
 #endif
 
 int tasks_executed = 0;
-pthread_mutex_t mut;
+starpu_pthread_mutex_t mut;
 
 static void sched_ctx_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
-	pthread_mutex_lock(&mut);
+	starpu_pthread_mutex_lock(&mut);
 	tasks_executed++;
-	pthread_mutex_unlock(&mut);
+	starpu_pthread_mutex_unlock(&mut);
 }
 
 static struct starpu_codelet sched_ctx_codelet =
@@ -40,7 +39,8 @@ static struct starpu_codelet sched_ctx_codelet =
 	.cuda_funcs = {sched_ctx_func, NULL},
 	.opencl_funcs = {sched_ctx_func, NULL},
 	.model = NULL,
-	.nbuffers = 0
+	.nbuffers = 0,
+	.name = "sched_ctx"
 };
 
 
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	pthread_mutex_init(&mut, NULL);
+	starpu_pthread_mutex_init(&mut, NULL);
 	int nprocs1 = 1;
 	int nprocs2 = 1;
 	int procs1[20], procs2[20];

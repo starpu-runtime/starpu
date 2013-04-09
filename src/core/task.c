@@ -35,8 +35,8 @@
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
 /* TODO we could make this hierarchical to avoid contention ? */
-static _starpu_pthread_cond_t submitted_cond = _STARPU_PTHREAD_COND_INITIALIZER;
-static _starpu_pthread_mutex_t submitted_mutex = _STARPU_PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_cond_t submitted_cond = STARPU_PTHREAD_COND_INITIALIZER;
+static starpu_pthread_mutex_t submitted_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static long int nsubmitted = 0, nready = 0;
 
 static void _starpu_increment_nsubmitted_tasks(void);
@@ -45,7 +45,7 @@ static void _starpu_increment_nsubmitted_tasks(void);
  * cannot use the worker structure to store that information because it is
  * possible that we have a task with a NULL codelet, which means its callback
  * could be executed by a user thread as well. */
-static _starpu_pthread_key_t current_task_key;
+static starpu_pthread_key_t current_task_key;
 
 void starpu_task_init(struct starpu_task *task)
 {
@@ -365,7 +365,7 @@ int starpu_task_submit(struct starpu_task *task)
 	* allocated. */
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	if (task->sched_ctx == 0 && nsched_ctxs != 1 && !j->exclude_from_dag)
+	if (task->sched_ctx == 0 && nsched_ctxs != 1 && !j->internal)
 	{
 		set_sched_ctx = starpu_sched_ctx_get_context();
 		if (set_sched_ctx != STARPU_NMAX_SCHED_CTXS)
@@ -485,7 +485,8 @@ int starpu_task_submit(struct starpu_task *task)
 
 int _starpu_task_submit_internally(struct starpu_task *task)
 {
-	_starpu_exclude_task_from_dag(task);
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	j->internal = 1;
 	return starpu_task_submit(task);
 }
 

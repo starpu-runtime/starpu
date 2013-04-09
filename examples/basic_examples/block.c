@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -16,10 +16,9 @@
  */
 
 #include <starpu.h>
-#include <pthread.h>
 #include <math.h>
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 extern void cpu_codelet(void *descr[], void *_args);
 #ifdef STARPU_USE_CUDA
@@ -48,6 +47,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
         cl.nbuffers = 1;
 	cl.modes[0] = STARPU_RW,
         cl.model = NULL;
+	cl.name = "block_scale";
 
         struct starpu_task *task = starpu_task_create();
         task->cl = &cl;

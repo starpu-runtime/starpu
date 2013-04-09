@@ -15,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
 #include <common/config.h>
 #include <core/sched_policy.h>
 #include <datawizard/datastats.h>
@@ -25,7 +24,7 @@
 #include "memalloc.h"
 
 static struct _starpu_memory_node_descr descr;
-static _starpu_pthread_key_t memory_node_key;
+static starpu_pthread_key_t memory_node_key;
 
 void _starpu_memory_nodes_init(void)
 {
@@ -139,7 +138,7 @@ msg_host_t _starpu_simgrid_memory_node_get_host(unsigned node)
 /* TODO move in a more appropriate file  !! */
 /* Register a condition variable associated to worker which is associated to a
  * memory node itself. */
-void _starpu_memory_node_register_condition(_starpu_pthread_cond_t *cond, _starpu_pthread_mutex_t *mutex, unsigned nodeid)
+void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, unsigned nodeid)
 {
 	unsigned cond_id;
 	unsigned nconds_total, nconds;

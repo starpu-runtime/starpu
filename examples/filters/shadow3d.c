@@ -38,7 +38,7 @@
 #define PARTSY 3
 #define PARTSZ 2
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 void cpu_func(void *buffers[], void *cl_arg)
 {

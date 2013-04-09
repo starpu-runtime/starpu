@@ -684,7 +684,7 @@ _starpu_bind_thread_on_cpu (
 	CPU_ZERO(&aff_mask);
 	CPU_SET(cpuid, &aff_mask);
 
-	pthread_t self = pthread_self();
+	starpu_pthread_t self = pthread_self();
 
 	ret = pthread_setaffinity_np(self, sizeof(aff_mask), &aff_mask);
 	if (ret)

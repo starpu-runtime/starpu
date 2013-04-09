@@ -32,7 +32,6 @@
 #include <top/starpu_top_message_queue.h>
 #include <starpu_top.h>
 #include <common/utils.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
@@ -100,9 +99,9 @@ void * message_to_ui(void * p)
 
 void _starpu_top_communications_threads_launcher(void)
 {
-	pthread_t from_ui;
-	pthread_t to_ui;
-	pthread_attr_t threads_attr;
+	starpu_pthread_t from_ui;
+	starpu_pthread_t to_ui;
+	starpu_pthread_attr_t threads_attr;
 
 
 	//Connection to UI & Socket Initilization
@@ -159,8 +158,8 @@ void _starpu_top_communications_threads_launcher(void)
 
 	//Threads creation
 	fprintf(stderr,"Threads Creation\n");
-	pthread_attr_init(&threads_attr);
-	pthread_attr_setdetachstate(&threads_attr, PTHREAD_CREATE_DETACHED);
+	starpu_pthread_attr_init(&threads_attr);
+	starpu_pthread_attr_setdetachstate(&threads_attr, PTHREAD_CREATE_DETACHED);
 
 	_STARPU_PTHREAD_CREATE("StarPU-Top from", &from_ui, &threads_attr, message_from_ui, NULL);
 	_STARPU_PTHREAD_CREATE("StarPU-Top to", &to_ui, &threads_attr, message_to_ui, NULL);

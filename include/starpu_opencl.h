@@ -37,7 +37,7 @@ void starpu_opencl_display_error(const char *func, const char *file, int line, c
 #define STARPU_OPENCL_DISPLAY_ERROR(status) \
 	starpu_opencl_display_error(__starpu_func__, __FILE__, __LINE__, NULL, status)
 
-static inline void starpu_opencl_report_error(const char *func, const char *file, int line, const char *msg, cl_int status)
+static __starpu_inline void starpu_opencl_report_error(const char *func, const char *file, int line, const char *msg, cl_int status)
 {
 	starpu_opencl_display_error(func, file, line, msg, status);
 	assert(0);

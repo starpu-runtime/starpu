@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -38,7 +38,7 @@
 
 #define NBLOCKS	8
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 #define EPSILON 1e-6
 
@@ -89,7 +89,8 @@ static struct starpu_codelet axpy_cl =
 	.opencl_funcs = {axpy_opencl, NULL},
 #endif
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_RW}
+	.modes = {STARPU_R, STARPU_RW},
+	.name = "axpy"
 };
 
 static int

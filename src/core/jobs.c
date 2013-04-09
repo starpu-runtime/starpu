@@ -222,7 +222,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
 	/* control task should not execute post_exec_hook */
-	if(j->task_size == 1 && task->cl != NULL && !j->exclude_from_dag)
+	if(j->task_size == 1 && task->cl != NULL && !j->internal)
 	{
 		_starpu_sched_post_exec_hook(task);
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
@@ -439,7 +439,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 		starpu_task_list_push_front(&worker->local_tasks, task);
 
 	_STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
-	_starpu_push_task_end(task);
+	starpu_push_task_end(task);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 
 	return 0;
