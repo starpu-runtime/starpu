@@ -117,6 +117,7 @@ enum starpu_node_kind starpu_node_get_kind(unsigned node);
 void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask);
 
 void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, unsigned flag);
+unsigned starpu_data_get_sequential_consistency_flag(starpu_data_handle_t handle);
 unsigned starpu_data_get_default_sequential_consistency_flag(void);
 void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
 
@@ -132,6 +133,8 @@ int starpu_data_get_rank(starpu_data_handle_t handle);
 
 int starpu_data_set_tag(starpu_data_handle_t handle, int tag);
 int starpu_data_get_tag(starpu_data_handle_t handle);
+starpu_data_handle_t starpu_get_data_handle_from_tag(int tag);
+struct starpu_data_interface_ops* starpu_handle_get_interface(starpu_data_handle_t handle);
 
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node);
 

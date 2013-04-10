@@ -16,7 +16,7 @@
  */
 
 int _debug_rank=-1;
-int _debug_level=0;
+int _debug_level=3;
 
 void _starpu_mpi_set_debug_level(int level)
 {

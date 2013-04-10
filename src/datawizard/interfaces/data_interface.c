@@ -38,9 +38,22 @@ static struct handle_entry *registered_handles;
 static struct _starpu_spinlock    registered_handles_lock;
 static int _data_interface_number = STARPU_MAX_INTERFACE_ID;
 
+/* Entry in the `registered_tag_handles' hash table.  */
+struct handle_tag_entry
+{
+	UT_hash_handle hh;
+	int tag;
+	starpu_data_handle_t handle;
+};
+
+/* Hash table mapping host tags to data handles.  */
+static struct handle_tag_entry *registered_tag_handles;
+static struct _starpu_spinlock    registered_tag_handles_lock;
+
 void _starpu_data_interface_init(void)
 {
 	_starpu_spin_init(&registered_handles_lock);
+	_starpu_spin_init(&registered_tag_handles_lock);
 }
 
 void _starpu_data_interface_shutdown()
@@ -56,6 +69,18 @@ void _starpu_data_interface_shutdown()
 	}
 
 	registered_handles = NULL;
+
+	struct handle_tag_entry *tag_entry, *tag_tmp;
+
+	_starpu_spin_destroy(&registered_tag_handles_lock);
+
+	HASH_ITER(hh, registered_tag_handles, tag_entry, tag_tmp)
+	{
+		HASH_DEL(registered_tag_handles, tag_entry);
+		free(tag_entry);
+	}
+
+	registered_tag_handles = NULL;
 }
 
 /* Register the mapping from PTR to HANDLE.  If PTR is already mapped to
@@ -329,8 +354,8 @@ int starpu_data_get_rank(starpu_data_handle_t handle)
 
 int starpu_data_set_rank(starpu_data_handle_t handle, int rank)
 {
-        handle->rank = rank;
-        return 0;
+	handle->rank = rank;
+	return 0;
 }
 
 int starpu_data_get_tag(starpu_data_handle_t handle)
@@ -338,10 +363,64 @@ int starpu_data_get_tag(starpu_data_handle_t handle)
 	return handle->tag;
 }
 
+starpu_data_handle_t starpu_get_data_handle_from_tag(int tag)
+{
+	struct handle_tag_entry *ret;
+
+	_starpu_spin_lock(&registered_tag_handles_lock);
+	HASH_FIND_INT(registered_tag_handles, &tag, ret);
+	_starpu_spin_unlock(&registered_tag_handles_lock);
+
+	if (ret)
+	{
+		return ret->handle;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
 int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 {
-        handle->tag = tag;
-        return 0;
+	struct handle_tag_entry *entry;
+	entry = (struct handle_tag_entry *) malloc(sizeof(*entry));
+	STARPU_ASSERT(entry != NULL);
+	
+	STARPU_ASSERT_MSG(!(starpu_get_data_handle_from_tag(tag)),"A data handle with tag %d had already been registered.\n",tag);
+
+	entry->tag = tag;
+	entry->handle = handle;
+
+	_starpu_spin_lock(&registered_tag_handles_lock);
+	HASH_ADD_INT(registered_tag_handles, tag, entry);
+	_starpu_spin_unlock(&registered_tag_handles_lock);
+
+	handle->tag = tag;
+	return 0;
+}
+
+int starpu_data_release_tag(starpu_data_handle_t handle)
+{
+	struct handle_tag_entry *tag_entry;
+
+	if (handle->tag != -1)
+	{
+		_starpu_spin_lock(&registered_tag_handles_lock);
+		HASH_FIND_INT(registered_tag_handles, &handle->tag, tag_entry);
+		STARPU_ASSERT_MSG((tag_entry != NULL),"Handle %p with tag %d isn't in the hashmap !",handle,handle->tag);
+
+		HASH_DEL(registered_tag_handles, tag_entry);
+		free(tag_entry);
+
+		_starpu_spin_unlock(&registered_tag_handles_lock);
+	}
+	return 0;
+}
+
+struct starpu_data_interface_ops* starpu_handle_get_interface(starpu_data_handle_t handle)
+{
+	return handle->ops;
 }
 
 /*
@@ -601,6 +680,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	_STARPU_PTHREAD_MUTEX_DESTROY(&handle->busy_mutex);
 	_STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
 	_STARPU_PTHREAD_MUTEX_DESTROY(&handle->sequential_consistency_mutex);
+
+	starpu_data_release_tag(handle);
 
 	free(handle);
 }
