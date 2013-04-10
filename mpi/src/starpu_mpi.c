@@ -1046,7 +1046,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	{
 		/* shall we block ? */
 		_STARPU_MPI_DEBUG(3, "HASH_COUNT(_starpu_mpi_req_hashmap) = %d\n",HASH_COUNT(_starpu_mpi_req_hashmap));
-		unsigned block = _starpu_mpi_req_list_empty(new_requests);// && (HASH_COUNT(_starpu_mpi_req_hashmap) == 0);
+		unsigned block = _starpu_mpi_req_list_empty(new_requests) && (HASH_COUNT(_starpu_mpi_req_hashmap) == 0);
 
 #ifndef STARPU_MPI_ACTIVITY
 		block = block && _starpu_mpi_req_list_empty(detached_requests);
