@@ -1,3 +1,5 @@
+@ECHO OFF
+
 REM StarPU --- Runtime system for heterogeneous multicore architectures.
 REM
 REM Copyright (C) 2013  Centre National de la Recherche Scientifique
@@ -13,7 +15,6 @@ REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 REM
 REM See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-@ECHO OFF
 TITLE MSVC StarPU Execution
 ECHO.
 ECHO MSVC StarPU Execution
@@ -26,9 +27,9 @@ IF NOT EXIST %STARPUPATH%\AUTHORS GOTO starpunotfound
 
 COPY %1 starpu\starpu_appli.c
 FOR %%F IN (%STARPUPATH%\bin\*dll) DO COPY %%F starpu\%%~nF
-COPY /cygdrive/c/MinGW/bin/pthreadGC2.dll starpu
-RMDIR /S /Q Debug
-RMDIR /S /Q starpu\Debug
+COPY c:\MinGW\bin\pthreadGC2.dll starpu
+IF EXIST Debug RMDIR /S /Q Debug
+IF EXIST starpu\Debug RMDIR /S /Q starpu\Debug
 
 "C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\VCExpress.exe" starpu.sln
 

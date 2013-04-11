@@ -1,3 +1,5 @@
+@ECHO OFF
+
 REM StarPU --- Runtime system for heterogeneous multicore architectures.
 REM
 REM Copyright (C) 2013  Centre National de la Recherche Scientifique
@@ -13,7 +15,6 @@ REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 REM
 REM See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-@ECHO OFF
 TITLE MSVC StarPU Cleaning
 ECHO.
 ECHO MSVC StarPU Cleaning
