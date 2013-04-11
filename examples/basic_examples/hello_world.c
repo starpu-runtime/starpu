@@ -59,10 +59,9 @@ void cpu_func(void *buffers[], void *cl_arg)
 	FPRINTF(stdout, "Hello world (params = {%i, %f} )\n", params->i, params->f);
 }
 
-struct starpu_codelet cl = {};
-
 int main(int argc, char **argv)
 {
+	struct starpu_codelet cl;
 	struct starpu_task *task;
 	struct params params = {1, 2.0f};
 	int ret;
@@ -80,6 +79,7 @@ int main(int argc, char **argv)
 	 * called */
 	task = starpu_task_create();
 
+	starpu_codelet_init(&cl);
 	/* this codelet may only be executed on a CPU, and its cpu
  	 * implementation is function "cpu_func" */
 	cl.cpu_funcs[0] = cpu_func;
