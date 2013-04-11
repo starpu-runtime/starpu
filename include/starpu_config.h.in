@@ -98,6 +98,14 @@ typedef ssize_t starpu_ssize_t;
 #  define __starpu_inline __inline__
 #endif
 
+#ifdef _MSC_VER
+struct timespec
+{
+  time_t  tv_sec;  /* Seconds */
+  long    tv_nsec; /* Nanoseconds */
+};
+#endif
+
 #undef STARPU_QUICK_CHECK
 #undef STARPU_USE_DRAND48
 #undef STARPU_USE_ERAND48_R
