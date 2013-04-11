@@ -62,7 +62,7 @@ struct _starpu_mpi_envelope
 	ssize_t psize;
 	int mpi_tag;
 };
- 
+
 struct _starpu_mpi_copy_handle
 {
 	starpu_data_handle_t handle;
@@ -242,7 +242,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 	TRACE_MPI_ISEND_SUBMIT_BEGIN(req->srcdst, req->mpi_tag, 0);
 
-	req->ret = MPI_Isend(req->ptr, req->count, req->datatype, req->srcdst, STARPU_MPI_TAG, req->comm, &req->request);
+	req->ret = MPI_Isend(req->ptr, req->count, req->datatype, req->srcdst, starpu_mpi_tag, req->comm, &req->request);
 	STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Isend returning %d", req->ret);
 
 	TRACE_MPI_ISEND_SUBMIT_END(req->srcdst, req->mpi_tag, 0);
@@ -273,11 +273,8 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		
 		env->psize = (ssize_t)req->count;
 		
-		int type_size = 0;
-		MPI_Type_size(req->datatype,&type_size);
-		
-		_STARPU_MPI_DEBUG(1, "Post MPI isend count (%ld) datatype_size %d request to %d with tag %d\n",req->count,type_size,req->srcdst,STARPU_MPI_TAG);
-		MPI_Isend(env, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, STARPU_MPI_TAG, req->comm, &req->size_req);
+		_STARPU_MPI_DEBUG(1, "Post MPI isend count (%ld) datatype_size %d request to %d with tag %d\n",req->count,starpu_handle_get_size(req->data_handle),req->srcdst,starpu_mpi_tag);
+		MPI_Isend(env, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, starpu_mpi_tag, req->comm, &req->size_req);
 	}
 	else
 	{
@@ -289,9 +286,9 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		if (env->psize != -1)
  		{
  			// We already know the size of the data, let's send it to overlap with the packing of the data
-			_STARPU_MPI_DEBUG(1, "Sending size %ld (%ld %s) with tag %d to node %d (first call to pack)\n", env->psize, sizeof(req->count), _starpu_mpi_datatype(MPI_BYTE), STARPU_MPI_TAG, req->srcdst);
+			_STARPU_MPI_DEBUG(1, "Sending size %ld (%ld %s) with tag %d to node %d (first call to pack)\n", env->psize, sizeof(req->count), _starpu_mpi_datatype(MPI_BYTE), starpu_mpi_tag, req->srcdst);
 			req->count = env->psize;
-			ret = MPI_Isend(env, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, STARPU_MPI_TAG, req->comm, &req->size_req);
+			ret = MPI_Isend(env, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, starpu_mpi_tag, req->comm, &req->size_req);
 			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %d", ret);
  		}
  
@@ -300,8 +297,8 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		if (env->psize == -1)
  		{
  			// We know the size now, let's send it
-			_STARPU_MPI_DEBUG(1, "Sending size %ld (%ld %s) with tag %d to node %d (second call to pack)\n", env->psize, sizeof(req->count), _starpu_mpi_datatype(MPI_BYTE), STARPU_MPI_TAG, req->srcdst);
-			ret = MPI_Isend(env, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, STARPU_MPI_TAG, req->comm, &req->size_req);
+			_STARPU_MPI_DEBUG(1, "Sending size %ld (%ld %s) with tag %d to node %d (second call to pack)\n", env->psize, sizeof(req->count), _starpu_mpi_datatype(MPI_BYTE), starpu_mpi_tag, req->srcdst);
+			ret = MPI_Isend(env, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, starpu_mpi_tag, req->comm, &req->size_req);
 			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %d", ret);
  		}
  		else
@@ -377,7 +374,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 
 	TRACE_MPI_IRECV_SUBMIT_BEGIN(req->srcdst, req->mpi_tag);
 
-	req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->srcdst, STARPU_MPI_TAG, req->comm, &req->request);
+	req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->srcdst, starpu_mpi_tag, req->comm, &req->request);
 	STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_IRecv returning %d", req->ret);
 
 	TRACE_MPI_IRECV_SUBMIT_END(req->srcdst, req->mpi_tag);
@@ -796,7 +793,13 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 
 	if (req->request_type == RECV_REQ)
 	{
+		/* test whether the receive request has already been submitted internally by StarPU-MPI*/
 		struct _starpu_mpi_copy_handle *chandle = find_chandle(req->mpi_tag);
+		
+		/* Case : the request has already been submitted internally by StarPU.
+		 * We'll asynchronously ask a Read permission over the temporary handle, so as when
+		 * the internal receive will be over, the _starpu_mpi_copy_cb function will be called to
+		 * bring the data back to the original data handle associated to the request.*/
 		if (chandle && (req->data_handle != chandle->handle))
 		{
 			_STARPU_MPI_DEBUG(3, "The RECV request %p with tag %d has already been received, copying previously received data into handle's pointer..\n", req, req->mpi_tag);
@@ -808,45 +811,43 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 
 			_STARPU_MPI_DEBUG(3, "Calling data_acquire_cb on starpu_mpi_copy_cb..\n");
 			starpu_data_acquire_cb(chandle->handle,STARPU_R,_starpu_mpi_copy_cb,(void*) arg);
-
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-			_STARPU_MPI_LOG_OUT();
 		}
-		else if (chandle && (req->data_handle == chandle->handle))
+		else 
 		{
-			_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->user_datatype);
-			if (req->user_datatype == 0)
+			/* Case : the request is the internal receive request submitted by StarPU-MPI to receive
+			 * incoming data without a matching pending receive already submitted by the application.
+			 * We immediately allocate the pointer associated to the data_handle, and pushing it into
+			 * the list of new_requests, so as the real MPI request can be submitted before the next
+			 * submission of the envelope-catching request. */
+			if (chandle && (req->data_handle == chandle->handle))
 			{
-				req->count = 1;
-				req->ptr = starpu_handle_get_local_ptr(req->data_handle);
+				_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->user_datatype);
+				if (req->user_datatype == 0)
+				{
+					req->count = 1;
+					req->ptr = starpu_handle_get_local_ptr(req->data_handle);
+				}
+				else
+				{
+					req->count = chandle->env->psize;
+					req->ptr = malloc(req->count);
+
+					STARPU_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
+				}
+
+				_starpu_mpi_req_list_push_front(new_requests, req);
+
+				_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
 			}
+			/* Case : a classic receive request with no send received earlier than expected.
+			 * We just add the pending receive request to the requests' hashmap. */
 			else
 			{
-				req->count = chandle->env->psize;
-				req->ptr = malloc(req->count);
-
-				STARPU_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
+				add_req(req);
 			}
 
-			_starpu_mpi_req_list_push_front(new_requests, req);
-
 			newer_requests = 1;
-			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n",
-					  req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
 			_STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-			_STARPU_MPI_LOG_OUT();
-		}
-		else
-		{
-			add_req(req);
-
-			newer_requests = 1;
-			_STARPU_MPI_DEBUG(3, "Pushing new request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n",
-					  req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
-			_STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-			_STARPU_MPI_LOG_OUT();
 		}
 	}
 	else
@@ -857,9 +858,10 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 		_STARPU_MPI_DEBUG(3, "Pushing new request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n",
 				  req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
 		_STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-		_STARPU_MPI_LOG_OUT();
 	}
+
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	_STARPU_MPI_LOG_OUT();
 }
 
 #ifdef STARPU_MPI_ACTIVITY
@@ -1081,9 +1083,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		}
 
+		/* If there is no currently submitted header_req submitted to catch envelopes from senders, and there is some pending receive
+		 * requests in our side, we resubmit a header request. */
 		if ((HASH_COUNT(_starpu_mpi_req_hashmap) > 0) && (header_req_submitted == 0) && (HASH_COUNT(_starpu_mpi_copy_handle_hashmap) == 0))
 		{
-			MPI_Irecv(recv_env, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, STARPU_MPI_TAG, MPI_COMM_WORLD, &header_req);
+			MPI_Irecv(recv_env, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, starpu_mpi_tag, MPI_COMM_WORLD, &header_req);
 
 			_STARPU_MPI_DEBUG(3, "Submit of header_req OK!\n");
 			header_req_submitted = 1;
@@ -1100,17 +1104,21 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			MPI_Status status;
 			_STARPU_MPI_DEBUG(3, "Test of header_req\n");
 
+			/* test whether an envelope has arrived. */
 			res = MPI_Test(&header_req, &flag, &status);
 			STARPU_ASSERT(res == MPI_SUCCESS);
 
 			if (flag)
 			{
-				_STARPU_MPI_DEBUG(3, "Request received !\n");
+				_STARPU_MPI_DEBUG(3, "header_req received !\n");
 
 				_STARPU_MPI_DEBUG(3, "Searching for request with tag %d, size %ld ..\n",recv_env->mpi_tag, recv_env->psize);
 
 				struct _starpu_mpi_req *found_req = find_req(recv_env->mpi_tag);
 
+				/* Case : a data will arrive before the matching receive has been submitted in our side of the application. 
+				 * We will allow a temporary handle to store the incoming data, by submitting a starpu_mpi_irecv_detached
+				 * on this handle, and register this so as the StarPU-MPI layer can remember it.*/
 				if (!found_req)
 				{
 					_STARPU_MPI_DEBUG(3, "Request with tag %d not found, creating a copy_handle to receive incoming data..\n",recv_env->mpi_tag);
@@ -1138,6 +1146,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 					_STARPU_MPI_DEBUG(3, "Success of starpu_irecv_detached on copy_handle with tag %d from src %d ..\n", chandle->mpi_tag, status.MPI_SOURCE); 
 				}
+				/* Case : a matching receive has been found for the incoming data, we handle the correct allocation of the pointer associated to
+				 * the data handle, then submit the corresponding receive with _starpu_mpi_handle_new_request. */
 				else
 				{
 					_STARPU_MPI_DEBUG(3, "Found !\n");

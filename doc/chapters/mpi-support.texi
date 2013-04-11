@@ -151,13 +151,23 @@ the list of the ready requests if it is a send request, or in an
 hashmap if it is a receive request.
 
 Internally, all MPI communications submitted by StarPU uses a unique
-tag called STARPU_MPI_TAG. The matching of tags with corresponding
-requests is done into StarPU-MPI. To handle this, any communication is 
-a double-communication based on a envelope + data system. Every data 
-which will be sent needs to send an envelope which describes the data 
-(particularly its tag) before sending the data, so the receiver can
-get the matching pending receive request from the hashmap, and submit 
-it to recieve the data correctly.
+tag called starpu_mpi_tag, which can be accessed with getter/setter
+functions.
+
+@deftypefun void starpu_mpi_set_starpu_mpi_tag (int @var{tag})
+Tell StarPU-MPI which MPI tag to use for all its communications.
+@end deftypefun
+
+@deftypefun int starpu_mpi_get_starpu_mpi_tag (void)
+Returns the MPI tag which will be used for all StarPU-MPI communications.
+@end deftypefun
+
+The matching of tags with corresponding requests is done into StarPU-MPI. 
+To handle this, any communication is a double-communication based on a 
+envelope + data system. Every data which will be sent needs to send an 
+envelope which describes the data (particularly its tag) before sending 
+the data, so the receiver can get the matching pending receive request 
+from the hashmap, and submit it to recieve the data correctly.
 
 To this aim, the StarPU-MPI progression thread has a permanent-submitted 
 request destined to receive incoming envelopes from all sources.
@@ -267,6 +277,10 @@ Tell StarPU-MPI which MPI tag to use when exchanging the data.
 
 @deftypefun int starpu_data_get_tag (starpu_data_handle_t @var{handle})
 Returns the MPI tag to be used when exchanging the data.
+@end deftypefun
+
+@deftypefun starpu_data_handle_t starpu_data_get_data_handle_from_tag (int @var{tag})
+Returns the data handle associated to the MPI tag, or NULL if there is not.
 @end deftypefun
 
 @deftypefun int starpu_data_set_rank (starpu_data_handle_t @var{handle}, int @var{rank})

@@ -18,6 +18,14 @@ StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 
 New features:
+  * MPI:
+        - New internal communication system : a unique tag called
+	  starpu_mpi_tag is now used for all communications, and a system
+	  of hashmaps on each node which stores pending receives has been
+	  implemented. Every message is now coupled with an envelope, sent
+	  before the corresponding data, which allows the receiver to
+	  allocate data correctly, and to submit the matching receive of
+	  the envelope.
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================
@@ -67,14 +75,6 @@ New features:
 	  data with dynamic size can now be exchanged with StarPU-MPI.
         - New functionality starpu_mpi_irecv_probe_detached which
   	  first tests if the message is available before calling MPI_Recv
-	  (now deprecated).
-        - New internal communication system : a unique tag called
-	  STARPU_MPI_TAG is now used for all communications, and a system
-	  of hashmaps on each node which stores pending receives has been
-	  implemented. Every message is now coupled with an envelope, sent
-	  before the corresponding data, which allows the receiver to
-	  allocate data correctly, and to submit the matching receive of
-	  the envelope.
   * Add experimental simgrid support, to simulate execution with various
     number of CPUs, GPUs, amount of memory, etc.
   * Add support for OpenCL simulators (which provide simulated execution time)

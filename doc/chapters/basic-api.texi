@@ -506,6 +506,11 @@ matrix) which can be registered by the means of helper functions (e.g.
 @code{starpu_vector_data_register} or @code{starpu_matrix_data_register}).
 @end deftypefun
 
+@deftypefun struct starpu_data_interface_ops* starpu_handle_get_interface (starpu_data_handle_t @var{handle})
+Return the associated interface_ops of a data handle, which is different from the interface of
+data stored in it.
+@end deftypefun
+
 @deftypefun void starpu_data_register_same ({starpu_data_handle_t *}@var{handledst}, starpu_data_handle_t @var{handlesrc})
 Register a new piece of data into the handle @var{handledst} with the
 same interface as the handle @var{handlesrc}.
@@ -2144,6 +2149,10 @@ this function call, otherwise it is disabled. By default, StarPU enables
 sequential data consistency. It is also possible to select the data consistency
 mode of a specific data handle with the
 @code{starpu_data_set_sequential_consistency_flag} function.
+@end deftypefun
+
+@deftypefun unsigned starpu_data_get_sequential_consistency_flag (starpu_data_handle_t @var{handle})
+Return the sequential consistency flag associated to a data handle.
 @end deftypefun
 
 @deftypefun unsigned starpu_data_get_default_sequential_consistency_flag (void)
