@@ -107,6 +107,14 @@ dist_bin_SCRIPTS +=			\
 	starpu_codelet_histo_profile	\
 	starpu_codelet_profile
 
+if STARPU_HAVE_WINDOWS
+STARPU_MSVC_dir		 =	$(bindir)
+nobase_STARPU_MSVC__DATA =		\
+	msvc/starpu_clean.bat		\
+	msvc/starpu_exec.bat		\
+	msvc/starpu.sln			\
+	msvc/starpu/starpu.vcxproj
+endif
 
 if STARPU_HAVE_HELP2MAN
 starpu_calibrate_bus.1: starpu_calibrate_bus$(EXEEXT)
