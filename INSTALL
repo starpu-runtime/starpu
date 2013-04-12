@@ -39,25 +39,25 @@ cygwin part.
 
 1. Install cygwin
 
-http://cygwin.com/install.html
+   http://cygwin.com/install.html
 
-Make sure the following packages are available:
-- (Devel)/subversion
-- (Devel)/libtool
-- (Devel)/gcc
-- (Devel)/make
-- your favorite editor (vi, emacs, ...)
-- (Devel)/gdb
-- (Archive)/zip
-- (Devel)/pkg-config
+   Make sure the following packages are available:
+   - (Devel)/subversion
+   - (Devel)/libtool
+   - (Devel)/gcc
+   - (Devel)/make
+   - your favorite editor (vi, emacs, ...)
+   - (Devel)/gdb
+   - (Archive)/zip
+   - (Devel)/pkg-config
 
 2. Install mingw
 
-http://www.mingw.org/
+   http://www.mingw.org/
 
 3. Install hwloc (not mandatory, but strongly recommended)
 
-http://www.open-mpi.org/projects/hwloc
+   http://www.open-mpi.org/projects/hwloc
 
 4. Install Microsoft Visual C++ Studio Express
 
@@ -208,5 +208,3 @@ autogen.sh part.
    and set the StarPU bin directory in your path.
 
    export PATH=<StarPU installation directory>/bin:$PATH
-
-
