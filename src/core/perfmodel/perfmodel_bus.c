@@ -1004,6 +1004,7 @@ static int load_bus_latency_file_content(void)
 			if (n == '\n')
 				break;
 			ungetc(n, f);
+			n = '\t';
 		}
 
 		/* No more values, take NAN */
@@ -1217,6 +1218,7 @@ static int load_bus_bandwidth_file_content(void)
 			if (n == '\n')
 				break;
 			ungetc(n, f);
+			n = '\t';
 		}
 
 		/* No more values, take NAN */
