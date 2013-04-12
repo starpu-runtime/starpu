@@ -863,7 +863,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 				goto out;
 
 #ifdef STARPU_SIMGRID
-			status = starpu_pthread_join(set->worker_thread, NULL);
+			status = starpu_pthread_join(worker->worker_thread, NULL);
 #else
 			if (!pthread_equal(pthread_self(), worker->worker_thread))
 				status = starpu_pthread_join(worker->worker_thread, NULL);
