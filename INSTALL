@@ -19,6 +19,7 @@ Contents
 
 * Installing StarPU on a Unix machine
 * Installing StarPU on Windows
+* Running StarPU Applications on Microsoft Visual C
 
 
 
@@ -213,3 +214,25 @@ autogen.sh part.
    and set the StarPU bin directory in your path.
 
    export PATH=<StarPU installation directory>/bin:$PATH
+
+
+Running StarPU Applications on Microsoft Visual C
+-------------------------------------------------
+
+Batch files are provided to run StarPU applications under Microsoft
+Visual C. They are installed in path_to_starpu/bin/msvc.
+
+To execute a StarPU application, you first need to set the environment
+variable STARPUPATH.
+
+cd c:\cygwin\home\ci\starpu\
+set STARPUPATH=c:\cygwin\home\ci\starpu\
+cd bin\msvc
+starpu_exec.bat starpu_simple.c
+
+The batch script will run Microsoft Visual C with a basic project file
+to run the given application.
+
+The batch script starpu_clean.bat can be used to delete all
+compilation generated files.
+
