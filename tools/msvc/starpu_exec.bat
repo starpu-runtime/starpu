@@ -27,6 +27,7 @@ IF NOT EXIST %STARPUPATH%\AUTHORS GOTO starpunotfound
 
 COPY %1 starpu\starpu_appli.c
 FOR %%F IN (%STARPUPATH%\bin\*dll) DO COPY %%F starpu\%%~nF
+FOR %%F IN (%STARPUPATH%\bin\*dll) DO COPY %%F starpu\%%F
 COPY c:\MinGW\bin\pthreadGC2.dll starpu
 IF EXIST Debug RMDIR /S /Q Debug
 IF EXIST starpu\Debug RMDIR /S /Q starpu\Debug
