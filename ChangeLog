@@ -130,6 +130,9 @@ Small features:
     activity polling method for StarPU-MPI.
   * Permit to disable sequential consistency for a given task.
   * New batch files to run StarPU applications with Microsoft Visual C
+  * Add examples/release/Makefile to test StarPU examples against an
+    installed version of StarPU. That can also be used to test
+    examples using a previous API.
 
 Changes:
   * Fix the block filter functions.
