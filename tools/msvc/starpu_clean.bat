@@ -20,6 +20,6 @@ ECHO.
 ECHO MSVC StarPU Cleaning
 ECHO.
 
-FOR %%d in (debug starpu\debug ipch) DO IF EXIST %%d RMDIR /S /Q %%d 
-DEL starpu.sdf
+FOR %%d in (debug starpu\debug ipch) DO IF EXIST %%d RMDIR /S /Q %%d
+FOR %%f in (starpu.sdf starpu.suo) DO IF EXIST %%f DEL %%f
 
