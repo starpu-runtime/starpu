@@ -59,6 +59,11 @@ cygwin part.
 
    http://www.open-mpi.org/projects/hwloc
 
+   Be careful which version you are installing. Even if your machine
+   runs windows 64 bits, if you are running a 32 bits mingw (check the
+   output of the command uname -a), you will need to install the 32
+   bits version of hwloc.
+
 4. Install Microsoft Visual C++ Studio Express
 
    http://www.microsoft.com/express/Downloads
