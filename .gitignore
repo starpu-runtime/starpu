@@ -13,8 +13,6 @@
 /doc/starpu.info
 *~
 ,*
-Makefile
-Makefile.in
 .libs
 .deps
 *.o
@@ -291,3 +289,5 @@ starpu.log
 /gcc-plugin/tests/registered
 /gcc-plugin/tests/warn-unregistered
 /cyclomatic-complexity.html
+./Makefile
+Makefile.in
