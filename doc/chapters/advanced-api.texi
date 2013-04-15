@@ -7,7 +7,6 @@
 @c See the file starpu.texi for copying conditions.
 
 @menu
-* Insert Task::
 * Tracing support::
 * MPI Interface::
 * Defining a new data interface::
@@ -20,88 +19,6 @@
 * Running drivers::
 * Expert mode::
 @end menu
-
-@node Insert Task
-@section Insert Task
-
-@deftypefun int starpu_insert_task (struct starpu_codelet *@var{cl}, ...)
-Create and submit a task corresponding to @var{cl} with the following
-arguments.  The argument list must be zero-terminated.
-
-The arguments following the codelets can be of the following types:
-
-@itemize
-@item
-@code{STARPU_R}, @code{STARPU_W}, @code{STARPU_RW}, @code{STARPU_SCRATCH}, @code{STARPU_REDUX} an access mode followed by a data handle;
-@item
-@code{STARPU_DATA_ARRAY} followed by an array of data handles and its number of elements;
-@item
-the specific values @code{STARPU_VALUE}, @code{STARPU_CALLBACK},
-@code{STARPU_CALLBACK_ARG}, @code{STARPU_CALLBACK_WITH_ARG},
-@code{STARPU_PRIORITY}, @code{STARPU_TAG}, @code{STARPU_FLOPS}, followed by the appropriated objects
-as defined below.
-@end itemize
-
-When using @code{STARPU_DATA_ARRAY}, the access mode of the data
-handles is not defined.
-
-Parameters to be passed to the codelet implementation are defined
-through the type @code{STARPU_VALUE}. The function
-@code{starpu_codelet_unpack_args} must be called within the codelet
-implementation to retrieve them.
-@end deftypefun
-
-@defmac STARPU_VALUE
-this macro is used when calling @code{starpu_insert_task}, and must be
-followed by a pointer to a constant value and the size of the constant
-@end defmac
-
-@defmac STARPU_CALLBACK
-this macro is used when calling @code{starpu_insert_task}, and must be
-followed by a pointer to a callback function
-@end defmac
-
-@defmac STARPU_CALLBACK_ARG
-this macro is used when calling @code{starpu_insert_task}, and must be
-followed by a pointer to be given as an argument to the callback
-function
-@end defmac
-
-@defmac  STARPU_CALLBACK_WITH_ARG
-this macro is used when calling @code{starpu_insert_task}, and must be
-followed by two pointers: one to a callback function, and the other to
-be given as an argument to the callback function; this is equivalent
-to using both @code{STARPU_CALLBACK} and
-@code{STARPU_CALLBACK_WITH_ARG}
-@end defmac
-
-@defmac STARPU_PRIORITY
-this macro is used when calling @code{starpu_insert_task}, and must be
-followed by a integer defining a priority level
-@end defmac
-
-@defmac STARPU_TAG
-this macro is used when calling @code{starpu_insert_task}, and must be
-followed by a tag.
-@end defmac
-
-@defmac STARPU_FLOPS
-this macro is used when calling @code{starpu_insert_task}, and must be followed
-by an amount of floating point operations, as a double. The user may have to
-explicitly cast into double, otherwise parameter passing will not work.
-@end defmac
-
-@deftypefun void starpu_codelet_pack_args ({char **}@var{arg_buffer}, {size_t *}@var{arg_buffer_size}, ...)
-Pack arguments of type @code{STARPU_VALUE} into a buffer which can be
-given to a codelet and later unpacked with the function
-@code{starpu_codelet_unpack_args} defined below.
-@end deftypefun
-
-@deftypefun void starpu_codelet_unpack_args ({void *}@var{cl_arg}, ...)
-Retrieve the arguments of type @code{STARPU_VALUE} associated to a
-task automatically created using the function
-@code{starpu_insert_task} defined above.
-@end deftypefun
 
 @node Tracing support
 @section Tracing support
