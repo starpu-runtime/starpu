@@ -13,7 +13,6 @@
 info_TEXINFOS = starpu.texi
 
 chapters =	chapters/advanced-api.texi \
-	chapters/benchmarks.texi \
 	chapters/configuration.texi \
 	chapters/perf-feedback.texi \
 	chapters/vector_scal_cpu.texi \

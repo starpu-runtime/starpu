@@ -10,6 +10,7 @@ w@c -*-texinfo-*-
 * Installing a Binary Package::
 * Installing from Source::
 * Setting up Your Own Code::
+* Benchmarking StarPU::
 @end menu
 
 @node Installing a Binary Package
@@ -287,3 +288,48 @@ so:
 @example
 $ STARPU_NCUDA=2 ./application
 @end example
+
+@node Benchmarking StarPU
+@section Benchmarking StarPU
+
+Some interesting benchmarks are installed among examples in
+@code{$prefix_dir/lib/starpu/examples/}. Make sure to try various
+schedulers, for instance STARPU_SCHED=dmda
+
+@menu
+* Task size overhead::
+* Data transfer latency::
+* Gemm::
+* Cholesky::
+* LU::
+@end menu
+
+@node Task size overhead
+@subsection Task size overhead
+
+This benchmark gives a glimpse into how big a size should be for StarPU overhead
+to be low enough.  Run @code{tasks_size_overhead.sh}, it will generate a plot
+of the speedup of tasks of various sizes, depending on the number of CPUs being
+used.
+
+@node Data transfer latency
+@subsection Data transfer latency
+
+@code{local_pingpong} performs a ping-pong between the first two CUDA nodes, and
+prints the measured latency.
+
+@node Gemm
+@subsection Matrix-matrix multiplication
+
+@code{sgemm} and @code{dgemm} perform a blocked matrix-matrix
+multiplication using BLAS and cuBLAS. They output the obtained GFlops.
+
+@node Cholesky
+@subsection Cholesky factorization
+
+@code{cholesky*} perform a Cholesky factorization (single precision). They use different dependency primitives.
+
+@node LU
+@subsection LU factorization
+
+@code{lu*} perform an LU factorization. They use different dependency primitives.
