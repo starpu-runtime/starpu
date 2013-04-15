@@ -16,7 +16,7 @@
 
 #include "lp_tools.h"
 #include <starpu_config.h>
-
+#include <sys/time.h>
 
 #ifdef STARPU_HAVE_GLPK_H
 static void lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)

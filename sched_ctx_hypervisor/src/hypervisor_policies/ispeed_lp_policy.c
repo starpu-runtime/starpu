@@ -17,6 +17,7 @@
 #include <starpu_config.h>
 #include "lp_tools.h"
 #include <math.h>
+#include <sys/time.h>
 
 static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops[ns], double tmax, double flops_on_w[ns][nw], double w_in_s[ns][nw], int *workers, unsigned integer);
 
