@@ -32,7 +32,6 @@ chapters =	chapters/advanced-api.texi \
 	chapters/c-extensions.texi \
 	chapters/mpi-support.texi \
 	chapters/fft-support.texi \
-	chapters/using.texi \
 	chapters/vector_scal_opencl.texi \
 	chapters/socl.texi \
 	chapters/sched_ctx_hypervisor.texi
