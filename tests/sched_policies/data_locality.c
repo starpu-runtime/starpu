@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_scheduler.h>
 
 #include "../helper.h"
 

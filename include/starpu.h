@@ -55,7 +55,6 @@ typedef UINT_PTR uintptr_t;
 #include <util/starpu_task_list_inline.h>
 #endif
 #include <starpu_task_util.h>
-#include <starpu_scheduler.h>
 #include <starpu_sched_ctx.h>
 #include <starpu_expert.h>
 #include <starpu_rand.h>
