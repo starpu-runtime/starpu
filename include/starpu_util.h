@@ -263,6 +263,9 @@ void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigne
  * copied, and it is given the callback_arg pointer as argument.*/
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
+/* Return the current date in us */
+double starpu_timing_now(void);
+
 #ifdef __cplusplus
 }
 #endif
