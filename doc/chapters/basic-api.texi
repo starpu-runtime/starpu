@@ -1828,11 +1828,11 @@ process the task). Otherwise, @code{starpu_task_submit} returns immediately.
 @item @code{int priority} (optional) (default: @code{STARPU_DEFAULT_PRIO})
 This field indicates a level of priority for the task. This is an integer value
 that must be set between the return values of the
-@code{starpu_sched_get_min_priority} function for the least important tasks,
-and that of the @code{starpu_sched_get_max_priority} for the most important
+@code{starpu_task_get_min_priority} function for the least important tasks,
+and that of the @code{starpu_task_get_max_priority} for the most important
 tasks (included). The @code{STARPU_MIN_PRIO} and @code{STARPU_MAX_PRIO} macros
 are provided for convenience and respectively returns value of
-@code{starpu_sched_get_min_priority} and @code{starpu_sched_get_max_priority}.
+@code{starpu_task_get_min_priority} and @code{starpu_task_get_max_priority}.
 Default priority is @code{STARPU_DEFAULT_PRIO}, which is always defined as 0 in
 order to allow static task initialization.  Scheduling strategies that take
 priorities into account can use this parameter to take better scheduling

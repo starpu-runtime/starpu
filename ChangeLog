@@ -114,7 +114,6 @@ New features:
     and a Simgrid one. Applications using StarPU and wishing to use
     the Simgrid StarPU features should use it.
 
-
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid
   * Add starpu_fxt_stop_profiling/starpu_fxt_start_profiling which permits to
@@ -175,6 +174,8 @@ Changes:
   * Rename function starpu_helper_cublas_shutdown to starpu_cublas_shutdown
   * Rename function starpu_allocate_buffer_on_node to starpu_malloc_on_node
   * Rename function starpu_free_buffer_on_node to starpu_free_on_node
+  * Rename getter and setter functions for minimum and maximum task
+    priorities
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
