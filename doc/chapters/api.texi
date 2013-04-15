@@ -3628,7 +3628,7 @@ called from the initialization method of the scheduling policy, and should not
 be used directly from the application.
 @end deftypefun
 
-@deftypefun void starpu_sched_set_max_priority (unsigned @var{sched_ctx_id}, int @var{max_prio})
+@deftypefun void starpu_sched_ctx_set_max_priority (unsigned @var{sched_ctx_id}, int @var{max_prio})
 Defines the maximum priority level supported by the scheduling policy of the given scheduler context. The
 default maximum priority level is 1.  The application may access that value by
 calling the @code{starpu_sched_ctx_get_max_priority} function. This function should
@@ -3636,12 +3636,12 @@ only be called from the initialization method of the scheduling policy, and
 should not be used directly from the application.
 @end deftypefun
 
-@deftypefun int starpu_sched_get_min_priority (unsigned @var{sched_ctx_id})
+@deftypefun int starpu_sched_ctx_get_min_priority (unsigned @var{sched_ctx_id})
 Returns the current minimum priority level supported by the
 scheduling policy of the given scheduler context.
 @end deftypefun
 
-@deftypefun int starpu_sched_get_max_priority (unsigned @var{sched_ctx_id})
+@deftypefun int starpu_sched_ctx_get_max_priority (unsigned @var{sched_ctx_id})
 Returns the current maximum priority level supported by the
 scheduling policy of the given scheduler context.
 @end deftypefun
