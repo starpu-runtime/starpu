@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,8 +20,6 @@
 
 #include <starpu.h>
 #include <stdio.h>
-
-#define NSHOT_PER_TASK	(16*1024*1024ULL)
 
 #define TYPE	float
 

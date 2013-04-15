@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -30,10 +30,12 @@ void cuda_kernel(void **descr, void *cl_arg);
 /* default value */
 static unsigned ntasks = 1024;
 
+static unsigned long long nshot_per_task = 16*1024*1024ULL;
+
 static void cpu_kernel(void *descr[], void *cl_arg)
 {
 	unsigned *directions = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned nx = NSHOT_PER_TASK;
+	unsigned nx = nshot_per_task;
 
 	TYPE *random_numbers = malloc(2*nx*sizeof(TYPE));
 	sobolCPU(2*nx/n_dimensions, n_dimensions, directions, random_numbers);
@@ -64,7 +66,7 @@ static void cpu_kernel(void *descr[], void *cl_arg)
 /* The amount of work does not depend on the data size at all :) */
 static size_t size_base(struct starpu_task *task, unsigned nimpl)
 {
-	return NSHOT_PER_TASK;
+	return nshot_per_task;
 }
 
 static void parse_args(int argc, char **argv)
@@ -77,8 +79,41 @@ static void parse_args(int argc, char **argv)
 			char *argptr;
 			ntasks = strtol(argv[++i], &argptr, 10);
 		}
+
+		if (strcmp(argv[i], "-nshot") == 0)
+		{
+			char *argptr;
+			nshot_per_task = strtol(argv[++i], &argptr, 10);
+		}
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
+		{
+			fprintf(stderr,"Usage: %s [options...]\n", argv[0]);
+			fprintf(stderr,"\n");
+			fprintf(stderr,"Options:\n");
+			fprintf(stderr,"-ntasks <n>		select the number of tasks\n");
+			fprintf(stderr,"-nshot <n>		select the number of shot per task\n");
+			exit(0);
+		}
 	}
 }
+
+static struct starpu_perfmodel model =
+{
+	.type = STARPU_HISTORY_BASED,
+	.size_base = size_base,
+	.symbol = "monte_carlo_pi"
+};
+
+static struct starpu_codelet pi_cl =
+{
+	.cpu_funcs = {cpu_kernel, NULL},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {cuda_kernel, NULL},
+#endif
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_W},
+	.model = &model
+};
 
 int main(int argc, char **argv)
 {
@@ -120,24 +155,6 @@ int main(int argc, char **argv)
 	
 	starpu_data_partition(cnt_array_handle, &f);
 
-	static struct starpu_perfmodel model =
-	{
-		.type = STARPU_HISTORY_BASED,
-		.size_base = size_base,
-		.symbol = "monte_carlo_pi"
-	};
-
-	struct starpu_codelet cl =
-	{
-		.cpu_funcs = {cpu_kernel, NULL},
-#ifdef STARPU_USE_CUDA
-		.cuda_funcs = {cuda_kernel, NULL},
-#endif
-		.nbuffers = 2,
-		.modes = {STARPU_R, STARPU_W},
-		.model = &model
-	};
-
 	struct timeval start;
 	struct timeval end;
 
@@ -147,7 +164,7 @@ int main(int argc, char **argv)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &cl;
+		task->cl = &pi_cl;
 
 		STARPU_ASSERT(starpu_data_get_sub_data(cnt_array_handle, 1, i));
 
@@ -174,14 +191,14 @@ int main(int argc, char **argv)
 
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	unsigned long total_shot_cnt = ntasks * NSHOT_PER_TASK;
+	unsigned long total_shot_cnt = ntasks * nshot_per_task;
 
 	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4, probability to impact the disk: pi/4 */
 	FPRINTF(stderr, "Pi approximation : %f (%ld / %ld)\n", ((TYPE)total_cnt*4)/(total_shot_cnt), total_cnt, total_shot_cnt);
 	FPRINTF(stderr, "Total time : %f ms\n", timing/1000.0);
 	FPRINTF(stderr, "Speed : %f GShot/s\n", total_shot_cnt/(1e3*timing));
 
-	if (!getenv("STARPU_SSILENT")) starpu_display_codelet_stats(&cl);
+	if (!getenv("STARPU_SSILENT")) starpu_display_codelet_stats(&pi_cl);
 
 	starpu_shutdown();
 
