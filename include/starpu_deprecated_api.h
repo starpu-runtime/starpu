@@ -88,6 +88,11 @@ typedef enum starpu_access_mode starpu_access_mode;
 #define starpu_depth_block_filter_func_block		starpu_block_filter_depth_block
 #define starpu_depth_block_shadow_filter_func_block	starpu_block_filter_depth_block_shadow
 
+#define starpu_sched_get_min_priority		starpu_task_get_min_priority
+#define starpu_sched_get_max_priority		starpu_task_get_max_priority
+#define starpu_sched_set_min_priority		starpu_task_set_min_priority
+#define starpu_sched_set_max_priority		starpu_task_set_max_priority
+
 #endif /* STARPU_USE_DEPRECATED_ONE_ZERO_API */
 
 #ifdef __cplusplus
