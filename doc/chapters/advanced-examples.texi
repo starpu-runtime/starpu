@@ -421,7 +421,9 @@ default. The @code{size_base} field of @code{struct starpu_perfmodel} however
 permits the application to override that, when for instance some of the data
 do not matter for task cost (e.g. mere reference table), or when using sparse
 structures (in which case it is the number of non-zeros which matter), or when
-there is some hidden parameter such as the number of iterations, etc.
+there is some hidden parameter such as the number of iterations, etc. The
+@code{examples/pi} examples uses this to include the number of iterations in the
+base.
 
 How to use schedulers which can benefit from such performance model is explained
 in @ref{Task scheduling policy}.
