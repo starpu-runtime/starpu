@@ -17,6 +17,7 @@
 #include <starpu_config.h>
 #include "lp_tools.h"
 #include <math.h>
+#include <sys/time.h>
 
 static struct bound_task_pool *task_pools = NULL;
 
