@@ -69,7 +69,6 @@ was last updated on @value{UPDATED}.
 * Building and Installing StarPU::
 * Basic Examples::              Basic examples of the use of StarPU
 * Advanced Examples::           Advanced examples of the use of StarPU
-* Benchmarks::                  Benchmarks worth running
 * Performance optimization::    How to optimize performance with StarPU
 * Performance feedback::        Performance debugging tools
 * Tips and Tricks::             Tips and tricks to know about
@@ -121,14 +120,6 @@ was last updated on @value{UPDATED}.
 @node Advanced Examples
 @chapter Advanced Examples
 @include chapters/advanced-examples.texi
-
-@c ---------------------------------------------------------------------
-@c Benchmarks
-@c ---------------------------------------------------------------------
-
-@node Benchmarks
-@chapter Benchmarks
-@include chapters/benchmarks.texi
 
 @c ---------------------------------------------------------------------
 @c Performance options
