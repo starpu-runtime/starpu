@@ -232,17 +232,26 @@ double _lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double r
 	for(i = 0; i < nsched_ctxs; i++)
 	{
 		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]);
-		v[i][0] = sched_ctx_hypervisor_get_velocity(sc_w, STARPU_CUDA_WORKER);
-		v[i][1] = sched_ctx_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
-
+#ifdef STARPU_USE_CUDA
+		int ncuda = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
+		if(ncuda != 0)
+		{
+			v[i][0] = sched_ctx_hypervisor_get_velocity(sc_w, STARPU_CUDA_WORKER);
+			v[i][1] = sched_ctx_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+		}
+		else
+			v[i][0] = sched_ctx_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+#else
+		v[i][0] = sched_ctx_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+#endif // STARPU_USE_CUDA
 		flops[i] = sc_w->remaining_flops/1000000000; //sc_w->total_flops/1000000000; /* in gflops*/
 //		printf("%d: flops %lf\n", sched_ctxs[i], flops[i]);
 	}
 
 	return 1/_lp_compute_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw);
-#else
+#else//STARPU_HAVE_GLPK_H
 	return 0.0;
-#endif
+#endif//STARPU_HAVE_GLPK_H
 }
 
 double _lp_get_tmax(int nw, int *workers)
@@ -561,9 +570,19 @@ void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_r
 		for(w = 0; w < nw; w++)
 		{
 			enum starpu_archtype arch;
-			if(w == 0) arch = STARPU_CUDA_WORKER;
-			if(w == 1) arch = STARPU_CPU_WORKER;
 
+#ifdef STARPU_USE_CUDA
+			int ncuda = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
+			if(ncuda != 0)
+			{
+				if(w == 0) arch = STARPU_CUDA_WORKER;
+				if(w == 1) arch = STARPU_CPU_WORKER;
+			}
+			else
+				if(w == 0) arch = STARPU_CPU_WORKER;
+#else
+			if(w == 0) arch = STARPU_CPU_WORKER;
+#endif //STARPU_USE_CUDA
 			if(w == 1)
 			{
 				int nworkers_to_add = res_rounded[s][w];

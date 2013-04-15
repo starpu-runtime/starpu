@@ -578,8 +578,13 @@ void _get_total_nw(int *workers, int nworkers, int ntypes_of_workers, int total_
 	{
  		enum starpu_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
 			starpu_worker_get_type(workers[w]);
-		if(arch == STARPU_CPU_WORKER)
-			total_nw[1]++;
+		if(ntypes_of_workers == 2)
+		{
+			if(arch == STARPU_CPU_WORKER)
+				total_nw[1]++;
+			else
+				total_nw[0]++;
+		}
 		else
 			total_nw[0]++;
 	}
