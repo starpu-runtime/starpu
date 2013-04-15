@@ -12,7 +12,7 @@
 
 info_TEXINFOS = starpu.texi
 
-chapters =	chapters/advanced-api.texi \
+chapters =	\
 	chapters/configuration.texi \
 	chapters/perf-feedback.texi \
 	chapters/vector_scal_cpu.texi \
@@ -20,7 +20,7 @@ chapters =	chapters/advanced-api.texi \
 	chapters/fdl-1.3.texi \
 	chapters/perf-optimization.texi \
 	chapters/vector_scal_c.texi \
-	chapters/basic-api.texi \
+	chapters/api.texi \
 	chapters/installing.texi \
 	chapters/scaling-vector-example.texi \
 	chapters/vector_scal_cuda.texi \

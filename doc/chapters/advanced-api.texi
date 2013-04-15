@@ -1,27 +1,5 @@
-@c -*-texinfo-*-
-
-@c This file is part of the StarPU Handbook.
-@c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
-@c Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
-@c See the file starpu.texi for copying conditions.
-
-@menu
-* Tracing support::
-* MPI Interface::
-* Defining a new data interface::
-* Multiformat Data Interface::
-* Task Bundles::
-* Task Lists::
-* Using Parallel Tasks::
-* Scheduling Contexts::
-* Defining a new scheduling policy::
-* Running drivers::
-* Expert mode::
-@end menu
-
-@node Tracing support
-@section Tracing support
+@node FXT Support
+@section FXT Support
 
 @deftypefun void starpu_fxt_start_profiling (void)
 Start recording the trace. The trace is by default started from
@@ -39,8 +17,8 @@ start recording it again, etc.
 @end deftypefun
 
 
-@node MPI Interface
-@section MPI Interface
+@node MPI
+@section MPI
 
 @menu
 * Initialisation::
@@ -193,336 +171,6 @@ Clear the send and receive communication cache for all data. The
 function has to be called synchronously by all the MPI nodes.
 The function does nothing if the cache mechanism is disabled (@pxref{STARPU_MPI_CACHE}).
 @end deftypefun
-
-@node Defining a new data interface
-@section Defining a new data interface
-
-@menu
-* Data Interface API::  Data Interface API
-* An example of data interface::        An example of data interface
-@end menu
-
-@node Data Interface API
-@subsection Data Interface API
-
-@deftp {Data Type} {struct starpu_data_interface_ops}
-@anchor{struct starpu_data_interface_ops}
-Per-interface data transfer methods.
-
-@table @asis
-@item @code{void (*register_data_handle)(starpu_data_handle_t handle, unsigned home_node, void *data_interface)}
-Register an existing interface into a data handle.
-
-@item @code{starpu_ssize_t (*allocate_data_on_node)(void *data_interface, unsigned node)}
-Allocate data for the interface on a given node.
-
-@item @code{ void (*free_data_on_node)(void *data_interface, unsigned node)}
-Free data of the interface on a given node.
-
-@item @code{ const struct starpu_data_copy_methods *copy_methods}
-ram/cuda/opencl synchronous and asynchronous transfer methods.
-
-@item @code{ void * (*handle_to_pointer)(starpu_data_handle_t handle, unsigned node)}
-Return the current pointer (if any) for the handle on the given node.
-
-@item @code{ size_t (*get_size)(starpu_data_handle_t handle)}
-Return an estimation of the size of data, for performance models.
-
-@item @code{ uint32_t (*footprint)(starpu_data_handle_t handle)}
-Return a 32bit footprint which characterizes the data size.
-
-@item @code{ int (*compare)(void *data_interface_a, void *data_interface_b)}
-Compare the data size of two interfaces.
-
-@item @code{ void (*display)(starpu_data_handle_t handle, FILE *f)}
-Dump the sizes of a handle to a file.
-
-@item @code{enum starpu_data_interface_id interfaceid}
-An identifier that is unique to each interface.
-
-@item @code{size_t interface_size}
-The size of the interface data descriptor.
-
-@item @code{int is_multiformat}
-todo
-
-@item @code{struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface)}
-todo
-
-@item @code{int (*pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)}
-Pack the data handle into a contiguous buffer at the address
-@code{ptr} and set the size of the newly created buffer in
-@code{count}. If @var{ptr} is @code{NULL}, the function should not copy the data in the
-buffer but just set @var{count} to the size of the buffer which
-would have been allocated. The special value @code{-1} indicates the
-size is yet unknown.
-
-@item @code{int (*unpack_data)(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)}
-Unpack the data handle from the contiguous buffer at the address @code{ptr} of size @var{count}
-
-@end table
-@end deftp
-
-@deftp {Data Type} {struct starpu_data_copy_methods}
-Defines the per-interface methods. If the @code{any_to_any} method is provided,
-it will be used by default if no more specific method is provided. It can still
-be useful to provide more specific method in case of e.g. available particular
-CUDA or OpenCL support.
-
-@table @asis
-@item @code{int (*@{ram,cuda,opencl@}_to_@{ram,cuda,opencl@})(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
-These 12 functions define how to copy data from the @var{src_interface}
-interface on the @var{src_node} node to the @var{dst_interface} interface
-on the @var{dst_node} node. They return 0 on success.
-
-@item @code{int (*@{ram,cuda@}_to_@{ram,cuda@}_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream)}
-These 3 functions (@code{ram_to_ram} is not among these) define how to copy
-data from the @var{src_interface} interface on the @var{src_node} node to the
-@var{dst_interface} interface on the @var{dst_node} node, using the given
-@var{stream}. Must return 0 if the transfer was actually completed completely
-synchronously, or -EAGAIN if at least some transfers are still ongoing and
-should be awaited for by the core.
-
-@item @code{int (*@{ram,opencl@}_to_@{ram,opencl@}_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, /* cl_event * */ void *event)}
-These 3 functions (@code{ram_to_ram} is not among them) define how to copy
-data from the @var{src_interface} interface on the @var{src_node} node to the
-@var{dst_interface} interface on the @var{dst_node} node, by recording in
-@var{event}, a pointer to a cl_event, the event of the last submitted transfer.
-Must return 0 if the transfer was actually completed completely synchronously,
-or -EAGAIN if at least some transfers are still ongoing and should be awaited
-for by the core.
-
-@item @code{int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)}
-Define how to copy data from the @var{src_interface} interface on the
-@var{src_node} node to the @var{dst_interface} interface on the @var{dst_node}
-node. This is meant to be implemented through the @var{starpu_interface_copy}
-helper, to which @var{async_data} should be passed as such, and will be used to
-manage asynchronicity. This must return -EAGAIN if any of the
-@var{starpu_interface_copy} calls has returned -EAGAIN (i.e. at least some
-transfer is still ongoing), and return 0 otherwise.
-
-@end table
-@end deftp
-
-@deftypefun int starpu_interface_copy (uintptr_t @var{src}, size_t @var{src_offset}, unsigned @var{src_node}, uintptr_t @var{dst}, size_t @var{dst_offset}, unsigned @var{dst_node}, size_t @var{size}, {void *}@var{async_data})
-Copy @var{size} bytes from byte offset @var{src_offset} of @var{src} on
-@var{src_node} to byte offset @var{dst_offset} of @var{dst} on @var{dst_node}.
-This is to be used in the @var{any_to_any} copy method, which is provided with
-the @var{async_data} to be pased to @var{starpu_interface_copy}. this returns
--EAGAIN if the transfer is still ongoing, or 0 if the transfer is already
-completed.
-@end deftypefun
-
-
-@deftypefun uint32_t starpu_crc32_be_n ({void *}@var{input}, size_t @var{n}, uint32_t @var{inputcrc})
-Compute the CRC of a byte buffer seeded by the inputcrc "current
-state". The return value should be considered as the new "current
-state" for future CRC computation. This is used for computing data size
-footprint.
-@end deftypefun
-
-@deftypefun uint32_t starpu_crc32_be (uint32_t @var{input}, uint32_t @var{inputcrc})
-Compute the CRC of a 32bit number seeded by the inputcrc "current
-state". The return value should be considered as the new "current
-state" for future CRC computation. This is used for computing data size
-footprint.
-@end deftypefun
-
-@deftypefun uint32_t starpu_crc32_string ({char *}@var{str}, uint32_t @var{inputcrc})
-Compute the CRC of a string seeded by the inputcrc "current state".
-The return value should be considered as the new "current state" for
-future CRC computation. This is used for computing data size footprint.
-@end deftypefun
-
-@node An example of data interface
-@subsection An example of data interface
-
-@deftypefun int starpu_data_interface_get_next_id (void)
-Returns the next available id for a newly created data interface.
-@end deftypefun
-
-Let's define a new data interface to manage complex numbers.
-
-@cartouche
-@smallexample
-/* interface for complex numbers */
-struct starpu_complex_interface
-@{
-        double *real;
-        double *imaginary;
-        int nx;
-@};
-@end smallexample
-@end cartouche
-
-Registering such a data to StarPU is easily done using the function
-@code{starpu_data_register} (@pxref{Basic Data Management API}). The last
-parameter of the function, @code{interface_complex_ops}, will be
-described below.
-
-@cartouche
-@smallexample
-void starpu_complex_data_register(starpu_data_handle_t *handle,
-     unsigned home_node, double *real, double *imaginary, int nx)
-@{
-        struct starpu_complex_interface complex =
-        @{
-                .real = real,
-                .imaginary = imaginary,
-                .nx = nx
-        @};
-
-        if (interface_complex_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
-        @{
-                interface_complex_ops.interfaceid = starpu_data_interface_get_next_id();
-        @}
-
-        starpu_data_register(handleptr, home_node, &complex, &interface_complex_ops);
-@}
-@end smallexample
-@end cartouche
-
-Different operations need to be defined for a data interface through
-the type @code{struct starpu_data_interface_ops} (@pxref{Data
-Interface API}). We only define here the basic operations needed to
-run simple applications. The source code for the different functions
-can be found in the file
-@code{examples/interface/complex_interface.c}.
-
-@cartouche
-@smallexample
-static struct starpu_data_interface_ops interface_complex_ops =
-@{
-        .register_data_handle = complex_register_data_handle,
-        .allocate_data_on_node = complex_allocate_data_on_node,
-        .copy_methods = &complex_copy_methods,
-        .get_size = complex_get_size,
-        .footprint = complex_footprint,
-        .interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
-        .interface_size = sizeof(struct starpu_complex_interface),
-@};
-@end smallexample
-@end cartouche
-
-Functions need to be defined to access the different fields of the
-complex interface from a StarPU data handle.
-
-@cartouche
-@smallexample
-double *starpu_complex_get_real(starpu_data_handle_t handle)
-@{
-        struct starpu_complex_interface *complex_interface =
-          (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, 0);
-        return complex_interface->real;
-@}
-
-double *starpu_complex_get_imaginary(starpu_data_handle_t handle);
-int starpu_complex_get_nx(starpu_data_handle_t handle);
-@end smallexample
-@end cartouche
-
-Similar functions need to be defined to access the different fields of the
-complex interface from a @code{void *} pointer to be used within codelet
-implemetations.
-
-@cartouche
-@smallexample
-#define STARPU_COMPLEX_GET_REAL(interface)	\
-        (((struct starpu_complex_interface *)(interface))->real)
-#define STARPU_COMPLEX_GET_IMAGINARY(interface)	\
-        (((struct starpu_complex_interface *)(interface))->imaginary)
-#define STARPU_COMPLEX_GET_NX(interface)	\
-        (((struct starpu_complex_interface *)(interface))->nx)
-@end smallexample
-@end cartouche
-
-Complex data interfaces can then be registered to StarPU.
-
-@cartouche
-@smallexample
-double real = 45.0;
-double imaginary = 12.0;
-starpu_complex_data_register(&handle1, 0, &real, &imaginary, 1);
-starpu_insert_task(&cl_display, STARPU_R, handle1, 0);
-@end smallexample
-@end cartouche
-
-and used by codelets.
-
-@cartouche
-@smallexample
-void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args)
-@{
-        int nx = STARPU_COMPLEX_GET_NX(descr[0]);
-        double *real = STARPU_COMPLEX_GET_REAL(descr[0]);
-        double *imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
-        int i;
-
-        for(i=0 ; i<nx ; i++)
-        @{
-                fprintf(stderr, "Complex[%d] = %3.2f + %3.2f i\n", i, real[i], imaginary[i]);
-        @}
-@}
-@end smallexample
-@end cartouche
-
-The whole code for this complex data interface is available in the
-directory @code{examples/interface/}.
-
-@node Multiformat Data Interface
-@section Multiformat Data Interface
-
-@deftp {Data Type} {struct starpu_multiformat_data_interface_ops}
-The different fields are:
-@table @asis
-@item @code{size_t cpu_elemsize}
-the size of each element on CPUs,
-
-@item @code{size_t opencl_elemsize}
-the size of each element on OpenCL devices,
-
-@item @code{struct starpu_codelet *cpu_to_opencl_cl}
-pointer to a codelet which converts from CPU to OpenCL
-
-@item @code{struct starpu_codelet *opencl_to_cpu_cl}
-pointer to a codelet which converts from OpenCL to CPU
-
-@item @code{size_t cuda_elemsize}
-the size of each element on CUDA devices,
-
-@item @code{struct starpu_codelet *cpu_to_cuda_cl}
-pointer to a codelet which converts from CPU to CUDA
-
-@item @code{struct starpu_codelet *cuda_to_cpu_cl}
-pointer to a codelet which converts from CUDA to CPU
-@end table
-@end deftp
-
-@deftypefun void starpu_multiformat_data_register (starpu_data_handle_t *@var{handle}, unsigned @var{home_node}, void *@var{ptr}, uint32_t @var{nobjects}, struct starpu_multiformat_data_interface_ops *@var{format_ops})
-Register a piece of data that can be represented in different ways, depending upon
-the processing unit that manipulates it. It allows the programmer, for instance, to
-use an array of structures when working on a CPU, and a structure of arrays when
-working on a GPU.
-
-@var{nobjects} is the number of elements in the data. @var{format_ops} describes
-the format.
-@end deftypefun
-
-@defmac STARPU_MULTIFORMAT_GET_CPU_PTR ({void *}@var{interface})
-returns the local pointer to the data with CPU format.
-@end defmac
-
-@defmac STARPU_MULTIFORMAT_GET_CUDA_PTR ({void *}@var{interface})
-returns the local pointer to the data with CUDA format.
-@end defmac
-
-@defmac STARPU_MULTIFORMAT_GET_OPENCL_PTR ({void *}@var{interface})
-returns the local pointer to the data with OpenCL format.
-@end defmac
-
-@defmac STARPU_MULTIFORMAT_GET_NX  ({void *}@var{interface})
-returns the number of elements in the data.
-@end defmac
 
 
 @node Task Bundles
@@ -806,21 +454,10 @@ Return the number of workers managed by the specified contexts
 Return the number of workers shared by two contexts
 @end deftypefun
 
-@node Defining a new scheduling policy
-@section Defining a new scheduling policy
+@node Scheduling Policy
+@section Scheduling Policy
 
 TODO
-
-A full example showing how to define a new scheduling policy is available in
-the StarPU sources in the directory @code{examples/scheduler/}.
-
-@menu
-* Scheduling Policy API:: Scheduling Policy API
-* Source code::
-@end menu
-
-@node Scheduling Policy API
-@subsection Scheduling Policy API
 
 While StarPU comes with a variety of scheduling policies (@pxref{Task
 scheduling policy}), it may sometimes be desirable to implement custom
@@ -972,37 +609,8 @@ Returns expected power consumption in J
 Returns expected conversion time in ms (multiformat interface only)
 @end deftypefun
 
-@node Source code
-@subsection Source code
-
-@cartouche
-@smallexample
-static struct starpu_sched_policy dummy_sched_policy = @{
-    .init_sched = init_dummy_sched,
-    .deinit_sched = deinit_dummy_sched,
-    .add_workers = dummy_sched_add_workers,
-    .remove_workers = dummy_sched_remove_workers,
-    .push_task = push_task_dummy,
-    .push_prio_task = NULL,
-    .pop_task = pop_task_dummy,
-    .post_exec_hook = NULL,
-    .pop_every_task = NULL,
-    .policy_name = "dummy",
-    .policy_description = "dummy scheduling strategy"
-@};
-@end smallexample
-@end cartouche
-
 @node Running drivers
 @section Running drivers
-
-@menu
-* Driver API::
-* Example::
-@end menu
-
-@node Driver API
-@subsection Driver API
 
 @deftypefun int starpu_driver_run ({struct starpu_driver *}@var{d})
 Initialize the given driver, run it until it receives a request to terminate,
@@ -1035,30 +643,6 @@ STARPU_CUDA_WORKER or STARPU_OPENCL_WORKER).
 @deftypefun void starpu_drivers_request_termination (void)
 Notify all running drivers they should terminate.
 @end deftypefun
-
-@node Example
-@subsection Example
-
-@cartouche
-@smallexample
-int ret;
-struct starpu_driver = @{
-    .type = STARPU_CUDA_WORKER,
-    .id.cuda_id = 0
-@};
-ret = starpu_driver_init(&d);
-if (ret != 0)
-    error();
-while (some_condition) @{
-    ret = starpu_driver_run_once(&d);
-    if (ret != 0)
-        error();
-@}
-ret = starpu_driver_deinit(&d);
-if (ret != 0)
-    error();
-@end smallexample
-@end cartouche
 
 @node Expert mode
 @section Expert mode
