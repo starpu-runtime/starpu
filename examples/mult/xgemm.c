@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -276,6 +276,11 @@ static void parse_args(int argc, char **argv)
 			fprintf(stderr,"Usage: %s [-nblocks n] [-nblocksx x] [-nblocksy y] [-x x] [-y y] [-z z] [-iter iter] [-check] [-spmd]\n", argv[0]);
 			fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter);
 			exit(EXIT_SUCCESS);
+		}
+		else
+		{
+			fprintf(stderr,"Unrecognized option %s", argv[i]);
+			exit(EXIT_FAILURE);
 		}
 	}
 }
