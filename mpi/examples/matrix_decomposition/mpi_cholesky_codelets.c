@@ -22,6 +22,7 @@
 #include "mpi_cholesky_models.h"
 #include "mpi_cholesky_codelets.h"
 #include "mpi_cholesky_kernels.h"
+#include <sys/time.h>
 
 /*
  *	Create the codelets
