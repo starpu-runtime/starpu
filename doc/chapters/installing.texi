@@ -16,7 +16,7 @@ w@c -*-texinfo-*-
 @node Installing a Binary Package
 @section Installing a Binary Package
 
-One of the StarPU developers being a Debian Maintainer, the packages
+One of the StarPU developers being a Debian Developer, the packages
 are well integrated and very uptodate. To see which packages are
 available, simply type:
 
