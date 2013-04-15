@@ -21,6 +21,11 @@
 #include <stdlib.h>
 #include <starpu_config.h>
 
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -39,6 +44,37 @@ struct starpu_sched_ctx_iterator
 	int cursor;
 };
 
+struct starpu_machine_topology
+{
+	unsigned nworkers;
+
+	unsigned ncombinedworkers;
+
+	unsigned nsched_ctxs;
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_topology_t hwtopology;
+#else
+	/* We maintain ABI compatibility with and without hwloc */
+	void *dummy;
+#endif
+
+	unsigned nhwcpus;
+	unsigned nhwcudagpus;
+	unsigned nhwopenclgpus;
+
+	unsigned ncpus;
+	unsigned ncudagpus;
+	unsigned nopenclgpus;
+
+	/* Where to bind workers ? */
+	unsigned workers_bindid[STARPU_NMAXWORKERS];
+
+	/* Which GPU(s) do we use for CUDA ? */
+	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
+
+	/* Which GPU(s) do we use for OpenCL ? */
+	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
+};
 
 /* generic structure used by the scheduling contexts to iterate the workers */
 struct starpu_worker_collection
