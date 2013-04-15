@@ -80,13 +80,14 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)malloc(sizeof(struct _starpu_eager_central_prio_data));
 
 	/* In this policy, we support more than two levels of priority. */
-	starpu_task_set_min_priority(MIN_LEVEL);
-	starpu_task_set_max_priority(MAX_LEVEL);
+	starpu_sched_ctx_set_min_priority(sched_ctx_id, MIN_LEVEL);
+	starpu_sched_ctx_set_max_priority(sched_ctx_id, MAX_LEVEL);
 
 	/* only a single queue (even though there are several internaly) */
 	data->taskq = _starpu_create_priority_taskq();
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 	_STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
+
 }
 
 static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)

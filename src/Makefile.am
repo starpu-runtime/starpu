@@ -155,7 +155,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/sched_policy.c					\
 	core/simgrid.c						\
 	core/sched_ctx.c					\
-	core/priorities.c					\
 	core/parallel_task.c					\
 	sched_policies/eager_central_policy.c			\
 	sched_policies/eager_central_priority_policy.c		\

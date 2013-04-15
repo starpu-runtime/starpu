@@ -24,6 +24,30 @@ extern "C"
 {
 #endif
 
+/*
+ *	Priorities
+ */
+int starpu_sched_get_min_priority(void);
+int starpu_sched_get_max_priority(void);
+
+int starpu_sched_set_min_priority(int min_prio);
+int starpu_sched_set_max_priority(int max_prio);
+
+int starpu_sched_ctx_get_min_priority(unsigned sched_ctx_id);
+int starpu_sched_ctx_get_max_priority(unsigned sched_ctx_id);
+
+int starpu_sched_ctx_set_min_priority(unsigned sched_ctx_id, int min_prio);
+int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio);
+
+/* Provided for legacy reasons */
+#define STARPU_MIN_PRIO		(starpu_sched_get_min_priority())
+#define STARPU_MAX_PRIO		(starpu_sched_get_max_priority())
+
+/* By convention, the default priority level should be 0 so that we can
+ * statically allocate tasks with a default priority. */
+#define STARPU_DEFAULT_PRIO	0
+
+
 struct starpu_sched_ctx_performance_counters
 {
 	void (*notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time);

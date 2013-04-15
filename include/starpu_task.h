@@ -213,23 +213,6 @@ struct starpu_task
 	unsigned scheduled;
 };
 
-/*
- *	Priorities
- */
-int starpu_task_get_min_priority(void);
-int starpu_task_get_max_priority(void);
-
-void starpu_task_set_min_priority(int min_prio);
-void starpu_task_set_max_priority(int max_prio);
-
-/* Provided for legacy reasons */
-#define STARPU_MIN_PRIO		(starpu_task_get_min_priority())
-#define STARPU_MAX_PRIO		(starpu_task_get_max_priority())
-
-/* By convention, the default priority level should be 0 so that we can
- * statically allocate tasks with a default priority. */
-#define STARPU_DEFAULT_PRIO	0
-
 /* It is possible to initialize statically allocated tasks with this value.
  * This is equivalent to initializing a starpu_task structure with the
  * starpu_task_init function. */
