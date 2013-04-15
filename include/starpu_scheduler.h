@@ -124,8 +124,6 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
  *	Performance predictions
  */
 
-/* Return the current date in us */
-double starpu_timing_now(void);
 /* Returns the perfmodel footprint for the task */
 uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Returns expected task duration in us */
