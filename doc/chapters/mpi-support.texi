@@ -167,11 +167,11 @@ communications defined in StarPU-MPI.
 @node Exchanging User Defined Data Interface
 @section Exchanging User Defined Data Interface
 
-New data interfaces defined as explained in @ref{An example
-of data interface} can also be used within StarPU-MPI and exchanged
-between nodes. Two functions needs to be defined through
-the type @code{struct starpu_data_interface_ops} (@pxref{Data
-Interface API}). The pack function takes a handle and returns a
+New data interfaces defined as explained in @ref{Defining a New Data
+Interface} can also be used within StarPU-MPI and exchanged between
+nodes. Two functions needs to be defined through
+the type @code{struct starpu_data_interface_ops} (@pxref{Defining
+Interface}). The pack function takes a handle and returns a
 contiguous memory buffer along with its size where data to be conveyed to another node
 should be copied. The reversed operation is implemented in the unpack
 function which takes a contiguous memory buffer and recreates the data

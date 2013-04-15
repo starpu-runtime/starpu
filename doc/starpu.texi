@@ -77,8 +77,7 @@ was last updated on @value{UPDATED}.
 * C Extensions::                Easier StarPU programming with GCC
 * SOCL OpenCL Extensions::      How to use OpenCL on top of StarPU
 * Scheduling Context Hypervisor::  How to use Scheduling Context Hypervisor with StarPU
-* StarPU Basic API::            The Basic API to use StarPU
-* StarPU Advanced API::         Advanced use of StarPU
+* StarPU's API::                The API to use StarPU
 * Configuration Options for StarPU::
 * Full source code for the 'Scaling a Vector' example::
 * GNU Free Documentation License::  How you can copy and share this manual.
@@ -189,17 +188,9 @@ was last updated on @value{UPDATED}.
 @c StarPU API
 @c ---------------------------------------------------------------------
 
-@node StarPU Basic API
-@chapter StarPU Basic API
-@include chapters/basic-api.texi
-
-@c ---------------------------------------------------------------------
-@c Advanced Topics
-@c ---------------------------------------------------------------------
-
-@node StarPU Advanced API
-@chapter StarPU Advanced API
-@include chapters/advanced-api.texi
+@node StarPU's API
+@chapter StarPU's API
+@include chapters/api.texi
 
 @c ---------------------------------------------------------------------
 @c Configuration options
