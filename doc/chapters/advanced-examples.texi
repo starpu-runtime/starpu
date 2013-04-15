@@ -774,6 +774,8 @@ the other on the same worker. Also, if for instance GPU memory becomes scarce,
 StarPU will notice that it can free such buffers easily, since the content does
 not matter.
 
+The @code{examples/pi} example uses scratches for some temporary buffer.
+
 @node Parallel Tasks
 @section Parallel Tasks
 
