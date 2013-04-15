@@ -171,6 +171,8 @@ Changes:
   * Rename function starpu_free_buffer_on_node to starpu_free_on_node
   * Rename getter and setter functions for minimum and maximum task
     priorities
+  * starpu_scheduler.h is no longer automatically included by
+    starpu.h, it has to be manually included when needed
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is

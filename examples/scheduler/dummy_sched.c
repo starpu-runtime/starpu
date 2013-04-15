@@ -16,6 +16,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_scheduler.h>
 
 #define NTASKS	32000
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
