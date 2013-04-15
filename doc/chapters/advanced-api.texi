@@ -887,23 +887,6 @@ Description of the policy.
 Return an NULL-terminated array of all the predefined scheduling policies.
 @end deftypefun
 
-@deftypefun void starpu_sched_ctx_set_worker_mutex_and_cond (unsigned @var{sched_ctx_id}, int @var{workerid}, pthread_mutex_t *@var{sched_mutex}, {pthread_cond_t *}@var{sched_cond})
-This function specifies the condition variable associated to a worker per context
-When there is no available task for a worker, StarPU blocks this worker on a
-condition variable. This function specifies which condition variable (and the
-associated mutex) should be used to block (and to wake up) a worker. Note that
-multiple workers may use the same condition variable. For instance, in the case
-of a scheduling strategy with a single task queue, the same condition variable
-would be used to block and wake up all workers.
-The initialization method of a scheduling strategy (@code{init_sched}) must
-call this function once per worker.
-@end deftypefun
-
-@deftypefun void starpu_sched_ctx_get_worker_mutex_and_cond (unsigned @var{sched_ctx_id}, int @var{workerid}, {pthread_mutex_t **}@var{sched_mutex}, {pthread_cond_t **}@var{sched_cond})
-This function returns the condition variables associated to a worker in a context
-It is used in the policy to access to the local queue of the worker
-@end deftypefun
-
 @deftypefun void starpu_sched_ctx_set_policy_data (unsigned @var{sched_ctx_id}, {void *} @var{policy_data})
 Each scheduling policy uses some specific data (queues, variables, additional condition variables).
 It is memorize through a local structure. This function assigns it to a scheduling context.
