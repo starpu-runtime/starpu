@@ -83,7 +83,6 @@ starpu_mpi_TESTS =				\
 	mpi_irecv				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
-	mpi_probe				\
 	mpi_detached_tag			\
 	ring					\
 	ring_async				\
@@ -108,7 +107,6 @@ noinst_PROGRAMS =				\
 	mpi_irecv				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
-	mpi_probe				\
 	mpi_detached_tag			\
 	ring					\
 	ring_async				\
@@ -133,8 +131,6 @@ mpi_irecv_LDADD =					\
 mpi_isend_detached_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_irecv_detached_LDADD =			\
-	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
-mpi_probe_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_detached_tag_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
