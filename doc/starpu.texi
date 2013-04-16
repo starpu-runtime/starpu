@@ -96,6 +96,12 @@ was last updated on @value{UPDATED}.
 @chapter Introduction to StarPU
 @include chapters/introduction.texi
 
+@ifnotinfo
+@ifnothtml
+@part Part 1:@* QuickStart
+@end ifnothtml
+@end ifnotinfo
+
 @c ---------------------------------------------------------------------
 @c Installing StarPU
 @c ---------------------------------------------------------------------
@@ -119,6 +125,12 @@ was last updated on @value{UPDATED}.
 @node Advanced Examples
 @chapter Advanced Examples
 @include chapters/advanced-examples.texi
+
+@ifnotinfo
+@ifnothtml
+@part Part 2:@* Optimization checklist and tips
+@end ifnothtml
+@end ifnotinfo
 
 @c ---------------------------------------------------------------------
 @c Performance options
@@ -147,6 +159,12 @@ was last updated on @value{UPDATED}.
 @c ---------------------------------------------------------------------
 @c MPI support
 @c ---------------------------------------------------------------------
+
+@ifnotinfo
+@ifnothtml
+@part Part 3:@* Main documentation
+@end ifnothtml
+@end ifnotinfo
 
 @node StarPU MPI support
 @chapter StarPU MPI support
@@ -183,6 +201,12 @@ was last updated on @value{UPDATED}.
 @node Scheduling Context Hypervisor
 @chapter Scheduling Context Hypervisor
 @include chapters/sched_ctx_hypervisor.texi
+
+@ifnotinfo
+@ifnothtml
+@part Part 4:@* Reference documentation
+@end ifnothtml
+@end ifnotinfo
 
 @c ---------------------------------------------------------------------
 @c StarPU API
