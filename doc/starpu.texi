@@ -76,6 +76,7 @@ was last updated on @value{UPDATED}.
 * StarPU FFT support::          How to perform FFT computations with StarPU
 * C Extensions::                Easier StarPU programming with GCC
 * SOCL OpenCL Extensions::      How to use OpenCL on top of StarPU
+* Scheduling Contexts in StarPU::         How to use Scheduling Context of StarPU
 * Scheduling Context Hypervisor::  How to use Scheduling Context Hypervisor with StarPU
 * StarPU's API::                The API to use StarPU
 * Configuration Options for StarPU::
@@ -205,6 +206,14 @@ was last updated on @value{UPDATED}.
 @node SOCL OpenCL Extensions
 @chapter SOCL OpenCL Extensions
 @include chapters/socl.texi
+
+@c ---------------------------------------------------------------------
+@c Scheduling Contexts in StarPU
+@c ---------------------------------------------------------------------
+
+@node Scheduling Contexts in StarPU
+@chapter Scheduling Contexts in StarPU
+@include chapters/sched_ctx.texi
 
 @c ---------------------------------------------------------------------
 @c Scheduling Context Hypervisor
