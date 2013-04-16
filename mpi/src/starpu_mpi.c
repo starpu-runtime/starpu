@@ -343,39 +343,6 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int mpi_tag, M
 	return 0;
 }
 
-static void _starpu_mpi_probe_func(struct _starpu_mpi_req *req)
-{
-	_STARPU_MPI_LOG_IN();
-
-	_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->user_datatype);
-#ifdef STARPU_DEVEL
-#warning TODO: release that assert
-#endif
-	assert(req->user_datatype == 0);
-	req->count = 1;
-	req->ptr = starpu_handle_get_local_ptr(req->data_handle);
-
-	_STARPU_MPI_DEBUG(2, "MPI probe request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
-
-	/* somebody is perhaps waiting for the MPI request to be posted */
-	_STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
-	req->submitted = 1;
-	_STARPU_PTHREAD_COND_BROADCAST(&req->req_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&req->req_mutex);
-
-	_starpu_mpi_handle_detached_request(req);
-
-	_STARPU_MPI_LOG_OUT();
-}
-
-int starpu_mpi_irecv_probe_detached(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
-{
-	_STARPU_MPI_LOG_IN();
-	_starpu_mpi_isend_irecv_common(data_handle, source, mpi_tag, comm, 1, callback, arg, PROBE_REQ, _starpu_mpi_probe_func, STARPU_W);
-	_STARPU_MPI_LOG_OUT();
-	return 0;
-}
-
 /********************************************************/
 /*                                                      */
 /*  Wait functionalities                                */
@@ -627,7 +594,6 @@ static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type
 		case WAIT_REQ: return "WAIT_REQ";
 		case TEST_REQ: return "TEST_REQ";
 		case BARRIER_REQ: return "BARRIER_REQ";
-		case PROBE_REQ: return "PROBE_REQ";
 		default: return "unknown request type";
 		}
 }
@@ -641,18 +607,8 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_DEBUG(2, "complete MPI request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n",
 			  req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
-	if (req->request_type == PROBE_REQ)
-	{
-#ifdef STARPU_DEVEL
-#warning TODO: instead of calling MPI_Recv, we should post a starpu mpi recv request
-#endif
-		MPI_Status status;
-		memset(&status, 0, sizeof(MPI_Status));
-		req->ret = MPI_Recv(req->ptr, req->count, req->datatype, req->srcdst, req->mpi_tag, req->comm, &status);
-		STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Recv returning %d", req->ret);
-	}
 
-	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ || req->request_type == PROBE_REQ)
+	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
 	{
 		if (req->user_datatype == 1)
 		{
@@ -743,20 +699,12 @@ static void _starpu_mpi_test_detached_requests(void)
 		_STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
 		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %d - TYPE %s %d\n", &req->request, req->mpi_tag, _starpu_mpi_request_type(req->request_type), req->srcdst);
-		if (req->request_type == PROBE_REQ)
-		{
-			req->ret = MPI_Iprobe(req->srcdst, req->mpi_tag, req->comm, &flag, &status);
-		}
-		else
-		{
-			req->ret = MPI_Test(&req->request, &flag, &status);
-		}
-
-		STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Iprobe or MPI_Test returning %d", req->ret);
+		req->ret = MPI_Test(&req->request, &flag, &status);
+		STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %d", req->ret);
 
 		if (flag)
 		{
-			if (req->request_type == RECV_REQ || req->request_type == PROBE_REQ)
+			if (req->request_type == RECV_REQ)
 			{
 				TRACE_MPI_IRECV_COMPLETE_BEGIN(req->srcdst, req->mpi_tag);
 			}
@@ -767,7 +715,7 @@ static void _starpu_mpi_test_detached_requests(void)
 
 			_starpu_mpi_handle_request_termination(req);
 
-			if (req->request_type == RECV_REQ || req->request_type == PROBE_REQ)
+			if (req->request_type == RECV_REQ)
 			{
 				TRACE_MPI_IRECV_COMPLETE_END(req->srcdst, req->mpi_tag);
 			}

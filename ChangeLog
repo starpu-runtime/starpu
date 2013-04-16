@@ -60,8 +60,6 @@ New features:
         - When exchanging user-defined data interfaces, the size of
 	  the data is the size returned by the pack operation, i.e
 	  data with dynamic size can now be exchanged with StarPU-MPI.
-        - New functionality starpu_mpi_irecv_probe_detached which
-  	  first tests if the message is available before calling MPI_Recv.
   * Add experimental simgrid support, to simulate execution with various
     number of CPUs, GPUs, amount of memory, etc.
   * Add support for OpenCL simulators (which provide simulated execution time)
