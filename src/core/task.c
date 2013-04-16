@@ -215,7 +215,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
-	if(sched_ctx != NULL && j->task->sched_ctx != 0 && j->task->sched_ctx != STARPU_NMAX_SCHED_CTXS
+	if(sched_ctx != NULL && j->task->sched_ctx != _starpu_get_initial_sched_ctx()->id && j->task->sched_ctx != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL)
 	{
 		_starpu_compute_buffers_footprint(j->task->cl->model, STARPU_CPU_DEFAULT, 0, j);
@@ -365,7 +365,7 @@ int starpu_task_submit(struct starpu_task *task)
 	* allocated. */
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	if (task->sched_ctx == 0 && nsched_ctxs != 1 && !j->internal)
+	if (task->sched_ctx == _starpu_get_initial_sched_ctx()->id  && nsched_ctxs != 1 && !j->internal)
 	{
 		set_sched_ctx = starpu_sched_ctx_get_context();
 		if (set_sched_ctx != STARPU_NMAX_SCHED_CTXS)
