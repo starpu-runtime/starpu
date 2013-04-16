@@ -1331,7 +1331,7 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *work
 
 struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 {
-	return &config.sched_ctxs[0];
+	return &config.sched_ctxs[STARPU_GLOBAL_SCHED_CTX];
 }
 
 int

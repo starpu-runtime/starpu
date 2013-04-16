@@ -28,9 +28,7 @@
 #define REQ_RESIZE 0
 #define DO_RESIZE 1
 
-
-/* used when changes (delete, modify) are applyed to contexts */
-//extern starpu_pthread_mutex_t _changing_ctx_mutex[];
+#define STARPU_GLOBAL_SCHED_CTX 0
 
 struct _starpu_sched_ctx
 {
