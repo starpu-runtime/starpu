@@ -3,7 +3,7 @@
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
 @c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
-@c Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
+@c Copyright (C) 2011--2013 Institut National de Recherche en Informatique et Automatique
 @c See the file starpu.texi for copying conditions.
 
 TODO: improve!
@@ -14,6 +14,7 @@ TODO: improve!
 * Modify a Context::
 * Delete a Context::
 * Empty Context::
+* Contexts Sharing Workers::
 @end menu
 
 @node General Idea
@@ -102,9 +103,14 @@ starpu_sched_ctx_delete(sched_ctx1);
 @end smallexample
 @end cartouche
 
-
 @node Empty Context
 @section Empty Context
 A context may not have any resources at the begining or at a certain moment of the execution. Task can still be submitted to these contexts and they will execute them as soon as they will have resources. 
 A list of tasks pending to be executed is kept and when workers are added to the contexts the tasks are submitted. However, if no resources are allocated the program will not terminate.
 If these tasks have not much priority the programmer can forbid the application to submitted them by calling the function @code{starpu_sched_ctx_stop_task_submission}.
+
+@node Contexts Sharing Workers
+@section Contexts Sharing Workers
+Contexts may share workers when a single context cannot execute efficiently enough alone on these workers or when the application decides to express a hierarchy of contexts. The workers apply 
+an alogrithm of ``Round-Robin'' to chose the context on which they will ``pop'' next. By using the function @code{void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id)}
+the programmer can impose the @code{workerid} to ``pop'' in the context @code{sched_ctx_id} next.
