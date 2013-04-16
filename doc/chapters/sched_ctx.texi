@@ -13,6 +13,7 @@ TODO: improve!
 * Create a Context::
 * Modify a Context::
 * Delete a Context::
+* Empty Context::
 @end menu
 
 @node General Idea
@@ -100,3 +101,10 @@ starpu_sched_ctx_delete(sched_ctx2);
 starpu_sched_ctx_delete(sched_ctx1);
 @end smallexample
 @end cartouche
+
+
+@node Empty Context
+@section Empty Context
+A context may not have any resources at the begining or at a certain moment of the execution. Task can still be submitted to these contexts and they will execute them as soon as they will have resources. 
+A list of tasks pending to be executed is kept and when workers are added to the contexts the tasks are submitted. However, if no resources are allocated the program will not terminate.
+If these tasks have not much priority the programmer can forbid the application to submitted them by calling the function @code{starpu_sched_ctx_stop_task_submission}.
