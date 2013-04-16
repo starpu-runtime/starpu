@@ -20,8 +20,9 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_GLPK_LDFLA
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS =				\
-	cholesky/cholesky_implicit  \
-	app_driven_test/app_driven_test
+	cholesky/cholesky_implicit  		\
+	app_driven_test/app_driven_test		\
+	lp_test/lp_test
 
 noinst_HEADERS = 				\
 	cholesky/cholesky.h			\
