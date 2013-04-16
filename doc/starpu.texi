@@ -79,6 +79,7 @@ was last updated on @value{UPDATED}.
 * Scheduling Contexts in StarPU::         How to use Scheduling Context of StarPU
 * Scheduling Context Hypervisor::  How to use Scheduling Context Hypervisor with StarPU
 * StarPU's API::                The API to use StarPU
+* Scheduling Context Hypervisor's API:: The API to use the Hypervisor
 * Configuration Options for StarPU::
 * Full source code for the 'Scaling a Vector' example::
 * GNU Free Documentation License::  How you can copy and share this manual.
@@ -240,6 +241,14 @@ was last updated on @value{UPDATED}.
 @node StarPU's API
 @chapter StarPU's API
 @include chapters/api.texi
+
+@c ---------------------------------------------------------------------
+@c Scheduling Context Hypervisor's API
+@c ---------------------------------------------------------------------
+
+@node Scheduling Context Hypervisor's API
+@chapter Scheduling Context Hypervisor's API
+@include chapters/hypervisor_api.texi
 
 @c ---------------------------------------------------------------------
 @c Configuration options
