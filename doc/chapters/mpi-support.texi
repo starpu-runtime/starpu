@@ -335,27 +335,8 @@ execute them, or to send the required data).
 @node MPI Collective Operations
 @section MPI Collective Operations
 
-@deftypefun int starpu_mpi_scatter_detached (starpu_data_handle_t *@var{data_handles}, int @var{count}, int @var{root}, MPI_Comm @var{comm}, {void (*}@var{scallback})(void *), {void *}@var{sarg}, {void (*}@var{rcallback})(void *), {void *}@var{rarg})
-Scatter data among processes of the communicator based on the ownership of
-the data. For each data of the array @var{data_handles}, the
-process @var{root} sends the data to the process owning this data.
-Processes receiving data must have valid data handles to receive them.
-On completion of the collective communication, the @var{scallback} function is
-called with the argument @var{sarg} on the process @var{root}, the @var{rcallback} function is
-called with the argument @var{rarg} on any other process.
-@end deftypefun
+The functions are described in @ref{Collective Operations}.
 
-@deftypefun int starpu_mpi_gather_detached (starpu_data_handle_t *@var{data_handles}, int @var{count}, int @var{root}, MPI_Comm @var{comm}, {void (*}@var{scallback})(void *), {void *}@var{sarg}, {void (*}@var{rcallback})(void *), {void *}@var{rarg})
-Gather data from the different processes of the communicator onto the
-process @var{root}. Each process owning data handle in the array
-@var{data_handles} will send them to the process @var{root}. The
-process @var{root} must have valid data handles to receive the data.
-On completion of the collective communication, the @var{rcallback} function is
-called with the argument @var{rarg} on the process @var{root}, the @var{scallback} function is
-called with the argument @var{sarg} on any other process.
-@end deftypefun
-
-@page
 @cartouche
 @smallexample
 if (rank == root)
@@ -388,6 +369,7 @@ for(x = 0; x < nblocks ;  x++)
     @}
     if (data_handles[x]) @{
         starpu_data_set_rank(data_handles[x], mpi_rank);
+        starpu_data_set_tag(data_handles[x], x*nblocks+y);
     @}
 @}
 
