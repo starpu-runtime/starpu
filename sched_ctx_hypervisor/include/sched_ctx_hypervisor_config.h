@@ -83,10 +83,13 @@ struct sched_ctx_hypervisor_policy_config
 
 };
 
+/* set a certain configuration to a context */
 void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config);
 
+/* check out the configuration of a context */
 struct sched_ctx_hypervisor_policy_config *sched_ctx_hypervisor_get_config(unsigned sched_ctx);
 
+/* impose different parameters to a configuration of a context */
 void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...);
 
 #ifdef __cplusplus
