@@ -449,6 +449,17 @@ needs to be called to destroy the dummy task afterwards. See
 @node Theoretical lower bound on execution time
 @section Theoretical lower bound on execution time
 
+This API (@pxref{Theoretical lower bound on execution time}) permits
+to record a trace of what tasks are needed to complete the 
+application, and then, by using a linear system, provide a theoretical lower
+bound of the execution time (i.e. with an ideal scheduling).
+
+The computed bound is not really correct when not taking into account
+dependencies, but for an application which have enough parallelism, it is very
+near to the bound computed with dependencies enabled (which takes a huge lot
+more time to compute), and thus provides a good-enough estimation of the ideal
+execution time.
+
 For kernels with history-based performance models (and provided that they are completely calibrated), StarPU can very easily provide a theoretical lower
 bound for the execution time of a whole set of tasks. See for
 instance @code{examples/lu/lu_example.c}: before submitting tasks,
