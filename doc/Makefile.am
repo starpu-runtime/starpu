@@ -13,27 +13,29 @@
 info_TEXINFOS = starpu.texi
 
 chapters =	\
-	chapters/configuration.texi \
-	chapters/perf-feedback.texi \
-	chapters/vector_scal_cpu.texi \
 	chapters/advanced-examples.texi \
-	chapters/fdl-1.3.texi \
-	chapters/perf-optimization.texi \
-	chapters/vector_scal_c.texi \
 	chapters/api.texi \
-	chapters/installing.texi \
-	chapters/scaling-vector-example.texi \
-	chapters/vector_scal_cuda.texi \
 	chapters/basic-examples.texi \
-	chapters/introduction.texi \
-	chapters/tips-tricks.texi \
-	chapters/vector_scal_opencl_codelet.texi \
 	chapters/c-extensions.texi \
-	chapters/mpi-support.texi \
+	chapters/configuration.texi \
+	chapters/fdl-1.3.texi \
 	chapters/fft-support.texi \
-	chapters/vector_scal_opencl.texi \
+	chapters/hypervisor_api.texi \
+	chapters/installing.texi \
+	chapters/introduction.texi \
+	chapters/mpi-support.texi \
+	chapters/perf-feedback.texi \
+	chapters/perf-optimization.texi \
+	chapters/scaling-vector-example.texi \
+	chapters/sched_ctx_hypervisor.texi \
+	chapters/sched_ctx.texi \
 	chapters/socl.texi \
-	chapters/sched_ctx_hypervisor.texi
+	chapters/tips-tricks.texi \
+	chapters/vector_scal_cpu.texi \
+	chapters/vector_scal_c.texi \
+	chapters/vector_scal_cuda.texi \
+	chapters/vector_scal_opencl_codelet.texi \
+	chapters/vector_scal_opencl.texi
 
 starpu_TEXINFOS = 		\
 	chapters/version.texi 	\
