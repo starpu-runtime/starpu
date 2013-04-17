@@ -195,16 +195,6 @@ was last updated on @value{UPDATED}.
 @include chapters/sched_ctx_hypervisor.texi
 
 @c ---------------------------------------------------------------------
-@c Part 3: Reference Documentation
-@c ---------------------------------------------------------------------
-
-@ifnotinfo
-@ifnothtml
-@part Part 4:@* Reference Documentation
-@end ifnothtml
-@end ifnotinfo
-
-@c ---------------------------------------------------------------------
 @c StarPU API
 @c ---------------------------------------------------------------------
 
