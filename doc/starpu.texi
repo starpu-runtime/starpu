@@ -99,16 +99,6 @@ was last updated on @value{UPDATED}.
 @include chapters/introduction.texi
 
 @c ---------------------------------------------------------------------
-@c Part 1: Quick Start
-@c ---------------------------------------------------------------------
-
-@ifnotinfo
-@ifnothtml
-@part Part 1:@* Quick Start
-@end ifnothtml
-@end ifnotinfo
-
-@c ---------------------------------------------------------------------
 @c Installing StarPU
 @c ---------------------------------------------------------------------
 
@@ -133,16 +123,6 @@ was last updated on @value{UPDATED}.
 @include chapters/advanced-examples.texi
 
 @c ---------------------------------------------------------------------
-@c Part 2: Optimisation Check List and Tips
-@c ---------------------------------------------------------------------
-
-@ifnotinfo
-@ifnothtml
-@part Part 2:@* Optimization Check List and Tips
-@end ifnothtml
-@end ifnotinfo
-
-@c ---------------------------------------------------------------------
 @c Performance options
 @c ---------------------------------------------------------------------
 
@@ -165,16 +145,6 @@ was last updated on @value{UPDATED}.
 @node Tips and Tricks
 @chapter Tips and Tricks to know about
 @include chapters/tips-tricks.texi
-
-@c ---------------------------------------------------------------------
-@c Part 3: Extensions To StarPU
-@c ---------------------------------------------------------------------
-
-@ifnotinfo
-@ifnothtml
-@part Part 3:@* Extensions To StarPU
-@end ifnothtml
-@end ifnotinfo
 
 @c ---------------------------------------------------------------------
 @c MPI support
