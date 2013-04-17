@@ -171,7 +171,7 @@ struct sched_ctx_hypervisor_policy
 
 	void (*handle_post_exec_hook)(unsigned sched_ctx, int task_tag);
 
-	void (*handle_submitted_job)(struct starpu_task *task, unsigned footprint);
+	void (*handle_submitted_job)(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint);
 	
 	void (*end_ctx)(unsigned sched_ctx);
 };
@@ -231,6 +231,7 @@ double sched_ctx_hypervisor_get_velocity_per_worker_type(struct sched_ctx_hyperv
 
 double sched_ctx_hypervisor_get_velocity(struct sched_ctx_hypervisor_wrapper *sc_w, enum starpu_archtype arch);
 
+void sched_ctx_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint);
 #ifdef __cplusplus
 }
 #endif

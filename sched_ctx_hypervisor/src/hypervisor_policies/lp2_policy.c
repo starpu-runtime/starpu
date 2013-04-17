@@ -165,7 +165,7 @@ static void size_if_required()
 	}
 }
 
-static void lp2_handle_submitted_job(struct starpu_task *task, uint32_t footprint)
+static void lp2_handle_submitted_job(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint)
 {
 	/* count the tasks of the same type */
 	starpu_pthread_mutex_lock(&mutex);
@@ -173,16 +173,16 @@ static void lp2_handle_submitted_job(struct starpu_task *task, uint32_t footprin
 
 	for (tp = task_pools; tp; tp = tp->next)
 	{
-		if (tp && tp->cl == task->cl && tp->footprint == footprint && tp->sched_ctx_id == task->sched_ctx)
+		if (tp && tp->cl == cl && tp->footprint == footprint && tp->sched_ctx_id == sched_ctx)
 			break;
 	}
 
 	if (!tp)
 	{
 		tp = (struct bound_task_pool *) malloc(sizeof(struct bound_task_pool));
-		tp->cl = task->cl;
+		tp->cl = cl;
 		tp->footprint = footprint;
-		tp->sched_ctx_id = task->sched_ctx;
+		tp->sched_ctx_id = sched_ctx;
 		tp->n = 0;
 		tp->next = task_pools;
 		task_pools = tp;
