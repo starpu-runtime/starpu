@@ -24,11 +24,17 @@ extern "C"
 {
 #endif
 
+/* structure to indicate when the moving of workers was actually done 
+   (moved workers can be seen in the new ctx ) */
 struct sched_ctx_hypervisor_resize_ack
 {
+	/* receiver context */
 	int receiver_sched_ctx;
+	/* list of workers required to be moved */
 	int *moved_workers;
+	/* number of workers required to be moved */
 	int nmoved_workers;
+	/* list of workers that actually got in the receiver ctx */
 	int *acked_workers;
 };
 
@@ -91,21 +97,28 @@ struct sched_ctx_hypervisor_wrapper
 	starpu_pthread_mutex_t mutex;
 };
 
+/* return the wrapper of context that saves its monitoring information */
 struct sched_ctx_hypervisor_wrapper *sched_ctx_hypervisor_get_wrapper(unsigned sched_ctx);
 
+/* get the list of registered contexts */
 int *sched_ctx_hypervisor_get_sched_ctxs();
 
+/* get the number of registered contexts */
 int sched_ctx_hypervisor_get_nsched_ctxs();
 
+/* get the number of workers of a certain architecture in a context */
 int sched_ctx_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch);
 
+/* get the number of flops executed by a context since last resizing (reset to 0 when a resizing is done)*/
 double sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(struct sched_ctx_hypervisor_wrapper *sc_w);
 
+/* get the number of flops executed by a context since the begining */
 double sched_ctx_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sched_ctx_hypervisor_wrapper* sc_w);
 
 /* compute an average value of the cpu/cuda velocity */
 double sched_ctx_hypervisor_get_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
 
+/* compte the actual velocity of all workers of a specific type of worker */
 double sched_ctx_hypervisor_get_velocity(struct sched_ctx_hypervisor_wrapper *sc_w, enum starpu_archtype arch);
 
 #ifdef __cplusplus
