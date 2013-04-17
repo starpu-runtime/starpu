@@ -19,6 +19,7 @@
 #include <starpu_config.h>
 
 unsigned imposed_resize = 0;
+unsigned type_of_tasks_known = 0;
 struct starpu_sched_ctx_performance_counters* perf_counters = NULL;
 
 static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time);
@@ -497,11 +498,9 @@ void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sche
 	
 	double start_time =  starpu_timing_now();
 	sender_sc_w->start_time = start_time;
-//	sender_sc_w->remaining_flops = sender_sc_w->remaining_flops - sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sender_sc_w);
 	_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
 
 	receiver_sc_w->start_time = start_time;
-//	receiver_sc_w->remaining_flops = receiver_sc_w->remaining_flops - sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(receiver_sc_w);
 	_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
 }
 
@@ -509,7 +508,7 @@ void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sche
 /* forbids another resize request before this one is take into account */
 void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int* workers_to_move, unsigned nworkers_to_move, unsigned now)
 {
-	if(nworkers_to_move > 0 && hypervisor.resize[sender_sched_ctx])// && hypervisor.resize[receiver_sched_ctx])
+	if(nworkers_to_move > 0 && hypervisor.resize[sender_sched_ctx])
 	{
 		_print_current_time();
 		unsigned j;
@@ -553,7 +552,6 @@ void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned recei
 				}
 
 				hypervisor.resize[sender_sched_ctx] = 0;
-//				hypervisor.resize[receiver_sched_ctx] = 0;
 
 				starpu_pthread_mutex_unlock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
 			}
@@ -736,7 +734,6 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 
 				hypervisor.resize[sender_sched_ctx] = 1;
 				hypervisor.allow_remove[receiver_sched_ctx] = 1;
-				//	hypervisor.resize[receiver_sched_ctx] = 1;
 				/* if the user allowed resizing leave the decisions to the application */
 				if(imposed_resize)  imposed_resize = 0;
 
@@ -882,8 +879,7 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 			HASH_FIND_INT(hypervisor.resize_requests[sched_ctx], &task_tag, entry);
 			if (entry != NULL)
 			{
-				hypervisor.policy.handle_post_exec_hook(sched_ctx,
-									task_tag);
+				hypervisor.policy.handle_post_exec_hook(sched_ctx, task_tag);
 				HASH_DEL(hypervisor.resize_requests[sched_ctx], entry);
 				free(entry);
 			}
@@ -900,8 +896,15 @@ static void notify_submitted_job(struct starpu_task *task, uint32_t footprint)
 	hypervisor.sched_ctx_w[task->sched_ctx].submitted_flops += task->flops;
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 
+	if(hypervisor.policy.handle_submitted_job && !type_of_tasks_known)
+		hypervisor.policy.handle_submitted_job(task->cl, task->sched_ctx, footprint);
+}
+
+void sched_ctx_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint)
+{
+	type_of_tasks_known = 1;
 	if(hypervisor.policy.handle_submitted_job)
-		hypervisor.policy.handle_submitted_job(task, footprint);
+		hypervisor.policy.handle_submitted_job(cl, sched_ctx, footprint);
 }
 
 static void notify_delete_context(unsigned sched_ctx)
