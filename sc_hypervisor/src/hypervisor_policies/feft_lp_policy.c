@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "sched_ctx_hypervisor_lp.h"
+#include "sc_hypervisor_lp.h"
 #include <starpu_config.h>
 #include <sys/time.h>
 
@@ -23,7 +23,7 @@ static void feft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 {
 	if(_velocity_gap_btw_ctxs())
 	{
-		int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+		int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 		double nworkers[nsched_ctxs][2];
 
@@ -63,7 +63,7 @@ static void feft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 }
 static void feft_lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 {
-	int nsched_ctxs = sched_ctxs == NULL ? sched_ctx_hypervisor_get_nsched_ctxs() : ns;
+	int nsched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : ns;
 	int nw = 1;
 #ifdef STARPU_USE_CUDA
 	int ncuda = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
@@ -99,14 +99,14 @@ static void feft_lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworker
 /* 				printf("ctx %d/worker type %d: n = %d \n", i, 1, nworkers_per_type_rounded[i][1]); */
 /* #endif */
 /* 		} */
-		int *current_sched_ctxs = sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : 
+		int *current_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : 
 			sched_ctxs;
 
 		unsigned has_workers = 0;
 		int s;
 		for(s = 0; s < ns; s++)
 		{
-			int nworkers_ctx = sched_ctx_hypervisor_get_nworkers_ctx(current_sched_ctxs[s], 
+			int nworkers_ctx = sc_hypervisor_get_nworkers_ctx(current_sched_ctxs[s], 
 									     STARPU_ANY_WORKER);
 			if(nworkers_ctx != 0)
 			{
@@ -122,7 +122,7 @@ static void feft_lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworker
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }
 
-struct sched_ctx_hypervisor_policy feft_lp_policy = {
+struct sc_hypervisor_policy feft_lp_policy = {
 	.size_ctxs = feft_lp_size_ctxs,
 	.handle_poped_task = feft_lp_handle_poped_task,
 	.handle_pushed_task = NULL,

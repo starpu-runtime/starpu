@@ -15,8 +15,8 @@
  */
 
 #include <starpu_config.h>
-#include "sched_ctx_hypervisor_lp.h"
-#include "sched_ctx_hypervisor_policy.h"
+#include "sc_hypervisor_lp.h"
+#include "sc_hypervisor_policy.h"
 #include <math.h>
 #include <sys/time.h>
 
@@ -124,7 +124,7 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 
 static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
-	int ns = sched_ctxs == NULL ? sched_ctx_hypervisor_get_nsched_ctxs() : nsched_ctxs;
+	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 	int nw = workers == NULL ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
 	int nt = 0; /* Number of different kinds of tasks */
 	starpu_pthread_mutex_lock(&mutex);
@@ -145,17 +145,17 @@ static void size_if_required()
 {
 	int nsched_ctxs, nworkers;
 	int *sched_ctxs, *workers;
-	unsigned has_req = sched_ctx_hypervisor_get_size_req(&sched_ctxs, &nsched_ctxs, &workers, &nworkers);
+	unsigned has_req = sc_hypervisor_get_size_req(&sched_ctxs, &nsched_ctxs, &workers, &nworkers);
 
 	if(has_req)
 	{
-		struct sched_ctx_hypervisor_wrapper* sc_w = NULL;
+		struct sc_hypervisor_wrapper* sc_w = NULL;
 		unsigned ready_to_size = 1;
 		int s;
 		starpu_pthread_mutex_lock(&act_hypervisor_mutex);
 		for(s = 0; s < nsched_ctxs; s++)
 		{
-			sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]);
+			sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
 			if(sc_w->submitted_flops < sc_w->total_flops)
 				ready_to_size = 0;
 		}
@@ -358,7 +358,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 					glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0.0, 1.0);
 			}
 
-		int *sched_ctxs = in_sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : in_sched_ctxs;
+		int *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 
 		int curr_row_idx = 0;
 		/* Total worker execution time */
@@ -529,7 +529,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 
 static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
-	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
+	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
 
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
@@ -542,7 +542,7 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 
 		if(_velocity_gap_btw_ctxs())
 		{
-			int ns = sched_ctx_hypervisor_get_nsched_ctxs();
+			int ns = sc_hypervisor_get_nsched_ctxs();
 			int nw = starpu_worker_get_count(); /* Number of different workers */
 			int nt = 0; /* Number of different kinds of tasks */
 
@@ -594,10 +594,10 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 
 static void teft_lp_size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
-	sched_ctx_hypervisor_save_size_req(sched_ctxs, nsched_ctxs, workers, nworkers);
+	sc_hypervisor_save_size_req(sched_ctxs, nsched_ctxs, workers, nworkers);
 }
 
-struct sched_ctx_hypervisor_policy teft_lp_policy = {
+struct sc_hypervisor_policy teft_lp_policy = {
 	.size_ctxs = teft_lp_size_ctxs,
 	.handle_poped_task = teft_lp_handle_poped_task,
 	.handle_pushed_task = NULL,

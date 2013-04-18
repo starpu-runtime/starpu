@@ -13,14 +13,14 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-#include <sched_ctx_hypervisor_policy.h>
+#include <sc_hypervisor_policy.h>
 
 static void app_driven_handle_post_exec_hook(unsigned sched_ctx, int task_tag)
 {
 	_resize_to_unknown_receiver(sched_ctx, 1);
 }
 
-struct sched_ctx_hypervisor_policy app_driven_policy =
+struct sc_hypervisor_policy app_driven_policy =
 {
 	.size_ctxs = NULL,
 	.handle_poped_task = NULL,

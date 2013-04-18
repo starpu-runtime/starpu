@@ -14,16 +14,16 @@
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS)
 LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src/ -I$(top_builddir)/include -I$(top_srcdir)/sched_ctx_hypervisor/include/ -I$(top_srcdir)/sched_ctx_hypervisor/src
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src/ -I$(top_builddir)/include -I$(top_srcdir)/sc_hypervisor/include/ -I$(top_srcdir)/sc_hypervisor/src
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
-lib_LTLIBRARIES = libsched_ctx_hypervisor.la
+lib_LTLIBRARIES = libsc_hypervisor.la
 
-libsched_ctx_hypervisor_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
+libsc_hypervisor_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
-libsched_ctx_hypervisor_la_SOURCES = 			\
-	sched_ctx_hypervisor.c				\
-	sched_ctx_config.c				\
+libsc_hypervisor_la_SOURCES = 				\
+	sc_hypervisor.c					\
+	sc_config.c					\
 	policies_utils/policy_tools.c			\
 	policies_utils/lp_tools.c			\
 	hypervisor_policies/idle_policy.c		\
@@ -35,7 +35,7 @@ libsched_ctx_hypervisor_la_SOURCES = 			\
 	hypervisor_policies/ispeed_lp_policy.c		\
 	hypervisor_policies/debit_lp_policy.c
 
-noinst_HEADERS = sched_ctx_hypervisor_intern.h		
+noinst_HEADERS = sc_hypervisor_intern.h		
 
 showcheck:
 	-cat /dev/null

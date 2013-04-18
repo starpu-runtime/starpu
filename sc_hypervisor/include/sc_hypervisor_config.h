@@ -17,7 +17,7 @@
 #ifndef SCHED_CTX_HYPERVISOR_CONFIG_H
 #define SCHED_CTX_HYPERVISOR_CONFIG_H
 
-#include <sched_ctx_hypervisor.h>
+#include <sc_hypervisor.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -44,7 +44,7 @@ extern "C"
 #define MAX_IDLE_TIME 5000000000
 #define MIN_WORKING_TIME 500
 
-struct sched_ctx_hypervisor_policy_config
+struct sc_hypervisor_policy_config
 {
 	/* underneath this limit we cannot resize */
 	int min_nworkers;
@@ -84,13 +84,13 @@ struct sched_ctx_hypervisor_policy_config
 };
 
 /* set a certain configuration to a context */
-void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config);
+void sc_hypervisor_set_config(unsigned sched_ctx, void *config);
 
 /* check out the configuration of a context */
-struct sched_ctx_hypervisor_policy_config *sched_ctx_hypervisor_get_config(unsigned sched_ctx);
+struct sc_hypervisor_policy_config *sc_hypervisor_get_config(unsigned sched_ctx);
 
 /* impose different parameters to a configuration of a context */
-void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...);
+void sc_hypervisor_ioctl(unsigned sched_ctx, ...);
 
 #ifdef __cplusplus
 }

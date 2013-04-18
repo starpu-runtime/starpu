@@ -15,8 +15,8 @@
  */
 
 #include <starpu_config.h>
-#include "sched_ctx_hypervisor_lp.h"
-#include "sched_ctx_hypervisor_policy.h"
+#include "sc_hypervisor_lp.h"
+#include "sc_hypervisor_policy.h"
 #include <math.h>
 #include <sys/time.h>
 
@@ -29,15 +29,15 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 	double flops[ns];
 	double velocity[ns][nw];
 
-	int *sched_ctxs = in_sched_ctxs == NULL ? sched_ctx_hypervisor_get_sched_ctxs() : in_sched_ctxs;
+	int *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 	
 	int w,s;
 
-	struct sched_ctx_hypervisor_wrapper* sc_w = NULL;
+	struct sc_hypervisor_wrapper* sc_w = NULL;
 	double total_flops = 0.0;
 	for(s = 0; s < ns; s++)
 	{
-		sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctxs[s]);
+		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
 		for(w = 0; w < nw; w++)
 		{
 			w_in_s[s][w] = 0.0;
@@ -50,7 +50,7 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 			if(velocity[s][w] == -1.0)
 			{
 				enum starpu_archtype arch = starpu_worker_get_type(worker);
-				velocity[s][w] = sched_ctx_hypervisor_get_velocity(sc_w, arch);
+				velocity[s][w] = sc_hypervisor_get_velocity(sc_w, arch);
 				if(arch == STARPU_CUDA_WORKER)
 				{
 					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx);
@@ -65,7 +65,7 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 			
 //			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
 		}
-		struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sched_ctxs[s]);
+		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[s]);
 		flops[s] = config->ispeed_ctx_sample/1000000000; /* in gflops */
 	}
 	
@@ -356,14 +356,14 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 
 static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
-	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
+	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
 	_get_velocity_per_worker(sc_w, worker);
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
 		if(_velocity_gap_btw_ctxs())
 		{
-			int ns = sched_ctx_hypervisor_get_nsched_ctxs();
+			int ns = sc_hypervisor_get_nsched_ctxs();
 			int nw = starpu_worker_get_count(); /* Number of different workers */
 
 			double w_in_s[ns][nw];
@@ -419,7 +419,7 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct s
 
 static void ispeed_lp_end_ctx(unsigned sched_ctx)
 {
-	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
+	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
 	int worker;
 /* 	for(worker = 0; worker < 12; worker++) */
 /* 		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_velocity[worker]); */
@@ -427,7 +427,7 @@ static void ispeed_lp_end_ctx(unsigned sched_ctx)
 	return;
 }
 
-struct sched_ctx_hypervisor_policy ispeed_lp_policy = {
+struct sc_hypervisor_policy ispeed_lp_policy = {
 	.size_ctxs = NULL,
 	.handle_poped_task = ispeed_lp_handle_poped_task,
 	.handle_pushed_task = NULL,
