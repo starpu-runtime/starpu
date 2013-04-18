@@ -33,29 +33,29 @@ extern "C"
 #endif //STARPU_HAVE_GLPK_H
 
 /* returns 1/tmax, and computes in table res the nr of workers needed by each context st the system ends up in the smallest tmax*/
-double _lp_compute_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double velocity[nsched_ctxs][ntypes_of_workers], double flops[nsched_ctxs], 
+double sc_hypervisor_lp_compute_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double velocity[nsched_ctxs][ntypes_of_workers], double flops[nsched_ctxs], 
 				    double res[nsched_ctxs][ntypes_of_workers], int total_nw[ntypes_of_workers]);
 
 /* returns tmax, and computes in table res the nr of workers needed by each context st the system ends up in the smallest tmax*/
-double _lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers], int total_nw[ntypes_of_workers]);
+double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers], int total_nw[ntypes_of_workers]);
 
 /* returns tmax of the system */
-double _lp_get_tmax(int nw, int *workers);
+double sc_hypervisor_lp_get_tmax(int nw, int *workers);
 
 /* the linear programme determins a rational number of ressources for each ctx, we round them depending on the type of ressource */
-void _lp_round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns][nw]);
+void sc_hypervisor_lp_round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns][nw]);
 
 /* redistribute the ressource in contexts by assigning the first x available ressources to each one */
-void _lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw]);
+void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw]);
 
 /* make the first distribution of ressource in contexts by assigning the first x available ressources to each one */
-void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *workers, int nworkers);
+void sc_hypervisor_lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *workers, int nworkers);
 
 /* place resources in contexts dependig on whether they already have workers or not */
-void _lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][nw], int *sched_ctxs, int *workers, unsigned do_size);
+void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][nw], int *sched_ctxs, int *workers, unsigned do_size);
 
 /* dichotomy btw t1 & t2 */
-double _lp_find_tmax(double t1, double t2);
+double sc_hypervisor_lp_find_tmax(double t1, double t2);
 
 #ifdef __cplusplus
 }

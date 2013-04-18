@@ -48,7 +48,7 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 
 	/* smallest possible tmax, difficult to obtain as we
 	   compute the nr of flops and not the tasks */
-	double possible_tmax = _lp_get_tmax(nw, workers);
+	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, workers);
 	double smallest_tmax = possible_tmax / 3;
 	double tmax = possible_tmax * ns;
 	double res = 1.0;
@@ -100,13 +100,13 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 				tmax = old_tmax;
 		}
 		if(tmin == tmax) break;
-		tmax = _lp_find_tmax(tmin, tmax);
+		tmax = sc_hypervisor_lp_find_tmax(tmin, tmax);
 
 		if(tmax < smallest_tmax)
 		{
 			tmax = old_tmax;
 			tmin = smallest_tmax;
-			tmax = _lp_find_tmax(tmin, tmax);
+			tmax = sc_hypervisor_lp_find_tmax(tmin, tmax);
 		}
 		nd++;
 	}
@@ -138,7 +138,7 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 	starpu_pthread_mutex_unlock(&mutex);
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
-		_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, workers, 1);
+		sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, workers, 1);
 }
 
 static void size_if_required()
@@ -568,7 +568,7 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 
 			/* if we did find at least one solution redistribute the resources */
 			if(found_sol)
-				_lp_place_resources_in_ctx(ns, nw, w_in_s, NULL, NULL, 0);
+				sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, NULL, NULL, 0);
 
 			struct bound_task_pool *next = NULL;
 			struct bound_task_pool *tmp_tp = tmp_task_pools;

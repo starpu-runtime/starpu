@@ -124,13 +124,13 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 				tmax = old_tmax;
 		}
 		if(tmin == tmax) break;
-		tmax = _lp_find_tmax(tmin, tmax);
+		tmax = sc_hypervisor_lp_find_tmax(tmin, tmax);
 
 		if(tmax < smallest_tmax)
 		{
 			tmax = old_tmax;
 			tmin = smallest_tmax;
-			tmax = _lp_find_tmax(tmin, tmax);
+			tmax = sc_hypervisor_lp_find_tmax(tmin, tmax);
 		}
 		nd++;
 	}
@@ -409,7 +409,7 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct s
 /* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
 /* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
 
-				_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
+				sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
 
 			}
 		}
