@@ -14,12 +14,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "sched_ctx_hypervisor_policy.h"
+#include "sc_hypervisor_policy.h"
 
 unsigned worker_belong_to_other_sched_ctx(unsigned sched_ctx, int worker)
 {
-	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
-	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	int i;
 	for(i = 0; i < nsched_ctxs; i++)
@@ -30,18 +30,18 @@ unsigned worker_belong_to_other_sched_ctx(unsigned sched_ctx, int worker)
 
 void idle_handle_idle_cycle(unsigned sched_ctx, int worker)
 {
-	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
-	struct sched_ctx_hypervisor_policy_config *config = sc_w->config;
+	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
+	struct sc_hypervisor_policy_config *config = sc_w->config;
 	if(config != NULL &&  sc_w->current_idle_time[worker] > config->max_idle[worker])
 	{
 		if(worker_belong_to_other_sched_ctx(sched_ctx, worker))
-			sched_ctx_hypervisor_remove_workers_from_sched_ctx(&worker, 1, sched_ctx, 1);
+			sc_hypervisor_remove_workers_from_sched_ctx(&worker, 1, sched_ctx, 1);
 		else
 			_resize_to_unknown_receiver(sched_ctx, 0);
 	}
 }
 
-struct sched_ctx_hypervisor_policy idle_policy =
+struct sc_hypervisor_policy idle_policy =
 {
 	.size_ctxs = NULL,
 	.handle_poped_task = NULL,

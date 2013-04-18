@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <starpu.h>
-#include <sched_ctx_hypervisor.h>
+#include <sc_hypervisor.h>
 
 #define NTASKS 1000
 #define NINCR 10
@@ -86,13 +86,13 @@ int main()
 	unsigned sched_ctx2 = starpu_sched_ctx_create("dmda", NULL, 0, "sched_ctx2");
 
 	/* initialize the hypervisor */
-	struct sched_ctx_hypervisor_policy policy;
+	struct sc_hypervisor_policy policy;
 	policy.custom = 0;
 	/* indicate which strategy to use
 	   in this particular case we use app_driven which allows the user to resize 
 	   the ctxs dynamically at particular moments of the execution of the application */
 	policy.name = "feft_lp";
-	void *perf_counters = sched_ctx_hypervisor_init(&policy);
+	void *perf_counters = sc_hypervisor_init(&policy);
 
 	/* let starpu know which performance counters should use 
 	   to inform the hypervisor how the application and the resources are executing */
@@ -104,11 +104,11 @@ int main()
 	/* register the contexts that should be managed by the hypervisor
 	   and indicate an approximate amount of workload if known;
 	   in this case we don't know it and we put 0 */
-	sched_ctx_hypervisor_register_ctx(sched_ctx1, flops1);
-	sched_ctx_hypervisor_register_ctx(sched_ctx2, flops2);
+	sc_hypervisor_register_ctx(sched_ctx1, flops1);
+	sc_hypervisor_register_ctx(sched_ctx2, flops2);
         /* lp strategy allows sizing the contexts because we know the total number of flops
 	   to be executed */
-	sched_ctx_hypervisor_size_ctxs(NULL, -1, NULL, -1);
+	sc_hypervisor_size_ctxs(NULL, -1, NULL, -1);
 
 	starpu_pthread_t tid[2];
 
@@ -126,7 +126,7 @@ int main()
 
 	/* free starpu and hypervisor data */
 	starpu_shutdown();
-	sched_ctx_hypervisor_shutdown();
+	sc_hypervisor_shutdown();
 
 	FPRINTF(stdout, "ctx = %d executed %d counter_tests out of %d \n", sched_ctx1, val[0], NTASKS*NINCR);
 	FPRINTF(stdout, "ctx = %d executed %d counter_tests out of %d \n", sched_ctx2, val[1], NTASKS*NINCR);

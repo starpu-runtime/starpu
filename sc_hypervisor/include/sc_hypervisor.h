@@ -18,8 +18,8 @@
 #define SCHED_CTX_HYPERVISOR_H
 
 #include <starpu.h>
-#include <sched_ctx_hypervisor_config.h>
-#include <sched_ctx_hypervisor_monitoring.h>
+#include <sc_hypervisor_config.h>
+#include <sc_hypervisor_monitoring.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -37,7 +37,7 @@ starpu_pthread_mutex_t act_hypervisor_mutex;
 struct resize_request_entry;
 
 /* platform of resizing contexts */
-struct sched_ctx_hypervisor_policy
+struct sc_hypervisor_policy
 {
 	/* name of the strategy */
 	const char* name;
@@ -72,55 +72,55 @@ struct sched_ctx_hypervisor_policy
 };
 
 /* start the hypervisor indicating the resizing policy to user */
-struct starpu_sched_ctx_performance_counters *sched_ctx_hypervisor_init(struct sched_ctx_hypervisor_policy *policy);
+struct starpu_sched_ctx_performance_counters *sc_hypervisor_init(struct sc_hypervisor_policy *policy);
 
 /* shutdown the hypervisor */
-void sched_ctx_hypervisor_shutdown(void);
+void sc_hypervisor_shutdown(void);
 
 /* only registered contexts are resized by the hypervisor */
-void sched_ctx_hypervisor_register_ctx(unsigned sched_ctx, double total_flops);
+void sc_hypervisor_register_ctx(unsigned sched_ctx, double total_flops);
 
 /* remove a worker from the hypervisor's list */
-void sched_ctx_hypervisor_unregister_ctx(unsigned sched_ctx);
+void sc_hypervisor_unregister_ctx(unsigned sched_ctx);
 
 /* submit a requirement of resizing when a task taged with task_tag is executed */
-void sched_ctx_hypervisor_resize(unsigned sched_ctx, int task_tag);
+void sc_hypervisor_resize(unsigned sched_ctx, int task_tag);
 
 /* don't allow the hypervisor to resize a context */
-void sched_ctx_hypervisor_stop_resize(unsigned sched_ctx);
+void sc_hypervisor_stop_resize(unsigned sched_ctx);
 
 /* allow the hypervisor to resize a context */
-void sched_ctx_hypervisor_start_resize(unsigned sched_ctx);
+void sc_hypervisor_start_resize(unsigned sched_ctx);
 
 /* check out the current policy of the hypervisor */
-const char *sched_ctx_hypervisor_get_policy();
+const char *sc_hypervisor_get_policy();
 
 /* ask the hypervisor to add workers to a sched_ctx */
-void sched_ctx_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx);
+void sc_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx);
 
 /* ask the hypervisor to remove workers from a sched_ctx */
-void sched_ctx_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigned nworkers_to_remove, unsigned sched_ctx, unsigned now);
+void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigned nworkers_to_remove, unsigned sched_ctx, unsigned now);
 
 /* ask the hypervisor to move workers from one context to another */
-void sched_ctx_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int *workers_to_move, unsigned nworkers_to_move, unsigned now);
+void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int *workers_to_move, unsigned nworkers_to_move, unsigned now);
 
 /* ask the hypervisor to chose a distribution of workers in the required contexts */
-void sched_ctx_hypervisor_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
+void sc_hypervisor_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
 
 /* check if there are pending demands of resizing */
-unsigned sched_ctx_hypervisor_get_size_req(int **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers);
+unsigned sc_hypervisor_get_size_req(int **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers);
 
 /* save a demand of resizing */
-void sched_ctx_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
+void sc_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
 
 /* clear the list of pending demands of resizing */
-void sched_ctx_hypervisor_free_size_req(void);
+void sc_hypervisor_free_size_req(void);
 
 /* check out if a context can be resized */
-unsigned sched_ctx_hypervisor_can_resize(unsigned sched_ctx);
+unsigned sc_hypervisor_can_resize(unsigned sched_ctx);
 
 /* indicate the types of tasks a context will execute in order to better decide the sizing of ctxs */
-void sched_ctx_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint);
+void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint);
 
 #ifdef __cplusplus
 }

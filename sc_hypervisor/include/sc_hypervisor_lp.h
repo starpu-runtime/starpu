@@ -17,7 +17,7 @@
 #ifndef SCHED_CTX_HYPERVISOR_LP_H
 #define SCHED_CTX_HYPERVISOR_LP_H
 
-#include <sched_ctx_hypervisor.h>
+#include <sc_hypervisor.h>
 #include <starpu_config.h>
 
 #ifdef __cplusplus

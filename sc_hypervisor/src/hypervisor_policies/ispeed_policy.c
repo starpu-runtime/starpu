@@ -14,12 +14,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "sched_ctx_hypervisor_policy.h"
+#include "sc_hypervisor_policy.h"
 
 static unsigned _get_fastest_sched_ctx(void)
 {
-	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
-	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	int fastest_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 	double curr_velocity = 0.0;
@@ -27,7 +27,7 @@ static unsigned _get_fastest_sched_ctx(void)
 	int i;
 	for(i = 0; i < nsched_ctxs; i++)
 	{
-		curr_velocity = _get_ctx_velocity(sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]));
+		curr_velocity = _get_ctx_velocity(sc_hypervisor_get_wrapper(sched_ctxs[i]));
 		if( curr_velocity > biggest_velocity)
 		{
 			fastest_sched_ctx = sched_ctxs[i];
@@ -40,16 +40,16 @@ static unsigned _get_fastest_sched_ctx(void)
 
 static unsigned _get_slowest_sched_ctx(void)
 {
-	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
-	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
-	double smallest_velocity = _get_ctx_velocity(sched_ctx_hypervisor_get_wrapper(sched_ctxs[0]));
+	double smallest_velocity = _get_ctx_velocity(sc_hypervisor_get_wrapper(sched_ctxs[0]));
 	unsigned slowest_sched_ctx = smallest_velocity == -1.0  ? STARPU_NMAX_SCHED_CTXS : sched_ctxs[0];
 	double curr_velocity = 0.0;
 	int i;
 	for(i = 1; i < nsched_ctxs; i++)
 	{
-		curr_velocity = _get_ctx_velocity(sched_ctx_hypervisor_get_wrapper(sched_ctxs[i]));
+		curr_velocity = _get_ctx_velocity(sc_hypervisor_get_wrapper(sched_ctxs[i]));
 		if((curr_velocity < smallest_velocity || smallest_velocity == 0.0) && curr_velocity != -1.0)
 		{
 			smallest_velocity = curr_velocity;
@@ -64,8 +64,8 @@ static unsigned _get_slowest_sched_ctx(void)
 /* get first nworkers with the highest idle time in the context */
 static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype arch)
 {
-	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
-	struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(sched_ctx);
+	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
+	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctx);
 
 	int *curr_workers = (int*)malloc((*nworkers) * sizeof(int));
 	int i;
@@ -161,14 +161,14 @@ static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, struct star
 						double new_speed = 0.0;
 						int i;
 						for(i = 0; i < nworkers_to_move; i++)
-							new_speed += _get_velocity_per_worker(sched_ctx_hypervisor_get_wrapper(fastest_sched_ctx), workers_to_move[i]);
-						double fastest_speed = _get_ctx_velocity(sched_ctx_hypervisor_get_wrapper(fastest_sched_ctx));
-						double slowest_speed = _get_ctx_velocity(sched_ctx_hypervisor_get_wrapper(slowest_sched_ctx));
+							new_speed += _get_velocity_per_worker(sc_hypervisor_get_wrapper(fastest_sched_ctx), workers_to_move[i]);
+						double fastest_speed = _get_ctx_velocity(sc_hypervisor_get_wrapper(fastest_sched_ctx));
+						double slowest_speed = _get_ctx_velocity(sc_hypervisor_get_wrapper(slowest_sched_ctx));
 //						printf("fast_speed(%d) %lf slow_speed(%d) %lf new speed(%d) %lf \n", fastest_sched_ctx, fastest_speed, slowest_sched_ctx, 
 //						       slowest_speed, workers_to_move[0], new_speed);
 						if(fastest_speed != -1.0 && slowest_speed != -1.0 && (slowest_speed + new_speed) <= (fastest_speed - new_speed))
 						{
-							sched_ctx_hypervisor_move_workers(fastest_sched_ctx, slowest_sched_ctx, workers_to_move, nworkers_to_move, 0);
+							sc_hypervisor_move_workers(fastest_sched_ctx, slowest_sched_ctx, workers_to_move, nworkers_to_move, 0);
 						}
 					}
 					
@@ -181,7 +181,7 @@ static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, struct star
 	}
 }
 
-struct sched_ctx_hypervisor_policy ispeed_policy = {
+struct sc_hypervisor_policy ispeed_policy = {
 	.size_ctxs = NULL,
 	.handle_poped_task = ispeed_handle_poped_task,
 	.handle_pushed_task = NULL,

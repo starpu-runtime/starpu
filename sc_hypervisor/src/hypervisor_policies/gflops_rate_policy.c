@@ -14,11 +14,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "sched_ctx_hypervisor_policy.h"
+#include "sc_hypervisor_policy.h"
 
 static double _get_total_elapsed_flops_per_sched_ctx(unsigned sched_ctx)
 {
-	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
+	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
 	double ret_val = 0.0;
 	int i;
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
@@ -28,8 +28,8 @@ static double _get_total_elapsed_flops_per_sched_ctx(unsigned sched_ctx)
 
 double _get_exp_end(unsigned sched_ctx)
 {
-	struct sched_ctx_hypervisor_wrapper *sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
-	double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
+	struct sc_hypervisor_wrapper *sc_w = sc_hypervisor_get_wrapper(sched_ctx);
+	double elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 
 	if( elapsed_flops >= 1.0)
 	{
@@ -44,7 +44,7 @@ double _get_exp_end(unsigned sched_ctx)
 /* computes the instructions left to be executed out of the total instructions to execute */
 double _get_flops_left_pct(unsigned sched_ctx)
 {
-	struct sched_ctx_hypervisor_wrapper *wrapper = sched_ctx_hypervisor_get_wrapper(sched_ctx);
+	struct sc_hypervisor_wrapper *wrapper = sc_hypervisor_get_wrapper(sched_ctx);
 	double total_elapsed_flops = _get_total_elapsed_flops_per_sched_ctx(sched_ctx);
 	if(wrapper->total_flops == total_elapsed_flops || total_elapsed_flops > wrapper->total_flops)
 		return 0.0;
@@ -55,8 +55,8 @@ double _get_flops_left_pct(unsigned sched_ctx)
 /* select the workers needed to be moved in order to force the sender and the receiver context to finish simultaneously */
 static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int *nworkers)
 {
-	struct sched_ctx_hypervisor_wrapper* sender_sc_w = sched_ctx_hypervisor_get_wrapper(sender_sched_ctx);
-	struct sched_ctx_hypervisor_wrapper* receiver_sc_w = sched_ctx_hypervisor_get_wrapper(receiver_sched_ctx);
+	struct sc_hypervisor_wrapper* sender_sc_w = sc_hypervisor_get_wrapper(sender_sched_ctx);
+	struct sc_hypervisor_wrapper* receiver_sc_w = sc_hypervisor_get_wrapper(receiver_sched_ctx);
         int *workers = NULL;
         double v_receiver = _get_ctx_velocity(receiver_sc_w);
         double receiver_remainig_flops = receiver_sc_w->remaining_flops;
@@ -69,11 +69,11 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
 /*             v_receiver, v_for_rctx, sender_v_cpu, nworkers_needed); */
         if(nworkers_needed > 0)
         {
-                struct sched_ctx_hypervisor_policy_config *sender_config = sched_ctx_hypervisor_get_config(sender_sched_ctx);
+                struct sc_hypervisor_policy_config *sender_config = sc_hypervisor_get_config(sender_sched_ctx);
                 unsigned potential_moving_cpus = _get_potential_nworkers(sender_config, sender_sched_ctx, STARPU_CPU_WORKER);
                 unsigned potential_moving_gpus = _get_potential_nworkers(sender_config, sender_sched_ctx, STARPU_CUDA_WORKER);
                 unsigned sender_nworkers = starpu_sched_ctx_get_nworkers(sender_sched_ctx);
-                struct sched_ctx_hypervisor_policy_config *config = sched_ctx_hypervisor_get_config(receiver_sched_ctx);
+                struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(receiver_sched_ctx);
                 unsigned nworkers_ctx = starpu_sched_ctx_get_nworkers(receiver_sched_ctx);
 
                 if(nworkers_needed < (potential_moving_cpus + 5 * potential_moving_gpus))
@@ -147,9 +147,9 @@ static unsigned _gflops_rate_resize(unsigned sender_sched_ctx, unsigned receiver
                 int *workers_to_move =  _get_workers_to_move(sender_sched_ctx, receiver_sched_ctx, &nworkers_to_move);
 		if(nworkers_to_move > 0)
                 {
-                        sched_ctx_hypervisor_move_workers(sender_sched_ctx, receiver_sched_ctx, workers_to_move, nworkers_to_move, 0);
+                        sc_hypervisor_move_workers(sender_sched_ctx, receiver_sched_ctx, workers_to_move, nworkers_to_move, 0);
 
-                        struct sched_ctx_hypervisor_policy_config *new_config = sched_ctx_hypervisor_get_config(receiver_sched_ctx);
+                        struct sc_hypervisor_policy_config *new_config = sc_hypervisor_get_config(receiver_sched_ctx);
                         int i;
                         for(i = 0; i < nworkers_to_move; i++)
                                 new_config->max_idle[workers_to_move[i]] = new_config->max_idle[workers_to_move[i]] !=MAX_IDLE_TIME ? new_config->max_idle[workers_to_move[i]] :  new_config->new_workers_max_idle;
@@ -165,8 +165,8 @@ static unsigned _gflops_rate_resize(unsigned sender_sched_ctx, unsigned receiver
 
 static int _find_fastest_sched_ctx()
 {
-	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
-	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	double first_exp_end = _get_exp_end(sched_ctxs[0]);
 	int fastest_sched_ctx = first_exp_end == -1.0  ? -1 : sched_ctxs[0];
@@ -188,8 +188,8 @@ static int _find_fastest_sched_ctx()
 
 static int _find_slowest_sched_ctx()
 {
-	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
-	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	int slowest_sched_ctx = -1;
 	double curr_exp_end = 0.0;
@@ -214,8 +214,8 @@ static int _find_slowest_sched_ctx()
 
 static int _find_slowest_available_sched_ctx(unsigned sched_ctx)
 {
-	int *sched_ctxs = sched_ctx_hypervisor_get_sched_ctxs();
-	int nsched_ctxs = sched_ctx_hypervisor_get_nsched_ctxs();
+	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	int slowest_sched_ctx = -1;
 	double curr_exp_end = 0.0;
@@ -256,12 +256,12 @@ static void gflops_rate_resize(unsigned sched_ctx)
 			double slowest_flops_left_pct = _get_flops_left_pct(slowest_sched_ctx);
 			if(slowest_flops_left_pct != 0.0f)
 			{
-				struct sched_ctx_hypervisor_policy_config* config = sched_ctx_hypervisor_get_config(sched_ctx);
+				struct sc_hypervisor_policy_config* config = sc_hypervisor_get_config(sched_ctx);
 				config->min_nworkers = 0;
 				config->max_nworkers = 0;
 				printf("ctx %d finished & gives away the res to %d; slow_left %lf\n", sched_ctx, slowest_sched_ctx, slowest_flops_left_pct);
 				_resize(sched_ctx, slowest_sched_ctx, 1, 1);
-				sched_ctx_hypervisor_stop_resize(slowest_sched_ctx);
+				sc_hypervisor_stop_resize(slowest_sched_ctx);
 			}
 		}
 	}
@@ -280,8 +280,8 @@ static void gflops_rate_resize(unsigned sched_ctx)
 			if(fast_flops_left_pct < 0.8)
 			{
 
-				struct sched_ctx_hypervisor_wrapper *sc_w = sched_ctx_hypervisor_get_wrapper(slowest_sched_ctx);
-				double elapsed_flops = sched_ctx_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
+				struct sc_hypervisor_wrapper *sc_w = sc_hypervisor_get_wrapper(slowest_sched_ctx);
+				double elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 				if((elapsed_flops/sc_w->total_flops) > 0.1)
 					_gflops_rate_resize(fastest_sched_ctx, slowest_sched_ctx, 0);
 			}
@@ -294,7 +294,7 @@ static void gflops_rate_handle_poped_task(unsigned sched_ctx, int worker)
 	gflops_rate_resize(sched_ctx);
 }
 
-struct sched_ctx_hypervisor_policy gflops_rate_policy = {
+struct sc_hypervisor_policy gflops_rate_policy = {
 	.size_ctxs = NULL,
 	.handle_poped_task = gflops_rate_handle_poped_task,
 	.handle_pushed_task = NULL,

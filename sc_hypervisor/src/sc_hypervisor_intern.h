@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <sched_ctx_hypervisor.h>
+#include <sc_hypervisor.h>
 #include <common/uthash.h>
 struct size_request
 {
@@ -46,21 +46,21 @@ struct configuration_entry
 	uint32_t task_tag;
 
 	/* Value: configuration of the scheduling context.  */
-	struct sched_ctx_hypervisor_policy_config *configuration;
+	struct sc_hypervisor_policy_config *configuration;
 
 	/* Bookkeeping.  */
 	UT_hash_handle hh;
 };
 
-struct sched_ctx_hypervisor
+struct sc_hypervisor
 {
-	struct sched_ctx_hypervisor_wrapper sched_ctx_w[STARPU_NMAX_SCHED_CTXS];
+	struct sc_hypervisor_wrapper sched_ctx_w[STARPU_NMAX_SCHED_CTXS];
 	int sched_ctxs[STARPU_NMAX_SCHED_CTXS];
 	unsigned nsched_ctxs;
 	unsigned resize[STARPU_NMAX_SCHED_CTXS];
 	unsigned allow_remove[STARPU_NMAX_SCHED_CTXS];
 	int min_tasks;
-	struct sched_ctx_hypervisor_policy policy;
+	struct sc_hypervisor_policy policy;
 
 	struct configuration_entry *configurations[STARPU_NMAX_SCHED_CTXS];
 
@@ -76,13 +76,13 @@ struct sched_ctx_hypervisor
 	double start_executing_time;
 };
 
-struct sched_ctx_hypervisor_adjustment
+struct sc_hypervisor_adjustment
 {
 	int workerids[STARPU_NMAXWORKERS];
 	int nworkers;
 };
 
-struct sched_ctx_hypervisor hypervisor;
+struct sc_hypervisor hypervisor;
 
 
 void _add_config(unsigned sched_ctx);
