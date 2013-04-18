@@ -673,7 +673,7 @@ _starpu_bind_thread_on_cpu (
 		if (ret)
 		{
 			perror("hwloc_set_cpubind");
-			STARPU_ABORT_MSG("If you are using NetBSD with a version of hwloc older than 1.7, please update");
+			STARPU_ABORT();
 		}
 	}
 
