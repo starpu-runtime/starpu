@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  INRIA
+ * Copyright (C) 2011 - 2013  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,7 @@
 #include <sys/time.h>
 
 #ifdef STARPU_HAVE_GLPK_H
-static void lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
+static void feft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
 	if(_velocity_gap_btw_ctxs())
 	{
@@ -61,7 +61,7 @@ static void lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_t
 		}
 	}
 }
-static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
+static void feft_lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 {
 	int nsched_ctxs = sched_ctxs == NULL ? sched_ctx_hypervisor_get_nsched_ctxs() : ns;
 	int nw = 1;
@@ -122,9 +122,9 @@ static void lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworkers)
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }
 
-struct sched_ctx_hypervisor_policy lp_policy = {
-	.size_ctxs = lp_size_ctxs,
-	.handle_poped_task = lp_handle_poped_task,
+struct sched_ctx_hypervisor_policy feft_lp_policy = {
+	.size_ctxs = feft_lp_size_ctxs,
+	.handle_poped_task = feft_lp_handle_poped_task,
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = NULL,
 	.handle_idle_end = NULL,
@@ -132,7 +132,7 @@ struct sched_ctx_hypervisor_policy lp_policy = {
 	.handle_submitted_job = NULL,
 	.end_ctx = NULL,
 	.custom = 0,
-	.name = "lp"
+	.name = "feft_lp"
 };
 
 #endif /* STARPU_HAVE_GLPK_H */

@@ -29,8 +29,8 @@ libsched_ctx_hypervisor_la_SOURCES = 			\
 	hypervisor_policies/idle_policy.c		\
 	hypervisor_policies/app_driven_policy.c		\
 	hypervisor_policies/gflops_rate_policy.c	\
-	hypervisor_policies/lp_policy.c			\
-	hypervisor_policies/lp2_policy.c		\
+	hypervisor_policies/feft_lp_policy.c			\
+	hypervisor_policies/teft_lp_policy.c		\
 	hypervisor_policies/ispeed_policy.c		\
 	hypervisor_policies/ispeed_lp_policy.c		\
 	hypervisor_policies/debit_lp_policy.c
