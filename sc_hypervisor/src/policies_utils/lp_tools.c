@@ -344,7 +344,7 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 			if(nworkers_ctx > res_rounded[sched_ctx_idx][w])
 			{
 				int nworkers_to_move = nworkers_ctx - res_rounded[sched_ctx_idx][w];
-				int *workers_to_move = _get_first_workers(sched_ctx, &nworkers_to_move, arch);
+				int *workers_to_move = sc_hypervisor_get_idlest_workers(sched_ctx, &nworkers_to_move, arch);
 				int i;
 				for(i = 0; i < nworkers_to_move; i++)
 					tmp_workers_move[w][tmp_nw_move[w]++] = workers_to_move[i];
@@ -362,7 +362,7 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 				double diff = nworkers_to_move - x_double;
 				if(diff == 0.0)
 				{
-					int *workers_to_move = _get_first_workers(sched_ctx, &x, arch);
+					int *workers_to_move = sc_hypervisor_get_idlest_workers(sched_ctx, &x, arch);
 					if(x > 0)
 					{
 						int i;
@@ -375,7 +375,7 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 				else
 				{
 					x+=1;
-					int *workers_to_move = _get_first_workers(sched_ctx, &x, arch);
+					int *workers_to_move = sc_hypervisor_get_idlest_workers(sched_ctx, &x, arch);
 					if(x > 0)
 					{
 						int i;
@@ -587,7 +587,7 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int 
 			if(w == 1)
 			{
 				int nworkers_to_add = res_rounded[s][w];
-				int *workers_to_add = _get_first_workers_in_list(&start[w], workers, current_nworkers, &nworkers_to_add, arch);
+				int *workers_to_add = sc_hypervisor_get_idlest_workers_in_list(&start[w], workers, current_nworkers, &nworkers_to_add, arch);
 				int i;
 				for(i = 0; i < nworkers_to_add; i++)
 					workers_add[nw_add++] = workers_to_add[i];
@@ -602,7 +602,7 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int 
 				double diff = nworkers_to_add - x_double;
 				if(diff == 0.0)
 				{
-					int *workers_to_add = _get_first_workers_in_list(&start[w], workers, current_nworkers, &x, arch);
+					int *workers_to_add = sc_hypervisor_get_idlest_workers_in_list(&start[w], workers, current_nworkers, &x, arch);
 					int i;
 					for(i = 0; i < x; i++)
 						workers_add[nw_add++] = workers_to_add[i];
@@ -611,7 +611,7 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int 
 				else
 				{
 					x+=1;
-					int *workers_to_add = _get_first_workers_in_list(&start[w], workers, current_nworkers, &x, arch);
+					int *workers_to_add = sc_hypervisor_get_idlest_workers_in_list(&start[w], workers, current_nworkers, &x, arch);
 					int i;
 					if(diff >= 0.3)
 						for(i = 0; i < x; i++)

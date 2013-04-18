@@ -17,7 +17,7 @@
 
 static void app_driven_handle_post_exec_hook(unsigned sched_ctx, int task_tag)
 {
-	_resize_to_unknown_receiver(sched_ctx, 1);
+	sc_hypervisor_policy_resize_to_unknown_receiver(sched_ctx, 1);
 }
 
 struct sc_hypervisor_policy app_driven_policy =

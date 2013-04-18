@@ -37,7 +37,7 @@ void idle_handle_idle_cycle(unsigned sched_ctx, int worker)
 		if(worker_belong_to_other_sched_ctx(sched_ctx, worker))
 			sc_hypervisor_remove_workers_from_sched_ctx(&worker, 1, sched_ctx, 1);
 		else
-			_resize_to_unknown_receiver(sched_ctx, 0);
+			sc_hypervisor_policy_resize_to_unknown_receiver(sched_ctx, 0);
 	}
 }
 

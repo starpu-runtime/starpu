@@ -40,7 +40,7 @@ static int _compute_priority(unsigned sched_ctx)
 }
 
 /* find the context with the slowest priority */
-unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
+unsigned sc_hypervisor_find_lowest_prio_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
 {
 	int i;
 	int highest_priority = -1;
@@ -73,7 +73,7 @@ unsigned _find_poor_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
 	return sched_ctx;
 }
 
-int* _get_first_workers_in_list(int *start, int *workers, int nall_workers,  int *nworkers, enum starpu_archtype arch)
+int* sc_hypervisor_get_idlest_workers_in_list(int *start, int *workers, int nall_workers,  int *nworkers, enum starpu_archtype arch)
 {
 	int *curr_workers = (int*)malloc((*nworkers)*sizeof(int));
 
@@ -101,7 +101,7 @@ int* _get_first_workers_in_list(int *start, int *workers, int nall_workers,  int
 }
 
 /* get first nworkers with the highest idle time in the context */
-int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype arch)
+int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype arch)
 {
 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctx);
@@ -176,7 +176,7 @@ int* _get_first_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype 
 }
 
 /* get the number of workers in the context that are allowed to be moved (that are not fixed) */
-unsigned _get_potential_nworkers(struct sc_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_archtype arch)
+unsigned sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_archtype arch)
 {
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 
@@ -203,13 +203,13 @@ unsigned _get_potential_nworkers(struct sc_hypervisor_policy_config *config, uns
 /* compute the number of workers that should be moved depending:
    - on the min/max number of workers in a context imposed by the user,
    - on the resource granularity imposed by the user for the resizing process*/
-int _get_nworkers_to_move(unsigned req_sched_ctx)
+int sc_hypervisor_compute_nworkers_to_move(unsigned req_sched_ctx)
 {
        	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(req_sched_ctx);
 	unsigned nworkers = starpu_sched_ctx_get_nworkers(req_sched_ctx);
 	unsigned nworkers_to_move = 0;
 
-	unsigned potential_moving_workers = _get_potential_nworkers(config, req_sched_ctx, STARPU_ANY_WORKER);
+	unsigned potential_moving_workers = sc_hypervisor_get_movable_nworkers(config, req_sched_ctx, STARPU_ANY_WORKER);
 	if(potential_moving_workers > 0)
 	{
 		if(potential_moving_workers <= config->min_nworkers)
@@ -247,7 +247,7 @@ int _get_nworkers_to_move(unsigned req_sched_ctx)
 	return nworkers_to_move;
 }
 
-unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigned force_resize, unsigned now)
+unsigned sc_hypervisor_policy_resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigned force_resize, unsigned now)
 {
 	int ret = 1;
 	if(force_resize)
@@ -256,13 +256,13 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 		ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
-		int nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
+		int nworkers_to_move = sc_hypervisor_compute_nworkers_to_move(sender_sched_ctx);
 		if(nworkers_to_move > 0)
 		{
 			unsigned poor_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 			if(receiver_sched_ctx == STARPU_NMAX_SCHED_CTXS)
 			{
-				poor_sched_ctx = _find_poor_sched_ctx(sender_sched_ctx, nworkers_to_move);
+				poor_sched_ctx = sc_hypervisor_find_lowest_prio_sched_ctx(sender_sched_ctx, nworkers_to_move);
 			}
 			else
 			{
@@ -276,7 +276,7 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 			}
 			if(poor_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 			{
-				int *workers_to_move = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ANY_WORKER);
+				int *workers_to_move = sc_hypervisor_get_idlest_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ANY_WORKER);
 				sc_hypervisor_move_workers(sender_sched_ctx, poor_sched_ctx, workers_to_move, nworkers_to_move, now);
 
 				struct sc_hypervisor_policy_config *new_config = sc_hypervisor_get_config(poor_sched_ctx);
@@ -295,9 +295,9 @@ unsigned _resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigne
 }
 
 
-unsigned _resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now)
+unsigned sc_hypervisor_policy_resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now)
 {
-	return _resize(sender_sched_ctx, STARPU_NMAX_SCHED_CTXS, 0, now);
+	return sc_hypervisor_policy_resize(sender_sched_ctx, STARPU_NMAX_SCHED_CTXS, 0, now);
 }
 
 static double _get_ispeed_sample_for_type_of_worker(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype req_arch)
