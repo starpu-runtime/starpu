@@ -13,6 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+
 #ifndef MULTIFORMAT_TYPES_H
 #define MULTIFORMAT_TYPES_H
 
@@ -27,7 +28,5 @@ struct point
 {
 	float x, y;
 };
-
-#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 #endif

@@ -17,6 +17,8 @@
 #include <starpu.h>
 #include "multiformat_types.h"
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
 #ifdef STARPU_USE_CUDA
 void cuda_to_cpu(void *buffers[], void *arg)
 {
