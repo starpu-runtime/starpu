@@ -82,7 +82,12 @@ extern "C"
 #endif
 
 #define STARPU_ABORT() do {                                          \
-	fprintf(stderr, "[starpu][abort] %s:%d %s\n", __FILE__, __LINE__, __starpu_func__); \
+	fprintf(stderr, "[starpu][abort][%s@%s:%d]\n", __starpu_func__, __FILE__, __LINE__); \
+	abort();                                                     \
+} while(0)
+
+#define STARPU_ABORT_MSG(msg, ...) do {					\
+	fprintf(stderr, "[starpu][abort][%s@%s:%d] " msg "\n", __starpu_func__, __FILE__, __LINE__, ## __VA_ARGS__); \
 	abort();                                                     \
 } while(0)
 
