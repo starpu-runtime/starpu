@@ -20,13 +20,13 @@
 #include <math.h>
 #include <sys/time.h>
 
-static struct bound_task_pool *task_pools = NULL;
+static struct sc_hypervisor_policy_task_pool *task_pools = NULL;
 
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers, unsigned interger,
-			   struct bound_task_pool *tmp_task_pools, unsigned size_ctxs);
+			   struct sc_hypervisor_policy_task_pool *tmp_task_pools, unsigned size_ctxs);
 static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], double tasks[nw][nt], 
-						     int *sched_ctxs, int *workers, struct bound_task_pool *tmp_task_pools, unsigned size_ctxs)
+						     int *sched_ctxs, int *workers, struct sc_hypervisor_policy_task_pool *tmp_task_pools, unsigned size_ctxs)
 {
 	double draft_tasks[nw][nt];
 	double draft_w_in_s[ns][nw];
@@ -128,7 +128,7 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 	int nw = workers == NULL ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
 	int nt = 0; /* Number of different kinds of tasks */
 	starpu_pthread_mutex_lock(&mutex);
-	struct bound_task_pool * tp;
+	struct sc_hypervisor_policy_task_pool * tp;
 	for (tp = task_pools; tp; tp = tp->next)
 		nt++;
 
@@ -170,7 +170,7 @@ static void teft_lp_handle_submitted_job(struct starpu_codelet *cl, unsigned sch
 {
 	/* count the tasks of the same type */
 	starpu_pthread_mutex_lock(&mutex);
-	struct bound_task_pool *tp = NULL;
+	struct sc_hypervisor_policy_task_pool *tp = NULL;
 
 	for (tp = task_pools; tp; tp = tp->next)
 	{
@@ -180,7 +180,7 @@ static void teft_lp_handle_submitted_job(struct starpu_codelet *cl, unsigned sch
 
 	if (!tp)
 	{
-		tp = (struct bound_task_pool *) malloc(sizeof(struct bound_task_pool));
+		tp = (struct sc_hypervisor_policy_task_pool *) malloc(sizeof(struct sc_hypervisor_policy_task_pool));
 		tp->cl = cl;
 		tp->footprint = footprint;
 		tp->sched_ctx_id = sched_ctx;
@@ -199,7 +199,7 @@ static void teft_lp_handle_submitted_job(struct starpu_codelet *cl, unsigned sch
 static void _remove_task_from_pool(struct starpu_task *task, uint32_t footprint)
 {
 	/* count the tasks of the same type */
-	struct bound_task_pool *tp = NULL;
+	struct sc_hypervisor_policy_task_pool *tp = NULL;
 
 	for (tp = task_pools; tp; tp = tp->next)
 	{
@@ -215,7 +215,7 @@ static void _remove_task_from_pool(struct starpu_task *task, uint32_t footprint)
 		{
 			if(tp == task_pools)
 			{
-				struct bound_task_pool *next_tp = NULL;
+				struct sc_hypervisor_policy_task_pool *next_tp = NULL;
 				if(task_pools->next)
 					next_tp = task_pools->next;
 
@@ -228,7 +228,7 @@ static void _remove_task_from_pool(struct starpu_task *task, uint32_t footprint)
 			}
 			else
 			{
-				struct bound_task_pool *prev_tp = NULL;
+				struct sc_hypervisor_policy_task_pool *prev_tp = NULL;
 				for (prev_tp = task_pools; prev_tp; prev_tp = prev_tp->next)
 				{
 					if (prev_tp->next == tp)
@@ -242,19 +242,19 @@ static void _remove_task_from_pool(struct starpu_task *task, uint32_t footprint)
 	}
 }
 
-static struct bound_task_pool* _clone_linked_list(struct bound_task_pool *tp)
+static struct sc_hypervisor_policy_task_pool* _clone_linked_list(struct sc_hypervisor_policy_task_pool *tp)
 {
 	if(tp == NULL) return NULL;
 
-	struct bound_task_pool *tmp_tp = (struct bound_task_pool*)malloc(sizeof(struct bound_task_pool));
-	memcpy(tmp_tp, tp, sizeof(struct bound_task_pool));
+	struct sc_hypervisor_policy_task_pool *tmp_tp = (struct sc_hypervisor_policy_task_pool*)malloc(sizeof(struct sc_hypervisor_policy_task_pool));
+	memcpy(tmp_tp, tp, sizeof(struct sc_hypervisor_policy_task_pool));
 	tmp_tp->next = _clone_linked_list(tp->next);
 	return tmp_tp;
 }
 
 static void _get_tasks_times(int nw, int nt, double times[nw][nt], int *workers, unsigned size_ctxs)
 {
-        struct bound_task_pool *tp;
+        struct sc_hypervisor_policy_task_pool *tp;
         int w, t;
         for (w = 0; w < nw; w++)
         {
@@ -297,11 +297,11 @@ static void _get_tasks_times(int nw, int nt, double times[nw][nt], int *workers,
 #ifdef STARPU_HAVE_GLPK_H
 #include <glpk.h>
 static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers, unsigned integer,
-			   struct bound_task_pool *tmp_task_pools, unsigned size_ctxs)
+			   struct sc_hypervisor_policy_task_pool *tmp_task_pools, unsigned size_ctxs)
 {
 	if(tmp_task_pools == NULL)
 		return 0.0;
-	struct bound_task_pool * tp;
+	struct sc_hypervisor_policy_task_pool * tp;
 	int t, w, s;
 	glp_prob *lp;
 
@@ -553,8 +553,8 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 			   that the linear progr won't segfault if the list of 
 			   submitted task will change during the exec */
 
-			struct bound_task_pool *tp = NULL;
-			struct bound_task_pool *tmp_task_pools = _clone_linked_list(task_pools);
+			struct sc_hypervisor_policy_task_pool *tp = NULL;
+			struct sc_hypervisor_policy_task_pool *tmp_task_pools = _clone_linked_list(task_pools);
 
 			for (tp = task_pools; tp; tp = tp->next)
 				nt++;
@@ -570,8 +570,8 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 			if(found_sol)
 				sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, NULL, NULL, 0);
 
-			struct bound_task_pool *next = NULL;
-			struct bound_task_pool *tmp_tp = tmp_task_pools;
+			struct sc_hypervisor_policy_task_pool *next = NULL;
+			struct sc_hypervisor_policy_task_pool *tmp_tp = tmp_task_pools;
 			while(tmp_task_pools)
 			{
 				next = tmp_tp->next;

@@ -70,8 +70,8 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
         if(nworkers_needed > 0)
         {
                 struct sc_hypervisor_policy_config *sender_config = sc_hypervisor_get_config(sender_sched_ctx);
-                unsigned potential_moving_cpus = _get_potential_nworkers(sender_config, sender_sched_ctx, STARPU_CPU_WORKER);
-                unsigned potential_moving_gpus = _get_potential_nworkers(sender_config, sender_sched_ctx, STARPU_CUDA_WORKER);
+                unsigned potential_moving_cpus = sc_hypervisor_get_movable_nworkers(sender_config, sender_sched_ctx, STARPU_CPU_WORKER);
+                unsigned potential_moving_gpus = sc_hypervisor_get_movable_nworkers(sender_config, sender_sched_ctx, STARPU_CUDA_WORKER);
                 unsigned sender_nworkers = starpu_sched_ctx_get_nworkers(sender_sched_ctx);
                 struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(receiver_sched_ctx);
                 unsigned nworkers_ctx = starpu_sched_ctx_get_nworkers(receiver_sched_ctx);
@@ -87,10 +87,10 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
                                 {
                                         int ngpus = nworkers_needed / 5;
                                         int *gpus;
-                                        gpus = _get_first_workers(sender_sched_ctx, &ngpus, STARPU_CUDA_WORKER);
+                                        gpus = sc_hypervisor_get_idlest_workers(sender_sched_ctx, &ngpus, STARPU_CUDA_WORKER);
                                         int ncpus = nworkers_needed - ngpus;
                                         int *cpus;
-                                        cpus = _get_first_workers(sender_sched_ctx, &ncpus, STARPU_CPU_WORKER);
+                                        cpus = sc_hypervisor_get_idlest_workers(sender_sched_ctx, &ncpus, STARPU_CPU_WORKER);
                                         workers = (int*)malloc(nworkers_needed*sizeof(int));
                                         int i;
 					printf("%d: gpus: ", nworkers_needed);
@@ -115,7 +115,7 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
                 {
 			/*if the needed number of workers is to big we only move the number of workers
 			  corresponding to the granularity set by the user */
-                        int nworkers_to_move = _get_nworkers_to_move(sender_sched_ctx);
+                        int nworkers_to_move = sc_hypervisor_compute_nworkers_to_move(sender_sched_ctx);
 
                         if(sender_nworkers - nworkers_to_move >= sender_config->min_nworkers)
                         {
@@ -125,7 +125,7 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
 
                                 if(nworkers_to_move > 0)
                                 {
-                                        workers = _get_first_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ANY_WORKER);
+                                        workers = sc_hypervisor_get_idlest_workers(sender_sched_ctx, &nworkers_to_move, STARPU_ANY_WORKER);
                                         *nworkers = nworkers_to_move;
                                 }
                         }
@@ -260,7 +260,7 @@ static void gflops_rate_resize(unsigned sched_ctx)
 				config->min_nworkers = 0;
 				config->max_nworkers = 0;
 				printf("ctx %d finished & gives away the res to %d; slow_left %lf\n", sched_ctx, slowest_sched_ctx, slowest_flops_left_pct);
-				_resize(sched_ctx, slowest_sched_ctx, 1, 1);
+				sc_hypervisor_policy_resize(sched_ctx, slowest_sched_ctx, 1, 1);
 				sc_hypervisor_stop_resize(slowest_sched_ctx);
 			}
 		}

@@ -152,7 +152,7 @@ static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, struct star
 			unsigned slowest_sched_ctx = _get_slowest_sched_ctx();
 			if(fastest_sched_ctx != STARPU_NMAX_SCHED_CTXS && slowest_sched_ctx != STARPU_NMAX_SCHED_CTXS && fastest_sched_ctx != slowest_sched_ctx)
 			{
-				int nworkers_to_move = _get_nworkers_to_move(fastest_sched_ctx);
+				int nworkers_to_move = sc_hypervisor_compute_nworkers_to_move(fastest_sched_ctx);
 				if(nworkers_to_move > 0)
 				{
 					int *workers_to_move = _get_slowest_workers(fastest_sched_ctx, &nworkers_to_move, STARPU_ANY_WORKER);
