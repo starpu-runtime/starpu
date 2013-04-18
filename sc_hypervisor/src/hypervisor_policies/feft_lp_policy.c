@@ -43,7 +43,7 @@ static void feft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 			struct timeval end_time;
 			gettimeofday(&start_time, NULL);
 
-			double vmax = _lp_get_nworkers_per_ctx(nsched_ctxs, nw, nworkers, total_nw);
+			double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(nsched_ctxs, nw, nworkers, total_nw);
 			gettimeofday(&end_time, NULL);
 
 			long diff_s = end_time.tv_sec  - start_time.tv_sec;
@@ -54,8 +54,8 @@ static void feft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 			if(vmax != 0.0)
 			{
 				int nworkers_rounded[nsched_ctxs][nw];
-				_lp_round_double_to_int(nsched_ctxs, nw, nworkers, nworkers_rounded);
-				_lp_redistribute_resources_in_ctxs(nsched_ctxs, nw, nworkers_rounded, nworkers);
+				sc_hypervisor_lp_round_double_to_int(nsched_ctxs, nw, nworkers, nworkers_rounded);
+				sc_hypervisor_lp_redistribute_resources_in_ctxs(nsched_ctxs, nw, nworkers_rounded, nworkers);
 			}
 			starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 		}
@@ -74,7 +74,7 @@ static void feft_lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworker
 	_get_total_nw(workers, nworkers, nw, total_nw);
 
 	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
-	double vmax = _lp_get_nworkers_per_ctx(nsched_ctxs, nw, nworkers_per_type, total_nw);
+	double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(nsched_ctxs, nw, nworkers_per_type, total_nw);
 	if(vmax != 0.0)
 	{
 // 		printf("********size\n");
@@ -89,7 +89,7 @@ static void feft_lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworker
 /* #endif */
 /* 		} */
 		int nworkers_per_type_rounded[nsched_ctxs][nw];
-		_lp_round_double_to_int(nsched_ctxs, nw, nworkers_per_type, nworkers_per_type_rounded);
+		sc_hypervisor_lp_round_double_to_int(nsched_ctxs, nw, nworkers_per_type, nworkers_per_type_rounded);
 /*       	for( i = 0; i < nsched_ctxs; i++) */
 /* 		{ */
 /* 			printf("ctx %d/worker type %d: n = %d \n", i, 0, nworkers_per_type_rounded[i][0]); */
@@ -115,9 +115,9 @@ static void feft_lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworker
 			}
 		}
 		if(has_workers)
-			_lp_redistribute_resources_in_ctxs(nsched_ctxs, nw, nworkers_per_type_rounded, nworkers_per_type);
+			sc_hypervisor_lp_redistribute_resources_in_ctxs(nsched_ctxs, nw, nworkers_per_type_rounded, nworkers_per_type);
 		else
-			_lp_distribute_resources_in_ctxs(sched_ctxs, nsched_ctxs, nw, nworkers_per_type_rounded, nworkers_per_type, workers, nworkers);
+			sc_hypervisor_lp_distribute_resources_in_ctxs(sched_ctxs, nsched_ctxs, nw, nworkers_per_type_rounded, nworkers_per_type, workers, nworkers);
 	}
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }

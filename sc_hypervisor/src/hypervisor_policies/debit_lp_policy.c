@@ -278,7 +278,7 @@ static void debit_lp_handle_poped_task(unsigned sched_ctx, int worker, struct st
 /* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
 /* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
 
-				_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
+				sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
 
 			}
 		}
