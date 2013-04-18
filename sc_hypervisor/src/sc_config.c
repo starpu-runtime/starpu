@@ -14,11 +14,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <sched_ctx_hypervisor_intern.h>
+#include <sc_hypervisor_intern.h>
 
-static struct sched_ctx_hypervisor_policy_config* _create_config(void)
+static struct sc_hypervisor_policy_config* _create_config(void)
 {
-	struct sched_ctx_hypervisor_policy_config *config = (struct sched_ctx_hypervisor_policy_config *)malloc(sizeof(struct sched_ctx_hypervisor_policy_config));
+	struct sc_hypervisor_policy_config *config = (struct sc_hypervisor_policy_config *)malloc(sizeof(struct sc_hypervisor_policy_config));
 	config->min_nworkers = -1;
 	config->max_nworkers = -1;
 	config->new_workers_max_idle = -1.0;
@@ -39,7 +39,7 @@ static struct sched_ctx_hypervisor_policy_config* _create_config(void)
 	return config;
 }
 
-static void _update_config(struct sched_ctx_hypervisor_policy_config *old, struct sched_ctx_hypervisor_policy_config* new)
+static void _update_config(struct sc_hypervisor_policy_config *old, struct sc_hypervisor_policy_config* new)
 {
 	old->min_nworkers = new->min_nworkers != -1 ? new->min_nworkers : old->min_nworkers ;
 	old->max_nworkers = new->max_nworkers != -1 ? new->max_nworkers : old->max_nworkers ;
@@ -57,7 +57,7 @@ static void _update_config(struct sched_ctx_hypervisor_policy_config *old, struc
 	}
 }
 
-void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config)
+void sc_hypervisor_set_config(unsigned sched_ctx, void *config)
 {
 	if(hypervisor.sched_ctx_w[sched_ctx].config != NULL && config != NULL)
 	{
@@ -73,7 +73,7 @@ void sched_ctx_hypervisor_set_config(unsigned sched_ctx, void *config)
 
 void _add_config(unsigned sched_ctx)
 {
-	struct sched_ctx_hypervisor_policy_config *config = _create_config();
+	struct sc_hypervisor_policy_config *config = _create_config();
 	config->min_nworkers = 0;
 	config->max_nworkers = STARPU_NMAXWORKERS;
 	config->new_workers_max_idle = MAX_IDLE_TIME;
@@ -89,27 +89,27 @@ void _add_config(unsigned sched_ctx)
 		config->min_working[i] = MIN_WORKING_TIME;
 	}
 
-	sched_ctx_hypervisor_set_config(sched_ctx, config);
+	sc_hypervisor_set_config(sched_ctx, config);
 }
 
 void _remove_config(unsigned sched_ctx)
 {
-	sched_ctx_hypervisor_set_config(sched_ctx, NULL);
+	sc_hypervisor_set_config(sched_ctx, NULL);
 }
 
-struct sched_ctx_hypervisor_policy_config* sched_ctx_hypervisor_get_config(unsigned sched_ctx)
+struct sc_hypervisor_policy_config* sc_hypervisor_get_config(unsigned sched_ctx)
 {
 	return hypervisor.sched_ctx_w[sched_ctx].config;
 }
 
-static struct sched_ctx_hypervisor_policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
+static struct sc_hypervisor_policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
 {
-	struct sched_ctx_hypervisor_policy_config *config = NULL;
+	struct sc_hypervisor_policy_config *config = NULL;
 
 	if(later)
 		config = _create_config();
 	else
-		config = sched_ctx_hypervisor_get_config(sched_ctx);
+		config = sc_hypervisor_get_config(sched_ctx);
 
 	assert(config != NULL);
 
@@ -215,7 +215,7 @@ static struct sched_ctx_hypervisor_policy_config* _ioctl(unsigned sched_ctx, va_
 }
 
 
-void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
+void sc_hypervisor_ioctl(unsigned sched_ctx, ...)
 {
 	va_list varg_list;
 	va_start(varg_list, sched_ctx);
@@ -246,7 +246,7 @@ void sched_ctx_hypervisor_ioctl(unsigned sched_ctx, ...)
 	va_start(varg_list, sched_ctx);
 
 	/* if config not null => save hypervisor configuration and consider it later */
-	struct sched_ctx_hypervisor_policy_config *config = _ioctl(sched_ctx, varg_list, (task_tag > 0));
+	struct sc_hypervisor_policy_config *config = _ioctl(sched_ctx, varg_list, (task_tag > 0));
 	if(config != NULL)
 	{
 		struct configuration_entry *entry;
