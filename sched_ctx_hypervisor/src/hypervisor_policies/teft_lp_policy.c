@@ -165,7 +165,7 @@ static void size_if_required()
 	}
 }
 
-static void lp2_handle_submitted_job(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint)
+static void teft_lp_handle_submitted_job(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint)
 {
 	/* count the tasks of the same type */
 	starpu_pthread_mutex_lock(&mutex);
@@ -526,7 +526,7 @@ static struct bound_task_pool* _clone_linked_list(struct bound_task_pool *tp)
 	return tmp_tp;
 }
 
-static void lp2_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
+static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
 	struct sched_ctx_hypervisor_wrapper* sc_w = sched_ctx_hypervisor_get_wrapper(sched_ctx);
 
@@ -591,22 +591,22 @@ static void lp2_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_
 }
 
 
-static void lp2_size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
+static void teft_lp_size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
 	sched_ctx_hypervisor_save_size_req(sched_ctxs, nsched_ctxs, workers, nworkers);
 }
 
-struct sched_ctx_hypervisor_policy lp2_policy = {
-	.size_ctxs = lp2_size_ctxs,
-	.handle_poped_task = lp2_handle_poped_task,
+struct sched_ctx_hypervisor_policy teft_lp_policy = {
+	.size_ctxs = teft_lp_size_ctxs,
+	.handle_poped_task = teft_lp_handle_poped_task,
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = NULL,
 	.handle_idle_end = NULL,
 	.handle_post_exec_hook = NULL,
-	.handle_submitted_job = lp2_handle_submitted_job,
+	.handle_submitted_job = teft_lp_handle_submitted_job,
 	.end_ctx = NULL,
 	.custom = 0,
-	.name = "lp2"
+	.name = "teft_lp"
 };
 
 #endif /* STARPU_HAVE_GLPK_H */

@@ -34,8 +34,8 @@ extern struct sched_ctx_hypervisor_policy idle_policy;
 extern struct sched_ctx_hypervisor_policy app_driven_policy;
 extern struct sched_ctx_hypervisor_policy gflops_rate_policy;
 #ifdef STARPU_HAVE_GLPK_H
-extern struct sched_ctx_hypervisor_policy lp_policy;
-extern struct sched_ctx_hypervisor_policy lp2_policy;
+extern struct sched_ctx_hypervisor_policy feft_lp_policy;
+extern struct sched_ctx_hypervisor_policy teft_lp_policy;
 extern struct sched_ctx_hypervisor_policy ispeed_lp_policy;
 extern struct sched_ctx_hypervisor_policy debit_lp_policy;
 #endif // STARPU_HAVE_GLPK_
@@ -47,8 +47,8 @@ static struct sched_ctx_hypervisor_policy *predefined_policies[] =
         &idle_policy,
 	&app_driven_policy,
 #ifdef STARPU_HAVE_GLPK_H
-	&lp_policy,
-	&lp2_policy,
+	&feft_lp_policy,
+	&teft_lp_policy,
 	&ispeed_lp_policy,
 	&debit_lp_policy,
 #endif // STARPU_HAVE_GLPK_H
