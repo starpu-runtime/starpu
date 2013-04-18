@@ -15,7 +15,8 @@
  */
 
 #include <starpu_config.h>
-#include "lp_tools.h"
+#include "sched_ctx_hypervisor_lp.h"
+#include "sched_ctx_hypervisor_policy.h"
 #include <math.h>
 #include <sys/time.h>
 
@@ -99,13 +100,13 @@ static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, dou
 				tmax = old_tmax;
 		}
 		if(tmin == tmax) break;
-		tmax = _find_tmax(tmin, tmax);
+		tmax = _lp_find_tmax(tmin, tmax);
 
 		if(tmax < smallest_tmax)
 		{
 			tmax = old_tmax;
 			tmin = smallest_tmax;
-			tmax = _find_tmax(tmin, tmax);
+			tmax = _lp_find_tmax(tmin, tmax);
 		}
 		nd++;
 	}
@@ -239,6 +240,16 @@ static void _remove_task_from_pool(struct starpu_task *task, uint32_t footprint)
 			}
 		}
 	}
+}
+
+static struct bound_task_pool* _clone_linked_list(struct bound_task_pool *tp)
+{
+	if(tp == NULL) return NULL;
+
+	struct bound_task_pool *tmp_tp = (struct bound_task_pool*)malloc(sizeof(struct bound_task_pool));
+	memcpy(tmp_tp, tp, sizeof(struct bound_task_pool));
+	tmp_tp->next = _clone_linked_list(tp->next);
+	return tmp_tp;
 }
 
 static void _get_tasks_times(int nw, int nt, double times[nw][nt], int *workers, unsigned size_ctxs)
@@ -514,16 +525,6 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 
 	glp_delete_prob(lp);
 	return res;
-}
-
-static struct bound_task_pool* _clone_linked_list(struct bound_task_pool *tp)
-{
-	if(tp == NULL) return NULL;
-
-	struct bound_task_pool *tmp_tp = (struct bound_task_pool*)malloc(sizeof(struct bound_task_pool));
-	memcpy(tmp_tp, tp, sizeof(struct bound_task_pool));
-	tmp_tp->next = _clone_linked_list(tp->next);
-	return tmp_tp;
 }
 
 static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)

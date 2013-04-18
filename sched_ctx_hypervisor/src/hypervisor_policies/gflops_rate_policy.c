@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "policy_tools.h"
+#include "sched_ctx_hypervisor_policy.h"
 
 static double _get_total_elapsed_flops_per_sched_ctx(unsigned sched_ctx)
 {

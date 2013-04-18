@@ -91,7 +91,7 @@ int main()
 	/* indicate which strategy to use
 	   in this particular case we use app_driven which allows the user to resize 
 	   the ctxs dynamically at particular moments of the execution of the application */
-	policy.name = "lp";
+	policy.name = "feft_lp";
 	void *perf_counters = sched_ctx_hypervisor_init(&policy);
 
 	/* let starpu know which performance counters should use 

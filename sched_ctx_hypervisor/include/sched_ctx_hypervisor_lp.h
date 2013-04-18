@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  INRIA
+ * Copyright (C) 2010-2013  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +14,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "policy_tools.h"
+#ifndef SCHED_CTX_HYPERVISOR_LP_H
+#define SCHED_CTX_HYPERVISOR_LP_H
+
+#include <sched_ctx_hypervisor.h>
 #include <starpu_config.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /*
  * GNU Linear Programming Kit backend
@@ -47,4 +55,10 @@ void _lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_r
 void _lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][nw], int *sched_ctxs, int *workers, unsigned do_size);
 
 /* dichotomy btw t1 & t2 */
-double _find_tmax(double t1, double t2);
+double _lp_find_tmax(double t1, double t2);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
