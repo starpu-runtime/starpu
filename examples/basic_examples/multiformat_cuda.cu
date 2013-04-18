@@ -17,6 +17,8 @@
 #include <starpu.h>
 #include "multiformat_types.h"
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
 static __global__ void multiformat_cuda(struct struct_of_arrays *soa, unsigned n)
 {
         unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
