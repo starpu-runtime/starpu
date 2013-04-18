@@ -14,7 +14,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifndef SCHED_CTX_HYPERVISOR_POLICY_H
+#define SCHED_CTX_HYPERVISOR_POLICY_H
+
 #include <sched_ctx_hypervisor.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 
 #define HYPERVISOR_REDIM_SAMPLE 0.02
 #define HYPERVISOR_START_REDIM_SAMPLE 0.1
@@ -62,3 +71,9 @@ double _get_ref_velocity_per_worker_type(struct sched_ctx_hypervisor_wrapper* sc
 int _velocity_gap_btw_ctxs(void);
 
 void _get_total_nw(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers]);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

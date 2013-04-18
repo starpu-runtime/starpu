@@ -13,10 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-
-#include "policy_tools.h"
-
-#include <sched_ctx_hypervisor_intern.h>
+#include <sched_ctx_hypervisor_policy.h>
 
 static void app_driven_handle_post_exec_hook(unsigned sched_ctx, int task_tag)
 {

@@ -15,7 +15,8 @@
  */
 
 #include <starpu_config.h>
-#include "lp_tools.h"
+#include "sched_ctx_hypervisor_lp.h"
+#include "sched_ctx_hypervisor_policy.h"
 #include <math.h>
 #include <sys/time.h>
 

@@ -17,9 +17,11 @@ SUBDIRS = src examples
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 
-versinclude_HEADERS = 	include/sched_ctx_hypervisor.h \
-			include/sched_ctx_hypervisor_config.h \
-			include/sched_ctx_hypervisor_monitoring.h
+versinclude_HEADERS = 	include/sched_ctx_hypervisor.h 			\
+			include/sched_ctx_hypervisor_config.h 		\
+			include/sched_ctx_hypervisor_monitoring.h 	\
+			include/sched_ctx_hypervisor_policy.h 		\
+			include/sched_ctx_hypervisor_lp.h
 showcheck:
 	for i in $(SUBDIRS) ; do \
 		make -C $$i showcheck ; \

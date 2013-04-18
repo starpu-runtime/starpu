@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "policy_tools.h"
+#include "sched_ctx_hypervisor_policy.h"
 
 static unsigned _get_fastest_sched_ctx(void)
 {

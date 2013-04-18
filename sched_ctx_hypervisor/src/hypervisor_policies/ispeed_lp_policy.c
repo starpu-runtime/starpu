@@ -15,7 +15,8 @@
  */
 
 #include <starpu_config.h>
-#include "lp_tools.h"
+#include "sched_ctx_hypervisor_lp.h"
+#include "sched_ctx_hypervisor_policy.h"
 #include <math.h>
 #include <sys/time.h>
 
@@ -123,13 +124,13 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 				tmax = old_tmax;
 		}
 		if(tmin == tmax) break;
-		tmax = _find_tmax(tmin, tmax);
+		tmax = _lp_find_tmax(tmin, tmax);
 
 		if(tmax < smallest_tmax)
 		{
 			tmax = old_tmax;
 			tmin = smallest_tmax;
-			tmax = _find_tmax(tmin, tmax);
+			tmax = _lp_find_tmax(tmin, tmax);
 		}
 		nd++;
 	}

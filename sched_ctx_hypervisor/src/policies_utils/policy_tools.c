@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  INRIA
+ * Copyright (C) 2010-2013  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,9 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* #include <sched_ctx_hypervisor.h> */
 
-#include "policy_tools.h"
+#include "sched_ctx_hypervisor_policy.h"
 
 static int _compute_priority(unsigned sched_ctx)
 {

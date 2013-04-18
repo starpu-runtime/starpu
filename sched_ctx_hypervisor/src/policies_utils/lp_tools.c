@@ -15,7 +15,8 @@
  */
 
 #include <math.h>
-#include "lp_tools.h"
+#include "sched_ctx_hypervisor_lp.h"
+#include "sched_ctx_hypervisor_policy.h"
 #include <starpu_config.h>
 
 #ifdef STARPU_HAVE_GLPK_H
@@ -697,7 +698,7 @@ void _lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][nw], int *sche
 	return;
 }
 
-double _find_tmax(double t1, double t2)
+double _lp_find_tmax(double t1, double t2)
 {
 	return t1 + ((t2 - t1)/2);
 }

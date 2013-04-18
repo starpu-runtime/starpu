@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include "lp_tools.h"
+#include "sched_ctx_hypervisor_lp.h"
 #include <starpu_config.h>
 #include <sys/time.h>
 
