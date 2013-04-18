@@ -11,6 +11,7 @@
 * On-line::                     On-line performance feedback
 * Off-line::                    Off-line performance feedback
 * Codelet performance::         Performance of codelets
+* Theoretical lower bound on execution time::
 * Memory feedback::
 * Data statistics::
 @end menu
@@ -476,6 +477,22 @@ $ starpu_codelet_histo_profile distrib.data
 
 Which will create one pdf file per codelet and per input size, showing a
 histogram of the codelet execution time distribution.
+
+@node Theoretical lower bound on execution time
+@section Theoretical lower bound on execution time
+
+StarPU can record a trace of what tasks are needed to complete the
+application, and then, by using a linear system, provide a theoretical lower
+bound of the execution time (i.e. with an ideal scheduling).
+
+The computed bound is not really correct when not taking into account
+dependencies, but for an application which have enough parallelism, it is very
+near to the bound computed with dependencies enabled (which takes a huge lot
+more time to compute), and thus provides a good-enough estimation of the ideal
+execution time.
+
+@ref{Theoretical lower bound on execution time} provides an example on how to
+use this.
 
 @node Memory feedback
 @section Memory feedback
