@@ -194,13 +194,13 @@ with the @code{libstarpu} package. Similar packages are provided for
 @code{libstarpumpi} and @code{libstarpufft}.}:
 
 @example
-$ pkg-config --cflags starpu-1.0  # options for the compiler
-$ pkg-config --libs starpu-1.0    # options for the linker
+$ pkg-config --cflags starpu-1.1  # options for the compiler
+$ pkg-config --libs starpu-1.1    # options for the linker
 @end example
 
-Make sure that @code{pkg-config --libs starpu-1.0} actually produces some output
+Make sure that @code{pkg-config --libs starpu-1.1} actually produces some output
 before going further: @code{PKG_CONFIG_PATH} has to point to the place where
-@code{starpu-1.0.pc} was installed during @code{make install}.
+@code{starpu-1.1.pc} was installed during @code{make install}.
 
 Also pass the @code{--static} option if the application is to be
 linked statically.
@@ -217,8 +217,8 @@ options for the compiler and the linker:
 
 @cartouche
 @example
-CFLAGS          +=      $$(pkg-config --cflags starpu-1.0)
-LDFLAGS         +=      $$(pkg-config --libs starpu-1.0)
+CFLAGS          +=      $$(pkg-config --cflags starpu-1.1)
+LDFLAGS         +=      $$(pkg-config --libs starpu-1.1)
 @end example
 @end cartouche
 
