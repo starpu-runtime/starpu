@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2010-2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,20 +26,20 @@
 
 #define    NX    2048
 
-extern void scal_cpu_func(void *buffers[], void *_args);
-extern void scal_cuda_func(void *buffers[], void *_args);
-extern void scal_opencl_func(void *buffers[], void *_args);
+extern void vector_scal_cpu(void *buffers[], void *_args);
+extern void vector_scal_cuda(void *buffers[], void *_args);
+extern void vector_scal_opencl(void *buffers[], void *_args);
 
 static struct starpu_codelet cl = {
     /* CPU implementation of the codelet */
-    .cpu_funcs = {scal_cpu_func, NULL},
+    .cpu_funcs = {vector_scal_cpu, NULL},
 #ifdef STARPU_USE_CUDA
     /* CUDA implementation of the codelet */
-    .cuda_funcs = {scal_cuda_func, NULL},
+    .cuda_funcs = {vector_scal_cuda, NULL},
 #endif
 #ifdef STARPU_USE_OPENCL
     /* OpenCL implementation of the codelet */
-    .opencl_funcs = {scal_opencl_func, NULL},
+    .opencl_funcs = {vector_scal_opencl, NULL},
 #endif
     .nbuffers = 1,
     .modes = {STARPU_RW}
