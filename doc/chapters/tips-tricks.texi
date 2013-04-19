@@ -9,6 +9,7 @@
 @menu
 * Per-worker library initialization::  How to initialize a computation library once for each worker?
 * Limit memory::
+* Thread Binding on NetBSD::
 @end menu
 
 @node Per-worker library initialization
@@ -91,3 +92,20 @@ and @code{STARPU_LIMIT_CPU_MEM}
 
 @code{starpu_memory_get_available}
 
+@node Thread Binding on NetBSD
+@section Thread Binding on NetBSD
+
+When using StarPU on a NetBSD machine, if the topology
+discovery library @code{hwloc} is used, thread binding will fail. To
+prevent the problem, you should at least use the version 1.7 of
+@code{hwloc}, and also issue the following call:
+
+@example
+$ sysctl -w security.models.extensions.user_set_cpu_affinity=1
+@end example
+
+Or add the following line in the file @code{/etc/sysctl.conf}
+
+@example
+security.models.extensions.user_set_cpu_affinity=1
+@end example
