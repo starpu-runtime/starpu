@@ -24,7 +24,7 @@ HAS_OPENCL	=	$(shell pkg-config --libs starpu-1.0 |grep -i opencl)
 %.o: %.cu
 	nvcc $(CFLAGS) $< -c
 
-TARGETS = hello_world vector_scal
+TARGETS = hello_world vector_scal hello_world_plugin
 
 all: $(TARGETS)
 
@@ -41,6 +41,9 @@ endif
 
 vector_scal: $(VECTOR_SCAL_PREREQUISITES)
 	$(VECTOR_SCAL_COMPILER) $(LDFLAGS) $^ -o $@
+
+hello_world_plugin: hello_world_plugin.c
+	$(CC) $(CFLAGS) -fplugin=`pkg-config starpu-1.0 --variable=gccplugin` $(LDFLAGS) $^ -o $@
 
 clean:
 	rm -f $(TARGETS) *.o
