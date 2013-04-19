@@ -14,12 +14,12 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-CFLAGS          +=      $$(pkg-config --cflags starpu-1.0)
-LDFLAGS         +=      $$(pkg-config --libs starpu-1.0)
+CFLAGS          +=      $$(pkg-config --cflags starpu-1.1)
+LDFLAGS         +=      $$(pkg-config --libs starpu-1.1)
 
-HAS_CUDA	=	$(shell pkg-config --libs starpu-1.0 |grep -i cuda)
+HAS_CUDA	=	$(shell pkg-config --libs starpu-1.1 |grep -i cuda)
 NVCC		?=	nvcc
-HAS_OPENCL	=	$(shell pkg-config --libs starpu-1.0 |grep -i opencl)
+HAS_OPENCL	=	$(shell pkg-config --libs starpu-1.1 |grep -i opencl)
 
 %.o: %.cu
 	nvcc $(CFLAGS) $< -c
@@ -43,7 +43,7 @@ vector_scal: $(VECTOR_SCAL_PREREQUISITES)
 	$(VECTOR_SCAL_COMPILER) $(LDFLAGS) $^ -o $@
 
 hello_world_plugin: hello_world_plugin.c
-	$(CC) $(CFLAGS) -fplugin=`pkg-config starpu-1.0 --variable=gccplugin` $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) -fplugin=`pkg-config starpu-1.1 --variable=gccplugin` $(LDFLAGS) $^ -o $@
 
 clean:
 	rm -f $(TARGETS) *.o
