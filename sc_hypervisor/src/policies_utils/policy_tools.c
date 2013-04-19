@@ -39,7 +39,7 @@ static int _compute_priority(unsigned sched_ctx)
 	return total_priority;
 }
 
-/* find the context with the slowest priority */
+/* find the context with the lowest priority */
 unsigned sc_hypervisor_find_lowest_prio_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move)
 {
 	int i;

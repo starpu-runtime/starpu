@@ -25,6 +25,7 @@ libsc_hypervisor_la_SOURCES = 				\
 	sc_hypervisor.c					\
 	sc_config.c					\
 	policies_utils/policy_tools.c			\
+	policies_utils/task_pool.c			\
 	policies_utils/lp_tools.c			\
 	hypervisor_policies/idle_policy.c		\
 	hypervisor_policies/app_driven_policy.c		\
