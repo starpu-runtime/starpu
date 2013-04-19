@@ -68,9 +68,9 @@ The code can then be compiled and linked with GCC and the
 @code{-fplugin} flag:
 
 @example
-$ gcc `pkg-config starpu-1.0 --cflags` hello-starpu.c \
-    -fplugin=`pkg-config starpu-1.0 --variable=gccplugin` \
-    `pkg-config starpu-1.0 --libs`
+$ gcc `pkg-config starpu-1.1 --cflags` hello-starpu.c \
+    -fplugin=`pkg-config starpu-1.1 --variable=gccplugin` \
+    `pkg-config starpu-1.1 --libs`
 @end example
 
 The code can also be compiled without the StarPU C extension and will
@@ -273,7 +273,7 @@ disabled thanks to @code{starpu_data_set_default_sequential_consistency_flag} or
 
 @smallexample
 $ make hello_world
-cc $(pkg-config --cflags starpu-1.0)  $(pkg-config --libs starpu-1.0) hello_world.c -o hello_world
+cc $(pkg-config --cflags starpu-1.1)  $(pkg-config --libs starpu-1.1) hello_world.c -o hello_world
 $ ./hello_world
 Hello world (params = @{1, 2.000000@} )
 Callback function (arg 42)
@@ -392,9 +392,9 @@ The program can be compiled and linked with GCC and the @code{-fplugin}
 flag:
 
 @example
-$ gcc `pkg-config starpu-1.0 --cflags` vector_scal.c \
-    -fplugin=`pkg-config starpu-1.0 --variable=gccplugin` \
-    `pkg-config starpu-1.0 --libs`
+$ gcc `pkg-config starpu-1.1 --cflags` vector_scal.c \
+    -fplugin=`pkg-config starpu-1.1 --variable=gccplugin` \
+    `pkg-config starpu-1.1 --libs`
 @end example
 
 And voil@`a!
@@ -666,7 +666,7 @@ constant factor from this pointer.
 
 @smallexample
 $ make vector_scal
-cc $(pkg-config --cflags starpu-1.0)  $(pkg-config --libs starpu-1.0)  vector_scal.c   -o vector_scal
+cc $(pkg-config --cflags starpu-1.1)  $(pkg-config --libs starpu-1.1)  vector_scal.c   -o vector_scal
 $ ./vector_scal
 0.000000 3.000000 6.000000 9.000000 12.000000
 @end smallexample
@@ -915,8 +915,8 @@ be compiled at run-time when calling the function
 
 @cartouche
 @smallexample
-CFLAGS  += $(shell pkg-config --cflags starpu-1.0)
-LDFLAGS += $(shell pkg-config --libs starpu-1.0)
+CFLAGS  += $(shell pkg-config --cflags starpu-1.1)
+LDFLAGS += $(shell pkg-config --libs starpu-1.1)
 CC       = gcc
 
 vector_scal: vector_scal.o vector_scal_cpu.o vector_scal_cuda.o vector_scal_opencl.o
