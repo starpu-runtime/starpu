@@ -28,6 +28,7 @@ extern "C"
 #define HYPERVISOR_REDIM_SAMPLE 0.02
 #define HYPERVISOR_START_REDIM_SAMPLE 0.1
 
+/* task wrapper linked list */
 struct sc_hypervisor_policy_task_pool
 {
 	/* Which codelet has been executed */
@@ -41,6 +42,15 @@ struct sc_hypervisor_policy_task_pool
 	/* Other task kinds */
 	struct sc_hypervisor_policy_task_pool *next;
 };
+
+/* add task information to a task wrapper linked list */
+void sc_hypervisor_policy_add_task_to_pool(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, struct sc_hypervisor_policy_task_pool *task_pools);
+
+/* remove task information from a task wrapper linked list */
+void sc_hypervisor_policy_remove_task_from_pool(struct starpu_task *task, uint32_t footprint, struct sc_hypervisor_policy_task_pool *task_pools);
+
+/* clone a task wrapper linked list */
+struct sc_hypervisor_policy_task_pool* sc_hypervisor_policy_clone_task_pool(struct sc_hypervisor_policy_task_pool *tp);
 
 /* find the context with the lowest priority in order to move some workers */
 unsigned sc_hypervisor_find_lowest_prio_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move);
