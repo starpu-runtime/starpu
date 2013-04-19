@@ -21,7 +21,7 @@
 #ifdef STARPU_HAVE_GLPK_H
 static void feft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
-	if(_velocity_gap_btw_ctxs())
+	if(sc_hypervisor_has_velocity_gap_btw_ctxs())
 	{
 		int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
@@ -36,7 +36,7 @@ static void feft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 			nw = ncuda != 0 ? 2 : 1;
 #endif
 			int total_nw[nw];
-			_get_total_nw(NULL, -1, nw, total_nw);
+			sc_hypervisor_group_workers_by_type(NULL, -1, nw, total_nw);
 
 
 			struct timeval start_time;
@@ -71,7 +71,7 @@ static void feft_lp_size_ctxs(int *sched_ctxs, int ns, int *workers, int nworker
 #endif
 	double nworkers_per_type[nsched_ctxs][nw];
 	int total_nw[nw];
-	_get_total_nw(workers, nworkers, nw, total_nw);
+	sc_hypervisor_group_workers_by_type(workers, nworkers, nw, total_nw);
 
 	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
 	double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(nsched_ctxs, nw, nworkers_per_type, total_nw);

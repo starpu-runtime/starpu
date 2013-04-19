@@ -42,35 +42,50 @@ struct sc_hypervisor_policy_task_pool
 	struct sc_hypervisor_policy_task_pool *next;
 };
 
+/* find the context with the lowest priority in order to move some workers */
 unsigned sc_hypervisor_find_lowest_prio_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move);
 
+/* find the first most idle workers of a context*/
 int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype arch);
 
+/* find the first most idle workers in a list */
 int* sc_hypervisor_get_idlest_workers_in_list(int *start, int *workers, int nall_workers,  int *nworkers, enum starpu_archtype arch);
 
+/* find workers that can be moved from a context (if the constraints of min, max, etc allow this) */
 unsigned sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_archtype arch);
 
+/* compute how many workers should be moved from this context */
 int sc_hypervisor_compute_nworkers_to_move(unsigned req_sched_ctx);
 
+/* check the policy's constraints in order to resize */
 unsigned sc_hypervisor_policy_resize(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, unsigned force_resize, unsigned now);
 
+/* check the policy's constraints in order to resize  and find a context willing the resources */
 unsigned sc_hypervisor_policy_resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now);
 
-double _get_ctx_velocity(struct sc_hypervisor_wrapper* sc_w);
+/* compute the velocity of a context */
+double sc_hypervisor_get_ctx_velocity(struct sc_hypervisor_wrapper* sc_w);
 
-double _get_slowest_ctx_exec_time(void);
+/* get the time of execution of the slowest context */
+double sc_hypervisor_get_slowest_ctx_exec_time(void);
 
-double _get_fastest_ctx_exec_time(void);
+/* get the time of execution of the fastest context */
+double sc_hypervisor_get_fastest_ctx_exec_time(void);
 
-double _get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w, unsigned worker); 
+/* compute the velocity of a workers in a context */
+double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w, unsigned worker); 
 
-double _get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
+/* compute the velocity of a type of worker in a context */
+double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
 
-double _get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
+/* compute the velocity of a type of worker in a context depending on its history */ 
+double sc_hypervisor_get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
 
-int _velocity_gap_btw_ctxs(void);
+/* check if there are contexts a lot more delayed than others */
+int sc_hypervisor_has_velocity_gap_btw_ctxs(void);
 
-void _get_total_nw(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers]);
+/* get the list of workers grouped by type */
+void sc_hypervisor_group_workers_by_type(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers]);
 
 #ifdef __cplusplus
 }

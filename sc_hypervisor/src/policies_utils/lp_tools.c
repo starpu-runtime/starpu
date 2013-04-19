@@ -259,7 +259,7 @@ double sc_hypervisor_lp_get_tmax(int nw, int *workers)
 {
 	int ntypes_of_workers = 2;
 	int total_nw[ntypes_of_workers];
-	_get_total_nw(workers, nw, 2, total_nw);
+	sc_hypervisor_group_workers_by_type(workers, nw, 2, total_nw);
 
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 

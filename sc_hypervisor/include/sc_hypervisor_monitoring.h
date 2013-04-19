@@ -116,7 +116,7 @@ double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrappe
 double sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper* sc_w);
 
 /* compute an average value of the cpu/cuda velocity */
-double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
+double sc_hypervisorsc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
 
 /* compte the actual velocity of all workers of a specific type of worker */
 double sc_hypervisor_get_velocity(struct sc_hypervisor_wrapper *sc_w, enum starpu_archtype arch);

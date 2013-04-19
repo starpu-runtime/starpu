@@ -46,7 +46,7 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 			draft_flops_on_w[s][w] = 0.0;
 			int worker = workers == NULL ? w : workers[w];
 
-			velocity[s][w] = _get_velocity_per_worker(sc_w, worker);
+			velocity[s][w] = sc_hypervisor_get_velocity_per_worker(sc_w, worker);
 			if(velocity[s][w] == -1.0)
 			{
 				enum starpu_archtype arch = starpu_worker_get_type(worker);
@@ -72,8 +72,8 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 	/* take the exec time of the slowest ctx 
 	   as starting point and then try to minimize it
 	   as increasing it a little for the faster ctxs */
-	double tmax = _get_slowest_ctx_exec_time();
- 	double smallest_tmax = _get_fastest_ctx_exec_time(); //tmax - 0.5*tmax; 
+	double tmax = sc_hypervisor_get_slowest_ctx_exec_time();
+ 	double smallest_tmax = sc_hypervisor_get_fastest_ctx_exec_time(); //tmax - 0.5*tmax; 
 //	printf("tmax %lf smallest %lf\n", tmax, smallest_tmax);
 
 	double res = 1.0;
@@ -357,11 +357,11 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
-	_get_velocity_per_worker(sc_w, worker);
+	sc_hypervisor_get_velocity_per_worker(sc_w, worker);
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
-		if(_velocity_gap_btw_ctxs())
+		if(sc_hypervisor_has_velocity_gap_btw_ctxs())
 		{
 			int ns = sc_hypervisor_get_nsched_ctxs();
 			int nw = starpu_worker_get_count(); /* Number of different workers */
