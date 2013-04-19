@@ -365,7 +365,7 @@ static double _get_best_total_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, 
 }
 
 /* compute an average value of the cpu/cuda velocity */
-double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
+double sc_hypervisorsc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
 {
         int npus = 0;
         double elapsed_flops = _get_best_total_elapsed_flops(sc_w, &npus, arch) / 1000000000.0 ; /* in gflops */
@@ -384,7 +384,7 @@ double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* 
 }
 
 /* compute an average value of the cpu/cuda old velocity */
-double _get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
+double sc_hypervisor_get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
 {
 	double ref_velocity = 0.0;
 	unsigned nw = 0;
@@ -978,9 +978,9 @@ void sc_hypervisor_free_size_req(void)
 double sc_hypervisor_get_velocity(struct sc_hypervisor_wrapper *sc_w, enum starpu_archtype arch)
 {
 
-	double velocity = sc_hypervisor_get_velocity_per_worker_type(sc_w, arch);
+	double velocity = sc_hypervisorsc_hypervisor_get_velocity_per_worker_type(sc_w, arch);
 	if(velocity == -1.0)
-		velocity = _get_ref_velocity_per_worker_type(sc_w, arch);
+		velocity = sc_hypervisor_get_ref_velocity_per_worker_type(sc_w, arch);
 	if(velocity == -1.0)
 		velocity = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
        

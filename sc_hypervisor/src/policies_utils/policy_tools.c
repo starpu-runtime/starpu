@@ -347,7 +347,7 @@ static double _get_ispeed_sample_for_sched_ctx(unsigned sched_ctx)
 	return ispeed_sample;
 }
 
-double _get_ctx_velocity(struct sc_hypervisor_wrapper* sc_w)
+double sc_hypervisor_get_ctx_velocity(struct sc_hypervisor_wrapper* sc_w)
 {
 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
         double elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
@@ -373,7 +373,7 @@ double _get_ctx_velocity(struct sc_hypervisor_wrapper* sc_w)
 	return -1.0;
 }
 
-double _get_slowest_ctx_exec_time(void)
+double sc_hypervisor_get_slowest_ctx_exec_time(void)
 {
 	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
@@ -389,7 +389,7 @@ double _get_slowest_ctx_exec_time(void)
 
 //		double elapsed_time  = (curr_time - sc_w->start_time)/1000000;
 		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
-		double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/_get_ctx_velocity(sc_w);
+		double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/sc_hypervisor_get_ctx_velocity(sc_w);
 		if(elapsed_time > slowest_time)
 			slowest_time = elapsed_time;
 
@@ -397,7 +397,7 @@ double _get_slowest_ctx_exec_time(void)
 	return slowest_time;
 }
 
-double _get_fastest_ctx_exec_time(void)
+double sc_hypervisor_get_fastest_ctx_exec_time(void)
 {
 	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
@@ -412,7 +412,7 @@ double _get_fastest_ctx_exec_time(void)
 		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
 
 		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
-		double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/_get_ctx_velocity(sc_w);
+		double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/sc_hypervisor_get_ctx_velocity(sc_w);
 		
 		if(elapsed_time < fastest_time)
 			fastest_time = elapsed_time;
@@ -423,7 +423,7 @@ double _get_fastest_ctx_exec_time(void)
 }
 
 
-double _get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w, unsigned worker)
+double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w, unsigned worker)
 {
 	if(!starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx))
 		return -1.0;
@@ -506,7 +506,7 @@ static double _get_best_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, int *n
 }
 
 /* compute an average value of the cpu/cuda velocity */
-double _get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
+double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
 {
         int npus = 0;
         double elapsed_flops = _get_best_elapsed_flops(sc_w, &npus, arch) / 1000000000.0 ; /* in gflops */
@@ -526,7 +526,7 @@ double _get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum st
 
 
 /* check if there is a big velocity gap between the contexts */
-int _velocity_gap_btw_ctxs()
+int sc_hypervisor_has_velocity_gap_btw_ctxs()
 {
 	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
@@ -537,7 +537,7 @@ int _velocity_gap_btw_ctxs()
 	for(i = 0; i < nsched_ctxs; i++)
 	{
 		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
-		double ctx_v = _get_ctx_velocity(sc_w);
+		double ctx_v = sc_hypervisor_get_ctx_velocity(sc_w);
 		if(ctx_v != -1.0)
 		{
 			for(j = 0; j < nsched_ctxs; j++)
@@ -549,7 +549,7 @@ int _velocity_gap_btw_ctxs()
 						return 1;
 
 					other_sc_w = sc_hypervisor_get_wrapper(sched_ctxs[j]);
-					double other_ctx_v = _get_ctx_velocity(other_sc_w);
+					double other_ctx_v = sc_hypervisor_get_ctx_velocity(other_sc_w);
 					if(other_ctx_v != -1.0)
 					{
 						double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v ;
@@ -566,7 +566,7 @@ int _velocity_gap_btw_ctxs()
 }
 
 
-void _get_total_nw(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers])
+void sc_hypervisor_group_workers_by_type(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers])
 {
 	int current_nworkers = workers == NULL ? starpu_worker_get_count() : nworkers;
 	int w;

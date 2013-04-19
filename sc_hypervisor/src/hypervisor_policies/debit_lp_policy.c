@@ -228,11 +228,11 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double w_in_
 static void debit_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
-	_get_velocity_per_worker(sc_w, worker);
+	sc_hypervisor_get_velocity_per_worker(sc_w, worker);
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
-		if(_velocity_gap_btw_ctxs())
+		if(sc_hypervisor_has_velocity_gap_btw_ctxs())
 		{
 			int ns = sc_hypervisor_get_nsched_ctxs();
 			int nw = starpu_worker_get_count(); /* Number of different workers */
