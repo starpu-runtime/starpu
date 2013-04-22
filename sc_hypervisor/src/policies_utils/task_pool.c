@@ -17,11 +17,11 @@
 
 #include "sc_hypervisor_policy.h"
 
-void sc_hypervisor_policy_add_task_to_pool(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, struct sc_hypervisor_policy_task_pool *task_pools)
+void sc_hypervisor_policy_add_task_to_pool(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, struct sc_hypervisor_policy_task_pool **task_pools)
 {
 	struct sc_hypervisor_policy_task_pool *tp = NULL;
 
-	for (tp = task_pools; tp; tp = tp->next)
+	for (tp = *task_pools; tp; tp = tp->next)
 	{
 		if (tp && tp->cl == cl && tp->footprint == footprint && tp->sched_ctx_id == sched_ctx)
 			break;
@@ -34,20 +34,20 @@ void sc_hypervisor_policy_add_task_to_pool(struct starpu_codelet *cl, unsigned s
 		tp->footprint = footprint;
 		tp->sched_ctx_id = sched_ctx;
 		tp->n = 0;
-		tp->next = task_pools;
-		task_pools = tp;
+		tp->next = *task_pools;
+		*task_pools = tp;
 	}
 
 	/* One more task of this kind */
 	tp->n++;
 }
 
-void sc_hypervisor_policy_remove_task_from_pool(struct starpu_task *task, uint32_t footprint, struct sc_hypervisor_policy_task_pool *task_pools)
+void sc_hypervisor_policy_remove_task_from_pool(struct starpu_task *task, uint32_t footprint, struct sc_hypervisor_policy_task_pool **task_pools)
 {
 	/* count the tasks of the same type */
 	struct sc_hypervisor_policy_task_pool *tp = NULL;
 
-	for (tp = task_pools; tp; tp = tp->next)
+	for (tp = *task_pools; tp; tp = tp->next)
 	{
 		if (tp && tp->cl == task->cl && tp->footprint == footprint && tp->sched_ctx_id == task->sched_ctx)
 			break;
@@ -59,23 +59,23 @@ void sc_hypervisor_policy_remove_task_from_pool(struct starpu_task *task, uint32
 			tp->n--;
 		else
 		{
-			if(tp == task_pools)
+			if(tp == *task_pools)
 			{
 				struct sc_hypervisor_policy_task_pool *next_tp = NULL;
-				if(task_pools->next)
-					next_tp = task_pools->next;
+				if((*task_pools)->next)
+					next_tp = (*task_pools)->next;
 
 				free(tp);
 				tp = NULL;
 				
 				if(next_tp)
-					task_pools = next_tp;
+					*task_pools = next_tp;
 				
 			}
 			else
 			{
 				struct sc_hypervisor_policy_task_pool *prev_tp = NULL;
-				for (prev_tp = task_pools; prev_tp; prev_tp = prev_tp->next)
+				for (prev_tp = *task_pools; prev_tp; prev_tp = prev_tp->next)
 				{
 					if (prev_tp->next == tp)
 						prev_tp->next = tp->next;

@@ -20,139 +20,33 @@
 #include <math.h>
 #include <sys/time.h>
 
-static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops[ns], double tmax, double flops_on_w[ns][nw], double w_in_s[ns][nw], int *workers, unsigned integer);
-
-static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_in_s[ns][nw], double flops_on_w[ns][nw], int *in_sched_ctxs, int *workers)
+struct ispeed_lp_data
 {
-	double draft_w_in_s[ns][nw];
-	double draft_flops_on_w[ns][nw];
-	double flops[ns];
-	double velocity[ns][nw];
-
-	int *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
-	
-	int w,s;
-
-	struct sc_hypervisor_wrapper* sc_w = NULL;
-	double total_flops = 0.0;
-	for(s = 0; s < ns; s++)
-	{
-		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
-		for(w = 0; w < nw; w++)
-		{
-			w_in_s[s][w] = 0.0;
-			draft_w_in_s[s][w] = 0.0;
-			flops_on_w[s][w] = 0.0;
-			draft_flops_on_w[s][w] = 0.0;
-			int worker = workers == NULL ? w : workers[w];
-
-			velocity[s][w] = sc_hypervisor_get_velocity_per_worker(sc_w, worker);
-			if(velocity[s][w] == -1.0)
-			{
-				enum starpu_archtype arch = starpu_worker_get_type(worker);
-				velocity[s][w] = sc_hypervisor_get_velocity(sc_w, arch);
-				if(arch == STARPU_CUDA_WORKER)
-				{
-					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx);
-					if(!worker_in_ctx)
-					{
-						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker) / 1000;
-						velocity[s][w] = (velocity[s][w] * transfer_velocity) / (velocity[s][w] + transfer_velocity);
-					}
-				}
-
-			}
-			
-//			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
-		}
-		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[s]);
-		flops[s] = config->ispeed_ctx_sample/1000000000; /* in gflops */
-	}
-	
-	/* take the exec time of the slowest ctx 
-	   as starting point and then try to minimize it
-	   as increasing it a little for the faster ctxs */
-	double tmax = sc_hypervisor_get_slowest_ctx_exec_time();
- 	double smallest_tmax = sc_hypervisor_get_fastest_ctx_exec_time(); //tmax - 0.5*tmax; 
-//	printf("tmax %lf smallest %lf\n", tmax, smallest_tmax);
-
-	double res = 1.0;
-	unsigned has_sol = 0;
-	double tmin = 0.0;
-	double old_tmax = 0.0;
-	unsigned found_sol = 0;
-
-	struct timeval start_time;
-	struct timeval end_time;
-	int nd = 0;
-	gettimeofday(&start_time, NULL);
-
-	/* we fix tmax and we do not treat it as an unknown
-	   we just vary by dichotomy its values*/
-	while(tmax > 1.0)
-	{
-		/* find solution and save the values in draft tables
-		   only if there is a solution for the system we save them
-		   in the proper table */
-		res = _glp_resolve(ns, nw, velocity, flops, tmax, draft_flops_on_w, draft_w_in_s, workers, 1);
-		if(res != 0.0)
-		{
-			for(s = 0; s < ns; s++)
-				for(w = 0; w < nw; w++)
-				{
-					w_in_s[s][w] = draft_w_in_s[s][w];
-					flops_on_w[s][w] = draft_flops_on_w[s][w];
-				}
-			has_sol = 1;
-			found_sol = 1;
-		}
-		else
-			has_sol = 0;
-
-		/* if we have a solution with this tmax try a smaller value
-		   bigger than the old min */
-		if(has_sol)
-		{
-			if(old_tmax != 0.0 && (old_tmax - tmax) < 0.5)
-				break;
-			old_tmax = tmax;
-		}
-		else /*else try a bigger one but smaller than the old tmax */
-		{
-			tmin = tmax;
-			if(old_tmax != 0.0)
-				tmax = old_tmax;
-		}
-		if(tmin == tmax) break;
-		tmax = sc_hypervisor_lp_find_tmax(tmin, tmax);
-
-		if(tmax < smallest_tmax)
-		{
-			tmax = old_tmax;
-			tmin = smallest_tmax;
-			tmax = sc_hypervisor_lp_find_tmax(tmin, tmax);
-		}
-		nd++;
-	}
-	gettimeofday(&end_time, NULL);
-
-	long diff_s = end_time.tv_sec  - start_time.tv_sec;
-	long diff_us = end_time.tv_usec  - start_time.tv_usec;
-
-	float timing = (float)(diff_s*1000000 + diff_us)/1000;
-
-//        fprintf(stdout, "nd = %d total time: %f ms \n", nd, timing);
-
-	return found_sol;
-}
+	double **velocity;
+	double *flops;
+	double **flops_on_w;
+	int *workers;
+};
 
 /*
  * GNU Linear Programming Kit backend
  */
 #ifdef STARPU_HAVE_GLPK_H
 #include <glpk.h>
-static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops[ns], double tmax, double flops_on_w[ns][nw], double w_in_s[ns][nw], int *workers, unsigned integer)
+static double _glp_resolve (int ns, int nw, double final_w_in_s[ns][nw],
+			    unsigned is_integer, double tmax, void *specific_data)
 {
+	struct ispeed_lp_data *sd = (struct ispeed_lp_data *)specific_data;
+
+	double **velocity = sd->velocity;
+	double *flops = sd->flops;
+	
+	double **final_flops_on_w = sd->flops_on_w;
+        int *workers = sd->workers;
+	
+	double w_in_s[ns][nw];
+	double flops_on_w[ns][nw];
+
 	int w, s;
 	glp_prob *lp;
 
@@ -188,7 +82,7 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 
 				snprintf(name, sizeof(name), "w%ds%dn", w, s);
 				glp_set_col_name(lp, nw*ns+colnum(w,s), name);
-				if (integer)
+				if (is_integer)
 				{
                                         glp_set_col_kind(lp, nw*ns+colnum(w, s), GLP_IV);
 					glp_set_col_bnds(lp, nw*ns+colnum(w,s), GLP_DB, 0, 1);
@@ -266,7 +160,7 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 				ar[n] = 1;
 				n++;
 			}
-			if(integer)				
+			if(is_integer)				
 				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1, 1);
 			else
 				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
@@ -311,7 +205,7 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 		return 0.0;
 	}
 
-        if (integer)
+        if (is_integer)
         {
                 glp_iocp iocp;
                 glp_init_iocp(&iocp);
@@ -342,7 +236,7 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 		for(w = 0; w < nw; w++)
 		{
 			flops_on_w[s][w] = glp_get_col_prim(lp, colnum(w, s));
-			if (integer)
+			if (is_integer)
 				w_in_s[s][w] = (double)glp_mip_col_val(lp, nw*ns+colnum(w, s));
 			else
 				w_in_s[s][w] = glp_get_col_prim(lp, nw*ns+colnum(w,s));
@@ -350,8 +244,87 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double flops
 		}
 
 	glp_delete_prob(lp);
+	for(s = 0; s < ns; s++)
+		for(w = 0; w < nw; w++)
+		{
+			final_w_in_s[s][w] = w_in_s[s][w];
+			final_flops_on_w[s][w] = flops_on_w[s][w];
+		}
+
 	return res;
 }
+
+static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_in_s[ns][nw], double **flops_on_w, int *in_sched_ctxs, int *workers)
+{
+//	double flops[ns];
+//	double velocity[ns][nw];
+	double *flops = (double*)malloc(ns*sizeof(double));
+	double **velocity = (double **)malloc(ns*sizeof(double*));
+	int i;
+	for(i = 0; i < ns; i++)
+		velocity[i] = (double*)malloc(nw*sizeof(double));
+
+	int *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
+	
+	int w,s;
+
+	struct sc_hypervisor_wrapper* sc_w = NULL;
+	double total_flops = 0.0;
+	for(s = 0; s < ns; s++)
+	{
+		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
+		for(w = 0; w < nw; w++)
+		{
+			w_in_s[s][w] = 0.0;
+			int worker = workers == NULL ? w : workers[w];
+
+			velocity[s][w] = sc_hypervisor_get_velocity_per_worker(sc_w, worker);
+			if(velocity[s][w] == -1.0)
+			{
+				enum starpu_archtype arch = starpu_worker_get_type(worker);
+				velocity[s][w] = sc_hypervisor_get_velocity(sc_w, arch);
+				if(arch == STARPU_CUDA_WORKER)
+				{
+					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx);
+					if(!worker_in_ctx)
+					{
+						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker) / 1000;
+						velocity[s][w] = (velocity[s][w] * transfer_velocity) / (velocity[s][w] + transfer_velocity);
+					}
+				}
+
+			}
+			
+//			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
+		}
+		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[s]);
+		flops[s] = config->ispeed_ctx_sample/1000000000; /* in gflops */
+	}
+	
+	/* take the exec time of the slowest ctx 
+	   as starting point and then try to minimize it
+	   as increasing it a little for the faster ctxs */
+	double tmax = sc_hypervisor_get_slowest_ctx_exec_time();
+ 	double smallest_tmax = sc_hypervisor_get_fastest_ctx_exec_time(); //tmax - 0.5*tmax; 
+//	printf("tmax %lf smallest %lf\n", tmax, smallest_tmax);
+	double tmin = 0.0;
+
+        struct ispeed_lp_data specific_data;
+        specific_data.velocity = velocity;
+        specific_data.flops = flops;
+        specific_data.flops_on_w = flops_on_w;
+        specific_data.workers = workers;
+
+        unsigned found_sol = sc_hypervisor_lp_execute_dichotomy(ns, nw, w_in_s, 1, (void*)&specific_data, 
+								tmin, tmax, smallest_tmax, _glp_resolve);
+
+	for(i = 0; i < ns; i++)
+		free(velocity[i]);
+	free(velocity);
+	
+	return found_sol;
+}
+
 
 
 static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
@@ -367,8 +340,13 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct s
 			int nw = starpu_worker_get_count(); /* Number of different workers */
 
 			double w_in_s[ns][nw];
-			double flops_on_w[ns][nw];
+//			double flops_on_w[ns][nw];
+			double **flops_on_w = (double**)malloc(ns*sizeof(double*));
+			int i;
+			for(i = 0; i < ns; i++)
+				flops_on_w[i] = (double*)malloc(nw*sizeof(double));
 
+			printf("ns = %d nw = %d\n", ns, nw);
 			unsigned found_sol = _compute_flops_distribution_over_ctxs(ns, nw,  w_in_s, flops_on_w, NULL, NULL);
 			/* if we did find at least one solution redistribute the resources */
 			if(found_sol)
@@ -410,8 +388,10 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct s
 /* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
 
 				sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
-
 			}
+			for(i = 0; i < ns; i++)
+				free(flops_on_w[i]);
+			free(flops_on_w);
 		}
 		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
