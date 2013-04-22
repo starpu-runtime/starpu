@@ -23,158 +23,16 @@
 static struct sc_hypervisor_policy_task_pool *task_pools = NULL;
 
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
-static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers, unsigned interger,
-			   struct sc_hypervisor_policy_task_pool *tmp_task_pools, unsigned size_ctxs);
-static unsigned _compute_task_distribution_over_ctxs(int ns, int nw, int nt, double w_in_s[ns][nw], double tasks[nw][nt], 
-						     int *sched_ctxs, int *workers, struct sc_hypervisor_policy_task_pool *tmp_task_pools, unsigned size_ctxs)
+
+struct teft_lp_data 
 {
-	double draft_tasks[nw][nt];
-	double draft_w_in_s[ns][nw];
-
-	int w,t, s;
-	for(w = 0; w < nw; w++)
-		for(t = 0; t < nt; t++)
-		{
-			tasks[w][t] = 0.0;
-			draft_tasks[w][t] = 0.0;
-		}
-
-	for(s = 0; s < ns; s++)
-		for(w = 0; w < nw; w++)
-		{
-			w_in_s[s][w] = 0.0;
-			draft_w_in_s[s][w] = 0.0;
-		}
-
-	/* smallest possible tmax, difficult to obtain as we
-	   compute the nr of flops and not the tasks */
-	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, workers);
-	double smallest_tmax = possible_tmax / 3;
-	double tmax = possible_tmax * ns;
-	double res = 1.0;
-	unsigned has_sol = 0;
-	double tmin = smallest_tmax;
-	double old_tmax = 0.0;
-	unsigned found_sol = 0;
-
-//	printf("tmin = %lf tmax = %lf \n", tmin, tmax);
-	struct timeval start_time;
-	struct timeval end_time;
-	int nd = 0;
-	gettimeofday(&start_time, NULL);
-
-	/* we fix tmax and we do not treat it as an unknown
-	   we just vary by dichotomy its values*/
-	while(tmax > 1.0)
-	{
-		/* find solution and save the values in draft tables
-		   only if there is a solution for the system we save them
-		   in the proper table */
-		res = _glp_resolve(ns, nw, nt, draft_tasks, tmax, draft_w_in_s, sched_ctxs, workers, 1, tmp_task_pools, size_ctxs);
-		if(res != 0.0)
-		{
-			for(w = 0; w < nw; w++)
-				for(t = 0; t < nt; t++)
-					tasks[w][t] = draft_tasks[w][t];
-			for(s = 0; s < ns; s++)
-				for(w = 0; w < nw; w++)
-					w_in_s[s][w] = draft_w_in_s[s][w];
-			has_sol = 1;
-			found_sol = 1;
-		}
-		else
-			has_sol = 0;
-
-		/* if we have a solution with this tmax try a smaller value
-		   bigger than the old min */
-		if(has_sol)
-		{
-			if(old_tmax != 0.0 && (old_tmax - tmax) < 0.5)
-				break;
-			old_tmax = tmax;
-		}
-		else /*else try a bigger one but smaller than the old tmax */
-		{
-			tmin = tmax;
-			if(old_tmax != 0.0)
-				tmax = old_tmax;
-		}
-		if(tmin == tmax) break;
-		tmax = sc_hypervisor_lp_find_tmax(tmin, tmax);
-
-		if(tmax < smallest_tmax)
-		{
-			tmax = old_tmax;
-			tmin = smallest_tmax;
-			tmax = sc_hypervisor_lp_find_tmax(tmin, tmax);
-		}
-		nd++;
-	}
-	gettimeofday(&end_time, NULL);
-
-	long diff_s = end_time.tv_sec  - start_time.tv_sec;
-	long diff_us = end_time.tv_usec  - start_time.tv_usec;
-
-	float timing = (float)(diff_s*1000000 + diff_us)/1000;
-
-//        fprintf(stdout, "nd = %d total time: %f ms \n", nd, timing);
-	return found_sol;
-}
-
-
-static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
-{
-	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
-	int nw = workers == NULL ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
-	int nt = 0; /* Number of different kinds of tasks */
-	starpu_pthread_mutex_lock(&mutex);
-	struct sc_hypervisor_policy_task_pool * tp;
-	for (tp = task_pools; tp; tp = tp->next)
-		nt++;
-
-	double w_in_s[ns][nw];
-	double tasks[nw][nt];
-	unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, tasks, sched_ctxs, workers, task_pools, 1);
-	starpu_pthread_mutex_unlock(&mutex);
-	/* if we did find at least one solution redistribute the resources */
-	if(found_sol)
-		sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, workers, 1);
-}
-
-static void size_if_required()
-{
-	int nsched_ctxs, nworkers;
-	int *sched_ctxs, *workers;
-	unsigned has_req = sc_hypervisor_get_size_req(&sched_ctxs, &nsched_ctxs, &workers, &nworkers);
-
-	if(has_req)
-	{
-		struct sc_hypervisor_wrapper* sc_w = NULL;
-		unsigned ready_to_size = 1;
-		int s;
-		starpu_pthread_mutex_lock(&act_hypervisor_mutex);
-		for(s = 0; s < nsched_ctxs; s++)
-		{
-			sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
-			if(sc_w->submitted_flops < sc_w->total_flops)
-				ready_to_size = 0;
-		}
-
-		if(ready_to_size)
-			_size_ctxs(sched_ctxs, nsched_ctxs, workers, nworkers);
-		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
-	}
-}
-
-static void teft_lp_handle_submitted_job(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint)
-{
-	/* count the tasks of the same type */
-	starpu_pthread_mutex_lock(&mutex);
-	sc_hypervisor_policy_add_task_to_pool(cl, sched_ctx, footprint, task_pools);
-	starpu_pthread_mutex_unlock(&mutex);
-
-	size_if_required();
-}
+	int nt;
+	double **tasks;
+	int *in_sched_ctxs;
+	int *workers;
+	struct sc_hypervisor_policy_task_pool *tmp_task_pools;
+	unsigned size_ctxs;
+};
 
 static void _get_tasks_times(int nw, int nt, double times[nw][nt], int *workers, unsigned size_ctxs)
 {
@@ -215,14 +73,28 @@ static void _get_tasks_times(int nw, int nt, double times[nw][nt], int *workers,
         }
 }
 
+
+
 /*
  * GNU Linear Programming Kit backend
  */
 #ifdef STARPU_HAVE_GLPK_H
 #include <glpk.h>
-static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double tmax, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers, unsigned integer,
-			   struct sc_hypervisor_policy_task_pool *tmp_task_pools, unsigned size_ctxs)
+static double _glp_resolve(int ns, int nw, double final_w_in_s[ns][nw], 
+			   unsigned is_integer, double tmax, void *specific_data)
 {
+	struct teft_lp_data *sd = (struct teft_lp_data *)specific_data;
+
+	int nt = sd->nt;
+	double **final_tasks = sd->tasks;
+	int *in_sched_ctxs = sd->in_sched_ctxs;
+	int *workers = sd->workers;
+	struct sc_hypervisor_policy_task_pool *tmp_task_pools = sd->tmp_task_pools;
+	unsigned size_ctxs = sd->size_ctxs;
+	
+	double w_in_s[ns][nw];
+	double tasks[nw][nt];
+	
 	if(tmp_task_pools == NULL)
 		return 0.0;
 	struct sc_hypervisor_policy_task_pool * tp;
@@ -273,7 +145,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 				char name[32];
 				snprintf(name, sizeof(name), "w%ds%dn", w, s);
 				glp_set_col_name(lp, nw*nt+s*nw+w+1, name);
-				if (integer)
+				if (is_integer)
                                 {
                                         glp_set_col_kind(lp, nw*nt+s*nw+w+1, GLP_IV);
                                         glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0, 1);
@@ -369,7 +241,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 				ar[n] = 1;
 				n++;
 			}
-			if(integer)
+			if(is_integer)
                                 glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1, 1);
 			else
 				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
@@ -410,7 +282,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 	}
 
 
-	if (integer)
+	if (is_integer)
         {
                 glp_iocp iocp;
                 glp_init_iocp(&iocp);
@@ -439,7 +311,7 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 	for(s = 0; s < ns; s++)
 		for(w = 0; w < nw; w++)
 		{
-			if (integer)
+			if (is_integer)
 				w_in_s[s][w] = (double)glp_mip_col_val(lp, nw*nt+s*nw+w+1);
                         else
 				w_in_s[s][w] = glp_get_col_prim(lp, nw*nt+s*nw+w+1);
@@ -448,7 +320,89 @@ static double _glp_resolve(int ns, int nw, int nt, double tasks[nw][nt], double 
 //	printf("\n");
 
 	glp_delete_prob(lp);
+	if(res != 0.0)
+	{
+		for(s = 0; s < ns; s++)
+			for(w = 0; w < nw; w++)
+				final_w_in_s[s][w] = w_in_s[s][w];
+
+		for(w = 0; w < nw; w++)
+			for(t = 0; t < nt; t++)
+				final_tasks[w][t] = tasks[w][t];
+	}
 	return res;
+}
+	
+static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
+{
+	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
+	int nw = workers == NULL ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
+	int nt = 0; /* Number of different kinds of tasks */
+	starpu_pthread_mutex_lock(&mutex);
+	struct sc_hypervisor_policy_task_pool * tp;
+	for (tp = task_pools; tp; tp = tp->next)
+		nt++;
+
+	double w_in_s[ns][nw];
+	double tasks[nw][nt];
+
+	struct teft_lp_data specific_data;
+	specific_data.nt = nt;
+	specific_data.tasks = tasks;
+	specific_data.in_sched_ctxs = sched_ctxs;
+	specific_data.workers = workers;
+	specific_data.tmp_task_pools = task_pools;
+	specific_data.size_ctxs = 1;
+
+	/* smallest possible tmax, difficult to obtain as we
+	   compute the nr of flops and not the tasks */
+	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, workers);
+	double smallest_tmax = possible_tmax / 3;
+	double tmax = possible_tmax * ns;
+	double tmin = smallest_tmax;
+
+	unsigned found_sol = sc_hypervisor_lp_execute_dichotomy(ns, nw, w_in_s, 1, (void*)&specific_data, 
+								tmin, tmax, smallest_tmax, _glp_resolve);
+
+	starpu_pthread_mutex_unlock(&mutex);
+	/* if we did find at least one solution redistribute the resources */
+	if(found_sol)
+		sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, workers, 1);
+}
+
+static void size_if_required()
+{
+	int nsched_ctxs, nworkers;
+	int *sched_ctxs, *workers;
+	unsigned has_req = sc_hypervisor_get_size_req(&sched_ctxs, &nsched_ctxs, &workers, &nworkers);
+
+	if(has_req)
+	{
+		struct sc_hypervisor_wrapper* sc_w = NULL;
+		unsigned ready_to_size = 1;
+		int s;
+		starpu_pthread_mutex_lock(&act_hypervisor_mutex);
+		for(s = 0; s < nsched_ctxs; s++)
+		{
+			sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
+			if(sc_w->submitted_flops < sc_w->total_flops)
+				ready_to_size = 0;
+		}
+
+		if(ready_to_size)
+			_size_ctxs(sched_ctxs, nsched_ctxs, workers, nworkers);
+		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+	}
+}
+
+static void teft_lp_handle_submitted_job(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint)
+{
+	/* count the tasks of the same type */
+	starpu_pthread_mutex_lock(&mutex);
+	sc_hypervisor_policy_add_task_to_pool(cl, sched_ctx, footprint, &task_pools);
+	starpu_pthread_mutex_unlock(&mutex);
+
+	size_if_required();
 }
 
 static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
@@ -485,9 +439,28 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 
 
 			double w_in_s[ns][nw];
-			double tasks_per_worker[nw][nt];
+//			double tasks_per_worker[nw][nt];
+			double **tasks_per_worker=(double**)malloc(nw*sizeof(double*));
+			int i;
+			for(i = 0; i < nw; i++)
+				tasks_per_worker[i] = (double*)malloc(nt*sizeof(double));
 
-			unsigned found_sol = _compute_task_distribution_over_ctxs(ns, nw, nt, w_in_s, tasks_per_worker, NULL, NULL, tmp_task_pools, 0);
+			struct teft_lp_data specific_data;
+			specific_data.nt = nt;
+			specific_data.tasks = tasks_per_worker;
+			specific_data.in_sched_ctxs = NULL;
+			specific_data.workers = NULL;
+			specific_data.tmp_task_pools = tmp_task_pools;
+			specific_data.size_ctxs = 0;
+
+			/* smallest possible tmax, difficult to obtain as we
+			   compute the nr of flops and not the tasks */
+			double possible_tmax = sc_hypervisor_lp_get_tmax(nw, NULL);
+			double smallest_tmax = possible_tmax / 3;
+			double tmax = possible_tmax * ns;
+			double tmin = smallest_tmax;
+			unsigned found_sol = sc_hypervisor_lp_execute_dichotomy(ns, nw, w_in_s, 1, (void*)&specific_data, 
+								tmin, tmax, smallest_tmax, _glp_resolve);
 //			starpu_pthread_mutex_unlock(&mutex);
 
 			/* if we did find at least one solution redistribute the resources */
@@ -503,14 +476,15 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 				tmp_tp = next;
 				tmp_task_pools = next;
 			}
-			
-
+			for(i = 0; i < nw; i++)
+				free(tasks_per_worker[i]);
+			free(tasks_per_worker);
 		}
 		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
 	/* too expensive to take this mutex and correct value of the number of tasks is not compulsory */
 //	starpu_pthread_mutex_lock(&mutex);
-	sc_hypervisor_policy_remove_task_from_pool(task, footprint, task_pools);
+	sc_hypervisor_policy_remove_task_from_pool(task, footprint, &task_pools);
 //	starpu_pthread_mutex_unlock(&mutex);
 
 }

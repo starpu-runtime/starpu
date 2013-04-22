@@ -57,6 +57,12 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 /* dichotomy btw t1 & t2 */
 double sc_hypervisor_lp_find_tmax(double t1, double t2);
 
+/* execute the lp trough dichotomy */
+unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw], unsigned solve_lp_integer, void *specific_data,
+					    double tmin, double tmax, double smallest_tmax,
+					    double (*lp_estimated_distrib_func)(int ns, int nw, double draft_w_in_s[ns][nw], 
+									     unsigned is_integer, double tmax, void *specifc_data));
+
 #ifdef __cplusplus
 }
 #endif

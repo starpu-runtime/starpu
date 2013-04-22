@@ -670,9 +670,6 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 		}
 	}
 	
-/* 	for(s = 0; s < ns; s++) */
-/* 		printf("%d: cpus = %d gpus = %d \n", s, nworkers_rounded[s][1], nworkers_rounded[s][0]); */
-
 	if(!do_size)
 		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
 	else
