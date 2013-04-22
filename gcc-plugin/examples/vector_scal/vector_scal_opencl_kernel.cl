@@ -16,7 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-__kernel void vector_mult_opencl(__global float* val, unsigned int nx, float factor)
+__kernel void vector_mult_opencl(unsigned int nx, __global float* val, float factor)
 {
         const int i = get_global_id(0);
         if (i < nx) {
