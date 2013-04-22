@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010-2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,52 +19,56 @@
 
 struct params
 {
-    int i;
-    float f;
+	int i;
+	float f;
 };
 
 void cpu_func(void *buffers[], void *cl_arg)
 {
-    struct params *params = cl_arg;
+	struct params *params = cl_arg;
 
-    printf("Hello world (params = {%i, %f} )\n", params->i, params->f);
+	printf("Hello world (params = {%i, %f} )\n", params->i, params->f);
 }
 
 struct starpu_codelet cl =
 {
-    .cpu_funcs = {cpu_func, NULL},
-    .nbuffers = 0
+	.cpu_funcs = {cpu_func, NULL},
+	.nbuffers = 0
 };
 
 void callback_func(void *callback_arg)
 {
-    printf("Callback function (arg %x)\n", callback_arg);
+	printf("Callback function (arg %x)\n", callback_arg);
 }
 
 int main(int argc, char **argv)
 {
-    /* initialize StarPU */
-    starpu_init(NULL);
+	int ret;
 
-    struct starpu_task *task = starpu_task_create();
+	/* initialize StarPU */
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-    task->cl = &cl; /* Pointer to the codelet defined above */
+	struct starpu_task *task = starpu_task_create();
 
-    struct params params = { 1, 2.0f };
-    task->cl_arg = &params;
-    task->cl_arg_size = sizeof(params);
+	task->cl = &cl; /* Pointer to the codelet defined above */
 
-    task->callback_func = callback_func;
-    task->callback_arg = 0x42;
+	struct params params = { 1, 2.0f };
+	task->cl_arg = &params;
+	task->cl_arg_size = sizeof(params);
 
-    /* starpu_task_submit will be a blocking call */
-    task->synchronous = 1;
+	task->callback_func = callback_func;
+	task->callback_arg = (void*) (uintptr_t) 0x42;
 
-    /* submit the task to StarPU */
-    starpu_task_submit(task);
+	/* starpu_task_submit will be a blocking call */
+	task->synchronous = 1;
 
-    /* terminate StarPU */
-    starpu_shutdown();
+	/* submit the task to StarPU */
+	ret = starpu_task_submit(task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-    return 0;
+	/* terminate StarPU */
+	starpu_shutdown();
+
+	return 0;
 }
