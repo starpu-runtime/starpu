@@ -25,9 +25,13 @@ dist_bin_SCRIPTS =
 
 dist_pkgdata_DATA = gdbinit
 
-EXTRA_DIST =					\
-  dev/rename.sed				\
-  dev/rename.sh
+EXTRA_DIST =				\
+	dev/rename.sed			\
+	dev/rename.sh			\
+	msvc/starpu_clean.bat		\
+	msvc/starpu_exec.bat		\
+	msvc/starpu.sln			\
+	msvc/starpu/starpu.vcxproj
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
