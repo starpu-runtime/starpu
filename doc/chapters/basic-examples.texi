@@ -442,8 +442,8 @@ vector_scal_opencl (unsigned size, float vector[size], float factor)
   if (err != CL_SUCCESS)
     STARPU_OPENCL_REPORT_ERROR (err);
 
-  err = clSetKernelArg (kernel, 0, sizeof (val), &val);
-  err |= clSetKernelArg (kernel, 1, sizeof (size), &size);
+  err = clSetKernelArg (kernel, 0, sizeof (size), &size);
+  err |= clSetKernelArg (kernel, 1, sizeof (val), &val);
   err |= clSetKernelArg (kernel, 2, sizeof (factor), &factor);
   if (err)
     STARPU_OPENCL_REPORT_ERROR (err);
@@ -512,7 +512,7 @@ the CUDA Kernel}).
 #include <stdlib.h>
 
 static __global__ void
-vector_mult_cuda (float *val, unsigned n, float factor)
+vector_mult_cuda (unsigned n, float *val, float factor)
 @{
   unsigned i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -528,7 +528,7 @@ vector_scal_cuda (size_t size, float vector[], float factor)
   unsigned nblocks = (size + threads_per_block - 1) / threads_per_block;
 
   vector_mult_cuda <<< nblocks, threads_per_block, 0,
-    starpu_cuda_get_local_stream () >>> (vector, size, factor);
+    starpu_cuda_get_local_stream () >>> (size, vector, factor);
 
   cudaStreamSynchronize (starpu_cuda_get_local_stream ());
 @}
@@ -697,7 +697,7 @@ call.
 @smallexample
 #include <starpu.h>
 
-static __global__ void vector_mult_cuda(float *val, unsigned n,
+static __global__ void vector_mult_cuda(unsigned n, float *val,
                                         float factor)
 @{
     unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
@@ -717,7 +717,7 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
     unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
 
 @i{    vector_mult_cuda<<<nblocks,threads_per_block, 0, starpu_cuda_get_local_stream()>>>}
-@i{                    (val, n, *factor);}
+@i{                    (n, val, *factor);}
 
 @i{    cudaStreamSynchronize(starpu_cuda_get_local_stream());}
 @}
@@ -732,7 +732,7 @@ tools to compile a OpenCL kernel stored in a file.
 
 @cartouche
 @smallexample
-__kernel void vector_mult_opencl(__global float* val, int nx, float factor)
+__kernel void vector_mult_opencl(int nx, __global float* val, float factor)
 @{
         const int i = get_global_id(0);
         if (i < nx) @{
@@ -773,8 +773,8 @@ void scal_opencl_func(void *buffers[], void *_args)
 @i{                    "vector_mult_opencl", devid);   /* @b{Name of the codelet defined above} */}
 @i{    if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);}
 
-@i{    err = clSetKernelArg(kernel, 0, sizeof(val), &val);}
-@i{    err |= clSetKernelArg(kernel, 1, sizeof(n), &n);}
+@i{    err = clSetKernelArg(kernel, 0, sizeof(n), &n);}
+@i{    err |= clSetKernelArg(kernel, 1, sizeof(val), &val);}
 @i{    err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);}
 @i{    if (err) STARPU_OPENCL_REPORT_ERROR(err);}
 
