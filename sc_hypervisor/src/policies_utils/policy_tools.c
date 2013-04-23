@@ -588,3 +588,43 @@ void sc_hypervisor_group_workers_by_type(int *workers, int nworkers, int ntypes_
 			total_nw[0]++;
 	}
 }
+
+void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *workers, unsigned size_ctxs, struct sc_hypervisor_policy_task_pool *task_pools)
+{
+        struct sc_hypervisor_policy_task_pool *tp;
+        int w, t;
+        for (w = 0; w < nw; w++)
+        {
+                for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
+                {
+			int worker = workers == NULL ? w : workers[w];
+                        enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(worker);
+                        double length = starpu_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
+
+                        if (isnan(length))
+                                times[w][t] = NAN;
+			else
+			{
+                                times[w][t] = length / 1000.;
+
+				double transfer_time = 0.0;
+				enum starpu_archtype arch = starpu_worker_get_type(worker);
+				if(arch == STARPU_CUDA_WORKER)
+				{
+					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
+					if(!worker_in_ctx && !size_ctxs)
+					{
+						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
+						transfer_time +=  (tp->footprint / transfer_velocity) / 1000. ;
+					}
+					double latency = starpu_get_latency_RAM_CUDA(worker);
+					transfer_time += latency/1000.;
+
+				}
+//				printf("%d/%d %s x %d time = %lf transfer_time = %lf\n", w, tp->sched_ctx_id, tp->cl->model->symbol, tp->n, times[w][t], transfer_time);
+				times[w][t] += transfer_time;
+			}
+                }
+        }
+}
+
