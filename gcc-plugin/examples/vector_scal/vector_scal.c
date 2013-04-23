@@ -181,8 +181,9 @@ main (void)
     vector_scal (NX, vector, FACTOR);
 
 #pragma starpu wait
-
+#pragma starpu acquire vector
     valid = check (NX, vector, FACTOR);
+#pragma starpu release vector
 
   } /* VECTOR is automatically freed here.  */
 
