@@ -140,9 +140,9 @@ extern void vector_scal_cuda (unsigned int size, float vector[size], float facto
 
 #define EPSILON 1e-3
 static bool
-check (size_t size, float vector[size], float factor)
+check (unsigned int size, float vector[size], float factor)
 {
-  size_t i;
+  unsigned int i;
 
   for (i = 0; i < size; i++)
     {
@@ -174,7 +174,7 @@ main (void)
   {
     float vector[NX] __attribute__ ((heap_allocated, registered));
 
-    size_t i;
+    unsigned int i;
     for (i = 0; i < NX; i++)
       vector[i] = (float) i;
 
