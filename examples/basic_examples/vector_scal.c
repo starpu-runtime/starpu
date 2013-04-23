@@ -171,13 +171,11 @@ int main(int argc, char **argv)
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
 
+	ret = approximately_equal(vector[1], (1+1.0f) * factor) && approximately_equal(vector[NX-1], (NX-1+1.0f) * factor);
 	FPRINTF(stderr, "[AFTER] 1-th element     : %3.2f (should be %3.2f)\n", vector[1], (1+1.0f) * factor);
 	FPRINTF(stderr, "[AFTER] (NX-1)-th element: %3.2f (should be %3.2f)\n", vector[NX-1], (NX-1+1.0f) * factor);
-
-	return ((approximately_equal(vector[1], (1+1.0f) * factor)
-		 && approximately_equal(vector[NX-1], (NX-1+1.0f) * factor))
-		? EXIT_SUCCESS
-		: EXIT_FAILURE);
+	FPRINTF(stderr, "[AFTER] Computation is%s correct\n", ret?"":" NOT");
+	return (ret ? EXIT_SUCCESS : EXIT_FAILURE);
 
 enodev:
 	return 77;
