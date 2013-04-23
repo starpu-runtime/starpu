@@ -30,7 +30,7 @@
 #include <curand.h>
 #endif
 
-#define NSHOT_PER_TASK	(1024*1024)
+static unsigned long long nshot_per_task = 16*1024*1024ULL;
 
 /* default value */
 static unsigned long ntasks = 1024;
@@ -92,6 +92,12 @@ static void init_rng(void *arg __attribute__((unused)))
 	}
 }
 
+/* The amount of work does not depend on the data size at all :) */
+static size_t size_base(struct starpu_task *task, unsigned nimpl)
+{
+	return nshot_per_task;
+}
+
 static void parse_args(int argc, char **argv)
 {
 	int i;
@@ -101,6 +107,12 @@ static void parse_args(int argc, char **argv)
 		{
 			char *argptr;
 			ntasks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-nshot") == 0)
+		{
+			char *argptr;
+			nshot_per_task = strtol(argv[++i], &argptr, 10);
 		}
 
 		if (strcmp(argv[i], "-noredux") == 0)
@@ -114,7 +126,7 @@ static void parse_args(int argc, char **argv)
 			ntasks_warmup = 8; /* arbitrary number of warmup tasks */
 		}
 
-		if (strcmp(argv[i], "-h") == 0)
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			fprintf(stderr, "Usage: %s [-ntasks n] [-noredux] [-warmup] [-h]\n", argv[0]);
 			exit(-1);
@@ -139,8 +151,8 @@ static void pi_func_cpu(void *descr[], void *cl_arg __attribute__ ((unused)))
 	unsigned long local_cnt = 0;
 
 	/* Fill the scratchpad with random numbers */
-	int i;
-	for (i = 0; i < NSHOT_PER_TASK; i++)
+	unsigned i;
+	for (i = 0; i < nshot_per_task; i++)
 	{
 		double randx, randy;
 
@@ -176,16 +188,23 @@ static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
 	/* Fill the scratchpad with random numbers. Note that both x and y
 	 * arrays are in stored the same vector. */
 	float *scratchpad_xy = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
-	res = curandGenerateUniform(curandgens[workerid], scratchpad_xy, 2*NSHOT_PER_TASK);
+	res = curandGenerateUniform(curandgens[workerid], scratchpad_xy, 2*nshot_per_task);
 	STARPU_ASSERT(res == CURAND_STATUS_SUCCESS);
 
 	float *x = &scratchpad_xy[0];
-	float *y = &scratchpad_xy[NSHOT_PER_TASK];
+	float *y = &scratchpad_xy[nshot_per_task];
 
 	unsigned long *shot_cnt = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[1]);
-	pi_redux_cuda_kernel(x, y, NSHOT_PER_TASK, shot_cnt);
+	pi_redux_cuda_kernel(x, y, nshot_per_task, shot_cnt);
 }
 #endif
+
+static struct starpu_perfmodel pi_model =
+{
+	.type = STARPU_HISTORY_BASED,
+	.size_base = size_base,
+	.symbol = "monte_carlo_pi_scratch"
+};
 
 static struct starpu_codelet pi_cl =
 {
@@ -195,7 +214,14 @@ static struct starpu_codelet pi_cl =
 #endif
 	.nbuffers = 2,
 	.modes    = {STARPU_SCRATCH, STARPU_RW},
-	.model = NULL
+	.model = &pi_model
+};
+
+static struct starpu_perfmodel pi_model_redux =
+{
+	.type = STARPU_HISTORY_BASED,
+	.size_base = size_base,
+	.symbol = "monte_carlo_pi_scratch_redux"
 };
 
 static struct starpu_codelet pi_cl_redux =
@@ -206,7 +232,7 @@ static struct starpu_codelet pi_cl_redux =
 #endif
 	.nbuffers = 2,
 	.modes    = {STARPU_SCRATCH, STARPU_REDUX},
-	.model = NULL
+	.model = &pi_model_redux
 };
 
 /*
@@ -297,7 +323,7 @@ int main(int argc, char **argv)
 	/* Create a scratchpad data */
 	starpu_data_handle_t xy_scratchpad_handle;
 	starpu_vector_data_register(&xy_scratchpad_handle, -1, (uintptr_t)NULL,
-		2*NSHOT_PER_TASK, sizeof(float));
+		2*nshot_per_task, sizeof(float));
 
 	/* Create a variable that will be used to count the number of shots
 	 * that actually hit the unit circle when shooting randomly in
@@ -349,7 +375,7 @@ int main(int argc, char **argv)
 	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4,
 	 * probability to impact the disk: pi/4 */
-	unsigned long total = (ntasks + ntasks_warmup)*NSHOT_PER_TASK;
+	unsigned long total = (ntasks + ntasks_warmup)*nshot_per_task;
 	double pi_approx = ((double)shot_cnt*4.0)/total;
 
 	FPRINTF(stderr, "Reductions? %s\n", use_redux?"yes":"no");

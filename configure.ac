@@ -266,23 +266,23 @@ AC_DEFINE_UNQUOTED(STARPU_NMAX_SCHED_CTXS, [$max_sched_ctxs], [Maximum number of
 AC_ARG_ENABLE([sched_ctx_hypervisor],
   [AS_HELP_STRING([--enable-sched-ctx-hypervisor],
     [enable resizing contexts (experimental)])],
-  [enable_sched_ctx_hypervisor="yes"],
-  [enable_sched_ctx_hypervisor="no"])
+  [enable_sc_hypervisor="yes"],
+  [enable_sc_hypervisor="no"])
 
 #for pkgconfig
 AC_SUBST(STARPU_SCHED_CTX_HYPERVISOR)
-if test "x$enable_sched_ctx_hypervisor" = "xyes"; then
-  AC_DEFINE(STARPU_USE_SCHED_CTX_HYPERVISOR, [1], [enable sched_ctx_hypervisor lib])
-#   PKG_CHECK_MODULES([SCHED_CTX_HYPERVISOR], [libsched_ctx_hypervisor], [], build_sched_ctx_hypervisor="yes")
-   STARPU_SCHED_CTX_HYPERVISOR="-lsched_ctx_hypervisor"
-   build_sched_ctx_hypervisor="yes"
+if test "x$enable_sc_hypervisor" = "xyes"; then
+  AC_DEFINE(STARPU_USE_SCHED_CTX_HYPERVISOR, [1], [enable sc_hypervisor lib])
+#   PKG_CHECK_MODULES([SCHED_CTX_HYPERVISOR], [libsc_hypervisor], [], build_sc_hypervisor="yes")
+   STARPU_SCHED_CTX_HYPERVISOR="-lsc_hypervisor"
+   build_sc_hypervisor="yes"
 else
-   build_sched_ctx_hypervisor="no"
+   build_sc_hypervisor="no"
 fi
 
 
-AM_CONDITIONAL([STARPU_BUILD_SCHED_CTX_HYPERVISOR], [test "x$build_sched_ctx_hypervisor" = "xyes"])
-AM_CONDITIONAL([STARPU_USE_SCHED_CTX_HYPERVISOR], [test "x$build_sched_ctx_hypervisor" = "xyes"])
+AM_CONDITIONAL([STARPU_BUILD_SCHED_CTX_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
+AM_CONDITIONAL([STARPU_USE_SCHED_CTX_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
 ###############################################################################
 #                                                                             #
 #                                 CPUs settings                               #
@@ -1906,9 +1906,9 @@ AC_OUTPUT([
 	gcc-plugin/tests/Makefile
 	gcc-plugin/tests/run-test
 	gcc-plugin/examples/Makefile
-	sched_ctx_hypervisor/Makefile
-	sched_ctx_hypervisor/src/Makefile
-	sched_ctx_hypervisor/examples/Makefile
+	sc_hypervisor/Makefile
+	sc_hypervisor/src/Makefile
+	sc_hypervisor/examples/Makefile
 ])
 
 AC_MSG_NOTICE([
@@ -1947,7 +1947,7 @@ AC_MSG_NOTICE([
 	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
 	       SOCL enabled:                                $build_socl
                SOCL test suite:                             $run_socl_check
-               Scheduler Hypervisor:                        $build_sched_ctx_hypervisor
+               Scheduler Hypervisor:                        $build_sc_hypervisor
                simgrid enabled:                             $enable_simgrid
                ayudame enabled:                             $ac_cv_header_Ayudame_h
 ])

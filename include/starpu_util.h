@@ -82,7 +82,12 @@ extern "C"
 #endif
 
 #define STARPU_ABORT() do {                                          \
-	fprintf(stderr, "[starpu][abort] %s:%d %s\n", __FILE__, __LINE__, __starpu_func__); \
+	fprintf(stderr, "[starpu][abort][%s@%s:%d]\n", __starpu_func__, __FILE__, __LINE__); \
+	abort();                                                     \
+} while(0)
+
+#define STARPU_ABORT_MSG(msg, ...) do {					\
+	fprintf(stderr, "[starpu][abort][%s@%s:%d] " msg "\n", __starpu_func__, __FILE__, __LINE__, ## __VA_ARGS__); \
 	abort();                                                     \
 } while(0)
 
@@ -262,6 +267,9 @@ void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigne
  * not NULL, this callback function is executed after the handle has been
  * copied, and it is given the callback_arg pointer as argument.*/
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
+
+/* Return the current date in us */
+double starpu_timing_now(void);
 
 #ifdef __cplusplus
 }

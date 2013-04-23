@@ -245,6 +245,8 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int
 	sched_ctx->name = sched_name;
 	sched_ctx->inheritor = STARPU_NMAX_SCHED_CTXS;
 	sched_ctx->finished_submit = 0;
+	sched_ctx->min_priority = 0;
+	sched_ctx->max_priority = 1;
 
 	_starpu_barrier_counter_init(&sched_ctx->tasks_barrier, 0);
 
@@ -1040,7 +1042,7 @@ void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id)
 void _starpu_sched_ctx_call_poped_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-	if(sched_ctx != NULL && task->sched_ctx != 0 && task->sched_ctx != STARPU_NMAX_SCHED_CTXS
+	if(sched_ctx != NULL && task->sched_ctx != _starpu_get_initial_sched_ctx()->id && task->sched_ctx != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL)
 		sched_ctx->perf_counters->notify_poped_task(task->sched_ctx, workerid, task, data_size, footprint);
 }
@@ -1049,8 +1051,54 @@ void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
-	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
+	if(sched_ctx != NULL && sched_ctx_id != _starpu_get_initial_sched_ctx()->id && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL)
 		sched_ctx->perf_counters->notify_pushed_task(sched_ctx_id, workerid);
 }
 #endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+
+int starpu_sched_get_min_priority(void)
+{
+	return starpu_sched_ctx_get_min_priority(_starpu_get_initial_sched_ctx()->id);
+}
+
+int starpu_sched_get_max_priority(void)
+{
+	return starpu_sched_ctx_get_max_priority(_starpu_get_initial_sched_ctx()->id);
+}
+
+int starpu_sched_set_min_priority(int min_prio)
+{
+	return starpu_sched_ctx_set_min_priority(_starpu_get_initial_sched_ctx()->id, min_prio);
+}
+
+int starpu_sched_set_max_priority(int max_prio)
+{
+	return starpu_sched_ctx_set_max_priority(_starpu_get_initial_sched_ctx()->id, max_prio);
+}
+
+int starpu_sched_ctx_get_min_priority(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	return sched_ctx->min_priority;
+}
+
+int starpu_sched_ctx_get_max_priority(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	return sched_ctx->max_priority;
+}
+
+int starpu_sched_ctx_set_min_priority(unsigned sched_ctx_id, int min_prio)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->min_priority = min_prio;
+	return 0;
+}
+
+int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->max_priority = max_prio;
+	return 0;
+}

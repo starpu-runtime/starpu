@@ -28,9 +28,7 @@
 #define REQ_RESIZE 0
 #define DO_RESIZE 1
 
-
-/* used when changes (delete, modify) are applyed to contexts */
-//extern starpu_pthread_mutex_t _changing_ctx_mutex[];
+#define STARPU_GLOBAL_SCHED_CTX 0
 
 struct _starpu_sched_ctx
 {
@@ -88,6 +86,11 @@ struct _starpu_sched_ctx
 	/* indicates whether the application finished submitting tasks
 	   to this context*/
 	unsigned finished_submit;
+
+        /* By default we have a binary type of priority: either a task is a priority
+         * task (level 1) or it is not (level 0). */
+     	int min_priority;
+	int max_priority;
 
 #ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
 	/* a structure containing a series of performance counters determining the resize procedure */

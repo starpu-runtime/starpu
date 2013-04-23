@@ -68,7 +68,7 @@ StarPU takes particular care of scheduling tasks efficiently, using
 well-known algorithms from the literature (@pxref{Task scheduling
 policy}).  In addition, it allows scheduling experts, such as compiler
 or computational library developers, to implement custom scheduling
-policies in a portable fashion (@pxref{Scheduling Policy API}).
+policies in a portable fashion (@pxref{Defining a New Scheduling Policy}).
 
 The remainder of this section describes the main concepts used in StarPU.
 

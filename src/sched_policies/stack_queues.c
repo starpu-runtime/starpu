@@ -18,6 +18,7 @@
 /* Stack queues, ready for use by schedulers */
 
 #include <starpu.h>
+#include <starpu_scheduler.h>
 #include <sched_policies/stack_queues.h>
 #include <errno.h>
 #include <common/utils.h>

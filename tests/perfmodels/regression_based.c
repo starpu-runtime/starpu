@@ -18,6 +18,7 @@
 
 #include <config.h>
 #include <starpu.h>
+#include <starpu_scheduler.h>
 #include "../helper.h"
 
 #ifdef STARPU_USE_CUDA

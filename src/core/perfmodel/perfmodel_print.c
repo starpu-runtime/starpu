@@ -28,7 +28,7 @@ void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per
 	ptr = per_arch_model->list;
 
 	if (!parameter && ptr)
-		fprintf(output, "# hash\t\tsize\t\tmean\t\tstddev\t\tn\n");
+		fprintf(output, "# hash\t\tsize\t\tflops\t\tmean\t\tstddev\t\tn\n");
 
 	while (ptr)
 	{

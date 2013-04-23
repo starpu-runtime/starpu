@@ -45,7 +45,7 @@ SUBDIRS += starpufft
 endif
 
 if STARPU_BUILD_SCHED_CTX_HYPERVISOR
-SUBDIRS += sched_ctx_hypervisor
+SUBDIRS += sc_hypervisor
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig

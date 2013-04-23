@@ -25,6 +25,8 @@ static int ncuda = 0;
 static int nopencl = 0;
 #endif
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
 static struct point array_of_structs[N_ELEMENTS];
 static starpu_data_handle_t array_of_structs_handle;
 

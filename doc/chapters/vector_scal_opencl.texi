@@ -2,7 +2,7 @@
 
 @c This file is part of the StarPU Handbook.
 @c Copyright (C) 2009-2011  Université de Bordeaux 1
-@c Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+@c Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 @c See the file starpu.texi for copying conditions.
 
 @smallexample
@@ -30,8 +30,8 @@ void scal_opencl_func(void *buffers[], void *_args)
                                     devid);
     if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-    err = clSetKernelArg(kernel, 0, sizeof(val), &val);
-    err |= clSetKernelArg(kernel, 1, sizeof(n), &n);
+    err = clSetKernelArg(kernel, 0, sizeof(n), &n);
+    err |= clSetKernelArg(kernel, 1, sizeof(val), &val);
     err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);
     if (err) STARPU_OPENCL_REPORT_ERROR(err);
 

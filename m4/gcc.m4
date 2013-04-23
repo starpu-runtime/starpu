@@ -1,6 +1,6 @@
 dnl -*- Autoconf -*-
 dnl
-dnl Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+dnl Copyright (C) 2011, 2012, 2013 Inria
 dnl
 dnl StarPU is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU Lesser General Public License as published by
@@ -188,7 +188,7 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
 
 
     AC_DEFINE_UNQUOTED([STARPU_INCLUDE_DIR],
-      ["`eval "echo $includedir"`/starpu/$STARPU_EFFECTIVE_VERSION"],
+      ["`test "x$prefix" = xNONE && prefix=$ac_default_prefix ; eval "echo $includedir"`/starpu/$STARPU_EFFECTIVE_VERSION"],
       [Define to the directory where StarPU's headers are installed.])
 
     dnl Now, `gcc' or `g++'?

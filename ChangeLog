@@ -73,8 +73,6 @@ New features:
         - When exchanging user-defined data interfaces, the size of
 	  the data is the size returned by the pack operation, i.e
 	  data with dynamic size can now be exchanged with StarPU-MPI.
-        - New functionality starpu_mpi_irecv_probe_detached which
-  	  first tests if the message is available before calling MPI_Recv
   * Add experimental simgrid support, to simulate execution with various
     number of CPUs, GPUs, amount of memory, etc.
   * Add support for OpenCL simulators (which provide simulated execution time)
@@ -122,7 +120,6 @@ New features:
     and a Simgrid one. Applications using StarPU and wishing to use
     the Simgrid StarPU features should use it.
 
-
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid
   * Add starpu_fxt_stop_profiling/starpu_fxt_start_profiling which permits to
@@ -137,6 +134,10 @@ Small features:
   * New configure option --enable-mpi-progression-hook to enable the
     activity polling method for StarPU-MPI.
   * Permit to disable sequential consistency for a given task.
+  * New batch files to run StarPU applications with Microsoft Visual C
+  * Add examples/release/Makefile to test StarPU examples against an
+    installed version of StarPU. That can also be used to test
+    examples using a previous API.
 
 Changes:
   * Fix the block filter functions.
@@ -179,6 +180,10 @@ Changes:
   * Rename function starpu_helper_cublas_shutdown to starpu_cublas_shutdown
   * Rename function starpu_allocate_buffer_on_node to starpu_malloc_on_node
   * Rename function starpu_free_buffer_on_node to starpu_free_on_node
+  * Rename getter and setter functions for minimum and maximum task
+    priorities
+  * starpu_scheduler.h is no longer automatically included by
+    starpu.h, it has to be manually included when needed
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is

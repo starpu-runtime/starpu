@@ -672,7 +672,7 @@ _starpu_bind_thread_on_cpu (
 					 HWLOC_CPUBIND_THREAD);
 		if (ret)
 		{
-			perror("binding thread");
+			perror("hwloc_set_cpubind");
 			STARPU_ABORT();
 		}
 	}

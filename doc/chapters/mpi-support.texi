@@ -199,11 +199,11 @@ communications defined in StarPU-MPI.
 @node Exchanging User Defined Data Interface
 @section Exchanging User Defined Data Interface
 
-New data interfaces defined as explained in @ref{An example
-of data interface} can also be used within StarPU-MPI and exchanged
-between nodes. Two functions needs to be defined through
-the type @code{struct starpu_data_interface_ops} (@pxref{Data
-Interface API}). The pack function takes a handle and returns a
+New data interfaces defined as explained in @ref{Defining a New Data
+Interface} can also be used within StarPU-MPI and exchanged between
+nodes. Two functions needs to be defined through
+the type @code{struct starpu_data_interface_ops} (@pxref{Defining
+Interface}). The pack function takes a handle and returns a
 contiguous memory buffer along with its size where data to be conveyed to another node
 should be copied. The reversed operation is implemented in the unpack
 function which takes a contiguous memory buffer and recreates the data
@@ -258,7 +258,6 @@ static struct starpu_data_interface_ops interface_complex_ops =
 @end smallexample
 @end cartouche
 
-@page
 @node MPI Insert Task Utility
 @section MPI Insert Task Utility
 
@@ -271,94 +270,14 @@ exchange the content of the handle. All MPI nodes then process the whole task
 graph, and StarPU automatically determines which node actually execute which
 task, and trigger the required MPI transfers.
 
-@deftypefun int starpu_data_set_tag (starpu_data_handle_t @var{handle}, int @var{tag})
-Tell StarPU-MPI which MPI tag to use when exchanging the data.
-@end deftypefun
-
-@deftypefun int starpu_data_get_tag (starpu_data_handle_t @var{handle})
-Returns the MPI tag to be used when exchanging the data.
-@end deftypefun
-
-@deftypefun starpu_data_handle_t starpu_data_get_data_handle_from_tag (int @var{tag})
-Returns the data handle associated to the MPI tag, or NULL if there is not.
-@end deftypefun
-
-@deftypefun int starpu_data_set_rank (starpu_data_handle_t @var{handle}, int @var{rank})
-Tell StarPU-MPI which MPI node "owns" a given data, that is, the node which will
-always keep an up-to-date value, and will by default execute tasks which write
-to it.
-@end deftypefun
-
-@deftypefun int starpu_data_get_rank (starpu_data_handle_t @var{handle})
-Returns the last value set by @code{starpu_data_set_rank}.
-@end deftypefun
-
-@defmac STARPU_EXECUTE_ON_NODE
-this macro is used when calling @code{starpu_mpi_insert_task}, and
-must be followed by a integer value which specified the node on which
-to execute the codelet.
-@end defmac
-
-@defmac STARPU_EXECUTE_ON_DATA
-this macro is used when calling @code{starpu_mpi_insert_task}, and
-must be followed by a data handle to specify that the node owning the
-given data will execute the codelet.
-@end defmac
-
-@deftypefun int starpu_mpi_insert_task (MPI_Comm @var{comm}, struct starpu_codelet *@var{codelet}, ...)
-Create and submit a task corresponding to @var{codelet} with the following
-arguments.  The argument list must be zero-terminated.
-
-The arguments following the codelets are the same types as for the
-function @code{starpu_insert_task} defined in @ref{Insert Task
-Utility}. The extra argument @code{STARPU_EXECUTE_ON_NODE} followed by an
-integer allows to specify the MPI node to execute the codelet. It is also
-possible to specify that the node owning a specific data will execute
-the codelet, by using @code{STARPU_EXECUTE_ON_DATA} followed by a data
-handle.
-
-The internal algorithm is as follows:
-@enumerate
-@item Find out which MPI node is going to execute the codelet.
-      @enumerate
-      @item If there is only one node owning data in W mode, it will
-      be selected;
-      @item If there is several nodes owning data in W node, the one
-      selected will be the one having the least data in R mode so as
-      to minimize the amount of data to be transfered;
-      @item The argument @code{STARPU_EXECUTE_ON_NODE} followed by an
-      integer can be used to specify the node;
-      @item The argument @code{STARPU_EXECUTE_ON_DATA} followed by a
-      data handle can be used to specify that the node owing the given
-      data will execute the codelet.
-      @end enumerate
-@item Send and receive data as requested. Nodes owning data which need to be
-read by the task are sending them to the MPI node which will execute it. The
-latter receives them.
-@item Execute the codelet. This is done by the MPI node selected in the
-1st step of the algorithm.
-@item If several MPI nodes own data to be written to, send written
-data back to their owners.
-@end enumerate
-
-The algorithm also includes a communication cache mechanism that
-allows not to send data twice to the same MPI node, unless the data
-has been modified. The cache can be disabled
-(@pxref{STARPU_MPI_CACHE}).
-@c todo parler plus du cache
-
-@end deftypefun
-
-@deftypefun void starpu_mpi_get_data_on_node (MPI_Comm @var{comm}, starpu_data_handle_t @var{data_handle}, int @var{node})
-Transfer data @var{data_handle} to MPI node @var{node}, sending it from its
-owner if needed. At least the target node and the owner have to call the
-function.
-@end deftypefun
+The list of functions are described in @ref{MPI Insert Task}.
 
 Here an stencil example showing how to use @code{starpu_mpi_insert_task}. One
 first needs to define a distribution function which specifies the
 locality of the data. Note that that distribution information needs to
-be given to StarPU by calling @code{starpu_data_set_rank}.
+be given to StarPU by calling @code{starpu_data_set_rank}. A MPI tag
+should also be defined for each data handle by calling
+@code{starpu_data_set_tag}.
 
 @cartouche
 @smallexample
@@ -407,8 +326,10 @@ data which will be needed by the tasks that we will execute.
             else
                 /* I know it's useless to allocate anything for this */
                 data_handles[x][y] = NULL;
-            if (data_handles[x][y])
+            if (data_handles[x][y]) @{
                 starpu_data_set_rank(data_handles[x][y], mpi_rank);
+                starpu_data_set_tag(data_handles[x][y], x*X+y);
+            @}
         @}
     @}
 @end smallexample
@@ -446,27 +367,8 @@ execute them, or to send the required data).
 @node MPI Collective Operations
 @section MPI Collective Operations
 
-@deftypefun int starpu_mpi_scatter_detached (starpu_data_handle_t *@var{data_handles}, int @var{count}, int @var{root}, MPI_Comm @var{comm}, {void (*}@var{scallback})(void *), {void *}@var{sarg}, {void (*}@var{rcallback})(void *), {void *}@var{rarg})
-Scatter data among processes of the communicator based on the ownership of
-the data. For each data of the array @var{data_handles}, the
-process @var{root} sends the data to the process owning this data.
-Processes receiving data must have valid data handles to receive them.
-On completion of the collective communication, the @var{scallback} function is
-called with the argument @var{sarg} on the process @var{root}, the @var{rcallback} function is
-called with the argument @var{rarg} on any other process.
-@end deftypefun
+The functions are described in @ref{Collective Operations}.
 
-@deftypefun int starpu_mpi_gather_detached (starpu_data_handle_t *@var{data_handles}, int @var{count}, int @var{root}, MPI_Comm @var{comm}, {void (*}@var{scallback})(void *), {void *}@var{sarg}, {void (*}@var{rcallback})(void *), {void *}@var{rarg})
-Gather data from the different processes of the communicator onto the
-process @var{root}. Each process owning data handle in the array
-@var{data_handles} will send them to the process @var{root}. The
-process @var{root} must have valid data handles to receive the data.
-On completion of the collective communication, the @var{rcallback} function is
-called with the argument @var{rarg} on the process @var{root}, the @var{scallback} function is
-called with the argument @var{sarg} on any other process.
-@end deftypefun
-
-@page
 @cartouche
 @smallexample
 if (rank == root)
@@ -499,6 +401,7 @@ for(x = 0; x < nblocks ;  x++)
     @}
     if (data_handles[x]) @{
         starpu_data_set_rank(data_handles[x], mpi_rank);
+        starpu_data_set_tag(data_handles[x], x*nblocks+y);
     @}
 @}
 

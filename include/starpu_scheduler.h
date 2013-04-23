@@ -20,48 +20,12 @@
 
 #include <starpu.h>
 
-#ifdef STARPU_HAVE_HWLOC
-#include <hwloc.h>
-#endif
-
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
 struct starpu_task;
-
-struct starpu_machine_topology
-{
-	unsigned nworkers;
-
-	unsigned ncombinedworkers;
-
-	unsigned nsched_ctxs;
-#ifdef STARPU_HAVE_HWLOC
-	hwloc_topology_t hwtopology;
-#else
-	/* We maintain ABI compatibility with and without hwloc */
-	void *dummy;
-#endif
-
-	unsigned nhwcpus;
-	unsigned nhwcudagpus;
-	unsigned nhwopenclgpus;
-
-	unsigned ncpus;
-	unsigned ncudagpus;
-	unsigned nopenclgpus;
-
-	/* Where to bind workers ? */
-	unsigned workers_bindid[STARPU_NMAXWORKERS];
-
-	/* Which GPU(s) do we use for CUDA ? */
-	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
-
-	/* Which GPU(s) do we use for OpenCL ? */
-	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
-};
 
 /* This structure contains all the methods that implement a scheduling policy.
  * An application may specify which scheduling strategy in the "sched_policy"
@@ -137,24 +101,6 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
 int starpu_push_task_end(struct starpu_task *task);
 
 /*
- *	Priorities
- */
-
-/* Provided for legacy reasons */
-#define STARPU_MIN_PRIO		(starpu_sched_get_min_priority())
-#define STARPU_MAX_PRIO		(starpu_sched_get_max_priority())
-
-/* By convention, the default priority level should be 0 so that we can
- * statically allocate tasks with a default priority. */
-#define STARPU_DEFAULT_PRIO	0
-
-int starpu_sched_get_min_priority(void);
-int starpu_sched_get_max_priority(void);
-
-void starpu_sched_set_min_priority(int min_prio);
-void starpu_sched_set_max_priority(int max_prio);
-
-/*
  *	Parallel tasks
  */
 
@@ -178,8 +124,6 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
  *	Performance predictions
  */
 
-/* Return the current date in us */
-double starpu_timing_now(void);
 /* Returns the perfmodel footprint for the task */
 uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
 /* Returns expected task duration in us */

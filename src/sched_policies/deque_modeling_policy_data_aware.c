@@ -866,8 +866,8 @@ static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)
 	initialize_dmda_policy(sched_ctx_id);
 
 	/* The application may use any integer */
-	starpu_sched_set_min_priority(INT_MIN);
-	starpu_sched_set_max_priority(INT_MAX);
+	starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
+	starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
 }
 
 static void deinitialize_dmda_policy(unsigned sched_ctx_id)
