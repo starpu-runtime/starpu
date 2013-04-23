@@ -43,7 +43,18 @@ starpu_TEXINFOS = 		\
 
 MAINTAINERCLEANFILES = starpu.pdf starpu.html
 
-EXTRA_DIST = starpu.css
+EXTRA_DIST = starpu.css				\
+	tutorial/README				\
+	tutorial/Makefile			\
+	tutorial/hello_world.c			\
+	tutorial/hello_world_plugin.c		\
+	tutorial/vector_scal.c			\
+	tutorial/vector_scal_cpu.c		\
+	tutorial/vector_scal_cuda.cu		\
+	tutorial/vector_scal_opencl.c		\
+	tutorial/vector_scal_opencl_kernel.cl	\
+	tutorial/vector_scal_plugin.c		\
+	tutorial/vector_scal_plugin_cuda.cu
 
 dist_pdf_DATA = starpu.pdf
 dist_html_DATA = starpu.html
