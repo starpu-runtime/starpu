@@ -27,6 +27,7 @@ libsc_hypervisor_la_SOURCES = 				\
 	policies_utils/policy_tools.c			\
 	policies_utils/task_pool.c			\
 	policies_utils/lp_tools.c			\
+	policies_utils/lp_programs.c			\
 	policies_utils/dichotomy.c			\
 	hypervisor_policies/idle_policy.c		\
 	hypervisor_policies/app_driven_policy.c		\

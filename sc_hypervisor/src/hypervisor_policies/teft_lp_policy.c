@@ -34,52 +34,6 @@ struct teft_lp_data
 	unsigned size_ctxs;
 };
 
-static void _get_tasks_times(int nw, int nt, double times[nw][nt], int *workers, unsigned size_ctxs)
-{
-        struct sc_hypervisor_policy_task_pool *tp;
-        int w, t;
-        for (w = 0; w < nw; w++)
-        {
-                for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
-                {
-			int worker = workers == NULL ? w : workers[w];
-                        enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(worker);
-                        double length = starpu_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
-
-                        if (isnan(length))
-                                times[w][t] = NAN;
-			else
-			{
-                                times[w][t] = length / 1000.;
-
-				double transfer_time = 0.0;
-				enum starpu_archtype arch = starpu_worker_get_type(worker);
-				if(arch == STARPU_CUDA_WORKER)
-				{
-					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
-					if(!worker_in_ctx && !size_ctxs)
-					{
-						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
-						transfer_time +=  (tp->footprint / transfer_velocity) / 1000. ;
-					}
-					double latency = starpu_get_latency_RAM_CUDA(worker);
-					transfer_time += latency/1000.;
-
-				}
-//				printf("%d/%d %s x %d time = %lf transfer_time = %lf\n", w, tp->sched_ctx_id, tp->cl->model->symbol, tp->n, times[w][t], transfer_time);
-				times[w][t] += transfer_time;
-			}
-                }
-        }
-}
-
-
-
-/*
- * GNU Linear Programming Kit backend
- */
-#ifdef STARPU_HAVE_GLPK_H
-#include <glpk.h>
 static double _glp_resolve(int ns, int nw, double final_w_in_s[ns][nw], 
 			   unsigned is_integer, double tmax, void *specific_data)
 {
@@ -91,237 +45,23 @@ static double _glp_resolve(int ns, int nw, double final_w_in_s[ns][nw],
 	int *workers = sd->workers;
 	struct sc_hypervisor_policy_task_pool *tmp_task_pools = sd->tmp_task_pools;
 	unsigned size_ctxs = sd->size_ctxs;
-	
-	double w_in_s[ns][nw];
-	double tasks[nw][nt];
-	
+		
 	if(tmp_task_pools == NULL)
 		return 0.0;
-	struct sc_hypervisor_policy_task_pool * tp;
-	int t, w, s;
-	glp_prob *lp;
 
-	lp = glp_create_prob();
-	glp_set_prob_name(lp, "StarPU theoretical bound");
-	glp_set_obj_dir(lp, GLP_MAX);
-	glp_set_obj_name(lp, "total execution time");
-
-	{
-		double times[nw][nt];
-		int ne = nt * nw /* worker execution time */
-			+ nw * ns
-			+ nw * (nt + ns)
-			+ 1; /* glp dumbness */
-		int n = 1;
-		int ia[ne], ja[ne];
-		double ar[ne];
-
-		_get_tasks_times(nw, nt, times, workers, size_ctxs);
-
-		/* Variables: number of tasks i assigned to worker j, and tmax */
-		glp_add_cols(lp, nw*nt+ns*nw);
-#define colnum(w, t) ((t)*nw+(w)+1)
-		for(s = 0; s < ns; s++)
-			for(w = 0; w < nw; w++)
-				glp_set_obj_coef(lp, nw*nt+s*nw+w+1, 1.);
-
-		for (w = 0; w < nw; w++)
-			for (t = 0; t < nt; t++)
-			{
-				char name[32];
-				snprintf(name, sizeof(name), "w%dt%dn", w, t);
-				glp_set_col_name(lp, colnum(w, t), name);
-/* 				if (integer) */
-/*                                 { */
-/*                                         glp_set_col_kind(lp, colnum(w, t), GLP_IV); */
-/* 					glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0, 0); */
-/*                                 } */
-/* 				else */
-					glp_set_col_bnds(lp, colnum(w, t), GLP_LO, 0.0, 0.0);
-			}
-		for(s = 0; s < ns; s++)
-			for(w = 0; w < nw; w++)
-			{
-				char name[32];
-				snprintf(name, sizeof(name), "w%ds%dn", w, s);
-				glp_set_col_name(lp, nw*nt+s*nw+w+1, name);
-				if (is_integer)
-                                {
-                                        glp_set_col_kind(lp, nw*nt+s*nw+w+1, GLP_IV);
-                                        glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0, 1);
-                                }
-                                else
-					glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0.0, 1.0);
-			}
-
-		int *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
-
-		int curr_row_idx = 0;
-		/* Total worker execution time */
-		glp_add_rows(lp, nw*ns);
-		for (t = 0; t < nt; t++)
-		{
-			int someone = 0;
-			for (w = 0; w < nw; w++)
-				if (!isnan(times[w][t]))
-					someone = 1;
-			if (!someone)
-			{
-				/* This task does not have any performance model at all, abort */
-				printf("NO PERF MODELS\n");
-				glp_delete_prob(lp);
-				return 0.0;
-			}
-		}
-		/*sum(t[t][w]*n[t][w]) < x[s][w]*tmax */
-		for(s = 0; s < ns; s++)
-		{
-			for (w = 0; w < nw; w++)
-			{
-				char name[32], title[64];
-				starpu_worker_get_name(w, name, sizeof(name));
-				snprintf(title, sizeof(title), "worker %s", name);
-				glp_set_row_name(lp, curr_row_idx+s*nw+w+1, title);
-				for (t = 0, tp = tmp_task_pools; tp; t++, tp = tp->next)
-				{
-					if((int)tp->sched_ctx_id == sched_ctxs[s])
-					{
-						ia[n] = curr_row_idx+s*nw+w+1;
-						ja[n] = colnum(w, t);
-						if (isnan(times[w][t]))
-							ar[n] = 1000000000.;
-						else
-							ar[n] = times[w][t];
-						n++;
-					}
-				}
-				/* x[s][w] = 1 | 0 */
-				ia[n] = curr_row_idx+s*nw+w+1;
-				ja[n] = nw*nt+s*nw+w+1;
-				ar[n] = (-1) * tmax;
-				n++;
-				glp_set_row_bnds(lp, curr_row_idx+s*nw+w+1, GLP_UP, 0.0, 0.0);
-			}
-		}
-
-		curr_row_idx += nw*ns;
-
-		/* Total task completion */
-		glp_add_rows(lp, nt);
-		for (t = 0, tp = tmp_task_pools; tp; t++, tp = tp->next)
-		{
-			char name[32], title[64];
-			starpu_worker_get_name(w, name, sizeof(name));
-			snprintf(title, sizeof(title), "task %s key %x", tp->cl->name, (unsigned) tp->footprint);
-			glp_set_row_name(lp, curr_row_idx+t+1, title);
-			for (w = 0; w < nw; w++)
-			{
-				ia[n] = curr_row_idx+t+1;
-				ja[n] = colnum(w, t);
-				ar[n] = 1;
-				n++;
-			}
-			glp_set_row_bnds(lp, curr_row_idx+t+1, GLP_FX, tp->n, tp->n);
-		}
-
-		curr_row_idx += nt;
-
-		/* sum(x[s][i]) = 1 */
-		glp_add_rows(lp, nw);
-		for (w = 0; w < nw; w++)
-		{
-			char name[32], title[64];
-			starpu_worker_get_name(w, name, sizeof(name));
-			snprintf(title, sizeof(title), "w%x", w);
-			glp_set_row_name(lp, curr_row_idx+w+1, title);
-			for(s = 0; s < ns; s++)
-			{
-				ia[n] = curr_row_idx+w+1;
-				ja[n] = nw*nt+s*nw+w+1;
-				ar[n] = 1;
-				n++;
-			}
-			if(is_integer)
-                                glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1, 1);
-			else
-				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
-		}
-		if(n != ne)
-			printf("ns= %d nw = %d nt = %d n = %d ne = %d\n", ns, nw, nt, n, ne);
-		STARPU_ASSERT(n == ne);
-
-		glp_load_matrix(lp, ne-1, ia, ja, ar);
-	}
-
-	glp_smcp parm;
-	glp_init_smcp(&parm);
-	parm.msg_lev = GLP_MSG_OFF;
-	int ret = glp_simplex(lp, &parm);
-
-/* 	char str[50]; */
-/* 	sprintf(str, "outpu_lp_%g", tmax); */
-
-/* 	glp_print_sol(lp, str); */
-
-	if (ret)
-	{
-		printf("error in simplex\n");
-		glp_delete_prob(lp);
-		lp = NULL;
-		return 0.0;
-	}
-
-	int stat = glp_get_prim_stat(lp);
-	/* if we don't have a solution return */
-	if(stat == GLP_NOFEAS)
-	{
-		glp_delete_prob(lp);
-//		printf("no_sol in tmax = %lf\n", tmax);
-		lp = NULL;
-		return 0.0;
-	}
-
-
-	if (is_integer)
-        {
-                glp_iocp iocp;
-                glp_init_iocp(&iocp);
-                iocp.msg_lev = GLP_MSG_OFF;
-		glp_intopt(lp, &iocp);
-		int stat = glp_mip_status(lp);
-		/* if we don't have a solution return */
-		if(stat == GLP_NOFEAS)
-		{
-//			printf("no int sol in tmax = %lf\n", tmax);
-			glp_delete_prob(lp);
-			lp = NULL;
-			return 0.0;
-		}
-	}
-
-	double res = glp_get_obj_val(lp);
-	for (w = 0; w < nw; w++)
-		for (t = 0; t < nt; t++)
-/* 			if (integer) */
-/* 				tasks[w][t] = (double)glp_mip_col_val(lp, colnum(w, t)); */
-/*                         else */
-				tasks[w][t] = glp_get_col_prim(lp, colnum(w, t));
+	double w_in_s[ns][nw];
+	double tasks[nw][nt];
+	double times[nw][nt];
 	
-//	printf("for tmax %lf\n", tmax);
-	for(s = 0; s < ns; s++)
-		for(w = 0; w < nw; w++)
-		{
-			if (is_integer)
-				w_in_s[s][w] = (double)glp_mip_col_val(lp, nw*nt+s*nw+w+1);
-                        else
-				w_in_s[s][w] = glp_get_col_prim(lp, nw*nt+s*nw+w+1);
-//			printf("w_in_s[%d][%d]=%lf\n", s, w, w_in_s[s][w]);
-		}
-//	printf("\n");
+	sc_hypervisor_get_tasks_times(nw, nt, times, workers, size_ctxs, task_pools);
 
-	glp_delete_prob(lp);
+	double res = 0.0;
+#ifdef STARPU_HAVE_GLPK_H
+	res = sc_hypervisor_lp_simulate_distrib_tasks(ns, nw, nt, w_in_s, tasks, times, is_integer, tmax, in_sched_ctxs, tmp_task_pools);
+#endif //STARPU_HAVE_GLPK_H
 	if(res != 0.0)
 	{
+		int s, w, t;
 		for(s = 0; s < ns; s++)
 			for(w = 0; w < nw; w++)
 				final_w_in_s[s][w] = w_in_s[s][w];
@@ -344,7 +84,12 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 		nt++;
 
 	double w_in_s[ns][nw];
-	double tasks[nw][nt];
+//	double tasks[nw][nt];
+	double **tasks=(double**)malloc(nw*sizeof(double*));
+	int i;
+	for(i = 0; i < nw; i++)
+		tasks[i] = (double*)malloc(nt*sizeof(double));
+
 
 	struct teft_lp_data specific_data;
 	specific_data.nt = nt;
@@ -368,6 +113,11 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
 		sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, workers, 1);
+	
+	for(i = 0; i < nw; i++)
+		free(tasks[i]);
+	free(tasks);
+
 }
 
 static void size_if_required()
@@ -507,5 +257,3 @@ struct sc_hypervisor_policy teft_lp_policy = {
 	.custom = 0,
 	.name = "teft_lp"
 };
-
-#endif /* STARPU_HAVE_GLPK_H */
