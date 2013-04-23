@@ -34,7 +34,7 @@ struct teft_lp_data
 	unsigned size_ctxs;
 };
 
-static double _glp_resolve(int ns, int nw, double final_w_in_s[ns][nw], 
+static double _compute_workers_distrib(int ns, int nw, double final_w_in_s[ns][nw], 
 			   unsigned is_integer, double tmax, void *specific_data)
 {
 	struct teft_lp_data *sd = (struct teft_lp_data *)specific_data;
@@ -107,7 +107,7 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 	double tmin = smallest_tmax;
 
 	unsigned found_sol = sc_hypervisor_lp_execute_dichotomy(ns, nw, w_in_s, 1, (void*)&specific_data, 
-								tmin, tmax, smallest_tmax, _glp_resolve);
+								tmin, tmax, smallest_tmax, _compute_workers_distrib);
 
 	starpu_pthread_mutex_unlock(&mutex);
 	/* if we did find at least one solution redistribute the resources */
@@ -210,7 +210,7 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 			double tmax = possible_tmax * ns;
 			double tmin = smallest_tmax;
 			unsigned found_sol = sc_hypervisor_lp_execute_dichotomy(ns, nw, w_in_s, 1, (void*)&specific_data, 
-								tmin, tmax, smallest_tmax, _glp_resolve);
+								tmin, tmax, smallest_tmax, _compute_workers_distrib);
 //			starpu_pthread_mutex_unlock(&mutex);
 
 			/* if we did find at least one solution redistribute the resources */
