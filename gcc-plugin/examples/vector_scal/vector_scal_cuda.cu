@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012 Institut National de Recherche en Informatique et Automatique
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2010  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 static __global__ void
-vector_mult_cuda (float *val, unsigned n, float factor)
+vector_mult_cuda (unsigned int n, float *val, float factor)
 {
   unsigned i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -38,7 +38,7 @@ vector_scal_cuda (size_t size, float vector[], float factor)
   unsigned nblocks = (size + threads_per_block - 1) / threads_per_block;
 
   vector_mult_cuda <<< nblocks, threads_per_block, 0,
-    starpu_cuda_get_local_stream () >>> (vector, size, factor);
+       starpu_cuda_get_local_stream () >>> (size, vector, factor);
 
   cudaStreamSynchronize (starpu_cuda_get_local_stream ());
 }
