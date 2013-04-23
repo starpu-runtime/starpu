@@ -176,6 +176,7 @@ Changes:
   * Add examples/release/Makefile to test StarPU examples against an
     installed version of StarPU. That can also be used to test
     examples using a previous API.
+  * Tutorial is installed in ${docdir}/tutorial
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
