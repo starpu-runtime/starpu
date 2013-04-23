@@ -71,8 +71,6 @@ AM_CFLAGS =							\
 #  cholesky/cholesky.h				\
 #  cholesky/cholesky_kernels.h
 
-EXTRA_DIST = vector_scal/vector_scal_opencl_kernel.cl
-
 #if !NO_BLAS_LIB
 #cholesky_cholesky_SOURCES	=		\
 #	cholesky/cholesky.c		\
