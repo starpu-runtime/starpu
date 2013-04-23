@@ -17,7 +17,7 @@
 
 #include <starpu.h>
 
-static __global__ void vector_mult_cuda(float *val, unsigned n, float factor)
+static __global__ void vector_mult_cuda(float *val, unsigned int n, float factor)
 {
         unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
         if (i < n)
@@ -29,7 +29,7 @@ extern "C" void vector_scal_cuda(void *buffers[], void *_args)
         float *factor = (float *)_args;
 
         /* length of the vector */
-        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+        unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
         /* local copy of the vector pointer */
         float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
         unsigned threads_per_block = 64;
