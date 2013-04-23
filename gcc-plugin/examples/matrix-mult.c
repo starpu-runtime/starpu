@@ -137,13 +137,18 @@ main (int argc, char **argv)
 
   if (argc < 4)
     {
-      fprintf (stderr, "Usage: %s NLOOPS MATRIX-SIZE NSLICES\n", argv[0]);
-      return EXIT_FAILURE;
+      fprintf (stderr, "Using default values.\nCorrect usage: %s NLOOPS MATRIX-SIZE NSLICES\n", argv[0]);
+      mloop = nloop = 10;
+      zdim = ydim = xdim = 16;
+      nslicesz = nslicesy = nslicesx = 4;
+    }
+  else
+    {
+      mloop = nloop = atoi (argv[1]);
+      zdim = ydim = xdim = atoi (argv[2]);
+      nslicesz = nslicesy = nslicesx = atoi (argv[3]);
     }
 
-  mloop = nloop = atoi (argv[1]);
-  zdim = ydim = xdim = atoi (argv[2]);
-  nslicesz = nslicesy = nslicesx = atoi (argv[3]);
   bxdim = xdim / nslicesx;
   bydim = ydim / nslicesy;
   bzdim = zdim / nslicesz;
@@ -166,9 +171,9 @@ main (int argc, char **argv)
 
   gettimeofday (&start_all, NULL);
 
-  float A[zdim * ydim] __heap;
-  float B[xdim * zdim] __heap;
-  float C[xdim * ydim] __heap;
+  float A[zdim * ydim];
+  float B[xdim * zdim];
+  float C[xdim * ydim];
 
   srand (time (NULL));
   for (i = 0; i < zdim * ydim; i++)
