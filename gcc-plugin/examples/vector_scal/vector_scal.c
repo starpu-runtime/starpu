@@ -164,7 +164,7 @@ main (void)
 #pragma starpu initialize
 
 #if defined STARPU_GCC_PLUGIN && defined STARPU_USE_OPENCL
-  starpu_opencl_load_opencl_from_file ("vector_scal_opencl_kernel.cl",
+  starpu_opencl_load_opencl_from_file ("gcc-plugin/examples/vector_scal/vector_scal_opencl_kernel.cl",
 				       &cl_programs, "");
 #endif
 
