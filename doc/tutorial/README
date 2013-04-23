@@ -47,3 +47,7 @@ Instructions on how to compile and run StarPU examples
 % make hello_world_plugin
 % ./hello_world_plugin
 
+% make vector_scal_plugin
+% STARPU_NCPU=0 STARPU_NCUDA=0 ./vector_scal_plugin
+% STARPU_NCPU=0 STARPU_NOPENCL=0 ./vector_scal_plugin
+% STARPU_NOPENCL=0 STARPU_NCUDA=0 ./vector_scal_plugin
