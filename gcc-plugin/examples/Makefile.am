@@ -94,7 +94,7 @@ vector_scal_vector_scal_SOURCES += vector_scal/vector_scal_cuda.cu
 
 else !STARPU_USE_CUDA
 
-EXTRA_DIST += vector_scal/vector_scal_cuda.cu
+EXTRA_DIST = vector_scal/vector_scal_cuda.cu
 
 endif
 
