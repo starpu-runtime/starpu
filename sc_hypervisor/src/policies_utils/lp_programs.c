@@ -249,4 +249,202 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 	return res;
 }
 
+double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], int  total_nw[nw])
+{
+	int integer = 1;
+	int s, w;
+	glp_prob *lp;
+
+	int ne =
+		(ns*nw+1)*(ns+nw)
+		+ 1; /* glp dumbness */
+	int n = 1;
+	int ia[ne], ja[ne];
+	double ar[ne];
+
+	lp = glp_create_prob();
+
+	glp_set_prob_name(lp, "sample");
+	glp_set_obj_dir(lp, GLP_MAX);
+        glp_set_obj_name(lp, "max speed");
+
+	/* we add nw*ns columns one for each type of worker in each context
+	   and another column corresponding to the 1/tmax bound (bc 1/tmax is a variable too)*/
+	glp_add_cols(lp, nw*ns+1);
+
+	for(s = 0; s < ns; s++)
+	{
+		for(w = 0; w < nw; w++)
+		{
+			char name[32];
+			snprintf(name, sizeof(name), "worker%dctx%d", w, s);
+			glp_set_col_name(lp, n, name);
+			if (integer)
+			{
+				glp_set_col_kind(lp, n, GLP_IV);
+				glp_set_col_bnds(lp, n, GLP_LO, 0, 0);
+			}
+			else
+				glp_set_col_bnds(lp, n, GLP_LO, 0.0, 0.0);
+			n++;
+		}
+	}
+
+	/*1/tmax should belong to the interval [0.0;1.0]*/
+	glp_set_col_name(lp, n, "vmax");
+	glp_set_col_bnds(lp, n, GLP_DB, 0.0, 1.0);
+	/* Z = 1/tmax -> 1/tmax structural variable, nCPUs & nGPUs in ctx are auxiliar variables */
+	glp_set_obj_coef(lp, n, 1.0);
+
+	n = 1;
+	/* one row corresponds to one ctx*/
+	glp_add_rows(lp, ns);
+
+	for(s = 0; s < ns; s++)
+	{
+		char name[32];
+		snprintf(name, sizeof(name), "ctx%d", s);
+		glp_set_row_name(lp, s+1, name);
+		glp_set_row_bnds(lp, s+1, GLP_LO, 0., 0.);
+
+		for(w = 0; w < nw; w++)
+		{
+			int s2;
+			for(s2 = 0; s2 < ns; s2++)
+			{
+				if(s2 == s)
+				{
+					ia[n] = s+1;
+					ja[n] = w + nw*s2 + 1;
+					ar[n] = v[s][w];
+//					printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
+				}
+				else
+				{
+					ia[n] = s+1;
+					ja[n] = w + nw*s2 + 1;
+					ar[n] = 0.0;
+//					printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
+				}
+				n++;
+			}
+		}
+		/* 1/tmax */
+		ia[n] = s+1;
+		ja[n] = ns*nw+1;
+		ar[n] = (-1) * flops[s];
+//		printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
+		n++;
+	}
+
+	/*we add another linear constraint : sum(all cpus) = 9 and sum(all gpus) = 3 */
+	glp_add_rows(lp, nw);
+
+	for(w = 0; w < nw; w++)
+	{
+		char name[32];
+		snprintf(name, sizeof(name), "w%d", w);
+		glp_set_row_name(lp, ns+w+1, name);
+		for(s = 0; s < ns; s++)
+		{
+			int w2;
+			for(w2 = 0; w2 < nw; w2++)
+			{
+				if(w2 == w)
+				{
+					ia[n] = ns+w+1;
+					ja[n] = w2+s*nw + 1;
+					ar[n] = 1.0;
+//					printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
+				}
+				else
+				{
+					ia[n] = ns+w+1;
+					ja[n] = w2+s*nw + 1;
+					ar[n] = 0.0;
+//					printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
+				}
+				n++;
+			}
+		}
+		/* 1/tmax */
+		ia[n] = ns+w+1;
+		ja[n] = ns*nw+1;
+		ar[n] = 0.0;
+//		printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
+		n++;
+
+		/*sum(all gpus) = 3*/
+		if(w == 0)
+			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[0], total_nw[0]);
+
+		/*sum(all cpus) = 9*/
+		if(w == 1)
+			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[1], total_nw[1]);
+	}
+
+	STARPU_ASSERT(n == ne);
+
+	glp_load_matrix(lp, ne-1, ia, ja, ar);
+
+	glp_smcp parm;
+	glp_init_smcp(&parm);
+	parm.msg_lev = GLP_MSG_OFF;
+	int ret = glp_simplex(lp, &parm);
+	if (ret)
+        {
+                printf("error in simplex\n");
+		glp_delete_prob(lp);
+                lp = NULL;
+                return 0.0;
+        }
+
+	int stat = glp_get_prim_stat(lp);
+        /* if we don't have a solution return */
+        if(stat == GLP_NOFEAS)
+        {
+                glp_delete_prob(lp);
+//              printf("no_sol in tmax = %lf\n", tmax);                                                                                                                                                             
+                lp = NULL;
+                return 0.0;
+        }
+
+
+	if (integer)
+        {
+                glp_iocp iocp;
+                glp_init_iocp(&iocp);
+                iocp.msg_lev = GLP_MSG_OFF;
+                glp_intopt(lp, &iocp);
+                int stat = glp_mip_status(lp);
+                /* if we don't have a solution return */
+                if(stat == GLP_NOFEAS)
+                {
+//                      printf("no int sol in tmax = %lf\n", tmax);                                                                                                                                                 
+                        glp_delete_prob(lp);
+                        lp = NULL;
+                        return 0.0;
+                }
+        }
+
+	double vmax = glp_get_obj_val(lp);
+
+	n = 1;
+	for(s = 0; s < ns; s++)
+	{
+		for(w = 0; w < nw; w++)
+		{
+			if (integer)
+                                res[s][w] = (double)glp_mip_col_val(lp, n);
+			else
+				res[s][w] = glp_get_col_prim(lp, n);
+//			printf("%d/%d: res %lf flops = %lf v = %lf\n", w,s, res[s][w], flops[s], v[s][w]);
+			n++;
+		}
+	}
+
+	glp_delete_prob(lp);
+	return vmax;
+}
+
 #endif // STARPU_HAVE_GLPK_H
