@@ -32,7 +32,7 @@ vector_mult_cuda (unsigned int n, float *val, float factor)
 }
 
 extern "C" void
-vector_scal_cuda (size_t size, float vector[], float factor)
+vector_scal_cuda (unsigned int size, float vector[], float factor)
 {
   unsigned threads_per_block = 64;
   unsigned nblocks = (size + threads_per_block - 1) / threads_per_block;
