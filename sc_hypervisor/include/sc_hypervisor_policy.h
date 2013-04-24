@@ -52,6 +52,9 @@ void sc_hypervisor_policy_remove_task_from_pool(struct starpu_task *task, uint32
 /* clone a task wrapper linked list */
 struct sc_hypervisor_policy_task_pool* sc_hypervisor_policy_clone_task_pool(struct sc_hypervisor_policy_task_pool *tp);
 
+/* get the execution time of the submitted tasks out of starpu's calibration files */
+void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *workers, unsigned size_ctxs, struct sc_hypervisor_policy_task_pool *task_pools);
+
 /* find the context with the lowest priority in order to move some workers */
 unsigned sc_hypervisor_find_lowest_prio_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move);
 
@@ -96,6 +99,7 @@ int sc_hypervisor_has_velocity_gap_btw_ctxs(void);
 
 /* get the list of workers grouped by type */
 void sc_hypervisor_group_workers_by_type(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers]);
+
 
 #ifdef __cplusplus
 }

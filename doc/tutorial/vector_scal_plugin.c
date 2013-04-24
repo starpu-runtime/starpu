@@ -152,6 +152,7 @@ check (unsigned int size, float vector[size], float factor)
           return false;
         }
     }
+  fprintf(stderr, "computation is correct\n");
   return true;
 }
 
@@ -164,7 +165,7 @@ main (void)
 #pragma starpu initialize
 
 #if defined STARPU_GCC_PLUGIN && defined STARPU_USE_OPENCL
-  starpu_opencl_load_opencl_from_file ("examples/basic_examples/vector_scal_opencl_kernel.cl",
+  starpu_opencl_load_opencl_from_file ("vector_scal_opencl_kernel.cl",
 				       &cl_programs, "");
 #endif
 

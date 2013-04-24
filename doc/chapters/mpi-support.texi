@@ -30,7 +30,7 @@ according to the task graph and an application-provided distribution.
 @node Simple Example
 @section Simple Example
 
-The flags required to compile or link against the MPI layer are then
+The flags required to compile or link against the MPI layer are
 accessible with the following commands:
 
 @example
@@ -38,7 +38,8 @@ $ pkg-config --cflags starpumpi-1.0  # options for the compiler
 $ pkg-config --libs starpumpi-1.0    # options for the linker
 @end example
 
-Also pass the @code{--static} option if the application is to be linked statically.
+You also need pass the @code{--static} option if the application is to
+be linked statically.
 
 @cartouche
 @smallexample

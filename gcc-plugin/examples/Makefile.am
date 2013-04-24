@@ -13,15 +13,44 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+TESTS	=
+
+examplebindir = $(libdir)/starpu/plugin
+
 if STARPU_USE_CPU
 
-noinst_PROGRAMS =				\
-  hello-starpu matrix-mult stencil5 vector_scal/vector_scal
+if STARPU_HAVE_WINDOWS
+check_PROGRAMS	=	$(TESTS)
+else
+check_PROGRAMS	=	$(LOADER) $(TESTS)
+endif
 
-if !NO_BLAS_LIB
-noinst_PROGRAMS +=				\
-  cholesky/cholesky
-endif !NO_BLAS_LIB
+if !STARPU_HAVE_WINDOWS
+## test loader program
+LOADER			=	loader
+loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
+loader_SOURCES		=	../../tests/loader.c
+
+if STARPU_HAVE_AM111
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+LOG_COMPILER		=	$(LOADER_BIN)
+else
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+endif
+
+endif
+
+examplebin_PROGRAMS =			\
+	hello-starpu 			\
+	matrix-mult			\
+	stencil5			\
+	vector_scal/vector_scal
+
+#if !NO_BLAS_LIB
+#examplebin_PROGRAMS +=				\
+#  cholesky/cholesky
+#endif !NO_BLAS_LIB
 endif STARPU_USE_CPU
 
 AM_LDFLAGS = $(top_builddir)/src/@LIBSTARPU_LINK@
@@ -38,22 +67,20 @@ AM_CFLAGS =							\
   -fplugin-arg-starpu-verbose					\
   -Wall
 
-noinst_HEADERS =				\
-  cholesky/cholesky.h				\
-  cholesky/cholesky_kernels.h
+#noinst_HEADERS =				\
+#  cholesky/cholesky.h				\
+#  cholesky/cholesky_kernels.h
 
-EXTRA_DIST = vector_scal/vector_scal_opencl_kernel.cl
-
-if !NO_BLAS_LIB
-cholesky_cholesky_SOURCES	=		\
-	cholesky/cholesky.c		\
-	cholesky/cholesky_models.c	\
-	cholesky/cholesky_kernels.c	\
-	$(top_srcdir)/examples/common/blas.c
-
-cholesky_cholesky_LDADD	=	\
-	$(STARPU_BLAS_LDFLAGS)
-endif
+#if !NO_BLAS_LIB
+#cholesky_cholesky_SOURCES	=		\
+#	cholesky/cholesky.c		\
+#	cholesky/cholesky_models.c	\
+#	cholesky/cholesky_kernels.c	\
+#	$(top_srcdir)/examples/common/blas.c
+#
+#cholesky_cholesky_LDADD	=	\
+#	$(STARPU_BLAS_LDFLAGS)
+#endif
 
 vector_scal_vector_scal_SOURCES = vector_scal/vector_scal.c
 
@@ -67,9 +94,12 @@ vector_scal_vector_scal_SOURCES += vector_scal/vector_scal_cuda.cu
 
 else !STARPU_USE_CUDA
 
-EXTRA_DIST += vector_scal/vector_scal_cuda.cu
+EXTRA_DIST = vector_scal/vector_scal_cuda.cu
 
 endif
+
+TESTS += $(examplebin_PROGRAMS)
+
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

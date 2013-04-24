@@ -16,11 +16,29 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-__kernel void vector_mult_opencl(unsigned int nx, __global float* val, float factor)
+/* CUDA implementation of the `vector_scal' task.  */
+
+#include <starpu.h>
+#include <starpu_cuda.h>
+#include <stdlib.h>
+
+static __global__ void
+vector_mult_cuda (unsigned int n, float *val, float factor)
 {
-        const int i = get_global_id(0);
-        if (i < nx) {
-                val[i] *= factor;
-        }
+  unsigned i = blockIdx.x * blockDim.x + threadIdx.x;
+
+  if (i < n)
+    val[i] *= factor;
 }
 
+extern "C" void
+vector_scal_cuda (unsigned int size, float vector[], float factor)
+{
+  unsigned threads_per_block = 64;
+  unsigned nblocks = (size + threads_per_block - 1) / threads_per_block;
+
+  vector_mult_cuda <<< nblocks, threads_per_block, 0,
+       starpu_cuda_get_local_stream () >>> (size, vector, factor);
+
+  cudaStreamSynchronize (starpu_cuda_get_local_stream ());
+}

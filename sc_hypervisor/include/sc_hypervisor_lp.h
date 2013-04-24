@@ -32,9 +32,7 @@ extern "C"
 #include <glpk.h>
 #endif //STARPU_HAVE_GLPK_H
 
-/* returns 1/tmax, and computes in table res the nr of workers needed by each context st the system ends up in the smallest tmax*/
-double sc_hypervisor_lp_compute_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double velocity[nsched_ctxs][ntypes_of_workers], double flops[nsched_ctxs], 
-				    double res[nsched_ctxs][ntypes_of_workers], int total_nw[ntypes_of_workers]);
+struct sc_hypervisor_policy_task_pool; 
 
 /* returns tmax, and computes in table res the nr of workers needed by each context st the system ends up in the smallest tmax*/
 double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers], int total_nw[ntypes_of_workers]);
@@ -62,6 +60,19 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 					    double tmin, double tmax, double smallest_tmax,
 					    double (*lp_estimated_distrib_func)(int ns, int nw, double draft_w_in_s[ns][nw], 
 									     unsigned is_integer, double tmax, void *specifc_data));
+
+#ifdef STARPU_HAVE_GLPK_H
+/* linear program that returns 1/tmax, and computes in table res the nr of workers needed by each context st 
+   the system ends up in the smallest tmax*/
+double sc_hypervisor_lp_simulate_distrib_flops(int nsched_ctxs, int ntypes_of_workers, double velocity[nsched_ctxs][ntypes_of_workers], 
+					       double flops[nsched_ctxs], double res[nsched_ctxs][ntypes_of_workers], int total_nw[ntypes_of_workers]);
+
+/* linear program that simulates a distribution of tasks that minimises the execution time of the tasks in the pool */
+double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_in_s[ns][nw], double tasks[nw][nt],
+					       double times[nw][nt], unsigned is_integer, double tmax, int *in_sched_ctxs,
+					       struct sc_hypervisor_policy_task_pool *tmp_task_pools);
+
+#endif // STARPU_HAVE_GLPK_H
 
 #ifdef __cplusplus
 }
