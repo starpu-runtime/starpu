@@ -92,10 +92,10 @@ struct _starpu_sched_ctx
      	int min_priority;
 	int max_priority;
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 	/* a structure containing a series of performance counters determining the resize procedure */
 	struct starpu_sched_ctx_performance_counters *perf_counters;
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SC_HYPERVISOR
 };
 
 struct _starpu_machine_config;
@@ -144,9 +144,9 @@ void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker
 /* Check if the worker belongs to another sched_ctx */
 unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_id);
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 /* Notifies the hypervisor that a tasks was poped from the workers' list */
 void _starpu_sched_ctx_call_poped_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint);
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SC_HYPERVISOR
 
 #endif // __SCHED_CONTEXT_H__

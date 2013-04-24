@@ -263,26 +263,26 @@ AC_ARG_ENABLE(max_sched_ctxs, [AS_HELP_STRING([--enable-max-sched-ctxs=<number>]
 AC_MSG_RESULT($max_sched_ctxs)
 AC_DEFINE_UNQUOTED(STARPU_NMAX_SCHED_CTXS, [$max_sched_ctxs], [Maximum number of sched_ctxs supported])
 
-AC_ARG_ENABLE([sched_ctx_hypervisor],
-  [AS_HELP_STRING([--enable-sched-ctx-hypervisor],
+AC_ARG_ENABLE([sc_hypervisor],
+  [AS_HELP_STRING([--enable-sct-hypervisor],
     [enable resizing contexts (experimental)])],
   [enable_sc_hypervisor="yes"],
   [enable_sc_hypervisor="no"])
 
 #for pkgconfig
-AC_SUBST(STARPU_SCHED_CTX_HYPERVISOR)
+AC_SUBST(STARPU_SC_HYPERVISOR)
 if test "x$enable_sc_hypervisor" = "xyes"; then
-  AC_DEFINE(STARPU_USE_SCHED_CTX_HYPERVISOR, [1], [enable sc_hypervisor lib])
-#   PKG_CHECK_MODULES([SCHED_CTX_HYPERVISOR], [libsc_hypervisor], [], build_sc_hypervisor="yes")
-   STARPU_SCHED_CTX_HYPERVISOR="-lsc_hypervisor"
+  AC_DEFINE(STARPU_USE_SC_HYPERVISOR, [1], [enable sc_hypervisor lib])
+#   PKG_CHECK_MODULES([SC_HYPERVISOR], [libsc_hypervisor], [], build_sc_hypervisor="yes")
+   STARPU_SC_HYPERVISOR="-lsc_hypervisor"
    build_sc_hypervisor="yes"
 else
    build_sc_hypervisor="no"
 fi
 
 
-AM_CONDITIONAL([STARPU_BUILD_SCHED_CTX_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
-AM_CONDITIONAL([STARPU_USE_SCHED_CTX_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
+AM_CONDITIONAL([STARPU_BUILD_SC_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
+AM_CONDITIONAL([STARPU_USE_SC_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
 ###############################################################################
 #                                                                             #
 #                                 CPUs settings                               #

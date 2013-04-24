@@ -27,7 +27,7 @@ chapters =	\
 	chapters/perf-feedback.texi \
 	chapters/perf-optimization.texi \
 	chapters/scaling-vector-example.texi \
-	chapters/sched_ctx_hypervisor.texi \
+	chapters/sc_hypervisor.texi \
 	chapters/sched_ctx.texi \
 	chapters/socl.texi \
 	chapters/tips-tricks.texi \

@@ -424,7 +424,7 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	sched_ctx->max_ngpus = max_ngpus;
 
 	_starpu_update_workers_without_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id, 0);
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 	sched_ctx->perf_counters = NULL;
 #endif
 	return sched_ctx->id;
@@ -437,13 +437,13 @@ unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids,
 	sched_ctx = _starpu_create_sched_ctx(policy_name, workerids, nworkers, 0, sched_name);
 
 	_starpu_update_workers_with_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id);
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 	sched_ctx->perf_counters = NULL;
 #endif
 	return sched_ctx->id;
 }
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, struct starpu_sched_ctx_performance_counters *perf_counters)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
@@ -472,11 +472,11 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL)
 		sched_ctx->perf_counters->notify_delete_context(sched_ctx_id);
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SC_HYPERVISOR
 
 	unsigned inheritor_sched_ctx_id = sched_ctx->inheritor;
 	struct _starpu_sched_ctx *inheritor_sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx->inheritor);
@@ -1037,7 +1037,7 @@ void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id)
 	return;
 }
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 
 void _starpu_sched_ctx_call_poped_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint)
 {
@@ -1055,7 +1055,7 @@ void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 	   && sched_ctx->perf_counters != NULL)
 		sched_ctx->perf_counters->notify_pushed_task(sched_ctx_id, workerid);
 }
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SC_HYPERVISOR
 
 int starpu_sched_get_min_priority(void)
 {
