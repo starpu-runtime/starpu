@@ -599,6 +599,10 @@ Get a pointer to the structure describing the different methods used
 to manipulate the given data. See @ref{struct starpu_data_interface_ops} for more details on this structure.
 @end deftypefun
 
+@deftypefun unsigned starpu_data_get_sequential_consistency_flag (starpu_data_handle_t @var{handle})
+Return the sequential consistency flag of the given data.
+@end deftypefun
+
 @node Access registered data from the application
 @subsection Access registered data from the application
 
