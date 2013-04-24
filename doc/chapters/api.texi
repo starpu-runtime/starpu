@@ -3457,8 +3457,20 @@ owner if needed. At least the target node and the owner have to call the
 function.
 @end deftypefun
 
+@deftypefun void starpu_mpi_get_data_on_node_detached (MPI_Comm @var{comm}, starpu_data_handle_t @var{data_handle}, int @var{node}, {void (*}@var{callback})(void*), {void *}@var{arg})
+Transfer data @var{data_handle} to MPI node @var{node}, sending it from its
+owner if needed. At least the target node and the owner have to call the
+function. On reception, the @var{callback} function is called with the
+argument @var{arg}.
+@end deftypefun
+
 @node Collective Operations
 @subsection Collective Operations
+
+@deftypefun void starpu_mpi_redux_data (MPI_Comm @var{comm}, starpu_data_handle_t @var{data_handle})
+Perform a reduction on the given data. All nodes send the data to its
+owner node which will perform a reduction.
+@end deftypefun
 
 @deftypefun int starpu_mpi_scatter_detached (starpu_data_handle_t *@var{data_handles}, int @var{count}, int @var{root}, MPI_Comm @var{comm}, {void (*}@var{scallback})(void *), {void *}@var{sarg}, {void (*}@var{rcallback})(void *), {void *}@var{rarg})
 Scatter data among processes of the communicator based on the ownership of
