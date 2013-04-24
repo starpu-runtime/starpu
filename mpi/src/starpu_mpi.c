@@ -755,7 +755,7 @@ static void _starpu_mpi_copy_cb(void* arg)
 {
 	struct _starpu_mpi_copy_cb_args *args = arg;
 
-	struct starpu_data_interface_ops *itf = starpu_handle_get_interface(args->copy_handle);
+	struct starpu_data_interface_ops *itf = starpu_data_get_interface_ops(args->copy_handle);
 	void* itf_src = starpu_data_get_interface_on_node(args->copy_handle,0);
 	void* itf_dst = starpu_data_get_interface_on_node(args->data_handle,0);
 

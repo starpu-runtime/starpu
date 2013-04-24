@@ -418,7 +418,7 @@ int starpu_data_release_tag(starpu_data_handle_t handle)
 	return 0;
 }
 
-struct starpu_data_interface_ops* starpu_handle_get_interface(starpu_data_handle_t handle)
+struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_handle_t handle)
 {
 	return handle->ops;
 }

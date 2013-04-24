@@ -594,6 +594,11 @@ codelet, and reduction between per-worker buffers will be done with the
 @var{redux_cl} codelet.
 @end deftypefun
 
+@deftypefun struct starpu_data_interface_ops* starpu_data_get_interface_ops (starpu_data_handle_t @var{handle})
+Get a pointer to the structure describing the different methods used
+to manipulate the given data. See @ref{struct starpu_data_interface_ops} for more details on this structure.
+@end deftypefun
+
 @node Access registered data from the application
 @subsection Access registered data from the application
 
