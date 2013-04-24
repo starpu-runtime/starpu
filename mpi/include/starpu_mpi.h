@@ -70,9 +70,9 @@ void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts);
 void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle);
 void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
 
-/* getter/setter for internal starpu_mpi_tag used for all communications in StarPU-MPI. */
-int starpu_mpi_get_starpu_mpi_tag(void);
-void starpu_mpi_set_starpu_mpi_tag(int tag);
+/* getter/setter for communication tag used for all communications in StarPU-MPI. */
+int starpu_mpi_get_communication_tag(void);
+void starpu_mpi_set_communication_tag(int tag);
 
 #ifdef __cplusplus
 }

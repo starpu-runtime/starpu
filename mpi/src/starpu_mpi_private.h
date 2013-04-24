@@ -69,7 +69,7 @@ void _starpu_mpi_set_debug_level(int level);
 #  define _STARPU_MPI_LOG_OUT()
 #endif
 
-extern int starpu_mpi_tag;
+extern int _starpu_mpi_tag;
 
 enum _starpu_mpi_request_type
 {
