@@ -3265,6 +3265,16 @@ to the world size. Communications statistics must be enabled
 (@pxref{STARPU_COMM_STATS}).
 @end deftypefun
 
+@deftypefun void starpu_mpi_set_communication_tag (int @var{tag})
+@anchor{starpu_mpi_set_communication_tag}
+Tell StarPU-MPI which MPI tag to use for all its communications.
+@end deftypefun
+
+@deftypefun int starpu_mpi_get_communication_tag (void)
+@anchor{starpu_mpi_get_communication_tag}
+Returns the MPI tag which will be used for all StarPU-MPI communications.
+@end deftypefun
+
 @node Communication
 @subsection Communication
 

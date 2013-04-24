@@ -152,16 +152,9 @@ the list of the ready requests if it is a send request, or in an
 hashmap if it is a receive request.
 
 Internally, all MPI communications submitted by StarPU uses a unique
-tag called starpu_mpi_tag, which can be accessed with getter/setter
-functions.
-
-@deftypefun void starpu_mpi_set_starpu_mpi_tag (int @var{tag})
-Tell StarPU-MPI which MPI tag to use for all its communications.
-@end deftypefun
-
-@deftypefun int starpu_mpi_get_starpu_mpi_tag (void)
-Returns the MPI tag which will be used for all StarPU-MPI communications.
-@end deftypefun
+tag which has a default value, and can be accessed with the functions
+@ref{starpu_mpi_get_communication_tag} and
+@ref{starpu_mpi_set_communication_tag}.
 
 The matching of tags with corresponding requests is done into StarPU-MPI. 
 To handle this, any communication is a double-communication based on a 
