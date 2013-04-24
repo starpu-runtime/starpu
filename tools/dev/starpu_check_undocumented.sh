@@ -4,7 +4,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011, 2012 Centre National de la Recherche Scientifique
+# Copyright (C) 2011, 2012, 2013 Centre National de la Recherche Scientifique
 # Copyright (C) 2011 Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -22,7 +22,9 @@ stcolor=$(tput sgr0)
 redcolor=$(tput setaf 1)
 greencolor=$(tput setaf 2)
 
-functions=$(spatch -very_quiet -sp_file tools/dev/starpu_funcs.cocci $(find include -name '*.h'))
+H_FILES=$(find include mpi/include -name '*.h')
+
+functions=$(spatch -very_quiet -sp_file tools/dev/starpu_funcs.cocci $H_FILES)
 for func in $functions ; do
 	fname=$(echo $func|awk -F ',' '{print $1}')
 	location=$(echo $func|awk -F ',' '{print $2}')
@@ -36,7 +38,7 @@ done
 
 echo
 
-structs=$(grep "struct starpu" $(find include -name '*.h') | grep -v "[;|,|(|)]" | awk '{print $2}')
+structs=$(grep "struct starpu" $H_FILES | grep -v "[;|,|(|)]" | awk '{print $2}')
 for struct in $structs ; do
     x=$(grep "$struct\b" doc/starpu.texi doc/chapters/*texi | grep deftp)
     if test "$x" == "" ; then
@@ -46,7 +48,7 @@ done
 
 echo
 
-enums=$(grep "enum starpu" $(find include -name '*.h') | grep -v "[;|,|(|)]" | awk '{print $2}')
+enums=$(grep "enum starpu" $H_FILES | grep -v "[;|,|(|)]" | awk '{print $2}')
 for enum in $enums ; do
     x=$(grep "$enum\b" doc/starpu.texi doc/chapters/*texi | grep deftp)
     if test "$x" == "" ; then
@@ -56,7 +58,7 @@ done
 
 echo
 
-macros=$(grep "define\b" include/*.h |grep -v deprecated|grep "#" | grep -v "__" | sed 's/#[ ]*/#/g' | awk '{print $2}' | awk -F'(' '{print $1}' | sort|uniq)
+macros=$(grep "define\b" $H_FILES |grep -v deprecated|grep "#" | grep -v "__" | sed 's/#[ ]*/#/g' | awk '{print $2}' | awk -F'(' '{print $1}' | sort|uniq)
 for macro in $macros ; do
     x=$(grep "$macro\b" doc/starpu.texi doc/chapters/*texi | grep defmac)
     if test "$x" == "" ; then
