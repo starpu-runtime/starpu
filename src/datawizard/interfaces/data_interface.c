@@ -363,7 +363,7 @@ int starpu_data_get_tag(starpu_data_handle_t handle)
 	return handle->tag;
 }
 
-starpu_data_handle_t starpu_get_data_handle_from_tag(int tag)
+starpu_data_handle_t starpu_data_get_data_handle_from_tag(int tag)
 {
 	struct handle_tag_entry *ret;
 
@@ -386,8 +386,8 @@ int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 	struct handle_tag_entry *entry;
 	entry = (struct handle_tag_entry *) malloc(sizeof(*entry));
 	STARPU_ASSERT(entry != NULL);
-	
-	STARPU_ASSERT_MSG(!(starpu_get_data_handle_from_tag(tag)),"A data handle with tag %d had already been registered.\n",tag);
+
+	STARPU_ASSERT_MSG(!(starpu_data_get_data_handle_from_tag(tag)),"A data handle with tag %d had already been registered.\n",tag);
 
 	entry->tag = tag;
 	entry->handle = handle;

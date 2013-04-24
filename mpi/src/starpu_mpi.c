@@ -1127,7 +1127,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 					while(!(data_handle))
 					{
-						data_handle = starpu_get_data_handle_from_tag(recv_env->mpi_tag);
+						data_handle = starpu_data_get_data_handle_from_tag(recv_env->mpi_tag);
 					}
 					STARPU_ASSERT(data_handle);
 

@@ -133,7 +133,7 @@ int starpu_data_get_rank(starpu_data_handle_t handle);
 
 int starpu_data_set_tag(starpu_data_handle_t handle, int tag);
 int starpu_data_get_tag(starpu_data_handle_t handle);
-starpu_data_handle_t starpu_get_data_handle_from_tag(int tag);
+starpu_data_handle_t starpu_data_get_data_handle_from_tag(int tag);
 struct starpu_data_interface_ops* starpu_handle_get_interface(starpu_data_handle_t handle);
 
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node);
