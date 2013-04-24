@@ -144,14 +144,14 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 	int workerid = starpu_worker_get_id();
 	int i;
 	size_t data_size = 0;
 	for(i = 0; i < STARPU_NMAXBUFS; i++)
 		if(task->handles[i] != NULL)
 			data_size += _starpu_data_get_size(task->handles[i]);
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SC_HYPERVISOR
 
 	/* We release handle reference count */
 	if (task->cl)
@@ -225,9 +225,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	if(j->task_size == 1 && task->cl != NULL && !j->internal)
 	{
 		_starpu_sched_post_exec_hook(task);
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 		_starpu_sched_ctx_call_poped_task_cb(workerid, task, data_size, j->footprint);
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SC_HYPERVISOR
 	}
 
 	_STARPU_TRACE_TASK_DONE(j);

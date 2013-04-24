@@ -222,9 +222,9 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 			sched_ctx->sched_policy->push_task_notify(task, workerid, sched_ctx->id);
 	}
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 	starpu_sched_ctx_call_pushed_task_cb(workerid, task->sched_ctx);
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SC_HYPERVISOR
 
 	if (is_basic_worker)
 	{
@@ -605,7 +605,7 @@ pick:
 		}
 	  }
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 	struct _starpu_sched_ctx *sched_ctx = NULL;
 	struct starpu_sched_ctx_performance_counters *perf_counters = NULL;
 	int j;
@@ -624,7 +624,7 @@ pick:
 			}
 		}
 	}
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SC_HYPERVISOR
 
 
 	if (!task)
@@ -716,11 +716,11 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 	if(task->hypervisor_tag > 0 && sched_ctx != NULL &&
 	   sched_ctx->id != 0 && sched_ctx->perf_counters != NULL)
 		sched_ctx->perf_counters->notify_post_exec_hook(sched_ctx->id, task->hypervisor_tag);
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SC_HYPERVISOR
 
 	if (sched_ctx->sched_policy->post_exec_hook)
 		sched_ctx->sched_policy->post_exec_hook(task);

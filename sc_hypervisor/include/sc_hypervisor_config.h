@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef SCHED_CTX_HYPERVISOR_CONFIG_H
-#define SCHED_CTX_HYPERVISOR_CONFIG_H
+#ifndef SC_HYPERVISOR_CONFIG_H
+#define SC_HYPERVISOR_CONFIG_H
 
 #include <sc_hypervisor.h>
 

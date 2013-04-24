@@ -300,8 +300,8 @@ Disable the build of examples.
 @end defvr
 
 
-@defvr {Configure option} --enable-sched-ctx-hypervisor
-Enables the Scheduling Context Hypervisor plugin(@pxref{Scheduling Context Hypervisor}).
+@defvr {Configure option} --enable-sc-hypervisor
+Enable the Scheduling Context Hypervisor plugin(@pxref{Scheduling Context Hypervisor}).
 By default, it is disabled.
 @end defvr
 
