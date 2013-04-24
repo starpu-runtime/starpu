@@ -213,7 +213,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 	_starpu_increment_nsubmitted_tasks();
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
 	if(sched_ctx != NULL && j->task->sched_ctx != _starpu_get_initial_sched_ctx()->id && j->task->sched_ctx != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL)

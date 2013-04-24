@@ -275,9 +275,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(best_workerid, &sched_mutex, &sched_cond);
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 	starpu_sched_ctx_call_pushed_task_cb(best_workerid, sched_ctx_id);
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SC_HYPERVISOR
 
 	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 

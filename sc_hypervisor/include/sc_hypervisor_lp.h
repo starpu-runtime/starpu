@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef SCHED_CTX_HYPERVISOR_LP_H
-#define SCHED_CTX_HYPERVISOR_LP_H
+#ifndef SC_HYPERVISOR_LP_H
+#define SC_HYPERVISOR_LP_H
 
 #include <sc_hypervisor.h>
 #include <starpu_config.h>

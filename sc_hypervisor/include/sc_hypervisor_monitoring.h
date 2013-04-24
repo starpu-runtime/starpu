@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef SCHED_CTX_HYPERVISOR_MONITORING_H
-#define SCHED_CTX_HYPERVISOR_MONITORING_H
+#ifndef SC_HYPERVISOR_MONITORING_H
+#define SC_HYPERVISOR_MONITORING_H
 
 #include <sc_hypervisor.h>
 

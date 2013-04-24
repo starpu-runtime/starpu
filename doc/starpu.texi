@@ -192,7 +192,7 @@ was last updated on @value{UPDATED}.
 
 @node Scheduling Context Hypervisor
 @chapter Scheduling Context Hypervisor
-@include chapters/sched_ctx_hypervisor.texi
+@include chapters/sc_hypervisor.texi
 
 @c ---------------------------------------------------------------------
 @c StarPU API

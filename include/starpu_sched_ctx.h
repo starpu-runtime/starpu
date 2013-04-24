@@ -90,12 +90,12 @@ struct starpu_sched_ctx_performance_counters
 	void (*notify_delete_context)(unsigned sched_ctx);
 };
 
-#ifdef STARPU_USE_SCHED_CTX_HYPERVISOR
+#ifdef STARPU_USE_SC_HYPERVISOR
 /* indicates to starpu the pointer to the performance counte */
 void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, struct starpu_sched_ctx_performance_counters *perf_counters);
 /* callback that lets the scheduling policy tell the hypervisor that a task was pushed on a worker */
 void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
-#endif //STARPU_USE_SCHED_CTX_HYPERVISOR
+#endif //STARPU_USE_SC_HYPERVISOR
 
 /* allow the hypervisor to let starpu know he's initialised */
 void starpu_sched_ctx_notify_hypervisor_exists(void);
