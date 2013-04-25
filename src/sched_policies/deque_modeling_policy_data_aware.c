@@ -416,10 +416,34 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 
 			//_STARPU_DEBUG("Scheduler dm: task length (%lf) worker (%u) kernel (%u) \n", local_length,worker,nimpl);
 
+			/*
+			 * This implements a default greedy scheduler for the
+			 * case of tasks which have no performance model, or
+			 * whose performance model is not calibrated yet.
+			 *
+			 * It simply uses the number of tasks already pushed to
+			 * the workers, divided by the relative performance of
+			 * a CPU and of a GPU.
+			 *
+			 * This is always computed, but the ntasks_best
+			 * selection is only really used if the task indeed has
+			 * no performance model, or is not calibrated yet.
+			 */
 			if (ntasks_best == -1
-			    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better task */
-			    || (!calibrating && isnan(local_length)) /* Not calibrating but this worker is being calibrated */
-			    || (calibrating && isnan(local_length) && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+			
+			    /* Always compute the greedy decision, at least for
+			     * the tasks with no performance model. */
+			    || (!calibrating && ntasks_end < ntasks_best_end)
+
+			    /* The performance model of this task is not
+			     * calibrated on this worker, try to run it there
+			     * to calibrate it there. */
+			    || (!calibrating && isnan(local_length))
+
+			    /* the performance model of this task is not
+			     * calibrated on this worker either, rather run it
+			     * there if this one is low on scheduled tasks. */
+			    || (calibrating && isnan(local_length) && ntasks_end < ntasks_best_end)
 				)
 			{
 				ntasks_best_end = ntasks_end;
@@ -553,10 +577,34 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			
 			double ntasks_end = fifo->ntasks / starpu_worker_get_relative_speedup(perf_arch);
 
+			/*
+			 * This implements a default greedy scheduler for the
+			 * case of tasks which have no performance model, or
+			 * whose performance model is not calibrated yet.
+			 *
+			 * It simply uses the number of tasks already pushed to
+			 * the workers, divided by the relative performance of
+			 * a CPU and of a GPU.
+			 *
+			 * This is always computed, but the ntasks_best
+			 * selection is only really used if the task indeed has
+			 * no performance model, or is not calibrated yet.
+			 */
 			if (ntasks_best == -1
-			    || (!calibrating && ntasks_end < ntasks_best_end) /* Not calibrating, take better worker */
-			    || (!calibrating && isnan(local_task_length[worker_ctx][nimpl])) /* Not calibrating but this worker is being calibrated */
-			    || (calibrating && isnan(local_task_length[worker_ctx][nimpl]) && ntasks_end < ntasks_best_end) /* Calibrating, compete this worker with other non-calibrated */
+
+			    /* Always compute the greedy decision, at least for
+			     * the tasks with no performance model. */
+			    || (!calibrating && ntasks_end < ntasks_best_end)
+
+			    /* The performance model of this task is not
+			     * calibrated on this worker, try to run it there
+			     * to calibrate it there. */
+			    || (!calibrating && isnan(local_task_length[worker_ctx][nimpl]))
+
+			    /* the performance model of this task is not
+			     * calibrated on this worker either, rather run it
+			     * there if this one is low on scheduled tasks. */
+			    || (calibrating && isnan(local_task_length[worker_ctx][nimpl]) && ntasks_end < ntasks_best_end)
 				)
 			{
 				ntasks_best_end = ntasks_end;
