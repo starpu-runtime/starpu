@@ -51,6 +51,10 @@ Define the minor version of StarPU
 Define the release version of StarPU
 @end defmac
 
+@deftypefun void starpu_get_version (int *@var{major}, int *@var{minor}, int *@var{release})
+Return as 3 integers the release version of StarPU.
+@end deftypefun
+
 @node Initialization and Termination
 @section Initialization and Termination
 
