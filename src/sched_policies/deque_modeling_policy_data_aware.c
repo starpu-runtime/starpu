@@ -772,64 +772,18 @@ static int dmda_push_sorted_task(struct starpu_task *task)
 #ifdef STARPU_DEVEL
 #warning TODO: after defining a scheduling window, use that instead of empty_ctx_tasks
 #endif
-	unsigned sched_ctx_id = task->sched_ctx;
-	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
-	unsigned nworkers;
-	int ret_val = -1;
-
-	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-	nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-	if(nworkers == 0)
-	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-		return ret_val;
-	}
-
-	ret_val = _dmda_push_task(task, 1, sched_ctx_id);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-	return ret_val;
-
+	return _dmda_push_task(task, 1, task->sched_ctx);
 }
 
 static int dm_push_task(struct starpu_task *task)
 {
-	unsigned sched_ctx_id = task->sched_ctx;
-	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
-	unsigned nworkers;
-	int ret_val = -1;
-
-	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-	nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-	if(nworkers == 0)
-	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-		return ret_val;
-	}
-
-	ret_val = _dm_push_task(task, 0, sched_ctx_id);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-	return ret_val;
+	return _dm_push_task(task, 0, task->sched_ctx);
 }
 
 static int dmda_push_task(struct starpu_task *task)
 {
-	unsigned sched_ctx_id = task->sched_ctx;
-	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
-	unsigned nworkers;
-	int ret_val = -1;
-
-	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-	nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-	if(nworkers == 0)
-	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-		return ret_val;
-	}
-
 	STARPU_ASSERT(task);
-	ret_val = _dmda_push_task(task, 0, sched_ctx_id);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-	return ret_val;
+	return _dmda_push_task(task, 0, task->sched_ctx);
 }
 
 static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)

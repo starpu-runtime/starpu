@@ -267,7 +267,7 @@ AC_MSG_RESULT($max_sched_ctxs)
 AC_DEFINE_UNQUOTED(STARPU_NMAX_SCHED_CTXS, [$max_sched_ctxs], [Maximum number of sched_ctxs supported])
 
 AC_ARG_ENABLE([sc_hypervisor],
-  [AS_HELP_STRING([--enable-sct-hypervisor],
+  [AS_HELP_STRING([--enable-sc-hypervisor],
     [enable resizing contexts (experimental)])],
   [enable_sc_hypervisor="yes"],
   [enable_sc_hypervisor="no"])

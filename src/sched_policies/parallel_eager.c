@@ -153,19 +153,8 @@ static void deinitialize_peager_policy(unsigned sched_ctx_id)
 static int push_task_peager_policy(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
-	unsigned nworkers;
 	int ret_val = -1;
 	
-	/* if the context has no workers return */
-	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-	nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-	
-   	if(nworkers == 0)
-	{
-   		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-		return ret_val;
-	}
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
@@ -206,8 +195,6 @@ static int push_task_peager_policy(struct starpu_task *task)
 			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 		}
 	}
-	
-	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 
 	return ret_val;
 }

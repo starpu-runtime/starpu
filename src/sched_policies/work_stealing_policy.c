@@ -336,18 +336,7 @@ int ws_push_task(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	int workerid = starpu_worker_get_id();
 
-	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
-        unsigned nworkers;
         int ret_val = -1;
-
-	/* if the context has no workers return */
-        _STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-        nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-        if(nworkers == 0)
-        {
-                _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-                return ret_val;
-        }
 
 	unsigned worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
@@ -394,8 +383,6 @@ int ws_push_task(struct starpu_task *task)
 		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 		
-        _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-
 	return 0;
 }
 
