@@ -284,12 +284,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 /* Sometimes workers didn't take the tasks as early as we expected */
 	fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
-	if(!isnan(predicted))
-	{
-		fifo->exp_end += predicted;
-		fifo->exp_len += predicted;
-	}
-	
+
 	if (starpu_timing_now() + predicted_transfer < fifo->exp_end)
 	{
 		/* We may hope that the transfer will be finished by
@@ -307,6 +302,12 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	{
 		fifo->exp_end += predicted_transfer;
 		fifo->exp_len += predicted_transfer;
+	}
+
+	if(!isnan(predicted))
+	{
+		fifo->exp_end += predicted;
+		fifo->exp_len += predicted;
 	}
 
 	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
