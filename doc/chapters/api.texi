@@ -47,6 +47,10 @@ Define the major version of StarPU
 Define the minor version of StarPU
 @end defmac
 
+@defmac STARPU_RELEASE_VERSION
+Define the release version of StarPU
+@end defmac
+
 @node Initialization and Termination
 @section Initialization and Termination
 
