@@ -983,14 +983,6 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsign
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	/* If there is no prediction available, we consider the task has a null length */
-	if (!isnan(predicted))
-	{
-		task->predicted = predicted;
-		fifo->exp_end += predicted;
-		fifo->exp_len += predicted;
-	}
-
-	/* If there is no prediction available, we consider the task has a null length */
 	if (!isnan(predicted_transfer))
 	{
 		if (starpu_timing_now() + predicted_transfer < fifo->exp_end)
@@ -1008,6 +1000,14 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsign
 		task->predicted_transfer = predicted_transfer;
 		fifo->exp_end += predicted_transfer;
 		fifo->exp_len += predicted_transfer;
+	}
+
+	/* If there is no prediction available, we consider the task has a null length */
+	if (!isnan(predicted))
+	{
+		task->predicted = predicted;
+		fifo->exp_end += predicted;
+		fifo->exp_len += predicted;
 	}
 
 	fifo->ntasks++;
