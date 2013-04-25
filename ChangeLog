@@ -127,6 +127,8 @@ Small features:
     activity polling method for StarPU-MPI.
   * Permit to disable sequential consistency for a given task.
   * New macro STARPU_RELEASE_VERSION
+  * New function starpu_get_version() to return as 3 integers the
+    release version of StarPU.
 
 Changes:
   * Fix the block filter functions.

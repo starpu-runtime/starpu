@@ -1437,3 +1437,10 @@ starpu_driver_deinit(struct starpu_driver *d)
 		return -EINVAL;
 	}
 }
+
+void starpu_get_version(int *major, int *minor, int *release)
+{
+	*major = STARPU_MAJOR_VERSION;
+	*minor = STARPU_MINOR_VERSION;
+	*release = STARPU_RELEASE_VERSION;
+}
