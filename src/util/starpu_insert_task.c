@@ -81,7 +81,7 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 
 	struct starpu_task *task = starpu_task_create();
 
-	if (cl->nbuffers > STARPU_NMAXBUFS)
+	if (cl && cl->nbuffers > STARPU_NMAXBUFS)
 	{
 		task->dyn_handles = malloc(cl->nbuffers * sizeof(starpu_data_handle_t));
 	}
