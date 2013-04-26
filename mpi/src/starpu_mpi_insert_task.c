@@ -590,7 +590,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		if (arg_buffer_size)
 		{
 			va_start(varg_list, codelet);
-			_starpu_codelet_pack_args(arg_buffer_size, &arg_buffer, varg_list);
+			_starpu_codelet_pack_args(&arg_buffer, arg_buffer_size, varg_list);
 		}
 
 		_STARPU_MPI_DEBUG(1, "Execution of the codelet %p (%s)\n", codelet, codelet->name);
