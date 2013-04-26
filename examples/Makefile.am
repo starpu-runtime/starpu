@@ -159,6 +159,7 @@ examplebin_PROGRAMS +=				\
 	basic_examples/block			\
 	basic_examples/variable			\
 	basic_examples/multiformat              \
+	basic_examples/dynamic_handles		\
 	cpp/incrementer_cpp			\
 	filters/custom_mf/custom_mf_filter      \
 	filters/fvector				\
