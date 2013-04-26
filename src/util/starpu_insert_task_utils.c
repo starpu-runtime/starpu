@@ -120,7 +120,7 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 	return arg_buffer_size;
 }
 
-int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list varg_list)
+int _starpu_codelet_pack_args(char **arg_buffer, size_t arg_buffer_size, va_list varg_list)
 {
 	int arg_type;
 	unsigned current_arg_offset = 0;
@@ -128,7 +128,7 @@ int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list
 
 	/* The buffer will contain : nargs, {size, content} (x nargs)*/
 
-	*arg_buffer = (char *) malloc(arg_buffer_size);
+	*arg_buffer = (void *) malloc(arg_buffer_size);
 
 	/* We will begin the buffer with the number of args (which is stored as a char) */
 	current_arg_offset += sizeof(char);
@@ -217,7 +217,7 @@ int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list
 	return 0;
 }
 
-int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
 {
 	int arg_type;
 	unsigned current_buffer = 0;

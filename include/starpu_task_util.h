@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,7 +57,7 @@ void starpu_codelet_unpack_args(void *cl_arg, ...);
 
 /* Pack arguments of type STARPU_VALUE into a buffer which can be
  * given to a codelet and later unpacked with starpu_codelet_unpack_args */
-void starpu_codelet_pack_args(char **arg_buffer, size_t *arg_buffer_size, ...);
+void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...);
 
 #ifdef __cplusplus
 }
