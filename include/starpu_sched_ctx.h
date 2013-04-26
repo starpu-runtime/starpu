@@ -48,9 +48,6 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id);
 /* indicate which context whill inherit the resources of this context when he will be deleted */
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor);
 
-/* mutex synchronising several simultaneous modifications of a context */
-starpu_pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
-
 /* indicate that the current thread is submitting only to the current context */
 void starpu_sched_ctx_set_context(unsigned *sched_ctx_id);
 
