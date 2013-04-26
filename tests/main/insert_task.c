@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -93,14 +93,10 @@ int main(int argc, char **argv)
 	task->cl = &mycodelet;
 	task->handles[0] = data_handles[0];
 	task->handles[1] = data_handles[1];
-	char *arg_buffer;
-	size_t arg_buffer_size;
-	starpu_codelet_pack_args(&arg_buffer, &arg_buffer_size,
+	starpu_codelet_pack_args(&task->cl_arg, &task->cl_arg_size,
 			    STARPU_VALUE, &ifactor, sizeof(ifactor),
 			    STARPU_VALUE, &ffactor, sizeof(ffactor),
 			    0);
-	task->cl_arg = arg_buffer;
-	task->cl_arg_size = arg_buffer_size;
 
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV) goto enodev;
