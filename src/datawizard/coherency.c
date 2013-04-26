@@ -22,6 +22,7 @@
 #include <core/dependencies/data_concurrency.h>
 #include <profiling/profiling.h>
 #include <math.h>
+#include <core/task.h>
 
 static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node);
 unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
@@ -591,8 +592,8 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = task->handles[index];
-		enum starpu_access_mode mode = task->cl->modes[index];
+		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, index);
+		enum starpu_access_mode mode = _STARPU_CODELET_GET_MODE(task->cl, index);
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
@@ -624,7 +625,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->acquire_data_start_time);
 
-	struct starpu_buffer_descr *descrs = j->ordered_buffers;
+	struct starpu_buffer_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned local_memory_node = _starpu_memory_node_get_local_key();
@@ -656,14 +657,14 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 	/* Now that we have taken the data locks in locking order, fill the codelet interfaces in function order.  */
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = task->handles[index];
-		enum starpu_access_mode mode = task->cl->modes[index];
+		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, index);
+		enum starpu_access_mode mode = _STARPU_CODELET_GET_MODE(task->cl, index);
 
 		struct _starpu_data_replicate *local_replicate;
 
 		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
 
-		task->interfaces[index] = local_replicate->data_interface;
+		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
 
 		if (mode & STARPU_REDUX)
 		{
@@ -699,7 +700,7 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->release_data_start_time);
 
-        struct starpu_buffer_descr *descrs = j->ordered_buffers;
+        struct starpu_buffer_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
         unsigned nbuffers = task->cl->nbuffers;
 
 	int workerid = starpu_worker_get_id();

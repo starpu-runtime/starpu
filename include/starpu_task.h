@@ -96,6 +96,7 @@ struct starpu_codelet
 	unsigned nbuffers;
 	/* which are the access modes for these buffers */
 	enum starpu_access_mode modes[STARPU_NMAXBUFS];
+	enum starpu_access_mode *dyn_modes;
 
 	/* performance model of the codelet */
 	struct starpu_perfmodel *model;
@@ -119,6 +120,9 @@ struct starpu_task
 	struct starpu_buffer_descr buffers[STARPU_NMAXBUFS] STARPU_DEPRECATED;
 	starpu_data_handle_t handles[STARPU_NMAXBUFS];
 	void *interfaces[STARPU_NMAXBUFS];
+
+	starpu_data_handle_t *dyn_handles;
+	void **dyn_interfaces;
 
 	/* arguments not managed by the DSM are given as a buffer */
 	void *cl_arg;
@@ -240,7 +244,9 @@ struct starpu_task
 	.sched_ctx = 0,					\
 	.hypervisor_tag = 0,				\
 	.flops = 0.0,					\
-		.scheduled = 0				\
+	.scheduled = 0,					\
+	.dyn_handles = NULL,				\
+	.dyn_interfaces = NULL				\
 }
 
 /*

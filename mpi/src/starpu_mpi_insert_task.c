@@ -596,6 +596,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		_STARPU_MPI_DEBUG(1, "Execution of the codelet %p (%s)\n", codelet, codelet->name);
 		va_start(varg_list, codelet);
 		struct starpu_task *task = starpu_task_create();
+		if (codelet->nbuffers > STARPU_NMAXBUFS)
+		{
+			task->dyn_handles = malloc(cl->nbuffers * sizeof(starpu_data_handle_t));
+		}
 		int ret = _starpu_insert_task_create_and_submit(arg_buffer, arg_buffer_size, codelet, &task, varg_list);
 		STARPU_ASSERT_MSG(ret==0, "_starpu_insert_task_create_and_submit failure %d", ret);
 	}

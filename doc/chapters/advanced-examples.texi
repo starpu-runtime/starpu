@@ -23,6 +23,7 @@
 * Defining a New Scheduling Policy::
 * On-GPU rendering::
 * Defining a New Data Interface::
+* Setting the Data Handles for a Task::
 * More examples::               More examples shipped with StarPU
 @end menu
 
@@ -1264,6 +1265,59 @@ void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args
 
 The whole code for this complex data interface is available in the
 directory @code{examples/interface/}.
+
+@node Setting the Data Handles for a Task
+@section Setting the Data Handles for a Task
+
+The number of data a task can manage is fixed by the
+@code{STARPU_NMAXBUFS} which has a default value which can be changed
+through the configure option @code{--enable-maxbuffers} (see
+@ref{--enable-maxbuffers}).
+
+However, it is possible to define tasks managing more data by using
+the field @code{dyn_handles} when defining a task and the field
+@code{dyn_modes} when defining the corresponding codelet.
+
+@c modifier la doc pour starpu_task et starpu_codelet
+
+@cartouche
+@smallexample
+struct starpu_codelet dummy_big_cl =
+@{
+	.cuda_funcs = @{dummy_big_kernel, NULL@},
+	.opencl_funcs = @{dummy_big_kernel, NULL@},
+	.cpu_funcs = @{dummy_big_kernel, NULL@},
+	.nbuffers = STARPU_NMAXBUFS+1
+@};
+
+task = starpu_task_create();
+task->cl = &dummy_big_cl;
+task->dyn_handles = malloc(task->cl->nbuffers * sizeof(starpu_data_handle_t));
+for(i=0 ; i<task->cl->nbuffers ; i++)
+@{
+	task->dyn_handles[i] = handle;
+@}
+starpu_task_submit(task);
+@end smallexample
+@end cartouche
+
+@cartouche
+@smallexample
+starpu_data_handle_t *handles = malloc(dummy_big_cl.nbuffers * sizeof(starpu_data_handle_t));
+for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
+@{
+	handles[i] = handle;
+@}
+starpu_insert_task(&dummy_big_cl,
+        	 STARPU_VALUE, &dummy_big_cl.nbuffers, sizeof(dummy_big_cl.nbuffers),
+		 STARPU_DATA_ARRAY, handles, dummy_big_cl.nbuffers,
+		 0);
+@end smallexample
+@end cartouche
+
+The whole code for this complex data interface is available in the
+directory @code{examples/basic_examples/dynamic_handles.c}.
+
 @node More examples
 @section More examples
 

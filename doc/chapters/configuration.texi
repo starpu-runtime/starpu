@@ -234,6 +234,7 @@ Enable gathering of various data statistics (@pxref{Data statistics}).
 @end defvr
 
 @defvr {Configure option} --enable-maxbuffers
+@anchor{--enable-maxbuffers}
 Define the maximum number of buffers that tasks will be able to take
 as parameters, then available as the @code{STARPU_NMAXBUFS} macro.
 @end defvr

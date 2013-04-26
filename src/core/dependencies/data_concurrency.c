@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -192,8 +192,8 @@ static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, u
 {
 	/* Note that we do not access j->task->handles, but j->ordered_buffers
 	 * which is a sorted copy of it. */
-	starpu_data_handle_t handle = j->ordered_buffers[buffer_index].handle;
-	enum starpu_access_mode mode = j->ordered_buffers[buffer_index].mode;
+	starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer_index);
+	enum starpu_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer_index);
 
 	return _starpu_attempt_to_submit_data_request(1, handle, mode, NULL, NULL, j, buffer_index);
 }
@@ -205,11 +205,16 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	unsigned nbuffers = j->task->cl->nbuffers;
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
-		if (buf && j->ordered_buffers[buf-1].handle == j->ordered_buffers[buf].handle)
-			/* We have already requested this data, skip it. This
-			 * depends on ordering putting writes before reads, see
-			 * _starpu_compar_handles.  */
-			continue;
+		if (buf)
+		{
+			starpu_data_handle_t handle_m1 = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf-1);
+			starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buf);
+			if (handle_m1 == handle)
+				/* We have already requested this data, skip it. This
+				 * depends on ordering putting writes before reads, see
+				 * _starpu_compar_handles.  */
+				continue;
+		}
 
                 j->task->status = STARPU_TASK_BLOCKED_ON_DATA;
                 if (attempt_to_submit_data_request_from_job(j, buf))
@@ -238,11 +243,13 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 	unsigned i;
 	for (i=0 ; i<cl->nbuffers ; i++)
 	{
-		j->ordered_buffers[i].handle = j->task->handles[i];
-		j->ordered_buffers[i].mode = j->task->cl->modes[i];
+		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(j->task, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
+		enum starpu_access_mode mode = _STARPU_CODELET_GET_MODE(j->task->cl, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
 	}
 
-	_starpu_sort_task_handles(j->ordered_buffers, cl->nbuffers);
+	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), cl->nbuffers);
 
 	return _submit_job_enforce_data_deps(j, 0);
 }
