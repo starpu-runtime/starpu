@@ -3761,10 +3761,6 @@ Delete the worker collection of the specified scheduling context
 Return the worker collection managed by the indicated context
 @end deftypefun
 
-@deftypefun pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex (unsigned @var{sched_ctx_id})
-TODO
-@end deftypefun
-
 @deftypefun void starpu_sched_ctx_set_context (unsigned *@var{sched_ctx_id})
 Set the scheduling context the subsequent tasks will be submitted to
 @end deftypefun
