@@ -158,7 +158,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 #ifdef STARPU_SIMGRID
 		_starpu_simgrid_execute_job(j, perf_arch, NAN);
 #else
-		func(task->interfaces, task->cl_arg);
+		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* rebind to single CPU */

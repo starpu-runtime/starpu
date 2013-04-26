@@ -18,6 +18,7 @@
 #include <util/starpu_insert_task_utils.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <core/task.h>
 
 typedef void (*_starpu_callback_func_t)(void *);
 
@@ -239,7 +240,7 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 
 			STARPU_ASSERT(cl != NULL);
 
-			(*task)->handles[current_buffer] = handle;
+			_STARPU_TASK_SET_HANDLE((*task), handle, current_buffer);
 			if (cl->modes[current_buffer])
 			{
 				STARPU_ASSERT_MSG(cl->modes[current_buffer] == mode, "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_insert_task\n",
@@ -264,7 +265,7 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 			int i;
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				(*task)->handles[current_buffer] = handles[i];
+				_STARPU_TASK_SET_HANDLE((*task), handles[i], current_buffer);
 				current_buffer++;
 			}
 

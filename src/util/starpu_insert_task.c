@@ -79,8 +79,14 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 		_starpu_codelet_pack_args((char **)&arg_buffer, arg_buffer_size, varg_list);
 	}
 
-	va_start(varg_list, cl);
 	struct starpu_task *task = starpu_task_create();
+
+	if (cl->nbuffers > STARPU_NMAXBUFS)
+	{
+		task->dyn_handles = malloc(cl->nbuffers * sizeof(starpu_data_handle_t));
+	}
+
+	va_start(varg_list, cl);
 	int ret = _starpu_insert_task_create_and_submit(arg_buffer, arg_buffer_size, cl, &task, varg_list);
 
 	if (ret == -ENODEV)

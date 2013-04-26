@@ -77,6 +77,11 @@ void starpu_task_init(struct starpu_task *task)
 	task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
 
 	task->flops = 0.0;
+
+	task->scheduled = 0;
+
+	task->dyn_handles = NULL;
+	task->dyn_interfaces = NULL;
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task
@@ -98,6 +103,14 @@ void starpu_task_clean(struct starpu_task *task)
 	starpu_task_bundle_t bundle = task->bundle;
 	if (bundle)
 		starpu_task_bundle_remove(bundle, task);
+
+	if (task->dyn_handles)
+	{
+		free(task->dyn_handles);
+		task->dyn_handles = NULL;
+		free(task->dyn_interfaces);
+		task->dyn_interfaces = NULL;
+	}
 
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
@@ -229,7 +242,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 		unsigned i;
 		for (i=0; i<task->cl->nbuffers; i++)
 		{
-			starpu_data_handle_t handle = task->handles[i];
+			starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
 			_starpu_spin_lock(&handle->header_lock);
 			handle->busy_count++;
 			_starpu_spin_unlock(&handle->header_lock);
@@ -393,16 +406,23 @@ int starpu_task_submit(struct starpu_task *task)
 		unsigned i;
 
 		/* Check buffers */
-		STARPU_ASSERT_MSG(task->cl->nbuffers <= STARPU_NMAXBUFS, "Codelet %p has too many buffers (%d vs max %d)", task->cl, task->cl->nbuffers, STARPU_NMAXBUFS);
+		if (task->dyn_handles == NULL)
+			STARPU_ASSERT_MSG(task->cl->nbuffers <= STARPU_NMAXBUFS, "Codelet %p has too many buffers (%d vs max %d)", task->cl, task->cl->nbuffers, STARPU_NMAXBUFS);
+
+		if (task->dyn_handles)
+		{
+			task->dyn_interfaces = malloc(task->cl->nbuffers * sizeof(void *));
+		}
+
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
-			starpu_data_handle_t handle = task->handles[i];
+			starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
 			/* Make sure handles are not partitioned */
 			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data can be used in a task");
 			/* Provide the home interface for now if any,
 			 * for can_execute hooks */
 			if (handle->home_node != -1)
-				task->interfaces[i] = starpu_data_get_interface_on_node(task->handles[i], handle->home_node);
+				_STARPU_TASK_SET_INTERFACE(task, starpu_data_get_interface_on_node(handle, handle->home_node), i);
 		}
 
 		/* Check the type of worker(s) required by the task exist */
@@ -526,8 +546,10 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 		unsigned i;
 		for (i=0 ; i<task->cl->nbuffers ; i++)
 		{
-			j->ordered_buffers[i].handle = j->task->handles[i];
-			j->ordered_buffers[i].mode = j->task->cl->modes[i];
+			starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(j->task, i);
+			_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
+			enum starpu_access_mode mode = _STARPU_CODELET_GET_MODE(j->task->cl, i);
+			_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
 		}
 	}
 
@@ -559,7 +581,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	unsigned i;
 	for (i=0; i<task->cl->nbuffers; i++)
 	{
-		starpu_data_handle_t handle = task->handles[i];
+		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count++;
 		_starpu_spin_unlock(&handle->header_lock);
@@ -574,8 +596,10 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	for (i=0 ; i<task->cl->nbuffers ; i++)
 	{
-		j->ordered_buffers[i].handle = j->task->handles[i];
-		j->ordered_buffers[i].mode = j->task->cl->modes[i];
+		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(j->task, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
+		enum starpu_access_mode mode = _STARPU_CODELET_GET_MODE(j->task->cl, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
 	}
 
         _STARPU_LOG_IN();
@@ -811,7 +835,7 @@ _starpu_task_uses_multiformat_handles(struct starpu_task *task)
 	unsigned i;
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
-		if (_starpu_data_is_multiformat_handle(task->handles[i]))
+		if (_starpu_data_is_multiformat_handle(_STARPU_TASK_GET_HANDLE(task, i)))
 			return 1;
 	}
 

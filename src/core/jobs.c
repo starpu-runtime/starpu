@@ -52,6 +52,9 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 	 * everywhere */
 	memset(job, 0, sizeof(*job));
 
+	if (task->dyn_handles)
+	     job->dyn_ordered_buffers = malloc(task->cl->nbuffers * sizeof(struct starpu_buffer_descr));
+
 	job->task = task;
 
 #ifndef STARPU_USE_FXT
@@ -104,6 +107,11 @@ void _starpu_job_destroy(struct _starpu_job *j)
 	}
 
 	_starpu_cg_list_deinit(&j->job_successors);
+	if (j->dyn_ordered_buffers)
+	{
+	     free(j->dyn_ordered_buffers);
+	     j->dyn_ordered_buffers = NULL;
+	}
 
 	_starpu_job_delete(j);
 }
@@ -149,8 +157,11 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	int i;
 	size_t data_size = 0;
 	for(i = 0; i < STARPU_NMAXBUFS; i++)
-		if(task->handles[i] != NULL)
-			data_size += _starpu_data_get_size(task->handles[i]);
+	{
+		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
+		if (handle != NULL)
+			data_size += _starpu_data_get_size(handle);
+	}
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	/* We release handle reference count */
@@ -159,7 +170,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		unsigned i;
 		for (i=0; i<task->cl->nbuffers; i++)
 		{
-			starpu_data_handle_t handle = task->handles[i];
+			starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
 			_starpu_spin_lock(&handle->header_lock);
 			handle->busy_count--;
 			if (!_starpu_data_check_not_busy(handle))

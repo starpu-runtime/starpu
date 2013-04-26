@@ -103,8 +103,8 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 	task->callback_func = callback_func;
 	task->callback_arg = callback_arg;
 
-	task->handles[0] = dst_handle;
-	task->handles[1] = src_handle;
+	_STARPU_TASK_SET_HANDLE(task, dst_handle, 0);
+	_STARPU_TASK_SET_HANDLE(task, src_handle, 1);
 
 	task->synchronous = !asynchronous;
 
