@@ -1278,8 +1278,6 @@ However, it is possible to define tasks managing more data by using
 the field @code{dyn_handles} when defining a task and the field
 @code{dyn_modes} when defining the corresponding codelet.
 
-@c modifier la doc pour starpu_task et starpu_codelet
-
 @cartouche
 @smallexample
 struct starpu_codelet dummy_big_cl =
