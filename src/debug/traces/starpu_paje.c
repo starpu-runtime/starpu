@@ -137,13 +137,14 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	poti_DefineContainerType("P", "MPIP", "Program");
 	poti_DefineContainerType("Mn", "P", "Memory Node");
 	poti_DefineContainerType("T", "Mn", "Thread");
+	poti_DefineContainerType("Mm", "Mn", "Memory Manager");
 	poti_DefineContainerType("W", "T", "Worker");
 	poti_DefineContainerType("MPICt", "T", "MPI Communication Thread");
 	poti_DefineContainerType("Sc", "P", "Scheduler");
 
 	/* Types for the memory node */
-	poti_DefineVariableType("bw", "Mn", "Bandwidth", "0 0 0");
-	poti_DefineStateType("MS", "Mn", "Memory Node State");
+	poti_DefineVariableType("bw", "Mm", "Bandwidth", "0 0 0");
+	poti_DefineStateType("MS", "Mm", "Memory Node State");
 	poti_DefineEntityValue("A", "MS", "Allocating", ".4 .1 .0");
 	poti_DefineEntityValue("Ar", "MS", "AllocatingReuse", ".1 .1 .8");
 	poti_DefineEntityValue("R", "MS", "Reclaiming", ".0 .1 .4");
@@ -196,7 +197,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 
 	/* Link types */
 	poti_DefineLinkType("MPIL", "P", "MPICt", "MPICt", "Links between two MPI Communication Threads");
-	poti_DefineLinkType("L", "P", "Mn", "Mn", "Links between two Memory Nodes");
+	poti_DefineLinkType("L", "P", "Mm", "Mm", "Links between two Memory Managers");
 
 	/* Creating the MPI Program */
 	poti_CreateContainer(0, "MPIroot", "MPIP", "0", "root");
@@ -206,6 +207,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 1       P      MPIP       \"Program\"                      	\n\
 1       Mn      P       \"Memory Node\"                         \n\
 1       T      Mn       \"Thread\"                               \n\
+1       Mm      Mn       \"Memory Manager\"                         \n\
 1       W      T       \"Worker\"                               \n\
 1       MPICt   T       \"MPI Communication Thread\"              \n\
 1       Sc       P       \"Scheduler State\"                        \n\
@@ -216,9 +218,9 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	for (i=1; i<=10; i++)
 		fprintf(file, "3       Ctx%u      T     \"InCtx%u\"         		\n", i, i);
 	fprintf(file, "\
-3       MS       Mn       \"Memory Node State\"                        \n\
+3       MS       Mm       \"Memory Node State\"                        \n\
 4       ntask    Sc       \"Number of tasks\"                        \n\
-4       bw      Mn       \"Bandwidth\"                        \n\
+4       bw      Mm       \"Bandwidth\"                        \n\
 6       I       S      Initializing       \"0.0 .7 1.0\"            \n\
 6       D       S      Deinitializing       \"0.0 .1 .7\"            \n\
 6       Fi       S      FetchingInput       \"1.0 .1 1.0\"            \n\
@@ -255,7 +257,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 6       CoA      MS     DriverCopyAsync         \".1 .3 .1\"		\n\
 6       No       MS     Nothing         \".0 .0 .0\"		\n\
 5       MPIL     P	MPICt	MPICt   MPIL			\n\
-5       L       P	Mn	Mn      L\n");
+5       L       P	Mm	Mm      L\n");
 
 	fprintf(file, "7      0.0 MPIroot      MPIP      0       root\n");
 #endif
