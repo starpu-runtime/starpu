@@ -39,6 +39,14 @@
 //static enum starpu_perf_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
 //static unsigned napplicable_perf_archtypes = 0;
 
+/*
+ * Here are the default values of alpha, beta, gamma
+ */
+
+#define _STARPU_SCHED_ALPHA_DEFAULT 1.0
+#define _STARPU_SCHED_BETA_DEFAULT 1.0
+#define _STARPU_SCHED_GAMMA_DEFAULT 1000.0
+
 struct _starpu_pheft_data
 {
 	double alpha;
@@ -554,9 +562,9 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)malloc(sizeof(struct _starpu_pheft_data));
-	hd->alpha = _STARPU_DEFAULT_ALPHA;
-	hd->beta = _STARPU_DEFAULT_BETA;
-	hd->_gamma = _STARPU_DEFAULT_GAMMA;
+	hd->alpha = _STARPU_SCHED_ALPHA_DEFAULT;
+	hd->beta = _STARPU_SCHED_BETA_DEFAULT;
+	hd->_gamma = _STARPU_SCHED_GAMMA_DEFAULT;
 	hd->idle_power = 0.0;
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)hd);

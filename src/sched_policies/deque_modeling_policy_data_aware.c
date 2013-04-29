@@ -54,12 +54,23 @@ struct _starpu_dmda_data
 	long int ready_task_cnt;
 };
 
-static double alpha = _STARPU_DEFAULT_ALPHA;
-static double beta = _STARPU_DEFAULT_BETA;
-static double _gamma = _STARPU_DEFAULT_GAMMA;
 static double idle_power = 0.0;
 
+/* The dmda scheduling policy uses
+ *
+ * alpha * T_computation + beta * T_communication + gamma * Consumption
+ *
+ * Here are the default values of alpha, beta, gamma
+ */
+
+#define _STARPU_SCHED_ALPHA_DEFAULT 1.0
+#define _STARPU_SCHED_BETA_DEFAULT 1.0
+#define _STARPU_SCHED_GAMMA_DEFAULT 1000.0
+
 #ifdef STARPU_USE_TOP
+static double alpha = _STARPU_SCHED_ALPHA_DEFAULT;
+static double beta = _STARPU_SCHED_BETA_DEFAULT;
+static double _gamma = _STARPU_SCHED_GAMMA_DEFAULT;
 static const float alpha_minimum=0;
 static const float alpha_maximum=10.0;
 static const float beta_minimum=0;
@@ -824,9 +835,9 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)malloc(sizeof(struct _starpu_dmda_data));
-	dt->alpha = _STARPU_DEFAULT_ALPHA;
-	dt->beta = _STARPU_DEFAULT_BETA;
-	dt->_gamma = _STARPU_DEFAULT_GAMMA;
+	dt->alpha = _STARPU_SCHED_ALPHA_DEFAULT;
+	dt->beta = _STARPU_SCHED_BETA_DEFAULT;
+	dt->_gamma = _STARPU_SCHED_GAMMA_DEFAULT;
 	dt->idle_power = 0.0;
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)dt);
