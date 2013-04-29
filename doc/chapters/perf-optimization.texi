@@ -409,9 +409,10 @@ STARPU_BUS_STATS=1} and @code{export STARPU_WORKER_STATS=1} .
 
 Due to CUDA limitations, StarPU will have a hard time overlapping its own
 communications and the codelet computations if the application does not use a
-dedicated CUDA stream for its computations. StarPU provides one by the use of
-@code{starpu_cuda_get_local_stream()} which should be used by all CUDA codelet
-operations. For instance:
+dedicated CUDA stream for its computations instead of the default stream,
+which synchronizes all operations of the GPU. StarPU provides one by the use
+of @code{starpu_cuda_get_local_stream()} which can be used by all CUDA codelet
+operations to avoid this issue. For instance:
 
 @cartouche
 @smallexample
