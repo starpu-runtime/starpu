@@ -159,6 +159,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 		if (bound_lp)
 		{
+			if (!bound)
+				FPRINTF(stderr,"Warning: -bound-lp needs -bound\n");
 			FILE *f = fopen("cholesky.lp", "w");
 			starpu_bound_print_lp(f);
 		}
