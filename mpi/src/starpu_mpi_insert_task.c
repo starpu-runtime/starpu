@@ -24,6 +24,7 @@
 #include <common/uthash.h>
 #include <util/starpu_insert_task_utils.h>
 #include <datawizard/coherency.h>
+#include <core/task.h>
 
 #include <starpu_mpi_private.h>
 
