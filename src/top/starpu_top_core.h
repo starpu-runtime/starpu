@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011 William Braik, Yann Courtois, Jean-Marie Couteyen, Anthony Roy
- * Copyright (C) 2011, 2012 Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013 Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,7 +48,7 @@ void __starpu_top_task_prevision_timespec(struct starpu_task *task,
 					int devid,
 					const struct timespec* start,
 					const struct timespec* end);
-void _starpu_top_task_prevision(struct starpu_task *task,
+void starpu_top_task_prevision(struct starpu_task *task,
 			       int devid, unsigned long long start,
 			       unsigned long long end);
 

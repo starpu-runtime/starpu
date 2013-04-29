@@ -195,6 +195,14 @@ void starpu_top_update_data_float(const struct starpu_top_data* data,
 				  double value);
 
 /*
+ * This function notifies UI than the task have been planed to
+ * run from start to end, on computation-core
+ */
+void starpu_top_task_prevision(struct starpu_task *task,
+			       int devid, unsigned long long start,
+			       unsigned long long end);
+
+/*
  * This functions are usefull in debug mode. The starpu developper doesn't need
  * to check if the debug mode is active.
  * This is checked by starpu_top itsefl.
