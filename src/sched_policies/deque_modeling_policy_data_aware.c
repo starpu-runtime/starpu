@@ -327,10 +327,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	task->predicted_transfer = predicted_transfer;
 
 #ifdef STARPU_USE_TOP
-	if (_starpu_top_status_get())
-		_starpu_top_task_prevision(task, best_workerid,
-			(unsigned long long)(fifo->exp_end-predicted)/1000,
-			(unsigned long long)fifo->exp_end/1000);
+	starpu_top_task_prevision(task, best_workerid,
+				  (unsigned long long)(fifo->exp_end-predicted)/1000,
+				  (unsigned long long)fifo->exp_end/1000);
 #endif /* !STARPU_USE_TOP */
 
 	if (starpu_get_prefetch_flag())
@@ -866,13 +865,13 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 
 #ifdef STARPU_USE_TOP
 	starpu_top_register_parameter_float("DMDA_ALPHA", &alpha,
-		alpha_minimum, alpha_maximum, param_modified);
+					    alpha_minimum, alpha_maximum, param_modified);
 	starpu_top_register_parameter_float("DMDA_BETA", &beta,
-		beta_minimum, beta_maximum, param_modified);
+					    beta_minimum, beta_maximum, param_modified);
 	starpu_top_register_parameter_float("DMDA_GAMMA", &_gamma,
-		gamma_minimum, gamma_maximum, param_modified);
+					    gamma_minimum, gamma_maximum, param_modified);
 	starpu_top_register_parameter_float("DMDA_IDLE_POWER", &idle_power,
-		idle_power_minimum, idle_power_maximum, param_modified);
+					    idle_power_minimum, idle_power_maximum, param_modified);
 #endif /* !STARPU_USE_TOP */
 }
 
