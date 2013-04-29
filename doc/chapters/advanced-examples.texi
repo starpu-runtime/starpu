@@ -474,14 +474,15 @@ probably use @code{lp_solve -timeout 1 test.pl -wmps test.mps} to convert the
 problem to MPS format and then use a better solver, @code{glpsol} might be
 better than @code{lp_solve} for instance (the @code{--pcost} option may be
 useful), but sometimes doesn't manage to converge. @code{cbc} might look
-slower, but it is parallel. Be sure to try at least all the @code{-B} options
-of @code{lp_solve}. For instance, we often just use
-@code{lp_solve -cc -B1 -Bb -Bg -Bp -Bf -Br -BG -Bd -Bs -BB -Bo -Bc -Bi} , and
-the @code{-gr} option can also be quite useful.
+slower, but it is parallel. For @code{lp_solve}, be sure to try at least all the
+@code{-B} options. For instance, we often just use @code{lp_solve -cc -B1 -Bb
+-Bg -Bp -Bf -Br -BG -Bd -Bs -BB -Bo -Bc -Bi} , and the @code{-gr} option can
+also be quite useful. The resulting schedule can be observed by using the
+@code{starpu_lp2paje} tool, which converts it into the Paje format.
 
 Data transfer time can only be taken into account when @code{deps} is set. Only
 data transfers inferred from implicit data dependencies between tasks are taken
-into account.
+into account. Other data transfers are assumed to be completely overlapped.
 
 Setting @code{deps} to 0 will only take into account the actual computations
 on processing units. It however still properly takes into account the varying
@@ -492,9 +493,6 @@ The @code{prio} parameter tells StarPU whether to simulate taking into account
 the priorities as the StarPU scheduler would, i.e. schedule prioritized
 tasks before less prioritized tasks, to check to which extend this results
 to a less optimal solution. This increases even more computation time.
-
-Note that for simplicity, all this however doesn't take into account data
-transfers, which are assumed to be completely overlapped.
 
 @node Insert Task Utility
 @section Insert Task Utility

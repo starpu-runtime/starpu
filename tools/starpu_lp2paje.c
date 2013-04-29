@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,34 +14,48 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <config.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#define PROGNAME "starpu_lp2paje"
+
 struct task {
 	double start;
 	double stop;
+	int num;
 	int worker;
 };
 
 int main(int argc, char *argv[]) {
 	int nw, nt;
 	double tmax;
-	int i, w, t, t2;
+	int i, w, ww, t, tt, t2;
 	int foo;
 	double bar;
-	unsigned long num;
-	unsigned long next = 1;
 
-	if (argc != 3) {
-		fprintf(stderr,"usage: %s nb_workers nb_tasks\n", argv[0]);
-		exit(1);
+	if (argc != 1) {
+		if (strcmp(argv[1], "-v") == 0
+		 || strcmp(argv[1], "--version") == 0)
+		{
+			fprintf(stderr, PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n");
+			exit(EXIT_SUCCESS);
+		}
+		fprintf(stderr, "Convert schedule optimized by lp into the Paje format\n\n");
+		fprintf(stderr, "Usage: lp_solve file.lp | %s > paje.trace\n", PROGNAME);
+		fprintf(stderr, "Reports bugs to <"PACKAGE_BUGREPORT">.");
+		fprintf(stderr, "\n");
+		exit(EXIT_SUCCESS);
 	}
-	nw = atoi(argv[1]);
-	nt = atoi(argv[2]);
-	fprintf(stderr,"%d workers, %d tasks\n", nw, nt);
+	scanf("Suboptimal solution\n");
 	assert(scanf("\nValue of objective function: %lf\n", &tmax) == 1);
+
+	assert(scanf("Actual values of the variables:\n") == 0);
+	assert(scanf("tmax %lf\n", &tmax) == 1);
+	assert(scanf("nt %d\n", &nt) == 1);
+	assert(scanf("nw %d\n", &nw) == 1);
 	printf(
 "%%EventDef PajeDefineContainerType 1\n"
 "%%  Alias         string\n"
@@ -80,7 +94,8 @@ int main(int argc, char *argv[]) {
 "1 W 0 Worker\n"
 );
 	printf("3 S W \"Worker State\"\n");
-	printf("5 S S Running \"0.0 1.0 0.0\"\n");
+	for (t = 0; t < nt; t++)
+		printf("5 R%d S Running_%d \"0.0 1.0 0.0\"\n", t, t);
 	printf("5 F S Idle \"1.0 0.0 0.0\"\n");
 	for (i = 0; i < nw; i++)
 		printf("2 0 W%d W 0 \"%d\"\n", i, i);
@@ -88,52 +103,32 @@ int main(int argc, char *argv[]) {
 	for (w = 0; w < nw; w++)
 		printf("4 %f W%d W\n", tmax, w);
 
-	assert(scanf("Actual values of the variables:\n") == 0);
-	assert(scanf("tmax %lf\n", &tmax) == 1);
-	next++;
+	fprintf(stderr,"%d workers, %d tasks\n", nw, nt);
 	{
 		struct task task[nt];
 		memset(&task, 0, sizeof(task));
-		for (t = 0; t < nt; t++) {
+		for (t = nt-1; t >= 0; t--) {
 			assert(scanf("c%d %lf\n", &foo, &task[t].stop) == 2);
-			next++;
 		}
 
-		num = next;
-		while (1) {
-			if (num >= next +
+		for (t = nt-1; t >= 0; t--)
+			for (w = 0; w < nw; w++) {
+				assert(scanf("t%dw%d %lf\n", &tt, &ww, &bar) == 3);
+				assert(ww == w);
 
-				/* FIXME */
-				//nw*nt
-				8*84 + 5*49
-
-				) {
-				next+= 8*84+5*49;
-				break;
-			}
-			assert(scanf("t%dw%d %lf\n", &foo, &foo, &bar) == 3);
-			/* FIXME */
-			if (num-next < 8*84) {
-				t = (num - next) / nw;
-				w = (num - next) % nw;
-			} else {
-				unsigned long nnum = (num-next)-8*84;
-				t = (nnum / 5) + 84;
-				w = (nnum % 5)+3;
-			}
-
-			if (bar > 0.5) {
-				task[t].worker = w;
-				fprintf(stderr,"%lu: task %d on %d: %f\n", num, t, w, task[t].stop);
-			}
-			num++;
+				if (bar > 0.5) {
+					task[t].num = tt;
+					task[t].worker = w;
+				}
 		}
-		for (t = 0; t < nt; t++) {
-			assert(scanf("s%d %lf\n", &foo, &task[t].start) == 2);
+		for (t = nt-1; t >= 0; t--) {
+			assert(scanf("s%d %lf\n", &tt, &task[t].start) == 2);
+			fprintf(stderr,"%d: task %d on %d: %f - %f\n", nt-1-t, tt, task[t].worker, task[t].start, task[t].stop);
+			assert(tt == task[t].num);
 		}
 
 		for (t = 0; t < nt; t++) {
-			printf("6 %f S W%d S\n", task[t].start, task[t].worker);
+			printf("6 %f S W%d R%d\n", task[t].start, task[t].worker, t);
 			printf("6 %f S W%d F\n", task[t].stop, task[t].worker);
 		}
 
@@ -142,7 +137,7 @@ int main(int argc, char *argv[]) {
 				if (t != t2 && task[t].worker == task[t2].worker) {
 					if (!(task[t].start >= task[t2].stop
 					    || task[t2].start >= task[t].stop)) {
-						fprintf(stderr,"oops, %d and %d sharing worker %d !!\n", t, t2, task[t].worker);
+						fprintf(stderr,"oops, %d and %d sharing worker %d !!\n", task[t].num, task[t2].num, task[t].worker);
 					}
 				}
 			}

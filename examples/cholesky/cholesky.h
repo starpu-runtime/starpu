@@ -122,6 +122,7 @@ static unsigned check = 0;
 static unsigned bound = 0;
 static unsigned bound_deps = 0;
 static unsigned bound_lp = 0;
+static unsigned bound_mps = 0;
 static unsigned with_ctxs = 0;
 static unsigned with_noctxs = 0;
 static unsigned chole1 = 0;
@@ -150,77 +151,83 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 		{
 			with_ctxs = 1;
 			break;
-		}
+		} else
 		if (strcmp(argv[i], "-with_noctxs") == 0) 
 		{
 			with_noctxs = 1;
 			break;
-		}
+		} else
 		
 		if (strcmp(argv[i], "-chole1") == 0) 
 		{
 			chole1 = 1;
 			break;
-		}
+		} else
 
 		if (strcmp(argv[i], "-chole2") == 0) 
 		{
 			chole2 = 1;
 			break;
-		}
+		} else
 
 		if (strcmp(argv[i], "-size") == 0)
 		{
 		        char *argptr;
 			size = strtol(argv[++i], &argptr, 10);
-		}
+		} else
 
 		if (strcmp(argv[i], "-nblocks") == 0)
 		{
 		        char *argptr;
 			nblocks = strtol(argv[++i], &argptr, 10);
-		}
+		} else
 
 		if (strcmp(argv[i], "-nbigblocks") == 0)
 		{
 		        char *argptr;
 			nbigblocks = strtol(argv[++i], &argptr, 10);
-		}
+		} else
 
 		if (strcmp(argv[i], "-no-pin") == 0)
 		{
 			pinned = 0;
-		}
+		} else
 
 		if (strcmp(argv[i], "-no-prio") == 0)
 		{
 			noprio = 1;
-		}
+		} else
 
 		if (strcmp(argv[i], "-bound") == 0)
 		{
 			bound = 1;
-		}
+		} else
 
 		if (strcmp(argv[i], "-bound-lp") == 0)
 		{
 			bound_lp = 1;
-		}
+		} else
+
+		if (strcmp(argv[i], "-bound-mps") == 0)
+		{
+			bound_mps = 1;
+		} else
 
 		if (strcmp(argv[i], "-bound-deps") == 0)
 		{
 			bound_deps = 1;
-		}
+		} else
 
 		if (strcmp(argv[i], "-check") == 0)
 		{
 			check = 1;
-		}
+		} else
 
-		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i],"--help") == 0)
+		/* if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i],"--help") == 0) */
 		{
 			fprintf(stderr,"usage : %s [-size size] [-nblocks nblocks] [-no-pin] [-no-prio] [-bound] [-bound-deps] [-bound-lp] [-check]\n", argv[0]);
 			fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks\n", size, size, nblocks, nblocks);
+			exit(0);
 		}
 	}
 }

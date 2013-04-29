@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -501,10 +501,16 @@ void starpu_bound_print_lp(FILE *output)
 		}
 		fprintf(output, "/* StarPU upper bound linear programming problem, to be run in lp_solve. */\n\n");
 		fprintf(output, "/* !! This is a big system, it will be long to solve !! */\n\n");
+
 		fprintf(output, "/* We want to minimize total execution time (ms) */\n");
 		fprintf(output, "min: tmax;\n\n");
 
-		fprintf(output, "/* Which is the maximum of all task completion times (ms) */\n");
+		fprintf(output, "/* Number of tasks */\n");
+		fprintf(output, "nt = %d;\n", nt);
+		fprintf(output, "/* Number of workers */\n");
+		fprintf(output, "nw = %d;\n", nw);
+
+		fprintf(output, "/* The total execution time is the maximum of all task completion times (ms) */\n");
 		for (t1 = tasks; t1; t1 = t1->next)
 			fprintf(output, "c%lu <= tmax;\n", t1->id);
 
@@ -836,12 +842,12 @@ void starpu_bound_print_mps(FILE *output)
 
 		fprintf(output, "NAME           StarPU theoretical bound\n");
 
-		fprintf(output, "\nROWS\n");
+		fprintf(output, "*\nROWS\n");
 
 		fprintf(output, "* We want to minimize total execution time (ms)\n");
 		fprintf(output, " N  TMAX\n");
 
-		fprintf(output, "\n* Which is the maximum of all worker execution times (ms)\n");
+		fprintf(output, "* Which is the maximum of all worker execution times (ms)\n");
 		for (w = 0; w < nw; w++)
 		{
 			char name[32];
@@ -850,36 +856,36 @@ void starpu_bound_print_mps(FILE *output)
 			fprintf(output, " L  W%d\n", w);
 		}
 
-		fprintf(output, "\n* And we have to have computed exactly all tasks\n");
+		fprintf(output, "*\n* And we have to have computed exactly all tasks\n*\n");
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 		{
 			fprintf(output, "* task %s key %x\n", _starpu_codelet_get_model_name(tp->cl), (unsigned) tp->footprint);
 			fprintf(output, " E  T%d\n", t);
 		}
 
-		fprintf(output, "\nCOLUMNS\n");
+		fprintf(output, "*\nCOLUMNS\n*\n");
 
-		fprintf(output, "\n* Execution times and completion of all tasks\n");
+		fprintf(output, "*\n* Execution times and completion of all tasks\n*\n");
 		for (w = 0; w < nw; w++)
 			for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
 				if (!isnan(times[w*nt+t]))
 				{
 					char name[9];
 					snprintf(name, sizeof(name), "W%dT%d", w, t);
-					fprintf(stderr,"    %-8s  W%-7d  %12f\n", name, w, times[w*nt+t]);
-					fprintf(stderr,"    %-8s  T%-7d  %12d\n", name, t, 1);
+					fprintf(output,"    %-8s  W%-7d  %12f\n", name, w, times[w*nt+t]);
+					fprintf(output,"    %-8s  T%-7d  %12d\n", name, t, 1);
 				}
 
-		fprintf(output, "\n* Total execution time\n");
+		fprintf(output, "*\n* Total execution time\n*\n");
 		for (w = 0; w < nw; w++)
-			fprintf(stderr,"    TMAX      W%-2d       %12d\n", w, -1);
-		fprintf(stderr,"    TMAX      TMAX      %12d\n", 1);
+			fprintf(output,"    TMAX      W%-2d       %12d\n", w, -1);
+		fprintf(output,"    TMAX      TMAX      %12d\n", 1);
 
-		fprintf(output, "\nRHS\n");
+		fprintf(output, "*\nRHS\n*\n");
 
-		fprintf(output, "\n* Total number of tasks\n");
+		fprintf(output, "*\n* Total number of tasks\n*\n");
 		for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
-			fprintf(stderr,"    NT%-2d      T%-7d  %12lu\n", t, t, tp->n);
+			fprintf(output,"    NT%-2d      T%-7d  %12lu\n", t, t, tp->n);
 
 		fprintf(output, "ENDATA\n");
 	}

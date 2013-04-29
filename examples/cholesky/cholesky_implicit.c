@@ -89,7 +89,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	start = starpu_timing_now();
 
-	if (bound || bound_lp)
+	if (bound || bound_lp || bound_mps)
 		starpu_bound_start(bound_deps, 0);
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
@@ -140,7 +140,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	}
 
 	starpu_task_wait_for_all();
-	if (bound || bound_lp)
+	if (bound || bound_lp || bound_mps)
 		starpu_bound_stop();
 
 	end = starpu_timing_now();
@@ -161,6 +161,11 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
 			FILE *f = fopen("cholesky.lp", "w");
 			starpu_bound_print_lp(f);
+		}
+		if (bound_mps)
+		{
+			FILE *f = fopen("cholesky.mps", "w");
+			starpu_bound_print_mps(f);
 		}
 		if (bound)
 		{
