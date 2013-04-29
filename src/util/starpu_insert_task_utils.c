@@ -240,12 +240,12 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 
 			STARPU_ASSERT(cl != NULL);
 
-			_STARPU_TASK_SET_HANDLE((*task), handle, current_buffer);
-			if (_STARPU_CODELET_GET_MODE(cl, current_buffer))
+			STARPU_TASK_SET_HANDLE((*task), handle, current_buffer);
+			if (STARPU_CODELET_GET_MODE(cl, current_buffer))
 			{
-				STARPU_ASSERT_MSG(_STARPU_CODELET_GET_MODE(cl, current_buffer) == mode,
+				STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, current_buffer) == mode,
 						   "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_insert_task\n",
-						  cl->name, _STARPU_CODELET_GET_MODE(cl, current_buffer),
+						  cl->name, STARPU_CODELET_GET_MODE(cl, current_buffer),
 						  current_buffer, mode);
 			}
 			else
@@ -253,7 +253,7 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 #ifdef STARPU_DEVEL
 #  warning shall we print a warning to the user
 #endif
-				_STARPU_CODELET_SET_MODE(cl, mode, current_buffer);
+				STARPU_CODELET_SET_MODE(cl, mode, current_buffer);
 			}
 
 			current_buffer++;
@@ -267,7 +267,7 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 			int i;
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				_STARPU_TASK_SET_HANDLE((*task), handles[i], current_buffer);
+				STARPU_TASK_SET_HANDLE((*task), handles[i], current_buffer);
 				current_buffer++;
 			}
 

@@ -87,7 +87,7 @@ static int count_non_ready_buffers(struct starpu_task *task, unsigned node)
 	{
 		starpu_data_handle_t handle;
 
-		handle = _STARPU_TASK_GET_HANDLE(task, index);
+		handle = STARPU_TASK_GET_HANDLE(task, index);
 
 		int is_valid;
 		starpu_data_query_status(handle, node, NULL, &is_valid, NULL);

@@ -43,7 +43,7 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, enum 
 	{
 		for (buffer = 0; buffer < task->cl->nbuffers; buffer++)
 		{
-			starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, buffer);
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
 
 			uint32_t handle_footprint = _starpu_data_get_footprint(handle);
 

@@ -158,7 +158,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	size_t data_size = 0;
 	for(i = 0; i < STARPU_NMAXBUFS; i++)
 	{
-		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 		if (handle != NULL)
 			data_size += _starpu_data_get_size(handle);
 	}
@@ -170,7 +170,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		unsigned i;
 		for (i=0; i<task->cl->nbuffers; i++)
 		{
-			starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			_starpu_spin_lock(&handle->header_lock);
 			handle->busy_count--;
 			if (!_starpu_data_check_not_busy(handle))

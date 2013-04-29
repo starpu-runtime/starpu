@@ -592,8 +592,8 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, index);
-		enum starpu_access_mode mode = _STARPU_CODELET_GET_MODE(task->cl, index);
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+		enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, index);
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
@@ -657,8 +657,8 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 	/* Now that we have taken the data locks in locking order, fill the codelet interfaces in function order.  */
 	for (index = 0; index < nbuffers; index++)
 	{
-		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, index);
-		enum starpu_access_mode mode = _STARPU_CODELET_GET_MODE(task->cl, index);
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+		enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, index);
 
 		struct _starpu_data_replicate *local_replicate;
 

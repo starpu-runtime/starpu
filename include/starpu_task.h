@@ -249,6 +249,12 @@ struct starpu_task
 	.dyn_interfaces = NULL				\
 }
 
+#define STARPU_TASK_GET_HANDLE(task, i) ((task->dyn_handles) ? task->dyn_handles[i] : task->handles[i])
+#define STARPU_TASK_SET_HANDLE(task, handle, i) do { if (task->dyn_handles) task->dyn_handles[i] = handle; else task->handles[i] = handle; } while(0)
+
+#define STARPU_CODELET_GET_MODE(codelet, i) ((codelet->dyn_modes) ? codelet->dyn_modes[i] : codelet->modes[i])
+#define STARPU_CODELET_SET_MODE(codelet, mode, i) do { if (codelet->dyn_modes) codelet->dyn_modes[i] = mode; else codelet->modes[i] = mode; } while(0)
+
 /*
  * handle task dependencies: it is possible to associate a task with a unique
  * "tag" and to express dependencies between tasks by the means of those tags

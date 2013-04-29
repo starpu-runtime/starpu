@@ -242,7 +242,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 		unsigned i;
 		for (i=0; i<task->cl->nbuffers; i++)
 		{
-			starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			_starpu_spin_lock(&handle->header_lock);
 			handle->busy_count++;
 			_starpu_spin_unlock(&handle->header_lock);
@@ -416,7 +416,7 @@ int starpu_task_submit(struct starpu_task *task)
 
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
-			starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			/* Make sure handles are not partitioned */
 			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data can be used in a task");
 			/* Provide the home interface for now if any,
@@ -546,9 +546,9 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 		unsigned i;
 		for (i=0 ; i<task->cl->nbuffers ; i++)
 		{
-			starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(j->task, i);
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
 			_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
-			enum starpu_access_mode mode = _STARPU_CODELET_GET_MODE(j->task->cl, i);
+			enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
 			_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
 		}
 	}
@@ -581,7 +581,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	unsigned i;
 	for (i=0; i<task->cl->nbuffers; i++)
 	{
-		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count++;
 		_starpu_spin_unlock(&handle->header_lock);
@@ -596,9 +596,9 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	for (i=0 ; i<task->cl->nbuffers ; i++)
 	{
-		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(j->task, i);
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
-		enum starpu_access_mode mode = _STARPU_CODELET_GET_MODE(j->task->cl, i);
+		enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
 	}
 
@@ -835,7 +835,7 @@ _starpu_task_uses_multiformat_handles(struct starpu_task *task)
 	unsigned i;
 	for (i = 0; i < task->cl->nbuffers; i++)
 	{
-		if (_starpu_data_is_multiformat_handle(_STARPU_TASK_GET_HANDLE(task, i)))
+		if (_starpu_data_is_multiformat_handle(STARPU_TASK_GET_HANDLE(task, i)))
 			return 1;
 	}
 

@@ -72,7 +72,7 @@ size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_per
 		unsigned buffer;
 		for (buffer = 0; buffer < nbuffers; buffer++)
 		{
-			starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, buffer);
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
 			size += _starpu_data_get_size(handle);
 		}
 		return size;
@@ -1267,7 +1267,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 		for (i = 0; i < task->cl->nbuffers; i++)
 		{
-			starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 
 			STARPU_ASSERT(handle->ops);
 			STARPU_ASSERT(handle->ops->display);
