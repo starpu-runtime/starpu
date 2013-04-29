@@ -421,7 +421,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			int i;
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				enum starpu_access_mode mode = _STARPU_CODELET_GET_MODE(codelet, current_data);
+				enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(codelet, current_data);
 				int ret = _starpu_mpi_find_executee_node(datas[i], mode, me, &do_execute, &inconsistent_execute, &dest, size_on_nodes);
 				if (ret == -EINVAL)
 				{
@@ -532,7 +532,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				_starpu_mpi_exchange_data_before_execution(datas[i], _STARPU_CODELET_GET_MODE(codelet, current_data), me, dest, do_execute, comm);
+				_starpu_mpi_exchange_data_before_execution(datas[i], STARPU_CODELET_GET_MODE(codelet, current_data), me, dest, do_execute, comm);
 				current_data++;
 			}
 		}
@@ -627,7 +627,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 				for(i=0 ; i<nb_handles ; i++)
 				{
-					_starpu_mpi_exchange_data_after_execution(datas[i], _STARPU_CODELET_GET_MODE(codelet, current_data), me, xrank, dest, do_execute, comm);
+					_starpu_mpi_exchange_data_after_execution(datas[i], STARPU_CODELET_GET_MODE(codelet, current_data), me, xrank, dest, do_execute, comm);
 					current_data++;
 				}
 			}
@@ -697,7 +697,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				_starpu_mpi_clear_data_after_execution(datas[i], _STARPU_CODELET_GET_MODE(codelet, current_data), me, do_execute, comm);
+				_starpu_mpi_clear_data_after_execution(datas[i], STARPU_CODELET_GET_MODE(codelet, current_data), me, do_execute, comm);
 				current_data++;
 			}
 		}

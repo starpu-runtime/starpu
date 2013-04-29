@@ -243,9 +243,9 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 	unsigned i;
 	for (i=0 ; i<cl->nbuffers ; i++)
 	{
-		starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(j->task, i);
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
-		enum starpu_access_mode mode = _STARPU_CODELET_GET_MODE(j->task->cl, i);
+		enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
 	}
 

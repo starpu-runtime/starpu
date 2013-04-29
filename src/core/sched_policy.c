@@ -236,7 +236,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 				struct starpu_task *conversion_task;
 				starpu_data_handle_t handle;
 
-				handle = _STARPU_TASK_GET_HANDLE(task, i);
+				handle = STARPU_TASK_GET_HANDLE(task, i);
 				if (!_starpu_handle_needs_conversion_task(handle, node))
 					continue;
 
@@ -250,7 +250,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 			for (i = 0; i < task->cl->nbuffers; i++)
 			{
-				starpu_data_handle_t handle = _STARPU_TASK_GET_HANDLE(task, i);
+				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 				handle->mf_node = node;
 			}
 		}
@@ -450,7 +450,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 
 	conversion_task = starpu_task_create();
 	conversion_task->synchronous = 0;
-	_STARPU_TASK_SET_HANDLE(conversion_task, handle, 0);
+	STARPU_TASK_SET_HANDLE(conversion_task, handle, 0);
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	/* The node does not really matter here */
@@ -513,7 +513,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 		STARPU_ABORT();
 	}
 
-	_STARPU_CODELET_SET_MODE(conversion_task->cl, STARPU_RW, 0);
+	STARPU_CODELET_SET_MODE(conversion_task->cl, STARPU_RW, 0);
 	return conversion_task;
 }
 
@@ -666,7 +666,7 @@ pick:
 		struct starpu_task *conversion_task;
 		starpu_data_handle_t handle;
 
-		handle = _STARPU_TASK_GET_HANDLE(task, i);
+		handle = STARPU_TASK_GET_HANDLE(task, i);
 		if (!_starpu_handle_needs_conversion_task(handle, node))
 			continue;
 		conversion_task = _starpu_create_conversion_task(handle, node);
