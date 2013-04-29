@@ -86,7 +86,8 @@ bin_PROGRAMS += 			\
 	starpu_perfmodel_display	\
 	starpu_perfmodel_plot 		\
 	starpu_calibrate_bus		\
-	starpu_machine_display
+	starpu_machine_display		\
+	starpu_lp2paje
 
 starpu_perfmodel_plot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 
@@ -103,8 +104,6 @@ STARPU_TOOLS	+=			\
 	starpu_perfmodel_display	\
 	starpu_perfmodel_plot
 endif
-
-noinst_PROGRAMS =	cbc2paje lp2paje
 
 dist_bin_SCRIPTS +=			\
 	starpu_workers_activity		\
@@ -128,6 +127,8 @@ starpu_machine_display.1: starpu_machine_display$(EXEEXT)
 starpu_perfmodel_display.1: starpu_perfmodel_display$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_perfmodel_plot.1: starpu_perfmodel_plot$(EXEEXT)
+	help2man --no-discard-stderr -N --output=$@ ./$<
+starpu_lp2paje.1: starpu_lp2paje$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_workers_activity.1: starpu_workers_activity$(EXEEXT)
 	chmod +x $<
@@ -153,6 +154,7 @@ dist_man1_MANS =\
 	starpu_machine_display.1 \
 	starpu_perfmodel_display.1 \
 	starpu_perfmodel_plot.1	\
+	starpu_lp2paje.1	\
 	starpu_workers_activity.1 \
 	starpu_codelet_profile.1 \
 	starpu_codelet_histo_profile.1
