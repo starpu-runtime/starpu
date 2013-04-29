@@ -27,11 +27,7 @@
 #include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
 #include <core/perfmodel/perfmodel.h>
-#include <starpu_parameters.h>
 #include <core/debug.h>
-#ifdef STARPU_USE_TOP
-#include <top/starpu_top_core.h>
-#endif /* !STARPU_USE_TOP */
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
