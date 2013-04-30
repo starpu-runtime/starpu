@@ -355,7 +355,7 @@ struct starpu_task *starpu_task_get_current(void);
 
 /* initialise the barrier for the parallel task, st all workers start it 
  * at the same time */
-void starpu_init_parallel_task_barrier(struct starpu_task* task, int best_workerid);
+void starpu_parallel_task_barrier_init(struct starpu_task* task, int workerid);
 
 /* create task alias to dispatch it to the workers of a combined workers */
 struct starpu_task *starpu_create_task_alias(struct starpu_task *task);

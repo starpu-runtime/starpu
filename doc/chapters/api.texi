@@ -3692,6 +3692,11 @@ Get the description of a combined worker
 Variant of starpu_worker_can_execute_task compatible with combined workers
 @end deftypefun
 
+@deftypefun void starpu_parallel_task_barrier_init ({struct starpu_task* }@var{task}, int @var{best_workerid})
+Initialise the barrier for the parallel task, and dispatch the task
+between the different combined workers
+@end deftypefun
+
 @deftp {Data Type} {struct starpu_machine_topology}
 @table @asis
 @item @code{unsigned nworkers}
