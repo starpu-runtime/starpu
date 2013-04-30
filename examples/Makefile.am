@@ -883,8 +883,8 @@ endif
 examplebin_PROGRAMS +=		\
 	openmp/vector_scal_omp
 
-openmp_vector_scal_omp_CFLAGS	=
-	-fopenmp
+openmp_vector_scal_omp_CFLAGS = \
+	$(AM_CFLAGS) -fopenmp
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
