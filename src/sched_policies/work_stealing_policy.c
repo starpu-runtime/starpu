@@ -336,8 +336,6 @@ int ws_push_task(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	int workerid = starpu_worker_get_id();
 
-        int ret_val = -1;
-
 	unsigned worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_sched_ctx_iterator it;
