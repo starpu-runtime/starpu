@@ -1278,12 +1278,17 @@ the field @code{dyn_handles} when defining a task and the field
 
 @cartouche
 @smallexample
+enum starpu_access_mode modes[STARPU_NMAXBUFS+1] = {
+	STARPU_R, STARPU_R, ...
+};
+
 struct starpu_codelet dummy_big_cl =
 @{
 	.cuda_funcs = @{dummy_big_kernel, NULL@},
 	.opencl_funcs = @{dummy_big_kernel, NULL@},
 	.cpu_funcs = @{dummy_big_kernel, NULL@},
-	.nbuffers = STARPU_NMAXBUFS+1
+	.nbuffers = STARPU_NMAXBUFS+1,
+	.dyn_modes = modes
 @};
 
 task = starpu_task_create();
