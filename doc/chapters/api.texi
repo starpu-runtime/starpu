@@ -2201,6 +2201,10 @@ by the task have to be freed by calling
 @code{starpu_task_destroy}.
 @end deftypefun
 
+@deftypefun {struct starpu_task *}starpu_task_dup ({struct starpu_task *}@var{task})
+Allocate a task structure which is the exact duplicate of the given task.
+@end deftypefun
+
 @deftypefun void starpu_task_clean ({struct starpu_task} *@var{task})
 Release all the structures automatically allocated to execute @var{task}, but
 not the task structure itself and values set by the user remain unchanged.

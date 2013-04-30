@@ -357,8 +357,8 @@ struct starpu_task *starpu_task_get_current(void);
  * at the same time */
 void starpu_parallel_task_barrier_init(struct starpu_task* task, int workerid);
 
-/* create task alias to dispatch it to the workers of a combined workers */
-struct starpu_task *starpu_create_task_alias(struct starpu_task *task);
+/* duplicate the given task */
+struct starpu_task *starpu_task_dup(struct starpu_task *task);
 
 #ifdef __cplusplus
 }

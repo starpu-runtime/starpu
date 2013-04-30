@@ -152,7 +152,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		int i;
 		for (i = 0; i < worker_size; i++)
 		{
-			struct starpu_task *alias = starpu_create_task_alias(task);
+			struct starpu_task *alias = starpu_task_dup(task);
 			int local_worker = combined_workerid[i];
 
 			alias->predicted = exp_end_predicted - worker_exp_end[local_worker];
