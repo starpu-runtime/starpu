@@ -105,7 +105,7 @@ struct starpu_codelet
 	struct starpu_perfmodel *power_model;
 
 	/* statistics collected at runtime: this is filled by StarPU and should
-	 * not be accessed directly (use the starpu_display_codelet_stats
+	 * not be accessed directly (use the starpu_codelet_display_stats
 	 * function instead for instance). */
 	unsigned long per_worker_stats[STARPU_NMAXWORKERS];
 
@@ -346,7 +346,7 @@ int starpu_task_nsubmitted(void);
 
 void starpu_codelet_init(struct starpu_codelet *cl);
 
-void starpu_display_codelet_stats(struct starpu_codelet *cl);
+void starpu_codelet_display_stats(struct starpu_codelet *cl);
 
 /* Return the task currently executed by the worker, or NULL if this is called
  * either from a thread that is not a task or simply because there is no task
