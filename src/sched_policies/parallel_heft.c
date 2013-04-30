@@ -140,7 +140,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		task->predicted = 0;
 		task->predicted_transfer = 0;
 
-		starpu_init_parallel_task_barrier(task, best_workerid);
+		starpu_parallel_task_barrier_init(task, best_workerid);
 		int worker_size = 0;
 		int *combined_workerid;
 		starpu_combined_worker_get_description(best_workerid, &worker_size, &combined_workerid);
