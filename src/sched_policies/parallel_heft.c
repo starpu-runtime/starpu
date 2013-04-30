@@ -23,9 +23,7 @@
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
-#include <common/barrier.h>
 #include <sched_policies/detect_combined_workers.h>
-#include <core/parallel_task.h>
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -136,33 +134,25 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	}
 	else
 	{
-		/* This is a combined worker so we create task aliases */
-		struct _starpu_combined_worker *combined_worker;
-		combined_worker = _starpu_get_combined_worker_struct(best_workerid);
-		int worker_size = combined_worker->worker_size;
-		int *combined_workerid = combined_worker->combined_workerid;
-
-		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-		j->task_size = worker_size;
-		j->combined_workerid = best_workerid;
-		j->active_task_alias_count = 0;
-
 		/* This task doesn't belong to an actual worker, it belongs
 		 * to a combined worker and thus the scheduler doesn't care
 		 * of its predicted values which are insignificant */
 		task->predicted = 0;
 		task->predicted_transfer = 0;
 
-		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
-		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+		starpu_init_parallel_task_barrier(task, best_workerid);
+		int worker_size = 0;
+		int *combined_workerid;
+		starpu_combined_worker_get_description(best_workerid, &worker_size, &combined_workerid);
 
 		/* All cpu workers must be locked at once */
 		_STARPU_PTHREAD_MUTEX_LOCK(&hd->global_push_mutex);
 
+		/* This is a combined worker so we create task aliases */
 		int i;
 		for (i = 0; i < worker_size; i++)
 		{
-			struct starpu_task *alias = _starpu_create_task_alias(task);
+			struct starpu_task *alias = starpu_create_task_alias(task);
 			int local_worker = combined_workerid[i];
 
 			alias->predicted = exp_end_predicted - worker_exp_end[local_worker];

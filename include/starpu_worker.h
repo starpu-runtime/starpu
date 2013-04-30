@@ -123,7 +123,6 @@ int starpu_combined_worker_get_id(void);
 int starpu_combined_worker_get_size(void);
 int starpu_combined_worker_get_rank(void);
 
-
 /* This function returns the type of worker associated to an identifier (as
  * returned by the starpu_worker_get_id function). The returned value indicates
  * the architecture of the worker: STARPU_CPU_WORKER for a CPU core,

@@ -329,10 +329,13 @@ int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id);
  * indicates that the waited task was either synchronous or detached. */
 int starpu_task_wait(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 
-/* This function waits until all the tasks that were already submitted have
+/* This function waits until all the tasks that were already submitted 
+ * (to the current context or the global one if there aren't any) have
  * been executed. */
 int starpu_task_wait_for_all(void);
 
+/* This function waits until all the tasks that were already submitted to the 
+ * context have been executed */
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id);
 
 /* This function waits until there is no more ready task. */
@@ -349,6 +352,13 @@ void starpu_display_codelet_stats(struct starpu_codelet *cl);
  * either from a thread that is not a task or simply because there is no task
  * being executed at the moment. */
 struct starpu_task *starpu_task_get_current(void);
+
+/* initialise the barrier for the parallel task, st all workers start it 
+ * at the same time */
+void starpu_init_parallel_task_barrier(struct starpu_task* task, int best_workerid);
+
+/* create task alias to dispatch it to the workers of a combined workers */
+struct starpu_task *starpu_create_task_alias(struct starpu_task *task);
 
 #ifdef __cplusplus
 }

@@ -15,12 +15,10 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-
-#include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
-#include <common/barrier.h>
 #include <sched_policies/detect_combined_workers.h>
-#include <core/parallel_task.h>
+#include <starpu_scheduler.h>
+#include <core/workers.h>
 
 struct _starpu_peager_data
 {
@@ -168,7 +166,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 
         /*if there are no tasks block */
         /* wake people waiting for a task */
-        unsigned worker = 0;
+        int worker = -1;
         struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
         struct starpu_sched_ctx_iterator it;
@@ -259,27 +257,15 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		}
 		else
 		{
-			/* The master needs to dispatch the task between the
-			 * different combined workers */
-			struct _starpu_combined_worker *combined_worker;
-			combined_worker = _starpu_get_combined_worker_struct(best_workerid);
-			int worker_size = combined_worker->worker_size;
-			int *combined_workerid = combined_worker->combined_workerid;
-
-			struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-			j->task_size = worker_size;
-			j->combined_workerid = best_workerid;
-			j->active_task_alias_count = 0;
-
-			//fprintf(stderr, "POP -> size %d best_size %d\n", worker_size, best_size);
-
-			_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
-			_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+			starpu_init_parallel_task_barrier(task, best_workerid);
+			int worker_size = 0;
+			int *combined_workerid;
+			starpu_combined_worker_get_description(best_workerid, &worker_size, &combined_workerid);
 
 			/* Dispatch task aliases to the different slaves */
 			for (i = 1; i < worker_size; i++)
 			{
-				struct starpu_task *alias = _starpu_create_task_alias(task);
+				struct starpu_task *alias = starpu_create_task_alias(task);
 				int local_worker = combined_workerid[i];
 				
 				starpu_pthread_mutex_t *sched_mutex;
@@ -296,7 +282,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 			}
 
 			/* The master also manipulated an alias */
-			struct starpu_task *master_alias = _starpu_create_task_alias(task);
+			struct starpu_task *master_alias = starpu_create_task_alias(task);
 			return master_alias;
 		}
 	}
