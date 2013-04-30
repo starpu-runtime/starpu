@@ -1278,9 +1278,9 @@ the field @code{dyn_handles} when defining a task and the field
 
 @cartouche
 @smallexample
-enum starpu_access_mode modes[STARPU_NMAXBUFS+1] = {
+enum starpu_access_mode modes[STARPU_NMAXBUFS+1] = @{
 	STARPU_R, STARPU_R, ...
-};
+@};
 
 struct starpu_codelet dummy_big_cl =
 @{
