@@ -19,11 +19,10 @@
 /* Deque queues, ready for use by schedulers */
 
 #include <starpu.h>
-#include <common/config.h>
-#include <core/workers.h>
+#include <starpu_scheduler.h>
 #include <sched_policies/deque_queues.h>
-#include <errno.h>
-#include <common/utils.h>
+
+#include <core/workers.h>
 
 struct _starpu_deque_jobq *_starpu_create_deque(void)
 {
