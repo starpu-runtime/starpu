@@ -19,8 +19,10 @@
 #include <core/jobs.h>
 #include <core/task.h>
 #include <common/utils.h>
+#include <core/workers.h>
+#include <common/barrier.h>
 
-struct starpu_task *_starpu_create_task_alias(struct starpu_task *task)
+struct starpu_task *starpu_create_task_alias(struct starpu_task *task)
 {
 	struct starpu_task *task_dup = (struct starpu_task *) malloc(sizeof(struct starpu_task));
 	STARPU_ASSERT(task_dup);
@@ -31,3 +33,24 @@ struct starpu_task *_starpu_create_task_alias(struct starpu_task *task)
 
 	return task_dup;
 }
+
+void starpu_init_parallel_task_barrier(struct starpu_task* task, int best_workerid)
+{
+	/* The master needs to dispatch the task between the
+	 * different combined workers */
+	struct _starpu_combined_worker *combined_worker =  _starpu_get_combined_worker_struct(best_workerid);
+	int worker_size = combined_worker->worker_size;
+	
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	j->task_size = worker_size;
+	j->combined_workerid = best_workerid;
+	j->active_task_alias_count = 0;
+	
+	//fprintf(stderr, "POP -> size %d best_size %d\n", worker_size, best_size);
+	
+	_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
+	_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+
+	return;
+}
+

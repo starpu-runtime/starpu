@@ -162,3 +162,4 @@ int starpu_combined_worker_get_description(int workerid, int *worker_size, int *
 
 	return 0;
 }
+

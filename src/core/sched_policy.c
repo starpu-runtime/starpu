@@ -23,7 +23,6 @@
 #include <profiling/profiling.h>
 #include <common/barrier.h>
 #include <core/debug.h>
-#include <core/parallel_task.h>
 
 static int use_prefetch = 0;
 
@@ -284,7 +283,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		int j;
 		for (j = 0; j < worker_size; j++)
 		{
-			struct starpu_task *alias = _starpu_create_task_alias(task);
+			struct starpu_task *alias = starpu_create_task_alias(task);
 
 			worker = _starpu_get_worker_struct(combined_workerid[j]);
 			ret |= _starpu_push_local_task(worker, alias, 0);
