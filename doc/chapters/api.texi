@@ -1933,6 +1933,7 @@ Define the name of the codelet. This can be useful for debugging purposes.
 @end deftp
 
 @deftypefun void starpu_codelet_init ({struct starpu_codelet} *@var{cl})
+@anchor{starpu_codelet_init}
 Initialize @var{cl} with default values. Codelets should preferably be
 initialized statically as shown in @ref{Defining a Codelet}. However
 such a initialisation is not always possible, e.g. when using C++.
