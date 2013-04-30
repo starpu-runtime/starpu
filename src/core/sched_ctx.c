@@ -1102,37 +1102,3 @@ int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio)
 	sched_ctx->max_priority = max_prio;
 	return 0;
 }
-
-
-/* static void _starpu_sched_ctx_bind_thread_to_ctx_cpus(unsigned sched_ctx_id) */
-/* { */
-/* #ifdef STARPU_HAVE_HWLOC */
-/* 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id); */
-/* 	struct _starpu_machine_config *config = _starpu_get_machine_config(); */
-
-/* 	const struct hwloc_topology_support *support = hwloc_topology_get_support(config->topology.hwtopology); */
-/*         if (support->cpubind->set_thisthread_cpubind) */
-/*         { */
-/* 		hwloc_bitmap_t set = sched_ctx->hwloc_cpu_set; */
-/*                 int ret; */
-
-/*                 ret = hwloc_set_cpubind (config->topology.hwtopology, set, */
-/*                                          HWLOC_CPUBIND_THREAD); */
-/* 		if (ret) */
-/*                 { */
-/*                         perror("binding thread"); */
-/* 			STARPU_ABORT(); */
-/*                 } */
-/* 	} */
-
-/* #else */
-/* #warning no sched ctx CPU binding support */
-/* #endif */
-/* } */
-
-/* int starpu_sched_ctx_exec_parallel_code(void* (*func)(void* param), void* param, unsigned sched_ctx_id) */
-/* {	 */
-	
-/* 	_starpu_sched_ctx_bind_thread_to_ctx_cpus(sched_ctx_id); */
-/* 	func(param); */
-/* } */
