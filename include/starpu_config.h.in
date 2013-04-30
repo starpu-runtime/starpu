@@ -114,4 +114,6 @@ struct timespec
 #undef STARPU_HAVE_RINTF
 #undef STARPU_USE_TOP
 
+#undef STARPU_HAVE_HWLOC
+
 #endif
