@@ -22,12 +22,12 @@
 #include <core/workers.h>
 #include <common/barrier.h>
 
-struct starpu_task *starpu_create_task_alias(struct starpu_task *task)
+struct starpu_task *starpu_task_dup(struct starpu_task *task)
 {
 	struct starpu_task *task_dup = (struct starpu_task *) malloc(sizeof(struct starpu_task));
 	STARPU_ASSERT(task_dup);
 
-	/* XXX perhaps this is a bit too much overhead and we should only copy
+	/* TODO perhaps this is a bit too much overhead and we should only copy
 	 * part of the structure ? */
 	memcpy(task_dup, task, sizeof(struct starpu_task));
 

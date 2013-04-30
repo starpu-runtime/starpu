@@ -265,9 +265,9 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 			/* Dispatch task aliases to the different slaves */
 			for (i = 1; i < worker_size; i++)
 			{
-				struct starpu_task *alias = starpu_create_task_alias(task);
+				struct starpu_task *alias = starpu_task_dup(task);
 				int local_worker = combined_workerid[i];
-				
+
 				starpu_pthread_mutex_t *sched_mutex;
 				starpu_pthread_cond_t *sched_cond;
 				starpu_worker_get_sched_condition(local_worker, &sched_mutex, &sched_cond);
@@ -282,7 +282,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 			}
 
 			/* The master also manipulated an alias */
-			struct starpu_task *master_alias = starpu_create_task_alias(task);
+			struct starpu_task *master_alias = starpu_task_dup(task);
 			return master_alias;
 		}
 	}

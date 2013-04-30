@@ -283,7 +283,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		int j;
 		for (j = 0; j < worker_size; j++)
 		{
-			struct starpu_task *alias = starpu_create_task_alias(task);
+			struct starpu_task *alias = starpu_task_dup(task);
 
 			worker = _starpu_get_worker_struct(combined_workerid[j]);
 			ret |= _starpu_push_local_task(worker, alias, 0);
