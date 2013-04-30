@@ -25,7 +25,12 @@
 #include <stdio.h>
 #include <limits.h>
 
+#ifdef STARPU_QUICK_CHECK
+#define	NX	2048
+#else
 #define	NX	2048000
+#endif
+
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 void scal_cpu_func(void *buffers[], void *_args)
@@ -94,7 +99,8 @@ int main(int argc, char **argv)
 
 	float factor = 1.001;
 
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 100; i++)
+	{
 		struct starpu_task *task = starpu_task_create();
 
 		task->cl = &cl;
