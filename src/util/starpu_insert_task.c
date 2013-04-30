@@ -32,7 +32,7 @@ void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 	*arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
 
 	va_start(varg_list, arg_buffer_size);
-	_starpu_codelet_pack_args((char **)arg_buffer, *arg_buffer_size, varg_list);
+	_starpu_codelet_pack_args(arg_buffer, *arg_buffer_size, varg_list);
 }
 
 void starpu_codelet_unpack_args(void *_cl_arg, ...)
@@ -76,7 +76,7 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 	if (arg_buffer_size)
 	{
 		va_start(varg_list, cl);
-		_starpu_codelet_pack_args((char **)&arg_buffer, arg_buffer_size, varg_list);
+		_starpu_codelet_pack_args(&arg_buffer, arg_buffer_size, varg_list);
 	}
 
 	struct starpu_task *task = starpu_task_create();

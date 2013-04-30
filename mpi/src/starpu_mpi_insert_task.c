@@ -370,7 +370,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	int me, do_execute, xrank, nb_nodes;
 	size_t *size_on_nodes;
 	size_t arg_buffer_size = 0;
-	char *arg_buffer = NULL;
+	void *arg_buffer = NULL;
 	int dest=0, inconsistent_execute;
 	int current_data = 0;
 
