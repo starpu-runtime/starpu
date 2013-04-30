@@ -1923,8 +1923,8 @@ involved in the parallel execution.
 @item @code{unsigned long per_worker_stats[STARPU_NMAXWORKERS]} (optional)
 Statistics collected at runtime: this is filled by StarPU and should not be
 accessed directly, but for example by calling the
-@code{starpu_display_codelet_stats} function (See
-@ref{starpu_display_codelet_stats} for details).
+@code{starpu_codelet_display_stats} function (See
+@ref{starpu_codelet_display_stats} for details).
 
 @item @code{const char *name} (optional)
 Define the name of the codelet. This can be useful for debugging purposes.
@@ -2274,8 +2274,8 @@ NULL if it is called either from a thread that is not a task or simply
 because there is no task being executed at the moment.
 @end deftypefun
 
-@deftypefun void starpu_display_codelet_stats ({struct starpu_codelet} *@var{cl})
-@anchor{starpu_display_codelet_stats}
+@deftypefun void starpu_codelet_display_stats ({struct starpu_codelet} *@var{cl})
+@anchor{starpu_codelet_display_stats}
 Output on @code{stderr} some statistics on the codelet @var{cl}.
 @end deftypefun
 

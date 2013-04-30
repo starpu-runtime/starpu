@@ -198,7 +198,7 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "Total time : %f ms\n", timing/1000.0);
 	FPRINTF(stderr, "Speed : %f GShot/s\n", total_shot_cnt/(1e3*timing));
 
-	if (!getenv("STARPU_SSILENT")) starpu_display_codelet_stats(&pi_cl);
+	if (!getenv("STARPU_SSILENT")) starpu_codelet_display_stats(&pi_cl);
 
 	starpu_shutdown();
 
