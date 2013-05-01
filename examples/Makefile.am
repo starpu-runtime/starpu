@@ -880,11 +880,13 @@ endif
 # openmp example #
 ##################
 
+if !STARPU_HAVE_WINDOWS
 examplebin_PROGRAMS +=		\
 	openmp/vector_scal_omp
 
 openmp_vector_scal_omp_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
+endif
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
