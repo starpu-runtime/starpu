@@ -465,8 +465,7 @@ void *_starpu_gordon_worker(void *arg)
 	_STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
 	_STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
 
-	_STARPU_PTHREAD_CREATE("Gordon progress", &progress_thread, NULL,
-			       gordon_worker_progress, gordon_set_arg);
+	_STARPU_PTHREAD_CREATE(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
 
 	/* wait for the progression thread to be ready */
 	_STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);

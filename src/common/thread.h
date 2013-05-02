@@ -28,20 +28,20 @@
 	int p_ret =  starpu_pthread_create_on((name), (thread), (attr), (routine), (arg), (where)); 	\
 	if (STARPU_UNLIKELY(p_ret != 0)) {								\
 		fprintf(stderr,										\
-			"%s:%d starpu_pthread_create: %s\n",						\
+			"%s:%d starpu_pthread_create_on: %s\n",						\
 			__FILE__, __LINE__, strerror(p_ret));						\
 		STARPU_ABORT();										\
 	}												\
 } while (0)
 
-#define _STARPU_PTHREAD_CREATE(name, thread, attr, routine, arg) do {		    	\
-	int p_ret =  starpu_pthread_create((name), (thread), (attr), (routine), (arg)); \
-	if (STARPU_UNLIKELY(p_ret != 0)) {						\
-		fprintf(stderr,								\
-			"%s:%d starpu_pthread_create: %s\n",				\
-			__FILE__, __LINE__, strerror(p_ret));				\
-		STARPU_ABORT();								\
-	}										\
+#define _STARPU_PTHREAD_CREATE(thread, attr, routine, arg) do {		    	\
+	int p_ret =  starpu_pthread_create((thread), (attr), (routine), (arg)); \
+	if (STARPU_UNLIKELY(p_ret != 0)) {					\
+		fprintf(stderr,							\
+			"%s:%d starpu_pthread_create: %s\n",			\
+			__FILE__, __LINE__, strerror(p_ret));			\
+		STARPU_ABORT();							\
+	}									\
 } while (0)
 
 /*
