@@ -88,8 +88,6 @@
 	}                                                                      \
 } while (0)
 
-int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
-
 /*
  * Encapsulation of the starpu_pthread_key_* functions.
  */

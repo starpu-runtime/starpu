@@ -117,4 +117,6 @@ struct starpu_codelet;
 /* Returns the symbol associated to that job if any. */
 const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 
+int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
+
 #endif // __COMMON_UTILS_H__
