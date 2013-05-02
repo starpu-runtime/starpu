@@ -273,8 +273,8 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		job->combined_workerid = workerid;
 		job->active_task_alias_count = 0;
 
-		_STARPU_PTHREAD_BARRIER_INIT(&job->before_work_barrier, NULL, worker_size);
-		_STARPU_PTHREAD_BARRIER_INIT(&job->after_work_barrier, NULL, worker_size);
+		STARPU_PTHREAD_BARRIER_INIT(&job->before_work_barrier, NULL, worker_size);
+		STARPU_PTHREAD_BARRIER_INIT(&job->after_work_barrier, NULL, worker_size);
 
 		/* Note: we have to call that early, or else the task may have
 		 * disappeared already */
@@ -342,9 +342,9 @@ int _starpu_push_task(struct _starpu_job *j)
 
 		if(nworkers == 0)
 		{
-			_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 			return 0;
 		}
 	}
@@ -381,9 +381,9 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 		if (nworkers == 0)
 		{
-			_STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 			starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
 			return -EAGAIN;
 		}
 	}
@@ -400,10 +400,10 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 		/* check out if there are any workers in the context */
 		starpu_pthread_mutex_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
-		_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
 		nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
 		ret = nworkers == 0 ? -1 : sched_ctx->sched_policy->push_task(task);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 
 		if(ret == -1)
 		{
@@ -738,19 +738,19 @@ void _starpu_wait_on_sched_event(void)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
 	_starpu_handle_all_pending_node_data_requests(worker->memory_node);
 
 	if (_starpu_machine_is_running())
 	{
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-		_STARPU_PTHREAD_COND_WAIT(&worker->sched_cond,
+		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond,
 					  &worker->sched_mutex);
 #endif
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 }
 
 /* The scheduling policy may put tasks directly into a worker's local queue so

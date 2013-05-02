@@ -161,7 +161,7 @@ void _starpu_top_communications_threads_launcher(void)
 	starpu_pthread_attr_init(&threads_attr);
 	starpu_pthread_attr_setdetachstate(&threads_attr, PTHREAD_CREATE_DETACHED);
 
-	_STARPU_PTHREAD_CREATE(&from_ui, &threads_attr, message_from_ui, NULL);
-	_STARPU_PTHREAD_CREATE(&to_ui, &threads_attr, message_to_ui, NULL);
+	STARPU_PTHREAD_CREATE(&from_ui, &threads_attr, message_from_ui, NULL);
+	STARPU_PTHREAD_CREATE(&to_ui, &threads_attr, message_to_ui, NULL);
 }
 

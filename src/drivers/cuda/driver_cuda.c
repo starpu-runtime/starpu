@@ -430,10 +430,10 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 	_STARPU_TRACE_WORKER_INIT_END;
 
 	/* tell the main thread that this one is ready */
-	_STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
 	args->worker_is_initialized = 1;
-	_STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
 	return 0;
 }

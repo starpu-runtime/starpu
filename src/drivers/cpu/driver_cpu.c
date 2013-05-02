@@ -136,7 +136,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 	if (is_parallel_task)
 	{
-		_STARPU_PTHREAD_BARRIER_WAIT(&j->before_work_barrier);
+		STARPU_PTHREAD_BARRIER_WAIT(&j->before_work_barrier);
 
 		/* In the case of a combined worker, the scheduler needs to know
 		 * when each actual worker begins the execution */
@@ -168,7 +168,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	_starpu_driver_end_job(cpu_args, j, perf_arch, &codelet_end, rank, profiling);
 
 	if (is_parallel_task)
-		_STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
+		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
 
 	if (rank == 0)
 	{
@@ -247,10 +247,10 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 	_STARPU_TRACE_WORKER_INIT_END;
 
 	/* tell the main thread that we are ready */
-	_STARPU_PTHREAD_MUTEX_LOCK(&cpu_worker->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&cpu_worker->mutex);
 	cpu_worker->worker_is_initialized = 1;
-	_STARPU_PTHREAD_COND_SIGNAL(&cpu_worker->ready_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&cpu_worker->mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&cpu_worker->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&cpu_worker->mutex);
 	return 0;
 }
 
@@ -294,9 +294,9 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 	/* Get the rank in case it is a parallel task */
 	if (is_parallel_task)
 	{
-		_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 		rank = j->active_task_alias_count++;
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 		struct _starpu_combined_worker *combined_worker;
 		combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);

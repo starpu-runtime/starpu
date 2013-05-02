@@ -744,7 +744,7 @@ unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, unsig
 	unsigned ret = 0;
 
 // XXX : this is just a hint, so we don't take the lock ...
-//	_STARPU_PTHREAD_SPIN_LOCK(&handle->header_lock);
+//	STARPU_PTHREAD_SPIN_LOCK(&handle->header_lock);
 
 	if (handle->per_node[node].state != STARPU_INVALID)
 	{
@@ -763,7 +763,7 @@ unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, unsig
 
 	}
 
-//	_STARPU_PTHREAD_SPIN_UNLOCK(&handle->header_lock);
+//	STARPU_PTHREAD_SPIN_UNLOCK(&handle->header_lock);
 
 	return ret;
 }

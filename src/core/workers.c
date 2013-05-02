@@ -338,10 +338,10 @@ void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
 
 	_starpu_set_local_worker_key(worker);
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
 	worker->worker_is_running = 1;
-	_STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
 
 }
 
@@ -350,7 +350,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	pconfig->running = 1;
 	pconfig->submitting = 1;
 
-	_STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
+	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
 
 	unsigned nworkers = pconfig->topology.nworkers;
 
@@ -379,9 +379,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 		_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
 
-		_STARPU_PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
-		_STARPU_PTHREAD_COND_INIT(&workerarg->started_cond, NULL);
-		_STARPU_PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
+		STARPU_PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
+		STARPU_PTHREAD_COND_INIT(&workerarg->started_cond, NULL);
+		STARPU_PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
 
 		workerarg->worker_size = 1;
 		workerarg->combined_workerid = workerarg->workerid;
@@ -398,8 +398,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
 			workerarg->removed_from_ctx[ctx] = 0;
 
-		_STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
-		_STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
+		STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
+		STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
 
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
@@ -426,7 +426,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				driver.id.cpu_id = cpu;
 				if (_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
-					_STARPU_PTHREAD_CREATE_ON(
+					STARPU_PTHREAD_CREATE_ON(
 						workerarg->name,
 						&workerarg->worker_thread,
 						NULL,
@@ -434,10 +434,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						workerarg,
 						worker+1);
 #ifdef STARPU_USE_FXT
-					_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+					STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 					while (!workerarg->worker_is_running)
-						_STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
-					_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+						STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
 				}
 				else
@@ -453,7 +453,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				driver.id.cuda_id = cuda;
 				if (_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
-					_STARPU_PTHREAD_CREATE_ON(
+					STARPU_PTHREAD_CREATE_ON(
 						workerarg->name,
 						&workerarg->worker_thread,
 						NULL,
@@ -461,10 +461,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						workerarg,
 						worker+1);
 #ifdef STARPU_USE_FXT
-					_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+					STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 					while (!workerarg->worker_is_running)
-						_STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
-					_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+						STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
 				}
 				else
@@ -485,7 +485,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				}
 #endif
 				workerarg->set = NULL;
-				_STARPU_PTHREAD_CREATE_ON(
+				STARPU_PTHREAD_CREATE_ON(
 					workerarg->name,
 					&workerarg->worker_thread,
 					NULL,
@@ -493,10 +493,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					workerarg,
 					worker+1);
 #ifdef STARPU_USE_FXT
-				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_running)
-					_STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
 				break;
 #endif
@@ -523,10 +523,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					break;
 				}
 				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
-				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_initialized)
-					_STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+					STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				cpu++;
 				break;
 			case STARPU_CUDA_WORKER:
@@ -537,10 +537,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					break;
 				}
 				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
-				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_initialized)
-					_STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+					STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				cuda++;
 				break;
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
@@ -551,10 +551,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					break;
 #endif
 				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
-				_STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_initialized)
-					_STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+					STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				break;
 #endif
 			default:
@@ -567,12 +567,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 void _starpu_set_local_worker_key(struct _starpu_worker *worker)
 {
-	_STARPU_PTHREAD_SETSPECIFIC(worker_key, worker);
+	STARPU_PTHREAD_SETSPECIFIC(worker_key, worker);
 }
 
 struct _starpu_worker *_starpu_get_local_worker_key(void)
 {
-	return (struct _starpu_worker *) _STARPU_PTHREAD_GETSPECIFIC(worker_key);
+	return (struct _starpu_worker *) STARPU_PTHREAD_GETSPECIFIC(worker_key);
 }
 
 /* Initialize the starpu_conf with default values */
@@ -706,20 +706,20 @@ int starpu_init(struct starpu_conf *user_conf)
 #endif
 #endif
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	while (initialized == CHANGING)
 		/* Wait for the other one changing it */
-		_STARPU_PTHREAD_COND_WAIT(&init_cond, &init_mutex);
+		STARPU_PTHREAD_COND_WAIT(&init_cond, &init_mutex);
 	init_count++;
 	if (initialized == INITIALIZED)
 	{
 		/* He initialized it, don't do it again, and let the others get the mutex */
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 		return 0;
 	}
 	/* initialized == UNINITIALIZED */
 	initialized = CHANGING;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 #ifdef __MINGW32__
 	WSADATA wsadata;
@@ -783,12 +783,12 @@ int starpu_init(struct starpu_conf *user_conf)
 	ret = _starpu_build_topology(&config);
 	if (ret)
 	{
-		_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
 		initialized = UNINITIALIZED;
 		/* Let somebody else try to do it */
-		_STARPU_PTHREAD_COND_SIGNAL(&init_cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+		STARPU_PTHREAD_COND_SIGNAL(&init_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 		return ret;
 	}
 
@@ -803,11 +803,11 @@ int starpu_init(struct starpu_conf *user_conf)
 	/* Launch "basic" workers (ie. non-combined workers) */
 	_starpu_launch_drivers(&config);
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;
 	/* Tell everybody that we initialized */
-	_STARPU_PTHREAD_COND_BROADCAST(&init_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+	STARPU_PTHREAD_COND_BROADCAST(&init_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 	_STARPU_DEBUG("Initialisation finished\n");
 	return 0;
@@ -935,18 +935,18 @@ void starpu_display_stats()
 
 void starpu_shutdown(void)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	init_count--;
 	if (init_count)
 	{
 		_STARPU_DEBUG("Still somebody needing StarPU, don't deinitialize\n");
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 		return;
 	}
 
 	/* We're last */
 	initialized = CHANGING;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 	starpu_task_wait_for_no_ready();
 
@@ -995,11 +995,11 @@ void starpu_shutdown(void)
 
 	_starpu_close_debug_logfile();
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = UNINITIALIZED;
 	/* Let someone else that wants to initialize it again do it */
-	_STARPU_PTHREAD_COND_SIGNAL(&init_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&init_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 	/* Clear memory if it was allocated by StarPU */
 	if (config.default_conf)

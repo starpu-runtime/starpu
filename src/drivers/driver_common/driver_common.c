@@ -155,7 +155,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 {
 	struct starpu_task *task;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
 	task = _starpu_pop_task(args);
 
 	if (task == NULL)
@@ -173,7 +173,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		}
 
 		if (_starpu_worker_can_block(memnode))
-			_STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
+			STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
 		else
 		{
 			if (_starpu_machine_is_running())
@@ -191,12 +191,12 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 			}
 		}
 
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 
 		return NULL;
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 
 	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
 	{

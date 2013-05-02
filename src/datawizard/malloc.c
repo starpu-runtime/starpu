@@ -365,10 +365,10 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 #warning TODO: record used memory, using a simgrid property to know the available memory
 #endif
 			/* Sleep 10µs for the allocation */
-			_STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 			MSG_process_sleep(0.000010);
 			addr = 1;
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			status = cudaMalloc((void **)&addr, size);
 			if (!addr || (status != cudaSuccess))
@@ -385,10 +385,10 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 			{
 #ifdef STARPU_SIMGRID
 				/* Sleep 10µs for the allocation */
-				_STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 				MSG_process_sleep(0.000010);
 				addr = 1;
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
                                 int ret;
 				cl_mem ptr;
@@ -431,10 +431,10 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 		case STARPU_CUDA_RAM:
 		{
 #ifdef STARPU_SIMGRID
-			_STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 			/* Sleep 10µs for the free */
 			MSG_process_sleep(0.000010);
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			cudaError_t err;
 			err = cudaFree((void*)addr);
@@ -448,10 +448,10 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
                 case STARPU_OPENCL_RAM:
 		{
 #ifdef STARPU_SIMGRID
-			_STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 			/* Sleep 10µs for the free */
 			MSG_process_sleep(0.000010);
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
 			cl_int err;
                         err = clReleaseMemObject((void*)addr);

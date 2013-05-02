@@ -593,20 +593,20 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
 int _starpu_register_model(struct starpu_perfmodel *model)
 {
 	/* If the model has already been loaded, there is nothing to do */
-	_STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
 	if (model->is_loaded)
 	{
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 		return 0;
 	}
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 
 	/* We have to make sure the model has not been loaded since the
          * last time we took the lock */
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 	if (model->is_loaded)
 	{
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 		return 0;
 	}
 
@@ -635,7 +635,7 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 	}
 #endif
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 	return 1;
 }
 
@@ -675,7 +675,7 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 
 static void _starpu_dump_registered_models(void)
 {
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
 	struct _starpu_perfmodel_list *node;
 	node = registered_models;
@@ -688,14 +688,14 @@ static void _starpu_dump_registered_models(void)
 		node = node->next;
 	}
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 }
 
 void _starpu_initialize_registered_performance_models(void)
 {
 	registered_models = NULL;
 
-	_STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
+	STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
 }
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
@@ -738,7 +738,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 	if (_starpu_get_calibrate_flag())
 		_starpu_dump_registered_models();
 
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
 	struct _starpu_perfmodel_list *node, *pnode;
 	node = registered_models;
@@ -749,9 +749,9 @@ void _starpu_deinitialize_registered_performance_models(void)
 	{
 		struct starpu_perfmodel *model = node->model;
 
-		_STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
+		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 		_starpu_deinitialize_performance_model(model);
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
 		pnode = node;
 		node = node->next;
@@ -759,8 +759,8 @@ void _starpu_deinitialize_registered_performance_models(void)
 	}
 	registered_models = NULL;
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
-	_STARPU_PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
 }
 
 /*
@@ -774,26 +774,26 @@ void _starpu_load_per_arch_based_model(struct starpu_perfmodel *model)
 
 	int already_loaded;
 
-	_STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
 	already_loaded = model->is_loaded;
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 
 	if (already_loaded)
 		return;
 
 	/* The model is still not loaded so we grab the lock in write mode, and
 	 * if it's not loaded once we have the lock, we do load it. */
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
 	/* Was the model initialized since the previous test ? */
 	if (model->is_loaded)
 	{
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 		return;
 	}
 
-	_STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 }
 
 void _starpu_load_common_based_model(struct starpu_perfmodel *model)
@@ -802,26 +802,26 @@ void _starpu_load_common_based_model(struct starpu_perfmodel *model)
 
 	int already_loaded;
 
-	_STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
 	already_loaded = model->is_loaded;
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 
 	if (already_loaded)
 		return;
 
 	/* The model is still not loaded so we grab the lock in write mode, and
 	 * if it's not loaded once we have the lock, we do load it. */
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
 	/* Was the model initialized since the previous test ? */
 	if (model->is_loaded)
 	{
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 		return;
 	}
 
-	_STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 }
 
 /* We first try to grab the global lock in read mode to check whether the model
@@ -835,9 +835,9 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 
 	int already_loaded;
 
-	_STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
 	already_loaded = model->is_loaded;
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 
 	if (already_loaded)
 		return;
@@ -845,18 +845,18 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 	/* The model is still not loaded so we grab the lock in write mode, and
 	 * if it's not loaded once we have the lock, we do load it. */
 
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
 	/* Was the model initialized since the previous test ? */
 	if (model->is_loaded)
 	{
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 		return;
 	}
 
-	_STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
+	STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
 
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 
 	/* make sure the performance model directory exists (or create it) */
 	_starpu_create_sampling_directory_if_needed();
@@ -911,9 +911,9 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 
 	model->is_loaded = 1;
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 }
 
 /* This function is intended to be used by external tools that should read
@@ -1072,10 +1072,10 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		struct starpu_perfmodel_history_table *history;
 		struct starpu_perfmodel_history_table *entry;
 
-		_STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
+		STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
 		history = per_arch_model->history;
 		HASH_FIND_UINT32_T(history, &key, entry);
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
 		/* We do not care about racing access to the mean, we only want a
 		 * good-enough estimation, thus simulate taking the rdlock */
@@ -1109,11 +1109,11 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 
 	per_arch_model = &model->per_arch[arch][nimpl];
 
-	_STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
 	history = per_arch_model->history;
 	HASH_FIND_UINT32_T(history, &key, elt);
 	entry = (elt == NULL) ? NULL : elt->history_entry;
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
 	/* We do not care about racing access to the mean, we only want a
 	 * good-enough estimation, thus simulate taking the rdlock */
@@ -1156,7 +1156,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 {
 	if (model)
 	{
-		_STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
+		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 
 		struct starpu_perfmodel_per_arch *per_arch_model = &model->per_arch[arch][nimpl];
 
@@ -1276,7 +1276,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		fprintf(f, "\n");
 		fclose(f);
 #endif
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 	}
 }
 

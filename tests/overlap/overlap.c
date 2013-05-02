@@ -47,10 +47,10 @@ static void callback(void *arg)
 
 	if (res == 0)
 	{
-		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		finished = 1;
-		_STARPU_PTHREAD_COND_SIGNAL(&cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_COND_SIGNAL(&cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
 }
 
@@ -124,10 +124,10 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (!finished)
-		_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	starpu_data_unpartition(handle, 0);
 	starpu_data_unregister(handle);

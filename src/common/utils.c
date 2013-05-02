@@ -109,7 +109,7 @@ int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex)
 	ret = starpu_pthread_mutex_trylock(mutex);
 	if (!ret)
 	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 		return 0;
 	}
 

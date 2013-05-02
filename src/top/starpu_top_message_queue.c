@@ -30,11 +30,11 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 							char* msg)
 {
 	struct _starpu_top_message_queue_item* p = (struct _starpu_top_message_queue_item *) malloc( 1 * sizeof(*p) );
-	_STARPU_PTHREAD_MUTEX_LOCK(&(s->mutex));
+	STARPU_PTHREAD_MUTEX_LOCK(&(s->mutex));
 	if( NULL == p )
 	{
 		fprintf(stderr, "IN %s, %s: malloc() failed\n", __FILE__, "list_add");
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
+		STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
 		return s;
 	}
 
@@ -44,7 +44,7 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 	if( NULL == s )
 	{
 		printf("Queue not initialized\n");
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
+		STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
 		return s;
 	}
 	else if( NULL == s->head && NULL == s->tail )
@@ -52,7 +52,7 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 		/* printf("Empty list, adding p->num: %d\n\n", p->num);  */
 		sem_post(&(s->semaphore));
 		s->head = s->tail = p;
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
+		STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
 		return s;
 	}
 	else
@@ -62,7 +62,7 @@ struct _starpu_top_message_queue* _starpu_top_message_add(struct _starpu_top_mes
 		s->tail->next = p;
 		s->tail = p;
 	}
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
+	STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
 	return s;
 }
 
@@ -78,7 +78,7 @@ char* _starpu_top_message_remove(struct _starpu_top_message_queue* s)
 		printf("List is null\n");
 		return NULL;
 	}
-	_STARPU_PTHREAD_MUTEX_LOCK(&(s->mutex));
+	STARPU_PTHREAD_MUTEX_LOCK(&(s->mutex));
 	h = s->head;
 	p = h->next;
 	char* value = h->message;
@@ -89,7 +89,7 @@ char* _starpu_top_message_remove(struct _starpu_top_message_queue* s)
 	if( NULL == s->head )
 		//the element tail was pointing to is free(), so we need an update
 		s->tail = s->head;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
+	STARPU_PTHREAD_MUTEX_UNLOCK(&(s->mutex));
 	return value;
 }
 
@@ -105,6 +105,6 @@ struct _starpu_top_message_queue* _starpu_top_message_queue_new(void)
 
 	p->head = p->tail = NULL;
 	sem_init(&(p->semaphore),0,0);
-	_STARPU_PTHREAD_MUTEX_INIT(&(p->mutex), NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&(p->mutex), NULL);
 	return p;
 }
