@@ -27,7 +27,7 @@
 
 extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 
-int _starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, int where)
+int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, int where)
 {
 	struct _starpu_pthread_args *_args = malloc(sizeof(*_args));
 	xbt_dynar_t _hosts;
@@ -40,9 +40,9 @@ int _starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu
 	return 0;
 }
 
-int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg)
+int starpu_pthread_create(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg)
 {
-	return _starpu_pthread_create_on("", thread, attr, start_routine, arg, 0);
+	return starpu_pthread_create_on(name, thread, attr, start_routine, arg, 0);
 }
 
 int starpu_pthread_join(starpu_pthread_t thread, void **retval)
