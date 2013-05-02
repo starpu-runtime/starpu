@@ -910,3 +910,13 @@ starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(struct starpu_co
 {
 	return cl->opencl_funcs[nimpl];
 }
+
+void starpu_task_set_implementation(struct starpu_task *task, unsigned impl)
+{
+	_starpu_get_job_associated_to_task(task)->nimpl = impl;
+}
+
+unsigned starpu_task_get_implementation(struct starpu_task *task)
+{
+	return _starpu_get_job_associated_to_task(task)->nimpl;
+}

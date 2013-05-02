@@ -2288,6 +2288,16 @@ Output on @code{stderr} some statistics on the codelet @var{cl}.
 This function waits until there is no more ready task.
 @end deftypefun
 
+@deftypefun void starpu_task_set_implementation ({struct starpu_task *}@var{task}, unsigned @var{impl})
+This function should be called by schedulers to specify the codelet
+implementation to be executed when executing the task.
+@end deftypefun
+
+@deftypefun unsigned starpu_task_get_implementation ({struct starpu_task *}@var{task})
+This function return the codelet implementation to be executed when
+executing the task.
+@end deftypefun
+
 @c Callbacks: what can we put in callbacks ?
 
 @node Insert Task

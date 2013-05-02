@@ -23,9 +23,8 @@
 
 #include <starpu.h>
 #include <starpu_scheduler.h>
-#include <common/config.h>
-#include <core/workers.h>
-#include <common/utils.h>
+
+#include <common/fxt.h>
 
 #define MIN_LEVEL	(-5)
 #define MAX_LEVEL	(+5)
@@ -109,7 +108,6 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	struct _starpu_priority_taskq *taskq = data->taskq;
-	int ret_val = -1;
 	
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
@@ -193,7 +191,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 					if (starpu_worker_can_execute_task(workerid, task, nimpl))
 					{
 						/* there is some task that we can grab */
-						_starpu_get_job_associated_to_task(task)->nimpl = nimpl;
+						starpu_task_set_implementation(task, nimpl);
 						starpu_task_list_erase(&taskq->taskq[priolevel], task);
 						chosen_task = task;
 						taskq->ntasks[priolevel]--;

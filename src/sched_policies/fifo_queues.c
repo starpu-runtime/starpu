@@ -18,11 +18,10 @@
 
 /* FIFO queues, ready for use by schedulers */
 
+#include <starpu_scheduler.h>
+
 #include <sched_policies/fifo_queues.h>
-#include <errno.h>
-#include <common/utils.h>
-#include <core/task.h>
-#include <core/workers.h>
+#include <common/fxt.h>
 
 struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 {
@@ -145,7 +144,7 @@ struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue,
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			if (starpu_worker_can_execute_task(workerid, task, nimpl))
 			{
-				_starpu_get_job_associated_to_task(task)->nimpl = nimpl;
+				starpu_task_set_implementation(task, nimpl);
 				starpu_task_list_erase(&fifo_queue->taskq, task);
 				fifo_queue->ntasks--;
 				_STARPU_TRACE_JOB_POP(task, 0);
@@ -220,7 +219,7 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_
 					task->prev = NULL;
 					task->next = NULL;
 				}
-				_starpu_get_job_associated_to_task(task)->nimpl = nimpl;
+				starpu_task_set_implementation(task, nimpl);
 				break;
 			}
 
