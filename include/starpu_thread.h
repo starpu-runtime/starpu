@@ -51,8 +51,8 @@ int starpu_pthread_attr_setdetachstate(starpu_pthread_attr_t *attr, int detachst
 typedef pthread_t starpu_pthread_t;
 typedef pthread_attr_t starpu_pthread_attr_t;
 
-#define starpu_pthread_create(name, thread, attr, routine, arg) pthread_create(thread, attr, routine, arg)
-#define starpu_pthread_create_on(name, thread, attr, routine, arg, where) starpu_pthread_create(name, thread, attr, routine, arg)
+#define starpu_pthread_create pthread_create
+#define starpu_pthread_create_on(name, thread, attr, routine, arg, where) starpu_pthread_create(thread, attr, routine, arg)
 #define starpu_pthread_join pthread_join
 #define starpu_pthread_attr_init pthread_attr_init
 #define starpu_pthread_attr_destroy pthread_attr_destroy
