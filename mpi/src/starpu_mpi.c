@@ -273,7 +273,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 
 		env->psize = (ssize_t)req->count;
 
-		_STARPU_MPI_DEBUG(1, "Post MPI isend count (%ld) datatype_size %d request to %d with tag %d\n",req->count,starpu_handle_get_size(req->data_handle),req->srcdst, _starpu_mpi_tag);
+		_STARPU_MPI_DEBUG(1, "Post MPI isend count (%ld) datatype_size %ld request to %d with tag %d\n",req->count,starpu_handle_get_size(req->data_handle),req->srcdst, _starpu_mpi_tag);
 		MPI_Isend(env, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, _starpu_mpi_tag, req->comm, &req->size_req);
 	}
 	else
