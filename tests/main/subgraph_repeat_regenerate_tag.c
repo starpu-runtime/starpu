@@ -71,19 +71,19 @@ static struct starpu_codelet dummy_codelet =
 
 static void callback_task_D(void *arg __attribute__((unused)))
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	loop_cnt++;
 
 	if (loop_cnt == niter)
 	{
 		/* We are done */
 		taskD.regenerate = 0;
-		_STARPU_PTHREAD_COND_SIGNAL(&cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_COND_SIGNAL(&cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
 	else
 	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		/* Let's go for another iteration */
 		starpu_tag_restart((starpu_tag_t) TAG_START);
 		starpu_tag_notify_from_apps((starpu_tag_t)TAG_START);
@@ -149,10 +149,10 @@ int main(int argc, char **argv)
 	starpu_tag_notify_from_apps((starpu_tag_t) TAG_START);
 
 	/* Wait for the termination of all loops */
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (loop_cnt < niter)
-		_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	STARPU_ASSERT(check_cnt == (4*loop_cnt));
 

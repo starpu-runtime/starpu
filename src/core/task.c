@@ -249,7 +249,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 		}
 	}
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	/* Need to atomically set submitted to 1 and check dependencies, since
 	 * this is concucrent with _starpu_notify_cg */
@@ -456,7 +456,7 @@ int starpu_task_submit(struct starpu_task *task)
 		/* We need to make sure that models for other tasks of the
 		 * bundle are also loaded, so the scheduler can estimate the
 		 * duration of the whole bundle */
-		_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 		struct _starpu_task_bundle_entry *entry;
 		entry = bundle->list;
@@ -472,7 +472,7 @@ int starpu_task_submit(struct starpu_task *task)
 			entry = entry->next;
 		}
 
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 	}
 
 	/* If profiling is activated, we allocate a structure to store the
@@ -536,7 +536,7 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	_starpu_increment_nsubmitted_tasks();
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
-	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	j->submitted = 1;
 
@@ -553,7 +553,7 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 		}
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	return _starpu_push_task(j);
 }
@@ -590,7 +590,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	_starpu_increment_nsubmitted_tasks();
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
-	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 1;
 	_starpu_increment_nready_tasks();
 
@@ -618,7 +618,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	_starpu_profiling_set_task_push_end_time(task);
 
         _STARPU_LOG_OUT();
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	return 0;
 }
@@ -670,14 +670,14 @@ int starpu_task_wait_for_all(void)
 		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 			return -EDEADLK;
 
-		_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 		_STARPU_TRACE_TASK_WAIT_FOR_ALL;
 
 		while (nsubmitted > 0)
-			_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
+			STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
 
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
@@ -713,14 +713,14 @@ int starpu_task_wait_for_no_ready(void)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	_STARPU_TRACE_TASK_WAIT_FOR_ALL;
 
 	while (nready > 0)
-		_STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
+		STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 	return 0;
 }
@@ -729,7 +729,7 @@ void _starpu_decrement_nsubmitted_tasks(void)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	if (--nsubmitted == 0)
 	{
@@ -739,12 +739,12 @@ void _starpu_decrement_nsubmitted_tasks(void)
 			config->running = 0;
 			ANNOTATE_HAPPENS_BEFORE(&config->running);
 		}
-		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
+		STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 	}
 
 	_STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 }
 
@@ -753,7 +753,7 @@ starpu_drivers_request_termination(void)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	config->submitting = 0;
 	if (nsubmitted == 0)
@@ -761,21 +761,21 @@ starpu_drivers_request_termination(void)
 		ANNOTATE_HAPPENS_AFTER(&config->running);
 		config->running = 0;
 		ANNOTATE_HAPPENS_BEFORE(&config->running);
-		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
+		STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 }
 
 static void _starpu_increment_nsubmitted_tasks(void)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	nsubmitted++;
 
 	_STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 }
 
 int starpu_task_nsubmitted(void)
@@ -785,21 +785,21 @@ int starpu_task_nsubmitted(void)
 
 void _starpu_increment_nready_tasks(void)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	nready++;
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 }
 
 void _starpu_decrement_nready_tasks(void)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
 	if (--nready == 0)
-		_STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
+		STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 }
 
@@ -810,7 +810,7 @@ int starpu_task_nready(void)
 
 void _starpu_initialize_current_task_key(void)
 {
-	_STARPU_PTHREAD_KEY_CREATE(&current_task_key, NULL);
+	STARPU_PTHREAD_KEY_CREATE(&current_task_key, NULL);
 }
 
 /* Return the task currently executed by the worker, or NULL if this is called
@@ -818,12 +818,12 @@ void _starpu_initialize_current_task_key(void)
  * being executed at the moment. */
 struct starpu_task *starpu_task_get_current(void)
 {
-	return (struct starpu_task *) _STARPU_PTHREAD_GETSPECIFIC(current_task_key);
+	return (struct starpu_task *) STARPU_PTHREAD_GETSPECIFIC(current_task_key);
 }
 
 void _starpu_set_current_task(struct starpu_task *task)
 {
-	_STARPU_PTHREAD_SETSPECIFIC(current_task_key, task);
+	STARPU_PTHREAD_SETSPECIFIC(current_task_key, task);
 }
 
 /*
@@ -909,4 +909,14 @@ starpu_cuda_func_t _starpu_task_get_cuda_nth_implementation(struct starpu_codele
 starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
 	return cl->opencl_funcs[nimpl];
+}
+
+void starpu_task_set_implementation(struct starpu_task *task, unsigned impl)
+{
+	_starpu_get_job_associated_to_task(task)->nimpl = impl;
+}
+
+unsigned starpu_task_get_implementation(struct starpu_task *task)
+{
+	return _starpu_get_job_associated_to_task(task)->nimpl;
 }

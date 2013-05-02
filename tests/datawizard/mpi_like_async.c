@@ -120,7 +120,7 @@ static int test_recv_handle_async(void *arg)
 	int ret;
 	struct thread_data *thread_data = (struct thread_data *) arg;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&thread_data->recv_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&thread_data->recv_mutex);
 
 	ret = (thread_data->recv_flag == 1);
 
@@ -130,7 +130,7 @@ static int test_recv_handle_async(void *arg)
 		thread_data->val = thread_data->recv_buf;
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&thread_data->recv_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&thread_data->recv_mutex);
 
 	if (ret)
 	{
@@ -153,11 +153,11 @@ static void recv_handle_async(void *_thread_data)
 	req->test_arg = thread_data;
 	req->next = NULL;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 	req->next = data_req_list;
 	data_req_list = req;
-	_STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
 }
 
 static int test_send_handle_async(void *arg)
@@ -166,9 +166,9 @@ static int test_send_handle_async(void *arg)
 	struct thread_data *thread_data = (struct thread_data *) arg;
 	struct thread_data *neighbour_data = thread_data->neighbour;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&neighbour_data->recv_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&neighbour_data->recv_mutex);
 	ret = (neighbour_data->recv_flag == 0);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&neighbour_data->recv_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&neighbour_data->recv_mutex);
 
 	if (ret)
 	{
@@ -189,36 +189,36 @@ static void send_handle_async(void *_thread_data)
 //	FPRINTF(stderr, "send_handle_async\n");
 
 	/* send the message */
-	_STARPU_PTHREAD_MUTEX_LOCK(&neighbour_data->recv_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&neighbour_data->recv_mutex);
 	neighbour_data->recv_buf = thread_data->val;
 	neighbour_data->recv_flag = 1;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&neighbour_data->recv_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&neighbour_data->recv_mutex);
 
 	struct data_req *req = (struct data_req *) malloc(sizeof(struct data_req));
 	req->test_func = test_send_handle_async;
 	req->test_arg = thread_data;
 	req->next = NULL;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 	req->next = data_req_list;
 	data_req_list = req;
-	_STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
 }
 
 static void *progress_func(void *arg)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 
 	progress_thread_running = 1;
-	_STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
+	STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
 
 	while (progress_thread_running)
 	{
 		struct data_req *req;
 
 		if (data_req_list == NULL)
-			_STARPU_PTHREAD_COND_WAIT(&data_req_cond, &data_req_mutex);
+			STARPU_PTHREAD_COND_WAIT(&data_req_cond, &data_req_mutex);
 
 		req = data_req_list;
 
@@ -227,19 +227,19 @@ static void *progress_func(void *arg)
 			data_req_list = req->next;
 			req->next = NULL;
 
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
 
 			int ret = req->test_func(req->test_arg);
 
 			if (ret)
 			{
 				free(req);
-				_STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 			}
 			else
 			{
 				/* ret = 0 : the request is not finished, we put it back at the end of the list */
-				_STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 
 				struct data_req *req_aux = data_req_list;
 				if (!req_aux)
@@ -263,7 +263,7 @@ static void *progress_func(void *arg)
 			}
 		}
 	}
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
 
 	return NULL;
 }
@@ -331,8 +331,8 @@ int main(int argc, char **argv)
 
 	/* Create a thread to perform blocking calls */
 	starpu_pthread_t progress_thread;
-	_STARPU_PTHREAD_MUTEX_INIT(&data_req_mutex, NULL);
-	_STARPU_PTHREAD_COND_INIT(&data_req_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&data_req_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&data_req_cond, NULL);
 	data_req_list = NULL;
 	progress_thread_running = 0;
 
@@ -341,17 +341,17 @@ int main(int argc, char **argv)
 	{
 		problem_data[t].index = t;
 		problem_data[t].val = 0;
-		_STARPU_PTHREAD_MUTEX_INIT(&problem_data[t].recv_mutex, NULL);
+		STARPU_PTHREAD_MUTEX_INIT(&problem_data[t].recv_mutex, NULL);
 		problem_data[t].recv_flag = 0;
 		problem_data[t].neighbour = &problem_data[(t+1)%nthreads];
 	}
 
 	starpu_pthread_create(&progress_thread, NULL, progress_func, NULL);
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 	while (!progress_thread_running)
-		_STARPU_PTHREAD_COND_WAIT(&data_req_cond, &data_req_mutex);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
+		STARPU_PTHREAD_COND_WAIT(&data_req_cond, &data_req_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
 
 	for (t = 0; t < nthreads; t++)
 	{
@@ -366,10 +366,10 @@ int main(int argc, char **argv)
 		STARPU_ASSERT(retval == NULL);
 	}
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data_req_mutex);
 	progress_thread_running = 0;
-	_STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
 
 	ret = starpu_pthread_join(progress_thread, &retval);
 	STARPU_ASSERT(!ret);

@@ -51,8 +51,8 @@ static struct _starpu_cg *create_cg_apps(unsigned ntags)
 	cg->cg_type = STARPU_CG_APPS;
 
 	cg->succ.succ_apps.completed = 0;
-	_STARPU_PTHREAD_MUTEX_INIT(&cg->succ.succ_apps.cg_mutex, NULL);
-	_STARPU_PTHREAD_COND_INIT(&cg->succ.succ_apps.cg_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&cg->succ.succ_apps.cg_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&cg->succ.succ_apps.cg_cond, NULL);
 
 	return cg;
 }
@@ -132,7 +132,7 @@ static void _starpu_tag_free(void *_tag)
  */
 void _starpu_init_tags(void)
 {
-	_STARPU_PTHREAD_RWLOCK_INIT(&tag_global_rwlock, NULL);
+	STARPU_PTHREAD_RWLOCK_INIT(&tag_global_rwlock, NULL);
 }
 
 void starpu_tag_remove(starpu_tag_t id)
@@ -144,12 +144,12 @@ void starpu_tag_remove(starpu_tag_t id)
 		AYU_event(AYU_REMOVETASK, id + AYUDAME_OFFSET, NULL);
 #endif
 
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
 	HASH_FIND_UINT64_T(tag_htbl, &id, entry);
 	if (entry) HASH_DEL(tag_htbl, entry);
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 
 	if (entry)
 	{
@@ -160,7 +160,7 @@ void starpu_tag_remove(starpu_tag_t id)
 
 void _starpu_tag_clear(void)
 {
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 
 	/* XXX: _starpu_tag_free takes the tag spinlocks while we are keeping
 	 * the global rwlock. This contradicts the lock order of
@@ -175,7 +175,7 @@ void _starpu_tag_clear(void)
 		free(entry);
 	}
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 }
 
 static struct _starpu_tag *_gettag_struct(starpu_tag_t id)
@@ -216,9 +216,9 @@ static struct _starpu_tag *_gettag_struct(starpu_tag_t id)
 static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 {
 	struct _starpu_tag *tag;
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 	tag = _gettag_struct(id);
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 	return tag;
 }
 
@@ -237,7 +237,7 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	_starpu_spin_unlock(&tag->lock);
 
 	/* enforce data dependencies */
-	_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	_starpu_enforce_deps_starting_from_task(j);
 
 	_starpu_spin_lock(&tag->lock);
@@ -437,7 +437,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 		return -EDEADLK;
 	}
 
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 	/* only wait the tags that are not done yet */
 	for (i = 0, current = 0; i < ntags; i++)
 	{
@@ -456,7 +456,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 			current++;
 		}
 	}
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&tag_global_rwlock);
 
 	if (current == 0)
 	{
@@ -474,15 +474,15 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 		_starpu_spin_unlock(&tag_array[i]->lock);
 	}
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
 
 	while (!cg->succ.succ_apps.completed)
-		_STARPU_PTHREAD_COND_WAIT(&cg->succ.succ_apps.cg_cond, &cg->succ.succ_apps.cg_mutex);
+		STARPU_PTHREAD_COND_WAIT(&cg->succ.succ_apps.cg_cond, &cg->succ.succ_apps.cg_mutex);
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
 
-	_STARPU_PTHREAD_MUTEX_DESTROY(&cg->succ.succ_apps.cg_mutex);
-	_STARPU_PTHREAD_COND_DESTROY(&cg->succ.succ_apps.cg_cond);
+	STARPU_PTHREAD_MUTEX_DESTROY(&cg->succ.succ_apps.cg_mutex);
+	STARPU_PTHREAD_COND_DESTROY(&cg->succ.succ_apps.cg_cond);
 
 	free(cg);
 

@@ -360,6 +360,9 @@ void starpu_parallel_task_barrier_init(struct starpu_task* task, int workerid);
 /* duplicate the given task */
 struct starpu_task *starpu_task_dup(struct starpu_task *task);
 
+void starpu_task_set_implementation(struct starpu_task *task, unsigned impl);
+unsigned starpu_task_get_implementation(struct starpu_task *task);
+
 #ifdef __cplusplus
 }
 #endif

@@ -302,7 +302,7 @@ double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum star
 	double expected_length = 0.0;
 
 	/* We expect the length of the bundle the be the sum of the different tasks length. */
-	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 	struct _starpu_task_bundle_entry *entry;
 	entry = bundle->list;
@@ -312,17 +312,17 @@ double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum star
 		if(!entry->task->scheduled)
 		{
 			double task_length = starpu_task_expected_length(entry->task, arch, nimpl);
-			
+
 			/* In case the task is not calibrated, we consider the task
 			 * ends immediately. */
 			if (task_length > 0.0)
 				expected_length += task_length;
 		}
-			
+
 		entry = entry->next;
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	return expected_length;
 }
@@ -333,7 +333,7 @@ double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starp
 	double expected_power = 0.0;
 
 	/* We expect total consumption of the bundle the be the sum of the different tasks consumption. */
-	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 	struct _starpu_task_bundle_entry *entry;
 	entry = bundle->list;
@@ -350,7 +350,7 @@ double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starp
 		entry = entry->next;
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	return expected_power;
 }
@@ -358,7 +358,7 @@ double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starp
 /* Return the time (in µs) expected to transfer all data used within the bundle */
 double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 	struct _starpu_handle_list *handles = NULL;
 
@@ -390,7 +390,7 @@ double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundl
 		entry = entry->next;
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	/* Compute the sum of data transfer time, and destroy the list */
 

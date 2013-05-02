@@ -31,7 +31,7 @@ int _starpu_memory_manager_init()
 	{
 		global_size[i] = 0;
 		used_size[i] = 0;
-		_STARPU_PTHREAD_MUTEX_INIT(&lock_nodes[i], NULL);
+		STARPU_PTHREAD_MUTEX_INIT(&lock_nodes[i], NULL);
 	}
 	return 0;
 }
@@ -52,7 +52,7 @@ int _starpu_memory_manager_can_allocate_size(size_t size, unsigned node)
 {
 	int ret;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
+	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
 	if (global_size[node] == 0)
 	{
 		// We do not have information on the available size, let's suppose it is going to fit
@@ -68,15 +68,15 @@ int _starpu_memory_manager_can_allocate_size(size_t size, unsigned node)
 	{
 		ret = 0;
 	}
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
 	return ret;
 }
 
 void _starpu_memory_manager_deallocate_size(size_t size, unsigned node)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
+	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
 	used_size[node] -= size;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
 }
 
 starpu_ssize_t starpu_memory_get_available(unsigned node)

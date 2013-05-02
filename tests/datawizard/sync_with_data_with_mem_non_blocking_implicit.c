@@ -71,14 +71,14 @@ static unsigned n_synced_buffers;
 
 void callback_sync_data(void *arg __attribute__ ((unused)))
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
 	n_synced_buffers++;
 
 	if (n_synced_buffers == nbuffers)
-		_STARPU_PTHREAD_COND_SIGNAL(&cond);
+		STARPU_PTHREAD_COND_SIGNAL(&cond);
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 int main(int argc, char **argv)
@@ -117,9 +117,9 @@ int main(int argc, char **argv)
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
-		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		n_synced_buffers = 0;
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 		/* Grab the different pieces of data into main memory */
 		for (b = 0; b < nbuffers; b++)
@@ -130,12 +130,12 @@ int main(int argc, char **argv)
 		}
 
 		/* Wait for all buffers to be available */
-		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
 		while (n_synced_buffers != nbuffers)
-			_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
+			STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 		/* Release them */
 		for (b = 0; b < nbuffers; b++)

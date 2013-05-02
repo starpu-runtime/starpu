@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -115,10 +115,10 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 			{
 				/* this is a cg for an application waiting on a set of
 				 * tags, wake the thread */
-				_STARPU_PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&cg->succ.succ_apps.cg_mutex);
 				cg->succ.succ_apps.completed = 1;
-				_STARPU_PTHREAD_COND_SIGNAL(&cg->succ.succ_apps.cg_cond);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
+				STARPU_PTHREAD_COND_SIGNAL(&cg->succ.succ_apps.cg_cond);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&cg->succ.succ_apps.cg_mutex);
 				break;
 			}
 
@@ -145,7 +145,7 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 			{
 				j = cg->succ.job;
 
-				_STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 				job_successors = &j->job_successors;
 
@@ -164,7 +164,7 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 					 * do not do them again since the tag has been cleared! */
 					_starpu_enforce_deps_starting_from_task(j);
 				} else
-					_STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 
 				break;

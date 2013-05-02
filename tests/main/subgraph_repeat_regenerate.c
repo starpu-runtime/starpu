@@ -65,20 +65,20 @@ static struct starpu_codelet dummy_codelet =
 
 static void callback_task_D(void *arg __attribute__((unused)))
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	loop_cnt++;
 
 	if (loop_cnt == niter)
 	{
 		/* We are done */
 		taskD.regenerate = 0;
-		_STARPU_PTHREAD_COND_SIGNAL(&cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_COND_SIGNAL(&cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
 	else
 	{
 		int ret;
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		/* Let's go for another iteration */
 		ret = starpu_task_submit(&taskA);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -134,10 +134,10 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(&taskD); if (ret == -ENODEV) goto enodev; STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* Wait for the termination of all loops */
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	if (loop_cnt < niter)
-		_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	STARPU_ASSERT(check_cnt == (4*loop_cnt));
 

@@ -42,6 +42,7 @@ typedef UINT_PTR uintptr_t;
 #endif
 
 #include <starpu_thread.h>
+#include <starpu_thread_util.h>
 #include <starpu_util.h>
 #include <starpu_data.h>
 #include <starpu_data_interfaces.h>

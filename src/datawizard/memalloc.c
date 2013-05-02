@@ -46,7 +46,7 @@ void _starpu_init_mem_chunk_lists(void)
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
-		_STARPU_PTHREAD_RWLOCK_INIT(&mc_rwlock[i], NULL);
+		STARPU_PTHREAD_RWLOCK_INIT(&mc_rwlock[i], NULL);
 		_starpu_spin_init(&lru_rwlock[i]);
 		mc_list[i] = _starpu_mem_chunk_list_new();
 		starpu_lru_list[i] = _starpu_mem_chunk_lru_list_new();
@@ -63,7 +63,7 @@ void _starpu_deinit_mem_chunk_lists(void)
 		_starpu_mem_chunk_list_delete(memchunk_cache[i]);
 		_starpu_mem_chunk_lru_list_delete(starpu_lru_list[i]);
 		_starpu_spin_destroy(&lru_rwlock[i]);
-		_STARPU_PTHREAD_RWLOCK_DESTROY(&mc_rwlock[i]);
+		STARPU_PTHREAD_RWLOCK_DESTROY(&mc_rwlock[i]);
 	}
 }
 
@@ -528,10 +528,10 @@ static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 
 	size_t freed = 0;
 
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 	while (!_starpu_mem_chunk_list_empty(memchunk_cache[node])) {
 		mc = _starpu_mem_chunk_list_pop_front(memchunk_cache[node]);
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 
 		starpu_data_handle_t handle = mc->data;
 
@@ -545,11 +545,11 @@ static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 		free(mc->chunk_interface);
 		_starpu_mem_chunk_delete(mc);
 
-		_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
+		STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 		if (reclaim && freed>reclaim)
 			break;
 	}
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 	return freed;
 }
 
@@ -575,7 +575,7 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 
 	while (1)
 	{
-		_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
+		STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 		/* A priori, start from the beginning */
 		mc = _starpu_mem_chunk_list_begin(mc_list[node]);
 		if (next_mc)
@@ -590,12 +590,12 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 		if (mc == _starpu_mem_chunk_list_end(mc_list[node]))
 		{
 			/* But it was the last one of the list :/ */
-			_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 			break;
 		}
 		/* Remember where to try next */
 		next_mc = _starpu_mem_chunk_list_next(mc);
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 
 		if (!force)
 		{
@@ -685,11 +685,11 @@ static void register_mem_chunk(struct _starpu_data_replicate *replicate, unsigne
 	/* Put this memchunk in the list of memchunk in use */
 	mc = _starpu_memchunk_init(replicate, interface_size, automatically_allocated);
 
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[dst_node]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[dst_node]);
 
 	_starpu_mem_chunk_list_push_back(mc_list[dst_node], mc);
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
 }
 
 /* This function is called when the handle is destroyed (eg. when calling
@@ -712,13 +712,13 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	replicate->allocated = 0;
 	replicate->automatically_allocated = 0;
 
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
 	mc->data = NULL;
 	/* remove it from the main list */
 	_starpu_mem_chunk_list_erase(mc_list[node], mc);
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 
 	/* We would never flush the node 0 cache, unless
 	 * malloc() returns NULL, which is very unlikely... */
@@ -764,17 +764,17 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
 	_STARPU_TRACE_START_ALLOC_REUSE(dst_node);
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[dst_node]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[dst_node]);
 
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, replicate, footprint))
 	{
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
 		_starpu_allocation_cache_hit(dst_node);
 		starpu_ssize_t data_size = _starpu_data_get_size(handle);
 		return data_size;
 	}
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
 	_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 #endif
 
@@ -909,7 +909,7 @@ static void _starpu_memchunk_recently_used_move(struct _starpu_mem_chunk *mc, un
 
 static void starpu_lru(unsigned node)
 {
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
 	_starpu_spin_lock(&lru_rwlock[node]);
 	while (!_starpu_mem_chunk_lru_list_empty(starpu_lru_list[node]))
@@ -921,13 +921,13 @@ static void starpu_lru(unsigned node)
 	}
 	_starpu_spin_unlock(&lru_rwlock[node]);
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 }
 
 #ifdef STARPU_MEMORY_STATS
 void _starpu_memory_display_stats_by_node(int node)
 {
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 
 	if (!_starpu_mem_chunk_list_empty(mc_list[node]))
 	{
@@ -946,7 +946,7 @@ void _starpu_memory_display_stats_by_node(int node)
 
 	}
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 }
 #endif
 
