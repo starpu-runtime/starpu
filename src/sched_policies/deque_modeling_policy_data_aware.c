@@ -20,14 +20,13 @@
 /* Distributed queues using performance modeling to assign tasks */
 
 #include <starpu_config.h>
-#include <limits.h>
+#include <starpu_scheduler.h>
 
-#include <core/perfmodel/perfmodel.h>
-#include <core/task_bundle.h>
-#include <core/workers.h>
+#include <common/fxt.h>
+#include <core/task.h>
+
 #include <sched_policies/fifo_queues.h>
-#include <core/perfmodel/perfmodel.h>
-#include <core/debug.h>
+#include <limits.h>
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -495,7 +494,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 
 	//_STARPU_DEBUG("Scheduler dm: kernel (%u)\n", best_impl);
 
-	_starpu_get_job_associated_to_task(task)->nimpl = best_impl;
+	starpu_task_set_implementation(task, best_impl);
 
 	/* we should now have the best worker in variable "best" */
 	return push_task_on_best_worker(task, best,
@@ -767,7 +766,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	}
 
 	//_STARPU_DEBUG("Scheduler dmda: kernel (%u)\n", best_impl);
-	 _starpu_get_job_associated_to_task(task)->nimpl = selected_impl;
+	starpu_task_set_implementation(task, selected_impl);
 
 	/* we should now have the best worker in variable "best" */
 	return push_task_on_best_worker(task, best, model_best, transfer_model_best, prio, sched_ctx_id);
@@ -928,7 +927,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsign
 	unsigned memory_node = starpu_worker_get_memory_node(workerid);
 
 	double predicted = starpu_task_expected_length(task, perf_arch,
-			_starpu_get_job_associated_to_task(task)->nimpl);
+						       starpu_task_get_implementation(task));
 
 	double predicted_transfer = starpu_task_expected_data_transfer_time(memory_node, task);
 	starpu_pthread_mutex_t *sched_mutex;
