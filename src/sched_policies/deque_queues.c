@@ -92,7 +92,7 @@ struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq 
 	struct _starpu_job_list *new_list, *old_list;
 
 	/* block until some task is available in that queue */
-	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
 	if (deque_queue->njobs == 0)
 	{
@@ -141,7 +141,7 @@ struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq 
 		}
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 	return new_list;
 }

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,7 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 
 	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
 
-	_STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->condition_count[nodeid];
 	for (cond_id = 0; cond_id < nconds; cond_id++)
@@ -48,12 +48,12 @@ void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 		condition  = &descr->conditions_attached_to_node[nodeid][cond_id];
 
 		/* wake anybody waiting on that condition */
-		_STARPU_PTHREAD_MUTEX_LOCK(condition->mutex);
-		_STARPU_PTHREAD_COND_BROADCAST(condition->cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(condition->mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(condition->mutex);
+		STARPU_PTHREAD_COND_BROADCAST(condition->cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(condition->mutex);
 	}
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
 }
 
 void starpu_wake_all_blocked_workers(void)
@@ -63,7 +63,7 @@ void starpu_wake_all_blocked_workers(void)
 
 	struct _starpu_memory_node_descr * const descr = _starpu_memory_node_get_description();
 
-	_STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&descr->conditions_rwlock);
 
 	unsigned nconds = descr->total_condition_count;
 	for (cond_id = 0; cond_id < nconds; cond_id++)
@@ -72,12 +72,12 @@ void starpu_wake_all_blocked_workers(void)
 		condition  = &descr->conditions_all[cond_id];
 
 		/* wake anybody waiting on that condition */
-		_STARPU_PTHREAD_MUTEX_LOCK(condition->mutex);
-		_STARPU_PTHREAD_COND_BROADCAST(condition->cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(condition->mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(condition->mutex);
+		STARPU_PTHREAD_COND_BROADCAST(condition->cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(condition->mutex);
 	}
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr->conditions_rwlock);
 }
 
 #ifdef STARPU_USE_FXT
@@ -446,10 +446,10 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
 #ifdef STARPU_SIMGRID
-	_STARPU_PTHREAD_MUTEX_LOCK(&async_channel->event.mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&async_channel->event.mutex);
 	while (!async_channel->event.finished)
-		_STARPU_PTHREAD_COND_WAIT(&async_channel->event.cond, &async_channel->event.mutex);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&async_channel->event.mutex);
+		STARPU_PTHREAD_COND_WAIT(&async_channel->event.cond, &async_channel->event.mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&async_channel->event.mutex);
 #else /* !SIMGRID */
 	enum starpu_node_kind kind = async_channel->type;
 #ifdef STARPU_USE_CUDA
@@ -499,9 +499,9 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 {
 #ifdef STARPU_SIMGRID
 	unsigned ret;
-	_STARPU_PTHREAD_MUTEX_LOCK(&async_channel->event.mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&async_channel->event.mutex);
 	ret = async_channel->event.finished;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&async_channel->event.mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&async_channel->event.mutex);
 	return ret;
 #else /* !SIMGRID */
 	enum starpu_node_kind kind = async_channel->type;

@@ -34,10 +34,10 @@ void callback(void *arg)
 {
 	unsigned *completed = arg;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	*completed = 1;
-	_STARPU_PTHREAD_COND_SIGNAL(&cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 int main(int argc, char **argv)
@@ -79,20 +79,20 @@ int main(int argc, char **argv)
 			int sent = 0;
 			starpu_mpi_isend_detached(tab_handle, other_rank, loop, MPI_COMM_WORLD, callback, &sent);
 
-			_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 			while (!sent)
-				_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+				STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		}
 		else
 		{
 			int received = 0;
 			starpu_mpi_irecv_detached(tab_handle, other_rank, loop, MPI_COMM_WORLD, callback, &received);
 
-			_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 			while (!received)
-				_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+				STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		}
 	}
 

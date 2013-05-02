@@ -61,9 +61,9 @@ void _starpu_print_to_logfile(const char *format STARPU_ATTRIBUTE_UNUSED, ...)
 #ifdef STARPU_VERBOSE
 	va_list args;
 	va_start(args, format);
-	_STARPU_PTHREAD_MUTEX_LOCK(&logfile_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&logfile_mutex);
 	vfprintf(logfile, format, args);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&logfile_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&logfile_mutex);
 	va_end( args );
 #endif
 }
@@ -84,14 +84,14 @@ int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl)
 	if (!cl)
 		return -1;
 	name = _starpu_codelet_get_model_name(cl);
-	_STARPU_PTHREAD_MUTEX_LOCK(&ayudame_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&ayudame_mutex);
 	for (i=0; i < ncodelets; i++)
 	{
 		if (codelets[i].cl == cl &&
 			((!name && !codelets[i].name) ||
 				((name && codelets[i].name) && !strcmp(codelets[i].name, name))))
 		{
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&ayudame_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&ayudame_mutex);
 			return i;
 		}
 	}
@@ -112,7 +112,7 @@ int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl)
 	i = ncodelets++;
 	if (name)
 		AYU_event(AYU_REGISTERFUNCTION, i, (void*) name);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&ayudame_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&ayudame_mutex);
 	return i;
 }
 #endif

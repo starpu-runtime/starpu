@@ -84,7 +84,7 @@ int starpu_pthread_mutex_destroy(starpu_pthread_mutex_t *mutex)
 
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 {
-	if (!*mutex) _STARPU_PTHREAD_MUTEX_INIT(mutex, NULL);
+	if (!*mutex) STARPU_PTHREAD_MUTEX_INIT(mutex, NULL);
 	xbt_mutex_acquire(*mutex);
 	return 0;
 }
@@ -147,7 +147,7 @@ int starpu_pthread_cond_init(starpu_pthread_cond_t *cond, starpu_pthread_condatt
 int starpu_pthread_cond_signal(starpu_pthread_cond_t *cond)
 {
 	if (!*cond)
-		_STARPU_PTHREAD_COND_INIT(cond, NULL);
+		STARPU_PTHREAD_COND_INIT(cond, NULL);
 	xbt_cond_signal(*cond);
 	return 0;
 }
@@ -155,7 +155,7 @@ int starpu_pthread_cond_signal(starpu_pthread_cond_t *cond)
 int starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
 {
 	if (!*cond)
-		_STARPU_PTHREAD_COND_INIT(cond, NULL);
+		STARPU_PTHREAD_COND_INIT(cond, NULL);
 	xbt_cond_broadcast(*cond);
 	return 0;
 }
@@ -163,7 +163,7 @@ int starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
 int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
 {
 	if (!*cond)
-		_STARPU_PTHREAD_COND_INIT(cond, NULL);
+		STARPU_PTHREAD_COND_INIT(cond, NULL);
 	xbt_cond_wait(*cond, *mutex);
 	return 0;
 }

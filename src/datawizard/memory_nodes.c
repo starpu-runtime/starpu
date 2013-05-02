@@ -32,7 +32,7 @@ void _starpu_memory_nodes_init(void)
 	 * added using _starpu_memory_node_register */
 	descr.nnodes = 0;
 
-	_STARPU_PTHREAD_KEY_CREATE(&memory_node_key, NULL);
+	STARPU_PTHREAD_KEY_CREATE(&memory_node_key, NULL);
 
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
@@ -45,7 +45,7 @@ void _starpu_memory_nodes_init(void)
 	_starpu_init_data_request_lists();
 	_starpu_memory_manager_init();
 
-	_STARPU_PTHREAD_RWLOCK_INIT(&descr.conditions_rwlock, NULL);
+	STARPU_PTHREAD_RWLOCK_INIT(&descr.conditions_rwlock, NULL);
 	descr.total_condition_count = 0;
 }
 
@@ -54,19 +54,19 @@ void _starpu_memory_nodes_deinit(void)
 	_starpu_deinit_data_request_lists();
 	_starpu_deinit_mem_chunk_lists();
 
-	_STARPU_PTHREAD_RWLOCK_DESTROY(&descr.conditions_rwlock);
-	_STARPU_PTHREAD_KEY_DELETE(memory_node_key);
+	STARPU_PTHREAD_RWLOCK_DESTROY(&descr.conditions_rwlock);
+	STARPU_PTHREAD_KEY_DELETE(memory_node_key);
 }
 
 void _starpu_memory_node_set_local_key(unsigned *node)
 {
-	_STARPU_PTHREAD_SETSPECIFIC(memory_node_key, node);
+	STARPU_PTHREAD_SETSPECIFIC(memory_node_key, node);
 }
 
 unsigned _starpu_memory_node_get_local_key(void)
 {
 	unsigned *memory_node;
-	memory_node = (unsigned *) _STARPU_PTHREAD_GETSPECIFIC(memory_node_key);
+	memory_node = (unsigned *) STARPU_PTHREAD_GETSPECIFIC(memory_node_key);
 
 	/* in case this is called by the programmer, we assume the RAM node
 	   is the appropriate memory node ... so we return 0 XXX */
@@ -143,7 +143,7 @@ void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_
 	unsigned cond_id;
 	unsigned nconds_total, nconds;
 
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&descr.conditions_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&descr.conditions_rwlock);
 
 	/* we only insert the queue if it's not already in the list */
 	nconds = descr.condition_count[nodeid];
@@ -154,7 +154,7 @@ void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_
 			STARPU_ASSERT(descr.conditions_attached_to_node[nodeid][cond_id].mutex == mutex);
 
 			/* the condition is already in the list */
-			_STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
 			return;
 		}
 	}
@@ -171,7 +171,7 @@ void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_
 		if (descr.conditions_all[cond_id].cond == cond)
 		{
 			/* the queue is already in the global list */
-			_STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
 			return;
 		}
 	}
@@ -181,7 +181,7 @@ void _starpu_memory_node_register_condition(starpu_pthread_cond_t *cond, starpu_
 	descr.conditions_all[nconds_total].mutex = mutex;
 	descr.total_condition_count++;
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&descr.conditions_rwlock);
 }
 
 unsigned starpu_worker_get_memory_node(unsigned workerid)

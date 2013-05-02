@@ -137,7 +137,7 @@ void starpu_top_init_and_wait(const char* server_name)
 	_starpu_top=1;
 	sem_init(&starpu_top_wait_for_go,0,0);
 
-	_STARPU_PTHREAD_MUTEX_INIT(&starpu_top_wait_for_continue_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&starpu_top_wait_for_continue_mutex, NULL);
 
 	//profiling activation
 	starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
@@ -617,10 +617,10 @@ void starpu_top_debug_lock(const char* debug_message)
 		_starpu_top_message_add(_starpu_top_mt,message);
 
 		//This threads keeps locked while we don't receive an STEP message
-		_STARPU_PTHREAD_MUTEX_LOCK(&starpu_top_wait_for_continue_mutex);
-		_STARPU_PTHREAD_COND_WAIT(&starpu_top_wait_for_continue_cond,
+		STARPU_PTHREAD_MUTEX_LOCK(&starpu_top_wait_for_continue_mutex);
+		STARPU_PTHREAD_COND_WAIT(&starpu_top_wait_for_continue_cond,
 					  &starpu_top_wait_for_continue_mutex);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&starpu_top_wait_for_continue_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&starpu_top_wait_for_continue_mutex);
 	}
 }
 
@@ -742,7 +742,7 @@ void starpu_top_change_debug_mode(const char*message)
 static
 void starpu_top_debug_next_step(void)
 {
-	_STARPU_PTHREAD_COND_SIGNAL(&starpu_top_wait_for_continue_cond);
+	STARPU_PTHREAD_COND_SIGNAL(&starpu_top_wait_for_continue_cond);
 }
 
 

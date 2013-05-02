@@ -57,10 +57,10 @@ void *gordon_worker_progress(void *arg)
 		(gordon_set_arg->workers[0].bindid + 1)%(gordon_set_arg->config->nhwcores);
 	_starpu_bind_thread_on_cpu(gordon_set_arg->config, prog_thread_bind_id);
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	progress_thread_is_inited = 1;
-	_STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	while (1)
 	{
@@ -462,24 +462,24 @@ void *_starpu_gordon_worker(void *arg)
 	 */
 
 	/* launch the progression thread */
-	_STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
-	_STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
 
-	_STARPU_PTHREAD_CREATE(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
+	STARPU_PTHREAD_CREATE(&progress_thread, NULL, gordon_worker_progress, gordon_set_arg);
 
 	/* wait for the progression thread to be ready */
-	_STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 	while (!progress_thread_is_inited)
-		_STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+		STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	_STARPU_DEBUG("progress thread is running ... \n");
 
 	/* tell the core that gordon is ready */
-	_STARPU_PTHREAD_MUTEX_LOCK(&gordon_set_arg->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&gordon_set_arg->mutex);
 	gordon_set_arg->set_is_initialized = 1;
-	_STARPU_PTHREAD_COND_SIGNAL(&gordon_set_arg->ready_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&gordon_set_arg->mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&gordon_set_arg->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&gordon_set_arg->mutex);
 
 	gordon_worker_inject(gordon_set_arg);
 

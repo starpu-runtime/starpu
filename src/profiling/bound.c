@@ -129,7 +129,7 @@ void starpu_bound_start(int deps, int prio)
 	struct bound_task *t;
 	struct bound_tag_dep *td;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
 	tp = task_pools;
 	task_pools = NULL;
@@ -145,7 +145,7 @@ void starpu_bound_start(int deps, int prio)
 	recorddeps = deps;
 	recordprio = prio;
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	while (tp != NULL)
 	{
@@ -220,11 +220,11 @@ void _starpu_bound_record(struct _starpu_job *j)
 	if (!good_job(j))
 		return;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	/* Re-check, this time with mutex held */
 	if (!_starpu_bound_recording)
 	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
 	}
 
@@ -259,7 +259,7 @@ void _starpu_bound_record(struct _starpu_job *j)
 		tp->n++;
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 /* A tag dependency was emitted, record it */
@@ -270,11 +270,11 @@ void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id)
 	if (!_starpu_bound_recording || !recorddeps)
 		return;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	/* Re-check, this time with mutex held */
 	if (!_starpu_bound_recording || !recorddeps)
 	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
 	}
 
@@ -283,7 +283,7 @@ void _starpu_bound_tag_dep(starpu_tag_t id, starpu_tag_t dep_id)
 	td->dep_tag = dep_id;
 	td->next = tag_deps;
 	tag_deps = td;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 /* A task dependency was emitted, record it */
@@ -298,11 +298,11 @@ void _starpu_bound_task_dep(struct _starpu_job *j, struct _starpu_job *dep_j)
 	if (!good_job(j) || !good_job(dep_j))
 		return;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	/* Re-check, this time with mutex held */
 	if (!_starpu_bound_recording || !recorddeps)
 	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
 	}
 
@@ -319,7 +319,7 @@ void _starpu_bound_task_dep(struct _starpu_job *j, struct _starpu_job *dep_j)
 		t->deps[t->depsn-1].dep = dep_j->bound_task;
 		t->deps[t->depsn-1].size = 0; /* We don't have data information in that case */
 	}
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 /* Look for job with id ID among our tasks */
@@ -345,11 +345,11 @@ void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j
 	if (!good_job(j))
 		return;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	/* Re-check, this time with mutex held */
 	if (!_starpu_bound_recording || !recorddeps)
 	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
 	}
 
@@ -358,7 +358,7 @@ void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j
 	if (!dep_t)
 	{
 		fprintf(stderr,"dependency %lu not found !\n", id);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return;
 	}
 	t = j->bound_task;
@@ -376,14 +376,14 @@ void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu_job *j
 		t->deps[t->depsn-1].dep = dep_t;
 		t->deps[t->depsn-1].size = _starpu_data_get_size(handle);
 	}
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 void starpu_bound_stop(void)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	_starpu_bound_recording = 0;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 /* Compute all tasks times on all workers */
@@ -462,7 +462,7 @@ void starpu_bound_print_lp(FILE *output)
 	int w, w2; /* worker */
 	unsigned n, n2;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	nw = starpu_worker_get_count();
 
 	if (recorddeps)
@@ -810,7 +810,7 @@ void starpu_bound_print_lp(FILE *output)
 		}
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 /*
@@ -829,7 +829,7 @@ void starpu_bound_print_mps(FILE *output)
 		return;
 	}
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
 	nw = starpu_worker_get_count();
 	nt = 0;
@@ -890,7 +890,7 @@ void starpu_bound_print_mps(FILE *output)
 		fprintf(output, "ENDATA\n");
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
 
 /*
@@ -1039,7 +1039,7 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
 		return;
 	}
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	glp_prob *lp = _starpu_bound_glp_resolve(integer);
 	if (lp)
 	{
@@ -1074,7 +1074,7 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
 	{
 		fprintf(stderr, "Simplex failed\n");
 	}
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 #else /* STARPU_HAVE_GLPK_H */
 	fprintf(output, "Please rebuild StarPU with glpk installed.\n");
 #endif /* STARPU_HAVE_GLPK_H */
@@ -1092,7 +1092,7 @@ void starpu_bound_compute(double *res, double *integer_res __attribute__ ((unuse
 		return;
 	}
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	glp_prob *lp = _starpu_bound_glp_resolve(integer);
 	if (lp)
 	{
@@ -1103,7 +1103,7 @@ void starpu_bound_compute(double *res, double *integer_res __attribute__ ((unuse
 	}
 	else
 		ret = 0.;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	*res = ret;
 #else /* STARPU_HAVE_GLPK_H */
 	*res = 0.;

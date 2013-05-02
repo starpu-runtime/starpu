@@ -43,7 +43,7 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 	data->fifo =  _starpu_create_fifo();
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
-	_STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 }
 
 static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
@@ -56,7 +56,7 @@ static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 	_starpu_destroy_fifo(data->fifo);
 
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
-	_STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 	free(data);
 }
 
@@ -66,11 +66,11 @@ static int push_task_eager_policy(struct starpu_task *task)
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int ret_val = -1;
 		
-	_STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	ret_val = _starpu_fifo_push_task(data->fifo, task);
 
 	starpu_push_task_end(task);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
@@ -87,9 +87,9 @@ static int push_task_eager_policy(struct starpu_task *task)
 		starpu_pthread_mutex_t *sched_mutex;
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-		_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 
 	return ret_val;
@@ -100,9 +100,9 @@ static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	int workerid = starpu_worker_get_id();
 	
-	_STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	struct starpu_task* task = _starpu_fifo_pop_every_task(data->fifo, workerid);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	return task;
 }
 
@@ -127,10 +127,10 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	VALGRIND_HG_MUTEX_UNLOCK_PRE(&data->policy_mutex);
 	VALGRIND_HG_MUTEX_UNLOCK_POST(&data->policy_mutex);
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	 task = _starpu_fifo_pop_task(data->fifo, workerid);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+
 	return task;
 }
 

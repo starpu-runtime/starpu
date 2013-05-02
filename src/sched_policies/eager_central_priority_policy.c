@@ -86,7 +86,7 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	/* only a single queue (even though there are several internaly) */
 	data->taskq = _starpu_create_priority_taskq();
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
-	_STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 
 }
 
@@ -99,7 +99,7 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	_starpu_destroy_priority_taskq(data->taskq);
 
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
-	_STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 	free(data);
 }
 
@@ -112,14 +112,14 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	int ret_val = -1;
 	
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	unsigned priolevel = task->priority - STARPU_MIN_PRIO;
 	
 	starpu_task_list_push_back(&taskq->taskq[priolevel], task);
 	taskq->ntasks[priolevel]++;
 	taskq->total_ntasks++;
 	starpu_push_task_end(task);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
@@ -136,9 +136,9 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 		starpu_pthread_mutex_t *sched_mutex;
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-		_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 
 	return 0;
@@ -172,11 +172,11 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	starpu_pthread_mutex_t *curr_sched_mutex;
 	starpu_pthread_cond_t *curr_sched_cond;
 	starpu_worker_get_sched_condition(workerid, &curr_sched_mutex, &curr_sched_cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(curr_sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(curr_sched_mutex);
 	
 	/* all workers will block on this mutex anyway so 
 	   there's no need for their own mutex to be locked */
-	_STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
 	unsigned priolevel = NPRIO_LEVELS - 1;
 	do
@@ -225,18 +225,18 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 				starpu_pthread_mutex_t *sched_mutex;
 				starpu_pthread_cond_t *sched_cond;
 				starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-				_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-				_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+				STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+				STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 			}
 		}
 	
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-	/* leave the mutex how it was found before this */	
-	_STARPU_PTHREAD_MUTEX_LOCK(curr_sched_mutex);
+	/* leave the mutex how it was found before this */
+	STARPU_PTHREAD_MUTEX_LOCK(curr_sched_mutex);
 
 	return chosen_task;
 }

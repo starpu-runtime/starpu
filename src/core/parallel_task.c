@@ -48,8 +48,8 @@ void starpu_parallel_task_barrier_init(struct starpu_task* task, int workerid)
 
 	//fprintf(stderr, "POP -> size %d best_size %d\n", worker_size, best_size);
 
-	_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
-	_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+	STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
+	STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
 
 	return;
 }

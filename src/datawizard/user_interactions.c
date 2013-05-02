@@ -129,11 +129,11 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 	wrapper->mode = mode;
 	wrapper->callback = callback;
 	wrapper->callback_arg = arg;
-	_STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
-	_STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
+	STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
 	wrapper->finished = 0;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int sequential_consistency = handle->sequential_consistency;
 	if (sequential_consistency)
 	{
@@ -154,7 +154,7 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 #endif
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, handle, mode);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		if (new_task)
 		{
@@ -168,7 +168,7 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 	}
 	else
 	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		starpu_data_acquire_cb_pre_sync_callback(wrapper);
 	}
@@ -199,10 +199,10 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 	_starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 0, NULL, NULL);
 
 	/* continuation of starpu_data_acquire */
-	_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
+	STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
 	wrapper->finished = 1;
-	_STARPU_PTHREAD_COND_SIGNAL(&wrapper->cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+	STARPU_PTHREAD_COND_SIGNAL(&wrapper->cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
 }
 
 /* The data must be released by calling starpu_data_release later on */
@@ -242,11 +242,11 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 		.finished = 0
 	};
 
-	_STARPU_PTHREAD_COND_INIT(&wrapper.cond, NULL);
-	_STARPU_PTHREAD_MUTEX_INIT(&wrapper.lock, NULL);
+	STARPU_PTHREAD_COND_INIT(&wrapper.cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&wrapper.lock, NULL);
 
 //	_STARPU_DEBUG("TAKE sequential_consistency_mutex starpu_data_acquire\n");
-	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int sequential_consistency = handle->sequential_consistency;
 	if (sequential_consistency)
 	{
@@ -265,7 +265,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 #endif
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, handle, mode);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 		if (new_task)
 		{
 			int ret = _starpu_task_submit_internally(new_task);
@@ -279,7 +279,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 	}
 	else
 	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 	}
 
 	/* we try to get the data, if we do not succeed immediately, we set a
@@ -294,13 +294,13 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 	}
 	else
 	{
-		_STARPU_PTHREAD_MUTEX_LOCK(&wrapper.lock);
+		STARPU_PTHREAD_MUTEX_LOCK(&wrapper.lock);
 		while (!wrapper.finished)
-			_STARPU_PTHREAD_COND_WAIT(&wrapper.cond, &wrapper.lock);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper.lock);
+			STARPU_PTHREAD_COND_WAIT(&wrapper.cond, &wrapper.lock);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper.lock);
 	}
-	_STARPU_PTHREAD_COND_DESTROY(&wrapper.cond);
-	_STARPU_PTHREAD_MUTEX_DESTROY(&wrapper.lock);
+	STARPU_PTHREAD_COND_DESTROY(&wrapper.cond);
+	STARPU_PTHREAD_MUTEX_DESTROY(&wrapper.lock);
 
 	/* At that moment, the caller holds a reference to the piece of data.
 	 * We enqueue the "post" sync task in the list associated to the handle
@@ -349,10 +349,10 @@ static void _prefetch_data_on_node(void *arg)
 		free(wrapper);
 	else
 	{
-		_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
+		STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
 		wrapper->finished = 1;
-		_STARPU_PTHREAD_COND_SIGNAL(&wrapper->cond);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+		STARPU_PTHREAD_COND_SIGNAL(&wrapper->cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
 	}
 
 	_starpu_spin_lock(&handle->header_lock);
@@ -374,8 +374,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	wrapper->handle = handle;
 	wrapper->node = node;
 	wrapper->async = async;
-	_STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
-	_STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
+	STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
 	wrapper->finished = 0;
 
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _prefetch_data_on_node, wrapper))
@@ -383,8 +383,8 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 		/* we can immediately proceed */
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 
-		_STARPU_PTHREAD_COND_DESTROY(&wrapper->cond);
-		_STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
+		STARPU_PTHREAD_COND_DESTROY(&wrapper->cond);
+		STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
 		free(wrapper);
 
 		_starpu_fetch_data_on_node(handle, replicate, mode, async, async, NULL, NULL);
@@ -410,12 +410,12 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 	}
 	else if (!async)
 	{
-		_STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
+		STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
 		while (!wrapper->finished)
-			_STARPU_PTHREAD_COND_WAIT(&wrapper->cond, &wrapper->lock);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
-		_STARPU_PTHREAD_COND_DESTROY(&wrapper->cond);
-		_STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
+			STARPU_PTHREAD_COND_WAIT(&wrapper->cond, &wrapper->lock);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&wrapper->lock);
+		STARPU_PTHREAD_COND_DESTROY(&wrapper->cond);
+		STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
 		free(wrapper);
 	}
 
@@ -465,9 +465,9 @@ void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, un
 			starpu_data_set_sequential_consistency_flag(child_handle, flag);
 	}
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	handle->sequential_consistency = flag;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 	_starpu_spin_unlock(&handle->header_lock);
 }

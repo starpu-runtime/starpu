@@ -209,10 +209,10 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 	MSG_task_execute(transfer->task);
 	MSG_task_destroy(transfer->task);
 	_STARPU_DEBUG("transfer %p finished\n", transfer);
-	_STARPU_PTHREAD_MUTEX_LOCK(transfer->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(transfer->mutex);
 	*transfer->finished = 1;
-	_STARPU_PTHREAD_COND_BROADCAST(transfer->cond);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(transfer->mutex);
+	STARPU_PTHREAD_COND_BROADCAST(transfer->cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(transfer->mutex);
 
 	/* The workers which started this request may be sleeping out of tasks, wake it  */
 	_starpu_wake_all_blocked_workers_on_node(transfer->run_node);
@@ -314,8 +314,8 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	}
 
 	*transfer->finished = 0;
-	_STARPU_PTHREAD_MUTEX_INIT(transfer->mutex, NULL);
-	_STARPU_PTHREAD_COND_INIT(transfer->cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(transfer->mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(transfer->cond, NULL);
 	transfer->wake = NULL;
 	transfer->nwake = 0;
 	transfer->nwait = 0;
@@ -335,10 +335,10 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	else
 	{
 		/* this is not associated to a request so it's synchronous */
-		_STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		while (!finished)
-			_STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+			STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		return 0;
 	}
 }
@@ -346,7 +346,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 int
 _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct _starpu_pthread_args *args = MSG_process_get_data(MSG_process_self());
+	struct starpu_pthread_args *args = MSG_process_get_data(MSG_process_self());
 	args->f(args->arg);
 	free(args);
 	return 0;

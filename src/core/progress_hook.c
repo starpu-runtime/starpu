@@ -40,13 +40,13 @@ static int active_hook_cnt = 0;
  */
 void _starpu_init_progression_hooks(void)
 {
-	_STARPU_PTHREAD_RWLOCK_INIT(&progression_hook_rwlock, NULL);
+	STARPU_PTHREAD_RWLOCK_INIT(&progression_hook_rwlock, NULL);
 }
 
 int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 {
 	int hook;
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&progression_hook_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&progression_hook_rwlock);
 	for (hook = 0; hook < NMAXHOOKS; hook++)
 	{
 		if (!hooks[hook].active)
@@ -57,13 +57,13 @@ int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 			hooks[hook].active = 1;
 			active_hook_cnt++;
 
-			_STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 
 			return hook;
 		}
 	}
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 
 	starpu_wake_all_blocked_workers();
 
@@ -73,22 +73,22 @@ int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
 
 void starpu_progression_hook_deregister(int hook_id)
 {
-	_STARPU_PTHREAD_RWLOCK_WRLOCK(&progression_hook_rwlock);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&progression_hook_rwlock);
 
 	if (hooks[hook_id].active)
 		active_hook_cnt--;
 
 	hooks[hook_id].active = 0;
 
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 }
 
 unsigned _starpu_execute_registered_progression_hooks(void)
 {
 	/* If there is no hook registered, we short-cut loop. */
-	_STARPU_PTHREAD_RWLOCK_RDLOCK(&progression_hook_rwlock);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&progression_hook_rwlock);
 	int no_hook = (active_hook_cnt == 0);
-	_STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 
 	if (no_hook)
 		return 1;
@@ -102,9 +102,9 @@ unsigned _starpu_execute_registered_progression_hooks(void)
 	{
 		unsigned active;
 
-		_STARPU_PTHREAD_RWLOCK_RDLOCK(&progression_hook_rwlock);
+		STARPU_PTHREAD_RWLOCK_RDLOCK(&progression_hook_rwlock);
 		active = hooks[hook].active;
-		_STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 
 		unsigned may_block_hook = 1;
 

@@ -31,7 +31,7 @@ void starpu_task_bundle_create(starpu_task_bundle_t *bundle)
 	*bundle = (starpu_task_bundle_t) malloc(sizeof(struct _starpu_task_bundle));
 	STARPU_ASSERT(*bundle);
 
-	_STARPU_PTHREAD_MUTEX_INIT(&(*bundle)->mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&(*bundle)->mutex, NULL);
 	/* Of course at the beginning a bundle is open,
 	 * user can insert and remove tasks from it */
 	(*bundle)->closed = 0;
@@ -43,12 +43,12 @@ void starpu_task_bundle_create(starpu_task_bundle_t *bundle)
 
 int starpu_task_bundle_insert(starpu_task_bundle_t bundle, struct starpu_task *task)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 	if (bundle->closed)
 	{
 		/* The bundle is closed, we cannot add task anymore */
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 		return -EPERM;
 	}
 
@@ -56,7 +56,7 @@ int starpu_task_bundle_insert(starpu_task_bundle_t bundle, struct starpu_task *t
 	{
 		/* The task has already been submitted, it's too late to put it
 		 * into a bundle now. */
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 		return -EINVAL;
 	}
 
@@ -84,7 +84,7 @@ int starpu_task_bundle_insert(starpu_task_bundle_t bundle, struct starpu_task *t
 	/* Mark the task as belonging the bundle */
 	task->bundle = bundle;
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 	return 0;
 }
 
@@ -92,7 +92,7 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
 {
 	struct _starpu_task_bundle_entry *item;
 
-	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 	item = bundle->list;
 
@@ -100,7 +100,7 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
 	 * belong to it */
 	if (!item)
 	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 		return -ENOENT;
 	}
 
@@ -116,12 +116,12 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
 		/* If the list is now empty, deinitialize the bundle */
 		if (bundle->closed && bundle->list == NULL)
 		{
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 			_starpu_task_bundle_destroy(bundle);
 			return 0;
 		}
 
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 		return 0;
 	}
 
@@ -136,7 +136,7 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
 		{
 			/* Remove the next element */
 			item->next = next->next;
-			_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 			free(next);
 			return 0;
 		}
@@ -144,7 +144,7 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
 		item = next;
 	}
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 	/* We could not find the task in the bundle */
 	return -ENOENT;
@@ -155,13 +155,13 @@ int starpu_task_bundle_remove(starpu_task_bundle_t bundle, struct starpu_task *t
  * deinitialized when it becomes empty. A closed bundle cannot be reopened. */
 void starpu_task_bundle_close(starpu_task_bundle_t bundle)
 {
-	_STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&bundle->mutex);
 
 	/* If the bundle is already empty, we deinitialize it now as the
 	 * user closed it and thus don't intend to insert new tasks in it. */
 	if (bundle->list == NULL)
 	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 		_starpu_task_bundle_destroy(bundle);
 		return;
 	}
@@ -169,7 +169,7 @@ void starpu_task_bundle_close(starpu_task_bundle_t bundle)
 	/* Mark the bundle as closed */
 	bundle->closed = 1;
 
-	_STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&bundle->mutex);
 
 }
 
@@ -183,7 +183,7 @@ void _starpu_task_bundle_destroy(starpu_task_bundle_t bundle)
 		free(entry);
 	}
 
-	_STARPU_PTHREAD_MUTEX_DESTROY(&bundle->mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&bundle->mutex);
 
 	free(bundle);
 }
