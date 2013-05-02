@@ -23,6 +23,7 @@
 * Defining a New Scheduling Policy::
 * On-GPU rendering::
 * Defining a New Data Interface::
+* Setting the Data Handles for a Task::
 * More examples::               More examples shipped with StarPU
 @end menu
 
@@ -473,14 +474,15 @@ probably use @code{lp_solve -timeout 1 test.pl -wmps test.mps} to convert the
 problem to MPS format and then use a better solver, @code{glpsol} might be
 better than @code{lp_solve} for instance (the @code{--pcost} option may be
 useful), but sometimes doesn't manage to converge. @code{cbc} might look
-slower, but it is parallel. Be sure to try at least all the @code{-B} options
-of @code{lp_solve}. For instance, we often just use
-@code{lp_solve -cc -B1 -Bb -Bg -Bp -Bf -Br -BG -Bd -Bs -BB -Bo -Bc -Bi} , and
-the @code{-gr} option can also be quite useful.
+slower, but it is parallel. For @code{lp_solve}, be sure to try at least all the
+@code{-B} options. For instance, we often just use @code{lp_solve -cc -B1 -Bb
+-Bg -Bp -Bf -Br -BG -Bd -Bs -BB -Bo -Bc -Bi} , and the @code{-gr} option can
+also be quite useful. The resulting schedule can be observed by using the
+@code{starpu_lp2paje} tool, which converts it into the Paje format.
 
 Data transfer time can only be taken into account when @code{deps} is set. Only
 data transfers inferred from implicit data dependencies between tasks are taken
-into account.
+into account. Other data transfers are assumed to be completely overlapped.
 
 Setting @code{deps} to 0 will only take into account the actual computations
 on processing units. It however still properly takes into account the varying
@@ -491,9 +493,6 @@ The @code{prio} parameter tells StarPU whether to simulate taking into account
 the priorities as the StarPU scheduler would, i.e. schedule prioritized
 tasks before less prioritized tasks, to check to which extend this results
 to a less optimal solution. This increases even more computation time.
-
-Note that for simplicity, all this however doesn't take into account data
-transfers, which are assumed to be completely overlapped.
 
 @node Insert Task Utility
 @section Insert Task Utility
@@ -1264,6 +1263,62 @@ void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args
 
 The whole code for this complex data interface is available in the
 directory @code{examples/interface/}.
+
+@node Setting the Data Handles for a Task
+@section Setting the Data Handles for a Task
+
+The number of data a task can manage is fixed by the
+@code{STARPU_NMAXBUFS} which has a default value which can be changed
+through the configure option @code{--enable-maxbuffers} (see
+@ref{--enable-maxbuffers}).
+
+However, it is possible to define tasks managing more data by using
+the field @code{dyn_handles} when defining a task and the field
+@code{dyn_modes} when defining the corresponding codelet.
+
+@cartouche
+@smallexample
+enum starpu_access_mode modes[STARPU_NMAXBUFS+1] = @{
+	STARPU_R, STARPU_R, ...
+@};
+
+struct starpu_codelet dummy_big_cl =
+@{
+	.cuda_funcs = @{dummy_big_kernel, NULL@},
+	.opencl_funcs = @{dummy_big_kernel, NULL@},
+	.cpu_funcs = @{dummy_big_kernel, NULL@},
+	.nbuffers = STARPU_NMAXBUFS+1,
+	.dyn_modes = modes
+@};
+
+task = starpu_task_create();
+task->cl = &dummy_big_cl;
+task->dyn_handles = malloc(task->cl->nbuffers * sizeof(starpu_data_handle_t));
+for(i=0 ; i<task->cl->nbuffers ; i++)
+@{
+	task->dyn_handles[i] = handle;
+@}
+starpu_task_submit(task);
+@end smallexample
+@end cartouche
+
+@cartouche
+@smallexample
+starpu_data_handle_t *handles = malloc(dummy_big_cl.nbuffers * sizeof(starpu_data_handle_t));
+for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
+@{
+	handles[i] = handle;
+@}
+starpu_insert_task(&dummy_big_cl,
+        	 STARPU_VALUE, &dummy_big_cl.nbuffers, sizeof(dummy_big_cl.nbuffers),
+		 STARPU_DATA_ARRAY, handles, dummy_big_cl.nbuffers,
+		 0);
+@end smallexample
+@end cartouche
+
+The whole code for this complex data interface is available in the
+directory @code{examples/basic_examples/dynamic_handles.c}.
+
 @node More examples
 @section More examples
 

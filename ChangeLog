@@ -119,6 +119,8 @@ New features:
     pthread API. It is provided with 2 implementations: a pthread one
     and a Simgrid one. Applications using StarPU and wishing to use
     the Simgrid StarPU features should use it.
+  * Allow to have a dynamically allocated number of buffers per task,
+    and so overwrite the value defined --enable-maxbuffers=XXX
 
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid
@@ -134,6 +136,9 @@ Small features:
   * New configure option --enable-mpi-progression-hook to enable the
     activity polling method for StarPU-MPI.
   * Permit to disable sequential consistency for a given task.
+  * New macro STARPU_RELEASE_VERSION
+  * New function starpu_get_version() to return as 3 integers the
+    release version of StarPU.
 
 Changes:
   * Fix the block filter functions.

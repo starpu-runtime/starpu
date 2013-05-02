@@ -73,7 +73,6 @@ noinst_HEADERS = 						\
 	core/debug.h						\
 	core/errorcheck.h					\
 	core/combined_workers.h					\
-	core/parallel_task.h					\
 	core/simgrid.h						\
 	core/task_bundle.h					\
 	sched_policies/detect_combined_workers.h		\

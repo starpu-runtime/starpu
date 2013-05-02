@@ -52,7 +52,6 @@ EXTRA_DIST = 					\
 	basic_examples/variable_kernels_opencl_kernel.cl	\
 	matvecmult/matvecmult_kernel.cl				\
 	basic_examples/block_opencl_kernel.cl			\
-	openmp/vector_scal.c			\
 	filters/fblock_opencl_kernel.cl		\
 	filters/custom_mf/conversion_opencl.cl  \
 	filters/custom_mf/custom_opencl.cl \
@@ -159,6 +158,7 @@ examplebin_PROGRAMS +=				\
 	basic_examples/block			\
 	basic_examples/variable			\
 	basic_examples/multiformat              \
+	basic_examples/dynamic_handles		\
 	cpp/incrementer_cpp			\
 	filters/custom_mf/custom_mf_filter      \
 	filters/fvector				\
@@ -874,6 +874,18 @@ pipeline_pipeline_SOURCES	=	\
 
 pipeline_pipeline_LDADD =		\
 	$(STARPU_BLAS_LDFLAGS)
+endif
+
+##################
+# openmp example #
+##################
+
+if !STARPU_HAVE_WINDOWS
+examplebin_PROGRAMS +=		\
+	openmp/vector_scal_omp
+
+openmp_vector_scal_omp_CFLAGS = \
+	$(AM_CFLAGS) -fopenmp
 endif
 
 showcheck:

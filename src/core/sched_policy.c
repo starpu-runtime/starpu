@@ -23,7 +23,6 @@
 #include <profiling/profiling.h>
 #include <common/barrier.h>
 #include <core/debug.h>
-#include <core/parallel_task.h>
 
 static int use_prefetch = 0;
 
@@ -236,7 +235,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 				struct starpu_task *conversion_task;
 				starpu_data_handle_t handle;
 
-				handle = task->handles[i];
+				handle = STARPU_TASK_GET_HANDLE(task, i);
 				if (!_starpu_handle_needs_conversion_task(handle, node))
 					continue;
 
@@ -249,7 +248,10 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 			}
 
 			for (i = 0; i < task->cl->nbuffers; i++)
-				task->handles[i]->mf_node = node;
+			{
+				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+				handle->mf_node = node;
+			}
 		}
 //		if(task->sched_ctx != _starpu_get_initial_sched_ctx()->id)
 
@@ -281,7 +283,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		int j;
 		for (j = 0; j < worker_size; j++)
 		{
-			struct starpu_task *alias = _starpu_create_task_alias(task);
+			struct starpu_task *alias = starpu_task_dup(task);
 
 			worker = _starpu_get_worker_struct(combined_workerid[j]);
 			ret |= _starpu_push_local_task(worker, alias, 0);
@@ -396,7 +398,13 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 	else
 	{
 		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
-		ret = sched_ctx->sched_policy->push_task(task);
+		/* check out if there are any workers in the context */
+		starpu_pthread_mutex_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+		_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
+		nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
+		ret = nworkers == 0 ? -1 : sched_ctx->sched_policy->push_task(task);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+
 		if(ret == -1)
 		{
 			fprintf(stderr, "repush task \n");
@@ -441,7 +449,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 
 	conversion_task = starpu_task_create();
 	conversion_task->synchronous = 0;
-	conversion_task->handles[0] = handle;
+	STARPU_TASK_SET_HANDLE(conversion_task, handle, 0);
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	/* The node does not really matter here */
@@ -504,7 +512,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 		STARPU_ABORT();
 	}
 
-	conversion_task->cl->modes[0] = STARPU_RW;
+	STARPU_CODELET_SET_MODE(conversion_task->cl, STARPU_RW, 0);
 	return conversion_task;
 }
 
@@ -657,7 +665,7 @@ pick:
 		struct starpu_task *conversion_task;
 		starpu_data_handle_t handle;
 
-		handle = task->handles[i];
+		handle = STARPU_TASK_GET_HANDLE(task, i);
 		if (!_starpu_handle_needs_conversion_task(handle, node))
 			continue;
 		conversion_task = _starpu_create_conversion_task(handle, node);

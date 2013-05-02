@@ -88,6 +88,8 @@ typedef enum starpu_access_mode starpu_access_mode;
 #define starpu_depth_block_filter_func_block		starpu_block_filter_depth_block
 #define starpu_depth_block_shadow_filter_func_block	starpu_block_filter_depth_block_shadow
 
+#define starpu_display_codelet_stats		starpu_codelet_display_stats
+
 #endif /* STARPU_USE_DEPRECATED_ONE_ZERO_API */
 
 #ifdef __cplusplus

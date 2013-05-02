@@ -305,7 +305,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 				.nbuffers = 1
 			};
 			struct starpu_task *task = starpu_task_create();
-			task->handles[0] = child_handle;
+			STARPU_TASK_SET_HANDLE(task, child_handle, 0);
 			task->cl = &cl;
 			task->synchronous = 1;
 			if (_starpu_task_submit_internally(task) != 0)

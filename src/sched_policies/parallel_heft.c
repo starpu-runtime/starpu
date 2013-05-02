@@ -23,9 +23,7 @@
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
-#include <common/barrier.h>
 #include <sched_policies/detect_combined_workers.h>
-#include <core/parallel_task.h>
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
@@ -38,6 +36,14 @@
 //static unsigned ncombinedworkers;
 //static enum starpu_perf_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
 //static unsigned napplicable_perf_archtypes = 0;
+
+/*
+ * Here are the default values of alpha, beta, gamma
+ */
+
+#define _STARPU_SCHED_ALPHA_DEFAULT 1.0
+#define _STARPU_SCHED_BETA_DEFAULT 1.0
+#define _STARPU_SCHED_GAMMA_DEFAULT 1000.0
 
 struct _starpu_pheft_data
 {
@@ -128,33 +134,25 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	}
 	else
 	{
-		/* This is a combined worker so we create task aliases */
-		struct _starpu_combined_worker *combined_worker;
-		combined_worker = _starpu_get_combined_worker_struct(best_workerid);
-		int worker_size = combined_worker->worker_size;
-		int *combined_workerid = combined_worker->combined_workerid;
-
-		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-		j->task_size = worker_size;
-		j->combined_workerid = best_workerid;
-		j->active_task_alias_count = 0;
-
 		/* This task doesn't belong to an actual worker, it belongs
 		 * to a combined worker and thus the scheduler doesn't care
 		 * of its predicted values which are insignificant */
 		task->predicted = 0;
 		task->predicted_transfer = 0;
 
-		_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
-		_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+		starpu_parallel_task_barrier_init(task, best_workerid);
+		int worker_size = 0;
+		int *combined_workerid;
+		starpu_combined_worker_get_description(best_workerid, &worker_size, &combined_workerid);
 
 		/* All cpu workers must be locked at once */
 		_STARPU_PTHREAD_MUTEX_LOCK(&hd->global_push_mutex);
 
+		/* This is a combined worker so we create task aliases */
 		int i;
 		for (i = 0; i < worker_size; i++)
 		{
-			struct starpu_task *alias = _starpu_create_task_alias(task);
+			struct starpu_task *alias = starpu_task_dup(task);
 			int local_worker = combined_workerid[i];
 
 			alias->predicted = exp_end_predicted - worker_exp_end[local_worker];
@@ -489,36 +487,15 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 static int parallel_heft_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
-	unsigned nworkers;
 	int ret_val = -1;
 
 	if (task->priority == STARPU_MAX_PRIO)
 	{
-		_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-                nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-                if(nworkers == 0)
-                {
-                        _STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-                        return ret_val;
-                }
-
 		ret_val = _parallel_heft_push_task(task, 1, sched_ctx_id);
-		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-                return ret_val;
-        }
-
-
-	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-	nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-        if(nworkers == 0)
-	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
                 return ret_val;
         }
 
         ret_val = _parallel_heft_push_task(task, 0, sched_ctx_id);
-	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 	return ret_val;
 }
 
@@ -575,9 +552,9 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)malloc(sizeof(struct _starpu_pheft_data));
-	hd->alpha = _STARPU_DEFAULT_ALPHA;
-	hd->beta = _STARPU_DEFAULT_BETA;
-	hd->_gamma = _STARPU_DEFAULT_GAMMA;
+	hd->alpha = _STARPU_SCHED_ALPHA_DEFAULT;
+	hd->beta = _STARPU_SCHED_BETA_DEFAULT;
+	hd->_gamma = _STARPU_SCHED_GAMMA_DEFAULT;
 	hd->idle_power = 0.0;
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)hd);

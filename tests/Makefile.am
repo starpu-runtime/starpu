@@ -208,6 +208,7 @@ noinst_PROGRAMS =				\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
 	parallel_tasks/parallel_kernels_spmd	\
+	parallel_tasks/spmd_peager		\
 	perfmodels/regression_based		\
 	perfmodels/non_linear_regression_based	\
 	perfmodels/feed				\

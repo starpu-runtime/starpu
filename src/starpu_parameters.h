@@ -20,17 +20,6 @@
 /* Parameters which are not worth being added to ./configure options, but
  * still interesting to easily change */
 
-/* The dmda scheduling policy uses
- *
- * alpha * T_computation + beta * T_communication + gamma * Consumption
- *
- * Here are the default values of alpha, beta, gamma
- */
-
-#define _STARPU_DEFAULT_ALPHA 1.0
-#define _STARPU_DEFAULT_BETA 1.0
-#define _STARPU_DEFAULT_GAMMA 1000.0
-
 /* How many executions a codelet will have to be measured before we
  * consider that calibration will provide a value good enough for scheduling */
 #define _STARPU_CALIBRATION_MINIMUM 10

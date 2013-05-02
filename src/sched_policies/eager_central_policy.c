@@ -21,8 +21,9 @@
  *	JOB QUEUE.
  */
 
-#include <core/workers.h>
+#include <starpu_scheduler.h>
 #include <sched_policies/fifo_queues.h>
+#include <common/thread.h>
 
 struct _starpu_eager_center_policy_data
 {
@@ -63,25 +64,13 @@ static int push_task_eager_policy(struct starpu_task *task)
  {
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
-	unsigned nworkers;
 	int ret_val = -1;
-
-	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-	nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-	if(nworkers == 0)
-	{
-		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-		return ret_val;
-	}
-
 		
 	_STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	ret_val = _starpu_fifo_push_task(data->fifo, task);
 
 	starpu_push_task_end(task);
 	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-
 
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
@@ -103,8 +92,6 @@ static int push_task_eager_policy(struct starpu_task *task)
 		_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 
-		
-	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 	return ret_val;
 }
 

@@ -15,12 +15,10 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-
-#include <core/workers.h>
 #include <sched_policies/fifo_queues.h>
-#include <common/barrier.h>
 #include <sched_policies/detect_combined_workers.h>
-#include <core/parallel_task.h>
+#include <starpu_scheduler.h>
+#include <core/workers.h>
 
 struct _starpu_peager_data
 {
@@ -28,12 +26,14 @@ struct _starpu_peager_data
 	struct _starpu_fifo_taskq *local_fifo[STARPU_NMAXWORKERS];
 
 	int master_id[STARPU_NMAXWORKERS];
+        starpu_pthread_mutex_t policy_mutex;
 };
 
+#define STARPU_NMAXCOMBINED_WORKERS 10
 /* XXX instead of 10, we should use some "MAX combination .."*/
 static int possible_combinations_cnt[STARPU_NMAXWORKERS];
-static int possible_combinations[STARPU_NMAXWORKERS][10];
-static int possible_combinations_size[STARPU_NMAXWORKERS][10];
+static int possible_combinations[STARPU_NMAXWORKERS][STARPU_NMAXCOMBINED_WORKERS];
+static int possible_combinations_size[STARPU_NMAXWORKERS][STARPU_NMAXCOMBINED_WORKERS];
 
 
 /*!!!!!!! It doesn't work with several contexts because the combined workers are constructed
@@ -135,6 +135,7 @@ static void initialize_peager_policy(unsigned sched_ctx_id)
 	data->fifo = _starpu_create_fifo();
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
+        _STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 }
 
 static void deinitialize_peager_policy(unsigned sched_ctx_id)
@@ -146,6 +147,7 @@ static void deinitialize_peager_policy(unsigned sched_ctx_id)
 	_starpu_destroy_fifo(data->fifo);
 
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
+        _STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 
 	free(data);
 }
@@ -153,27 +155,25 @@ static void deinitialize_peager_policy(unsigned sched_ctx_id)
 static int push_task_peager_policy(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
-	starpu_pthread_mutex_t *changing_ctx_mutex = starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx_id);
-	unsigned nworkers;
 	int ret_val = -1;
 	
-	/* if the context has no workers return */
-	_STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
-	nworkers = starpu_sched_ctx_get_nworkers(sched_ctx_id);
-	
-   	if(nworkers == 0)
-	{
-   		_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
-		return ret_val;
-	}
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	int worker = 0;
-	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-	
+	_STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+	ret_val = _starpu_fifo_push_task(data->fifo, task);
+	starpu_push_task_end(task);
+	_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+
+        /*if there are no tasks block */
+        /* wake people waiting for a task */
+        int worker = -1;
+        struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+
+        struct starpu_sched_ctx_iterator it;
+        if(workers->init_iterator)
+                workers->init_iterator(workers, &it);
+
+
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -185,29 +185,10 @@ static int push_task_peager_policy(struct starpu_task *task)
 			starpu_pthread_cond_t *sched_cond;
 			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 			_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-		}
-	}
-	
-	
-	ret_val = _starpu_fifo_push_task(data->fifo, task);
-	starpu_push_task_end(task);
-
-	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
-		int master = data->master_id[worker];
-		/* If this is not a CPU, then the worker simply grabs tasks from the fifo */
-		if (starpu_worker_get_type(worker) != STARPU_CPU_WORKER  || master == worker)
-		{
-			starpu_pthread_mutex_t *sched_mutex;
-			starpu_pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 			_STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 			_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 		}
 	}
-	
-	_STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
 
 	return ret_val;
 }
@@ -220,14 +201,24 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 
 	/* If this is not a CPU, then the worker simply grabs tasks from the fifo */
 	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER)
-		return _starpu_fifo_pop_task(data->fifo, workerid);
+	{
+		struct starpu_task *task = NULL;
+		_STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+		task = _starpu_fifo_pop_task(data->fifo, workerid);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+
+		return task;
+	}
 
 	int master = data->master_id[workerid];
 
 	if (master == workerid)
 	{
 		/* The worker is a master */
-		struct starpu_task *task = _starpu_fifo_pop_task(data->fifo, workerid);
+		struct starpu_task *task = NULL;
+		_STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+		task = _starpu_fifo_pop_task(data->fifo, workerid);
+		_STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 		if (!task)
 			return NULL;
@@ -266,29 +257,17 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		}
 		else
 		{
-			/* The master needs to dispatch the task between the
-			 * different combined workers */
-			struct _starpu_combined_worker *combined_worker;
-			combined_worker = _starpu_get_combined_worker_struct(best_workerid);
-			int worker_size = combined_worker->worker_size;
-			int *combined_workerid = combined_worker->combined_workerid;
-
-			struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
-			j->task_size = worker_size;
-			j->combined_workerid = best_workerid;
-			j->active_task_alias_count = 0;
-
-			//fprintf(stderr, "POP -> size %d best_size %d\n", worker_size, best_size);
-
-			_STARPU_PTHREAD_BARRIER_INIT(&j->before_work_barrier, NULL, worker_size);
-			_STARPU_PTHREAD_BARRIER_INIT(&j->after_work_barrier, NULL, worker_size);
+			starpu_parallel_task_barrier_init(task, best_workerid);
+			int worker_size = 0;
+			int *combined_workerid;
+			starpu_combined_worker_get_description(best_workerid, &worker_size, &combined_workerid);
 
 			/* Dispatch task aliases to the different slaves */
 			for (i = 1; i < worker_size; i++)
 			{
-				struct starpu_task *alias = _starpu_create_task_alias(task);
+				struct starpu_task *alias = starpu_task_dup(task);
 				int local_worker = combined_workerid[i];
-				
+
 				starpu_pthread_mutex_t *sched_mutex;
 				starpu_pthread_cond_t *sched_cond;
 				starpu_worker_get_sched_condition(local_worker, &sched_mutex, &sched_cond);
@@ -303,7 +282,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 			}
 
 			/* The master also manipulated an alias */
-			struct starpu_task *master_alias = _starpu_create_task_alias(task);
+			struct starpu_task *master_alias = starpu_task_dup(task);
 			return master_alias;
 		}
 	}

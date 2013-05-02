@@ -227,7 +227,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		starpu_data_handle_t handle;
 		struct starpu_task *conversion_task;
 
-		handle = task->handles[i];
+		handle = STARPU_TASK_GET_HANDLE(task, i);
 		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
 
@@ -287,8 +287,8 @@ double starpu_task_expected_data_transfer_time(unsigned memory_node, struct star
 
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		starpu_data_handle_t handle = task->handles[buffer];
-		enum starpu_access_mode mode = task->cl->modes[buffer];
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
+		enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, buffer);
 
 		penalty += starpu_data_expected_transfer_time(handle, memory_node, mode);
 	}
@@ -375,8 +375,8 @@ double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundl
 			unsigned b;
 			for (b = 0; b < task->cl->nbuffers; b++)
 			{
-				starpu_data_handle_t handle = task->handles[b];
-				enum starpu_access_mode mode = task->cl->modes[b];
+				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, b);
+				enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, b);
 
 				if (!(mode & STARPU_R))
 					continue;

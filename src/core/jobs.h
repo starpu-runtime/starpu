@@ -70,6 +70,7 @@ LIST_TYPE(_starpu_job,
 	 * the task so that we always grab the rw-lock associated to the
 	 * handles in the same order. */
 	struct starpu_buffer_descr ordered_buffers[STARPU_NMAXBUFS];
+	struct starpu_buffer_descr *dyn_ordered_buffers;
 
 	/* If a tag is associated to the job, this points to the internal data
 	 * structure that describes the tag status. */
@@ -171,5 +172,14 @@ struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker);
  * Considering the tasks are popped from the back, this value should be 0 to
  * enforce a FIFO ordering. */
 int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task, int back);
+
+#define _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].handle : job->ordered_buffers[i].handle)
+#define _STARPU_JOB_GET_ORDERED_BUFFER_MODE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].mode : job->ordered_buffers[i].mode)
+
+#define _STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(job, handle, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i].handle = (handle); else job->ordered_buffers[i].handle = (handle);} while(0)
+#define _STARPU_JOB_SET_ORDERED_BUFFER_MODE(job, mode, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i].mode = mode; else job->ordered_buffers[i].mode = mode;} while(0)
+
+#define _STARPU_JOB_SET_ORDERED_BUFFER(job, buffer, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i] = buffer; else job->ordered_buffers[i] = buffer;} while(0)
+#define _STARPU_JOB_GET_ORDERED_BUFFERS(job) (job->dyn_ordered_buffers) ? job->dyn_ordered_buffers : job->ordered_buffers
 
 #endif // __JOBS_H__

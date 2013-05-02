@@ -20,7 +20,6 @@
 #define __STACK_QUEUES_H__
 
 #include <starpu.h>
-#include <common/config.h>
 #include <core/jobs.h>
 
 struct _starpu_stack_jobq

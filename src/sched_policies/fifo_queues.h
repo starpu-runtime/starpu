@@ -20,8 +20,6 @@
 #define __FIFO_QUEUES_H__
 
 #include <starpu.h>
-#include <common/config.h>
-#include <common/utils.h>
 
 struct _starpu_fifo_taskq
 {

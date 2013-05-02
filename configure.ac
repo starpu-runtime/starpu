@@ -25,11 +25,14 @@ dnl Versioning.
 
 STARPU_MAJOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 1`"
 STARPU_MINOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 2`"
+STARPU_RELEASE_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 3`"
 AC_SUBST([STARPU_MAJOR_VERSION])
 AC_SUBST([STARPU_MINOR_VERSION])
+AC_SUBST([STARPU_RELEASE_VERSION])
 AC_SUBST([STARPU_EFFECTIVE_VERSION])
 AC_DEFINE_UNQUOTED([STARPU_MAJOR_VERSION], [$STARPU_MAJOR_VERSION], [Major version number of StarPU.])
 AC_DEFINE_UNQUOTED([STARPU_MINOR_VERSION], [$STARPU_MINOR_VERSION], [Minor version number of StarPU.])
+AC_DEFINE_UNQUOTED([STARPU_RELEASE_VERSION], [$STARPU_RELEASE_VERSION], [Release version number of StarPU.])
 
 . "$srcdir/STARPU-VERSION"
 AC_SUBST([LIBSTARPU_INTERFACE_CURRENT])
@@ -264,7 +267,7 @@ AC_MSG_RESULT($max_sched_ctxs)
 AC_DEFINE_UNQUOTED(STARPU_NMAX_SCHED_CTXS, [$max_sched_ctxs], [Maximum number of sched_ctxs supported])
 
 AC_ARG_ENABLE([sc_hypervisor],
-  [AS_HELP_STRING([--enable-sct-hypervisor],
+  [AS_HELP_STRING([--enable-sc-hypervisor],
     [enable resizing contexts (experimental)])],
   [enable_sc_hypervisor="yes"],
   [enable_sc_hypervisor="no"])

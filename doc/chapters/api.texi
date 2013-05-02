@@ -47,6 +47,14 @@ Define the major version of StarPU
 Define the minor version of StarPU
 @end defmac
 
+@defmac STARPU_RELEASE_VERSION
+Define the release version of StarPU
+@end defmac
+
+@deftypefun void starpu_get_version (int *@var{major}, int *@var{minor}, int *@var{release})
+Return as 3 integers the release version of StarPU.
+@end deftypefun
+
 @node Initialization and Termination
 @section Initialization and Termination
 
@@ -1898,6 +1906,17 @@ exceed @code{STARPU_NMAXBUFS}.
 If unsufficient, this value can be set with the @code{--enable-maxbuffers}
 option when configuring StarPU.
 
+@item @code{enum starpu_access_mode *dyn_modes}
+Is an array of @code{enum starpu_access_mode}. It describes the
+required access modes to the data neeeded by the codelet (e.g.
+@code{STARPU_RW}). The number of entries in this array must be
+specified in the @code{nbuffers} field (defined above).
+This field should be used for codelets having a number of datas
+greater than @code{STARPU_NMAXBUFS} (@pxref{Setting the Data Handles
+for a Task}).
+When defining a codelet, one should either define this field or the
+field @code{modes} defined above. 
+
 @item @code{struct starpu_perfmodel *model} (optional)
 This is a pointer to the task duration performance model associated to this
 codelet. This optional field is ignored when set to @code{NULL} or
@@ -1913,8 +1932,8 @@ involved in the parallel execution.
 @item @code{unsigned long per_worker_stats[STARPU_NMAXWORKERS]} (optional)
 Statistics collected at runtime: this is filled by StarPU and should not be
 accessed directly, but for example by calling the
-@code{starpu_display_codelet_stats} function (See
-@ref{starpu_display_codelet_stats} for details).
+@code{starpu_codelet_display_stats} function (See
+@ref{starpu_codelet_display_stats} for details).
 
 @item @code{const char *name} (optional)
 Define the name of the codelet. This can be useful for debugging purposes.
@@ -1923,6 +1942,7 @@ Define the name of the codelet. This can be useful for debugging purposes.
 @end deftp
 
 @deftypefun void starpu_codelet_init ({struct starpu_codelet} *@var{cl})
+@anchor{starpu_codelet_init}
 Initialize @var{cl} with default values. Codelets should preferably be
 initialized statically as shown in @ref{Defining a Codelet}. However
 such a initialisation is not always possible, e.g. when using C++.
@@ -1983,9 +2003,24 @@ of entries in this array must be specified in the @code{nbuffers} field of the
 If unsufficient, this value can be set with the @code{--enable-maxbuffers}
 option when configuring StarPU.
 
+@item @code{starpu_data_handle_t *dyn_handles}
+Is an array of @code{starpu_data_handle_t}. It specifies the handles
+to the different pieces of data accessed by the task. The number
+of entries in this array must be specified in the @code{nbuffers} field of the
+@code{struct starpu_codelet} structure.
+This field should be used for tasks having a number of datas
+greater than @code{STARPU_NMAXBUFS} (@pxref{Setting the Data Handles
+for a Task}).
+When defining a task, one should either define this field or the
+field @code{handles} defined above.
+
 @item @code{void *interfaces[STARPU_NMAXBUFS]}
 The actual data pointers to the memory node where execution will happen, managed
 by the DSM.
+
+@item @code{void **dyn_interfaces}
+The actual data pointers to the memory node where execution will happen, managed
+by the DSM. Is used when the field @code{dyn_handles} is defined.
 
 @item @code{void *cl_arg} (optional; default: @code{NULL})
 This pointer is passed to the codelet through the second argument
@@ -2134,6 +2169,37 @@ value. This is equivalent to initializing a starpu_task structure with
 the @code{starpu_task_init} function defined above.
 @end defmac
 
+@defmac STARPU_TASK_GET_HANDLE ({struct starpu_task} *@var{task}, int @var{i})
+Return the i-th data handle of the given task. If the task is defined
+with a static or dynamic number of handles, will either return the
+i-th element of the field @code{handles} or the i-th element of the field
+@code{dyn_handles} (@pxref{Setting the Data Handles for a Task})
+@end defmac
+
+@defmac STARPU_TASK_SET_HANDLE ({struct starpu_task} *@var{task}, starpu_data_handle_t @var{handle}, int @var{i})
+Set the i-th data handle of the given task with the given dat handle.
+If the task is defined with a static or dynamic number of handles,
+will either set the i-th element of the field @code{handles} or the
+i-th element of the field @code{dyn_handles} (@pxref{Setting the Data
+Handles for a Task})
+@end defmac
+
+@defmac STARPU_CODELET_GET_MODE ({struct starpu_codelet *}@var{codelet}, int @var{i})
+Return the access mode of the i-th data handle of the given codelet.
+If the codelet is defined with a static or dynamic number of handles,
+will either return the i-th element of the field @code{modes} or the
+i-th element of the field @code{dyn_modes} (@pxref{Setting the Data
+Handles for a Task})
+@end defmac
+
+@defmac STARPU_CODELET_SET_MODE ({struct starpu_codelet *}@var{codelet}codelet, {enum starpu_access_mode} @var{mode}, int @var{i})
+Set the access mode of the i-th data handle of the given codelet.
+If the codelet is defined with a static or dynamic number of handles,
+will either set the i-th element of the field @code{modes} or the
+i-th element of the field @code{dyn_modes} (@pxref{Setting the Data
+Handles for a Task})
+@end defmac
+
 @deftypefun {struct starpu_task *} starpu_task_create (void)
 Allocate a task structure and initialize it with default values. Tasks
 allocated dynamically with @code{starpu_task_create} are automatically freed when the
@@ -2143,6 +2209,10 @@ dependencies make it wait) and thus freed at any time.
 If the destroy flag is explicitly unset, the resources used
 by the task have to be freed by calling
 @code{starpu_task_destroy}.
+@end deftypefun
+
+@deftypefun {struct starpu_task *}starpu_task_dup ({struct starpu_task *}@var{task})
+Allocate a task structure which is the exact duplicate of the given task.
 @end deftypefun
 
 @deftypefun void starpu_task_clean ({struct starpu_task} *@var{task})
@@ -2218,8 +2288,8 @@ NULL if it is called either from a thread that is not a task or simply
 because there is no task being executed at the moment.
 @end deftypefun
 
-@deftypefun void starpu_display_codelet_stats ({struct starpu_codelet} *@var{cl})
-@anchor{starpu_display_codelet_stats}
+@deftypefun void starpu_codelet_display_stats ({struct starpu_codelet} *@var{cl})
+@anchor{starpu_codelet_display_stats}
 Output on @code{stderr} some statistics on the codelet @var{cl}.
 @end deftypefun
 
@@ -3650,6 +3720,11 @@ Get the description of a combined worker
 Variant of starpu_worker_can_execute_task compatible with combined workers
 @end deftypefun
 
+@deftypefun void starpu_parallel_task_barrier_init ({struct starpu_task* }@var{task}, int @var{best_workerid})
+Initialise the barrier for the parallel task, and dispatch the task
+between the different combined workers
+@end deftypefun
+
 @deftp {Data Type} {struct starpu_machine_topology}
 @table @asis
 @item @code{unsigned nworkers}
@@ -3774,10 +3849,6 @@ Delete the worker collection of the specified scheduling context
 
 @deftypefun struct starpu_worker_collection* starpu_sched_ctx_get_worker_collection (unsigned @var{sched_ctx_id})
 Return the worker collection managed by the indicated context
-@end deftypefun
-
-@deftypefun pthread_mutex_t* starpu_sched_ctx_get_changing_ctx_mutex (unsigned @var{sched_ctx_id})
-TODO
 @end deftypefun
 
 @deftypefun void starpu_sched_ctx_set_context (unsigned *@var{sched_ctx_id})

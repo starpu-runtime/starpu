@@ -18,6 +18,7 @@
 #include <util/starpu_insert_task_utils.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <core/task.h>
 
 typedef void (*_starpu_callback_func_t)(void *);
 
@@ -120,15 +121,16 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 	return arg_buffer_size;
 }
 
-int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list varg_list)
+int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list varg_list)
 {
 	int arg_type;
 	unsigned current_arg_offset = 0;
 	unsigned char nargs = 0;
+	char *_arg_buffer;
 
 	/* The buffer will contain : nargs, {size, content} (x nargs)*/
 
-	*arg_buffer = (char *) malloc(arg_buffer_size);
+	_arg_buffer = malloc(arg_buffer_size);
 
 	/* We will begin the buffer with the number of args (which is stored as a char) */
 	current_arg_offset += sizeof(char);
@@ -150,10 +152,10 @@ int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list
 			void *ptr = va_arg(varg_list, void *);
 			size_t cst_size = va_arg(varg_list, size_t);
 
-			*(size_t *)(&(*arg_buffer)[current_arg_offset]) = cst_size;
+			*(size_t *)(&(_arg_buffer)[current_arg_offset]) = cst_size;
 			current_arg_offset += sizeof(size_t);
 
-			memcpy(&(*arg_buffer)[current_arg_offset], ptr, cst_size);
+			memcpy(&_arg_buffer[current_arg_offset], ptr, cst_size);
 			current_arg_offset += cst_size;
 
 			nargs++;
@@ -205,19 +207,20 @@ int _starpu_codelet_pack_args(size_t arg_buffer_size, char **arg_buffer, va_list
 
 	if (nargs)
 	{
-		(*arg_buffer)[0] = nargs;
+		_arg_buffer[0] = nargs;
 	}
 	else
 	{
-		free(*arg_buffer);
-		*arg_buffer = NULL;
+		free(_arg_buffer);
+		_arg_buffer = NULL;
 	}
 
+	*arg_buffer = _arg_buffer;
 	va_end(varg_list);
 	return 0;
 }
 
-int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
 {
 	int arg_type;
 	unsigned current_buffer = 0;
@@ -239,18 +242,20 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 
 			STARPU_ASSERT(cl != NULL);
 
-			(*task)->handles[current_buffer] = handle;
-			if (cl->modes[current_buffer])
+			STARPU_TASK_SET_HANDLE((*task), handle, current_buffer);
+			if (STARPU_CODELET_GET_MODE(cl, current_buffer))
 			{
-				STARPU_ASSERT_MSG(cl->modes[current_buffer] == mode, "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_insert_task\n",
-						  cl->name, cl->modes[current_buffer], current_buffer, mode);
+				STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, current_buffer) == mode,
+						   "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_insert_task\n",
+						  cl->name, STARPU_CODELET_GET_MODE(cl, current_buffer),
+						  current_buffer, mode);
 			}
 			else
 			{
 #ifdef STARPU_DEVEL
 #  warning shall we print a warning to the user
 #endif
-				cl->modes[current_buffer] = mode;
+				STARPU_CODELET_SET_MODE(cl, mode, current_buffer);
 			}
 
 			current_buffer++;
@@ -264,7 +269,7 @@ int _starpu_insert_task_create_and_submit(char *arg_buffer, size_t arg_buffer_si
 			int i;
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				(*task)->handles[current_buffer] = handles[i];
+				STARPU_TASK_SET_HANDLE((*task), handles[i], current_buffer);
 				current_buffer++;
 			}
 

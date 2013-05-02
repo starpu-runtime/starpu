@@ -24,6 +24,7 @@
 #include <common/uthash.h>
 #include <util/starpu_insert_task_utils.h>
 #include <datawizard/coherency.h>
+#include <core/task.h>
 
 #include <starpu_mpi_private.h>
 
@@ -369,7 +370,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	int me, do_execute, xrank, nb_nodes;
 	size_t *size_on_nodes;
 	size_t arg_buffer_size = 0;
-	char *arg_buffer = NULL;
+	void *arg_buffer = NULL;
 	int dest=0, inconsistent_execute;
 	int current_data = 0;
 
@@ -420,7 +421,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			int i;
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				enum starpu_access_mode mode = codelet->modes[current_data];
+				enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(codelet, current_data);
 				int ret = _starpu_mpi_find_executee_node(datas[i], mode, me, &do_execute, &inconsistent_execute, &dest, size_on_nodes);
 				if (ret == -EINVAL)
 				{
@@ -531,7 +532,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				_starpu_mpi_exchange_data_before_execution(datas[i], codelet->modes[current_data], me, dest, do_execute, comm);
+				_starpu_mpi_exchange_data_before_execution(datas[i], STARPU_CODELET_GET_MODE(codelet, current_data), me, dest, do_execute, comm);
 				current_data++;
 			}
 		}
@@ -590,12 +591,16 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		if (arg_buffer_size)
 		{
 			va_start(varg_list, codelet);
-			_starpu_codelet_pack_args(arg_buffer_size, &arg_buffer, varg_list);
+			_starpu_codelet_pack_args(&arg_buffer, arg_buffer_size, varg_list);
 		}
 
 		_STARPU_MPI_DEBUG(1, "Execution of the codelet %p (%s)\n", codelet, codelet->name);
 		va_start(varg_list, codelet);
 		struct starpu_task *task = starpu_task_create();
+		if (codelet->nbuffers > STARPU_NMAXBUFS)
+		{
+			task->dyn_handles = malloc(codelet->nbuffers * sizeof(starpu_data_handle_t));
+		}
 		int ret = _starpu_insert_task_create_and_submit(arg_buffer, arg_buffer_size, codelet, &task, varg_list);
 		STARPU_ASSERT_MSG(ret==0, "_starpu_insert_task_create_and_submit failure %d", ret);
 	}
@@ -622,7 +627,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 				for(i=0 ; i<nb_handles ; i++)
 				{
-					_starpu_mpi_exchange_data_after_execution(datas[i], codelet->modes[current_data], me, xrank, dest, do_execute, comm);
+					_starpu_mpi_exchange_data_after_execution(datas[i], STARPU_CODELET_GET_MODE(codelet, current_data), me, xrank, dest, do_execute, comm);
 					current_data++;
 				}
 			}
@@ -692,7 +697,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				_starpu_mpi_clear_data_after_execution(datas[i], codelet->modes[current_data], me, do_execute, comm);
+				_starpu_mpi_clear_data_after_execution(datas[i], STARPU_CODELET_GET_MODE(codelet, current_data), me, do_execute, comm);
 				current_data++;
 			}
 		}
