@@ -974,7 +974,23 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsign
 	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
-/* TODO: use post_exec_hook to fix the expected start */
+static void dmda_post_exec_hook(struct starpu_task * task)
+{
+
+	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(task->sched_ctx);
+	unsigned workerid = task->workerid;
+	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	if(task->execute_on_a_specific_worker)
+		fifo->ntasks--;
+	fifo->exp_start = starpu_timing_now();
+	fifo->exp_end = fifo->exp_start + fifo->exp_len;
+	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+}
+
 struct starpu_sched_policy _starpu_sched_dm_policy =
 {
 	.init_sched = initialize_dmda_policy,
@@ -984,7 +1000,7 @@ struct starpu_sched_policy _starpu_sched_dm_policy =
 	.push_task = dm_push_task,
 	.pop_task = dmda_pop_task,
 	.pre_exec_hook = NULL,
-	.post_exec_hook = NULL,
+	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dm",
 	.policy_description = "performance model"
@@ -1000,7 +1016,7 @@ struct starpu_sched_policy _starpu_sched_dmda_policy =
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
-	.post_exec_hook = NULL,
+	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmda",
 	.policy_description = "data-aware performance model"
@@ -1016,7 +1032,7 @@ struct starpu_sched_policy _starpu_sched_dmda_sorted_policy =
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_ready_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
-	.post_exec_hook = NULL,
+	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdas",
 	.policy_description = "data-aware performance model (sorted)"
@@ -1032,7 +1048,7 @@ struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_ready_task,
 	.pre_exec_hook = dmda_pre_exec_hook,
-	.post_exec_hook = NULL,
+	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdar",
 	.policy_description = "data-aware performance model (ready)"
