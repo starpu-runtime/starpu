@@ -2370,7 +2370,7 @@ by an amount of floating point operations, as a double. The user may have to
 explicitly cast into double, otherwise parameter passing will not work.
 @end defmac
 
-@deftypefun void starpu_codelet_pack_args ({char **}@var{arg_buffer}, {size_t *}@var{arg_buffer_size}, ...)
+@deftypefun void starpu_codelet_pack_args ({void **}@var{arg_buffer}, {size_t *}@var{arg_buffer_size}, ...)
 Pack arguments of type @code{STARPU_VALUE} into a buffer which can be
 given to a codelet and later unpacked with the function
 @code{starpu_codelet_unpack_args} defined below.
@@ -3707,7 +3707,7 @@ Get the description of a combined worker
 Variant of starpu_worker_can_execute_task compatible with combined workers
 @end deftypefun
 
-@deftypefun void starpu_parallel_task_barrier_init ({struct starpu_task* }@var{task}, int @var{best_workerid})
+@deftypefun void starpu_parallel_task_barrier_init ({struct starpu_task* }@var{task}, int @var{workerid})
 Initialise the barrier for the parallel task, and dispatch the task
 between the different combined workers
 @end deftypefun
