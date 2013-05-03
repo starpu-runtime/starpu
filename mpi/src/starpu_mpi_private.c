@@ -18,7 +18,7 @@
 #include <starpu_mpi_private.h>
 
 int _debug_rank=-1;
-int _debug_level=3;
+int _debug_level=0;
 int _starpu_mpi_tag = 42;
 
 void _starpu_mpi_set_debug_level(int level)
