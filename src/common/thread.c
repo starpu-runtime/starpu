@@ -40,9 +40,9 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	return 0;
 }
 
-int starpu_pthread_create(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg)
+int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg)
 {
-	return starpu_pthread_create_on(name, thread, attr, start_routine, arg, 0);
+	return starpu_pthread_create_on("", thread, attr, start_routine, arg, 0);
 }
 
 int starpu_pthread_join(starpu_pthread_t thread, void **retval)
