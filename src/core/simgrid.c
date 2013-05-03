@@ -346,7 +346,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 int
 _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_pthread_args *args = MSG_process_get_data(MSG_process_self());
+	struct _starpu_pthread_args *args = MSG_process_get_data(MSG_process_self());
 	args->f(args->arg);
 	free(args);
 	return 0;
