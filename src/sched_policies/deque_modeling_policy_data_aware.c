@@ -983,12 +983,12 @@ static void dmda_post_exec_hook(struct starpu_task * task)
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	if(task->execute_on_a_specific_worker)
 		fifo->ntasks--;
 	fifo->exp_start = starpu_timing_now();
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
 struct starpu_sched_policy _starpu_sched_dm_policy =
