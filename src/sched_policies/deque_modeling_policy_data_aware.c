@@ -28,6 +28,10 @@
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>
 
+#ifdef HAVE_AYUDAME_H
+#include <Ayudame.h>
+#endif
+
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
 #endif
