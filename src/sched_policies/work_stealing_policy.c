@@ -24,6 +24,10 @@
 #include <sched_policies/deque_queues.h>
 #include <core/debug.h>
 
+#ifdef HAVE_AYUDAME_H
+#include <Ayudame.h>
+#endif
+
 struct _starpu_work_stealing_data
 {
 	struct _starpu_deque_jobq **queue_array;
