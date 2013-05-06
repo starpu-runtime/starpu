@@ -680,7 +680,7 @@ pick:
 	}
 
 	task->mf_skip = 1;
-	starpu_task_list_push_front(&worker->local_tasks, task);
+	starpu_task_list_push_back(&worker->local_tasks, task);
 	goto pick;
 
 profiling:
@@ -758,9 +758,9 @@ void _starpu_wait_on_sched_event(void)
  * is sufficient. If "back" not null, the task is put at the back of the queue
  * where the worker will pop tasks first. Setting "back" to 0 therefore ensures
  * a FIFO ordering. */
-int starpu_push_local_task(int workerid, struct starpu_task *task, int back)
+int starpu_push_local_task(int workerid, struct starpu_task *task, int prio)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
-	return  _starpu_push_local_task(worker, task, back);
+	return  _starpu_push_local_task(worker, task, prio);
 }

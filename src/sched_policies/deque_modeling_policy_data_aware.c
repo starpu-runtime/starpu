@@ -127,7 +127,7 @@ static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo
 	{
 		fifo_queue->ntasks--;
 
-		task = starpu_task_list_back(&fifo_queue->taskq);
+		task = starpu_task_list_front(&fifo_queue->taskq);
 		if (STARPU_UNLIKELY(!task))
 			return NULL;
 
@@ -141,7 +141,7 @@ static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo
 		{
 			int priority = current->priority;
 
-			if (priority <= first_task_priority)
+			if (priority >= first_task_priority)
 			{
 				int non_ready = count_non_ready_buffers(current, node);
 				if (non_ready < non_ready_best)
@@ -154,7 +154,7 @@ static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo
 				}
 			}
 
-			current = current->prev;
+			current = current->next;
 		}
 
 		starpu_task_list_erase(&fifo_queue->taskq, task);

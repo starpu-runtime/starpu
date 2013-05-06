@@ -613,7 +613,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	struct _starpu_worker *worker;
 	worker = _starpu_get_worker_struct(workerid);
-	starpu_task_list_push_front(&worker->local_tasks, task);
+	starpu_task_list_push_back(&worker->local_tasks, task);
 
 	_starpu_profiling_set_task_push_end_time(task);
 
