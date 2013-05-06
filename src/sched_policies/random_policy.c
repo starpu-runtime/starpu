@@ -29,13 +29,15 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 {
 	/* find the queue */
 
-	unsigned selected = 0;
 
 	double alpha_sum = 0.0;
 
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
         int worker;
+	int worker_arr[STARPU_NMAXWORKERS];
+	double speedup_arr[STARPU_NMAXWORKERS];
+	int size = 0;
 	struct starpu_sched_ctx_iterator it;
         if(workers->init_iterator)
                 workers->init_iterator(workers, &it);
@@ -43,31 +45,46 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
         while(workers->has_next(workers, &it))
 	{
                 worker = workers->get_next(workers, &it);
-
-		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		alpha_sum += starpu_worker_get_relative_speedup(perf_arch);
+		int impl = 0;
+		for(impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
+		{
+			if(starpu_worker_can_execute_task(worker, task, impl))
+			{
+				enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+				double speedup = starpu_worker_get_relative_speedup(perf_arch);
+				alpha_sum += speedup;
+				speedup_arr[size] = speedup;
+				worker_arr[size++] = worker;
+				break;
+			}
+		}
 	}
 
 	double random = starpu_drand48()*alpha_sum;
 //	_STARPU_DEBUG("my rand is %e\n", random);
 
+	if(size == 0)
+		return -ENODEV;
+
+	unsigned selected = worker_arr[size - 1];
+
 	double alpha = 0.0;
-	while(workers->has_next(workers, &it))
-        {
-                worker = workers->get_next(workers, &it);
-
-		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
-		double worker_alpha = starpu_worker_get_relative_speedup(perf_arch);
-
-		if (alpha + worker_alpha > random && starpu_worker_can_execute_task(worker, task, 0))
+	int i;
+	for(i = 0; i < size; i++)
+	{
+                worker = worker_arr[i];
+		double worker_alpha = speedup_arr[i];
+		
+		if (alpha + worker_alpha >= random)
 		{
 			/* we found the worker */
 			selected = worker;
 			break;
 		}
-
+		
 		alpha += worker_alpha;
 	}
+
 
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
@@ -77,7 +94,6 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	}
 #endif
 
-	/* we should now have the best worker in variable "selected" */
 	return starpu_push_local_task(selected, task, prio);
 }
 
