@@ -35,7 +35,7 @@ A(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
-	printf("A");
+	FPRINTF(stdout,"A");
 	usleep(1000);
 }
 
@@ -44,7 +44,7 @@ B(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
-	printf("B");
+	FPRINTF(stdout,"B");
 	usleep(1000);
 }
 
@@ -91,7 +91,7 @@ run(struct starpu_sched_policy *policy)
 	}
 
 	starpu_task_wait_for_all();
-	printf("\n");
+	FPRINTF(stdout,"\n");
 
 	starpu_shutdown();
 	return 0;
