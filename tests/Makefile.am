@@ -215,6 +215,7 @@ noinst_PROGRAMS =				\
 	perfmodels/valid_model			\
 	sched_policies/data_locality            \
 	sched_policies/execute_all_tasks        \
+	sched_policies/prio        		\
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched
 

@@ -28,6 +28,10 @@
 #include <sched_policies/fifo_queues.h>
 #include <limits.h>
 
+#ifdef HAVE_AYUDAME_H
+#include <Ayudame.h>
+#endif
+
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
 #endif
@@ -123,7 +127,7 @@ static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo
 	{
 		fifo_queue->ntasks--;
 
-		task = starpu_task_list_back(&fifo_queue->taskq);
+		task = starpu_task_list_front(&fifo_queue->taskq);
 		if (STARPU_UNLIKELY(!task))
 			return NULL;
 
@@ -137,7 +141,7 @@ static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo
 		{
 			int priority = current->priority;
 
-			if (priority <= first_task_priority)
+			if (priority >= first_task_priority)
 			{
 				int non_ready = count_non_ready_buffers(current, node);
 				if (non_ready < non_ready_best)
@@ -150,7 +154,7 @@ static struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo
 				}
 			}
 
-			current = current->prev;
+			current = current->next;
 		}
 
 		starpu_task_list_erase(&fifo_queue->taskq, task);
@@ -978,17 +982,17 @@ static void dmda_post_exec_hook(struct starpu_task * task)
 {
 
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(task->sched_ctx);
-	unsigned workerid = task->workerid;
+	int workerid = starpu_worker_get_id();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-	_STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	if(task->execute_on_a_specific_worker)
 		fifo->ntasks--;
 	fifo->exp_start = starpu_timing_now();
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
-	_STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
 struct starpu_sched_policy _starpu_sched_dm_policy =
