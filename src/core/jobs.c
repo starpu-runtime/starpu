@@ -444,7 +444,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
-	if (back)
+	if (prio)
 		starpu_task_list_push_front(&worker->local_tasks, task);
 	else
 		starpu_task_list_push_back(&worker->local_tasks, task);
