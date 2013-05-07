@@ -74,10 +74,14 @@ void _starpu_sched_node_worker_destroy(struct _starpu_sched_node *);
 int _starpu_sched_node_is_worker(struct _starpu_sched_node * node);
 int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_node);
 
+struct _starpu_sched_node * _starpu_sched_node_fifo_create(void);
+struct _starpu_fifo_taskq *  _starpu_node_fifo_get_fifo(struct _starpu_sched_node *);
+
 //struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void);
 struct _starpu_sched_node * _starpu_sched_node_random_create(void);
 
-struct _starpu_sched_node * _starpu_sched_node_eager_create(void)
+struct _starpu_sched_node * _starpu_sched_node_eager_create(void);
+
 
 
 void _starpu_tree_destroy(struct _starpu_sched_tree * tree, unsigned sched_ctx_id);
@@ -89,9 +93,10 @@ void _starpu_node_destroy_rec(struct _starpu_sched_node * node, unsigned sched_c
 
 int _starpu_tree_push_task(struct starpu_task * task);
 struct starpu_task * _starpu_tree_pop_task(unsigned sched_ctx_id);
+
+//this function must be called after all modification of tree
 void _starpu_tree_update_after_modification(struct _starpu_sched_tree * tree);
-
-
-extern struct starpu_sched_policy _starpu_sched_tree_eager_policy;
-extern struct starpu_sched_policy _starpu_sched_tree_random_policy;
+;
+//extern struct starpu_sched_policy _starpu_sched_tree_eager_policy;
+//extern struct starpu_sched_policy _starpu_sched_tree_random_policy;
 #endif

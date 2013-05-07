@@ -22,7 +22,7 @@ static double compute_relative_speedup(struct _starpu_sched_node * node)
 	return sum;
 }
 
-static void update_relative_childs_speedup(struct _starpu_sched_node * node,int former_nchilds STARPU_ATTRIBUTE_UNUSED)
+static void update_relative_childs_speedup(struct _starpu_sched_node * node)
 {
 	struct _starpu_random_data * rd = node->data;
 	rd->relative_speedup = realloc(rd->relative_speedup,sizeof(double) * node->nchilds);
@@ -98,7 +98,6 @@ struct _starpu_sched_node * _starpu_sched_node_random_create(void)
 	struct _starpu_random_data * rd = malloc(sizeof(struct _starpu_random_data));
 	rd->relative_speedup = NULL;
 	node->data = rd;
-	node->update_nchilds = update_relative_childs_speedup;
 	node->destroy_node = destroy_random_node;
 	node->push_task = push_task;
 	node->add_child = add_child;
@@ -131,7 +130,7 @@ static void add_worker_random(unsigned sched_ctx_id, int * workerids, unsigned n
 		_starpu_sched_node_add_child(t->root,
 					     _starpu_sched_node_worker_get(workerids[i]),
 					     sched_ctx_id);
-	update_relative_childs_speedup(t->root,42 /*unused*/);
+	update_relative_childs_speedup(t->root);
 	_starpu_tree_update_after_modification(t);
 }
 
@@ -143,7 +142,7 @@ static void remove_worker_random(unsigned sched_ctx_id, int * workerids, unsigne
 		_starpu_sched_node_remove_child(t->root,
 						_starpu_sched_node_worker_get(workerids[i]),
 						sched_ctx_id);
-	update_relative_childs_speedup(t->root,42 /*unused*/);
+	update_relative_childs_speedup(t->root);
 	_starpu_tree_update_after_modification(t);
 }
 

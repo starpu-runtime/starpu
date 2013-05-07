@@ -65,6 +65,8 @@ extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
 extern struct starpu_sched_policy _starpu_sched_eager_policy;
 extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
 extern struct starpu_sched_policy _starpu_sched_peager_policy;
-
+extern struct starpu_sched_policy _starpu_sched_tree_eager_policy;
+extern struct starpu_sched_policy _starpu_sched_tree_random_policy;
+extern struct starpu_sched_policy _starpu_sched_tree_ws_policy;
 
 #endif // __SCHED_POLICY_H__

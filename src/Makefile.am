@@ -119,7 +119,8 @@ noinst_HEADERS = 						\
 	starpu_parameters.h					\
 	top/starpu_top_message_queue.h				\
 	top/starpu_top_connection.h				\
-	top/starpu_top_core.h
+	top/starpu_top_core.h					\
+	sched_policies/node_sched.h
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	common/barrier.c					\
@@ -219,8 +220,13 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	top/starpu_top_task.c					\
 	top/starpu_top_message_queue.c				\
 	top/starpu_top_connection.c                          	\
-	worker_collection/worker_list.c
-
+	worker_collection/worker_list.c				\
+	sched_policies/node_sched.c				\
+	sched_policies/node_eager.c				\
+	sched_policies/node_random.c				\
+	sched_policies/node_work_stealing.c			\
+	sched_policies/node_worker.c				\
+	sched_policies/node_fifo.c
 if STARPU_USE_CPU
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
 endif

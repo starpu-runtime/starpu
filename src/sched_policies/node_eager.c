@@ -1,6 +1,7 @@
-#include "node_sched.h"
 #include <common/thread.h>
 #include <core/sched_policy.h>
+#include "node_sched.h"
+#include "fifo_queues.h"
 /*
 static void _starpu_wake_all_interested_workers(struct starpu_task * task){
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(task->sched_ctx);

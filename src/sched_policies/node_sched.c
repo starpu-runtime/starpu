@@ -1,6 +1,6 @@
-#include "node_sched.h"
 #include <core/jobs.h>
 #include <core/workers.h>
+#include "node_sched.h"
 
 static void available(struct _starpu_sched_node * node)
 {
@@ -123,8 +123,6 @@ void _starpu_sched_node_add_child(struct _starpu_sched_node* node, struct _starp
 	node->childs[node->nchilds] = child;
 	child->fathers[sched_ctx_id] = node;
 	node->nchilds++;
-	if(node->update_nchilds)
-		node->update_nchilds(node, node->nchilds - 1);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
 }
 void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child,unsigned sched_ctx_id)
@@ -137,8 +135,6 @@ void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _s
 	node->childs[pos] = node->childs[--node->nchilds];
 	STARPU_ASSERT(child->fathers[sched_ctx_id] == node);
 	child->fathers[sched_ctx_id] = NULL;
-	if(node->update_nchilds)
-		node->update_nchilds(node, node->nchilds + 1);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
 }
 
