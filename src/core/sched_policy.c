@@ -33,6 +33,9 @@ int starpu_get_prefetch_flag(void)
 
 static struct starpu_sched_policy *predefined_policies[] =
 {
+	&_starpu_sched_tree_eager_policy,
+	&_starpu_sched_tree_random_policy,
+	&_starpu_sched_tree_ws_policy,
 	&_starpu_sched_eager_policy,
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_random_policy,
@@ -43,9 +46,6 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_dmda_sorted_policy,
 	&_starpu_sched_parallel_heft_policy,
 	&_starpu_sched_peager_policy,
-	&_starpu_sched_tree_eager_policy,
-	&_starpu_sched_tree_random_policy,
-	&_starpu_sched_tree_ws_policy,
 	NULL
 };
 

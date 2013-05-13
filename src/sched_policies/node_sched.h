@@ -24,7 +24,7 @@ struct _starpu_sched_node
 	 */
 	struct _starpu_sched_node * fathers[STARPU_NMAX_SCHED_CTXS];
 	
-
+	
 
 	void (*add_child)(struct _starpu_sched_node *node,
 			  struct _starpu_sched_node *child,

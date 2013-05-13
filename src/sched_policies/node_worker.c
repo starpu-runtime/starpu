@@ -17,9 +17,12 @@ struct _starpu_sched_node * _starpu_sched_node_worker_get(int workerid)
 
 int _starpu_sched_node_worker_push_task(struct _starpu_sched_node * node, struct starpu_task *task)
 {
+	/*this function take the worker's mutex */
 	
-	return _starpu_push_local_task(node->data, task, task->priority);
+	int ret = _starpu_push_local_task(node->data, task, task->priority);
 
+
+	return ret;
 /*	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
 	int ret_val = _starpu_fifo_push_sorted_task(node->fifo, task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
@@ -93,11 +96,7 @@ static struct _starpu_sched_node  * _starpu_sched_node_worker_create(int workeri
 
 int _starpu_sched_node_is_worker(struct _starpu_sched_node * node)
 {
-	int i;
-	for(i = 0; i < STARPU_NMAXWORKERS; i++)
-		if(_worker_nodes[i] == node)
-			return 1;
-	return 0;
+	return node->available == available;
 }
 
 #ifndef STARPU_NO_ASSERT

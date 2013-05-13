@@ -145,7 +145,7 @@ int _starpu_tree_push_task(struct starpu_task * task)
 	struct _starpu_sched_tree *tree = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_LOCK(&tree->mutex);
 	int ret_val = tree->root->push_task(tree->root,task); 
-	starpu_push_task_end(task);
+//	starpu_push_task_end(task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tree->mutex);
 	return ret_val;
 }
