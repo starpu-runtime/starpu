@@ -1092,7 +1092,7 @@ AC_DEFINE_UNQUOTED(STARPU_MAXNODES, [$maxnodes],
 AC_MSG_CHECKING(whether allocation cache should be used)
 AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--enable-allocation-cache],
 			[enable data allocation cache])],
-			enable_allocation_cache=$enableval, enable_allocation_cache=no)
+			enable_allocation_cache=$enableval, enable_allocation_cache=yes)
 AC_MSG_RESULT($enable_allocation_cache)
 if test x$enable_allocation_cache = xyes; then
 	AC_DEFINE(STARPU_USE_ALLOCATION_CACHE, [1], [enable data allocation cache])
