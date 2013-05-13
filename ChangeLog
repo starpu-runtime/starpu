@@ -18,6 +18,14 @@ StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 
 New features:
+  * MPI:
+        - New internal communication system : a unique tag called
+	  is now used for all communications, and a system
+	  of hashmaps on each node which stores pending receives has been
+	  implemented. Every message is now coupled with an envelope, sent
+	  before the corresponding data, which allows the receiver to
+	  allocate data correctly, and to submit the matching receive of
+	  the envelope.
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================

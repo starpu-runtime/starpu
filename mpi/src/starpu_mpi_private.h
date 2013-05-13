@@ -20,6 +20,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <common/uthash.h>
 #include "starpu_mpi.h"
 #include "starpu_mpi_fxt.h"
 #include <common/list.h>
@@ -68,6 +69,8 @@ void _starpu_mpi_set_debug_level(int level);
 #  define _STARPU_MPI_LOG_OUT()
 #endif
 
+extern int _starpu_mpi_tag;
+
 enum _starpu_mpi_request_type
 {
 	SEND_REQ=0,
@@ -107,6 +110,8 @@ LIST_TYPE(_starpu_mpi_req,
 
 	unsigned submitted;
 	unsigned completed;
+
+	UT_hash_handle hh;
 
 	/* In the case of a Wait/Test request, we are going to post a request
 	 * to test the completion of another request */

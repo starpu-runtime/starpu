@@ -602,6 +602,15 @@ codelet, and reduction between per-worker buffers will be done with the
 @var{redux_cl} codelet.
 @end deftypefun
 
+@deftypefun struct starpu_data_interface_ops* starpu_data_get_interface_ops (starpu_data_handle_t @var{handle})
+Get a pointer to the structure describing the different methods used
+to manipulate the given data. See @ref{struct starpu_data_interface_ops} for more details on this structure.
+@end deftypefun
+
+@deftypefun unsigned starpu_data_get_sequential_consistency_flag (starpu_data_handle_t @var{handle})
+Return the sequential consistency flag of the given data.
+@end deftypefun
+
 @node Access registered data from the application
 @subsection Access registered data from the application
 
@@ -3345,6 +3354,16 @@ to the world size. Communications statistics must be enabled
 (@pxref{STARPU_COMM_STATS}).
 @end deftypefun
 
+@deftypefun void starpu_mpi_set_communication_tag (int @var{tag})
+@anchor{starpu_mpi_set_communication_tag}
+Tell StarPU-MPI which MPI tag to use for all its communications.
+@end deftypefun
+
+@deftypefun int starpu_mpi_get_communication_tag (void)
+@anchor{starpu_mpi_get_communication_tag}
+Returns the MPI tag which will be used for all StarPU-MPI communications.
+@end deftypefun
+
 @node Communication
 @subsection Communication
 
@@ -3473,6 +3492,10 @@ to it.
 
 @deftypefun int starpu_data_get_rank (starpu_data_handle_t @var{handle})
 Returns the last value set by @code{starpu_data_set_rank}.
+@end deftypefun
+
+@deftypefun starpu_data_handle_t starpu_data_get_data_handle_from_tag (int @var{tag})
+Returns the data handle associated to the MPI tag, or NULL if there is not.
 @end deftypefun
 
 @defmac STARPU_EXECUTE_ON_NODE
