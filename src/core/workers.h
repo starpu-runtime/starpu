@@ -85,6 +85,15 @@ struct _starpu_worker
 	unsigned active_ctx;
 
 	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS];
+
+	/* conditions variables used when parallel sections are executed in contexts */
+	starpu_pthread_cond_t parallel_sect_cond;
+	starpu_pthread_mutex_t parallel_sect_mutex;
+
+	/* boolean indicating that workers should block in order to allow
+	   parallel sections to be executed on their allocated resources */
+	unsigned parallel_sect;
+
 #ifdef __GLIBC__
 	cpu_set_t initial_cpu_set;
 	cpu_set_t current_cpu_set;

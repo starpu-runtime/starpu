@@ -215,6 +215,30 @@ static void _starpu_sched_ctx_free_scheduling_data(struct _starpu_sched_ctx *sch
 
 }
 
+#ifdef STARPU_HAVE_HWLOC
+static void _starpu_sched_ctx_create_hwloc_tree(struct _starpu_sched_ctx *sched_ctx)
+{
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	sched_ctx->hwloc_workers_set = hwloc_bitmap_alloc();
+
+	struct starpu_worker_collection *workers = sched_ctx->workers;
+	int worker;
+	struct starpu_sched_ctx_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		hwloc_bitmap_or(sched_ctx->hwloc_workers_set,
+				sched_ctx->hwloc_workers_set,
+				config->workers[worker].initial_hwloc_cpu_set);
+
+	}
+	return;
+}
+#endif
+
 struct _starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int *workerids,
 				  int nworkers_ctx, unsigned is_initial_sched,
 				  const char *sched_name)
@@ -259,6 +283,10 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int
 	/* after having an worker_collection on the ressources add them */
 	_starpu_add_workers_to_sched_ctx(sched_ctx, workerids, nworkers_ctx, NULL, NULL);
 
+#ifdef STARPU_HAVE_HWLOC
+	/* build hwloc tree of the context */
+	_starpu_sched_ctx_create_hwloc_tree(sched_ctx);
+#endif //STARPU_HAVE_HWLOC
 
 	/* if we create the initial big sched ctx we can update workers' status here
 	   because they haven't been launched yet */
@@ -1102,3 +1130,88 @@ int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio)
 	sched_ctx->max_priority = max_prio;
 	return 0;
 }
+
+static void _starpu_sched_ctx_bind_thread_to_ctx_cpus(unsigned sched_ctx_id)
+{
+#ifdef STARPU_HAVE_HWLOC
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	
+	const struct hwloc_topology_support *support = hwloc_topology_get_support(config->topology.hwtopology);
+        if (support->cpubind->set_thisthread_cpubind)
+        {
+		hwloc_bitmap_t set = sched_ctx->hwloc_workers_set;
+                int ret;
+		
+                ret = hwloc_set_cpubind (config->topology.hwtopology, set,
+                                         HWLOC_CPUBIND_THREAD);
+		if (ret)
+                {
+                        perror("binding thread");
+			STARPU_ABORT();
+                }
+	}
+
+#else
+#warning no sched ctx CPU binding support
+#endif
+	return;
+}
+static void _starpu_sched_ctx_get_workers_to_sleep(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+
+	struct starpu_worker_collection *workers = sched_ctx->workers;
+	struct starpu_sched_ctx_iterator it;
+	struct _starpu_worker *worker = NULL;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+
+	while(workers->has_next(workers, &it))
+	{
+		worker = _starpu_get_worker_struct(workers->get_next(workers, &it));
+		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+		worker->parallel_sect = 1;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	}
+	return;
+}
+
+static void _starpu_sched_ctx_wake_up_workers(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+
+	struct starpu_worker_collection *workers = sched_ctx->workers;
+	struct starpu_sched_ctx_iterator it;
+	struct _starpu_worker *worker = NULL;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+
+	while(workers->has_next(workers, &it))
+	{
+		worker = _starpu_get_worker_struct(workers->get_next(workers, &it));
+		STARPU_PTHREAD_MUTEX_LOCK(&worker->parallel_sect_mutex);
+		STARPU_PTHREAD_COND_BROADCAST(&worker->parallel_sect_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->parallel_sect_mutex);
+	}
+	return;
+}
+
+void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void* param), void* param, unsigned sched_ctx_id)
+{
+	/* get starpu workers to sleep */
+	_starpu_sched_ctx_get_workers_to_sleep(sched_ctx_id);
+
+	/* bind current thread on all workers of the context */
+	_starpu_sched_ctx_bind_thread_to_ctx_cpus(sched_ctx_id);
+	
+	/* execute parallel code */
+	void* ret = func(param);
+
+	/* wake up starpu workers */
+	_starpu_sched_ctx_wake_up_workers(sched_ctx_id);
+
+	return ret;
+}
+
+

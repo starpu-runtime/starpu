@@ -91,6 +91,11 @@ struct _starpu_sched_ctx
          * task (level 1) or it is not (level 0). */
      	int min_priority;
 	int max_priority;
+	
+	/* hwloc tree structure of workers */
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_bitmap_t hwloc_workers_set;
+#endif
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 	/* a structure containing a series of performance counters determining the resize procedure */

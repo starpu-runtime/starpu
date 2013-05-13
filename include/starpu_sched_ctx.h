@@ -181,6 +181,8 @@ int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio);
  * statically allocate tasks with a default priority. */
 #define STARPU_DEFAULT_PRIO	0
 
+/* execute any parallel code on the workers of the sched_ctx (workers are blocked) */
+void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void* param), void* param, unsigned sched_ctx_id);
 
 #ifdef __cplusplus
 }

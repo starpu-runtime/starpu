@@ -400,6 +400,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 		STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
 		STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
+		STARPU_PTHREAD_MUTEX_INIT(&workerarg->parallel_sect_mutex, NULL);
+		STARPU_PTHREAD_COND_INIT(&workerarg->parallel_sect_cond, NULL);
+		workerarg->parallel_sect = 0;
 
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
