@@ -24,6 +24,10 @@
 #include <common/barrier_counter.h>
 #include <profiling/profiling.h>
 
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
 #define NO_RESIZE -1
 #define REQ_RESIZE 0
 #define DO_RESIZE 1
