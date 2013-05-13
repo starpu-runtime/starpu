@@ -230,9 +230,12 @@ static void _starpu_sched_ctx_create_hwloc_tree(struct _starpu_sched_ctx *sched_
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
-		hwloc_bitmap_or(sched_ctx->hwloc_workers_set,
-				sched_ctx->hwloc_workers_set,
-				config->workers[worker].initial_hwloc_cpu_set);
+		if(!starpu_worker_is_combined_worker(worker))
+		{
+			hwloc_bitmap_or(sched_ctx->hwloc_workers_set,
+					sched_ctx->hwloc_workers_set,
+					config->workers[worker].initial_hwloc_cpu_set);
+		}
 
 	}
 	return;
