@@ -127,7 +127,7 @@ static int _worker_consistant(struct _starpu_sched_node * node)
 int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_node)
 {
 #ifndef STARPU_NO_ASSERT
-	assert(_worker_consistant(worker_node));
+	STARPU_ASSERT(_worker_consistant(worker_node));
 #endif
 	struct _starpu_worker * worker = worker_node->data;
 	return worker->workerid;

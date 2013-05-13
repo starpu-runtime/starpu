@@ -6,6 +6,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
 	int ret = _starpu_fifo_push_sorted_task(node->data, task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
+	node->available(node);
 	return ret;
 }
 
@@ -33,7 +34,7 @@ struct _starpu_sched_node * _starpu_sched_node_fifo_create(void)
 }
 
 
-struct _starpu_fifo_taskq *  _starpu_node_fifo_get_fifo(struct _starpu_sched_node * node)
+struct _starpu_fifo_taskq *  _starpu_sched_node_fifo_get_fifo(struct _starpu_sched_node * node)
 {
 	STARPU_ASSERT(node->push_task == push_task);
 	return node->data;

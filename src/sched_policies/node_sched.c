@@ -6,7 +6,7 @@ static void available(struct _starpu_sched_node * node)
 {
 	int i;
 	for(i = 0; i < node->nchilds; i++)
-		node->available(node->childs[i]);
+		node->childs[i]->available(node->childs[i]);
 }
 static struct starpu_task * pop_task_null(struct _starpu_sched_node * node STARPU_ATTRIBUTE_UNUSED, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
@@ -22,7 +22,7 @@ struct _starpu_sched_node * _starpu_sched_node_create(void)
 	node->pop_task = pop_task_null;
 	node->destroy_node = _starpu_sched_node_destroy;
 	node->add_child = _starpu_sched_node_add_child;
-node->remove_child = _starpu_sched_node_remove_child;
+	node->remove_child = _starpu_sched_node_remove_child;
 	
 	return node;
 }

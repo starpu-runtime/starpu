@@ -23,6 +23,7 @@ struct _starpu_sched_node
 	 * so we need several fathers
 	 */
 	struct _starpu_sched_node * fathers[STARPU_NMAX_SCHED_CTXS];
+	
 
 
 	void (*add_child)(struct _starpu_sched_node *node,
@@ -75,7 +76,7 @@ int _starpu_sched_node_is_worker(struct _starpu_sched_node * node);
 int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_node);
 
 struct _starpu_sched_node * _starpu_sched_node_fifo_create(void);
-struct _starpu_fifo_taskq *  _starpu_node_fifo_get_fifo(struct _starpu_sched_node *);
+struct _starpu_fifo_taskq *  _starpu_sched_node_fifo_get_fifo(struct _starpu_sched_node *);
 
 //struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void);
 struct _starpu_sched_node * _starpu_sched_node_random_create(void);

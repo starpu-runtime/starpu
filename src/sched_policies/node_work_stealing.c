@@ -34,10 +34,10 @@ static int calibration_value = 0;
  *
  * if no child have task, return -1 and dont take any mutex
  */
-static unsigned select_victim_round_robin(struct _starpu_sched_node *node)
+static int select_victim_round_robin(struct _starpu_sched_node *node)
 {
 	struct _starpu_work_stealing_data *ws = node->data;
-	int i = (ws->last_pop_child + 1) % node->nchilds;
+	unsigned i = ws->last_pop_child;
 
 	starpu_pthread_mutex_t *victim_sched_mutex;
 
@@ -47,7 +47,7 @@ static unsigned select_victim_round_robin(struct _starpu_sched_node *node)
 	{
 		unsigned ntasks;
 		struct _starpu_sched_node * child = node->childs[i];
-		struct _starpu_fifo_taskq * fifo = _starpu_node_fifo_get_fifo(child);
+		struct _starpu_fifo_taskq * fifo = _starpu_sched_node_fifo_get_fifo(child);
 		victim_sched_mutex = &child->mutex;
 		STARPU_PTHREAD_MUTEX_LOCK(victim_sched_mutex);
 		ntasks = fifo->ntasks;
@@ -55,7 +55,7 @@ static unsigned select_victim_round_robin(struct _starpu_sched_node *node)
 			break;
 		STARPU_PTHREAD_MUTEX_UNLOCK(victim_sched_mutex);
 		i = (i + 1) % node->nchilds;
-		if ((unsigned) i == ws->last_pop_child)
+		if (i == ws->last_pop_child)
 		{
 			/* We got back to the first worker,
 			 * don't go in infinite loop */
@@ -63,7 +63,7 @@ static unsigned select_victim_round_robin(struct _starpu_sched_node *node)
 		}
 	}
 
-	ws->last_pop_child = i;
+	ws->last_pop_child = (i+1)%node->nchilds;
 
 	return i;
 }
@@ -90,20 +90,20 @@ static unsigned select_worker_round_robin(struct _starpu_sched_node * node)
  * 		a smaller value implies a faster worker with an relatively emptier queue : more suitable to put tasks in
  * 		a bigger value implies a slower worker with an reletively more replete queue : more suitable to steal tasks from
  */
-static float overload_metric(unsigned sched_ctx_id, unsigned id)
+static float overload_metric(struct _starpu_sched_node * node, unsigned id)
 {
-	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)node->data;
 	float execution_ratio = 0.0f;
 	float current_ratio = 0.0f;
-
-	int nprocessed = _starpu_get_deque_nprocessed(ws->queue_array[id]);
-	unsigned njobs = _starpu_get_deque_njobs(ws->queue_array[id]);
+	struct _starpu_fifo_taskq * fifo = _starpu_sched_node_fifo_get_fifo(node->childs[id]);
+	int nprocessed = fifo->nprocessed;
+	unsigned njobs = fifo->ntasks;
 
 	/* Did we get enough information ? */
-	if (performed_total > 0 && nprocessed > 0)
+	if (ws->performed_total > 0 && nprocessed > 0)
 	{
 		/* How fast or slow is the worker compared to the other workers */
-		execution_ratio = (float) nprocessed / performed_total;
+		execution_ratio = (float) nprocessed / ws->performed_total;
 		/* How replete is its queue */
 		current_ratio = (float) njobs / nprocessed;
 	}
@@ -239,7 +239,7 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 			return NULL;
 	}
 	struct _starpu_sched_node * child = node->childs[victim];
-	struct _starpu_fifo_taskq * fifo = _starpu_node_fifo_get_fifo(child);
+	struct _starpu_fifo_taskq * fifo = _starpu_sched_node_fifo_get_fifo(child);
 	struct starpu_task * task = _starpu_fifo_pop_task(fifo,
 							  starpu_worker_get_id());
 	fifo->nprocessed--;
