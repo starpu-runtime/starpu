@@ -824,7 +824,7 @@ void starpu_profiling_init()
 
 static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 {
-	int status STARPU_ATTRIBUTE_UNUSED;
+	int status = 0;
 	unsigned workerid;
 
 	for (workerid = 0; workerid < pconfig->topology.nworkers; workerid++)
