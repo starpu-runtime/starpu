@@ -50,6 +50,7 @@ int parallel_code(int nprocs)
 #pragma omp parallel for num_threads(nprocs)
 	for (i = 0; i < NTASKS; i++) 
 		tasks++;
+
 	return tasks;
 }
 
@@ -77,7 +78,7 @@ int main(int argc, char **argv)
 	nprocs1 = ncpus/2;
 	nprocs2 =  nprocs1;
 	int j, k = 0;
-	for(j = nprocs1; j < nprocs2; j++)
+	for(j = nprocs1; j < nprocs1+nprocs2; j++)
 		procs2[k++] = j;
 #endif
 
@@ -110,7 +111,6 @@ int main(int argc, char **argv)
 
 	/* execute an openmp code */
 	int ret_ntasks = (int)starpu_sched_ctx_exec_parallel_code((void*)parallel_code, (void*)nprocs2, sched_ctx2);
-	printf("ctx%d: tasks %d out of %d\n", sched_ctx2, ret_ntasks, NTASKS);
 	starpu_sched_ctx_finished_submit(sched_ctx2);
 
 	/* wait for all tasks at the end*/
@@ -118,7 +118,8 @@ int main(int argc, char **argv)
 
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
-	printf("ctx%d: tasks executed %d out of %d\n", sched_ctx1, tasks_executed, ntasks);
+	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed, ntasks);
+	printf("ctx%d: tasks openmp executed %d out of %d\n", sched_ctx2, ret_ntasks, NTASKS);
 	starpu_shutdown();
 
 	return 0;
