@@ -319,6 +319,14 @@ $ starpu_fxt_tool -i filename1 -i filename2
 By default, all tasks are displayed using a green color. To display tasks with
 varying colors, pass option @code{-c} to @code{starpu_fxt_tool}.
 
+Traces can also be inspected by hand by using the @code{fxt_print} tool, for instance:
+
+@smallexample
+$ fxt_print -o -f filename
+@end smallexample
+
+Timings are in nanoseconds (while timings as seen in @code{vite} are in milliseconds).
+
 @node DAG
 @subsection Creating a DAG with graphviz
 
