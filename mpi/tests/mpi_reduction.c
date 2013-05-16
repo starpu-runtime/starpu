@@ -143,6 +143,10 @@ int main(int argc, char **argv)
 					       0);
 		}
 		starpu_mpi_redux_data(MPI_COMM_WORLD, dot_handle);
+		/* In order to prevent simultaneous receive submissions on the same handle, we need 
+		 * to wait that all the starpu_mpi tasks are done before submitting the display task.
+		 * Indeed, StarPU do not support multiple simultaneous receive requests on a handle.*/
+		starpu_task_wait_for_all();
 		starpu_mpi_insert_task(MPI_COMM_WORLD, &display_codelet, STARPU_R, dot_handle, 0);
 	}
 
