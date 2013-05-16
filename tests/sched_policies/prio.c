@@ -77,7 +77,7 @@ run(struct starpu_sched_policy *policy)
 	for (i = 0; i < NTASKS; i++) {
 		struct starpu_task *task = starpu_task_create();
 
-		if (i%2) {
+		if (random()%2) {
 			task->cl = &clA;
 			task->priority=STARPU_MIN_PRIO;
 		} else {
