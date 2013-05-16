@@ -283,9 +283,9 @@ else
    build_sc_hypervisor="no"
 fi
 
-
 AM_CONDITIONAL([STARPU_BUILD_SC_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SC_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
+
 ###############################################################################
 #                                                                             #
 #                                 CPUs settings                               #
