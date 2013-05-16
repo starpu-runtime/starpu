@@ -17,7 +17,6 @@
 #include <unistd.h>
 #include <starpu.h>
 #include <starpu_scheduler.h>
-#include <stdlib.h>
 #include "../helper.h"
 
 #ifdef STARPU_QUICK_CHECK
@@ -75,10 +74,12 @@ run(struct starpu_sched_policy *policy)
 		.nbuffers = 0
 	};
 
+        starpu_srand48(0);
+
 	for (i = 0; i < NTASKS; i++) {
 		struct starpu_task *task = starpu_task_create();
 
-		if (random()%2) {
+		if (((int)starpu_drand48())%2) {
 			task->cl = &clA;
 			task->priority=STARPU_MIN_PRIO;
 		} else {
