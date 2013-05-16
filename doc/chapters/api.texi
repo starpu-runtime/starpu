@@ -2382,6 +2382,7 @@ explicitly cast into double, otherwise parameter passing will not work.
 @defmac STARPU_SCHED_CTX
 this macro is used when calling @code{starpu_insert_task}, and must be followed
 by the id of the scheduling context to which we want to submit the task.
+@end defmac
 
 @deftypefun void starpu_codelet_pack_args ({void **}@var{arg_buffer}, {size_t *}@var{arg_buffer_size}, ...)
 Pack arguments of type @code{STARPU_VALUE} into a buffer which can be
