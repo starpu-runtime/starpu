@@ -1829,6 +1829,13 @@ m4_ifdef([AM_SILENT_RULES],
 AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
 			enable_build_doc=$enableval, enable_build_doc=yes)
+
+# Check whether texi2dvi is installed
+AC_PATH_PROG(texi2dvicommand, texi2dvi)
+if test "$texi2dvicommand" = "" ; then
+	enable_build_doc="no"
+fi
+
 AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 
 ###############################################################################
