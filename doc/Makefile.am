@@ -95,7 +95,9 @@ chapters/version.texi: $(chapters)
 	fi
 	@echo "@set EDITION $(VERSION)" >> $(top_srcdir)/doc/chapters/version.texi
 	@echo "@set VERSION $(VERSION)" >> $(top_srcdir)/doc/chapters/version.texi
-	@$(RM) timestamp timestamp_updated timestamp_updated_month
+	@-for f in timestamp timestamp_updated timestamp_updated_month ; do \
+		if test -f $$f ; then $(RM) $$f ; fi ;\
+	done
 
 #$(top_srcdir)/doc/starpu.texi: vector_scal_c.texi vector_scal_cuda.texi vector_scal_opencl.texi vector_scal_opencl_codelet.texi
 #vector_scal_c.texi: $(top_srcdir)/examples/basic_examples/vector_scal.c
