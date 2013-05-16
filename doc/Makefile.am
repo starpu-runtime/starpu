@@ -82,8 +82,10 @@ chapters/version.texi: $(chapters)
 	@-for f in $(starpu_TEXINFOS) ; do \
                 if test -f $(top_srcdir)/doc/$$f ; then stat --format=%Y $(top_srcdir)/doc/$$f 2>/dev/null ; fi \
         done | sort -r | head -1 > timestamp
-	@-LC_ALL=C date --date=@`cat timestamp` +"%d %B %Y" > timestamp_updated 2>/dev/null
-	@-LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month 2>/dev/null
+	@if test -s timestamp ; then \
+		-LC_ALL=C date --date=@`cat timestamp` +"%d %B %Y" > timestamp_updated 2>/dev/null;\
+		-LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month 2>/dev/null;\
+	fi
 	@if test -s timestamp_updated ; then \
 		echo "@set UPDATED " `cat timestamp_updated` > $(top_srcdir)/doc/chapters/version.texi;\
 		echo "@set UPDATED-MONTH" `cat timestamp_updated_month` >> $(top_srcdir)/doc/chapters/version.texi;\
