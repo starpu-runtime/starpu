@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <starpu.h>
 #include <starpu_scheduler.h>
+#include <stdlib.h>
 #include "../helper.h"
 
 #ifdef STARPU_QUICK_CHECK
