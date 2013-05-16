@@ -3,7 +3,7 @@
 #include <starpu_scheduler.h>
 
 
-#define USE_OVERLOAD
+//#define USE_OVERLOAD
 #ifdef USE_OVERLOAD
 #include <float.h>
 
@@ -48,7 +48,9 @@ static int select_victim_round_robin(struct _starpu_sched_node *node)
 		unsigned ntasks;
 		struct _starpu_sched_node * child = node->childs[i];
 		struct _starpu_fifo_taskq * fifo = _starpu_sched_node_fifo_get_fifo(child);
-		STARPU_PTHREAD_MUTEX_LOCK(&child->mutex);
+		//STARPU_PTHREAD_MUTEX_LOCK(&child->mutex);//do we need to wait ?
+		if(starpu_pthread_mutex_trylock(&child->mutex))//or not
+			continue;
 		ntasks = fifo->ntasks;
 		if (ntasks)
 			break;
@@ -235,6 +237,7 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 }
 
 
+
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	struct _starpu_work_stealing_data * wsd = node->data;
@@ -283,7 +286,8 @@ int _starpu_ws_push_task(struct starpu_task *task)
 		if(is_my_fifo_node(node,sched_ctx_id))
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
-			int ret_val =  _starpu_fifo_push_sorted_task(node->data, task);
+			struct _starpu_fifo_taskq * fifo = node->data;
+			int ret_val =  _starpu_fifo_push_sorted_task(fifo, task);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
 			return ret_val;
 		}

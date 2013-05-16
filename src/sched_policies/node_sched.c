@@ -8,9 +8,12 @@ static void available(struct _starpu_sched_node * node)
 	for(i = 0; i < node->nchilds; i++)
 		node->childs[i]->available(node->childs[i]);
 }
-static struct starpu_task * pop_task_null(struct _starpu_sched_node * node STARPU_ATTRIBUTE_UNUSED, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
+static struct starpu_task * pop_task_node(struct _starpu_sched_node * node, unsigned sched_ctx_id)
 {
-	return NULL;
+	if(node->fathers[sched_ctx_id] == NULL)
+		return NULL;
+	else
+		return node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id], sched_ctx_id);
 }
 
 struct _starpu_sched_node * _starpu_sched_node_create(void)
@@ -19,7 +22,7 @@ struct _starpu_sched_node * _starpu_sched_node_create(void)
 	memset(node,0,sizeof(*node));
 	STARPU_PTHREAD_MUTEX_INIT(&node->mutex,NULL);
 	node->available = available;
-	node->pop_task = pop_task_null;
+	node->pop_task = pop_task_node;
 	node->destroy_node = _starpu_sched_node_destroy;
 	node->add_child = _starpu_sched_node_add_child;
 	node->remove_child = _starpu_sched_node_remove_child;
@@ -171,6 +174,33 @@ int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct
 	return 0;
 }
 
+int _starpu_sched_node_can_execute_task_with_impl(struct _starpu_sched_node * node, struct starpu_task * task, unsigned nimpl)
+{
+	
+	int worker;
+	STARPU_ASSERT(task);
+	STARPU_ASSERT(nimpl < STARPU_MAXIMPLEMENTATIONS);
+	for(worker = 0; worker < node->nworkers; worker++)
+		if (starpu_worker_can_execute_task(worker, task, nimpl))
+			return 1;
+	return 0;
+
+}
+
+static int is_homogeneous(int * workerids, int nworkers)
+{
+	if(nworkers == 0)
+		return 1;
+	int i = 0;
+	uint32_t last_worker = _starpu_get_worker_struct(workerids[i])->worker_mask;
+	for(i = 1; i < nworkers; i++)
+	{
+		if(last_worker != _starpu_get_worker_struct(workerids[i])->worker_mask)
+		   return 0;
+		last_worker = _starpu_get_worker_struct(workerids[i])->worker_mask;
+	}
+	return 1;
+}
 
 
 static int in_tab(int elem, int * tab, int size)
@@ -180,29 +210,31 @@ static int in_tab(int elem, int * tab, int size)
 			return 1;
 	return 0;
 }
-
 static void _update_workerids_after_tree_modification(struct _starpu_sched_node * node)
 {
 	if(_starpu_sched_node_is_worker(node))
 	{
 		node->nworkers = 1;
 		node->workerids[0] =  _starpu_sched_node_worker_get_workerid(node);
-		return;
 	}
-	int i;
-	node->nworkers = 0;
-	for(i = 0; i < node->nchilds; i++)
+	else
 	{
-		struct _starpu_sched_node * child = node->childs[i];
-		_update_workerids_after_tree_modification(child);
-		int j;
-		for(j = 0; j < child->nworkers; j++)
+		int i;
+		node->nworkers = 0;
+		for(i = 0; i < node->nchilds; i++)
 		{
-			int id = child->workerids[j];
-			if(!in_tab(id, node->workerids, node->nworkers))
-				node->workerids[node->nworkers++] = id;
+			struct _starpu_sched_node * child = node->childs[i];
+			_update_workerids_after_tree_modification(child);
+			int j;
+			for(j = 0; j < child->nworkers; j++)
+			{
+				int id = child->workerids[j];
+				if(!in_tab(id, node->workerids, node->nworkers))
+					node->workerids[node->nworkers++] = id;
+			}
 		}
 	}
+	node->is_homogeneous = is_homogeneous(node->workerids, node->nworkers);
 }
 
 

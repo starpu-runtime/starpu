@@ -1,5 +1,6 @@
 #include "node_sched.h"
 #include <core/workers.h>
+#include <float.h>
 
 static struct _starpu_sched_node * _worker_nodes[STARPU_NMAXWORKERS];
 
@@ -33,15 +34,7 @@ int _starpu_sched_node_worker_push_task(struct _starpu_sched_node * node, struct
 
 struct starpu_task * _starpu_sched_node_worker_pop_task(struct _starpu_sched_node *node,unsigned sched_ctx_id)
 {
-/*	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
-	struct starpu_task * task = _starpu_fifo_pop_local_task(node->fifo);
-	if(task)
-	{      
-		STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
-		return task;
-	}
-*/	struct _starpu_sched_node *father = node->fathers[sched_ctx_id];
-//	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
+	struct _starpu_sched_node *father = node->fathers[sched_ctx_id];
 	if(father == NULL)
 		return NULL;
 	else
@@ -73,6 +66,24 @@ static void available(struct _starpu_sched_node * worker_node)
 }
 
 
+static double estimated_finish_time(struct _starpu_sched_node * node, struct starpu_task * task)
+{
+	STARPU_ASSERT(_starpu_sched_node_is_worker(node));
+	double d = DBL_MAX;
+	int nimpl;
+	for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+	{
+		double tmp = starpu_task_expected_length(task,
+							 ((struct _starpu_worker *)node->data)->arch,
+							 nimpl);
+		if(!isnan(tmp) && tmp < d)
+			tmp = d;
+			
+	}
+	STARPU_ASSERT(d != DBL_MAX);
+	return d;
+}
+
 static struct _starpu_sched_node  * _starpu_sched_node_worker_create(int workerid)
 {
 	STARPU_ASSERT(workerid >= 0 && workerid <  (int) starpu_worker_get_count());
@@ -86,6 +97,7 @@ static struct _starpu_sched_node  * _starpu_sched_node_worker_create(int workeri
 	//node->fifo = _starpu_create_fifo(),
 	node->push_task = _starpu_sched_node_worker_push_task;
 	node->pop_task = _starpu_sched_node_worker_pop_task;
+	node->estimated_finish_time = estimated_finish_time;
 	node->destroy_node = _starpu_sched_node_worker_destroy;
 	node->available = available;
 	node->workerids[0] = workerid;

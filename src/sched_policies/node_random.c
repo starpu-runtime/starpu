@@ -122,7 +122,7 @@ static void deinitialize_random_center_policy(unsigned sched_ctx_id)
 }
 
 
-static void add_worker_random(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
+ static void add_worker_random(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
 {
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned i;

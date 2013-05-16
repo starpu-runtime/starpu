@@ -5,10 +5,11 @@
 struct _starpu_sched_node
 {
 	int (*push_task)(struct _starpu_sched_node *, struct starpu_task *);
-	struct starpu_task * (*pop_task)(struct _starpu_sched_node *, unsigned sched_ctx_id);
+	struct starpu_task * (*pop_task)(struct _starpu_sched_node *,
+					 unsigned sched_ctx_id);
 	void (*available)(struct _starpu_sched_node *);
-
-	void * data;
+	double (*estimated_finish_time)(struct _starpu_sched_node * node);
+	
 
 	int nchilds;
 	struct _starpu_sched_node ** childs;
@@ -19,13 +20,17 @@ struct _starpu_sched_node
 	int workerids[STARPU_NMAXWORKERS];
 	int nworkers;
 
+	//is_homogeneous is 0 iff workers in the node's subtree are heterogeneous,
+	//this field is set and updated automaticaly, you shouldn't write on it
+	int is_homogeneous;
+
+	void * data;
 	/* may be shared by several contexts
 	 * so we need several fathers
 	 */
 	struct _starpu_sched_node * fathers[STARPU_NMAX_SCHED_CTXS];
 	
 	
-
 	void (*add_child)(struct _starpu_sched_node *node,
 			  struct _starpu_sched_node *child,
 			  unsigned sched_ctx_id);
@@ -46,7 +51,7 @@ struct _starpu_sched_tree
 
 
 /* allocate and initalise node field with defaults values :
- *  .pop_task return NULL
+ *  .pop_task make recursive call on father
  *  .available make a recursive call on childrens
  *  .destroy_node  call _starpu_sched_node_destroy
  *  .update_nchilds a function that does nothing
@@ -65,23 +70,26 @@ void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _s
 
 
 int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct starpu_task * task);
+int _starpu_sched_node_can_execute_task_with_impl(struct _starpu_sched_node * node, struct starpu_task * task, unsigned nimpl);
 
-
-//no public create function for workers because we dont want to have several node_worker for a single workerid
+/* no public create function for workers because we dont want to have several node_worker for a single workerid */
 struct _starpu_sched_node * _starpu_sched_node_worker_get(int workerid);
 void _starpu_sched_node_worker_destroy(struct _starpu_sched_node *);
 
-/*this function assume that workers are the only leafs */
+/* this function compare the available function of the node with the standard available for worker nodes*/
 int _starpu_sched_node_is_worker(struct _starpu_sched_node * node);
 int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_node);
 
 struct _starpu_sched_node * _starpu_sched_node_fifo_create(void);
 struct _starpu_fifo_taskq *  _starpu_sched_node_fifo_get_fifo(struct _starpu_sched_node *);
 
-//struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void);
+/* struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void); */
 struct _starpu_sched_node * _starpu_sched_node_random_create(void);
 
 struct _starpu_sched_node * _starpu_sched_node_eager_create(void);
+
+
+
 
 
 
@@ -98,6 +106,6 @@ struct starpu_task * _starpu_tree_pop_task(unsigned sched_ctx_id);
 //this function must be called after all modification of tree
 void _starpu_tree_update_after_modification(struct _starpu_sched_tree * tree);
 ;
-//extern struct starpu_sched_policy _starpu_sched_tree_eager_policy;
-//extern struct starpu_sched_policy _starpu_sched_tree_random_policy;
+
+
 #endif

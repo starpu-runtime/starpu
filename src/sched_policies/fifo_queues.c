@@ -23,6 +23,24 @@
 #include <sched_policies/fifo_queues.h>
 #include <common/fxt.h>
 
+int is_sorted_task_list(struct starpu_task * task)
+{
+	if(!task)
+		return 1;
+	struct starpu_task * next = task->next;
+	if(!next)
+		return 1;
+	while(next)
+	{
+		if(task->priority < next->priority)
+			return 0;
+		task = next;
+		next = next->next;
+	}
+	return 1;
+}
+
+
 struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 {
 	struct _starpu_fifo_taskq *fifo;
@@ -36,7 +54,7 @@ struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 	fifo->exp_start = starpu_timing_now();
 	fifo->exp_len = 0.0;
 	fifo->exp_end = fifo->exp_start;
-
+	STARPU_ASSERT(is_sorted_task_list(fifo->taskq.head));
 	return fifo;
 }
 
@@ -107,7 +125,7 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct star
 
 	fifo_queue->ntasks++;
 	fifo_queue->nprocessed++;
-
+	STARPU_ASSERT(is_sorted_task_list(list->head));
 	return 0;
 }
 
@@ -125,6 +143,7 @@ int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_
 		fifo_queue->ntasks++;
 		fifo_queue->nprocessed++;
 	}
+	STARPU_ASSERT(is_sorted_task_list(fifo_queue->taskq.head));
 
 	return 0;
 }
@@ -132,6 +151,7 @@ int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_
 struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue, int workerid)
 {
 	struct starpu_task *task;
+	STARPU_ASSERT(is_sorted_task_list(fifo_queue->taskq.head));
 
 	for (task  = starpu_task_list_begin(&fifo_queue->taskq);
 	     task != starpu_task_list_end(&fifo_queue->taskq);
@@ -145,6 +165,7 @@ struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue,
 			{
 				starpu_task_set_implementation(task, nimpl);
 				starpu_task_list_erase(&fifo_queue->taskq, task);
+				//		fprintf(stderr,"nb task %d prio %d\n", fifo_queue->ntasks, task->priority);
 				fifo_queue->ntasks--;
 				_STARPU_TRACE_JOB_POP(task, 0);
 				return task;
@@ -167,6 +188,7 @@ struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo_
 		fifo_queue->ntasks--;
 		_STARPU_TRACE_JOB_POP(task, 0);
 	}
+	STARPU_ASSERT(is_sorted_task_list(fifo_queue->taskq.head));
 
 	return task;
 }
