@@ -16,33 +16,6 @@ static struct starpu_task * pop_task_node(struct _starpu_sched_node * node, unsi
 		return node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id], sched_ctx_id);
 }
 
-struct _starpu_sched_node * _starpu_sched_node_create(void)
-{
-	struct _starpu_sched_node * node = malloc(sizeof(*node));
-	memset(node,0,sizeof(*node));
-	STARPU_PTHREAD_MUTEX_INIT(&node->mutex,NULL);
-	node->available = available;
-	node->pop_task = pop_task_node;
-	node->destroy_node = _starpu_sched_node_destroy;
-	node->add_child = _starpu_sched_node_add_child;
-	node->remove_child = _starpu_sched_node_remove_child;
-	
-	return node;
-}
-void _starpu_sched_node_destroy(struct _starpu_sched_node *node)
-{
-	int i,j;
-	for(i = 0; i < node->nchilds; i++)
-	{
-		struct _starpu_sched_node * child = node->childs[i];
-		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-			if(child->fathers[i] == node)
-				child->fathers[i] = NULL;
-		
-	}
-	free(node->childs);
-	free(node);
-}
 
 void _starpu_sched_node_set_father(struct _starpu_sched_node *node,
 				   struct _starpu_sched_node *father_node,
@@ -159,7 +132,78 @@ struct starpu_task * _starpu_tree_pop_task(unsigned sched_ctx_id)
 	return node->pop_task(node, sched_ctx_id);
 }
 
+static double estimated_finish_time(struct _starpu_sched_node * node)
+{
+	double sum = 0.0;
+	int i;
+	for(i = 0; i < node->nchilds; i++)
+	{
+		struct _starpu_sched_node * c = node->childs[i];
+		double tmp = c->estimated_finish_time(c);
+		if( tmp > sum)
+			sum = tmp;
+	}
+	return sum;
+}
 
+static double estimated_load(struct _starpu_sched_node * node)
+{
+	double sum = 0.0;
+	int i;
+	for( i = 0; i < node->nchilds; i++)
+	{
+		struct _starpu_sched_node * c = node->childs[i];
+		sum += c->estimated_load(c);
+	}
+	return sum;
+}
+
+static struct _starpu_execute_pred estimated_execute_length(struct _starpu_sched_node * node, struct starpu_task * task)
+{
+	if(node->is_homogeneous)
+		return node->childs[0]->estimated_execute_length(node->childs[0], task);
+	struct _starpu_execute_pred pred = { .state = CANNOT_EXECUTE, .expected_length = 0.0 };
+	int i, nb = 0;
+	for(i = 0; i < node->nchilds; i++)
+	{
+		struct _starpu_execute_pred tmp = node->childs[i]->estimated_execute_length(node->childs[i], task);
+		switch(tmp.state)
+		{
+		case CALIBRATING:
+			return tmp;
+			break;
+		case NO_PERF_MODEL:
+			if(pred.state == CANNOT_EXECUTE)
+				pred.state = NO_PERF_MODEL;
+			break;
+		case PERF_MODEL:
+			nb++;
+			pred.expected_length += tmp.expected_length;
+			break;
+		case CANNOT_EXECUTE:
+			break;
+		}
+	}
+	pred.expected_length /= nb;
+	return pred;
+}
+
+static double estimated_transfer_length(struct _starpu_sched_node * node, struct starpu_task * task)
+{
+	double sum = 0.0;
+	int nb = 0, i = 0;
+	for(i = 0; i < node->nchilds; i++)
+	{
+		struct _starpu_sched_node * c = node->childs[i];
+		if(_starpu_sched_node_can_execute_task(c, task))
+		{
+			sum += c->estimated_transfer_length(c, task);
+			nb++;
+		}
+	}
+	sum /= nb;
+	return sum;
+}
 
 int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
@@ -186,6 +230,39 @@ int _starpu_sched_node_can_execute_task_with_impl(struct _starpu_sched_node * no
 	return 0;
 
 }
+
+struct _starpu_sched_node * _starpu_sched_node_create(void)
+{
+	struct _starpu_sched_node * node = malloc(sizeof(*node));
+	memset(node,0,sizeof(*node));
+	STARPU_PTHREAD_MUTEX_INIT(&node->mutex,NULL);
+	node->available = available;
+	node->pop_task = pop_task_node;
+	node->estimated_finish_time = estimated_finish_time;
+	node->estimated_load = estimated_load;
+	node->estimated_transfer_length = estimated_transfer_length;
+	node->estimated_execute_length = estimated_execute_length;
+	node->destroy_node = _starpu_sched_node_destroy;
+	node->add_child = _starpu_sched_node_add_child;
+	node->remove_child = _starpu_sched_node_remove_child;
+	
+	return node;
+}
+void _starpu_sched_node_destroy(struct _starpu_sched_node *node)
+{
+	int i,j;
+	for(i = 0; i < node->nchilds; i++)
+	{
+		struct _starpu_sched_node * child = node->childs[i];
+		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
+			if(child->fathers[i] == node)
+				child->fathers[i] = NULL;
+		
+	}
+	free(node->childs);
+	free(node);
+}
+
 
 static int is_homogeneous(int * workerids, int nworkers)
 {

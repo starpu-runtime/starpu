@@ -8,8 +8,25 @@ struct _starpu_sched_node
 	struct starpu_task * (*pop_task)(struct _starpu_sched_node *,
 					 unsigned sched_ctx_id);
 	void (*available)(struct _starpu_sched_node *);
-	double (*estimated_finish_time)(struct _starpu_sched_node * node);
 	
+	/*this function only consider tasks that have a pref model, others does not count
+	 * note that pushing a task not necessarily increase estimated finish time
+	 */
+	double (*estimated_finish_time)(struct _starpu_sched_node * node);
+	/* this function is an heuritic compute subtree's load.
+	 * the computation is based on number of tasks and relative speedup of processing units
+	 * more revelant than estimated_finish_time() when no perf model are available
+	 */
+	double (*estimated_load)(struct _starpu_sched_node * node);
+
+	//return the average of transfer length for all subtree workers
+	double (*estimated_transfer_length)(struct _starpu_sched_node * node,
+					    struct starpu_task * task);
+	/* return data on expected length of computation, if node is heterogeneous, its an average
+	 * if a calibration is not done, the arch and implementation are returned
+	 */
+	struct _starpu_execute_pred (*estimated_execute_length)(struct _starpu_sched_node * node,
+					   struct starpu_task * task);
 
 	int nchilds;
 	struct _starpu_sched_node ** childs;
@@ -42,6 +59,13 @@ struct _starpu_sched_node
 	void (*destroy_node)(struct _starpu_sched_node *);
 };
 
+struct _starpu_execute_pred {
+	enum {CANNOT_EXECUTE = 0, CALIBRATING , NO_PERF_MODEL, PERF_MODEL} state;
+	enum starpu_perf_archtype archtype;
+	int impl;
+	double expected_length;
+};
+
 
 struct _starpu_sched_tree
 {
@@ -52,6 +76,10 @@ struct _starpu_sched_tree
 
 /* allocate and initalise node field with defaults values :
  *  .pop_task make recursive call on father
+ *  .estimated_finish_time  max of the recursives calls on childrens
+ *  .estimated_load compute relative speedup and tasks in subtree
+ *  .estimated_transfer_length  average transfer cost for all workers in the subtree
+ *  .estimated_execution_length average execution cost for all workers in the subtree
  *  .available make a recursive call on childrens
  *  .destroy_node  call _starpu_sched_node_destroy
  *  .update_nchilds a function that does nothing
@@ -81,6 +109,7 @@ int _starpu_sched_node_is_worker(struct _starpu_sched_node * node);
 int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_node);
 
 struct _starpu_sched_node * _starpu_sched_node_fifo_create(void);
+int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node);
 struct _starpu_fifo_taskq *  _starpu_sched_node_fifo_get_fifo(struct _starpu_sched_node *);
 
 /* struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void); */
