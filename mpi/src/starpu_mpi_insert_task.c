@@ -877,4 +877,11 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 		starpu_mpi_isend_detached(data_handle, rank, tag, comm, NULL, NULL);
 		starpu_insert_task(data_handle->init_cl, STARPU_W, data_handle, 0);
 	}
+	/* FIXME: In order to prevent simultaneous receive submissions
+	 * on the same handle, we need to wait that all the starpu_mpi
+	 * tasks are done before submitting next tasks. The current
+	 * version of the implementation does not support multiple
+	 * simultaneous receive requests on the same handle.*/
+	starpu_task_wait_for_all();
+
 }
