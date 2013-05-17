@@ -220,7 +220,7 @@ int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct
 
 int _starpu_sched_node_can_execute_task_with_impl(struct _starpu_sched_node * node, struct starpu_task * task, unsigned nimpl)
 {
-	
+
 	int worker;
 	STARPU_ASSERT(task);
 	STARPU_ASSERT(nimpl < STARPU_MAXIMPLEMENTATIONS);
@@ -245,7 +245,7 @@ struct _starpu_sched_node * _starpu_sched_node_create(void)
 	node->destroy_node = _starpu_sched_node_destroy;
 	node->add_child = _starpu_sched_node_add_child;
 	node->remove_child = _starpu_sched_node_remove_child;
-	
+
 	return node;
 }
 void _starpu_sched_node_destroy(struct _starpu_sched_node *node)
@@ -257,7 +257,7 @@ void _starpu_sched_node_destroy(struct _starpu_sched_node *node)
 		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
 			if(child->fathers[i] == node)
 				child->fathers[i] = NULL;
-		
+
 	}
 	free(node->childs);
 	free(node);

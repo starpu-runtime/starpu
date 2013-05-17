@@ -117,7 +117,7 @@ struct _starpu_sched_node * _starpu_sched_node_random_create(void);
 
 struct _starpu_sched_node * _starpu_sched_node_eager_create(void);
 
-
+struct _starpu_sched_node * _starpu_sched_node_heft_create(double alpha, double beta, double gamma, double idle_power);
 
 
 
