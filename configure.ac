@@ -1000,6 +1000,15 @@ if test x$use_fxt = xyes; then
 	FXT_LIBS="$FXT_LIBS $POTI_LIBS"
 fi
 
+AC_MSG_CHECKING(whether additional locking systems FxT traces should be enabled)
+AC_ARG_ENABLE(fxt-lock, [AS_HELP_STRING([--enable-fxt-lock],
+			[enable additional locking systems FxT traces])],
+			enable_fxt_lock=$enableval, enable_fxt_lock=no)
+AC_MSG_RESULT($enable_fxt_lock)
+if  test x$enable_fxt_lock = xyes; then
+	AC_DEFINE(STARPU_FXT_LOCK_TRACES, [1], [enable additional locking systems FxT traces])
+fi
+
 AC_MSG_CHECKING(whether performance debugging should be enabled)
 AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
 			[enable performance debugging through gprof])],
