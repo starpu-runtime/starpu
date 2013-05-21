@@ -9,7 +9,7 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
-	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
+	STARPU_PTHREAD_RWLOCK_INIT(&data->mutex,NULL);
  	data->root = _starpu_sched_node_fifo_create();
 	
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);

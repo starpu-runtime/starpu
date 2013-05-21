@@ -8,7 +8,7 @@ struct _starpu_sched_node
 	struct starpu_task * (*pop_task)(struct _starpu_sched_node *,
 					 unsigned sched_ctx_id);
 	void (*available)(struct _starpu_sched_node *);
-	
+
 	/*this function only consider tasks that have a pref model, others does not count
 	 * note that pushing a task not necessarily increase estimated finish time
 	 */
@@ -31,7 +31,7 @@ struct _starpu_sched_node
 	int nchilds;
 	struct _starpu_sched_node ** childs;
 
-	starpu_pthread_mutex_t mutex;
+	starpu_pthread_rwlock_t mutex;
 
 	//the list of workers in the node's subtree
 	int workerids[STARPU_NMAXWORKERS];
@@ -46,8 +46,8 @@ struct _starpu_sched_node
 	 * so we need several fathers
 	 */
 	struct _starpu_sched_node * fathers[STARPU_NMAX_SCHED_CTXS];
-	
-	
+
+
 	void (*add_child)(struct _starpu_sched_node *node,
 			  struct _starpu_sched_node *child,
 			  unsigned sched_ctx_id);
@@ -70,7 +70,7 @@ struct _starpu_execute_pred {
 struct _starpu_sched_tree
 {
 	struct _starpu_sched_node * root;
-	starpu_pthread_mutex_t mutex;
+	starpu_pthread_rwlock_t mutex;
 };
 
 
@@ -134,7 +134,7 @@ struct starpu_task * _starpu_tree_pop_task(unsigned sched_ctx_id);
 
 //this function must be called after all modification of tree
 void _starpu_tree_update_after_modification(struct _starpu_sched_tree * tree);
-;
+
 
 
 #endif

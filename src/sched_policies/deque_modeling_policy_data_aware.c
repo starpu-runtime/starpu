@@ -278,7 +278,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
-
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[best_workerid];
 
 	starpu_pthread_mutex_t *sched_mutex;

@@ -39,7 +39,7 @@ static int select_victim_round_robin(struct _starpu_sched_node *node)
 {
 	struct _starpu_work_stealing_data *ws = node->data;
 	unsigned i = ws->last_pop_child;
-	
+
 	
 /* If the worker's queue is empty, let's try
  * the next ones */
@@ -48,13 +48,11 @@ static int select_victim_round_robin(struct _starpu_sched_node *node)
 		unsigned ntasks;
 		struct _starpu_sched_node * child = node->childs[i];
 		struct _starpu_fifo_taskq * fifo = _starpu_sched_node_fifo_get_fifo(child);
-		//STARPU_PTHREAD_MUTEX_LOCK(&child->mutex);//do we need to wait ?
-		if(starpu_pthread_mutex_trylock(&child->mutex))//or not
-			continue;
+		STARPU_PTHREAD_RWLOCK_WRLOCK(&child->mutex);
 		ntasks = fifo->ntasks;
 		if (ntasks)
 			break;
-		STARPU_PTHREAD_MUTEX_UNLOCK(&child->mutex);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&child->mutex);
 		i = (i + 1) % node->nchilds;
 		if (i == ws->last_pop_child)
 		{
@@ -230,9 +228,7 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 	struct starpu_task * task = _starpu_fifo_pop_task(fifo,
 							  starpu_worker_get_id());
 	fifo->nprocessed--;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&child->mutex);
-	if(task)
-		starpu_push_task_end(task);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&child->mutex);
 	return task;
 }
 
@@ -240,6 +236,7 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&node->mutex);
 	struct _starpu_work_stealing_data * wsd = node->data;
 	int ret = -1;
 	int start = wsd->last_push_child;
@@ -285,15 +282,15 @@ int _starpu_ws_push_task(struct starpu_task *task)
 		node = node->fathers[sched_ctx_id];
 		if(is_my_fifo_node(node,sched_ctx_id))
 		{
-			STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
+			STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
 			struct _starpu_fifo_taskq * fifo = node->data;
 			int ret_val =  _starpu_fifo_push_sorted_task(fifo, task);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 			return ret_val;
 		}
 	}
 	//there were a problem here, dont know what to do
-	STARPU_ASSERT(1);
+	STARPU_ASSERT(0);
 	return _starpu_tree_push_task(task);
 }
 
@@ -302,7 +299,6 @@ static void add_child(struct _starpu_sched_node *node,
 		      struct _starpu_sched_node *child,
 		      unsigned sched_ctx_id)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
 	int i;
 	for(i = 0; i < node->nchilds; i++){
 		STARPU_ASSERT(node->childs[i] != node);
@@ -318,15 +314,12 @@ static void add_child(struct _starpu_sched_node *node,
 	_starpu_sched_node_set_father(fifo_node, node, sched_ctx_id);
 	node->childs[node->nchilds] = fifo_node;
 	node->nchilds++;
-	
-	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
 
 }
 static void remove_child(struct _starpu_sched_node *node,
 			 struct _starpu_sched_node *child,
 			 unsigned sched_ctx_id)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
 	int pos;
 	for(pos = 0; pos < node->nchilds; pos++)
 		if(*node->childs[pos]->childs == child)
@@ -336,7 +329,6 @@ static void remove_child(struct _starpu_sched_node *node,
 	node->childs[pos] = node->childs[--node->nchilds];
 	STARPU_ASSERT(fifo_node->fathers[sched_ctx_id] == node);
 	fifo_node->fathers[sched_ctx_id] = NULL;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
 }
 
 
@@ -362,9 +354,8 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
-	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
+	STARPU_PTHREAD_RWLOCK_INIT(&data->mutex,NULL);
  	data->root = _starpu_sched_node_work_stealing_create();
-	
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
 

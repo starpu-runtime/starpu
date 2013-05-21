@@ -88,22 +88,22 @@ void _starpu_node_destroy_rec(struct _starpu_sched_node * node, unsigned sched_c
 void _starpu_tree_destroy(struct _starpu_sched_tree * tree, unsigned sched_ctx_id)
 {
 	_starpu_node_destroy_rec(tree->root, sched_ctx_id);
-	STARPU_PTHREAD_MUTEX_DESTROY(&tree->mutex);
+	STARPU_PTHREAD_RWLOCK_DESTROY(&tree->mutex);
 	free(tree);
 }
 void _starpu_sched_node_add_child(struct _starpu_sched_node* node, struct _starpu_sched_node * child,unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(!_starpu_sched_node_is_worker(node));
-	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
 	node->childs = realloc(node->childs, sizeof(struct _starpu_sched_node *) * (node->nchilds + 1));
 	node->childs[node->nchilds] = child;
 	child->fathers[sched_ctx_id] = node;
 	node->nchilds++;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 }
 void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child,unsigned sched_ctx_id)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
 	int pos;
 	for(pos = 0; pos < node->nchilds; pos++)
 		if(node->childs[pos] == child)
@@ -111,7 +111,7 @@ void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _s
 	node->childs[pos] = node->childs[--node->nchilds];
 	STARPU_ASSERT(child->fathers[sched_ctx_id] == node);
 	child->fathers[sched_ctx_id] = NULL;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 }
 
 
@@ -119,10 +119,10 @@ int _starpu_tree_push_task(struct starpu_task * task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_sched_tree *tree = starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	STARPU_PTHREAD_MUTEX_LOCK(&tree->mutex);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&tree->mutex);
 	int ret_val = tree->root->push_task(tree->root,task); 
 //	starpu_push_task_end(task);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&tree->mutex);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&tree->mutex);
 	return ret_val;
 }
 struct starpu_task * _starpu_tree_pop_task(unsigned sched_ctx_id)
@@ -179,6 +179,7 @@ static struct _starpu_execute_pred estimated_execute_length(struct _starpu_sched
 		case PERF_MODEL:
 			nb++;
 			pred.expected_length += tmp.expected_length;
+			pred.state = PERF_MODEL;
 			break;
 		case CANNOT_EXECUTE:
 			break;
@@ -235,7 +236,7 @@ struct _starpu_sched_node * _starpu_sched_node_create(void)
 {
 	struct _starpu_sched_node * node = malloc(sizeof(*node));
 	memset(node,0,sizeof(*node));
-	STARPU_PTHREAD_MUTEX_INIT(&node->mutex,NULL);
+	STARPU_PTHREAD_RWLOCK_INIT(&node->mutex,NULL);
 	node->available = available;
 	node->pop_task = pop_task_node;
 	node->estimated_finish_time = estimated_finish_time;

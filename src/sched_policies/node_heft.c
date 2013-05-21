@@ -1,4 +1,5 @@
 #include "node_sched.h"
+#include "fifo_queues.h"
 #include <starpu_perfmodel.h>
 #include <starpu_scheduler.h>
 #include <float.h>
@@ -44,7 +45,7 @@ static double compute_fitness_perf_model(struct _starpu_sched_node * child,
 
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&node->mutex);
 	struct _starpu_execute_pred preds[node->nchilds];
 	int i;
 	int calibrating = 0;
@@ -71,7 +72,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	}
 	if(!can_execute)
 	{
-		STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 		return -ENODEV;
 	}
 	double (*fitness_fun)(struct _starpu_sched_node *,
@@ -101,7 +102,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	starpu_task_set_implementation(task, preds[index_best_fitness].impl);
 	task->predicted = preds[index_best_fitness].expected_length;
 	task->predicted_transfer = c->estimated_transfer_length(c,task);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 	return c->push_task(c, task);
 }
 
@@ -111,7 +112,7 @@ static void add_child(struct _starpu_sched_node *node,
 		      struct _starpu_sched_node *child,
 		      unsigned sched_ctx_id)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
 	int i;
 	for(i = 0; i < node->nchilds; i++){
 		STARPU_ASSERT(node->childs[i] != node);
@@ -128,14 +129,14 @@ static void add_child(struct _starpu_sched_node *node,
 	node->childs[node->nchilds] = fifo_node;
 	node->nchilds++;
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 
 }
 static void remove_child(struct _starpu_sched_node *node,
 			 struct _starpu_sched_node *child,
 			 unsigned sched_ctx_id)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
 	int pos;
 	for(pos = 0; pos < node->nchilds; pos++)
 		if(*node->childs[pos]->childs == child)
@@ -145,7 +146,7 @@ static void remove_child(struct _starpu_sched_node *node,
 	node->childs[pos] = node->childs[--node->nchilds];
 	STARPU_ASSERT(fifo_node->fathers[sched_ctx_id] == node);
 	fifo_node->fathers[sched_ctx_id] = NULL;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 }
 
 
@@ -156,7 +157,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
-	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
+	STARPU_PTHREAD_RWLOCK_INIT(&data->mutex,NULL);
 	data->root = _starpu_sched_node_heft_create(1,1,1,1);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
