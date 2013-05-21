@@ -178,6 +178,8 @@ Changes:
     installed version of StarPU. That can also be used to test
     examples using a previous API.
   * Tutorial is installed in ${docdir}/tutorial
+  * Scheduler eager_central_policy no longer respects priorities
+  * Schedulers dm and dmda correctly respect priorities
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
