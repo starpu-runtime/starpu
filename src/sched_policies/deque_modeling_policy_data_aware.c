@@ -356,7 +356,10 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	else
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-		ret = _starpu_fifo_push_task(dt->queue_array[best_workerid], task);
+		starpu_task_list_push_back (&dt->queue_array[best_workerid]->taskq, task);
+		dt->queue_array[best_workerid]->ntasks++;
+		dt->queue_array[best_workerid]->nprocessed++;
+		
 		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 		starpu_push_task_end(task);
 		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
