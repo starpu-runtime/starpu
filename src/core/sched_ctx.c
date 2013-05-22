@@ -1283,7 +1283,7 @@ static void _starpu_sched_ctx_wake_up_workers(unsigned sched_ctx_id)
 	return;
 }
 
-void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void* param), void* param, unsigned sched_ctx_id)
+void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void* param, unsigned sched_ctx_id)
 {
 	/* get starpu workers to sleep */
 	_starpu_sched_ctx_get_workers_to_sleep(sched_ctx_id);

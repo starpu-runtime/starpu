@@ -18,6 +18,8 @@ StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 
 New features:
+  * New function starpu_sched_ctx_exec_parallel_code to execute a
+    parallel code on the workers of the given scheduler context
   * MPI:
         - New internal communication system : a unique tag called
 	  is now used for all communications, and a system
