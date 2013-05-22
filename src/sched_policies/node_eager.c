@@ -27,9 +27,10 @@ static void add_worker_eager(unsigned sched_ctx_id, int * workerids, unsigned nw
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
-		_starpu_sched_node_add_child(t->root,
-					     _starpu_sched_node_worker_get(workerids[i]),
-					     sched_ctx_id);
+	{
+		t->root->add_child(t->root, _starpu_sched_node_worker_get(workerids[i]), sched_ctx_id);
+		_starpu_sched_node_worker_get(workerids[i])->fathers[sched_ctx_id] = t->root;
+	}
 }
 
 static void remove_worker_eager(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
@@ -37,9 +38,10 @@ static void remove_worker_eager(unsigned sched_ctx_id, int * workerids, unsigned
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
-		_starpu_sched_node_remove_child(t->root,
-						_starpu_sched_node_worker_get(workerids[i]),
-						sched_ctx_id);
+	{
+		t->root->remove_child(t->root, _starpu_sched_node_worker_get(workerids[i]), sched_ctx_id);
+		_starpu_sched_node_worker_get(workerids[i])->fathers[sched_ctx_id] = NULL;
+	}
 }
 
 

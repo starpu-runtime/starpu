@@ -193,14 +193,7 @@ static int _worker_consistant(struct _starpu_sched_node * node)
 		return 0;
 	struct _starpu_worker * worker = node->data;
 	int id = worker->workerid;
-	int father = 1;
-	for(i = 0; i<STARPU_NMAX_SCHED_CTXS; i++)
-		if(node->fathers[i] != NULL)
-			return 1;
-		else
-			father = 0;
-	return  father
-		&& (_worker_nodes[id] == node)
+	return  (_worker_nodes[id] == node)
 		&&  node->nchilds == 0;
 }
 #endif

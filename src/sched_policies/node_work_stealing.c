@@ -24,47 +24,45 @@ struct _starpu_work_stealing_data
 	unsigned performed_total;
 	unsigned last_pop_child;
 	unsigned last_push_child;
+	
+	struct _starpu_fifo_taskq ** fifos;
+	starpu_pthread_mutex_t * mutexes;
 };
 
 
 /**
- * Return a child from which a task can be stolen.
- * Selecting a worker is done in a round-robin fashion, unless
- * the child previously selected doesn't own any task,
- * then we return the first non-empty worker.
- * and take his mutex
- * if no child have tasks return -1 
+ * steal a task in a round robin way
+ * return NULL if none available
  */
-static int select_victim_round_robin(struct _starpu_sched_node *node)
+static struct starpu_task *  steal_task_round_robin(struct _starpu_sched_node *node, int workerid)
 {
-	struct _starpu_work_stealing_data *ws = node->data;
-	unsigned i = ws->last_pop_child;
-
-	
-/* If the worker's queue is empty, let's try
- * the next ones */
+	struct _starpu_work_stealing_data *wsd = node->data;
+	unsigned i = wsd->last_pop_child;
+	/* If the worker's queue have no suitable tasks, let's try
+	 * the next ones */
+	struct starpu_task * task = NULL;
 	while (1)
 	{
-		unsigned ntasks;
-		struct _starpu_sched_node * child = node->childs[i];
-		struct _starpu_fifo_taskq * fifo = _starpu_sched_node_fifo_get_fifo(child);
-		STARPU_PTHREAD_RWLOCK_WRLOCK(&child->mutex);
-		ntasks = fifo->ntasks;
-		if (ntasks)
+		struct _starpu_fifo_taskq * fifo = wsd->fifos[i];
+		STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
+		task = _starpu_fifo_pop_task(fifo, workerid);
+		STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
+		if(task)
+		{
+			fifo->nprocessed--;
 			break;
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&child->mutex);
+		}
 		i = (i + 1) % node->nchilds;
-		if (i == ws->last_pop_child)
+		if (i == wsd->last_pop_child)
 		{
 			/* We got back to the first worker,
 			 * don't go in infinite loop */
-			return -1;
+			return NULL;
 		}
 	}
 
-	ws->last_pop_child = (i+1)%node->nchilds;
-
-	return i;
+	wsd->last_pop_child = i;
+	return task;
 }
 
 /**
@@ -189,12 +187,12 @@ static unsigned select_worker_overload(struct _starpu_sched_node * node)
  * This is a phony function used to call the right
  * function depending on the value of USE_OVERLOAD.
  */
-static inline int select_victim(struct _starpu_sched_node * node)
+static inline struct starpu_task * steal_task(struct _starpu_sched_node * node, int workerid)
 {
 #ifdef USE_OVERLOAD
-	return select_victim_overload(node);
+	return select_victim_overload(node, workerid);
 #else
-	return select_victim_round_robin(node);
+	return steal_task_round_robin(node, workerid);
 #endif /* USE_OVERLOAD */
 }
 
@@ -213,23 +211,40 @@ static inline unsigned select_worker(struct _starpu_sched_node * node)
 }
 
 
+static int is_worker_of_node(struct _starpu_sched_node * node, int workerid)
+{
+	int j;
+	for(j = 0; j < node->nworkers; j++)
+	{
+		if(node->workerids[j] == workerid)
+			return 1;
+	}
+	return 0;
+}
+
 static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned sched_ctx_id)
 {
-	int victim = select_victim(node);
-	if(victim < 0)
+	int workerid = starpu_worker_get_id();
+	int i;
+	for(i = 0; i < node->nchilds; i++)
 	{
-		if(node->fathers[sched_ctx_id])
-			return node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id],sched_ctx_id);
-		else
-			return NULL;
+		if(is_worker_of_node(node->childs[i], workerid))
+			break;
 	}
-	struct _starpu_sched_node * child = node->childs[victim];
-	struct _starpu_fifo_taskq * fifo = _starpu_sched_node_fifo_get_fifo(child);
-	struct starpu_task * task = _starpu_fifo_pop_task(fifo,
-							  starpu_worker_get_id());
-	fifo->nprocessed--;
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&child->mutex);
-	return task;
+	STARPU_ASSERT(i < node->nchilds);
+	struct _starpu_work_stealing_data * wsd = node->data;
+	STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
+	struct starpu_task * task = _starpu_fifo_pop_local_task(wsd->fifos[i]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
+	if(task)
+		return task;
+	task  = steal_task(node, workerid);
+	if(task)
+		return task;
+	if(node->fathers[sched_ctx_id])
+		return node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id],sched_ctx_id);
+	else
+		return NULL;
 }
 
 
@@ -247,7 +262,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 		struct _starpu_sched_node * child = node->childs[i];
 		if(_starpu_sched_node_can_execute_task(child,task))
 		{
-			ret = child->push_task(child,task);
+			ret = _starpu_fifo_push_sorted_task(wsd->fifos[i], task);
 			break;
 		}
 	}
@@ -261,13 +276,8 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 static void add_child(struct _starpu_sched_node *node,
 		      struct _starpu_sched_node *child,
 		      unsigned sched_ctx_id);
-//compute if le father is a work_stealing node
-static int is_my_fifo_node(struct _starpu_sched_node * node, unsigned sched_ctx_id)
-{
-	if(node->fathers[sched_ctx_id] == NULL)
-		return 0;
-	return node->fathers[sched_ctx_id]->add_child == add_child;
-}
+
+
 
 //this function is special, when a worker call it, we want to push the task in his fifo
 int _starpu_ws_push_task(struct starpu_task *task)
@@ -280,55 +290,80 @@ int _starpu_ws_push_task(struct starpu_task *task)
 	while(node->fathers[sched_ctx_id] != NULL)
 	{
 		node = node->fathers[sched_ctx_id];
-		if(is_my_fifo_node(node,sched_ctx_id))
+		if(_starpu_sched_node_is_work_stealing(node))
 		{
-			STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
-			struct _starpu_fifo_taskq * fifo = node->data;
-			int ret_val =  _starpu_fifo_push_sorted_task(fifo, task);
-			STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
-			return ret_val;
+			int i;
+			for(i = 0; i < node->nchilds; i++)
+				if(is_worker_of_node(node->childs[i], workerid))
+					break;
+			STARPU_ASSERT(i < node->nchilds);
+			
+			struct _starpu_work_stealing_data * wsd = node->data;
+			STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
+			int ret = _starpu_fifo_push_sorted_task(wsd->fifos[i], task);
+			STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
+			return ret;
 		}
 	}
-	//there were a problem here, dont know what to do
-	STARPU_ASSERT(0);
+	STARPU_ASSERT_MSG(0, "there were a problem here, dont know what to do");
 	return _starpu_tree_push_task(task);
 }
 
 
 static void add_child(struct _starpu_sched_node *node,
 		      struct _starpu_sched_node *child,
-		      unsigned sched_ctx_id)
+		      unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 	int i;
 	for(i = 0; i < node->nchilds; i++){
 		STARPU_ASSERT(node->childs[i] != node);
 		STARPU_ASSERT(node->childs[i] != NULL);
 	}
+	struct _starpu_work_stealing_data * wsd = node->data;
+	int new_size = node->nchilds + 1;
 	node->childs = realloc(node->childs,
 			       sizeof(struct _starpu_sched_node*)
-			       * (node->nchilds + 1));
-	struct _starpu_sched_node * fifo_node = _starpu_sched_node_fifo_create();
-	_starpu_sched_node_add_child(fifo_node, child, sched_ctx_id);
-
-
-	_starpu_sched_node_set_father(fifo_node, node, sched_ctx_id);
-	node->childs[node->nchilds] = fifo_node;
-	node->nchilds++;
-
+			       * new_size);
+	wsd->fifos = realloc(wsd->fifos,
+			     sizeof(struct _starpu_fifo_taskq*)
+			     * new_size);
+	wsd->mutexes = realloc(wsd->mutexes,
+			     sizeof(starpu_pthread_rwlock_t)
+			     * new_size);
+	node->childs[new_size - 1] = child;
+	wsd->fifos[new_size - 1] = _starpu_create_fifo();
+	STARPU_PTHREAD_MUTEX_INIT(wsd->mutexes + (new_size - 1), NULL);
+	node->nchilds = new_size;
 }
+
+
 static void remove_child(struct _starpu_sched_node *node,
 			 struct _starpu_sched_node *child,
-			 unsigned sched_ctx_id)
+			 unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 	int pos;
 	for(pos = 0; pos < node->nchilds; pos++)
-		if(*node->childs[pos]->childs == child)
+		if(node->childs[pos] == child)
 			break;
 	STARPU_ASSERT(pos != node->nchilds);
-	struct _starpu_sched_node * fifo_node = node->childs[pos];
-	node->childs[pos] = node->childs[--node->nchilds];
-	STARPU_ASSERT(fifo_node->fathers[sched_ctx_id] == node);
-	fifo_node->fathers[sched_ctx_id] = NULL;
+	struct _starpu_work_stealing_data * wsd = node->data;
+	struct _starpu_fifo_taskq * fifo = wsd->fifos[pos];
+	wsd->fifos[pos] = wsd->fifos[node->nchilds - 1];
+	node->childs[pos] = node->childs[node->nchilds - 1];
+	STARPU_PTHREAD_MUTEX_DESTROY(wsd->mutexes + pos);
+	wsd->mutexes[pos] = wsd->mutexes[node->nchilds - 1];
+	node->nchilds--;
+	int i;
+	struct starpu_task * task = fifo->taskq.head;
+	_starpu_destroy_fifo(fifo);
+	for(i = 0; task; i = (i + 1)%node->nchilds)
+	{
+		struct starpu_task * next = task->next;
+		STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
+		_starpu_fifo_push_sorted_task(wsd->fifos[i],task);
+		STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
+		task = next;
+	}
 }
 
 
@@ -337,15 +372,21 @@ struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void)
 {
 	struct _starpu_sched_node * node = _starpu_sched_node_create();
 	struct _starpu_work_stealing_data * wsd = malloc(sizeof(*wsd));
-	wsd->performed_total = 0;
-	wsd->last_pop_child = 0;
-	wsd->last_push_child = 0;
+	memset(wsd, 0, sizeof(*wsd));
 	node->data = wsd;
 	node->pop_task = pop_task;
 	node->push_task = push_task;
 	node->add_child = add_child;
 	node->remove_child = remove_child;
 	return node;
+}
+
+int _starpu_sched_node_is_work_stealing(struct _starpu_sched_node * node)
+{
+	return node->add_child == add_child
+		|| node->remove_child == remove_child
+		|| node->pop_task == pop_task
+		|| node->push_task == push_task;//...
 }
 
 
@@ -371,22 +412,29 @@ static void add_worker_ws(unsigned sched_ctx_id, int * workerids, unsigned nwork
 {
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned i;
+	struct _starpu_sched_node * ws_node = t->root;
 	for(i = 0; i < nworkers; i++)
-		t->root->add_child(t->root,
-				   _starpu_sched_node_worker_get(workerids[i]),
+	{
+		struct _starpu_sched_node * worker =_starpu_sched_node_worker_get(workerids[i]);
+		ws_node->add_child(ws_node,
+				   worker,
 				   sched_ctx_id);
+		_starpu_sched_node_set_father(worker, ws_node, sched_ctx_id);
+	}
 	_starpu_tree_update_after_modification(t);
 }
 
 static void remove_worker_ws(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
 {
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	struct _starpu_sched_node * ws_node = t->root;
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
-		t->root->remove_child(t->root,
-				   _starpu_sched_node_worker_get(workerids[i]),
-				   sched_ctx_id);
-
+	{
+		struct _starpu_sched_node * worker =_starpu_sched_node_worker_get(workerids[i]);
+		ws_node->remove_child(ws_node, worker, sched_ctx_id);
+		_starpu_sched_node_set_father(worker,NULL,sched_ctx_id);
+	}
 }
 
 

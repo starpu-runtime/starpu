@@ -51,6 +51,7 @@ struct _starpu_sched_node
 	void (*add_child)(struct _starpu_sched_node *node,
 			  struct _starpu_sched_node *child,
 			  unsigned sched_ctx_id);
+
 	void (*remove_child)(struct _starpu_sched_node *node,
 			     struct _starpu_sched_node *child,
 			     unsigned sched_ctx_id);
@@ -70,6 +71,7 @@ struct _starpu_execute_pred {
 struct _starpu_sched_tree
 {
 	struct _starpu_sched_node * root;
+	//this lock is used to protect the scheduler during modifications of his structure
 	starpu_pthread_rwlock_t mutex;
 };
 
@@ -113,6 +115,8 @@ int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node);
 struct _starpu_fifo_taskq *  _starpu_sched_node_fifo_get_fifo(struct _starpu_sched_node *);
 
 /* struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void); */
+int _starpu_sched_node_is_work_stealing(struct _starpu_sched_node * node);
+
 struct _starpu_sched_node * _starpu_sched_node_random_create(void);
 
 struct _starpu_sched_node * _starpu_sched_node_eager_create(void);

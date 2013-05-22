@@ -23,7 +23,7 @@
 #include <sched_policies/fifo_queues.h>
 #include <common/fxt.h>
 
-int is_sorted_task_list(struct starpu_task * task)
+static int is_sorted_task_list(struct starpu_task * task)
 {
 	if(!task)
 		return 1;
@@ -184,7 +184,7 @@ struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo_
 
 	if (!starpu_task_list_empty(&fifo_queue->taskq))
 	{
-		task = starpu_task_list_pop_back(&fifo_queue->taskq);
+		task = starpu_task_list_pop_front(&fifo_queue->taskq);
 		fifo_queue->ntasks--;
 		_STARPU_TRACE_JOB_POP(task, 0);
 	}
