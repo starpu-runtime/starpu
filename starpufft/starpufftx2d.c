@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -323,7 +323,8 @@ static struct starpu_codelet STARPUFFT(twist1_2d_codelet) = {
 	CAN_EXECUTE
 	.model = &STARPUFFT(twist1_2d_model),
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_W}
+	.modes = {STARPU_R, STARPU_W},
+	.name = "twist1_2d_codelet"
 };
 
 static struct starpu_codelet STARPUFFT(fft1_2d_codelet) = {
@@ -344,7 +345,8 @@ static struct starpu_codelet STARPUFFT(fft1_2d_codelet) = {
 	CAN_EXECUTE
 	.model = &STARPUFFT(fft1_2d_model),
 	.nbuffers = 4,
-	.modes = {STARPU_R, STARPU_W, STARPU_R, STARPU_R}
+	.modes = {STARPU_R, STARPU_W, STARPU_R, STARPU_R},
+	.name = "fft1_2d_codelet"
 };
 
 static struct starpu_codelet STARPUFFT(twist2_2d_codelet) = {
@@ -353,7 +355,8 @@ static struct starpu_codelet STARPUFFT(twist2_2d_codelet) = {
 	CAN_EXECUTE
 	.model = &STARPUFFT(twist2_2d_model),
 	.nbuffers = 1,
-	.modes = {STARPU_W}
+	.modes = {STARPU_W},
+	.name = "twist2_2d_codelet"
 };
 
 static struct starpu_codelet STARPUFFT(fft2_2d_codelet) = {
@@ -374,7 +377,8 @@ static struct starpu_codelet STARPUFFT(fft2_2d_codelet) = {
 	CAN_EXECUTE
 	.model = &STARPUFFT(fft2_2d_model),
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_W}
+	.modes = {STARPU_R, STARPU_W},
+	.name = "fft2_2d_codelet"
 };
 
 static struct starpu_codelet STARPUFFT(twist3_2d_codelet) = {
@@ -383,7 +387,8 @@ static struct starpu_codelet STARPUFFT(twist3_2d_codelet) = {
 	CAN_EXECUTE
 	.model = &STARPUFFT(twist3_2d_model),
 	.nbuffers = 1,
-	.modes = {STARPU_R}
+	.modes = {STARPU_R},
+	.name = "twist3_2d_codelet"
 };
 
 /*
@@ -472,7 +477,8 @@ static struct starpu_codelet STARPUFFT(fft_2d_codelet) = {
 	CAN_EXECUTE
 	.model = &STARPUFFT(fft_2d_model),
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_W}
+	.modes = {STARPU_R, STARPU_W},
+	.name = "fft_2d_codelet"
 };
 
 STARPUFFT(plan)
