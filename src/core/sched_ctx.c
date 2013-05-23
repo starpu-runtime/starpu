@@ -285,7 +285,7 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int
 	return sched_ctx;
 }
 
-static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_archtype arch, unsigned allow_overlap)
+static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_worker_archtype arch, unsigned allow_overlap)
 {
 	int pus[max];
 	int npus = 0;
@@ -862,7 +862,7 @@ struct starpu_worker_collection* starpu_sched_ctx_get_worker_collection(unsigned
 	return sched_ctx->workers;
 }
 
-int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_archtype arch)
+int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_worker_archtype arch)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
@@ -877,7 +877,7 @@ int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
-		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
+		enum starpu_worker_archtype curr_arch = starpu_worker_get_type(worker);
 		if(curr_arch == arch)
 			pus[npus++] = worker;
 	}

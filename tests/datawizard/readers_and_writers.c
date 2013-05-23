@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 
 		/* we randomly select either a reader or a writer (give 10
 		 * times more chances to be a reader) */
-		enum starpu_access_mode mode = ((rand() % 10)==0)?STARPU_W:STARPU_R;
+		enum starpu_data_access_mode mode = ((rand() % 10)==0)?STARPU_W:STARPU_R;
 		if (mode == STARPU_W)
 			task->cl = &w_cl;
 		else

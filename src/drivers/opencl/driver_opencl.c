@@ -832,7 +832,7 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
         #error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
       #endif
     #endif
-	struct starpu_task_profiling_info *profiling_info = task->profiling_info;
+	struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 	STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
 	length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
   #endif

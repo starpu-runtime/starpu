@@ -30,16 +30,16 @@ struct _starpu_perfmodel_list
 	struct starpu_perfmodel *model;
 };
 
-struct starpu_buffer_descr;
+struct starpu_data_descr;
 struct _starpu_job;
-enum starpu_perf_archtype;
+enum starpu_perfmodel_archtype;
 
 void _starpu_get_perf_model_dir(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_bus(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_debug(char *path, size_t maxlen);
 
-double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j, unsigned nimpl);
+double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, struct _starpu_job *j, unsigned nimpl);
 int _starpu_register_model(struct starpu_perfmodel *model);
 void _starpu_load_per_arch_based_model(struct starpu_perfmodel *model);
 void _starpu_load_common_based_model(struct starpu_perfmodel *model);
@@ -49,10 +49,10 @@ void _starpu_initialize_registered_performance_models(void);
 void _starpu_deinitialize_registered_performance_models(void);
 
 double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model,
-					enum starpu_perf_archtype arch, struct _starpu_job *j, unsigned nimpl);
+					enum starpu_perfmodel_archtype arch, struct _starpu_job *j, unsigned nimpl);
 double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model,
-					enum starpu_perf_archtype arch, struct _starpu_job *j, unsigned nimpl);
-void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, enum starpu_perf_archtype arch,
+					enum starpu_perfmodel_archtype arch, struct _starpu_job *j, unsigned nimpl);
+void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch,
 				unsigned cpuid, double measured, unsigned nimpl);
 
 void _starpu_create_sampling_directory_if_needed(void);

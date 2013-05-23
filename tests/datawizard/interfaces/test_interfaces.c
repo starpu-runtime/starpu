@@ -262,7 +262,7 @@ static int factor = -1;
  *	0 : success.
  */
 static int
-create_task(struct starpu_task **taskp, enum starpu_archtype type, int id)
+create_task(struct starpu_task **taskp, enum starpu_worker_archtype type, int id)
 {
 	static int cpu_workers[STARPU_MAXCPUS];
 #ifdef STARPU_USE_CUDA

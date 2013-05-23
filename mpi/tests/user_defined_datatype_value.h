@@ -74,7 +74,7 @@ static size_t value_get_size(starpu_data_handle_t handle)
 static uint32_t value_footprint(starpu_data_handle_t handle)
 {
 	int *x = starpu_value_get(handle);
-	return starpu_crc32_be(*x, 0);
+	return starpu_hash_crc32c_be(*x, 0);
 }
 
 static void *value_handle_to_pointer(starpu_data_handle_t handle, unsigned node)

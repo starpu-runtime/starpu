@@ -181,7 +181,7 @@ static void print_comma(FILE *gnuplot_file, int *first)
 	}
 }
 
-static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *model, enum starpu_perf_archtype arch, int *first, unsigned nimpl)
+static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, int *first, unsigned nimpl)
 {
 	char arch_name[256];
 	starpu_perfmodel_get_arch_name(arch, arch_name, 256, nimpl);
@@ -227,7 +227,7 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *mode
 	}
 }
 
-static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_perfmodel *model, enum starpu_perf_archtype arch1, enum starpu_perf_archtype arch2, int *first)
+static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch1, enum starpu_perfmodel_archtype arch2, int *first)
 {
 	char *command;
 	FILE *datafile;
@@ -250,7 +250,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 		for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
 		{
 			struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[arch][implid];
-			starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) arch, arch_name, 32, implid);
+			starpu_perfmodel_get_arch_name((enum starpu_perfmodel_archtype) arch, arch_name, 32, implid);
 
 			//ptrs[arch-arch1][implid] = ptr[arch-arch1][implid] = arch_model->list;
 
@@ -316,7 +316,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 	fclose(datafile);
 }
 
-static void display_perf_models(FILE *gnuplot_file, struct starpu_perfmodel *model, enum starpu_perf_archtype arch1, enum starpu_perf_archtype arch2, int *first)
+static void display_perf_models(FILE *gnuplot_file, struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch1, enum starpu_perfmodel_archtype arch2, int *first)
 {
 	unsigned arch;
 	unsigned implid;
@@ -324,7 +324,7 @@ static void display_perf_models(FILE *gnuplot_file, struct starpu_perfmodel *mod
 	{
 		for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
 		{
-			display_perf_model(gnuplot_file, model, (enum starpu_perf_archtype) arch, first, implid);
+			display_perf_model(gnuplot_file, model, (enum starpu_perfmodel_archtype) arch, first, implid);
 		}
 	}
 	display_history_based_perf_models(gnuplot_file, model, arch1, arch2, first);
@@ -341,7 +341,7 @@ static void dump_data_file(FILE *data_file)
 		/* Dump only if the symbol matches user's request */
 		if (strncmp(dumped_codelets[i].symbol, symbol, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long)-1) == 0)
 		{
-			enum starpu_perf_archtype archtype = dumped_codelets[i].archtype;
+			enum starpu_perfmodel_archtype archtype = dumped_codelets[i].archtype;
 			archtype_is_found[archtype] = 1;
 
 			size_t size = dumped_codelets[i].size;
@@ -382,7 +382,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	if (archname == NULL)
 	{
 		/* display all architectures */
-		display_perf_models(gnuplot_file, model, (enum starpu_perf_archtype) 0, (enum starpu_perf_archtype) STARPU_NARCH_VARIATIONS, &first);
+		display_perf_models(gnuplot_file, model, (enum starpu_perfmodel_archtype) 0, (enum starpu_perfmodel_archtype) STARPU_NARCH_VARIATIONS, &first);
 	}
 	else
 	{
@@ -408,13 +408,13 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 				exit(-1);
 			}
 
-			display_perf_models(gnuplot_file, model, (enum starpu_perf_archtype) (STARPU_CPU_DEFAULT + k - 1), (enum starpu_perf_archtype) (STARPU_CPU_DEFAULT + k), &first);
+			display_perf_models(gnuplot_file, model, (enum starpu_perfmodel_archtype) (STARPU_CPU_DEFAULT + k - 1), (enum starpu_perfmodel_archtype) (STARPU_CPU_DEFAULT + k), &first);
 			return;
 		}
 
 		if (strcmp(archname, "cuda") == 0)
 		{
-			display_perf_models(gnuplot_file, model, STARPU_CUDA_DEFAULT, (enum starpu_perf_archtype) (STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS), &first);
+			display_perf_models(gnuplot_file, model, STARPU_CUDA_DEFAULT, (enum starpu_perfmodel_archtype) (STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS), &first);
 			return;
 		}
 
@@ -427,7 +427,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 			int archid = STARPU_CUDA_DEFAULT+ gpuid;
 			if (archid < STARPU_OPENCL_DEFAULT)
 			{
-				display_perf_models(gnuplot_file, model, (enum starpu_perf_archtype) archid, (enum starpu_perf_archtype) (archid + 1), &first);
+				display_perf_models(gnuplot_file, model, (enum starpu_perfmodel_archtype) archid, (enum starpu_perfmodel_archtype) (archid + 1), &first);
 				return;
 			}
 			else
@@ -439,7 +439,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 
 		if (strcmp(archname, "opencl") == 0)
 		{
-			display_perf_models(gnuplot_file, model, STARPU_OPENCL_DEFAULT, (enum starpu_perf_archtype) (STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS), &first);
+			display_perf_models(gnuplot_file, model, STARPU_OPENCL_DEFAULT, (enum starpu_perfmodel_archtype) (STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS), &first);
 			return;
 		}
 
@@ -450,7 +450,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 			int archid = STARPU_OPENCL_DEFAULT+ gpuid;
 			if (archid < STARPU_NARCH_VARIATIONS)
 			{
-				display_perf_models(gnuplot_file, model, (enum starpu_perf_archtype) archid, (enum starpu_perf_archtype) (archid + 1), &first);
+				display_perf_models(gnuplot_file, model, (enum starpu_perfmodel_archtype) archid, (enum starpu_perfmodel_archtype) (archid + 1), &first);
 				return;
 			}
 			else

@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 	for (i = 0; i < niter; i++)
 	{
 		struct starpu_task *task = tasks[i];
-		struct starpu_task_profiling_info *info = task->profiling_info;
+		struct starpu_profiling_task_info *info = task->profiling_info;
 
 		/* How much time did it take before the task started ? */
 		delay_sum += starpu_timing_timespec_delay_us(&info->submit_time, &info->start_time);
@@ -110,8 +110,8 @@ int main(int argc, char **argv)
 	unsigned worker;
 	for (worker = 0; worker < starpu_worker_get_count(); worker++)
 	{
-		struct starpu_worker_profiling_info worker_info;
-		ret = starpu_worker_get_profiling_info(worker, &worker_info);
+		struct starpu_profiling_worker_info worker_info;
+		ret = starpu_profiling_worker_get_info(worker, &worker_info);
 		STARPU_ASSERT(!ret);
 
 		double total_time = starpu_timing_timespec_to_us(&worker_info.total_time);

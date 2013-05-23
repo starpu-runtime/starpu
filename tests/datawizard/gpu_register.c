@@ -53,7 +53,7 @@ submit_tasks(starpu_data_handle_t handle, int pieces, int n)
 }
 
 static int
-find_a_worker(enum starpu_archtype type)
+find_a_worker(enum starpu_worker_archtype type)
 {
 	int worker;
 	int ret = starpu_worker_get_ids_by_type(type, &worker, 1);

@@ -165,7 +165,7 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, unsigned home_
 
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle)
 {
-	return starpu_crc32_be(starpu_matrix_get_nx(handle), starpu_matrix_get_ny(handle));
+	return starpu_hash_crc32c_be(starpu_matrix_get_nx(handle), starpu_matrix_get_ny(handle));
 }
 
 static int matrix_compare(void *data_interface_a, void *data_interface_b)

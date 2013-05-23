@@ -32,7 +32,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
-	struct starpu_task_profiling_info *profiling_info;
+	struct starpu_profiling_task_info *profiling_info;
 	int starpu_top=_starpu_top_status_get();
 	int workerid = args->workerid;
 	unsigned calibrate_model = 0;
@@ -71,11 +71,11 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	_STARPU_TRACE_START_CODELET_BODY(j);
 }
 
-void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, enum starpu_perf_archtype perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)
+void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, enum starpu_perfmodel_archtype perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
-	struct starpu_task_profiling_info *profiling_info = task->profiling_info;
+	struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 	int starpu_top=_starpu_top_status_get();
 	int workerid = args->workerid;
 	unsigned calibrate_model = 0;
@@ -100,10 +100,10 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	args->status = STATUS_UNKNOWN;
 }
 void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker_args,
-					enum starpu_perf_archtype perf_arch,
+					enum starpu_perfmodel_archtype perf_arch,
 					struct timespec *codelet_start, struct timespec *codelet_end, int profiling)
 {
-	struct starpu_task_profiling_info *profiling_info = j->task->profiling_info;
+	struct starpu_profiling_task_info *profiling_info = j->task->profiling_info;
 	struct timespec measured_ts;
 	double measured;
 	int workerid = worker_args->workerid;

@@ -85,7 +85,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 struct _starpu_data_replicate *src_replicate,
 							 struct _starpu_data_replicate *dst_replicate,
 							 unsigned handling_node,
-							 enum starpu_access_mode mode,
+							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
 							 unsigned is_prefetch)
 {
@@ -229,7 +229,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 {
 	unsigned do_delete = 0;
 	starpu_data_handle_t handle = r->handle;
-	enum starpu_access_mode mode = r->mode;
+	enum starpu_data_access_mode mode = r->mode;
 
 	struct _starpu_data_replicate *src_replicate = r->src_replicate;
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
@@ -341,7 +341,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	struct _starpu_data_replicate *src_replicate = r->src_replicate;
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
 
-	enum starpu_access_mode r_mode = r->mode;
+	enum starpu_data_access_mode r_mode = r->mode;
 
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate);
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->allocated);

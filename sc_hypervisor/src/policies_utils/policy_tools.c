@@ -73,7 +73,7 @@ unsigned sc_hypervisor_find_lowest_prio_sched_ctx(unsigned req_sched_ctx, int nw
 	return sched_ctx;
 }
 
-int* sc_hypervisor_get_idlest_workers_in_list(int *start, int *workers, int nall_workers,  int *nworkers, enum starpu_archtype arch)
+int* sc_hypervisor_get_idlest_workers_in_list(int *start, int *workers, int nall_workers,  int *nworkers, enum starpu_worker_archtype arch)
 {
 	int *curr_workers = (int*)malloc((*nworkers)*sizeof(int));
 
@@ -85,7 +85,7 @@ int* sc_hypervisor_get_idlest_workers_in_list(int *start, int *workers, int nall
 			break;
 
 		worker = workers == NULL ? w : workers[w];
-		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
+		enum starpu_worker_archtype curr_arch = starpu_worker_get_type(worker);
 		if(arch == STARPU_ANY_WORKER || curr_arch == arch)
 		{
 			if(w >= *start)
@@ -101,7 +101,7 @@ int* sc_hypervisor_get_idlest_workers_in_list(int *start, int *workers, int nall
 }
 
 /* get first nworkers with the highest idle time in the context */
-int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype arch)
+int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum starpu_worker_archtype arch)
 {
 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctx);
@@ -126,7 +126,7 @@ int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum st
 		{
 			considered = 0;
 			worker = workers->get_next(workers, &it);
-			enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
+			enum starpu_worker_archtype curr_arch = starpu_worker_get_type(worker);
 			if(arch == STARPU_ANY_WORKER || curr_arch == arch)
 			{
 
@@ -176,7 +176,7 @@ int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum st
 }
 
 /* get the number of workers in the context that are allowed to be moved (that are not fixed) */
-unsigned sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_archtype arch)
+unsigned sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_worker_archtype arch)
 {
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
 
@@ -189,7 +189,7 @@ unsigned sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
-		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
+		enum starpu_worker_archtype curr_arch = starpu_worker_get_type(worker);
                 if(arch == STARPU_ANY_WORKER || curr_arch == arch)
                 {
 			if(!config->fixed_workers[worker])
@@ -300,7 +300,7 @@ unsigned sc_hypervisor_policy_resize_to_unknown_receiver(unsigned sender_sched_c
 	return sc_hypervisor_policy_resize(sender_sched_ctx, STARPU_NMAX_SCHED_CTXS, 0, now);
 }
 
-static double _get_ispeed_sample_for_type_of_worker(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype req_arch)
+static double _get_ispeed_sample_for_type_of_worker(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype req_arch)
 {
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
         int worker;
@@ -314,7 +314,7 @@ static double _get_ispeed_sample_for_type_of_worker(struct sc_hypervisor_wrapper
         while(workers->has_next(workers, &it))
 	{
                 worker = workers->get_next(workers, &it);
-                enum starpu_archtype arch = starpu_worker_get_type(worker);
+                enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
                 if(arch == req_arch)
                 {
 			struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
@@ -454,7 +454,7 @@ double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w,
                 double curr_time = starpu_timing_now();
 		size_t elapsed_data_used = sc_w->elapsed_data[worker];
                 double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
- 		enum starpu_archtype arch = starpu_worker_get_type(worker);
+ 		enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
 		if(arch == STARPU_CUDA_WORKER)
 		{
 /* 			unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx); */
@@ -480,7 +480,7 @@ double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w,
 
 }
 
-static double _get_best_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
+static double _get_best_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, int *npus, enum starpu_worker_archtype req_arch)
 {
 	double ret_val = 0.0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
@@ -493,7 +493,7 @@ static double _get_best_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, int *n
         while(workers->has_next(workers, &it))
 	{
                 worker = workers->get_next(workers, &it);
-                enum starpu_archtype arch = starpu_worker_get_type(worker);
+                enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
                 if(arch == req_arch)
                 {
 			if(sc_w->elapsed_flops[worker] > ret_val)
@@ -506,7 +506,7 @@ static double _get_best_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, int *n
 }
 
 /* compute an average value of the cpu/cuda velocity */
-double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
+double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
 {
         int npus = 0;
         double elapsed_flops = _get_best_elapsed_flops(sc_w, &npus, arch) / 1000000000.0 ; /* in gflops */
@@ -575,7 +575,7 @@ void sc_hypervisor_group_workers_by_type(int *workers, int nworkers, int ntypes_
 
 	for(w = 0; w < current_nworkers; w++)
 	{
- 		enum starpu_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
+ 		enum starpu_worker_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
 			starpu_worker_get_type(workers[w]);
 		if(ntypes_of_workers == 2)
 		{
@@ -598,8 +598,8 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
                 for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
                 {
 			int worker = workers == NULL ? w : workers[w];
-                        enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(worker);
-                        double length = starpu_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
+                        enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(worker);
+                        double length = starpu_permodel_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
 
                         if (isnan(length))
                                 times[w][t] = NAN;
@@ -608,7 +608,7 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
                                 times[w][t] = length / 1000.;
 
 				double transfer_time = 0.0;
-				enum starpu_archtype arch = starpu_worker_get_type(worker);
+				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
 				if(arch == STARPU_CUDA_WORKER)
 				{
 					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);

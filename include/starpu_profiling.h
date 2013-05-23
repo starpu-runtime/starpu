@@ -30,7 +30,7 @@ extern "C"
 #define STARPU_PROFILING_DISABLE	0
 #define STARPU_PROFILING_ENABLE		1
 
-struct starpu_task_profiling_info
+struct starpu_profiling_task_info
 {
 	/* Task submission */
 	struct timespec submit_time;
@@ -65,8 +65,8 @@ struct starpu_task_profiling_info
 	double power_consumed;
 };
 
-/* The timing is provided since the previous call to starpu_worker_get_profiling_info */
-struct starpu_worker_profiling_info
+/* The timing is provided since the previous call to starpu_profiling_worker_get_info */
+struct starpu_profiling_worker_info
 {
 	struct timespec start_time;
 	struct timespec total_time;
@@ -79,7 +79,7 @@ struct starpu_worker_profiling_info
 	double power_consumed;
 };
 
-struct starpu_bus_profiling_info
+struct starpu_profiling_bus_info
 {
 	struct timespec start_time;
 	struct timespec total_time;
@@ -88,7 +88,7 @@ struct starpu_bus_profiling_info
 };
 
 /* This function sets the ID used for profiling trace filename */
-void starpu_set_profiling_id(int new_id);
+void starpu_profiling_set_id(int new_id);
 
 /* This function sets the profiling status:
  * - enable with STARPU_PROFILING_ENABLE
@@ -114,14 +114,14 @@ extern int _starpu_profiling;
 
 /* Get the profiling info associated to a worker, and reset the profiling
  * measurements. If worker_info is NULL, we only reset the counters. */
-int starpu_worker_get_profiling_info(int workerid, struct starpu_worker_profiling_info *worker_info);
+int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worker_info *worker_info);
 
 int starpu_bus_get_count(void);
 int starpu_bus_get_id(int src, int dst);
 int starpu_bus_get_src(int busid);
 int starpu_bus_get_dst(int busid);
 
-int starpu_bus_get_profiling_info(int busid, struct starpu_bus_profiling_info *bus_info);
+int starpu_bus_get_profiling_info(int busid, struct starpu_profiling_bus_info *bus_info);
 
 /* Some helper functions to manipulate profiling API output */
 /* Reset timespec */
@@ -182,8 +182,8 @@ static __starpu_inline void starpu_timespec_sub(const struct timespec *a,
 double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end);
 double starpu_timing_timespec_to_us(struct timespec *ts);
 
-void starpu_bus_profiling_helper_display_summary(void);
-void starpu_worker_profiling_helper_display_summary(void);
+void starpu_profiling_bus_helper_display_summary(void);
+void starpu_profiling_worker_helper_display_summary(void);
 
 #ifdef __cplusplus
 }

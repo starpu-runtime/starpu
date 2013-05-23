@@ -125,25 +125,25 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
  */
 
 /* Returns the perfmodel footprint for the task */
-uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
+uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl);
 /* Returns expected task duration in us */
-double starpu_task_expected_length(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
+double starpu_task_expected_length(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl);
 /* Returns an estimated speedup factor relative to CPU speed */
-double starpu_worker_get_relative_speedup(enum starpu_perf_archtype perf_archtype);
+double starpu_worker_get_relative_speedup(enum starpu_perfmodel_archtype perf_archtype);
 /* Returns expected data transfer time in us */
 double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task);
 /* Predict the transfer time (in us) to move a handle to a memory node */
-double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_access_mode mode);
+double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode);
 /* Returns expected power consumption in J */
-double starpu_task_expected_power(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
+double starpu_task_expected_power(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl);
 /* Returns expected conversion time in ms (multiformat interface only) */
-double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl);
+double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl);
 /* Return the expected duration of the entire task bundle in us. */
-double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
+double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perfmodel_archtype arch, unsigned nimpl);
 /* Return the time (in us) expected to transfer all data used within the bundle */
 double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node);
 /* Return the expected power consumption of the entire task bundle in J. */
-double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perf_archtype arch, unsigned nimpl);
+double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perfmodel_archtype arch, unsigned nimpl);
 
 #ifdef __cplusplus
 }

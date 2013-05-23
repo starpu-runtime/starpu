@@ -106,7 +106,7 @@ struct _starpu_data_state
 	 * the req_list anymore), i.e. the number of holders of the
 	 * current_mode rwlock */
 	unsigned refcnt;
-	enum starpu_access_mode current_mode;
+	enum starpu_data_access_mode current_mode;
 	/* protect meta data */
 	struct _starpu_spinlock header_lock;
 
@@ -162,7 +162,7 @@ struct _starpu_data_state
 	 * it would modify the piece of data ? Any task accessing the data in a
 	 * read-only mode should depend on that task implicitely if the
 	 * sequential_consistency flag is enabled. */
-	enum starpu_access_mode last_submitted_mode;
+	enum starpu_data_access_mode last_submitted_mode;
 	struct starpu_task *last_submitted_writer;
 	struct _starpu_task_wrapper_list *last_submitted_readers;
 
@@ -222,7 +222,7 @@ void _starpu_display_msi_stats(void);
  * async means that _starpu_fetch_data_on_node will wait for completion of the request
  */
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate,
-			       enum starpu_access_mode mode, unsigned detached, unsigned async,
+			       enum starpu_data_access_mode mode, unsigned detached, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg);
 /* This releases a reference on the handle */
 void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t default_wt_mask,
@@ -230,7 +230,7 @@ void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t def
 
 void _starpu_update_data_state(starpu_data_handle_t handle,
 			       struct _starpu_data_replicate *requesting_replicate,
-			       enum starpu_access_mode mode);
+			       enum starpu_data_access_mode mode);
 
 uint32_t _starpu_get_data_refcnt(struct _starpu_data_state *state, unsigned node);
 
@@ -253,7 +253,7 @@ unsigned _starpu_select_src_node(struct _starpu_data_state *state, unsigned dest
  */
 struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 								  struct _starpu_data_replicate *dst_replicate,
-								  enum starpu_access_mode mode, unsigned is_prefetch,
+								  enum starpu_data_access_mode mode, unsigned is_prefetch,
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg);
 

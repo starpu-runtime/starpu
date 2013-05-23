@@ -4,6 +4,6 @@ Moving access modes for data handles from struct starpu_task to struct starpu_co
 
 TODO list
 
-- Make struct starpu_buffer_descr private (or not, as it can still be used in tests and examples)
+- Make struct starpu_data_descr private (or not, as it can still be used in tests and examples)
 
-- When cost_model is provided, but not cost_function, need to rebuild a struct starpu_buffer_descr
+- When cost_model is provided, but not cost_function, need to rebuild a struct starpu_data_descr

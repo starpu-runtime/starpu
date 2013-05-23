@@ -142,11 +142,11 @@ void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_hand
 /* Return the pointer associated with HANDLE on node NODE or NULL if HANDLE's
  * interface does not support this operation or data for this handle is not
  * allocated on that node. */
-void *starpu_handle_to_pointer(starpu_data_handle_t handle, unsigned node);
+void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node);
 
 /* Return the local pointer associated with HANDLE or NULL if HANDLE's
  * interface does not have data allocated locally */
-void *starpu_handle_get_local_ptr(starpu_data_handle_t handle);
+void *starpu_data_get_local_ptr(starpu_data_handle_t handle);
 
 /* "node" means memory node: 0 for main RAM, then 1, 2, etc. for various GPUs,
  * etc.

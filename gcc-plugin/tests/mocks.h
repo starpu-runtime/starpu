@@ -264,7 +264,7 @@ starpu_data_lookup (const void *ptr)
 }
 
 void *
-starpu_handle_get_local_ptr (starpu_data_handle_t handle)
+starpu_data_get_local_ptr (starpu_data_handle_t handle)
 {
   return handle_to_pointer (handle);
 }
@@ -347,7 +347,7 @@ struct data_acquire_arguments expected_acquire_arguments;
 struct data_release_arguments expected_release_arguments;
 
 int
-starpu_data_acquire (starpu_data_handle_t handle, enum starpu_access_mode mode)
+starpu_data_acquire (starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
   /* XXX: Currently only `STARPU_RW'.  */
   assert (mode == STARPU_RW);

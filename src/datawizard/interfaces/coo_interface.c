@@ -162,7 +162,7 @@ coo_interface_footprint(starpu_data_handle_t handle)
 	coo_interface = (struct starpu_coo_interface *)
 		starpu_data_get_interface_on_node(handle, 0);
 
-	return starpu_crc32_be(coo_interface->nx * coo_interface->ny, 0);
+	return starpu_hash_crc32c_be(coo_interface->nx * coo_interface->ny, 0);
 }
 
 static int

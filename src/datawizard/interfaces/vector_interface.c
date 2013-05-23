@@ -113,7 +113,7 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, unsigned home_
 
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle_t handle)
 {
-	return starpu_crc32_be(starpu_vector_get_nx(handle), 0);
+	return starpu_hash_crc32c_be(starpu_vector_get_nx(handle), 0);
 }
 
 static int vector_compare(void *data_interface_a, void *data_interface_b)
