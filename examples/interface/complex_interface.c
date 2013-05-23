@@ -105,7 +105,7 @@ static size_t complex_get_size(starpu_data_handle_t handle)
 
 static uint32_t complex_footprint(starpu_data_handle_t handle)
 {
-	return starpu_crc32_be(starpu_complex_get_nx(handle), 0);
+	return starpu_hash_crc32c_be(starpu_complex_get_nx(handle), 0);
 }
 
 static void *complex_handle_to_pointer(starpu_data_handle_t handle, unsigned node)

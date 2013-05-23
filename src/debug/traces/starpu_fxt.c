@@ -67,22 +67,22 @@ static const char *get_worker_color(int workerid)
 static unsigned get_colour_symbol_red(char *name)
 {
 	/* choose some colour ... that's disguting yes */
-	uint32_t hash_symbol = starpu_crc32_string(name, 0);
-	return (unsigned)starpu_crc32_string("red", hash_symbol) % 1024;
+	uint32_t hash_symbol = starpu_hash_crc32c_string(name, 0);
+	return (unsigned)starpu_hash_crc32c_string("red", hash_symbol) % 1024;
 }
 
 static unsigned get_colour_symbol_green(char *name)
 {
 	/* choose some colour ... that's disguting yes */
-	uint32_t hash_symbol = starpu_crc32_string(name, 0);
-	return (unsigned)starpu_crc32_string("green", hash_symbol) % 1024;
+	uint32_t hash_symbol = starpu_hash_crc32c_string(name, 0);
+	return (unsigned)starpu_hash_crc32c_string("green", hash_symbol) % 1024;
 }
 
 static unsigned get_colour_symbol_blue(char *name)
 {
 	/* choose some colour ... that's disguting yes */
-	uint32_t hash_symbol = starpu_crc32_string(name, 0);
-	return (unsigned)starpu_crc32_string("blue", hash_symbol) % 1024;
+	uint32_t hash_symbol = starpu_hash_crc32c_string(name, 0);
+	return (unsigned)starpu_hash_crc32c_string("blue", hash_symbol) % 1024;
 }
 
 static double last_codelet_start[STARPU_NMAXWORKERS];
@@ -322,7 +322,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	register_worker_id(threadid, workerid);
 
 	char *kindstr = "";
-	enum starpu_perf_archtype archtype = 0;
+	enum starpu_perfmodel_archtype archtype = 0;
 
 	switch (ev->param[0])
 	{
@@ -575,7 +575,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	if (options->dumped_codelets)
 	{
-		enum starpu_perf_archtype archtype = ev->param[3];
+		enum starpu_perfmodel_archtype archtype = ev->param[3];
 
 		dumped_codelets_count++;
 		dumped_codelets = realloc(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));

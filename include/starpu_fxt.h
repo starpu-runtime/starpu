@@ -31,7 +31,7 @@ struct starpu_fxt_codelet_event
 {
 	char symbol[256]; /* name of the codelet */
 	int workerid;
-	enum starpu_perf_archtype archtype;
+	enum starpu_perfmodel_archtype archtype;
 	uint32_t hash;
 	size_t size;
 	float time;
@@ -60,7 +60,7 @@ struct starpu_fxt_options
 	 */
 
 	char worker_names[STARPU_NMAXWORKERS][256];
-	enum starpu_perf_archtype worker_archtypes[STARPU_NMAXWORKERS];
+	enum starpu_perfmodel_archtype worker_archtypes[STARPU_NMAXWORKERS];
 	int nworkers;
 
 	/* In case we want to dump the list of codelets to an external tool */

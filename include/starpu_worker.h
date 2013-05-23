@@ -31,7 +31,7 @@ extern "C"
 {
 #endif
 
-enum starpu_archtype
+enum starpu_worker_archtype
 {
 	STARPU_ANY_WORKER,    /* any worker, used in the hypervisor */
 	STARPU_CPU_WORKER,    /* CPU core */
@@ -128,12 +128,12 @@ int starpu_combined_worker_get_rank(void);
  * the architecture of the worker: STARPU_CPU_WORKER for a CPU core,
  * STARPU_CUDA_WORKER for a CUDA device. The value returned for an
  * invalid identifier is unspecified.  */
-enum starpu_archtype starpu_worker_get_type(int id);
+enum starpu_worker_archtype starpu_worker_get_type(int id);
 
 /* Returns the number of workers of the type indicated by the argument. A
  * positive (or null) value is returned in case of success, -EINVAL indicates
  * that the type is not valid otherwise. */
-int starpu_worker_get_count_by_type(enum starpu_archtype type);
+int starpu_worker_get_count_by_type(enum starpu_worker_archtype type);
 
 /* Fill the workerids array with the identifiers of the workers that have the
  * type indicated in the first argument. The maxsize argument indicates the
@@ -144,13 +144,13 @@ int starpu_worker_get_count_by_type(enum starpu_archtype type);
  * overflows, the value of maxsize can be chosen by the means of the
  * starpu_worker_get_count_by_type function, or by passing a value greater or
  * equal to STARPU_NMAXWORKERS. */
-int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize);
+int starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
 /* Return the identifier of the n-th worker of a specific type */
-int starpu_worker_get_by_type(enum starpu_archtype type, int num);
+int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num);
 
 /* Return the identifier of the worker devid of a specific type */
-int starpu_worker_get_by_devid(enum starpu_archtype type, int devid);
+int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid);
 
 /* StarPU associates a unique human readable string to each processing unit.
  * This function copies at most the "maxlen" first bytes of the unique

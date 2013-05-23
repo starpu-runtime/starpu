@@ -237,7 +237,7 @@ static size_t custom_interface_get_size(starpu_data_handle_t handle)
 
 static uint32_t footprint_custom_interface_crc32(starpu_data_handle_t handle)
 {
-	return starpu_crc32_be(custom_get_nx(handle), 0);
+	return starpu_hash_crc32c_be(custom_get_nx(handle), 0);
 }
 
 static void display_custom_interface(starpu_data_handle_t handle, FILE *f)

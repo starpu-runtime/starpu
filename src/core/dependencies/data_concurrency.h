@@ -25,7 +25,7 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j);
 int _starpu_notify_data_dependencies(starpu_data_handle_t handle);
 
 unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t handle,
-							  enum starpu_access_mode mode,
+							  enum starpu_data_access_mode mode,
 							  void (*callback)(void *), void *argcb);
 
 #endif // __DATA_CONCURRENCY_H__

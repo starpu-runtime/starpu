@@ -21,7 +21,7 @@
 
 #define PROGNAME "starpu_machine_display"
 
-static void display_worker_names(enum starpu_archtype type)
+static void display_worker_names(enum starpu_worker_archtype type)
 {
 	unsigned nworkers = starpu_worker_get_count_by_type(type);
 

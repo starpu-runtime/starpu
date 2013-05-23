@@ -50,7 +50,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 		{
 			if(starpu_worker_can_execute_task(worker, task, impl))
 			{
-				enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+				enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 				double speedup = starpu_worker_get_relative_speedup(perf_arch);
 				alpha_sum += speedup;
 				speedup_arr[size] = speedup;

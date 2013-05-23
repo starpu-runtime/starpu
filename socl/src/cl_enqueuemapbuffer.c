@@ -23,7 +23,7 @@ static void mapbuffer_task(void *args) {
   ev->prof_start = _socl_nanotime();
   gc_entity_release(ev);
 
-	enum starpu_access_mode mode = (cmd->map_flags == CL_MAP_READ ? STARPU_R : STARPU_RW);
+	enum starpu_data_access_mode mode = (cmd->map_flags == CL_MAP_READ ? STARPU_R : STARPU_RW);
 
 	starpu_data_acquire_cb(cmd->buffer->handle, mode, command_completed_task_callback, cmd);
 }

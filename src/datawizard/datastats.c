@@ -129,7 +129,7 @@ void _starpu_comm_amounts_inc(unsigned src  __attribute__ ((unused)), unsigned d
 void _starpu_display_comm_amounts(void)
 {
 #ifdef STARPU_DEVEL
-#  warning TODO. The information displayed here seems to be similar to the one displayed by starpu_bus_profiling_helper_display_summary()
+#  warning TODO. The information displayed here seems to be similar to the one displayed by starpu_profiling_bus_helper_display_summary()
 #endif
 
 #ifdef STARPU_ENABLE_STATS

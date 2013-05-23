@@ -175,7 +175,7 @@ task->destroy = 0;
 starpu_task_submit(task);
 
 /* The task is finished, get profiling information */
-struct starpu_task_profiling_info *info = task->profiling_info;
+struct starpu_profiling_task_info *info = task->profiling_info;
 
 /* How much time did it take before the task started ? */
 double delay += starpu_timing_timespec_delay_us(&info->submit_time, &info->start_time);
@@ -194,8 +194,8 @@ starpu_task_destroy(task);
 int worker;
 for (worker = 0; worker < starpu_worker_get_count(); worker++)
 @{
-        struct starpu_worker_profiling_info worker_info;
-        int ret = starpu_worker_get_profiling_info(worker, &worker_info);
+        struct starpu_profiling_worker_info worker_info;
+        int ret = starpu_profiling_worker_get_info(worker, &worker_info);
         STARPU_ASSERT(!ret);
 
         double total_time = starpu_timing_timespec_to_us(&worker_info.total_time);
@@ -1278,7 +1278,7 @@ the field @code{dyn_handles} when defining a task and the field
 
 @cartouche
 @smallexample
-enum starpu_access_mode modes[STARPU_NMAXBUFS+1] = @{
+enum starpu_data_access_mode modes[STARPU_NMAXBUFS+1] = @{
 	STARPU_R, STARPU_R, ...
 @};
 

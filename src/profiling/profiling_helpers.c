@@ -18,7 +18,7 @@
 #include <starpu_profiling.h>
 #include <profiling/profiling.h>
 
-void starpu_bus_profiling_helper_display_summary(void)
+void starpu_profiling_bus_helper_display_summary(void)
 {
 	const char *stats;
 	int long long sum_transferred = 0;
@@ -37,7 +37,7 @@ void starpu_bus_profiling_helper_display_summary(void)
 		src = starpu_bus_get_src(busid);
 		dst = starpu_bus_get_dst(busid);
 
-		struct starpu_bus_profiling_info bus_info;
+		struct starpu_profiling_bus_info bus_info;
 		starpu_bus_get_profiling_info(busid, &bus_info);
 
 		int long long transferred = bus_info.transferred_bytes;
@@ -52,7 +52,7 @@ void starpu_bus_profiling_helper_display_summary(void)
 	fprintf(stderr, "Total transfers: %.2lf MB\n", (1.0*sum_transferred)/(1024*1024));
 }
 
-void starpu_worker_profiling_helper_display_summary(void)
+void starpu_profiling_worker_helper_display_summary(void)
 {
 	const char *stats;
 	double sum_consumed = 0.;
@@ -68,8 +68,8 @@ void starpu_worker_profiling_helper_display_summary(void)
 
 	for (workerid = 0; workerid < worker_cnt; workerid++)
 	{
-		struct starpu_worker_profiling_info info;
-		starpu_worker_get_profiling_info(workerid, &info);
+		struct starpu_profiling_worker_info info;
+		starpu_profiling_worker_get_info(workerid, &info);
 		char name[64];
 
 		starpu_worker_get_name(workerid, name, sizeof(name));

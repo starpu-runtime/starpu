@@ -44,7 +44,7 @@ static starpu_data_handle_t _dot_handle;
 
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
-	enum starpu_archtype type = starpu_worker_get_type(workerid);
+	enum starpu_worker_archtype type = starpu_worker_get_type(workerid);
 	if (type == STARPU_CPU_WORKER || type == STARPU_OPENCL_WORKER)
 		return 1;
 

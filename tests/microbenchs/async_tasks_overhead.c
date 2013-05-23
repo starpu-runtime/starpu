@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 	/* Read profiling feedback */
 	for (i = 0; i < ntasks; i++)
 	{
-		struct starpu_task_profiling_info *info;
+		struct starpu_profiling_task_info *info;
 		info = tasks[i]->profiling_info;
 
 		double queued = starpu_timing_timespec_delay_us(&info->push_end_time, &info->pop_end_time);

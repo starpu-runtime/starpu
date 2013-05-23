@@ -95,8 +95,8 @@ struct starpu_codelet
 	/* how many buffers do the codelet takes as argument ? */
 	unsigned nbuffers;
 	/* which are the access modes for these buffers */
-	enum starpu_access_mode modes[STARPU_NMAXBUFS];
-	enum starpu_access_mode *dyn_modes;
+	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
+	enum starpu_data_access_mode *dyn_modes;
 
 	/* performance model of the codelet */
 	struct starpu_perfmodel *model;
@@ -117,7 +117,7 @@ struct starpu_task
 	struct starpu_codelet *cl;
 
 	/* arguments managed by the DSM */
-	struct starpu_buffer_descr buffers[STARPU_NMAXBUFS] STARPU_DEPRECATED;
+	struct starpu_data_descr buffers[STARPU_NMAXBUFS] STARPU_DEPRECATED;
 	starpu_data_handle_t handles[STARPU_NMAXBUFS];
 	void *interfaces[STARPU_NMAXBUFS];
 
@@ -176,7 +176,7 @@ struct starpu_task
 
 	/* This gets filled when profiling is enabled by using
 	 * starpu_profiling_status_set */
-	struct starpu_task_profiling_info *profiling_info;
+	struct starpu_profiling_task_info *profiling_info;
 
 	/* Predicted duration of the task in µs. This field is only valid if the
 	 * scheduling strategy uses performance models. */

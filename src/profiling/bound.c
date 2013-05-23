@@ -400,7 +400,7 @@ static void _starpu_get_tasks_times(int nw, int nt, double *times)
 				.footprint = tp->footprint,
 				.footprint_is_computed = 1,
 			};
-			enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
+			enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(w);
 			double length = _starpu_history_based_job_expected_perf(tp->cl->model, arch, &j, j.nimpl);
 			if (isnan(length))
 				times[w*nt+t] = NAN;
@@ -486,7 +486,7 @@ void starpu_bound_print_lp(FILE *output)
 			};
 			for (w = 0; w < nw; w++)
 			{
-				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
+				enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(w);
 				if (_STARPU_IS_ZERO(t1->duration[arch]))
 				{
 					double length = _starpu_history_based_job_expected_perf(t1->cl->model, arch, &j,j.nimpl);
@@ -519,7 +519,7 @@ void starpu_bound_print_lp(FILE *output)
 		{
 			for (w = 0; w < nw; w++)
 			{
-				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
+				enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(w);
 				if (!isnan(t1->duration[arch]))
 					fprintf(output, " +t%luw%d", t1->id, w);
 			}
@@ -533,7 +533,7 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "/* %s %x */\tc%lu = s%lu", _starpu_codelet_get_model_name(t1->cl), (unsigned) t1->footprint, t1->id, t1->id);
 			for (w = 0; w < nw; w++)
 			{
-				enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
+				enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(w);
 				if (!isnan(t1->duration[arch]))
 					fprintf(output, " + %f t%luw%d", t1->duration[arch], t1->id, w);
 			}
@@ -616,7 +616,7 @@ void starpu_bound_print_lp(FILE *output)
 				{
 					for (w = 0; w < nw; w++)
 					{
-						enum starpu_perf_archtype arch = starpu_worker_get_perf_archtype(w);
+						enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(w);
 						if (!isnan(t1->duration[arch]))
 						{
 							fprintf(output, "s%lu - c%lu >= -3e5 + 1e5 t%luw%d + 1e5 t%luw%d + 1e5 t%luafter%lu;\n",

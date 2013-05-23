@@ -54,7 +54,7 @@ LIST_TYPE(_starpu_data_request,
 	 * With mapped buffers, an additional case is mode = 0, which means
 	 * unmapping the buffer.
 	 */
-	enum starpu_access_mode mode;
+	enum starpu_data_access_mode mode;
 
 	/* Elements needed to make the transfer asynchronous */
 	struct _starpu_async_channel async_channel;
@@ -89,7 +89,7 @@ LIST_TYPE(_starpu_data_request,
  * Not only StarPU internals, but also the application may put such requests */
 LIST_TYPE(_starpu_data_requester,
 	/* what kind of access is requested ? */
-	enum starpu_access_mode mode;
+	enum starpu_data_access_mode mode;
 
 	/* applications may also directly manipulate data */
 	unsigned is_requested_by_codelet;
@@ -120,7 +120,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 struct _starpu_data_replicate *src_replicate,
 							 struct _starpu_data_replicate *dst_replicate,
 							 unsigned handling_node,
-							 enum starpu_access_mode mode,
+							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
 							 unsigned is_prefetch);
 

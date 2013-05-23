@@ -30,7 +30,7 @@ extern "C"
 #endif
 
 struct starpu_task;
-struct starpu_buffer_descr;
+struct starpu_data_descr;
 
 /*
    it is possible that we have multiple versions of the same kind of workers,
@@ -38,7 +38,7 @@ struct starpu_buffer_descr;
    so we do not use the archtype enum type directly for performance models
 */
 
-enum starpu_perf_archtype
+enum starpu_perfmodel_archtype
 {
 	STARPU_CPU_DEFAULT = 0,
 	/* CPU combined workers between 0 and STARPU_MAXCPUS-1 */
@@ -142,9 +142,9 @@ struct starpu_perfmodel_history_table;
 
 struct starpu_perfmodel_per_arch
 {
-	double (*cost_model)(struct starpu_buffer_descr *t) STARPU_DEPRECATED; /* returns expected duration in µs */
-	double (*cost_function)(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl); /* returns expected duration in µs */
-	size_t (*size_base)(struct starpu_task *, enum starpu_perf_archtype arch, unsigned nimpl);
+	double (*cost_model)(struct starpu_data_descr *t) STARPU_DEPRECATED; /* returns expected duration in µs */
+	double (*cost_function)(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl); /* returns expected duration in µs */
+	size_t (*size_base)(struct starpu_task *, enum starpu_perfmodel_archtype arch, unsigned nimpl);
 
 	/* internal variables */
 	struct starpu_perfmodel_history_table *history;
@@ -170,7 +170,7 @@ struct starpu_perfmodel
 	enum starpu_perfmodel_type type;
 
 	/* single cost model (STARPU_COMMON), returns expected duration in µs */
-	double (*cost_model)(struct starpu_buffer_descr *) STARPU_DEPRECATED;
+	double (*cost_model)(struct starpu_data_descr *) STARPU_DEPRECATED;
 	double (*cost_function)(struct starpu_task *, unsigned nimpl);
 
 	size_t (*size_base)(struct starpu_task *, unsigned nimpl);
@@ -188,22 +188,22 @@ struct starpu_perfmodel
 	starpu_pthread_rwlock_t model_rwlock;
 };
 
-enum starpu_perf_archtype starpu_worker_get_perf_archtype(int workerid);
+enum starpu_perfmodel_archtype starpu_worker_get_perf_archtype(int workerid);
 
 /* This function is intended to be used by external tools that should read the
  * performance model files */
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model);
 int starpu_perfmodel_unload_model(struct starpu_perfmodel *model);
 
-void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, char *path, size_t maxlen, unsigned nimpl);
-void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen, unsigned nimpl);
+void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, char *path, size_t maxlen, unsigned nimpl);
+void starpu_perfmodel_get_arch_name(enum starpu_perfmodel_archtype arch, char *archname, size_t maxlen, unsigned nimpl);
 
-double starpu_history_based_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, uint32_t footprint);
+double starpu_permodel_history_based_expected_perf(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, uint32_t footprint);
 int starpu_perfmodel_list(FILE *output);
-void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output);
+void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output);
 int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output);
 
-void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
+void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
 
 void starpu_bus_print_bandwidth(FILE *f);
 void starpu_bus_print_affinity(FILE *f);

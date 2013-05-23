@@ -92,7 +92,7 @@ static void _starpu_profile_set_tracefile(void *last, ...)
 	strcat(_STARPU_PROF_FILE_USER, suffix);
 }
 
-void starpu_set_profiling_id(int new_id)
+void starpu_profiling_set_id(int new_id)
 {
 	_STARPU_DEBUG("Set id to <%d>\n", new_id);
 	_starpu_id = new_id;

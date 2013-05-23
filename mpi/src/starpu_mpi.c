@@ -186,7 +186,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 							      int srcdst, int mpi_tag, MPI_Comm comm,
 							      unsigned detached, void (*callback)(void *), void *arg,
 							      enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
-							      enum starpu_access_mode mode)
+							      enum starpu_data_access_mode mode)
 {
 
 	_STARPU_MPI_LOG_IN();
@@ -269,7 +269,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	if (req->user_datatype == 0)
 	{
 		req->count = 1;
-		req->ptr = starpu_handle_get_local_ptr(req->data_handle);
+		req->ptr = starpu_data_get_local_ptr(req->data_handle);
 
 		env->psize = (ssize_t)req->count;
 
@@ -825,7 +825,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 				if (req->user_datatype == 0)
 				{
 					req->count = 1;
-					req->ptr = starpu_handle_get_local_ptr(req->data_handle);
+					req->ptr = starpu_data_get_local_ptr(req->data_handle);
 				}
 				else
 				{
@@ -1027,7 +1027,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	     MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
 	     TRACE_MPI_START(rank, worldsize);
 #ifdef STARPU_USE_FXT
-	     starpu_set_profiling_id(rank);
+	     starpu_profiling_set_id(rank);
 #endif //STARPU_USE_FXT
 	}
 
@@ -1158,7 +1158,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					if (found_req->user_datatype == 0)
 					{
 						found_req->count = 1;
-						found_req->ptr = starpu_handle_get_local_ptr(found_req->data_handle);
+						found_req->ptr = starpu_data_get_local_ptr(found_req->data_handle);
 					}
 					else
 					{

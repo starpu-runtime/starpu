@@ -90,7 +90,7 @@ void copy_data_and_param(void)
 
 static void starpu_top_get_device_type(int id, char* type)
 {
-	enum starpu_archtype device_type=starpu_worker_get_type(id);
+	enum starpu_worker_archtype device_type=starpu_worker_get_type(id);
 	switch (device_type)
 	{
 	case STARPU_CPU_WORKER:

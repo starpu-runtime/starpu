@@ -28,7 +28,7 @@ extern "C"
 struct _starpu_data_state;
 typedef struct _starpu_data_state* starpu_data_handle_t;
 
-enum starpu_access_mode
+enum starpu_data_access_mode
 {
 	STARPU_NONE=0,
 	STARPU_R=(1<<0),
@@ -38,10 +38,10 @@ enum starpu_access_mode
 	STARPU_REDUX=(1<<3)
 };
 
-struct starpu_buffer_descr
+struct starpu_data_descr
 {
 	starpu_data_handle_t handle;
-	enum starpu_access_mode mode;
+	enum starpu_data_access_mode mode;
 };
 
 struct starpu_data_interface_ops;
@@ -65,10 +65,10 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle);
 
 void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_important);
 
-int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mode);
-int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum starpu_access_mode mode);
-int starpu_data_acquire_cb(starpu_data_handle_t handle, enum starpu_access_mode mode, void (*callback)(void *), void *arg);
-int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node, enum starpu_access_mode mode, void (*callback)(void *), void *arg);
+int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mode mode);
+int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode);
+int starpu_data_acquire_cb(starpu_data_handle_t handle, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg);
+int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg);
 #ifdef __GCC__
 #  define STARPU_DATA_ACQUIRE_CB(handle, mode, code) do \
 	{ \						\
@@ -85,7 +85,7 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node, e
 void starpu_data_release(starpu_data_handle_t handle);
 void starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node);
 
-void starpu_memory_display_stats();
+void starpu_data_display_memory_stats();
 
 /* XXX These macros are provided to avoid breaking old codes. But consider
  * these function names as deprecated. */
