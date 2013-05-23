@@ -62,7 +62,7 @@ static unsigned _get_slowest_sched_ctx(void)
 
 
 /* get first nworkers with the highest idle time in the context */
-static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype arch)
+static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_worker_archtype arch)
 {
 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctx);
@@ -87,7 +87,7 @@ static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_
 		{
 			considered = 0;
 			worker = workers->get_next(workers, &it);
-			enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
+			enum starpu_worker_archtype curr_arch = starpu_worker_get_type(worker);
 			if(arch == STARPU_ANY_WORKER || curr_arch == arch)
 			{
 

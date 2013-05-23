@@ -142,11 +142,11 @@ void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_hand
 /* Return the pointer associated with HANDLE on node NODE or NULL if HANDLE's
  * interface does not support this operation or data for this handle is not
  * allocated on that node. */
-void *starpu_handle_to_pointer(starpu_data_handle_t handle, unsigned node);
+void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node);
 
 /* Return the local pointer associated with HANDLE or NULL if HANDLE's
  * interface does not have data allocated locally */
-void *starpu_handle_get_local_ptr(starpu_data_handle_t handle);
+void *starpu_data_get_local_ptr(starpu_data_handle_t handle);
 
 /* "node" means memory node: 0 for main RAM, then 1, 2, etc. for various GPUs,
  * etc.
@@ -424,11 +424,11 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, unsigned hom
 #define STARPU_MULTIFORMAT_GET_OPENCL_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->opencl_ptr)
 #define STARPU_MULTIFORMAT_GET_NX(interface)  (((struct starpu_multiformat_interface *)(interface))->nx)
 
-enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle);
+enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle);
 
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count);
-int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr, size_t count);
-size_t starpu_handle_get_size(starpu_data_handle_t handle);
+int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count);
+int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count);
+size_t starpu_data_get_size(starpu_data_handle_t handle);
 
 /* Lookup a ram pointer into a StarPU handle */
 extern starpu_data_handle_t starpu_data_lookup(const void *ptr);

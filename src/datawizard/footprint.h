@@ -24,7 +24,7 @@
 
 /* Compute the footprint that characterizes the job and cache it into the job
  * structure. */
-uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j);
+uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, unsigned nimpl, struct _starpu_job *j);
 
 /* Compute the footprint that characterizes the layout of the data handle. */
 uint32_t _starpu_compute_data_footprint(starpu_data_handle_t handle);

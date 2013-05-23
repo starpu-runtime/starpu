@@ -477,7 +477,7 @@ int starpu_task_submit(struct starpu_task *task)
 
 	/* If profiling is activated, we allocate a structure to store the
 	 * appropriate info. */
-	struct starpu_task_profiling_info *info;
+	struct starpu_profiling_task_info *info;
 	int profiling = starpu_profiling_status_get();
 	info = _starpu_allocate_profiling_info_if_needed(task);
 	task->profiling_info = info;
@@ -548,7 +548,7 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
 			_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
-			enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
+			enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
 			_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
 		}
 	}
@@ -598,7 +598,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
-		enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
+		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
 	}
 

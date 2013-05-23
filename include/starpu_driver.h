@@ -30,7 +30,7 @@ extern "C"
 
 struct starpu_driver
 {
-	enum starpu_archtype type;
+	enum starpu_worker_archtype type;
 	union
 	{
 		unsigned cpu_id;

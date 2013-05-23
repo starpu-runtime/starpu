@@ -90,7 +90,7 @@ struct _starpu_task_bundle
 struct _starpu_handle_list
 {
 	starpu_data_handle_t handle;
-	enum starpu_access_mode mode;
+	enum starpu_data_access_mode mode;
 	struct _starpu_handle_list *next;
 };
 
@@ -131,6 +131,6 @@ void _starpu_task_bundle_destroy(starpu_task_bundle_t bundle);
  * mode			(input)
  * 			Access mode of the handle.
  */
-void _insertion_handle_sorted(struct _starpu_handle_list **listp, starpu_data_handle_t handle, enum starpu_access_mode mode);
+void _insertion_handle_sorted(struct _starpu_handle_list **listp, starpu_data_handle_t handle, enum starpu_data_access_mode mode);
 
 #endif // __CORE_TASK_BUNDLE_H__

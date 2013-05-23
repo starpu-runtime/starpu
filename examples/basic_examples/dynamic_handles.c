@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	dummy_big_cl.dyn_modes = malloc(dummy_big_cl.nbuffers * sizeof(enum starpu_access_mode));
+	dummy_big_cl.dyn_modes = malloc(dummy_big_cl.nbuffers * sizeof(enum starpu_data_access_mode));
 	for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
 	     dummy_big_cl.dyn_modes[i] = STARPU_RW;
 

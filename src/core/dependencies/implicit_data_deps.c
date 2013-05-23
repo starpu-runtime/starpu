@@ -228,7 +228,7 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
 /* NB : handle->sequential_consistency_mutex must be hold by the caller;
  * returns a task, to be submitted after releasing that mutex. */
 struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task,
-						   starpu_data_handle_t handle, enum starpu_access_mode mode)
+						   starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
 	struct starpu_task *task = NULL;
 
@@ -259,7 +259,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 			_starpu_bound_task_dep(post_sync_job, pre_sync_job);
 		}
 
-		enum starpu_access_mode previous_mode = handle->last_submitted_mode;
+		enum starpu_data_access_mode previous_mode = handle->last_submitted_mode;
 
 		if (mode & STARPU_W)
 		{
@@ -337,7 +337,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
-		enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, buffer);
+		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, buffer);
 		struct starpu_task *new_task;
 
 		/* Scratch memory does not introduce any deps */
@@ -457,7 +457,7 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
-        struct starpu_buffer_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+        struct starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 
 	if (!task->cl)
 		return;
@@ -548,7 +548,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 
 /* If sequential consistency mode is enabled, this function blocks until the
  * handle is available in the requested access mode. */
-int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_access_mode mode)
+int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
 	/* If sequential consistency is enabled, wait until data is available */
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);

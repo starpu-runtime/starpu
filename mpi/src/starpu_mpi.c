@@ -186,7 +186,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 							      int srcdst, int mpi_tag, MPI_Comm comm,
 							      unsigned detached, void (*callback)(void *), void *arg,
 							      enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
-							      enum starpu_access_mode mode)
+							      enum starpu_data_access_mode mode)
 {
 
 	_STARPU_MPI_LOG_IN();
@@ -236,7 +236,7 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 
 	STARPU_ASSERT_MSG(req->ptr, "Pointer containing data to send is invalid");
 
-	_STARPU_MPI_DEBUG(2, "post MPI isend request %p type %s tag %d src %d data %p datasize %ld ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, starpu_handle_get_size(req->data_handle), req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
+	_STARPU_MPI_DEBUG(2, "post MPI isend request %p type %s tag %d src %d data %p datasize %ld ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
 
 	_starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, req->datatype, req->count);
 
@@ -269,11 +269,11 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	if (req->user_datatype == 0)
 	{
 		req->count = 1;
-		req->ptr = starpu_handle_get_local_ptr(req->data_handle);
+		req->ptr = starpu_data_get_local_ptr(req->data_handle);
 
 		env->psize = (ssize_t)req->count;
 
-		_STARPU_MPI_DEBUG(1, "Post MPI isend count (%ld) datatype_size %ld request to %d with tag %d\n",req->count,starpu_handle_get_size(req->data_handle),req->srcdst, _starpu_mpi_tag);
+		_STARPU_MPI_DEBUG(1, "Post MPI isend count (%ld) datatype_size %ld request to %d with tag %d\n",req->count,starpu_data_get_size(req->data_handle),req->srcdst, _starpu_mpi_tag);
 		MPI_Isend(env, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, _starpu_mpi_tag, req->comm, &req->size_req);
 	}
 	else
@@ -281,7 +281,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		int ret;
 
  		// Do not pack the data, just try to find out the size
-		starpu_handle_pack_data(req->data_handle, NULL, &(env->psize));
+		starpu_data_pack(req->data_handle, NULL, &(env->psize));
 
 		if (env->psize != -1)
  		{
@@ -293,7 +293,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
  		}
 
  		// Pack the data
- 		starpu_handle_pack_data(req->data_handle, &req->ptr, &req->count);
+ 		starpu_data_pack(req->data_handle, &req->ptr, &req->count);
 		if (env->psize == -1)
  		{
  			// We know the size now, let's send it
@@ -709,8 +709,8 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 				STARPU_ASSERT_MSG(flag, "MPI_Test returning flag %d", flag);
 			}
 			if (req->request_type == RECV_REQ)
-				// req->ptr is freed by starpu_handle_unpack_data
-				starpu_handle_unpack_data(req->data_handle, req->ptr, req->count);
+				// req->ptr is freed by starpu_data_unpack
+				starpu_data_unpack(req->data_handle, req->ptr, req->count);
 			else
 				free(req->ptr);
 		}
@@ -825,7 +825,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 				if (req->user_datatype == 0)
 				{
 					req->count = 1;
-					req->ptr = starpu_handle_get_local_ptr(req->data_handle);
+					req->ptr = starpu_data_get_local_ptr(req->data_handle);
 				}
 				else
 				{
@@ -1027,7 +1027,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	     MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
 	     TRACE_MPI_START(rank, worldsize);
 #ifdef STARPU_USE_FXT
-	     starpu_set_profiling_id(rank);
+	     starpu_profiling_set_id(rank);
 #endif //STARPU_USE_FXT
 	}
 
@@ -1158,7 +1158,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					if (found_req->user_datatype == 0)
 					{
 						found_req->count = 1;
-						found_req->ptr = starpu_handle_get_local_ptr(found_req->data_handle);
+						found_req->ptr = starpu_data_get_local_ptr(found_req->data_handle);
 					}
 					else
 					{

@@ -496,8 +496,8 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		int worker_idx = topology->nworkers + cudagpu;
 		config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
 		int devid = _starpu_get_next_cuda_gpuid(config);
-		enum starpu_perf_archtype arch =
-			(enum starpu_perf_archtype)((int)STARPU_CUDA_DEFAULT + devid);
+		enum starpu_perfmodel_archtype arch =
+			(enum starpu_perfmodel_archtype)((int)STARPU_CUDA_DEFAULT + devid);
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_CUDA;
@@ -570,8 +570,8 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 			break;
 		}
 		config->workers[worker_idx].arch = STARPU_OPENCL_WORKER;
-		enum starpu_perf_archtype arch =
-			(enum starpu_perf_archtype)((int)STARPU_OPENCL_DEFAULT + devid);
+		enum starpu_perfmodel_archtype arch =
+			(enum starpu_perfmodel_archtype)((int)STARPU_OPENCL_DEFAULT + devid);
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_OPENCL;

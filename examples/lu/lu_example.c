@@ -369,7 +369,7 @@ int main(int argc, char **argv)
 	{
 		FPRINTF(stderr, "Setting profile\n");
 		starpu_profiling_status_set(STARPU_PROFILING_DISABLE);
-		starpu_bus_profiling_helper_display_summary();
+		starpu_profiling_bus_helper_display_summary();
 	}
 
 	if (bound)

@@ -111,7 +111,7 @@ _starpu_cpu_discover_devices(struct _starpu_machine_config *config)
  * Handle binding CPUs on cores.
  * In the case of a combined worker WORKER_TASK != J->TASK */
 
-static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_task, struct _starpu_worker *cpu_args, int rank, enum starpu_perf_archtype perf_arch)
+static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_task, struct _starpu_worker *cpu_args, int rank, enum starpu_perfmodel_archtype perf_arch)
 {
 	int ret;
 	int is_parallel_task = (j->task_size > 1);
@@ -289,7 +289,7 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 	int rank = 0;
 	int is_parallel_task = (j->task_size > 1);
 
-	enum starpu_perf_archtype perf_arch;
+	enum starpu_perfmodel_archtype perf_arch;
 
 	/* Get the rank in case it is a parallel task */
 	if (is_parallel_task)

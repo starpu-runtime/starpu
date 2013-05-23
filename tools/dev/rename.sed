@@ -158,3 +158,26 @@ s/\bstarpu_helper_cublas_shutdown\b/starpu_cublas_shutdown/g
 s/\bstarpu_allocate_buffer_on_node\b/starpu_malloc_on_node/g
 s/\bstarpu_free_buffer_on_node\b/starpu_free_on_node/g
 
+s/\benum starpu_access_mode\b/enum starpu_data_access_mode/g
+s/\bstruct starpu_buffer_descr\b/struct starpu_data_descr/g
+s/\bstarpu_memory_display_stats\b/starpu_data_display_memory_stats/g
+s/\bstarpu_handle_to_pointer\b/starpu_data_handle_to_pointer/g
+s/\bstarpu_handle_get_local_ptr\b/starpu_data_get_local_ptr/g
+s/\bstarpu_crc32_be_n\b/starpu_hash_crc32c_be_n/g
+s/\bstarpu_crc32_be\b/starpu_hash_crc32c_be/g
+s/\bstarpu_crc32_string\b/starpu_hash_crc32c_string/g
+s/\benum starpu_perf_archtype\b/enum starpu_perfmodel_archtype/g
+s/\bstarpu_history_based_expected_perf\b/starpu_permodel_history_based_expected_perf/g
+s/\bstruct starpu_task_profiling_info\b/struct starpu_profiling_task_info/g
+s/\bstruct starpu_worker_profiling_info\b/struct starpu_profiling_worker_info/g
+s/\bstruct starpu_bus_profiling_info\b/struct starpu_profiling_bus_info/g
+s/\bstarpu_set_profiling_id\b/starpu_profiling_set_id/g
+s/\bstarpu_worker_get_profiling_info\b/starpu_profiling_worker_get_info/g
+s/\bstarpu_bus_profiling_helper_display_summary\b/starpu_profiling_bus_helper_display_summary/g
+s/\bstarpu_worker_profiling_helper_display_summary\b/starpu_profiling_worker_helper_display_summary/g
+s/\benum starpu_archtype\b/enum starpu_worker_archtype/g
+
+s/\bstarpu_handle_get_interface_id\b/starpu_data_get_interface_id/g
+s/\bstarpu_handle_get_size\b/starpu_data_get_size/g
+s/\bstarpu_handle_pack_data\b/starpu_data_pack/g
+s/\bstarpu_handle_unpack_data\b/starpu_data_unpack/g

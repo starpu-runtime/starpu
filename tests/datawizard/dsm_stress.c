@@ -69,7 +69,7 @@ static void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args
 {
 }
 
-static enum starpu_access_mode select_random_mode(void)
+static enum starpu_data_access_mode select_random_mode(void)
 {
 	int r = rand();
 
@@ -191,8 +191,8 @@ int main(int argc, char **argv)
 		task->handles[0] = v_handle;
 		task->handles[1] = v_handle2;
 
-		enum starpu_access_mode mode0 = select_random_mode();
-		enum starpu_access_mode mode1 = select_random_mode();
+		enum starpu_data_access_mode mode0 = select_random_mode();
+		enum starpu_data_access_mode mode1 = select_random_mode();
 
 		if (mode0 == STARPU_R && mode1 == STARPU_R)
 			task->cl = &cl_r_r;

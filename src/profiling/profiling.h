@@ -25,7 +25,7 @@
 
 /* Create a task profiling info structure (with the proper time stamps) in case
  * profiling is enabled. */
-struct starpu_task_profiling_info *_starpu_allocate_profiling_info_if_needed(struct starpu_task *task);
+struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(struct starpu_task *task);
 
 /* Clear all the profiling info related to the worker. */
 void _starpu_worker_reset_profiling_info(int workerid);

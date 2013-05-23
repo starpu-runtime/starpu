@@ -34,7 +34,7 @@
 #endif
 
 //static unsigned ncombinedworkers;
-//static enum starpu_perf_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
+//static enum starpu_perfmodel_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
 //static unsigned napplicable_perf_archtypes = 0;
 
 /*
@@ -231,7 +231,7 @@ static double compute_expected_end(int workerid, double length)
 
 static double compute_ntasks_end(int workerid)
 {
-	enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
+	enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 
@@ -352,7 +352,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			}
 
 
-			enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+			enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
 
 			local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch,nimpl);
 
@@ -531,7 +531,7 @@ static void parallel_heft_add_workers(unsigned sched_ctx_id, int *workerids, uns
 
 /* 	for (workerid = 0; workerid < total_worker_count; workerid++) */
 /* 	{ */
-/* 		enum starpu_perf_archtype perf_archtype = starpu_worker_get_perf_archtype(workerid); */
+/* 		enum starpu_perfmodel_archtype perf_archtype = starpu_worker_get_perf_archtype(workerid); */
 /* 		used_perf_archtypes[perf_archtype] = 1; */
 /* 	} */
 

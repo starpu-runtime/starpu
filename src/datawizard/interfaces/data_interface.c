@@ -246,7 +246,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	/* now the data is available ! */
 	_starpu_spin_unlock(&handle->header_lock);
 
-	ptr = starpu_handle_to_pointer(handle, 0);
+	ptr = starpu_data_handle_to_pointer(handle, 0);
 	if (ptr != NULL)
 	{
 		_starpu_data_register_ram_pointer(handle, ptr);
@@ -328,7 +328,7 @@ void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_hand
 	starpu_data_register(handledst, -1, local_interface, handlesrc->ops);
 }
 
-void *starpu_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
+void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	/* Check whether the operation is supported and the node has actually
 	 * been allocated.  */
@@ -341,9 +341,9 @@ void *starpu_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 	return NULL;
 }
 
-void *starpu_handle_get_local_ptr(starpu_data_handle_t handle)
+void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
 {
-	return starpu_handle_to_pointer(handle,
+	return starpu_data_handle_to_pointer(handle,
 					_starpu_memory_node_get_local_key());
 }
 
@@ -434,7 +434,7 @@ void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
 
-	ram_ptr = starpu_handle_to_pointer(handle, 0);
+	ram_ptr = starpu_data_handle_to_pointer(handle, 0);
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 		free(handle->per_node[node].data_interface);
@@ -758,7 +758,7 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 	starpu_data_acquire_cb(handle, STARPU_W, _starpu_data_invalidate, handle);
 }
 
-enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle)
+enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle)
 {
 	return handle->ops->interfaceid;
 }
@@ -774,13 +774,13 @@ int starpu_data_interface_get_next_id(void)
 	return _data_interface_number-1;
 }
 
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
+int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(handle->ops->pack_data);
 	return handle->ops->pack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
 }
 
-int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr, size_t count)
+int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 {
 	STARPU_ASSERT(handle->ops->unpack_data);
 	int ret;
@@ -789,7 +789,7 @@ int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr, size_t cou
 	return ret;
 }
 
-size_t starpu_handle_get_size(starpu_data_handle_t handle)
+size_t starpu_data_get_size(starpu_data_handle_t handle)
 {
 	return handle->ops->get_size(handle);
 }

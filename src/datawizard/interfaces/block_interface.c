@@ -158,9 +158,9 @@ static uint32_t footprint_block_interface_crc32(starpu_data_handle_t handle)
 {
 	uint32_t hash;
 
-	hash = starpu_crc32_be(starpu_block_get_nx(handle), 0);
-	hash = starpu_crc32_be(starpu_block_get_ny(handle), hash);
-	hash = starpu_crc32_be(starpu_block_get_nz(handle), hash);
+	hash = starpu_hash_crc32c_be(starpu_block_get_nx(handle), 0);
+	hash = starpu_hash_crc32c_be(starpu_block_get_ny(handle), hash);
+	hash = starpu_hash_crc32c_be(starpu_block_get_nz(handle), hash);
 
 	return hash;
 }

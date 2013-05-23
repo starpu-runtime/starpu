@@ -59,13 +59,13 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 unsigned sc_hypervisor_find_lowest_prio_sched_ctx(unsigned req_sched_ctx, int nworkers_to_move);
 
 /* find the first most idle workers of a context*/
-int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum starpu_archtype arch);
+int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum starpu_worker_archtype arch);
 
 /* find the first most idle workers in a list */
-int* sc_hypervisor_get_idlest_workers_in_list(int *start, int *workers, int nall_workers,  int *nworkers, enum starpu_archtype arch);
+int* sc_hypervisor_get_idlest_workers_in_list(int *start, int *workers, int nall_workers,  int *nworkers, enum starpu_worker_archtype arch);
 
 /* find workers that can be moved from a context (if the constraints of min, max, etc allow this) */
-unsigned sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_archtype arch);
+unsigned sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_worker_archtype arch);
 
 /* compute how many workers should be moved from this context */
 int sc_hypervisor_compute_nworkers_to_move(unsigned req_sched_ctx);
@@ -89,10 +89,10 @@ double sc_hypervisor_get_fastest_ctx_exec_time(void);
 double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w, unsigned worker); 
 
 /* compute the velocity of a type of worker in a context */
-double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
+double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
 
 /* compute the velocity of a type of worker in a context depending on its history */ 
-double sc_hypervisor_get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch);
+double sc_hypervisor_get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
 
 /* check if there are contexts a lot more delayed than others */
 int sc_hypervisor_has_velocity_gap_btw_ctxs(void);

@@ -25,7 +25,7 @@ static void data_cpy_func(void *descr[], void *cl_arg)
 	const struct starpu_data_copy_methods *copy_methods = (const struct starpu_data_copy_methods *) cl_arg;
 
 	int workerid = starpu_worker_get_id();
-	enum starpu_archtype type = starpu_worker_get_type(workerid);
+	enum starpu_worker_archtype type = starpu_worker_get_type(workerid);
 	unsigned memory_node = starpu_worker_get_memory_node(workerid);
 
 	void *dst_interface = descr[0];

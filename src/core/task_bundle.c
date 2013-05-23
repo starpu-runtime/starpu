@@ -188,7 +188,7 @@ void _starpu_task_bundle_destroy(starpu_task_bundle_t bundle)
 	free(bundle);
 }
 
-void _insertion_handle_sorted(struct _starpu_handle_list **listp, starpu_data_handle_t handle, enum starpu_access_mode mode)
+void _insertion_handle_sorted(struct _starpu_handle_list **listp, starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
 	STARPU_ASSERT(listp);
 
@@ -220,7 +220,7 @@ void _insertion_handle_sorted(struct _starpu_handle_list **listp, starpu_data_ha
 	if (prev->handle == handle)
 	{
 		/* The handle is already in the list, the merge both the access modes */
-		prev->mode = (enum starpu_access_mode) ((int) prev->mode | (int) mode);
+		prev->mode = (enum starpu_data_access_mode) ((int) prev->mode | (int) mode);
 	}
 	else
 	{

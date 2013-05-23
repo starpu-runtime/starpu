@@ -64,8 +64,8 @@ static int _compar_data_paths(const unsigned pathA[], unsigned depthA,
 
 /* A comparision function between two handles makes it possible to use qsort to
  * sort a list of handles */
-static int _starpu_compar_handles(const struct starpu_buffer_descr *descrA,
-				  const struct starpu_buffer_descr *descrB)
+static int _starpu_compar_handles(const struct starpu_data_descr *descrA,
+				  const struct starpu_data_descr *descrB)
 {
 	struct _starpu_data_state *dataA = descrA->handle;
 	struct _starpu_data_state *dataB = descrB->handle;
@@ -109,14 +109,14 @@ static int _starpu_compar_handles(const struct starpu_buffer_descr *descrA,
 
 static int _starpu_compar_buffer_descr(const void *_descrA, const void *_descrB)
 {
-	const struct starpu_buffer_descr *descrA = (const struct starpu_buffer_descr *) _descrA;
-	const struct starpu_buffer_descr *descrB = (const struct starpu_buffer_descr *) _descrB;
+	const struct starpu_data_descr *descrA = (const struct starpu_data_descr *) _descrA;
+	const struct starpu_data_descr *descrB = (const struct starpu_data_descr *) _descrB;
 
 	return _starpu_compar_handles(descrA, descrB);
 }
 
 /* The descr array will be overwritten, so this must be a copy ! */
-void _starpu_sort_task_handles(struct starpu_buffer_descr descr[], unsigned nbuffers)
+void _starpu_sort_task_handles(struct starpu_data_descr descr[], unsigned nbuffers)
 {
-	qsort(descr, nbuffers, sizeof(struct starpu_buffer_descr), _starpu_compar_buffer_descr);
+	qsort(descr, nbuffers, sizeof(struct starpu_data_descr), _starpu_compar_buffer_descr);
 }

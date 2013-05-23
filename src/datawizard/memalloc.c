@@ -864,7 +864,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 
 	if (dst_node == 0)
 	{
-		void *ptr = starpu_handle_to_pointer(handle, 0);
+		void *ptr = starpu_data_handle_to_pointer(handle, 0);
 		if (ptr != NULL)
 		{
 			_starpu_data_register_ram_pointer(handle, ptr);
@@ -950,7 +950,7 @@ void _starpu_memory_display_stats_by_node(int node)
 }
 #endif
 
-void starpu_memory_display_stats(void)
+void starpu_data_display_memory_stats(void)
 {
 #ifdef STARPU_MEMORY_STATS
 	unsigned node;
