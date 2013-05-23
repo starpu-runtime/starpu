@@ -2184,7 +2184,7 @@ i-th element of the field @code{dyn_modes} (@pxref{Setting the Data
 Handles for a Task})
 @end defmac
 
-@defmac STARPU_CODELET_SET_MODE ({struct starpu_codelet *}@var{codelet}codelet, {enum starpu_data_access_mode} @var{mode}, int @var{i})
+@defmac STARPU_CODELET_SET_MODE ({struct starpu_codelet *}@var{codelet}, {enum starpu_data_access_mode} @var{mode}, int @var{i})
 Set the access mode of the i-th data handle of the given codelet.
 If the codelet is defined with a static or dynamic number of handles,
 will either set the i-th element of the field @code{modes} or the
@@ -2203,7 +2203,7 @@ by the task have to be freed by calling
 @code{starpu_task_destroy}.
 @end deftypefun
 
-@deftypefun {struct starpu_task *}starpu_task_dup ({struct starpu_task *}@var{task})
+@deftypefun {struct starpu_task *} starpu_task_dup ({struct starpu_task *}@var{task})
 Allocate a task structure which is the exact duplicate of the given task.
 @end deftypefun
 
