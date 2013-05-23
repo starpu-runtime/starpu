@@ -677,7 +677,7 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 	starpu_data_acquire_cb(handle, STARPU_W, _starpu_data_invalidate, handle);
 }
 
-enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle)
+enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle)
 {
 	return handle->ops->interfaceid;
 }
@@ -693,13 +693,13 @@ int starpu_data_interface_get_next_id(void)
 	return _data_interface_number-1;
 }
 
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
+int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(handle->ops->pack_data);
 	return handle->ops->pack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
 }
 
-int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr, size_t count)
+int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 {
 	STARPU_ASSERT(handle->ops->unpack_data);
 	int ret;
@@ -708,7 +708,7 @@ int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr, size_t cou
 	return ret;
 }
 
-size_t starpu_handle_get_size(starpu_data_handle_t handle)
+size_t starpu_data_get_size(starpu_data_handle_t handle)
 {
 	return handle->ops->get_size(handle);
 }

@@ -59,7 +59,7 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, enum 
 
 uint32_t _starpu_compute_data_footprint(starpu_data_handle_t handle)
 {
-	uint32_t interfaceid = (uint32_t)starpu_handle_get_interface_id(handle);
+	uint32_t interfaceid = (uint32_t)starpu_data_get_interface_id(handle);
 
 	STARPU_ASSERT(handle->ops->footprint);
 

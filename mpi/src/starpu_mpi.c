@@ -154,7 +154,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		int ret;
 
 		// Do not pack the data, just try to find out the size
-		starpu_handle_pack_data(req->data_handle, NULL, &psize);
+		starpu_data_pack(req->data_handle, NULL, &psize);
 
 		if (psize != -1)
 		{
@@ -166,7 +166,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		}
 
 		// Pack the data
-		starpu_handle_pack_data(req->data_handle, &req->ptr, &req->count);
+		starpu_data_pack(req->data_handle, &req->ptr, &req->count);
 		if (psize == -1)
 		{
 			// We know the size now, let's send it
@@ -622,8 +622,8 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 				STARPU_ASSERT_MSG(flag, "MPI_Test returning flag %d", flag);
 			}
 			if (req->request_type == RECV_REQ)
-				// req->ptr is freed by starpu_handle_unpack_data
-				starpu_handle_unpack_data(req->data_handle, req->ptr, req->count);
+				// req->ptr is freed by starpu_data_unpack
+				starpu_data_unpack(req->data_handle, req->ptr, req->count);
 			else
 				free(req->ptr);
 		}
