@@ -12,7 +12,7 @@ static double compute_relative_speedup(struct _starpu_sched_node * node)
 	if(_starpu_sched_node_is_worker(node))
 	{
 		int id = _starpu_sched_node_worker_get_workerid(node);
-		enum starpu_perf_archtype perf_arch = starpu_worker_get_perf_archtype(id);
+		enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(id);
 		return starpu_worker_get_relative_speedup(perf_arch);
 	}
 	double sum = 0.0;

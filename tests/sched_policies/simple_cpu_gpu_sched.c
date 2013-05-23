@@ -40,7 +40,7 @@ dummy(void *buffers[], void *args)
  */
 static double
 cpu_task_cpu(struct starpu_task *task,
-	     enum starpu_perf_archtype arch,
+	     enum starpu_perfmodel_archtype arch,
 	     unsigned nimpl)
 {
 	(void) task;
@@ -51,7 +51,7 @@ cpu_task_cpu(struct starpu_task *task,
 
 static double
 cpu_task_gpu(struct starpu_task *task,
-	     enum starpu_perf_archtype arch,
+	     enum starpu_perfmodel_archtype arch,
 	     unsigned nimpl)
 {
 	(void) task;
@@ -63,7 +63,7 @@ cpu_task_gpu(struct starpu_task *task,
 
 static double
 gpu_task_cpu(struct starpu_task *task,
-	     enum starpu_perf_archtype arch,
+	     enum starpu_perfmodel_archtype arch,
 	     unsigned nimpl)
 {
 	(void) task;
@@ -75,7 +75,7 @@ gpu_task_cpu(struct starpu_task *task,
 
 static double
 gpu_task_gpu(struct starpu_task *task,
-	     enum starpu_perf_archtype arch,
+	     enum starpu_perfmodel_archtype arch,
 	     unsigned nimpl)
 {
 	(void) task;
@@ -172,7 +172,7 @@ run(struct starpu_sched_policy *policy)
 
 	starpu_task_wait_for_all();
 
-	enum starpu_archtype cpu_task_worker, gpu_task_worker;
+	enum starpu_worker_archtype cpu_task_worker, gpu_task_worker;
 	cpu_task_worker = starpu_worker_get_type(cpu_task->profiling_info->workerid);
 	gpu_task_worker = starpu_worker_get_type(gpu_task->profiling_info->workerid);
 	if (cpu_task_worker != STARPU_CPU_WORKER ||

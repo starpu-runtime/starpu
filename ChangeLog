@@ -18,6 +18,16 @@ StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 
 New features:
+  * New function starpu_sched_ctx_exec_parallel_code to execute a
+    parallel code on the workers of the given scheduler context
+  * MPI:
+        - New internal communication system : a unique tag called
+	  is now used for all communications, and a system
+	  of hashmaps on each node which stores pending receives has been
+	  implemented. Every message is now coupled with an envelope, sent
+	  before the corresponding data, which allows the receiver to
+	  allocate data correctly, and to submit the matching receive of
+	  the envelope.
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================
@@ -131,8 +141,20 @@ Small features:
   * New macro STARPU_RELEASE_VERSION
   * New function starpu_get_version() to return as 3 integers the
     release version of StarPU.
+  * Enable by default data allocation cache
 
 Changes:
+  * Rename all filter functions to follow the pattern
+    starpu_DATATYPE_filter_FILTERTYPE. The script
+    tools/dev/rename_filter.sh is provided to update your existing
+    applications to use new filters function names.
+  * Renaming of diverse functions and datatypes. The script
+    tools/dev/rename.sh is provided to update your existing
+    applications to use the new names. It is also possible to compile
+    with the pkg-config package starpu-1.0 to keep using the old
+    names. It is however recommended to update your code and to use
+    the package starpu-1.1.
+
   * Fix the block filter functions.
   * Fix StarPU-MPI on Darwin.
   * The FxT code can now be used on systems other than Linux.
@@ -165,16 +187,6 @@ Changes:
     instead.
   * StarPU can now use poti to generate paje traces.
   * Rename scheduling policy "parallel greedy" to "parallel eager"
-  * Rename all filter functions to follow the pattern
-    starpu_DATATYPE_filter_FILTERTYPE. The script
-    tools/dev/rename_filter.sh is provided to rename your existing
-    applications using filters.
-  * Rename function starpu_helper_cublas_init to starpu_cublas_init
-  * Rename function starpu_helper_cublas_shutdown to starpu_cublas_shutdown
-  * Rename function starpu_allocate_buffer_on_node to starpu_malloc_on_node
-  * Rename function starpu_free_buffer_on_node to starpu_free_on_node
-  * Rename getter and setter functions for minimum and maximum task
-    priorities
   * starpu_scheduler.h is no longer automatically included by
     starpu.h, it has to be manually included when needed
   * New batch files to run StarPU applications with Microsoft Visual C
@@ -182,6 +194,8 @@ Changes:
     installed version of StarPU. That can also be used to test
     examples using a previous API.
   * Tutorial is installed in ${docdir}/tutorial
+  * Schedulers eager_central_policy, dm and dmda no longer erroneously respect
+    priorities. dmdas has to be used to respect priorities.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is

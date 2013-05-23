@@ -62,7 +62,7 @@ struct _starpu_sched_node
 
 struct _starpu_execute_pred {
 	enum {CANNOT_EXECUTE = 0, CALIBRATING , NO_PERF_MODEL, PERF_MODEL} state;
-	enum starpu_perf_archtype archtype;
+	enum starpu_perfmodel_archtype archtype;
 	int impl;
 	double expected_length;
 };

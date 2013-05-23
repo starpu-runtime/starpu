@@ -148,7 +148,23 @@ creation of a StarPU-MPI request, the function
 @code{starpu_data_acquire_cb} is then called to asynchronously request
 StarPU to fetch the data in main memory; when the data is available in
 main memory, a StarPU-MPI function is called to put the new request in
-the list of the ready requests.
+the list of the ready requests if it is a send request, or in an
+hashmap if it is a receive request.
+
+Internally, all MPI communications submitted by StarPU uses a unique
+tag which has a default value, and can be accessed with the functions
+@ref{starpu_mpi_get_communication_tag} and
+@ref{starpu_mpi_set_communication_tag}.
+
+The matching of tags with corresponding requests is done into StarPU-MPI. 
+To handle this, any communication is a double-communication based on a 
+envelope + data system. Every data which will be sent needs to send an 
+envelope which describes the data (particularly its tag) before sending 
+the data, so the receiver can get the matching pending receive request 
+from the hashmap, and submit it to recieve the data correctly.
+
+To this aim, the StarPU-MPI progression thread has a permanent-submitted 
+request destined to receive incoming envelopes from all sources.
 
 The StarPU-MPI progression thread regularly polls this list of ready
 requests. For each new ready request, the appropriate function is
@@ -161,6 +177,15 @@ The StarPU-MPI progression thread also polls the list of detached
 requests. For each detached request, it regularly tests the completion
 of the MPI request by calling @code{MPI_Test}. On completion, the data
 handle is released, and if a callback was defined, it is called.
+
+Finally, the StarPU-MPI progression thread checks if an envelope has 
+arrived. If it is, it'll check if the corresponding receive has already
+been submitted by the application. If it is, it'll submit the request
+just as like as it does with those on the list of ready requests.
+If it is not, it'll allocate a temporary handle to store the data that
+will arrive just after, so as when the corresponding receive request
+will be submitted by the application, it'll copy this temporary handle
+into its one instead of submitting a new StarPU-MPI request.
 
 @ref{Communication} gives the list of all the point to point
 communications defined in StarPU-MPI.

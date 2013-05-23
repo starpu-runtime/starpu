@@ -112,8 +112,8 @@ int main(int argc, char **argv)
 		task = starpu_task_create();	\
 		task->handles[0] = handle;	\
 		task->handles[1] = handle;		 \
-		enum starpu_access_mode smode0 = STARPU_##mode0;	\
-		enum starpu_access_mode smode1 = STARPU_##mode0;	\
+		enum starpu_data_access_mode smode0 = STARPU_##mode0;	\
+		enum starpu_data_access_mode smode1 = STARPU_##mode0;	\
 		if      (smode0 == STARPU_R && smode1 == STARPU_R)	\
 			task->cl = &codelet_R_R;			\
 		else if (smode0 == STARPU_R && smode1 == STARPU_W)	\

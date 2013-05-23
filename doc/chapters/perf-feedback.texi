@@ -67,13 +67,13 @@ More details about the performance monitoring API are available in section
 @node Task feedback
 @subsection Per-task feedback
 
-If profiling is enabled, a pointer to a @code{starpu_task_profiling_info}
-structure is put in the @code{.profiling_info} field of the @code{starpu_task}
+If profiling is enabled, a pointer to a @code{struct starpu_profiling_task_info}
+is put in the @code{.profiling_info} field of the @code{starpu_task}
 structure when a task terminates.
 This structure is automatically destroyed when the task structure is destroyed,
 either automatically or by calling @code{starpu_task_destroy}.
 
-The @code{starpu_task_profiling_info} structure indicates the date when the
+The @code{struct starpu_profiling_task_info} indicates the date when the
 task was submitted (@code{submit_time}), started (@code{start_time}), and
 terminated (@code{end_time}), relative to the initialization of
 StarPU with @code{starpu_init}. It also specifies the identifier of the worker
@@ -98,8 +98,8 @@ This array is not reinitialized when profiling is enabled or disabled.
 @node Worker feedback
 @subsection Per-worker feedback
 
-The second argument returned by the @code{starpu_worker_get_profiling_info}
-function is a @code{starpu_worker_profiling_info} structure that gives
+The second argument returned by the @code{starpu_profiling_worker_get_info}
+function is a @code{struct starpu_profiling_worker_info} that gives
 statistics about the specified worker. This structure specifies when StarPU
 started collecting profiling information for that worker (@code{start_time}),
 the duration of the profiling measurement interval (@code{total_time}), the
@@ -110,7 +110,7 @@ These values give an estimation of the proportion of time spent do real work,
 and the time spent either sleeping because there are not enough executable
 tasks or simply wasted in pure StarPU overhead.
 
-Calling @code{starpu_worker_get_profiling_info} resets the profiling
+Calling @code{starpu_profiling_worker_get_info} resets the profiling
 information associated to a worker.
 
 When an FxT trace is generated (see @ref{Generating traces}), it is also
@@ -318,6 +318,14 @@ $ starpu_fxt_tool -i filename1 -i filename2
 
 By default, all tasks are displayed using a green color. To display tasks with
 varying colors, pass option @code{-c} to @code{starpu_fxt_tool}.
+
+Traces can also be inspected by hand by using the @code{fxt_print} tool, for instance:
+
+@smallexample
+$ fxt_print -o -f filename
+@end smallexample
+
+Timings are in nanoseconds (while timings as seen in @code{vite} are in milliseconds).
 
 @node DAG
 @subsection Creating a DAG with graphviz

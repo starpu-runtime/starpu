@@ -64,7 +64,7 @@ struct _starpu_machine_config *_starpu_get_machine_config(void)
 /* Makes sure that at least one of the workers of type <arch> can execute
  * <task>, for at least one of its implementations. */
 static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
-						      enum starpu_archtype arch)
+						      enum starpu_worker_archtype arch)
 {
 	int i;
 	int nworkers = starpu_worker_get_count();
@@ -158,7 +158,7 @@ uint32_t _starpu_can_submit_opencl_task(void)
 	return (STARPU_OPENCL & config.worker_mask);
 }
 
-static int _starpu_can_use_nth_implementation(enum starpu_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
+static int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
 {
 	switch(arch)
 	{
@@ -400,6 +400,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 		STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
 		STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
+		STARPU_PTHREAD_MUTEX_INIT(&workerarg->parallel_sect_mutex, NULL);
+		STARPU_PTHREAD_COND_INIT(&workerarg->parallel_sect_cond, NULL);
+		workerarg->parallel_sect = 0;
 
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
@@ -824,7 +827,7 @@ void starpu_profiling_init()
 
 static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 {
-	int status STARPU_ATTRIBUTE_UNUSED;
+	int status = 0;
 	unsigned workerid;
 
 	for (workerid = 0; workerid < pconfig->topology.nworkers; workerid++)
@@ -929,8 +932,8 @@ static void _starpu_kill_all_workers(struct _starpu_machine_config *pconfig)
 
 void starpu_display_stats()
 {
-	starpu_bus_profiling_helper_display_summary();
-	starpu_worker_profiling_helper_display_summary();
+	starpu_profiling_bus_helper_display_summary();
+	starpu_profiling_worker_helper_display_summary();
 }
 
 void starpu_shutdown(void)
@@ -963,8 +966,8 @@ void starpu_shutdown(void)
 	     }
 	}
 
-	starpu_bus_profiling_helper_display_summary();
-	starpu_worker_profiling_helper_display_summary();
+	starpu_profiling_bus_helper_display_summary();
+	starpu_profiling_worker_helper_display_summary();
 
 	_starpu_deinitialize_registered_performance_models();
 
@@ -976,7 +979,7 @@ void starpu_shutdown(void)
 	     if (stats != 0)
 	     {
 		  // Display statistics on data which have not been unregistered
-		  starpu_memory_display_stats();
+		  starpu_data_display_memory_stats();
 	     }
 	}
 
@@ -1017,7 +1020,7 @@ unsigned starpu_worker_get_count(void)
 	return config.topology.nworkers;
 }
 
-int starpu_worker_get_count_by_type(enum starpu_archtype type)
+int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
 {
 	switch (type)
 	{
@@ -1172,12 +1175,12 @@ struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id)
 	return &config.combined_workers[id - basic_worker_count];
 }
 
-enum starpu_archtype starpu_worker_get_type(int id)
+enum starpu_worker_archtype starpu_worker_get_type(int id)
 {
 	return config.workers[id].arch;
 }
 
-int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int maxsize)
+int starpu_worker_get_ids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
 
@@ -1199,7 +1202,7 @@ int starpu_worker_get_ids_by_type(enum starpu_archtype type, int *workerids, int
 	return cnt;
 }
 
-int starpu_worker_get_by_type(enum starpu_archtype type, int num)
+int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num)
 {
 	unsigned nworkers = starpu_worker_get_count();
 
@@ -1220,7 +1223,7 @@ int starpu_worker_get_by_type(enum starpu_archtype type, int num)
 	return -1;
 }
 
-int starpu_worker_get_by_devid(enum starpu_archtype type, int devid)
+int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid)
 {
 	unsigned nworkers = starpu_worker_get_count();
 
@@ -1259,7 +1262,7 @@ void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sc
 	*sched_mutex = &config.workers[workerid].sched_mutex;
 }
 
-int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, int maxsize)
+int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
 
@@ -1281,7 +1284,7 @@ int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, in
 	return cnt;
 }
 
-int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *workerids, int maxsize)
+int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
 

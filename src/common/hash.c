@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,7 @@
 
 #define _STARPU_CRC32C_POLY_BE 0x1EDC6F41
 
-static inline uint32_t __attribute__ ((pure)) starpu_crc32_be_8(uint8_t inputbyte, uint32_t inputcrc)
+static inline uint32_t __attribute__ ((pure)) starpu_crc32c_be_8(uint8_t inputbyte, uint32_t inputcrc)
 {
 	unsigned i;
 	uint32_t crc;
@@ -33,7 +33,7 @@ static inline uint32_t __attribute__ ((pure)) starpu_crc32_be_8(uint8_t inputbyt
 	return crc;
 }
 
-uint32_t starpu_crc32_be_n(void *input, size_t n, uint32_t inputcrc)
+uint32_t starpu_hash_crc32c_be_n(void *input, size_t n, uint32_t inputcrc)
 {
 	uint8_t *p = (uint8_t *)input;
 	size_t i;
@@ -41,26 +41,26 @@ uint32_t starpu_crc32_be_n(void *input, size_t n, uint32_t inputcrc)
 	uint32_t crc = inputcrc;
 
 	for (i = 0; i < n; i++)
-		crc = starpu_crc32_be_8(p[i], crc);
+		crc = starpu_crc32c_be_8(p[i], crc);
 
 	return crc;
 }
 
-uint32_t starpu_crc32_be(uint32_t input, uint32_t inputcrc)
+uint32_t starpu_hash_crc32c_be(uint32_t input, uint32_t inputcrc)
 {
 	uint8_t *p = (uint8_t *)&input;
 
 	uint32_t crc = inputcrc;
 
-	crc = starpu_crc32_be_8(p[0], crc);
-	crc = starpu_crc32_be_8(p[1], crc);
-	crc = starpu_crc32_be_8(p[2], crc);
-	crc = starpu_crc32_be_8(p[3], crc);
+	crc = starpu_crc32c_be_8(p[0], crc);
+	crc = starpu_crc32c_be_8(p[1], crc);
+	crc = starpu_crc32c_be_8(p[2], crc);
+	crc = starpu_crc32c_be_8(p[3], crc);
 
 	return crc;
 }
 
-uint32_t starpu_crc32_string(char *str, uint32_t inputcrc)
+uint32_t starpu_hash_crc32c_string(char *str, uint32_t inputcrc)
 {
 	uint32_t hash = inputcrc;
 
@@ -69,7 +69,7 @@ uint32_t starpu_crc32_string(char *str, uint32_t inputcrc)
 	unsigned i;
 	for (i = 0; i < len; i++)
 	{
-		hash = starpu_crc32_be_8((uint8_t)str[i], hash);
+		hash = starpu_crc32c_be_8((uint8_t)str[i], hash);
 	}
 
 	return hash;

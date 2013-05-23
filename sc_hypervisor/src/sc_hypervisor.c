@@ -339,7 +339,7 @@ void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }
 
-static double _get_best_total_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, int *npus, enum starpu_archtype req_arch)
+static double _get_best_total_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, int *npus, enum starpu_worker_archtype req_arch)
 {
 	double ret_val = 0.0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
@@ -352,7 +352,7 @@ static double _get_best_total_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, 
         while(workers->has_next(workers, &it))
 	{
                 worker = workers->get_next(workers, &it);
-                enum starpu_archtype arch = starpu_worker_get_type(worker);
+                enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
                 if(arch == req_arch)
                 {
 			if(sc_w->total_elapsed_flops[worker] > ret_val)
@@ -365,7 +365,7 @@ static double _get_best_total_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, 
 }
 
 /* compute an average value of the cpu/cuda velocity */
-double sc_hypervisorsc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
+double sc_hypervisorsc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
 {
         int npus = 0;
         double elapsed_flops = _get_best_total_elapsed_flops(sc_w, &npus, arch) / 1000000000.0 ; /* in gflops */
@@ -384,7 +384,7 @@ double sc_hypervisorsc_hypervisor_get_velocity_per_worker_type(struct sc_hypervi
 }
 
 /* compute an average value of the cpu/cuda old velocity */
-double sc_hypervisor_get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_archtype arch)
+double sc_hypervisor_get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
 {
 	double ref_velocity = 0.0;
 	unsigned nw = 0;
@@ -431,13 +431,13 @@ static void _get_cpus(int *workers, int nworkers, int *cpus, int *ncpus)
 	for(i = 0; i < nworkers; i++)
 	{
 		worker = workers[i];
-		enum starpu_archtype arch = starpu_worker_get_type(worker);
+		enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
 		if(arch == STARPU_CPU_WORKER)
 			cpus[(*ncpus)++] = worker;
 	}
 }
 
-int sc_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch)
+int sc_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_worker_archtype arch)
 {
 	int nworkers_ctx = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
@@ -450,7 +450,7 @@ int sc_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_archtype arch
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
-		enum starpu_archtype curr_arch = starpu_worker_get_type(worker);
+		enum starpu_worker_archtype curr_arch = starpu_worker_get_type(worker);
 		if(curr_arch == arch || arch == STARPU_ANY_WORKER)
 			nworkers_ctx++;
 	}
@@ -975,7 +975,7 @@ void sc_hypervisor_free_size_req(void)
 	}
 }
 
-double sc_hypervisor_get_velocity(struct sc_hypervisor_wrapper *sc_w, enum starpu_archtype arch)
+double sc_hypervisor_get_velocity(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch)
 {
 
 	double velocity = sc_hypervisorsc_hypervisor_get_velocity_per_worker_type(sc_w, arch);

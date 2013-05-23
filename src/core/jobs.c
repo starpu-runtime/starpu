@@ -53,7 +53,7 @@ struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_tas
 	memset(job, 0, sizeof(*job));
 
 	if (task->dyn_handles)
-	     job->dyn_ordered_buffers = malloc(task->cl->nbuffers * sizeof(struct starpu_buffer_descr));
+	     job->dyn_ordered_buffers = malloc(task->cl->nbuffers * sizeof(struct starpu_data_descr));
 
 	job->task = task;
 

@@ -136,7 +136,7 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 	int w;
 	for(w = 0; w < nw; w++)
 	{
-		enum starpu_archtype arch = STARPU_ANY_WORKER;
+		enum starpu_worker_archtype arch = STARPU_ANY_WORKER;
 		if(w == 0) arch = STARPU_CUDA_WORKER;
 		if(w == 1) arch = STARPU_CPU_WORKER;
 		
@@ -210,7 +210,7 @@ void _lp_find_workers_to_accept(int nw, int ns, unsigned sched_ctx, int sched_ct
 	int j = 0, k = 0;
 	for(w = 0; w < nw; w++)
 	{
-		enum starpu_archtype arch = STARPU_ANY_WORKER;
+		enum starpu_worker_archtype arch = STARPU_ANY_WORKER;
 		if(w == 0) arch = STARPU_CUDA_WORKER;
 		if(w == 1) arch = STARPU_CPU_WORKER;
 		
@@ -373,7 +373,7 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int 
 		
 		for(w = 0; w < nw; w++)
 		{
-			enum starpu_archtype arch;
+			enum starpu_worker_archtype arch;
 
 #ifdef STARPU_USE_CUDA
 			int ncuda = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
@@ -456,7 +456,7 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 	{
 		for(w = 0; w < nw; w++)
 		{
-			enum starpu_archtype arch = starpu_worker_get_type(w);
+			enum starpu_worker_archtype arch = starpu_worker_get_type(w);
 			
 			if(arch == STARPU_CUDA_WORKER)
 			{

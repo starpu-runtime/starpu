@@ -69,8 +69,8 @@ LIST_TYPE(_starpu_job,
 	/* To avoid deadlocks, we reorder the different buffers accessed to by
 	 * the task so that we always grab the rw-lock associated to the
 	 * handles in the same order. */
-	struct starpu_buffer_descr ordered_buffers[STARPU_NMAXBUFS];
-	struct starpu_buffer_descr *dyn_ordered_buffers;
+	struct starpu_data_descr ordered_buffers[STARPU_NMAXBUFS];
+	struct starpu_data_descr *dyn_ordered_buffers;
 
 	/* If a tag is associated to the job, this points to the internal data
 	 * structure that describes the tag status. */
@@ -161,7 +161,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j);
 void _starpu_handle_job_termination(struct _starpu_job *j);
 
 /* Get the sum of the size of the data accessed by the job. */
-size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j);
+size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, unsigned nimpl, struct _starpu_job *j);
 
 /* Get a task from the local pool of tasks that were explicitly attributed to
  * that worker. */

@@ -47,9 +47,9 @@ struct _starpu_worker
 {
 	struct _starpu_machine_config *config;
         starpu_pthread_mutex_t mutex;
-	enum starpu_archtype arch; /* what is the type of worker ? */
+	enum starpu_worker_archtype arch; /* what is the type of worker ? */
 	uint32_t worker_mask; /* what is the type of worker ? */
-	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
+	enum starpu_perfmodel_archtype perf_arch; /* in case there are different models of the same arch */
 	starpu_pthread_t worker_thread; /* the thread which runs the worker */
 	unsigned devid; /* which cpu/gpu/etc is controlled by the worker ? */
 	int bindid; /* which cpu is the driver bound to ? (logical index) */
@@ -85,6 +85,15 @@ struct _starpu_worker
 	unsigned active_ctx;
 
 	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS];
+
+	/* conditions variables used when parallel sections are executed in contexts */
+	starpu_pthread_cond_t parallel_sect_cond;
+	starpu_pthread_mutex_t parallel_sect_mutex;
+
+	/* boolean indicating that workers should block in order to allow
+	   parallel sections to be executed on their allocated resources */
+	unsigned parallel_sect;
+
 #ifdef __GLIBC__
 	cpu_set_t initial_cpu_set;
 	cpu_set_t current_cpu_set;
@@ -97,7 +106,7 @@ struct _starpu_worker
 
 struct _starpu_combined_worker
 {
-	enum starpu_perf_archtype perf_arch; /* in case there are different models of the same arch */
+	enum starpu_perfmodel_archtype perf_arch; /* in case there are different models of the same arch */
 	uint32_t worker_mask; /* what is the type of workers ? */
 	int worker_size;
 	unsigned memory_node; /* which memory node is associated that worker to ? */
@@ -237,10 +246,10 @@ void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status);
 /* We keep an initial sched ctx which might be used in case no other ctx is available */
 struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void);
 
-int starpu_worker_get_nids_by_type(enum starpu_archtype type, int *workerids, int maxsize);
+int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
 /* returns workers not belonging to any context, be careful no mutex is used, 
    the list might not be updated */
-int starpu_worker_get_nids_ctx_free_by_type(enum starpu_archtype type, int *workerids, int maxsize);
+int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
 #endif // __WORKERS_H__

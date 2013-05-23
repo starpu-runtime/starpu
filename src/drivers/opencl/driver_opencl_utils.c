@@ -495,7 +495,7 @@ int starpu_opencl_collect_stats(cl_event event STARPU_ATTRIBUTE_UNUSED)
 {
 #if defined(CL_PROFILING_CLOCK_CYCLE_COUNT)||defined(CL_PROFILING_STALL_CYCLE_COUNT)||defined(CL_PROFILING_POWER_CONSUMED)
 	struct starpu_task *task = starpu_task_get_current();
-	struct starpu_task_profiling_info *info = task->profiling_info;
+	struct starpu_profiling_task_info *info = task->profiling_info;
 #endif
 
 #ifdef CL_PROFILING_CLOCK_CYCLE_COUNT

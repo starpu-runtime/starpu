@@ -61,7 +61,7 @@ void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per
 	}
 }
 
-void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output)
+void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output)
 {
 	struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[arch][nimpl];
 	char archname[32];
@@ -177,7 +177,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 		{
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
 			{ /* Display all codelets on each arch */
-				starpu_perfmodel_print(model, (enum starpu_perf_archtype) archid, implid, parameter, footprint, output);
+				starpu_perfmodel_print(model, (enum starpu_perfmodel_archtype) archid, implid, parameter, footprint, output);
 			}
 		}
 	}
@@ -203,7 +203,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 
 			unsigned implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-				starpu_perfmodel_print(model, (enum starpu_perf_archtype) (STARPU_CPU_DEFAULT + k - 1), implid, parameter, footprint, output);
+				starpu_perfmodel_print(model, (enum starpu_perfmodel_archtype) (STARPU_CPU_DEFAULT + k - 1), implid, parameter, footprint, output);
 			return 0;
 		}
 
@@ -216,9 +216,9 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 				for (implid = 0; implid <STARPU_MAXIMPLEMENTATIONS; implid ++)
 				{
 					char archname[32];
-					starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) archid, archname, 32, implid);
+					starpu_perfmodel_get_arch_name((enum starpu_perfmodel_archtype) archid, archname, 32, implid);
 					fprintf(output, "performance model for %s\n", archname);
-					starpu_perfmodel_print(model, (enum starpu_perf_archtype) archid, implid, parameter, footprint, output);
+					starpu_perfmodel_print(model, (enum starpu_perfmodel_archtype) archid, implid, parameter, footprint, output);
 				}
 			}
 			return 0;
@@ -233,7 +233,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			int archid = STARPU_CUDA_DEFAULT+ gpuid;
 			unsigned implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-				starpu_perfmodel_print(model, (enum starpu_perf_archtype) archid, implid, parameter, footprint, output);
+				starpu_perfmodel_print(model, (enum starpu_perfmodel_archtype) archid, implid, parameter, footprint, output);
 			return 0;
 		}
 

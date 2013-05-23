@@ -49,7 +49,7 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node)
 struct user_interaction_wrapper
 {
 	starpu_data_handle_t handle;
-	enum starpu_access_mode mode;
+	enum starpu_data_access_mode mode;
 	unsigned node;
 	starpu_pthread_cond_t cond;
 	starpu_pthread_mutex_t lock;
@@ -115,7 +115,7 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 
 /* The data must be released by calling starpu_data_release later on */
 int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
-			   enum starpu_access_mode mode, void (*callback)(void *), void *arg)
+			   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data is not possible");
@@ -178,7 +178,7 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 }
 
 int starpu_data_acquire_cb(starpu_data_handle_t handle,
-			   enum starpu_access_mode mode, void (*callback)(void *), void *arg)
+			   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 {
 	return starpu_data_acquire_on_node_cb(handle, 0, mode, callback, arg);
 }
@@ -206,7 +206,7 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 }
 
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum starpu_access_mode mode)
+int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode)
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data is not possible");
@@ -312,7 +312,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 	return 0;
 }
 
-int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_access_mode mode)
+int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
 	return starpu_data_acquire_on_node(handle, 0, mode);
 }
@@ -361,7 +361,7 @@ static void _prefetch_data_on_node(void *arg)
 }
 
 static
-int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_access_mode mode)
+int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode)
 {
 	STARPU_ASSERT(handle);
 
@@ -470,6 +470,11 @@ void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, un
 	STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 	_starpu_spin_unlock(&handle->header_lock);
+}
+
+unsigned starpu_data_get_sequential_consistency_flag(starpu_data_handle_t handle)
+{
+	return handle->sequential_consistency;
 }
 
 /* By default, sequential consistency is enabled */

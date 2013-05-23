@@ -40,7 +40,7 @@ static unsigned _compute_max_velocity(int ns, int nw, double w_in_s[ns][nw], int
 			w_in_s[s][w] = 0.0;
 			int worker = workers == NULL ? w : workers[w];
 
-			enum starpu_archtype arch = starpu_worker_get_type(worker);
+			enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
 			velocity[s][w] = sc_hypervisor_get_velocity(sc_w, arch);
 		}
 	}
@@ -258,7 +258,7 @@ static void debit_lp_handle_poped_task(unsigned sched_ctx, int worker, struct st
 				{
 					for(w = 0; w < nw; w++)
 					{
-						enum starpu_archtype arch = starpu_worker_get_type(w);
+						enum starpu_worker_archtype arch = starpu_worker_get_type(w);
 
 						if(arch == STARPU_CUDA_WORKER)
 						{

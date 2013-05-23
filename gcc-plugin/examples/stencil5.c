@@ -34,15 +34,9 @@ static void stencil5_cpu(float *xy, const float *xm1y, const float *xp1y, const 
 	*xy = (*xy + *xm1y + *xp1y + *xym1 + *xyp1) / 5;
 }
 
-#ifdef STARPU_QUICK_CHECK
-#  define NITER_DEF	5
-#  define X         	3
-#  define Y         	3
-#else
-#  define NITER_DEF	500
-#  define X         	20
-#  define Y         	20
-#endif
+#define NITER_DEF	10
+#define X         	4
+#define Y         	4
 
 int display = 0;
 int niter = NITER_DEF;

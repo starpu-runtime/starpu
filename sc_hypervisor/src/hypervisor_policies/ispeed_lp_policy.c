@@ -281,7 +281,7 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 			velocity[s][w] = sc_hypervisor_get_velocity_per_worker(sc_w, worker);
 			if(velocity[s][w] == -1.0)
 			{
-				enum starpu_archtype arch = starpu_worker_get_type(worker);
+				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
 				velocity[s][w] = sc_hypervisor_get_velocity(sc_w, arch);
 				if(arch == STARPU_CUDA_WORKER)
 				{
@@ -367,7 +367,7 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct s
 				{
 					for(w = 0; w < nw; w++)
 					{
-						enum starpu_archtype arch = starpu_worker_get_type(w);
+						enum starpu_worker_archtype arch = starpu_worker_get_type(w);
 
 						if(arch == STARPU_CUDA_WORKER)
 						{

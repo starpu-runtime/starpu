@@ -234,7 +234,7 @@ codelet_type (void)
 
 /* Return the access mode for POINTER, a PARM_DECL of a task.  */
 
-enum starpu_access_mode
+enum starpu_data_access_mode
 access_mode (const_tree type)
 {
   gcc_assert (POINTER_TYPE_P (type));

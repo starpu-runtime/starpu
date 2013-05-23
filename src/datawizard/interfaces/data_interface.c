@@ -38,9 +38,22 @@ static struct handle_entry *registered_handles;
 static struct _starpu_spinlock    registered_handles_lock;
 static int _data_interface_number = STARPU_MAX_INTERFACE_ID;
 
+/* Entry in the `registered_tag_handles' hash table.  */
+struct handle_tag_entry
+{
+	UT_hash_handle hh;
+	int tag;
+	starpu_data_handle_t handle;
+};
+
+/* Hash table mapping host tags to data handles.  */
+static struct handle_tag_entry *registered_tag_handles;
+static struct _starpu_spinlock    registered_tag_handles_lock;
+
 void _starpu_data_interface_init(void)
 {
 	_starpu_spin_init(&registered_handles_lock);
+	_starpu_spin_init(&registered_tag_handles_lock);
 }
 
 void _starpu_data_interface_shutdown()
@@ -56,6 +69,18 @@ void _starpu_data_interface_shutdown()
 	}
 
 	registered_handles = NULL;
+
+	struct handle_tag_entry *tag_entry, *tag_tmp;
+
+	_starpu_spin_destroy(&registered_tag_handles_lock);
+
+	HASH_ITER(hh, registered_tag_handles, tag_entry, tag_tmp)
+	{
+		HASH_DEL(registered_tag_handles, tag_entry);
+		free(tag_entry);
+	}
+
+	registered_tag_handles = NULL;
 }
 
 /* Register the mapping from PTR to HANDLE.  If PTR is already mapped to
@@ -221,7 +246,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	/* now the data is available ! */
 	_starpu_spin_unlock(&handle->header_lock);
 
-	ptr = starpu_handle_to_pointer(handle, 0);
+	ptr = starpu_data_handle_to_pointer(handle, 0);
 	if (ptr != NULL)
 	{
 		_starpu_data_register_ram_pointer(handle, ptr);
@@ -303,7 +328,7 @@ void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_hand
 	starpu_data_register(handledst, -1, local_interface, handlesrc->ops);
 }
 
-void *starpu_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
+void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 {
 	/* Check whether the operation is supported and the node has actually
 	 * been allocated.  */
@@ -316,9 +341,9 @@ void *starpu_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 	return NULL;
 }
 
-void *starpu_handle_get_local_ptr(starpu_data_handle_t handle)
+void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
 {
-	return starpu_handle_to_pointer(handle,
+	return starpu_data_handle_to_pointer(handle,
 					_starpu_memory_node_get_local_key());
 }
 
@@ -329,8 +354,8 @@ int starpu_data_get_rank(starpu_data_handle_t handle)
 
 int starpu_data_set_rank(starpu_data_handle_t handle, int rank)
 {
-        handle->rank = rank;
-        return 0;
+	handle->rank = rank;
+	return 0;
 }
 
 int starpu_data_get_tag(starpu_data_handle_t handle)
@@ -338,10 +363,64 @@ int starpu_data_get_tag(starpu_data_handle_t handle)
 	return handle->tag;
 }
 
+starpu_data_handle_t starpu_data_get_data_handle_from_tag(int tag)
+{
+	struct handle_tag_entry *ret;
+
+	_starpu_spin_lock(&registered_tag_handles_lock);
+	HASH_FIND_INT(registered_tag_handles, &tag, ret);
+	_starpu_spin_unlock(&registered_tag_handles_lock);
+
+	if (ret)
+	{
+		return ret->handle;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
 int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 {
-        handle->tag = tag;
-        return 0;
+	struct handle_tag_entry *entry;
+	entry = (struct handle_tag_entry *) malloc(sizeof(*entry));
+	STARPU_ASSERT(entry != NULL);
+
+	STARPU_ASSERT_MSG(!(starpu_data_get_data_handle_from_tag(tag)),"A data handle with tag %d had already been registered.\n",tag);
+
+	entry->tag = tag;
+	entry->handle = handle;
+
+	_starpu_spin_lock(&registered_tag_handles_lock);
+	HASH_ADD_INT(registered_tag_handles, tag, entry);
+	_starpu_spin_unlock(&registered_tag_handles_lock);
+
+	handle->tag = tag;
+	return 0;
+}
+
+int starpu_data_release_tag(starpu_data_handle_t handle)
+{
+	struct handle_tag_entry *tag_entry;
+
+	if (handle->tag != -1)
+	{
+		_starpu_spin_lock(&registered_tag_handles_lock);
+		HASH_FIND_INT(registered_tag_handles, &handle->tag, tag_entry);
+		STARPU_ASSERT_MSG((tag_entry != NULL),"Handle %p with tag %d isn't in the hashmap !",handle,handle->tag);
+
+		HASH_DEL(registered_tag_handles, tag_entry);
+		free(tag_entry);
+
+		_starpu_spin_unlock(&registered_tag_handles_lock);
+	}
+	return 0;
+}
+
+struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_handle_t handle)
+{
+	return handle->ops;
 }
 
 /*
@@ -355,7 +434,7 @@ void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
 
-	ram_ptr = starpu_handle_to_pointer(handle, 0);
+	ram_ptr = starpu_data_handle_to_pointer(handle, 0);
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 		free(handle->per_node[node].data_interface);
@@ -602,6 +681,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->sequential_consistency_mutex);
 
+	starpu_data_release_tag(handle);
+
 	free(handle);
 }
 
@@ -677,7 +758,7 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 	starpu_data_acquire_cb(handle, STARPU_W, _starpu_data_invalidate, handle);
 }
 
-enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle)
+enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle)
 {
 	return handle->ops->interfaceid;
 }
@@ -693,13 +774,13 @@ int starpu_data_interface_get_next_id(void)
 	return _data_interface_number-1;
 }
 
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
+int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(handle->ops->pack_data);
 	return handle->ops->pack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
 }
 
-int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr, size_t count)
+int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 {
 	STARPU_ASSERT(handle->ops->unpack_data);
 	int ret;
@@ -708,7 +789,7 @@ int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr, size_t cou
 	return ret;
 }
 
-size_t starpu_handle_get_size(starpu_data_handle_t handle)
+size_t starpu_data_get_size(starpu_data_handle_t handle)
 {
 	return handle->ops->get_size(handle);
 }

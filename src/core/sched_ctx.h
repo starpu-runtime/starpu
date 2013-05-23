@@ -23,6 +23,11 @@
 #include <common/config.h>
 #include <common/barrier_counter.h>
 #include <profiling/profiling.h>
+#include <semaphore.h>
+
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
 
 #define NO_RESIZE -1
 #define REQ_RESIZE 0
@@ -92,6 +97,15 @@ struct _starpu_sched_ctx
      	int min_priority;
 	int max_priority;
 
+	/* semaphore that block appl thread until threads are ready 
+	   to exec the parallel code */
+	sem_t parallel_code_sem;
+
+	/* hwloc tree structure of workers */
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_bitmap_t hwloc_workers_set;
+#endif
+
 #ifdef STARPU_USE_SC_HYPERVISOR
 	/* a structure containing a series of performance counters determining the resize procedure */
 	struct starpu_sched_ctx_performance_counters *perf_counters;
@@ -135,7 +149,7 @@ starpu_pthread_mutex_t *_starpu_get_sched_mutex(struct _starpu_sched_ctx *sched_
 
 /* Get workers belonging to a certain context, it returns the number of workers
  take care: no mutex taken, the list of workers might not be updated */
-int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_archtype arch);
+int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_worker_archtype arch);
 
 /* Let the worker know it does not belong to the context and that
    it should stop poping from it */
@@ -146,6 +160,12 @@ unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_
 
 /* mutex synchronising several simultaneous modifications of a context */
 starpu_pthread_mutex_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
+
+/*rebind each thread on its cpu after finishing a parallel code */
+void _starpu_sched_ctx_rebind_thread_to_its_cpu(unsigned cpuid);
+
+/* let the appl know that the worker blocked to execute parallel code */
+void _starpu_sched_ctx_signal_worker_blocked(int workerid);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 /* Notifies the hypervisor that a tasks was poped from the workers' list */

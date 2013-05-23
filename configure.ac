@@ -283,9 +283,9 @@ else
    build_sc_hypervisor="no"
 fi
 
-
 AM_CONDITIONAL([STARPU_BUILD_SC_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SC_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
+
 ###############################################################################
 #                                                                             #
 #                                 CPUs settings                               #
@@ -1000,6 +1000,15 @@ if test x$use_fxt = xyes; then
 	FXT_LIBS="$FXT_LIBS $POTI_LIBS"
 fi
 
+AC_MSG_CHECKING(whether additional locking systems FxT traces should be enabled)
+AC_ARG_ENABLE(fxt-lock, [AS_HELP_STRING([--enable-fxt-lock],
+			[enable additional locking systems FxT traces])],
+			enable_fxt_lock=$enableval, enable_fxt_lock=no)
+AC_MSG_RESULT($enable_fxt_lock)
+if  test x$enable_fxt_lock = xyes; then
+	AC_DEFINE(STARPU_FXT_LOCK_TRACES, [1], [enable additional locking systems FxT traces])
+fi
+
 AC_MSG_CHECKING(whether performance debugging should be enabled)
 AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
 			[enable performance debugging through gprof])],
@@ -1092,7 +1101,7 @@ AC_DEFINE_UNQUOTED(STARPU_MAXNODES, [$maxnodes],
 AC_MSG_CHECKING(whether allocation cache should be used)
 AC_ARG_ENABLE(allocation-cache, [AS_HELP_STRING([--enable-allocation-cache],
 			[enable data allocation cache])],
-			enable_allocation_cache=$enableval, enable_allocation_cache=no)
+			enable_allocation_cache=$enableval, enable_allocation_cache=yes)
 AC_MSG_RESULT($enable_allocation_cache)
 if test x$enable_allocation_cache = xyes; then
 	AC_DEFINE(STARPU_USE_ALLOCATION_CACHE, [1], [enable data allocation cache])
@@ -1829,6 +1838,13 @@ m4_ifdef([AM_SILENT_RULES],
 AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
 			enable_build_doc=$enableval, enable_build_doc=yes)
+
+# Check whether texi2dvi is installed
+AC_PATH_PROG(texi2dvicommand, texi2dvi)
+if test "$texi2dvicommand" = "" ; then
+	enable_build_doc="no"
+fi
+
 AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 
 ###############################################################################

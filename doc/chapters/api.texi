@@ -26,6 +26,7 @@
 * OpenCL extensions::
 * Miscellaneous helpers::
 * FXT Support::
+* FFT Support::
 * MPI::
 * Task Bundles::
 * Task Lists::
@@ -60,7 +61,7 @@ Return as 3 integers the release version of StarPU.
 
 @deftp {Data Type} {struct starpu_driver}
 @table @asis
-@item @code{enum starpu_archtype type}
+@item @code{enum starpu_worker_archtype type}
 The type of the driver. Only STARPU_CPU_DRIVER, STARPU_CUDA_DRIVER and
 STARPU_OPENCL_DRIVER are currently supported.
 @item @code{union id} Anonymous union
@@ -312,7 +313,7 @@ return the amount of available memory on the node. Otherwise return
 @node Workers' Properties
 @section Workers' Properties
 
-@deftp {Data Type} {enum starpu_archtype}
+@deftp {Data Type} {enum starpu_worker_archtype}
 The different values are:
 @table @asis
 @item @code{STARPU_CPU_WORKER}
@@ -326,7 +327,7 @@ This function returns the number of workers (i.e. processing units executing
 StarPU tasks). The returned value should be at most @code{STARPU_NMAXWORKERS}.
 @end deftypefun
 
-@deftypefun int starpu_worker_get_count_by_type ({enum starpu_archtype} @var{type})
+@deftypefun int starpu_worker_get_count_by_type ({enum starpu_worker_archtype} @var{type})
 Returns the number of workers of the given @var{type}. A positive
 (or @code{NULL}) value is returned in case of success, @code{-EINVAL} indicates that
 the type is not valid otherwise.
@@ -354,7 +355,7 @@ worker (i.e. when called from the application outside a task or a callback), or
 an integer between 0 and @code{starpu_worker_get_count() - 1}.
 @end deftypefun
 
-@deftypefun int starpu_worker_get_ids_by_type ({enum starpu_archtype} @var{type}, int *@var{workerids}, int @var{maxsize})
+@deftypefun int starpu_worker_get_ids_by_type ({enum starpu_worker_archtype} @var{type}, int *@var{workerids}, int @var{maxsize})
 This function gets the list of identifiers of workers with the given
 type. It fills the workerids array with the identifiers of the workers that have the type
 indicated in the first argument. The maxsize argument indicates the size of the
@@ -366,12 +367,12 @@ chosen by the means of the @code{starpu_worker_get_count_by_type} function, or
 by passing a value greater or equal to @code{STARPU_NMAXWORKERS}.
 @end deftypefun
 
-@deftypefun int starpu_worker_get_by_type ({enum starpu_archtype} @var{type}, int @var{num})
+@deftypefun int starpu_worker_get_by_type ({enum starpu_worker_archtype} @var{type}, int @var{num})
 This returns the identifier of the @var{num}-th worker that has the specified type
 @var{type}. If there are no such worker, -1 is returned.
 @end deftypefun
 
-@deftypefun int starpu_worker_get_by_devid ({enum starpu_archtype} @var{type}, int @var{devid})
+@deftypefun int starpu_worker_get_by_devid ({enum starpu_worker_archtype} @var{type}, int @var{devid})
 This returns the identifier of the worker that has the specified type
 @var{type} and devid @var{devid} (which may not be the n-th, if some devices are
 skipped for instance). If there are no such worker, -1 is returned.
@@ -387,7 +388,7 @@ worker was bound; this identifier is either provided by the OS or by the
 @code{hwloc} library in case it is available.
 @end deftypefun
 
-@deftypefun {enum starpu_archtype} starpu_worker_get_type (int @var{id})
+@deftypefun {enum starpu_worker_archtype} starpu_worker_get_type (int @var{id})
 This function returns the type of processing unit associated to a
 worker. The worker identifier is a value returned by the
 @code{starpu_worker_get_id} function). The returned value
@@ -474,7 +475,7 @@ data).
 @node Basic Data Management API
 @subsection Basic Data Management API
 
-@deftp {Data Type} {enum starpu_access_mode}
+@deftp {Data Type} {enum starpu_data_access_mode}
 This datatype describes a data access mode. The different available modes are:
 @table @asis
 @item @code{STARPU_R}: read-only mode.
@@ -602,10 +603,19 @@ codelet, and reduction between per-worker buffers will be done with the
 @var{redux_cl} codelet.
 @end deftypefun
 
+@deftypefun struct starpu_data_interface_ops* starpu_data_get_interface_ops (starpu_data_handle_t @var{handle})
+Get a pointer to the structure describing the different methods used
+to manipulate the given data. See @ref{struct starpu_data_interface_ops} for more details on this structure.
+@end deftypefun
+
+@deftypefun unsigned starpu_data_get_sequential_consistency_flag (starpu_data_handle_t @var{handle})
+Return the sequential consistency flag of the given data.
+@end deftypefun
+
 @node Access registered data from the application
 @subsection Access registered data from the application
 
-@deftypefun int starpu_data_acquire (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode})
+@deftypefun int starpu_data_acquire (starpu_data_handle_t @var{handle}, {enum starpu_data_access_mode} @var{mode})
 The application must call this function prior to accessing registered data from
 main memory outside tasks. StarPU ensures that the application will get an
 up-to-date copy of the data in main memory located where the data was
@@ -624,7 +634,7 @@ tasks or from their callbacks (in that case, @code{starpu_data_acquire} returns
 @end deftypefun
 
 
-@deftypefun int starpu_data_acquire_cb (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
+@deftypefun int starpu_data_acquire_cb (starpu_data_handle_t @var{handle}, {enum starpu_data_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
 @code{starpu_data_acquire_cb} is the asynchronous equivalent of
 @code{starpu_data_acquire}. When the data specified in the first argument is
 available in the appropriate access mode, the callback function is executed.
@@ -638,17 +648,17 @@ be called from task callbacks. Upon successful completion, this function
 returns 0.
 @end deftypefun
 
-@deftypefun int starpu_data_acquire_on_node (starpu_data_handle_t @var{handle}, unsigned @var{node}, {enum starpu_access_mode} @var{mode})
+@deftypefun int starpu_data_acquire_on_node (starpu_data_handle_t @var{handle}, unsigned @var{node}, {enum starpu_data_access_mode} @var{mode})
 This is the same as @code{starpu_data_acquire}, except that the data will be
 available on the given memory node instead of main memory.
 @end deftypefun
 
-@deftypefun int starpu_data_acquire_on_node_cb (starpu_data_handle_t @var{handle}, unsigned @var{node}, {enum starpu_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
+@deftypefun int starpu_data_acquire_on_node_cb (starpu_data_handle_t @var{handle}, unsigned @var{node}, {enum starpu_data_access_mode} @var{mode}, void (*@var{callback})(void *), void *@var{arg})
 This is the same as @code{starpu_data_acquire_cb}, except that the data will be
 available on the given memory node instead of main memory.
 @end deftypefun
 
-@defmac STARPU_DATA_ACQUIRE_CB (starpu_data_handle_t @var{handle}, {enum starpu_access_mode} @var{mode}, code)
+@defmac STARPU_DATA_ACQUIRE_CB (starpu_data_handle_t @var{handle}, {enum starpu_data_access_mode} @var{mode}, code)
 @code{STARPU_DATA_ACQUIRE_CB} is the same as @code{starpu_data_acquire_cb},
 except that the code to be executed in a callback is directly provided as a
 macro parameter, and the data handle is automatically released after it. This
@@ -819,26 +829,26 @@ The different values are:
 @node Accessing Handle
 @subsubsection Handle
 
-@deftypefun {void *} starpu_handle_to_pointer (starpu_data_handle_t @var{handle}, unsigned @var{node})
+@deftypefun {void *} starpu_data_handle_to_pointer (starpu_data_handle_t @var{handle}, unsigned @var{node})
 Return the pointer associated with @var{handle} on node @var{node} or
 @code{NULL} if @var{handle}'s interface does not support this
 operation or data for this handle is not allocated on that node.
 @end deftypefun
 
-@deftypefun {void *} starpu_handle_get_local_ptr (starpu_data_handle_t @var{handle})
+@deftypefun {void *} starpu_data_get_local_ptr (starpu_data_handle_t @var{handle})
 Return the local pointer associated with @var{handle} or @code{NULL}
 if @var{handle}'s interface does not have data allocated locally
 @end deftypefun
 
-@deftypefun {enum starpu_data_interface_id} starpu_handle_get_interface_id (starpu_data_handle_t @var{handle})
+@deftypefun {enum starpu_data_interface_id} starpu_data_get_interface_id (starpu_data_handle_t @var{handle})
 Return the unique identifier of the interface associated with the given @var{handle}.
 @end deftypefun
 
-@deftypefun size_t starpu_handle_get_size (starpu_data_handle_t @var{handle})
+@deftypefun size_t starpu_data_get_size (starpu_data_handle_t @var{handle})
 Return the size of the data associated with @var{handle}
 @end deftypefun
 
-@deftypefun int starpu_handle_pack_data (starpu_data_handle_t @var{handle}, {void **}@var{ptr}, {starpu_ssize_t *}@var{count})
+@deftypefun int starpu_data_pack (starpu_data_handle_t @var{handle}, {void **}@var{ptr}, {starpu_ssize_t *}@var{count})
 Execute the packing operation of the interface of the data registered
 at @var{handle} (@pxref{struct starpu_data_interface_ops}). This
 packing operation must allocate a buffer large enough at @var{ptr} and
@@ -851,7 +861,7 @@ would have been allocated. The special value @code{-1} indicates the
 size is yet unknown.
 @end deftypefun
 
-@deftypefun int starpu_handle_unpack_data (starpu_data_handle_t @var{handle}, {void *}@var{ptr}, size_t @var{count})
+@deftypefun int starpu_data_unpack (starpu_data_handle_t @var{handle}, {void *}@var{ptr}, size_t @var{count})
 Unpack in @var{handle} the data located at @var{ptr} of size
 @var{count} as described by the interface of the data. The interface
 registered at @var{handle} must define a unpacking operation
@@ -1398,21 +1408,21 @@ completed.
 @end deftypefun
 
 
-@deftypefun uint32_t starpu_crc32_be_n ({void *}@var{input}, size_t @var{n}, uint32_t @var{inputcrc})
+@deftypefun uint32_t starpu_hash_crc32c_be_n ({void *}@var{input}, size_t @var{n}, uint32_t @var{inputcrc})
 Compute the CRC of a byte buffer seeded by the inputcrc "current
 state". The return value should be considered as the new "current
 state" for future CRC computation. This is used for computing data size
 footprint.
 @end deftypefun
 
-@deftypefun uint32_t starpu_crc32_be (uint32_t @var{input}, uint32_t @var{inputcrc})
+@deftypefun uint32_t starpu_hash_crc32c_be (uint32_t @var{input}, uint32_t @var{inputcrc})
 Compute the CRC of a 32bit number seeded by the inputcrc "current
 state". The return value should be considered as the new "current
 state" for future CRC computation. This is used for computing data size
 footprint.
 @end deftypefun
 
-@deftypefun uint32_t starpu_crc32_string ({char *}@var{str}, uint32_t @var{inputcrc})
+@deftypefun uint32_t starpu_hash_crc32c_string ({char *}@var{str}, uint32_t @var{inputcrc})
 Compute the CRC of a string seeded by the inputcrc "current state".
 The return value should be considered as the new "current state" for
 future CRC computation. This is used for computing data size footprint.
@@ -1888,8 +1898,8 @@ array. The constant argument passed with the @code{cl_arg} field of the
 @code{starpu_task} structure is not counted in this number.  This value should
 not be above @code{STARPU_NMAXBUFS}.
 
-@item @code{enum starpu_access_mode modes[STARPU_NMAXBUFS]}
-Is an array of @code{enum starpu_access_mode}. It describes the
+@item @code{enum starpu_data_access_mode modes[STARPU_NMAXBUFS]}
+Is an array of @code{enum starpu_data_access_mode}. It describes the
 required access modes to the data neeeded by the codelet (e.g.
 @code{STARPU_RW}). The number of entries in this array must be
 specified in the @code{nbuffers} field (defined above), and should not
@@ -1897,8 +1907,8 @@ exceed @code{STARPU_NMAXBUFS}.
 If unsufficient, this value can be set with the @code{--enable-maxbuffers}
 option when configuring StarPU.
 
-@item @code{enum starpu_access_mode *dyn_modes}
-Is an array of @code{enum starpu_access_mode}. It describes the
+@item @code{enum starpu_data_access_mode *dyn_modes}
+Is an array of @code{enum starpu_data_access_mode}. It describes the
 required access modes to the data neeeded by the codelet (e.g.
 @code{STARPU_RW}). The number of entries in this array must be
 specified in the @code{nbuffers} field (defined above).
@@ -1953,12 +1963,12 @@ State of a task, can be either of
 @end table
 @end deftp
 
-@deftp {Data Type} {struct starpu_buffer_descr}
+@deftp {Data Type} {struct starpu_data_descr}
 This type is used to describe a data handle along with an
 access mode.
 @table @asis
 @item @code{starpu_data_handle_t handle} describes a data,
-@item @code{enum starpu_access_mode mode} describes its access mode
+@item @code{enum starpu_data_access_mode mode} describes its access mode
 @end table
 @end deftp
 
@@ -1979,7 +1989,7 @@ describes where the kernel should be executed, and supplies the appropriate
 implementations. When set to @code{NULL}, no code is executed during the tasks,
 such empty tasks can be useful for synchronization purposes.
 
-@item @code{struct starpu_buffer_descr buffers[STARPU_NMAXBUFS]}
+@item @code{struct starpu_data_descr buffers[STARPU_NMAXBUFS]}
 This field has been made deprecated. One should use instead the
 @code{handles} field to specify the handles to the data accessed by
 the task. The access modes are now defined in the @code{mode} field of
@@ -2109,7 +2119,7 @@ executed. This flag must not be set if the destroy flag is set too.
 @item @code{enum starpu_task_status status} (optional)
 Current state of the task.
 
-@item @code{struct starpu_task_profiling_info *profiling_info} (optional)
+@item @code{struct starpu_profiling_task_info *profiling_info} (optional)
 Profiling information for the task.
 
 @item @code{double predicted} (output field)
@@ -2183,7 +2193,7 @@ i-th element of the field @code{dyn_modes} (@pxref{Setting the Data
 Handles for a Task})
 @end defmac
 
-@defmac STARPU_CODELET_SET_MODE ({struct starpu_codelet *}@var{codelet}codelet, {enum starpu_access_mode} @var{mode}, int @var{i})
+@defmac STARPU_CODELET_SET_MODE ({struct starpu_codelet *}@var{codelet}, {enum starpu_data_access_mode} @var{mode}, int @var{i})
 Set the access mode of the i-th data handle of the given codelet.
 If the codelet is defined with a static or dynamic number of handles,
 will either set the i-th element of the field @code{modes} or the
@@ -2202,7 +2212,7 @@ by the task have to be freed by calling
 @code{starpu_task_destroy}.
 @end deftypefun
 
-@deftypefun {struct starpu_task *}starpu_task_dup ({struct starpu_task *}@var{task})
+@deftypefun {struct starpu_task *} starpu_task_dup ({struct starpu_task *}@var{task})
 Allocate a task structure which is the exact duplicate of the given task.
 @end deftypefun
 
@@ -2317,7 +2327,7 @@ The arguments following the codelets can be of the following types:
 @item
 the specific values @code{STARPU_VALUE}, @code{STARPU_CALLBACK},
 @code{STARPU_CALLBACK_ARG}, @code{STARPU_CALLBACK_WITH_ARG},
-@code{STARPU_PRIORITY}, @code{STARPU_TAG}, @code{STARPU_FLOPS}, followed by the appropriated objects
+@code{STARPU_PRIORITY}, @code{STARPU_TAG}, @code{STARPU_FLOPS}, @code{STARPU_SCHED_CTX} followed by the appropriated objects
 as defined below.
 @end itemize
 
@@ -2368,6 +2378,11 @@ followed by a tag.
 this macro is used when calling @code{starpu_insert_task}, and must be followed
 by an amount of floating point operations, as a double. The user may have to
 explicitly cast into double, otherwise parameter passing will not work.
+@end defmac
+
+@defmac STARPU_SCHED_CTX
+this macro is used when calling @code{starpu_insert_task}, and must be followed
+by the id of the scheduling context to which we want to submit the task.
 @end defmac
 
 @deftypefun void starpu_codelet_pack_args ({void **}@var{arg_buffer}, {size_t *}@var{arg_buffer_size}, ...)
@@ -2521,7 +2536,7 @@ be set with @code{starpu_data_set_default_sequential_consistency_flag}.
 @node Performance Model API
 @section Performance Model API
 
-@deftp {Data Type} {enum starpu_perf_archtype}
+@deftp {Data Type} {enum starpu_perfmodel_archtype}
 Enumerates the various types of architectures.
 CPU types range within STARPU_CPU_DEFAULT (1 CPU), STARPU_CPU_DEFAULT+1 (2 CPUs), ... STARPU_CPU_DEFAULT + STARPU_MAXCPUS - 1 (STARPU_MAXCPUS CPUs).
 CUDA types range within STARPU_CUDA_DEFAULT (GPU number 0), STARPU_CUDA_DEFAULT + 1 (GPU number 1), ..., STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS - 1 (GPU number STARPU_MAXCUDADEVS - 1).
@@ -2570,7 +2585,7 @@ is the symbol name for the performance model, which will be used as
 file name to store the model. It must be set otherwise the model will
 be ignored.
 
-@item @code{double (*cost_model)(struct starpu_buffer_descr *)}
+@item @code{double (*cost_model)(struct starpu_data_descr *)}
 This field is deprecated. Use instead the @code{cost_function} field.
 
 @item @code{double (*cost_function)(struct starpu_task *, unsigned nimpl)}
@@ -2621,17 +2636,16 @@ Lock to protect concurrency between loading from disk (W), updating the values
 contains information about the performance model of a given arch.
 
 @table @asis
-@item @code{double (*cost_model)(struct starpu_buffer_descr *t)}
+@item @code{double (*cost_model)(struct starpu_data_descr *t)}
 This field is deprecated. Use instead the @code{cost_function} field.
 
-@item @code{double (*cost_function)(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)}
+@item @code{double (*cost_function)(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)}
 Used by @code{STARPU_PER_ARCH}, must point to functions which take a task, the
 target arch and implementation number (as mere conveniency, since the array
 is already indexed by these), and must return a task duration estimation in
 micro-seconds.
 
-@item @code{size_t (*size_base)(struct starpu_task *, enum
-starpu_perf_archtype arch, unsigned nimpl)}
+@item @code{size_t (*size_base)(struct starpu_task *, enum starpu_perfmodel_archtype arch, unsigned nimpl)}
 Same as in @ref{struct starpu_perfmodel}, but per-arch, in
 case it depends on the architecture-specific implementation.
 
@@ -2658,15 +2672,15 @@ loads a given performance model. The @var{model} structure has to be completely 
 unloads the given model which has been previously loaded through the function @code{starpu_perfmodel_load_symbol}
 @end deftypefun
 
-@deftypefun void starpu_perfmodel_debugfilepath ({struct starpu_perfmodel} *@var{model}, {enum starpu_perf_archtype} @var{arch}, char *@var{path}, size_t @var{maxlen}, unsigned nimpl)
+@deftypefun void starpu_perfmodel_debugfilepath ({struct starpu_perfmodel} *@var{model}, {enum starpu_perfmodel_archtype} @var{arch}, char *@var{path}, size_t @var{maxlen}, unsigned nimpl)
 returns the path to the debugging information for the performance model.
 @end deftypefun
 
-@deftypefun void starpu_perfmodel_get_arch_name ({enum starpu_perf_archtype} @var{arch}, char *@var{archname}, size_t @var{maxlen}, unsigned nimpl)
+@deftypefun void starpu_perfmodel_get_arch_name ({enum starpu_perfmodel_archtype} @var{arch}, char *@var{archname}, size_t @var{maxlen}, unsigned nimpl)
 returns the architecture name for @var{arch}.
 @end deftypefun
 
-@deftypefun {enum starpu_perf_archtype} starpu_worker_get_perf_archtype (int @var{workerid})
+@deftypefun {enum starpu_perfmodel_archtype} starpu_worker_get_perf_archtype (int @var{workerid})
 returns the architecture type of a given worker.
 @end deftypefun
 
@@ -2674,7 +2688,7 @@ returns the architecture type of a given worker.
 prints a list of all performance models on @var{output}.
 @end deftypefun
 
-@deftypefun void starpu_perfmodel_print ({struct starpu_perfmodel *}@var{model}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl}, {char *}@var{parameter}, {uint32_t *}footprint, {FILE *}@var{output})
+@deftypefun void starpu_perfmodel_print ({struct starpu_perfmodel *}@var{model}, {enum starpu_perfmodel_archtype} @var{arch}, unsigned @var{nimpl}, {char *}@var{parameter}, {uint32_t *}footprint, {FILE *}@var{output})
 todo
 @end deftypefun
 
@@ -2694,7 +2708,7 @@ prints the affinity devices on @var{f}.
 prints a description of the topology on @var{f}.
 @end deftypefun
 
-@deftypefun void starpu_perfmodel_update_history ({struct starpu_perfmodel *}@var{model}, {struct starpu_task *}@var{task}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{cpuid}, unsigned @var{nimpl}, double @var{measured});
+@deftypefun void starpu_perfmodel_update_history ({struct starpu_perfmodel *}@var{model}, {struct starpu_task *}@var{task}, {enum starpu_perfmodel_archtype} @var{arch}, unsigned @var{cpuid}, unsigned @var{nimpl}, double @var{measured});
 This feeds the performance model @var{model} with an explicit measurement
 @var{measured}, in addition to measurements done by StarPU itself. This can be
 useful when the application already has an existing set of measurements done
@@ -2711,7 +2725,7 @@ Thie function sets the profiling status. Profiling is activated by passing
 @code{STARPU_PROFILING_DISABLE} disables profiling. Calling this function
 resets all profiling measurements. When profiling is enabled, the
 @code{profiling_info} field of the @code{struct starpu_task} structure points
-to a valid @code{struct starpu_task_profiling_info} structure containing
+to a valid @code{struct starpu_profiling_task_info} structure containing
 information about the execution of the task.
 
 Negative return values indicate an error, otherwise the previous status is
@@ -2722,12 +2736,12 @@ returned.
 Return the current profiling status or a negative value in case there was an error.
 @end deftypefun
 
-@deftypefun void starpu_set_profiling_id (int @var{new_id})
+@deftypefun void starpu_profiling_set_id (int @var{new_id})
 This function sets the ID used for profiling trace filename. It needs to be
 called before starpu_init.
 @end deftypefun
 
-@deftp {Data Type} {struct starpu_task_profiling_info}
+@deftp {Data Type} {struct starpu_profiling_task_info}
 This structure contains information about the execution of a task. It is
 accessible from the @code{.profiling_info} field of the @code{starpu_task}
 structure if profiling was enabled. The different fields are:
@@ -2788,7 +2802,7 @@ Power consumed by the task, only available in the MoviSim
 @end table
 @end deftp
 
-@deftp {Data Type} {struct starpu_worker_profiling_info}
+@deftp {Data Type} {struct starpu_profiling_worker_info}
 This structure contains the profiling information associated to a
 worker. The different fields are:
 
@@ -2820,7 +2834,7 @@ Power consumed by the worker, only available in the MoviSim
 @end table
 @end deftp
 
-@deftypefun int starpu_worker_get_profiling_info (int @var{workerid}, {struct starpu_worker_profiling_info *}@var{worker_info})
+@deftypefun int starpu_profiling_worker_get_info (int @var{workerid}, {struct starpu_profiling_worker_info *}@var{worker_info})
 Get the profiling info associated to the worker identified by @var{workerid},
 and reset the profiling measurements. If the @var{worker_info} argument is
 NULL, only reset the counters associated to worker @var{workerid}.
@@ -2829,7 +2843,7 @@ Upon successful completion, this function returns 0. Otherwise, a negative
 value is returned.
 @end deftypefun
 
-@deftp {Data Type} {struct starpu_bus_profiling_info}
+@deftp {Data Type} {struct starpu_profiling_bus_info}
 The different fields are:
 @table @asis
 @item @code{struct timespec start_time}
@@ -2846,7 +2860,7 @@ Number of transfers during profiling.
 @end table
 @end deftp
 
-@deftypefun int starpu_bus_get_profiling_info (int @var{busid}, {struct starpu_bus_profiling_info *}@var{bus_info})
+@deftypefun int starpu_bus_get_profiling_info (int @var{busid}, {struct starpu_profiling_bus_info *}@var{bus_info})
 Get the profiling info associated to the worker designated by @var{workerid},
 and reset the profiling measurements. If worker_info is NULL, only reset the
 counters.
@@ -2876,19 +2890,19 @@ Returns the time elapsed between @var{start} and @var{end} in microseconds.
 Converts the given timespec @var{ts} into microseconds.
 @end deftypefun
 
-@deftypefun void starpu_bus_profiling_helper_display_summary (void)
+@deftypefun void starpu_profiling_bus_helper_display_summary (void)
 Displays statistics about the bus on stderr. if the  environment
 variable @code{STARPU_BUS_STATS} is defined. The function is called
 automatically by @code{starpu_shutdown()}.
 @end deftypefun
 
-@deftypefun void starpu_worker_profiling_helper_display_summary (void)
+@deftypefun void starpu_profiling_worker_helper_display_summary (void)
 Displays statistics about the workers on stderr if the environment
 variable @code{STARPU_WORKER_STATS} is defined. The function is called
 automatically by @code{starpu_shutdown()}.
 @end deftypefun
 
-@deftypefun void starpu_memory_display_stats ()
+@deftypefun void starpu_data_display_memory_stats ()
 Display statistics about the current data handles registered within
 StarPU. StarPU must have been configured with the option
 @code{----enable-memory-stats} (@pxref{Memory feedback}).
@@ -3296,6 +3310,58 @@ used to stop it earlier. @code{starpu_fxt_start_profiling} can then be called to
 start recording it again, etc.
 @end deftypefun
 
+@node FFT Support
+@section FFT Support
+
+@deftypefun {void *} starpufft_malloc (size_t @var{n})
+Allocates memory for @var{n} bytes. This is preferred over @code{malloc}, since
+it allocates pinned memory, which allows overlapped transfers.
+@end deftypefun
+
+@deftypefun {void *} starpufft_free (void *@var{p})
+Release memory previously allocated.
+@end deftypefun
+
+@deftypefun {struct starpufft_plan *} starpufft_plan_dft_1d (int @var{n}, int @var{sign}, unsigned @var{flags})
+Initializes a plan for 1D FFT of size @var{n}. @var{sign} can be
+@code{STARPUFFT_FORWARD} or @code{STARPUFFT_INVERSE}. @var{flags} must be 0.
+@end deftypefun
+
+@deftypefun {struct starpufft_plan *} starpufft_plan_dft_2d (int @var{n}, int @var{m}, int @var{sign}, unsigned @var{flags})
+Initializes a plan for 2D FFT of size (@var{n}, @var{m}). @var{sign} can be
+@code{STARPUFFT_FORWARD} or @code{STARPUFFT_INVERSE}. @var{flags} must be 0.
+@end deftypefun
+
+@deftypefun {struct starpu_task *} starpufft_start (starpufft_plan @var{p}, void *@var{in}, void *@var{out})
+Start an FFT previously planned as @var{p}, using @var{in} and @var{out} as
+input and output. This only submits the task and does not wait for it.
+The application should call @code{starpufft_cleanup} to unregister the data.
+@end deftypefun
+
+@deftypefun {struct starpu_task *} starpufft_start_handle (starpufft_plan @var{p}, starpu_data_handle_t @var{in}, starpu_data_handle_t @var{out})
+Start an FFT previously planned as @var{p}, using data handles @var{in} and
+@var{out} as input and output (assumed to be vectors of elements of the expected
+types). This only submits the task and does not wait for it.
+@end deftypefun
+
+@deftypefun void starpufft_execute (starpufft_plan @var{p}, void *@var{in}, void *@var{out})
+Execute an FFT previously planned as @var{p}, using @var{in} and @var{out} as
+input and output. This submits and waits for the task.
+@end deftypefun
+
+@deftypefun void starpufft_execute_handle (starpufft_plan @var{p}, starpu_data_handle_t @var{in}, starpu_data_handle_t @var{out})
+Execute an FFT previously planned as @var{p}, using data handles @var{in} and
+@var{out} as input and output (assumed to be vectors of elements of the expected
+types). This submits and waits for the task.
+@end deftypefun
+
+@deftypefun void starpufft_cleanup (starpufft_plan @var{p})
+Releases data for plan @var{p}, in the @code{starpufft_start} case.
+@end deftypefun
+
+@deftypefun void starpufft_destroy_plan (starpufft_plan @var{p})
+Destroys plan @var{p}, i.e. release all CPU (fftw) and GPU (cufft) resources.
+@end deftypefun
 
 @node MPI
 @section MPI
@@ -3343,6 +3409,16 @@ Retrieve the current amount of communications from the current node in
 the array @code{comm_amounts} which must have a size greater or equal
 to the world size. Communications statistics must be enabled
 (@pxref{STARPU_COMM_STATS}).
+@end deftypefun
+
+@deftypefun void starpu_mpi_set_communication_tag (int @var{tag})
+@anchor{starpu_mpi_set_communication_tag}
+Tell StarPU-MPI which MPI tag to use for all its communications.
+@end deftypefun
+
+@deftypefun int starpu_mpi_get_communication_tag (void)
+@anchor{starpu_mpi_get_communication_tag}
+Returns the MPI tag which will be used for all StarPU-MPI communications.
 @end deftypefun
 
 @node Communication
@@ -3475,6 +3551,10 @@ to it.
 Returns the last value set by @code{starpu_data_set_rank}.
 @end deftypefun
 
+@deftypefun starpu_data_handle_t starpu_data_get_data_handle_from_tag (int @var{tag})
+Returns the data handle associated to the MPI tag, or NULL if there is not.
+@end deftypefun
+
 @defmac STARPU_EXECUTE_ON_NODE
 this macro is used when calling @code{starpu_mpi_insert_task}, and
 must be followed by a integer value which specified the node on which
@@ -3601,11 +3681,11 @@ This function mustn't be called if @var{bundle} is already closed and/or @var{ta
 Inform the runtime that the user won't modify @var{bundle} anymore, it means no more inserting or removing task. Thus the runtime can destroy it when possible.
 @end deftypefun
 
-@deftypefun double starpu_task_bundle_expected_length (starpu_task_bundle_t @var{bundle}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
+@deftypefun double starpu_task_bundle_expected_length (starpu_task_bundle_t @var{bundle}, {enum starpu_perfmodel_archtype} @var{arch}, unsigned @var{nimpl})
 Return the expected duration of the entire task bundle in µs.
 @end deftypefun
 
-@deftypefun double starpu_task_bundle_expected_power (starpu_task_bundle_t @var{bundle}, enum starpu_perf_archtype @var{arch}, unsigned @var{nimpl})
+@deftypefun double starpu_task_bundle_expected_power (starpu_task_bundle_t @var{bundle}, enum starpu_perfmodel_archtype @var{arch}, unsigned @var{nimpl})
 Return the expected power consumption of the entire task bundle in J.
 @end deftypefun
 
@@ -4010,15 +4090,15 @@ Check if the worker specified by workerid can execute the codelet. Schedulers ne
 Return the current date in µs
 @end deftypefun
 
-@deftypefun uint32_t starpu_task_footprint ({struct starpu_perfmodel *}@var{model}, {struct starpu_task *} @var{task}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
+@deftypefun uint32_t starpu_task_footprint ({struct starpu_perfmodel *}@var{model}, {struct starpu_task *} @var{task}, {enum starpu_perfmodel_archtype} @var{arch}, unsigned @var{nimpl})
 Returns the footprint for a given task
 @end deftypefun
 
-@deftypefun double starpu_task_expected_length ({struct starpu_task *}@var{task}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
+@deftypefun double starpu_task_expected_length ({struct starpu_task *}@var{task}, {enum starpu_perfmodel_archtype} @var{arch}, unsigned @var{nimpl})
 Returns expected task duration in µs
 @end deftypefun
 
-@deftypefun double starpu_worker_get_relative_speedup ({enum starpu_perf_archtype} @var{perf_archtype})
+@deftypefun double starpu_worker_get_relative_speedup ({enum starpu_perfmodel_archtype} @var{perf_archtype})
 Returns an estimated speedup factor relative to CPU speed
 @end deftypefun
 
@@ -4026,15 +4106,15 @@ Returns an estimated speedup factor relative to CPU speed
 Returns expected data transfer time in µs
 @end deftypefun
 
-@deftypefun double starpu_data_expected_transfer_time (starpu_data_handle_t @var{handle}, unsigned @var{memory_node}, {enum starpu_access_mode} @var{mode})
+@deftypefun double starpu_data_expected_transfer_time (starpu_data_handle_t @var{handle}, unsigned @var{memory_node}, {enum starpu_data_access_mode} @var{mode})
 Predict the transfer time (in µs) to move a handle to a memory node
 @end deftypefun
 
-@deftypefun double starpu_task_expected_power ({struct starpu_task *}@var{task}, {enum starpu_perf_archtype} @var{arch}, unsigned @var{nimpl})
+@deftypefun double starpu_task_expected_power ({struct starpu_task *}@var{task}, {enum starpu_perfmodel_archtype} @var{arch}, unsigned @var{nimpl})
 Returns expected power consumption in J
 @end deftypefun
 
-@deftypefun double starpu_task_expected_conversion_time ({struct starpu_task *}@var{task}, {enum starpu_perf_archtype} @var{arch}, unsigned {nimpl})
+@deftypefun double starpu_task_expected_conversion_time ({struct starpu_task *}@var{task}, {enum starpu_perfmodel_archtype} @var{arch}, unsigned {nimpl})
 Returns expected conversion time in ms (multiformat interface only)
 @end deftypefun
 

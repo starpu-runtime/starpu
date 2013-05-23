@@ -176,7 +176,7 @@ void *_starpu_mpi_already_sent(starpu_data_handle_t data, int dest)
 }
 
 static
-int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *dest, size_t *size_on_nodes)
+int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *dest, size_t *size_on_nodes)
 {
 	if (data && mode & STARPU_R)
 	{
@@ -235,7 +235,7 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_access
 }
 
 static
-void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_access_mode mode, int me, int dest, int do_execute, MPI_Comm comm)
+void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int dest, int do_execute, MPI_Comm comm)
 {
 	if (data && mode & STARPU_R)
 	{
@@ -276,7 +276,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 }
 
 static
-void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum starpu_access_mode mode, int me, int xrank, int dest, int do_execute, MPI_Comm comm)
+void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int dest, int do_execute, MPI_Comm comm)
 {
 	if (mode & STARPU_W)
 	{
@@ -308,7 +308,7 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 	}
 }
 
-void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum starpu_access_mode mode, int me, int do_execute, MPI_Comm comm)
+void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int do_execute, MPI_Comm comm)
 {
 	if (_cache_enabled)
 	{
@@ -405,7 +405,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
-			enum starpu_access_mode mode = (enum starpu_access_mode) arg_type;
+			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
 			int ret = _starpu_mpi_find_executee_node(data, mode, me, &do_execute, &inconsistent_execute, &dest, size_on_nodes);
 			if (ret == -EINVAL)
 			{
@@ -421,7 +421,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			int i;
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				enum starpu_access_mode mode = STARPU_CODELET_GET_MODE(codelet, current_data);
+				enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(codelet, current_data);
 				int ret = _starpu_mpi_find_executee_node(datas[i], mode, me, &do_execute, &inconsistent_execute, &dest, size_on_nodes);
 				if (ret == -EINVAL)
 				{
@@ -518,7 +518,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
-			enum starpu_access_mode mode = (enum starpu_access_mode) arg_type;
+			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
 
 			_starpu_mpi_exchange_data_before_execution(data, mode, me, dest, do_execute, comm);
 			current_data ++;
@@ -614,7 +614,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
 			{
 				starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
-				enum starpu_access_mode mode = (enum starpu_access_mode) arg_type;
+				enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
 
 				_starpu_mpi_exchange_data_after_execution(data, mode, me, xrank, dest, do_execute, comm);
 				current_data++;
@@ -684,7 +684,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
-			enum starpu_access_mode mode = (enum starpu_access_mode) arg_type;
+			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
 
 			_starpu_mpi_clear_data_after_execution(data, mode, me, do_execute, comm);
 			current_data++;
@@ -877,4 +877,11 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 		starpu_mpi_isend_detached(data_handle, rank, tag, comm, NULL, NULL);
 		starpu_insert_task(data_handle->init_cl, STARPU_W, data_handle, 0);
 	}
+	/* FIXME: In order to prevent simultaneous receive submissions
+	 * on the same handle, we need to wait that all the starpu_mpi
+	 * tasks are done before submitting next tasks. The current
+	 * version of the implementation does not support multiple
+	 * simultaneous receive requests on the same handle.*/
+	starpu_task_wait_for_all();
+
 }

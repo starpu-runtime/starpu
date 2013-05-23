@@ -44,7 +44,7 @@ extern tree task_implementation_list (const_tree task_decl);
 extern tree task_pointer_parameter_types (const_tree task_decl);
 extern int task_where (const_tree task_decl);
 extern tree task_implementation_wrapper (const_tree task_impl);
-extern enum starpu_access_mode access_mode (const_tree type);
+extern enum starpu_data_access_mode access_mode (const_tree type);
 extern bool output_type_p (const_tree type);
 
 extern tree codelet_type (void);

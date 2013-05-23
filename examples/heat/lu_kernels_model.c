@@ -102,7 +102,7 @@ double task_22_cost(struct starpu_task *task, unsigned nimpl)
  */
 
 
-double task_11_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
+double task_11_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -114,7 +114,7 @@ double task_11_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arc
 	return PERTURBATE(cost);
 }
 
-double task_12_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
+double task_12_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -127,7 +127,7 @@ double task_12_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arc
 }
 
 
-double task_21_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
+double task_21_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -141,7 +141,7 @@ double task_21_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arc
 
 
 
-double task_22_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
+double task_22_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
 {
 	uint32_t nx, ny, nz;
 
@@ -161,7 +161,7 @@ double task_22_cost_cuda(struct starpu_task *task, enum starpu_perf_archtype arc
  *
  */
 
-double task_11_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
+double task_11_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -173,7 +173,7 @@ double task_11_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch
 	return PERTURBATE(cost);
 }
 
-double task_12_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
+double task_12_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -186,7 +186,7 @@ double task_12_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch
 }
 
 
-double task_21_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
+double task_21_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -200,7 +200,7 @@ double task_21_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch
 
 
 
-double task_22_cost_cpu(struct starpu_task *task, enum starpu_perf_archtype arch, unsigned nimpl)
+double task_22_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
 {
 	uint32_t nx, ny, nz;
 

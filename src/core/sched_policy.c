@@ -690,7 +690,7 @@ pick:
 profiling:
 	if (profiling)
 	{
-		struct starpu_task_profiling_info *profiling_info;
+		struct starpu_profiling_task_info *profiling_info;
 		profiling_info = task->profiling_info;
 
 		/* The task may have been created before profiling was enabled,

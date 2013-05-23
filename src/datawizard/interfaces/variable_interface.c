@@ -100,7 +100,7 @@ void starpu_variable_data_register(starpu_data_handle_t *handleptr, unsigned hom
 
 static uint32_t footprint_variable_interface_crc32(starpu_data_handle_t handle)
 {
-	return starpu_crc32_be(starpu_variable_get_elemsize(handle), 0);
+	return starpu_hash_crc32c_be(starpu_variable_get_elemsize(handle), 0);
 }
 
 static int variable_compare(void *data_interface_a, void *data_interface_b)

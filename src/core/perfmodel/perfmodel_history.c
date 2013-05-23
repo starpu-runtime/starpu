@@ -52,7 +52,7 @@ struct starpu_perfmodel_history_table
 static starpu_pthread_rwlock_t registered_models_rwlock;
 static struct _starpu_perfmodel_list *registered_models = NULL;
 
-size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned nimpl, struct _starpu_job *j)
+size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, unsigned nimpl, struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
 
@@ -391,7 +391,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, un
 
 	/* header */
 	char archname[32];
-	starpu_perfmodel_get_arch_name((enum starpu_perf_archtype) arch, archname, 32, nimpl);
+	starpu_perfmodel_get_arch_name((enum starpu_perfmodel_archtype) arch, archname, 32, nimpl);
 	fprintf(f, "# Model for %s\n", archname);
 	fprintf(f, "# number of entries\n%u\n", nentries);
 
@@ -996,7 +996,7 @@ int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
 	return 0;
 }
 
-void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archname, size_t maxlen,unsigned nimpl)
+void starpu_perfmodel_get_arch_name(enum starpu_perfmodel_archtype arch, char *archname, size_t maxlen,unsigned nimpl)
 {
 	if (arch < STARPU_CUDA_DEFAULT)
 	{
@@ -1031,7 +1031,7 @@ void starpu_perfmodel_get_arch_name(enum starpu_perf_archtype arch, char *archna
 }
 
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
-				    enum starpu_perf_archtype arch, char *path, size_t maxlen, unsigned nimpl)
+				    enum starpu_perfmodel_archtype arch, char *path, size_t maxlen, unsigned nimpl)
 {
 	char archname[32];
 	starpu_perfmodel_get_arch_name(arch, archname, 32, nimpl);
@@ -1041,7 +1041,7 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
 	get_model_debug_path(model, archname, path, maxlen);
 }
 
-double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j, unsigned nimpl)
+double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, struct _starpu_job *j, unsigned nimpl)
 {
 	double exp = NAN;
 	size_t size = _starpu_job_get_data_size(model, arch, nimpl, j);
@@ -1055,7 +1055,7 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 	return exp;
 }
 
-double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j,unsigned nimpl)
+double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, struct _starpu_job *j,unsigned nimpl)
 {
 	double exp = NAN;
 	size_t size = _starpu_job_get_data_size(model, arch, nimpl, j);
@@ -1098,7 +1098,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	return exp;
 }
 
-double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, struct _starpu_job *j,unsigned nimpl)
+double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, struct _starpu_job *j,unsigned nimpl)
 {
 	double exp;
 	struct starpu_perfmodel_per_arch *per_arch_model;
@@ -1142,7 +1142,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 	return exp;
 }
 
-double starpu_history_based_expected_perf(struct starpu_perfmodel *model, enum starpu_perf_archtype arch, uint32_t footprint)
+double starpu_permodel_history_based_expected_perf(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, uint32_t footprint)
 {
 	struct _starpu_job j =
 		{
@@ -1152,7 +1152,7 @@ double starpu_history_based_expected_perf(struct starpu_perfmodel *model, enum s
 	return _starpu_history_based_job_expected_perf(model, arch, &j, j.nimpl);
 }
 
-void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, enum starpu_perf_archtype arch, unsigned cpuid STARPU_ATTRIBUTE_UNUSED, double measured, unsigned nimpl)
+void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, unsigned cpuid STARPU_ATTRIBUTE_UNUSED, double measured, unsigned nimpl)
 {
 	if (model)
 	{
@@ -1280,7 +1280,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 	}
 }
 
-void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perf_archtype arch, unsigned cpuid, unsigned nimpl, double measured)
+void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned cpuid, unsigned nimpl, double measured)
 {
 	struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
 
