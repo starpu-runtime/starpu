@@ -424,11 +424,11 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, unsigned hom
 #define STARPU_MULTIFORMAT_GET_OPENCL_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->opencl_ptr)
 #define STARPU_MULTIFORMAT_GET_NX(interface)  (((struct starpu_multiformat_interface *)(interface))->nx)
 
-enum starpu_data_interface_id starpu_handle_get_interface_id(starpu_data_handle_t handle);
+enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle);
 
-int starpu_handle_pack_data(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count);
-int starpu_handle_unpack_data(starpu_data_handle_t handle, void *ptr, size_t count);
-size_t starpu_handle_get_size(starpu_data_handle_t handle);
+int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count);
+int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count);
+size_t starpu_data_get_size(starpu_data_handle_t handle);
 
 /* Lookup a ram pointer into a StarPU handle */
 extern starpu_data_handle_t starpu_data_lookup(const void *ptr);

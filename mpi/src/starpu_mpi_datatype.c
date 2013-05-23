@@ -122,7 +122,7 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_MAX_INTERFACE_ID]
 
 void _starpu_mpi_handle_allocate_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype, int *user_datatype)
 {
-	enum starpu_data_interface_id id = starpu_handle_get_interface_id(data_handle);
+	enum starpu_data_interface_id id = starpu_data_get_interface_id(data_handle);
 
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{
@@ -183,7 +183,7 @@ static handle_free_datatype_func handle_free_datatype_funcs[STARPU_MAX_INTERFACE
 
 void _starpu_mpi_handle_free_datatype(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
-	enum starpu_data_interface_id id = starpu_handle_get_interface_id(data_handle);
+	enum starpu_data_interface_id id = starpu_data_get_interface_id(data_handle);
 
 	if (id < STARPU_MAX_INTERFACE_ID)
 	{

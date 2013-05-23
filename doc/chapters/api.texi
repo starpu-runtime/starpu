@@ -840,15 +840,15 @@ Return the local pointer associated with @var{handle} or @code{NULL}
 if @var{handle}'s interface does not have data allocated locally
 @end deftypefun
 
-@deftypefun {enum starpu_data_interface_id} starpu_handle_get_interface_id (starpu_data_handle_t @var{handle})
+@deftypefun {enum starpu_data_interface_id} starpu_data_get_interface_id (starpu_data_handle_t @var{handle})
 Return the unique identifier of the interface associated with the given @var{handle}.
 @end deftypefun
 
-@deftypefun size_t starpu_handle_get_size (starpu_data_handle_t @var{handle})
+@deftypefun size_t starpu_data_get_size (starpu_data_handle_t @var{handle})
 Return the size of the data associated with @var{handle}
 @end deftypefun
 
-@deftypefun int starpu_handle_pack_data (starpu_data_handle_t @var{handle}, {void **}@var{ptr}, {starpu_ssize_t *}@var{count})
+@deftypefun int starpu_data_pack (starpu_data_handle_t @var{handle}, {void **}@var{ptr}, {starpu_ssize_t *}@var{count})
 Execute the packing operation of the interface of the data registered
 at @var{handle} (@pxref{struct starpu_data_interface_ops}). This
 packing operation must allocate a buffer large enough at @var{ptr} and
@@ -861,7 +861,7 @@ would have been allocated. The special value @code{-1} indicates the
 size is yet unknown.
 @end deftypefun
 
-@deftypefun int starpu_handle_unpack_data (starpu_data_handle_t @var{handle}, {void *}@var{ptr}, size_t @var{count})
+@deftypefun int starpu_data_unpack (starpu_data_handle_t @var{handle}, {void *}@var{ptr}, size_t @var{count})
 Unpack in @var{handle} the data located at @var{ptr} of size
 @var{count} as described by the interface of the data. The interface
 registered at @var{handle} must define a unpacking operation

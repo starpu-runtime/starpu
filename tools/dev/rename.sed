@@ -176,3 +176,8 @@ s/\bstarpu_worker_get_profiling_info\b/starpu_profiling_worker_get_info/g
 s/\bstarpu_bus_profiling_helper_display_summary\b/starpu_profiling_bus_helper_display_summary/g
 s/\bstarpu_worker_profiling_helper_display_summary\b/starpu_profiling_worker_helper_display_summary/g
 s/\benum starpu_archtype\b/enum starpu_worker_archtype/g
+
+s/\bstarpu_handle_get_interface_id\b/starpu_data_get_interface_id/g
+s/\bstarpu_handle_get_size\b/starpu_data_get_size/g
+s/\bstarpu_handle_pack_data\b/starpu_data_pack/g
+s/\bstarpu_handle_unpack_data\b/starpu_data_unpack/g

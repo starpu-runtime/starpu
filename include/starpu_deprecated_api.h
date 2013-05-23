@@ -90,24 +90,29 @@ typedef enum starpu_access_mode starpu_access_mode;
 
 #define starpu_display_codelet_stats		starpu_codelet_display_stats
 
-#define starpu_access_mode starpu_data_access_mode
-#define starpu_buffer_descr starpu_data_descr
-#define starpu_memory_display_stats starpu_data_display_memory_stats
-#define starpu_handle_to_pointer starpu_data_handle_to_pointer
-#define starpu_handle_get_local_ptr starpu_data_get_local_ptr
-#define starpu_crc32_be_n starpu_hash_crc32c_be_n
-#define starpu_crc32_be starpu_hash_crc32c_be
-#define starpu_crc32_string starpu_hash_crc32c_string
-#define starpu_perf_archtype starpu_perfmodel_archtype
-#define starpu_history_based_expected_perf starpu_permodel_history_based_expected_perf
-#define starpu_task_profiling_info starpu_profiling_task_info
-#define starpu_worker_profiling_info starpu_profiling_worker_info
-#define starpu_bus_profiling_info starpu_profiling_bus_info
-#define starpu_set_profiling_id starpu_profiling_set_id
-#define starpu_worker_get_profiling_info starpu_profiling_worker_get_info
-#define starpu_bus_profiling_helper_display_summary starpu_profiling_bus_helper_display_summary
-#define starpu_worker_profiling_helper_display_summary starpu_profiling_worker_helper_display_summary
-#define starpu_archtype starpu_worker_archtype
+#define starpu_access_mode				starpu_data_access_mode
+#define starpu_buffer_descr				starpu_data_descr
+#define starpu_memory_display_stats			starpu_data_display_memory_stats
+#define starpu_handle_to_pointer			starpu_data_handle_to_pointer
+#define starpu_handle_get_local_ptr			starpu_data_get_local_ptr
+#define starpu_crc32_be_n				starpu_hash_crc32c_be_n
+#define starpu_crc32_be					starpu_hash_crc32c_be
+#define starpu_crc32_string				starpu_hash_crc32c_string
+#define starpu_perf_archtype				starpu_perfmodel_archtype
+#define starpu_history_based_expected_perf		starpu_permodel_history_based_expected_perf
+#define starpu_task_profiling_info			starpu_profiling_task_info
+#define starpu_worker_profiling_info			starpu_profiling_worker_info
+#define starpu_bus_profiling_info			starpu_profiling_bus_info
+#define starpu_set_profiling_id				starpu_profiling_set_id
+#define starpu_worker_get_profiling_info		starpu_profiling_worker_get_info
+#define starpu_bus_profiling_helper_display_summary	starpu_profiling_bus_helper_display_summary
+#define starpu_worker_profiling_helper_display_summary	starpu_profiling_worker_helper_display_summary
+#define starpu_archtype					starpu_worker_archtype
+
+#define starpu_handle_get_interface_id		starpu_data_get_interface_id
+#define starpu_handle_get_size			starpu_data_get_size
+#define starpu_handle_pack_data			starpu_data_pack
+#define starpu_handle_unpack_data		starpu_data_unpack
 
 #endif /* STARPU_USE_DEPRECATED_ONE_ZERO_API */
 
