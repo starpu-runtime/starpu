@@ -1,8 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013 Centre National de la Recherche Scientifique
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2013 Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,31 +26,32 @@
 #include <profiling/profiling.h>
 #include <common/uthash.h>
 
-typedef (void *) (*disk_function)(void *, unsigned);
-static void add_disk_in_list(unsigned node, char * src, disk_ops func);
+typedef void * (*disk_function)(void *, unsigned);
 
 /* list of functions to use on disk */
-typedef struct disk_ops {
+struct disk_ops {
 	disk_function alloc;
 	disk_function free;
 	disk_function read;
 	disk_function write;
 	disk_function open;
-} disk_ops;
+};
 
 
-typedef struct disk_register {
+struct disk_register {
 	unsigned node;
 	char * src;
-	disk_ops functions;
-} disk_register;
+	struct disk_ops * functions;
+};
 
-static disk_register * disk_register_list = NULL;
+static void add_disk_in_list(unsigned node, char * src, struct disk_ops * func);
+
+static struct disk_register ** disk_register_list = NULL;
 static int disk_number = -1;
 static int size_register_list = 2;
 
 unsigned
-starpu_disk_register(char * src, disk_ops func)
+starpu_disk_register(char * src, struct disk_ops * func)
 {
 
 	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
@@ -60,7 +59,7 @@ starpu_disk_register(char * src, disk_ops func)
 	_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 	_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 
-	add_disk_in_list(node,src,func);
+	add_disk_in_list(memory_node,src,func);
 
 	return memory_node;
 }
@@ -70,10 +69,11 @@ starpu_disk_free(unsigned node)
 {
 
 	bool find = false;
-	for (int i = 0; i < disk_number; ++i)
+	int i;
+	for (i = 0; i < disk_number; ++i)
 	{
 		if (find)
-			disk_register_list[i-1] = disk_register[i];
+			disk_register_list[i-1] = disk_register_list[i];
 		if (disk_register_list[i]->node == node)
 		{
 			free(disk_register_list[i]);
@@ -90,18 +90,18 @@ starpu_disk_free(unsigned node)
 	}
 }
 
-static void add_disk_in_list(unsigned node, char * src, disk_ops func)
+static void add_disk_in_list(unsigned node, char * src, struct disk_ops * func)
 {
 	/* initialization */
 	if(disk_register_list == NULL)
 	{
-		disk_register_list = malloc(size_register_list*sizeof(disk_register));
+		disk_register_list = malloc(size_register_list*sizeof(struct disk_register *));
 		STARPU_ASSERT(disk_register_list != NULL);
 	}
 	/* small size -> new size  */
 	if((disk_number+1) > size_register_list)
 	{
-		disk_register * ptr_realloc = realloc(disk_register_list, 2*size_register_list*sizeof(disk_register));
+		struct disk_register ** ptr_realloc = realloc(disk_register_list, 2*size_register_list*sizeof(struct disk_register *));
  
 		if (ptr_realloc != NULL)
 		{
@@ -113,10 +113,12 @@ static void add_disk_in_list(unsigned node, char * src, disk_ops func)
 			STARPU_ASSERT(ptr_realloc != NULL);
 		}
 	}
-	disk_register dr = malloc(sizeof(struct disk_register));
+	struct disk_register * dr = malloc(sizeof(struct disk_register));
 	STARPU_ASSERT(dr != NULL);
 	dr->node = node;
 	dr->src = src;
 	dr->functions = func;
 	disk_register_list[disk_number++] = dr;
 }
+
+
