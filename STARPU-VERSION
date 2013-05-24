@@ -18,12 +18,12 @@
 #   public release, then set age to 0. change
 
 # This is the tarball version, major.minor
-STARPU_EFFECTIVE_VERSION=1.1
+STARPU_EFFECTIVE_VERSION=1.2
 
 # Note for StarPU 1.1: we have changed ABI
 
 # Libtool interface versioning (info "(libtool) Versioning").
-LIBSTARPU_INTERFACE_CURRENT=1	# increment upon ABI change
+LIBSTARPU_INTERFACE_CURRENT=2	# increment upon ABI change
 LIBSTARPU_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSTARPU_INTERFACE_AGE=0	# set to CURRENT - PREVIOUS interface
 
@@ -31,7 +31,7 @@ LIBSTARPUFFT_INTERFACE_CURRENT=1	# increment upon ABI change
 LIBSTARPUFFT_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSTARPUFFT_INTERFACE_AGE=0		# set to CURRENT - PREVIOUS interface
 
-LIBSTARPUMPI_INTERFACE_CURRENT=1	# increment upon ABI change
+LIBSTARPUMPI_INTERFACE_CURRENT=2	# increment upon ABI change
 LIBSTARPUMPI_INTERFACE_REVISION=0	# increment upon implementation change
 LIBSTARPUMPI_INTERFACE_AGE=0		# set to CURRENT - PREVIOUS interface
 
