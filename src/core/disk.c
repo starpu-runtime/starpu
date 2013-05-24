@@ -20,23 +20,12 @@
 #include <common/config.h>
 #include <core/workers.h>
 #include <core/debug.h>
+#include <core/disk.h>
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <profiling/profiling.h>
 #include <common/uthash.h>
-
-typedef void * (*disk_function)(void *, unsigned);
-
-/* list of functions to use on disk */
-struct disk_ops {
-	disk_function alloc;
-	disk_function free;
-	disk_function read;
-	disk_function write;
-	disk_function open;
-};
-
 
 struct disk_register {
 	unsigned node;
