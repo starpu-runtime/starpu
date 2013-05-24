@@ -15,7 +15,7 @@
 
 SUBDIRS = src examples
 
-versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
+versincludedir = $(includedir)/starpu/$(LIBSTARPU_EFFECTIVE_VERSION)
 
 versinclude_HEADERS = 	include/sc_hypervisor.h			\
 			include/sc_hypervisor_config.h 		\
