@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2009-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -26,10 +26,10 @@ LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
 
-lib_LTLIBRARIES = libstarpumpi-@LIBSTARPUMPI_EFFECTIVE_VERSION@.la
+lib_LTLIBRARIES = libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
-libstarpumpi_@LIBSTARPUMPI_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@LIBSTARPUMPI_EFFECTIVE_VERSION@.la
-libstarpumpi_@LIBSTARPUMPI_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined					\
+libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
+libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined					\
   -version-info $(LIBSTARPUMPI_INTERFACE_CURRENT):$(LIBSTARPUMPI_INTERFACE_REVISION):$(LIBSTARPUMPI_INTERFACE_AGE) \
   $(MPICC_LDFLAGS) $(FXT_LDFLAGS)
 noinst_HEADERS =					\
@@ -39,7 +39,7 @@ noinst_HEADERS =					\
 	starpu_mpi_insert_task.h			\
 	starpu_mpi_datatype.h
 
-libstarpumpi_@LIBSTARPUMPI_EFFECTIVE_VERSION@_la_SOURCES =	\
+libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi.c					\
 	starpu_mpi_helper.c				\
 	starpu_mpi_datatype.c				\

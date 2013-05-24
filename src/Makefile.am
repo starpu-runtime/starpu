@@ -30,30 +30,30 @@ if STARPU_HAVE_WINDOWS
 LC_MESSAGES=C
 export LC_MESSAGES
 
-ldflags += -Xlinker --output-def -Xlinker .libs/libstarpu-@LIBSTARPU_EFFECTIVE_VERSION@.def
+ldflags += -Xlinker --output-def -Xlinker .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def
 
 if STARPU_HAVE_MS_LIB
-.libs/libstarpu-@LIBSTARPU_EFFECTIVE_VERSION@.lib: libstarpu-@LIBSTARPU_EFFECTIVE_VERSION@.la dolib
-	./dolib "$(STARPU_MS_LIB)" $(STARPU_MS_LIB_ARCH) .libs/libstarpu-@LIBSTARPU_EFFECTIVE_VERSION@.def @LIBSTARPU_EFFECTIVE_VERSION@ $(libstarpu_so_version) .libs/libstarpu-@LIBSTARPU_EFFECTIVE_VERSION@.lib
-all-local: .libs/libstarpu-@LIBSTARPU_EFFECTIVE_VERSION@.lib
+.libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib: libstarpu-@STARPU_EFFECTIVE_VERSION@.la dolib
+	./dolib "$(STARPU_MS_LIB)" $(STARPU_MS_LIB_ARCH) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def @STARPU_EFFECTIVE_VERSION@ $(libstarpu_so_version) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
+all-local: .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
 endif STARPU_HAVE_MS_LIB
 
 install-exec-hook:
-	$(INSTALL) .libs/libstarpu-@LIBSTARPU_EFFECTIVE_VERSION@.def $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.def $(DESTDIR)$(libdir)
 if STARPU_HAVE_MS_LIB
-	$(INSTALL) .libs/libstarpu-@LIBSTARPU_EFFECTIVE_VERSION@.lib $(DESTDIR)$(libdir)
-	$(INSTALL) .libs/libstarpu-@LIBSTARPU_EFFECTIVE_VERSION@.exp $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.lib $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.exp $(DESTDIR)$(libdir)
 endif STARPU_HAVE_MS_LIB
 
 endif STARPU_HAVE_WINDOWS
 
-lib_LTLIBRARIES = libstarpu-@LIBSTARPU_EFFECTIVE_VERSION@.la
+lib_LTLIBRARIES = libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU
 
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) $(FXT_LDFLAGS) -no-undefined									\
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) $(FXT_LDFLAGS) -no-undefined									\
   -version-info $(libstarpu_so_version)
 
 noinst_HEADERS = 						\
@@ -121,7 +121,7 @@ noinst_HEADERS = 						\
 	top/starpu_top_connection.h				\
 	top/starpu_top_core.h
 
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	common/barrier.c					\
 	common/barrier_counter.c				\
 	common/hash.c 						\
@@ -222,25 +222,25 @@ libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	worker_collection/worker_list.c
 
 if STARPU_USE_CPU
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
 endif
 
 if STARPU_USE_CUDA
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda.c
 else
 if STARPU_SIMGRID
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda.c
 endif
 endif
 
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cublas.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cublas.c
 
 if STARPU_USE_OPENCL
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl_utils.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl_utils.c
 else
 if STARPU_SIMGRID
-libstarpu_@LIBSTARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
 endif
 endif
 

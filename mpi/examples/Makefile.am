@@ -88,7 +88,7 @@ examplebin_PROGRAMS +=				\
 	stencil/stencil5
 
 stencil_stencil5_LDADD =		\
-	../src/libstarpumpi-@LIBSTARPUMPI_EFFECTIVE_VERSION@.la -lm
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la -lm
 
 starpu_mpi_EXAMPLES	+=	\
 	stencil/stencil5
@@ -104,7 +104,7 @@ examplebin_PROGRAMS += 			\
 	mpi_lu/plu_example_double
 
 mpi_lu_plu_example_float_LDADD =	\
-	../src/libstarpumpi-@LIBSTARPUMPI_EFFECTIVE_VERSION@.la	\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -116,7 +116,7 @@ mpi_lu_plu_example_float_SOURCES =	\
 	$(top_srcdir)/examples/common/blas.c
 
 mpi_lu_plu_example_double_LDADD =	\
-	../src/libstarpumpi-@LIBSTARPUMPI_EFFECTIVE_VERSION@.la	\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_LIBNUMA_LDFLAGS)				\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -147,7 +147,7 @@ matrix_decomposition_mpi_cholesky_SOURCES	=		\
 	$(top_srcdir)/examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_LDADD =			\
-	../src/libstarpumpi-@LIBSTARPUMPI_EFFECTIVE_VERSION@.la	\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
@@ -160,7 +160,7 @@ matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
 	$(top_srcdir)/examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_distributed_LDADD =	\
-	../src/libstarpumpi-@LIBSTARPUMPI_EFFECTIVE_VERSION@.la	\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 starpu_mpi_EXAMPLES +=				\
@@ -180,7 +180,7 @@ complex_mpi_complex_SOURCES =		\
 	$(top_srcdir)/examples/interface/complex_interface.c
 
 complex_mpi_complex_LDADD =		\
-	../src/libstarpumpi-@LIBSTARPUMPI_EFFECTIVE_VERSION@.la
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 starpu_mpi_EXAMPLES	+=			\
 	complex/mpi_complex

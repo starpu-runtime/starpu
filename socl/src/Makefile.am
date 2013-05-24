@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2009-2012  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -15,13 +15,13 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
-libsocl_@LIBSOCL_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@LIBSTARPU_EFFECTIVE_VERSION@.la
+libsocl_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/socl/src
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) -no-undefined
 
 SUBDIRS =
 
-lib_LTLIBRARIES = libsocl-@LIBSOCL_EFFECTIVE_VERSION@.la
+lib_LTLIBRARIES = libsocl-@STARPU_EFFECTIVE_VERSION@.la
 
 noinst_HEADERS =				\
   command.h					\
@@ -47,10 +47,10 @@ noinst_HEADERS =				\
   CL/cl_gl.h					\
   CL/opencl.h
 
-libsocl_@LIBSOCL_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			\
+libsocl_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			\
   -version-info $(LIBSOCL_INTERFACE_CURRENT):$(LIBSOCL_INTERFACE_REVISION):$(LIBSOCL_INTERFACE_AGE)
 
-libsocl_@LIBSOCL_EFFECTIVE_VERSION@_la_SOURCES = 						\
+libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   command.c \
   command_list.c \
   command_queue.c \

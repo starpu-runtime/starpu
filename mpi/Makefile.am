@@ -19,7 +19,7 @@ SUBDIRS=src tests examples
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpumpi.pc starpumpi-1.0.pc starpumpi-1.1.pc
 
-versincludedir = $(includedir)/starpumpi/$(LIBSTARPUMPI_EFFECTIVE_VERSION)
+versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 					\
 	include/starpu_mpi.h
 
