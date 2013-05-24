@@ -16,8 +16,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AC_INIT([StarPU], [1.2.0], [starpu-devel@lists.gforge.inria.fr],
-  [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
+AC_INIT([StarPU], [1.2.0], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -26,6 +25,8 @@ dnl Versioning.
 STARPU_MAJOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 1`"
 STARPU_MINOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 2`"
 STARPU_RELEASE_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 3`"
+STARPU_RELEASE_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 3| sed 's/rc.*//'`"
+dnl we do not want the rcXX in the release version. we would like to use sed -r 's/[a-z]+.*//' to remove any string but the -r option is not portable
 AC_SUBST([STARPU_MAJOR_VERSION])
 AC_SUBST([STARPU_MINOR_VERSION])
 AC_SUBST([STARPU_RELEASE_VERSION])
