@@ -188,7 +188,7 @@ AC_DEFUN([STARPU_GCC_PLUGIN_SUPPORT], [
 
 
     AC_DEFINE_UNQUOTED([STARPU_INCLUDE_DIR],
-      ["`test "x$prefix" = xNONE && prefix=$ac_default_prefix ; eval "echo $includedir"`/starpu/$STARPU_EFFECTIVE_VERSION"],
+      ["`test "x$prefix" = xNONE && prefix=$ac_default_prefix ; eval "echo $includedir"`/starpu/$LIBSTARPU_EFFECTIVE_VERSION"],
       [Define to the directory where StarPU's headers are installed.])
 
     dnl Now, `gcc' or `g++'?
