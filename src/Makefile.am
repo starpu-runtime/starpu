@@ -221,11 +221,11 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	top/starpu_top_message_queue.c				\
 	top/starpu_top_connection.c                          	\
 	worker_collection/worker_list.c				\
+	sched_policies/node_worker.c				\
 	sched_policies/node_sched.c				\
 	sched_policies/node_eager.c				\
 	sched_policies/node_random.c				\
 	sched_policies/node_work_stealing.c			\
-	sched_policies/node_worker.c				\
 	sched_policies/node_fifo.c 				\
 	sched_policies/node_heft.c
 if STARPU_USE_CPU

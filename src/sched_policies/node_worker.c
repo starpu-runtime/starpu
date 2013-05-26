@@ -62,23 +62,48 @@ static void available(struct _starpu_sched_node * worker_node)
 }
 
 static double estimated_transfer_length(struct _starpu_sched_node * node,
-				 struct starpu_task * task)
+					struct starpu_task * task)
 {
 	STARPU_ASSERT(_starpu_sched_node_is_worker(node));
 	unsigned memory_node = starpu_worker_get_memory_node(node->workerids[0]);
 	double d = starpu_task_expected_data_transfer_time(memory_node, task);
 	return d;
 }
+static double estimated_finish_time(struct _starpu_sched_node * node)
+{
+	struct _starpu_worker * worker = node->data;
+	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
+	double sum = 0.0;
+	struct starpu_task_list list = worker->local_tasks;
+	struct starpu_task * task;
+	for(task = starpu_task_list_front(&list);
+	    task != starpu_task_list_end(&list);
+	    task = starpu_task_list_next(task))
+		if(!isnan(task->predicted))
+		   sum += task->predicted;
+/*	if(worker->current_task) 
+	{
+	// drôle de bug, t est parfois null, il doit y avoir un problème de mutex quelque part
+		struct starpu_task * t = worker->current_task;
+		if(!isnan(t->predicted))
+			sum += t->predicted/2;
+			}*/
+	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
+	return sum + starpu_timing_now();
+}
 
-struct _starpu_execute_pred estimated_execute_length(struct _starpu_sched_node * node, struct starpu_task * task)
+struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	STARPU_ASSERT(_starpu_sched_node_is_worker(node));
 	struct _starpu_worker * worker = node->data;
-	struct _starpu_execute_pred pred =
+	struct _starpu_task_execute_preds preds =
 		{
 			.state = CANNOT_EXECUTE,
 			.archtype = worker->perf_arch,
 			.expected_length = DBL_MAX,
+			.expected_finish_time = estimated_finish_time(node),
+			.expected_transfer_length = estimated_transfer_length(node, task),
+			.expected_power = 0.0
 		};
 
 	int nimpl;
@@ -91,25 +116,31 @@ struct _starpu_execute_pred estimated_execute_length(struct _starpu_sched_node *
 							       nimpl);
 			if(isnan(d))
 			{
-				pred.state = CALIBRATING;
-				pred.impl = nimpl;
-				return pred;
+				preds.state = CALIBRATING;
+				preds.impl = nimpl;
+				return preds;
 			}
-			if(_STARPU_IS_ZERO(d) && pred.state == CANNOT_EXECUTE)
+			if(_STARPU_IS_ZERO(d) && preds.state == CANNOT_EXECUTE)
 			{
-				pred.state = NO_PERF_MODEL;
-				pred.impl = nimpl;
+				preds.state = NO_PERF_MODEL;
+				preds.impl = nimpl;
 				continue;
 			}
-			if(d < pred.expected_length)
+			if(d < preds.expected_length)
 			{
-				pred.state = PERF_MODEL;
-				pred.expected_length = d;
-				pred.impl = nimpl;
+				preds.state = PERF_MODEL;
+				preds.expected_length = d;
+				preds.impl = nimpl;
 			}
-		}	
+		}
 	}
-	return pred;
+
+	if(preds.state == PERF_MODEL)
+		preds.expected_finish_time = _starpu_compute_expected_time(starpu_timing_now(),
+									  preds.expected_finish_time,
+									  preds.expected_length,
+									  preds.expected_transfer_length);
+	return preds;
 }
 
 static double estimated_load(struct _starpu_sched_node * node)
@@ -129,22 +160,6 @@ static double estimated_load(struct _starpu_sched_node * node)
 }
 
 
-static double estimated_finish_time(struct _starpu_sched_node * node)
-{
-	struct _starpu_worker * worker = node->data;
-	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
-	double sum = 0.0;
-	struct starpu_task_list list = worker->local_tasks;
-	struct starpu_task * task;
-	for(task = starpu_task_list_front(&list);
-	    task != starpu_task_list_end(&list);
-	    task = starpu_task_list_next(task))
-		sum += task->predicted;
-	if(worker->current_task)
-		sum += worker->current_task->predicted / 2;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
-	return sum + starpu_timing_now();
-}
 
 static struct _starpu_sched_node  * _starpu_sched_node_worker_create(int workerid)
 {
@@ -156,13 +171,10 @@ static struct _starpu_sched_node  * _starpu_sched_node_worker_create(int workeri
 	struct _starpu_worker * worker = _starpu_get_worker_struct(workerid);
 	struct _starpu_sched_node * node = _starpu_sched_node_create();
 	node->data = worker;
-	//node->fifo = _starpu_create_fifo(),
 	node->push_task = _starpu_sched_node_worker_push_task;
 	node->pop_task = _starpu_sched_node_worker_pop_task;
-	node->estimated_finish_time = estimated_finish_time;
+	node->estimated_execute_preds = estimated_execute_preds;
 	node->estimated_load = estimated_load;
-	node->estimated_execute_length = estimated_execute_length;
-	node->estimated_transfer_length = estimated_transfer_length;
 	node->destroy_node = _starpu_sched_node_worker_destroy;
 	node->available = available;
 	node->workerids[0] = workerid;
@@ -176,8 +188,7 @@ int _starpu_sched_node_is_worker(struct _starpu_sched_node * node)
 	return node->available == available
 		|| node->push_task == _starpu_sched_node_worker_push_task
 		|| node->pop_task == _starpu_sched_node_worker_pop_task
-		|| node->estimated_finish_time == estimated_finish_time
-		|| node->estimated_execute_length == estimated_execute_length;
+		|| node->estimated_execute_preds == estimated_execute_preds;
 		
 }
 

@@ -18,35 +18,36 @@ struct _starpu_dmda_data
 static double compute_fitness_calibration(struct _starpu_sched_node * child,
 					  struct _starpu_dmda_data * data STARPU_ATTRIBUTE_UNUSED,
 					  struct starpu_task * task STARPU_ATTRIBUTE_UNUSED,
-					  struct _starpu_execute_pred *pred)
+					  struct _starpu_task_execute_preds *pred)
 {
 	if(pred->state == CALIBRATING)
 		return child->estimated_load(child);
 	return DBL_MAX;
 }
 
-static double compute_fitness_perf_model(struct _starpu_sched_node * child,
+static double compute_fitness_perf_model(struct _starpu_sched_node * child STARPU_ATTRIBUTE_UNUSED,
 					 struct _starpu_dmda_data * data,
-					 struct starpu_task * task,
-					 struct _starpu_execute_pred * pred)
+					 struct starpu_task * task STARPU_ATTRIBUTE_UNUSED,
+					 struct _starpu_task_execute_preds * preds)
 {
-	if(pred->state == CANNOT_EXECUTE)
+	if(preds->state == CANNOT_EXECUTE)
 		return DBL_MAX;
-	return data->alpha * pred->expected_length
-		+ data->beta * child->estimated_transfer_length(child, task);
+	return data->alpha * preds->expected_length
+		+ data->beta * preds->expected_transfer_length
+		+ data->gamma * preds->expected_power;
 }
 
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&node->mutex);
-	struct _starpu_execute_pred preds[node->nchilds];
+	struct _starpu_task_execute_preds preds[node->nchilds];
 	int i;
 	int calibrating = 0;
 	int perf_model = 0;
 	int can_execute = 0;
 	for(i = 0; i < node->nchilds; i++)
 	{
-		preds[i] = node->childs[i]->estimated_execute_length(node->childs[i], task);
+		preds[i] = node->childs[i]->estimated_execute_preds(node->childs[i], task);
 		switch(preds[i].state)
 		{
 		case PERF_MODEL:
@@ -81,7 +82,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	double (*fitness_fun)(struct _starpu_sched_node *,
 			      struct _starpu_dmda_data *,
 			      struct starpu_task *,
-			      struct _starpu_execute_pred*) = compute_fitness_perf_model;
+			      struct _starpu_task_execute_preds*) = compute_fitness_perf_model;
 
 	if(calibrating)
 		fitness_fun = compute_fitness_calibration;
@@ -106,7 +107,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 
 	starpu_task_set_implementation(task, preds[index_best_fitness].impl);
 	task->predicted = preds[index_best_fitness].expected_length;
-	task->predicted_transfer = c->estimated_transfer_length(c,task);
+	task->predicted_transfer = preds[index_best_fitness].expected_transfer_length;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 	return c->push_task(c, task);
 }

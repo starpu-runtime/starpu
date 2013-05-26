@@ -4,8 +4,34 @@
 
 static double estimated_finish_time(struct _starpu_sched_node * node)
 {
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&node->mutex);
 	struct _starpu_fifo_taskq * fifo = node->data;
-	return fifo->exp_end;
+	double d = fifo->exp_end;
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
+	return d;
+}
+
+
+
+static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_node * node,
+								 struct starpu_task * task)
+{
+	if(node->nchilds == 0)
+	{
+		struct _starpu_task_execute_preds p = { CANNOT_EXECUTE };
+		return p;
+	}
+	
+	struct _starpu_task_execute_preds preds = node->childs[0]->estimated_execute_preds(node->childs[0],task);
+
+	struct _starpu_fifo_taskq * fifo = node->data;
+
+	if(preds.state == PERF_MODEL)
+		preds.expected_finish_time = _starpu_compute_expected_time(starpu_timing_now(),
+									   preds.expected_finish_time + fifo->exp_end,
+									   preds.expected_length + fifo->exp_len,
+									   preds.expected_transfer_length);
+	return preds;
 }
 
 static double estimated_load(struct _starpu_sched_node * node)
@@ -26,12 +52,13 @@ static double estimated_load(struct _starpu_sched_node * node)
 	}
 	return load;
 }
+
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
 	struct _starpu_fifo_taskq * fifo = node->data;
 	int ret = _starpu_fifo_push_sorted_task(fifo, task);
-	fifo->exp_end += task->predicted;
+	fifo->exp_end += task->predicted/node->nworkers;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 	node->available(node);
 	return ret;
@@ -55,7 +82,7 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 
 int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node)
 {
-	return node->estimated_finish_time == estimated_finish_time
+	return 0//node->estimated_execute_preds == estimated_execute_preds
 		|| node->estimated_load == estimated_load
 		|| node->push_task == node->push_task
 		|| node->pop_task == node->pop_task;
@@ -65,7 +92,7 @@ struct _starpu_sched_node * _starpu_sched_node_fifo_create(void)
 {
 	struct _starpu_sched_node * node = _starpu_sched_node_create();
 	node->data = _starpu_create_fifo();
-	node->estimated_finish_time = estimated_finish_time;
+	node->estimated_execute_preds = estimated_execute_preds;
 	node->estimated_load = estimated_load;
 	node->push_task = push_task;
 	node->pop_task = pop_task;
@@ -75,6 +102,6 @@ struct _starpu_sched_node * _starpu_sched_node_fifo_create(void)
 
 struct _starpu_fifo_taskq *  _starpu_sched_node_fifo_get_fifo(struct _starpu_sched_node * node)
 {
-	STARPU_ASSERT(node->push_task == push_task);
+	STARPU_ASSERT(_starpu_sched_node_is_fifo(node));
 	return node->data;
 }

@@ -2,6 +2,33 @@
 #include <core/workers.h>
 #include "node_sched.h"
 
+double _starpu_compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
+{
+
+	if (now + predicted_transfer < predicted_end)
+	{
+		/* We may hope that the transfer will be finished by
+		 * the start of the task. */
+		predicted_transfer = 0;
+	}
+	else
+	{
+		/* The transfer will not be finished by then, take the
+		 * remainder into account */
+		predicted_transfer += now;
+		predicted_transfer -= predicted_end;
+	}
+	if(!isnan(predicted_transfer)) 
+	{
+		predicted_end += predicted_transfer;
+		predicted_length += predicted_transfer;
+	}
+
+	if(!isnan(predicted_length))
+		predicted_end += predicted_length;
+	return predicted_end;
+}
+
 static void available(struct _starpu_sched_node * node)
 {
 	int i;
@@ -132,7 +159,7 @@ struct starpu_task * _starpu_tree_pop_task(unsigned sched_ctx_id)
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&tree->mutex);
 	return task;
 }
-
+/*
 static double estimated_finish_time(struct _starpu_sched_node * node)
 {
 	double sum = 0.0;
@@ -146,7 +173,7 @@ static double estimated_finish_time(struct _starpu_sched_node * node)
 	}
 	return sum;
 }
-
+*/
 static double estimated_load(struct _starpu_sched_node * node)
 {
 	double sum = 0.0;
@@ -159,15 +186,25 @@ static double estimated_load(struct _starpu_sched_node * node)
 	return sum;
 }
 
-static struct _starpu_execute_pred estimated_execute_length(struct _starpu_sched_node * node, struct starpu_task * task)
+
+static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	if(node->is_homogeneous)
-		return node->childs[0]->estimated_execute_length(node->childs[0], task);
-	struct _starpu_execute_pred pred = { .state = CANNOT_EXECUTE, .expected_length = 0.0 };
-	int i, nb = 0;
+		return node->childs[0]->estimated_execute_preds(node->childs[0], task);
+	struct _starpu_task_execute_preds pred =
+		{ 
+			.state = CANNOT_EXECUTE,
+			.expected_length = 0.0,
+			.expected_finish_time = 0.0,
+			.expected_transfer_length = 0.0,
+			.expected_power = 0.0
+			
+		};
+	int nb = 0;
+	int i;
 	for(i = 0; i < node->nchilds; i++)
 	{
-		struct _starpu_execute_pred tmp = node->childs[i]->estimated_execute_length(node->childs[i], task);
+		struct _starpu_task_execute_preds tmp = node->childs[i]->estimated_execute_preds(node->childs[i], task);
 		switch(tmp.state)
 		{
 		case CALIBRATING:
@@ -175,11 +212,14 @@ static struct _starpu_execute_pred estimated_execute_length(struct _starpu_sched
 			break;
 		case NO_PERF_MODEL:
 			if(pred.state == CANNOT_EXECUTE)
-				pred.state = NO_PERF_MODEL;
+				pred = tmp;
 			break;
 		case PERF_MODEL:
 			nb++;
 			pred.expected_length += tmp.expected_length;
+			pred.expected_finish_time += tmp.expected_finish_time;
+			pred.expected_transfer_length += tmp.expected_transfer_length;
+			pred.expected_power += tmp.expected_power;
 			pred.state = PERF_MODEL;
 			break;
 		case CANNOT_EXECUTE:
@@ -187,9 +227,12 @@ static struct _starpu_execute_pred estimated_execute_length(struct _starpu_sched
 		}
 	}
 	pred.expected_length /= nb;
+	pred.expected_finish_time /= nb;
+	pred.expected_transfer_length /= nb;
+	pred.expected_power /= nb;
 	return pred;
 }
-
+/*
 static double estimated_transfer_length(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	double sum = 0.0;
@@ -206,7 +249,7 @@ static double estimated_transfer_length(struct _starpu_sched_node * node, struct
 	sum /= nb;
 	return sum;
 }
-
+*/
 int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	unsigned nimpl;
@@ -240,10 +283,8 @@ struct _starpu_sched_node * _starpu_sched_node_create(void)
 	STARPU_PTHREAD_RWLOCK_INIT(&node->mutex,NULL);
 	node->available = available;
 	node->pop_task = pop_task_node;
-	node->estimated_finish_time = estimated_finish_time;
 	node->estimated_load = estimated_load;
-	node->estimated_transfer_length = estimated_transfer_length;
-	node->estimated_execute_length = estimated_execute_length;
+	node->estimated_execute_preds = estimated_execute_preds;
 	node->destroy_node = _starpu_sched_node_destroy;
 	node->add_child = _starpu_sched_node_add_child;
 	node->remove_child = _starpu_sched_node_remove_child;

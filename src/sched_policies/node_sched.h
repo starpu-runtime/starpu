@@ -8,26 +8,13 @@ struct _starpu_sched_node
 	struct starpu_task * (*pop_task)(struct _starpu_sched_node *,
 					 unsigned sched_ctx_id);
 	void (*available)(struct _starpu_sched_node *);
-
-	/*this function only consider tasks that have a pref model, others does not count
-	 * note that pushing a task not necessarily increase estimated finish time
-	 */
-	double (*estimated_finish_time)(struct _starpu_sched_node * node);
-	/* this function is an heuritic compute subtree's load.
-	 * the computation is based on number of tasks and relative speedup of processing units
-	 * more revelant than estimated_finish_time() when no perf model are available
-	 */
+	
+	/* this function is an heuristic that compute load of subtree */
 	double (*estimated_load)(struct _starpu_sched_node * node);
 
-	//return the average of transfer length for all subtree workers
-	double (*estimated_transfer_length)(struct _starpu_sched_node * node,
-					    struct starpu_task * task);
-	/* return data on expected length of computation, if node is heterogeneous, its an average
-	 * if a calibration is not done, the arch and implementation are returned
-	 */
-	struct _starpu_execute_pred (*estimated_execute_length)(struct _starpu_sched_node * node,
-					   struct starpu_task * task);
-
+	struct _starpu_task_execute_preds (*estimated_execute_preds)(struct _starpu_sched_node * node,
+								     struct starpu_task * task);
+	
 	int nchilds;
 	struct _starpu_sched_node ** childs;
 
@@ -60,11 +47,23 @@ struct _starpu_sched_node
 	void (*destroy_node)(struct _starpu_sched_node *);
 };
 
-struct _starpu_execute_pred {
+struct _starpu_task_execute_preds
+{
 	enum {CANNOT_EXECUTE = 0, CALIBRATING , NO_PERF_MODEL, PERF_MODEL} state;
+
+	/* archtype and nimpl is set to
+	 * best values if state is PERF_MODEL
+	 * values that needs to be calibrated if state is CALIBRATING
+	 * suitable values if NO_PERF_MODEL
+	 * irrevelant if CANNOT_EXECUTE
+	 */
 	enum starpu_perfmodel_archtype archtype;
 	int impl;
+
+	double expected_finish_time;
 	double expected_length;
+	double expected_transfer_length;
+	double expected_power;
 };
 
 
@@ -124,7 +123,9 @@ struct _starpu_sched_node * _starpu_sched_node_eager_create(void);
 struct _starpu_sched_node * _starpu_sched_node_heft_create(double alpha, double beta, double gamma, double idle_power);
 
 
-
+/* compute predicted_end by taking in account the case of the predicted transfer and the predicted_end overlap
+ */
+double _starpu_compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer);
 
 void _starpu_tree_destroy(struct _starpu_sched_tree * tree, unsigned sched_ctx_id);
 
