@@ -263,10 +263,10 @@ int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct
 	unsigned nimpl;
 	int worker;
 	STARPU_ASSERT(task);
-
+	STARPU_ASSERT(node);
 	for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		for(worker = 0; worker < node->nworkers; worker++)
-			if (starpu_worker_can_execute_task(worker, task, nimpl))
+			if (starpu_worker_can_execute_task(node->workerids[worker], task, nimpl))
 				return 1;
 	return 0;
 }

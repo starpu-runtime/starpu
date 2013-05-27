@@ -52,6 +52,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	struct _starpu_fifo_taskq * fifo = node->data;
 	int ret = _starpu_fifo_push_sorted_task(fifo, task);
 	fifo->exp_end += task->predicted/node->nworkers;
+	fifo->exp_len += task->predicted/node->nworkers;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 	node->available(node);
 	return ret;
@@ -63,7 +64,11 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
 	struct starpu_task * task  = _starpu_fifo_pop_task(fifo, starpu_worker_get_id());
 	if(task)
+	{
 		fifo->exp_start = starpu_timing_now() + task->predicted;
+		if(!isnan(task->predicted))
+			fifo->exp_len -= task->predicted/node->nworkers;
+	}
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 	if(task)
 		return task;
