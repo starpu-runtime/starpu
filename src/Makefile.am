@@ -137,10 +137,10 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/workers.c						\
 	core/combined_workers.c					\
 	core/topology.c						\
+	core/disk.c						\
 	core/debug.c						\
 	core/errorcheck.c					\
 	core/progress_hook.c					\
-	core/disk.c						\
 	core/dependencies/cg.c					\
 	core/dependencies/dependencies.c			\
 	core/dependencies/implicit_data_deps.c			\
