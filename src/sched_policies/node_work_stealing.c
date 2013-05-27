@@ -222,6 +222,8 @@ static int is_worker_of_node(struct _starpu_sched_node * node, int workerid)
 	return 0;
 }
 
+
+
 static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned sched_ctx_id)
 {
 	int workerid = starpu_worker_get_id();
@@ -267,6 +269,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 		}
 	}
 	wsd->last_push_child = i;
+	node->childs[i]->available(node->childs[i]);
 	return ret;
 }
 
@@ -300,6 +303,7 @@ int _starpu_ws_push_task(struct starpu_task *task)
 			STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
 			int ret = _starpu_fifo_push_sorted_task(wsd->fifos[i], task);
 			STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
+			node->childs[i]->available(node->childs[i]);
 			return ret;
 		}
 	}
