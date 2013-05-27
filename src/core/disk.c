@@ -20,7 +20,7 @@
 #include <common/config.h>
 #include <core/workers.h>
 #include <core/debug.h>
-#include <core/disk.h>
+
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
@@ -29,18 +29,18 @@
 
 struct disk_register {
 	unsigned node;
-	char * src;
+	void * base;
 	struct disk_ops * functions;
 };
 
-static void add_disk_in_list(unsigned node, char * src, struct disk_ops * func);
+static void add_disk_in_list(unsigned node, struct disk_ops * func, void * base);
 
 static struct disk_register ** disk_register_list = NULL;
 static int disk_number = -1;
 static int size_register_list = 2;
 
 unsigned
-starpu_disk_register(char * src, struct disk_ops * func)
+starpu_disk_register(struct disk_ops * func, void *parameter)
 {
 
 	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
@@ -48,7 +48,9 @@ starpu_disk_register(char * src, struct disk_ops * func)
 	_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 	_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 
-	add_disk_in_list(memory_node,src,func);
+	void * base = func->plug(parameter);
+
+	add_disk_in_list(memory_node,func,base);
 
 	return memory_node;
 }
@@ -56,10 +58,9 @@ starpu_disk_register(char * src, struct disk_ops * func)
 void
 starpu_disk_free(unsigned node)
 {
-
 	bool find = false;
 	int i;
-	for (i = 0; i < disk_number; ++i)
+	for (i = 0; i <= disk_number; ++i)
 	{
 		if (find)
 			disk_register_list[i-1] = disk_register_list[i];
@@ -69,7 +70,6 @@ starpu_disk_free(unsigned node)
 			find = true; 
 		}
 	}
-
 	disk_number--;
 
 	if (disk_register_list != NULL && disk_number == -1)
@@ -79,7 +79,8 @@ starpu_disk_free(unsigned node)
 	}
 }
 
-static void add_disk_in_list(unsigned node, char * src, struct disk_ops * func)
+static void 
+add_disk_in_list(unsigned node,  struct disk_ops * func, void * base)
 {
 	/* initialization */
 	if(disk_register_list == NULL)
@@ -105,9 +106,43 @@ static void add_disk_in_list(unsigned node, char * src, struct disk_ops * func)
 	struct disk_register * dr = malloc(sizeof(struct disk_register));
 	STARPU_ASSERT(dr != NULL);
 	dr->node = node;
-	dr->src = src;
+	dr->base = base;
 	dr->functions = func;
-	disk_register_list[disk_number++] = dr;
+	disk_register_list[++disk_number] = dr;
+}
+
+static int
+get_location_with_node(unsigned node)
+{
+	int i;
+	for(i = 0; i <= disk_number; ++i)
+		if (disk_register_list[i]->node == node)
+			return i;
 }
 
 
+/* */
+
+
+
+
+void *  starpu_posix_alloc  (void *base, size_t size) { char * p; return (void *) p;  } /* nom de fichier: mkstemp, et retourne obj */
+	 void    starpu_posix_free   (void *base, void *obj, size_t size) { } /* supprime et libère l'obj */
+	 void *  starpu_posix_open   (void *base, void *pos, size_t size) { char * p; return (void *) p; } /* open dans le répertoire  un fichier existant, retourne l'obj */
+void   starpu_posix_close  (void *base, void *obj, size_t size) { } /* libère l'obj */
+ssize_t  starpu_posix_read   (void *base, void *obj, void *buf, off_t offset, size_t size) { return 0;} /* ~= pread */
+ssize_t  starpu_posix_write  (void *base, void *obj, const void *buf, off_t offset, size_t size) { return 0; }
+	/* readv, writev, read2d, write2d, etc. */
+void *  starpu_posix_plug   (void *parameter) { char * p; return (void *) p; } /* en posix, directory, retourne base */
+	 void    starpu_posix_unplug (void *base) { } /* libère la base */
+
+struct disk_ops write_on_file = {
+	.alloc = starpu_posix_alloc,
+	.free = starpu_posix_free,
+	.open = starpu_posix_open,
+	.close = starpu_posix_close,
+	.read = starpu_posix_read,
+	.write = starpu_posix_write,
+	.plug = starpu_posix_plug,
+	.unplug = starpu_posix_unplug
+};
