@@ -16,7 +16,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AC_INIT([StarPU], [1.1.0rc1], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
+AC_INIT([StarPU], [1.1.0rc2], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 

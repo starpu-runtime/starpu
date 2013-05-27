@@ -14,8 +14,9 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-StarPU 1.1.0rc1 (svn revision 9750)
+StarPU 1.1.0rc2 (svn revision xxx)
 ==============================================
+The scheduling context release
 
 New features:
   * OpenGL interoperability support.
