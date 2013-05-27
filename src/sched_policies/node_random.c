@@ -81,7 +81,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 		}
 		alpha += rd->relative_speedup[index];
 	}
-	STARPU_ASSERT(select != NULL);t
+	STARPU_ASSERT(select != NULL);
 	int ret_val = select->push_task(select,task);
 	node->available(node);
 //	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
