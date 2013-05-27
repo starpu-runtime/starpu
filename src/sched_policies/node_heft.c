@@ -17,8 +17,9 @@ struct _starpu_dmda_data
 
 static double compute_fitness_calibration(struct _starpu_sched_node * child,
 					  struct _starpu_dmda_data * data STARPU_ATTRIBUTE_UNUSED,
-					  struct starpu_task * task STARPU_ATTRIBUTE_UNUSED,
-					  struct _starpu_task_execute_preds *pred)
+					  struct _starpu_task_execute_preds *pred,
+					  double best_exp_end STARPU_ATTRIBUTE_UNUSED,
+					  double max_exp_end STARPU_ATTRIBUTE_UNUSED)
 {
 	if(pred->state == CALIBRATING)
 		return child->estimated_load(child);
@@ -27,14 +28,27 @@ static double compute_fitness_calibration(struct _starpu_sched_node * child,
 
 static double compute_fitness_perf_model(struct _starpu_sched_node * child STARPU_ATTRIBUTE_UNUSED,
 					 struct _starpu_dmda_data * data,
-					 struct starpu_task * task STARPU_ATTRIBUTE_UNUSED,
-					 struct _starpu_task_execute_preds * preds)
+					 struct _starpu_task_execute_preds * preds,
+					 double best_exp_end,
+					 double max_exp_end)
 {
-	if(preds->state == CANNOT_EXECUTE)
+	double fitness;
+	switch(preds->state)
+	{
+	case CANNOT_EXECUTE:
+	case NO_PERF_MODEL:
 		return DBL_MAX;
-	return data->alpha * preds->expected_length
-		+ data->beta * preds->expected_transfer_length
-		+ data->gamma * preds->expected_power;
+	case PERF_MODEL:
+		fitness = data->alpha * (preds->expected_finish_time - best_exp_end)
+			+ data->beta  * preds->expected_transfer_length
+			+ data->gamma * preds->expected_power;
+		return fitness;
+	case CALIBRATING:
+		STARPU_ASSERT_MSG(0,"we should have calibrate this task");
+	default:
+		STARPU_ABORT();
+		break;
+	}
 }
 
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
@@ -45,14 +59,21 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	int calibrating = 0;
 	int perf_model = 0;
 	int can_execute = 0;
+	double best_exp_end = DBL_MAX;
+	double max_exp_end = DBL_MIN;
 	for(i = 0; i < node->nchilds; i++)
 	{
 		preds[i] = node->childs[i]->estimated_execute_preds(node->childs[i], task);
 		switch(preds[i].state)
 		{
 		case PERF_MODEL:
+			STARPU_ASSERT(!isnan(preds[i].expected_finish_time));
 			perf_model = 1;
 			can_execute = 1;
+			if(preds[i].expected_finish_time < best_exp_end)
+				best_exp_end = preds[i].expected_finish_time;
+			else if(preds[i].expected_finish_time > max_exp_end)
+				max_exp_end = preds[i].expected_finish_time;
 			break;
 		case CALIBRATING:
 			calibrating = 1;
@@ -60,6 +81,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 			break;
 		case NO_PERF_MODEL:
 			can_execute = 1;
+			break;
 		case CANNOT_EXECUTE:
 			break;
 		}
@@ -81,8 +103,9 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 
 	double (*fitness_fun)(struct _starpu_sched_node *,
 			      struct _starpu_dmda_data *,
-			      struct starpu_task *,
-			      struct _starpu_task_execute_preds*) = compute_fitness_perf_model;
+			      struct _starpu_task_execute_preds*,
+			      double,
+			      double) = compute_fitness_perf_model;
 
 	if(calibrating)
 		fitness_fun = compute_fitness_calibration;
@@ -95,14 +118,16 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	{
 		double tmp = fitness_fun(node->childs[i],
 					 node->data,
-					 task,
-					 preds + i);
+					 preds + i,
+					 best_exp_end,
+					 max_exp_end);
 		if(tmp < best_fitness)
 		{
 			best_fitness = tmp;
 			index_best_fitness = i;
 		}
 	}
+	STARPU_ASSERT(best_fitness != DBL_MAX);
 	struct _starpu_sched_node * c = node->childs[index_best_fitness];
 
 	starpu_task_set_implementation(task, preds[index_best_fitness].impl);

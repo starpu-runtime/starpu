@@ -2,20 +2,11 @@
 #include "fifo_queues.h"
 #include <starpu_scheduler.h>
 
-static double estimated_finish_time(struct _starpu_sched_node * node)
-{
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&node->mutex);
-	struct _starpu_fifo_taskq * fifo = node->data;
-	double d = fifo->exp_end;
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
-	return d;
-}
-
-
 
 static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_node * node,
 								 struct starpu_task * task)
 {
+
 	if(node->nchilds == 0)
 	{
 		struct _starpu_task_execute_preds p = { CANNOT_EXECUTE };
@@ -26,11 +17,13 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 
 	struct _starpu_fifo_taskq * fifo = node->data;
 
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&node->mutex);
 	if(preds.state == PERF_MODEL)
 		preds.expected_finish_time = _starpu_compute_expected_time(starpu_timing_now(),
 									   preds.expected_finish_time + fifo->exp_end,
 									   preds.expected_length + fifo->exp_len,
 									   preds.expected_transfer_length);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 	return preds;
 }
 
