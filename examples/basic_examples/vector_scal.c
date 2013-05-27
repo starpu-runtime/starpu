@@ -110,6 +110,10 @@ int main(int argc, char **argv)
 
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
+
+	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/home/corentin/");
+	starpu_disk_free(dd);
+
 	if (ret == -ENODEV) goto enodev;
 
 	FPRINTF(stderr, "[BEFORE] 1-th element    : %3.2f\n", vector[1]);
