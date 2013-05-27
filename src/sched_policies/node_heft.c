@@ -113,7 +113,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 
 
 	double best_fitness = DBL_MAX;
-	int index_best_fitness;
+	int index_best_fitness = -1;
 	for(i = 0; i < node->nchilds; i++)
 	{
 		double tmp = fitness_fun(node->childs[i],
@@ -129,7 +129,6 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	}
 	STARPU_ASSERT(best_fitness != DBL_MAX);
 	struct _starpu_sched_node * c = node->childs[index_best_fitness];
-
 	starpu_task_set_implementation(task, preds[index_best_fitness].impl);
 	task->predicted = preds[index_best_fitness].expected_length;
 	task->predicted_transfer = preds[index_best_fitness].expected_transfer_length;
@@ -153,25 +152,9 @@ static void add_child(struct _starpu_sched_node *node,
 		      struct _starpu_sched_node *child,
 		      unsigned sched_ctx_id)
 {
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
-	int i;
-	for(i = 0; i < node->nchilds; i++){
-		STARPU_ASSERT(node->childs[i] != node);
-		STARPU_ASSERT(node->childs[i] != NULL);
-	}
-	node->childs = realloc(node->childs,
-			       sizeof(struct _starpu_sched_node*)
-			       * (node->nchilds + 1));
-	struct _starpu_sched_node * fifo_node = _starpu_sched_node_fifo_create();
-	_starpu_sched_node_add_child(fifo_node, child, sched_ctx_id);
-	_starpu_sched_node_set_father(fifo_node, node, sched_ctx_id);
-	node->childs[node->nchilds] = fifo_node;
-	node->nchilds++;
+	_starpu_sched_node_add_child(node,child, sched_ctx_id);
 	struct _starpu_dmda_data * data = node->data;
 	data->no_model_node->add_child(data->no_model_node, child, sched_ctx_id);
-	
-
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 
 }
 static void remove_child(struct _starpu_sched_node *node,
@@ -179,20 +162,10 @@ static void remove_child(struct _starpu_sched_node *node,
 			 unsigned sched_ctx_id)
 
 {
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
-	int pos;
-	for(pos = 0; pos < node->nchilds; pos++)
-		if(*node->childs[pos]->childs == child)
-			break;
-	STARPU_ASSERT(pos != node->nchilds);
-	struct _starpu_sched_node * fifo_node = node->childs[pos];
-	node->childs[pos] = node->childs[--node->nchilds];
-	STARPU_ASSERT(fifo_node->fathers[sched_ctx_id] == node);
 
+	_starpu_sched_node_remove_child(node, child, sched_ctx_id);
 	struct _starpu_dmda_data * data = node->data;
-	data->no_model_node->remove_child(data->no_model_node, child,sched_ctx_id);
-
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
+	data->no_model_node->remove_child(data->no_model_node, child, sched_ctx_id);
 }
 
 
@@ -222,8 +195,15 @@ static void add_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned nwo
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 	{
-		t->root->add_child(t->root, _starpu_sched_node_worker_get(workerids[i]), sched_ctx_id);
-		_starpu_sched_node_worker_get(workerids[i])->fathers[sched_ctx_id] = t->root;
+		struct _starpu_sched_node * fifo = _starpu_sched_node_fifo_create();
+		struct _starpu_sched_node * worker =  _starpu_sched_node_worker_get(workerids[i]);
+
+		fifo->add_child(fifo, worker, sched_ctx_id);
+		_starpu_sched_node_set_father(worker, fifo, sched_ctx_id);
+
+		t->root->add_child(t->root, fifo, sched_ctx_id);
+		_starpu_sched_node_set_father(fifo, t->root, sched_ctx_id);
+
 	}
 	_starpu_tree_update_after_modification(t);
 }
@@ -234,8 +214,14 @@ static void remove_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned 
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 	{
-		t->root->remove_child(t->root, _starpu_sched_node_worker_get(workerids[i]), sched_ctx_id);
-		_starpu_sched_node_worker_get(workerids[i])->fathers[sched_ctx_id] = NULL;
+		int j;
+		for(j = 0; j < t->root->nchilds; j++)
+			if(t->root->childs[j]->workerids[0] == workerids[i])
+				break;
+		STARPU_ASSERT(j < t->root->nchilds);
+		struct _starpu_sched_node * fifo = t->root->childs[j];
+		_starpu_sched_node_set_father(fifo, NULL, sched_ctx_id);
+		t->root->remove_child(t->root, fifo, sched_ctx_id);
 	}
 }
 

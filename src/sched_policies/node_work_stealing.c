@@ -266,8 +266,6 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 			break;
 		}
 	}
-	if(i == start)
-		ret = -ENODEV;
 	wsd->last_push_child = i;
 	return ret;
 }

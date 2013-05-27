@@ -49,6 +49,9 @@ void _starpu_sched_node_set_father(struct _starpu_sched_node *node,
 				   unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
+	STARPU_ASSERT(father_node == NULL ?
+		      node->fathers[sched_ctx_id] != NULL :
+		      node->fathers[sched_ctx_id] == NULL);
 	node->fathers[sched_ctx_id] = father_node;
 }
 
@@ -121,11 +124,15 @@ void _starpu_tree_destroy(struct _starpu_sched_tree * tree, unsigned sched_ctx_i
 void _starpu_sched_node_add_child(struct _starpu_sched_node* node, struct _starpu_sched_node * child,unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(!_starpu_sched_node_is_worker(node));
-//	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
+	int i;
+	for(i = 0; i < node->nchilds; i++){
+		STARPU_ASSERT(node->childs[i] != node);
+		STARPU_ASSERT(node->childs[i] != NULL);
+	}
+
 	node->childs = realloc(node->childs, sizeof(struct _starpu_sched_node *) * (node->nchilds + 1));
 	node->childs[node->nchilds] = child;
 	node->nchilds++;
-//	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 }
 void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child,unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
@@ -134,6 +141,7 @@ void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _s
 	for(pos = 0; pos < node->nchilds; pos++)
 		if(node->childs[pos] == child)
 			break;
+	STARPU_ASSERT(pos != node->nchilds);
 	node->childs[pos] = node->childs[--node->nchilds];
 //	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 }

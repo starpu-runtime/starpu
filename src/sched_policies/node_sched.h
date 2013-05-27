@@ -83,7 +83,6 @@ struct _starpu_sched_tree
  *  .estimated_execution_length average execution cost for all workers in the subtree
  *  .available make a recursive call on childrens
  *  .destroy_node  call _starpu_sched_node_destroy
- *  .update_nchilds a function that does nothing
  *  .{add,remove}_child functions that simply add/remove the child and update the .fathers field of child
  */
 struct _starpu_sched_node * _starpu_sched_node_create(void);
@@ -93,7 +92,6 @@ void _starpu_sched_node_destroy(struct _starpu_sched_node * node);
 
 void _starpu_sched_node_set_father(struct _starpu_sched_node *node, struct _starpu_sched_node *father_node, unsigned sched_ctx_id);
 
-/* those two function call node->update_nchilds after the child was added or removed */
 void _starpu_sched_node_add_child(struct _starpu_sched_node* node, struct _starpu_sched_node * child, unsigned sched_ctx_id);
 void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child, unsigned sched_ctx_id);
 
