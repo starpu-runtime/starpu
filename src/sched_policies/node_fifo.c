@@ -18,13 +18,13 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 	struct _starpu_fifo_taskq * fifo = node->data;
 //	printf("%p %f %f %f\n",fifo ,fifo->exp_start,fifo->exp_len,fifo->exp_end);
 
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&node->mutex);
+	_starpu_spin_lock(&node->lock);
 	if(preds.state == PERF_MODEL)
 		preds.expected_finish_time = _starpu_compute_expected_time(fifo->exp_start = starpu_timing_now(),
 									   preds.expected_finish_time + fifo->exp_end,
 									   preds.expected_length + fifo->exp_len,
 									   preds.expected_transfer_length);
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
+	_starpu_spin_unlock(&node->lock);
 	return preds;
 }
 
@@ -50,7 +50,7 @@ static double estimated_load(struct _starpu_sched_node * node)
 
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
+	_starpu_spin_lock(&node->lock);
 	STARPU_ASSERT(node->nworkers > 0);
 	struct _starpu_fifo_taskq * fifo = node->data;
 	STARPU_ASSERT(!isnan(fifo->exp_end));
@@ -66,7 +66,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	STARPU_ASSERT(!isnan(fifo->exp_len));
 	STARPU_ASSERT(!isnan(fifo->exp_start));
 
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
+	_starpu_spin_unlock(&node->lock);
 	node->available(node);
 	return ret;
 }
@@ -74,7 +74,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned sched_ctx_id)
 {
 	struct _starpu_fifo_taskq * fifo = node->data;
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
+	_starpu_spin_lock(&node->lock);
 	STARPU_ASSERT(!isnan(fifo->exp_end));
 	STARPU_ASSERT(!isnan(fifo->exp_len));
 	STARPU_ASSERT(!isnan(fifo->exp_start));
@@ -91,7 +91,7 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 	STARPU_ASSERT(!isnan(fifo->exp_len));
 	STARPU_ASSERT(!isnan(fifo->exp_start));
 
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
+	_starpu_spin_unlock(&node->lock);
 	if(task)
 		return task;
 	struct _starpu_sched_node * father = node->fathers[sched_ctx_id];

@@ -134,7 +134,7 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&node->mutex);
+	_starpu_spin_lock(&node->lock);
 	struct _starpu_work_stealing_data * wsd = node->data;
 	int ret = -1;
 	int start = wsd->last_push_child;
@@ -150,6 +150,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	}
 	wsd->last_push_child = (wsd->last_push_child + 1) % node->nchilds;
 	node->childs[i]->available(node->childs[i]);
+	_starpu_spin_unlock(&node->lock);
 	return ret;
 }
 
@@ -185,7 +186,7 @@ int _starpu_ws_push_task(struct starpu_task *task)
 			int ret = _starpu_fifo_push_sorted_task(wsd->fifos[i], task);
 			STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
 			
-			//we need to wake all other workers
+			//we need to wake all workers
 			int j;
 			for(j = 0; j < node->nchilds; j++)
 			{
@@ -288,7 +289,7 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
-	STARPU_PTHREAD_RWLOCK_INIT(&data->mutex,NULL);
+	_starpu_spin_init(&data->lock);
  	data->root = _starpu_sched_node_work_stealing_create();
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }

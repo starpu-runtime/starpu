@@ -1,7 +1,7 @@
 #ifndef __SCHED_NODE_H__
 #define __SCHED_NODE_H__
 #include <starpu.h>
-
+#include <common/starpu_spinlock.h>
 struct _starpu_sched_node
 {
 	int (*push_task)(struct _starpu_sched_node *, struct starpu_task *);
@@ -18,7 +18,7 @@ struct _starpu_sched_node
 	int nchilds;
 	struct _starpu_sched_node ** childs;
 
-	starpu_pthread_rwlock_t mutex;
+	struct _starpu_spinlock lock;
 
 	//the list of workers in the node's subtree
 	int workerids[STARPU_NMAXWORKERS];
@@ -71,7 +71,7 @@ struct _starpu_sched_tree
 {
 	struct _starpu_sched_node * root;
 	//this lock is used to protect the scheduler during modifications of his structure
-	starpu_pthread_rwlock_t mutex;
+	struct _starpu_spinlock lock;
 };
 
 

@@ -9,7 +9,7 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
-	STARPU_PTHREAD_RWLOCK_INIT(&data->mutex,NULL);
+	_starpu_spin_init(&data->lock);
  	data->root = _starpu_sched_node_fifo_create();
 	
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
@@ -25,6 +25,7 @@ static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 static void add_worker_eager(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
 {
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
+//	_starpu_spin_lock(&t->lock);
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 	{
@@ -32,18 +33,22 @@ static void add_worker_eager(unsigned sched_ctx_id, int * workerids, unsigned nw
 		_starpu_sched_node_worker_get(workerids[i])->fathers[sched_ctx_id] = t->root;
 	}
 	_starpu_tree_update_after_modification(t);
+//	_starpu_spin_unlock(&t->lock);
 }
 
 static void remove_worker_eager(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
 {
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned i;
+
+//	_starpu_spin_lock(&t->lock);
+	unsigned i;	
 	for(i = 0; i < nworkers; i++)
 	{
 		t->root->remove_child(t->root, _starpu_sched_node_worker_get(workerids[i]), sched_ctx_id);
 		_starpu_sched_node_worker_get(workerids[i])->fathers[sched_ctx_id] = NULL;
 	}
 	_starpu_tree_update_after_modification(t);
+//	_starpu_spin_unlock(&t->lock);
 }
 
 

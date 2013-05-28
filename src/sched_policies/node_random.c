@@ -116,7 +116,7 @@ static void initialize_random_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
-	STARPU_PTHREAD_RWLOCK_INIT(&data->mutex,NULL);
+	_starpu_spin_init(&data->lock);
  	data->root = _starpu_sched_node_random_create();
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
@@ -131,8 +131,8 @@ static void deinitialize_random_center_policy(unsigned sched_ctx_id)
  static void add_worker_random(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
 {
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
-//	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->mutex);
 		struct _starpu_sched_node * random_node = t->root;
+	_starpu_spin_lock(&t->lock);
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 	{
@@ -142,14 +142,14 @@ static void deinitialize_random_center_policy(unsigned sched_ctx_id)
 	}
 	_starpu_tree_update_after_modification(t);
 	update_relative_childs_speedup(random_node);
-//	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->mutex);
+	_starpu_spin_unlock(&t->lock);
 }
 
 static void remove_worker_random(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
 {
 	struct _starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->mutex);
+	_starpu_spin_lock(&t->lock);
 	struct _starpu_sched_node * random_node = t->root;
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
@@ -160,7 +160,7 @@ static void remove_worker_random(unsigned sched_ctx_id, int * workerids, unsigne
 	}
 	_starpu_tree_update_after_modification(t);
 	update_relative_childs_speedup(t->root);
-//	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->mutex);
+	_starpu_spin_unlock(&t->lock);
 }
 
 struct starpu_sched_policy _starpu_sched_tree_random_policy =
