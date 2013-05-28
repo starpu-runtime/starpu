@@ -53,7 +53,7 @@ static double compute_fitness_perf_model(struct _starpu_sched_node * child STARP
 
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&node->mutex);
+ 	STARPU_PTHREAD_RWLOCK_RDLOCK(&node->mutex);
 	struct _starpu_task_execute_preds preds[node->nchilds];
 	int i;
 	int calibrating = 0;
@@ -177,7 +177,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
 	STARPU_PTHREAD_RWLOCK_INIT(&data->mutex,NULL);
-	data->root = _starpu_sched_node_heft_create(1,1,1,1);
+	data->root = _starpu_sched_node_heft_create(1.0,1.0,1.0,1.0);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
 
@@ -245,8 +245,6 @@ struct _starpu_sched_node * _starpu_sched_node_heft_create(double alpha, double 
 
 	node->data = data;
 	node->push_task = push_task;
-	data->alpha = data->beta = data->gamma = data->idle_power = 0.0;
-	//data->total_task_cnt = data->ready_task_cnt = 0;
 	node->add_child = add_child;
 	node->remove_child = remove_child;
 	node->destroy_node = destroy_heft_node;

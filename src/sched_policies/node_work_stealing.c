@@ -268,7 +268,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 			break;
 		}
 	}
-	wsd->last_push_child = i;
+	wsd->last_push_child = (wsd->last_push_child + 1) % node->nchilds;
 	node->childs[i]->available(node->childs[i]);
 	return ret;
 }
