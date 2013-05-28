@@ -70,7 +70,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 			STARPU_ASSERT(!isnan(preds[i].expected_finish_time));
 			perf_model = 1;
 			can_execute = 1;
-			if(preds[i].expected_finish_time < best_exp_end)
+ 			if(preds[i].expected_finish_time < best_exp_end)
 				best_exp_end = preds[i].expected_finish_time;
 			else if(preds[i].expected_finish_time > max_exp_end)
 				max_exp_end = preds[i].expected_finish_time;

@@ -3,18 +3,6 @@
 #include <starpu_scheduler.h>
 
 
-//#define USE_OVERLOAD
-#ifdef USE_OVERLOAD
-#include <float.h>
-
-/**
- * Minimum number of task we wait for being processed before we start assuming
- * on which child the computation would be faster.
- */
-static unsigned calibration_value = 0;
-
-#endif /* USE_OVERLOAD */
-
 struct _starpu_work_stealing_data
 {
 /* keep track of the work performed from the beginning of the algorithm to make
@@ -43,6 +31,7 @@ static struct starpu_task *  steal_task_round_robin(struct _starpu_sched_node *n
 	struct starpu_task * task = NULL;
 	while (1)
 	{
+		i = (i + 1) % node->nchilds;
 		struct _starpu_fifo_taskq * fifo = wsd->fifos[i];
 		STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
 		task = _starpu_fifo_pop_task(fifo, workerid);
@@ -52,7 +41,6 @@ static struct starpu_task *  steal_task_round_robin(struct _starpu_sched_node *n
 			fifo->nprocessed--;
 			break;
 		}
-		i = (i + 1) % node->nchilds;
 		if (i == wsd->last_pop_child)
 		{
 			/* We got back to the first worker,
@@ -77,110 +65,6 @@ static unsigned select_worker_round_robin(struct _starpu_sched_node * node)
 	return i;
 }
 
-#ifdef USE_OVERLOAD
-
-/**
- * Return a ratio helpful to determine whether a worker is suitable to steal
- * tasks from or to put some tasks in its queue.
- *
- * \return	a ratio with a positive or negative value, describing the current state of the worker :
- * 		a smaller value implies a faster worker with an relatively emptier queue : more suitable to put tasks in
- * 		a bigger value implies a slower worker with an reletively more replete queue : more suitable to steal tasks from
- */
-static float overload_metric(struct _starpu_sched_node * fifo_node, unsigned performed_total)
-{
-	float execution_ratio = 0.0f;
-	float current_ratio = 0.0f;
-	struct _starpu_fifo_taskq * fifo = _starpu_sched_node_fifo_get_fifo(fifo_node);
-	int nprocessed = fifo->nprocessed;
-	unsigned ntasks = fifo->ntasks;
-
-	/* Did we get enough information ? */
-	if (performed_total > 0 && nprocessed > 0)
-	{
-/* How fast or slow is the worker compared to the other workers */
-execution_ratio = (float) nprocessed / performed_total;
-/* How replete is its queue */
-current_ratio = (float) ntasks / nprocessed;
-}
-	else
-	{
-		return 0.0f;
-	}
-
-	return (current_ratio - execution_ratio);
-}
-
-/**
- * Return the most suitable worker from which a task can be stolen.
- * The number of previously processed tasks, total and local,
- * and the number of tasks currently awaiting to be processed
- * by the tasks are taken into account to select the most suitable
- * worker to steal task from.
- */
-static int select_victim_overload(struct _starpu_sched_node * node)
-{
-	float  child_ratio;
-	int best_child = -1;
-	float best_ratio = FLT_MIN;
-	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)node->data;
-	unsigned performed_total = ws->performed_total;
-
-	/* Don't try to play smart until we get
-	 * enough informations. */
-	if (performed_total < calibration_value)
-		return select_victim_round_robin(node);
-
-	int i;
-	for(i = 0; i < node->nchilds; i++)
-	{
-		child_ratio = overload_metric(node->childs[i],performed_total);
-		if(child_ratio > best_ratio)
-		{
-			best_ratio = child_ratio;
-			best_child = i;
-		}
-	}
-	
-	return best_child;
-}
-
-/**
- * Return the most suitable worker to whom add a task.
- * The number of previously processed tasks, total and local,
- * and the number of tasks currently awaiting to be processed
- * by the tasks are taken into account to select the most suitable
- * worker to add a task to.
- */
-static unsigned select_worker_overload(struct _starpu_sched_node * node)
-{
-	float  child_ratio;
-	int best_child = -1;
-	float best_ratio = FLT_MAX;
-	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)node->data;
-	unsigned performed_total = ws->performed_total;
-
-	/* Don't try to play smart until we get
-	 * enough informations. */
-	if (performed_total < calibration_value)
-		return select_victim_round_robin(node);
-
-	int i;
-	for(i = 0; i < node->nchilds; i++)
-	{
-		child_ratio = overload_metric(node->childs[i],performed_total);
-		if(child_ratio < best_ratio)
-		{
-			best_ratio = child_ratio;
-			best_child = i;
-		}
-	}
-	
-	return best_child;
-}
-
-#endif /* USE_OVERLOAD */
-
 
 /**
  * Return a worker from which a task can be stolen.
@@ -189,11 +73,7 @@ static unsigned select_worker_overload(struct _starpu_sched_node * node)
  */
 static inline struct starpu_task * steal_task(struct _starpu_sched_node * node, int workerid)
 {
-#ifdef USE_OVERLOAD
-	return select_victim_overload(node, workerid);
-#else
 	return steal_task_round_robin(node, workerid);
-#endif /* USE_OVERLOAD */
 }
 
 /**
@@ -203,11 +83,7 @@ static inline struct starpu_task * steal_task(struct _starpu_sched_node * node, 
  */
 static inline unsigned select_worker(struct _starpu_sched_node * node)
 {
-#ifdef USE_OVERLOAD
-	return select_worker_overload(node);
-#else
 	return select_worker_round_robin(node);
-#endif /* USE_OVERLOAD */
 }
 
 

@@ -117,6 +117,7 @@ struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_n
 			if(isnan(d))
 			{
 				preds.state = CALIBRATING;
+				preds.expected_length = d;
 				preds.impl = nimpl;
 				return preds;
 			}

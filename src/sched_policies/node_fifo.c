@@ -32,6 +32,7 @@ static double estimated_load(struct _starpu_sched_node * node)
 {
 	double relative_speedup = 0.0;
 	int i;
+	STARPU_ASSERT(node->nworkers > 0);
 	int nworkers = node->is_homogeneous ? 1 : node->nworkers;
 	for(i = 0; i < nworkers; i++)
 		relative_speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(node->workerids[i]));
@@ -50,13 +51,21 @@ static double estimated_load(struct _starpu_sched_node * node)
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
+	STARPU_ASSERT(node->nworkers > 0);
 	struct _starpu_fifo_taskq * fifo = node->data;
+	STARPU_ASSERT(!isnan(fifo->exp_end));
+	STARPU_ASSERT(!isnan(fifo->exp_len));
+	STARPU_ASSERT(!isnan(fifo->exp_start));
 	int ret = _starpu_fifo_push_sorted_task(fifo, task);
 	if(!isnan(task->predicted))
 	{
 		fifo->exp_len += task->predicted/node->nworkers;
-		fifo->exp_end = fifo->exp_start + fifo->exp_end;
+		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	}
+	STARPU_ASSERT(!isnan(fifo->exp_end));
+	STARPU_ASSERT(!isnan(fifo->exp_len));
+	STARPU_ASSERT(!isnan(fifo->exp_start));
+
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 	node->available(node);
 	return ret;
@@ -66,14 +75,22 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 {
 	struct _starpu_fifo_taskq * fifo = node->data;
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&node->mutex);
+	STARPU_ASSERT(!isnan(fifo->exp_end));
+	STARPU_ASSERT(!isnan(fifo->exp_len));
+	STARPU_ASSERT(!isnan(fifo->exp_start));
 	struct starpu_task * task  = _starpu_fifo_pop_task(fifo, starpu_worker_get_id());
 	if(task)
 	{
-		fifo->exp_start = starpu_timing_now() + task->predicted;
+		fifo->exp_start = starpu_timing_now();
+		STARPU_ASSERT(node->nworkers > 0);
 		if(!isnan(task->predicted))
 			fifo->exp_len -= task->predicted/node->nworkers;
-		fifo->exp_end = fifo->exp_start + fifo->exp_end;
+		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	}
+	STARPU_ASSERT(!isnan(fifo->exp_end));
+	STARPU_ASSERT(!isnan(fifo->exp_len));
+	STARPU_ASSERT(!isnan(fifo->exp_start));
+
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&node->mutex);
 	if(task)
 		return task;
@@ -85,7 +102,7 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 
 int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node)
 {
-	return 0//node->estimated_execute_preds == estimated_execute_preds
+	return node->estimated_execute_preds == estimated_execute_preds
 		|| node->estimated_load == estimated_load
 		|| node->push_task == node->push_task
 		|| node->pop_task == node->pop_task;
