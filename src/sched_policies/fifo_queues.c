@@ -71,7 +71,6 @@ int
 _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task)
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
-
 	if (list->head == NULL)
 	{
 		list->head = task;
@@ -148,7 +147,6 @@ int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_
 struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue, int workerid)
 {
 	struct starpu_task *task;
-
 	for (task  = starpu_task_list_begin(&fifo_queue->taskq);
 	     task != starpu_task_list_end(&fifo_queue->taskq);
 	     task  = starpu_task_list_next(task))
@@ -161,7 +159,6 @@ struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue,
 			{
 				starpu_task_set_implementation(task, nimpl);
 				starpu_task_list_erase(&fifo_queue->taskq, task);
-				//		fprintf(stderr,"nb task %d prio %d\n", fifo_queue->ntasks, task->priority);
 				fifo_queue->ntasks--;
 				_STARPU_TRACE_JOB_POP(task, 0);
 				return task;
