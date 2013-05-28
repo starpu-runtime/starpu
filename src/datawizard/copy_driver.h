@@ -36,6 +36,18 @@
 struct _starpu_data_request;
 struct _starpu_data_replicate;
 
+#ifdef STARPU_USE_MIC
+/* MIC need memory_node to now which MIC is concerned.
+ * mark is used to wait asynchronous request.
+ * signal is used to test asynchronous request. */
+struct _starpu_mic_async_event
+{
+	unsigned memory_node;
+	int mark;
+	uint64_t *signal;
+};
+#endif
+
 /* this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
 union _starpu_async_channel_event
@@ -53,6 +65,9 @@ union _starpu_async_channel_event
 #endif
 #ifdef STARPU_USE_OPENCL
         cl_event opencl_event;
+#endif
+#ifdef STARPU_USE_MIC
+	struct _starpu_mic_async_event mic_event;
 #endif
 };
 

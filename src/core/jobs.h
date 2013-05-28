@@ -51,6 +51,8 @@ typedef void (*_starpu_cl_func_t)(void **, void *);
 #define _STARPU_CPU_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_CPU)
 #define _STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->cl->where & STARPU_CUDA)
 #define _STARPU_OPENCL_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_OPENCL)
+#define _STARPU_MIC_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_MIC)
+#define _STARPU_SCC_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_SCC)
 
 /* A job is the internal representation of a task. */
 LIST_TYPE(_starpu_job,
@@ -115,6 +117,10 @@ LIST_TYPE(_starpu_job,
 	 * other tasks are blocked until the handle has been properly reduced,
 	 * so we need a flag to differentiate them from "normal" tasks. */
 	unsigned reduction_task;
+
+	/* Used by MIC driver to record codelet start time instead of using a
+	 * local variable */
+	struct timespec cl_start;
 
 #ifdef STARPU_USE_FXT
 	/* A symbol name may be associated to the job directly for debug

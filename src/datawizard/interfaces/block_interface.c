@@ -26,6 +26,8 @@
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
+#include <drivers/scc/driver_scc_source.h>
+#include <drivers/mic/driver_mic_source.h>
 
 static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 #ifdef STARPU_USE_CUDA
@@ -42,6 +44,17 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_A
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
 static int copy_opencl_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
+#endif
+#ifdef STARPU_USE_SCC
+static int copy_scc_src_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int copy_scc_sink_to_src(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int copy_scc_sink_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+#endif
+#ifdef STARPU_USE_MIC
+static int copy_ram_to_mic(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int copy_mic_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int copy_ram_to_mic_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int copy_mic_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 #endif
 
 static const struct starpu_data_copy_methods block_copy_data_methods_s =
@@ -74,7 +87,7 @@ static uint32_t footprint_block_interface_crc32(starpu_data_handle_t handle);
 static int block_compare(void *data_interface_a, void *data_interface_b);
 static void display_block_interface(starpu_data_handle_t handle, FILE *f);
 
-static struct starpu_data_interface_ops interface_block_ops =
+struct starpu_data_interface_ops starpu_interface_block_ops =
 {
 	.register_data_handle = register_block_handle,
 	.allocate_data_on_node = allocate_block_buffer_on_node,
@@ -126,6 +139,7 @@ static void register_block_handle(starpu_data_handle_t handle, unsigned home_nod
 			local_interface->ldz  = 0;
 		}
 
+		local_interface->id = block_interface->id;
 		local_interface->nx = block_interface->nx;
 		local_interface->ny = block_interface->ny;
 		local_interface->nz = block_interface->nz;
@@ -140,6 +154,7 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, unsigned home_n
 {
 	struct starpu_block_interface block_interface =
 	{
+		.id = STARPU_BLOCK_INTERFACE_ID,
 		.ptr = ptr,
                 .dev_handle = ptr,
                 .offset = 0,
@@ -151,7 +166,12 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, unsigned home_n
 		.elemsize = elemsize
 	};
 
-	starpu_data_register(handleptr, home_node, &block_interface, &interface_block_ops);
+#ifdef STARPU_USE_SCC
+	_starpu_scc_set_offset_in_shared_memory((void*)block_interface.ptr,
+			(void**)&(block_interface.dev_handle), &(block_interface.offset));
+#endif
+
+	starpu_data_register(handleptr, home_node, &block_interface, &starpu_interface_block_ops);
 }
 
 static uint32_t footprint_block_interface_crc32(starpu_data_handle_t handle)
@@ -582,6 +602,170 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_A
 	return copy_opencl_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
 }
 
+#endif
+
+#ifdef STARPU_USE_SCC
+static int copy_scc_src_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
+	uint32_t nx = STARPU_BLOCK_GET_NX(dst_interface);
+	uint32_t ny = STARPU_BLOCK_GET_NY(dst_interface);
+	uint32_t nz = STARPU_BLOCK_GET_NZ(dst_interface);
+
+	size_t elemsize = STARPU_BLOCK_GET_ELEMSIZE(dst_interface);
+
+	uint32_t src_ldy = STARPU_BLOCK_GET_LDY(src_interface);
+	uint32_t src_ldz = STARPU_BLOCK_GET_LDZ(src_interface);
+	uint32_t dst_ldy = STARPU_BLOCK_GET_LDY(dst_interface);
+	uint32_t dst_ldz = STARPU_BLOCK_GET_LDZ(dst_interface);
+
+	void *src_ptr = (void *)STARPU_BLOCK_GET_PTR(src_interface);
+	void *dst_ptr = (void *)STARPU_BLOCK_GET_PTR(dst_interface);
+
+	unsigned y, z;
+	for (z = 0; z < nz; ++z)
+	{
+		for (y = 0; y < ny; ++y)
+		{
+			uint32_t src_offset = (y*src_ldy + z*src_ldz) * elemsize;
+			uint32_t dst_offset = (y*dst_ldy + z*dst_ldz) * elemsize;
+
+			_starpu_scc_copy_src_to_sink(src_ptr + src_offset, src_node,
+							dst_ptr + dst_offset, dst_node, nx*elemsize);
+		}
+	}
+
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
+
+	return 0;
+}
+
+static int copy_scc_sink_to_src(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
+	uint32_t nx = STARPU_BLOCK_GET_NX(dst_interface);
+	uint32_t ny = STARPU_BLOCK_GET_NY(dst_interface);
+	uint32_t nz = STARPU_BLOCK_GET_NZ(dst_interface);
+
+	size_t elemsize = STARPU_BLOCK_GET_ELEMSIZE(dst_interface);
+
+	uint32_t src_ldy = STARPU_BLOCK_GET_LDY(src_interface);
+	uint32_t src_ldz = STARPU_BLOCK_GET_LDZ(src_interface);
+	uint32_t dst_ldy = STARPU_BLOCK_GET_LDY(dst_interface);
+	uint32_t dst_ldz = STARPU_BLOCK_GET_LDZ(dst_interface);
+
+	void *src_ptr = (void *)STARPU_BLOCK_GET_PTR(src_interface);
+	void *dst_ptr = (void *)STARPU_BLOCK_GET_PTR(dst_interface);
+
+	unsigned y, z;
+	for (z = 0; z < nz; ++z)
+	{
+		for (y = 0; y < ny; ++y)
+		{
+			uint32_t src_offset = (y*src_ldy + z*src_ldz) * elemsize;
+			uint32_t dst_offset = (y*dst_ldy + z*dst_ldz) * elemsize;
+
+			_starpu_scc_copy_sink_to_src(src_ptr + src_offset, src_node,
+							dst_ptr + dst_offset, dst_node, nx*elemsize);
+		}
+	}
+
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
+
+	return 0;
+}
+
+static int copy_scc_sink_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
+	uint32_t nx = STARPU_BLOCK_GET_NX(dst_interface);
+	uint32_t ny = STARPU_BLOCK_GET_NY(dst_interface);
+	uint32_t nz = STARPU_BLOCK_GET_NZ(dst_interface);
+
+	size_t elemsize = STARPU_BLOCK_GET_ELEMSIZE(dst_interface);
+
+	uint32_t src_ldy = STARPU_BLOCK_GET_LDY(src_interface);
+	uint32_t src_ldz = STARPU_BLOCK_GET_LDZ(src_interface);
+	uint32_t dst_ldy = STARPU_BLOCK_GET_LDY(dst_interface);
+	uint32_t dst_ldz = STARPU_BLOCK_GET_LDZ(dst_interface);
+
+	void *src_ptr = (void *)STARPU_BLOCK_GET_PTR(src_interface);
+	void *dst_ptr = (void *)STARPU_BLOCK_GET_PTR(dst_interface);
+
+	unsigned y, z;
+	for (z = 0; z < nz; ++z)
+	{
+		for (y = 0; y < ny; ++y)
+		{
+			uint32_t src_offset = (y*src_ldy + z*src_ldz) * elemsize;
+			uint32_t dst_offset = (y*dst_ldy + z*dst_ldz) * elemsize;
+
+			_starpu_scc_copy_sink_to_sink(src_ptr + src_offset, src_node,
+					dst_ptr + dst_offset, dst_node, nx*elemsize);
+		}
+	}
+
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
+
+	return 0;
+}
+#endif /* STARPU_USE_SCC */
+
+#ifdef STARPU_USE_MIC
+static int copy_mic_common(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node,
+						   int (*copy_func)(void *, unsigned, void *, unsigned, size_t))
+{
+	struct starpu_block_interface *src_block = src_interface;
+	struct starpu_block_interface *dst_block = dst_interface;
+	
+	uint32_t nx = dst_block->nx;
+	uint32_t ny = dst_block->ny;
+	uint32_t nz = dst_block->nz;
+	size_t elemsize = dst_block->elemsize;
+
+	uint32_t ldy_src = src_block->ldy;
+	uint32_t ldz_src = src_block->ldz;
+	uint32_t ldy_dst = dst_block->ldy;
+	uint32_t ldz_dst = dst_block->ldz;
+
+	uintptr_t ptr_src = src_block->ptr;
+	uintptr_t ptr_dst = dst_block->ptr;
+
+	unsigned y, z;
+	for (z = 0; z < nz; z++)
+	{
+		for (y = 0; y < ny; y++)
+		{
+			uint32_t src_offset = (y*ldy_src + z*ldz_src)*elemsize;
+			uint32_t dst_offset = (y*ldy_dst + z*ldz_dst)*elemsize;
+
+			copy_func((void *)(ptr_src + src_offset), src_node, (void *)(ptr_dst + dst_offset), dst_node, nx*elemsize);
+		}
+	}
+
+	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
+
+	return 0;
+
+}
+static int copy_ram_to_mic(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
+	return copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_ram_to_mic);
+}
+
+static int copy_mic_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
+	return copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_mic_to_ram);
+}
+
+static int copy_ram_to_mic_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
+	copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_ram_to_mic_async);
+	return -EAGAIN;
+}
+
+static int copy_mic_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
+{
+	copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_mic_to_ram_async);
+	return -EAGAIN;
+}
 #endif
 
 /* as not all platform easily have a BLAS lib installed ... */

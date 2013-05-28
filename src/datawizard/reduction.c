@@ -20,6 +20,8 @@
 #include <util/starpu_data_cpy.h>
 #include <core/task.h>
 #include <datawizard/datawizard.h>
+#include <drivers/mic/driver_mic_source.h>
+#include <drivers/mp_common/source_common.h>
 
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 				       struct starpu_codelet *redux_cl,
@@ -68,6 +70,12 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 		case STARPU_OPENCL_WORKER:
 			init_func = _starpu_task_get_opencl_nth_implementation(init_cl, 0);
 			break;
+#ifdef STARPU_USE_MIC
+		case STARPU_MIC_WORKER:
+			init_func = _starpu_mic_src_get_kernel_from_codelet(init_cl, 0);
+			break;
+#endif
+			/* TODO: SCC */
 		default:
 			STARPU_ABORT();
 			break;
@@ -75,7 +83,22 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 
 	STARPU_ASSERT(init_func);
 
-	init_func(&replicate->data_interface, NULL);
+#ifdef STARPU_USE_MIC
+	if (starpu_worker_get_type(workerid) == STARPU_MIC_WORKER)
+	{
+		const struct _starpu_mp_node *node = _starpu_mic_src_get_actual_thread_mp_node();
+
+		// XXX: give the correct coreid.
+		_starpu_src_common_execute_kernel(node,
+						  (void(*)(void))init_func, 0,
+						  &handle, &(replicate->data_interface), 1,
+						  NULL, 0);
+	}
+	else
+#endif
+	{
+		init_func(&replicate->data_interface, NULL);
+	}
 
 	replicate->initialized = 1;
 }

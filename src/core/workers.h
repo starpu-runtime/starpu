@@ -37,6 +37,15 @@
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 
+#ifdef STARPU_USE_MIC
+#include <drivers/mic/driver_mic_source.h>
+#endif /* STARPU_USE_MIC */
+
+#ifdef STARPU_USE_SCC
+#include <drivers/scc/driver_scc_source.h>
+#endif
+
+
 #include <drivers/cpu/driver_cpu.h>
 
 #include <datawizard/datawizard.h>
@@ -51,6 +60,8 @@ struct _starpu_worker
 	uint32_t worker_mask; /* what is the type of worker ? */
 	enum starpu_perfmodel_archtype perf_arch; /* in case there are different models of the same arch */
 	starpu_pthread_t worker_thread; /* the thread which runs the worker */
+	int mp_nodeid; /* which mp node hold the cpu/gpu/etc (-1 for this
+			* node) */
 	unsigned devid; /* which cpu/gpu/etc is controlled by the worker ? */
 	int bindid; /* which cpu is the driver bound to ? (logical index) */
 	int workerid; /* uniquely identify the worker among all processing units types */
@@ -198,6 +209,9 @@ uint32_t _starpu_can_submit_cpu_task(void);
 
 /* Is there a worker that can execute OpenCL code ? */
 uint32_t _starpu_can_submit_opencl_task(void);
+
+/* Is there a worker that can execute OpenCL code ? */
+uint32_t _starpu_can_submit_scc_task(void);
 
 /* Check whether there is anything that the worker should do instead of
  * sleeping (waiting on something to happen). */

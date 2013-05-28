@@ -486,6 +486,20 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 			break;
 		}
 #endif
+#ifdef STARPU_USE_MIC
+		case STARPU_MIC_RAM:
+			struct starpu_multiformat_data_interface_ops *mf_ops;
+			mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
+			conversion_task->cl = mf_ops->mic_to_cpu_cl;
+			break;
+#endif
+#ifdef STARPU_USE_MIC
+		case STARPU_SCC_RAM:
+			struct starpu_multiformat_data_interface_ops *mf_ops;
+			mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
+			conversion_task->cl = mf_ops->scc_to_cpu_cl;
+			break;
+#endif
 		default:
 			_STARPU_ERROR("Oops : %u\n", handle->mf_node);
 		}
@@ -507,6 +521,20 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 		conversion_task->cl = mf_ops->cpu_to_opencl_cl;
 		break;
 	}
+#endif
+#ifdef STARPU_USE_MIC
+	case STARPU_MIC_RAM:
+		struct starpu_multiformat_data_interface_ops *mf_ops;
+		mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
+		conversion_task->cl = mf_ops->cpu_to_mic_cl;
+		break;
+#endif
+#ifdef STARPU_USE_SCC
+	case STARPU_SCC_RAM:
+		struct starpu_multiformat_data_interface_ops *mf_ops;
+		mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
+		conversion_task->cl = mf_ops->cpu_to_scc_cl;
+		break;
 #endif
 	default:
 		STARPU_ABORT();

@@ -67,6 +67,7 @@ static unsigned was_benchmarked = 0;
 static unsigned ncpus = 0;
 static unsigned ncuda = 0;
 static unsigned nopencl = 0;
+static unsigned nmic = 0;
 
 /* Benchmarking the performance of the bus */
 
@@ -90,6 +91,11 @@ static double opencldev_timing_dtoh[STARPU_MAXNODES] = {0.0};
 static double opencldev_latency_dtoh[STARPU_MAXNODES] = {0.0};
 static struct dev_timing opencldev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
+
+#ifdef STARPU_USE_MIC
+static double mic_time_host_to_device[STARPU_MAXNODES] = {0.0};
+static double mic_time_device_to_host[STARPU_MAXNODES] = {0.0};
+#endif /* STARPU_USE_MIC */
 
 #ifdef STARPU_HAVE_HWLOC
 static hwloc_topology_t hwtopology;
@@ -695,6 +701,19 @@ static void benchmark_all_gpu_devices(void)
 	}
 #endif
 
+#ifdef STARPU_USE_MIC
+	/* TODO: implement real calibration ! For now we only put an arbitrary
+	 * value for each device during at the declaration as a bug fix, else
+	 * we get problems on heft scheduler */
+        nmic = _starpu_mic_src_get_device_count();
+
+	for (i = 0; i < STARPU_MAXNODES; i++)
+	{
+		mic_time_host_to_device[i] = 0.1;
+		mic_time_device_to_host[i] = 0.1;
+	}
+#endif /* STARPU_USE_MIC */
+
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_set_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
 #elif __linux__
@@ -1082,6 +1101,9 @@ static void write_bus_latency_file_content(void)
 #ifdef STARPU_USE_OPENCL
         maxnode += nopencl;
 #endif
+#ifdef STARPU_USE_MIC
+        maxnode += nmic;
+#endif
         for (src = 0; src < STARPU_MAXNODES; src++)
 	{
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1290,6 +1312,9 @@ static void write_bus_bandwidth_file_content(void)
 #ifdef STARPU_USE_OPENCL
         maxnode += nopencl;
 #endif
+#ifdef STARPU_USE_MIC
+        maxnode += nmic;
+#endif
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1300,7 +1325,7 @@ static void write_bus_bandwidth_file_content(void)
 			{
 				bandwidth = NAN;
 			}
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
 			else if (src != dst)
 			{
 				double slowness = 0.0;
@@ -1320,10 +1345,16 @@ static void write_bus_bandwidth_file_content(void)
 				}
 #endif
 #ifdef STARPU_USE_OPENCL
-				if (src > ncuda)
+				if (src > ncuda && src <= ncuda + nopencl)
 					slowness += opencldev_timing_dtoh[src-ncuda];
-				if (dst > ncuda)
+				if (dst > ncuda && dst <= ncuda + nopencl)
 					slowness += opencldev_timing_htod[dst-ncuda];
+#endif
+#ifdef STARPU_USE_MIC
+				if (src > ncuda + nopencl)
+					slowness += mic_time_device_to_host[src - (ncuda + nopencl)];
+				if (dst > ncuda + nopencl)
+					slowness += mic_time_host_to_device[dst - (ncuda + nopencl)];
 #endif
 				bandwidth = 1.0/slowness;
 			}
@@ -1363,6 +1394,9 @@ void starpu_bus_print_bandwidth(FILE *f)
         maxnode = ncuda;
 #ifdef STARPU_USE_OPENCL
         maxnode += nopencl;
+#endif
+#ifdef STARPU_USE_MIC
+        maxnode += nmic;
 #endif
 
 	fprintf(f, "from/to\t");
@@ -1501,7 +1535,7 @@ static void check_bus_config_file(void)
 	{
                 FILE *f;
                 int ret;
-		unsigned read_cuda = -1, read_opencl = -1;
+		unsigned read_cuda = -1, read_opencl = -1, read_mic = -1;
                 unsigned read_cpus = -1;
 
                 // Loading configuration from file
@@ -1517,6 +1551,9 @@ static void check_bus_config_file(void)
 		ret = fscanf(f, "%d\t", &read_opencl);
 		STARPU_ASSERT(ret == 1);
                 _starpu_drop_comments(f);
+		ret = fscanf(f, "%d\t", &read_mic);
+		STARPU_ASSERT(ret == 1);
+                _starpu_drop_comments(f);
                 fclose(f);
 
                 // Loading current configuration
@@ -1527,6 +1564,9 @@ static void check_bus_config_file(void)
 #ifdef STARPU_USE_OPENCL
                 nopencl = _starpu_opencl_get_device_count();
 #endif
+#ifdef STARPU_USE_MIC
+                nmic = _starpu_mic_src_get_device_count();
+#endif /* STARPU_USE_MIC */
 
                 // Checking if both configurations match
                 if (read_cpus != ncpus)
@@ -1544,6 +1584,12 @@ static void check_bus_config_file(void)
                 else if (read_opencl != nopencl)
 		{
                         _STARPU_DISP("Current configuration does not match the bus performance model (OpenCL: (stored) %d != (current) %d), recalibrating...\n", read_opencl, nopencl);
+                        _starpu_bus_force_sampling();
+			_STARPU_DISP("... done\n");
+                }
+                else if (read_mic != nmic)
+		{
+                        _STARPU_DISP("Current configuration does not match the bus performance model (MIC: (stored) %d != (current) %d), recalibrating...", read_mic, nmic);
                         _starpu_bus_force_sampling();
 			_STARPU_DISP("... done\n");
                 }
@@ -1567,6 +1613,7 @@ static void write_bus_config_file_content(void)
         fprintf(f, "%u # Number of CPUs\n", ncpus);
         fprintf(f, "%d # Number of CUDA devices\n", ncuda);
         fprintf(f, "%d # Number of OpenCL devices\n", nopencl);
+        fprintf(f, "%d # Number of MIC devices\n", nmic);
 
         fclose(f);
 }

@@ -35,6 +35,7 @@ void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_inte
 
 	uint32_t ptr_offset = c*r*id*elemsize;
 
+	matrix_child->id = STARPU_MATRIX_INTERFACE_ID;
 	matrix_child->nx = c;
 	matrix_child->ny = r;
 	matrix_child->ld = c;

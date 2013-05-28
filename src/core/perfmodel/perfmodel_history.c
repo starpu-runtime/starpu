@@ -366,6 +366,21 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 			   archmin + STARPU_MIN(narchs, STARPU_MAXOPENCLDEVS),
 			   narchs > STARPU_MAXOPENCLDEVS ? narchs - STARPU_MAXOPENCLDEVS : 0);
 	}
+
+	/* Parsing MIC devs */
+	_starpu_drop_comments(f);
+	ret = fscanf(f, "%u\n", &narchs);
+	STARPU_ASSERT(ret == 1);
+
+	archmin += STARPU_MAXOPENCLDEVS;
+	_STARPU_DEBUG("Parsing %u MIC devices\n", narchs);
+	if (narchs > 0)
+	{
+		parse_arch(f, model, scan_history,
+			   archmin,
+			   archmin + STARPU_MIN(narchs, STARPU_MAXMICDEVS),
+			   narchs > STARPU_MAXMICDEVS ? narchs - STARPU_MAXMICDEVS : 0);
+	}
 }
 
 
@@ -447,6 +462,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		{
 			case STARPU_CUDA_DEFAULT:
 			case STARPU_OPENCL_DEFAULT:
+			case STARPU_MIC_DEFAULT:
 				arch_base = arch;
 				idx++;
 				break;
@@ -479,40 +495,46 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	}
 
 	/* Writing stuff */
+
 	char *name = "unknown";
 	unsigned substract_to_arch = 0;
 	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
 	{
+		unsigned char arch_already_visited = 0;
+
 		switch (arch)
 		{
 			case STARPU_CPU_DEFAULT:
-				arch_base = arch;
 				name = "CPU";
-				fprintf(f, "##################\n");
-				fprintf(f, "# %ss\n", name);
-				fprintf(f, "# maximum number of %ss\n", name);
-				fprintf(f, "%u\n", my_narch = narch[0]);
+				my_narch = narch[0];
 				break;
 			case STARPU_CUDA_DEFAULT:
-				arch_base = arch;
 				name = "CUDA";
 				substract_to_arch = STARPU_MAXCPUS;
-				fprintf(f, "##################\n");
-				fprintf(f, "# %ss\n", name);
-				fprintf(f, "# number of %s architectures\n", name);
-				fprintf(f, "%u\n", my_narch = narch[1]);
+				my_narch = narch[1];
 				break;
 			case STARPU_OPENCL_DEFAULT:
-				arch_base = arch;
 				name = "OPENCL";
-				substract_to_arch += STARPU_MAXCUDADEVS;
-				fprintf(f, "##################\n");
-				fprintf(f, "# %ss\n", name);
-				fprintf(f, "# number of %s architectures\n", name);
-				fprintf(f, "%u\n", my_narch = narch[2]);
+				my_narch = narch[2];
+				break;
+			case STARPU_MIC_DEFAULT:
+				name = "MIC";
+				my_narch = narch[3];
 				break;
 			default:
+				/* The current worker arch was already written,
+				 * we don't need to write it again */
+				arch_already_visited = 1;
 				break;
+		}
+
+		if (!arch_already_visited)
+		{
+			arch_base = arch;
+			fprintf(f, "##################\n");
+			fprintf(f, "# %ss\n", name);
+			fprintf(f, "# number of %s architectures\n", name);
+			fprintf(f, "%u\n", my_narch);
 		}
 
 		unsigned max_impl = 0;
@@ -1023,6 +1045,12 @@ void starpu_perfmodel_get_arch_name(enum starpu_perfmodel_archtype arch, char *a
 	{
 		int devid = arch - STARPU_OPENCL_DEFAULT;
 		snprintf(archname, maxlen, "opencl_%d_impl_%u", devid,nimpl);
+	}
+	else if ((STARPU_MIC_DEFAULT <= arch)
+		&& (arch < STARPU_MIC_DEFAULT + STARPU_MAXMICDEVS))
+	{
+		int devid = arch - STARPU_MIC_DEFAULT;
+		snprintf(archname, maxlen, "mic_%d_impl_%u", devid, nimpl);
 	}
 	else
 	{
