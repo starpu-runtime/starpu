@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include <common/config.h>
 #include <core/workers.h>
 #include <core/debug.h>
@@ -39,45 +40,59 @@ static struct disk_register ** disk_register_list = NULL;
 static int disk_number = -1;
 static int size_register_list = 2;
 
+
 unsigned
 starpu_disk_register(struct disk_ops * func, void *parameter)
 {
-
+	/* register disk */
 	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
 	_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 	_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 
+	/* connect disk */
 	void * base = func->plug(parameter);
 
+	/* remember it */
 	add_disk_in_list(memory_node,func,base);
 
 	return memory_node;
 }
+
 
 void
 starpu_disk_free(unsigned node)
 {
 	bool find = false;
 	int i;
+	
+	/* search disk and delete it */
 	for (i = 0; i <= disk_number; ++i)
 	{
 		if (find)
 			disk_register_list[i-1] = disk_register_list[i];
 		if (disk_register_list[i]->node == node)
 		{
+			/* don't forget to unplug */
+			disk_register_list[i]->functions->unplug(disk_register_list[i]->base);
 			free(disk_register_list[i]);
 			find = true; 
 		}
 	}
-	disk_number--;
-
-	if (disk_register_list != NULL && disk_number == -1)
+	
+	/* no disk in the list -> delete the list */
+	if (find)
 	{
-		free(disk_register_list);
-		disk_register_list = NULL;
+		disk_number--;
+
+		if (disk_register_list != NULL && disk_number == -1)
+		{
+			free(disk_register_list);
+			disk_register_list = NULL;
+		}
 	}
 }
+
 
 static void 
 add_disk_in_list(unsigned node,  struct disk_ops * func, void * base)
@@ -103,6 +118,7 @@ add_disk_in_list(unsigned node,  struct disk_ops * func, void * base)
 			STARPU_ASSERT(ptr_realloc != NULL);
 		}
 	}
+
 	struct disk_register * dr = malloc(sizeof(struct disk_register));
 	STARPU_ASSERT(dr != NULL);
 	dr->node = node;
@@ -121,20 +137,149 @@ get_location_with_node(unsigned node)
 }
 
 
-/* */
+/* use POSIX to write on disk */
+
+struct starpu_posix_obj {
+	FILE * descriptor;
+	char * path;
+	double size;
+};
 
 
+/* allocation memory on disk */
+void * 
+starpu_posix_alloc (void *base, size_t size)
+{
+	struct starpu_posix_obj * obj = malloc(sizeof(struct starpu_posix_obj));
+	int id = -1;
+
+	/* create template for mkstemp */
+	unsigned int sizeBase = 16;
+	while(sizeBase < (strlen(base)+7))
+		sizeBase *= 2;
+
+	char * baseCpy = malloc(sizeBase*sizeof(char));
+	char * tmp = "XXXXXX";
+
+	strcpy(baseCpy, (char *) base);
+	strcat(baseCpy,tmp);
+
+	id = mkstemp(baseCpy);
+	STARPU_ASSERT_MSG(id >= 0, "Posix allocation failed");
+
+	FILE * f = fdopen(id, "r+");
+	STARPU_ASSERT_MSG(f != NULL, "Posix allocation failed");
+
+	int val = ftruncate(id,size);
+	STARPU_ASSERT_MSG(val >= 0, "Posix allocation failed");
+
+	obj->descriptor = f;
+	obj->path = baseCpy;
+	obj->size = size;
+
+	return (void *) obj;
+}
 
 
-void *  starpu_posix_alloc  (void *base, size_t size) { char * p; return (void *) p;  } /* nom de fichier: mkstemp, et retourne obj */
-	 void    starpu_posix_free   (void *base, void *obj, size_t size) { } /* supprime et libère l'obj */
-	 void *  starpu_posix_open   (void *base, void *pos, size_t size) { char * p; return (void *) p; } /* open dans le répertoire  un fichier existant, retourne l'obj */
-void   starpu_posix_close  (void *base, void *obj, size_t size) { } /* libère l'obj */
-ssize_t  starpu_posix_read   (void *base, void *obj, void *buf, off_t offset, size_t size) { return 0;} /* ~= pread */
-ssize_t  starpu_posix_write  (void *base, void *obj, const void *buf, off_t offset, size_t size) { return 0; }
-	/* readv, writev, read2d, write2d, etc. */
-void *  starpu_posix_plug   (void *parameter) { char * p; return (void *) p; } /* en posix, directory, retourne base */
-	 void    starpu_posix_unplug (void *base) { } /* libère la base */
+/* free memory on disk */
+void
+starpu_posix_free (void *base, void *obj, size_t size)
+{
+	struct starpu_posix_obj * tmp = (struct starpu_posix_obj *) obj;
+
+	unlink(tmp->path);
+	fclose(tmp->descriptor);
+
+	free(tmp->path);
+	free(tmp);
+}
+
+
+/* open an existing memory on disk */
+void * 
+starpu_posix_open (void *base, void *pos, size_t size)
+{
+	struct starpu_posix_obj * obj = malloc(sizeof(struct starpu_posix_obj));
+	FILE * id = NULL;
+
+	/* create template for mkstemp */
+	unsigned int sizeBase = 16;
+	while(sizeBase < (strlen(base)+strlen(pos)+1))
+		sizeBase *= 2;
+
+	char * baseCpy = malloc(sizeBase*sizeof(char));
+	strcpy(baseCpy,(char *) base);
+	strcat(baseCpy,(char *) pos);
+
+	id = fopen(baseCpy,"r+");
+	STARPU_ASSERT_MSG(id != NULL, "Posix allocation failed");
+
+	obj->descriptor = id;
+	obj->path = baseCpy;
+	obj->size = size;
+
+	return (void *) obj;
+	
+}
+
+
+/* free memory without delete it */
+void 
+starpu_posix_close (void *base, void *obj, size_t size)
+{
+	struct starpu_posix_obj * tmp = (struct starpu_posix_obj *) obj;
+
+	fclose(tmp->descriptor);
+	free(tmp->path);
+	free(tmp);	
+}
+
+
+/* read the memory disk */
+ssize_t 
+starpu_posix_read (void *base, void *obj, void *buf, off_t offset, size_t size)
+{
+	struct starpu_posix_obj * tmp = (struct starpu_posix_obj *) obj;
+
+	 int res = fseek(tmp->descriptor, offset, SEEK_SET); 
+	STARPU_ASSERT_MSG(res == 0, "Posix read failed");
+
+	ssize_t nb = fread (buf, 1, size, tmp->descriptor);
+	return nb;
+}
+
+
+/* write on the memory disk */
+ssize_t 
+starpu_posix_write (void *base, void *obj, const void *buf, off_t offset, size_t size)
+{
+	struct starpu_posix_obj * tmp = (struct starpu_posix_obj *) obj;
+
+	 int res = fseek(tmp->descriptor, offset, SEEK_SET); 
+	STARPU_ASSERT_MSG(res == 0, "Posix read failed");
+
+	ssize_t nb = fwrite (buf, 1, size, tmp->descriptor);
+	return nb;
+}
+
+
+/* create a new copy of parameter == base */
+void * 
+starpu_posix_plug (void *parameter)
+{
+	char * tmp = malloc(sizeof(char)*(strlen(parameter)+1));
+	strcpy(tmp,(char *) parameter);
+	return (void *) tmp;	
+}
+
+
+/* free memory allocated for the base */
+void
+starpu_posix_unplug (void *base)
+{
+	free(base);
+}
+
 
 struct disk_ops write_on_file = {
 	.alloc = starpu_posix_alloc,

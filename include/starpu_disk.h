@@ -18,19 +18,19 @@ typedef void * (*disk_function)(void *, unsigned);
 
 /* list of functions to use on disk */
 struct disk_ops {
-	 void *  (*alloc)  (void *base, size_t size); /* nom de fichier: mkstemp, et retourne obj */
-	 void    (*free)   (void *base, void *obj, size_t size); /* supprime et libère l'obj */
-	 void *  (*open)   (void *base, void *pos, size_t size); /* open dans le répertoire  un fichier existant, retourne l'obj */
-	 void    (*close)  (void *base, void *obj, size_t size); /* libère l'obj */
-	ssize_t  (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size); /* ~= pread */
-	ssize_t  (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size);
+ 	 void *  (*alloc)  (void *base, size_t size);
+	 void    (*free)   (void *base, void *obj, size_t size);
+	 void *  (*open)   (void *base, void *pos, size_t size);
+	 void    (*close)  (void *base, void *obj, size_t size);
+	ssize_t  (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size);        /* ~= pread */
+	ssize_t  (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size); 
 	/* readv, writev, read2d, write2d, etc. */
-	 void *  (*plug)   (void *parameter); /* en posix, directory, retourne base */
-	 void    (*unplug) (void *base); /* libère la base */
+	 void *  (*plug)   (void *parameter);
+	 void    (*unplug) (void *base);
 };
 
-/* en posix, base = le répertoire, pos = le fichier, obj = la donnée renvoyée à starpu, ici un FILE* */
 
+/* Posix functions to use disk memory */
 extern struct disk_ops write_on_file;
 
 unsigned
