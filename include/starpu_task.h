@@ -128,6 +128,8 @@ struct starpu_task
 	void *cl_arg;
 	/* in case the argument buffer has to be uploaded explicitely */
 	size_t cl_arg_size;
+	/* must StarPU release cl_arg ? - 0 by default */
+	unsigned cl_arg_free;
 
 	/* when the task is done, callback_func(callback_arg) is called */
 	void (*callback_func)(void *);
