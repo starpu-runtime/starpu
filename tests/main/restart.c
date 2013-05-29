@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 	{
 		gettimeofday(&start, NULL);
 		/* Initialize StarPU */
-		ret = starpu_init(NULL);
+		ret = starpu_initialize(NULL, &argc, &argv);
 		gettimeofday(&end, NULL);
 		if (ret == -ENODEV)
 			goto enodev;

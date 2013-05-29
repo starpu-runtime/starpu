@@ -20,25 +20,27 @@
 int main(int argc, char **argv)
 {
 	int ret;
-	int var1, var2;
+	int *var1, *var2;
 	starpu_data_handle_t var1_handle, var2_handle;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	var1 = 42;
-	var2 = 12;
+	starpu_malloc((void**)&var1, sizeof(*var1));
+	starpu_malloc((void**)&var2, sizeof(*var2));
+	*var1 = 42;
+	*var2 = 12;
 
-	starpu_variable_data_register(&var1_handle, 0, (uintptr_t)&var1, sizeof(var1));
-	starpu_variable_data_register(&var2_handle, 0, (uintptr_t)&var2, sizeof(var2));
+	starpu_variable_data_register(&var1_handle, 0, (uintptr_t)var1, sizeof(*var1));
+	starpu_variable_data_register(&var2_handle, 0, (uintptr_t)var2, sizeof(*var2));
 
 	ret = starpu_data_cpy(var2_handle, var1_handle, 0, NULL, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_cpy");
 
 	starpu_data_acquire(var2_handle, STARPU_R);
 	ret = EXIT_SUCCESS;
-	if (var2 != var1)
+	if (*var2 != *var1)
 	{
 	     FPRINTF(stderr, "var2 is %d but it should be %d\n", var2, var1);
 	     ret = EXIT_FAILURE;
@@ -47,6 +49,10 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(var1_handle);
 	starpu_data_unregister(var2_handle);
+
+	starpu_free(var1);
+	starpu_free(var2);
+
 	starpu_shutdown();
 
 	STARPU_RETURN(ret);

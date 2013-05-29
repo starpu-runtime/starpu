@@ -22,7 +22,7 @@
  * A single handle can be given twice to a given kernel. In this case, it
  * should only be converted once.
  */
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
 extern struct stats global_stats;
 static int vector[NX]; static starpu_data_handle_t handle;
 
@@ -34,6 +34,9 @@ static struct starpu_codelet cl =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = { opencl_func, NULL },
+#endif
+#ifdef STARPU_USE_MIC
+	.mic_funcs = {mic_func, NULL},
 #endif
 	.nbuffers = 2,
 };
@@ -66,6 +69,9 @@ create_and_submit_tasks(void)
 #ifdef STARPU_USE_OPENCL
 	cl.where |= STARPU_OPENCL;
 #endif
+#ifdef STARPU_USE_MIC
+	cl.where |= STARPU_MIC;
+#endif
 
 	task = starpu_task_create();
 	task->cl = &cl;
@@ -81,11 +87,11 @@ create_and_submit_tasks(void)
 #endif
 
 int
-main(void)
+main(int argc, char **argv)
 {
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
 	int err;
-	err = starpu_init(NULL);
+	err = starpu_initialize(NULL, &argc, &argv);
 	if (err == -ENODEV)
 		goto enodev;
 
@@ -118,6 +124,17 @@ main(void)
 		else
 			return EXIT_FAILURE;
 
+	}
+	else
+#endif
+#if defined(STARPU_USE_MIC)
+	if (global_stats.mic == 1)
+	{
+		if (global_stats.cpu_to_mic == 1 &&
+			global_stats.mic_to_cpu == 1)
+			return EXIT_SUCCESS;
+		else
+			return EXIT_FAILURE;
 	}
 	else
 #endif

@@ -27,7 +27,7 @@
   #define NLOOPS	128
 #endif
 
-static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 }
 
@@ -36,6 +36,7 @@ static struct starpu_codelet dummy_codelet =
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},
 	.opencl_funcs = {dummy_func, NULL},
+	.cpu_funcs_name = {"dummy_func", NULL},
 	.model = NULL,
 	.nbuffers = 0
 };
@@ -55,7 +56,7 @@ int main(int argc, char **argv)
 	int ret;
 	unsigned loop, nloops = NLOOPS;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

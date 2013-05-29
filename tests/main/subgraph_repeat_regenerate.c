@@ -45,13 +45,14 @@ static unsigned niter = 16384;
 static struct starpu_task taskA, taskB, taskC, taskD;
 
 static unsigned loop_cnt = 0;
-static unsigned check_cnt = 0;
+static unsigned *check_cnt;
 static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
-static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
-	(void) STARPU_ATOMIC_ADD(&check_cnt, 1);
+	unsigned *tmp = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	(*tmp)++;
 }
 
 static struct starpu_codelet dummy_codelet =
@@ -59,8 +60,10 @@ static struct starpu_codelet dummy_codelet =
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},
 	.opencl_funcs = {dummy_func, NULL},
+	.cpu_funcs_name = {"dummy_func", NULL},
 	.model = NULL,
-	.nbuffers = 0
+	.modes = { STARPU_RW },
+	.nbuffers = 1
 };
 
 static void callback_task_D(void *arg __attribute__((unused)))
@@ -93,33 +96,47 @@ int main(int argc, char **argv)
 //	struct timeval end;
 	int ret;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Implicit data dependencies and regeneratable tasks are not compatible */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
+	starpu_malloc((void**)&check_cnt, sizeof(*check_cnt));
+	*check_cnt = 0;
+
+	starpu_data_handle_t check_data;
+	starpu_variable_data_register(&check_data, 0, (uintptr_t)check_cnt, sizeof(*check_cnt));
+
 	starpu_task_init(&taskA);
 	taskA.cl = &dummy_codelet;
 	taskA.cl_arg = &taskA;
+	taskA.cl_arg_size = sizeof(&taskA);
 	taskA.regenerate = 0; /* this task will be explicitely resubmitted if needed */
+	taskA.handles[0] = check_data;
 
 	starpu_task_init(&taskB);
 	taskB.cl = &dummy_codelet;
 	taskB.cl_arg = &taskB;
+	taskB.cl_arg_size = sizeof(&taskB);
 	taskB.regenerate = 1;
+	taskB.handles[0] = check_data;
 
 	starpu_task_init(&taskC);
 	taskC.cl = &dummy_codelet;
 	taskC.cl_arg = &taskC;
+	taskC.cl_arg_size = sizeof(&taskC);
 	taskC.regenerate = 1;
+	taskC.handles[0] = check_data;
 
 	starpu_task_init(&taskD);
 	taskD.cl = &dummy_codelet;
 	taskD.cl_arg = &taskD;
+	taskD.cl_arg_size = sizeof(&taskD);
 	taskD.callback_func = callback_task_D;
 	taskD.regenerate = 1;
+	taskD.handles[0] = check_data;
 
 	struct starpu_task *depsBC_array[1] = {&taskA};
 	starpu_task_declare_deps_array(&taskB, 1, depsBC_array);
@@ -139,7 +156,13 @@ int main(int argc, char **argv)
 		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-	STARPU_ASSERT(check_cnt == (4*loop_cnt));
+	starpu_data_acquire(check_data, STARPU_R);
+	starpu_data_release(check_data);
+
+	printf("%d\n", *check_cnt);
+	STARPU_ASSERT(*check_cnt == (4*loop_cnt));
+
+	starpu_free(check_cnt);
 
 	starpu_shutdown();
 

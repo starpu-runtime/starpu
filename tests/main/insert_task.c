@@ -44,27 +44,31 @@ struct starpu_codelet mycodelet =
 {
 	.modes = { STARPU_RW, STARPU_RW },
 	.cpu_funcs = {func_cpu, NULL},
+	.cpu_funcs_name = {"func_cpu", NULL},
         .nbuffers = 2
 };
 
 int main(int argc, char **argv)
 {
-        int x; float f;
+        int *x; float *f;
         int i, ret;
 	int ifactor=12;
 	float ffactor=10.0;
         starpu_data_handle_t data_handles[2];
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	x = 1;
-	starpu_variable_data_register(&data_handles[0], 0, (uintptr_t)&x, sizeof(x));
-	f = 2.0;
-	starpu_variable_data_register(&data_handles[1], 0, (uintptr_t)&f, sizeof(f));
+	starpu_malloc((void**)&x, sizeof(*x));
+	*x = 1;
+	starpu_variable_data_register(&data_handles[0], 0, (uintptr_t)x, sizeof(*x));
 
-        FPRINTF(stderr, "VALUES: %d (%d) %f (%f)\n", x, ifactor, f, ffactor);
+	starpu_malloc((void**)&f, sizeof(*f));
+	*f = 2.0;
+	starpu_variable_data_register(&data_handles[1], 0, (uintptr_t)f, sizeof(*f));
+
+        FPRINTF(stderr, "VALUES: %d (%d) %f (%f)\n", *x, ifactor, *f, ffactor);
 
         ret = starpu_insert_task(&mycodelet,
 				 STARPU_VALUE, &ifactor, sizeof(ifactor),
@@ -82,7 +86,7 @@ int main(int argc, char **argv)
                 ret = starpu_data_acquire(data_handles[i], STARPU_R);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
         }
-        FPRINTF(stderr, "VALUES: %d %f\n", x, f);
+	FPRINTF(stderr, "VALUES: %d %f\n", *x, *f);
 
         for(i=0 ; i<2 ; i++)
 	{
@@ -110,13 +114,16 @@ int main(int argc, char **argv)
                 ret = starpu_data_acquire(data_handles[i], STARPU_R);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
         }
-        FPRINTF(stderr, "VALUES: %d %f\n", x, f);
+	FPRINTF(stderr, "VALUES: %d %f\n", *x, *f);
 
         for(i=0 ; i<2 ; i++)
 	{
                 starpu_data_release(data_handles[i]);
 		starpu_data_unregister(data_handles[i]);
         }
+
+	starpu_free(x);
+	starpu_free(f);
 
 	starpu_shutdown();
 

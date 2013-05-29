@@ -34,6 +34,8 @@ static void unset_env_variables(void)
 	(void) unsetenv("STARPU_NCPUS");
 	(void) unsetenv("STARPU_NCUDA");
 	(void) unsetenv("STARPU_NOPENCL");
+	(void) unsetenv("STARPU_NMIC");
+	(void) unsetenv("STARPU_NSCC");
 }
 
 int main(int argc, char **argv)
@@ -48,9 +50,11 @@ int main(int argc, char **argv)
 	conf.ncpus = 0;
 	conf.ncuda = 0;
 	conf.nopencl = 0;
+	conf.nmic = 0;
+	conf.nscc = 0;
 
 	/* starpu_init should return -ENODEV */
-	ret = starpu_init(&conf);
+	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV)
 	     return EXIT_SUCCESS;
 	else

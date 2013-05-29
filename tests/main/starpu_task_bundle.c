@@ -36,6 +36,7 @@ struct starpu_codelet codelet =
 {
 	.modes = {STARPU_RW},
 	.cpu_funcs = {func_cpu, NULL},
+	.cpu_funcs_name = {"func_cpu", NULL},
         .nbuffers = 1
 };
 
@@ -43,7 +44,12 @@ int main(int argc, char **argv)
 {
         int i, j, ret;
 
-	float data[NB_BUNDLE];
+	ret = starpu_initialize(NULL, &argc, &argv);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_initialize");
+
+	float *data;
+	starpu_malloc((void**)&data, sizeof(*data) * NB_BUNDLE);
 	float factors[NB_BUNDLE];
         starpu_data_handle_t handles[NB_BUNDLE];
 
@@ -56,10 +62,6 @@ int main(int argc, char **argv)
 		data[i] = i + 1;
 		factors[i] = NB_BUNDLE - i;
 	}
-
-	ret = starpu_init(NULL);
-	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	for (i = 0; i < NB_BUNDLE; i++)
 		starpu_variable_data_register(&handles[i], 0, (uintptr_t)&data[i], sizeof(float));
@@ -120,6 +122,8 @@ int main(int argc, char **argv)
                 starpu_data_release(handles[i]);
 		starpu_data_unregister(handles[i]);
 	}
+
+		starpu_free(data);
 
 	starpu_shutdown();
 
