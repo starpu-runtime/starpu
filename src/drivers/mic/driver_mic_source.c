@@ -21,6 +21,7 @@
 #include <starpu.h>
 #include <starpu_profiling.h>
 #include <core/sched_policy.h>
+#include <common/uthash.h>
 
 #include <drivers/driver_common/driver_common.h>
 #include <drivers/mp_common/source_common.h>
@@ -43,13 +44,10 @@ static COIENGINE handles[STARPU_MAXMICDEVS];
  */
 struct _starpu_mic_kernel
 {
+	UT_hash_handle hh;
 	char *name;
 	starpu_mic_kernel_t func[STARPU_MAXMICDEVS];
-};
-
-/* Hash table use to store _starpu_mic_kernel
- */
-static struct _starpu_htbl kernels_htbl;
+} *kernels;
 
 /* Mutex for concurrent access to the table.
  */
@@ -88,93 +86,101 @@ const struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node()
 
 const struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int memory_node)
 {
-	int nodeid = _starpu_memory_node_to_devid(memory_node);
+	int nodeid = _starpu_memory_node_get_devid(memory_node);
 	STARPU_ASSERT(nodeid >= 0 && nodeid < STARPU_MAXMICDEVS);
 
 	return mic_nodes[nodeid];
 }
 
 // Should be obsolete.
-/* static void _starpu_mic_src_init_context(int devid,
- * 					 struct starpu_conf *user_conf)
- * {
- * 	COIRESULT res;
- * 	char mic_sink_program_path[1024];
- *
- * 	char ***argv = _starpu_get_argv();
- * 	const char *suffixes[] = {"-mic", "_mic", NULL};
- *
- * 	char devid_env[32];
- * 	sprintf(devid_env, "DEVID=%d", devid);
- *
- * 	char nb_mic_env[32];
- * 	sprintf(nb_mic_env, "NB_MIC=%d", starpu_mic_worker_get_count());
- *
- * 	/\* Environment variables to send to the Sink, it informs it what kind
- * 	 * of node it is (architecture and type) as there is no way to discover
- * 	 * it itself *\/
- * 	const char *mic_sink_env[] = {"STARPU_SINK=STARPU_MIC", devid_env, nb_mic_env, NULL};
- *
- * 	/\* Let's get the helper program to run on the MIC device *\/
- * 	int mic_file_found = _starpu_src_common_locate_file(mic_sink_program_path,
- * 							getenv("STARPU_MIC_SINK_PROGRAM_NAME"),
- * 							getenv("STARPU_MIC_SINK_PROGRAM_PATH"),
- * 							(user_conf == NULL ? NULL : user_conf->mic_sink_program_path),
- * 							(argv ? (*argv)[0] : NULL),
- * 							suffixes);
- *
- * 	STARPU_ASSERT(mic_file_found == 0);
- *
- * 	/\* Let's get the handle which let us manage the remote MIC device *\/
- * 	res = COIEngineGetHandle(COI_ISA_MIC, devid, &handles[devid]);
- * 	if (STARPU_UNLIKELY(res != COI_SUCCESS))
- * 		STARPU_MIC_SRC_REPORT_COI_ERROR(res);
- *
- * 	/\* We launch the helper on the MIC device, which will wait for us
- * 	 * to give it work to do.
- * 	 * As we will communicate further with the device throught scif we
- * 	 * don't need to keep the process pointer *\/
- * 	res = COIProcessCreateFromFile(handles[devid], mic_sink_program_path, 0, NULL, 0,
- * 				       mic_sink_env, 1, NULL, 0, NULL,
- * 				       &process[devid]);
- * 	if (STARPU_UNLIKELY(res != COI_SUCCESS))
- * 		STARPU_MIC_SRC_REPORT_COI_ERROR(res);
- *
- * 	/\* Let's create the node structure, we'll communicate with the peer
- * 	 * through scif thanks to it *\/
- * 	mic_nodes[devid] = _starpu_mp_common_node_create(STARPU_MIC_SOURCE,
- * 							   devid);
- *
- *
- * 	// XXX: this is not replicated in `_starpu_init_mic_node'.
- * 	STARPU_PTHREAD_MUTEX_LOCK(&nb_mic_worker_init_mutex);
- * 	++nb_mic_worker_init;
- * 	STARPU_PTHREAD_MUTEX_UNLOCK(&nb_mic_worker_init_mutex);
- * } */
+#if 0
+static void _starpu_mic_src_init_context(int devid,
+					 struct starpu_conf *user_conf)
+{
+	COIRESULT res;
+	char mic_sink_program_path[1024];
 
-/* static void _starpu_mic_src_free_kernel(void *kernel)
- * {
- * 	struct _starpu_mic_kernel *k = kernel;
- *
- * 	free(k->name);
- * 	free(kernel);
- * } */
+	char ***argv = _starpu_get_argv();
+	const char *suffixes[] = {"-mic", "_mic", NULL};
 
-/* static void _starpu_mic_src_deinit_context(int devid)
- * {
- * 	_starpu_mp_common_send_command(mic_nodes[devid], STARPU_EXIT, NULL, 0);
- *
- * 	COIProcessDestroy(process[devid], -1, 0, NULL, NULL);
- *
- * 	_starpu_mp_common_node_destroy(mic_nodes[devid]);
- *
- * 	STARPU_PTHREAD_MUTEX_LOCK(&nb_mic_worker_init_mutex);
- * 	unsigned int tmp = --nb_mic_worker_init;
- * 	STARPU_PTHREAD_MUTEX_UNLOCK(&nb_mic_worker_init_mutex);
- *
- * 	if (tmp == 0)
- * 		_starpu_htbl_destroy(&kernels_htbl, _starpu_mic_src_free_kernel);
- * } */
+	char devid_env[32];
+	sprintf(devid_env, "DEVID=%d", devid);
+
+	char nb_mic_env[32];
+	sprintf(nb_mic_env, "NB_MIC=%d", starpu_mic_worker_get_count());
+
+	/* Environment variables to send to the Sink, it informs it what kind
+	 * of node it is (architecture and type) as there is no way to discover
+	 * it itself */
+	const char *mic_sink_env[] = {"STARPU_SINK=STARPU_MIC", devid_env, nb_mic_env, NULL};
+
+	/* Let's get the helper program to run on the MIC device */
+	int mic_file_found = _starpu_src_common_locate_file(mic_sink_program_path,
+							getenv("STARPU_MIC_SINK_PROGRAM_NAME"),
+							getenv("STARPU_MIC_SINK_PROGRAM_PATH"),
+							(user_conf == NULL ? NULL : user_conf->mic_sink_program_path),
+							(argv ? (*argv)[0] : NULL),
+							suffixes);
+
+	STARPU_ASSERT(mic_file_found == 0);
+
+	/* Let's get the handle which let us manage the remote MIC device */
+	res = COIEngineGetHandle(COI_ISA_MIC, devid, &handles[devid]);
+	if (STARPU_UNLIKELY(res != COI_SUCCESS))
+		STARPU_MIC_SRC_REPORT_COI_ERROR(res);
+
+	/* We launch the helper on the MIC device, which will wait for us
+	 * to give it work to do.
+	 * As we will communicate further with the device throught scif we
+	 * don't need to keep the process pointer */
+	res = COIProcessCreateFromFile(handles[devid], mic_sink_program_path, 0, NULL, 0,
+				       mic_sink_env, 1, NULL, 0, NULL,
+				       &process[devid]);
+	if (STARPU_UNLIKELY(res != COI_SUCCESS))
+		STARPU_MIC_SRC_REPORT_COI_ERROR(res);
+
+	/* Let's create the node structure, we'll communicate with the peer
+	 * through scif thanks to it */
+	mic_nodes[devid] = _starpu_mp_common_node_create(STARPU_MIC_SOURCE,
+							   devid);
+
+
+	// XXX: this is not replicated in `_starpu_init_mic_node'.
+	STARPU_PTHREAD_MUTEX_LOCK(&nb_mic_worker_init_mutex);
+	++nb_mic_worker_init;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&nb_mic_worker_init_mutex);
+}
+
+static void _starpu_mic_src_free_kernel(void *kernel)
+{
+	struct _starpu_mic_kernel *k = kernel;
+
+	free(k->name);
+	free(kernel);
+}
+
+static void _starpu_mic_src_deinit_context(int devid)
+{
+	_starpu_mp_common_send_command(mic_nodes[devid], STARPU_EXIT, NULL, 0);
+
+	COIProcessDestroy(process[devid], -1, 0, NULL, NULL);
+
+	_starpu_mp_common_node_destroy(mic_nodes[devid]);
+
+	STARPU_PTHREAD_MUTEX_LOCK(&nb_mic_worker_init_mutex);
+	unsigned int tmp = --nb_mic_worker_init;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&nb_mic_worker_init_mutex);
+
+	if (tmp == 0) {
+		struct _starpu_mic_kernel *kernel, *tmp;
+		HASH_ITER(hh, kernels, kernel, tmp)
+		{
+			HASH_DEL(kernels, kernel);
+			free(kernel);
+		}
+	}
+}
+#endif
 
 static int
 _starpu_mic_src_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker)
@@ -271,7 +277,9 @@ int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char
 	unsigned int func_name_size = (strlen(func_name) + 1) * sizeof(char);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&htbl_mutex);
-	struct _starpu_mic_kernel *kernel = _starpu_htbl_search(&kernels_htbl, func_name, func_name_size);
+	struct _starpu_mic_kernel *kernel;
+	
+	HASH_FIND_STR(kernels, func_name, kernel);
 
 	if (kernel != NULL)
 	{
@@ -296,16 +304,9 @@ int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char
 		return -ENOMEM;
 	}
 
-	int ret = _starpu_htbl_insert(&kernels_htbl, func_name, func_name_size, kernel);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
-	if (ret != 0)
-	{
-		free(kernel->name);
-		free(kernel);
-		return -ENOMEM;
-	}
-
 	memcpy(kernel->name, func_name, func_name_size);
+
+	HASH_ADD_STR(kernels, name, kernel);
 
 	unsigned int nb_mic_devices = _starpu_mic_src_get_device_count();
 	unsigned int i;
@@ -313,6 +314,8 @@ int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char
 		kernel->func[i] = NULL;
 
 	*symbol = kernel;
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
 
 	return 0;
 }
@@ -495,7 +498,7 @@ int _starpu_mic_allocate_memory(void **addr, size_t size, unsigned memory_node)
 	 * transfert with scif is not possible when the MIC
 	 * doesn't have enought free memory.
 	 * In this cas we can't tell any things to the host. */
-	//int devid = _starpu_memory_node_to_devid(memory_node);
+	//int devid = _starpu_memory_node_get_devid(memory_node);
 	//if (_starpu_mic_get_free_mem_size(devid) < size * 1.25)
 	//	return 1;
 
@@ -640,13 +643,13 @@ void *_starpu_mic_src_worker(void *arg)
 
 	baseworker->status = STATUS_UNKNOWN;
 
-	_STARPU_TRACE_WORKER_INIT_END
+	_STARPU_TRACE_WORKER_INIT_END;
 
 	/* tell the main thread that this one is ready */
-	_STARPU_STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
 	args->set_is_initialized = 1;
-	_STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
-	_STARPU_STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
 
 	while (_starpu_machine_is_running())
@@ -660,7 +663,7 @@ void *_starpu_mic_src_worker(void *arg)
 		_starpu_datawizard_progress(memnode, 1);
 		_STARPU_TRACE_END_PROGRESS(memnode);
 
-		_STARPU_STARPU_PTHREAD_MUTEX_LOCK(baseworker->sched_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&baseworker->sched_mutex);
 
 		/* We pop tasklists of each worker in the set and process the
 		 * first non-empty list. */
@@ -685,21 +688,40 @@ void *_starpu_mic_src_worker(void *arg)
 		/* At this point, there is really nothing to do for the thread
 		 * so we can block.
 		 * XXX: blocking drivers is in fact broken. DO NOT USE IT ! */
+		if (_starpu_worker_get_status(baseworkerid) != STATUS_SLEEPING)
+		{
+			_STARPU_TRACE_WORKER_SLEEP_START;
+			_starpu_worker_restart_sleeping(baseworkerid);
+			_starpu_worker_set_status(baseworkerid, STATUS_SLEEPING);
+		}
+
 		if (_starpu_worker_can_block(memnode))
-		    _starpu_block_worker(baseworkerid, baseworker->sched_cond, baseworker->sched_mutex);
+			STARPU_PTHREAD_COND_WAIT(&baseworker->sched_cond, &baseworker->sched_mutex);
+		else
+		{
+			if (_starpu_machine_is_running())
+				STARPU_UYIELD();
+		}
+
+		if (_starpu_worker_get_status(baseworkerid) == STATUS_SLEEPING)
+		{
+			_STARPU_TRACE_WORKER_SLEEP_END;
+			_starpu_worker_stop_sleeping(baseworkerid);
+			_starpu_worker_set_status(baseworkerid, STATUS_UNKNOWN);
+		}
 
 	restart_loop:
-		_STARPU_STARPU_PTHREAD_MUTEX_UNLOCK(baseworker->sched_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&baseworker->sched_mutex);
 		continue;
 
 	task_found:
 		/* If the MIC core associated to `micworkerid' is already
 		 * processing a job, we push back this one in the worker task
 		 * list. */
-		_STARPU_STARPU_PTHREAD_MUTEX_UNLOCK(baseworker->sched_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&baseworker->sched_mutex);
 
 		if (args->workers[micworkerid].current_task) {
-		    _starpu_push_task_to_workers(j);
+		    _starpu_push_task_to_workers(task);
 		    continue;
 		}
 
@@ -710,7 +732,7 @@ void *_starpu_mic_src_worker(void *arg)
 		if (!_STARPU_MIC_MAY_PERFORM(j))
 		{
 			/* this isn't a mic task */
-			_starpu_push_task_to_workers(j);
+			_starpu_push_task_to_workers(task);
 			continue;
 		}
 
@@ -733,7 +755,7 @@ void *_starpu_mic_src_worker(void *arg)
 		}
 	}
 
-	_STARPU_TRACE_WORKER_DEINIT_START
+	_STARPU_TRACE_WORKER_DEINIT_START;
 
 	_starpu_handle_all_pending_node_data_requests(memnode);
 

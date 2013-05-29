@@ -305,8 +305,11 @@ basic_examples_vector_scal_SOURCES =		\
 	basic_examples/vector_scal_cpu.c
 
 if STARPU_HAVE_ICC
+if STARPU_CROSS_COMPILING
+else
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cpu_icc.icc
+endif
 endif
 
 if STARPU_USE_CUDA

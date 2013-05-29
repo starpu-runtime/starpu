@@ -192,6 +192,11 @@ struct _starpu_machine_config
 	unsigned submitting;
 };
 
+/* Three functions to manage argv, argc */
+void _starpu_set_argc_argv(int *argc, char ***argv);
+int *_starpu_get_argc();
+char ***_starpu_get_argv();
+
 /* Fill conf with environment variables */
 void _starpu_conf_check_environment(struct starpu_conf *conf);
 

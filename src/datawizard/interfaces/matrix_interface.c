@@ -89,6 +89,17 @@ static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
 	.opencl_to_opencl_async = copy_opencl_to_opencl_async,
 #endif
+#ifdef STARPU_USE_SCC
+	.scc_src_to_sink = copy_scc_src_to_sink,
+	.scc_sink_to_src = copy_scc_sink_to_src,
+	.scc_sink_to_sink = copy_scc_sink_to_sink,
+#endif
+#ifdef STARPU_USE_MIC
+	.ram_to_mic = copy_ram_to_mic,
+	.mic_to_ram = copy_mic_to_ram,
+	.ram_to_mic_async = copy_ram_to_mic_async,
+	.mic_to_ram_async = copy_mic_to_ram_async,
+#endif
 };
 
 static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);

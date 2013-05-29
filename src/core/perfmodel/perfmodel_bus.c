@@ -638,7 +638,7 @@ static void benchmark_all_gpu_devices(void)
 	_STARPU_DISP("can not measure bus in simgrid mode, please run starpu_calibrate_bus in non-simgrid mode to make sure the bus performance model was calibrated\n");
 	STARPU_ABORT();
 #else /* !SIMGRID */
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
 	unsigned i;
 #endif
 #ifdef HAVE_CUDA_MEMCPY_PEER

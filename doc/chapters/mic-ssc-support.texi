@@ -1,0 +1,32 @@
+@c -*-texinfo-*-
+
+@c This file is part of the StarPU Handbook.
+@c Copyright (C) 2013  Universit@'e de Bordeaux 1
+@c See the file starpu.texi for copying conditions.
+
+@section Compilation
+
+SCC support just needs the presence of the RCCE library.
+
+MIC support actually needs two compilations of StarPU, one for the host and one for
+the device. The @code{super-configure} script can be used to achieve this: it basically
+calls @code{configure} from @code{build_mic} and @code{build_host}, then @code{make} and
+@code{make install}.
+
+@c TODO: move to configuration section ?
+
+It can be parameterized with the following environment variables:
+
+@table @asis
+@item @code{MIC_HOST}
+Defines the value of the @code{--host} parameter passed to @code{configure} for the
+cross-compilation. The current default is @code{x86_64-k1om-linux}.
+
+@item @code{MIC_CC_PATH}
+Defines the path to the MIC cross-compiler. The current default is @code{/usr/linux-k1om-4.7/bin/}.
+
+@item @code{COI_DIR}
+Defines the path to the COI library. The current default is @code{/opt/intel/mic/coi}
+@end table
+
+@section

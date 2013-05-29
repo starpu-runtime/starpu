@@ -48,7 +48,7 @@
 
 static unsigned topology_is_initialized = 0;
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID)
 
 struct handle_entry
 {
@@ -70,7 +70,7 @@ static unsigned may_bind_automatically = 0;
  * Discover the topology of the machine
  */
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC) || defined(STARPU_USE_SCC)  || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SCC)  || defined(STARPU_SIMGRID)
 static void
 _starpu_initialize_workers_deviceid (int *explicit_workers_gpuid,
 				  int *current, int *workers_gpuid,
@@ -339,7 +339,7 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 {
     /* Initialize the MIC node of index MIC_IDX. */
 
-    struct starpu_conf *user_conf = config->user_conf;
+    struct starpu_conf *user_conf = config->conf;
 
     char ***argv = _starpu_get_argv();
     const char *suffixes[] = {"-mic", "_mic", NULL};
@@ -363,7 +363,7 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 	_starpu_src_common_locate_file (mic_sink_program_path,
 					getenv("STARPU_MIC_SINK_PROGRAM_NAME"),
 					getenv("STARPU_MIC_SINK_PROGRAM_PATH"),
-					(user_conf==NULL ? NULL : user_conf->mic_sink_program_path),
+					user_conf->mic_sink_program_path,
 					(argv ? (*argv)[0] : NULL),
 					suffixes);
 
@@ -611,7 +611,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	}
 	else
 	{
-	    if (nmiccores > topology->nhwmiccores[mic_idx])
+	    if ((unsigned) nmiccores > topology->nhwmiccores[mic_idx])
 	    {
 		/* The user requires more MIC devices than there is available */
 		fprintf(stderr,
@@ -670,7 +670,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 
     topology->nmicdevices = 0;
     unsigned i;
-    for (i = 0; i < STARPU_MIN (nhwmicdevices, reqmicdevices); i++)
+    for (i = 0; i < STARPU_MIN (nhwmicdevices, (unsigned) reqmicdevices); i++)
 	if (0 == _starpu_init_mic_node (config, i, &handles[i], &process[i]))
 	    topology->nmicdevices++;
 
@@ -900,7 +900,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	 * ones of the mp nodes. */
 #ifdef STARPU_USE_MIC
 	if (! no_mp_config)
-	    _starpu_init_mp_config (config, user_conf);
+	    _starpu_init_mp_config (config, config->conf);
 #endif
 
 /* we put the CPU section after the accelerator : in case there was an
@@ -1107,7 +1107,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	if (! no_mp_config) {
 	    unsigned i = 0;
 	    for (i = 0; i < config->topology.nmicdevices; i++) {
-		mic_memory_nodes[i] = _starpu_register_memory_node (STARPU_MIC_RAM, i);
+		mic_memory_nodes[i] = _starpu_memory_node_register (STARPU_MIC_RAM, i);
 		_starpu_register_bus(0, mic_memory_nodes[i]);
 		_starpu_register_bus(mic_memory_nodes[i], 0);
 	    }
@@ -1206,8 +1206,8 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				//}
 				is_a_set_of_accelerators = 1;
 				memory_node = mic_memory_nodes[workerarg->mp_nodeid];
-				_starpu_memory_node_worker_add(memory_node);
-				/* memory_node = _starpu_register_memory_node(STARPU_MIC_RAM, workerarg->devid);*/
+				_starpu_memory_node_add_nworkers(memory_node);
+				/* memory_node = _starpu_memory_node_register(STARPU_MIC_RAM, workerarg->devid);*/
 
 				/* _starpu_register_bus(0, memory_node);
 				 * _starpu_register_bus(memory_node, 0); */
@@ -1223,7 +1223,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 				is_a_set_of_accelerators = 0;
 				memory_node = ram_memory_node;
-				_starpu_memory_node_worker_add(memory_node);
+				_starpu_memory_add_nworkers(memory_node);
 			}
 				break;
 #endif

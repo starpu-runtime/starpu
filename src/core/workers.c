@@ -573,7 +573,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				if (mic_initiated[mp_nodeid])
 					goto worker_set_initialized;
 
-				mic_worker_set[mp_nodeid].nworkers = config->topology.nmiccores[mp_nodeid];
+				mic_worker_set[mp_nodeid].nworkers = pconfig->topology.nmiccores[mp_nodeid];
 
 				/* We assume all MIC workers of a given MIC
 				 * device are contiguous so that we can
@@ -581,18 +581,19 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				mic_worker_set[mp_nodeid].workers = workerarg;
 				mic_worker_set[mp_nodeid].set_is_initialized = 0;
 
-				STARPU_PTHREAD_CREATE(
+				STARPU_PTHREAD_CREATE_ON(
 						workerarg->name,
 						&mic_worker_set[mp_nodeid].worker_thread,
 						NULL,
 						_starpu_mic_src_worker,
-						&mic_worker_set[mp_nodeid]);
+						&mic_worker_set[mp_nodeid],
+						worker+1);
 
-				_STARPU_PTHREAD_MUTEX_LOCK(&mic_worker_set[mp_nodeid].mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&mic_worker_set[mp_nodeid].mutex);
 				while (!mic_worker_set[mp_nodeid].set_is_initialized)
-					_STARPU_PTHREAD_COND_WAIT(&mic_worker_set[mp_nodeid].ready_cond,
+					STARPU_PTHREAD_COND_WAIT(&mic_worker_set[mp_nodeid].ready_cond,
 								  &mic_worker_set[mp_nodeid].mutex);
-				_STARPU_PTHREAD_MUTEX_UNLOCK(&mic_worker_set[mp_nodeid].mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&mic_worker_set[mp_nodeid].mutex);
 
 				mic_initiated[mp_nodeid] = 1;
 
@@ -614,12 +615,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_SCC_WORKER:
 				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
-				STARPU_PTHREAD_CREATE(
+				STARPU_PTHREAD_CREATE_ON(
 						workerarg->name
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_scc_src_worker,
-						workerarg);
+						workerarg,
+						worker+1);
 
 #ifdef STARPU_USE_FXT
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);

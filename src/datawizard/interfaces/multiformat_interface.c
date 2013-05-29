@@ -199,8 +199,6 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 	_starpu_codelet_check_deprecated_fields(format_ops->cuda_to_cpu_cl);
 	_starpu_codelet_check_deprecated_fields(format_ops->cpu_to_mic_cl);
 	_starpu_codelet_check_deprecated_fields(format_ops->mic_to_cpu_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->cpu_to_scc_cl);
-	_starpu_codelet_check_deprecated_fields(format_ops->scc_to_cpu_cl);
 
 	struct starpu_multiformat_interface multiformat =
 	{
@@ -236,9 +234,6 @@ static int multiformat_compare(void *data_interface_a, void *data_interface_b)
 #endif
 #ifdef STARPU_USE_MIC
 		    && (multiformat_a->ops->mic_elemsize == multiformat_b->ops->mic_elemsize)
-#endif
-#ifdef STARPU_USE_SCC
-		    && (multiformat_a->ops->scc_elemsize == multiformat_b->ops->scc_elemsize)
 #endif
 		);
 }

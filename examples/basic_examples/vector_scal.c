@@ -56,12 +56,12 @@ static struct starpu_codelet cl =
 	/* CPU implementation of the codelet */
 	.cpu_funcs = {
 		scal_cpu_func
-#ifdef STARPU_HAVE_ICC
+#if defined(STARPU_HAVE_ICC) && !defined(__KNC__) && !defined(__KNF__)
 		, scal_cpu_func_icc
 #endif
 #ifdef __SSE__
 		, scal_sse_func
-#ifdef STARPU_HAVE_ICC
+#if defined(STARPU_HAVE_ICC) && !defined(__KNC__) && !defined(__KNF__)
 		, scal_sse_func_icc
 #endif
 #endif
@@ -69,12 +69,12 @@ static struct starpu_codelet cl =
 	},
 	.cpu_funcs_name = {
 		"scal_cpu_func",
-#ifdef STARPU_HAVE_ICC
+#if defined(STARPU_HAVE_ICC) && !defined(__KNC__) && !defined(__KNF__)
 		"scal_cpu_func_icc",
 #endif
 #ifdef __SSE__
 		"scal_sse_func",
-#ifdef STARPU_HAVE_ICC
+#if defined(STARPU_HAVE_ICC) && !defined(__KNC__) && !defined(__KNF__)
 		"scal_sse_func_icc"
 #endif
 #endif

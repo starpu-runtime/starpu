@@ -603,7 +603,10 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		 * XXX : This is quite hacky, could we submit a task instead ?
 		 */
 		if (_starpu_data_is_multiformat_handle(handle) &&
-			starpu_node_get_kind(handle->mf_node) != STARPU_CPU_RAM)
+			(  starpu_node_get_kind(handle->mf_node) != STARPU_CPU_RAM
+			&& starpu_node_get_kind(handle->mf_node) != STARPU_SCC_RAM
+			&& starpu_node_get_kind(handle->mf_node) != STARPU_SCC_SHM
+			 ))
 		{
 			_STARPU_DEBUG("Conversion needed\n");
 			void *buffers[1];
@@ -634,10 +637,16 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 #endif
 #ifdef STARPU_USE_MIC
 				case STARPU_MIC_RAM:
+				{
+					struct starpu_multiformat_data_interface_ops *mf_ops;
+					mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 					cl = mf_ops->mic_to_cpu_cl;
 					break;
+				}
 #endif
 				case STARPU_CPU_RAM:      /* Impossible ! */
+				case STARPU_SCC_RAM:      /* Impossible ! */
+				case STARPU_SCC_SHM:      /* Impossible ! */
 				default:
 					STARPU_ABORT();
 			}

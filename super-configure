@@ -1,8 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
 ROOT_DIR=$PWD
-MIC_HOST=x86_64-k1om-linux
-MIC_CC_PATH=/usr/linux-k1om-4.7/bin/
+[ -n "$MIC_HOST" ] || MIC_HOST=x86_64-k1om-linux
+[ -n "$MIC_CC_PATH" ] || MIC_CC_PATH=/usr/linux-k1om-4.7/bin/
+[ -n "$COI_DIR" ] || COI_DIR=/opt/intel/mic/coi
 DEFAULT_PREFIX=/usr/local
 
 export PATH=${MIC_CC_PATH}${PATH:+:${PATH}}
@@ -16,13 +17,13 @@ do
 
 	# We call the configure script from a build directory further in the
 	# arborescence
-	command="${ROOT_DIR}/configure --enable-mic --with-coi-dir=/opt/intel/mic/coi"
+	command="${ROOT_DIR}/configure --enable-mic --with-coi-dir=$COI_DIR"
 	prefix_found=no
 
 	if test x$arch = xmic ; then
-		command="$command --without-hwloc --with-coi-lib-dir=/opt/intel/mic/coi/device-linux-release/lib --host=$MIC_HOST"
+		command="$command --without-hwloc --with-coi-lib-dir=$COI_DIR/device-linux-release/lib --host=$MIC_HOST"
 	else
-		command="$command --with-coi-lib-dir=/opt/intel/mic/coi/host-linux-release/lib"
+		command="$command --with-coi-lib-dir=$COI_DIR/host-linux-release/lib"
 	fi
 
 	for arg in $*
@@ -68,7 +69,7 @@ do
 
 done
 
-if [ ! -f "${prefix}/mic/lib/pkgconfig/starpu-1.0-mic.pc" ]
+if [ ! -f "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc" ]
 then
-	ln -s "${prefix}/mic/lib/pkgconfig/starpu-1.0.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.0-mic.pc"
+	ln -s "${prefix}/mic/lib/pkgconfig/starpu-1.2.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc"
 fi

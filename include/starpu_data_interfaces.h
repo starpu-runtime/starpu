@@ -439,9 +439,6 @@ struct starpu_multiformat_data_interface_ops
 	size_t mic_elemsize;
 	struct starpu_codelet *cpu_to_mic_cl;
 	struct starpu_codelet *mic_to_cpu_cl;
-	size_t scc_elemsize;
-	struct starpu_codelet *cpu_to_scc_cl;
-	struct starpu_codelet *scc_to_cpu_cl;
 };
 
 struct starpu_multiformat_interface

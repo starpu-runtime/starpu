@@ -334,13 +334,13 @@ void *_starpu_scc_src_worker(void *arg)
 
 	args->status = STATUS_UNKNOWN;
 
-	_STARPU_TRACE_WORKER_INIT_END
+	_STARPU_TRACE_WORKER_INIT_END;
 
 	/* tell the main thread that this one is ready */
-	_STARPU_STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
 	args->worker_is_initialized = 1;
-	_STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
-	_STARPU_STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
+	STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
 	struct _starpu_job * j;
 	struct starpu_task *task;
@@ -362,7 +362,7 @@ void *_starpu_scc_src_worker(void *arg)
 		if (!_STARPU_SCC_MAY_PERFORM(j))
 		{
 			/* this isn't a SCC task */
-			_starpu_push_task_to_workers(j);
+			_starpu_push_task_to_workers(task);
 			continue;
 		}
 
@@ -380,7 +380,7 @@ void *_starpu_scc_src_worker(void *arg)
 			{
 				case -EAGAIN:
 					_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
-					_starpu_push_task(j);
+					_starpu_push_task_to_workers(task);
 					STARPU_ABORT();
 					continue;
 				default:
@@ -391,7 +391,7 @@ void *_starpu_scc_src_worker(void *arg)
 		_starpu_handle_job_termination(j);
 	}
 
-	_STARPU_TRACE_WORKER_DEINIT_START
+	_STARPU_TRACE_WORKER_DEINIT_START;
 
 	_starpu_handle_all_pending_node_data_requests(memnode);
 
