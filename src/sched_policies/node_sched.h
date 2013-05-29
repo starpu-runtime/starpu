@@ -116,7 +116,7 @@ struct _starpu_sched_node * _starpu_sched_node_random_create(void);
 
 struct _starpu_sched_node * _starpu_sched_node_eager_create(void);
 
-struct _starpu_sched_node * _starpu_sched_node_heft_create(double alpha, double beta, double gamma, double idle_power);
+struct _starpu_sched_node * _starpu_sched_node_heft_create();
 
 
 /* compute predicted_end by taking in account the case of the predicted transfer and the predicted_end overlap

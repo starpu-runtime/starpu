@@ -11,7 +11,6 @@ struct _starpu_dmda_data
 	double beta;
 	double gamma;
 	double idle_power;
-	
 	struct _starpu_sched_node * no_model_node;
 };
 
@@ -89,9 +88,9 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	{
 		return -ENODEV;
 	}
-	
+
 	struct _starpu_dmda_data * data = node->data;
-	
+
 	if(!calibrating && !perf_model)
 	{
 		int ret = data->no_model_node->push_task(data->no_model_node, task);
@@ -158,7 +157,6 @@ static void remove_child(struct _starpu_sched_node *node,
 			 unsigned sched_ctx_id)
 
 {
-
 	_starpu_sched_node_remove_child(node, child, sched_ctx_id);
 	struct _starpu_dmda_data * data = node->data;
 	data->no_model_node->remove_child(data->no_model_node, child, sched_ctx_id);
@@ -166,14 +164,47 @@ static void remove_child(struct _starpu_sched_node *node,
 
 
 
+#define _STARPU_SCHED_ALPHA_DEFAULT 1.0
+#define _STARPU_SCHED_BETA_DEFAULT 1.0
+#define _STARPU_SCHED_GAMMA_DEFAULT 1000.0
+#ifdef STARPU_USE_TOP
+static double alpha = _STARPU_SCHED_ALPHA_DEFAULT;
+static double beta = _STARPU_SCHED_BETA_DEFAULT;
+static double _gamma = _STARPU_SCHED_GAMMA_DEFAULT;
+static const float alpha_minimum=0;
+static const float alpha_maximum=10.0;
+static const float beta_minimum=0;
+static const float beta_maximum=10.0;
+static const float gamma_minimum=0;
+static const float gamma_maximum=10000.0;
+static const float idle_power_minimum=0;
+static const float idle_power_maximum=10000.0;
+#endif /* !STARPU_USE_TOP */
 
+static double idle_power = 0.0;
+
+#ifdef STARPU_USE_TOP
+static void param_modified(struct starpu_top_param* d)
+{
+#ifdef STARPU_DEVEL
+#warning FIXME: get sched ctx to get alpha/beta/gamma/idle values
+#endif
+	/* Just to show parameter modification. */
+	fprintf(stderr,
+		"%s has been modified : "
+		"alpha=%f|beta=%f|gamma=%f|idle_power=%f !\n",
+		d->name, alpha,beta,_gamma, idle_power);
+}
+#endif /* !STARPU_USE_TOP */
 
 static void initialize_heft_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
 	STARPU_PTHREAD_RWLOCK_INIT(&data->lock,NULL);
-	data->root = _starpu_sched_node_heft_create(1.0,1.0,1.0,1.0);
+
+
+	data->root = _starpu_sched_node_heft_create();
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
 
@@ -233,8 +264,40 @@ static void destroy_heft_node(struct _starpu_sched_node * node)
 	free(data);
 }
 
-struct _starpu_sched_node * _starpu_sched_node_heft_create(double alpha, double beta, double gamma, double idle_power)
+struct _starpu_sched_node * _starpu_sched_node_heft_create()
 {
+	double alpha = _STARPU_SCHED_ALPHA_DEFAULT;
+	double beta = _STARPU_SCHED_BETA_DEFAULT;
+	double gamma = _STARPU_SCHED_GAMMA_DEFAULT;
+	double idle_power = 0.0;
+
+	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
+	if (strval_alpha)
+		alpha = atof(strval_alpha);
+
+	const char *strval_beta = getenv("STARPU_SCHED_BETA");
+	if (strval_beta)
+		beta = atof(strval_beta);
+
+	const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
+	if (strval_gamma)
+		gamma = atof(strval_gamma);
+
+	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
+	if (strval_idle_power)
+		idle_power = atof(strval_idle_power);
+
+#ifdef STARPU_USE_TOP
+	starpu_top_register_parameter_float("DMDA_ALPHA", &alpha,
+					    alpha_minimum, alpha_maximum, param_modified);
+	starpu_top_register_parameter_float("DMDA_BETA", &beta,
+					    beta_minimum, beta_maximum, param_modified);
+	starpu_top_register_parameter_float("DMDA_GAMMA", &_gamma,
+					    gamma_minimum, gamma_maximum, param_modified);
+	starpu_top_register_parameter_float("DMDA_IDLE_POWER", &idle_power,
+					    idle_power_minimum, idle_power_maximum, param_modified);
+#endif /* !STARPU_USE_TOP */
+
 	struct _starpu_sched_node * node = _starpu_sched_node_create();
 	struct _starpu_dmda_data * data = malloc(sizeof(*data));
 
