@@ -33,7 +33,11 @@ Defines the path to the COI library. The current default is @code{/opt/intel/mic
 
 SCC programs are started through RCCE
 
-MIC programs are started from the host. The @code{STARPU_MIC_SINK_PROGRAM_NAME}
-environment variable has to be set to the path to the MIC-built program, or
-@code{STARPU_MIC_SINK_PROGRAM_PATH} can be set to a directory that contains the
-program.
+MIC programs are started from the host. StarPU automatically
+starts the same program on MIC devices. It however needs to get
+the MIC-cross-built binary. It will look for the file given by the
+@code{STARPU_MIC_SINK_PROGRAM_NAME} environment variable or in the directory
+given by the @code{STARPU_MIC_SINK_PROGRAM_PATH} environment variable, or in
+the @code{mic_sink_program_path} field of the @code{starpu_config} structure.
+It will also look in the current directory for the same binary name plus a
+@code{-mic} or @code{_mic} suffix.
