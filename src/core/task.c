@@ -341,6 +341,21 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		cl->where |= STARPU_OPENCL;
 	}
+
+	if (cl->mic_funcs[0] && is_where_unset)
+	{
+		cl->where |= STARPU_MIC;
+	}
+
+	if (cl->scc_funcs[0] && is_where_unset)
+	{
+		cl->where |= STARPU_SCC;
+	}
+
+	if (cl->cpu_funcs_name[0] && is_where_unset)
+	{
+		cl->where |= STARPU_MIC|STARPU_SCC;
+	}
 }
 
 void _starpu_task_check_deprecated_fields(struct starpu_task *task)
