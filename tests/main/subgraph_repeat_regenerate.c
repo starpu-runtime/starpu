@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -49,17 +49,22 @@ static unsigned *check_cnt;
 static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
-void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+extern void cuda_host_increment(void *descr[], void *_args);
+
+void cpu_increment(void *descr[], void *arg __attribute__ ((unused)))
 {
-	unsigned *tmp = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	(*tmp)++;
+	unsigned *var = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	(*var)++;
 }
 
 static struct starpu_codelet dummy_codelet =
 {
-	.cpu_funcs = {dummy_func, NULL},
-	.cuda_funcs = {dummy_func, NULL},
-	.opencl_funcs = {dummy_func, NULL},
+	.cpu_funcs = {cpu_increment, NULL},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {cuda_host_increment, NULL},
+#endif
+	// TODO
+	//.opencl_funcs = {dummy_func, NULL},
 	.cpu_funcs_name = {"dummy_func", NULL},
 	.model = NULL,
 	.modes = { STARPU_RW },
@@ -159,7 +164,6 @@ int main(int argc, char **argv)
 	starpu_data_acquire(check_data, STARPU_R);
 	starpu_data_release(check_data);
 
-	printf("%d\n", *check_cnt);
 	STARPU_ASSERT(*check_cnt == (4*loop_cnt));
 
 	starpu_free(check_cnt);

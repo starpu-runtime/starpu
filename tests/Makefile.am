@@ -122,6 +122,7 @@ noinst_PROGRAMS =				\
 	main/regenerate				\
 	main/wait_all_regenerable_tasks		\
 	main/subgraph_repeat			\
+	main/subgraph_repeat_tag			\
 	main/subgraph_repeat_regenerate		\
 	main/subgraph_repeat_regenerate_tag	\
 	main/empty_task				\
@@ -372,6 +373,34 @@ datawizard_wt_broadcast_SOURCES =		\
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 main_deprecated_buffer_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
+
+main_subgraph_repeat_SOURCES =		\
+	main/subgraph_repeat.c
+if STARPU_USE_CUDA
+main_subgraph_repeat_SOURCES +=		\
+	main/increment.cu
+endif
+
+main_subgraph_repeat_tag_SOURCES =		\
+	main/subgraph_repeat_tag.c
+if STARPU_USE_CUDA
+main_subgraph_repeat_tag_SOURCES +=		\
+	main/increment.cu
+endif
+
+main_subgraph_repeat_regenerate_SOURCES =		\
+	main/subgraph_repeat.c
+if STARPU_USE_CUDA
+main_subgraph_repeat_regenerate_SOURCES +=		\
+	main/increment.cu
+endif
+
+main_subgraph_repeat_regenerate_tag_SOURCES =		\
+	main/subgraph_repeat_regenerate_tag.c
+if STARPU_USE_CUDA
+main_subgraph_repeat_regenerate_tag_SOURCES +=		\
+	main/increment.cu
+endif
 
 ###################
 # Block interface #
