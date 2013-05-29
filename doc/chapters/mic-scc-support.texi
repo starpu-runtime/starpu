@@ -34,4 +34,6 @@ Defines the path to the COI library. The current default is @code{/opt/intel/mic
 SCC programs are started through RCCE
 
 MIC programs are started from the host. The @code{STARPU_MIC_SINK_PROGRAM_NAME}
-environment variable has to be set to the path to the MIC-built program.
+environment variable has to be set to the path to the MIC-built program, or
+@code{STARPU_MIC_SINK_PROGRAM_PATH} can be set to a directory that contains the
+program.
