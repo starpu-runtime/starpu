@@ -14,6 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifndef __STARPU_DISK_H__
+#define __STARPU_DISK_H__
+
 typedef void * (*disk_function)(void *, unsigned);
 
 /* list of functions to use on disk */
@@ -27,6 +30,7 @@ struct disk_ops {
 	/* readv, writev, read2d, write2d, etc. */
 	 void *  (*plug)   (void *parameter);
 	 void    (*unplug) (void *base);
+	void    (*bandwith) (void *base, unsigned node);
 };
 
 
@@ -39,4 +43,4 @@ starpu_disk_register(struct disk_ops * func, void *parameter);
 void
 starpu_disk_free(unsigned node);
 
-
+#endif /* __STARPU_DISK_H__ */

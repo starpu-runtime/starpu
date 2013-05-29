@@ -1837,3 +1837,6 @@ double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_
 
 	return latency + (size/bandwidth)*2*(topology->ncudagpus+topology->nopenclgpus);
 }
+
+
+/* calculate bandwith and latency */
