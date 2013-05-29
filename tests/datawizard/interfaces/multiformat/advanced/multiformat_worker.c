@@ -46,7 +46,7 @@ static struct starpu_codelet cl =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = { opencl_func, NULL },
 #endif
-#ifdef STARPU_MIC
+#ifdef STARPU_USE_MIC
 	.mic_funcs = {mic_func, NULL},
 #endif
 	.nbuffers = 1,
