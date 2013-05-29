@@ -29,4 +29,9 @@ Defines the path to the MIC cross-compiler. The current default is @code{/usr/li
 Defines the path to the COI library. The current default is @code{/opt/intel/mic/coi}
 @end table
 
-@section
+@section Launching programs
+
+SCC programs are started through RCCE
+
+MIC programs are started from the host. The @code{STARPU_MIC_SINK_PROGRAM_NAME}
+environment variable has to be set to the path to the MIC-built program.
