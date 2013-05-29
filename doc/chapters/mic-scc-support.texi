@@ -29,6 +29,16 @@ Defines the path to the MIC cross-compiler. The current default is @code{/usr/li
 Defines the path to the COI library. The current default is @code{/opt/intel/mic/coi}
 @end table
 
+@section Porting applications to MIC/SCC
+
+The simplest way to port an application to MIC/SCC is to add the
+@code{cpu_funcs_name} field in the codelet, to provide StarPU with the function
+name of the CPU implementation. StarPU will thus simply use the existing CPU
+implementation (cross-rebuilt in the MIC case).
+
+@code{starpu_initialize} also has to be used instead of @code{starpu_init}, so
+as to pass @code{argc} and @code{argv}.
+
 @section Launching programs
 
 SCC programs are started through RCCE
