@@ -18,7 +18,6 @@ struct _starpu_sched_node
 	int nchilds;
 	struct _starpu_sched_node ** childs;
 
-	struct _starpu_spinlock lock;
 
 	//the list of workers in the node's subtree
 	int workerids[STARPU_NMAXWORKERS];
@@ -71,7 +70,7 @@ struct _starpu_sched_tree
 {
 	struct _starpu_sched_node * root;
 	//this lock is used to protect the scheduler during modifications of his structure
-	struct _starpu_spinlock lock;
+	starpu_pthread_rwlock_t lock;
 };
 
 
@@ -109,7 +108,6 @@ int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_no
 
 struct _starpu_sched_node * _starpu_sched_node_fifo_create(void);
 int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node);
-struct _starpu_fifo_taskq *  _starpu_sched_node_fifo_get_fifo(struct _starpu_sched_node *);
 
 /* struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void); */
 int _starpu_sched_node_is_work_stealing(struct _starpu_sched_node * node);

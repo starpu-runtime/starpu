@@ -53,7 +53,6 @@ static double compute_fitness_perf_model(struct _starpu_sched_node * child STARP
 
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
- 	_starpu_spin_lock(&node->lock);
 	struct _starpu_task_execute_preds preds[node->nchilds];
 	int i;
 	int calibrating = 0;
@@ -88,7 +87,6 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	}
 	if(!can_execute)
 	{
-		_starpu_spin_unlock(&node->lock);
 		return -ENODEV;
 	}
 	
@@ -97,7 +95,6 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	if(!calibrating && !perf_model)
 	{
 		int ret = data->no_model_node->push_task(data->no_model_node, task);
-		_starpu_spin_unlock(&node->lock);
 		return ret;
 	}
 
@@ -132,7 +129,6 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	starpu_task_set_implementation(task, preds[index_best_fitness].impl);
 	task->predicted = preds[index_best_fitness].expected_length;
 	task->predicted_transfer = preds[index_best_fitness].expected_transfer_length;
- 	_starpu_spin_unlock(&node->lock);	
 	return c->push_task(c, task);
 }
 /*
@@ -176,7 +172,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
-	_starpu_spin_init(&data->lock);
+	STARPU_PTHREAD_RWLOCK_INIT(&data->lock,NULL);
 	data->root = _starpu_sched_node_heft_create(1.0,1.0,1.0,1.0);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
@@ -193,6 +189,7 @@ static void add_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned nwo
 {
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned i;
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->lock);
 	for(i = 0; i < nworkers; i++)
 	{
 		struct _starpu_sched_node * fifo = _starpu_sched_node_fifo_create();
@@ -206,12 +203,14 @@ static void add_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned nwo
 
 	}
 	_starpu_tree_update_after_modification(t);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
 
 static void remove_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
 {
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned i;
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->lock);
 	for(i = 0; i < nworkers; i++)
 	{
 		int j;
@@ -223,6 +222,7 @@ static void remove_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned 
 		_starpu_sched_node_set_father(fifo, NULL, sched_ctx_id);
 		t->root->remove_child(t->root, fifo, sched_ctx_id);
 	}
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
 
 static void destroy_heft_node(struct _starpu_sched_node * node)

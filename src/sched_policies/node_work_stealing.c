@@ -134,7 +134,6 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 
 static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
-	_starpu_spin_lock(&node->lock);
 	struct _starpu_work_stealing_data * wsd = node->data;
 	int ret = -1;
 	int start = wsd->last_push_child;
@@ -150,7 +149,6 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	}
 	wsd->last_push_child = (wsd->last_push_child + 1) % node->nchilds;
 	node->childs[i]->available(node->childs[i]);
-	_starpu_spin_unlock(&node->lock);
 	return ret;
 }
 
@@ -289,7 +287,7 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
-	_starpu_spin_init(&data->lock);
+	STARPU_PTHREAD_RWLOCK_INIT(&data->lock,NULL);
  	data->root = _starpu_sched_node_work_stealing_create();
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
@@ -305,6 +303,7 @@ static void deinitialize_ws_center_policy(unsigned sched_ctx_id)
 static void add_worker_ws(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
 {
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->lock);
 	unsigned i;
 	struct _starpu_sched_node * ws_node = t->root;
 	for(i = 0; i < nworkers; i++)
@@ -316,11 +315,13 @@ static void add_worker_ws(unsigned sched_ctx_id, int * workerids, unsigned nwork
 		_starpu_sched_node_set_father(worker, ws_node, sched_ctx_id);
 	}
 	_starpu_tree_update_after_modification(t);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
 
 static void remove_worker_ws(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
 {
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->lock);
 	struct _starpu_sched_node * ws_node = t->root;
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
@@ -329,6 +330,7 @@ static void remove_worker_ws(unsigned sched_ctx_id, int * workerids, unsigned nw
 		ws_node->remove_child(ws_node, worker, sched_ctx_id);
 		_starpu_sched_node_set_father(worker,NULL,sched_ctx_id);
 	}
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
 
 

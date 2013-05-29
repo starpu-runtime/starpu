@@ -52,6 +52,8 @@ void _starpu_sched_node_worker_destroy(struct _starpu_sched_node *node)
 
 static void available(struct _starpu_sched_node * worker_node)
 {
+	(void) worker_node;
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	struct _starpu_worker * w = worker_node->data;
 	starpu_pthread_mutex_t *sched_mutex = &w->sched_mutex;
 	starpu_pthread_cond_t *sched_cond = &w->sched_cond;
@@ -59,6 +61,7 @@ static void available(struct _starpu_sched_node * worker_node)
 	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+#endif
 }
 
 static double estimated_transfer_length(struct _starpu_sched_node * node,
