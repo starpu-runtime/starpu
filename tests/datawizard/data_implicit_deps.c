@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@ starpu_data_handle_t A_handle, B_handle, C_handle, D_handle;
 static unsigned var = 0;
 starpu_data_handle_t var_handle;
 
-void f(void *descr[], __attribute__ ((unused)) void *_args)
+void f(void *descr[] __attribute__ ((unused)), void *_args __attribute__ ((unused)))
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -58,12 +58,28 @@ void g(void *descr[], __attribute__ ((unused)) void *_args)
 	*val = 42;
 }
 
+#ifdef STARPU_USE_CUDA
+void g_cuda(void *descr[], __attribute__ ((unused)) void *_args)
+{
+	STARPU_SKIP_IF_VALGRIND;
+
+	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
+	unsigned value = 42;
+
+	usleep(100000);
+	cudaMemcpy(val, &value, sizeof(value), cudaMemcpyHostToDevice);
+}
+#endif
+
 static struct starpu_codelet cl_g =
 {
 	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
 	.cpu_funcs = {g, NULL},
-	.cuda_funcs = {g, NULL},
-	.opencl_funcs = {g, NULL},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {g_cuda, NULL},
+#endif
+	// TODO
+	//.opencl_funcs = {g, NULL},
 	.cpu_funcs_name = {"g", NULL},
 	.nbuffers = 3,
 };
@@ -78,12 +94,29 @@ void h(void *descr[], __attribute__ ((unused)) void *_args)
 	STARPU_ASSERT(*val == 42);
 }
 
+#ifdef STARPU_USE_CUDA
+void h_cuda(void *descr[], __attribute__ ((unused)) void *_args)
+{
+	STARPU_SKIP_IF_VALGRIND;
+
+	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
+	unsigned value;
+
+	FPRINTF(stderr, "VAR %u (should be 42)\n", *val);
+	cudaMemcpy(&value, val, sizeof(value), cudaMemcpyDeviceToHost);
+	STARPU_ASSERT(value == 42);
+}
+#endif
+
 static struct starpu_codelet cl_h =
 {
 	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
 	.cpu_funcs = {h, NULL},
-	.cuda_funcs = {h, NULL},
-	.opencl_funcs = {h, NULL},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {h_cuda, NULL},
+#endif
+	// TODO
+	//.opencl_funcs = {h, NULL},
 	.cpu_funcs_name = {"h", NULL},
 	.nbuffers = 3
 };
