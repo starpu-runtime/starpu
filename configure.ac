@@ -2147,6 +2147,7 @@ AC_SUBST([LIBSTARPU_LINK])
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
+  chmod +x tests/loader-cross.sh
   chmod +x gcc-plugin/tests/run-test
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
@@ -2193,6 +2194,7 @@ AC_OUTPUT([
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
+	tests/loader-cross.sh
 	doc/Makefile
 	mpi/Makefile
 	mpi/src/Makefile

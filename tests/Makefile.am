@@ -79,18 +79,21 @@ testbindir = $(libdir)/starpu/tests
 # What to install and what to check #
 #####################################
 
-if !STARPU_CROSS_COMPILING
 if !STARPU_HAVE_WINDOWS
 ## test loader program
+if !STARPU_CROSS_COMPILING
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
+else
+LOADER			=	
+LOADER_BIN		=	$(top_builddir)/tests/loader-cross.sh
+endif
 
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER		=	$(LOADER_BIN)
 else
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
-endif
 endif
 endif
 
@@ -228,6 +231,9 @@ noinst_PROGRAMS +=				\
 	datawizard/reclaim
 endif
 
+noinst_PROGRAMS +=				\
+	$(LOADER)
+
 examplebin_PROGRAMS = \
 	microbenchs/tasks_size_overhead		\
 	microbenchs/local_pingpong
@@ -235,11 +241,7 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
 
-if STARPU_HAVE_WINDOWS
 check_PROGRAMS = $(noinst_PROGRAMS)
-else
-check_PROGRAMS = $(LOADER) $(noinst_PROGRAMS)
-endif
 
 #######################
 # Source files        #

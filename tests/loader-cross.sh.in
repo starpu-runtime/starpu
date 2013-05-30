@@ -1,0 +1,8 @@
+#!/bin/bash
+
+top_srcdir="@top_srcdir@"
+
+NATIVE=${PWD/\/build_mic\//\/build_host\/}
+DIR="$(dirname "$1")"
+FILE="$(basename "$1")"
+STARPU_MIC_SINK_PROGRAM_NAME="$DIR/.libs/$FILE" $top_srcdir/build_host/tests/loader "$NATIVE/$1"
