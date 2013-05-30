@@ -24,6 +24,7 @@
 #include <common/config.h>
 #include <core/workers.h>
 #include <core/debug.h>
+#include <core/perfmodel/perfmodel.h>
 
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
@@ -63,7 +64,8 @@ starpu_disk_register(struct disk_ops * func, void *parameter)
 	/* remember it */
 	add_disk_in_list(memory_node,func,base);
 
-	func->bandwith(base,memory_node);
+	//func->bandwidth(base,memory_node);
+	_starpu_save_bandwith_and_latency_disk(34,42,10,10, memory_node);
 	
 	return memory_node;
 }
@@ -305,7 +307,7 @@ starpu_stdio_unplug (void *base)
 
 
 static void
-get_stdio_bandwith_between_disk_and_main_ram(void * base, unsigned node)
+get_stdio_bandwidth_between_disk_and_main_ram(void * base, unsigned node)
 {
 
 	unsigned iter;
@@ -329,10 +331,10 @@ get_stdio_bandwith_between_disk_and_main_ram(void * base, unsigned node)
 		disk_register_list[pos]->functions->write(base, mem, buf, 0, SIZE);
 		/* clean cache memory */
 		int res = fflush (tmp->file);
-		STARPU_ASSERT_MSG(res == 0, "Bandwith computation failed");
+		STARPU_ASSERT_MSG(res == 0, "Bandwidth computation failed");
 
 		res = fsync(tmp->descriptor);
-		STARPU_ASSERT_MSG(res == 0, "Bandwith computation failed");
+		STARPU_ASSERT_MSG(res == 0, "Bandwidth computation failed");
 	}
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
@@ -355,10 +357,10 @@ get_stdio_bandwith_between_disk_and_main_ram(void * base, unsigned node)
 		disk_register_list[pos]->functions->write(base, mem, buf, rand() % ((2*SIZE)-1) +1 , 1);
 
 		int res = fflush (tmp->file);
-		STARPU_ASSERT_MSG(res == 0, "Bandwith computation failed");
+		STARPU_ASSERT_MSG(res == 0, "Bandwidth computation failed");
 
 		res = fsync(tmp->descriptor);
-		STARPU_ASSERT_MSG(res == 0, "Bandwith computation failed");
+		STARPU_ASSERT_MSG(res == 0, "Bandwidth computation failed");
 	}
 	gettimeofday(&end, NULL);
 	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
@@ -380,5 +382,5 @@ struct disk_ops write_on_file = {
 	.write = starpu_stdio_write,
 	.plug = starpu_stdio_plug,
 	.unplug = starpu_stdio_unplug,
-	.bandwith = get_stdio_bandwith_between_disk_and_main_ram
+	.bandwidth = get_stdio_bandwidth_between_disk_and_main_ram
 };

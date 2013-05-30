@@ -1,3 +1,4 @@
+
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013 Corentin Salingue
@@ -30,7 +31,7 @@ struct disk_ops {
 	/* readv, writev, read2d, write2d, etc. */
 	 void *  (*plug)   (void *parameter);
 	 void    (*unplug) (void *base);
-	void    (*bandwith) (void *base, unsigned node);
+	void    (*bandwidth) (void *base, unsigned node);
 };
 
 
