@@ -35,7 +35,8 @@ Defines the path to the COI library. The current default is @code{/opt/intel/mic
 The simplest way to port an application to MIC/SCC is to add the
 @code{cpu_funcs_name} field in the codelet, to provide StarPU with the function
 name of the CPU implementation. StarPU will thus simply use the existing CPU
-implementation (cross-rebuilt in the MIC case).
+implementation (cross-rebuilt in the MIC case). The functions have to be
+globally-visible (i.e. not @code{static}) for StarPU to be able to look them up.
 
 @code{starpu_initialize} also has to be used instead of @code{starpu_init}, so
 as to pass @code{argc} and @code{argv}.

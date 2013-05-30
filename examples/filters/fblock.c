@@ -92,6 +92,7 @@ int main(int argc, char **argv)
 	struct starpu_codelet cl =
 	{
                 .cpu_funcs = {cpu_func, NULL},
+                .cpu_funcs_name = {"cpu_func", NULL},
 #ifdef STARPU_USE_CUDA
                 .cuda_funcs = {cuda_func, NULL},
 #endif

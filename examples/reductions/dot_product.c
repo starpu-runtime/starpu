@@ -108,6 +108,7 @@ static struct starpu_codelet init_codelet =
 {
 	.can_execute = can_execute,
 	.cpu_funcs = {init_cpu_func, NULL},
+	.cpu_funcs_name = {"init_cpu_func", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {init_cuda_func, NULL},
 #endif
@@ -190,6 +191,7 @@ static struct starpu_codelet redux_codelet =
 {
 	.can_execute = can_execute,
 	.cpu_funcs = {redux_cpu_func, NULL},
+	.cpu_funcs_name = {"redux_cpu_func", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {redux_cuda_func, NULL},
 #endif
@@ -308,6 +310,7 @@ static struct starpu_codelet dot_codelet =
 {
 	.can_execute = can_execute,
 	.cpu_funcs = {dot_cpu_func, NULL},
+	.cpu_funcs_name = {"dot_cpu_func", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dot_cuda_func, NULL},
 #endif
