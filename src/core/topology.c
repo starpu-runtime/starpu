@@ -630,12 +630,14 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
     unsigned miccore_id;
     for (miccore_id = 0; miccore_id < topology->nmiccores[mic_idx]; miccore_id++)
     {
-	config->workers[topology->nworkers + miccore_id].arch = STARPU_MIC_WORKER;
-	config->workers[topology->nworkers + miccore_id].perf_arch = STARPU_MIC_DEFAULT;
-	config->workers[topology->nworkers + miccore_id].mp_nodeid = mic_idx;
-	config->workers[topology->nworkers + miccore_id].devid = miccore_id;
-	config->workers[topology->nworkers + miccore_id].worker_mask = STARPU_MIC;
+	int worker_idx = topology->nworkers + miccore_id;
+	config->workers[worker_idx].arch = STARPU_MIC_WORKER;
+	config->workers[worker_idx].perf_arch = STARPU_MIC_DEFAULT;
+	config->workers[worker_idx].mp_nodeid = mic_idx;
+	config->workers[worker_idx].devid = miccore_id;
+	config->workers[worker_idx].worker_mask = STARPU_MIC;
 	config->worker_mask |= STARPU_MIC;
+	_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
     }
 
     topology->nworkers += topology->nmiccores[mic_idx];
