@@ -965,20 +965,14 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	 * threads */
 	_starpu_initialize_current_task_key();
 
-	/* Theorically, MP sinks should not have to initialize the scheduling
-	 * policy: indeed, they do not have their own one but are under the
-	 * order of the MP source's one.
-	 *
-	 * For unkown reasons to me (excluded the fact that this software is
-	 * ununderstandable for normally-formed human brains...), skipping
-	 * this step makes _starpu_launch_drivers() hangs.
-	 */
-	_starpu_create_sched_ctx(config.conf->sched_policy_name, NULL, -1, 1, "init");
+	if (!is_a_sink)
+		_starpu_create_sched_ctx(config.conf->sched_policy_name, NULL, -1, 1, "init");
 
 	_starpu_initialize_registered_performance_models();
 
 	/* Launch "basic" workers (ie. non-combined workers) */
-	_starpu_launch_drivers(&config);
+	if (!is_a_sink)
+		_starpu_launch_drivers(&config);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;
