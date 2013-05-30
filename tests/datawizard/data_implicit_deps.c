@@ -102,8 +102,8 @@ void h_cuda(void *descr[], __attribute__ ((unused)) void *_args)
 	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned value;
 
-	FPRINTF(stderr, "VAR %u (should be 42)\n", *val);
 	cudaMemcpy(&value, val, sizeof(value), cudaMemcpyDeviceToHost);
+	FPRINTF(stderr, "VAR %u (should be 42)\n", value);
 	STARPU_ASSERT(value == 42);
 }
 #endif
