@@ -501,7 +501,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_CUDA;
-		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + cudagpu].workerid);
+		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 		config->worker_mask |= STARPU_CUDA;
 
 		struct handle_entry *entry;
@@ -575,7 +575,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
-		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + openclgpu].workerid);
+		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 		config->worker_mask |= STARPU_OPENCL;
 	}
 
@@ -620,7 +620,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		config->workers[worker_idx].devid = cpu;
 		config->workers[worker_idx].worker_mask = STARPU_CPU;
 		config->worker_mask |= STARPU_CPU;
-		_starpu_init_sched_ctx_for_worker(config->workers[topology->nworkers + cpu].workerid);
+		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 	}
 
 	topology->nworkers += topology->ncpus;
