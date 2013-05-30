@@ -71,7 +71,7 @@ static struct starpu_codelet dummy_codelet =
 #endif
 	// TODO
 	//.opencl_funcs = {dummy_func, NULL},
-	.cpu_funcs_name = {"dummy_func", NULL},
+	.cpu_funcs_name = {"cpu_increment", NULL},
 	.model = NULL,
 	.modes = { STARPU_RW },
 	.nbuffers = 1
