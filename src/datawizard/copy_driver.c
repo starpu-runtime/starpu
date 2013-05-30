@@ -526,17 +526,6 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 #ifdef STARPU_USE_MIC
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_MIC_RAM,STARPU_CPU_RAM):
 		if (async_data)
-			return _starpu_mic_copy_ram_to_mic_async(
-					(void*) src + src_offset, src_node,
-					(void*) dst + dst_offset, dst_node,
-					size);
-		else
-			return _starpu_mic_copy_ram_to_mic(
-					(void*) src + src_offset, src_node,
-					(void*) dst + dst_offset, dst_node,
-					size);
-	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_MIC_RAM):
-		if (async_data)
 			return _starpu_mic_copy_mic_to_ram_async(
 					(void*) src + src_offset, src_node,
 					(void*) dst + dst_offset, dst_node,
@@ -546,15 +535,26 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 					(void*) src + src_offset, src_node,
 					(void*) dst + dst_offset, dst_node,
 					size);
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_MIC_RAM):
+		if (async_data)
+			return _starpu_mic_copy_ram_to_mic_async(
+					(void*) src + src_offset, src_node,
+					(void*) dst + dst_offset, dst_node,
+					size);
+		else
+			return _starpu_mic_copy_ram_to_mic(
+					(void*) src + src_offset, src_node,
+					(void*) dst + dst_offset, dst_node,
+					size);
 #endif
 #ifdef STARPU_USE_SCC
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_CPU_RAM):
-		_starpu_scc_copy_src_to_sink(
+		_starpu_scc_copy_sink_to_src(
 				(void*) src + src_offset, src_node,
 				(void*) dst + dst_offset, dst_node,
 				size);
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_SCC_RAM):
-		_starpu_scc_copy_sink_to_src(
+		_starpu_scc_copy_src_to_sink(
 				(void*) src + src_offset, src_node,
 				(void*) dst + dst_offset, dst_node,
 				size);
