@@ -87,12 +87,17 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 	if (starpu_worker_get_type(workerid) == STARPU_MIC_WORKER)
 	{
 		const struct _starpu_mp_node *node = _starpu_mic_src_get_actual_thread_mp_node();
+		enum _starpu_mp_command answer;
+		void *arg = NULL;
+		int arg_size = 0;
 
 		// XXX: give the correct coreid.
 		_starpu_src_common_execute_kernel(node,
 						  (void(*)(void))init_func, 0,
 						  &handle, &(replicate->data_interface), 1,
 						  NULL, 0);
+		answer = _starpu_mp_common_recv_command (node, &arg, &arg_size);
+		STARPU_ASSERT (answer == STARPU_EXECUTION_COMPLETED);
 	}
 	else
 #endif
