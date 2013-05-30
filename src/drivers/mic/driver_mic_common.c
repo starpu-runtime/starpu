@@ -81,7 +81,7 @@ void _starpu_mic_common_connect(scif_epd_t *endpoint, uint16_t remote_node,
 		STARPU_MIC_COMMON_REPORT_SCIF_ERROR(errno);
 
 	_STARPU_DEBUG("Connecting to MIC %d on %d:%d...\n", remote_node, local_port_number, remote_port_number);
-	while (scif_connect(*endpoint, &portID) != 0)
+	while (scif_connect(*endpoint, &portID) == -1)
 	{
 		if (errno != ECONNREFUSED)
 			STARPU_MIC_COMMON_REPORT_SCIF_ERROR(errno);
@@ -111,8 +111,10 @@ void _starpu_mic_common_accept(scif_epd_t *endpoint, uint16_t port_number)
 	if ((scif_listen(init_epd, 1)) < 0)
 		STARPU_MIC_COMMON_REPORT_SCIF_ERROR(errno);
 
+	_STARPU_DEBUG("MIC accepting connection on %u...\n", port_number);
 	if ((scif_accept(init_epd, &portID, endpoint, SCIF_ACCEPT_SYNC)) < 0)
 		STARPU_MIC_COMMON_REPORT_SCIF_ERROR(errno);
+	_STARPU_DEBUG("done\n", init_epd);
 
 	scif_close(init_epd);
 }
