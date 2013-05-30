@@ -1060,6 +1060,7 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
+# TODO: add option to choose maxnodes
 if test x$enable_simgrid = xyes ; then
 	# We still need the room for the virtual CUDA/OpenCL devices
 	maxnodes=16
