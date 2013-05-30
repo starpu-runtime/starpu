@@ -87,7 +87,7 @@ const struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node()
 const struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int memory_node)
 {
 	int nodeid = _starpu_memory_node_get_devid(memory_node);
-	STARPU_ASSERT(nodeid >= 0 && nodeid < STARPU_MAXMICDEVS);
+	STARPU_ASSERT_MSG(nodeid >= 0 && nodeid < STARPU_MAXMICDEVS, "bogus nodeid %d for memory node %d\n", nodeid, memory_node);
 
 	return mic_nodes[nodeid];
 }
