@@ -123,6 +123,14 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->opencl_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
+			case STARPU_MIC_WORKER:
+				if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mic_funcs[impl] != NULL)
+					test_implementation = 1;
+				break;
+			case STARPU_SCC_WORKER:
+				if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mic_funcs[impl] != NULL)
+					test_implementation = 1;
+				break;
 			default:
 				STARPU_ABORT();
 			}
