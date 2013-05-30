@@ -58,18 +58,28 @@ do
 	else
 		$command
 	fi
-	make -j
-
-	if test x$arch = xmic ; then
-		make check > /dev/null 2&>1
+	if [ "$?" != 0 ]
+	then
+		exit $?
 	fi
-
-	make install
 	cd "${ROOT_DIR}"
-
 done
 
-if [ ! -e "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc" ]
-then
-	ln -s "${prefix}/mic/lib/pkgconfig/starpu-1.2.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc"
-fi
+cat > Makefile << EOF
+all:
+	\$(MAKE) -C build_mic
+	\$(MAKE) -C build_host
+
+clean:
+	\$(MAKE) -C build_mic clean
+	\$(MAKE) -C build_host clean
+	rm -f Makefile
+
+check:
+	\$(MAKE) -C build_mic check
+
+install:
+	\$(MAKE) -C build_mic install
+	\$(MAKE) -C build_host install
+	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.2.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc"
+EOF

@@ -10,8 +10,9 @@ SCC support just needs the presence of the RCCE library.
 
 MIC support actually needs two compilations of StarPU, one for the host and one for
 the device. The @code{super-configure} script can be used to achieve this: it basically
-calls @code{configure} from @code{build_mic} and @code{build_host}, then @code{make} and
-@code{make install}.
+calls @code{configure} as appropriate from two new directories: @code{build_mic} and
+@code{build_host}. @code{make} and @code{make install} can then be used as usual and will
+recurse into both directories.
 
 @c TODO: move to configuration section ?
 
