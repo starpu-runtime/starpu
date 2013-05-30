@@ -498,6 +498,11 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						workerarg,
 						worker+1);
 #ifdef STARPU_USE_FXT
+					/* In tracing mode, make sure the
+					 * thread is really started before
+					 * starting another one, to make sure
+					 * they appear in order in the trace.
+					 */
 					STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 					while (!workerarg->worker_is_running)
 						STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
@@ -589,6 +594,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						&mic_worker_set[mp_nodeid],
 						worker+1);
 
+#ifdef STARPU_USE_FXT
+				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+				while (!workerarg->worker_is_running)
+					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+#endif
+
 				STARPU_PTHREAD_MUTEX_LOCK(&mic_worker_set[mp_nodeid].mutex);
 				while (!mic_worker_set[mp_nodeid].set_is_initialized)
 					STARPU_PTHREAD_COND_WAIT(&mic_worker_set[mp_nodeid].ready_cond,
@@ -600,7 +612,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		worker_set_initialized:
 				workerarg->set = &mic_worker_set[mp_nodeid];
 				mic_worker_set[mp_nodeid].joined = 0;
-				workerarg->worker_is_running = 1;
 
 #ifdef STARPU_USE_FXT
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
@@ -689,6 +700,17 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 				break;
 #endif
+			case STARPU_MIC_WORKER:
+				/* Already waited above */
+				break;
+			case STARPU_SCC_WORKER:
+				/* TODO: implement may_launch? */
+				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
+				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+				while (!workerarg->worker_is_initialized)
+					STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+				break;
 			default:
 				STARPU_ABORT();
 		}
