@@ -758,7 +758,7 @@ void *_starpu_mic_src_worker(void *arg)
 			{
 				case -EAGAIN:
 					_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
-					_starpu_push_task(j);
+					_starpu_push_task_to_workers(task);
 					STARPU_ABORT();
 					continue;
 				default:
