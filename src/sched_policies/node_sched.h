@@ -108,6 +108,7 @@ int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_no
 
 struct _starpu_sched_node * _starpu_sched_node_fifo_create(void);
 int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node);
+struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct _starpu_sched_node * fifo_node);
 
 /* struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void); */
 int _starpu_sched_node_is_work_stealing(struct _starpu_sched_node * node);
@@ -116,8 +117,9 @@ struct _starpu_sched_node * _starpu_sched_node_random_create(void);
 
 struct _starpu_sched_node * _starpu_sched_node_eager_create(void);
 
-struct _starpu_sched_node * _starpu_sched_node_heft_create();
+struct _starpu_sched_node * _starpu_sched_node_heft_create(void);
 
+int _starpu_sched_node_is_heft(struct _starpu_sched_node * node);
 
 /* compute predicted_end by taking in account the case of the predicted transfer and the predicted_end overlap
  */
@@ -133,9 +135,19 @@ void _starpu_node_destroy_rec(struct _starpu_sched_node * node, unsigned sched_c
 int _starpu_tree_push_task(struct starpu_task * task);
 struct starpu_task * _starpu_tree_pop_task(unsigned sched_ctx_id);
 
-//this function must be called after all modification of tree
+/* this function must be called after all modification of tree
+ * this function make a top bottom traversal , ence dont use .fathers field
+ * if the tree is partialy shared between contexts, this function have to be called in thoses contexts
+ */
 void _starpu_tree_update_after_modification(struct _starpu_sched_tree * tree);
+/* remove and return a subtree that contain only this worker and call starpu_tree_update_after_modification
+ * this function may be called several time
+ * this function dont update father fields in subtree
+ */
+struct _starpu_sched_node * _starpu_sched_tree_remove_worker(struct _starpu_sched_tree * tree, int workerid, int sched_ctx_id);
 
-
+/* push task of list lower as possible in the tree, a non null value is returned if some task couldn't be pushed
+ */
+int _starpu_sched_node_push_tasks_to_firsts_suitable_parent(struct _starpu_sched_node * node, struct starpu_task_list * list, int sched_ctx_id);
 
 #endif

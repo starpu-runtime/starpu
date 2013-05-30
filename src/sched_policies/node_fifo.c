@@ -111,12 +111,34 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 	return NULL;
 }
 
+struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct _starpu_sched_node * node)
+{
+	struct starpu_task_list list;
+	starpu_task_list_init(&list);
+	struct _starpu_fifo_data * data = node->data;
+	struct _starpu_fifo_taskq * fifo = data->fifo;
+	struct starpu_task * task;
+	for (task  = starpu_task_list_begin(&fifo->taskq);
+	     task != starpu_task_list_end(&fifo->taskq);
+	     task  = starpu_task_list_next(task))
+	{
+		STARPU_ASSERT(task);
+		if(!_starpu_sched_node_can_execute_task(node, task))
+		{
+			starpu_task_list_erase(&fifo->taskq, task);
+			starpu_task_list_push_front(&list, task);
+			fifo->ntasks--;
+		}
+	}
+	return list;
+}
+
 int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node)
 {
 	return node->estimated_execute_preds == estimated_execute_preds
 		|| node->estimated_load == estimated_load
-		|| node->push_task == node->push_task
-		|| node->pop_task == node->pop_task;
+		|| node->push_task == push_task
+		|| node->pop_task == pop_task;
 }
 
 struct _starpu_sched_node * _starpu_sched_node_fifo_create(void)

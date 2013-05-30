@@ -81,6 +81,8 @@ int push_task(struct starpu_task * task)
 
 void _starpu_node_destroy_rec(struct _starpu_sched_node * node, unsigned sched_ctx_id)
 {
+	if(node == NULL)
+		return;
 	struct _starpu_sched_node ** stack = NULL;
 	int top = -1;
 #define PUSH(n) do{							\
@@ -322,7 +324,7 @@ void _starpu_sched_node_destroy(struct _starpu_sched_node *node)
 
 static int is_homogeneous(int * workerids, int nworkers)
 {
-	if(nworkers == 0)
+	if(nworkers < 2)
 		return 1;
 	int i = 0;
 	uint32_t last_worker = _starpu_get_worker_struct(workerids[i])->worker_mask;
@@ -374,4 +376,71 @@ static void _update_workerids_after_tree_modification(struct _starpu_sched_node 
 void _starpu_tree_update_after_modification(struct _starpu_sched_tree * tree)
 {
 	_update_workerids_after_tree_modification(tree->root);
+}
+
+
+static struct _starpu_sched_node * _starpu_sched_node_remove_worker(struct _starpu_sched_node * node, int workerid, int sched_ctx_id)
+{
+	if(node == NULL)
+		return NULL;
+	if(node->nworkers == 1 && node->workerids[0] == workerid)//special case if there is only one worker left
+		return node;
+	int i;
+	for(i = 0; i < node->nchilds; i++)
+	{
+
+		struct _starpu_sched_node * child = node->childs[i];
+		if(in_tab(workerid, child->workerids, child->nworkers))
+		{
+			if(child->nworkers == 1)//we wants to remove this subtree
+			{
+				node->remove_child(node, child, sched_ctx_id);
+//				if(childs->fathers[sched_ctx_id] == node)
+//					_starpu_sched_node_set_father(child, NULL, sched_ctx_id);
+				return child;
+			}
+			else//we have several worker in this subtree
+			{
+				return _starpu_sched_node_remove_worker(child, workerid, sched_ctx_id);
+			}
+		}
+	}
+	return NULL;
+}
+
+struct _starpu_sched_node * _starpu_sched_tree_remove_worker(struct _starpu_sched_tree * t, int workerid, int sched_ctx_id)
+{
+	struct _starpu_sched_node * node = _starpu_sched_node_remove_worker(t->root, workerid, sched_ctx_id);
+	_starpu_tree_update_after_modification(t);
+	if(node == t->root)
+		t->root = NULL;
+	return node;
+}
+
+
+static int push_task_to_first_suitable_parent(struct _starpu_sched_node * node, struct starpu_task * task, int sched_ctx_id)
+{
+	if(node == NULL || node->fathers[sched_ctx_id] == NULL)
+		return 1;
+	
+	struct _starpu_sched_node * father = node->fathers[sched_ctx_id];
+	if(_starpu_sched_node_can_execute_task(father,task))
+		return father->push_task(father, task);
+	else
+		return push_task_to_first_suitable_parent(father, task, sched_ctx_id);
+}
+
+int _starpu_sched_node_push_tasks_to_firsts_suitable_parent(struct _starpu_sched_node * node, struct starpu_task_list *list, int sched_ctx_id)
+{
+	while(!starpu_task_list_empty(list))
+	{
+		struct starpu_task * task = starpu_task_list_pop_front(list);
+		int res = push_task_to_first_suitable_parent(node, task, sched_ctx_id);
+		if(res)
+		{
+			starpu_task_list_push_front(list,task);
+			return res;
+		}
+	}
+	return 0;
 }

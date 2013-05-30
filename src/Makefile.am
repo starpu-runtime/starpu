@@ -227,7 +227,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	sched_policies/node_random.c				\
 	sched_policies/node_work_stealing.c			\
 	sched_policies/node_fifo.c 				\
-	sched_policies/node_heft.c
+	sched_policies/node_heft.c				\
+	sched_policies/hierarchical_heft.c
 if STARPU_USE_CPU
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
 endif
