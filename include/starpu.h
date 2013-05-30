@@ -134,6 +134,9 @@ struct starpu_conf
 	/* indicate if asynchronous copies to OpenCL devices should be disabled */
 	int disable_asynchronous_opencl_copy;
 
+	/* indicate if asynchronous copies to MIC devices should be disabled */
+	int disable_asynchronous_mic_copy;
+
 	/* Enable CUDA/OpenGL interoperation on these CUDA devices */
 	unsigned *cuda_opengl_interoperability;
 	unsigned n_cuda_opengl_interoperability;

@@ -323,8 +323,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 #ifdef STARPU_USE_MIC
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_MIC_RAM):
 		/* RAM -> MIC */
-#	ifdef STARPU_MIC_USE_RMA
-		if (!req || starpu_asynchronous_copy_disabled() ||
+		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mic_copy_disabled() ||
 				!(copy_methods->ram_to_mic_async || copy_methods->any_to_any))
 		{
 			/* this is not associated to a request so it's synchronous */
@@ -347,14 +346,9 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			_starpu_mic_init_event(&(req->async_channel.event.mic_event), dst_node);
 		}
 		break;
-#	else
-		copy_methods->ram_to_mic(src_interface, src_node, dst_interface, dst_node);
-		break;
-#	endif
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_MIC_RAM,STARPU_CPU_RAM):
 		/* MIC -> RAM */
-#	ifdef STARPU_MIC_USE_RMA
-		if (!req || starpu_asynchronous_copy_disabled() ||
+		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mic_copy_disabled() ||
 				!(copy_methods->mic_to_ram_async || copy_methods->any_to_any))
 		{
 			/* this is not associated to a request so it's synchronous */
@@ -377,10 +371,6 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			_starpu_mic_init_event(&(req->async_channel.event.mic_event), src_node);
 		}
 		break;
-#	else
-		copy_methods->mic_to_ram(src_interface, src_node, dst_interface, dst_node);
-		break;
-#	endif
 #endif
 #ifdef STARPU_USE_SCC
 		/* SCC RAM associated to the master process is considered as

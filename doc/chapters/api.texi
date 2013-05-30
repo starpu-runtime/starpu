@@ -224,6 +224,13 @@ it is therefore necessary to disable asynchronous data transfers.
 This can also be specified at compilation time by giving to the
 configure script the option @code{--disable-asynchronous-opencl-copy}.
 
+@item @code{int disable_asynchronous_mic_copy} (default = 0)
+This flag should be set to 1 to disable asynchronous copies between
+CPUs and MIC accelerators. This can also be specified with the
+@code{STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY} environment variable.
+This can also be specified at compilation time by giving to the
+configure script the option @code{--disable-asynchronous-mic-copy}.
+
 @item @code{int *cuda_opengl_interoperability} (default = NULL)
 This can be set to an array of CUDA device identifiers for which
 @code{cudaGLSetGLDevice} should be called instead of @code{cudaSetDevice}. Its

@@ -103,7 +103,7 @@ void _starpu_mic_sink_allocate(const struct _starpu_mp_node *mp_node, void *arg,
 	if (posix_memalign(&addr, STARPU_MIC_PAGE_SIZE, size) != 0)
 		_starpu_mp_common_send_command(mp_node, STARPU_ERROR_ALLOCATE, NULL, 0);
 
-#ifdef STARPU_MIC_USE_RMA
+#ifndef STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
 	scif_epd_t epd = mp_node->host_sink_dt_connection.mic_endpoint;
 	size_t window_size = STARPU_MIC_GET_PAGE_SIZE_MULTIPLE(size);
 
@@ -124,7 +124,7 @@ void _starpu_mic_sink_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUT
 
 	void *addr = ((struct _starpu_mic_free_command *)arg)->addr;
 	
-#ifdef STARPU_MIC_USE_RMA
+#ifndef STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
 	scif_epd_t epd = mp_node->host_sink_dt_connection.mic_endpoint;
 	size_t size = ((struct _starpu_mic_free_command *)arg)->size;
 	size_t window_size = STARPU_MIC_GET_PAGE_SIZE_MULTIPLE(size);

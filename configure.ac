@@ -851,6 +851,19 @@ if test x$disable_asynchronous_opencl_copy = xyes ; then
    AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and OpenCL devices])
 fi
 
+AC_MSG_CHECKING(whether asynchronous MIC copy should be disabled)
+AC_ARG_ENABLE(asynchronous-miccopy, [AS_HELP_STRING([--enable-asynchronous-mic-copy],
+			[enable asynchronous copy between CPU and MIC devices])],
+			enable_asynchronous_mic_copy=$enableval, enable_asynchronous_mic_copy=no)
+disable_asynchronous_mic_copy=no
+if test x$enable_asynchronous_mic_copy = xno ; then
+   disable_asynchronous_mic_copy=yes
+fi
+AC_MSG_RESULT($disable_asynchronous_mic_copy)
+if test x$disable_asynchronous_mic_copy = xyes ; then
+   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and MIC devices])
+fi
+
 ###############################################################################
 #                                                                             #
 #                                 Drivers                                     #
