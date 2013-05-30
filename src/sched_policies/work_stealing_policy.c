@@ -287,6 +287,8 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	starpu_pthread_mutex_t *worker_sched_mutex;
 	starpu_pthread_cond_t *worker_sched_cond;
 	starpu_worker_get_sched_condition(workerid, &worker_sched_mutex, &worker_sched_cond);
+
+	/* Note: Releasing this mutex before taking the victim mutex, to avoid interlock*/
 	STARPU_PTHREAD_MUTEX_UNLOCK(worker_sched_mutex);
        
 
