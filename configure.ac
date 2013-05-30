@@ -1358,11 +1358,11 @@ else
 		nodes=`expr $nodes + $nmaxopencldev`
 	fi
 	if test x$enable_mic = xyes ; then
-		maxnodes=`expr $maxnodes + $nmaxmicdev`
+		nodes=`expr $nodes + $nmaxmicdev`
 	fi
 	if test x$enable_rcce = xyes ; then
 		# Only 1 memory node for the shared memory.
-		maxnodes=`expr $maxnodes + 1`
+		nodes=`expr $nodes + 1`
 	fi
 
 	# set maxnodes to the next power of 2 greater than nodes
