@@ -231,7 +231,8 @@ noinst_PROGRAMS +=				\
 	datawizard/reclaim
 endif
 
-noinst_PROGRAMS +=				\
+noinst_nulldir=/tmp
+noinst_null_PROGRAMS =				\
 	$(LOADER)
 
 examplebin_PROGRAMS = \
@@ -241,7 +242,7 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
 
-check_PROGRAMS = $(noinst_PROGRAMS)
+check_PROGRAMS = $(noinst_PROGRAMS) $(noinst_2_PROGRAMS)
 
 #######################
 # Source files        #
