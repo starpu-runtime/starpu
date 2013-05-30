@@ -112,7 +112,7 @@ main(int argc, char **argv)
 	conf.nopencl = 1;
 	conf.nmic = -1;
 
-	if (starpu_initialize(&conf, &argc, &argv || starpu_cpu_worker_get_count() == 0) == -ENODEV)
+	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		goto enodev;
 
 	register_data();
