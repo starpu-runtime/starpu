@@ -15,7 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-AM_CFLAGS = $(GLOBAL_AM_CFLAGS)
+AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 
 lib_LTLIBRARIES = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la
