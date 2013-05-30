@@ -52,9 +52,6 @@ void _starpu_sched_node_set_father(struct _starpu_sched_node *node,
 				   unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
-	STARPU_ASSERT(father_node == NULL ?
-		      node->fathers[sched_ctx_id] != NULL :
-		      node->fathers[sched_ctx_id] == NULL);
 	node->fathers[sched_ctx_id] = father_node;
 }
 

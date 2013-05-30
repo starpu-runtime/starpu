@@ -51,6 +51,7 @@ struct _starpu_sched_node * _starpu_heft_eager_scheduler_add_worker(unsigned sch
 		struct _starpu_sched_node * fifo = root->childs[i];
 		STARPU_ASSERT(_starpu_sched_node_is_fifo(fifo));
 		fifo->add_child(fifo, _starpu_sched_node_worker_get(workerid),sched_ctx_id);
+		_starpu_sched_node_set_father(fifo, root, sched_ctx_id);
 		_starpu_sched_node_set_father(_starpu_sched_node_worker_get(workerid),
 					      fifo, sched_ctx_id);
 		return root;
@@ -96,7 +97,7 @@ static void remove_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned 
 				STARPU_ASSERT(_starpu_sched_node_is_fifo(node));
 				struct starpu_task_list list = _starpu_sched_node_fifo_get_non_executable_tasks(node);
 				int res = _starpu_sched_node_push_tasks_to_firsts_suitable_parent(node, &list, sched_ctx_id);
-				STARPU_ASSERT(res); (void) res;
+				STARPU_ASSERT(!res); (void) res;
 			}
 		}
 		_starpu_node_destroy_rec(node, sched_ctx_id);
