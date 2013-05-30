@@ -1073,7 +1073,8 @@ if test x$enable_simgrid = xyes ; then
 	maxnodes=16
 else
 	# We have one memory node shared by all CPU workers, one node per GPU
-	nodes=1
+	# we add nodes to use 4 memory disks 
+	nodes=5
 	if test x$enable_cuda = xyes ; then
 		# we could have used nmaxcudadev + 1, but this would certainly give an
 		# odd number.
