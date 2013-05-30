@@ -678,8 +678,10 @@ void *_starpu_mic_src_worker(void *arg)
 		for (micworkerid = 0 ; (micworkerid < args->nworkers) && (task == NULL); micworkerid++)
 		    task = _starpu_pop_task (&args->workers[micworkerid]);
 
-		if (task != NULL)
-		    goto task_found;
+		if (task != NULL) {
+			micworkerid--;
+			goto task_found;
+		}
 
 #if 0 // XXX: synchronous execution for now
 		/* No task to submit, so we can poll the MIC device for

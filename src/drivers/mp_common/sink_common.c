@@ -105,15 +105,18 @@ void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
 	else
 		cl_arg = NULL;
 
+	//_STARPU_DEBUG("telling host that we have submitted the task %p.\n", kernel);
 	/* XXX: in the future, we will not have to directly execute the kernel
 	 * but submit it to the correct local worker. */
 	_starpu_mp_common_send_command(node, STARPU_EXECUTION_SUBMITTED,
 				       NULL, 0);
 
+	//_STARPU_DEBUG("executing the task %p\n", kernel);
 	/* XXX: we keep the synchronous execution model on the sink side for
 	 * now. */
 	kernel(interfaces, cl_arg);
 
+	//_STARPU_DEBUG("telling host that we have finished the task %p.\n", kernel);
 	_starpu_mp_common_send_command(node, STARPU_EXECUTION_COMPLETED,
 				       &coreid, sizeof(coreid));
 }
