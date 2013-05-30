@@ -129,6 +129,7 @@ static void _starpu_sink_common_lookup(const struct _starpu_mp_node *node,
 	void *dl_handle = dlopen(NULL, RTLD_NOW);
 	func = dlsym(dl_handle, func_name);
 
+	//_STARPU_DEBUG("Looked up %s, got %p\n", func_name, func);
 
 	/* If we couldn't find the function, let's send an error to the host.
 	 * The user probably made a mistake in the name */

@@ -57,13 +57,16 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node,
 	/* strlen ignore the terminating '\0' */
 	arg_size = (strlen(func_name) + 1) * sizeof(char);
 
+	//_STARPU_DEBUG("Looking up %s\n", func_name);
 	_starpu_mp_common_send_command(node, STARPU_LOOKUP, (void *) func_name,
 				       arg_size);
 	answer = _starpu_mp_common_recv_command(node, (void **) &arg,
 						&arg_size);
 
-	if (answer == STARPU_ERROR_LOOKUP)
+	if (answer == STARPU_ERROR_LOOKUP) {
+		_STARPU_DISP("Error looking up %s\n", func_name);
 		return -ESPIPE;
+	}
 
 	/* We have to be sure the device answered the right question and the
 	 * answer has the right size */
@@ -71,6 +74,8 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node,
 		      arg_size == sizeof(*func_ptr));
 
 	memcpy(func_ptr, arg, arg_size);
+
+	//_STARPU_DEBUG("got %p\n", *func_ptr);
 
 	return 0;
 }
