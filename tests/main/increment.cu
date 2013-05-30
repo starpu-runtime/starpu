@@ -18,7 +18,7 @@
 
 static __global__ void cuda_increment(unsigned *var)
 {
-	*var++;
+	(*var)++;
 }
 
 extern "C" void cuda_host_increment(void *descr[], void *_args)
