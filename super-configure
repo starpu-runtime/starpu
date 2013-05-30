@@ -73,6 +73,8 @@ all:
 clean:
 	\$(MAKE) -C build_host clean
 	\$(MAKE) -C build_mic clean
+
+distclean: clean
 	rm -f Makefile
 
 check:
