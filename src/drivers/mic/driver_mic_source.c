@@ -633,13 +633,24 @@ void *_starpu_mic_src_worker(void *arg)
 	struct _starpu_worker *baseworker = &args->workers[0];
 	struct _starpu_machine_config *config = baseworker->config;
 	unsigned baseworkerid = baseworker - config->workers;
+	unsigned mp_nodeid = baseworker->mp_nodeid;
 
 	unsigned memnode = baseworker->memory_node;
+
+	int devid = baseworker->devid;
+
+	unsigned i;
 
 	_starpu_worker_init(baseworker, _STARPU_FUT_MIC_KEY);
 
 	// Current task for a thread managing a worker set has no sense.
 	_starpu_set_current_task(NULL);
+
+	for (i = 0; i < config->topology.nmiccores[mp_nodeid]; i++)
+	{
+		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
+		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", mp_nodeid, i);
+	}
 
 	baseworker->status = STATUS_UNKNOWN;
 
