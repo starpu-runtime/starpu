@@ -634,12 +634,9 @@ void *_starpu_mic_src_worker(void *arg)
 	struct _starpu_machine_config *config = baseworker->config;
 	unsigned baseworkerid = baseworker - config->workers;
 	unsigned mp_nodeid = baseworker->mp_nodeid;
+	unsigned i;
 
 	unsigned memnode = baseworker->memory_node;
-
-	int devid = baseworker->devid;
-
-	unsigned i;
 
 	_starpu_worker_init(baseworker, _STARPU_FUT_MIC_KEY);
 

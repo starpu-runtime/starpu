@@ -327,12 +327,21 @@ void *_starpu_scc_src_worker(void *arg)
 	int devid = args->devid;
 	int workerid = args->workerid;
 	unsigned memnode = args->memory_node;
+	unsigned baseworkerid = baseworker - config->workers;
+	unsigned mp_nodeid = baseworker->mp_nodeid;
+	unsigned i;
 
 	_starpu_worker_init(args, _STARPU_FUT_SCC_KEY);
 
 	_starpu_scc_src_init_context(devid);
 
 	args->status = STATUS_UNKNOWN;
+
+	for (i = 0; i < config->topology.nmiccores[mp_nodeid]; i++)
+	{
+		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
+		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", mp_nodeid, i);
+	}
 
 	_STARPU_TRACE_WORKER_INIT_END;
 
