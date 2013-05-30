@@ -673,6 +673,7 @@ void *_starpu_mic_src_worker(void *arg)
 		if (task != NULL)
 		    goto task_found;
 
+#if 0 // XXX: synchronous execution for now
 		/* No task to submit, so we can poll the MIC device for
 		 * completed jobs. */
 		struct pollfd fd = {
@@ -684,6 +685,7 @@ void *_starpu_mic_src_worker(void *arg)
 		    _starpu_mic_src_process_completed_job (args);
 		    goto restart_loop;
 		}
+#endif
 
 		/* At this point, there is really nothing to do for the thread
 		 * so we can block.
@@ -753,6 +755,9 @@ void *_starpu_mic_src_worker(void *arg)
 					STARPU_ASSERT(0);
 			}
 		}
+
+		/* XXX: synchronous execution for now */
+		_starpu_mic_src_process_completed_job (args);
 	}
 
 	_STARPU_TRACE_WORKER_DEINIT_START;
