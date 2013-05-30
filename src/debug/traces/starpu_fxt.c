@@ -68,6 +68,11 @@ static void set_next_mic_worker_color(int workerid)
 	worker_colors[workerid] = mic_worker_colors[mic_index++];
 }
 
+static void set_next_scc_worker_color(int workerid)
+{
+	worker_colors[workerid] = scc_worker_colors[scc_index++];
+}
+
 static const char *get_worker_color(int workerid)
 {
 	return worker_colors[workerid];
