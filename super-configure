@@ -69,7 +69,7 @@ do
 
 done
 
-if [ ! -f "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc" ]
+if [ ! -e "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc" ]
 then
 	ln -s "${prefix}/mic/lib/pkgconfig/starpu-1.2.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc"
 fi
