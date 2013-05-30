@@ -67,19 +67,20 @@ done
 
 cat > Makefile << EOF
 all:
-	\$(MAKE) -C build_mic
 	\$(MAKE) -C build_host
+	\$(MAKE) -C build_mic
 
 clean:
-	\$(MAKE) -C build_mic clean
 	\$(MAKE) -C build_host clean
+	\$(MAKE) -C build_mic clean
 	rm -f Makefile
 
 check:
+	\$(MAKE) -C build_host check
 	\$(MAKE) -C build_mic check
 
 install:
-	\$(MAKE) -C build_mic install
 	\$(MAKE) -C build_host install
+	\$(MAKE) -C build_mic install
 	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.2.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc"
 EOF
