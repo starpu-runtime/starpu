@@ -1344,6 +1344,7 @@ static void write_bus_bandwidth_file_content(void)
 						slowness += cudadev_timing_htod[dst];
 				}
 #endif
+				/* TODO: generalize computation */
 #ifdef STARPU_USE_OPENCL
 				if (src > ncuda && src <= ncuda + nopencl)
 					slowness += opencldev_timing_dtoh[src-ncuda];
