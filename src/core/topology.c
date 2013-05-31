@@ -320,16 +320,16 @@ static inline int _starpu_get_next_scc_deviceid(struct _starpu_machine_config *c
 static void
 _starpu_init_mic_topology (struct _starpu_machine_config *config, long mic_idx)
 {
-    /* Discover the topology of the mic node identifier by MIC_IDX. That
-     * means, make this StarPU instance aware of the number of cores available
-     * on this MIC device. Update the `nhwmiccores' topology field
-     * accordingly. */
+	/* Discover the topology of the mic node identifier by MIC_IDX. That
+	 * means, make this StarPU instance aware of the number of cores available
+	 * on this MIC device. Update the `nhwmiccores' topology field
+	 * accordingly. */
 
-    struct starpu_machine_topology *topology = &config->topology;
+	struct starpu_machine_topology *topology = &config->topology;
 
-    int nbcores;
-    _starpu_src_common_sink_nbcores (mic_nodes[mic_idx], &nbcores);
-    topology->nhwmiccores[mic_idx] = nbcores;
+	int nbcores;
+	_starpu_src_common_sink_nbcores (mic_nodes[mic_idx], &nbcores);
+	topology->nhwmiccores[mic_idx] = nbcores;
 }
 
 
@@ -337,67 +337,67 @@ static int
 _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 		       COIENGINE *coi_handle, COIPROCESS *coi_process)
 {
-    /* Initialize the MIC node of index MIC_IDX. */
+	/* Initialize the MIC node of index MIC_IDX. */
 
-    struct starpu_conf *user_conf = config->conf;
+	struct starpu_conf *user_conf = config->conf;
 
-    char ***argv = _starpu_get_argv();
-    const char *suffixes[] = {"-mic", "_mic", NULL};
+	char ***argv = _starpu_get_argv();
+	const char *suffixes[] = {"-mic", "_mic", NULL};
 
-    /* Environment variables to send to the Sink, it informs it what kind
-     * of node it is (architecture and type) as there is no way to discover
-     * it itself */
-    char mic_idx_env[32];
-    sprintf(mic_idx_env, "DEVID=%d", mic_idx);
+	/* Environment variables to send to the Sink, it informs it what kind
+	 * of node it is (architecture and type) as there is no way to discover
+	 * it itself */
+	char mic_idx_env[32];
+	sprintf(mic_idx_env, "DEVID=%d", mic_idx);
 
-    /* XXX: this is currently necessary so that the remote process does not
-     * segfault. */
-    char nb_mic_env[32];
-    sprintf(nb_mic_env, "NB_MIC=%d", 2);
+	/* XXX: this is currently necessary so that the remote process does not
+	 * segfault. */
+	char nb_mic_env[32];
+	sprintf(nb_mic_env, "NB_MIC=%d", 2);
 
-    const char *mic_sink_env[] = {"STARPU_SINK=STARPU_MIC", mic_idx_env, nb_mic_env, NULL};
+	const char *mic_sink_env[] = {"STARPU_SINK=STARPU_MIC", mic_idx_env, nb_mic_env, NULL};
 
-    char mic_sink_program_path[1024];
-    /* Let's get the helper program to run on the MIC device */
-    int mic_file_found =
-	_starpu_src_common_locate_file (mic_sink_program_path,
-					getenv("STARPU_MIC_SINK_PROGRAM_NAME"),
-					getenv("STARPU_MIC_SINK_PROGRAM_PATH"),
-					user_conf->mic_sink_program_path,
-					(argv ? (*argv)[0] : NULL),
-					suffixes);
+	char mic_sink_program_path[1024];
+	/* Let's get the helper program to run on the MIC device */
+	int mic_file_found =
+	    _starpu_src_common_locate_file (mic_sink_program_path,
+					    getenv("STARPU_MIC_SINK_PROGRAM_NAME"),
+					    getenv("STARPU_MIC_SINK_PROGRAM_PATH"),
+					    user_conf->mic_sink_program_path,
+					    (argv ? (*argv)[0] : NULL),
+					    suffixes);
 
-    if (0 != mic_file_found) {
-	fprintf(stderr, "No MIC program specified, use the environment"
-		"variable STARPU_MIC_SINK_PROGRAM_NAME or the environment"
-		"or the field 'starpu_conf.mic_sink_program_path'"
-		"to define it.\n");
+	if (0 != mic_file_found) {
+		fprintf(stderr, "No MIC program specified, use the environment"
+			"variable STARPU_MIC_SINK_PROGRAM_NAME or the environment"
+			"or the field 'starpu_conf.mic_sink_program_path'"
+			"to define it.\n");
 
-	return -1;
-    }
+		return -1;
+	}
 
-    COIRESULT res;
-    /* Let's get the handle which let us manage the remote MIC device */
-    res = COIEngineGetHandle(COI_ISA_MIC, mic_idx, coi_handle);
-    if (STARPU_UNLIKELY(res != COI_SUCCESS))
-	STARPU_MIC_SRC_REPORT_COI_ERROR(res);
+	COIRESULT res;
+	/* Let's get the handle which let us manage the remote MIC device */
+	res = COIEngineGetHandle(COI_ISA_MIC, mic_idx, coi_handle);
+	if (STARPU_UNLIKELY(res != COI_SUCCESS))
+		STARPU_MIC_SRC_REPORT_COI_ERROR(res);
 
-    /* We launch the helper on the MIC device, which will wait for us
-     * to give it work to do.
-     * As we will communicate further with the device throught scif we
-     * don't need to keep the process pointer */
-    res = COIProcessCreateFromFile(*coi_handle, mic_sink_program_path, 0, NULL, 0,
-				   mic_sink_env, 1, NULL, 0, NULL,
-				   coi_process);
-    if (STARPU_UNLIKELY(res != COI_SUCCESS))
-	STARPU_MIC_SRC_REPORT_COI_ERROR(res);
+	/* We launch the helper on the MIC device, which will wait for us
+	 * to give it work to do.
+	 * As we will communicate further with the device throught scif we
+	 * don't need to keep the process pointer */
+	res = COIProcessCreateFromFile(*coi_handle, mic_sink_program_path, 0, NULL, 0,
+				       mic_sink_env, 1, NULL, 0, NULL,
+				       coi_process);
+	if (STARPU_UNLIKELY(res != COI_SUCCESS))
+		STARPU_MIC_SRC_REPORT_COI_ERROR(res);
 
-    /* Let's create the node structure, we'll communicate with the peer
-     * through scif thanks to it */
-    mic_nodes[mic_idx] =
-	_starpu_mp_common_node_create(STARPU_MIC_SOURCE, mic_idx);
+	/* Let's create the node structure, we'll communicate with the peer
+	 * through scif thanks to it */
+	mic_nodes[mic_idx] =
+		_starpu_mp_common_node_create(STARPU_MIC_SOURCE, mic_idx);
 
-    return 0;
+	return 0;
 }
 #endif
 
@@ -586,100 +586,124 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 			 struct starpu_conf *user_conf,
 			 unsigned mic_idx)
 {
-    // Configure the MIC device of index MIC_IDX.
+	// Configure the MIC device of index MIC_IDX.
 
-    struct starpu_machine_topology *topology = &config->topology;
+	struct starpu_machine_topology *topology = &config->topology;
 
-    topology->nhwmiccores[mic_idx] = 0;
+	topology->nhwmiccores[mic_idx] = 0;
 
-    _starpu_init_mic_topology (config, mic_idx);
+	_starpu_init_mic_topology (config, mic_idx);
 
-    int nmiccores;
-    nmiccores = starpu_get_env_number("STARPU_NMIC");
+	int nmiccores;
+	nmiccores = starpu_get_env_number("STARPU_NMIC");
 
-    /* STARPU_NMIC is not set. Did the user specify anything ? */
-    if (nmiccores == -1 && user_conf)
-	nmiccores = user_conf->nmic;
+	/* STARPU_NMIC is not set. Did the user specify anything ? */
+	if (nmiccores == -1 && user_conf)
+		nmiccores = user_conf->nmic;
 
-    if (nmiccores != 0)
-    {
-	if (nmiccores == -1)
+	if (nmiccores != 0)
 	{
-	    /* Nothing was specified, so let's use the number of
-	     * detected mic cores. ! */
-	    nmiccores = topology->nhwmiccores[mic_idx];
+		if (nmiccores == -1)
+		{
+			/* Nothing was specified, so let's use the number of
+			 * detected mic cores. ! */
+			nmiccores = topology->nhwmiccores[mic_idx];
+		    }
+		else
+		{
+			if ((unsigned) nmiccores > topology->nhwmiccores[mic_idx])
+			{
+				/* The user requires more MIC devices than there is available */
+				fprintf(stderr,
+					"# Warning: %d MIC devices requested. Only %d available.\n",
+					nmiccores, topology->nhwmiccores[mic_idx]);
+				nmiccores = topology->nhwmiccores[mic_idx];
+			}
+		}
 	}
-	else
+
+	topology->nmiccores[mic_idx] = nmiccores;
+	STARPU_ASSERT(topology->nmiccores[mic_idx] + topology->nworkers <= STARPU_NMAXWORKERS);
+
+	/* _starpu_initialize_workers_mic_deviceid (config); */
+
+	unsigned miccore_id;
+	for (miccore_id = 0; miccore_id < topology->nmiccores[mic_idx]; miccore_id++)
 	{
-	    if ((unsigned) nmiccores > topology->nhwmiccores[mic_idx])
-	    {
-		/* The user requires more MIC devices than there is available */
-		fprintf(stderr,
-			"# Warning: %d MIC devices requested. Only %d available.\n",
-			nmiccores, topology->nhwmiccores[mic_idx]);
-		nmiccores = topology->nhwmiccores[mic_idx];
-	    }
+		int worker_idx = topology->nworkers + miccore_id;
+		config->workers[worker_idx].arch = STARPU_MIC_WORKER;
+		config->workers[worker_idx].perf_arch = STARPU_MIC_DEFAULT;
+		config->workers[worker_idx].mp_nodeid = mic_idx;
+		config->workers[worker_idx].devid = miccore_id;
+		config->workers[worker_idx].worker_mask = STARPU_MIC;
+		config->worker_mask |= STARPU_MIC;
+		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 	}
+
+	topology->nworkers += topology->nmiccores[mic_idx];
     }
 
-    topology->nmiccores[mic_idx] = nmiccores;
-    STARPU_ASSERT(topology->nmiccores[mic_idx] + topology->nworkers <= STARPU_NMAXWORKERS);
 
-    /* _starpu_initialize_workers_mic_deviceid (config); */
-
-    unsigned miccore_id;
-    for (miccore_id = 0; miccore_id < topology->nmiccores[mic_idx]; miccore_id++)
-    {
-	int worker_idx = topology->nworkers + miccore_id;
-	config->workers[worker_idx].arch = STARPU_MIC_WORKER;
-	config->workers[worker_idx].perf_arch = STARPU_MIC_DEFAULT;
-	config->workers[worker_idx].mp_nodeid = mic_idx;
-	config->workers[worker_idx].devid = miccore_id;
-	config->workers[worker_idx].worker_mask = STARPU_MIC;
-	config->worker_mask |= STARPU_MIC;
-	_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
-    }
-
-    topology->nworkers += topology->nmiccores[mic_idx];
-}
-
+#ifdef STARPU_USE_MIC
+static COIENGINE handles[2];
+static COIPROCESS process[2];
+#endif
 
 static void
 _starpu_init_mp_config (struct _starpu_machine_config *config,
 			struct starpu_conf *user_conf)
 {
-    /* Discover and configure the mp topology. That means:
-     * - discover the number of mp nodes;
-     * - initialize each discovered node;
-     * - discover the local topology (number of PUs/devices) of each node;
-     * - configure the workers accordingly.
-     */
+	/* Discover and configure the mp topology. That means:
+	 * - discover the number of mp nodes;
+	 * - initialize each discovered node;
+	 * - discover the local topology (number of PUs/devices) of each node;
+	 * - configure the workers accordingly.
+	 */
 
-    struct starpu_machine_topology *topology = &config->topology;
+	struct starpu_machine_topology *topology = &config->topology;
 
-    // We currently only support MIC at this level.
+	// We currently only support MIC at this level.
 #ifdef STARPU_USE_MIC
-    static COIENGINE handles[2];
-    static COIPROCESS process[2];
 
-    /* Discover and initialize the number of MIC nodes through the mp
-     * infrastructure. */
-    unsigned nhwmicdevices = _starpu_mic_src_get_device_count();
+	/* Discover and initialize the number of MIC nodes through the mp
+	 * infrastructure. */
+	unsigned nhwmicdevices = _starpu_mic_src_get_device_count();
 
-    int reqmicdevices = starpu_get_env_number("STARPU_NMICDEVS");
-    if (-1 == reqmicdevices)
-	reqmicdevices = nhwmicdevices;
+	int reqmicdevices = starpu_get_env_number("STARPU_NMICDEVS");
+	if (-1 == reqmicdevices)
+		reqmicdevices = nhwmicdevices;
 
-    topology->nmicdevices = 0;
-    unsigned i;
-    for (i = 0; i < STARPU_MIN (nhwmicdevices, (unsigned) reqmicdevices); i++)
-	if (0 == _starpu_init_mic_node (config, i, &handles[i], &process[i]))
-	    topology->nmicdevices++;
+	topology->nmicdevices = 0;
+	unsigned i;
+	for (i = 0; i < STARPU_MIN (nhwmicdevices, (unsigned) reqmicdevices); i++)
+		if (0 == _starpu_init_mic_node (config, i, &handles[i], &process[i]))
+			topology->nmicdevices++;
 
-    i = 0;
-    for (; i < topology->nmicdevices; i++)
-	_starpu_init_mic_config (config, user_conf, i);
+	i = 0;
+	for (; i < topology->nmicdevices; i++)
+		_starpu_init_mic_config (config, user_conf, i);
 #endif
+}
+
+static void
+_starpu_deinit_mic_node (unsigned mic_idx)
+{
+	_starpu_mp_common_send_command(mic_nodes[mic_idx], STARPU_EXIT, NULL, 0);
+
+	COIProcessDestroy(process[mic_idx], -1, 0, NULL, NULL);
+
+	_starpu_mp_common_node_destroy(mic_nodes[mic_idx]);
+}
+
+static void
+_starpu_deinit_mp_config (struct _starpu_machine_config *config)
+{
+	struct starpu_machine_topology *topology = &config->topology;
+	unsigned i;
+
+	for (i = 0; i < topology->nmicdevices; i++)
+		_starpu_deinit_mic_node (i);
+	_starpu_mic_clear_kernels();
 }
 #endif
 
@@ -1300,6 +1324,10 @@ void
 _starpu_destroy_topology (
 	struct _starpu_machine_config *config __attribute__ ((unused)))
 {
+#ifdef STARPU_USE_MIC
+	_starpu_deinit_mp_config(config);
+#endif
+
 	/* cleanup StarPU internal data structures */
 	_starpu_memory_nodes_deinit();
 

@@ -54,6 +54,7 @@ unsigned _starpu_mic_src_get_device_count(void);
 starpu_mic_kernel_t _starpu_mic_src_get_kernel_from_codelet(struct starpu_codelet *cl, unsigned nimpl);
 
 void _starpu_mic_src_init(struct _starpu_mp_node *node);
+void _starpu_mic_clear_kernels(void);
 void _starpu_mic_src_deinit(struct _starpu_mp_node *node);
 
 size_t _starpu_mic_get_global_mem_size(int devid);

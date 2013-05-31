@@ -49,12 +49,6 @@ int main(int argc, char **argv)
 		gettimeofday(&end, NULL);
 		if (ret == -ENODEV)
 			goto enodev;
-
-		if (starpu_worker_get_type(STARPU_MIC_WORKER))
-#ifdef STARPU_DEVEL
-#warning MIC does not support restart yet
-#endif
-			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 		init_timing += (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 

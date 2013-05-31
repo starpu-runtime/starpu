@@ -91,8 +91,6 @@ const struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int m
 	return mic_nodes[nodeid];
 }
 
-// Should be obsolete.
-#if 0
 static void _starpu_mic_src_free_kernel(void *kernel)
 {
 	struct _starpu_mic_kernel *k = kernel;
@@ -101,76 +99,63 @@ static void _starpu_mic_src_free_kernel(void *kernel)
 	free(kernel);
 }
 
-static void _starpu_mic_src_deinit_context(int devid)
+void _starpu_mic_clear_kernels(void)
 {
-	_starpu_mp_common_send_command(mic_nodes[devid], STARPU_EXIT, NULL, 0);
-
-	COIProcessDestroy(process[devid], -1, 0, NULL, NULL);
-
-	_starpu_mp_common_node_destroy(mic_nodes[devid]);
-
-	STARPU_PTHREAD_MUTEX_LOCK(&nb_mic_worker_init_mutex);
-	unsigned int tmp = --nb_mic_worker_init;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&nb_mic_worker_init_mutex);
-
-	if (tmp == 0) {
-		struct _starpu_mic_kernel *kernel, *tmp;
-		HASH_ITER(hh, kernels, kernel, tmp)
-		{
-			HASH_DEL(kernels, kernel);
-			free(kernel);
-		}
+	struct _starpu_mic_kernel *kernel, *tmp;
+	HASH_ITER(hh, kernels, kernel, tmp)
+	{
+		HASH_DEL(kernels, kernel);
+		free(kernel);
 	}
 }
-#endif
 
 static int
 _starpu_mic_src_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker)
 {
-    uint32_t mask = 0;
-    int profiling = starpu_profiling_status_get();
-    struct timespec codelet_end;
+	uint32_t mask = 0;
+	int profiling = starpu_profiling_status_get();
+	struct timespec codelet_end;
 
-    _starpu_driver_end_job(worker, j, worker->perf_arch, &codelet_end, 0,
-			   profiling);
+	_starpu_driver_end_job(worker, j, worker->perf_arch, &codelet_end, 0,
+			       profiling);
 
-    _starpu_driver_update_job_feedback(j, worker, worker->perf_arch,
-				       &j->cl_start, &codelet_end,
-				       profiling);
+	_starpu_driver_update_job_feedback(j, worker, worker->perf_arch,
+					   &j->cl_start, &codelet_end,
+					   profiling);
 
-    _starpu_push_task_output (j, mask);
+	_starpu_push_task_output (j, mask);
 
-    _starpu_handle_job_termination(j);
+	_starpu_handle_job_termination(j);
 
-    return 0;
+	return 0;
 }
 
 static int
 _starpu_mic_src_process_completed_job (struct _starpu_worker_set *workerset)
 {
-    struct _starpu_mp_node *node = mic_nodes[workerset->workers[0].mp_nodeid];
-    enum _starpu_mp_command answer;
-    void *arg;
-    int arg_size;
+	struct _starpu_mp_node *node = mic_nodes[workerset->workers[0].mp_nodeid];
+	enum _starpu_mp_command answer;
+	void *arg;
+	int arg_size;
 
-    answer = _starpu_mp_common_recv_command (node, &arg, &arg_size);
-    STARPU_ASSERT (answer == STARPU_EXECUTION_COMPLETED);
+	answer = _starpu_mp_common_recv_command (node, &arg, &arg_size);
+	STARPU_ASSERT (answer == STARPU_EXECUTION_COMPLETED);
 
-    void *arg_ptr = arg;
-    int coreid;
+	void *arg_ptr = arg;
+	int coreid;
 
-    coreid = *(int *) arg_ptr;
-    arg_ptr += sizeof (coreid); // Useless.
+	coreid = *(int *) arg_ptr;
+	arg_ptr += sizeof (coreid); // Useless.
 
-    struct _starpu_worker *worker = &workerset->workers[coreid];
-    struct starpu_task *task = worker->current_task;
-    struct _starpu_job *j = _starpu_get_job_associated_to_task (task);
+	struct _starpu_worker *worker = &workerset->workers[coreid];
+	struct starpu_task *task = worker->current_task;
+	struct _starpu_job *j = _starpu_get_job_associated_to_task (task);
 
-    _starpu_mic_src_finalize_job (j, worker);
+	_starpu_mic_src_finalize_job (j, worker);
 
-    worker->current_task = NULL;
+	worker->current_task = NULL;
 
-    return 0;
+	return 0;
 }
 
 
@@ -383,16 +368,16 @@ starpu_mic_kernel_t _starpu_mic_src_get_kernel_from_codelet(struct starpu_codele
  */
 void _starpu_mic_src_init(struct _starpu_mp_node *node)
 {
-    /* Let's initialize the connection with the peered sink device */
-    _starpu_mic_common_connect(&node->mp_connection.mic_endpoint,
-					STARPU_TO_MIC_ID(node->peer_id),
-					STARPU_MIC_SINK_PORT_NUMBER(node->peer_id),
-					STARPU_MIC_SOURCE_PORT_NUMBER);
+	/* Let's initialize the connection with the peered sink device */
+	_starpu_mic_common_connect(&node->mp_connection.mic_endpoint,
+					    STARPU_TO_MIC_ID(node->peer_id),
+					    STARPU_MIC_SINK_PORT_NUMBER(node->peer_id),
+					    STARPU_MIC_SOURCE_PORT_NUMBER);
 
-    _starpu_mic_common_connect(&node->host_sink_dt_connection.mic_endpoint,
-			       STARPU_TO_MIC_ID(node->peer_id),
-			       STARPU_MIC_SINK_DT_PORT_NUMBER(node->peer_id),
-			       STARPU_MIC_SOURCE_DT_PORT_NUMBER);
+	_starpu_mic_common_connect(&node->host_sink_dt_connection.mic_endpoint,
+				   STARPU_TO_MIC_ID(node->peer_id),
+				   STARPU_MIC_SINK_DT_PORT_NUMBER(node->peer_id),
+				   STARPU_MIC_SOURCE_DT_PORT_NUMBER);
 }
 
 /* Deinitialize the MIC sink, close all the connections.
