@@ -1,6 +1,6 @@
-
 #include <limits.h>
-
+#include <string.h>
+#include <stdlib.h>
 struct _starpu_bitmap{
 	unsigned long * bits;
 	int size;
@@ -20,8 +20,8 @@ void _starpu_bitmap_destroy(struct _starpu_bitmap * b)
 
 
 struct tuple {
-	int nb_longs;
-	int nb_bits;
+	int nb_long;
+	int nb_bit;
 };
 
 static inline struct tuple get_tuple(int e)
@@ -41,23 +41,22 @@ void _starpu_bitmap_set(struct _starpu_bitmap * b, int e)
 		b->bits = realloc(b->bits, sizeof(unsigned long) * (t.nb_long + 1));
 		b->size = t.nb_long + 1;
 	}
-	b->bits[t.nb_long] |= (1ul << t.bn_bits);
+	b->bits[t.nb_long] |= (1ul << t.nb_bit);
 }
 void _starpu_bitmap_unset(struct _starpu_bitmap *b, int e)
 {
 	struct tuple t = get_tuple(e);
 	if(e / LONG_BIT > b->size)
 		return;
-	b->bits[t.nb_long] ^= ~(1ul << t.bn_bits);
+	b->bits[t.nb_long] ^= ~(1ul << t.nb_bit);
 }
 
 int _starpu_bitmap_get(struct _starpu_bitmap * b, int e)
 {
 	if(e / LONG_BIT > b->size)
 		return 0;
-	int i;
 	struct tuple t = get_tuple(e);
-	return b->bits[t.nb_longs] & (1 << t.nb_bits);
+	return b->bits[t.nb_long] & (1 << t.nb_bit);
 }
 
 
