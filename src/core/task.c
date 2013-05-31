@@ -119,6 +119,10 @@ void starpu_task_clean(struct starpu_task *task)
 		_starpu_job_destroy(j);
 		task->starpu_private = NULL;
 	}
+
+	/* Does user want StarPU release cl_arg ? */
+	if (task->cl_arg_free)
+		free(task->cl_arg);
 }
 
 struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
@@ -155,10 +159,6 @@ void _starpu_task_destroy(struct starpu_task *task)
 		starpu_task_clean(task);
 		/* TODO handle the case of task with detach = 1 and destroy = 1 */
 		/* TODO handle the case of non terminated tasks -> return -EINVAL */
-
-		/* Does user want StarPU release cl_arg ? */
-		if (task->cl_arg_free)
-			free(task->cl_arg);
 
 		free(task);
 	}

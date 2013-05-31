@@ -343,6 +343,7 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 	(*task)->cl = cl;
 	(*task)->cl_arg = arg_buffer;
 	(*task)->cl_arg_size = arg_buffer_size;
+	(*task)->cl_arg_free = 1;
 
 	/* The callback will free the argument stack and execute the
 	 * application's callback, if any. */
