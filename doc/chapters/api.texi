@@ -267,8 +267,8 @@ indicates that no worker was available (so that StarPU was not initialized).
 
 @deftypefun int starpu_initialize ({struct starpu_conf *}@var{conf}, int @var{argc}, {char ***}@var{argv})
 This is the same as @code{starpu_init}, but also takes the @code{argc} and
-@code{argv} as gotten by the application. This is needed for MIC and SCC
-execution so that instances of StarPU can know whether they are slaves or masters.
+@code{argv} as gotten by the application. This is needed for SCC
+execution to initialize the communication library.
 @end deftypefun
 
 @deftypefun int starpu_conf_init ({struct starpu_conf *}@var{conf})
