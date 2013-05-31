@@ -112,7 +112,12 @@ int main(int argc, char **argv)
 	int ret = starpu_init(NULL);
 
 	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/home/corentin/");
-	
+
+	unsigned dc = starpu_disk_register(&write_on_file, (void *) "/home/corentin/");
+
+
+	starpu_disk_free(dc);
+
 	starpu_disk_free(dd);
 
 	if (ret == -ENODEV) goto enodev;
