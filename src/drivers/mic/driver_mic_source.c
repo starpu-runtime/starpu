@@ -35,7 +35,6 @@
 struct _starpu_mp_node *mic_nodes[STARPU_MAXMICDEVS];
 
 static COIENGINE handles[STARPU_MAXMICDEVS];
-/* static COIPROCESS process[STARPU_MAXMICDEVS]; */
 
 /* Structure used by host to store informations about a kernel executable on
  * a MIC device : its name, and its address on each device.
@@ -94,63 +93,6 @@ const struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int m
 
 // Should be obsolete.
 #if 0
-static void _starpu_mic_src_init_context(int devid,
-					 struct starpu_conf *user_conf)
-{
-	COIRESULT res;
-	char mic_sink_program_path[1024];
-
-	char ***argv = _starpu_get_argv();
-	const char *suffixes[] = {"-mic", "_mic", NULL};
-
-	char devid_env[32];
-	sprintf(devid_env, "DEVID=%d", devid);
-
-	char nb_mic_env[32];
-	sprintf(nb_mic_env, "NB_MIC=%d", starpu_mic_worker_get_count());
-
-	/* Environment variables to send to the Sink, it informs it what kind
-	 * of node it is (architecture and type) as there is no way to discover
-	 * it itself */
-	const char *mic_sink_env[] = {"STARPU_SINK=STARPU_MIC", devid_env, nb_mic_env, NULL};
-
-	/* Let's get the helper program to run on the MIC device */
-	int mic_file_found = _starpu_src_common_locate_file(mic_sink_program_path,
-							getenv("STARPU_MIC_SINK_PROGRAM_NAME"),
-							getenv("STARPU_MIC_SINK_PROGRAM_PATH"),
-							(user_conf == NULL ? NULL : user_conf->mic_sink_program_path),
-							(argv ? (*argv)[0] : NULL),
-							suffixes);
-
-	STARPU_ASSERT(mic_file_found == 0);
-
-	/* Let's get the handle which let us manage the remote MIC device */
-	res = COIEngineGetHandle(COI_ISA_MIC, devid, &handles[devid]);
-	if (STARPU_UNLIKELY(res != COI_SUCCESS))
-		STARPU_MIC_SRC_REPORT_COI_ERROR(res);
-
-	/* We launch the helper on the MIC device, which will wait for us
-	 * to give it work to do.
-	 * As we will communicate further with the device throught scif we
-	 * don't need to keep the process pointer */
-	res = COIProcessCreateFromFile(handles[devid], mic_sink_program_path, 0, NULL, 0,
-				       mic_sink_env, 1, NULL, 0, NULL,
-				       &process[devid]);
-	if (STARPU_UNLIKELY(res != COI_SUCCESS))
-		STARPU_MIC_SRC_REPORT_COI_ERROR(res);
-
-	/* Let's create the node structure, we'll communicate with the peer
-	 * through scif thanks to it */
-	mic_nodes[devid] = _starpu_mp_common_node_create(STARPU_MIC_SOURCE,
-							   devid);
-
-
-	// XXX: this is not replicated in `_starpu_init_mic_node'.
-	STARPU_PTHREAD_MUTEX_LOCK(&nb_mic_worker_init_mutex);
-	++nb_mic_worker_init;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&nb_mic_worker_init_mutex);
-}
-
 static void _starpu_mic_src_free_kernel(void *kernel)
 {
 	struct _starpu_mic_kernel *k = kernel;
