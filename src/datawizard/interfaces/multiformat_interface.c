@@ -294,16 +294,26 @@ static starpu_ssize_t allocate_multiformat_buffer_on_node(void *data_interface_,
 		goto fail_opencl;
 	multiformat_interface->opencl_ptr = (void *) addr;
 #endif
+#ifdef STARPU_USE_MIC
+	size = multiformat_interface->nx * multiformat_interface->ops->mic_elemsize;
+	allocated_memory += size;
+	addr = starpu_malloc_on_node(dst_node, size);
+	if (!addr)
+		goto fail_mic;
+	multiformat_interface->mic_ptr = (void *) addr;
+#endif
 
 	return allocated_memory;
 
+#ifdef STARPU_USE_MIC
+fail_mic:
+#endif
 #ifdef STARPU_USE_OPENCL
+	starpu_free_on_node(dst_node, (uintptr_t) multiformat_interface->opencl_ptr, multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize);
 fail_opencl:
+#endif
 #ifdef STARPU_USE_CUDA
 	starpu_free_on_node(dst_node, (uintptr_t) multiformat_interface->cuda_ptr, multiformat_interface->nx * multiformat_interface->ops->cuda_elemsize);
-#endif
-#endif
-#ifdef STARPU_USE_CUDA
 fail_cuda:
 #endif
 	starpu_free_on_node(dst_node, (uintptr_t) multiformat_interface->cpu_ptr, multiformat_interface->nx * multiformat_interface->ops->cpu_elemsize);
@@ -328,6 +338,11 @@ static void free_multiformat_buffer_on_node(void *data_interface, unsigned node)
 	starpu_free_on_node(node, (uintptr_t) multiformat_interface->opencl_ptr,
 				   multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize);
 	multiformat_interface->opencl_ptr = NULL;
+#endif
+#ifdef STARPU_USE_MIC
+	starpu_free_on_node(node, (uintptr_t) multiformat_interface->mic_ptr,
+				   multiformat_interface->nx * multiformat_interface->ops->mic_elemsize);
+	multiformat_interface->mic_ptr = NULL;
 #endif
 }
 
