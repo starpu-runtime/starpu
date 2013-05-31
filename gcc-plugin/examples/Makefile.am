@@ -28,8 +28,8 @@ endif
 if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
-loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
-LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
+loader_CPPFLAGS		=	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+LOADER_BIN		=	$(abs_top_builddir)/gcc-plugin/examples/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 
 if STARPU_HAVE_AM111
@@ -54,7 +54,7 @@ examplebin_PROGRAMS =			\
 endif STARPU_USE_CPU
 
 AM_LDFLAGS = $(top_builddir)/src/@LIBSTARPU_LINK@
-AM_LDFLAGS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) 
+AM_LDFLAGS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
 
 AM_CPPFLAGS =						\
   -I$(top_srcdir)/include				\
@@ -65,7 +65,7 @@ AM_CFLAGS =							\
   -fplugin="$(builddir)/../src/.libs/starpu.so"			\
   -fplugin-arg-starpu-include-dir="$(top_srcdir)/include"	\
   -fplugin-arg-starpu-verbose					\
-  -Wall
+  -Wall $(HWLOC_CFLAGS)
 
 #noinst_HEADERS =				\
 #  cholesky/cholesky.h				\

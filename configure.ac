@@ -16,8 +16,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AC_INIT([StarPU], [1.2.0], [starpu-devel@lists.gforge.inria.fr],
-  [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
+AC_INIT([StarPU], [1.2.0], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://runtime.bordeaux.inria.fr/StarPU/])
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -26,6 +25,8 @@ dnl Versioning.
 STARPU_MAJOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 1`"
 STARPU_MINOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 2`"
 STARPU_RELEASE_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 3`"
+STARPU_RELEASE_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 3| sed 's/rc.*//'`"
+dnl we do not want the rcXX in the release version. we would like to use sed -r 's/[a-z]+.*//' to remove any string but the -r option is not portable
 AC_SUBST([STARPU_MAJOR_VERSION])
 AC_SUBST([STARPU_MINOR_VERSION])
 AC_SUBST([STARPU_RELEASE_VERSION])
@@ -800,7 +801,7 @@ if test x$disable_asynchronous_copy = xyes ; then
 fi
 
 AC_MSG_CHECKING(whether asynchronous CUDA copy should be disabled)
-AC_ARG_ENABLE(asynchronous-cudacopy, [AS_HELP_STRING([--disable-asynchronous-cuda-copy],
+AC_ARG_ENABLE(asynchronous-cuda-copy, [AS_HELP_STRING([--disable-asynchronous-cuda-copy],
 			[disable asynchronous copy between CPU and CUDA devices])],
 			enable_asynchronous_cuda_copy=$enableval, enable_asynchronous_cuda_copy=yes)
 disable_asynchronous_cuda_copy=no
@@ -813,7 +814,7 @@ if test x$disable_asynchronous_cuda_copy = xyes ; then
 fi
 
 AC_MSG_CHECKING(whether asynchronous OpenCL copy should be disabled)
-AC_ARG_ENABLE(asynchronous-openclcopy, [AS_HELP_STRING([--disable-asynchronous-opencl-copy],
+AC_ARG_ENABLE(asynchronous-opencl-copy, [AS_HELP_STRING([--disable-asynchronous-opencl-copy],
 			[disable asynchronous copy between CPU and OPENCL devices])],
 			enable_asynchronous_opencl_copy=$enableval, enable_asynchronous_opencl_copy=yes)
 disable_asynchronous_opencl_copy=no
@@ -1068,6 +1069,7 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
+# TODO: add option to choose maxnodes
 if test x$enable_simgrid = xyes ; then
 	# We still need the room for the virtual CUDA/OpenCL devices
 	maxnodes=16

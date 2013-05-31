@@ -98,7 +98,6 @@ int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, uns
 
 #define STARPU_MAIN_RAM 0
 
-<<<<<<< .courant
 enum starpu_node_kind
 {
 	STARPU_UNUSED     = 0x00,
@@ -113,21 +112,6 @@ unsigned starpu_memory_nodes_get_count(void);
 enum starpu_node_kind starpu_node_get_kind(unsigned node);
 
 
-=======
-enum starpu_node_kind
-{
-	STARPU_UNUSED     = 0x00,
-	STARPU_CPU_RAM    = 0x01,
-	STARPU_CUDA_RAM   = 0x02,
-	STARPU_OPENCL_RAM = 0x03
-};
-
-unsigned starpu_worker_get_memory_node(unsigned workerid);
-unsigned starpu_memory_nodes_get_count(void);
-enum starpu_node_kind starpu_node_get_kind(unsigned node);
-
-
->>>>>>> .fusion-droit.r9881
 /* It is possible to associate a mask to a piece of data (and its children) so
  * that when it is modified, it is automatically transfered into those memory
  * node. For instance a (1<<0) write-through mask means that the CUDA workers will

@@ -114,6 +114,9 @@ configuration}.
 $ ./configure
 @end example
 
+If @code{configure} does not detect some software or produces errors, please
+make sure to post the content of @code{config.log} when reporting the issue.
+
 By default, the files produced during the compilation are placed in
 the source directory. As the compilation generates a lot of files, it
 is advised to to put them all in a separate directory. It is then

@@ -155,6 +155,11 @@ void _starpu_task_destroy(struct starpu_task *task)
 		starpu_task_clean(task);
 		/* TODO handle the case of task with detach = 1 and destroy = 1 */
 		/* TODO handle the case of non terminated tasks -> return -EINVAL */
+
+		/* Does user want StarPU release cl_arg ? */
+		if (task->cl_arg_free)
+			free(task->cl_arg);
+
 		free(task);
 	}
 }
