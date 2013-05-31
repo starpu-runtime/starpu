@@ -148,6 +148,7 @@ int main(int argc, char **argv)
                 task->callback_func = NULL;
                 task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
                 task->cl_arg = &multiplier;
+                task->cl_arg_size = sizeof(multiplier);
 
                 ret = starpu_task_submit(task);
                 if (ret)
