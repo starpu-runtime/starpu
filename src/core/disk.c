@@ -33,7 +33,7 @@
 #include <common/uthash.h>
 
 #define SIZE	(1024*1024)
-#define NITER	128
+#define NITER	64
 
 
 struct disk_register {
@@ -64,8 +64,7 @@ starpu_disk_register(struct disk_ops * func, void *parameter)
 	/* remember it */
 	add_disk_in_list(memory_node,func,base);
 
-	//func->bandwidth(base,memory_node);
-	_starpu_save_bandwith_and_latency_disk(34,42,10,10, memory_node);
+	func->bandwidth(base,memory_node);
 	
 	return memory_node;
 }
@@ -311,7 +310,7 @@ get_stdio_bandwidth_between_disk_and_main_ram(void * base, unsigned node)
 {
 
 	unsigned iter;
-	double timing;
+	double timing_slowness, timing_latency;
 	struct timeval start;
 	struct timeval end;
 	
@@ -324,22 +323,21 @@ get_stdio_bandwidth_between_disk_and_main_ram(void * base, unsigned node)
 	void * mem = disk_register_list[pos]->functions->alloc(base, SIZE);
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) mem;
 
-	/* Measure upload bandwidth */
+	/* Measure upload slowness */
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; ++iter)
 	{
 		disk_register_list[pos]->functions->write(base, mem, buf, 0, SIZE);
 		/* clean cache memory */
 		int res = fflush (tmp->file);
-		STARPU_ASSERT_MSG(res == 0, "Bandwidth computation failed");
+		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed");
 
 		res = fsync(tmp->descriptor);
-		STARPU_ASSERT_MSG(res == 0, "Bandwidth computation failed");
+		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed");
 	}
 	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	timing_slowness = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	printf("\n upload: %f ", timing/NITER/SIZE);
 
 	/* free memory */
 	disk_register_list[pos]->functions->free(base, mem, SIZE);
@@ -357,18 +355,19 @@ get_stdio_bandwidth_between_disk_and_main_ram(void * base, unsigned node)
 		disk_register_list[pos]->functions->write(base, mem, buf, rand() % ((2*SIZE)-1) +1 , 1);
 
 		int res = fflush (tmp->file);
-		STARPU_ASSERT_MSG(res == 0, "Bandwidth computation failed");
+		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
 
 		res = fsync(tmp->descriptor);
-		STARPU_ASSERT_MSG(res == 0, "Bandwidth computation failed");
+		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
 	}
 	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-
-	printf("\n latency: %f \n\n", timing/NITER);
+	timing_latency = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
 	disk_register_list[pos]->functions->free(base, mem, SIZE);
 	free(buf);
+
+	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*1000000, (NITER/timing_slowness)*1000000,
+					       timing_latency/NITER, timing_latency/NITER, node);
 }
 
 
