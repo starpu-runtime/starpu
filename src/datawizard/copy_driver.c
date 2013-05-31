@@ -390,7 +390,9 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 
 int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data)
 {
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	struct _starpu_async_channel *async_channel = async_data;
+#endif
 	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 

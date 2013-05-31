@@ -2038,6 +2038,14 @@ this case, the argument given to the codelet is therefore not the
 This field is ignored for CPU, CUDA and OpenCL codelets, where the
 @code{cl_arg} pointer is given as such.
 
+@item @code{unsigned cl_arg_free} (optional)
+In case @code{cl_arg} was allocated by the application through @code{malloc},
+setting @code{cl_arg_free} to 1 makes StarPU automatically call
+@code{free(cl_arg)} when destroying the task. This saves the user from
+defining a callback just for that. This is mostly useful when targetting MIC or
+SCC, where the codelet does not execute in the same memory space as the main
+thread.
+
 @item @code{void (*callback_func)(void *)} (optional) (default: @code{NULL})
 This is a function pointer of prototype @code{void (*f)(void *)} which
 specifies a possible callback. If this pointer is non-null, the callback

@@ -29,7 +29,6 @@ struct insert_task_cb_wrapper
 {
 	_starpu_callback_func_t callback_func;
 	void *callback_arg;
-	void *arg_stack;
 };
 
 static
@@ -41,7 +40,6 @@ void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 	if (cl_arg_wrapper->callback_func)
 		cl_arg_wrapper->callback_func(cl_arg_wrapper->callback_arg);
 
-	// cl_arg_wrapper->arg_stack is freed by starpu_codelet_unpack_args()
 	free(cl_arg_wrapper);
 }
 
@@ -229,7 +227,6 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 	STARPU_ASSERT(cl_arg_wrapper);
 
 	cl_arg_wrapper->callback_func = NULL;
-	cl_arg_wrapper->arg_stack = arg_buffer;
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -358,7 +355,6 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 			(cl == NULL) ? "none" :
 			(*task)->cl->name ? (*task)->cl->name :
 			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
-		free(cl_arg_wrapper->arg_stack);
 		free(cl_arg_wrapper);
 	}
 

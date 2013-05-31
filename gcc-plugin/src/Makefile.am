@@ -40,7 +40,7 @@ AM_CPPFLAGS =						\
   -I$(top_srcdir)/gcc-plugin/include			\
   -I$(top_srcdir)/include				\
   -I$(GCC_PLUGIN_INCLUDE_DIR) -Wall -DYYERROR_VERBOSE=1	\
-  $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
+  $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(HWLOC_CFLAGS)
 
 AM_LDFLAGS = -module
 

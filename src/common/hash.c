@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2011  Université de Bordeaux 1
+ * Copyright (C) 2009-2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,7 +33,7 @@ static inline uint32_t __attribute__ ((pure)) starpu_crc32c_be_8(uint8_t inputby
 	return crc;
 }
 
-uint32_t starpu_hash_crc32c_be_n(void *input, size_t n, uint32_t inputcrc)
+uint32_t starpu_hash_crc32c_be_n(const void *input, size_t n, uint32_t inputcrc)
 {
 	uint8_t *p = (uint8_t *)input;
 	size_t i;
@@ -60,7 +60,7 @@ uint32_t starpu_hash_crc32c_be(uint32_t input, uint32_t inputcrc)
 	return crc;
 }
 
-uint32_t starpu_hash_crc32c_string(char *str, uint32_t inputcrc)
+uint32_t starpu_hash_crc32c_string(const char *str, uint32_t inputcrc)
 {
 	uint32_t hash = inputcrc;
 
