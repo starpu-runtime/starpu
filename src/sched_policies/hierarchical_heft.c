@@ -92,13 +92,13 @@ static void remove_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned 
 		struct _starpu_sched_node * node = _starpu_sched_tree_remove_worker(t, workerid, sched_ctx_id);
 		if(node)
 		{
-			if(_starpu_sched_node_is_fifo(node))
+			/*if(_starpu_sched_node_is_fifo(node))
 			{
 				STARPU_ASSERT(_starpu_sched_node_is_fifo(node));
 				struct starpu_task_list list = _starpu_sched_node_fifo_get_non_executable_tasks(node);
 				int res = _starpu_sched_node_push_tasks_to_firsts_suitable_parent(node, &list, sched_ctx_id);
 				STARPU_ASSERT(!res); (void) res;
-			}
+				}*/
 		}
 		_starpu_node_destroy_rec(node, sched_ctx_id);
 	}

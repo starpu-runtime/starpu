@@ -1,11 +1,11 @@
 #include "node_sched.h"
-#include "fifo_queues.h"
+#include "prio_deque.h"
 #include <starpu_scheduler.h>
 
 
 struct _starpu_fifo_data
 {
-	struct _starpu_fifo_taskq * fifo;
+	struct _starpu_prio_deque fifo;
 	starpu_pthread_mutex_t mutex;
 };
 
@@ -24,7 +24,7 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 	if(preds.state == PERF_MODEL)
 	{
 		struct _starpu_fifo_data * data = node->data;
-		struct _starpu_fifo_taskq * fifo = data->fifo;
+		struct _starpu_prio_deque * fifo = &data->fifo;
 		starpu_pthread_mutex_t * mutex = &data->mutex;
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
 		preds.expected_finish_time = _starpu_compute_expected_time(fifo->exp_start,
@@ -45,7 +45,7 @@ static double estimated_load(struct _starpu_sched_node * node)
 	for(i = 0; i < nworkers; i++)
 		relative_speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(node->workerids[i]));
 	relative_speedup /= nworkers;
-	struct _starpu_fifo_taskq * fifo = node->data;
+	struct _starpu_prio_deque * fifo = node->data;
 	STARPU_ASSERT(!_STARPU_IS_ZERO(relative_speedup));
 	double load = fifo->ntasks / relative_speedup; 
 	for(i = 0; i < node->nchilds; i++)
@@ -60,13 +60,13 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 {
 	STARPU_ASSERT(node->nworkers > 0);
 	struct _starpu_fifo_data * data = node->data;
-	struct _starpu_fifo_taskq * fifo = data->fifo;
+	struct _starpu_prio_deque * fifo = &data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
 	STARPU_ASSERT(!isnan(fifo->exp_end));
 	STARPU_ASSERT(!isnan(fifo->exp_len));
 	STARPU_ASSERT(!isnan(fifo->exp_start));
-	int ret = _starpu_fifo_push_sorted_task(fifo, task);
+	int ret = _starpu_prio_deque_push_task(fifo, task);
 	if(!isnan(task->predicted))
 	{
 		fifo->exp_len += task->predicted/node->nworkers;
@@ -84,13 +84,15 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned sched_ctx_id)
 {
 	struct _starpu_fifo_data * data = node->data;
-	struct _starpu_fifo_taskq * fifo = data->fifo;
+	struct _starpu_prio_deque * fifo = &data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
 	STARPU_ASSERT(!isnan(fifo->exp_end));
 	STARPU_ASSERT(!isnan(fifo->exp_len));
 	STARPU_ASSERT(!isnan(fifo->exp_start));
-	struct starpu_task * task  = _starpu_fifo_pop_task(fifo, starpu_worker_get_id());
+	struct starpu_task * task  = node->is_homogeneous ?
+		_starpu_prio_deque_pop_task(fifo):
+		_starpu_prio_deque_pop_task_for_worker(fifo, starpu_worker_get_id());
 	if(task)
 	{
 		fifo->exp_start = starpu_timing_now();
@@ -110,13 +112,13 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 		return father->pop_task(father,sched_ctx_id);
 	return NULL;
 }
-
+/*
 struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct _starpu_sched_node * node)
 {
 	struct starpu_task_list list;
 	starpu_task_list_init(&list);
 	struct _starpu_fifo_data * data = node->data;
-	struct _starpu_fifo_taskq * fifo = data->fifo;
+	struct _starpu_prio_deque * fifo = data->fifo;
 	struct starpu_task * task;
 	for (task  = starpu_task_list_begin(&fifo->taskq);
 	     task != starpu_task_list_end(&fifo->taskq);
@@ -132,7 +134,7 @@ struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct
 	}
 	return list;
 }
-
+*/
 int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node)
 {
 	return node->estimated_execute_preds == estimated_execute_preds
@@ -145,7 +147,7 @@ struct _starpu_sched_node * _starpu_sched_node_fifo_create(void)
 {
 	struct _starpu_sched_node * node = _starpu_sched_node_create();
 	struct _starpu_fifo_data * data = malloc(sizeof(*data));
-	data->fifo = _starpu_create_fifo();
+	_starpu_prio_deque_init(&data->fifo);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	node->data = data;
 	node->estimated_execute_preds = estimated_execute_preds;

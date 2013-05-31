@@ -3,10 +3,13 @@
 #include <float.h>
 
 static struct _starpu_sched_node * _worker_nodes[STARPU_NMAXWORKERS];
-static struct _starpu_sched_node  * _starpu_sched_node_worker_create(int workerid);
+
+static struct _starpu_sched_node * _starpu_sched_node_worker_create(int workerid);
+
 struct _starpu_sched_node * _starpu_sched_node_worker_get(int workerid)
 {
 	STARPU_ASSERT(workerid >= 0 && workerid < STARPU_NMAXWORKERS);
+	/* we may need to take a mutex here */
 	if(_worker_nodes[workerid])
 		return _worker_nodes[workerid];
 	else
@@ -21,12 +24,6 @@ int _starpu_sched_node_worker_push_task(struct _starpu_sched_node * node, struct
 	
 	int ret = _starpu_push_local_task(node->data, task, task->priority);
 	return ret;
-/*	STARPU_PTHREAD_MUTEX_LOCK(&node->mutex);
-	int ret_val = _starpu_fifo_push_sorted_task(node->fifo, task);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&node->mutex);
-	node->available(node);
-	return ret_val;
-*/
 }
 
 struct starpu_task * _starpu_sched_node_worker_pop_task(struct _starpu_sched_node *node,unsigned sched_ctx_id)
@@ -34,8 +31,10 @@ struct starpu_task * _starpu_sched_node_worker_pop_task(struct _starpu_sched_nod
 	struct _starpu_sched_node *father = node->fathers[sched_ctx_id];
 	if(father == NULL)
 		return NULL;
-	else
-		return father->pop_task(father,sched_ctx_id);
+	struct starpu_task * task = father->pop_task(father,sched_ctx_id);
+	if(task)
+		starpu_push_task_end(task);
+	return task;
 }
 void _starpu_sched_node_worker_destroy(struct _starpu_sched_node *node)
 {

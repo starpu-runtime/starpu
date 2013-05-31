@@ -108,7 +108,7 @@ int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_no
 
 struct _starpu_sched_node * _starpu_sched_node_fifo_create(void);
 int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node);
-struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct _starpu_sched_node * fifo_node);
+//struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct _starpu_sched_node * fifo_node);
 
 /* struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void); */
 int _starpu_sched_node_is_work_stealing(struct _starpu_sched_node * node);

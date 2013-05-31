@@ -120,7 +120,8 @@ noinst_HEADERS = 						\
 	top/starpu_top_message_queue.h				\
 	top/starpu_top_connection.h				\
 	top/starpu_top_core.h					\
-	sched_policies/node_sched.h
+	sched_policies/node_sched.h				\
+	sched_policies/prio_deque.h
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	common/barrier.c					\
@@ -228,7 +229,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	sched_policies/node_work_stealing.c			\
 	sched_policies/node_fifo.c 				\
 	sched_policies/node_heft.c				\
-	sched_policies/hierarchical_heft.c
+	sched_policies/hierarchical_heft.c			\
+	sched_policies/prio_deque.c
 if STARPU_USE_CPU
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
 endif
