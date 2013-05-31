@@ -56,6 +56,12 @@ static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 	}
 
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+
+#ifdef STARPU_DEVEL
+#warning MIC does not support restart yet
+#endif
+	if (starpu_worker_get_type(STARPU_MIC_WORKER)) return STARPU_TEST_SKIPPED;
+
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	*cpu = starpu_cpu_worker_get_count();

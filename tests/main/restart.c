@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -48,6 +48,12 @@ int main(int argc, char **argv)
 		ret = starpu_initialize(NULL, &argc, &argv);
 		gettimeofday(&end, NULL);
 		if (ret == -ENODEV)
+			goto enodev;
+
+		if (starpu_worker_get_type(STARPU_MIC_WORKER))
+#ifdef STARPU_DEVEL
+#warning MIC does not support restart yet
+#endif
 			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 		init_timing += (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
