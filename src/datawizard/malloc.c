@@ -406,6 +406,12 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 #endif
 			}
 #endif
+	        case STARPU_DISK_RAM:
+		{
+			addr = (uintptr_t) starpu_disk_alloc(dst_node, size);
+			break;
+		}
+			
 		default:
 			STARPU_ABORT();
 	}
@@ -461,6 +467,12 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
                         break;
 		}
 #endif
+	        case STARPU_DISK_RAM:
+		{
+			starpu_disk_free (dst_node, (void *) addr , size);
+			break;
+		}
+
 		default:
 			STARPU_ABORT();
 	}

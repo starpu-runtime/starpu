@@ -25,6 +25,7 @@
 #include <core/workers.h>
 #include <core/debug.h>
 #include <core/perfmodel/perfmodel.h>
+#include <datawizard/memory_manager.h>
 
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
@@ -43,6 +44,7 @@ struct disk_register {
 };
 
 static void add_disk_in_list(unsigned node, struct disk_ops * func, void * base);
+static int get_location_with_node(unsigned node);
 
 static struct disk_register ** disk_register_list = NULL;
 static int disk_number = -1;
@@ -50,7 +52,7 @@ static int size_register_list = 2;
 
 
 unsigned
-starpu_disk_register(struct disk_ops * func, void *parameter)
+starpu_disk_register(struct disk_ops * func, void *parameter, size_t size)
 {
 	/* register disk */
 	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
@@ -65,13 +67,13 @@ starpu_disk_register(struct disk_ops * func, void *parameter)
 	add_disk_in_list(memory_node,func,base);
 
 	func->bandwidth(base,memory_node);
-	
+	_starpu_memory_manager_set_global_memory_size(memory_node, size);
 	return memory_node;
 }
 
 
 void
-starpu_disk_free(unsigned node)
+starpu_disk_unregister(unsigned node)
 {
 	bool find = false;
 	int i;
@@ -91,17 +93,33 @@ starpu_disk_free(unsigned node)
 	}
 	
 	/* no disk in the list -> delete the list */
-	if (find)
-	{
-		disk_number--;
+	STARPU_ASSERT_MSG(find, "Disk node not found !(%u) ", node);
+	disk_number--;
 
-		if (disk_register_list != NULL && disk_number == -1)
-		{
-			free(disk_register_list);
-			disk_register_list = NULL;
-		}
+	if (disk_register_list != NULL && disk_number == -1)
+	{
+		free(disk_register_list);
+		disk_register_list = NULL;
 	}
 }
+
+
+/* interface between user and disk memory */
+
+void *  
+starpu_disk_alloc (unsigned node, size_t size)
+{
+	int pos = get_location_with_node(node);
+	return disk_register_list[pos]->functions->alloc(disk_register_list[pos]->base, size);
+}
+
+void
+starpu_disk_free (unsigned node, void *obj, size_t size)
+{
+	int pos = get_location_with_node(node);
+	disk_register_list[pos]->functions->free(disk_register_list[pos]->base, obj, size);
+}
+
 
 
 static void 
@@ -144,6 +162,7 @@ get_location_with_node(unsigned node)
 	for(i = 0; i <= disk_number; ++i)
 		if (disk_register_list[i]->node == node)
 			return i;
+	STARPU_ASSERT_MSG(false, "Disk node not found !(%u) ", node);
 	return -1;
 }
 

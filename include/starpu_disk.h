@@ -31,17 +31,23 @@ struct disk_ops {
 	/* readv, writev, read2d, write2d, etc. */
 	 void *  (*plug)   (void *parameter);
 	 void    (*unplug) (void *base);
-	void    (*bandwidth) (void *base, unsigned node);
+	 void    (*bandwidth) (void *base, unsigned node);
 };
 
 
 /* Posix functions to use disk memory */
 extern struct disk_ops write_on_file;
 
-unsigned
-starpu_disk_register(struct disk_ops * func, void *parameter);
 
-void
-starpu_disk_free(unsigned node);
+/* interface to create and to free a memory disk */
+unsigned starpu_disk_register(struct disk_ops * func, void *parameter, size_t size);
+
+void starpu_disk_unregister(unsigned node);
+
+
+/* interface to manipulate memory disk */
+void * starpu_disk_alloc (unsigned node, size_t size);
+
+void starpu_disk_free (unsigned node, void *obj, size_t size);
 
 #endif /* __STARPU_DISK_H__ */
