@@ -682,9 +682,15 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
 	double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
 	double local_power[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
+
+	/* Expected end of this task on the workers */
 	double exp_end[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
-	double max_exp_end = 0.0;
+
+	/* This is the minimum among the exp_end[] matrix */
 	double best_exp_end;
+
+	/* This is the maximum termination time of already-scheduled tasks over all workers */
+	double max_exp_end = 0.0;
 
 	double fitness[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 

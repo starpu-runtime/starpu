@@ -826,7 +826,7 @@ if test x$disable_asynchronous_copy = xyes ; then
 fi
 
 AC_MSG_CHECKING(whether asynchronous CUDA copy should be disabled)
-AC_ARG_ENABLE(asynchronous-cudacopy, [AS_HELP_STRING([--disable-asynchronous-cuda-copy],
+AC_ARG_ENABLE(asynchronous-cuda-copy, [AS_HELP_STRING([--disable-asynchronous-cuda-copy],
 			[disable asynchronous copy between CPU and CUDA devices])],
 			enable_asynchronous_cuda_copy=$enableval, enable_asynchronous_cuda_copy=yes)
 disable_asynchronous_cuda_copy=no
@@ -839,7 +839,7 @@ if test x$disable_asynchronous_cuda_copy = xyes ; then
 fi
 
 AC_MSG_CHECKING(whether asynchronous OpenCL copy should be disabled)
-AC_ARG_ENABLE(asynchronous-openclcopy, [AS_HELP_STRING([--disable-asynchronous-opencl-copy],
+AC_ARG_ENABLE(asynchronous-opencl-copy, [AS_HELP_STRING([--disable-asynchronous-opencl-copy],
 			[disable asynchronous copy between CPU and OPENCL devices])],
 			enable_asynchronous_opencl_copy=$enableval, enable_asynchronous_opencl_copy=yes)
 disable_asynchronous_opencl_copy=no
@@ -1353,6 +1353,7 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
+# TODO: add option to choose maxnodes
 if test x$enable_simgrid = xyes ; then
 	# We still need the room for the virtual CUDA/OpenCL devices
 	maxnodes=16
