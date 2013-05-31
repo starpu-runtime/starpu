@@ -17,7 +17,9 @@
 
 #include <dlfcn.h>
 
+#ifdef STARPU_USE_MIC
 #include <common/COISysInfo_common.h>
+#endif
 
 #include <starpu.h>
 #include <common/config.h>
@@ -51,11 +53,13 @@ void
 _starpu_sink_nbcores (const struct _starpu_mp_node *node)
 {
     // Process packet received from `_starpu_src_common_sink_cores'.
+    int nbcores = 1;
 
-    // I currently only support MIC for now.
-    int nbcores = 0;
+#ifdef STARPU_USE_MIC
+    // XXX I currently only support MIC for now.
     if (STARPU_MIC_SINK == _starpu_sink_common_get_kind ())
 	nbcores = COISysGetCoreCount();
+#endif
 
     _starpu_mp_common_send_command (node, STARPU_ANSWER_SINK_NBCORES,
 				    &nbcores, sizeof (int));

@@ -240,9 +240,9 @@ int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char
 	for (i = 0; i < nb_mic_devices; ++i)
 		kernel->func[i] = NULL;
 
-	*symbol = kernel;
-
 	STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
+
+	*symbol = kernel;
 
 	return 0;
 }

@@ -328,7 +328,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 	if (_starpu_can_submit_scc_task())
 	{
 #ifdef STARPU_USE_SCC
-		_starpu_scc_free_shared_memory(A, dim);
+		_starpu_scc_free_shared_memory(A);
 #endif
 	} else
 	free(A);
@@ -493,7 +493,7 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 #endif
 #ifdef STARPU_USE_SCC
 		case STARPU_SCC_RAM:
-			_starpu_scc_free_memory((void *) addr, size, dst_node);
+			_starpu_scc_free_memory((void *) addr, dst_node);
 			break;
 #endif
 		default:

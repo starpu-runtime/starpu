@@ -274,6 +274,7 @@ static void _starpu_initialize_workers_mic_deviceid(struct _starpu_machine_confi
 		? NULL
 		: (int *)config->user_conf->workers_mic_deviceid,
 		&(config->current_mic_deviceid),
+		(int *)topology->workers_mic_deviceid,
 		"STARPU_WORKERS_MICID",
 		topology->nhwmiccores);
 }
@@ -291,6 +292,7 @@ static void _starpu_initialize_workers_scc_deviceid(struct _starpu_machine_confi
 		? NULL
 		: (int *) uconf->workers_scc_deviceid,
 		&(config->current_scc_deviceid),
+		(int *)topology->workers_scc_deviceid,
 		"STARPU_WORKERS_SCCID",
 		topology->nhwscc);
 }
@@ -631,8 +633,10 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	for (miccore_id = 0; miccore_id < topology->nmiccores[mic_idx]; miccore_id++)
 	{
 		int worker_idx = topology->nworkers + miccore_id;
+		enum starpu_perfmodel_archtype arch =
+			(enum starpu_perfmodel_archtype)((int)STARPU_MIC_DEFAULT + devid);
 		config->workers[worker_idx].arch = STARPU_MIC_WORKER;
-		config->workers[worker_idx].perf_arch = STARPU_MIC_DEFAULT;
+		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].mp_nodeid = mic_idx;
 		config->workers[worker_idx].devid = miccore_id;
 		config->workers[worker_idx].worker_mask = STARPU_MIC;
@@ -907,7 +911,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	{
 		config->workers[topology->nworkers + sccdev].arch = STARPU_SCC_WORKER;
 		int devid = _starpu_get_next_scc_deviceid(config);
-		enum starpu_perf_archtype arch = (enum starpu_perf_archtype)((int)STARPU_SCC_DEFAULT + devid);
+		enum starpu_perfmodel_archtype arch = (enum starpu_perfmodel_archtype)((int)STARPU_SCC_DEFAULT + devid);
 		config->workers[topology->nworkers + sccdev].mp_nodeid = -1;
 		config->workers[topology->nworkers + sccdev].devid = devid;
 		config->workers[topology->nworkers + sccdev].perf_arch = arch;
@@ -1244,12 +1248,12 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 			case STARPU_SCC_WORKER:
 			{
 				/* Node 0 represents the SCC shared memory when we're on SCC. */
-				struct _starpu_mem_node_descr *descr = _starpu_get_memory_node_description();
+				struct _starpu_memory_node_descr *descr = _starpu_memory_node_get_description();
 				descr->nodes[ram_memory_node] = STARPU_SCC_SHM;
 
 				is_a_set_of_accelerators = 0;
 				memory_node = ram_memory_node;
-				_starpu_memory_add_nworkers(memory_node);
+				_starpu_memory_node_add_nworkers(memory_node);
 			}
 				break;
 #endif

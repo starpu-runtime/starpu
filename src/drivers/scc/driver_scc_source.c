@@ -19,6 +19,7 @@
 #include <starpu_profiling.h>
 #include <core/sched_policy.h>
 #include <core/task.h>
+#include <common/uthash.h>
 
 #include <RCCE.h>
 
@@ -31,16 +32,16 @@ static struct _starpu_mp_node *scc_mp_nodes[STARPU_MAXSCCDEVS];
 
 struct _starpu_scc_kernel
 {
+	UT_hash_handle hh;
 	char *name;
 	starpu_scc_kernel_t func[STARPU_MAXSCCDEVS];
-};
+} *kernels;
 
-static struct _starpu_htbl kernels_htbl;
 starpu_pthread_mutex_t htbl_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 static struct _starpu_mp_node *_starpu_scc_src_memory_node_to_mp_node(unsigned memory_node)
 {
-	int devid = _starpu_memory_node_to_devid(memory_node);
+	int devid = _starpu_memory_node_get_devid(memory_node);
 
 	STARPU_ASSERT(devid < STARPU_MAXSCCDEVS);
 	return scc_mp_nodes[devid];
@@ -120,7 +121,7 @@ static int _starpu_scc_src_execute_job(struct _starpu_job *j, struct _starpu_wor
 
 	_starpu_driver_start_job(args, j, &codelet_start, 0, profiling);
 
-	_starpu_src_common_execute_kernel_from_task(scc_mp_nodes[args->devid], (void (*)(void)) kernel, task);
+	_starpu_src_common_execute_kernel_from_task(scc_mp_nodes[args->devid], (void (*)(void)) kernel, 0, task);
 
 	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0, profiling);
 
@@ -143,7 +144,9 @@ int _starpu_scc_src_register_kernel(starpu_scc_func_symbol_t *symbol, const char
 	unsigned int func_name_size = (strlen(func_name) + 1) * sizeof(char);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&htbl_mutex);
-	struct _starpu_scc_kernel *kernel = _starpu_htbl_search(&kernels_htbl, func_name, func_name_size);
+	struct _starpu_scc_kernel *kernel;
+
+	HASH_FIND_STR(kernels, func_name, kernel);
 
 	if (kernel != NULL)
 	{
@@ -168,21 +171,16 @@ int _starpu_scc_src_register_kernel(starpu_scc_func_symbol_t *symbol, const char
 		return -ENOMEM;
 	}
 
-	int ret = _starpu_htbl_insert(&kernels_htbl, func_name, func_name_size, kernel);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
-	if (ret != 0)
-	{
-		free(kernel->name);
-		free(kernel);
-		return -ENOMEM;
-	}
-
 	memcpy(kernel->name, func_name, func_name_size);
+
+	HASH_ADD_STR(kernels, name, kernel);
 
 	unsigned int nb_scc_devices = starpu_scc_worker_get_count();
 	unsigned int i;
 	for (i = 0; i < nb_scc_devices; ++i)
 		kernel->func[i] = NULL;
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
 
 	*symbol = kernel;
 
@@ -326,9 +324,10 @@ void *_starpu_scc_src_worker(void *arg)
 
 	int devid = args->devid;
 	int workerid = args->workerid;
+	struct _starpu_machine_config *config = args->config;
 	unsigned memnode = args->memory_node;
-	unsigned baseworkerid = baseworker - config->workers;
-	unsigned mp_nodeid = baseworker->mp_nodeid;
+	unsigned baseworkerid = args - config->workers;
+	unsigned mp_nodeid = args->mp_nodeid;
 	unsigned i;
 
 	_starpu_worker_init(args, _STARPU_FUT_SCC_KEY);
