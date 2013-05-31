@@ -112,7 +112,6 @@ unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 	/* ATOMIC_ADD returns the new value ... */
 	node = STARPU_ATOMIC_ADD(&descr.nnodes, 1) - 1;
 	STARPU_ASSERT_MSG(node < STARPU_MAXNODES,"Too many nodes (%u)!", node);
-	STARPU_ASSERT_MSG(nnodes < STARPU_MAXNODES,"Too many nodes !");
 
 	descr.nodes[node] = kind;
 	_STARPU_TRACE_NEW_MEM_NODE(node);
@@ -123,7 +122,6 @@ unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 	descr.condition_count[node] = 0;
 
 	return node;
-
 }
 
 #ifdef STARPU_SIMGRID
