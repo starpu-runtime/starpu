@@ -852,9 +852,9 @@ if test x$disable_asynchronous_opencl_copy = xyes ; then
 fi
 
 AC_MSG_CHECKING(whether asynchronous MIC copy should be disabled)
-AC_ARG_ENABLE(asynchronous-miccopy, [AS_HELP_STRING([--enable-asynchronous-mic-copy],
-			[enable asynchronous copy between CPU and MIC devices])],
-			enable_asynchronous_mic_copy=$enableval, enable_asynchronous_mic_copy=no)
+AC_ARG_ENABLE(asynchronous-mic-copy, [AS_HELP_STRING([--disable-asynchronous-mic-copy],
+			[disable asynchronous copy between CPU and MIC devices])],
+			enable_asynchronous_mic_copy=$enableval, enable_asynchronous_mic_copy=yes)
 disable_asynchronous_mic_copy=no
 if test x$enable_asynchronous_mic_copy = xno ; then
    disable_asynchronous_mic_copy=yes
