@@ -26,6 +26,7 @@
 
 #define STARPU_TO_MIC_ID(id) ((id) + 1)
 
+/* TODO: rather allocate ports on the host and pass them as parameters to the device process */
 #define STARPU_MIC_PORTS_BEGIN 1099
 
 #define STARPU_MIC_SOURCE_PORT_NUMBER STARPU_MIC_PORTS_BEGIN
