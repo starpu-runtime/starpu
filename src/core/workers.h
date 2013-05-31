@@ -138,7 +138,7 @@ struct _starpu_worker_set
         starpu_pthread_mutex_t mutex;
 	starpu_pthread_t worker_thread; /* the thread which runs the worker */
 	unsigned nworkers;
-	unsigned joined; /* only one thread may call pthread_join*/
+	unsigned started; /* Only one thread for the whole set */
 	void *retval;
 	struct _starpu_worker *workers;
         starpu_pthread_cond_t ready_cond; /* indicate when the set is ready */

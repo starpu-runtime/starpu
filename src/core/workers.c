@@ -317,7 +317,6 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
  */
 
 #ifdef STARPU_USE_MIC
-static unsigned mic_initiated[STARPU_MAXMICDEVS];
 static struct _starpu_worker_set mic_worker_set[STARPU_MAXMICDEVS];
 #endif
 
@@ -581,7 +580,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				 * which consists in spawning only one thread
 				 * per MIC device, which will control all MIC
 				 * workers of this device. (by using a worker set). */
-				if (mic_initiated[mp_nodeid])
+				if (mic_worker_set[mp_nodeid].started)
 					goto worker_set_initialized;
 
 				mic_worker_set[mp_nodeid].nworkers = pconfig->topology.nmiccores[mp_nodeid];
@@ -613,11 +612,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 								  &mic_worker_set[mp_nodeid].mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&mic_worker_set[mp_nodeid].mutex);
 
-				mic_initiated[mp_nodeid] = 1;
-
 		worker_set_initialized:
 				workerarg->set = &mic_worker_set[mp_nodeid];
-				mic_worker_set[mp_nodeid].joined = 0;
+				mic_worker_set[mp_nodeid].started = 1;
 
 #ifdef STARPU_USE_FXT
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
@@ -632,7 +629,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_SCC_WORKER:
 				workerarg->worker_is_initialized = 0;
 				STARPU_PTHREAD_CREATE_ON(
-						workerarg->name
+						workerarg->name,
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_scc_src_worker,
@@ -1061,7 +1058,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
  		 * we have to check if pthread_self() is the worker itself */
 		if (set)
 		{
-			if (!set->joined)
+			if (set->started)
 			{
 #ifdef STARPU_SIMGRID
 				status = starpu_pthread_join(set->worker_thread, NULL);
@@ -1075,8 +1072,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 					_STARPU_DEBUG("starpu_pthread_join -> %d\n", status);
 				}
 #endif
-				set->joined = 1;
-				mic_initiated[worker->mp_nodeid] = 0;
+				set->started = 0;
 			}
 		}
 		else
