@@ -370,7 +370,8 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	/* Parsing MIC devs */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &narchs);
-	STARPU_ASSERT(ret == 1);
+	if (ret == 0)
+		narchs = 0;
 
 	archmin += STARPU_MAXOPENCLDEVS;
 	_STARPU_DEBUG("Parsing %u MIC devices\n", narchs);

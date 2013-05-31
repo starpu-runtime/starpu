@@ -1553,7 +1553,8 @@ static void check_bus_config_file(void)
 		STARPU_ASSERT(ret == 1);
                 _starpu_drop_comments(f);
 		ret = fscanf(f, "%d\t", &read_mic);
-		STARPU_ASSERT(ret == 1);
+		if (ret == 0)
+			read_mic = 0;
                 _starpu_drop_comments(f);
                 fclose(f);
 
