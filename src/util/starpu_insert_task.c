@@ -60,6 +60,7 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 	}
 
 	va_end(varg_list);
+	free(cl_arg);
 }
 
 int starpu_insert_task(struct starpu_codelet *cl, ...)
@@ -79,7 +80,6 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 	}
 
 	struct starpu_task *task = starpu_task_create();
-	task->cl_arg_free = 1;
 
 	if (cl && cl->nbuffers > STARPU_NMAXBUFS)
 	{
