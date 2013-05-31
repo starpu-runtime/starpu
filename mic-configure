@@ -8,9 +8,11 @@ DEFAULT_PREFIX=/usr/local
 
 export PATH=${MIC_CC_PATH}${PATH:+:${PATH}}
 
-echo "This file was created by StarPU super-configure 0.0.1." > ./super-config.log
-echo "" >> ./super-config.log
-echo " $ $0 $*" >> ./super-config.log
+cat > ./mic-config.log << EOF
+This file was created by StarPU mic-configure
+
+ $ $0 $*
+EOF
 
 for arch in mic host
 do
