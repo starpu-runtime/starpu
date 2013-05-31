@@ -462,6 +462,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		workerarg->run_by_starpu = 1;
 		workerarg->worker_is_running = 0;
 		workerarg->worker_is_initialized = 0;
+		workerarg->set = NULL;
 
 		int ctx;
 		for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
@@ -494,7 +495,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		{
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 			case STARPU_CPU_WORKER:
-				workerarg->set = NULL;
 				driver.id.cpu_id = cpu;
 				if (_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
@@ -526,7 +526,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
-				workerarg->set = NULL;
 				driver.id.cuda_id = cuda;
 				if (_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
@@ -561,7 +560,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					break;
 				}
 #endif
-				workerarg->set = NULL;
 				STARPU_PTHREAD_CREATE_ON(
 					workerarg->name,
 					&workerarg->worker_thread,
@@ -632,7 +630,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif /* STARPU_USE_MIC */
 #ifdef STARPU_USE_SCC
 			case STARPU_SCC_WORKER:
-				workerarg->set = NULL;
 				workerarg->worker_is_initialized = 0;
 				STARPU_PTHREAD_CREATE_ON(
 						workerarg->name
@@ -1079,6 +1076,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 				}
 #endif
 				set->joined = 1;
+				mic_initiated[worker->mp_nodeid] = 0;
 			}
 		}
 		else
