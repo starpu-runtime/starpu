@@ -74,23 +74,29 @@
 	DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_SPIN_INIT_OR_UNLOCK_POST, \
 			struct _starpu_spinlock *, lock)
 
+#if defined(__KNC__) || defined(__KNF__)
+#define STARPU_DEBUG_PREFIX "[starpu-mic]"
+#else
+#define STARPU_DEBUG_PREFIX "[starpu]"
+#endif
+
 #ifdef STARPU_VERBOSE
-#  define _STARPU_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,##args); fflush(stderr); }} while(0)
+#  define _STARPU_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%s] " fmt ,__starpu_func__ ,##args); fflush(stderr); }} while(0)
 #else
 #  define _STARPU_DEBUG(fmt, args ...) do { } while (0)
 #endif
 
 #ifdef STARPU_VERBOSE0
-#  define _STARPU_LOG_IN()             do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] -->\n", pthread_self(), __starpu_func__ ); }} while(0)
-#  define _STARPU_LOG_OUT()            do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] <--\n", pthread_self(), __starpu_func__ ); }} while(0)
-#  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%ld][%s] <-- (%s)\n", pthread_self(), __starpu_func__, outtag); }} while(0)
+#  define _STARPU_LOG_IN()             do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s] -->\n", pthread_self(), __starpu_func__ ); }} while(0)
+#  define _STARPU_LOG_OUT()            do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s] <--\n", pthread_self(), __starpu_func__ ); }} while(0)
+#  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s] <-- (%s)\n", pthread_self(), __starpu_func__, outtag); }} while(0)
 #else
 #  define _STARPU_LOG_IN()
 #  define _STARPU_LOG_OUT()
 #  define _STARPU_LOG_OUT_TAG(outtag)
 #endif
 
-#define _STARPU_DISP(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,##args); }} while(0)
+#define _STARPU_DISP(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%s] " fmt ,__starpu_func__ ,##args); }} while(0)
 #define _STARPU_ERROR(fmt, args ...)                                                  \
 	do {                                                                          \
                 fprintf(stderr, "\n\n[starpu][%s] Error: " fmt ,__starpu_func__ ,##args);    \

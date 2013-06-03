@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -52,7 +52,7 @@ void parse_args(int argc, char **argv)
 #define FRAMESIZE	sizeof(struct yuv_frame)
 #define NEW_FRAMESIZE	sizeof(struct yuv_new_frame)
 
-static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
+void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 {
 	uint8_t *input = (uint8_t *)STARPU_MATRIX_GET_PTR(descr[0]);
 	const unsigned input_ld = STARPU_MATRIX_GET_LD(descr[0]);
@@ -86,6 +86,7 @@ static void ds_kernel_cpu(void *descr[], __attribute__((unused)) void *arg)
 static struct starpu_codelet ds_codelet =
 {
 	.cpu_funcs = {ds_kernel_cpu, NULL},
+	.cpu_funcs_name = {"ds_kernel_cpu", NULL},
 	.nbuffers = 2, /* input -> output */
 	.modes = {STARPU_R, STARPU_W},
 	.model = NULL

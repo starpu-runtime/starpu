@@ -34,7 +34,7 @@ float *buffer;
 
 starpu_data_handle_t v_handle;
 
-static void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void dummy_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 {
 }
 
@@ -48,6 +48,7 @@ static struct starpu_codelet cl =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {dummy_codelet, NULL},
 #endif
+	.cpu_funcs_name = {"dummy_codelet", NULL},
 	.nbuffers = 1
 };
 
@@ -67,7 +68,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

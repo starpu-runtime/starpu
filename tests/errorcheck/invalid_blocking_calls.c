@@ -22,9 +22,9 @@
 #define TAG	0x42
 
 static starpu_data_handle_t handle;
-static unsigned data = 42;
+static unsigned *data;
 
-static void wrong_func(void *descr[], void *arg)
+void wrong_func(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -47,6 +47,7 @@ static struct starpu_codelet wrong_codelet =
 	.cpu_funcs = {wrong_func, NULL},
 	.cuda_funcs = {wrong_func, NULL},
         .opencl_funcs = {wrong_func, NULL},
+	.cpu_funcs_name = {"wrong_func", NULL},
 	.model = NULL,
 	.nbuffers = 0
 };
@@ -68,12 +69,15 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	starpu_malloc((void**)&data, sizeof(*data));
+	*data = 42;
+
 	/* register a piece of data */
-	starpu_vector_data_register(&handle, 0, (uintptr_t)&data,
+	starpu_vector_data_register(&handle, 0, (uintptr_t)data,
 						1, sizeof(unsigned));
 
 	struct starpu_task *task = starpu_task_create();
@@ -105,6 +109,9 @@ int main(int argc, char **argv)
 	ret = starpu_task_wait(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 	starpu_data_unregister(handle);
+
+	starpu_free(data);
+
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;

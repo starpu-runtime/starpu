@@ -27,6 +27,7 @@ struct starpu_codelet mycodelet =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = { scal_func_cuda, NULL },
 #endif
+	.cpu_funcs_name = {"scal_func_cpu", NULL},
 	.modes = { STARPU_W },
         .model = NULL,
         .nbuffers = 1
@@ -40,7 +41,7 @@ int main(int argc, char **argv)
 	int n, size;
 	unsigned i;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

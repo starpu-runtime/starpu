@@ -92,6 +92,10 @@ struct starpu_conf
 	int ncuda;
 	/* number of GPU OpenCL device workers (-1 for default) */
 	int nopencl;
+	/* number of MIC device workers (-1 for default) */
+	int nmic;
+	/* number of SCC device workers (-1 for default) */
+	int nscc;
 
 	unsigned use_explicit_workers_bindid;
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
@@ -102,6 +106,12 @@ struct starpu_conf
 	unsigned use_explicit_workers_opencl_gpuid;
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
+	unsigned use_explicit_workers_mic_deviceid;
+	unsigned workers_mic_deviceid[STARPU_NMAXWORKERS];
+
+	unsigned use_explicit_workers_scc_deviceid;
+	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
+
 	/* calibrate bus (-1 for default) */
 	int bus_calibrate;
 
@@ -111,6 +121,10 @@ struct starpu_conf
 	/* Create only one combined worker, containing all CPU workers */
 	int single_combined_worker;
 
+	/* Path to the kernel to execute on the MIC device, compiled
+	 * for MIC architecture. */
+	char *mic_sink_program_path;
+
 	/* indicate if all asynchronous copies should be disabled */
 	int disable_asynchronous_copy;
 
@@ -119,6 +133,9 @@ struct starpu_conf
 
 	/* indicate if asynchronous copies to OpenCL devices should be disabled */
 	int disable_asynchronous_opencl_copy;
+
+	/* indicate if asynchronous copies to MIC devices should be disabled */
+	int disable_asynchronous_mic_copy;
 
 	/* Enable CUDA/OpenGL interoperation on these CUDA devices */
 	unsigned *cuda_opengl_interoperability;
@@ -140,6 +157,12 @@ int starpu_conf_init(struct starpu_conf *conf);
  */
 int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 
+/* Alternative initialization method with argc and argv. This is use by
+ * MIC, MPI, and SCC implementation.
+ * Don't call starpu_init and starpu_initialize in the same program.
+ */
+int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv);
+
 /* Shutdown method: note that statistics are only generated once StarPU is
  * shutdown */
 void starpu_shutdown(void);
@@ -155,6 +178,8 @@ void starpu_profiling_init();
 void starpu_display_stats();
 
 void starpu_get_version(int *major, int *minor, int *release);
+
+int starpu_worker_get_mp_nodeid(int id);
 
 #ifdef __cplusplus
 }

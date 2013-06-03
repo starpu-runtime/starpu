@@ -24,6 +24,8 @@
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
+#include <drivers/mic/driver_mic_source.h>
+#include <drivers/scc/driver_scc_source.h>
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
@@ -41,7 +43,7 @@ static uint32_t footprint_vector_interface_crc32(starpu_data_handle_t handle);
 static int vector_compare(void *data_interface_a, void *data_interface_b);
 static void display_vector_interface(starpu_data_handle_t handle, FILE *f);
 
-static struct starpu_data_interface_ops interface_vector_ops =
+struct starpu_data_interface_ops starpu_interface_vector_ops =
 {
 	.register_data_handle = register_vector_handle,
 	.allocate_data_on_node = allocate_vector_buffer_on_node,
@@ -89,6 +91,7 @@ static void register_vector_handle(starpu_data_handle_t handle, unsigned home_no
                         local_interface->offset = 0;
 		}
 
+		local_interface->id = vector_interface->id;
 		local_interface->nx = vector_interface->nx;
 		local_interface->elemsize = vector_interface->elemsize;
 	}
@@ -100,6 +103,7 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, unsigned home_
 {
 	struct starpu_vector_interface vector =
 	{
+		.id = STARPU_VECTOR_INTERFACE_ID,
 		.ptr = ptr,
 		.nx = nx,
 		.elemsize = elemsize,
@@ -107,7 +111,11 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, unsigned home_
                 .offset = 0
 	};
 
-	starpu_data_register(handleptr, home_node, &vector, &interface_vector_ops);
+#ifdef STARPU_USE_SCC
+	_starpu_scc_set_offset_in_shared_memory((void*)vector.ptr, (void**)&(vector.dev_handle), &(vector.offset));
+#endif
+
+	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_vector_ops);
 }
 
 

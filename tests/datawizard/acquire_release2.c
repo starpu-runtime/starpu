@@ -50,6 +50,7 @@ static struct starpu_codelet increment_cl =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {increment_opencl, NULL},
 #endif
+	.cpu_funcs_name = {"increment_cpu", NULL},
 	.nbuffers = 1
 };
 
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
 	unsigned i;
 	int ret;
 
-        ret = starpu_init(NULL);
+        ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

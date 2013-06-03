@@ -35,6 +35,7 @@ void which_index_cpu(void *descr[], void *_args)
 struct starpu_codelet which_index =
 {
 	.cpu_funcs = {which_index_cpu, NULL},
+	.cpu_funcs_name = {"which_index_cpu", NULL},
         .nbuffers = 1,
 	.modes = {STARPU_W}
 };
@@ -53,6 +54,7 @@ void work_cpu(void *descr[], void *_args)
 struct starpu_codelet work =
 {
 	.cpu_funcs = {work_cpu, NULL},
+	.cpu_funcs_name = {"work_cpu", NULL},
         .nbuffers = 1,
 	.modes = {STARPU_W}
 };
@@ -71,7 +73,7 @@ int main(int argc, char **argv)
         int i, ret;
 	float *f;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

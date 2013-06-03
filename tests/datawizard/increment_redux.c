@@ -100,7 +100,7 @@ static void neutral_opencl_kernel(void *descr[], void *arg)
 
 
 
-static void redux_cpu_kernel(void *descr[], void *arg)
+void redux_cpu_kernel(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -109,7 +109,7 @@ static void redux_cpu_kernel(void *descr[], void *arg)
 	*dst = *dst + *src;
 }
 
-static void neutral_cpu_kernel(void *descr[], void *arg)
+void neutral_cpu_kernel(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -126,6 +126,7 @@ static struct starpu_codelet redux_cl =
 	.opencl_funcs = {redux_opencl_kernel, NULL},
 #endif
 	.cpu_funcs = {redux_cpu_kernel, NULL},
+	.cpu_funcs_name = {"redux_cpu_kernel", NULL},
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2
 };
@@ -139,6 +140,7 @@ static struct starpu_codelet neutral_cl =
 	.opencl_funcs = {neutral_opencl_kernel, NULL},
 #endif
 	.cpu_funcs = {neutral_cpu_kernel, NULL},
+	.cpu_funcs_name = {"neutral_cpu_kernel", NULL},
 	.modes = {STARPU_W},
 	.nbuffers = 1
 };
@@ -186,7 +188,7 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 }
 #endif
 
-static void increment_cpu_kernel(void *descr[], void *arg)
+void increment_cpu_kernel(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -203,6 +205,7 @@ static struct starpu_codelet increment_cl =
 	.opencl_funcs = {increment_opencl_kernel, NULL},
 #endif
 	.cpu_funcs = {increment_cpu_kernel, NULL},
+	.cpu_funcs_name = {"increment_cpu_kernel", NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_REDUX}
 };
@@ -211,7 +214,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

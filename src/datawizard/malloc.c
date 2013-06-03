@@ -177,6 +177,13 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 	}
 #endif /* STARPU_SIMGRID */
 
+	if (_starpu_can_submit_scc_task())
+	{
+#ifdef STARPU_USE_SCC
+		_starpu_scc_allocate_shared_memory(A, dim);
+#endif
+	}
+	else
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 	if (_malloc_align != sizeof(void*))
 	{
@@ -318,6 +325,12 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 	}
 #endif /* STARPU_SIMGRID */
 
+	if (_starpu_can_submit_scc_task())
+	{
+#ifdef STARPU_USE_SCC
+		_starpu_scc_free_shared_memory(A);
+#endif
+	} else
 	free(A);
 
 out:
@@ -406,6 +419,18 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 #endif
 			}
 #endif
+#ifdef STARPU_USE_MIC
+		case STARPU_MIC_RAM:
+			if (_starpu_mic_allocate_memory((void **)(&addr), size, dst_node))
+				addr = 0;
+			break;
+#endif
+#ifdef STARPU_USE_SCC
+		case STARPU_SCC_RAM:
+			if (_starpu_scc_allocate_memory((void **)(&addr), size, dst_node))
+				addr = 0;
+			break;
+#endif
 		default:
 			STARPU_ABORT();
 	}
@@ -460,6 +485,16 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 #endif
                         break;
 		}
+#endif
+#ifdef STARPU_USE_MIC
+		case STARPU_MIC_RAM:
+			_starpu_mic_free_memory((void*) addr, size, dst_node);
+			break;
+#endif
+#ifdef STARPU_USE_SCC
+		case STARPU_SCC_RAM:
+			_starpu_scc_free_memory((void *) addr, dst_node);
+			break;
 #endif
 		default:
 			STARPU_ABORT();

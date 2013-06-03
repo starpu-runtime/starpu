@@ -138,7 +138,7 @@ static void parse_args(int argc, char **argv)
  *	Monte-carlo kernel
  */
 
-static void pi_func_cpu(void *descr[], void *cl_arg __attribute__ ((unused)))
+void pi_func_cpu(void *descr[], void *cl_arg __attribute__ ((unused)))
 {
 	int workerid = starpu_worker_get_id();
 
@@ -209,6 +209,7 @@ static struct starpu_perfmodel pi_model =
 static struct starpu_codelet pi_cl =
 {
 	.cpu_funcs = {pi_func_cpu, NULL},
+	.cpu_funcs_name = {"pi_func_cpu", NULL},
 #ifdef STARPU_HAVE_CURAND
 	.cuda_funcs = {pi_func_cuda, NULL},
 #endif
@@ -227,6 +228,7 @@ static struct starpu_perfmodel pi_model_redux =
 static struct starpu_codelet pi_cl_redux =
 {
 	.cpu_funcs = {pi_func_cpu, NULL},
+	.cpu_funcs_name = {"pi_func_cpu", NULL},
 #ifdef STARPU_HAVE_CURAND
 	.cuda_funcs = {pi_func_cuda, NULL},
 #endif
@@ -239,7 +241,7 @@ static struct starpu_codelet pi_cl_redux =
  *	Codelets to implement reduction
  */
 
-static void init_cpu_func(void *descr[], void *cl_arg)
+void init_cpu_func(void *descr[], void *cl_arg)
 {
         unsigned long *val = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
         *val = 0;
@@ -257,6 +259,7 @@ static void init_cuda_func(void *descr[], void *cl_arg)
 static struct starpu_codelet init_codelet =
 {
         .cpu_funcs = {init_cpu_func, NULL},
+        .cpu_funcs_name = {"init_cpu_func", NULL},
 #ifdef STARPU_HAVE_CURAND
         .cuda_funcs = {init_cuda_func, NULL},
 #endif
@@ -284,7 +287,7 @@ static void redux_cuda_func(void *descr[], void *cl_arg)
 }
 #endif
 
-static void redux_cpu_func(void *descr[], void *cl_arg)
+void redux_cpu_func(void *descr[], void *cl_arg)
 {
 	unsigned long *a = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned long *b = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[1]);
@@ -295,6 +298,7 @@ static void redux_cpu_func(void *descr[], void *cl_arg)
 static struct starpu_codelet redux_codelet =
 {
 	.cpu_funcs = {redux_cpu_func, NULL},
+	.cpu_funcs_name = {"redux_cpu_func", NULL},
 #ifdef STARPU_HAVE_CURAND
 	.cuda_funcs = {redux_cuda_func, NULL},
 #endif

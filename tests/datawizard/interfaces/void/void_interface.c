@@ -17,7 +17,7 @@
 #include "../test_interfaces.h"
 #include "../../../helper.h"
 
-static void fake_func(void *buffers[], void *arg)
+void fake_func(void *buffers[], void *arg)
 {
 	(void) buffers;
 	(void) arg;
@@ -34,6 +34,9 @@ struct test_config void_config =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_func   = fake_func,
+#endif
+#ifdef STARPU_USE_MIC
+	.cpu_func_name = "fake_func",
 #endif
 	.handle        = &void_handle,
 	.dummy_handle  = &void2_handle,
@@ -56,15 +59,16 @@ unregister_data(void)
 }
 
 int
-main(void)
+main(int argc, char **argv)
 {
 	data_interface_test_summary *summary;
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.ncuda = 2;
 	conf.nopencl = 1;
+	conf.nmic = -1;
 
-	if (starpu_init(&conf) == -ENODEV || starpu_cpu_worker_get_count() == 0)
+	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		goto enodev;
 
 	register_data();

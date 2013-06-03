@@ -28,13 +28,9 @@ static unsigned ntasks = 64;
 static unsigned ntasks = 65536;
 #endif
 
-static void check_task_func(void *descr[], void *arg)
+void check_task_func(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;
-
-	/* We check that the returned task is valid from the codelet */
-	struct starpu_task *task = (struct starpu_task *) arg;
-	STARPU_ASSERT(task == starpu_task_get_current());
 }
 
 static void check_task_callback(void *arg)
@@ -49,6 +45,7 @@ static struct starpu_codelet dummy_cl =
 	.cuda_funcs = {check_task_func, NULL},
 	.cpu_funcs = {check_task_func, NULL},
 	.opencl_funcs = {check_task_func, NULL},
+	.cpu_funcs_name = {"check_task_func", NULL},
 	.model = NULL,
 	.nbuffers = 0
 };
@@ -57,7 +54,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
@@ -72,6 +69,7 @@ int main(int argc, char **argv)
 		 * the callback */
 		task->cl = &dummy_cl;
 		task->cl_arg = task;
+		task->cl_arg_size = sizeof(task);
 
 		task->callback_func = check_task_callback;
 		task->callback_arg = task;

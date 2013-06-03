@@ -49,8 +49,14 @@ static uint64_t get_total_memory_size(void)
 }
 #endif
 
-static void dummy_func(void *descr[], __attribute__ ((unused)) void *_args)
+void dummy_func(void *descr[], __attribute__ ((unused)) void *_args)
 {
+}
+
+static unsigned int i = 0;
+void f(void *arg)
+{
+	printf("%d\n", ++i);
 }
 
 static struct starpu_codelet dummy_cl =
@@ -58,6 +64,7 @@ static struct starpu_codelet dummy_cl =
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},
 	.opencl_funcs = {dummy_func, NULL},
+	.cpu_funcs_name = {"dummy_func", NULL},
 	.nbuffers = 3,
 	.modes = {STARPU_RW, STARPU_R, STARPU_R}
 };
@@ -69,6 +76,10 @@ int main(int argc, char **argv)
 {
 	int i, ret;
 	int taskid;
+
+        ret = starpu_initialize(NULL, &argc, &argv);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_HAVE_HWLOC
 	/* We allocate 50% of the memory */
@@ -94,10 +105,6 @@ int main(int argc, char **argv)
 #endif
 
 	FPRINTF(stderr, "Allocate %d buffers and create %u tasks\n", mb, ntasks);
-
-        ret = starpu_init(NULL);
-	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	float **host_ptr_array;
 	starpu_data_handle_t *handle_array;
@@ -126,6 +133,8 @@ int main(int argc, char **argv)
 		task->handles[0] = handle_array[taskid%mb];
 		task->handles[1] = handle_array[(taskid+1)%mb];
 		task->handles[2] = handle_array[(taskid+2)%mb];
+		task->callback_func = f;
+		task->callback_arg = NULL;
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
