@@ -281,7 +281,7 @@ static ssize_t
 starpu_stdio_read (void *base, void *obj, void *buf, off_t offset, size_t size)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
-
+	
 	int res = fseek(tmp->file, offset, SEEK_SET); 
 	STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
 
@@ -297,7 +297,7 @@ starpu_stdio_write (void *base, void *obj, const void *buf, off_t offset, size_t
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
 	int res = fseek(tmp->file, offset, SEEK_SET); 
-	STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
+	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
 
 	ssize_t nb = fwrite (buf, 1, size, tmp->file);
 
