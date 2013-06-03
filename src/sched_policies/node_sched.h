@@ -2,9 +2,12 @@
 #define __SCHED_NODE_H__
 #include <starpu.h>
 #include <common/starpu_spinlock.h>
+#include "bitmap.h"
 struct _starpu_sched_node
 {
-	int (*push_task)(struct _starpu_sched_node *, struct starpu_task *);
+	int (*push_task)(struct _starpu_sched_node *,
+			 struct starpu_task *,
+			 struct _starpu_bitmap * sched_ctx_workers_mask);
 	struct starpu_task * (*pop_task)(struct _starpu_sched_node *,
 					 unsigned sched_ctx_id);
 	void (*available)(struct _starpu_sched_node *);
@@ -19,9 +22,8 @@ struct _starpu_sched_node
 	struct _starpu_sched_node ** childs;
 
 
-	//the list of workers in the node's subtree
-	int workerids[STARPU_NMAXWORKERS];
-	int nworkers;
+	//the set of workers in the node's subtree
+	struct _starpu_bitmap * workers;
 
 	//is_homogeneous is 0 iff workers in the node's subtree are heterogeneous,
 	//this field is set and updated automaticaly, you shouldn't write on it
@@ -33,17 +35,14 @@ struct _starpu_sched_node
 	 */
 	struct _starpu_sched_node * fathers[STARPU_NMAX_SCHED_CTXS];
 
+	
+	/* this function is called after all childs has been set
+	 */
+	void (*init_data)(struct _starpu_sched_node *);
+	/* this function is called to free init_data malloc
+	 */
+	void (*deinit_data)(struct _starpu_sched_node *);
 
-	void (*add_child)(struct _starpu_sched_node *node,
-			  struct _starpu_sched_node *child,
-			  unsigned sched_ctx_id);
-
-	void (*remove_child)(struct _starpu_sched_node *node,
-			     struct _starpu_sched_node *child,
-			     unsigned sched_ctx_id);
-	/* this function is called to free node (it must call _starpu_sched_node_destroy(node));
-	*/
-	void (*destroy_node)(struct _starpu_sched_node *);
 };
 
 struct _starpu_task_execute_preds
@@ -69,6 +68,7 @@ struct _starpu_task_execute_preds
 struct _starpu_sched_tree
 {
 	struct _starpu_sched_node * root;
+	struct _starpu_bitmap * workers;
 	//this lock is used to protect the scheduler during modifications of his structure
 	starpu_pthread_rwlock_t lock;
 };
@@ -91,12 +91,12 @@ void _starpu_sched_node_destroy(struct _starpu_sched_node * node);
 
 void _starpu_sched_node_set_father(struct _starpu_sched_node *node, struct _starpu_sched_node *father_node, unsigned sched_ctx_id);
 
-void _starpu_sched_node_add_child(struct _starpu_sched_node* node, struct _starpu_sched_node * child, unsigned sched_ctx_id);
-void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child, unsigned sched_ctx_id);
+void _starpu_sched_node_add_child(struct _starpu_sched_node* node, struct _starpu_sched_node * child);
+void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child);
 
 
-int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct starpu_task * task);
-int _starpu_sched_node_can_execute_task_with_impl(struct _starpu_sched_node * node, struct starpu_task * task, unsigned nimpl);
+int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct starpu_task * task, struct _starpu_bitmap * worker_mask);
+int _starpu_sched_node_can_execute_task_with_impl(struct _starpu_sched_node * node, struct starpu_task * task, unsigned nimpl, struct _starpu_bitmap * worker_mask);
 
 /* no public create function for workers because we dont want to have several node_worker for a single workerid */
 struct _starpu_sched_node * _starpu_sched_node_worker_get(int workerid);
@@ -134,17 +134,19 @@ void _starpu_node_destroy_rec(struct _starpu_sched_node * node, unsigned sched_c
 
 int _starpu_tree_push_task(struct starpu_task * task);
 struct starpu_task * _starpu_tree_pop_task(unsigned sched_ctx_id);
+void _starpu_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
+void _starpu_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
-/* this function must be called after all modification of tree
- * this function make a top bottom traversal , ence dont use .fathers field
- * if the tree is partialy shared between contexts, this function have to be called in thoses contexts
+void _starpu_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
+void _starpu_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
+
+/* this function fill all the node->workers member
  */
-void _starpu_tree_update_after_modification(struct _starpu_sched_tree * tree);
-/* remove and return a subtree that contain only this worker and call starpu_tree_update_after_modification
- * this function may be called several time
- * this function dont update father fields in subtree
+void _starpu_set_workers_bitmaps(void);
+/* this function call init data on all nodes in postfix order
  */
-struct _starpu_sched_node * _starpu_sched_tree_remove_worker(struct _starpu_sched_tree * tree, int workerid, int sched_ctx_id);
+void _starpu_call_init_data(struct _starpu_sched_tree * t);
+
 
 /* push task of list lower as possible in the tree, a non null value is returned if some task couldn't be pushed
  */

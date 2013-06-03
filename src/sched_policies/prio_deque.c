@@ -127,8 +127,8 @@ static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)
 
 struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_prio_deque * pdeque)
 {
-	struct starpu_task * t = REMOVE_TASK(pdeque, head, prev, pred_true, STARPU_POISON_PTR);
-	return t;
+	struct starpu_task * task = REMOVE_TASK(pdeque, head, prev, pred_true, STARPU_POISON_PTR);
+	return task;
 }
 struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid)
 {

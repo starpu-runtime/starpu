@@ -1,7 +1,7 @@
 #include "node_sched.h"
 #include <core/workers.h>
 
-#ifdef STARPU_HAVE_HWLOC
+#if 0//def STARPU_HAVE_HWLOC
 #include <hwloc.h>
 /*
  * this function attempt to create a scheduler with a heft node at top,
@@ -40,7 +40,6 @@ struct _starpu_sched_node * _starpu_heft_eager_scheduler_add_worker(unsigned sch
 	for(i = 0; i < root->nchilds; i++)
 	{
 		struct _starpu_sched_node * child = root->childs[i];
-		STARPU_ASSERT(child->nworkers > 0);
 		int wid = child->workerids[0];
 		hwloc_bitmap_t b = get_nodeset(child->workerids[0]);
 		if(hwloc_bitmap_intersects(b,node) && starpu_worker_get_type(wid) == starpu_worker_get_type(workerid))
