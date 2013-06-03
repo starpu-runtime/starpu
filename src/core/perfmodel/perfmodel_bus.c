@@ -1591,7 +1591,7 @@ static void check_bus_config_file(void)
                 }
                 else if (read_mic != nmic)
 		{
-                        _STARPU_DISP("Current configuration does not match the bus performance model (MIC: (stored) %d != (current) %d), recalibrating...", read_mic, nmic);
+                        _STARPU_DISP("Current configuration does not match the bus performance model (MIC: (stored) %d != (current) %d), recalibrating...\n", read_mic, nmic);
                         _starpu_bus_force_sampling();
 			_STARPU_DISP("... done\n");
                 }
