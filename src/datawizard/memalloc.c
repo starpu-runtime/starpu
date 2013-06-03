@@ -73,44 +73,34 @@ void _starpu_deinit_mem_chunk_lists(void)
 
 static void lock_all_subtree(starpu_data_handle_t handle)
 {
-	if (handle->nchildren == 0)
+	unsigned child;
+
+	/* lock parent */
+	while (_starpu_spin_trylock(&handle->header_lock))
+		_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
+
+	/* lock all sub-subtrees children */
+	for (child = 0; child < handle->nchildren; child++)
 	{
-		/* this is a leaf */
-		while (_starpu_spin_trylock(&handle->header_lock))
-			_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
-	}
-	else
-	{
-		/* lock all sub-subtrees children */
-		unsigned child;
-		for (child = 0; child < handle->nchildren; child++)
-		{
-			starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
-			lock_all_subtree(child_handle);
-		}
+		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
+		lock_all_subtree(child_handle);
 	}
 }
 
 static void unlock_all_subtree(starpu_data_handle_t handle)
 {
-	if (handle->nchildren == 0)
+	/* lock all sub-subtrees children
+	 * Note that this is done in the reverse order of the
+	 * lock_all_subtree so that we avoid deadlock */
+	unsigned i;
+	for (i =0; i < handle->nchildren; i++)
 	{
-		/* this is a leaf */
-		_starpu_spin_unlock(&handle->header_lock);
+		unsigned child = handle->nchildren - 1 - i;
+		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
+		unlock_all_subtree(child_handle);
 	}
-	else
-	{
-		/* lock all sub-subtrees children
-		 * Note that this is done in the reverse order of the
-		 * lock_all_subtree so that we avoid deadlock */
-		unsigned i;
-		for (i =0; i < handle->nchildren; i++)
-		{
-			unsigned child = handle->nchildren - 1 - i;
-			starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
-			unlock_all_subtree(child_handle);
-		}
-	}
+
+	_starpu_spin_unlock(&handle->header_lock);
 }
 
 static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
@@ -336,7 +326,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	}
 	else
 	{
-		/* try to lock all the leafs of the subtree */
+		/* try to lock all the subtree */
 		lock_all_subtree(handle);
 
 		/* check if they are all "free" */
@@ -418,7 +408,7 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 
 	STARPU_ASSERT(old_data);
 
-	/* try to lock all the leafs of the subtree */
+	/* try to lock all the subtree */
 	lock_all_subtree(old_data);
 
 	/* check if they are all "free" */

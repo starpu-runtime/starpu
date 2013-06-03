@@ -111,14 +111,12 @@ int main(int argc, char **argv)
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
 
-	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/home/corentin/");
+	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*15);;
 
-	unsigned dc = starpu_disk_register(&write_on_file, (void *) "/home/corentin/");
+	uintptr_t pstt = starpu_malloc_on_node(dd, (1024*1024*15)-1);
+	starpu_free_on_node(dd, pstt, (1024*1024*15)-1);
 
-
-	starpu_disk_free(dc);
-
-	starpu_disk_free(dd);
+	starpu_disk_unregister(dd);
 
 	if (ret == -ENODEV) goto enodev;
 
