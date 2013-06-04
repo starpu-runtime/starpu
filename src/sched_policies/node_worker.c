@@ -18,7 +18,7 @@ struct _starpu_sched_node * _starpu_sched_node_worker_get(int workerid)
 
 
 
-int _starpu_sched_node_worker_push_task(struct _starpu_sched_node * node, struct starpu_task *task, struct _starpu_bitmap * worker_mask STARPU_ATTRIBUTE_UNUSED)
+int _starpu_sched_node_worker_push_task(struct _starpu_sched_node * node, struct starpu_task *task)
 {
 	/*this function take the worker's mutex */
 	

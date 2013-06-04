@@ -143,26 +143,6 @@ static void update_helper_node(struct _starpu_sched_node * heft_node)
 }
 */
 
-static void add_child(struct _starpu_sched_node *node,
-		      struct _starpu_sched_node *child,
-		      unsigned sched_ctx_id)
-{
-	_starpu_sched_node_add_child(node,child, sched_ctx_id);
-	struct _starpu_dmda_data * data = node->data;
-	data->no_model_node->add_child(data->no_model_node, child, sched_ctx_id);
-
-}
-static void remove_child(struct _starpu_sched_node *node,
-			 struct _starpu_sched_node *child,
-			 unsigned sched_ctx_id)
-
-{
-	_starpu_sched_node_remove_child(node, child, sched_ctx_id);
-	struct _starpu_dmda_data * data = node->data;
-	data->no_model_node->remove_child(data->no_model_node, child, sched_ctx_id);
-}
-
-
 
 #define _STARPU_SCHED_ALPHA_DEFAULT 1.0
 #define _STARPU_SCHED_BETA_DEFAULT 1.0
@@ -197,22 +177,8 @@ static void param_modified(struct starpu_top_param* d)
 }
 #endif /* !STARPU_USE_TOP */
 
-
-
-static void destroy_heft_node(struct _starpu_sched_node * node)
+void init_heft_data(struct _starpu_sched_node *node)
 {
-	struct _starpu_dmda_data * data = node->data;
-	data->no_model_node->destroy_node(data->no_model_node);
-	_starpu_sched_node_destroy(node);
-	free(data);
-}
-
-struct _starpu_sched_node * _starpu_sched_node_heft_create()
-{
-	double alpha = _STARPU_SCHED_ALPHA_DEFAULT;
-	double beta = _STARPU_SCHED_BETA_DEFAULT;
-	double gamma = _STARPU_SCHED_GAMMA_DEFAULT;
-	double idle_power = 0.0;
 
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
 	if (strval_alpha)
@@ -224,7 +190,7 @@ struct _starpu_sched_node * _starpu_sched_node_heft_create()
 
 	const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
 	if (strval_gamma)
-		gamma = atof(strval_gamma);
+		_gamma = atof(strval_gamma);
 
 	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
 	if (strval_idle_power)
@@ -241,29 +207,63 @@ struct _starpu_sched_node * _starpu_sched_node_heft_create()
 					    idle_power_minimum, idle_power_maximum, param_modified);
 #endif /* !STARPU_USE_TOP */
 
-	struct _starpu_sched_node * node = _starpu_sched_node_create();
-	struct _starpu_dmda_data * data = malloc(sizeof(*data));
 
+	struct _starpu_dmda_data * data = malloc(sizeof(*data));
+	memset(data, 0, sizeof(*data));
 	data->alpha = alpha;
 	data->beta = beta;
-	data->gamma = gamma;
+	data->gamma = _gamma;
 	data->idle_power = idle_power;
 
 	node->data = data;
-	node->push_task = push_task;
-	node->add_child = add_child;
-	node->remove_child = remove_child;
-	node->destroy_node = destroy_heft_node;
 
-	data->no_model_node = _starpu_sched_node_random_create();
+	_starpu_sched_node_heft_set_no_model_node(node, _starpu_sched_node_random_create);
+}
+
+static void destroy_no_model_node(struct _starpu_sched_node * heft_node)
+{
+	struct _starpu_dmda_data * data = heft_node->data;
+	if(data->no_model_node)
+	{
+		data->no_model_node->deinit_data(data->no_model_node);
+		_starpu_sched_node_destroy(data->no_model_node);
+	}
+}
+
+void deinit_heft_data(struct _starpu_sched_node * node)
+{
+	destroy_no_model_node(node);
+	free(node->data);
+}
+
+void _starpu_sched_node_heft_set_no_model_node(struct _starpu_sched_node * heft_node,
+					       struct _starpu_sched_node * (*create_no_model_node)(void))
+{
+	destroy_no_model_node(heft_node);
+	struct _starpu_dmda_data * data = heft_node->data;
+	struct _starpu_sched_node * no_model_node = create_no_model_node();
+	no_model_node->childs = malloc(heft_node->nchilds * sizeof(struct _starpu_sched_node *));
+	memcpy(no_model_node->childs, heft_node->childs, heft_node->nchilds * sizeof(struct _strapu_sched_node *));
+
+	heft_node->childs;
+	no_model_node->nchilds = heft_node->nchilds;
+	no_model_node->init_data(no_model_node);
+	data->no_model_node = no_model_node;
+}
+
+struct _starpu_sched_node * _starpu_sched_node_heft_create()
+{
+
+	struct _starpu_sched_node * node = _starpu_sched_node_create();
+
+	node->push_task = push_task;
+	node->init_data = init_heft_data;
+	node->deinit_data = deinit_heft_data;
 
 	return node;
 }
 
 int _starpu_sched_node_is_heft(struct _starpu_sched_node * node)
 {
-	return node->push_task == push_task
-		|| node->add_child == add_child
-		|| node->remove_child == remove_child
-		|| node->destroy_node == destroy_heft_node;
+	return node->init_data == init_heft_data;
 }

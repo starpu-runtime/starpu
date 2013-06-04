@@ -104,7 +104,7 @@ static void remove_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
 
-#else
+
 static void add_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
 {
 	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
@@ -144,6 +144,7 @@ static void remove_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned 
 	}
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
+#else
 #endif
 
 
@@ -153,12 +154,35 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
 	STARPU_PTHREAD_RWLOCK_INIT(&data->lock,NULL);
-	data->root = NULL;
+	struct _starpu_sched_node * ws;
+ 	data->root = ws = _starpu_sched_node_heft_create();
+	data->workers = _starpu_bitmap_create();
+	unsigned i;
+	for(i = 0; i < starpu_worker_get_count(); i++)
+	{
+		struct _starpu_sched_node * node = _starpu_sched_node_worker_get(i);
+		if(!node)
+			continue;
+		struct _starpu_sched_node * fifo = _starpu_sched_node_fifo_create();
+		_starpu_sched_node_add_child(fifo, node);
+		_starpu_sched_node_set_father(node, fifo, sched_ctx_id);
+		
+		_starpu_sched_node_add_child(data->root, fifo);
+		_starpu_sched_node_set_father(fifo, data->root, sched_ctx_id);
+
+	}
+	_starpu_set_workers_bitmaps();
+	_starpu_call_init_data(data);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
+
+
 }
 
 static void deinitialize_heft_center_policy(unsigned sched_ctx_id)
 {
+	struct _starpu_sched_tree *t = (struct _starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	_starpu_bitmap_destroy(t->workers);
+	_starpu_tree_destroy(t, sched_ctx_id);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
@@ -168,8 +192,8 @@ struct starpu_sched_policy _starpu_sched_tree_heft_policy =
 {
 	.init_sched = initialize_heft_center_policy,
 	.deinit_sched = deinitialize_heft_center_policy,
-	.add_workers = add_worker_heft,
-	.remove_workers = remove_worker_heft,
+	.add_workers = _starpu_tree_add_workers,
+	.remove_workers = _starpu_tree_remove_workers,
 	.push_task = _starpu_tree_push_task,
 	.pop_task = _starpu_tree_pop_task,
 	.pre_exec_hook = NULL,

@@ -74,9 +74,9 @@ static double estimated_load(struct _starpu_sched_node * node)
 	return load;
 }
 
-static int push_task(struct _starpu_sched_node * node, struct starpu_task * task, struct _starpu_bitmap * worker_mask)
+static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
-	STARPU_ASSERT(_starpu_sched_node_can_execute_task(node,task, worker_mask));
+	STARPU_ASSERT(_starpu_sched_node_can_execute_task(node,task));
 	struct _starpu_fifo_data * data = node->data;
 	struct _starpu_prio_deque * fifo = &data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
@@ -153,6 +153,21 @@ struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct
 	return list;
 }
 */
+void init_fifo_data(struct _starpu_sched_node * node)
+{
+	STARPU_ASSERT(_starpu_sched_node_is_fifo(node));
+	struct _starpu_fifo_data * data = malloc(sizeof(*data));
+	_starpu_prio_deque_init(&data->fifo);
+	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
+	node->data = data;
+}
+void deinit_fifo_data(struct _starpu_sched_node * node)
+{
+	struct _starpu_fifo_data * data = node->data;
+	STARPU_PTHREAD_MUTEX_DESTROY(&data->mutex);
+	_starpu_prio_deque_destroy(&data->fifo);
+	free(data);
+}
 
 
 int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node)
@@ -166,12 +181,10 @@ int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node)
 struct _starpu_sched_node * _starpu_sched_node_fifo_create(void)
 {
 	struct _starpu_sched_node * node = _starpu_sched_node_create();
-	struct _starpu_fifo_data * data = malloc(sizeof(*data));
-	_starpu_prio_deque_init(&data->fifo);
-	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
-	node->data = data;
 	node->estimated_execute_preds = estimated_execute_preds;
 	node->estimated_load = estimated_load;
+	node->init_data = init_fifo_data;
+	node->deinit_data = deinit_fifo_data;
 	node->push_task = push_task;
 	node->pop_task = pop_task;
 	return node;

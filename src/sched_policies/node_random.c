@@ -40,7 +40,7 @@ static void deinit_data_random(struct _starpu_sched_node * node)
 	
 }
 
-static int push_task(struct _starpu_sched_node * node, struct starpu_task * task, struct _starpu_bitmap * worker_mask)
+static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	struct _starpu_random_data * rd = node->data;
 
@@ -49,7 +49,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	double alpha_sum = 0.0;
 	for(i = 0; i < node->nchilds ; i++)
 	{
-		if(_starpu_sched_node_can_execute_task(node->childs[i],task, worker_mask))
+		if(_starpu_sched_node_can_execute_task(node->childs[i],task))
 		{
 			indexes_nodes[size++] = i;
 			alpha_sum += rd->relative_speedup[i];
@@ -71,7 +71,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 		alpha += rd->relative_speedup[index];
 	}
 	STARPU_ASSERT(select != NULL);
-	int ret_val = select->push_task(select,task, worker_mask);
+	int ret_val = select->push_task(select,task);
 	node->available(node);
 
 	return ret_val;

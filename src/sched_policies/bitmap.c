@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <starpu.h>
 #include "bitmap.h"
+
+#ifndef LONG_BIT
+#define LONG_BIT (sizeof(unsigned long) * 8)
+#endif
+
 struct _starpu_bitmap{
 	unsigned long * bits;
 	int size;

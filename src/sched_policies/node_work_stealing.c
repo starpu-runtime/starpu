@@ -126,7 +126,7 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 
 
 
-static int push_task(struct _starpu_sched_node * node, struct starpu_task * task, struct _starpu_bitmap * worker_mask)
+static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	struct _starpu_work_stealing_data * wsd = node->data;
 	int ret = -1;
@@ -135,7 +135,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	for(i = (start+1)%node->nchilds; i != start; i = (i+1)%node->nchilds)
 	{
 		struct _starpu_sched_node * child = node->childs[i];
-		if(_starpu_sched_node_can_execute_task(child,task, worker_mask))
+		if(_starpu_sched_node_can_execute_task(child,task))
 		{
 			ret = _starpu_fifo_push_sorted_task(wsd->fifos[i], task);
 			break;
@@ -220,6 +220,8 @@ static void deinit_ws_data(struct _starpu_sched_node *node)
 		STARPU_PTHREAD_MUTEX_DESTROY(wsd->mutexes + i);
 		_starpu_destroy_fifo(wsd->fifos[i]);
 	}
+	free(wsd->mutexes);
+	free(wsd->fifos);
 	free(wsd);
 	node->data = NULL;
 }
@@ -267,6 +269,7 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 static void deinitialize_ws_center_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_tree *t = (struct _starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	_starpu_bitmap_destroy(t->workers);
 	_starpu_tree_destroy(t, sched_ctx_id);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }

@@ -71,7 +71,7 @@ int push_task(struct starpu_task * task)
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&t->lock);
-	int ret = t->root->push_task(t->root, task, t->workers);
+	int ret = t->root->push_task(t->root, task);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 	return ret;
 }
@@ -174,13 +174,18 @@ void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _s
 	node->childs[pos] = node->childs[--node->nchilds];
 }
 
+struct _starpu_bitmap * _starpu_get_worker_mask(struct starpu_task * task)
+{
+	struct _starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(task->sched_ctx);
+	return t->workers;
+}
 
 int _starpu_tree_push_task(struct starpu_task * task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_sched_tree *tree = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&tree->lock);
-	int ret_val = tree->root->push_task(tree->root,task,tree->workers);
+	int ret_val = tree->root->push_task(tree->root,task);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&tree->lock);
 	return ret_val;
 }
@@ -285,10 +290,11 @@ static double estimated_transfer_length(struct _starpu_sched_node * node, struct
 	return sum;
 }
 */
-int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct starpu_task * task, struct _starpu_bitmap * worker_mask)
+int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	unsigned nimpl;
 	int worker;
+	struct _starpu_bitmap * worker_mask = _starpu_get_worker_mask(task);
 	STARPU_ASSERT(task);
 	STARPU_ASSERT(node);
 	for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
@@ -302,9 +308,10 @@ int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct
 	return 0;
 }
 
-int _starpu_sched_node_can_execute_task_with_impl(struct _starpu_sched_node * node, struct starpu_task * task, unsigned nimpl, struct _starpu_bitmap * worker_mask)
+int _starpu_sched_node_can_execute_task_with_impl(struct _starpu_sched_node * node, struct starpu_task * task, unsigned nimpl)
 {
 
+	struct _starpu_bitmap * worker_mask = _starpu_get_worker_mask(task);
 	int worker;
 	STARPU_ASSERT(task);
 	STARPU_ASSERT(nimpl < STARPU_MAXIMPLEMENTATIONS);
@@ -423,12 +430,12 @@ static int push_task_to_first_suitable_parent(struct _starpu_sched_node * node, 
 	if(node == NULL || node->fathers[sched_ctx_id] == NULL)
 		return 1;
 
-	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
+//	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	
 	struct _starpu_sched_node * father = node->fathers[sched_ctx_id];
-	if(_starpu_sched_node_can_execute_task(father,task,t->workers))
-		return father->push_task(father, task, t->workers);
+	if(_starpu_sched_node_can_execute_task(father,task))
+		return father->push_task(father, task);
 	else
 		return push_task_to_first_suitable_parent(father, task, sched_ctx_id);
 }

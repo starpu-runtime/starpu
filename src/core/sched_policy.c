@@ -36,7 +36,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_tree_eager_policy,
 	&_starpu_sched_tree_random_policy,
 	&_starpu_sched_tree_ws_policy,
-//	&_starpu_sched_tree_heft_policy,
+	&_starpu_sched_tree_heft_policy,
 	&_starpu_sched_eager_policy,
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_random_policy,
