@@ -351,6 +351,9 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg)
 {
+	/* We don't care about commuting for data requests, that was handled before. */
+	mode &= ~STARPU_COMMUTE;
+
 	/* This function is called with handle's header lock taken */
 	_starpu_spin_checklocked(&handle->header_lock);
 

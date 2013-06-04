@@ -568,6 +568,12 @@ ignored for now.
 @end table
 @end deftp
 
+In addition to that, @code{STARPU_COMMUTE} can be passed along @code{STARPU_W}
+or @code{STARPU_RW} to express that StarPU can let tasks commute, which is
+useful e.g. when bringing a contribution into some data, which can be done
+in any order (but still require sequential consistency against reads or
+non-commutative writes).
+
 @deftp {Data Type} {starpu_data_handle_t}
 StarPU uses @code{starpu_data_handle_t} as an opaque handle to manage a piece of
 data. Once a piece of data has been registered to StarPU, it is associated to a

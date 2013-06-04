@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -106,6 +106,9 @@ struct _starpu_data_state
 	 * the req_list anymore), i.e. the number of holders of the
 	 * current_mode rwlock */
 	unsigned refcnt;
+	/* Current access mode. Is always either STARPU_R, STARPU_W,
+	 * STARPU_SCRATCH or STARPU_REDUX, but never a combination such as
+	 * STARPU_RW. */
 	enum starpu_data_access_mode current_mode;
 	/* protect meta data */
 	struct _starpu_spinlock header_lock;

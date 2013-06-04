@@ -267,7 +267,9 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 			if (previous_mode & STARPU_W)
 			{
 				_STARPU_DEP_DEBUG("WAW %p\n", handle);
-				_starpu_add_writer_after_writer(handle, pre_sync_task, post_sync_task);
+				/* Add WAW dependency if any of the two writers refuse to commute */
+				if (! (mode & STARPU_COMMUTE && previous_mode & STARPU_COMMUTE))
+					_starpu_add_writer_after_writer(handle, pre_sync_task, post_sync_task);
 			}
 			else
 			{
