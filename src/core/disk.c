@@ -107,19 +107,34 @@ starpu_disk_unregister(unsigned node)
 /* interface between user and disk memory */
 
 void *  
-starpu_disk_alloc (unsigned node, size_t size)
+starpu_disk_alloc(unsigned node, size_t size)
 {
 	int pos = get_location_with_node(node);
 	return disk_register_list[pos]->functions->alloc(disk_register_list[pos]->base, size);
 }
 
 void
-starpu_disk_free (unsigned node, void *obj, size_t size)
+starpu_disk_free(unsigned node, void *obj, size_t size)
 {
 	int pos = get_location_with_node(node);
 	disk_register_list[pos]->functions->free(disk_register_list[pos]->base, obj, size);
 }
 
+
+ssize_t 
+starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size)
+{
+	int pos = get_location_with_node(node);
+	return disk_register_list[pos]->functions->read(disk_register_list[pos]->base, obj, buf, offset, size);
+}
+
+
+ssize_t 
+starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size)
+{
+	int pos = get_location_with_node(node);
+	return disk_register_list[pos]->functions->write(disk_register_list[pos]->base, obj, buf, offset, size);
+}
 
 
 static void 
@@ -167,7 +182,7 @@ get_location_with_node(unsigned node)
 }
 
 
-/* use STDIO to write on disk */
+/* ------------------- use STDIO to write on disk -------------------  */
 
 struct starpu_stdio_obj {
 	int descriptor;
