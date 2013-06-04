@@ -3861,7 +3861,7 @@ The workerids managed by the collection
 The number of workerids
 @item @code{pthread_key_t cursor_key} (optional)
 The cursor needed to iterate the collection (depending on the data structure)
-@item @code{int type}
+@item @code{enum starpu_worker_collection_type type}
 The type of structure (currently STARPU_WORKER_LIST is the only one available)
 @item @code{unsigned (*has_next)(struct starpu_worker_collection *workers)}
 Checks if there is a next worker
@@ -3883,7 +3883,7 @@ Deinitialize the cursor if there is one
 @end table
 @end deftp
 
-@deftypefun struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection (unsigned @var{sched_ctx_id}, int @var{type})
+@deftypefun struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection (unsigned @var{sched_ctx_id}, enum starpu_worker_collection_type @var{type})
 Create a worker collection of the type indicated by the last parameter for the context specified through the first parameter.
 @end deftypefun
 
