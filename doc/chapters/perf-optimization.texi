@@ -554,6 +554,7 @@ CUDA or OpenCL execution:
 static struct starpu_codelet cl11 =
 @{
 	.cpu_funcs = @{chol_cpu_codelet_update_u11, NULL@},
+	.cpu_funcs_name = @{"chol_cpu_codelet_update_u11", NULL@},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = @{chol_cublas_codelet_update_u11, NULL@},
 #elif defined(STARPU_SIMGRID)

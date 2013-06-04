@@ -194,6 +194,11 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 #endif
 		case STARPU_OPENCL_RAM:
 			return 0;
+		case STARPU_MIC_RAM:
+			/* We don't handle direct MIC-MIC transfers yet */
+			return 0;
+		case STARPU_SCC_RAM:
+			return 1;
 		default:
 			return 1;
 	}

@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include "../helper.h"
 
-static void cpu_task(void **buffers, void *args)
+void cpu_task(void **buffers, void *args)
 {
 	int *numbers;
 	int i;
@@ -91,6 +91,7 @@ static struct starpu_codelet cl =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_task, NULL},
 #endif
+	.cpu_funcs_name = {"cpu_task", NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_W}
 };
@@ -103,7 +104,7 @@ int main(int argc, char *argv[])
 	starpu_data_handle_t handle;
 	static const int count = 123;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 
 	err = starpu_malloc((void **)&pointer, count * sizeof(int));

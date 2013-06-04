@@ -32,7 +32,7 @@
 
 extern struct stats global_stats;
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
 static void
 create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 {
@@ -51,6 +51,10 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 #ifdef STARPU_USE_OPENCL
 	if (where & STARPU_OPENCL)
 		cl.opencl_funcs[0] = opencl_func;
+#endif
+#ifdef STARPU_USE_MIC
+	if (where & STARPU_MIC)
+		cl.mic_funcs[0] = mic_func;
 #endif
 
 	struct starpu_task *task = starpu_task_create();
@@ -91,6 +95,10 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 #ifdef STARPU_USE_OPENCL
 	if (where & STARPU_OPENCL)
 		cl3.opencl_funcs[0] = opencl_func;
+#endif
+#ifdef STARPU_USE_MIC
+	if (where & STARPU_MIC)
+		cl3.mic_funcs[0] = mic_func;
 #endif
 
 	struct starpu_task *task3 = starpu_task_create();
@@ -145,6 +153,11 @@ test_cuda(void)
 	expected_stats.cpu_to_opencl = 0;
 	expected_stats.opencl_to_cpu = 0;
 #endif /* !STARPU_USE_OPENCL */
+#ifdef STARPU_USE_MIC
+	expected_stats.mic = 0;
+	expected_stats.cpu_to_mic = 0;
+	expected_stats.mic_to_cpu = 0;
+#endif
 	expected_stats.cuda = 2;
 	expected_stats.cpu_to_cuda = 2;
 	expected_stats.cuda_to_cpu = 2;
@@ -190,6 +203,11 @@ test_opencl(void)
 	expected_stats.cpu_to_cuda = 0;
 	expected_stats.cuda_to_cpu = 0;
 #endif /* !STARPU_USE_CUDA */
+#ifdef STARPU_USE_MIC
+	expected_stats.mic = 0;
+	expected_stats.cpu_to_mic = 0;
+	expected_stats.mic_to_cpu = 0;
+#endif
 	expected_stats.opencl = 2;
 	expected_stats.cpu_to_opencl = 2;
 	expected_stats.opencl_to_cpu = 2;
@@ -198,8 +216,58 @@ test_opencl(void)
 }
 #endif /* !STARPU_USE_OPENCL */
 
+#ifdef STARPU_USE_MIC
+static int
+test_mic(void)
+{
+	int i;
+	int vector1[NX];
+	int vector2[NX];
+	starpu_data_handle_t handles[2];
+
+	for (i = 0; i < NX; i++)
+	{
+		vector1[i] = i;
+		vector2[i] = i;
+	}
+
+	starpu_multiformat_data_register(&handles[0], 0, vector1, NX, &ops);
+	starpu_multiformat_data_register(&handles[1], 0, vector2, NX, &ops);
+
+	memset(&global_stats, 0, sizeof(global_stats));
+	create_and_submit_tasks(STARPU_MIC, handles);
+
+	starpu_data_unregister(handles[0]);
+	starpu_data_unregister(handles[1]);
+
+#if DEBUG
+	print_stats(&global_stats);
+#endif
+
+	struct stats expected_stats;
+#ifdef STARPU_USE_CPU
+	expected_stats.cpu = 1;
+#endif /* !STARPU_USE_CPU */
+#ifdef STARPU_USE_OPENCL
+	expected_stats.opencl = 0;
+	expected_stats.cpu_to_opencl = 0;
+	expected_stats.opencl_to_cpu = 0;
+#endif /* !STARPU_USE_OPENCL */
+#ifdef STARPU_USE_CUDA
+	expected_stats.cuda = 0;
+	expected_stats.cpu_to_cuda = 0;
+	expected_stats.cuda_to_cpu = 0;
+#endif
+	expected_stats.mic = 2;
+	expected_stats.cpu_to_mic = 2;
+	expected_stats.mic_to_cpu = 2;
+
+	return compare_stats(&expected_stats, &global_stats);
+}
+#endif /* !STARPU_USE_CUDA */
+
 int
-main(void)
+main(int argc, char **argv)
 {
 #ifdef STARPU_USE_CPU
 	int ret;
@@ -208,8 +276,9 @@ main(void)
 
 	conf.ncuda = 2;
 	conf.nopencl = 1;
+	conf.nmic = 1;
 
-	ret = starpu_init(&conf);
+	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
@@ -221,6 +290,7 @@ main(void)
 	}
 	unsigned int ncuda = starpu_cuda_worker_get_count();
 	unsigned int nopencl = starpu_opencl_worker_get_count();
+	unsigned int nmic = starpu_mic_worker_get_count();
 
 #ifdef STARPU_USE_OPENCL
 	if (nopencl > 0 && test_opencl() != 0)
@@ -236,10 +306,17 @@ main(void)
 		return EXIT_FAILURE;
 	}
 #endif
+#ifdef STARPU_USE_MIC
+	if (nmic > 0 && test_mic() != 0)
+	{
+		FPRINTF(stderr, "MIC FAILED \n");
+		return EXIT_FAILURE;
+	}
+#endif
 
 	starpu_shutdown();
 
-	if (ncuda == 0 && nopencl == 0)
+	if (ncuda == 0 && nopencl == 0 && nmic == 0)
 		return STARPU_TEST_SKIPPED;
 	else
 		return EXIT_SUCCESS;

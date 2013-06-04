@@ -26,6 +26,7 @@ extern void test_multiformat_cuda_func(void *buffers[], void *args);
 #ifdef STARPU_USE_OPENCL
 extern void test_multiformat_opencl_func(void *buffers[], void *args);
 #endif
+void test_multiformat_mic_func(void *buffers[], void *args);
 
 static struct point array_of_structs[N_ELEMENTS];
 static struct point array_of_structs_dummy[N_ELEMENTS];
@@ -42,6 +43,7 @@ struct test_config multiformat_config =
 #ifdef STARPU_USE_OPENCL
 	.opencl_func   = test_multiformat_opencl_func,
 #endif
+	.cpu_func_name = "test_multiformat_mic_func",
 	.handle        = &multiformat_handle,
 	.dummy_handle  = &multiformat_dummy_handle,
 	.copy_failed   = SUCCESS,
@@ -74,7 +76,32 @@ test_multiformat_cpu_func(void *buffers[], void *args)
 	FPRINTF(stderr, "\n");
 }
 
+void test_multiformat_mic_func(void *buffers[], void *args)
+{
+	STARPU_SKIP_IF_VALGRIND;
 
+	printf("MIC\n");
+
+	struct struct_of_arrays *soa;
+	unsigned int n, i;
+	int factor;
+
+	soa = (struct struct_of_arrays *) STARPU_MULTIFORMAT_GET_MIC_PTR(buffers[0]);
+	n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
+	factor = *(int *) args;
+
+	for (i = 0; i < n; i++)
+	{
+			FPRINTF(stderr, "(%d %d) [%d]", soa->x[i], soa->y[i], factor);
+		if (soa->x[i] != i * factor || soa->y[i] != i * factor)
+		{
+			multiformat_config.copy_failed = 1;
+		}
+		soa->x[i] = -soa->x[i];
+		soa->y[i] = -soa->y[i];
+	}
+	FPRINTF(stderr, "\n");
+}
 
 #ifdef STARPU_USE_CUDA
 extern struct starpu_codelet cpu_to_cuda_cl;
@@ -84,6 +111,11 @@ extern struct starpu_codelet cuda_to_cpu_cl;
 #ifdef STARPU_USE_OPENCL
 extern struct starpu_codelet cpu_to_opencl_cl;
 extern struct starpu_codelet opencl_to_cpu_cl;
+#endif
+
+#ifdef STARPU_USE_MIC
+extern struct starpu_codelet cpu_to_mic_cl;
+extern struct starpu_codelet mic_to_cpu_cl;
 #endif
 
 struct starpu_multiformat_data_interface_ops format_ops =
@@ -97,6 +129,11 @@ struct starpu_multiformat_data_interface_ops format_ops =
 	.opencl_elemsize = 2 * sizeof(float),
 	.cpu_to_opencl_cl = &cpu_to_opencl_cl,
 	.opencl_to_cpu_cl = &opencl_to_cpu_cl,
+#endif
+#ifdef STARPU_USE_MIC
+	.mic_elemsize = 2 * sizeof(float),
+	.cpu_to_mic_cl = &cpu_to_mic_cl,
+	.mic_to_cpu_cl = &mic_to_cpu_cl,
 #endif
 	.cpu_elemsize = sizeof(struct point),
 };
@@ -131,7 +168,7 @@ unregister_data(void)
 }
 
 int
-main(void)
+main(int argc, char **argv)
 {
 #ifdef STARPU_USE_CPU
 	int ret;
@@ -140,8 +177,9 @@ main(void)
 	starpu_conf_init(&conf);
 	conf.ncuda = 2;
 	conf.nopencl = 1;
+	conf.nmic = -1;
 
-	ret = starpu_init(&conf);
+	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

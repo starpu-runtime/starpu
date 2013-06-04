@@ -32,6 +32,7 @@ struct starpu_codelet cl_with_mode =
 {
 	.name = "with_mode",
 	.cpu_funcs = {cpu_codelet, NULL},
+	.cpu_funcs_name = {"cpu_codelet", NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W},
 };
@@ -40,6 +41,7 @@ struct starpu_codelet cl_without_mode =
 {
 	.name = "without_mode",
 	.cpu_funcs = {cpu_codelet, NULL},
+	.cpu_funcs_name = {"cpu_codelet", NULL},
 	.nbuffers = 2
 };
 
@@ -104,12 +106,16 @@ struct submit_task_func
 
 int submit_codelet(struct starpu_codelet cl, struct submit_task_func func)
 {
-	int x=42, y=14;
+	int *x, *y;
+	starpu_malloc((void**)&x, sizeof(*x));
+	starpu_malloc((void**)&y, sizeof(*y));
+	*x = 42;
+	*y = 14;
 	starpu_data_handle_t handles[2];
 	int ret;
 
-	starpu_variable_data_register(&handles[0], 0, (uintptr_t)&x, sizeof(x));
-	starpu_variable_data_register(&handles[1], 0, (uintptr_t)&y, sizeof(y));
+	starpu_variable_data_register(&handles[0], 0, (uintptr_t)x, sizeof(*x));
+	starpu_variable_data_register(&handles[1], 0, (uintptr_t)y, sizeof(*y));
 
 	ret = func.func(cl, handles[0], handles[1]);
 	starpu_data_unregister(handles[0]);
@@ -117,8 +123,11 @@ int submit_codelet(struct starpu_codelet cl, struct submit_task_func func)
 
 	if (ret == -ENODEV) return ret;
 
-	FPRINTF(stderr, "%s when executing codelet <%s> with func <%s>\n", x==y?"success":"error", cl.name, func.name);
-	return (x != y);
+	FPRINTF(stderr, "%s when executing codelet <%s> with func <%s>\n", *x==*y?"success":"error", cl.name, func.name);
+	return (*x != *y);
+
+	starpu_free(x);
+	starpu_free(y);
 }
 
 int main(int argc, char **argv)
@@ -128,7 +137,7 @@ int main(int argc, char **argv)
 	struct submit_task_func with_buffers = { .func = submit_codelet_with_buffers, .name = "with_buffers" };
 	struct submit_task_func with_handles = { .func = submit_codelet_with_handles, .name = "with_handles" };
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

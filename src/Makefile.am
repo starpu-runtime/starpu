@@ -49,10 +49,10 @@ endif STARPU_HAVE_WINDOWS
 
 lib_LTLIBRARIES = libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ $(STARPU_RCCE_CPPFLAGS) -DBUILDING_STARPU
 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_RCCE_CFLAGS) $(FXT_CFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_RCCE_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) $(FXT_LDFLAGS) -no-undefined									\
   -version-info $(libstarpu_so_version)
 
@@ -105,11 +105,20 @@ noinst_HEADERS = 						\
 	common/uthash.h						\
 	common/barrier_counter.h				\
 	drivers/driver_common/driver_common.h			\
+	drivers/mp_common/mp_common.h				\
+	drivers/mp_common/source_common.h			\
+	drivers/mp_common/sink_common.h				\
 	drivers/cpu/driver_cpu.h				\
 	drivers/cuda/driver_cuda.h				\
 	drivers/opencl/driver_opencl.h				\
 	drivers/opencl/driver_opencl_utils.h			\
 	debug/starpu_debug_helpers.h				\
+	drivers/mic/driver_mic_common.h				\
+	drivers/mic/driver_mic_source.h				\
+	drivers/mic/driver_mic_sink.h				\
+	drivers/scc/driver_scc_common.h				\
+	drivers/scc/driver_scc_source.h				\
+	drivers/scc/driver_scc_sink.h				\
 	debug/traces/starpu_fxt.h				\
 	profiling/bound.h					\
 	profiling/profiling.h					\
@@ -244,6 +253,41 @@ if STARPU_SIMGRID
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
 endif
 endif
+
+if STARPU_USE_SCC
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_common.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_source.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_sink.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_utils.c
+endif
+
+
+#########################################
+#										#
+#        Generic MP compilation			#
+#										#
+#########################################
+
+if STARPU_USE_MP
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mp_common/mp_common.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mp_common/source_common.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mp_common/sink_common.c
+endif
+
+#########################################
+#										#
+#	     MIC compilation				#
+#										#
+#########################################
+
+if STARPU_USE_MIC
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_common.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_source.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_sink.c
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_utils.c
+endif
+
+#########################################
 
 showcheck:
 	-cat /dev/null

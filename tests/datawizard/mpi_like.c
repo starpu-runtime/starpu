@@ -53,7 +53,7 @@ void cuda_codelet_unsigned_inc(void *descr[], __attribute__ ((unused)) void *cl_
 void opencl_codelet_unsigned_inc(void *buffers[], void *args);
 #endif
 
-static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute__((unused)))
+void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute__((unused)))
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -71,6 +71,7 @@ static struct starpu_codelet increment_handle_cl =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_codelet_unsigned_inc, NULL},
 #endif
+	.cpu_funcs_name = {"increment_handle_cpu_kernel", NULL},
 	.nbuffers = 1
 };
 
@@ -82,6 +83,7 @@ static void increment_handle(struct thread_data *thread_data)
 	task->handles[0] = thread_data->handle;
 
 	task->cl_arg = thread_data;
+	task->cl_arg_size = sizeof(thread_data);
 
 	task->destroy = 1;
 	task->detach = 0;
@@ -176,7 +178,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

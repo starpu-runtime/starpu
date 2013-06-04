@@ -83,6 +83,40 @@ void _starpu_data_interface_shutdown()
 	registered_tag_handles = NULL;
 }
 
+struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interface_id)
+{
+	switch (interface_id)
+	{
+		case STARPU_MATRIX_INTERFACE_ID:
+			return &starpu_interface_matrix_ops;
+
+		case STARPU_BLOCK_INTERFACE_ID:
+			return &starpu_interface_block_ops;
+
+		case STARPU_VECTOR_INTERFACE_ID:
+			return &starpu_interface_vector_ops;
+
+		case STARPU_CSR_INTERFACE_ID:
+			return &starpu_interface_csr_ops;
+
+		case STARPU_BCSR_INTERFACE_ID:
+			return &starpu_interface_bcsr_ops;
+
+		case STARPU_VARIABLE_INTERFACE_ID:
+			return &starpu_interface_variable_ops;
+
+		case STARPU_VOID_INTERFACE_ID:
+			return &starpu_interface_void_ops;
+
+		case STARPU_MULTIFORMAT_INTERFACE_ID:
+			return &starpu_interface_multiformat_ops;
+
+		default:
+			STARPU_ABORT();
+			return NULL;
+	}
+}
+
 /* Register the mapping from PTR to HANDLE.  If PTR is already mapped to
  * some handle, the new mapping shadows the previous one.   */
 void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
@@ -569,7 +603,10 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		 * XXX : This is quite hacky, could we submit a task instead ?
 		 */
 		if (_starpu_data_is_multiformat_handle(handle) &&
-			starpu_node_get_kind(handle->mf_node) != STARPU_CPU_RAM)
+			(  starpu_node_get_kind(handle->mf_node) != STARPU_CPU_RAM
+			&& starpu_node_get_kind(handle->mf_node) != STARPU_SCC_RAM
+			&& starpu_node_get_kind(handle->mf_node) != STARPU_SCC_SHM
+			 ))
 		{
 			_STARPU_DEBUG("Conversion needed\n");
 			void *buffers[1];
@@ -598,7 +635,18 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 					break;
 				}
 #endif
+#ifdef STARPU_USE_MIC
+				case STARPU_MIC_RAM:
+				{
+					struct starpu_multiformat_data_interface_ops *mf_ops;
+					mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
+					cl = mf_ops->mic_to_cpu_cl;
+					break;
+				}
+#endif
 				case STARPU_CPU_RAM:      /* Impossible ! */
+				case STARPU_SCC_RAM:      /* Impossible ! */
+				case STARPU_SCC_SHM:      /* Impossible ! */
 				default:
 					STARPU_ABORT();
 			}

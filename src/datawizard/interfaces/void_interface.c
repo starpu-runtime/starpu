@@ -40,7 +40,7 @@ static uint32_t footprint_void_interface_crc32(starpu_data_handle_t handle);
 static int void_compare(void *data_interface_a, void *data_interface_b);
 static void display_void_interface(starpu_data_handle_t handle, FILE *f);
 
-static struct starpu_data_interface_ops interface_void_ops =
+struct starpu_data_interface_ops starpu_interface_void_ops =
 {
 	.register_data_handle = register_void_handle,
 	.allocate_data_on_node = allocate_void_buffer_on_node,
@@ -64,7 +64,7 @@ static void register_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UN
 /* declare a new data with the void interface */
 void starpu_void_data_register(starpu_data_handle_t *handleptr)
 {
-	starpu_data_register(handleptr, 0, NULL, &interface_void_ops);
+	starpu_data_register(handleptr, 0, NULL, &starpu_interface_void_ops);
 }
 
 

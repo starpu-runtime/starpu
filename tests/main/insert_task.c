@@ -44,6 +44,7 @@ struct starpu_codelet mycodelet =
 {
 	.modes = { STARPU_RW, STARPU_RW },
 	.cpu_funcs = {func_cpu, NULL},
+	.cpu_funcs_name = {"func_cpu", NULL},
         .nbuffers = 2
 };
 

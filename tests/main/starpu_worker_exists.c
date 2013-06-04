@@ -40,7 +40,7 @@ static int can_never_execute(unsigned workerid,
 	return 0;
 }
 
-static void fake(void *buffers[], void *args)
+void fake(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
@@ -51,16 +51,17 @@ static struct starpu_codelet cl =
 	.cpu_funcs    = { fake, NULL},
 	.cuda_funcs   = { fake, NULL},
 	.opencl_funcs = { fake, NULL},
+	.cpu_funcs_name = { "fake", NULL},
 	.nbuffers     = 0
 };
 
 int
-main(void)
+main(int argc, char **argv)
 {
 	int ret;
 	struct starpu_task *task;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 
 	task = starpu_task_create();

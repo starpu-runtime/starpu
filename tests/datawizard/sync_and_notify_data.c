@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 	k /= 16;
 #endif
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
@@ -149,6 +149,8 @@ int main(int argc, char **argv)
 #ifdef STARPU_USE_OPENCL
 				.opencl_funcs = {opencl_codelet_incC, NULL},
 #endif
+				.cpu_funcs_name = {"cpu_codelet_incA", NULL},
+				.cpu_funcs_name = {"cpu_codelet_incC", NULL},
 				.nbuffers = 1,
 				.modes = {STARPU_RW}
 

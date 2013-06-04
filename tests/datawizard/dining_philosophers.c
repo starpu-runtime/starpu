@@ -24,7 +24,7 @@
 starpu_data_handle_t fork_handles[N];
 unsigned forks[N];
 
-static void eat_kernel(void *descr[], void *arg)
+void eat_kernel(void *descr[], void *arg)
 {
 }
 
@@ -34,6 +34,7 @@ static struct starpu_codelet eating_cl =
 	.cuda_funcs = {eat_kernel, NULL},
 	.cpu_funcs = {eat_kernel, NULL},
         .opencl_funcs = {eat_kernel, NULL},
+	.cpu_funcs_name = {"eat_kernel", NULL},
 	.nbuffers = 2
 };
 
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

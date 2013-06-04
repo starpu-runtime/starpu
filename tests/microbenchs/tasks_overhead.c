@@ -34,7 +34,7 @@ static unsigned nbuffers = 0;
 
 struct starpu_task *tasks;
 
-static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 }
 
@@ -43,6 +43,7 @@ static struct starpu_codelet dummy_codelet =
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},
 	.opencl_funcs = {dummy_func, NULL},
+	.cpu_funcs_name = {"dummy_func", NULL},
 	.model = NULL,
 	.nbuffers = 0,
 	.modes = {STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW}
@@ -96,14 +97,14 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		buffers[buffer] = (float *) malloc(16*sizeof(float));
+		starpu_malloc((void**)&buffers[buffer], 16*sizeof(float));
 		starpu_vector_data_register(&data_handles[buffer], 0, (uintptr_t)buffers[buffer], 16, sizeof(float));
 	}
 

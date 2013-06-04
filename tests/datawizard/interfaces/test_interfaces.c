@@ -26,7 +26,7 @@
 #include "../../helper.h"
 
 /*
- * This is definitely note thrad-safe.
+ * This is definitely note thread-safe.
  */
 static struct test_config *current_config;
 
@@ -76,6 +76,12 @@ struct data_interface_test_summary
 	int cpu_to_opencl_async;
 	int opencl_to_cpu_async;
 #endif
+#ifdef STARPU_USE_MIC
+	int cpu_to_mic;
+	int mic_to_cpu;
+	int cpu_to_mic_async;
+	int mic_to_cpu_async;
+#endif
 
 	/* Other stuff */
 	int compare;
@@ -107,6 +113,12 @@ void data_interface_test_summary_print(FILE *f,
 	FPRINTF(f, "\tOpenCl -> CPU    : %s\n",
 		enum_to_string(s->opencl_to_cpu_async));
 #endif /* !STARPU_USE_OPENCL */
+#ifdef STARPU_USE_MIC
+	FPRINTF(f, "\tCPU	-> MIC : %s\n",
+		enum_to_string(s->cpu_to_mic_async));
+	FPRINTF(f, "\tMIC	-> CPU : %s\n",
+		enum_to_string(s->mic_to_cpu_async));
+#endif
 
 	FPRINTF(f, "Synchronous :\n");
 #ifdef STARPU_USE_CUDA
@@ -123,6 +135,12 @@ void data_interface_test_summary_print(FILE *f,
 	FPRINTF(f, "\tOpenCl -> CPU    : %s\n",
 		enum_to_string(s->opencl_to_cpu));
 #endif /* !STARPU_USE_OPENCL */
+#ifdef STARPU_USE_MIC
+	FPRINTF(f, "\tCPU	-> MIC : %s\n",
+		enum_to_string(s->cpu_to_mic));
+	FPRINTF(f, "\tMIC	-> CPU : %s\n",
+		enum_to_string(s->mic_to_cpu));
+#endif
 #ifdef STARPU_USE_CPU
 	FPRINTF(f, "CPU    -> CPU    : %s\n",
 		enum_to_string(s->cpu_to_cpu));
@@ -151,8 +169,13 @@ enum operation
 #ifdef STARPU_USE_OPENCL
 	,
 	CPU_TO_OPENCL,
-	OPENCL_TO_CPU
+	OPENCL_TO_CPU,
 #endif /* !STARPU_USE_OPENCL */
+#ifdef STARPU_USE_MIC
+	,
+	CPU_TO_MIC,
+	MIC_TO_CPU,
+#endif
 };
 
 static int*
@@ -178,6 +201,12 @@ get_field(struct data_interface_test_summary *s, int async, enum operation op)
 	case OPENCL_TO_CPU:
 		return async?&s->opencl_to_cpu_async:&s->opencl_to_cpu;
 #endif /* !STARPU_USE_OPENCL */
+#ifdef STARPU_USE_MIC
+	case CPU_TO_MIC:
+		return async?&s->cpu_to_mic_async:&s->cpu_to_mic;
+	case MIC_TO_CPU:
+		return async?&s->mic_to_cpu_async:&s->mic_to_cpu;
+#endif
 	default:
 		STARPU_ABORT();
 	}
@@ -233,12 +262,17 @@ static struct data_interface_test_summary summary =
 	.cpu_to_opencl_async   = UNTESTED,
 	.opencl_to_cpu_async   = UNTESTED,
 #endif
+#ifdef STARPU_USE_MIC
+	.cpu_to_mic            = UNTESTED,
+	.mic_to_cpu            = UNTESTED,
+	.cpu_to_mic_async      = UNTESTED,
+	.mic_to_cpu_async      = UNTESTED,
+#endif
 #ifdef STARPU_USE_CPU
 	.handle_to_pointer     = UNTESTED,
 #endif
 	.success               = SUCCESS
 };
-
 
 /*
  * This variable has to be either -1 or 1.
@@ -271,6 +305,9 @@ create_task(struct starpu_task **taskp, enum starpu_worker_archtype type, int id
 #ifdef STARPU_USE_OPENCL
 	static int opencl_workers[STARPU_MAXOPENCLDEVS];
 #endif
+#ifdef STARPU_USE_MIC
+	static int mic_workers[STARPU_MAXMICDEVS];
+#endif
 
 	static int n_cpus = -1;
 #ifdef STARPU_USE_CUDA
@@ -278,6 +315,9 @@ create_task(struct starpu_task **taskp, enum starpu_worker_archtype type, int id
 #endif
 #ifdef STARPU_USE_OPENCL
 	static int n_opencls = -1;
+#endif
+#ifdef STARPU_USE_MIC
+	static int n_mics = -1;
 #endif
 
 	if (n_cpus == -1) /* First time here */
@@ -298,6 +338,11 @@ create_task(struct starpu_task **taskp, enum starpu_worker_archtype type, int id
 		n_opencls = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER,
 							opencl_workers,
 							STARPU_MAXOPENCLDEVS);
+#endif
+#ifdef STARPU_USE_MIC
+		n_mics = starpu_worker_get_ids_by_type(STARPU_MIC_WORKER,
+							mic_workers,
+							STARPU_MAXMICDEVS);
 #endif
 	}
 
@@ -351,6 +396,21 @@ create_task(struct starpu_task **taskp, enum starpu_worker_archtype type, int id
 			cl.opencl_funcs[0] = current_config->opencl_func;
 			break;
 #endif /* ! STARPU_USE_OPENCL */
+#ifdef STARPU_USE_MIC
+		case STARPU_MIC_WORKER:
+		if (id != -1)
+		{
+			if (id >= n_mics)
+			{
+				FPRINTF(stderr, "Not enough MIC workers\n");
+				return -ENODEV;
+			}
+			workerid = mic_workers[id];
+		}
+		cl.where = STARPU_MIC;
+		cl.cpu_funcs_name[0] = current_config->cpu_func_name;
+		break;
+#endif
 		default:
 			return -ENODEV;
 	}
@@ -476,6 +536,44 @@ opencl_to_ram(void)
 	return current_config->copy_failed;
 }
 #endif /* !STARPU_USE_OPENCL */
+
+#ifdef STARPU_USE_MIC
+static enum exit_code
+ram_to_mic()
+{
+	int err;
+	struct starpu_task *task;
+
+	err = create_task(&task, STARPU_MIC_WORKER, 0);
+	if (err != 0)
+		return TASK_CREATION_FAILURE;
+
+	err = starpu_task_submit(task);
+	if (err != 0)
+		return TASK_SUBMISSION_FAILURE;
+
+	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	return current_config->copy_failed;
+}
+
+static enum exit_code
+mic_to_ram()
+{
+	int err;
+	struct starpu_task *task;
+
+	err = create_task(&task, STARPU_CPU_WORKER, -1);
+	if (err != 0)
+		return TASK_CREATION_FAILURE;
+	
+	err = starpu_task_submit(task);
+	if (err != 0)
+		return TASK_SUBMISSION_FAILURE;
+
+	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
+	return current_config->copy_failed;
+}
+#endif
 /* End of the <device1>_to_<device2> functions. */
 
 #ifdef STARPU_USE_CUDA
@@ -533,6 +631,24 @@ run_opencl(int async)
 
 }
 #endif /* !STARPU_USE_OPENCL */
+
+#ifdef STARPU_USE_MIC
+static void
+run_mic(int async)
+{
+	int err;
+
+	err = ram_to_mic();
+	set_field(&summary, async, CPU_TO_MIC, err);
+	if (err != SUCCESS)
+		return;
+
+#ifdef STARPU_USE_CPU
+	err = mic_to_ram();
+	set_field(&summary, async, MIC_TO_CPU, err);
+#endif
+}
+#endif /* STARPU_USE_PIC */
 
 #ifdef STARPU_USE_CPU
 /* Valid data should be in RAM before calling this function */
@@ -592,6 +708,9 @@ run_async(void)
 #ifdef STARPU_USE_OPENCL
 	run_opencl(1);
 #endif /* !STARPU_USE_OPENCL */
+#ifdef STARPU_USE_MIC
+	run_mic(1);
+#endif
 }
 
 static void
@@ -616,6 +735,10 @@ run_sync(void)
 	new_copy_methods.ram_to_opencl_async = NULL;
 	new_copy_methods.opencl_to_ram_async = NULL;
 #endif /* !STARPU_USE_OPENCL */
+#ifdef STARPU_USE_MIC
+	new_copy_methods.ram_to_mic_async = NULL;
+	new_copy_methods.mic_to_ram_async = NULL;
+#endif
 
 	handle->ops->copy_methods = &new_copy_methods;
 
@@ -625,6 +748,9 @@ run_sync(void)
 #ifdef STARPU_USE_OPENCL
 	run_opencl(0);
 #endif /* !STARPU_USE_OPENCL */
+#ifdef STARPU_USE_MIC
+	run_mic(0);
+#endif
 
 	handle->ops->copy_methods = old_copy_methods;
 }
@@ -699,6 +825,9 @@ load_conf(struct test_config *config)
 #endif
 #ifdef STARPU_USE_OPENCL
 	    !config->opencl_func ||
+#endif
+#ifdef STARPU_USE_MIC
+		!config->cpu_func_name ||
 #endif
 	    !config->handle)
 	{

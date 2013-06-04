@@ -1,0 +1,90 @@
+#!/bin/bash
+
+ROOT_DIR=$PWD
+[ -n "$MIC_HOST" ] || MIC_HOST=x86_64-k1om-linux
+[ -n "$MIC_CC_PATH" ] || MIC_CC_PATH=/usr/linux-k1om-4.7/bin/
+[ -n "$COI_DIR" ] || COI_DIR=/opt/intel/mic/coi
+DEFAULT_PREFIX=/usr/local
+
+export PATH=${MIC_CC_PATH}${PATH:+:${PATH}}
+
+cat > ./mic-config.log << EOF
+This file was created by StarPU mic-configure
+
+ $ $0 $*
+EOF
+
+for arch in mic host
+do
+
+	# We call the configure script from a build directory further in the
+	# arborescence
+	command="${ROOT_DIR}/configure --enable-mic --with-coi-dir=$COI_DIR"
+	prefix_found=no
+
+	if test x$arch = xmic ; then
+		command="$command --without-hwloc --with-coi-lib-dir=$COI_DIR/device-linux-release/lib --host=$MIC_HOST"
+	else
+		command="$command --with-coi-lib-dir=$COI_DIR/host-linux-release/lib"
+	fi
+
+	for arg in $*
+	do
+		if [ ${arg:0:9} = '--prefix=' ]
+		then
+			prefix_found=yes
+			prefix="${arg:9}"
+			command="$command ${arg}/${arch}"
+		else
+			command="$command $arg"
+		fi
+
+	done
+
+	# If the user didn't specify a directory where to install the library
+	# we apply the default one
+	if test x$prefix_found = xno ; then
+		command="$command --prefix=${DEFAULT_PREFIX}/$arch"
+		prefix=${DEFAULT_PREFIX}
+	fi
+
+	# If the build directory doesn't exist yet, create it
+	if [ ! -d "${ROOT_DIR}/build_${arch}" ] ; then
+		mkdir "build_${arch}"
+	fi
+
+	cd "build_${arch}"
+
+	if test x$arch = xmic ; then
+		LDFLAGS=-export-dynamic $command
+	else
+		$command
+	fi
+	if [ "$?" != 0 ]
+	then
+		exit $?
+	fi
+	cd "${ROOT_DIR}"
+done
+
+cat > Makefile << EOF
+all:
+	\$(MAKE) -C build_host
+	\$(MAKE) -C build_mic
+
+clean:
+	\$(MAKE) -C build_host clean
+	\$(MAKE) -C build_mic clean
+
+distclean: clean
+	rm -f Makefile
+
+check:
+	\$(MAKE) -C build_host check
+	\$(MAKE) -C build_mic check
+
+install:
+	\$(MAKE) -C build_host install
+	\$(MAKE) -C build_mic install
+	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.2.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc"
+EOF
