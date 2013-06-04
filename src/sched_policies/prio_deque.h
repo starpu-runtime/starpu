@@ -8,12 +8,12 @@ struct _starpu_prio_list
 {
 	int prio;
 	struct starpu_task_list list;
-	struct _starpu_prio_list * next;
 };
 
 struct _starpu_prio_deque
 {
-	struct _starpu_prio_list * list;
+	struct _starpu_prio_list * array;
+	int size_array;
 	unsigned ntasks;
 	unsigned nprocessed;
 	double exp_start, exp_end, exp_len;
