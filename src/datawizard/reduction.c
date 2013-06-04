@@ -333,13 +333,13 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 			redux_task->cl = handle->redux_cl;
 			STARPU_ASSERT(redux_task->cl);
 
-			if (!redux_task->cl->modes[0])
-				redux_task->cl->modes[0] = STARPU_RW;
-			if (!redux_task->cl->modes[1])
-				redux_task->cl->modes[1] = STARPU_R;
+			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0))
+				STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_RW, 0);
+			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 1))
+				STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_R, 1);
 
-			STARPU_ASSERT_MSG(redux_task->cl->modes[0] == STARPU_RW, "First parameter of reduction codelet has to be RW");
-			STARPU_ASSERT_MSG(redux_task->cl->modes[1] == STARPU_R, "Second parameter of reduction codelet has to be R");
+			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 0) == STARPU_RW, "First parameter of reduction codelet has to be RW");
+			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 1) == STARPU_R, "Second parameter of reduction codelet has to be R");
 
 			STARPU_TASK_SET_HANDLE(redux_task, handle, 0);
 			STARPU_TASK_SET_HANDLE(redux_task, replicate_array[replicate], 1);
