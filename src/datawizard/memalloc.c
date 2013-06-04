@@ -341,12 +341,52 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 #endif
 
 			/* in case there was nobody using that buffer, throw it
-			 * away after writing it back to main memory */
-			transfer_subtree_to_node(handle, node, 0);
+			 * away after writing it back to main memory if we can*/
+
+			size_t size_handle = _starpu_data_get_size(handle);
+
+			if (_starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
+			{
+				transfer_subtree_to_node(handle, node, STARPU_MAIN_RAM);
 
 #ifdef STARPU_MEMORY_STATS
-			_starpu_memory_handle_stats_loaded_owner(handle, 0);
+				_starpu_memory_handle_stats_loaded_owner(handle, STARPU_MAIN_RAM);
 #endif
+			}
+			else
+			{	
+				
+				/* we have to push datas in disk memory */
+				unsigned nnodes = starpu_memory_nodes_get_count();
+				unsigned int i;
+				double time_disk = 0;
+				unsigned disk = 0;
+				
+				for (i = 0; i < nnodes; i++)
+				{
+					if (starpu_node_get_kind(i) == STARPU_DISK_RAM && _starpu_memory_manager_test_allocate_size_(size_handle, i) == 1)
+					{
+						/* only time can change between disk <-> main_ram 
+						 * and not between main_ram <-> worker if we compare diks*/
+						double time_tmp = _starpu_predict_transfer_time(i, STARPU_MAIN_RAM, size_handle);
+						if (disk == 0 || time_disk > time_tmp)
+						{
+							disk = i;
+							time_disk = time_tmp;
+						}	
+					}
+				}
+
+				STARPU_ASSERT_MSG(disk != 0, "MEMORY FULL");
+
+				/* transfer */
+				transfer_subtree_to_node(handle, node, disk);
+
+#ifdef STARPU_MEMORY_STATS
+				_starpu_memory_handle_stats_loaded_owner(handle, disk);
+#endif				
+				
+			}      
 			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 
 			/* now the actual buffer may be freed */
