@@ -250,7 +250,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 	{
 		/* The destination node should only allocate the data, no transfer is required */
 		STARPU_ASSERT(max_len >= 1);
-		src_nodes[0] = 0; // ignored
+		src_nodes[0] = STARPU_MAIN_RAM; // ignored
 		dst_nodes[0] = dst_node;
 		handling_nodes[0] = dst_node;
 		return 1;
@@ -265,15 +265,13 @@ static int determine_request_path(starpu_data_handle_t handle,
 		 * through main memory. */
 		STARPU_ASSERT(max_len >= 2);
 
-		/* XXX we hardcode 0 as the RAM node ... */
-
 		/* GPU -> RAM */
 		src_nodes[0] = src_node;
-		dst_nodes[0] = 0;
+		dst_nodes[0] = STARPU_MAIN_RAM;
 		handling_nodes[0] = src_node;
 
 		/* RAM -> GPU */
-		src_nodes[1] = 0;
+		src_nodes[1] = STARPU_MAIN_RAM;
 		dst_nodes[1] = dst_node;
 		handling_nodes[1] = dst_node;
 
