@@ -85,27 +85,41 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 	if (cost && src_node != -1)
 		/* Could estimate through cost, return that */
 		return src_node;
-
+	
+	unsigned i_ram = -1;
+	unsigned i_gpu = -1;
+	unsigned i_disk = -1;
+	
 	/* Revert to dumb strategy: take RAM unless only a GPU has it */
 	for (i = 0; i < nnodes; i++)
 	{
 		if (src_node_mask & (1<<i))
 		{
-			/* this is a potential candidate */
-			src_node = i;
-
 			/* however GPU are expensive sources, really !
 			 * 	Unless peer transfer is supported.
 			 * 	Other should be ok */
 
 			if (
 #ifndef HAVE_CUDA_MEMCPY_PEER
-					starpu_node_get_kind(i) != STARPU_CUDA_RAM &&
+				starpu_node_get_kind(i) == STARPU_CUDA_RAM ||
 #endif
-					starpu_node_get_kind(i) != STARPU_OPENCL_RAM)
-				break ;
+				starpu_node_get_kind(i) == STARPU_OPENCL_RAM)
+				/* we save it, but we don't use it (reason above) */
+				i_gpu = i;
+
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM)
+				i_ram = i;
+			if (starpu_node_get_kind(i) == STARPU_DISK_RAM)			
+				i_disk = i;
 		}
 	}
+	/* we have to use cpu_ram in first */
+	if (i_ram != -1)
+		src_node = i_ram;
+	/* no luck we have to use the disk memory */
+	else
+		src_node = i_disk;
+		
 
 	STARPU_ASSERT(src_node != -1);
 
