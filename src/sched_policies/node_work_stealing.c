@@ -262,7 +262,7 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 		_starpu_sched_node_add_child(ws, node);
 	}
 	_starpu_set_workers_bitmaps();
-	_starpu_call_init_data(data);
+	_starpu_tree_call_init_data(data);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
 

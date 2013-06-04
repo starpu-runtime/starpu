@@ -20,10 +20,8 @@ struct _starpu_sched_node
 	int nchilds;
 	struct _starpu_sched_node ** childs;
 
-
 	//the set of workers in the node's subtree
 	struct _starpu_bitmap * workers;
-
 	//is_homogeneous is 0 iff workers in the node's subtree are heterogeneous,
 	//this field is set and updated automaticaly, you shouldn't write on it
 	int is_homogeneous;
@@ -33,7 +31,6 @@ struct _starpu_sched_node
 	 * so we need several fathers
 	 */
 	struct _starpu_sched_node * fathers[STARPU_NMAX_SCHED_CTXS];
-
 	
 	/* this function is called after all childs has been set
 	 */
@@ -41,7 +38,6 @@ struct _starpu_sched_node
 	/* this function is called to free data allocated by init_data 
 	 */
 	void (*deinit_data)(struct _starpu_sched_node *);
-
 };
 
 struct _starpu_task_execute_preds
@@ -152,8 +148,7 @@ struct _starpu_bitmap * _starpu_get_worker_mask(struct starpu_task * task);
 void _starpu_set_workers_bitmaps(void);
 /* this function call init data on all nodes in postfix order
  */
-void _starpu_call_init_data(struct _starpu_sched_tree * t);
-
+void _starpu_tree_call_init_data(struct _starpu_sched_tree * t);
 
 /* push task of list lower as possible in the tree, a non null value is returned if some task couldn't be pushed
  */

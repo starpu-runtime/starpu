@@ -147,10 +147,11 @@ static void update_helper_node(struct _starpu_sched_node * heft_node)
 #define _STARPU_SCHED_ALPHA_DEFAULT 1.0
 #define _STARPU_SCHED_BETA_DEFAULT 1.0
 #define _STARPU_SCHED_GAMMA_DEFAULT 1000.0
-#ifdef STARPU_USE_TOP
 static double alpha = _STARPU_SCHED_ALPHA_DEFAULT;
 static double beta = _STARPU_SCHED_BETA_DEFAULT;
 static double _gamma = _STARPU_SCHED_GAMMA_DEFAULT;
+
+#ifdef STARPU_USE_TOP
 static const float alpha_minimum=0;
 static const float alpha_maximum=10.0;
 static const float beta_minimum=0;
@@ -245,7 +246,6 @@ void _starpu_sched_node_heft_set_no_model_node(struct _starpu_sched_node * heft_
 	no_model_node->childs = malloc(heft_node->nchilds * sizeof(struct _starpu_sched_node *));
 	memcpy(no_model_node->childs, heft_node->childs, heft_node->nchilds * sizeof(struct _strapu_sched_node *));
 
-	heft_node->childs;
 	no_model_node->nchilds = heft_node->nchilds;
 	no_model_node->init_data(no_model_node);
 	data->no_model_node = no_model_node;

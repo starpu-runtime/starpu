@@ -419,7 +419,7 @@ static void helper_starpu_call_init_data(struct _starpu_sched_node *node)
 		node->init_data(node);
 }
 
-void _starpu_call_init_data(struct _starpu_sched_tree * t)
+void _starpu_tree_call_init_data(struct _starpu_sched_tree * t)
 {
 	helper_starpu_call_init_data(t->root);
 }
