@@ -111,12 +111,9 @@ int main(int argc, char **argv)
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
 
-	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*15);;
+	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*15);
 
-	uintptr_t pstt = starpu_malloc_on_node(dd, (1024*1024*15)-1);
-	starpu_free_on_node(dd, pstt, (1024*1024*15)-1);
 
-	starpu_disk_unregister(dd);
 
 	if (ret == -ENODEV) goto enodev;
 
@@ -143,7 +140,7 @@ int main(int argc, char **argv)
 	 *  - the fifth argument is the size of each element.
 	 */
 	starpu_data_handle_t vector_handle;
-	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
+	starpu_vector_data_register(&vector_handle, dd, (uintptr_t)vector, NX, sizeof(vector[0]));
 
 	float factor = 3.14;
 
@@ -175,6 +172,8 @@ int main(int argc, char **argv)
         ret = starpu_opencl_unload_opencl(&opencl_program);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
+
+	starpu_disk_unregister(dd);
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
