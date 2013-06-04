@@ -197,8 +197,8 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	STARPU_PTHREAD_MUTEX_INIT(&handle->sequential_consistency_mutex, NULL);
 	handle->last_submitted_mode = STARPU_R;
-	handle->last_submitted_writer = NULL;
-	handle->last_submitted_readers = NULL;
+	handle->last_sync_task = NULL;
+	handle->last_submitted_accessors = NULL;
 	handle->post_sync_tasks = NULL;
 	handle->post_sync_tasks_cnt = 0;
 
@@ -210,9 +210,9 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->reduction_req_list = _starpu_data_requester_list_new();
 
 #ifdef STARPU_USE_FXT
-	handle->last_submitted_ghost_writer_id_is_valid = 0;
-	handle->last_submitted_ghost_writer_id = 0;
-	handle->last_submitted_ghost_readers_id = NULL;
+	handle->last_submitted_ghost_sync_id_is_valid = 0;
+	handle->last_submitted_ghost_sync_id = 0;
+	handle->last_submitted_ghost_accessors_id = NULL;
 #endif
 
 	handle->wt_mask = wt_mask;
