@@ -46,13 +46,13 @@ struct _starpu_bitmap * _starpu_bitmap_create(void)
 }
 void _starpu_bitmap_destroy(struct _starpu_bitmap * b)
 {
-
 	free(b->bits);
 	free(b);
 }
 
 void _starpu_bitmap_set(struct _starpu_bitmap * b, int e)
 {
+
 	if(!_starpu_bitmap_get(b, e))
 		b->cardinal++;
 	if((e/LONG_BIT) + 1 > b->size)
@@ -142,7 +142,7 @@ int _starpu_bitmap_first(struct _starpu_bitmap * b)
 		return -1;
 	int nb_long = i;
 	unsigned long ms = b->bits[i];
-	int m = 1;
+	unsigned long m = 1;
 	i = 0;
 	while(1)
 		if(m&ms)
@@ -191,7 +191,7 @@ int _starpu_bitmap_next(struct _starpu_bitmap *b, int e)
 {
 	int nb_long = e / LONG_BIT;
 	int nb_bit = e % LONG_BIT;
-	if((~0ul << (nb_bit + 1)) & b->bits[nb_long])
+	if(nb_bit != (LONG_BIT - 1) && (~0ul << (nb_bit + 1)) & b->bits[nb_long])
 	{
 		unsigned long mask = 1ul<<nb_bit;
 		int i = nb_bit + 1;
