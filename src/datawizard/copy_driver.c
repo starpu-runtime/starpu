@@ -397,6 +397,19 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 		break;
 #endif
+
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_DISK_RAM):
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		break;
+		
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_CPU_RAM):
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		break;
+
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_DISK_RAM):	
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		break;
+		
 	default:
 		STARPU_ABORT();
 		break;
