@@ -43,10 +43,7 @@ LIST_TYPE(_starpu_data_request,
 	struct _starpu_data_replicate *src_replicate;
 	struct _starpu_data_replicate *dst_replicate;
 
-	/* Which memory node will actually perform the transfer.
-	 * This is important in the CUDA/OpenCL case, where only the worker for
-	 * the node can make the CUDA/OpenCL calls.
-	 */
+	/* Which memory node will actually perform the transfer */
 	unsigned handling_node;
 
 	/*

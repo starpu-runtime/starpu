@@ -16,8 +16,6 @@
 #ifndef MULTIFORMAT_GENERIC_H
 #define MULTIFORMAT_GENERIC_H
 
-#include <starpu_mic.h>
-
 #define NX 16
 
 #ifdef STARPU_USE_CPU
@@ -31,11 +29,6 @@ void cuda_func(void *buffers[], void *args);
 #ifdef STARPU_USE_OPENCL
 void opencl_func(void *buffers[], void *args);
 #endif /* !STARPU_USE_OPENCL */
-
-#ifdef STARPU_USE_MIC
-starpu_mic_kernel_t mic_func();
-#endif
-
 extern struct starpu_multiformat_data_interface_ops ops;
 /* Counting the calls to the codelets */
 struct stats
@@ -52,11 +45,6 @@ struct stats
 	unsigned int opencl;
 	unsigned int cpu_to_opencl;
 	unsigned int opencl_to_cpu;
-#endif
-#ifdef STARPU_USE_MIC
-	unsigned int mic;
-	unsigned int cpu_to_mic;
-	unsigned int mic_to_cpu;
 #endif
 };
 

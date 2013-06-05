@@ -36,17 +36,7 @@ enum starpu_worker_archtype
 	STARPU_ANY_WORKER,    /* any worker, used in the hypervisor */
 	STARPU_CPU_WORKER,    /* CPU core */
 	STARPU_CUDA_WORKER,   /* NVIDIA CUDA device */
-	STARPU_OPENCL_WORKER, /* OpenCL device */
-	STARPU_MIC_WORKER,    /* Intel MIC device */
-	STARPU_SCC_WORKER     /* Intel SCC device */
-};
-
-/* Represent the topology of sink devices, contains useful informations about
- * their capabilities */
-// XXX: unused.
-struct starpu_sink_topology
-{
-	unsigned nb_cpus;
+	STARPU_OPENCL_WORKER  /* OpenCL device */
 };
 
 struct starpu_sched_ctx_iterator
@@ -71,20 +61,10 @@ struct starpu_machine_topology
 	unsigned nhwcpus;
 	unsigned nhwcudagpus;
 	unsigned nhwopenclgpus;
-	unsigned nhwscc;
 
 	unsigned ncpus;
 	unsigned ncudagpus;
 	unsigned nopenclgpus;
-	unsigned nsccdevices;
-
-	/* Topology of MP nodes (mainly MIC and SCC) as well as necessary
-	 * objects to communicate with them. */
-	unsigned nhwmicdevices;
-	unsigned nmicdevices;
-
-	unsigned nhwmiccores[STARPU_MAXMICDEVS]; // Each MIC node has its set of cores.
-	unsigned nmiccores[STARPU_MAXMICDEVS];
 
 	/* Where to bind workers ? */
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
@@ -94,18 +74,6 @@ struct starpu_machine_topology
 
 	/* Which GPU(s) do we use for OpenCL ? */
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
-
-	/* Which MIC core(s) do we use ? */
-	/* unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]; */
-
-	/* Which SCC(s) do we use ? */
-	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
-};
-
-/* types of structures the worker collection can implement */
-enum starpu_worker_collection_type
-{
-	STARPU_WORKER_LIST
 };
 
 /* generic structure used by the scheduling contexts to iterate the workers */
@@ -115,8 +83,8 @@ struct starpu_worker_collection
 	void *workerids;
 	/* the number of workers in the collection */
 	unsigned nworkers;
-	/* the type of structure */
-	enum starpu_worker_collection_type type;
+	/* the type of structure (STARPU_WORKER_LIST,...) */
+	int type;
 	/* checks if there is another element in collection */
 	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	/* return the next element in the collection */
@@ -133,6 +101,9 @@ struct starpu_worker_collection
 	void (*init_iterator)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 };
 
+/* types of structures the worker collection can implement */
+#define STARPU_WORKER_LIST 0
+
 /* This function returns the number of workers (ie. processing units executing
  * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
 unsigned starpu_worker_get_count(void);
@@ -142,10 +113,6 @@ unsigned starpu_worker_is_combined_worker(int id);
 unsigned starpu_cpu_worker_get_count(void);
 unsigned starpu_cuda_worker_get_count(void);
 unsigned starpu_opencl_worker_get_count(void);
-unsigned starpu_mic_worker_get_count(void);
-unsigned starpu_scc_worker_get_count(void);
-
-unsigned starpu_mic_device_get_count(void);
 
 /* Return the identifier of the thread in case this is associated to a worker.
  * This will return -1 if this function is called directly from the application
@@ -198,8 +165,6 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen);
  *  identifier (as returned by the starpu_worker_get_id() function)
  */
 int starpu_worker_get_devid(int id);
-
-int starpu_worker_get_mp_nodeid(int id);
 
 #ifdef __cplusplus
 }

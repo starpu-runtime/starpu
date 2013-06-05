@@ -473,10 +473,6 @@ fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
 @end defvr
 
-@defvr {Environment variable} STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
-Disable asynchronous copies between CPU and MIC devices.
-@end defvr
-
 @defvr {Environment variable} STARPU_DISABLE_CUDA_GPU_GPU_DIRECT
 Disable direct CUDA transfers from GPU to GPU, and let CUDA copy through RAM
 instead. This permits to test the performance effect of GPU-Direct.

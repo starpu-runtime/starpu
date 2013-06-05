@@ -37,7 +37,7 @@ static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_arg
 {
 }
 
-void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+static void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 }
 
@@ -46,7 +46,6 @@ static struct starpu_codelet cl =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
 	.opencl_funcs = {opencl_codelet_null, NULL},
-	.cpu_funcs_name = {"cpu_codelet_null", NULL},
         .nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R}
 };
@@ -56,7 +55,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

@@ -21,7 +21,7 @@
 static unsigned book = 0;
 static starpu_data_handle_t book_handle;
 
-void dummy_kernel(void *descr[], void *arg)
+static void dummy_kernel(void *descr[], void *arg)
 {
 }
 
@@ -30,7 +30,6 @@ static struct starpu_codelet r_cl =
 	.cuda_funcs = {dummy_kernel, NULL},
 	.cpu_funcs = {dummy_kernel, NULL},
 	.opencl_funcs = {dummy_kernel, NULL},
-	.cpu_funcs_name = {"dummy_kernel", NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_R}
 };
@@ -40,7 +39,6 @@ static struct starpu_codelet w_cl =
 	.cuda_funcs = {dummy_kernel, NULL},
 	.cpu_funcs = {dummy_kernel, NULL},
 	.opencl_funcs = {dummy_kernel, NULL},
-	.cpu_funcs_name = {"dummy_kernel", NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_W}
 };
@@ -49,7 +47,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

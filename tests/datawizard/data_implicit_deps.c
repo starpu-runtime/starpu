@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013  Université de Bordeaux 1
+ * Copyright (C) 2010  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,9 +29,8 @@ static unsigned *A, *B, *C, *D;
 starpu_data_handle_t A_handle, B_handle, C_handle, D_handle;
 
 static unsigned var = 0;
-starpu_data_handle_t var_handle;
 
-void f(void *descr[] __attribute__ ((unused)), void *_args __attribute__ ((unused)))
+static void f(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -40,92 +39,52 @@ void f(void *descr[] __attribute__ ((unused)), void *_args __attribute__ ((unuse
 
 static struct starpu_codelet cl_f =
 {
-	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
+	.modes = { STARPU_R, STARPU_RW },
 	.cpu_funcs = {f, NULL},
 	.cuda_funcs = {f, NULL},
 	.opencl_funcs = {f, NULL},
-	.cpu_funcs_name = {"f", NULL},
-	.nbuffers = 3,
+	.nbuffers = 2
 };
 
-void g(void *descr[], __attribute__ ((unused)) void *_args)
+static void g(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
-	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
-
 	usleep(100000);
-	*val = 42;
+	var = 42;
 }
-
-#ifdef STARPU_USE_CUDA
-void g_cuda(void *descr[], __attribute__ ((unused)) void *_args)
-{
-	STARPU_SKIP_IF_VALGRIND;
-
-	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
-	unsigned value = 42;
-
-	usleep(100000);
-	cudaMemcpy(val, &value, sizeof(value), cudaMemcpyHostToDevice);
-}
-#endif
 
 static struct starpu_codelet cl_g =
 {
-	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
+	.modes = { STARPU_R, STARPU_RW },
 	.cpu_funcs = {g, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {g_cuda, NULL},
-#endif
-	// TODO
-	//.opencl_funcs = {g, NULL},
-	.cpu_funcs_name = {"g", NULL},
-	.nbuffers = 3,
+	.cuda_funcs = {g, NULL},
+	.opencl_funcs = {g, NULL},
+	.nbuffers = 2
 };
 
-void h(void *descr[], __attribute__ ((unused)) void *_args)
+static void h(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
-	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
-
-	FPRINTF(stderr, "VAR %u (should be 42)\n", *val);
-	STARPU_ASSERT(*val == 42);
+	FPRINTF(stderr, "VAR %u (should be 42)\n", var);
+	STARPU_ASSERT(var == 42);
 }
-
-#ifdef STARPU_USE_CUDA
-void h_cuda(void *descr[], __attribute__ ((unused)) void *_args)
-{
-	STARPU_SKIP_IF_VALGRIND;
-
-	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
-	unsigned value;
-
-	cudaMemcpy(&value, val, sizeof(value), cudaMemcpyDeviceToHost);
-	FPRINTF(stderr, "VAR %u (should be 42)\n", value);
-	STARPU_ASSERT(value == 42);
-}
-#endif
 
 static struct starpu_codelet cl_h =
 {
-	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
+	.modes = { STARPU_R, STARPU_RW },
 	.cpu_funcs = {h, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {h_cuda, NULL},
-#endif
-	// TODO
-	//.opencl_funcs = {h, NULL},
-	.cpu_funcs_name = {"h", NULL},
-	.nbuffers = 3
+	.cuda_funcs = {h, NULL},
+	.opencl_funcs = {h, NULL},
+	.nbuffers = 2
 };
 
 int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
@@ -138,8 +97,6 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&B_handle, 0, (uintptr_t)B, VECTORSIZE, sizeof(unsigned));
 	starpu_vector_data_register(&C_handle, 0, (uintptr_t)C, VECTORSIZE, sizeof(unsigned));
 	starpu_vector_data_register(&D_handle, 0, (uintptr_t)D, VECTORSIZE, sizeof(unsigned));
-
-	starpu_variable_data_register(&var_handle, 0, (uintptr_t)(&var), sizeof(var));
 
 #if 0
 	starpu_data_set_sequential_consistency_flag(A_handle, 0);
@@ -154,27 +111,24 @@ int main(int argc, char **argv)
 	 */
 	struct starpu_task *task_f = starpu_task_create();
 	task_f->cl = &cl_f;
-	task_f->handles[0] = var_handle;
-	task_f->handles[1] = A_handle;
-	task_f->handles[2] = B_handle;
+	task_f->handles[0] = A_handle;
+	task_f->handles[1] = B_handle;
 	ret = starpu_task_submit(task_f);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	struct starpu_task *task_g = starpu_task_create();
 	task_g->cl = &cl_g;
-	task_g->handles[0] = var_handle;
-	task_g->handles[1] = B_handle;
-	task_g->handles[2] = C_handle;
+	task_g->handles[0] = B_handle;
+	task_g->handles[1] = C_handle;
 	ret = starpu_task_submit(task_g);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	struct starpu_task *task_h = starpu_task_create();
 	task_h->cl = &cl_h;
-	task_h->handles[0] = var_handle;
-	task_h->handles[1] = C_handle;
-	task_h->handles[2] = D_handle;
+	task_h->handles[0] = C_handle;
+	task_h->handles[1] = D_handle;
 	ret = starpu_task_submit(task_h);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -186,8 +140,6 @@ int main(int argc, char **argv)
 	starpu_data_unregister(B_handle);
 	starpu_data_unregister(C_handle);
 	starpu_data_unregister(D_handle);
-
-	starpu_data_unregister(var_handle);
 
 	free(A);
 	free(B);

@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 {
 	int i, ret;
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

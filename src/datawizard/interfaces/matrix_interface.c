@@ -24,8 +24,6 @@
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
-#include <drivers/scc/driver_scc_source.h>
-#include <drivers/mic/driver_mic_source.h>
 
 /* If you can promise that there is no stride in your matrices, you can define this */
 // #define NO_STRIDE
@@ -48,17 +46,6 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_A
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
 static int copy_opencl_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
-#endif
-#ifdef STARPU_USE_SCC
-static int copy_scc_src_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_scc_sink_to_src(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_scc_sink_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-#endif
-#ifdef STARPU_USE_MIC
-static int copy_ram_to_mic(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_mic_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_ram_to_mic_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_mic_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 #endif
 
 static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
@@ -88,17 +75,6 @@ static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
         .ram_to_opencl_async = copy_ram_to_opencl_async,
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
 	.opencl_to_opencl_async = copy_opencl_to_opencl_async,
-#endif
-#ifdef STARPU_USE_SCC
-	.scc_src_to_sink = copy_scc_src_to_sink,
-	.scc_sink_to_src = copy_scc_sink_to_src,
-	.scc_sink_to_sink = copy_scc_sink_to_sink,
-#endif
-#ifdef STARPU_USE_MIC
-	.ram_to_mic = copy_ram_to_mic,
-	.mic_to_ram = copy_mic_to_ram,
-	.ram_to_mic_async = copy_ram_to_mic_async,
-	.mic_to_ram_async = copy_mic_to_ram_async,
 #endif
 };
 
@@ -151,7 +127,6 @@ static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_no
 			local_interface->ld  = 0;
 		}
 
-		local_interface->id = matrix_interface->id;
 		local_interface->nx = matrix_interface->nx;
 		local_interface->ny = matrix_interface->ny;
 		local_interface->elemsize = matrix_interface->elemsize;
@@ -176,7 +151,6 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, unsigned home_
 {
 	struct starpu_matrix_interface matrix_interface =
 	{
-		.id = STARPU_MATRIX_INTERFACE_ID,
 		.ptr = ptr,
 		.ld = ld,
 		.nx = nx,
@@ -185,11 +159,6 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, unsigned home_
                 .dev_handle = ptr,
                 .offset = 0
 	};
-
-#ifdef STARPU_USE_SCC
-	_starpu_scc_set_offset_in_shared_memory((void*)matrix_interface.ptr,
-			(void**)&(matrix_interface.dev_handle), &(matrix_interface.offset));
-#endif
 
 	starpu_data_register(handleptr, home_node, &matrix_interface, &starpu_interface_matrix_ops);
 }
@@ -587,147 +556,6 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_A
 	return copy_opencl_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
 }
 
-#endif
-
-#ifdef STARPU_USE_SCC
-static int copy_scc_src_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	uint32_t nx = STARPU_MATRIX_GET_NX(dst_interface);
-	uint32_t ny = STARPU_MATRIX_GET_NY(dst_interface);
-
-	size_t elemsize = STARPU_MATRIX_GET_ELEMSIZE(dst_interface);
-
-	uint32_t src_ld = STARPU_MATRIX_GET_LD(src_interface);
-	uint32_t dst_ld = STARPU_MATRIX_GET_LD(dst_interface);
-
-	void *src_ptr = (void *)STARPU_MATRIX_GET_PTR(src_interface);
-	void *dst_ptr = (void *)STARPU_MATRIX_GET_PTR(dst_interface);
-
-	unsigned y;
-	for (y = 0; y < ny; ++y)
-	{
-		uint32_t src_offset = y*src_ld*elemsize;
-		uint32_t dst_offset = y*dst_ld*elemsize;
-
-		_starpu_scc_copy_src_to_sink(src_ptr + src_offset, src_node,
-						dst_ptr + dst_offset, dst_node, nx*elemsize);
-	}
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*elemsize);
-
-	return 0;
-}
-
-static int copy_scc_sink_to_src(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	uint32_t nx = STARPU_MATRIX_GET_NX(dst_interface);
-	uint32_t ny = STARPU_MATRIX_GET_NY(dst_interface);
-
-	size_t elemsize = STARPU_MATRIX_GET_ELEMSIZE(dst_interface);
-
-	uint32_t src_ld = STARPU_MATRIX_GET_LD(src_interface);
-	uint32_t dst_ld = STARPU_MATRIX_GET_LD(dst_interface);
-
-	void *src_ptr = (void *)STARPU_MATRIX_GET_PTR(src_interface);
-	void *dst_ptr = (void *)STARPU_MATRIX_GET_PTR(dst_interface);
-
-	unsigned y;
-	for (y = 0; y < ny; ++y)
-	{
-		uint32_t src_offset = y*src_ld*elemsize;
-		uint32_t dst_offset = y*dst_ld*elemsize;
-
-		_starpu_scc_copy_sink_to_src(src_ptr + src_offset, src_node,
-						dst_ptr + dst_offset, dst_node, nx*elemsize);
-	}
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*elemsize);
-
-	return 0;
-}
-
-static int copy_scc_sink_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	uint32_t nx = STARPU_MATRIX_GET_NX(dst_interface);
-	uint32_t ny = STARPU_MATRIX_GET_NY(dst_interface);
-
-	size_t elemsize = STARPU_MATRIX_GET_ELEMSIZE(dst_interface);
-
-	uint32_t src_ld = STARPU_MATRIX_GET_LD(src_interface);
-	uint32_t dst_ld = STARPU_MATRIX_GET_LD(dst_interface);
-
-	void *src_ptr = (void *)STARPU_MATRIX_GET_PTR(src_interface);
-	void *dst_ptr = (void *)STARPU_MATRIX_GET_PTR(dst_interface);
-
-	unsigned y;
-	for (y = 0; y < ny; ++y)
-	{
-		uint32_t src_offset = y*src_ld*elemsize;
-		uint32_t dst_offset = y*dst_ld*elemsize;
-
-		_starpu_scc_copy_sink_to_sink(src_ptr + src_offset, src_node,
-						dst_ptr + dst_offset, dst_node, nx*elemsize);
-	}
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*elemsize);
-
-	return 0;
-}
-#endif /* STARPU_USE_SCC */
-
-#ifdef STARPU_USE_MIC
-static int copy_mic_common(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node,
-						   int (*copy_func)(void *, unsigned, void *, unsigned, size_t))
-{
-	struct starpu_matrix_interface *src_matrix = src_interface;
-	struct starpu_matrix_interface *dst_matrix = dst_interface;
-
-	unsigned y;
-	uint32_t nx = dst_matrix->nx;
-	uint32_t ny = dst_matrix->ny;
-	size_t elemsize = dst_matrix->elemsize;
-
-	uint32_t ld_src = src_matrix->ld;
-	uint32_t ld_dst = dst_matrix->ld;
-
-	uintptr_t ptr_src = src_matrix->ptr;
-	uintptr_t ptr_dst = dst_matrix->ptr;
-
-
-	for (y = 0; y < ny; y++)
-	{
-		uint32_t src_offset = y*ld_src*elemsize;
-		uint32_t dst_offset = y*ld_dst*elemsize;
-
-		copy_func((void *)(ptr_src + src_offset), src_node, (void *)(ptr_dst + dst_offset), dst_node, nx*elemsize);
-	}
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)nx*ny*elemsize);
-
-	return 0;
-}
-
-static int copy_ram_to_mic(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	return copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_ram_to_mic);
-}
-
-static int copy_mic_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	return copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_mic_to_ram);
-}
-
-static int copy_ram_to_mic_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_ram_to_mic_async);
-	return -EAGAIN;
-}
-
-static int copy_mic_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_mic_to_ram_async);
-	return -EAGAIN;
-}
 #endif
 
 /* as not all platform easily have a  lib installed ... */

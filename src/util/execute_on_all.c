@@ -110,9 +110,6 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
 	unsigned nworkers = starpu_worker_get_count();
 	struct starpu_task *tasks[STARPU_NMAXWORKERS];
 
-	/* This method only work on CPU, CUDA, OPENCL */
-	STARPU_ASSERT((where & ~STARPU_CPU & ~STARPU_CUDA & ~STARPU_OPENCL) == 0);
-
 	/* create a wrapper codelet */
 	struct starpu_codelet wrapper_cl =
 	{

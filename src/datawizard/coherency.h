@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -106,9 +106,6 @@ struct _starpu_data_state
 	 * the req_list anymore), i.e. the number of holders of the
 	 * current_mode rwlock */
 	unsigned refcnt;
-	/* Current access mode. Is always either STARPU_R, STARPU_W,
-	 * STARPU_SCRATCH or STARPU_REDUX, but never a combination such as
-	 * STARPU_RW. */
 	enum starpu_data_access_mode current_mode;
 	/* protect meta data */
 	struct _starpu_spinlock header_lock;
@@ -141,7 +138,7 @@ struct _starpu_data_state
 	/* Footprint which identifies data layout */
 	uint32_t footprint;
 
-	/* where is the data home, i.e. which node it was registered from ? -1 if none yet */
+	/* where is the data home ? -1 if none yet */
 	int home_node;
 
 	/* what is the default write-through mask for that data ? */
@@ -166,8 +163,8 @@ struct _starpu_data_state
 	 * read-only mode should depend on that task implicitely if the
 	 * sequential_consistency flag is enabled. */
 	enum starpu_data_access_mode last_submitted_mode;
-	struct starpu_task *last_sync_task;
-	struct _starpu_task_wrapper_list *last_submitted_accessors;
+	struct starpu_task *last_submitted_writer;
+	struct _starpu_task_wrapper_list *last_submitted_readers;
 
 	/* If FxT is enabled, we keep track of "ghost dependencies": that is to
 	 * say the dependencies that are not needed anymore, but that should
@@ -175,9 +172,9 @@ struct _starpu_data_state
 	 * f(Aw) g(Aw), and that g is submitted after the termination of f, we
 	 * want to have f->g appear in the DAG even if StarPU does not need to
 	 * enforce this dependency anymore.*/
-	unsigned last_submitted_ghost_sync_id_is_valid;
-	unsigned long last_submitted_ghost_sync_id;
-	struct _starpu_jobid_list *last_submitted_ghost_accessors_id;
+	unsigned last_submitted_ghost_writer_id_is_valid;
+	unsigned long last_submitted_ghost_writer_id;
+	struct _starpu_jobid_list *last_submitted_ghost_readers_id;
 
 	struct _starpu_task_wrapper_list *post_sync_tasks;
 	unsigned post_sync_tasks_cnt;

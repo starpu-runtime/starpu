@@ -35,7 +35,6 @@ void starpu_vector_filter_block(void *father_interface, void *child_interface, S
 	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1,
 						     &child_nx, &offset);
 
-	vector_child->id = vector_father->id;
 	vector_child->nx = child_nx;
 	vector_child->elemsize = elemsize;
 
@@ -96,8 +95,6 @@ void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interf
 
 	STARPU_ASSERT_MSG(length_first < nx, "First part is too long: %u vs %u", length_first, nx);
 
-	vector_child->id = vector_father->id;
-
 	/* this is the first child */
 	if (id == 0)
 	{
@@ -141,7 +138,6 @@ void starpu_vector_filter_list(void *father_interface, void *child_interface, st
 
 	uint32_t chunk_size = length_tab[id];
 
-	vector_child->id = vector_father->id;
 	vector_child->nx = chunk_size;
 	vector_child->elemsize = elemsize;
 

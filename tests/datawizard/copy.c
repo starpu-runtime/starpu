@@ -24,14 +24,13 @@ static unsigned nloops = 10;
 static unsigned nloops = 1000;
 #endif
 
-void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 }
 
 static struct starpu_codelet cpu_codelet =
 {
         .cpu_funcs = {dummy_func, NULL},
-		.cpu_funcs_name = {"dummy_func", NULL},
         .model = NULL,
         .nbuffers = 1,
 	.modes = {STARPU_RW}
@@ -41,7 +40,6 @@ static struct starpu_codelet gpu_codelet =
 {
         .cuda_funcs = {dummy_func, NULL},
         .opencl_funcs = {dummy_func, NULL},
-		.cpu_funcs_name = {"dummy_func", NULL},
         .model = NULL,
         .nbuffers = 1,
 	.modes = {STARPU_RW}
@@ -55,14 +53,13 @@ int main(int argc, char **argv)
         unsigned i;
 	int ret;
 
-        ret = starpu_initialize(NULL, &argc, &argv);
+        ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	if (starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) == 0 && starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER) == 0 &&
-		starpu_worker_get_count_by_type(STARPU_MIC_WORKER) == 0)
+	if (starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) == 0 && starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER) == 0)
 	{
-		FPRINTF(stderr, "This application requires a CUDA , OpenCL or MIC Worker\n");
+		FPRINTF(stderr, "This application requires a CUDA or OpenCL Worker\n");
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}

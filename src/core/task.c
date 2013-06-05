@@ -341,21 +341,6 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		cl->where |= STARPU_OPENCL;
 	}
-
-	if (cl->mic_funcs[0] && is_where_unset)
-	{
-		cl->where |= STARPU_MIC;
-	}
-
-	if (cl->scc_funcs[0] && is_where_unset)
-	{
-		cl->where |= STARPU_SCC;
-	}
-
-	if (cl->cpu_funcs_name[0] && is_where_unset)
-	{
-		cl->where |= STARPU_MIC|STARPU_SCC;
-	}
 }
 
 void _starpu_task_check_deprecated_fields(struct starpu_task *task)
@@ -891,8 +876,6 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 					return 0;
 				case STARPU_CUDA_RAM:      /* Fall through */
 				case STARPU_OPENCL_RAM:
-				case STARPU_MIC_RAM:
-				case STARPU_SCC_RAM:
 					return 1;
 				default:
 					STARPU_ABORT();
@@ -900,16 +883,12 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 			break;
 		case STARPU_CUDA_RAM:    /* Fall through */
 		case STARPU_OPENCL_RAM:
-		case STARPU_MIC_RAM:
-		case STARPU_SCC_RAM:
 			switch(starpu_node_get_kind(handle->mf_node))
 			{
 				case STARPU_CPU_RAM:
 					return 1;
 				case STARPU_CUDA_RAM:
 				case STARPU_OPENCL_RAM:
-				case STARPU_MIC_RAM:
-				case STARPU_SCC_RAM:
 					return 0;
 				default:
 					STARPU_ABORT();
@@ -945,19 +924,4 @@ void starpu_task_set_implementation(struct starpu_task *task, unsigned impl)
 unsigned starpu_task_get_implementation(struct starpu_task *task)
 {
 	return _starpu_get_job_associated_to_task(task)->nimpl;
-}
-
-starpu_mic_func_t _starpu_task_get_mic_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->mic_funcs[nimpl];
-}
-
-starpu_scc_func_t _starpu_task_get_scc_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->scc_funcs[nimpl];
-}
-
-char *_starpu_task_get_cpu_name_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->cpu_funcs_name[nimpl];
 }

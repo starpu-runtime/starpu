@@ -20,7 +20,7 @@ AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STAR
 AM_CXXFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(MAGMA_LIBS) $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
-AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS)
+AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) 
 
 SUBDIRS = stencil
 
@@ -138,15 +138,10 @@ endif
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
-if !STARPU_CROSS_COMPILING
 LOADER			=	loader
 loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
-else
-LOADER			=
-LOADER_BIN		=	$(top_builddir)/tests/loader-cross.sh
-endif
 
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
@@ -310,11 +305,8 @@ basic_examples_vector_scal_SOURCES =		\
 	basic_examples/vector_scal_cpu.c
 
 if STARPU_HAVE_ICC
-if STARPU_CROSS_COMPILING
-else
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cpu_icc.icc
-endif
 endif
 
 if STARPU_USE_CUDA

@@ -35,18 +35,18 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 				void (*callback)(void *), void *callback_arg);
 
 /* Constants used by the starpu_insert_task helper to determine the different types of argument */
-#define STARPU_VALUE		(1<<19)	/* Pointer to a constant value */
-#define STARPU_CALLBACK		(1<<20)	/* Callback function */
-#define STARPU_CALLBACK_WITH_ARG	(1<<21)	/* Callback function */
-#define STARPU_CALLBACK_ARG	(1<<22)	/* Argument of the callback function (of type void *) */
-#define STARPU_PRIORITY		(1<<23)	/* Priority associated to the task */
-#define STARPU_EXECUTE_ON_NODE	(1<<24)	/* Used by MPI to define which task is going to execute the codelet */
-#define STARPU_EXECUTE_ON_DATA	(1<<25)	/* Used by MPI to define which task is going to execute the codelet */
-#define STARPU_DATA_ARRAY       (1<<26) /* Array of data handles */
-#define STARPU_TAG              (1<<27) /* Tag */
-#define STARPU_HYPERVISOR_TAG	(1<<28)	/* Used to tag a task after whose execution we'll execute  a code */
-#define STARPU_FLOPS	        (1<<29)	/* Used to specify the number of flops needed to be executed by a task */
-#define STARPU_SCHED_CTX	(1<<30)	/* Used to specify the sched_ctx to which the task will be submitted */
+#define STARPU_VALUE		(1<<4)	/* Pointer to a constant value */
+#define STARPU_CALLBACK		(1<<5)	/* Callback function */
+#define STARPU_CALLBACK_WITH_ARG	(1<<6)	/* Callback function */
+#define STARPU_CALLBACK_ARG	(1<<7)	/* Argument of the callback function (of type void *) */
+#define STARPU_PRIORITY		(1<<8)	/* Priority associated to the task */
+#define STARPU_EXECUTE_ON_NODE	(1<<9)	/* Used by MPI to define which task is going to execute the codelet */
+#define STARPU_EXECUTE_ON_DATA	(1<<10)	/* Used by MPI to define which task is going to execute the codelet */
+#define STARPU_DATA_ARRAY       (1<<11) /* Array of data handles */
+#define STARPU_TAG              (1<<12) /* Tag */
+#define STARPU_HYPERVISOR_TAG	(1<<13)	/* Used to tag a task after whose execution we'll execute  a code */
+#define STARPU_FLOPS	        (1<<14)	/* Used to specify the number of flops needed to be executed by a task */
+#define STARPU_SCHED_CTX	(1<<15)	/* Used to specify the sched_ctx to which the task will be submitted */
 
 /* Wrapper to create a task. */
 int starpu_insert_task(struct starpu_codelet *cl, ...);

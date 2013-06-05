@@ -141,11 +141,6 @@ int main(int argc, char **argv)
 	unsigned ncuda = starpu_cuda_worker_get_count();
 	unsigned nopencl = starpu_opencl_worker_get_count();
 
-#ifdef STARPU_USE_MIC
-	unsigned nmicdevs = starpu_mic_device_get_count();
-	unsigned nmiccores = starpu_mic_worker_get_count();
-#endif
-
 	fprintf(stdout, "StarPU has found :\n");
 
 	fprintf(stdout, "\t%u CPU cores\n", ncpu);
@@ -156,11 +151,6 @@ int main(int argc, char **argv)
 
 	fprintf(stdout, "\t%u OpenCL devices\n", nopencl);
 	display_worker_names(STARPU_OPENCL_WORKER);
-
-#ifdef STARPU_USE_MIC
-	fprintf(stdout, "\t%d MIC cores (from %d devices)\n", nmiccores, nmicdevs);
-	display_worker_names(STARPU_MIC_WORKER);
-#endif
 
 	display_all_combined_workers();
 

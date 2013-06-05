@@ -842,7 +842,7 @@ void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id)
 	return sched_ctx->policy_data;
 }
 
-struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type  worker_collection_type)
+struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, int worker_collection_type)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	sched_ctx->workers = (struct starpu_worker_collection*)malloc(sizeof(struct starpu_worker_collection));
@@ -881,7 +881,6 @@ static unsigned _get_workers_list(struct _starpu_sched_ctx *sched_ctx, int **wor
 	}
 	return nworkers;
 }
-
 void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);

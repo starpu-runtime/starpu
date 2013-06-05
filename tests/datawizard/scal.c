@@ -96,7 +96,6 @@ struct starpu_codelet scal_codelet =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = { scal_func_cuda, NULL },
 #endif
-	.cpu_funcs_name = {"scal_func_cpu", NULL},
 	.modes = { STARPU_RW },
         .model = NULL,
         .nbuffers = 1
