@@ -541,17 +541,17 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 #endif
 #ifdef STARPU_USE_SCC
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_CPU_RAM):
-		_starpu_scc_copy_sink_to_src(
+		return _starpu_scc_copy_sink_to_src(
 				(void*) src + src_offset, src_node,
 				(void*) dst + dst_offset, dst_node,
 				size);
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_SCC_RAM):
-		_starpu_scc_copy_src_to_sink(
+		return _starpu_scc_copy_src_to_sink(
 				(void*) src + src_offset, src_node,
 				(void*) dst + dst_offset, dst_node,
 				size);
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_SCC_RAM):
-		_starpu_scc_copy_sink_to_sink(
+		return _starpu_scc_copy_sink_to_sink(
 				(void*) src + src_offset, src_node,
 				(void*) dst + dst_offset, dst_node,
 				size);
