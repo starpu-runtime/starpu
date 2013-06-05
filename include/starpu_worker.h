@@ -41,14 +41,6 @@ enum starpu_worker_archtype
 	STARPU_SCC_WORKER     /* Intel SCC device */
 };
 
-/* Represent the topology of sink devices, contains useful informations about
- * their capabilities */
-// XXX: unused.
-struct starpu_sink_topology
-{
-	unsigned nb_cpus;
-};
-
 struct starpu_sched_ctx_iterator
 {
 	int cursor;
