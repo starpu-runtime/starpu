@@ -17,7 +17,7 @@ struct _starpu_bitmap{
 };
 
 #ifndef STARPU_NO_ASSERT
-static int check_bitmap(struct _starpu_bitmap *b)
+static int check_bitmap(struct _starpu_bitmap *b);
 #endif
 
 
