@@ -233,6 +233,13 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 		return 1;
 	}
 
+	/* Link between disk and ram */
+	if ((starpu_node_get_kind(src_node) == STARPU_DISK_RAM && starpu_node_get_kind(dst_node) == STARPU_CPU_RAM) ||
+	    (starpu_node_get_kind(src_node) == STARPU_CPU_RAM && starpu_node_get_kind(dst_node) == STARPU_DISK_RAM))
+	{
+		return 1;
+	}
+
 	return 0;
 }
 
