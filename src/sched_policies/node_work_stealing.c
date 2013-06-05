@@ -131,9 +131,10 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	struct _starpu_work_stealing_data * wsd = node->data;
 	int ret = -1;
 	int start = wsd->last_push_child;
-	int i;
-	for(i = (start+1)%node->nchilds; i != start; i = (i+1)%node->nchilds)
+	int i = start;
+	do
 	{
+		i = (i+1)%node->nchilds;
 		struct _starpu_sched_node * child = node->childs[i];
 		if(_starpu_sched_node_can_execute_task(child,task))
 		{
@@ -141,7 +142,8 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 			break;
 		}
 	}
-	wsd->last_push_child = (wsd->last_push_child + 1) % node->nchilds;
+	while(i != start);
+	wsd->last_push_child = (start + 1) % node->nchilds;
 	node->childs[i]->available(node->childs[i]);
 	return ret;
 }
