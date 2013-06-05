@@ -20,6 +20,7 @@
 #include <common/utils.h>
 #include <core/sched_policy.h>
 #include <datawizard/datastats.h>
+#include <drivers/disk/driver_disk.h>
 #include <common/fxt.h>
 #include "copy_driver.h"
 #include "memalloc.h"
@@ -569,6 +570,24 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 				(void*) dst + dst_offset, dst_node,
 				size);
 #endif
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM, STARPU_DISK_RAM):
+		return _starpu_disk_copy_src_to_disk(
+			(void*) src, src_offset, src_node,
+			(void*) dst, dst_offset, dst_node,
+			size);
+
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_CPU_RAM):
+		return _starpu_disk_copy_disk_to_src(
+			(void*) src, src_offset, src_node,
+			(void*) dst, dst_offset, dst_node,
+			size);
+
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_DISK_RAM):
+		return _starpu_disk_copy_disk_to_disk(
+			(void*) src, src_offset, src_node,
+			(void*) dst, dst_offset, dst_node,
+			size);
+
 	default:
 		STARPU_ABORT();
 		return -1;

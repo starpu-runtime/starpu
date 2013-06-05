@@ -119,6 +119,7 @@ noinst_HEADERS = 						\
 	drivers/scc/driver_scc_common.h				\
 	drivers/scc/driver_scc_source.h				\
 	drivers/scc/driver_scc_sink.h				\
+	drivers/disk/driver_disk.h				\
 	debug/traces/starpu_fxt.h				\
 	profiling/bound.h					\
 	profiling/profiling.h					\
@@ -177,6 +178,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	sched_policies/parallel_heft.c				\
 	sched_policies/parallel_eager.c				\
 	drivers/driver_common/driver_common.c			\
+	drivers/disk/driver_disk.c				\
 	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\
 	datawizard/coherency.c					\
