@@ -19,7 +19,7 @@
 #include <common/utils.h>
 #include <core/workers.h>
 #include <math.h>
-#include <sched_policies/detect_combined_workers.h>
+#include <core/detect_combined_workers.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>

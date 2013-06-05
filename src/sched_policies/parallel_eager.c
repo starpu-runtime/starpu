@@ -16,7 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 #include <sched_policies/fifo_queues.h>
-#include <sched_policies/detect_combined_workers.h>
+#include <core/detect_combined_workers.h>
 #include <starpu_scheduler.h>
 #include <core/workers.h>
 
