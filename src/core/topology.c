@@ -158,7 +158,7 @@ _starpu_initialize_workers_deviceid (int *explicit_workers_gpuid,
 static void
 _starpu_initialize_workers_cuda_gpuid (struct _starpu_machine_config *config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = config->conf;
 
         _starpu_initialize_workers_deviceid (
@@ -185,7 +185,7 @@ _starpu_get_next_cuda_gpuid (struct _starpu_machine_config *config)
 static void
 _starpu_initialize_workers_opencl_gpuid (struct _starpu_machine_config*config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = config->conf;
 
         _starpu_initialize_workers_deviceid(
@@ -266,7 +266,7 @@ _starpu_get_next_opencl_gpuid (struct _starpu_machine_config *config)
 #if defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID)
 static void _starpu_initialize_workers_mic_deviceid(struct _starpu_machine_config *config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = config->conf;
 
 	_starpu_initialize_workers_deviceid(
@@ -284,7 +284,7 @@ static void _starpu_initialize_workers_mic_deviceid(struct _starpu_machine_confi
 #ifdef STARPU_USE_SCC
 static void _starpu_initialize_workers_scc_deviceid(struct _starpu_machine_config *config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = config->conf;
 
 	_starpu_initialize_workers_deviceid(
@@ -327,7 +327,7 @@ _starpu_init_mic_topology (struct _starpu_machine_config *config, long mic_idx)
 	 * on this MIC device. Update the `nhwmiccores' topology field
 	 * accordingly. */
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	int nbcores;
 	_starpu_src_common_sink_nbcores (mic_nodes[mic_idx], &nbcores);
@@ -412,7 +412,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	   before calling this function. The discovered topology is filled in
 	   CONFIG. */
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	if (topology_is_initialized)
 		return;
@@ -445,7 +445,7 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 	char *strval;
 	unsigned i;
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	config->current_bindid = 0;
 
@@ -526,7 +526,7 @@ static inline int
 _starpu_get_next_bindid (struct _starpu_machine_config *config,
 			 int *preferred_binding, int npreferred)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	unsigned found = 0;
 	int current_preferred;
@@ -590,7 +590,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 {
 	// Configure the MIC device of index MIC_IDX.
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	topology->nhwmiccores[mic_idx] = 0;
 
@@ -664,7 +664,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 	 * - configure the workers accordingly.
 	 */
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	// We currently only support MIC at this level.
 #ifdef STARPU_USE_MIC
@@ -702,7 +702,7 @@ _starpu_deinit_mic_node (unsigned mic_idx)
 static void
 _starpu_deinit_mp_config (struct _starpu_machine_config *config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	unsigned i;
 
 	for (i = 0; i < topology->nmicdevices; i++)
@@ -718,7 +718,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		config->workers[i].workerid = i;
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	topology->nworkers = 0;
 	topology->ncombinedworkers = 0;
@@ -1368,7 +1368,7 @@ void
 starpu_topology_print (FILE *output)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	unsigned core;
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();

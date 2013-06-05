@@ -21,6 +21,7 @@
 #include <starpu.h>
 #include <starpu_profiling.h>
 #include <core/sched_policy.h>
+#include <core/workers.h>
 #include <common/uthash.h>
 
 #include <drivers/driver_common/driver_common.h>
@@ -326,7 +327,7 @@ unsigned starpu_mic_device_get_count(void)
 {
     // Return the number of configured MIC devices.
     struct _starpu_machine_config *config = _starpu_get_machine_config ();
-    struct starpu_machine_topology *topology = &config->topology;
+    struct _starpu_machine_topology *topology = &config->topology;
 
     return topology->nmicdevices;
 }

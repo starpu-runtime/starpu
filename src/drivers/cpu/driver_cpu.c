@@ -21,11 +21,11 @@
 
 #include <math.h>
 #include <starpu.h>
-#include <starpu_scheduler.h> /* XXX For starpu_machine_topology */
 #include <starpu_profiling.h>
 #include <drivers/driver_common/driver_common.h>
 #include <common/utils.h>
 #include <core/debug.h>
+#include <core/workers.h>
 #include "driver_cpu.h"
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
@@ -58,7 +58,7 @@ _starpu_cpu_discover_devices(struct _starpu_machine_config *config)
 	/* Discover the CPUs relying on the hwloc interface and fills CONFIG
 	 * accordingly. */
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	config->cpu_depth = hwloc_get_type_depth (topology->hwtopology,
 						  HWLOC_OBJ_CORE);
@@ -201,7 +201,7 @@ static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_
 
 #if defined(STARPU_HAVE_HWLOC)
         int depth_node;
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
         depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
 
 	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)

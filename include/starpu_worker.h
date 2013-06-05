@@ -54,54 +54,6 @@ struct starpu_sched_ctx_iterator
 	int cursor;
 };
 
-struct starpu_machine_topology
-{
-	unsigned nworkers;
-
-	unsigned ncombinedworkers;
-
-	unsigned nsched_ctxs;
-#ifdef STARPU_HAVE_HWLOC
-	hwloc_topology_t hwtopology;
-#else
-	/* We maintain ABI compatibility with and without hwloc */
-	void *dummy;
-#endif
-
-	unsigned nhwcpus;
-	unsigned nhwcudagpus;
-	unsigned nhwopenclgpus;
-	unsigned nhwscc;
-
-	unsigned ncpus;
-	unsigned ncudagpus;
-	unsigned nopenclgpus;
-	unsigned nsccdevices;
-
-	/* Topology of MP nodes (mainly MIC and SCC) as well as necessary
-	 * objects to communicate with them. */
-	unsigned nhwmicdevices;
-	unsigned nmicdevices;
-
-	unsigned nhwmiccores[STARPU_MAXMICDEVS]; // Each MIC node has its set of cores.
-	unsigned nmiccores[STARPU_MAXMICDEVS];
-
-	/* Where to bind workers ? */
-	unsigned workers_bindid[STARPU_NMAXWORKERS];
-
-	/* Which GPU(s) do we use for CUDA ? */
-	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
-
-	/* Which GPU(s) do we use for OpenCL ? */
-	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
-
-	/* Which MIC core(s) do we use ? */
-	/* unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]; */
-
-	/* Which SCC(s) do we use ? */
-	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
-};
-
 /* types of structures the worker collection can implement */
 enum starpu_worker_collection_type
 {
