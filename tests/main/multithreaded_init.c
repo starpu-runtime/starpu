@@ -21,11 +21,14 @@
 
 #define NUM_THREADS 5
 
+int *glob_argc;
+char ***glob_argv;
+
 void *launch_starpu(void *unused)
 {
 	int ret;
 	(void) unused;
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, glob_argc, glob_argv);
 	if (ret == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -45,6 +48,9 @@ int main(int argc, char **argv)
 	double timing;
 	struct timeval start;
 	struct timeval end;
+
+	glob_argc = &argc;
+	glob_argv = &argv;
 
 	starpu_pthread_t threads[NUM_THREADS];
 

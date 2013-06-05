@@ -24,6 +24,8 @@
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
+#include <drivers/scc/driver_scc_source.h>
+#include <drivers/mic/driver_mic_source.h>
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
@@ -41,7 +43,7 @@ static uint32_t footprint_variable_interface_crc32(starpu_data_handle_t handle);
 static int variable_compare(void *data_interface_a, void *data_interface_b);
 static void display_variable_interface(starpu_data_handle_t handle, FILE *f);
 
-static struct starpu_data_interface_ops interface_variable_ops =
+struct starpu_data_interface_ops starpu_interface_variable_ops =
 {
 	.register_data_handle = register_variable_handle,
 	.allocate_data_on_node = allocate_variable_buffer_on_node,
@@ -65,6 +67,7 @@ static void *variable_handle_to_pointer(starpu_data_handle_t handle, unsigned no
 
 static void register_variable_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 {
+	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *)data_interface;
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
@@ -73,14 +76,19 @@ static void register_variable_handle(starpu_data_handle_t handle, unsigned home_
 
 		if (node == home_node)
 		{
-			local_interface->ptr = STARPU_VARIABLE_GET_PTR(data_interface);
+			local_interface->ptr = variable_interface->ptr;
+			local_interface->dev_handle = variable_interface->dev_handle;
+			local_interface->offset = variable_interface->offset;
 		}
 		else
 		{
 			local_interface->ptr = 0;
+			local_interface->dev_handle = 0;
+			local_interface->offset = 0;
 		}
 
-		local_interface->elemsize = STARPU_VARIABLE_GET_ELEMSIZE(data_interface);
+		local_interface->id = variable_interface->id;
+		local_interface->elemsize = variable_interface->elemsize;
 	}
 }
 
@@ -90,11 +98,19 @@ void starpu_variable_data_register(starpu_data_handle_t *handleptr, unsigned hom
 {
 	struct starpu_variable_interface variable =
 	{
+		.id = STARPU_VARIABLE_INTERFACE_ID,
 		.ptr = ptr,
+		.dev_handle = ptr,
+		.offset = 0,
 		.elemsize = elemsize
 	};
 
-	starpu_data_register(handleptr, home_node, &variable, &interface_variable_ops);
+#ifdef STARPU_USE_SCC
+	_starpu_scc_set_offset_in_shared_memory((void*)variable.ptr, (void**)&(variable.dev_handle),
+			&(variable.offset));
+#endif
+
+	starpu_data_register(handleptr, home_node, &variable, &starpu_interface_variable_ops);
 }
 
 

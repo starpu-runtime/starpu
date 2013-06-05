@@ -18,7 +18,7 @@
 #include "generic.h"
 #include "../../../../helper.h"
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
 extern struct stats global_stats;
 static int vector[NX]; static starpu_data_handle_t handle;
 #endif
@@ -31,8 +31,12 @@ static int cuda_worker;
 static int nopencl;
 static int opencl_worker;
 #endif
+#ifdef STARPU_USE_MIC
+static int nmic;
+static int mic_worker;
+#endif
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
 static struct starpu_codelet cl =
 {
 	.modes = { STARPU_RW },
@@ -41,6 +45,9 @@ static struct starpu_codelet cl =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = { opencl_func, NULL },
+#endif
+#ifdef STARPU_USE_MIC
+	.mic_funcs = {mic_func, NULL},
 #endif
 	.nbuffers = 1,
 };
@@ -84,6 +91,13 @@ create_and_submit_tasks(void)
 	}
 	else
 #endif
+#ifdef STARPU_USE_MIC
+	if (nmic > 0)
+	{
+		task->workerid = mic_worker;
+	}
+	else
+#endif
 	{
 		return -ENODEV;
 	}
@@ -93,11 +107,11 @@ create_and_submit_tasks(void)
 #endif
 
 int
-main(void)
+main(int argc, char **argv)
 {
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
 	int err;
-	err = starpu_init(NULL);
+	err = starpu_initialize(NULL, &argc, &argv);
 	if (err == -ENODEV)
 		goto enodev;
 
@@ -112,6 +126,13 @@ main(void)
 						&opencl_worker, 1);
 	if (nopencl < 0)
 		nopencl = 1;
+#endif
+#ifdef STARPU_USE_MIC
+	nmic = starpu_worker_get_ids_by_type(STARPU_MIC_WORKER,
+						&mic_worker, 1);
+
+	if(nmic < 0)
+		nmic = 1;
 #endif
 
 	reset_stats(&global_stats);
@@ -144,6 +165,16 @@ main(void)
 
 	}
 #endif /* !STARPU_USE_OPENCL */
+#ifdef STARPU_USE_MIC
+	if (global_stats.mic == 1)
+	{
+		if (global_stats.cpu_to_mic == 1 &&
+			global_stats.mic_to_cpu == 1)
+			return EXIT_SUCCESS;
+		else
+			return EXIT_FAILURE;
+	}
+#endif
 
 	/* We should not get here */
 	return EXIT_FAILURE;

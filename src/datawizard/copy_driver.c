@@ -320,6 +320,83 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		}
 		break;
 #endif
+#ifdef STARPU_USE_MIC
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_MIC_RAM):
+		/* RAM -> MIC */
+		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mic_copy_disabled() ||
+				!(copy_methods->ram_to_mic_async || copy_methods->any_to_any))
+		{
+			/* this is not associated to a request so it's synchronous */
+			STARPU_ASSERT(copy_methods->ram_to_mic || copy_methods->any_to_any);
+			if (copy_methods->ram_to_mic)
+				copy_methods->ram_to_mic(src_interface, src_node, dst_interface, dst_node);
+			else
+				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		}
+		else
+		{
+			req->async_channel.type = STARPU_MIC_RAM;
+			if (copy_methods->ram_to_mic_async)
+				ret = copy_methods->ram_to_mic_async(src_interface, src_node, dst_interface, dst_node);
+			else
+			{
+				STARPU_ASSERT(copy_methods->any_to_any);
+				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+			}
+			_starpu_mic_init_event(&(req->async_channel.event.mic_event), dst_node);
+		}
+		break;
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_MIC_RAM,STARPU_CPU_RAM):
+		/* MIC -> RAM */
+		if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mic_copy_disabled() ||
+				!(copy_methods->mic_to_ram_async || copy_methods->any_to_any))
+		{
+			/* this is not associated to a request so it's synchronous */
+			STARPU_ASSERT(copy_methods->mic_to_ram || copy_methods->any_to_any);
+			if (copy_methods->mic_to_ram)
+				copy_methods->mic_to_ram(src_interface, src_node, dst_interface, dst_node);
+			else
+				copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		}
+		else
+		{
+			req->async_channel.type = STARPU_MIC_RAM;
+			if (copy_methods->mic_to_ram_async)
+				ret = copy_methods->mic_to_ram_async(src_interface, src_node, dst_interface, dst_node);
+			else
+			{
+				STARPU_ASSERT(copy_methods->any_to_any);
+				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+			}
+			_starpu_mic_init_event(&(req->async_channel.event.mic_event), src_node);
+		}
+		break;
+#endif
+#ifdef STARPU_USE_SCC
+		/* SCC RAM associated to the master process is considered as
+		 * the main memory node. */
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_SCC_RAM):
+		/* master private SCC RAM -> slave private SCC RAM */
+		if (copy_methods->scc_src_to_sink)
+			copy_methods->scc_src_to_sink(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		break;
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_CPU_RAM):
+		/* slave private SCC RAM -> master private SCC RAM */
+		if (copy_methods->scc_sink_to_src)
+			copy_methods->scc_sink_to_src(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		break;
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_SCC_RAM):
+		/* slave private SCC RAM -> slave private SCC RAM */
+		if (copy_methods->scc_sink_to_sink)
+			copy_methods->scc_sink_to_sink(src_interface, src_node, dst_interface, dst_node);
+		else
+			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		break;
+#endif
 	default:
 		STARPU_ABORT();
 		break;
@@ -438,6 +515,47 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 				size,
 				&async_channel->event.opencl_event);
 #endif
+#ifdef STARPU_USE_MIC
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_MIC_RAM,STARPU_CPU_RAM):
+		if (async_data)
+			return _starpu_mic_copy_mic_to_ram_async(
+					(void*) src + src_offset, src_node,
+					(void*) dst + dst_offset, dst_node,
+					size);
+		else
+			return _starpu_mic_copy_mic_to_ram(
+					(void*) src + src_offset, src_node,
+					(void*) dst + dst_offset, dst_node,
+					size);
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_MIC_RAM):
+		if (async_data)
+			return _starpu_mic_copy_ram_to_mic_async(
+					(void*) src + src_offset, src_node,
+					(void*) dst + dst_offset, dst_node,
+					size);
+		else
+			return _starpu_mic_copy_ram_to_mic(
+					(void*) src + src_offset, src_node,
+					(void*) dst + dst_offset, dst_node,
+					size);
+#endif
+#ifdef STARPU_USE_SCC
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_CPU_RAM):
+		_starpu_scc_copy_sink_to_src(
+				(void*) src + src_offset, src_node,
+				(void*) dst + dst_offset, dst_node,
+				size);
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_SCC_RAM):
+		_starpu_scc_copy_src_to_sink(
+				(void*) src + src_offset, src_node,
+				(void*) dst + dst_offset, dst_node,
+				size);
+	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_SCC_RAM):
+		_starpu_scc_copy_sink_to_sink(
+				(void*) src + src_offset, src_node,
+				(void*) dst + dst_offset, dst_node,
+				size);
+#endif
 	default:
 		STARPU_ABORT();
 		return -1;
@@ -490,6 +608,11 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 	      break;
 	}
 #endif
+#ifdef STARPU_USE_MIC
+	case STARPU_MIC_RAM:
+		_starpu_mic_wait_request_completion(&(async_channel->event.mic_event));
+		break;
+#endif
 	case STARPU_CPU_RAM:
 	default:
 		STARPU_ABORT();
@@ -540,6 +663,11 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 		success = (event_status == CL_COMPLETE);
 		break;
 	}
+#endif
+#ifdef STARPU_USE_MIC
+	case STARPU_MIC_RAM:
+		success = _starpu_mic_request_is_complete(&(async_channel->event.mic_event));
+		break;
 #endif
 	case STARPU_CPU_RAM:
 	default:

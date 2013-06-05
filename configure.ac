@@ -100,6 +100,31 @@ else
    LC_ALL=C svnversion $srcdir > ./STARPU-REVISION
 fi
 
+AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
+
+###############################################################################
+#                                                                             #
+#                           MIC device compilation                            #
+#   (Must be done in beginning to change prefix in the whole configuration)   #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(mic, [AS_HELP_STRING([--enable-mic],
+	      [use MIC device(s)])], [enable_mic=yes], [enable_mic=no])
+AC_ARG_ENABLE(mic-rma, [AS_HELP_STRING([--disable-mic-rma],
+	      [use MIC RMA transfer])], [], [enable_mic_rma=yes])
+
+if test x$enable_mic = xyes ; then
+	AC_DEFINE(STARPU_USE_MIC, [1], [MIC workers support is enabled])
+fi
+if test x$enable_mic_rma = xyes ; then
+	AC_DEFINE([STARPU_MIC_USE_RMA], [1], [MIC RMA transfer is enable])
+fi
+
+AM_CONDITIONAL([STARPU_USE_MIC], [test "x$enable_mic" = "xyes"])
+
+###############################################################################
+
 AC_PATH_PROGS([STARPU_MS_LIB], [lib])
 AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])
@@ -826,6 +851,19 @@ if test x$disable_asynchronous_opencl_copy = xyes ; then
    AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and OpenCL devices])
 fi
 
+AC_MSG_CHECKING(whether asynchronous MIC copy should be disabled)
+AC_ARG_ENABLE(asynchronous-mic-copy, [AS_HELP_STRING([--disable-asynchronous-mic-copy],
+			[disable asynchronous copy between CPU and MIC devices])],
+			enable_asynchronous_mic_copy=$enableval, enable_asynchronous_mic_copy=yes)
+disable_asynchronous_mic_copy=no
+if test x$enable_asynchronous_mic_copy = xno ; then
+   disable_asynchronous_mic_copy=yes
+fi
+AC_MSG_RESULT($disable_asynchronous_mic_copy)
+if test x$disable_asynchronous_mic_copy = xyes ; then
+   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and MIC devices])
+fi
+
 ###############################################################################
 #                                                                             #
 #                                 Drivers                                     #
@@ -880,6 +918,252 @@ if test x$enable_blocking = xno -a x$enable_simgrid != xyes ; then
 	AC_DEFINE(STARPU_NON_BLOCKING_DRIVERS, [1], [drivers must progress])
 fi
 
+###############################################################################
+#                                                                             #
+#                                 MIC settings                                #
+#                                                                             #
+###############################################################################
+
+AC_MSG_CHECKING(maximum number of MIC devices)
+AC_ARG_ENABLE(maxmicdev, [AS_HELP_STRING([--enable-maxmicdev=<number>],
+			[maximum number of MIC devices])],
+			nmaxmicdev=$enableval, nmaxmicdev=4)
+AC_MSG_RESULT($nmaxmicdev)
+
+AC_DEFINE_UNQUOTED(STARPU_MAXMICDEVS, [$nmaxmicdev],
+	[maximum number of MIC devices])
+
+AC_MSG_CHECKING(maximum number of MIC cores)
+AC_ARG_ENABLE(maxmicdev, [AS_HELP_STRING([--enable-maxmiccore=<number>],
+			[maximum number of MIC cores])],
+			nmaxmiccore=$enableval, nmaxmiccore=128)
+AC_MSG_RESULT($nmaxmiccore)
+
+AC_DEFINE_UNQUOTED(STARPU_MAXMICCORES, [$nmaxmiccore],
+	[maximum number of MIC cores])
+
+AC_ARG_WITH(coi-dir,
+	[AS_HELP_STRING([--with-coi-dir=<path>],
+	[specify the MIC's COI installation directory])],
+	[coi_dir="$withval"],
+	[coi_dir=no])
+
+AC_ARG_WITH(coi-include-dir,
+	[AS_HELP_STRING([--with-coi-include-dir=<path>],
+	[specify where the MIC's COI headers are installed])],
+	[coi_include_dir="$withval"],
+	[coi_include_dir=no])
+
+AC_ARG_WITH(coi-lib-dir,
+	[AS_HELP_STRING([--with-coi-lib-dir=<path>],
+	[specify where the MIC's COI libraries are installed])],
+	[coi_lib_dir="$withval"],
+	[coi_lib_dir=no])
+
+AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
+[
+    __coi_dir=$1
+    __coi_include_dir=$2
+    __coi_lib_dir=$3
+    __coi_lib_name=$4
+
+    if test "$__coi_dir" != "no" -a "$__coi_dir" != "" ; then
+	AC_MSG_CHECKING(whether MIC's COI runtime is available in $__coi_dir)
+    else
+	AC_MSG_CHECKING(whether MIC's COI runtime is available)
+    fi
+    AC_MSG_RESULT()
+
+    if test "$__coi_include_dir" = "no" -a "$__coi_dir" != "no" ; then
+        __coi_include_dir="${__coi_dir}/include"
+    fi
+    if test "$__coi_lib_dir" = "no" -a "$__coi_dir" != "no" ; then
+        __coi_lib_dir="${__coi_dir}/lib"
+    fi
+
+    SAVED_CPPFLAGS="$CPPFLAGS"
+    SAVED_LDFLAGS="$LDFLAGS"
+
+    if test "$__coi_include_dir" != "no" ; then
+        CPPFLAGS="${CPPFLAGS} -I$__coi_include_dir"
+    fi
+    if test "$__coi_lib_dir" != "no" ; then
+	LDFLAGS="${LDFLAGS} -L$__coi_lib_dir"
+    fi
+
+    AC_CHECK_HEADER([source/COIEngine_source.h],[have_valid_coi=yes],[have_valid_coi=no])
+
+    if test "$have_valid_coi" = "yes" ; then
+	AC_HAVE_LIBRARY([$__coi_lib_name],[have_valid_coi=yes],[have_valid_coi=no])
+
+        if test "$have_valid_coi" = "no" ; then
+            if test "$3" = "no" -a "$__coi_dir" != "no" ; then
+		# ${__coi_dir}/lib didn't work, let's try with lib64
+                __coi_lib_dir="$__coi_dir/lib64"
+		LDFLAGS="${SAVED_LDFLAGS} -L$__coi_lib_dir"
+	        AC_HAVE_LIBRARY([$__coi_lib_name],[have_valid_coi=yes],[have_valid_coi=no])
+            fi
+        fi
+    fi
+
+    if test "$have_valid_coi" = "yes" -a "$__coi_include_dir" != "no"; then
+        STARPU_COI_CPPFLAGS="-I$__coi_include_dir"
+    fi
+
+    if test "$have_valid_coi" = "yes" -a "$__coi_lib_dir" != "no"; then
+        STARPU_COI_LDFLAGS="-L$__coi_lib_dir -l$__coi_lib_name"
+    fi
+
+    CPPFLAGS="${SAVED_CPPFLAGS}"
+    LDFLAGS="${SAVED_LDFLAGS}"
+])
+
+if test x$enable_mic = xyes ; then
+
+    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, "coi_host")
+
+    # Host runtime is not compatible, we are probably cross-compiling
+    # Let's have a look for the device runtime which lib has a different name
+    if test "$have_valid_coi" = "no" ; then
+	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, "coi_device")
+    fi
+
+    if test "$have_valid_coi" = "no" ; then
+	AC_MSG_ERROR([cannot find MIC's COI runtime])
+    fi
+
+    AC_SUBST(STARPU_COI_CPPFLAGS)
+    AC_SUBST(STARPU_COI_LDFLAGS)
+fi
+
+###############################################################################
+#                                                                             #
+#                                 SCC settings                                #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE([rcce], [AS_HELP_STRING([--disable-rcce],
+			  [do not use SCC device(s)])], [], enable_rcce=maybe)
+
+nmaxsccdev=47
+AC_DEFINE_UNQUOTED(STARPU_MAXSCCDEVS, [$nmaxsccdev], [maximum number of SCC devices])
+
+AC_ARG_WITH(rcce-dir,
+			[AS_HELP_STRING([--with-rcce-dir=<path>],
+							[specify RCCE installation directory])],
+			[
+				rcce_dir="$withval"
+				enable_rcce=yes
+			],
+			rcce_dir=no)
+
+AC_ARG_WITH(rcce-include-dir,
+			[AS_HELP_STRING([--with-rcce-include-dir=<path>],
+							[specify where RCCE headers are installed])],
+			[
+				rcce_include_dir="$withval"
+				enable_rcce=yes
+			],
+			rcce_include_dir=no)
+
+AC_ARG_WITH(rcce-lib-dir,
+			[AS_HELP_STRING([--with-rcce-lib-dir=<path>],
+							[specify where RCCE libraries are installed])],
+			[
+			 	rcce_lib_dir="$withval"
+			 	enable_rcce=yes
+			],
+			rcce_lib_dir=no)
+
+if test x$enable_rcce = xyes -o x$enable_rcce = xmaybe ; then
+	have_valid_rcce=yes
+
+	SAVED_LDFLAGS="${LDFLAGS}"
+	SAVED_CPPFLAGS="${CPPFLAGS}"
+	SAVED_LIBS="${LIBS}"
+
+	if test x$rcce_include_dir != xno ; then
+		STARPU_RCCE_CPPFLAGS="-I${rcce_include_dir}"
+	elif test x$rcce_dir != xno ; then
+		STARPU_RCCE_CPPFLAGS="-I${rcce_dir}/include"
+	fi
+
+	CPPFLAGS="${CPPFLAGS} ${STARPU_RCCE_CPPFLAGS}"
+	AC_CHECK_HEADER([RCCE.h], [], [have_valid_rcce=no])
+
+	if test x$rcce_lib_dir != xno ; then
+		STARPU_RCCE_LDFLAGS="-L${rcce_lib_dir}"
+	elif test x$rcce_dir != xno ; then
+		STARPU_RCCE_LDFLAGS="-L${rcce_lib}/lib"
+	fi
+
+	LDFLAGS="${LDFLAGS} ${STARPU_RCCE_LDFLAGS}"
+	AC_CHECK_LIB([RCCE_bigflags_nongory_nopwrmgmt], [RCCE_init], [], [have_valid_rcce=no])
+
+	# in case RCCE was explicitely required, but is not available, this is an error
+	if test x$enable_rcce = xyes -a x$have_valid_rcce = xno ; then
+		AC_MSG_ERROR([cannot find RCCE library])
+	fi
+
+	if test x$have_valid_rcce = xyes ; then
+		STARPU_RCCE_CPPFLAGS="${STARPU_RCCE_CPPFLAGS} -DSCC"
+		STARPU_RCCE_LDFLAGS="${STARPU_RCCE_LDFLAGS} -lRCCE_bigflags_nongory_nopwrmgmt -ldl"
+
+		AC_DEFINE(STARPU_USE_SCC, [1], [SCC support is enabled])
+
+		AC_SUBST(STARPU_RCCE_CFLAGS)
+		AC_SUBST(STARPU_RCCE_CPPFLAGS)
+		AC_SUBST(STARPU_RCCE_LDFLAGS)
+	fi
+
+	LDFLAGS="${SAVED_LDFLAGS}"
+	CPPFLAGS="${SAVED_CPPFLAGS}"
+	LIBS="${SAVED_LIBS}"
+
+	enable_rcce=$have_valid_rcce
+fi
+
+AM_CONDITIONAL(STARPU_USE_SCC, test x$enable_rcce = xyes)
+
+AC_MSG_CHECKING(whether RCCE should be used)
+AC_MSG_RESULT($enable_rcce)
+
+
+###############################################################################
+#                                                                             #
+#                             MP Common settings                              #
+#                                                                             #
+###############################################################################
+
+AM_CONDITIONAL([STARPU_USE_MP], [test "x$enable_mic" = "xyes" -o "x$enable_mpi" = "xyes" -o "x$enable_rcce" = "xyes"])
+
+AC_ARG_ENABLE([export-dynamic], [AS_HELP_STRING([--disable-export-dynamic],
+			  [Prevent the linker from adding all symbols to the dynamic symbol table])], [], [])
+
+if test x$enable_mic = xyes -o x$enable_mpi = xyes -o x$enable_rcce = xyes ; then
+	AC_DEFINE(STARPU_USE_MP, [1], [Message-passing SINKs support
+		  is enabled])
+
+	if test x$enable_export_dynamic != xno ; then
+		STARPU_EXPORT_DYNAMIC="-rdynamic"
+	fi
+fi
+
+AC_SUBST(STARPU_EXPORT_DYNAMIC)
+
+# Computes the maximum number of different kernels a message-passing sink
+# can lookup for and launch.
+AC_MSG_CHECKING(Maximum number of message-passing kernels)
+AC_ARG_ENABLE(maxmpkernels, [AS_HELP_STRING([
+	      -enable-maxmpkernels=<number>],
+	      [maximum number of kernels a message-passing sink can lookup
+	      for and execute])],
+	      maxmpkernels=$enableval, maxmpkernels=10)
+AC_MSG_RESULT($maxmpkernels)
+AC_DEFINE_UNQUOTED(STARPU_MAXMPKERNELS, [$maxmpkernels],
+		[maximum number of message-passing kernels])
+
+###############################################################################
 
 ###############################################################################
 #                                                                             #
@@ -1075,6 +1359,7 @@ if test x$enable_simgrid = xyes ; then
 	maxnodes=16
 else
 	# We have one memory node shared by all CPU workers, one node per GPU
+	# and per MIC device
 	nodes=1
 	if test x$enable_cuda = xyes ; then
 		# we could have used nmaxcudadev + 1, but this would certainly give an
@@ -1086,6 +1371,14 @@ else
 		# odd number.
 		nodes=`expr $nodes + $nmaxopencldev`
 	fi
+	if test x$enable_mic = xyes ; then
+		nodes=`expr $nodes + $nmaxmicdev`
+	fi
+	if test x$enable_rcce = xyes ; then
+		# Only 1 memory node for the shared memory.
+		nodes=`expr $nodes + 1`
+	fi
+
 	# set maxnodes to the next power of 2 greater than nodes
 	maxnodes=1
 	while test "$maxnodes" -lt "$nodes"
@@ -1137,7 +1430,7 @@ AC_CHECK_FUNCS([clock_gettime])
 
 # Compute the maximum number of workers (we round it to 16 for alignment
 # purposes).
-nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
+nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmiccore + $nmaxsccdev + 15 \) / 16 \) `
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
@@ -1868,6 +2161,7 @@ AC_SUBST([LIBSTARPU_LINK])
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tests/regression/regression.sh
+  chmod +x tests/loader-cross.sh
   chmod +x gcc-plugin/tests/run-test
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
@@ -1914,6 +2208,7 @@ AC_OUTPUT([
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
+	tests/loader-cross.sh
 	doc/Makefile
 	mpi/Makefile
 	mpi/src/Makefile
@@ -1937,6 +2232,8 @@ AC_MSG_NOTICE([
 	CPUs   enabled: $enable_cpu
 	CUDA   enabled: $enable_cuda
 	OpenCL enabled: $enable_opencl
+	SCC    enabled: $enable_rcce
+	MIC    enabled: $enable_mic
 
 	Compile-time limits
 	(change these with --enable-maxcpus, --enable-maxcudadev,

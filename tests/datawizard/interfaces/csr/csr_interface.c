@@ -24,7 +24,7 @@
 #define NNZ    (SIZE-1)
 
 #ifdef STARPU_USE_CPU
-static void test_csr_cpu_func(void *buffers[], void *args);
+void test_csr_cpu_func(void *buffers[], void *args);
 #endif /* !STARPU_USE_CPU */
 #ifdef STARPU_USE_CUDA
 extern void test_csr_cuda_func(void *buffers[], void *_args);
@@ -56,6 +56,9 @@ struct test_config csr_config =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_func   = test_csr_opencl_func,
+#endif
+#ifdef STARPU_USE_MIC
+	.cpu_func_name = "test_csr_cpu_func", 
 #endif
 	.handle        = &csr_handle,
 	.dummy_handle  = &csr2_handle,
@@ -113,7 +116,7 @@ unregister_data(void)
 	starpu_data_unregister(csr2_handle);
 }
 
-static void
+void
 test_csr_cpu_func(void *buffers[], void *args)
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -138,7 +141,7 @@ test_csr_cpu_func(void *buffers[], void *args)
 }
 
 int
-main(void)
+main(int argc, char **argv)
 {
 	data_interface_test_summary *summary;
 	struct starpu_conf conf;
@@ -146,8 +149,9 @@ main(void)
 
 	conf.ncuda = 2;
 	conf.nopencl = 1;
+	conf.nmic = -1;
 
-	if (starpu_init(&conf) == -ENODEV || starpu_cpu_worker_get_count() == 0)
+	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		goto enodev;
 
 	register_data();

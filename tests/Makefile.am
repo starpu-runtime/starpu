@@ -15,10 +15,10 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
+AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/
-AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(FXT_LDFLAGS)
 
 EXTRA_DIST =					\
 	helper.h				\
@@ -81,8 +81,13 @@ testbindir = $(libdir)/starpu/tests
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
+if !STARPU_CROSS_COMPILING
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
+else
+LOADER			=	
+LOADER_BIN		=	$(top_builddir)/tests/loader-cross.sh
+endif
 
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
@@ -120,6 +125,7 @@ noinst_PROGRAMS =				\
 	main/regenerate				\
 	main/wait_all_regenerable_tasks		\
 	main/subgraph_repeat			\
+	main/subgraph_repeat_tag			\
 	main/subgraph_repeat_regenerate		\
 	main/subgraph_repeat_regenerate_tag	\
 	main/empty_task				\
@@ -140,6 +146,7 @@ noinst_PROGRAMS =				\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
+	datawizard/commute			\
 	datawizard/copy				\
 	datawizard/data_implicit_deps		\
 	datawizard/data_lookup			\
@@ -225,6 +232,10 @@ noinst_PROGRAMS +=				\
 	datawizard/reclaim
 endif
 
+noinst_nulldir=/tmp
+noinst_null_PROGRAMS =				\
+	$(LOADER)
+
 examplebin_PROGRAMS = \
 	microbenchs/tasks_size_overhead		\
 	microbenchs/local_pingpong
@@ -232,11 +243,7 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
 
-if STARPU_HAVE_WINDOWS
-check_PROGRAMS = $(noinst_PROGRAMS)
-else
-check_PROGRAMS = $(LOADER) $(noinst_PROGRAMS)
-endif
+check_PROGRAMS = $(noinst_PROGRAMS) $(noinst_2_PROGRAMS)
 
 #######################
 # Source files        #
@@ -370,6 +377,34 @@ datawizard_wt_broadcast_SOURCES =		\
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 main_deprecated_buffer_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
+
+main_subgraph_repeat_SOURCES =		\
+	main/subgraph_repeat.c
+if STARPU_USE_CUDA
+main_subgraph_repeat_SOURCES +=		\
+	main/increment.cu
+endif
+
+main_subgraph_repeat_tag_SOURCES =		\
+	main/subgraph_repeat_tag.c
+if STARPU_USE_CUDA
+main_subgraph_repeat_tag_SOURCES +=		\
+	main/increment.cu
+endif
+
+main_subgraph_repeat_regenerate_SOURCES =		\
+	main/subgraph_repeat.c
+if STARPU_USE_CUDA
+main_subgraph_repeat_regenerate_SOURCES +=		\
+	main/increment.cu
+endif
+
+main_subgraph_repeat_regenerate_tag_SOURCES =		\
+	main/subgraph_repeat_regenerate_tag.c
+if STARPU_USE_CUDA
+main_subgraph_repeat_regenerate_tag_SOURCES +=		\
+	main/increment.cu
+endif
 
 ###################
 # Block interface #

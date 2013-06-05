@@ -40,7 +40,7 @@ static void callback(void *arg)
 	starpu_data_prefetch_on_node(v_handle, node, 1);
 }
 
-static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 //	fprintf(stderr, "pif\n");
 //	fflush(stderr);
@@ -51,6 +51,7 @@ static struct starpu_codelet cl_r =
 	.cpu_funcs = {codelet_null, NULL},
 	.cuda_funcs = {codelet_null, NULL},
 	.opencl_funcs = {codelet_null, NULL},
+	.cpu_funcs_name = {"codelet_null", NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_R}
 };
@@ -60,6 +61,7 @@ static struct starpu_codelet cl_w =
 	.cpu_funcs = {codelet_null, NULL},
 	.cuda_funcs = {codelet_null, NULL},
 	.opencl_funcs = {codelet_null, NULL},
+	.cpu_funcs_name = {"codelet_null", NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_W}
 };
@@ -69,6 +71,7 @@ static struct starpu_codelet cl_rw =
 	.cpu_funcs = {codelet_null, NULL},
 	.cuda_funcs = {codelet_null, NULL},
 	.opencl_funcs = {codelet_null, NULL},
+	.cpu_funcs_name = {"codelet_null", NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_RW}
 };
@@ -93,7 +96,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

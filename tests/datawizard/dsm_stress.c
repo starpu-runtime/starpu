@@ -65,7 +65,7 @@ static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_a
 {
 }
 
-static void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
 {
 }
 
@@ -90,6 +90,7 @@ static struct starpu_codelet cl_r_r =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
+	.cpu_funcs_name = {"cpu_codelet_null", NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R}
 };
@@ -99,6 +100,7 @@ static struct starpu_codelet cl_r_w =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
+	.cpu_funcs_name = {"cpu_codelet_null", NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W}
 };
@@ -108,6 +110,7 @@ static struct starpu_codelet cl_r_rw =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
+	.cpu_funcs_name = {"cpu_codelet_null", NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW}
 };
@@ -117,6 +120,7 @@ static struct starpu_codelet cl_w_r =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
+	.cpu_funcs_name = {"cpu_codelet_null", NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R}
 };
@@ -126,6 +130,7 @@ static struct starpu_codelet cl_w_w =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
+	.cpu_funcs_name = {"cpu_codelet_null", NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_W}
 };
@@ -135,6 +140,7 @@ static struct starpu_codelet cl_w_rw =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
+	.cpu_funcs_name = {"cpu_codelet_null", NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_RW}
 };
@@ -144,6 +150,7 @@ static struct starpu_codelet cl_rw_r =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
+	.cpu_funcs_name = {"cpu_codelet_null", NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R}
 };
@@ -153,6 +160,7 @@ static struct starpu_codelet cl_rw_w =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
+	.cpu_funcs_name = {"cpu_codelet_null", NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_W}
 };
@@ -162,6 +170,7 @@ static struct starpu_codelet cl_rw_rw =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 	.cuda_funcs = {cuda_codelet_null, NULL},
         .opencl_funcs = {opencl_codelet_null, NULL},
+	.cpu_funcs_name = {"cpu_codelet_null", NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW}
 };
@@ -171,7 +180,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
