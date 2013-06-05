@@ -141,7 +141,7 @@ struct _starpu_data_state
 	/* Footprint which identifies data layout */
 	uint32_t footprint;
 
-	/* where is the data home ? -1 if none yet */
+	/* where is the data home, i.e. which node it was registered from ? -1 if none yet */
 	int home_node;
 
 	/* what is the default write-through mask for that data ? */
