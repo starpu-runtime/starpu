@@ -479,6 +479,10 @@ int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_d
 /* This can be used by interfaces to easily transfer a piece of data without
  * caring about the particular CUDA/OpenCL methods.  */
 
+/* This should either return 0 if the transfer is complete, or -EAGAIN if the
+ * transfer is still pending, and will have to be waited for by
+ * _starpu_driver_test_request_completion/_starpu_driver_wait_request_completion
+ */
 int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data)
 {
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
@@ -571,11 +575,12 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 				size);
 #endif
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM, STARPU_DISK_RAM):
+	{
 		return _starpu_disk_copy_src_to_disk(
 			(void*) src, src_offset, src_node,
 			(void*) dst, dst_offset, dst_node,
 			size);
-
+	}
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_CPU_RAM):
 		return _starpu_disk_copy_disk_to_src(
 			(void*) src, src_offset, src_node,

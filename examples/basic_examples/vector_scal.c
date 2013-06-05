@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 	/* execute the task on any eligible computational ressource */
 	ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-
+	printf("done \n");
 	/* StarPU does not need to manipulate the array anymore so we can stop
  	 * monitoring it */
 	starpu_data_unregister(vector_handle);
