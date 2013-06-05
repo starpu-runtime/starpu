@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/mic/driver_mic_common.h>
