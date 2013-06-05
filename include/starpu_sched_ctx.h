@@ -114,7 +114,7 @@ void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
  * WORKERS IN CONTEXT 
 */
 /* create a worker collection for a context, the type can be only STARPU_WORKER_LIST for now, which corresponds to a simple list */
-struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, int type);
+struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type);
 
 /* free the worker collection when removing the context */
 void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);

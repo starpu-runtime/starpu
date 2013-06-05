@@ -23,8 +23,8 @@ static starpu_data_handle_t variable_handle;
 static starpu_data_handle_t variable2_handle;
 
 /* Codelets */
-#ifdef STARPU_USE_CPU
-static void test_variable_cpu_func(void *buffers[], void *args);
+#if defined(STARPU_USE_CPU) || defined(STARPU_USE_MIC)
+void test_variable_cpu_func(void *buffers[], void *args);
 #endif
 #ifdef STARPU_USE_CUDA
 extern void test_variable_cuda_func(void *buffers[], void *args);
@@ -44,13 +44,16 @@ struct test_config variable_config =
 #ifdef STARPU_USE_OPENCL
 	.opencl_func  = test_variable_opencl_func,
 #endif
+#ifdef STARPU_USE_MIC
+	.cpu_func_name = "test_variable_cpu_func",
+#endif
 	.handle       = &variable_handle,
 	.dummy_handle = &variable2_handle,
 	.copy_failed  = SUCCESS,
 	.name         = "variable_interface"
 };
 
-static void
+void
 test_variable_cpu_func(void *buffers[], void *args)
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -88,7 +91,7 @@ void unregister_data(void)
 }
 
 int
-main(void)
+main(int argc, char **argv)
 {
 	int ret;
 	data_interface_test_summary *summary;
@@ -98,8 +101,9 @@ main(void)
 
 	conf.ncuda = 2;
 	conf.nopencl = 1;
+	conf.nmic = -1;
 
-	ret = starpu_init(&conf);
+	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		return STARPU_TEST_SKIPPED;
 

@@ -92,6 +92,7 @@ int main(int argc, char **argv)
 	struct starpu_codelet cl =
 	{
                 .cpu_funcs = {cpu_func, NULL},
+                .cpu_funcs_name = {"cpu_func", NULL},
 #ifdef STARPU_USE_CUDA
                 .cuda_funcs = {cuda_func, NULL},
 #endif
@@ -147,6 +148,7 @@ int main(int argc, char **argv)
                 task->callback_func = NULL;
                 task->handles[0] = starpu_data_get_sub_data(handle, 1, i);
                 task->cl_arg = &multiplier;
+                task->cl_arg_size = sizeof(multiplier);
 
                 ret = starpu_task_submit(task);
                 if (ret)

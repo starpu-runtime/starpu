@@ -46,7 +46,7 @@ static int bcsr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle_t handle);
 
 
-static struct starpu_data_interface_ops interface_bcsr_ops =
+struct starpu_data_interface_ops starpu_interface_bcsr_ops =
 {
 	.register_data_handle = register_bcsr_handle,
 	.allocate_data_on_node = allocate_bcsr_buffer_on_node,
@@ -82,6 +82,7 @@ static void register_bcsr_handle(starpu_data_handle_t handle, unsigned home_node
 			local_interface->rowptr = NULL;
 		}
 
+		local_interface->id = bcsr_interface->id;
 		local_interface->nnz = bcsr_interface->nnz;
 		local_interface->nrow = bcsr_interface->nrow;
 		local_interface->firstentry = bcsr_interface->firstentry;
@@ -98,6 +99,7 @@ void starpu_bcsr_data_register(starpu_data_handle_t *handleptr, unsigned home_no
 {
 	struct starpu_bcsr_interface bcsr_interface =
 	{
+		.id = STARPU_BCSR_INTERFACE_ID,
 		.nzval = nzval,
 		.colind = colind,
 		.rowptr = rowptr,
@@ -109,7 +111,7 @@ void starpu_bcsr_data_register(starpu_data_handle_t *handleptr, unsigned home_no
 		.elemsize = elemsize
 	};
 
-	starpu_data_register(handleptr, home_node, &bcsr_interface, &interface_bcsr_ops);
+	starpu_data_register(handleptr, home_node, &bcsr_interface, &starpu_interface_bcsr_ops);
 }
 
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle_t handle)

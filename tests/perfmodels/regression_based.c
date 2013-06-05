@@ -38,7 +38,7 @@ static void memset_cuda(void *descr[], void *arg)
 extern void memset_opencl(void *buffers[], void *args);
 #endif
 
-static void memset_cpu(void *descr[], void *arg)
+void memset_cpu(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -69,6 +69,7 @@ static struct starpu_codelet memset_cl =
 	.opencl_funcs = {memset_opencl, NULL},
 #endif
 	.cpu_funcs = {memset_cpu, NULL},
+	.cpu_funcs_name = {"memset_cpu", NULL},
 	.model = &model,
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -83,6 +84,7 @@ static struct starpu_codelet nl_memset_cl =
 	.opencl_funcs = {memset_opencl, NULL},
 #endif
 	.cpu_funcs = {memset_cpu, NULL},
+	.cpu_funcs_name = {"memset_cpu", NULL},
 	.model = &nl_model,
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -143,7 +145,7 @@ int main(int argc, char **argv)
 	conf.sched_policy_name = "eager";
 	conf.calibrate = 2;
 
-	ret = starpu_init(&conf);
+	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

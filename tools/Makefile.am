@@ -19,6 +19,7 @@ SUBDIRS =
 AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS)
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_builddir)/src -I$(top_srcdir)/src
+AM_LDFLAGS = $(STARPU_COI_LDFLAGS)
 
 bin_PROGRAMS =
 dist_bin_SCRIPTS =
@@ -50,10 +51,15 @@ endif
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
+if !STARPU_CROSS_COMPILING
 LOADER			=	loader
 loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/tools/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
+else
+LOADER			=
+LOADER_BIN		=	$(top_builddir)/tests/loader-cross.sh
+endif
 
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"

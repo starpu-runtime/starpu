@@ -18,13 +18,14 @@
 #include <starpu.h>
 #include "../helper.h"
 
-static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
 {
 }
 
 static struct starpu_codelet codelet_R_R =
 {
         .cpu_funcs = { dummy_func, NULL },
+		.cpu_funcs_name = {"dummy_func", NULL},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R}
@@ -33,6 +34,7 @@ static struct starpu_codelet codelet_R_R =
 static struct starpu_codelet codelet_R_W =
 {
         .cpu_funcs = { dummy_func, NULL },
+		.cpu_funcs_name = {"dummy_func", NULL},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W}
@@ -41,6 +43,7 @@ static struct starpu_codelet codelet_R_W =
 static struct starpu_codelet codelet_R_RW =
 {
         .cpu_funcs = { dummy_func, NULL },
+		.cpu_funcs_name = {"dummy_func", NULL},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW}
@@ -49,6 +52,7 @@ static struct starpu_codelet codelet_R_RW =
 static struct starpu_codelet codelet_W_R =
 {
         .cpu_funcs = { dummy_func, NULL },
+		.cpu_funcs_name = {"dummy_func", NULL},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R}
@@ -57,6 +61,7 @@ static struct starpu_codelet codelet_W_R =
 static struct starpu_codelet codelet_W_W =
 {
         .cpu_funcs = { dummy_func, NULL },
+		.cpu_funcs_name = {"dummy_func", NULL},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_W, STARPU_W}
@@ -65,6 +70,7 @@ static struct starpu_codelet codelet_W_W =
 static struct starpu_codelet codelet_W_RW =
 {
         .cpu_funcs = { dummy_func, NULL },
+		.cpu_funcs_name = {"dummy_func", NULL},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_W, STARPU_RW}
@@ -73,6 +79,7 @@ static struct starpu_codelet codelet_W_RW =
 static struct starpu_codelet codelet_RW_R =
 {
         .cpu_funcs = { dummy_func, NULL },
+		.cpu_funcs_name = {"dummy_func", NULL},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R}
@@ -81,6 +88,7 @@ static struct starpu_codelet codelet_RW_R =
 static struct starpu_codelet codelet_RW_W =
 {
         .cpu_funcs = { dummy_func, NULL },
+		.cpu_funcs_name = {"dummy_func", NULL},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_W}
@@ -89,6 +97,7 @@ static struct starpu_codelet codelet_RW_W =
 static struct starpu_codelet codelet_RW_RW =
 {
         .cpu_funcs = { dummy_func, NULL },
+		.cpu_funcs_name = {"dummy_func", NULL},
         .model = NULL,
         .nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW}
@@ -101,7 +110,7 @@ int main(int argc, char **argv)
 	int ret;
 	struct starpu_task *task;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
