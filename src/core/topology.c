@@ -154,7 +154,7 @@ _starpu_initialize_workers_gpuid (int *explicit_workers_gpuid,
 static void
 _starpu_initialize_workers_cuda_gpuid (struct _starpu_machine_config *config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = config->conf;
 
         _starpu_initialize_workers_gpuid (
@@ -181,7 +181,7 @@ _starpu_get_next_cuda_gpuid (struct _starpu_machine_config *config)
 static void
 _starpu_initialize_workers_opencl_gpuid (struct _starpu_machine_config*config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = config->conf;
 
         _starpu_initialize_workers_gpuid(
@@ -267,7 +267,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	   before calling this function. The discovered topology is filled in
 	   CONFIG. */
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	if (topology_is_initialized)
 		return;
@@ -297,7 +297,7 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 	char *strval;
 	unsigned i;
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	config->current_bindid = 0;
 
@@ -378,7 +378,7 @@ static inline int
 _starpu_get_next_bindid (struct _starpu_machine_config *config,
 			 int *preferred_binding, int npreferred)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	unsigned found = 0;
 	int current_preferred;
@@ -441,7 +441,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		config->workers[i].workerid = i;
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	topology->nworkers = 0;
 	topology->ncombinedworkers = 0;
@@ -958,7 +958,7 @@ void
 starpu_topology_print (FILE *output)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	unsigned core;
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();

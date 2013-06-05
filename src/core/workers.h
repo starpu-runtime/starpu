@@ -125,9 +125,76 @@ struct _starpu_worker_set
 	unsigned set_is_initialized;
 };
 
+struct _starpu_machine_topology
+{
+	/* Total number of workers. */
+	unsigned nworkers;
+
+	/* Total number of combined workers. */
+	unsigned ncombinedworkers;
+
+	unsigned nsched_ctxs;
+#ifdef STARPU_HAVE_HWLOC
+	/* Topology as detected by hwloc. */
+	hwloc_topology_t hwtopology;
+#else
+	/* We maintain ABI compatibility with and without hwloc */
+	void *dummy;
+#endif
+
+	/* Total number of CPUs, as detected by the topology code. May
+	 * be different from the actual number of CPU workers.
+	 */
+	unsigned nhwcpus;
+
+	/* Total number of CUDA devices, as detected. May be different
+	 * from the actual number of CUDA workers.
+	 */
+	unsigned nhwcudagpus;
+
+	/* Total number of OpenCL devices, as detected. May be
+	 * different from the actual number of OpenCL workers.
+	 */
+	unsigned nhwopenclgpus;
+
+	/* Actual number of CPU workers used by StarPU. */
+	unsigned ncpus;
+
+	/* Actual number of CUDA workers used by StarPU. */
+	unsigned ncudagpus;
+
+	/* Actual number of OpenCL workers used by StarPU. */
+	unsigned nopenclgpus;
+
+	/* Indicates the successive cpu identifier that should be used
+	 * to bind the workers. It is either filled according to the
+	 * user's explicit parameters (from starpu_conf) or according
+	 * to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
+	 * round-robin policy is used to distributed the workers over
+	 * the cpus.
+	 */
+	unsigned workers_bindid[STARPU_NMAXWORKERS];
+
+	/* Indicates the successive CUDA identifier that should be
+	 * used by the CUDA driver.  It is either filled according to
+	 * the user's explicit parameters (from starpu_conf) or
+	 * according to the STARPU_WORKERS_CUDAID env. variable.
+	 * Otherwise, they are taken in ID order.
+	 */
+	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
+
+	/* Indicates the successive OpenCL identifier that should be
+	 * used by the OpenCL driver.  It is either filled according
+	 * to the user's explicit parameters (from starpu_conf) or
+	 * according to the STARPU_WORKERS_OPENCLID env. variable.
+	 * Otherwise, they are taken in ID order.
+	 */
+	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
+};
+
 struct _starpu_machine_config
 {
-	struct starpu_machine_topology topology;
+	struct _starpu_machine_topology topology;
 
 #ifdef STARPU_HAVE_HWLOC
 	int cpu_depth;
