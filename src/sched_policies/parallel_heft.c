@@ -23,7 +23,7 @@
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <starpu_parameters.h>
-#include <sched_policies/detect_combined_workers.h>
+#include <core/detect_combined_workers.h>
 
 #ifndef DBL_MIN
 #define DBL_MIN __DBL_MIN__
