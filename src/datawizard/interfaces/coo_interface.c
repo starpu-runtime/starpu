@@ -89,7 +89,6 @@ register_coo_handle(starpu_data_handle_t handle, unsigned home_node,
 			local_interface->rows = 0;
 		}
 
-		local_interface->id = coo_interface->id;
 		local_interface->nx = coo_interface->nx;
 		local_interface->ny = coo_interface->ny;
 		local_interface->n_values = coo_interface->n_values;
@@ -190,7 +189,7 @@ display_coo_interface(starpu_data_handle_t handle, FILE *f)
 	fprintf(f, "%u\t%u", coo_interface->nx, coo_interface->ny);
 }
 
-struct starpu_data_interface_ops starpu_interface_coo_ops =
+struct starpu_data_interface_ops _starpu_interface_coo_ops =
 {
 	.register_data_handle  = register_coo_handle,
 	.allocate_data_on_node = allocate_coo_buffer_on_node,
@@ -213,7 +212,6 @@ starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 {
 	struct starpu_coo_interface coo_interface =
 	{
-		.id = STARPU_COO_INTERFACE_ID,
 		.values = values,
 		.columns = columns,
 		.rows = rows,
@@ -224,5 +222,5 @@ starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_node,
 	};
 
 	starpu_data_register(handleptr, home_node, &coo_interface,
-			     &starpu_interface_coo_ops);
+			     &_starpu_interface_coo_ops);
 }

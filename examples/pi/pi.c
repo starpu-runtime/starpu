@@ -32,7 +32,7 @@ static unsigned ntasks = 1024;
 
 static unsigned long long nshot_per_task = 16*1024*1024ULL;
 
-void cpu_kernel(void *descr[], void *cl_arg)
+static void cpu_kernel(void *descr[], void *cl_arg)
 {
 	unsigned *directions = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	unsigned nx = nshot_per_task;
@@ -107,7 +107,6 @@ static struct starpu_perfmodel model =
 static struct starpu_codelet pi_cl =
 {
 	.cpu_funcs = {cpu_kernel, NULL},
-	.cpu_funcs_name = {"cpu_kernel", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_kernel, NULL},
 #endif

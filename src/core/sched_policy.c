@@ -447,7 +447,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 {
 	struct starpu_task *conversion_task;
 
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_MIC) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	struct starpu_multiformat_interface *format_interface;
 #endif
 
@@ -455,7 +455,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 	conversion_task->synchronous = 0;
 	STARPU_TASK_SET_HANDLE(conversion_task, handle, 0);
 
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_MIC) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	/* The node does not really matter here */
 	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
 #endif
@@ -468,13 +468,9 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 	switch(node_kind)
 	{
 	case STARPU_CPU_RAM:
-	case STARPU_SCC_RAM:
-	case STARPU_SCC_SHM:
 		switch (starpu_node_get_kind(handle->mf_node))
 		{
 		case STARPU_CPU_RAM:
-		case STARPU_SCC_RAM:
-		case STARPU_SCC_SHM:
 			STARPU_ABORT();
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
@@ -491,15 +487,6 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 			struct starpu_multiformat_data_interface_ops *mf_ops;
 			mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 			conversion_task->cl = mf_ops->opencl_to_cpu_cl;
-			break;
-		}
-#endif
-#ifdef STARPU_USE_MIC
-		case STARPU_MIC_RAM:
-		{
-			struct starpu_multiformat_data_interface_ops *mf_ops;
-			mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
-			conversion_task->cl = mf_ops->mic_to_cpu_cl;
 			break;
 		}
 #endif
@@ -522,15 +509,6 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 		struct starpu_multiformat_data_interface_ops *mf_ops;
 		mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 		conversion_task->cl = mf_ops->cpu_to_opencl_cl;
-		break;
-	}
-#endif
-#ifdef STARPU_USE_MIC
-	case STARPU_MIC_RAM:
-	{
-		struct starpu_multiformat_data_interface_ops *mf_ops;
-		mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
-		conversion_task->cl = mf_ops->cpu_to_mic_cl;
 		break;
 	}
 #endif

@@ -184,8 +184,8 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 
 		STARPU_PTHREAD_MUTEX_INIT(&child->sequential_consistency_mutex, NULL);
 		child->last_submitted_mode = STARPU_R;
-		child->last_sync_task = NULL;
-		child->last_submitted_accessors = NULL;
+		child->last_submitted_writer = NULL;
+		child->last_submitted_readers = NULL;
 		child->post_sync_tasks = NULL;
 		child->post_sync_tasks_cnt = 0;
 
@@ -195,9 +195,9 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		child->init_cl = initial_handle->init_cl;
 
 #ifdef STARPU_USE_FXT
-		child->last_submitted_ghost_sync_id_is_valid = 0;
-		child->last_submitted_ghost_sync_id = 0;
-		child->last_submitted_ghost_accessors_id = NULL;
+		child->last_submitted_ghost_writer_id_is_valid = 0;
+		child->last_submitted_ghost_writer_id = 0;
+		child->last_submitted_ghost_readers_id = NULL;
 #endif
 
 		for (node = 0; node < STARPU_MAXNODES; node++)

@@ -67,9 +67,6 @@ versinclude_HEADERS = 				\
 	include/starpu_fxt.h			\
 	include/starpu_cuda.h			\
 	include/starpu_opencl.h			\
-	include/starpu_sink.h			\
-	include/starpu_mic.h			\
-	include/starpu_scc.h			\
 	include/starpu_expert.h			\
 	include/starpu_profiling.h		\
 	include/starpu_bound.h			\

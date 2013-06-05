@@ -35,9 +35,7 @@ enum starpu_data_access_mode
 	STARPU_W=(1<<1),
 	STARPU_RW=(STARPU_R|STARPU_W),
 	STARPU_SCRATCH=(1<<2),
-	STARPU_REDUX=(1<<3),
-	STARPU_COMMUTE=(1<<4)
-	/* Note: other STARPU_* values in include/starpu_task_util.h */
+	STARPU_REDUX=(1<<3)
 };
 
 struct starpu_data_descr
@@ -104,14 +102,7 @@ enum starpu_node_kind
 	STARPU_UNUSED     = 0x00,
 	STARPU_CPU_RAM    = 0x01,
 	STARPU_CUDA_RAM   = 0x02,
-	STARPU_OPENCL_RAM = 0x03,
-	STARPU_MIC_RAM    = 0x05,
-
-	/* This node kind is not used anymore, but implementations in interfaces
-	 * will be useful for MPI. */
-	STARPU_SCC_RAM    = 0x06,
-
-	STARPU_SCC_SHM    = 0x07
+	STARPU_OPENCL_RAM = 0x03
 };
 
 unsigned starpu_worker_get_memory_node(unsigned workerid);

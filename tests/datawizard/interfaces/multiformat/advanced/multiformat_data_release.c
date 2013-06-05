@@ -43,7 +43,7 @@ unregister_handle(void)
 	starpu_data_unregister(handle);
 }
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MIC)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static void
 create_and_submit(int where)
 {
@@ -55,9 +55,6 @@ create_and_submit(int where)
 #endif
 #ifdef STARPU_USE_OPENCL
 		.opencl_funcs = {opencl_func, NULL},
-#endif
-#ifdef STARPU_USE_MIC
-		.mic_funcs = {mic_func, NULL},
 #endif
 		.nbuffers    = 1
 	};
@@ -118,30 +115,11 @@ test(void)
 	}
 #endif /* !STARPU_USE_OPENCL */
 
-#ifdef STARPU_USE_MIC
-	create_and_submit(STARPU_MIC);
-	starpu_data_acquire(handle, STARPU_RW);
-
-	expected_stats.mic = 1;
-	expected_stats.cpu_to_mic = 1;
-	expected_stats.mic_to_cpu = 1;
-
-	starpu_data_release(handle);
-	if (compare_stats(&global_stats, &expected_stats) != 0)
-	{
-		FPRINTF(stderr, "MIC failed\n");
-		print_stats(&global_stats);
-		FPRINTF(stderr ,"\n");
-		print_stats(&expected_stats);
-		return -ENODEV;
-	}
-#endif /* !STARPU_USE_CUDA */
-
 	return 0;
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 #ifdef STARPU_USE_CPU
 	int ret;
@@ -150,9 +128,8 @@ main(int argc, char **argv)
 
 	conf.ncuda = 1;
 	conf.nopencl = 1;
-	conf.nmic = 1;
 	memset(&global_stats, 0, sizeof(global_stats));
-	ret = starpu_initialize(&conf, &argc, &argv);
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

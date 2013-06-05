@@ -19,15 +19,10 @@
 #include <core/task.h>
 #include <datawizard/datawizard.h>
 #include <util/starpu_data_cpy.h>
-#include <starpu_mic.h>
-#include <starpu_scc.h>
 
-static void common_data_cpy_func(void *descr[], void *cl_arg)
+static void data_cpy_func(void *descr[], void *cl_arg)
 {
-	unsigned interface_id = *(unsigned *)cl_arg;
-
-	const struct starpu_data_interface_ops *interface_ops = _starpu_data_interface_get_ops(interface_id);
-	const struct starpu_data_copy_methods *copy_methods = interface_ops->copy_methods;
+	const struct starpu_data_copy_methods *copy_methods = (const struct starpu_data_copy_methods *) cl_arg;
 
 	int workerid = starpu_worker_get_id();
 	enum starpu_worker_archtype type = starpu_worker_get_type(workerid);
@@ -68,48 +63,6 @@ static void common_data_cpy_func(void *descr[], void *cl_arg)
 
 }
 
-void mp_cpy_kernel(void *descr[], void *cl_arg)
-{
-	unsigned interface_id = *(unsigned *)cl_arg;
-
-	const struct starpu_data_interface_ops *interface_ops = _starpu_data_interface_get_ops(interface_id);
-	const struct starpu_data_copy_methods *copy_methods = interface_ops->copy_methods;
-	
-	void *dst_interface = descr[0];
-	void *src_interface = descr[1];
-
-	STARPU_ASSERT(copy_methods->ram_to_ram);
-	copy_methods->ram_to_ram(src_interface, 0, dst_interface, 0);
-}
-
-static starpu_mic_kernel_t mic_cpy_func()
-{
-#ifdef STARPU_USE_MIC
-	static starpu_mic_func_symbol_t mic_symbol = NULL;
-	if (mic_symbol == NULL)
-		starpu_mic_register_kernel(&mic_symbol, "mp_cpy_kernel");
-
-	return starpu_mic_get_kernel(mic_symbol);
-#else
-	STARPU_ABORT();
-	return NULL;
-#endif
-}
-
-static starpu_scc_kernel_t scc_cpy_func()
-{
-#ifdef STARPU_USE_SCC
-	static starpu_scc_func_symbol_t scc_symbol = NULL;
-	if (scc_symbol == NULL)
-		starpu_scc_register_kernel(&scc_symbol, "mp_cpy_kernel");
-
-	return starpu_scc_get_kernel(scc_symbol);
-#else
-	STARPU_ABORT();
-	return NULL;
-#endif
-}
-
 struct starpu_perfmodel copy_model =
 {
 	.type = STARPU_HISTORY_BASED,
@@ -118,12 +71,10 @@ struct starpu_perfmodel copy_model =
 
 static struct starpu_codelet copy_cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_MIC|STARPU_SCC,
-	.cpu_funcs = {common_data_cpy_func, NULL},
-	.cuda_funcs = {common_data_cpy_func, NULL},
-	.opencl_funcs = {common_data_cpy_func, NULL},
-	.mic_funcs = {mic_cpy_func, NULL},
-	.scc_funcs = {scc_cpy_func, NULL},
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
+	.cpu_funcs = {data_cpy_func, NULL},
+	.cuda_funcs = {data_cpy_func, NULL},
+	.opencl_funcs = {data_cpy_func, NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R},
 	.model = &copy_model
@@ -133,6 +84,7 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 		     int asynchronous, void (*callback_func)(void*), void *callback_arg,
 		     int reduction, struct starpu_task *reduction_dep_task)
 {
+	const struct starpu_data_copy_methods *copy_methods = dst_handle->ops->copy_methods;
 
 	struct starpu_task *task = starpu_task_create();
 	STARPU_ASSERT(task);
@@ -146,12 +98,7 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 	}
 
 	task->cl = &copy_cl;
-
-	unsigned *interface_id = malloc(sizeof(*interface_id));
-	*interface_id = dst_handle->ops->interfaceid; 
-	task->cl_arg = interface_id;
-	task->cl_arg_size = sizeof(*interface_id);
-	task->cl_arg_free = 1;
+	task->cl_arg = (void *)copy_methods;
 
 	task->callback_func = callback_func;
 	task->callback_arg = callback_arg;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -376,7 +376,7 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 /*
  * cl_update (CPU version)
  */
-void update_func_cpu(void *descr[], void *arg)
+static void update_func_cpu(void *descr[], void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
@@ -457,7 +457,6 @@ static struct starpu_perfmodel cl_update_model =
 struct starpu_codelet cl_update =
 {
 	.cpu_funcs = {update_func_cpu, NULL},
-	.cpu_funcs_name = {"update_func_cpu", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {update_func_cuda, NULL},
 #endif
@@ -542,7 +541,7 @@ unsigned top_per_worker[STARPU_NMAXWORKERS];
 unsigned bottom_per_worker[STARPU_NMAXWORKERS];
 
 /* top save, CPU version */
-void dummy_func_top_cpu(void *descr[] __attribute__((unused)), void *arg)
+static void dummy_func_top_cpu(void *descr[] __attribute__((unused)), void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
@@ -558,7 +557,7 @@ void dummy_func_top_cpu(void *descr[] __attribute__((unused)), void *arg)
 }
 
 /* bottom save, CPU version */
-void dummy_func_bottom_cpu(void *descr[] __attribute__((unused)), void *arg)
+static void dummy_func_bottom_cpu(void *descr[] __attribute__((unused)), void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
@@ -658,7 +657,6 @@ static struct starpu_perfmodel save_cl_top_model =
 struct starpu_codelet save_cl_bottom =
 {
 	.cpu_funcs = {dummy_func_bottom_cpu, NULL},
-	.cpu_funcs_name = {"dummy_func_bottom_cpu", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dummy_func_bottom_cuda, NULL},
 #endif
@@ -673,7 +671,6 @@ struct starpu_codelet save_cl_bottom =
 struct starpu_codelet save_cl_top =
 {
 	.cpu_funcs = {dummy_func_top_cpu, NULL},
-	.cpu_funcs_name = {"dummy_func_top_cpu", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dummy_func_top_cuda, NULL},
 #endif

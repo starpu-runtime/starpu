@@ -31,16 +31,12 @@
 static char *cpus_worker_colors[STARPU_NMAXWORKERS] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4",  "/greens9/9", "/greens9/3",  "/greens9/2",  "/greens9/1"  };
 static char *cuda_worker_colors[STARPU_NMAXWORKERS] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
 static char *opencl_worker_colors[STARPU_NMAXWORKERS] = {"/blues9/9", "/blues9/6", "/blues9/3", "/blues9/1", "/blues9/8", "/blues9/7", "/blues9/4", "/blues9/2",  "/blues9/1"};
-static char *mic_worker_colors[STARPU_NMAXWORKERS] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
-static char *scc_worker_colors[STARPU_NMAXWORKERS] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
 static char *other_worker_colors[STARPU_NMAXWORKERS] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
 static char *worker_colors[STARPU_NMAXWORKERS];
 
 static unsigned opencl_index = 0;
 static unsigned cuda_index = 0;
 static unsigned cpus_index = 0;
-static unsigned mic_index = 0;
-static unsigned scc_index = 0;
 static unsigned other_index = 0;
 
 static void set_next_other_worker_color(int workerid)
@@ -61,16 +57,6 @@ static void set_next_cuda_worker_color(int workerid)
 static void set_next_opencl_worker_color(int workerid)
 {
 	worker_colors[workerid] = opencl_worker_colors[opencl_index++];
-}
-
-static void set_next_mic_worker_color(int workerid)
-{
-	worker_colors[workerid] = mic_worker_colors[mic_index++];
-}
-
-static void set_next_scc_worker_color(int workerid)
-{
-	worker_colors[workerid] = scc_worker_colors[scc_index++];
 }
 
 static const char *get_worker_color(int workerid)
@@ -358,16 +344,6 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			set_next_opencl_worker_color(workerid);
 			kindstr = "OPENCL";
 			archtype = STARPU_OPENCL_DEFAULT + devid;
-			break;
-		case _STARPU_FUT_MIC_KEY:
-			set_next_mic_worker_color(workerid);
-			kindstr = "mic";
-			archtype = STARPU_MIC_DEFAULT + devid;
-			break;
-		case _STARPU_FUT_SCC_KEY:
-			set_next_scc_worker_color(workerid);
-			kindstr = "scc";
-			archtype = STARPU_SCC_DEFAULT + devid;
 			break;
 		default:
 			STARPU_ABORT();

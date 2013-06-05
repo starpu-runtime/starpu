@@ -37,7 +37,6 @@ void starpu_block_filter_block(void *father_interface, void *child_interface, ST
 	_starpu_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1,
 				       &chunk_size, &offset);
 
-	block_child->id = block_father->id;
 	block_child->nx = chunk_size;
 	block_child->ny = ny;
 	block_child->nz = nz;

@@ -27,8 +27,6 @@
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <drivers/opencl/driver_opencl.h>
-#include <drivers/scc/driver_scc_source.h>
-#include <drivers/mic/driver_mic_source.h>
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
@@ -44,7 +42,7 @@ static size_t csr_interface_get_size(starpu_data_handle_t handle);
 static int csr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle_t handle);
 
-struct starpu_data_interface_ops starpu_interface_csr_ops =
+static struct starpu_data_interface_ops interface_csr_ops =
 {
 	.register_data_handle = register_csr_handle,
 	.allocate_data_on_node = allocate_csr_buffer_on_node,
@@ -78,7 +76,6 @@ static void register_csr_handle(starpu_data_handle_t handle, unsigned home_node,
 			local_interface->colind = NULL;
 		}
 
-		local_interface->id = csr_interface->id;
 		local_interface->rowptr = csr_interface->rowptr;
 		local_interface->nnz = csr_interface->nnz;
 		local_interface->nrow = csr_interface->nrow;
@@ -94,7 +91,6 @@ void starpu_csr_data_register(starpu_data_handle_t *handleptr, unsigned home_nod
 {
 	struct starpu_csr_interface csr_interface =
 	{
-		.id = STARPU_CSR_INTERFACE_ID,
 		.nnz = nnz,
 		.nrow = nrow,
 		.nzval = nzval,
@@ -104,7 +100,7 @@ void starpu_csr_data_register(starpu_data_handle_t *handleptr, unsigned home_nod
 		.elemsize = elemsize
 	};
 
-	starpu_data_register(handleptr, home_node, &csr_interface, &starpu_interface_csr_ops);
+	starpu_data_register(handleptr, home_node, &csr_interface, &interface_csr_ops);
 }
 
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle_t handle)

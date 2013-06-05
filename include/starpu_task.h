@@ -37,8 +37,6 @@ extern "C"
 #define STARPU_CPU	((1ULL)<<1)
 #define STARPU_CUDA	((1ULL)<<3)
 #define STARPU_OPENCL	((1ULL)<<6)
-#define STARPU_MIC	((1ULL)<<7)
-#define STARPU_SCC	((1ULL)<<8)
 
 /* Codelet types */
 enum starpu_codelet_type
@@ -67,11 +65,6 @@ typedef uint64_t starpu_tag_t;
 typedef void (*starpu_cpu_func_t)(void **, void*);    /* CPU core */
 typedef void (*starpu_cuda_func_t)(void **, void*);   /* NVIDIA CUDA device */
 typedef void (*starpu_opencl_func_t)(void **, void*); /* OpenCL CUDA device */
-typedef void (*starpu_mic_kernel_t)(void **, void*); /* MIC device */
-typedef void (*starpu_scc_kernel_t)(void **, void*); /* SCC device */
-
-typedef starpu_mic_kernel_t (*starpu_mic_func_t)(void);
-typedef starpu_scc_kernel_t (*starpu_scc_func_t)(void);
 
 #define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS    ((starpu_cpu_func_t) -1)
 #define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   ((starpu_cuda_func_t) -1)
@@ -98,10 +91,6 @@ struct starpu_codelet
 	starpu_cpu_func_t cpu_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_cuda_func_t cuda_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_opencl_func_t opencl_funcs[STARPU_MAXIMPLEMENTATIONS];
-	starpu_mic_func_t mic_funcs[STARPU_MAXIMPLEMENTATIONS];
-	starpu_scc_func_t scc_funcs[STARPU_MAXIMPLEMENTATIONS];
-
-	char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];
 
 	/* how many buffers do the codelet takes as argument ? */
 	unsigned nbuffers;

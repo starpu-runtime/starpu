@@ -22,7 +22,7 @@
 #include <sys/types.h>
 #include "../helper.h"
 
-void task(void **buffers, void *args)
+static void task(void **buffers, void *args)
 {
 	float *numbers;
 	size_t size, i;
@@ -38,7 +38,6 @@ void task(void **buffers, void *args)
 static struct starpu_codelet cl =
 {
 	.cpu_funcs = {task, NULL},
-	.cpu_funcs_name = {"task", NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_W}
 };
@@ -153,7 +152,7 @@ int main(int argc, char *argv[])
 	starpu_data_handle_t vector_handles[VECTOR_COUNT];
 	starpu_data_handle_t variable_handles[VARIABLE_COUNT];
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

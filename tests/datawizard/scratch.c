@@ -43,7 +43,7 @@ extern void cuda_f(void *descr[], __attribute__ ((unused)) void *_args);
 extern void opencl_f(void *buffers[], void *args);
 #endif
 
-void cpu_f(void *descr[], __attribute__ ((unused)) void *_args)
+static void cpu_f(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -71,7 +71,6 @@ static struct starpu_codelet cl_f =
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_f, NULL},
 #endif
-	.cpu_funcs_name = {"cpu_f", NULL},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_SCRATCH}
 };
@@ -84,7 +83,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

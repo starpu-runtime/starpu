@@ -72,10 +72,6 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl);
 starpu_cpu_func_t _starpu_task_get_cpu_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
 starpu_cuda_func_t _starpu_task_get_cuda_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
 starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
-starpu_mic_func_t _starpu_task_get_mic_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
-starpu_scc_func_t _starpu_task_get_scc_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
-
-char *_starpu_task_get_cpu_name_nth_implementation(struct starpu_codelet *cl, unsigned nimpl);
 
 #define _STARPU_TASK_SET_INTERFACE(task, interface, i) do { if (task->dyn_handles) task->dyn_interfaces[i] = interface; else task->interfaces[i] = interface;} while(0)
 #define _STARPU_TASK_GET_INTERFACES(task) ((task->dyn_handles) ? task->dyn_interfaces : task->interfaces)

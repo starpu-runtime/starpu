@@ -41,7 +41,6 @@ void starpu_matrix_filter_block(void *father_interface, void *child_interface, S
 						     &child_nx, &offset);
 
 	/* update the child's interface */
-	matrix_child->id = matrix_father->id;
 	matrix_child->nx = child_nx;
 	matrix_child->ny = ny;
 	matrix_child->elemsize = elemsize;
@@ -116,7 +115,6 @@ void starpu_matrix_filter_vertical_block(void *father_interface, void *child_int
 						     matrix_father->ld,
 						     &child_ny, &offset);
 
-	matrix_child->id = matrix_father->id;
 	matrix_child->nx = nx;
 	matrix_child->ny = child_ny;
 	matrix_child->elemsize = elemsize;

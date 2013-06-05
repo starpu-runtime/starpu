@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2012  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -55,7 +55,6 @@ static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_
 	if (handle->refcnt == 0)
 		return _starpu_data_requester_list_pop_front(req_list);
 
-	/* Already writing to it, do not let another write access through */
 	if (handle->current_mode == STARPU_W)
 		return NULL;
 
@@ -194,7 +193,7 @@ static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, u
 	/* Note that we do not access j->task->handles, but j->ordered_buffers
 	 * which is a sorted copy of it. */
 	starpu_data_handle_t handle = _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(j, buffer_index);
-	enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer_index) & ~STARPU_COMMUTE;
+	enum starpu_data_access_mode mode = _STARPU_JOB_GET_ORDERED_BUFFER_MODE(j, buffer_index);
 
 	return _starpu_attempt_to_submit_data_request(1, handle, mode, NULL, NULL, j, buffer_index);
 }

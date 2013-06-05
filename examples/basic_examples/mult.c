@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -77,7 +77,7 @@ static unsigned zdim = 512;
  * registered data with the "matrix" data interface, we use the matrix macros.
  */
 
-void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
+static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
 {
 	float *subA, *subB, *subC;
 	uint32_t nxC, nyC, nyA;
@@ -264,7 +264,6 @@ static struct starpu_codelet cl =
         /* we can only execute that kernel on a CPU yet */
         /* CPU implementation of the codelet */
         .cpu_funcs = {cpu_mult, NULL},
-        .cpu_funcs_name = {"cpu_mult", NULL},
         /* the codelet manipulates 3 buffers that are managed by the
          * DSM */
         .nbuffers = 3,

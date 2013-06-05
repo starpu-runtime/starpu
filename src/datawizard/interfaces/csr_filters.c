@@ -46,7 +46,6 @@ void starpu_csr_filter_vertical_block(void *father_interface, void *child_interf
 
 	uint32_t local_nnz = rowptr[first_index + child_nrow] - rowptr[first_index];
 
-	csr_child->id = csr_father->id;
 	csr_child->nnz = local_nnz;
 	csr_child->nrow = child_nrow;
 	csr_child->firstentry = local_firstentry;

@@ -20,7 +20,7 @@
 #define NY 2
 #define MATRIX_SIZE (NX*NY)
 
-#if defined(STARPU_USE_CPU) || defined(STAPRU_USE_MIC)
+#ifdef STARPU_USE_CPU
 static void test_coo_cpu_func(void *buffers[], void *args);
 #endif
 #ifdef STARPU_USE_CUDA
@@ -43,16 +43,13 @@ struct test_config coo_config =
 #ifdef STARPU_USE_OPENCL
 	.opencl_func   = test_coo_opencl_func,
 #endif /* !STARPU_USE_OPENCL */
-#ifdef STARPU_USE_MIC
-	.cpu_func_name = "test_coo_cpu_func",
-#endif
 	.handle        = &coo_handle,
 	.dummy_handle  = &coo2_handle,
 	.copy_failed   = SUCCESS,
 	.name          = "coo_interface"
 };
 
-void
+static void
 test_coo_cpu_func(void *buffers[], void *args)
 {
 	int factor = *(int *) args;
@@ -148,7 +145,7 @@ unregister_data(void)
 }
 
 int
-main(int argc, char **argv)
+main(void)
 {
 	struct starpu_conf conf;
 	data_interface_test_summary *summary;
@@ -156,9 +153,8 @@ main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	conf.ncuda = 2;
 	conf.nopencl = 1;
-	conf.nmic = -1;
 
-	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV || starpu_cpu_worker_get_count() == 0)
+	if (starpu_init(&conf) == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		goto enodev;
 
 	register_data();
