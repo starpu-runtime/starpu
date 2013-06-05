@@ -54,7 +54,7 @@ static void callback(void *arg)
 	}
 }
 
-static void codelet_sleep(void *descr[], __attribute__ ((unused)) void *_args)
+void codelet_sleep(void *descr[], __attribute__ ((unused)) void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -72,6 +72,7 @@ static struct starpu_codelet cl =
 	.cpu_funcs = {codelet_sleep, NULL},
 	.cuda_funcs = {codelet_sleep, NULL},
         .opencl_funcs = {codelet_sleep, NULL},
+	.cpu_funcs_name = {"codelet_sleep", NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 	.model =  &model
@@ -85,7 +86,7 @@ int main(int argc, char **argv)
 	starpu_data_handle_t handle;
 	float *buffer;
 
-	ret = starpu_init(NULL);
+	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

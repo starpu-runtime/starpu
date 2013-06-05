@@ -54,6 +54,7 @@ struct test_config
 #ifdef STARPU_USE_OPENCL
 	starpu_opencl_func_t opencl_func;
 #endif
+	char *cpu_func_name;
 
 	/* The previous codelets must update this field at the end of their
 	 * execution. copy_failed must be FAILURE if the copy failed, SUCCESS otherwise. */

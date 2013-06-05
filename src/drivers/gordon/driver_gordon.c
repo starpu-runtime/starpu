@@ -374,7 +374,8 @@ void *gordon_worker_inject(struct _starpu_worker_set *arg)
 					struct _starpu_job_list *chunk_list;
 					if (chunk != (nchunks -1))
 					{
-						/* split the list in 2 parts : list = chunk_list | tail */
+						/* split the list in 2 parts :
+						 * list = chunk_list | tail */
 						chunk_list = _starpu_job_list_new();
 
 						/* find the end */

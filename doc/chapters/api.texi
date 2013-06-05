@@ -24,6 +24,8 @@
 * Theoretical lower bound on execution time API::
 * CUDA extensions::
 * OpenCL extensions::
+* MIC extensions::
+* SCC extensions::
 * Miscellaneous helpers::
 * FXT Support::
 * FFT Support::
@@ -104,6 +106,14 @@ be specified with the @code{STARPU_NCUDA} environment variable.
 This is the number of OpenCL devices that StarPU can use. This can
 also be specified with the @code{STARPU_NOPENCL} environment variable.
 
+@item @code{int nmic} (default = -1)
+This is the number of MIC devices that StarPU can use. This can
+also be specified with the @code{STARPU_NMIC} environment variable.
+
+@item @code{int nscc} (default = -1)
+This is the number of SCC devices that StarPU can use. This can
+also be specified with the @code{STARPU_NSCC} environment variable.
+
 @item @code{unsigned use_explicit_workers_bindid} (default = 0)
 If this flag is set, the @code{workers_bindid} array indicates where the
 different workers are bound, otherwise StarPU automatically selects where to
@@ -139,6 +149,26 @@ the @code{STARPU_WORKERS_OPENCLID} environment variable.
 If the @code{use_explicit_workers_opencl_gpuid} flag is set, this array
 contains the logical identifiers of the OpenCL devices to be used.
 
+@item @code{unsigned use_explicit_workers_mic_gpuid} (default = 0)
+If this flag is set, the MIC workers will be attached to the MIC devices
+specified in the @code{workers_mic_gpuid} array. Otherwise, StarPU affects
+the MIC devices in a round-robin fashion. This can also be specified with
+the @code{STARPU_WORKERS_MICID} environment variable.
+
+@item @code{unsigned workers_mic_gpuid[STARPU_NMAXWORKERS]}
+If the @code{use_explicit_workers_mic_gpuid} flag is set, this array
+contains the logical identifiers of the MIC devices to be used.
+
+@item @code{unsigned use_explicit_workers_scc_gpuid} (default = 0)
+If this flag is set, the SCC workers will be attached to the SCC devices
+specified in the @code{workers_scc_gpuid} array. Otherwise, StarPU affects
+the SCC devices in a round-robin fashion. This can also be specified with
+the @code{STARPU_WORKERS_SCCID} environment variable.
+
+@item @code{unsigned workers_scc_gpuid[STARPU_NMAXWORKERS]}
+If the @code{use_explicit_workers_scc_gpuid} flag is set, this array
+contains the logical identifiers of the SCC devices to be used.
+
 @item @code{int calibrate} (default = 0)
 If this flag is set, StarPU will calibrate the performance models when
 executing tasks. If this value is equal to @code{-1}, the default value is
@@ -161,6 +191,11 @@ CPU and GPU tasks are not affected and can be run concurrently). The parallel
 task scheduler will however still however still try varying combined worker
 sizes to look for the most efficient ones.
 This can also be specified with the @code{STARPU_SINGLE_COMBINED_WORKER} environment variable.
+
+@item @code{mic_sink_program_path} (default = NULL)
+Path to the program to execute on the MIC device, compiled for MIC
+architecture. When set to NULL, StarPU automatically looks next to the host
+program location.
 
 @item @code{int disable_asynchronous_copy} (default = 0)
 This flag should be set to 1 to disable asynchronous copies between
@@ -188,6 +223,13 @@ fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
 This can also be specified at compilation time by giving to the
 configure script the option @code{--disable-asynchronous-opencl-copy}.
+
+@item @code{int disable_asynchronous_mic_copy} (default = 0)
+This flag should be set to 1 to disable asynchronous copies between
+CPUs and MIC accelerators. This can also be specified with the
+@code{STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY} environment variable.
+This can also be specified at compilation time by giving to the
+configure script the option @code{--disable-asynchronous-mic-copy}.
 
 @item @code{int *cuda_opengl_interoperability} (default = NULL)
 This can be set to an array of CUDA device identifiers for which
@@ -221,6 +263,12 @@ configuration is used if the passed argument is @code{NULL}.
 
 Upon successful completion, this function returns 0. Otherwise, @code{-ENODEV}
 indicates that no worker was available (so that StarPU was not initialized).
+@end deftypefun
+
+@deftypefun int starpu_initialize ({struct starpu_conf *}@var{conf}, int @var{argc}, {char ***}@var{argv})
+This is the same as @code{starpu_init}, but also takes the @code{argc} and
+@code{argv} as gotten by the application. This is needed for SCC
+execution to initialize the communication library.
 @end deftypefun
 
 @deftypefun int starpu_conf_init ({struct starpu_conf *}@var{conf})
@@ -319,6 +367,8 @@ The different values are:
 @item @code{STARPU_CPU_WORKER}
 @item @code{STARPU_CUDA_WORKER}
 @item @code{STARPU_OPENCL_WORKER}
+@item @code{STARPU_MIC_WORKER}
+@item @code{STARPU_SCC_WORKER}
 @end table
 @end deftp
 
@@ -346,6 +396,20 @@ value should be at most @code{STARPU_MAXCUDADEVS}.
 @deftypefun unsigned starpu_opencl_worker_get_count (void)
 This function returns the number of OpenCL devices controlled by StarPU. The returned
 value should be at most @code{STARPU_MAXOPENCLDEVS}.
+@end deftypefun
+
+@deftypefun unsigned starpu_mic_worker_get_count (void)
+This function returns the number of MIC workers controlled by StarPU.
+@end deftypefun
+
+@deftypefun unsigned starpu_mic_device_get_count (void)
+This function returns the number of MIC devices controlled by StarPU. The returned
+value should be at most @code{STARPU_MAXMICDEVS}.
+@end deftypefun
+
+@deftypefun unsigned starpu_scc_worker_get_count (void)
+This function returns the number of SCC devices controlled by StarPU. The returned
+value should be at most @code{STARPU_MAXSCCDEVS}.
 @end deftypefun
 
 @deftypefun int starpu_worker_get_id (void)
@@ -420,6 +484,9 @@ todo
 @item @code{STARPU_CPU_RAM}
 @item @code{STARPU_CUDA_RAM}
 @item @code{STARPU_OPENCL_RAM}
+@item @code{STARPU_MIC_RAM}
+@item @code{STARPU_SCC_RAM}
+@item @code{STARPU_SCC_SHM}
 @end table
 @end deftp
 
@@ -500,6 +567,12 @@ ignored for now.
 @item @code{STARPU_REDUX}: reduction mode. TODO!
 @end table
 @end deftp
+
+In addition to that, @code{STARPU_COMMUTE} can be passed along @code{STARPU_W}
+or @code{STARPU_RW} to express that StarPU can let tasks commute, which is
+useful e.g. when bringing a contribution into some data, which can be done
+in any order (but still require sequential consistency against reads or
+non-commutative writes).
 
 @deftp {Data Type} {starpu_data_handle_t}
 StarPU uses @code{starpu_data_handle_t} as an opaque handle to manage a piece of
@@ -1364,8 +1437,8 @@ be useful to provide more specific method in case of e.g. available particular
 CUDA or OpenCL support.
 
 @table @asis
-@item @code{int (*@{ram,cuda,opencl@}_to_@{ram,cuda,opencl@})(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
-These 12 functions define how to copy data from the @var{src_interface}
+@item @code{int (*@{ram,cuda,opencl,mic@}_to_@{ram,cuda,opencl,mic@})(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
+These 14 functions define how to copy data from the @var{src_interface}
 interface on the @var{src_node} node to the @var{dst_interface} interface
 on the @var{dst_node} node. They return 0 on success.
 
@@ -1382,6 +1455,22 @@ These 3 functions (@code{ram_to_ram} is not among them) define how to copy
 data from the @var{src_interface} interface on the @var{src_node} node to the
 @var{dst_interface} interface on the @var{dst_node} node, by recording in
 @var{event}, a pointer to a cl_event, the event of the last submitted transfer.
+Must return 0 if the transfer was actually completed completely synchronously,
+or -EAGAIN if at least some transfers are still ongoing and should be awaited
+for by the core.
+
+@item @code{int (*@{ram,mic@}_to_@{ram,mic@}_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
+These 2 functions (@code{ram_to_ram} and @code{mic_to_mic} are not among them) define how to copy
+data from the @var{src_interface} interface on the @var{src_node} node to the
+@var{dst_interface} interface on the @var{dst_node} node.
+Must return 0 if the transfer was actually completed completely synchronously,
+or -EAGAIN if at least some transfers are still ongoing and should be awaited
+for by the core.
+
+@item @code{int (*@{src,sink@}_to_@{src,sink@}_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)}
+These 3 functions (@code{src_to_src} is not among them) define how to copy
+data from the @var{src_interface} interface on the @var{src_node} node to the
+@var{dst_interface} interface on the @var{dst_node} node.
 Must return 0 if the transfer was actually completed completely synchronously,
 or -EAGAIN if at least some transfers are still ongoing and should be awaited
 for by the core.
@@ -1729,6 +1818,24 @@ pointer to a codelet which converts from CPU to CUDA
 
 @item @code{struct starpu_codelet *cuda_to_cpu_cl}
 pointer to a codelet which converts from CUDA to CPU
+
+@item @code{size_t mic_elemsize}
+the size of each element on MIC devices,
+
+@item @code{struct starpu_codelet *cpu_to_mic_cl}
+pointer to a codelet which converts from CPU to MIC
+
+@item @code{struct starpu_codelet *mic_to_cpu_cl}
+pointer to a codelet which converts from MIC to CPU
+
+@item @code{size_t scc_elemsize}
+the size of each element on SCC devices,
+
+@item @code{struct starpu_codelet *cpu_to_scc_cl}
+pointer to a codelet which converts from CPU to SCC
+
+@item @code{struct starpu_codelet *scc_to_cpu_cl}
+pointer to a codelet which converts from SCC to CPU
 @end table
 @end deftp
 
@@ -1791,7 +1898,19 @@ processing unit.
 
 @defmac STARPU_OPENCL
 This macro is used when setting the field @code{where} of a @code{struct
-starpu_codelet} to specify the codelet may be executed on a OpenCL
+starpu_codelet} to specify the codelet may be executed on an OpenCL
+processing unit.
+@end defmac
+
+@defmac STARPU_MIC
+This macro is used when setting the field @code{where} of a @code{struct
+starpu_codelet} to specify the codelet may be executed on a MIC
+processing unit.
+@end defmac
+
+@defmac STARPU_SCC
+This macro is used when setting the field @code{where} of a @code{struct
+starpu_codelet} to specify the codelet may be executed on an SCC
 processing unit.
 @end defmac
 
@@ -1864,6 +1983,12 @@ If the @code{where} field is set, then the @code{cpu_funcs} field is
 ignored if @code{STARPU_CPU} does not appear in the @code{where}
 field, it must be non-null otherwise.
 
+@item @code{char * cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS]} (optional)
+Is an array of strings which provide the name of the CPU functions referenced in
+the @code{cpu_funcs} array. This can be used when running on MIC devices or the
+SCC platform, for StarPU to simply look up the MIC function implementation
+through its name.
+
 @item @code{starpu_cuda_func_t cuda_func} (optional)
 This field has been made deprecated. One should use instead the
 @code{cuda_funcs} field.
@@ -1890,6 +2015,28 @@ The functions prototype must be:
 If the @code{where} field is set, then the @code{opencl_funcs} field
 is ignored if @code{STARPU_OPENCL} does not appear in the @code{where}
 field, it must be non-null otherwise.
+
+@item @code{starpu_mic_func_t mic_funcs[STARPU_MAXIMPLEMENTATIONS]} (optional)
+Is an array of function pointers to a function which returns the MIC
+implementation of the codelet.
+It must be terminated by a NULL value.
+The functions prototype must be:
+@code{starpu_mic_kernel_t mic_func(struct starpu_codelet *cl, unsigned nimpl);}.
+If the @code{where} field is set, then the @code{mic_funcs} field
+is ignored if @code{STARPU_MIC} does not appear in the @code{where}
+field. It can be null if @code{cpu_funcs_name} is non-NULL, in which case StarPU
+will simply make a symbol lookup to get the implementation.
+
+@item @code{starpu_scc_func_t scc_funcs[STARPU_MAXIMPLEMENTATIONS]} (optional)
+Is an array of function pointers to a function which returns the SCC
+implementation of the codelet.
+It must be terminated by a NULL value.
+The functions prototype must be:
+@code{starpu_scc_kernel_t scc_func(struct starpu_codelet *cl, unsigned nimpl);}.
+If the @code{where} field is set, then the @code{scc_funcs} field
+is ignored if @code{STARPU_SCC} does not appear in the @code{where}
+field. It can be null if @code{cpu_funcs_name} is non-NULL, in which case StarPU
+will simply make a symbol lookup to get the implementation.
 
 @item @code{unsigned nbuffers}
 Specifies the number of arguments taken by the codelet. These arguments are
@@ -2295,6 +2442,7 @@ executing. It thus does not include tasks waiting for dependencies.
 This function returns the task currently executed by the worker, or
 NULL if it is called either from a thread that is not a task or simply
 because there is no task being executed at the moment.
+This function must be called from the callback (not from the codelet).
 @end deftypefun
 
 @deftypefun void starpu_codelet_display_stats ({struct starpu_codelet} *@var{cl})
@@ -3271,6 +3419,48 @@ successfull. It returns 0 if the synchronous copy was successful, or
 fails otherwise.
 @end deftypefun
 
+@node MIC extensions
+@section MIC extensions
+
+@defmac STARPU_USE_MIC
+This macro is defined when StarPU has been installed with MIC
+support. It should be used in your code to detect the availability of
+MIC.
+@end defmac
+
+@deftypefun int starpu_mic_register_kernel({starpu_mic_func_symbol_t *}@var{symbol}, {const char *}@var{func_name})
+Initiate a lookup on each MIC device to find the adress of the function
+named FUNC_NAME, store them in the global array kernels and return
+the index in the array through SYMBOL.
+@end deftypefun
+
+@deftypefun starpu_mic_kernel_t starpu_mic_get_kernel(starpu_mic_func_symbol_t @var{symbol})
+If success, return the pointer to the function defined by SYMBOL on the
+device linked to the called device. This can for instance be used in a
+@code{starpu_mic_func_t} implementation.
+@end deftypefun
+
+@node SCC extensions
+@section SCC extensions
+
+@defmac STARPU_USE_SCC
+This macro is defined when StarPU has been installed with SCC
+support. It should be used in your code to detect the availability of
+SCC.
+@end defmac
+
+@deftypefun int starpu_scc_register_kernel({starpu_scc_func_symbol_t *}@var{symbol}, {const char *}@var{func_name})
+Initiate a lookup on each SCC device to find the adress of the function
+named FUNC_NAME, store them in the global array kernels and return
+the index in the array through SYMBOL.
+@end deftypefun
+
+@deftypefun starpu_scc_kernel_t starpu_scc_get_kernel(starpu_scc_func_symbol_t @var{symbol})
+If success, return the pointer to the function defined by SYMBOL on the
+device linked to the called device. This can for instance be used in a
+@code{starpu_scc_func_t} implementation.
+@end deftypefun
+
 @node Miscellaneous helpers
 @section Miscellaneous helpers
 
@@ -3824,7 +4014,11 @@ number of CUDA workers.
 
 @item @code{unsigned nhwopenclgpus}
 Total number of OpenCL devices, as detected. May be different from the actual
-number of CUDA workers.
+number of OpenCL workers.
+
+@item @code{unsigned nhscc}
+Total number of SCC cores, as detected. May be different from the actual
+number of core workers.
 
 @item @code{unsigned ncpus}
 Actual number of CPU workers used by StarPU.
@@ -3835,6 +4029,9 @@ Actual number of CUDA workers used by StarPU.
 @item @code{unsigned nopenclgpus}
 Actual number of OpenCL workers used by StarPU.
 
+@item @code{unsigned nsccdevices}
+Actual number of SCC workers used by StarPU.
+
 @item @code{unsigned workers_bindid[STARPU_NMAXWORKERS]}
 Indicates the successive cpu identifier that should be used to bind the
 workers. It is either filled according to the user's explicit
@@ -3843,15 +4040,27 @@ variable. Otherwise, a round-robin policy is used to distributed the workers
 over the cpus.
 
 @item @code{unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS]}
-Indicates the successive cpu identifier that should be used by the CUDA
+Indicates the successive CUDA identifier that should be used by the CUDA
 driver.  It is either filled according to the user's explicit parameters (from
 starpu_conf) or according to the STARPU_WORKERS_CUDAID env. variable. Otherwise,
 they are taken in ID order.
 
 @item @code{unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS]}
-Indicates the successive cpu identifier that should be used by the OpenCL
+Indicates the successive OpenCL identifier that should be used by the OpenCL
 driver.  It is either filled according to the user's explicit parameters (from
 starpu_conf) or according to the STARPU_WORKERS_OPENCLID env. variable. Otherwise,
+they are taken in ID order.
+
+@item @code{unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]}
+Indicates the successive MIC devices that should be used by the MIC
+driver.  It is either filled according to the user's explicit parameters (from
+starpu_conf) or according to the STARPU_WORKERS_MICID env. variable. Otherwise,
+they are taken in ID order.
+
+@item @code{unsigned workers_scc_deviceid[STARPU_NMAXWORKERS]}
+Indicates the successive SCC devices that should be used by the SCC
+driver.  It is either filled according to the user's explicit parameters (from
+starpu_conf) or according to the STARPU_WORKERS_SCCID env. variable. Otherwise,
 they are taken in ID order.
 
 @end table
@@ -3892,7 +4101,7 @@ The workerids managed by the collection
 The number of workerids
 @item @code{pthread_key_t cursor_key} (optional)
 The cursor needed to iterate the collection (depending on the data structure)
-@item @code{int type}
+@item @code{enum starpu_worker_collection_type type}
 The type of structure (currently STARPU_WORKER_LIST is the only one available)
 @item @code{unsigned (*has_next)(struct starpu_worker_collection *workers)}
 Checks if there is a next worker
@@ -3914,7 +4123,7 @@ Deinitialize the cursor if there is one
 @end table
 @end deftp
 
-@deftypefun struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection (unsigned @var{sched_ctx_id}, int @var{type})
+@deftypefun struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection (unsigned @var{sched_ctx_id}, enum starpu_worker_collection_type @var{type})
 Create a worker collection of the type indicated by the last parameter for the context specified through the first parameter.
 @end deftypefun
 

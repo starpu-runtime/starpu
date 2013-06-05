@@ -74,6 +74,7 @@ was last updated on @value{UPDATED}.
 * Tips and Tricks::             Tips and tricks to know about
 * StarPU MPI support::          How to combine StarPU with MPI
 * StarPU FFT support::          How to perform FFT computations with StarPU
+* StarPU MIC/SCC support::      How to build and run StarPU applications on MIC and SCC
 * C Extensions::                Easier StarPU programming with GCC
 * SOCL OpenCL Extensions::      How to use OpenCL on top of StarPU
 * Scheduling Contexts in StarPU::         How to use Scheduling Context of StarPU
@@ -161,6 +162,14 @@ was last updated on @value{UPDATED}.
 @node StarPU FFT support
 @chapter StarPU FFT support
 @include chapters/fft-support.texi
+
+@c ---------------------------------------------------------------------
+@c MIC/SCC support
+@c ---------------------------------------------------------------------
+
+@node StarPU MIC/SCC support
+@chapter StarPU MIC/SCC support
+@include chapters/mic-scc-support.texi
 
 @c ---------------------------------------------------------------------
 @c C Extensions

@@ -1,0 +1,39 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2012  Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+
+#ifndef __SINK_COMMON_H__
+#define __SINK_COMMON_H__
+
+#include <common/config.h>
+
+
+#ifdef STARPU_USE_MP
+
+#include <drivers/mp_common/mp_common.h>
+
+void _starpu_sink_common_worker(void);
+
+void _starpu_sink_common_execute(const struct _starpu_mp_node *node, void *arg, int arg_size);
+void _starpu_sink_nbcores (const struct _starpu_mp_node *node);
+
+void _starpu_sink_common_allocate(const struct _starpu_mp_node *mp_node, void *arg, int arg_size);
+void _starpu_sink_common_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, void *arg, int arg_size);
+
+#endif /* STARPU_USE_MP */
+
+
+#endif /* __SINK_COMMON_H__ */
