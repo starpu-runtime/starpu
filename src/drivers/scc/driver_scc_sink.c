@@ -17,6 +17,7 @@
 
 #include <RCCE.h>
 
+#include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/scc/driver_scc_common.h>
 #include <drivers/scc/driver_scc_sink.h>

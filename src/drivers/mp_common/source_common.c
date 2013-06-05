@@ -20,6 +20,7 @@
 
 #include <starpu.h>
 #include <datawizard/coherency.h>
+#include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/mp_common.h>
 
 int

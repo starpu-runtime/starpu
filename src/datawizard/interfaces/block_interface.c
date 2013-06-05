@@ -29,7 +29,6 @@
 #include <drivers/scc/driver_scc_source.h>
 #include <drivers/mic/driver_mic_source.h>
 
-static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 #ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
@@ -45,21 +44,10 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARP
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
 static int copy_opencl_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cl_event *event);
 #endif
-#ifdef STARPU_USE_SCC
-static int copy_scc_src_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_scc_sink_to_src(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_scc_sink_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-#endif
-#ifdef STARPU_USE_MIC
-static int copy_ram_to_mic(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_mic_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_ram_to_mic_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_mic_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-#endif
+static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 
 static const struct starpu_data_copy_methods block_copy_data_methods_s =
 {
-	.ram_to_ram = copy_ram_to_ram,
 #ifdef STARPU_USE_CUDA
 	.ram_to_cuda = copy_ram_to_cuda,
 	.cuda_to_ram = copy_cuda_to_ram,
@@ -75,17 +63,7 @@ static const struct starpu_data_copy_methods block_copy_data_methods_s =
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
 	.opencl_to_opencl_async = copy_opencl_to_opencl_async,
 #endif
-#ifdef STARPU_USE_SCC
-	.scc_src_to_sink = copy_scc_src_to_sink,
-	.scc_sink_to_src = copy_scc_sink_to_src,
-	.scc_sink_to_sink = copy_scc_sink_to_sink,
-#endif
-#ifdef STARPU_USE_MIC
-	.ram_to_mic = copy_ram_to_mic,
-	.mic_to_ram = copy_mic_to_ram,
-	.ram_to_mic_async = copy_ram_to_mic_async,
-	.mic_to_ram_async = copy_mic_to_ram_async,
-#endif
+	.any_to_any = copy_any_to_any,
 };
 
 
@@ -615,175 +593,11 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_A
 
 #endif
 
-#ifdef STARPU_USE_SCC
-static int copy_scc_src_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	uint32_t nx = STARPU_BLOCK_GET_NX(dst_interface);
-	uint32_t ny = STARPU_BLOCK_GET_NY(dst_interface);
-	uint32_t nz = STARPU_BLOCK_GET_NZ(dst_interface);
-
-	size_t elemsize = STARPU_BLOCK_GET_ELEMSIZE(dst_interface);
-
-	uint32_t src_ldy = STARPU_BLOCK_GET_LDY(src_interface);
-	uint32_t src_ldz = STARPU_BLOCK_GET_LDZ(src_interface);
-	uint32_t dst_ldy = STARPU_BLOCK_GET_LDY(dst_interface);
-	uint32_t dst_ldz = STARPU_BLOCK_GET_LDZ(dst_interface);
-
-	void *src_ptr = (void *)STARPU_BLOCK_GET_PTR(src_interface);
-	void *dst_ptr = (void *)STARPU_BLOCK_GET_PTR(dst_interface);
-
-	unsigned y, z;
-	for (z = 0; z < nz; ++z)
-	{
-		for (y = 0; y < ny; ++y)
-		{
-			uint32_t src_offset = (y*src_ldy + z*src_ldz) * elemsize;
-			uint32_t dst_offset = (y*dst_ldy + z*dst_ldz) * elemsize;
-
-			_starpu_scc_copy_src_to_sink(src_ptr + src_offset, src_node,
-							dst_ptr + dst_offset, dst_node, nx*elemsize);
-		}
-	}
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
-
-	return 0;
-}
-
-static int copy_scc_sink_to_src(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	uint32_t nx = STARPU_BLOCK_GET_NX(dst_interface);
-	uint32_t ny = STARPU_BLOCK_GET_NY(dst_interface);
-	uint32_t nz = STARPU_BLOCK_GET_NZ(dst_interface);
-
-	size_t elemsize = STARPU_BLOCK_GET_ELEMSIZE(dst_interface);
-
-	uint32_t src_ldy = STARPU_BLOCK_GET_LDY(src_interface);
-	uint32_t src_ldz = STARPU_BLOCK_GET_LDZ(src_interface);
-	uint32_t dst_ldy = STARPU_BLOCK_GET_LDY(dst_interface);
-	uint32_t dst_ldz = STARPU_BLOCK_GET_LDZ(dst_interface);
-
-	void *src_ptr = (void *)STARPU_BLOCK_GET_PTR(src_interface);
-	void *dst_ptr = (void *)STARPU_BLOCK_GET_PTR(dst_interface);
-
-	unsigned y, z;
-	for (z = 0; z < nz; ++z)
-	{
-		for (y = 0; y < ny; ++y)
-		{
-			uint32_t src_offset = (y*src_ldy + z*src_ldz) * elemsize;
-			uint32_t dst_offset = (y*dst_ldy + z*dst_ldz) * elemsize;
-
-			_starpu_scc_copy_sink_to_src(src_ptr + src_offset, src_node,
-							dst_ptr + dst_offset, dst_node, nx*elemsize);
-		}
-	}
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
-
-	return 0;
-}
-
-static int copy_scc_sink_to_sink(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	uint32_t nx = STARPU_BLOCK_GET_NX(dst_interface);
-	uint32_t ny = STARPU_BLOCK_GET_NY(dst_interface);
-	uint32_t nz = STARPU_BLOCK_GET_NZ(dst_interface);
-
-	size_t elemsize = STARPU_BLOCK_GET_ELEMSIZE(dst_interface);
-
-	uint32_t src_ldy = STARPU_BLOCK_GET_LDY(src_interface);
-	uint32_t src_ldz = STARPU_BLOCK_GET_LDZ(src_interface);
-	uint32_t dst_ldy = STARPU_BLOCK_GET_LDY(dst_interface);
-	uint32_t dst_ldz = STARPU_BLOCK_GET_LDZ(dst_interface);
-
-	void *src_ptr = (void *)STARPU_BLOCK_GET_PTR(src_interface);
-	void *dst_ptr = (void *)STARPU_BLOCK_GET_PTR(dst_interface);
-
-	unsigned y, z;
-	for (z = 0; z < nz; ++z)
-	{
-		for (y = 0; y < ny; ++y)
-		{
-			uint32_t src_offset = (y*src_ldy + z*src_ldz) * elemsize;
-			uint32_t dst_offset = (y*dst_ldy + z*dst_ldz) * elemsize;
-
-			_starpu_scc_copy_sink_to_sink(src_ptr + src_offset, src_node,
-					dst_ptr + dst_offset, dst_node, nx*elemsize);
-		}
-	}
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
-
-	return 0;
-}
-#endif /* STARPU_USE_SCC */
-
-#ifdef STARPU_USE_MIC
-static int copy_mic_common(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node,
-						   int (*copy_func)(void *, unsigned, void *, unsigned, size_t))
-{
-	struct starpu_block_interface *src_block = src_interface;
-	struct starpu_block_interface *dst_block = dst_interface;
-	
-	uint32_t nx = dst_block->nx;
-	uint32_t ny = dst_block->ny;
-	uint32_t nz = dst_block->nz;
-	size_t elemsize = dst_block->elemsize;
-
-	uint32_t ldy_src = src_block->ldy;
-	uint32_t ldz_src = src_block->ldz;
-	uint32_t ldy_dst = dst_block->ldy;
-	uint32_t ldz_dst = dst_block->ldz;
-
-	uintptr_t ptr_src = src_block->ptr;
-	uintptr_t ptr_dst = dst_block->ptr;
-
-	unsigned y, z;
-	for (z = 0; z < nz; z++)
-	{
-		for (y = 0; y < ny; y++)
-		{
-			uint32_t src_offset = (y*ldy_src + z*ldz_src)*elemsize;
-			uint32_t dst_offset = (y*ldy_dst + z*ldz_dst)*elemsize;
-
-			copy_func((void *)(ptr_src + src_offset), src_node, (void *)(ptr_dst + dst_offset), dst_node, nx*elemsize);
-		}
-	}
-
-	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
-
-	return 0;
-
-}
-static int copy_ram_to_mic(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	return copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_ram_to_mic);
-}
-
-static int copy_mic_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	return copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_mic_to_ram);
-}
-
-static int copy_ram_to_mic_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_ram_to_mic_async);
-	return -EAGAIN;
-}
-
-static int copy_mic_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	copy_mic_common(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_mic_to_ram_async);
-	return -EAGAIN;
-}
-#endif
-
-/* as not all platform easily have a BLAS lib installed ... */
-static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
+static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
 {
 	struct starpu_block_interface *src_block = (struct starpu_block_interface *) src_interface;
 	struct starpu_block_interface *dst_block = (struct starpu_block_interface *) dst_interface;
+	int ret;
 
 	uint32_t nx = dst_block->nx;
 	uint32_t ny = dst_block->ny;
@@ -795,9 +609,6 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBU
 	uint32_t ldy_dst = dst_block->ldy;
 	uint32_t ldz_dst = dst_block->ldz;
 
-	uintptr_t ptr_src = src_block->ptr;
-	uintptr_t ptr_dst = dst_block->ptr;
-
 	unsigned y, z;
 	for (z = 0; z < nz; z++)
 	{
@@ -806,12 +617,14 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBU
 			uint32_t src_offset = (y*ldy_src + z*ldz_src)*elemsize;
 			uint32_t dst_offset = (y*ldy_dst + z*ldz_dst)*elemsize;
 
-			memcpy((void *)(ptr_dst + dst_offset),
-				(void *)(ptr_src + src_offset), nx*elemsize);
+			if (starpu_interface_copy(src_block->dev_handle, src_block->offset + src_offset, src_node,
+			                          dst_block->dev_handle, dst_block->offset + dst_offset, dst_node,
+			                          nx*elemsize, async_data))
+				ret = -EAGAIN;
 		}
 	}
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
 
-	return 0;
+	return ret;
 }

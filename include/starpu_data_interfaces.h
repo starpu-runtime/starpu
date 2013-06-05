@@ -461,21 +461,6 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, unsigned hom
 #define STARPU_MULTIFORMAT_GET_MIC_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->mic_ptr)
 #define STARPU_MULTIFORMAT_GET_NX(interface)  (((struct starpu_multiformat_interface *)(interface))->nx)
 
-/* Generic type representing an interface, for now it's only used before
- * execution on message-passing devices but it can be useful in other cases.
- */
-union _starpu_interface
-{
-	struct starpu_matrix_interface matrix;
-	struct starpu_block_interface block;
-	struct starpu_vector_interface vector;
-	struct starpu_csr_interface csr;
-	struct starpu_coo_interface coo;
-	struct starpu_bcsr_interface bcsr;
-	struct starpu_variable_interface variable;
-	struct starpu_multiformat_interface multiformat;
-};
-
 enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle);
 
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count);

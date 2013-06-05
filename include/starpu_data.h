@@ -35,7 +35,9 @@ enum starpu_data_access_mode
 	STARPU_W=(1<<1),
 	STARPU_RW=(STARPU_R|STARPU_W),
 	STARPU_SCRATCH=(1<<2),
-	STARPU_REDUX=(1<<3)
+	STARPU_REDUX=(1<<3),
+	STARPU_COMMUTE=(1<<4)
+	/* Note: other STARPU_* values in include/starpu_task_util.h */
 };
 
 struct starpu_data_descr

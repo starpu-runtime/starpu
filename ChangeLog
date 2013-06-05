@@ -30,6 +30,8 @@ New features:
 	  before the corresponding data, which allows the receiver to
 	  allocate data correctly, and to submit the matching receive of
 	  the envelope.
+  * New STARPU_COMMUTE flag which can be passed along STARPU_W or STARPU_RW to
+    let starpu commute write accesses.
 
 Small features:
   * Add cl_arg_free field to enable automatic free(cl_arg) on task

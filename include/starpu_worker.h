@@ -102,6 +102,12 @@ struct starpu_machine_topology
 	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
 };
 
+/* types of structures the worker collection can implement */
+enum starpu_worker_collection_type
+{
+	STARPU_WORKER_LIST
+};
+
 /* generic structure used by the scheduling contexts to iterate the workers */
 struct starpu_worker_collection
 {
@@ -109,8 +115,8 @@ struct starpu_worker_collection
 	void *workerids;
 	/* the number of workers in the collection */
 	unsigned nworkers;
-	/* the type of structure (STARPU_WORKER_LIST,...) */
-	int type;
+	/* the type of structure */
+	enum starpu_worker_collection_type type;
 	/* checks if there is another element in collection */
 	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	/* return the next element in the collection */
@@ -126,10 +132,6 @@ struct starpu_worker_collection
 	/* initialize the cursor if there is one */
 	void (*init_iterator)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 };
-
-
-/* types of structures the worker collection can implement */
-#define STARPU_WORKER_LIST 0
 
 /* This function returns the number of workers (ie. processing units executing
  * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
