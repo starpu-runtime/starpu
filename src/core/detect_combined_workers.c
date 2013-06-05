@@ -19,7 +19,7 @@
 #include <common/utils.h>
 #include <core/workers.h>
 #include <math.h>
-#include <sched_policies/detect_combined_workers.h>
+#include <core/detect_combined_workers.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -109,7 +109,7 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned
 	int cpu_workers[STARPU_NMAXWORKERS];
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	hwloc_obj_snprintf(name, sizeof(name), topology->hwtopology, obj, "#", 0);
 	_STARPU_DEBUG("Looking at %s\n", name);
@@ -156,7 +156,7 @@ static void find_and_assign_combinations(hwloc_obj_t obj, unsigned min, unsigned
 static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	int synthesize_arity = starpu_get_env_number("STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER");
 
 	int min = starpu_get_env_number("STARPU_MIN_WORKERSIZE");
