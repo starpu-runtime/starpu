@@ -3990,9 +3990,6 @@ Initialise the barrier for the parallel task, and dispatch the task
 between the different combined workers
 @end deftypefun
 
-@end table
-@end deftp
-
 @node Scheduling Contexts
 @section Scheduling Contexts
 
