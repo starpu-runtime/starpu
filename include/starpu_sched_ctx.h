@@ -24,11 +24,6 @@ extern "C"
 {
 #endif
 
-/*
- * MANAGEMENT OF SCHEDULING CONTEXTS
- */
-
-/* create a context indicating the scheduling policy, the workers it should have and a potential name */
 unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name);
 
 /* create a context indicating an approximate interval of resources */
@@ -36,13 +31,10 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 						 int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus,
 						 unsigned allow_overlap);
 
-/* add workers to a context */
 void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
 
-/* remove workers from a context */
 void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
 
-/* delete a certain context */
 void starpu_sched_ctx_delete(unsigned sched_ctx_id);
 
 /* indicate which context whill inherit the resources of this context when he will be deleted */

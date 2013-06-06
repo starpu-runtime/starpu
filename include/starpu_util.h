@@ -243,11 +243,6 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 /* Add an event in the execution trace if FxT is enabled */
 void starpu_trace_user_event(unsigned long code);
 
-/* Call func(arg) on every worker matching the "where" mask (eg.
- * STARPU_CUDA|STARPU_CPU to execute the function on every CPU and every CUDA
- * device). This function is synchronous, but the different workers may execute
- * the function in parallel.
- * */
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
 /* Same as starpu_execute_on_each_worker, except that the task name is specified in the "name" parameter. */
@@ -259,13 +254,6 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
  * */
 void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigned num_workers, unsigned * workers, const char * name);
 
-/* Copy the content of the src_handle into the dst_handle handle.  The
- * asynchronous parameter indicates whether the function should block or not.
- * In the case of an asynchronous call, it is possible to synchronize with the
- * termination of this operation either by the means of implicit dependencies
- * (if enabled) or by calling starpu_task_wait_for_all(). If callback_func is
- * not NULL, this callback function is executed after the handle has been
- * copied, and it is given the callback_arg pointer as argument.*/
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
 /* Return the current date in us */
