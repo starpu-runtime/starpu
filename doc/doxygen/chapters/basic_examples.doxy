@@ -22,35 +22,7 @@ implementations (for CPU, OpenCL, and/or CUDA), and invoke the task like
 a regular C function.  The example below defines <c>my_task</c> which
 has a single implementation for CPU:
 
-\code{.c}
-#include <stdio.h>
-
-/* Task declaration.  */
-static void my_task (int x) __attribute__ ((task));
-
-/* Definition of the CPU implementation of `my_task'.  */
-static void my_task (int x)
-{
-  printf ("Hello, world!  With x = %d\n", x);
-}
-
-int main ()
-{
-  /* Initialize StarPU. */
-#pragma starpu initialize
-
-  /* Do an asynchronous call to `my_task'. */
-  my_task (42);
-
-  /* Wait for the call to complete.  */
-#pragma starpu wait
-
-  /* Terminate. */
-#pragma starpu shutdown
-
-  return 0;
-}
-\endcode
+\include hello_pragma.c
 
 The code can then be compiled and linked with GCC and the <c>-fplugin</c> flag:
 
@@ -293,33 +265,7 @@ vector_scal (unsigned size, float vector[size], float factor)
 Next, the body of the program, which uses the task defined above, can be
 implemented:
 
-\code{.c}
-int
-main (void)
-{
-#pragma starpu initialize
-
-#define NX     0x100000
-#define FACTOR 3.14
-
-  {
-    float vector[NX]
-       __attribute__ ((heap_allocated, registered));
-
-    size_t i;
-    for (i = 0; i < NX; i++)
-      vector[i] = (float) i;
-
-    vector_scal (NX, vector, FACTOR);
-
-#pragma starpu wait
-  } /* VECTOR is automatically freed here. */
-
-#pragma starpu shutdown
-
-  return valid ? EXIT_SUCCESS : EXIT_FAILURE;
-}
-\endcode
+\include hello_pragma2.c
 
 The <c>main</c> function above does several things:
 
