@@ -87,9 +87,7 @@ struct starpu_conf
 	int ncpus;
 	int ncuda;
 	int nopencl;
-	/* number of MIC device workers (-1 for default) */
 	int nmic;
-	/* number of SCC device workers (-1 for default) */
 	int nscc;
 
 	unsigned use_explicit_workers_bindid;
@@ -112,14 +110,11 @@ struct starpu_conf
 
 	int single_combined_worker;
 
-	/* Path to the kernel to execute on the MIC device, compiled
-	 * for MIC architecture. */
 	char *mic_sink_program_path;
 
 	int disable_asynchronous_copy;
 	int disable_asynchronous_cuda_copy;
 	int disable_asynchronous_opencl_copy;
-	/* indicate if asynchronous copies to MIC devices should be disabled */
 	int disable_asynchronous_mic_copy;
 
 	unsigned *cuda_opengl_interoperability;
@@ -135,10 +130,6 @@ int starpu_conf_init(struct starpu_conf *conf);
 
 int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 
-/* Alternative initialization method with argc and argv. This is use by
- * MIC, MPI, and SCC implementation.
- * Don't call starpu_init and starpu_initialize in the same program.
- */
 int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv);
 
 void starpu_shutdown(void);

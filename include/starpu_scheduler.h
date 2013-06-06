@@ -49,25 +49,12 @@ struct starpu_sched_policy
 
 struct starpu_sched_policy **starpu_sched_get_predefined_policies();
 
-/* When there is no available task for a worker, StarPU blocks this worker on a
-condition variable. This function specifies which condition variable (and the
-associated mutex) should be used to block (and to wake up) a worker. Note that
-multiple workers may use the same condition variable. For instance, in the case
-of a scheduling strategy with a single task queue, the same condition variable
-would be used to block and wake up all workers.   */
 void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond);
 
-/* Check if the worker specified by workerid can execute the codelet. */
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
 
-/* The scheduling policy may put tasks directly into a worker's local queue so
- * that it is not always necessary to create its own queue when the local queue
- * is sufficient. If "back" not null, the task is put at the back of the queue
- * where the worker will pop tasks first. Setting "back" to 0 therefore ensures
- * a FIFO ordering. */
 int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
 
-/* Called by scheduler to notify that the task has just been pushed */
 int starpu_push_task_end(struct starpu_task *task);
 
 /*

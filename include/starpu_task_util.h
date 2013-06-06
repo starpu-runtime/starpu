@@ -29,17 +29,14 @@ extern "C"
 {
 #endif
 
-/* This creates (and submits) an empty task that unlocks a tag once all its
- * dependencies are fulfilled. */
-void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,
-				void (*callback)(void *), void *callback_arg);
+void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,	void (*callback)(void *), void *callback_arg);
 
 #define STARPU_VALUE		 (1<<19)
 #define STARPU_CALLBACK		 (1<<20)
 #define STARPU_CALLBACK_WITH_ARG (1<<21)
 #define STARPU_CALLBACK_ARG	 (1<<22)
 #define STARPU_PRIORITY		 (1<<23)
-#define STARPU_EXECUTE_ON_NODE	 (1<<24)	/* Used by MPI to define which task is going to execute the codelet */
+#define STARPU_EXECUTE_ON_NODE	 (1<<24)
 #define STARPU_EXECUTE_ON_DATA	 (1<<25)
 #define STARPU_DATA_ARRAY        (1<<26)
 #define STARPU_TAG               (1<<27)
