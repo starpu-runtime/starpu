@@ -343,7 +343,7 @@ void _starpu_task_check_deprecated_fields(struct starpu_task *task)
 	if (task->cl)
 	{
 		unsigned i;
-		for(i=0; i<MIN(task->cl->nbuffers, STARPU_NMAXBUFS) ; i++)
+		for(i=0; i<STARPU_MIN(task->cl->nbuffers, STARPU_NMAXBUFS) ; i++)
 		{
 			if (task->buffers[i].handle && task->handles[i])
 			{
