@@ -10,6 +10,19 @@
 #
 # See the GNU Free Documentation License in COPYING.GFDL for more details.
 
+
+DOXYGEN = doxygen
+PDFLATEX = pdflatex
+MAKEINDEX = makeindex
+
+DOX_DIR = $(top_builddir)/doc/doxygen
+DOX_CONFIG = $(top_srcdir)/doc/doxygen/doxygen.cfg
+
+DOX_HTML_DIR = html
+DOX_LATEX_DIR = latex
+DOX_PDF = starpu.pdf
+DOX_TAG = starpu.tag
+
 chapters =	\
 	chapters/advanced_examples.doxy \
 	chapters/basic_examples.doxy \
@@ -57,6 +70,9 @@ chapters =	\
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy
 
+starpu_INPUT	=	$(chapters) \
+	chapters/version.sty
+
 chapters/version.sty: $(chapters)
 	@-for f in $(chapters) ; do \
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f 2>/dev/null ; fi \
@@ -67,12 +83,9 @@ chapters/version.sty: $(chapters)
 	fi
 	@if test -s timestamp_updated ; then \
 		echo "\newcommand{\STARPUUPDATED}{" `cat timestamp_updated` "}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
-		echo "\newcommand{\STARPUUPDATEDMONTH}{" `cat timestamp_updated_month` "}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	else \
 		echo "\newcommand{\STARPUUPDATED}{unknown_date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
-		echo "\newcommand{\STARPUUPDATEDMONTH}{unknown_date}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty; \
 	fi
-	@echo "\newcommand{\STARPUEDITION}{$(VERSION)}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty
 	@echo "\newcommand{\STARPUVERSION}{$(VERSION)}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty
 	@-for f in timestamp timestamp_updated timestamp_updated_month ; do \
 		if test -f $$f ; then $(RM) $$f ; fi ;\
@@ -80,6 +93,64 @@ chapters/version.sty: $(chapters)
 
 #chapters/version.html: $(chapters)
 
+EXTRA_DIST	= $(starpu_INPUT) doxygen.cfg
+
+dox_inputs = $(DOX_CONFIG) 				\
+	$(chapters) 					\
+	$(top_srcdir)/include/starpu.h			\
+	$(top_srcdir)/include/starpu_data_filters.h	\
+	$(top_srcdir)/include/starpu_data_interfaces.h	\
+	$(top_srcdir)/include/starpu_worker.h		\
+	$(top_srcdir)/include/starpu_task.h		\
+	$(top_srcdir)/include/starpu_task_bundle.h	\
+	$(top_srcdir)/include/starpu_task_list.h	\
+	$(top_srcdir)/include/starpu_task_util.h	\
+	$(top_srcdir)/include/starpu_data.h		\
+	$(top_srcdir)/include/starpu_perfmodel.h	\
+	$(top_srcdir)/include/starpu_util.h		\
+	$(top_srcdir)/include/starpu_fxt.h		\
+	$(top_srcdir)/include/starpu_cuda.h		\
+	$(top_srcdir)/include/starpu_opencl.h		\
+	$(top_srcdir)/include/starpu_sink.h		\
+	$(top_srcdir)/include/starpu_mic.h		\
+	$(top_srcdir)/include/starpu_scc.h		\
+	$(top_srcdir)/include/starpu_expert.h		\
+	$(top_srcdir)/include/starpu_profiling.h	\
+	$(top_srcdir)/include/starpu_bound.h		\
+	$(top_srcdir)/include/starpu_scheduler.h	\
+	$(top_srcdir)/include/starpu_sched_ctx.h	\
+	$(top_srcdir)/include/starpu_top.h		\
+	$(top_srcdir)/include/starpu_hash.h		\
+	$(top_srcdir)/include/starpu_rand.h		\
+	$(top_srcdir)/include/starpu_cublas.h		\
+	$(top_srcdir)/include/starpu_driver.h		\
+	$(top_srcdir)/include/starpu_stdlib.h		\
+	$(top_srcdir)/include/starpu_thread.h		\
+	$(top_srcdir)/include/starpu_thread_util.h
+
+$(DOX_TAG): $(dox_inputs)
+	rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
+	$(DOXYGEN) $(DOX_CONFIG)
+
+dist_pdf_DATA = $(DOX_PDF)
+
+$(DOX_PDF): $(DOX_TAG)
+	cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_DIR)
+	cd $(DOX_LATEX_DIR); \
+	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
+	$(PDFLATEX) refman.tex; \
+	$(MAKEINDEX) refman.idx;\
+	$(PDFLATEX) refman.tex; \
+	done=0; repeat=5; \
+	while test $$done = 0 -a $$repeat -gt 0; do \
+           if $(EGREP) 'Rerun (LaTeX|to get cross-references right)' refman.log > /dev/null 2>&1; then \
+	       $(PDFLATEX) refman.tex; \
+	       repeat=`expr $$repeat - 1`; \
+	   else \
+	       done=1; \
+	   fi; \
+	done; \
+	mv refman.pdf ../$(DOX_PDF)
 
 showcheck:
 	-cat /dev/null
