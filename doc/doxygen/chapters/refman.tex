@@ -91,6 +91,8 @@ Documentation License”.
 \pagenumbering{arabic}
 \hypersetup{pageanchor=true,citecolor=blue}
 
+\part{Using StarPU}
+
 \chapter{Introduction}
 \label{index}
 \hypertarget{index}{}
@@ -156,11 +158,55 @@ Documentation License”.
 \hypertarget{schedulingContextHypervisor}{}
 \input{schedulingContextHypervisor}
 
-\chapter{StarPU's API}
-\label{starpuAPI}
-\hypertarget{starpuAPI}{}
+\part{Inside StarPU}
+
+\chapter{Deprecated List}
+\label{deprecated}
+\hypertarget{deprecated}{}
+\input{deprecated}
+
+\chapter{Module Index}
+\input{modules}
+\chapter{Data Structure Index}
+\input{annotated}
+
+\chapter{Module Documentation a.k.a StarPU's API}
+
 \input{group__Versioning}
 \input{group__Initialization__and__Termination}
+\input{group__Standard__Memory__Library}
+\input{group__Workers__Properties}
+\input{group__Data__Management}
+\input{group__Data__Interfaces}
+\input{group__Data__Partition}
+\input{group__Multiformat__Data__Interface}
+\input{group__Codelet__And__Tasks}
+\input{group__Insert__Task}
+\input{group__Explicit__Dependencies}
+\input{group__Implicit__Data__Dependencies}
+\input{group__Performance__Model}
+\input{group__Profiling}
+\input{group__Theoretical__lower__bound__on__execution__time}
+\input{group__CUDA__Extensions}
+\input{group__OpenCL__Extensions}
+
+%\input{group__MIC__Extensions}
+%\input{group__SCC__Extensions}
+
+\input{group__Miscellaneous__helpers}
+\input{group__FxT__Support}
+\input{group__FFT__Support}
+\input{group__MPI__Support}
+\input{group__Task__Bundles}
+\input{group__Task__Lists}
+\input{group__Parallel__Tasks}
+\input{group__Running__Drivers}
+\input{group__Expert__Mode}
+\input{group__StarPU-Top__Interface}
+
+\input{group__Scheduling__Contexts}
+\input{group__Scheduling__Policy}
+\input{group__Scheduling__Context__Hypervisor}
 
 \printindex
 \end{document}
