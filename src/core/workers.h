@@ -112,6 +112,9 @@ struct _starpu_worker
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_t initial_hwloc_cpu_set;
 	hwloc_bitmap_t current_hwloc_cpu_set;
+
+	/* hwloc_obj_t of the device controled by the worker*/
+	hwloc_obj_t hw_obj;
 #endif
 };
 

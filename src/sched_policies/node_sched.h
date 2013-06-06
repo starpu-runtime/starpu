@@ -3,6 +3,11 @@
 #include <starpu.h>
 #include <common/starpu_spinlock.h>
 #include "bitmap.h"
+
+#ifdef STARPU_HAVE_HWLOC
+#include <hwloc.h>
+#endif
+
 struct _starpu_sched_node
 {
 	int (*push_task)(struct _starpu_sched_node *,
@@ -31,13 +36,18 @@ struct _starpu_sched_node
 	 * so we need several fathers
 	 */
 	struct _starpu_sched_node * fathers[STARPU_NMAX_SCHED_CTXS];
-	
+
 	/* this function is called after all childs has been set
 	 */
 	void (*init_data)(struct _starpu_sched_node *);
 	/* this function is called to free data allocated by init_data 
 	 */
 	void (*deinit_data)(struct _starpu_sched_node *);
+
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_obj_t obj;
+#endif
+
 };
 
 struct _starpu_task_execute_preds
