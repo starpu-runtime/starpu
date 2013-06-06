@@ -37,22 +37,17 @@ extern "C"
 
 /* The following structures are used to describe data interfaces */
 
-/* This structure contains the different methods to transfer data between the
- * different types of memory nodes */
 struct starpu_data_copy_methods
 {
-	/* src type is ram */
 	int (*ram_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*ram_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*ram_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*ram_to_mic)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
-	/* src type is cuda */
 	int (*cuda_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*cuda_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*cuda_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
-	/* src type is opencl */
 	int (*opencl_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*opencl_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*opencl_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
@@ -66,7 +61,6 @@ struct starpu_data_copy_methods
 	int (*scc_sink_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 #ifdef STARPU_USE_CUDA
-	/* for asynchronous CUDA transfers */
 	int (*ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
 	int (*cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
 	int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
@@ -77,7 +71,6 @@ struct starpu_data_copy_methods
 #endif
 
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
-	/* for asynchronous OpenCL transfers */
 	int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 	int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 	int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
@@ -115,36 +108,23 @@ enum starpu_data_interface_id
 
 struct starpu_data_interface_ops
 {
-	/* Register an existing interface into a data handle. */
 	void (*register_data_handle)(starpu_data_handle_t handle,
 				     unsigned home_node, void *data_interface);
-	/* Allocate data for the interface on a given node. */
 	starpu_ssize_t (*allocate_data_on_node)(void *data_interface, unsigned node);
-	/* Free data of the interface on a given node. */
 	void (*free_data_on_node)(void *data_interface, unsigned node);
-	/* ram/cuda/opencl synchronous and asynchronous transfer methods */
 	const struct starpu_data_copy_methods *copy_methods;
-	/* Return the current pointer (if any) for the handle on the given node. */
 	void * (*handle_to_pointer)(starpu_data_handle_t handle, unsigned node);
-	/* Return an estimation of the size of data, for performance models */
 	size_t (*get_size)(starpu_data_handle_t handle);
-	/* Return a 32bit footprint which characterizes the data size */
 	uint32_t (*footprint)(starpu_data_handle_t handle);
-	/* Compare the data size of two interfaces */
 	int (*compare)(void *data_interface_a, void *data_interface_b);
-	/* Dump the sizes of a handle to a file */
 	void (*display)(starpu_data_handle_t handle, FILE *f);
-	/* an identifier that is unique to each interface */
 	enum starpu_data_interface_id interfaceid;
-	/* The size of the interface data descriptor */
 	size_t interface_size;
 
 	int is_multiformat;
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 
-	/* Pack the data handle into a contiguous buffer at the address ptr and store the size of the buffer in count */
 	int (*pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
-	/* Unpack the data handle from the contiguous buffer at the address ptr */
 	int (*unpack_data)(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 };
 
@@ -281,7 +261,6 @@ size_t starpu_block_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_BLOCK_GET_LDZ(interface)	(((struct starpu_block_interface *)(interface))->ldz)
 #define STARPU_BLOCK_GET_ELEMSIZE(interface)	(((struct starpu_block_interface *)(interface))->elemsize)
 
-/* vector interface for contiguous (non-strided) buffers */
 struct starpu_vector_interface
 {
 	enum starpu_data_interface_id id;
