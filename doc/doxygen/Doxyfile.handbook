@@ -690,6 +690,7 @@ INPUT                  = chapters/introduction.doxy \
                          chapters/api/data_partition.doxy \
                          chapters/api/multiformat_data_interface.doxy \
                          chapters/api/codelet_and_tasks.doxy \
+                         chapters/api/insert_task.doxy \
                          ../../build/include/starpu_config.h \
                          ../../include/starpu.h \
                          ../../include/starpu_driver.h \
@@ -699,7 +700,8 @@ INPUT                  = chapters/introduction.doxy \
                          ../../include/starpu_data_interfaces.h \
                          ../../include/starpu_data_filters.h \
                          ../../include/starpu_hash.h \
-                         ../../include/starpu_task.h
+                         ../../include/starpu_task.h \
+                         ../../include/starpu_task_util.h
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
