@@ -1,0 +1,250 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup OpenCL_Extensions OpenCL Extensions
+
+\def STARPU_USE_OPENCL
+\ingroup OpenCL_Extensions
+\brief This macro is defined when StarPU has been installed with
+OpenCL support. It should be used in your code to detect the
+availability of OpenCL as shown in Full source code for the 'Scaling a
+Vector' example.
+
+@name Writing OpenCL kernels
+\ingroup OpenCL_Extensions
+
+\fn void starpu_opencl_get_context(int devid, cl_context *context)
+\ingroup OpenCL_Extensions
+Places the OpenCL context of the device designated by \p devid
+into \p context.
+
+\fn void starpu_opencl_get_device(int devid, cl_device_id *device)
+\ingroup OpenCL_Extensions
+Places the cl_device_id corresponding to \p devid in \p device.
+
+\fn void starpu_opencl_get_queue(int devid, cl_command_queue *queue)
+\ingroup OpenCL_Extensions
+Places the command queue of the device designated by \p devid
+into \p queue.
+
+\fn void starpu_opencl_get_current_context(cl_context *context)
+\ingroup OpenCL_Extensions
+Return the context of the current worker.
+
+\fn void starpu_opencl_get_current_queue(cl_command_queue *queue)
+\ingroup OpenCL_Extensions
+Return the computation kernel command queue of the current
+worker.
+
+\fn int starpu_opencl_set_kernel_args(cl_int *err, cl_kernel *kernel, ...)
+\ingroup OpenCL_Extensions
+Sets the arguments of a given kernel. The list of arguments
+must be given as <c>(size_t size_of_the_argument, cl_mem *
+pointer_to_the_argument)</c>. The last argument must be 0. Returns the
+number of arguments that were successfully set. In case of failure,
+returns the id of the argument that could not be set and err is set to
+the error returned by OpenCL. Otherwise, returns the number of
+arguments that were set.
+
+Here an example:
+\code{.c}
+int n;
+cl_int err;
+cl_kernel kernel;
+n = starpu_opencl_set_kernel_args(&err, 2, &kernel,
+                                  sizeof(foo), &foo,
+                                  sizeof(bar), &bar,
+                                  0);
+if (n != 2)
+   fprintf(stderr, "Error : %d\n", err);
+\endcode
+
+@name Compiling OpenCL kernels
+\ingroup OpenCL_Extensions
+
+Source codes for OpenCL kernels can be stored in a file or in a
+string. StarPU provides functions to build the program executable for
+each available OpenCL device as a cl_program object. This program
+executable can then be loaded within a specific queue as explained in
+the next section. These are only helpers, Applications can also fill a
+starpu_opencl_program array by hand for more advanced use (e.g.
+different programs on the different OpenCL devices, for relocation
+purpose for instance).
+
+\struct starpu_opencl_program
+\ingroup OpenCL_Extensions
+\brief Stores the OpenCL programs as compiled for the different OpenCL
+devices.
+\var starpu_opencl_program::programs
+Stores each program for each OpenCL device.
+
+\fn int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options)
+\ingroup OpenCL_Extensions
+This function compiles an OpenCL source code stored in a file.
+
+\fn int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs, const char* build_options)
+\ingroup OpenCL_Extensions
+This function compiles an OpenCL source code stored in a string.
+
+\fn int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs)
+\ingroup OpenCL_Extensions
+This function unloads an OpenCL compiled code.
+
+\fn void starpu_opencl_load_program_source(const char *source_file_name, char *located_file_name, char *located_dir_name, char *opencl_program_source)
+\ingroup OpenCL_Extensions
+Store the contents of the file \p source_file_name in the buffer
+\p opencl_program_source. The file \p source_file_name can be located in the
+current directory, or in the directory specified by the environment
+variable STARPU_OPENCL_PROGRAM_DIR (see STARPU_OPENCL_PROGRAM_DIR), or
+in the directory <c>share/starpu/opencl</c> of the installation
+directory of StarPU, or in the source directory of StarPU. When the
+file is found, \p located_file_name is the full name of the file as it
+has been located on the system, \p located_dir_name the directory
+where it has been located. Otherwise, they are both set to the empty
+string.
+
+\fn int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char * build_options)
+\ingroup OpenCL_Extensions
+Compile the OpenCL kernel stored in the file \p source_file_name
+with the given options \p build_options and stores the result in the
+directory <c>$STARPU_HOME/.starpu/opencl</c> with the same filename as
+\p source_file_name. The compilation is done for every OpenCL device,
+and the filename is suffixed with the vendor id and the device id of
+the OpenCL device.
+
+\fn int starpu_opencl_compile_opencl_from_string(const char *opencl_program_source, const char *file_name, const char*build_options)
+\ingroup OpenCL_Extensions
+Compile the OpenCL kernel in the string \p opencl_program_source
+with the given options \p build_options and stores the result in the
+directory <c>$STARPU_HOME/.starpu/opencl</c> with the filename \p
+file_name. The compilation is done for every OpenCL device, and the
+filename is suffixed with the vendor id and the device id of the
+OpenCL device.
+
+\fn int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl_program *opencl_programs)
+\ingroup OpenCL_Extensions
+Compile the binary OpenCL kernel identified with \p kernel_id.
+For every OpenCL device, the binary OpenCL kernel will be loaded from
+the file
+<c>$STARPU_HOME/.starpu/opencl/\<kernel_id\>.\<device_type\>.vendor_id_\<vendor_id\>_device_id_\<device_id\></c>.
+
+@name Loading OpenCL kernels
+\ingroup OpenCL_Extensions
+
+\fn int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs, const char *kernel_name, int devid)
+\ingroup OpenCL_Extensions
+Create a kernel \p kernel for device \p devid, on its computation
+command queue returned in \p queue, using program \p opencl_programs
+and name \p kernel_name.
+
+\fn int starpu_opencl_release_kernel(cl_kernel kernel)
+\ingroup OpenCL_Extensions
+Release the given \p kernel, to be called after kernel execution.
+
+@name OpenCL statistics
+
+\fn int starpu_opencl_collect_stats(cl_event event)
+\ingroup OpenCL_Extensions
+This function allows to collect statistics on a kernel execution.
+After termination of the kernels, the OpenCL codelet should call this
+function to pass it the even returned by clEnqueueNDRangeKernel, to
+let StarPU collect statistics about the kernel execution (used cycles,
+consumed power).
+
+@name OpenCL utilities
+\ingroup OpenCL_Extensions
+
+\fn const char * starpu_opencl_error_string(cl_int status)
+\ingroup OpenCL_Extensions
+Return the error message in English corresponding to \p status, an OpenCL
+error code.
+
+\fn void starpu_opencl_display_error(const char *func, const char *file, int line, const char *msg, cl_int status)
+\ingroup OpenCL_Extensions
+Given a valid error status, prints the corresponding error message on
+stdout, along with the given function name \p func, the given filename
+\p file, the given line number \p line and the given message \p msg.
+
+\def STARPU_OPENCL_DISPLAY_ERROR(cl_int status)
+\ingroup OpenCL_Extensions
+Call the function starpu_opencl_display_error() with the given error
+\p status, the current function name, current file and line number,
+and a empty message.
+
+\fn void starpu_opencl_report_error(const char *func, const char *file, int line, const char *msg, cl_int status)
+\ingroup OpenCL_Extensions
+Call the function starpu_opencl_display_error() and abort.
+
+\def STARPU_OPENCL_REPORT_ERROR (cl_int status)
+\ingroup OpenCL_Extensions
+Call the function starpu_opencl_report_error() with the given error \p
+status, with the current function name, current file and line number,
+and a empty message.
+
+\def STARPU_OPENCL_REPORT_ERROR_WITH_MSG(const char *msg, cl_int status)
+\ingroup OpenCL_Extensions
+Call the function starpu_opencl_report_error() with the given \p msg
+and the given error \p status, with the current function name, current
+file and line number.
+
+\fn cl_int starpu_opencl_allocate_memory(cl_mem *addr, size_t size, cl_mem_flags flags)
+\ingroup OpenCL_Extensions
+Allocate \p size bytes of memory, stored in \p addr. \p flags must be a valid
+combination of cl_mem_flags values.
+
+\fn cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node, cl_mem buffer, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret)
+\ingroup OpenCL_Extensions
+Copy \p size bytes from the given \p ptr on RAM \p src_node to the
+given \p buffer on OpenCL \p dst_node. \p offset is the offset, in
+bytes, in \p buffer. if \p event is <c>NULL</c>, the copy is
+synchronous, i.e the queue is synchronised before returning. If not
+<c>NULL</c>, \p event can be used after the call to wait for this
+particular copy to complete. This function returns <c>CL_SUCCESS</c>
+if the copy was successful, or a valid OpenCL error code otherwise.
+The integer pointed to by \p ret is set to <c>-EAGAIN</c> if the
+asynchronous launch was successful, or to 0 if \p event was
+<c>NULL</c>.
+
+\fn cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node, void *ptr, unsigned dst_node, size_t size, size_t offset, cl_event *event, int *ret)
+\ingroup OpenCL_Extensions
+Copy \p size bytes asynchronously from the given \p buffer on OpenCL
+\p src_node to the given \p ptr on RAM \p dst_node. \p offset is the
+offset, in bytes, in \p buffer. if \p event is <c>NULL</c>, the copy
+is synchronous, i.e the queue is synchronised before returning. If not
+<c>NULL</c>, \p event can be used after the call to wait for this
+particular copy to complete. This function returns <c>CL_SUCCESS</c>
+if the copy was successful, or a valid OpenCL error code otherwise.
+The integer pointed to by \p ret is set to <c>-EAGAIN</c> if the
+asynchronous launch was successful, or to 0 if \p event was
+<c>NULL</c>.
+
+\fn cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node, size_t src_offset, cl_mem dst, unsigned dst_node, size_t dst_offset, size_t size, cl_event *event, int *ret)
+\ingroup OpenCL_Extensions
+Copy \p size bytes asynchronously from byte offset \p src_offset of \p
+src on OpenCL \p src_node to byte offset \p dst_offset of \p dst on
+OpenCL \p dst_node. if \p event is <c>NULL</c>, the copy is
+synchronous, i.e. the queue is synchronised before returning. If not
+<c>NULL</c>, \p event can be used after the call to wait for this
+particular copy to complete. This function returns <c>CL_SUCCESS</c>
+if the copy was successful, or a valid OpenCL error code otherwise.
+The integer pointed to by \p ret is set to <c>-EAGAIN</c> if the
+asynchronous launch was successful, or to 0 if \p event was
+<c>NULL</c>.
+
+\fn cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, cl_event *event)
+\ingroup OpenCL_Extensions
+Copy \p size bytes from byte offset \p src_offset of \p src on \p
+src_node to byte offset \p dst_offset of \p dst on \p dst_node. if \p
+event is <c>NULL</c>, the copy is synchronous, i.e. the queue is
+synchronised before returning. If not <c>NULL</c>, \p event can be
+used after the call to wait for this particular copy to complete. The
+function returns <c>-EAGAIN</c> if the asynchronous launch was
+successfull. It returns 0 if the synchronous copy was successful, or
+fails otherwise.
+
+*/

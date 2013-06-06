@@ -1,0 +1,27 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup FxT_Support FxT Support
+
+\fn void starpu_fxt_start_profiling(void)
+\ingroup FxT_Support
+Start recording the trace. The trace is by default started from
+starpu_init() call, but can be paused by using
+starpu_fxt_stop_profiling(), in which case
+starpu_fxt_start_profiling() should be called to resume recording
+events.
+
+\fn void starpu_fxt_stop_profiling(void)
+\ingroup FxT_Support
+Stop recording the trace. The trace is by default stopped when calling
+starpu_shutdown(). starpu_fxt_stop_profiling() can however be used to
+stop it earlier. starpu_fxt_start_profiling() can then be called to
+start recording it again, etc.
+
+*/
+

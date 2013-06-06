@@ -1,0 +1,135 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup Scheduling_Contexts Scheduling Contexts
+
+\brief StarPU permits on one hand grouping workers in combined workers
+in order to execute a parallel task and on the other hand grouping
+tasks in bundles that will be executed by a single specified worker.
+In contrast when we group workers in scheduling contexts we submit
+starpu tasks to them and we schedule them with the policy assigned to
+the context. Scheduling contexts can be created, deleted and modified
+dynamically.
+
+\fn unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name)
+\ingroup Scheduling_Contexts
+This function creates a scheduling context which uses the scheduling
+policy \p policy_name and assigns the workers in \p workerids_ctx to
+execute the tasks submitted to it.
+The return value represents the identifier of the context that has
+just been created. It will be further used to indicate the context the
+tasks will be submitted to. The return value should be at most
+STARPU_NMAX_SCHED_CTXS.
+
+\fn void starpu_sched_ctx_delete(unsigned sched_ctx_id)
+\ingroup Scheduling_Contexts
+Delete scheduling context \p sched_ctx_id and transfer remaining
+workers to the inheritor scheduling context.
+
+\fn void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id)
+\ingroup Scheduling_Contexts
+This function adds dynamically the workers in \p workerids_ctx to the
+context \p sched_ctx_id. The last argument cannot be greater than
+STARPU_NMAX_SCHED_CTXS.
+
+\fn void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id)
+\ingroup Scheduling_Contexts
+This function removes the workers in \p workerids_ctx from the context
+\p sched_ctx_id. The last argument cannot be greater than
+STARPU_NMAX_SCHED_CTXS.
+
+\struct starpu_worker_collection
+\ingroup Scheduling_Contexts
+\brief A scheduling context manages a collection of workers that can
+be memorized using different data structures. Thus, a generic
+structure is available in order to simplify the choice of its type.
+Only the list data structure is available but further data
+structures(like tree) implementations are foreseen.
+\var starpu_worker_collection::workerids
+        The workerids managed by the collection
+\var starpu_worker_collection::nworkers
+        The number of workers in the collection
+\var starpu_worker_collection::    int type
+        The type of structure (currently STARPU_WORKER_LIST is the only one available)
+\var starpu_worker_collection::    unsigned (*has_next)(struct starpu_worker_collection *workers)
+        Checks if there is a next worker
+\var starpu_worker_collection::    int (*get_next)(struct starpu_worker_collection *workers)
+        Gets the next worker
+\var starpu_worker_collection::    int (*add)(struct starpu_worker_collection *workers, int worker)
+        Adds a worker to the collection
+\var starpu_worker_collection::    int (*remove)(struct starpu_worker_collection *workers, int worker)
+        Removes a worker from the collection
+\var starpu_worker_collection::    void* (*init)(struct starpu_worker_collection *workers)
+        Initialize the collection
+\var starpu_worker_collection::    void (*deinit)(struct starpu_worker_collection *workers)
+        Deinitialize the colection
+\var starpu_worker_collection::    void (*init_cursor)(struct starpu_worker_collection *workers) (optional)
+        Initialize the cursor if there is one
+\var starpu_worker_collection::    void (*deinit_cursor)(struct starpu_worker_collection *workers) (optional)
+        Deinitialize the cursor if there is one
+
+\fn struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, int type)
+\ingroup Scheduling_Contexts
+Create a worker collection of the type indicated by the last parameterx
+for the context specified through the first parameter.
+
+\fn void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id)
+\ingroup Scheduling_Contexts
+Delete the worker collection of the specified scheduling context
+
+\fn struct starpu_worker_collection* starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id)
+\ingroup Scheduling_Contexts
+Return the worker collection managed by the indicated context
+
+\fn void starpu_sched_ctx_set_context(unsigned *sched_ctx_id)
+\ingroup Scheduling_Contexts
+Set the scheduling context the subsequent tasks will be submitted to
+
+\fn unsigned starpu_sched_ctx_get_context(void)
+\ingroup Scheduling_Contexts
+Return the scheduling context the tasks are currently submitted to
+
+\fn unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id)
+\ingroup Scheduling_Contexts
+Return the number of workers managed by the specified contexts
+(Usually needed to verify if it manages any workers or if it should be
+blocked)
+
+\fn unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2)
+\ingroup Scheduling_Contexts
+    Return the number of workers shared by two contexts.
+
+\fn int starpu_sched_ctx_set_min_priority(unsigned sched_ctx_id, int min_prio)
+\ingroup Scheduling_Contexts
+Defines the minimum task priority level supported by the scheduling
+policy of the given scheduler context. The default minimum priority
+level is the same as the default priority level which is 0 by
+convention. The application may access that value by calling the
+starpu_sched_ctx_get_min_priority function. This function should only
+be called from the initialization method of the scheduling policy, and
+should not be used directly from the application.
+
+\fn int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio)
+\ingroup Scheduling_Contexts
+Defines the maximum priority level supported by the scheduling policy
+of the given scheduler context. The default maximum priority level is
+1. The application may access that value by calling the
+starpu_sched_ctx_get_max_priority function. This function should only
+be called from the initialization method of the scheduling policy, and
+should not be used directly from the application.
+
+\fn int starpu_sched_ctx_get_min_priority(unsigned sched_ctx_id)
+\ingroup Scheduling_Contexts
+Returns the current minimum priority level supported by the scheduling
+policy of the given scheduler context.
+
+\fn int starpu_sched_ctx_get_max_priority(unsigned sched_ctx_id)
+\ingroup Scheduling_Contexts
+Returns the current maximum priority level supported by the scheduling
+policy of the given scheduler context.
+*/
