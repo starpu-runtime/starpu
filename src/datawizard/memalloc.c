@@ -310,6 +310,10 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	if (handle->wt_mask & (1<<node))
 		return 0;
 
+	/* This data was registered from this node, we will not be able to drop it anyway */
+	if ((int) node == handle->home_node)
+		return 0;
+
 	/* REDUX memchunk */
 	if (mc->relaxed_coherency == 2)
 	{
