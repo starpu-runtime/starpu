@@ -81,7 +81,9 @@ data was automatically allocated by StarPU because the home node was
 -1, all automatically allocated buffers are freed. Otherwise, a valid
 copy of the data is put back into the home node in the buffer that was
 initially registered. Using a data handle that has been unregistered
-from StarPU results in an undefined behaviour.
+from StarPU results in an undefined behaviour. In case we do not need
+to update the value of the data in the home node, we can use
+the function starpu_data_unregister_no_coherency() instead.
 
 \fn void starpu_data_unregister_no_coherency(starpu_data_handle_t handle)
 \ingroup Data_Management
@@ -108,10 +110,13 @@ previously submitted tasks.
 
 \fn void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask)
 \ingroup Data_Management
-\brief This function sets the write-through mask of a given data, i.e.
-a bitmask of nodes where the data should be always replicated after
-modification. It also prevents the data from being evicted from these
-nodes when memory gets scarse.
+\brief This function sets the write-through mask of a given data (and
+its children), i.e. a bitmask of nodes where the data should be always
+replicated after modification. It also prevents the data from being
+evicted from these nodes when memory gets scarse. When the data is
+modified, it is automatically transfered into those memory node. For
+instance a <c>1<<0</c> write-through mask means that the CUDA workers
+will commit their changes in main memory (node 0).
 
 \fn int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 \ingroup Data_Management

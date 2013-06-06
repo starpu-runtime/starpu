@@ -167,8 +167,8 @@ its field starpu_perfmodel::symbol is not set.
 \var starpu_codelet::power_model
 Optional pointer to the task power consumption performance model
 associated to this codelet. This optional field is ignored when set to
-<c>NULL or when its field starpu_perfmodel::field is not set. In the
-case of parallel codelets, this has to account for all processing
+<c>NULL</c> or when its field starpu_perfmodel::field is not set. In
+the case of parallel codelets, this has to account for all processing
 units involved in the parallel execution.
 
 \var starpu_codelet::per_worker_stats
@@ -278,7 +278,7 @@ callback_func is set to <c>NULL</c>.
 Optional field, the default value is 0. If set, this flag indicates
 that the task should be associated with the tag contained in the
 starpu_task::tag_id field. Tag allow the application to synchronize
-with the task and to express task dependencies easily. 
+with the task and to express task dependencies easily.
 
 \var starpu_task::tag_id
 This optional field contains the tag associated to the task if the
@@ -391,8 +391,19 @@ hand (without starpu_task_create()), this field should be set to NULL.
 
 \var starpu_task::magic
 \private
-This field is set when initializing a task. It prevents a task from
-being submitted if it has not been properly initialized.
+This field is set when initializing a task. The function
+starpu_task_submit() will fail if the field does not have the right
+value. This will hence avoid submitting tasks which have not been
+properly initialised.
+
+\var starpu_task::sched_ctx
+Scheduling context.
+
+\var starpu_task::hypervisor_tag
+Helps the hypervisor monitor the execution of this task.
+
+\var starpu_task::scheduled
+Whether the scheduler has pushed the task on some queue
 
 \fn void starpu_task_init(struct starpu_task *task)
 \ingroup Codelet_And_Tasks
@@ -486,7 +497,7 @@ undefined behaviour.
 possible to synchronize with a task more than once. It is not possible
 to wait for synchronous or detached tasks. Upon successful completion,
 this function returns 0. Otherwise, <c>-EINVAL</c> indicates that the
-specified task was either synchronous or detached. 
+specified task was either synchronous or detached.
 
 \fn int starpu_task_submit(struct starpu_task *task)
 \ingroup Codelet_And_Tasks
@@ -509,7 +520,13 @@ starpu_task::synchronous is set to 0.
 \fn int starpu_task_wait_for_all(void)
 \ingroup Codelet_And_Tasks
 \brief This function blocks until all the tasks that were submitted
-are terminated. It does not destroy these tasks. 
+(to the current context or the global one if there aren't any) are
+terminated. It does not destroy these tasks.
+
+\fn int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id)
+\ingroup Codelet_And_Tasks
+\brief This function waits until all the tasks that were already
+submitted to the context \p sched_ctx_id have been executed
 
 \fn int starpu_task_nready(void)
 \ingroup Codelet_And_Tasks
@@ -517,19 +534,19 @@ are terminated. It does not destroy these tasks.
 
 \brief int starpu_task_nsubmitted(void)
 \ingroup Codelet_And_Tasks
-Return the number of submitted tasks which have not completed yet. 
+Return the number of submitted tasks which have not completed yet.
 
 \fn int starpu_task_nready(void)
 \ingroup Codelet_And_Tasks
 \brief Return the number of submitted tasks which are ready for
 execution are already executing. It thus does not include tasks
-waiting for dependencies. 
+waiting for dependencies.
 
 \fn struct starpu_task * starpu_task_get_current(void)
 \ingroup Codelet_And_Tasks
 \brief This function returns the task currently executed by the
 worker, or <c>NULL</c> if it is called either from a thread that is not a
-task or simply because there is no task being executed at the moment. 
+task or simply because there is no task being executed at the moment.
 
 \fn void starpu_codelet_display_stats(struct starpu_codelet *cl)
 \ingroup Codelet_And_Tasks
@@ -537,12 +554,12 @@ task or simply because there is no task being executed at the moment.
 
 \fn int starpu_task_wait_for_no_ready(void)
 \ingroup Codelet_And_Tasks
-\brief This function waits until there is no more ready task. 
+\brief This function waits until there is no more ready task.
 
 \fn void starpu_task_set_implementation(struct starpu_task *task, unsigned impl)
 \ingroup Codelet_And_Tasks
 \brief This function should be called by schedulers to specify the
-codelet implementation to be executed when executing the task. 
+codelet implementation to be executed when executing the task.
 
 \fn unsigned starpu_task_get_implementation(struct starpu_task *task)
 \ingroup Codelet_And_Tasks
