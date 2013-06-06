@@ -93,7 +93,10 @@ chapters/version.sty: $(chapters)
 
 #chapters/version.html: $(chapters)
 
-EXTRA_DIST	= $(starpu_INPUT) doxygen.cfg
+EXTRA_DIST	= \
+	$(starpu_INPUT) \
+	doxygen.cfg 	\
+	refman.tex
 
 dox_inputs = $(DOX_CONFIG) 				\
 	$(chapters) 					\
