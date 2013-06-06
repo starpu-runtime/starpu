@@ -12,7 +12,7 @@
 \ingroup Workers_Properties
 \brief This function returns the number of workers (i.e. processing
 units executing StarPU tasks). The returned value should be at most
-STARPU_NMAXWORKERS. 
+STARPU_NMAXWORKERS.
 
 \fn int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
 \ingroup Workers_Properties
@@ -112,4 +112,3 @@ this function should be used in the allocation function to determine
 on which device the memory needs to be allocated.
 
 */
-

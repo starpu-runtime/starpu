@@ -54,24 +54,20 @@ structures(like tree) implementations are foreseen.
         The workerids managed by the collection
 \var starpu_worker_collection::nworkers
         The number of workers in the collection
-\var starpu_worker_collection::    int type
+\var starpu_worker_collection::type
         The type of structure (currently STARPU_WORKER_LIST is the only one available)
-\var starpu_worker_collection::    unsigned (*has_next)(struct starpu_worker_collection *workers)
+\var starpu_worker_collection::has_next
         Checks if there is a next worker
-\var starpu_worker_collection::    int (*get_next)(struct starpu_worker_collection *workers)
+\var starpu_worker_collection::get_next
         Gets the next worker
-\var starpu_worker_collection::    int (*add)(struct starpu_worker_collection *workers, int worker)
+\var starpu_worker_collection::add
         Adds a worker to the collection
-\var starpu_worker_collection::    int (*remove)(struct starpu_worker_collection *workers, int worker)
+\var starpu_worker_collection::remove
         Removes a worker from the collection
-\var starpu_worker_collection::    void* (*init)(struct starpu_worker_collection *workers)
+\var starpu_worker_collection::init
         Initialize the collection
-\var starpu_worker_collection::    void (*deinit)(struct starpu_worker_collection *workers)
+\var starpu_worker_collection::deinit
         Deinitialize the colection
-\var starpu_worker_collection::    void (*init_cursor)(struct starpu_worker_collection *workers) (optional)
-        Initialize the cursor if there is one
-\var starpu_worker_collection::    void (*deinit_cursor)(struct starpu_worker_collection *workers) (optional)
-        Deinitialize the cursor if there is one
 
 \fn struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, int type)
 \ingroup Scheduling_Contexts
