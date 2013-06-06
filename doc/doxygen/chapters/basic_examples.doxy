@@ -14,7 +14,7 @@ This section shows how to implement a simple program that submits a task
 to StarPU using the StarPU C extension (\ref cExtensions). The complete example, and additional examples,
 is available in the <c>gcc-plugin/examples</c> directory of the StarPU
 distribution. A similar example showing how to directly use the StarPU's API is shown
-in @ref{Hello World using StarPU's API}.
+in \ref Hello_World_using_StarPU_API.
 
 GCC from version 4.5 permit to use the StarPU GCC plug-in (\ref cExtensions). This makes writing a task both simpler and less error-prone.
 In a nutshell, all it takes is to declare a task, declare and define its

@@ -42,13 +42,13 @@ If <c>hwloc</c> is not available on your system, the option
 <c>--without-hwloc</c> should be explicitely given when calling the
 <c>configure</c> script. If <c>hwloc</c> is installed with a <c>pkg-config</c> file,
 no option is required, it will be detected automatically, otherwise
-<c>with-hwloc=prefix</c> should be used to specify the location
+<c>--with-hwloc=prefix</c> should be used to specify the location
 of <c>hwloc</c>.
 
 \subsection getting_sources Getting Sources
 
 StarPU's sources can be obtained from the <a href="http://runtime.bordeaux.inria.fr/StarPU/files/">download page of
-the StarPU website</a>
+the StarPU website</a>.
 
 All releases and the development tree of StarPU are freely available
 on INRIA's gforge under the LGPL license. Some releases are available
