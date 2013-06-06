@@ -124,10 +124,10 @@ int main(int argc, char **argv)
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
 
-	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*15);
+	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*1);
 
-	uintptr_t fileDD = starpu_disk_alloc(dd, sizeof(vector));
-	starpu_disk_write(dd, fileDD, (void *) vector, 0, sizeof(vector));
+	uintptr_t fileDD = (uintptr_t) starpu_disk_alloc(dd, sizeof(vector));
+	starpu_disk_write(dd, (void *) fileDD, (void *) vector, 0, sizeof(vector));
 
 
 
@@ -189,9 +189,9 @@ int main(int argc, char **argv)
         ret = starpu_opencl_unload_opencl(&opencl_program);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
-	starpu_disk_read(dd, fileDD, (void *) vector, 0, sizeof(vector));
+	starpu_disk_read(dd, (void *) fileDD, (void *) vector, 0, sizeof(vector));
 
-	starpu_disk_free(dd, fileDD, sizeof(vector));
+	starpu_disk_free(dd, (void *) fileDD, sizeof(vector));
 	starpu_disk_unregister(dd);
 
 	/* terminate StarPU, no task can be submitted after */

@@ -40,6 +40,7 @@ static struct _starpu_mem_chunk_list *memchunk_cache[STARPU_MAXNODES];
 const unsigned starpu_memstrategy_data_size_coefficient=2;
 
 static void starpu_lru(unsigned node);
+static int get_better_disk_can_accept_size(size_t size_handle);
 
 void _starpu_init_mem_chunk_lists(void)
 {
@@ -356,11 +357,6 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 
-
-
-
-
-
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
 			if (handle->home_node != -1)
@@ -370,39 +366,17 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 				if (node != 0)
 					target = 0;
 
-
-
-
-
 			size_t size_handle = _starpu_data_get_size(handle);
-
-			if (_starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
+			/* try to push data to RAM if we can before to push on disk*/
+			if (starpu_node_get_kind(target) == STARPU_DISK_RAM && _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
 			{
 				target = STARPU_MAIN_RAM;
 			}
-			else
-			{	
-				
-				/* we have to push datas in disk memory */
-				unsigned nnodes = starpu_memory_nodes_get_count();
-				unsigned int i;
-				double time_disk = 0;
-				
-				for (i = 0; i < nnodes; i++)
-				{
-					if (starpu_node_get_kind(i) == STARPU_DISK_RAM && _starpu_memory_manager_test_allocate_size_(size_handle, i) == 1)
-					{
-						/* only time can change between disk <-> main_ram 
-						 * and not between main_ram <-> worker if we compare diks*/
-						double time_tmp = _starpu_predict_transfer_time(i, STARPU_MAIN_RAM, size_handle);
-						if (target == -1 || time_disk > time_tmp)
-						{
-							target = i;
-							time_disk = time_tmp;
-						}	
-					}
-				}
-			}      
+			/* no place in RAM */
+			else if ((starpu_node_get_kind(target) == STARPU_DISK_RAM || target == -1) && _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) != 1)
+			{
+				target = get_better_disk_can_accept_size(size_handle);
+			}   
 
 
 			if (target != -1) {
@@ -1022,4 +996,30 @@ void starpu_data_display_memory_stats(void)
 	}
 	fprintf(stderr, "\n#---------------------\n");
 #endif
+}
+
+
+static int
+get_better_disk_can_accept_size(size_t size_handle)
+{
+	int target = -1;
+	unsigned nnodes = starpu_memory_nodes_get_count();
+	unsigned int i;
+	double time_disk = 0;
+				
+	for (i = 0; i < nnodes; i++)
+	{
+		if (starpu_node_get_kind(i) == STARPU_DISK_RAM && _starpu_memory_manager_test_allocate_size_(size_handle, i) == 1)
+		{
+			/* only time can change between disk <-> main_ram 
+			 * and not between main_ram <-> worker if we compare diks*/
+			double time_tmp = _starpu_predict_transfer_time(i, STARPU_MAIN_RAM, size_handle);
+			if (target == -1 || time_disk > time_tmp)
+			{
+				target = i;
+				time_disk = time_tmp;
+			}	
+		}
+	}
+	return target;
 }

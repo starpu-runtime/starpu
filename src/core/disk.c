@@ -54,6 +54,8 @@ static int size_register_list = 2;
 unsigned
 starpu_disk_register(struct disk_ops * func, void *parameter, size_t size)
 {
+
+	STARPU_ASSERT_MSG(size >= SIZE,"Minimum disk size is %u Bytes ! (Here %u)", SIZE, size);
 	/* register disk */
 	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
