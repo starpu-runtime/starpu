@@ -39,8 +39,8 @@ int _starpu_disk_copy_disk_to_disk(void * src, size_t src_offset, unsigned src_n
 {
 	STARPU_ASSERT(starpu_node_get_kind(src_node) == STARPU_DISK_RAM && starpu_node_get_kind(dst_node) == STARPU_DISK_RAM);
 
-       return starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, 
-			       unsigned node_dst, void* obj_dst, off_t offset_dst,
-			       size_t size);
+       return starpu_disk_copy(src_node, src, src_offset, 
+			       dst_node, dst, dst_offset,
+			       size); 
 
 }

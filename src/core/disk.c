@@ -141,9 +141,9 @@ starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned no
 	int pos_src = get_location_with_node(node_src);
 	int pos_dst = get_location_with_node(node_dst);
 	/* both nodes have same copy function */
-	return disk_register_list[pos_src]->functions->copy(disk_register_list[pos_src]->base, void* obj_src, off_t offset_src, 
-						        disk_register_list[pos_dst]->base, void* obj_dst, off_t offset_dst,
-							size_t size);
+	return disk_register_list[pos_src]->functions->copy(disk_register_list[pos_src]->base, obj_src, offset_src, 
+						        disk_register_list[pos_dst]->base, obj_dst, offset_dst,
+							size);
 
 }
 
@@ -200,7 +200,9 @@ starpu_is_same_kind_disk(unsigned node1, unsigned node2)
 		int pos1 = get_location_with_node(node1);
 		int pos2 = get_location_with_node(node2);
 		if(disk_register_list[pos1]->functions == disk_register_list[pos2]->functions)
-			return 1;
+			/* they must have a copy function */
+			if(disk_register_list[pos1]->functions->copy != NULL)
+				return 1;
 	}
 	return 0;
 }
