@@ -363,7 +363,7 @@ void _starpu_task_check_deprecated_fields(struct starpu_task *task)
 	if (task->cl)
 	{
 		unsigned i;
-		for(i=0; i<task->cl->nbuffers ; i++)
+		for(i=0; i<STARPU_MIN(task->cl->nbuffers, STARPU_NMAXBUFS) ; i++)
 		{
 			if (task->buffers[i].handle && task->handles[i])
 			{
@@ -427,7 +427,7 @@ int starpu_task_submit(struct starpu_task *task)
 
 		/* Check buffers */
 		if (task->dyn_handles == NULL)
-			STARPU_ASSERT_MSG(task->cl->nbuffers <= STARPU_NMAXBUFS, "Codelet %p has too many buffers (%d vs max %d)", task->cl, task->cl->nbuffers, STARPU_NMAXBUFS);
+			STARPU_ASSERT_MSG(task->cl->nbuffers <= STARPU_NMAXBUFS, "Codelet %p has too many buffers (%d vs max %d). Either use --enable-maxbuffers configure option to increase the max, or use dyn_handles instead of handles.", task->cl, task->cl->nbuffers, STARPU_NMAXBUFS);
 
 		if (task->dyn_handles)
 		{
@@ -438,7 +438,7 @@ int starpu_task_submit(struct starpu_task *task)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			/* Make sure handles are not partitioned */
-			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data can be used in a task");
+			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data (or the pieces of a partitioned data) can be used in a task");
 			/* Provide the home interface for now if any,
 			 * for can_execute hooks */
 			if (handle->home_node != -1)

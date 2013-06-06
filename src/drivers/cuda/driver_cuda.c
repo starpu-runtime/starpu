@@ -481,7 +481,7 @@ int _starpu_cuda_driver_run_once(struct starpu_driver *d)
 		switch (res)
 		{
 			case -EAGAIN:
-				_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
+				_STARPU_DISP("ouch, CUDA could not actually run task %p, putting it back...\n", task);
 				_starpu_push_task_to_workers(task);
 				STARPU_ABORT();
 			default:

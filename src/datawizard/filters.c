@@ -75,7 +75,8 @@ int starpu_data_get_nb_children(starpu_data_handle_t handle)
 
 starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i)
 {
-	STARPU_ASSERT_MSG(i < handle->nchildren, "Invalid child index %u, maximum %u", i, handle->nchildren);
+	STARPU_ASSERT_MSG(handle->nchildren != 0, "Data %p has to be partitioned before accessing children", handle);
+	STARPU_ASSERT_MSG(i < handle->nchildren, "Invalid child index %u in handle %p, maximum %u", i, handle, handle->nchildren);
 	return &handle->children[i];
 }
 
@@ -104,8 +105,8 @@ starpu_data_handle_t starpu_data_vget_sub_data(starpu_data_handle_t root_handle,
 		unsigned next_child;
 		next_child = va_arg(pa, unsigned);
 
-		STARPU_ASSERT_MSG(current_handle->nchildren != 0, "Data has to be partitioned before accessing children");
-		STARPU_ASSERT_MSG(next_child < current_handle->nchildren, "Bogus child number");
+		STARPU_ASSERT_MSG(current_handle->nchildren != 0, "Data %p has to be partitioned before accessing children", current_handle);
+		STARPU_ASSERT_MSG(next_child < current_handle->nchildren, "Bogus child number %u, data %p only has %u children", next_child, current_handle, current_handle->nchildren);
 
 		current_handle = &current_handle->children[next_child];
 	}
@@ -122,7 +123,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	/* first take care to properly lock the data header */
 	_starpu_spin_lock(&initial_handle->header_lock);
 
-	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "there should not be mutiple filters applied on the same data");
+	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "there should not be mutiple filters applied on the same data %p, futher filtering has to be done on children", initial_handle);
 
 	/* how many parts ? */
 	if (f->get_nchildren)
@@ -130,7 +131,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 	else
 	  nparts = f->nchildren;
 
-	STARPU_ASSERT_MSG(nparts > 0, "Partitioning in 0 piece does not make sense");
+	STARPU_ASSERT_MSG(nparts > 0, "Partitioning data %p in 0 piece does not make sense", initial_handle);
 
 	/* allocate the children */
 	starpu_data_create_children(initial_handle, nparts, f);
@@ -277,7 +278,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 	_starpu_spin_lock(&root_handle->header_lock);
 
-	STARPU_ASSERT_MSG(root_handle->nchildren != 0, "data is not partitioned");
+	STARPU_ASSERT_MSG(root_handle->nchildren != 0, "data %p is not partitioned, can not unpartition it", root_handle);
 
 	/* first take all the children lock (in order !) */
 	for (child = 0; child < root_handle->nchildren; child++)

@@ -1278,10 +1278,8 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 #ifdef __GLIBC__
 		/* Save the initial cpuset */
-		CPU_ZERO(&workerarg->initial_cpu_set);
-		CPU_SET(workerarg->bindid, &workerarg->initial_cpu_set);
-		CPU_ZERO(&workerarg->current_cpu_set);
-		CPU_SET(workerarg->bindid, &workerarg->current_cpu_set);
+		CPU_ZERO(&workerarg->cpu_set);
+		CPU_SET(workerarg->bindid, &workerarg->cpu_set);
 #endif /* __GLIBC__ */
 
 #ifdef STARPU_HAVE_HWLOC
@@ -1295,9 +1293,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		worker_obj->userdata = &config->workers[worker];
 
 		/* Clear the cpu set and set the cpu */
-		workerarg->initial_hwloc_cpu_set =
-			hwloc_bitmap_dup (worker_obj->cpuset);
-		workerarg->current_hwloc_cpu_set =
+		workerarg->hwloc_cpu_set =
 			hwloc_bitmap_dup (worker_obj->cpuset);
 #endif
 	}
@@ -1340,8 +1336,7 @@ _starpu_destroy_topology (
 	{
 #ifdef STARPU_HAVE_HWLOC
 		struct _starpu_worker *workerarg = &config->workers[worker];
-		hwloc_bitmap_free(workerarg->initial_hwloc_cpu_set);
-		hwloc_bitmap_free(workerarg->current_hwloc_cpu_set);
+		hwloc_bitmap_free(workerarg->hwloc_cpu_set);
 #endif
 	}
 

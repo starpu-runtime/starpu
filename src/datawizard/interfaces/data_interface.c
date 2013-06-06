@@ -421,7 +421,7 @@ int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 	entry = (struct handle_tag_entry *) malloc(sizeof(*entry));
 	STARPU_ASSERT(entry != NULL);
 
-	STARPU_ASSERT_MSG(!(starpu_data_get_data_handle_from_tag(tag)),"A data handle with tag %d had already been registered.\n",tag);
+	STARPU_ASSERT_MSG(!(starpu_data_get_data_handle_from_tag(tag)),"data handle %p already has tag %d\n", starpu_data_get_data_handle_from_tag(tag), tag);
 
 	entry->tag = tag;
 	entry->handle = handle;
@@ -442,7 +442,7 @@ int starpu_data_release_tag(starpu_data_handle_t handle)
 	{
 		_starpu_spin_lock(&registered_tag_handles_lock);
 		HASH_FIND_INT(registered_tag_handles, &handle->tag, tag_entry);
-		STARPU_ASSERT_MSG((tag_entry != NULL),"Handle %p with tag %d isn't in the hashmap !",handle,handle->tag);
+		STARPU_ASSERT_MSG((tag_entry != NULL),"Data handle %p with tag %d isn't in the hashmap !",handle,handle->tag);
 
 		HASH_DEL(registered_tag_handles, tag_entry);
 		free(tag_entry);
@@ -559,7 +559,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent)
 {
 	STARPU_ASSERT(handle);
-	STARPU_ASSERT_MSG(handle->nchildren == 0, "data needs to be unpartitioned before unregistration");
+	STARPU_ASSERT_MSG(handle->nchildren == 0, "data %p needs to be unpartitioned before unregistration", handle);
 
 	if (coherent)
 	{
@@ -736,7 +736,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 void starpu_data_unregister(starpu_data_handle_t handle)
 {
-	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data must not be unregistered twice");
+	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
 	_starpu_data_unregister(handle, 1);
 }
 
@@ -748,7 +748,7 @@ void starpu_data_unregister_no_coherency(starpu_data_handle_t handle)
 void starpu_data_unregister_submit(starpu_data_handle_t handle)
 {
 	_starpu_spin_lock(&handle->header_lock);
-	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data must not be unregistered twice");
+	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
 	handle->lazy_unregister = 1;
 	_starpu_spin_unlock(&handle->header_lock);
 	_starpu_data_unregister(handle, 0);

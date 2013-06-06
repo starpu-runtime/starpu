@@ -234,7 +234,7 @@ static void _starpu_sched_ctx_create_hwloc_tree(struct _starpu_sched_ctx *sched_
 		{
 			hwloc_bitmap_or(sched_ctx->hwloc_workers_set,
 					sched_ctx->hwloc_workers_set,
-					config->workers[worker].initial_hwloc_cpu_set);
+					config->workers[worker].hwloc_cpu_set);
 		}
 
 	}
@@ -578,7 +578,7 @@ static void _starpu_check_workers(int *workerids, int nworkers)
 	for(i = 0; i < nworkers; i++)
 	{
 		/* take care the user does not ask for a resource that does not exist */
-		STARPU_ASSERT_MSG(workerids[i] >= 0 &&  workerids[i] <= nworkers_conf, "workerid = %d", workerids[i]);
+		STARPU_ASSERT_MSG(workerids[i] >= 0 &&  workerids[i] <= nworkers_conf, "requested to add workerid = %d, but that is beyond the range 0 to %d", workerids[i], nworkers_conf);
 	}
 }
 

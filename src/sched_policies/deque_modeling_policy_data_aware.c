@@ -212,7 +212,7 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 	int workerid = starpu_worker_get_id();
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 
-	STARPU_ASSERT_MSG(fifo, "worker %d does not belong to ctx %d anymore \n", workerid, sched_ctx_id);
+	STARPU_ASSERT_MSG(fifo, "worker %d does not belong to ctx %d anymore.\n", workerid, sched_ctx_id);
 
 	task = _starpu_fifo_pop_local_task(fifo);
 	if (task)

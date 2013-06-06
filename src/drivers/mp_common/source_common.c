@@ -65,7 +65,7 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node,
 						&arg_size);
 
 	if (answer == STARPU_ERROR_LOOKUP) {
-		_STARPU_DISP("Error looking up %s\n", func_name);
+		_STARPU_DISP("Error looking up symbol %s\n", func_name);
 		return -ESPIPE;
 	}
 

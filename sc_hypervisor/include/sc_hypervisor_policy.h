@@ -94,12 +94,11 @@ double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* 
 /* compute the velocity of a type of worker in a context depending on its history */ 
 double sc_hypervisor_get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
 
-/* check if there are contexts a lot more delayed than others */
-int sc_hypervisor_has_velocity_gap_btw_ctxs(void);
-
 /* get the list of workers grouped by type */
 void sc_hypervisor_group_workers_by_type(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers]);
 
+/* check if we trigger resizing or not */
+unsigned sc_hypervisor_criteria_fulfilled(unsigned sched_ctx, int worker);
 
 #ifdef __cplusplus
 }

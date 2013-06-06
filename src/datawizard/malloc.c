@@ -27,7 +27,7 @@ static size_t _malloc_align = sizeof(void*);
 
 void starpu_malloc_set_align(size_t align)
 {
-	STARPU_ASSERT_MSG(!(align & (align - 1)), "Alignment given to starpu_malloc_set_align must be a power of two");
+	STARPU_ASSERT_MSG(!(align & (align - 1)), "Alignment given to starpu_malloc_set_align (%lu) must be a power of two", (unsigned long) align);
 	if (_malloc_align < align)
 		_malloc_align = align;
 }
