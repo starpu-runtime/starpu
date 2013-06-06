@@ -446,7 +446,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent)
 {
 	STARPU_ASSERT(handle);
-	STARPU_ASSERT_MSG(handle->nchildren == 0, "data needs to be unpartitioned before unregistration");
+	STARPU_ASSERT_MSG(handle->nchildren == 0, "data %p needs to be unpartitioned before unregistration", handle);
 
 	if (coherent)
 	{
@@ -607,7 +607,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 void starpu_data_unregister(starpu_data_handle_t handle)
 {
-	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data must not be unregistered twice");
+	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
 	_starpu_data_unregister(handle, 1);
 }
 
@@ -619,7 +619,7 @@ void starpu_data_unregister_no_coherency(starpu_data_handle_t handle)
 void starpu_data_unregister_submit(starpu_data_handle_t handle)
 {
 	_starpu_spin_lock(&handle->header_lock);
-	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data must not be unregistered twice");
+	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
 	handle->lazy_unregister = 1;
 	_starpu_spin_unlock(&handle->header_lock);
 	_starpu_data_unregister(handle, 0);
