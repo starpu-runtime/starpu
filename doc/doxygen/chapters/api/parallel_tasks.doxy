@@ -47,49 +47,5 @@ workers
 Initialise the barrier for the parallel task, and dispatch the task
 between the different combined workers.
 
-\struct starpu_machine_topology
-\ingroup Parallel_Tasks
-\var starpu_machine_topology::nworkers
-        Total number of workers.
-\var starpu_machine_topology::ncombinedworkers
-        Total number of combined workers.
-\var starpu_machine_topology::hwtopology
-        Topology as detected by hwloc. To maintain ABI compatibility
-	when hwloc is not available, the field is replaced with <c>void *dummy</c>
-\var starpu_machine_topology::nhwcpus
-        Total number of CPUs, as detected by the topology code. May be
-	different from the actual number of CPU workers.
-\var starpu_machine_topology::nhwcudagpus
-        Total number of CUDA devices, as detected. May be different
-	from the actual number of CUDA workers.
-\var starpu_machine_topology::nhwopenclgpus
-        Total number of OpenCL devices, as detected. May be different
-	from the actual number of OpenCL workers.
-\var starpu_machine_topology::ncpus
-        Actual number of CPU workers used by StarPU.
-\var starpu_machine_topology::ncudagpus
-        Actual number of CUDA workers used by StarPU.
-\var starpu_machine_topology::nopenclgpus
-        Actual number of OpenCL workers used by StarPU.
-\var starpu_machine_topology::workers_bindid
-        Indicates the successive cpu identifier that should be used to
-	bind the workers. It is either filled according to the user’s
-	explicit parameters (from starpu_conf()) or according to the
-	STARPU_WORKERS_CPUID environment variable. Otherwise, a
-	round-robin policy is used to distributed the workers over the cpus.
-\var starpu_machine_topology::workers_cuda_gpuid
-        Indicates the successive cuda identifier that should be used by
-	the CUDA driver. It is either filled according to the user’s
-	explicit parameters (from starpu_conf()) or according to the
-	STARPU_WORKERS_CUDAID environment variable. Otherwise, they are taken
-	in ID order.
-\var starpu_machine_topology::workers_opencl_gpuid
-        Indicates the successive OpenCL identifier that should be used
-        by the OpenCL driver. It is either filled according to the
-        user’s explicit parameters (from starpu_conf()) or according to
-        the STARPU_WORKERS_OPENCLID environment variable. Otherwise,
-        they are taken in ID order.
-
-
 */
 

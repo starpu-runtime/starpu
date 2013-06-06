@@ -88,6 +88,20 @@ are actually taken into account in that context.
         If the value corresponding to a worker is 1, this one is taken
 	into account in the new context if 0 not yet
 
+\struct sc_hypervisor_policy_task_pool
+\brief task wrapper linked list
+\ingroup Scheduling_Context_Hypervisor
+\var sc_hypervisor_policy_task_pool::cl
+Which codelet has been executed
+\var sc_hypervisor_policy_task_pool::footprint
+Task footprint key
+\var sc_hypervisor_policy_task_pool::sched_ctx_id
+Context the task belongs to
+\var sc_hypervisor_policy_task_pool::n
+Number of tasks of this kind
+\var sc_hypervisor_policy_task_pool::next
+Other task kinds
+
 @name Managing the hypervisor
 \ingroup Scheduling_Context_Hypervisor
 

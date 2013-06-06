@@ -453,7 +453,7 @@ to a less optimal solution. This increases even more computation time.
 
 StarPU provides the wrapper function <c>starpu_insert_task</c> to ease
 the creation and submission of tasks. See the definition of the
-functions in @ref{Insert Task}.
+functions in \ref Insert_Task.
 
 Here the implementation of the codelet:
 
@@ -683,9 +683,11 @@ starpu_data_unregister_submit(handle);
 Some kernels sometimes need temporary data to achieve the computations, i.e. a
 workspace. The application could allocate it at the start of the codelet
 function, and free it at the end, but that would be costly. It could also
-allocate one buffer per worker (similarly to @ref{Per-worker library
-initialization}), but that would make them systematic and permanent. A more
-optimized way is to use the SCRATCH data access mode, as examplified below,
+allocate one buffer per worker (similarly to \ref
+Per-worker_library_initialization), but that would make them
+systematic and permanent. A more  optimized way is to use the
+::STARPU_SCRATCH data access mode, as examplified below,
+
 which provides per-worker buffers without content consistency.
 
 \code{.c}
@@ -949,7 +951,7 @@ A full example may be found in <c>examples/basic_examples/multiformat.c</c>.
 
 \section Using_the_Driver_API Using the Driver API
 
-@pxref{Running drivers}
+\ref Running_drivers
 
 \code{.c}
 int ret;

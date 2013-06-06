@@ -27,6 +27,7 @@
         pointer to a codelet which converts from CUDA to CPU
 
 \struct starpu_multiformat_interface
+\brief todo
 \ingroup Multiformat_Data_Interface
 \var starpu_multiformat_interface::id
 \var starpu_multiformat_interface::cpu_ptr

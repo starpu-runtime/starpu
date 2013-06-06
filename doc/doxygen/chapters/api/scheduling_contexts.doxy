@@ -171,6 +171,12 @@ policy of the given scheduler context.
 @name Scheduling Context Worker Collection
 \ingroup Scheduling_Contexts
 
+\struct starpu_sched_ctx_iterator
+\ingroup Scheduling_Contexts
+\brief todo
+\var starpu_sched_ctx_iterator::cursor
+todo
+
 \struct starpu_worker_collection
 \ingroup Scheduling_Contexts
 \brief A scheduling context manages a collection of workers that can
@@ -185,17 +191,19 @@ structures(like tree) implementations are foreseen.
 \var starpu_worker_collection::type
         The type of structure (currently STARPU_WORKER_LIST is the only one available)
 \var starpu_worker_collection::has_next
-        Checks if there is a next worker
+        Checks if there is another element in collection
 \var starpu_worker_collection::get_next
-        Gets the next worker
+        return the next element in the collection
 \var starpu_worker_collection::add
-        Adds a worker to the collection
+        add a new element in the collection
 \var starpu_worker_collection::remove
-        Removes a worker from the collection
+        remove an element from the collection
 \var starpu_worker_collection::init
         Initialize the collection
 \var starpu_worker_collection::deinit
         Deinitialize the colection
+\var starpu_worker_collection::init_iterator
+        Initialize the cursor if there is one
 
 \fn struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type)
 \ingroup Scheduling_Contexts

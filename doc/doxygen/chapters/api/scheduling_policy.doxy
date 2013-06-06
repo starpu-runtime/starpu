@@ -163,5 +163,12 @@ Returns expected power consumption in J
 \ingroup Scheduling_Policy
 Returns expected conversion time in ms (multiformat interface only)
 
+\fn int starpu_get_prefetch_flag(void)
+\ingroup Scheduling_Policy
+Whether STARPU_PREFETCH was set
+
+\fn int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
+\ingroup Scheduling_Policy
+Prefetch data for a given task on a given node
 
 */
