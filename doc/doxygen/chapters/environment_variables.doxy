@@ -1,0 +1,506 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page EnvironmentVariables Execution Configuration Through Environment Variables
+
+The behavior of the StarPU library and tools may be tuned thanks to
+the following environment variables.
+
+\section ConfiguringWorkers Configuring Workers
+
+<dl>
+
+<dt>STARPU_NCPU</dt>
+<dd>
+\anchor STARPU_NCPU
+\addindex __env__STARPU_NCPU
+Specify the number of CPU workers (thus not including workers
+dedicated to control accelerators). Note that by default, StarPU will
+not allocate more CPU workers than there are physical CPUs, and that
+some CPUs are used to control the accelerators.
+</dd>
+
+<dt>STARPU_NCPUS</dt>
+<dd>
+\anchor STARPU_NCPUS
+\addindex __env__STARPU_NCPUS
+This variable is deprecated. You should use \ref STARPU_NCPU.
+</dd>
+
+<dt>STARPU_NCUDA</dt>
+<dd>
+\anchor STARPU_NCUDA
+\addindex __env__STARPU_NCUDA
+Specify the number of CUDA devices that StarPU can use. If
+\ref STARPU_NCUDA is lower than the number of physical devices, it is
+possible to select which CUDA devices should be used by the means of the
+environment variable \ref STARPU_WORKERS_CUDAID. By default, StarPU will
+create as many CUDA workers as there are CUDA devices.
+</dd>
+
+<dt>STARPU_NOPENCL</dt>
+<dd>
+\anchor STARPU_NOPENCL
+\addindex __env__STARPU_NOPENCL
+OpenCL equivalent of the environment variable \ref STARPU_NCUDA.
+</dd>
+
+<dt>STARPU_OPENCL_ON_CPUS</dt>
+<dd>
+\anchor STARPU_OPENCL_ON_CPUS
+\addindex __env__STARPU_OPENCL_ON_CPUS
+By default, the OpenCL driver only enables GPU and accelerator
+devices. By setting the environment variable \ref
+STARPU_OPENCL_ON_CPUS to 1, the OpenCL driver will also enable CPU
+devices.
+</dd>
+
+<dt>STARPU_OPENCL_ONLY_ON_CPUS</dt>
+<dd>
+\anchor STARPU_OPENCL_ONLY_ON_CPUS
+\addindex __env__STARPU_OPENCL_ONLY_ON_CPUS
+By default, the OpenCL driver enables GPU and accelerator
+devices. By setting the environment variable \ref
+STARPU_OPENCL_ONLY_ON_CPUS to 1, the OpenCL driver will ONLY enable
+CPU devices.
+</dd>
+
+<dt>STARPU_WORKERS_NOBIND</dt>
+<dd>
+\anchor STARPU_WORKERS_NOBIND
+\addindex __env__STARPU_WORKERS_NOBIND
+Setting it to non-zero will prevent StarPU from binding its threads to
+CPUs. This is for instance useful when running the testsuite in parallel.
+</dd>
+
+<dt>STARPU_WORKERS_CPUID</dt>
+<dd>
+\anchor STARPU_WORKERS_CPUID
+\addindex __env__STARPU_WORKERS_CPUID
+Passing an array of integers (starting from 0) in \ref STARPU_WORKERS_CPUID
+specifies on which logical CPU the different workers should be
+bound. For instance, if <c>STARPU_WORKERS_CPUID = "0 1 4 5"</c>, the first
+worker will be bound to logical CPU #0, the second CPU worker will be bound to
+logical CPU #1 and so on.  Note that the logical ordering of the CPUs is either
+determined by the OS, or provided by the library <c>hwloc</c> in case it is
+available.
+
+Note that the first workers correspond to the CUDA workers, then come the
+OpenCL workers, and finally the CPU workers. For example if
+we have <c>STARPU_NCUDA=1</c>, <c>STARPU_NOPENCL=1</c>, <c>STARPU_NCPU=2</c>
+and <c>STARPU_WORKERS_CPUID = "0 2 1 3"</c>, the CUDA device will be controlled
+by logical CPU #0, the OpenCL device will be controlled by logical CPU #2, and
+the logical CPUs #1 and #3 will be used by the CPU workers.
+
+If the number of workers is larger than the array given in \ref
+STARPU_WORKERS_CPUID, the workers are bound to the logical CPUs in a
+round-robin fashion: if <c>STARPU_WORKERS_CPUID = "0 1"</c>, the first
+and the third (resp. second and fourth) workers will be put on CPU #0
+(resp. CPU #1).
+
+This variable is ignored if the field
+starpu_conf::use_explicit_workers_bindid passed to starpu_init() is
+set.
+
+</dd>
+
+<dt>STARPU_WORKERS_CUDAID</dt>
+<dd>
+\anchor STARPU_WORKERS_CUDAID
+\addindex __env__STARPU_WORKERS_CUDAID
+Similarly to the \ref STARPU_WORKERS_CPUID environment variable, it is
+possible to select which CUDA devices should be used by StarPU. On a machine
+equipped with 4 GPUs, setting <c>STARPU_WORKERS_CUDAID = "1 3"</c> and
+<c>STARPU_NCUDA=2</c> specifies that 2 CUDA workers should be created, and that
+they should use CUDA devices #1 and #3 (the logical ordering of the devices is
+the one reported by CUDA).
+
+This variable is ignored if the field
+starpu_conf::use_explicit_workers_cuda_gpuid passed to starpu_init()
+is set.
+</dd>
+
+<dt>STARPU_WORKERS_OPENCLID</dt>
+<dd>
+\anchor STARPU_WORKERS_OPENCLID
+\addindex __env__STARPU_WORKERS_OPENCLID
+OpenCL equivalent of the \ref STARPU_WORKERS_CUDAID environment variable.
+
+This variable is ignored if the field
+starpu_conf::use_explicit_workers_opencl_gpuid passed to starpu_init()
+is set.
+</dd>
+
+<dt>STARPU_SINGLE_COMBINED_WORKER</dt>
+<dd>
+\anchor STARPU_SINGLE_COMBINED_WORKER
+\addindex __env__STARPU_SINGLE_COMBINED_WORKER
+If set, StarPU will create several workers which won't be able to work
+concurrently. It will by default create combined workers which size goes from 1
+to the total number of CPU workers in the system. \ref STARPU_MIN_WORKERSIZE
+and \ref STARPU_MAX_WORKERSIZE can be used to change this default.
+</dd>
+
+<dt>STARPU_MIN_WORKERSIZE</dt>
+<dd>
+\anchor STARPU_MIN_WORKERSIZE
+\addindex __env__STARPU_MIN_WORKERSIZE
+When \ref STARPU_SINGLE_COMBINED_WORKER is set, \ref STARPU_MIN_WORKERSIZE
+permits to specify the minimum size of the combined workers (instead of the default 1)
+</dd>
+
+<dt>STARPU_MAX_WORKERSIZE</dt>
+<dd>
+\anchor STARPU_MAX_WORKERSIZE
+\addindex __env__STARPU_MAX_WORKERSIZE
+When \ref STARPU_SINGLE_COMBINED_WORKER is set, \ref STARPU_MAX_WORKERSIZE
+permits to specify the minimum size of the combined workers (instead of the
+number of CPU workers in the system)
+</dd>
+
+<dt>STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER</dt>
+<dd>
+\anchor STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
+\addindex __env__STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
+Let the user decide how many elements are allowed between combined workers
+created from hwloc information. For instance, in the case of sockets with 6
+cores without shared L2 caches, if \ref SYNTHESIZE_ARITY_COMBINED_WORKER is
+set to 6, no combined worker will be synthesized beyond one for the socket
+and one per core. If it is set to 3, 3 intermediate combined workers will be
+synthesized, to divide the socket cores into 3 chunks of 2 cores. If it set to
+2, 2 intermediate combined workers will be synthesized, to divide the the socket
+cores into 2 chunks of 3 cores, and then 3 additional combined workers will be
+synthesized, to divide the former synthesized workers into a bunch of 2 cores,
+and the remaining core (for which no combined worker is synthesized since there
+is already a normal worker for it).
+
+The default, 2, thus makes StarPU tend to building a binary trees of combined
+workers.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_COPY
+Disable asynchronous copies between CPU and GPU devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY
+Disable asynchronous copies between CPU and CUDA devices.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY
+Disable asynchronous copies between CPU and OpenCL devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
+Disable asynchronous copies between CPU and MIC devices.
+</dd>
+
+<dt>STARPU_DISABLE_CUDA_GPU_GPU_DIRECT</dt>
+<dd>
+\anchor STARPU_DISABLE_CUDA_GPU_GPU_DIRECT
+\addindex __env__STARPU_DISABLE_CUDA_GPU_GPU_DIRECT
+Disable direct CUDA transfers from GPU to GPU, and let CUDA copy through RAM
+instead. This permits to test the performance effect of GPU-Direct.
+</dd>
+
+</dl>
+
+\section ConfiguringtheSchedulingengine Configuring the Scheduling engine
+
+<dl>
+
+<dt>STARPU_SCHED</dt>
+<dd>
+\anchor STARPU_SCHED
+\addindex __env__STARPU_SCHED
+Choose between the different scheduling policies proposed by StarPU: work
+random, stealing, greedy, with performance models, etc.
+
+Use <c>STARPU_SCHED=help</c> to get the list of available schedulers.
+</dd>
+
+<dt>STARPU_CALIBRATE</dt>
+<dd>
+\anchor STARPU_CALIBRATE
+\addindex __env__STARPU_CALIBRATE
+If this variable is set to 1, the performance models are calibrated during
+the execution. If it is set to 2, the previous values are dropped to restart
+calibration from scratch. Setting this variable to 0 disable calibration, this
+is the default behaviour.
+
+Note: this currently only applies to <c>dm</c> and <c>dmda</c> scheduling policies.
+</dd>
+
+<dt>STARPU_BUS_CALIBRATE</dt>
+<dd>
+\anchor STARPU_BUS_CALIBRATE
+\addindex __env__STARPU_BUS_CALIBRATE
+If this variable is set to 1, the bus is recalibrated during intialization.
+</dd>
+
+<dt>STARPU_PREFETCH</dt>
+<dd>
+\anchor STARPU_PREFETCH
+\addindex __env__STARPU_PREFETCH
+This variable indicates whether data prefetching should be enabled (0 means
+that it is disabled). If prefetching is enabled, when a task is scheduled to be
+executed e.g. on a GPU, StarPU will request an asynchronous transfer in
+advance, so that data is already present on the GPU when the task starts. As a
+result, computation and data transfers are overlapped.
+Note that prefetching is enabled by default in StarPU.
+</dd>
+
+<dt>STARPU_SCHED_ALPHA</dt>
+<dd>
+\anchor STARPU_SCHED_ALPHA
+\addindex __env__STARPU_SCHED_ALPHA
+To estimate the cost of a task StarPU takes into account the estimated
+computation time (obtained thanks to performance models). The alpha factor is
+the coefficient to be applied to it before adding it to the communication part.
+</dd>
+
+<dt>STARPU_SCHED_BETA</dt>
+<dd>
+\anchor STARPU_SCHED_BETA
+\addindex __env__STARPU_SCHED_BETA
+To estimate the cost of a task StarPU takes into account the estimated
+data transfer time (obtained thanks to performance models). The beta factor is
+the coefficient to be applied to it before adding it to the computation part.
+</dd>
+
+<dt>STARPU_SCHED_GAMMA</dt>
+<dd>
+\anchor STARPU_SCHED_GAMMA
+\addindex __env__STARPU_SCHED_GAMMA
+Define the execution time penalty of a joule (\ref Power-based_scheduling).
+</dd>
+
+<dt>STARPU_IDLE_POWER</dt>
+<dd>
+\anchor STARPU_IDLE_POWER
+\addindex __env__STARPU_IDLE_POWER
+Define the idle power of the machine (\ref Power-based_scheduling).
+</dd>
+
+<dt>STARPU_PROFILING</dt>
+<dd>
+\anchor STARPU_PROFILING
+\addindex __env__STARPU_PROFILING
+Enable on-line performance monitoring (\ref Enabling_on-line_performance_monitoring).
+</dd>
+
+</dl>
+
+\section Extensions Extensions
+
+<dl>
+
+<dt>SOCL_OCL_LIB_OPENCL</dt>
+<dd>
+\anchor SOCL_OCL_LIB_OPENCL
+\addindex __env__SOCL_OCL_LIB_OPENCL
+THE SOCL test suite is only run when the environment variable \ref
+SOCL_OCL_LIB_OPENCL is defined. It should contain the location
+of the libOpenCL.so file of the OCL ICD implementation.
+</dd>
+
+<dt>STARPU_COMM_STATS</dt>
+<dd>
+\anchor STARPU_COMM_STATS
+\addindex __env__STARPU_COMM_STATS
+Communication statistics for starpumpi (\ref StarPU_MPI_support)
+will be enabled when the environment variable \ref STARPU_COMM_STATS
+is defined to an value other than 0.
+</dd>
+
+<dt>STARPU_MPI_CACHE</dt>
+<dd>
+\anchor STARPU_MPI_CACHE
+\addindex __env__STARPU_MPI_CACHE
+Communication cache for starpumpi (\ref StarPU_MPI_support) will be
+disabled when the environment variable \ref STARPU_MPI_CACHE is set
+to 0. It is enabled by default or for any other values of the variable
+\ref STARPU_MPI_CACHE.
+</dd>
+
+</dl>
+
+\section Miscellaneousanddebug Miscellaneous and debug
+
+<dl>
+
+<dt>STARPU_HOME</dt>
+<dd>
+\anchor STARPU_HOME
+\addindex __env__STARPU_HOME
+This specifies the main directory in which StarPU stores its
+configuration files. The default is <c>$HOME</c> on Unix environments,
+and <c>$USERPROFILE</c> on Windows environments.
+</dd>
+
+<dt>STARPU_HOSTNAME</dt>
+<dd>
+\anchor STARPU_HOSTNAME
+\addindex __env__STARPU_HOSTNAME
+When set, force the hostname to be used when dealing performance model
+files. Models are indexed by machine name. When running for example on
+a homogenenous cluster, it is possible to share the models between
+machines by setting <c>export STARPU_HOSTNAME=some_global_name</c>.
+</dd>
+
+<dt>STARPU_OPENCL_PROGRAM_DIR</dt>
+<dd>
+\anchor STARPU_OPENCL_PROGRAM_DIR
+\addindex __env__STARPU_OPENCL_PROGRAM_DIR
+This specifies the directory where the OpenCL codelet source files are
+located. The function starpu_opencl_load_program_source() looks
+for the codelet in the current directory, in the directory specified
+by the environment variable \ref STARPU_OPENCL_PROGRAM_DIR, in the
+directory <c>share/starpu/opencl</c> of the installation directory of
+StarPU, and finally in the source directory of StarPU.
+</dd>
+
+<dt>STARPU_SILENT</dt>
+<dd>
+\anchor STARPU_SILENT
+\addindex __env__STARPU_SILENT
+This variable allows to disable verbose mode at runtime when StarPU
+has been configured with the option \ref enable-verbose. It also
+disables the display of StarPU information and warning messages.
+</dd>
+
+<dt>STARPU_LOGFILENAME</dt>
+<dd>
+\anchor STARPU_LOGFILENAME
+\addindex __env__STARPU_LOGFILENAME
+This variable specifies in which file the debugging output should be saved to.
+</dd>
+
+<dt>STARPU_FXT_PREFIX</dt>
+<dd>
+\anchor STARPU_FXT_PREFIX
+\addindex __env__STARPU_FXT_PREFIX
+This variable specifies in which directory to save the trace generated if FxT is enabled. It needs to have a trailing '/' character.
+</dd>
+
+<dt>STARPU_LIMIT_CUDA_devid_MEM</dt>
+<dd>
+\anchor STARPU_LIMIT_CUDA_devid_MEM
+\addindex __env__STARPU_LIMIT_CUDA_devid_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on the CUDA device with the identifier
+<c>devid</c>. This variable is intended to be used for experimental
+purposes as it emulates devices that have a limited amount of memory.
+When defined, the variable overwrites the value of the variable
+\ref STARPU_LIMIT_CUDA_MEM.
+</dd>
+
+<dt>STARPU_LIMIT_CUDA_MEM</dt>
+<dd>
+\anchor STARPU_LIMIT_CUDA_MEM
+\addindex __env__STARPU_LIMIT_CUDA_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on each CUDA devices. This variable is
+intended to be used for experimental purposes as it emulates devices
+that have a limited amount of memory.
+</dd>
+
+<dt>STARPU_LIMIT_OPENCL_devid_MEM</dt>
+<dd>
+\anchor STARPU_LIMIT_OPENCL_devid_MEM
+\addindex __env__STARPU_LIMIT_OPENCL_devid_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on the OpenCL device with the identifier
+<c>devid</c>. This variable is intended to be used for experimental
+purposes as it emulates devices that have a limited amount of memory.
+When defined, the variable overwrites the value of the variable
+\ref STARPU_LIMIT_OPENCL_MEM.
+</dd>
+
+<dt>STARPU_LIMIT_OPENCL_MEM</dt>
+<dd>
+\anchor STARPU_LIMIT_OPENCL_MEM
+\addindex __env__STARPU_LIMIT_OPENCL_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on each OpenCL devices. This variable is
+intended to be used for experimental purposes as it emulates devices
+that have a limited amount of memory.
+</dd>
+
+<dt>STARPU_LIMIT_CPU_MEM</dt>
+<dd>
+\anchor STARPU_LIMIT_CPU_MEM
+\addindex __env__STARPU_LIMIT_CPU_MEM
+This variable specifies the maximum number of megabytes that should be
+available to the application on each CPU device. This variable is
+intended to be used for experimental purposes as it emulates devices
+that have a limited amount of memory.
+</dd>
+
+<dt>STARPU_GENERATE_TRACE</dt>
+<dd>
+\anchor STARPU_GENERATE_TRACE
+\addindex __env__STARPU_GENERATE_TRACE
+When set to <c>1</c>, this variable indicates that StarPU should automatically
+generate a Paje trace when starpu_shutdown() is called.
+</dd>
+
+<dt>STARPU_MEMORY_STATS</dt>
+<dd>
+\anchor STARPU_MEMORY_STATS
+\addindex __env__STARPU_MEMORY_STATS
+When set to 0, disable the display of memory statistics on data which
+have not been unregistered at the end of the execution (\ref Memory_feedback).
+</dd>
+
+<dt>STARPU_BUS_STATS</dt>
+<dd>
+\anchor STARPU_BUS_STATS
+\addindex __env__STARPU_BUS_STATS
+When defined, statistics about data transfers will be displayed when calling
+starpu_shutdown() (\ref Profiling).
+</dd>
+
+<dt>STARPU_WORKER_STATS</dt>
+<dd>
+\anchor STARPU_WORKER_STATS
+\addindex __env__STARPU_WORKER_STATS
+When defined, statistics about the workers will be displayed when calling
+starpu_shutdown() (\ref Profiling). When combined with the
+environment variable \ref STARPU_PROFILING, it displays the power
+consumption (\ref Power-based_scheduling).
+</dd>
+
+<dt>STARPU_STATS</dt>
+<dd>
+\anchor STARPU_STATS
+\addindex __env__STARPU_STATS
+When set to 0, data statistics will not be displayed at the
+end of the execution of an application (\ref Data_statistics).
+</dd>
+
+</dl>
+
+*/

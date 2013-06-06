@@ -1,0 +1,489 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page ConfigureOptions Compilation Configuration
+
+The behavior of the StarPU library and tools may be tuned thanks to
+the following configure options.
+
+\section CommonConfiguration Common Configuration
+
+<dl>
+
+<dt>--enable-debug</dt>
+<dd>
+\anchor enable-debug
+\addindex __configure__--enable-debug
+Enable debugging messages.
+</dd>
+
+<dt>--enable-debug</dt>
+<dd>
+\anchor enable-debug
+\addindex __configure__--enable-debug
+Enable debugging messages.
+</dd>
+
+<dt>--enable-fast</dt>
+<dd>
+\anchor enable-fast
+\addindex __configure__--enable-fast
+Disable assertion checks, which saves computation time.
+</dd>
+
+<dt>--enable-verbose</dt>
+<dd>
+\anchor enable-verbose
+\addindex __configure__--enable-verbose
+Increase the verbosity of the debugging messages.  This can be disabled
+at runtime by setting the environment variable \ref STARPU_SILENT to
+any value.
+
+\verbatim
+$ STARPU_SILENT=1 ./vector_scal
+\endverbatim
+</dd>
+
+<dt>--enable-coverage</dt>
+<dd>
+\anchor enable-coverage
+\addindex __configure__--enable-coverage
+Enable flags for the coverage tool <c>gcov</c>.
+</dd>
+
+<dt>--enable-quick-check</dt>
+<dd>
+\anchor enable-quick-check
+\addindex __configure__--enable-quick-check
+Specify tests and examples should be run on a smaller data set, i.e
+allowing a faster execution time
+</dd>
+
+<dt>--enable-long-check</dt>
+<dd>
+\anchor enable-long-check
+\addindex __configure__--enable-long-check
+Enable some exhaustive checks which take a really long time.
+</dd>
+
+<dt>--with-hwloc</dt>
+<dd>
+\anchor with-hwloc
+\addindex __configure__--with-hwloc
+Specify hwloc should be used by StarPU. hwloc should be found by the
+means of the tool <c>pkg-config</c>.
+</dd>
+
+<dt>--with-hwloc=<c>prefix</c></dt>
+<dd>
+\anchor with-hwloc
+\addindex __configure__--with-hwloc
+Specify hwloc should be used by StarPU. hwloc should be found in the
+directory specified by <c>prefix</c>
+</dd>
+
+<dt>--without-hwloc</dt>
+<dd>
+\anchor without-hwloc
+\addindex __configure__--without-hwloc
+Specify hwloc should not be used by StarPU.
+</dd>
+
+<dt>--disable-build-doc</dt>
+<dd>
+\anchor disable-build-doc
+\addindex __configure__--disable-build-doc
+Disable the creation of the documentation. This should be done on a
+machine which does not have the tools <c>makeinfo</c> and <c>tex</c>.
+</dd>
+
+Additionally, the script <c>configure</c> recognize many variables, which
+can be listed by typing <c>./configure --help</c>. For example,
+<c>./configure NVCCFLAGS="-arch sm_13"</c> adds a flag for the compilation of
+CUDA kernels.
+
+</dl>
+
+\section ConfiguringWorkers Configuring Workers
+
+<dl>
+
+<dt>--enable-maxcpus=<c>count</c></dt>
+<dd>
+\anchor enable-maxcpus
+\addindex __configure__--enable-maxcpus
+Use at most <c>count</c> CPU cores.  This information is then
+available as the macro ::STARPU_MAXCPUS.
+</dd>
+
+<dt>--disable-cpu</dt>
+<dd>
+\anchor disable-cpu
+\addindex __configure__--disable-cpu
+Disable the use of CPUs of the machine. Only GPUs etc. will be used.
+</dd>
+
+<dt>--enable-maxcudadev=<c>count</c></dt>
+<dd>
+\anchor enable-maxcudadev
+\addindex __configure__--enable-maxcudadev
+Use at most <c>count</c> CUDA devices.  This information is then
+available as the macro ::STARPU_MAXCUDADEVS.
+</dd>
+
+<dt>--disable-cuda</dt>
+<dd>
+\anchor disable-cuda
+\addindex __configure__--disable-cuda
+Disable the use of CUDA, even if a valid CUDA installation was detected.
+</dd>
+
+<dt>--with-cuda-dir=<c>prefix</c></dt>
+<dd>
+\anchor with-cuda-dir
+\addindex __configure__--with-cuda-dir
+Search for CUDA under <c>prefix</c>, which should notably contain the file
+<c>include/cuda.h</c>.
+</dd>
+
+<dt>--with-cuda-include-dir=<c>dir</c></dt>
+<dd>
+\anchor with-cuda-include-dir
+\addindex __configure__--with-cuda-include-dir
+Search for CUDA headers under <c>dir</c>, which should
+notably contain the file <c>cuda.h</c>. This defaults to
+<c>/include</c> appended to the value given to \ref --with-cuda-dir.
+</dd>
+
+<dt>--with-cuda-lib-dir=<c>dir</c></dt>
+<dd>
+\anchor with-cuda-lib-dir
+\addindex __configure__--with-cuda-lib-dir
+Search for CUDA libraries under <c>dir</c>, which should notably contain
+the CUDA shared libraries---e.g., <c>libcuda.so</c>.  This defaults to
+<c>/lib</c> appended to the value given to \ref --with-cuda-dir.
+</dd>
+
+<dt>--disable-cuda-memcpy-peer</dt>
+<dd>
+\anchor disable-cuda-memcpy-peer
+\addindex __configure__--disable-cuda-memcpy-peer
+Explicitly disable peer transfers when using CUDA 4.0.
+</dd>
+
+<dt>--enable-maxopencldev=<c>count</c></dt>
+<dd>
+\anchor enable-maxopencldev
+\addindex __configure__--enable-maxopencldev
+Use at most <c>count</c> OpenCL devices.  This information is then
+available as the macro ::STARPU_MAXOPENCLDEVS.
+</dd>
+
+<dt>--disable-opencl</dt>
+<dd>
+\anchor disable-opencl
+\addindex __configure__--disable-opencl
+Disable the use of OpenCL, even if the SDK is detected.
+</dd>
+
+<dt>--with-opencl-dir=<c>prefix</c></dt>
+<dd>
+\anchor with-opencl-dir
+\addindex __configure__--with-opencl-dir
+Search for an OpenCL implementation under <c>prefix</c>, which should
+notably contain <c>include/CL/cl.h</c> (or <c>include/OpenCL/cl.h</c>
+on Mac OS).
+</dd>
+
+<dt>--with-opencl-include-dir=<c>dir</c></dt>
+<dd>
+\anchor with-opencl-include-dir
+\addindex __configure__--with-opencl-include-dir
+Search for OpenCL headers under <c>dir</c>, which should notably contain
+<c>CL/cl.h</c> (or <c>OpenCL/cl.h</c> on Mac OS).  This defaults to
+<c>/include</c> appended to the value given to \ref --with-opencl-dir.
+</dd>
+
+<dt>--with-opencl-lib-dir=<c>dir</c></dt>
+<dd>
+\anchor with-opencl-lib-dir
+\addindex __configure__--with-opencl-lib-dir
+Search for an OpenCL library under <c>dir</c>, which should notably
+contain the OpenCL shared libraries---e.g. <c>libOpenCL.so</c>. This defaults to
+<c>/lib</c> appended to the value given to \ref --with-opencl-dir.
+</dd>
+
+<dt>--enable-opencl-simulator</dt>
+<dd>
+\anchor enable-opencl-simulator
+\addindex __configure__--enable-opencl-simulator
+Enable considering the provided OpenCL implementation as a simulator, i.e. use
+the kernel duration returned by OpenCL profiling information as wallclock time
+instead of the actual measured real time. This requires simgrid support.
+</dd>
+
+<dt>--enable-maximplementations=<c>count</c></dt>
+<dd>
+\anchor enable-maximplementations
+\addindex __configure__--enable-maximplementations
+Allow for at most <c>count</c> codelet implementations for the same
+target device.  This information is then available as the
+macro ::STARPU_MAXIMPLEMENTATIONS macro.
+</dd>
+
+<dt>--enable-max-sched-ctxs=<c>count</c></dt>
+<dd>
+\anchor enable-max-sched-ctxs
+\addindex __configure__--enable-max-sched-ctxs
+Allow for at most <c>count</c> scheduling contexts
+This information is then available as the macro
+::STARPU_NMAX_SCHED_CTXS.
+</dd>
+
+<dt>--disable-asynchronous-copy</dt>
+<dd>
+\anchor disable-asynchronous-copy
+\addindex __configure__--disable-asynchronous-copy
+Disable asynchronous copies between CPU and GPU devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+</dd>
+
+<dt>--disable-asynchronous-cuda-copy</dt>
+<dd>
+\anchor disable-asynchronous-cuda-copy
+\addindex __configure__--disable-asynchronous-cuda-copy
+Disable asynchronous copies between CPU and CUDA devices.
+</dd>
+
+<dt>--disable-asynchronous-opencl-copy</dt>
+<dd>
+\anchor disable-asynchronous-opencl-copy
+\addindex __configure__--disable-asynchronous-opencl-copy
+Disable asynchronous copies between CPU and OpenCL devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+</dd>
+
+</dl>
+
+\section ExtensionConfiguration Extension Configuration
+
+<dl>
+
+<dt>--disable-socl</dt>
+<dd>
+\anchor disable-socl
+\addindex __configure__--disable-socl
+Disable the SOCL extension (\ref SOCL_OpenCL_Extensions).  By
+default, it is enabled when an OpenCL implementation is found.
+</dd>
+
+<dt>--disable-starpu-top</dt>
+<dd>
+\anchor disable-starpu-top
+\addindex __configure__--disable-starpu-top
+Disable the StarPU-Top interface (\ref StarPU-Top).  By default, it
+is enabled when the required dependencies are found.
+</dd>
+
+<dt>--disable-gcc-extensions</dt>
+<dd>
+\anchor disable-gcc-extensions
+\addindex __configure__--disable-gcc-extensions
+Disable the GCC plug-in (\ref C_Extensions).  By default, it is
+enabled when the GCC compiler provides a plug-in support.
+</dd>
+
+<dt>--with-mpicc=<c>path</c></dt>
+<dd>
+\anchor with-mpicc
+\addindex __configure__--with-mpicc
+Use the compiler <c>mpicc</c> at <c>path</c>, for StarPU-MPI.
+(\ref StarPU_MPI_support).
+</dd>
+
+<dt>--enable-mpi-progression-hook</dt>
+<dd>
+\anchor enable-mpi-progression-hook
+\addindex __configure__--enable-mpi-progression-hook
+Enable the activity polling method for StarPU-MPI.
+</dd>
+
+\section AdvancedConfiguration Advanced Configuration
+
+<dl>
+
+<dt>--enable-perf-debug</dt>
+<dd>
+\anchor enable-perf-debug
+\addindex __configure__--enable-perf-debug
+Enable performance debugging through gprof.
+</dd>
+
+<dt>--enable-model-debug</dt>
+<dd>
+\anchor enable-model-debug
+\addindex __configure__--enable-model-debug
+Enable performance model debugging.
+</dd>
+
+<dt>--enable-stats</dt>
+<dd>
+\anchor enable-stats
+\addindex __configure__--enable-stats
+(see ../../src/datawizard/datastats.c)
+Enable gathering of various data statistics (\ref Data_statistics).
+</dd>
+
+<dt>--enable-maxbuffers</dt>
+<dd>
+\anchor enable-maxbuffers
+\addindex __configure__--enable-maxbuffers
+Define the maximum number of buffers that tasks will be able to take
+as parameters, then available as the macro ::STARPU_NMAXBUFS.
+</dd>
+
+<dt>--enable-allocation-cache</dt>
+<dd>
+\anchor enable-allocation-cache
+\addindex __configure__--enable-allocation-cache
+Enable the use of a data allocation cache to avoid the cost of it with
+CUDA. Still experimental.
+</dd>
+
+<dt>--enable-opengl-render</dt>
+<dd>
+\anchor enable-opengl-render
+\addindex __configure__--enable-opengl-render
+Enable the use of OpenGL for the rendering of some examples.
+\internal
+TODO: rather default to enabled when detected
+\endinternal
+</dd>
+
+<dt>--enable-blas-lib</dt>
+<dd>
+\anchor enable-blas-lib
+\addindex __configure__--enable-blas-lib
+Specify the blas library to be used by some of the examples. The
+library has to be 'atlas' or 'goto'.
+</dd>
+
+<dt>--disable-starpufft</dt>
+<dd>
+\anchor disable-starpufft
+\addindex __configure__--disable-starpufft
+Disable the build of libstarpufft, even if fftw or cuFFT is available.
+</dd>
+
+<dt>--with-magma=<c>prefix</c></dt>
+<dd>
+\anchor with-magma
+\addindex __configure__--with-magma
+Search for MAGMA under <c>prefix</c>.  <c>prefix</c> should notably
+contain <c>include/magmablas.h</c>.
+</dd>
+
+<dt>--with-fxt=<c>prefix</c></dt>
+<dd>
+\anchor with-fxt
+\addindex __configure__--with-fxt
+Search for FxT under <c>prefix</c>.
+FxT (http://savannah.nongnu.org/projects/fkt) is used to generate
+traces of scheduling events, which can then be rendered them using ViTE
+(\ref off-line_performance_feedback).  <c>prefix</c> should
+notably contain <c>include/fxt/fxt.h</c>.
+</dd>
+
+<dt>--with-perf-model-dir=<c>dir</c></dt>
+<dd>
+\anchor with-perf-model-dir
+\addindex __configure__--with-perf-model-dir
+Store performance models under <c>dir</c>, instead of the current user's
+home.
+</dd>
+
+<dt>--with-goto-dir=<c>prefix</c></dt>
+<dd>
+\anchor with-goto-dir
+\addindex __configure__--with-goto-dir
+Search for GotoBLAS under <c>prefix</c>, which should notably contain
+<c>libgoto.so</c> or <c>libgoto2.so</c>.
+</dd>
+
+<dt>--with-atlas-dir=<c>prefix</c></dt>
+<dd>
+\anchor with-atlas-dir
+\addindex __configure__--with-atlas-dir
+Search for ATLAS under <c>prefix</c>, which should notably contain
+<c>include/cblas.h</c>.
+</dd>
+
+<dt>--with-mkl-cflags=<c>cflags</c></dt>
+<dd>
+\anchor with-mkl-cflags
+\addindex __configure__--with-mkl-cflags
+Use <c>cflags</c> to compile code that uses the MKL library.
+</dd>
+
+<dt>--with-mkl-ldflags=<c>ldflags</c></dt>
+<dd>
+\anchor with-mkl-ldflags
+\addindex __configure__--with-mkl-ldflags
+Use <c>ldflags</c> when linking code that uses the MKL library.  Note
+that the MKL website
+(http://software.intel.com/en-us/articles/intel-mkl-link-line-advisor/)
+provides a script to determine the linking flags.
+</dd>
+
+<dt>--disable-build-examples</dt>
+<dd>
+\anchor disable-build-examples
+\addindex __configure__--disable-build-examples
+Disable the build of examples.
+</dd>
+
+
+<dt>--enable-sc-hypervisor</dt>
+<dd>
+\anchor enable-sc-hypervisor
+\addindex __configure__--enable-sc-hypervisor
+Enable the Scheduling Context Hypervisor plugin(\ref Scheduling_Context_Hypervisor).
+By default, it is disabled.
+</dd>
+
+<dt>--enable-memory-stats</dt>
+<dd>
+\anchor enable-memory-stats
+\addindex __configure__--enable-memory-stats
+Enable memory statistics (\ref Memory_feedback).
+</dd>
+
+<dt>--enable-simgrid</dt>
+<dd>
+\anchor enable-simgrid
+\addindex __configure__--enable-simgrid
+Enable simulation of execution in simgrid, to allow easy experimentation with
+various numbers of cores and GPUs, or amount of memory, etc. Experimental.
+
+The path to simgrid can be specified through the <c>SIMGRID_CFLAGS</c> and
+<c>SIMGRID_LIBS</c> environment variables, for instance:
+
+\verbatim
+export SIMGRID_CFLAGS="-I/usr/local/simgrid/include"
+export SIMGRID_LIBS="-L/usr/local/simgrid/lib -lsimgrid"
+\endverbatim
+
+</dd>
+
+</dl>
+
+*/

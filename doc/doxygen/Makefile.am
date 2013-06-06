@@ -37,6 +37,8 @@ chapters =	\
 	chapters/scheduling_contexts.doxy \
 	chapters/socl_opencl_extensions.doxy \
 	chapters/tips_and_tricks.doxy \
+	chapters/environment_variables.doxy \
+	chapters/configure_options.doxy \
 	chapters/hello_pragma2.c \
 	chapters/hello_pragma.c \
 	chapters/api/codelet_and_tasks.doxy \
@@ -82,7 +84,7 @@ chapters/version.sty: $(chapters)
 		LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month 2>/dev/null;\
 	fi
 	@if test -s timestamp_updated ; then \
-		echo "\newcommand{\STARPUUPDATED}{" `cat timestamp_updated` "}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
+		echo "\newcommand{\STARPUUPDATED}{"`cat timestamp_updated`"}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	else \
 		echo "\newcommand{\STARPUUPDATED}{unknown_date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	fi
@@ -141,6 +143,8 @@ $(DOX_PDF): $(DOX_TAG)
 	cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_DIR)
 	cd $(DOX_LATEX_DIR); \
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
+	sed -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//'  EnvironmentVariables.tex ;\
+	sed -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//'  ConfigureOptions.tex ;\
 	$(PDFLATEX) refman.tex; \
 	$(MAKEINDEX) refman.idx;\
 	$(PDFLATEX) refman.tex; \
