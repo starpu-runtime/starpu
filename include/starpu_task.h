@@ -40,7 +40,6 @@ extern "C"
 #define STARPU_MIC	((1ULL)<<7)
 #define STARPU_SCC	((1ULL)<<8)
 
-/* Codelet types */
 enum starpu_codelet_type
 {
 	STARPU_SEQ,
@@ -48,7 +47,6 @@ enum starpu_codelet_type
 	STARPU_FORKJOIN
 };
 
-/* task status */
 enum starpu_task_status
 {
 	STARPU_TASK_INVALID,
@@ -64,11 +62,11 @@ enum starpu_task_status
 
 typedef uint64_t starpu_tag_t;
 
-typedef void (*starpu_cpu_func_t)(void **, void*);    /* CPU core */
-typedef void (*starpu_cuda_func_t)(void **, void*);   /* NVIDIA CUDA device */
-typedef void (*starpu_opencl_func_t)(void **, void*); /* OpenCL CUDA device */
-typedef void (*starpu_mic_kernel_t)(void **, void*); /* MIC device */
-typedef void (*starpu_scc_kernel_t)(void **, void*); /* SCC device */
+typedef void (*starpu_cpu_func_t)(void **, void*);
+typedef void (*starpu_cuda_func_t)(void **, void*);
+typedef void (*starpu_opencl_func_t)(void **, void*);
+typedef void (*starpu_mic_kernel_t)(void **, void*);
+typedef void (*starpu_scc_kernel_t)(void **, void*);
 
 typedef starpu_mic_kernel_t (*starpu_mic_func_t)(void);
 typedef starpu_scc_kernel_t (*starpu_scc_func_t)(void);

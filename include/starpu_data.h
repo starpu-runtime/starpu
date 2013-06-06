@@ -94,11 +94,7 @@ enum starpu_node_kind
 	STARPU_CUDA_RAM   = 0x02,
 	STARPU_OPENCL_RAM = 0x03,
 	STARPU_MIC_RAM    = 0x05,
-
-	/* This node kind is not used anymore, but implementations in interfaces
-	 * will be useful for MPI. */
 	STARPU_SCC_RAM    = 0x06,
-
 	STARPU_SCC_SHM    = 0x07
 };
 

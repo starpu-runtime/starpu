@@ -33,12 +33,12 @@ extern "C"
 
 enum starpu_worker_archtype
 {
-	STARPU_ANY_WORKER,    /* any worker, used in the hypervisor */
-	STARPU_CPU_WORKER,    /* CPU core */
-	STARPU_CUDA_WORKER,   /* NVIDIA CUDA device */
-	STARPU_OPENCL_WORKER, /* OpenCL device */
-	STARPU_MIC_WORKER,    /* Intel MIC device */
-	STARPU_SCC_WORKER     /* Intel SCC device */
+	STARPU_ANY_WORKER,
+	STARPU_CPU_WORKER,
+	STARPU_CUDA_WORKER,
+	STARPU_OPENCL_WORKER,
+	STARPU_MIC_WORKER,
+	STARPU_SCC_WORKER
 };
 
 struct starpu_sched_ctx_iterator
@@ -46,7 +46,6 @@ struct starpu_sched_ctx_iterator
 	int cursor;
 };
 
-/* types of structures the worker collection can implement */
 enum starpu_worker_collection_type
 {
 	STARPU_WORKER_LIST
@@ -54,30 +53,18 @@ enum starpu_worker_collection_type
 
 struct starpu_worker_collection
 {
-	/* hidden data structure used to memorize the workers */
 	void *workerids;
-	/* the number of workers in the collection */
 	unsigned nworkers;
-	/* the type of structure */
 	enum starpu_worker_collection_type type;
-	/* checks if there is another element in collection */
 	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
-	/* return the next element in the collection */
 	int (*get_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
-	/* add a new element in the collection */
 	int (*add)(struct starpu_worker_collection *workers, int worker);
-	/* remove an element from the collection */
 	int (*remove)(struct starpu_worker_collection *workers, int worker);
-	/* initialize the structure */
 	void (*init)(struct starpu_worker_collection *workers);
-	/* free the structure */
 	void (*deinit)(struct starpu_worker_collection *workers);
-	/* initialize the cursor if there is one */
 	void (*init_iterator)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 };
 
-/* This function returns the number of workers (ie. processing units executing
- * StarPU tasks). The returned value should be at most STARPU_NMAXWORKERS. */
 unsigned starpu_worker_get_count(void);
 unsigned starpu_combined_worker_get_count(void);
 unsigned starpu_worker_is_combined_worker(int id);
