@@ -135,6 +135,8 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 	unsigned cnt;
 	int ret;
 
+	STARPU_ASSERT(dst_node != src_node);
+
 	if (handle->nchildren == 0)
 	{
 		struct _starpu_data_replicate *src_replicate = &handle->per_node[src_node];
@@ -348,25 +350,37 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 		/* check if they are all "free" */
 		if (may_free_subtree(handle, node))
 		{
-			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
+			int target = -1;
 
-#ifdef STARPU_MEMORY_STATS
-			if (handle->per_node[node].state == STARPU_OWNER)
-				_starpu_memory_handle_stats_invalidated(handle, node);
-			/* else XXX Considering only owner to invalidate */
-#endif
+			/* XXX Considering only owner to invalidate */
+
+			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
-			transfer_subtree_to_node(handle, node, handle->home_node != -1 ? handle->home_node : 0);
+			if (handle->home_node != -1)
+				target = handle->home_node;
+			else
+				/* NULL-registered data, push to RAM if it's not what we are flushing */
+				if (node != 0)
+					target = 0;
 
+			if (target != -1) {
 #ifdef STARPU_MEMORY_STATS
-			_starpu_memory_handle_stats_loaded_owner(handle, 0);
+				if (handle->per_node[node].state == STARPU_OWNER)
+					_starpu_memory_handle_stats_invalidated(handle, node);
 #endif
-			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 
-			/* now the actual buffer may be freed */
-			freed = do_free_mem_chunk(mc, node);
+				transfer_subtree_to_node(handle, node, target);
+#ifdef STARPU_MEMORY_STATS
+				_starpu_memory_handle_stats_loaded_owner(handle, target);
+#endif
+
+				STARPU_ASSERT(handle->per_node[node].refcnt == 0);
+
+				/* now the actual buffer may be freed */
+				freed = do_free_mem_chunk(mc, node);
+			}
 		}
 
 		/* unlock the leafs */
