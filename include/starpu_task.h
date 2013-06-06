@@ -91,8 +91,8 @@ struct starpu_codelet
 	int max_parallelism;
 
 	/* the different implementations of the codelet */
-	starpu_cuda_func_t cuda_func STARPU_DEPRECATED;
 	starpu_cpu_func_t cpu_func STARPU_DEPRECATED;
+	starpu_cuda_func_t cuda_func STARPU_DEPRECATED;
 	starpu_opencl_func_t opencl_func STARPU_DEPRECATED;
 
 	starpu_cpu_func_t cpu_funcs[STARPU_MAXIMPLEMENTATIONS];
