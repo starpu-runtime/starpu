@@ -358,7 +358,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
-			transfer_subtree_to_node(handle, node, 0);
+			transfer_subtree_to_node(handle, node, handle->home_node != -1 ? handle->home_node : 0);
 
 #ifdef STARPU_MEMORY_STATS
 			_starpu_memory_handle_stats_loaded_owner(handle, 0);
