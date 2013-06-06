@@ -1,0 +1,553 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup Codelet_And_Tasks Codelet And Tasks
+
+\brief This section describes the interface to manipulate codelets and tasks.
+
+\def STARPU_CPU
+\ingroup Codelet_And_Tasks
+\brief This macro is used when setting the field starpu_codelet::where
+to specify the codelet may be executed on a CPU processing unit.
+
+\def STARPU_CUDA
+\ingroup Codelet_And_Tasks
+\brief This macro is used when setting the field starpu_codelet::where
+to specify the codelet may be executed on a CUDA processing unit.
+
+\def STARPU_OPENCL
+\ingroup Codelet_And_Tasks
+\brief This macro is used when setting the field starpu_codelet::where to
+specify the codelet may be executed on a OpenCL processing unit.
+
+\def STARPU_MULTIPLE_CPU_IMPLEMENTATIONS
+\deprecated
+\ingroup Codelet_And_Tasks
+\brief Setting the field starpu_codelet::cpu_func with this macro
+indicates the codelet will have several implementations. The use of
+this macro is deprecated. One should always only define the field
+starpu_codelet::cpu_funcs.
+
+\def STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS
+\deprecated
+\ingroup Codelet_And_Tasks
+\brief Setting the field starpu_codelet::cuda_func with this macro
+indicates the codelet will have several implementations. The use of
+this macro is deprecated. One should always only define the field
+starpu_codelet::cuda_funcs.
+
+\def STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS
+\deprecated
+\ingroup Codelet_And_Tasks
+\brief Setting the field starpu_codelet::opencl_func with
+this macro indicates the codelet will have several implementations.
+The use of this macro is deprecated. One should always only define the
+field starpu_codelet::opencl_funcs.
+
+\struct starpu_codelet
+\brief The codelet structure describes a kernel that is possibly
+implemented on various targets. For compatibility, make sure to
+initialize the whole structure to zero, either by using explicit
+memset, or the function starpu_codelet_init(), or by letting the
+compiler implicitly do it in e.g. static storage case.
+\ingroup Codelet_And_Tasks
+\var starpu_codelet::where.
+Optional field to indicate which types of processing units are able to
+execute the codelet. The different values ::STARPU_CPU, ::STARPU_CUDA,
+::STARPU_OPENCL can be combined to specify on which types of processing
+units the codelet can be executed. ::STARPU_CPU|::STARPU_CUDA for instance
+indicates that the codelet is implemented for both CPU cores and CUDA
+devices while ::STARPU_OPENCL indicates that it is only available on
+OpenCL devices. If the field is unset, its value will be automatically
+set based on the availability of the XXX_funcs fields defined below.
+
+\var starpu_codelet::can_execute
+Define a function which should return 1 if the worker designated by
+workerid can execute the <c>nimpl</c>th implementation of the given
+task, 0 otherwise.
+
+\var starpu_codelet::type
+Optional field to specify the type of the codelet. The default is
+::STARPU_SEQ, i.e. usual sequential implementation. Other values
+(::STARPU_SPMD or ::STARPU_FORKJOIN declare that a parallel implementation
+is also available. See \ref Parallel_Tasks for details.
+
+\var starpu_codelet::max_parallelism
+Optional field. If a parallel implementation is available, this
+denotes the maximum combined worker size that StarPU will use to
+execute parallel tasks for this codelet.
+
+\var starpu_codelet::cpu_func
+\deprecated
+Optional field which has been made deprecated. One should use instead
+the field starpu_codelet::cpu_funcs.
+
+\var starpu_codelet::cuda_func
+\deprecated
+Optional field which has been made deprecated. One should use instead
+the starpu_codelet::cuda_funcs field.
+
+\var starpu_codelet::opencl_func
+\deprecated
+Optional field which has been made deprecated. One should use instead
+the starpu_codelet::opencl_funcs field.
+
+\var starpu_codelet::cpu_funcs
+Optional array of function pointers to the CPU implementations of the
+codelet. It must be terminated by a NULL value. The functions
+prototype must be:
+\code{.c}
+void cpu_func(void *buffers[], void *cl_arg)
+\endcode
+The first argument being the array of data managed by the data
+management library, and the second argument is a pointer to the
+argument passed from the field starpu_task::cl_arg. If the field
+starpu_codelet::where is set, then the field starpu_codelet::cpu_funcs
+is ignored if ::STARPU_CPU does not appear in the field
+starpu_codelet::where, it must be non-null otherwise.
+
+\var starpu_codelet::cuda_funcs
+Optional array of function pointers to the CUDA implementations of the
+codelet. It must be terminated by a NULL value. The functions must be
+host-functions written in the CUDA runtime API. Their prototype must
+be:
+\code{.c}
+void cuda_func(void *buffers[], void *cl_arg)
+\endcode
+If the field starpu_codelet::where is set, then the field
+starpu_codelet::cuda_funcs is ignored if ::STARPU_CUDA does not appear
+in the field starpu_codelet::where, it must be non-null otherwise.
+
+\var starpu_codelet::opencl_funcs
+Optional array of function pointers to the OpenCL implementations of
+the codelet. It must be terminated by a NULL value. The functions
+prototype must be:
+\code{.c}
+void opencl_func(void *buffers[], void *cl_arg)
+\endcode
+If the field starpu_codelet::where field is set, then the field
+starpu_codelet::opencl_funcs is ignored if ::STARPU_OPENCL does not
+appear in the field starpu_codelet::where, it must be non-null
+otherwise.
+
+\var starpu_codelet::nbuffers
+Specify the number of arguments taken by the codelet. These arguments
+are managed by the DSM and are accessed from the <c>void *buffers[]</c>
+array. The constant argument passed with the field starpu_task::cl_arg
+is not counted in this number. This value should not be above
+STARPU_NMAXBUFS.
+
+\var starpu_codelet::modes
+Is an array of ::starpu_data_access_mode. It describes the required
+access modes to the data neeeded by the codelet (e.g. ::STARPU_RW). The
+number of entries in this array must be specified in the field
+starpu_codelet::nbuffers, and should not exceed STARPU_NMAXBUFS. If
+unsufficient, this value can be set with the <c>--enable-maxbuffers</c>
+option when configuring StarPU.
+
+\var starpu_codelet::dyn_modes
+Is an array of ::starpu_data_access_mode. It describes the required
+access modes to the data neeeded by the codelet (e.g. ::STARPU_RW).
+The number of entries in this array must be specified in the field
+starpu_codelet::nbuffers. This field should be used for codelets having a
+number of datas greater than STARPU_NMAXBUFS (see \ref
+Setting_the_Data_Handles_for_a_Task). When defining a codelet, one
+should either define this field or the field starpu_codelet::modes defined above.
+
+\var starpu_codelet::model
+Optional pointer to the task duration performance model associated to
+this codelet. This optional field is ignored when set to <c>NULL</c> or when
+its field starpu_perfmodel::symbol is not set.
+
+\var starpu_codelet::power_model
+Optional pointer to the task power consumption performance model
+associated to this codelet. This optional field is ignored when set to
+<c>NULL or when its field starpu_perfmodel::field is not set. In the
+case of parallel codelets, this has to account for all processing
+units involved in the parallel execution.
+
+\var starpu_codelet::per_worker_stats
+Optional array for statistics collected at runtime: this is filled by
+StarPU and should not be accessed directly, but for example by calling
+the function starpu_codelet_display_stats() (See
+starpu_codelet_display_stats() for details).
+
+\var starpu_codelet::name
+Optional name of the codelet. This can be useful for debugging
+purposes.
+
+\fn void starpu_codelet_init(struct starpu_codelet *cl)
+\ingroup Codelet_And_Tasks
+\brief Initialize \p cl with default values. Codelets should
+preferably be initialized statically as shown in \ref
+Defining_a_Codelet. However such a initialisation is not always
+possible, e.g. when using C++.
+
+\struct starpu_data_descr
+\ingroup Codelet_And_Tasks
+\brief This type is used to describe a data handle along with an
+access mode.
+\var starpu_data_descr::handle
+describes a data
+\var starpu_data_descr::mode
+describes its access mode
+
+\struct starpu_task
+\ingroup Codelet_And_Tasks
+\brief The structure describes a task that can be offloaded on the
+various processing units managed by StarPU. It instantiates a codelet.
+It can either be allocated dynamically with the function
+starpu_task_create(), or declared statically. In the latter case, the
+programmer has to zero the structure starpu_task and to fill the
+different fields properly. The indicated default values correspond to
+the configuration of a task allocated with starpu_task_create().
+\var starpu_task::cl
+Is a pointer to the corresponding structure starpu_codelet. This
+describes where the kernel should be executed, and supplies the
+appropriate implementations. When set to NULL, no code is executed
+during the tasks, such empty tasks can be useful for synchronization
+purposes.
+\var starpu_task::buffers
+\deprecated
+This field has been made deprecated. One should use instead the
+field starpu_task::handles to specify the data handles accessed
+by the task. The access modes are now defined in the field
+starpu_codelet::mode.
+\var starpu_task::handles
+Is an array of starpu_data_handle_t. It specifies the handles to the
+different pieces of data accessed by the task. The number of entries
+in this array must be specified in the field starpu_codelet::nbuffers,
+and should not exceed STARPU_NMAXBUFS. If unsufficient, this value can
+be set with the option <c>--enable-maxbuffers</c> when configuring
+StarPU.
+\var starpu_task::dyn_handles
+Is an array of starpu_data_handle_t. It specifies the handles to the
+different pieces of data accessed by the task. The number of entries
+in this array must be specified in the field starpu_codelet::nbuffers.
+This field should be used for tasks having a number of datas greater
+than STARPU_NMAXBUFS (see \ref Setting_the_Data_Handles_for_a_Task).
+When defining a task, one should either define this field or the field
+starpu_task::handles defined above.
+
+\var starpu_task::interfaces
+The actual data pointers to the memory node where execution will
+happen, managed by the DSM.
+
+\var starpu_task::dyn_interfaces
+The actual data pointers to the memory node where execution will
+happen, managed by the DSM. Is used when the field
+starpu_task::dyn_handles is defined.
+
+\var starpu_task::cl_arg
+Optional pointer which is passed to the codelet through the second
+argument of the codelet implementation (e.g. starpu_codelet::cpu_func
+or starpu_codelet::cuda_func). The default value is <c>NULL</c>.
+
+\var starpu_task::cl_arg_size
+Optional field. For some specific drivers, the pointer
+starpu_task::cl_arg cannot not be directly given to the driver
+function. A buffer of size starpu_task::cl_arg_size needs to be
+allocated on the driver. This buffer is then filled with the
+starpu_task::cl_arg_size bytes starting at address
+starpu_task::cl_arg. In this case, the argument given to the codelet
+is therefore not the starpu_task::cl_arg pointer, but the address of
+the buffer in local store (LS) instead. This field is ignored for CPU,
+CUDA and OpenCL codelets, where the starpu_task::cl_arg pointer is
+given as such.
+
+\var starpu_task::callback_func
+Optional field, the default value is <c>NULL</c>. This is a function
+pointer of prototype <c>void (*f)(void *)</c> which specifies a
+possible callback. If this pointer is non-null, the callback function
+is executed on the host after the execution of the task. Tasks which
+depend on it might already be executing. The callback is passed the
+value contained in the starpu_task::callback_arg field. No callback is
+executed if the field is set to NULL.
+
+\var starpu_task::callback_arg (optional) (default: NULL)
+Optional field, the default value is <c>NULL</c>. This is the pointer
+passed to the callback function. This field is ignored if the
+callback_func is set to <c>NULL</c>.
+
+\var starpu_task::use_tag
+Optional field, the default value is 0. If set, this flag indicates
+that the task should be associated with the tag contained in the
+starpu_task::tag_id field. Tag allow the application to synchronize
+with the task and to express task dependencies easily. 
+
+\var starpu_task::tag_id
+This optional field contains the tag associated to the task if the
+field starpu_task::use_tag is set, it is ignored otherwise.
+
+\var starpu_task::sequential_consistency
+If this flag is set (which is the default), sequential consistency is
+enforced for the data parameters of this task for which sequential
+consistency is enabled. Clearing this flag permits to disable
+sequential consistency for this task, even if data have it enabled.
+
+\var starpu_task::synchronous
+If this flag is set, the function starpu_task_submit() is blocking and
+returns only when the task has been executed (or if no worker is able
+to process the task). Otherwise, starpu_task_submit() returns
+immediately.
+
+\var starpu_task::priority
+Optional field, the default value is STARPU_DEFAULT_PRIO. This field
+indicates a level of priority for the task. This is an integer value
+that must be set between the return values of the function
+starpu_sched_get_min_priority() for the least important tasks, and
+that of the function starpu_sched_get_max_priority() for the most
+important tasks (included). The STARPU_MIN_PRIO and STARPU_MAX_PRIO
+macros are provided for convenience and respectively returns the value
+of starpu_sched_get_min_priority() and
+starpu_sched_get_max_priority(). Default priority is
+STARPU_DEFAULT_PRIO, which is always defined as 0 in order to allow
+static task initialization. Scheduling strategies that take priorities
+into account can use this parameter to take better scheduling
+decisions, but the scheduling policy may also ignore it.
+
+\var starpu_task::execute_on_a_specific_worker
+Default value is 0. If this flag is set, StarPU will bypass the
+scheduler and directly affect this task to the worker specified by the
+field starpu_task::workerid.
+
+\var starpu_task::workerid
+Optional field. If the field starpu_task::execute_on_a_specific_worker
+is set, this field indicates the identifier of the worker that should
+process this task (as returned by starpu_worker_get_id()). This field
+is ignored if the field starpu_task::execute_on_a_specific_worker is
+set to 0.
+
+\var starpu_task::bundle
+Optional field. The bundle that includes this task. If no bundle is
+used, this should be NULL.
+
+\var starpu_task::detach
+Optional field, default value is 1. If this flag is set, it is not
+possible to synchronize with the task by the means of starpu_task_wait()
+later on. Internal data structures are only guaranteed to be freed
+once starpu_task_wait() is called if the flag is not set.
+
+\var starpu_task::destroy
+Optional value. Default value is 0 for starpu_task_init(), and 1 for
+starpu_task_create(). If this flag is set, the task structure will
+automatically be freed, either after the execution of the callback if
+the task is detached, or during starpu_task_wait() otherwise. If this
+flag is not set, dynamically allocated data structures will not be
+freed until starpu_task_destroy() is called explicitly. Setting this
+flag for a statically allocated task structure will result in
+undefined behaviour. The flag is set to 1 when the task is created by
+calling starpu_task_create(). Note that starpu_task_wait_for_all()
+will not free any task.
+
+\var starpu_task::regenerate
+Optional field. If this flag is set, the task will be re-submitted to
+StarPU once it has been executed. This flag must not be set if the
+destroy flag is set.
+
+\var starpu_task::status
+Optional field. Current state of the task.
+
+\var starpu_task::profiling_info
+Optional field. Profiling information for the task.
+
+\var starpu_task::predicted
+Output field. Predicted duration of the task. This field is only set
+if the scheduling strategy used performance models.
+
+\var starpu_task::predicted_transfer
+Optional field. Predicted data transfer duration for the task in
+microseconds. This field is only valid if the scheduling strategy uses
+performance models.
+
+\var starpu_task::prev
+\private
+A pointer to the previous task. This should only be used by StarPU.
+
+\var starpu_task::next
+\private
+A pointer to the next task. This should only be used by StarPU.
+
+\var starpu_task::mf_skip
+\private
+This is only used for tasks that use multiformat handle. This should
+only be used by StarPU.
+
+\var starpu_task::flops
+This can be set to the number of floating points operations that the
+task will have to achieve. This is useful for easily getting GFlops
+curves from starpu_perfmodel_plot(), and for the hypervisor load
+balancing.
+
+\var starpu_task::starpu_private
+\private
+This is private to StarPU, do not modify. If the task is allocated by
+hand (without starpu_task_create()), this field should be set to NULL.
+
+\var starpu_task::magic
+\private
+This field is set when initializing a task. It prevents a task from
+being submitted if it has not been properly initialized.
+
+\fn void starpu_task_init(struct starpu_task *task)
+\ingroup Codelet_And_Tasks
+\brief Initialize task with default values. This function is
+implicitly called by starpu_task_create(). By default, tasks initialized
+with starpu_task_init() must be deinitialized explicitly with
+starpu_task_clean(). Tasks can also be initialized statically, using
+STARPU_TASK_INITIALIZER.
+
+\def STARPU_TASK_INITIALIZER
+\ingroup Codelet_And_Tasks
+\brief It is possible to initialize statically allocated tasks with
+this value. This is equivalent to initializing a structure starpu_task
+with the function starpu_task_init() function.
+
+\def STARPU_TASK_GET_HANDLE(struct starpu_task *task, int i)
+\ingroup Codelet_And_Tasks
+\brief Return the \p i th data handle of the given task. If the task
+is defined with a static or dynamic number of handles, will either
+return the \p i th element of the field starpu_task::handles or the \p
+i th element of the field starpu_task::dyn_handles (see \ref
+Setting_the_Data_Handles_for_a_Task)
+
+\def STARPU_TASK_SET_HANDLE(struct starpu_task *task, starpu_data_handle_t handle, int i)
+\ingroup Codelet_And_Tasks
+\brief Set the \p i th data handle of the given task with the given
+dat handle. If the task is defined with a static or dynamic number of
+handles, will either set the \p i th element of the field
+starpu_task::handles or the \p i th element of the field
+starpu_task::dyn_handles (see \ref
+Setting_the_Data_Handles_for_a_Task)
+
+\def STARPU_CODELET_GET_MODE(struct starpu_codelet *codelet, int i)
+\ingroup Codelet_And_Tasks
+\brief Return the access mode of the \p i th data handle of the given
+codelet. If the codelet is defined with a static or dynamic number of
+handles, will either return the \p i th element of the field
+starpu_codelet::modes or the \p i th element of the field
+starpu_codelet::dyn_modes (see \ref
+Setting_the_Data_Handles_for_a_Task)
+
+\def STARPU_CODELET_SET_MODE(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, int i)
+\ingroup Codelet_And_Tasks
+\brief Set the access mode of the \p i th data handle of the given
+codelet. If the codelet is defined with a static or dynamic number of
+handles, will either set the \p i th element of the field
+starpu_codelet::modes or the \p i th element of the field
+starpu_codelet::dyn_modes (see \ref
+Setting_the_Data_Handles_for_a_Task)
+
+\fn struct starpu_task * starpu_task_create(void)
+\ingroup Codelet_And_Tasks
+\brief Allocate a task structure and initialize it with default
+values. Tasks allocated dynamically with starpu_task_create() are
+automatically freed when the task is terminated. This means that the
+task pointer can not be used any more once the task is submitted,
+since it can be executed at any time (unless dependencies make it
+wait) and thus freed at any time. If the field starpu_task::destroy is
+explicitly unset, the resources used by the task have to be freed by
+calling starpu_task_destroy().
+
+\fn struct starpu_task * starpu_task_dup(struct starpu_task *task)
+\ingroup Codelet_And_Tasks
+\brief Allocate a task structure which is the exact duplicate of the
+given task.
+
+\fn void starpu_task_clean(struct starpu_task *task)
+\ingroup Codelet_And_Tasks
+\brief Release all the structures automatically allocated to execute
+task, but not the task structure itself and values set by the user
+remain unchanged. It is thus useful for statically allocated tasks for
+instance. It is also useful when users want to execute the same
+operation several times with as least overhead as possible. It is
+called automatically by starpu_task_destroy(). It has to be called
+only after explicitly waiting for the task or after starpu_shutdown()
+(waiting for the callback is not enough, since StarPU still
+manipulates the task after calling the callback).
+
+\fn void starpu_task_destroy(struct starpu_task *task)
+\ingroup Codelet_And_Tasks
+\brief Free the resource allocated during starpu_task_create() and
+associated with task. This function is already called automatically
+after the execution of a task when the field starpu_task::destroy is
+set, which is the default for tasks created by starpu_task_create().
+Calling this function on a statically allocated task results in an
+undefined behaviour.
+
+\fn int starpu_task_wait(struct starpu_task *task)
+\ingroup Codelet_And_Tasks
+\brief This function blocks until \p task has been executed. It is not
+possible to synchronize with a task more than once. It is not possible
+to wait for synchronous or detached tasks. Upon successful completion,
+this function returns 0. Otherwise, <c>-EINVAL</c> indicates that the
+specified task was either synchronous or detached. 
+
+\fn int starpu_task_submit(struct starpu_task *task)
+\ingroup Codelet_And_Tasks
+\brief This function submits task to StarPU. Calling this function
+does not mean that the task will be executed immediately as there can
+be data or task (tag) dependencies that are not fulfilled yet: StarPU
+will take care of scheduling this task with respect to such
+dependencies. This function returns immediately if the field
+starpu_task::synchronous is set to 0, and block until the
+termination of the task otherwise. It is also possible to synchronize
+the application with asynchronous tasks by the means of tags, using
+the function starpu_tag_wait() function for instance. In case of
+success, this function returns 0, a return value of <c>-ENODEV</c>
+means that there is no worker able to process this task (e.g. there is
+no GPU available and this task is only implemented for CUDA devices).
+starpu_task_submit() can be called from anywhere, including codelet
+functions and callbacks, provided that the field
+starpu_task::synchronous is set to 0.
+
+\fn int starpu_task_wait_for_all(void)
+\ingroup Codelet_And_Tasks
+\brief This function blocks until all the tasks that were submitted
+are terminated. It does not destroy these tasks. 
+
+\fn int starpu_task_nready(void)
+\ingroup Codelet_And_Tasks
+\brief TODO
+
+\brief int starpu_task_nsubmitted(void)
+\ingroup Codelet_And_Tasks
+Return the number of submitted tasks which have not completed yet. 
+
+\fn int starpu_task_nready(void)
+\ingroup Codelet_And_Tasks
+\brief Return the number of submitted tasks which are ready for
+execution are already executing. It thus does not include tasks
+waiting for dependencies. 
+
+\fn struct starpu_task * starpu_task_get_current(void)
+\ingroup Codelet_And_Tasks
+\brief This function returns the task currently executed by the
+worker, or <c>NULL</c> if it is called either from a thread that is not a
+task or simply because there is no task being executed at the moment. 
+
+\fn void starpu_codelet_display_stats(struct starpu_codelet *cl)
+\ingroup Codelet_And_Tasks
+\brief Output on stderr some statistics on the codelet \p cl.
+
+\fn int starpu_task_wait_for_no_ready(void)
+\ingroup Codelet_And_Tasks
+\brief This function waits until there is no more ready task. 
+
+\fn void starpu_task_set_implementation(struct starpu_task *task, unsigned impl)
+\ingroup Codelet_And_Tasks
+\brief This function should be called by schedulers to specify the
+codelet implementation to be executed when executing the task. 
+
+\fn unsigned starpu_task_get_implementation(struct starpu_task *task)
+\ingroup Codelet_And_Tasks
+\brief This function return the codelet implementation to be executed
+when executing the task.
+
+
+*/

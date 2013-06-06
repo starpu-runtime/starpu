@@ -1,0 +1,71 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page fftSupport StarPU FFT Support
+
+StarPU provides <c>libstarpufft</c>, a library whose design is very similar to
+both fftw and cufft, the difference being that it takes benefit from both CPUs
+and GPUs. It should however be noted that GPUs do not have the same precision as
+CPUs, so the results may different by a negligible amount.
+
+Different precisions are available, namely float, double and long
+double precisions, with the following fftw naming conventions:
+
+<ul>
+<li>
+double precision structures and functions are named e.g. starpufft_execute()
+</li>
+<li>
+float precision structures and functions are named e.g. starpufftf_execute()
+</li>
+<li>
+long double precision structures and functions are named e.g. starpufftl_execute()
+</li>
+</ul>
+
+The documentation below is given with names for double precision, replace
+<c>starpufft_</c> with <c>starpufftf_</c> or <c>starpufftl_</c> as appropriate.
+
+Only complex numbers are supported at the moment.
+
+The application has to call starpu_init() before calling starpufft functions.
+
+Either main memory pointers or data handles can be provided.
+
+<ul>
+<li>
+To provide main memory pointers, use starpufft_start() or
+starpufft_execute(). Only one FFT can be performed at a time, because
+StarPU will have to register the data on the fly. In the starpufft_start()
+case, starpufft_cleanup() needs to be called to unregister the data.
+</li>
+<li>
+To provide data handles (which is preferrable),
+use starpufft_start_handle() (preferred) or
+starpufft_execute_handle(). Several FFTs Several FFT tasks can be submitted
+for a given plan, which permits e.g. to start a series of FFT with just one
+plan. starpufft_start_handle() is preferrable since it does not wait for
+the task completion, and thus permits to enqueue a series of tasks.
+</li>
+</ul>
+
+All functions are defined in @ref{FFT Support}.
+
+\section Compilation Compilation
+
+The flags required to compile or link against the FFT library are accessible
+with the following commands:
+
+\verbatim
+$ pkg-config --cflags starpufft-1.0  # options for the compiler
+$ pkg-config --libs starpufft-1.0    # options for the linker
+\endverbatim
+
+Also pass the <c>--static</c> option if the application is to be linked statically.
+
+*/
