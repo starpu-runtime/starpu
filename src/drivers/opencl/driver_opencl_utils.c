@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -271,7 +271,7 @@ int _starpu_opencl_compile_or_load_opencl_from_string(const char *opencl_program
 		// Create the compute program from the source buffer
 		program = clCreateProgramWithSource(context, 1, (const char **) &opencl_program_source, NULL, &err);
 		if (!program || err != CL_SUCCESS) {
-			_STARPU_DISP("Error: Failed to load program source!\n");
+			_STARPU_DISP("Error: Failed to load program source with options %s!\n", build_options);
 			return EXIT_FAILURE;
 		}
 
