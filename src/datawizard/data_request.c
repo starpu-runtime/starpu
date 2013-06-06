@@ -162,7 +162,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 
 	retval = r->retval;
 	if (retval)
-		_STARPU_DISP("REQUEST %p COMPLETED (retval %d) !\n", r, r->retval);
+		_STARPU_DISP("REQUEST %p completed with retval %d!\n", r, r->retval);
 
 
 	r->refcnt--;
