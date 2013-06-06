@@ -6,62 +6,62 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \defgroup Task_Lists Task Lists
+/*! \defgroup API_Task_Lists Task Lists
 
 \struct starpu_task_list
 \brief Stores a double-chained list of tasks
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 \var starpu_task_list::head
 head of the list
 \var starpu_task_list::tail
 tail of the list
 
 \fn void starpu_task_list_init(struct starpu_task_list *list)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Initialize a list structure
 
 \fn void starpu_task_list_push_front(struct starpu_task_list *list, struct starpu_task *task)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Push \p task at the front of \p list
 
 \fn void starpu_task_list_push_back(struct starpu_task_list *list, struct starpu_task *task)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Push \p task at the back of \p list
 
 \fn struct starpu_task * starpu_task_list_front(struct starpu_task_list *list)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Get the front of \p list (without removing it)
 
 \fn struct starpu_task * starpu_task_list_back(struct starpu_task_list *list)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Get the back of \p list (without removing it)
 
 \fn int starpu_task_list_empty(struct starpu_task_list *list)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Test if \p list is empty
 
 \fn void starpu_task_list_erase(struct starpu_task_list *list, struct starpu_task *task)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Remove \p task from \p list
 
 \fn struct starpu_task * starpu_task_list_pop_front(struct starpu_task_list *list)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Remove the element at the front of \p list
 
 \fn struct starpu_task * starpu_task_list_pop_back(struct starpu_task_list *list)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Remove the element at the back of \p list
 
 \fn struct starpu_task * starpu_task_list_begin(struct starpu_task_list *list)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Get the first task of \p list.
 
 \fn struct starpu_task * starpu_task_list_end(struct starpu_task_list *list)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Get the end of \p list.
 
 \fn struct starpu_task * starpu_task_list_next(struct starpu_task *task)
-\ingroup Task_Lists
+\ingroup API_Task_Lists
 Get the next task of \p list. This is not erase-safe.
 
 */

@@ -6,19 +6,19 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \defgroup Expert_Mode Expert Mode
+/*! \defgroup API_Expert_Mode Expert Mode
 
 \fn void starpu_wake_all_blocked_workers(void)
-\ingroup Expert_Mode
+\ingroup API_Expert_Mode
 Wake all the workers, so they can inspect data requests and task
 submissions again.
 
 \fn int starpu_progression_hook_register(unsigned (*func)(void *arg), void *arg)
-\ingroup Expert_Mode
+\ingroup API_Expert_Mode
 Register a progression hook, to be called when workers are idle.
 
 \fn void starpu_progression_hook_deregister(int hook_id)
-\ingroup Expert_Mode
+\ingroup API_Expert_Mode
 Unregister a given progression hook.
 
 */

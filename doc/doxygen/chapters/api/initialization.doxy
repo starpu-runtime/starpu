@@ -6,11 +6,11 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \defgroup Initialization_and_Termination Initialization and Termination
+/*! \defgroup API_Initialization_and_Termination Initialization and Termination
 
 \struct starpu_driver
 \brief structure for a driver
-\ingroup Initialization_and_Termination
+\ingroup API_Initialization_and_Termination
 \var starpu_driver::type
 The type of the driver. Only STARPU_CPU_DRIVER,
 STARPU_CUDA_DRIVER and STARPU_OPENCL_DRIVER are currently supported.
@@ -19,11 +19,11 @@ The identifier of the driver.
 
 \struct starpu_vector_interface
 \brief vector interface for contiguous (non-strided) buffers
-\ingroup Initialization_and_Termination
+\ingroup API_Initialization_and_Termination
 
 
 \struct starpu_conf
-\ingroup Initialization_and_Termination
+\ingroup API_Initialization_and_Termination
 \brief structure for configuring StarPU.
 
 This structure is passed to the starpu_init() function in order to
@@ -192,7 +192,7 @@ be interesting to specify a bigger value to avoid any
 flushing (which would disturb the trace).
 
 \fn int starpu_init(struct starpu_conf *conf)
-\ingroup Initialization_and_Termination
+\ingroup API_Initialization_and_Termination
 This is StarPU initialization method, which must be called prior to
 any other StarPU call. It is possible to specify StarPU’s
 configuration (e.g. scheduling policy, number of cores, ...) by
@@ -202,13 +202,13 @@ returns 0. Otherwise, -ENODEV indicates that no worker was available
 (so that StarPU was not initialized).
 
 \fn int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
-\ingroup Initialization_and_Termination
+\ingroup API_Initialization_and_Termination
 Alternative initialization method with argc and argv. This is used by
 MIC, MPI, and SCC implementation. Do not call starpu_init() and
 starpu_initialize() in the same program.
 
 \fn int starpu_conf_init(struct starpu_conf *conf)
-\ingroup Initialization_and_Termination
+\ingroup API_Initialization_and_Termination
 This function initializes the conf structure passed as argument with
 the default values. In case some configuration parameters are already
 specified through environment variables, starpu_conf_init initializes
@@ -219,28 +219,28 @@ completion, this function returns 0. Otherwise, -EINVAL indicates that
 the argument was NULL.
 
 \fn void starpu_shutdown(void)
-\ingroup Initialization_and_Termination
+\ingroup API_Initialization_and_Termination
 This is StarPU termination method. It must be called at the end of the
 application: statistics and other post-mortem debugging information
 are not guaranteed to be available until this method has been called.
 
 \fn int starpu_asynchronous_copy_disabled(void)
-\ingroup Initialization_and_Termination
+\ingroup API_Initialization_and_Termination
 Return 1 if asynchronous data transfers between CPU and accelerators
 are disabled.
 
 \fn int starpu_asynchronous_cuda_copy_disabled(void)
-\ingroup Initialization_and_Termination
+\ingroup API_Initialization_and_Termination
 Return 1 if asynchronous data transfers between CPU and CUDA
 accelerators are disabled.
 
 \fn int starpu_asynchronous_opencl_copy_disabled(void)
-\ingroup Initialization_and_Termination
+\ingroup API_Initialization_and_Termination
 Return 1 if asynchronous data transfers between CPU and OpenCL
 accelerators are disabled.
 
 \fn void starpu_topology_print(FILE *f)
-\ingroup Initialization_and_Termination
+\ingroup API_Initialization_and_Termination
 Prints a description of the topology on f.
 
 */

@@ -6,10 +6,10 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \defgroup Running_Drivers Running Drivers
+/*! \defgroup API_Running_Drivers Running Drivers
 
 \fn int starpu_driver_run(struct starpu_driver *d)
-\ingroup Running_Drivers
+\ingroup API_Running_Drivers
 Initialize the given driver, run it until it receives a request to
 terminate, deinitialize it and return 0 on success. It returns
 <c>-EINVAL</c> if <c>d->type</c> is not a valid StarPU device type
@@ -19,21 +19,21 @@ starpu_driver_init(), then calling starpu_driver_run_once() in a loop,
 and eventually starpu_driver_deinit().
 
 \fn int starpu_driver_init(struct starpu_driver *d)
-\ingroup Running_Drivers
+\ingroup API_Running_Drivers
 Initialize the given driver. Returns 0 on success, <c>-EINVAL</c> if
 <c>d->type</c> is not a valid ::starpu_worker_archtype.
 
 \fn int starpu_driver_run_once(struct starpu_driver *d)
-\ingroup Running_Drivers
+\ingroup API_Running_Drivers
 Run the driver once, then returns 0 on success, <c>-EINVAL</c> if <c>d->type</c> is not a valid ::starpu_worker_archtype.
 
 \fn int starpu_driver_deinit(struct starpu_driver *d)
-\ingroup Running Drivers
+\ingroup API_Running_Drivers
 Deinitialize the given driver. Returns 0 on success, <c>-EINVAL</c> if
 <c>d->type</c> is not a valid ::starpu_worker_archtype.
 
 \fn void starpu_drivers_request_termination(void)
-\ingroup Running Drivers
+\ingroup API_Running_Drivers
 Notify all running drivers they should terminate.
 
 */

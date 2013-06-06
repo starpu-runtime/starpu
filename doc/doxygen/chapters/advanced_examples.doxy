@@ -52,8 +52,8 @@ implementations it was given, and pick the one that seems to be the fastest.
 Some implementations may not run on some devices. For instance, some CUDA
 devices do not support double floating point precision, and thus the kernel
 execution would just fail; or the device may not have enough shared memory for
-the implementation being used. The <c>can_execute</c> field of the <c>struct
-starpu_codelet</c> structure permits to express this. For instance:
+the implementation being used. The field starpu_codelet::can_execute
+permits to express this. For instance:
 
 \code{.c}
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
@@ -83,10 +83,11 @@ struct starpu_codelet cl = {
 This can be essential e.g. when running on a machine which mixes various models
 of CUDA devices, to take benefit from the new models without crashing on old models.
 
-Note: the <c>can_execute</c> function is called by the scheduler each time it
-tries to match a task with a worker, and should thus be very fast. The
-starpu_cuda_get_device_properties() provides a quick access to CUDA
-properties of CUDA devices to achieve such efficiency.
+Note: the function starpu_codelet::can_execute is called by the
+scheduler each time it tries to match a task with a worker, and should
+thus be very fast. The function starpu_cuda_get_device_properties()
+provides a quick access to CUDA properties of CUDA devices to achieve
+such efficiency.
 
 Another example is compiling CUDA code for various compute capabilities,
 resulting with two CUDA functions, e.g. <c>scal_gpu_13</c> for compute capability
@@ -208,8 +209,8 @@ starpu_data_filter f =
 starpu_data_partition(handle, &f);
 \endcode
 
-The task submission then uses starpu_data_get_sub_data() to retrieve the
-sub-handles to be passed as tasks parameters.
+The task submission then uses the function starpu_data_get_sub_data()
+to retrieve the sub-handles to be passed as tasks parameters.
 
 \code{.c}
 /* Submit a task on each sub-vector */
@@ -268,17 +269,18 @@ but applications can also write their own data interfaces and filters, see
 
 To achieve good scheduling, StarPU scheduling policies need to be able to
 estimate in advance the duration of a task. This is done by giving to codelets
-a performance model, by defining a <c>starpu_perfmodel</c> structure and
-providing its address in the <c>model</c> field of the <c>struct starpu_codelet</c>
-structure. The <c>symbol</c> and <c>type</c> fields of <c>starpu_perfmodel</c>
-are mandatory, to give a name to the model, and the type of the model, since
-there are several kinds of performance models. For compatibility, make sure to
-initialize the whole structure to zero, either by using explicit memset, or by
-letting the compiler implicitly do it as examplified below.
+a performance model, by defining a structure starpu_perfmodel and
+providing its address in the field starpu_codelet::model. The fields
+starpu_perfmodel::symbol and starpu_perfmodel::type are mandatory, to
+give a name to the model, and the type of the model, since there are
+several kinds of performance models. For compatibility, make sure to
+initialize the whole structure to zero, either by using explicit
+memset(), or by letting the compiler implicitly do it as examplified
+below.
 
 <ul>
 <li>
-Measured at runtime (<c>STARPU_HISTORY_BASED</c> model type). This assumes that for a
+Measured at runtime (model type ::STARPU_HISTORY_BASED). This assumes that for a
 given set of data input/output sizes, the performance will always be about the
 same. This is very true for regular kernels on GPUs for instance (<0.1% error),
 and just a bit less true on CPUs (~=1% error). This also assumes that there are
@@ -287,15 +289,15 @@ the average time of previous executions on the various processing units, and use
 it as an estimation. History is done per task size, by using a hash of the input
 and ouput sizes as an index.
 It will also save it in <c>$STARPU_HOME/.starpu/sampling/codelets</c>
-for further executions, and can be observed by using the
-<c>starpu_perfmodel_display</c> command, or drawn by using
-the <c>starpu_perfmodel_plot</c> (\ref Performance_model_calibration).  The
+for further executions, and can be observed by using the tool
+<c>starpu_perfmodel_display</c>, or drawn by using
+the tool <c>starpu_perfmodel_plot</c> (\ref Performance_model_calibration).  The
 models are indexed by machine name. To
 share the models between machines (e.g. for a homogeneous cluster), use
 <c>export STARPU_HOSTNAME=some_global_name</c>. Measurements are only done
-when using a task scheduler which makes use of it, such as 
+when using a task scheduler which makes use of it, such as
 <c>dmda</c>. Measurements can also be provided explicitly by the application, by
-using the starpu_perfmodel_update_history() function.
+using the function starpu_perfmodel_update_history().
 
 The following is a small code example.
 
@@ -323,16 +325,17 @@ struct starpu_codelet cl = {
 
 </li>
 <li>
-Measured at runtime and refined by regression (<c>STARPU_*REGRESSION_BASED</c>
+Measured at runtime and refined by regression (model types
+::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED)
 model type). This still assumes performance regularity, but works
 with various data input sizes, by applying regression over observed
-execution times. STARPU_REGRESSION_BASED uses an a*n^b regression
-form, STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
-STARPU_REGRESSION_BASED, but costs a lot more to compute).
+execution times. ::STARPU_REGRESSION_BASED uses an a*n^b regression
+form, ::STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
+::STARPU_REGRESSION_BASED, but costs a lot more to compute).
 
 For instance,
 <c>tests/perfmodels/regression_based.c</c> uses a regression-based performance
-model for the <c>memset</c> operation.
+model for the function memset().
 
 Of course, the application has to issue
 tasks with varying size so that the regression can be computed. StarPU will not
@@ -341,11 +344,12 @@ and maximum observed input size. It can be useful to set the
 <c>STARPU_CALIBRATE</c> environment variable to <c>1</c> and run the application
 on varying input sizes with <c>STARPU_SCHED</c> set to <c>eager</c> scheduler,
 so as to feed the performance model for a variety of
-inputs. The application can also provide the measurements explictly by using
-starpu_perfmodel_update_history(). The <c>starpu_perfmodel_display</c> and
-<c>starpu_perfmodel_plot</c>
-tools can be used to observe how much the performance model is calibrated (\ref Performance_model_calibration); when
-their output look good, <c>STARPU_CALIBRATE</c> can be reset to <c>0</c> to let
+inputs. The application can also provide the measurements explictly by
+using the function starpu_perfmodel_update_history(). The tools
+<c>starpu_perfmodel_display</c> and <c>starpu_perfmodel_plot</c> can
+be used to observe how much the performance model is calibrated (\ref
+Performance_model_calibration); when their output look good,
+<c>STARPU_CALIBRATE</c> can be reset to <c>0</c> to let
 StarPU use the resulting performance model without recording new measures, and
 <c>STARPU_SCHED</c> can be set to <c>dmda</c> to benefit from the performance models. If
 the data input sizes vary a lot, it is really important to set
@@ -360,24 +364,26 @@ performance model to perform scheduling, without using regression.
 </li>
 
 <li>
-Provided as an estimation from the application itself (<c>STARPU_COMMON</c> model type and <c>cost_function</c> field),
+Provided as an estimation from the application itself (model type
+::STARPU_COMMON and field starpu_perfmodel::cost_function),
 see for instance
 <c>examples/common/blas_model.h</c> and <c>examples/common/blas_model.c</c>.
 </li>
 
 <li>
-Provided explicitly by the application (<c>STARPU_PER_ARCH</c> model type): the
-<c>.per_arch[arch][nimpl].cost_function</c> fields have to be filled with pointers to
-functions which return the expected duration of the task in micro-seconds, one
-per architecture.
+Provided explicitly by the application (model type ::STARPU_PER_ARCH):
+the fields <c>.per_arch[arch][nimpl].cost_function</c> have to be
+filled with pointers to functions which return the expected duration
+of the task in micro-seconds, one per architecture.
 </li>
 </ul>
 
-For the <c>STARPU_HISTORY_BASED</c> and <c>STARPU_*REGRESSION_BASE</c>,
-the total size of task data (both input and output) is used as an index by
-default. The <c>size_base</c> field of <c>struct starpu_perfmodel</c> however
-permits the application to override that, when for instance some of the data
-do not matter for task cost (e.g. mere reference table), or when using sparse
+For ::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED, and
+::STARPU_NL_REGRESSION_BASED, the total size of task data (both input
+and output) is used as an index by default. The field
+starpu_perfmodel::size_base however permits the application to
+override that, when for instance some of the data do not matter for
+task cost (e.g. mere reference table), or when using sparse
 structures (in which case it is the number of non-zeros which matter), or when
 there is some hidden parameter such as the number of iterations, etc. The
 <c>examples/pi</c> examples uses this to include the number of iterations in the
@@ -386,42 +392,45 @@ base.
 How to use schedulers which can benefit from such performance model is explained
 in \ref Task_scheduling_policy.
 
-The same can be done for task power consumption estimation, by setting the
-<c>power_model</c> field the same way as the <c>model</c> field. Note: for
-now, the application has to give to the power consumption performance model
-a name which is different from the execution time performance model.
+The same can be done for task power consumption estimation, by setting
+the field starpu_codelet::power_model the same way as the field
+starpu_codelet::model. Note: for now, the application has to give to
+the power consumption performance model a name which is different from
+the execution time performance model.
 
 The application can request time estimations from the StarPU performance
 models by filling a task structure as usual without actually submitting
-it. The data handles can be created by calling <c>starpu_*_data_register</c>
-functions with a <c>NULL</c> pointer and <c>-1</c> node and the
-desired data sizes, and need to be unregistered as usual. The
-starpu_task_expected_length() and starpu_task_expected_power() functions can then be called to get an estimation of the task cost on a given
-arch. starpu_task_footprint() can also be used to get the footprint used
-for indexing history-based performance models.
-starpu_task_destroy()
-needs to be called to destroy the dummy task afterwards. See
-<c>tests/perfmodels/regression_based.c</c> for an example.
+it. The data handles can be created by calling any of the functions
+<c>starpu_*_data_register</c> with a <c>NULL</c> pointer and <c>-1</c>
+node and the desired data sizes, and need to be unregistered as usual.
+The functions starpu_task_expected_length() and
+starpu_task_expected_power() can then be called to get an estimation
+of the task cost on a given arch. starpu_task_footprint() can also be
+used to get the footprint used for indexing history-based performance
+models. starpu_task_destroy() needs to be called to destroy the dummy
+task afterwards. See <c>tests/perfmodels/regression_based.c</c> for an example.
 
 \section Theoretical_lower_bound_on_execution_time_example Theoretical lower bound on execution time
 
-For kernels with history-based performance models (and provided that they are completely calibrated), StarPU can very easily provide a theoretical lower
-bound for the execution time of a whole set of tasks. See for
-instance <c>examples/lu/lu_example.c</c>: before submitting tasks,
-call <c>starpu_bound_start</c>, and after complete execution, call
-<c>starpu_bound_stop</c>. <c>starpu_bound_print_lp</c> or
-<c>starpu_bound_print_mps</c> can then be used to output a Linear Programming
-problem corresponding to the schedule of your tasks. Run it through
-<c>lp_solve</c> or any other linear programming solver, and that will give you a
-lower bound for the total execution time of your tasks. If StarPU was compiled
-with the glpk library installed, <c>starpu_bound_compute</c> can be used to
-solve it immediately and get the optimized minimum, in ms. Its <c>integer</c>
-parameter allows to decide whether integer resolution should be computed
-and returned too.
+For kernels with history-based performance models (and provided that
+they are completely calibrated), StarPU can very easily provide a
+theoretical lower bound for the execution time of a whole set of
+tasks. See for instance <c>examples/lu/lu_example.c</c>: before
+submitting tasks, call the function starpu_bound_start(), and after
+complete execution, call starpu_bound_stop().
+starpu_bound_print_lp() or starpu_bound_print_mps() can then be used
+to output a Linear Programming problem corresponding to the schedule
+of your tasks. Run it through <c>lp_solve</c> or any other linear
+programming solver, and that will give you a lower bound for the total
+execution time of your tasks. If StarPU was compiled with the glpk
+library installed, starpu_bound_compute() can be used to solve it
+immediately and get the optimized minimum, in ms. Its parameter
+<c>integer</c> allows to decide whether integer resolution should be
+computed and returned too.
 
-The <c>deps</c> parameter tells StarPU whether to take tasks, implicit data, and tag
-dependencies into account. Tags released in a callback or similar
-are not taken into account, only tags associated with a task are.
+The <c>deps</c> parameter tells StarPU whether to take tasks, implicit
+data, and tag dependencies into account. Tags released in a callback
+or similar are not taken into account, only tags associated with a task are.
 It must be understood that the linear programming
 problem size is quadratic with the number of tasks and thus the time to solve it
 will be very long, it could be minutes for just a few dozen tasks. You should
@@ -432,8 +441,9 @@ useful), but sometimes doesn't manage to converge. <c>cbc</c> might look
 slower, but it is parallel. For <c>lp_solve</c>, be sure to try at least all the
 <c>-B</c> options. For instance, we often just use <c>lp_solve -cc -B1 -Bb
 -Bg -Bp -Bf -Br -BG -Bd -Bs -BB -Bo -Bc -Bi</c> , and the <c>-gr</c> option can
-also be quite useful. The resulting schedule can be observed by using the
-<c>starpu_lp2paje</c> tool, which converts it into the Paje format.
+also be quite useful. The resulting schedule can be observed by using
+the tool <c>starpu_lp2paje</c>, which converts it into the Paje
+format.
 
 Data transfer time can only be taken into account when <c>deps</c> is set. Only
 data transfers inferred from implicit data dependencies between tasks are taken
@@ -451,9 +461,8 @@ to a less optimal solution. This increases even more computation time.
 
 \section Insert_Task_Utility Insert Task Utility
 
-StarPU provides the wrapper function <c>starpu_insert_task</c> to ease
-the creation and submission of tasks. See the definition of the
-functions in \ref Insert_Task.
+StarPU provides the wrapper function starpu_insert_task() to ease
+the creation and submission of tasks.
 
 Here the implementation of the codelet:
 
@@ -478,7 +487,7 @@ struct starpu_codelet mycodelet = {
 };
 \endcode
 
-And the call to the <c>starpu_insert_task</c> wrapper:
+And the call to the function starpu_insert_task():
 
 \code{.c}
 starpu_insert_task(&mycodelet,
@@ -488,7 +497,7 @@ starpu_insert_task(&mycodelet,
                    0);
 \endcode
 
-The call to <c>starpu_insert_task</c> is equivalent to the following
+The call to starpu_insert_task() is equivalent to the following
 code:
 
 \code{.c}
@@ -507,7 +516,7 @@ task->cl_arg_size = arg_buffer_size;
 int ret = starpu_task_submit(task);
 \endcode
 
-Here a similar call using <c>STARPU_DATA_ARRAY</c>.
+Here a similar call using ::STARPU_DATA_ARRAY.
 
 \code{.c}
 starpu_insert_task(&mycodelet,
@@ -518,7 +527,7 @@ starpu_insert_task(&mycodelet,
 \endcode
 
 If some part of the task insertion depends on the value of some computation,
-the <c>STARPU_DATA_ACQUIRE_CB</c> macro can be very convenient. For
+the macro ::STARPU_DATA_ACQUIRE_CB can be very convenient. For
 instance, assuming that the index variable <c>i</c> was registered as handle
 <c>i_handle</c>:
 
@@ -531,11 +540,11 @@ STARPU_DATA_ACQUIRE_CB(i_handle, STARPU_R,
                        starpu_insert_task(&work, STARPU_RW, A_handle[i], 0));
 \endcode
 
-The <c>STARPU_DATA_ACQUIRE_CB</c> macro submits an asynchronous request for
+The macro ::STARPU_DATA_ACQUIRE_CB submits an asynchronous request for
 acquiring data <c>i</c> for the main application, and will execute the code
 given as third parameter when it is acquired. In other words, as soon as the
 value of <c>i</c> computed by the <c>which_index</c> codelet can be read, the
-portion of code passed as third parameter of <c>STARPU_DATA_ACQUIRE_CB</c> will
+portion of code passed as third parameter of ::STARPU_DATA_ACQUIRE_CB will
 be executed, and is allowed to read from <c>i</c> to use it e.g. as an
 index. Note that this macro is only avaible when compiling StarPU with
 the compiler <c>gcc</c>.
@@ -548,14 +557,14 @@ the histogram of a photograph, etc. When these results are produced along the
 whole machine, it would not be efficient to accumulate them in only one place,
 incurring data transmission each and access concurrency.
 
-StarPU provides a <c>STARPU_REDUX</c> mode, which permits to optimize
+StarPU provides a mode ::STARPU_REDUX, which permits to optimize
 that case: it will allocate a buffer on each memory node, and accumulate
 intermediate results there. When the data is eventually accessed in the normal
-<c>STARPU_R</c> mode, StarPU will collect the intermediate results in just one
+mode ::STARPU_R, StarPU will collect the intermediate results in just one
 buffer.
 
-For this to work, the user has to use the
-<c>starpu_data_set_reduction_methods</c> to declare how to initialize these
+For this to work, the user has to use the function
+starpu_data_set_reduction_methods() to declare how to initialize these
 buffers, and how to assemble partial results.
 
 For instance, <c>cg</c> uses that to optimize its dot product: it first defines
@@ -592,7 +601,7 @@ struct starpu_codelet accumulate_variable_cl =
 }
 \endcode
 
-and attaches them as reduction methods for its dtq handle:
+and attaches them as reduction methods for its <c>dtq</c> handle:
 
 \code{.c}
 starpu_variable_data_register(&dtq_handle, -1, NULL, sizeof(type));
@@ -600,8 +609,8 @@ starpu_data_set_reduction_methods(dtq_handle,
         &accumulate_variable_cl, &bzero_variable_cl);
 \endcode
 
-and <c>dtq_handle</c> can now be used in <c>STARPU_REDUX</c> mode for the dot products
-with partitioned vectors:
+and <c>dtq_handle</c> can now be used in mode ::STARPU_REDUX for the
+dot products with partitioned vectors:
 
 \code{.c}
 for (b = 0; b < nblocks; b++)
@@ -612,24 +621,25 @@ for (b = 0; b < nblocks; b++)
         0);
 \endcode
 
-During registration, we have here provided NULL, i.e. there is no initial value
-to be taken into account during reduction. StarPU will thus only take into
-account the contributions from the <c>dot_kernel_cl</c> tasks. Also, it will not
-allocate any memory for <c>dtq_handle</c> before <c>dot_kernel_cl</c> tasks are
-ready to run.
+During registration, we have here provided <c>NULL</c>, i.e. there is
+no initial value to be taken into account during reduction. StarPU
+will thus only take into account the contributions from the tasks
+<c>dot_kernel_cl</c>. Also, it will not allocate any memory for
+<c>dtq_handle</c> before tasks <c>dot_kernel_cl</c> are ready to run.
 
 If another dot product has to be performed, one could unregister
-<c>dtq_handle</c>, and re-register it. But one can also use
-<c>starpu_data_invalidate_submit(dtq_handle)</c>, which will clear all data from the handle,
-thus resetting it back to the initial <c>register(NULL)</c> state.
+<c>dtq_handle</c>, and re-register it. But one can also call
+starpu_data_invalidate_submit() with the parameter <c>dtq_handle</c>,
+which will clear all data from the handle, thus resetting it back to
+the initial status <c>register(NULL)</c>.
 
-The <c>cg</c> example also uses reduction for the blocked gemv kernel, leading
-to yet more relaxed dependencies and more parallelism.
+The example <c>cg</c> also uses reduction for the blocked gemv kernel,
+leading to yet more relaxed dependencies and more parallelism.
 
-STARPU_REDUX can also be passed to <c>starpu_mpi_insert_task</c> in the MPI
+::STARPU_REDUX can also be passed to starpu_mpi_insert_task() in the MPI
 case. That will however not produce any MPI communication, but just pass
-STARPU_REDUX to the underlying <c>starpu_insert_task</c>. It is up to the
-application to call <c>starpu_mpi_redux_data</c>, which posts tasks that will
+::STARPU_REDUX to the underlying starpu_insert_task(). It is up to the
+application to call starpu_mpi_redux_data(), which posts tasks that will
 reduce the partial results among MPI nodes into the MPI node which owns the
 data. For instance, some hypothetical application which collects partial results
 into data <c>res</c>, then uses it for other computation, before looping again
@@ -662,7 +672,7 @@ and destroy it on unregistration.
 
 In addition to that, it can be tedious for the application to have to unregister
 the data, since it will not use its content anyway. The unregistration can be
-done lazily by using the <c>starpu_data_unregister_submit(handle)</c> function,
+done lazily by using the function starpu_data_unregister_submit(),
 which will record that no more tasks accessing the handle will be submitted, so
 that it can be freed as soon as the last task accessing it is over.
 
@@ -725,7 +735,7 @@ Two modes of execution exist to accomodate with existing usages.
 
 In the Fork mode, StarPU will call the codelet function on one
 of the CPUs of the combined worker. The codelet function can use
-<c>starpu_combined_worker_get_size()</c> to get the number of threads it is
+starpu_combined_worker_get_size() to get the number of threads it is
 allowed to start to achieve the computation. The CPU binding mask for the whole
 set of CPUs is already enforced, so that threads created by the function will
 inherit the mask, and thus execute where StarPU expected, the OS being in charge
@@ -768,9 +778,9 @@ Other examples include for instance calling a BLAS parallel CPU implementation
 
 In the SPMD mode, StarPU will call the codelet function on
 each CPU of the combined worker. The codelet function can use
-<c>starpu_combined_worker_get_size()</c> to get the total number of CPUs
+starpu_combined_worker_get_size() to get the total number of CPUs
 involved in the combined worker, and thus the number of calls that are made in
-parallel to the function, and <c>starpu_combined_worker_get_rank()</c> to get
+parallel to the function, and starpu_combined_worker_get_rank() to get
 the rank of the current CPU within the combined worker. For instance:
 
 \code{.c}
@@ -828,7 +838,7 @@ intermediate sizes. The <c>STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER</c> variable
 permits to tune the maximum arity between levels of combined workers.
 
 The combined workers actually produced can be seen in the output of the
-<c>starpu_machine_display</c> tool (the <c>STARPU_SCHED</c> environment variable
+tool <c>starpu_machine_display</c> (the <c>STARPU_SCHED</c> environment variable
 has to be set to a combined worker-aware scheduler such as <c>pheft</c> or
 <c>peager</c>).
 
@@ -847,9 +857,9 @@ from different threads, due to the use of global variables in their sequential
 sections for instance.
 
 The solution is then to use only one combined worker at a time.  This can be
-done by setting <c>single_combined_worker</c> to 1 in the <c>starpu_conf</c>
-structure, or setting the <c>STARPU_SINGLE_COMBINED_WORKER</c> environment
-variable to 1. StarPU will then run only one parallel task at a time (but other
+done by setting the field starpu_conf::single_combined_worker to 1, or
+setting the <c>STARPU_SINGLE_COMBINED_WORKER</c> environment variable
+to 1. StarPU will then run only one parallel task at a time (but other 
 CPU and GPU tasks are not affected and can be run concurrently). The parallel
 task scheduler will however still however still try varying combined worker
 sizes to look for the most efficient ones.
@@ -919,10 +929,11 @@ starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
 \endcode
 
 Kernels can be written almost as for any other interface. Note that
-STARPU_MULTIFORMAT_GET_CPU_PTR shall only be used for CPU kernels. CUDA kernels
-must use STARPU_MULTIFORMAT_GET_CUDA_PTR, and OpenCL kernels must use
-STARPU_MULTIFORMAT_GET_OPENCL_PTR. STARPU_MULTIFORMAT_GET_NX may be used in any
-kind of kernel.
+::STARPU_MULTIFORMAT_GET_CPU_PTR shall only be used for CPU kernels. CUDA kernels
+must use ::STARPU_MULTIFORMAT_GET_CUDA_PTR, and OpenCL kernels must use
+::STARPU_MULTIFORMAT_GET_OPENCL_PTR. ::STARPU_MULTIFORMAT_GET_NX may
+be used in any kind of kernel.
+
 \code{.c}
 static void
 multiformat_scal_cpu_func(void *buffers[], void *args)
@@ -977,7 +988,7 @@ if (ret != 0)
 A full example showing how to define a new scheduling policy is available in
 the StarPU sources in the directory <c>examples/scheduler/</c>.
 
-@pxref{Scheduling Policy}
+\ref Scheduling_Policy
 
 \code{.c}
 static struct starpu_sched_policy dummy_sched_policy = {
@@ -1008,14 +1019,15 @@ to be the one that runs CUDA computations for that GPU.
 To achieve this with StarPU, pass the <c>--disable-cuda-memcpy-peer</c> option
 to <c>./configure</c> (TODO: make it dynamic), OpenGL/GLUT has to be initialized
 first, and the interoperability mode has to
-be enabled by using the <c>cuda_opengl_interoperability</c> field of the
-<c>starpu_conf</c> structure, and the driver loop has to be run by
-the application, by using the <c>not_launched_drivers</c> field of
-<c>starpu_conf</c> to prevent StarPU from running it in a separate thread, and
-by using <c>starpu_driver_run</c> to run the loop. The <c>gl_interop</c> and
-<c>gl_interop_idle</c> examples shows how it articulates in a simple case, where
-rendering is done in task callbacks. The former uses <c>glutMainLoopEvent</c>
-to make GLUT progress from the StarPU driver loop, while the latter uses
+be enabled by using the field
+starpu_conf::cuda_opengl_interoperability, and the driver loop has to
+be run by the application, by using the field
+starpu_conf::not_launched_drivers to prevent StarPU from running it in
+a separate thread, and by using starpu_driver_run() to run the loop.
+The examples <c>gl_interop</c> and <c>gl_interop_idle</c> show how it
+articulates in a simple case, where rendering is done in task
+callbacks. The former uses <c>glutMainLoopEvent</c> to make GLUT
+progress from the StarPU driver loop, while the latter uses
 <c>glutIdleFunc</c> to make StarPU progress from the GLUT main loop.
 
 Then, to use an OpenGL buffer as a CUDA data, StarPU simply needs to be given
@@ -1060,7 +1072,7 @@ struct starpu_complex_interface
 \endcode
 
 Registering such a data to StarPU is easily done using the function
-<c>starpu_data_register</c> (@pxref{Basic Data Management API}). The last
+starpu_data_register(). The last
 parameter of the function, <c>interface_complex_ops</c>, will be
 described below.
 
@@ -1085,10 +1097,9 @@ void starpu_complex_data_register(starpu_data_handle_t *handle,
 \endcode
 
 Different operations need to be defined for a data interface through
-the type <c>struct starpu_data_interface_ops</c> (@pxref{Defining
-Interface}). We only define here the basic operations needed to
-run simple applications. The source code for the different functions
-can be found in the file
+the type starpu_data_interface_ops. We only define here the basic
+operations needed to run simple applications. The source code for the
+different functions can be found in the file
 <c>examples/interface/complex_interface.c</c>.
 
 \code{.c}

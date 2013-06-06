@@ -16,13 +16,13 @@ few additional changes are needed.
 
 \section Data_management Data management
 
-When the application allocates data, whenever possible it should use the
-starpu_malloc() function, which will ask CUDA or
-OpenCL to make the allocation itself and pin the corresponding allocated
-memory. This is needed to permit asynchronous data transfer, i.e. permit data
-transfer to overlap with computations. Otherwise, the trace will show that the
-<c>DriverCopyAsync</c> state takes a lot of time, this is because CUDA or OpenCL
-then reverts to synchronous transfers.
+When the application allocates data, whenever possible it should use
+the function starpu_malloc(), which will ask CUDA or OpenCL to make
+the allocation itself and pin the corresponding allocated memory. This
+is needed to permit asynchronous data transfer, i.e. permit data
+transfer to overlap with computations. Otherwise, the trace will show
+that the <c>DriverCopyAsync</c> state takes a lot of time, this is
+because CUDA or OpenCL then reverts to synchronous transfers.
 
 By default, StarPU leaves replicates of data wherever they were used, in case they
 will be re-used by other tasks, thus saving the data transfer time. When some
@@ -54,11 +54,11 @@ Implicit data dependency computation can become expensive if a lot
 of tasks access the same piece of data. If no dependency is required
 on some piece of data (e.g. because it is only accessed in read-only
 mode, or because write accesses are actually commutative), use the
-starpu_data_set_sequential_consistency_flag() function to disable implicit
-dependencies on that data.
+function starpu_data_set_sequential_consistency_flag() to disable
+implicit dependencies on that data.
 
 In the same vein, accumulation of results in the same data can become a
-bottleneck. The use of the <c>STARPU_REDUX</c> mode permits to optimize such
+bottleneck. The use of the mode ::STARPU_REDUX permits to optimize such
 accumulation (see \ref Data_reduction).
 
 Applications often need a data just for temporary results.  In such a case,
@@ -184,13 +184,15 @@ to configure a performance model for the codelets of the application (see
 use on-line calibration.  StarPU will automatically calibrate codelets
 which have never been calibrated yet, and save the result in
 <c>$STARPU_HOME/.starpu/sampling/codelets</c>.
-The models are indexed by machine name. To share the models between machines (e.g. for a homogeneous cluster), use <c>export STARPU_HOSTNAME=some_global_name</c>. To force continuing calibration, use
-<c>export STARPU_CALIBRATE=1</c> . This may be necessary if your application
+The models are indexed by machine name. To share the models between
+machines (e.g. for a homogeneous cluster), use <c>export
+STARPU_HOSTNAME=some_global_name</c>. To force continuing calibration,
+use <c>export STARPU_CALIBRATE=1</c> . This may be necessary if your application
 has not-so-stable performance. StarPU will force calibration (and thus ignore
-the current result) until 10 (_STARPU_CALIBRATION_MINIMUM) measurements have been
+the current result) until 10 (<c>_STARPU_CALIBRATION_MINIMUM</c>) measurements have been
 made on each architecture, to avoid badly scheduling tasks just because the
 first measurements were not so good. Details on the current performance model status
-can be obtained from the <c>starpu_perfmodel_display</c> command: the <c>-l</c>
+can be obtained from the command <c>starpu_perfmodel_display</c>: the <c>-l</c>
 option lists the available performance models, and the <c>-s</c> option permits
 to choose the performance model to be displayed. The result looks like:
 
@@ -208,7 +210,7 @@ execution time on CPUs was about 11ms, with a 3ms standard deviation, over
 1240 samples. It is a good idea to check this before doing actual performance
 measurements.
 
-A graph can be drawn by using the <c>starpu_perfmodel_plot</c>:
+A graph can be drawn by using the tool <c>starpu_perfmodel_plot</c>:
 
 \verbatim
 $ starpu_perfmodel_plot -s starpu_dlu_lu_model_22
@@ -278,12 +280,13 @@ tries to minimize is <c>alpha * T_execution + beta * T_data_transfer</c>, where
 <c>T_execution</c> is the estimated execution time of the codelet (usually
 accurate), and <c>T_data_transfer</c> is the estimated data transfer time. The
 latter is estimated based on bus calibration before execution start,
-i.e. with an idle machine, thus without contention. You can force bus re-calibration by running
-<c>starpu_calibrate_bus</c>. The beta parameter defaults to 1, but it can be
-worth trying to tweak it by using <c>export STARPU_SCHED_BETA=2</c> for instance,
-since during real application execution, contention makes transfer times bigger.
-This is of course imprecise, but in practice, a rough estimation already gives
-the good results that a precise estimation would give.
+i.e. with an idle machine, thus without contention. You can force bus
+re-calibration by running the tool <c>starpu_calibrate_bus</c>. The
+beta parameter defaults to 1, but it can be worth trying to tweak it
+by using <c>export STARPU_SCHED_BETA=2</c> for instance, since during
+real application execution, contention makes transfer times bigger.
+This is of course imprecise, but in practice, a rough estimation
+already gives the good results that a precise estimation would give.
 
 \section Data_prefetch Data prefetch
 
@@ -299,7 +302,7 @@ setting up an initial statically-computed data distribution on the machine
 before submitting tasks, which will thus guide StarPU toward an initial task
 distribution (since StarPU will try to avoid further transfers).
 
-This can be achieved by giving the starpu_data_prefetch_on_node() function
+This can be achieved by giving the function starpu_data_prefetch_on_node()
 the handle and the desired target memory node.
 
 \section Power-based_scheduling Power-based scheduling
@@ -326,8 +329,8 @@ The power actually consumed by the total execution can be displayed by setting
 
 On-line task consumption measurement is currently only supported through the
 <c>CL_PROFILING_POWER_CONSUMED</c> OpenCL extension, implemented in the MoviSim
-simulator. Applications can however provide explicit measurements by using the
-starpu_perfmodel_update_history() function (examplified in \ref Performance_model_example
+simulator. Applications can however provide explicit measurements by
+using the function starpu_perfmodel_update_history() (examplified in \ref Performance_model_example
 with the <c>power_model</c> performance model. Fine-grain
 measurement is often not feasible with the feedback provided by the hardware, so
 the user can for instance run a given task a thousand times, measure the global

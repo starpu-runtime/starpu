@@ -6,22 +6,22 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \defgroup Task_Bundles Task Bundles
+/*! \defgroup API_Task_Bundles Task Bundles
 
 \typedef starpu_task_bundle_t
-\ingroup Task_Bundles
+\ingroup API_Task_Bundles
 Opaque structure describing a list of tasks that should be scheduled
 on the same worker whenever it’s possible. It must be considered as a
 hint given to the scheduler as there is no guarantee that they will be
 executed on the same worker.
 
 \fn void starpu_task_bundle_create (starpu_task_bundle_t *bundle)
-\ingroup Task_Bundles
+\ingroup API_Task_Bundles
 Factory function creating and initializing \p bundle, when the call
 returns, memory needed is allocated and \p bundle is ready to use.
 
 \fn int starpu_task_bundle_insert (starpu_task_bundle_t bundle, struct starpu_task *task)
-\ingroup Task_Bundles
+\ingroup API_Task_Bundles
 Insert \p task in \p bundle. Until \p task is removed from \p bundle
 its expected length and data transfer time will be considered along
 those of the other tasks of bundle. This function must not be called
@@ -31,7 +31,7 @@ is already closed it returns <c>-EPERM</c>, if \p task was already
 submitted it returns <c>-EINVAL</c>.
 
 \fn int starpu_task_bundle_remove (starpu_task_bundle_t bundle, struct starpu_task *task)
-\ingroup Task_Bundles
+\ingroup API_Task_Bundles
 Remove \p task from \p bundle. Of course \p task must have been
 previously inserted in \p bundle. This function must not be called if
 \p bundle is already closed and/or \p task is already submitted. Doing
@@ -39,21 +39,21 @@ so would result in undefined behaviour. On success, it returns 0. If
 \p bundle is already closed it returns <c>-ENOENT</c>.
 
 \fn void starpu_task_bundle_close (starpu_task_bundle_t bundle)
-\ingroup Task_Bundles
+\ingroup API_Task_Bundles
 Inform the runtime that the user will not modify \p bundle anymore, it
 means no more inserting or removing task. Thus the runtime can destroy
 it when possible.
 
 \fn double starpu_task_bundle_expected_length (starpu_task_bundle_t bundle, enum starpu_perfmodel_archtype arch, unsigned nimpl)
-\ingroup Task_Bundles
+\ingroup API_Task_Bundles
 Return the expected duration of \p bundle in micro-seconds.
 
 \fn double starpu_task_bundle_expected_power (starpu_task_bundle_t bundle, enum starpu_perfmodel_archtype arch, unsigned nimpl)
-\ingroup Task_Bundles
+\ingroup API_Task_Bundles
 Return the expected power consumption of \p bundle in J.
 
 \fn double starpu_task_bundle_expected_data_transfer_time (starpu_task_bundle_t bundle, unsigned memory_node)
-\ingroup Task_Bundles
+\ingroup API_Task_Bundles
 Return the time (in micro-seconds) expected to transfer all data used within \p bundle.
 
 */

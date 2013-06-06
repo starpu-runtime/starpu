@@ -6,10 +6,10 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \defgroup Miscellaneous_helpers Miscellaneous helpers
+/*! \defgroup API_Miscellaneous_Helpers Miscellaneous Helpers
 
 \fn int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg)
-\ingroup Miscellaneous_helpers
+\ingroup API_Miscellaneous_Helpers
 Copy the content of \p src_handle into \p dst_handle. The parameter \p
 asynchronous indicates whether the function should block or not. In
 the case of an asynchronous call, it is possible to synchronize with
@@ -20,7 +20,7 @@ the handle has been copied, and it is given the pointer \p pointer
 callback_arg as argument.
 
 \fn void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where)
-\ingroup Miscellaneous_helpers
+\ingroup API_Miscellaneous_Helpers
 This function executes the given function on a subset of workers. When
 calling this method, the offloaded function \p func is executed by
 every StarPU worker that may execute the function. The argument \p arg

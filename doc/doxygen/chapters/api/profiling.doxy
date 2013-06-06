@@ -6,10 +6,10 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \defgroup Profiling Profiling
+/*! \defgroup API_Profiling Profiling
 
 \struct starpu_profiling_task_info
-\ingroup Profiling
+\ingroup API_Profiling
 \brief This structure contains information about the execution of a
 task. It is accessible from the field starpu_task::profiling_info if
 profiling was enabled.
@@ -68,7 +68,7 @@ Time when the worker finished releasing data.
 \brief This structure contains the profiling information associated to
 a worker. The timing is provided since the previous call to
 starpu_profiling_worker_get_info()
-\ingroup Profiling
+\ingroup API_Profiling
 \var starpu_profiling_worker_info::start_time
         Starting date for the reported profiling measurements.
 \var starpu_profiling_worker_info::total_time
@@ -88,7 +88,7 @@ starpu_profiling_worker_get_info()
 
 \struct starpu_profiling_bus_info
 \brief todo
-\ingroup Profiling
+\ingroup API_Profiling
 \var starpu_profiling_bus_info::start_time
         Time of bus profiling startup.
 \var starpu_profiling_bus_info::total_time
@@ -99,7 +99,7 @@ starpu_profiling_worker_get_info()
         Number of transfers during profiling.
 
 \fn int starpu_profiling_status_set(int status)
-\ingroup Profiling
+\ingroup API_Profiling
 This function sets the profiling status. Profiling is activated
 by passing STARPU_PROFILING_ENABLE in status. Passing
 STARPU_PROFILING_DISABLE disables profiling. Calling this function
@@ -110,17 +110,17 @@ of the task. Negative return values indicate an error, otherwise the
 previous status is returned.
 
 \fn int starpu_profiling_status_get(void)
-\ingroup Profiling
+\ingroup API_Profiling
 Return the current profiling status or a negative value in case
 there was an error.
 
 \fn void starpu_profiling_set_id(int new_id)
-\ingroup Profiling
+\ingroup API_Profiling
 This function sets the ID used for profiling trace filename. It
 needs to be called before starpu_init().
 
 \fn int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worker_info *worker_info)
-\ingroup Profiling
+\ingroup API_Profiling
 Get the profiling info associated to the worker identified by
 \p workerid, and reset the profiling measurements. If the argument \p
 worker_info is NULL, only reset the counters associated to worker
@@ -128,47 +128,47 @@ worker_info is NULL, only reset the counters associated to worker
 Otherwise, a negative value is returned.
 
 \fn int starpu_bus_get_profiling_info(int busid, struct starpu_profiling_bus_info *bus_info)
-\ingroup Profiling
+\ingroup API_Profiling
 todo
 
 \fn int starpu_bus_get_count(void)
-\ingroup Profiling
+\ingroup API_Profiling
 Return the number of buses in the machine
 
 \fn int starpu_bus_get_id(int src, int dst)
-\ingroup Profiling
+\ingroup API_Profiling
 Return the identifier of the bus between \p src and \p dst
 
 \fn int starpu_bus_get_src(int busid)
-\ingroup Profiling
+\ingroup API_Profiling
 Return the source point of bus \p busid
 
 \fn int starpu_bus_get_dst(int busid)
-\ingroup Profiling
+\ingroup API_Profiling
 Return the destination point of bus \p busid
 
 \fn double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end)
-\ingroup Profiling
+\ingroup API_Profiling
 Returns the time elapsed between \p start and \p end in microseconds.
 
 \fn double starpu_timing_timespec_to_us(struct timespec *ts)
-\ingroup Profiling
+\ingroup API_Profiling
 Converts the given timespec \p ts into microseconds
 
 \fn void starpu_profiling_bus_helper_display_summary(void)
-\ingroup Profiling
+\ingroup API_Profiling
 Displays statistics about the bus on stderr. if the environment
 variable STARPU_BUS_STATS is defined. The function is called
 automatically by starpu_shutdown().
 
 \fn void starpu_profiling_worker_helper_display_summary(void)
-\ingroup Profiling
+\ingroup API_Profiling
 Displays statistics about the workers on stderr if the
 environment variable STARPU_WORKER_STATS is defined. The function is
 called automatically by starpu_shutdown().
 
 \fn void starpu_data_display_memory_stats()
-\ingroup Profiling
+\ingroup API_Profiling
 Display statistics about the current data handles registered
 within StarPU. StarPU must have been configured with the option
 <c>--enable-memory-stats</c> (see \ref Memory_feedback).

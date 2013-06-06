@@ -54,7 +54,7 @@ the task completion, and thus permits to enqueue a series of tasks.
 </li>
 </ul>
 
-All functions are defined in @ref{FFT Support}.
+All functions are defined in \ref FFT_Support.
 
 \section Compilation Compilation
 

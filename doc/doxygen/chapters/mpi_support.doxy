@@ -12,7 +12,7 @@ The integration of MPI transfers within task parallelism is done in a
 very natural way by the means of asynchronous interactions between the
 application and StarPU.  This is implemented in a separate libstarpumpi library
 which basically provides "StarPU" equivalents of <c>MPI_*</c> functions, where
-<c>void *</c> buffers are replaced with <c>starpu_data_handle_t</c>s, and all
+<c>void *</c> buffers are replaced with starpu_data_handle_t, and all
 GPU-RAM-NIC transfers are handled efficiently by StarPU-MPI.  The user has to
 use the usual <c>mpirun</c> command of the MPI implementation to start StarPU on
 the different MPI nodes.
@@ -131,8 +131,8 @@ hashmap if it is a receive request.
 
 Internally, all MPI communications submitted by StarPU uses a unique
 tag which has a default value, and can be accessed with the functions
-@ref{starpu_mpi_get_communication_tag} and
-@ref{starpu_mpi_set_communication_tag}.
+starpu_mpi_get_communication_tag() and
+starpu_mpi_set_communication_tag().
 
 The matching of tags with corresponding requests is done into StarPU-MPI.
 To handle this, any communication is a double-communication based on a
@@ -165,20 +165,19 @@ will arrive just after, so as when the corresponding receive request
 will be submitted by the application, it'll copy this temporary handle
 into its one instead of submitting a new StarPU-MPI request.
 
-@ref{Communication} gives the list of all the point to point
+\ref Communication gives the list of all the point to point
 communications defined in StarPU-MPI.
 
 \section Exchanging_User_Defined_Data_Interface Exchanging User Defined Data Interface
 
-New data interfaces defined as explained in @ref{Defining a New Data
-Interface} can also be used within StarPU-MPI and exchanged between
-nodes. Two functions needs to be defined through
-the type <c>struct starpu_data_interface_ops</c> (@pxref{Defining
-Interface}). The pack function takes a handle and returns a
-contiguous memory buffer along with its size where data to be conveyed to another node
-should be copied. The reversed operation is implemented in the unpack
-function which takes a contiguous memory buffer and recreates the data
-handle.
+New data interfaces defined as explained in \ref
+Defining_a_New_Data_Interface can also be used within StarPU-MPI and
+exchanged between nodes. Two functions needs to be defined through
+the type starpu_data_interface_ops. The pack function takes a handle
+and returns a contiguous memory buffer along with its size where data
+to be conveyed to another node should be copied. The reversed
+operation is implemented in the unpack function which takes a
+contiguous memory buffer and recreates the data handle.
 
 \code{.c}
 static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)
@@ -230,7 +229,7 @@ exchange the content of the handle. All MPI nodes then process the whole task
 graph, and StarPU automatically determines which node actually execute which
 task, and trigger the required MPI transfers.
 
-The list of functions is described in @ref{MPI Insert Task}.
+The list of functions is described in \ref MPI_Insert_Task.
 
 Here an stencil example showing how to use starpu_mpi_insert_task(). One
 first needs to define a distribution function which specifies the
@@ -320,7 +319,7 @@ execute them, or to send the required data).
 
 \section MPI_Collective_Operations MPI Collective Operations
 
-The functions are described in @ref{Collective Operations}.
+The functions are described in \ref Collective_Operations.
 
 \code{.c}
 if (rank == root)

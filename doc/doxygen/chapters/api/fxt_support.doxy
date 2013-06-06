@@ -6,11 +6,11 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \defgroup FxT_Support FxT Support
+/*! \defgroup API_FxT_Support FxT Support
 
 \struct starpu_fxt_codelet_event
 \brief todo
-\ingroup FxT_Support
+\ingroup API_FxT_Support
 \var starpu_fxt_codelet_event::symbol[256
 name of the codelet
 \var starpu_fxt_codelet_event::workerid
@@ -21,7 +21,7 @@ name of the codelet
 
 \struct starpu_fxt_options
 \brief todo
-\ingroup FxT_Support
+\ingroup API_FxT_Support
 \var starpu_fxt_options::per_task_colour
 \var starpu_fxt_options::no_counter
 \var starpu_fxt_options::no_bus
@@ -55,15 +55,15 @@ In case we want to dump the list of codelets to an external tool
 In case we want to dump the list of codelets to an external tool
 
 \fn void starpu_fxt_options_init(struct starpu_fxt_options *options)
-\ingroup FxT_Support
+\ingroup API_FxT_Support
 todo
 
 \fn void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
-\ingroup FxT_Support
+\ingroup API_FxT_Support
 todo
 
 \fn void starpu_fxt_start_profiling(void)
-\ingroup FxT_Support
+\ingroup API_FxT_Support
 Start recording the trace. The trace is by default started from
 starpu_init() call, but can be paused by using
 starpu_fxt_stop_profiling(), in which case
@@ -71,7 +71,7 @@ starpu_fxt_start_profiling() should be called to resume recording
 events.
 
 \fn void starpu_fxt_stop_profiling(void)
-\ingroup FxT_Support
+\ingroup API_FxT_Support
 Stop recording the trace. The trace is by default stopped when calling
 starpu_shutdown(). starpu_fxt_stop_profiling() can however be used to
 stop it earlier. starpu_fxt_start_profiling() can then be called to

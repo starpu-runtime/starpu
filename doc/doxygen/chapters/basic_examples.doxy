@@ -52,7 +52,7 @@ section using StarPU's standard C API.
 
 \subsection Required_Headers Required Headers
 
-The starpu.h header should be included in any code using StarPU.
+The header starpu.h should be included in any code using StarPU.
 
 \code{.c}
 #include <starpu.h>
@@ -85,29 +85,28 @@ A codelet is a structure that represents a computational kernel. Such a codelet
 may contain an implementation of the same kernel on different architectures
 (e.g. CUDA, x86, ...). For compatibility, make sure that the whole
 structure is properly initialized to zero, either by using the
-function starpu_codelet_init (@pxref{starpu_codelet_init}), or by letting the
+function starpu_codelet_init(), or by letting the
 compiler implicitly do it as examplified above.
 
 The <c>nbuffers</c> field specifies the number of data buffers that are
 manipulated by the codelet: here the codelet does not access or modify any data
 that is controlled by our data management library. Note that the argument
-passed to the codelet (the <c>cl_arg</c> field of the <c>starpu_task</c>
-structure) does not count as a buffer since it is not managed by our data
-management library, but just contain trivial parameters.
+passed to the codelet (the field starpu_task::cl_arg) does not count
+as a buffer since it is not managed by our data management library,
+but just contain trivial parameters.
 
 \internal
 TODO need a crossref to the proper description of "where" see bla for more ...
 \endinternal
 
-We create a codelet which may only be executed on the CPUs. The <c>where</c>
-field is a bitmask that defines where the codelet may be executed. Here, the
-<c>STARPU_CPU</c> value means that only CPUs can execute this codelet
-(@pxref{Codelets and Tasks} for more details on this field). Note that
-the <c>where</c> field is optional, when unset its value is
-automatically set based on the availability of the different
-<c>XXX_funcs</c> fields.
-When a CPU core executes a codelet, it calls the <c>cpu_func</c> function,
-which \em must have the following prototype:
+We create a codelet which may only be executed on the CPUs. The field
+starpu_codelet::where is a bitmask that defines where the codelet may
+be executed. Here, the value ::STARPU_CPU means that only CPUs can
+execute this codelet. Note that field starpu_codelet::where is
+optional, when unset its value is automatically set based on the
+availability of the different fields <c>XXX_funcs</c>.
+When a CPU core executes a codelet, it calls the function
+<c>cpu_func</c>, which \em must have the following prototype:
 
 \code{.c}
 void (*cpu_func)(void *buffers[], void *cl_arg);
@@ -117,8 +116,7 @@ In this example, we can ignore the first argument of this function which gives a
 description of the input and output buffers (e.g. the size and the location of
 the matrices) since there is none.
 The second argument is a pointer to a buffer passed as an
-argument to the codelet by the means of the <c>cl_arg</c> field of the
-<c>starpu_task</c> structure.
+argument to the codelet by the means of the field starpu_task::cl_arg.
 
 \internal
 TODO rewrite so that it is a little clearer ?
@@ -175,8 +173,8 @@ starpu_shutdown().
 
 In the example above, a task structure is allocated by a call to
 starpu_task_create(). This function only allocates and fills the
-corresponding structure with the default settings (@pxref{Codelets and
-Tasks, starpu_task_create}), but it does not submit the task to StarPU.
+corresponding structure with the default settings, but it does not
+submit the task to StarPU.
 
 \internal
 not really clear ;)
@@ -210,13 +208,14 @@ void (*callback_function)(void *);
 \endcode
 
 If the <c>synchronous</c> field is non-zero, task submission will be
-synchronous: the starpu_task_submit() function will not return until the
-task was executed. Note that the starpu_shutdown() function does not
-guarantee that asynchronous tasks have been executed before it returns,
-starpu_task_wait_for_all() can be used to that effect, or data can be
-unregistered (starpu_data_unregister()), which will
-implicitly wait for all the tasks scheduled to work on it, unless explicitly
-disabled thanks to starpu_data_set_default_sequential_consistency_flag() or
+synchronous: the function starpu_task_submit() will not return until
+the task was executed. Note that the function starpu_shutdown() does
+not guarantee that asynchronous tasks have been executed before it
+returns, starpu_task_wait_for_all() can be used to that effect, or
+data can be unregistered (starpu_data_unregister()), which will
+implicitly wait for all the tasks scheduled to work on it, unless
+explicitly disabled thanks to
+starpu_data_set_default_sequential_consistency_flag() or
 starpu_data_set_sequential_consistency_flag().
 
 \subsection Execution_of_Hello_World Execution of Hello World
@@ -458,11 +457,12 @@ modified by a task, and StarPU makes sure that when a computational kernel
 starts somewhere (e.g. on a GPU), its data are available locally.
 
 Before submitting those tasks, the programmer first needs to declare the
-different pieces of data to StarPU using the <c>starpu_*_data_register</c>
-functions. To ease the development of applications for StarPU, it is possible
-to describe multiple types of data layout. A type of data layout is called an
-<b>interface</b>. There are different predefined interfaces available in StarPU:
-here we will consider the <b>vector interface</b>.
+different pieces of data to StarPU using the functions
+<c>starpu_*_data_register</c>. To ease the development of applications
+for StarPU, it is possible to describe multiple types of data layout.
+A type of data layout is called an <b>interface</b>. There are
+different predefined interfaces available in StarPU: here we will
+consider the <b>vector interface</b>.
 
 The following lines show how to declare an array of <c>NX</c> elements of type
 <c>float</c> using the vector interface:
@@ -503,8 +503,8 @@ can just be passed through the <c>cl_arg</c> pointer like in the previous
 example.  The vector parameter is described by its handle.
 There are two fields in each element of the <c>buffers</c> array.
 <c>handle</c> is the handle of the data, and <c>mode</c> specifies how the
-kernel will access the data (<c>STARPU_R</c> for read-only, <c>STARPU_W</c> for
-write-only and <c>STARPU_RW</c> for read and write access).
+kernel will access the data (::STARPU_R for read-only, ::STARPU_W for
+write-only and ::STARPU_RW for read and write access).
 
 The definition of the codelet can be written as follows:
 
@@ -563,9 +563,9 @@ only be executed by the CPUs, but also by a CUDA device.
 
 The CUDA implementation can be written as follows. It needs to be compiled with
 a CUDA compiler such as nvcc, the NVIDIA CUDA compiler driver. It must be noted
-that the vector pointer returned by STARPU_VECTOR_GET_PTR is here a pointer in GPU
-memory, so that it can be passed as such to the <c>vector_mult_cuda</c> kernel
-call.
+that the vector pointer returned by ::STARPU_VECTOR_GET_PTR is here a
+pointer in GPU memory, so that it can be passed as such to the
+<c>vector_mult_cuda</c> kernel call.
 
 \code{.c}
 #include <starpu.h>
@@ -589,10 +589,10 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
     unsigned threads_per_block = 64;
     unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
 
-@i{    vector_mult_cuda<<<nblocks,threads_per_block, 0, starpu_cuda_get_local_stream()>>>}
-@i{                    (n, val, *factor);}
+    vector_mult_cuda<<<nblocks,threads_per_block, 0, starpu_cuda_get_local_stream()>>>
+                    (n, val, *factor);
 
-@i{    cudaStreamSynchronize(starpu_cuda_get_local_stream());}
+    cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 \endcode
 
@@ -611,10 +611,10 @@ __kernel void vector_mult_opencl(int nx, __global float* val, float factor)
 }
 \endcode
 
-Contrary to CUDA and CPU, <c>STARPU_VECTOR_GET_DEV_HANDLE</c> has to be used,
+Contrary to CUDA and CPU, ::TARPU_VECTOR_GET_DEV_HANDLE has to be used,
 which returns a <c>cl_mem</c> (which is not a device pointer, but an OpenCL
 handle), which can be passed as such to the OpenCL kernel. The difference is
-important when using partitioning, see @ref{Partitioning Data}.
+important when using partitioning, see \ref Partitioning_Data.
 
 \code{.c}
 #include <starpu.h>
@@ -764,7 +764,7 @@ The Makefile given at the beginning of the section must be extended to
 give the rules to compile the CUDA source code. Note that the source
 file of the OpenCL kernel does not need to be compiled now, it will
 be compiled at run-time when calling the function
-starpu_opencl_load_opencl_from_file() (@pxref{starpu_opencl_load_opencl_from_file}).
+starpu_opencl_load_opencl_from_file().
 
 \verbatim
 CFLAGS  += $(shell pkg-config --cflags starpu-1.1)

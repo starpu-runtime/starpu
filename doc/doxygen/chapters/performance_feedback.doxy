@@ -29,71 +29,75 @@ Temanejo (so as to distinguish them from tasks).
 
 \subsection Enabling_on-line_performance_monitoring Enabling on-line performance monitoring
 
-In order to enable online performance monitoring, the application can call
-<c>starpu_profiling_status_set(STARPU_PROFILING_ENABLE)</c>. It is possible to
-detect whether monitoring is already enabled or not by calling
-starpu_profiling_status_get(). Enabling monitoring also reinitialize all
-previously collected feedback. The <c>STARPU_PROFILING</c> environment variable
-can also be set to 1 to achieve the same effect.
+In order to enable online performance monitoring, the application can
+call starpu_profiling_status_set() with the parameter
+::STARPU_PROFILING_ENABLE. It is possible to detect whether monitoring
+is already enabled or not by calling starpu_profiling_status_get().
+Enabling monitoring also reinitialize all previously collected
+feedback. The <c>STARPU_PROFILING</c> environment variable can also be
+set to 1 to achieve the same effect.
 
 Likewise, performance monitoring is stopped by calling
-<c>starpu_profiling_status_set(STARPU_PROFILING_DISABLE)</c>. Note that this
-does not reset the performance counters so that the application may consult
-them later on.
+starpu_profiling_status_set() with the parameter
+::STARPU_PROFILING_DISABLE. Note that this does not reset the
+performance counters so that the application may consult them later
+on.
 
 More details about the performance monitoring API are available in section
-@ref{Profiling API}.
+\ref Profiling_API.
 
 \subsection Per-Task_feedback Per-task feedback
 
-If profiling is enabled, a pointer to a <c>struct starpu_profiling_task_info</c>
-is put in the <c>.profiling_info</c> field of the <c>starpu_task</c>
-structure when a task terminates.
-This structure is automatically destroyed when the task structure is destroyed,
-either automatically or by calling starpu_task_destroy().
+If profiling is enabled, a pointer to a struct
+starpu_profiling_task_info is put in the field
+starpu_task::profiling_info when a task terminates. This structure is
+automatically destroyed when the task structure is destroyed, either
+automatically or by calling starpu_task_destroy().
 
-The <c>struct starpu_profiling_task_info</c> indicates the date when the
+The structure starpu_profiling_task_info indicates the date when the
 task was submitted (<c>submit_time</c>), started (<c>start_time</c>), and
 terminated (<c>end_time</c>), relative to the initialization of
 StarPU with starpu_init(). It also specifies the identifier of the worker
 that has executed the task (<c>workerid</c>).
 These date are stored as <c>timespec</c> structures which the user may convert
-into micro-seconds using the starpu_timing_timespec_to_us() helper
-function.
+into micro-seconds using the helper function
+starpu_timing_timespec_to_us().
 
 It it worth noting that the application may directly access this structure from
-the callback executed at the end of the task. The <c>starpu_task</c> structure
+the callback executed at the end of the task. The structure starpu_task
 associated to the callback currently being executed is indeed accessible with
-the starpu_task_get_current() function.
+the function starpu_task_get_current().
 
 \subsection Per-codelet_feedback Per-codelet feedback
 
-The <c>per_worker_stats</c> field of the <c>struct starpu_codelet</c> structure is
+The field starpu_codelet::per_worker_stats is
 an array of counters. The i-th entry of the array is incremented every time a
 task implementing the codelet is executed on the i-th worker.
 This array is not reinitialized when profiling is enabled or disabled.
 
 \subsection Per-worker_feedback Per-worker feedback
 
-The second argument returned by the starpu_profiling_worker_get_info()
-function is a <c>struct starpu_profiling_worker_info</c> that gives
-statistics about the specified worker. This structure specifies when StarPU
-started collecting profiling information for that worker (<c>start_time</c>),
-the duration of the profiling measurement interval (<c>total_time</c>), the
-time spent executing kernels (<c>executing_time</c>), the time spent sleeping
-because there is no task to execute at all (<c>sleeping_time</c>), and the
-number of tasks that were executed while profiling was enabled.
-These values give an estimation of the proportion of time spent do real work,
-and the time spent either sleeping because there are not enough executable
-tasks or simply wasted in pure StarPU overhead.
+The second argument returned by the function
+starpu_profiling_worker_get_info() is a structure
+starpu_profiling_worker_info that gives statistics about the specified
+worker. This structure specifies when StarPU started collecting
+profiling information for that worker (<c>start_time</c>), the
+duration of the profiling measurement interval (<c>total_time</c>),
+the time spent executing kernels (<c>executing_time</c>), the time
+spent sleeping because there is no task to execute at all
+(<c>sleeping_time</c>), and the number of tasks that were executed
+while profiling was enabled. These values give an estimation of the
+proportion of time spent do real work, and the time spent either
+sleeping because there are not enough executable tasks or simply
+wasted in pure StarPU overhead.
 
 Calling starpu_profiling_worker_get_info() resets the profiling
 information associated to a worker.
 
 When an FxT trace is generated (see \ref Generating_traces_with_FxT), it is also
-possible to use the <c>starpu_workers_activity</c> script (see \ref Monitoring_activity) to
-generate a graphic showing the evolution of these values during the time, for
-the different workers.
+possible to use the tool <c>starpu_workers_activity</c> (see \ref
+Monitoring_activity) to generate a graphic showing the evolution of
+these values during the time, for the different workers.
 
 \subsection Bus-related_feedback Bus-related feedback
 
@@ -104,8 +108,8 @@ how to enable/disable performance monitoring
 what kind of information do we get ?
 \endinternal
 
-The bus speed measured by StarPU can be displayed by using the
-<c>starpu_machine_display</c> tool, for instance:
+The bus speed measured by StarPU can be displayed by using the tool
+<c>starpu_machine_display</c>, for instance:
 
 \verbatim
 StarPU has found:
@@ -125,9 +129,9 @@ CUDA 2  4534.229519     2417.069025     2417.060863     0.000000
 StarPU-Top is an interface which remotely displays the on-line state of a StarPU
 application and permits the user to change parameters on the fly.
 
-Variables to be monitored can be registered by calling the
+Variables to be monitored can be registered by calling the functions
 starpu_top_add_data_boolean(), starpu_top_add_data_integer(),
-starpu_top_add_data_float() functions, e.g.:
+starpu_top_add_data_float(), e.g.:
 
 \code{.c}
 starpu_top_data *data = starpu_top_add_data_integer("mynum", 0, 100, 1);
@@ -342,7 +346,7 @@ schedulable yet are shown in grey.
 \section Performance_of_codelets Performance of codelets
 
 The performance model of codelets (see \ref Performance_model_example) can be examined by using the
-<c>starpu_perfmodel_display</c> tool:
+tool <c>starpu_perfmodel_display</c>:
 
 \verbatim
 $ starpu_perfmodel_display -l
@@ -401,13 +405,13 @@ a3d3725e	4096           	4.763200e+00   	7.650928e-01   	100
 \endverbatim
 
 The same can also be achieved by using StarPU's library API, see
-@ref{Performance Model API} and notably the starpu_perfmodel_load_symbol()
-function. The source code of the <c>starpu_perfmodel_display</c> tool can be a
-useful example.
+\ref Performance_Model_API and notably the function
+starpu_perfmodel_load_symbol(). The source code of the tool
+<c>starpu_perfmodel_display</c> can be a useful example.
 
-The <c>starpu_perfmodel_plot</c> tool can be used to draw performance models.
-It writes a <c>.gp</c> file in the current directory, to be run in the
-<c>gnuplot</c> tool, which shows the corresponding curve.
+The tool <c>starpu_perfmodel_plot</c> can be used to draw performance
+models. It writes a <c>.gp</c> file in the current directory, to be
+run in the <c>gnuplot</c> tool, which shows the corresponding curve.
 
 When the <c>flops</c> field of tasks is set, <c>starpu_perfmodel_plot</c> can
 directly draw a GFlops curve, by simply adding the <c>-f</c> option:
@@ -431,7 +435,7 @@ This will create profiling data files, and a <c>.gp</c> file in the current
 directory, which draws the distribution of codelet time over the application
 execution, according to data input size.
 
-This is also available in the <c>starpu_perfmodel_plot</c> tool, by passing it
+This is also available in the tool <c>starpu_perfmodel_plot</c>, by passing it
 the fxt trace:
 
 \verbatim
