@@ -16,6 +16,13 @@ starpu tasks to them and we schedule them with the policy assigned to
 the context. Scheduling contexts can be created, deleted and modified
 dynamically.
 
+\enum starpu_worker_collection_type
+\ingroup Scheduling_Contexts
+types of structures the worker collection can implement
+\var starpu_worker_collection_type::STARPU_WORKER_LIST
+\ingroup Scheduling_Contexts
+List of workers
+
 \struct starpu_sched_ctx_performance_counters
 \brief Performance counters used by the starpu to indicate the
 hypervisor how the application and the resources are executing.

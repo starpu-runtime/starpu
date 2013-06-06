@@ -8,6 +8,56 @@
 
 /*! \defgroup Workers_Properties Workers’ Properties
 
+\enum starpu_node_kind
+\ingroup Workers_Properties
+TODO
+\var starpu_node_kind::STARPU_UNUSED
+\ingroup Workers_Properties
+TODO
+\ingroup Workers_Properties
+\var starpu_node_kind::STARPU_CPU_RAM
+\ingroup Workers_Properties
+TODO
+\var starpu_node_kind::STARPU_CUDA_RAM
+\ingroup Workers_Properties
+TODO
+\var starpu_node_kind::STARPU_OPENCL_RAM
+\ingroup Workers_Properties
+TODO
+\var starpu_node_kind::STARPU_MIC_RAM
+\ingroup Workers_Properties
+TODO
+\var starpu_node_kind::STARPU_SCC_RAM
+\ingroup Workers_Properties
+This node kind is not used anymore, but implementations in interfaces
+will be useful for MPI.
+\var starpu_node_kind::STARPU_SCC_SHM
+\ingroup Workers_Properties
+TODO
+
+\enum starpu_worker_archtype
+\ingroup Workers_Properties
+\brief Worker Architecture Type
+\var starpu_worker_archtype::STARPU_ANY_WORKER
+\ingroup Workers_Properties
+any worker, used in the hypervisor
+\var starpu_worker_archtype::STARPU_CPU_WORKER
+\ingroup Workers_Properties
+CPU core
+\var starpu_worker_archtype::STARPU_CUDA_WORKER
+\ingroup Workers_Properties
+NVIDIA CUDA device
+\var starpu_worker_archtype::STARPU_OPENCL_WORKER
+\ingroup Workers_Properties
+OpenCL device
+\var starpu_worker_archtype::STARPU_MIC_WORKER
+\ingroup Workers_Properties
+Intel MIC device
+\var starpu_worker_archtype::STARPU_SCC_WORKER
+\ingroup Workers_Properties
+Intel SCC device
+
+
 \fn unsigned starpu_worker_get_count(void)
 \ingroup Workers_Properties
 \brief This function returns the number of workers (i.e. processing

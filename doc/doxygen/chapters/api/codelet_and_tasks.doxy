@@ -10,6 +10,53 @@
 
 \brief This section describes the interface to manipulate codelets and tasks.
 
+\enum starpu_codelet_type
+\ingroup Codelet_And_Tasks
+\brief Describes the type of parallel task. See \ref Parallel_Tasks for details.
+\var starpu_codelet_type::STARPU_SEQ
+\ingroup Codelet_And_Tasks
+(default) for classical sequential tasks.
+\var starpu_codelet_type::STARPU_SPMD
+\ingroup Codelet_And_Tasks
+for a parallel task whose threads are handled by StarPU, the code has
+to use starpu_combined_worker_get_size() and
+starpu_combined_worker_get_rank() to distribute the work.
+\var starpu_codelet_type::STARPU_FORKJOIN
+\ingroup Codelet_And_Tasks
+for a parallel task whose threads are started by the codelet function,
+which has to use starpu_combined_worker_get_size() to determine how
+many threads should be started.
+
+\enum starpu_task_status
+\ingroup Codelet_And_Tasks
+\brief Task status
+\var starpu_task_status::STARPU_TASK_INVALID
+\ingroup Codelet_And_Tasks
+The task has just been initialized.
+\var starpu_task_status::STARPU_TASK_BLOCKED
+\ingroup Codelet_And_Tasks
+The task has just been submitted, and its dependencies has not been
+checked yet.
+\var starpu_task_status::STARPU_TASK_READY
+\ingroup Codelet_And_Tasks
+The task is ready for execution.
+\var starpu_task_status::STARPU_TASK_RUNNING
+\ingroup Codelet_And_Tasks
+The task is running on some worker.
+\var starpu_task_status::STARPU_TASK_FINISHED
+\ingroup Codelet_And_Tasks
+The task is finished executing.
+\var starpu_task_status::STARPU_TASK_BLOCKED_ON_TAG
+\ingroup Codelet_And_Tasks
+The task is waiting for a tag.
+\var starpu_task_status::STARPU_TASK_BLOCKED_ON_TASK
+\ingroup Codelet_And_Tasks
+The task is waiting for a task.
+\var starpu_task_status::STARPU_TASK_BLOCKED_ON_DATA
+\ingroup Codelet_And_Tasks
+The task is waiting for some data.
+
+
 \def STARPU_CPU
 \ingroup Codelet_And_Tasks
 This macro is used when setting the field starpu_codelet::where

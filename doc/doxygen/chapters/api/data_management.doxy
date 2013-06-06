@@ -21,6 +21,42 @@ StarPU, it is associated to a starpu_data_handle_t which keeps track
 of the state of the piece of data over the entire machine, so that we
 can maintain data consistency and locate data replicates for instance.
 
+\enum starpu_data_access_mode
+\ingroup Data_Management
+This datatype describes a data access mode.
+\var starpu_data_access_mode::STARPU_NONE
+\ingroup Data_Management
+TODO!
+\var starpu_data_access_mode::STARPU_R
+\ingroup Data_Management
+read-only mode.
+\var starpu_data_access_mode::STARPU_W
+\ingroup Data_Management
+write-only mode.
+\var starpu_data_access_mode::STARPU_RW
+\ingroup Data_Management
+read-write mode. This is equivalent to ::STARPU_R|::STARPU_W
+\var starpu_data_access_mode::STARPU_SCRATCH
+\ingroup Data_Management
+A temporary buffer is allocated for the task, but StarPU does not
+enforce data consistency---i.e. each device has its own buffer,
+independently from each other (even for CPUs), and no data transfer is
+ever performed. This is useful for temporary variables to avoid
+allocating/freeing buffers inside each task. Currently, no behavior is
+defined concerning the relation with the ::STARPU_R and ::STARPU_W modes
+and the value provided at registration --- i.e., the value of the
+scratch buffer is undefined at entry of the codelet function.  It is
+being considered for future extensions at least to define the initial
+value.  For now, data to be used in ::STARPU_SCRATCH mode should be
+registered with node <c>-1</c> and a <c>NULL</c> pointer, since the
+value of the provided buffer is simply ignored for now.
+\var starpu_data_access_mode::STARPU_REDUX
+\ingroup Data_Management
+todo
+\var starpu_data_access_mode::STARPU_COMMUTE
+\ingroup Data_Management
+todo
+
 @name Basic Data Management API
 \ingroup Data_Management
 

@@ -16,8 +16,6 @@ In addition, command queues that are created without specifying a device provide
 automatic scheduling of the submitted commands on OpenCL devices contained in
 the context to which the command queue is attached.
 
-Note: as of StarPU @value{VERSION}, this is still an area under
-development and subject to change.
-
+Note: this is still an area under development and subject to change.
 
 */

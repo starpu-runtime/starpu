@@ -8,6 +8,64 @@
 
 /*! \defgroup Performance_Model Performance Model
 
+\enum starpu_perfmodel_archtype
+\ingroup Performance_Model
+\brief Enumerates the various types of architectures.
+
+it is possible that we have multiple versions of the same kind of
+workers, for instance multiple GPUs or even different CPUs within
+the same machine so we do not use the archtype enum type directly
+for performance models.
+
+<ul>
+<li> CPU types range within ::STARPU_CPU_DEFAULT (1 CPU),
+::STARPU_CPU_DEFAULT+1 (2 CPUs), ... ::STARPU_CPU_DEFAULT +
+STARPU_MAXCPUS - 1 (STARPU_MAXCPUS CPUs).
+</li>
+<li> CUDA types range within ::STARPU_CUDA_DEFAULT (GPU number 0),
+::STARPU_CUDA_DEFAULT + 1 (GPU number 1), ..., ::STARPU_CUDA_DEFAULT +
+STARPU_MAXCUDADEVS - 1 (GPU number STARPU_MAXCUDADEVS - 1).
+</li>
+<li> OpenCL types range within ::STARPU_OPENCL_DEFAULT (GPU number
+0), ::STARPU_OPENCL_DEFAULT + 1 (GPU number 1), ...,
+::STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS - 1 (GPU number
+STARPU_MAXOPENCLDEVS - 1).
+</ul>
+\var starpu_perfmodel_archtype::STARPU_CPU_DEFAULT
+\ingroup Performance_Model
+CPU combined workers between 0 and STARPU_MAXCPUS-1
+\var starpu_perfmodel_archtype::STARPU_CUDA_DEFAULT
+\ingroup Performance_Model
+CUDA workers
+\var starpu_perfmodel_archtype::STARPU_OPENCL_DEFAULT
+\ingroup Performance_Model
+OpenCL workers
+\var starpu_perfmodel_archtype::STARPU_MIC_DEFAULT
+\ingroup Performance_Model
+MIC workers
+\var starpu_perfmodel_archtype::STARPU_SCC_DEFAULT
+\ingroup Performance_Model
+SCC workers
+
+\enum starpu_perfmodel_type
+\ingroup Performance_Model
+\brief TODO
+\var starpu_perfmodel_type::STARPU_PER_ARCH
+\ingroup Performance_Model
+Application-provided per-arch cost model function
+\var starpu_perfmodel_type::STARPU_COMMON
+\ingroup Performance_Model
+Application-provided common cost model function, with per-arch factor
+\var starpu_perfmodel_type::STARPU_HISTORY_BASED
+\ingroup Performance_Model
+Automatic history-based cost model
+\var starpu_perfmodel_type::STARPU_REGRESSION_BASED
+\ingroup Performance_Model
+Automatic linear regression-based cost model  (alpha * size ^ beta)
+\var starpu_perfmodel_type::STARPU_NL_REGRESSION_BASED
+\ingroup Performance_Model
+Automatic non-linear regression-based cost model (a * size ^ b + c)
+
 \struct starpu_perfmodel
 \brief Contains all information about a performance model. At least the
 type and symbol fields have to be filled when defining a performance

@@ -8,6 +8,60 @@
 
 /*! \defgroup StarPU-Top_Interface StarPU-Top Interface
 
+\enum starpu_top_data_type
+\ingroup StarPU-Top_Interface
+\brief StarPU-Top Data type
+\var starpu_top_data_type::STARPU_TOP_DATA_BOOLEAN
+\ingroup StarPU-Top_Interface
+todo
+\var starpu_top_data_type::STARPU_TOP_DATA_INTEGER
+\ingroup StarPU-Top_Interface
+todo
+\var starpu_top_data_type::STARPU_TOP_DATA_FLOAT
+\ingroup StarPU-Top_Interface
+todo
+
+\enum starpu_top_param_type
+\ingroup StarPU-Top_Interface
+\brief StarPU-Top Parameter type
+\var starpu_top_param_type::STARPU_TOP_PARAM_BOOLEAN
+\ingroup StarPU-Top_Interface
+todo
+\var starpu_top_param_type::STARPU_TOP_PARAM_INTEGER
+\ingroup StarPU-Top_Interface
+todo
+\var starpu_top_param_type::STARPU_TOP_PARAM_FLOAT
+\ingroup StarPU-Top_Interface
+todo
+\var starpu_top_param_type::STARPU_TOP_PARAM_ENUM
+\ingroup StarPU-Top_Interface
+todo
+
+\enum starpu_top_message_type
+\ingroup StarPU-Top_Interface
+\brief StarPU-Top Message type
+\var starpu_top_message_type::TOP_TYPE_GO
+\ingroup StarPU-Top_Interface
+todo
+\var starpu_top_message_type::TOP_TYPE_SET
+\ingroup StarPU-Top_Interface
+todo
+\var starpu_top_message_type::TOP_TYPE_CONTINUE
+\ingroup StarPU-Top_Interface
+todo
+\var starpu_top_message_type::TOP_TYPE_ENABLE
+\ingroup StarPU-Top_Interface
+todo
+\var starpu_top_message_type::TOP_TYPE_DISABLE
+\ingroup StarPU-Top_Interface
+todo
+\var starpu_top_message_type::TOP_TYPE_DEBUG
+\ingroup StarPU-Top_Interface
+todo
+\var starpu_top_message_type::TOP_TYPE_UNKNOW
+\ingroup StarPU-Top_Interface
+todo
+
 \struct starpu_top_data
 \brief todo
 \ingroup StarPU-Top_Interface
