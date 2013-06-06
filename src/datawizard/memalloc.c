@@ -356,12 +356,12 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 			STARPU_ASSERT(handle->per_node[node].refcnt == 0);
 
+
+
+
+
+
 			/* in case there was nobody using that buffer, throw it
-
-
-
-
-
 			 * away after writing it back to main memory */
 			if (handle->home_node != -1)
 				target = handle->home_node;
@@ -405,8 +405,11 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 			}      
 
 
-			if (target != -1)
-			{
+			if (target != -1) {
+#ifdef STARPU_MEMORY_STATS
+				if (handle->per_node[node].state == STARPU_OWNER)
+					_starpu_memory_handle_stats_invalidated(handle, node);
+#endif
 				transfer_subtree_to_node(handle, node, target);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
