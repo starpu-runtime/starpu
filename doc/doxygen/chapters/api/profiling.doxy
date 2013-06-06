@@ -100,7 +100,7 @@ starpu_profiling_worker_get_info()
 
 \fn int starpu_profiling_status_set(int status)
 \ingroup Profiling
-\brief This function sets the profiling status. Profiling is activated
+This function sets the profiling status. Profiling is activated
 by passing STARPU_PROFILING_ENABLE in status. Passing
 STARPU_PROFILING_DISABLE disables profiling. Calling this function
 resets all profiling measurements. When profiling is enabled, the
@@ -111,17 +111,17 @@ previous status is returned.
 
 \fn int starpu_profiling_status_get(void)
 \ingroup Profiling
-\brief Return the current profiling status or a negative value in case
+Return the current profiling status or a negative value in case
 there was an error.
 
 \fn void starpu_profiling_set_id(int new_id)
 \ingroup Profiling
-\brief This function sets the ID used for profiling trace filename. It
+This function sets the ID used for profiling trace filename. It
 needs to be called before starpu_init().
 
 \fn int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worker_info *worker_info)
 \ingroup Profiling
-\brief Get the profiling info associated to the worker identified by
+Get the profiling info associated to the worker identified by
 \p workerid, and reset the profiling measurements. If the argument \p
 worker_info is NULL, only reset the counters associated to worker
 \p workerid. Upon successful completion, this function returns 0.
@@ -129,47 +129,47 @@ Otherwise, a negative value is returned.
 
 \fn int starpu_bus_get_profiling_info(int busid, struct starpu_profiling_bus_info *bus_info)
 \ingroup Profiling
-\brief todo
+todo
 
 \fn int starpu_bus_get_count(void)
 \ingroup Profiling
-\brief Return the number of buses in the machine
+Return the number of buses in the machine
 
 \fn int starpu_bus_get_id(int src, int dst)
 \ingroup Profiling
-\brief Return the identifier of the bus between \p src and \p dst
+Return the identifier of the bus between \p src and \p dst
 
 \fn int starpu_bus_get_src(int busid)
 \ingroup Profiling
-\brief Return the source point of bus \p busid
+Return the source point of bus \p busid
 
 \fn int starpu_bus_get_dst(int busid)
 \ingroup Profiling
-\brief Return the destination point of bus \p busid
+Return the destination point of bus \p busid
 
 \fn double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end)
 \ingroup Profiling
-\brief Returns the time elapsed between \p start and \p end in microseconds.
+Returns the time elapsed between \p start and \p end in microseconds.
 
 \fn double starpu_timing_timespec_to_us(struct timespec *ts)
 \ingroup Profiling
-\brief Converts the given timespec \p ts into microseconds
+Converts the given timespec \p ts into microseconds
 
 \fn void starpu_profiling_bus_helper_display_summary(void)
 \ingroup Profiling
-\brief Displays statistics about the bus on stderr. if the environment
+Displays statistics about the bus on stderr. if the environment
 variable STARPU_BUS_STATS is defined. The function is called
 automatically by starpu_shutdown().
 
 \fn void starpu_profiling_worker_helper_display_summary(void)
 \ingroup Profiling
-\brief Displays statistics about the workers on stderr if the
+Displays statistics about the workers on stderr if the
 environment variable STARPU_WORKER_STATS is defined. The function is
 called automatically by starpu_shutdown().
 
 \fn void starpu_data_display_memory_stats()
 \ingroup Profiling
-\brief Display statistics about the current data handles registered
+Display statistics about the current data handles registered
 within StarPU. StarPU must have been configured with the option
 <c>--enable-memory-stats</c> (see \ref Memory_feedback).
 

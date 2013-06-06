@@ -12,23 +12,23 @@
 
 \def STARPU_CPU
 \ingroup Codelet_And_Tasks
-\brief This macro is used when setting the field starpu_codelet::where
+This macro is used when setting the field starpu_codelet::where
 to specify the codelet may be executed on a CPU processing unit.
 
 \def STARPU_CUDA
 \ingroup Codelet_And_Tasks
-\brief This macro is used when setting the field starpu_codelet::where
+This macro is used when setting the field starpu_codelet::where
 to specify the codelet may be executed on a CUDA processing unit.
 
 \def STARPU_OPENCL
 \ingroup Codelet_And_Tasks
-\brief This macro is used when setting the field starpu_codelet::where to
+This macro is used when setting the field starpu_codelet::where to
 specify the codelet may be executed on a OpenCL processing unit.
 
 \def STARPU_MULTIPLE_CPU_IMPLEMENTATIONS
 \deprecated
 \ingroup Codelet_And_Tasks
-\brief Setting the field starpu_codelet::cpu_func with this macro
+Setting the field starpu_codelet::cpu_func with this macro
 indicates the codelet will have several implementations. The use of
 this macro is deprecated. One should always only define the field
 starpu_codelet::cpu_funcs.
@@ -36,7 +36,7 @@ starpu_codelet::cpu_funcs.
 \def STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS
 \deprecated
 \ingroup Codelet_And_Tasks
-\brief Setting the field starpu_codelet::cuda_func with this macro
+Setting the field starpu_codelet::cuda_func with this macro
 indicates the codelet will have several implementations. The use of
 this macro is deprecated. One should always only define the field
 starpu_codelet::cuda_funcs.
@@ -44,10 +44,30 @@ starpu_codelet::cuda_funcs.
 \def STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS
 \deprecated
 \ingroup Codelet_And_Tasks
-\brief Setting the field starpu_codelet::opencl_func with
+Setting the field starpu_codelet::opencl_func with
 this macro indicates the codelet will have several implementations.
 The use of this macro is deprecated. One should always only define the
 field starpu_codelet::opencl_funcs.
+
+\def starpu_cpu_func_t
+\ingroup Codelet_And_Tasks
+CPU implementation of a codelet.
+
+\def starpu_cuda_func_t
+\ingroup Codelet_And_Tasks
+CUDA implementation of a codelet.
+
+\def starpu_opencl_func_t
+\ingroup Codelet_And_Tasks
+OpenCL implementation of a codelet.
+
+\def starpu_mic_func_t
+\ingroup Codelet_And_Tasks
+MIC implementation of a codelet.
+
+\def starpu_scc_func_t
+\ingroup Codelet_And_Tasks
+SCC implementation of a codelet.
 
 \struct starpu_codelet
 \brief The codelet structure describes a kernel that is possibly
@@ -183,7 +203,7 @@ purposes.
 
 \fn void starpu_codelet_init(struct starpu_codelet *cl)
 \ingroup Codelet_And_Tasks
-\brief Initialize \p cl with default values. Codelets should
+Initialize \p cl with default values. Codelets should
 preferably be initialized statically as shown in \ref
 Defining_a_Codelet. However such a initialisation is not always
 possible, e.g. when using C++.
@@ -407,7 +427,7 @@ Whether the scheduler has pushed the task on some queue
 
 \fn void starpu_task_init(struct starpu_task *task)
 \ingroup Codelet_And_Tasks
-\brief Initialize task with default values. This function is
+Initialize task with default values. This function is
 implicitly called by starpu_task_create(). By default, tasks initialized
 with starpu_task_init() must be deinitialized explicitly with
 starpu_task_clean(). Tasks can also be initialized statically, using
@@ -415,13 +435,13 @@ STARPU_TASK_INITIALIZER.
 
 \def STARPU_TASK_INITIALIZER
 \ingroup Codelet_And_Tasks
-\brief It is possible to initialize statically allocated tasks with
+It is possible to initialize statically allocated tasks with
 this value. This is equivalent to initializing a structure starpu_task
 with the function starpu_task_init() function.
 
 \def STARPU_TASK_GET_HANDLE(struct starpu_task *task, int i)
 \ingroup Codelet_And_Tasks
-\brief Return the \p i th data handle of the given task. If the task
+Return the \p i th data handle of the given task. If the task
 is defined with a static or dynamic number of handles, will either
 return the \p i th element of the field starpu_task::handles or the \p
 i th element of the field starpu_task::dyn_handles (see \ref
@@ -429,7 +449,7 @@ Setting_the_Data_Handles_for_a_Task)
 
 \def STARPU_TASK_SET_HANDLE(struct starpu_task *task, starpu_data_handle_t handle, int i)
 \ingroup Codelet_And_Tasks
-\brief Set the \p i th data handle of the given task with the given
+Set the \p i th data handle of the given task with the given
 dat handle. If the task is defined with a static or dynamic number of
 handles, will either set the \p i th element of the field
 starpu_task::handles or the \p i th element of the field
@@ -438,7 +458,7 @@ Setting_the_Data_Handles_for_a_Task)
 
 \def STARPU_CODELET_GET_MODE(struct starpu_codelet *codelet, int i)
 \ingroup Codelet_And_Tasks
-\brief Return the access mode of the \p i th data handle of the given
+Return the access mode of the \p i th data handle of the given
 codelet. If the codelet is defined with a static or dynamic number of
 handles, will either return the \p i th element of the field
 starpu_codelet::modes or the \p i th element of the field
@@ -447,7 +467,7 @@ Setting_the_Data_Handles_for_a_Task)
 
 \def STARPU_CODELET_SET_MODE(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, int i)
 \ingroup Codelet_And_Tasks
-\brief Set the access mode of the \p i th data handle of the given
+Set the access mode of the \p i th data handle of the given
 codelet. If the codelet is defined with a static or dynamic number of
 handles, will either set the \p i th element of the field
 starpu_codelet::modes or the \p i th element of the field
@@ -456,7 +476,7 @@ Setting_the_Data_Handles_for_a_Task)
 
 \fn struct starpu_task * starpu_task_create(void)
 \ingroup Codelet_And_Tasks
-\brief Allocate a task structure and initialize it with default
+Allocate a task structure and initialize it with default
 values. Tasks allocated dynamically with starpu_task_create() are
 automatically freed when the task is terminated. This means that the
 task pointer can not be used any more once the task is submitted,
@@ -467,12 +487,12 @@ calling starpu_task_destroy().
 
 \fn struct starpu_task * starpu_task_dup(struct starpu_task *task)
 \ingroup Codelet_And_Tasks
-\brief Allocate a task structure which is the exact duplicate of the
+Allocate a task structure which is the exact duplicate of the
 given task.
 
 \fn void starpu_task_clean(struct starpu_task *task)
 \ingroup Codelet_And_Tasks
-\brief Release all the structures automatically allocated to execute
+Release all the structures automatically allocated to execute
 task, but not the task structure itself and values set by the user
 remain unchanged. It is thus useful for statically allocated tasks for
 instance. It is also useful when users want to execute the same
@@ -484,7 +504,7 @@ manipulates the task after calling the callback).
 
 \fn void starpu_task_destroy(struct starpu_task *task)
 \ingroup Codelet_And_Tasks
-\brief Free the resource allocated during starpu_task_create() and
+Free the resource allocated during starpu_task_create() and
 associated with task. This function is already called automatically
 after the execution of a task when the field starpu_task::destroy is
 set, which is the default for tasks created by starpu_task_create().
@@ -493,7 +513,7 @@ undefined behaviour.
 
 \fn int starpu_task_wait(struct starpu_task *task)
 \ingroup Codelet_And_Tasks
-\brief This function blocks until \p task has been executed. It is not
+This function blocks until \p task has been executed. It is not
 possible to synchronize with a task more than once. It is not possible
 to wait for synchronous or detached tasks. Upon successful completion,
 this function returns 0. Otherwise, <c>-EINVAL</c> indicates that the
@@ -501,7 +521,7 @@ specified task was either synchronous or detached.
 
 \fn int starpu_task_submit(struct starpu_task *task)
 \ingroup Codelet_And_Tasks
-\brief This function submits task to StarPU. Calling this function
+This function submits task to StarPU. Calling this function
 does not mean that the task will be executed immediately as there can
 be data or task (tag) dependencies that are not fulfilled yet: StarPU
 will take care of scheduling this task with respect to such
@@ -519,52 +539,57 @@ starpu_task::synchronous is set to 0.
 
 \fn int starpu_task_wait_for_all(void)
 \ingroup Codelet_And_Tasks
-\brief This function blocks until all the tasks that were submitted
+This function blocks until all the tasks that were submitted
 (to the current context or the global one if there aren't any) are
 terminated. It does not destroy these tasks.
 
 \fn int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx_id)
 \ingroup Codelet_And_Tasks
-\brief This function waits until all the tasks that were already
+This function waits until all the tasks that were already
 submitted to the context \p sched_ctx_id have been executed
 
 \fn int starpu_task_nready(void)
 \ingroup Codelet_And_Tasks
-\brief TODO
+TODO
 
-\brief int starpu_task_nsubmitted(void)
+\fn int starpu_task_nsubmitted(void)
 \ingroup Codelet_And_Tasks
 Return the number of submitted tasks which have not completed yet.
 
 \fn int starpu_task_nready(void)
 \ingroup Codelet_And_Tasks
-\brief Return the number of submitted tasks which are ready for
+Return the number of submitted tasks which are ready for
 execution are already executing. It thus does not include tasks
 waiting for dependencies.
 
 \fn struct starpu_task * starpu_task_get_current(void)
 \ingroup Codelet_And_Tasks
-\brief This function returns the task currently executed by the
+This function returns the task currently executed by the
 worker, or <c>NULL</c> if it is called either from a thread that is not a
 task or simply because there is no task being executed at the moment.
 
 \fn void starpu_codelet_display_stats(struct starpu_codelet *cl)
 \ingroup Codelet_And_Tasks
-\brief Output on stderr some statistics on the codelet \p cl.
+Output on stderr some statistics on the codelet \p cl.
 
 \fn int starpu_task_wait_for_no_ready(void)
 \ingroup Codelet_And_Tasks
-\brief This function waits until there is no more ready task.
+This function waits until there is no more ready task.
 
 \fn void starpu_task_set_implementation(struct starpu_task *task, unsigned impl)
 \ingroup Codelet_And_Tasks
-\brief This function should be called by schedulers to specify the
+This function should be called by schedulers to specify the
 codelet implementation to be executed when executing the task.
 
 \fn unsigned starpu_task_get_implementation(struct starpu_task *task)
 \ingroup Codelet_And_Tasks
-\brief This function return the codelet implementation to be executed
+This function return the codelet implementation to be executed
 when executing the task.
+
+\fn void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,	void (*callback)(void *), void *callback_arg)
+\ingroup Codelet_And_Tasks
+This creates (and submits) an empty task that unlocks a tag once all
+its dependencies are fulfilled.
 
 
 */

@@ -8,19 +8,6 @@
 
 /*! \defgroup Scheduling_Context_Hypervisor Scheduling Context Hypervisor
 
-\struct starpu_sched_ctx_performance_counters
-\ingroup Scheduling_Context_Hypervisor
-\var starpu_sched_ctx_performance_counters::notify_idle_cycle
-        Informs the hypervisor for how long a worker has been idle in the specified context
-\var starpu_sched_ctx_performance_counters::notify_idle_end
-        Informs the hypervisor that after a period of idle, the worker has just executed a task in the specified context. The idle counter it though reset.
-\var starpu_sched_ctx_performance_counters::notify_pushed_task
-        Notifies the hypervisor a task has been scheduled on the queue of the worker corresponding to the specified context
-\var starpu_sched_ctx_performance_counters::notify_poped_task
-        Informs the hypervisor a task executing a specified number of instructions has been poped from the worker
-\var starpu_sched_ctx_performance_counters::notify_post_exec_hook
-        Notifies the hypervisor a task has just been executed
-
 \struct sc_hypervisor_policy
 \ingroup Scheduling_Context_Hypervisor
 \brief This structure contains all the methods that implement a hypervisor resizing policy.

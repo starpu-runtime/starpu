@@ -8,38 +8,41 @@
 
 /*! \defgroup Theoretical_lower_bound_on_execution_time Theoretical lower bound on execution time
 
+\brief Compute theoretical upper computation efficiency bound
+corresponding to some actual execution.
+
 \fn void starpu_bound_start (int deps, int prio)
 \ingroup Theoretical_lower_bound_on_execution_time
-\brief Start recording tasks (resets stats). \p deps tells whether
+Start recording tasks (resets stats). \p deps tells whether
 dependencies should be recorded too (this is quite expensive)
 
 \fn void starpu_bound_stop (void)
 \ingroup Theoretical_lower_bound_on_execution_time
-\brief Stop recording tasks
+Stop recording tasks
 
 \fn void starpu_bound_print_dot (FILE *output)
 \ingroup Theoretical_lower_bound_on_execution_time
-\brief Print the DAG that was recorded
+Print the DAG that was recorded
 
 \fn void starpu_bound_compute (double *res, double *integer_res, int integer)
 \ingroup Theoretical_lower_bound_on_execution_time
-\brief Get theoretical upper bound (in ms) (needs glpk support
+Get theoretical upper bound (in ms) (needs glpk support
 detected by configure script). It returns 0 if some performance models
 are not calibrated.
 
 \fn void starpu_bound_print_lp (FILE *output)
 \ingroup Theoretical_lower_bound_on_execution_time
-\brief Emit the Linear Programming system on \p output for the recorded
+Emit the Linear Programming system on \p output for the recorded
 tasks, in the lp format
 
 \fn void starpu_bound_print_mps (FILE *output)
 \ingroup Theoretical_lower_bound_on_execution_time
-\brief Emit the Linear Programming system on \p output for the recorded
+Emit the Linear Programming system on \p output for the recorded
 tasks, in the mps format
 
 \fn void starpu_bound_print (FILE *output, int integer)
 \ingroup Theoretical_lower_bound_on_execution_time
-\brief Emit statistics of actual execution vs theoretical upper bound.
+Emit statistics of actual execution vs theoretical upper bound.
 \p integer permits to choose between integer solving (which takes a
 long time but is correct), and relaxed solving (which provides an
 approximate solution).

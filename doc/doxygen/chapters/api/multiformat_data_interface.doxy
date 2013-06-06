@@ -26,9 +26,19 @@
 \var starpu_multiformat_data_interface_ops::cuda_to_cpu_cl
         pointer to a codelet which converts from CUDA to CPU
 
+\struct starpu_multiformat_interface
+\ingroup Multiformat_Data_Interface
+\var starpu_multiformat_interface::id
+\var starpu_multiformat_interface::cpu_ptr
+\var starpu_multiformat_interface::cuda_ptr
+\var starpu_multiformat_interface::opencl_ptr
+\var starpu_multiformat_interface::mic_ptr
+\var starpu_multiformat_interface::nx
+\var starpu_multiformat_interface::ops
+
 \fn void starpu_multiformat_data_register(starpu_data_handle_t *handle, unsigned home_node, void *ptr, uint32_t nobjects, struct starpu_multiformat_data_interface_ops *format_ops)
 \ingroup Multiformat_Data_Interface
-\brief Register a piece of data that can be represented in different
+Register a piece of data that can be represented in different
 ways, depending upon the processing unit that manipulates it. It
 allows the programmer, for instance, to use an array of structures
 when working on a CPU, and a structure of arrays when working on a
@@ -37,18 +47,18 @@ describes the format.
 
 \def STARPU_MULTIFORMAT_GET_CPU_PTR(void *interface)
 \ingroup Multiformat_Data_Interface
-\brief returns the local pointer to the data with CPU format.
+returns the local pointer to the data with CPU format.
 
 \def STARPU_MULTIFORMAT_GET_CUDA_PTR(void *interface)
 \ingroup Multiformat_Data_Interface
-\brief returns the local pointer to the data with CUDA format.
+returns the local pointer to the data with CUDA format.
 
 \def STARPU_MULTIFORMAT_GET_OPENCL_PTR(void *interface)
 \ingroup Multiformat_Data_Interface
-\brief returns the local pointer to the data with OpenCL format.
+returns the local pointer to the data with OpenCL format.
 
 \def STARPU_MULTIFORMAT_GET_NX (void *interface)
 \ingroup Multiformat_Data_Interface
-\brief returns the number of elements in the data.
+returns the number of elements in the data.
 
 */

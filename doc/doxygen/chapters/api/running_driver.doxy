@@ -27,11 +27,12 @@ Initialize the given driver. Returns 0 on success, <c>-EINVAL</c> if
 \ingroup Running_Drivers
 Run the driver once, then returns 0 on success, <c>-EINVAL</c> if <c>d->type</c> is not a valid ::starpu_worker_archtype.
 
-Function: int starpu_driver_deinit (struct starpu_driver *d)
+\fn int starpu_driver_deinit(struct starpu_driver *d)
 \ingroup Running Drivers
-Deinitialize the given driver. Returns 0 on success, <c>-EINVAL</c> if <c>d->type</c> is not a valid ::starpu_worker_archtype.
+Deinitialize the given driver. Returns 0 on success, <c>-EINVAL</c> if
+<c>d->type</c> is not a valid ::starpu_worker_archtype.
 
-Function: void starpu_drivers_request_termination (void)
+\fn void starpu_drivers_request_termination(void)
 \ingroup Running Drivers
 Notify all running drivers they should terminate.
 
