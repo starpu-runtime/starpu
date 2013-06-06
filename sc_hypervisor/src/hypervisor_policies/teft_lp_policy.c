@@ -168,7 +168,7 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 			return;
 		}
 
-		if(sc_hypervisor_has_velocity_gap_btw_ctxs())
+		if(sc_hypervisor_criteria_fulfilled(sched_ctx, worker))
 		{
 			int ns = sc_hypervisor_get_nsched_ctxs();
 			int nw = starpu_worker_get_count(); /* Number of different workers */

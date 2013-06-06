@@ -30,9 +30,7 @@ unsigned worker_belong_to_other_sched_ctx(unsigned sched_ctx, int worker)
 
 void idle_handle_idle_cycle(unsigned sched_ctx, int worker)
 {
-	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
-	struct sc_hypervisor_policy_config *config = sc_w->config;
-	if(config != NULL &&  sc_w->current_idle_time[worker] > config->max_idle[worker])
+	if(sc_hypervisor_criteria_fulfilled(sched_ctx, worker))
 	{
 		if(worker_belong_to_other_sched_ctx(sched_ctx, worker))
 			sc_hypervisor_remove_workers_from_sched_ctx(&worker, 1, sched_ctx, 1);

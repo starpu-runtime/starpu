@@ -146,7 +146,7 @@ static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, struct star
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
-		if(sc_hypervisor_has_velocity_gap_btw_ctxs())
+		if(sc_hypervisor_criteria_fulfilled(sched_ctx, worker))
 		{
 			unsigned fastest_sched_ctx = _get_fastest_sched_ctx();
 			unsigned slowest_sched_ctx = _get_slowest_sched_ctx();
