@@ -106,12 +106,10 @@ struct _starpu_worker
 	unsigned parallel_sect;
 
 #ifdef __GLIBC__
-	cpu_set_t initial_cpu_set;
-	cpu_set_t current_cpu_set;
+	cpu_set_t cpu_set;
 #endif /* __GLIBC__ */
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_bitmap_t initial_hwloc_cpu_set;
-	hwloc_bitmap_t current_hwloc_cpu_set;
+	hwloc_bitmap_t hwloc_cpu_set;
 #endif
 };
 

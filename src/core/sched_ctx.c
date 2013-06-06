@@ -234,7 +234,7 @@ static void _starpu_sched_ctx_create_hwloc_tree(struct _starpu_sched_ctx *sched_
 		{
 			hwloc_bitmap_or(sched_ctx->hwloc_workers_set,
 					sched_ctx->hwloc_workers_set,
-					config->workers[worker].initial_hwloc_cpu_set);
+					config->workers[worker].hwloc_cpu_set);
 		}
 
 	}

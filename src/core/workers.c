@@ -396,7 +396,7 @@ void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
 
         _STARPU_DEBUG("worker %d is ready on logical cpu %d\n", devid, worker->bindid);
 #ifdef STARPU_HAVE_HWLOC
-	_STARPU_DEBUG("worker %d cpuset start at %d\n", devid, hwloc_bitmap_first(worker->initial_hwloc_cpu_set));
+	_STARPU_DEBUG("worker %d cpuset start at %d\n", devid, hwloc_bitmap_first(worker->hwloc_cpu_set));
 #endif
 
 	_starpu_memory_node_set_local_key(&worker->memory_node);
