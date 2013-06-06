@@ -27,53 +27,23 @@ extern "C"
 
 struct starpu_task;
 
-/* This structure contains all the methods that implement a scheduling policy.
- * An application may specify which scheduling strategy in the "sched_policy"
- * field of the starpu_conf structure passed to the starpu_init function. */
 struct starpu_sched_policy
 {
-	/* Initialize the scheduling policy. */
 	void (*init_sched)(unsigned sched_ctx_id);
-
-	/* Cleanup the scheduling policy. */
 	void (*deinit_sched)(unsigned sched_ctx_id);
 
-	/* Insert a task into the scheduler. */
 	int (*push_task)(struct starpu_task *);
-
-	/* Notify the scheduler that a task was directly pushed to the worker
-	 * without going through the scheduler. This method is called when a
-	 * task is explicitely assigned to a worker. This method therefore
-	 * permits to keep the timing state of the scheduler coherent even
-	 * when StarPU bypasses the scheduling strategy. */
 	void (*push_task_notify)(struct starpu_task *, int workerid, unsigned sched_ctx_id);
-
-	/* Get a task from the scheduler. The mutex associated to the worker is
-	 * already taken when this method is called. */
 	struct starpu_task *(*pop_task)(unsigned sched_ctx_id);
-
-	 /* Remove all available tasks from the scheduler (tasks are chained by
-	  * the means of the prev and next fields of the starpu_task
-	  * structure). The mutex associated to the worker is already taken
-	  * when this method is called. */
 	struct starpu_task *(*pop_every_task)(unsigned sched_ctx_id);
 
-	/* This method is called every time a task is starting. (optional) */
 	void (*pre_exec_hook)(struct starpu_task *);
-
-	/* This method is called every time a task has been executed. (optional) */
 	void (*post_exec_hook)(struct starpu_task *);
 
-	/* Initialize scheduling structures corresponding to each worker. */
 	void (*add_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
-
-	/* Deinitialize scheduling structures corresponding to each worker. */
 	void (*remove_workers)(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 
-	/* Name of the policy (optionnal) */
 	const char *policy_name;
-
-	/* Description of the policy (optionnal) */
 	const char *policy_description;
 };
 
