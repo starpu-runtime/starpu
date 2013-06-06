@@ -72,9 +72,6 @@ chapters =	\
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy
 
-starpu_INPUT	=	$(chapters) \
-	chapters/version.sty
-
 chapters/version.sty: $(chapters)
 	@-for f in $(chapters) ; do \
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f 2>/dev/null ; fi \
@@ -95,13 +92,15 @@ chapters/version.sty: $(chapters)
 
 #chapters/version.html: $(chapters)
 
-EXTRA_DIST	= \
-	$(starpu_INPUT) \
-	doxygen.cfg 	\
+EXTRA_DIST	= 		\
+	$(chapters) 		\
+	chapters/version.sty	\
+	doxygen.cfg 		\
 	refman.tex
 
 dox_inputs = $(DOX_CONFIG) 				\
 	$(chapters) 					\
+	chapters/version.sty				\
 	$(top_srcdir)/include/starpu.h			\
 	$(top_srcdir)/include/starpu_data_filters.h	\
 	$(top_srcdir)/include/starpu_data_interfaces.h	\
