@@ -241,6 +241,10 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 		return 1;
 	}
 
+	/* link between disk and disk, and they have the same kind */
+	if (starpu_is_same_kind_disk(src_node, dst_node))
+		return 1;
+
 	return 0;
 }
 

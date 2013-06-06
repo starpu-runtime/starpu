@@ -31,6 +31,7 @@ struct disk_ops {
 	/* readv, writev, read2d, write2d, etc. */
 	 void *  (*plug)   (void *parameter);
 	 void    (*unplug) (void *base);
+	  int    (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
 	 void    (*bandwidth) (void *base, unsigned node);
 };
 
@@ -53,5 +54,11 @@ void starpu_disk_free (unsigned node, void *obj, size_t size);
 ssize_t starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size);
 
 ssize_t starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size);
+
+int starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size);
+
+/* interface to compare memory disk */
+
+int starpu_is_same_kind_disk(unsigned node1, unsigned node2);
 
 #endif /* __STARPU_DISK_H__ */

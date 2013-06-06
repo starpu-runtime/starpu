@@ -120,7 +120,6 @@ starpu_disk_free(unsigned node, void *obj, size_t size)
 	disk_register_list[pos]->functions->free(disk_register_list[pos]->base, obj, size);
 }
 
-
 ssize_t 
 starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size)
 {
@@ -136,6 +135,17 @@ starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_
 	return disk_register_list[pos]->functions->write(disk_register_list[pos]->base, obj, buf, offset, size);
 }
 
+int
+starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size)
+{
+	int pos_src = get_location_with_node(node_src);
+	int pos_dst = get_location_with_node(node_dst);
+	/* both nodes have same copy function */
+	return disk_register_list[pos_src]->functions->copy(disk_register_list[pos_src]->base, void* obj_src, off_t offset_src, 
+						        disk_register_list[pos_dst]->base, void* obj_dst, off_t offset_dst,
+							size_t size);
+
+}
 
 static void 
 add_disk_in_list(unsigned node,  struct disk_ops * func, void * base)
@@ -181,6 +191,19 @@ get_location_with_node(unsigned node)
 	return -1;
 }
 
+int 
+starpu_is_same_kind_disk(unsigned node1, unsigned node2)
+{
+	
+	if(starpu_node_get_kind(node1) == STARPU_DISK_RAM && starpu_node_get_kind(node2) == STARPU_DISK_RAM)
+	{
+		int pos1 = get_location_with_node(node1);
+		int pos2 = get_location_with_node(node2);
+		if(disk_register_list[pos1]->functions == disk_register_list[pos2]->functions)
+			return 1;
+	}
+	return 0;
+}
 
 /* ------------------- use STDIO to write on disk -------------------  */
 
@@ -415,5 +438,6 @@ struct disk_ops write_on_file = {
 	.write = starpu_stdio_write,
 	.plug = starpu_stdio_plug,
 	.unplug = starpu_stdio_unplug,
+	.copy = NULL,
 	.bandwidth = get_stdio_bandwidth_between_disk_and_main_ram
 };
