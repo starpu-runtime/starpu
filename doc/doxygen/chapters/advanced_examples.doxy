@@ -983,6 +983,21 @@ if (ret != 0)
     error();
 \endcode
 
+To add a new kind of device to the structure starpu_driver, one needs to:
+<ol>
+<li> Add a member to the union starpu_driver::id
+</li>
+<li> Modify the internal function <c>_starpu_launch_drivers()</c> to
+make sure the driver is not always launched.
+</li>
+<li> Modify the function starpu_driver_run() so that it can handle
+another kind of architecture.
+</li>
+<li> Write the new function <c>_starpu_run_foobar()</c> in the
+corresponding driver.
+</li>
+</ol>
+
 \section Defining_a_New_Scheduling_Policy Defining a New Scheduling Policy
 
 A full example showing how to define a new scheduling policy is available in

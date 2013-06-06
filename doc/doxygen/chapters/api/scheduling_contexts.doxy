@@ -196,7 +196,7 @@ structures(like tree) implementations are foreseen.
 \var starpu_worker_collection::nworkers
         The number of workers in the collection
 \var starpu_worker_collection::type
-        The type of structure (currently STARPU_WORKER_LIST is the only one available)
+        The type of structure (currently ::STARPU_WORKER_LIST is the only one available)
 \var starpu_worker_collection::has_next
         Checks if there is another element in collection
 \var starpu_worker_collection::get_next
