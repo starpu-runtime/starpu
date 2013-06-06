@@ -118,7 +118,7 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 			   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 {
 	STARPU_ASSERT(handle);
-	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data is not possible");
+	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
         _STARPU_LOG_IN();
 
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) malloc(sizeof(struct user_interaction_wrapper));

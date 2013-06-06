@@ -578,7 +578,7 @@ static void _starpu_check_workers(int *workerids, int nworkers)
 	for(i = 0; i < nworkers; i++)
 	{
 		/* take care the user does not ask for a resource that does not exist */
-		STARPU_ASSERT_MSG(workerids[i] >= 0 &&  workerids[i] <= nworkers_conf, "workerid = %d", workerids[i]);
+		STARPU_ASSERT_MSG(workerids[i] >= 0 &&  workerids[i] <= nworkers_conf, "requested to add workerid = %d, but that is beyond the range 0 to %d", workerids[i], nworkers_conf);
 	}
 }
 
