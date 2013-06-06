@@ -1353,39 +1353,48 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
-# TODO: add option to choose maxnodes
-if test x$enable_simgrid = xyes ; then
-	# We still need the room for the virtual CUDA/OpenCL devices
-	maxnodes=16
-else
-	# We have one memory node shared by all CPU workers, one node per GPU
-	# and per MIC device
-	# we add nodes to use 4 memory disks 
-	nodes=5
-	if test x$enable_cuda = xyes ; then
-		# we could have used nmaxcudadev + 1, but this would certainly give an
-		# odd number.
-		nodes=`expr $nodes + $nmaxcudadev`
-	fi
-	if test x$enable_opencl = xyes ; then
-		# we could have used nmaxcudadev + 1, but this would certainly give an
-		# odd number.
-		nodes=`expr $nodes + $nmaxopencldev`
-	fi
-	if test x$enable_mic = xyes ; then
-		nodes=`expr $nodes + $nmaxmicdev`
-	fi
-	if test x$enable_rcce = xyes ; then
-		# Only 1 memory node for the shared memory.
-		nodes=`expr $nodes + 1`
-	fi
+AC_MSG_CHECKING(maximum number of nodes to use)
+AC_ARG_ENABLE(maxnodes, [AS_HELP_STRING([--enable-maxnodes=<nnodes>],
+			[maximum number of nodes])],
+			maxnodes=$enableval, maxnodes=0)
 
-	# set maxnodes to the next power of 2 greater than nodes
-	maxnodes=1
-	while test "$maxnodes" -lt "$nodes"
-	do
-		maxnodes=`expr $maxnodes \* 2`
-	done
+if test x$maxnodes = x0 ; then
+	if test x$enable_simgrid = xyes ; then
+		# We still need the room for the virtual CUDA/OpenCL devices
+		maxnodes=16
+	else
+		# We have one memory node shared by all CPU workers, one node per GPU
+		# and per MIC device
+		# we add nodes to use 4 memory disks
+		nodes=5
+		if test x$enable_cuda = xyes ; then
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
+			nodes=`expr $nodes + $nmaxcudadev`
+		fi
+		if test x$enable_opencl = xyes ; then
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
+			nodes=`expr $nodes + $nmaxopencldev`
+		fi
+		if test x$enable_mic = xyes ; then
+			nodes=`expr $nodes + $nmaxmicdev`
+		fi
+		if test x$enable_rcce = xyes ; then
+			# Only 1 memory node for the shared memory.
+			nodes=`expr $nodes + 1`
+		fi
+
+		# set maxnodes to the next power of 2 greater than nodes
+		maxnodes=1
+		while test "$maxnodes" -lt "$nodes"
+		do
+			maxnodes=`expr $maxnodes \* 2`
+		done
+ 	fi
+fi
+if test $maxnodes -gt 32 ; then
+	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
 fi
 
 AC_MSG_CHECKING(maximum number of memory nodes)
