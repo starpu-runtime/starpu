@@ -210,6 +210,23 @@ static void transfer_subtree_to_node(starpu_data_handle_t handle, unsigned src_n
 	}
 }
 
+static void notify_handle_children(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node)
+{
+	unsigned child;
+
+	replicate->allocated = 0;
+
+	/* XXX why do we need that ? */
+	replicate->automatically_allocated = 0;
+
+	for (child = 0; child < handle->nchildren; child++)
+	{
+		/* Notify children that their buffer has been deallocated too */
+		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
+		notify_handle_children(child_handle, &child_handle->per_node[node], node);
+	}
+}
+
 static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 {
 	size_t freed = 0;
@@ -244,12 +261,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 		mc->ops->free_data_on_node(mc->chunk_interface, node);
 
 		if (handle)
-		{
-			replicate->allocated = 0;
-
-			/* XXX why do we need that ? */
-			replicate->automatically_allocated = 0;
-		}
+			notify_handle_children(handle, replicate, node);
 
 		freed = mc->size;
 
