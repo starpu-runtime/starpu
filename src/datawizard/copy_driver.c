@@ -415,7 +415,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		STARPU_ABORT();
 		break;
 	}
-
+	
 	return ret;
 #endif /* !SIMGRID */
 }
@@ -577,14 +577,14 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM, STARPU_DISK_RAM):
 	{
 		return _starpu_disk_copy_src_to_disk(
-			(void*) src, src_offset, src_node,
+			(void*) src + src_offset, src_node,
 			(void*) dst, dst_offset, dst_node,
 			size);
 	}
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_CPU_RAM):
 		return _starpu_disk_copy_disk_to_src(
 			(void*) src, src_offset, src_node,
-			(void*) dst, dst_offset, dst_node,
+			(void*) dst + dst_offset, dst_node,
 			size);
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_DISK_RAM):

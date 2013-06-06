@@ -126,6 +126,10 @@ int main(int argc, char **argv)
 
 	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*15);
 
+	uintptr_t fileDD = starpu_disk_alloc(dd, sizeof(vector));
+	starpu_disk_write(dd, fileDD, (void *) vector, 0, sizeof(vector));
+
+
 
 
 	if (ret == -ENODEV) goto enodev;
@@ -153,7 +157,7 @@ int main(int argc, char **argv)
 	 *  - the fifth argument is the size of each element.
 	 */
 	starpu_data_handle_t vector_handle;
-	starpu_vector_data_register(&vector_handle, dd, (uintptr_t)vector, NX, sizeof(vector[0]));
+	starpu_vector_data_register(&vector_handle, dd, fileDD, NX, sizeof(vector[0]));
 
 	float factor = 3.14;
 
@@ -176,7 +180,7 @@ int main(int argc, char **argv)
 	/* execute the task on any eligible computational ressource */
 	ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	printf("done \n");
+
 	/* StarPU does not need to manipulate the array anymore so we can stop
  	 * monitoring it */
 	starpu_data_unregister(vector_handle);
@@ -185,7 +189,9 @@ int main(int argc, char **argv)
         ret = starpu_opencl_unload_opencl(&opencl_program);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
+	starpu_disk_read(dd, fileDD, (void *) vector, 0, sizeof(vector));
 
+	starpu_disk_free(dd, fileDD, sizeof(vector));
 	starpu_disk_unregister(dd);
 
 	/* terminate StarPU, no task can be submitted after */
