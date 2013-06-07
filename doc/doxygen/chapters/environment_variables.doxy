@@ -6,12 +6,12 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \page EnvironmentVariables Execution Configuration Through Environment Variables
+/*! \page ExecutionConfigurationThroughEnvironmentVariables Execution Configuration Through Environment Variables
 
 The behavior of the StarPU library and tools may be tuned thanks to
 the following environment variables.
 
-\section ConfiguringWorkers Configuring Workers
+\section ConfiguringWorkers ConfiguringWorkers
 
 <dl>
 
@@ -227,7 +227,7 @@ instead. This permits to test the performance effect of GPU-Direct.
 
 </dl>
 
-\section ConfiguringtheSchedulingengine Configuring the Scheduling engine
+\section ConfiguringTheSchedulingEngine Configuring The Scheduling Engine
 
 <dl>
 
@@ -347,7 +347,7 @@ to 0. It is enabled by default or for any other values of the variable
 
 </dl>
 
-\section Miscellaneousanddebug Miscellaneous and debug
+\section MiscellaneousAndDebug Miscellaneous And Debug
 
 <dl>
 

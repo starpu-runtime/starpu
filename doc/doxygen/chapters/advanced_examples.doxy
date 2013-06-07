@@ -6,9 +6,10 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \page advancedExamples Advanced Examples
+/*! \page AdvancedExamples Advanced Examples
 
-\section Using_multiple_implementations_of_a_codelet Using multiple implementations of a codelet
+\section UsingMultipleImplementationsOfACodelet Using Multiple Implementations Of A Codelet
+
 One may want to write multiple implementations of a codelet for a single type of
 device and let StarPU choose which one to run. As an example, we will show how
 to use SSE to scale a vector. The codelet can be written as follows:
@@ -47,7 +48,7 @@ Schedulers which are multi-implementation aware (only <c>dmda</c> and
 <c>pheft</c> for now) will use the performance models of all the
 implementations it was given, and pick the one that seems to be the fastest.
 
-\section Enabling_implementation_according_to_capabilities Enabling implementation according to capabilities
+\section EnablingImplementationAccordingToCapabilities Enabling Implementation According To Capabilities
 
 Some implementations may not run on some devices. For instance, some CUDA
 devices do not support double floating point precision, and thus the kernel
@@ -128,7 +129,7 @@ struct starpu_codelet cl = {
 Note: the most generic variant should be provided first, as some schedulers are
 not able to try the different variants.
 
-\section Task_and_Worker_Profiling Task and Worker Profiling
+\section TaskAndWorkerProfiling Task And Worker Profiling
 
 A full example showing how to use the profiling API is available in
 the StarPU sources in the directory <c>examples/profiling/</c>.
@@ -188,7 +189,7 @@ for (worker = 0; worker < starpu_worker_get_count(); worker++)
 }
 \endcode
 
-\section Partitioning_Data Partitioning Data
+\section PartitioningData Partitioning Data
 
 An existing piece of data can be partitioned in sub parts to be used by different tasks, for instance:
 
@@ -265,7 +266,7 @@ StarPU provides various interfaces and filters for matrices, vectors, etc.,
 but applications can also write their own data interfaces and filters, see
 <c>examples/interface</c> and <c>examples/filters/custom_mf</c> for an example.
 
-\section Performance_model_example Performance model example
+\section PerformanceModelExample Performance Model Example
 
 To achieve good scheduling, StarPU scheduling policies need to be able to
 estimate in advance the duration of a task. This is done by giving to codelets
@@ -291,7 +292,7 @@ and ouput sizes as an index.
 It will also save it in <c>$STARPU_HOME/.starpu/sampling/codelets</c>
 for further executions, and can be observed by using the tool
 <c>starpu_perfmodel_display</c>, or drawn by using
-the tool <c>starpu_perfmodel_plot</c> (\ref Performance_model_calibration).  The
+the tool <c>starpu_perfmodel_plot</c> (\ref PerformanceModelCalibration).  The
 models are indexed by machine name. To
 share the models between machines (e.g. for a homogeneous cluster), use
 <c>export STARPU_HOSTNAME=some_global_name</c>. Measurements are only done
@@ -326,8 +327,8 @@ struct starpu_codelet cl = {
 </li>
 <li>
 Measured at runtime and refined by regression (model types
-::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED)
-model type). This still assumes performance regularity, but works
+::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED). This
+still assumes performance regularity, but works 
 with various data input sizes, by applying regression over observed
 execution times. ::STARPU_REGRESSION_BASED uses an a*n^b regression
 form, ::STARPU_NL_REGRESSION_BASED uses an a*n^b+c (more precise than
@@ -341,19 +342,19 @@ Of course, the application has to issue
 tasks with varying size so that the regression can be computed. StarPU will not
 trust the regression unless there is at least 10% difference between the minimum
 and maximum observed input size. It can be useful to set the
-<c>STARPU_CALIBRATE</c> environment variable to <c>1</c> and run the application
-on varying input sizes with <c>STARPU_SCHED</c> set to <c>eager</c> scheduler,
+environment variable \ref STARPU_CALIBRATE to <c>1</c> and run the application
+on varying input sizes with \ref STARPU_SCHED set to <c>eager</c> scheduler,
 so as to feed the performance model for a variety of
 inputs. The application can also provide the measurements explictly by
 using the function starpu_perfmodel_update_history(). The tools
 <c>starpu_perfmodel_display</c> and <c>starpu_perfmodel_plot</c> can
 be used to observe how much the performance model is calibrated (\ref
-Performance_model_calibration); when their output look good,
-<c>STARPU_CALIBRATE</c> can be reset to <c>0</c> to let
+PerformanceModelCalibration); when their output look good,
+\ref STARPU_CALIBRATE can be reset to <c>0</c> to let
 StarPU use the resulting performance model without recording new measures, and
-<c>STARPU_SCHED</c> can be set to <c>dmda</c> to benefit from the performance models. If
+\ref STARPU_SCHED can be set to <c>dmda</c> to benefit from the performance models. If
 the data input sizes vary a lot, it is really important to set
-<c>STARPU_CALIBRATE</c> to <c>0</c>, otherwise StarPU will continue adding the
+\ref STARPU_CALIBRATE to <c>0</c>, otherwise StarPU will continue adding the
 measures, and result with a very big performance model, which will take time a
 lot of time to load and save.
 
@@ -390,7 +391,7 @@ there is some hidden parameter such as the number of iterations, etc. The
 base.
 
 How to use schedulers which can benefit from such performance model is explained
-in \ref Task_scheduling_policy.
+in \ref TaskSchedulingPolicy.
 
 The same can be done for task power consumption estimation, by setting
 the field starpu_codelet::power_model the same way as the field
@@ -410,7 +411,7 @@ used to get the footprint used for indexing history-based performance
 models. starpu_task_destroy() needs to be called to destroy the dummy
 task afterwards. See <c>tests/perfmodels/regression_based.c</c> for an example.
 
-\section Theoretical_lower_bound_on_execution_time_example Theoretical lower bound on execution time
+\section TheoreticalLowerBoundOnExecutionTimeExample Theoretical Lower Bound On Execution Time Example
 
 For kernels with history-based performance models (and provided that
 they are completely calibrated), StarPU can very easily provide a
@@ -459,7 +460,7 @@ the priorities as the StarPU scheduler would, i.e. schedule prioritized
 tasks before less prioritized tasks, to check to which extend this results
 to a less optimal solution. This increases even more computation time.
 
-\section Insert_Task_Utility Insert Task Utility
+\section InsertTaskUtility Insert Task Utility
 
 StarPU provides the wrapper function starpu_insert_task() to ease
 the creation and submission of tasks.
@@ -529,7 +530,7 @@ starpu_insert_task(&mycodelet,
 If some part of the task insertion depends on the value of some computation,
 the macro ::STARPU_DATA_ACQUIRE_CB can be very convenient. For
 instance, assuming that the index variable <c>i</c> was registered as handle
-<c>i_handle</c>:
+<c>A_handle[i]</c>:
 
 \code{.c}
 /* Compute which portion we will work on, e.g. pivot */
@@ -549,7 +550,7 @@ be executed, and is allowed to read from <c>i</c> to use it e.g. as an
 index. Note that this macro is only avaible when compiling StarPU with
 the compiler <c>gcc</c>.
 
-\section Data_reduction Data reduction
+\section DataReduction Data Reduction
 
 In various cases, some piece of data is used to accumulate intermediate
 results. For instances, the dot product of a vector, maximum/minimum finding,
@@ -655,13 +656,13 @@ for (i = 0; i < 100; i++) {
 }
 \endcode
 
-\section Temporary_buffers Temporary buffers
+\section TemporaryBuffers Temporary Buffers
 
 There are two kinds of temporary buffers: temporary data which just pass results
 from a task to another, and scratch data which are needed only internally by
 tasks.
 
-\subsection Temporary_data Temporary data
+\subsection TemporaryData Temporary Data
 
 Data can sometimes be entirely produced by a task, and entirely consumed by
 another task, without the need for other parts of the application to access
@@ -688,15 +689,15 @@ starpu_insert_task(&summarize_data, STARPU_R, handle, STARPU_W, result_handle, 0
 starpu_data_unregister_submit(handle);
 \endcode
 
-\subsection Scratch_data Scratch data
+\subsection ScratchData Scratch Data
 
 Some kernels sometimes need temporary data to achieve the computations, i.e. a
 workspace. The application could allocate it at the start of the codelet
 function, and free it at the end, but that would be costly. It could also
 allocate one buffer per worker (similarly to \ref
-Per-worker_library_initialization), but that would make them
-systematic and permanent. A more  optimized way is to use the
-::STARPU_SCRATCH data access mode, as examplified below,
+HowToInitializeAComputationLibraryOnceForEachWorker), but that would
+make them systematic and permanent. A more  optimized way is to use
+the ::STARPU_SCRATCH data access mode, as examplified below,
 
 which provides per-worker buffers without content consistency.
 
@@ -717,7 +718,7 @@ not matter.
 
 The <c>examples/pi</c> example uses scratches for some temporary buffer.
 
-\section Parallel_Tasks Parallel Tasks
+\section ParallelTasks Parallel Tasks
 
 StarPU can leverage existing parallel computation libraries by the means of
 parallel tasks. A parallel task is a task which gets worked on by a set of CPUs
@@ -731,7 +732,7 @@ otherwise StarPU will not know how to better group cores.
 
 Two modes of execution exist to accomodate with existing usages.
 
-\subsection Fork-mode_parallel_tasks Fork-mode Parallel Tasks
+\subsection Fork-modeParallelTasks Fork-mode Parallel Tasks
 
 In the Fork mode, StarPU will call the codelet function on one
 of the CPUs of the combined worker. The codelet function can use
@@ -751,7 +752,7 @@ For instance, using OpenMP (full source is available in
 Other examples include for instance calling a BLAS parallel CPU implementation
 (see <c>examples/mult/xgemm.c</c>).
 
-\subsection SPMD-mode_parallel_tasks SPMD-mode parallel tasks
+\subsection SPMD-modeParallelTasks SPMD-mode Parallel Tasks
 
 In the SPMD mode, StarPU will call the codelet function on
 each CPU of the combined worker. The codelet function can use
@@ -795,32 +796,34 @@ when the computation to be done is so that threads have to e.g. exchange
 intermediate results, or write to the data in a complex but safe way in the same
 buffer.
 
-\subsection Parallel_tasks_performance Parallel tasks performance
+\subsection ParallelTasksPerformance Parallel Tasks Performance
 
 To benefit from parallel tasks, a parallel-task-aware StarPU scheduler has to
-be used. When exposed to codelets with a Fork or SPMD flag, the <c>pheft</c>
-(parallel-heft) and <c>peager</c> (parallel eager) schedulers will indeed also
-try to execute tasks with several CPUs. It will automatically try the various
-available combined worker sizes (making several measurements for each
-worker size) and thus be able to avoid choosing a large combined
-worker if the codelet does not actually scale so much.
+be used. When exposed to codelets with a flag ::STARPU_FORKJOIN or
+::STARPU_SPMD, the <c>pheft</c> (parallel-heft) and <c>peager</c>
+(parallel eager) schedulers will indeed also try to execute tasks with
+several CPUs. It will automatically try the various available combined
+worker sizes (making several measurements for each worker size) and
+thus be able to avoid choosing a large combined worker if the codelet
+does not actually scale so much.
 
-\subsection Combined_workers Combined workers
+\subsection CombinedWorkers Combined Workers
 
 By default, StarPU creates combined workers according to the architecture
-structure as detected by hwloc. It means that for each object of the hwloc
+structure as detected by <c>hwloc</c>. It means that for each object of the <c>hwloc</c>
 topology (NUMA node, socket, cache, ...) a combined worker will be created. If
 some nodes of the hierarchy have a big arity (e.g. many cores in a socket
 without a hierarchy of shared caches), StarPU will create combined workers of
-intermediate sizes. The <c>STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER</c> variable
-permits to tune the maximum arity between levels of combined workers.
+intermediate sizes. The variable \ref
+STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER permits to tune the maximum
+arity between levels of combined workers.
 
 The combined workers actually produced can be seen in the output of the
-tool <c>starpu_machine_display</c> (the <c>STARPU_SCHED</c> environment variable
-has to be set to a combined worker-aware scheduler such as <c>pheft</c> or
-<c>peager</c>).
+tool <c>starpu_machine_display</c> (the environment variable \ref
+STARPU_SCHED has to be set to a combined worker-aware scheduler such
+as <c>pheft</c> or <c>peager</c>).
 
-\subsection Concurrent_parallel_tasks Concurrent parallel tasks
+\subsection ConcurrentParallelTasks Concurrent Parallel Tasks
 
 Unfortunately, many environments and librairies do not support concurrent
 calls.
@@ -836,8 +839,8 @@ sections for instance.
 
 The solution is then to use only one combined worker at a time.  This can be
 done by setting the field starpu_conf::single_combined_worker to 1, or
-setting the <c>STARPU_SINGLE_COMBINED_WORKER</c> environment variable
-to 1. StarPU will then run only one parallel task at a time (but other 
+setting the environment variable \ref STARPU_SINGLE_COMBINED_WORKER
+to 1. StarPU will then run only one parallel task at a time (but other
 CPU and GPU tasks are not affected and can be run concurrently). The parallel
 task scheduler will however still however still try varying combined worker
 sizes to look for the most efficient ones.
@@ -845,23 +848,25 @@ sizes to look for the most efficient ones.
 \section Debugging Debugging
 
 StarPU provides several tools to help debugging aplications. Execution traces
-can be generated and displayed graphically, see \ref Generating_traces_with_FxT. Some
-gdb helpers are also provided to show the whole StarPU state:
+can be generated and displayed graphically, see \ref
+GeneratingTracesWithFxT. Some gdb helpers are also provided to show
+the whole StarPU state:
 
 \verbatim
 (gdb) source tools/gdbinit
 (gdb) help starpu
 \endverbatim
 
-The Temanejo task debugger can also be used, see \ref Using_the_Temanejo_task_debugger.
+The Temanejo task debugger can also be used, see \ref UsingTheTemanejoTaskDebugger.
 
-\section The_multiformat_interface The multiformat interface
+\section TheMultiformatInterface The Multiformat Interface
+
 It may be interesting to represent the same piece of data using two different
 data structures: one that would only be used on CPUs, and one that would only
 be used on GPUs. This can be done by using the multiformat interface. StarPU
 will be able to convert data from one data structure to the other when needed.
-Note that the dmda scheduler is the only one optimized for this interface. The
-user must provide StarPU with conversion codelets:
+Note that the scheduler <c>dmda</c> is the only one optimized for this
+interface. The user must provide StarPU with conversion codelets:
 
 \snippet multiformat.c To be included
 
@@ -897,9 +902,9 @@ extern "C" void multiformat_scal_cuda_func(void *buffers[], void *_args)
 
 A full example may be found in <c>examples/basic_examples/multiformat.c</c>.
 
-\section Using_the_Driver_API Using the Driver API
+\section UsingTheDriverAPI Using The Driver API
 
-\ref Running_drivers
+\ref API_Running_Drivers
 
 \code{.c}
 int ret;
@@ -935,12 +940,12 @@ corresponding driver.
 </li>
 </ol>
 
-\section Defining_a_New_Scheduling_Policy Defining a New Scheduling Policy
+\section DefiningANewSchedulingPolicy Defining A New Scheduling Policy
 
 A full example showing how to define a new scheduling policy is available in
 the StarPU sources in the directory <c>examples/scheduler/</c>.
 
-\ref Scheduling_Policy
+See \ref API_Scheduling_Policy
 
 \code{.c}
 static struct starpu_sched_policy dummy_sched_policy = {
@@ -958,7 +963,7 @@ static struct starpu_sched_policy dummy_sched_policy = {
 };
 \endcode
 
-\section On-GPU_rendering On-GPU rendering
+\section On-GPURendering On-GPU Rendering
 
 Graphical-oriented applications need to draw the result of their computations,
 typically on the very GPU where these happened. Technologies such as OpenGL/CUDA
@@ -968,7 +973,7 @@ renderbuffer objects into CUDA.  CUDA however imposes some technical
 constraints: peer memcpy has to be disabled, and the thread that runs OpenGL has
 to be the one that runs CUDA computations for that GPU.
 
-To achieve this with StarPU, pass the <c>--disable-cuda-memcpy-peer</c> option
+To achieve this with StarPU, pass the option \ref disable-cuda-memcpy-peer
 to <c>./configure</c> (TODO: make it dynamic), OpenGL/GLUT has to be initialized
 first, and the interoperability mode has to
 be enabled by using the field
@@ -1009,7 +1014,7 @@ starpu_data_unregister(handle);
 
 and display it e.g. in the callback function.
 
-\section Defining_a_New_Data_Interface Defining a New Data Interface
+\section DefiningANewDataInterface Defining A New Data Interface
 
 Let's define a new data interface to manage complex numbers.
 
@@ -1117,16 +1122,15 @@ void display_complex_codelet(void *descr[], __attribute__ ((unused)) void *_args
 The whole code for this complex data interface is available in the
 directory <c>examples/interface/</c>.
 
-\section Setting_the_Data_Handles_for_a_Task Setting the Data Handles for a Task
+\section SettingTheDataHandlesForATask Setting The Data Handles For A Task
 
 The number of data a task can manage is fixed by the
 <c>STARPU_NMAXBUFS</c> which has a default value which can be changed
-through the configure option <c>--enable-maxbuffers</c> (see
-@ref{--enable-maxbuffers}).
+through the configure option \ref enable-maxbuffers.
 
 However, it is possible to define tasks managing more data by using
-the field <c>dyn_handles</c> when defining a task and the field
-<c>dyn_modes</c> when defining the corresponding codelet.
+the field starpu_task::dyn_handles when defining a task and the field
+starpu_codelet::dyn_modes when defining the corresponding codelet.
 
 \code{.c}
 enum starpu_data_access_mode modes[STARPU_NMAXBUFS+1] = {
@@ -1167,8 +1171,7 @@ starpu_insert_task(&dummy_big_cl,
 The whole code for this complex data interface is available in the
 directory <c>examples/basic_examples/dynamic_handles.c</c>.
 
-\section More_examples More examples
-
+\section MoreExamples More Examples
 
 More examples are available in the StarPU sources in the <c>examples/</c>
 directory. Simple examples include:
@@ -1179,8 +1182,8 @@ directory. Simple examples include:
 <dt> <c>basic_examples/</c> </dt>
 <dd>
         Simple documented Hello world and vector/scalar product (as
-        shown in \ref basicExamples), matrix
-        product examples (as shown in \ref Performance_model_example), an example using the blocked matrix data
+        shown in \ref BasicExamples), matrix
+        product examples (as shown in \ref PerformanceModelExample), an example using the blocked matrix data
         interface, an example using the variable data interface, and an example
         using different formats on CPUs and GPUs.
 </dd>

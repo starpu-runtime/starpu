@@ -6,7 +6,7 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \page fftSupport StarPU FFT Support
+/*! \page FFTSupport FFT Support
 
 StarPU provides <c>libstarpufft</c>, a library whose design is very similar to
 both fftw and cufft, the difference being that it takes benefit from both CPUs

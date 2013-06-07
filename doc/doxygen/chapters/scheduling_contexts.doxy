@@ -6,11 +6,11 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \page schedulingContexts Scheduling Contexts in StarPU
+/*! \page SchedulingContexts Scheduling Contexts
 
 TODO: improve!
 
-\section General_Idea General Idea
+\section GeneralIdeas General Ideas
 
 Scheduling contexts represent abstracts sets of workers that allow the
 programmers to control the distribution of computational resources
@@ -19,7 +19,7 @@ to minimize interferences between the execution of multiple parallel
 kernels, by partitioning the underlying pool of workers using
 contexts.
 
-\section Create_a_Context Create a Context
+\section CreatingAContext Creating A Context
 
 By default, the application submits tasks to an initial context, which
 disposes of all the computation ressources available to StarPU (all
@@ -56,7 +56,7 @@ starpu_task_submit(task);
 Note: Parallel greedy and parallel heft scheduling policies do not support the existence of several disjoint contexts on the machine.
 Combined workers are constructed depending on the entire topology of the machine, not only the one belonging to a context.
 
-\section Modify_a_Context Modify a Context
+\section ModifyingAContext Modifying A Context
 
 A scheduling context can be modified dynamically. The applications may
 change its requirements during the execution and the programmer can
@@ -77,7 +77,7 @@ starpu_sched_ctx_add_workers(workerids, 3, sched_ctx2);
 starpu_sched_ctx_remove_workers(workerids, 3, sched_ctx1);
 \endcode
 
-\section Delete_a_Context Delete a Context
+\section DeletingAContext Deleting A Context
 
 When a context is no longer needed it must be deleted. The application
 can indicate which context should keep the resources of a deleted one.
@@ -111,7 +111,7 @@ starpu_sched_ctx_delete(sched_ctx2);
 starpu_sched_ctx_delete(sched_ctx1);
 \endcode
 
-\section Empty_Context Empty Context
+\section EmptyingAContext Emptying A Context
 
 A context may not have any resources at the begining or at a certain
 moment of the execution. Task can still be submitted to these contexts
@@ -122,7 +122,7 @@ allocated the program will not terminate. If these tasks have not much
 priority the programmer can forbid the application to submitted them
 by calling the function starpu_sched_ctx_stop_task_submission().
 
-\section Contexts_Sharing_Workers Contexts Sharing Workers
+\section ContextsSharingWorkers Contexts Sharing Workers
 
 Contexts may share workers when a single context cannot execute
 efficiently enough alone on these workers or when the application

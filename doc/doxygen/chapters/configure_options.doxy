@@ -6,7 +6,7 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \page ConfigureOptions Compilation Configuration
+/*! \page CompilationConfiguration Compilation Configuration
 
 The behavior of the StarPU library and tools may be tuned thanks to
 the following configure options.
@@ -101,13 +101,13 @@ Specify hwloc should not be used by StarPU.
 Disable the creation of the documentation. This should be done on a
 machine which does not have the tools <c>makeinfo</c> and <c>tex</c>.
 </dd>
+</dl>
 
 Additionally, the script <c>configure</c> recognize many variables, which
 can be listed by typing <c>./configure --help</c>. For example,
 <c>./configure NVCCFLAGS="-arch sm_13"</c> adds a flag for the compilation of
 CUDA kernels.
 
-</dl>
 
 \section ConfiguringWorkers Configuring Workers
 
@@ -157,7 +157,7 @@ Search for CUDA under <c>prefix</c>, which should notably contain the file
 \addindex __configure__--with-cuda-include-dir
 Search for CUDA headers under <c>dir</c>, which should
 notably contain the file <c>cuda.h</c>. This defaults to
-<c>/include</c> appended to the value given to \ref --with-cuda-dir.
+<c>/include</c> appended to the value given to \ref with-cuda-dir.
 </dd>
 
 <dt>--with-cuda-lib-dir=<c>dir</c></dt>
@@ -166,7 +166,7 @@ notably contain the file <c>cuda.h</c>. This defaults to
 \addindex __configure__--with-cuda-lib-dir
 Search for CUDA libraries under <c>dir</c>, which should notably contain
 the CUDA shared libraries---e.g., <c>libcuda.so</c>.  This defaults to
-<c>/lib</c> appended to the value given to \ref --with-cuda-dir.
+<c>/lib</c> appended to the value given to \ref with-cuda-dir.
 </dd>
 
 <dt>--disable-cuda-memcpy-peer</dt>
@@ -206,7 +206,7 @@ on Mac OS).
 \addindex __configure__--with-opencl-include-dir
 Search for OpenCL headers under <c>dir</c>, which should notably contain
 <c>CL/cl.h</c> (or <c>OpenCL/cl.h</c> on Mac OS).  This defaults to
-<c>/include</c> appended to the value given to \ref --with-opencl-dir.
+<c>/include</c> appended to the value given to \ref with-opencl-dir.
 </dd>
 
 <dt>--with-opencl-lib-dir=<c>dir</c></dt>
@@ -215,7 +215,7 @@ Search for OpenCL headers under <c>dir</c>, which should notably contain
 \addindex __configure__--with-opencl-lib-dir
 Search for an OpenCL library under <c>dir</c>, which should notably
 contain the OpenCL shared libraries---e.g. <c>libOpenCL.so</c>. This defaults to
-<c>/lib</c> appended to the value given to \ref --with-opencl-dir.
+<c>/lib</c> appended to the value given to \ref with-opencl-dir.
 </dd>
 
 <dt>--enable-opencl-simulator</dt>

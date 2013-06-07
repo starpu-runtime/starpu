@@ -8,7 +8,7 @@
 
 /*! \mainpage Introduction
 
-\section motivation Motivation
+\section Motivation Motivation
 
 \internal
 complex machines with heterogeneous cores/devices
@@ -38,7 +38,7 @@ added value/benefits of StarPU
    - scheduling, perf. portability
 \endinternal
 
-\section starpu_in_a_nutshell StarPU in a Nutshell
+\section StarPUInANutshell StarPU in a Nutshell
 
 StarPU is a software tool aiming to allow programmers to exploit the
 computing power of the available CPUs and GPUs, while relieving them
@@ -49,7 +49,7 @@ At the core of StarPU is its run-time support library, which is
 responsible for scheduling application-provided tasks on heterogeneous
 CPU/GPU machines.  In addition, StarPU comes with programming language
 support, in the form of extensions to languages of the C family
-(\ref cExtensions), as well as an OpenCL front-end (\ref soclOpenclExtensions).
+(\ref cExtensions), as well as an OpenCL front-end (\ref SOCLOpenclExtensions).
 
 StarPU's run-time and programming language extensions support a
 task-based programming model. Applications submit computational
@@ -60,9 +60,10 @@ accelerators and the main memory, so that programmers are freed from the
 scheduling issues and technical details associated with these transfers.
 
 StarPU takes particular care of scheduling tasks efficiently, using
-well-known algorithms from the literature (\ref Task_scheduling_policy).  In addition, it allows scheduling experts, such as compiler
-or computational library developers, to implement custom scheduling
-policies in a portable fashion (\ref Defining_a_New_Scheduling_Policy).
+well-known algorithms from the literature (\ref TaskSchedulingPolicy).
+In addition, it allows scheduling experts, such as compiler or
+computational library developers, to implement custom scheduling
+policies in a portable fashion (\ref DefiningANewSchedulingPolicy).
 
 The remainder of this section describes the main concepts used in StarPU.
 
@@ -70,7 +71,7 @@ The remainder of this section describes the main concepts used in StarPU.
 explain the notion of codelet and task (i.e. g(A, B)
 \endinternal
 
-\subsection codelet_and_tasks Codelet and Tasks
+\subsection CodeletAndTasks Codelet and Tasks
 
 One of the StarPU primary data structures is the \b codelet. A codelet describes a
 computational kernel that can possibly be implemented on multiple architectures
@@ -109,7 +110,7 @@ TODO insert illustration f(Ar, Brw, Cr) + ..
 DSM
 \endinternal
 
-\subsection StarPU_Data_Management_Library StarPU Data Management Library
+\subsection StarPUDataManagementLibrary StarPU Data Management Library
 
 Because StarPU schedules tasks at runtime, data transfers have to be
 done automatically and ``just-in-time'' between processing units,
@@ -119,7 +120,7 @@ where it was last needed, even if was modified there, and it
 allows multiple copies of the same data to reside at the same time on
 several processing units as long as it is not modified.
 
-\section application_taskification Application taskification
+\section ApplicationTaskification Application Taskification
 
 TODO
 
@@ -133,7 +134,7 @@ and then it's trivial to use StarPU or any other kind of task-based library:
 simply replace calling the function with submitting a task.
 \endinternal
 
-\section glossary Glossary
+\section Glossary Glossary
 
 A \b codelet records pointers to various implementations of the same
 theoretical function.
@@ -185,7 +186,7 @@ access the data of a data handle from its home node, without having to
 unregister it.
 
 
-\section research_papers Research Papers
+\section ResearchPapers Research Papers
 
 Research papers about StarPU can be found at
 http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html.
@@ -193,23 +194,23 @@ http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html.
 A good overview is available in the research report at
 http://hal.archives-ouvertes.fr/inria-00467677.
 
-\section Further_Reading Further Reading
+\section FurtherReading Further Reading
 
 The documentation chapters include
 
 <ul>
-<li> \ref buildingAndInstalling
-<li> \ref basicExamples
-<li> \ref advancedExamples
-<li> \ref optimizePerformance
-<li> \ref performanceFeedback
-<li> \ref tipsTricks
-<li> \ref mpiSupport
-<li> \ref fftSupport
+<li> \ref BuildingAndInstallingStarPU
+<li> \ref BasicExamples
+<li> \ref AdvancedExamples
+<li> \ref HowToOptimizePerformanceWithStarPU
+<li> \ref PerformanceFeedback
+<li> \ref TipsAndTricksToKnowAbout
+<li> \ref MPISupport
+<li> \ref FFTSupport
 <li> \ref cExtensions
-<li> \ref soclOpenclExtensions
-<li> \ref schedulingContexts
-<li> \ref schedulingContextHypervisor
+<li> \ref SOCLOpenclExtensions
+<li> \ref SchedulingContexts
+<li> \ref SchedulingContextHypervisor
 </ul>
 
 Make sure to have had a look at those too!

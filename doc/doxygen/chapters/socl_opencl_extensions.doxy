@@ -6,7 +6,7 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \page soclOpenclExtensions SOCL OpenCL Extensions
+/*! \page SOCLOpenclExtensions SOCL OpenCL Extensions
 
 SOCL is an OpenCL implementation based on StarPU. It gives a unified access to
 every available OpenCL device: applications can now share entities such as

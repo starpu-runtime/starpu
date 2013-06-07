@@ -44,7 +44,7 @@ plug-in.  It does not require detailed knowledge of the StarPU library.
 
 Note: this is still an area under development and subject to change.
 
-\section Defining_Tasks Defining Tasks
+\section DefiningTasks Defining Tasks
 
 The StarPU GCC plug-in views tasks as ``extended'' C functions:
 
@@ -230,7 +230,7 @@ StarPU-GCC code.  For a complete example, see the
 \ref Vector_Scaling_Using_the_C_Extension.
 
 
-\section Synchronization_and_Other_Pragmas Initialization, Termination, and Synchronization
+\section InitializationTerminationAndSynchronization Initialization, Termination, and Synchronization
 
 The following pragmas allow user code to control StarPU's life time and
 to synchronize with tasks.
@@ -257,7 +257,7 @@ starpu_wait_for_all().
 </dd>
 </dl>
 
-\section Registered_Data_Buffers Registered Data Buffers
+\section RegisteredDataBuffers Registered Data Buffers
 
 Data buffers such as matrices and vectors that are to be passed to tasks
 must be registered.  Registration allows StarPU to handle data
@@ -324,7 +324,7 @@ attribute:
 
 \snippet cholesky_pragma.c To be included
 
-\section Conditional_Extensions Using C Extensions Conditionally
+\section UsingCExtensionsConditionally Using C Extensions Conditionally
 
 The C extensions described in this chapter are only available when GCC
 and its StarPU plug-in are in use.  Yet, it is possible to make use of

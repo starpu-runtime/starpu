@@ -6,9 +6,9 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \page schedulingContextHypervisor Scheduling Context Hypervisor
+/*! \page SchedulingContextHypervisor Scheduling Context Hypervisor
 
-\section What_is_the_Hypervisor What is the Hypervisor
+\section WhatIsTheHypervisor What Is The Hypervisor
 
 StarPU proposes a platform for constructing Scheduling Contexts, for
 deleting and modifying them dynamically. A parallel kernel, can thus
@@ -29,7 +29,7 @@ decides accordingly when and how the contexts can be resized. Basic
 strategies of resizing scheduling contexts already exist but a
 platform for implementing additional custom ones is available.
 
-\section Start_the_Hypervisor Start the Hypervisor
+\section StartTheHypervisor Start the Hypervisor
 
 The Hypervisor must be initialised once at the beging of the
 application. At this point a resizing policy should be indicated. This
@@ -42,7 +42,7 @@ information is provided the hypervisor evaluates the behavior of the
 resources and of the application and makes a guess about the future.
 The hypervisor resizes only the registered contexts.
 
-\section Interrogate_the_runtime Interrrogate the runtime
+\section InterrogateTheRuntime Interrogate The Runtime
 
 The runtime provides the hypervisor with information concerning the
 behavior of the resources and the application. This is done by using
@@ -50,7 +50,7 @@ the performance_counters, some callbacks indicating when the resources
 are idle or not efficient, when the application submits tasks or when
 it becames to slow.
 
-\section Trigger_the_Hypervisor Trigger the Hypervisor
+\section TriggerTheHypervisor Trigger the Hypervisor
 
 The resizing is triggered either when the application requires it or
 when the initials distribution of resources alters the performance of
@@ -60,7 +60,7 @@ happens different resizing strategy are applied that target minimising
 the total execution of the application, the instant speed or the idle
 time of the resources.
 
-\section Resizing_strategies Resizing strategies
+\section ResizingStrategies Resizing Strategies
 
 The plugin proposes several strategies for resizing the scheduling context.
 
