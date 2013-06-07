@@ -3,6 +3,7 @@
 if [ "$(basename $1)" == "starpufft.h" ] ; then
     gcc -E $1 -I @top_srcdir@/include/ -I @top_builddir@/include/ |grep starpufft
 else
+    SUFFIX_C=$(basename $1 .c)
     sed -e 's/STARPU_DEPRECATED//' $1
 fi
 
