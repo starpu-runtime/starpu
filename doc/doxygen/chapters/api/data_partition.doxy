@@ -108,8 +108,8 @@ the type starpu_data_filter.
 
 This section gives a partial list of the predefined partitioning
 functions for vector data. Examples on how to use them are shown in
-\ref Partitioning_Data. The complete list can be found in the file
-starpu_data_filters.h.
+\ref PartitioningData. The complete list can be found in the file
+<c>starpu_data_filters.h</c>.
 
 \fn void starpu_vector_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
@@ -148,8 +148,8 @@ equal size, ignoring nparts. Thus, \p id must be <c>0</c> or <c>1</c>.
 
 This section gives a partial list of the predefined partitioning
 functions for matrix data. Examples on how to use them are shown in
-\ref Partitioning_Data. The complete list can be found in the file
-starpu_data_filters.h.
+\ref PartitioningData. The complete list can be found in the file
+<c>starpu_data_filters.h</c>.
 
 \fn void starpu_matrix_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
@@ -188,8 +188,8 @@ available in examples/filters/shadow2d.c
 
 This section gives a partial list of the predefined partitioning
 functions for block data. Examples on how to use them are shown in
-\ref Partitioning_Data. The complete list can be found in the file
-starpu_data_filters.h. A usage example is available in
+\ref PartitioningData. The complete list can be found in the file
+<c>starpu_data_filters.h</c>. A usage example is available in
 examples/filters/shadow3d.c
 
 \fn void starpu_block_filter_block (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
@@ -201,7 +201,7 @@ submatrix contains the remainder.
 \fn void starpu_block_filter_block_shadow (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 This partitions a block along the X dimension, with a
-shadow border <p>filter_arg_ptr</p>, thus getting
+shadow border <c>filter_arg_ptr</c>, thus getting
 ((x-2*shadow)/\p nparts +2*shadow,y,z) blocks. If \p nparts does not
 divide x, the last submatrix contains the remainder. <b>IMPORTANT</b>:
 This can only be used for read-only access, as no coherency is
@@ -216,7 +216,7 @@ submatrix contains the remainder.
 \fn void starpu_block_filter_vertical_block_shadow (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 This partitions a block along the Y dimension, with a
-shadow border <p>filter_arg_ptr</p>, thus getting
+shadow border <c>filter_arg_ptr</c>, thus getting
 (x,(y-2*shadow)/\p nparts +2*shadow,z) 3D matrices. If \p nparts does not
 divide y, the last submatrix contains the remainder. <b>IMPORTANT</b>:
 This can only be used for read-only access, as no coherency is
@@ -231,7 +231,7 @@ submatrix contains the remainder.
 \fn void starpu_block_filter_depth_block_shadow (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 This partitions a block along the Z dimension, with a
-shadow border <p>filter_arg_ptr</p>, thus getting
+shadow border <c>filter_arg_ptr</c>, thus getting
 (x,y,(z-2*shadow)/\p nparts +2*shadow) blocks. If \p nparts does not
 divide z, the last submatrix contains the remainder. <b>IMPORTANT</b>:
 This can only be used for read-only access, as no coherency is
@@ -242,8 +242,8 @@ enforced for the shadowed parts.
 
 This section gives a partial list of the predefined partitioning
 functions for BCSR data. Examples on how to use them are shown in
-\ref Partitioning_Data. The complete list can be found in the file
-starpu_data_filters.h.
+\ref PartitioningData. The complete list can be found in the file
+<c>starpu_data_filters.h</c>.
 
 \fn void starpu_bcsr_filter_canonical_block (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition

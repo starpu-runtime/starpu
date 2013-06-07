@@ -13,7 +13,7 @@
 Initialize the given driver, run it until it receives a request to
 terminate, deinitialize it and return 0 on success. It returns
 <c>-EINVAL</c> if <c>d->type</c> is not a valid StarPU device type
-(STARPU_CPU_WORKER, STARPU_CUDA_WORKER or STARPU_OPENCL_WORKER). This
+(::STARPU_CPU_WORKER, ::STARPU_CUDA_WORKER or ::STARPU_OPENCL_WORKER). This
 is the same as using the following functions: calling
 starpu_driver_init(), then calling starpu_driver_run_once() in a loop,
 and eventually starpu_driver_deinit().

@@ -245,7 +245,7 @@ Return the interface associated with \p handle on \p memory_node.
 Each data interface is provided with a set of field access functions.
 The ones using a void * parameter aimed to be used in codelet
 implementations (see for example the code in \ref
-Vector_Scaling_Using_StarPU_API).
+VectorScalingUsingStarPUAPI).
 
 \fn void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 \ingroup API_Data_Interfaces
@@ -895,7 +895,7 @@ designated by \p interface.
 \ingroup API_Data_Interfaces
 
 Applications can provide their own interface as shown in \ref
-Defining_a_New_Data_Interface.
+DefiningANewDataInterface.
 
 \fn uintptr_t starpu_malloc_on_node(unsigned dst_node, size_t size)
 \ingroup API_Data_Interfaces
@@ -939,7 +939,7 @@ size footprint.
 \fn int starpu_data_interface_get_next_id(void)
 \ingroup API_Data_Interfaces
 Return the next available id for a newly created data interface
-(\ref Defining_a_New_Data_Interface).
+(\ref DefiningANewDataInterface).
 
 */
 

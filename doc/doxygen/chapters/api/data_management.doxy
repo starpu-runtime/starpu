@@ -10,14 +10,14 @@
 
 \brief This section describes the data management facilities provided
 by StarPU. We show how to use existing data interfaces in \ref
-Data_Interfaces, but developers can design their own data interfaces
-if required.
+API_Data_Interfaces, but developers can design their own data interfaces if
+required.
 
 \typedef starpu_data_handle_t
 \ingroup API_Data_Management
 StarPU uses ::starpu_data_handle_t as an opaque handle to
 manage a piece of data. Once a piece of data has been registered to
-StarPU, it is associated to a starpu_data_handle_t which keeps track
+StarPU, it is associated to a ::starpu_data_handle_t which keeps track
 of the state of the piece of data over the entire machine, so that we
 can maintain data consistency and locate data replicates for instance.
 
@@ -26,7 +26,7 @@ can maintain data consistency and locate data replicates for instance.
 This datatype describes a data access mode.
 \var starpu_data_access_mode::STARPU_NONE
 \ingroup API_Data_Management
-TODO!
+TODO
 \var starpu_data_access_mode::STARPU_R
 \ingroup API_Data_Management
 read-only mode.
@@ -75,7 +75,7 @@ simple structure containing the number of elements in the array, the
 size of the elements, and the address of the array in the appropriate
 address space (this address may be invalid if there is no valid copy
 of the array in the memory node). More informations on the data
-interfaces provided by StarPU are given in \ref Data_Interfaces.
+interfaces provided by StarPU are given in \ref API_Data_Interfaces.
 
 When a piece of data managed by StarPU is used by a task, the task
 implementation is given a pointer to an interface describing a valid
@@ -87,7 +87,7 @@ its data. For instance, the memory node associated to the different
 CPU workers represents main memory (RAM), the memory node associated
 to a GPU is DRAM embedded on the device. Every memory node is
 identified by a logical index which is accessible from the
-starpu_worker_get_memory_node function. When registering a piece of
+function starpu_worker_get_memory_node(). When registering a piece of
 data to StarPU, the specified memory node indicates where the piece of
 data initially resides (we also call this memory node the home node of
 a piece of data).
@@ -188,9 +188,9 @@ discarded without impacting the application.
 \fn void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl)
 \ingroup API_Data_Management
 This sets the codelets to be used for \p handle when it is
-accessed in STARPU_REDUX mode. Per-worker buffers will be initialized with
-the \p init_cl codelet, and reduction between per-worker buffers will be
-done with the \p redux_cl codelet.
+accessed in the mode ::STARPU_REDUX. Per-worker buffers will be initialized with
+the codelet \p init_cl, and reduction between per-worker buffers will be
+done with the codelet \p redux_cl.
 
 @name Access registered data from the application
 \ingroup API_Data_Management

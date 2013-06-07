@@ -12,8 +12,7 @@
 \ingroup API_OpenCL_Extensions
 This macro is defined when StarPU has been installed with
 OpenCL support. It should be used in your code to detect the
-availability of OpenCL as shown in Full source code for the 'Scaling a
-Vector' example.
+availability of OpenCL as shown in \ref FullSourceCodeVectorScal.
 
 \struct starpu_opencl_program
 \ingroup API_OpenCL_Extensions
@@ -100,7 +99,7 @@ This function unloads an OpenCL compiled code.
 Store the contents of the file \p source_file_name in the buffer
 \p opencl_program_source. The file \p source_file_name can be located in the
 current directory, or in the directory specified by the environment
-variable STARPU_OPENCL_PROGRAM_DIR (see STARPU_OPENCL_PROGRAM_DIR), or
+variable \ref STARPU_OPENCL_PROGRAM_DIR, or
 in the directory <c>share/starpu/opencl</c> of the installation
 directory of StarPU, or in the source directory of StarPU. When the
 file is found, \p located_file_name is the full name of the file as it

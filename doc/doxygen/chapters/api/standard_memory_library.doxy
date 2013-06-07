@@ -16,13 +16,13 @@ Value passed to the function starpu_malloc_flags() to indicate the memory alloca
 \ingroup API_Standard_Memory_Library
 Value passed to the function starpu_malloc_flags() to indicate
 the memory allocation should be in the limit defined by the
-environment variables <c>STARPU_LIMIT_CUDA_devid_MEM</c>,
-<c>STARPU_LIMIT_CUDA_MEM</c>, <c>STARPU_LIMIT_OPENCL_devid_MEM</c>,
-<c>STARPU_LIMIT_OPENCL_MEM</c> and <c>STARPU_LIMIT_CPU_MEM</c> (see
-Section \ref How_to_limit_memory_per_node).
+environment variables \ref STARPU_LIMIT_CUDA_devid_MEM,
+\ref STARPU_LIMIT_CUDA_MEM, \ref STARPU_LIMIT_OPENCL_devid_MEM,
+\ref STARPU_LIMIT_OPENCL_MEM and \ref STARPU_LIMIT_CPU_MEM (see
+Section \ref HowToLimitMemoryPerNode).
 If no memory is available, it tries to reclaim memory from StarPU.
-Memory allocated this way needs to be freed by calling the
-starpu_free_flags() function with the same flag.
+Memory allocated this way needs to be freed by calling the function
+starpu_free_flags() with the same flag.
 
 \fn int starpu_malloc_flags(void **A, size_t dim, int flags)
 \ingroup API_Standard_Memory_Library
@@ -58,7 +58,7 @@ when allocating the memory.
 \fn ssize_t starpu_memory_get_available(unsigned node)
 \ingroup API_Standard_Memory_Library
 If a memory limit is defined on the given node (see Section \ref
-How_to_limit_memory_per_node), return the amount of available memory
+HowToLimitMemoryPerNode), return the amount of available memory
 on the node. Otherwise return -1.
 
 */

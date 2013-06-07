@@ -12,8 +12,8 @@
 structure for a driver
 \ingroup API_Initialization_and_Termination
 \var starpu_driver::type
-The type of the driver. Only STARPU_CPU_DRIVER,
-STARPU_CUDA_DRIVER and STARPU_OPENCL_DRIVER are currently supported.
+The type of the driver. Only ::STARPU_CPU_WORKER,
+::STARPU_CUDA_WORKER and ::STARPU_OPENCL_WORKER are currently supported.
 \var starpu_driver::id
 The identifier of the driver.
 
@@ -33,20 +33,20 @@ The environment variables overwrite the equivalent parameters.
 Will be initialized by starpu_conf_init(). Should not be set by hand.
 \var starpu_conf::sched_policy_name
 This is the name of the scheduling policy. This can also be specified
-with the STARPU_SCHED environment variable. (default = NULL).
+with the environment variable \ref STARPU_SCHED. (default = NULL).
 \var starpu_conf::sched_policy
 This is the definition of the scheduling policy. This field is ignored
 if starpu_conf::sched_policy_name is set. (default = NULL)
 \var starpu_conf::ncpus
 This is the number of CPU cores that StarPU can use. This can also be
-specified with the STARPU_NCPU environment variable. (default = -1)
+specified with the environment variable \ref STARPU_NCPU . (default = -1)
 \var starpu_conf::ncuda
 This is the number of CUDA devices that StarPU can use. This can also
-be specified with the STARPU_NCUDA environment variable. (default =
+be specified with the environment variable \ref STARPU_NCUDA. (default =
 -1)
 \var starpu_conf::nopencl
 This is the number of OpenCL devices that StarPU can use. This can
-also be specified with the STARPU_NOPENCL environment variable.
+also be specified with the environment variable \ref STARPU_NOPENCL.
 (default = -1)
 \var starpu_conf::nmic
 This is the number of MIC devices that StarPU can use. (default = -1)
@@ -57,7 +57,7 @@ This is the number of SCC devices that StarPU can use. (default = -1)
 If this flag is set, the starpu_conf::workers_bindid array indicates
 where the different workers are bound, otherwise StarPU automatically
 selects where to bind the different workers. This can also be
-specified with the STARPU_WORKERS_CPUID environment variable. (default = 0)
+specified with the environment variable \ref STARPU_WORKERS_CPUID. (default = 0)
 \var starpu_conf::workers_bindid
 If the starpu_conf::use_explicit_workers_bindid flag is set, this
 array indicates where to bind the different workers. The i-th entry of
@@ -69,8 +69,8 @@ provided by the hwloc library in case it is available.
 If this flag is set, the CUDA workers will be attached to the CUDA
 devices specified in the starpu_conf::workers_cuda_gpuid array.
 Otherwise, StarPU affects the CUDA devices in a round-robin fashion.
-This can also be specified with the STARPU_WORKERS_CUDAID environment
-variable. (default = 0)
+This can also be specified with the environment variable \ref
+STARPU_WORKERS_CUDAID. (default = 0)
 \var starpu_conf::workers_cuda_gpuid
 If the starpu_conf::use_explicit_workers_cuda_gpuid flag is set, this
 array contains the logical identifiers of the CUDA devices (as used by
@@ -79,8 +79,8 @@ cudaGetDevice()).
 If this flag is set, the OpenCL workers will be attached to the OpenCL
 devices specified in the starpu_conf::workers_opencl_gpuid array.
 Otherwise, StarPU affects the OpenCL devices in a round-robin fashion.
-This can also be specified with the STARPU_WORKERS_OPENCLID
-environment variable. (default = 0)
+This can also be specified with the environment variable \ref
+STARPU_WORKERS_OPENCLID. (default = 0)
 \var starpu_conf::workers_opencl_gpuid
 If the starpu_conf::use_explicit_workers_opencl_gpuid flag is set,
 this array contains the logical identifiers of the OpenCL devices to
@@ -104,7 +104,7 @@ array contains the logical identifiers of the SCC devices to be used.
 \var starpu_conf::bus_calibrate
 If this flag is set, StarPU will recalibrate the bus.  If this value
 is equal to <c>-1</c>, the default value is used.  This can also be
-specified with the STARPU_BUS_CALIBRATE environment variable. (default
+specified with the environment variable \ref STARPU_BUS_CALIBRATE. (default
 = 0)
 \var starpu_conf::calibrate
 If this flag is set, StarPU will calibrate the performance models when
@@ -112,7 +112,7 @@ executing tasks. If this value is equal to <c>-1</c>, the default
 value is used. If the value is equal to <c>1</c>, it will force
 continuing calibration. If the value is equal to <c>2</c>, the
 existing performance models will be overwritten. This can also be
-specified with the STARPU_CALIBRATE environment variable. (default =
+specified with the environment variable \ref STARPU_CALIBRATE. (default =
 0)
 \var starpu_conf::single_combined_worker
 By default, StarPU executes parallel tasks
@@ -123,8 +123,8 @@ only start one parallel task at a time (but other CPU and
 GPU tasks are not affected and can be run concurrently).
 The parallel task scheduler will however still however
 still try varying combined worker sizes to look for the
-most efficient ones. This can also be specified with the
-STARPU_SINGLE_COMBINED_WORKER environment variable.
+most efficient ones. This can also be specified with the environment
+variable \ref STARPU_SINGLE_COMBINED_WORKER.
 (default = 0)
 
 \var starpu_conf::mic_sink_program_path
@@ -134,33 +134,31 @@ architecture.
 \var starpu_conf::disable_asynchronous_copy
 This flag should be set to 1 to disable
 asynchronous copies between CPUs and all accelerators. This
-can also be specified with the
-STARPU_DISABLE_ASYNCHRONOUS_COPY environment variable. The
+can also be specified with the environment variable \ref
+STARPU_DISABLE_ASYNCHRONOUS_COPY. The
 AMD implementation of OpenCL is known to fail when copying
 data asynchronously. When using this implementation, it is
 therefore necessary to disable asynchronous data transfers.
 This can also be specified at compilation time by giving to
-the configure script the option
-<c>--disable-asynchronous-copy</c>. (default = 0)
+the configure script the option \ref disable-asynchronous-copy. (default = 0)
 \var starpu_conf::disable_asynchronous_cuda_copy
 This flag should be set to 1 to disable
 asynchronous copies between CPUs and CUDA accelerators.
-This can also be specified with the
-STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY environment variable.
+This can also be specified with the environment variable
+\ref STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY.
 This can also be specified at compilation time by giving to
-the configure script the option
-<c>--disable-asynchronous-cuda-copy</c>. (default = 0)
+the configure script the option \ref disable-asynchronous-cuda-copy. (default = 0)
 \var starpu_conf::disable_asynchronous_opencl_copy
 This flag should be set to 1 to disable
 asynchronous copies between CPUs and OpenCL accelerators.
-This can also be specified with the
-STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY environment
-variable. The AMD implementation of OpenCL is known to fail
+This can also be specified with the environment
+variable \ref STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY. The AMD
+implementation of OpenCL is known to fail
 when copying data asynchronously. When using this
 implementation, it is therefore necessary to disable
 asynchronous data transfers. This can also be specified at
 compilation time by giving to the configure script the
-option <c>--disable-asynchronous-opencl-copy</c>. (default
+option \ref disable-asynchronous-opencl-copy. (default
 = 0)
 
 \var starpu_conf::disable_asynchronous_mic_copy
@@ -208,10 +206,10 @@ starpu_initialize() in the same program.
 \ingroup API_Initialization_and_Termination
 This function initializes the conf structure passed as argument with
 the default values. In case some configuration parameters are already
-specified through environment variables, starpu_conf_init initializes
+specified through environment variables, starpu_conf_init() initializes
 the fields of the structure according to the environment variables.
-For instance if STARPU_CALIBRATE is set, its value is put in the
-.calibrate field of the structure passed as argument. Upon successful
+For instance if \ref STARPU_CALIBRATE is set, its value is put in the
+field starpu_conf::calibrate of the structure passed as argument. Upon successful
 completion, this function returns 0. Otherwise, -EINVAL indicates that
 the argument was NULL.
 

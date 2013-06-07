@@ -75,7 +75,7 @@ Enable some exhaustive checks which take a really long time.
 <dd>
 \anchor with-hwloc
 \addindex __configure__--with-hwloc
-Specify hwloc should be used by StarPU. hwloc should be found by the
+Specify <c>hwloc</c> should be used by StarPU. <c>hwloc</c> should be found by the
 means of the tool <c>pkg-config</c>.
 </dd>
 
@@ -83,7 +83,7 @@ means of the tool <c>pkg-config</c>.
 <dd>
 \anchor with-hwloc
 \addindex __configure__--with-hwloc
-Specify hwloc should be used by StarPU. hwloc should be found in the
+Specify <c>hwloc</c> should be used by StarPU. <c>hwloc</c> should be found in the
 directory specified by <c>prefix</c>
 </dd>
 
@@ -91,7 +91,7 @@ directory specified by <c>prefix</c>
 <dd>
 \anchor without-hwloc
 \addindex __configure__--without-hwloc
-Specify hwloc should not be used by StarPU.
+Specify <c>hwloc</c> should not be used by StarPU.
 </dd>
 
 <dt>--disable-build-doc</dt>
@@ -282,7 +282,7 @@ it is therefore necessary to disable asynchronous data transfers.
 <dd>
 \anchor disable-socl
 \addindex __configure__--disable-socl
-Disable the SOCL extension (\ref SOCL_OpenCL_Extensions).  By
+Disable the SOCL extension (\ref SOCLOpenclExtensions).  By
 default, it is enabled when an OpenCL implementation is found.
 </dd>
 
@@ -290,7 +290,7 @@ default, it is enabled when an OpenCL implementation is found.
 <dd>
 \anchor disable-starpu-top
 \addindex __configure__--disable-starpu-top
-Disable the StarPU-Top interface (\ref StarPU-Top).  By default, it
+Disable the StarPU-Top interface (\ref StarPU-TopInterface).  By default, it
 is enabled when the required dependencies are found.
 </dd>
 
@@ -298,7 +298,7 @@ is enabled when the required dependencies are found.
 <dd>
 \anchor disable-gcc-extensions
 \addindex __configure__--disable-gcc-extensions
-Disable the GCC plug-in (\ref C_Extensions).  By default, it is
+Disable the GCC plug-in (\ref cExtensions).  By default, it is
 enabled when the GCC compiler provides a plug-in support.
 </dd>
 
@@ -307,7 +307,7 @@ enabled when the GCC compiler provides a plug-in support.
 \anchor with-mpicc
 \addindex __configure__--with-mpicc
 Use the compiler <c>mpicc</c> at <c>path</c>, for StarPU-MPI.
-(\ref StarPU_MPI_support).
+(\ref MPISupport).
 </dd>
 
 <dt>--enable-mpi-progression-hook</dt>
@@ -340,7 +340,7 @@ Enable performance model debugging.
 \anchor enable-stats
 \addindex __configure__--enable-stats
 (see ../../src/datawizard/datastats.c)
-Enable gathering of various data statistics (\ref Data_statistics).
+Enable gathering of various data statistics (\ref DataStatistics).
 </dd>
 
 <dt>--enable-maxbuffers</dt>
@@ -381,7 +381,7 @@ library has to be 'atlas' or 'goto'.
 <dd>
 \anchor disable-starpufft
 \addindex __configure__--disable-starpufft
-Disable the build of libstarpufft, even if fftw or cuFFT is available.
+Disable the build of libstarpufft, even if <c>fftw</c> or <c>cuFFT</c> is available.
 </dd>
 
 <dt>--with-magma=<c>prefix</c></dt>
@@ -399,7 +399,7 @@ contain <c>include/magmablas.h</c>.
 Search for FxT under <c>prefix</c>.
 FxT (http://savannah.nongnu.org/projects/fkt) is used to generate
 traces of scheduling events, which can then be rendered them using ViTE
-(\ref off-line_performance_feedback).  <c>prefix</c> should
+(\ref Off-linePerformanceFeedback).  <c>prefix</c> should
 notably contain <c>include/fxt/fxt.h</c>.
 </dd>
 
@@ -456,7 +456,7 @@ Disable the build of examples.
 <dd>
 \anchor enable-sc-hypervisor
 \addindex __configure__--enable-sc-hypervisor
-Enable the Scheduling Context Hypervisor plugin(\ref Scheduling_Context_Hypervisor).
+Enable the Scheduling Context Hypervisor plugin(\ref SchedulingContextHypervisor).
 By default, it is disabled.
 </dd>
 
@@ -464,7 +464,7 @@ By default, it is disabled.
 <dd>
 \anchor enable-memory-stats
 \addindex __configure__--enable-memory-stats
-Enable memory statistics (\ref Memory_feedback).
+Enable memory statistics (\ref MemoryFeedback).
 </dd>
 
 <dt>--enable-simgrid</dt>

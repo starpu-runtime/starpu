@@ -12,7 +12,7 @@
 \ingroup API_CUDA_Extensions
 This macro is defined when StarPU has been installed with CUDA
 support. It should be used in your code to detect the availability of
-CUDA as shown in Full source code for the 'Scaling a Vector' example.
+CUDA as shown in \ref FullSourceCodeVectorScal.
 
 \fn cudaStream_t starpu_cuda_get_local_stream(void)
 \ingroup API_CUDA_Extensions

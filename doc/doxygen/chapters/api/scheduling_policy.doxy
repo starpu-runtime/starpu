@@ -9,7 +9,7 @@
 /*! \defgroup API_Scheduling_Policy Scheduling Policy
 
 \brief TODO. While StarPU comes with a variety of scheduling policies
-(see \ref Task_scheduling_policy), it may sometimes be desirable to
+(see \ref TaskSchedulingPolicy), it may sometimes be desirable to
 implement custom policies to address specific problems. The API
 described below allows users to write their own scheduling policy.
 
@@ -165,7 +165,7 @@ Returns expected conversion time in ms (multiformat interface only)
 
 \fn int starpu_get_prefetch_flag(void)
 \ingroup API_Scheduling_Policy
-Whether STARPU_PREFETCH was set
+Whether \ref STARPU_PREFETCH was set
 
 \fn int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 \ingroup API_Scheduling_Policy

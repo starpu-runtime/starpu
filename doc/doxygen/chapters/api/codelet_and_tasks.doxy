@@ -12,7 +12,7 @@
 
 \enum starpu_codelet_type
 \ingroup API_Codelet_And_Tasks
-Describes the type of parallel task. See \ref Parallel_Tasks for details.
+Describes the type of parallel task. See \ref ParallelTasks for details.
 \var starpu_codelet_type::STARPU_SEQ
 \ingroup API_Codelet_And_Tasks
 (default) for classical sequential tasks.
@@ -142,7 +142,7 @@ task, 0 otherwise.
 Optional field to specify the type of the codelet. The default is
 ::STARPU_SEQ, i.e. usual sequential implementation. Other values
 (::STARPU_SPMD or ::STARPU_FORKJOIN declare that a parallel implementation
-is also available. See \ref Parallel_Tasks for details.
+is also available. See \ref ParallelTasks for details.
 
 \var starpu_codelet::max_parallelism
 Optional field. If a parallel implementation is available, this
@@ -207,23 +207,22 @@ Specify the number of arguments taken by the codelet. These arguments
 are managed by the DSM and are accessed from the <c>void *buffers[]</c>
 array. The constant argument passed with the field starpu_task::cl_arg
 is not counted in this number. This value should not be above
-STARPU_NMAXBUFS.
+\ref STARPU_NMAXBUFS.
 
 \var starpu_codelet::modes
 Is an array of ::starpu_data_access_mode. It describes the required
 access modes to the data neeeded by the codelet (e.g. ::STARPU_RW). The
 number of entries in this array must be specified in the field
-starpu_codelet::nbuffers, and should not exceed STARPU_NMAXBUFS. If
-unsufficient, this value can be set with the <c>--enable-maxbuffers</c>
-option when configuring StarPU.
+starpu_codelet::nbuffers, and should not exceed \ref STARPU_NMAXBUFS. If
+unsufficient, this value can be set with the configure option \ref enable-maxbuffers.
 
 \var starpu_codelet::dyn_modes
 Is an array of ::starpu_data_access_mode. It describes the required
 access modes to the data neeeded by the codelet (e.g. ::STARPU_RW).
 The number of entries in this array must be specified in the field
 starpu_codelet::nbuffers. This field should be used for codelets having a
-number of datas greater than STARPU_NMAXBUFS (see \ref
-Setting_the_Data_Handles_for_a_Task). When defining a codelet, one
+number of datas greater than \ref STARPU_NMAXBUFS (see \ref
+SettingTheDataHandlesForATask). When defining a codelet, one
 should either define this field or the field starpu_codelet::modes defined above.
 
 \var starpu_codelet::model
@@ -252,7 +251,7 @@ purposes.
 \ingroup API_Codelet_And_Tasks
 Initialize \p cl with default values. Codelets should
 preferably be initialized statically as shown in \ref
-Defining_a_Codelet. However such a initialisation is not always
+DefiningACodelet. However such a initialisation is not always
 possible, e.g. when using C++.
 
 \struct starpu_data_descr
@@ -285,18 +284,17 @@ field starpu_task::handles to specify the data handles accessed
 by the task. The access modes are now defined in the field
 starpu_codelet::mode.
 \var starpu_task::handles
-Is an array of starpu_data_handle_t. It specifies the handles to the
+Is an array of ::starpu_data_handle_t. It specifies the handles to the
 different pieces of data accessed by the task. The number of entries
 in this array must be specified in the field starpu_codelet::nbuffers,
-and should not exceed STARPU_NMAXBUFS. If unsufficient, this value can
-be set with the option <c>--enable-maxbuffers</c> when configuring
-StarPU.
+and should not exceed \ref STARPU_NMAXBUFS. If unsufficient, this value can
+be set with the configure option \ref enable-maxbuffers.
 \var starpu_task::dyn_handles
-Is an array of starpu_data_handle_t. It specifies the handles to the
+Is an array of ::starpu_data_handle_t. It specifies the handles to the
 different pieces of data accessed by the task. The number of entries
 in this array must be specified in the field starpu_codelet::nbuffers.
 This field should be used for tasks having a number of datas greater
-than STARPU_NMAXBUFS (see \ref Setting_the_Data_Handles_for_a_Task).
+than \ref STARPU_NMAXBUFS (see \ref SettingTheDataHandlesForATask).
 When defining a task, one should either define this field or the field
 starpu_task::handles defined above.
 
@@ -337,8 +335,8 @@ executed if the field is set to NULL.
 
 \var starpu_task::callback_arg (optional) (default: NULL)
 Optional field, the default value is <c>NULL</c>. This is the pointer
-passed to the callback function. This field is ignored if the
-callback_func is set to <c>NULL</c>.
+passed to the callback function. This field is ignored if the field
+starpu_task::callback_func is set to <c>NULL</c>.
 
 \var starpu_task::use_tag
 Optional field, the default value is 0. If set, this flag indicates
@@ -363,16 +361,16 @@ to process the task). Otherwise, starpu_task_submit() returns
 immediately.
 
 \var starpu_task::priority
-Optional field, the default value is STARPU_DEFAULT_PRIO. This field
+Optional field, the default value is ::STARPU_DEFAULT_PRIO. This field
 indicates a level of priority for the task. This is an integer value
 that must be set between the return values of the function
 starpu_sched_get_min_priority() for the least important tasks, and
 that of the function starpu_sched_get_max_priority() for the most
-important tasks (included). The STARPU_MIN_PRIO and STARPU_MAX_PRIO
+important tasks (included). The ::STARPU_MIN_PRIO and ::STARPU_MAX_PRIO
 macros are provided for convenience and respectively returns the value
 of starpu_sched_get_min_priority() and
 starpu_sched_get_max_priority(). Default priority is
-STARPU_DEFAULT_PRIO, which is always defined as 0 in order to allow
+::STARPU_DEFAULT_PRIO, which is always defined as 0 in order to allow
 static task initialization. Scheduling strategies that take priorities
 into account can use this parameter to take better scheduling
 decisions, but the scheduling policy may also ignore it.
@@ -414,7 +412,7 @@ will not free any task.
 \var starpu_task::regenerate
 Optional field. If this flag is set, the task will be re-submitted to
 StarPU once it has been executed. This flag must not be set if the
-destroy flag is set.
+flag starpu_task::destroy is set.
 
 \var starpu_task::status
 Optional field. Current state of the task.
@@ -424,7 +422,7 @@ Optional field. Profiling information for the task.
 
 \var starpu_task::predicted
 Output field. Predicted duration of the task. This field is only set
-if the scheduling strategy used performance models.
+if the scheduling strategy uses performance models.
 
 \var starpu_task::predicted_transfer
 Optional field. Predicted data transfer duration for the task in
@@ -447,8 +445,8 @@ only be used by StarPU.
 \var starpu_task::flops
 This can be set to the number of floating points operations that the
 task will have to achieve. This is useful for easily getting GFlops
-curves from starpu_perfmodel_plot(), and for the hypervisor load
-balancing.
+curves from the tool <c>starpu_perfmodel_plot</c>, and for the
+hypervisor load balancing.
 
 \var starpu_task::starpu_private
 \private
@@ -477,7 +475,7 @@ Initialize task with default values. This function is
 implicitly called by starpu_task_create(). By default, tasks initialized
 with starpu_task_init() must be deinitialized explicitly with
 starpu_task_clean(). Tasks can also be initialized statically, using
-STARPU_TASK_INITIALIZER.
+::STARPU_TASK_INITIALIZER.
 
 \def STARPU_TASK_INITIALIZER
 \ingroup API_Codelet_And_Tasks
@@ -491,7 +489,7 @@ Return the \p i th data handle of the given task. If the task
 is defined with a static or dynamic number of handles, will either
 return the \p i th element of the field starpu_task::handles or the \p
 i th element of the field starpu_task::dyn_handles (see \ref
-Setting_the_Data_Handles_for_a_Task)
+SettingTheDataHandlesForATask)
 
 \def STARPU_TASK_SET_HANDLE(struct starpu_task *task, starpu_data_handle_t handle, int i)
 \ingroup API_Codelet_And_Tasks
@@ -500,7 +498,7 @@ dat handle. If the task is defined with a static or dynamic number of
 handles, will either set the \p i th element of the field
 starpu_task::handles or the \p i th element of the field
 starpu_task::dyn_handles (see \ref
-Setting_the_Data_Handles_for_a_Task)
+SettingTheDataHandlesForATask)
 
 \def STARPU_CODELET_GET_MODE(struct starpu_codelet *codelet, int i)
 \ingroup API_Codelet_And_Tasks
@@ -509,7 +507,7 @@ codelet. If the codelet is defined with a static or dynamic number of
 handles, will either return the \p i th element of the field
 starpu_codelet::modes or the \p i th element of the field
 starpu_codelet::dyn_modes (see \ref
-Setting_the_Data_Handles_for_a_Task)
+SettingTheDataHandlesForATask)
 
 \def STARPU_CODELET_SET_MODE(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, int i)
 \ingroup API_Codelet_And_Tasks
@@ -518,7 +516,7 @@ codelet. If the codelet is defined with a static or dynamic number of
 handles, will either set the \p i th element of the field
 starpu_codelet::modes or the \p i th element of the field
 starpu_codelet::dyn_modes (see \ref
-Setting_the_Data_Handles_for_a_Task)
+SettingTheData_HandlesForATask)
 
 \fn struct starpu_task * starpu_task_create(void)
 \ingroup API_Codelet_And_Tasks

@@ -16,8 +16,7 @@ the case of an asynchronous call, it is possible to synchronize with
 the termination of this operation either by the means of implicit
 dependencies (if enabled) or by calling starpu_task_wait_for_all(). If
 \p callback_func is not NULL, this callback function is executed after
-the handle has been copied, and it is given the pointer \p pointer
-callback_arg as argument.
+the handle has been copied, and it is given the pointer \p callback_arg as argument.
 
 \fn void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where)
 \ingroup API_Miscellaneous_Helpers

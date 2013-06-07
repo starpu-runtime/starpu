@@ -117,7 +117,7 @@ they should be hidden to the user
 \fn struct starpu_sched_ctx_performance_counters *sc_hypervisor_init(struct sc_hypervisor_policy * policy)
 \ingroup API_Scheduling_Context_Hypervisor
 Initializes the hypervisor to use the strategy provided as parameter
-and creates the performance counters (see \ref Performance_Counters).
+and creates the performance counters (see \ref PerformanceCounters).
 These performance counters represent actually some callbacks that will
 be used by the contexts to notify the information needed by the
 hypervisor.
@@ -145,7 +145,7 @@ hypervisor.
 \ingroup API_Scheduling_Context_Hypervisor
 Register the context to the hypervisor, and indicate the number of
 flops the context will execute (needed for Gflops rate based strategy
-see \ref Resizing_strategies or any other custom strategy needing it, for
+see \ref ResizingStrategies or any other custom strategy needing it, for
 the others we can pass 0.0)
 
 \fn void sc_hypervisor_unregister_ctx (unsigned sched_ctx)
@@ -224,8 +224,8 @@ workers are not allowed to be moved from the context.
 This macro is used when calling sc_hypervisor_ioctl() and must be
 followed by 1 argument (int) that indicated the minimum number of
 tasks that have to be executed before the context could be resized.
-This parameter is ignored for the Application Driven strategy see
-Resizing strategies where the user indicates exactly when the resize
+This parameter is ignored for the Application Driven strategy (see \ref 
+ResizingStrategies) where the user indicates exactly when the resize
 should be done.
 
 \def HYPERVISOR_NEW_WORKERS_MAX_IDLE
@@ -245,7 +245,7 @@ should have such that this configuration should be taken into account.
 \ingroup API_Scheduling_Context_Hypervisor
 
 While Scheduling Context Hypervisor Plugin comes with a variety of
-resizing policies (see \ref Resizing_strategies), it may sometimes be
+resizing policies (see \ref ResizingStrategies), it may sometimes be
 desirable to implement custom policies to address specific problems.
 The API described below allows users to write their own resizing policy.
 

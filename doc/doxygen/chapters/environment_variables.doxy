@@ -11,7 +11,7 @@
 The behavior of the StarPU library and tools may be tuned thanks to
 the following environment variables.
 
-\section ConfiguringWorkers ConfiguringWorkers
+\section ConfiguringWorkers Configuring Workers
 
 <dl>
 
@@ -169,7 +169,7 @@ number of CPU workers in the system)
 \addindex __env__STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
 Let the user decide how many elements are allowed between combined workers
 created from hwloc information. For instance, in the case of sockets with 6
-cores without shared L2 caches, if \ref SYNTHESIZE_ARITY_COMBINED_WORKER is
+cores without shared L2 caches, if \ref STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER is
 set to 6, no combined worker will be synthesized beyond one for the socket
 and one per core. If it is set to 3, 3 intermediate combined workers will be
 synthesized, to divide the socket cores into 3 chunks of 2 cores. If it set to
@@ -294,21 +294,21 @@ the coefficient to be applied to it before adding it to the computation part.
 <dd>
 \anchor STARPU_SCHED_GAMMA
 \addindex __env__STARPU_SCHED_GAMMA
-Define the execution time penalty of a joule (\ref Power-based_scheduling).
+Define the execution time penalty of a joule (\ref Power-basedScheduling).
 </dd>
 
 <dt>STARPU_IDLE_POWER</dt>
 <dd>
 \anchor STARPU_IDLE_POWER
 \addindex __env__STARPU_IDLE_POWER
-Define the idle power of the machine (\ref Power-based_scheduling).
+Define the idle power of the machine (\ref Power-basedScheduling).
 </dd>
 
 <dt>STARPU_PROFILING</dt>
 <dd>
 \anchor STARPU_PROFILING
 \addindex __env__STARPU_PROFILING
-Enable on-line performance monitoring (\ref Enabling_on-line_performance_monitoring).
+Enable on-line performance monitoring (\ref EnablingOn-linePerformanceMonitoring).
 </dd>
 
 </dl>
@@ -323,14 +323,14 @@ Enable on-line performance monitoring (\ref Enabling_on-line_performance_monitor
 \addindex __env__SOCL_OCL_LIB_OPENCL
 THE SOCL test suite is only run when the environment variable \ref
 SOCL_OCL_LIB_OPENCL is defined. It should contain the location
-of the libOpenCL.so file of the OCL ICD implementation.
+of the file <c>libOpenCL.so</c> of the OCL ICD implementation.
 </dd>
 
 <dt>STARPU_COMM_STATS</dt>
 <dd>
 \anchor STARPU_COMM_STATS
 \addindex __env__STARPU_COMM_STATS
-Communication statistics for starpumpi (\ref StarPU_MPI_support)
+Communication statistics for starpumpi (\ref MPISupport)
 will be enabled when the environment variable \ref STARPU_COMM_STATS
 is defined to an value other than 0.
 </dd>
@@ -339,7 +339,7 @@ is defined to an value other than 0.
 <dd>
 \anchor STARPU_MPI_CACHE
 \addindex __env__STARPU_MPI_CACHE
-Communication cache for starpumpi (\ref StarPU_MPI_support) will be
+Communication cache for starpumpi (\ref MPISupport) will be
 disabled when the environment variable \ref STARPU_MPI_CACHE is set
 to 0. It is enabled by default or for any other values of the variable
 \ref STARPU_MPI_CACHE.
@@ -472,7 +472,7 @@ generate a Paje trace when starpu_shutdown() is called.
 \anchor STARPU_MEMORY_STATS
 \addindex __env__STARPU_MEMORY_STATS
 When set to 0, disable the display of memory statistics on data which
-have not been unregistered at the end of the execution (\ref Memory_feedback).
+have not been unregistered at the end of the execution (\ref MemoryFeedback).
 </dd>
 
 <dt>STARPU_BUS_STATS</dt>
@@ -490,7 +490,7 @@ starpu_shutdown() (\ref Profiling).
 When defined, statistics about the workers will be displayed when calling
 starpu_shutdown() (\ref Profiling). When combined with the
 environment variable \ref STARPU_PROFILING, it displays the power
-consumption (\ref Power-based_scheduling).
+consumption (\ref Power-basedScheduling).
 </dd>
 
 <dt>STARPU_STATS</dt>
@@ -498,7 +498,7 @@ consumption (\ref Power-based_scheduling).
 \anchor STARPU_STATS
 \addindex __env__STARPU_STATS
 When set to 0, data statistics will not be displayed at the
-end of the execution of an application (\ref Data_statistics).
+end of the execution of an application (\ref DataStatistics).
 </dd>
 
 </dl>

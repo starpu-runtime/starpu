@@ -83,7 +83,7 @@ execute the tasks submitted to it.
 The return value represents the identifier of the context that has
 just been created. It will be further used to indicate the context the
 tasks will be submitted to. The return value should be at most
-STARPU_NMAX_SCHED_CTXS.
+\ref STARPU_NMAX_SCHED_CTXS.
 
 \fn unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap)
 \ingroup API_Scheduling_Contexts
@@ -98,7 +98,7 @@ workers to the inheritor scheduling context.
 \ingroup API_Scheduling_Contexts
 This function adds dynamically the workers in \p workerids_ctx to the
 context \p sched_ctx_id. The last argument cannot be greater than
-STARPU_NMAX_SCHED_CTXS.
+\ref STARPU_NMAX_SCHED_CTXS.
 
 \fn void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
