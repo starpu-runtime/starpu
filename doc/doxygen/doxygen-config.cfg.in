@@ -26,6 +26,6 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen/chapters/code
 
-INPUT_FILTER           = @top_builddir@/doc/doxygen/starpu_doxygen_filter.sh
+INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 
 LATEX_HEADER           = @top_srcdir@/doc/doxygen/refman.tex
