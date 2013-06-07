@@ -19,6 +19,7 @@ void _starpu_destroy_composed_sched_node_recipe(_starpu_composed_sched_node_reci
 //null pointer mean to ignore a level L of hierarchy, then nodes of levels > L become childs of level L - 1
 struct _starpu_sched_specs
 {
+	//hw_loc_machine_composed_sched_node must be set as its the root of the topology
 	_starpu_composed_sched_node_recipe_t hwloc_machine_composed_sched_node;
 	_starpu_composed_sched_node_recipe_t hwloc_node_composed_sched_node;
 	_starpu_composed_sched_node_recipe_t hwloc_socket_composed_sched_node;
