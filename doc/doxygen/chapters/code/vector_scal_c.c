@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2010-2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,6 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+//! [To be included]
 /*
  * This example demonstrates how to use StarPU to scale an array by a factor.
  * It shows how to manipulate data with StarPU's data management library.
@@ -124,4 +125,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
+//! [To be included]

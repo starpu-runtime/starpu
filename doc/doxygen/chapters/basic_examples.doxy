@@ -22,7 +22,7 @@ implementations (for CPU, OpenCL, and/or CUDA), and invoke the task like
 a regular C function.  The example below defines <c>my_task</c> which
 has a single implementation for CPU:
 
-\include hello_pragma.c
+\snippet hello_pragma.c To be included
 
 The code can then be compiled and linked with GCC and the <c>-fplugin</c> flag:
 
@@ -264,7 +264,7 @@ vector_scal (unsigned size, float vector[size], float factor)
 Next, the body of the program, which uses the task defined above, can be
 implemented:
 
-\include hello_pragma2.c
+\snippet hello_pragma2.c To be included
 
 The <c>main</c> function above does several things:
 
@@ -675,7 +675,7 @@ Here is the source of the main application. You can notice that the fields
 define the pointers to the CUDA and OpenCL implementations of the
 task.
 
-\include vector_scal_c.c
+\snippet vector_scal_c.c To be included
 
 \subsection Execution_of_Hybrid_Vector_Scaling Execution of Hybrid Vector Scaling
 

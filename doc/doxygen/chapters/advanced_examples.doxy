@@ -746,7 +746,7 @@ the CPU binding mask that StarPU chose.
 For instance, using OpenMP (full source is available in
 <c>examples/openmp/vector_scal.c</c>):
 
-\include forkmode.c
+\snippet forkmode.c To be included
 
 Other examples include for instance calling a BLAS parallel CPU implementation
 (see <c>examples/mult/xgemm.c</c>).
@@ -863,7 +863,7 @@ will be able to convert data from one data structure to the other when needed.
 Note that the dmda scheduler is the only one optimized for this interface. The
 user must provide StarPU with conversion codelets:
 
-\include multiformat.c
+\snippet multiformat.c To be included
 
 Kernels can be written almost as for any other interface. Note that
 ::STARPU_MULTIFORMAT_GET_CPU_PTR shall only be used for CPU kernels. CUDA kernels
@@ -1086,7 +1086,7 @@ Similar functions need to be defined to access the different fields of the
 complex interface from a <c>void *</c> pointer to be used within codelet
 implemetations.
 
-\include complex.c
+\snippet complex.c To be included
 
 Complex data interfaces can then be registered to StarPU.
 

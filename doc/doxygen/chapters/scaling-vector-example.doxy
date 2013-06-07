@@ -10,25 +10,25 @@
 
 \section MainApplication Main Application
 
-\include vector_scal_c.c
+\snippet vector_scal_c.c To be included
 
 \section CPUKernel CPU Kernel
 
-\include vector_scal_cpu.c
+\snippet vector_scal_cpu.c To be included
 
 \section CUDAKernel CUDA Kernel
 
-\include vector_scal_cuda.cu
+\snippet vector_scal_cuda.cu To be included
 
 \section OpenCLKernel OpenCL Kernel
 
 \subsection InvokingtheKernel Invoking the Kernel
 
-\include vector_scal_opencl.c
+\snippet vector_scal_opencl.c To be included
 
 \subsection SourceoftheKernel Source of the Kernel
 
-\include vector_scal_opencl_codelet.cl
+\snippet vector_scal_opencl_codelet.cl To be included
 
 */
 
