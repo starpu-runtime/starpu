@@ -101,7 +101,8 @@ sc_hypervisor_ioctl(sched_ctx,
 
 
 The <b>Idleness</b> based strategy resizes the scheduling contexts every time one of their workers stays idle
-for a period longer than the one imposed by the user (see \ref The_user_input_in_the_resizing_process)
+for a period longer than the one imposed by the user
+(see \ref UsersInputInTheResizingProcess "Users’ Input In The Resizing Process")
 
 \code{.c}
 int workerids[3] = {1, 3, 10};
@@ -123,7 +124,7 @@ The number of flops to be executed by a context are passed as
  (<c>sc_hypervisor_register_ctx(sched_ctx_id, flops)</c>) and the one
  to be executed by each task are passed when the task is submitted.
  The corresponding field is starpu_task::flops and the corresponding
- macro in the function starpu_insert_task() ::STARPU_FLOPS
+ macro in the function starpu_insert_task() is ::STARPU_FLOPS
  (<b>Caution</b>: but take care of passing a double, not an integer,
  otherwise parameter passing will be bogus). When the task is executed
  the resizing process is triggered.

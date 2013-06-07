@@ -26,7 +26,7 @@ disposes of all the computation ressources available to StarPU (all
 the workers). If the application programmer plans to launch several
 parallel kernels simultaneusly, by default these kernels will be
 executed within this initial context, using a single scheduler
-policy(see \ref Task_scheduling_policy). Meanwhile, if the application
+policy(see \ref TaskSchedulingPolicy). Meanwhile, if the application
 programmer is aware of the demands of these kernels and of the
 specificity of the machine used to execute them, the workers can be
 divided between several contexts. These scheduling contexts will

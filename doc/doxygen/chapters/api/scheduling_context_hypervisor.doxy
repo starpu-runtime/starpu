@@ -152,7 +152,8 @@ the others we can pass 0.0)
 \ingroup API_Scheduling_Context_Hypervisor
 Unregister the context from the hypervisor.
 
-@name The user’s input in the resizing process
+@name Users’ Input In The Resizing Process
+\anchor UsersInputInTheResizingProcess
 \ingroup API_Scheduling_Context_Hypervisor
 
 The user can totally forbid the resizing of a certain context or can

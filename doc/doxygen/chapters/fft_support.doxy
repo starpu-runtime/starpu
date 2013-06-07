@@ -47,14 +47,14 @@ case, starpufft_cleanup() needs to be called to unregister the data.
 <li>
 To provide data handles (which is preferrable),
 use starpufft_start_handle() (preferred) or
-starpufft_execute_handle(). Several FFTs Several FFT tasks can be submitted
+starpufft_execute_handle(). Several FFTs tasks can be submitted
 for a given plan, which permits e.g. to start a series of FFT with just one
 plan. starpufft_start_handle() is preferrable since it does not wait for
 the task completion, and thus permits to enqueue a series of tasks.
 </li>
 </ul>
 
-All functions are defined in \ref FFT_Support.
+All functions are defined in \ref API_FFT_Support.
 
 \section Compilation Compilation
 
