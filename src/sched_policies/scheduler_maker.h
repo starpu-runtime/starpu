@@ -25,11 +25,10 @@ struct _starpu_sched_specs
 	_starpu_composed_sched_node_recipe_t hwloc_cache_composed_sched_node;
 
 
-	//do not include the worker node
-	_starpu_composed_sched_node_recipe_t cpu_composed_sched_node;
-	_starpu_composed_sched_node_recipe_t opencl_composed_sched_node;
-	_starpu_composed_sched_node_recipe_t cuda_composed_sched_node;
-
+	/* this member should return a new allocated _starpu_composed_sched_node_recipe_t or NULL
+	 * the _starpu_composed_sched_node_recipe_t must not include the worker node
+	 */
+	_starpu_composed_sched_node_recipe_t (*worker_composed_sched_node)(enum starpu_worker_archtype);
 };
 
 struct _starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct _starpu_sched_specs);

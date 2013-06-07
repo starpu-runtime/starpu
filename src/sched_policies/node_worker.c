@@ -16,7 +16,11 @@ struct _starpu_sched_node * _starpu_sched_node_worker_get(int workerid)
 		return _worker_nodes[workerid] = _starpu_sched_node_worker_create(workerid);
 }
 
-
+struct _starpu_worker * _starpu_sched_node_worker_get_worker(struct _starpu_sched_node * worker_node)
+{
+	STARPU_ASSERT(_starpu_sched_node_is_worker(worker_node));
+	return worker_node->data;
+}
 
 int _starpu_sched_node_worker_push_task(struct _starpu_sched_node * node, struct starpu_task *task)
 {
@@ -184,6 +188,15 @@ static struct _starpu_sched_node  * _starpu_sched_node_worker_create(int workeri
 	node->workers = _starpu_bitmap_create();
 	_starpu_bitmap_set(node->workers, workerid);
 	_worker_nodes[workerid] = node;
+
+#ifdef STARPU_HAVE_HWLOC
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	struct starpu_machine_topology *topology = &config->topology;
+	hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->cpu_depth, worker->bindid);
+	STARPU_ASSERT(obj);
+	node->obj = obj;
+#endif
+
 	return node;
 }
 

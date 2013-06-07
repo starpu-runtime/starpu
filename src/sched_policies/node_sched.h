@@ -91,9 +91,7 @@ struct _starpu_sched_node * _starpu_sched_node_create(void);
 
 /* free memory allocated by _starpu_sched_node_create, it does not call node->destroy_node(node)*/
 void _starpu_sched_node_destroy(struct _starpu_sched_node * node);
-
 void _starpu_sched_node_set_father(struct _starpu_sched_node *node, struct _starpu_sched_node *father_node, unsigned sched_ctx_id);
-
 void _starpu_sched_node_add_child(struct _starpu_sched_node* node, struct _starpu_sched_node * child);
 void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child);
 
@@ -103,6 +101,7 @@ int _starpu_sched_node_can_execute_task_with_impl(struct _starpu_sched_node * no
 
 /* no public create function for workers because we dont want to have several node_worker for a single workerid */
 struct _starpu_sched_node * _starpu_sched_node_worker_get(int workerid);
+struct _starpu_worker * _starpu_sched_node_worker_get_worker(struct _starpu_sched_node * worker_node);
 void _starpu_sched_node_worker_destroy(struct _starpu_sched_node *);
 
 /* this function compare the available function of the node with the standard available for worker nodes*/

@@ -144,10 +144,6 @@ static void remove_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned 
 	}
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
-#else
-#endif
-
-
 
 static void initialize_heft_center_policy(unsigned sched_ctx_id)
 {
@@ -185,6 +181,47 @@ static void deinitialize_heft_center_policy(unsigned sched_ctx_id)
 	_starpu_tree_destroy(t, sched_ctx_id);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
+
+
+
+#else
+#endif
+
+#include "scheduler_maker.h"
+
+static _starpu_composed_sched_node_recipe_t  recipe_for_worker(enum starpu_worker_archtype a STARPU_ATTRIBUTE_UNUSED)
+{
+	return _starpu_create_composed_sched_node_recipe(_starpu_sched_node_fifo_create,NULL);
+}
+
+static void initialize_heft_center_policy(unsigned sched_ctx_id)
+{
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+	
+	struct _starpu_sched_specs specs;
+	memset(&specs,0,sizeof(specs));
+	
+	specs.hwloc_machine_composed_sched_node = _starpu_create_composed_sched_node_recipe(_starpu_sched_node_heft_create,NULL);
+	specs.worker_composed_sched_node = recipe_for_worker;
+
+	struct _starpu_sched_tree *data = _starpu_make_scheduler(sched_ctx_id, specs);
+
+	_starpu_destroy_composed_sched_node_recipe(specs.hwloc_machine_composed_sched_node);
+
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
+
+
+}
+
+static void deinitialize_heft_center_policy(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_tree *t = (struct _starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	_starpu_bitmap_destroy(t->workers);
+	_starpu_tree_destroy(t, sched_ctx_id);
+	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
+}
+
+
 
 
 
