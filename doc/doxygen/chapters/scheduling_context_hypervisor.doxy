@@ -123,8 +123,10 @@ The number of flops to be executed by a context are passed as
  (<c>sc_hypervisor_register_ctx(sched_ctx_id, flops)</c>) and the one
  to be executed by each task are passed when the task is submitted.
  The corresponding field is starpu_task::flops and the corresponding
- macro in the function starpu_insert_task() ::STARPU_FLOPS. When the
- task is executed the resizing process is triggered.
+ macro in the function starpu_insert_task() ::STARPU_FLOPS
+ (<b>Caution</b>: but take care of passing a double, not an integer,
+ otherwise parameter passing will be bogus). When the task is executed
+ the resizing process is triggered.
 
 \code{.c}
 task.flops = 100;

@@ -824,8 +824,9 @@ To benefit from parallel tasks, a parallel-task-aware StarPU scheduler has to
 be used. When exposed to codelets with a Fork or SPMD flag, the <c>pheft</c>
 (parallel-heft) and <c>peager</c> (parallel eager) schedulers will indeed also
 try to execute tasks with several CPUs. It will automatically try the various
-available combined worker sizes and thus be able to avoid choosing a large
-combined worker if the codelet does not actually scale so much.
+available combined worker sizes (making several measurements for each
+worker size) and thus be able to avoid choosing a large combined
+worker if the codelet does not actually scale so much.
 
 \subsection Combined_workers Combined workers
 

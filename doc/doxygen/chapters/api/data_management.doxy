@@ -55,7 +55,11 @@ value of the provided buffer is simply ignored for now.
 todo
 \var starpu_data_access_mode::STARPU_COMMUTE
 \ingroup API_Data_Management
-todo
+In addition to that, ::STARPU_COMMUTE can be passed along ::STARPU_W
+or ::STARPU_RW to express that StarPU can let tasks commute, which is
+useful e.g. when bringing a contribution into some data, which can be
+done in any order (but still require sequential consistency against
+reads or non-commutative writes).
 
 @name Basic Data Management API
 \ingroup API_Data_Management
