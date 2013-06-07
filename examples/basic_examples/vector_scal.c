@@ -116,15 +116,30 @@ int main(int argc, char **argv)
 {
 	/* We consider a vector of float that is initialized just as any of C
  	 * data */
+
+	void * A,*B,*C,*D,*E;
+
 	float vector[NX];
 	unsigned i;
 	for (i = 0; i < NX; i++)
                 vector[i] = (i+1.0f);
 
+	putenv("STARPU_LIMIT_CPU_MEM=130");
+
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
 
-	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*1);
+	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*200);
+
+
+	starpu_malloc(&A, 30*1000000);
+	starpu_malloc(&E, 30*1000000);
+
+
+
+
+
+
 
 	uintptr_t fileDD = (uintptr_t) starpu_disk_alloc(dd, sizeof(vector));
 	starpu_disk_write(dd, (void *) fileDD, (void *) vector, 0, sizeof(vector));
@@ -156,8 +171,16 @@ int main(int argc, char **argv)
 	 *  - the fourth argument is the number of elements in the vector
 	 *  - the fifth argument is the size of each element.
 	 */
-	starpu_data_handle_t vector_handle;
+	starpu_data_handle_t vector_handle, vector_handleA, vector_handleB, vector_handleC, vector_handleD, vector_handleE;
 	starpu_vector_data_register(&vector_handle, dd, fileDD, NX, sizeof(vector[0]));
+
+	starpu_vector_data_register(&vector_handleA, 0, (uintptr_t)A, 7.5*1000000 , sizeof(float));
+	starpu_vector_data_register(&vector_handleB, -1, (uintptr_t) NULL, 7.5*1000000 , sizeof(float));	
+	starpu_vector_data_register(&vector_handleC, -1, (uintptr_t) NULL, 7.5*1000000 , sizeof(float));
+	starpu_vector_data_register(&vector_handleD, -1, (uintptr_t) NULL, 7.5*1000000 , sizeof(float));
+	starpu_vector_data_register(&vector_handleE, 0, (uintptr_t)E, 7.5*1000000 , sizeof(float));
+
+
 
 	float factor = 3.14;
 
@@ -181,9 +204,25 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
+
+	starpu_data_cpy(vector_handleB, vector_handleA, 1, NULL, NULL);
+	starpu_data_cpy(vector_handleC, vector_handleB, 1, NULL, NULL);
+	starpu_data_cpy(vector_handleD, vector_handleC, 1, NULL, NULL);
+	starpu_data_cpy(vector_handleE, vector_handleD, 1, NULL, NULL);
+
 	/* StarPU does not need to manipulate the array anymore so we can stop
  	 * monitoring it */
 	starpu_data_unregister(vector_handle);
+
+
+
+	starpu_data_unregister(vector_handleA);
+	starpu_data_unregister(vector_handleB);
+	starpu_data_unregister(vector_handleC);
+	starpu_data_unregister(vector_handleD);
+	starpu_data_unregister(vector_handleE);
+
+
 
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_unload_opencl(&opencl_program);
