@@ -39,6 +39,7 @@ chapters =	\
 	chapters/tips_and_tricks.doxy \
 	chapters/environment_variables.doxy \
 	chapters/configure_options.doxy \
+	chapters/fdl-1.3.doxy \
 	chapters/hello_pragma2.c \
 	chapters/hello_pragma.c \
 	chapters/api/codelet_and_tasks.doxy \
@@ -138,7 +139,7 @@ $(DOX_TAG): $(dox_inputs)
 
 dist_pdf_DATA = $(DOX_PDF)
 
-$(DOX_PDF): $(DOX_TAG)
+$(DOX_PDF): $(DOX_TAG) refman.tex
 	cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_DIR)
 	cd $(DOX_LATEX_DIR); \
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
