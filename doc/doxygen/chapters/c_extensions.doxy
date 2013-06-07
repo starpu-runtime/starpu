@@ -322,39 +322,7 @@ automatic variables.
 The following example illustrates use of the <c>heap_allocated</c>
 attribute:
 
-\code{.c}
-extern void cholesky(unsigned nblocks, unsigned size,
-                    float mat[nblocks][nblocks][size])
-  __attribute__ ((task));
-
-int
-main (int argc, char *argv[])
-{
-#pragma starpu initialize
-
-  /* ... */
-
-  int nblocks, size;
-  parse_args (&nblocks, &size);
-
-  /* Allocate an array of the required size on the heap,
-     and register it.  */
-
-  {
-    float matrix[nblocks][nblocks][size]
-      __attribute__ ((heap_allocated, registered));
-
-    cholesky (nblocks, size, matrix);
-
-#pragma starpu wait
-
-  }   /* MATRIX is automatically unregistered & freed here.  */
-
-#pragma starpu shutdown
-
-  return EXIT_SUCCESS;
-}
-\endcode
+\include cholesky_pragma.c
 
 \section Conditional_Extensions Using C Extensions Conditionally
 
@@ -376,62 +344,7 @@ supported C extensions.
 The code below illustrates how to define a task and its implementations
 in a way that allows it to be compiled without the GCC plug-in:
 
-\code{.c}
-/* This program is valid, whether or not StarPU's GCC plug-in
-   is being used.  */
-
-#include <stdlib.h>
-
-/* The attribute below is ignored when GCC is not used.  */
-static void matmul (const float *A, const float *B, float * C,
-                    unsigned nx, unsigned ny, unsigned nz)
-  __attribute__ ((task));
-
-static void
-matmul (const float *A, const float *B, float * C,
-        unsigned nx, unsigned ny, unsigned nz)
-{
-  /* Code of the CPU kernel here...  */
-}
-
-#ifdef STARPU_GCC_PLUGIN
-/* Optional OpenCL task implementation.  */
-
-static void matmul_opencl (const float *A, const float *B, float * C,
-                           unsigned nx, unsigned ny, unsigned nz)
-  __attribute__ ((task_implementation ("opencl", matmul)));
-
-static void
-matmul_opencl (const float *A, const float *B, float * C,
-               unsigned nx, unsigned ny, unsigned nz)
-{
-  /* Code that invokes the OpenCL kernel here...  */
-}
-#endif
-
-int
-main (int argc, char *argv[])
-{
-  /* The pragmas below are simply ignored when StarPU-GCC
-     is not used.  */
-#pragma starpu initialize
-
-  float A[123][42][7], B[123][42][7], C[123][42][7];
-
-#pragma starpu register A
-#pragma starpu register B
-#pragma starpu register C
-
-  /* When StarPU-GCC is used, the call below is asynchronous;
-     otherwise, it is synchronous.  */
-  matmul ((float *) A, (float *) B, (float *) C, 123, 42, 7);
-
-#pragma starpu wait
-#pragma starpu shutdown
-
-  return EXIT_SUCCESS;
-}
-\endcode
+\include matmul_pragma.c
 
 The above program is a valid StarPU program when StarPU's GCC plug-in is
 used; it is also a valid sequential program when the plug-in is not
@@ -445,19 +358,7 @@ unable to parse the attribute syntax (In practice, Clang and
 several proprietary compilers implement attributes.), so you may want to
 wrap attributes in macros like this:
 
-\code{.c}
-/* Use the `task' attribute only when StarPU's GCC plug-in
-   is available.   */
-#ifdef STARPU_GCC_PLUGIN
-# define __task  __attribute__ ((task))
-#else
-# define __task
-#endif
-
-static void matmul (const float *A, const float *B, float *C,
-                    unsigned nx, unsigned ny, unsigned nz) __task;
-\endcode
-
+\include matmul_pragma2.c
 
 */
 

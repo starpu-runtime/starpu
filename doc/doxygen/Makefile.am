@@ -43,6 +43,13 @@ chapters =	\
 	chapters/scaling-vector-example.doxy \
 	chapters/code/hello_pragma2.c \
 	chapters/code/hello_pragma.c \
+	chapters/code/matmul_pragma.c \
+	chapters/code/matmul_pragma2.c \
+	chapters/code/cholesky_pragma.c \
+	chapters/code/forkmode.c \
+	chapters/code/multiformat.c \
+	chapters/code/complex.c \
+	chapters/code/simgrid.c \
 	chapters/code/vector_scal_c.c \
 	chapters/code/vector_scal_cpu.c \
 	chapters/code/vector_scal_cuda.cu \
