@@ -9,7 +9,7 @@
 /*! \defgroup API_Initialization_and_Termination Initialization and Termination
 
 \struct starpu_driver
-\brief structure for a driver
+structure for a driver
 \ingroup API_Initialization_and_Termination
 \var starpu_driver::type
 The type of the driver. Only STARPU_CPU_DRIVER,
@@ -18,14 +18,11 @@ STARPU_CUDA_DRIVER and STARPU_OPENCL_DRIVER are currently supported.
 The identifier of the driver.
 
 \struct starpu_vector_interface
-\brief vector interface for contiguous (non-strided) buffers
+vector interface for contiguous (non-strided) buffers
 \ingroup API_Initialization_and_Termination
-
 
 \struct starpu_conf
 \ingroup API_Initialization_and_Termination
-\brief structure for configuring StarPU.
-
 This structure is passed to the starpu_init() function in order to
 configure StarPU. It has to be initialized with starpu_conf_init().
 When the default value is used, StarPU automatically selects the

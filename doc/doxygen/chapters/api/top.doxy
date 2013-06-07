@@ -10,7 +10,7 @@
 
 \enum starpu_top_data_type
 \ingroup API_StarPU-Top_Interface
-\brief StarPU-Top Data type
+StarPU-Top Data type
 \var starpu_top_data_type::STARPU_TOP_DATA_BOOLEAN
 \ingroup API_StarPU-Top_Interface
 todo
@@ -23,7 +23,7 @@ todo
 
 \enum starpu_top_param_type
 \ingroup API_StarPU-Top_Interface
-\brief StarPU-Top Parameter type
+StarPU-Top Parameter type
 \var starpu_top_param_type::STARPU_TOP_PARAM_BOOLEAN
 \ingroup API_StarPU-Top_Interface
 todo
@@ -39,7 +39,7 @@ todo
 
 \enum starpu_top_message_type
 \ingroup API_StarPU-Top_Interface
-\brief StarPU-Top Message type
+StarPU-Top Message type
 \var starpu_top_message_type::TOP_TYPE_GO
 \ingroup API_StarPU-Top_Interface
 todo
@@ -63,7 +63,7 @@ todo
 todo
 
 \struct starpu_top_data
-\brief todo
+todo
 \ingroup API_StarPU-Top_Interface
 \var starpu_top_data::id
 todo
@@ -85,7 +85,7 @@ todo
 todo
 
 \struct starpu_top_param
-\brief todo
+todo
 \ingroup API_StarPU-Top_Interface
 \var starpu_top_param::id
 todo

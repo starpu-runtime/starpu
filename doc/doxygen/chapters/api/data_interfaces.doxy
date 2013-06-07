@@ -9,7 +9,7 @@
 /*! \defgroup API_Data_Interfaces Data Interfaces
 
 \struct starpu_data_interface_ops
-\brief Per-interface data transfer methods.
+Per-interface data transfer methods.
 \ingroup API_Data_Interfaces
 \var starpu_data_interface_ops::register_data_handle
 Register an existing interface into a data handle.
@@ -48,9 +48,7 @@ Unpack the data handle from the contiguous buffer at the address ptr
 of size count
 
 \struct starpu_data_copy_methods
-\brief Defines the per-interface methods.
-
-If the any_to_any method is
+Defines the per-interface methods. If the any_to_any method is
 provided, it will be used by default if no more specific method is
 provided. It can still be useful to provide more specific method in
 case of e.g. available particular CUDA or OpenCL support.
@@ -292,7 +290,7 @@ after calling the data unpacking operation.
 \ingroup API_Data_Interfaces
 
 \struct starpu_variable_interface
-\brief Variable interface for a single data (not a vector, a matrix, a list, ...)
+Variable interface for a single data (not a vector, a matrix, a list, ...)
 \ingroup API_Data_Interfaces
 \var starpu_variable_interface::id
 Identifier of the interface
@@ -336,7 +334,7 @@ be used with the device handle.
 \ingroup API_Data_Interfaces
 
 \struct starpu_vector_interface
-\brief Vector interface
+Vector interface
 \ingroup API_Data_Interfaces
 \var starpu_vector_interface::id
 Identifier of the interface
@@ -394,7 +392,7 @@ Return the size of each element of the array designated by
 \ingroup API_Data_Interfaces
 
 \struct starpu_matrix_interface
-\brief Matrix interface for dense matrices
+Matrix interface for dense matrices
 \ingroup API_Data_Interfaces
 \var starpu_matrix_interface::id
 Identifier of the interface
@@ -479,7 +477,7 @@ designated by \p interface.
 \ingroup API_Data_Interfaces
 
 \struct starpu_block_interface
-\brief Block interface for 3D dense blocks
+Block interface for 3D dense blocks
 \ingroup API_Data_Interfaces
 \struct starpu_block_interface::id
 identifier of the interface
@@ -586,7 +584,7 @@ Return the size of the elements of the block designated by
 \ingroup API_Data_Interfaces
 
 \struct starpu_bcsr_interface
-\brief BCSR interface for sparse matrices (blocked compressed sparse
+BCSR interface for sparse matrices (blocked compressed sparse
 row representation)
 \ingroup API_Data_Interfaces
 \var starpu_bcsr_interface::id
@@ -700,7 +698,7 @@ matrix designated by \p interface, to be used with the device handles.
 \ingroup API_Data_Interfaces
 
 \struct starpu_csr_interface
-\brief CSR interface for sparse matrices (compressed sparse row representation)
+CSR interface for sparse matrices (compressed sparse row representation)
 \ingroup API_Data_Interfaces
 \var starpu_csr_interface::id
 Identifier of the interface
@@ -816,7 +814,7 @@ designated by \p interface.
 \ingroup API_Data_Interfaces
 
 \struct starpu_coo_interface
-\brief COO Matrices
+COO Matrices
 \ingroup API_Data_Interfaces
 \var starpu_coo_interface::id
 identifier of the interface

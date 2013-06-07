@@ -10,7 +10,7 @@
 
 \struct starpu_profiling_task_info
 \ingroup API_Profiling
-\brief This structure contains information about the execution of a
+This structure contains information about the execution of a
 task. It is accessible from the field starpu_task::profiling_info if
 profiling was enabled.
 \var starpu_profiling_task_info::submit_time
@@ -65,7 +65,7 @@ Time when the worker finished releasing data.
         Power consumed by the task, only available in the MoviSim
 
 \struct starpu_profiling_worker_info
-\brief This structure contains the profiling information associated to
+This structure contains the profiling information associated to
 a worker. The timing is provided since the previous call to
 starpu_profiling_worker_get_info()
 \ingroup API_Profiling
@@ -87,7 +87,7 @@ starpu_profiling_worker_get_info()
         Power consumed by the worker, only available in the MoviSim
 
 \struct starpu_profiling_bus_info
-\brief todo
+todo
 \ingroup API_Profiling
 \var starpu_profiling_bus_info::start_time
         Time of bus profiling startup.

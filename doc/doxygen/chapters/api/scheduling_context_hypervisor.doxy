@@ -10,7 +10,7 @@
 
 \struct sc_hypervisor_policy
 \ingroup API_Scheduling_Context_Hypervisor
-\brief This structure contains all the methods that implement a hypervisor resizing policy.
+This structure contains all the methods that implement a hypervisor resizing policy.
 \var sc_hypervisor_policy::name
         Indicates the name of the policy, if there is not a custom policy, the policy corresponding to this name will be used by the hypervisor
 \var sc_hypervisor_policy::custom
@@ -28,7 +28,7 @@
 
 \struct sc_hypervisor_policy_config
 \ingroup API_Scheduling_Context_Hypervisor
-\brief This structure contains all configuration information of a
+This structure contains all configuration information of a
 context. It contains configuration information for each context, which
 can be used to construct new resize strategies.
 \var sc_hypervisor_policy_config::min_nworkers
@@ -48,7 +48,7 @@ can be used to construct new resize strategies.
 
 \struct sc_hypervisor_wrapper
 \ingroup API_Scheduling_Context_Hypervisor
-\brief This structure is a wrapper of the contexts available in StarPU
+This structure is a wrapper of the contexts available in StarPU
 and contains all information about a context obtained by incrementing
 the performance counters.
 \var sc_hypervisor_wrapper::sched_ctx
@@ -76,7 +76,7 @@ the performance counters.
 
 \struct sc_hypervisor_resize_ack
 \ingroup API_Scheduling_Context_Hypervisor
-\brief This structures checks if the workers moved to another context
+This structures checks if the workers moved to another context
 are actually taken into account in that context.
 \var sc_hypervisor_resize_ack::receiver_sched_ctx
         The context receiving the new workers
@@ -89,7 +89,7 @@ are actually taken into account in that context.
 	into account in the new context if 0 not yet
 
 \struct sc_hypervisor_policy_task_pool
-\brief task wrapper linked list
+task wrapper linked list
 \ingroup API_Scheduling_Context_Hypervisor
 \var sc_hypervisor_policy_task_pool::cl
 Which codelet has been executed

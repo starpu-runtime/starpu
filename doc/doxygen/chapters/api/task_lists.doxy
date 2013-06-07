@@ -9,7 +9,7 @@
 /*! \defgroup API_Task_Lists Task Lists
 
 \struct starpu_task_list
-\brief Stores a double-chained list of tasks
+Stores a double-chained list of tasks
 \ingroup API_Task_Lists
 \var starpu_task_list::head
 head of the list

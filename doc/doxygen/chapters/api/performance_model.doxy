@@ -10,7 +10,7 @@
 
 \enum starpu_perfmodel_archtype
 \ingroup API_Performance_Model
-\brief Enumerates the various types of architectures.
+Enumerates the various types of architectures.
 
 it is possible that we have multiple versions of the same kind of
 workers, for instance multiple GPUs or even different CPUs within
@@ -49,7 +49,7 @@ SCC workers
 
 \enum starpu_perfmodel_type
 \ingroup API_Performance_Model
-\brief TODO
+TODO
 \var starpu_perfmodel_type::STARPU_PER_ARCH
 \ingroup API_Performance_Model
 Application-provided per-arch cost model function
@@ -67,7 +67,7 @@ Automatic linear regression-based cost model  (alpha * size ^ beta)
 Automatic non-linear regression-based cost model (a * size ^ b + c)
 
 \struct starpu_perfmodel
-\brief Contains all information about a performance model. At least the
+Contains all information about a performance model. At least the
 type and symbol fields have to be filled when defining a performance
 model for a codelet. For compatibility, make sure to initialize the
 whole structure to zero, either by using explicit memset, or by
@@ -119,7 +119,7 @@ Lock to protect concurrency between loading from disk (W), updating
 the values (W), and making a performance estimation (R).
 
 \struct starpu_perfmodel_regression_model
-\brief ...
+...
 \ingroup API_Performance_Model
 \var starpu_perfmodel_regression_model::sumlny
 sum of ln(measured)
@@ -151,7 +151,7 @@ whether the non-linear regression model is valid (i.e. enough measures)
 number of sample values for non-linear regression
 
 \struct starpu_perfmodel_per_arch
-\brief contains information about the performance model of a given
+contains information about the performance model of a given
 arch.
 \ingroup API_Performance_Model
 \var starpu_perfmodel_per_arch::cost_model
@@ -180,7 +180,7 @@ Used by ::STARPU_HISTORY_BASED and
 regression.
 
 \struct starpu_perfmodel_history_list
-\brief todo
+todo
 \ingroup API_Performance_Model
 \var starpu_perfmodel_history_list::next
 todo
@@ -188,7 +188,7 @@ todo
 todo
 
 \struct starpu_perfmodel_history_entry
-\brief todo
+todo
 \ingroup API_Performance_Model
 \var starpu_perfmodel_history_entry::mean
 mean_n = 1/n sum

@@ -10,11 +10,11 @@
 
 \def STARPU_MALLOC_PINNED
 \ingroup API_Standard_Memory_Library
-\brief Value passed to the function starpu_malloc_flags() to indicate the memory allocation should be pinned. 
+Value passed to the function starpu_malloc_flags() to indicate the memory allocation should be pinned.
 
 \def STARPU_MALLOC_COUNT
 \ingroup API_Standard_Memory_Library
-\brief Value passed to the function starpu_malloc_flags() to indicate
+Value passed to the function starpu_malloc_flags() to indicate
 the memory allocation should be in the limit defined by the
 environment variables <c>STARPU_LIMIT_CUDA_devid_MEM</c>,
 <c>STARPU_LIMIT_CUDA_MEM</c>, <c>STARPU_LIMIT_OPENCL_devid_MEM</c>,
@@ -22,23 +22,23 @@ environment variables <c>STARPU_LIMIT_CUDA_devid_MEM</c>,
 Section \ref How_to_limit_memory_per_node).
 If no memory is available, it tries to reclaim memory from StarPU.
 Memory allocated this way needs to be freed by calling the
-starpu_free_flags() function with the same flag. 
+starpu_free_flags() function with the same flag.
 
 \fn int starpu_malloc_flags(void **A, size_t dim, int flags)
 \ingroup API_Standard_Memory_Library
-\brief Performs a memory allocation based on the constraints defined
+Performs a memory allocation based on the constraints defined
 by the given flag.
 
 \fn void starpu_malloc_set_align(size_t align)
 \ingroup API_Standard_Memory_Library
-\brief This function sets an alignment constraints for starpu_malloc()
+This function sets an alignment constraints for starpu_malloc()
 allocations. align must be a power of two. This is for instance called
 automatically by the OpenCL driver to specify its own alignment
 constraints.
 
 \fn int starpu_malloc(void **A, size_t dim)
 \ingroup API_Standard_Memory_Library
-\brief This function allocates data of the given size in main memory.
+This function allocates data of the given size in main memory.
 It will also try to pin it in CUDA or OpenCL, so that data transfers
 from this buffer can be asynchronous, and thus permit data transfer
 and computation overlapping. The allocated buffer must be freed thanks
@@ -46,20 +46,19 @@ to the starpu_free() function.
 
 \fn int starpu_free(void *A)
 \ingroup API_Standard_Memory_Library
-\brief This function frees memory which has previously been allocated
+This function frees memory which has previously been allocated
 with starpu_malloc().
 
 \fn int starpu_free_flags(void *A, size_t dim, int flags)
 \ingroup API_Standard_Memory_Library
-\brief This function frees memory by specifying its size. The given
+This function frees memory by specifying its size. The given
 flags should be consistent with the ones given to starpu_malloc_flags()
 when allocating the memory.
 
 \fn ssize_t starpu_memory_get_available(unsigned node)
 \ingroup API_Standard_Memory_Library
-\brief If a memory limit is defined on the given node (see Section \ref
+If a memory limit is defined on the given node (see Section \ref
 How_to_limit_memory_per_node), return the amount of available memory
 on the node. Otherwise return -1.
 
 */
-

@@ -10,10 +10,17 @@
 
 \def STARPU_USE_OPENCL
 \ingroup API_OpenCL_Extensions
-\brief This macro is defined when StarPU has been installed with
+This macro is defined when StarPU has been installed with
 OpenCL support. It should be used in your code to detect the
 availability of OpenCL as shown in Full source code for the 'Scaling a
 Vector' example.
+
+\struct starpu_opencl_program
+\ingroup API_OpenCL_Extensions
+Stores the OpenCL programs as compiled for the different OpenCL
+devices.
+\var starpu_opencl_program::programs
+Stores each program for each OpenCL device.
 
 @name Writing OpenCL kernels
 \ingroup API_OpenCL_Extensions
@@ -75,13 +82,6 @@ the next section. These are only helpers, Applications can also fill a
 starpu_opencl_program array by hand for more advanced use (e.g.
 different programs on the different OpenCL devices, for relocation
 purpose for instance).
-
-\struct starpu_opencl_program
-\ingroup API_OpenCL_Extensions
-\brief Stores the OpenCL programs as compiled for the different OpenCL
-devices.
-\var starpu_opencl_program::programs
-Stores each program for each OpenCL device.
 
 \fn int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options)
 \ingroup API_OpenCL_Extensions

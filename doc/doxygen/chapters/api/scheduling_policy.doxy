@@ -15,7 +15,7 @@ described below allows users to write their own scheduling policy.
 
 \struct starpu_sched_policy
 \ingroup API_Scheduling_Policy
-\brief This structure contains all the methods that implement a
+This structure contains all the methods that implement a
 scheduling policy. An application may specify which scheduling
 strategy in the field starpu_conf::sched_policy passed to the function
 starpu_init().

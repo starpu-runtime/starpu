@@ -9,7 +9,8 @@
 /*! \defgroup API_Data_Partition Data Partition
 
 \struct starpu_data_filter
-\brief The filter structure describes a data partitioning operation, to be given to the starpu_data_partition() function.
+The filter structure describes a data partitioning operation, to be
+given to the starpu_data_partition() function.
 \ingroup API_Data_Partition
 \var starpu_data_filter::filter_func
 This function fills the child_interface structure with interface

@@ -9,7 +9,7 @@
 /*! \defgroup API_FxT_Support FxT Support
 
 \struct starpu_fxt_codelet_event
-\brief todo
+todo
 \ingroup API_FxT_Support
 \var starpu_fxt_codelet_event::symbol[256
 name of the codelet
@@ -20,7 +20,7 @@ name of the codelet
 \var starpu_fxt_codelet_event::time
 
 \struct starpu_fxt_options
-\brief todo
+todo
 \ingroup API_FxT_Support
 \var starpu_fxt_options::per_task_colour
 \var starpu_fxt_options::no_counter

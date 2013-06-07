@@ -10,7 +10,7 @@
 
 \struct starpu_multiformat_data_interface_ops
 \ingroup API_Multiformat_Data_Interface
-\brief The different fields are:
+The different fields are:
 \var starpu_multiformat_data_interface_ops::cpu_elemsize
         the size of each element on CPUs
 \var starpu_multiformat_data_interface_ops::opencl_elemsize
@@ -27,7 +27,7 @@
         pointer to a codelet which converts from CUDA to CPU
 
 \struct starpu_multiformat_interface
-\brief todo
+todo
 \ingroup API_Multiformat_Data_Interface
 \var starpu_multiformat_interface::id
 \var starpu_multiformat_interface::cpu_ptr

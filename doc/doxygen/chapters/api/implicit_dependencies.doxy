@@ -20,7 +20,7 @@ also inserted in the case of data accesses from the application.
 
 \fn starpu_data_set_default_sequential_consistency_flag(unsigned flag)
 \ingroup API_Implicit_Data_Dependencies
-\brief Set the default sequential consistency flag. If a non-zero
+Set the default sequential consistency flag. If a non-zero
 value is passed, a sequential data consistency will be enforced for
 all handles registered after this function call, otherwise it is
 disabled. By default, StarPU enables sequential data consistency. It
@@ -30,11 +30,11 @@ starpu_data_set_sequential_consistency_flag().
 
 \fn unsigned starpu_data_get_default_sequential_consistency_flag(void)
 \ingroup API_Implicit_Data_Dependencies
-\brief Return the default sequential consistency flag
+Return the default sequential consistency flag
 
 \fn void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, unsigned flag)
 \ingroup API_Implicit_Data_Dependencies
-\brief Set the data consistency mode associated to a data handle. The
+Set the data consistency mode associated to a data handle. The
 consistency mode set using this function has the priority over the
 default mode which can be set with
 starpu_data_set_default_sequential_consistency_flag().

@@ -12,7 +12,7 @@
 
 \enum starpu_codelet_type
 \ingroup API_Codelet_And_Tasks
-\brief Describes the type of parallel task. See \ref Parallel_Tasks for details.
+Describes the type of parallel task. See \ref Parallel_Tasks for details.
 \var starpu_codelet_type::STARPU_SEQ
 \ingroup API_Codelet_And_Tasks
 (default) for classical sequential tasks.
@@ -29,7 +29,7 @@ many threads should be started.
 
 \enum starpu_task_status
 \ingroup API_Codelet_And_Tasks
-\brief Task status
+Task status
 \var starpu_task_status::STARPU_TASK_INVALID
 \ingroup API_Codelet_And_Tasks
 The task has just been initialized.
@@ -117,7 +117,7 @@ MIC implementation of a codelet.
 SCC implementation of a codelet.
 
 \struct starpu_codelet
-\brief The codelet structure describes a kernel that is possibly
+The codelet structure describes a kernel that is possibly
 implemented on various targets. For compatibility, make sure to
 initialize the whole structure to zero, either by using explicit
 memset, or the function starpu_codelet_init(), or by letting the
@@ -257,8 +257,7 @@ possible, e.g. when using C++.
 
 \struct starpu_data_descr
 \ingroup API_Codelet_And_Tasks
-\brief This type is used to describe a data handle along with an
-access mode.
+This type is used to describe a data handle along with an access mode.
 \var starpu_data_descr::handle
 describes a data
 \var starpu_data_descr::mode
@@ -266,7 +265,7 @@ describes its access mode
 
 \struct starpu_task
 \ingroup API_Codelet_And_Tasks
-\brief The structure describes a task that can be offloaded on the
+The structure describes a task that can be offloaded on the
 various processing units managed by StarPU. It instantiates a codelet.
 It can either be allocated dynamically with the function
 starpu_task_create(), or declared statically. In the latter case, the
