@@ -940,7 +940,7 @@ int starpu_perfmodel_list(FILE *output)
         }
         else
 	{
-		_STARPU_DISP("Could not open the perfmodel directory <%s>: \n", path, strerror(errno));
+		_STARPU_DISP("Could not open the perfmodel directory <%s>: %s\n", path, strerror(errno));
         }
 	return 0;
 }
