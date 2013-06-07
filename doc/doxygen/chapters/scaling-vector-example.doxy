@@ -1,0 +1,34 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page FullSourceCodeVectorScal Full source code for the ’Scaling a Vector’ example
+
+\section MainApplication Main Application
+
+\include vector_scal_c.c
+
+\section CPUKernel CPU Kernel
+
+\include vector_scal_cpu.c
+
+\section CUDAKernel CUDA Kernel
+
+\include vector_scal_cuda.cu
+
+\section OpenCLKernel OpenCL Kernel
+
+\subsection InvokingtheKernel Invoking the Kernel
+
+\include vector_scal_opencl.c
+
+\subsection SourceoftheKernel Source of the Kernel
+
+\include vector_scal_opencl_codelet.cl
+
+*/
+
