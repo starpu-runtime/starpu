@@ -212,7 +212,7 @@ static void set_cpu_worker_leaf(struct _starpu_sched_node * root, struct _starpu
 		struct _starpu_sched_node * tmp = _find_deeper_sched_node_with_obj(root, obj);
 		if(tmp)
 		{
-			plug_recipe_between(tmp, worker, obj, sched_ctx_id, cpu_composed_sched_node);
+			plug_recipe_between(tmp, worker, NULL, sched_ctx_id, cpu_composed_sched_node);
 			return;
 		}
 	}
@@ -233,7 +233,7 @@ static void set_other_worker_leaf(struct _starpu_sched_node * root, struct _star
 	struct _starpu_sched_node * node = _find_deeper_sched_node_with_obj(root, obj);
 	if(node)
 	{
-		plug_recipe_between(node, worker, obj, sched_ctx_id, device_composed_sched_node);
+		plug_recipe_between(node, worker, NULL, sched_ctx_id, device_composed_sched_node);
 		return;
 	}
 	STARPU_ABORT();
@@ -268,7 +268,7 @@ struct _starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct
 			set_cpu_worker_leaf(tree->root, worker_node, sched_ctx_id, recipe);
 			break;
 		default:
-			set_other_worker_leaf(tree->root, worker_node, sched_ctx_id, recipe, (int)specs.hwloc_node_composed_sched_node);
+			set_other_worker_leaf(tree->root, worker_node, sched_ctx_id, recipe, NULL != specs.hwloc_node_composed_sched_node);
 			break;
 		}
 		_starpu_destroy_composed_sched_node_recipe(recipe);
