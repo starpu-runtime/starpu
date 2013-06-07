@@ -1,2 +1,2 @@
-@STARPU_BUILD_DIR@/socl/src/.libs/libsocl-1.0.so
+@STARPU_BUILD_DIR@/socl/src/.libs/libsocl-1.2.so
 
