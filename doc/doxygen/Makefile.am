@@ -41,13 +41,13 @@ chapters =	\
 	chapters/configure_options.doxy \
 	chapters/fdl-1.3.doxy \
 	chapters/scaling-vector-example.doxy \
-	chapters/hello_pragma2.c \
-	chapters/hello_pragma.c \
-	chapters/vector_scal_c.c \
-	chapters/vector_scal_cpu.c \
-	chapters/vector_scal_cuda.cu \
-	chapters/vector_scal_opencl.c \
-	chapters/vector_scal_opencl_codelet.cl \
+	chapters/code/hello_pragma2.c \
+	chapters/code/hello_pragma.c \
+	chapters/code/vector_scal_c.c \
+	chapters/code/vector_scal_cpu.c \
+	chapters/code/vector_scal_cuda.cu \
+	chapters/code/vector_scal_opencl.c \
+	chapters/code/vector_scal_opencl_codelet.cl \
 	chapters/api/codelet_and_tasks.doxy \
 	chapters/api/cuda_extensions.doxy \
 	chapters/api/data_interfaces.doxy \

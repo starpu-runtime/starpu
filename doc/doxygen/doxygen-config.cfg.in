@@ -24,7 +24,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/starpufft/starpufft.h \
 			 @top_srcdir@/sc_hypervisor/include
 
-EXAMPLE_PATH           = @top_srcdir@/doc/doxygen/chapters
+EXAMPLE_PATH           = @top_srcdir@/doc/doxygen/chapters/code
 
 INPUT_FILTER           = @top_builddir@/doc/doxygen/starpu_doxygen_filter.sh
 
