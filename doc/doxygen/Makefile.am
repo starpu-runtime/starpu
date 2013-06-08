@@ -192,5 +192,10 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	done; \
 	mv refman.pdf ../$(DOX_PDF)
 
+# Rule to update documentation on web server. Should only be used locally.
+PUBLISHHOST	?= sync
+update-web: $(DOX_PDF)
+	scp -pr starpu.pdf html $(PUBLISHHOST):/web/runtime/html/StarPU/doc
+
 showcheck:
 	-cat /dev/null
