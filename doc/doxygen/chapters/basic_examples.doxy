@@ -720,7 +720,7 @@ $ STARPU_NCPU=0 ./vector_scal
 \endverbatim
 
 or by disabling CUDA devices (which may permit to enable the use of OpenCL,
-see \ref Enabling_OpenCL) :
+see \ref EnablingOpenCL) :
 
 \verbatim
 $ STARPU_NCUDA=0 ./vector_scal

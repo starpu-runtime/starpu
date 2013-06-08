@@ -243,7 +243,7 @@ $ ./configure --with-fxt=$FXTDIR
 \endverbatim
 
 Or you can simply point the <c>PKG_CONFIG_PATH</c> to
-<c>$FXTDIR/lib/pkgconfig</c> and pass \ref with-fx to
+<c>$FXTDIR/lib/pkgconfig</c> and pass \ref with-fxt to
 <c>./configure</c>
 
 When FxT is enabled, a trace is generated when StarPU is terminated by calling

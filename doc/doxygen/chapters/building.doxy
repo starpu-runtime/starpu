@@ -86,8 +86,7 @@ $ ./autogen.sh
 \endverbatim
 
 You then need to configure StarPU. Details about options that are
-useful to give to <c>./configure</c> are given in @ref{Compilation
-configuration}.
+useful to give to <c>./configure</c> are given in \ref CompilationConfiguration.
 
 \verbatim
 $ ./configure

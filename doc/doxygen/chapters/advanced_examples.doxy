@@ -1206,7 +1206,7 @@ More advanced examples include:
 <dl>
 <dt><c>filters/</c></dt>
 <dd>
-    Examples using filters, as shown in \ref Partitioning_Data.
+    Examples using filters, as shown in \ref PartitioningData.
 </dd>
 <dt><c>lu/</c></dt>
 <dd>
