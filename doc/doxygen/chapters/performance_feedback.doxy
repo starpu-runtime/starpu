@@ -236,15 +236,15 @@ $ make install
 \endverbatim
 
 In order to have StarPU to generate traces, StarPU should be configured with
-the option \ref with-fxt :
+the option \ref with-fxt "--with-fxt" :
 
 \verbatim
 $ ./configure --with-fxt=$FXTDIR
 \endverbatim
 
 Or you can simply point the <c>PKG_CONFIG_PATH</c> to
-<c>$FXTDIR/lib/pkgconfig</c> and pass \ref with-fxt to
-<c>./configure</c>
+<c>$FXTDIR/lib/pkgconfig</c> and pass
+\ref with-fxt "--with-fxt" to <c>./configure</c>
 
 When FxT is enabled, a trace is generated when StarPU is terminated by calling
 starpu_shutdown()). The trace is a binary file whose name has the form
@@ -475,7 +475,7 @@ use this.
 \section MemoryFeedback Memory Feedback
 
 It is possible to enable memory statistics. To do so, you need to pass
-the option \ref enable-memory-stats when running configure. It is then
+the option \ref enable-memory-stats "--enable-memory-stats" when running configure. It is then
 possible to call the function starpu_display_memory_stats() to
 display statistics about the current data handles registered within StarPU.
 
@@ -547,8 +547,8 @@ Node #3
 \section DataStatistics Data Statistics
 
 Different data statistics can be displayed at the end of the execution
-of the application. To enable them, you need to pass the option \ref
-enable-stats when calling <c>configure</c>. When calling
+of the application. To enable them, you need to pass the option
+\ref enable-stats "--enable-stats" when calling <c>configure</c>. When calling
 starpu_shutdown() various statistics will be displayed,
 execution, MSI cache statistics, allocation cache statistics, and data
 transfer statistics. The display can be disabled by setting the

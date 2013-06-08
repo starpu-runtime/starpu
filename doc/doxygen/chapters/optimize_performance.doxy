@@ -452,8 +452,8 @@ times before the model is calibrated.
 
 \subsection Simulation Simulation
 
-Then, recompile StarPU, passing \ref enable-simgrid to <c>./configure</c>, and re-run the
-application:
+Then, recompile StarPU, passing \ref enable-simgrid "--enable-simgrid"
+to <c>./configure</c>, and re-run the application:
 
 \verbatim
 $ ./configure --enable-simgrid && make

@@ -140,14 +140,16 @@ AMD implementation of OpenCL is known to fail when copying
 data asynchronously. When using this implementation, it is
 therefore necessary to disable asynchronous data transfers.
 This can also be specified at compilation time by giving to
-the configure script the option \ref disable-asynchronous-copy. (default = 0)
+the configure script the option
+\ref disable-asynchronous-copy "--disable-asynchronous-copy". (default = 0)
 \var starpu_conf::disable_asynchronous_cuda_copy
 This flag should be set to 1 to disable
 asynchronous copies between CPUs and CUDA accelerators.
 This can also be specified with the environment variable
 \ref STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY.
 This can also be specified at compilation time by giving to
-the configure script the option \ref disable-asynchronous-cuda-copy. (default = 0)
+the configure script the option
+\ref disable-asynchronous-cuda-copy "--disable-asynchronous-cuda-copy". (default = 0)
 \var starpu_conf::disable_asynchronous_opencl_copy
 This flag should be set to 1 to disable
 asynchronous copies between CPUs and OpenCL accelerators.
@@ -158,8 +160,8 @@ when copying data asynchronously. When using this
 implementation, it is therefore necessary to disable
 asynchronous data transfers. This can also be specified at
 compilation time by giving to the configure script the
-option \ref disable-asynchronous-opencl-copy. (default
-= 0)
+option \ref disable-asynchronous-opencl-copy "--disable-asynchronous-opencl-copy".
+(default = 0)
 
 \var starpu_conf::disable_asynchronous_mic_copy
 indicate if asynchronous copies to MIC devices should be disabled

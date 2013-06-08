@@ -387,7 +387,7 @@ StarPU, and finally in the source directory of StarPU.
 \anchor STARPU_SILENT
 \addindex __env__STARPU_SILENT
 This variable allows to disable verbose mode at runtime when StarPU
-has been configured with the option \ref enable-verbose. It also
+has been configured with the option \ref enable-verbose "--enable-verbose". It also
 disables the display of StarPU information and warning messages.
 </dd>
 

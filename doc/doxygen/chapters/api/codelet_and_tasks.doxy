@@ -214,7 +214,8 @@ Is an array of ::starpu_data_access_mode. It describes the required
 access modes to the data neeeded by the codelet (e.g. ::STARPU_RW). The
 number of entries in this array must be specified in the field
 starpu_codelet::nbuffers, and should not exceed \ref STARPU_NMAXBUFS. If
-unsufficient, this value can be set with the configure option \ref enable-maxbuffers.
+unsufficient, this value can be set with the configure option
+\ref enable-maxbuffers "--enable-maxbuffers".
 
 \var starpu_codelet::dyn_modes
 Is an array of ::starpu_data_access_mode. It describes the required
@@ -288,7 +289,7 @@ Is an array of ::starpu_data_handle_t. It specifies the handles to the
 different pieces of data accessed by the task. The number of entries
 in this array must be specified in the field starpu_codelet::nbuffers,
 and should not exceed \ref STARPU_NMAXBUFS. If unsufficient, this value can
-be set with the configure option \ref enable-maxbuffers.
+be set with the configure option \ref enable-maxbuffers "--enable-maxbuffers".
 \var starpu_task::dyn_handles
 Is an array of ::starpu_data_handle_t. It specifies the handles to the
 different pieces of data accessed by the task. The number of entries

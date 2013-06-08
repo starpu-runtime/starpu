@@ -157,7 +157,8 @@ Search for CUDA under <c>prefix</c>, which should notably contain the file
 \addindex __configure__--with-cuda-include-dir
 Search for CUDA headers under <c>dir</c>, which should
 notably contain the file <c>cuda.h</c>. This defaults to
-<c>/include</c> appended to the value given to \ref with-cuda-dir.
+<c>/include</c> appended to the value given to
+\ref with-cuda-dir "--with-cuda-dir".
 </dd>
 
 <dt>--with-cuda-lib-dir=<c>dir</c></dt>
@@ -166,7 +167,8 @@ notably contain the file <c>cuda.h</c>. This defaults to
 \addindex __configure__--with-cuda-lib-dir
 Search for CUDA libraries under <c>dir</c>, which should notably contain
 the CUDA shared libraries---e.g., <c>libcuda.so</c>.  This defaults to
-<c>/lib</c> appended to the value given to \ref with-cuda-dir.
+<c>/lib</c> appended to the value given to
+\ref with-cuda-dir "--with-cuda-dir".
 </dd>
 
 <dt>--disable-cuda-memcpy-peer</dt>
@@ -206,7 +208,8 @@ on Mac OS).
 \addindex __configure__--with-opencl-include-dir
 Search for OpenCL headers under <c>dir</c>, which should notably contain
 <c>CL/cl.h</c> (or <c>OpenCL/cl.h</c> on Mac OS).  This defaults to
-<c>/include</c> appended to the value given to \ref with-opencl-dir.
+<c>/include</c> appended to the value given to
+\ref with-opencl-dir "--with-opencl-dir".
 </dd>
 
 <dt>--with-opencl-lib-dir=<c>dir</c></dt>
@@ -215,7 +218,8 @@ Search for OpenCL headers under <c>dir</c>, which should notably contain
 \addindex __configure__--with-opencl-lib-dir
 Search for an OpenCL library under <c>dir</c>, which should notably
 contain the OpenCL shared libraries---e.g. <c>libOpenCL.so</c>. This defaults to
-<c>/lib</c> appended to the value given to \ref with-opencl-dir.
+<c>/lib</c> appended to the value given to
+\ref with-opencl-dir "--with-opencl-dir".
 </dd>
 
 <dt>--enable-opencl-simulator</dt>

@@ -17,7 +17,7 @@ may need to install a specific <c>-dev</c> package of your distro, such
 as <c>gcc-4.6-plugin-dev</c> on Debian and derivatives.  In addition,
 the plug-in's test suite is only run when <a href="http://www.gnu.org/software/guile/">GNU Guile</a> is found at
 <c>configure</c>-time.  Building the GCC plug-in
-can be disabled by configuring with \ref disable-gcc-extensions.
+can be disabled by configuring with \ref disable-gcc-extensions "--disable-gcc-extensions".
 
 Those extensions include syntactic sugar for defining
 tasks and their implementations, invoking a task, and manipulating data

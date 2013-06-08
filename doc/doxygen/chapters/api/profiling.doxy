@@ -171,6 +171,6 @@ called automatically by starpu_shutdown().
 \ingroup API_Profiling
 Display statistics about the current data handles registered
 within StarPU. StarPU must have been configured with the configure
-option \ref enable-memory-stats (see \ref MemoryFeedback).
+option \ref enable-memory-stats "--enable-memory-stats" (see \ref MemoryFeedback).
 
 */
