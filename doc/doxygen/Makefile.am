@@ -104,17 +104,35 @@ chapters/version.sty: $(chapters)
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
-#chapters/version.html: $(chapters)
+chapters/version.html: $(chapters)
+	@-for f in $(chapters) ; do \
+                if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f 2>/dev/null ; fi \
+        done | sort -r | head -1 > timestamp
+	@if test -s timestamp ; then \
+		LC_ALL=C date --date=@`cat timestamp` +"%d %B %Y" > timestamp_updated 2>/dev/null;\
+		LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month 2>/dev/null;\
+	fi
+	@echo "This manual documents the usage of StarPU version $(VERSION)." > $(top_srcdir)/doc/doxygen/chapters/version.html
+	@if test -s timestamp_updated ; then \
+		echo "Its contents was last updated on "`cat timestamp_updated`"." >> $(top_srcdir)/doc/doxygen/chapters/version.html;\
+	else \
+		echo "Its contents was last updated on <em>unknown_date</em>." >> $(top_srcdir)/doc/doxygen/chapters/version.html;\
+	fi
+	@-for f in timestamp timestamp_updated timestamp_updated_month ; do \
+		if test -f $$f ; then $(RM) $$f ; fi ;\
+	done
 
 EXTRA_DIST	= 		\
 	$(chapters) 		\
 	chapters/version.sty	\
+	chapters/version.html	\
 	doxygen.cfg 		\
 	refman.tex
 
 dox_inputs = $(DOX_CONFIG) 				\
 	$(chapters) 					\
 	chapters/version.sty				\
+	chapters/version.html				\
 	$(top_srcdir)/include/starpu.h			\
 	$(top_srcdir)/include/starpu_data_filters.h	\
 	$(top_srcdir)/include/starpu_data_interfaces.h	\
@@ -149,6 +167,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 $(DOX_TAG): $(dox_inputs)
 	rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
 	$(DOXYGEN) $(DOX_CONFIG)
+	sed -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
 
 dist_pdf_DATA = $(DOX_PDF)
 

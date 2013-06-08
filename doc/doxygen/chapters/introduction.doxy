@@ -8,6 +8,12 @@
 
 /*! \mainpage Introduction
 
+\htmlonly
+<h1><a class="anchor" id="Foreword"></a>Foreword</h1>
+\endhtmlonly
+\htmlinclude version.html
+\htmlinclude foreword.html
+
 \section Motivation Motivation
 
 \internal
