@@ -198,6 +198,8 @@ http://hal.archives-ouvertes.fr/inria-00467677.
 
 The documentation chapters include
 
+<ol>
+<li> Part: Using StarPU
 <ul>
 <li> \ref BuildingAndInstallingStarPU
 <li> \ref BasicExamples
@@ -212,6 +214,21 @@ The documentation chapters include
 <li> \ref SchedulingContexts
 <li> \ref SchedulingContextHypervisor
 </ul>
+</li>
+<li> Part: Inside StarPU
+<ul>
+<li> \ref ExecutionConfigurationThroughEnvironmentVariables
+<li> \ref CompilationConfiguration
+<li> \ref ModuleDocumentation
+<li> \ref deprecated
+</ul>
+<li> Part: Appendix
+<ul>
+<li> \ref FullSourceCodeVectorScal
+<li> \ref GNUFreeDocumentationLicense
+</ul>
+</ol>
+
 
 Make sure to have had a look at those too!
 

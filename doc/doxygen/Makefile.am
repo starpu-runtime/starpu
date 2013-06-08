@@ -158,6 +158,7 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
 	sed -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
 	sed -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
+	sed -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
 	$(PDFLATEX) refman.tex; \
 	$(MAKEINDEX) refman.idx;\
 	$(PDFLATEX) refman.tex; \
