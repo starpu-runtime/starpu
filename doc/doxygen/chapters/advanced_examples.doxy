@@ -1124,8 +1124,8 @@ directory <c>examples/interface/</c>.
 
 \section SettingTheDataHandlesForATask Setting The Data Handles For A Task
 
-The number of data a task can manage is fixed by the
-<c>STARPU_NMAXBUFS</c> which has a default value which can be changed
+The number of data a task can manage is fixed by the environment variable
+\ref STARPU_NMAXBUFS which has a default value which can be changed
 through the configure option \ref enable-maxbuffers.
 
 However, it is possible to define tasks managing more data by using

@@ -47,6 +47,7 @@ the world size. Communications statistics must be enabled (see
 \ref STARPU_COMM_STATS).
 
 @name Communication
+\anchor MPIPtpCommunication
 \ingroup API_MPI_Support
 
 \fn int starpu_mpi_send (starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm)
@@ -158,6 +159,7 @@ function does nothing if the cache mechanism is disabled (see
 \ref STARPU_MPI_CACHE).
 
 @name MPI Insert Task
+\anchor MPIInsertTask
 \ingroup API_MPI_Support
 
 \fn int starpu_data_set_tag (starpu_data_handle_t handle, int tag)
@@ -242,6 +244,7 @@ the function. On reception, the \p callback function is called with
 the argument \p arg.
 
 @name Collective Operations
+\anchor MPICollectiveOperations
 \ingroup API_MPI_Support
 
 \fn void starpu_mpi_redux_data (MPI_Comm comm, starpu_data_handle_t data_handle)

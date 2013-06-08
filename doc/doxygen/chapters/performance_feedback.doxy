@@ -34,7 +34,7 @@ call starpu_profiling_status_set() with the parameter
 ::STARPU_PROFILING_ENABLE. It is possible to detect whether monitoring
 is already enabled or not by calling starpu_profiling_status_get().
 Enabling monitoring also reinitialize all previously collected
-feedback. The <c>STARPU_PROFILING</c> environment variable can also be
+feedback. The environment variable \ref STARPU_PROFILING can also be
 set to 1 to achieve the same effect.
 
 Likewise, performance monitoring is stopped by calling

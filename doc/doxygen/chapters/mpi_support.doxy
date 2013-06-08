@@ -165,8 +165,8 @@ will arrive just after, so as when the corresponding receive request
 will be submitted by the application, it'll copy this temporary handle
 into its one instead of submitting a new StarPU-MPI request.
 
-\ref API_MPI_Support gives the list of all the point to point
-communications defined in StarPU-MPI.
+\ref MPIPtpCommunication "Communication" gives the list of all the
+point to point communications defined in StarPU-MPI.
 
 \section ExchangingUserDefinedDataInterface Exchanging User Defined Data Interface
 
@@ -230,7 +230,7 @@ exchange the content of the handle. All MPI nodes then process the whole task
 graph, and StarPU automatically determines which node actually execute which
 task, and trigger the required MPI transfers.
 
-The list of functions is described in \ref API_MPI_Support.
+The list of functions is described in \ref MPIInsertTask "MPI Insert Task".
 
 Here an stencil example showing how to use starpu_mpi_insert_task(). One
 first needs to define a distribution function which specifies the
@@ -318,9 +318,9 @@ application can prune the task for loops according to the data distribution,
 so as to only submit tasks on nodes which have to care about them (either to
 execute them, or to send the required data).
 
-\section MPICollectiveOperations MPI Collective Operations
+\section MPICollective MPI Collective Operations
 
-The functions are described in \ref API_MPI_Support.
+The functions are described in \ref MPICollectiveOperations "MPI Collective Operations".
 
 \code{.c}
 if (rank == root)
