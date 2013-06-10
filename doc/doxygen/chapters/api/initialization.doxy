@@ -1,0 +1,244 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Initialization_and_Termination Initialization and Termination
+
+\struct starpu_driver
+structure for a driver
+\ingroup API_Initialization_and_Termination
+\var starpu_driver::type
+The type of the driver. Only ::STARPU_CPU_WORKER,
+::STARPU_CUDA_WORKER and ::STARPU_OPENCL_WORKER are currently supported.
+\var starpu_driver::id
+The identifier of the driver.
+
+\struct starpu_vector_interface
+vector interface for contiguous (non-strided) buffers
+\ingroup API_Initialization_and_Termination
+
+\struct starpu_conf
+\ingroup API_Initialization_and_Termination
+This structure is passed to the starpu_init() function in order to
+configure StarPU. It has to be initialized with starpu_conf_init().
+When the default value is used, StarPU automatically selects the
+number of processing units and takes the default scheduling policy.
+The environment variables overwrite the equivalent parameters.
+\var starpu_conf::magic
+\private
+Will be initialized by starpu_conf_init(). Should not be set by hand.
+\var starpu_conf::sched_policy_name
+This is the name of the scheduling policy. This can also be specified
+with the environment variable \ref STARPU_SCHED. (default = NULL).
+\var starpu_conf::sched_policy
+This is the definition of the scheduling policy. This field is ignored
+if starpu_conf::sched_policy_name is set. (default = NULL)
+\var starpu_conf::ncpus
+This is the number of CPU cores that StarPU can use. This can also be
+specified with the environment variable \ref STARPU_NCPU . (default = -1)
+\var starpu_conf::ncuda
+This is the number of CUDA devices that StarPU can use. This can also
+be specified with the environment variable \ref STARPU_NCUDA. (default =
+-1)
+\var starpu_conf::nopencl
+This is the number of OpenCL devices that StarPU can use. This can
+also be specified with the environment variable \ref STARPU_NOPENCL.
+(default = -1)
+\var starpu_conf::nmic
+This is the number of MIC devices that StarPU can use. (default = -1)
+\var starpu_conf::nscc
+This is the number of SCC devices that StarPU can use. (default = -1)
+
+\var starpu_conf::use_explicit_workers_bindid
+If this flag is set, the starpu_conf::workers_bindid array indicates
+where the different workers are bound, otherwise StarPU automatically
+selects where to bind the different workers. This can also be
+specified with the environment variable \ref STARPU_WORKERS_CPUID. (default = 0)
+\var starpu_conf::workers_bindid
+If the starpu_conf::use_explicit_workers_bindid flag is set, this
+array indicates where to bind the different workers. The i-th entry of
+the starpu_conf::workers_bindid indicates the logical identifier of
+the processor which should execute the i-th worker. Note that the
+logical ordering of the CPUs is either determined by the OS, or
+provided by the hwloc library in case it is available.
+\var starpu_conf::use_explicit_workers_cuda_gpuid
+If this flag is set, the CUDA workers will be attached to the CUDA
+devices specified in the starpu_conf::workers_cuda_gpuid array.
+Otherwise, StarPU affects the CUDA devices in a round-robin fashion.
+This can also be specified with the environment variable \ref
+STARPU_WORKERS_CUDAID. (default = 0)
+\var starpu_conf::workers_cuda_gpuid
+If the starpu_conf::use_explicit_workers_cuda_gpuid flag is set, this
+array contains the logical identifiers of the CUDA devices (as used by
+cudaGetDevice()).
+\var starpu_conf::use_explicit_workers_opencl_gpuid
+If this flag is set, the OpenCL workers will be attached to the OpenCL
+devices specified in the starpu_conf::workers_opencl_gpuid array.
+Otherwise, StarPU affects the OpenCL devices in a round-robin fashion.
+This can also be specified with the environment variable \ref
+STARPU_WORKERS_OPENCLID. (default = 0)
+\var starpu_conf::workers_opencl_gpuid
+If the starpu_conf::use_explicit_workers_opencl_gpuid flag is set,
+this array contains the logical identifiers of the OpenCL devices to
+be used.
+
+\var starpu_conf::use_explicit_workers_mic_deviceid
+If this flag is set, the MIC workers will be attached to the MIC
+devices specified in the array starpu_conf::workers_mic_deviceid.
+(default = 0)
+\var starpu_conf::workers_mic_deviceid
+If the flag starpu_conf::use_explicit_workers_mic_deviceid is set, the
+array contains the logical identifiers of the MIC devices to be used.
+\var starpu_conf::use_explicit_workers_scc_deviceid
+If this flag is set, the SCC workers will be attached to the SCC
+devices specified in the array starpu_conf::workers_scc_deviceid.
+(default = 0)
+\var starpu_conf::workers_scc_deviceid
+If the flag starpu_conf::use_explicit_workers_scc_deviceid is set, the
+array contains the logical identifiers of the SCC devices to be used.
+
+\var starpu_conf::bus_calibrate
+If this flag is set, StarPU will recalibrate the bus.  If this value
+is equal to <c>-1</c>, the default value is used.  This can also be
+specified with the environment variable \ref STARPU_BUS_CALIBRATE. (default
+= 0)
+\var starpu_conf::calibrate
+If this flag is set, StarPU will calibrate the performance models when
+executing tasks. If this value is equal to <c>-1</c>, the default
+value is used. If the value is equal to <c>1</c>, it will force
+continuing calibration. If the value is equal to <c>2</c>, the
+existing performance models will be overwritten. This can also be
+specified with the environment variable \ref STARPU_CALIBRATE. (default =
+0)
+\var starpu_conf::single_combined_worker
+By default, StarPU executes parallel tasks
+concurrently. Some parallel libraries (e.g. most OpenMP
+implementations) however do not support concurrent calls to
+parallel code. In such case, setting this flag makes StarPU
+only start one parallel task at a time (but other CPU and
+GPU tasks are not affected and can be run concurrently).
+The parallel task scheduler will however still however
+still try varying combined worker sizes to look for the
+most efficient ones. This can also be specified with the environment
+variable \ref STARPU_SINGLE_COMBINED_WORKER.
+(default = 0)
+
+\var starpu_conf::mic_sink_program_path
+Path to the kernel to execute on the MIC device, compiled for MIC
+architecture.
+
+\var starpu_conf::disable_asynchronous_copy
+This flag should be set to 1 to disable
+asynchronous copies between CPUs and all accelerators. This
+can also be specified with the environment variable \ref
+STARPU_DISABLE_ASYNCHRONOUS_COPY. The
+AMD implementation of OpenCL is known to fail when copying
+data asynchronously. When using this implementation, it is
+therefore necessary to disable asynchronous data transfers.
+This can also be specified at compilation time by giving to
+the configure script the option
+\ref disable-asynchronous-copy "--disable-asynchronous-copy". (default = 0)
+\var starpu_conf::disable_asynchronous_cuda_copy
+This flag should be set to 1 to disable
+asynchronous copies between CPUs and CUDA accelerators.
+This can also be specified with the environment variable
+\ref STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY.
+This can also be specified at compilation time by giving to
+the configure script the option
+\ref disable-asynchronous-cuda-copy "--disable-asynchronous-cuda-copy". (default = 0)
+\var starpu_conf::disable_asynchronous_opencl_copy
+This flag should be set to 1 to disable
+asynchronous copies between CPUs and OpenCL accelerators.
+This can also be specified with the environment
+variable \ref STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY. The AMD
+implementation of OpenCL is known to fail
+when copying data asynchronously. When using this
+implementation, it is therefore necessary to disable
+asynchronous data transfers. This can also be specified at
+compilation time by giving to the configure script the
+option \ref disable-asynchronous-opencl-copy "--disable-asynchronous-opencl-copy".
+(default = 0)
+
+\var starpu_conf::disable_asynchronous_mic_copy
+indicate if asynchronous copies to MIC devices should be disabled
+
+\var starpu_conf::cuda_opengl_interoperability
+Enable CUDA/OpenGL interoperation on these CUDA
+devices. This can be set to an array of CUDA device
+identifiers for which cudaGLSetGLDevice() should be called
+instead of cudaSetDevice(). Its size is specified by the
+starpu_conf::n_cuda_opengl_interoperability field below
+(default = NULL)
+\var starpu_conf::n_cuda_opengl_interoperability
+\var starpu_conf::not_launched_drivers
+Array of drivers that should not be launched by
+StarPU. The application will run in one of its own
+threads. (default = NULL)
+\var starpu_conf::n_not_launched_drivers
+The number of StarPU drivers that should not be
+launched by StarPU. (default = 0)
+\var starpu_conf::trace_buffer_size
+Specifies the buffer size used for FxT tracing.
+Starting from FxT version 0.2.12, the buffer will
+automatically be flushed when it fills in, but it may still
+be interesting to specify a bigger value to avoid any
+flushing (which would disturb the trace).
+
+\fn int starpu_init(struct starpu_conf *conf)
+\ingroup API_Initialization_and_Termination
+This is StarPU initialization method, which must be called prior to
+any other StarPU call. It is possible to specify StarPU’s
+configuration (e.g. scheduling policy, number of cores, ...) by
+passing a non-null argument. Default configuration is used if the
+passed argument is NULL. Upon successful completion, this function
+returns 0. Otherwise, -ENODEV indicates that no worker was available
+(so that StarPU was not initialized).
+
+\fn int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
+\ingroup API_Initialization_and_Termination
+Alternative initialization method with argc and argv. This is used by
+MIC, MPI, and SCC implementation. Do not call starpu_init() and
+starpu_initialize() in the same program.
+
+\fn int starpu_conf_init(struct starpu_conf *conf)
+\ingroup API_Initialization_and_Termination
+This function initializes the conf structure passed as argument with
+the default values. In case some configuration parameters are already
+specified through environment variables, starpu_conf_init() initializes
+the fields of the structure according to the environment variables.
+For instance if \ref STARPU_CALIBRATE is set, its value is put in the
+field starpu_conf::calibrate of the structure passed as argument. Upon successful
+completion, this function returns 0. Otherwise, -EINVAL indicates that
+the argument was NULL.
+
+\fn void starpu_shutdown(void)
+\ingroup API_Initialization_and_Termination
+This is StarPU termination method. It must be called at the end of the
+application: statistics and other post-mortem debugging information
+are not guaranteed to be available until this method has been called.
+
+\fn int starpu_asynchronous_copy_disabled(void)
+\ingroup API_Initialization_and_Termination
+Return 1 if asynchronous data transfers between CPU and accelerators
+are disabled.
+
+\fn int starpu_asynchronous_cuda_copy_disabled(void)
+\ingroup API_Initialization_and_Termination
+Return 1 if asynchronous data transfers between CPU and CUDA
+accelerators are disabled.
+
+\fn int starpu_asynchronous_opencl_copy_disabled(void)
+\ingroup API_Initialization_and_Termination
+Return 1 if asynchronous data transfers between CPU and OpenCL
+accelerators are disabled.
+
+\fn void starpu_topology_print(FILE *f)
+\ingroup API_Initialization_and_Termination
+Prints a description of the topology on f.
+
+*/
+

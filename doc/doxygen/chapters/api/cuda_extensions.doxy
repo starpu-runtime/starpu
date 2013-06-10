@@ -1,0 +1,80 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_CUDA_Extensions CUDA Extensions
+
+\def STARPU_USE_CUDA
+\ingroup API_CUDA_Extensions
+This macro is defined when StarPU has been installed with CUDA
+support. It should be used in your code to detect the availability of
+CUDA as shown in \ref FullSourceCodeVectorScal.
+
+\fn cudaStream_t starpu_cuda_get_local_stream(void)
+\ingroup API_CUDA_Extensions
+This function gets the current worker’s CUDA stream. StarPU
+provides a stream for every CUDA device controlled by StarPU. This
+function is only provided for convenience so that programmers can
+easily use asynchronous operations within codelets without having to
+create a stream by hand. Note that the application is not forced to
+use the stream provided by starpu_cuda_get_local_stream() and may also
+create its own streams. Synchronizing with cudaThreadSynchronize() is
+allowed, but will reduce the likelihood of having all transfers
+overlapped.
+
+\fn const struct cudaDeviceProp * starpu_cuda_get_device_properties(unsigned workerid)
+\ingroup API_CUDA_Extensions
+This function returns a pointer to device properties for worker
+\p workerid (assumed to be a CUDA worker).
+
+\fn void starpu_cuda_report_error(const char *func, const char *file, int line, cudaError_t status)
+\ingroup API_CUDA_Extensions
+Report a CUDA error.
+
+\def STARPU_CUDA_REPORT_ERROR (cudaError_t status)
+\ingroup API_CUDA_Extensions
+Calls starpu_cuda_report_error(), passing the current function, file and line position.
+
+\fn int starpu_cuda_copy_async_sync (void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node, size_t ssize, cudaStream_t stream, enum cudaMemcpyKind kind)
+\ingroup API_CUDA_Extensions
+Copy \p ssize bytes from the pointer \p src_ptr on \p src_node
+to the pointer \p dst_ptr on \p dst_node. The function first tries to
+copy the data asynchronous (unless stream is <c>NULL</c>). If the
+asynchronous copy fails or if stream is <c>NULL</c>, it copies the
+data synchronously. The function returns <c>-EAGAIN</c> if the
+asynchronous launch was successfull. It returns 0 if the synchronous
+copy was successful, or fails otherwise.
+
+\fn void starpu_cuda_set_device(unsigned devid)
+\ingroup API_CUDA_Extensions
+Calls cudaSetDevice(devid) or cudaGLSetGLDevice(devid),
+according to whether \p devid is among the field
+starpu_conf::cuda_opengl_interoperability.
+
+\fn void starpu_cublas_init(void)
+\ingroup API_CUDA_Extensions
+This function initializes CUBLAS on every CUDA device. The
+CUBLAS library must be initialized prior to any CUBLAS call. Calling
+starpu_cublas_init() will initialize CUBLAS on every CUDA device
+controlled by StarPU. This call blocks until CUBLAS has been properly
+initialized on every device.
+
+\fn void starpu_cublas_shutdown(void)
+\ingroup API_CUDA_Extensions
+This function synchronously deinitializes the CUBLAS library on
+every CUDA device.
+
+\fn void starpu_cublas_report_error(const char *func, const char *file, int line, cublasStatus status)
+\ingroup API_CUDA_Extensions
+Report a cublas error.
+
+\def STARPU_CUBLAS_REPORT_ERROR (cublasStatus status)
+\ingroup API_CUDA_Extensions
+Calls starpu_cublas_report_error(), passing the current
+function, file and line position.
+
+*/

@@ -1,0 +1,51 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Parallel_Tasks Parallel Tasks
+
+\fn int starpu_combined_worker_get_size(void)
+\ingroup API_Parallel_Tasks
+Return the size of the current combined worker, i.e. the total number
+of cpus running the same task in the case of ::STARPU_SPMD parallel
+tasks, or the total number of threads that the task is allowed to
+start in the case of ::STARPU_FORKJOIN parallel tasks.
+
+\fn int starpu_combined_worker_get_rank(void)
+\ingroup API_Parallel_Tasks
+Return the rank of the current thread within the combined worker. Can
+only be used in ::STARPU_FORKJOIN parallel tasks, to know which part
+of the task to work on.
+
+\fn unsigned starpu_combined_worker_get_count(void)
+\ingroup API_Parallel_Tasks
+Return the number of different combined workers.
+
+\fn int starpu_combined_worker_get_id(void)
+\ingroup API_Parallel_Tasks
+Return the identifier of the current combined worker.
+
+\fn int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
+\ingroup API_Parallel_Tasks
+Register a new combined worker and get its identifier
+
+\fn int starpu_combined_worker_get_description(int workerid, int *worker_size, int **combined_workerid)
+\ingroup API_Parallel_Tasks
+Get the description of a combined worker
+
+\fn int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+\ingroup API_Parallel_Tasks
+Variant of starpu_worker_can_execute_task() compatible with combined
+workers
+
+\fn void starpu_parallel_task_barrier_init(struct starpu_task*task, int workerid)
+\ingroup API_Parallel_Tasks
+Initialise the barrier for the parallel task, and dispatch the task
+between the different combined workers.
+
+*/
+

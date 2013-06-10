@@ -1,0 +1,289 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page BuildingAndInstallingStarPU Building and Installing StarPU
+
+\section InstallingABinaryPackage Installing a Binary Package
+
+One of the StarPU developers being a Debian Developer, the packages
+are well integrated and very uptodate. To see which packages are
+available, simply type:
+
+\verbatim
+$ apt-cache search starpu
+\endverbatim
+
+To install what you need, type:
+
+\verbatim
+$ sudo apt-get install libstarpu-1.0 libstarpu-dev
+\endverbatim
+
+\section InstallingFromSource Installing from Source
+
+StarPU can be built and installed by the standard means of the GNU
+autotools. The following chapter is intended to briefly remind how these tools
+can be used to install StarPU.
+
+\subsection OptionalDependencies Optional Dependencies
+
+The <a href="http://www.open-mpi.org/software/hwloc"><c>hwloc</c> topology
+discovery library</a> is not mandatory to use StarPU but strongly
+recommended.  It allows for topology aware scheduling, which improves
+performance.  <c>hwloc</c> is available in major free operating system
+distributions, and for most operating systems.
+
+If <c>hwloc</c> is not available on your system, the option
+\ref without-hwloc "--without-hwloc" should be explicitely given when calling the
+<c>configure</c> script. If <c>hwloc</c> is installed with a <c>pkg-config</c> file,
+no option is required, it will be detected automatically, otherwise
+\ref with-hwloc "--with-hwloc" should be used to specify the location of
+<c>hwloc</c>.
+
+\subsection GettingSources Getting Sources
+
+StarPU's sources can be obtained from the <a href="http://runtime.bordeaux.inria.fr/StarPU/files/">download page of
+the StarPU website</a>.
+
+All releases and the development tree of StarPU are freely available
+on INRIA's gforge under the LGPL license. Some releases are available
+under the BSD license.
+
+The latest release can be downloaded from the <a href="http://gforge.inria.fr/frs/?group_id=1570">INRIA's gforge</a> or
+directly from the <a href="http://runtime.bordeaux.inria.fr/StarPU/files/">StarPU download page</a>.
+
+The latest nightly snapshot can be downloaded from the <a href="http://starpu.gforge.inria.fr/testing/">StarPU gforge website</a>.
+
+\verbatim
+$ wget http://starpu.gforge.inria.fr/testing/starpu-nightly-latest.tar.gz
+\endverbatim
+
+And finally, current development version is also accessible via svn.
+It should be used only if you need the very latest changes (i.e. less
+than a day!). Note that the client side of the software Subversion can
+be obtained from http://subversion.tigris.org. If you
+are running on Windows, you will probably prefer to use <a href="http://tortoisesvn.tigris.org/">TortoiseSVN</a>.
+
+\verbatim
+$ svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk StarPU
+\endverbatim
+
+\subsection ConfiguringStarPU Configuring StarPU
+
+Running <c>autogen.sh</c> is not necessary when using the tarball
+releases of StarPU.  If you are using the source code from the svn
+repository, you first need to generate the configure scripts and the
+Makefiles. This requires the availability of <c>autoconf</c>,
+<c>automake</c> >= 2.60, and <c>makeinfo</c>.
+
+\verbatim
+$ ./autogen.sh
+\endverbatim
+
+You then need to configure StarPU. Details about options that are
+useful to give to <c>./configure</c> are given in \ref CompilationConfiguration.
+
+\verbatim
+$ ./configure
+\endverbatim
+
+If <c>configure</c> does not detect some software or produces errors, please
+make sure to post the content of <c>config.log</c> when reporting the issue.
+
+By default, the files produced during the compilation are placed in
+the source directory. As the compilation generates a lot of files, it
+is advised to to put them all in a separate directory. It is then
+easier to cleanup, and this allows to compile several configurations
+out of the same source tree. For that, simply enter the directory
+where you want the compilation to produce its files, and invoke the
+<c>configure</c> script located in the StarPU source directory.
+
+\verbatim
+$ mkdir build
+$ cd build
+$ ../configure
+\endverbatim
+
+\subsection BuildingStarPU Building StarPU
+
+\verbatim
+$ make
+\endverbatim
+
+Once everything is built, you may want to test the result. An
+extensive set of regression tests is provided with StarPU. Running the
+tests is done by calling <c>make check</c>. These tests are run every night
+and the result from the main profile is publicly <a href="http://starpu.gforge.inria.fr/testing/">available</a>.
+
+\verbatim
+$ make check
+\endverbatim
+
+\subsection InstallingStarPU Installing StarPU
+
+In order to install StarPU at the location that was specified during
+configuration:
+
+\verbatim
+$ make install
+\endverbatim
+
+Libtool interface versioning information are included in
+libraries names (libstarpu-1.0.so, libstarpumpi-1.0.so and
+libstarpufft-1.0.so).
+
+\section SettingUpYourOwnCode Setting up Your Own Code
+
+\subsection SettingFlagsForCompilingLinkingAndRunningApplications Setting Flags for Compiling, Linking and Running Applications
+
+StarPU provides a pkg-config executable to obtain relevant compiler
+and linker flags.
+Compiling and linking an application against StarPU may require to use
+specific flags or libraries (for instance <c>CUDA</c> or <c>libspe2</c>).
+To this end, it is possible to use the <c>pkg-config</c> tool.
+
+If StarPU was not installed at some standard location, the path of StarPU's
+library must be specified in the <c>PKG_CONFIG_PATH</c> environment variable so
+that <c>pkg-config</c> can find it. For example if StarPU was installed in
+<c>$prefix_dir</c>:
+
+\verbatim
+$ PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$prefix_dir/lib/pkgconfig
+\endverbatim
+
+The flags required to compile or link against StarPU are then
+accessible with the following commands:
+
+\verbatim
+$ pkg-config --cflags starpu-1.1  # options for the compiler
+$ pkg-config --libs starpu-1.1    # options for the linker
+\endverbatim
+
+Note that it is still possible to use the API provided in the version
+0.9 of StarPU by calling <c>pkg-config</c> with the <c>libstarpu</c> package.
+Similar packages are provided for <c>libstarpumpi</c> and <c>libstarpufft</c>.
+
+Make sure that <c>pkg-config --libs starpu-1.1</c> actually produces some output
+before going further: <c>PKG_CONFIG_PATH</c> has to point to the place where
+<c>starpu-1.1.pc</c> was installed during <c>make install</c>.
+
+Also pass the <c>--static</c> option if the application is to be
+linked statically.
+
+It is also necessary to set the variable <c>LD_LIBRARY_PATH</c> to
+locate dynamic libraries at runtime.
+
+\verbatim
+$ LD_LIBRARY_PATH=$prefix_dir/lib:$LD_LIBRARY_PATH
+\endverbatim
+
+When using a Makefile, the following lines can be added to set the
+options for the compiler and the linker:
+
+\verbatim
+CFLAGS          +=      $$(pkg-config --cflags starpu-1.1)
+LDFLAGS         +=      $$(pkg-config --libs starpu-1.1)
+\endverbatim
+
+\subsection RunningABasicStarPUApplication Running a Basic StarPU Application
+
+Basic examples using StarPU are built in the directory
+<c>examples/basic_examples/</c> (and installed in
+<c>$prefix_dir/lib/starpu/examples/</c>). You can for example run the example
+<c>vector_scal</c>.
+
+\verbatim
+$ ./examples/basic_examples/vector_scal
+BEFORE: First element was 1.000000
+AFTER: First element is 3.140000
+\endverbatim
+
+When StarPU is used for the first time, the directory
+<c>$STARPU_HOME/.starpu/</c> is created, performance models will be stored in
+that directory (\ref STARPU_HOME).
+
+Please note that buses are benchmarked when StarPU is launched for the
+first time. This may take a few minutes, or less if <c>hwloc</c> is
+installed. This step is done only once per user and per machine.
+
+\subsection KernelThreadsStartedByStarPU Kernel Threads Started by StarPU
+
+StarPU automatically binds one thread per CPU core. It does not use
+SMT/hyperthreading because kernels are usually already optimized for using a
+full core, and using hyperthreading would make kernel calibration rather random.
+
+Since driving GPUs is a CPU-consuming task, StarPU dedicates one core
+per GPU.
+
+While StarPU tasks are executing, the application is not supposed to do
+computations in the threads it starts itself, tasks should be used instead.
+
+TODO: add a StarPU function to bind an application thread (e.g. the main thread)
+to a dedicated core (and thus disable the corresponding StarPU CPU worker).
+
+\subsection EnablingOpenCL Enabling OpenCL
+
+When both CUDA and OpenCL drivers are enabled, StarPU will launch an
+OpenCL worker for NVIDIA GPUs only if CUDA is not already running on them.
+This design choice was necessary as OpenCL and CUDA can not run at the
+same time on the same NVIDIA GPU, as there is currently no interoperability
+between them.
+
+To enable OpenCL, you need either to disable CUDA when configuring StarPU:
+
+\verbatim
+$ ./configure --disable-cuda
+\endverbatim
+
+or when running applications:
+
+\verbatim
+$ STARPU_NCUDA=0 ./application
+\endverbatim
+
+OpenCL will automatically be started on any device not yet used by
+CUDA. So on a machine running 4 GPUS, it is therefore possible to
+enable CUDA on 2 devices, and OpenCL on the 2 other devices by doing
+so:
+
+\verbatim
+$ STARPU_NCUDA=2 ./application
+\endverbatim
+
+\section BenchmarkingStarPU Benchmarking StarPU
+
+Some interesting benchmarks are installed among examples in
+<c>$prefix_dir/lib/starpu/examples/</c>. Make sure to try various
+schedulers, for instance <c>STARPU_SCHED=dmda</c>.
+
+\subsection TaskSizeOverhead Task Size Overhead
+
+This benchmark gives a glimpse into how big a size should be for StarPU overhead
+to be low enough.  Run <c>tasks_size_overhead.sh</c>, it will generate a plot
+of the speedup of tasks of various sizes, depending on the number of CPUs being
+used.
+
+\subsection DataTransferLatency Data Transfer Latency
+
+<c>local_pingpong</c> performs a ping-pong between the first two CUDA nodes, and
+prints the measured latency.
+
+\subsection MatrixMatrixMultiplication Matrix-Matrix Multiplication
+
+<c>sgemm</c> and <c>dgemm</c> perform a blocked matrix-matrix
+multiplication using BLAS and cuBLAS. They output the obtained GFlops.
+
+\subsection CholeskyFactorization Cholesky Factorization
+
+<c>cholesky\*</c> perform a Cholesky factorization (single precision). They use different dependency primitives.
+
+\subsection LUFactorization LU Factorization
+
+<c>lu\*</c> perform an LU factorization. They use different dependency primitives.
+
+*/

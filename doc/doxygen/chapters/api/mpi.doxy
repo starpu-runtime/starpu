@@ -1,0 +1,276 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_MPI_Support MPI Support
+
+@name Initialisation
+\ingroup API_MPI_Support
+
+\fn int starpu_mpi_init (int *argc, char ***argv, int initialize_mpi)
+\ingroup API_MPI_Support
+Initializes the starpumpi library. \p initialize_mpi indicates if MPI
+should be initialized or not by StarPU. If the value is not 0, MPI
+will be initialized by calling <c>MPI_Init_Thread(argc, argv,
+MPI_THREAD_SERIALIZED, ...)</c>.
+
+\fn int starpu_mpi_initialize (void)
+\deprecated
+\ingroup API_MPI_Support
+This function has been made deprecated. One should use instead the
+function starpu_mpi_init(). This function does not call MPI_Init(), it
+should be called beforehand.
+
+\fn int starpu_mpi_initialize_extended (int *rank, int *world_size)
+\deprecated
+\ingroup API_MPI_Support
+This function has been made deprecated. One should use instead the
+function starpu_mpi_init(). MPI will be initialized by starpumpi by
+calling <c>MPI_Init_Thread(argc, argv, MPI_THREAD_SERIALIZED,
+...)</c>.
+
+\fn int starpu_mpi_shutdown (void)
+\ingroup API_MPI_Support
+Cleans the starpumpi library. This must be called between calling
+starpu_mpi functions and starpu_shutdown(). MPI_Finalize() will be
+called if StarPU-MPI has been initialized by starpu_mpi_init().
+
+\fn void starpu_mpi_comm_amounts_retrieve (size_t *comm_amounts)
+\ingroup API_MPI_Support
+Retrieve the current amount of communications from the current node in
+the array \p comm_amounts which must have a size greater or equal to
+the world size. Communications statistics must be enabled (see
+\ref STARPU_COMM_STATS).
+
+@name Communication
+\anchor MPIPtpCommunication
+\ingroup API_MPI_Support
+
+\fn int starpu_mpi_send (starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm)
+\ingroup API_MPI_Support
+Performs a standard-mode, blocking send of \p data_handle to the node
+\p dest using the message tag \p mpi_tag within the communicator \p
+comm.
+
+\fn int starpu_mpi_recv (starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, MPI_Status *status)
+\ingroup API_MPI_Support
+Performs a standard-mode, blocking receive in \p data_handle from the
+node \p source using the message tag \p mpi_tag within the
+communicator \p comm.
+
+\fn int starpu_mpi_isend (starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, MPI_Comm comm)
+\ingroup API_MPI_Support
+Posts a standard-mode, non blocking send of \p data_handle to the node
+\p dest using the message tag \p mpi_tag within the communicator \p
+comm. After the call, the pointer to the request \p req can be used to
+test or to wait for the completion of the communication.
+
+\fn int starpu_mpi_irecv (starpu_data_handle_t data_handle, starpu_mpi_req *req, int source, int mpi_tag, MPI_Comm comm)
+\ingroup API_MPI_Support
+Posts a nonblocking receive in \p data_handle from the node \p source
+using the message tag \p mpi_tag within the communicator \p comm.
+After the call, the pointer to the request \p req can be used to test
+or to wait for the completion of the communication.
+
+\fn int starpu_mpi_isend_detached (starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
+\ingroup API_MPI_Support
+Posts a standard-mode, non blocking send of \p data_handle to the node
+\p dest using the message tag \p mpi_tag within the communicator \p
+comm. On completion, the \p callback function is called with the
+argument \p arg.
+Similarly to the pthread detached functionality, when a detached
+communication completes, its resources are automatically released back
+to the system, there is no need to test or to wait for the completion
+of the request.
+
+\fn int starpu_mpi_irecv_detached (starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
+\ingroup API_MPI_Support
+Posts a nonblocking receive in \p data_handle from the node \p source
+using the message tag \p mpi_tag within the communicator \p comm. On
+completion, the \p callback function is called with the argument \p
+arg.
+Similarly to the pthread detached functionality, when a detached
+communication completes, its resources are automatically released back
+to the system, there is no need to test or to wait for the completion
+of the request.
+
+\fn int starpu_mpi_wait (starpu_mpi_req *req, MPI_Status *status)
+\ingroup API_MPI_Support
+Returns when the operation identified by request \p req is complete.
+
+\fn int starpu_mpi_test (starpu_mpi_req *req, int *flag, MPI_Status *status)
+\ingroup API_MPI_Support
+If the operation identified by \p req is complete, set \p flag to 1.
+The \p status object is set to contain information on the completed
+operation.
+
+\fn int starpu_mpi_barrier (MPI_Comm comm)
+\ingroup API_MPI_Support
+Blocks the caller until all group members of the communicator \p comm
+have called it.
+
+\fn int starpu_mpi_isend_detached_unlock_tag (starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
+\ingroup API_MPI_Support
+Posts a standard-mode, non blocking send of \p data_handle to the node
+\p dest using the message tag \p mpi_tag within the communicator \p
+comm. On completion, \p tag is unlocked.
+
+\fn int starpu_mpi_irecv_detached_unlock_tag (starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, starpu_tag_t tag)
+\ingroup API_MPI_Support
+Posts a nonblocking receive in \p data_handle from the node \p source
+using the message tag \p mpi_tag within the communicator \p comm. On
+completion, \p tag is unlocked.
+
+\fn int starpu_mpi_isend_array_detached_unlock_tag (unsigned array_size, starpu_data_handle_t *data_handle, int *dest, int *mpi_tag, MPI_Comm *comm, starpu_tag_t tag)
+\ingroup API_MPI_Support
+Posts \p array_size standard-mode, non blocking send. Each post sends
+the n-th data of the array \p data_handle to the n-th node of the
+array \p dest using the n-th message tag of the array \p mpi_tag
+within the n-th communicator of the array \p comm. On completion of
+the all the requests, \p tag is unlocked.
+
+\fn int starpu_mpi_irecv_array_detached_unlock_tag (unsigned array_size, starpu_data_handle_t *data_handle, int *source, int *mpi_tag, MPI_Comm *comm, starpu_tag_t tag)
+\ingroup API_MPI_Support
+Posts \p array_size nonblocking receive. Each post receives in the n-th
+data of the array \p data_handle from the n-th node of the array \p
+source using the n-th message tag of the array \p mpi_tag within the
+n-th communicator of the array \p comm. On completion of the all the
+requests, \p tag is unlocked.
+
+@name Communication Cache
+\ingroup API_MPI_Support
+
+\fn void starpu_mpi_cache_flush (MPI_Comm comm, starpu_data_handle_t data_handle)
+\ingroup API_MPI_Support
+Clear the send and receive communication cache for the data
+\p data_handle. The function has to be called synchronously by all the
+MPI nodes. The function does nothing if the cache mechanism is
+disabled (see \ref STARPU_MPI_CACHE).
+
+\fn void starpu_mpi_cache_flush_all_data (MPI_Comm comm)
+\ingroup API_MPI_Support
+Clear the send and receive communication cache for all data. The
+function has to be called synchronously by all the MPI nodes. The
+function does nothing if the cache mechanism is disabled (see
+\ref STARPU_MPI_CACHE).
+
+@name MPI Insert Task
+\anchor MPIInsertTask
+\ingroup API_MPI_Support
+
+\fn int starpu_data_set_tag (starpu_data_handle_t handle, int tag)
+\ingroup API_MPI_Support
+Tell StarPU-MPI which MPI tag to use when exchanging the data.
+
+\fn int starpu_data_get_tag (starpu_data_handle_t handle)
+\ingroup API_MPI_Support
+Returns the MPI tag to be used when exchanging the data.
+
+\fn int starpu_data_set_rank (starpu_data_handle_t handle, int rank)
+\ingroup API_MPI_Support
+Tell StarPU-MPI which MPI node "owns" a given data, that is, the node
+which will always keep an up-to-date value, and will by default
+execute tasks which write to it.
+
+\fn int starpu_data_get_rank (starpu_data_handle_t handle)
+\ingroup API_MPI_Support
+Returns the last value set by starpu_data_set_rank().
+
+\def STARPU_EXECUTE_ON_NODE
+\ingroup API_MPI_Support
+this macro is used when calling starpu_mpi_insert_task(), and must be
+followed by a integer value which specified the node on which to
+execute the codelet.
+
+\def STARPU_EXECUTE_ON_DATA
+\ingroup API_MPI_Support
+this macro is used when calling starpu_mpi_insert_task(), and must be
+followed by a data handle to specify that the node owning the given
+data will execute the codelet.
+
+\fn int starpu_mpi_insert_task (MPI_Comm comm, struct starpu_codelet *codelet, ...)
+\ingroup API_MPI_Support
+Create and submit a task corresponding to codelet with the following
+arguments. The argument list must be zero-terminated.
+
+The arguments following the codelets are the same types as for the
+function starpu_insert_task(). The extra argument
+::STARPU_EXECUTE_ON_NODE followed by an integer allows to specify the
+MPI node to execute the codelet. It is also possible to specify that
+the node owning a specific data will execute the codelet, by using
+::STARPU_EXECUTE_ON_DATA followed by a data handle.
+
+The internal algorithm is as follows:
+<ol>
+<li>
+        Find out which MPI node is going to execute the codelet.
+        <ul>
+            <li>If there is only one node owning data in ::STARPU_W mode, it will be selected;
+            <li>If there is several nodes owning data in ::STARPU_W node, the one selected will be the one having the least data in R mode so as to minimize the amount of data to be transfered;
+            <li>The argument ::STARPU_EXECUTE_ON_NODE followed by an integer can be used to specify the node;
+            <li>The argument ::STARPU_EXECUTE_ON_DATA followed by a data handle can be used to specify that the node owing the given data will execute the codelet.
+        </ul>
+</li>
+<li>
+        Send and receive data as requested. Nodes owning data which need to be read by the task are sending them to the MPI node which will execute it. The latter receives them.
+</li>
+<li>
+        Execute the codelet. This is done by the MPI node selected in the 1st step of the algorithm.
+</li>
+<li>
+        If several MPI nodes own data to be written to, send written data back to their owners.
+</li>
+</ol>
+
+The algorithm also includes a communication cache mechanism that
+allows not to send data twice to the same MPI node, unless the data
+has been modified. The cache can be disabled (see \ref STARPU_MPI_CACHE).
+
+\fn void starpu_mpi_get_data_on_node (MPI_Comm comm, starpu_data_handle_t data_handle, int node)
+\ingroup API_MPI_Support
+Transfer data \p data_handle to MPI node \p node, sending it from its
+owner if needed. At least the target node and the owner have to call
+the function.
+
+\fn void starpu_mpi_get_data_on_node_detached (MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
+\ingroup API_MPI_Support
+Transfer data \p data_handle to MPI node \p node, sending it from its
+owner if needed. At least the target node and the owner have to call
+the function. On reception, the \p callback function is called with
+the argument \p arg.
+
+@name Collective Operations
+\anchor MPICollectiveOperations
+\ingroup API_MPI_Support
+
+\fn void starpu_mpi_redux_data (MPI_Comm comm, starpu_data_handle_t data_handle)
+\ingroup API_MPI_Support
+Perform a reduction on the given data. All nodes send the data to its
+owner node which will perform a reduction.
+
+\fn int starpu_mpi_scatter_detached (starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm, void (*scallback)(void *), void *sarg, void (*rcallback)(void *), void *rarg)
+\ingroup API_MPI_Support
+Scatter data among processes of the communicator based on the
+ownership of the data. For each data of the array \p data_handles, the
+process \p root sends the data to the process owning this data. Processes
+receiving data must have valid data handles to receive them. On
+completion of the collective communication, the \p scallback function is
+called with the argument \p sarg on the process \p root, the \p
+rcallback function is called with the argument \p rarg on any other
+process.
+
+\fn int starpu_mpi_gather_detached (starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm, void (*scallback)(void *), void *sarg, void (*rcallback)(void *), void *rarg)
+\ingroup API_MPI_Support
+Gather data from the different processes of the communicator onto the
+process \p root. Each process owning data handle in the array
+\p data_handles will send them to the process \p root. The process \p
+root must have valid data handles to receive the data. On completion
+of the collective communication, the \p rcallback function is called
+with the argument \p rarg on the process root, the \p scallback
+function is called with the argument \p sarg on any other process.
+
+*/

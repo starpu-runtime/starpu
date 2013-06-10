@@ -1,0 +1,241 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+*/
+
+/*! \mainpage Introduction
+
+\htmlonly
+<h1><a class="anchor" id="Foreword"></a>Foreword</h1>
+\endhtmlonly
+\htmlinclude version.html
+\htmlinclude foreword.html
+
+\section Motivation Motivation
+
+\internal
+complex machines with heterogeneous cores/devices
+\endinternal
+
+The use of specialized hardware such as accelerators or coprocessors offers an
+interesting approach to overcome the physical limits encountered by processor
+architects. As a result, many machines are now equipped with one or several
+accelerators (e.g. a GPU), in addition to the usual processor(s). While a lot of
+efforts have been devoted to offload computation onto such accelerators, very
+little attention as been paid to portability concerns on the one hand, and to the
+possibility of having heterogeneous accelerators and processors to interact on the other hand.
+
+StarPU is a runtime system that offers support for heterogeneous multicore
+architectures, it not only offers a unified view of the computational resources
+(i.e. CPUs and accelerators at the same time), but it also takes care of
+efficiently mapping and executing tasks onto an heterogeneous machine while
+transparently handling low-level issues such as data transfers in a portable
+fashion.
+
+\internal
+this leads to a complicated distributed memory design
+which is not (easily) manageable by hand
+
+added value/benefits of StarPU
+   - portability
+   - scheduling, perf. portability
+\endinternal
+
+\section StarPUInANutshell StarPU in a Nutshell
+
+StarPU is a software tool aiming to allow programmers to exploit the
+computing power of the available CPUs and GPUs, while relieving them
+from the need to specially adapt their programs to the target machine
+and processing units.
+
+At the core of StarPU is its run-time support library, which is
+responsible for scheduling application-provided tasks on heterogeneous
+CPU/GPU machines.  In addition, StarPU comes with programming language
+support, in the form of extensions to languages of the C family
+(\ref cExtensions), as well as an OpenCL front-end (\ref SOCLOpenclExtensions).
+
+StarPU's run-time and programming language extensions support a
+task-based programming model. Applications submit computational
+tasks, with CPU and/or GPU implementations, and StarPU schedules these
+tasks and associated data transfers on available CPUs and GPUs.  The
+data that a task manipulates are automatically transferred among
+accelerators and the main memory, so that programmers are freed from the
+scheduling issues and technical details associated with these transfers.
+
+StarPU takes particular care of scheduling tasks efficiently, using
+well-known algorithms from the literature (\ref TaskSchedulingPolicy).
+In addition, it allows scheduling experts, such as compiler or
+computational library developers, to implement custom scheduling
+policies in a portable fashion (\ref DefiningANewSchedulingPolicy).
+
+The remainder of this section describes the main concepts used in StarPU.
+
+\internal
+explain the notion of codelet and task (i.e. g(A, B)
+\endinternal
+
+\subsection CodeletAndTasks Codelet and Tasks
+
+One of the StarPU primary data structures is the \b codelet. A codelet describes a
+computational kernel that can possibly be implemented on multiple architectures
+such as a CPU, a CUDA device or an OpenCL device.
+
+\internal
+TODO insert illustration f: f_spu, f_cpu, ...
+\endinternal
+
+Another important data structure is the \b task. Executing a StarPU task
+consists in applying a codelet on a data set, on one of the architectures on
+which the codelet is implemented. A task thus describes the codelet that it
+uses, but also which data are accessed, and how they are
+accessed during the computation (read and/or write).
+StarPU tasks are asynchronous: submitting a task to StarPU is a non-blocking
+operation. The task structure can also specify a \b callback function that is
+called once StarPU has properly executed the task. It also contains optional
+fields that the application may use to give hints to the scheduler (such as
+priority levels).
+
+By default, task dependencies are inferred from data dependency (sequential
+coherence) by StarPU. The application can however disable sequential coherency
+for some data, and dependencies be expressed by hand.
+A task may be identified by a unique 64-bit number chosen by the application
+which we refer as a \b tag.
+Task dependencies can be enforced by hand either by the means of callback functions, by
+submitting other tasks, or by expressing dependencies
+between tags (which can thus correspond to tasks that have not been submitted
+yet).
+
+\internal
+TODO insert illustration f(Ar, Brw, Cr) + ..
+\endinternal
+
+\internal
+DSM
+\endinternal
+
+\subsection StarPUDataManagementLibrary StarPU Data Management Library
+
+Because StarPU schedules tasks at runtime, data transfers have to be
+done automatically and ``just-in-time'' between processing units,
+relieving the application programmer from explicit data transfers.
+Moreover, to avoid unnecessary transfers, StarPU keeps data
+where it was last needed, even if was modified there, and it
+allows multiple copies of the same data to reside at the same time on
+several processing units as long as it is not modified.
+
+\section ApplicationTaskification Application Taskification
+
+TODO
+
+\internal
+TODO: section describing what taskifying an application means: before
+porting to StarPU, turn the program into:
+"pure" functions, which only access data from their passed parameters
+a main function which just calls these pure functions
+
+and then it's trivial to use StarPU or any other kind of task-based library:
+simply replace calling the function with submitting a task.
+\endinternal
+
+\section Glossary Glossary
+
+A \b codelet records pointers to various implementations of the same
+theoretical function.
+
+A <b>memory node</b> can be either the main RAM or GPU-embedded memory.
+
+A \b bus is a link between memory nodes.
+
+A <b>data handle</b> keeps track of replicates of the same data (\b registered by the
+application) over various memory nodes. The data management library manages
+keeping them coherent.
+
+The \b home memory node of a data handle is the memory node from which the data
+was registered (usually the main memory node).
+
+A \b task represents a scheduled execution of a codelet on some data handles.
+
+A \b tag is a rendez-vous point. Tasks typically have their own tag, and can
+depend on other tags. The value is chosen by the application.
+
+A \b worker execute tasks. There is typically one per CPU computation core and
+one per accelerator (for which a whole CPU core is dedicated).
+
+A \b driver drives a given kind of workers. There are currently CPU, CUDA,
+and OpenCL drivers. They usually start several workers to actually drive
+them.
+
+A <b>performance model</b> is a (dynamic or static) model of the performance of a
+given codelet. Codelets can have execution time performance model as well as
+power consumption performance models.
+
+A data \b interface describes the layout of the data: for a vector, a pointer
+for the start, the number of elements and the size of elements ; for a matrix, a
+pointer for the start, the number of elements per row, the offset between rows,
+and the size of each element ; etc. To access their data, codelet functions are
+given interfaces for the local memory node replicates of the data handles of the
+scheduled task.
+
+\b Partitioning data means dividing the data of a given data handle (called
+\b father) into a series of \b children data handles which designate various
+portions of the former.
+
+A \b filter is the function which computes children data handles from a father
+data handle, and thus describes how the partitioning should be done (horizontal,
+vertical, etc.)
+
+\b Acquiring a data handle can be done from the main application, to safely
+access the data of a data handle from its home node, without having to
+unregister it.
+
+
+\section ResearchPapers Research Papers
+
+Research papers about StarPU can be found at
+http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html.
+
+A good overview is available in the research report at
+http://hal.archives-ouvertes.fr/inria-00467677.
+
+\section FurtherReading Further Reading
+
+The documentation chapters include
+
+<ol>
+<li> Part: Using StarPU
+<ul>
+<li> \ref BuildingAndInstallingStarPU
+<li> \ref BasicExamples
+<li> \ref AdvancedExamples
+<li> \ref HowToOptimizePerformanceWithStarPU
+<li> \ref PerformanceFeedback
+<li> \ref TipsAndTricksToKnowAbout
+<li> \ref MPISupport
+<li> \ref FFTSupport
+<li> \ref cExtensions
+<li> \ref SOCLOpenclExtensions
+<li> \ref SchedulingContexts
+<li> \ref SchedulingContextHypervisor
+</ul>
+</li>
+<li> Part: Inside StarPU
+<ul>
+<li> \ref ExecutionConfigurationThroughEnvironmentVariables
+<li> \ref CompilationConfiguration
+<li> \ref ModuleDocumentation
+<li> \ref deprecated
+</ul>
+<li> Part: Appendix
+<ul>
+<li> \ref FullSourceCodeVectorScal
+<li> \ref GNUFreeDocumentationLicense
+</ul>
+</ol>
+
+
+Make sure to have had a look at those too!
+
+*/
