@@ -33,7 +33,6 @@ todo
 \var starpu_multiformat_interface::cpu_ptr
 \var starpu_multiformat_interface::cuda_ptr
 \var starpu_multiformat_interface::opencl_ptr
-\var starpu_multiformat_interface::mic_ptr
 \var starpu_multiformat_interface::nx
 \var starpu_multiformat_interface::ops
 

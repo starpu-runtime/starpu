@@ -147,9 +147,6 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_fxt.h		\
 	$(top_srcdir)/include/starpu_cuda.h		\
 	$(top_srcdir)/include/starpu_opencl.h		\
-	$(top_srcdir)/include/starpu_sink.h		\
-	$(top_srcdir)/include/starpu_mic.h		\
-	$(top_srcdir)/include/starpu_scc.h		\
 	$(top_srcdir)/include/starpu_expert.h		\
 	$(top_srcdir)/include/starpu_profiling.h	\
 	$(top_srcdir)/include/starpu_bound.h		\

@@ -59,9 +59,7 @@ implicit dependencies on that data.
 
 In the same vein, accumulation of results in the same data can become a
 bottleneck. The use of the mode ::STARPU_REDUX permits to optimize such
-accumulation (see \ref DataReduction). To a lesser extent, the use of
-the flag ::STARPU_COMMUTE keeps the bottleneck, but at least permits
-the accumulation to happen in any order.
+accumulation (see \ref DataReduction).
 
 Applications often need a data just for temporary results.  In such a case,
 registration can be made without an initial value, for instance this produces a vector data:

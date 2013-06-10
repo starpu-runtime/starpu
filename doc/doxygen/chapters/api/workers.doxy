@@ -24,16 +24,6 @@ TODO
 \var starpu_node_kind::STARPU_OPENCL_RAM
 \ingroup API_Workers_Properties
 TODO
-\var starpu_node_kind::STARPU_MIC_RAM
-\ingroup API_Workers_Properties
-TODO
-\var starpu_node_kind::STARPU_SCC_RAM
-\ingroup API_Workers_Properties
-This node kind is not used anymore, but implementations in interfaces
-will be useful for MPI.
-\var starpu_node_kind::STARPU_SCC_SHM
-\ingroup API_Workers_Properties
-TODO
 
 \enum starpu_worker_archtype
 \ingroup API_Workers_Properties
@@ -50,13 +40,6 @@ NVIDIA CUDA device
 \var starpu_worker_archtype::STARPU_OPENCL_WORKER
 \ingroup API_Workers_Properties
 OpenCL device
-\var starpu_worker_archtype::STARPU_MIC_WORKER
-\ingroup API_Workers_Properties
-Intel MIC device
-\var starpu_worker_archtype::STARPU_SCC_WORKER
-\ingroup API_Workers_Properties
-Intel SCC device
-
 
 \fn unsigned starpu_worker_get_count(void)
 \ingroup API_Workers_Properties

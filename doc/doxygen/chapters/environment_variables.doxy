@@ -210,13 +210,6 @@ fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
 </dd>
 
-<dt>STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY</dt>
-<dd>
-\anchor STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
-\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
-Disable asynchronous copies between CPU and MIC devices.
-</dd>
-
 <dt>STARPU_DISABLE_CUDA_GPU_GPU_DIRECT</dt>
 <dd>
 \anchor STARPU_DISABLE_CUDA_GPU_GPU_DIRECT

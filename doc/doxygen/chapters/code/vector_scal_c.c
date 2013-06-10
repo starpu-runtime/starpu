@@ -36,7 +36,6 @@ static struct starpu_codelet cl = {
     .where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL,
     /* CPU implementation of the codelet */
     .cpu_funcs = { scal_cpu_func, scal_sse_func, NULL },
-    .cpu_funcs_name = { "scal_cpu_func", "scal_sse_func", NULL },
 #ifdef STARPU_USE_CUDA
     /* CUDA implementation of the codelet */
     .cuda_funcs = { scal_cuda_func, NULL },
