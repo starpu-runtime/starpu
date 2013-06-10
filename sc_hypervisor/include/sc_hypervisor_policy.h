@@ -28,18 +28,12 @@ extern "C"
 #define HYPERVISOR_REDIM_SAMPLE 0.02
 #define HYPERVISOR_START_REDIM_SAMPLE 0.1
 
-/* task wrapper linked list */
 struct sc_hypervisor_policy_task_pool
 {
-	/* Which codelet has been executed */
 	struct starpu_codelet *cl;
-	/* Task footprint key */
 	uint32_t footprint;
-	/* Context the task belongs to */
 	unsigned sched_ctx_id;
-	/* Number of tasks of this kind */
 	unsigned long n;
-	/* Other task kinds */
 	struct sc_hypervisor_policy_task_pool *next;
 };
 

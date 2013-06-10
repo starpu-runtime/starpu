@@ -29,7 +29,7 @@ extern "C"
 
 struct starpu_fxt_codelet_event
 {
-	char symbol[256]; /* name of the codelet */
+	char symbol[256];
 	int workerid;
 	enum starpu_perfmodel_archtype archtype;
 	uint32_t hash;
@@ -49,21 +49,14 @@ struct starpu_fxt_options
 	char *activity_path;
 	char *dag_path;
 
-	/* In case we are going to gather multiple traces (eg in the case of
-	 * MPI processes), we may need to prefix the name of the containers. */
 	char *file_prefix;
 	uint64_t file_offset;
 	int file_rank;
-
-	/*
-	 *	Output parameters
-	 */
 
 	char worker_names[STARPU_NMAXWORKERS][256];
 	enum starpu_perfmodel_archtype worker_archtypes[STARPU_NMAXWORKERS];
 	int nworkers;
 
-	/* In case we want to dump the list of codelets to an external tool */
 	struct starpu_fxt_codelet_event **dumped_codelets;
 	long dumped_codelets_count;
 };
