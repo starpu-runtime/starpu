@@ -18,6 +18,7 @@
 #include <errno.h>
 
 #include <core/workers.h>
+#include <core/disk.h>
 #include <common/config.h>
 #include <starpu.h>
 #include <drivers/opencl/driver_opencl.h>
@@ -420,7 +421,7 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 #endif
 	        case STARPU_DISK_RAM:
 		{
-			addr = (uintptr_t) starpu_disk_alloc(dst_node, size);
+			addr = (uintptr_t) _starpu_disk_alloc(dst_node, size);
 			break;
 		}
 			
@@ -493,7 +494,7 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 #endif
 	        case STARPU_DISK_RAM:
 		{
-			starpu_disk_free (dst_node, (void *) addr , size);
+			_starpu_disk_free (dst_node, (void *) addr , size);
 			break;
 		}
 

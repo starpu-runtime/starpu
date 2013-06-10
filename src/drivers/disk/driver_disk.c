@@ -15,13 +15,14 @@
  */
 
 #include <starpu.h>
+#include <core/disk.h>
 #include <starpu_profiling.h>
 
 int _starpu_disk_copy_src_to_disk(void * src, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
 	STARPU_ASSERT(starpu_node_get_kind(src_node) == STARPU_CPU_RAM);
 
-	starpu_disk_write(dst_node, dst, src, dst_offset, size);
+	_starpu_disk_write(dst_node, dst, src, dst_offset, size);
 	return 0;
 }
 
@@ -30,7 +31,7 @@ int _starpu_disk_copy_disk_to_src(void * src, size_t src_offset, unsigned src_no
 {
 	STARPU_ASSERT(starpu_node_get_kind(dst_node) == STARPU_CPU_RAM);
 
-	starpu_disk_read(src_node, src, dst, src_offset, size);
+	_starpu_disk_read(src_node, src, dst, src_offset, size);
 	return 0;
 }
 
@@ -39,7 +40,7 @@ int _starpu_disk_copy_disk_to_disk(void * src, size_t src_offset, unsigned src_n
 {
 	STARPU_ASSERT(starpu_node_get_kind(src_node) == STARPU_DISK_RAM && starpu_node_get_kind(dst_node) == STARPU_DISK_RAM);
 
-       return starpu_disk_copy(src_node, src, src_offset, 
+       return _starpu_disk_copy(src_node, src, src_offset, 
 			       dst_node, dst, dst_offset,
 			       size); 
 

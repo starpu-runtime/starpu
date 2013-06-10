@@ -20,6 +20,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
+#include <core/disk.h>
 #include <profiling/profiling.h>
 #include <math.h>
 #include <core/task.h>
@@ -242,7 +243,7 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 	}
 
 	/* link between disk and disk, and they have the same kind */
-	if (starpu_is_same_kind_disk(src_node, dst_node))
+	if (_starpu_is_same_kind_disk(src_node, dst_node))
 		return 1;
 
 	return 0;

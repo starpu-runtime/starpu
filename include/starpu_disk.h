@@ -24,7 +24,7 @@ typedef void * (*disk_function)(void *, unsigned);
 struct disk_ops {
  	 void *  (*alloc)  (void *base, size_t size);
 	 void    (*free)   (void *base, void *obj, size_t size);
-	 void *  (*open)   (void *base, void *pos, size_t size);
+	 void *  (*open)   (void *base, void *pos, size_t size);     /* open an existing file */
 	 void    (*close)  (void *base, void *obj, size_t size);
 	ssize_t  (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size);        /* ~= pread */
 	ssize_t  (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size); 
@@ -44,21 +44,5 @@ extern struct disk_ops write_on_file;
 unsigned starpu_disk_register(struct disk_ops * func, void *parameter, size_t size);
 
 void starpu_disk_unregister(unsigned node);
-
-
-/* interface to manipulate memory disk */
-void * starpu_disk_alloc (unsigned node, size_t size);
-
-void starpu_disk_free (unsigned node, void *obj, size_t size);
-
-ssize_t starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size);
-
-ssize_t starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size);
-
-int starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size);
-
-/* interface to compare memory disk */
-
-int starpu_is_same_kind_disk(unsigned node1, unsigned node2);
 
 #endif /* __STARPU_DISK_H__ */

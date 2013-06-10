@@ -55,7 +55,7 @@ unsigned
 starpu_disk_register(struct disk_ops * func, void *parameter, size_t size)
 {
 
-	STARPU_ASSERT_MSG(size >= SIZE,"Minimum disk size is %u Bytes ! (Here %u)", SIZE, size);
+	STARPU_ASSERT_MSG(size >= SIZE,"Minimum disk size is %u Bytes ! (Here %u)", (int) SIZE, (int) size);
 	/* register disk */
 	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
@@ -109,21 +109,21 @@ starpu_disk_unregister(unsigned node)
 /* interface between user and disk memory */
 
 void *  
-starpu_disk_alloc(unsigned node, size_t size)
+_starpu_disk_alloc(unsigned node, size_t size)
 {
 	int pos = get_location_with_node(node);
 	return disk_register_list[pos]->functions->alloc(disk_register_list[pos]->base, size);
 }
 
 void
-starpu_disk_free(unsigned node, void *obj, size_t size)
+_starpu_disk_free(unsigned node, void *obj, size_t size)
 {
 	int pos = get_location_with_node(node);
 	disk_register_list[pos]->functions->free(disk_register_list[pos]->base, obj, size);
 }
 
 ssize_t 
-starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size)
+_starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size)
 {
 	int pos = get_location_with_node(node);
 	return disk_register_list[pos]->functions->read(disk_register_list[pos]->base, obj, buf, offset, size);
@@ -131,14 +131,14 @@ starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size)
 
 
 ssize_t 
-starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size)
+_starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size)
 {
 	int pos = get_location_with_node(node);
 	return disk_register_list[pos]->functions->write(disk_register_list[pos]->base, obj, buf, offset, size);
 }
 
 int
-starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size)
+_starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size)
 {
 	int pos_src = get_location_with_node(node_src);
 	int pos_dst = get_location_with_node(node_dst);
@@ -146,8 +146,22 @@ starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned no
 	return disk_register_list[pos_src]->functions->copy(disk_register_list[pos_src]->base, obj_src, offset_src, 
 						        disk_register_list[pos_dst]->base, obj_dst, offset_dst,
 							size);
-
 }
+
+void * 
+_starpu_disk_open(unsigned node, void *pos, size_t size)
+{
+	int position = get_location_with_node(node);
+	return disk_register_list[position]->functions->open(disk_register_list[position]->base, pos, size);
+}
+
+void 
+_starpu_disk_close(unsigned node, void *obj, size_t size)
+{
+	int position = get_location_with_node(node);
+	disk_register_list[position]->functions->close(disk_register_list[position]->base, obj, size);	
+}
+
 
 static void 
 add_disk_in_list(unsigned node,  struct disk_ops * func, void * base)
@@ -194,7 +208,7 @@ get_location_with_node(unsigned node)
 }
 
 int 
-starpu_is_same_kind_disk(unsigned node1, unsigned node2)
+_starpu_is_same_kind_disk(unsigned node1, unsigned node2)
 {
 	
 	if(starpu_node_get_kind(node1) == STARPU_DISK_RAM && starpu_node_get_kind(node2) == STARPU_DISK_RAM)
@@ -221,8 +235,9 @@ struct starpu_stdio_obj {
 
 /* allocation memory on disk */
 static void * 
-starpu_stdio_alloc (void *base, size_t size)
+starpu_stdio_alloc (void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
+	
 	struct starpu_stdio_obj * obj = malloc(sizeof(struct starpu_stdio_obj));
 	STARPU_ASSERT(obj != NULL);
 	int id = -1;
@@ -259,7 +274,7 @@ starpu_stdio_alloc (void *base, size_t size)
 
 /* free memory on disk */
 static void
-starpu_stdio_free (void *base, void *obj, size_t size)
+starpu_stdio_free (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
@@ -279,7 +294,7 @@ starpu_unistd_open (void *base, void *pos, size_t size)
 	struct starpu_stdio_obj * obj = malloc(sizeof(struct starpu_stdio_obj));
 	STARPU_ASSERT(obj != NULL);
 
-	/* create template for mkstemp */
+	/* create template */
 	unsigned int sizeBase = 16;
 	while(sizeBase < (strlen(base)+strlen(pos)+1))
 		sizeBase *= 2;
@@ -307,7 +322,7 @@ starpu_unistd_open (void *base, void *pos, size_t size)
 
 /* free memory without delete it */
 static void 
-starpu_unistd_close (void *base, void *obj, size_t size)
+starpu_unistd_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
@@ -320,7 +335,7 @@ starpu_unistd_close (void *base, void *obj, size_t size)
 
 /* read the memory disk */
 static ssize_t 
-starpu_stdio_read (void *base, void *obj, void *buf, off_t offset, size_t size)
+starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 	
@@ -334,7 +349,7 @@ starpu_stdio_read (void *base, void *obj, void *buf, off_t offset, size_t size)
 
 /* write on the memory disk */
 static ssize_t 
-starpu_stdio_write (void *base, void *obj, const void *buf, off_t offset, size_t size)
+starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 

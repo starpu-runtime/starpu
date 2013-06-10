@@ -61,6 +61,7 @@ noinst_HEADERS = 						\
 	core/dependencies/cg.h					\
 	core/dependencies/tags.h				\
 	core/dependencies/implicit_data_deps.h			\
+	core/disk.h						\
 	core/progress_hook.h                                    \
 	core/sched_policy.h					\
 	core/sched_ctx.h					\
