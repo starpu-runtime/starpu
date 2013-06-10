@@ -1863,7 +1863,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
   chmod +x tools/starpu_workers_activity
-  chmod +x doc/doxygen/starpu_doxygen_filter.sh
+  chmod +x doc/doxygen/doxygen_filter.sh
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
@@ -1924,7 +1924,7 @@ AC_OUTPUT([
 	sc_hypervisor/examples/Makefile
 	doc/doxygen/Makefile
 	doc/doxygen/doxygen-config.cfg
-	doc/doxygen/starpu_doxygen_filter.sh
+	doc/doxygen/doxygen_filter.sh
 ])
 
 AC_MSG_NOTICE([
