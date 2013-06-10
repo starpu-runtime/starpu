@@ -103,7 +103,7 @@ void display_stat_heat(void)
  *   U22 
  */
 
-static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, __attribute__((unused)) void *_args)
+static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	float *right 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -169,7 +169,7 @@ void dw_cublas_codelet_update_u22(void *descr[], void *_args)
  * U12
  */
 
-static inline void dw_common_codelet_update_u12(void *descr[], int s, __attribute__((unused)) void *_args)
+static inline void dw_common_codelet_update_u12(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	float *sub11;
 	float *sub12;
@@ -234,7 +234,7 @@ void dw_cublas_codelet_update_u12(void *descr[], void *_args)
  * U21
  */
 
-static inline void dw_common_codelet_update_u21(void *descr[], int s, __attribute__((unused)) void *_args)
+static inline void dw_common_codelet_update_u21(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	float *sub11;
 	float *sub21;
@@ -311,7 +311,7 @@ static inline void debug_print(float *tab, unsigned ld, unsigned n)
 	FPRINTF(stderr, "\n");
 }
 
-static inline void dw_common_codelet_update_u11(void *descr[], int s, __attribute__((unused)) void *_args) 
+static inline void dw_common_codelet_update_u11(void *descr[], int s, STARPU_ATTRIBUTE_UNUSED void *_args) 
 {
 	float *sub11;
 

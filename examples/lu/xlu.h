@@ -28,7 +28,7 @@
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
 #ifdef CHECK_RESULTS
-static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
+static void STARPU_ATTRIBUTE_UNUSED compare_A_LU(float *A, float *LU,
 				unsigned size, unsigned ld)
 {
 	unsigned i,j;

@@ -26,7 +26,7 @@ static starpu_data_handle_t handle;
 
 #ifdef STARPU_USE_OPENCL
 /* dummy OpenCL implementation */
-static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((unused)))
+static void increment_opencl_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

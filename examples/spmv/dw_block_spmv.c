@@ -105,12 +105,12 @@ void init_problem_callback(void *arg)
 	}
 }
 
-unsigned get_bcsr_nchildren(__attribute__((unused)) struct starpu_data_filter *f, starpu_data_handle_t handle)
+unsigned get_bcsr_nchildren(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, starpu_data_handle_t handle)
 {
   return (unsigned)starpu_bcsr_get_nnz(handle);
 }
 
-struct starpu_data_interface_ops *get_bcsr_child_ops(__attribute__((unused)) struct starpu_data_filter *f, __attribute__((unused)) unsigned child) 
+struct starpu_data_interface_ops *get_bcsr_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child) 
 {
   return &starpu_interface_matrix_ops;
 }
@@ -277,8 +277,8 @@ void print_results(void)
 	}
 }
 
-int main(__attribute__ ((unused)) int argc,
-	__attribute__ ((unused)) char **argv)
+int main(STARPU_ATTRIBUTE_UNUSED int argc,
+	STARPU_ATTRIBUTE_UNUSED char **argv)
 {
 	int ret;
 

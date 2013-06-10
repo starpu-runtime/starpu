@@ -1322,7 +1322,7 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 
 void
 _starpu_destroy_topology (
-	struct _starpu_machine_config *config __attribute__ ((unused)))
+	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_MIC
 	_starpu_deinit_mp_config(config);

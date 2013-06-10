@@ -243,7 +243,7 @@ uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle);
 
 void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask);
 
-__attribute__((warn_unused_result))
+STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
 int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask);
 
 unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, unsigned node);

@@ -57,7 +57,7 @@ void scal_sse_func(void *buffers[], void *cl_arg)
     unsigned int n_iterations = n/4;
 
     __m128 *VECTOR = (__m128*) vector;
-    __m128 FACTOR __attribute__((aligned(16)));
+    __m128 FACTOR STARPU_ATTRIBUTE_ALIGNED(16);
     float factor = *(float *) cl_arg;
     FACTOR = _mm_set1_ps(factor);
 

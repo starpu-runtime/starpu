@@ -22,7 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <starpu.h>
+
+#include <starpu_config.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -43,11 +44,19 @@ extern "C"
 #  define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
 #  define STARPU_ATTRIBUTE_UNUSED                  __attribute__((unused))
 #  define STARPU_ATTRIBUTE_INTERNAL      __attribute__ ((visibility ("internal")))
+#  define STARPU_ATTRIBUTE_MALLOC                  __attribute__((malloc))
+#  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT      __attribute__((warn_unused_result))
+#  define STARPU_ATTRIBUTE_PURE                    __attribute__((pure))
+#  define STARPU_ATTRIBUTE_ALIGNED(size)           __attribute__((aligned(size)))
 #else
 #  define STARPU_UNLIKELY(expr)          (expr)
 #  define STARPU_LIKELY(expr)            (expr)
 #  define STARPU_ATTRIBUTE_UNUSED
 #  define STARPU_ATTRIBUTE_INTERNAL
+#  define STARPU_ATTRIBUTE_MALLOC
+#  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
+#  define STARPU_ATTRIBUTE_PURE
+#  define STARPU_ATTRIBUTE_ALIGNED(size)
 #endif
 
 #if STARPU_GNUC_PREREQ(3, 1) && !defined(BUILDING_STARPU) && !defined(STARPU_USE_DEPRECATED_API) && !defined(STARPU_USE_DEPRECATED_ONE_ZERO_API)

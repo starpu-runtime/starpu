@@ -28,7 +28,7 @@ static __global__ void complex_copy_cuda(double *o_real, double *o_imaginary, do
 	}
 }
 
-extern "C" void copy_complex_codelet_cuda(void *descr[], __attribute__ ((unused)) void *_args)
+extern "C" void copy_complex_codelet_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	(void)_args;
 

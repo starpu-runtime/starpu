@@ -16,7 +16,8 @@
 
 #ifndef __STARPU_TASK_LIST_INLINE_H
 #define __STARPU_TASK_LIST_INLINE_H
-#include <starpu.h>
+
+#include <starpu_task.h>
 
 #ifndef STARPU_INLINE
 #ifdef __GNUC_GNU_INLINE__
@@ -144,7 +145,7 @@ struct starpu_task *starpu_task_list_begin(struct starpu_task_list *list)
 }
 
 STARPU_INLINE
-struct starpu_task *starpu_task_list_end(struct starpu_task_list *list __attribute__ ((unused)))
+struct starpu_task *starpu_task_list_end(struct starpu_task_list *list STARPU_ATTRIBUTE_UNUSED)
 {
 	return NULL;
 }

@@ -22,7 +22,7 @@
 
 #ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_code;
-void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void opencl_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	cl_kernel kernel;
 	cl_command_queue queue;

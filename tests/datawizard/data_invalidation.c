@@ -37,7 +37,7 @@ static starpu_data_handle_t v_handle;
  */
 
 #ifdef STARPU_USE_CUDA
-static void cuda_memset_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+static void cuda_memset_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -78,7 +78,7 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 }
 #endif /* !STARPU_USE_OPENCL */
 
-void cpu_memset_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_memset_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -106,7 +106,7 @@ static struct starpu_codelet memset_cl =
  *	Check content
  */
 
-void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_check_content_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

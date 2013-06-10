@@ -325,7 +325,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 }
 
 starpu_data_handle_t get_block_with_striding(starpu_data_handle_t *dataAp,
-			unsigned nblocks __attribute__((unused)), unsigned j, unsigned i)
+			unsigned nblocks STARPU_ATTRIBUTE_UNUSED, unsigned j, unsigned i)
 {
 	/* we use filters */
 	return starpu_data_get_sub_data(*dataAp, 2, j, i);

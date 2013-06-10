@@ -30,7 +30,7 @@ static unsigned ntasks = 65536;
 #endif
 static starpu_tag_t tag = 0x32;
 
-void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }
 

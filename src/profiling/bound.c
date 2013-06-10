@@ -1030,7 +1030,7 @@ static glp_prob *_starpu_bound_glp_resolve(int integer)
 #endif /* STARPU_HAVE_GLPK_H */
 
 /* Print the computed bound as well as the optimized distribution of tasks */
-void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
+void starpu_bound_print(FILE *output, int integer STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_HAVE_GLPK_H
 	if (recorddeps)
@@ -1081,7 +1081,7 @@ void starpu_bound_print(FILE *output, int integer __attribute__ ((unused)))
 }
 
 /* Compute and return the bound */
-void starpu_bound_compute(double *res, double *integer_res __attribute__ ((unused)), int integer __attribute__ ((unused)))
+void starpu_bound_compute(double *res, double *integer_res STARPU_ATTRIBUTE_UNUSED, int integer STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_HAVE_GLPK_H
 	double ret;

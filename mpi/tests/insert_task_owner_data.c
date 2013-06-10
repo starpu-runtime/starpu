@@ -18,7 +18,7 @@
 #include <math.h>
 #include "helper.h"
 
-void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
+void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *x1 = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);

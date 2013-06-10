@@ -26,7 +26,7 @@
 starpu_data_handle_t v_handle;
 static unsigned *v;
 
-static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+static void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

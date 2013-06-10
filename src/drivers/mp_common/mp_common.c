@@ -30,7 +30,7 @@
 /* Allocate and initialize the sink structure, when the function returns
  * all the pointer of functions are linked to the right ones.
  */
-struct _starpu_mp_node * __attribute__((malloc))
+struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
     _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 				  int peer_id)
 {

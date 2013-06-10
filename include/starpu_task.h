@@ -22,6 +22,7 @@
 
 #include <starpu.h>
 #include <starpu_data.h>
+#include <starpu_util.h>
 #include <starpu_task_bundle.h>
 #include <errno.h>
 

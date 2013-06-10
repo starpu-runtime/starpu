@@ -103,11 +103,11 @@ static int create_task_grid(unsigned iter)
 	return 0;
 }
 
-void cpu_codelet(void *descr[] __attribute__ ((unused)), void *_args __attribute__ ((unused)))
+void cpu_codelet(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args STARPU_ATTRIBUTE_UNUSED)
 {
 }
 
-int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
+int main(int argc STARPU_ATTRIBUTE_UNUSED , char **argv STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned i;
 	int ret;

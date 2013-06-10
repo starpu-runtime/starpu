@@ -50,7 +50,7 @@ static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 extern void cuda_host_increment(void *descr[], void *_args);
 
-void cpu_increment(void *descr[], void *arg __attribute__ ((unused)))
+void cpu_increment(void *descr[], void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned *var = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	(*var)++;
@@ -70,7 +70,7 @@ static struct starpu_codelet dummy_codelet =
 	.nbuffers = 1
 };
 
-static void callback_task_D(void *arg __attribute__((unused)))
+static void callback_task_D(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	loop_cnt++;
