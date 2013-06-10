@@ -29,7 +29,7 @@ When StarPU has been installed with its GCC plug-in, programs that use
 these extensions can be compiled this way:
 
 \verbatim
-$ gcc -c -fplugin=`pkg-config starpu-1.1 --variable=gccplugin` foo.c
+$ gcc -c -fplugin=`pkg-config starpu-1.2 --variable=gccplugin` foo.c
 \endverbatim
 
 When the plug-in is not available, the above <c>pkg-config</c>

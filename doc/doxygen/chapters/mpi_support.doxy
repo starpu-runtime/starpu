@@ -27,8 +27,8 @@ The flags required to compile or link against the MPI layer are
 accessible with the following commands:
 
 \verbatim
-$ pkg-config --cflags starpumpi-1.0  # options for the compiler
-$ pkg-config --libs starpumpi-1.0    # options for the linker
+$ pkg-config --cflags starpumpi-1.2  # options for the compiler
+$ pkg-config --libs starpumpi-1.2    # options for the linker
 \endverbatim
 
 You also need pass the <c>--static</c> option if the application is to
