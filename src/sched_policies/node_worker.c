@@ -166,6 +166,15 @@ static double estimated_load(struct _starpu_sched_node * node)
 		/ starpu_worker_get_relative_speedup(_starpu_bitmap_first(node->workers));
 }
 
+static void worker_deinit_data(struct _starpu_sched_node * node)
+{
+	int i;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		if(_worker_nodes[i] == node)
+			break;
+	STARPU_ASSERT(i < STARPU_NMAXWORKERS);
+	_worker_nodes[i] = NULL;
+}
 
 
 static struct _starpu_sched_node  * _starpu_sched_node_worker_create(int workerid)
@@ -185,6 +194,7 @@ static struct _starpu_sched_node  * _starpu_sched_node_worker_create(int workeri
 	node->estimated_execute_preds = estimated_execute_preds;
 	node->estimated_load = estimated_load;
 	node->available = available;
+	node->deinit_data = worker_deinit_data;
 	node->workers = _starpu_bitmap_create();
 	_starpu_bitmap_set(node->workers, workerid);
 	_worker_nodes[workerid] = node;
@@ -208,6 +218,8 @@ int _starpu_sched_node_is_worker(struct _starpu_sched_node * node)
 		|| node->estimated_execute_preds == estimated_execute_preds;
 		
 }
+
+
 
 #ifndef STARPU_NO_ASSERT
 static int _worker_consistant(struct _starpu_sched_node * node)

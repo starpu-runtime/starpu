@@ -226,7 +226,6 @@ static void destroy_no_model_node(struct _starpu_sched_node * heft_node)
 	struct _starpu_dmda_data * data = heft_node->data;
 	if(data->no_model_node)
 	{
-		data->no_model_node->deinit_data(data->no_model_node);
 		_starpu_sched_node_destroy(data->no_model_node);
 	}
 }

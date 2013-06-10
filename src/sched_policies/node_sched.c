@@ -140,7 +140,6 @@ void _starpu_node_destroy_rec(struct _starpu_sched_node * node, unsigned sched_c
 			if(!shared)//if not shared we want to destroy it and his childs
 				PUSH(child);
 		}
-		n->deinit_data(n);
 		_starpu_sched_node_destroy(n);
 	}
 	free(stack);
@@ -345,9 +344,7 @@ struct _starpu_sched_node * _starpu_sched_node_create(void)
 }
 void _starpu_sched_node_destroy(struct _starpu_sched_node *node)
 {
-	if(_starpu_sched_node_is_worker(node))
-		return;
-
+	node->deinit_data(node);
 	int i,j;
 	for(i = 0; i < node->nchilds; i++)
 	{
