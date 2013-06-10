@@ -2210,7 +2210,6 @@ AC_OUTPUT([
 	examples/stencil/Makefile
 	tests/Makefile
 	tests/loader-cross.sh
-	doc/Makefile
 	mpi/Makefile
 	mpi/src/Makefile
 	mpi/tests/Makefile
