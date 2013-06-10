@@ -35,41 +35,19 @@ struct starpu_task_list
  * the inline into all .o files! */
 #if !defined(BUILDING_STARPU) || defined(__GNUC_GNU_INLINE__)
 
-/* Initialize a list structure */
 void starpu_task_list_init(struct starpu_task_list *list);
-
-/* Push a task at the front of a list */
 void starpu_task_list_push_front(struct starpu_task_list *list, struct starpu_task *task);
-
-/* Push a task at the back of a list */
 void starpu_task_list_push_back(struct starpu_task_list *list, struct starpu_task *task);
-
-/* Get the front of the list (without removing it) */
 struct starpu_task *starpu_task_list_front(struct starpu_task_list *list);
-
-/* Get the back of the list (without removing it) */
 struct starpu_task *starpu_task_list_back(struct starpu_task_list *list);
-
-/* Test if a list is empty */
 int starpu_task_list_empty(struct starpu_task_list *list);
-
-/* Remove an element from the list */
 void starpu_task_list_erase(struct starpu_task_list *list, struct starpu_task *task);
-
-/* Remove the element at the front of the list */
 struct starpu_task *starpu_task_list_pop_front(struct starpu_task_list *list);
-
-/* Remove the element at the back of the list */
 struct starpu_task *starpu_task_list_pop_back(struct starpu_task_list *list);
-
-/* Get the first task of the list */
 struct starpu_task *starpu_task_list_begin(struct starpu_task_list *list);
-
-/* Get the end of the list */
 struct starpu_task *starpu_task_list_end(struct starpu_task_list *list);
-
-/* Get the next task of the list. This is not erase-safe. */
 struct starpu_task *starpu_task_list_next(struct starpu_task *task);
+
 #endif
 
 #ifdef __cplusplus
