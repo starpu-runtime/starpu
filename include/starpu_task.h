@@ -38,7 +38,6 @@ extern "C"
 #define STARPU_CUDA	((1ULL)<<3)
 #define STARPU_OPENCL	((1ULL)<<6)
 
-/* Codelet types */
 enum starpu_codelet_type
 {
 	STARPU_SEQ,
@@ -46,7 +45,6 @@ enum starpu_codelet_type
 	STARPU_FORKJOIN
 };
 
-/* task status */
 enum starpu_task_status
 {
 	STARPU_TASK_INVALID,
@@ -62,9 +60,9 @@ enum starpu_task_status
 
 typedef uint64_t starpu_tag_t;
 
-typedef void (*starpu_cpu_func_t)(void **, void*);    /* CPU core */
-typedef void (*starpu_cuda_func_t)(void **, void*);   /* NVIDIA CUDA device */
-typedef void (*starpu_opencl_func_t)(void **, void*); /* OpenCL CUDA device */
+typedef void (*starpu_cpu_func_t)(void **, void*);
+typedef void (*starpu_cuda_func_t)(void **, void*);
+typedef void (*starpu_opencl_func_t)(void **, void*);
 
 #define STARPU_MULTIPLE_CPU_IMPLEMENTATIONS    ((starpu_cpu_func_t) -1)
 #define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   ((starpu_cuda_func_t) -1)
