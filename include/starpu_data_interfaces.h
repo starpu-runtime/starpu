@@ -121,7 +121,6 @@ void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned me
 
 extern struct starpu_data_interface_ops starpu_interface_matrix_ops;
 
-/* Matrix interface for dense matrices */
 struct starpu_matrix_interface
 {
 	uintptr_t ptr;
@@ -148,9 +147,6 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_MATRIX_GET_LD(interface)	(((struct starpu_matrix_interface *)(interface))->ld)
 #define STARPU_MATRIX_GET_ELEMSIZE(interface)	(((struct starpu_matrix_interface *)(interface))->elemsize)
 
-/*
- * COO matrices.
- */
 struct starpu_coo_interface
 {
 	uint32_t  *columns;
@@ -186,7 +182,6 @@ void starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_nod
 #define STARPU_COO_GET_ELEMSIZE(interface) \
 	(((struct starpu_coo_interface *)(interface))->elemsize)
 
-/* BLOCK interface for 3D dense blocks */
 /* TODO: rename to 3dmatrix? */
 struct starpu_block_interface
 {
@@ -196,8 +191,8 @@ struct starpu_block_interface
 	uint32_t nx;
 	uint32_t ny;
 	uint32_t nz;
-	uint32_t ldy;	/* number of elements between two lines */
-	uint32_t ldz;	/* number of elements between two planes */
+	uint32_t ldy;
+	uint32_t ldz;
 	size_t elemsize;
 };
 
@@ -240,7 +235,6 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 #define STARPU_VECTOR_GET_NX(interface)	(((struct starpu_vector_interface *)(interface))->nx)
 #define STARPU_VECTOR_GET_ELEMSIZE(interface)	(((struct starpu_vector_interface *)(interface))->elemsize)
 
-/* variable interface for a single data (not a vector, a matrix, a list, ...) */
 struct starpu_variable_interface
 {
 	uintptr_t ptr;
@@ -260,17 +254,14 @@ uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle);
 
 void starpu_void_data_register(starpu_data_handle_t *handle);
 
-/* CSR interface for sparse matrices (compressed sparse row representation) */
 struct starpu_csr_interface
 {
-	uint32_t nnz; /* number of non-zero entries */
-	uint32_t nrow; /* number of rows */
-	uintptr_t nzval; /* non-zero values */
-	uint32_t *colind; /* position of non-zero entries on the row */
-	uint32_t *rowptr; /* index (in nzval) of the first entry of the row */
+	uint32_t nnz;
+	uint32_t nrow;
+	uintptr_t nzval;
+	uint32_t *colind;
+	uint32_t *rowptr;
 
-	/* k for k-based indexing (0 or 1 usually) */
-	/* also useful when partitionning the matrix ... */
 	uint32_t firstentry;
 
 	size_t elemsize;
@@ -300,23 +291,17 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_CSR_GET_FIRSTENTRY(interface)	(((struct starpu_csr_interface *)(interface))->firstentry)
 #define STARPU_CSR_GET_ELEMSIZE(interface)	(((struct starpu_csr_interface *)(interface))->elemsize)
 
-/* BCSR interface for sparse matrices (blocked compressed sparse row
- * representation) */
 struct starpu_bcsr_interface
 {
-	uint32_t nnz; /* number of non-zero BLOCKS */
-	uint32_t nrow; /* number of rows (in terms of BLOCKS) */
+	uint32_t nnz;
+	uint32_t nrow;
 
-	uintptr_t nzval; /* non-zero values */
-	uint32_t *colind; /* position of non-zero entried on the row */
-/*	uint32_t *rowind; */ /* position of non-zero entried on the col */
-	uint32_t *rowptr; /* index (in nzval) of the first entry of the row */
+	uintptr_t nzval;
+	uint32_t *colind;
+	uint32_t *rowptr;
 
-	/* k for k-based indexing (0 or 1 usually) */
-	/* also useful when partitionning the matrix ... */
 	uint32_t firstentry;
 
-	/* size of the blocks */
 	uint32_t r;
 	uint32_t c;
 
@@ -346,9 +331,6 @@ uint32_t starpu_bcsr_get_r(starpu_data_handle_t handle);
 uint32_t starpu_bcsr_get_c(starpu_data_handle_t handle);
 size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
 
-/*
- * Multiformat interface
- */
 struct starpu_multiformat_data_interface_ops
 {
 	size_t cpu_elemsize;
