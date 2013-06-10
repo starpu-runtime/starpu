@@ -79,18 +79,13 @@ extern "C"
 
 struct starpu_conf
 {
-	/* Will be initialized by starpu_conf_init */
 	int magic;
-
-	/* which scheduling policy should be used ? (NULL for default) */
 	const char *sched_policy_name;
+
 	struct starpu_sched_policy *sched_policy;
 
-	/* number of CPU workers (-1 for default) */
 	int ncpus;
-	/* number of CUDA GPU workers (-1 for default) */
 	int ncuda;
-	/* number of GPU OpenCL device workers (-1 for default) */
 	int nopencl;
 
 	unsigned use_explicit_workers_bindid;
@@ -102,49 +97,29 @@ struct starpu_conf
 	unsigned use_explicit_workers_opencl_gpuid;
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
-	/* calibrate bus (-1 for default) */
 	int bus_calibrate;
-
-	/* calibrate performance models, if any (-1 for default) */
 	int calibrate;
 
-	/* Create only one combined worker, containing all CPU workers */
 	int single_combined_worker;
 
-	/* indicate if all asynchronous copies should be disabled */
 	int disable_asynchronous_copy;
-
-	/* indicate if asynchronous copies to CUDA devices should be disabled */
 	int disable_asynchronous_cuda_copy;
-
-	/* indicate if asynchronous copies to OpenCL devices should be disabled */
 	int disable_asynchronous_opencl_copy;
-
-	/* Enable CUDA/OpenGL interoperation on these CUDA devices */
 	unsigned *cuda_opengl_interoperability;
 	unsigned n_cuda_opengl_interoperability;
 
-	/* A driver that the application will run in one of its own threads. */
 	struct starpu_driver *not_launched_drivers;
 	unsigned n_not_launched_drivers;
 
-	/* Specifies the buffer size for tracing */
 	unsigned trace_buffer_size;
 };
 
-/* Initialize a starpu_conf structure with default values. */
 int starpu_conf_init(struct starpu_conf *conf);
 
-/* Initialization method: it must be called prior to any other StarPU call
- * Default configuration is used if NULL is passed as argument.
- */
 int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 
-/* Shutdown method: note that statistics are only generated once StarPU is
- * shutdown */
 void starpu_shutdown(void);
 
-/* Print topology configuration */
 void starpu_topology_print(FILE *f);
 
 int starpu_asynchronous_copy_disabled(void);
