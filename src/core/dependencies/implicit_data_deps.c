@@ -23,9 +23,9 @@
 #include <core/debug.h>
 
 #if 0
-# define _STARPU_DEP_DEBUG(fmt, args ...) fprintf(stderr, fmt, ##args);
+# define _STARPU_DEP_DEBUG(fmt, ...) fprintf(stderr, fmt, ## __VA_ARGS__);
 #else
-# define _STARPU_DEP_DEBUG(fmt, args ...)
+# define _STARPU_DEP_DEBUG(fmt, ...)
 #endif
 
 static void _starpu_add_ghost_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, unsigned long previous STARPU_ATTRIBUTE_UNUSED, struct starpu_task *next STARPU_ATTRIBUTE_UNUSED)

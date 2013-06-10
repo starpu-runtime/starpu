@@ -75,9 +75,9 @@
 			struct _starpu_spinlock *, lock)
 
 #ifdef STARPU_VERBOSE
-#  define _STARPU_DEBUG(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,##args); fflush(stderr); }} while(0)
+#  define _STARPU_DEBUG(fmt, ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); fflush(stderr); }} while(0)
 #else
-#  define _STARPU_DEBUG(fmt, args ...) do { } while (0)
+#  define _STARPU_DEBUG(fmt, ...) do { } while (0)
 #endif
 
 #ifdef STARPU_VERBOSE0
@@ -90,10 +90,10 @@
 #  define _STARPU_LOG_OUT_TAG(outtag)
 #endif
 
-#define _STARPU_DISP(fmt, args ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,##args); }} while(0)
-#define _STARPU_ERROR(fmt, args ...)                                                  \
+#define _STARPU_DISP(fmt, ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); }} while(0)
+#define _STARPU_ERROR(fmt, ...)                                                  \
 	do {                                                                          \
-                fprintf(stderr, "\n\n[starpu][%s] Error: " fmt ,__starpu_func__ ,##args);    \
+                fprintf(stderr, "\n\n[starpu][%s] Error: " fmt ,__starpu_func__ ,## __VA_ARGS__);    \
 		fprintf(stderr, "\n\n");					      \
 		STARPU_ABORT();                                                       \
 	} while (0)
