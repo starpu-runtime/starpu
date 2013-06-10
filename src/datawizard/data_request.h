@@ -80,9 +80,7 @@ LIST_TYPE(_starpu_data_request,
 
 	struct _starpu_callback_list *callbacks;
 
-#ifdef STARPU_USE_FXT
 	unsigned com_id;
-#endif
 )
 
 /* Everyone that wants to access some piece of data will post a request.
