@@ -62,8 +62,8 @@ The flags required to compile or link against the FFT library are accessible
 with the following commands:
 
 \verbatim
-$ pkg-config --cflags starpufft-1.0  # options for the compiler
-$ pkg-config --libs starpufft-1.0    # options for the linker
+$ pkg-config --cflags starpufft-1.1  # options for the compiler
+$ pkg-config --libs starpufft-1.1    # options for the linker
 \endverbatim
 
 Also pass the <c>--static</c> option if the application is to be linked statically.

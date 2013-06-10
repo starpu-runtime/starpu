@@ -21,7 +21,7 @@ $ apt-cache search starpu
 To install what you need, type:
 
 \verbatim
-$ sudo apt-get install libstarpu-1.0 libstarpu-dev
+$ sudo apt-get install libstarpu-1.1 libstarpu-dev
 \endverbatim
 
 \section InstallingFromSource Installing from Source
@@ -134,8 +134,8 @@ $ make install
 \endverbatim
 
 Libtool interface versioning information are included in
-libraries names (libstarpu-1.0.so, libstarpumpi-1.0.so and
-libstarpufft-1.0.so).
+libraries names (libstarpu-1.1.so, libstarpumpi-1.1.so and
+libstarpufft-1.1.so).
 
 \section SettingUpYourOwnCode Setting up Your Own Code
 
