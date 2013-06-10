@@ -21,7 +21,7 @@ SUBDIRS = src
 SUBDIRS += tools tests
 
 if BUILD_DOC
-SUBDIRS += doc
+SUBDIRS += doc/doxygen
 endif
 
 if USE_MPI

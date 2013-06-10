@@ -1906,7 +1906,6 @@ AC_OUTPUT([
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
-	doc/Makefile
 	mpi/Makefile
 	mpi/src/Makefile
 	mpi/tests/Makefile
