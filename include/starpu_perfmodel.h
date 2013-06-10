@@ -66,40 +66,18 @@ _Static_assert(STARPU_CUDA_DEFAULT < STARPU_OPENCL_DEFAULT,
 
 struct starpu_perfmodel_history_entry
 {
-	//double measured;
-
-	/* mean_n = 1/n sum */
 	double mean;
-
-	/* n dev_n = sum2 - 1/n (sum)^2 */
 	double deviation;
-
-	/* sum of samples */
 	double sum;
-
-	/* sum of samples^2 */
 	double sum2;
-
-//	/* sum of ln(measured) */
-//	double sumlny;
-//
-//	/* sum of ln(size) */
-//	double sumlnx;
-//	double sumlnx2;
-//
-//	/* sum of ln(size) ln(measured) */
-//	double sumlnxlny;
-//
 	unsigned nsample;
-
 	uint32_t footprint;
 #ifdef STARPU_HAVE_WINDOWS
-	unsigned size; /* in bytes */
+	unsigned size;
 #else
-	size_t size; /* in bytes */
+	size_t size;
 #endif
-
-	double flops; /* Provided by the application */
+	double flops;
 };
 
 struct starpu_perfmodel_history_list
@@ -110,26 +88,20 @@ struct starpu_perfmodel_history_list
 
 struct starpu_perfmodel_regression_model
 {
-	/* sum of ln(measured) */
 	double sumlny;
 
-	/* sum of ln(size) */
 	double sumlnx;
 	double sumlnx2;
 
-	/* minimum/maximum(size) */
 	unsigned long minx;
 	unsigned long maxx;
 
-	/* sum of ln(size) ln(measured) */
 	double sumlnxlny;
 
-	/* y = alpha size ^ beta */
 	double alpha;
 	double beta;
 	unsigned valid;
 
-	/* y = a size ^b + c */
 	double a, b, c;
 	unsigned nl_valid;
 
@@ -142,11 +114,10 @@ struct starpu_perfmodel_history_table;
 
 struct starpu_perfmodel_per_arch
 {
-	double (*cost_model)(struct starpu_data_descr *t) STARPU_DEPRECATED; /* returns expected duration in µs */
-	double (*cost_function)(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl); /* returns expected duration in µs */
+	double (*cost_model)(struct starpu_data_descr *t) STARPU_DEPRECATED;
+	double (*cost_function)(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl);
 	size_t (*size_base)(struct starpu_task *, enum starpu_perfmodel_archtype arch, unsigned nimpl);
 
-	/* internal variables */
 	struct starpu_perfmodel_history_table *history;
 	struct starpu_perfmodel_history_list *list;
 	struct starpu_perfmodel_regression_model regression;

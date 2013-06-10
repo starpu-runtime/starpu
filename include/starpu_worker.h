@@ -50,7 +50,6 @@ enum starpu_worker_collection_type
 	STARPU_WORKER_LIST
 };
 
-/* generic structure used by the scheduling contexts to iterate the workers */
 struct starpu_worker_collection
 {
 	/* hidden data structure used to memorize the workers */
@@ -85,9 +84,6 @@ unsigned starpu_cpu_worker_get_count(void);
 unsigned starpu_cuda_worker_get_count(void);
 unsigned starpu_opencl_worker_get_count(void);
 
-/* Return the identifier of the thread in case this is associated to a worker.
- * This will return -1 if this function is called directly from the application
- * or if it is a worker in which a single thread controls different devices. */
 int starpu_worker_get_id(void);
 
 int starpu_combined_worker_get_id(void);
@@ -106,9 +102,6 @@ int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid);
 
 void starpu_worker_get_name(int id, char *dst, size_t maxlen);
 
-/* This functions returns the device id of the worker associated to an
- *  identifier (as returned by the starpu_worker_get_id() function)
- */
 int starpu_worker_get_devid(int id);
 
 #ifdef __cplusplus
