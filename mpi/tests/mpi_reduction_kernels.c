@@ -17,9 +17,9 @@
 #include <starpu.h>
 #include <mpi.h>
 
-#define _DISPLAY(fmt, args ...) do { \
+#define _DISPLAY(fmt, ...) do { \
 		int _display_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_display_rank);	\
-		fprintf(stderr, "[%d][%s] " fmt , _display_rank, __starpu_func__ ,##args); 	\
+		fprintf(stderr, "[%d][%s] " fmt , _display_rank, __starpu_func__ ,## __VA_ARGS__); 	\
 		fflush(stderr); } while(0)
 
 /*

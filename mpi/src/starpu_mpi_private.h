@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -36,23 +36,23 @@ void _starpu_mpi_set_debug_level(int level);
 #endif
 
 #ifdef STARPU_VERBOSE
-#  define _STARPU_MPI_DEBUG(level, fmt, args ...) \
+#  define _STARPU_MPI_DEBUG(level, fmt, ...) \
 	do \
 	{								\
 		if (!getenv("STARPU_SILENT") && level <= _debug_level)	\
 		{							\
 			if (_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank); \
-			fprintf(stderr, "%*s[%d][starpu_mpi][%s] " fmt , (_debug_rank+1)*4, "", _debug_rank, __starpu_func__ ,##args); \
+			fprintf(stderr, "%*s[%d][starpu_mpi][%s] " fmt , (_debug_rank+1)*4, "", _debug_rank, __starpu_func__ ,## __VA_ARGS__); \
 			fflush(stderr); \
 		}			\
 	} while(0);
 #else
-#  define _STARPU_MPI_DEBUG(level, fmt, args ...)
+#  define _STARPU_MPI_DEBUG(level, fmt, ...)
 #endif
 
-#define _STARPU_MPI_DISP(fmt, args ...) do { if (!getenv("STARPU_SILENT")) { \
+#define _STARPU_MPI_DISP(fmt, ...) do { if (!getenv("STARPU_SILENT")) { \
 	       				     if (_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank); \
-                                             fprintf(stderr, "%*s[%d][starpu_mpi][%s] " fmt , (_debug_rank+1)*4, "", _debug_rank, __starpu_func__ ,##args); \
+                                             fprintf(stderr, "%*s[%d][starpu_mpi][%s] " fmt , (_debug_rank+1)*4, "", _debug_rank, __starpu_func__ ,## __VA_ARGS__); \
                                              fflush(stderr); }} while(0);
 
 #ifdef STARPU_VERBOSE0
