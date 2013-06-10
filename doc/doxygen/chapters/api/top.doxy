@@ -6,7 +6,7 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \defgroup API_StarPU-Top_Interface StarPU-Top Interface
+/*! \defgroup API_StarPUTop_Interface StarPU-Top Interface
 
 \enum starpu_top_data_type
 \ingroup API_StarPU-Top_Interface
