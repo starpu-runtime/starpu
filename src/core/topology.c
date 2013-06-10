@@ -920,7 +920,7 @@ _starpu_build_topology (struct _starpu_machine_config *config)
 
 void
 _starpu_destroy_topology (
-	struct _starpu_machine_config *config __attribute__ ((unused)))
+	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 	/* cleanup StarPU internal data structures */
 	_starpu_memory_nodes_deinit();

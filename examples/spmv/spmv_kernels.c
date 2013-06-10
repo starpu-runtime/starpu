@@ -113,7 +113,7 @@ void compile_spmv_opencl_kernel(void)
 }
 #endif
 
-void spmv_kernel_cpu(void *descr[], __attribute__((unused))  void *arg)
+void spmv_kernel_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED  void *arg)
 {
 	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
 	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);

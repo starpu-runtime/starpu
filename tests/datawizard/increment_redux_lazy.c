@@ -135,7 +135,7 @@ static struct starpu_codelet neutral_cl =
 
 #ifdef STARPU_USE_OPENCL
 /* dummy OpenCL implementation */
-static void increment_opencl_kernel(void *descr[], void *cl_arg __attribute__((unused)))
+static void increment_opencl_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	cl_mem d_token = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned h_token;

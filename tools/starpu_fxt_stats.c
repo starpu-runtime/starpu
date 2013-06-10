@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 		end_time = STARPU_MAX(end_time, ev.time);
 		start_time = STARPU_MIN(start_time, ev.time);
 
-		__attribute__ ((unused)) int nbparam = ev.nb_params;
+		STARPU_ATTRIBUTE_UNUSED int nbparam = ev.nb_params;
 
 		switch (ev.code)
 		{

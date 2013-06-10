@@ -51,7 +51,7 @@
  *		descr[0] = A, descr[1] = x, descr [2] = r, descr[3] = b
  */
 
-void cpu_codelet_func_1(void *descr[], __attribute__((unused)) void *arg)
+void cpu_codelet_func_1(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 {
 	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
 	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);
@@ -93,7 +93,7 @@ void cpu_codelet_func_1(void *descr[], __attribute__((unused)) void *arg)
  *	compute d = r
  *		descr[0] = d, descr[1] = r
  */
-void cpu_codelet_func_2(void *descr[], __attribute__((unused)) void *arg)
+void cpu_codelet_func_2(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 {
 	/* simply copy r into d */
 	uint32_t nx = STARPU_VECTOR_GET_NX(descr[0]);
@@ -160,7 +160,7 @@ void cublas_codelet_func_3(void *descr[], void *arg)
  *		descr[0] = A, descr[1] = d, descr [2] = q
  */
 
-void cpu_codelet_func_4(void *descr[], __attribute__((unused)) void *arg)
+void cpu_codelet_func_4(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 {
 	float *nzval = (float *)STARPU_CSR_GET_NZVAL(descr[0]);
 	uint32_t *colind = STARPU_CSR_GET_COLIND(descr[0]);

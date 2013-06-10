@@ -32,7 +32,7 @@ static const TYPE m1 = -1.0f;
  */
 
 static inline void STARPU_LU(common_u22)(void *descr[],
-				int s, __attribute__((unused)) void *_args)
+				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	TYPE *right 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	TYPE *left 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -145,7 +145,7 @@ struct starpu_codelet cl22 =
  */
 
 static inline void STARPU_LU(common_u12)(void *descr[],
-				int s, __attribute__((unused)) void *_args)
+				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	TYPE *sub11;
 	TYPE *sub12;
@@ -233,7 +233,7 @@ struct starpu_codelet cl12 =
  */
 
 static inline void STARPU_LU(common_u21)(void *descr[],
-				int s, __attribute__((unused)) void *_args)
+				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	TYPE *sub11;
 	TYPE *sub21;
@@ -318,7 +318,7 @@ struct starpu_codelet cl21 =
  */
 
 static inline void STARPU_LU(common_u11)(void *descr[],
-				int s, __attribute__((unused)) void *_args)
+				int s, STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	TYPE *sub11;
 

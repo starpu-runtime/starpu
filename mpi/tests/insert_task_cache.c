@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 }
 #else
 
-void func_cpu(__attribute__ ((unused)) void *descr[], __attribute__ ((unused)) void *_args)
+void func_cpu(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }
 

@@ -86,7 +86,7 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
-int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
+int main(int argc STARPU_ATTRIBUTE_UNUSED , char **argv STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned i, j;
 	int ret;

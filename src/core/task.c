@@ -121,7 +121,7 @@ void starpu_task_clean(struct starpu_task *task)
 	}
 }
 
-struct starpu_task * __attribute__((malloc)) starpu_task_create(void)
+struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create(void)
 {
 	struct starpu_task *task;
 

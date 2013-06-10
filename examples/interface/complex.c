@@ -45,7 +45,7 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 }
 
 #ifdef STARPU_USE_CUDA
-extern void copy_complex_codelet_cuda(void *descr[], __attribute__ ((unused)) void *_args);
+extern void copy_complex_codelet_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 #endif
 #ifdef STARPU_USE_OPENCL
 extern void copy_complex_codelet_opencl(void *buffers[], void *args);

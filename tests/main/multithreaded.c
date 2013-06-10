@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Centre National de la Recherche Scientifique
  *
@@ -32,7 +32,7 @@ static unsigned ntasks = 65536;
 #endif
 static unsigned nthreads = 2;
 
-static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+static void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }
 
@@ -45,7 +45,7 @@ static struct starpu_codelet dummy_codelet =
 	.nbuffers = 0
 };
 
-void *thread_func(void *arg __attribute__((unused)))
+void *thread_func(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret;
 	unsigned i;

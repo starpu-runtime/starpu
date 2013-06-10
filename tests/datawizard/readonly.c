@@ -19,7 +19,7 @@
 #include "../helper.h"
 
 #ifdef STARPU_USE_OPENCL
-static void codelet(void *descr[], __attribute__ ((unused)) void *_args)
+static void codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
      FPRINTF(stderr, "codelet\n");
 }

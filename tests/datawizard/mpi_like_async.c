@@ -68,13 +68,13 @@ static struct thread_data problem_data[NTHREADS_DEFAULT];
  * successor. */
 
 #ifdef STARPU_USE_CUDA
-void cuda_codelet_unsigned_inc(void *descr[], __attribute__ ((unused)) void *cl_arg);
+void cuda_codelet_unsigned_inc(void *descr[], STARPU_ATTRIBUTE_UNUSED void *cl_arg);
 #endif
 #ifdef STARPU_USE_OPENCL
 void opencl_codelet_unsigned_inc(void *buffers[], void *args);
 #endif
 
-static void increment_handle_cpu_kernel(void *descr[], void *cl_arg __attribute__((unused)))
+static void increment_handle_cpu_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

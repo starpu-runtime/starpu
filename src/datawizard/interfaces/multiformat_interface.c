@@ -306,8 +306,8 @@ static void free_multiformat_buffer_on_node(void *data_interface, unsigned node)
 /*
  * Copy methods
  */
-static int copy_ram_to_ram(void *src_interface, unsigned src_node __attribute__ ((unused)),
-			   void *dst_interface, unsigned dst_node __attribute__ ((unused)))
+static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+			   void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_multiformat_interface *src_multiformat;
 	struct starpu_multiformat_interface *dst_multiformat;
@@ -326,8 +326,8 @@ static int copy_ram_to_ram(void *src_interface, unsigned src_node __attribute__ 
 }
 
 #ifdef STARPU_USE_CUDA
-static int copy_cuda_common(void *src_interface, unsigned src_node __attribute__ ((unused)),
-			    void *dst_interface, unsigned dst_node __attribute__ ((unused)),
+static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+			    void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
 			    enum cudaMemcpyKind kind)
 {
 	struct starpu_multiformat_interface *src_multiformat;
@@ -392,8 +392,8 @@ static int copy_cuda_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIB
 	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToHost);
 }
 
-static int copy_cuda_common_async(void *src_interface, unsigned src_node __attribute__ ((unused)),
-				  void *dst_interface, unsigned dst_node __attribute__ ((unused)),
+static int copy_cuda_common_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+				  void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
 				  cudaStream_t stream, enum cudaMemcpyKind kind)
 {
 	struct starpu_multiformat_interface *src_multiformat;

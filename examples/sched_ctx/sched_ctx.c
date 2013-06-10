@@ -26,7 +26,7 @@
 int tasks_executed = 0;
 starpu_pthread_mutex_t mut;
 
-static void sched_ctx_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	starpu_pthread_mutex_lock(&mut);
 	tasks_executed++;

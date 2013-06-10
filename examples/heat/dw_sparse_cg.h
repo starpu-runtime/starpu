@@ -67,7 +67,7 @@ struct cg_problem
 };
 
 /* some useful functions */
-static void __attribute__((unused)) parse_args(int argc, char **argv)
+static void STARPU_ATTRIBUTE_UNUSED parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++)
@@ -98,7 +98,7 @@ static void __attribute__((unused)) parse_args(int argc, char **argv)
 }
 
 
-static void __attribute__ ((unused)) print_results(float *result, unsigned size)
+static void STARPU_ATTRIBUTE_UNUSED print_results(float *result, unsigned size)
 {
 	printf("**** RESULTS **** \n");
 	unsigned i;

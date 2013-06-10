@@ -23,8 +23,8 @@
 
 static unsigned niter = 500;
 
-void sleep_codelet(__attribute__ ((unused)) void *descr[],
-			__attribute__ ((unused)) void *_args)
+void sleep_codelet(STARPU_ATTRIBUTE_UNUSED void *descr[],
+			STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	usleep(1000);
 }

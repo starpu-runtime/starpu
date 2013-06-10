@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,7 +28,7 @@
 starpu_data_handle_t v_handle;
 
 #ifdef STARPU_USE_OPENCL
-static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+static void opencl_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -45,7 +45,7 @@ static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_a
 #endif
 
 #ifdef STARPU_USE_CUDA
-static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+static void cuda_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -56,7 +56,7 @@ static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_arg
 }
 #endif
 
-static void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+static void cpu_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -65,7 +65,7 @@ static void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args
 	*buf = 42;
 }
 
-static void display_var(void *descr[], __attribute__ ((unused)) void *_args)
+static void display_var(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

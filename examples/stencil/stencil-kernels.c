@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -541,7 +541,7 @@ unsigned top_per_worker[STARPU_NMAXWORKERS];
 unsigned bottom_per_worker[STARPU_NMAXWORKERS];
 
 /* top save, CPU version */
-static void dummy_func_top_cpu(void *descr[] __attribute__((unused)), void *arg)
+static void dummy_func_top_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
@@ -557,7 +557,7 @@ static void dummy_func_top_cpu(void *descr[] __attribute__((unused)), void *arg)
 }
 
 /* bottom save, CPU version */
-static void dummy_func_bottom_cpu(void *descr[] __attribute__((unused)), void *arg)
+static void dummy_func_bottom_cpu(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
@@ -571,7 +571,7 @@ static void dummy_func_bottom_cpu(void *descr[] __attribute__((unused)), void *a
 
 /* top save, CUDA version */
 #ifdef STARPU_USE_CUDA
-static void dummy_func_top_cuda(void *descr[] __attribute__((unused)), void *arg)
+static void dummy_func_top_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
@@ -588,7 +588,7 @@ static void dummy_func_top_cuda(void *descr[] __attribute__((unused)), void *arg
 }
 
 /* bottom save, CUDA version */
-static void dummy_func_bottom_cuda(void *descr[] __attribute__((unused)), void *arg)
+static void dummy_func_bottom_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
@@ -604,7 +604,7 @@ static void dummy_func_bottom_cuda(void *descr[] __attribute__((unused)), void *
 
 /* top save, OpenCL version */
 #ifdef STARPU_USE_OPENCL
-static void dummy_func_top_opencl(void *descr[] __attribute__((unused)), void *arg)
+static void dummy_func_top_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();
@@ -624,7 +624,7 @@ static void dummy_func_top_opencl(void *descr[] __attribute__((unused)), void *a
 }
 
 /* bottom save, OPENCL version */
-static void dummy_func_bottom_opencl(void *descr[] __attribute__((unused)), void *arg)
+static void dummy_func_bottom_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct block_description *block = (struct block_description *) arg;
 	int workerid = starpu_worker_get_id();

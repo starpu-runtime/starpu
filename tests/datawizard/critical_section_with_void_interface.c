@@ -27,7 +27,7 @@ starpu_data_handle_t void_handle;
 
 int critical_var;
 
-static void critical_section(void *descr[], __attribute__ ((unused)) void *_args)
+static void critical_section(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

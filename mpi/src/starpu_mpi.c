@@ -665,7 +665,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 }
 
 #ifdef STARPU_MPI_ACTIVITY
-static unsigned _starpu_mpi_progression_hook_func(void *arg __attribute__((unused)))
+static unsigned _starpu_mpi_progression_hook_func(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned may_block = 1;
 

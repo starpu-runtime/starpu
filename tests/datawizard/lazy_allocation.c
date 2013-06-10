@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2012       inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,7 +32,7 @@ static starpu_data_handle_t v_handle;
  */
 
 #ifdef STARPU_USE_CUDA
-static void cuda_memset_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+static void cuda_memset_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -73,7 +73,7 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 }
 #endif
 
-static void cpu_memset_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+static void cpu_memset_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -100,7 +100,7 @@ static struct starpu_codelet memset_cl =
  *	Check content
  */
 
-static void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+static void cpu_check_content_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -119,7 +119,7 @@ static void cpu_check_content_codelet(void *descr[], __attribute__ ((unused)) vo
 }
 
 #ifdef STARPU_USE_CUDA
-static void cuda_check_content_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+static void cuda_check_content_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

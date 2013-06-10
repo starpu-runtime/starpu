@@ -21,7 +21,7 @@
 
 extern struct starpu_opencl_program opencl_code;
 
-void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
+void opencl_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -53,7 +53,7 @@ void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 	starpu_opencl_release_kernel(kernel);
 }
 
-void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
+void opencl_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

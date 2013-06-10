@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ static uint64_t get_total_memory_size(void)
 }
 #endif
 
-static void dummy_func(void *descr[], __attribute__ ((unused)) void *_args)
+static void dummy_func(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }
 

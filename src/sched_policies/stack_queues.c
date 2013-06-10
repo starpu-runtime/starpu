@@ -74,7 +74,7 @@ void _starpu_stack_push_task(struct _starpu_stack_jobq *stack_queue, starpu_pthr
 	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
-struct _starpu_job *_starpu_stack_pop_task(struct _starpu_stack_jobq *stack_queue, starpu_pthread_mutex_t *sched_mutex, int workerid __attribute__ ((unused)))
+struct _starpu_job *_starpu_stack_pop_task(struct _starpu_stack_jobq *stack_queue, starpu_pthread_mutex_t *sched_mutex, int workerid STARPU_ATTRIBUTE_UNUSED)
 {
 	struct _starpu_job *j = NULL;
 

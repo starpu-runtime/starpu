@@ -17,7 +17,7 @@
 
 #include <starpu.h>
 
-void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	float *val = (float *)STARPU_VARIABLE_GET_PTR(descr[0]);
 

@@ -143,7 +143,7 @@ static void display(void)
 }
 
 
-static void pressKey(unsigned char key, int x __attribute__ ((unused)), int y  __attribute__ ((unused)))
+static void pressKey(unsigned char key, int x STARPU_ATTRIBUTE_UNUSED, int y  STARPU_ATTRIBUTE_UNUSED)
 {
 	switch (key)
 	{

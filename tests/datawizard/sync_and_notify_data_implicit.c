@@ -45,22 +45,22 @@ static unsigned k=K_DEF;
  */
 
 #ifdef STARPU_USE_CUDA
-void cuda_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args);
-void cuda_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
+void cuda_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+void cuda_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
-void opencl_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args);
-void opencl_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args);
+void opencl_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
+void opencl_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 struct starpu_opencl_program opencl_code;
 #endif
 
 #define VECTORSIZE	16
 
 starpu_data_handle_t v_handle;
-static unsigned v[VECTORSIZE] __attribute__((aligned(128))) = {0, 0, 0, 0};
+static unsigned v[VECTORSIZE] STARPU_ATTRIBUTE_ALIGNED(128) = {0, 0, 0, 0};
 
-void cpu_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -68,7 +68,7 @@ void cpu_codelet_incA(void *descr[], __attribute__ ((unused)) void *_args)
 	val[0]++;
 }
 
-void cpu_codelet_incC(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
