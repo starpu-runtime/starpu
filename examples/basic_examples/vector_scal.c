@@ -31,132 +31,32 @@
 #define	NX	204800
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-extern void scal_cpu_func(void *buffers[], void *_args);
-extern void scal_cpu_func_icc(void *buffers[], void *_args);
-extern void scal_sse_func(void *buffers[], void *_args);
-extern void scal_sse_func_icc(void *buffers[], void *_args);
-extern void scal_cuda_func(void *buffers[], void *_args);
-extern void scal_opencl_func(void *buffers[], void *_args);
-
-static struct starpu_perfmodel vector_scal_model =
-{
-	.type = STARPU_HISTORY_BASED,
-	.symbol = "vector_scal"
-};
-
-static struct starpu_perfmodel vector_scal_power_model =
-{
-	.type = STARPU_HISTORY_BASED,
-	.symbol = "vector_scal_power"
-};
-
-static struct starpu_codelet cl =
-{
-	.where = STARPU_CPU | STARPU_CUDA | STARPU_OPENCL | STARPU_MIC,
-	/* CPU implementation of the codelet */
-	.cpu_funcs = {
-		scal_cpu_func
-#if defined(STARPU_HAVE_ICC) && !defined(__KNC__) && !defined(__KNF__)
-		, scal_cpu_func_icc
-#endif
-#ifdef __SSE__
-		, scal_sse_func
-#if defined(STARPU_HAVE_ICC) && !defined(__KNC__) && !defined(__KNF__)
-		, scal_sse_func_icc
-#endif
-#endif
-		, NULL
-	},
-	.cpu_funcs_name = {
-		"scal_cpu_func",
-#if defined(STARPU_HAVE_ICC) && !defined(__KNC__) && !defined(__KNF__)
-		"scal_cpu_func_icc",
-#endif
-#ifdef __SSE__
-		"scal_sse_func",
-#if defined(STARPU_HAVE_ICC) && !defined(__KNC__) && !defined(__KNF__)
-		"scal_sse_func_icc"
-#endif
-#endif
-	},
-
-#ifdef STARPU_USE_CUDA
-	/* CUDA implementation of the codelet */
-	.cuda_funcs = {scal_cuda_func, NULL},
-#endif
-#ifdef STARPU_USE_OPENCL
-	/* OpenCL implementation of the codelet */
-	.opencl_funcs = {scal_opencl_func, NULL},
-#endif
-	.nbuffers = 1,
-	.modes = {STARPU_RW},
-	.model = &vector_scal_model,
-	.power_model = &vector_scal_power_model
-};
-
-#ifdef STARPU_USE_OPENCL
-struct starpu_opencl_program opencl_program;
-#endif
-
-static int approximately_equal(float a, float b)
-{
-#ifdef STARPU_HAVE_NEARBYINTF
-	int ai = (int) nearbyintf(a * 1000.0);
-	int bi = (int) nearbyintf(b * 1000.0);
-#elif defined(STARPU_HAVE_RINTF)
-	int ai = (int) rintf(a * 1000.0);
-	int bi = (int) rintf(b * 1000.0);
-#else
-#error "Please define either nearbyintf or rintf."
-#endif
-	return ai == bi;
-}
 
 int main(int argc, char **argv)
 {
-	/* We consider a vector of float that is initialized just as any of C
- 	 * data */
-
-	void * A,*B,*C,*D,*E;
-
-	float vector[NX];
-	unsigned i;
-	for (i = 0; i < NX; i++)
-                vector[i] = (i+1.0f);
+	int * A,*B,*C,*D,*E;
 
 	putenv("STARPU_LIMIT_CPU_MEM=130");
 
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
 
+	/* register a disk */
 	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*200);
 
-
-	starpu_malloc(&A, 30*1000000);
-	starpu_malloc(&E, 30*1000000);
-
-
-
-
-
-
-
-	uintptr_t fileDD = (uintptr_t) starpu_disk_alloc(dd, sizeof(vector));
-	starpu_disk_write(dd, (void *) fileDD, (void *) vector, 0, sizeof(vector));
-
-
-
+	/* allocate two memory spaces */
+	starpu_malloc((void **)&A, NX*sizeof(int));
+	starpu_malloc((void **)&E, NX*sizeof(int));
 
 	if (ret == -ENODEV) goto enodev;
 
-	FPRINTF(stderr, "[BEFORE] 1-th element    : %3.2f\n", vector[1]);
-	FPRINTF(stderr, "[BEFORE] (NX-1)th element: %3.2f\n", vector[NX-1]);
-
-#ifdef STARPU_USE_OPENCL
-	ret = starpu_opencl_load_opencl_from_file("examples/basic_examples/vector_scal_opencl_kernel.cl",
-						  &opencl_program, NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
-#endif
+	FPRINTF(stderr, "Test of disk memory \n");
+	int j;
+	for(j = 0; j < NX; ++j)
+	{
+		A[j] = j;
+		E[j] = -j;
+	}
 
 	/* Tell StaPU to associate the "vector" vector with the "vector_handle"
 	 * identifier. When a task needs to access a piece of data, it should
@@ -171,39 +71,13 @@ int main(int argc, char **argv)
 	 *  - the fourth argument is the number of elements in the vector
 	 *  - the fifth argument is the size of each element.
 	 */
-	starpu_data_handle_t vector_handle, vector_handleA, vector_handleB, vector_handleC, vector_handleD, vector_handleE;
-	starpu_vector_data_register(&vector_handle, dd, fileDD, NX, sizeof(vector[0]));
+	starpu_data_handle_t vector_handleA, vector_handleB, vector_handleC, vector_handleD, vector_handleE;
 
-	starpu_vector_data_register(&vector_handleA, 0, (uintptr_t)A, 7.5*1000000 , sizeof(float));
-	starpu_vector_data_register(&vector_handleB, -1, (uintptr_t) NULL, 7.5*1000000 , sizeof(float));	
-	starpu_vector_data_register(&vector_handleC, -1, (uintptr_t) NULL, 7.5*1000000 , sizeof(float));
-	starpu_vector_data_register(&vector_handleD, -1, (uintptr_t) NULL, 7.5*1000000 , sizeof(float));
-	starpu_vector_data_register(&vector_handleE, 0, (uintptr_t)E, 7.5*1000000 , sizeof(float));
-
-
-
-	float factor = 3.14;
-
-	/* create a synchronous task: any call to starpu_task_submit will block
- 	 * until it is terminated */
-	struct starpu_task *task = starpu_task_create();
-	task->synchronous = 1;
-
-	task->cl = &cl;
-
-	/* the codelet manipulates one buffer in RW mode */
-	task->handles[0] = vector_handle;
-
-	/* an argument is passed to the codelet, beware that this is a
-	 * READ-ONLY buffer and that the codelet may be given a pointer to a
-	 * COPY of the argument */
-	task->cl_arg = &factor;
-	task->cl_arg_size = sizeof(factor);
-
-	/* execute the task on any eligible computational ressource */
-	ret = starpu_task_submit(task);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-
+	starpu_vector_data_register(&vector_handleA, 0, (uintptr_t)A, NX, sizeof(int));
+	starpu_vector_data_register(&vector_handleB, -1, (uintptr_t) NULL, NX, sizeof(int));	
+	starpu_vector_data_register(&vector_handleC, -1, (uintptr_t) NULL, NX, sizeof(int));
+	starpu_vector_data_register(&vector_handleD, -1, (uintptr_t) NULL, NX, sizeof(int));
+	starpu_vector_data_register(&vector_handleE, 0, (uintptr_t)E, NX, sizeof(int));
 
 	starpu_data_cpy(vector_handleB, vector_handleA, 1, NULL, NULL);
 	starpu_data_cpy(vector_handleC, vector_handleB, 1, NULL, NULL);
@@ -212,9 +86,6 @@ int main(int argc, char **argv)
 
 	/* StarPU does not need to manipulate the array anymore so we can stop
  	 * monitoring it */
-	starpu_data_unregister(vector_handle);
-
-
 
 	starpu_data_unregister(vector_handleA);
 	starpu_data_unregister(vector_handleB);
@@ -222,25 +93,24 @@ int main(int argc, char **argv)
 	starpu_data_unregister(vector_handleD);
 	starpu_data_unregister(vector_handleE);
 
-
-
-#ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-#endif
-	starpu_disk_read(dd, (void *) fileDD, (void *) vector, 0, sizeof(vector));
-
-	starpu_disk_free(dd, (void *) fileDD, sizeof(vector));
 	starpu_disk_unregister(dd);
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
 
-	ret = approximately_equal(vector[1], (1+1.0f) * factor) && approximately_equal(vector[NX-1], (NX-1+1.0f) * factor);
-	FPRINTF(stderr, "[AFTER] 1-th element     : %3.2f (should be %3.2f)\n", vector[1], (1+1.0f) * factor);
-	FPRINTF(stderr, "[AFTER] (NX-1)-th element: %3.2f (should be %3.2f)\n", vector[NX-1], (NX-1+1.0f) * factor);
-	FPRINTF(stderr, "[AFTER] Computation is%s correct\n", ret?"":" NOT");
-	return (ret ? EXIT_SUCCESS : EXIT_FAILURE);
+	int try = 1;
+	for (j = 0; j < NX; ++j)
+		if (A[j] != E[j])
+		{
+			printf("fail A %d != E %d \n", A[j], E[j]);
+			try = 0;
+		}
+
+	if(try)
+		FPRINTF(stderr, "TEST SUCCESS\n");
+	else
+		FPRINTF(stderr, "TEST FAIL\n");
+	return (try ? EXIT_SUCCESS : EXIT_FAILURE);
 
 enodev:
 	return 77;
