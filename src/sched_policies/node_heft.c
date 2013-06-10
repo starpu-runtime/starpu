@@ -218,7 +218,7 @@ void init_heft_data(struct _starpu_sched_node *node)
 
 	node->data = data;
 
-	_starpu_sched_node_heft_set_no_model_node(node, _starpu_sched_node_random_create);
+	_starpu_sched_node_heft_set_no_model_node(node, _starpu_sched_node_random_create,NULL);
 }
 
 static void destroy_no_model_node(struct _starpu_sched_node * heft_node)
@@ -238,11 +238,11 @@ void deinit_heft_data(struct _starpu_sched_node * node)
 }
 
 void _starpu_sched_node_heft_set_no_model_node(struct _starpu_sched_node * heft_node,
-					       struct _starpu_sched_node * (*create_no_model_node)(void))
+					       struct _starpu_sched_node * (*create_no_model_node)(void *),void * arg)
 {
 	destroy_no_model_node(heft_node);
 	struct _starpu_dmda_data * data = heft_node->data;
-	struct _starpu_sched_node * no_model_node = create_no_model_node();
+	struct _starpu_sched_node * no_model_node = create_no_model_node(arg);
 	no_model_node->childs = malloc(heft_node->nchilds * sizeof(struct _starpu_sched_node *));
 	memcpy(no_model_node->childs, heft_node->childs, heft_node->nchilds * sizeof(struct _strapu_sched_node *));
 
@@ -251,7 +251,7 @@ void _starpu_sched_node_heft_set_no_model_node(struct _starpu_sched_node * heft_
 	data->no_model_node = no_model_node;
 }
 
-struct _starpu_sched_node * _starpu_sched_node_heft_create()
+struct _starpu_sched_node * _starpu_sched_node_heft_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 
 	struct _starpu_sched_node * node = _starpu_sched_node_create();

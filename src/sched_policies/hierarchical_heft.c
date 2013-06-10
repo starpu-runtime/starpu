@@ -1,197 +1,12 @@
 #include "node_sched.h"
 #include <core/workers.h>
-
-#if 0//def STARPU_HAVE_HWLOC
-#include <hwloc.h>
-/*
- * this function attempt to create a scheduler with a heft node at top,
- * and for eager for each homogeneous (same kind, same numa node) worker group below
- */
-
-
-static hwloc_bitmap_t get_nodeset(int workerid)
-{
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);;
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct starpu_machine_topology *topology = &config->topology;
-
-	hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->cpu_depth, worker->bindid);
-	STARPU_ASSERT(obj->userdata == worker);
-	return obj->nodeset;
-}
-
-
-struct _starpu_sched_node * _starpu_heft_eager_scheduler_add_worker(unsigned sched_ctx_id, struct _starpu_sched_node * root, int workerid)
-{
-	if(root == NULL)//first worker
-	{
-		root = _starpu_sched_node_heft_create();
-		struct _starpu_sched_node * fifo = _starpu_sched_node_fifo_create();
-		root->add_child(root, fifo, sched_ctx_id);
-		_starpu_sched_node_set_father(fifo, root, sched_ctx_id);
-		struct _starpu_sched_node *worker = _starpu_sched_node_worker_get(workerid);
-		fifo->add_child(fifo,worker,sched_ctx_id);
-		_starpu_sched_node_set_father(worker, fifo, sched_ctx_id);
-		return root;
-	}
-
-	hwloc_bitmap_t node = get_nodeset(workerid);
-	int i;
-	for(i = 0; i < root->nchilds; i++)
-	{
-		struct _starpu_sched_node * child = root->childs[i];
-		int wid = child->workerids[0];
-		hwloc_bitmap_t b = get_nodeset(child->workerids[0]);
-		if(hwloc_bitmap_intersects(b,node) && starpu_worker_get_type(wid) == starpu_worker_get_type(workerid))
-			break;
-	}
-	if(i < root->nchilds)//we already have a worker on the same place
-	{
-		struct _starpu_sched_node * fifo = root->childs[i];
-		STARPU_ASSERT(_starpu_sched_node_is_fifo(fifo));
-		fifo->add_child(fifo, _starpu_sched_node_worker_get(workerid),sched_ctx_id);
-		_starpu_sched_node_set_father(fifo, root, sched_ctx_id);
-		_starpu_sched_node_set_father(_starpu_sched_node_worker_get(workerid),
-					      fifo, sched_ctx_id);
-		return root;
-	}
-
-	STARPU_ASSERT(i ==root->nchilds);
-
-	{
-		struct _starpu_sched_node * fifo = _starpu_sched_node_fifo_create();
-		fifo->add_child(fifo, _starpu_sched_node_worker_get(workerid),sched_ctx_id);
-		_starpu_sched_node_set_father(_starpu_sched_node_worker_get(workerid), fifo, sched_ctx_id);
-		root->add_child(root,fifo, sched_ctx_id);
-		return root;
-	}
-}
-
-static void add_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
-{
-	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned i;
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->lock);
-	for(i = 0; i < nworkers; i++)
-	{
-		t->root = _starpu_heft_eager_scheduler_add_worker(sched_ctx_id, t->root, workerids[i]);
-		_starpu_tree_update_after_modification(t);
-	}
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
-}
-
-static void remove_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
-{
-	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned i;
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->lock);
-	for(i = 0; i < nworkers; i++)
-	{
-		int workerid = workerids[i];
-		struct _starpu_sched_node * node = _starpu_sched_tree_remove_worker(t, workerid, sched_ctx_id);
-		if(node)
-		{
-			/*if(_starpu_sched_node_is_fifo(node))
-			{
-				STARPU_ASSERT(_starpu_sched_node_is_fifo(node));
-				struct starpu_task_list list = _starpu_sched_node_fifo_get_non_executable_tasks(node);
-				int res = _starpu_sched_node_push_tasks_to_firsts_suitable_parent(node, &list, sched_ctx_id);
-				STARPU_ASSERT(!res); (void) res;
-				}*/
-		}
-		_starpu_node_destroy_rec(node, sched_ctx_id);
-	}
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
-}
-
-
-static void add_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
-{
-	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned i;
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->lock);
-	for(i = 0; i < nworkers; i++)
-	{
-		struct _starpu_sched_node * fifo = _starpu_sched_node_fifo_create();
-		struct _starpu_sched_node * worker =  _starpu_sched_node_worker_get(workerids[i]);
-
-		fifo->add_child(fifo, worker, sched_ctx_id);
-		_starpu_sched_node_set_father(worker, fifo, sched_ctx_id);
-
-		t->root->add_child(t->root, fifo, sched_ctx_id);
-		_starpu_sched_node_set_father(fifo, t->root, sched_ctx_id);
-
-	}
-	_starpu_tree_update_after_modification(t);
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
-}
-
-static void remove_worker_heft(unsigned sched_ctx_id, int * workerids, unsigned nworkers)
-{
-	struct _starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	unsigned i;
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->lock);
-	for(i = 0; i < nworkers; i++)
-	{
-		int j;
-		for(j = 0; j < t->root->nchilds; j++)
-			if(t->root->childs[j]->workerids[0] == workerids[i])
-				break;
-		STARPU_ASSERT(j < t->root->nchilds);
-		struct _starpu_sched_node * fifo = t->root->childs[j];
-		_starpu_sched_node_set_father(fifo, NULL, sched_ctx_id);
-		t->root->remove_child(t->root, fifo, sched_ctx_id);
-	}
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
-}
-
-static void initialize_heft_center_policy(unsigned sched_ctx_id)
-{
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
-	STARPU_PTHREAD_RWLOCK_INIT(&data->lock,NULL);
-	struct _starpu_sched_node * ws;
- 	data->root = ws = _starpu_sched_node_heft_create();
-	data->workers = _starpu_bitmap_create();
-	unsigned i;
-	for(i = 0; i < starpu_worker_get_count(); i++)
-	{
-		struct _starpu_sched_node * node = _starpu_sched_node_worker_get(i);
-		if(!node)
-			continue;
-		struct _starpu_sched_node * fifo = _starpu_sched_node_fifo_create();
-		_starpu_sched_node_add_child(fifo, node);
-		_starpu_sched_node_set_father(node, fifo, sched_ctx_id);
-		
-		_starpu_sched_node_add_child(data->root, fifo);
-		_starpu_sched_node_set_father(fifo, data->root, sched_ctx_id);
-
-	}
-	_starpu_set_workers_bitmaps();
-	_starpu_tree_call_init_data(data);
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
-
-
-}
-
-static void deinitialize_heft_center_policy(unsigned sched_ctx_id)
-{
-	struct _starpu_sched_tree *t = (struct _starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	_starpu_bitmap_destroy(t->workers);
-	_starpu_tree_destroy(t, sched_ctx_id);
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
-}
-
-
-
-#else
-#endif
-
 #include "scheduler_maker.h"
 
-static _starpu_composed_sched_node_recipe_t  recipe_for_worker(enum starpu_worker_archtype a STARPU_ATTRIBUTE_UNUSED)
+static struct  _starpu_composed_sched_node_recipe *  recipe_for_worker(enum starpu_worker_archtype a STARPU_ATTRIBUTE_UNUSED)
 {
-	return _starpu_create_composed_sched_node_recipe(_starpu_sched_node_fifo_create,NULL);
+	struct _starpu_composed_sched_node_recipe * r = _starpu_sched_node_create_recipe();
+	_starpu_sched_recipe_add_node(r, _starpu_sched_node_fifo_create, NULL);
+	return r;
 }
 
 static void initialize_heft_center_policy(unsigned sched_ctx_id)
@@ -201,12 +16,22 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 	struct _starpu_sched_specs specs;
 	memset(&specs,0,sizeof(specs));
 	
-	specs.hwloc_machine_composed_sched_node = _starpu_create_composed_sched_node_recipe(_starpu_sched_node_heft_create,NULL);
+	specs.hwloc_machine_composed_sched_node = ({
+			struct _starpu_composed_sched_node_recipe * r = _starpu_sched_node_create_recipe();
+			_starpu_sched_recipe_add_node(r, _starpu_sched_node_heft_create,NULL);
+			r;});
+
+	specs.hwloc_node_composed_sched_node = ({
+			struct _starpu_composed_sched_node_recipe * r = _starpu_sched_node_create_recipe();
+			_starpu_sched_recipe_add_node(r, _starpu_sched_node_fifo_create,NULL);
+			r;});
 	specs.worker_composed_sched_node = recipe_for_worker;
 
 	struct _starpu_sched_tree *data = _starpu_make_scheduler(sched_ctx_id, specs);
 
 	_starpu_destroy_composed_sched_node_recipe(specs.hwloc_machine_composed_sched_node);
+
+	
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 

@@ -132,7 +132,8 @@ noinst_HEADERS = 						\
 	sched_policies/node_sched.h				\
 	sched_policies/prio_deque.h				\
 	sched_policies/bitmap.h					\
-	sched_policies/scheduler_maker.h
+	sched_policies/scheduler_maker.h			\
+	sched_policies/node_composed.h
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/barrier.c					\
@@ -243,7 +244,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/node_random.c				\
 	sched_policies/node_heft.c				\
 	sched_policies/hierarchical_heft.c			\
-	sched_policies/scheduler_maker.c
+	sched_policies/scheduler_maker.c			\
+	sched_policies/node_composed.c
 if STARPU_USE_CPU
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
 endif

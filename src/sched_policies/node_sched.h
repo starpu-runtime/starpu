@@ -47,7 +47,6 @@ struct _starpu_sched_node
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_obj_t obj;
 #endif
-
 };
 
 struct _starpu_task_execute_preds
@@ -108,23 +107,23 @@ void _starpu_sched_node_worker_destroy(struct _starpu_sched_node *);
 int _starpu_sched_node_is_worker(struct _starpu_sched_node * node);
 int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_node);
 
-struct _starpu_sched_node * _starpu_sched_node_fifo_create(void);
+struct _starpu_sched_node * _starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node);
 //struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct _starpu_sched_node * fifo_node);
 
 /* struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void); */
 int _starpu_sched_node_is_work_stealing(struct _starpu_sched_node * node);
 
-struct _starpu_sched_node * _starpu_sched_node_random_create(void);
+struct _starpu_sched_node * _starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+int _starpu_sched_node_is_random(struct _starpu_sched_node *);
+struct _starpu_sched_node * _starpu_sched_node_eager_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 
-struct _starpu_sched_node * _starpu_sched_node_eager_create(void);
-
-struct _starpu_sched_node * _starpu_sched_node_heft_create(void);
+struct _starpu_sched_node * _starpu_sched_node_heft_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 /* this function is called to create the node wich will be used to push task when no perf model are available
  * by default, a random node is created
  */
 void _starpu_sched_node_heft_set_no_model_node(struct _starpu_sched_node * heft_node,
-					       struct _starpu_sched_node * (*create_no_model_node)(void));
+					       struct _starpu_sched_node * (*create_no_model_node)(void * arg), void * arg);
 
 int _starpu_sched_node_is_heft(struct _starpu_sched_node * node);
 

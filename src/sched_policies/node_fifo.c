@@ -172,13 +172,10 @@ void deinit_fifo_data(struct _starpu_sched_node * node)
 
 int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node)
 {
-	return node->estimated_execute_preds == estimated_execute_preds
-		|| node->estimated_load == estimated_load
-		|| node->push_task == push_task
-		|| node->pop_task == pop_task;
+	return node->init_data == init_fifo_data;
 }
 
-struct _starpu_sched_node * _starpu_sched_node_fifo_create(void)
+struct _starpu_sched_node * _starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct _starpu_sched_node * node = _starpu_sched_node_create();
 	node->estimated_execute_preds = estimated_execute_preds;

@@ -78,7 +78,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 }
 
 
-struct _starpu_sched_node * _starpu_sched_node_random_create(void)
+struct _starpu_sched_node * _starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct _starpu_sched_node * node = _starpu_sched_node_create();
 	node->data = NULL;
@@ -89,12 +89,17 @@ struct _starpu_sched_node * _starpu_sched_node_random_create(void)
 	return node;
 }
 
+int _starpu_sched_node_is_random(struct _starpu_sched_node *node)
+{
+	return node->init_data == init_data_random;
+}
+
 static void initialize_random_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
 	STARPU_PTHREAD_RWLOCK_INIT(&data->lock,NULL);
- 	data->root = _starpu_sched_node_random_create();
+ 	data->root = _starpu_sched_node_random_create(NULL);
 	data->workers = _starpu_bitmap_create();
 
 	unsigned i;
