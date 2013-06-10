@@ -116,11 +116,10 @@ LIST_TYPE(_starpu_job,
 	 * so we need a flag to differentiate them from "normal" tasks. */
 	unsigned reduction_task;
 
-#ifdef STARPU_USE_FXT
 	/* A symbol name may be associated to the job directly for debug
 	 * purposes (for instance if the codelet is NULL). */
         const char *model_name;
-#endif
+
 	struct bound_task *bound_task;
 
 	/* Number of workers executing that task (>1 if the task is parallel)
