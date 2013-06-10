@@ -292,14 +292,8 @@ after calling the data unpacking operation.
 \struct starpu_variable_interface
 Variable interface for a single data (not a vector, a matrix, a list, ...)
 \ingroup API_Data_Interfaces
-\var starpu_variable_interface::id
-Identifier of the interface
 \var starpu_variable_interface::ptr
 local pointer of the variable
-\var starpu_variable_interface::dev_handle
-device handle of the variable.
-\var starpu_variable_interface::offset
-offset in the variable
 \var starpu_variable_interface::elemsize
 size of the variable
 
@@ -336,8 +330,6 @@ be used with the device handle.
 \struct starpu_vector_interface
 Vector interface
 \ingroup API_Data_Interfaces
-\var starpu_vector_interface::id
-Identifier of the interface
 \var starpu_vector_interface::ptr
 local pointer of the vector
 \var starpu_vector_interface::dev_handle
@@ -394,8 +386,6 @@ Return the size of each element of the array designated by
 \struct starpu_matrix_interface
 Matrix interface for dense matrices
 \ingroup API_Data_Interfaces
-\var starpu_matrix_interface::id
-Identifier of the interface
 \var starpu_matrix_interface::ptr
 local pointer of the matrix
 \var starpu_matrix_interface::dev_handle
@@ -587,8 +577,6 @@ Return the size of the elements of the block designated by
 BCSR interface for sparse matrices (blocked compressed sparse
 row representation)
 \ingroup API_Data_Interfaces
-\var starpu_bcsr_interface::id
-Identifier of the interface
 \var starpu_bcsr_interface::nnz
 number of non-zero BLOCKS
 \var starpu_bcsr_interface::nrow
@@ -700,8 +688,6 @@ matrix designated by \p interface, to be used with the device handles.
 \struct starpu_csr_interface
 CSR interface for sparse matrices (compressed sparse row representation)
 \ingroup API_Data_Interfaces
-\var starpu_csr_interface::id
-Identifier of the interface
 \var starpu_csr_interface::nnz
 number of non-zero entries
 \var starpu_csr_interface::nrow
@@ -816,8 +802,6 @@ designated by \p interface.
 \struct starpu_coo_interface
 COO Matrices
 \ingroup API_Data_Interfaces
-\var starpu_coo_interface::id
-identifier of the interface
 \var starpu_coo_interface::columns
 column array of the matrix
 \var starpu_coo_interface::rows

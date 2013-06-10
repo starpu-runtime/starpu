@@ -29,7 +29,6 @@ The different fields are:
 \struct starpu_multiformat_interface
 todo
 \ingroup API_Multiformat_Data_Interface
-\var starpu_multiformat_interface::id
 \var starpu_multiformat_interface::cpu_ptr
 \var starpu_multiformat_interface::cuda_ptr
 \var starpu_multiformat_interface::opencl_ptr
