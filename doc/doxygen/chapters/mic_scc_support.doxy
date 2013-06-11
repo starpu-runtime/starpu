@@ -49,7 +49,7 @@ the MIC-cross-built binary. It will look for the file given by the
 environment variable \ref STARPU_MIC_SINK_PROGRAM_NAME or in the
 directory given by the environment variable \ref
 STARPU_MIC_SINK_PROGRAM_PATH, or in the field
-starpu_config::mic_sink_program_path. It will also look in the current
+starpu_conf::mic_sink_program_path. It will also look in the current
 directory for the same binary name plus the suffix <c>-mic</c> or
 <c>_mic</c>.
 
