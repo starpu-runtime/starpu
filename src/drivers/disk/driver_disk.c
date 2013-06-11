@@ -21,7 +21,7 @@
 int _starpu_disk_copy_src_to_disk(void * src, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
 	STARPU_ASSERT(starpu_node_get_kind(src_node) == STARPU_CPU_RAM);
-
+	
 	_starpu_disk_write(dst_node, dst, src, dst_offset, size);
 	return 0;
 }

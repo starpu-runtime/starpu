@@ -283,7 +283,10 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	starpu_data_handle_t handle = mc->data;
 
 	if (handle)
+	{
 		_starpu_spin_checklocked(&handle->header_lock);
+		mc->size = _starpu_data_get_size(handle);
+	}
 
 	mc->replicate->mc=NULL;
 
@@ -347,7 +350,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	{
 		/* try to lock all the subtree */
 		lock_all_subtree(handle);
-
+	      
 		/* check if they are all "free" */
 		if (may_free_subtree(handle, node))
 		{
@@ -359,6 +362,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
+
 			if (handle->home_node != -1)
 				target = handle->home_node;
 			else
@@ -367,17 +371,23 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 					target = 0;
 
 			size_t size_handle = _starpu_data_get_size(handle);
+			/* no place for datas, we push on disk */
+			if (node == 0 && target == -1)
+			{
+				target = get_better_disk_can_accept_size(size_handle);
+			}
 			/* try to push data to RAM if we can before to push on disk*/
-			if (starpu_node_get_kind(target) == STARPU_DISK_RAM && _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
+			else if (starpu_node_get_kind(target) == STARPU_DISK_RAM  &&
+				 _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
 			{
 				target = STARPU_MAIN_RAM;
 			}
 			/* no place in RAM */
-			else if ((starpu_node_get_kind(target) == STARPU_DISK_RAM || target == -1) && _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) != 1)
+			else if ((starpu_node_get_kind(target) == STARPU_DISK_RAM || target == STARPU_MAIN_RAM) &&
+				 _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) != 1)
 			{
 				target = get_better_disk_can_accept_size(size_handle);
-			}   
-
+			}
 
 			if (target != -1) {
 #ifdef STARPU_MEMORY_STATS
@@ -611,6 +621,7 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 		STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 		/* A priori, start from the beginning */
 		mc = _starpu_mem_chunk_list_begin(mc_list[node]);
+
 		if (next_mc)
 			/* Unless we might restart from where we were */
 			for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
