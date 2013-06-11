@@ -585,7 +585,7 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 {
 	size_t freed = 0;
 
-	struct _starpu_mem_chunk *mc, *next_mc = NULL;
+	struct _starpu_mem_chunk *mc, *next_mc = (void*) -1;
 
 	/*
 	 * We have to unlock mc_rwlock before locking header_lock, so we have
@@ -598,23 +598,31 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 	while (1)
 	{
 		STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
-		/* A priori, start from the beginning */
-		mc = _starpu_mem_chunk_list_begin(mc_list[node]);
-		if (next_mc)
-			/* Unless we might restart from where we were */
+
+		if (_starpu_mem_chunk_list_empty(mc_list[node]) || !next_mc)
+		{
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+			/* We reached the end of the list :/ */
+			break;
+		}
+
+		if (next_mc == (void*) -1) {
+			/* First iteration ever, start from beginning */
+			mc = _starpu_mem_chunk_list_begin(mc_list[node]);
+		} else {
+			/* Try to restart from where we were */
 			for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
 			     mc != _starpu_mem_chunk_list_end(mc_list[node]);
 			     mc = _starpu_mem_chunk_list_next(mc))
 				if (mc == next_mc)
-					/* Yes, restart from there.  */
+					/* Found it, restart from there.  */
 					break;
 
-		if (mc == _starpu_mem_chunk_list_end(mc_list[node]))
-		{
-			/* But it was the last one of the list :/ */
-			STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
-			break;
+			if (mc == _starpu_mem_chunk_list_end(mc_list[node]))
+				/* Couldn't find next_mc, restart from the beginning :/ */
+				mc = _starpu_mem_chunk_list_begin(mc_list[node]);
 		}
+
 		/* Remember where to try next */
 		next_mc = _starpu_mem_chunk_list_next(mc);
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
