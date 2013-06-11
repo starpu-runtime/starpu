@@ -179,7 +179,8 @@ static int push_task_peager_policy(struct starpu_task *task)
 		worker = workers->get_next(workers, &it);
 		int master = data->master_id[worker];
 		/* If this is not a CPU, then the worker simply grabs tasks from the fifo */
-		if (starpu_worker_get_type(worker) != STARPU_CPU_WORKER  || master == worker)
+		if (!starpu_worker_is_combined_worker(worker) &&
+				starpu_worker_get_type(worker) != STARPU_CPU_WORKER  || master == worker)
 		{
 			starpu_pthread_mutex_t *sched_mutex;
 			starpu_pthread_cond_t *sched_cond;
