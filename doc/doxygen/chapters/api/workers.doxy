@@ -80,6 +80,20 @@ returned value should be at most \ref STARPU_MAXCPUS.
 This function returns the number of CUDA devices controlled by
 StarPU. The returned value should be at most \ref STARPU_MAXCUDADEVS.
 
+\fn unsigned starpu_mic_worker_get_count(void)
+\ingroup API_Workers_Properties
+This function returns the number of MIC workers controlled by StarPU.
+
+\fn unsigned starpu_mic_device_get_count(void)
+\ingroup API_Workers_Properties
+This function returns the number of MIC devices controlled by StarPU.
+The returned value should be at most \ref STARPU_MAXMICDEVS.
+
+\fn unsigned starpu_scc_worker_get_count(void)
+\ingroup API_Workers_Properties
+This function returns the number of SCC devices controlled by StarPU.
+The returned value should be at most \ref STARPU_MAXSCCDEVS.
+
 \fn unsigned starpu_opencl_worker_get_count(void)
 \ingroup API_Workers_Properties
 This function returns the number of OpenCL devices controlled by

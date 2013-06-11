@@ -36,6 +36,7 @@ static struct starpu_codelet cl =
     .type = STARPU_FORKJOIN,
     .max_parallelism = INT_MAX,
     .cpu_funcs = {scal_cpu_func, NULL},
+    .cpu_funcs_name = {"scal_cpu_func", NULL},
     .nbuffers = 1,
 };
 //! [To be included]

@@ -49,9 +49,13 @@ This is the number of OpenCL devices that StarPU can use. This can
 also be specified with the environment variable \ref STARPU_NOPENCL.
 (default = -1)
 \var starpu_conf::nmic
-This is the number of MIC devices that StarPU can use. (default = -1)
+This is the number of MIC devices that StarPU can use. This can also
+be specified with the environment variable \ref STARPU_NMIC.
+(default = -1)
 \var starpu_conf::nscc
-This is the number of SCC devices that StarPU can use. (default = -1)
+This is the number of SCC devices that StarPU can use. This can also
+be specified with the environment variable \ref STARPU_NSCC.
+(default = -1)
 
 \var starpu_conf::use_explicit_workers_bindid
 If this flag is set, the starpu_conf::workers_bindid array indicates
@@ -89,10 +93,14 @@ be used.
 \var starpu_conf::use_explicit_workers_mic_deviceid
 If this flag is set, the MIC workers will be attached to the MIC
 devices specified in the array starpu_conf::workers_mic_deviceid.
+Otherwise, StarPU affects the MIC devices in a round-robin fashion.
+This can also be specified with the environment variable \ref
+STARPU_WORKERS_MICID.
 (default = 0)
 \var starpu_conf::workers_mic_deviceid
 If the flag starpu_conf::use_explicit_workers_mic_deviceid is set, the
 array contains the logical identifiers of the MIC devices to be used.
+
 \var starpu_conf::use_explicit_workers_scc_deviceid
 If this flag is set, the SCC workers will be attached to the SCC
 devices specified in the array starpu_conf::workers_scc_deviceid.
@@ -100,6 +108,9 @@ devices specified in the array starpu_conf::workers_scc_deviceid.
 \var starpu_conf::workers_scc_deviceid
 If the flag starpu_conf::use_explicit_workers_scc_deviceid is set, the
 array contains the logical identifiers of the SCC devices to be used.
+Otherwise, StarPU affects the SCC devices in a round-robin fashion.
+This can also be specified with the environment variable \ref
+STARPU_WORKERS_SCCID.
 
 \var starpu_conf::bus_calibrate
 If this flag is set, StarPU will recalibrate the bus.  If this value
@@ -129,7 +140,9 @@ variable \ref STARPU_SINGLE_COMBINED_WORKER.
 
 \var starpu_conf::mic_sink_program_path
 Path to the kernel to execute on the MIC device, compiled for MIC
-architecture.
+architecture. When set to NULL, StarPU automatically looks next to the
+host program location.
+(default = NULL)
 
 \var starpu_conf::disable_asynchronous_copy
 This flag should be set to 1 to disable
@@ -164,7 +177,12 @@ option \ref disable-asynchronous-opencl-copy "--disable-asynchronous-opencl-copy
 (default = 0)
 
 \var starpu_conf::disable_asynchronous_mic_copy
-indicate if asynchronous copies to MIC devices should be disabled
+This flag should be set to 1 to disable asynchronous copies between
+CPUs and MIC accelerators. This can also be specified with the
+environment variable \ref STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY.
+This can also be specified at compilation time by giving to the
+configure script the option \ref disable-asynchronous-mic-copy "--disable-asynchronous-mic-copy".
+(default = 0).
 
 \var starpu_conf::cuda_opengl_interoperability
 Enable CUDA/OpenGL interoperation on these CUDA
@@ -200,9 +218,11 @@ returns 0. Otherwise, -ENODEV indicates that no worker was available
 
 \fn int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 \ingroup API_Initialization_and_Termination
-Alternative initialization method with argc and argv. This is used by
-MIC, MPI, and SCC implementation. Do not call starpu_init() and
-starpu_initialize() in the same program.
+This is the same as starpu_init(), but also takes the \p argc and \p
+argv as defined by the application. This is needed for SCC execution
+to initialize the communication library.
+Do not call starpu_init() and starpu_initialize() in the
+same program.
 
 \fn int starpu_conf_init(struct starpu_conf *conf)
 \ingroup API_Initialization_and_Termination

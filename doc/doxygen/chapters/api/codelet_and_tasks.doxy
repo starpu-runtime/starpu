@@ -72,6 +72,16 @@ to specify the codelet may be executed on a CUDA processing unit.
 This macro is used when setting the field starpu_codelet::where to
 specify the codelet may be executed on a OpenCL processing unit.
 
+\def STARPU_MIC
+\ingroup API_Codelet_And_Tasks
+This macro is used when setting the field starpu_codelet::where to
+specify the codelet may be executed on a MIC processing unit.
+
+\def STARPU_SCC
+\ingroup API_Codelet_And_Tasks
+This macro is used when setting the field starpu_codelet::where to
+specify the codelet may be executed on an SCC processing unit.
+
 \def STARPU_MULTIPLE_CPU_IMPLEMENTATIONS
 \deprecated
 \ingroup API_Codelet_And_Tasks
@@ -178,6 +188,12 @@ starpu_codelet::where is set, then the field starpu_codelet::cpu_funcs
 is ignored if ::STARPU_CPU does not appear in the field
 starpu_codelet::where, it must be non-null otherwise.
 
+\var starpu_codelet::cpu_funcs_name
+Optional array of strings which provide the name of the CPU functions
+referenced in the array starpu_codelet::cpu_funcs. This can be used
+when running on MIC devices or the SCC platform, for StarPU to simply
+look up the MIC function implementation through its name.
+
 \var starpu_codelet::cuda_funcs
 Optional array of function pointers to the CUDA implementations of the
 codelet. It must be terminated by a NULL value. The functions must be
@@ -201,6 +217,32 @@ If the field starpu_codelet::where field is set, then the field
 starpu_codelet::opencl_funcs is ignored if ::STARPU_OPENCL does not
 appear in the field starpu_codelet::where, it must be non-null
 otherwise.
+
+\var starpu_codelet::mic_funcs
+Optional array of function pointers to a function which returns the
+MIC implementation of the codelet. It must be terminated by a NULL
+value. The functions prototype must be:
+\code{.c}
+starpu_mic_kernel_t mic_func(struct starpu_codelet *cl, unsigned nimpl)
+\endcode
+If the field starpu_codelet::where is set, then the field
+starpu_codelet::mic_funcs is ignored if ::STARPU_MIC does not appear
+in the field starpu_codelet::where. It can be null if
+starpu_codelet::cpu_funcs_name is non-NULL, in which case StarPU will
+simply make a symbol lookup to get the implementation.
+
+\var starpu_codelet::scc_funcs
+Optional array of function pointers to a function which returns the
+SCC implementation of the codelet. It must be terminated by a NULL value.
+The functions prototype must be:
+\code{.c}
+starpu_scc_kernel_t scc_func(struct starpu_codelet *cl, unsigned nimpl)
+\endcode
+If the field starpu_codelet::where is set, then the field
+starpu_codelet::scc_funcs is ignored if ::STARPU_SCC does not appear
+in the field starpu_codelet::where. It can be null if
+starpu_codelet::cpu_funcs_name is non-NULL, in which case StarPU will
+simply make a symbol lookup to get the implementation.
 
 \var starpu_codelet::nbuffers
 Specify the number of arguments taken by the codelet. These arguments
@@ -324,6 +366,14 @@ is therefore not the starpu_task::cl_arg pointer, but the address of
 the buffer in local store (LS) instead. This field is ignored for CPU,
 CUDA and OpenCL codelets, where the starpu_task::cl_arg pointer is
 given as such.
+
+\var starpu_task::cl_arg_free
+Optional field. In case starpu_task::cl_arg was allocated by the
+application through <c>malloc()</c>, setting starpu_task::cl_arg_free
+to 1 makes StarPU automatically call <c>free(cl_arg)</c> when
+destroying the task. This saves the user from defining a callback just
+for that. This is mostly useful when targetting MIC or SCC, where the
+codelet does not execute in the same memory space as the main thread.
 
 \var starpu_task::callback_func
 Optional field, the default value is <c>NULL</c>. This is a function

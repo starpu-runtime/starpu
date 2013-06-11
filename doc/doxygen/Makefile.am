@@ -72,6 +72,8 @@ chapters =	\
 	chapters/api/mpi.doxy \
 	chapters/api/multiformat_data_interface.doxy \
 	chapters/api/opencl_extensions.doxy \
+	chapters/api/mic_extensions.doxy \
+	chapters/api/scc_extensions.doxy \
 	chapters/api/parallel_tasks.doxy \
 	chapters/api/performance_model.doxy \
 	chapters/api/profiling.doxy \
