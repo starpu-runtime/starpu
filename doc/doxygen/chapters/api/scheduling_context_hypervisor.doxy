@@ -1,0 +1,295 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Scheduling_Context_Hypervisor Scheduling Context Hypervisor
+
+\struct sc_hypervisor_policy
+\ingroup API_Scheduling_Context_Hypervisor
+This structure contains all the methods that implement a hypervisor resizing policy.
+\var sc_hypervisor_policy::name
+        Indicates the name of the policy, if there is not a custom policy, the policy corresponding to this name will be used by the hypervisor
+\var sc_hypervisor_policy::custom
+        Indicates whether the policy is custom or not
+\var sc_hypervisor_policy::handle_idle_cycle
+        It is called whenever the indicated worker executes another idle cycle in sched_ctx
+\var sc_hypervisor_policy::handle_pushed_task
+        It is called whenever a task is pushed on the worker’s queue corresponding to the context sched_ctx
+\var sc_hypervisor_policy::handle_poped_task
+        It is called whenever a task is poped from the worker’s queue corresponding to the context sched_ctx
+\var sc_hypervisor_policy::handle_idle_end
+        It is called whenever a task is executed on the indicated worker and context after a long period of idle time
+\var sc_hypervisor_policy::handle_post_exec_hook
+        It is called whenever a tag task has just been executed. The table of resize requests is provided as well as the tag
+
+\struct sc_hypervisor_policy_config
+\ingroup API_Scheduling_Context_Hypervisor
+This structure contains all configuration information of a
+context. It contains configuration information for each context, which
+can be used to construct new resize strategies.
+\var sc_hypervisor_policy_config::min_nworkers
+        Indicates the minimum number of workers needed by the context
+\var sc_hypervisor_policy_config::max_nworkers
+        Indicates the maximum number of workers needed by the context
+\var sc_hypervisor_policy_config::granularity
+        Indicates the workers granularity of the context
+\var sc_hypervisor_policy_config::priority
+        Indicates the priority of each worker in the context
+\var sc_hypervisor_policy_config::max_idle
+        Indicates the maximum idle time accepted before a resize is triggered
+\var sc_hypervisor_policy_config::fixed_workers
+        Indicates which workers can be moved and which ones are fixed
+\var sc_hypervisor_policy_config:: new_workers_max_idle
+        Indicates the maximum idle time accepted before a resize is triggered for the workers that just arrived in the new context
+
+\struct sc_hypervisor_wrapper
+\ingroup API_Scheduling_Context_Hypervisor
+This structure is a wrapper of the contexts available in StarPU
+and contains all information about a context obtained by incrementing
+the performance counters.
+\var sc_hypervisor_wrapper::sched_ctx
+        The context wrapped
+\var sc_hypervisor_wrapper::config
+        The corresponding resize configuration
+\var sc_hypervisor_wrapper::current_idle_time
+        The idle time counter of each worker of the context
+\var sc_hypervisor_wrapper::pushed_tasks
+        The number of pushed tasks of each worker of the context
+\var sc_hypervisor_wrapper::poped_tasks
+        The number of poped tasks of each worker of the context
+\var sc_hypervisor_wrapper::total_flops
+        The total number of flops to execute by the context
+\var sc_hypervisor_wrapper::total_elapsed_flops
+        The number of flops executed by each workers of the context
+\var sc_hypervisor_wrapper::elapsed_flops
+        The number of flops executed by each worker of the context from last resize
+\var sc_hypervisor_wrapper::remaining_flops
+        The number of flops that still have to be executed by the workers in the context
+\var sc_hypervisor_wrapper::start_time
+        The time when he started executed
+\var sc_hypervisor_wrapper::resize_ack
+        The structure confirming the last resize finished and a new one can be done
+
+\struct sc_hypervisor_resize_ack
+\ingroup API_Scheduling_Context_Hypervisor
+This structures checks if the workers moved to another context
+are actually taken into account in that context.
+\var sc_hypervisor_resize_ack::receiver_sched_ctx
+        The context receiving the new workers
+\var sc_hypervisor_resize_ack::moved_workers
+        The workers moved to the receiver context
+\var sc_hypervisor_resize_ack::nmoved_workers
+        The number of workers moved
+\var sc_hypervisor_resize_ack::acked_workers
+        If the value corresponding to a worker is 1, this one is taken
+	into account in the new context if 0 not yet
+
+\struct sc_hypervisor_policy_task_pool
+task wrapper linked list
+\ingroup API_Scheduling_Context_Hypervisor
+\var sc_hypervisor_policy_task_pool::cl
+Which codelet has been executed
+\var sc_hypervisor_policy_task_pool::footprint
+Task footprint key
+\var sc_hypervisor_policy_task_pool::sched_ctx_id
+Context the task belongs to
+\var sc_hypervisor_policy_task_pool::n
+Number of tasks of this kind
+\var sc_hypervisor_policy_task_pool::next
+Other task kinds
+
+@name Managing the hypervisor
+\ingroup API_Scheduling_Context_Hypervisor
+
+There is a single hypervisor that is in charge of resizing contexts
+and the resizing strategy is chosen at the initialization of the
+hypervisor. A single resize can be done at a time.
+
+The Scheduling Context Hypervisor Plugin provides a series of
+performance counters to StarPU. By incrementing them, StarPU can help
+the hypervisor in the resizing decision making process. TODO maybe
+they should be hidden to the user
+
+\fn struct starpu_sched_ctx_performance_counters *sc_hypervisor_init(struct sc_hypervisor_policy * policy)
+\ingroup API_Scheduling_Context_Hypervisor
+Initializes the hypervisor to use the strategy provided as parameter
+and creates the performance counters (see starpu_sched_ctx_performance_counters).
+These performance counters represent actually some callbacks that will
+be used by the contexts to notify the information needed by the
+hypervisor.
+
+Note: The Hypervisor is actually a worker that takes this role once
+certain conditions trigger the resizing process (there is no
+additional thread assigned to the hypervisor).
+
+\fn void sc_hypervisor_shutdown(void)
+\ingroup API_Scheduling_Context_Hypervisor
+The hypervisor and all information concerning it is cleaned. There is
+no synchronization between this function and starpu_shutdown(). Thus,
+this should be called after starpu_shutdown(), because the performance
+counters will still need allocated callback functions.
+
+@name Registering Scheduling Contexts to the hypervisor
+\ingroup API_Scheduling_Context_Hypervisor
+
+Scheduling Contexts that have to be resized by the hypervisor must be
+first registered to the hypervisor. Whenever we want to exclude
+contexts from the resizing process we have to unregister them from the
+hypervisor.
+
+\fn void sc_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
+\ingroup API_Scheduling_Context_Hypervisor
+Register the context to the hypervisor, and indicate the number of
+flops the context will execute (needed for Gflops rate based strategy
+see \ref ResizingStrategies or any other custom strategy needing it, for
+the others we can pass 0.0)
+
+\fn void sc_hypervisor_unregister_ctx (unsigned sched_ctx)
+\ingroup API_Scheduling_Context_Hypervisor
+Unregister the context from the hypervisor.
+
+@name Users’ Input In The Resizing Process
+\anchor UsersInputInTheResizingProcess
+\ingroup API_Scheduling_Context_Hypervisor
+
+The user can totally forbid the resizing of a certain context or can
+then change his mind and allow it (in this case the resizing is
+managed by the hypervisor, that can forbid it or allow it)
+
+\fn void sc_hypervisor_stop_resize(unsigned sched_ctx)
+\ingroup API_Scheduling_Context_Hypervisor
+Forbid resizing of a context
+
+\fn void sc_hypervisor_start_resize(unsigned sched_ctx)
+\ingroup API_Scheduling_Context_Hypervisor
+Allow resizing of a context. The user can then provide information to
+the hypervisor concerning the conditions of resizing.
+
+\fn void sc_hypervisor_ioctl(unsigned sched_ctx, ...)
+\ingroup API_Scheduling_Context_Hypervisor
+Inputs conditions to the context sched_ctx with the following
+arguments. The argument list must be zero-terminated.
+
+\def HYPERVISOR_MAX_IDLE
+\ingroup API_Scheduling_Context_Hypervisor
+This macro is used when calling sc_hypervisor_ioctl() and must be
+followed by 3 arguments: an array of int for the workerids to apply
+the condition, an int to indicate the size of the array, and a double
+value indicating the maximum idle time allowed for a worker before the
+resizing process should be triggered
+
+\def HYPERVISOR_PRIORITY
+\ingroup API_Scheduling_Context_Hypervisor
+This macro is used when calling sc_hypervisor_ioctl() and must be
+followed by 3 arguments: an array of int for the workerids to apply
+the condition, an int to indicate the size of the array, and an int
+value indicating the priority of the workers previously mentioned. The
+workers with the smallest priority are moved the first.
+
+\def HYPERVISOR_MIN_WORKERS
+\ingroup API_Scheduling_Context_Hypervisor
+This macro is used when calling sc_hypervisor_ioctl() and must be
+followed by 1 argument(int) indicating the minimum number of workers a
+context should have, underneath this limit the context cannot execute.
+
+\def HYPERVISOR_MAX_WORKERS
+\ingroup API_Scheduling_Context_Hypervisor
+This macro is used when calling sc_hypervisor_ioctl() and must be
+followed by 1 argument(int) indicating the maximum number of workers a
+context should have, above this limit the context would not be able to
+scale
+
+\def HYPERVISOR_GRANULARITY
+\ingroup API_Scheduling_Context_Hypervisor
+This macro is used when calling sc_hypervisor_ioctl() and must be
+followed by 1 argument(int) indicating the granularity of the resizing
+process (the number of workers should be moved from the context once
+it is resized) This parameter is ignore for the Gflops rate based
+strategy (see \ref ResizingStrategies), the number of workers that have to
+be moved is calculated by the strategy.
+
+\def HYPERVISOR_FIXED_WORKERS
+\ingroup API_Scheduling_Context_Hypervisor
+This macro is used when calling sc_hypervisor_ioctl() and must be
+followed by 2 arguments: an array of int for the workerids to apply
+the condition and an int to indicate the size of the array. These
+workers are not allowed to be moved from the context.
+
+\def HYPERVISOR_MIN_TASKS
+\ingroup API_Scheduling_Context_Hypervisor
+This macro is used when calling sc_hypervisor_ioctl() and must be
+followed by 1 argument (int) that indicated the minimum number of
+tasks that have to be executed before the context could be resized.
+This parameter is ignored for the Application Driven strategy (see \ref 
+ResizingStrategies) where the user indicates exactly when the resize
+should be done.
+
+\def HYPERVISOR_NEW_WORKERS_MAX_IDLE
+\ingroup API_Scheduling_Context_Hypervisor
+This macro is used when calling sc_hypervisor_ioctl() and must be
+followed by 1 argument, a double value indicating the maximum idle
+time allowed for workers that have just been moved from other contexts
+in the current context.
+
+\def HYPERVISOR_TIME_TO_APPLY
+\ingroup API_Scheduling_Context_Hypervisor
+This macro is used when calling sc_hypervisor_ioctl() and must be
+followed by 1 argument (int) indicating the tag an executed task
+should have such that this configuration should be taken into account.
+
+@name Defining a new hypervisor policy
+\ingroup API_Scheduling_Context_Hypervisor
+
+While Scheduling Context Hypervisor Plugin comes with a variety of
+resizing policies (see \ref ResizingStrategies), it may sometimes be
+desirable to implement custom policies to address specific problems.
+The API described below allows users to write their own resizing policy.
+
+Here an example of how to define a new policy
+
+\code{.c}
+struct sc_hypervisor_policy dummy_policy =
+{
+       .handle_poped_task = dummy_handle_poped_task,
+       .handle_pushed_task = dummy_handle_pushed_task,
+       .handle_idle_cycle = dummy_handle_idle_cycle,
+       .handle_idle_end = dummy_handle_idle_end,
+       .handle_post_exec_hook = dummy_handle_post_exec_hook,
+       .custom = 1,
+       .name = "dummy"
+};
+\endcode
+
+\fn void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int *workers_to_move, unsigned nworkers_to_move, unsigned now);
+\ingroup API_Scheduling_Context_Hypervisor
+    Moves workers from one context to another
+
+\fn struct sc_hypervisor_policy_config * sc_hypervisor_get_config(unsigned sched_ctx);
+\ingroup API_Scheduling_Context_Hypervisor
+    Returns the configuration structure of a context
+
+\fn int * sc_hypervisor_get_sched_ctxs();
+\ingroup API_Scheduling_Context_Hypervisor
+    Gets the contexts managed by the hypervisor
+
+\fn int sc_hypervisor_get_nsched_ctxs();
+\ingroup API_Scheduling_Context_Hypervisor
+    Gets the number of contexts managed by the hypervisor
+
+\fn struct sc_hypervisor_wrapper * sc_hypervisor_get_wrapper(unsigned sched_ctx);
+\ingroup API_Scheduling_Context_Hypervisor
+    Returns the wrapper corresponding the context \p sched_ctx
+
+\fn double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper * sc_w);
+\ingroup API_Scheduling_Context_Hypervisor
+    Returns the flops of a context elapsed from the last resize
+
+\fn char * sc_hypervisor_get_policy();
+\ingroup API_Scheduling_Context_Hypervisor
+    Returns the name of the resizing policy the hypervisor uses
+
+*/

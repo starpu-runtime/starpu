@@ -32,28 +32,22 @@ extern "C"
 
 struct starpu_profiling_task_info
 {
-	/* Task submission */
 	struct timespec submit_time;
 
-	/* Scheduling overhead */
 	struct timespec push_start_time;
 	struct timespec push_end_time;
 	struct timespec pop_start_time;
 	struct timespec pop_end_time;
 
-	/* Take input data */
 	struct timespec acquire_data_start_time;
 	struct timespec acquire_data_end_time;
 
-	/* Execution */
 	struct timespec start_time;
 	struct timespec end_time;
 
-	/* Release data */
 	struct timespec release_data_start_time;
 	struct timespec release_data_end_time;
 
-	/* Callback */
 	struct timespec callback_start_time;
 	struct timespec callback_end_time;
 
@@ -65,7 +59,6 @@ struct starpu_profiling_task_info
 	double power_consumed;
 };
 
-/* The timing is provided since the previous call to starpu_profiling_worker_get_info */
 struct starpu_profiling_worker_info
 {
 	struct timespec start_time;
@@ -87,19 +80,10 @@ struct starpu_profiling_bus_info
 	int transfer_count;
 };
 
-/* This function sets the ID used for profiling trace filename */
 void starpu_profiling_set_id(int new_id);
-
-/* This function sets the profiling status:
- * - enable with STARPU_PROFILING_ENABLE
- * - disable with STARPU_PROFILING_DISABLE
- * Negative return values indicate an error, otherwise the previous status is
- * returned. Calling this function resets the profiling measurements. */
 int starpu_profiling_status_set(int status);
-
-/* Return the current profiling status or a negative value in case there was an
- * error. */
 int starpu_profiling_status_get(void);
+
 #ifdef BUILDING_STARPU
 #include <common/utils.h>
 extern int _starpu_profiling;
@@ -112,8 +96,6 @@ extern int _starpu_profiling;
 })
 #endif
 
-/* Get the profiling info associated to a worker, and reset the profiling
- * measurements. If worker_info is NULL, we only reset the counters. */
 int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worker_info *worker_info);
 
 int starpu_bus_get_count(void);
@@ -178,7 +160,6 @@ static __starpu_inline void starpu_timespec_sub(const struct timespec *a,
 #define starpu_timespec_cmp(a, b, CMP)                          \
 	(((a)->tv_sec == (b)->tv_sec) ? ((a)->tv_nsec CMP (b)->tv_nsec) : ((a)->tv_sec CMP (b)->tv_sec))
 
-/* Returns the time elapsed between start and end in microseconds */
 double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end);
 double starpu_timing_timespec_to_us(struct timespec *ts);
 

@@ -1,12 +1,12 @@
 #!/bin/bash
 
 ROOT_DIR=$PWD
-[ -n "$MIC_HOST" ] || MIC_HOST=x86_64-k1om-linux
-[ -n "$MIC_CC_PATH" ] || MIC_CC_PATH=/usr/linux-k1om-4.7/bin/
-[ -n "$COI_DIR" ] || COI_DIR=/opt/intel/mic/coi
+[ -n "$STARPU_MIC_HOST" ] || STARPU_MIC_HOST=x86_64-k1om-linux
+[ -n "$STARPU_MIC_CC_PATH" ] || STARPU_MIC_CC_PATH=/usr/linux-k1om-4.7/bin/
+[ -n "$STARPU_COI_DIR" ] || STARPU_COI_DIR=/opt/intel/mic/coi
 DEFAULT_PREFIX=/usr/local
 
-export PATH=${MIC_CC_PATH}${PATH:+:${PATH}}
+export PATH=${STARPU_MIC_CC_PATH}${PATH:+:${PATH}}
 
 cat > ./mic-config.log << EOF
 This file was created by StarPU mic-configure
@@ -19,13 +19,13 @@ do
 
 	# We call the configure script from a build directory further in the
 	# arborescence
-	command="${ROOT_DIR}/configure --enable-mic --with-coi-dir=$COI_DIR"
+	command="${ROOT_DIR}/configure --enable-mic --with-coi-dir=$STARPU_COI_DIR"
 	prefix_found=no
 
 	if test x$arch = xmic ; then
-		command="$command --without-hwloc --with-coi-lib-dir=$COI_DIR/device-linux-release/lib --host=$MIC_HOST"
+		command="$command --without-hwloc --with-coi-lib-dir=$STARPU_COI_DIR/device-linux-release/lib --host=$STARPU_MIC_HOST"
 	else
-		command="$command --with-coi-lib-dir=$COI_DIR/host-linux-release/lib"
+		command="$command --with-coi-lib-dir=$STARPU_COI_DIR/host-linux-release/lib"
 	fi
 
 	for arg in $*

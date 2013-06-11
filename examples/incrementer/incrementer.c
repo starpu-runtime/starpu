@@ -22,15 +22,15 @@ static unsigned niter = 50000;
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 #ifdef STARPU_USE_CUDA
-extern void cuda_codelet(void *descr[], __attribute__ ((unused)) void *_args);
+extern void cuda_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 #endif
 
 #ifdef STARPU_USE_OPENCL
-extern void opencl_codelet(void *descr[], __attribute__ ((unused)) void *_args);
+extern void opencl_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 struct starpu_opencl_program opencl_program;
 #endif
 
-void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	float *val = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 	if (argc == 2)
 		niter = atoi(argv[1]);
 
-	float float_array[4] __attribute__ ((aligned (16))) = { 0.0f, 0.0f, 0.0f, 0.0f};
+	float float_array[4] STARPU_ATTRIBUTE_ALIGNED(16) = { 0.0f, 0.0f, 0.0f, 0.0f};
 
 	starpu_data_handle_t float_array_handle;
 	starpu_vector_data_register(&float_array_handle, 0 /* home node */,

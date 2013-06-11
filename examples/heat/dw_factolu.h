@@ -49,7 +49,7 @@ typedef struct
 } cl_args;
 
 #ifdef CHECK_RESULTS
-static void __attribute__ ((unused)) compare_A_LU(float *A, float *LU,
+static void STARPU_ATTRIBUTE_UNUSED compare_A_LU(float *A, float *LU,
 				unsigned size, unsigned ld)
 {
 	unsigned i,j;

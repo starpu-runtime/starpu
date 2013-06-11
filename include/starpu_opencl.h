@@ -74,29 +74,6 @@ int starpu_opencl_release_kernel(cl_kernel kernel);
 
 int starpu_opencl_collect_stats(cl_event event);
 
-/*
- * Sets the arguments of an OpenCL kernel.
- * Arguments to pass to the kernel should be given as follows :
- *
- * 	size of the argument,  pointer to the argument
- *
- * 0 must be passed to this function after the kernel arguments.
- *
- * In case of failure, returns the id of the argument that could not be set,
- * and sets "error" to the error returned. Otherwise, returns the number of
- * arguments that were set.
- *
- * Example :
- * int n;
- * cl_int err;
- * cl_kernel kernel;
- * n = starpu_opencl_set_kernel_args(&err, 2, &kernel,
- *				     sizeof(foo), &foo,
- *                                   sizeof(bar), &bar,
- *                                   0);
- * if (n != 2)
- * 	fprintf(stderr, "Error : %d\n", err);
- */
 int starpu_opencl_set_kernel_args(cl_int *err, cl_kernel *kernel, ...);
 
 cl_int starpu_opencl_allocate_memory(cl_mem *addr, size_t size, cl_mem_flags flags);

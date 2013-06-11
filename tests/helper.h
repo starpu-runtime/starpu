@@ -37,7 +37,7 @@
 //#define STARPU_CHECK_RETURN_VALUE_IS_THREAD(err, value, message) {if (err >= 0 || errno != value) { perror(message); return ALL_IS_NOT_OK; }}
 
 //#define STARPU_TEST_OUTPUT
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 #ifdef STARPU_HAVE_VALGRIND_H
 static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;

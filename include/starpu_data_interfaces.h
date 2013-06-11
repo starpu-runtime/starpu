@@ -35,38 +35,28 @@ extern "C"
 {
 #endif
 
-/* The following structures are used to describe data interfaces */
-
-/* This structure contains the different methods to transfer data between the
- * different types of memory nodes */
 struct starpu_data_copy_methods
 {
-	/* src type is ram */
 	int (*ram_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*ram_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*ram_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*ram_to_mic)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
-	/* src type is cuda */
 	int (*cuda_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*cuda_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*cuda_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
-	/* src type is opencl */
 	int (*opencl_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*opencl_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*opencl_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
-	/* src type is mic */
 	int (*mic_to_ram)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);
 
-	/* scc case */
 	int (*scc_src_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*scc_sink_to_src)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*scc_sink_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 #ifdef STARPU_USE_CUDA
-	/* for asynchronous CUDA transfers */
 	int (*ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
 	int (*cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
 	int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
@@ -77,14 +67,12 @@ struct starpu_data_copy_methods
 #endif
 
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
-	/* for asynchronous OpenCL transfers */
 	int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 	int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 	int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 #endif
 
 #ifdef STARPU_USE_MIC
-	/* Asynchronous MIC transfers */
 	int (*ram_to_mic_async)(void *src_intreface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*mic_to_ram_async)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);
 #endif
@@ -93,9 +81,7 @@ struct starpu_data_copy_methods
 };
 
 int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data);
-/* Allocate SIZE bytes on node NODE */
 uintptr_t starpu_malloc_on_node(unsigned dst_node, size_t size);
-/* Free ADDR on node NODE */
 void starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size);
 
 enum starpu_data_interface_id
@@ -115,66 +101,38 @@ enum starpu_data_interface_id
 
 struct starpu_data_interface_ops
 {
-	/* Register an existing interface into a data handle. */
 	void (*register_data_handle)(starpu_data_handle_t handle,
 				     unsigned home_node, void *data_interface);
-	/* Allocate data for the interface on a given node. */
 	starpu_ssize_t (*allocate_data_on_node)(void *data_interface, unsigned node);
-	/* Free data of the interface on a given node. */
 	void (*free_data_on_node)(void *data_interface, unsigned node);
-	/* ram/cuda/opencl synchronous and asynchronous transfer methods */
 	const struct starpu_data_copy_methods *copy_methods;
-	/* Return the current pointer (if any) for the handle on the given node. */
 	void * (*handle_to_pointer)(starpu_data_handle_t handle, unsigned node);
-	/* Return an estimation of the size of data, for performance models */
 	size_t (*get_size)(starpu_data_handle_t handle);
-	/* Return a 32bit footprint which characterizes the data size */
 	uint32_t (*footprint)(starpu_data_handle_t handle);
-	/* Compare the data size of two interfaces */
 	int (*compare)(void *data_interface_a, void *data_interface_b);
-	/* Dump the sizes of a handle to a file */
 	void (*display)(starpu_data_handle_t handle, FILE *f);
-	/* an identifier that is unique to each interface */
 	enum starpu_data_interface_id interfaceid;
-	/* The size of the interface data descriptor */
 	size_t interface_size;
 
 	int is_multiformat;
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 
-	/* Pack the data handle into a contiguous buffer at the address ptr and store the size of the buffer in count */
 	int (*pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
-	/* Unpack the data handle from the contiguous buffer at the address ptr */
 	int (*unpack_data)(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 };
 
-/* Return the next available id for a data interface */
 int starpu_data_interface_get_next_id(void);
 
 void starpu_data_register(starpu_data_handle_t *handleptr, unsigned home_node, void *data_interface, struct starpu_data_interface_ops *ops);
 void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc);
 
-/* Return the pointer associated with HANDLE on node NODE or NULL if HANDLE's
- * interface does not support this operation or data for this handle is not
- * allocated on that node. */
 void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node);
-
-/* Return the local pointer associated with HANDLE or NULL if HANDLE's
- * interface does not have data allocated locally */
 void *starpu_data_get_local_ptr(starpu_data_handle_t handle);
-
-/* "node" means memory node: 0 for main RAM, then 1, 2, etc. for various GPUs,
- * etc.
- *
- * On registration, the source of data is usually a pointer in RAM, in which
- * case 0 should be passed.
- */
 
 void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
 extern struct starpu_data_interface_ops starpu_interface_matrix_ops;
 
-/* Matrix interface for dense matrices */
 struct starpu_matrix_interface
 {
 	enum starpu_data_interface_id id;
@@ -195,7 +153,6 @@ uint32_t starpu_matrix_get_local_ld(starpu_data_handle_t handle);
 uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle_t handle);
 size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 
-/* helper methods */
 #define STARPU_MATRIX_GET_PTR(interface)	(((struct starpu_matrix_interface *)(interface))->ptr)
 #define STARPU_MATRIX_GET_DEV_HANDLE(interface)	(((struct starpu_matrix_interface *)(interface))->dev_handle)
 #define STARPU_MATRIX_GET_OFFSET(interface)	(((struct starpu_matrix_interface *)(interface))->offset)
@@ -204,9 +161,6 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_MATRIX_GET_LD(interface)	(((struct starpu_matrix_interface *)(interface))->ld)
 #define STARPU_MATRIX_GET_ELEMSIZE(interface)	(((struct starpu_matrix_interface *)(interface))->elemsize)
 
-/*
- * COO matrices.
- */
 struct starpu_coo_interface
 {
 	enum starpu_data_interface_id id;
@@ -244,7 +198,6 @@ void starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_nod
 #define STARPU_COO_GET_ELEMSIZE(interface) \
 	(((struct starpu_coo_interface *)(interface))->elemsize)
 
-/* BLOCK interface for 3D dense blocks */
 /* TODO: rename to 3dmatrix? */
 struct starpu_block_interface
 {
@@ -256,8 +209,8 @@ struct starpu_block_interface
 	uint32_t nx;
 	uint32_t ny;
 	uint32_t nz;
-	uint32_t ldy;	/* number of elements between two lines */
-	uint32_t ldz;	/* number of elements between two planes */
+	uint32_t ldy;
+	uint32_t ldz;
 	size_t elemsize;
 };
 
@@ -270,7 +223,6 @@ uint32_t starpu_block_get_local_ldz(starpu_data_handle_t handle);
 uintptr_t starpu_block_get_local_ptr(starpu_data_handle_t handle);
 size_t starpu_block_get_elemsize(starpu_data_handle_t handle);
 
-/* helper methods */
 #define STARPU_BLOCK_GET_PTR(interface)	(((struct starpu_block_interface *)(interface))->ptr)
 #define STARPU_BLOCK_GET_DEV_HANDLE(interface)	(((struct starpu_block_interface *)(interface))->dev_handle)
 #define STARPU_BLOCK_GET_OFFSET(interface)	(((struct starpu_block_interface *)(interface))->offset)
@@ -281,7 +233,6 @@ size_t starpu_block_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_BLOCK_GET_LDZ(interface)	(((struct starpu_block_interface *)(interface))->ldz)
 #define STARPU_BLOCK_GET_ELEMSIZE(interface)	(((struct starpu_block_interface *)(interface))->elemsize)
 
-/* vector interface for contiguous (non-strided) buffers */
 struct starpu_vector_interface
 {
 	enum starpu_data_interface_id id;
@@ -298,14 +249,12 @@ uint32_t starpu_vector_get_nx(starpu_data_handle_t handle);
 size_t starpu_vector_get_elemsize(starpu_data_handle_t handle);
 uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 
-/* helper methods */
 #define STARPU_VECTOR_GET_PTR(interface)	(((struct starpu_vector_interface *)(interface))->ptr)
 #define STARPU_VECTOR_GET_DEV_HANDLE(interface)	(((struct starpu_vector_interface *)(interface))->dev_handle)
 #define STARPU_VECTOR_GET_OFFSET(interface)	(((struct starpu_vector_interface *)(interface))->offset)
 #define STARPU_VECTOR_GET_NX(interface)	(((struct starpu_vector_interface *)(interface))->nx)
 #define STARPU_VECTOR_GET_ELEMSIZE(interface)	(((struct starpu_vector_interface *)(interface))->elemsize)
 
-/* variable interface for a single data (not a vector, a matrix, a list, ...) */
 struct starpu_variable_interface
 {
 	enum starpu_data_interface_id id;
@@ -320,33 +269,24 @@ void starpu_variable_data_register(starpu_data_handle_t *handle, unsigned home_n
 size_t starpu_variable_get_elemsize(starpu_data_handle_t handle);
 uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle);
 
-/* helper methods */
 #define STARPU_VARIABLE_GET_PTR(interface)	(((struct starpu_variable_interface *)(interface))->ptr)
 #define STARPU_VARIABLE_GET_OFFSET(interface)	(((struct starpu_variable_interface *)(interface))->offset)
 #define STARPU_VARIABLE_GET_ELEMSIZE(interface)	(((struct starpu_variable_interface *)(interface))->elemsize)
 #define STARPU_VARIABLE_GET_DEV_HANDLE(interface) \
 	(((struct starpu_variable_interface *)(interface))->ptr)
 
-/* void interface. There is no data really associated to that interface, but it
- * may be used as a synchronization mechanism. It also permits to express an
- * abstract piece of data that is managed by the application internally: this
- * makes it possible to forbid the concurrent execution of different tasks
- * accessing the same "void" data in read-write concurrently. */
 void starpu_void_data_register(starpu_data_handle_t *handle);
 
-/* CSR interface for sparse matrices (compressed sparse row representation) */
 struct starpu_csr_interface
 {
 	enum starpu_data_interface_id id;
 
-	uint32_t nnz; /* number of non-zero entries */
-	uint32_t nrow; /* number of rows */
-	uintptr_t nzval; /* non-zero values */
-	uint32_t *colind; /* position of non-zero entries on the row */
-	uint32_t *rowptr; /* index (in nzval) of the first entry of the row */
+	uint32_t nnz;
+	uint32_t nrow;
+	uintptr_t nzval;
+	uint32_t *colind;
+	uint32_t *rowptr;
 
-	/* k for k-based indexing (0 or 1 usually) */
-	/* also useful when partitionning the matrix ... */
 	uint32_t firstentry;
 
 	size_t elemsize;
@@ -376,25 +316,19 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_CSR_GET_FIRSTENTRY(interface)	(((struct starpu_csr_interface *)(interface))->firstentry)
 #define STARPU_CSR_GET_ELEMSIZE(interface)	(((struct starpu_csr_interface *)(interface))->elemsize)
 
-/* BCSR interface for sparse matrices (blocked compressed sparse row
- * representation) */
 struct starpu_bcsr_interface
 {
 	enum starpu_data_interface_id id;
 
-	uint32_t nnz; /* number of non-zero BLOCKS */
-	uint32_t nrow; /* number of rows (in terms of BLOCKS) */
+	uint32_t nnz;
+	uint32_t nrow;
 
-	uintptr_t nzval; /* non-zero values */
-	uint32_t *colind; /* position of non-zero entried on the row */
-/*	uint32_t *rowind; */ /* position of non-zero entried on the col */
-	uint32_t *rowptr; /* index (in nzval) of the first entry of the row */
+	uintptr_t nzval;
+	uint32_t *colind;
+	uint32_t *rowptr;
 
-	/* k for k-based indexing (0 or 1 usually) */
-	/* also useful when partitionning the matrix ... */
 	uint32_t firstentry;
 
-	/* size of the blocks */
 	uint32_t r;
 	uint32_t c;
 
@@ -424,9 +358,6 @@ uint32_t starpu_bcsr_get_r(starpu_data_handle_t handle);
 uint32_t starpu_bcsr_get_c(starpu_data_handle_t handle);
 size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
 
-/*
- * Multiformat interface
- */
 struct starpu_multiformat_data_interface_ops
 {
 	size_t cpu_elemsize;
@@ -467,9 +398,7 @@ int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *co
 int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count);
 size_t starpu_data_get_size(starpu_data_handle_t handle);
 
-/* Lookup a ram pointer into a StarPU handle */
-extern starpu_data_handle_t starpu_data_lookup(const void *ptr);
-
+starpu_data_handle_t starpu_data_lookup(const void *ptr);
 
 #ifdef __cplusplus
 }

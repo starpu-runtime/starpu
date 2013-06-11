@@ -70,7 +70,7 @@ static struct starpu_codelet cl22 =
  *	and construct the DAG
  */
 
-static void callback_turn_spmd_on(void *arg __attribute__ ((unused)))
+static void callback_turn_spmd_on(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	cl22.type = STARPU_SPMD;
 }

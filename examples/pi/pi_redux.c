@@ -54,7 +54,7 @@ static unsigned short xsubi[STARPU_NMAXWORKERS*PADDING];
 static starpu_drand48_data randbuffer[STARPU_NMAXWORKERS*PADDING];
 
 /* Function to initialize the random number generator in the current worker */
-static void init_rng(void *arg __attribute__((unused)))
+static void init_rng(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_HAVE_CURAND
 	curandStatus_t res;
@@ -138,7 +138,7 @@ static void parse_args(int argc, char **argv)
  *	Monte-carlo kernel
  */
 
-void pi_func_cpu(void *descr[], void *cl_arg __attribute__ ((unused)))
+void pi_func_cpu(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	int workerid = starpu_worker_get_id();
 
@@ -175,7 +175,7 @@ void pi_func_cpu(void *descr[], void *cl_arg __attribute__ ((unused)))
 extern void pi_redux_cuda_kernel(float *x, float *y, unsigned n, unsigned long *shot_cnt);
 
 #ifdef STARPU_HAVE_CURAND
-static void pi_func_cuda(void *descr[], void *cl_arg __attribute__ ((unused)))
+static void pi_func_cuda(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	curandStatus_t res;
 

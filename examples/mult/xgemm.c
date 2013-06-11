@@ -183,13 +183,13 @@ static void mult_kernel_common(void *descr[], int type)
 }
 
 #ifdef STARPU_USE_CUDA
-static void cublas_mult(void *descr[], __attribute__((unused)) void *arg)
+static void cublas_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 {
 	mult_kernel_common(descr, STARPU_CUDA);
 }
 #endif
 
-static void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
+static void cpu_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED  void *arg)
 {
 	mult_kernel_common(descr, STARPU_CPU);
 }

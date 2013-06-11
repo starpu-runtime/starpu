@@ -122,11 +122,10 @@ LIST_TYPE(_starpu_job,
 	 * local variable */
 	struct timespec cl_start;
 
-#ifdef STARPU_USE_FXT
 	/* A symbol name may be associated to the job directly for debug
 	 * purposes (for instance if the codelet is NULL). */
         const char *model_name;
-#endif
+
 	struct bound_task *bound_task;
 
 	/* Number of workers executing that task (>1 if the task is parallel)
@@ -146,7 +145,7 @@ LIST_TYPE(_starpu_job,
 )
 
 /* Create an internal struct _starpu_job *structure to encapsulate the task. */
-struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_task *task);
+struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task);
 
 /* Destroy the data structure associated to the job structure */
 void _starpu_job_destroy(struct _starpu_job *j);

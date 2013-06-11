@@ -14,9 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-
 #include "sc_hypervisor_policy.h"
 #include "sc_hypervisor_intern.h"
+#include <math.h>
+
 static int _compute_priority(unsigned sched_ctx)
 {
 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctx);
@@ -632,8 +633,16 @@ static unsigned _check_idle(unsigned sched_ctx, int worker)
 {
 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
 	struct sc_hypervisor_policy_config *config = sc_w->config;
-	if(config != NULL &&  sc_w->current_idle_time[worker] > config->max_idle[worker])
-		return 1;
+	if(config != NULL)
+	{
+		int j;
+		for(j = 0; j < STARPU_NMAXWORKERS; j++)
+		{
+			if(sc_w->current_idle_time[j] > config->max_idle[j])
+				return 1;
+		}
+	}
+
 	return 0;
 }
 

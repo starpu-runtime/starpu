@@ -48,21 +48,10 @@ struct starpu_data_descr
 
 struct starpu_data_interface_ops;
 
-/* Destroy the data handle, in case we don't need to update the value of the
- * data in the home node, we can use starpu_data_unregister_no_coherency
- * instead. */
 void starpu_data_unregister(starpu_data_handle_t handle);
 void starpu_data_unregister_no_coherency(starpu_data_handle_t handle);
-
-/* Destroy the data handle once it is not needed anymore by any submitted task.
- * No coherency is assumed.
- */
 void starpu_data_unregister_submit(starpu_data_handle_t handle);
-
-/* Destroy all data replicates. After data invalidation, the first access to
- * the handle must be performed in write-only mode. */
 void starpu_data_invalidate(starpu_data_handle_t handle);
-/* Same, but waits for previous task completion */
 void starpu_data_invalidate_submit(starpu_data_handle_t handle);
 
 void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_important);
@@ -108,11 +97,7 @@ enum starpu_node_kind
 	STARPU_OPENCL_RAM = 0x03,
 	STARPU_DISK_RAM   = 0x04,
 	STARPU_MIC_RAM    = 0x05,
-
-	/* This node kind is not used anymore, but implementations in interfaces
-	 * will be useful for MPI. */
 	STARPU_SCC_RAM    = 0x06,
-
 	STARPU_SCC_SHM    = 0x07
 };
 
@@ -120,11 +105,6 @@ unsigned starpu_worker_get_memory_node(unsigned workerid);
 unsigned starpu_memory_nodes_get_count(void);
 enum starpu_node_kind starpu_node_get_kind(unsigned node);
 
-
-/* It is possible to associate a mask to a piece of data (and its children) so
- * that when it is modified, it is automatically transfered into those memory
- * node. For instance a (1<<0) write-through mask means that the CUDA workers will
- * commit their changes in main memory (node 0). */
 void starpu_data_set_wt_mask(starpu_data_handle_t handle, uint32_t wt_mask);
 
 void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, unsigned flag);
@@ -132,7 +112,6 @@ unsigned starpu_data_get_sequential_consistency_flag(starpu_data_handle_t handle
 unsigned starpu_data_get_default_sequential_consistency_flag(void);
 void starpu_data_set_default_sequential_consistency_flag(unsigned flag);
 
-/* Query the status of the handle on the specified memory node. */
 void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested);
 
 struct starpu_codelet;

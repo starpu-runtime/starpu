@@ -634,7 +634,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	{
 		int worker_idx = topology->nworkers + miccore_id;
 		enum starpu_perfmodel_archtype arch =
-			(enum starpu_perfmodel_archtype)((int)STARPU_MIC_DEFAULT + devid);
+			(enum starpu_perfmodel_archtype)((int)STARPU_MIC_DEFAULT + mic_idx);
 		config->workers[worker_idx].arch = STARPU_MIC_WORKER;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].mp_nodeid = mic_idx;
@@ -1322,7 +1322,7 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 
 void
 _starpu_destroy_topology (
-	struct _starpu_machine_config *config __attribute__ ((unused)))
+	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_MIC
 	_starpu_deinit_mp_config(config);

@@ -420,7 +420,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 #endif /* !SIMGRID */
 }
 
-int __attribute__((warn_unused_result)) _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
+int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
 									struct _starpu_data_replicate *src_replicate,
 									struct _starpu_data_replicate *dst_replicate,
 									unsigned donotread,

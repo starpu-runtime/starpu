@@ -31,7 +31,7 @@ static unsigned ntasks = 64;
 static unsigned ntasks = 65536;
 #endif
 
-void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }
 

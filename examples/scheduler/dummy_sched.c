@@ -129,7 +129,7 @@ static struct starpu_sched_policy dummy_sched_policy =
 	.policy_description = "dummy scheduling strategy"
 };
 
-static void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+static void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }
 

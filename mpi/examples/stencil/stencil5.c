@@ -17,7 +17,7 @@
 #include <starpu_mpi.h>
 #include <math.h>
 
-void stencil5_cpu(void *descr[], __attribute__ ((unused)) void *_args)
+void stencil5_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	unsigned *xy = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *xm1y = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);

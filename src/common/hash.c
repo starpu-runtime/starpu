@@ -15,13 +15,14 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu.h>
 #include <starpu_hash.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define _STARPU_CRC32C_POLY_BE 0x1EDC6F41
 
-static inline uint32_t __attribute__ ((pure)) starpu_crc32c_be_8(uint8_t inputbyte, uint32_t inputcrc)
+static inline uint32_t STARPU_ATTRIBUTE_PURE starpu_crc32c_be_8(uint8_t inputbyte, uint32_t inputcrc)
 {
 	unsigned i;
 	uint32_t crc;

@@ -29,7 +29,7 @@ static uintptr_t per_worker[STARPU_NMAXWORKERS];
 static starpu_data_handle_t per_worker_handle[STARPU_NMAXWORKERS];
 
 /* Create per-worker handles */
-static void initialize_per_worker_handle(void *arg __attribute__((unused)))
+static void initialize_per_worker_handle(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	int workerid = starpu_worker_get_id();
 
@@ -75,7 +75,7 @@ static void initialize_per_worker_handle(void *arg __attribute__((unused)))
  *	Implement reduction method
  */
 
-static void cpu_redux_func(void *descr[], void *cl_arg __attribute__((unused)))
+static void cpu_redux_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -100,7 +100,7 @@ static struct starpu_codelet reduction_codelet =
  *	Use per-worker local copy
  */
 
-static void cpu_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
+static void cpu_func_incr(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -110,7 +110,7 @@ static void cpu_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 
 #ifdef STARPU_USE_CUDA
 /* dummy CUDA implementation */
-static void cuda_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
+static void cuda_func_incr(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -127,7 +127,7 @@ static void cuda_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
 
 #ifdef STARPU_USE_OPENCL
 /* dummy OpenCL implementation */
-static void opencl_func_incr(void *descr[], void *cl_arg __attribute__((unused)))
+static void opencl_func_incr(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

@@ -53,13 +53,13 @@ static struct starpu_codelet cl =
 	.modes = {STARPU_RW},
 };
 
-void scallback(void *arg __attribute__((unused)))
+void scallback(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	char *msg = arg;
 	fprintf(stderr, "Sending completed for <%s>\n", msg);
 }
 
-void rcallback(void *arg __attribute__((unused)))
+void rcallback(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	char *msg = arg;
 	fprintf(stderr, "Reception completed for <%s>\n", msg);

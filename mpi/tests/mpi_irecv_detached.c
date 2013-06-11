@@ -32,7 +32,7 @@ starpu_data_handle_t tab_handle;
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 
-void callback(void *arg __attribute__((unused)))
+void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned *received = arg;
 

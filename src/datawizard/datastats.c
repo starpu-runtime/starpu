@@ -26,14 +26,14 @@ static unsigned hit_cnt[STARPU_MAXNODES];
 static unsigned miss_cnt[STARPU_MAXNODES];
 #endif
 
-void _starpu_msi_cache_hit(unsigned node __attribute__ ((unused)))
+void _starpu_msi_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_STATS
 	hit_cnt[node]++;
 #endif
 }
 
-void _starpu_msi_cache_miss(unsigned node __attribute__ ((unused)))
+void _starpu_msi_cache_miss(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_STATS
 	miss_cnt[node]++;
@@ -78,14 +78,14 @@ static unsigned alloc_cnt[STARPU_MAXNODES];
 static unsigned alloc_cache_hit_cnt[STARPU_MAXNODES];
 #endif
 
-void _starpu_allocation_cache_hit(unsigned node __attribute__ ((unused)))
+void _starpu_allocation_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_STATS
 	alloc_cache_hit_cnt[node]++;
 #endif
 }
 
-void _starpu_data_allocation_inc_stats(unsigned node __attribute__ ((unused)))
+void _starpu_data_allocation_inc_stats(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_STATS
 	alloc_cnt[node]++;
@@ -119,7 +119,7 @@ void _starpu_display_alloc_cache_stats(void)
 static size_t comm_amount[STARPU_MAXNODES][STARPU_MAXNODES];
 #endif /* STARPU_ENABLE_STATS */
 
-void _starpu_comm_amounts_inc(unsigned src  __attribute__ ((unused)), unsigned dst  __attribute__ ((unused)), size_t size  __attribute__ ((unused)))
+void _starpu_comm_amounts_inc(unsigned src  STARPU_ATTRIBUTE_UNUSED, unsigned dst  STARPU_ATTRIBUTE_UNUSED, size_t size  STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_STATS
 	comm_amount[src][dst] += size;

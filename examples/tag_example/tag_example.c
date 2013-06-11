@@ -149,7 +149,7 @@ static int create_task_grid(unsigned piter)
 }
 
 
-void callback_cpu(void *argcb __attribute__ ((unused)))
+void callback_cpu(void *argcb STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned newcnt = STARPU_ATOMIC_ADD(&callback_cnt, -1);	
 
@@ -167,8 +167,8 @@ void callback_cpu(void *argcb __attribute__ ((unused)))
 	}
 }
 
-void cpu_codelet(void *descr[] __attribute__((unused)),
-			void *_args __attribute__ ((unused)))
+void cpu_codelet(void *descr[] STARPU_ATTRIBUTE_UNUSED,
+			void *_args STARPU_ATTRIBUTE_UNUSED)
 {
 /*	printf("execute task\n"); */
 }
@@ -205,7 +205,7 @@ static void express_deps(unsigned i, unsigned j, unsigned piter)
 	}
 }
 
-int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
+int main(int argc STARPU_ATTRIBUTE_UNUSED , char **argv STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret;
 

@@ -41,7 +41,7 @@ void _starpu_exclude_task_from_dag(struct starpu_task *task)
 }
 
 /* create an internal struct _starpu_job structure to encapsulate the task */
-struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
+struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task)
 {
 	struct _starpu_job *job;
         _STARPU_LOG_IN();

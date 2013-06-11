@@ -18,7 +18,7 @@
 #include <interface/complex_interface.h>
 #include <interface/complex_codelet.h>
 
-void display_foo_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void display_foo_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	int *foo = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	fprintf(stderr, "foo = %d\n", *foo);

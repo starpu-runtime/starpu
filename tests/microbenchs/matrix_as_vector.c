@@ -24,7 +24,7 @@
 
 #define LOOPS 100
 
-void vector_cpu_func(void *descr[], void *cl_arg __attribute__((unused)))
+void vector_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -37,7 +37,7 @@ void vector_cpu_func(void *descr[], void *cl_arg __attribute__((unused)))
 	matrix[0] = sum/nx;
 }
 
-void vector_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
+void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_CUDA
 	STARPU_SKIP_IF_VALGRIND;
@@ -53,7 +53,7 @@ void vector_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
 #endif /* STARPU_USE_CUDA */
 }
 
-void matrix_cpu_func(void *descr[], void *cl_arg __attribute__((unused)))
+void matrix_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -67,7 +67,7 @@ void matrix_cpu_func(void *descr[], void *cl_arg __attribute__((unused)))
 	matrix[0] = sum / (nx*ny);
 }
 
-void matrix_cuda_func(void *descr[], void *cl_arg __attribute__((unused)))
+void matrix_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_CUDA
 	STARPU_SKIP_IF_VALGRIND;

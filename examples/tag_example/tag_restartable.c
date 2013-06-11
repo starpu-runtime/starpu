@@ -105,7 +105,7 @@ static int start_task_grid(unsigned iter)
 	return 0;
 }
 
-void cpu_codelet(void *descr[] __attribute__((unused)), void *_args __attribute__((unused)))
+void cpu_codelet(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args STARPU_ATTRIBUTE_UNUSED)
 {
 /*	int i = (uintptr_t) _args;
 	printf("doing %x\n", i);
@@ -114,7 +114,7 @@ void cpu_codelet(void *descr[] __attribute__((unused)), void *_args __attribute_
 */
 }
 
-int main(int argc __attribute__((unused)) , char **argv __attribute__((unused)))
+int main(int argc STARPU_ATTRIBUTE_UNUSED , char **argv STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned i, j;
 	int ret;

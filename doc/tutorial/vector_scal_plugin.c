@@ -55,7 +55,7 @@ vector_scal_sse (unsigned int size, float vector[size], float factor)
   unsigned int n_iterations = size / 4;
 
   __m128 *VECTOR = (__m128 *) vector;
-  __m128 _FACTOR __attribute__ ((aligned (16)));
+  __m128 _FACTOR STARPU_ATTRIBUTE_ALIGNED(16);
   _FACTOR = _mm_set1_ps (factor);
 
   unsigned int i;

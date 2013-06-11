@@ -1,0 +1,174 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Scheduling_Policy Scheduling Policy
+
+\brief TODO. While StarPU comes with a variety of scheduling policies
+(see \ref TaskSchedulingPolicy), it may sometimes be desirable to
+implement custom policies to address specific problems. The API
+described below allows users to write their own scheduling policy.
+
+\struct starpu_sched_policy
+\ingroup API_Scheduling_Policy
+This structure contains all the methods that implement a
+scheduling policy. An application may specify which scheduling
+strategy in the field starpu_conf::sched_policy passed to the function
+starpu_init().
+\var starpu_sched_policy::init_sched
+        Initialize the scheduling policy.
+\var starpu_sched_policy::deinit_sched
+        Cleanup the scheduling policy.
+\var starpu_sched_policy::push_task
+        Insert a task into the scheduler.
+\var starpu_sched_policy::push_task_notify
+        Notify the scheduler that a task was pushed on a given worker.
+	This method is called when a task that was explicitely
+	assigned to a worker becomes ready and is about to be executed
+	by the worker. This method therefore permits to keep the state
+	of the scheduler coherent even when StarPU bypasses the
+	scheduling strategy.
+\var starpu_sched_policy::pop_task
+        Get a task from the scheduler. The mutex associated to the
+	worker is already taken when this method is called. If this
+	method is defined as NULL, the worker will only execute tasks
+	from its local queue. In this case, the push_task method
+	should use the starpu_push_local_task method to assign tasks
+	to the different workers.
+\var starpu_sched_policy::pop_every_task
+        Remove all available tasks from the scheduler (tasks are
+	chained by the means of the field starpu_task::prev and
+	starpu_task::next). The mutex associated to the worker is
+	already taken when this method is called. This is currently
+	not used.
+\var starpu_sched_policy::pre_exec_hook
+        Optional field. This method is called every time a task is starting.
+\var starpu_sched_policy::post_exec_hook
+        Optional field. This method is called every time a task has been executed.
+\var starpu_sched_policy::add_workers
+        Initialize scheduling structures corresponding to each worker used by the policy.
+\var starpu_sched_policy::remove_workers
+        Deinitialize scheduling structures corresponding to each worker used by the policy.
+\var starpu_sched_policy::policy_name
+        Optional field. Name of the policy.
+\var starpu_sched_policy::policy_description
+        Optional field. Human readable description of the policy.
+
+\fn struct starpu_sched_policy ** starpu_sched_get_predefined_policies()
+\ingroup API_Scheduling_Policy
+Return an NULL-terminated array of all the predefined scheduling
+policies.
+
+\fn void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sched_mutex, starpu_pthread_cond_t **sched_cond)
+\ingroup API_Scheduling_Policy
+When there is no available task for a worker, StarPU blocks this
+worker on a condition variable. This function specifies which
+condition variable (and the associated mutex) should be used to block
+(and to wake up) a worker. Note that multiple workers may use the same
+condition variable. For instance, in the case of a scheduling strategy
+with a single task queue, the same condition variable would be used to
+block and wake up all workers.
+
+\fn void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void * policy_data)
+\ingroup API_Scheduling_Policy
+Each scheduling policy uses some specific data (queues, variables,
+additional condition variables). It is memorize through a local
+structure. This function assigns it to a scheduling context.
+
+\fn void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id)
+\ingroup API_Scheduling_Policy
+Returns the policy data previously assigned to a context
+
+\fn int starpu_sched_set_min_priority(int min_prio)
+\ingroup API_Scheduling_Policy
+Defines the minimum task priority level supported by the scheduling
+policy. The default minimum priority level is the same as the default
+priority level which is 0 by convention. The application may access
+that value by calling the function starpu_sched_get_min_priority().
+This function should only be called from the initialization method of
+the scheduling policy, and should not be used directly from the
+application.
+
+\fn int starpu_sched_set_max_priority(int max_prio)
+\ingroup API_Scheduling_Policy
+Defines the maximum priority level supported by the scheduling policy.
+The default maximum priority level is 1. The application may access
+that value by calling the function starpu_sched_get_max_priority().
+This function should only be called from the initialization method of
+the scheduling policy, and should not be used directly from the
+application.
+
+\fn int starpu_sched_get_min_priority(void)
+\ingroup API_Scheduling_Policy
+Returns the current minimum priority level supported by the scheduling
+policy
+
+\fn int starpu_sched_get_max_priority(void)
+\ingroup API_Scheduling_Policy
+Returns the current maximum priority level supported by the scheduling
+policy
+
+\fn int starpu_push_local_task(int workerid, struct starpu_task *task, int back)
+\ingroup API_Scheduling_Policy
+The scheduling policy may put tasks directly into a worker’s local
+queue so that it is not always necessary to create its own queue when
+the local queue is sufficient. If \p back is not 0, \p task is put
+at the back of the queue where the worker will pop tasks first.
+Setting \p back to 0 therefore ensures a FIFO ordering.
+
+\fn int starpu_push_task_end(struct starpu_task *task)
+\ingroup API_Scheduling_Policy
+This function must be called by a scheduler to notify that the given
+task has just been pushed.
+
+\fn int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+\ingroup API_Scheduling_Policy
+Check if the worker specified by workerid can execute the codelet.
+Schedulers need to call it before assigning a task to a worker,
+otherwise the task may fail to execute.
+
+\fn double starpu_timing_now(void)
+\ingroup API_Scheduling_Policy
+Return the current date in micro-seconds.
+
+\fn uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task * task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+\ingroup API_Scheduling_Policy
+Returns the footprint for a given task
+
+\fn double starpu_task_expected_length(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+\ingroup API_Scheduling_Policy
+Returns expected task duration in micro-seconds.
+
+\fn double starpu_worker_get_relative_speedup(enum starpu_perfmodel_archtype perf_archtype)
+\ingroup API_Scheduling_Policy
+Returns an estimated speedup factor relative to CPU speed
+
+\fn double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task)
+\ingroup API_Scheduling_Policy
+Returns expected data transfer time in micro-seconds.
+
+\fn double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode)
+\ingroup API_Scheduling_Policy
+Predict the transfer time (in micro-seconds) to move \p handle to a memory node
+
+\fn double starpu_task_expected_power(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+\ingroup API_Scheduling_Policy
+Returns expected power consumption in J
+
+\fn double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+\ingroup API_Scheduling_Policy
+Returns expected conversion time in ms (multiformat interface only)
+
+\fn int starpu_get_prefetch_flag(void)
+\ingroup API_Scheduling_Policy
+Whether \ref STARPU_PREFETCH was set
+
+\fn int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
+\ingroup API_Scheduling_Policy
+Prefetch data for a given task on a given node
+
+*/

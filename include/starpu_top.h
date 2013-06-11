@@ -37,14 +37,14 @@ enum starpu_top_data_type
 struct starpu_top_data
 {
 	unsigned int id;
-	const char* name;
+	const char *name;
 	int int_min_value;
 	int int_max_value;
 	double double_min_value;
 	double double_max_value;
 	int active;
 	enum starpu_top_data_type type;
-	struct starpu_top_data * next;
+	struct starpu_top_data *next;
 };
 
 enum starpu_top_param_type
@@ -58,17 +58,17 @@ enum starpu_top_param_type
 struct starpu_top_param
 {
 	unsigned int id;
-	const char* name;
+	const char *name;
 	enum starpu_top_param_type type;
-	void* value;
-	char** enum_values; /* only for enum type can be NULL */
+	void *value;
+	char **enum_values;
 	int nb_values;
 	void (*callback)(struct starpu_top_param*);
-	int int_min_value; /* only for integer type */
+	int int_min_value;
 	int int_max_value;
-	double double_min_value; /*only for double type */
+	double double_min_value;
 	double double_max_value;
-	struct starpu_top_param * next;
+	struct starpu_top_param *next;
 };
 
 enum starpu_top_message_type
@@ -82,140 +82,53 @@ enum starpu_top_message_type
 	TOP_TYPE_UNKNOW
 };
 
-/*****************************************************
-****   Functions to call BEFORE initialisation   *****
-*****************************************************/
-/*
- * This fonction register a data named data_name of type boolean
- * If active=0, the value will NOT be displayed to user by default.
- * Any other value will make the value displayed by default.
-*/
-struct starpu_top_data *starpu_top_add_data_boolean(const char* data_name,
+struct starpu_top_data *starpu_top_add_data_boolean(const char *data_name,
 						    int active);
-/*
- * This fonction register a data named data_name of type integer
- * The minimum and maximum value will be usefull to define the scale in UI
- * If active=0, the value will NOT be displayed to user by default.
- * Any other value will make the value displayed by default.
-*/
-struct starpu_top_data * starpu_top_add_data_integer(const char* data_name,
+struct starpu_top_data *starpu_top_add_data_integer(const char *data_name,
 						     int minimum_value,
 						     int maximum_value,
 						     int active);
-/*
- * This fonction register a data named data_name of type float
- * The minimum and maximum value will be usefull to define the scale in UI
- * If active=0, the value will NOT be displayed to user by default.
- * Any other value will make the value displayed by default.
-*/
-struct starpu_top_data* starpu_top_add_data_float(const char* data_name,
+struct starpu_top_data *starpu_top_add_data_float(const char *data_name,
 						  double minimum_value,
 						  double maximum_value,
 						  int active);
-
-/*
- * This fonction register a parameter named parameter_name, of type boolean.
- * The callback fonction will be called when the parameter is modified by UI,
- * and can be null.
-*/
-struct starpu_top_param* starpu_top_register_parameter_boolean(const char* param_name,
-							       int* parameter_field,
+struct starpu_top_param *starpu_top_register_parameter_boolean(const char *param_name,
+							       int *parameter_field,
 							       void (*callback)(struct starpu_top_param*));
-/*
- * This fonction register a parameter named param_name, of type integer.
- * Minimum and maximum value will be used to prevent user seting incorrect
- * value.
- * The callback fonction will be called when the parameter is modified by UI,
- * and can be null.
-*/
-struct starpu_top_param* starpu_top_register_parameter_integer(const char* param_name,
-							       int* parameter_field,
+struct starpu_top_param *starpu_top_register_parameter_integer(const char *param_name,
+							       int *parameter_field,
 							       int minimum_value,
 							       int maximum_value,
 							       void (*callback)(struct starpu_top_param*));
-/*
- * This fonction register a parameter named param_name, of type float.
- * Minimum and maximum value will be used to prevent user seting incorrect
- * value.
- * The callback fonction will be called when the parameter is modified by UI,
- * and can be null.
-*/
-struct starpu_top_param* starpu_top_register_parameter_float(const char* param_name,
-							     double* parameter_field,
+struct starpu_top_param *starpu_top_register_parameter_float(const char *param_name,
+							     double *parameter_field,
 							     double minimum_value,
 							     double maximum_value,
 							     void (*callback)(struct starpu_top_param*));
-
-/*
- * This fonction register a parameter named param_name, of type enum.
- * Minimum and maximum value will be used to prevent user seting incorrect
- * value.
- * The callback fonction will be called when the parameter is modified by UI,
- * and can be null.
-*/
-struct starpu_top_param* starpu_top_register_parameter_enum(const char* param_name,
-							    int* parameter_field,
-							    char** values,
+struct starpu_top_param *starpu_top_register_parameter_enum(const char *param_name,
+							    int *parameter_field,
+							    char **values,
 							    int nb_values,
 							    void (*callback)(struct starpu_top_param*));
 
 
 
 
-/****************************************************
-******************* Initialisation ******************
-*****************************************************/
-/*
- * This function must be called when all parameters and
- * data have been registered AND initialised (for parameters).
- * This function will wait for a TOP to connect, send initialisation
- * sentences, and wait for the GO message.
- */
-void starpu_top_init_and_wait(const char* server_name);
+void starpu_top_init_and_wait(const char *server_name);
 
-/****************************************************
-************ To call after initialisation************
-*****************************************************/
-
-/*
- * This function should be called after every modification
- * of a parameter from something other than starpu_top.
- * This fonction notice UI that the configuration changed
- */
-void starpu_top_update_parameter(const struct starpu_top_param* param);
-
-/*
- * This functions update the value of the starpu_top_data on UI
- */
-void starpu_top_update_data_boolean(const struct starpu_top_data* data,
+void starpu_top_update_parameter(const struct starpu_top_param *param);
+void starpu_top_update_data_boolean(const struct starpu_top_data *data,
 				    int value);
-void starpu_top_update_data_integer(const struct starpu_top_data* data,
+void starpu_top_update_data_integer(const struct starpu_top_data *data,
 				    int value);
-void starpu_top_update_data_float(const struct starpu_top_data* data,
+void starpu_top_update_data_float(const struct starpu_top_data *data,
 				  double value);
-
-/*
- * This function notifies UI than the task have been planed to
- * run from start to end, on computation-core
- */
 void starpu_top_task_prevision(struct starpu_task *task,
 			       int devid, unsigned long long start,
 			       unsigned long long end);
 
-/*
- * This functions are usefull in debug mode. The starpu developper doesn't need
- * to check if the debug mode is active.
- * This is checked by starpu_top itsefl.
- *
- * top_debug_log just send a message to display by UI
- * top_debug_lock send a message and wait for a continue message from UI
- * to return
- *
- * The lock (wich create a stop-point) should be called only by the main thread.
- * Calling it from more than one thread is not supported.
- */
-void starpu_top_debug_log(const char* message);
-void starpu_top_debug_lock(const char* message);
+void starpu_top_debug_log(const char *message);
+void starpu_top_debug_lock(const char *message);
 
 
 #ifdef __cplusplus

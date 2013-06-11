@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -277,8 +277,8 @@ int mm_write_mtx_array_size(FILE *f, int M, int N)
 /* use when I[], J[], and val[]J, and val[] are already allocated */
 /******************************************************************/
 
-int mm_read_mtx_crd_data(FILE *f, int M __attribute__ ((unused)) , 
-				 int N __attribute__ ((unused)) , int nz, int I[], int J[],
+int mm_read_mtx_crd_data(FILE *f, int M 
+				 int N, int nz, int I[], int J[],
         double val[], MM_typecode matcode)
 {
     int i;

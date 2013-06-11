@@ -1,0 +1,42 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Implicit_Data_Dependencies Implicit Data Dependencies
+
+\brief In this section, we describe how StarPU makes it possible to
+insert implicit task dependencies in order to enforce sequential data
+consistency. When this data consistency is enabled on a specific data
+handle, any data access will appear as sequentially consistent from
+the application. For instance, if the application submits two tasks
+that access the same piece of data in read-only mode, and then a third
+task that access it in write mode, dependencies will be added between
+the two first tasks and the third one. Implicit data dependencies are
+also inserted in the case of data accesses from the application.
+
+\fn starpu_data_set_default_sequential_consistency_flag(unsigned flag)
+\ingroup API_Implicit_Data_Dependencies
+Set the default sequential consistency flag. If a non-zero
+value is passed, a sequential data consistency will be enforced for
+all handles registered after this function call, otherwise it is
+disabled. By default, StarPU enables sequential data consistency. It
+is also possible to select the data consistency mode of a specific
+data handle with the function
+starpu_data_set_sequential_consistency_flag().
+
+\fn unsigned starpu_data_get_default_sequential_consistency_flag(void)
+\ingroup API_Implicit_Data_Dependencies
+Return the default sequential consistency flag
+
+\fn void starpu_data_set_sequential_consistency_flag(starpu_data_handle_t handle, unsigned flag)
+\ingroup API_Implicit_Data_Dependencies
+Set the data consistency mode associated to a data handle. The
+consistency mode set using this function has the priority over the
+default mode which can be set with
+starpu_data_set_default_sequential_consistency_flag().
+
+*/

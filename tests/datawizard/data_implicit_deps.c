@@ -31,7 +31,7 @@ starpu_data_handle_t A_handle, B_handle, C_handle, D_handle;
 static unsigned var = 0;
 starpu_data_handle_t var_handle;
 
-void f(void *descr[] __attribute__ ((unused)), void *_args __attribute__ ((unused)))
+void f(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -48,7 +48,7 @@ static struct starpu_codelet cl_f =
 	.nbuffers = 3,
 };
 
-void g(void *descr[], __attribute__ ((unused)) void *_args)
+void g(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -59,7 +59,7 @@ void g(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 #ifdef STARPU_USE_CUDA
-void g_cuda(void *descr[], __attribute__ ((unused)) void *_args)
+void g_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -84,7 +84,7 @@ static struct starpu_codelet cl_g =
 	.nbuffers = 3,
 };
 
-void h(void *descr[], __attribute__ ((unused)) void *_args)
+void h(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -95,7 +95,7 @@ void h(void *descr[], __attribute__ ((unused)) void *_args)
 }
 
 #ifdef STARPU_USE_CUDA
-void h_cuda(void *descr[], __attribute__ ((unused)) void *_args)
+void h_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

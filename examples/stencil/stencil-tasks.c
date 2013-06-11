@@ -213,7 +213,7 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 }
 
 /* Dummy empty codelet taking one buffer */
-void null_func(void *descr[] __attribute__((unused)), void *arg __attribute__((unused))) { }
+void null_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED) { }
 static struct starpu_codelet null =
 {
 	.modes = { STARPU_W, STARPU_W },

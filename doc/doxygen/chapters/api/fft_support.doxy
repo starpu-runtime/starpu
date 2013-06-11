@@ -1,0 +1,63 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_FFT_Support FFT Support
+
+\fn void * starpufft_malloc(size_t n)
+\ingroup API_FFT_Support
+Allocates memory for \p n bytes. This is preferred over malloc(),
+since it allocates pinned memory, which allows overlapped transfers.
+
+\fn void * starpufft_free(void *p)
+\ingroup API_FFT_Support
+Release memory previously allocated.
+
+\fn struct starpufft_plan * starpufft_plan_dft_1d(int n, int sign, unsigned flags)
+\ingroup API_FFT_Support
+Initializes a plan for 1D FFT of size \p n. \p sign can be STARPUFFT_FORWARD
+or STARPUFFT_INVERSE. \p flags must be 0.
+
+\fn struct starpufft_plan * starpufft_plan_dft_2d(int n, int m, int sign, unsigned flags)
+\ingroup API_FFT_Support
+Initializes a plan for 2D FFT of size (\p n, \p m). \p sign can be
+STARPUFFT_FORWARD or STARPUFFT_INVERSE. flags must be \p 0.
+
+\fn struct starpu_task * starpufft_start(starpufft_plan p, void *in, void *out)
+\ingroup API_FFT_Support
+Start an FFT previously planned as \p p, using \p in and \p out as
+input and output. This only submits the task and does not wait for it.
+The application should call starpufft_cleanup() to unregister the
+
+\fn struct starpu_task * starpufft_start_handle(starpufft_plan p, starpu_data_handle_t in, starpu_data_handle_t out)
+\ingroup API_FFT_Support
+Start an FFT previously planned as \p p, using data handles \p in and
+\p out as input and output (assumed to be vectors of elements of the
+expected types). This only submits the task and does not wait for it.
+
+\fn void starpufft_execute(starpufft_plan p, void *in, void *out)
+\ingroup API_FFT_Support
+Execute an FFT previously planned as \p p, using \p in and \p out as
+input and output. This submits and waits for the task.
+
+\fn void starpufft_execute_handle(starpufft_plan p, starpu_data_handle_t in, starpu_data_handle_t out)
+\ingroup API_FFT_Support
+Execute an FFT previously planned as \p p, using data handles \p in
+and \p out as input and output (assumed to be vectors of elements of
+the expected types). This submits and waits for the task.
+
+\fn void starpufft_cleanup(starpufft_plan p)
+\ingroup API_FFT_Support
+Releases data for plan \p p, in the starpufft_start() case.
+
+\fn void starpufft_destroy_plan(starpufft_plan p)
+\ingroup API_FFT_Support
+Destroys plan \p p, i.e. release all CPU (fftw) and GPU (cufft)
+resources.
+
+*/
+
