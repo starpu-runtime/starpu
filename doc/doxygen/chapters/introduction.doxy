@@ -215,6 +215,7 @@ The documentation chapters include
 <li> \ref TipsAndTricksToKnowAbout
 <li> \ref MPISupport
 <li> \ref FFTSupport
+<li> \ref MICSCCSupport
 <li> \ref cExtensions
 <li> \ref SOCLOpenclExtensions
 <li> \ref SchedulingContexts
