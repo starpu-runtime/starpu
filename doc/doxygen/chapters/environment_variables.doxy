@@ -345,31 +345,6 @@ to 0. It is enabled by default or for any other values of the variable
 \ref STARPU_MPI_CACHE.
 </dd>
 
-<dt>STARPU_MIC_HOST</dt>
-<dd>
-\anchor STARPU_MIC_HOST
-\addindex __env__STARPU_MIC_HOST
-Defines the value of the parameter <c>--host</c> passed to
-<c>configure</c> for the cross-compilation. The current default is
-<c>x86_64-k1om-linux</c>.
-</dd>
-
-<dt>STARPU_MIC_CC_PATH</dt>
-<dd>
-\anchor STARPU_MIC_CC_PATH
-\addindex __env__STARPU_MIC_CC_PATH
-Defines the path to the MIC cross-compiler. The current default is
-<c>/usr/linux-k1om-4.7/bin/</c>
-</dd>
-
-<dt>STARPU_COI_DIR</dt>
-<dd>
-\anchor STARPU_COI_DIR
-\addindex __env__STARPU_COI_DIR
-Defines the path to the COI library. The current default is
-<c>/opt/intel/mic/coi</c>.
-</dd>
-
 </dl>
 
 \section MiscellaneousAndDebug Miscellaneous And Debug

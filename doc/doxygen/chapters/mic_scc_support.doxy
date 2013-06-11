@@ -13,18 +13,12 @@
 SCC support just needs the presence of the RCCE library.
 
 MIC support actually needs two compilations of StarPU, one for the host and one for
-the device. The script <c>mic-configure</c> can be used to achieve this: it basically
+the device. The PATH environment variable has to include the path to the
+cross-compilation toolchain, for instance <c>/usr/linux-k1om-4.7/bin</c>
+The script <c>mic-configure</c> can then be used to achieve the two compilations: it basically
 calls <c>configure</c> as appropriate from two new directories: <c>build_mic</c> and
 <c>build_host</c>. <c>make</c> and <c>make install</c> can then be used as usual and will
 recurse into both directories.
-
-\internal
-TODO: move to configuration section?
-\endinternal
-
-It can be parameterized with the environment variables \ref
-STARPU_MIC_HOST, \ref STARPU_MIC_CC_PATH and \ref STARPU_COI_DIR.
-
 
 \section PortingApplicationsToMICSCC Porting Applications To MIC/SCC
 
@@ -52,5 +46,11 @@ STARPU_MIC_SINK_PROGRAM_PATH, or in the field
 starpu_conf::mic_sink_program_path. It will also look in the current
 directory for the same binary name plus the suffix <c>-mic</c> or
 <c>_mic</c>.
+
+The testsuite can be started by simply running <c>make check</c> from the
+top directory. It will recurse into both <c>build_host</c> to run tests with only
+the host, and into <c>build_mic</c> to run tests with both the host and the MIC
+devices. Single tests with the host and the MIC can be run by starting
+<c>./loader-cross.sh ./the_test</c> from <c>build_mic/tests</c>.
 
 */
