@@ -117,7 +117,7 @@ they should be hidden to the user
 \fn struct starpu_sched_ctx_performance_counters *sc_hypervisor_init(struct sc_hypervisor_policy * policy)
 \ingroup API_Scheduling_Context_Hypervisor
 Initializes the hypervisor to use the strategy provided as parameter
-and creates the performance counters (see \ref PerformanceCounters).
+and creates the performance counters (see starpu_sched_ctx_performance_counters).
 These performance counters represent actually some callbacks that will
 be used by the contexts to notify the information needed by the
 hypervisor.
@@ -209,7 +209,7 @@ This macro is used when calling sc_hypervisor_ioctl() and must be
 followed by 1 argument(int) indicating the granularity of the resizing
 process (the number of workers should be moved from the context once
 it is resized) This parameter is ignore for the Gflops rate based
-strategy see Resizing strategies, the number of workers that have to
+strategy (see \ref ResizingStrategies), the number of workers that have to
 be moved is calculated by the strategy.
 
 \def HYPERVISOR_FIXED_WORKERS

@@ -567,7 +567,7 @@ codelet. If the codelet is defined with a static or dynamic number of
 handles, will either set the \p i th element of the field
 starpu_codelet::modes or the \p i th element of the field
 starpu_codelet::dyn_modes (see \ref
-SettingTheData_HandlesForATask)
+SettingTheDataHandlesForATask)
 
 \fn struct starpu_task * starpu_task_create(void)
 \ingroup API_Codelet_And_Tasks
