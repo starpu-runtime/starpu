@@ -6,7 +6,7 @@ static struct  _starpu_composed_sched_node_recipe *  recipe_for_worker(enum star
 {
 	struct _starpu_composed_sched_node_recipe * r = _starpu_sched_node_create_recipe();
 	_starpu_sched_recipe_add_node(r, _starpu_sched_node_fifo_create, NULL);
-	return NULL; r;
+	return r;
 }
 
 static void initialize_heft_center_policy(unsigned sched_ctx_id)
