@@ -28,15 +28,15 @@
 #include <stdio.h>
 #include <math.h>
 
-#define	NX	204800
+#define	NX	(30*1000000/sizeof(double))
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 
 int main(int argc, char **argv)
 {
-	int * A,*B,*C,*D,*E;
+	double * A,*B,*C,*D,*E,*F;
 
-	putenv("STARPU_LIMIT_CPU_MEM=130");
+	putenv("STARPU_LIMIT_CPU_MEM=160");
 
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
@@ -45,17 +45,17 @@ int main(int argc, char **argv)
 	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*200);
 
 	/* allocate two memory spaces */
-	starpu_malloc((void **)&A, NX*sizeof(int));
-	starpu_malloc((void **)&E, NX*sizeof(int));
+	starpu_malloc_flags((void **)&A, NX*sizeof(double), STARPU_MALLOC_COUNT);
+	starpu_malloc_flags((void **)&F, NX*sizeof(double), STARPU_MALLOC_COUNT);
 
 	if (ret == -ENODEV) goto enodev;
 
 	FPRINTF(stderr, "Test of disk memory \n");
-	int j;
+	unsigned int j;
 	for(j = 0; j < NX; ++j)
 	{
 		A[j] = j;
-		E[j] = -j;
+		F[j] = -j;
 	}
 
 	/* Tell StaPU to associate the "vector" vector with the "vector_handle"
@@ -71,40 +71,51 @@ int main(int argc, char **argv)
 	 *  - the fourth argument is the number of elements in the vector
 	 *  - the fifth argument is the size of each element.
 	 */
-	starpu_data_handle_t vector_handleA, vector_handleB, vector_handleC, vector_handleD, vector_handleE;
+	starpu_data_handle_t vector_handleA, vector_handleB, vector_handleC, vector_handleD, vector_handleE, vector_handleF;
 
-	starpu_vector_data_register(&vector_handleA, 0, (uintptr_t)A, NX, sizeof(int));
-	starpu_vector_data_register(&vector_handleB, -1, (uintptr_t) NULL, NX, sizeof(int));	
-	starpu_vector_data_register(&vector_handleC, -1, (uintptr_t) NULL, NX, sizeof(int));
-	starpu_vector_data_register(&vector_handleD, -1, (uintptr_t) NULL, NX, sizeof(int));
-	starpu_vector_data_register(&vector_handleE, 0, (uintptr_t)E, NX, sizeof(int));
+	/* register vector in starpu */
+	starpu_vector_data_register(&vector_handleA, 0, (uintptr_t)A, NX, sizeof(double));
+	starpu_vector_data_register(&vector_handleB, -1, (uintptr_t) NULL, NX, sizeof(double));	
+	starpu_vector_data_register(&vector_handleC, -1, (uintptr_t) NULL, NX, sizeof(double));
+	starpu_vector_data_register(&vector_handleD, -1, (uintptr_t) NULL, NX, sizeof(double));
+	starpu_vector_data_register(&vector_handleE, -1, (uintptr_t) NULL, NX, sizeof(double));
+	starpu_vector_data_register(&vector_handleF, 0, (uintptr_t)F, NX, sizeof(double));
 
-	starpu_data_cpy(vector_handleB, vector_handleA, 1, NULL, NULL);
-	starpu_data_cpy(vector_handleC, vector_handleB, 1, NULL, NULL);
-	starpu_data_cpy(vector_handleD, vector_handleC, 1, NULL, NULL);
-	starpu_data_cpy(vector_handleE, vector_handleD, 1, NULL, NULL);
+	/* copy vector A->B, B->C... */
+	starpu_data_cpy(vector_handleB, vector_handleA, 0, NULL, NULL);
+	starpu_data_cpy(vector_handleC, vector_handleB, 0, NULL, NULL);
+	starpu_data_cpy(vector_handleD, vector_handleC, 0, NULL, NULL);
+	starpu_data_cpy(vector_handleE, vector_handleD, 0, NULL, NULL);
+	starpu_data_cpy(vector_handleF, vector_handleE, 0, NULL, NULL);
 
 	/* StarPU does not need to manipulate the array anymore so we can stop
  	 * monitoring it */
 
+	/* free them */
 	starpu_data_unregister(vector_handleA);
 	starpu_data_unregister(vector_handleB);
 	starpu_data_unregister(vector_handleC);
 	starpu_data_unregister(vector_handleD);
 	starpu_data_unregister(vector_handleE);
+	starpu_data_unregister(vector_handleF);
 
 	starpu_disk_unregister(dd);
 
-	/* terminate StarPU, no task can be submitted after */
-	starpu_shutdown();
-
+	/* check if computation is correct */
 	int try = 1;
 	for (j = 0; j < NX; ++j)
-		if (A[j] != E[j])
+		if (A[j] != F[j])
 		{
-			printf("fail A %d != E %d \n", A[j], E[j]);
+			printf("Fail A %f != F %f \n", A[j], F[j]);
 			try = 0;
 		}
+
+	/* free last vectors */
+	starpu_free_flags(A, NX*sizeof(double), STARPU_MALLOC_COUNT);
+	starpu_free_flags(F, NX*sizeof(double), STARPU_MALLOC_COUNT);
+
+	/* terminate StarPU, no task can be submitted after */
+	starpu_shutdown();
 
 	if(try)
 		FPRINTF(stderr, "TEST SUCCESS\n");
