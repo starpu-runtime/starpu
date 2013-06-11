@@ -289,7 +289,7 @@ starpu_stdio_free (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size ST
 
 /* open an existing memory on disk */
 static void * 
-starpu_unistd_open (void *base, void *pos, size_t size)
+starpu_stdio_open (void *base, void *pos, size_t size)
 {
 	struct starpu_stdio_obj * obj = malloc(sizeof(struct starpu_stdio_obj));
 	STARPU_ASSERT(obj != NULL);
@@ -322,7 +322,7 @@ starpu_unistd_open (void *base, void *pos, size_t size)
 
 /* free memory without delete it */
 static void 
-starpu_unistd_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
+starpu_stdio_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
@@ -451,8 +451,8 @@ get_stdio_bandwidth_between_disk_and_main_ram(void * base, unsigned node)
 struct disk_ops write_on_file = {
 	.alloc = starpu_stdio_alloc,
 	.free = starpu_stdio_free,
-	.open = starpu_unistd_open,
-	.close = starpu_unistd_close,
+	.open = starpu_stdio_open,
+	.close = starpu_stdio_close,
 	.read = starpu_stdio_read,
 	.write = starpu_stdio_write,
 	.plug = starpu_stdio_plug,
