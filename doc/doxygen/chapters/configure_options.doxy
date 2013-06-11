@@ -99,7 +99,8 @@ Specify <c>hwloc</c> should not be used by StarPU.
 \anchor disable-build-doc
 \addindex __configure__--disable-build-doc
 Disable the creation of the documentation. This should be done on a
-machine which does not have the tools <c>makeinfo</c> and <c>tex</c>.
+machine which does not have the tools <c>doxygen</c> and <c>latex</c>
+(plus the packages <c>latex-xcolor</c> and <c>texlive-latex-extra</c>).
 </dd>
 </dl>
 
