@@ -79,7 +79,7 @@ Running <c>autogen.sh</c> is not necessary when using the tarball
 releases of StarPU.  If you are using the source code from the svn
 repository, you first need to generate the configure scripts and the
 Makefiles. This requires the availability of <c>autoconf</c>,
-<c>automake</c> >= 2.60, and <c>makeinfo</c>.
+<c>automake</c> >= 2.60.
 
 \verbatim
 $ ./autogen.sh
