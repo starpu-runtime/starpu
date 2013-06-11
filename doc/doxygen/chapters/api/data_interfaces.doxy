@@ -54,89 +54,132 @@ provided. It can still be useful to provide more specific method in
 case of e.g. available particular CUDA or OpenCL support.
 \ingroup API_Data_Interfaces
 \var starpu_data_copy_methods::ram_to_ram
-Define how to copy data from the src_interface interface on the
-src_node CPU node to the dst_interface interface on the dst_node CPU
-node. Return 0 on success.
+Define how to copy data from the \p src_interface interface on the \p
+src_node CPU node to the \p dst_interface interface on the \p dst_node
+CPU  node. Return 0 on success.
 \var starpu_data_copy_methods::ram_to_cuda
-Define how to copy data from the src_interface interface on the
-src_node CPU node to the dst_interface interface on the dst_node CUDA
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node CUDA
 node. Return 0 on success.
 \var starpu_data_copy_methods::ram_to_opencl
-Define how to copy data from the src_interface interface on the
-src_node CPU node to the dst_interface interface on the dst_node
-OpenCL node. Return 0 on success.
-\var starpu_data_copy_methods::cuda_to_ram
-Define how to copy data from the src_interface interface on the
-src_node CUDA node to the dst_interface interface on the dst_node
-CPU node. Return 0 on success.
-\var starpu_data_copy_methods::cuda_to_cuda
-Define how to copy data from the src_interface interface on the
-src_node CUDA node to the dst_interface interface on the dst_node CUDA
-node. Return 0 on success.
-\var starpu_data_copy_methods::cuda_to_opencl
-Define how to copy data from the src_interface interface on the
-src_node CUDA node to the dst_interface interface on the dst_node
-OpenCL node. Return 0 on success.
-\var starpu_data_copy_methods::opencl_to_ram
-Define how to copy data from the src_interface interface on the
-src_node OpenCL node to the dst_interface interface on the dst_node
-CPU node. Return 0 on success.
-\var starpu_data_copy_methods::opencl_to_cuda
-Define how to copy data from the src_interface interface on the
-src_node OpenCL node to the dst_interface interface on the dst_node
-CUDA node. Return 0 on success.
-\var starpu_data_copy_methods::opencl_to_opencl
-Define how to copy data from the src_interface interface on the
-src_node OpenCL node to the dst_interface interface on the dst_node
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node
 OpenCL node. Return 0 on success.
 
+\var starpu_data_copy_methods::ram_to_mic
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node MIC
+node. Return 0 on success.
+
+\var starpu_data_copy_methods::cuda_to_ram
+Define how to copy data from the \p src_interface interface on the
+\p src_node CUDA node to the \p dst_interface interface on the \p dst_node
+CPU node. Return 0 on success.
+\var starpu_data_copy_methods::cuda_to_cuda
+Define how to copy data from the \p src_interface interface on the
+\p src_node CUDA node to the \p dst_interface interface on the \p dst_node CUDA
+node. Return 0 on success.
+\var starpu_data_copy_methods::cuda_to_opencl
+Define how to copy data from the \p src_interface interface on the
+\p src_node CUDA node to the \p dst_interface interface on the \p dst_node
+OpenCL node. Return 0 on success.
+\var starpu_data_copy_methods::opencl_to_ram
+Define how to copy data from the \p src_interface interface on the
+\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
+CPU node. Return 0 on success.
+\var starpu_data_copy_methods::opencl_to_cuda
+Define how to copy data from the \p src_interface interface on the
+\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
+CUDA node. Return 0 on success.
+\var starpu_data_copy_methods::opencl_to_opencl
+Define how to copy data from the \p src_interface interface on the
+\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
+OpenCL node. Return 0 on success.
+
+\var starpu_data_copy_methods::mic_to_ram
+Define how to copy data from the \p src_interface interface on the
+\p src_node MIC node to the \p dst_interface interface on the \p dst_node CPU
+node. Return 0 on success.
+
+\var starpu_data_copy_methods::scc_src_to_sink
+Define how to copy data from the \p src_interface interface on the
+\p src_node node to the \p dst_interface interface on the \p dst_node node.
+Must return 0 if the transfer was actually completed completely
+synchronously, or -EAGAIN if at least some transfers are still ongoing
+and should be awaited for by the core.
+\var starpu_data_copy_methods::scc_sink_to_src
+Define how to copy data from the \p src_interface interface on the
+\p src_node node to the \p dst_interface interface on the \p dst_node node.
+Must return 0 if the transfer was actually completed completely
+synchronously, or -EAGAIN if at least some transfers are still ongoing
+and should be awaited for by the core.
+\var starpu_data_copy_methods::scc_sink_to_sink
+Define how to copy data from the \p src_interface interface on the
+\p src_node node to the \p dst_interface interface on the \p dst_node node.
+Must return 0 if the transfer was actually completed completely
+synchronously, or -EAGAIN if at least some transfers are still ongoing
+and should be awaited for by the core.
+
 \var starpu_data_copy_methods::ram_to_cuda_async
-Define how to copy data from the src_interface interface on the
-src_node CPU node to the dst_interface interface on the dst_node CUDA
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node CUDA
 node, using the given stream. Must return 0 if the transfer was
 actually completed completely synchronously, or -EAGAIN if at least
 some transfers are still ongoing and should be awaited for by the core.
 \var starpu_data_copy_methods::cuda_to_ram_async
-Define how to copy data from the src_interface interface on the
-src_node CUDA node to the dst_interface interface on the dst_node CPU
+Define how to copy data from the \p src_interface interface on the
+\p src_node CUDA node to the \p dst_interface interface on the \p dst_node CPU
 node, using the given stream. Must return 0 if the transfer was
 actually completed completely synchronously, or -EAGAIN if at least
 some transfers are still ongoing and should be awaited for by the core.
 \var starpu_data_copy_methods::cuda_to_cuda_async
-Define how to copy data from the src_interface interface on the
-src_node CUDA node to the dst_interface interface on the dst_node CUDA
+Define how to copy data from the \p src_interface interface on the
+\p src_node CUDA node to the \p dst_interface interface on the \p dst_node CUDA
 node, using the given stream. Must return 0 if the transfer was
 actually completed completely synchronously, or -EAGAIN if at least
 some transfers are still ongoing and should be awaited for by the core.
 
 \var starpu_data_copy_methods::ram_to_opencl_async
-Define how to copy data from the src_interface interface on the
-src_node CPU node to the dst_interface interface on the dst_node
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node
 OpenCL node, by recording in event, a pointer to a cl_event, the event
 of the last submitted transfer. Must return 0 if the transfer was
 actually completed completely synchronously, or -EAGAIN if at least
 some transfers are still ongoing and should be awaited for by the
 core.
 \var starpu_data_copy_methods::opencl_to_ram_async
-Define how to copy data from the src_interface interface on the
-src_node OpenCL node to the dst_interface interface on the dst_node
+Define how to copy data from the \p src_interface interface on the
+\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
 CPU node, by recording in event, a pointer to a cl_event, the event of
 the last submitted transfer. Must return 0 if the transfer was
 actually completed completely synchronously, or -EAGAIN if at least
 some transfers are still ongoing and should be awaited for by the
 core.
 \var starpu_data_copy_methods::opencl_to_opencl_async
-Define how to copy data from the src_interface interface on the
-src_node OpenCL node to the dst_interface interface on the dst_node
+Define how to copy data from the \p src_interface interface on the
+\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
 OpenCL node, by recording in event, a pointer to a cl_event, the event
 of the last submitted transfer. Must return 0 if the transfer was
 actually completed completely synchronously, or -EAGAIN if at least
 some transfers are still ongoing and should be awaited for by the
 core.
 
+\var starpu_data_copy_methods::ram_to_mic_async
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node
+MIC node. Must return 0 if the transfer was actually completed
+completely synchronously, or -EAGAIN if at least some transfers are
+still ongoing and should be awaited for by the core.
+\var starpu_data_copy_methods::mic_to_ram_async
+Define how to copy data from the \p src_interface interface on the
+\p src_node MIC node to the \p dst_interface interface on the \p dst_node
+CPU node. Must return 0 if the transfer was actually completed
+completely synchronously, or -EAGAIN if at least some transfers are
+still ongoing and should be awaited for by the core.
+
 \var starpu_data_copy_methods::any_to_any
-Define how to copy data from the src_interface interface on the
-src_node node to the dst_interface interface on the dst_node node.
+Define how to copy data from the \p src_interface interface on the
+\p src_node node to the \p dst_interface interface on the \p dst_node node.
 This is meant to be implemented through the starpu_interface_copy()
 helper, to which async_data should be passed as such, and will be used
 to manage asynchronicity. This must return -EAGAIN if any of the

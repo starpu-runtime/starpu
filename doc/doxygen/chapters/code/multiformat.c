@@ -41,6 +41,7 @@ void opencl_to_cpu_func(void *buffers[], void *args);
 struct starpu_codelet opencl_to_cpu_cl = {
     .where = STARPU_CPU,
     .cpu_funcs = { opencl_to_cpu_func, NULL },
+    .cpu_funcs_name = { "opencl_to_cpu_func", NULL },
     .nbuffers = 1,
     .modes = { STARPU_RW }
 };

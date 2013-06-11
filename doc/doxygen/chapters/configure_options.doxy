@@ -276,6 +276,13 @@ fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
 </dd>
 
+<dt>--disable-asynchronous-mic-copy</dt>
+<dd>
+\anchor disable-asynchronous-mic-copy
+\addindex __configure__--disable-asynchronous-mic-copy
+Disable asynchronous copies between CPU and MIC devices.
+</dd>
+
 </dl>
 
 \section ExtensionConfiguration Extension Configuration

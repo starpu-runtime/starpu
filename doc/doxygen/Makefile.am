@@ -72,6 +72,8 @@ chapters =	\
 	chapters/api/mpi.doxy \
 	chapters/api/multiformat_data_interface.doxy \
 	chapters/api/opencl_extensions.doxy \
+	chapters/api/mic_extensions.doxy \
+	chapters/api/scc_extensions.doxy \
 	chapters/api/parallel_tasks.doxy \
 	chapters/api/performance_model.doxy \
 	chapters/api/profiling.doxy \
@@ -191,6 +193,12 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	   fi; \
 	done; \
 	mv refman.pdf ../$(DOX_PDF)
+
+MAINTAINERCLEANFILES = $(DOX_TAG) \
+    -r \
+    $(DOX_HTML_DIR) \
+    $(DOX_LATEX_DIR) \
+    $(DOX_PDF)
 
 # Rule to update documentation on web server. Should only be used locally.
 PUBLISHHOST	?= sync

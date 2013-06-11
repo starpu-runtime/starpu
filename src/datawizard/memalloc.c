@@ -281,8 +281,10 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	size_t size;
 	starpu_data_handle_t handle = mc->data;
 
-	if (handle)
+	if (handle) {
 		_starpu_spin_checklocked(&handle->header_lock);
+		mc->size = _starpu_data_get_size(handle);
+	}
 
 	mc->replicate->mc=NULL;
 

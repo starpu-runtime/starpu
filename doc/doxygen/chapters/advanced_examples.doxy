@@ -39,6 +39,7 @@ void scal_sse_func(void *buffers[], void *cl_arg)
 struct starpu_codelet cl = {
     .where = STARPU_CPU,
     .cpu_funcs = { scal_cpu_func, scal_sse_func, NULL },
+    .cpu_funcs_name = { "scal_cpu_func", "scal_sse_func", NULL },
     .nbuffers = 1,
     .modes = { STARPU_RW }
 };
@@ -75,6 +76,7 @@ struct starpu_codelet cl = {
     .where = STARPU_CPU|STARPU_CUDA,
     .can_execute = can_execute,
     .cpu_funcs = { cpu_func, NULL },
+    .cpu_funcs_name = { "cpu_func", NULL },
     .cuda_funcs = { gpu_func, NULL }
     .nbuffers = 1,
     .modes = { STARPU_RW }
@@ -120,6 +122,7 @@ struct starpu_codelet cl = {
     .where = STARPU_CPU|STARPU_CUDA,
     .can_execute = can_execute,
     .cpu_funcs = { cpu_func, NULL },
+    .cpu_funcs_name = { "cpu_func", NULL },
     .cuda_funcs = { scal_gpu_13, scal_gpu_20, NULL },
     .nbuffers = 1,
     .modes = { STARPU_RW }
@@ -317,6 +320,7 @@ static struct starpu_perfmodel mult_perf_model = {
 struct starpu_codelet cl = {
     .where = STARPU_CPU,
     .cpu_funcs = { cpu_mult, NULL },
+    .cpu_funcs_name = { "cpu_mult", NULL },
     .nbuffers = 3,
     .modes = { STARPU_R, STARPU_R, STARPU_W },
     /* for the scheduling policy to be able to use performance models */
@@ -483,6 +487,7 @@ void func_cpu(void *descr[], void *_args)
 struct starpu_codelet mycodelet = {
         .where = STARPU_CPU,
         .cpu_funcs = { func_cpu, NULL },
+        .cpu_funcs_name = { "func_cpu", NULL },
         .nbuffers = 2,
         .modes = { STARPU_RW, STARPU_RW }
 };
@@ -575,6 +580,7 @@ the codelets for initialization and reduction:
 struct starpu_codelet bzero_variable_cl =
 {
         .cpu_funcs = { bzero_variable_cpu, NULL },
+        .cpu_funcs_name = { "bzero_variable_cpu", NULL },
         .cuda_funcs = { bzero_variable_cuda, NULL },
         .nbuffers = 1,
 }
@@ -597,6 +603,7 @@ static void accumulate_variable_cuda(void *descr[], void *cl_arg)
 struct starpu_codelet accumulate_variable_cl =
 {
         .cpu_funcs = { accumulate_variable_cpu, NULL },
+        .cpu_funcs_name = { "accumulate_variable_cpu", NULL },
         .cuda_funcs = { accumulate_variable_cuda, NULL },
         .nbuffers = 1,
 }
@@ -786,6 +793,7 @@ static struct starpu_codelet cl =
     .type = STARPU_SPMD,
     .max_parallelism = INT_MAX,
     .cpu_funcs = { func, NULL },
+    .cpu_funcs_name = { "func", NULL },
     .nbuffers = 1,
 }
 \endcode
@@ -1140,9 +1148,10 @@ enum starpu_data_access_mode modes[STARPU_NMAXBUFS+1] = {
 
 struct starpu_codelet dummy_big_cl =
 {
-	.cuda_funcs = {dummy_big_kernel, NULL},
-	.opencl_funcs = {dummy_big_kernel, NULL},
-	.cpu_funcs = {dummy_big_kernel, NULL},
+	.cuda_funcs = { dummy_big_kernel, NULL },
+	.opencl_funcs = { dummy_big_kernel, NULL },
+	.cpu_funcs = { dummy_big_kernel, NULL },
+	.cpu_funcs_name = { "dummy_big_kernel", NULL },
 	.nbuffers = STARPU_NMAXBUFS+1,
 	.dyn_modes = modes
 };
