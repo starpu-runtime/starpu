@@ -31,12 +31,6 @@ The different fields are:
         pointer to a codelet which converts from CPU to MIC
 \var starpu_multiformat_data_interface_ops::mic_to_cpu_cl
         pointer to a codelet which converts from MIC to CPU
-\var starpu_multiformat_data_interface_ops::scc_elemsize
-        the size of each element on SCC devices
-\var starpu_multiformat_data_interface_ops::cpu_to_scc_cl
-        pointer to a codelet which converts from CPU to SCC
-\var starpu_multiformat_data_interface_ops::scc_to_cpu_cl
-        pointer to a codelet which converts from SCC to CPU
 
 \struct starpu_multiformat_interface
 todo
