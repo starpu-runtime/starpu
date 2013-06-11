@@ -17,14 +17,15 @@
 
 #include <dlfcn.h>
 
-#ifdef STARPU_USE_MIC
-#include <common/COISysInfo_common.h>
-#endif
-
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
 #include <drivers/mp_common/mp_common.h>
+#include <datawizard/interfaces/data_interface.h>
+
+#ifdef STARPU_USE_MIC
+#include <common/COISysInfo_common.h>
+#endif
 
 #include "sink_common.h"
 
