@@ -785,14 +785,40 @@ AC_DEFUN([STARPU_LOOK_FOR_OPENCL],
 ])
 
 if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
-	STARPU_LOOK_FOR_OPENCL()
-	# in case OpenCL was explicitely required, but is not available, this is an error
-	if test x$enable_opencl = xyes -a x$have_valid_opencl = xno; then
-	    AC_MSG_ERROR([cannot find OpenCL])
-	fi
+   case $target in
+        *-*-darwin*)
+          AC_MSG_CHECKING(whether OpenCL is available)
 
-	# now we enable OpenCL if and only if a proper setup is available
-	enable_opencl=$have_valid_opencl
+          SAVED_LIBS=$LIBS
+          LIBS="$LIBS -framework OpenCL"
+          AC_LINK_IFELSE(
+          [AC_LANG_PROGRAM([[
+          #ifdef __APPLE_CC__
+          #include <OpenCL/opencl.h>
+          #else
+          #include <CL/cl.h>
+          #endif
+          ]],
+            [[return clSetKernelArg(0, 0, 0, 0); ]])],
+          [AC_MSG_RESULT(yes)
+            enable_opencl=yes
+            have_valid_opencl=yes
+            STARPU_OPENCL_CPPFLAGS=
+            STARPU_OPENCL_LDFLAGS="-framework OpenCL"],
+          [AC_MSG_RESULT(no)
+             enable_opencl=no])
+          LIBS=$SAVED_LIBS
+          ;;        
+        *)
+	  STARPU_LOOK_FOR_OPENCL()
+	  # in case OpenCL was explicitely required, but is not available, this is an error
+	  if test x$enable_opencl = xyes -a x$have_valid_opencl = xno; then
+	    AC_MSG_ERROR([cannot find OpenCL])
+	  fi
+	  # now we enable OpenCL if and only if a proper setup is available
+	  enable_opencl=$have_valid_opencl
+          ;;
+   esac
 fi
 
 AC_MSG_CHECKING(whether OpenCL should be used)
