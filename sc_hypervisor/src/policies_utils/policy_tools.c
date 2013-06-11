@@ -14,9 +14,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-
 #include "sc_hypervisor_policy.h"
 #include "sc_hypervisor_intern.h"
+#include <math.h>
+
 static int _compute_priority(unsigned sched_ctx)
 {
 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctx);
