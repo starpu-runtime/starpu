@@ -189,6 +189,12 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	done; \
 	mv refman.pdf ../$(DOX_PDF)
 
+MAINTAINERCLEANFILES = $(DOX_TAG) \
+    -r \
+    $(DOX_HTML_DIR) \
+    $(DOX_LATEX_DIR) \
+    $(DOX_PDF)
+
 # Rule to update documentation on web server. Should only be used locally.
 PUBLISHHOST	?= sync
 update-web: $(DOX_PDF)
