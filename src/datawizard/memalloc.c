@@ -40,7 +40,7 @@ static struct _starpu_mem_chunk_list *memchunk_cache[STARPU_MAXNODES];
 const unsigned starpu_memstrategy_data_size_coefficient=2;
 
 static void starpu_lru(unsigned node);
-static int get_better_disk_can_accept_size(size_t size_handle);
+static int get_better_disk_can_accept_size(starpu_data_handle_t handle);
 
 void _starpu_init_mem_chunk_lists(void)
 {
@@ -373,11 +373,12 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 			/* no place for datas, we push on disk */
 			if (node == 0 && target == -1)
 			{
-				target = get_better_disk_can_accept_size(size_handle);
+				target = get_better_disk_can_accept_size(handle);
 			}
 			/* try to push data to RAM if we can before to push on disk*/
 			else if (starpu_node_get_kind(target) == STARPU_DISK_RAM  &&
-				 _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
+				     (handle->per_node[STARPU_MAIN_RAM].allocated || 
+				      _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1))
 			{
 				target = STARPU_MAIN_RAM;
 			}
@@ -385,7 +386,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 			else if ((starpu_node_get_kind(target) == STARPU_DISK_RAM || target == STARPU_MAIN_RAM) &&
 				 _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) != 1)
 			{
-				target = get_better_disk_can_accept_size(size_handle);
+				target = get_better_disk_can_accept_size(handle);
 			}
 
 			if (target != -1) {
@@ -1024,7 +1025,7 @@ void starpu_data_display_memory_stats(void)
 
 
 static int
-get_better_disk_can_accept_size(size_t size_handle)
+get_better_disk_can_accept_size(starpu_data_handle_t handle)
 {
 	int target = -1;
 	unsigned nnodes = starpu_memory_nodes_get_count();
@@ -1033,11 +1034,13 @@ get_better_disk_can_accept_size(size_t size_handle)
 				
 	for (i = 0; i < nnodes; i++)
 	{
-		if (starpu_node_get_kind(i) == STARPU_DISK_RAM && _starpu_memory_manager_test_allocate_size_(size_handle, i) == 1)
+		if (starpu_node_get_kind(i) == STARPU_DISK_RAM && 
+		    (_starpu_memory_manager_test_allocate_size_(_starpu_data_get_size(handle), i) == 1 ||
+		     handle->per_node[i].allocated))
 		{
 			/* only time can change between disk <-> main_ram 
 			 * and not between main_ram <-> worker if we compare diks*/
-			double time_tmp = _starpu_predict_transfer_time(i, STARPU_MAIN_RAM, size_handle);
+			double time_tmp = _starpu_predict_transfer_time(i, STARPU_MAIN_RAM, _starpu_data_get_size(handle));
 			if (target == -1 || time_disk > time_tmp)
 			{
 				target = i;
