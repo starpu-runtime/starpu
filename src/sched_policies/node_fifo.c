@@ -13,19 +13,31 @@ struct _starpu_fifo_data
 static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_node * node,
 								 struct starpu_task * task)
 {
+	struct _starpu_fifo_data * data = node->data;
+	struct _starpu_prio_deque * fifo = &data->fifo;
+	starpu_pthread_mutex_t * mutex = &data->mutex;
 	if(node->nchilds == 0)
 	{
 		struct _starpu_task_execute_preds p = { CANNOT_EXECUTE };
 		return p;
 	}
 	
+	if(!node->is_homogeneous)
+	{
+		struct _starpu_task_execute_preds preds = _starpu_sched_node_average_estimated_execute_preds(node, task);
+		STARPU_PTHREAD_MUTEX_LOCK(mutex);
+		preds.expected_finish_time = _starpu_compute_expected_time(fifo->exp_start,
+									   preds.expected_finish_time + fifo->exp_end,
+									   preds.state == PERF_MODEL ? preds.expected_length + fifo->exp_len : fifo->exp_len,
+									   preds.expected_transfer_length);
+		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+		return preds;
+	}
+	
 	struct _starpu_task_execute_preds preds = node->childs[0]->estimated_execute_preds(node->childs[0],task);
 
 	if(preds.state == PERF_MODEL)
 	{
-		struct _starpu_fifo_data * data = node->data;
-		struct _starpu_prio_deque * fifo = &data->fifo;
-		starpu_pthread_mutex_t * mutex = &data->mutex;
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
 		preds.expected_finish_time = _starpu_compute_expected_time(fifo->exp_start,
 									   preds.expected_finish_time + fifo->exp_end,

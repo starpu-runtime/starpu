@@ -94,6 +94,7 @@ void _starpu_sched_node_set_father(struct _starpu_sched_node *node, struct _star
 void _starpu_sched_node_add_child(struct _starpu_sched_node* node, struct _starpu_sched_node * child);
 void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child);
 
+struct _starpu_task_execute_preds _starpu_sched_node_average_estimated_execute_preds(struct _starpu_sched_node * node, struct starpu_task * task);
 
 int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct starpu_task * task);
 int _starpu_sched_node_can_execute_task_with_impl(struct _starpu_sched_node * node, struct starpu_task * task, unsigned nimpl);

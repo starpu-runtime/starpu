@@ -17,11 +17,15 @@ struct _starpu_sched_specs
 	struct _starpu_composed_sched_node_recipe * hwloc_socket_composed_sched_node;
 	struct _starpu_composed_sched_node_recipe * hwloc_cache_composed_sched_node;
 
-
 	/* this member should return a new allocated _starpu_composed_sched_node_recipe_t or NULL
 	 * the _starpu_composed_sched_node_recipe_t must not include the worker node
 	 */
 	struct _starpu_composed_sched_node_recipe * (*worker_composed_sched_node)(enum starpu_worker_archtype);
+
+	/* this flag indicate if heterogenous workers should be brothers or cousins,
+	 * as exemple, if a gpu and a cpu should share or not there numa node
+	 */
+	int mix_heterogeneous_workers;
 };
 
 struct _starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct _starpu_sched_specs);

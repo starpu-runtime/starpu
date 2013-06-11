@@ -226,7 +226,7 @@ static double estimated_load(struct _starpu_sched_node * node)
 }
 
 
-static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_node * node, struct starpu_task * task)
+struct _starpu_task_execute_preds _starpu_sched_node_average_estimated_execute_preds(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	if(node->is_homogeneous)
 		return node->childs[0]->estimated_execute_preds(node->childs[0], task);
@@ -338,7 +338,7 @@ struct _starpu_sched_node * _starpu_sched_node_create(void)
 	node->deinit_data = take_node_and_does_nothing;
 	node->pop_task = pop_task_node;
 	node->estimated_load = estimated_load;
-	node->estimated_execute_preds = estimated_execute_preds;
+	node->estimated_execute_preds = _starpu_sched_node_average_estimated_execute_preds;
 
 	return node;
 }

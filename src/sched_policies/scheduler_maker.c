@@ -101,59 +101,87 @@ struct _starpu_sched_node * _find_sched_node_with_obj(struct _starpu_sched_node 
 }
 
 
-static void set_cpu_worker_leaf(struct _starpu_sched_node * root, struct _starpu_sched_node * worker, unsigned sched_ctx_id,
-				struct _starpu_composed_sched_node_recipe * cpu_composed_sched_node)
+static int is_same_kind_of_all(struct _starpu_sched_node * root, struct _starpu_worker * w)
 {
-	hwloc_obj_t obj = worker->obj;
-	STARPU_ASSERT(!_find_sched_node_with_obj(root, obj));
-	while(obj)
+	if(_starpu_sched_node_is_worker(root))
 	{
-		obj = obj->parent;
-		struct _starpu_sched_node * tmp = _find_sched_node_with_obj(root, obj);
-		if(tmp)
-		{
-			struct _starpu_sched_node * node = _starpu_sched_node_composed_node_create(cpu_composed_sched_node);
-			node->obj = worker->obj;
-			_starpu_sched_node_set_father(node, tmp, sched_ctx_id);
-			_starpu_sched_node_add_child(tmp, node);
-
-			_starpu_sched_node_set_father(worker, node, sched_ctx_id);
-			_starpu_sched_node_add_child(node, worker);
-			return;
-		}
+		struct _starpu_worker * w_ = root->data;
+		return w_->perf_arch == w->perf_arch;
 	}
-	STARPU_ABORT();
+	
+	int i;
+	for(i = 0;i < root->nchilds; i++)
+		if(!is_same_kind_of_all(root->childs[i], w))
+			return 0;
+	return 0;
 }
 
-static void set_other_worker_leaf(struct _starpu_sched_node * root, struct _starpu_sched_node * worker, unsigned sched_ctx_id,
-				  struct _starpu_composed_sched_node_recipe * device_composed_sched_node, int sched_have_numa_node)
+struct _starpu_sched_node * find_mem_node(struct _starpu_sched_node * root, struct _starpu_sched_node * worker_node, unsigned sched_ctx_id)
 {
-	hwloc_obj_t obj = worker->obj;
-	while(obj)
-		if((sched_have_numa_node && obj->type == HWLOC_OBJ_NODE) || obj->type == HWLOC_OBJ_MACHINE)
-			break;
-		else
-			obj = obj->parent;
-	STARPU_ASSERT(obj != NULL);
-
-	struct _starpu_sched_node * tmp = _find_sched_node_with_obj(root, obj);
-	if(tmp)
+	struct _starpu_sched_node * node = worker_node;
+	while(node->obj->type != HWLOC_OBJ_NODE
+	      && node->obj->type != HWLOC_OBJ_MACHINE)
 	{
+		hwloc_obj_t tmp = node->obj;
+		do
+		{
+			node = _find_sched_node_with_obj(root,tmp);
+			tmp = tmp->parent;
+		}
+		while(!node);
+		
+	}
+	return node;
+}
+
+static struct _starpu_sched_node * where_should_we_plug_this(struct _starpu_sched_node *root, struct _starpu_sched_node * worker_node, struct _starpu_sched_specs specs, unsigned sched_ctx_id)
+{
+	struct _starpu_sched_node * mem = find_mem_node(root ,worker_node, sched_ctx_id);
+	if(specs.mix_heterogeneous_workers || mem->fathers[sched_ctx_id] == NULL)
+		return mem;
+	hwloc_obj_t obj = mem->obj;
+	struct _starpu_sched_node * father = mem->fathers[sched_ctx_id];
+	int i;
+	for(i = 0; i < father->nchilds; i++)
+	{
+		if(father->childs[i]->obj == obj
+		   && is_same_kind_of_all(father->childs[i], worker_node->data))
+			return father->childs[i];
+	}
+	if(obj->type == HWLOC_OBJ_NODE)
+	{	
+		struct _starpu_sched_node * node = _starpu_sched_node_composed_node_create(specs.hwloc_node_composed_sched_node);
+		_starpu_sched_node_add_child(father, node);
+		_starpu_sched_node_set_father(node, father, sched_ctx_id);
+		return node;
+	}
+	return father;
+}
+
+static void set_worker_leaf(struct _starpu_sched_node * root, struct _starpu_sched_node * worker_node, unsigned sched_ctx_id,
+			    struct _starpu_sched_specs specs)
+{
+	struct _starpu_worker * worker = worker_node->data;
+	struct _starpu_sched_node * node = where_should_we_plug_this(root,worker_node,specs, sched_ctx_id);
+	struct _starpu_composed_sched_node_recipe * recipe = specs.worker_composed_sched_node ?
+		specs.worker_composed_sched_node(worker->arch):NULL;
+	STARPU_ASSERT(node);
+	if(recipe)
+	{
+		struct _starpu_sched_node * tmp = _starpu_sched_node_composed_node_create(recipe);
 #ifdef STARPU_DEVEL
-#warning FIXME node->obj is set to worker->obj even for accelerators workers
+#warning FIXME node->obj is set to worker_node->obj even for accelerators workers
 #endif
-		struct _starpu_sched_node * node = _starpu_sched_node_composed_node_create(device_composed_sched_node);
-		node->obj = worker->obj;
+		tmp->obj = worker_node->obj;
 		_starpu_sched_node_set_father(node, tmp, sched_ctx_id);
 		_starpu_sched_node_add_child(tmp, node);
-		
-		_starpu_sched_node_set_father(worker, node, sched_ctx_id);
-		_starpu_sched_node_add_child(node, worker);
-		return;
+		node = tmp;
 	}
-	STARPU_ABORT();
+	_starpu_destroy_composed_sched_node_recipe(recipe);
+	_starpu_sched_node_set_father(worker_node, node, sched_ctx_id);
+	_starpu_sched_node_add_child(node, worker_node);
+	_starpu_destroy_composed_sched_node_recipe(recipe);
 }
-
 
 #ifdef STARPU_DEVEL
 static const char * name_hwloc_node(struct _starpu_sched_node * node)
@@ -191,7 +219,6 @@ static void helper_display_scheduler(FILE* out, unsigned depth, struct _starpu_s
 		helper_display_scheduler(out, depth + 1, node->childs[i]);
 }
 #endif //STARPU_DEVEL
-
 struct _starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct _starpu_sched_specs specs)
 {
 	struct _starpu_sched_tree * tree = malloc(sizeof(*tree));
@@ -213,17 +240,7 @@ struct _starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct
 		struct _starpu_worker * worker = _starpu_get_worker_struct(i);
 		struct _starpu_sched_node * worker_node = _starpu_sched_node_worker_get(i);
 		STARPU_ASSERT(worker);
-		struct _starpu_composed_sched_node_recipe * recipe = specs.worker_composed_sched_node(worker->arch);
-		switch(worker->arch)
-		{
-		case STARPU_CPU_WORKER:
-			set_cpu_worker_leaf(tree->root, worker_node, sched_ctx_id, recipe);
-			break;
-		default:
-			set_other_worker_leaf(tree->root, worker_node, sched_ctx_id, recipe, NULL != specs.hwloc_node_composed_sched_node);
-			break;
-		}
-		_starpu_destroy_composed_sched_node_recipe(recipe);
+		set_worker_leaf(tree->root,worker_node, sched_ctx_id, specs);
 	}
 
 	_starpu_set_workers_bitmaps();
