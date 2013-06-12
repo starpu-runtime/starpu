@@ -20,21 +20,23 @@
 #include <datawizard/footprint.h>
 #include <starpu.h>
 
-/* This per-node RW-locks protect mc_list and memchunk_cache entries */
-/* Note: handle header lock is always taken before this */
-static starpu_pthread_rwlock_t mc_rwlock[STARPU_MAXNODES];
-
 /* This per-node spinlock protect lru_list */
 static struct _starpu_spinlock lru_rwlock[STARPU_MAXNODES];
 
 /* Last Recently used memory chunkgs */
 static struct _starpu_mem_chunk_lru_list *starpu_lru_list[STARPU_MAXNODES];
 
+
+/* This per-node RW-locks protect mc_list and memchunk_cache entries */
+/* Note: handle header lock is always taken before this */
+static starpu_pthread_rwlock_t mc_rwlock[STARPU_MAXNODES];
+
 /* Potentially in use memory chunks */
 static struct _starpu_mem_chunk_list *mc_list[STARPU_MAXNODES];
 
 /* Explicitly caches memory chunks that can be reused */
 static struct _starpu_mem_chunk_list *memchunk_cache[STARPU_MAXNODES];
+
 
 /* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */
 const unsigned starpu_memstrategy_data_size_coefficient=2;
@@ -763,8 +765,12 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 		_starpu_mem_chunk_delete(mc);
 	}
 	else
+	{
 		/* put it in the list of buffers to be removed */
+		STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 		_starpu_mem_chunk_list_push_front(memchunk_cache[node], mc);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+	}
 }
 
 /*
