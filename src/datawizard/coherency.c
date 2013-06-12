@@ -36,9 +36,9 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 	/* first find a valid copy, either a STARPU_OWNER or a STARPU_SHARED */
 	unsigned node;
 
-	unsigned src_node_mask = 0;
 	size_t size = _starpu_data_get_size(handle);
 	double cost = INFINITY;
+	unsigned src_node_mask = 0;
 
 	for (node = 0; node < nnodes; node++)
 	{
@@ -90,22 +90,19 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 	int i_ram = -1;
 	int i_gpu = -1;
 	int i_disk = -1;
-	
+
 	/* Revert to dumb strategy: take RAM unless only a GPU has it */
 	for (i = 0; i < nnodes; i++)
 	{
+		
 		if (src_node_mask & (1<<i))
 		{
 			/* however GPU are expensive sources, really !
 			 * 	Unless peer transfer is supported.
 			 * 	Other should be ok */
 
-			if (
-#ifndef HAVE_CUDA_MEMCPY_PEER
-				starpu_node_get_kind(i) == STARPU_CUDA_RAM ||
-#endif
-				starpu_node_get_kind(i) == STARPU_OPENCL_RAM)
-				/* we save it, but we don't use it (reason above) */
+			if (starpu_node_get_kind(i) == STARPU_CUDA_RAM ||
+			    starpu_node_get_kind(i) == STARPU_OPENCL_RAM)
 				i_gpu = i;
 
 			if (starpu_node_get_kind(i) == STARPU_CPU_RAM)
@@ -114,13 +111,15 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 				i_disk = i;
 		}
 	}
+	
 	/* we have to use cpu_ram in first */
 	if (i_ram != -1)
 		src_node = i_ram;
 	/* no luck we have to use the disk memory */
+	else if (i_gpu != -1)
+		src_node = i_gpu;
 	else
 		src_node = i_disk;
-		
 
 	STARPU_ASSERT(src_node != -1);
 
