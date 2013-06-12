@@ -158,7 +158,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/dependencies/tags.c				\
 	core/dependencies/task_deps.c				\
 	core/dependencies/data_concurrency.c			\
-	core/diskOps/disk_stdio.c				\
+	core/disk_ops/disk_stdio.c				\
 	core/perfmodel/perfmodel_history.c			\
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
