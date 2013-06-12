@@ -17,11 +17,6 @@ SUBDIRS = src examples
 
 EXTRA_DIST = README
 
-libsocl_la_includedir=$(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)/socl/CL
-
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = socl-1.0.pc socl-1.1.pc
-
 showcheck:
 	for i in $(SUBDIRS) ; do \
 		make -C $$i showcheck ; \
