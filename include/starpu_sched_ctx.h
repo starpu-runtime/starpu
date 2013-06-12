@@ -67,14 +67,14 @@ unsigned starpu_sched_ctx_check_if_hypervisor_exists(void);
 
 void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
 
-void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
+void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
 
 
-struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type);
+struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type);
 
 void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
 
-struct starpu_worker_collection* starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
+struct starpu_worker_collection *starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id);
 
@@ -112,7 +112,7 @@ int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio);
 #define STARPU_DEFAULT_PRIO	0
 
 /* execute any parallel code on the workers of the sched_ctx (workers are blocked) */
-void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void* param, unsigned sched_ctx_id);
+void *starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void *param, unsigned sched_ctx_id);
 
 #ifdef __cplusplus
 }
