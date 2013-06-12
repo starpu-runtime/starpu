@@ -41,6 +41,7 @@ const unsigned starpu_memstrategy_data_size_coefficient=2;
 
 static void starpu_lru(unsigned node);
 static int get_better_disk_can_accept_size(starpu_data_handle_t handle);
+static unsigned choose_target(starpu_data_handle_t handle, unsigned node);
 
 void _starpu_init_mem_chunk_lists(void)
 {
@@ -361,32 +362,9 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
-
-			if (handle->home_node != -1)
-				target = handle->home_node;
-			else
-			{
-				/* handle->home_node == -1 */
-				size_t size_handle = _starpu_data_get_size(handle);
-				/* no place for datas in RAM, we push on disk */
-				if (node == 0)
-				{
-					target = get_better_disk_can_accept_size(handle);
-				}
-				/* node != 0 */
-				/* try to push data to RAM if we can before to push on disk*/
-				else if (handle->per_node[STARPU_MAIN_RAM].allocated || 
-					  _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
-				{
-					target = STARPU_MAIN_RAM;
-				}
-				/* no place in RAM */
-				else
-				{
-					target = get_better_disk_can_accept_size(handle);
-				}
-
-			}
+			
+			/* choose the best target */
+			target = choose_target(handle, node);
 
 			if (target != -1) {
 #ifdef STARPU_MEMORY_STATS
@@ -1045,6 +1023,56 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle)
 				target = i;
 				time_disk = time_tmp;
 			}	
+		}
+	}
+	return target;
+}
+
+
+static unsigned
+choose_target(starpu_data_handle_t handle, unsigned node)
+{
+	unsigned target = -1;
+	size_t size_handle = _starpu_data_get_size(handle);
+	if (handle->home_node != -1)
+		/* try to push on RAM if we can before to push on disk */
+		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM)
+		{
+			if (handle->per_node[STARPU_MAIN_RAM].allocated || 
+			    _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
+			{
+				target = STARPU_MAIN_RAM;
+			}
+			else
+			{
+				target = get_better_disk_can_accept_size(handle);
+			}
+
+		}
+          	/* others memory nodes */
+		else 
+		{
+			target = handle->home_node;
+		}
+	else
+	{
+		/* handle->home_node == -1 */
+		/* no place for datas in RAM, we push on disk */
+		if (node == 0)
+		{
+			target = get_better_disk_can_accept_size(handle);
+		}
+		/* node != 0 */
+		/* try to push data to RAM if we can before to push on disk*/
+		else if (handle->per_node[STARPU_MAIN_RAM].allocated || 
+			 _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
+		{
+			target = STARPU_MAIN_RAM;
+		}
+		/* no place in RAM */
+		else
+		{
+			target = get_better_disk_can_accept_size(handle);
 		}
 	}
 	return target;
