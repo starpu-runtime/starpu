@@ -16,7 +16,7 @@ nice visual task debugging. To do so, build Temanejo's <c>libayudame.so</c>,
 install <c>Ayudame.h</c> to e.g. <c>/usr/local/include</c>, apply the
 <c>tools/patch-ayudame</c> to it to fix C build, re-<c>./configure</c>, make
 sure that it found it, rebuild StarPU.  Run the Temanejo GUI, give it the path
-to your application, any options you want to pass it, the path to libayudame.so.
+to your application, any options you want to pass it, the path to <c>libayudame.so</c>.
 
 Make sure to specify at least the same number of CPUs in the dialog box as your
 machine has, otherwise an error will happen during execution. Future versions
@@ -35,7 +35,7 @@ call starpu_profiling_status_set() with the parameter
 is already enabled or not by calling starpu_profiling_status_get().
 Enabling monitoring also reinitialize all previously collected
 feedback. The environment variable \ref STARPU_PROFILING can also be
-set to 1 to achieve the same effect.
+set to <c>1</c> to achieve the same effect.
 
 Likewise, performance monitoring is stopped by calling
 starpu_profiling_status_set() with the parameter
@@ -247,7 +247,7 @@ Or you can simply point the <c>PKG_CONFIG_PATH</c> to
 \ref with-fxt "--with-fxt" to <c>./configure</c>
 
 When FxT is enabled, a trace is generated when StarPU is terminated by calling
-starpu_shutdown()). The trace is a binary file whose name has the form
+starpu_shutdown(). The trace is a binary file whose name has the form
 <c>prof_file_XXX_YYY</c> where <c>XXX</c> is the user name, and
 <c>YYY</c> is the pid of the process that used StarPU. This file is saved in the
 <c>/tmp/</c> directory by default, or by the directory specified by
@@ -269,7 +269,7 @@ application shutdown.
 This will create a file <c>paje.trace</c> in the current directory that
 can be inspected with the <a href="http://vite.gforge.inria.fr/">ViTE trace
 visualizing open-source tool</a>.  It is possible to open the
-<c>paje.trace</c> file with ViTE by using the following command:
+file <c>paje.trace</c> with ViTE by using the following command:
 
 \verbatim
 $ vite paje.trace
@@ -322,7 +322,7 @@ generate an activity trace by calling:
 $ starpu_fxt_tool -i filename
 \endverbatim
 
-This will create an <c>activity.data</c> file in the current
+This will create a file <c>activity.data</c> in the current
 directory. A profile of the application showing the activity of StarPU
 during the execution of the program can be generated:
 
@@ -341,7 +341,7 @@ efficiently. The black sections indicate that the processing unit was blocked
 because there was no task to process: this may indicate a lack of parallelism
 which may be alleviated by creating more tasks when it is possible.
 
-The second part of the <c>activity.eps</c> picture is a graph showing the
+The second part of the picture <c>activity.eps</c> is a graph showing the
 evolution of the number of tasks available in the system during the execution.
 Ready tasks are shown in black, and tasks that are submitted but not
 schedulable yet are shown in grey.
@@ -360,8 +360,8 @@ file: <starpu_slu_lu_model_22.hannibal>
 file: <starpu_slu_lu_model_12.hannibal>
 \endverbatim
 
-Here, the codelets of the lu example are available. We can examine the
-performance of the 22 kernel (in micro-seconds), which is history-based:
+Here, the codelets of the example <c>lu</c> are available. We can examine the
+performance of the kernel <c>22</c> (in micro-seconds), which is history-based:
 
 \verbatim
 $ starpu_perfmodel_display -s starpu_slu_lu_model_22
@@ -414,7 +414,7 @@ starpu_perfmodel_load_symbol(). The source code of the tool
 
 The tool <c>starpu_perfmodel_plot</c> can be used to draw performance
 models. It writes a <c>.gp</c> file in the current directory, to be
-run in the <c>gnuplot</c> tool, which shows the corresponding curve.
+run with the tool <c>gnuplot</c>, which shows the corresponding curve.
 
 When the field starpu_task::flops is set, <c>starpu_perfmodel_plot</c> can
 directly draw a GFlops curve, by simply adding the <c>-f</c> option:
@@ -448,13 +448,13 @@ $ starpu_perfmodel_plot -s non_linear_memset_regression_based -i /tmp/prof_file_
 It will produce a <c>.gp</c> file which contains both the performance model
 curves, and the profiling measurements.
 
-If you have the <c>R</c> statistical tool installed, you can additionally use
+If you have the statistical tool <c>R</c> installed, you can additionally use
 
 \verbatim
 $ starpu_codelet_histo_profile distrib.data
 \endverbatim
 
-Which will create one pdf file per codelet and per input size, showing a
+Which will create one <c>.pdf</c> file per codelet and per input size, showing a
 histogram of the codelet execution time distribution.
 
 \section TheoreticalLowerBoundOnExecutionTime Theoretical Lower Bound On Execution Time
@@ -475,13 +475,13 @@ use this.
 \section MemoryFeedback Memory Feedback
 
 It is possible to enable memory statistics. To do so, you need to pass
-the option \ref enable-memory-stats "--enable-memory-stats" when running configure. It is then
-possible to call the function starpu_display_memory_stats() to
+the option \ref enable-memory-stats "--enable-memory-stats" when running <c>configure</c>. It is then
+possible to call the function starpu_data_display_memory_stats() to
 display statistics about the current data handles registered within StarPU.
 
 Moreover, statistics will be displayed at the end of the execution on
 data handles which have not been cleared out. This can be disabled by
-setting the environment variable \ref STARPU_MEMORY_STATS to 0.
+setting the environment variable \ref STARPU_MEMORY_STATS to <c>0</c>.
 
 For example, if you do not unregister data at the end of the complex
 example, you will get something similar to:
@@ -552,7 +552,7 @@ of the application. To enable them, you need to pass the option
 starpu_shutdown() various statistics will be displayed,
 execution, MSI cache statistics, allocation cache statistics, and data
 transfer statistics. The display can be disabled by setting the
-environment variable \ref STARPU_STATS to 0.
+environment variable \ref STARPU_STATS to <c>0</c>.
 
 \verbatim
 $ ./examples/cholesky/cholesky_tag
