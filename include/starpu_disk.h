@@ -32,7 +32,7 @@ struct disk_ops {
 	 void *  (*plug)   (void *parameter);
 	 void    (*unplug) (void *base);
 	  int    (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
-	 void    (*bandwidth) (void *base, unsigned node);
+	 void    (*bandwidth) (unsigned node);
 };
 
 

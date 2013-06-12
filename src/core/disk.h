@@ -18,6 +18,8 @@
 #ifndef __DISK_H__
 #define __DISK_H__
 
+#define SIZE_DISK_MIN (1024*1024)
+
 /* interface to manipulate memory disk */
 void * _starpu_disk_alloc (unsigned node, size_t size);
 

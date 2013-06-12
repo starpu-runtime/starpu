@@ -87,9 +87,9 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 		/* Could estimate through cost, return that */
 		return src_node;
 	
-	unsigned i_ram = -1;
-	unsigned i_gpu = -1;
-	unsigned i_disk = -1;
+	int i_ram = -1;
+	int i_gpu = -1;
+	int i_disk = -1;
 	
 	/* Revert to dumb strategy: take RAM unless only a GPU has it */
 	for (i = 0; i < nnodes; i++)
