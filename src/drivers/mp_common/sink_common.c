@@ -213,6 +213,16 @@ static void _starpu_sink_common_copy_to_sink(const struct _starpu_mp_node *mp_no
     mp_node->dt_send_to_device(mp_node, cmd->devid, cmd->addr, cmd->size);
 }
 
+static void _starpu_sink_min_nworkers(const struct _starpu_mp_node *mp_node, void * arg, 
+				      int arg_size)
+{
+	STARPU_ASSERT(arg_size == sizeof(int));
+
+	mp_node->min_nworkers = *((int*)arg);
+
+	_STARPU_DEBUG("Mic: my min_nworkers is: %d.\n", mp_node->min_nworkers);	
+}
+
 /* Function looping on the sink, waiting for tasks to execute.
  * If the caller is the host, don't do anything.
  */
@@ -270,6 +280,10 @@ void _starpu_sink_common_worker(void)
 
 			case STARPU_SEND_TO_SINK:
 				_starpu_sink_common_copy_to_sink(node, arg, arg_size);
+				break;
+
+		        case STARPU_MIN_NWORKERS:
+				_starpu_sink_min_nworkers(node, arg, arg_size);
 				break;
 
 			default:

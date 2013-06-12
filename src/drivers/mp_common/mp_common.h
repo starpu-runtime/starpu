@@ -58,7 +58,8 @@ enum _starpu_mp_command
 	STARPU_SINK_NBCORES = 0x15,
 	STARPU_ANSWER_SINK_NBCORES = 0x16,
 	STARPU_EXECUTION_SUBMITTED = 0x17,
-	STARPU_EXECUTION_COMPLETED = 0x18
+	STARPU_EXECUTION_COMPLETED = 0x18,
+	STARPU_MIN_NWORKERS = 0x19
 };
 
 enum _starpu_mp_node_kind
@@ -115,6 +116,9 @@ struct _starpu_mp_node
 	/* Only MIC use this for now !!
 	 * This is the devid both for the sink and the host. */
 	int devid;
+
+        /*The id of the lowest worker for the mic*/
+	int min_nworkers;
 
 	/* Only MIC use this for now !!
 	*  Is the number ok MIC on the system. */

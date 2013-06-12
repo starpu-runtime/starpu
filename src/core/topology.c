@@ -629,6 +629,10 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 
 	/* _starpu_initialize_workers_mic_deviceid (config); */
 
+	mic_nodes[mic_idx].min_nworkers = topology->nworkers;
+	_starpu_mp_common_send_command(mic_nodes[mic_idx], STARPU_MIN_NWORKERS, &(mic_nodes[mic_idx].min_nworkers), sizeof(int));
+	_STARPU_DEBUG("Host: the min_nworkers of the Mic is: %d.\n", mic_nodes[mic_idx].min_nworkers );	
+
 	unsigned miccore_id;
 	for (miccore_id = 0; miccore_id < topology->nmiccores[mic_idx]; miccore_id++)
 	{
