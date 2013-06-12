@@ -31,7 +31,7 @@ $ pkg-config --cflags starpumpi-1.1  # options for the compiler
 $ pkg-config --libs starpumpi-1.1    # options for the linker
 \endverbatim
 
-You also need pass the <c>--static</c> option if the application is to
+You also need pass the option <c>--static</c> if the application is to
 be linked statically.
 
 \code{.c}
@@ -232,7 +232,7 @@ int my_distrib(int x, int y, int nb_nodes) {
 
 Now the data can be registered within StarPU. Data which are not
 owned but will be needed for computations can be registered through
-the lazy allocation mechanism, i.e. with a <c>home_node</c> set to -1.
+the lazy allocation mechanism, i.e. with a <c>home_node</c> set to <c>-1</c>.
 StarPU will automatically allocate the memory when it is used for the
 first time.
 

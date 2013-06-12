@@ -134,8 +134,8 @@ $ make install
 \endverbatim
 
 Libtool interface versioning information are included in
-libraries names (libstarpu-1.1.so, libstarpumpi-1.1.so and
-libstarpufft-1.1.so).
+libraries names (<c>libstarpu-1.1.so</c>, <c>libstarpumpi-1.1.so</c> and
+<c>libstarpufft-1.1.so</c>).
 
 \section SettingUpYourOwnCode Setting up Your Own Code
 
@@ -145,10 +145,10 @@ StarPU provides a pkg-config executable to obtain relevant compiler
 and linker flags.
 Compiling and linking an application against StarPU may require to use
 specific flags or libraries (for instance <c>CUDA</c> or <c>libspe2</c>).
-To this end, it is possible to use the <c>pkg-config</c> tool.
+To this end, it is possible to use the tool <c>pkg-config</c>.
 
 If StarPU was not installed at some standard location, the path of StarPU's
-library must be specified in the <c>PKG_CONFIG_PATH</c> environment variable so
+library must be specified in the environment variable <c>PKG_CONFIG_PATH</c> so
 that <c>pkg-config</c> can find it. For example if StarPU was installed in
 <c>$prefix_dir</c>:
 
@@ -172,10 +172,10 @@ Make sure that <c>pkg-config --libs starpu-1.1</c> actually produces some output
 before going further: <c>PKG_CONFIG_PATH</c> has to point to the place where
 <c>starpu-1.1.pc</c> was installed during <c>make install</c>.
 
-Also pass the <c>--static</c> option if the application is to be
+Also pass the option <c>--static</c> if the application is to be
 linked statically.
 
-It is also necessary to set the variable <c>LD_LIBRARY_PATH</c> to
+It is also necessary to set the environment variable <c>LD_LIBRARY_PATH</c> to
 locate dynamic libraries at runtime.
 
 \verbatim
@@ -280,10 +280,10 @@ multiplication using BLAS and cuBLAS. They output the obtained GFlops.
 
 \subsection CholeskyFactorization Cholesky Factorization
 
-<c>cholesky\*</c> perform a Cholesky factorization (single precision). They use different dependency primitives.
+<c>cholesky/*</c> perform a Cholesky factorization (single precision). They use different dependency primitives.
 
 \subsection LUFactorization LU Factorization
 
-<c>lu\*</c> perform an LU factorization. They use different dependency primitives.
+<c>lu/*</c> perform an LU factorization. They use different dependency primitives.
 
 */
