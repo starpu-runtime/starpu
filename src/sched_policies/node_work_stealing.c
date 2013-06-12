@@ -171,7 +171,7 @@ int _starpu_ws_push_task(struct starpu_task *task)
 			
 			struct _starpu_work_stealing_data * wsd = node->data;
 			STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
-			int ret = _starpu_fifo_push_sorted_task(wsd->fifos[i], task);
+			int ret = _starpu_prio_deque_push_task(wsd->fifos + i , task);
 			STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
 			
 			//we need to wake all workers
