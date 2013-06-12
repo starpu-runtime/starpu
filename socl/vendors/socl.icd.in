@@ -1,2 +1,1 @@
 @STARPU_BUILD_DIR@/socl/src/.libs/libsocl-@STARPU_EFFECTIVE_VERSION@.so
-

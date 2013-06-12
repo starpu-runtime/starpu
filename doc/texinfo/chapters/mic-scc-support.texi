@@ -19,14 +19,14 @@ recurse into both directories.
 It can be parameterized with the following environment variables:
 
 @table @asis
-@item @code{MIC_HOST}
+@item @code{STARPU_MIC_HOST}
 Defines the value of the @code{--host} parameter passed to @code{configure} for the
 cross-compilation. The current default is @code{x86_64-k1om-linux}.
 
-@item @code{MIC_CC_PATH}
+@item @code{STARPU_MIC_CC_PATH}
 Defines the path to the MIC cross-compiler. The current default is @code{/usr/linux-k1om-4.7/bin/}.
 
-@item @code{COI_DIR}
+@item @code{STARPU_COI_DIR}
 Defines the path to the COI library. The current default is @code{/opt/intel/mic/coi}
 @end table
 

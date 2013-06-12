@@ -277,8 +277,8 @@ int mm_write_mtx_array_size(FILE *f, int M, int N)
 /* use when I[], J[], and val[]J, and val[] are already allocated */
 /******************************************************************/
 
-int mm_read_mtx_crd_data(FILE *f, int M 
-				 int N, int nz, int I[], int J[],
+int mm_read_mtx_crd_data(FILE *f, int M,
+			 int N, int nz, int I[], int J[],
         double val[], MM_typecode matcode)
 {
     int i;

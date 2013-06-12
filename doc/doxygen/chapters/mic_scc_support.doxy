@@ -1,0 +1,56 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page MICSCCSupport MIC/SCC Support
+
+\section Compilation Compilation
+
+SCC support just needs the presence of the RCCE library.
+
+MIC support actually needs two compilations of StarPU, one for the host and one for
+the device. The PATH environment variable has to include the path to the
+cross-compilation toolchain, for instance <c>/usr/linux-k1om-4.7/bin</c>
+The script <c>mic-configure</c> can then be used to achieve the two compilations: it basically
+calls <c>configure</c> as appropriate from two new directories: <c>build_mic</c> and
+<c>build_host</c>. <c>make</c> and <c>make install</c> can then be used as usual and will
+recurse into both directories.
+
+\section PortingApplicationsToMICSCC Porting Applications To MIC/SCC
+
+The simplest way to port an application to MIC/SCC is to set the field
+starpu_codelet::cpu_funcs_name, to provide StarPU with the function
+name of the CPU implementation. StarPU will thus simply use the
+existing CPU implementation (cross-rebuilt in the MIC case). The
+functions have to be globally-visible (i.e. not <c>static</c>) for
+StarPU to be able to look them up.
+
+For SCC execution, the function starpu_initialize() also has to be
+used instead of starpu_init(), so as to pass <c>argc</c> and
+<c>argv</c>.
+
+\section LaunchingPrograms Launching Programs
+
+SCC programs are started through RCCE.
+
+MIC programs are started from the host. StarPU automatically
+starts the same program on MIC devices. It however needs to get
+the MIC-cross-built binary. It will look for the file given by the
+environment variable \ref STARPU_MIC_SINK_PROGRAM_NAME or in the
+directory given by the environment variable \ref
+STARPU_MIC_SINK_PROGRAM_PATH, or in the field
+starpu_conf::mic_sink_program_path. It will also look in the current
+directory for the same binary name plus the suffix <c>-mic</c> or
+<c>_mic</c>.
+
+The testsuite can be started by simply running <c>make check</c> from the
+top directory. It will recurse into both <c>build_host</c> to run tests with only
+the host, and into <c>build_mic</c> to run tests with both the host and the MIC
+devices. Single tests with the host and the MIC can be run by starting
+<c>./loader-cross.sh ./the_test</c> from <c>build_mic/tests</c>.
+
+*/

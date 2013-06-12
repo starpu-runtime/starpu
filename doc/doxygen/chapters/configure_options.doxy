@@ -99,7 +99,8 @@ Specify <c>hwloc</c> should not be used by StarPU.
 \anchor disable-build-doc
 \addindex __configure__--disable-build-doc
 Disable the creation of the documentation. This should be done on a
-machine which does not have the tools <c>makeinfo</c> and <c>tex</c>.
+machine which does not have the tools <c>doxygen</c> and <c>latex</c>
+(plus the packages <c>latex-xcolor</c> and <c>texlive-latex-extra</c>).
 </dd>
 </dl>
 
@@ -326,6 +327,22 @@ Use the compiler <c>mpicc</c> at <c>path</c>, for StarPU-MPI.
 \anchor enable-mpi-progression-hook
 \addindex __configure__--enable-mpi-progression-hook
 Enable the activity polling method for StarPU-MPI.
+</dd>
+
+<dt>--with-coi-dir</dt>
+<dd>
+\anchor with-coi-dir
+\addindex __configure__--with-coi-dir
+Specify the directory to the COI library for MIC support.
+The default value is <c>/opt/intel/mic/coi</c>
+</dd>
+
+<dt>--mic-host</dt>
+<dd>
+\anchor mic-host
+\addindex __configure__--mic-host
+Specify the precise MIC architecture host identifier.
+The default value is <c>x86_64-k1om-linux</c>
 </dd>
 
 \section AdvancedConfiguration Advanced Configuration

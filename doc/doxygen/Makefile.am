@@ -41,6 +41,7 @@ chapters =	\
 	chapters/configure_options.doxy \
 	chapters/fdl-1.3.doxy \
 	chapters/scaling-vector-example.doxy \
+	chapters/mic_scc_support.doxy \
 	chapters/code/hello_pragma2.c \
 	chapters/code/hello_pragma.c \
 	chapters/code/matmul_pragma.c \
@@ -174,7 +175,7 @@ $(DOX_TAG): $(dox_inputs)
 dist_pdf_DATA = $(DOX_PDF)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
-	cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_DIR)
+	cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
 	cd $(DOX_LATEX_DIR); \
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
 	sed -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
@@ -194,7 +195,7 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	done; \
 	mv refman.pdf ../$(DOX_PDF)
 
-MAINTAINERCLEANFILES = $(DOX_TAG) \
+CLEANFILES = $(DOX_TAG) \
     -r \
     $(DOX_HTML_DIR) \
     $(DOX_LATEX_DIR) \
