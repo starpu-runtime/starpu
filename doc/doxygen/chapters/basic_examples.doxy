@@ -543,34 +543,7 @@ that the vector pointer returned by ::STARPU_VECTOR_GET_PTR is here a
 pointer in GPU memory, so that it can be passed as such to the
 kernel call <c>vector_mult_cuda</c>.
 
-\code{.c}
-#include <starpu.h>
-
-static __global__ void vector_mult_cuda(unsigned n, float *val,
-                                        float factor)
-{
-    unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
-    if (i < n)
-        val[i] *= factor;
-}
-
-extern "C" void scal_cuda_func(void *buffers[], void *_args)
-{
-    float *factor = (float *)_args;
-
-    /* length of the vector */
-    unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-    /* CUDA copy of the vector pointer */
-    float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
-    unsigned threads_per_block = 64;
-    unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
-
-    vector_mult_cuda<<<nblocks,threads_per_block, 0, starpu_cuda_get_local_stream()>>>
-                    (n, val, *factor);
-
-    cudaStreamSynchronize(starpu_cuda_get_local_stream());
-}
-\endcode
+\snippet vector_scal_cuda.cu To be included
 
 \subsection DefinitionOfTheOpenCLKernel Definition of the OpenCL Kernel
 
@@ -592,55 +565,7 @@ which returns a <c>cl_mem</c> (which is not a device pointer, but an OpenCL
 handle), which can be passed as such to the OpenCL kernel. The difference is
 important when using partitioning, see \ref PartitioningData.
 
-\code{.c}
-#include <starpu.h>
-
-extern struct starpu_opencl_program programs;
-
-void scal_opencl_func(void *buffers[], void *_args)
-{
-    float *factor = _args;
-    int id, devid, err;     /* OpenCL specific code */
-    cl_kernel kernel;       /* OpenCL specific code */
-    cl_command_queue queue; /* OpenCL specific code */
-    cl_event event;         /* OpenCL specific code */
-
-    /* length of the vector */
-    unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-    /* OpenCL copy of the vector pointer */
-    cl_mem val = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
-
-    { /* OpenCL specific code */
-        id = starpu_worker_get_id();
-        devid = starpu_worker_get_devid(id);
-
-	err = starpu_opencl_load_kernel(&kernel, &queue, &programs,
-	                       "vector_mult_opencl", devid);   /* Name of the codelet defined above */
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-
-        err = clSetKernelArg(kernel, 0, sizeof(n), &n);
-        err |= clSetKernelArg(kernel, 1, sizeof(val), &val);
-        err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);
-        if (err) STARPU_OPENCL_REPORT_ERROR(err);
-    }
-
-    {  /* OpenCL specific code */
-        size_t global=n;
-        size_t local=1;
-        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-    }
-
-    {  /* OpenCL specific code */
-        clFinish(queue);
-        starpu_opencl_collect_stats(event);
-        clReleaseEvent(event);
-
-        starpu_opencl_release_kernel(kernel);
-    }
-}
-\endcode
-
+\snippet vector_scal_opencl.c To be included
 
 \subsection DefinitionOfTheMainCode Definition of the Main Code
 

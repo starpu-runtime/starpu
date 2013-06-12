@@ -24,29 +24,33 @@ extern struct starpu_opencl_program programs;
 void scal_opencl_func(void *buffers[], void *_args)
 {
     float *factor = _args;
-    int id, devid, err;
-    cl_kernel kernel;
-    cl_command_queue queue;
-    cl_event event;
+    int id, devid, err;                   /* OpenCL specific code */
+    cl_kernel kernel;                     /* OpenCL specific code */
+    cl_command_queue queue;               /* OpenCL specific code */
+    cl_event event;                       /* OpenCL specific code */
 
     /* length of the vector */
     unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
     /* OpenCL copy of the vector pointer */
     cl_mem val = (cl_mem)STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 
-    id = starpu_worker_get_id();
-    devid = starpu_worker_get_devid(id);
+    {  /* OpenCL specific code */
+	 id = starpu_worker_get_id();
+	 devid = starpu_worker_get_devid(id);
 
-    err = starpu_opencl_load_kernel(&kernel, &queue, &programs, "vector_mult_opencl",
-                                    devid);
-    if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	 err = starpu_opencl_load_kernel(&kernel, &queue,
+					 &programs,
+					 "vector_mult_opencl", /* Name of the codelet */
+					 devid);
+	 if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-    err = clSetKernelArg(kernel, 0, sizeof(n), &n);
-    err |= clSetKernelArg(kernel, 1, sizeof(val), &val);
-    err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);
-    if (err) STARPU_OPENCL_REPORT_ERROR(err);
+	 err = clSetKernelArg(kernel, 0, sizeof(n), &n);
+	 err |= clSetKernelArg(kernel, 1, sizeof(val), &val);
+	 err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);
+	 if (err) STARPU_OPENCL_REPORT_ERROR(err);
+    }
 
-    {
+    {   /* OpenCL specific code */
         size_t global=n;
         size_t local;
         size_t s;
@@ -63,10 +67,12 @@ void scal_opencl_func(void *buffers[], void *_args)
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
     }
 
-    clFinish(queue);
-    starpu_opencl_collect_stats(event);
-    clReleaseEvent(event);
+    {  /* OpenCL specific code */
+	 clFinish(queue);
+	 starpu_opencl_collect_stats(event);
+	 clReleaseEvent(event);
 
-    starpu_opencl_release_kernel(kernel);
+	 starpu_opencl_release_kernel(kernel);
+    }
 }
 //! [To be included]
