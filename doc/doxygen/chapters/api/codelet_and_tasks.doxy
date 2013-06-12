@@ -569,7 +569,7 @@ starpu_codelet::modes or the \p i th element of the field
 starpu_codelet::dyn_modes (see \ref
 SettingTheDataHandlesForATask)
 
-\fn struct starpu_task * starpu_task_create(void)
+\fn struct starpu_task *starpu_task_create(void)
 \ingroup API_Codelet_And_Tasks
 Allocate a task structure and initialize it with default
 values. Tasks allocated dynamically with starpu_task_create() are
@@ -580,7 +580,7 @@ wait) and thus freed at any time. If the field starpu_task::destroy is
 explicitly unset, the resources used by the task have to be freed by
 calling starpu_task_destroy().
 
-\fn struct starpu_task * starpu_task_dup(struct starpu_task *task)
+\fn struct starpu_task *starpu_task_dup(struct starpu_task *task)
 \ingroup API_Codelet_And_Tasks
 Allocate a task structure which is the exact duplicate of the
 given task.
@@ -657,7 +657,7 @@ Return the number of submitted tasks which are ready for
 execution are already executing. It thus does not include tasks
 waiting for dependencies.
 
-\fn struct starpu_task * starpu_task_get_current(void)
+\fn struct starpu_task *starpu_task_get_current(void)
 \ingroup API_Codelet_And_Tasks
 This function returns the task currently executed by the
 worker, or <c>NULL</c> if it is called either from a thread that is not a
@@ -681,7 +681,7 @@ codelet implementation to be executed when executing the task.
 This function return the codelet implementation to be executed
 when executing the task.
 
-\fn void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,	void (*callback)(void *), void *callback_arg)
+\fn void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg)
 \ingroup API_Codelet_And_Tasks
 This creates (and submits) an empty task that unlocks a tag once all
 its dependencies are fulfilled.

@@ -58,7 +58,7 @@ starpu_init().
 \var starpu_sched_policy::policy_description
         Optional field. Human readable description of the policy.
 
-\fn struct starpu_sched_policy ** starpu_sched_get_predefined_policies()
+\fn struct starpu_sched_policy **starpu_sched_get_predefined_policies()
 \ingroup API_Scheduling_Policy
 Return an NULL-terminated array of all the predefined scheduling
 policies.
@@ -73,13 +73,13 @@ condition variable. For instance, in the case of a scheduling strategy
 with a single task queue, the same condition variable would be used to
 block and wake up all workers.
 
-\fn void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void * policy_data)
+\fn void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data)
 \ingroup API_Scheduling_Policy
 Each scheduling policy uses some specific data (queues, variables,
 additional condition variables). It is memorize through a local
 structure. This function assigns it to a scheduling context.
 
-\fn void* starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id)
+\fn void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id)
 \ingroup API_Scheduling_Policy
 Returns the policy data previously assigned to a context
 
@@ -135,7 +135,7 @@ otherwise the task may fail to execute.
 \ingroup API_Scheduling_Policy
 Return the current date in micro-seconds.
 
-\fn uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task * task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+\fn uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy
 Returns the footprint for a given task
 

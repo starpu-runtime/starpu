@@ -671,12 +671,12 @@ row pointers...) of the matrix desginated by \p handle.
 Return a pointer to the non-zero values of the matrix
 designated by \p handle.
 
-\fn uint32_t * starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
+\fn uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
 Return a pointer to the column index, which holds the positions
 of the non-zero entries in the matrix designated by \p handle.
 
-\fn uint32_t * starpu_bcsr_get_local_rowptr(starpu_data_handle_t handle)
+\fn uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
 Return the row pointer array of the matrix designated by
 \p handle.
@@ -780,12 +780,12 @@ row pointers...) of the matrix designated by \p handle.
 Return a local pointer to the non-zero values of the matrix
 designated by \p handle.
 
-\fn uint32_t * starpu_csr_get_local_colind(starpu_data_handle_t handle)
+\fn uint32_t *starpu_csr_get_local_colind(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
 Return a local pointer to the column index of the matrix
 designated by \p handle.
 
-\fn uint32_t * starpu_csr_get_local_rowptr(starpu_data_handle_t handle)
+\fn uint32_t *starpu_csr_get_local_rowptr(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
 Return a local pointer to the row pointer array of the matrix
 designated by \p handle.

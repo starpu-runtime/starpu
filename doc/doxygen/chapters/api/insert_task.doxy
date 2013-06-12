@@ -90,7 +90,7 @@ Pack arguments of type ::STARPU_VALUE into a buffer which can be
 given to a codelet and later unpacked with the function
 starpu_codelet_unpack_args().
 
-\fn void starpu_codelet_unpack_args (void *cl_arg, ...)
+\fn void starpu_codelet_unpack_args(void *cl_arg, ...)
 \ingroup API_Insert_Task
 Retrieve the arguments of type ::STARPU_VALUE associated to a
 task automatically created using the function starpu_insert_task().
