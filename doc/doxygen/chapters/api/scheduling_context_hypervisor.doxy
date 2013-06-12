@@ -114,7 +114,7 @@ performance counters to StarPU. By incrementing them, StarPU can help
 the hypervisor in the resizing decision making process. TODO maybe
 they should be hidden to the user
 
-\fn struct starpu_sched_ctx_performance_counters *sc_hypervisor_init(struct sc_hypervisor_policy * policy)
+\fn struct starpu_sched_ctx_performance_counters *sc_hypervisor_init(struct sc_hypervisor_policy *policy)
 \ingroup API_Scheduling_Context_Hypervisor
 Initializes the hypervisor to use the strategy provided as parameter
 and creates the performance counters (see starpu_sched_ctx_performance_counters).
@@ -148,7 +148,7 @@ flops the context will execute (needed for Gflops rate based strategy
 see \ref ResizingStrategies or any other custom strategy needing it, for
 the others we can pass 0.0)
 
-\fn void sc_hypervisor_unregister_ctx (unsigned sched_ctx)
+\fn void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
 \ingroup API_Scheduling_Context_Hypervisor
 Unregister the context from the hypervisor.
 
@@ -268,11 +268,11 @@ struct sc_hypervisor_policy dummy_policy =
 \ingroup API_Scheduling_Context_Hypervisor
     Moves workers from one context to another
 
-\fn struct sc_hypervisor_policy_config * sc_hypervisor_get_config(unsigned sched_ctx);
+\fn struct sc_hypervisor_policy_config *sc_hypervisor_get_config(unsigned sched_ctx);
 \ingroup API_Scheduling_Context_Hypervisor
     Returns the configuration structure of a context
 
-\fn int * sc_hypervisor_get_sched_ctxs();
+\fn int *sc_hypervisor_get_sched_ctxs();
 \ingroup API_Scheduling_Context_Hypervisor
     Gets the contexts managed by the hypervisor
 
@@ -280,15 +280,15 @@ struct sc_hypervisor_policy dummy_policy =
 \ingroup API_Scheduling_Context_Hypervisor
     Gets the number of contexts managed by the hypervisor
 
-\fn struct sc_hypervisor_wrapper * sc_hypervisor_get_wrapper(unsigned sched_ctx);
+\fn struct sc_hypervisor_wrapper *sc_hypervisor_get_wrapper(unsigned sched_ctx);
 \ingroup API_Scheduling_Context_Hypervisor
     Returns the wrapper corresponding the context \p sched_ctx
 
-\fn double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper * sc_w);
+\fn double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper *sc_w);
 \ingroup API_Scheduling_Context_Hypervisor
     Returns the flops of a context elapsed from the last resize
 
-\fn char * sc_hypervisor_get_policy();
+\fn char *sc_hypervisor_get_policy();
 \ingroup API_Scheduling_Context_Hypervisor
     Returns the name of the resizing policy the hypervisor uses
 

@@ -11,36 +11,36 @@
 \brief Compute theoretical upper computation efficiency bound
 corresponding to some actual execution.
 
-\fn void starpu_bound_start (int deps, int prio)
+\fn void starpu_bound_start(int deps, int prio)
 \ingroup API_Theoretical_Lower_Bound_on_Execution_Time
 Start recording tasks (resets stats). \p deps tells whether
 dependencies should be recorded too (this is quite expensive)
 
-\fn void starpu_bound_stop (void)
+\fn void starpu_bound_stop(void)
 \ingroup API_Theoretical_Lower_Bound_on_Execution_Time
 Stop recording tasks
 
-\fn void starpu_bound_print_dot (FILE *output)
+\fn void starpu_bound_print_dot(FILE *output)
 \ingroup API_Theoretical_Lower_Bound_on_Execution_Time
 Print the DAG that was recorded
 
-\fn void starpu_bound_compute (double *res, double *integer_res, int integer)
+\fn void starpu_bound_compute(double *res, double *integer_res, int integer)
 \ingroup API_Theoretical_Lower_Bound_on_Execution_Time
 Get theoretical upper bound (in ms) (needs glpk support
 detected by configure script). It returns 0 if some performance models
 are not calibrated.
 
-\fn void starpu_bound_print_lp (FILE *output)
+\fn void starpu_bound_print_lp(FILE *output)
 \ingroup API_Theoretical_Lower_Bound_on_Execution_Time
 Emit the Linear Programming system on \p output for the recorded
 tasks, in the lp format
 
-\fn void starpu_bound_print_mps (FILE *output)
+\fn void starpu_bound_print_mps(FILE *output)
 \ingroup API_Theoretical_Lower_Bound_on_Execution_Time
 Emit the Linear Programming system on \p output for the recorded
 tasks, in the mps format
 
-\fn void starpu_bound_print (FILE *output, int integer)
+\fn void starpu_bound_print(FILE *output, int integer)
 \ingroup API_Theoretical_Lower_Bound_on_Execution_Time
 Emit statistics of actual execution vs theoretical upper bound.
 \p integer permits to choose between integer solving (which takes a

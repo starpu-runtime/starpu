@@ -42,7 +42,7 @@ Get the description of a combined worker
 Variant of starpu_worker_can_execute_task() compatible with combined
 workers
 
-\fn void starpu_parallel_task_barrier_init(struct starpu_task*task, int workerid)
+\fn void starpu_parallel_task_barrier_init(struct starpu_task *task, int workerid)
 \ingroup API_Parallel_Tasks
 Initialise the barrier for the parallel task, and dispatch the task
 between the different combined workers.

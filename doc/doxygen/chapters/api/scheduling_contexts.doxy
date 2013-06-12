@@ -212,7 +212,7 @@ policy of the given scheduler context.
 @name Scheduling Context Worker Collection
 \ingroup API_Scheduling_Contexts
 
-\fn struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type)
+\fn struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type)
 \ingroup API_Scheduling_Contexts
 Create a worker collection of the type indicated by the last parameter
 for the context specified through the first parameter.
@@ -221,7 +221,7 @@ for the context specified through the first parameter.
 \ingroup API_Scheduling_Contexts
 Delete the worker collection of the specified scheduling context
 
-\fn struct starpu_worker_collection* starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id)
+\fn struct starpu_worker_collection *starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
 Return the worker collection managed by the indicated context
 
