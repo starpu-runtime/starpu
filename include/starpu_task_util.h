@@ -29,7 +29,7 @@ extern "C"
 {
 #endif
 
-void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps,	void (*callback)(void *), void *callback_arg);
+void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
 
 #define STARPU_VALUE		(1<<4)
 #define STARPU_CALLBACK		(1<<5)
