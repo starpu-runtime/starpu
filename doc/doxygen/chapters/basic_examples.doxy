@@ -12,7 +12,7 @@
 
 This section shows how to implement a simple program that submits a task
 to StarPU using the StarPU C extension (\ref cExtensions). The complete example, and additional examples,
-is available in the <c>gcc-plugin/examples</c> directory of the StarPU
+is available in the directory <c>gcc-plugin/examples</c> of the StarPU
 distribution. A similar example showing how to directly use the StarPU's API is shown
 in \ref HelloWorldUsingStarPUAPI.
 
@@ -24,7 +24,7 @@ has a single implementation for CPU:
 
 \snippet hello_pragma.c To be included
 
-The code can then be compiled and linked with GCC and the <c>-fplugin</c> flag:
+The code can then be compiled and linked with GCC and the flag <c>-fplugin</c>:
 
 \verbatim
 $ gcc `pkg-config starpu-1.2 --cflags` hello-starpu.c \
@@ -92,9 +92,9 @@ compiler implicitly do it as examplified above.
 The field starpu_codelet::nbuffers specifies the number of data buffers that are
 manipulated by the codelet: here the codelet does not access or modify any data
 that is controlled by our data management library. Note that the argument
-passed to the codelet (the field starpu_task::cl_arg) does not count
-as a buffer since it is not managed by our data management library,
-but just contain trivial parameters.
+passed to the codelet (the parameter <c>cl_arg</c> of the function
+<c>cpu_func</c>) does not count as a buffer since it is not managed by
+our data management library, but just contain trivial parameters.
 
 \internal
 TODO need a crossref to the proper description of "where" see bla for more ...
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 \endcode
 
 Before submitting any tasks to StarPU, starpu_init() must be called. The
-<c>NULL</c> argument specifies that we use default configuration. Tasks cannot
+<c>NULL</c> argument specifies that we use the default configuration. Tasks cannot
 be submitted after the termination of StarPU by a call to
 starpu_shutdown().
 
@@ -194,12 +194,13 @@ computational kernel that multiplies its input vector by a constant,
 the constant could be specified by the means of this buffer, instead
 of registering it as a StarPU data. It must however be noted that
 StarPU avoids making copy whenever possible and rather passes the
-pointer as such, so the buffer which is pointed at must kept allocated
+pointer as such, so the buffer which is pointed at must be kept allocated
 until the task terminates, and if several tasks are submitted with
 various parameters, each of them must be given a pointer to their
-buffer.	
+own buffer.
 
-Once a task has been executed, an optional callback function is be called.
+Once a task has been executed, an optional callback function
+starpu_task::callback_func is called when defined.
 While the computational kernel could be offloaded on various architectures, the
 callback function is always executed on a CPU. The pointer
 starpu_task::callback_arg is passed as an argument of the callback
@@ -211,7 +212,7 @@ void (*callback_function)(void *);
 
 If the field starpu_task::synchronous is non-zero, task submission
 will be synchronous: the function starpu_task_submit() will not return
-until the task was executed. Note that the function starpu_shutdown()
+until the task has been executed. Note that the function starpu_shutdown()
 does not guarantee that asynchronous tasks have been executed before
 it returns, starpu_task_wait_for_all() can be used to that effect, or
 data can be unregistered (starpu_data_unregister()), which will
@@ -237,12 +238,12 @@ we show how StarPU tasks can manipulate data.
 
 We will first show how to use the C language extensions provided by
 the GCC plug-in (\ref cExtensions). The complete example, and
-additional examples, is available in the <c>gcc-plugin/examples</c>
-directory of the StarPU distribution. These extensions map directly
+additional examples, is available in the directory <c>gcc-plugin/examples</c>
+of the StarPU distribution. These extensions map directly
 to StarPU's main concepts: tasks, task implementations for CPU,
 OpenCL, or CUDA, and registered data buffers. The standard C version
-that uses StarPU's standard C programming interface is given in the
-next section (\ref VectorScalingUsingStarPUAPI).
+that uses StarPU's standard C programming interface is given in \ref
+VectorScalingUsingStarPUAPI.
 
 First of all, the vector-scaling task and its simple CPU implementation
 has to be defined:
@@ -268,7 +269,7 @@ implemented:
 
 \snippet hello_pragma2.c To be included
 
-The <c>main</c> function above does several things:
+The function <c>main</c> above does several things:
 
 <ul>
 <li>
@@ -287,22 +288,20 @@ StarPU to transfer that memory region between GPUs and the main memory.
 Removing this <c>pragma</c> is an error.
 </li>
 <li>
-It invokes the <c>vector_scal</c> task.  The invocation looks the same
+It invokes the task <c>vector_scal</c>.  The invocation looks the same
 as a standard C function call.  However, it is an asynchronous
 invocation, meaning that the actual call is performed in parallel with
 the caller's continuation.
 </li>
 <li>
-It waits for the termination of the <c>vector_scal</c>
-asynchronous call.
+It waits for the termination of the asynchronous call <c>vector_scal</c>.
 </li>
 <li>
 Finally, StarPU is shut down.
 </li>
 </ul>
 
-The program can be compiled and linked with GCC and the <c>-fplugin</c>
-flag:
+The program can be compiled and linked with GCC and the flag <c>-fplugin</c>:
 
 \verbatim
 $ gcc `pkg-config starpu-1.2 --cflags` vector_scal.c \
@@ -317,7 +316,7 @@ And voilà!
 Now, this is all fine and great, but you certainly want to take
 advantage of these newfangled GPUs that your lab just bought, don't you?
 
-So, let's add an OpenCL implementation of the <c>vector_scal</c> task.
+So, let's add an OpenCL implementation of the task <c>vector_scal</c>.
 We assume that the OpenCL kernel is available in a file,
 <c>vector_scal_opencl_kernel.cl</c>, not shown here.  The OpenCL task
 implementation is similar to that used with the standard C API
@@ -374,14 +373,14 @@ vector_scal_opencl (unsigned size, float vector[size], float factor)
 \endcode
 
 The OpenCL kernel itself must be loaded from <c>main</c>, sometime after
-the <c>initialize</c> pragma:
+the pragma <c>initialize</c>:
 
 \code{.c}
 starpu_opencl_load_opencl_from_file ("vector_scal_opencl_kernel.cl",
                                        &cl_programs, "");
 \endcode
 
-And that's it.  The <c>vector_scal</c> task now has an additional
+And that's it.  The task <c>vector_scal</c> now has an additional
 implementation, for OpenCL, which StarPU's scheduler may choose to use
 at run-time.  Unfortunately, the <c>vector_scal_opencl</c> above still
 has to go through the common OpenCL boilerplate; in the future,
@@ -404,40 +403,13 @@ The actual implementation of the CUDA task goes into a separate
 compilation unit, in a <c>.cu</c> file.  It is very close to the
 implementation when using StarPU's standard C API (\ref DefinitionOfTheCUDAKernel).
 
-\code{.c}
-/* CUDA implementation of the `vector_scal' task, to be compiled with `nvcc'. */
+\snippet scal_pragma.cu To be included
 
-#include <starpu.h>
-#include <stdlib.h>
-
-static __global__ void
-vector_mult_cuda (unsigned n, float *val, float factor)
-{
-  unsigned i = blockIdx.x * blockDim.x + threadIdx.x;
-
-  if (i < n)
-    val[i] *= factor;
-}
-
-/* Definition of the task implementation declared in the C file. */
-extern "C" void
-vector_scal_cuda (size_t size, float vector[], float factor)
-{
-  unsigned threads_per_block = 64;
-  unsigned nblocks = (size + threads_per_block - 1) / threads_per_block;
-
-  vector_mult_cuda <<< nblocks, threads_per_block, 0,
-    starpu_cuda_get_local_stream () >>> (size, vector, factor);
-
-  cudaStreamSynchronize (starpu_cuda_get_local_stream ());
-}
-\endcode
-
-The complete source code, in the <c>gcc-plugin/examples/vector_scal</c>
-directory of the StarPU distribution, also shows how an SSE-specialized
+The complete source code, in the directory <c>gcc-plugin/examples/vector_scal</c>
+of the StarPU distribution, also shows how an SSE-specialized
 CPU task implementation can be added.
 
-For more details on the C extensions provided by StarPU's GCC plug-in,
+For more details on the C extensions provided by StarPU's GCC plug-in, see
 \ref cExtensions.
 
 \section VectorScalingUsingStarPUAPI Vector Scaling Using StarPU's API
@@ -479,7 +451,7 @@ starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
 The first argument, called the <b>data handle</b>, is an opaque pointer which
 designates the array in StarPU. This is also the structure which is used to
 describe which data is used by a task. The second argument is the node number
-where the data originally resides. Here it is 0 since the <c>vector array</c> is in
+where the data originally resides. Here it is 0 since the array <c>vector</c> is in
 the main memory. Then comes the pointer <c>vector</c> where the data can be found in main memory,
 the number of elements in the vector and the size of each element.
 The following shows how to construct a StarPU task that will manipulate the
@@ -569,36 +541,9 @@ The CUDA implementation can be written as follows. It needs to be compiled with
 a CUDA compiler such as nvcc, the NVIDIA CUDA compiler driver. It must be noted
 that the vector pointer returned by ::STARPU_VECTOR_GET_PTR is here a
 pointer in GPU memory, so that it can be passed as such to the
-<c>vector_mult_cuda</c> kernel call.
+kernel call <c>vector_mult_cuda</c>.
 
-\code{.c}
-#include <starpu.h>
-
-static __global__ void vector_mult_cuda(unsigned n, float *val,
-                                        float factor)
-{
-    unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
-    if (i < n)
-        val[i] *= factor;
-}
-
-extern "C" void scal_cuda_func(void *buffers[], void *_args)
-{
-    float *factor = (float *)_args;
-
-    /* length of the vector */
-    unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-    /* CUDA copy of the vector pointer */
-    float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
-    unsigned threads_per_block = 64;
-    unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
-
-    vector_mult_cuda<<<nblocks,threads_per_block, 0, starpu_cuda_get_local_stream()>>>
-                    (n, val, *factor);
-
-    cudaStreamSynchronize(starpu_cuda_get_local_stream());
-}
-\endcode
+\snippet vector_scal_cuda.cu To be included
 
 \subsection DefinitionOfTheOpenCLKernel Definition of the OpenCL Kernel
 
@@ -620,55 +565,7 @@ which returns a <c>cl_mem</c> (which is not a device pointer, but an OpenCL
 handle), which can be passed as such to the OpenCL kernel. The difference is
 important when using partitioning, see \ref PartitioningData.
 
-\code{.c}
-#include <starpu.h>
-
-extern struct starpu_opencl_program programs;
-
-void scal_opencl_func(void *buffers[], void *_args)
-{
-    float *factor = _args;
-    int id, devid, err;     /* OpenCL specific code */
-    cl_kernel kernel;       /* OpenCL specific code */
-    cl_command_queue queue; /* OpenCL specific code */
-    cl_event event;         /* OpenCL specific code */
-
-    /* length of the vector */
-    unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-    /* OpenCL copy of the vector pointer */
-    cl_mem val = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
-
-    { /* OpenCL specific code */
-        id = starpu_worker_get_id();
-        devid = starpu_worker_get_devid(id);
-
-	err = starpu_opencl_load_kernel(&kernel, &queue, &programs,
-	                       "vector_mult_opencl", devid);   /* Name of the codelet defined above */
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-
-        err = clSetKernelArg(kernel, 0, sizeof(n), &n);
-        err |= clSetKernelArg(kernel, 1, sizeof(val), &val);
-        err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);
-        if (err) STARPU_OPENCL_REPORT_ERROR(err);
-    }
-
-    {  /* OpenCL specific code */
-        size_t global=n;
-        size_t local=1;
-        err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
-        if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
-    }
-
-    {  /* OpenCL specific code */
-        clFinish(queue);
-        starpu_opencl_collect_stats(event);
-        clReleaseEvent(event);
-
-        starpu_opencl_release_kernel(kernel);
-    }
-}
-\endcode
-
+\snippet vector_scal_opencl.c To be included
 
 \subsection DefinitionOfTheMainCode Definition of the Main Code
 

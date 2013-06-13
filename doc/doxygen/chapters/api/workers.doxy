@@ -99,7 +99,7 @@ The returned value should be at most \ref STARPU_MAXSCCDEVS.
 This function returns the number of OpenCL devices controlled by
 StarPU. The returned value should be at most \ref STARPU_MAXOPENCLDEVS.
 
-\fn int starpu_worker_get_id (void)
+\fn int starpu_worker_get_id(void)
 \ingroup API_Workers_Properties
 This function returns the identifier of the current worker, i.e
 the one associated to the calling thread. The returned value is either

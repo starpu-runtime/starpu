@@ -239,7 +239,7 @@ void starpu_codelet_display_stats(struct starpu_codelet *cl);
 
 struct starpu_task *starpu_task_get_current(void);
 
-void starpu_parallel_task_barrier_init(struct starpu_task* task, int workerid);
+void starpu_parallel_task_barrier_init(struct starpu_task *task, int workerid);
 
 struct starpu_task *starpu_task_dup(struct starpu_task *task);
 

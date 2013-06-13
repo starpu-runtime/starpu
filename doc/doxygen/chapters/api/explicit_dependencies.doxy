@@ -99,7 +99,7 @@ This function releases the resources associated to tag \p id.
 It can be called once the corresponding task has been executed and
 when there is no other tag that depend on this tag anymore.
 
-\fn void starpu_tag_notify_from_apps (starpu_tag_t id)
+\fn void starpu_tag_notify_from_apps(starpu_tag_t id)
 \ingroup API_Explicit_Dependencies
 This function explicitly unlocks tag \p id. It may be useful in
 the case of applications which execute part of their computation

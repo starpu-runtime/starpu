@@ -9,7 +9,7 @@
 /*! \page FFTSupport FFT Support
 
 StarPU provides <c>libstarpufft</c>, a library whose design is very similar to
-both fftw and cufft, the difference being that it takes benefit from both CPUs
+both <c>fftw</c> and <c>cufft</c>, the difference being that it takes benefit from both CPUs
 and GPUs. It should however be noted that GPUs do not have the same precision as
 CPUs, so the results may different by a negligible amount.
 
@@ -33,7 +33,7 @@ The documentation below is given with names for double precision, replace
 
 Only complex numbers are supported at the moment.
 
-The application has to call starpu_init() before calling starpufft functions.
+The application has to call starpu_init() before calling <c>starpufft</c> functions.
 
 Either main memory pointers or data handles can be provided.
 
@@ -66,6 +66,6 @@ $ pkg-config --cflags starpufft-1.2  # options for the compiler
 $ pkg-config --libs starpufft-1.2    # options for the linker
 \endverbatim
 
-Also pass the <c>--static</c> option if the application is to be linked statically.
+Also pass the option <c>--static</c> if the application is to be linked statically.
 
 */

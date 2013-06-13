@@ -44,6 +44,7 @@ chapters =	\
 	chapters/mic_scc_support.doxy \
 	chapters/code/hello_pragma2.c \
 	chapters/code/hello_pragma.c \
+	chapters/code/scal_pragma.cu \
 	chapters/code/matmul_pragma.c \
 	chapters/code/matmul_pragma2.c \
 	chapters/code/cholesky_pragma.c \

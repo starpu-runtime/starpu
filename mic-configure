@@ -1,12 +1,6 @@
 #!/bin/bash
 
 ROOT_DIR=$PWD
-[ -n "$STARPU_MIC_HOST" ] || STARPU_MIC_HOST=x86_64-k1om-linux
-[ -n "$STARPU_MIC_CC_PATH" ] || STARPU_MIC_CC_PATH=/usr/linux-k1om-4.7/bin/
-[ -n "$STARPU_COI_DIR" ] || STARPU_COI_DIR=/opt/intel/mic/coi
-DEFAULT_PREFIX=/usr/local
-
-export PATH=${STARPU_MIC_CC_PATH}${PATH:+:${PATH}}
 
 cat > ./mic-config.log << EOF
 This file was created by StarPU mic-configure
@@ -14,38 +8,39 @@ This file was created by StarPU mic-configure
  $ $0 $*
 EOF
 
+prefix="/usr/local"
+coi_dir="/opt/intel/mic/coi"
+mic_host="x86_64-k1om-linux"
+
+for arg in $*
+do
+	case $arg in 
+		--prefix=*)
+			prefix="${arg#--prefix=}"
+			;;
+		--with-coi-dir=*)
+			coi_dir="${arg#--with-coi-dir=}"
+			;;
+		--mic-host=*)
+			mic_host="${arg#--mic-host=}"
+			;;
+	esac
+
+done
+
 for arch in mic host
 do
-
 	# We call the configure script from a build directory further in the
 	# arborescence
-	command="${ROOT_DIR}/configure --enable-mic --with-coi-dir=$STARPU_COI_DIR"
-	prefix_found=no
+
+	command="${ROOT_DIR}/configure"
+	params="--enable-mic --with-coi-dir=$coi_dir --prefix=$prefix/$arch"
 
 	if test x$arch = xmic ; then
-		command="$command --without-hwloc --with-coi-lib-dir=$STARPU_COI_DIR/device-linux-release/lib --host=$STARPU_MIC_HOST"
+		# TODO: fix hwloc detection to look for another pkg-config place, and not just believe in the host version of hwloc.pc...
+		params="$params --without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --host=$mic_host"
 	else
-		command="$command --with-coi-lib-dir=$STARPU_COI_DIR/host-linux-release/lib"
-	fi
-
-	for arg in $*
-	do
-		if [ ${arg:0:9} = '--prefix=' ]
-		then
-			prefix_found=yes
-			prefix="${arg:9}"
-			command="$command ${arg}/${arch}"
-		else
-			command="$command $arg"
-		fi
-
-	done
-
-	# If the user didn't specify a directory where to install the library
-	# we apply the default one
-	if test x$prefix_found = xno ; then
-		command="$command --prefix=${DEFAULT_PREFIX}/$arch"
-		prefix=${DEFAULT_PREFIX}
+		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib"
 	fi
 
 	# If the build directory doesn't exist yet, create it
@@ -56,9 +51,9 @@ do
 	cd "build_${arch}"
 
 	if test x$arch = xmic ; then
-		LDFLAGS=-export-dynamic $command
+		LDFLAGS=-export-dynamic $command $* $params
 	else
-		$command
+		$command $* $params
 	fi
 	if [ "$?" != 0 ]
 	then

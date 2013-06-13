@@ -82,11 +82,11 @@ starpu_opencl_program array by hand for more advanced use (e.g.
 different programs on the different OpenCL devices, for relocation
 purpose for instance).
 
-\fn int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options)
+\fn int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char *build_options)
 \ingroup API_OpenCL_Extensions
 This function compiles an OpenCL source code stored in a file.
 
-\fn int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs, const char* build_options)
+\fn int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs, const char *build_options)
 \ingroup API_OpenCL_Extensions
 This function compiles an OpenCL source code stored in a string.
 
@@ -107,7 +107,7 @@ has been located on the system, \p located_dir_name the directory
 where it has been located. Otherwise, they are both set to the empty
 string.
 
-\fn int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char * build_options)
+\fn int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char *build_options)
 \ingroup API_OpenCL_Extensions
 Compile the OpenCL kernel stored in the file \p source_file_name
 with the given options \p build_options and stores the result in the
@@ -116,7 +116,7 @@ directory <c>$STARPU_HOME/.starpu/opencl</c> with the same filename as
 and the filename is suffixed with the vendor id and the device id of
 the OpenCL device.
 
-\fn int starpu_opencl_compile_opencl_from_string(const char *opencl_program_source, const char *file_name, const char*build_options)
+\fn int starpu_opencl_compile_opencl_from_string(const char *opencl_program_source, const char *file_name, const char *build_options)
 \ingroup API_OpenCL_Extensions
 Compile the OpenCL kernel in the string \p opencl_program_source
 with the given options \p build_options and stores the result in the
@@ -158,7 +158,7 @@ consumed power).
 @name OpenCL utilities
 \ingroup API_OpenCL_Extensions
 
-\fn const char * starpu_opencl_error_string(cl_int status)
+\fn const char *starpu_opencl_error_string(cl_int status)
 \ingroup API_OpenCL_Extensions
 Return the error message in English corresponding to \p status, an OpenCL
 error code.
