@@ -26,9 +26,10 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 	{
 		struct _starpu_task_execute_preds preds = _starpu_sched_node_average_estimated_execute_preds(node, task);
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
+		double fifo_len = fifo->exp_len / _starpu_bitmap_cardinal(node->workers);
 		preds.expected_finish_time = _starpu_compute_expected_time(fifo->exp_start,
-									   preds.expected_finish_time + fifo->exp_len / _starpu_bitmap_cardinal(node->workers),
-									   preds.state == PERF_MODEL ? preds.expected_length + fifo->exp_len : fifo->exp_len,
+									   preds.expected_finish_time + fifo_len,
+									   preds.state == PERF_MODEL ? preds.expected_length + fifo_len : fifo_len,
 									   preds.expected_transfer_length);
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 		return preds;
@@ -38,10 +39,11 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 
 	if(preds.state == PERF_MODEL)
 	{
+		double fifo_len = fifo->exp_len / _starpu_bitmap_cardinal(node->workers);
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
 		preds.expected_finish_time = _starpu_compute_expected_time(fifo->exp_start,
-									   preds.expected_finish_time + fifo->exp_len / _starpu_bitmap_cardinal(node->workers),
-									   preds.expected_length + fifo->exp_len,
+									   preds.expected_finish_time + fifo_len,
+									   preds.expected_length + fifo_len,
 									   preds.expected_transfer_length);
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 	}

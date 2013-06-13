@@ -71,9 +71,12 @@ static double estimated_transfer_length(struct _starpu_sched_node * node,
 					struct starpu_task * task)
 {
 	STARPU_ASSERT(_starpu_sched_node_is_worker(node));
+	starpu_task_bundle_t bundle = task->bundle;
 	unsigned memory_node = starpu_worker_get_memory_node(_starpu_bitmap_first(node->workers));
-	double d = starpu_task_expected_data_transfer_time(memory_node, task);
-	return d;
+	if(bundle)
+		return starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
+	else
+		return starpu_task_expected_data_transfer_time(memory_node, task);
 }
 static double estimated_finish_time(struct _starpu_sched_node * node)
 {
@@ -87,13 +90,13 @@ static double estimated_finish_time(struct _starpu_sched_node * node)
 	    task = starpu_task_list_next(task))
 		if(!isnan(task->predicted))
 		   sum += task->predicted;
-/*	if(worker->current_task) 
+
+	if(worker->current_task) 
 	{
-	// drôle de bug, t est parfois null, il doit y avoir un problème de mutex quelque part
 		struct starpu_task * t = worker->current_task;
-		if(!isnan(t->predicted))
+		if(t && !isnan(t->predicted))
 			sum += t->predicted/2;
-			}*/
+	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
 	return sum + starpu_timing_now();
 }
@@ -101,7 +104,9 @@ static double estimated_finish_time(struct _starpu_sched_node * node)
 struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_node * node, struct starpu_task * task)
 {
 	STARPU_ASSERT(_starpu_sched_node_is_worker(node));
+	starpu_task_bundle_t bundle = task->bundle;
 	struct _starpu_worker * worker = node->data;
+			
 	struct _starpu_task_execute_preds preds =
 		{
 			.state = CANNOT_EXECUTE,
@@ -117,9 +122,11 @@ struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_n
 	{
 		if(starpu_worker_can_execute_task(worker->workerid,task,nimpl))
 		{
-			double d = starpu_task_expected_length(task,
-							       worker->perf_arch,
-							       nimpl);
+			double d;
+			if(bundle)
+				d = starpu_task_bundle_expected_length(bundle, worker->perf_arch, nimpl);
+			else
+				d = starpu_task_expected_length(task, worker->perf_arch, nimpl);
 			if(isnan(d))
 			{
 				preds.state = CALIBRATING;
@@ -143,10 +150,18 @@ struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_n
 	}
 
 	if(preds.state == PERF_MODEL)
+	{
 		preds.expected_finish_time = _starpu_compute_expected_time(starpu_timing_now(),
 									  preds.expected_finish_time,
 									  preds.expected_length,
 									  preds.expected_transfer_length);
+
+		if(bundle)
+			preds.expected_power = starpu_task_bundle_expected_power(bundle, worker->perf_arch, preds.impl);
+		else
+			preds.expected_power = starpu_task_expected_power(task, worker->perf_arch,preds.impl);
+	}
+
 	return preds;
 }
 
