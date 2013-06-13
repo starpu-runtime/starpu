@@ -230,7 +230,7 @@ This is the same as starpu_data_acquire_cb(), except that the
 data will be available on the given memory node instead of main
 memory.
 
-\def STARPU_DATA_ACQUIRE_CB(starpu_data_handle_t handle, enum starpu_data_access_mode mode, code)
+\def STARPU_DATA_ACQUIRE_CB(handle, mode, code)
 \ingroup API_Data_Management
 STARPU_DATA_ACQUIRE_CB() is the same as starpu_data_acquire_cb(),
 except that the code to be executed in a callback is directly provided

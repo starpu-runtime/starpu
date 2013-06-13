@@ -44,19 +44,19 @@ when working on a CPU, and a structure of arrays when working on a
 GPU. \p nobjects is the number of elements in the data. \p format_ops
 describes the format.
 
-\def STARPU_MULTIFORMAT_GET_CPU_PTR(void *interface)
+\def STARPU_MULTIFORMAT_GET_CPU_PTR(interface)
 \ingroup API_Multiformat_Data_Interface
 returns the local pointer to the data with CPU format.
 
-\def STARPU_MULTIFORMAT_GET_CUDA_PTR(void *interface)
+\def STARPU_MULTIFORMAT_GET_CUDA_PTR(interface)
 \ingroup API_Multiformat_Data_Interface
 returns the local pointer to the data with CUDA format.
 
-\def STARPU_MULTIFORMAT_GET_OPENCL_PTR(void *interface)
+\def STARPU_MULTIFORMAT_GET_OPENCL_PTR(interface)
 \ingroup API_Multiformat_Data_Interface
 returns the local pointer to the data with OpenCL format.
 
-\def STARPU_MULTIFORMAT_GET_NX (void *interface)
+\def STARPU_MULTIFORMAT_GET_NX(interface)
 \ingroup API_Multiformat_Data_Interface
 returns the number of elements in the data.
 
