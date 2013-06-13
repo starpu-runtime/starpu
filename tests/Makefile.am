@@ -195,6 +195,7 @@ noinst_PROGRAMS =				\
 	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
 	datawizard/readonly			\
+	disk/disk_copy				\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
@@ -244,6 +245,9 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.sh
 
 check_PROGRAMS = $(noinst_PROGRAMS) $(noinst_2_PROGRAMS)
+
+disk_disk_copy_SOURCES = \
+	disk/disk_copy.c
 
 #######################
 # Source files        #
