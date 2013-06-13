@@ -1,7 +1,7 @@
 #include <core/jobs.h>
 #include <core/workers.h>
 #include "node_sched.h"
-
+#include <starpu_thread_util.h>
 double _starpu_compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
 {
 
@@ -144,9 +144,20 @@ void _starpu_node_destroy_rec(struct _starpu_sched_node * node, unsigned sched_c
 	}
 	free(stack);
 }
-void _starpu_tree_destroy(struct _starpu_sched_tree * tree, unsigned sched_ctx_id)
+struct _starpu_sched_tree * _starpu_sched_tree_create(void)
 {
-	_starpu_node_destroy_rec(tree->root, sched_ctx_id);
+	struct _starpu_sched_tree * t = malloc(sizeof(*t));
+	memset(t, 0, sizeof(*t));
+	t->workers = _starpu_bitmap_create();
+	STARPU_PTHREAD_RWLOCK_INIT(&t->lock,NULL);
+	return t;
+}
+
+void _starpu_sched_tree_destroy(struct _starpu_sched_tree * tree, unsigned sched_ctx_id)
+{
+	if(tree->root)
+		_starpu_node_destroy_rec(tree->root, sched_ctx_id);
+	_starpu_bitmap_destroy(tree->workers);
 	STARPU_PTHREAD_RWLOCK_DESTROY(&tree->lock);
 	free(tree);
 }

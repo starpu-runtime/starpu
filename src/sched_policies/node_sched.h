@@ -132,7 +132,10 @@ int _starpu_sched_node_is_heft(struct _starpu_sched_node * node);
  */
 double _starpu_compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer);
 
-void _starpu_tree_destroy(struct _starpu_sched_tree * tree, unsigned sched_ctx_id);
+/*create an empty tree
+ */
+struct _starpu_sched_tree * _starpu_sched_tree_create(void);
+void _starpu_sched_tree_destroy(struct _starpu_sched_tree * tree, unsigned sched_ctx_id);
 
 /* destroy node and all his child
  * except if they are shared between several contexts

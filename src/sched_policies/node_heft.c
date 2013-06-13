@@ -266,3 +266,57 @@ int _starpu_sched_node_is_heft(struct _starpu_sched_node * node)
 {
 	return node->init_data == init_heft_data;
 }
+
+
+
+static void initialize_heft_center_policy(unsigned sched_ctx_id)
+{
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+	
+	struct _starpu_sched_tree * t = _starpu_sched_tree_create();
+	t->root = _starpu_sched_node_heft_create(NULL);
+	
+	unsigned i;
+	for(i = 0; i < starpu_worker_get_count(); i++)
+	{
+		struct _starpu_sched_node * worker_node = _starpu_sched_node_worker_get(i);
+		STARPU_ASSERT(worker_node);
+		struct _starpu_sched_node * fifo_node = _starpu_sched_node_fifo_create(NULL);
+		_starpu_sched_node_add_child(fifo_node, worker_node);
+		_starpu_sched_node_set_father(worker_node, fifo_node, sched_ctx_id);
+
+		_starpu_sched_node_add_child(t->root, fifo_node);
+		_starpu_sched_node_set_father(fifo_node, t->root, sched_ctx_id);
+	}
+	
+	_starpu_set_workers_bitmaps();
+	_starpu_tree_call_init_data(t);
+
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
+}
+
+static void deinitialize_heft_center_policy(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_tree *t = (struct _starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	_starpu_sched_tree_destroy(t, sched_ctx_id);
+	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
+}
+
+
+
+
+
+struct starpu_sched_policy _starpu_sched_tree_heft_policy =
+{
+	.init_sched = initialize_heft_center_policy,
+	.deinit_sched = deinitialize_heft_center_policy,
+	.add_workers = _starpu_tree_add_workers,
+	.remove_workers = _starpu_tree_remove_workers,
+	.push_task = _starpu_tree_push_task,
+	.pop_task = _starpu_tree_pop_task,
+	.pre_exec_hook = NULL,
+	.post_exec_hook = NULL,
+	.pop_every_task = NULL,
+	.policy_name = "tree-heft",
+	.policy_description = "heft tree policy"
+};

@@ -26,7 +26,12 @@ void _starpu_sched_recipe_add_node(struct _starpu_composed_sched_node_recipe * r
 	e->arg = arg;
 	fun_create_node_list_push_back(recipe->list, e);
 }
-
+struct _starpu_composed_sched_node_recipe * _starpu_sched_node_create_recipe_singleton(struct _starpu_sched_node *(*create_node)(void * arg), void * arg)
+{
+	struct _starpu_composed_sched_node_recipe * r = _starpu_sched_node_create_recipe();
+	_starpu_sched_recipe_add_node(r, create_node, arg);
+	return r;
+}
 void _starpu_destroy_composed_sched_node_recipe(struct _starpu_composed_sched_node_recipe * recipe)
 {
 	if(!recipe)
