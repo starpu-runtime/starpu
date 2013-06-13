@@ -29,6 +29,9 @@
 
 #include "sink_common.h"
 
+#define HYPER_THREAD_NUMBER 4
+#include "task_fifo.h"
+
 /* Return the sink kind of the running process, based on the value of the
  * STARPU_SINK environment variable.
  * If there is no valid value retrieved, return STARPU_INVALID_KIND
@@ -66,65 +69,6 @@ _starpu_sink_nbcores (const struct _starpu_mp_node *node)
 				    &nbcores, sizeof (int));
 }
 
-
-/* Receive paquet from _starpu_src_common_execute_kernel in the form below :
- * [Function pointer on sink, number of interfaces, interfaces
- * (union _starpu_interface), cl_arg]
- * Then call the function given, passing as argument an array containing the
- * addresses of the received interfaces
- */
-void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
-					void *arg, int arg_size)
-{
-	unsigned id = 0;
-
-	void *arg_ptr = arg;
-	void (*kernel)(void **, void *) = NULL;
-	unsigned coreid = 0;
-	unsigned nb_interfaces = 0;
-	void *interfaces[STARPU_NMAXBUFS];
-	void *cl_arg;
-
-	kernel = *(void(**)(void **, void *)) arg_ptr;
-	arg_ptr += sizeof(kernel);
-
-	coreid = *(unsigned *) arg_ptr;
-	arg_ptr += sizeof(coreid);
-
-	nb_interfaces = *(unsigned *) arg_ptr;
-	arg_ptr += sizeof(nb_interfaces);
-
-	/* The function needs an array pointing to each interface it needs
-	 * during execution. As in sink-side there is no mean to know which
-	 * kind of interface to expect, the array is composed of unions of
-	 * interfaces, thus we expect the same size anyway */
-	for (id = 0; id < nb_interfaces; id++)
-	{
-		interfaces[id] = arg_ptr;
-		arg_ptr += sizeof(union _starpu_interface);
-	}
-
-	/* Was cl_arg sent ? */
-	if (arg_size > arg_ptr - arg)
-		cl_arg = arg_ptr;
-	else
-		cl_arg = NULL;
-
-	//_STARPU_DEBUG("telling host that we have submitted the task %p.\n", kernel);
-	/* XXX: in the future, we will not have to directly execute the kernel
-	 * but submit it to the correct local worker. */
-	_starpu_mp_common_send_command(node, STARPU_EXECUTION_SUBMITTED,
-				       NULL, 0);
-
-	//_STARPU_DEBUG("executing the task %p\n", kernel);
-	/* XXX: we keep the synchronous execution model on the sink side for
-	 * now. */
-	kernel(interfaces, cl_arg);
-
-	//_STARPU_DEBUG("telling host that we have finished the task %p.\n", kernel);
-	_starpu_mp_common_send_command(node, STARPU_EXECUTION_COMPLETED,
-				       &coreid, sizeof(coreid));
-}
 
 
 static void _starpu_sink_common_lookup(const struct _starpu_mp_node *node,
@@ -213,16 +157,6 @@ static void _starpu_sink_common_copy_to_sink(const struct _starpu_mp_node *mp_no
     mp_node->dt_send_to_device(mp_node, cmd->devid, cmd->addr, cmd->size);
 }
 
-static void _starpu_sink_min_nworkers(const struct _starpu_mp_node *mp_node, void * arg, 
-				      int arg_size)
-{
-	STARPU_ASSERT(arg_size == sizeof(int));
-
-	mp_node->min_nworkers = *((int*)arg);
-
-	_STARPU_DEBUG("Mic: my min_nworkers is: %d.\n", mp_node->min_nworkers);	
-}
-
 /* Function looping on the sink, waiting for tasks to execute.
  * If the caller is the host, don't do anything.
  */
@@ -282,13 +216,20 @@ void _starpu_sink_common_worker(void)
 				_starpu_sink_common_copy_to_sink(node, arg, arg_size);
 				break;
 
-		        case STARPU_MIN_NWORKERS:
-				_starpu_sink_min_nworkers(node, arg, arg_size);
-				break;
-
 			default:
 				printf("Oops, command %x unrecognized\n", command);
 		}
+
+		if(!task_fifo_is_empty(&(node->dead_queue)))
+		  {
+		    struct task * task = node->dead_queue.first;
+		    _STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
+		    _starpu_mp_common_send_command(task->node, STARPU_EXECUTION_COMPLETED,
+								    &(task->coreid), sizeof(task->coreid));
+		    _STARPU_DEBUG("we have finished the task %p sur %d.\n", task->kernel, task->coreid);
+		    task_fifo_pop(&(node->dead_queue));
+		    free(task);
+		  }
 	}
 
 	/* Deinitialize the node and release it */
@@ -296,3 +237,144 @@ void _starpu_sink_common_worker(void)
 
 	exit(0);
 }
+
+
+
+static void* _starpu_mic_sink_thread(void * thread_arg)
+{
+  struct task *arg = (struct task *)thread_arg;
+  _STARPU_DEBUG("thread launch: %d.\n", arg->coreid);
+  arg->kernel(arg->interfaces,arg->cl_arg);
+
+  task_fifo_append(&(arg->node->dead_queue),arg);
+
+  pthread_exit(NULL);
+}
+
+static void _starpu_mic_sink_execute_thread(struct task *arg)
+{
+  int j;
+  pthread_t thread;
+  cpu_set_t cpuset;
+  int ret;
+  
+  ret = pthread_create(&thread, NULL, _starpu_mic_sink_thread, arg);
+  STARPU_ASSERT(ret == 0);
+  
+  CPU_ZERO(&cpuset);
+  for(j=0;j<HYPER_THREAD_NUMBER;j++)
+    CPU_SET(j+arg->coreid*HYPER_THREAD_NUMBER,&cpuset);
+
+  _STARPU_DEBUG("coreid: %d.\n", arg->coreid);
+  ret = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+  if(ret != 0)
+    { 
+      if(ret== EFAULT)
+	printf("\n\n EFAULT \n\n");
+      if(ret == EINVAL)
+	printf("\n\n EINVAL \n\n");
+      if(ret == ESRCH)
+	printf("\n\n ESRCH \n\n");
+    }
+  STARPU_ASSERT(ret == 0);
+}
+
+
+/* Receive paquet from _starpu_src_common_execute_kernel in the form below :
+ * [Function pointer on sink, number of interfaces, interfaces
+ * (union _starpu_interface), cl_arg]
+ * Then call the function given, passing as argument an array containing the
+ * addresses of the received interfaces
+ */
+
+void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
+					void *arg, int arg_size)
+{
+	unsigned id = 0;
+	unsigned nb_interfaces;
+
+	void *arg_ptr = arg;
+	struct task *thread_arg = malloc(sizeof(struct task));
+	
+	thread_arg->node = node;
+
+	thread_arg->kernel = *(void(**)(void **, void *)) arg_ptr;
+	arg_ptr += sizeof(thread_arg->kernel);
+
+	thread_arg->coreid = *(unsigned *) arg_ptr;
+	arg_ptr += sizeof(thread_arg->coreid);
+
+	nb_interfaces = *(unsigned *) arg_ptr;
+	arg_ptr += sizeof(nb_interfaces);
+
+	/* The function needs an array pointing to each interface it needs
+	 * during execution. As in sink-side there is no mean to know which
+	 * kind of interface to expect, the array is composed of unions of
+	 * interfaces, thus we expect the same size anyway */
+	for (id = 0; id < nb_interfaces; id++)
+	{
+		thread_arg->interfaces[id] = arg_ptr;
+		arg_ptr += sizeof(union _starpu_interface);
+	}
+
+	/* Was cl_arg sent ? */
+	if (arg_size > arg_ptr - arg)
+		thread_arg->cl_arg = arg_ptr;
+	else
+		thread_arg->cl_arg = NULL;
+
+	_STARPU_DEBUG("telling host that we have submitted the task %p.\n", thread_arg->kernel);
+	_starpu_mp_common_send_command(node, STARPU_EXECUTION_SUBMITTED,
+				       NULL, 0);
+
+	//_STARPU_DEBUG("executing the task %p\n", kernel);
+	_starpu_mic_sink_execute_thread(thread_arg);
+	
+}
+
+
+
+/*
+void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
+					void *arg, int arg_size)
+{
+	unsigned id = 0;
+
+	void *arg_ptr = arg;
+	void (*kernel)(void **, void *) = NULL;
+	unsigned coreid = 0;
+	unsigned nb_interfaces = 0;
+	void *interfaces[STARPU_NMAXBUFS];
+	void *cl_arg;
+
+	kernel = *(void(**)(void **, void *)) arg_ptr;
+	arg_ptr += sizeof(kernel);
+
+	coreid = *(unsigned *) arg_ptr;
+	arg_ptr += sizeof(coreid);
+
+	nb_interfaces = *(unsigned *) arg_ptr;
+	arg_ptr += sizeof(nb_interfaces);
+
+	for (id = 0; id < nb_interfaces; id++)
+	{
+		interfaces[id] = arg_ptr;
+		arg_ptr += sizeof(union _starpu_interface);
+	}
+
+
+	if (arg_size > arg_ptr - arg)
+		cl_arg = arg_ptr;
+	else
+		cl_arg = NULL;
+
+	_starpu_mp_common_send_command(node, STARPU_EXECUTION_SUBMITTED,
+				       NULL, 0);
+
+
+	kernel(interfaces, cl_arg);
+
+	_starpu_mp_common_send_command(node, STARPU_EXECUTION_COMPLETED,
+				       &coreid, sizeof(coreid));
+}*/
+

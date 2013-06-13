@@ -42,6 +42,7 @@ unsigned int _starpu_mic_sink_get_nb_core(void);
 void _starpu_mic_sink_allocate(const struct _starpu_mp_node *mp_node, void *arg, int arg_size);
 void _starpu_mic_sink_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, void *arg, int arg_size);
 
+
 #endif /* STARPU_USE_MIC */
 
 

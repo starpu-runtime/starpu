@@ -42,6 +42,8 @@ struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
 
 	node->peer_id = peer_id;
 
+	task_fifo_init(&(node->dead_queue));
+
 	switch(node->kind)
 	{
 #ifdef STARPU_USE_MIC

@@ -22,9 +22,13 @@
 #include <starpu.h>
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mp_common/sink_common.h>
+#include <datawizard/interfaces/data_interface.h>
 
 #include "driver_mic_common.h"
 #include "driver_mic_sink.h"
+
+
+
 
 /* Initialize the MIC sink, initializing connection to the source
  * and to the other devices (not implemented yet).

@@ -40,6 +40,7 @@ void _starpu_sink_nbcores (const struct _starpu_mp_node *node);
 void _starpu_sink_common_allocate(const struct _starpu_mp_node *mp_node, void *arg, int arg_size);
 void _starpu_sink_common_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, void *arg, int arg_size);
 
+
 #endif /* STARPU_USE_MP */
 
 
