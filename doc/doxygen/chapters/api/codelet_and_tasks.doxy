@@ -534,7 +534,7 @@ It is possible to initialize statically allocated tasks with
 this value. This is equivalent to initializing a structure starpu_task
 with the function starpu_task_init() function.
 
-\def STARPU_TASK_GET_HANDLE(struct starpu_task *task, int i)
+\def STARPU_TASK_GET_HANDLE(task, i)
 \ingroup API_Codelet_And_Tasks
 Return the \p i th data handle of the given task. If the task
 is defined with a static or dynamic number of handles, will either
@@ -542,7 +542,7 @@ return the \p i th element of the field starpu_task::handles or the \p
 i th element of the field starpu_task::dyn_handles (see \ref
 SettingTheDataHandlesForATask)
 
-\def STARPU_TASK_SET_HANDLE(struct starpu_task *task, starpu_data_handle_t handle, int i)
+\def STARPU_TASK_SET_HANDLE(task, handle, i)
 \ingroup API_Codelet_And_Tasks
 Set the \p i th data handle of the given task with the given
 dat handle. If the task is defined with a static or dynamic number of
@@ -551,7 +551,7 @@ starpu_task::handles or the \p i th element of the field
 starpu_task::dyn_handles (see \ref
 SettingTheDataHandlesForATask)
 
-\def STARPU_CODELET_GET_MODE(struct starpu_codelet *codelet, int i)
+\def STARPU_CODELET_GET_MODE(codelet, i)
 \ingroup API_Codelet_And_Tasks
 Return the access mode of the \p i th data handle of the given
 codelet. If the codelet is defined with a static or dynamic number of
@@ -560,7 +560,7 @@ starpu_codelet::modes or the \p i th element of the field
 starpu_codelet::dyn_modes (see \ref
 SettingTheDataHandlesForATask)
 
-\def STARPU_CODELET_SET_MODE(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, int i)
+\def STARPU_CODELET_SET_MODE(codelet, mode, i)
 \ingroup API_Codelet_And_Tasks
 Set the access mode of the \p i th data handle of the given
 codelet. If the codelet is defined with a static or dynamic number of
