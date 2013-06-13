@@ -17,6 +17,9 @@ SUBDIRS = src examples
 
 EXTRA_DIST = README
 
+SOCL_vendorsdir = @datarootdir@/starpu/opencl/vendors
+dist_SOCL_vendors_DATA = @SOCL_VENDORS@
+
 showcheck:
 	for i in $(SUBDIRS) ; do \
 		make -C $$i showcheck ; \

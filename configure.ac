@@ -1894,14 +1894,17 @@ AC_CONFIG_COMMANDS([executable-scripts], [
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
 # directory as the OCL_ICD_VENDORS directory
+SOCL_VENDORS="vendors/install/socl.icd"
 for icd in /etc/OpenCL/vendors/*.icd ; do
 	if test -f $icd ; then
 	        if test "$(basename $icd)" != "socl.icd" ; then
         		new_icd=$(basename $icd)
 			AC_CONFIG_LINKS([socl/vendors/$new_icd:$icd])
+			SOCL_VENDORS="$SOCL_VENDORS vendors/$new_icd"
 		fi
         fi
 done
+AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h)
@@ -1917,6 +1920,7 @@ AC_OUTPUT([
 	socl/src/Makefile
 	socl/examples/Makefile
 	socl/vendors/socl.icd
+	socl/vendors/install/socl.icd
 	libstarpu.pc
 	starpu-1.0.pc
 	starpu-1.1.pc
