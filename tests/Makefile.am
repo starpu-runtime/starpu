@@ -246,9 +246,6 @@ examplebin_SCRIPTS = \
 
 check_PROGRAMS = $(noinst_PROGRAMS) $(noinst_2_PROGRAMS)
 
-disk_disk_copy_SOURCES = \
-	disk/disk_copy.c
-
 #######################
 # Source files        #
 #######################
