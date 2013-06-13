@@ -1916,8 +1916,6 @@ AC_OUTPUT([
 	socl/Makefile
 	socl/src/Makefile
 	socl/examples/Makefile
-        socl/socl-1.0.pc
-	socl/socl-1.1.pc
 	socl/vendors/socl.icd
 	libstarpu.pc
 	starpu-1.0.pc
