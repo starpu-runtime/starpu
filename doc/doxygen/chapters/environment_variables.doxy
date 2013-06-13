@@ -319,6 +319,17 @@ SOCL_OCL_LIB_OPENCL is defined. It should contain the location
 of the file <c>libOpenCL.so</c> of the OCL ICD implementation.
 </dd>
 
+<dt>OCL_ICD_VENDORS</dt>
+<dd>
+\anchor OCL_ICD_VENDORS
+\addindex __env__OCL_ICD_VENDORS
+When using SOCL with OpenCL ICD
+(https://forge.imag.fr/projects/ocl-icd/), this variable may be used
+to point to the directory where ICD files are installed. The default
+directory is <c>/etc/OpenCL/vendors</c>. StarPU installs ICD
+files in the directory <c>$prefix/share/starpu/opencl/vendors</c>.
+</dd>
+
 <dt>STARPU_COMM_STATS</dt>
 <dd>
 \anchor STARPU_COMM_STATS
