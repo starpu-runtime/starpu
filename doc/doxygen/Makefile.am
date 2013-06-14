@@ -170,7 +170,13 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_driver.h		\
 	$(top_srcdir)/include/starpu_stdlib.h		\
 	$(top_srcdir)/include/starpu_thread.h		\
-	$(top_srcdir)/include/starpu_thread_util.h
+	$(top_srcdir)/include/starpu_thread_util.h	\
+	$(top_srcdir)/mpi/include/starpu_mpi.h 		\
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor.h 		\
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_config.h 	\
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_lp.h		\
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_monitoring.h	\
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h
 
 $(DOX_TAG): $(dox_inputs)
 	rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
