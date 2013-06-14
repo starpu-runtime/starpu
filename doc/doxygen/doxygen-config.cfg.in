@@ -31,3 +31,5 @@ EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
 INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 
 LATEX_HEADER           = @top_srcdir@/doc/doxygen/refman.tex
+
+EXCLUDE_PATTERNS       = @abs_top_builddir@/include/starpu_config.h
