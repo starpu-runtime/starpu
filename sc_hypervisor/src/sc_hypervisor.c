@@ -15,6 +15,7 @@
  */
 
 #include <sc_hypervisor_intern.h>
+#include <sc_hypervisor_policy.h>
 #include <common/uthash.h>
 #include <starpu_config.h>
 
@@ -136,7 +137,7 @@ struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hyper
 	char* vel_gap = getenv("MAX_VELOCITY_GAP");
 	hypervisor.max_velocity_gap = vel_gap ? atof(vel_gap) : SC_VELOCITY_MAX_GAP_DEFAULT;
 	char* crit =  getenv("HYPERVISOR_TRIGGER_RESIZE");
-	hypervisor.resize_criteria = strcmp(crit,"idle") == 0 ? SC_IDLE : (strcmp(crit,"speed") == 0 ? SC_SPEED : SC_NOTHING);
+	hypervisor.resize_criteria = strcmp(crit,"idle") == 0 ? SC_IDLE : (strcmp(crit,"speed") == 0 ? SC_VELOCITY : SC_NOTHING);
 
 	starpu_pthread_mutex_init(&act_hypervisor_mutex, NULL);
 	hypervisor.start_executing_time = starpu_timing_now();
@@ -377,7 +378,7 @@ double _get_max_velocity_gap()
 	return hypervisor.max_velocity_gap;
 }
 
-unsigned _get_resize_criteria()
+unsigned sc_hypervisor_get_resize_criteria()
 {
 	return hypervisor.resize_criteria;
 }
@@ -534,7 +535,7 @@ void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sch
 		for(j = 0; j < nworkers_to_move; j++)
 			printf(" %d", workers_to_move[j]);
 		printf("\n");
-
+		starpu_trace_user_event(1);
 		hypervisor.allow_remove[receiver_sched_ctx] = 0;
 		starpu_sched_ctx_add_workers(workers_to_move, nworkers_to_move, receiver_sched_ctx);
 

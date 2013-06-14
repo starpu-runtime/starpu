@@ -1,4 +1,4 @@
-/* StarPU --- Runtime system for heterogeneous multicore architectures.
+/* StarPUf --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012  INRIA
  *
@@ -27,6 +27,9 @@ extern "C"
 
 #define HYPERVISOR_REDIM_SAMPLE 0.02
 #define HYPERVISOR_START_REDIM_SAMPLE 0.1
+#define SC_NOTHING 0
+#define SC_IDLE 1
+#define SC_VELOCITY 2
 
 struct sc_hypervisor_policy_task_pool
 {
@@ -93,6 +96,15 @@ void sc_hypervisor_group_workers_by_type(int *workers, int nworkers, int ntypes_
 
 /* check if we trigger resizing or not */
 unsigned sc_hypervisor_criteria_fulfilled(unsigned sched_ctx, int worker);
+
+/* check if worker was idle long enough */
+unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker);
+
+/* check if there is a velocity gap btw ctxs */
+unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void);
+
+/* check what triggers resizing (idle, velocity, etc.)*/
+unsigned sc_hypervisor_get_resize_criteria();
 
 #ifdef __cplusplus
 }

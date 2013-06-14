@@ -18,9 +18,7 @@
 #include <common/uthash.h>
 
 #define SC_VELOCITY_MAX_GAP_DEFAULT 50
-#define SC_NOTHING 0
-#define SC_IDLE 1
-#define SC_SPEED 2
+
 struct size_request
 {
 	int *workers;
@@ -102,4 +100,3 @@ void _remove_config(unsigned sched_ctx);
 
 double _get_max_velocity_gap();
 
-unsigned _get_resize_criteria();
