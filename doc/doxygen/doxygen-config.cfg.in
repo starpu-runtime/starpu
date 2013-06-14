@@ -18,7 +18,7 @@
 
 INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 		       	 @top_srcdir@/doc/doxygen/chapters/api \
-                         @top_builddir@/include/starpu_config.h \
+                         @top_builddir@/doc/doxygen/starpu_config.h \
 			 @top_srcdir@/include/ \
 			 @top_srcdir@/mpi/include/ \
 			 @top_srcdir@/starpufft/starpufft.h \

@@ -87,6 +87,9 @@ chapters =	\
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy
 
+starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
+	sed 's/#undef \(.*\)/#define \1 1/' $< > $@
+
 chapters/version.sty: $(chapters)
 	@-for f in $(chapters) ; do \
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f 2>/dev/null ; fi \
@@ -132,6 +135,7 @@ EXTRA_DIST	= 		\
 
 dox_inputs = $(DOX_CONFIG) 				\
 	$(chapters) 					\
+	starpu_config.h					\
 	chapters/version.sty				\
 	chapters/version.html				\
 	$(top_srcdir)/include/starpu.h			\
@@ -190,7 +194,7 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	done; \
 	mv refman.pdf ../$(DOX_PDF)
 
-CLEANFILES = $(DOX_TAG) \
+CLEANFILES = $(DOX_TAG) starpu_config.h \
     -r \
     $(DOX_HTML_DIR) \
     $(DOX_LATEX_DIR) \
