@@ -34,7 +34,7 @@ static int compar_int(const void *pa, const void *pb)
 	int a = *((int *)pa);
 	int b = *((int *)pb);
 
-	return a > b;
+	return a - b;
 }
 
 static void sort_workerid_array(int nworkers, int workerid_array[])

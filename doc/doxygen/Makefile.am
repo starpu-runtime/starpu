@@ -42,6 +42,7 @@ chapters =	\
 	chapters/fdl-1.3.doxy \
 	chapters/scaling-vector-example.doxy \
 	chapters/mic_scc_support.doxy \
+	chapters/files.doxy \
 	chapters/code/hello_pragma2.c \
 	chapters/code/hello_pragma.c \
 	chapters/code/scal_pragma.cu \
@@ -90,6 +91,9 @@ chapters =	\
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy
 
+starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
+	sed 's/#undef \(.*\)/#define \1 1/' $< > $@
+
 chapters/version.sty: $(chapters)
 	@-for f in $(chapters) ; do \
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f 2>/dev/null ; fi \
@@ -135,6 +139,7 @@ EXTRA_DIST	= 		\
 
 dox_inputs = $(DOX_CONFIG) 				\
 	$(chapters) 					\
+	starpu_config.h					\
 	chapters/version.sty				\
 	chapters/version.html				\
 	$(top_srcdir)/include/starpu.h			\
@@ -166,12 +171,19 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_driver.h		\
 	$(top_srcdir)/include/starpu_stdlib.h		\
 	$(top_srcdir)/include/starpu_thread.h		\
-	$(top_srcdir)/include/starpu_thread_util.h
+	$(top_srcdir)/include/starpu_thread_util.h	\
+	$(top_srcdir)/mpi/include/starpu_mpi.h 		\
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor.h 		\
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_config.h 	\
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_lp.h		\
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_monitoring.h	\
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h
 
 $(DOX_TAG): $(dox_inputs)
 	rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
 	$(DOXYGEN) $(DOX_CONFIG)
 	sed -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
+	sed -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
 
 dist_pdf_DATA = $(DOX_PDF)
 
@@ -182,6 +194,7 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	sed -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
 	sed -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
 	sed -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
+	sed -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
 	$(PDFLATEX) refman.tex; \
 	$(MAKEINDEX) refman.idx;\
 	$(PDFLATEX) refman.tex; \
@@ -196,7 +209,7 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	done; \
 	mv refman.pdf ../$(DOX_PDF)
 
-CLEANFILES = $(DOX_TAG) \
+CLEANFILES = $(DOX_TAG) starpu_config.h \
     -r \
     $(DOX_HTML_DIR) \
     $(DOX_LATEX_DIR) \

@@ -368,7 +368,7 @@ Return a device handle for the variable designated by
 \p interface, to be used on OpenCL. The offset documented below has to be
 used in addition to this.
 
-\def STARPU_VARIABLE_GET_OFFSET()
+\def STARPU_VARIABLE_GET_OFFSET(interface)
 \ingroup API_Data_Interfaces
 Return the offset in the variable designated by \p interface, to
 be used with the device handle.
@@ -404,29 +404,29 @@ Return the size of each element of the array designated by \p handle.
 \ingroup API_Data_Interfaces
 Return the local pointer associated with \p handle.
 
-\def STARPU_VECTOR_GET_PTR(void *interface)
+\def STARPU_VECTOR_GET_PTR(interface)
 \ingroup API_Data_Interfaces
 Return a pointer to the array designated by \p interface, valid on
 CPUs and CUDA only. For OpenCL, the device handle and offset need to
 be used instead.
 
-\def STARPU_VECTOR_GET_DEV_HANDLE(void *interface)
+\def STARPU_VECTOR_GET_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the array designated by \p interface,
 to be used on OpenCL. the offset documented below has to be used in
 addition to this.
 
-\def STARPU_VECTOR_GET_OFFSET(void *interface)
+\def STARPU_VECTOR_GET_OFFSET(interface)
 \ingroup API_Data_Interfaces
 Return the offset in the array designated by \p interface, to be
 used with the device handle.
 
-\def STARPU_VECTOR_GET_NX(void *interface)
+\def STARPU_VECTOR_GET_NX(interface)
 \ingroup API_Data_Interfaces
 Return the number of elements registered into the array
 designated by \p interface.
 
-\def STARPU_VECTOR_GET_ELEMSIZE(void *interface)
+\def STARPU_VECTOR_GET_ELEMSIZE(interface)
 \ingroup API_Data_Interfaces
 Return the size of each element of the array designated by
 \p interface.
@@ -479,39 +479,39 @@ Return the local pointer associated with \p handle.
 Return the size of the elements registered into the matrix
 designated by \p handle.
 
-\def STARPU_MATRIX_GET_PTR(void *interface)
+\def STARPU_MATRIX_GET_PTR(interface)
 \ingroup API_Data_Interfaces
 Return a pointer to the matrix designated by \p interface, valid
 on CPUs and CUDA devices only. For OpenCL devices, the device handle
 and offset need to be used instead.
 
-\def STARPU_MATRIX_GET_DEV_HANDLE(void *interface)
+\def STARPU_MATRIX_GET_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the matrix designated by \p interface,
 to be used on OpenCL. The offset documented below has to be used in
 addition to this.
 
-\def STARPU_MATRIX_GET_OFFSET(void *interface)
+\def STARPU_MATRIX_GET_OFFSET(interface)
 \ingroup API_Data_Interfaces
 Return the offset in the matrix designated by \p interface, to be
 used with the device handle.
 
-\def STARPU_MATRIX_GET_NX(void *interface)
+\def STARPU_MATRIX_GET_NX(interface)
 \ingroup API_Data_Interfaces
 Return the number of elements on the x-axis of the matrix
 designated by \p interface.
 
-\def STARPU_MATRIX_GET_NY(void *interface)
+\def STARPU_MATRIX_GET_NY(interface)
 \ingroup API_Data_Interfaces
 Return the number of elements on the y-axis of the matrix
 designated by \p interface.
 
-\def STARPU_MATRIX_GET_LD(void *interface)
+\def STARPU_MATRIX_GET_LD(interface)
 \ingroup API_Data_Interfaces
 Return the number of elements between each row of the matrix
 designated by \p interface. May be equal to nx when there is no padding.
 
-\def STARPU_MATRIX_GET_ELEMSIZE(void *interface)
+\def STARPU_MATRIX_GET_ELEMSIZE(interface)
 \ingroup API_Data_Interfaces
 Return the size of the elements registered into the matrix
 designated by \p interface.
@@ -522,7 +522,7 @@ designated by \p interface.
 \struct starpu_block_interface
 Block interface for 3D dense blocks
 \ingroup API_Data_Interfaces
-\struct starpu_block_interface::id
+\var starpu_block_interface::id
 identifier of the interface
 \var starpu_block_interface::ptr
 local pointer of the block
@@ -577,48 +577,48 @@ Return the local pointer associated with \p handle.
 Return the size of the elements of the block designated by
 \p handle.
 
-\def STARPU_BLOCK_GET_PTR(void *interface)
+\def STARPU_BLOCK_GET_PTR(interface)
 \ingroup API_Data_Interfaces
 Return a pointer to the block designated by \p interface.
 
-\def STARPU_BLOCK_GET_DEV_HANDLE(void *interface)
+\def STARPU_BLOCK_GET_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the block designated by \p interface,
 to be used on OpenCL. The offset document below has to be used in
 addition to this.
 
-\def STARPU_BLOCK_GET_OFFSET(void *interface)
+\def STARPU_BLOCK_GET_OFFSET(interface)
 \ingroup API_Data_Interfaces
 Return the offset in the block designated by \p interface, to be
 used with the device handle.
 
-\def STARPU_BLOCK_GET_NX(void *interface)
+\def STARPU_BLOCK_GET_NX(interface)
 \ingroup API_Data_Interfaces
 Return the number of elements on the x-axis of the block
 designated by \p interface.
 
-\def STARPU_BLOCK_GET_NY(void *interface)
+\def STARPU_BLOCK_GET_NY(interface)
 \ingroup API_Data_Interfaces
 Return the number of elements on the y-axis of the block
 designated by \p interface.
 
-\def STARPU_BLOCK_GET_NZ(void *interface)
+\def STARPU_BLOCK_GET_NZ(interface)
 \ingroup API_Data_Interfaces
 Return the number of elements on the z-axis of the block
 designated by \p interface.
 
-\def STARPU_BLOCK_GET_LDY(void *interface)
+\def STARPU_BLOCK_GET_LDY(interface)
 \ingroup API_Data_Interfaces
 Return the number of elements between each row of the block
 designated by \p interface. May be equal to nx when there is no padding.
 
-\def STARPU_BLOCK_GET_LDZ(void *interface)
+\def STARPU_BLOCK_GET_LDZ(interface)
 \ingroup API_Data_Interfaces
 Return the number of elements between each z plane of the block
 designated by \p interface. May be equal to nx*ny when there is no
 padding.
 
-\def STARPU_BLOCK_GET_ELEMSIZE(void *interface)
+\def STARPU_BLOCK_GET_ELEMSIZE(interface)
 \ingroup API_Data_Interfaces
 Return the size of the elements of the block designated by
 \p interface.
@@ -694,45 +694,45 @@ Return the numberof columns in a block.
 Return the size of the elements in the matrix designated by
 \p handle.
 
-\def STARPU_BCSR_GET_NNZ(void *interface)
+\def STARPU_BCSR_GET_NNZ(interface)
 \ingroup API_Data_Interfaces
 Return the number of non-zero values in the matrix designated
 by \p interface.
 
-\def STARPU_BCSR_GET_NZVAL(void *interface)
+\def STARPU_BCSR_GET_NZVAL(interface)
 \ingroup API_Data_Interfaces
 Return a pointer to the non-zero values of the matrix
 designated by \p interface.
 
-\def STARPU_BCSR_GET_NZVAL_DEV_HANDLE(void *interface)
+\def STARPU_BCSR_GET_NZVAL_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the array of non-zero values in the
 matrix designated by \p interface. The offset documented below has to be
 used in addition to this.
 
-\def STARPU_BCSR_GET_COLIND(void *interface)
+\def STARPU_BCSR_GET_COLIND(interface)
 \ingroup API_Data_Interfaces
 Return a pointer to the column index of the matrix designated
 by \p interface.
 
-\def STARPU_BCSR_GET_COLIND_DEV_HANDLE(void *interface)
+\def STARPU_BCSR_GET_COLIND_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the column index of the matrix
 designated by \p interface. The offset documented below has to be used in
 addition to this.
 
-\def STARPU_BCSR_GET_ROWPTR(void *interface)
+\def STARPU_BCSR_GET_ROWPTR(interface)
 \ingroup API_Data_Interfaces
 Return a pointer to the row pointer array of the matrix
 designated by \p interface.
 
-\def STARPU_CSR_GET_ROWPTR_DEV_HANDLE(void *interface)
+\def STARPU_CSR_GET_ROWPTR_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the row pointer array of the matrix
 designated by \p interface. The offset documented below has to be used in
 addition to this.
 
-\def STARPU_BCSR_GET_OFFSET(void *interface)
+\def STARPU_BCSR_GET_OFFSET
 \ingroup API_Data_Interfaces
 Return the offset in the arrays (coling, rowptr, nzval) of the
 matrix designated by \p interface, to be used with the device handles.
@@ -795,60 +795,60 @@ designated by \p handle.
 Return the size of the elements registered into the matrix
 designated by \p handle.
 
-\def STARPU_CSR_GET_NNZ(void *interface)
+\def STARPU_CSR_GET_NNZ(interface)
 \ingroup API_Data_Interfaces
 Return the number of non-zero values in the matrix designated
 by \p interface.
 
-\def STARPU_CSR_GET_NROW(void *interface)
+\def STARPU_CSR_GET_NROW(interface)
 \ingroup API_Data_Interfaces
 Return the size of the row pointer array of the matrix
 designated by \p interface.
 
-\def STARPU_CSR_GET_NZVAL(void *interface)
+\def STARPU_CSR_GET_NZVAL(interface)
 \ingroup API_Data_Interfaces
 Return a pointer to the non-zero values of the matrix
 designated by \p interface.
 
-\def STARPU_CSR_GET_NZVAL_DEV_HANDLE(void *interface)
+\def STARPU_CSR_GET_NZVAL_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the array of non-zero values in the
 matrix designated by \p interface. The offset documented below has to be
 used in addition to this.
 
-\def STARPU_CSR_GET_COLIND(void *interface)
+\def STARPU_CSR_GET_COLIND(interface)
 \ingroup API_Data_Interfaces
 Return a pointer to the column index of the matrix designated
 by \p interface.
 
-\def STARPU_CSR_GET_COLIND_DEV_HANDLE(void *interface)
+\def STARPU_CSR_GET_COLIND_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the column index of the matrix
 designated by \p interface. The offset documented below has to be used in
 addition to this.
 
-\def STARPU_CSR_GET_ROWPTR(void *interface)
+\def STARPU_CSR_GET_ROWPTR(interface)
 \ingroup API_Data_Interfaces
 Return a pointer to the row pointer array of the matrix
 designated by \p interface.
 
-\def STARPU_CSR_GET_ROWPTR_DEV_HANDLE(void *interface)
+\def STARPU_CSR_GET_ROWPTR_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the row pointer array of the matrix
 designated by \p interface. The offset documented below has to be used in
 addition to this.
 
-\def STARPU_CSR_GET_OFFSET(void *interface)
+\def STARPU_CSR_GET_OFFSET
 \ingroup API_Data_Interfaces
 Return the offset in the arrays (colind, rowptr, nzval) of the
 matrix designated by \p interface, to be used with the device handles.
 
-\def STARPU_CSR_GET_FIRSTENTRY(void *interface)
+\def STARPU_CSR_GET_FIRSTENTRY(interface)
 \ingroup API_Data_Interfaces
 Return the index at which all arrays (the column indexes, the
 row pointers...) of the \p interface start.
 
-\def STARPU_CSR_GET_ELEMSIZE(void *interface)
+\def STARPU_CSR_GET_ELEMSIZE(interface)
 \ingroup API_Data_Interfaces
 Return the size of the elements registered into the matrix
 designated by \p interface.
@@ -876,12 +876,12 @@ number of values registered in the matrix
 \var starpu_coo_interface::elemsize
 size of the elements of the matrix
 
-\def STARPU_COO_GET_COLUMNS(void *interface)
+\def STARPU_COO_GET_COLUMNS(interface)
 \ingroup API_Data_Interfaces
 Return a pointer to the column array of the matrix designated
 by \p interface.
 
-\def STARPU_COO_GET_COLUMNS_DEV_HANDLE(void *interface)
+\def STARPU_COO_GET_COLUMNS_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the column array of the matrix
 designated by \p interface, to be used on OpenCL. The offset documented
@@ -892,7 +892,7 @@ below has to be used in addition to this.
 Return a pointer to the rows array of the matrix designated by
 \p interface.
 
-\def STARPU_COO_GET_ROWS_DEV_HANDLE(void *interface)
+\def STARPU_COO_GET_ROWS_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the row array of the matrix
 designated by \p interface, to be used on OpenCL. The offset documented
@@ -903,13 +903,13 @@ below has to be used in addition to this.
 Return a pointer to the values array of the matrix designated
 by \p interface.
 
-\def STARPU_COO_GET_VALUES_DEV_HANDLE(void *interface)
+\def STARPU_COO_GET_VALUES_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the value array of the matrix
 designated by \p interface, to be used on OpenCL. The offset documented
 below has to be used in addition to this.
 
-\def STARPU_COO_GET_OFFSET(void *interface)
+\def STARPU_COO_GET_OFFSET
 \ingroup API_Data_Interfaces
 Return the offset in the arrays of the COO matrix designated by
 \p interface.

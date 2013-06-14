@@ -169,7 +169,7 @@ Given a valid error status, prints the corresponding error message on
 stdout, along with the given function name \p func, the given filename
 \p file, the given line number \p line and the given message \p msg.
 
-\def STARPU_OPENCL_DISPLAY_ERROR(cl_int status)
+\def STARPU_OPENCL_DISPLAY_ERROR(status)
 \ingroup API_OpenCL_Extensions
 Call the function starpu_opencl_display_error() with the given error
 \p status, the current function name, current file and line number,
@@ -179,13 +179,13 @@ and a empty message.
 \ingroup API_OpenCL_Extensions
 Call the function starpu_opencl_display_error() and abort.
 
-\def STARPU_OPENCL_REPORT_ERROR (cl_int status)
+\def STARPU_OPENCL_REPORT_ERROR(status)
 \ingroup API_OpenCL_Extensions
 Call the function starpu_opencl_report_error() with the given error \p
 status, with the current function name, current file and line number,
 and a empty message.
 
-\def STARPU_OPENCL_REPORT_ERROR_WITH_MSG(const char *msg, cl_int status)
+\def STARPU_OPENCL_REPORT_ERROR_WITH_MSG(msg, status)
 \ingroup API_OpenCL_Extensions
 Call the function starpu_opencl_report_error() with the given \p msg
 and the given error \p status, with the current function name, current

@@ -13,6 +13,10 @@
 This macro is defined when StarPU has been installed with MIC support.
 It should be used in your code to detect the availability of MIC.
 
+\typedef starpu_mic_func_symbol_t
+\ingroup API_MIC_Extensions
+Type for MIC function symbols
+
 \fn int starpu_mic_register_kernel(starpu_mic_func_symbol_t *symbol, const char *func_name)
 \ingroup API_MIC_Extensions
 Initiate a lookup on each MIC device to find the adress of the

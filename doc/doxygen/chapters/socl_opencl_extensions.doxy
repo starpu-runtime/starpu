@@ -18,4 +18,56 @@ the context to which the command queue is attached.
 
 Note: this is still an area under development and subject to change.
 
+When compiling StarPU, SOCL will be enabled if a valid OpenCL
+implementation is found on your system. To be able to run the SOCL
+test suite, the environment variable \ref SOCL_OCL_LIB_OPENCL needs to
+be defined to the location of the file <c>libOpenCL.so</c> of the OCL
+ICD implementation. You should for example add the following line in
+your file <c>.bashrc</c>
+
+\verbatim
+export SOCL_OCL_LIB_OPENCL=/usr/lib/x86_64-linux-gnu/libOpenCL.so
+\endverbatim
+
+You can then run the test suite in the directory <c>socl/examples</c>.
+
+\verbatim
+$ make check
+...
+PASS: basic/basic
+PASS: testmap/testmap
+PASS: clinfo/clinfo
+PASS: matmul/matmul
+PASS: mansched/mansched
+==================
+All 5 tests passed
+==================
+\endverbatim
+
+The environment variable \ref OCL_ICD_VENDORS has to point to the directory
+where the ICD files are installed. When compiling StarPU, the files
+are in the directory <c>socl/vendors</c>. With an installed version of
+StarPU, the files are installed in the directory
+<c>$prefix/share/starpu/opencl/vendors</c>.
+
+To run the tests by hand, you have to call for example,
+
+\verbatim
+$ LD_PRELOAD=$SOCL_OCL_LIB_OPENCL OCL_ICD_VENDORS=socl/vendors/ socl/examples/clinfo/clinfo
+Number of platforms:	2
+  Plaform Profile:	FULL_PROFILE
+  Plaform Version:	OpenCL 1.1 CUDA 4.2.1
+  Plaform Name:		NVIDIA CUDA
+  Plaform Vendor:	NVIDIA Corporation
+  Plaform Extensions:	cl_khr_byte_addressable_store cl_khr_icd cl_khr_gl_sharing cl_nv_compiler_options cl_nv_device_attribute_query cl_nv_pragma_unroll 
+
+  Plaform Profile:	FULL_PROFILE
+  Plaform Version:	OpenCL 1.0 SOCL Edition (0.1.0)
+  Plaform Name:		SOCL Platform
+  Plaform Vendor:	INRIA
+  Plaform Extensions:	cl_khr_icd
+....
+$
+\endverbatim
+
 */

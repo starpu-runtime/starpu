@@ -35,7 +35,7 @@ This function returns a pointer to device properties for worker
 \ingroup API_CUDA_Extensions
 Report a CUDA error.
 
-\def STARPU_CUDA_REPORT_ERROR(cudaError_t status)
+\def STARPU_CUDA_REPORT_ERROR(status)
 \ingroup API_CUDA_Extensions
 Calls starpu_cuda_report_error(), passing the current function, file and line position.
 
@@ -72,7 +72,7 @@ every CUDA device.
 \ingroup API_CUDA_Extensions
 Report a cublas error.
 
-\def STARPU_CUBLAS_REPORT_ERROR(cublasStatus status)
+\def STARPU_CUBLAS_REPORT_ERROR(status)
 \ingroup API_CUDA_Extensions
 Calls starpu_cublas_report_error(), passing the current
 function, file and line position.
