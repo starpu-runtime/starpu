@@ -37,7 +37,7 @@ struct disk_ops {
 
 
 /* Posix functions to use disk memory */
-extern struct disk_ops write_on_file;
+extern struct disk_ops starpu_disk_stdio_ops;
 
 
 /* interface to create and to free a memory disk */

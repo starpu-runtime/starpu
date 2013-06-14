@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 
 	/* register a disk */
-	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*200);
+	unsigned dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) "/tmp/", 1024*1024*200);
 	/* can't write on /tmp/ */
 	if (dd == -ENOENT) goto enoent;
 
