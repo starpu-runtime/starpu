@@ -177,6 +177,7 @@ $(DOX_TAG): $(dox_inputs)
 	rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
 	$(DOXYGEN) $(DOX_CONFIG)
 	sed -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
+	sed -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
 
 dist_pdf_DATA = $(DOX_PDF)
 
@@ -187,6 +188,7 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	sed -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
 	sed -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
 	sed -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
+	sed -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
 	$(PDFLATEX) refman.tex; \
 	$(MAKEINDEX) refman.idx;\
 	$(PDFLATEX) refman.tex; \
