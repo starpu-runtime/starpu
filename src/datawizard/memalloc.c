@@ -355,11 +355,11 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 		_starpu_spin_unlock(&handle->header_lock);
 	}
-	else
+	/* try to lock all the subtree */
+	else if (lock_all_subtree(handle))
 	{
-		/* try to lock all the subtree */
-		/* and check if they are all "free" */
-		if (lock_all_subtree(handle) && may_free_subtree(handle, node))
+		/* check if they are all "free" */
+		if (may_free_subtree(handle, node))
 		{
 			int target = -1;
 
@@ -392,10 +392,10 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 				/* now the actual buffer may be freed */
 				freed = do_free_mem_chunk(mc, node);
 			}
-
-			/* unlock the tree */
-			unlock_all_subtree(handle);
 		}
+
+		/* unlock the tree */
+		unlock_all_subtree(handle);
 	}
 	return freed;
 }
@@ -451,16 +451,19 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 
 	/* try to lock all the subtree */
 	/* and check if they are all "free" */
-	if (lock_all_subtree(old_data) && may_free_subtree(old_data, node))
+	if (lock_all_subtree(old_data))
 	{
-		success = 1;
+		if (may_free_subtree(old_data, node))
+		{
+			success = 1;
 
-		/* in case there was nobody using that buffer, throw it
-		 * away after writing it back to main memory */
-		transfer_subtree_to_node(old_data, node, 0);
+			/* in case there was nobody using that buffer, throw it
+			 * away after writing it back to main memory */
+			transfer_subtree_to_node(old_data, node, 0);
 
-		/* now replace the previous data */
-		reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
+			/* now replace the previous data */
+			reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
+		}
 
 		/* unlock the tree */
 		unlock_all_subtree(old_data);
