@@ -73,22 +73,6 @@ void _starpu_deinit_mem_chunk_lists(void)
  *	Manipulate subtrees
  */
 
-static void lock_all_subtree(starpu_data_handle_t handle)
-{
-	unsigned child;
-
-	/* lock parent */
-	while (_starpu_spin_trylock(&handle->header_lock))
-		_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
-
-	/* lock all sub-subtrees children */
-	for (child = 0; child < handle->nchildren; child++)
-	{
-		starpu_data_handle_t child_handle = starpu_data_get_child(handle, child);
-		lock_all_subtree(child_handle);
-	}
-}
-
 static void unlock_all_subtree(starpu_data_handle_t handle)
 {
 	/* lock all sub-subtrees children
@@ -103,6 +87,30 @@ static void unlock_all_subtree(starpu_data_handle_t handle)
 	}
 
 	_starpu_spin_unlock(&handle->header_lock);
+}
+
+static int lock_all_subtree(starpu_data_handle_t handle)
+{
+	int child;
+
+	/* lock parent */
+	if (_starpu_spin_trylock(&handle->header_lock))
+		/* the handle is busy, abort */
+		return 0;
+
+	/* lock all sub-subtrees children */
+	for (child = 0; child < (int) handle->nchildren; child++)
+	{
+		if (!lock_all_subtree(starpu_data_get_child(handle, child))) {
+			/* Some child is busy, abort */
+			while (--child >= 0)
+				/* Unlock what we have already uselessly locked */
+				unlock_all_subtree(starpu_data_get_child(handle, child));
+			return 0;
+		}
+	}
+
+	return 1;
 }
 
 static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
@@ -332,8 +340,9 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	{
 		STARPU_ASSERT(mc->replicate);
 
-		while (_starpu_spin_trylock(&handle->header_lock))
-			_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
+		if (_starpu_spin_trylock(&handle->header_lock))
+			/* Handle is busy, abort */
+			return 0;
 
 		if (mc->replicate->refcnt == 0)
 		{
@@ -346,11 +355,9 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 		_starpu_spin_unlock(&handle->header_lock);
 	}
-	else
+	/* try to lock all the subtree */
+	else if (lock_all_subtree(handle))
 	{
-		/* try to lock all the subtree */
-		lock_all_subtree(handle);
-
 		/* check if they are all "free" */
 		if (may_free_subtree(handle, node))
 		{
@@ -387,7 +394,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 			}
 		}
 
-		/* unlock the leafs */
+		/* unlock the tree */
 		unlock_all_subtree(handle);
 	}
 	return freed;
@@ -443,23 +450,24 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 	STARPU_ASSERT(old_data);
 
 	/* try to lock all the subtree */
-	lock_all_subtree(old_data);
-
-	/* check if they are all "free" */
-	if (may_free_subtree(old_data, node))
+	/* and check if they are all "free" */
+	if (lock_all_subtree(old_data))
 	{
-		success = 1;
+		if (may_free_subtree(old_data, node))
+		{
+			success = 1;
 
-		/* in case there was nobody using that buffer, throw it
-		 * away after writing it back to main memory */
-		transfer_subtree_to_node(old_data, node, 0);
+			/* in case there was nobody using that buffer, throw it
+			 * away after writing it back to main memory */
+			transfer_subtree_to_node(old_data, node, 0);
 
-		/* now replace the previous data */
-		reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
+			/* now replace the previous data */
+			reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
+		}
+
+		/* unlock the tree */
+		unlock_all_subtree(old_data);
 	}
-
-	/* unlock the leafs */
-	unlock_all_subtree(old_data);
 
 	return success;
 }
@@ -549,19 +557,27 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 {
 	struct _starpu_mem_chunk *mc;
+	struct _starpu_mem_chunk_list *busy_memchunk_cache;
 
 	size_t freed = 0;
+
+	if (_starpu_mem_chunk_list_empty(memchunk_cache[node]))
+		return 0;
+
+	busy_memchunk_cache = _starpu_mem_chunk_list_new();
 
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 	while (!_starpu_mem_chunk_list_empty(memchunk_cache[node])) {
 		mc = _starpu_mem_chunk_list_pop_front(memchunk_cache[node]);
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
-
 		starpu_data_handle_t handle = mc->data;
 
 		if (handle)
-			while (_starpu_spin_trylock(&handle->header_lock))
-				_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
+			if (_starpu_spin_trylock(&handle->header_lock)) {
+				/* The handle is still busy, leave this chunk for later */
+				_starpu_mem_chunk_list_push_front(busy_memchunk_cache, mc);
+				continue;
+			}
+
 		freed += free_memory_on_node(mc, node);
 		if (handle)
 			_starpu_spin_unlock(&handle->header_lock);
@@ -569,10 +585,11 @@ static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 		free(mc->chunk_interface);
 		_starpu_mem_chunk_delete(mc);
 
-		STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
-		if (reclaim && freed>reclaim)
+		if (reclaim && freed >= reclaim)
 			break;
 	}
+	_starpu_mem_chunk_list_push_list_front(busy_memchunk_cache, memchunk_cache[node]);
+	_starpu_mem_chunk_list_delete(busy_memchunk_cache);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 	return freed;
 }
@@ -587,7 +604,7 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 {
 	size_t freed = 0;
 
-	struct _starpu_mem_chunk *mc, *next_mc = (void*) -1;
+	struct _starpu_mem_chunk *mc, *next_mc;
 
 	/*
 	 * We have to unlock mc_rwlock before locking header_lock, so we have
@@ -597,50 +614,37 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 	 * finding anything to free.
 	 */
 
-	while (1)
+restart:
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
+
+	for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
+	     mc != _starpu_mem_chunk_list_end(mc_list[node]);
+	     mc = next_mc)
 	{
-		STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
-
-		if (_starpu_mem_chunk_list_empty(mc_list[node]) || !next_mc)
-		{
-			STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
-			/* We reached the end of the list :/ */
-			break;
-		}
-
-		if (next_mc == (void*) -1) {
-			/* First iteration ever, start from beginning */
-			mc = _starpu_mem_chunk_list_begin(mc_list[node]);
-		} else {
-			/* Try to restart from where we were */
-			for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
-			     mc != _starpu_mem_chunk_list_end(mc_list[node]);
-			     mc = _starpu_mem_chunk_list_next(mc))
-				if (mc == next_mc)
-					/* Found it, restart from there.  */
-					break;
-
-			if (mc == _starpu_mem_chunk_list_end(mc_list[node]))
-				/* Couldn't find next_mc, restart from the beginning :/ */
-				mc = _starpu_mem_chunk_list_begin(mc_list[node]);
-		}
-
-		/* Remember where to try next */
+		/* mc hopefully gets out of the list, we thus need to prefetch
+		 * the next element */
 		next_mc = _starpu_mem_chunk_list_next(mc);
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 
 		if (!force)
 		{
 			freed += try_to_free_mem_chunk(mc, node);
 
-			if (reclaim && freed > reclaim)
+			if (reclaim && freed >= reclaim)
 				break;
 		}
 		else
 		{
 			starpu_data_handle_t handle = mc->data;
 
-			_starpu_spin_lock(&handle->header_lock);
+			if (_starpu_spin_trylock(&handle->header_lock))
+			{
+				/* Ergl. We are shutting down, but somebody is
+				 * still locking the handle. That's not
+				 * supposed to happen, but better be safe by
+				 * letting it go through. */
+				STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
+				goto restart;
+			}
 
 			/* We must free the memory now, because we are
 			 * terminating the drivers: note that data coherency is
@@ -650,6 +654,7 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 			_starpu_spin_unlock(&handle->header_lock);
 		}
 	}
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 
 	return freed;
 }
