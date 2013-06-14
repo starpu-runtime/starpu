@@ -1,7 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2013 Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,12 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*
- * This example demonstrates how to use StarPU to scale an array by a factor.
- * It shows how to manipulate data with StarPU's data management library.
- *  1- how to declare a piece of data to StarPU (starpu_vector_data_register)
- *  2- how to describe which data are accessed by a task (task->handles[0])
- *  3- how a kernel can manipulate the data (buffers[0].vector.ptr)
+/* Try to write into disk memory
+ * Use mechanism to push datas from main ram to disk ram
  */
 
 #include <starpu.h>
@@ -28,6 +23,7 @@
 #include <stdio.h>
 #include <math.h>
 
+/* size of one vector */
 #define	NX	(30*1000000/sizeof(double))
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
@@ -36,6 +32,7 @@ int main(int argc, char **argv)
 {
 	double * A,*B,*C,*D,*E,*F;
 
+	/* limit main ram to force to push in disk */
 	putenv("STARPU_LIMIT_CPU_MEM=160");
 
 	/* Initialize StarPU with default configuration */
@@ -50,8 +47,10 @@ int main(int argc, char **argv)
 
 	if (ret == -ENODEV) goto enodev;
 
-	FPRINTF(stderr, "Test of disk memory \n");
+	FPRINTF(stderr, "TEST DISK MEMORY \n");
+
 	unsigned int j;
+	/* initialization with bad values */
 	for(j = 0; j < NX; ++j)
 	{
 		A[j] = j;
