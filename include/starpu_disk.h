@@ -32,7 +32,7 @@ struct disk_ops {
 	 void *  (*plug)   (void *parameter);
 	 void    (*unplug) (void *base);
 	  int    (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
-	 void    (*bandwidth) (unsigned node);
+	  int    (*bandwidth) (unsigned node);
 };
 
 
@@ -41,7 +41,7 @@ extern struct disk_ops write_on_file;
 
 
 /* interface to create and to free a memory disk */
-unsigned starpu_disk_register(struct disk_ops * func, void *parameter, size_t size);
+int starpu_disk_register(struct disk_ops * func, void *parameter, size_t size);
 
 void starpu_disk_unregister(unsigned node);
 

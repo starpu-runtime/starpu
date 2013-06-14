@@ -38,14 +38,16 @@ int main(int argc, char **argv)
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
 
+	if (ret == -ENODEV) goto enodev;
+
 	/* register a disk */
 	unsigned dd = starpu_disk_register(&write_on_file, (void *) "/tmp/", 1024*1024*200);
+	/* can't write on /tmp/ */
+	if (dd == -ENOENT) goto enoent;
 
 	/* allocate two memory spaces */
 	starpu_malloc_flags((void **)&A, NX*sizeof(double), STARPU_MALLOC_COUNT);
 	starpu_malloc_flags((void **)&F, NX*sizeof(double), STARPU_MALLOC_COUNT);
-
-	if (ret == -ENODEV) goto enodev;
 
 	FPRINTF(stderr, "TEST DISK MEMORY \n");
 
@@ -123,5 +125,7 @@ int main(int argc, char **argv)
 	return (try ? EXIT_SUCCESS : EXIT_FAILURE);
 
 enodev:
+	return 77;
+enoent:
 	return 77;
 }

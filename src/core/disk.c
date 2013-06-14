@@ -49,11 +49,11 @@ static int disk_number = -1;
 static int size_register_list = 2;
 
 
-unsigned
+int
 starpu_disk_register(struct disk_ops * func, void *parameter, size_t size)
 {
 
-	STARPU_ASSERT_MSG(size >= SIZE_DISK_MIN,"Minimum disk size is %u Bytes ! (Here %u)", (int) SIZE_DISK_MIN, (int) size);
+	STARPU_ASSERT_MSG(size >= SIZE_DISK_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) SIZE_DISK_MIN, (int) size);
 	/* register disk */
 	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
@@ -66,7 +66,10 @@ starpu_disk_register(struct disk_ops * func, void *parameter, size_t size)
 	/* remember it */
 	add_disk_in_list(memory_node,func,base);
 
-	func->bandwidth(memory_node);
+	int ret = func->bandwidth(memory_node);
+	/* have a problem with the disk */
+	if(ret == 0)
+		return -ENOENT;
 	_starpu_memory_manager_set_global_memory_size(memory_node, size);
 	return memory_node;
 }

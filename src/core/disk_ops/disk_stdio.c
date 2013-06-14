@@ -52,19 +52,33 @@ starpu_stdio_alloc (void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
 
 	char * baseCpy = malloc(sizeBase*sizeof(char));
 	STARPU_ASSERT(baseCpy != NULL);
-	char * tmp = "XXXXXX";
+
+	char * tmp = "STARPU_XXXXXX";
 
 	strcpy(baseCpy, (char *) base);
 	strcat(baseCpy,tmp);
 
 	id = mkstemp(baseCpy);
-	STARPU_ASSERT_MSG(id >= 0, "Stdio allocation failed");
+	/* fail */
+	if (id < 0)
+		return NULL;
 
 	FILE * f = fdopen(id, "rb+");
-	STARPU_ASSERT_MSG(f != NULL, "Stdio allocation failed");
+	/* fail */
+	if (f == NULL)
+	{
+		/* delete fic */
+		unlink(baseCpy);
+		return NULL;
+	}
 
 	int val = ftruncate(id,size);
-	STARPU_ASSERT_MSG(val >= 0, "Stdio allocation failed");
+	/* fail */
+	if (val < 0)
+	{
+		unlink(baseCpy);
+		return NULL;
+	}
 
 	obj->descriptor = id;
 	obj->file = f;
@@ -108,10 +122,12 @@ starpu_stdio_open (void *base, void *pos, size_t size)
 	strcat(baseCpy,(char *) pos);
 
 	int id = open(baseCpy, O_RDONLY);
-	STARPU_ASSERT_MSG(id >= 0, "Unistd open failed");
+	if (id < 0)
+		return NULL;
 
 	FILE * f = fdopen(id,"rb+");
-	STARPU_ASSERT_MSG(f != NULL, "Unistd open failed");
+	if (f == NULL)
+		return NULL;
 
 	obj->descriptor = id;
 	obj->file = f;
@@ -184,7 +200,7 @@ starpu_stdio_unplug (void *base)
 }
 
 
-static void
+static int
 get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 {
 
@@ -199,6 +215,9 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	
 	/* allocate memory */
 	void * mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
+	/* fail to alloc */
+	if (mem == NULL)
+		return 0;
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) mem;
 
 	/* Measure upload slowness */
@@ -208,21 +227,18 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 		_starpu_disk_write(node, mem, buf, 0, SIZE_DISK_MIN);
 		/* clean cache memory */
 		int res = fflush (tmp->file);
-		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed");
+		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
 
 		res = fsync(tmp->descriptor);
-		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed");
+		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
 	}
 	gettimeofday(&end, NULL);
 	timing_slowness = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
 
 	/* free memory */
-	_starpu_disk_free(node, mem, SIZE_DISK_MIN);
 	free(buf);
 
-	mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
-	tmp = (struct starpu_stdio_obj *) mem;
 	buf = malloc(sizeof(char));
 	STARPU_ASSERT(buf != NULL);
 
@@ -246,6 +262,7 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*1000000, (NITER/timing_slowness)*1000000,
 					       timing_latency/NITER, timing_latency/NITER, node);
+	return 1;
 }
 
 
