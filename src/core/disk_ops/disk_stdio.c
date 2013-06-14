@@ -61,13 +61,19 @@ starpu_stdio_alloc (void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
 	id = mkstemp(baseCpy);
 	/* fail */
 	if (id < 0)
+	{
+		free(obj);
+		free(baseCpy);
 		return NULL;
+	}
 
 	FILE * f = fdopen(id, "rb+");
 	/* fail */
 	if (f == NULL)
 	{
 		/* delete fic */
+		free(obj);
+		free(baseCpy);
 		unlink(baseCpy);
 		return NULL;
 	}
@@ -76,6 +82,8 @@ starpu_stdio_alloc (void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
 	/* fail */
 	if (val < 0)
 	{
+		free(obj);
+		free(baseCpy);
 		unlink(baseCpy);
 		return NULL;
 	}
@@ -123,11 +131,19 @@ starpu_stdio_open (void *base, void *pos, size_t size)
 
 	int id = open(baseCpy, O_RDONLY);
 	if (id < 0)
+	{
+		free(obj);
+		free(baseCpy);
 		return NULL;
+	}
 
 	FILE * f = fdopen(id,"rb+");
 	if (f == NULL)
+	{
+		free(obj);
+		free(baseCpy);
 		return NULL;
+	}
 
 	obj->descriptor = id;
 	obj->file = f;
