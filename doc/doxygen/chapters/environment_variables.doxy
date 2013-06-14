@@ -150,15 +150,15 @@ and \ref STARPU_MAX_WORKERSIZE can be used to change this default.
 <dd>
 \anchor STARPU_MIN_WORKERSIZE
 \addindex __env__STARPU_MIN_WORKERSIZE
-When \ref STARPU_SINGLE_COMBINED_WORKER is set, \ref STARPU_MIN_WORKERSIZE
-permits to specify the minimum size of the combined workers (instead of the default 1)
+\ref STARPU_MIN_WORKERSIZE
+permits to specify the minimum size of the combined workers (instead of the default 2)
 </dd>
 
 <dt>STARPU_MAX_WORKERSIZE</dt>
 <dd>
 \anchor STARPU_MAX_WORKERSIZE
 \addindex __env__STARPU_MAX_WORKERSIZE
-When \ref STARPU_SINGLE_COMBINED_WORKER is set, \ref STARPU_MAX_WORKERSIZE
+\ref STARPU_MAX_WORKERSIZE
 permits to specify the minimum size of the combined workers (instead of the
 number of CPU workers in the system)
 </dd>
