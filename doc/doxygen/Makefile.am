@@ -41,6 +41,7 @@ chapters =	\
 	chapters/configure_options.doxy \
 	chapters/fdl-1.3.doxy \
 	chapters/scaling-vector-example.doxy \
+	chapters/files.doxy \
 	chapters/code/hello_pragma2.c \
 	chapters/code/hello_pragma.c \
 	chapters/code/scal_pragma.cu \
