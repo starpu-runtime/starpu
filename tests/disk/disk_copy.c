@@ -41,9 +41,11 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 
 	/* register a disk */
-	unsigned dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) "/tmp/", 1024*1024*200);
+	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) "/tmp/", 1024*1024*200);
 	/* can't write on /tmp/ */
-	if (dd == -ENOENT) goto enoent;
+	if (new_dd == -ENOENT) goto enoent;
+	
+	unsigned dd = (unsigned) new_dd;
 
 	/* allocate two memory spaces */
 	starpu_malloc_flags((void **)&A, NX*sizeof(double), STARPU_MALLOC_COUNT);
