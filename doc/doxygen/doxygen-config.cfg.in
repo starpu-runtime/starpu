@@ -31,15 +31,12 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu_fxt.h \
 			 @top_srcdir@/include/starpu.h \
 			 @top_srcdir@/include/starpu_hash.h \
-			 @top_srcdir@/include/starpu_mic.h \
 			 @top_srcdir@/include/starpu_opencl.h \
 			 @top_srcdir@/include/starpu_perfmodel.h \
 			 @top_srcdir@/include/starpu_profiling.h \
 			 @top_srcdir@/include/starpu_rand.h \
-			 @top_srcdir@/include/starpu_scc.h \
 			 @top_srcdir@/include/starpu_sched_ctx.h \
 			 @top_srcdir@/include/starpu_scheduler.h \
-			 @top_srcdir@/include/starpu_sink.h \
 			 @top_srcdir@/include/starpu_stdlib.h \
 			 @top_srcdir@/include/starpu_task_bundle.h \
 			 @top_srcdir@/include/starpu_task.h \
