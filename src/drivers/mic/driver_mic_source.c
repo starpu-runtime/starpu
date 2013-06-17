@@ -153,7 +153,6 @@ _starpu_mic_src_process_completed_job (struct _starpu_worker_set *workerset)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task (task);
 
 	_starpu_mic_src_finalize_job (j, worker);
-
 	worker->current_task = NULL;
 
 	return 0;
@@ -587,116 +586,72 @@ void *_starpu_mic_src_worker(void *arg)
 	STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
-
+	struct starpu_task **tasks = malloc(sizeof(struct starpu_task *)*args->nworkers);
+	
+	/*main loop*/
 	while (_starpu_machine_is_running())
-	{
-		int res;
-		struct starpu_task *task = NULL;
-		struct _starpu_job * j;
-		unsigned micworkerid = 0;
+	  {
+	    int res;
+	    struct _starpu_job * j;
 
-		_STARPU_TRACE_START_PROGRESS(memnode);
-		_starpu_datawizard_progress(memnode, 1);
-		_STARPU_TRACE_END_PROGRESS(memnode);
+	    _STARPU_TRACE_START_PROGRESS(memnode);
+	    _starpu_datawizard_progress(memnode, 1);
+	    _STARPU_TRACE_END_PROGRESS(memnode);
 
-		STARPU_PTHREAD_MUTEX_LOCK(&baseworker->sched_mutex);
+	    STARPU_PTHREAD_MUTEX_LOCK(&baseworker->sched_mutex);
 
-		/* We pop tasklists of each worker in the set and process the
-		 * first non-empty list. */
-		for (micworkerid = 0 ; (micworkerid < args->nworkers) && (task == NULL); micworkerid++)
-		    task = _starpu_pop_task (&args->workers[micworkerid]);
+	    /* get task for each worker*/
+	    res = _starpu_get_multi_worker_task(args->workers, tasks, args->nworkers);
+	    STARPU_PTHREAD_MUTEX_UNLOCK(&baseworker->sched_mutex);
 
-		if (task != NULL) {
-			micworkerid--;
-			goto task_found;
-		}
 
-#if 0 // XXX: synchronous execution for now
-		/* No task to submit, so we can poll the MIC device for
-		 * completed jobs. */
-		struct pollfd fd = {
-		    .fd = mic_nodes[baseworker->mp_nodeid]->mp_connection.mic_endpoint,
-		    .events = POLLIN
-		};
+	    /* poll the MIC device for completed jobs.*/
+	    if (_starpu_mic_common_recv_is_ready(mic_nodes[args->workers[0].mp_nodeid]))
+	      _starpu_mic_src_process_completed_job (args);
+	   	    
 
-		if (0 < poll (&fd, 1, 0)) {
-		    _starpu_mic_src_process_completed_job (args);
-		    goto restart_loop;
-		}
-#endif
+	    /*if at least one worker have pop a task*/
+	    if(res != 0)
+	      {
+		//printf("\n nb_tasks:%d\n", res);
+		_STARPU_DEBUG("\n nb_tasks:%d\n", res);
+		for(i=0; i<args->nworkers; i++)
+		  {
+		    if(tasks[i] != NULL)
+		      {
+			j = _starpu_get_job_associated_to_task(tasks[i]);
 
-		/* At this point, there is really nothing to do for the thread
-		 * so we can block.
-		 * XXX: blocking drivers is in fact broken. DO NOT USE IT ! */
-		if (_starpu_worker_get_status(baseworkerid) != STATUS_SLEEPING)
-		{
-			_STARPU_TRACE_WORKER_SLEEP_START;
-			_starpu_worker_restart_sleeping(baseworkerid);
-			_starpu_worker_set_status(baseworkerid, STATUS_SLEEPING);
-		}
+			/* can a MIC device do that task ? */
+			if (!_STARPU_MIC_MAY_PERFORM(j))
+			  {
+			    /* this isn't a mic task */
+			    _starpu_push_task_to_workers(tasks[i]);
+			    continue;
+			  }
 
-		if (_starpu_worker_can_block(memnode))
-			STARPU_PTHREAD_COND_WAIT(&baseworker->sched_cond, &baseworker->sched_mutex);
-		else
-		{
-			if (_starpu_machine_is_running())
-				STARPU_UYIELD();
-		}
+			args->workers[i].current_task = j->task;
 
-		if (_starpu_worker_get_status(baseworkerid) == STATUS_SLEEPING)
-		{
-			_STARPU_TRACE_WORKER_SLEEP_END;
-			_starpu_worker_stop_sleeping(baseworkerid);
-			_starpu_worker_set_status(baseworkerid, STATUS_UNKNOWN);
-		}
+			res = _starpu_mic_src_execute_job (j, &args->workers[i]);
+		
+			if (res)
+			  {
+			    switch (res)
+			      {
+			      case -EAGAIN:
+				_STARPU_DISP("ouch, Xeon Phi could not actually run task %p, putting it back...\n", tasks[i]);
+				_starpu_push_task_to_workers(tasks[i]);
+				STARPU_ABORT();
+				continue;
+			      default:
+				STARPU_ASSERT(0);
+			      }
+			  }
+		      }
+		  }
+	      }
+	  }
 
-	restart_loop:
-		STARPU_PTHREAD_MUTEX_UNLOCK(&baseworker->sched_mutex);
-		continue;
-
-	task_found:
-		/* If the MIC core associated to `micworkerid' is already
-		 * processing a job, we push back this one in the worker task
-		 * list. */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&baseworker->sched_mutex);
-
-		if (args->workers[micworkerid].current_task) {
-		    _starpu_push_task_to_workers(task);
-		    continue;
-		}
-
-		STARPU_ASSERT(task);
-		j = _starpu_get_job_associated_to_task(task);
-
-		/* can a MIC device do that task ? */
-		if (!_STARPU_MIC_MAY_PERFORM(j))
-		{
-			/* this isn't a mic task */
-			_starpu_push_task_to_workers(task);
-			continue;
-		}
-
-		args->workers[micworkerid].current_task = j->task;
-
-		res = _starpu_mic_src_execute_job (j, &args->workers[micworkerid]);
-
-		if (res)
-		{
-			switch (res)
-			{
-				case -EAGAIN:
-					_STARPU_DISP("ouch, Xeon Phi could not actually run task %p, putting it back...\n", task);
-					_starpu_push_task_to_workers(task);
-					STARPU_ABORT();
-					continue;
-				default:
-					STARPU_ASSERT(0);
-			}
-		}
-
-		/* XXX: synchronous execution for now */
-		_starpu_mic_src_process_completed_job (args);
-	}
+	free(tasks);
 
 	_STARPU_TRACE_WORKER_DEINIT_START;
 

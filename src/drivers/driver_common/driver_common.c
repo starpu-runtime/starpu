@@ -225,3 +225,27 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 
 	return task;
 }
+
+
+int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_task ** tasks, int nworkers)
+{
+  int i, count = 0;
+  //_STARPU_DEBUG(" nworkers:%d\n", nworkers);
+
+  for (i = 0 ; (i < nworkers); i++){
+    if(workers[i].current_task)
+      tasks[i] = NULL;
+    else
+      {
+	//_STARPU_DEBUG(" try pop task\n");
+	tasks[i] = _starpu_pop_task(&workers[i]);
+	if(tasks[i] != NULL)
+	  count ++;
+	//else
+	  //_STARPU_DEBUG(" pop task fail\n");
+	  
+      }
+  }
+  //  _STARPU_DEBUG("count:%d\n", count);
+  return count;
+}

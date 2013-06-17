@@ -56,11 +56,13 @@ struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
 				node->deinit = _starpu_mic_src_deinit;
 				node->report_error = _starpu_mic_src_report_scif_error;
 
+				node->mp_recv_is_ready = NULL;
 				node->mp_send = _starpu_mic_common_send;
 				node->mp_recv = _starpu_mic_common_recv;
 				node->dt_send = _starpu_mic_common_dt_send;
 				node->dt_recv = _starpu_mic_common_dt_recv;
 
+				node->bind_thread = NULL;
 				node->execute = NULL;
 				node->nbcores = NULL;
 				node->allocate = NULL;
@@ -81,11 +83,13 @@ struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
 				node->deinit = _starpu_mic_sink_deinit;
 				node->report_error = _starpu_mic_sink_report_error;
 
+				node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
 				node->mp_send = _starpu_mic_common_send;
 				node->mp_recv = _starpu_mic_common_recv;
 				node->dt_send = _starpu_mic_common_dt_send;
 				node->dt_recv = _starpu_mic_common_dt_recv;
 
+				node->bind_thread = _starpu_mic_sink_bind_thread;
 				node->execute = _starpu_sink_common_execute;
 				node->nbcores = _starpu_sink_nbcores;
 				node->allocate = _starpu_mic_sink_allocate;
@@ -102,7 +106,8 @@ struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
 				node->init = _starpu_scc_src_init;
 				node->deinit = NULL;
 				node->report_error = _starpu_scc_common_report_rcce_error;
-
+				
+				node->mp_recv_is_ready = NULL;
 				node->mp_send = _starpu_scc_common_send;
 				node->mp_recv = _starpu_scc_common_recv;
 				node->dt_send = _starpu_scc_common_send;
@@ -110,6 +115,7 @@ struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
 				node->dt_send_to_device = NULL;
 				node->dt_recv_from_device = NULL;
 
+				node->bind_thread = NULL;
 				node->execute = NULL;
 				node->allocate = NULL;
 				node->free = NULL;
@@ -124,6 +130,7 @@ struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
 				node->deinit = _starpu_scc_sink_deinit;
 				node->report_error = _starpu_scc_common_report_rcce_error;
 
+				node->mp_recv_is_ready = NULL;
 				node->mp_send = _starpu_scc_common_send;
 				node->mp_recv = _starpu_scc_common_recv;
 				node->dt_send = _starpu_scc_common_send;
@@ -131,6 +138,7 @@ struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
 				node->dt_send_to_device = _starpu_scc_sink_send_to_device;
 				node->dt_recv_from_device = _starpu_scc_sink_recv_from_device;
 
+				node->bind_thread = NULL;
 				node->execute = _starpu_scc_sink_execute;
 				node->allocate = _starpu_sink_common_allocate;
 				node->free = _starpu_sink_common_free;

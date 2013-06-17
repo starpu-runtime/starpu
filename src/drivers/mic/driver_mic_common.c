@@ -19,7 +19,6 @@
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mic/driver_mic_common.h>
 
-
 void _starpu_mic_common_report_scif_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);
@@ -36,6 +35,22 @@ void _starpu_mic_common_send(const struct _starpu_mp_node *node, void *msg, int 
   if ((scif_send(node->mp_connection.mic_endpoint, msg, len, SCIF_SEND_BLOCK)) < 0)
 		STARPU_MP_COMMON_REPORT_ERROR(node, errno);
 }
+
+
+/* 
+ *
+ */
+
+int _starpu_mic_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
+{
+  struct scif_pollepd pollepd;
+  pollepd.epd = mp_node->mp_connection.mic_endpoint;
+  pollepd.events = SCIF_POLLIN;
+  pollepd.revents = 0;
+  return  scif_poll(&pollepd,1,0);
+	
+}
+
 
 /* Handles the error so the caller (which must be generic) doesn't have to
  * care about it.

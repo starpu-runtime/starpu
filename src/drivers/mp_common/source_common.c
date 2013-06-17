@@ -64,6 +64,9 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node,
 	answer = _starpu_mp_common_recv_command(node, (void **) &arg,
 						&arg_size);
 
+	//	printf("\n\n\n answer:%d\n\n", (int)answer);
+	
+
 	if (answer == STARPU_ERROR_LOOKUP) {
 		_STARPU_DISP("Error looking up symbol %s\n", func_name);
 		return -ESPIPE;
@@ -71,8 +74,8 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node,
 
 	/* We have to be sure the device answered the right question and the
 	 * answer has the right size */
-	STARPU_ASSERT(answer == STARPU_ANSWER_LOOKUP &&
-		      arg_size == sizeof(*func_ptr));
+	STARPU_ASSERT(answer == STARPU_ANSWER_LOOKUP);
+	STARPU_ASSERT(arg_size == sizeof(*func_ptr));
 
 	memcpy(func_ptr, arg, arg_size);
 

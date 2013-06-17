@@ -27,7 +27,7 @@
 #include "driver_mic_common.h"
 #include "driver_mic_sink.h"
 
-
+#define HYPER_THREAD_NUMBER 4
 
 
 /* Initialize the MIC sink, initializing connection to the source
@@ -136,4 +136,22 @@ void _starpu_mic_sink_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUT
 	scif_unregister(epd, (off_t)addr, window_size);
 #endif
 	free(addr);
+}
+
+
+/* bind the thread to a core
+ */
+void _starpu_mic_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, cpu_set_t * cpuset, int coreid, pthread_t *thread)
+{
+  int j, ret;
+  //init the set
+  CPU_ZERO(cpuset);
+
+  //adding the core to the set
+  for(j=0;j<HYPER_THREAD_NUMBER;j++)
+    CPU_SET(j+coreid*HYPER_THREAD_NUMBER,cpuset);
+  
+  //affect the thread to the core
+  ret = pthread_setaffinity_np(*thread, sizeof(cpu_set_t), cpuset);
+  STARPU_ASSERT(ret == 0);
 }

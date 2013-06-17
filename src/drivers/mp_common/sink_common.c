@@ -29,7 +29,6 @@
 
 #include "sink_common.h"
 
-#define HYPER_THREAD_NUMBER 4
 #include "task_fifo.h"
 
 /* Return the sink kind of the running process, based on the value of the
@@ -77,17 +76,25 @@ static void _starpu_sink_common_lookup(const struct _starpu_mp_node *node,
 	void (*func)(void);
 	void *dl_handle = dlopen(NULL, RTLD_NOW);
 	func = dlsym(dl_handle, func_name);
-
-	//_STARPU_DEBUG("Looked up %s, got %p\n", func_name, func);
+	
+	printf("Looked up %s, got %p\n", func_name, func);
+	_STARPU_DEBUG("Looked up %s, got %p\n", func_name, func);
 
 	/* If we couldn't find the function, let's send an error to the host.
 	 * The user probably made a mistake in the name */
 	if (func)
-		_starpu_mp_common_send_command(node, STARPU_ANSWER_LOOKUP,
+	  {
+	    printf("\n LOOL UP OK \n");
+	    _starpu_mp_common_send_command(node, STARPU_ANSWER_LOOKUP,
 					       &func, sizeof(func));
+	
+	  }
 	else
-		_starpu_mp_common_send_command(node, STARPU_ERROR_LOOKUP,
+	  {
+	    printf("\n LOOL UP FAIL \n");
+	    _starpu_mp_common_send_command(node, STARPU_ERROR_LOOKUP,
 					       NULL, 0);
+	  }
 }
 
 void _starpu_sink_common_allocate(const struct _starpu_mp_node *mp_node,
@@ -167,7 +174,7 @@ void _starpu_sink_common_worker(void)
 	enum _starpu_mp_command command = STARPU_EXIT;
 	int arg_size = 0;
 	void *arg = NULL;
-
+	int exit_starpu = 0;
 	enum _starpu_mp_node_kind node_kind = _starpu_sink_common_get_kind();
 
 	if (node_kind == STARPU_INVALID_KIND)
@@ -177,11 +184,17 @@ void _starpu_sink_common_worker(void)
 
 	/* Create and initialize the node */
 	node = _starpu_mp_common_node_create(node_kind, -1);
-
-	while ((command = _starpu_mp_common_recv_command(node, &arg, &arg_size)) != STARPU_EXIT)
+	
+	while (!exit_starpu)
 	{
+	  if(node->mp_recv_is_ready(node))
+	    {	
+	      command = _starpu_mp_common_recv_command(node, &arg, &arg_size);
 		switch(command)
 		{
+		case STARPU_EXIT:
+		  exit_starpu = 1;
+		  break;
 			case STARPU_EXECUTE:
 				node->execute(node, arg, arg_size);
 				break;
@@ -219,6 +232,7 @@ void _starpu_sink_common_worker(void)
 			default:
 				printf("Oops, command %x unrecognized\n", command);
 		}
+	    }
 
 		if(!task_fifo_is_empty(&(node->dead_queue)))
 		  {
@@ -226,7 +240,6 @@ void _starpu_sink_common_worker(void)
 		    _STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
 		    _starpu_mp_common_send_command(task->node, STARPU_EXECUTION_COMPLETED,
 								    &(task->coreid), sizeof(task->coreid));
-		    _STARPU_DEBUG("we have finished the task %p sur %d.\n", task->kernel, task->coreid);
 		    task_fifo_pop(&(node->dead_queue));
 		    free(task);
 		  }
@@ -240,43 +253,31 @@ void _starpu_sink_common_worker(void)
 
 
 
-static void* _starpu_mic_sink_thread(void * thread_arg)
+static void* _starpu_sink_thread(void * thread_arg)
 {
   struct task *arg = (struct task *)thread_arg;
-  _STARPU_DEBUG("thread launch: %d.\n", arg->coreid);
+  
+  //execute the task
   arg->kernel(arg->interfaces,arg->cl_arg);
 
+  //append the finished task to the dead queue
   task_fifo_append(&(arg->node->dead_queue),arg);
-
   pthread_exit(NULL);
 }
 
-static void _starpu_mic_sink_execute_thread(struct task *arg)
+static void _starpu_sink_execute_thread(struct task *arg)
 {
   int j;
   pthread_t thread;
   cpu_set_t cpuset;
   int ret;
   
-  ret = pthread_create(&thread, NULL, _starpu_mic_sink_thread, arg);
+  //create the tread
+  ret = pthread_create(&thread, NULL, _starpu_sink_thread, arg);
   STARPU_ASSERT(ret == 0);
   
-  CPU_ZERO(&cpuset);
-  for(j=0;j<HYPER_THREAD_NUMBER;j++)
-    CPU_SET(j+arg->coreid*HYPER_THREAD_NUMBER,&cpuset);
-
-  _STARPU_DEBUG("coreid: %d.\n", arg->coreid);
-  ret = pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
-  if(ret != 0)
-    { 
-      if(ret== EFAULT)
-	printf("\n\n EFAULT \n\n");
-      if(ret == EINVAL)
-	printf("\n\n EINVAL \n\n");
-      if(ret == ESRCH)
-	printf("\n\n ESRCH \n\n");
-    }
-  STARPU_ASSERT(ret == 0);
+  //bind the thread on the core coreid
+  arg->node->bind_thread(arg->node, &cpuset, arg->coreid, &thread);
 }
 
 
@@ -323,58 +324,10 @@ void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
 	else
 		thread_arg->cl_arg = NULL;
 
-	_STARPU_DEBUG("telling host that we have submitted the task %p.\n", thread_arg->kernel);
+	//_STARPU_DEBUG("telling host that we have submitted the task %p.\n", thread_arg->kernel);
 	_starpu_mp_common_send_command(node, STARPU_EXECUTION_SUBMITTED,
 				       NULL, 0);
 
-	//_STARPU_DEBUG("executing the task %p\n", kernel);
-	_starpu_mic_sink_execute_thread(thread_arg);
-	
+	//_STARPU_DEBUG("executing the task %p\n", thread_arg->kernel);
+	_starpu_sink_execute_thread(thread_arg);	
 }
-
-
-
-/*
-void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
-					void *arg, int arg_size)
-{
-	unsigned id = 0;
-
-	void *arg_ptr = arg;
-	void (*kernel)(void **, void *) = NULL;
-	unsigned coreid = 0;
-	unsigned nb_interfaces = 0;
-	void *interfaces[STARPU_NMAXBUFS];
-	void *cl_arg;
-
-	kernel = *(void(**)(void **, void *)) arg_ptr;
-	arg_ptr += sizeof(kernel);
-
-	coreid = *(unsigned *) arg_ptr;
-	arg_ptr += sizeof(coreid);
-
-	nb_interfaces = *(unsigned *) arg_ptr;
-	arg_ptr += sizeof(nb_interfaces);
-
-	for (id = 0; id < nb_interfaces; id++)
-	{
-		interfaces[id] = arg_ptr;
-		arg_ptr += sizeof(union _starpu_interface);
-	}
-
-
-	if (arg_size > arg_ptr - arg)
-		cl_arg = arg_ptr;
-	else
-		cl_arg = NULL;
-
-	_starpu_mp_common_send_command(node, STARPU_EXECUTION_SUBMITTED,
-				       NULL, 0);
-
-
-	kernel(interfaces, cl_arg);
-
-	_starpu_mp_common_send_command(node, STARPU_EXECUTION_COMPLETED,
-				       &coreid, sizeof(coreid));
-}*/
-

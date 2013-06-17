@@ -147,7 +147,8 @@ struct _starpu_mp_node
 	void (*deinit)(struct _starpu_mp_node *node);
 	void (*report_error)(const char *, const char *, const int, const int);
 
-	/* Message passing */
+  /* Message passing */
+  int (*mp_recv_is_ready)(const struct _starpu_mp_node *);
 	void (*mp_send)(const struct _starpu_mp_node *, void *, int);
 	void (*mp_recv)(const struct _starpu_mp_node *, void *, int);
 
@@ -157,6 +158,7 @@ struct _starpu_mp_node
 	void (*dt_send_to_device)(const struct _starpu_mp_node *, int, void *, int);
 	void (*dt_recv_from_device)(const struct _starpu_mp_node *, int, void *, int);
 
+  void (*bind_thread)(const struct _starpu_mp_node *, cpu_set_t *,int, pthread_t *);
 	void (*execute)(const struct _starpu_mp_node *, void *, int);
 	void (*nbcores)(const struct _starpu_mp_node *);
 	void (*allocate)(const struct _starpu_mp_node *, void *, int);
