@@ -312,9 +312,10 @@ int _starpu_sched_node_can_execute_task(struct _starpu_sched_node * node, struct
 		    -1 != worker;
 		    worker = _starpu_bitmap_next(node->workers, worker))
 			if (_starpu_bitmap_get(worker_mask, worker)
-			    && starpu_worker_can_execute_task(worker, task, nimpl))
-				return 1;
-
+			    &&
+			    (starpu_worker_can_execute_task(worker, task, nimpl)
+			     || starpu_combined_worker_can_execute_task(worker, task, nimpl)))
+			    return 1;
 	return 0;
 }
 

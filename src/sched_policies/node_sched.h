@@ -14,6 +14,8 @@ struct _starpu_sched_node
 			 struct starpu_task *);
 	struct starpu_task * (*pop_task)(struct _starpu_sched_node *,
 					 unsigned sched_ctx_id);
+//					 int (*predicate)(void * arg_pred, struct starpu_task * task),
+//					 void * arg_pred);
 	void (*available)(struct _starpu_sched_node *);
 	
 	/* this function is an heuristic that compute load of subtree */
@@ -106,6 +108,8 @@ void _starpu_sched_node_worker_destroy(struct _starpu_sched_node *);
 
 /* this function compare the available function of the node with the standard available for worker nodes*/
 int _starpu_sched_node_is_worker(struct _starpu_sched_node * node);
+int _starpu_sched_node_is_simple_worker(struct _starpu_sched_node * node);
+int _starpu_sched_node_is_combined_worker(struct _starpu_sched_node * node);
 int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_node);
 
 struct _starpu_sched_node * _starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED);
