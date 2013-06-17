@@ -275,7 +275,7 @@ purposes.
 This field has been made deprecated. One should use instead the
 field starpu_task::handles to specify the data handles accessed
 by the task. The access modes are now defined in the field
-starpu_codelet::mode.
+starpu_codelet::modes.
 \var starpu_task::handles
 Is an array of ::starpu_data_handle_t. It specifies the handles to the
 different pieces of data accessed by the task. The number of entries
