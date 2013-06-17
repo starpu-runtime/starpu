@@ -368,7 +368,6 @@ void _starpu_sched_node_destroy(struct _starpu_sched_node *node)
 	}
 	free(node->childs);
 	_starpu_bitmap_destroy(node->workers);
-
 	free(node);
 }
 
