@@ -213,6 +213,7 @@ The documentation chapters include
 <li> \ref HowToOptimizePerformanceWithStarPU
 <li> \ref PerformanceFeedback
 <li> \ref TipsAndTricksToKnowAbout
+<li> \ref OutOfCore
 <li> \ref MPISupport
 <li> \ref FFTSupport
 <li> \ref MICSCCSupport

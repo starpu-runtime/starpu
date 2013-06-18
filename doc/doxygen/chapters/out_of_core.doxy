@@ -1,0 +1,47 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2013 Corentin Salingue
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page OutOfCore Out Of Core
+
+\section Introduction Introduction
+
+When you are using Starpu, you can need more memory than main memory (RAM) is able to receive datas. This part describes the method to add a new memory node on a disk and to use it.
+
+\section UseANewDiskMemory Use a new disk memory
+
+To use a disk memory node, you have to register it with this function:
+
+\code{.c}
+	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) "/tmp/", 1024*1024*200);
+\endcode
+
+Here, we use the library called stdio to realize the read/write process. This structure must have a path to make the work and at the end, we give it the maximum size the software can use on the disk. <br />
+Don't forget to check if the result is correct !<br />
+When the register function is called, we benchmark it. You have to know that it can take a few time.
+
+<strong>Warning: the size must be at least 1 MB ! </strong> 
+
+To write or read on the node, you can use the \ref API_Standard_Memory_Library or the \ref API_Data_Interfaces .
+
+At the end, you have to unregister your disk memory:
+
+\code{.c}
+	starpu_disk_unregister(dd);
+\endcode
+
+\section DiskFunctions Disk functions
+
+You have various ways to use a disk memory node. You have, for instance, the starpu_disk_stdio_ops.
+All structures are in... TODO
+
+\section ExampleDiskCopy Example: disk_copy
+
+
+
+\snippet disk_copy.c To be included
+
+
+*/
