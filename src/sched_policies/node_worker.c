@@ -149,6 +149,8 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 	if(t->task == NULL && t->right == NULL && t->left == NULL)
 	{
 		l->first = t->up;
+		if(l->first)
+			l->first->down = NULL;
 		if(l->last == t)
 			l->last = NULL;
 		_starpu_task_grid_destroy(t);
@@ -205,6 +207,7 @@ int _starpu_sched_node_worker_push_task(struct _starpu_sched_node * node, struct
 	struct _starpu_worker_node_data * data = node->data;
 	struct _starpu_task_grid * t = _starpu_task_grid_create();
 	t->task = task;
+	t->ntasks = 1;
 	STARPU_PTHREAD_MUTEX_LOCK(&data->list->mutex);
 	_starpu_worker_task_list_push(data->list, t);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->list->mutex);
