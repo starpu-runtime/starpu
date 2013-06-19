@@ -614,12 +614,11 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 		{
 			if (req->request_type == SEND_REQ)
 			{
-				// We already know the request to send the size is completed, we just call MPI_Test to make sure that the request object is deallocated
-				MPI_Status status;
-				int flag;
-				ret = MPI_Test(&req->size_req, &flag, &status);
-				STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Test returning %d", ret);
-				STARPU_ASSERT_MSG(flag, "MPI_Test returning flag %d", flag);
+				// We need to make sure the communication for sending the size
+				// has completed, as MPI can re-order messages, let's call
+				// MPI_Wait to make sure data have been sent
+				ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
+				STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %d", ret);
 			}
 			if (req->request_type == RECV_REQ)
 				// req->ptr is freed by starpu_data_unpack

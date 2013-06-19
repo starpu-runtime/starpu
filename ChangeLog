@@ -18,6 +18,14 @@ StarPU 1.1.0rc2 (svn revision xxx)
 ==============================================
 The scheduling context release
 
+Changes:
+  * StarPU-MPI: Fix potential bug for user-defined datatypes. As MPI
+    can reorder messages, we need to make sure the sending of the size
+    of the data has been completed.
+
+StarPU 1.1.0rc1 (svn revision 9750)
+==============================================
+
 New features:
   * OpenGL interoperability support.
   * Capability to store compiled OpenCL kernels on the file system
