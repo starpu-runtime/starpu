@@ -24,6 +24,10 @@ Changes:
     of the data has been completed.
   * Documentation is now generated through doxygen.
 
+Small Changes:
+  * Explicitly name the non-sleeping-non-running time "Overhead", and use
+    another color in vite traces.
+
 StarPU 1.1.0rc1 (svn revision 9750)
 ==============================================
 
@@ -137,8 +141,6 @@ Small features:
   * New function starpu_get_version() to return as 3 integers the
     release version of StarPU.
   * Enable by default data allocation cache
-  * Explicitly name the non-sleeping-non-running time "Overhead", and use
-    another color in vite traces.
 
 Changes:
   * Rename all filter functions to follow the pattern
