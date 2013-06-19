@@ -18,8 +18,6 @@
 #ifndef __STARPU_DISK_H__
 #define __STARPU_DISK_H__
 
-typedef void * (*disk_function)(void *, unsigned);
-
 /* list of functions to use on disk */
 struct disk_ops {
  	 void *  (*alloc)  (void *base, size_t size);
