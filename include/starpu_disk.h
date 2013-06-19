@@ -19,7 +19,7 @@
 #define __STARPU_DISK_H__
 
 /* list of functions to use on disk */
-struct disk_ops {
+struct starpu_disk_ops {
  	 void *  (*alloc)  (void *base, size_t size);
 	 void    (*free)   (void *base, void *obj, size_t size);
 	 void *  (*open)   (void *base, void *pos, size_t size);     /* open an existing file */
@@ -35,11 +35,11 @@ struct disk_ops {
 
 
 /* Posix functions to use disk memory */
-extern struct disk_ops starpu_disk_stdio_ops;
+extern struct starpu_disk_ops starpu_disk_stdio_ops;
 
 
 /* interface to create and to free a memory disk */
-int starpu_disk_register(struct disk_ops * func, void *parameter, size_t size);
+int starpu_disk_register(struct starpu_disk_ops * func, void *parameter, size_t size);
 
 void starpu_disk_unregister(unsigned node);
 

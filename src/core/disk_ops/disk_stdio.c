@@ -283,7 +283,7 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 
 
 
-struct disk_ops starpu_disk_stdio_ops = {
+struct starpu_disk_ops starpu_disk_stdio_ops = {
 	.alloc = starpu_stdio_alloc,
 	.free = starpu_stdio_free,
 	.open = starpu_stdio_open,

@@ -38,10 +38,10 @@
 struct disk_register {
 	unsigned node;
 	void * base;
-	struct disk_ops * functions;
+	struct starpu_disk_ops * functions;
 };
 
-static void add_disk_in_list(unsigned node, struct disk_ops * func, void * base);
+static void add_disk_in_list(unsigned node, struct starpu_disk_ops * func, void * base);
 static int get_location_with_node(unsigned node);
 
 static struct disk_register ** disk_register_list = NULL;
@@ -50,7 +50,7 @@ static int size_register_list = 2;
 
 
 int
-starpu_disk_register(struct disk_ops * func, void *parameter, size_t size)
+starpu_disk_register(struct starpu_disk_ops * func, void *parameter, size_t size)
 {
 
 	STARPU_ASSERT_MSG(size >= SIZE_DISK_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) SIZE_DISK_MIN, (int) size);
@@ -165,7 +165,7 @@ _starpu_disk_close(unsigned node, void *obj, size_t size)
 
 
 static void 
-add_disk_in_list(unsigned node,  struct disk_ops * func, void * base)
+add_disk_in_list(unsigned node,  struct starpu_disk_ops * func, void * base)
 {
 	/* initialization */
 	if(disk_register_list == NULL)
