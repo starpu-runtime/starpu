@@ -10,6 +10,7 @@
 
 
 \struct disk_ops
+\ingroup API_Out_Of_Core
 This is a set of functions to manipulate datas on disk.
 
 \fn int starpu_disk_register (struct disk_ops *func, void *parameter, size_t size) 
