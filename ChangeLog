@@ -22,6 +22,7 @@ Changes:
   * StarPU-MPI: Fix potential bug for user-defined datatypes. As MPI
     can reorder messages, we need to make sure the sending of the size
     of the data has been completed.
+  * Documentation is now generated through doxygen.
 
 StarPU 1.1.0rc1 (svn revision 9750)
 ==============================================
@@ -190,7 +191,6 @@ Changes:
   * Tutorial is installed in ${docdir}/tutorial
   * Schedulers eager_central_policy, dm and dmda no longer erroneously respect
     priorities. dmdas has to be used to respect priorities.
-  * Documentation is now generated through doxygen.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
