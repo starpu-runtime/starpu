@@ -43,7 +43,7 @@ Before shutting down StarPU, the disk memory has to be unregistered:
 
 \section DiskFunctions Disk functions
 
-There have various ways to operate a disk memory node, described by the structure
+There are various ways to operate a disk memory node, described by the structure
 starpu_disk_ops. For instance, the variable #starpu_disk_stdio_ops
 uses fread/fwrite functions.
 
