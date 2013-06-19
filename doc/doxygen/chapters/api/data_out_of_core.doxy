@@ -13,14 +13,14 @@
 \ingroup API_Out_Of_Core
 This is a set of functions to manipulate datas on disk.
 
-\fn int starpu_disk_register (struct disk_ops *func, void *parameter, size_t size) 
+\fn int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, size_t size) 
 \ingroup API_Out_Of_Core
 Register a disk memory node with a set of functions to manipulate datas. <br />
 SUCCESS: return the disk node. <br />
 FAIL: return an error code. <br />
 The \p size must be at least 1 MB !
 
-\fn void starpu_disk_unregister (unsigned node)
+\fn void starpu_disk_unregister(unsigned node)
 \ingroup API_Out_Of_Core
 Unregister a disk memory node created by the starpu_disk_register function.
 
