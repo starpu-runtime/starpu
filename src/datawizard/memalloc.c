@@ -18,6 +18,7 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memalloc.h>
 #include <datawizard/footprint.h>
+#include <core/disk.h>
 #include <starpu.h>
 
 /* This per-node spinlock protect lru_list */
@@ -1026,13 +1027,17 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 		    (_starpu_memory_manager_test_allocate_size_(_starpu_data_get_size(handle), i) == 1 ||
 		     handle->per_node[i].allocated))
 		{
-			/* only time can change between disk <-> main_ram 
-			 * and not between main_ram <-> worker if we compare diks*/
-			double time_tmp = _starpu_predict_transfer_time(i, STARPU_MAIN_RAM, _starpu_data_get_size(handle));
-			if (target == -1 || time_disk > time_tmp)
+			/* if we can write on the disk */
+			if (_starpu_get_disk_flag(i) != STARPU_DISK_NO_RECLAIM)
 			{
-				target = i;
-				time_disk = time_tmp;
+				/* only time can change between disk <-> main_ram 
+				 * and not between main_ram <-> worker if we compare diks*/
+				double time_tmp = _starpu_predict_transfer_time(i, STARPU_MAIN_RAM, _starpu_data_get_size(handle));
+				if (target == -1 || time_disk > time_tmp)
+				{
+					target = i;
+					time_disk = time_tmp;
+				}
 			}	
 		}
 	}
@@ -1069,7 +1074,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 	{
 		/* handle->home_node == -1 */
 		/* no place for datas in RAM, we push on disk */
-		if (node == 0)
+		if (node == STARPU_MAIN_RAM)
 		{
 			target = get_better_disk_can_accept_size(handle, node);
 		}
@@ -1086,5 +1091,9 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 			target = get_better_disk_can_accept_size(handle, node);
 		}
 	}
+	/* we haven't the right to write on the disk */
+	if (starpu_node_get_kind(target) == STARPU_DISK_RAM && _starpu_get_disk_flag(target) == STARPU_DISK_NO_RECLAIM)
+		target = -1;
+
 	return target;
 }

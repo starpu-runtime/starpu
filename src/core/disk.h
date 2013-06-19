@@ -20,6 +20,9 @@
 
 #define SIZE_DISK_MIN (1024*1024)
 
+#define STARPU_DISK_ALL 1
+#define STARPU_DISK_NO_RECLAIM 2
+
 /* interface to manipulate memory disk */
 void * _starpu_disk_alloc (unsigned node, size_t size);
 
@@ -38,5 +41,10 @@ int _starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsign
 /* interface to compare memory disk */
 
 int _starpu_is_same_kind_disk(unsigned node1, unsigned node2);
+
+/* change disk flag */
+
+void _starpu_set_disk_flag(unsigned node, int flag);
+int _starpu_get_disk_flag(unsigned node);
 
 #endif /* __DISK_H__ */

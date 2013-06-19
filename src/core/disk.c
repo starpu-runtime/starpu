@@ -39,6 +39,8 @@ struct disk_register {
 	unsigned node;
 	void * base;
 	struct starpu_disk_ops * functions;
+	/* disk condition (1 = all authorizations,  */
+	int flag;
 };
 
 static void add_disk_in_list(unsigned node, struct starpu_disk_ops * func, void * base);
@@ -193,6 +195,7 @@ add_disk_in_list(unsigned node,  struct starpu_disk_ops * func, void * base)
 	STARPU_ASSERT(dr != NULL);
 	dr->node = node;
 	dr->base = base;
+	dr->flag = STARPU_DISK_ALL;
 	dr->functions = func;
 	disk_register_list[++disk_number] = dr;
 }
@@ -224,3 +227,18 @@ _starpu_is_same_kind_disk(unsigned node1, unsigned node2)
 	return 0;
 }
 
+
+void
+ _starpu_set_disk_flag(unsigned node, int flag)
+{
+	int pos = get_location_with_node(node);
+	disk_register_list[pos]->flag = flag;
+}
+
+
+int
+_starpu_get_disk_flag(unsigned node)
+{
+	int pos = get_location_with_node(node);
+	return disk_register_list[pos]->flag;
+}
