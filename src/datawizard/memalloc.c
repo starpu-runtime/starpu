@@ -1047,7 +1047,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 	size_t size_handle = _starpu_data_get_size(handle);
 	if (handle->home_node != -1)
 		/* try to push on RAM if we can before to push on disk */
-		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && node != 0)
+		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && node != STARPU_MAIN_RAM)
 		{
 			if (handle->per_node[STARPU_MAIN_RAM].allocated || 
 			    _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
