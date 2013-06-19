@@ -541,7 +541,7 @@ static struct _starpu_sched_node * _starpu_sched_node_worker_create(int workerid
 
 #ifdef STARPU_HAVE_HWLOC
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->cpu_depth, worker->bindid);
 	STARPU_ASSERT(obj);
 	node->obj = obj;
@@ -579,7 +579,7 @@ static struct _starpu_sched_node  * _starpu_sched_node_combined_worker_create(in
 
 #ifdef STARPU_HAVE_HWLOC
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->cpu_depth, combined_worker->combined_workerid[0]);
 	STARPU_ASSERT(obj);
 	node->obj = obj;
