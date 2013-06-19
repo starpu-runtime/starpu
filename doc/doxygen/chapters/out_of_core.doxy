@@ -34,8 +34,8 @@ At the end, you have to unregister your disk memory:
 
 \section DiskFunctions Disk functions
 
-You have various ways to use a disk memory node. You have, for instance, the starpu_disk_stdio_ops.
-All structures are in... TODO
+You have various ways to use a disk memory node. You have, for instance, the starpu_disk_stdio_ops. <br />
+All structures are in \ref API_Out_Of_Core .
 
 \section ExampleDiskCopy Example: disk_copy
 

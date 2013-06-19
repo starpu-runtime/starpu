@@ -1,0 +1,31 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2013 Corentin Salingue
+ * See the file version.doxy for copying conditions.
+ */
+
+
+/*! \defgroup API_Out_Of_Core Out Of Core
+
+
+
+\struct disk_ops
+This is a set of functions to manipulate datas on disk.
+
+\fn int starpu_disk_register (struct disk_ops *func, void *parameter, size_t size) 
+\ingroup API_Out_Of_Core
+Register a disk memory node with a set of functions to manipulate datas. <br />
+SUCCESS: return the disk node. <br />
+FAIL: return an error code. <br />
+The \p size must be at least 1 MB !
+
+\fn void starpu_disk_unregister (unsigned node)
+\ingroup API_Out_Of_Core
+Unregister a disk memory node created by the starpu_disk_register function.
+
+\var starpu_disk_stdio_ops
+\ingroup API_Out_Of_Core
+This set uses the stdio library (fwrite, fread...) to read/write on disk. <br />
+<strong>Warning: It creates one file per allocation !</strong> 
+
+*/ 

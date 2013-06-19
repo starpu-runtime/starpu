@@ -25,6 +25,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu_data_filters.h \
 			 @top_srcdir@/include/starpu_data.h \
 			 @top_srcdir@/include/starpu_data_interfaces.h \
+			 @top_srcdir@/include/starpu_disk.h \
 			 @top_srcdir@/include/starpu_deprecated_api.h \
 			 @top_srcdir@/include/starpu_driver.h \
 			 @top_srcdir@/include/starpu_expert.h \

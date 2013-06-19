@@ -65,6 +65,7 @@ chapters =	\
 	chapters/api/data_interfaces.doxy \
 	chapters/api/data_management.doxy \
 	chapters/api/data_partition.doxy \
+	chapters/api/data_out_of_core.doxy \
 	chapters/api/expert_mode.doxy \
 	chapters/api/explicit_dependencies.doxy \
 	chapters/api/fft_support.doxy \
