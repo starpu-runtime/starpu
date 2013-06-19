@@ -14,8 +14,7 @@ struct _starpu_sched_node
 			 struct starpu_task *);
 	struct starpu_task * (*pop_task)(struct _starpu_sched_node *,
 					 unsigned sched_ctx_id);
-//					 int (*predicate)(void * arg_pred, struct starpu_task * task),
-//					 void * arg_pred);
+
 	void (*available)(struct _starpu_sched_node *);
 	
 	/* this function is an heuristic that compute load of subtree */
@@ -90,10 +89,9 @@ struct _starpu_sched_tree
  */
 struct _starpu_sched_node * _starpu_sched_node_create(void);
 
-/* free memory allocated by _starpu_sched_node_create, it does not call node->destroy_node(node)*/
 void _starpu_sched_node_destroy(struct _starpu_sched_node * node);
 void _starpu_sched_node_set_father(struct _starpu_sched_node *node, struct _starpu_sched_node *father_node, unsigned sched_ctx_id);
-void _starpu_sched_node_add_child(struct _starpu_sched_node* node, struct _starpu_sched_node * child);
+void _starpu_sched_node_add_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child);
 void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child);
 
 struct _starpu_task_execute_preds _starpu_sched_node_average_estimated_execute_preds(struct _starpu_sched_node * node, struct starpu_task * task);

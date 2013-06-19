@@ -1,0 +1,72 @@
+!\defgroup API_Modularized_Scheduler
+
+\struct _starpu_sched_node
+\ingroup API_Modularized_Scheduler
+This structure represent a scheduler module.
+
+\var _starpu_sched_node::push_task
+	this function push a task in the scheduler module.
+\var _starpu_sched_node::pop_task
+	this function pop a task from the scheduler module, the task returned by this function is executable by the caller if its a worker
+\var _starpu_sched_node::available
+	this function notify workers downstairs that a task is waiting for a pop
+\var _starpu_sched_node::estimated_load
+	this function is an heuristic to compute load of scheduler module
+\var _starpu_sched_node::estimated_execute_preds
+	this function compute executions prediction for a task
+\var _starpu_sched_node::nchilds
+	the number of modules downstairs
+\var _starpu_sched_node::childs
+	modules downstairs
+\var _starpu_sched_node::workers
+	this member contain the set of underlaying workers
+\var _starpu_sched_node::is_homogeneous
+	this is set to true iff all underlaying workers are the same
+\var _starpu_sched_node::data
+	data used by the scheduler module
+\var _starpu_sched_node::fathers
+	the array of scheduler module above indexed by scheduling context index
+\var _starpu_sched_node::init_data
+	this function is called after all the scheduler is created and should init data member
+\var _starpu_sched_node::deinit_data
+	this function is called just before _starpu_sched_node_destroy
+\var _starpu_sched_node::obj
+	the hwloc object associed to scheduler module
+
+\struct _starpu_task_execute_preds
+\ingroup API_Modularized_Scheduler
+this structure containt predictions for a task and is filled by _starpu_sched_node::estimated_execute_preds
+\var _starpu_task_execute_preds::state
+	indicate status of prediction
+\var _starpu_task_execute_preds::archtype
+\var _starpu_task_execute_preds::impl
+	those members are revelant is state is PERF_MODEL or CALIBRATING and is set to best or uncalibrated archtype and implementation, respectively, or suitable values if state is NO_PERF_MODEL
+\var _starpu_task_execute_preds::expected_finish_time
+	expected finish time of worker without task
+\var _starpu_task_execute_preds::expected_length
+	expected compute time of task
+\var _starpu_task_execute_preds::expected_transfer_length
+	expected time for transfering data to worker's memory node
+\var _starpu_task_execute_preds::expected_power
+	expected power consumption for task
+
+\struct _starpu_sched_tree
+\ingroup API_Modularized_Scheduler
+\var _starpu_sched_tree::root
+	this is the entry module of the scheduler
+\var _starpu_sched_tree::workers
+	this is the set of workers available in this context, this value is used to mask workers in modules
+\var lock
+	this lock protect the worker member
+
+\fn struct _starpu_sched_node * _starpu_sched_node_create(void)
+    	   this function return an initialised scheduler module with default values
+\fn void _starpu_sched_node_destroy(struct _starpu_sched_node * node)
+    	 this function free data allocated by _starpu_sched_node_create, but dont call node->deinit_data(node)
+\fn void _starpu_sched_node_set_father(struct _starpu_sched_node * node, struct _starpu_sched_node * father_node, unsigned sched_ctx_id)
+    	 this function set node->fathers[sched_ctx_id] to father_node
+\fn void _starpu_sched_node_add_child(struct _starpu_sched_node* node, struct _starpu_sched_node * child)
+    	 this function add child to node->childs and increment nchilds as well
+	 and dont modify child->fathers
+\fn void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child)
+    	 this function remove child from node->childs and decrement nchilds
