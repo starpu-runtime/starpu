@@ -42,7 +42,7 @@ static struct _starpu_mem_chunk_list *memchunk_cache[STARPU_MAXNODES];
 const unsigned starpu_memstrategy_data_size_coefficient=2;
 
 static void starpu_lru(unsigned node);
-static int get_better_disk_can_accept_size(starpu_data_handle_t handle);
+static int get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node);
 static unsigned choose_target(starpu_data_handle_t handle, unsigned node);
 
 void _starpu_init_mem_chunk_lists(void)
@@ -1013,7 +1013,7 @@ void starpu_data_display_memory_stats(void)
 
 
 static int
-get_better_disk_can_accept_size(starpu_data_handle_t handle)
+get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 {
 	int target = -1;
 	unsigned nnodes = starpu_memory_nodes_get_count();
@@ -1022,7 +1022,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle)
 				
 	for (i = 0; i < nnodes; i++)
 	{
-		if (starpu_node_get_kind(i) == STARPU_DISK_RAM && 
+		if (starpu_node_get_kind(i) == STARPU_DISK_RAM && i != node &&
 		    (_starpu_memory_manager_test_allocate_size_(_starpu_data_get_size(handle), i) == 1 ||
 		     handle->per_node[i].allocated))
 		{
@@ -1047,7 +1047,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 	size_t size_handle = _starpu_data_get_size(handle);
 	if (handle->home_node != -1)
 		/* try to push on RAM if we can before to push on disk */
-		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM)
+		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && node != 0)
 		{
 			if (handle->per_node[STARPU_MAIN_RAM].allocated || 
 			    _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
@@ -1056,7 +1056,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 			}
 			else
 			{
-				target = get_better_disk_can_accept_size(handle);
+				target = get_better_disk_can_accept_size(handle, node);
 			}
 
 		}
@@ -1071,7 +1071,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		/* no place for datas in RAM, we push on disk */
 		if (node == 0)
 		{
-			target = get_better_disk_can_accept_size(handle);
+			target = get_better_disk_can_accept_size(handle, node);
 		}
 		/* node != 0 */
 		/* try to push data to RAM if we can before to push on disk*/
@@ -1083,7 +1083,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		/* no place in RAM */
 		else
 		{
-			target = get_better_disk_can_accept_size(handle);
+			target = get_better_disk_can_accept_size(handle, node);
 		}
 	}
 	return target;
