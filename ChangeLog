@@ -204,6 +204,7 @@ Changes:
   * Tutorial is installed in ${docdir}/tutorial
   * Schedulers eager_central_policy, dm and dmda no longer erroneously respect
     priorities. dmdas has to be used to respect priorities.
+  * Documentation is now generated through doxygen.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is

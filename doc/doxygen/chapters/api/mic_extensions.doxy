@@ -1,0 +1,32 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_MIC_Extensions MIC Extensions
+
+\def STARPU_USE_MIC
+\ingroup API_MIC_Extensions
+This macro is defined when StarPU has been installed with MIC support.
+It should be used in your code to detect the availability of MIC.
+
+\typedef starpu_mic_func_symbol_t
+\ingroup API_MIC_Extensions
+Type for MIC function symbols
+
+\fn int starpu_mic_register_kernel(starpu_mic_func_symbol_t *symbol, const char *func_name)
+\ingroup API_MIC_Extensions
+Initiate a lookup on each MIC device to find the adress of the
+function named \p func_name, store them in the global array kernels
+and return the index in the array through \p symbol.
+
+\fn starpu_mic_kernel_t starpu_mic_get_kernel(starpu_mic_func_symbol_t symbol)
+\ingroup API_MIC_Extensions
+If success, return the pointer to the function defined by \p symbol on
+the device linked to the called device. This can for instance be used
+in a starpu_mic_func_t implementation.
+
+*/

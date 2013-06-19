@@ -785,14 +785,40 @@ AC_DEFUN([STARPU_LOOK_FOR_OPENCL],
 ])
 
 if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
-	STARPU_LOOK_FOR_OPENCL()
-	# in case OpenCL was explicitely required, but is not available, this is an error
-	if test x$enable_opencl = xyes -a x$have_valid_opencl = xno; then
-	    AC_MSG_ERROR([cannot find OpenCL])
-	fi
+   case $target in
+        *-*-darwin*)
+          AC_MSG_CHECKING(whether OpenCL is available)
 
-	# now we enable OpenCL if and only if a proper setup is available
-	enable_opencl=$have_valid_opencl
+          SAVED_LIBS=$LIBS
+          LIBS="$LIBS -framework OpenCL"
+          AC_LINK_IFELSE(
+          [AC_LANG_PROGRAM([[
+          #ifdef __APPLE_CC__
+          #include <OpenCL/opencl.h>
+          #else
+          #include <CL/cl.h>
+          #endif
+          ]],
+            [[return clSetKernelArg(0, 0, 0, 0); ]])],
+          [AC_MSG_RESULT(yes)
+            enable_opencl=yes
+            have_valid_opencl=yes
+            STARPU_OPENCL_CPPFLAGS=
+            STARPU_OPENCL_LDFLAGS="-framework OpenCL"],
+          [AC_MSG_RESULT(no)
+             enable_opencl=no])
+          LIBS=$SAVED_LIBS
+          ;;        
+        *)
+	  STARPU_LOOK_FOR_OPENCL()
+	  # in case OpenCL was explicitely required, but is not available, this is an error
+	  if test x$enable_opencl = xyes -a x$have_valid_opencl = xno; then
+	    AC_MSG_ERROR([cannot find OpenCL])
+	  fi
+	  # now we enable OpenCL if and only if a proper setup is available
+	  enable_opencl=$have_valid_opencl
+          ;;
+   esac
 fi
 
 AC_MSG_CHECKING(whether OpenCL should be used)
@@ -2134,9 +2160,9 @@ AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
 			enable_build_doc=$enableval, enable_build_doc=yes)
 
-# Check whether texi2dvi is installed
-AC_PATH_PROG(texi2dvicommand, texi2dvi)
-if test "$texi2dvicommand" = "" ; then
+# Check whether doxygen is installed
+AC_PATH_PROG(doxygencommand, doxygen)
+if test "$doxygencommand" = "" ; then
 	enable_build_doc="no"
 fi
 
@@ -2166,18 +2192,22 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
   chmod +x tools/starpu_workers_activity
+  chmod +x doc/doxygen/doxygen_filter.sh
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
 # directory as the OCL_ICD_VENDORS directory
+SOCL_VENDORS="vendors/install/socl.icd"
 for icd in /etc/OpenCL/vendors/*.icd ; do
 	if test -f $icd ; then
 	        if test "$(basename $icd)" != "socl.icd" ; then
         		new_icd=$(basename $icd)
 			AC_CONFIG_LINKS([socl/vendors/$new_icd:$icd])
+			SOCL_VENDORS="$SOCL_VENDORS vendors/$new_icd"
 		fi
         fi
 done
+AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h)
@@ -2192,9 +2222,8 @@ AC_OUTPUT([
 	socl/Makefile
 	socl/src/Makefile
 	socl/examples/Makefile
-        socl/socl-1.0.pc
-	socl/socl-1.1.pc
 	socl/vendors/socl.icd
+	socl/vendors/install/socl.icd
 	libstarpu.pc
 	starpu-1.0.pc
 	starpu-1.1.pc
@@ -2209,7 +2238,6 @@ AC_OUTPUT([
 	examples/stencil/Makefile
 	tests/Makefile
 	tests/loader-cross.sh
-	doc/Makefile
 	mpi/Makefile
 	mpi/src/Makefile
 	mpi/tests/Makefile
@@ -2225,6 +2253,9 @@ AC_OUTPUT([
 	sc_hypervisor/Makefile
 	sc_hypervisor/src/Makefile
 	sc_hypervisor/examples/Makefile
+	doc/doxygen/Makefile
+	doc/doxygen/doxygen-config.cfg
+	doc/doxygen/doxygen_filter.sh
 ])
 
 AC_MSG_NOTICE([

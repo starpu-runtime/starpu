@@ -50,7 +50,7 @@ static unsigned nbuffers = 0;
 
 struct starpu_task *tasks;
 
-static void func(void *descr[] __attribute__ ((unused)), void *arg)
+static void func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct timeval tv1, tv2;
 	unsigned n = (uintptr_t)arg;

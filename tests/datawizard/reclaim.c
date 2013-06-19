@@ -49,7 +49,7 @@ static uint64_t get_total_memory_size(void)
 }
 #endif
 
-void dummy_func(void *descr[], __attribute__ ((unused)) void *_args)
+void dummy_func(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }
 

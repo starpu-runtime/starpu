@@ -18,11 +18,13 @@ LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(top_builddir)/sc_hypervisor
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/examples -I$(top_builddir)/include -I$(top_srcdir)/sc_hypervisor/include -I$(top_srcdir)/sc_hypervisor/examples
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_GLPK_LDFLAGS)
 
-if !NO_BLAS_LIB
 noinst_PROGRAMS =				\
-	cholesky/cholesky_implicit  		\
 	app_driven_test/app_driven_test		\
 	lp_test/lp_test
+
+if !NO_BLAS_LIB
+noinst_PROGRAMS +=				\
+	cholesky/cholesky_implicit  		
 
 noinst_HEADERS = 				\
 	cholesky/cholesky.h			\
@@ -42,13 +44,14 @@ cholesky_cholesky_implicit_LDADD =		\
 	$(top_builddir)/sc_hypervisor/src/libsc_hypervisor.la \
 	$(STARPU_BLAS_LDFLAGS)
 
+endif
+
 app_driven_test_app_driven_test_SOURCES =		\
 	app_driven_test/app_driven_test.c
 
 app_driven_test_app_driven_test_LDADD =		\
 	$(top_builddir)/sc_hypervisor/src/libsc_hypervisor.la
 
-endif
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

@@ -158,7 +158,7 @@ static void register_worker_id(unsigned long tid, int workerid)
 
 	HASH_FIND(hh, worker_ids, &tid, sizeof(tid), entry);
 
-	STARPU_ASSERT_MSG(workerid < STARPU_NMAXWORKERS, "Too many workers in this trace, please increase the maximum number of CPUs and GPUs to the same value as was used for execution");
+	STARPU_ASSERT_MSG(workerid < STARPU_NMAXWORKERS, "Too many workers in this trace, please increase in ./configure invocation the maximum number of CPUs and GPUs to the same value as was used for execution");
 
 	/* only register a thread once */
 	STARPU_ASSERT(entry == NULL);
@@ -207,25 +207,25 @@ static void update_accumulated_time(int worker, double sleep_time, double exec_t
 #ifdef STARPU_HAVE_POTI
 static char *memnode_container_alias(char *output, int len, const char *prefix, long unsigned int memnodeid)
 {
-	snprintf(output, len, "%smn%"PRIu64"", prefix, memnodeid);
+	snprintf(output, len, "%smn%lu", prefix, memnodeid);
 	return output;
 }
 
 static char *memmanager_container_alias(char *output, int len, const char *prefix, long unsigned int memnodeid)
 {
-	snprintf(output, len, "%smm%"PRIu64"", prefix, memnodeid);
+	snprintf(output, len, "%smm%lu", prefix, memnodeid);
 	return output;
 }
 
 static char *thread_container_alias(char *output, int len, const char *prefix, long unsigned int threadid)
 {
-	snprintf(output, len, "%st%"PRIu64"", prefix, threadid);
+	snprintf(output, len, "%st%lu", prefix, threadid);
 	return output;
 }
 
 static char *worker_container_alias(char *output, int len, const char *prefix, long unsigned int workerid)
 {
-	snprintf(output, len, "%sw%"PRIu64"", prefix, workerid);
+	snprintf(output, len, "%sw%lu", prefix, workerid);
 	return output;
 }
 
@@ -266,7 +266,7 @@ static void worker_set_state(double time, const char *prefix, long unsigned int 
 	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
 	poti_SetState(time, container, "S", name);
 #else
-	fprintf(out_paje_file, "10	%.9f	%st%"PRIu64"	S	%s\n", time, prefix, workerid, name);
+	fprintf(out_paje_file, "10	%.9f	%st%lu	S	%s\n", time, prefix, workerid, name);
 #endif
 }
 
@@ -595,7 +595,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	if (distrib_time)
 	fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx32"\t%.9f\n", last_codelet_symbol[worker],
-				prefix, worker, codelet_size, codelet_hash, codelet_length);
+			prefix, worker, (unsigned long) codelet_size, codelet_hash, codelet_length);
 
 	if (options->dumped_codelets)
 	{

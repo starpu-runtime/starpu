@@ -16,6 +16,9 @@
 
 #include <sc_hypervisor.h>
 #include <common/uthash.h>
+
+#define SC_VELOCITY_MAX_GAP_DEFAULT 50
+
 struct size_request
 {
 	int *workers;
@@ -74,6 +77,12 @@ struct sc_hypervisor
 
 	/* time when the hypervisor started */
 	double start_executing_time;
+
+	/* max velocity diff btw ctx before triggering resizing */
+	double max_velocity_gap;
+	
+	/* criteria to trigger resizing */
+	unsigned resize_criteria;
 };
 
 struct sc_hypervisor_adjustment
@@ -88,3 +97,6 @@ struct sc_hypervisor hypervisor;
 void _add_config(unsigned sched_ctx);
 
 void _remove_config(unsigned sched_ctx);
+
+double _get_max_velocity_gap();
+

@@ -40,7 +40,7 @@ static void callback(void *arg)
 	starpu_data_prefetch_on_node(v_handle, node, 1);
 }
 
-void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 //	fprintf(stderr, "pif\n");
 //	fflush(stderr);

@@ -1,0 +1,145 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page SchedulingContextHypervisor Scheduling Context Hypervisor
+
+\section WhatIsTheHypervisor What Is The Hypervisor
+
+StarPU proposes a platform for constructing Scheduling Contexts, for
+deleting and modifying them dynamically. A parallel kernel, can thus
+be isolated into a scheduling context and interferences between
+several parallel kernels are avoided. If the user knows exactly how
+many workers each scheduling context needs, he can assign them to the
+contexts at their creation time or modify them during the execution of
+the program.
+
+The Scheduling Context Hypervisor Plugin is available for the users
+who do not dispose of a regular parallelism, who cannot know in
+advance the exact size of the context and need to resize the contexts
+according to the behavior of the parallel kernels.
+
+The Hypervisor receives information from StarPU concerning the
+execution of the tasks, the efficiency of the resources, etc. and it
+decides accordingly when and how the contexts can be resized. Basic
+strategies of resizing scheduling contexts already exist but a
+platform for implementing additional custom ones is available.
+
+\section StartTheHypervisor Start the Hypervisor
+
+The Hypervisor must be initialised once at the beging of the
+application. At this point a resizing policy should be indicated. This
+strategy depends on the information the application is able to provide
+to the hypervisor as well as on the accuracy needed for the resizing
+procedure. For exemple, the application may be able to provide an
+estimation of the workload of the contexts. In this situation the
+hypervisor may decide what resources the contexts need. However, if no
+information is provided the hypervisor evaluates the behavior of the
+resources and of the application and makes a guess about the future.
+The hypervisor resizes only the registered contexts.
+
+\section InterrogateTheRuntime Interrogate The Runtime
+
+The runtime provides the hypervisor with information concerning the
+behavior of the resources and the application. This is done by using
+the performance_counters, some callbacks indicating when the resources
+are idle or not efficient, when the application submits tasks or when
+it becames to slow.
+
+\section TriggerTheHypervisor Trigger the Hypervisor
+
+The resizing is triggered either when the application requires it or
+when the initials distribution of resources alters the performance of
+the application( the application is to slow or the resource are idle
+for too long time, threashold indicated by the user). When this
+happens different resizing strategy are applied that target minimising
+the total execution of the application, the instant speed or the idle
+time of the resources.
+
+\section ResizingStrategies Resizing Strategies
+
+The plugin proposes several strategies for resizing the scheduling context.
+
+The <b>Application driven</b> strategy uses the user's input concerning the moment when he wants to resize the contexts.
+Thus, the users tags the task that should trigger the resizing
+process. We can set directly the field starpu_task::hypervisor_tag or
+use the macro ::STARPU_HYPERVISOR_TAG in the function
+starpu_insert_task().
+
+\code{.c}
+task.hypervisor_tag = 2;
+\endcode
+
+or
+
+\code{.c}
+starpu_insert_task(&codelet,
+		    ...,
+		    STARPU_HYPERVISOR_TAG, 2,
+                    0);
+\endcode
+
+Then the user has to indicate that when a task with the specified tag is executed the contexts should resize.
+
+\code{.c}
+sc_hypervisor_resize(sched_ctx, 2);
+\endcode
+
+The user can use the same tag to change the resizing configuration of the contexts if he considers it necessary.
+
+\code{.c}
+sc_hypervisor_ioctl(sched_ctx,
+                    HYPERVISOR_MIN_WORKERS, 6,
+                    HYPERVISOR_MAX_WORKERS, 12,
+                    HYPERVISOR_TIME_TO_APPLY, 2,
+                    NULL);
+\endcode
+
+
+The <b>Idleness</b> based strategy resizes the scheduling contexts every time one of their workers stays idle
+for a period longer than the one imposed by the user
+(see \ref UsersInputInTheResizingProcess "Users’ Input In The Resizing Process")
+
+\code{.c}
+int workerids[3] = {1, 3, 10};
+int workerids2[9] = {0, 2, 4, 5, 6, 7, 8, 9, 11};
+sc_hypervisor_ioctl(sched_ctx_id,
+            HYPERVISOR_MAX_IDLE, workerids, 3, 10000.0,
+            HYPERVISOR_MAX_IDLE, workerids2, 9, 50000.0,
+            NULL);
+\endcode
+
+The <b>Gflops rate</b> based strategy resizes the scheduling contexts such that they all finish at the same time.
+The velocity of each of them is considered and once one of them is significantly slower the resizing process is triggered.
+In order to do these computations the user has to input the total number of instructions needed to be executed by the
+parallel kernels and the number of instruction to be executed by each
+task.
+
+The number of flops to be executed by a context are passed as
+ parameter when they are registered to the hypervisor,
+ (<c>sc_hypervisor_register_ctx(sched_ctx_id, flops)</c>) and the one
+ to be executed by each task are passed when the task is submitted.
+ The corresponding field is starpu_task::flops and the corresponding
+ macro in the function starpu_insert_task() is ::STARPU_FLOPS
+ (<b>Caution</b>: but take care of passing a double, not an integer,
+ otherwise parameter passing will be bogus). When the task is executed
+ the resizing process is triggered.
+
+\code{.c}
+task.flops = 100;
+\endcode
+
+or
+
+\code{.c}
+starpu_insert_task(&codelet,
+                    ...,
+                    STARPU_FLOPS, (double) 100,
+                    0);
+\endcode
+
+*/

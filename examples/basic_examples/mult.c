@@ -77,7 +77,7 @@ static unsigned zdim = 512;
  * registered data with the "matrix" data interface, we use the matrix macros.
  */
 
-void cpu_mult(void *descr[], __attribute__((unused))  void *arg)
+void cpu_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED  void *arg)
 {
 	float *subA, *subB, *subC;
 	uint32_t nxC, nyC, nyA;
@@ -335,8 +335,8 @@ static int launch_tasks(void)
 	return 0;
 }
 
-int main(__attribute__ ((unused)) int argc, 
-	 __attribute__ ((unused)) char **argv)
+int main(STARPU_ATTRIBUTE_UNUSED int argc, 
+	 STARPU_ATTRIBUTE_UNUSED char **argv)
 {
 	int ret;
 

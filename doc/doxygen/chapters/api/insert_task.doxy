@@ -1,0 +1,98 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Insert_Task Insert_Task
+
+\fn int starpu_insert_task(struct starpu_codelet *cl, ...)
+\ingroup API_Insert_Task
+Create and submit a task corresponding to \p cl with the
+following arguments. The argument list must be zero-terminated.
+
+The arguments following the codelets can be of the following types:
+<ul>
+<li> ::STARPU_R, ::STARPU_W, ::STARPU_RW, ::STARPU_SCRATCH,
+::STARPU_REDUX an access mode followed by a data handle;
+<li> ::STARPU_DATA_ARRAY followed by an array of data handles and its
+number of elements;
+<li> the specific values ::STARPU_VALUE, ::STARPU_CALLBACK,
+::STARPU_CALLBACK_ARG, ::STARPU_CALLBACK_WITH_ARG, ::STARPU_PRIORITY,
+::STARPU_TAG, ::STARPU_FLOPS, ::STARPU_SCHED_CTX followed by the
+appropriated objects as defined elsewhere.
+</ul>
+
+When using ::STARPU_DATA_ARRAY, the access mode of the data handles is
+not defined.
+
+Parameters to be passed to the codelet implementation are defined
+through the type ::STARPU_VALUE. The function
+starpu_codelet_unpack_args() must be called within the codelet
+implementation to retrieve them.
+
+\def STARPU_VALUE
+\ingroup API_Insert_Task
+this macro is used when calling starpu_insert_task(), and must
+be followed by a pointer to a constant value and the size of the
+constant
+
+\def STARPU_CALLBACK
+\ingroup API_Insert_Task
+this macro is used when calling starpu_insert_task(), and must
+be followed by a pointer to a callback function
+
+\def STARPU_CALLBACK_WITH_ARG
+\ingroup API_Insert_Task
+this macro is used when calling starpu_insert_task(), and must
+be followed by two pointers: one to a callback function, and the other
+to be given as an argument to the callback function; this is
+equivalent to using both ::STARPU_CALLBACK and
+::STARPU_CALLBACK_WITH_ARG.
+
+\def STARPU_CALLBACK_ARG
+\ingroup API_Insert_Task
+this macro is used when calling starpu_insert_task(), and must
+be followed by a pointer to be given as an argument to the callback
+function
+
+\def STARPU_PRIORITY
+\ingroup API_Insert_Task
+this macro is used when calling starpu_insert_task(), and must
+be followed by a integer defining a priority level
+
+\def STARPU_DATA_ARRAY
+\ingroup API_Insert_Task
+TODO
+
+\def STARPU_TAG
+\ingroup API_Insert_Task
+this macro is used when calling starpu_insert_task(), and must be followed by a tag.
+
+\def STARPU_FLOPS
+\ingroup API_Insert_Task
+this macro is used when calling starpu_insert_task(), and must
+be followed by an amount of floating point operations, as a double.
+Users <b>MUST</b> explicitly cast into double, otherwise parameter
+passing will not work.
+
+\def STARPU_SCHED_CTX
+\ingroup API_Insert_Task
+this macro is used when calling starpu_insert_task(), and must
+be followed by the id of the scheduling context to which we want to
+submit the task.
+
+\fn void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
+\ingroup API_Insert_Task
+Pack arguments of type ::STARPU_VALUE into a buffer which can be
+given to a codelet and later unpacked with the function
+starpu_codelet_unpack_args().
+
+\fn void starpu_codelet_unpack_args(void *cl_arg, ...)
+\ingroup API_Insert_Task
+Retrieve the arguments of type ::STARPU_VALUE associated to a
+task automatically created using the function starpu_insert_task().
+
+*/

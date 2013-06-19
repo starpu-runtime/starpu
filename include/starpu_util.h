@@ -22,7 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <starpu.h>
+
+#include <starpu_config.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -43,11 +44,19 @@ extern "C"
 #  define STARPU_LIKELY(expr)            (__builtin_expect(!!(expr),1))
 #  define STARPU_ATTRIBUTE_UNUSED                  __attribute__((unused))
 #  define STARPU_ATTRIBUTE_INTERNAL      __attribute__ ((visibility ("internal")))
+#  define STARPU_ATTRIBUTE_MALLOC                  __attribute__((malloc))
+#  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT      __attribute__((warn_unused_result))
+#  define STARPU_ATTRIBUTE_PURE                    __attribute__((pure))
+#  define STARPU_ATTRIBUTE_ALIGNED(size)           __attribute__((aligned(size)))
 #else
 #  define STARPU_UNLIKELY(expr)          (expr)
 #  define STARPU_LIKELY(expr)            (expr)
 #  define STARPU_ATTRIBUTE_UNUSED
 #  define STARPU_ATTRIBUTE_INTERNAL
+#  define STARPU_ATTRIBUTE_MALLOC
+#  define STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
+#  define STARPU_ATTRIBUTE_PURE
+#  define STARPU_ATTRIBUTE_ALIGNED(size)
 #endif
 
 #if STARPU_GNUC_PREREQ(3, 1) && !defined(BUILDING_STARPU) && !defined(STARPU_USE_DEPRECATED_API) && !defined(STARPU_USE_DEPRECATED_ONE_ZERO_API)
@@ -243,11 +252,6 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 /* Add an event in the execution trace if FxT is enabled */
 void starpu_trace_user_event(unsigned long code);
 
-/* Call func(arg) on every worker matching the "where" mask (eg.
- * STARPU_CUDA|STARPU_CPU to execute the function on every CPU and every CUDA
- * device). This function is synchronous, but the different workers may execute
- * the function in parallel.
- * */
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
 /* Same as starpu_execute_on_each_worker, except that the task name is specified in the "name" parameter. */
@@ -259,13 +263,6 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
  * */
 void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigned num_workers, unsigned * workers, const char * name);
 
-/* Copy the content of the src_handle into the dst_handle handle.  The
- * asynchronous parameter indicates whether the function should block or not.
- * In the case of an asynchronous call, it is possible to synchronize with the
- * termination of this operation either by the means of implicit dependencies
- * (if enabled) or by calling starpu_task_wait_for_all(). If callback_func is
- * not NULL, this callback function is executed after the handle has been
- * copied, and it is given the callback_arg pointer as argument.*/
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
 /* Return the current date in us */

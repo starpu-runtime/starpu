@@ -57,15 +57,15 @@ static void callback(void *arg)
 
 
 
-static void cuda_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+static void cuda_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }
 
-static void opencl_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+static void opencl_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }
 
-void cpu_codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }
 

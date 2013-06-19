@@ -56,7 +56,7 @@ static void callback(void *arg)
 
 
 
-void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 //	int id = starpu_worker_get_id();
 //	FPRINTF(stderr, "worker #%d\n", id);

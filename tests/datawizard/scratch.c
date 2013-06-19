@@ -37,13 +37,13 @@ starpu_data_handle_t A_handle, B_handle;
 //static unsigned var = 0;
 
 #ifdef STARPU_USE_CUDA
-extern void cuda_f(void *descr[], __attribute__ ((unused)) void *_args);
+extern void cuda_f(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 #endif
 #ifdef STARPU_USE_OPENCL
 extern void opencl_f(void *buffers[], void *args);
 #endif
 
-void cpu_f(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_f(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

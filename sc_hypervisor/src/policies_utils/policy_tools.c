@@ -14,8 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-
 #include "sc_hypervisor_policy.h"
+#include "sc_hypervisor_intern.h"
+#include <math.h>
 
 static int _compute_priority(unsigned sched_ctx)
 {
@@ -351,8 +352,9 @@ double sc_hypervisor_get_ctx_velocity(struct sc_hypervisor_wrapper* sc_w)
 {
 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
         double elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
-	double sample = _get_ispeed_sample_for_sched_ctx(sc_w->sched_ctx);
-
+//	double sample = _get_ispeed_sample_for_sched_ctx(sc_w->sched_ctx);
+	double sample = config->ispeed_ctx_sample;
+	
 /* 	double total_elapsed_flops = sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w); */
 /* 	double prc = config->ispeed_ctx_sample != 0.0 ? elapsed_flops : elapsed_flops/sc_w->total_flops; */
 /* 	double redim_sample = config->ispeed_ctx_sample != 0.0 ? config->ispeed_ctx_sample :  */
@@ -526,7 +528,7 @@ double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* 
 
 
 /* check if there is a big velocity gap between the contexts */
-int sc_hypervisor_has_velocity_gap_btw_ctxs()
+unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 {
 	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
@@ -554,7 +556,7 @@ int sc_hypervisor_has_velocity_gap_btw_ctxs()
 					{
 						double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v ;
 //						if(gap > 1.5)
-						if(gap > 3.0)
+						if(gap > _get_max_velocity_gap())
 							return 1;
 					}
 				}
@@ -628,3 +630,32 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
         }
 }
 
+unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker)
+{
+	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
+	struct sc_hypervisor_policy_config *config = sc_w->config;
+	if(config != NULL)
+	{
+		if(sc_w->current_idle_time[worker] > config->max_idle[worker])
+		{
+			sc_w->current_idle_time[worker] = 0.0;
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+unsigned sc_hypervisor_criteria_fulfilled(unsigned sched_ctx, int worker)
+{
+	unsigned criteria = sc_hypervisor_get_resize_criteria();
+	if(criteria != SC_NOTHING)
+	{
+		if(criteria == SC_IDLE)
+			return sc_hypervisor_check_idle(sched_ctx, worker);
+		else
+			return sc_hypervisor_check_velocity_gap_btw_ctxs();
+	}
+	else
+		return 0;
+}

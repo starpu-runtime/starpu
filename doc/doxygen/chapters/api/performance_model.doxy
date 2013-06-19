@@ -1,0 +1,271 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Performance_Model Performance Model
+
+\enum starpu_perfmodel_archtype
+\ingroup API_Performance_Model
+Enumerates the various types of architectures.
+
+it is possible that we have multiple versions of the same kind of
+workers, for instance multiple GPUs or even different CPUs within
+the same machine so we do not use the archtype enum type directly
+for performance models.
+
+<ul>
+<li> CPU types range within ::STARPU_CPU_DEFAULT (1 CPU),
+::STARPU_CPU_DEFAULT+1 (2 CPUs), ... ::STARPU_CPU_DEFAULT +
+STARPU_MAXCPUS - 1 (STARPU_MAXCPUS CPUs).
+</li>
+<li> CUDA types range within ::STARPU_CUDA_DEFAULT (GPU number 0),
+::STARPU_CUDA_DEFAULT + 1 (GPU number 1), ..., ::STARPU_CUDA_DEFAULT +
+STARPU_MAXCUDADEVS - 1 (GPU number STARPU_MAXCUDADEVS - 1).
+</li>
+<li> OpenCL types range within ::STARPU_OPENCL_DEFAULT (GPU number
+0), ::STARPU_OPENCL_DEFAULT + 1 (GPU number 1), ...,
+::STARPU_OPENCL_DEFAULT + STARPU_MAXOPENCLDEVS - 1 (GPU number
+STARPU_MAXOPENCLDEVS - 1).
+</ul>
+\var starpu_perfmodel_archtype::STARPU_CPU_DEFAULT
+\ingroup API_Performance_Model
+CPU combined workers between 0 and STARPU_MAXCPUS-1
+\var starpu_perfmodel_archtype::STARPU_CUDA_DEFAULT
+\ingroup API_Performance_Model
+CUDA workers
+\var starpu_perfmodel_archtype::STARPU_OPENCL_DEFAULT
+\ingroup API_Performance_Model
+OpenCL workers
+\var starpu_perfmodel_archtype::STARPU_MIC_DEFAULT
+\ingroup API_Performance_Model
+MIC workers
+\var starpu_perfmodel_archtype::STARPU_SCC_DEFAULT
+\ingroup API_Performance_Model
+SCC workers
+
+\enum starpu_perfmodel_type
+\ingroup API_Performance_Model
+TODO
+\var starpu_perfmodel_type::STARPU_PER_ARCH
+\ingroup API_Performance_Model
+Application-provided per-arch cost model function
+\var starpu_perfmodel_type::STARPU_COMMON
+\ingroup API_Performance_Model
+Application-provided common cost model function, with per-arch factor
+\var starpu_perfmodel_type::STARPU_HISTORY_BASED
+\ingroup API_Performance_Model
+Automatic history-based cost model
+\var starpu_perfmodel_type::STARPU_REGRESSION_BASED
+\ingroup API_Performance_Model
+Automatic linear regression-based cost model  (alpha * size ^ beta)
+\var starpu_perfmodel_type::STARPU_NL_REGRESSION_BASED
+\ingroup API_Performance_Model
+Automatic non-linear regression-based cost model (a * size ^ b + c)
+
+\struct starpu_perfmodel
+Contains all information about a performance model. At least the
+type and symbol fields have to be filled when defining a performance
+model for a codelet. For compatibility, make sure to initialize the
+whole structure to zero, either by using explicit memset, or by
+letting the compiler implicitly do it in e.g. static storage case. If
+not provided, other fields have to be zero.
+\ingroup API_Performance_Model
+\var starpu_perfmodel::type
+is the type of performance model
+<ul>
+<li>::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED,
+::STARPU_NL_REGRESSION_BASED: No other fields needs to be provided,
+this is purely history-based.
+</li>
+<li> ::STARPU_PER_ARCH: field starpu_perfmodel::per_arch has to be
+filled with functions which return the cost in micro-seconds.
+</li>
+<li> ::STARPU_COMMON: field starpu_perfmodel::cost_function has to be
+filled with a function that returns the cost in micro-seconds on a
+CPU, timing on other archs will be determined by multiplying by an
+arch-specific factor.
+</li>
+</ul>
+\var starpu_perfmodel::symbol
+is the symbol name for the performance model, which will be used as
+file name to store the model. It must be set otherwise the model will
+be ignored.
+\var starpu_perfmodel::cost_model
+\deprecated
+This field is deprecated. Use instead the field starpu_perfmodel::cost_function field.
+\var starpu_perfmodel::cost_function
+Used by ::STARPU_COMMON: takes a task and implementation number, and
+must return a task duration estimation in micro-seconds.
+\var starpu_perfmodel::size_base
+Used by ::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED and
+::STARPU_NL_REGRESSION_BASED. If not NULL, takes a task and
+implementation number, and returns the size to be used as index for
+history and regression.
+\var starpu_perfmodel::per_arch
+Used by ::STARPU_PER_ARCH: array of structures starpu_per_arch_perfmodel
+\var starpu_perfmodel::is_loaded
+\private
+Whether the performance model is already loaded from the disk.
+\var starpu_perfmodel::benchmarking
+\private
+Whether the performance model is still being calibrated.
+\var starpu_perfmodel::model_rwlock
+\private
+Lock to protect concurrency between loading from disk (W), updating
+the values (W), and making a performance estimation (R).
+
+\struct starpu_perfmodel_regression_model
+...
+\ingroup API_Performance_Model
+\var starpu_perfmodel_regression_model::sumlny
+sum of ln(measured)
+\var starpu_perfmodel_regression_model::sumlnx
+sum of ln(size)
+\var starpu_perfmodel_regression_model::sumlnx2
+sum of ln(size)^2
+\var starpu_perfmodel_regression_model::minx
+minimum size
+\var starpu_perfmodel_regression_model::maxx
+maximum size
+\var starpu_perfmodel_regression_model::sumlnxlny
+sum of ln(size)*ln(measured)
+\var starpu_perfmodel_regression_model::alpha
+estimated = alpha * size ^ beta
+\var starpu_perfmodel_regression_model::beta
+estimated = alpha * size ^ beta
+\var starpu_perfmodel_regression_model::valid
+whether the linear regression model is valid (i.e. enough measures)
+\var starpu_perfmodel_regression_model::a
+estimated = a size ^b + c
+\var starpu_perfmodel_regression_model::b
+estimated = a size ^b + c
+\var starpu_perfmodel_regression_model::c
+estimated = a size ^b + c
+\var starpu_perfmodel_regression_model::nl_valid
+whether the non-linear regression model is valid (i.e. enough measures)
+\var starpu_perfmodel_regression_model::nsample
+number of sample values for non-linear regression
+
+\struct starpu_perfmodel_per_arch
+contains information about the performance model of a given
+arch.
+\ingroup API_Performance_Model
+\var starpu_perfmodel_per_arch::cost_model
+\deprecated
+This field is deprecated. Use instead the field
+starpu_perfmodel_per_arch::cost_function.
+\var starpu_perfmodel_per_arch::cost_function
+Used by ::STARPU_PER_ARCH, must point to functions which take a task,
+the target arch and implementation number (as mere conveniency, since
+the array is already indexed by these), and must return a task
+duration estimation in micro-seconds.
+\var starpu_perfmodel_per_arch::size_base
+Same as in structure starpu_perfmodel, but per-arch, in case it
+depends on the architecture-specific implementation.
+\var starpu_perfmodel_per_arch::history
+\private
+The history of performance measurements.
+\var starpu_perfmodel_per_arch::list
+\private
+Used by ::STARPU_HISTORY_BASED and ::STARPU_NL_REGRESSION_BASED,
+records all execution history measures.
+\var starpu_perfmodel_per_arch::regression
+\private
+Used by ::STARPU_HISTORY_BASED and
+::STARPU_NL_REGRESSION_BASED, contains the estimated factors of the
+regression.
+
+\struct starpu_perfmodel_history_list
+todo
+\ingroup API_Performance_Model
+\var starpu_perfmodel_history_list::next
+todo
+\var starpu_perfmodel_history_list::entry
+todo
+
+\struct starpu_perfmodel_history_entry
+todo
+\ingroup API_Performance_Model
+\var starpu_perfmodel_history_entry::mean
+mean_n = 1/n sum
+\var starpu_perfmodel_history_entry::deviation
+n dev_n = sum2 - 1/n (sum)^2
+\var starpu_perfmodel_history_entry::sum
+num of samples
+\var starpu_perfmodel_history_entry::sum2
+sum of samples^2
+\var starpu_perfmodel_history_entry::nsample
+todo
+\var starpu_perfmodel_history_entry::footprint
+todo
+\var starpu_perfmodel_history_entry::size
+in bytes
+\var starpu_perfmodel_history_entry::flops
+Provided by the application
+
+\fn int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model)
+\ingroup API_Performance_Model
+loads a given performance model. The model structure has to be
+completely zero, and will be filled with the information saved in
+<c>$STARPU_HOME/.starpu</c>. The function is intended to be used by
+external tools that should read the performance model files.
+
+\fn int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
+\ingroup API_Performance_Model
+unloads the given model which has been previously loaded
+through the function starpu_perfmodel_load_symbol()
+
+\fn void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, char *path, size_t maxlen, unsigned nimpl)
+\ingroup API_Performance_Model
+returns the path to the debugging information for the performance model.
+
+\fn void starpu_perfmodel_get_arch_name(enum starpu_perfmodel_archtype arch, char *archname, size_t maxlen, unsigned nimpl)
+\ingroup API_Performance_Model
+returns the architecture name for \p arch
+
+\fn enum starpu_perfmodel_archtype starpu_worker_get_perf_archtype(int workerid)
+\ingroup API_Performance_Model
+returns the architecture type of a given worker.
+
+\fn int starpu_perfmodel_list(FILE *output)
+\ingroup API_Performance_Model
+prints a list of all performance models on \p output
+
+\fn void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output)
+\ingroup API_Performance_Model
+todo
+
+\fn int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output)
+\ingroup API_Performance_Model
+todo
+
+\fn void starpu_bus_print_bandwidth(FILE *f)
+\ingroup API_Performance_Model
+prints a matrix of bus bandwidths on \p f.
+
+\fn void starpu_bus_print_affinity(FILE *f)
+\ingroup API_Performance_Model
+prints the affinity devices on \p f.
+
+\fn void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
+\ingroup API_Performance_Model
+This feeds the performance model model with an explicit
+measurement measured, in addition to measurements done by StarPU
+itself. This can be useful when the application already has an
+existing set of measurements done in good conditions, that StarPU
+could benefit from instead of doing on-line measurements. And example
+of use can be seen in \ref PerformanceModelExample.
+
+\fn double starpu_get_bandwidth_RAM_CUDA(unsigned cudadev)
+\ingroup API_Performance_Model
+Used to compute the velocity of resources
+
+\fn double starpu_get_latency_RAM_CUDA(unsigned cudadev)
+\ingroup API_Performance_Model
+Used to compute the velocity of resources
+
+*/

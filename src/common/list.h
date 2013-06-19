@@ -160,7 +160,7 @@
       ENAME##_list_erase(l, e); return e; } \
   /** @internal */static inline struct ENAME *ENAME##_list_begin(struct ENAME##_list *l) \
     { return l->_head; } \
-  /** @internal */static inline struct ENAME *ENAME##_list_end(struct ENAME##_list *l __attribute__ ((unused))) \
+  /** @internal */static inline struct ENAME *ENAME##_list_end(struct ENAME##_list *l STARPU_ATTRIBUTE_UNUSED) \
     { return NULL; } \
   /** @internal */static inline struct ENAME *ENAME##_list_next(struct ENAME *i) \
     { return i->_next; } \

@@ -21,6 +21,7 @@
 #include <starpu.h>
 #include <starpu_profiling.h>
 #include <core/sched_policy.h>
+#include <core/workers.h>
 #include <common/uthash.h>
 
 #include <drivers/driver_common/driver_common.h>
@@ -326,7 +327,7 @@ unsigned starpu_mic_device_get_count(void)
 {
     // Return the number of configured MIC devices.
     struct _starpu_machine_config *config = _starpu_get_machine_config ();
-    struct starpu_machine_topology *topology = &config->topology;
+    struct _starpu_machine_topology *topology = &config->topology;
 
     return topology->nmicdevices;
 }
@@ -684,7 +685,7 @@ void *_starpu_mic_src_worker(void *arg)
 			switch (res)
 			{
 				case -EAGAIN:
-					_STARPU_DISP("ouch, put the codelet %p back ... \n", j);
+					_STARPU_DISP("ouch, Xeon Phi could not actually run task %p, putting it back...\n", task);
 					_starpu_push_task_to_workers(task);
 					STARPU_ABORT();
 					continue;

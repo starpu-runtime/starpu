@@ -1,0 +1,988 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Data_Interfaces Data Interfaces
+
+\struct starpu_data_interface_ops
+Per-interface data transfer methods.
+\ingroup API_Data_Interfaces
+\var starpu_data_interface_ops::register_data_handle
+Register an existing interface into a data handle.
+\var starpu_data_interface_ops::allocate_data_on_node
+Allocate data for the interface on a given node.
+\var starpu_data_interface_ops::free_data_on_node
+Free data of the interface on a given node.
+\var starpu_data_interface_ops::copy_methods
+ram/cuda/opencl synchronous and asynchronous transfer methods.
+\var starpu_data_interface_ops::handle_to_pointer
+Return the current pointer (if any) for the handle on the given node.
+\var starpu_data_interface_ops::get_size
+Return an estimation of the size of data, for performance models.
+\var starpu_data_interface_ops::footprint
+Return a 32bit footprint which characterizes the data size.
+\var starpu_data_interface_ops::compare
+Compare the data size of two interfaces.
+\var starpu_data_interface_ops::display
+Dump the sizes of a handle to a file.
+\var starpu_data_interface_ops::interfaceid
+An identifier that is unique to each interface.
+\var starpu_data_interface_ops::interface_size
+The size of the interface data descriptor.
+\var starpu_data_interface_ops::is_multiformat
+todo
+\var starpu_data_interface_ops::get_mf_ops
+todo
+\var starpu_data_interface_ops::pack_data
+Pack the data handle into a contiguous buffer at the address ptr and
+set the size of the newly created buffer in count. If ptr is NULL, the
+function should not copy the data in the buffer but just set count to
+the size of the buffer which would have been allocated. The special
+value -1 indicates the size is yet unknown.
+\var starpu_data_interface_ops::unpack_data
+Unpack the data handle from the contiguous buffer at the address ptr
+of size count
+
+\struct starpu_data_copy_methods
+Defines the per-interface methods. If the any_to_any method is
+provided, it will be used by default if no more specific method is
+provided. It can still be useful to provide more specific method in
+case of e.g. available particular CUDA or OpenCL support.
+\ingroup API_Data_Interfaces
+\var starpu_data_copy_methods::ram_to_ram
+Define how to copy data from the \p src_interface interface on the \p
+src_node CPU node to the \p dst_interface interface on the \p dst_node
+CPU  node. Return 0 on success.
+\var starpu_data_copy_methods::ram_to_cuda
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node CUDA
+node. Return 0 on success.
+\var starpu_data_copy_methods::ram_to_opencl
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node
+OpenCL node. Return 0 on success.
+
+\var starpu_data_copy_methods::ram_to_mic
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node MIC
+node. Return 0 on success.
+
+\var starpu_data_copy_methods::cuda_to_ram
+Define how to copy data from the \p src_interface interface on the
+\p src_node CUDA node to the \p dst_interface interface on the \p dst_node
+CPU node. Return 0 on success.
+\var starpu_data_copy_methods::cuda_to_cuda
+Define how to copy data from the \p src_interface interface on the
+\p src_node CUDA node to the \p dst_interface interface on the \p dst_node CUDA
+node. Return 0 on success.
+\var starpu_data_copy_methods::cuda_to_opencl
+Define how to copy data from the \p src_interface interface on the
+\p src_node CUDA node to the \p dst_interface interface on the \p dst_node
+OpenCL node. Return 0 on success.
+\var starpu_data_copy_methods::opencl_to_ram
+Define how to copy data from the \p src_interface interface on the
+\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
+CPU node. Return 0 on success.
+\var starpu_data_copy_methods::opencl_to_cuda
+Define how to copy data from the \p src_interface interface on the
+\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
+CUDA node. Return 0 on success.
+\var starpu_data_copy_methods::opencl_to_opencl
+Define how to copy data from the \p src_interface interface on the
+\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
+OpenCL node. Return 0 on success.
+
+\var starpu_data_copy_methods::mic_to_ram
+Define how to copy data from the \p src_interface interface on the
+\p src_node MIC node to the \p dst_interface interface on the \p dst_node CPU
+node. Return 0 on success.
+
+\var starpu_data_copy_methods::scc_src_to_sink
+Define how to copy data from the \p src_interface interface on the
+\p src_node node to the \p dst_interface interface on the \p dst_node node.
+Must return 0 if the transfer was actually completed completely
+synchronously, or -EAGAIN if at least some transfers are still ongoing
+and should be awaited for by the core.
+\var starpu_data_copy_methods::scc_sink_to_src
+Define how to copy data from the \p src_interface interface on the
+\p src_node node to the \p dst_interface interface on the \p dst_node node.
+Must return 0 if the transfer was actually completed completely
+synchronously, or -EAGAIN if at least some transfers are still ongoing
+and should be awaited for by the core.
+\var starpu_data_copy_methods::scc_sink_to_sink
+Define how to copy data from the \p src_interface interface on the
+\p src_node node to the \p dst_interface interface on the \p dst_node node.
+Must return 0 if the transfer was actually completed completely
+synchronously, or -EAGAIN if at least some transfers are still ongoing
+and should be awaited for by the core.
+
+\var starpu_data_copy_methods::ram_to_cuda_async
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node CUDA
+node, using the given stream. Must return 0 if the transfer was
+actually completed completely synchronously, or -EAGAIN if at least
+some transfers are still ongoing and should be awaited for by the core.
+\var starpu_data_copy_methods::cuda_to_ram_async
+Define how to copy data from the \p src_interface interface on the
+\p src_node CUDA node to the \p dst_interface interface on the \p dst_node CPU
+node, using the given stream. Must return 0 if the transfer was
+actually completed completely synchronously, or -EAGAIN if at least
+some transfers are still ongoing and should be awaited for by the core.
+\var starpu_data_copy_methods::cuda_to_cuda_async
+Define how to copy data from the \p src_interface interface on the
+\p src_node CUDA node to the \p dst_interface interface on the \p dst_node CUDA
+node, using the given stream. Must return 0 if the transfer was
+actually completed completely synchronously, or -EAGAIN if at least
+some transfers are still ongoing and should be awaited for by the core.
+
+\var starpu_data_copy_methods::ram_to_opencl_async
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node
+OpenCL node, by recording in event, a pointer to a cl_event, the event
+of the last submitted transfer. Must return 0 if the transfer was
+actually completed completely synchronously, or -EAGAIN if at least
+some transfers are still ongoing and should be awaited for by the
+core.
+\var starpu_data_copy_methods::opencl_to_ram_async
+Define how to copy data from the \p src_interface interface on the
+\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
+CPU node, by recording in event, a pointer to a cl_event, the event of
+the last submitted transfer. Must return 0 if the transfer was
+actually completed completely synchronously, or -EAGAIN if at least
+some transfers are still ongoing and should be awaited for by the
+core.
+\var starpu_data_copy_methods::opencl_to_opencl_async
+Define how to copy data from the \p src_interface interface on the
+\p src_node OpenCL node to the \p dst_interface interface on the \p dst_node
+OpenCL node, by recording in event, a pointer to a cl_event, the event
+of the last submitted transfer. Must return 0 if the transfer was
+actually completed completely synchronously, or -EAGAIN if at least
+some transfers are still ongoing and should be awaited for by the
+core.
+
+\var starpu_data_copy_methods::ram_to_mic_async
+Define how to copy data from the \p src_interface interface on the
+\p src_node CPU node to the \p dst_interface interface on the \p dst_node
+MIC node. Must return 0 if the transfer was actually completed
+completely synchronously, or -EAGAIN if at least some transfers are
+still ongoing and should be awaited for by the core.
+\var starpu_data_copy_methods::mic_to_ram_async
+Define how to copy data from the \p src_interface interface on the
+\p src_node MIC node to the \p dst_interface interface on the \p dst_node
+CPU node. Must return 0 if the transfer was actually completed
+completely synchronously, or -EAGAIN if at least some transfers are
+still ongoing and should be awaited for by the core.
+
+\var starpu_data_copy_methods::any_to_any
+Define how to copy data from the \p src_interface interface on the
+\p src_node node to the \p dst_interface interface on the \p dst_node node.
+This is meant to be implemented through the starpu_interface_copy()
+helper, to which async_data should be passed as such, and will be used
+to manage asynchronicity. This must return -EAGAIN if any of the
+starpu_interface_copy() calls has returned -EAGAIN (i.e. at least some
+transfer is still ongoing), and return 0 otherwise.
+
+@name Registering Data
+\ingroup API_Data_Interfaces
+
+There are several ways to register a memory region so that it can be
+managed by StarPU. The functions below allow the registration of
+vectors, 2D matrices, 3D matrices as well as BCSR and CSR sparse
+matrices.
+
+\fn void starpu_void_data_register(starpu_data_handle_t *handle)
+\ingroup API_Data_Interfaces
+Register a void interface. There is no data really associated
+to that interface, but it may be used as a synchronization mechanism.
+It also permits to express an abstract piece of data that is managed
+by the application internally: this makes it possible to forbid the
+concurrent execution of different tasks accessing the same <c>void</c> data
+in read-write concurrently. 
+
+\fn void starpu_variable_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, size_t size)
+\ingroup API_Data_Interfaces
+Register the \p size byte element pointed to by \p ptr, which is
+typically a scalar, and initialize \p handle to represent this data item.
+
+Here an example of how to use the function.
+\code{.c}
+float var;
+starpu_data_handle_t var_handle;
+starpu_variable_data_register(&var_handle, 0, (uintptr_t)&var, sizeof(var));
+\endcode
+
+\fn void starpu_vector_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize)
+\ingroup API_Data_Interfaces
+Register the \p nx elemsize-byte elements pointed to by \p ptr and initialize \p handle to represent it.
+
+Here an example of how to use the function.
+\code{.c}
+float vector[NX];
+starpu_data_handle_t vector_handle;
+starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
+\endcode
+
+\fn void starpu_matrix_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize)
+\ingroup API_Data_Interfaces
+Register the \p nx x \p  ny 2D matrix of \p elemsize-byte elements pointed
+by \p ptr and initialize \p handle to represent it. \p ld specifies the number
+of elements between rows. a value greater than \p nx adds padding, which
+can be useful for alignment purposes.
+
+Here an example of how to use the function.
+\code{.c}
+float *matrix;
+starpu_data_handle_t matrix_handle;
+matrix = (float*)malloc(width * height * sizeof(float));
+starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix, width, width, height, sizeof(float));
+\endcode
+
+\fn void starpu_block_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx, uint32_t ny, uint32_t nz, size_t elemsize)
+\ingroup API_Data_Interfaces
+Register the \p nx x \p ny x \p nz 3D matrix of \p elemsize byte elements
+pointed by \p ptr and initialize \p handle to represent it. Again, \p ldy and
+\p ldz specify the number of elements between rows and between z planes.
+
+Here an example of how to use the function.
+\code{.c}
+float *block;
+starpu_data_handle_t block_handle;
+block = (float*)malloc(nx*ny*nz*sizeof(float));
+starpu_block_data_register(&block_handle, 0, (uintptr_t)block, nx, nx*ny, nx, ny, nz, sizeof(float));
+\endcode
+
+\fn void starpu_bcsr_data_register(starpu_data_handle_t *handle, unsigned home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize)
+\ingroup API_Data_Interfaces
+This variant of starpu_data_register() uses the BCSR (Blocked
+Compressed Sparse Row Representation) sparse matrix interface.
+Register the sparse matrix made of \p nnz non-zero blocks of elements of
+size \p elemsize stored in \p nzval and initializes \p handle to represent it.
+Blocks have size \p r * \p c. \p nrow is the number of rows (in terms of
+blocks), \p colind[i] is the block-column index for block i in \p nzval,
+\p rowptr[i] is the block-index (in \p nzval) of the first block of row i.
+\p firstentry is the index of the first entry of the given arrays
+(usually 0 or 1). 
+
+\fn void starpu_csr_data_register(starpu_data_handle_t *handle, unsigned home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, size_t elemsize)
+\ingroup API_Data_Interfaces
+This variant of starpu_data_register() uses the CSR (Compressed
+Sparse Row Representation) sparse matrix interface. TODO
+
+\fn void starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_node, uint32_t nx, uint32_t ny, uint32_t n_values, uint32_t *columns, uint32_t *rows, uintptr_t values, size_t elemsize);
+\ingroup API_Data_Interfaces
+Register the \p nx x \p ny 2D matrix given in the COO format, using the
+\p columns, \p rows, \p values arrays, which must have \p n_values elements of
+size \p elemsize. Initialize \p handleptr.
+
+\fn void *starpu_data_get_interface_on_node(starpu_data_handle_t handle, unsigned memory_node)
+\ingroup API_Data_Interfaces
+Return the interface associated with \p handle on \p memory_node.
+
+@name Accessing Data Interfaces
+\ingroup API_Data_Interfaces
+
+Each data interface is provided with a set of field access functions.
+The ones using a void * parameter aimed to be used in codelet
+implementations (see for example the code in \ref
+VectorScalingUsingStarPUAPI).
+
+\fn void *starpu_data_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
+\ingroup API_Data_Interfaces
+Return the pointer associated with \p handle on node \p node or <c>NULL</c>
+if handle’s interface does not support this operation or data for this
+\p handle is not allocated on that \p node.
+
+\fn void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the local pointer associated with \p handle or <c>NULL</c> if
+\p handle’s interface does not have data allocated locally 
+
+\fn enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the unique identifier of the interface associated with
+the given \p handle.
+
+\fn size_t starpu_data_get_size(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the size of the data associated with \p handle.
+
+\fn int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
+\ingroup API_Data_Interfaces
+Execute the packing operation of the interface of the data
+registered at \p handle (see starpu_data_interface_ops). This
+packing operation must allocate a buffer large enough at \p ptr and copy
+into the newly allocated buffer the data associated to \p handle. \p count
+will be set to the size of the allocated buffer. If \p ptr is NULL, the
+function should not copy the data in the buffer but just set \p count to
+the size of the buffer which would have been allocated. The special
+value -1 indicates the size is yet unknown.
+
+\fn int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
+\ingroup API_Data_Interfaces
+Unpack in handle the data located at \p ptr of size \p count as
+described by the interface of the data. The interface registered at
+\p handle must define a unpacking operation (see
+starpu_data_interface_ops). The memory at the address \p ptr is freed
+after calling the data unpacking operation.
+
+@name Accessing Variable Data Interfaces
+\ingroup API_Data_Interfaces
+
+\struct starpu_variable_interface
+Variable interface for a single data (not a vector, a matrix, a list, ...)
+\ingroup API_Data_Interfaces
+\var starpu_variable_interface::id
+Identifier of the interface
+\var starpu_variable_interface::ptr
+local pointer of the variable
+\var starpu_variable_interface::dev_handle
+device handle of the variable.
+\var starpu_variable_interface::offset
+offset in the variable
+\var starpu_variable_interface::elemsize
+size of the variable
+
+\fn size_t starpu_variable_get_elemsize(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the size of the variable designated by \p handle.
+
+\fn uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return a pointer to the variable designated by \p handle.
+
+\def STARPU_VARIABLE_GET_PTR(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the variable designated by \p interface.
+
+\def STARPU_VARIABLE_GET_ELEMSIZE(interface)
+\ingroup API_Data_Interfaces
+Return the size of the variable designated by \p interface.
+
+\def STARPU_VARIABLE_GET_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the variable designated by
+\p interface, to be used on OpenCL. The offset documented below has to be
+used in addition to this.
+
+\def STARPU_VARIABLE_GET_OFFSET(interface)
+\ingroup API_Data_Interfaces
+Return the offset in the variable designated by \p interface, to
+be used with the device handle.
+
+@name Accessing Vector Data Interfaces
+\ingroup API_Data_Interfaces
+
+\struct starpu_vector_interface
+Vector interface
+\ingroup API_Data_Interfaces
+\var starpu_vector_interface::id
+Identifier of the interface
+\var starpu_vector_interface::ptr
+local pointer of the vector
+\var starpu_vector_interface::dev_handle
+device handle of the vector.
+\var starpu_vector_interface::offset
+offset in the vector
+\var starpu_vector_interface::nx
+number of elements on the x-axis of the vector
+\var starpu_vector_interface::elemsize
+size of the elements of the vector
+
+\fn uint32_t starpu_vector_get_nx(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of elements registered into the array designated by \p handle.
+
+\fn size_t starpu_vector_get_elemsize(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the size of each element of the array designated by \p handle.
+
+\fn uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the local pointer associated with \p handle.
+
+\def STARPU_VECTOR_GET_PTR(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the array designated by \p interface, valid on
+CPUs and CUDA only. For OpenCL, the device handle and offset need to
+be used instead.
+
+\def STARPU_VECTOR_GET_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the array designated by \p interface,
+to be used on OpenCL. the offset documented below has to be used in
+addition to this.
+
+\def STARPU_VECTOR_GET_OFFSET(interface)
+\ingroup API_Data_Interfaces
+Return the offset in the array designated by \p interface, to be
+used with the device handle.
+
+\def STARPU_VECTOR_GET_NX(interface)
+\ingroup API_Data_Interfaces
+Return the number of elements registered into the array
+designated by \p interface.
+
+\def STARPU_VECTOR_GET_ELEMSIZE(interface)
+\ingroup API_Data_Interfaces
+Return the size of each element of the array designated by
+\p interface.
+
+@name Accessing Matrix Data Interfaces
+\ingroup API_Data_Interfaces
+
+\struct starpu_matrix_interface
+Matrix interface for dense matrices
+\ingroup API_Data_Interfaces
+\var starpu_matrix_interface::id
+Identifier of the interface
+\var starpu_matrix_interface::ptr
+local pointer of the matrix
+\var starpu_matrix_interface::dev_handle
+device handle of the matrix.
+\var starpu_matrix_interface::offset
+offset in the matrix
+\var starpu_matrix_interface::nx
+number of elements on the x-axis of the matrix
+\var starpu_matrix_interface::ny
+number of elements on the y-axis of the matrix
+\var starpu_matrix_interface::ld
+number of elements between each row of the matrix. Maybe be equal to
+starpu_matrix_interface::nx when there is no padding.
+\var starpu_matrix_interface::elemsize
+size of the elements of the matrix
+
+\fn uint32_t starpu_matrix_get_nx(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of elements on the x-axis of the matrix
+designated by \p handle.
+
+\fn uint32_t starpu_matrix_get_ny(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of elements on the y-axis of the matrix
+designated by \p handle.
+
+\fn uint32_t starpu_matrix_get_local_ld(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of elements between each row of the matrix
+designated by \p handle. Maybe be equal to nx when there is no padding.
+
+\fn uintptr_t starpu_matrix_get_local_ptr(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the local pointer associated with \p handle.
+
+\fn size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the size of the elements registered into the matrix
+designated by \p handle.
+
+\def STARPU_MATRIX_GET_PTR(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the matrix designated by \p interface, valid
+on CPUs and CUDA devices only. For OpenCL devices, the device handle
+and offset need to be used instead.
+
+\def STARPU_MATRIX_GET_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the matrix designated by \p interface,
+to be used on OpenCL. The offset documented below has to be used in
+addition to this.
+
+\def STARPU_MATRIX_GET_OFFSET(interface)
+\ingroup API_Data_Interfaces
+Return the offset in the matrix designated by \p interface, to be
+used with the device handle.
+
+\def STARPU_MATRIX_GET_NX(interface)
+\ingroup API_Data_Interfaces
+Return the number of elements on the x-axis of the matrix
+designated by \p interface.
+
+\def STARPU_MATRIX_GET_NY(interface)
+\ingroup API_Data_Interfaces
+Return the number of elements on the y-axis of the matrix
+designated by \p interface.
+
+\def STARPU_MATRIX_GET_LD(interface)
+\ingroup API_Data_Interfaces
+Return the number of elements between each row of the matrix
+designated by \p interface. May be equal to nx when there is no padding.
+
+\def STARPU_MATRIX_GET_ELEMSIZE(interface)
+\ingroup API_Data_Interfaces
+Return the size of the elements registered into the matrix
+designated by \p interface.
+
+@name Accessing Block Data Interfaces
+\ingroup API_Data_Interfaces
+
+\struct starpu_block_interface
+Block interface for 3D dense blocks
+\ingroup API_Data_Interfaces
+\var starpu_block_interface::id
+identifier of the interface
+\var starpu_block_interface::ptr
+local pointer of the block
+\var starpu_block_interface::dev_handle
+device handle of the block.
+\var starpu_block_interface::offset
+offset in the block.
+\var starpu_block_interface::nx
+number of elements on the x-axis of the block.
+\var starpu_block_interface::ny
+number of elements on the y-axis of the block.
+\var starpu_block_interface::nz
+number of elements on the z-axis of the block.
+\var starpu_block_interface::ldy
+number of elements between two lines
+\var starpu_block_interface::ldz
+number of elements between two planes
+\var starpu_block_interface::elemsize
+size of the elements of the block.
+
+\fn uint32_t starpu_block_get_nx(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of elements on the x-axis of the block
+designated by \p handle.
+
+\fn uint32_t starpu_block_get_ny(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of elements on the y-axis of the block
+designated by \p handle.
+
+\fn uint32_t starpu_block_get_nz(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of elements on the z-axis of the block
+designated by \p handle.
+
+\fn uint32_t starpu_block_get_local_ldy(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of elements between each row of the block
+designated by \p handle, in the format of the current memory node.
+
+\fn uint32_t starpu_block_get_local_ldz(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of elements between each z plane of the block
+designated by \p handle, in the format of the current memory node.
+
+\fn uintptr_t starpu_block_get_local_ptr(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the local pointer associated with \p handle.
+
+\fn size_t starpu_block_get_elemsize(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the size of the elements of the block designated by
+\p handle.
+
+\def STARPU_BLOCK_GET_PTR(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the block designated by \p interface.
+
+\def STARPU_BLOCK_GET_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the block designated by \p interface,
+to be used on OpenCL. The offset document below has to be used in
+addition to this.
+
+\def STARPU_BLOCK_GET_OFFSET(interface)
+\ingroup API_Data_Interfaces
+Return the offset in the block designated by \p interface, to be
+used with the device handle.
+
+\def STARPU_BLOCK_GET_NX(interface)
+\ingroup API_Data_Interfaces
+Return the number of elements on the x-axis of the block
+designated by \p interface.
+
+\def STARPU_BLOCK_GET_NY(interface)
+\ingroup API_Data_Interfaces
+Return the number of elements on the y-axis of the block
+designated by \p interface.
+
+\def STARPU_BLOCK_GET_NZ(interface)
+\ingroup API_Data_Interfaces
+Return the number of elements on the z-axis of the block
+designated by \p interface.
+
+\def STARPU_BLOCK_GET_LDY(interface)
+\ingroup API_Data_Interfaces
+Return the number of elements between each row of the block
+designated by \p interface. May be equal to nx when there is no padding.
+
+\def STARPU_BLOCK_GET_LDZ(interface)
+\ingroup API_Data_Interfaces
+Return the number of elements between each z plane of the block
+designated by \p interface. May be equal to nx*ny when there is no
+padding.
+
+\def STARPU_BLOCK_GET_ELEMSIZE(interface)
+\ingroup API_Data_Interfaces
+Return the size of the elements of the block designated by
+\p interface.
+
+@name Accessing BCSR Data Interfaces
+\ingroup API_Data_Interfaces
+
+\struct starpu_bcsr_interface
+BCSR interface for sparse matrices (blocked compressed sparse
+row representation)
+\ingroup API_Data_Interfaces
+\var starpu_bcsr_interface::id
+Identifier of the interface
+\var starpu_bcsr_interface::nnz
+number of non-zero BLOCKS
+\var starpu_bcsr_interface::nrow
+number of rows (in terms of BLOCKS)
+\var starpu_bcsr_interface::nzval
+non-zero values
+\var starpu_bcsr_interface::colind
+position of non-zero entried on the row
+\var starpu_bcsr_interface::rowptr
+index (in nzval) of the first entry of the row
+\var starpu_bcsr_interface::firstentry
+k for k-based indexing (0 or 1 usually). Also useful when partitionning the matrix.
+\var starpu_bcsr_interface::r
+size of the blocks
+\var starpu_bcsr_interface::c
+size of the blocks
+\var starpu_bcsr_interface::elemsize;
+size of the elements of the matrix
+
+\fn uint32_t starpu_bcsr_get_nnz(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of non-zero elements in the matrix designated
+by \p handle.
+
+\fn uint32_t starpu_bcsr_get_nrow(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of rows (in terms of blocks of size r*c) in
+the matrix designated by \p handle.
+
+\fn uint32_t starpu_bcsr_get_firstentry(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the index at which all arrays (the column indexes, the
+row pointers...) of the matrix desginated by \p handle.
+
+\fn uintptr_t starpu_bcsr_get_local_nzval(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return a pointer to the non-zero values of the matrix
+designated by \p handle.
+
+\fn uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return a pointer to the column index, which holds the positions
+of the non-zero entries in the matrix designated by \p handle.
+
+\fn uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the row pointer array of the matrix designated by
+\p handle.
+
+\fn uint32_t starpu_bcsr_get_r(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of rows in a block.
+
+\fn uint32_t starpu_bcsr_get_c(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the numberof columns in a block.
+
+\fn size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the size of the elements in the matrix designated by
+\p handle.
+
+\def STARPU_BCSR_GET_NNZ(interface)
+\ingroup API_Data_Interfaces
+Return the number of non-zero values in the matrix designated
+by \p interface.
+
+\def STARPU_BCSR_GET_NZVAL(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the non-zero values of the matrix
+designated by \p interface.
+
+\def STARPU_BCSR_GET_NZVAL_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the array of non-zero values in the
+matrix designated by \p interface. The offset documented below has to be
+used in addition to this.
+
+\def STARPU_BCSR_GET_COLIND(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the column index of the matrix designated
+by \p interface.
+
+\def STARPU_BCSR_GET_COLIND_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the column index of the matrix
+designated by \p interface. The offset documented below has to be used in
+addition to this.
+
+\def STARPU_BCSR_GET_ROWPTR(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the row pointer array of the matrix
+designated by \p interface.
+
+\def STARPU_CSR_GET_ROWPTR_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the row pointer array of the matrix
+designated by \p interface. The offset documented below has to be used in
+addition to this.
+
+\def STARPU_BCSR_GET_OFFSET
+\ingroup API_Data_Interfaces
+Return the offset in the arrays (coling, rowptr, nzval) of the
+matrix designated by \p interface, to be used with the device handles.
+
+@name Accessing CSR Data Interfaces
+\ingroup API_Data_Interfaces
+
+\struct starpu_csr_interface
+CSR interface for sparse matrices (compressed sparse row representation)
+\ingroup API_Data_Interfaces
+\var starpu_csr_interface::id
+Identifier of the interface
+\var starpu_csr_interface::nnz
+number of non-zero entries
+\var starpu_csr_interface::nrow
+number of rows
+\var starpu_csr_interface::nzval
+non-zero values
+\var starpu_csr_interface::colind
+position of non-zero entries on the row
+\var starpu_csr_interface::rowptr
+index (in nzval) of the first entry of the row
+\var starpu_csr_interface::firstentry
+k for k-based indexing (0 or 1 usually). also useful when partitionning the matrix.
+\var starpu_csr_interface::elemsize
+size of the elements of the matrix
+
+\fn uint32_t starpu_csr_get_nnz(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the number of non-zero values in the matrix designated
+by \p handle.
+
+\fn uint32_t starpu_csr_get_nrow(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the size of the row pointer array of the matrix
+designated by \p handle.
+
+\fn uint32_t starpu_csr_get_firstentry(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the index at which all arrays (the column indexes, the
+row pointers...) of the matrix designated by \p handle.
+
+\fn uintptr_t starpu_csr_get_local_nzval(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return a local pointer to the non-zero values of the matrix
+designated by \p handle.
+
+\fn uint32_t *starpu_csr_get_local_colind(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return a local pointer to the column index of the matrix
+designated by \p handle.
+
+\fn uint32_t *starpu_csr_get_local_rowptr(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return a local pointer to the row pointer array of the matrix
+designated by \p handle.
+
+\fn size_t starpu_csr_get_elemsize(starpu_data_handle_t handle)
+\ingroup API_Data_Interfaces
+Return the size of the elements registered into the matrix
+designated by \p handle.
+
+\def STARPU_CSR_GET_NNZ(interface)
+\ingroup API_Data_Interfaces
+Return the number of non-zero values in the matrix designated
+by \p interface.
+
+\def STARPU_CSR_GET_NROW(interface)
+\ingroup API_Data_Interfaces
+Return the size of the row pointer array of the matrix
+designated by \p interface.
+
+\def STARPU_CSR_GET_NZVAL(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the non-zero values of the matrix
+designated by \p interface.
+
+\def STARPU_CSR_GET_NZVAL_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the array of non-zero values in the
+matrix designated by \p interface. The offset documented below has to be
+used in addition to this.
+
+\def STARPU_CSR_GET_COLIND(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the column index of the matrix designated
+by \p interface.
+
+\def STARPU_CSR_GET_COLIND_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the column index of the matrix
+designated by \p interface. The offset documented below has to be used in
+addition to this.
+
+\def STARPU_CSR_GET_ROWPTR(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the row pointer array of the matrix
+designated by \p interface.
+
+\def STARPU_CSR_GET_ROWPTR_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the row pointer array of the matrix
+designated by \p interface. The offset documented below has to be used in
+addition to this.
+
+\def STARPU_CSR_GET_OFFSET
+\ingroup API_Data_Interfaces
+Return the offset in the arrays (colind, rowptr, nzval) of the
+matrix designated by \p interface, to be used with the device handles.
+
+\def STARPU_CSR_GET_FIRSTENTRY(interface)
+\ingroup API_Data_Interfaces
+Return the index at which all arrays (the column indexes, the
+row pointers...) of the \p interface start.
+
+\def STARPU_CSR_GET_ELEMSIZE(interface)
+\ingroup API_Data_Interfaces
+Return the size of the elements registered into the matrix
+designated by \p interface.
+
+@name Accessing COO Data Interfaces
+\ingroup API_Data_Interfaces
+
+\struct starpu_coo_interface
+COO Matrices
+\ingroup API_Data_Interfaces
+\var starpu_coo_interface::id
+identifier of the interface
+\var starpu_coo_interface::columns
+column array of the matrix
+\var starpu_coo_interface::rows
+row array of the matrix
+\var starpu_coo_interface::values
+values of the matrix
+\var starpu_coo_interface::nx
+number of elements on the x-axis of the matrix
+\var starpu_coo_interface::ny
+number of elements on the y-axis of the matrix
+\var starpu_coo_interface::n_values
+number of values registered in the matrix
+\var starpu_coo_interface::elemsize
+size of the elements of the matrix
+
+\def STARPU_COO_GET_COLUMNS(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the column array of the matrix designated
+by \p interface.
+
+\def STARPU_COO_GET_COLUMNS_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the column array of the matrix
+designated by \p interface, to be used on OpenCL. The offset documented
+below has to be used in addition to this.
+
+\def STARPU_COO_GET_ROWS(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the rows array of the matrix designated by
+\p interface.
+
+\def STARPU_COO_GET_ROWS_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the row array of the matrix
+designated by \p interface, to be used on OpenCL. The offset documented
+below has to be used in addition to this.
+
+\def STARPU_COO_GET_VALUES(interface)
+\ingroup API_Data_Interfaces
+Return a pointer to the values array of the matrix designated
+by \p interface.
+
+\def STARPU_COO_GET_VALUES_DEV_HANDLE(interface)
+\ingroup API_Data_Interfaces
+Return a device handle for the value array of the matrix
+designated by \p interface, to be used on OpenCL. The offset documented
+below has to be used in addition to this.
+
+\def STARPU_COO_GET_OFFSET
+\ingroup API_Data_Interfaces
+Return the offset in the arrays of the COO matrix designated by
+\p interface.
+
+\def STARPU_COO_GET_NX(interface)
+\ingroup API_Data_Interfaces
+Return the number of elements on the x-axis of the matrix
+designated by \p interface.
+
+\def STARPU_COO_GET_NY(interface)
+\ingroup API_Data_Interfaces
+Return the number of elements on the y-axis of the matrix
+designated by \p interface.
+
+\def STARPU_COO_GET_NVALUES(interface)
+\ingroup API_Data_Interfaces
+Return the number of values registered in the matrix designated
+by \p interface.
+
+\def STARPU_COO_GET_ELEMSIZE(interface)
+\ingroup API_Data_Interfaces
+Return the size of the elements registered into the matrix
+designated by \p interface.
+
+@name Defining Interface
+\ingroup API_Data_Interfaces
+
+Applications can provide their own interface as shown in \ref
+DefiningANewDataInterface.
+
+\fn uintptr_t starpu_malloc_on_node(unsigned dst_node, size_t size)
+\ingroup API_Data_Interfaces
+Allocate \p size bytes on node \p dst_node. This returns 0 if
+allocation failed, the allocation method should then return <c>-ENOMEM</c> as
+allocated size.
+
+\fn void starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
+\ingroup API_Data_Interfaces
+Free \p addr of \p size bytes on node \p dst_node.
+
+\fn int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data)
+\ingroup API_Data_Interfaces
+Copy \p size bytes from byte offset \p src_offset of \p src on \p src_node
+to byte offset \p dst_offset of \p dst on \p dst_node. This is to be used in
+the any_to_any() copy method, which is provided with the async_data to
+be passed to starpu_interface_copy(). this returns <c>-EAGAIN</c> if the
+transfer is still ongoing, or 0 if the transfer is already completed.
+
+\fn uint32_t starpu_hash_crc32c_be_n(const void *input, size_t n, uint32_t inputcrc)
+\ingroup API_Data_Interfaces
+Compute the CRC of a byte buffer seeded by the \p inputcrc
+<em>current state</em>. The return value should be considered as the new
+<em>current state</em> for future CRC computation. This is used for computing
+data size footprint.
+
+\fn uint32_t starpu_hash_crc32c_be(uint32_t input, uint32_t inputcrc)
+\ingroup API_Data_Interfaces
+Compute the CRC of a 32bit number seeded by the \p inputcrc
+<em>current state</em>. The return value should be considered as the new
+<em>current state</em> for future CRC computation. This is used for computing
+data size footprint.
+
+\fn uint32_t starpu_hash_crc32c_string(const char *str, uint32_t inputcrc)
+\ingroup API_Data_Interfaces
+Compute the CRC of a string seeded by the \p inputcrc <em>current
+state</em>. The return value should be considered as the new <em>current
+state</em> for future CRC computation. This is used for computing data
+size footprint.
+
+\fn int starpu_data_interface_get_next_id(void)
+\ingroup API_Data_Interfaces
+Return the next available id for a newly created data interface
+(\ref DefiningANewDataInterface).
+
+*/
+

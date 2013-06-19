@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifiqu
  * Copyright (C) 2011, 2012  INRIA
  *
@@ -33,7 +33,7 @@
 #include <starpu.h>
 #include <starpu_bound.h>
 
-#define FPRINTF(ofile, fmt, args ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ##args); }} while(0)
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define NMAXBLOCKS	32
 
 #define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
@@ -83,7 +83,7 @@ extern struct starpu_perfmodel chol_model_11;
 extern struct starpu_perfmodel chol_model_21;
 extern struct starpu_perfmodel chol_model_22;
 
-static void __attribute__((unused)) parse_args(int argc, char **argv)
+static void STARPU_ATTRIBUTE_UNUSED parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++)

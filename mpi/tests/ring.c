@@ -28,10 +28,10 @@ int token = 42;
 starpu_data_handle_t token_handle;
 
 #ifdef STARPU_USE_CUDA
-extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
+extern void increment_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 #endif
 
-void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
+void increment_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	int *tokenptr = (int *)STARPU_VECTOR_GET_PTR(descr[0]);
 	(*tokenptr)++;

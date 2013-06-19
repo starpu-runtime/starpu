@@ -106,12 +106,10 @@ struct _starpu_worker
 	unsigned parallel_sect;
 
 #ifdef __GLIBC__
-	cpu_set_t initial_cpu_set;
-	cpu_set_t current_cpu_set;
+	cpu_set_t cpu_set;
 #endif /* __GLIBC__ */
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_bitmap_t initial_hwloc_cpu_set;
-	hwloc_bitmap_t current_hwloc_cpu_set;
+	hwloc_bitmap_t hwloc_cpu_set;
 
 	/* hwloc_obj_t of the device controled by the worker*/
 	hwloc_obj_t hw_obj;
@@ -148,9 +146,108 @@ struct _starpu_worker_set
 	unsigned set_is_initialized;
 };
 
+struct _starpu_machine_topology
+{
+	/* Total number of workers. */
+	unsigned nworkers;
+
+	/* Total number of combined workers. */
+	unsigned ncombinedworkers;
+
+	unsigned nsched_ctxs;
+#ifdef STARPU_HAVE_HWLOC
+	/* Topology as detected by hwloc. */
+	hwloc_topology_t hwtopology;
+#else
+	/* We maintain ABI compatibility with and without hwloc */
+	void *dummy;
+#endif
+
+	/* Total number of CPUs, as detected by the topology code. May
+	 * be different from the actual number of CPU workers.
+	 */
+	unsigned nhwcpus;
+
+	/* Total number of CUDA devices, as detected. May be different
+	 * from the actual number of CUDA workers.
+	 */
+	unsigned nhwcudagpus;
+
+	/* Total number of OpenCL devices, as detected. May be
+	 * different from the actual number of OpenCL workers.
+	 */
+	unsigned nhwopenclgpus;
+
+	/* Total number of SCC cores, as detected. May be different
+	 * from the actual number of core workers.
+	 */
+	unsigned nhwscc;
+
+	/* Actual number of CPU workers used by StarPU. */
+	unsigned ncpus;
+
+	/* Actual number of CUDA workers used by StarPU. */
+	unsigned ncudagpus;
+
+	/* Actual number of OpenCL workers used by StarPU. */
+	unsigned nopenclgpus;
+
+	/* Actual number of SCC workers used by StarPU. */
+	unsigned nsccdevices;
+
+	/* Topology of MP nodes (mainly MIC and SCC) as well as necessary
+	 * objects to communicate with them. */
+	unsigned nhwmicdevices;
+	unsigned nmicdevices;
+
+	unsigned nhwmiccores[STARPU_MAXMICDEVS]; // Each MIC node has its set of cores.
+	unsigned nmiccores[STARPU_MAXMICDEVS];
+
+	/* Indicates the successive cpu identifier that should be used
+	 * to bind the workers. It is either filled according to the
+	 * user's explicit parameters (from starpu_conf) or according
+	 * to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
+	 * round-robin policy is used to distributed the workers over
+	 * the cpus.
+	 */
+	unsigned workers_bindid[STARPU_NMAXWORKERS];
+
+	/* Indicates the successive CUDA identifier that should be
+	 * used by the CUDA driver.  It is either filled according to
+	 * the user's explicit parameters (from starpu_conf) or
+	 * according to the STARPU_WORKERS_CUDAID env. variable.
+	 * Otherwise, they are taken in ID order.
+	 */
+	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
+
+	/* Indicates the successive OpenCL identifier that should be
+	 * used by the OpenCL driver.  It is either filled according
+	 * to the user's explicit parameters (from starpu_conf) or
+	 * according to the STARPU_WORKERS_OPENCLID env. variable.
+	 * Otherwise, they are taken in ID order.
+	 */
+	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
+
+	/** Indicates the successive MIC devices that should be used
+	 * by the MIC driver.  It is either filled according to the
+	 * user's explicit parameters (from starpu_conf) or according
+	 * to the STARPU_WORKERS_MICID env. variable. Otherwise, they
+	 * are taken in ID order. */
+	/* unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]; */
+
+	/* Which SCC(s) do we use ? */
+	/* Indicates the successive SCC devices that should be used by
+	 * the SCC driver.  It is either filled according to the
+	 * user's explicit parameters (from starpu_conf) or according
+	 * to the STARPU_WORKERS_SCCID env. variable. Otherwise, they
+	 * are taken in ID order.
+	 */
+	unsigned workers_scc_deviceid[STARPU_NMAXWORKERS];
+};
+
 struct _starpu_machine_config
 {
-	struct starpu_machine_topology topology;
+	struct _starpu_machine_topology topology;
 
 #ifdef STARPU_HAVE_HWLOC
 	int cpu_depth;

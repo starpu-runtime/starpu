@@ -48,7 +48,7 @@ TYPE _alpha = 3.41;
 /* descriptors for StarPU */
 starpu_data_handle_t _handle_y, _handle_x;
 
-void axpy_cpu(void *descr[], __attribute__((unused)) void *arg)
+void axpy_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 {
 	TYPE alpha = *((TYPE *)arg);
 
@@ -61,7 +61,7 @@ void axpy_cpu(void *descr[], __attribute__((unused)) void *arg)
 }
 
 #ifdef STARPU_USE_CUDA
-void axpy_gpu(void *descr[], __attribute__((unused)) void *arg)
+void axpy_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 {
 	TYPE alpha = *((TYPE *)arg);
 

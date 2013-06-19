@@ -75,7 +75,7 @@ noinst_HEADERS = 						\
 	core/combined_workers.h					\
 	core/simgrid.h						\
 	core/task_bundle.h					\
-	sched_policies/detect_combined_workers.h		\
+	core/detect_combined_workers.h				\
 	sched_policies/fifo_queues.h				\
 	sched_policies/deque_queues.h				\
 	sched_policies/stack_queues.h				\
@@ -169,6 +169,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/simgrid.c						\
 	core/sched_ctx.c					\
 	core/parallel_task.c					\
+	core/detect_combined_workers.c				\
 	sched_policies/eager_central_policy.c			\
 	sched_policies/eager_central_priority_policy.c		\
 	sched_policies/work_stealing_policy.c			\
@@ -177,7 +178,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/stack_queues.c				\
 	sched_policies/deque_queues.c				\
 	sched_policies/fifo_queues.c				\
-	sched_policies/detect_combined_workers.c		\
 	sched_policies/parallel_heft.c				\
 	sched_policies/parallel_eager.c				\
 	drivers/driver_common/driver_common.c			\

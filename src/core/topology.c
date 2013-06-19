@@ -158,7 +158,7 @@ _starpu_initialize_workers_deviceid (int *explicit_workers_gpuid,
 static void
 _starpu_initialize_workers_cuda_gpuid (struct _starpu_machine_config *config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = config->conf;
 
         _starpu_initialize_workers_deviceid (
@@ -185,7 +185,7 @@ _starpu_get_next_cuda_gpuid (struct _starpu_machine_config *config)
 static void
 _starpu_initialize_workers_opencl_gpuid (struct _starpu_machine_config*config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = config->conf;
 
         _starpu_initialize_workers_deviceid(
@@ -266,7 +266,7 @@ _starpu_get_next_opencl_gpuid (struct _starpu_machine_config *config)
 #if defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID)
 static void _starpu_initialize_workers_mic_deviceid(struct _starpu_machine_config *config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = config->conf;
 
 	_starpu_initialize_workers_deviceid(
@@ -284,7 +284,7 @@ static void _starpu_initialize_workers_mic_deviceid(struct _starpu_machine_confi
 #ifdef STARPU_USE_SCC
 static void _starpu_initialize_workers_scc_deviceid(struct _starpu_machine_config *config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = config->conf;
 
 	_starpu_initialize_workers_deviceid(
@@ -327,7 +327,7 @@ _starpu_init_mic_topology (struct _starpu_machine_config *config, long mic_idx)
 	 * on this MIC device. Update the `nhwmiccores' topology field
 	 * accordingly. */
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	int nbcores;
 	_starpu_src_common_sink_nbcores (mic_nodes[mic_idx], &nbcores);
@@ -412,7 +412,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	   before calling this function. The discovered topology is filled in
 	   CONFIG. */
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	if (topology_is_initialized)
 		return;
@@ -445,7 +445,7 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 	char *strval;
 	unsigned i;
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	config->current_bindid = 0;
 
@@ -526,7 +526,7 @@ static inline int
 _starpu_get_next_bindid (struct _starpu_machine_config *config,
 			 int *preferred_binding, int npreferred)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	unsigned found = 0;
 	int current_preferred;
@@ -590,7 +590,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 {
 	// Configure the MIC device of index MIC_IDX.
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	topology->nhwmiccores[mic_idx] = 0;
 
@@ -634,7 +634,7 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	{
 		int worker_idx = topology->nworkers + miccore_id;
 		enum starpu_perfmodel_archtype arch =
-			(enum starpu_perfmodel_archtype)((int)STARPU_MIC_DEFAULT + devid);
+			(enum starpu_perfmodel_archtype)((int)STARPU_MIC_DEFAULT + mic_idx);
 		config->workers[worker_idx].arch = STARPU_MIC_WORKER;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].mp_nodeid = mic_idx;
@@ -664,7 +664,7 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 	 * - configure the workers accordingly.
 	 */
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	// We currently only support MIC at this level.
 #ifdef STARPU_USE_MIC
@@ -702,7 +702,7 @@ _starpu_deinit_mic_node (unsigned mic_idx)
 static void
 _starpu_deinit_mp_config (struct _starpu_machine_config *config)
 {
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	unsigned i;
 
 	for (i = 0; i < topology->nmicdevices; i++)
@@ -718,7 +718,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		config->workers[i].workerid = i;
 
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 
 	topology->nworkers = 0;
 	topology->ncombinedworkers = 0;
@@ -1278,10 +1278,8 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 #ifdef __GLIBC__
 		/* Save the initial cpuset */
-		CPU_ZERO(&workerarg->initial_cpu_set);
-		CPU_SET(workerarg->bindid, &workerarg->initial_cpu_set);
-		CPU_ZERO(&workerarg->current_cpu_set);
-		CPU_SET(workerarg->bindid, &workerarg->current_cpu_set);
+		CPU_ZERO(&workerarg->cpu_set);
+		CPU_SET(workerarg->bindid, &workerarg->cpu_set);
 #endif /* __GLIBC__ */
 
 #ifdef STARPU_HAVE_HWLOC
@@ -1295,9 +1293,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		worker_obj->userdata = &config->workers[worker];
 
 		/* Clear the cpu set and set the cpu */
-		workerarg->initial_hwloc_cpu_set =
-			hwloc_bitmap_dup (worker_obj->cpuset);
-		workerarg->current_hwloc_cpu_set =
+		workerarg->hwloc_cpu_set =
 			hwloc_bitmap_dup (worker_obj->cpuset);
 #endif
 	}
@@ -1326,7 +1322,7 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 
 void
 _starpu_destroy_topology (
-	struct _starpu_machine_config *config __attribute__ ((unused)))
+	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_MIC
 	_starpu_deinit_mp_config(config);
@@ -1340,8 +1336,7 @@ _starpu_destroy_topology (
 	{
 #ifdef STARPU_HAVE_HWLOC
 		struct _starpu_worker *workerarg = &config->workers[worker];
-		hwloc_bitmap_free(workerarg->initial_hwloc_cpu_set);
-		hwloc_bitmap_free(workerarg->current_hwloc_cpu_set);
+		hwloc_bitmap_free(workerarg->hwloc_cpu_set);
 #endif
 	}
 
@@ -1368,7 +1363,7 @@ void
 starpu_topology_print (FILE *output)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	struct starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
 	unsigned core;
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();

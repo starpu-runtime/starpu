@@ -18,7 +18,7 @@
 #include <math.h>
 #include "helper.h"
 
-void func_cpu(void *descr[], __attribute__ ((unused)) void *_args)
+void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	unsigned *matrix = (unsigned *)STARPU_MATRIX_GET_PTR(descr[0]);
 	int nx = (int)STARPU_MATRIX_GET_NX(descr[0]);

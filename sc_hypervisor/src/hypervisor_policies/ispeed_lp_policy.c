@@ -334,7 +334,7 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct s
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
-		if(sc_hypervisor_has_velocity_gap_btw_ctxs())
+		if(sc_hypervisor_criteria_fulfilled(sched_ctx, worker))
 		{
 			int ns = sc_hypervisor_get_nsched_ctxs();
 			int nw = starpu_worker_get_count(); /* Number of different workers */
@@ -346,7 +346,6 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct s
 			for(i = 0; i < ns; i++)
 				flops_on_w[i] = (double*)malloc(nw*sizeof(double));
 
-			printf("ns = %d nw = %d\n", ns, nw);
 			unsigned found_sol = _compute_flops_distribution_over_ctxs(ns, nw,  w_in_s, flops_on_w, NULL, NULL);
 			/* if we did find at least one solution redistribute the resources */
 			if(found_sol)

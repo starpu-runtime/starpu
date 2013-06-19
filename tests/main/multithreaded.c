@@ -32,7 +32,7 @@ static unsigned ntasks = 65536;
 #endif
 static unsigned nthreads = 2;
 
-void dummy_func(void *descr[] __attribute__ ((unused)), void *arg __attribute__ ((unused)))
+void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }
 
@@ -46,7 +46,7 @@ static struct starpu_codelet dummy_codelet =
 	.nbuffers = 0
 };
 
-void *thread_func(void *arg __attribute__((unused)))
+void *thread_func(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret;
 	unsigned i;

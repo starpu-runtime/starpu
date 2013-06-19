@@ -41,7 +41,7 @@ void _starpu_exclude_task_from_dag(struct starpu_task *task)
 }
 
 /* create an internal struct _starpu_job structure to encapsulate the task */
-struct _starpu_job* __attribute__((malloc)) _starpu_job_create(struct starpu_task *task)
+struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task)
 {
 	struct _starpu_job *job;
         _STARPU_LOG_IN();
@@ -313,7 +313,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(struct _starpu_job *j)
 	struct _starpu_cg_list *tag_successors = &tag->tag_successors;
 
 	_starpu_spin_lock(&tag->lock);
-	STARPU_ASSERT_MSG(tag->is_assigned == 1 || !tag_successors->ndeps, "a tag can be assigned only one task to wake");
+	STARPU_ASSERT_MSG(tag->is_assigned == 1 || !tag_successors->ndeps, "a tag can be assigned only one task to wake (%llu had %u assigned tasks, and %u successors)", (unsigned long long) tag->id, tag->is_assigned, tag_successors->ndeps);
 
 	if (tag_successors->ndeps != tag_successors->ndeps_completed)
 	{

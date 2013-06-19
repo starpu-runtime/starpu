@@ -26,13 +26,13 @@ static unsigned ntasks = 10000;
 #endif
 
 #ifdef STARPU_USE_CUDA
-extern void increment_cuda(void *descr[], __attribute__ ((unused)) void *_args);
+extern void increment_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 #endif
 #ifdef STARPU_USE_OPENCL
 extern void increment_opencl(void *buffers[], void *args);
 #endif
 
-void increment_cpu(void *descr[], __attribute__ ((unused)) void *_args)
+void increment_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -68,7 +68,7 @@ int increment_token(void)
 	return ret;
 }
 
-void callback(void *arg __attribute__ ((unused)))
+void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
         starpu_data_release(token_handle);
 }

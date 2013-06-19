@@ -1,0 +1,176 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Profiling Profiling
+
+\struct starpu_profiling_task_info
+\ingroup API_Profiling
+This structure contains information about the execution of a
+task. It is accessible from the field starpu_task::profiling_info if
+profiling was enabled.
+\var starpu_profiling_task_info::submit_time
+Date of task submission (relative to the initialization of StarPU).
+
+\var starpu_profiling_task_info::push_start_time
+Time when the task was submitted to the scheduler.
+
+\var starpu_profiling_task_info::push_end_time
+Time when the scheduler finished with the task submission.
+
+\var starpu_profiling_task_info::pop_start_time
+Time when the scheduler started to be requested for a task, and eventually gave that task.
+
+\var starpu_profiling_task_info::pop_end_time
+Time when the scheduler finished providing the task for execution.
+
+\var starpu_profiling_task_info::acquire_data_start_time
+Time when the worker started fetching input data.
+
+\var starpu_profiling_task_info::acquire_data_end_time
+Time when the worker finished fetching input data.
+
+\var starpu_profiling_task_info::start_time
+Date of task execution beginning (relative to the initialization of StarPU).
+
+\var starpu_profiling_task_info::end_time
+Date of task execution termination (relative to the initialization of StarPU).
+
+\var starpu_profiling_task_info::release_data_start_time
+Time when the worker started releasing data.
+
+\var starpu_profiling_task_info::release_data_end_time
+Time when the worker finished releasing data.
+
+\var starpu_profiling_task_info::callback_start_time
+        Time when the worker started the application callback for the task.
+
+\var starpu_profiling_task_info::callback_end_time
+        Time when the worker finished the application callback for the task.
+
+\var starpu_profiling_task_info::workerid
+        Identifier of the worker which has executed the task.
+
+\var starpu_profiling_task_info::used_cycles
+        Number of cycles used by the task, only available in the MoviSim
+
+\var starpu_profiling_task_info::stall_cycles
+        Number of cycles stalled within the task, only available in the MoviSim
+
+\var starpu_profiling_task_info::power_consumed
+        Power consumed by the task, only available in the MoviSim
+
+\struct starpu_profiling_worker_info
+This structure contains the profiling information associated to
+a worker. The timing is provided since the previous call to
+starpu_profiling_worker_get_info()
+\ingroup API_Profiling
+\var starpu_profiling_worker_info::start_time
+        Starting date for the reported profiling measurements.
+\var starpu_profiling_worker_info::total_time
+        Duration of the profiling measurement interval.
+\var starpu_profiling_worker_info::executing_time
+        Time spent by the worker to execute tasks during the profiling measurement interval.
+\var starpu_profiling_worker_info::sleeping_time
+        Time spent idling by the worker during the profiling measurement interval.
+\var starpu_profiling_worker_info::executed_tasks
+        Number of tasks executed by the worker during the profiling measurement interval.
+\var starpu_profiling_worker_info::used_cycles
+        Number of cycles used by the worker, only available in the MoviSim
+\var starpu_profiling_worker_info::stall_cycles
+        Number of cycles stalled within the worker, only available in the MoviSim
+\var starpu_profiling_worker_info::power_consumed
+        Power consumed by the worker, only available in the MoviSim
+
+\struct starpu_profiling_bus_info
+todo
+\ingroup API_Profiling
+\var starpu_profiling_bus_info::start_time
+        Time of bus profiling startup.
+\var starpu_profiling_bus_info::total_time
+        Total time of bus profiling.
+\var starpu_profiling_bus_info::transferred_bytes
+        Number of bytes transferred during profiling.
+\var starpu_profiling_bus_info::transfer_count
+        Number of transfers during profiling.
+
+\fn int starpu_profiling_status_set(int status)
+\ingroup API_Profiling
+This function sets the profiling status. Profiling is activated
+by passing \ref STARPU_PROFILING_ENABLE in status. Passing
+\ref STARPU_PROFILING_DISABLE disables profiling. Calling this function
+resets all profiling measurements. When profiling is enabled, the
+field starpu_task::profiling_info points to a valid structure
+starpu_profiling_task_info containing information about the execution
+of the task. Negative return values indicate an error, otherwise the
+previous status is returned.
+
+\fn int starpu_profiling_status_get(void)
+\ingroup API_Profiling
+Return the current profiling status or a negative value in case
+there was an error.
+
+\fn void starpu_profiling_set_id(int new_id)
+\ingroup API_Profiling
+This function sets the ID used for profiling trace filename. It
+needs to be called before starpu_init().
+
+\fn int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worker_info *worker_info)
+\ingroup API_Profiling
+Get the profiling info associated to the worker identified by
+\p workerid, and reset the profiling measurements. If the argument \p
+worker_info is NULL, only reset the counters associated to worker
+\p workerid. Upon successful completion, this function returns 0.
+Otherwise, a negative value is returned.
+
+\fn int starpu_bus_get_profiling_info(int busid, struct starpu_profiling_bus_info *bus_info)
+\ingroup API_Profiling
+todo
+
+\fn int starpu_bus_get_count(void)
+\ingroup API_Profiling
+Return the number of buses in the machine
+
+\fn int starpu_bus_get_id(int src, int dst)
+\ingroup API_Profiling
+Return the identifier of the bus between \p src and \p dst
+
+\fn int starpu_bus_get_src(int busid)
+\ingroup API_Profiling
+Return the source point of bus \p busid
+
+\fn int starpu_bus_get_dst(int busid)
+\ingroup API_Profiling
+Return the destination point of bus \p busid
+
+\fn double starpu_timing_timespec_delay_us(struct timespec *start, struct timespec *end)
+\ingroup API_Profiling
+Returns the time elapsed between \p start and \p end in microseconds.
+
+\fn double starpu_timing_timespec_to_us(struct timespec *ts)
+\ingroup API_Profiling
+Converts the given timespec \p ts into microseconds
+
+\fn void starpu_profiling_bus_helper_display_summary(void)
+\ingroup API_Profiling
+Displays statistics about the bus on stderr. if the environment
+variable \ref STARPU_BUS_STATS is defined. The function is called
+automatically by starpu_shutdown().
+
+\fn void starpu_profiling_worker_helper_display_summary(void)
+\ingroup API_Profiling
+Displays statistics about the workers on stderr if the
+environment variable \ref STARPU_WORKER_STATS is defined. The function is
+called automatically by starpu_shutdown().
+
+\fn void starpu_data_display_memory_stats()
+\ingroup API_Profiling
+Display statistics about the current data handles registered
+within StarPU. StarPU must have been configured with the configure
+option \ref enable-memory-stats "--enable-memory-stats" (see \ref MemoryFeedback).
+
+*/

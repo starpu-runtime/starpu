@@ -24,7 +24,7 @@
 #define N	1000
 #define VECTORSIZE	1024
 
-static void codelet_null(void *descr[], __attribute__ ((unused)) void *_args)
+static void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

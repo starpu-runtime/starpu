@@ -40,16 +40,6 @@ struct starpu_driver
 #elif defined(STARPU_SIMGRID)
 		unsigned opencl_id;
 #endif
-		/*
-		 * HOWTO: add a new kind of device to the starpu_driver structure.
-		 * 1) Add a member to this union.
-		 * 2) Edit _starpu_launch_drivers() to make sure the driver is
-		 *    not always launched.
-		 * 3) Edit starpu_driver_run() so that it can handle another
-		 *    kind of architecture.
-		 * 4) Write _starpu_run_foobar() in the corresponding driver.
-		 * 5) Test the whole thing :)
-		 */
 	} id;
 };
 

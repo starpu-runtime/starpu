@@ -34,7 +34,7 @@ static int compar_int(const void *pa, const void *pb)
 	int a = *((int *)pa);
 	int b = *((int *)pb);
 
-	return a > b;
+	return a - b;
 }
 
 static void sort_workerid_array(int nworkers, int workerid_array[])
@@ -125,12 +125,12 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 #ifdef CPU_OR
 		CPU_OR(&combined_worker->cpu_set,
 			&combined_worker->cpu_set,
-			&config->workers[id].initial_cpu_set);
+			&config->workers[id].cpu_set);
 #else
 		int j;
 		for (j = 0; j < CPU_SETSIZE; j++)
 		{
-			if (CPU_ISSET(j, &config->workers[id].initial_cpu_set))
+			if (CPU_ISSET(j, &config->workers[id].cpu_set))
 				CPU_SET(j, &combined_worker->cpu_set);
 		}
 #endif
@@ -139,7 +139,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 #ifdef STARPU_HAVE_HWLOC
 		hwloc_bitmap_or(combined_worker->hwloc_cpu_set,
 				combined_worker->hwloc_cpu_set,
-				config->workers[id].initial_hwloc_cpu_set);
+				config->workers[id].hwloc_cpu_set);
 #endif
 #endif
 	}

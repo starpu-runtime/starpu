@@ -61,12 +61,12 @@ void starpu_opencl_get_current_queue(cl_command_queue *queue);
 
 void starpu_opencl_load_program_source(const char *source_file_name, char *located_file_name, char *located_dir_name, char *opencl_program_source);
 int starpu_opencl_compile_opencl_from_file(const char *source_file_name, const char *build_options);
-int starpu_opencl_compile_opencl_from_string(const char *opencl_program_source, const char *file_name, const char* build_options);
+int starpu_opencl_compile_opencl_from_string(const char *opencl_program_source, const char *file_name, const char *build_options);
 
 int starpu_opencl_load_binary_opencl(const char *kernel_id, struct starpu_opencl_program *opencl_programs);
 
-int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char* build_options);
-int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs, const char* build_options);
+int starpu_opencl_load_opencl_from_file(const char *source_file_name, struct starpu_opencl_program *opencl_programs, const char *build_options);
+int starpu_opencl_load_opencl_from_string(const char *opencl_program_source, struct starpu_opencl_program *opencl_programs, const char *build_options);
 int starpu_opencl_unload_opencl(struct starpu_opencl_program *opencl_programs);
 
 int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs, const char *kernel_name, int devid);
@@ -74,29 +74,6 @@ int starpu_opencl_release_kernel(cl_kernel kernel);
 
 int starpu_opencl_collect_stats(cl_event event);
 
-/*
- * Sets the arguments of an OpenCL kernel.
- * Arguments to pass to the kernel should be given as follows :
- *
- * 	size of the argument,  pointer to the argument
- *
- * 0 must be passed to this function after the kernel arguments.
- *
- * In case of failure, returns the id of the argument that could not be set,
- * and sets "error" to the error returned. Otherwise, returns the number of
- * arguments that were set.
- *
- * Example :
- * int n;
- * cl_int err;
- * cl_kernel kernel;
- * n = starpu_opencl_set_kernel_args(&err, 2, &kernel,
- *				     sizeof(foo), &foo,
- *                                   sizeof(bar), &bar,
- *                                   0);
- * if (n != 2)
- * 	fprintf(stderr, "Error : %d\n", err);
- */
 int starpu_opencl_set_kernel_args(cl_int *err, cl_kernel *kernel, ...);
 
 cl_int starpu_opencl_allocate_memory(cl_mem *addr, size_t size, cl_mem_flags flags);

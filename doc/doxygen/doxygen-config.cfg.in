@@ -1,0 +1,64 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2011  Télécom-SudParis
+# Copyright (C) 2011, 2012  Institut National de Recherche en Informatique et Automatique
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+
+INPUT                  = @top_srcdir@/doc/doxygen/chapters \
+		       	 @top_srcdir@/doc/doxygen/chapters/api \
+                         @top_builddir@/doc/doxygen/starpu_config.h \
+	 		 @top_srcdir@/include/starpu_bound.h \
+			 @top_srcdir@/include/starpu_cublas.h \
+			 @top_srcdir@/include/starpu_cuda.h \
+			 @top_srcdir@/include/starpu_data_filters.h \
+			 @top_srcdir@/include/starpu_data.h \
+			 @top_srcdir@/include/starpu_data_interfaces.h \
+			 @top_srcdir@/include/starpu_deprecated_api.h \
+			 @top_srcdir@/include/starpu_driver.h \
+			 @top_srcdir@/include/starpu_expert.h \
+			 @top_srcdir@/include/starpu_fxt.h \
+			 @top_srcdir@/include/starpu.h \
+			 @top_srcdir@/include/starpu_hash.h \
+			 @top_srcdir@/include/starpu_mic.h \
+			 @top_srcdir@/include/starpu_opencl.h \
+			 @top_srcdir@/include/starpu_perfmodel.h \
+			 @top_srcdir@/include/starpu_profiling.h \
+			 @top_srcdir@/include/starpu_rand.h \
+			 @top_srcdir@/include/starpu_scc.h \
+			 @top_srcdir@/include/starpu_sched_ctx.h \
+			 @top_srcdir@/include/starpu_scheduler.h \
+			 @top_srcdir@/include/starpu_sink.h \
+			 @top_srcdir@/include/starpu_stdlib.h \
+			 @top_srcdir@/include/starpu_task_bundle.h \
+			 @top_srcdir@/include/starpu_task.h \
+			 @top_srcdir@/include/starpu_task_list.h \
+			 @top_srcdir@/include/starpu_task_util.h \
+			 @top_srcdir@/include/starpu_thread.h \
+			 @top_srcdir@/include/starpu_thread_util.h \
+			 @top_srcdir@/include/starpu_top.h \
+			 @top_srcdir@/include/starpu_util.h \
+			 @top_srcdir@/include/starpu_worker.h \
+			 @top_srcdir@/mpi/include/ \
+			 @top_srcdir@/starpufft/starpufft.h \
+			 @top_srcdir@/sc_hypervisor/include
+
+EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
+		       	 @top_srcdir@/doc/doxygen/chapters \
+		       	 @top_srcdir@/doc/doxygen/chapters/code
+
+INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
+
+LATEX_HEADER           = @top_srcdir@/doc/doxygen/refman.tex
+

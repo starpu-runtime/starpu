@@ -18,7 +18,7 @@
 #include <starpu.h>
 #include "../helper.h"
 
-void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -28,7 +28,7 @@ void cpu_codelet(void *descr[], __attribute__ ((unused)) void *_args)
 	*valout = *valin;
 }
 
-void cpu2_codelet(void *descr[], __attribute__ ((unused)) void *_args)
+void cpu2_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

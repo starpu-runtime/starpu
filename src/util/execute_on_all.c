@@ -26,7 +26,7 @@ struct wrapper_func_args
 	void *arg;
 };
 
-static void wrapper_func(void *buffers[] __attribute__ ((unused)), void *_args)
+static void wrapper_func(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *_args)
 {
 	struct wrapper_func_args *args = (struct wrapper_func_args *) _args;
 	args->func(args->arg);

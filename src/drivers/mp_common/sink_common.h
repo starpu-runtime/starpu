@@ -20,10 +20,17 @@
 
 #include <common/config.h>
 
-
 #ifdef STARPU_USE_MP
 
 #include <drivers/mp_common/mp_common.h>
+
+/* Represent the topology of sink devices, contains useful informations about
+ * their capabilities */
+// XXX: unused.
+struct _starpu_sink_topology
+{
+	unsigned nb_cpus;
+};
 
 void _starpu_sink_common_worker(void);
 
