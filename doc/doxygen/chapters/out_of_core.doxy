@@ -8,7 +8,9 @@
 
 \section Introduction Introduction
 
-When you are using Starpu, you can need more memory than main memory (RAM) is able to receive datas. This part describes the method to add a new memory node on a disk and to use it.
+When using Starpu, one may need to store more data than what the main memory
+(RAM) can store. This part describes the method to add a new memory node on a
+disk and to use it.
 
 \section UseANewDiskMemory Use a new disk memory
 
@@ -18,15 +20,22 @@ To use a disk memory node, you have to register it with this function:
 	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) "/tmp/", 1024*1024*200);
 \endcode
 
-Here, we use the library called stdio to realize the read/write process. This structure must have a path to make the work and at the end, we give it the maximum size the software can use on the disk. <br />
-Don't forget to check if the result is correct !<br />
-When the register function is called, we benchmark it. You have to know that it can take a few time.
+Here, we use the stdio library to realize the read/write operations, i.e.
+fread/fwrite. This structure must have a path where to store files, as well as
+the maximum size the software can afford storing on the disk.
 
-<strong>Warning: the size must be at least 1 MB ! </strong> 
+Don't forget to check if the result is correct!
 
-To write or read on the node, you can use the \ref API_Standard_Memory_Library or the \ref API_Data_Interfaces .
+When the register function is called, StarPU will benchmark the disk. This can
+take some time.
 
-At the end, you have to unregister your disk memory:
+<strong>Warning: the size thus has to be at least 1 MB!</strong> 
+
+StarPU will automatically try to evict unused data to this new disk. One can
+also use the standard StarPU node API, see the \ref API_Standard_Memory_Library
+and the \ref API_Data_Interfaces .
+
+Before shutting down StarPU, the disk memory has to be unregistered:
 
 \code{.c}
 	starpu_disk_unregister(dd);
@@ -34,7 +43,10 @@ At the end, you have to unregister your disk memory:
 
 \section DiskFunctions Disk functions
 
-You have various ways to use a disk memory node. You have, for instance, the starpu_disk_stdio_ops. <br />
+There have various ways to operate a disk memory node, described by the
+starpu_disk_ops structure. For instance, the starpu_disk_stdio_ops structure
+uses fread/fwrite functions.
+
 All structures are in \ref API_Out_Of_Core .
 
 \section ExampleDiskCopy Example: disk_copy
