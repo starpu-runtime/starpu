@@ -9,7 +9,7 @@
 
 
 
-\struct disk_ops
+\struct starpu_disk_ops
 \ingroup API_Out_Of_Core
 This is a set of functions to manipulate datas on disk.
 

@@ -8,7 +8,7 @@
 
 \section Introduction Introduction
 
-When using Starpu, one may need to store more data than what the main memory
+When using StarPU, one may need to store more data than what the main memory
 (RAM) can store. This part describes the method to add a new memory node on a
 disk and to use it.
 
@@ -43,8 +43,8 @@ Before shutting down StarPU, the disk memory has to be unregistered:
 
 \section DiskFunctions Disk functions
 
-There have various ways to operate a disk memory node, described by the
-starpu_disk_ops structure. For instance, the starpu_disk_stdio_ops structure
+There have various ways to operate a disk memory node, described by the structure
+starpu_disk_ops. For instance, the variable #starpu_disk_stdio_ops
 uses fread/fwrite functions.
 
 All structures are in \ref API_Out_Of_Core .
