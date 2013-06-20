@@ -25,6 +25,7 @@
 #include <core/progress_hook.h>
 #include <core/workers.h>
 #include <core/debug.h>
+#include <core/disk.h>
 #include <core/task.h>
 #include <profiling/profiling.h>
 #include <starpu_task_list.h>
@@ -1200,8 +1201,9 @@ void starpu_shutdown(void)
 
 	_starpu_delete_all_sched_ctxs();
 
-	_starpu_destroy_topology(&config);
+	_starpu_disk_unregister();
 
+	_starpu_destroy_topology(&config);
 #ifdef STARPU_USE_FXT
 	_starpu_stop_fxt_profiling();
 #endif

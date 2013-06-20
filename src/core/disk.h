@@ -47,4 +47,8 @@ int _starpu_is_same_kind_disk(unsigned node1, unsigned node2);
 void _starpu_set_disk_flag(unsigned node, int flag);
 int _starpu_get_disk_flag(unsigned node);
 
+/* unregister disk */
+
+void _starpu_disk_unregister(void);
+
 #endif /* __DISK_H__ */

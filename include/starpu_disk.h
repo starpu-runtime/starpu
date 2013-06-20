@@ -41,6 +41,4 @@ extern struct starpu_disk_ops starpu_disk_stdio_ops;
 /* interface to create and to free a memory disk */
 int starpu_disk_register(struct starpu_disk_ops * func, void *parameter, size_t size);
 
-void starpu_disk_unregister(unsigned node);
-
 #endif /* __STARPU_DISK_H__ */

@@ -22,14 +22,15 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#include <datawizard/memory_manager.h>
 #include <common/config.h>
 #include <core/debug.h>
 #include <core/disk.h>
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
-
 #include <core/topology.h>
+#include <datawizard/memory_manager.h>
+#include <datawizard/memalloc.h>
+
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <profiling/profiling.h>
@@ -78,27 +79,22 @@ starpu_disk_register(struct starpu_disk_ops * func, void *parameter, size_t size
 
 
 void
-starpu_disk_unregister(unsigned node)
+_starpu_disk_unregister(void)
 {
-	bool find = false;
 	int i;
 	
 	/* search disk and delete it */
 	for (i = 0; i <= disk_number; ++i)
 	{
-		if (find)
-			disk_register_list[i-1] = disk_register_list[i];
-		if (disk_register_list[i]->node == node)
-		{
-			/* don't forget to unplug */
-			disk_register_list[i]->functions->unplug(disk_register_list[i]->base);
-			free(disk_register_list[i]);
-			find = true; 
-		}
+		_starpu_set_disk_flag(disk_register_list[i]->node, STARPU_DISK_NO_RECLAIM);
+		_starpu_free_all_automatically_allocated_buffers(disk_register_list[i]->node);	
+
+		/* don't forget to unplug */
+		disk_register_list[i]->functions->unplug(disk_register_list[i]->base);
+		free(disk_register_list[i]);
 	}
 	
 	/* no disk in the list -> delete the list */
-	STARPU_ASSERT_MSG(find, "Disk node not found !(%u) ", node);
 	disk_number--;
 
 	if (disk_register_list != NULL && disk_number == -1)
@@ -229,7 +225,7 @@ _starpu_is_same_kind_disk(unsigned node1, unsigned node2)
 
 
 void
- _starpu_set_disk_flag(unsigned node, int flag)
+_starpu_set_disk_flag(unsigned node, int flag)
 {
 	int pos = get_location_with_node(node);
 	disk_register_list[pos]->flag = flag;
