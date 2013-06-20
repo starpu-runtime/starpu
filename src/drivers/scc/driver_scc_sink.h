@@ -30,6 +30,8 @@ void _starpu_scc_sink_deinit(struct _starpu_mp_node *node);
 void _starpu_scc_sink_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len);
 void _starpu_scc_sink_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len);
 
+void _starpu_scc_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, cpu_set_t * cpuset, int coreid, pthread_t *thread);
+
 void _starpu_scc_sink_execute(const struct _starpu_mp_node *node, void *arg, int arg_size);
 
 #endif /* STARPU_USE_SCC */

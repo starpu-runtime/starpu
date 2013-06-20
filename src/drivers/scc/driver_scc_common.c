@@ -172,3 +172,11 @@ void _starpu_scc_common_report_rcce_error(const char *func, const char *file, co
 	fprintf(stderr, "RCCE error in %s (%s:%d): %s\n", func, file, line, error_string); 
 	STARPU_ABORT();
 }
+
+int _starpu_scc_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
+{
+  /***********
+      TODO
+  ************/
+  STARPU_ASSERT(0);
+}

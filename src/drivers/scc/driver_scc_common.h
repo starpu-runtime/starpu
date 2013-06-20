@@ -44,6 +44,8 @@ void _starpu_scc_common_recv(const struct _starpu_mp_node *node, void *msg, int 
 
 void _starpu_scc_common_report_rcce_error(const char *func, const char *file, const int line, const int err_no);
 
+int _starpu_scc_common_recv_is_ready(const struct _starpu_mp_node *mp_node);
+
 #endif /* STARPU_USE_SCC */
 
 

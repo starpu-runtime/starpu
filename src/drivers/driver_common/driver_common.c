@@ -95,7 +95,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	}
 
 	if (starpu_top)
-	  _starpu_top_task_ended(task,workerid,codelet_end);
+		_starpu_top_task_ended(task,workerid,codelet_end);
 
 	args->status = STATUS_UNKNOWN;
 }
@@ -129,9 +129,9 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 			profiling_info->workerid = workerid;
 
 			_starpu_worker_update_profiling_info_executing(workerid, &measured_ts, 1,
-				profiling_info->used_cycles,
-				profiling_info->stall_cycles,
-				profiling_info->power_consumed);
+								       profiling_info->used_cycles,
+								       profiling_info->stall_cycles,
+								       profiling_info->power_consumed);
 			updated =  1;
 		}
 
@@ -147,6 +147,29 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	if (profiling_info && profiling_info->power_consumed && cl->power_model && cl->power_model->benchmarking)
 	{
 		_starpu_update_perfmodel_history(j, j->task->cl->power_model,  perf_arch, worker_args->devid, profiling_info->power_consumed,j->nimpl);
+	}
+}
+
+
+
+static void _starpu_worker_set_status_sleeping(int workerid)
+{
+	if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
+	{
+		_STARPU_TRACE_WORKER_SLEEP_START;
+		_starpu_worker_restart_sleeping(workerid);
+		_starpu_worker_set_status(workerid, STATUS_SLEEPING);
+	}
+
+}
+
+static void _starpu_worker_set_status_wakeup(int workerid)
+{
+	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
+	{
+		_STARPU_TRACE_WORKER_SLEEP_END;
+		_starpu_worker_stop_sleeping(workerid);
+		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
 	}
 }
 
@@ -175,12 +198,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		 * driver may go block just after the scheduler got a new task to be
 		 * executed, and thus hanging. */
 
-		if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
-		{
-			_STARPU_TRACE_WORKER_SLEEP_START;
-			_starpu_worker_restart_sleeping(workerid);
-			_starpu_worker_set_status(workerid, STATUS_SLEEPING);
-		}
+		_starpu_worker_set_status_sleeping(workerid);
 
 		if (_starpu_worker_can_block(memnode))
 			STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
@@ -208,12 +226,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 
-	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
-	{
-		_STARPU_TRACE_WORKER_SLEEP_END;
-		_starpu_worker_stop_sleeping(workerid);
-		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
-	}
+	_starpu_worker_set_status_wakeup(workerid);
 
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
@@ -229,23 +242,32 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 
 int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_task ** tasks, int nworkers)
 {
-  int i, count = 0;
-  //_STARPU_DEBUG(" nworkers:%d\n", nworkers);
-
-  for (i = 0 ; (i < nworkers); i++){
-    if(workers[i].current_task)
-      tasks[i] = NULL;
-    else
-      {
-	//_STARPU_DEBUG(" try pop task\n");
-	tasks[i] = _starpu_pop_task(&workers[i]);
-	if(tasks[i] != NULL)
-	  count ++;
-	//else
-	  //_STARPU_DEBUG(" pop task fail\n");
-	  
-      }
-  }
-  //  _STARPU_DEBUG("count:%d\n", count);
-  return count;
+	int i, count = 0;
+	/*for each worker*/
+	for (i = 1; (i < nworkers); i++)
+	{
+		/*if the worker is already executinf a task then */
+		if(workers[i].current_task)
+		{
+			tasks[i] = NULL;
+		}
+		/*else try to pop a task*/
+		else
+		{
+			STARPU_PTHREAD_MUTEX_LOCK(&workers[i].sched_mutex);
+			tasks[i] = _starpu_pop_task(&workers[i]);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&workers[i].sched_mutex);
+			if(tasks[i] != NULL)
+			{
+				count ++;
+				_starpu_worker_set_status_sleeping(workers[i].workerid);
+			}
+			else
+			{
+				_starpu_worker_set_status_wakeup(workers[i].workerid);
+			}
+		}
+	}
+	return count;
 }
+

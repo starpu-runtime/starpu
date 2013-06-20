@@ -31,8 +31,8 @@
  * all the pointer of functions are linked to the right ones.
  */
 struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
-    _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
-				  int peer_id)
+_starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
+			      int peer_id)
 {
 	struct _starpu_mp_node *node;
 
@@ -47,123 +47,123 @@ struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
 	switch(node->kind)
 	{
 #ifdef STARPU_USE_MIC
-		case STARPU_MIC_SOURCE:
-			{
-				node->nb_mp_sinks = starpu_mic_worker_get_count();
-				node->devid = peer_id;
+	case STARPU_MIC_SOURCE:
+	{
+		node->nb_mp_sinks = starpu_mic_worker_get_count();
+		node->devid = peer_id;
 
-				node->init = _starpu_mic_src_init;
-				node->deinit = _starpu_mic_src_deinit;
-				node->report_error = _starpu_mic_src_report_scif_error;
+		node->init = _starpu_mic_src_init;
+		node->deinit = _starpu_mic_src_deinit;
+		node->report_error = _starpu_mic_src_report_scif_error;
 
-				node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
-				node->mp_send = _starpu_mic_common_send;
-				node->mp_recv = _starpu_mic_common_recv;
-				node->dt_send = _starpu_mic_common_dt_send;
-				node->dt_recv = _starpu_mic_common_dt_recv;
+		node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
+		node->mp_send = _starpu_mic_common_send;
+		node->mp_recv = _starpu_mic_common_recv;
+		node->dt_send = _starpu_mic_common_dt_send;
+		node->dt_recv = _starpu_mic_common_dt_recv;
 
-				node->get_kernel_from_job =_starpu_mic_src_get_kernel_from_job;
-				node->bind_thread = NULL;
-				node->execute = NULL;
-				node->nbcores = NULL;
-				node->allocate = NULL;
-				node->free = NULL;
+		node->get_kernel_from_job =_starpu_mic_src_get_kernel_from_job;
+		node->bind_thread = NULL;
+		node->execute = NULL;
+		node->nbcores = NULL;
+		node->allocate = NULL;
+		node->free = NULL;
 
-				/* A source node is only working on one core,
-				 * there is no need for this function */
-				node->get_nb_core = NULL;
-			}
-			break;
+		/* A source node is only working on one core,
+		 * there is no need for this function */
+		node->get_nb_core = NULL;
+	}
+	break;
 
-		case STARPU_MIC_SINK:
-			{
-				node->devid = atoi(getenv("DEVID"));;
-				node->nb_mp_sinks = atoi(getenv("NB_MIC"));
+	case STARPU_MIC_SINK:
+	{
+		node->devid = atoi(getenv("DEVID"));;
+		node->nb_mp_sinks = atoi(getenv("NB_MIC"));
 
-				node->init = _starpu_mic_sink_init;
-				node->deinit = _starpu_mic_sink_deinit;
-				node->report_error = _starpu_mic_sink_report_error;
+		node->init = _starpu_mic_sink_init;
+		node->deinit = _starpu_mic_sink_deinit;
+		node->report_error = _starpu_mic_sink_report_error;
 
-				node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
-				node->mp_send = _starpu_mic_common_send;
-				node->mp_recv = _starpu_mic_common_recv;
-				node->dt_send = _starpu_mic_common_dt_send;
-				node->dt_recv = _starpu_mic_common_dt_recv;
+		node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
+		node->mp_send = _starpu_mic_common_send;
+		node->mp_recv = _starpu_mic_common_recv;
+		node->dt_send = _starpu_mic_common_dt_send;
+		node->dt_recv = _starpu_mic_common_dt_recv;
 
-				node->get_kernel_from_job = NULL;
-				node->bind_thread = _starpu_mic_sink_bind_thread;
-				node->execute = _starpu_sink_common_execute;
-				node->nbcores = _starpu_sink_nbcores;
-				node->allocate = _starpu_mic_sink_allocate;
-				node->free = _starpu_mic_sink_free;
+		node->get_kernel_from_job = NULL;
+		node->bind_thread = _starpu_mic_sink_bind_thread;
+		node->execute = _starpu_sink_common_execute;
+		node->nbcores = _starpu_sink_nbcores;
+		node->allocate = _starpu_mic_sink_allocate;
+		node->free = _starpu_mic_sink_free;
 
-				node->get_nb_core = _starpu_mic_sink_get_nb_core;
-			}
-			break;
+		node->get_nb_core = _starpu_mic_sink_get_nb_core;
+	}
+	break;
 #endif /* STARPU_USE_MIC */
 
 #ifdef STARPU_USE_SCC
-		case STARPU_SCC_SOURCE:
-			{
-				node->init = _starpu_scc_src_init;
-				node->deinit = NULL;
-				node->report_error = _starpu_scc_common_report_rcce_error;
+	case STARPU_SCC_SOURCE:
+	{
+		node->init = _starpu_scc_src_init;
+		node->deinit = NULL;
+		node->report_error = _starpu_scc_common_report_rcce_error;
 				
-				node->mp_recv_is_ready = NULL;
-				node->mp_send = _starpu_scc_common_send;
-				node->mp_recv = _starpu_scc_common_recv;
-				node->dt_send = _starpu_scc_common_send;
-				node->dt_recv = _starpu_scc_common_recv;
-				node->dt_send_to_device = NULL;
-				node->dt_recv_from_device = NULL;
+		node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
+		node->mp_send = _starpu_scc_common_send;
+		node->mp_recv = _starpu_scc_common_recv;
+		node->dt_send = _starpu_scc_common_send;
+		node->dt_recv = _starpu_scc_common_recv;
+		node->dt_send_to_device = NULL;
+		node->dt_recv_from_device = NULL;
 
-				node->get_kernel_from_job =_starpu_scc_src_get_kernel_from_job;
-				node->bind_thread = NULL;
-				node->execute = NULL;
-				node->allocate = NULL;
-				node->free = NULL;
+		node->get_kernel_from_job =_starpu_scc_src_get_kernel_from_job;
+		node->bind_thread = _starpu_scc_sink_bind_thread;
+		node->execute = NULL;
+		node->allocate = NULL;
+		node->free = NULL;
 
-				node->get_nb_core = NULL;
-			}
-			break;
+		node->get_nb_core = NULL;
+	}
+	break;
 
-		case STARPU_SCC_SINK:
-			{
-				node->init = _starpu_scc_sink_init;
-				node->deinit = _starpu_scc_sink_deinit;
-				node->report_error = _starpu_scc_common_report_rcce_error;
+	case STARPU_SCC_SINK:
+	{
+		node->init = _starpu_scc_sink_init;
+		node->deinit = _starpu_scc_sink_deinit;
+		node->report_error = _starpu_scc_common_report_rcce_error;
 
-				node->mp_recv_is_ready = NULL;
-				node->mp_send = _starpu_scc_common_send;
-				node->mp_recv = _starpu_scc_common_recv;
-				node->dt_send = _starpu_scc_common_send;
-				node->dt_recv = _starpu_scc_common_recv;
-				node->dt_send_to_device = _starpu_scc_sink_send_to_device;
-				node->dt_recv_from_device = _starpu_scc_sink_recv_from_device;
+		node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
+		node->mp_send = _starpu_scc_common_send;
+		node->mp_recv = _starpu_scc_common_recv;
+		node->dt_send = _starpu_scc_common_send;
+		node->dt_recv = _starpu_scc_common_recv;
+		node->dt_send_to_device = _starpu_scc_sink_send_to_device;
+		node->dt_recv_from_device = _starpu_scc_sink_recv_from_device;
 
-				node->get_kernel_from_job = NULL;
-				node->bind_thread = NULL;
-				node->execute = _starpu_scc_sink_execute;
-				node->allocate = _starpu_sink_common_allocate;
-				node->free = _starpu_sink_common_free;
+		node->get_kernel_from_job = NULL;
+		node->bind_thread = _starpu_scc_sink_bind_thread;
+		node->execute = _starpu_scc_sink_execute;
+		node->allocate = _starpu_sink_common_allocate;
+		node->free = _starpu_sink_common_free;
 
-				node->get_nb_core = NULL;
-			}
-			break;
+		node->get_nb_core = NULL;
+	}
+	break;
 #endif /* STARPU_USE_SCC */
 
 #ifdef STARPU_USE_MPI
-		case STARPU_MPI_SOURCE:
-			STARPU_ABORT();
-			break;
+	case STARPU_MPI_SOURCE:
+		STARPU_ABORT();
+		break;
 
-		case STARPU_MPI_SINK:
-			STARPU_ABORT();
-			break;
+	case STARPU_MPI_SINK:
+		STARPU_ABORT();
+		break;
 #endif /* STARPU_USE_MPI */
 
-		default:
-			STARPU_ASSERT(0);
+	default:
+		STARPU_ASSERT(0);
 	}
 
 	/* Let's allocate the buffer, we want it to be big enough to contain

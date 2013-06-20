@@ -55,17 +55,17 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 void
 _starpu_sink_nbcores (const struct _starpu_mp_node *node)
 {
-    // Process packet received from `_starpu_src_common_sink_cores'.
-    int nbcores = 1;
+	// Process packet received from `_starpu_src_common_sink_cores'.
+	int nbcores = 1;
 
 #ifdef STARPU_USE_MIC
-    // XXX I currently only support MIC for now.
-    if (STARPU_MIC_SINK == _starpu_sink_common_get_kind ())
-	nbcores = COISysGetCoreCount();
+	// XXX I currently only support MIC for now.
+	if (STARPU_MIC_SINK == _starpu_sink_common_get_kind ())
+		nbcores = COISysGetCoreCount();
 #endif
 
-    _starpu_mp_common_send_command (node, STARPU_ANSWER_SINK_NBCORES,
-				    &nbcores, sizeof (int));
+	_starpu_mp_common_send_command (node, STARPU_ANSWER_SINK_NBCORES,
+					&nbcores, sizeof (int));
 }
 
 
@@ -82,28 +82,28 @@ static void _starpu_sink_common_lookup(const struct _starpu_mp_node *node,
 	/* If we couldn't find the function, let's send an error to the host.
 	 * The user probably made a mistake in the name */
 	if (func)
-	    _starpu_mp_common_send_command(node, STARPU_ANSWER_LOOKUP,
+		_starpu_mp_common_send_command(node, STARPU_ANSWER_LOOKUP,
 					       &func, sizeof(func));
 	else
-	    _starpu_mp_common_send_command(node, STARPU_ERROR_LOOKUP,
+		_starpu_mp_common_send_command(node, STARPU_ERROR_LOOKUP,
 					       NULL, 0);
 }
 
 void _starpu_sink_common_allocate(const struct _starpu_mp_node *mp_node,
 				  void *arg, int arg_size)
 {
-    STARPU_ASSERT(arg_size == sizeof(size_t));
+	STARPU_ASSERT(arg_size == sizeof(size_t));
 
-    void *addr = malloc(*(size_t *)(arg));
+	void *addr = malloc(*(size_t *)(arg));
 
-    /* If the allocation fail, let's send an error to the host.
-     */
-    if (addr)
-	_starpu_mp_common_send_command(mp_node, STARPU_ANSWER_ALLOCATE,
-				       &addr, sizeof(addr));
-    else
-	_starpu_mp_common_send_command(mp_node, STARPU_ERROR_ALLOCATE,
-				       NULL, 0);
+	/* If the allocation fail, let's send an error to the host.
+	 */
+	if (addr)
+		_starpu_mp_common_send_command(mp_node, STARPU_ANSWER_ALLOCATE,
+					       &addr, sizeof(addr));
+	else
+		_starpu_mp_common_send_command(mp_node, STARPU_ERROR_ALLOCATE,
+					       NULL, 0);
 }
 
 void _starpu_sink_common_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED,
@@ -117,43 +117,43 @@ void _starpu_sink_common_free(const struct _starpu_mp_node *mp_node STARPU_ATTRI
 static void _starpu_sink_common_copy_from_host(const struct _starpu_mp_node *mp_node,
 					       void *arg, int arg_size)
 {
-    STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command));
+	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command));
 
-    struct _starpu_mp_transfer_command *cmd = (struct _starpu_mp_transfer_command *)arg;
+	struct _starpu_mp_transfer_command *cmd = (struct _starpu_mp_transfer_command *)arg;
 
-    mp_node->dt_recv(mp_node, cmd->addr, cmd->size);
+	mp_node->dt_recv(mp_node, cmd->addr, cmd->size);
 }
 
 static void _starpu_sink_common_copy_to_host(const struct _starpu_mp_node *mp_node,
 					     void *arg, int arg_size)
 {
-    STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command));
+	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command));
 
-    struct _starpu_mp_transfer_command *cmd = (struct _starpu_mp_transfer_command *)arg;
+	struct _starpu_mp_transfer_command *cmd = (struct _starpu_mp_transfer_command *)arg;
 
-    mp_node->dt_send(mp_node, cmd->addr, cmd->size);
+	mp_node->dt_send(mp_node, cmd->addr, cmd->size);
 }
 
 static void _starpu_sink_common_copy_from_sink(const struct _starpu_mp_node *mp_node,
 					       void *arg, int arg_size)
 {
-    STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
+	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
 
-    struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
+	struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
 
-    mp_node->dt_recv_from_device(mp_node, cmd->devid, cmd->addr, cmd->size);
+	mp_node->dt_recv_from_device(mp_node, cmd->devid, cmd->addr, cmd->size);
 
-    _starpu_mp_common_send_command(mp_node, STARPU_TRANSFER_COMPLETE, NULL, 0);
+	_starpu_mp_common_send_command(mp_node, STARPU_TRANSFER_COMPLETE, NULL, 0);
 }
 
 static void _starpu_sink_common_copy_to_sink(const struct _starpu_mp_node *mp_node,
 					     void *arg, int arg_size)
 {
-    STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
+	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_command_to_device));
 
-    struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
+	struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
 
-    mp_node->dt_send_to_device(mp_node, cmd->devid, cmd->addr, cmd->size);
+	mp_node->dt_send_to_device(mp_node, cmd->devid, cmd->addr, cmd->size);
 }
 
 /* Function looping on the sink, waiting for tasks to execute.
@@ -179,14 +179,14 @@ void _starpu_sink_common_worker(void)
 	
 	while (!exit_starpu)
 	{
-	  if(node->mp_recv_is_ready(node))
-	    {	
-	      command = _starpu_mp_common_recv_command(node, &arg, &arg_size);
-		switch(command)
-		{
-		case STARPU_EXIT:
-		  exit_starpu = 1;
-		  break;
+		if(node->mp_recv_is_ready(node))
+		{	
+			command = _starpu_mp_common_recv_command(node, &arg, &arg_size);
+			switch(command)
+			{
+			case STARPU_EXIT:
+				exit_starpu = 1;
+				break;
 			case STARPU_EXECUTE:
 				node->execute(node, arg, arg_size);
 				break;
@@ -223,18 +223,18 @@ void _starpu_sink_common_worker(void)
 
 			default:
 				printf("Oops, command %x unrecognized\n", command);
+			}
 		}
-	    }
 
 		if(!task_fifo_is_empty(&(node->dead_queue)))
-		  {
-		    struct task * task = node->dead_queue.first;
-		    //_STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
-		    _starpu_mp_common_send_command(task->node, STARPU_EXECUTION_COMPLETED,
-								    &(task->coreid), sizeof(task->coreid));
-		    task_fifo_pop(&(node->dead_queue));
-		    free(task);
-		  }
+		{
+			struct task * task = node->dead_queue.first;
+			//_STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
+			_starpu_mp_common_send_command(task->node, STARPU_EXECUTION_COMPLETED,
+						       &(task->coreid), sizeof(task->coreid));
+			task_fifo_pop(&(node->dead_queue));
+			free(task);
+		}
 	}
 
 	/* Deinitialize the node and release it */
@@ -247,28 +247,28 @@ void _starpu_sink_common_worker(void)
 
 static void* _starpu_sink_thread(void * thread_arg)
 {
-  struct task *arg = (struct task *)thread_arg;
+	struct task *arg = (struct task *)thread_arg;
   
-  //execute the task
-  arg->kernel(arg->interfaces,arg->cl_arg);
+	//execute the task
+	arg->kernel(arg->interfaces,arg->cl_arg);
 
-  //append the finished task to the dead queue
-  task_fifo_append(&(arg->node->dead_queue),arg);
-  pthread_exit(NULL);
+	//append the finished task to the dead queue
+	task_fifo_append(&(arg->node->dead_queue),arg);
+	pthread_exit(NULL);
 }
 
 static void _starpu_sink_execute_thread(struct task *arg)
 {
-  pthread_t thread;
-  cpu_set_t cpuset;
-  int ret;
+	pthread_t thread;
+	cpu_set_t cpuset;
+	int ret;
   
-  //create the tread
-  ret = pthread_create(&thread, NULL, _starpu_sink_thread, arg);
-  STARPU_ASSERT(ret == 0);
+	//create the tread
+	ret = pthread_create(&thread, NULL, _starpu_sink_thread, arg);
+	STARPU_ASSERT(ret == 0);
   
-  //bind the thread on the core coreid
-  arg->node->bind_thread(arg->node, &cpuset, arg->coreid, &thread);
+	//bind the thread on the core coreid
+	arg->node->bind_thread(arg->node, &cpuset, arg->coreid, &thread);
 }
 
 
@@ -280,7 +280,7 @@ static void _starpu_sink_execute_thread(struct task *arg)
  */
 
 void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
-					void *arg, int arg_size)
+				 void *arg, int arg_size)
 {
 	unsigned id = 0;
 	unsigned nb_interfaces;

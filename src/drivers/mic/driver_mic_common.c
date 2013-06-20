@@ -129,7 +129,7 @@ void _starpu_mic_common_accept(scif_epd_t *endpoint, uint16_t port_number)
 	_STARPU_DEBUG("MIC accepting connection on %u...\n", port_number);
 	if ((scif_accept(init_epd, &portID, endpoint, SCIF_ACCEPT_SYNC)) < 0)
 		STARPU_MIC_COMMON_REPORT_SCIF_ERROR(errno);
-	_STARPU_DEBUG("done\n", init_epd);
+	_STARPU_DEBUG("done : %d\n", init_epd);
 
 	scif_close(init_epd);
 }
