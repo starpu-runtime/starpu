@@ -20,10 +20,6 @@ SUCCESS: return the disk node. <br />
 FAIL: return an error code. <br />
 The \p size must be at least 1 MB !
 
-\fn void starpu_disk_unregister(unsigned node)
-\ingroup API_Out_Of_Core
-Unregister a disk memory node created by the starpu_disk_register function.
-
 \var starpu_disk_stdio_ops
 \ingroup API_Out_Of_Core
 This set uses the stdio library (fwrite, fread...) to read/write on disk. <br />
