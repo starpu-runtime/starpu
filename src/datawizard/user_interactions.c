@@ -75,7 +75,8 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 	 * We enqueue the "post" sync task in the list associated to the handle
 	 * so that it is submitted by the starpu_data_release
 	 * function. */
-	_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
+	if (wrapper->post_sync_task)
+		_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
 
 	wrapper->callback(wrapper->callback_arg);
 
