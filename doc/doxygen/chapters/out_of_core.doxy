@@ -35,11 +35,7 @@ StarPU will automatically try to evict unused data to this new disk. One can
 also use the standard StarPU node API, see the \ref API_Standard_Memory_Library
 and the \ref API_Data_Interfaces .
 
-Before shutting down StarPU, the disk memory has to be unregistered:
-
-\code{.c}
-	starpu_disk_unregister(dd);
-\endcode
+The disk is unregistered during the starpu_shutdown().
 
 \section DiskFunctions Disk functions
 
