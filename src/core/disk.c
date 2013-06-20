@@ -148,14 +148,14 @@ _starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned n
 }
 
 void * 
-_starpu_disk_open(unsigned node, void *pos, size_t size)
+starpu_disk_open(unsigned node, void *pos, size_t size)
 {
 	int position = get_location_with_node(node);
 	return disk_register_list[position]->functions->open(disk_register_list[position]->base, pos, size);
 }
 
 void 
-_starpu_disk_close(unsigned node, void *obj, size_t size)
+starpu_disk_close(unsigned node, void *obj, size_t size)
 {
 	int position = get_location_with_node(node);
 	disk_register_list[position]->functions->close(disk_register_list[position]->base, obj, size);	
