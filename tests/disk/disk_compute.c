@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#define NX (30*1000000/sizeof(int))
+#define NX (30*1000000)
 
 int main(int argc, char **argv)
 {
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 
 	/* And now, you want to use your datas in StarPU */
 	/* Open the file ON the disk */
-	void * data = starpu_disk_open(dd, (void *) "STARPU_DISK_COMPUTE_DATA", NX*sizeof(int));
+	void * data = starpu_disk_open(dd, (void *) "STARPU_DISK_COMPUTE_DATA", NX);
 
 	starpu_data_handle_t vector_handleA, vector_handleB;
 

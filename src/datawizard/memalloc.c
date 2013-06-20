@@ -926,6 +926,7 @@ unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsi
 	return handle->per_node[memory_node].allocated;
 }
 
+/* Record that this memchunk has been recently used */
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 {
 	_starpu_spin_lock(&lru_rwlock[node]);
@@ -935,10 +936,11 @@ void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 	_starpu_spin_unlock(&lru_rwlock[node]);
 }
 
+/* Push the given memchunk, recently used, at the end of the chunks to be evicted */
 /* The mc_rwlock[node] rw-lock should be taken prior to calling this function.*/
 static void _starpu_memchunk_recently_used_move(struct _starpu_mem_chunk *mc, unsigned node)
 {
-	/* XXX Sometimes the memchunk is not in the list... */
+	/* Note: Sometimes the memchunk is not in the list... */
 	struct _starpu_mem_chunk *mc_iter;
 	for (mc_iter = _starpu_mem_chunk_list_begin(mc_list[node]);
 	     mc_iter != _starpu_mem_chunk_list_end(mc_list[node]);
@@ -954,6 +956,9 @@ static void _starpu_memchunk_recently_used_move(struct _starpu_mem_chunk *mc, un
 	}
 }
 
+/* Put the recently used memchunks at the end of the mc_list, in the same order
+ * as the LRU list, so that the most recently used memchunk eventually comes
+ * last in the mc_list */
 static void starpu_lru(unsigned node)
 {
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);

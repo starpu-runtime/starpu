@@ -75,7 +75,8 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 	 * We enqueue the "post" sync task in the list associated to the handle
 	 * so that it is submitted by the starpu_data_release
 	 * function. */
-	_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
+	if (wrapper->post_sync_task)
+		_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
 
 	wrapper->callback(wrapper->callback_arg);
 
@@ -132,6 +133,8 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 	STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
 	wrapper->finished = 0;
+	wrapper->pre_sync_task = NULL;
+	wrapper->post_sync_task = NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int sequential_consistency = handle->sequential_consistency;
