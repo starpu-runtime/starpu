@@ -22,7 +22,7 @@ static struct _starpu_sched_node * _worker_nodes[STARPU_NMAXWORKERS];
  *
  * its possible that a _starpu_task_grid wont have task
  *
- * N = no task
+ * N = no task 
  *
  *   T  T  T
  *   |  |  |
@@ -270,8 +270,8 @@ static void available_worker(struct _starpu_sched_node * worker_node)
 	
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	struct _starpu_worker * w = _starpu_sched_node_worker_get_worker(worker_node);
-//	if(w->workerid == starpu_worker_get_id())
-//		return;
+	if(w->workerid == starpu_worker_get_id())
+		return;
 	starpu_pthread_mutex_t *sched_mutex = &w->sched_mutex;
 	starpu_pthread_cond_t *sched_cond = &w->sched_cond;
 
@@ -283,6 +283,8 @@ static void available_worker(struct _starpu_sched_node * worker_node)
 
 static void available_combined_worker(struct _starpu_sched_node * node)
 {
+	(void) node;
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	STARPU_ASSERT(_starpu_sched_node_is_combined_worker(node));
 	struct _starpu_worker_node_data * data = node->data;
 	int workerid = starpu_worker_get_id();
@@ -299,6 +301,7 @@ static void available_combined_worker(struct _starpu_sched_node * node)
 		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
+#endif
 }
 
 static double estimated_transfer_length(struct _starpu_sched_node * node,

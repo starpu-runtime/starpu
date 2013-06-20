@@ -77,7 +77,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	}
 
 	/* Get an id for that combined worker. Note that this is not thread
-	 * safe because thhis method should only be called when the scheduler
+	 * safe because this method should only be called when the scheduler
 	 * is being initialized. */
 	new_workerid = basic_worker_count + combined_worker_id;
 	config->topology.ncombinedworkers++;
@@ -90,6 +90,8 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	}
 	fprintf(stderr, "into worker %d\n", new_workerid);
 #endif
+	for(i = 0; i < nworkers; i++)
+		_starpu_get_worker_struct(workerid_array[i])->combined_workerid = new_workerid;
 
 	struct _starpu_combined_worker *combined_worker =
 		&config->combined_workers[combined_worker_id];

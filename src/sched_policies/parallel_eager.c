@@ -47,7 +47,7 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 	unsigned ncombined_workers = starpu_combined_worker_get_count();
 	unsigned ntotal_workers = nbasic_workers + ncombined_workers;
 		
-	_starpu_sched_find_worker_combinations(workerids, nworkers);
+//	_starpu_sched_find_worker_combinations(workerids, nworkers);
 
 	unsigned workerid, i;
 	unsigned ncombinedworkers;

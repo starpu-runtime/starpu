@@ -13,7 +13,7 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
  	data->root = _starpu_sched_node_fifo_create(NULL);
 	data->workers = _starpu_bitmap_create();
 	unsigned i;
-	for(i = 0; i < starpu_worker_get_count(); i++)
+	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
 		struct _starpu_sched_node * node = _starpu_sched_node_worker_get(i);
 		if(!node)
