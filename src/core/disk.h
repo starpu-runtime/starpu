@@ -28,10 +28,6 @@ void * _starpu_disk_alloc (unsigned node, size_t size);
 
 void _starpu_disk_free (unsigned node, void *obj, size_t size);
 
-void _starpu_disk_close(unsigned node, void *obj, size_t size);
-
-void * _starpu_disk_open(unsigned node, void *pos, size_t size);
-
 ssize_t _starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size);
 
 ssize_t _starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size);
