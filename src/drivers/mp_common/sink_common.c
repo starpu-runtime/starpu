@@ -77,24 +77,16 @@ static void _starpu_sink_common_lookup(const struct _starpu_mp_node *node,
 	void *dl_handle = dlopen(NULL, RTLD_NOW);
 	func = dlsym(dl_handle, func_name);
 	
-	printf("Looked up %s, got %p\n", func_name, func);
-	_STARPU_DEBUG("Looked up %s, got %p\n", func_name, func);
+	//_STARPU_DEBUG("Looked up %s, got %p\n", func_name, func);
 
 	/* If we couldn't find the function, let's send an error to the host.
 	 * The user probably made a mistake in the name */
 	if (func)
-	  {
-	    printf("\n LOOL UP OK \n");
 	    _starpu_mp_common_send_command(node, STARPU_ANSWER_LOOKUP,
 					       &func, sizeof(func));
-	
-	  }
 	else
-	  {
-	    printf("\n LOOL UP FAIL \n");
 	    _starpu_mp_common_send_command(node, STARPU_ERROR_LOOKUP,
 					       NULL, 0);
-	  }
 }
 
 void _starpu_sink_common_allocate(const struct _starpu_mp_node *mp_node,
@@ -237,7 +229,7 @@ void _starpu_sink_common_worker(void)
 		if(!task_fifo_is_empty(&(node->dead_queue)))
 		  {
 		    struct task * task = node->dead_queue.first;
-		    _STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
+		    //_STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
 		    _starpu_mp_common_send_command(task->node, STARPU_EXECUTION_COMPLETED,
 								    &(task->coreid), sizeof(task->coreid));
 		    task_fifo_pop(&(node->dead_queue));
@@ -267,7 +259,6 @@ static void* _starpu_sink_thread(void * thread_arg)
 
 static void _starpu_sink_execute_thread(struct task *arg)
 {
-  int j;
   pthread_t thread;
   cpu_set_t cpuset;
   int ret;

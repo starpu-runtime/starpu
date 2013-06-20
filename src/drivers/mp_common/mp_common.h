@@ -158,6 +158,7 @@ struct _starpu_mp_node
 	void (*dt_send_to_device)(const struct _starpu_mp_node *, int, void *, int);
 	void (*dt_recv_from_device)(const struct _starpu_mp_node *, int, void *, int);
 
+  void (*(*get_kernel_from_job)(const struct _starpu_mp_node *,struct _starpu_job *))(void);
   void (*bind_thread)(const struct _starpu_mp_node *, cpu_set_t *,int, pthread_t *);
 	void (*execute)(const struct _starpu_mp_node *, void *, int);
 	void (*nbcores)(const struct _starpu_mp_node *);

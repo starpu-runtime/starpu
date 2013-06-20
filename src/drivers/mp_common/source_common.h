@@ -21,7 +21,15 @@
 
 #ifdef STARPU_USE_MP
 
+#include <core/sched_policy.h>
+#include <core/task.h>
 #include <drivers/mp_common/mp_common.h>
+
+
+enum _starpu_mp_command _starpu_src_common_wait_command_sync(struct _starpu_mp_node *node, 
+							     void ** arg, int* arg_size);
+void _starpu_src_common_recv_async(struct _starpu_worker_set *worker_set, 
+				   struct _starpu_mp_node * baseworker_node);
 
 int _starpu_src_common_sink_nbcores (const struct _starpu_mp_node *node, int *buf);
 
@@ -56,6 +64,11 @@ int _starpu_src_common_locate_file(char *located_file_name,
 				   const char *env_file_name, const char *env_mic_path,
 				   const char *config_file_name, const char *actual_file_name,
 				   const char **suffixes);
+
+void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, 
+			       unsigned baseworkerid, 
+			       struct _starpu_mp_node * node_set);
+
 
 #endif /* STARPU_USE_MP */
 

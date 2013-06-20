@@ -19,9 +19,103 @@
 #include <pthread.h>
 
 #include <starpu.h>
+#include <core/task.h>
+#include <core/sched_policy.h>
+
+#include <drivers/driver_common/driver_common.h>
+
+
 #include <datawizard/coherency.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/mp_common.h>
+
+
+static int
+_starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker)
+{
+	uint32_t mask = 0;
+	int profiling = starpu_profiling_status_get();
+	struct timespec codelet_end;
+
+	_starpu_driver_end_job(worker, j, worker->perf_arch, &codelet_end, 0,
+			       profiling);
+
+	_starpu_driver_update_job_feedback(j, worker, worker->perf_arch,
+					   &j->cl_start, &codelet_end,
+					   profiling);
+
+	_starpu_push_task_output (j, mask);
+
+	_starpu_handle_job_termination(j);
+
+	return 0;
+}
+
+
+
+static int
+_starpu_src_common_process_completed_job (struct _starpu_worker_set *workerset, void * arg, int arg_size STARPU_ATTRIBUTE_UNUSED)
+{
+	void *arg_ptr = arg;
+	int coreid;
+
+	coreid = *(int *) arg_ptr;
+	arg_ptr += sizeof (coreid); // Useless.
+
+	struct _starpu_worker *worker = &workerset->workers[coreid];
+	struct starpu_task *task = worker->current_task;
+	struct _starpu_job *j = _starpu_get_job_associated_to_task (task);
+
+	_starpu_src_common_finalize_job (j, worker);
+	worker->current_task = NULL;
+
+	return 0;
+}
+
+enum _starpu_mp_command _starpu_src_common_wait_command_sync(struct _starpu_mp_node *node, 
+							   void ** arg, int* arg_size)
+{
+  enum _starpu_mp_command answer;
+  int sync_commande = 0;
+  struct _starpu_worker_set * worker_set = _starpu_get_worker_struct(starpu_worker_get_id())->set;
+  
+  while(!sync_commande)
+    {
+      answer = _starpu_mp_common_recv_command(node, arg, arg_size);
+      switch(answer) 
+	{
+	case STARPU_EXECUTION_COMPLETED:
+	  _starpu_src_common_process_completed_job (worker_set, *arg, *arg_size);	  
+	  break;
+	default:
+	  sync_commande = 1;
+	  break;
+	}
+    }
+  return answer;
+}
+
+
+ void _starpu_src_common_recv_async(struct _starpu_worker_set *worker_set, 
+					  struct _starpu_mp_node * baseworker_node)
+{
+  enum _starpu_mp_command answer;
+  void *arg;
+  int arg_size;
+  
+  answer = _starpu_mp_common_recv_command(baseworker_node, &arg, &arg_size);
+  
+  switch(answer) {
+    case STARPU_EXECUTION_COMPLETED:
+      _starpu_src_common_process_completed_job (worker_set, arg, arg_size);
+      break;
+    default :
+      printf("incorrect commande: unknown command or sync command");
+      STARPU_ASSERT(0);
+      break;
+    }
+}
+
 
 int
 _starpu_src_common_sink_nbcores (const struct _starpu_mp_node *node, int *buf)
@@ -61,11 +155,9 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node,
 	//_STARPU_DEBUG("Looking up %s\n", func_name);
 	_starpu_mp_common_send_command(node, STARPU_LOOKUP, (void *) func_name,
 				       arg_size);
-	answer = _starpu_mp_common_recv_command(node, (void **) &arg,
-						&arg_size);
 
-	//	printf("\n\n\n answer:%d\n\n", (int)answer);
-	
+	answer = _starpu_src_common_wait_command_sync(node, (void **) &arg,
+						&arg_size);
 
 	if (answer == STARPU_ERROR_LOOKUP) {
 		_STARPU_DISP("Error looking up symbol %s\n", func_name);
@@ -144,11 +236,11 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 		memcpy(buffer_ptr, cl_arg, cl_arg_size);
 
 	_starpu_mp_common_send_command(node, STARPU_EXECUTE, buffer, buffer_size);
-	enum _starpu_mp_command answer = _starpu_mp_common_recv_command(node, &arg, &arg_size);
+	enum _starpu_mp_command answer = _starpu_src_common_wait_command_sync(node, &arg, &arg_size);
 
 	if (answer == STARPU_ERROR_EXECUTE)
 		return -EINVAL;
-
+	
 	STARPU_ASSERT(answer == STARPU_EXECUTION_SUBMITTED);
 
 	free(buffer);
@@ -268,8 +360,8 @@ int _starpu_src_common_copy_sink_to_sink(const struct _starpu_mp_node *src_node,
 /* 5 functions to determine the executable to run on the device (MIC, SCC,
  * MPI).
  */
-static void _starpu_src_common_cat_3(char *final, const char *first, const char *second,
-										  const char *third)
+static void _starpu_src_common_cat_3(char *final, const char *first, 
+				     const char *second, const char *third)
 {
 	strcpy(final, first);
 	strcat(final, second);
@@ -307,9 +399,9 @@ static int _starpu_src_common_test_suffixes(char *located_file_name, const char 
 }
 
 int _starpu_src_common_locate_file(char *located_file_name,
-							const char *env_file_name, const char *env_mic_path,
-							const char *config_file_name, const char *actual_file_name,
-							const char **suffixes)
+				   const char *env_file_name, const char *env_mic_path,
+				   const char *config_file_name, const char *actual_file_name,
+				   const char **suffixes)
 {
 	if (env_file_name != NULL)
 	{
@@ -374,4 +466,132 @@ int _starpu_src_common_locate_file(char *located_file_name,
 	}
 
 	return 1;
+}
+
+ 
+
+static int _starpu_src_common_execute_job(struct _starpu_job *j, 
+					  struct _starpu_worker *worker, 
+					  struct _starpu_mp_node * node)
+{
+
+  /*#################### */
+  /*#################### */
+  /* TODO */
+  /*calibrate_model*/
+  /*#################### */
+  /*#################### */
+
+
+	int ret;
+	uint32_t mask = 0;
+
+	STARPU_ASSERT(j);
+	struct starpu_task *task = j->task;
+
+	int profiling = starpu_profiling_status_get();
+	unsigned calibrate_model = 0;
+
+	STARPU_ASSERT(task);
+	struct starpu_codelet *cl = task->cl;
+	STARPU_ASSERT(cl);
+
+	if (cl->model && cl->model->benchmarking)
+		calibrate_model = 1;
+
+	ret = _starpu_fetch_task_input(j, mask);
+	if (ret != 0)
+	{
+		/* there was not enough memory, so the input of
+		 * the codelet cannot be fetched ... put the
+		 * codelet back, and try it later */
+		return -EAGAIN;
+	}
+
+	void (*kernel)(void)  = node->get_kernel_from_job(node,j);
+
+	_starpu_driver_start_job(worker, j, &j->cl_start, 0, profiling);
+
+	_starpu_src_common_execute_kernel_from_task(node, kernel, 
+						    worker->devid, task);	
+
+	return 0;
+}
+
+
+void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, 
+			       unsigned baseworkerid, 
+			       struct _starpu_mp_node * mp_node)
+{ 
+  struct _starpu_worker * baseworker = &worker_set->workers[baseworkerid];
+  unsigned memnode = baseworker->memory_node;
+  struct starpu_task **tasks = malloc(sizeof(struct starpu_task *)*worker_set->nworkers);
+ 
+  /*main loop*/
+  while (_starpu_machine_is_running())
+    {
+      int res;
+      struct _starpu_job * j;
+
+      _STARPU_TRACE_START_PROGRESS(memnode);
+      _starpu_datawizard_progress(memnode, 1);
+      _STARPU_TRACE_END_PROGRESS(memnode);
+
+      STARPU_PTHREAD_MUTEX_LOCK(&baseworker->sched_mutex);
+
+      /* get task for each worker*/
+      res = _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers);
+      STARPU_PTHREAD_MUTEX_UNLOCK(&baseworker->sched_mutex);
+
+
+      /* poll the device for completed jobs.*/
+      if (mp_node->mp_recv_is_ready(mp_node)){
+	//_STARPU_DEBUG(" recv_async\n");
+	_starpu_src_common_recv_async(worker_set,mp_node);
+      }
+      /*if at least one worker have pop a task*/
+      if(res != 0)
+	{
+	  unsigned i;
+	  _STARPU_DEBUG(" nb_tasks:%d\n", res);
+	  for(i=0; i<worker_set->nworkers; i++)
+	    {
+	      if(tasks[i] != NULL)
+		{
+		  //_STARPU_DEBUG(" exec deb\n");
+		  j = _starpu_get_job_associated_to_task(tasks[i]);
+			
+			
+		  worker_set->workers[i].current_task = j->task;
+
+		  res =  _starpu_src_common_execute_job(j, &worker_set->workers[i], mp_node);
+		
+		  if (res)
+		    {
+		      switch (res)
+			{
+			case -EAGAIN:
+			  _STARPU_DISP("ouch, Xeon Phi could not actually run task %p, putting it back...\n", tasks[i]);
+			  _starpu_push_task_to_workers(tasks[i]);
+			  STARPU_ABORT();
+			  continue;
+			  break;
+			default:
+			  STARPU_ASSERT(0);
+			}
+		    }
+		  //_STARPU_DEBUG(" exec fin\n");
+		}
+	    }
+	}
+    }
+  free(tasks);
+
+  _starpu_handle_all_pending_node_data_requests(memnode);
+
+  /* In case there remains some memory that was automatically
+   * allocated by StarPU, we release it now. Note that data
+   * coherency is not maintained anymore at that point ! */
+  _starpu_free_all_automatically_allocated_buffers(memnode);
+
 }
