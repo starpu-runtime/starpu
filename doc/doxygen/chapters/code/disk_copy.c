@@ -104,8 +104,6 @@ int main(int argc, char **argv)
 	starpu_data_unregister(vector_handleE);
 	starpu_data_unregister(vector_handleF);
 
-	starpu_disk_unregister(dd);
-
 	/* check if computation is correct */
 	int try = 1;
 	for (j = 0; j < NX; ++j)
