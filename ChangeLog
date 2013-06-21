@@ -36,6 +36,10 @@ New features:
 Small features:
   * Add cl_arg_free field to enable automatic free(cl_arg) on task
     destroy.
+  * New functions starpu_data_acquire_cb_sequential_consistency() and
+    starpu_data_acquire_on_node_cb_sequential_consistency() which allows
+    to enable or disable sequential consistency
+
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================
