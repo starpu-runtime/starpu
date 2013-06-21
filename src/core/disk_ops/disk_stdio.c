@@ -129,7 +129,7 @@ starpu_stdio_open (void *base, void *pos, size_t size)
 	strcpy(baseCpy,(char *) base);
 	strcat(baseCpy,(char *) pos);
 
-	int id = open(baseCpy, O_RDONLY);
+	int id = open(baseCpy, O_RDWR);
 	if (id < 0)
 	{
 		free(obj);
@@ -173,11 +173,12 @@ static ssize_t
 starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
-	
+
 	int res = fseek(tmp->file, offset, SEEK_SET); 
 	STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
 
 	ssize_t nb = fread (buf, 1, size, tmp->file);
+
 	return nb;
 }
 

@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#define NX (30*1000000)
+#define NX (100)
 
 int main(int argc, char **argv)
 {
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 
 	/* register a disk */
-	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) "/tmp/", 1024*1024*40);
+	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) "/tmp/", 1024*1024*1);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 	
@@ -42,8 +42,12 @@ int main(int argc, char **argv)
 	printf("TEST DISK MEMORY \n");
 
 	/* Imagine, you want to compute datas */
-	int A[NX];
-	int C[NX];
+	int *A;
+	int *C;
+
+	starpu_malloc_flags((void **)&A, NX*sizeof(int), STARPU_MALLOC_COUNT);
+	starpu_malloc_flags((void **)&C, NX*sizeof(int), STARPU_MALLOC_COUNT);
+ 
 	unsigned int j;
 	/* you register them in a vector */
 	for(j = 0; j < NX; ++j)
@@ -51,47 +55,42 @@ int main(int argc, char **argv)
 		A[j] = j;
 	}
 
+
+
+
 	/* you create a file to store the vector ON the disk */
-	FILE * f = fopen("/tmp/STARPU_DISK_COMPUTE_DATA", "rb+");
+	FILE * f = fopen("/tmp/STARPU_DISK_COMPUTE_DATA", "wb+");
 	/* fail */
 	if (f == NULL)
 		goto enoent;
 
-
 	/* store it in the file */
-	fwrite((void *) A, sizeof(int), NX, f);
+	fwrite(A, sizeof(int), NX, f);
 
 	/* close the file */
 	fclose(f);
 
 	/* And now, you want to use your datas in StarPU */
 	/* Open the file ON the disk */
-	void * data = starpu_disk_open(dd, (void *) "STARPU_DISK_COMPUTE_DATA", NX);
+	void * data = starpu_disk_open(dd, (void *) "STARPU_DISK_COMPUTE_DATA", NX*sizeof(int));
 
-	starpu_data_handle_t vector_handleA, vector_handleB;
+	starpu_data_handle_t vector_handleA, vector_handleC;
 
 	/* register vector in starpu */
-	starpu_vector_data_register(&vector_handleA, dd, (uintptr_t)A, NX, sizeof(int));
+	starpu_vector_data_register(&vector_handleA, dd, (uintptr_t) data, NX, sizeof(int));
 
 	/* and do what you want with it, here we copy it into an other vector */ 
-	starpu_vector_data_register(&vector_handleB, STARPU_MAIN_RAM, (uintptr_t) NULL, NX, sizeof(int));	
+	starpu_vector_data_register(&vector_handleC, STARPU_MAIN_RAM, (uintptr_t) C, NX, sizeof(int));	
 
-	starpu_data_cpy(vector_handleB, vector_handleA, 0, NULL, NULL);
+	starpu_data_cpy(vector_handleC, vector_handleA, 0, NULL, NULL);
 
 	/* free them */
 	starpu_data_unregister(vector_handleA);
-	starpu_data_unregister(vector_handleB);
+	starpu_data_unregister(vector_handleC);
 
 	/* close it in StarPU */
 	starpu_disk_close(dd, data, NX*sizeof(int));
-
-	/* check if it's correct */
-	f = fopen("/tmp/STARPU_DISK_COMPUTE_DATA", "rb+");
-	/* fail */
-	if (f == NULL)
-		goto enoent;
-	int size = fread(C, sizeof(int), NX, f);
-
+	
 	int try = 1;
 	for (j = 0; j < NX; ++j)
 		if (A[j] != C[j])
@@ -99,6 +98,9 @@ int main(int argc, char **argv)
 			printf("Fail A %d != C %d \n", A[j], C[j]);
 			try = 0;
 		}
+
+	starpu_free_flags(A, NX*sizeof(double), STARPU_MALLOC_COUNT);
+	starpu_free_flags(C, NX*sizeof(double), STARPU_MALLOC_COUNT);
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
