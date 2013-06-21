@@ -60,6 +60,7 @@ chapters =	\
 	chapters/code/vector_scal_opencl.c \
 	chapters/code/vector_scal_opencl_codelet.cl \
 	chapters/code/disk_copy.c \
+	chapters/code/disk_compute.c \
 	chapters/api/codelet_and_tasks.doxy \
 	chapters/api/cuda_extensions.doxy \
 	chapters/api/data_interfaces.doxy \
