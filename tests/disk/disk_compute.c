@@ -128,6 +128,8 @@ int main(int argc, char **argv)
 	starpu_free_flags(C, NX*sizeof(double), STARPU_MALLOC_COUNT);
 
 	unlink("/tmp/STARPU_DISK_COMPUTE_DATA");
+	unlink("/tmp/STARPU_DISK_COMPUTE_DATA_RESULT");
+
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
