@@ -53,6 +53,7 @@ int main(int argc, char **argv)
 	for(j = 0; j < NX; ++j)
 	{
 		A[j] = j;
+		C[j] = 0;
 	}
 
 
@@ -60,7 +61,6 @@ int main(int argc, char **argv)
 
 	/* you create a file to store the vector ON the disk */
 	FILE * f = fopen("/tmp/STARPU_DISK_COMPUTE_DATA", "wb+");
-	/* fail */
 	if (f == NULL)
 		goto enoent;
 
@@ -70,9 +70,23 @@ int main(int argc, char **argv)
 	/* close the file */
 	fclose(f);
 
+
+	/* create a file to store result */
+	f = fopen("/tmp/STARPU_DISK_COMPUTE_DATA_RESULT", "wb+");
+	if (f == NULL)
+		goto enoent;
+
+	/* replace all datas by 0 */
+	fwrite(C, sizeof(int), NX, f);
+
+	/* close the file */
+	fclose(f);
+
 	/* And now, you want to use your datas in StarPU */
 	/* Open the file ON the disk */
 	void * data = starpu_disk_open(dd, (void *) "STARPU_DISK_COMPUTE_DATA", NX*sizeof(int));
+	void * data_result = starpu_disk_open(dd, (void *) "STARPU_DISK_COMPUTE_DATA_RESULT", NX*sizeof(int));
+
 
 	starpu_data_handle_t vector_handleA, vector_handleC;
 
@@ -80,7 +94,7 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&vector_handleA, dd, (uintptr_t) data, NX, sizeof(int));
 
 	/* and do what you want with it, here we copy it into an other vector */ 
-	starpu_vector_data_register(&vector_handleC, STARPU_MAIN_RAM, (uintptr_t) C, NX, sizeof(int));	
+	starpu_vector_data_register(&vector_handleC, dd, (uintptr_t) data_result, NX, sizeof(int));	
 
 	starpu_data_cpy(vector_handleC, vector_handleA, 0, NULL, NULL);
 
@@ -88,9 +102,20 @@ int main(int argc, char **argv)
 	starpu_data_unregister(vector_handleA);
 	starpu_data_unregister(vector_handleC);
 
-	/* close it in StarPU */
+	/* close them in StarPU */
 	starpu_disk_close(dd, data, NX*sizeof(int));
-	
+	starpu_disk_close(dd, data_result, NX*sizeof(int));
+
+	/* check results */	
+	f = fopen("/tmp/STARPU_DISK_COMPUTE_DATA_RESULT", "rb+");
+	if (f == NULL)
+		goto enoent;
+	/* take datas */
+	int size = fread(C, sizeof(int), NX, f);
+
+	/* close the file */
+	fclose(f);
+
 	int try = 1;
 	for (j = 0; j < NX; ++j)
 		if (A[j] != C[j])
