@@ -401,6 +401,13 @@ int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 	_STARPU_MPI_LOG_IN();
 	STARPU_ASSERT_MSG(public_req, "starpu_mpi_irecv needs a valid starpu_mpi_req");
 
+	// We check if a tag is defined for the data handle, if not,
+	// we define the one given for the communication.
+	// A tag is necessary for the internal mpi engine.
+	int tag = starpu_data_get_tag(data_handle);
+	if (tag == -1)
+		starpu_data_set_tag(data_handle, mpi_tag);
+
 	struct _starpu_mpi_req *req;
 	req = _starpu_mpi_irecv_common(data_handle, source, mpi_tag, comm, 0, NULL, NULL);
 
@@ -414,7 +421,16 @@ int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
 	_STARPU_MPI_LOG_IN();
+
+	// We check if a tag is defined for the data handle, if not,
+	// we define the one given for the communication.
+	// A tag is necessary for the internal mpi engine.
+	int tag = starpu_data_get_tag(data_handle);
+	if (tag == -1)
+		starpu_data_set_tag(data_handle, mpi_tag);
+
 	_starpu_mpi_irecv_common(data_handle, source, mpi_tag, comm, 1, callback, arg);
+
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
@@ -422,8 +438,15 @@ int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int 
 int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, MPI_Status *status)
 {
 	starpu_mpi_req req;
-
 	_STARPU_MPI_LOG_IN();
+
+	// We check if a tag is defined for the data handle, if not,
+	// we define the one given for the communication.
+	// A tag is necessary for the internal mpi engine.
+	int tag = starpu_data_get_tag(data_handle);
+	if (tag == -1)
+		starpu_data_set_tag(data_handle, mpi_tag);
+
 	starpu_mpi_irecv(data_handle, &req, source, mpi_tag, comm);
 	starpu_mpi_wait(&req, status);
 
@@ -1140,10 +1163,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					starpu_data_register_same(&chandle->handle, data_handle);
 					add_chandle(chandle);
 
-					_STARPU_MPI_DEBUG(3, "Posting internal starpu_irecv_detached on copy_handle with tag %d from src %d ..\n", chandle->mpi_tag, status.MPI_SOURCE);
-
-					res = starpu_mpi_irecv_detached(chandle->handle,status.MPI_SOURCE,chandle->mpi_tag,MPI_COMM_WORLD,NULL,NULL);
-					STARPU_ASSERT(res == MPI_SUCCESS);
+					_STARPU_MPI_DEBUG(3, "Posting internal detached irecv on copy_handle with tag %d from src %d ..\n", chandle->mpi_tag, status.MPI_SOURCE);
+					_starpu_mpi_irecv_common(chandle->handle, status.MPI_SOURCE, chandle->mpi_tag, MPI_COMM_WORLD, 1, NULL, NULL);
 
 					_STARPU_MPI_DEBUG(3, "Success of starpu_irecv_detached on copy_handle with tag %d from src %d ..\n", chandle->mpi_tag, status.MPI_SOURCE);
 				}
