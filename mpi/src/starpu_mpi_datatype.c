@@ -227,6 +227,6 @@ char *_starpu_mpi_datatype(MPI_Datatype datatype)
      if (datatype == MPI_INTEGER4) return "MPI_INTEGER4";
      if (datatype == MPI_INTEGER8) return "MPI_INTEGER8";
      if (datatype == MPI_PACKED) return "MPI_PACKED";
-     if (datatype == -1) return "Unknown datatype";
+     if (datatype == 0) return "Unknown datatype";
      return "User defined MPI Datatype";
 }

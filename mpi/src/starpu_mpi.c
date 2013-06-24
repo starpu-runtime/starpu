@@ -203,6 +203,7 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_irecv_common(starpu_data_handle
 
 	req->request_type = request_type;
 	req->user_datatype = -1;
+	req->datatype = 0;
 	req->count = -1;
 	req->data_handle = data_handle;
 	req->srcdst = srcdst;
