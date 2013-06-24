@@ -170,6 +170,10 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 
 static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 {
+	/* only support disk <-> ram and disk <-> disk */
+	if (starpu_node_get_kind(node) == STARPU_DISK_RAM || starpu_node_get_kind(handling_node) == STARPU_DISK_RAM)
+		return 0;
+
 	if (node == handling_node)
 		return 1;
 
