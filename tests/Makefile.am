@@ -233,9 +233,9 @@ noinst_PROGRAMS +=				\
 	datawizard/reclaim
 endif
 
-noinst_nulldir=/tmp
-noinst_null_PROGRAMS =				\
-	$(LOADER)
+# noinst_nulldir=/tmp
+# noinst_null_PROGRAMS =				\
+# 	$(LOADER)
 
 examplebin_PROGRAMS = \
 	microbenchs/tasks_size_overhead		\
