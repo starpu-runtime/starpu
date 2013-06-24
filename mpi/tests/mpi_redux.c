@@ -33,13 +33,15 @@ void callback(void *arg)
 
 int main(int argc, char **argv)
 {
-	int ret, rank, size;
+	int ret, rank, size, sum;
 	int value=0;
 	starpu_data_handle_t *handles;
 
 	MPI_Init(NULL, NULL);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+	sum = ((size-1) * (size) / 2);
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -48,7 +50,7 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		int src, sum;
+		int src;
 		int received = 1;
 
 		handles = malloc(size * sizeof(starpu_data_handle_t));
@@ -70,8 +72,13 @@ int main(int argc, char **argv)
 			value += *((int *)ptr);
 			starpu_data_unregister(handles[src]);
 		}
-		sum = ((size-1) * (size) / 2);
-		STARPU_ASSERT_MSG(sum == value, "Sum of first %d integers is %d, not %d\n", size-1, sum, value);
+
+		for(src=1 ; src<size ; src++)
+		{
+			starpu_variable_data_register(&handles[src], 0, (uintptr_t)&sum, sizeof(int));
+			starpu_mpi_send(handles[src], src, 12+src, MPI_COMM_WORLD);
+			starpu_data_unregister(handles[src]);
+		}
 	}
 	else
 	{
@@ -80,6 +87,10 @@ int main(int argc, char **argv)
 		starpu_variable_data_register(&handles[0], 0, (uintptr_t)&value, sizeof(int));
 		starpu_mpi_send(handles[0], 0, 12+rank, MPI_COMM_WORLD);
 		starpu_data_unregister_submit(handles[0]);
+
+		starpu_variable_data_register(&handles[0], 0, (uintptr_t)&value, sizeof(int));
+		starpu_mpi_recv(handles[0], 0, 12+rank, MPI_COMM_WORLD, NULL);
+		starpu_data_unregister(handles[0]);
 	}
 
 	starpu_task_wait_for_all();
@@ -89,6 +100,8 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	MPI_Finalize();
+
+	STARPU_ASSERT_MSG(sum == value, "Sum of first %d integers is %d, not %d\n", size-1, sum, value);
 
 	return 0;
 }
