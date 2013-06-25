@@ -60,29 +60,16 @@ int main(int argc, char **argv)
 		A[j] = j;
 		F[j] = -j;
 	}
-
-	/* Tell StaPU to associate the "vector" vector with the "vector_handle"
-	 * identifier. When a task needs to access a piece of data, it should
-	 * refer to the handle that is associated to it.
-	 * In the case of the "vector" data interface:
-	 *  - the first argument of the registration method is a pointer to the
-	 *    handle that should describe the data
-	 *  - the second argument is the memory node where the data (ie. "vector")
-	 *    resides initially: 0 stands for an address in main memory, as
-	 *    opposed to an adress on a GPU for instance.
-	 *  - the third argument is the adress of the vector in RAM
-	 *  - the fourth argument is the number of elements in the vector
-	 *  - the fifth argument is the size of each element.
-	 */
+	
 	starpu_data_handle_t vector_handleA, vector_handleB, vector_handleC, vector_handleD, vector_handleE, vector_handleF;
 
 	/* register vector in starpu */
-	starpu_vector_data_register(&vector_handleA, 0, (uintptr_t)A, NX, sizeof(double));
+	starpu_vector_data_register(&vector_handleA, STARPU_MAIN_RAM, (uintptr_t)A, NX, sizeof(double));
 	starpu_vector_data_register(&vector_handleB, -1, (uintptr_t) NULL, NX, sizeof(double));	
 	starpu_vector_data_register(&vector_handleC, -1, (uintptr_t) NULL, NX, sizeof(double));
 	starpu_vector_data_register(&vector_handleD, -1, (uintptr_t) NULL, NX, sizeof(double));
 	starpu_vector_data_register(&vector_handleE, -1, (uintptr_t) NULL, NX, sizeof(double));
-	starpu_vector_data_register(&vector_handleF, 0, (uintptr_t)F, NX, sizeof(double));
+	starpu_vector_data_register(&vector_handleF, STARPU_MAIN_RAM, (uintptr_t)F, NX, sizeof(double));
 
 	/* copy vector A->B, B->C... */
 	starpu_data_cpy(vector_handleB, vector_handleA, 0, NULL, NULL);
