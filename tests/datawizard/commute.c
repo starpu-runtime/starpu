@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare x */
-	starpu_variable_data_register(&x_handle, 0, (uintptr_t)&x, sizeof(x));
+	starpu_variable_data_register(&x_handle, STARPU_MAIN_RAM, (uintptr_t)&x, sizeof(x));
 
 	for (i = 0; i <= 1; i++)
 	{
