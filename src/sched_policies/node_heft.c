@@ -123,7 +123,9 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 			index_best_fitness = i;
 		}
 	}
+
 	STARPU_ASSERT(best_fitness != DBL_MAX);
+
 	struct _starpu_sched_node * c = node->childs[index_best_fitness];
 	starpu_task_set_implementation(task, preds[index_best_fitness].impl);
 	task->predicted = preds[index_best_fitness].expected_length;
@@ -252,7 +254,6 @@ void _starpu_sched_node_heft_set_no_model_node(struct _starpu_sched_node * heft_
 
 struct _starpu_sched_node * _starpu_sched_node_heft_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
-
 	struct _starpu_sched_node * node = _starpu_sched_node_create();
 
 	node->push_task = push_task;
@@ -281,12 +282,13 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 	{
 		struct _starpu_sched_node * worker_node = _starpu_sched_node_worker_get(i);
 		STARPU_ASSERT(worker_node);
+/*
 		struct _starpu_sched_node * fifo_node = _starpu_sched_node_fifo_create(NULL);
 		_starpu_sched_node_add_child(fifo_node, worker_node);
 		_starpu_sched_node_set_father(worker_node, fifo_node, sched_ctx_id);
-
-		_starpu_sched_node_add_child(t->root, fifo_node);
-		_starpu_sched_node_set_father(fifo_node, t->root, sched_ctx_id);
+*/
+		_starpu_sched_node_add_child(t->root, worker_node);
+		_starpu_sched_node_set_father(worker_node, t->root, sched_ctx_id);
 	}
 	
 	_starpu_set_workers_bitmaps();
