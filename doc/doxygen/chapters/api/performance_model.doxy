@@ -175,7 +175,7 @@ Used by ::STARPU_HISTORY_BASED and ::STARPU_NL_REGRESSION_BASED,
 records all execution history measures.
 \var starpu_perfmodel_per_arch::regression
 \private
-Used by ::STARPU_HISTORY_BASED and
+Used by ::STARPU_REGRESSION_BASED and
 ::STARPU_NL_REGRESSION_BASED, contains the estimated factors of the
 regression.
 
