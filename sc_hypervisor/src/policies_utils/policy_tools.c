@@ -349,40 +349,6 @@ static double _get_ispeed_sample_for_sched_ctx(unsigned sched_ctx)
 	return ispeed_sample;
 }
 
-double sc_hypervisor_get_ctx_velocity(struct sc_hypervisor_wrapper* sc_w)
-{
-	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
-        double elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
-//	double sample = _get_ispeed_sample_for_sched_ctx(sc_w->sched_ctx);
-	double sample = config->ispeed_ctx_sample;
-	
-/* 	double total_elapsed_flops = sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w); */
-/* 	double prc = config->ispeed_ctx_sample != 0.0 ? elapsed_flops : elapsed_flops/sc_w->total_flops; */
-/* 	double redim_sample = config->ispeed_ctx_sample != 0.0 ? config->ispeed_ctx_sample :  */
-/* 		(elapsed_flops == total_elapsed_flops ? HYPERVISOR_START_REDIM_SAMPLE : HYPERVISOR_REDIM_SAMPLE); */
-//	printf("%d: prc %lf sample %lf\n", sc_w->sched_ctx, prc, redim_sample);
-
-/* 	double curr_time2 = starpu_timing_now(); */
-/* 	double elapsed_time2 = (curr_time2 - sc_w->start_time) / 1000000.0; /\* in seconds *\/ */
-/* 	if(elapsed_time2 > 5.0 && elapsed_flops < sample) */
-/* 		return (elapsed_flops/1000000000.0)/elapsed_time2;/\* in Gflops/s *\/ */
-
-	double total_elapsed_flops = sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w);
-	double total_flops = sc_w->total_flops;
-	char *start_sample_prc_char = getenv("SC_HYPERVISOR_START_RESIZE");
-	double start_sample_prc = start_sample_prc_char ? atof(start_sample_prc_char) : 0.0;
-	double start_sample = start_sample_prc > 0.0 ? (start_sample_prc / 100) * total_flops : sample;
-	double redim_sample = elapsed_flops == total_elapsed_flops ? (start_sample > 0.0 ? start_sample : sample) : sample;
-
-	if(elapsed_flops >= redim_sample)
-        {
-                double curr_time = starpu_timing_now();
-                double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
-                return (elapsed_flops/1000000000.0)/elapsed_time;/* in Gflops/s */
-        }
-	return -1.0;
-}
-
 double sc_hypervisor_get_slowest_ctx_exec_time(void)
 {
 	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
@@ -432,108 +398,83 @@ double sc_hypervisor_get_fastest_ctx_exec_time(void)
 	return fastest_time;
 }
 
-
-double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w, unsigned worker)
+void sc_hypervisor_group_workers_by_type(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers])
 {
-	if(!starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx))
-		return -1.0;
+	int current_nworkers = workers == NULL ? starpu_worker_get_count() : nworkers;
+	int w;
+	for(w = 0; w < ntypes_of_workers; w++)
+		total_nw[w] = 0;
 
-        double elapsed_flops = sc_w->elapsed_flops[worker] / 1000000000.0; /*in gflops */
-	size_t elapsed_data_used = sc_w->elapsed_data[worker];
-	int elapsed_tasks = sc_w->elapsed_tasks[worker];
-	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
-	double sample = config->ispeed_w_sample[worker] / 1000000000.0; /*in gflops */
-
-	double ctx_elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
-	double ctx_sample = config->ispeed_ctx_sample;
-	if(ctx_elapsed_flops > ctx_sample && elapsed_flops == 0.0)
-		return 0.00000000000001;
-
-/*         if( elapsed_flops >= sample) */
-/*         { */
-/*                 double curr_time = starpu_timing_now(); */
-/*                 double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /\* in seconds *\/ */
-/* 		sc_w->ref_velocity[worker] = (elapsed_flops/elapsed_time); /\* in Gflops/s *\/ */
-/*                 return sc_w->ref_velocity[worker]; */
-/*         } */
-
-/*         return -1.0; */
-
-        if( elapsed_flops != 0.0)
-        {
-                double curr_time = starpu_timing_now();
-		size_t elapsed_data_used = sc_w->elapsed_data[worker];
-                double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
- 		enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-		if(arch == STARPU_CUDA_WORKER)
+	for(w = 0; w < current_nworkers; w++)
+	{
+ 		enum starpu_worker_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
+			starpu_worker_get_type(workers[w]);
+		if(ntypes_of_workers == 2)
 		{
-/* 			unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx); */
-/* 			if(!worker_in_ctx) */
-/* 			{ */
-
-/* 				double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker); */
-/* 				elapsed_time +=  (elapsed_data_used / transfer_velocity) / 1000000 ; */
-/* 			} */
-			double latency = starpu_get_latency_RAM_CUDA(worker);
-//			printf("%d/%d: latency %lf elapsed_time before %lf ntasks %d\n", worker, sc_w->sched_ctx, latency, elapsed_time, elapsed_tasks);
-			elapsed_time += (elapsed_tasks * latency)/1000000;
-//			printf("elapsed time after %lf \n", elapsed_time);
+			if(arch == STARPU_CPU_WORKER)
+				total_nw[1]++;
+			else
+				total_nw[0]++;
 		}
-			
-                double vel  = (elapsed_flops/elapsed_time);/* in Gflops/s */
-		sc_w->ref_velocity[worker] = sc_w->ref_velocity[worker] > 1.0 ? (sc_w->ref_velocity[worker] + vel) / 2 : vel; 
-                return vel;
-        }
-
-        return 0.00000000000001;
-
-
+		else
+			total_nw[0]++;
+	}
 }
 
-static double _get_best_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, int *npus, enum starpu_worker_archtype req_arch)
+void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *workers, unsigned size_ctxs, struct sc_hypervisor_policy_task_pool *task_pools)
 {
-	double ret_val = 0.0;
-	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
-        int worker;
-
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
-
-        while(workers->has_next(workers, &it))
-	{
-                worker = workers->get_next(workers, &it);
-                enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-                if(arch == req_arch)
+        struct sc_hypervisor_policy_task_pool *tp;
+        int w, t;
+        for (w = 0; w < nw; w++)
+        {
+                for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
                 {
-			if(sc_w->elapsed_flops[worker] > ret_val)
-				ret_val = sc_w->elapsed_flops[worker];
-			(*npus)++;
+			int worker = workers == NULL ? w : workers[w];
+                        enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(worker);
+                        double length = starpu_permodel_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
+
+                        if (isnan(length))
+                                times[w][t] = NAN;
+			else
+			{
+                                times[w][t] = length / 1000.;
+
+				double transfer_time = 0.0;
+				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
+				if(arch == STARPU_CUDA_WORKER)
+				{
+					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
+					if(!worker_in_ctx && !size_ctxs)
+					{
+						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
+						transfer_time +=  (tp->footprint / transfer_velocity) / 1000. ;
+					}
+					double latency = starpu_get_latency_RAM_CUDA(worker);
+					transfer_time += latency/1000.;
+
+				}
+//				printf("%d/%d %s x %d time = %lf transfer_time = %lf\n", w, tp->sched_ctx_id, tp->cl->model->symbol, tp->n, times[w][t], transfer_time);
+				times[w][t] += transfer_time;
+			}
                 }
         }
-
-	return ret_val;
 }
 
-/* compute an average value of the cpu/cuda velocity */
-double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
+unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker)
 {
-        int npus = 0;
-        double elapsed_flops = _get_best_elapsed_flops(sc_w, &npus, arch) / 1000000000.0 ; /* in gflops */
-	if(npus == 0)
-		return -1.0; 
+	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
+	struct sc_hypervisor_policy_config *config = sc_w->config;
+	if(config != NULL)
+	{
+		if(sc_w->current_idle_time[worker] > config->max_idle[worker])
+		{
+			sc_w->current_idle_time[worker] = 0.0;
+			return 1;
+		}
+	}
 
-        if( elapsed_flops != 0.0)
-        {
-                double curr_time = starpu_timing_now();
-                double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
-		double velocity = (elapsed_flops/elapsed_time); /* in Gflops/s */
-                return velocity;
-        }
-
-        return -1.0;
+	return 0;
 }
-
 
 /* check if there is a big velocity gap between the contexts */
 unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
@@ -646,84 +587,6 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 	return 0;
 }
 
-
-void sc_hypervisor_group_workers_by_type(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers])
-{
-	int current_nworkers = workers == NULL ? starpu_worker_get_count() : nworkers;
-	int w;
-	for(w = 0; w < ntypes_of_workers; w++)
-		total_nw[w] = 0;
-
-	for(w = 0; w < current_nworkers; w++)
-	{
- 		enum starpu_worker_archtype arch = workers == NULL ? starpu_worker_get_type(w) :
-			starpu_worker_get_type(workers[w]);
-		if(ntypes_of_workers == 2)
-		{
-			if(arch == STARPU_CPU_WORKER)
-				total_nw[1]++;
-			else
-				total_nw[0]++;
-		}
-		else
-			total_nw[0]++;
-	}
-}
-
-void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *workers, unsigned size_ctxs, struct sc_hypervisor_policy_task_pool *task_pools)
-{
-        struct sc_hypervisor_policy_task_pool *tp;
-        int w, t;
-        for (w = 0; w < nw; w++)
-        {
-                for (t = 0, tp = task_pools; tp; t++, tp = tp->next)
-                {
-			int worker = workers == NULL ? w : workers[w];
-                        enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(worker);
-                        double length = starpu_permodel_history_based_expected_perf(tp->cl->model, arch, tp->footprint);
-
-                        if (isnan(length))
-                                times[w][t] = NAN;
-			else
-			{
-                                times[w][t] = length / 1000.;
-
-				double transfer_time = 0.0;
-				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-				if(arch == STARPU_CUDA_WORKER)
-				{
-					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
-					if(!worker_in_ctx && !size_ctxs)
-					{
-						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
-						transfer_time +=  (tp->footprint / transfer_velocity) / 1000. ;
-					}
-					double latency = starpu_get_latency_RAM_CUDA(worker);
-					transfer_time += latency/1000.;
-
-				}
-//				printf("%d/%d %s x %d time = %lf transfer_time = %lf\n", w, tp->sched_ctx_id, tp->cl->model->symbol, tp->n, times[w][t], transfer_time);
-				times[w][t] += transfer_time;
-			}
-                }
-        }
-}
-
-unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker)
-{
-	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
-	struct sc_hypervisor_policy_config *config = sc_w->config;
-	if(config != NULL)
-	{
-		if(sc_w->current_idle_time[worker] > config->max_idle[worker])
-		{
-			sc_w->current_idle_time[worker] = 0.0;
-			return 1;
-		}
-	}
-
-	return 0;
-}
 
 unsigned sc_hypervisor_criteria_fulfilled(unsigned sched_ctx, int worker)
 {
