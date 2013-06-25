@@ -9,11 +9,17 @@ struct _starpu_random_data
 
 static double compute_relative_speedup(struct _starpu_sched_node * node)
 {
-	if(_starpu_sched_node_is_worker(node))
+	if(_starpu_sched_node_is_simple_worker(node))
 	{
 		int id = _starpu_sched_node_worker_get_workerid(node);
 		enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(id);
 		return starpu_worker_get_relative_speedup(perf_arch);
+	}
+	if(_starpu_sched_node_is_combined_worker(node))
+	{
+		struct _starpu_combined_worker * c = _starpu_sched_node_combined_worker_get_combined_worker(node);
+		return starpu_worker_get_relative_speedup(c->perf_arch);
+		
 	}
 	double sum = 0.0;
 	int i;
@@ -103,7 +109,7 @@ static void initialize_random_center_policy(unsigned sched_ctx_id)
 	data->workers = _starpu_bitmap_create();
 
 	unsigned i;
-	for(i = 0; i < starpu_worker_get_count(); i++)
+	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
 		struct _starpu_sched_node * node = _starpu_sched_node_worker_get(i);
 		if(!node)

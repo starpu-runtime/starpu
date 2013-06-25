@@ -196,10 +196,26 @@ struct _starpu_sched_node * _starpu_sched_node_worker_get(int workerid)
 
 struct _starpu_worker * _starpu_sched_node_worker_get_worker(struct _starpu_sched_node * worker_node)
 {
-	STARPU_ASSERT(_starpu_sched_node_is_worker(worker_node));
+	STARPU_ASSERT(_starpu_sched_node_is_simple_worker(worker_node));
 	struct _starpu_worker_node_data * data = worker_node->data;
 	return data->worker;
 }
+struct _starpu_combined_worker * _starpu_sched_node_combined_worker_get_combined_worker(struct _starpu_sched_node * worker_node)
+{
+	STARPU_ASSERT(_starpu_sched_node_is_combined_worker(worker_node));
+	struct _starpu_worker_node_data * data = worker_node->data;
+	return data->combined_worker;
+}
+
+enum starpu_perfmodel_archtype _starpu_sched_node_worker_get_perf_arch(struct _starpu_sched_node * worker_node)
+{
+	STARPU_ASSERT(_starpu_sched_node_is_worker(worker_node));
+	if(_starpu_sched_node_is_simple_worker(worker_node))
+		return _starpu_sched_node_worker_get_worker(worker_node)->perf_arch;
+	else
+		return _starpu_sched_node_combined_worker_get_combined_worker(worker_node)->perf_arch;
+}
+
 
 int _starpu_sched_node_worker_push_task(struct _starpu_sched_node * node, struct starpu_task *task)
 {
@@ -368,12 +384,12 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 {
 	STARPU_ASSERT(_starpu_sched_node_is_worker(node));
 	starpu_task_bundle_t bundle = task->bundle;
-	struct _starpu_worker * worker = _starpu_sched_node_worker_get_worker(node);
+       int workerid = _starpu_sched_node_worker_get_workerid(node);
 
 	struct _starpu_task_execute_preds preds =
 		{
 			.state = CANNOT_EXECUTE,
-			.archtype = worker->perf_arch,
+			.archtype = _starpu_sched_node_worker_get_perf_arch(node),
 			.expected_length = DBL_MAX,
 			.expected_finish_time = estimated_finish_time(node),
 			.expected_transfer_length = estimated_transfer_length(node, task),
@@ -383,13 +399,13 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 	int nimpl;
 	for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 	{
-		if(starpu_worker_can_execute_task(worker->workerid,task,nimpl))
+		if(starpu_worker_can_execute_task(workerid,task,nimpl))
 		{
 			double d;
 			if(bundle)
-				d = starpu_task_bundle_expected_length(bundle, worker->perf_arch, nimpl);
+				d = starpu_task_bundle_expected_length(bundle, preds.archtype, nimpl);
 			else
-				d = starpu_task_expected_length(task, worker->perf_arch, nimpl);
+				d = starpu_task_expected_length(task, preds.archtype, nimpl);
 			if(isnan(d))
 			{
 				preds.state = CALIBRATING;
@@ -420,9 +436,9 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 									  preds.expected_transfer_length);
 
 		if(bundle)
-			preds.expected_power = starpu_task_bundle_expected_power(bundle, worker->perf_arch, preds.impl);
+			preds.expected_power = starpu_task_bundle_expected_power(bundle, preds.archtype, preds.impl);
 		else
-			preds.expected_power = starpu_task_expected_power(task, worker->perf_arch,preds.impl);
+			preds.expected_power = starpu_task_expected_power(task, preds.archtype,preds.impl);
 	}
 
 	return preds;
@@ -646,5 +662,6 @@ int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_no
 #ifndef STARPU_NO_ASSERT
 	STARPU_ASSERT(_worker_consistant(worker_node));
 #endif
-	return _starpu_sched_node_worker_get_worker(worker_node)->workerid;
+	STARPU_ASSERT(1 == _starpu_bitmap_cardinal(worker_node->workers));
+	return _starpu_bitmap_first(worker_node->workers);
 }

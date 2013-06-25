@@ -159,6 +159,7 @@ int _starpu_sched_node_can_execute_task_with_impl(struct _starpu_sched_node * no
 /* no public create function for workers because we dont want to have several node_worker for a single workerid */
 struct _starpu_sched_node * _starpu_sched_node_worker_get(int workerid);
 struct _starpu_worker * _starpu_sched_node_worker_get_worker(struct _starpu_sched_node * worker_node);
+struct _starpu_combined_worker * _starpu_sched_node_combined_worker_get_combined_worker(struct _starpu_sched_node * combined_worker_node);
 void _starpu_sched_node_worker_destroy(struct _starpu_sched_node *);
 
 /* this function compare the available function of the node with the standard available for worker nodes*/

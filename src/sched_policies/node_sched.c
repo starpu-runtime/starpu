@@ -411,7 +411,7 @@ static void add_worker_bit(struct _starpu_sched_node * node, int worker)
 void _starpu_set_workers_bitmaps(void)
 {
 	unsigned worker;	
-	for(worker = 0; worker < starpu_worker_get_count(); worker++)
+	for(worker = 0; worker < starpu_worker_get_count() + starpu_combined_worker_get_count(); worker++)
 	{
 		struct _starpu_sched_node * worker_node = _starpu_sched_node_worker_get(worker);
 		add_worker_bit(worker_node, worker);
