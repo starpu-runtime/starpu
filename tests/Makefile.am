@@ -233,10 +233,6 @@ noinst_PROGRAMS +=				\
 	datawizard/reclaim
 endif
 
-# noinst_nulldir=/tmp
-# noinst_null_PROGRAMS =				\
-# 	$(LOADER)
-
 examplebin_PROGRAMS = \
 	microbenchs/tasks_size_overhead		\
 	microbenchs/local_pingpong
@@ -244,7 +240,11 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
 
-check_PROGRAMS = $(noinst_PROGRAMS) $(noinst_2_PROGRAMS)
+if STARPU_HAVE_WINDOWS
+check_PROGRAMS	=	$(noinst_PROGRAMS)
+else
+check_PROGRAMS	=	$(LOADER) $(noinst_PROGRAMS)
+endif
 
 #######################
 # Source files        #
