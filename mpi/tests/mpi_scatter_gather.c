@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 			int mpi_rank = my_distrib(x, y, nodes);
 			if (rank == 0)
 			{
-				starpu_matrix_data_register(&data_handles[x+y*nblocks], 0, (uintptr_t)bmat[x][y],
+				starpu_matrix_data_register(&data_handles[x+y*nblocks], STARPU_MAIN_RAM, (uintptr_t)bmat[x][y],
 							    ld, size/nblocks, size/nblocks, sizeof(float));
 			}
 			else if ((mpi_rank == rank) || ((rank == mpi_rank+1 || rank == mpi_rank-1)))

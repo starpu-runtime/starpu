@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 			if (mpi_rank == rank)
 			{
 				//FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
-				starpu_matrix_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
+				starpu_matrix_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)&(matrix[((SIZE/BLOCKS)*x) + ((SIZE/BLOCKS)*y) * SIZE]),
 							    SIZE, SIZE/BLOCKS, SIZE/BLOCKS, sizeof(unsigned));
 			}
 			else

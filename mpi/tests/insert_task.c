@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 			if (mpi_rank == rank)
 			{
 				//FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
-				starpu_variable_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
+				starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
 			}
 			else
 			{
