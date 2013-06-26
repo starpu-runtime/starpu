@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 	}
 
 	for (i = 0; i < NB_BUNDLE; i++)
-		starpu_variable_data_register(&handles[i], 0, (uintptr_t)&data[i], sizeof(float));
+		starpu_variable_data_register(&handles[i], STARPU_MAIN_RAM, (uintptr_t)&data[i], sizeof(float));
 
         FPRINTF(stderr, "VALUES:");
 	for (i = 0; i < NB_BUNDLE; i++)

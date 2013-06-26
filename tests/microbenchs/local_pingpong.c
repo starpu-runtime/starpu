@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 	/* Create a piece of data */
 	ret = starpu_malloc((void **)&v, vector_size);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
-	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, vector_size, 1);
+	starpu_vector_data_register(&v_handle, STARPU_MAIN_RAM, (uintptr_t)v, vector_size, 1);
 
 	/* Find a pair of memory nodes */
 	if (starpu_cuda_worker_get_count() > 1)

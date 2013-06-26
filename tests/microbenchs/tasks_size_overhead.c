@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 		for (buffer = 0; buffer < nbuffers; buffer++)
-			starpu_vector_data_register(&data_handles[buffer], 0, (uintptr_t)buffers[buffer], 16, sizeof(float));
+			starpu_vector_data_register(&data_handles[buffer], STARPU_MAIN_RAM, (uintptr_t)buffers[buffer], 16, sizeof(float));
 
 		for (size = START; size <= STOP; size *= FACTOR)
 		{

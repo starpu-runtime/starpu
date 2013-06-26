@@ -30,8 +30,8 @@ int main(int argc, char **argv)
 	var1 = 42;
 	var2 = 12;
 
-	starpu_variable_data_register(&var1_handle, 0, (uintptr_t)&var1, sizeof(var1));
-	starpu_variable_data_register(&var2_handle, 0, (uintptr_t)&var2, sizeof(var2));
+	starpu_variable_data_register(&var1_handle, STARPU_MAIN_RAM, (uintptr_t)&var1, sizeof(var1));
+	starpu_variable_data_register(&var2_handle, STARPU_MAIN_RAM, (uintptr_t)&var2, sizeof(var2));
 
 	ret = starpu_data_cpy(var2_handle, var1_handle, 0, NULL, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_cpy");

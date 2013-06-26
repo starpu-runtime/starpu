@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	starpu_malloc((void **)&buffer, NTASKS*VECTORSIZE*sizeof(char));
 
 	/* declare data to StarPU */
-	starpu_vector_data_register(&handle, 0, (uintptr_t)buffer,
+	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)buffer,
 					NTASKS*VECTORSIZE, sizeof(char));
 
 	struct starpu_data_filter f =
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-	starpu_data_unpartition(handle, 0);
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(handle);
 	starpu_free(buffer);
 	starpu_shutdown();
