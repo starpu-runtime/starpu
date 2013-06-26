@@ -77,9 +77,9 @@ void register_data(void)
 	variable = 42;
 	variable2 = 12;
 
-	starpu_variable_data_register(&variable_handle, 0,
+	starpu_variable_data_register(&variable_handle, STARPU_MAIN_RAM,
 				      (uintptr_t) &variable, sizeof(variable));
-	starpu_variable_data_register(&variable2_handle, 0,
+	starpu_variable_data_register(&variable2_handle, STARPU_MAIN_RAM,
 				      (uintptr_t) &variable2, sizeof(variable2));
 }
 

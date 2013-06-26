@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_variable_data_register(&handle, 0, (uintptr_t)&var, sizeof(unsigned));
+	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(unsigned));
 
 	/* Copy the handle in main memory every time it is modified */
 	uint32_t wt_mask = (1<<0);

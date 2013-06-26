@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 	ret = starpu_malloc((void **)&buffer, VECTORSIZE);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 
-	starpu_vector_data_register(&v_handle, 0, (uintptr_t)buffer, VECTORSIZE, sizeof(char));
+	starpu_vector_data_register(&v_handle, STARPU_MAIN_RAM, (uintptr_t)buffer, VECTORSIZE, sizeof(char));
 
 	struct starpu_data_filter f =
 	{
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 		ret = starpu_task_wait_for_all();
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-		starpu_data_unpartition(v_handle, 0);
+		starpu_data_unpartition(v_handle, STARPU_MAIN_RAM);
 
 		tasks[2] = create_task(v_handle);
 		ret = starpu_task_submit(tasks[2]);
