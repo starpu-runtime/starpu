@@ -226,6 +226,20 @@ are not disabled. Contrary to starpu_data_acquire(), this function is
 non-blocking and may be called from task callbacks. Upon successful
 completion, this function returns 0.
 
+\fn int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
+\ingroup API_Data_Management
+Equivalent of starpu_data_acquire_cb() with the possibility of enabling or disabling data dependencies.
+When the data specified in \p handle is available in the appropriate access
+mode, the \p callback function is executed. The application may access
+the requested data during the execution of this \p callback. The \p callback
+function must call starpu_data_release() once the application does not
+need to access the piece of data anymore. Note that implicit data
+dependencies are also enforced by starpu_data_acquire_cb_sequential_consistency() in case they
+are not disabled specifically for the given \p handle or by the parameter \p sequential_consistency.
+Similarly to starpu_data_acquire_cb(), this function is
+non-blocking and may be called from task callbacks. Upon successful
+completion, this function returns 0.
+
 \fn int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode)
 \ingroup API_Data_Management
 This is the same as starpu_data_acquire(), except that the data
@@ -234,6 +248,12 @@ will be available on the given memory node instead of main memory.
 \fn int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 \ingroup API_Data_Management
 This is the same as starpu_data_acquire_cb(), except that the
+data will be available on the given memory node instead of main
+memory.
+
+\int int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
+\ingroup API_Data_Management
+This is the same as starpu_data_acquire_cb_sequential_consistency(), except that the
 data will be available on the given memory node instead of main
 memory.
 

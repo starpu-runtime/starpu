@@ -75,7 +75,8 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 	 * We enqueue the "post" sync task in the list associated to the handle
 	 * so that it is submitted by the starpu_data_release
 	 * function. */
-	_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
+	if (wrapper->post_sync_task)
+		_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
 
 	wrapper->callback(wrapper->callback_arg);
 
@@ -114,8 +115,9 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 }
 
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
-			   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
+int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, unsigned node,
+							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
+							  int sequential_consistency)
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
@@ -132,10 +134,12 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 	STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
 	wrapper->finished = 0;
+	wrapper->pre_sync_task = NULL;
+	wrapper->post_sync_task = NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
-	int sequential_consistency = handle->sequential_consistency;
-	if (sequential_consistency)
+	int handle_sequential_consistency = handle->sequential_consistency;
+	if (handle_sequential_consistency && sequential_consistency)
 	{
 		struct starpu_task *new_task;
 		wrapper->pre_sync_task = starpu_task_create();
@@ -177,10 +181,23 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 	return 0;
 }
 
+
+int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
+				   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
+{
+	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, node, mode, callback, arg, 1);
+}
+
 int starpu_data_acquire_cb(starpu_data_handle_t handle,
 			   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 {
 	return starpu_data_acquire_on_node_cb(handle, 0, mode, callback, arg);
+}
+
+int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle,
+						  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
+{
+	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, 0, mode, callback, arg, sequential_consistency);
 }
 
 /*

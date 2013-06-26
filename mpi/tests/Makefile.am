@@ -80,10 +80,13 @@ starpu_mpi_TESTS =				\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\
+	mpi_earlyrecv				\
+	mpi_earlyrecv2				\
 	mpi_irecv				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
 	mpi_detached_tag			\
+	mpi_redux				\
 	ring					\
 	ring_async				\
 	ring_async_implicit			\
@@ -104,10 +107,13 @@ noinst_PROGRAMS =				\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\
+	mpi_earlyrecv				\
+	mpi_earlyrecv2				\
 	mpi_irecv				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
 	mpi_detached_tag			\
+	mpi_redux				\
 	ring					\
 	ring_async				\
 	ring_async_implicit			\
@@ -126,6 +132,10 @@ noinst_PROGRAMS =				\
 
 mpi_isend_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_earlyrecv_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_earlyrecv2_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_irecv_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_isend_detached_LDADD =			\
@@ -133,6 +143,8 @@ mpi_isend_detached_LDADD =			\
 mpi_irecv_detached_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_detached_tag_LDADD =				\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_redux_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 pingpong_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la

@@ -549,7 +549,6 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 		struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
 		unsigned smallest_counter =  worker->nsched_ctxs;
 		unsigned i;
-
 		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
 			sched_ctx = worker->sched_ctx[i];
@@ -573,6 +572,7 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 				if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 					sched_ctx->pop_counter[worker->workerid] = 0;
 			}
+			
 			continue;
 		}
 		return good_sched_ctx;
