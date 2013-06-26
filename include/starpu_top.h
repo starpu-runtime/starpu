@@ -82,50 +82,22 @@ enum starpu_top_message_type
 	TOP_TYPE_UNKNOW
 };
 
-struct starpu_top_data *starpu_top_add_data_boolean(const char *data_name,
-						    int active);
-struct starpu_top_data *starpu_top_add_data_integer(const char *data_name,
-						     int minimum_value,
-						     int maximum_value,
-						     int active);
-struct starpu_top_data *starpu_top_add_data_float(const char *data_name,
-						  double minimum_value,
-						  double maximum_value,
-						  int active);
-struct starpu_top_param *starpu_top_register_parameter_boolean(const char *param_name,
-							       int *parameter_field,
-							       void (*callback)(struct starpu_top_param*));
-struct starpu_top_param *starpu_top_register_parameter_integer(const char *param_name,
-							       int *parameter_field,
-							       int minimum_value,
-							       int maximum_value,
-							       void (*callback)(struct starpu_top_param*));
-struct starpu_top_param *starpu_top_register_parameter_float(const char *param_name,
-							     double *parameter_field,
-							     double minimum_value,
-							     double maximum_value,
-							     void (*callback)(struct starpu_top_param*));
-struct starpu_top_param *starpu_top_register_parameter_enum(const char *param_name,
-							    int *parameter_field,
-							    char **values,
-							    int nb_values,
-							    void (*callback)(struct starpu_top_param*));
+struct starpu_top_data *starpu_top_add_data_boolean(const char *data_name, int active);
+struct starpu_top_data *starpu_top_add_data_integer(const char *data_name, int minimum_value, int maximum_value, int active);
+struct starpu_top_data *starpu_top_add_data_float(const char *data_name, double minimum_value, double maximum_value, int active);
 
-
-
+struct starpu_top_param *starpu_top_register_parameter_boolean(const char *param_name, int *parameter_field, void (*callback)(struct starpu_top_param*));
+struct starpu_top_param *starpu_top_register_parameter_integer(const char *param_name, int *parameter_field, int minimum_value, int maximum_value, void (*callback)(struct starpu_top_param*));
+struct starpu_top_param *starpu_top_register_parameter_float(const char *param_name, double *parameter_field, double minimum_value, double maximum_value, void (*callback)(struct starpu_top_param*));
+struct starpu_top_param *starpu_top_register_parameter_enum(const char *param_name, int *parameter_field, char **values, int nb_values, void (*callback)(struct starpu_top_param*));
 
 void starpu_top_init_and_wait(const char *server_name);
 
 void starpu_top_update_parameter(const struct starpu_top_param *param);
-void starpu_top_update_data_boolean(const struct starpu_top_data *data,
-				    int value);
-void starpu_top_update_data_integer(const struct starpu_top_data *data,
-				    int value);
-void starpu_top_update_data_float(const struct starpu_top_data *data,
-				  double value);
-void starpu_top_task_prevision(struct starpu_task *task,
-			       int devid, unsigned long long start,
-			       unsigned long long end);
+void starpu_top_update_data_boolean(const struct starpu_top_data *data, int value);
+void starpu_top_update_data_integer(const struct starpu_top_data *data, int value);
+void starpu_top_update_data_float(const struct starpu_top_data *data, double value);
+void starpu_top_task_prevision(struct starpu_task *task, int devid, unsigned long long start, unsigned long long end);
 
 void starpu_top_debug_log(const char *message);
 void starpu_top_debug_lock(const char *message);

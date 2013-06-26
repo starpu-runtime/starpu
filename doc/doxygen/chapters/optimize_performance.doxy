@@ -37,7 +37,7 @@ starpu_data_set_wt_mask(img_handle, 1<<0);
 \endcode
 
 will for instance request to always automatically transfer a replicate into the
-main memory (node 0), as bit 0 of the write-through bitmask is being set.
+main memory (node <c>0</c>), as bit <c>0</c> of the write-through bitmask is being set.
 
 \code{.c}
 starpu_data_set_wt_mask(img_handle, ~0U);
@@ -108,7 +108,7 @@ possibility according to task size, one can run
 speedup of independent tasks of very small sizes.
 
 The choice of scheduler also has impact over the overhead: for instance, the
-<c>dmda</c> scheduler takes time to make a decision, while <c>eager</c> does
+ scheduler <c>dmda</c> takes time to make a decision, while <c>eager</c> does
 not. <c>tasks_size_overhead.sh</c> can again be used to get a grasp at how much
 impact that has on the target machine.
 
@@ -132,7 +132,7 @@ priority information to StarPU.
 
 \section TaskSchedulingPolicy Task Scheduling Policy
 
-By default, StarPU uses the <c>eager</c> simple greedy scheduler. This is
+By default, StarPU uses the simple greedy scheduler <c>eager</c>. This is
 because it provides correct load balance even if the application codelets do not
 have performance models. If your application codelets have performance models
 (\ref PerformanceModelExample), you should change the scheduler thanks
@@ -276,14 +276,14 @@ and in Joules for the energy consumption models.
 
 Distributing tasks to balance the load induces data transfer penalty. StarPU
 thus needs to find a balance between both. The target function that the
-<c>dmda</c> scheduler of StarPU
+scheduler <c>dmda</c> of StarPU
 tries to minimize is <c>alpha * T_execution + beta * T_data_transfer</c>, where
 <c>T_execution</c> is the estimated execution time of the codelet (usually
 accurate), and <c>T_data_transfer</c> is the estimated data transfer time. The
 latter is estimated based on bus calibration before execution start,
 i.e. with an idle machine, thus without contention. You can force bus
 re-calibration by running the tool <c>starpu_calibrate_bus</c>. The
-beta parameter defaults to 1, but it can be worth trying to tweak it
+beta parameter defaults to <c>1</c>, but it can be worth trying to tweak it
 by using <c>export STARPU_SCHED_BETA=2</c> for instance, since during
 real application execution, contention makes transfer times bigger.
 This is of course imprecise, but in practice, a rough estimation
@@ -291,7 +291,7 @@ already gives the good results that a precise estimation would give.
 
 \section DataPrefetch Data Prefetch
 
-The <c>heft</c>, <c>dmda</c> and <c>pheft</c> scheduling policies
+The scheduling policies <c>heft</c>, <c>dmda</c> and <c>pheft</c>
 perform data prefetch (see \ref STARPU_PREFETCH):
 as soon as a scheduling decision is taken for a task, requests are issued to
 transfer its required data to the target processing unit, if needeed, so that
@@ -310,9 +310,9 @@ the handle and the desired target memory node.
 \section Power-basedScheduling Power-based Scheduling
 
 If the application can provide some power performance model (through
-the <c>power_model</c> field of the codelet structure), StarPU will
+the field starpu_codelet::power_model), StarPU will
 take it into account when distributing tasks. The target function that
-the <c>dmda</c> scheduler minimizes becomes <c>alpha * T_execution +
+the scheduler <c>dmda</c> minimizes becomes <c>alpha * T_execution +
 beta * T_data_transfer + gamma * Consumption</c> , where <c>Consumption</c>
 is the estimated task consumption in Joules. To tune this parameter, use
 <c>export STARPU_SCHED_GAMMA=3000</c> for instance, to express that each Joule
@@ -333,7 +333,7 @@ On-line task consumption measurement is currently only supported through the
 <c>CL_PROFILING_POWER_CONSUMED</c> OpenCL extension, implemented in the MoviSim
 simulator. Applications can however provide explicit measurements by
 using the function starpu_perfmodel_update_history() (examplified in \ref PerformanceModelExample
-with the <c>power_model</c> performance model. Fine-grain
+with the <c>power_model</c> performance model). Fine-grain
 measurement is often not feasible with the feedback provided by the hardware, so
 the user can for instance run a given task a thousand times, measure the global
 consumption for that series of tasks, divide it by a thousand, repeat for
@@ -446,9 +446,9 @@ $ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
 TEST PASSED
 \endverbatim
 
-Note that we force to use the dmda scheduler to generate performance
-models for the application. The application may need to be run several
-times before the model is calibrated.
+Note that we force to use the scheduler <c>dmda</c> to generate
+performance models for the application. The application may need to be
+run several times before the model is calibrated.
 
 \subsection Simulation Simulation
 

@@ -304,13 +304,13 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_CSR_GET_NNZ(interface)	(((struct starpu_csr_interface *)(interface))->nnz)
 #define STARPU_CSR_GET_NROW(interface)	(((struct starpu_csr_interface *)(interface))->nrow)
 #define STARPU_CSR_GET_NZVAL(interface)	(((struct starpu_csr_interface *)(interface))->nzval)
-#define STARPU_CSR_GET_NZVAL_DEV_HANDLE \
+#define STARPU_CSR_GET_NZVAL_DEV_HANDLE(interface)		\
 	(((struct starpu_csr_interface *)(interface))->nnz)
 #define STARPU_CSR_GET_COLIND(interface)	(((struct starpu_csr_interface *)(interface))->colind)
 #define STARPU_CSR_GET_COLIND_DEV_HANDLE(interface) \
 	(((struct starpu_csr_interface *)(interface))->colind)
 #define STARPU_CSR_GET_ROWPTR(interface)	(((struct starpu_csr_interface *)(interface))->rowptr)
-#define STARPU_CSR_GET_ROWPTR_DEV_HANDLE \
+#define STARPU_CSR_GET_ROWPTR_DEV_HANDLE(interface)		\
 	(((struct starpu_csr_interface *)(interface))->rowptr)
 #define STARPU_CSR_GET_OFFSET 0
 #define STARPU_CSR_GET_FIRSTENTRY(interface)	(((struct starpu_csr_interface *)(interface))->firstentry)

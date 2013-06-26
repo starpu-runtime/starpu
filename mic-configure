@@ -37,6 +37,7 @@ do
 	params="--enable-mic --with-coi-dir=$coi_dir --prefix=$prefix/$arch"
 
 	if test x$arch = xmic ; then
+		# TODO: fix hwloc detection to look for another pkg-config place, and not just believe in the host version of hwloc.pc...
 		params="$params --without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --host=$mic_host"
 	else
 		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib"

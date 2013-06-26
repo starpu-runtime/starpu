@@ -71,7 +71,7 @@ This function returns the number of children.
 Return the ith child of the given \p handle, which must have been
 partitionned beforehand.
 
-\fn starpu_data_handle_t starpu_data_get_sub_data (starpu_data_handle_t root_data, unsigned depth, ... )
+\fn starpu_data_handle_t starpu_data_get_sub_data(starpu_data_handle_t root_data, unsigned depth, ... )
 \ingroup API_Data_Partition
 After partitioning a StarPU data by applying a filter,
 starpu_data_get_sub_data() can be used to get handles for each of the
@@ -192,13 +192,13 @@ functions for block data. Examples on how to use them are shown in
 <c>starpu_data_filters.h</c>. A usage example is available in
 examples/filters/shadow3d.c
 
-\fn void starpu_block_filter_block (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
+\fn void starpu_block_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 This partitions a block along the X dimension, thus getting
 (x/\p nparts ,y,z) 3D matrices. If \p nparts does not divide x, the last
 submatrix contains the remainder.
 
-\fn void starpu_block_filter_block_shadow (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
+\fn void starpu_block_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 This partitions a block along the X dimension, with a
 shadow border <c>filter_arg_ptr</c>, thus getting
@@ -207,13 +207,13 @@ divide x, the last submatrix contains the remainder. <b>IMPORTANT</b>:
 This can only be used for read-only access, as no coherency is
 enforced for the shadowed parts.
 
-\fn void starpu_block_filter_vertical_block (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
+\fn void starpu_block_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 This partitions a block along the Y dimension, thus getting
 (x,y/\p nparts ,z) blocks. If \p nparts does not divide y, the last
 submatrix contains the remainder.
 
-\fn void starpu_block_filter_vertical_block_shadow (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
+\fn void starpu_block_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 This partitions a block along the Y dimension, with a
 shadow border <c>filter_arg_ptr</c>, thus getting
@@ -222,13 +222,13 @@ divide y, the last submatrix contains the remainder. <b>IMPORTANT</b>:
 This can only be used for read-only access, as no coherency is
 enforced for the shadowed parts.
 
-\fn void starpu_block_filter_depth_block (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
+\fn void starpu_block_filter_depth_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 This partitions a block along the Z dimension, thus getting
 (x,y,z/\p nparts) blocks. If \p nparts does not divide z, the last
 submatrix contains the remainder.
 
-\fn void starpu_block_filter_depth_block_shadow (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
+\fn void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 This partitions a block along the Z dimension, with a
 shadow border <c>filter_arg_ptr</c>, thus getting
@@ -245,11 +245,11 @@ functions for BCSR data. Examples on how to use them are shown in
 \ref PartitioningData. The complete list can be found in the file
 <c>starpu_data_filters.h</c>.
 
-\fn void starpu_bcsr_filter_canonical_block (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
+\fn void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 This partitions a block-sparse matrix into dense matrices.
 
-\fn void starpu_csr_filter_vertical_block (void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
+\fn void starpu_csr_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts)
 \ingroup API_Data_Partition
 This partitions a block-sparse matrix into vertical
 block-sparse matrices.

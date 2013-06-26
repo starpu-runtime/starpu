@@ -547,13 +547,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 
 		/* Sometimes workers didn't take the tasks as early as we expected */
-		starpu_pthread_mutex_t *sched_mutex;
-		starpu_pthread_cond_t *sched_cond;
-		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-
-		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-		fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
-		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+		double exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
 
 		for(nimpl  = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 	 	{
@@ -639,7 +633,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 			if (unknown)
 				continue;
 
-			exp_end[worker_ctx][nimpl] = fifo->exp_start + fifo->exp_len + local_task_length[worker_ctx][nimpl];
+			exp_end[worker_ctx][nimpl] = exp_start + fifo->exp_len + local_task_length[worker_ctx][nimpl];
 
 			if (exp_end[worker_ctx][nimpl] < best_exp_end)
 			{

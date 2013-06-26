@@ -26,7 +26,7 @@ create its own streams. Synchronizing with cudaThreadSynchronize() is
 allowed, but will reduce the likelihood of having all transfers
 overlapped.
 
-\fn const struct cudaDeviceProp * starpu_cuda_get_device_properties(unsigned workerid)
+\fn const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid)
 \ingroup API_CUDA_Extensions
 This function returns a pointer to device properties for worker
 \p workerid (assumed to be a CUDA worker).
@@ -35,11 +35,11 @@ This function returns a pointer to device properties for worker
 \ingroup API_CUDA_Extensions
 Report a CUDA error.
 
-\def STARPU_CUDA_REPORT_ERROR (cudaError_t status)
+\def STARPU_CUDA_REPORT_ERROR(status)
 \ingroup API_CUDA_Extensions
 Calls starpu_cuda_report_error(), passing the current function, file and line position.
 
-\fn int starpu_cuda_copy_async_sync (void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node, size_t ssize, cudaStream_t stream, enum cudaMemcpyKind kind)
+\fn int starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node, size_t ssize, cudaStream_t stream, enum cudaMemcpyKind kind)
 \ingroup API_CUDA_Extensions
 Copy \p ssize bytes from the pointer \p src_ptr on \p src_node
 to the pointer \p dst_ptr on \p dst_node. The function first tries to
@@ -72,7 +72,7 @@ every CUDA device.
 \ingroup API_CUDA_Extensions
 Report a cublas error.
 
-\def STARPU_CUBLAS_REPORT_ERROR (cublasStatus status)
+\def STARPU_CUBLAS_REPORT_ERROR(status)
 \ingroup API_CUDA_Extensions
 Calls starpu_cublas_report_error(), passing the current
 function, file and line position.

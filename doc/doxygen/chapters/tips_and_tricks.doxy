@@ -95,4 +95,18 @@ Or add the following line in the file <c>/etc/sysctl.conf</c>
 security.models.extensions.user_set_cpu_affinity=1
 \endverbatim
 
+\section UsingStarPUWithMKL Using StarPU With MKL 11 (Intel Composer XE 2013)
+
+Some users had issues with MKL 11 and StarPU (versions 1.1rc1 and
+1.0.5) on Linux with MKL, using 1 thread for MKL and doing all the
+parallelism using StarPU (no multithreaded tasks), setting the
+environment variable MKL_NUM_THREADS to 1, and using the threaded MKL library,
+with iomp5.
+
+Using this configuration, StarPU uses only 1 core, no matter the value of
+\ref STARPU_NCPU. The problem is actually a thread pinning issue with MKL.
+
+The solution is to set the environment variable KMP_AFFINITY to <c>disabled</c>
+(http://software.intel.com/sites/products/documentation/studio/composer/en-us/2011Update/compiler_c/optaps/common/optaps_openmp_thread_affinity.htm).
+
 */

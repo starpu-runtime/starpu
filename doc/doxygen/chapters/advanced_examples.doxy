@@ -92,12 +92,12 @@ thus be very fast. The function starpu_cuda_get_device_properties()
 provides a quick access to CUDA properties of CUDA devices to achieve
 such efficiency.
 
-Another example is compiling CUDA code for various compute capabilities,
+Another example is to compile CUDA code for various compute capabilities,
 resulting with two CUDA functions, e.g. <c>scal_gpu_13</c> for compute capability
 1.3, and <c>scal_gpu_20</c> for compute capability 2.0. Both functions can be
-provided to StarPU by using <c>cuda_funcs</c>, and <c>can_execute</c> can then be
-used to rule out the <c>scal_gpu_20</c> variant on a CUDA device which
-will not be able to execute it:
+provided to StarPU by using starpu_codelet::cuda_funcs, and
+starpu_codelet::can_execute can then be used to rule out the
+<c>scal_gpu_20</c> variant on a CUDA device which will not be able to execute it:
 
 \code{.c}
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
@@ -390,9 +390,9 @@ starpu_perfmodel::size_base however permits the application to
 override that, when for instance some of the data do not matter for
 task cost (e.g. mere reference table), or when using sparse
 structures (in which case it is the number of non-zeros which matter), or when
-there is some hidden parameter such as the number of iterations, etc. The
-<c>examples/pi</c> examples uses this to include the number of iterations in the
-base.
+there is some hidden parameter such as the number of iterations, etc.
+The example in the directory <c>examples/pi</c> uses this to include
+the number of iterations in the base.
 
 How to use schedulers which can benefit from such performance model is explained
 in \ref TaskSchedulingPolicy.
@@ -427,11 +427,11 @@ starpu_bound_print_lp() or starpu_bound_print_mps() can then be used
 to output a Linear Programming problem corresponding to the schedule
 of your tasks. Run it through <c>lp_solve</c> or any other linear
 programming solver, and that will give you a lower bound for the total
-execution time of your tasks. If StarPU was compiled with the glpk
-library installed, starpu_bound_compute() can be used to solve it
+execution time of your tasks. If StarPU was compiled with the library
+<c>glpk</c> installed, starpu_bound_compute() can be used to solve it
 immediately and get the optimized minimum, in ms. Its parameter
 <c>integer</c> allows to decide whether integer resolution should be
-computed and returned too.
+computed and returned 
 
 The <c>deps</c> parameter tells StarPU whether to take tasks, implicit
 data, and tag dependencies into account. Tags released in a callback
@@ -549,7 +549,7 @@ STARPU_DATA_ACQUIRE_CB(i_handle, STARPU_R,
 The macro ::STARPU_DATA_ACQUIRE_CB submits an asynchronous request for
 acquiring data <c>i</c> for the main application, and will execute the code
 given as third parameter when it is acquired. In other words, as soon as the
-value of <c>i</c> computed by the <c>which_index</c> codelet can be read, the
+value of <c>i</c> computed by the codelet <c>which_index</c> can be read, the
 portion of code passed as third parameter of ::STARPU_DATA_ACQUIRE_CB will
 be executed, and is allowed to read from <c>i</c> to use it e.g. as an
 index. Note that this macro is only avaible when compiling StarPU with
@@ -609,7 +609,7 @@ struct starpu_codelet accumulate_variable_cl =
 }
 \endcode
 
-and attaches them as reduction methods for its <c>dtq</c> handle:
+and attaches them as reduction methods for its handle <c>dtq</c>:
 
 \code{.c}
 starpu_variable_data_register(&dtq_handle, -1, NULL, sizeof(type));
@@ -674,7 +674,7 @@ tasks.
 Data can sometimes be entirely produced by a task, and entirely consumed by
 another task, without the need for other parts of the application to access
 it. In such case, registration can be done without prior allocation, by using
-the special -1 memory node number, and passing a zero pointer. StarPU will
+the special memory node number <c>-1</c>, and passing a zero pointer. StarPU will
 actually allocate memory only when the task creating the content gets scheduled,
 and destroy it on unregistration.
 
@@ -704,9 +704,8 @@ function, and free it at the end, but that would be costly. It could also
 allocate one buffer per worker (similarly to \ref
 HowToInitializeAComputationLibraryOnceForEachWorker), but that would
 make them systematic and permanent. A more  optimized way is to use
-the ::STARPU_SCRATCH data access mode, as examplified below,
-
-which provides per-worker buffers without content consistency.
+the data access mode ::STARPU_SCRATCH, as examplified below, which
+provides per-worker buffers without content consistency.
 
 \code{.c}
 starpu_vector_data_register(&workspace, -1, 0, sizeof(float));
@@ -723,7 +722,7 @@ the other on the same worker. Also, if for instance GPU memory becomes scarce,
 StarPU will notice that it can free such buffers easily, since the content does
 not matter.
 
-The <c>examples/pi</c> example uses scratches for some temporary buffer.
+The example <c>examples/pi</c> uses scratches for some temporary buffer.
 
 \section ParallelTasks Parallel Tasks
 
@@ -734,8 +733,9 @@ parallel CPU implementation of the computation to be achieved. This can also be
 useful to improve the load balance between slow CPUs and fast GPUs: since CPUs
 work collectively on a single task, the completion time of tasks on CPUs become
 comparable to the completion time on GPUs, thus relieving from granularity
-discrepancy concerns. Hwloc support needs to be enabled to get good performance,
-otherwise StarPU will not know how to better group cores.
+discrepancy concerns. <c>hwloc</c> support needs to be enabled to get
+good performance, otherwise StarPU will not know how to better group
+cores.
 
 Two modes of execution exist to accomodate with existing usages.
 
@@ -808,8 +808,8 @@ buffer.
 
 To benefit from parallel tasks, a parallel-task-aware StarPU scheduler has to
 be used. When exposed to codelets with a flag ::STARPU_FORKJOIN or
-::STARPU_SPMD, the <c>pheft</c> (parallel-heft) and <c>peager</c>
-(parallel eager) schedulers will indeed also try to execute tasks with
+::STARPU_SPMD, the schedulers <c>pheft</c> (parallel-heft) and <c>peager</c>
+(parallel eager) will indeed also try to execute tasks with
 several CPUs. It will automatically try the various available combined
 worker sizes (making several measurements for each worker size) and
 thus be able to avoid choosing a large combined worker if the codelet
@@ -846,9 +846,9 @@ from different threads, due to the use of global variables in their sequential
 sections for instance.
 
 The solution is then to use only one combined worker at a time.  This can be
-done by setting the field starpu_conf::single_combined_worker to 1, or
+done by setting the field starpu_conf::single_combined_worker to <c>1</c>, or
 setting the environment variable \ref STARPU_SINGLE_COMBINED_WORKER
-to 1. StarPU will then run only one parallel task at a time (but other
+to <c>1</c>. StarPU will then run only one parallel task at a time (but other
 CPU and GPU tasks are not affected and can be run concurrently). The parallel
 task scheduler will however still however still try varying combined worker
 sizes to look for the most efficient ones.
@@ -1183,8 +1183,8 @@ directory <c>examples/basic_examples/dynamic_handles.c</c>.
 
 \section MoreExamples More Examples
 
-More examples are available in the StarPU sources in the <c>examples/</c>
-directory. Simple examples include:
+More examples are available in the StarPU sources in the directory
+<c>examples/</c>. Simple examples include:
 
 <dl>
 <dt> <c>incrementer/</c> </dt>

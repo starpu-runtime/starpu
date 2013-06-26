@@ -9,62 +9,62 @@
 /*! \defgroup API_StarPUTop_Interface StarPU-Top Interface
 
 \enum starpu_top_data_type
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 StarPU-Top Data type
 \var starpu_top_data_type::STARPU_TOP_DATA_BOOLEAN
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 \var starpu_top_data_type::STARPU_TOP_DATA_INTEGER
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 \var starpu_top_data_type::STARPU_TOP_DATA_FLOAT
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 
 \enum starpu_top_param_type
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 StarPU-Top Parameter type
 \var starpu_top_param_type::STARPU_TOP_PARAM_BOOLEAN
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 \var starpu_top_param_type::STARPU_TOP_PARAM_INTEGER
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 \var starpu_top_param_type::STARPU_TOP_PARAM_FLOAT
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 \var starpu_top_param_type::STARPU_TOP_PARAM_ENUM
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 
 \enum starpu_top_message_type
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 StarPU-Top Message type
 \var starpu_top_message_type::TOP_TYPE_GO
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 \var starpu_top_message_type::TOP_TYPE_SET
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 \var starpu_top_message_type::TOP_TYPE_CONTINUE
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 \var starpu_top_message_type::TOP_TYPE_ENABLE
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 \var starpu_top_message_type::TOP_TYPE_DISABLE
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 \var starpu_top_message_type::TOP_TYPE_DEBUG
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 \var starpu_top_message_type::TOP_TYPE_UNKNOW
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 todo
 
 \struct starpu_top_data
 todo
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 \var starpu_top_data::id
 todo
 \var starpu_top_data::name
@@ -86,7 +86,7 @@ todo
 
 \struct starpu_top_param
 todo
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 \var starpu_top_param::id
 todo
 \var starpu_top_param::name
@@ -113,98 +113,98 @@ todo
 todo
 
 @name Functions to call before the initialisation
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 
-\fn struct starpu_top_data *starpu_top_add_data_boolean(const char* data_name, int active)
-\ingroup API_StarPU-Top_Interface
+\fn struct starpu_top_data *starpu_top_add_data_boolean(const char *data_name, int active)
+\ingroup API_StarPUTop_Interface
 This fonction register a data named data_name of type boolean.
 If \p active=0, the value will NOT be displayed to user by default.
 Any other value will make the value displayed by default.
 
-\fn struct starpu_top_data * starpu_top_add_data_integer(const char* data_name, int minimum_value, int maximum_value, int active)
-\ingroup API_StarPU-Top_Interface
+\fn struct starpu_top_data *starpu_top_add_data_integer(const char *data_name, int minimum_value, int maximum_value, int active)
+\ingroup API_StarPUTop_Interface
 This fonction register a data named \p data_name of type integer. The
 minimum and maximum value will be usefull to define the scale in UI.
 If \p active=0, the value will NOT be displayed to user by default.
 Any other value will make the value displayed by default.
 
-\fn struct starpu_top_data* starpu_top_add_data_float(const char* data_name, double minimum_value, double maximum_value, int active)
-\ingroup API_StarPU-Top_Interface
+\fn struct starpu_top_data *starpu_top_add_data_float(const char *data_name, double minimum_value, double maximum_value, int active)
+\ingroup API_StarPUTop_Interface
 This fonction register a data named data_name of type float. The
 minimum and maximum value will be usefull to define the scale in UI.
 If \p active=0, the value will NOT be displayed to user by default.
 Any other value will make the value displayed by default.
 
-\fn struct starpu_top_param* starpu_top_register_parameter_boolean(const char* param_name, int* parameter_field, void (*callback)(struct starpu_top_param*))
-\ingroup API_StarPU-Top_Interface
+\fn struct starpu_top_param *starpu_top_register_parameter_boolean(const char *param_name, int *parameter_field, void (*callback)(struct starpu_top_param*))
+\ingroup API_StarPUTop_Interface
 This fonction register a parameter named \p parameter_name, of type
 boolean. The \p callback fonction will be called when the parameter is
 modified by UI, and can be null.
 
-\fn struct starpu_top_param* starpu_top_register_parameter_float(const char* param_name, double* parameter_field, double minimum_value, double maximum_value, void (*callback)(struct starpu_top_param*))
-\ingroup API_StarPU-Top_Interface
+\fn struct starpu_top_param *starpu_top_register_parameter_float(const char *param_name, double *parameter_field, double minimum_value, double maximum_value, void (*callback)(struct starpu_top_param*))
+\ingroup API_StarPUTop_Interface
 his fonction register a parameter named \p param_name, of type
 integer. Minimum and maximum value will be used to prevent user seting
 incorrect value. The \p callback fonction will be called when the
 parameter is modified by UI, and can be null.
 
-\fn struct starpu_top_param* starpu_top_register_parameter_integer(const char* param_name, int* parameter_field, int minimum_value, int maximum_value, void (*callback)(struct starpu_top_param*))
-\ingroup API_StarPU-Top_Interface
+\fn struct starpu_top_param *starpu_top_register_parameter_integer(const char *param_name, int *parameter_field, int minimum_value, int maximum_value, void (*callback)(struct starpu_top_param*))
+\ingroup API_StarPUTop_Interface
 This fonction register a parameter named \p param_name, of type float.
 Minimum and maximum value will be used to prevent user seting
 incorrect value. The \p callback fonction will be called when the
 parameter is modified by UI, and can be null.
 
-\fn struct starpu_top_param* starpu_top_register_parameter_enum(const char* param_name, int* parameter_field, char** values, int nb_values, void (*callback)(struct starpu_top_param*))
-\ingroup API_StarPU-Top_Interface
+\fn struct starpu_top_param *starpu_top_register_parameter_enum(const char *param_name, int *parameter_field, char **values, int nb_values, void (*callback)(struct starpu_top_param*))
+\ingroup API_StarPUTop_Interface
 This fonction register a parameter named \p param_name, of type enum.
 Minimum and maximum value will be used to prevent user seting
 incorrect value. The \p callback fonction will be called when the
 parameter is modified by UI, and can be null.
 
 @name Initialisation
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 
 \fn void starpu_top_init_and_wait(const char *server_name)
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 This function must be called when all parameters and data have been
 registered AND initialised (for parameters). This function will wait
 for a TOP to connect, send initialisation sentences, and wait for the
 GO message.
 
 @name To call after initialisation
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 
 \fn void starpu_top_update_parameter(const struct starpu_top_param *param)
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 This function should be called after every modification of a parameter
 from something other than starpu_top. This fonction notice UI that the
 configuration changed.
 
 \fn void starpu_top_update_data_boolean(const struct starpu_top_data *data, int value)
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 This function updates the value of the starpu_top_data on UI.
 
 \fn void starpu_top_update_data_integer(const struct starpu_top_data *data, int value)
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 This function updates the value of the starpu_top_data on UI.
 
 \fn void starpu_top_update_data_float(const struct starpu_top_data *data, double value)
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 This function updates the value of the starpu_top_data on UI.
 
 \fn void starpu_top_task_prevision(struct starpu_task *task, int devid, unsigned long long start, unsigned long long end)
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 This function notifies UI than the task have been planed to run from start to end, on computation-core.
 
 \fn void starpu_top_debug_log(const char *message)
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 This function is useful in debug mode. The starpu developper doesn't
 need to check if the debug mode is active. This is checked by
 starpu_top itsefl. It just send a message to display by UI.
 
 \fn void starpu_top_debug_lock(const char *message)
-\ingroup API_StarPU-Top_Interface
+\ingroup API_StarPUTop_Interface
 This function is useful in debug mode. The starpu developper doesn't
 need to check if the debug mode is active. This is checked by
 starpu_top itsefl. It send a message and wait for a continue message

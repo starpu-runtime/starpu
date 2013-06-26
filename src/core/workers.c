@@ -213,6 +213,7 @@ static int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, 
 	case STARPU_ANY_WORKER:
 	{
 		int cpu_func_enabled=1, cuda_func_enabled=1, opencl_func_enabled=1;
+		/* TODO: MIC/SCC */
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 		starpu_cpu_func_t cpu_func = _starpu_task_get_cpu_nth_implementation(cl, nimpl);
@@ -301,8 +302,9 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 
 			/* Is the worker larger than requested ? */
 			int worker_size = (int)config.combined_workers[workerid - nworkers].worker_size;
+			int worker0 = config.combined_workers[workerid - nworkers].combined_workerid[0];
 			return !!((worker_size <= task->cl->max_parallelism) &&
-				_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
+				_starpu_can_use_nth_implementation(config.workers[worker0].arch, task->cl, nimpl));
 		}
 		else
 		{

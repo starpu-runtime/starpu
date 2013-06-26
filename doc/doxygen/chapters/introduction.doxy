@@ -227,6 +227,7 @@ The documentation chapters include
 <li> \ref ExecutionConfigurationThroughEnvironmentVariables
 <li> \ref CompilationConfiguration
 <li> \ref ModuleDocumentation
+<li> \ref FileDocumentation
 <li> \ref deprecated
 </ul>
 <li> Part: Appendix

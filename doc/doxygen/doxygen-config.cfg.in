@@ -18,8 +18,38 @@
 
 INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 		       	 @top_srcdir@/doc/doxygen/chapters/api \
-                         @top_builddir@/include/starpu_config.h \
-			 @top_srcdir@/include/ \
+                         @top_builddir@/doc/doxygen/starpu_config.h \
+	 		 @top_srcdir@/include/starpu_bound.h \
+			 @top_srcdir@/include/starpu_cublas.h \
+			 @top_srcdir@/include/starpu_cuda.h \
+			 @top_srcdir@/include/starpu_data_filters.h \
+			 @top_srcdir@/include/starpu_data.h \
+			 @top_srcdir@/include/starpu_data_interfaces.h \
+			 @top_srcdir@/include/starpu_deprecated_api.h \
+			 @top_srcdir@/include/starpu_driver.h \
+			 @top_srcdir@/include/starpu_expert.h \
+			 @top_srcdir@/include/starpu_fxt.h \
+			 @top_srcdir@/include/starpu.h \
+			 @top_srcdir@/include/starpu_hash.h \
+			 @top_srcdir@/include/starpu_mic.h \
+			 @top_srcdir@/include/starpu_opencl.h \
+			 @top_srcdir@/include/starpu_perfmodel.h \
+			 @top_srcdir@/include/starpu_profiling.h \
+			 @top_srcdir@/include/starpu_rand.h \
+			 @top_srcdir@/include/starpu_scc.h \
+			 @top_srcdir@/include/starpu_sched_ctx.h \
+			 @top_srcdir@/include/starpu_scheduler.h \
+			 @top_srcdir@/include/starpu_sink.h \
+			 @top_srcdir@/include/starpu_stdlib.h \
+			 @top_srcdir@/include/starpu_task_bundle.h \
+			 @top_srcdir@/include/starpu_task.h \
+			 @top_srcdir@/include/starpu_task_list.h \
+			 @top_srcdir@/include/starpu_task_util.h \
+			 @top_srcdir@/include/starpu_thread.h \
+			 @top_srcdir@/include/starpu_thread_util.h \
+			 @top_srcdir@/include/starpu_top.h \
+			 @top_srcdir@/include/starpu_util.h \
+			 @top_srcdir@/include/starpu_worker.h \
 			 @top_srcdir@/mpi/include/ \
 			 @top_srcdir@/starpufft/starpufft.h \
 			 @top_srcdir@/sc_hypervisor/include
@@ -31,3 +61,4 @@ EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
 INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 
 LATEX_HEADER           = @top_srcdir@/doc/doxygen/refman.tex
+

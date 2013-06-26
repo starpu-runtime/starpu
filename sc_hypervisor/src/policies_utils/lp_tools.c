@@ -17,6 +17,7 @@
 #include <math.h>
 #include "sc_hypervisor_lp.h"
 #include "sc_hypervisor_policy.h"
+#include "sc_hypervisor_intern.h"
 #include <starpu_config.h>
 
 #ifdef STARPU_HAVE_GLPK_H
@@ -48,11 +49,26 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 #else
 		v[i][0] = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
 #endif // STARPU_USE_CUDA
-		flops[i] = sc_w->remaining_flops/1000000000; //sc_w->total_flops/1000000000; /* in gflops*/
+		
+		flops[i] = sc_w->remaining_flops < 0.0 ? 0.0 : sc_w->remaining_flops/1000000000; //sc_w->total_flops/1000000000; /* in gflops*/
 //		printf("%d: flops %lf\n", sched_ctxs[i], flops[i]);
 	}
 
-	return 1/sc_hypervisor_lp_simulate_distrib_flops(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw);
+	double vmax = 1/sc_hypervisor_lp_simulate_distrib_flops(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw);
+	double optimal_v = 0.0;
+	for(i = 0; i < nsched_ctxs; i++)
+	{
+#ifdef STARPU_USE_CUDA
+		optimal_v = res[i][0] * v[i][0] + res[i][1]* v[i][1];
+#else
+		optimal_v = res[i][0] * v[i][0];
+#endif //STARPU_USE_CUDA
+//				printf("%d: set opt %lf\n", i, optimal_v[i]);
+		if(optimal_v != 0.0)
+			_set_optimal_v(i, optimal_v);
+	}
+
+	return vmax;
 #else//STARPU_HAVE_GLPK_H
 	return 0.0;
 #endif//STARPU_HAVE_GLPK_H

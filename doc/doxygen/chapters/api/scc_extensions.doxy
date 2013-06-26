@@ -13,6 +13,10 @@
 This macro is defined when StarPU has been installed with SCC support.
 It should be used in your code to detect the availability of SCC.
 
+\typedef starpu_scc_func_symbol_t
+\ingroup API_SCC_Extensions
+Type for SCC function symbols
+
 \fn int starpu_scc_register_kernel(starpu_scc_func_symbol_t *symbol, const char *func_name)
 \ingroup API_SCC_Extensions
 Initiate a lookup on each SCC device to find the adress of the

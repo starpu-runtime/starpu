@@ -28,11 +28,11 @@ Push \p task at the front of \p list
 \ingroup API_Task_Lists
 Push \p task at the back of \p list
 
-\fn struct starpu_task * starpu_task_list_front(struct starpu_task_list *list)
+\fn struct starpu_task *starpu_task_list_front(struct starpu_task_list *list)
 \ingroup API_Task_Lists
 Get the front of \p list (without removing it)
 
-\fn struct starpu_task * starpu_task_list_back(struct starpu_task_list *list)
+\fn struct starpu_task *starpu_task_list_back(struct starpu_task_list *list)
 \ingroup API_Task_Lists
 Get the back of \p list (without removing it)
 
@@ -44,23 +44,23 @@ Test if \p list is empty
 \ingroup API_Task_Lists
 Remove \p task from \p list
 
-\fn struct starpu_task * starpu_task_list_pop_front(struct starpu_task_list *list)
+\fn struct starpu_task *starpu_task_list_pop_front(struct starpu_task_list *list)
 \ingroup API_Task_Lists
 Remove the element at the front of \p list
 
-\fn struct starpu_task * starpu_task_list_pop_back(struct starpu_task_list *list)
+\fn struct starpu_task *starpu_task_list_pop_back(struct starpu_task_list *list)
 \ingroup API_Task_Lists
 Remove the element at the back of \p list
 
-\fn struct starpu_task * starpu_task_list_begin(struct starpu_task_list *list)
+\fn struct starpu_task *starpu_task_list_begin(struct starpu_task_list *list)
 \ingroup API_Task_Lists
 Get the first task of \p list.
 
-\fn struct starpu_task * starpu_task_list_end(struct starpu_task_list *list)
+\fn struct starpu_task *starpu_task_list_end(struct starpu_task_list *list)
 \ingroup API_Task_Lists
 Get the end of \p list.
 
-\fn struct starpu_task * starpu_task_list_next(struct starpu_task *task)
+\fn struct starpu_task *starpu_task_list_next(struct starpu_task *task)
 \ingroup API_Task_Lists
 Get the next task of \p list. This is not erase-safe.
 
