@@ -40,7 +40,8 @@ static double compute_fitness_perf_model(struct _starpu_sched_node * child STARP
 	case PERF_MODEL:
 		fitness = data->alpha * (preds->expected_finish_time - best_exp_end)
 			+ data->beta  * preds->expected_transfer_length
-			+ data->gamma * preds->expected_power;
+			+ data->gamma * preds->expected_power
+			+ data->gamma * data->idle_power * (max_exp_end - best_exp_end) / 1000000.0;
 		return fitness;
 	case CALIBRATING:
 		STARPU_ASSERT_MSG(0,"we should have calibrate this task");

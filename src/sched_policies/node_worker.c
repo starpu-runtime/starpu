@@ -20,7 +20,8 @@ static struct _starpu_sched_node * _worker_nodes[STARPU_NMAXWORKERS];
  *
  *
  *
- * its possible that a _starpu_task_grid wont have task
+ * its possible that a _starpu_task_grid wont have task, because it have been
+ * poped by a worker.
  *
  * N = no task
  *
@@ -31,9 +32,7 @@ static struct _starpu_sched_node * _worker_nodes[STARPU_NMAXWORKERS];
  *   W  W  W
 
 
- * this API is a little asymmetric : _starpu_task_grid are allocated by the caller and freed by the data structure
- *
- * exp_{start,end,len} are filled by the caller
+ * this API is a little asymmetric : struct _starpu_task_grid are allocated by the caller and freed by the data structure
  */
 
 struct _starpu_task_grid
@@ -359,7 +358,7 @@ static double worker_estimated_finish_time(struct _starpu_worker * worker)
 	    task = starpu_task_list_next(task))
 		if(!isnan(task->predicted))
 		   sum += task->predicted;
-	if(worker->current_task) 
+	if(worker->current_task)
 	{
 		struct starpu_task * t = worker->current_task;
 		if(t && !isnan(t->predicted))
@@ -400,7 +399,7 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 {
 	STARPU_ASSERT(_starpu_sched_node_is_worker(node));
 	starpu_task_bundle_t bundle = task->bundle;
-       int workerid = _starpu_sched_node_worker_get_workerid(node);
+	int workerid = _starpu_sched_node_worker_get_workerid(node);
 
 	struct _starpu_task_execute_preds preds =
 		{
@@ -554,7 +553,7 @@ static int _starpu_sched_node_combined_worker_push_task(struct _starpu_sched_nod
 		if(mutex_to_unlock)
 			STARPU_PTHREAD_MUTEX_UNLOCK(mutex_to_unlock);
 		mutex_to_unlock = &list->mutex;
-		
+
 		_starpu_worker_task_list_push(list, task_alias[i]);
 		i++;
 	}
@@ -572,7 +571,7 @@ static int _starpu_sched_node_combined_worker_push_task(struct _starpu_sched_nod
 		starpu_pthread_cond_t *worker_sched_cond;
 		starpu_worker_get_sched_condition(workerid, &worker_sched_mutex, &worker_sched_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(worker_sched_mutex);
-		
+
 		/* wake up all other workers of combined worker */
 		for(i = 0; i < combined_worker->worker_size; i++)
 		{
@@ -584,7 +583,7 @@ static int _starpu_sched_node_combined_worker_push_task(struct _starpu_sched_nod
 
 		STARPU_PTHREAD_MUTEX_LOCK(worker_sched_mutex);
 	}
-	return 0;	
+	return 0;
 }
 
 static struct _starpu_sched_node * _starpu_sched_node_worker_create(int workerid)

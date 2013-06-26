@@ -302,7 +302,7 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 			/* Is the worker larger than requested ? */
 			int worker_size = (int)config.combined_workers[workerid - nworkers].worker_size;
 			return !!((worker_size <= task->cl->max_parallelism) &&
-				  _starpu_can_use_nth_implementation(config.workers[workerid - nworkers].arch, task->cl, nimpl));
+				  _starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
 		}
 		else
 		{
