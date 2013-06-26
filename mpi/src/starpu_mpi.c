@@ -826,6 +826,8 @@ static void _starpu_mpi_copy_cb(void* arg)
 {
 	struct _starpu_mpi_copy_cb_args *args = arg;
 
+	// We store in the application request the internal MPI
+	// request so that it can be used by starpu_mpi_wait
 	args->req->request = args->req->internal_req->request;
 	args->req->submitted = 1;
 
@@ -853,6 +855,9 @@ static void _starpu_mpi_copy_cb(void* arg)
 	_STARPU_MPI_DEBUG(3, "Done, handling request %p termination of the already received request\n",args->req);
 	if (args->req->detached)
 		_starpu_mpi_handle_request_termination(args->req);
+	// else: If the request is not detached its termination will
+	// be handled when calling starpu_mpi_wait
+
 
 	free(args);
 }
@@ -917,7 +922,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 				_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
 				_starpu_mpi_req_list_push_front(new_requests, req);
 
-				/* somebody is perhaps waiting for the request to be pushed in the new_requests list */
+				/* inform the starpu mpi thread that the request has beenbe pushed in the new_requests list */
 				STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 				STARPU_PTHREAD_MUTEX_LOCK(&req->posted_mutex);
 				req->posted = 1;
@@ -1227,6 +1232,12 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					_STARPU_MPI_DEBUG(3, "Posting internal detached irecv on copy_handle with tag %d from src %d ..\n", chandle->mpi_tag, status.MPI_SOURCE);
 					chandle->req = _starpu_mpi_irecv_common(chandle->handle, status.MPI_SOURCE, chandle->mpi_tag, MPI_COMM_WORLD, 1, NULL, NULL);
 					chandle->req->is_internal_req = 1;
+
+					// We wait until the request is pushed in the
+					// new_request list, that ensures that the next loop
+					// will call _starpu_mpi_handle_new_request
+					// on the request and post the corresponding mpi_irecv,
+					// otherwise, it may lead to read data as envelop
 					STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 					STARPU_PTHREAD_MUTEX_LOCK(&(chandle->req->posted_mutex));
 					while (!(chandle->req->posted))
