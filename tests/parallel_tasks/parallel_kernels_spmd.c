@@ -32,7 +32,7 @@ static void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	STARPU_ASSERT(worker_size > 0);
 
 	usleep(1000/worker_size);
-#if 1
+#if 0
 	int id = starpu_worker_get_id();
 	int combined_id = starpu_combined_worker_get_id();
 	int rank = starpu_combined_worker_get_rank();

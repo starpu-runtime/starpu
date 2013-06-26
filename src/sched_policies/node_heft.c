@@ -117,13 +117,14 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 					 preds + i,
 					 best_exp_end,
 					 max_exp_end);
+//		fprintf(stderr,"fitness for worker %d is %f\n",i,tmp == DBL_MAX ? -1 : tmp);
 		if(tmp < best_fitness)
 		{
 			best_fitness = tmp;
 			index_best_fitness = i;
 		}
 	}
-
+//	fprintf(stderr,"push on worker %d\n",index_best_fitness);
 	STARPU_ASSERT(best_fitness != DBL_MAX);
 
 	struct _starpu_sched_node * c = node->childs[index_best_fitness];

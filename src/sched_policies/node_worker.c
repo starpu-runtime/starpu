@@ -97,7 +97,6 @@ static void _starpu_worker_task_list_destroy(struct _starpu_worker_task_list * l
 {
 	if(l)
 	{
-
 		STARPU_PTHREAD_MUTEX_DESTROY(&l->mutex);
 		free(l);
 	}
@@ -106,6 +105,7 @@ static void _starpu_worker_task_list_destroy(struct _starpu_worker_task_list * l
 /* the task, ntasks, pntasks, left and right field members are set by the caller */
 static inline void _starpu_worker_task_list_push(struct _starpu_worker_task_list * l, struct _starpu_task_grid * t)
 {
+	STARPU_ASSERT(t->task);
 	if(l->first == NULL)
 		l->first = l->last = t;
 	t->down = l->last;
@@ -113,6 +113,12 @@ static inline void _starpu_worker_task_list_push(struct _starpu_worker_task_list
 	t->up = NULL;
 	l->last = t;
 	l->ntasks++;
+	l->exp_start = starpu_timing_now();
+	if(!isnan(t->task->predicted))
+	{
+		l->exp_len += t->task->predicted;
+		l->exp_end = l->exp_start + l->exp_end;
+	}
 }
 
 //recursively set left and right pointers to NULL
@@ -172,6 +178,11 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 			if(*p == 0)
 				_starpu_task_grid_unset_left_right_member(t);
 			l->ntasks--;
+			if(!isnan(task->predicted))
+			{
+				l->exp_len -= task->predicted;
+				l->exp_end = l->exp_start + l->exp_len;
+			}
 			return task;
 		}
 		t = t->up;
@@ -348,7 +359,6 @@ static double worker_estimated_finish_time(struct _starpu_worker * worker)
 	    task = starpu_task_list_next(task))
 		if(!isnan(task->predicted))
 		   sum += task->predicted;
-
 	if(worker->current_task) 
 	{
 		struct starpu_task * t = worker->current_task;
@@ -405,7 +415,7 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 	int nimpl;
 	for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 	{
-		if(/*starpu_worker_can_execute_task(workerid,task,nimpl) ||*/ starpu_combined_worker_can_execute_task(workerid, task, nimpl))
+		if(starpu_worker_can_execute_task(workerid,task,nimpl) || starpu_combined_worker_can_execute_task(workerid, task, nimpl))
 		{
 			double d;
 			if(bundle)
