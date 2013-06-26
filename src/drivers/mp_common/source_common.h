@@ -36,20 +36,21 @@ int _starpu_src_common_sink_nbcores (const struct _starpu_mp_node *node, int *bu
 int _starpu_src_common_lookup(const struct _starpu_mp_node *node,
 			      void (**func_ptr)(void), const char *func_name);
 
-int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
-				      void (*kernel)(void), unsigned coreid,
-				      starpu_data_handle_t *handles, void **interfaces, unsigned nb_interfaces,
-				      void *cl_arg, size_t cl_arg_size);
-
-int _starpu_src_common_execute_kernel_from_task(const struct _starpu_mp_node *node,
-						void (*kernel)(void), unsigned coreid,
-						struct starpu_task *task);
-
 int _starpu_src_common_allocate(const struct _starpu_mp_node *mp_node,
 				void **addr, size_t size);
 
 void _starpu_src_common_free(const struct _starpu_mp_node *mp_node,
 			     void *addr);
+
+int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
+				      void (*kernel)(void), unsigned coreid,
+				      enum starpu_codelet_type type,
+				      int is_parallel_task, int cb_workerid,
+				      starpu_data_handle_t *handles,
+				      void **interfaces,
+				      unsigned nb_interfaces,
+				      void *cl_arg, size_t cl_arg_size);
+
 
 int _starpu_src_common_copy_host_to_sink(const struct _starpu_mp_node *mp_node,
 					 void *src, void *dst, size_t size);

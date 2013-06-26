@@ -31,6 +31,14 @@
 
 #include "task_fifo.h"
 
+struct arg_sink_thread
+{
+	struct mp_task ** task;
+	pthread_mutex_t * mutex;
+	struct _starpu_mp_node *node;
+	int coreid;
+};
+
 /* Return the sink kind of the running process, based on the value of the
  * STARPU_SINK environment variable.
  * If there is no valid value retrieved, return STARPU_INVALID_KIND
@@ -56,16 +64,8 @@ void
 _starpu_sink_nbcores (const struct _starpu_mp_node *node)
 {
 	// Process packet received from `_starpu_src_common_sink_cores'.
-	int nbcores = 1;
-
-#ifdef STARPU_USE_MIC
-	// XXX I currently only support MIC for now.
-	if (STARPU_MIC_SINK == _starpu_sink_common_get_kind ())
-		nbcores = COISysGetCoreCount();
-#endif
-
-	_starpu_mp_common_send_command (node, STARPU_ANSWER_SINK_NBCORES,
-					&nbcores, sizeof (int));
+     	_starpu_mp_common_send_command (node, STARPU_ANSWER_SINK_NBCORES,
+					&node->nb_cores, sizeof (int));
 }
 
 
@@ -228,7 +228,7 @@ void _starpu_sink_common_worker(void)
 
 		if(!task_fifo_is_empty(&(node->dead_queue)))
 		{
-			struct task * task = node->dead_queue.first;
+			struct mp_task * task = node->dead_queue.first;
 			//_STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
 			_starpu_mp_common_send_command(task->node, STARPU_EXECUTION_COMPLETED,
 						       &(task->coreid), sizeof(task->coreid));
@@ -247,28 +247,96 @@ void _starpu_sink_common_worker(void)
 
 static void* _starpu_sink_thread(void * thread_arg)
 {
-	struct task *arg = (struct task *)thread_arg;
-  
-	//execute the task
-	arg->kernel(arg->interfaces,arg->cl_arg);
 
-	//append the finished task to the dead queue
-	task_fifo_append(&(arg->node->dead_queue),arg);
+	struct mp_task **task = ((struct arg_sink_thread *)thread_arg)->task;
+	pthread_mutex_t * mutex = ((struct arg_sink_thread *)thread_arg)->mutex;
+	struct _starpu_mp_node *node = ((struct arg_sink_thread *)thread_arg)->node;
+	int coreid =((struct arg_sink_thread *)thread_arg)->coreid;
+	int i;
+	cpu_set_t base_cpu_set, para_cpu_set;
+	pthread_t thread = pthread_self();
+
+	//init the set
+	CPU_ZERO(&base_cpu_set);
+	node->bind_thread(node, &base_cpu_set, coreid);
+	free(thread_arg);
+	while(1)
+	{
+		pthread_mutex_lock(mutex);
+		if((*task)->type == STARPU_FORKJOIN && (*task)->is_parallel_task)
+		{
+			//init the set
+			CPU_ZERO(&para_cpu_set);
+
+			for(i=0; i<(*task)->combined_worker_size; i++)
+			{
+				node->bind_thread(node, &para_cpu_set, (*task)->combined_worker[i]);
+			}
+			pthread_setaffinity_np(thread,sizeof(cpu_set_t),&para_cpu_set);
+		}
+
+		//execute the task
+		(*task)->kernel((*task)->interfaces,(*task)->cl_arg);
+		
+		if((*task)->type == STARPU_FORKJOIN && (*task)->is_parallel_task)
+		{
+			pthread_setaffinity_np(thread,sizeof(cpu_set_t),&base_cpu_set);
+		}
+
+		//append the finished task to the dead queue
+		task_fifo_append(&((*task)->node->dead_queue),(*task));	
+		
+	}
 	pthread_exit(NULL);
 }
 
-static void _starpu_sink_execute_thread(struct task *arg)
+
+void _starpu_sink_common_init(struct _starpu_mp_node *node)
 {
 	pthread_t thread;
 	cpu_set_t cpuset;
-	int ret;
-  
-	//create the tread
-	ret = pthread_create(&thread, NULL, _starpu_sink_thread, arg);
-	STARPU_ASSERT(ret == 0);
-  
-	//bind the thread on the core coreid
-	arg->node->bind_thread(arg->node, &cpuset, arg->coreid, &thread);
+	pthread_attr_t attr;
+	int i, ret;
+	struct arg_sink_thread * arg;
+
+	node->run_table = malloc(sizeof(struct mp_task *)*node->nb_cores);
+	node->mutex_table = malloc(sizeof(pthread_mutex_t)*node->nb_cores);
+
+	/*for each core init the mutex, the task pointer and launch the thread */
+	for(i=1; i<node->nb_cores; i++)
+	{
+		node->run_table[i] = NULL;
+		pthread_mutex_init(&node->mutex_table[i], NULL);
+		pthread_mutex_lock(&node->mutex_table[i]);
+
+		//init the set
+		CPU_ZERO(&cpuset);
+
+		/*prepare the cpuset*/
+		node->bind_thread(node, &cpuset, i);
+		ret = pthread_attr_init(&attr);
+		STARPU_ASSERT(ret == 0);
+		ret = pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);
+		STARPU_ASSERT(ret == 0);
+
+		/*prepare the argument for the thread*/
+		arg= malloc(sizeof(struct arg_sink_thread));
+		arg->task = &node->run_table[i];
+		arg->mutex = &node->mutex_table[i];
+		arg->coreid = i;
+		arg->node = node;
+		
+		ret = pthread_create(&thread, &attr, _starpu_sink_thread, arg);
+		STARPU_ASSERT(ret == 0);
+	}
+}
+
+static void _starpu_sink_common_execute_thread(struct _starpu_mp_node *node, struct mp_task *task)
+{
+	//add the task to the spesific thread
+	node->run_table[task->coreid] = task;
+	//unlock the mutex
+	pthread_mutex_unlock(&node->mutex_table[task->coreid]);
 }
 
 
@@ -286,12 +354,35 @@ void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
 	unsigned nb_interfaces;
 
 	void *arg_ptr = arg;
-	struct task *thread_arg = malloc(sizeof(struct task));
+	struct mp_task *thread_arg = malloc(sizeof(struct mp_task));
 	
 	thread_arg->node = node;
 
 	thread_arg->kernel = *(void(**)(void **, void *)) arg_ptr;
 	arg_ptr += sizeof(thread_arg->kernel);
+
+	thread_arg->type = *(enum starpu_codelet_type *) arg_ptr;
+	arg_ptr += sizeof(thread_arg->type);
+
+	thread_arg->is_parallel_task = *(int *) arg_ptr;
+	arg_ptr += sizeof(thread_arg->is_parallel_task);
+	
+
+	//_STARPU_DEBUG("type:%d\n",thread_arg->type);
+
+	if(thread_arg->type == STARPU_FORKJOIN && thread_arg->is_parallel_task)
+	{
+		thread_arg->combined_worker_size = *(int *) arg_ptr;
+		arg_ptr += sizeof(thread_arg->combined_worker_size);
+	
+		for (id = 0; id < thread_arg->combined_worker_size; id++)
+		{
+			
+			thread_arg->combined_worker[id] = *(int*) arg_ptr;
+			arg_ptr += sizeof(thread_arg->combined_worker[id]);
+		}
+		
+	}
 
 	thread_arg->coreid = *(unsigned *) arg_ptr;
 	arg_ptr += sizeof(thread_arg->coreid);
@@ -320,5 +411,5 @@ void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
 				       NULL, 0);
 
 	//_STARPU_DEBUG("executing the task %p\n", thread_arg->kernel);
-	_starpu_sink_execute_thread(thread_arg);	
+	_starpu_sink_common_execute_thread(node, thread_arg);	
 }

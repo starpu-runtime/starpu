@@ -92,10 +92,11 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 		int arg_size = 0;
 
 		// XXX: give the correct coreid.
-		_starpu_src_common_execute_kernel(node,
-						  (void(*)(void))init_func, 0,
-						  &handle, &(replicate->data_interface), 1,
-						  NULL, 0);
+	       _starpu_src_common_execute_kernel(node,
+						 (void(*)(void))init_func, 0,
+						 STARPU_SEQ, 0, 0, &handle, 
+						 &(replicate->data_interface), 1,
+						 NULL, 0);
 		answer = _starpu_mp_common_recv_command (node, &arg, &arg_size);
 		STARPU_ASSERT (answer == STARPU_EXECUTION_COMPLETED);
 	}

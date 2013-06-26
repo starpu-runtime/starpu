@@ -23,36 +23,40 @@
 #include <common/config.h>
 
 
-struct task{
-  struct _starpu_mp_node *node;
-  void (*kernel)(void **, void *);
-  void *interfaces[STARPU_NMAXBUFS]; 
-  void *cl_arg;
-  unsigned coreid;
+struct mp_task{
+	struct _starpu_mp_node *node;
+	void (*kernel)(void **, void *);
+	void *interfaces[STARPU_NMAXBUFS]; 
+	void *cl_arg;
+	unsigned coreid;
+	enum starpu_codelet_type type;
+	int is_parallel_task;
+	int combined_worker_size;
+	int combined_worker[STARPU_NMAXWORKERS];
 
-  /*the next task of the fifo*/
-  struct task * next;
+	/*the next task of the fifo*/
+	struct mp_task * next;
 };
 
 
-struct task_fifo{
-  /*the first task of the fifo*/
-  struct task * first;
+struct mp_task_fifo{
+	/*the first task of the fifo*/
+	struct mp_task * first;
   
-  /*the last task of the fifo*/
-  struct task * last;
+	/*the last task of the fifo*/
+	struct mp_task * last;
 
-  /*mutex to protect concurrent access on the fifo*/
-  pthread_mutex_t mutex;
+	/*mutex to protect concurrent access on the fifo*/
+	pthread_mutex_t mutex;
 };
 
 
-void task_fifo_init(struct task_fifo* fifo);
+void task_fifo_init(struct mp_task_fifo* fifo);
 
-int task_fifo_is_empty(struct task_fifo* fifo);
+int task_fifo_is_empty(struct mp_task_fifo* fifo);
 
-void task_fifo_append(struct task_fifo* fifo, struct task * task);
+void task_fifo_append(struct mp_task_fifo* fifo, struct mp_task * task);
 
-void task_fifo_pop(struct task_fifo* fifo);
+void task_fifo_pop(struct mp_task_fifo* fifo);
 
-#endif /* __TASK_FIFO_H__*/
+#endif /*__TASK_FIFO_H__*/

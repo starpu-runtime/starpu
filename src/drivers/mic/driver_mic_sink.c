@@ -45,6 +45,10 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	_starpu_mic_common_accept(&node->host_sink_dt_connection.mic_endpoint,
 									 STARPU_MIC_SOURCE_DT_PORT_NUMBER);
 
+	node->nb_cores = COISysGetCoreCount();
+
+	_starpu_sink_common_init(node);
+
 	//node->sink_sink_dt_connections = malloc(node->nb_mp_sinks * sizeof(union _starpu_mp_connection));
 
 	//for (i = 0; i < (unsigned int)node->devid; ++i)
@@ -141,17 +145,11 @@ void _starpu_mic_sink_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUT
 
 /* bind the thread to a core
  */
-void _starpu_mic_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, cpu_set_t * cpuset, int coreid, pthread_t *thread)
+void _starpu_mic_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, cpu_set_t * cpuset, int coreid)
 {
-  int j, ret;
-  //init the set
-  CPU_ZERO(cpuset);
+	int j, ret;
 
-  //adding the core to the set
-  for(j=0;j<HYPER_THREAD_NUMBER;j++)
-    CPU_SET(j+coreid*HYPER_THREAD_NUMBER,cpuset);
-  
-  //affect the thread to the core
-  ret = pthread_setaffinity_np(*thread, sizeof(cpu_set_t), cpuset);
-  STARPU_ASSERT(ret == 0);
+	//adding the core to the set
+	for(j=0;j<HYPER_THREAD_NUMBER;j++)
+		CPU_SET(j+coreid*HYPER_THREAD_NUMBER,cpuset);
 }

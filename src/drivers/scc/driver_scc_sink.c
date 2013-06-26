@@ -27,6 +27,14 @@
 void _starpu_scc_sink_init(struct _starpu_mp_node *node)
 {
 	node->mp_connection.scc_nodeid = _starpu_scc_common_get_src_node_id();
+
+	/****************
+	 *     TODO     *
+	 * get nb_cores *
+	 ****************/
+	node->nb_cores = 1; 
+
+	_starpu_sink_common_init(node);
 }
 
 void _starpu_scc_sink_deinit(struct _starpu_mp_node *node)
@@ -53,10 +61,10 @@ void _starpu_scc_sink_recv_from_device(const struct _starpu_mp_node *node, int s
 
 void _starpu_scc_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, cpu_set_t * cpuset, int coreid, pthread_t *thread)
 {
-  /****************
-        TODO
-  ****************/
-  STARPU_ASSERT(0);
+	/****************
+	 *     TODO     *
+	 ****************/
+	STARPU_ASSERT(0);
 }
 
 

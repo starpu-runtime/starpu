@@ -35,7 +35,7 @@
 #define STARPU_MP_SRC_NODE 0
 #define STARPU_MP_SINK_NODE(a) ((a) + 1)
 
-#define STARPU_MP_COMMON_REPORT_ERROR(node, status) \
+#define STARPU_MP_COMMON_REPORT_ERROR(node, status)			\
 	(node)->report_error(__starpu_func__, __FILE__, __LINE__, (status))
 
 
@@ -103,6 +103,9 @@ struct _starpu_mp_node
 {
 	enum _starpu_mp_node_kind kind;
 
+	/*the number of core*/
+	int nb_cores;
+
 	/* Buffer used for scif data transfers, allocated
 	 * during node initialization.
 	 * Size : BUFFER_SIZE */
@@ -117,11 +120,8 @@ struct _starpu_mp_node
 	 * This is the devid both for the sink and the host. */
 	int devid;
 
-        /*dead queue*/
-        struct task_fifo dead_queue;
-
 	/* Only MIC use this for now !!
-	*  Is the number ok MIC on the system. */
+	 *  Is the number ok MIC on the system. */
 	unsigned int nb_mp_sinks;
 
 	/* Connection used for command passing between the host thread and the
@@ -142,13 +142,20 @@ struct _starpu_mp_node
 	 *  - sink_sink_dt_connections[j] is not initialized for the sink number j. */
 	union _starpu_mp_connection *sink_sink_dt_connections;
 
+        /*dead queue where the finished kernel are added */
+        struct mp_task_fifo dead_queue;
+
+	/**/
+	struct mp_task ** run_table;
+	pthread_mutex_t * mutex_table;
+
 	/* Node general functions */
 	void (*init)(struct _starpu_mp_node *node);
 	void (*deinit)(struct _starpu_mp_node *node);
 	void (*report_error)(const char *, const char *, const int, const int);
 
-  /* Message passing */
-  int (*mp_recv_is_ready)(const struct _starpu_mp_node *);
+	/* Message passing */
+	int (*mp_recv_is_ready)(const struct _starpu_mp_node *);
 	void (*mp_send)(const struct _starpu_mp_node *, void *, int);
 	void (*mp_recv)(const struct _starpu_mp_node *, void *, int);
 
@@ -158,8 +165,8 @@ struct _starpu_mp_node
 	void (*dt_send_to_device)(const struct _starpu_mp_node *, int, void *, int);
 	void (*dt_recv_from_device)(const struct _starpu_mp_node *, int, void *, int);
 
-  void (*(*get_kernel_from_job)(const struct _starpu_mp_node *,struct _starpu_job *))(void);
-  void (*bind_thread)(const struct _starpu_mp_node *, cpu_set_t *,int, pthread_t *);
+	void (*(*get_kernel_from_job)(const struct _starpu_mp_node *,struct _starpu_job *))(void);
+	void (*bind_thread)(const struct _starpu_mp_node *, cpu_set_t *,int);
 	void (*execute)(const struct _starpu_mp_node *, void *, int);
 	void (*nbcores)(const struct _starpu_mp_node *);
 	void (*allocate)(const struct _starpu_mp_node *, void *, int);
@@ -177,7 +184,7 @@ void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
 				    void *arg, int arg_size);
 
 enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_node *node,
-						    void **arg, int *arg_size);
+						       void **arg, int *arg_size);
 
 
 #endif /* STARPU_USE_MP */

@@ -31,7 +31,7 @@ static double cumulated_pop = 0.0;
 
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
-  usleep(3000);
+	usleep(10000);
 }
 
 static struct starpu_codelet dummy_codelet =
