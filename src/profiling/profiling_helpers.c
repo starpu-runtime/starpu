@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011, 2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -83,7 +83,7 @@ void starpu_profiling_worker_helper_display_summary(void)
 				overall_time = total_time;
 
 			fprintf(stderr, "%-32s\n", name);
-			fprintf(stderr, "\t%d task(s)\n\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf\n", info.executed_tasks, total_time, executing_time, sleeping_time);
+			fprintf(stderr, "\t%d task(s)\n\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf ms overhead %.2lf ms\n", info.executed_tasks, total_time, executing_time, sleeping_time, total_time - executing_time - sleeping_time);
 			if (info.used_cycles || info.stall_cycles)
 				fprintf(stderr, "\t%lu Mcy %lu Mcy stall\n", info.used_cycles/1000000, info.stall_cycles/1000000);
 			if (info.power_consumed)
