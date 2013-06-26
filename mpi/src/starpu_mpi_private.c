@@ -18,12 +18,18 @@
 #include <starpu_mpi_private.h>
 
 int _debug_rank=-1;
-int _debug_level=0;
+int _debug_level_min=0;
+int _debug_level_max=0;
 int _starpu_mpi_tag = 42;
 
-void _starpu_mpi_set_debug_level(int level)
+void _starpu_mpi_set_debug_level_min(int level)
 {
-	_debug_level = level;
+	_debug_level_min = level;
+}
+
+void _starpu_mpi_set_debug_level_max(int level)
+{
+	_debug_level_max = level;
 }
 
 int starpu_mpi_get_communication_tag(void)

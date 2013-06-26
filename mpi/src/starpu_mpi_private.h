@@ -31,18 +31,20 @@ extern "C" {
 
 #ifdef STARPU_VERBOSE
 extern int _debug_rank;
-extern int _debug_level;
-void _starpu_mpi_set_debug_level(int level);
+extern int _debug_level_min;
+extern int _debug_level_max;
+void _starpu_mpi_set_debug_level_min(int level);
+void _starpu_mpi_set_debug_level_max(int level);
 #endif
 
 #ifdef STARPU_VERBOSE
 #  define _STARPU_MPI_DEBUG(level, fmt, ...) \
 	do \
 	{								\
-		if (!getenv("STARPU_SILENT") && level <= _debug_level)	\
+		if (!getenv("STARPU_SILENT") && _debug_level_min <= level && level <= _debug_level_max)	\
 		{							\
 			if (_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank); \
-			fprintf(stderr, "%*s[%d][starpu_mpi][%s] " fmt , (_debug_rank+1)*4, "", _debug_rank, __starpu_func__ ,## __VA_ARGS__); \
+			fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] " fmt , (_debug_rank+1)*4, "", _debug_rank, __starpu_func__ , __LINE__,## __VA_ARGS__); \
 			fflush(stderr); \
 		}			\
 	} while(0);
