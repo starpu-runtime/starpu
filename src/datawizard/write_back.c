@@ -46,8 +46,14 @@ void _starpu_write_through_data(starpu_data_handle_t handle, unsigned requesting
 			/* we need to commit the buffer on that node */
 			if (node != requesting_node)
 			{
-				while (_starpu_spin_trylock(&handle->header_lock))
+				int cpt = 0;
+				while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
+				{
+					cpt++;
 					_starpu_datawizard_progress(requesting_node, 1);
+				}
+				if (cpt == STARPU_SPIN_MAXTRY)
+					_starpu_spin_lock(&handle->header_lock);
 
 				/* We need to keep a Read lock to avoid letting writers corrupt our copy.  */
 				STARPU_ASSERT(handle->current_mode != STARPU_REDUX);

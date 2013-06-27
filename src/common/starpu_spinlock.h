@@ -107,4 +107,6 @@ int _starpu_spin_unlock(struct _starpu_spinlock *lock);
 }) 
 
 
+#define STARPU_SPIN_MAXTRY 10 
+
 #endif // __STARPU_SPINLOCK_H__

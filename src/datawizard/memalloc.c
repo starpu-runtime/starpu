@@ -862,8 +862,14 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 				_starpu_memory_reclaim_generic(dst_node, 0, reclaim);
 			_STARPU_TRACE_END_MEMRECLAIM(dst_node,is_prefetch);
 
-		        while (_starpu_spin_trylock(&handle->header_lock))
-		                _starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
+			int cpt = 0;
+			while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
+			{
+				cpt++;
+				_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
+			}
+			if (cpt == STARPU_SPIN_MAXTRY)
+				_starpu_spin_lock(&handle->header_lock);
 
 			replicate->refcnt--;
 			STARPU_ASSERT(replicate->refcnt >= 0);
