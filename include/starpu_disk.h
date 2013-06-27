@@ -36,6 +36,7 @@ struct starpu_disk_ops {
 
 /* Posix functions to use disk memory */
 extern struct starpu_disk_ops starpu_disk_stdio_ops;
+extern struct starpu_disk_ops starpu_disk_unistd_ops;
 
 /*functions to add an existing memory */
 void starpu_disk_close(unsigned node, void *obj, size_t size);
