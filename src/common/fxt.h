@@ -105,6 +105,36 @@
 
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL	0x513b
 
+#define _STARPU_FUT_LOCKING_MUTEX	0x5140	
+#define _STARPU_FUT_MUTEX_LOCKED	0x5141	
+
+#define _STARPU_FUT_UNLOCKING_MUTEX		0x5142	
+#define _STARPU_FUT_MUTEX_UNLOCKED		0x5143	
+
+#define _STARPU_FUT_TRYLOCK_MUTEX		0x5144	
+
+#define _STARPU_FUT_RDLOCKING_RWLOCK	0x5145	
+#define _STARPU_FUT_RWLOCK_RDLOCKED		0x5146	
+
+#define _STARPU_FUT_WRLOCKING_RWLOCK	0x5147	
+#define _STARPU_FUT_RWLOCK_WRLOCKED		0x5148	
+
+#define _STARPU_FUT_UNLOCKING_RWLOCK	0x5149	
+#define _STARPU_FUT_RWLOCK_UNLOCKED		0x514a	
+
+#define _STARPU_FUT_LOCKING_SPINLOCK	0x514b	
+#define _STARPU_FUT_SPINLOCK_LOCKED		0x514c	
+
+#define _STARPU_FUT_UNLOCKING_SPINLOCK		0x514d	
+#define _STARPU_FUT_SPINLOCK_UNLOCKED		0x514e	
+
+#define _STARPU_FUT_TRYLOCK_SPINLOCK		0x514f	
+
+#define _STARPU_FUT_COND_WAIT_BEGIN		0x5150
+#define _STARPU_FUT_COND_WAIT_END		0x5151
+
+#define _STARPU_FUT_MEMORY_FULL			0x5152
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -136,6 +166,24 @@ void _starpu_fxt_register_thread(unsigned);
 /* Sometimes we need something a little more specific than the wrappers from
  * FxT: these macro permit to put add an event with 3 (or 4) numbers followed
  * by a string. */
+#define _STARPU_FUT_DO_PROBE2STR(CODE, P1, P2, str)			\
+do {									\
+    if(fut_active) {							\
+	/* No more than FXT_MAX_PARAMS args are allowed */		\
+	/* we add a \0 just in case ... */				\
+	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 2)*sizeof(unsigned long));\
+	unsigned nbargs_str = (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	unsigned nbargs = 2 + nbargs_str;				\
+	size_t total_len = FUT_SIZE(nbargs);				\
+	unsigned long *futargs =					\
+		fut_getstampedbuffer(FUT_CODE(CODE, nbargs), total_len);\
+	*(futargs++) = (unsigned long)(P1);				\
+	*(futargs++) = (unsigned long)(P2);				\
+	snprintf((char *)futargs, len, "%s", str);			\
+	((char *)futargs)[len - 1] = '\0';				\
+    }									\
+} while (0);
+
 #define _STARPU_FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)			\
 do {									\
     if(fut_active) {							\
@@ -341,11 +389,11 @@ do {										\
 #define _STARPU_TRACE_END_ALLOC_REUSE(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_ALLOC_REUSE, memnode, _starpu_gettid());
 	
-#define _STARPU_TRACE_START_MEMRECLAIM(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_START_MEMRECLAIM, memnode, _starpu_gettid());
+#define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)		\
+	FUT_DO_PROBE3(_STARPU_FUT_START_MEMRECLAIM, memnode, is_prefetch, _starpu_gettid());
 	
-#define _STARPU_TRACE_END_MEMRECLAIM(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_END_MEMRECLAIM, memnode, _starpu_gettid());
+#define _STARPU_TRACE_END_MEMRECLAIM(memnode, is_prefetch)		\
+	FUT_DO_PROBE3(_STARPU_FUT_END_MEMRECLAIM, memnode, is_prefetch, _starpu_gettid());
 	
 /* We skip these events becasue they are called so often that they cause FxT to
  * fail and make the overall trace unreadable anyway. */
@@ -365,6 +413,88 @@ do {										\
 
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL			\
 	FUT_DO_PROBE0(_STARPU_FUT_TASK_WAIT_FOR_ALL)
+
+#ifdef STARPU_FXT_LOCK_TRACES 
+
+#define _STARPU_TRACE_LOCKING_MUTEX(file,line)	\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_MUTEX,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_MUTEX_LOCKED(file,line)			\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_MUTEX_LOCKED,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_UNLOCKING_MUTEX(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_MUTEX,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_MUTEX_UNLOCKED(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_MUTEX_UNLOCKED,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_TRYLOCK_MUTEX(file,line)			\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_MUTEX,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_RDLOCKING_RWLOCK(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RDLOCKING_RWLOCK,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_RWLOCK_RDLOCKED(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RWLOCK_RDLOCKED,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_WRLOCKING_RWLOCK(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_WRLOCKING_RWLOCK,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_RWLOCK_WRLOCKED(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RWLOCK_WRLOCKED,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_UNLOCKING_RWLOCK(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_RWLOCK,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_RWLOCK_UNLOCKED(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RWLOCK_UNLOCKED,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_LOCKING_SPINLOCK(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_SPINLOCK,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_SPINLOCK_LOCKED(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_LOCKED,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file,line)	\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_SPINLOCK,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_UNLOCKED,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_SPINLOCK,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_COND_WAIT_BEGIN(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_COND_WAIT_BEGIN,line,_starpu_gettid(),file);
+
+#define _STARPU_TRACE_COND_WAIT_END(file,line)		\
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_COND_WAIT_END,line,_starpu_gettid(),file);
+
+#else // !STARPU_FXT_LOCK_TRACES
+
+#define _STARPU_TRACE_LOCKING_MUTEX(file,line)			do {} while(0)
+#define _STARPU_TRACE_MUTEX_LOCKED(file,line)			do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_MUTEX(file,line)		do {} while(0)
+#define _STARPU_TRACE_MUTEX_UNLOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_MUTEX(file,line)			do {} while(0)
+#define _STARPU_TRACE_RDLOCKING_RWLOCK(file,line)		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_RDLOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_WRLOCKING_RWLOCK(file,line)		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_WRLOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_RWLOCK(file,line)		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_UNLOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_LOCKING_SPINLOCK(file,line)		do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_LOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file,line)	do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file,line)		do {} while(0)
+#define _STARPU_TRACE_COND_WAIT_BEGIN(file,line)		do {} while(0)
+#define _STARPU_TRACE_COND_WAIT_END(file,line)			do {} while(0)
+
+#endif // STARPU_FXT_LOCK_TRACES
+
+#define _STARPU_TRACE_MEMORY_FULL(size)	\
+	FUT_DO_PROBE2(_STARPU_FUT_MEMORY_FULL,size,_starpu_gettid());
 
 #else // !STARPU_USE_FXT
 
@@ -405,13 +535,32 @@ do {										\
 #define _STARPU_TRACE_END_ALLOC(memnode)		do {} while(0)
 #define _STARPU_TRACE_START_ALLOC_REUSE(a)	do {} while(0)
 #define _STARPU_TRACE_END_ALLOC_REUSE(a)		do {} while(0)
-#define _STARPU_TRACE_START_MEMRECLAIM(memnode)	do {} while(0)
-#define _STARPU_TRACE_END_MEMRECLAIM(memnode)	do {} while(0)
+#define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
+#define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
 #define _STARPU_TRACE_START_PROGRESS(memnode)	do {} while(0)
 #define _STARPU_TRACE_END_PROGRESS(memnode)	do {} while(0)
 #define _STARPU_TRACE_USER_EVENT(code)		do {} while(0)
 #define _STARPU_TRACE_SET_PROFILING(status)	do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL		do {} while(0)
+#define _STARPU_TRACE_LOCKING_MUTEX(file,line)			do {} while(0)
+#define _STARPU_TRACE_MUTEX_LOCKED(file,line)			do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_MUTEX(file,line)		do {} while(0)
+#define _STARPU_TRACE_MUTEX_UNLOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_MUTEX(file,line)			do {} while(0)
+#define _STARPU_TRACE_RDLOCKING_RWLOCK(file,line)		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_RDLOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_WRLOCKING_RWLOCK(file,line)		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_WRLOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_RWLOCK(file,line)		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_UNLOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_LOCKING_SPINLOCK(file,line)		do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_LOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file,line)	do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file,line)		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file,line)		do {} while(0)
+#define _STARPU_TRACE_COND_WAIT_BEGIN(file,line)		do {} while(0)
+#define _STARPU_TRACE_COND_WAIT_END(file,line)			do {} while(0)
+#define _STARPU_TRACE_MEMORY_FULL(size)				do {} while(0)
 
 #endif // STARPU_USE_FXT
 

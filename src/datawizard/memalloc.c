@@ -853,14 +853,14 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			handle->busy_count++;
 			_starpu_spin_unlock(&handle->header_lock);
 
-			_STARPU_TRACE_START_MEMRECLAIM(dst_node);
+			_STARPU_TRACE_START_MEMRECLAIM(dst_node,is_prefetch);
 			if (is_prefetch)
 			{
 				flush_memchunk_cache(dst_node, reclaim);
 			}
 			else
 				_starpu_memory_reclaim_generic(dst_node, 0, reclaim);
-			_STARPU_TRACE_END_MEMRECLAIM(dst_node);
+			_STARPU_TRACE_END_MEMRECLAIM(dst_node,is_prefetch);
 
 		        while (_starpu_spin_trylock(&handle->header_lock))
 		                _starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);

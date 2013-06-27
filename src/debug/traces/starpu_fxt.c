@@ -1549,6 +1549,63 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				handle_task_wait_for_all();
 				break;
 
+			case _STARPU_FUT_LOCKING_MUTEX:
+				break;
+
+			case _STARPU_FUT_MUTEX_LOCKED:
+				break;
+
+			case _STARPU_FUT_UNLOCKING_MUTEX:
+				break;
+
+			case _STARPU_FUT_MUTEX_UNLOCKED:
+				break;
+
+			case _STARPU_FUT_TRYLOCK_MUTEX:
+				break;
+
+			case _STARPU_FUT_RDLOCKING_RWLOCK:
+				break;
+
+			case _STARPU_FUT_RWLOCK_RDLOCKED:
+				break;
+
+			case _STARPU_FUT_WRLOCKING_RWLOCK:
+				break;
+
+			case _STARPU_FUT_RWLOCK_WRLOCKED:
+				break;
+
+			case _STARPU_FUT_UNLOCKING_RWLOCK:
+				break;
+
+			case _STARPU_FUT_RWLOCK_UNLOCKED:
+				break;
+
+			case _STARPU_FUT_LOCKING_SPINLOCK:
+				break;
+
+			case _STARPU_FUT_SPINLOCK_LOCKED:
+				break;
+
+			case _STARPU_FUT_UNLOCKING_SPINLOCK:
+				break;
+
+			case _STARPU_FUT_SPINLOCK_UNLOCKED:
+				break;
+
+			case _STARPU_FUT_TRYLOCK_SPINLOCK:
+				break;
+
+			case _STARPU_FUT_COND_WAIT_BEGIN:
+				break;
+
+			case _STARPU_FUT_COND_WAIT_END:
+				break;
+
+			case _STARPU_FUT_MEMORY_FULL:
+				break;
+
 			default:
 #ifdef STARPU_VERBOSE
 				fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
