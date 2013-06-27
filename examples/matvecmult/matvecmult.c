@@ -186,9 +186,9 @@ int main(int argc, char **argv)
         fillArray(mult, height);
         matVecMult(matrix, vector, width, height, correctResult);
 
-	starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix, width, width, height, sizeof(float));
-	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, width, sizeof(float));
-	starpu_vector_data_register(&mult_handle, 0, (uintptr_t)mult, height, sizeof(float));
+	starpu_matrix_data_register(&matrix_handle, STARPU_MAIN_RAM, (uintptr_t)matrix, width, width, height, sizeof(float));
+	starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, width, sizeof(float));
+	starpu_vector_data_register(&mult_handle, STARPU_MAIN_RAM, (uintptr_t)mult, height, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_load_opencl_from_file("examples/matvecmult/matvecmult_kernel.cl", &opencl_code, NULL);

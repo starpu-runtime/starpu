@@ -137,16 +137,16 @@ static void free_data(void)
 
 static void register_data(void)
 {
-	starpu_matrix_data_register(&A_handle, 0, (uintptr_t)A, n, n, n, sizeof(TYPE));
-	starpu_vector_data_register(&b_handle, 0, (uintptr_t)b, n, sizeof(TYPE));
-	starpu_vector_data_register(&x_handle, 0, (uintptr_t)x, n, sizeof(TYPE));
+	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A, n, n, n, sizeof(TYPE));
+	starpu_vector_data_register(&b_handle, STARPU_MAIN_RAM, (uintptr_t)b, n, sizeof(TYPE));
+	starpu_vector_data_register(&x_handle, STARPU_MAIN_RAM, (uintptr_t)x, n, sizeof(TYPE));
 
-	starpu_vector_data_register(&r_handle, 0, (uintptr_t)r, n, sizeof(TYPE));
-	starpu_vector_data_register(&d_handle, 0, (uintptr_t)d, n, sizeof(TYPE));
-	starpu_vector_data_register(&q_handle, 0, (uintptr_t)q, n, sizeof(TYPE));
+	starpu_vector_data_register(&r_handle, STARPU_MAIN_RAM, (uintptr_t)r, n, sizeof(TYPE));
+	starpu_vector_data_register(&d_handle, STARPU_MAIN_RAM, (uintptr_t)d, n, sizeof(TYPE));
+	starpu_vector_data_register(&q_handle, STARPU_MAIN_RAM, (uintptr_t)q, n, sizeof(TYPE));
 
-	starpu_variable_data_register(&dtq_handle, 0, (uintptr_t)&dtq, sizeof(TYPE));
-	starpu_variable_data_register(&rtr_handle, 0, (uintptr_t)&rtr, sizeof(TYPE));
+	starpu_variable_data_register(&dtq_handle, STARPU_MAIN_RAM, (uintptr_t)&dtq, sizeof(TYPE));
+	starpu_variable_data_register(&rtr_handle, STARPU_MAIN_RAM, (uintptr_t)&rtr, sizeof(TYPE));
 
 	if (use_reduction)
 	{
@@ -160,13 +160,13 @@ static void register_data(void)
 
 static void unregister_data(void)
 {
-	starpu_data_unpartition(A_handle, 0);
-	starpu_data_unpartition(b_handle, 0);
-	starpu_data_unpartition(x_handle, 0);
+	starpu_data_unpartition(A_handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(b_handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(x_handle, STARPU_MAIN_RAM);
 
-	starpu_data_unpartition(r_handle, 0);
-	starpu_data_unpartition(d_handle, 0);
-	starpu_data_unpartition(q_handle, 0);
+	starpu_data_unpartition(r_handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(d_handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(q_handle, STARPU_MAIN_RAM);
 
 	starpu_data_unregister(A_handle);
 	starpu_data_unregister(b_handle);

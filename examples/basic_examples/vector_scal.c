@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 	 *  - the fifth argument is the size of each element.
 	 */
 	starpu_data_handle_t vector_handle;
-	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
+	starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 
 	float factor = 3.14;
 

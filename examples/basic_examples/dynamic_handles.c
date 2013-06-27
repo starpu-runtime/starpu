@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
 	     dummy_big_cl.dyn_modes[i] = STARPU_RW;
 
-	starpu_variable_data_register(&handle, 0, (uintptr_t)&val, sizeof(int));
+	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(int));
 
 	task = starpu_task_create();
 	task->synchronous = 1;

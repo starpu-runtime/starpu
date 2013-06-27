@@ -279,7 +279,7 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
 

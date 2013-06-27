@@ -161,7 +161,7 @@ int main(int argc, char **argv)
 	for (block = 0; block < _nblocks; block++)
 	{
 		uintptr_t block_start = (uintptr_t)&_x[_entries_per_bock*block];
-		starpu_vector_data_register(&_x_handles[block], 0, block_start,
+		starpu_vector_data_register(&_x_handles[block], STARPU_MAIN_RAM, block_start,
 					    _entries_per_bock, sizeof(TYPE));
 	}
 
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 	/* Initialize current max */
 	_minmax[1] = TYPE_MIN;
 
-	starpu_variable_data_register(&_minmax_handle, 0, (uintptr_t)_minmax, 2*sizeof(TYPE));
+	starpu_variable_data_register(&_minmax_handle, STARPU_MAIN_RAM, (uintptr_t)_minmax, 2*sizeof(TYPE));
 
 	/* Set the methods to define neutral elements and to perform the reduction operation */
 	starpu_data_set_reduction_methods(_minmax_handle, &minmax_redux_codelet, &minmax_init_codelet);

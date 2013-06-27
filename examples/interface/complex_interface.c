@@ -21,7 +21,7 @@
 double *starpu_complex_get_real(starpu_data_handle_t handle)
 {
 	struct starpu_complex_interface *complex_interface =
-		(struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, 0);
+		(struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return complex_interface->real;
 }
@@ -29,7 +29,7 @@ double *starpu_complex_get_real(starpu_data_handle_t handle)
 double *starpu_complex_get_imaginary(starpu_data_handle_t handle)
 {
 	struct starpu_complex_interface *complex_interface =
-		(struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, 0);
+		(struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return complex_interface->imaginary;
 }
@@ -37,7 +37,7 @@ double *starpu_complex_get_imaginary(starpu_data_handle_t handle)
 int starpu_complex_get_nx(starpu_data_handle_t handle)
 {
 	struct starpu_complex_interface *complex_interface =
-		(struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, 0);
+		(struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return complex_interface->nx;
 }

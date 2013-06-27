@@ -110,7 +110,7 @@ register_and_partition_data(void)
 		_array_of_structs[i].x = i+1.0;
 		_array_of_structs[i].y = 42.0;
 	}
-	custom_data_register(&_handle, 0, &_array_of_structs, N, &format_ops);
+	custom_data_register(&_handle, STARPU_MAIN_RAM, &_array_of_structs, N, &format_ops);
 
 	struct starpu_data_filter f =
 	{
@@ -125,7 +125,7 @@ register_and_partition_data(void)
 static void
 unpartition_and_unregister_data(void)
 {
-	starpu_data_unpartition(_handle, 0);
+	starpu_data_unpartition(_handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(_handle);
 }
 

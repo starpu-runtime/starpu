@@ -135,13 +135,13 @@ int main(int argc, char **argv)
 
 	/* Any worker may use that array now */
 	starpu_data_handle_t sobol_qrng_direction_handle;
-	starpu_vector_data_register(&sobol_qrng_direction_handle, 0,
+	starpu_vector_data_register(&sobol_qrng_direction_handle, STARPU_MAIN_RAM,
 		(uintptr_t)sobol_qrng_directions, n_dimensions*n_directions, sizeof(unsigned));
 
 	unsigned *cnt_array = malloc(ntasks*sizeof(unsigned));
 	STARPU_ASSERT(cnt_array);
 	starpu_data_handle_t cnt_array_handle;
-	starpu_vector_data_register(&cnt_array_handle, 0, (uintptr_t)cnt_array, ntasks, sizeof(unsigned));
+	starpu_vector_data_register(&cnt_array_handle, STARPU_MAIN_RAM, (uintptr_t)cnt_array, ntasks, sizeof(unsigned));
 
 	/* Use a write-through policy : when the data is modified on an
 	 * accelerator, we know that it will only be modified once and be
@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 	starpu_task_wait_for_all();
 
 	/* Get the cnt_array back in main memory */
-	starpu_data_unpartition(cnt_array_handle, 0);
+	starpu_data_unpartition(cnt_array_handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(cnt_array_handle);
 	starpu_data_unregister(sobol_qrng_direction_handle);
 

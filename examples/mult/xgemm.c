@@ -110,11 +110,11 @@ static void init_problem_data(void)
 
 static void partition_mult_data(void)
 {
-	starpu_matrix_data_register(&A_handle, 0, (uintptr_t)A,
+	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A,
 		ydim, ydim, zdim, sizeof(TYPE));
-	starpu_matrix_data_register(&B_handle, 0, (uintptr_t)B,
+	starpu_matrix_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B,
 		zdim, zdim, xdim, sizeof(TYPE));
-	starpu_matrix_data_register(&C_handle, 0, (uintptr_t)C,
+	starpu_matrix_data_register(&C_handle, STARPU_MAIN_RAM, (uintptr_t)C,
 		ydim, ydim, xdim, sizeof(TYPE));
 
 	struct starpu_data_filter vert;
@@ -346,9 +346,9 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "GFlop/s: %.2f\n", flops/timing/1000.0);
 
 enodev:
-	starpu_data_unpartition(C_handle, 0);
-	starpu_data_unpartition(B_handle, 0);
-	starpu_data_unpartition(A_handle, 0);
+	starpu_data_unpartition(C_handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(B_handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(A_handle, STARPU_MAIN_RAM);
 
 	starpu_data_unregister(A_handle);
 	starpu_data_unregister(B_handle);

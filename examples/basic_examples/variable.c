@@ -50,7 +50,7 @@ int main(int argc, char **argv)
         if (argc == 2) niter = atoi(argv[1]);
         foo = 0.0f;
 
-	starpu_variable_data_register(&float_array_handle, 0 /* home node */,
+	starpu_variable_data_register(&float_array_handle, STARPU_MAIN_RAM /* home node */,
                                       (uintptr_t)&foo, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL

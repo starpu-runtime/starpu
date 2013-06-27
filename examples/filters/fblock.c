@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 #endif
 
         /* Declare data to StarPU */
-        starpu_block_data_register(&handle, 0, (uintptr_t)block, NX, NX*NY, NX, NY, NZ, sizeof(int));
+        starpu_block_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)block, NX, NX*NY, NX, NY, NZ, sizeof(int));
         FPRINTF(stderr, "IN  Block\n");
         print_data(handle);
 
@@ -159,7 +159,7 @@ int main(int argc, char **argv)
         }
 
         /* Unpartition the data, unregister it from StarPU and shutdown */
-        starpu_data_unpartition(handle, 0);
+        starpu_data_unpartition(handle, STARPU_MAIN_RAM);
         print_data(handle);
         starpu_data_unregister(handle);
 
