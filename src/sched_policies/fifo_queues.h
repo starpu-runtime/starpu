@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,9 @@ struct _starpu_fifo_taskq
 	unsigned nprocessed;
 
 	/* only meaningful if the queue is only used by a single worker */
-	double exp_start; /* Expected start date of first task in the queue */
+	double exp_start; /* Expected start date of next item to do in the
+			   * queue (i.e. not started yet). This is thus updated
+			   * when we start it. */
 	double exp_end; /* Expected end date of last task in the queue */
 	double exp_len; /* Expected duration of the set of tasks in the queue */
 };
