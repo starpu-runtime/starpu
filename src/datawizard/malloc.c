@@ -443,7 +443,6 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 		file = strrchr(__FILE__,'/');							
 		file += sizeof(char);										
 		_STARPU_TRACE_MEMORY_FULL(size);
-		printf("ENOMEM\n");
 		_starpu_memory_manager_deallocate_size(size, dst_node);
 	}
 	return addr;
