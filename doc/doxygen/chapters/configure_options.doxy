@@ -22,13 +22,6 @@ the following configure options.
 Enable debugging messages.
 </dd>
 
-<dt>--enable-debug</dt>
-<dd>
-\anchor enable-debug
-\addindex __configure__--enable-debug
-Enable debugging messages.
-</dd>
-
 <dt>--enable-fast</dt>
 <dd>
 \anchor enable-fast
