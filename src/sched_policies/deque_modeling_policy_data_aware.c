@@ -221,11 +221,10 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 		double transfer_model = task->predicted_transfer;
 		/* We now start the transfer, get rid of it in the completion
 		 * prediction */
-		if(!isnan(transfer_model))
-		double model = task->predicted;
 
 		if(!isnan(transfer_model)) 
 		{
+			double model = task->predicted;
 			fifo->exp_len -= transfer_model;
 			fifo->exp_start = starpu_timing_now() + transfer_model+model;
 			fifo->exp_end = fifo->exp_start + fifo->exp_len;
