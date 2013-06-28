@@ -57,7 +57,7 @@ starpu_unistd_alloc (void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
 	strcpy(baseCpy, (char *) base);
 	strcat(baseCpy,tmp);
 
-	id = mkstemp(baseCpy);
+	id = mkostemp(baseCpy, O_RDWR | O_DIRECT);
 	/* fail */
 	if (id < 0)
 	{
@@ -65,20 +65,8 @@ starpu_unistd_alloc (void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
 		free(baseCpy);
 		return NULL;
 	}
-
-	close(id);
-
-	id = open(baseCpy, O_DIRECT);
-	/* fail */
-        if (id < 0)
-        {
-                free(obj);
-                free(baseCpy);
-                return NULL;
-        }
-
-	int val = ftruncate(baseCpy,size);
-	printf("%d \n", val);
+	
+	int val = ftruncate(id,size);
 	/* fail */
 	if (val < 0)
 	{
@@ -134,7 +122,7 @@ starpu_unistd_open (void *base, void *pos, size_t size)
 		free(baseCpy);
 		return NULL;
 	}
-
+	
 	obj->descriptor = id;
 	obj->path = baseCpy;
 	obj->size = size;
@@ -161,12 +149,12 @@ static ssize_t
 starpu_unistd_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
 	struct starpu_unistd_obj * tmp = (struct starpu_unistd_obj *) obj;
-
+	
 	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
-	STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
+	STARPU_ASSERT_MSG(res >= 0, "Stdio read failed");
 
 	ssize_t nb = read(tmp->descriptor, buf, size);
-
+	
 	return nb;
 }
 
@@ -176,9 +164,9 @@ static ssize_t
 starpu_unistd_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
 {
 	struct starpu_unistd_obj * tmp = (struct starpu_unistd_obj *) obj;
-
+	
 	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
-	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
+	STARPU_ASSERT_MSG(res >= 0, "Stdio write failed");
 
 	ssize_t nb = write (tmp->descriptor, buf, size);
 
@@ -213,6 +201,8 @@ get_unistd_bandwidth_between_disk_and_main_ram(unsigned node)
 	double timing_slowness, timing_latency;
 	struct timeval start;
 	struct timeval end;
+
+	starpu_malloc_set_align(getpagesize());
 	
 	srand (time (NULL)); 
 	char * buf = malloc(SIZE_DISK_MIN*sizeof(char));
