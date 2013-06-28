@@ -710,30 +710,23 @@ int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_no
 
 static struct _starpu_worker_task_list * _worker_get_list(void)
 {
-	int workerid = _starpu_worker_get_id();
-	STARPU_ASSERT(0 <= workeid && workerid < starpu_worker_get_count());
+	int workerid = starpu_worker_get_id();
+	STARPU_ASSERT(0 <= workerid && workerid < (int) starpu_worker_get_count());
 	struct _starpu_worker_node_data * d = _starpu_sched_node_worker_get(workerid)->data;
 	return d->list;
 }
 
-struct _starpu_worker_task_list
-{
-	double exp_start, exp_len, exp_end;
-	struct _starpu_task_grid *first, *last;
-	unsigned ntasks;
-	starpu_pthread_mutex_t mutex;
-};
 
 void _starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task)
 {
-	if(!isnan(task->predicted))
+/*	if(!isnan(task->predicted))
 	{
 		struct _starpu_worker_task_list * list = _worker_get_list();
 		STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&list->mutex);
 		
 	}
-
+*/
 }
 void _starpu_sched_node_worker_post_exec_hook(struct starpu_task * task)
 {
