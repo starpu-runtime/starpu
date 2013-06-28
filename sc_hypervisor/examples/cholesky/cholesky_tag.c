@@ -225,7 +225,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG11(nblocks-1));
 
-	starpu_data_unpartition(dataA, 0);
+	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 
 	gettimeofday(&end, NULL);
 

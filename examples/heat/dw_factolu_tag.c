@@ -316,7 +316,7 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 	dw_codelet_facto_v3(dataA, nblocks);
 
 	/* gather all the data */
-	starpu_data_unpartition(dataA, 0);
+	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 
 	starpu_data_unregister(dataA);
 

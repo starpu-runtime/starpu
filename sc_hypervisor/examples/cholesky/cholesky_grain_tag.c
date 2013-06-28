@@ -234,7 +234,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 	{
 		/* stall the application until the end of computations */
 		starpu_tag_wait(TAG11_AUX(nblocks-1, reclevel));
-		starpu_data_unpartition(dataA, 0);
+		starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 		starpu_data_unregister(dataA);
 		return;
 	}
@@ -258,7 +258,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 
 		free(tag_array);
 
-		starpu_data_unpartition(dataA, 0);
+		starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 		starpu_data_unregister(dataA);
 
 		float *newmatA = &matA[nbigblocks*(size/nblocks)*(ld+1)];

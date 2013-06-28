@@ -157,7 +157,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	if (bound)
 		starpu_bound_stop();
 
-	starpu_data_unpartition(dataA, 0);
+	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 
 	gettimeofday(&end, NULL);
 

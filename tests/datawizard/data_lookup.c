@@ -127,7 +127,7 @@ static void test_filters(void)
 		STARPU_ASSERT(starpu_data_lookup(children_pointers[i]) == child);
 	}
 
-	starpu_data_unpartition(handle, 0);
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 
 	for (i = 0; i < CHILDREN_COUNT; i++)
 	{
