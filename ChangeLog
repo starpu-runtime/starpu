@@ -39,7 +39,13 @@ Small features:
   * New functions starpu_data_acquire_cb_sequential_consistency() and
     starpu_data_acquire_on_node_cb_sequential_consistency() which allows
     to enable or disable sequential consistency
+  * New configure option --enable-fxt-lock which enables additional
+    trace events focused on locks behaviour during the execution
 
+Changes:
+  * Fix of the livelock issue discovered while executing applications
+    on a CPU+GPU cluster of machines by adding a maximum trylock 
+    threshold before a blocking lock.
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================
