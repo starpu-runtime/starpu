@@ -50,6 +50,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu_top.h \
 			 @top_srcdir@/include/starpu_util.h \
 			 @top_srcdir@/include/starpu_worker.h \
+			 @top_srcdir@/src/sched_policies/node_sched.h \
 			 @top_srcdir@/mpi/include/ \
 			 @top_srcdir@/starpufft/starpufft.h \
 			 @top_srcdir@/sc_hypervisor/include

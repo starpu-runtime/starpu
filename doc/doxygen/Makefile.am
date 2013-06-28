@@ -177,7 +177,8 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_config.h 	\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_lp.h		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_monitoring.h	\
-	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h	\
+	$(top_srcdir)/src/sched_policies/node_sched.h
 
 $(DOX_TAG): $(dox_inputs)
 	rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)

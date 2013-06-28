@@ -101,7 +101,6 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	int ret = _starpu_prio_deque_push_task(fifo, task);
 	if(!isnan(task->predicted))
 	{
-//		task->predicted /= _starpu_bitmap_cardinal(node->workers);
 		fifo->exp_len += task->predicted;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 	}
@@ -132,6 +131,8 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 		if(!isnan(task->predicted))
 			fifo->exp_len -= task->predicted;
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
+		if(fifo->ntasks == 0)
+			fifo->exp_len = 0.0;
 	}
 	STARPU_ASSERT(!isnan(fifo->exp_end));
 	STARPU_ASSERT(!isnan(fifo->exp_len));

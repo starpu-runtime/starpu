@@ -1,4 +1,4 @@
-/* !\defgroup API_Modularized_Scheduler
+/*! \defgroup API_Modularized_Scheduler Modularized scheduler interface
 
 \struct _starpu_sched_node
 \ingroup API_Modularized_Scheduler
@@ -28,6 +28,8 @@ This structure represent a scheduler module.
 	the array of scheduler module above indexed by scheduling context index
 \var _starpu_sched_node::init_data
 	is called after all the scheduler is created and should init data member
+	you can store things in node->data while calling _sched_node_create(arg)
+	and use it with init_data
 \var _starpu_sched_node::deinit_data
 	is called just before _starpu_sched_node_destroy
 \var _starpu_sched_node::obj
@@ -42,7 +44,7 @@ this structure containt predictions for a task and is filled by _starpu_sched_no
 \var _starpu_task_execute_preds::impl
 	those members are revelant is state is PERF_MODEL or CALIBRATING and is set to best or uncalibrated archtype and implementation, respectively, or suitable values if state is NO_PERF_MODEL
 \var _starpu_task_execute_preds::expected_finish_time
-	expected finish time of worker without task
+	expected finish time of task
 \var _starpu_task_execute_preds::expected_length
 	expected compute time of task
 \var _starpu_task_execute_preds::expected_transfer_length
@@ -60,7 +62,14 @@ this structure containt predictions for a task and is filled by _starpu_sched_no
 	this lock protect the worker member
 
 \fn struct _starpu_sched_node * _starpu_sched_node_create(void)
-    	   return an initialised scheduler module with default values
+
+        allocate and initalise node field with defaults values :
+	.pop_task make recursive call on father
+	.available make a recursive call on childrens
+	.estimated_load compute relative speedup and tasks in subtree
+	.estimated_execute_preds return the average of recursive call on childs
+
+
 \fn void _starpu_sched_node_destroy(struct _starpu_sched_node * node)
     	 free data allocated by _starpu_sched_node_create, but dont call node->deinit_data(node)
 \fn void _starpu_sched_node_set_father(struct _starpu_sched_node * node, struct _starpu_sched_node * father_node, unsigned sched_ctx_id)
@@ -70,4 +79,6 @@ this structure containt predictions for a task and is filled by _starpu_sched_no
 	 and dont modify child->fathers
 \fn void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child)
     	 remove child from node->childs and decrement nchilds
+
+
 */

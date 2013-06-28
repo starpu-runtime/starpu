@@ -18,7 +18,7 @@ double _starpu_compute_expected_time(double now, double predicted_end, double pr
 		predicted_transfer += now;
 		predicted_transfer -= predicted_end;
 	}
-	if(!isnan(predicted_transfer)) 
+	if(!isnan(predicted_transfer))
 	{
 		predicted_end += predicted_transfer;
 		predicted_length += predicted_transfer;

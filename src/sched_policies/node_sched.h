@@ -136,14 +136,7 @@ struct _starpu_sched_tree
 };
 
 
-/* allocate and initalise node field with defaults values :
- *  .pop_task make recursive call on father
- *  .estimated_finish_time  max of the recursives calls on childrens
- *  .estimated_load compute relative speedup and tasks in subtree
- *  .estimated_transfer_length  average transfer cost for all workers in the subtree
- *  .estimated_execution_length average execution cost for all workers in the subtree
- *  .available make a recursive call on childrens
- */
+
 struct _starpu_sched_node * _starpu_sched_node_create(void);
 
 void _starpu_sched_node_destroy(struct _starpu_sched_node * node);
@@ -172,7 +165,7 @@ struct _starpu_sched_node * _starpu_sched_node_fifo_create(void * arg STARPU_ATT
 int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node);
 //struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct _starpu_sched_node * fifo_node);
 
-/* struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void); */
+struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void);
 int _starpu_sched_node_is_work_stealing(struct _starpu_sched_node * node);
 
 struct _starpu_sched_node * _starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED);
@@ -204,15 +197,13 @@ void _starpu_node_destroy_rec(struct _starpu_sched_node * node, unsigned sched_c
 
 int _starpu_tree_push_task(struct starpu_task * task);
 struct starpu_task * _starpu_tree_pop_task(unsigned sched_ctx_id);
-void _starpu_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
-void _starpu_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
-
 void _starpu_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 void _starpu_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
+void _starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task);
+void _starpu_sched_node_worker_post_exec_hook(struct starpu_task * task);
 
 /* return the bitmap of worker that are allowed to use in this scheduling context
  */
-
 struct _starpu_bitmap * _starpu_get_worker_mask(struct starpu_task * task);
 
 /* this function fill all the node->workers member
@@ -229,8 +220,6 @@ int _starpu_sched_node_push_tasks_to_firsts_suitable_parent(struct _starpu_sched
 
 
 
-void _starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task);
-void _starpu_sched_node_worker_post_exec_hook(struct starpu_task * task);
 
 
 
