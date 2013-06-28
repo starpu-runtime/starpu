@@ -629,9 +629,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 			exp_end[worker_ctx][nimpl] = exp_start + fifo->exp_len + local_task_length[worker_ctx][nimpl];
 
-
-			printf("%d/%d: exp_start %lf exp_len %lf exp_end %lf local_len %lf local_pen %lf \n", worker, sched_ctx_id, exp_start,  fifo->exp_len, exp_end[worker_ctx][nimpl], 
-			       local_task_length[worker_ctx][nimpl], local_data_penalty[worker_ctx][nimpl]);			
 			if (exp_end[worker_ctx][nimpl] < best_exp_end)
 			{
 				/* a better solution was found */
