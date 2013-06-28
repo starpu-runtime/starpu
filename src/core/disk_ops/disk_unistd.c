@@ -19,12 +19,14 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <stdint.h>
 
 #include <starpu.h>
 #include <core/disk.h>
 #include <core/perfmodel/perfmodel.h>
 
 #define NITER	64
+#define SIZE_BENCH (4*getpagesize())
 
 /* ------------------- use UNISTD to write on disk -------------------  */
 
@@ -115,14 +117,14 @@ starpu_unistd_open (void *base, void *pos, size_t size)
 	strcpy(baseCpy,(char *) base);
 	strcat(baseCpy,(char *) pos);
 
-	int id = open(baseCpy, O_DIRECT);
+	int id = open(baseCpy, O_RDWR | O_DIRECT);
 	if (id < 0)
 	{
 		free(obj);
 		free(baseCpy);
 		return NULL;
 	}
-	
+
 	obj->descriptor = id;
 	obj->path = baseCpy;
 	obj->size = size;
@@ -149,11 +151,16 @@ static ssize_t
 starpu_unistd_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
 	struct starpu_unistd_obj * tmp = (struct starpu_unistd_obj *) obj;
-	
+
 	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
-	STARPU_ASSERT_MSG(res >= 0, "Stdio read failed");
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd read failed");
+
+	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only read a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
+
+	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
 
 	ssize_t nb = read(tmp->descriptor, buf, size);
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd read failed");
 	
 	return nb;
 }
@@ -164,11 +171,16 @@ static ssize_t
 starpu_unistd_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
 {
 	struct starpu_unistd_obj * tmp = (struct starpu_unistd_obj *) obj;
-	
-	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
-	STARPU_ASSERT_MSG(res >= 0, "Stdio write failed");
 
+	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed");
+
+	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only write a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
+
+	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
+	
 	ssize_t nb = write (tmp->descriptor, buf, size);
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed");
 
 	return nb;
 }
@@ -181,6 +193,9 @@ starpu_unistd_plug (void *parameter)
 	char * tmp = malloc(sizeof(char)*(strlen(parameter)+1));
 	STARPU_ASSERT(tmp != NULL);
 	strcpy(tmp,(char *) parameter);
+
+	starpu_malloc_set_align(getpagesize());
+	
 	return (void *) tmp;	
 }
 
@@ -202,14 +217,13 @@ get_unistd_bandwidth_between_disk_and_main_ram(unsigned node)
 	struct timeval start;
 	struct timeval end;
 
-	starpu_malloc_set_align(getpagesize());
-	
 	srand (time (NULL)); 
-	char * buf = malloc(SIZE_DISK_MIN*sizeof(char));
+	char * buf;
+	posix_memalign((void *) &buf, getpagesize(), SIZE_BENCH*sizeof(char));
 	STARPU_ASSERT(buf != NULL);
 	
 	/* allocate memory */
-	void * mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
+	void * mem = _starpu_disk_alloc(node, SIZE_BENCH);
 	/* fail to alloc */
 	if (mem == NULL)
 		return 0;
@@ -218,7 +232,7 @@ get_unistd_bandwidth_between_disk_and_main_ram(unsigned node)
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(node, mem, buf, 0, SIZE_DISK_MIN);
+		_starpu_disk_write(node, mem, buf, 0, SIZE_BENCH);
 	}
 	gettimeofday(&end, NULL);
 	timing_slowness = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
@@ -227,19 +241,20 @@ get_unistd_bandwidth_between_disk_and_main_ram(unsigned node)
 	/* free memory */
 	free(buf);
 
-	buf = malloc(sizeof(char));
+	
+	posix_memalign((void *) &buf, getpagesize(), getpagesize()*sizeof(char));
 	STARPU_ASSERT(buf != NULL);
 
 	/* Measure latency */
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(node, mem, buf, rand() % (SIZE_DISK_MIN -1) , 1);
+		_starpu_disk_write(node, mem, buf, rand() % (SIZE_BENCH -1) , getpagesize());
 	}
 	gettimeofday(&end, NULL);
 	timing_latency = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	_starpu_disk_free(node, mem, SIZE_DISK_MIN);
+	_starpu_disk_free(node, mem, SIZE_BENCH);
 	free(buf);
 
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*1000000, (NITER/timing_slowness)*1000000,

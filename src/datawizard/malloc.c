@@ -189,6 +189,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 	if (_malloc_align != sizeof(void*))
 	{
+		
 		if (posix_memalign(A, _malloc_align, dim))
 		{
 			ret = -ENOMEM;
@@ -369,7 +370,7 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	{
 		case STARPU_CPU_RAM:
 		{
-			addr = (uintptr_t)malloc(size);
+			addr = (uintptr_t)starpu_malloc((void**) &addr, size);
 			break;
 		}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)

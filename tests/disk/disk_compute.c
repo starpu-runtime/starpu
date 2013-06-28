@@ -18,14 +18,16 @@
  * Use mechanism to push datas from main ram to disk ram
  */
 
+#include <fcntl.h>
 #include <starpu.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <math.h>
 
-#define NX (100)
+#define NX (1024)
 
 int main(int argc, char **argv)
 {
@@ -73,7 +75,7 @@ int main(int argc, char **argv)
 
 	starpu_malloc_flags((void **)&A, NX*sizeof(int), STARPU_MALLOC_COUNT);
 	starpu_malloc_flags((void **)&C, NX*sizeof(int), STARPU_MALLOC_COUNT);
- 
+	
 	unsigned int j;
 	/* you register them in a vector */
 	for(j = 0; j < NX; ++j)
@@ -96,6 +98,9 @@ int main(int argc, char **argv)
 	/* close the file */
 	fclose(f);
 
+	int descriptor = open(path_file_start, O_RDWR);
+	fdatasync(descriptor);
+	close(descriptor);
 
 	/* create a file to store result */
 	f = fopen(path_file_end, "wb+");
@@ -107,6 +112,10 @@ int main(int argc, char **argv)
 
 	/* close the file */
 	fclose(f);
+
+        descriptor = open(path_file_end, O_RDWR);
+        fdatasync(descriptor);
+        close(descriptor);
 
 	/* And now, you want to use your datas in StarPU */
 	/* Open the file ON the disk */
