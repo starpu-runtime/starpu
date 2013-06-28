@@ -1,7 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,18 +14,33 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __COMMON_THREAD_H__
-#define __COMMON_THREAD_H__
-
 #include <starpu.h>
-#include <common/fxt.h>
+#include "../helper.h"
 
-#define _starpu_pthread_barrier_t pthread_barrier_t
+void callback(void *ptr)
+{
+     int *x = (int *)ptr;
+     FPRINTF(stderr, "x=%d\n", *x);
+     STARPU_ASSERT(*x == 42);
+}
 
-#ifdef HAVE_PTHREAD_SPIN_LOCK
-typedef pthread_spinlock_t _starpu_pthread_spinlock_t;
-#endif
+int main(int argc, char **argv)
+{
+	int ret;
+	int x=42;
 
-#endif /* __COMMON_THREAD_H__ */
+	ret = starpu_initialize(NULL, &argc, &argv);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	ret = starpu_insert_task(NULL,
+				 STARPU_CALLBACK_WITH_ARG, callback, &x,
+				 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+
+	starpu_task_wait_for_all();
+	starpu_shutdown();
+
+	return EXIT_SUCCESS;
+}
 

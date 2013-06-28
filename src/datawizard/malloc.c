@@ -20,6 +20,7 @@
 #include <core/workers.h>
 #include <core/disk.h>
 #include <common/config.h>
+#include <common/fxt.h>
 #include <starpu.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <datawizard/memory_manager.h>
@@ -95,9 +96,9 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			size_t freed;
 			size_t reclaim = 2 * dim;
 			_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
-			_STARPU_TRACE_START_MEMRECLAIM(0);
+			_STARPU_TRACE_START_MEMRECLAIM(0,0);
 			freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
-			_STARPU_TRACE_END_MEMRECLAIM(0);
+			_STARPU_TRACE_END_MEMRECLAIM(0,0);
 			if (freed < dim)
 			{
 				// We could not reclaim enough memory
@@ -444,6 +445,10 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	if (addr == 0)
 	{
 		// Allocation failed, gives the memory back to the memory manager
+		const char* file;					
+		file = strrchr(__FILE__,'/');							
+		file += sizeof(char);										
+		_STARPU_TRACE_MEMORY_FULL(size);
 		_starpu_memory_manager_deallocate_size(size, dst_node);
 	}
 	return addr;

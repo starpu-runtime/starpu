@@ -2813,7 +2813,7 @@ Used by @code{STARPU_HISTORY_BASED} and @code{STARPU_NL_REGRESSION_BASED},
 records all execution history measures.
 
 @item @code{struct starpu_perfmodel_regression_model regression}
-Used by @code{STARPU_HISTORY_REGRESION_BASED} and
+Used by @code{STARPU_REGRESSION_BASED} and
 @code{STARPU_NL_REGRESSION_BASED}, contains the estimated factors of the
 regression.
 

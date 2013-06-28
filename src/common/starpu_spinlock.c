@@ -18,6 +18,7 @@
 #include <common/starpu_spinlock.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/fxt.h>
 #include <starpu_util.h>
 
 #ifdef STARPU_SIMGRID
@@ -147,6 +148,7 @@ int _starpu_spin_trylock(struct _starpu_spinlock *lock)
 #endif
 }
 
+#undef _starpu_spin_unlock
 int _starpu_spin_unlock(struct _starpu_spinlock *lock STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID

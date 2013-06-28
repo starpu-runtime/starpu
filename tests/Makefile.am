@@ -16,7 +16,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) @LIBS@
+LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) $(FXT_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(FXT_LDFLAGS)
 
@@ -141,6 +141,7 @@ noinst_PROGRAMS =				\
 	main/starpu_init			\
 	main/starpu_worker_exists		\
 	main/submit				\
+	main/codelet_null_callback		\
 	datawizard/allocate			\
 	datawizard/acquire_cb			\
 	datawizard/acquire_cb_insert		\
@@ -234,10 +235,6 @@ noinst_PROGRAMS +=				\
 	datawizard/reclaim
 endif
 
-noinst_nulldir=/tmp
-noinst_null_PROGRAMS =				\
-	$(LOADER)
-
 examplebin_PROGRAMS = \
 	microbenchs/tasks_size_overhead		\
 	microbenchs/local_pingpong
@@ -245,7 +242,11 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.gp \
 	microbenchs/tasks_size_overhead.sh
 
-check_PROGRAMS = $(noinst_PROGRAMS) $(noinst_2_PROGRAMS)
+if STARPU_HAVE_WINDOWS
+check_PROGRAMS	=	$(noinst_PROGRAMS)
+else
+check_PROGRAMS	=	$(LOADER) $(noinst_PROGRAMS)
+endif
 
 #######################
 # Source files        #

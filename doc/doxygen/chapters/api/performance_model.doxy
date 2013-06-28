@@ -175,7 +175,7 @@ Used by ::STARPU_HISTORY_BASED and ::STARPU_NL_REGRESSION_BASED,
 records all execution history measures.
 \var starpu_perfmodel_per_arch::regression
 \private
-Used by ::STARPU_HISTORY_BASED and
+Used by ::STARPU_REGRESSION_BASED and
 ::STARPU_NL_REGRESSION_BASED, contains the estimated factors of the
 regression.
 
@@ -195,13 +195,13 @@ mean_n = 1/n sum
 \var starpu_perfmodel_history_entry::deviation
 n dev_n = sum2 - 1/n (sum)^2
 \var starpu_perfmodel_history_entry::sum
-num of samples
+sum of samples (in µs)
 \var starpu_perfmodel_history_entry::sum2
 sum of samples^2
 \var starpu_perfmodel_history_entry::nsample
-todo
+number of samples
 \var starpu_perfmodel_history_entry::footprint
-todo
+data footprint
 \var starpu_perfmodel_history_entry::size
 in bytes
 \var starpu_perfmodel_history_entry::flops
@@ -254,7 +254,7 @@ prints the affinity devices on \p f.
 \fn void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
 \ingroup API_Performance_Model
 This feeds the performance model model with an explicit
-measurement measured, in addition to measurements done by StarPU
+measurement measured (in µs), in addition to measurements done by StarPU
 itself. This can be useful when the application already has an
 existing set of measurements done in good conditions, that StarPU
 could benefit from instead of doing on-line measurements. And example
