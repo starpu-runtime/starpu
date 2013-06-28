@@ -33,8 +33,6 @@ static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
-
-
 struct starpu_sched_policy _starpu_sched_tree_eager_policy =
 {
 	.init_sched = initialize_eager_center_policy,
@@ -43,8 +41,8 @@ struct starpu_sched_policy _starpu_sched_tree_eager_policy =
 	.remove_workers = _starpu_tree_remove_workers,
 	.push_task = _starpu_tree_push_task,
 	.pop_task = _starpu_tree_pop_task,
-	.pre_exec_hook = NULL,
-	.post_exec_hook = NULL,
+	.pre_exec_hook = _starpu_sched_node_worker_pre_exec_hook,
+	.post_exec_hook = _starpu_sched_node_worker_post_exec_hook,
 	.pop_every_task = NULL,//pop_every_task_eager_policy,
 	.policy_name = "tree",
 	.policy_description = "test tree policy"

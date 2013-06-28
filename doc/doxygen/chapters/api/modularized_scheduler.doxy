@@ -1,19 +1,19 @@
-!\defgroup API_Modularized_Scheduler
+/* !\defgroup API_Modularized_Scheduler
 
 \struct _starpu_sched_node
 \ingroup API_Modularized_Scheduler
 This structure represent a scheduler module.
 
 \var _starpu_sched_node::push_task
-	this function push a task in the scheduler module.
+	push a task in the scheduler module.
 \var _starpu_sched_node::pop_task
-	this function pop a task from the scheduler module, the task returned by this function is executable by the caller if its a worker
+	pop a task from the scheduler module, the task returned by this function is executable by the caller if its a worker
 \var _starpu_sched_node::available
-	this function notify workers downstairs that a task is waiting for a pop
+	notify workers downstairs that a task is waiting for a pop
 \var _starpu_sched_node::estimated_load
-	this function is an heuristic to compute load of scheduler module
+	is an heuristic to compute load of scheduler module
 \var _starpu_sched_node::estimated_execute_preds
-	this function compute executions prediction for a task
+	compute executions prediction for a task
 \var _starpu_sched_node::nchilds
 	the number of modules downstairs
 \var _starpu_sched_node::childs
@@ -27,9 +27,9 @@ This structure represent a scheduler module.
 \var _starpu_sched_node::fathers
 	the array of scheduler module above indexed by scheduling context index
 \var _starpu_sched_node::init_data
-	this function is called after all the scheduler is created and should init data member
+	is called after all the scheduler is created and should init data member
 \var _starpu_sched_node::deinit_data
-	this function is called just before _starpu_sched_node_destroy
+	is called just before _starpu_sched_node_destroy
 \var _starpu_sched_node::obj
 	the hwloc object associed to scheduler module
 
@@ -60,13 +60,14 @@ this structure containt predictions for a task and is filled by _starpu_sched_no
 	this lock protect the worker member
 
 \fn struct _starpu_sched_node * _starpu_sched_node_create(void)
-    	   this function return an initialised scheduler module with default values
+    	   return an initialised scheduler module with default values
 \fn void _starpu_sched_node_destroy(struct _starpu_sched_node * node)
-    	 this function free data allocated by _starpu_sched_node_create, but dont call node->deinit_data(node)
+    	 free data allocated by _starpu_sched_node_create, but dont call node->deinit_data(node)
 \fn void _starpu_sched_node_set_father(struct _starpu_sched_node * node, struct _starpu_sched_node * father_node, unsigned sched_ctx_id)
-    	 this function set node->fathers[sched_ctx_id] to father_node
+    	 set node->fathers[sched_ctx_id] to father_node
 \fn void _starpu_sched_node_add_child(struct _starpu_sched_node* node, struct _starpu_sched_node * child)
-    	 this function add child to node->childs and increment nchilds as well
+    	 add child to node->childs and increment nchilds as well
 	 and dont modify child->fathers
 \fn void _starpu_sched_node_remove_child(struct _starpu_sched_node * node, struct _starpu_sched_node * child)
-    	 this function remove child from node->childs and decrement nchilds
+    	 remove child from node->childs and decrement nchilds
+*/

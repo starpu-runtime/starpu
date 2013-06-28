@@ -226,4 +226,12 @@ void _starpu_tree_call_init_data(struct _starpu_sched_tree * t);
  */
 int _starpu_sched_node_push_tasks_to_firsts_suitable_parent(struct _starpu_sched_node * node, struct starpu_task_list * list, int sched_ctx_id);
 
+
+
+
+void _starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task);
+void _starpu_sched_node_worker_post_exec_hook(struct starpu_task * task);
+
+
+
 #endif

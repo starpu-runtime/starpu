@@ -41,27 +41,72 @@ struct _starpu_spinlock
 #endif
 };
 
+#ifdef STARPU_SPINLOCK_CHECK 
+#define STARPU_RECORD_LOCK(lock) do { 	\
+	(lock)->last_taker = __starpu_func__; \
+} while(0) 
+#else // !STARPU_SPINLOCK_CHECK
+#define STARPU_RECORD_LOCK(lock) do {} while(0)
+#endif // STARPU_SPINLOCK_CHECK
+
 int _starpu_spin_init(struct _starpu_spinlock *lock);
 int _starpu_spin_destroy(struct _starpu_spinlock *lock);
 
 int _starpu_spin_lock(struct _starpu_spinlock *lock);
-#if defined(STARPU_SPINLOCK_CHECK)
 #define _starpu_spin_lock(lock) ({ \
+	const char *file;   \
+	if (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER) \
+	{ \
+		file = strrchr(__FILE__,'/'); \
+		file += sizeof(char);\
+		_STARPU_TRACE_LOCKING_SPINLOCK(file,__LINE__); \
+	}\
 	_starpu_spin_lock(lock); \
-	(lock)->last_taker = __starpu_func__; \
+	if (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER) \
+	{ \
+		file = strrchr(__FILE__,'/'); \
+		file += sizeof(char);\
+		_STARPU_TRACE_SPINLOCK_LOCKED(file,__LINE__); \
+	}\
+	STARPU_RECORD_LOCK(lock); \
 	0; \
-})
-#endif
+}) 
+
 int _starpu_spin_trylock(struct _starpu_spinlock *lock);
-#if defined(STARPU_SPINLOCK_CHECK)
 #define _starpu_spin_trylock(lock) ({ \
+	const char *file;   \
+	if (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER) \
+	{ \
+		file = strrchr(__FILE__,'/'); \
+		file += sizeof(char);\
+		_STARPU_TRACE_TRYLOCK_SPINLOCK(file,__LINE__); \
+	}\
 	int err = _starpu_spin_trylock(lock); \
 	if (!err) \
-		(lock)->last_taker = __starpu_func__; \
+		STARPU_RECORD_LOCK(lock); \
 	err; \
 })
-#endif
 int _starpu_spin_checklocked(struct _starpu_spinlock *lock);
 int _starpu_spin_unlock(struct _starpu_spinlock *lock);
+#define _starpu_spin_unlock(lock) ({ \
+	const char *file;   \
+	if (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER) \
+	{ \
+		file = strrchr(__FILE__,'/'); \
+		file += sizeof(char);\
+		_STARPU_TRACE_UNLOCKING_SPINLOCK(file,__LINE__); \
+	}\
+	_starpu_spin_unlock(lock); \
+	if (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER) \
+	{ \
+		file = strrchr(__FILE__,'/'); \
+		file += sizeof(char);\
+		_STARPU_TRACE_SPINLOCK_UNLOCKED(file,__LINE__); \
+	}\
+	0; \
+}) 
+
+
+#define STARPU_SPIN_MAXTRY 10 
 
 #endif // __STARPU_SPINLOCK_H__

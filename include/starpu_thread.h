@@ -83,9 +83,10 @@ typedef pthread_mutexattr_t starpu_pthread_mutexattr_t;
 
 #define starpu_pthread_mutex_init pthread_mutex_init
 #define starpu_pthread_mutex_destroy pthread_mutex_destroy
-#define starpu_pthread_mutex_lock pthread_mutex_lock
-#define starpu_pthread_mutex_unlock pthread_mutex_unlock
-#define starpu_pthread_mutex_trylock pthread_mutex_trylock
+
+int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex);
+int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex);
+int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex);
 
 #define STARPU_PTHREAD_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
 
@@ -139,7 +140,9 @@ typedef pthread_condattr_t starpu_pthread_condattr_t;
 #define starpu_pthread_cond_init pthread_cond_init
 #define starpu_pthread_cond_signal pthread_cond_signal
 #define starpu_pthread_cond_broadcast pthread_cond_broadcast
-#define starpu_pthread_cond_wait pthread_cond_wait
+
+int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
+
 #define starpu_pthread_cond_timedwait pthread_cond_timedwait
 #define starpu_pthread_cond_destroy pthread_cond_destroy
 
@@ -167,9 +170,10 @@ typedef pthread_rwlockattr_t starpu_pthread_rwlockattr_t;
 
 #define starpu_pthread_rwlock_init pthread_rwlock_init
 #define starpu_pthread_rwlock_destroy pthread_rwlock_destroy
-#define starpu_pthread_rwlock_rdlock pthread_rwlock_rdlock
-#define starpu_pthread_rwlock_wrlock pthread_rwlock_wrlock
-#define starpu_pthread_rwlock_unlock pthread_rwlock_unlock
+
+int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock);
+int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock);
+int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
 
