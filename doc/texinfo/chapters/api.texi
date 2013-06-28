@@ -783,7 +783,7 @@ item.
 @smallexample
 float var;
 starpu_data_handle_t var_handle;
-starpu_variable_data_register(&var_handle, 0, (uintptr_t)&var, sizeof(var));
+starpu_variable_data_register(&var_handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
 @end smallexample
 @end cartouche
 @end deftypefun
@@ -796,7 +796,7 @@ Register the @var{nx} @var{elemsize}-byte elements pointed to by
 @smallexample
 float vector[NX];
 starpu_data_handle_t vector_handle;
-starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
+starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX,
                             sizeof(vector[0]));
 @end smallexample
 @end cartouche
@@ -814,7 +814,7 @@ alignment purposes.
 float *matrix;
 starpu_data_handle_t matrix_handle;
 matrix = (float*)malloc(width * height * sizeof(float));
-starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix,
+starpu_matrix_data_register(&matrix_handle, STARPU_MAIN_RAM, (uintptr_t)matrix,
                             width, width, height, sizeof(float));
 @end smallexample
 @end cartouche
@@ -831,7 +831,7 @@ between rows and between z planes.
 float *block;
 starpu_data_handle_t block_handle;
 block = (float*)malloc(nx*ny*nz*sizeof(float));
-starpu_block_data_register(&block_handle, 0, (uintptr_t)block,
+starpu_block_data_register(&block_handle, STARPU_MAIN_RAM, (uintptr_t)block,
                            nx, nx*ny, nx, ny, nz, sizeof(float));
 @end smallexample
 @end cartouche

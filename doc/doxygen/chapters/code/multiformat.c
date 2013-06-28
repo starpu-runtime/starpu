@@ -57,5 +57,5 @@ struct starpu_multiformat_data_interface_ops format_ops = {
     ...
 };
 
-starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
+starpu_multiformat_data_register(handle, STARPU_MAIN_RAM, &array_of_structs, NX, &format_ops);
 //! [To be included]

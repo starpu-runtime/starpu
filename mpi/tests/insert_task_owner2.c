@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 			starpu_variable_data_register(&data_handles[i], -1, (uintptr_t)NULL, sizeof(int));
 		}
 		y=200;
-		starpu_variable_data_register(&data_handles[3], 0, (uintptr_t)&y, sizeof(int));
+		starpu_variable_data_register(&data_handles[3], STARPU_MAIN_RAM, (uintptr_t)&y, sizeof(int));
 	}
 	else
 	{

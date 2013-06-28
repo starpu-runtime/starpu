@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 	 *  - the first argument of the registration method is a pointer to the
 	 *    handle that should describe the data
 	 *  - the second argument is the memory node where the data (ie. "vector")
-	 *    resides initially: 0 stands for an address in main memory, as
+	 *    resides initially: STARPU_MAIN_RAM stands for an address in main memory, as
 	 *    opposed to an adress on a GPU for instance.
 	 *  - the third argument is the adress of the vector in RAM
 	 *  - the fourth argument is the number of elements in the vector

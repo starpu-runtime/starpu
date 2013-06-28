@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 	{
 		x[1] = 12;
 		starpu_variable_data_register(&data_handles[0], -1, (uintptr_t)NULL, sizeof(x[0]));
-		starpu_variable_data_register(&data_handles[1], 0, (uintptr_t)&x[1], sizeof(x[1]));
+		starpu_variable_data_register(&data_handles[1], STARPU_MAIN_RAM, (uintptr_t)&x[1], sizeof(x[1]));
 	}
 	else
 	{
