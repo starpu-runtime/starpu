@@ -956,30 +956,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	     config.conf = user_conf;
 	     config.default_conf = 0;
 	}
-	/* Depending on whether we are a MP sink or not, we must build the
-	 * topology with MP nodes or not. */
-	ret = _starpu_build_topology(&config, is_a_sink);
+
 	_starpu_conf_check_environment(config.conf);
 
-
-	int nworkers = starpu_worker_get_count();
-	int workerid_array[nworkers];
-	int i,j;
-	
-	for(i = j = 0; i < nworkers; i++)
-		if(STARPU_CPU_WORKER == starpu_worker_get_type(i))
-			workerid_array[j++] = i;
-	nworkers = j;
-
-	/* Launch "basic" workers (ie. non-combined workers) */
-	if (!is_a_sink)
-		_starpu_launch_drivers(&config);
-
-	starpu_combined_worker_assign_workerid(nworkers, workerid_array);
-
 	_starpu_init_all_sched_ctxs(&config);
-
-
 	_starpu_init_progression_hooks();
 
 	_starpu_init_tags();
@@ -998,6 +978,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_load_bus_performance_files();
 
+	/* Depending on whether we are a MP sink or not, we must build the
+	 * topology with MP nodes or not. */
+	ret = _starpu_build_topology(&config, is_a_sink ? 1 : 0);
 	if (ret)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
@@ -1022,6 +1005,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_initialize_registered_performance_models();
 
+	/* Launch "basic" workers (ie. non-combined workers) */
+	if (!is_a_sink)
+		_starpu_launch_drivers(&config);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;
