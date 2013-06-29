@@ -2,14 +2,14 @@
 #ifdef STARPU_HAVE_HWLOC
 #ifndef __SCHEDULER_MAKER_H__
 #define __SCHEDULER_MAKER_H__
-#include "node_sched.h"
+#include <starpu_node_sched.h>
 #include "node_composed.h"
 #include <common/list.h>
 
 
 
 //null pointer mean to ignore a level L of hierarchy, then nodes of levels > L become childs of level L - 1
-struct _starpu_sched_specs
+struct starpu_sched_specs
 {
 	//hw_loc_machine_composed_sched_node must be set as its the root of the topology
 	struct _starpu_composed_sched_node_recipe * hwloc_machine_composed_sched_node;
@@ -28,7 +28,7 @@ struct _starpu_sched_specs
 	int mix_heterogeneous_workers;
 };
 
-struct _starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct _starpu_sched_specs);
+struct starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_specs);
 
 #endif//#ifndef __SCHEDULER_MAKER_H__
 #endif//#ifdef STARPU_HAVE_HWLOC

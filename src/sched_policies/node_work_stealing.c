@@ -1,4 +1,4 @@
-#include "node_sched.h"
+#include <starpu_sched_node.h>
 #include "prio_deque.h"
 #include <starpu_scheduler.h>
 #include <starpu.h>
@@ -20,7 +20,7 @@ struct _starpu_work_stealing_data
  * steal a task in a round robin way
  * return NULL if none available
  */
-static struct starpu_task *  steal_task_round_robin(struct _starpu_sched_node *node, int workerid)
+static struct starpu_task *  steal_task_round_robin(struct starpu_sched_node *node, int workerid)
 {
 	struct _starpu_work_stealing_data *wsd = node->data;
 	unsigned i = wsd->last_pop_child;
@@ -55,7 +55,7 @@ static struct starpu_task *  steal_task_round_robin(struct _starpu_sched_node *n
  * Return a worker to whom add a task.
  * Selecting a worker is done in a round-robin fashion.
  */
-static unsigned select_worker_round_robin(struct _starpu_sched_node * node)
+static unsigned select_worker_round_robin(struct starpu_sched_node * node)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)node->data;
 	unsigned i = (ws->last_push_child + 1) % node->nchilds ;
@@ -69,7 +69,7 @@ static unsigned select_worker_round_robin(struct _starpu_sched_node * node)
  * This is a phony function used to call the right
  * function depending on the value of USE_OVERLOAD.
  */
-static inline struct starpu_task * steal_task(struct _starpu_sched_node * node, int workerid)
+static inline struct starpu_task * steal_task(struct starpu_sched_node * node, int workerid)
 {
 	return steal_task_round_robin(node, workerid);
 }
@@ -79,20 +79,20 @@ static inline struct starpu_task * steal_task(struct _starpu_sched_node * node, 
  * This is a phony function used to call the right
  * function depending on the value of USE_OVERLOAD.
  */
-static inline unsigned select_worker(struct _starpu_sched_node * node)
+static inline unsigned select_worker(struct starpu_sched_node * node)
 {
 	return select_worker_round_robin(node);
 }
 
 
-static int is_worker_of_node(struct _starpu_sched_node * node, int workerid)
+static int is_worker_of_node(struct starpu_sched_node * node, int workerid)
 {
-	return _starpu_bitmap_get(node->workers, workerid);
+	return starpu_bitmap_get(node->workers, workerid);
 }
 
 
 
-static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned sched_ctx_id)
+static struct starpu_task * pop_task(struct starpu_sched_node * node, unsigned sched_ctx_id)
 {
 	int workerid = starpu_worker_get_id();
 	int i;
@@ -124,7 +124,7 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 
 
 
-static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
+static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
 	struct _starpu_work_stealing_data * wsd = node->data;
 	int ret = -1;
@@ -133,8 +133,8 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	do
 	{
 		i = (i+1)%node->nchilds;
-		struct _starpu_sched_node * child = node->childs[i];
-		if(_starpu_sched_node_can_execute_task(child,task))
+		struct starpu_sched_node * child = node->childs[i];
+		if(starpu_sched_node_can_execute_task(child,task))
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
 			ret = _starpu_prio_deque_push_task(wsd->fifos + i, task);
@@ -154,14 +154,14 @@ int _starpu_ws_push_task(struct starpu_task *task)
 {
 	int workerid = starpu_worker_get_id();
 	if(workerid == -1)
-		return _starpu_tree_push_task(task);
+		return starpu_sched_tree_push_task(task);
 
 	unsigned sched_ctx_id = task->sched_ctx;
-	struct _starpu_sched_node * node =_starpu_sched_node_worker_get(workerid);
+	struct starpu_sched_node * node =starpu_sched_node_worker_get(workerid);
 	while(node->fathers[sched_ctx_id] != NULL)
 	{
 		node = node->fathers[sched_ctx_id];
-		if(_starpu_sched_node_is_work_stealing(node))
+		if(starpu_sched_node_is_work_stealing(node))
 		{
 			int i;
 			for(i = 0; i < node->nchilds; i++)
@@ -188,11 +188,11 @@ int _starpu_ws_push_task(struct starpu_task *task)
 	}
 
 	STARPU_ASSERT_MSG(0, "there were a problem here, dont know what to do");
-	return _starpu_tree_push_task(task);
+	return starpu_sched_tree_push_task(task);
 }
 
 
-static void init_ws_data(struct _starpu_sched_node *node)
+static void init_ws_data(struct starpu_sched_node *node)
 {
 	struct _starpu_work_stealing_data * wsd = malloc(sizeof(*wsd));
 	memset(wsd, 0, sizeof(*wsd));
@@ -213,7 +213,7 @@ static void init_ws_data(struct _starpu_sched_node *node)
 	}
 }
 
-static void deinit_ws_data(struct _starpu_sched_node *node)
+static void deinit_ws_data(struct starpu_sched_node *node)
 {
 	struct _starpu_work_stealing_data * wsd = node->data;
 	int i;
@@ -229,9 +229,9 @@ static void deinit_ws_data(struct _starpu_sched_node *node)
 }
 
 
-struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void)
+struct starpu_sched_node * starpu_sched_node_work_stealing_create(void)
 {
-	struct _starpu_sched_node * node = _starpu_sched_node_create();
+	struct starpu_sched_node * node = starpu_sched_node_create();
 	node->pop_task = pop_task;
 	node->init_data = init_ws_data;
 	node->deinit_data = deinit_ws_data;
@@ -239,7 +239,7 @@ struct _starpu_sched_node * _starpu_sched_node_work_stealing_create(void)
 	return node;
 }
 
-int _starpu_sched_node_is_work_stealing(struct _starpu_sched_node * node)
+int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node)
 {
 	return node->init_data == init_ws_data;
 }
@@ -249,29 +249,29 @@ int _starpu_sched_node_is_work_stealing(struct _starpu_sched_node * node)
 static void initialize_ws_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-	struct _starpu_sched_tree *data = malloc(sizeof(struct _starpu_sched_tree));
+	struct starpu_sched_tree *data = malloc(sizeof(struct starpu_sched_tree));
 	STARPU_PTHREAD_RWLOCK_INIT(&data->lock,NULL);
-	struct _starpu_sched_node * ws;
- 	data->root = ws = _starpu_sched_node_work_stealing_create();
-	data->workers = _starpu_bitmap_create();
+	struct starpu_sched_node * ws;
+ 	data->root = ws = starpu_sched_node_work_stealing_create();
+	data->workers = starpu_bitmap_create();
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count(); i++)
 	{
-		struct _starpu_sched_node * node = _starpu_sched_node_worker_get(i);
+		struct starpu_sched_node * node = starpu_sched_node_worker_get(i);
 		if(!node)
 			continue;
 		node->fathers[sched_ctx_id] = ws;
-		_starpu_sched_node_add_child(ws, node);
+		starpu_sched_node_add_child(ws, node);
 	}
 	_starpu_set_workers_bitmaps();
-	_starpu_tree_call_init_data(data);
+	starpu_sched_tree_call_init_data(data);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
 
 static void deinitialize_ws_center_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_sched_tree *t = (struct _starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	_starpu_sched_tree_destroy(t, sched_ctx_id);
+	struct starpu_sched_tree *t = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	starpu_sched_tree_destroy(t, sched_ctx_id);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
@@ -280,10 +280,10 @@ struct starpu_sched_policy _starpu_sched_tree_ws_policy =
 {
 	.init_sched = initialize_ws_center_policy,
 	.deinit_sched = deinitialize_ws_center_policy,
-	.add_workers = _starpu_tree_add_workers,
-	.remove_workers = _starpu_tree_remove_workers,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
 	.push_task = _starpu_ws_push_task,
-	.pop_task = _starpu_tree_pop_task,
+	.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,

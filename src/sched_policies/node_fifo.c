@@ -1,4 +1,4 @@
-#include "node_sched.h"
+#include <starpu_sched_node.h>
 #include "prio_deque.h"
 #include <starpu_scheduler.h>
 
@@ -10,7 +10,7 @@ struct _starpu_fifo_data
 };
 
 
-static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_node * node,
+static struct starpu_task_execute_preds estimated_execute_preds(struct starpu_sched_node * node,
 								 struct starpu_task * task)
 {
 	struct _starpu_fifo_data * data = node->data;
@@ -18,16 +18,16 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	if(node->nchilds == 0)
 	{
-		struct _starpu_task_execute_preds p = { CANNOT_EXECUTE };
+		struct starpu_task_execute_preds p = { CANNOT_EXECUTE };
 		return p;
 	}
 	
 	if(!node->is_homogeneous)
 	{
-		struct _starpu_task_execute_preds preds = _starpu_sched_node_average_estimated_execute_preds(node, task);
+		struct starpu_task_execute_preds preds = starpu_sched_node_average_estimated_execute_preds(node, task);
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
-		double fifo_len = fifo->exp_len / _starpu_bitmap_cardinal(node->workers);
-		preds.expected_finish_time = _starpu_compute_expected_time(fifo->exp_start,
+		double fifo_len = fifo->exp_len / starpu_bitmap_cardinal(node->workers);
+		preds.expected_finish_time = starpu_sched_compute_expected_time(fifo->exp_start,
 									   preds.expected_finish_time + fifo_len,
 									   preds.state == PERF_MODEL ? preds.expected_length + fifo_len : fifo_len,
 									   preds.expected_transfer_length);
@@ -35,13 +35,13 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 		return preds;
 	}
 	
-	struct _starpu_task_execute_preds preds = node->childs[0]->estimated_execute_preds(node->childs[0],task);
+	struct starpu_task_execute_preds preds = node->childs[0]->estimated_execute_preds(node->childs[0],task);
 
 	if(preds.state == PERF_MODEL)
 	{
-		double fifo_len = fifo->exp_len / _starpu_bitmap_cardinal(node->workers);
+		double fifo_len = fifo->exp_len / starpu_bitmap_cardinal(node->workers);
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
-		preds.expected_finish_time = _starpu_compute_expected_time(fifo->exp_start,
+		preds.expected_finish_time = starpu_sched_compute_expected_time(fifo->exp_start,
 									   preds.expected_finish_time + fifo_len,
 									   preds.expected_length + fifo_len,
 									   preds.expected_transfer_length);
@@ -50,7 +50,7 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 	return preds;
 }
 
-static double estimated_load(struct _starpu_sched_node * node)
+static double estimated_load(struct starpu_sched_node * node)
 {
 	struct _starpu_fifo_data * data = node->data;
 	struct _starpu_prio_deque * fifo = &data->fifo;
@@ -60,7 +60,7 @@ static double estimated_load(struct _starpu_sched_node * node)
 
 	if(node->is_homogeneous)
 	{
-		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(_starpu_bitmap_first(node->workers)));
+		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(starpu_bitmap_first(node->workers)));
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
 		load = fifo->ntasks / relative_speedup;
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
@@ -69,11 +69,11 @@ static double estimated_load(struct _starpu_sched_node * node)
 	else
 	{
 		int i;
-		for(i = _starpu_bitmap_first(node->workers);
+		for(i = starpu_bitmap_first(node->workers);
 		    i != -1;
-		    i = _starpu_bitmap_next(node->workers, i))
+		    i = starpu_bitmap_next(node->workers, i))
 			relative_speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(i));
-		relative_speedup /= _starpu_bitmap_cardinal(node->workers);
+		relative_speedup /= starpu_bitmap_cardinal(node->workers);
 			STARPU_ASSERT(!_STARPU_IS_ZERO(relative_speedup));
 			STARPU_PTHREAD_MUTEX_LOCK(mutex);
 			load = fifo->ntasks / relative_speedup;
@@ -82,15 +82,15 @@ static double estimated_load(struct _starpu_sched_node * node)
 	int i;
 	for(i = 0; i < node->nchilds; i++)
 	{
-		struct _starpu_sched_node * c = node->childs[i];
+		struct starpu_sched_node * c = node->childs[i];
 		load += c->estimated_load(c);
 	}
 	return load;
 }
 
-static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
+static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
-	STARPU_ASSERT(_starpu_sched_node_can_execute_task(node,task));
+	STARPU_ASSERT(starpu_sched_node_can_execute_task(node,task));
 	struct _starpu_fifo_data * data = node->data;
 	struct _starpu_prio_deque * fifo = &data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
@@ -113,7 +113,7 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 	return ret;
 }
 
-static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned sched_ctx_id)
+static struct starpu_task * pop_task(struct starpu_sched_node * node, unsigned sched_ctx_id)
 {
 	struct _starpu_fifo_data * data = node->data;
 	struct _starpu_prio_deque * fifo = &data->fifo;
@@ -140,13 +140,13 @@ static struct starpu_task * pop_task(struct _starpu_sched_node * node, unsigned 
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 	if(task)
 		return task;
-	struct _starpu_sched_node * father = node->fathers[sched_ctx_id];
+	struct starpu_sched_node * father = node->fathers[sched_ctx_id];
 	if(father)
 		return father->pop_task(father,sched_ctx_id);
 	return NULL;
 }
 /*
-struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct _starpu_sched_node * node)
+struct starpu_task_list  starpu_sched_node_fifo_get_non_executable_tasks(struct starpu_sched_node * node)
 {
 	struct starpu_task_list list;
 	starpu_task_list_init(&list);
@@ -158,7 +158,7 @@ struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct
 	     task  = starpu_task_list_next(task))
 	{
 		STARPU_ASSERT(task);
-		if(!_starpu_sched_node_can_execute_task(node, task))
+		if(!starpu_sched_node_can_execute_task(node, task))
 		{
 			starpu_task_list_erase(&fifo->taskq, task);
 			starpu_task_list_push_front(&list, task);
@@ -168,15 +168,15 @@ struct starpu_task_list  _starpu_sched_node_fifo_get_non_executable_tasks(struct
 	return list;
 }
 */
-void init_fifo_data(struct _starpu_sched_node * node)
+void init_fifo_data(struct starpu_sched_node * node)
 {
-	STARPU_ASSERT(_starpu_sched_node_is_fifo(node));
+	STARPU_ASSERT(starpu_sched_node_is_fifo(node));
 	struct _starpu_fifo_data * data = malloc(sizeof(*data));
 	_starpu_prio_deque_init(&data->fifo);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	node->data = data;
 }
-void deinit_fifo_data(struct _starpu_sched_node * node)
+void deinit_fifo_data(struct starpu_sched_node * node)
 {
 	struct _starpu_fifo_data * data = node->data;
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->mutex);
@@ -185,14 +185,14 @@ void deinit_fifo_data(struct _starpu_sched_node * node)
 }
 
 
-int _starpu_sched_node_is_fifo(struct _starpu_sched_node * node)
+int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
 {
 	return node->init_data == init_fifo_data;
 }
 
-struct _starpu_sched_node * _starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
-	struct _starpu_sched_node * node = _starpu_sched_node_create();
+	struct starpu_sched_node * node = starpu_sched_node_create();
 	node->estimated_execute_preds = estimated_execute_preds;
 	node->estimated_load = estimated_load;
 	node->init_data = init_fifo_data;

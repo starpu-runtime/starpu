@@ -1,7 +1,7 @@
-#include "node_sched.h"
+#include <starpu_sched_node.h>
 #include <common/list.h>
 LIST_TYPE(fun_create_node,
-	  struct _starpu_sched_node *(*create_node)(void * arg);
+	  struct starpu_sched_node *(*create_node)(void * arg);
 	  void * arg;
 );
 
@@ -12,24 +12,24 @@ struct _starpu_composed_sched_node_recipe
 };
 
 
-struct _starpu_composed_sched_node_recipe * _starpu_sched_node_create_recipe(void)
+struct _starpu_composed_sched_node_recipe * starpu_sched_node_create_recipe(void)
 {
 	struct _starpu_composed_sched_node_recipe * recipe = malloc(sizeof(*recipe));
 	recipe->list = fun_create_node_list_new();
 	return recipe;
 }
 
-void _starpu_sched_recipe_add_node(struct _starpu_composed_sched_node_recipe * recipe, struct _starpu_sched_node *(*create_node)(void * arg), void * arg)
+void starpu_sched_recipe_add_node(struct _starpu_composed_sched_node_recipe * recipe, struct starpu_sched_node *(*create_node)(void * arg), void * arg)
 {
 	struct fun_create_node * e = fun_create_node_new();
 	e->create_node = create_node;
 	e->arg = arg;
 	fun_create_node_list_push_back(recipe->list, e);
 }
-struct _starpu_composed_sched_node_recipe * _starpu_sched_node_create_recipe_singleton(struct _starpu_sched_node *(*create_node)(void * arg), void * arg)
+struct _starpu_composed_sched_node_recipe * starpu_sched_node_create_recipe_singleton(struct starpu_sched_node *(*create_node)(void * arg), void * arg)
 {
-	struct _starpu_composed_sched_node_recipe * r = _starpu_sched_node_create_recipe();
-	_starpu_sched_recipe_add_node(r, create_node, arg);
+	struct _starpu_composed_sched_node_recipe * r = starpu_sched_node_create_recipe();
+	starpu_sched_recipe_add_node(r, create_node, arg);
 	return r;
 }
 void _starpu_destroy_composed_sched_node_recipe(struct _starpu_composed_sched_node_recipe * recipe)
@@ -44,9 +44,9 @@ void _starpu_destroy_composed_sched_node_recipe(struct _starpu_composed_sched_no
 
 struct composed_node
 {
-	struct _starpu_sched_node *top,*bottom;
+	struct starpu_sched_node *top,*bottom;
 };
-struct composed_node create_composed_node(struct _starpu_sched_node * sched_ctx_ids_father[STARPU_NMAX_SCHED_CTXS], struct _starpu_bitmap * workers, struct _starpu_composed_sched_node_recipe * recipe
+struct composed_node create_composed_node(struct starpu_sched_node * sched_ctx_ids_father[STARPU_NMAX_SCHED_CTXS], struct starpu_bitmap * workers, struct _starpu_composed_sched_node_recipe * recipe
 #ifdef STARPU_HAVE_HWLOC
 					    ,hwloc_obj_t obj
 #endif
@@ -73,60 +73,60 @@ struct composed_node create_composed_node(struct _starpu_sched_node * sched_ctx_
 	    i  = fun_create_node_list_next(i))
 	{
 		STARPU_ASSERT(i->create_node(i->arg));
-		struct _starpu_sched_node * node = i->create_node(i->arg);
+		struct starpu_sched_node * node = i->create_node(i->arg);
 #ifdef STARPU_HAVE_HWLOC
 		node->obj = obj;
 #endif
-		_starpu_sched_node_add_child(c.bottom, node);
+		starpu_sched_node_add_child(c.bottom, node);
 //we want to be able to to traverse scheduler bottom up for all sched ctxs
 		int j;
 		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
 			if(sched_ctx_ids_father[j])
-				_starpu_sched_node_set_father(node, c.bottom,(unsigned)j);
+				starpu_sched_node_set_father(node, c.bottom,(unsigned)j);
 		node->workers = workers;
 		c.bottom = node;
 	}
-	STARPU_ASSERT(!_starpu_sched_node_is_worker(c.bottom));
+	STARPU_ASSERT(!starpu_sched_node_is_worker(c.bottom));
 	return c;
 }
 		
 
-static int composed_node_push_task(struct _starpu_sched_node * node, struct starpu_task * task)
+static int composed_node_push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
 	struct composed_node *c = node->data;
 	return c->top->push_task(c->top,task);
 }
-struct starpu_task * composed_node_pop_task(struct _starpu_sched_node *node,
+struct starpu_task * composed_node_pop_task(struct starpu_sched_node *node,
 					    unsigned sched_ctx_id)
 {
 	struct composed_node *c = node->data;
 	return c->bottom->pop_task(c->bottom, sched_ctx_id);
 }
-void composed_node_available(struct _starpu_sched_node *node)
+void composed_node_available(struct starpu_sched_node *node)
 {
 	struct composed_node * c = node->data;
 	c->top->available(c->top);
 }
 	
-double composed_node_estimated_load(struct _starpu_sched_node * node)
+double composed_node_estimated_load(struct starpu_sched_node * node)
 {
 	struct composed_node * c = node->data;
 	return c->top->estimated_load(c->top);
 }
 
-struct _starpu_task_execute_preds composed_node_estimated_execute_preds(struct _starpu_sched_node * node,
+struct starpu_task_execute_preds composed_node_estimated_execute_preds(struct starpu_sched_node * node,
 									struct starpu_task * task)
 {
 	struct composed_node * c = node->data;
 	return c->top->estimated_execute_preds(c->top,task);
 }
 
-static void invalid_second_init_data(struct _starpu_sched_node * node STARPU_ATTRIBUTE_UNUSED)
+static void invalid_second_init_data(struct starpu_sched_node * node STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ABORT();
 }
 
-void composed_node_init_data(struct _starpu_sched_node *node)
+void composed_node_init_data(struct starpu_sched_node *node)
 {
 	struct _starpu_composed_sched_node_recipe * recipe = node->data;
 	struct composed_node * c = malloc(sizeof(struct composed_node));
@@ -141,31 +141,31 @@ void composed_node_init_data(struct _starpu_sched_node *node)
 	node->init_data = invalid_second_init_data;
 }
 
-void composed_node_deinit_data(struct _starpu_sched_node * _node)
+void composed_node_deinit_data(struct starpu_sched_node * _node)
 {
 	struct composed_node *c = _node->data;
 	c->bottom->childs = NULL;
 	c->bottom->nchilds = 0;
-	struct _starpu_sched_node * node = c->top;
-	struct _starpu_sched_node * next = NULL;
+	struct starpu_sched_node * node = c->top;
+	struct starpu_sched_node * next = NULL;
 	do
 	{
 		node->workers = NULL;
 		node->deinit_data(node);
 		next = node->childs ? node->childs[0] : NULL;
-		_starpu_sched_node_destroy(node);
+		starpu_sched_node_destroy(node);
 	}while(next);
 	free(c);
 	_node->data = NULL;
 }
 
-struct _starpu_sched_node * _starpu_sched_node_composed_node_create(struct _starpu_composed_sched_node_recipe * recipe)
+struct starpu_sched_node * starpu_sched_node_composed_node_create(struct _starpu_composed_sched_node_recipe * recipe)
 {
 	STARPU_ASSERT(!fun_create_node_list_empty(recipe->list));
 	struct fun_create_node_list * l = recipe->list;
 	if(l->_head == l->_tail)
 		return l->_head->create_node(l->_head->arg);
-	struct _starpu_sched_node * node = _starpu_sched_node_create();
+	struct starpu_sched_node * node = starpu_sched_node_create();
 
 	node->data = recipe;
 	node->push_task = composed_node_push_task;

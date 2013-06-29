@@ -1,8 +1,8 @@
-#include "node_sched.h"
+#include <starpu_sched_node.h>
 #include <core/workers.h>
 #include <float.h>
 
-static struct _starpu_sched_node * _worker_nodes[STARPU_NMAXWORKERS];
+static struct starpu_sched_node * _worker_nodes[STARPU_NMAXWORKERS];
 
 /* data structure for worker's queue look like this :
  * W = worker
@@ -61,7 +61,7 @@ struct _starpu_task_grid
 
 
 /* list->exp_start, list->exp_len, list-exp_end and list->ntasks
- * are updated by _starpu_sched_node_worker_push_task(node, task) and pre_exec_hook
+ * are updated by starpu_sched_node_worker_push_task(node, task) and pre_exec_hook
  */
 
 struct _starpu_worker_task_list
@@ -231,9 +231,9 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 
 
 
-static struct _starpu_sched_node * _starpu_sched_node_worker_create(int workerid);
-static struct _starpu_sched_node * _starpu_sched_node_combined_worker_create(int workerid);
-struct _starpu_sched_node * _starpu_sched_node_worker_get(int workerid)
+static struct starpu_sched_node * starpu_sched_node_worker_create(int workerid);
+static struct starpu_sched_node * starpu_sched_node_combined_worker_create(int workerid);
+struct starpu_sched_node * starpu_sched_node_worker_get(int workerid)
 {
 	STARPU_ASSERT(workerid >= 0 && workerid < STARPU_NMAXWORKERS);
 	/* we may need to take a mutex here */
@@ -241,40 +241,40 @@ struct _starpu_sched_node * _starpu_sched_node_worker_get(int workerid)
 		return _worker_nodes[workerid];
 	else
 	{
-		struct _starpu_sched_node * node;
+		struct starpu_sched_node * node;
 		if(workerid < (int) starpu_worker_get_count())
-			node = _starpu_sched_node_worker_create(workerid);
+			node = starpu_sched_node_worker_create(workerid);
 		else
-			node = _starpu_sched_node_combined_worker_create(workerid);
+			node = starpu_sched_node_combined_worker_create(workerid);
 		_worker_nodes[workerid] = node;
 		return node;
 	}
 }
 
-struct _starpu_worker * _starpu_sched_node_worker_get_worker(struct _starpu_sched_node * worker_node)
+struct _starpu_worker * starpu_sched_node_worker_get_worker(struct starpu_sched_node * worker_node)
 {
-	STARPU_ASSERT(_starpu_sched_node_is_simple_worker(worker_node));
+	STARPU_ASSERT(starpu_sched_node_is_simple_worker(worker_node));
 	struct _starpu_worker_node_data * data = worker_node->data;
 	return data->worker;
 }
-struct _starpu_combined_worker * _starpu_sched_node_combined_worker_get_combined_worker(struct _starpu_sched_node * worker_node)
+struct _starpu_combined_worker * starpu_sched_node_combined_worker_get_combined_worker(struct starpu_sched_node * worker_node)
 {
-	STARPU_ASSERT(_starpu_sched_node_is_combined_worker(worker_node));
+	STARPU_ASSERT(starpu_sched_node_is_combined_worker(worker_node));
 	struct _starpu_worker_node_data * data = worker_node->data;
 	return data->combined_worker;
 }
 
-enum starpu_perfmodel_archtype _starpu_sched_node_worker_get_perf_arch(struct _starpu_sched_node * worker_node)
+enum starpu_perfmodel_archtype starpu_sched_node_worker_get_perf_arch(struct starpu_sched_node * worker_node)
 {
-	STARPU_ASSERT(_starpu_sched_node_is_worker(worker_node));
-	if(_starpu_sched_node_is_simple_worker(worker_node))
-		return _starpu_sched_node_worker_get_worker(worker_node)->perf_arch;
+	STARPU_ASSERT(starpu_sched_node_is_worker(worker_node));
+	if(starpu_sched_node_is_simple_worker(worker_node))
+		return starpu_sched_node_worker_get_worker(worker_node)->perf_arch;
 	else
-		return _starpu_sched_node_combined_worker_get_combined_worker(worker_node)->perf_arch;
+		return starpu_sched_node_combined_worker_get_combined_worker(worker_node)->perf_arch;
 }
 
 
-int _starpu_sched_node_worker_push_task(struct _starpu_sched_node * node, struct starpu_task *task)
+int starpu_sched_node_worker_push_task(struct starpu_sched_node * node, struct starpu_task *task)
 {
 	/*this function take the worker's mutex */
 	struct _starpu_worker_node_data * data = node->data;
@@ -282,7 +282,7 @@ int _starpu_sched_node_worker_push_task(struct _starpu_sched_node * node, struct
 	t->task = task;
 	t->ntasks = 1;
 
-	task->workerid = _starpu_bitmap_first(node->workers);
+	task->workerid = starpu_bitmap_first(node->workers);
 	if (starpu_get_prefetch_flag())
 	{
 		unsigned memory_node = starpu_worker_get_memory_node(task->workerid);
@@ -295,7 +295,7 @@ int _starpu_sched_node_worker_push_task(struct _starpu_sched_node * node, struct
 	return 0;
 }
 
-struct starpu_task * _starpu_sched_node_worker_pop_task(struct _starpu_sched_node *node,unsigned sched_ctx_id)
+struct starpu_task * starpu_sched_node_worker_pop_task(struct starpu_sched_node *node,unsigned sched_ctx_id)
 {
 	struct _starpu_worker_node_data * data = node->data;
 	struct _starpu_worker_task_list * list = data->list;
@@ -308,7 +308,7 @@ struct starpu_task * _starpu_sched_node_worker_pop_task(struct _starpu_sched_nod
 		return task;
 	}
 
-	struct _starpu_sched_node *father = node->fathers[sched_ctx_id];
+	struct starpu_sched_node *father = node->fathers[sched_ctx_id];
 	if(father == NULL)
 		return NULL;
 	task = father->pop_task(father,sched_ctx_id);
@@ -322,35 +322,35 @@ struct starpu_task * _starpu_sched_node_worker_pop_task(struct _starpu_sched_nod
 			starpu_push_task_end(task);
 			return task;
 		}
-		struct _starpu_sched_node * combined_worker_node = _starpu_sched_node_worker_get(combined_workerid);
+		struct starpu_sched_node * combined_worker_node = starpu_sched_node_worker_get(combined_workerid);
 		(void)combined_worker_node->push_task(combined_worker_node, task);
 		//we have pushed a task in queue, so can make a recursive call
-		return _starpu_sched_node_worker_pop_task(node, sched_ctx_id);
+		return starpu_sched_node_worker_pop_task(node, sched_ctx_id);
 
 	}
 	if(task)
 		starpu_push_task_end(task);
 	return task;
 }
-void _starpu_sched_node_worker_destroy(struct _starpu_sched_node *node)
+void starpu_sched_node_worker_destroy(struct starpu_sched_node *node)
 {
-	struct _starpu_worker * worker = _starpu_sched_node_worker_get_worker(node);
+	struct _starpu_worker * worker = starpu_sched_node_worker_get_worker(node);
 	unsigned id = worker->workerid;
 	assert(_worker_nodes[id] == node);
 	int i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS ; i++)
 		if(node->fathers[i] != NULL)
 			return;//this node is shared between several contexts
-	_starpu_sched_node_destroy(node);
+	starpu_sched_node_destroy(node);
 	_worker_nodes[id] = NULL;
 }
 
-static void simple_worker_available(struct _starpu_sched_node * worker_node)
+static void simple_worker_available(struct starpu_sched_node * worker_node)
 {
 	(void) worker_node;
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-	struct _starpu_worker * w = _starpu_sched_node_worker_get_worker(worker_node);
+	struct _starpu_worker * w = starpu_sched_node_worker_get_worker(worker_node);
 	if(w->workerid == starpu_worker_get_id())
 		return;
 	starpu_pthread_mutex_t *sched_mutex = &w->sched_mutex;
@@ -361,11 +361,11 @@ static void simple_worker_available(struct _starpu_sched_node * worker_node)
 #endif
 }
 
-static void combined_worker_available(struct _starpu_sched_node * node)
+static void combined_worker_available(struct starpu_sched_node * node)
 {
 	(void) node;
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-	STARPU_ASSERT(_starpu_sched_node_is_combined_worker(node));
+	STARPU_ASSERT(starpu_sched_node_is_combined_worker(node));
 	struct _starpu_worker_node_data * data = node->data;
 	int workerid = starpu_worker_get_id();
 	int i;
@@ -384,10 +384,10 @@ static void combined_worker_available(struct _starpu_sched_node * node)
 #endif
 }
 
-static double estimated_transfer_length(struct _starpu_sched_node * node,
+static double estimated_transfer_length(struct starpu_sched_node * node,
 					struct starpu_task * task)
 {
-	STARPU_ASSERT(_starpu_sched_node_is_worker(node));
+	STARPU_ASSERT(starpu_sched_node_is_worker(node));
 	starpu_task_bundle_t bundle = task->bundle;
 	struct _starpu_worker_node_data * data = node->data;
 	unsigned memory_node = data->worker ? data->worker->memory_node : data->combined_worker->memory_node;
@@ -417,9 +417,9 @@ static double worker_estimated_finish_time(struct _starpu_worker * worker)
 	return sum + starpu_timing_now();
 }
 
-static double combined_worker_expected_finish_time(struct _starpu_sched_node * node)
+static double combined_worker_expected_finish_time(struct starpu_sched_node * node)
 {
-	STARPU_ASSERT(_starpu_sched_node_is_combined_worker(node));
+	STARPU_ASSERT(starpu_sched_node_is_combined_worker(node));
 	struct _starpu_worker_node_data * data = node->data;
 	struct _starpu_combined_worker * combined_worker = data->combined_worker;
 	double max = 0.0;
@@ -434,7 +434,7 @@ static double combined_worker_expected_finish_time(struct _starpu_sched_node * n
 	}
 	return max;
 }
-static double simple_worker_expected_finish_time(struct _starpu_sched_node * node)
+static double simple_worker_expected_finish_time(struct starpu_sched_node * node)
 {
 	struct _starpu_worker_node_data * data = node->data;
 	STARPU_PTHREAD_MUTEX_LOCK(&data->list->mutex);
@@ -443,17 +443,17 @@ static double simple_worker_expected_finish_time(struct _starpu_sched_node * nod
 	return tmp;
 }
 
-static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_sched_node * node, struct starpu_task * task,
-								 double (*estimated_finish_time)(struct _starpu_sched_node*))
+static struct starpu_task_execute_preds estimated_execute_preds(struct starpu_sched_node * node, struct starpu_task * task,
+								 double (*estimated_finish_time)(struct starpu_sched_node*))
 {
-	STARPU_ASSERT(_starpu_sched_node_is_worker(node));
+	STARPU_ASSERT(starpu_sched_node_is_worker(node));
 	starpu_task_bundle_t bundle = task->bundle;
-	int workerid = _starpu_sched_node_worker_get_workerid(node);
+	int workerid = starpu_sched_node_worker_get_workerid(node);
 
-	struct _starpu_task_execute_preds preds =
+	struct starpu_task_execute_preds preds =
 		{
 			.state = CANNOT_EXECUTE,
-			.archtype = _starpu_sched_node_worker_get_perf_arch(node),
+			.archtype = starpu_sched_node_worker_get_perf_arch(node),
 			.expected_length = DBL_MAX,
 			.expected_finish_time = estimated_finish_time(node),
 			.expected_transfer_length = estimated_transfer_length(node, task),
@@ -494,7 +494,7 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 
 	if(preds.state == PERF_MODEL)
 	{
-		preds.expected_finish_time = _starpu_compute_expected_time(starpu_timing_now(),
+		preds.expected_finish_time = starpu_sched_compute_expected_time(starpu_timing_now(),
 									  preds.expected_finish_time,
 									  preds.expected_length,
 									  preds.expected_transfer_length);
@@ -508,20 +508,20 @@ static struct _starpu_task_execute_preds estimated_execute_preds(struct _starpu_
 	return preds;
 }
 
-static struct _starpu_task_execute_preds combined_worker_estimated_execute_preds(struct _starpu_sched_node * node, struct starpu_task * task)
+static struct starpu_task_execute_preds combined_worker_estimated_execute_preds(struct starpu_sched_node * node, struct starpu_task * task)
 {
 	return estimated_execute_preds(node,task,combined_worker_expected_finish_time);
 }
 
-static struct _starpu_task_execute_preds simple_worker_estimated_execute_preds(struct _starpu_sched_node * node, struct starpu_task * task)
+static struct starpu_task_execute_preds simple_worker_estimated_execute_preds(struct starpu_sched_node * node, struct starpu_task * task)
 {
 	return estimated_execute_preds(node,task,simple_worker_expected_finish_time);
 }
 
 
-static double simple_worker_estimated_load(struct _starpu_sched_node * node)
+static double simple_worker_estimated_load(struct starpu_sched_node * node)
 {
-	struct _starpu_worker * worker = _starpu_sched_node_worker_get_worker(node);
+	struct _starpu_worker * worker = starpu_sched_node_worker_get_worker(node);
 	int nb_task = 0;
 	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
 	struct starpu_task_list list = worker->local_tasks;
@@ -535,10 +535,10 @@ static double simple_worker_estimated_load(struct _starpu_sched_node * node)
 	struct _starpu_worker_task_list * l = d->list;
 	int ntasks_in_fifo = l ? l->ntasks : 0;
 	return (double) (nb_task + ntasks_in_fifo)
-		/ starpu_worker_get_relative_speedup(_starpu_bitmap_first(node->workers));
+		/ starpu_worker_get_relative_speedup(starpu_bitmap_first(node->workers));
 }
 
-static double combined_worker_estimated_load(struct _starpu_sched_node * node)
+static double combined_worker_estimated_load(struct starpu_sched_node * node)
 {
 	struct _starpu_worker_node_data * d = node->data;
 	struct _starpu_combined_worker * c = d->combined_worker;
@@ -546,13 +546,13 @@ static double combined_worker_estimated_load(struct _starpu_sched_node * node)
 	int i;
 	for(i = 0; i < c->worker_size; i++)
 	{
-		struct _starpu_sched_node * n = _starpu_sched_node_worker_get(c->combined_workerid[i]);
+		struct starpu_sched_node * n = starpu_sched_node_worker_get(c->combined_workerid[i]);
 		load += n->estimated_load(n);
 	}
 	return load;
 }
 
-static void worker_deinit_data(struct _starpu_sched_node * node)
+static void worker_deinit_data(struct starpu_sched_node * node)
 {
 	struct _starpu_worker_node_data * data = node->data;
 	if(data->list)
@@ -568,15 +568,15 @@ static void worker_deinit_data(struct _starpu_sched_node * node)
 }
 
 
-static int _starpu_sched_node_combined_worker_push_task(struct _starpu_sched_node * node, struct starpu_task *task)
+static int starpu_sched_node_combined_worker_push_task(struct starpu_sched_node * node, struct starpu_task *task)
 {
-	STARPU_ASSERT(_starpu_sched_node_is_combined_worker(node));
+	STARPU_ASSERT(starpu_sched_node_is_combined_worker(node));
 	struct _starpu_worker_node_data * data = node->data;
 	STARPU_ASSERT(data->combined_worker && !data->worker);
 	struct _starpu_combined_worker  * combined_worker = data->combined_worker;
 	STARPU_ASSERT(combined_worker->worker_size >= 1);
 	struct _starpu_task_grid * task_alias[combined_worker->worker_size];
-	starpu_parallel_task_barrier_init(task, _starpu_bitmap_first(node->workers));
+	starpu_parallel_task_barrier_init(task, starpu_bitmap_first(node->workers));
 	task_alias[0] = _starpu_task_grid_create();
 	task_alias[0]->task = starpu_task_dup(task);
 	task_alias[0]->task->workerid = combined_worker->combined_workerid[0];
@@ -597,7 +597,7 @@ static int _starpu_sched_node_combined_worker_push_task(struct _starpu_sched_nod
 	i = 0;
 	do
 	{
-		struct _starpu_sched_node * worker_node = _starpu_sched_node_worker_get(combined_worker->combined_workerid[i]);
+		struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(combined_worker->combined_workerid[i]);
 		struct _starpu_worker_node_data * worker_data = worker_node->data;
 		struct _starpu_worker_task_list * list = worker_data->list;
 		STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
@@ -627,7 +627,7 @@ static int _starpu_sched_node_combined_worker_push_task(struct _starpu_sched_nod
 		/* wake up all other workers of combined worker */
 		for(i = 0; i < combined_worker->worker_size; i++)
 		{
-			struct _starpu_sched_node * worker_node = _starpu_sched_node_worker_get(combined_worker->combined_workerid[i]);
+			struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(combined_worker->combined_workerid[i]);
 			worker_node->available(worker_node);
 		}
 
@@ -638,7 +638,7 @@ static int _starpu_sched_node_combined_worker_push_task(struct _starpu_sched_nod
 	return 0;
 }
 
-static struct _starpu_sched_node * _starpu_sched_node_worker_create(int workerid)
+static struct starpu_sched_node * starpu_sched_node_worker_create(int workerid)
 {
 	STARPU_ASSERT(0 <=  workerid && workerid < (int) starpu_worker_get_count());
 
@@ -648,20 +648,20 @@ static struct _starpu_sched_node * _starpu_sched_node_worker_create(int workerid
 	struct _starpu_worker * worker = _starpu_get_worker_struct(workerid);
 	if(worker == NULL)
 		return NULL;
-	struct _starpu_sched_node * node = _starpu_sched_node_create();
+	struct starpu_sched_node * node = starpu_sched_node_create();
 	struct _starpu_worker_node_data * data = malloc(sizeof(*data));
 	memset(data, 0, sizeof(*data));
 	data->worker = worker;
 	data->list = _starpu_worker_task_list_create();
 	node->data = data;
-	node->push_task = _starpu_sched_node_worker_push_task;
-	node->pop_task = _starpu_sched_node_worker_pop_task;
+	node->push_task = starpu_sched_node_worker_push_task;
+	node->pop_task = starpu_sched_node_worker_pop_task;
 	node->estimated_execute_preds = simple_worker_estimated_execute_preds;
 	node->estimated_load = simple_worker_estimated_load;
 	node->available = simple_worker_available;
 	node->deinit_data = worker_deinit_data;
-	node->workers = _starpu_bitmap_create();
-	_starpu_bitmap_set(node->workers, workerid);
+	node->workers = starpu_bitmap_create();
+	starpu_bitmap_set(node->workers, workerid);
 	_worker_nodes[workerid] = node;
 
 #ifdef STARPU_HAVE_HWLOC
@@ -676,7 +676,7 @@ static struct _starpu_sched_node * _starpu_sched_node_worker_create(int workerid
 }
 
 
-static struct _starpu_sched_node  * _starpu_sched_node_combined_worker_create(int workerid)
+static struct starpu_sched_node  * starpu_sched_node_combined_worker_create(int workerid)
 {
 	STARPU_ASSERT(0 <= workerid && workerid <  STARPU_NMAXWORKERS);
 
@@ -686,20 +686,20 @@ static struct _starpu_sched_node  * _starpu_sched_node_combined_worker_create(in
 	struct _starpu_combined_worker * combined_worker = _starpu_get_combined_worker_struct(workerid);
 	if(combined_worker == NULL)
 		return NULL;
-	struct _starpu_sched_node * node = _starpu_sched_node_create();
+	struct starpu_sched_node * node = starpu_sched_node_create();
 	struct _starpu_worker_node_data * data = malloc(sizeof(*data));
 	memset(data, 0, sizeof(*data));
 	data->combined_worker = combined_worker;
 
 	node->data = data;
-	node->push_task = _starpu_sched_node_combined_worker_push_task;
+	node->push_task = starpu_sched_node_combined_worker_push_task;
 	node->pop_task = NULL;
 	node->estimated_execute_preds = combined_worker_estimated_execute_preds;
 	node->estimated_load = combined_worker_estimated_load;
 	node->available = combined_worker_available;
 	node->deinit_data = worker_deinit_data;
-	node->workers = _starpu_bitmap_create();
-	_starpu_bitmap_set(node->workers, workerid);
+	node->workers = starpu_bitmap_create();
+	starpu_bitmap_set(node->workers, workerid);
 	_worker_nodes[workerid] = node;
 
 #ifdef STARPU_HAVE_HWLOC
@@ -712,25 +712,25 @@ static struct _starpu_sched_node  * _starpu_sched_node_combined_worker_create(in
 	return node;
 }
 
-int _starpu_sched_node_is_simple_worker(struct _starpu_sched_node * node)
+int starpu_sched_node_is_simple_worker(struct starpu_sched_node * node)
 {
-	return node->push_task == _starpu_sched_node_worker_push_task;
+	return node->push_task == starpu_sched_node_worker_push_task;
 }
-int _starpu_sched_node_is_combined_worker(struct _starpu_sched_node * node)
+int starpu_sched_node_is_combined_worker(struct starpu_sched_node * node)
 {
-	return node->push_task == _starpu_sched_node_combined_worker_push_task;
+	return node->push_task == starpu_sched_node_combined_worker_push_task;
 }
 
-int _starpu_sched_node_is_worker(struct _starpu_sched_node * node)
+int starpu_sched_node_is_worker(struct starpu_sched_node * node)
 {
-	return _starpu_sched_node_is_simple_worker(node)
-		|| _starpu_sched_node_is_combined_worker(node);
+	return starpu_sched_node_is_simple_worker(node)
+		|| starpu_sched_node_is_combined_worker(node);
 }
 
 
 
 #ifndef STARPU_NO_ASSERT
-static int _worker_consistant(struct _starpu_sched_node * node)
+static int _worker_consistant(struct starpu_sched_node * node)
 {
 	int is_a_worker = 0;
 	int i;
@@ -750,13 +750,13 @@ static int _worker_consistant(struct _starpu_sched_node * node)
 }
 #endif
 
-int _starpu_sched_node_worker_get_workerid(struct _starpu_sched_node * worker_node)
+int starpu_sched_node_worker_get_workerid(struct starpu_sched_node * worker_node)
 {
 #ifndef STARPU_NO_ASSERT
 	STARPU_ASSERT(_worker_consistant(worker_node));
 #endif
-	STARPU_ASSERT(1 == _starpu_bitmap_cardinal(worker_node->workers));
-	return _starpu_bitmap_first(worker_node->workers);
+	STARPU_ASSERT(1 == starpu_bitmap_cardinal(worker_node->workers));
+	return starpu_bitmap_first(worker_node->workers);
 }
 
 
@@ -764,12 +764,12 @@ static struct _starpu_worker_task_list * _worker_get_list(void)
 {
 	int workerid = starpu_worker_get_id();
 	STARPU_ASSERT(0 <= workerid && workerid < (int) starpu_worker_get_count());
-	struct _starpu_worker_node_data * d = _starpu_sched_node_worker_get(workerid)->data;
+	struct _starpu_worker_node_data * d = starpu_sched_node_worker_get(workerid)->data;
 	return d->list;
 }
 
 
-void _starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task)
+void starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task)
 {
 	if(!isnan(task->predicted))
 	{
@@ -791,7 +791,7 @@ void _starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&list->mutex);
 	}
 }
-void _starpu_sched_node_worker_post_exec_hook(struct starpu_task * task)
+void starpu_sched_node_worker_post_exec_hook(struct starpu_task * task)
 {
 	if(task->execute_on_a_specific_worker)
 		return;
@@ -802,12 +802,12 @@ void _starpu_sched_node_worker_post_exec_hook(struct starpu_task * task)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&list->mutex);
 }
 
-static void _starpu_sched_node_worker_push_task_notify(struct starpu_task *task, int workerid, unsigned sched_ctx_id)
+static void starpu_sched_node_worker_push_task_notify(struct starpu_task *task, int workerid, unsigned sched_ctx_id)
 {
 
-	struct _starpu_sched_node * worker_node = _starpu_sched_node_worker_get(workerid);
+	struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(workerid);
 	/* dont work with parallel tasks */
-	if(_starpu_sched_node_is_combined_worker(worker_node))
+	if(starpu_sched_node_is_combined_worker(worker_node))
 	   return;
 
 	struct _starpu_worker_node_data * d = worker_node->data;

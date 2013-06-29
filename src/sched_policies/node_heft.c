@@ -1,4 +1,4 @@
-#include "node_sched.h"
+#include <starpu_sched_node.h>
 #include "fifo_queues.h"
 #include <starpu_perfmodel.h>
 #include <starpu_scheduler.h>
@@ -11,12 +11,12 @@ struct _starpu_dmda_data
 	double beta;
 	double gamma;
 	double idle_power;
-	struct _starpu_sched_node * no_model_node;
+	struct starpu_sched_node * no_model_node;
 };
 
-static double compute_fitness_calibration(struct _starpu_sched_node * child,
+static double compute_fitness_calibration(struct starpu_sched_node * child,
 					  struct _starpu_dmda_data * data STARPU_ATTRIBUTE_UNUSED,
-					  struct _starpu_task_execute_preds *pred,
+					  struct starpu_task_execute_preds *pred,
 					  double best_exp_end STARPU_ATTRIBUTE_UNUSED,
 					  double max_exp_end STARPU_ATTRIBUTE_UNUSED)
 {
@@ -25,9 +25,9 @@ static double compute_fitness_calibration(struct _starpu_sched_node * child,
 	return DBL_MAX;
 }
 
-static double compute_fitness_perf_model(struct _starpu_sched_node * child STARPU_ATTRIBUTE_UNUSED,
+static double compute_fitness_perf_model(struct starpu_sched_node * child STARPU_ATTRIBUTE_UNUSED,
 					 struct _starpu_dmda_data * data,
-					 struct _starpu_task_execute_preds * preds,
+					 struct starpu_task_execute_preds * preds,
 					 double best_exp_end,
 					 double max_exp_end)
 {
@@ -51,9 +51,9 @@ static double compute_fitness_perf_model(struct _starpu_sched_node * child STARP
 	}
 }
 
-static int push_task(struct _starpu_sched_node * node, struct starpu_task * task)
+static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
-	struct _starpu_task_execute_preds preds[node->nchilds];
+	struct starpu_task_execute_preds preds[node->nchilds];
 	int i;
 	int calibrating = 0;
 	int perf_model = 0;
@@ -98,9 +98,9 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 		return ret;
 	}
 
-	double (*fitness_fun)(struct _starpu_sched_node *,
+	double (*fitness_fun)(struct starpu_sched_node *,
 			      struct _starpu_dmda_data *,
-			      struct _starpu_task_execute_preds*,
+			      struct starpu_task_execute_preds*,
 			      double,
 			      double) = compute_fitness_perf_model;
 
@@ -128,20 +128,20 @@ static int push_task(struct _starpu_sched_node * node, struct starpu_task * task
 //	fprintf(stderr,"push on worker %d\n",index_best_fitness);
 	STARPU_ASSERT(best_fitness != DBL_MAX);
 
-	struct _starpu_sched_node * c = node->childs[index_best_fitness];
+	struct starpu_sched_node * c = node->childs[index_best_fitness];
 	starpu_task_set_implementation(task, preds[index_best_fitness].impl);
 	task->predicted = preds[index_best_fitness].expected_length;
 	task->predicted_transfer = preds[index_best_fitness].expected_transfer_length;
 	return c->push_task(c, task);
 }
 /*
-static void update_helper_node(struct _starpu_sched_node * heft_node)
+static void update_helper_node(struct starpu_sched_node * heft_node)
 {
 	struct _starpu_dmda_data * data = heft_node->data;
-	struct _starpu_sched_node * node = data->no_model_node;
+	struct starpu_sched_node * node = data->no_model_node;
 	node->nchilds = heft_node->nchilds;
-	node->childs = realloc(node->childs, sizeof(struct _starpu_sched_node *) * node->nchilds);
-	memcpy(node->childs, heft_node->childs, sizeof(struct _starpu_sched_node*) * node->nchilds);
+	node->childs = realloc(node->childs, sizeof(struct starpu_sched_node *) * node->nchilds);
+	memcpy(node->childs, heft_node->childs, sizeof(struct starpu_sched_node*) * node->nchilds);
 	node->nworkers = heft_node->nworkers;
 	memcpy(node->workerids, heft_node->workerids, sizeof(int) * node->nworkers);
 }
@@ -182,7 +182,7 @@ static void param_modified(struct starpu_top_param* d)
 }
 #endif /* !STARPU_USE_TOP */
 
-void init_heft_data(struct _starpu_sched_node *node)
+void init_heft_data(struct starpu_sched_node *node)
 {
 
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
@@ -222,31 +222,31 @@ void init_heft_data(struct _starpu_sched_node *node)
 
 	node->data = data;
 
-	_starpu_sched_node_heft_set_no_model_node(node, _starpu_sched_node_random_create,NULL);
+	starpu_sched_node_heft_set_no_model_node(node, starpu_sched_node_random_create,NULL);
 }
 
-static void destroy_no_model_node(struct _starpu_sched_node * heft_node)
+static void destroy_no_model_node(struct starpu_sched_node * heft_node)
 {
 	struct _starpu_dmda_data * data = heft_node->data;
 	if(data->no_model_node)
 	{
-		_starpu_sched_node_destroy(data->no_model_node);
+		starpu_sched_node_destroy(data->no_model_node);
 	}
 }
 
-void deinit_heft_data(struct _starpu_sched_node * node)
+void deinit_heft_data(struct starpu_sched_node * node)
 {
 	destroy_no_model_node(node);
 	free(node->data);
 }
 
-void _starpu_sched_node_heft_set_no_model_node(struct _starpu_sched_node * heft_node,
-					       struct _starpu_sched_node * (*create_no_model_node)(void *),void * arg)
+void starpu_sched_node_heft_set_no_model_node(struct starpu_sched_node * heft_node,
+					       struct starpu_sched_node * (*create_no_model_node)(void *),void * arg)
 {
 	destroy_no_model_node(heft_node);
 	struct _starpu_dmda_data * data = heft_node->data;
-	struct _starpu_sched_node * no_model_node = create_no_model_node(arg);
-	no_model_node->childs = malloc(heft_node->nchilds * sizeof(struct _starpu_sched_node *));
+	struct starpu_sched_node * no_model_node = create_no_model_node(arg);
+	no_model_node->childs = malloc(heft_node->nchilds * sizeof(struct starpu_sched_node *));
 	memcpy(no_model_node->childs, heft_node->childs, heft_node->nchilds * sizeof(struct _strapu_sched_node *));
 
 	no_model_node->nchilds = heft_node->nchilds;
@@ -254,9 +254,9 @@ void _starpu_sched_node_heft_set_no_model_node(struct _starpu_sched_node * heft_
 	data->no_model_node = no_model_node;
 }
 
-struct _starpu_sched_node * _starpu_sched_node_heft_create(void * arg STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_node * starpu_sched_node_heft_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
-	struct _starpu_sched_node * node = _starpu_sched_node_create();
+	struct starpu_sched_node * node = starpu_sched_node_create();
 
 	node->push_task = push_task;
 	node->init_data = init_heft_data;
@@ -265,7 +265,7 @@ struct _starpu_sched_node * _starpu_sched_node_heft_create(void * arg STARPU_ATT
 	return node;
 }
 
-int _starpu_sched_node_is_heft(struct _starpu_sched_node * node)
+int starpu_sched_node_is_heft(struct starpu_sched_node * node)
 {
 	return node->init_data == init_heft_data;
 }
@@ -276,33 +276,33 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	
-	struct _starpu_sched_tree * t = _starpu_sched_tree_create();
-	t->root = _starpu_sched_node_heft_create(NULL);
+	struct starpu_sched_tree * t = starpu_sched_tree_create();
+	t->root = starpu_sched_node_heft_create(NULL);
 	
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		struct _starpu_sched_node * worker_node = _starpu_sched_node_worker_get(i);
+		struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(i);
 		STARPU_ASSERT(worker_node);
 /*
-		struct _starpu_sched_node * fifo_node = _starpu_sched_node_fifo_create(NULL);
-		_starpu_sched_node_add_child(fifo_node, worker_node);
-		_starpu_sched_node_set_father(worker_node, fifo_node, sched_ctx_id);
+		struct starpu_sched_node * fifo_node = starpu_sched_node_fifo_create(NULL);
+		starpu_sched_node_add_child(fifo_node, worker_node);
+		starpu_sched_node_set_father(worker_node, fifo_node, sched_ctx_id);
 */
-		_starpu_sched_node_add_child(t->root, worker_node);
-		_starpu_sched_node_set_father(worker_node, t->root, sched_ctx_id);
+		starpu_sched_node_add_child(t->root, worker_node);
+		starpu_sched_node_set_father(worker_node, t->root, sched_ctx_id);
 	}
 	
 	_starpu_set_workers_bitmaps();
-	_starpu_tree_call_init_data(t);
+	starpu_sched_tree_call_init_data(t);
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
 }
 
 static void deinitialize_heft_center_policy(unsigned sched_ctx_id)
 {
-	struct _starpu_sched_tree *t = (struct _starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	_starpu_sched_tree_destroy(t, sched_ctx_id);
+	struct starpu_sched_tree *t = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	starpu_sched_tree_destroy(t, sched_ctx_id);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
@@ -314,10 +314,10 @@ struct starpu_sched_policy _starpu_sched_tree_heft_policy =
 {
 	.init_sched = initialize_heft_center_policy,
 	.deinit_sched = deinitialize_heft_center_policy,
-	.add_workers = _starpu_tree_add_workers,
-	.remove_workers = _starpu_tree_remove_workers,
-	.push_task = _starpu_tree_push_task,
-	.pop_task = _starpu_tree_pop_task,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,

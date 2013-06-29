@@ -163,6 +163,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_profiling.h	\
 	$(top_srcdir)/include/starpu_bound.h		\
 	$(top_srcdir)/include/starpu_scheduler.h	\
+	$(top_srcdir)/include/starpu_sched_node.h	\
 	$(top_srcdir)/include/starpu_sched_ctx.h	\
 	$(top_srcdir)/include/starpu_top.h		\
 	$(top_srcdir)/include/starpu_hash.h		\
@@ -177,8 +178,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_config.h 	\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_lp.h		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_monitoring.h	\
-	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h	\
-	$(top_srcdir)/src/sched_policies/node_sched.h
+	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h
 
 $(DOX_TAG): $(dox_inputs)
 	rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
