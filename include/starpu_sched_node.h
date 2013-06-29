@@ -143,16 +143,12 @@ void starpu_sched_node_set_father(struct starpu_sched_node *node, struct starpu_
 void starpu_sched_node_add_child(struct starpu_sched_node * node, struct starpu_sched_node * child);
 void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child);
 
-struct starpu_task_execute_preds starpu_sched_node_average_estimated_execute_preds(struct starpu_sched_node * node, struct starpu_task * task);
 
 int starpu_sched_node_can_execute_task(struct starpu_sched_node * node, struct starpu_task * task);
-int starpu_sched_node_can_execute_task_with_impl(struct starpu_sched_node * node, struct starpu_task * task, unsigned nimpl);
 
 /* no public create function for workers because we dont want to have several node_worker for a single workerid */
 struct starpu_sched_node * starpu_sched_node_worker_get(int workerid);
-struct _starpu_worker * starpu_sched_node_worker_get_worker(struct starpu_sched_node * worker_node);
-struct _starpu_combined_worker * starpu_sched_node_combined_worker_get_combined_worker(struct starpu_sched_node * combined_worker_node);
-void starpu_sched_node_worker_destroy(struct starpu_sched_node *);
+
 
 /* this function compare the available function of the node with the standard available for worker nodes*/
 int starpu_sched_node_is_worker(struct starpu_sched_node * node);
@@ -169,7 +165,6 @@ int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node);
 
 struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_node_is_random(struct starpu_sched_node *);
-struct starpu_sched_node * starpu_sched_node_eager_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 
 struct starpu_sched_node * starpu_sched_node_heft_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 /* this function is called to create the node wich will be used to push task when no perf model are available
@@ -217,6 +212,7 @@ void starpu_sched_tree_call_init_data(struct starpu_sched_tree * t);
  */
 int starpu_sched_node_push_tasks_to_firsts_suitable_parent(struct starpu_sched_node * node, struct starpu_task_list * list, int sched_ctx_id);
 
+struct starpu_task_execute_preds starpu_sched_node_average_estimated_execute_preds(struct starpu_sched_node * node, struct starpu_task * task);
 
 
 

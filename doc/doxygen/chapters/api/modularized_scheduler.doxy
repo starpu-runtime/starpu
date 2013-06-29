@@ -62,7 +62,7 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 	this lock protect the worker member
 
 \fn struct starpu_sched_node * starpu_sched_node_create(void)
-
+\ingroup API_Modularized_Scheduler
         allocate and initalise node field with defaults values :
 	.pop_task make recursive call on father
 	.available make a recursive call on childrens
@@ -71,14 +71,113 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 
 
 \fn void starpu_sched_node_destroy(struct starpu_sched_node * node)
+\ingroup API_Modularized_Scheduler
     	 free data allocated by starpu_sched_node_create, but dont call node->deinit_data(node)
 \fn void starpu_sched_node_set_father(struct starpu_sched_node * node, struct starpu_sched_node * father_node, unsigned sched_ctx_id)
+\ingroup API_Modularized_Scheduler
     	 set node->fathers[sched_ctx_id] to father_node
 \fn void starpu_sched_node_add_child(struct starpu_sched_node* node, struct starpu_sched_node * child)
+\ingroup API_Modularized_Scheduler
     	 add child to node->childs and increment nchilds as well
 	 and dont modify child->fathers
 \fn void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
+\ingroup API_Modularized_Scheduler
     	 remove child from node->childs and decrement nchilds
 
 
+\fn int starpu_sched_node_can_execute_task(struct starpu_sched_node * node, struct starpu_task * task)
+\ingroup API_Modularized_Scheduler
+	 return a no null value if \p node can execute \p task, this function take into account the workers available in the scheduling context
+
+\fn struct starpu_sched_node * starpu_sched_node_worker_get(int workerid)
+\ingroup API_Modularized_Scheduler
+	 return the struct starpu_sched_node corresponding to \p workerid
+
+
+\fn int starpu_sched_node_is_worker(struct starpu_sched_node * node)
+\ingroup API_Modularized_Scheduler
+	 return a no null value iff \p node is a worker node
+\fn int starpu_sched_node_is_simple_worker(struct starpu_sched_node * node)
+\ingroup API_Modularized_Scheduler
+	 return a no null value iff \p node is a simple worker node
+\fn int starpu_sched_node_is_combined_worker(struct starpu_sched_node * node)
+\ingroup API_Modularized_Scheduler
+	 return a no null value iff \p node is a combined worker node
+\fn int starpu_sched_node_worker_get_workerid(struct starpu_sched_node * worker_node)
+\ingroup API_Modularized_Scheduler
+	 return the workerid of \p worker_node, undefined if starpu_sched_node_is_worker(worker_node) == 0
+
+
+\fn struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED)
+\ingroup API_Modularized_Scheduler
+	 return a struct starpu_sched_node with a fifo. A stable sort is performed according to tasks priorities.
+	 a push_task call on this node does not perform recursive calls, underlaying nodes will have to call pop_task to get it.
+	 estimated_execute_preds function compute the estimated length by dividing the sequencial length by the number of underlaying workers
+
+\fn int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
+\ingroup API_Modularized_Scheduler
+	 return a non zero value iff \p node has been created with starpu_sched_node_fifo_create
+
+
+\fn struct starpu_sched_node * starpu_sched_node_work_stealing_create(void)
+\ingroup API_Modularized_Scheduler
+	 return a node that perform a work stealing scheduling,
+	 a special function may be used instead of starpu_sched_tree_push_task that push tasks in the good fifo
+	  
+\fn int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node)
+\ingroup API_Modularized_Scheduler
+	 return true if \p node is a work stealing node
+
+\fn struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED)
+\ingroup API_Modularized_Scheduler
+	 create a node that perform a random scheduling
+
+\fn int starpu_sched_node_is_random(struct starpu_sched_node *);
+\ingroup API_Modularized_Scheduler
+	 return true if \p node is a random node
+
+
+\fn struct starpu_sched_node * starpu_sched_node_heft_create(void * arg STARPU_ATTRIBUTE_UNUSED)
+\ingroup API_Modularized_Scheduler
+	 this node perform a heft scheduling using data provided by estimated_execute_preds, if no pred_model are available a random node is used to push tasks
+
+\fn void starpu_sched_node_heft_set_no_model_node(struct starpu_sched_node * heft_node, struct starpu_sched_node * (*create_no_model_node)(void * arg), void * arg)
+\ingroup API_Modularized_Scheduler
+	 this should disapear and use arg to pass that kind of parameters
+
+\fn int starpu_sched_node_is_heft(struct starpu_sched_node * node)
+\ingroup API_Modularized_Scheduler
+	 return true if \p node is a heft node
+
+
+
+\fn struct starpu_sched_tree * starpu_sched_tree_create(void)
+\ingroup API_Modularized_Scheduler
+	 create a empty initialized starpu_sched_tree
+\fn void starpu_sched_tree_destroy(struct starpu_sched_tree * tree, unsigned sched_ctx_id)
+\ingroup API_Modularized_Scheduler
+	 destroy tree and free all non shared node in it.
+
+\fn int starpu_sched_tree_push_task(struct starpu_task * task)
+\ingroup API_Modularized_Scheduler
+	 compatibility with starpu_sched_policy interface
+\fn struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx_id)
+\ingroup API_Modularized_Scheduler
+	 compatibility with starpu_sched_policy interface
+\fn void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+\ingroup API_Modularized_Scheduler
+	 compatibility with starpu_sched_policy interface
+\fn void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+\ingroup API_Modularized_Scheduler
+	 compatibility with starpu_sched_policy interface
+\fn void starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task)
+\ingroup API_Modularized_Scheduler
+	 compatibility with starpu_sched_policy interface
+	 update predictions for workers
+\fn void starpu_sched_node_worker_post_exec_hook(struct starpu_task * task)
+\ingroup API_Modularized_Scheduler
+	 compatibility with starpu_sched_policy interface
+
+
 */
+

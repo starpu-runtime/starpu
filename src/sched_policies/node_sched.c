@@ -319,22 +319,6 @@ int starpu_sched_node_can_execute_task(struct starpu_sched_node * node, struct s
 	return 0;
 }
 
-int starpu_sched_node_can_execute_task_with_impl(struct starpu_sched_node * node, struct starpu_task * task, unsigned nimpl)
-{
-
-	struct starpu_bitmap * worker_mask = _starpu_get_worker_mask(task);
-	int worker;
-	STARPU_ASSERT(task);
-	STARPU_ASSERT(nimpl < STARPU_MAXIMPLEMENTATIONS);
-	for(worker = starpu_bitmap_first(node->workers);
-	    worker != -1;
-	    worker = starpu_bitmap_next(node->workers, worker))
-		if (starpu_bitmap_get(worker_mask, worker)
-		    && starpu_worker_can_execute_task(worker, task, nimpl))
-			return 1;
-	return 0;
-
-}
 
 void take_node_and_does_nothing(struct starpu_sched_node * node STARPU_ATTRIBUTE_UNUSED)
 {
