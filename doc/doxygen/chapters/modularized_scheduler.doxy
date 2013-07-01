@@ -4,7 +4,8 @@
 \section Introduction
 
 Scheduler are a tree-like structure of homogeneous nodes that each
-provides push and pop primitives.
+provides push and pop primitives. Each node may have one father by
+context, specially worker nodes ase they are shared between all contexts.
 
 Tasks make a top bottom traversal of tree.
 
@@ -28,11 +29,23 @@ The starpu_sched_node::init_data is the last function to be called during
 initialization, it can use starpu_sched_node::workers and
 starpu_sched_node::data.
 
+\section Push
+All scheduler node must define a starpu_sched_node::push_task
+function. The caller ensure that the node can realy execute the task.
+
+\section Pop
+starpu_sched_node::push_task should either return a local task or
+perform a recursive call on 
+starpu_sched_node::fathers[sched_ctx_id], or \c NULL if its a root
+node.
+
+
+
 
 
 \section WorkersAndCombinedWorkers Workers and Combined workers
 
-Leafs are either a worker node that is bind to starpu workers or a
+Leafs are either a worker node that is bind to a starpu workers or a
 combined worker node that is bind to several worker nodes.
 
 Pushing a task on a combined worker node will in fact push a copy of
@@ -40,6 +53,6 @@ that task on each worker node of the combined worker.
 
 A push call simply enqueue task in worker queue, no sort is performed
 here.
-If a worker call pop and get a parallel task, it will execute with the
+If a worker call pop and get a parallel task, it will execute it with the
 combined worker it belong to.
 */
