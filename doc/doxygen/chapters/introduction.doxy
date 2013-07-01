@@ -219,6 +219,7 @@ The documentation chapters include
 <li> \ref cExtensions
 <li> \ref SOCLOpenclExtensions
 <li> \ref SchedulingContexts
+<li> \ref ModularizedScheduler
 <li> \ref SchedulingContextHypervisor
 </ul>
 </li>

@@ -9,7 +9,7 @@ This structure represent a scheduler module.
 \var starpu_sched_node::pop_task
 	pop a task from the scheduler module, the task returned by this function is executable by the caller if its a worker
 \var starpu_sched_node::available
-	notify workers downstairs that a task is waiting for a pop
+	notify workers downstairs that a task is waiting for a pop, this member dont seems to be necessary
 \var starpu_sched_node::estimated_load
 	is an heuristic to compute load of scheduler module
 \var starpu_sched_node::estimated_execute_preds
@@ -39,7 +39,7 @@ This structure represent a scheduler module.
 \ingroup API_Modularized_Scheduler
 this structure containt predictions for a task and is filled by starpu_sched_node::estimated_execute_preds
 \var starpu_task_execute_preds::state
-	indicate status of prediction
+	indicate status of prediction, if several status are possible, in order of priority it will be : CALIBRATING, PERF_MODEL, NO_PERF_MODEL, CANNOT_EXECUTE
 \var starpu_task_execute_preds::archtype
 \var starpu_task_execute_preds::impl
 	those members are revelant is state is PERF_MODEL or CALIBRATING and is set to best or uncalibrated archtype and implementation, respectively, or suitable values if state is NO_PERF_MODEL
@@ -87,7 +87,7 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 
 \fn int starpu_sched_node_can_execute_task(struct starpu_sched_node * node, struct starpu_task * task)
 \ingroup API_Modularized_Scheduler
-	 return a no null value if \p node can execute \p task, this function take into account the workers available in the scheduling context
+	 return true iff \p node can execute \p task, this function take into account the workers available in the scheduling context
 
 \fn struct starpu_sched_node * starpu_sched_node_worker_get(int workerid)
 \ingroup API_Modularized_Scheduler
@@ -96,13 +96,13 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 
 \fn int starpu_sched_node_is_worker(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
-	 return a no null value iff \p node is a worker node
+	 return true iff \p node is a worker node
 \fn int starpu_sched_node_is_simple_worker(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
-	 return a no null value iff \p node is a simple worker node
+	 return true iff \p node is a simple worker node
 \fn int starpu_sched_node_is_combined_worker(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
-	 return a no null value iff \p node is a combined worker node
+	 return true iff \p node is a combined worker node
 \fn int starpu_sched_node_worker_get_workerid(struct starpu_sched_node * worker_node)
 \ingroup API_Modularized_Scheduler
 	 return the workerid of \p worker_node, undefined if starpu_sched_node_is_worker(worker_node) == 0
@@ -116,7 +116,7 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 
 \fn int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
-	 return a non zero value iff \p node has been created with starpu_sched_node_fifo_create
+	 return true iff \p node is a fifo node
 
 
 \fn struct starpu_sched_node * starpu_sched_node_work_stealing_create(void)
@@ -126,7 +126,7 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 	  
 \fn int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
-	 return true if \p node is a work stealing node
+	 return true iff \p node is a work stealing node
 
 \fn struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 \ingroup API_Modularized_Scheduler
@@ -134,7 +134,7 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 
 \fn int starpu_sched_node_is_random(struct starpu_sched_node *);
 \ingroup API_Modularized_Scheduler
-	 return true if \p node is a random node
+	 return true iff \p node is a random node
 
 
 \fn struct starpu_sched_node * starpu_sched_node_heft_create(void * arg STARPU_ATTRIBUTE_UNUSED)
@@ -147,9 +147,10 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 
 \fn int starpu_sched_node_is_heft(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
-	 return true if \p node is a heft node
-
-
+	 return true iff \p node is a heft node
+\fn double starpu_sched_compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
+\ingroup API_Modularized_Scheduler
+	 compute expected end of a fifo with a task of \p predicted_length by taking in acount the fact that data may not be ready at \p predicted_end
 
 \fn struct starpu_sched_tree * starpu_sched_tree_create(void)
 \ingroup API_Modularized_Scheduler
@@ -157,6 +158,10 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 \fn void starpu_sched_tree_destroy(struct starpu_sched_tree * tree, unsigned sched_ctx_id)
 \ingroup API_Modularized_Scheduler
 	 destroy tree and free all non shared node in it.
+\fn void starpu_sched_node_destroy_rec (struct starpu_sched_node *node, unsigned sched_ctx_id)
+\ingroup API_Modularized_Scheduler
+	 recursively destroy non shared parts of a \p node 's tree
+
 
 \fn int starpu_sched_tree_push_task(struct starpu_task * task)
 \ingroup API_Modularized_Scheduler
@@ -178,6 +183,52 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 \ingroup API_Modularized_Scheduler
 	 compatibility with starpu_sched_policy interface
 
+\fn struct starpu_bitmap * _starpu_get_worker_mask(struct starpu_task *task)
+\ingroup API_Modularized_Scheduler
+	 return a ref to bitmap that give available worker to execute \p task
+
+
+
+\struct starpu_bitmap;
+\ingroup API_Modularized_Scheduler
+	 implement a simple bitmap
+\fn struct starpu_bitmap * starpu_bitmap_create(void)
+\ingroup API_Modularized_Scheduler
+	 create a empty starpu_bitmap
+\fn void starpu_bitmap_destroy(struct starpu_bitmap *)
+\ingroup API_Modularized_Scheduler
+	 free a starpu_bitmap
+
+\fn void starpu_bitmap_set(struct starpu_bitmap * bitmap, int e)
+\ingroup API_Modularized_Scheduler
+	 set bit \p e in \p bitmap
+\fn void starpu_bitmap_unset(struct starpu_bitmap * bitmap, int e)
+\ingroup API_Modularized_Scheduler
+	 unset bit \p e in \p bitmap
+
+\fn void starpu_bitmap_unset_all(struct starpu_bitmap * bitmap)
+\ingroup API_Modularized_Scheduler
+	 unset all bits in \b bitmap
+
+\fn int starpu_bitmap_get(struct starpu_bitmap * bitmap, int e);
+\ingroup API_Modularized_Scheduler
+	 return true iff bit \p e is set in \p bitmap
+
+\fn int starpu_bitmap_cardinal(struct starpu_bitmap * bitmap);
+\ingroup API_Modularized_Scheduler
+	 return the number of set bits in \p bitmap
+
+
+\fn int starpu_bitmap_first(struct starpu_bitmap * bitmap)
+\ingroup API_Modularized_Scheduler
+	 return the position of the first set bit of \p bitmap, -1 if none
+\fn int starpu_bitmap_last(struct starpu_bitmap * bitmap)
+\ingroup API_Modularized_Scheduler
+	 return the position of the last set bit of \p bitmap, -1 if none
+
+\fn int starpu_bitmap_next(struct starpu_bitmap *, int e)
+\ingroup API_Modularized_Scheduler
+	 return the position of set bit right after \p e in \p bitmap, -1 if none
 
 */
 

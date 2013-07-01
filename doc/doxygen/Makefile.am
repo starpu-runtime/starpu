@@ -35,6 +35,7 @@ chapters =	\
 	chapters/performance_feedback.doxy \
 	chapters/scheduling_context_hypervisor.doxy \
 	chapters/scheduling_contexts.doxy \
+	chapters/modularized_scheduler.doxy \
 	chapters/socl_opencl_extensions.doxy \
 	chapters/tips_and_tricks.doxy \
 	chapters/environment_variables.doxy \

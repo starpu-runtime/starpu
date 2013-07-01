@@ -1,0 +1,45 @@
+/*! \page ModularizedScheduler Modularized Scheduler
+
+
+\section Introduction
+
+Scheduler are a tree-like structure of homogeneous nodes that each
+provides push and pop primitives.
+
+Tasks make a top bottom traversal of tree.
+
+A push call on a node make either a recursive call on one of its
+childs or make the task stored in the node and made available to a
+pop, in this case that node should call available to wake workers
+up. Push must be called on a child, and only if this child can execute
+the task.
+
+A pop call on a node can either return a localy stored task or perform
+a recursive call on its father in its current context. Only workers
+can call pop.
+
+
+\section Initialization
+The scheduler is initialized with all workers, and workers are then
+added or removed by simply masking them. 
+Scheduler nodes are created by <tt> starpu_sched_node_foo_create(void
+\* arg) </tt>, arg may be stored in starpu_sched_node::data
+The starpu_sched_node::init_data is the last function to be called during
+initialization, it can use starpu_sched_node::workers and
+starpu_sched_node::data.
+
+
+
+\section WorkersAndCombinedWorkers Workers and Combined workers
+
+Leafs are either a worker node that is bind to starpu workers or a
+combined worker node that is bind to several worker nodes.
+
+Pushing a task on a combined worker node will in fact push a copy of
+that task on each worker node of the combined worker.
+
+A push call simply enqueue task in worker queue, no sort is performed
+here.
+If a worker call pop and get a parallel task, it will execute with the
+combined worker it belong to.
+*/
