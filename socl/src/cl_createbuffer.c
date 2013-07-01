@@ -135,7 +135,7 @@ soclCreateBuffer(cl_context   context,
       memcpy(mem->ptr, host_ptr, size);
    
    // Create StarPU buffer (on home node? what's this?)
-   starpu_variable_data_register(&mem->handle, 0, (uintptr_t)mem->ptr, size); 
+   starpu_variable_data_register(&mem->handle, STARPU_MAIN_RAM, (uintptr_t)mem->ptr, size); 
 
    DEBUG_MSG("[Buffer %d] Initialized (cl_mem %p handle %p)\n", mem->id, mem, mem->handle);
    

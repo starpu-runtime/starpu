@@ -128,9 +128,9 @@ int main(int argc, char **argv)
 			}
 			for(i=0 ; i<ELEMENTS ; i++)
 			{
-				starpu_complex_data_register(&handle_complex[i], 0, real[i], imaginary[i], 2);
-				starpu_value_data_register(&handle_values[i], 0, &values[i]);
-				starpu_variable_data_register(&handle_vars[i], 0, (uintptr_t)&foo[i], sizeof(float));
+				starpu_complex_data_register(&handle_complex[i], STARPU_MAIN_RAM, real[i], imaginary[i], 2);
+				starpu_value_data_register(&handle_values[i], STARPU_MAIN_RAM, &values[i]);
+				starpu_variable_data_register(&handle_vars[i], STARPU_MAIN_RAM, (uintptr_t)&foo[i], sizeof(float));
 			}
 
 			f(handle_vars, ELEMENTS, rank, ELEMENTS);

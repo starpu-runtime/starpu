@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 	for (b = 0; b < NBUFFERS; b++)
 	{
 		buffers[b].index = b;
-		starpu_variable_data_register(&buffers[b].handle, 0, (uintptr_t)&buffers[b].val, sizeof(unsigned));
+		starpu_variable_data_register(&buffers[b].handle, STARPU_MAIN_RAM, (uintptr_t)&buffers[b].val, sizeof(unsigned));
 	}
 
 	unsigned iter;

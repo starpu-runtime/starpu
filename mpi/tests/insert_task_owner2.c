@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 		for(i=0 ; i<3 ; i++)
 		{
 			x[i] = 10*(i+1);
-			starpu_variable_data_register(&data_handles[i], 0, (uintptr_t)&x[i], sizeof(x[i]));
+			starpu_variable_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&x[i], sizeof(x[i]));
 		}
 		y = -1;
 		starpu_variable_data_register(&data_handles[3], -1, (uintptr_t)NULL, sizeof(int));
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 			starpu_variable_data_register(&data_handles[i], -1, (uintptr_t)NULL, sizeof(int));
 		}
 		y=200;
-		starpu_variable_data_register(&data_handles[3], 0, (uintptr_t)&y, sizeof(int));
+		starpu_variable_data_register(&data_handles[3], STARPU_MAIN_RAM, (uintptr_t)&y, sizeof(int));
 	}
 	else
 	{
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 	int *values = malloc(4 * sizeof(int *));
 	for(i=0 ; i<4 ; i++)
 	{
-		starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[i], 0, NULL, NULL);
+		starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[i], STARPU_MAIN_RAM, NULL, NULL);
 		if (rank == 0)
 		{
 			starpu_data_acquire(data_handles[i], STARPU_R);

@@ -82,7 +82,7 @@ main (int argc, char *argv[])
   expected_register_arguments.pointer = x;
   expected_register_arguments.elements = 42;
   expected_register_arguments.element_size = sizeof x[0];
-  starpu_vector_data_register (&handle, 0, (uintptr_t) x, 42, sizeof x[0]);
+  starpu_vector_data_register (&handle, STARPU_MAIN_RAM, (uintptr_t) x, 42, sizeof x[0]);
 
   struct insert_task_argument expected[] =
     {

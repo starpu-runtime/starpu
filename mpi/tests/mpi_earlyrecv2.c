@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 
 	for(i=0 ; i<NB ; i++)
 	{
-		starpu_variable_data_register(&tab_handle[i], 0, (uintptr_t)&rank, sizeof(int));
+		starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
 		starpu_data_set_tag(tab_handle[i], i);
 	}
 

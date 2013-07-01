@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 	float float_array[4] STARPU_ATTRIBUTE_ALIGNED(16) = { 0.0f, 0.0f, 0.0f, 0.0f};
 
 	starpu_data_handle_t float_array_handle;
-	starpu_vector_data_register(&float_array_handle, 0 /* home node */,
+	starpu_vector_data_register(&float_array_handle, STARPU_MAIN_RAM /* home node */,
 			(uintptr_t)&float_array, 4, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL

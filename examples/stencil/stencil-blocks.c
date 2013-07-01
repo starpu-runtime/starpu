@@ -262,7 +262,7 @@ static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, 
 	memset(*ptr, 0, block_size);
 
 	/* Register it to StarPU */
-	starpu_block_data_register(handleptr, 0, (uintptr_t)*ptr, nx, nx*ny, nx, ny, nz, sizeof(TYPE));
+	starpu_block_data_register(handleptr, STARPU_MAIN_RAM, (uintptr_t)*ptr, nx, nx*ny, nx, ny, nz, sizeof(TYPE));
 }
 
 void display_memory_consumption(int rank)

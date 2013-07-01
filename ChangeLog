@@ -32,6 +32,8 @@ New features:
 	  the envelope.
   * New STARPU_COMMUTE flag which can be passed along STARPU_W or STARPU_RW to
     let starpu commute write accesses.
+  * Out-of-core support, through registration of disk areas as additional memory
+    nodes.
 
 Small features:
   * Add cl_arg_free field to enable automatic free(cl_arg) on task

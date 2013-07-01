@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -154,7 +154,7 @@ compute_roots(STARPUFFT(plan) plan)
 		plan->roots[dim] = malloc(plan->n[dim] * sizeof(**plan->roots));
 		for (k = 0; k < plan->n[dim]; k++)
 			plan->roots[dim][k] = cexp(exp*k);
-		starpu_vector_data_register(&plan->roots_handle[dim], 0, (uintptr_t) plan->roots[dim], plan->n[dim], sizeof(**plan->roots));
+		starpu_vector_data_register(&plan->roots_handle[dim], STARPU_MAIN_RAM, (uintptr_t) plan->roots[dim], plan->n[dim], sizeof(**plan->roots));
 
 #ifdef STARPU_USE_CUDA
 		if (plan->n[dim] > 100000)
@@ -216,9 +216,9 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 			switch (plan->type)
 			{
 			case C2C:
-				starpu_vector_data_register(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
+				starpu_vector_data_register(&plan->in_handle, STARPU_MAIN_RAM, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
 				if (!PARALLEL)
-					starpu_vector_data_register(&plan->out_handle, 0, (uintptr_t) plan->out, plan->totsize, sizeof(STARPUFFT(complex)));
+					starpu_vector_data_register(&plan->out_handle, STARPU_MAIN_RAM, (uintptr_t) plan->out, plan->totsize, sizeof(STARPUFFT(complex)));
 				if (PARALLEL)
 				{
 					for (z = 0; z < plan->totsize1; z++)
@@ -233,9 +233,9 @@ STARPUFFT(start)(STARPUFFT(plan) plan, void *_in, void *_out)
 			break;
 		}
 		case 2:
-			starpu_vector_data_register(&plan->in_handle, 0, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
+			starpu_vector_data_register(&plan->in_handle, STARPU_MAIN_RAM, (uintptr_t) plan->in, plan->totsize, sizeof(STARPUFFT(complex)));
 			if (!PARALLEL)
-				starpu_vector_data_register(&plan->out_handle, 0, (uintptr_t) plan->out, plan->totsize, sizeof(STARPUFFT(complex)));
+				starpu_vector_data_register(&plan->out_handle, STARPU_MAIN_RAM, (uintptr_t) plan->out, plan->totsize, sizeof(STARPUFFT(complex)));
 			if (PARALLEL)
 			{
 				for (z = 0; z < plan->totsize1; z++)

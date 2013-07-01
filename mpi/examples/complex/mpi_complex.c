@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 			imaginary[1] = 0.0;
 		}
 
-		starpu_complex_data_register(&handle, 0, real, imaginary, 2);
+		starpu_complex_data_register(&handle, STARPU_MAIN_RAM, real, imaginary, 2);
 		starpu_complex_data_register(&handle2, -1, real2, imaginary2, 2);
 
 		if (rank == 0)

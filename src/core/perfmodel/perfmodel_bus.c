@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013 Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1885,4 +1886,83 @@ double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_
 	struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
 
 	return latency + (size/bandwidth)*2*(topology->ncudagpus+topology->nopenclgpus);
+}
+
+
+/* calculate save bandwidth and latency */
+/* bandwidth in MB/s - latency in µs */
+void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, double latency_write, double latency_read, unsigned node)
+{
+	unsigned int i, j;
+	double slowness_disk_between_main_ram, slowness_main_ram_between_node;
+
+	/* save bandwith */
+	for(i = 0; i < STARPU_MAXNODES; ++i)
+	{
+		for(j = 0; j < STARPU_MAXNODES; ++j)
+		{
+			if (i == j && j == node) /* source == destination == node */
+			{
+				bandwidth_matrix[i][j] = 0;
+			}
+			else if (i == node) /* source == disk */
+			{
+				/* convert in slowness */
+				if(bandwidth_read != 0)
+					slowness_disk_between_main_ram = 1/bandwidth_read;
+				else
+					slowness_disk_between_main_ram = 0;
+
+				if(bandwidth_matrix[STARPU_MAIN_RAM][j] != 0)
+					slowness_main_ram_between_node = 1/bandwidth_matrix[STARPU_MAIN_RAM][j];
+				else
+					slowness_main_ram_between_node = 0;
+				
+				bandwidth_matrix[i][j] = 1/(slowness_disk_between_main_ram+slowness_main_ram_between_node);
+			}
+			else if (j == node) /* destination == disk */
+			{
+				/* convert in slowness */
+				if(bandwidth_write != 0)
+					slowness_disk_between_main_ram = 1/bandwidth_write;
+				else
+					slowness_disk_between_main_ram = 0;
+
+				if(bandwidth_matrix[i][STARPU_MAIN_RAM] != 0)
+					slowness_main_ram_between_node = 1/bandwidth_matrix[i][STARPU_MAIN_RAM];
+				else
+					slowness_main_ram_between_node = 0;
+
+				bandwidth_matrix[i][j] = 1/(slowness_disk_between_main_ram+slowness_main_ram_between_node);
+			}
+			else if (j > node || i > node) /* not affected by the node */
+			{
+				bandwidth_matrix[i][j] = NAN;
+			}
+		}
+	}
+
+	/* save latency */
+	for(i = 0; i < STARPU_MAXNODES; ++i)
+	{
+		for(j = 0; j < STARPU_MAXNODES; ++j)
+		{
+			if (i == j && j == node) /* source == destination == node */
+			{
+				latency_matrix[i][j] = 0;
+			}
+			else if (i == node) /* source == disk */
+			{			
+				latency_matrix[i][j] = (latency_write+latency_matrix[STARPU_MAIN_RAM][j]);
+			}
+			else if (j == node) /* destination == disk */
+			{
+				latency_matrix[i][j] = (latency_read+latency_matrix[i][STARPU_MAIN_RAM]);
+			}
+			else if (j > node || i > node) /* not affected by the node */
+			{
+				latency_matrix[i][j] = NAN;
+			}
+		}
+	}
 }

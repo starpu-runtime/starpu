@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 #endif
 	A = (unsigned *) calloc(VECTORSIZE, sizeof(unsigned));
 
-	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, VECTORSIZE, sizeof(unsigned));
+	starpu_vector_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A, VECTORSIZE, sizeof(unsigned));
 	starpu_vector_data_register(&B_handle, -1, (uintptr_t)NULL, VECTORSIZE, sizeof(unsigned));
 
 	unsigned loop;

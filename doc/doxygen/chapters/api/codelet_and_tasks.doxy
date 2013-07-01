@@ -82,6 +82,10 @@ specify the codelet may be executed on a MIC processing unit.
 This macro is used when setting the field starpu_codelet::where to
 specify the codelet may be executed on an SCC processing unit.
 
+\def STARPU_MAIN_RAM
+\ingroup API_Codelet_And_Tasks
+This macro is used when the RAM memory node is specified.
+
 \def STARPU_MULTIPLE_CPU_IMPLEMENTATIONS
 \deprecated
 \ingroup API_Codelet_And_Tasks

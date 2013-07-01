@@ -38,7 +38,7 @@ int test_prefetch(unsigned memnodes)
 	buffers[0] = malloc(1*1024*512);
 	STARPU_ASSERT(buffers[0]);
 
-	starpu_variable_data_register(&handles[0], 0, (uintptr_t)buffers[0], 1*1024*512);
+	starpu_variable_data_register(&handles[0], STARPU_MAIN_RAM, (uintptr_t)buffers[0], 1*1024*512);
 	for(i=1 ; i<memnodes ; i++)
 	{
 		starpu_data_prefetch_on_node(handles[0], i, 0);
@@ -54,7 +54,7 @@ int test_prefetch(unsigned memnodes)
 	buffers[1] = malloc(1*1024*256);
 	STARPU_ASSERT(buffers[1]);
 
-	starpu_variable_data_register(&handles[1], 0, (uintptr_t)buffers[1], 1*1024*256);
+	starpu_variable_data_register(&handles[1], STARPU_MAIN_RAM, (uintptr_t)buffers[1], 1*1024*256);
 	for(i=1 ; i<memnodes ; i++)
 	{
 		starpu_data_prefetch_on_node(handles[1], i, 0);
@@ -70,7 +70,7 @@ int test_prefetch(unsigned memnodes)
 	buffers[2] = malloc(1*1024*600);
 	STARPU_ASSERT(buffers[2]);
 
-	starpu_variable_data_register(&handles[2], 0, (uintptr_t)buffers[2], 1*1024*600);
+	starpu_variable_data_register(&handles[2], STARPU_MAIN_RAM, (uintptr_t)buffers[2], 1*1024*600);
 	for(i=1 ; i<memnodes ; i++)
 	{
 		starpu_data_prefetch_on_node(handles[2], i, 0);
@@ -87,7 +87,7 @@ int test_prefetch(unsigned memnodes)
 	buffers[3] = malloc(1*1024*512);
 	STARPU_ASSERT(buffers[3]);
 
-	starpu_variable_data_register(&handles[3], 0, (uintptr_t)buffers[3], 1*1024*512);
+	starpu_variable_data_register(&handles[3], STARPU_MAIN_RAM, (uintptr_t)buffers[3], 1*1024*512);
 	for(i=0 ; i<memnodes ; i++)
 	{
 		starpu_data_prefetch_on_node(handles[3], i, 0);

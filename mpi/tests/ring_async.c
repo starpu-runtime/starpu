@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
-	starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(token));
+	starpu_vector_data_register(&token_handle, STARPU_MAIN_RAM, (uintptr_t)&token, 1, sizeof(token));
 
 	int nloops = NITER;
 	int loop;

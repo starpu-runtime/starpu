@@ -18,6 +18,7 @@
 #include <errno.h>
 
 #include <core/workers.h>
+#include <core/disk.h>
 #include <common/config.h>
 #include <common/fxt.h>
 #include <starpu.h>
@@ -369,7 +370,7 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	{
 		case STARPU_CPU_RAM:
 		{
-			addr = (uintptr_t)malloc(size);
+			starpu_malloc((void**) &addr, size);
 			break;
 		}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -420,6 +421,12 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 #endif
 			}
 #endif
+	        case STARPU_DISK_RAM:
+		{
+			addr = (uintptr_t) _starpu_disk_alloc(dst_node, size);
+			break;
+		}
+			
 #ifdef STARPU_USE_MIC
 		case STARPU_MIC_RAM:
 			if (_starpu_mic_allocate_memory((void **)(&addr), size, dst_node))
@@ -455,7 +462,7 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:
-			free((void*)addr);
+			starpu_free((void*)addr);
 			break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
@@ -491,6 +498,12 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
                         break;
 		}
 #endif
+	        case STARPU_DISK_RAM:
+		{
+			_starpu_disk_free (dst_node, (void *) addr , size);
+			break;
+		}
+
 #ifdef STARPU_USE_MIC
 		case STARPU_MIC_RAM:
 			_starpu_mic_free_memory((void*) addr, size, dst_node);

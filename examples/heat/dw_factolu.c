@@ -750,7 +750,7 @@ void dw_factoLU(float *matA, unsigned size,
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, 
+	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, 
 			size, size, sizeof(float));
 
 	struct starpu_data_filter f =
@@ -779,7 +779,7 @@ void dw_factoLU(float *matA, unsigned size,
 	}
 
 	/* gather all the data */
-	starpu_data_unpartition(dataA, 0);
+	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 
 	starpu_data_unregister(dataA);
 

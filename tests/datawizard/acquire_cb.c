@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_variable_data_register(&token_handle, 0, (uintptr_t)&token, sizeof(unsigned));
+	starpu_variable_data_register(&token_handle, STARPU_MAIN_RAM, (uintptr_t)&token, sizeof(unsigned));
         starpu_data_acquire_cb(token_handle, STARPU_RW, callback, NULL);
 
 	starpu_data_unregister(token_handle);

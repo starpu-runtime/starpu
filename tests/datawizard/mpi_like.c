@@ -149,7 +149,7 @@ static void *thread_func(void *arg)
 	struct thread_data *thread_data = (struct thread_data *) arg;
 	unsigned index = thread_data->index;
 
-	starpu_variable_data_register(&thread_data->handle, 0, (uintptr_t)&thread_data->val, sizeof(unsigned));
+	starpu_variable_data_register(&thread_data->handle, STARPU_MAIN_RAM, (uintptr_t)&thread_data->val, sizeof(unsigned));
 
 	for (iter = 0; iter < NITER; iter++)
 	{

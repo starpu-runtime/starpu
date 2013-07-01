@@ -42,7 +42,7 @@ int compute(char *file_name, int load_as_file)
 	int ret = 0;
 	unsigned niter = 500;
 
-	starpu_vector_data_register(&float_array_handle, 0, (uintptr_t)&float_array, 4, sizeof(float));
+	starpu_vector_data_register(&float_array_handle, STARPU_MAIN_RAM, (uintptr_t)&float_array, 4, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
 	if (load_as_file)

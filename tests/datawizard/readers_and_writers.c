@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* initialize the resource */
-	starpu_vector_data_register(&book_handle, 0, (uintptr_t)&book, 1, sizeof(unsigned));
+	starpu_vector_data_register(&book_handle, STARPU_MAIN_RAM, (uintptr_t)&book, 1, sizeof(unsigned));
 
 #ifdef STARPU_QUICK_CHECK
 	unsigned ntasks = 16;

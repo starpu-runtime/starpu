@@ -196,6 +196,8 @@ noinst_PROGRAMS =				\
 	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
 	datawizard/readonly			\
+	disk/disk_copy				\
+	disk/disk_compute			\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\

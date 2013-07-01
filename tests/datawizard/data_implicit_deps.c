@@ -134,12 +134,12 @@ int main(int argc, char **argv)
 	C = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
 	D = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
 
-	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, VECTORSIZE, sizeof(unsigned));
-	starpu_vector_data_register(&B_handle, 0, (uintptr_t)B, VECTORSIZE, sizeof(unsigned));
-	starpu_vector_data_register(&C_handle, 0, (uintptr_t)C, VECTORSIZE, sizeof(unsigned));
-	starpu_vector_data_register(&D_handle, 0, (uintptr_t)D, VECTORSIZE, sizeof(unsigned));
+	starpu_vector_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A, VECTORSIZE, sizeof(unsigned));
+	starpu_vector_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B, VECTORSIZE, sizeof(unsigned));
+	starpu_vector_data_register(&C_handle, STARPU_MAIN_RAM, (uintptr_t)C, VECTORSIZE, sizeof(unsigned));
+	starpu_vector_data_register(&D_handle, STARPU_MAIN_RAM, (uintptr_t)D, VECTORSIZE, sizeof(unsigned));
 
-	starpu_variable_data_register(&var_handle, 0, (uintptr_t)(&var), sizeof(var));
+	starpu_variable_data_register(&var_handle, STARPU_MAIN_RAM, (uintptr_t)(&var), sizeof(var));
 
 #if 0
 	starpu_data_set_sequential_consistency_flag(A_handle, 0);

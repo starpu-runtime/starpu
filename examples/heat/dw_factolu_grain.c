@@ -213,7 +213,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	 * (re)partition data
 	 */
 	starpu_data_handle_t dataA;
-	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	STARPU_ASSERT((size % blocksize) == 0);
 	STARPU_ASSERT((inner_size % blocksize) == 0);
@@ -288,7 +288,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	{
 		/* we wait for the last task and we are done */
 		starpu_tag_wait(TAG11(nblocks-1, tag_prefix));
-		starpu_data_unpartition(dataA, 0);		
+		starpu_data_unpartition(dataA, STARPU_MAIN_RAM);		
 		return;
 	}
 	else
@@ -312,7 +312,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 
 		free(tag_array);
 
-		starpu_data_unpartition(dataA, 0);
+		starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 		starpu_data_unregister(dataA);
 
 		float *newmatA = &matA[inner_size*(ld+1)];

@@ -47,7 +47,7 @@ void create_data(void)
 	bcsr_matrix = mm_file_to_bcsr(inputfile, c, r);
 
 	/* declare the corresponding block CSR to the runtime */
-	starpu_bcsr_data_register(&sparse_matrix, 0, bcsr_matrix->nnz_blocks, bcsr_matrix->nrows_blocks,
+	starpu_bcsr_data_register(&sparse_matrix, STARPU_MAIN_RAM, bcsr_matrix->nnz_blocks, bcsr_matrix->nrows_blocks,
 	                (uintptr_t)bcsr_matrix->val, bcsr_matrix->colind, bcsr_matrix->rowptr, 
 			0, bcsr_matrix->r, bcsr_matrix->c, sizeof(float));
 
@@ -69,16 +69,16 @@ void create_data(void)
 		vector_out_ptr[ind] = 0.0f;
 	}
 
-	starpu_vector_data_register(&vector_in, 0, (uintptr_t)vector_in_ptr, size, sizeof(float));
-	starpu_vector_data_register(&vector_out, 0, (uintptr_t)vector_out_ptr, size, sizeof(float));
+	starpu_vector_data_register(&vector_in, STARPU_MAIN_RAM, (uintptr_t)vector_in_ptr, size, sizeof(float));
+	starpu_vector_data_register(&vector_out, STARPU_MAIN_RAM, (uintptr_t)vector_out_ptr, size, sizeof(float));
 }
 
 void unregister_data(void)
 {
-	starpu_data_unpartition(sparse_matrix, 0);
+	starpu_data_unpartition(sparse_matrix, STARPU_MAIN_RAM);
 	starpu_data_unregister(sparse_matrix);
 
-	starpu_data_unpartition(vector_in, 0);
+	starpu_data_unpartition(vector_in, STARPU_MAIN_RAM);
 	starpu_data_unregister(vector_in);
 
 	starpu_data_unregister(vector_out);
@@ -98,8 +98,8 @@ void init_problem_callback(void *arg)
 		printf("DONE ...\n");
 		gettimeofday(&end, NULL);
 
-/*		starpu_data_unpartition(sparse_matrix, 0); */
-		starpu_data_unpartition(vector_out, 0);
+/*		starpu_data_unpartition(sparse_matrix, STARPU_MAIN_RAM); */
+		starpu_data_unpartition(vector_out, STARPU_MAIN_RAM);
 
 		sem_post(&sem);
 	}

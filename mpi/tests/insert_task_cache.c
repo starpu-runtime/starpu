@@ -68,7 +68,7 @@ void test_cache(int rank, int size, int enabled, size_t *comm_amount)
 		if (mpi_rank == rank)
 		{
 			//FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
-			starpu_vector_data_register(&data_handles[i], 0, (uintptr_t)&(v[i]), N, sizeof(unsigned));
+			starpu_vector_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&(v[i]), N, sizeof(unsigned));
 		}
 		else
 		{
