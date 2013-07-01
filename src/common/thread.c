@@ -277,13 +277,13 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 	file += sizeof(char);
 	_STARPU_TRACE_LOCKING_MUTEX(file,__LINE__);
 
-	pthread_mutex_lock(mutex);
+	int p_ret = pthread_mutex_lock(mutex);
 
 	file = strrchr(__FILE__,'/');
 	file += sizeof(char);
 	_STARPU_TRACE_MUTEX_LOCKED(file,__LINE__);
 
-	return 0;
+	return p_ret;
 }
 
 int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
@@ -293,13 +293,13 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 	file += sizeof(char);
 	_STARPU_TRACE_UNLOCKING_MUTEX(file,__LINE__);
 
-	pthread_mutex_unlock(mutex);
+	int p_ret = pthread_mutex_unlock(mutex);
 
 	file = strrchr(__FILE__,'/');
 	file += sizeof(char);
 	_STARPU_TRACE_MUTEX_UNLOCKED(file,__LINE__);
 
-	return 0;
+	return p_ret;
 }
 
 int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
@@ -309,8 +309,7 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 	file += sizeof(char);
 	_STARPU_TRACE_LOCKING_MUTEX(file,__LINE__);
 
-	pthread_mutex_trylock(mutex);
-	return 0;
+	return pthread_mutex_trylock(mutex);
 }
 
 int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
@@ -320,13 +319,13 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 	file += sizeof(char);
 	_STARPU_TRACE_COND_WAIT_BEGIN(file,__LINE__);
 
- 	pthread_cond_wait(cond, mutex);
+ 	int p_ret = pthread_cond_wait(cond, mutex);
 
 	file = strrchr(__FILE__,'/');
 	file += sizeof(char);
 	_STARPU_TRACE_COND_WAIT_END(file,__LINE__);
 
-	return 0;
+	return p_ret;
 }
 
 int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
