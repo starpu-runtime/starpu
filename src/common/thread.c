@@ -87,13 +87,13 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 	const char *file;
 	file = strrchr(__FILE__,'/');
 	file += sizeof(char);
+
 	_STARPU_TRACE_LOCKING_MUTEX(file,__LINE__);
 
 	if (!*mutex) STARPU_PTHREAD_MUTEX_INIT(mutex, NULL);
 
 	xbt_mutex_acquire(*mutex);
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
+
 	_STARPU_TRACE_MUTEX_LOCKED(file,__LINE__);
 
 	return 0;
@@ -108,8 +108,6 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 
 	xbt_mutex_release(*mutex);
 
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
 	_STARPU_TRACE_MUTEX_UNLOCKED(file,__LINE__);
 
 	return 0;
@@ -196,8 +194,6 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 		STARPU_PTHREAD_COND_INIT(cond, NULL);
 	xbt_cond_wait(*cond, *mutex);
 
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
 	_STARPU_TRACE_COND_WAIT_END(file,__LINE__);
 
 	return 0;
@@ -229,8 +225,6 @@ int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
 
  	int p_ret = starpu_pthread_mutex_lock(rwlock);
 
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
 	_STARPU_TRACE_RWLOCK_RDLOCKED(file,__LINE__);
 
 	return p_ret;
@@ -245,8 +239,6 @@ int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
 
  	int p_ret = starpu_pthread_mutex_lock(rwlock);
 
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
 	_STARPU_TRACE_RWLOCK_WRLOCKED(file,__LINE__);
 
 	return p_ret;
@@ -261,8 +253,6 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 
  	int p_ret = starpu_pthread_mutex_unlock(rwlock);
 
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
 	_STARPU_TRACE_RWLOCK_UNLOCKED(file,__LINE__);
 
 	return p_ret;
@@ -279,8 +269,6 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 
 	int p_ret = pthread_mutex_lock(mutex);
 
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
 	_STARPU_TRACE_MUTEX_LOCKED(file,__LINE__);
 
 	return p_ret;
@@ -295,8 +283,6 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 
 	int p_ret = pthread_mutex_unlock(mutex);
 
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
 	_STARPU_TRACE_MUTEX_UNLOCKED(file,__LINE__);
 
 	return p_ret;
@@ -321,8 +307,6 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 
  	int p_ret = pthread_cond_wait(cond, mutex);
 
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
 	_STARPU_TRACE_COND_WAIT_END(file,__LINE__);
 
 	return p_ret;
@@ -337,8 +321,6 @@ int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
 
  	int p_ret = pthread_rwlock_rdlock(rwlock);
 
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
 	_STARPU_TRACE_RWLOCK_RDLOCKED(file,__LINE__);
 
 	return p_ret;
@@ -353,8 +335,6 @@ int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
 
  	int p_ret = pthread_rwlock_wrlock(rwlock);
 
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
 	_STARPU_TRACE_RWLOCK_WRLOCKED(file,__LINE__);
 
 	return p_ret;
@@ -369,8 +349,6 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 
  	int p_ret = pthread_rwlock_unlock(rwlock);
 
-	file = strrchr(__FILE__,'/');
-	file += sizeof(char);
 	_STARPU_TRACE_RWLOCK_UNLOCKED(file,__LINE__);
 
 	return p_ret;
