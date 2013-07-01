@@ -33,4 +33,15 @@ Close an existing file memory opened with starpu_disk_open.
 \ingroup API_Out_Of_Core
 This set uses the stdio library (fwrite, fread...) to read/write on disk. <br />
 <strong>Warning: It creates one file per allocation !</strong>  <br />
-*/ 
+
+\var starpu_disk_unistd_ops
+\ingroup API_Out_Of_Core
+This set uses the unistd library (write, read...) to read/write on disk. <br />
+<strong>Warning: It creates one file per allocation !</strong>  <br />
+
+\var starpu_disk_unistd_o_direct_ops
+\ingroup API_Out_Of_Core
+This set uses the unistd library (write, read...) to read/write on disk with the O_DIRECT flag. <br />
+<strong>Warning: It creates one file per allocation !</strong>  <br />
+
+*/
