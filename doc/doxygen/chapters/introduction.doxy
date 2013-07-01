@@ -221,6 +221,7 @@ The documentation chapters include
 <li> \ref SchedulingContexts
 <li> \ref ModularizedScheduler
 <li> \ref SchedulingContextHypervisor
+<li> \ref ModularizedScheduler
 </ul>
 </li>
 <li> Part: Inside StarPU

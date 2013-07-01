@@ -1,4 +1,4 @@
-/*! \defgroup API_Modularized_Scheduler Modularized scheduler interface
+/*! \defgroup API_Modularized_Scheduler Modularized Scheduler Interface
 
 \struct starpu_sched_node
 \ingroup API_Modularized_Scheduler
