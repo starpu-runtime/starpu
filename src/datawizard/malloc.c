@@ -370,7 +370,7 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	{
 		case STARPU_CPU_RAM:
 		{
-			addr = (uintptr_t)starpu_malloc((void**) &addr, size);
+			starpu_malloc((void**) &addr, size);
 			break;
 		}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -462,7 +462,7 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:
-			free((void*)addr);
+			starpu_free((void*)addr);
 			break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:

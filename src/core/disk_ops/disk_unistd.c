@@ -159,6 +159,7 @@ starpu_unistd_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, of
 
 	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
 
+printf("read \n");
 	ssize_t nb = read(tmp->descriptor, buf, size);
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd read failed");
 	
@@ -178,7 +179,7 @@ starpu_unistd_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only write a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
 
 	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
-	
+printf("write \n");	
 	ssize_t nb = write (tmp->descriptor, buf, size);
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed");
 

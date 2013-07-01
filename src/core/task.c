@@ -527,6 +527,7 @@ int _starpu_task_submit_internally(struct starpu_task *task)
 {
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	j->internal = 1;
+
 	return starpu_task_submit(task);
 }
 
