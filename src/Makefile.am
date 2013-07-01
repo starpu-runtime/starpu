@@ -62,6 +62,7 @@ noinst_HEADERS = 						\
 	core/dependencies/tags.h				\
 	core/dependencies/implicit_data_deps.h			\
 	core/disk.h						\
+	core/disk_ops/unistd/disk_unistd_global.h		\
 	core/progress_hook.h                                    \
 	core/sched_policy.h					\
 	core/sched_ctx.h					\
@@ -158,8 +159,10 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/dependencies/tags.c				\
 	core/dependencies/task_deps.c				\
 	core/dependencies/data_concurrency.c			\
+	core/disk_ops/disk_unistd_o_direct.c			\
 	core/disk_ops/disk_stdio.c				\
-	core/disk_ops/disk_unistd.c				\
+	core/disk_ops/disk_unistd.c                             \
+	core/disk_ops/unistd/disk_unistd_global.c		\
 	core/perfmodel/perfmodel_history.c			\
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\

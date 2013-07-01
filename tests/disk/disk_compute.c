@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 
 
 	/* register a disk */
-	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) base, 1024*1024*1);
+	int new_dd = starpu_disk_register(&starpu_disk_unistd_o_direct_ops, (void *) base, 1024*1024*1);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 	
