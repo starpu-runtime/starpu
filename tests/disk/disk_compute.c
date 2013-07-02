@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 	fclose(f);
 
 	int descriptor = open(path_file_start, O_RDWR);
-	fdatasync(descriptor);
+	fsync(descriptor);
 	close(descriptor);
 
 	/* create a file to store result */
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 	fclose(f);
 
         descriptor = open(path_file_end, O_RDWR);
-        fdatasync(descriptor);
+        fsync(descriptor);
         close(descriptor);
 
 	/* And now, you want to use your datas in StarPU */
