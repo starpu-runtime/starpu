@@ -243,13 +243,13 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		ret = starpu_task_wait(taskA);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 		ret = starpu_task_wait(taskB);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 
 		ret = starpu_task_wait(taskC);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 	} while(0);
 
 	starpu_shutdown();

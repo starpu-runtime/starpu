@@ -102,6 +102,7 @@ static starpu_data_handle_t x_handle, f_handle;
 static void test(enum starpu_data_access_mode begin_mode, enum starpu_data_access_mode end_mode, int order)
 {
 	struct starpu_task *begin_t, *commute1_t, *commute2_t, *end_t;
+	int ret;
 
 	codelet_begin.modes[0] = begin_mode;
 	codelet_end.modes[0] = end_mode;
@@ -140,7 +141,8 @@ static void test(enum starpu_data_access_mode begin_mode, enum starpu_data_acces
 	if (starpu_task_submit(end_t) == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
 
-	starpu_task_wait(end_t);
+	ret = starpu_task_wait(end_t);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 	starpu_data_acquire(x_handle, STARPU_R);
 	if (x != 1 + order + !!(end_mode & STARPU_W))
 		exit(EXIT_FAILURE);

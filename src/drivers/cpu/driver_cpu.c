@@ -208,6 +208,7 @@ static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_
 	     global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
 	else
 	     global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.local_memory;
+	/* devid ?! */
 
 #else /* STARPU_HAVE_HWLOC */
 #ifdef STARPU_DEVEL
