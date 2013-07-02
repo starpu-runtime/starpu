@@ -134,7 +134,7 @@ case "$target" in
   libext=a
   AC_DEFINE(STARPU_HAVE_WINDOWS, [], [Define this on windows.])
   ;;
-*linux*)
+*-*-linux*)
   starpu_linux=yes
   AC_DEFINE(STARPU_LINUX_SYS, 1, [Define to 1 on Linux])
   ;;
