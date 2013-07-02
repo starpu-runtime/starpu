@@ -284,12 +284,12 @@ static int determine_request_path(starpu_data_handle_t handle,
 		/* GPU -> RAM */
 		src_nodes[0] = src_node;
 		dst_nodes[0] = STARPU_MAIN_RAM;
-		handling_nodes[0] = src_node;
+		handling_nodes[0] = starpu_node_get_kind(src_node) == STARPU_DISK_RAM ? STARPU_MAIN_RAM : src_node;
 
 		/* RAM -> GPU */
 		src_nodes[1] = STARPU_MAIN_RAM;
 		dst_nodes[1] = dst_node;
-		handling_nodes[1] = dst_node;
+		handling_nodes[1] = starpu_node_get_kind(dst_node) == STARPU_DISK_RAM ? STARPU_MAIN_RAM : dst_node;
 
 		return 2;
 	}
