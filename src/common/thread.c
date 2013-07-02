@@ -120,8 +120,7 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 	file += sizeof(char);
 	_STARPU_TRACE_TRYLOCK_MUTEX(file,__LINE__);
 
-	xbt_mutex_acquire(*mutex);
-	return 0;
+	return xbt_mutex_acquire(*mutex);
 }
 
 static int used_key[MAX_TSD];

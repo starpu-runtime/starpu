@@ -155,16 +155,13 @@ double sc_hypervisor_get_velocity(struct sc_hypervisor_wrapper *sc_w, enum starp
 {
 
 	double velocity = sc_hypervisor_get_velocity_per_worker_type(sc_w, arch);
-	printf("arch %d vel %lf\n", arch, velocity);
 	if(velocity == -1.0)
 	{
 		velocity = sc_hypervisor_get_ref_velocity_per_worker_type(sc_w, arch);
-		printf("arch %d ref_vel %lf\n", arch, velocity);
 	}
 	if(velocity == -1.0)
 	{
 		velocity = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
-		printf("arch %d default_vel %lf\n", arch, velocity);
 	}
        
 	return velocity;
