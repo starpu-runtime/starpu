@@ -54,6 +54,8 @@ Changes:
   * Fix of the livelock issue discovered while executing applications
     on a CPU+GPU cluster of machines by adding a maximum trylock 
     threshold before a blocking lock.
+  * Data interfaces (variable, vector, matrix and block) now define
+    pack und unpack functions
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================
