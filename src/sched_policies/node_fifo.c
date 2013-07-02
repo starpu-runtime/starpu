@@ -10,44 +10,19 @@ struct _starpu_fifo_data
 };
 
 
-static struct starpu_task_execute_preds estimated_execute_preds(struct starpu_sched_node * node,
-								 struct starpu_task * task)
+
+static double fifo_estimated_end(struct starpu_sched_node * node)
 {
 	struct _starpu_fifo_data * data = node->data;
 	struct _starpu_prio_deque * fifo = &data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
-	if(node->nchilds == 0)
-	{
-		struct starpu_task_execute_preds p = { CANNOT_EXECUTE };
-		return p;
-	}
-	
-	if(!node->is_homogeneous)
-	{
-		struct starpu_task_execute_preds preds = starpu_sched_node_average_estimated_execute_preds(node, task);
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
-		double fifo_len = fifo->exp_len / starpu_bitmap_cardinal(node->workers);
-		preds.expected_finish_time = starpu_sched_compute_expected_time(fifo->exp_start,
-									   preds.expected_finish_time + fifo_len,
-									   preds.state == PERF_MODEL ? preds.expected_length + fifo_len : fifo_len,
-									   preds.expected_transfer_length);
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
-		return preds;
-	}
-	
-	struct starpu_task_execute_preds preds = node->childs[0]->estimated_execute_preds(node->childs[0],task);
+	int card = starpu_bitmap_cardinal(node->workers_in_ctx);
 
-	if(preds.state == PERF_MODEL)
-	{
-		double fifo_len = fifo->exp_len / starpu_bitmap_cardinal(node->workers);
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
-		preds.expected_finish_time = starpu_sched_compute_expected_time(fifo->exp_start,
-									   preds.expected_finish_time + fifo_len,
-									   preds.expected_length + fifo_len,
-									   preds.expected_transfer_length);
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
-	}
-	return preds;
+	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	double estimated_end = fifo->exp_start + fifo->exp_len / card;
+	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+
+	return estimated_end;
 }
 
 static double estimated_load(struct starpu_sched_node * node)
@@ -127,9 +102,12 @@ static struct starpu_task * pop_task(struct starpu_sched_node * node, unsigned s
 		_starpu_prio_deque_pop_task_for_worker(fifo, starpu_worker_get_id());
 	if(task)
 	{
-		fifo->exp_start = starpu_timing_now();
+
 		if(!isnan(task->predicted))
+		{
+			fifo->exp_start = starpu_timing_now() + task->predicted;
 			fifo->exp_len -= task->predicted;
+		}
 		fifo->exp_end = fifo->exp_start + fifo->exp_len;
 		if(fifo->ntasks == 0)
 			fifo->exp_len = 0.0;
@@ -193,7 +171,7 @@ int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
 struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
-	node->estimated_execute_preds = estimated_execute_preds;
+	node->estimated_end = fifo_estimated_end;
 	node->estimated_load = estimated_load;
 	node->init_data = init_fifo_data;
 	node->deinit_data = deinit_fifo_data;

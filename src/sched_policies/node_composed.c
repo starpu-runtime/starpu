@@ -114,12 +114,6 @@ double composed_node_estimated_load(struct starpu_sched_node * node)
 	return c->top->estimated_load(c->top);
 }
 
-struct starpu_task_execute_preds composed_node_estimated_execute_preds(struct starpu_sched_node * node,
-									struct starpu_task * task)
-{
-	struct composed_node * c = node->data;
-	return c->top->estimated_execute_preds(c->top,task);
-}
 
 static void invalid_second_init_data(struct starpu_sched_node * node STARPU_ATTRIBUTE_UNUSED)
 {
@@ -172,7 +166,6 @@ struct starpu_sched_node * starpu_sched_node_composed_node_create(struct _starpu
 	node->pop_task = composed_node_pop_task;
 	node->available = composed_node_available;
 	node->estimated_load = composed_node_estimated_load;
-	node->estimated_execute_preds = composed_node_estimated_execute_preds;
 	node->init_data = composed_node_init_data;
 	node->deinit_data = composed_node_deinit_data;
 

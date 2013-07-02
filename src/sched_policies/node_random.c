@@ -84,11 +84,20 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 }
 
 
+double random_estimated_end(struct starpu_sched_node * node)
+{
+	double sum = 0.0;
+	int i;
+	for(i = 0; i < node->nchilds; i++)
+		sum += node->childs[i]->estimated_end(node->childs[i]);
+	return sum / node->nchilds;
+}
 struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
 	node->data = NULL;
 	node->init_data = init_data_random;
+	node->estimated_end = random_estimated_end;
 	node->deinit_data = deinit_data_random;
 	node->push_task = push_task;
 	starpu_srand48(time(NULL));
@@ -99,6 +108,7 @@ int starpu_sched_node_is_random(struct starpu_sched_node *node)
 {
 	return node->init_data == init_data_random;
 }
+
 
 static void initialize_random_center_policy(unsigned sched_ctx_id)
 {

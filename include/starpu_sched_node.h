@@ -11,7 +11,7 @@
  * structure of them, some parts of scheduler can be shared by several contexes
  * to perform some local optimisations, so, for all nodes, a list of father is
  * defined indexed by sched_ctx_id
- * 
+ *
  * they embed there specialised method in a pseudo object-style, so calls are like node->push_task(node,task)
  *
  */
@@ -38,12 +38,12 @@ struct starpu_sched_node
 	/* this function notify underlying worker that a task as been pushed
 	 * and would be returned by a pop_task call
 	 * it should be called each time a node localy store a task
-	 * 
+
 	 * default implementation simply perform a recursive call on childrens
 	 * this function can be called by a worker as it doesn't try to wake up himself
 	 */
 	void (*available)(struct starpu_sched_node *);
-	
+
 	/* this function is an heuristic that compute load of subtree, basicaly
 	 * it compute
 	 * estimated_load(node) = sum(estimated_load(node_childs)) +
@@ -51,12 +51,7 @@ struct starpu_sched_node
 	 */
 	double (*estimated_load)(struct starpu_sched_node * node);
 
-	/* this function return a struct starpu_task_execute_preds defined lower
-	 * wich basicaly give predictions for a task execution a call on 
-	 * homogeneous (with all workers of the same arch) node is optimised
-	 */
-	struct starpu_task_execute_preds (*estimated_execute_preds)(struct starpu_sched_node * node,
-								     struct starpu_task * task);
+	double (*estimated_end)(struct starpu_sched_node * node);
 	/* the numbers of node's childs
 	 */
 	int nchilds;
@@ -70,6 +65,10 @@ struct starpu_sched_node
 	/* the set of workers in the node's subtree
 	 */
 	struct starpu_bitmap * workers;
+	/* the workers available in context
+	 */
+	struct starpu_bitmap * workers_in_ctx;
+	
 	/* is_homogeneous is 0 iff workers in the node's subtree are heterogeneous,
 	 * this field is set and updated automaticaly, you shouldn't write on it
 	 */
@@ -82,7 +81,7 @@ struct starpu_sched_node
 	 * workers member was filled, can be used to init data, or anything you want
 	 */
 	void (*init_data)(struct starpu_sched_node *);
-	/* this function is called to free data allocated by init_data 
+	/* this function is called to free data allocated by init_data
 	 * just before the call of starpu_sched_node_destroy(node)
 	 */
 	void (*deinit_data)(struct starpu_sched_node *);
@@ -94,32 +93,6 @@ struct starpu_sched_node
 	 */
 	hwloc_obj_t obj;
 #endif
-};
-
-/* this structure is only returned by estimated_execute_preds and give
- * predictions on task computations
- */
-struct starpu_task_execute_preds
-{
-	/* if several value are possible for state member,
-	 * in order of priority :
-	 * CALIBRATING, PERF_MODEL, NO_PERF_MODEL, CANNOT_EXECUTE
-	 */
-	enum {CANNOT_EXECUTE = 0, CALIBRATING , NO_PERF_MODEL, PERF_MODEL} state;
-
-	/* archtype and nimpl is set to
-	 * best values if state is PERF_MODEL
-	 * values that needs to be calibrated if state is CALIBRATING
-	 * suitable values if NO_PERF_MODEL
-	 * irrevelant if CANNOT_EXECUTE
-	 */
-	enum starpu_perfmodel_archtype archtype;
-	int impl;
-
-	double expected_finish_time;
-	double expected_length;
-	double expected_transfer_length;
-	double expected_power;
 };
 
 
@@ -135,6 +108,9 @@ struct starpu_sched_tree
 };
 
 
+
+int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sched_node * node, struct starpu_task * task, double * length);
+double starpu_sched_node_transfer_length(struct starpu_sched_node * node, struct starpu_task * task);
 
 struct starpu_sched_node * starpu_sched_node_create(void);
 
@@ -166,12 +142,22 @@ int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node);
 struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_node_is_random(struct starpu_sched_node *);
 
-struct starpu_sched_node * starpu_sched_node_heft_create(void * arg STARPU_ATTRIBUTE_UNUSED);
-/* this function is called to create the node wich will be used to push task when no perf model are available
- * by default, a random node is created
- */
-void starpu_sched_node_heft_set_no_model_node(struct starpu_sched_node * heft_node,
-					       struct starpu_sched_node * (*create_no_model_node)(void * arg), void * arg);
+
+struct starpu_heft_data
+{
+	double alpha;
+	double beta;
+	double gamma;
+	double idle_power;
+	struct starpu_sched_node * no_perf_model_node;
+	struct starpu_sched_node * calibrating_node;
+};
+
+/* create a node with heft_data paremeters
+   a copy the struct starpu_heft_data * given is performed during the init_data call
+   the heft node doesnt do anything but pushing tasks on no_perf_model_node and calibrating_node
+*/
+struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data * heft_data);
 
 int starpu_sched_node_is_heft(struct starpu_sched_node * node);
 
@@ -212,9 +198,6 @@ void starpu_sched_tree_call_init_data(struct starpu_sched_tree * t);
  */
 int starpu_sched_node_push_tasks_to_firsts_suitable_parent(struct starpu_sched_node * node, struct starpu_task_list * list, int sched_ctx_id);
 
-struct starpu_task_execute_preds starpu_sched_node_average_estimated_execute_preds(struct starpu_sched_node * node, struct starpu_task * task);
-
-
 
 struct starpu_bitmap;
 
@@ -227,7 +210,10 @@ void starpu_bitmap_unset_all(struct starpu_bitmap *);
 
 int starpu_bitmap_get(struct starpu_bitmap *, int);
 
-//this is basically compute a |= b;
+/* basicaly compute starpu_bitmap_unset_all(a) ; a = b & c; */
+void starpu_bitmap_unset_and(struct starpu_bitmap * a, struct starpu_bitmap * b, struct starpu_bitmap * c);
+
+/* this is basically compute a |= b;*/
 void starpu_bitmap_or(struct starpu_bitmap * a,
 		       struct starpu_bitmap * b);
 

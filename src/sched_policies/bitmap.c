@@ -20,6 +20,16 @@ struct starpu_bitmap{
 static int check_bitmap(struct starpu_bitmap *b);
 #endif
 
+static int _count_bit(unsigned long e)
+{
+	int c = 0;
+	while(e)
+	{
+		c += e&1;
+		e >>= 1;
+	}
+	return c;
+}
 
 struct starpu_bitmap * starpu_bitmap_create(void)
 {
@@ -64,6 +74,20 @@ void starpu_bitmap_unset_all(struct starpu_bitmap * b)
 	free(b->bits);
 	b->bits = NULL;
 	b->size = 0;
+}
+
+void starpu_bitmap_unset_and(struct starpu_bitmap * a, struct starpu_bitmap * b, struct starpu_bitmap * c)
+{
+	int n = STARPU_MIN(b->size, c->size);
+	a->bits = realloc(a->bits, sizeof(unsigned long) * n);
+	a->size = n;
+	a->cardinal = 0;
+	int i;
+	for(i = 0; i < n; i++)
+	{
+		a->bits[i] = b->bits[i] & c->bits[i];
+		a->cardinal += _count_bit(a->bits[i]);
+	}
 }
 
 int starpu_bitmap_get(struct starpu_bitmap * b, int e)

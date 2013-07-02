@@ -2,6 +2,8 @@
 #include <core/workers.h>
 #include <starpu_sched_node.h>
 #include <starpu_thread_util.h>
+#include <float.h>
+
 double starpu_sched_compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
 {
 
@@ -76,6 +78,17 @@ int push_task(struct starpu_task * task)
 	return ret;
 }
 
+void _update_worker_bits(struct starpu_sched_node * node, struct starpu_bitmap * workers_in_ctx)
+{
+	if(starpu_sched_node_is_worker(node))
+		return;
+	starpu_bitmap_unset_and(node->workers_in_ctx, node->workers, workers_in_ctx);
+	int i;
+	for(i = 0; i < node->nchilds; i++)
+		_update_worker_bits(node->childs[i], workers_in_ctx);
+}
+
+
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
@@ -83,6 +96,7 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 		starpu_bitmap_set(t->workers, workerids[i]);
+	_update_worker_bits(t->root, t->workers);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
 
@@ -93,6 +107,7 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 		starpu_bitmap_unset(t->workers, workerids[i]);
+	_update_worker_bits(t->root, t->workers);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
 
@@ -237,51 +252,96 @@ static double estimated_load(struct starpu_sched_node * node)
 }
 
 
-struct starpu_task_execute_preds starpu_sched_node_average_estimated_execute_preds(struct starpu_sched_node * node, struct starpu_task * task)
+static double _starpu_sched_node_estimated_end_min(struct starpu_sched_node * node)
 {
-	if(node->is_homogeneous)
-		return node->childs[0]->estimated_execute_preds(node->childs[0], task);
-	struct starpu_task_execute_preds pred =
-		{ 
-			.state = CANNOT_EXECUTE,
-			.expected_length = 0.0,
-			.expected_finish_time = 0.0,
-			.expected_transfer_length = 0.0,
-			.expected_power = 0.0
-			
-		};
-	int nb = 0;
+	double min = DBL_MAX;
 	int i;
 	for(i = 0; i < node->nchilds; i++)
 	{
-		struct starpu_task_execute_preds tmp = node->childs[i]->estimated_execute_preds(node->childs[i], task);
-		switch(tmp.state)
+		double tmp = node->childs[i]->estimated_end(node->childs[i]);
+		if(tmp < min)
+			min = tmp;
+	}
+	return min;
+}
+
+int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sched_node * node, struct starpu_task * task, double * length)
+{
+	int can_execute = 0;
+	starpu_task_bundle_t bundle = task->bundle;
+	double len = DBL_MAX;
+	
+
+	int workerid;
+	for(workerid = starpu_bitmap_first(node->workers_in_ctx);
+	    workerid != -1;
+	    workerid = starpu_bitmap_next(node->workers_in_ctx, workerid))
+	{
+		enum starpu_perfmodel_archtype archtype = starpu_worker_get_perf_archtype(workerid);
+		int nimpl;
+		for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-		case CALIBRATING:
-			return tmp;
+			if(starpu_worker_can_execute_task(workerid,task,nimpl)
+			   || starpu_combined_worker_can_execute_task(workerid, task, nimpl))
+			{
+				double d;
+				can_execute = 1;
+				if(bundle)
+					d = starpu_task_bundle_expected_length(bundle, archtype, nimpl);
+				else
+					d = starpu_task_expected_length(task, archtype, nimpl);
+				if(isnan(d))
+				{
+					*length = d;
+					return can_execute;
+						
+				}
+				if(_STARPU_IS_ZERO(d) && !can_execute)
+				{
+					can_execute = 1;
+					continue;
+				}
+				if(d < len)
+				{
+					len = d;
+				}
+			}
+		}
+		if(node->is_homogeneous)
 			break;
-		case NO_PERF_MODEL:
-			if(pred.state == CANNOT_EXECUTE)
-				pred = tmp;
-			break;
-		case PERF_MODEL:
-			nb++;
-			pred.expected_length += tmp.expected_length;
-			pred.expected_finish_time += tmp.expected_finish_time;
-			pred.expected_transfer_length += tmp.expected_transfer_length;
-			pred.expected_power += tmp.expected_power;
-			pred.state = PERF_MODEL;
-			break;
-		case CANNOT_EXECUTE:
-			break;
+	}
+
+	if(len == DBL_MAX) /* we dont have perf model */
+		len = 0.0; 
+	if(length)
+		*length = len;
+	return can_execute;
+}
+
+double starpu_sched_node_transfer_length(struct starpu_sched_node * node, struct starpu_task * task)
+{
+	int nworkers = starpu_bitmap_cardinal(node->workers_in_ctx);
+	double sum = 0.0;
+	int worker;
+	for(worker = starpu_bitmap_first(node->workers_in_ctx);
+	    worker != -1;
+	    worker = starpu_bitmap_next(node->workers_in_ctx, worker))
+	{
+		unsigned memory_node  = starpu_worker_get_memory_node(worker);
+		if(task->bundle)
+		{
+			sum += starpu_task_bundle_expected_data_transfer_time(task->bundle,memory_node);
+		}
+		else
+		{
+			sum += starpu_task_expected_data_transfer_time(memory_node, task);
+			//sum += starpu_task_expected_conversion_time(task, starpu_worker_get_perf_archtype(worker), impl ?)
 		}
 	}
-	pred.expected_length /= nb;
-	pred.expected_finish_time /= nb;
-	pred.expected_transfer_length /= nb;
-	pred.expected_power /= nb;
-	return pred;
+	return sum / nworkers;
 }
+
+
 /*
 static double estimated_transfer_length(struct starpu_sched_node * node, struct starpu_task * task)
 {
@@ -329,13 +389,13 @@ struct starpu_sched_node * starpu_sched_node_create(void)
 	struct starpu_sched_node * node = malloc(sizeof(*node));
 	memset(node,0,sizeof(*node));
 	node->workers = starpu_bitmap_create();
+	node->workers_in_ctx = starpu_bitmap_create();
 	node->available = available;
 	node->init_data = take_node_and_does_nothing;
 	node->deinit_data = take_node_and_does_nothing;
 	node->pop_task = pop_task_node;
 	node->estimated_load = estimated_load;
-	node->estimated_execute_preds = starpu_sched_node_average_estimated_execute_preds;
-
+	node->estimated_end = _starpu_sched_node_estimated_end_min;
 	return node;
 }
 void starpu_sched_node_destroy(struct starpu_sched_node *node)
@@ -379,7 +439,10 @@ static void set_is_homogeneous(struct starpu_sched_node * node)
 }
 
 
-static void add_worker_bit(struct starpu_sched_node * node, int worker)
+
+
+
+static void _init_add_worker_bit(struct starpu_sched_node * node, int worker)
 {
 	STARPU_ASSERT(node);
 	starpu_bitmap_set(node->workers, worker);
@@ -387,7 +450,7 @@ static void add_worker_bit(struct starpu_sched_node * node, int worker)
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 		if(node->fathers[i])
 		{
-			add_worker_bit(node->fathers[i], worker);
+			_init_add_worker_bit(node->fathers[i], worker);
 			set_is_homogeneous(node->fathers[i]);
 		}
 }
@@ -398,7 +461,7 @@ void _starpu_set_workers_bitmaps(void)
 	for(worker = 0; worker < starpu_worker_get_count() + starpu_combined_worker_get_count(); worker++)
 	{
 		struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(worker);
-		add_worker_bit(worker_node, worker);
+		_init_add_worker_bit(worker_node, worker);
 	}
 }
 
