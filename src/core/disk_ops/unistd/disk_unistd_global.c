@@ -46,8 +46,13 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 
 	strcpy(baseCpy, (char *) base);
 	strcat(baseCpy,template);
-
+#ifdef STARPU_LINUX_SYS
 	id = mkostemp(baseCpy, obj->flags);
+#else
+	STARPU_ASSERT(obj->flags == O_RDWR);
+	id = mkstemp(baseCpy);
+#endif
+
 	/* fail */
 	if (id < 0)
 	{

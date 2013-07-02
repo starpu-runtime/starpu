@@ -136,6 +136,7 @@ case "$target" in
   ;;
 *linux*)
   starpu_linux=yes
+  AC_DEFINE(STARPU_LINUX_SYS, 1, [Define to 1 on Linux])
   ;;
 esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
