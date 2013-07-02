@@ -963,13 +963,13 @@ AC_MSG_RESULT($nmaxmicdev)
 AC_DEFINE_UNQUOTED(STARPU_MAXMICDEVS, [$nmaxmicdev],
 	[maximum number of MIC devices])
 
-AC_MSG_CHECKING(maximum number of MIC cores)
-AC_ARG_ENABLE(maxmicdev, [AS_HELP_STRING([--enable-maxmiccore=<number>],
-			[maximum number of MIC cores])],
-			nmaxmiccore=$enableval, nmaxmiccore=128)
-AC_MSG_RESULT($nmaxmiccore)
+AC_MSG_CHECKING(maximum number of MIC threads)
+AC_ARG_ENABLE(maxmicthreads, [AS_HELP_STRING([--enable-maxmicthreads=<number>],
+			[maximum number of MIC threads])],
+			nmaxmicthreads=$enableval, nmaxmicthreads=128)
+AC_MSG_RESULT($nmaxmicthread)
 
-AC_DEFINE_UNQUOTED(STARPU_MAXMICCORES, [$nmaxmiccore],
+AC_DEFINE_UNQUOTED(STARPU_MAXMICCORES, [$nmaxmicthreads],
 	[maximum number of MIC cores])
 
 AC_ARG_WITH(coi-dir,
@@ -1470,7 +1470,7 @@ AC_CHECK_FUNCS([clock_gettime])
 
 # Compute the maximum number of workers (we round it to 16 for alignment
 # purposes).
-nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmiccore + $nmaxsccdev + 15 \) / 16 \) `
+nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + $nmaxsccdev + 15 \) / 16 \) `
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
@@ -2287,6 +2287,7 @@ AC_MSG_NOTICE([
 	Maximum number of CPUs:           $maxcpus
 	Maximum number of CUDA devices:   $nmaxcudadev
 	Maximum number of OpenCL devices: $nmaxopencldev
+	Maximum number of MIC threads:    $nmaxmicthreads
 	Maximum number of memory nodes:   $maxnodes
 	Maximum number of task buffers:   $nmaxbuffers
 
