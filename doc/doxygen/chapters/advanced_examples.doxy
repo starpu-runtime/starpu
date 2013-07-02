@@ -394,6 +394,19 @@ there is some hidden parameter such as the number of iterations, etc.
 The example in the directory <c>examples/pi</c> uses this to include
 the number of iterations in the base.
 
+StarPU will automatically determine when the performance model is calibrated,
+or rather, it will assume the performance model is calibrated until the
+application submits a task for which the performance can not be predicted. For
+::STARPU_HISTORY_BASED, StarPU will require 10 (::_STARPU_CALIBRATION_MINIMUM)
+measurements for a given size before estimating that an average can be taken as
+estimation for further executions with the same size. For
+::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED, StarPU will require
+10 (::_STARPU_CALIBRATION_MINIMUM) measurements, and that the minimum measured
+data size is smaller than 90% of the maximum measured data size (i.e. the
+measurement interval is large enough for a regression to have a meaning).
+Calibration can also be forced by setting the \ref STARPU_CALIBRATE environment
+variable to <c>1</c>, or even reset by setting it to <c>2</c>.
+
 How to use schedulers which can benefit from such performance model is explained
 in \ref TaskSchedulingPolicy.
 
