@@ -43,5 +43,6 @@ This set uses the unistd library (write, read...) to read/write on disk. <br />
 \ingroup API_Out_Of_Core
 This set uses the unistd library (write, read...) to read/write on disk with the O_DIRECT flag. <br />
 <strong>Warning: It creates one file per allocation !</strong>  <br />
+Only available on Linux.
 
 */

@@ -137,6 +137,10 @@ case "$target" in
 esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
 
+case ${target_os} in linux*)
+  AM_CONDITIONAL(STARPU_LINUX_SYS, test 1 = 1)
+esac
+
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 AC_CHECK_SIZEOF([void *])
 SIZEOF_VOID_P=$ac_cv_sizeof_void_p
