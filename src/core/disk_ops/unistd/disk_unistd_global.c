@@ -36,19 +36,16 @@
 starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	int id = -1;
+	const char *template = "STARPU_XXXXXX";
 
 	/* create template for mkstemp */
-	unsigned int sizeBase = 16;
-	while(sizeBase < (strlen(base)+7))
-		sizeBase *= 2;
+	unsigned int sizeBase = strlen(base) + strlen(template)+1;
 
 	char * baseCpy = malloc(sizeBase*sizeof(char));
 	STARPU_ASSERT(baseCpy != NULL);
 
-	char * tmp = "STARPU_XXXXXX";
-
 	strcpy(baseCpy, (char *) base);
-	strcat(baseCpy,tmp);
+	strcat(baseCpy,template);
 
 	id = mkostemp(baseCpy, obj->flags);
 	/* fail */
