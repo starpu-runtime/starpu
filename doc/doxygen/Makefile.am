@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2011  Université de Bordeaux 1
+# Copyright (C) 2009, 2011, 2013  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # Permission is granted to copy, distribute and/or modify this document
@@ -131,6 +131,8 @@ EXTRA_DIST	= 		\
 	$(chapters) 		\
 	chapters/version.sty	\
 	chapters/version.html	\
+	chapters/tasks_size_overhead.png	\
+	chapters/tasks_size_overhead.eps	\
 	doxygen.cfg 		\
 	refman.tex
 
