@@ -109,7 +109,7 @@ chapters/version.sty: $(chapters)
 	@if test -s timestamp_updated ; then \
 		echo "\newcommand{\STARPUUPDATED}{"`cat timestamp_updated`"}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	else \
-		echo "\newcommand{\STARPUUPDATED}{unknown_date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
+		echo "\newcommand{\STARPUUPDATED}{unknown date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	fi
 	@echo "\newcommand{\STARPUVERSION}{$(VERSION)}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty
 	@-for f in timestamp timestamp_updated timestamp_updated_month ; do \
