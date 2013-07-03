@@ -238,7 +238,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	 * since we cleanly shutdown CUDA before returning. */
 	cudaSetDevice(src);
 
-	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") <= 0)
+	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") > 0)
 	{
 		cures = cudaDeviceCanAccessPeer(&can, src, dst);
 		if (!cures && can)
@@ -260,7 +260,7 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	 * since we cleanly shutdown CUDA before returning. */
 	cudaSetDevice(dst);
 
-	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") <= 0)
+	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") > 0)
 	{
 		cures = cudaDeviceCanAccessPeer(&can, dst, src);
 		if (!cures && can)
