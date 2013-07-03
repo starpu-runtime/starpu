@@ -26,6 +26,10 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/disk_ops/unistd/disk_unistd_global.h>
 
+#if STARPU_HAVE_WINDOWS
+        #include <io.h>
+#endif
+
 #define NITER	64
 #define SIZE_BENCH (4*getpagesize())
 
@@ -33,7 +37,7 @@
 
 /* allocation memory on disk */
  void * 
-starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
+starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, size_t size)
 {
 	int id = -1;
 	const char *template = "STARPU_XXXXXX";
@@ -48,6 +52,10 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 	strcat(baseCpy,template);
 #ifdef STARPU_LINUX_SYS
 	id = mkostemp(baseCpy, obj->flags);
+#elif STARPU_HAVE_WINDOWS
+	/* size in windows is a multiple of char */
+	_mktemp_s(baseCpy, size/sizeof(char));
+	id = open(baseCpy, obj->flags);
 #else
 	STARPU_ASSERT(obj->flags == O_RDWR);
 	id = mkstemp(baseCpy);

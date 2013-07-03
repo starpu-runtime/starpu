@@ -24,6 +24,10 @@
 #include <core/disk.h>
 #include <core/perfmodel/perfmodel.h>
 
+#if STARPU_HAVE_WINDOWS
+        #include <io.h>
+#endif
+
 #define NITER	64
 
 /* ------------------- use STDIO to write on disk -------------------  */
@@ -58,7 +62,13 @@ starpu_stdio_alloc (void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
 	strcpy(baseCpy, (char *) base);
 	strcat(baseCpy,tmp);
 
+#if STARPU_HAVE_WINDOWS
+        _mktemp_s(baseCpy, size/sizeof(char));
+        id = open(baseCpy, obj->flags);
+#else
 	id = mkstemp(baseCpy);
+
+#endif
 	/* fail */
 	if (id < 0)
 	{

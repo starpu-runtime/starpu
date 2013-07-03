@@ -27,6 +27,10 @@
 #include <unistd.h>
 #include <math.h>
 
+#if STARPU_HAVE_WINDOWS
+        #include <io.h>
+#endif 
+
 #define NX (1024)
 
 int main(int argc, char **argv)
@@ -99,7 +103,11 @@ int main(int argc, char **argv)
 	fclose(f);
 
 	int descriptor = open(path_file_start, O_RDWR);
+#if STARPU_HAVE_WINDOWS
+	_commit(descriptor);
+#else
 	fsync(descriptor);
+#endif
 	close(descriptor);
 
 	/* create a file to store result */
@@ -114,8 +122,12 @@ int main(int argc, char **argv)
 	fclose(f);
 
         descriptor = open(path_file_end, O_RDWR);
+#if STARPU_HAVE_WINDOWS
+        _commit(descriptor);
+#else
         fsync(descriptor);
-        close(descriptor);
+#endif
+	close(descriptor);
 
 	/* And now, you want to use your datas in StarPU */
 	/* Open the file ON the disk */
