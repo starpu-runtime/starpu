@@ -42,7 +42,7 @@ struct starpu_stdio_obj {
 
 /* allocation memory on disk */
 static void * 
-starpu_stdio_alloc (void *base, size_t size STARPU_ATTRIBUTE_UNUSED)
+starpu_stdio_alloc (void *base, size_t size)
 {
 	
 	struct starpu_stdio_obj * obj = malloc(sizeof(struct starpu_stdio_obj));
