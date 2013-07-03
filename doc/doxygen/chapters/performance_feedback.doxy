@@ -416,6 +416,9 @@ The tool <c>starpu_perfmodel_plot</c> can be used to draw performance
 models. It writes a <c>.gp</c> file in the current directory, to be
 run with the tool <c>gnuplot</c>, which shows the corresponding curve.
 
+\image html starpu_non_linear_memset_regression_based.png
+\image latex starpu_non_linear_memset_regression_based.eps "" width=\textwidth
+
 When the field starpu_task::flops is set, <c>starpu_perfmodel_plot</c> can
 directly draw a GFlops curve, by simply adding the <c>-f</c> option:
 
