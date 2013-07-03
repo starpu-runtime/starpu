@@ -24,7 +24,7 @@
 #include <core/disk.h>
 #include <core/perfmodel/perfmodel.h>
 
-#if STARPU_HAVE_WINDOWS
+#ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
 #endif
 
@@ -62,7 +62,7 @@ starpu_stdio_alloc (void *base, size_t size)
 	strcpy(baseCpy, (char *) base);
 	strcat(baseCpy,tmp);
 
-#if STARPU_HAVE_WINDOWS
+#ifdef STARPU_HAVE_WINDOWS
         _mktemp_s(baseCpy, size/sizeof(char));
         id = open(baseCpy, obj->flags);
 #else
