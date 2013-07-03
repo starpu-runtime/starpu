@@ -196,27 +196,31 @@ option lists the available performance models, and the <c>-s</c> option permits
 to choose the performance model to be displayed. The result looks like:
 
 \verbatim
-$ starpu_perfmodel_display -s starpu_dlu_lu_model_22
-performance model for cpu
-# hash    size     mean          dev           n
-880805ba  98304    2.731309e+02  6.010210e+01  1240
-b50b6605  393216   1.469926e+03  1.088828e+02  1240
-5c6c3401  1572864  1.125983e+04  3.265296e+03  1240
+$ starpu_perfmodel_display -s starpu_slu_lu_model_11
+performance model for cpu_impl_0
+# hash    size     flops         mean          dev           n
+914f3bef  1048576  0.000000e+00  2.503577e+04  1.982465e+02  8
+3e921964  65536    0.000000e+00  5.527003e+02  1.848114e+01  7
+e5a07e31  4096     0.000000e+00  1.717457e+01  5.190038e+00  14
+...
 \endverbatim
 
-Which shows that for the LU 22 kernel with a 1.5MiB matrix, the average
-execution time on CPUs was about 11ms, with a 3ms standard deviation, over
-1240 samples. It is a good idea to check this before doing actual performance
+Which shows that for the LU 11 kernel with a 1MiB matrix, the average
+execution time on CPUs was about 25ms, with a 0.2ms standard deviation, over
+8 samples. It is a good idea to check this before doing actual performance
 measurements.
 
 A graph can be drawn by using the tool <c>starpu_perfmodel_plot</c>:
 
 \verbatim
-$ starpu_perfmodel_plot -s starpu_dlu_lu_model_22
-98304 393216 1572864
-$ gnuplot starpu_starpu_dlu_lu_model_22.gp
-$ gv starpu_starpu_dlu_lu_model_22.eps
+$ starpu_perfmodel_plot -s starpu_slu_lu_model_11
+4096 16384 65536 262144 1048576 4194304 
+$ gnuplot starpu_starpu_slu_lu_model_11.gp
+$ gv starpu_starpu_slu_lu_model_11.eps
 \endverbatim
+
+\image html starpu_starpu_slu_lu_model_11.png
+\image latex starpu_starpu_slu_lu_model_11.eps "" width=\textwidth
 
 If a kernel source code was modified (e.g. performance improvement), the
 calibration information is stale and should be dropped, to re-calibrate from
