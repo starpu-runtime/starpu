@@ -96,6 +96,7 @@ static struct _starpu_task_grid * _starpu_task_grid_create(void)
 	return t;
 }
 static void _starpu_task_grid_destroy(struct _starpu_task_grid * t)
+
 {
 	free(t);
 }
@@ -706,7 +707,7 @@ void starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task)
 		STARPU_ASSERT(list->ntasks != 0);
 		list->ntasks--;
 		if(!task->execute_on_a_specific_worker)
-			list->exp_len = STARPU_MIN(list->exp_len - task->predicted, 0.0);
+			list->exp_len = STARPU_MAX(list->exp_len - task->predicted, 0.0);
 
 		list->exp_start = starpu_timing_now() + task->predicted;
 		if(list->ntasks == 0)

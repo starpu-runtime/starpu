@@ -61,13 +61,15 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 					     max_exp_end_with_task,
 					     estimated_transfer_length[inode],
 					     0.0);
-		if(best_fitness > tmp)
+//		fprintf(stderr,"%f %d\n", tmp, inode);
+		if(tmp < best_fitness)
 		{
 			best_fitness = tmp;
 			best_inode = inode;
 		}
 	}
-	fprintf(stderr,"%d best inode\n",best_inode);
+//	fprintf(stderr,"push %d\n",best_inode);
+	STARPU_ASSERT(best_inode != -1);
 	best_node = node->childs[best_inode];
 	return best_node->push_task(best_node, task);
 }
@@ -198,23 +200,28 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 	{
 		struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(i);
 		STARPU_ASSERT(worker_node);
-/*
-		struct starpu_sched_node * fifo_node = starpu_sched_node_fifo_create(NULL);
-		starpu_sched_node_add_child(fifo_node, worker_node);
-		starpu_sched_node_set_father(worker_node, fifo_node, sched_ctx_id);
-*/
-		
-		starpu_sched_node_add_child(t->root, worker_node);
-		starpu_sched_node_add_child(random, worker_node);
-		starpu_sched_node_set_father(worker_node, t->root, sched_ctx_id);
+
+		struct starpu_sched_node * impl_node = starpu_sched_node_best_implementation_create(NULL);
+		starpu_sched_node_add_child(impl_node, worker_node);
+		starpu_sched_node_set_father(worker_node, impl_node, sched_ctx_id);
+
+		starpu_sched_node_add_child(t->root, impl_node);
+		starpu_sched_node_set_father(impl_node, t->root, sched_ctx_id);
+
+
+		struct starpu_sched_node * calibration_node = starpu_sched_node_calibration_create(NULL);
+		starpu_sched_node_add_child(calibration_node, worker_node);
+		starpu_sched_node_add_child(random, calibration_node);
+
+
 	}
-	
-	_starpu_set_workers_bitmaps();
-	starpu_sched_tree_call_init_data(t);
+
+	starpu_sched_node_init_rec(t->root);
+	starpu_sched_node_init_rec(random);
+//	_starpu_set_workers_bitmaps();
+//	starpu_sched_tree_call_init_data(t);
 	starpu_bitmap_destroy(random->workers_in_ctx);
 	random->workers_in_ctx = t->root->workers_in_ctx;
-	if(random->init_data)
-		random->init_data(random);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
 }
 

@@ -1,3 +1,4 @@
+
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2013  Université de Bordeaux 1
@@ -249,7 +250,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/bitmap.c					\
 	sched_policies/node_random.c				\
 	sched_policies/node_heft.c				\
-	sched_policies/node_composed.c
+	sched_policies/node_composed.c				\
+	sched_policies/node_best_implementation.c
 #	sched_policies/hierarchical_heft.c			\
 	sched_policies/scheduler_maker.c			
 

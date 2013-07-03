@@ -165,6 +165,15 @@ int starpu_sched_node_is_heft(struct starpu_sched_node * node);
  */
 double starpu_sched_compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer);
 
+/* this node select the best implementation for the first worker in context that can execute task.
+ * and fill task->predicted and task->predicted_transfer
+ * cannot have several childs if push_task is called
+ */
+struct starpu_sched_node * starpu_sched_node_best_implementation_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+/* this node select an implementation that need to be calibrated.
+ * cannot have several childs if push_task is called.
+ */
+struct starpu_sched_node * starpu_sched_node_calibration_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 /*create an empty tree
  */
 struct starpu_sched_tree * starpu_sched_tree_create(void);
@@ -174,7 +183,6 @@ void starpu_sched_tree_destroy(struct starpu_sched_tree * tree, unsigned sched_c
  * except if they are shared between several contexts
  */
 void starpu_sched_node_destroy_rec(struct starpu_sched_node * node, unsigned sched_ctx_id);
-
 
 int starpu_sched_tree_push_task(struct starpu_task * task);
 struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx_id);
@@ -187,6 +195,9 @@ void starpu_sched_node_worker_post_exec_hook(struct starpu_task * task);
  */
 struct starpu_bitmap * _starpu_get_worker_mask(struct starpu_task * task);
 
+/* this function is called to initialize a scheduler tree
+ */
+void starpu_sched_node_init_rec(struct starpu_sched_node * node);
 /* this function fill all the node->workers members
  */
 void _starpu_set_workers_bitmaps(void);
