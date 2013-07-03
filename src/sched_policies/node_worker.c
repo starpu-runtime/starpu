@@ -627,6 +627,7 @@ static struct starpu_sched_node  * starpu_sched_node_combined_worker_create(int 
 	node->deinit_data = worker_deinit_data;
 	node->workers = starpu_bitmap_create();
 	starpu_bitmap_set(node->workers, workerid);
+	starpu_bitmap_or(node->workers_in_ctx, node->workers);
 	_worker_nodes[workerid] = node;
 
 #ifdef STARPU_HAVE_HWLOC

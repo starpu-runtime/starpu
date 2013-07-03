@@ -36,6 +36,7 @@ static void init_data_random(struct starpu_sched_node * node)
 	int i;
 	for(i = 0; i < node->nchilds; i++)
 		rd->relative_speedup[i] = compute_relative_speedup(node->childs[i]);
+	node->init_data = NULL;
 }
 
 static void deinit_data_random(struct starpu_sched_node * node)
@@ -106,7 +107,7 @@ struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATT
 
 int starpu_sched_node_is_random(struct starpu_sched_node *node)
 {
-	return node->init_data == init_data_random;
+	return node->deinit_data == deinit_data_random;
 }
 
 

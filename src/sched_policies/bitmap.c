@@ -104,7 +104,8 @@ void starpu_bitmap_or(struct starpu_bitmap * a, struct starpu_bitmap * b)
 	if(a->size < b->size)
 	{
 		a->bits = realloc(a->bits, b->size * sizeof(unsigned long));
-		a->size = b->size;
+		memset(a->bits + a->size, 0, (b->size - a->size) * sizeof(unsigned long));		a->size = b->size;
+
 	}
 	int i;
 	for(i = 0; i < b->size; i++)

@@ -211,6 +211,7 @@ static void init_ws_data(struct starpu_sched_node *node)
 		_starpu_prio_deque_init(wsd->fifos + i);
 		STARPU_PTHREAD_MUTEX_INIT(wsd->mutexes + i, NULL);
 	}
+	node->init_data = NULL;
 }
 
 static void deinit_ws_data(struct starpu_sched_node *node)
@@ -241,7 +242,7 @@ struct starpu_sched_node * starpu_sched_node_work_stealing_create(void)
 
 int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node)
 {
-	return node->init_data == init_ws_data;
+	return node->deinit_data == deinit_ws_data;
 }
 
 

@@ -153,6 +153,7 @@ void init_fifo_data(struct starpu_sched_node * node)
 	_starpu_prio_deque_init(&data->fifo);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	node->data = data;
+	node->init_data = NULL;
 }
 void deinit_fifo_data(struct starpu_sched_node * node)
 {
@@ -165,7 +166,7 @@ void deinit_fifo_data(struct starpu_sched_node * node)
 
 int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
 {
-	return node->init_data == init_fifo_data;
+	return node->deinit_data == deinit_fifo_data;
 }
 
 struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED)

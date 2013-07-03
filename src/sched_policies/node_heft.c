@@ -147,7 +147,7 @@ void init_heft_data(struct starpu_sched_node *node)
 	data->idle_power = idle_power;
 
 	node->data = data;
-
+	node->init_data = NULL;
 }
 
 
@@ -171,7 +171,7 @@ struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data
 
 int starpu_sched_node_is_heft(struct starpu_sched_node * node)
 {
-	return node->init_data == init_heft_data;
+	return node->deinit_data == deinit_heft_data;
 }
 
 
@@ -213,6 +213,8 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 	starpu_sched_tree_call_init_data(t);
 	starpu_bitmap_destroy(random->workers_in_ctx);
 	random->workers_in_ctx = t->root->workers_in_ctx;
+	if(random->init_data)
+		random->init_data(random);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
 }
 

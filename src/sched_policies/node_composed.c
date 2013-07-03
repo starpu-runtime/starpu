@@ -115,10 +115,6 @@ double composed_node_estimated_load(struct starpu_sched_node * node)
 }
 
 
-static void invalid_second_init_data(struct starpu_sched_node * node STARPU_ATTRIBUTE_UNUSED)
-{
-	STARPU_ABORT();
-}
 
 void composed_node_init_data(struct starpu_sched_node *node)
 {
@@ -132,7 +128,7 @@ void composed_node_init_data(struct starpu_sched_node *node)
 	c->bottom->nchilds = node->nchilds;
 	c->bottom->childs = node->childs;
 
-	node->init_data = invalid_second_init_data;
+	node->init_data = NULL;
 }
 
 void composed_node_deinit_data(struct starpu_sched_node * _node)

@@ -412,6 +412,7 @@ void starpu_sched_node_destroy(struct starpu_sched_node *node)
 	}
 	free(node->childs);
 	starpu_bitmap_destroy(node->workers);
+	starpu_bitmap_destroy(node->workers_in_ctx);
 	free(node);
 }
 
@@ -470,7 +471,7 @@ static void helper_starpu_call_init_data(struct starpu_sched_node *node)
 	int i;
 	for(i = 0; i < node->nchilds; i++)
 		helper_starpu_call_init_data(node->childs[i]);
-	if(!node->data)
+	if(node->init_data)
 		node->init_data(node);
 }
 
