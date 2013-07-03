@@ -200,7 +200,7 @@ static void init_context(unsigned devid)
 	starpu_cuda_set_device(devid);
 
 #ifdef HAVE_CUDA_MEMCPY_PEER
-	if (starpu_get_env_number("STARPU_DISABLE_CUDA_GPU_GPU_DIRECT") == 0)
+	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") > 0)
 	{
 		int nworkers = starpu_worker_get_count();
 		for (workerid = 0; workerid < nworkers; workerid++)
