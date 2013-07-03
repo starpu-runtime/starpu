@@ -77,6 +77,7 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS)
 ########################
 
 starpu_mpi_TESTS =				\
+	datatypes				\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\
@@ -104,6 +105,7 @@ starpu_mpi_TESTS =				\
 	user_defined_datatype
 
 noinst_PROGRAMS =				\
+	datatypes				\
 	pingpong				\
 	mpi_test				\
 	mpi_isend				\
@@ -145,6 +147,8 @@ mpi_irecv_detached_LDADD =			\
 mpi_detached_tag_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_redux_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+datatypes_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 pingpong_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la

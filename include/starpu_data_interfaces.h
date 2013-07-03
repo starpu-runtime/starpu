@@ -101,24 +101,24 @@ enum starpu_data_interface_id
 
 struct starpu_data_interface_ops
 {
-	void (*register_data_handle)(starpu_data_handle_t handle,
-				     unsigned home_node, void *data_interface);
-	starpu_ssize_t (*allocate_data_on_node)(void *data_interface, unsigned node);
-	void (*free_data_on_node)(void *data_interface, unsigned node);
+	void		 (*register_data_handle)	(starpu_data_handle_t handle,
+								unsigned home_node, void *data_interface);
+	starpu_ssize_t	 (*allocate_data_on_node)	(void *data_interface, unsigned node);
+	void 		 (*free_data_on_node)		(void *data_interface, unsigned node);
 	const struct starpu_data_copy_methods *copy_methods;
-	void * (*handle_to_pointer)(starpu_data_handle_t handle, unsigned node);
-	size_t (*get_size)(starpu_data_handle_t handle);
-	uint32_t (*footprint)(starpu_data_handle_t handle);
-	int (*compare)(void *data_interface_a, void *data_interface_b);
-	void (*display)(starpu_data_handle_t handle, FILE *f);
+	void * 		 (*handle_to_pointer)		(starpu_data_handle_t handle, unsigned node);
+	size_t 		 (*get_size)			(starpu_data_handle_t handle);
+	uint32_t 	 (*footprint)			(starpu_data_handle_t handle);
+	int 		 (*compare)			(void *data_interface_a, void *data_interface_b);
+	void 		 (*display)			(starpu_data_handle_t handle, FILE *f);
 	enum starpu_data_interface_id interfaceid;
 	size_t interface_size;
 
 	int is_multiformat;
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 
-	int (*pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
-	int (*unpack_data)(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+	int (*pack_data) (starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
+	int (*unpack_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 };
 
 int starpu_data_interface_get_next_id(void);

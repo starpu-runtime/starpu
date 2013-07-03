@@ -75,6 +75,8 @@ static size_t block_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_block_interface_crc32(starpu_data_handle_t handle);
 static int block_compare(void *data_interface_a, void *data_interface_b);
 static void display_block_interface(starpu_data_handle_t handle, FILE *f);
+static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
+static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
 struct starpu_data_interface_ops starpu_interface_block_ops =
 {
@@ -89,6 +91,8 @@ struct starpu_data_interface_ops starpu_interface_block_ops =
 	.interfaceid = STARPU_BLOCK_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_block_interface),
 	.display = display_block_interface,
+	.pack_data = pack_block_handle,
+	.unpack_data = unpack_block_handle
 };
 
 static void *block_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
@@ -194,6 +198,67 @@ static void display_block_interface(starpu_data_handle_t handle, FILE *f)
 
 	fprintf(f, "%u\t%u\t%u\t", block_interface->nx, block_interface->ny, block_interface->nz);
 }
+
+static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)
+{
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
+		starpu_data_get_interface_on_node(handle, node);
+
+	*count = block_interface->nx*block_interface->ny*block_interface->nz*block_interface->elemsize;
+
+	if (ptr != NULL)
+	{
+		uint32_t z, y;
+		void *block = (void *)block_interface->ptr;
+
+		*ptr = malloc(*count);
+
+		void *cur = *ptr;
+		for(z=0 ; z<block_interface->nz ; z++)
+		{
+			void *block_z = block;
+			for(y=0 ; y<block_interface->ny ; y++)
+			{
+				memcpy(cur, block, block_interface->nx*block_interface->elemsize);
+				cur += block_interface->nx*block_interface->elemsize;
+				block += block_interface->ldy * block_interface->elemsize;
+			}
+			block = block_z + block_interface->ldz * block_interface->elemsize;
+		}
+	}
+
+	return 0;
+}
+
+static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
+		starpu_data_get_interface_on_node(handle, node);
+
+	STARPU_ASSERT(count == block_interface->elemsize * block_interface->nx * block_interface->ny * block_interface->nz);
+
+	uint32_t z, y;
+	void *cur = ptr;
+	void *block = (void *)block_interface->ptr;
+	for(z=0 ; z<block_interface->nz ; z++)
+	{
+		void *block_z = block;
+		for(y=0 ; y<block_interface->ny ; y++)
+		{
+			memcpy(block, cur, block_interface->nx*block_interface->elemsize);
+			cur += block_interface->nx*block_interface->elemsize;
+			block += block_interface->ldy * block_interface->elemsize;
+		}
+		block = block_z + block_interface->ldz * block_interface->elemsize;
+	}
+
+	return 0;
+}
+
 
 static size_t block_interface_get_size(starpu_data_handle_t handle)
 {

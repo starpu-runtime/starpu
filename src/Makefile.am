@@ -61,6 +61,8 @@ noinst_HEADERS = 						\
 	core/dependencies/cg.h					\
 	core/dependencies/tags.h				\
 	core/dependencies/implicit_data_deps.h			\
+	core/disk.h						\
+	core/disk_ops/unistd/disk_unistd_global.h		\
 	core/progress_hook.h                                    \
 	core/sched_policy.h					\
 	core/sched_ctx.h					\
@@ -119,6 +121,7 @@ noinst_HEADERS = 						\
 	drivers/scc/driver_scc_common.h				\
 	drivers/scc/driver_scc_source.h				\
 	drivers/scc/driver_scc_sink.h				\
+	drivers/disk/driver_disk.h				\
 	debug/traces/starpu_fxt.h				\
 	profiling/bound.h					\
 	profiling/profiling.h					\
@@ -149,6 +152,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/workers.c						\
 	core/combined_workers.c					\
 	core/topology.c						\
+	core/disk.c						\
 	core/debug.c						\
 	core/errorcheck.c					\
 	core/progress_hook.c					\
@@ -158,6 +162,9 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/dependencies/tags.c				\
 	core/dependencies/task_deps.c				\
 	core/dependencies/data_concurrency.c			\
+	core/disk_ops/disk_stdio.c				\
+	core/disk_ops/disk_unistd.c                             \
+	core/disk_ops/unistd/disk_unistd_global.c		\
 	core/perfmodel/perfmodel_history.c			\
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
@@ -179,6 +186,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/parallel_heft.c				\
 	sched_policies/parallel_eager.c				\
 	drivers/driver_common/driver_common.c			\
+	drivers/disk/driver_disk.c				\
 	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\
 	datawizard/coherency.c					\
@@ -274,6 +282,11 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_source
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_sink.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/scc/driver_scc_utils.c
 endif
+
+if STARPU_LINUX_SYS
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_unistd_o_direct.c
+endif
+
 
 
 #########################################

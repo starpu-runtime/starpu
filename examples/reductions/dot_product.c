@@ -370,13 +370,13 @@ int main(int argc, char **argv)
 	unsigned block;
 	for (block = 0; block < _nblocks; block++)
 	{
-		starpu_vector_data_register(&_x_handles[block], 0,
+		starpu_vector_data_register(&_x_handles[block], STARPU_MAIN_RAM,
 			(uintptr_t)&_x[_entries_per_block*block], _entries_per_block, sizeof(float));
-		starpu_vector_data_register(&_y_handles[block], 0,
+		starpu_vector_data_register(&_y_handles[block], STARPU_MAIN_RAM,
 			(uintptr_t)&_y[_entries_per_block*block], _entries_per_block, sizeof(float));
 	}
 
-	starpu_variable_data_register(&_dot_handle, 0, (uintptr_t)&_dot, sizeof(DOT_TYPE));
+	starpu_variable_data_register(&_dot_handle, STARPU_MAIN_RAM, (uintptr_t)&_dot, sizeof(DOT_TYPE));
 
 	/*
 	 *	Compute dot product with StarPU

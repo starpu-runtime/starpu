@@ -36,6 +36,7 @@ chapters =	\
 	chapters/scheduling_context_hypervisor.doxy \
 	chapters/scheduling_contexts.doxy \
 	chapters/modularized_scheduler.doxy \
+	chapters/out_of_core.doxy \
 	chapters/socl_opencl_extensions.doxy \
 	chapters/tips_and_tricks.doxy \
 	chapters/environment_variables.doxy \
@@ -59,11 +60,14 @@ chapters =	\
 	chapters/code/vector_scal_cuda.cu \
 	chapters/code/vector_scal_opencl.c \
 	chapters/code/vector_scal_opencl_codelet.cl \
+	chapters/code/disk_copy.c \
+	chapters/code/disk_compute.c \
 	chapters/api/codelet_and_tasks.doxy \
 	chapters/api/cuda_extensions.doxy \
 	chapters/api/data_interfaces.doxy \
 	chapters/api/data_management.doxy \
 	chapters/api/data_partition.doxy \
+	chapters/api/data_out_of_core.doxy \
 	chapters/api/expert_mode.doxy \
 	chapters/api/explicit_dependencies.doxy \
 	chapters/api/fft_support.doxy \
@@ -106,7 +110,7 @@ chapters/version.sty: $(chapters)
 	@if test -s timestamp_updated ; then \
 		echo "\newcommand{\STARPUUPDATED}{"`cat timestamp_updated`"}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	else \
-		echo "\newcommand{\STARPUUPDATED}{unknown_date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
+		echo "\newcommand{\STARPUUPDATED}{unknown date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	fi
 	@echo "\newcommand{\STARPUVERSION}{$(VERSION)}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty
 	@-for f in timestamp timestamp_updated timestamp_updated_month ; do \
@@ -146,6 +150,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu.h			\
 	$(top_srcdir)/include/starpu_data_filters.h	\
 	$(top_srcdir)/include/starpu_data_interfaces.h	\
+	$(top_srcdir)/include/starpu_disk.h		\
 	$(top_srcdir)/include/starpu_worker.h		\
 	$(top_srcdir)/include/starpu_task.h		\
 	$(top_srcdir)/include/starpu_task_bundle.h	\

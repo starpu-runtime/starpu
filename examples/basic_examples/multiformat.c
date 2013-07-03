@@ -126,7 +126,7 @@ static void
 register_data(void)
 {
 	starpu_multiformat_data_register(&array_of_structs_handle,
-					 0,
+					 STARPU_MAIN_RAM,
 					 &array_of_structs,
 					 N_ELEMENTS,
 					 &format_ops);

@@ -152,8 +152,8 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "BEFORE y[0] = %2.2f\n", _vec_y[0]);
 
 	/* Declare the data to StarPU */
-	starpu_vector_data_register(&_handle_x, 0, (uintptr_t)_vec_x, N, sizeof(TYPE));
-	starpu_vector_data_register(&_handle_y, 0, (uintptr_t)_vec_y, N, sizeof(TYPE));
+	starpu_vector_data_register(&_handle_x, STARPU_MAIN_RAM, (uintptr_t)_vec_x, N, sizeof(TYPE));
+	starpu_vector_data_register(&_handle_y, STARPU_MAIN_RAM, (uintptr_t)_vec_y, N, sizeof(TYPE));
 
 	/* Divide the vector into blocks */
 	struct starpu_data_filter block_filter =
@@ -194,8 +194,8 @@ int main(int argc, char **argv)
 	starpu_task_wait_for_all();
 
 enodev:
-	starpu_data_unpartition(_handle_x, 0);
-	starpu_data_unpartition(_handle_y, 0);
+	starpu_data_unpartition(_handle_x, STARPU_MAIN_RAM);
+	starpu_data_unpartition(_handle_y, STARPU_MAIN_RAM);
 	starpu_data_unregister(_handle_x);
 	starpu_data_unregister(_handle_y);
 

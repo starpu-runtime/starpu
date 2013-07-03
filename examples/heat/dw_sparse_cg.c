@@ -357,10 +357,10 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	starpu_data_handle_t ds_vecr, ds_vecd, ds_vecq;
 
 	/* first the user-allocated data */
-	starpu_csr_data_register(&ds_matrixA, 0, nnz, nrow,
+	starpu_csr_data_register(&ds_matrixA, STARPU_MAIN_RAM, nnz, nrow,
 			(uintptr_t)nzvalA, colind, rowptr, 0, sizeof(float));
-	starpu_vector_data_register(&ds_vecx, 0, (uintptr_t)vecx, nrow, sizeof(float));
-	starpu_vector_data_register(&ds_vecb, 0, (uintptr_t)vecb, nrow, sizeof(float));
+	starpu_vector_data_register(&ds_vecx, STARPU_MAIN_RAM, (uintptr_t)vecx, nrow, sizeof(float));
+	starpu_vector_data_register(&ds_vecb, STARPU_MAIN_RAM, (uintptr_t)vecb, nrow, sizeof(float));
 
 	/* then allocate the algorithm intern data */
 	float *ptr_vecr, *ptr_vecd, *ptr_vecq;
@@ -380,9 +380,9 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	FPRINTF(stdout, "nrow = %u \n", nrow);
 
 	/* and register them as well */
-	starpu_vector_data_register(&ds_vecr, 0, (uintptr_t)ptr_vecr, nrow, sizeof(float));
-	starpu_vector_data_register(&ds_vecd, 0, (uintptr_t)ptr_vecd, nrow, sizeof(float));
-	starpu_vector_data_register(&ds_vecq, 0, (uintptr_t)ptr_vecq, nrow, sizeof(float));
+	starpu_vector_data_register(&ds_vecr, STARPU_MAIN_RAM, (uintptr_t)ptr_vecr, nrow, sizeof(float));
+	starpu_vector_data_register(&ds_vecd, STARPU_MAIN_RAM, (uintptr_t)ptr_vecd, nrow, sizeof(float));
+	starpu_vector_data_register(&ds_vecq, STARPU_MAIN_RAM, (uintptr_t)ptr_vecq, nrow, sizeof(float));
 
 	/* we now have the complete problem */
 	struct cg_problem problem;

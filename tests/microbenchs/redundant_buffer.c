@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 
 	starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
 
-	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
+	starpu_vector_data_register(&v_handle, STARPU_MAIN_RAM, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
 	unsigned iter;
 	for (iter = 0; iter < N; iter++)

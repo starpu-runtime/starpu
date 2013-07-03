@@ -94,7 +94,7 @@ static void
 register_data(void)
 {
 	starpu_bcsr_data_register(&bcsr_handle,
-				  0,
+				  STARPU_MAIN_RAM,
 				  NNZ_BLOCKS,
 				  1, /* nrow */
 				  (uintptr_t) nzval,
@@ -106,7 +106,7 @@ register_data(void)
 				  sizeof(nzval[0]));
 
 	starpu_bcsr_data_register(&bcsr2_handle,
-				  0,
+				  STARPU_MAIN_RAM,
 				  NNZ_BLOCKS,
 				  1, /* nrow */
 				  (uintptr_t) nzval2,

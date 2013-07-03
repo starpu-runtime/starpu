@@ -501,7 +501,7 @@ int main(int argc, char **argv)
 	for (iby = 0; iby < nblocks; iby++)
 	{
 		unsigned *data = &buffer[iby*block_size*width];
-		starpu_vector_data_register(&block_handles[iby], 0,
+		starpu_vector_data_register(&block_handles[iby], STARPU_MAIN_RAM,
                         (uintptr_t)data, block_size*width, sizeof(unsigned));
 	}
 

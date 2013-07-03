@@ -234,8 +234,8 @@ int main(int argc, char *argv[])
 #endif
 
 #if 1
-	starpu_vector_data_register(&in_handle, 0, (uintptr_t) in, size, sizeof(*in));
-	starpu_vector_data_register(&out_handle, 0, (uintptr_t) out, size, sizeof(*out));
+	starpu_vector_data_register(&in_handle, STARPU_MAIN_RAM, (uintptr_t) in, size, sizeof(*in));
+	starpu_vector_data_register(&out_handle, STARPU_MAIN_RAM, (uintptr_t) out, size, sizeof(*out));
 
 	ret = STARPUFFT(execute_handle)(plan, in_handle, out_handle);
 	if (ret == -1) return 77;

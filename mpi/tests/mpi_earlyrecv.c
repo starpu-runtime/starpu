@@ -19,14 +19,11 @@
 #include "helper.h"
 #include <unistd.h>
 
-//#define NB 1000
-#define NB 10
-
 int main(int argc, char **argv)
 {
 	int ret, rank, size, i, nb_requests;
-	starpu_data_handle_t tab_handle[NB];
-	starpu_mpi_req request[NB];
+	starpu_data_handle_t tab_handle[3];
+	starpu_mpi_req request[3];
 
 	MPI_Init(NULL, NULL);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -46,9 +43,9 @@ int main(int argc, char **argv)
 	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
-	for(i=0 ; i<NB ; i++)
+	for(i=0 ; i<3 ; i++)
 	{
-		starpu_variable_data_register(&tab_handle[i], 0, (uintptr_t)&rank, sizeof(int));
+		starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
 		starpu_data_set_tag(tab_handle[i], i);
 		request[i] = NULL;
 	}
@@ -90,7 +87,7 @@ int main(int argc, char **argv)
 		for(i=1 ; i<nb_requests ; i++) finished = finished && request[i] == NULL;
 	}
 
-	for(i=0 ; i<NB ; i++)
+	for(i=0 ; i<3 ; i++)
 		starpu_data_unregister(tab_handle[i]);
 
 	starpu_mpi_shutdown();

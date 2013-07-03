@@ -529,14 +529,14 @@ The following lines show how to declare an array of <c>NX</c> elements of type
 float vector[NX];
 
 starpu_data_handle_t vector_handle;
-starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
+starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX,
                             sizeof(vector[0]));
 \endcode
 
 The first argument, called the <b>data handle</b>, is an opaque pointer which
 designates the array in StarPU. This is also the structure which is used to
 describe which data is used by a task. The second argument is the node number
-where the data originally resides. Here it is 0 since the array <c>vector</c> is in
+where the data originally resides. Here it is STARPU_MAIN_RAM since the array <c>vector</c> is in
 the main memory. Then comes the pointer <c>vector</c> where the data can be found in main memory,
 the number of elements in the vector and the size of each element.
 The following shows how to construct a StarPU task that will manipulate the

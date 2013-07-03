@@ -104,7 +104,7 @@ static void test_filters(void)
 	ret = starpu_malloc((void**)&ptr, VECTOR_SIZE * sizeof(*ptr));
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 
-	starpu_vector_data_register(&handle, 0, (uintptr_t)ptr,
+	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)ptr,
 				    VECTOR_SIZE, sizeof(*ptr));
 
 	struct starpu_data_filter f =
@@ -127,7 +127,7 @@ static void test_filters(void)
 		STARPU_ASSERT(starpu_data_lookup(children_pointers[i]) == child);
 	}
 
-	starpu_data_unpartition(handle, 0);
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 
 	for (i = 0; i < CHILDREN_COUNT; i++)
 	{
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 	{
 		ret = starpu_malloc(&variables[i], sizeof(float));
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
-		starpu_variable_data_register(&variable_handles[i], 0,
+		starpu_variable_data_register(&variable_handles[i], STARPU_MAIN_RAM,
 					      (uintptr_t)variables[i],
 					      sizeof(float));
 	}
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 	{
 		ret = starpu_malloc(&vectors[i], VECTOR_SIZE * sizeof(float));
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
-		starpu_vector_data_register(&vector_handles[i], 0,
+		starpu_vector_data_register(&vector_handles[i], STARPU_MAIN_RAM,
 					    (uintptr_t)vectors[i],
 					    VECTOR_SIZE, sizeof(float));
 	}

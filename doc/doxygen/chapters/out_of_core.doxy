@@ -1,0 +1,56 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2013 Corentin Salingue
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page OutOfCore Out Of Core
+
+\section Introduction Introduction
+
+When using StarPU, one may need to store more data than what the main memory
+(RAM) can store. This part describes the method to add a new memory node on a
+disk and to use it.
+
+\section UseANewDiskMemory Use a new disk memory
+
+To use a disk memory node, you have to register it with this function:
+
+\code{.c}
+	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) "/tmp/", 1024*1024*200);
+\endcode
+
+Here, we use the stdio library to realize the read/write operations, i.e.
+fread/fwrite. This structure must have a path where to store files, as well as
+the maximum size the software can afford storing on the disk.
+
+Don't forget to check if the result is correct!
+
+When the register function is called, StarPU will benchmark the disk. This can
+take some time.
+
+<strong>Warning: the size thus has to be at least 1 MB!</strong> 
+
+StarPU will automatically try to evict unused data to this new disk. One can
+also use the standard StarPU node API, see the \ref API_Standard_Memory_Library
+and the \ref API_Data_Interfaces .
+
+The disk is unregistered during the starpu_shutdown().
+
+\section DiskFunctions Disk functions
+
+There are various ways to operate a disk memory node, described by the structure
+starpu_disk_ops. For instance, the variable #starpu_disk_stdio_ops
+uses fread/fwrite functions.
+
+All structures are in \ref API_Out_Of_Core .
+
+\section ExampleDiskCopy Examples: disk_copy
+
+\snippet disk_copy.c To be included
+
+\section ExampleDiskCompute Examples: disk_compute
+
+\snippet disk_compute.c To be included
+
+*/

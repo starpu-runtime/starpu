@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -297,7 +297,7 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	struct starpu_data_filter f =
 	{
@@ -316,7 +316,7 @@ void dw_factoLU_tag(float *matA, unsigned size, unsigned ld, unsigned nblocks, u
 	dw_codelet_facto_v3(dataA, nblocks);
 
 	/* gather all the data */
-	starpu_data_unpartition(dataA, 0);
+	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 
 	starpu_data_unregister(dataA);
 

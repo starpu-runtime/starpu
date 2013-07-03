@@ -253,6 +253,10 @@ starpu_shutdown(). The trace is a binary file whose name has the form
 <c>/tmp/</c> directory by default, or by the directory specified by
 the environment variable \ref STARPU_FXT_PREFIX.
 
+The additional configure option \ref enable-fxt-lock "--enable-fxt-lock" can 
+be used to generate trace events which describes the locks behaviour during 
+the execution.
+
 \subsection CreatingAGanttDiagram Creating a Gantt Diagram
 
 When the FxT trace file <c>filename</c> has been generated, it is possible to

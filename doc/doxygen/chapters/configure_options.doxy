@@ -22,13 +22,6 @@ the following configure options.
 Enable debugging messages.
 </dd>
 
-<dt>--enable-debug</dt>
-<dd>
-\anchor enable-debug
-\addindex __configure__--enable-debug
-Enable debugging messages.
-</dd>
-
 <dt>--enable-fast</dt>
 <dd>
 \anchor enable-fast
@@ -361,6 +354,13 @@ Enable performance debugging through gprof.
 \anchor enable-model-debug
 \addindex __configure__--enable-model-debug
 Enable performance model debugging.
+</dd>
+
+<dt>--enable-fxt-lock</dt>
+<dd>
+\anchor enable-fxt-lock
+\addindex __configure__--enable-fxt-lock
+Enable additional trace events which describes locks behaviour.
 </dd>
 
 <dt>--enable-stats</dt>

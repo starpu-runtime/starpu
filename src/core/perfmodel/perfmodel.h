@@ -73,4 +73,7 @@ int *_starpu_get_cuda_affinity_vector(unsigned gpuid);
 int *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 #endif
 
+
+void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, 
+					    double latency_write, double latency_read, unsigned node);
 #endif // __PERFMODEL_H__

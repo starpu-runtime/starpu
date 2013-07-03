@@ -301,7 +301,7 @@ int main(int argc, char **argv)
 	{
 		if (x <= y)
 		{
-			starpu_matrix_data_register(&A_state[y][x], 0, (uintptr_t)A[y][x], 
+			starpu_matrix_data_register(&A_state[y][x], STARPU_MAIN_RAM, (uintptr_t)A[y][x], 
 				BLOCKSIZE, BLOCKSIZE, BLOCKSIZE, sizeof(float));
 		}
 	}

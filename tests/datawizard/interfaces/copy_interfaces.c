@@ -33,8 +33,8 @@ static int check_copy(starpu_data_handle_t handle, char *header)
 		fprintf(stderr, "\n");
 	}
 
-	old_interface = starpu_data_get_interface_on_node(handle, 0);
-	new_interface = starpu_data_get_interface_on_node(new_handle, 0);
+	old_interface = starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	new_interface = starpu_data_get_interface_on_node(new_handle, STARPU_MAIN_RAM);
 
 	if (new_handle->ops->compare(old_interface, new_interface) == 0)
 	{
@@ -57,14 +57,14 @@ int main(int argc, char **argv)
 
 	{
 		int x=42;
-		starpu_variable_data_register(&handle, 0, (uintptr_t)&x, sizeof(x));
+		starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&x, sizeof(x));
 		ret = check_copy(handle, "variable");
 	}
 
 	if (ret == 0)
 	{
 		int xx[] = {12, 23, 45};
-		starpu_vector_data_register(&handle, 0, (uintptr_t)xx, 3, sizeof(xx[0]));
+		starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)xx, 3, sizeof(xx[0]));
 		ret = check_copy(handle, "vector");
 	}
 
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 		int NX=3;
 		int NY=2;
 		int matrix[NX][NY];
-		starpu_matrix_data_register(&handle, 0, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));
+		starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));
 		ret = check_copy(handle, "matrix");
 	}
 
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 		int NY=2;
 		int NZ=4;
 		int block[NX*NY*NZ];
-		starpu_block_data_register(&handle, 0, (uintptr_t)block, NX, NX*NY, NX, NY, NZ, sizeof(block[0]));
+		starpu_block_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)block, NX, NX*NY, NX, NY, NZ, sizeof(block[0]));
 		ret = check_copy(handle, "block");
 	}
 
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 		float nzvalA[20];
 		uint32_t colind[1];
 		uint32_t rowptr[2];
-		starpu_csr_data_register(&handle, 0, nnz, nrow, (uintptr_t)nzvalA, colind, rowptr, 0, sizeof(float));
+		starpu_csr_data_register(&handle, STARPU_MAIN_RAM, nnz, nrow, (uintptr_t)nzvalA, colind, rowptr, 0, sizeof(float));
 		ret = check_copy(handle, "csr");
 	}
 

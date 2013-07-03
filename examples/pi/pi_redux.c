@@ -334,7 +334,7 @@ int main(int argc, char **argv)
 	 * [-1,1]^2. */
 	unsigned long shot_cnt = 0;
 	starpu_data_handle_t shot_cnt_handle;
-	starpu_variable_data_register(&shot_cnt_handle, 0,
+	starpu_variable_data_register(&shot_cnt_handle, STARPU_MAIN_RAM,
 			(uintptr_t)&shot_cnt, sizeof(shot_cnt));
 
 	starpu_data_set_reduction_methods(shot_cnt_handle,

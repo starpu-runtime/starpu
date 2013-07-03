@@ -174,11 +174,11 @@ static void partition_mult_data(void)
 	 * node in which resides the matrix: 0 means that the 3rd argument is
 	 * an adress in main memory.
 	 */
-	starpu_matrix_data_register(&A_handle, 0, (uintptr_t)A, 
+	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A, 
 		ydim, ydim, zdim, sizeof(float));
-	starpu_matrix_data_register(&B_handle, 0, (uintptr_t)B, 
+	starpu_matrix_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B, 
 		zdim, zdim, xdim, sizeof(float));
-	starpu_matrix_data_register(&C_handle, 0, (uintptr_t)C, 
+	starpu_matrix_data_register(&C_handle, STARPU_MAIN_RAM, (uintptr_t)C, 
 		ydim, ydim, xdim, sizeof(float));
 
 	/* A filter is a method to partition a data into disjoint chunks, it is
@@ -365,9 +365,9 @@ int main(STARPU_ATTRIBUTE_UNUSED int argc,
 	 * starpu_data_map_filters is called again on C_handle.
 	 * The second argument is the memory node where the different subsets
 	 * should be reassembled, 0 = main memory (RAM) */
-	starpu_data_unpartition(A_handle, 0);
-	starpu_data_unpartition(B_handle, 0);
-	starpu_data_unpartition(C_handle, 0);
+	starpu_data_unpartition(A_handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(B_handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(C_handle, STARPU_MAIN_RAM);
 
 	/* stop monitoring matrix C : after this, it is not possible to pass C 
 	 * (or any subset of C) as a codelet input/output. This also implements

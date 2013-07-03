@@ -141,14 +141,14 @@ int main(int argc, char **argv)
 	 *  - the first argument of the registration method is a pointer to the
 	 *    handle that should describe the data
 	 *  - the second argument is the memory node where the data (ie. "vector")
-	 *    resides initially: 0 stands for an address in main memory, as
+	 *    resides initially: STARPU_MAIN_RAM stands for an address in main memory, as
 	 *    opposed to an adress on a GPU for instance.
 	 *  - the third argument is the adress of the vector in RAM
 	 *  - the fourth argument is the number of elements in the vector
 	 *  - the fifth argument is the size of each element.
 	 */
 	starpu_data_handle_t vector_handle;
-	starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
+	starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 
 	float factor = 3.14;
 

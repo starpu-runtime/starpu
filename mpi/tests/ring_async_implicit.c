@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	}
 
 
-	starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(token));
+	starpu_vector_data_register(&token_handle, STARPU_MAIN_RAM, (uintptr_t)&token, 1, sizeof(token));
 
 	int nloops = NITER;
 	int loop;

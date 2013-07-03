@@ -78,6 +78,9 @@ static void parallel_heft_pre_exec_hook(struct starpu_task *task)
 	if (isnan(model))
 		model = 0.0;
 
+	if (isnan(transfer_model))
+		transfer_model = 0.0;
+
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);

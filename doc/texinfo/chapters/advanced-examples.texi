@@ -235,7 +235,7 @@ int vector[NX];
 starpu_data_handle_t handle;
 
 /* Declare data to StarPU */
-starpu_vector_data_register(&handle, 0, (uintptr_t)vector,
+starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)vector,
                             NX, sizeof(vector[0]));
 
 /* Partition the vector in PARTS sub-vectors */
@@ -1002,7 +1002,7 @@ struct starpu_multiformat_data_interface_ops format_ops = @{
     .cpu_elemsize = 2 * sizeof(float),
     ...
 @};
-starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
+starpu_multiformat_data_register(handle, STARPU_MAIN_RAM, &array_of_structs, NX, &format_ops);
 @end smallexample
 @end cartouche
 
@@ -1248,7 +1248,7 @@ Complex data interfaces can then be registered to StarPU.
 @smallexample
 double real = 45.0;
 double imaginary = 12.0;
-starpu_complex_data_register(&handle1, 0, &real, &imaginary, 1);
+starpu_complex_data_register(&handle1, STARPU_MAIN_RAM, &real, &imaginary, 1);
 starpu_insert_task(&cl_display, STARPU_R, handle1, 0);
 @end smallexample
 @end cartouche

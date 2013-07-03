@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	starpu_data_unpartition(handle, 0);
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(handle);
 	starpu_shutdown();
 

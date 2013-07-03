@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	*check_cnt = 0;
 
 	starpu_data_handle_t check_data;
-	starpu_variable_data_register(&check_data, 0, (uintptr_t)check_cnt, sizeof(*check_cnt));
+	starpu_variable_data_register(&check_data, STARPU_MAIN_RAM, (uintptr_t)check_cnt, sizeof(*check_cnt));
 
 	starpu_task_init(&taskA);
 	taskA.cl = &dummy_codelet;

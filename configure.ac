@@ -134,8 +134,13 @@ case "$target" in
   libext=a
   AC_DEFINE(STARPU_HAVE_WINDOWS, [], [Define this on windows.])
   ;;
+*-*-linux*)
+  starpu_linux=yes
+  AC_DEFINE(STARPU_LINUX_SYS, 1, [Define to 1 on Linux])
+  ;;
 esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
+AM_CONDITIONAL([STARPU_LINUX_SYS], [test "x$starpu_linux" = "xyes"])
 
 # on Darwin, GCC targets i386 by default, so we don't have atomic ops
 AC_CHECK_SIZEOF([void *])
@@ -959,13 +964,13 @@ AC_MSG_RESULT($nmaxmicdev)
 AC_DEFINE_UNQUOTED(STARPU_MAXMICDEVS, [$nmaxmicdev],
 	[maximum number of MIC devices])
 
-AC_MSG_CHECKING(maximum number of MIC cores)
-AC_ARG_ENABLE(maxmicdev, [AS_HELP_STRING([--enable-maxmiccore=<number>],
-			[maximum number of MIC cores])],
-			nmaxmiccore=$enableval, nmaxmiccore=128)
-AC_MSG_RESULT($nmaxmiccore)
+AC_MSG_CHECKING(maximum number of MIC threads)
+AC_ARG_ENABLE(maxmicthreads, [AS_HELP_STRING([--enable-maxmicthreads=<number>],
+			[maximum number of MIC threads])],
+			nmaxmicthreads=$enableval, nmaxmicthreads=128)
+AC_MSG_RESULT($nmaxmicthread)
 
-AC_DEFINE_UNQUOTED(STARPU_MAXMICCORES, [$nmaxmiccore],
+AC_DEFINE_UNQUOTED(STARPU_MAXMICCORES, [$nmaxmicthreads],
 	[maximum number of MIC cores])
 
 AC_ARG_WITH(coi-dir,
@@ -1379,38 +1384,48 @@ AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
 
-# TODO: add option to choose maxnodes
-if test x$enable_simgrid = xyes ; then
-	# We still need the room for the virtual CUDA/OpenCL devices
-	maxnodes=16
-else
-	# We have one memory node shared by all CPU workers, one node per GPU
-	# and per MIC device
-	nodes=1
-	if test x$enable_cuda = xyes ; then
-		# we could have used nmaxcudadev + 1, but this would certainly give an
-		# odd number.
-		nodes=`expr $nodes + $nmaxcudadev`
-	fi
-	if test x$enable_opencl = xyes ; then
-		# we could have used nmaxcudadev + 1, but this would certainly give an
-		# odd number.
-		nodes=`expr $nodes + $nmaxopencldev`
-	fi
-	if test x$enable_mic = xyes ; then
-		nodes=`expr $nodes + $nmaxmicdev`
-	fi
-	if test x$enable_rcce = xyes ; then
-		# Only 1 memory node for the shared memory.
-		nodes=`expr $nodes + 1`
-	fi
+AC_MSG_CHECKING(maximum number of nodes to use)
+AC_ARG_ENABLE(maxnodes, [AS_HELP_STRING([--enable-maxnodes=<nnodes>],
+			[maximum number of nodes])],
+			maxnodes=$enableval, maxnodes=0)
 
-	# set maxnodes to the next power of 2 greater than nodes
-	maxnodes=1
-	while test "$maxnodes" -lt "$nodes"
-	do
-		maxnodes=`expr $maxnodes \* 2`
-	done
+if test x$maxnodes = x0 ; then
+	if test x$enable_simgrid = xyes ; then
+		# We still need the room for the virtual CUDA/OpenCL devices
+		maxnodes=16
+	else
+		# We have one memory node shared by all CPU workers, one node per GPU
+		# and per MIC device
+		# we add nodes to use 4 memory disks
+		nodes=5
+		if test x$enable_cuda = xyes ; then
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
+			nodes=`expr $nodes + $nmaxcudadev`
+		fi
+		if test x$enable_opencl = xyes ; then
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
+			nodes=`expr $nodes + $nmaxopencldev`
+		fi
+		if test x$enable_mic = xyes ; then
+			nodes=`expr $nodes + $nmaxmicdev`
+		fi
+		if test x$enable_rcce = xyes ; then
+			# Only 1 memory node for the shared memory.
+			nodes=`expr $nodes + 1`
+		fi
+
+		# set maxnodes to the next power of 2 greater than nodes
+		maxnodes=1
+		while test "$maxnodes" -lt "$nodes"
+		do
+			maxnodes=`expr $maxnodes \* 2`
+		done
+ 	fi
+fi
+if test $maxnodes -gt 32 ; then
+	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
 fi
 
 AC_MSG_CHECKING(maximum number of memory nodes)
@@ -1456,7 +1471,7 @@ AC_CHECK_FUNCS([clock_gettime])
 
 # Compute the maximum number of workers (we round it to 16 for alignment
 # purposes).
-nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmiccore + $nmaxsccdev + 15 \) / 16 \) `
+nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + $nmaxsccdev + 15 \) / 16 \) `
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
@@ -2273,6 +2288,7 @@ AC_MSG_NOTICE([
 	Maximum number of CPUs:           $maxcpus
 	Maximum number of CUDA devices:   $nmaxcudadev
 	Maximum number of OpenCL devices: $nmaxopencldev
+	Maximum number of MIC threads:    $nmaxmicthreads
 	Maximum number of memory nodes:   $maxnodes
 	Maximum number of task buffers:   $nmaxbuffers
 

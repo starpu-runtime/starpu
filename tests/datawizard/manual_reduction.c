@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 
 	unsigned nworkers = starpu_worker_get_count();
 
-	starpu_variable_data_register(&variable_handle, 0, (uintptr_t)&variable, sizeof(unsigned));
+	starpu_variable_data_register(&variable_handle, STARPU_MAIN_RAM, (uintptr_t)&variable, sizeof(unsigned));
 
 	/* Allocate a per-worker handle on each worker (and initialize it to 0) */
 	starpu_execute_on_each_worker(initialize_per_worker_handle, NULL, STARPU_CPU|STARPU_CUDA|STARPU_OPENCL);

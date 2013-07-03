@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 			block[i + j*BIGSIZE + k*BIGSIZE*BIGSIZE] = 1.0f;
 		}
 
-		starpu_block_data_register(&block_handle, 0,
+		starpu_block_data_register(&block_handle, STARPU_MAIN_RAM,
 			(uintptr_t)block, BIGSIZE, BIGSIZE*BIGSIZE,
 			SIZE, SIZE, SIZE, sizeof(float));
 	}
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 		block = calloc(SIZE*SIZE*SIZE, sizeof(float));
 		assert(block);
 
-		starpu_block_data_register(&block_handle, 0,
+		starpu_block_data_register(&block_handle, STARPU_MAIN_RAM,
 			(uintptr_t)block, SIZE, SIZE*SIZE,
 			SIZE, SIZE, SIZE, sizeof(float));
 	}

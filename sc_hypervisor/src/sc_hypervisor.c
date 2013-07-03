@@ -632,6 +632,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 					if(sc_w->resize_ack.moved_workers[j] == worker)
 					{
 						only_remove = 1;
+						starpu_pthread_mutex_unlock(&sc_w->mutex);
 						break;
 					}
 			}

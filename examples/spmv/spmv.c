@@ -192,9 +192,9 @@ int main(int argc, char **argv)
 	/*
 	 *	Register the CSR matrix and the 2 vectors
 	 */
-	starpu_csr_data_register(&sparse_matrix, 0, nnz, size, (uintptr_t)nzval, colind, rowptr, 0, sizeof(float));
-	starpu_vector_data_register(&vector_in, 0, (uintptr_t)vector_in_ptr, size, sizeof(float));
-	starpu_vector_data_register(&vector_out, 0, (uintptr_t)vector_out_ptr, size, sizeof(float));
+	starpu_csr_data_register(&sparse_matrix, STARPU_MAIN_RAM, nnz, size, (uintptr_t)nzval, colind, rowptr, 0, sizeof(float));
+	starpu_vector_data_register(&vector_in, STARPU_MAIN_RAM, (uintptr_t)vector_in_ptr, size, sizeof(float));
+	starpu_vector_data_register(&vector_out, STARPU_MAIN_RAM, (uintptr_t)vector_out_ptr, size, sizeof(float));
 
 	/*
 	 *	Partition the CSR matrix and the output vector
@@ -239,8 +239,8 @@ int main(int argc, char **argv)
 	/*
 	 *	Unregister the CSR matrix and the output vector
 	 */
-	starpu_data_unpartition(sparse_matrix, 0);
-	starpu_data_unpartition(vector_out, 0);
+	starpu_data_unpartition(sparse_matrix, STARPU_MAIN_RAM);
+	starpu_data_unpartition(vector_out, STARPU_MAIN_RAM);
 
 	/*
 	 *	Unregister data

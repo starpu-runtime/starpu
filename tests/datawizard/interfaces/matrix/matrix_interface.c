@@ -67,14 +67,14 @@ register_data(void)
 		matrix[i] = i;
 
 	starpu_matrix_data_register(&matrix_handle,
-				    0,
+				    STARPU_MAIN_RAM,
 				    (uintptr_t) matrix,
 				    WIDTH, /* ld */
 				    WIDTH,
 				    HEIGHT,
 				    sizeof(matrix[0]));
 	starpu_matrix_data_register(&matrix2_handle,
-				    0,
+				    STARPU_MAIN_RAM,
 				    (uintptr_t) matrix2,
 				    WIDTH, /* ld */
 				    WIDTH,

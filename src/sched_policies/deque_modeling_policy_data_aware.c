@@ -179,6 +179,8 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 	task = _starpu_fifo_pop_first_ready_task(fifo, node);
 	if (task)
 	{
+		/* We now start the transfer, get rid of it in the completion
+		 * prediction */
 		double transfer_model = task->predicted_transfer;
 		if(!isnan(transfer_model)) 
 		{
@@ -217,10 +219,12 @@ static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
 	if (task)
 	{
 		double transfer_model = task->predicted_transfer;
-		double model = task->predicted;
+		/* We now start the transfer, get rid of it in the completion
+		 * prediction */
 
 		if(!isnan(transfer_model)) 
 		{
+			double model = task->predicted;
 			fifo->exp_len -= transfer_model;
 			fifo->exp_start = starpu_timing_now() + transfer_model+model;
 			fifo->exp_end = fifo->exp_start + fifo->exp_len;
@@ -261,6 +265,8 @@ static struct starpu_task *dmda_pop_every_task(unsigned sched_ctx_id)
 	while (new_list)
 	{
 		double transfer_model = new_list->predicted_transfer;
+		/* We now start the transfer, get rid of it in the completion
+		 * prediction */
 		if(!isnan(transfer_model)) 
 		{
 			fifo->exp_len -= transfer_model;
@@ -900,7 +906,6 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	double model = task->predicted;
-	double transfer_model = task->predicted_transfer;
 
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
@@ -911,6 +916,8 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	if(!isnan(model))
 	{
+		/* We now start the computation, get rid of it in the completion
+		 * prediction */
 		fifo->exp_len-= model;
 		fifo->exp_start = starpu_timing_now() + model;
 		fifo->exp_end= fifo->exp_start + fifo->exp_len;

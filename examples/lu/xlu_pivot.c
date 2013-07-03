@@ -338,7 +338,7 @@ int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size,
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
+	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(TYPE));
 
 	/* We already enforce deps by hand */
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
@@ -390,7 +390,7 @@ int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size,
 	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 
 	/* gather all the data */
-	starpu_data_unpartition(dataA, 0);
+	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 	free(piv_description);
 
 	return ret;
@@ -413,7 +413,7 @@ int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, uns
 	for (bj = 0; bj < nblocks; bj++)
 	for (bi = 0; bi < nblocks; bi++)
 	{
-		starpu_matrix_data_register(&dataAp[bi+nblocks*bj], 0,
+		starpu_matrix_data_register(&dataAp[bi+nblocks*bj], STARPU_MAIN_RAM,
 			(uintptr_t)matA[bi+nblocks*bj], size/nblocks,
 			size/nblocks, size/nblocks, sizeof(TYPE));
 

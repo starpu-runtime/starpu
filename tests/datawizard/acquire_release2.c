@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
-	starpu_variable_data_register(&token_handle, 0, (uintptr_t)&token, sizeof(unsigned));
+	starpu_variable_data_register(&token_handle, STARPU_MAIN_RAM, (uintptr_t)&token, sizeof(unsigned));
 
         FPRINTF(stderr, "Token: %u\n", token);
 

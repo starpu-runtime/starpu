@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2012  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -225,7 +225,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG11(nblocks-1));
 
-	starpu_data_unpartition(dataA, 0);
+	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 
 	gettimeofday(&end, NULL);
 
@@ -268,7 +268,7 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
 

@@ -47,7 +47,7 @@ int main(int argc, char **argv)
      int copy = starpu_asynchronous_copy_disabled();
      FPRINTF(stderr, "copy %d\n", copy);
 
-     starpu_variable_data_register(&handle, 0, (uintptr_t)&var, sizeof(var));
+     starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
 
      ret = starpu_insert_task(&cl,
 			      STARPU_R, handle,

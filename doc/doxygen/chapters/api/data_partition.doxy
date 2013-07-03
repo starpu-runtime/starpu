@@ -54,12 +54,12 @@ starpu_data_partition(A_handle, &f);
 \ingroup API_Data_Partition
 This unapplies one filter, thus unpartitioning the data. The
 pieces of data are collected back into one big piece in the
-\p gathering_node (usually 0). Tasks working on the partitioned data must
+\p gathering_node (usually STARPU_MAIN_RAM). Tasks working on the partitioned data must
 be already finished when calling starpu_data_unpartition().
 
 Here an example of how to use the function.
 \code{.c}
-starpu_data_unpartition(A_handle, 0);
+starpu_data_unpartition(A_handle, STARPU_MAIN_RAM);
 \endcode
 
 \fn int starpu_data_get_nb_children(starpu_data_handle_t handle)

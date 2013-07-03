@@ -37,7 +37,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 	starpu_data_handle_t block_handle;
         int i;
 
-	starpu_block_data_register(&block_handle, 0, (uintptr_t)block, pnx, pnx*pny, pnx, pny, pnz, sizeof(float));
+	starpu_block_data_register(&block_handle, STARPU_MAIN_RAM, (uintptr_t)block, pnx, pnx*pny, pnx, pny, pnz, sizeof(float));
 
 	starpu_codelet_init(&cl);
 	cl.where = where;

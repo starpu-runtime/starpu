@@ -121,7 +121,7 @@ register_data(void)
 	}
 
 	starpu_coo_data_register(&coo_handle,
-				0,
+				STARPU_MAIN_RAM,
 				NX,
 				NY,
 				MATRIX_SIZE,
@@ -130,7 +130,7 @@ register_data(void)
 				(uintptr_t) values,
 				sizeof(values[0]));
 	starpu_coo_data_register(&coo2_handle,
-				0,
+				STARPU_MAIN_RAM,
 				NX,
 				NY,
 				MATRIX_SIZE,

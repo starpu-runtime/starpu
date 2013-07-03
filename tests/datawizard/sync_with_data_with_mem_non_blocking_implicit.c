@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	{
 		ret = starpu_malloc((void **)&buffer[b], vectorsize);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
-		starpu_vector_data_register(&v_handle[b], 0,
+		starpu_vector_data_register(&v_handle[b], STARPU_MAIN_RAM,
 				(uintptr_t)buffer[b], vectorsize, sizeof(char));
 	}
 

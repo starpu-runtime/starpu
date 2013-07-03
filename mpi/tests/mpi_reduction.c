@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 		sum = (nb_elements * (nb_elements + 1)) / 2;
 		sum *= loops;
 		sum += dot;
-		starpu_variable_data_register(&dot_handle, 0, (uintptr_t)&dot, sizeof(dot));
+		starpu_variable_data_register(&dot_handle, STARPU_MAIN_RAM, (uintptr_t)&dot, sizeof(dot));
 	}
 	else
 	{
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 		if (mpi_rank == my_rank)
 		{
 			/* Owning data */
-			starpu_vector_data_register(&handles[x], 0, (uintptr_t)&(vector[x]), step, sizeof(vector[0]));
+			starpu_vector_data_register(&handles[x], STARPU_MAIN_RAM, (uintptr_t)&(vector[x]), step, sizeof(vector[0]));
 		}
 		else
 		{
