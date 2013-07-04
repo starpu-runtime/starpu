@@ -28,7 +28,7 @@ static void notify_pushed_task(unsigned sched_ctx, int worker);
 static void notify_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, size_t data_size, uint32_t footprint);
 static void notify_post_exec_hook(unsigned sched_ctx, int taskid);
 static void notify_idle_end(unsigned sched_ctx, int  worker);
-static void notify_submitted_job(struct starpu_task *task, unsigned footprint);
+static void notify_submitted_job(struct starpu_task *task, unsigned footprint, size_t data_size);
 static void notify_delete_context(unsigned sched_ctx);
 
 extern struct sc_hypervisor_policy idle_policy;
@@ -164,6 +164,9 @@ struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hyper
 		starpu_pthread_mutex_init(&hypervisor.sched_ctx_w[i].mutex, NULL);
 		hypervisor.optimal_v[i] = 0.0;
 
+		hypervisor.sched_ctx_w[i].ref_velocity[0] = -1.0;
+		hypervisor.sched_ctx_w[i].ref_velocity[1] = -1.0;
+
 		int j;
 		for(j = 0; j < STARPU_NMAXWORKERS; j++)
 		{
@@ -177,7 +180,6 @@ struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hyper
 			hypervisor.sched_ctx_w[i].elapsed_tasks[j] = 0;
 			hypervisor.sched_ctx_w[i].total_elapsed_flops[j] = 0.0;
 			hypervisor.sched_ctx_w[i].worker_to_be_removed[j] = 0;
-			hypervisor.sched_ctx_w[i].ref_velocity[j] = -1.0;
 		}
 	}
 
@@ -866,21 +868,21 @@ static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
 	return;
 }
 
-static void notify_submitted_job(struct starpu_task *task, uint32_t footprint)
+static void notify_submitted_job(struct starpu_task *task, uint32_t footprint, size_t data_size)
 {
 	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
 	hypervisor.sched_ctx_w[task->sched_ctx].submitted_flops += task->flops;
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 
 	if(hypervisor.policy.handle_submitted_job && !type_of_tasks_known)
-		hypervisor.policy.handle_submitted_job(task->cl, task->sched_ctx, footprint);
+		hypervisor.policy.handle_submitted_job(task->cl, task->sched_ctx, footprint, data_size);
 }
 
-void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint)
+void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, size_t data_size)
 {
 	type_of_tasks_known = 1;
 	if(hypervisor.policy.handle_submitted_job)
-		hypervisor.policy.handle_submitted_job(cl, sched_ctx, footprint);
+		hypervisor.policy.handle_submitted_job(cl, sched_ctx, footprint, data_size);
 }
 
 static void notify_delete_context(unsigned sched_ctx)
