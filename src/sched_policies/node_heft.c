@@ -211,6 +211,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 
 		struct starpu_sched_node * calibration_node = starpu_sched_node_calibration_create(NULL);
 		starpu_sched_node_add_child(calibration_node, worker_node);
+		calibration_node->workers_in_ctx = impl_node->workers;
 		starpu_sched_node_add_child(random, calibration_node);
 
 

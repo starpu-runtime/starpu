@@ -448,7 +448,7 @@ void starpu_sched_node_init_rec(struct starpu_sched_node * node)
 
 	for(i = 0; i < node->nchilds; i++)
 		starpu_bitmap_or(node->workers, node->childs[i]->workers);
-
+	set_is_homogeneous(node);
 	if(node->init_data)
 		node->init_data(node);
 }
