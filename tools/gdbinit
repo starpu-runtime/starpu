@@ -41,6 +41,7 @@ define starpu-print-task
   set language c
   set $task = (struct starpu_task *)$arg0
   set $job = (struct _starpu_job *)$task->starpu_private
+  set $status=0
   if $task->status == 0
     set $status="STARPU_TASK_INVALID"
   end
