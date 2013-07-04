@@ -18,6 +18,8 @@
 #ifndef __COPY_DRIVER_H__
 #define __COPY_DRIVER_H__
 
+#include <aio.h>
+
 #include <common/config.h>
 #include <datawizard/memory_nodes.h>
 #include "coherency.h"
@@ -69,6 +71,7 @@ union _starpu_async_channel_event
 #ifdef STARPU_USE_MIC
 	struct _starpu_mic_async_event mic_event;
 #endif
+	struct aiocb _starpu_aiocb_disk;
 };
 
 struct _starpu_async_channel

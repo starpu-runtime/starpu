@@ -54,25 +54,25 @@ starpu_unistd_o_direct_open (void *base, void *pos, size_t size)
 
 /* read the memory disk */
 static ssize_t 
-starpu_unistd_o_direct_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
+starpu_unistd_o_direct_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only read a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
 
 	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
 
-	return starpu_unistd_global_read (base, obj, buf, offset, size);
+	return starpu_unistd_global_read (base, obj, buf, offset, size, _starpu_aiocb_disk);
 }
 
 
 /* write on the memory disk */
 static ssize_t 
-starpu_unistd_o_direct_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
+starpu_unistd_o_direct_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only write a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
 
 	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
 
-	return starpu_unistd_global_write (base, obj, buf, offset, size);
+	return starpu_unistd_global_write (base, obj, buf, offset, size, _starpu_aiocb_disk);
 }
 
 

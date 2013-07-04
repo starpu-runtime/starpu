@@ -1,7 +1,4 @@
-/* StarPU --- Runtime system for heterogeneous multicore architectures.
- *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
+/* StarPU --- Runtime system for heterogeneous multicore architectures.  * * Copyright (C) 2010-2013  Université de Bordeaux 1 * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -400,15 +397,15 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 #endif
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_DISK_RAM):
-		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 		break;
 		
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_CPU_RAM):
-		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 		break;
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_DISK_RAM):	
-		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 		break;
 		
 	default:
@@ -485,9 +482,8 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
  */
 int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data)
 {
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	struct _starpu_async_channel *async_channel = async_data;
-#endif
+
 	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 
@@ -579,19 +575,19 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 		return _starpu_disk_copy_src_to_disk(
 			(void*) src + src_offset, src_node,
 			(void*) dst, dst_offset, dst_node,
-			size);
+			size, &async_channel->event._starpu_aiocb_disk);
 	}
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_CPU_RAM):
 		return _starpu_disk_copy_disk_to_src(
 			(void*) src, src_offset, src_node,
 			(void*) dst + dst_offset, dst_node,
-			size);
+			size, &async_channel->event._starpu_aiocb_disk);
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_DISK_RAM):
 		return _starpu_disk_copy_disk_to_disk(
 			(void*) src, src_offset, src_node,
 			(void*) dst, dst_offset, dst_node,
-			size);
+			size, &async_channel->event._starpu_aiocb_disk);
 
 	default:
 		STARPU_ABORT();

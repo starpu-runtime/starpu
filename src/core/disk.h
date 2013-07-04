@@ -28,11 +28,11 @@ void * _starpu_disk_alloc (unsigned node, size_t size);
 
 void _starpu_disk_free (unsigned node, void *obj, size_t size);
 
-ssize_t _starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size);
+ssize_t _starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk);
 
-ssize_t _starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size);
+ssize_t _starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk);
 
-int _starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size);
+int _starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size, void * _starpu_aiocb_disk);
 
 /* interface to compare memory disk */
 

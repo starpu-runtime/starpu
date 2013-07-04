@@ -122,22 +122,22 @@ _starpu_disk_free(unsigned node, void *obj, size_t size)
 }
 
 ssize_t 
-_starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size)
+_starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk)
 {
 	int pos = get_location_with_node(node);
-	return disk_register_list[pos]->functions->read(disk_register_list[pos]->base, obj, buf, offset, size);
+	return disk_register_list[pos]->functions->read(disk_register_list[pos]->base, obj, buf, offset, size, _starpu_aiocb_disk);
 }
 
 
 ssize_t 
-_starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size)
+_starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk)
 {
 	int pos = get_location_with_node(node);
-	return disk_register_list[pos]->functions->write(disk_register_list[pos]->base, obj, buf, offset, size);
+	return disk_register_list[pos]->functions->write(disk_register_list[pos]->base, obj, buf, offset, size, _starpu_aiocb_disk);
 }
 
 int
-_starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size)
+_starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size, void * _starpu_aiocb_disk)
 {
 	int pos_src = get_location_with_node(node_src);
 	int pos_dst = get_location_with_node(node_dst);

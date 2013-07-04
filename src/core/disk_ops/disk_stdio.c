@@ -170,14 +170,13 @@ starpu_stdio_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size S
 
 /* read the memory disk */
 static ssize_t 
-starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
+starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+		int res = fseek(tmp->file, offset, SEEK_SET); 
+		STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
 
-	int res = fseek(tmp->file, offset, SEEK_SET); 
-	STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
-
-	ssize_t nb = fread (buf, 1, size, tmp->file);
+		ssize_t nb = fread (buf, 1, size, tmp->file);
 
 	return nb;
 }
@@ -185,7 +184,7 @@ starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off
 
 /* write on the memory disk */
 static ssize_t 
-starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
+starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
@@ -241,7 +240,7 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(node, mem, buf, 0, SIZE_DISK_MIN);
+		_starpu_disk_write(node, mem, buf, 0, SIZE_DISK_MIN, NULL);
 		/* clean cache memory */
 		int res = fflush (tmp->file);
 		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
@@ -263,7 +262,7 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(node, mem, buf, rand() % (SIZE_DISK_MIN -1) , 1);
+		_starpu_disk_write(node, mem, buf, rand() % (SIZE_DISK_MIN -1) , 1, NULL);
 
 		int res = fflush (tmp->file);
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
