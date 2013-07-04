@@ -20,7 +20,7 @@ define starpu-print-job
   set $job = (struct _starpu_job *)$arg0
 
   printf "StarPU Job (%p)\n", $job
-  if ($job != NULL)
+  if ($job != 0)
     printf "\ttask:\t\t\t\t<%p>\n", $job->task
     printf "\tsubmitted:\t\t\t<%d>\n", $job->submitted
     printf "\tterminated:\t\t\t<%d>\n", $job->terminated
