@@ -63,8 +63,8 @@ starpu_stdio_alloc (void *base, size_t size)
 	strcat(baseCpy,tmp);
 
 #ifdef STARPU_HAVE_WINDOWS
-        _mktemp_s(baseCpy, size/sizeof(char));
-        id = open(baseCpy, obj->flags);
+        _mktemp(baseCpy, size/sizeof(char));
+        id = open(baseCpy, "rb+");
 #else
 	id = mkstemp(baseCpy);
 
@@ -88,7 +88,11 @@ starpu_stdio_alloc (void *base, size_t size)
 		return NULL;
 	}
 
+#ifdef STARPU_HAVE_WINDOWS
+	int val = _chsize(id, size);
+#else
 	int val = ftruncate(id,size);
+#endif
 	/* fail */
 	if (val < 0)
 	{
@@ -256,7 +260,11 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 		int res = fflush (tmp->file);
 		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
 
+#ifdef STARPU_HAVE_WINDOWS
+		res = _commit(tmp->descriptor);
+#else
 		res = fsync(tmp->descriptor);
+#endif
 		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
 	}
 	gettimeofday(&end, NULL);
@@ -278,7 +286,11 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 		int res = fflush (tmp->file);
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
 
+#ifdef STARPU_HAVE_WINDOWS
+		res = _commit(tmp->descriptor);
+#else
 		res = fsync(tmp->descriptor);
+#endif
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
 	}
 	gettimeofday(&end, NULL);
