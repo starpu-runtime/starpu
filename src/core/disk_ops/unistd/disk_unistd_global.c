@@ -203,7 +203,7 @@ starpu_unistd_global_unplug (void *base)
  int
 get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 {
-
+	int res;
 	unsigned iter;
 	double timing_slowness, timing_latency;
 	struct timeval start;
@@ -219,12 +219,22 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	/* fail to alloc */
 	if (mem == NULL)
 		return 0;
+	
+	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) mem;
 
 	/* Measure upload slowness */
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; ++iter)
 	{
 		_starpu_disk_write(node, mem, buf, 0, SIZE_BENCH);
+
+#ifdef STARPU_HAVE_WINDOWS
+		res = _commit(tmp->descriptor);
+#else
+		res = fsync(tmp->descriptor);
+#endif
+
+		STARPU_ASSERT_MSG(res == 0, "bandwidth computation failed");
 	}
 	gettimeofday(&end, NULL);
 	timing_slowness = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
@@ -242,6 +252,14 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	for (iter = 0; iter < NITER; ++iter)
 	{
 		_starpu_disk_write(node, mem, buf, rand() % (SIZE_BENCH -1) , getpagesize());
+
+#ifdef STARPU_HAVE_WINDOWS
+		res = _commit(tmp->descriptor);
+#else
+		res = fsync(tmp->descriptor);
+#endif
+
+		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
 	}
 	gettimeofday(&end, NULL);
 	timing_latency = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
