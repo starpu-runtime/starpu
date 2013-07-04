@@ -63,7 +63,7 @@ starpu_stdio_alloc (void *base, size_t size)
 	strcat(baseCpy,tmp);
 
 #ifdef STARPU_HAVE_WINDOWS
-        _mktemp(baseCpy, size/sizeof(char));
+        _mktemp(baseCpy);
         id = open(baseCpy, "rb+");
 #else
 	id = mkstemp(baseCpy);

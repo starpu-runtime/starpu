@@ -54,7 +54,7 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 	id = mkostemp(baseCpy, obj->flags);
 #elif STARPU_HAVE_WINDOWS
 	/* size in windows is a multiple of char */
-	_mktemp(baseCpy, size/sizeof(char));
+	_mktemp(baseCpy);
 	id = open(baseCpy, obj->flags);
 #else
 	STARPU_ASSERT(obj->flags == O_RDWR);
