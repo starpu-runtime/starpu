@@ -155,6 +155,8 @@ void starpu_sched_node_destroy_rec(struct starpu_sched_node * node, unsigned sch
 			if(!shared)//if not shared we want to destroy it and his childs
 				PUSH(child);
 		}
+		if(n->deinit_data)
+			n->deinit_data(n);
 		starpu_sched_node_destroy(n);
 	}
 	free(stack);
@@ -397,7 +399,6 @@ struct starpu_sched_node * starpu_sched_node_create(void)
 }
 void starpu_sched_node_destroy(struct starpu_sched_node *node)
 {
-	node->deinit_data(node);
 	int i,j;
 	for(i = 0; i < node->nchilds; i++)
 	{

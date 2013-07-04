@@ -149,8 +149,10 @@ struct starpu_heft_data
 	double beta;
 	double gamma;
 	double idle_power;
-	struct starpu_sched_node * no_perf_model_node;
-	struct starpu_sched_node * calibrating_node;
+	struct starpu_sched_node * (*no_perf_model_node_create)(void * arg_no_perf_model);
+	void * arg_no_perf_model;
+	struct starpu_sched_node * (*calibrating_node_create)(void * arg_calibrating_node);
+	void * arg_calibrating_node;
 };
 
 /* create a node with heft_data paremeters

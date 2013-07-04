@@ -5,8 +5,18 @@
 #include <float.h>
 
 
+struct _starpu_heft_data
+{
+	double alpha;
+	double beta;
+	double gamma;
+	double idle_power;
+	struct starpu_sched_node * no_perf_model_node;
+	struct starpu_sched_node * calibrating_node;
+};
 
-static double compute_fitness(struct starpu_heft_data * d, double exp_end, double best_exp_end, double max_exp_end, double transfer_len, double local_power)
+
+static double compute_fitness(struct _starpu_heft_data * d, double exp_end, double best_exp_end, double max_exp_end, double transfer_len, double local_power)
 {
 	return d->alpha * (exp_end - best_exp_end)
 		+ d->beta * transfer_len
@@ -16,7 +26,7 @@ static double compute_fitness(struct starpu_heft_data * d, double exp_end, doubl
 
 static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
-	struct starpu_heft_data * d = node->data;	
+	struct _starpu_heft_data * d = node->data;	
 	struct starpu_sched_node * best_node = NULL;
 	double estimated_ends[node->nchilds];
 	double estimated_ends_with_task[node->nchilds];
@@ -43,8 +53,8 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 											 estimated_ends[i],
 											 estimated_lengths[i],
 											 estimated_transfer_length[i]);
-			if(estimated_ends_with_task[i] < best_exp_end_with_task)
-				best_exp_end_with_task = estimated_ends_with_task[i];
+			if(estimated_ends_with_task[i] < best_exp_end_with_task)	
+			best_exp_end_with_task = estimated_ends_with_task[i];
 			if(estimated_ends_with_task[i] > max_exp_end_with_task)
 				max_exp_end_with_task = estimated_ends_with_task[i];
 			suitable_nodes[nsuitable_nodes++] = i;
@@ -140,13 +150,33 @@ void init_heft_data(struct starpu_sched_node *node)
 					    idle_power_minimum, idle_power_maximum, param_modified);
 #endif /* !STARPU_USE_TOP */
 
-	struct starpu_heft_data * old = node->data;
-	struct starpu_heft_data * data = malloc(sizeof(*data));
-	*data = *old;
-	data->alpha = alpha;
-	data->beta = beta;
-	data->gamma = _gamma;
-	data->idle_power = idle_power;
+	struct starpu_heft_data * params = node->data;
+	struct _starpu_heft_data * data = malloc(sizeof(*data));
+	data->alpha = params->alpha;
+	data->beta = params->beta;
+	data->gamma = params->gamma;
+	data->idle_power = params->idle_power;
+
+	data->no_perf_model_node = params->no_perf_model_node_create(params->arg_no_perf_model);
+	data->calibrating_node = params->calibrating_node_create(params->arg_calibrating_node);
+
+	int i;
+	for(i = 0; i < node->nchilds; i++)
+	{
+		starpu_sched_node_add_child(data->no_perf_model_node, node->childs[i]);
+		starpu_sched_node_add_child(data->calibrating_node, node->childs[i]);
+	}
+	starpu_bitmap_destroy(data->no_perf_model_node->workers_in_ctx);
+	starpu_bitmap_destroy(data->no_perf_model_node->workers);
+	data->no_perf_model_node->workers_in_ctx = node->workers_in_ctx;
+	data->no_perf_model_node->workers = node->workers;
+
+	starpu_bitmap_destroy(data->calibrating_node->workers);
+	starpu_bitmap_destroy(data->calibrating_node->workers_in_ctx);
+	data->calibrating_node->workers = data->calibrating_node->workers_in_ctx = node->workers;
+
+	data->no_perf_model_node->init_data(data->no_perf_model_node);
+	data->calibrating_node->init_data(data->calibrating_node);
 
 	node->data = data;
 	node->init_data = NULL;
@@ -155,6 +185,19 @@ void init_heft_data(struct starpu_sched_node *node)
 
 void deinit_heft_data(struct starpu_sched_node * node)
 {
+	struct _starpu_heft_data * data = node->data;
+	data->calibrating_node->workers = NULL;
+	data->calibrating_node->workers_in_ctx = NULL;
+
+	data->no_perf_model_node->workers = NULL;
+	data->no_perf_model_node->workers_in_ctx = NULL;
+
+	data->calibrating_node->deinit_data(data->calibrating_node);
+	data->no_perf_model_node->deinit_data(data->no_perf_model_node);
+
+	starpu_sched_node_destroy(data->no_perf_model_node);
+	starpu_sched_node_destroy(data->calibrating_node);
+
 	free(node->data);
 }
 
@@ -190,8 +233,10 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 			.beta = 1.0,
 			.gamma = 1.0,
 			.idle_power = 200,
-			random,
-			random
+			.no_perf_model_node_create = starpu_sched_node_random_create,
+			. arg_no_perf_model = NULL,
+			.calibrating_node_create = starpu_sched_node_random_create,
+			.arg_calibrating_node = NULL
 		};
 	t->root = starpu_sched_node_heft_create(&data);
 	

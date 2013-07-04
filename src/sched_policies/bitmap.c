@@ -39,8 +39,11 @@ struct starpu_bitmap * starpu_bitmap_create(void)
 }
 void starpu_bitmap_destroy(struct starpu_bitmap * b)
 {
-	free(b->bits);
-	free(b);
+	if(b)
+	{
+		free(b->bits);
+		free(b);
+	}
 }
 
 void starpu_bitmap_set(struct starpu_bitmap * b, int e)
