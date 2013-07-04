@@ -192,6 +192,7 @@ dist_pdf_DATA = $(DOX_PDF)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
+	cp $(top_srcdir)/doc/doxygen/chapters/*pdf $(DOX_LATEX_DIR)
 	cd $(DOX_LATEX_DIR); \
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
 	sed -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
