@@ -63,3 +63,4 @@ INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 
 LATEX_HEADER           = @top_srcdir@/doc/doxygen/refman.tex
 
+IMAGE_PATH             = @top_srcdir@/doc/doxygen/chapters

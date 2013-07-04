@@ -498,6 +498,7 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 		}
 	}
 
+/*if an optimal speed has not been computed yet do it now */
 	if(!has_opt_v)
 	{
 		int nw = 1;
@@ -533,6 +534,8 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 		}
 	}
 
+/* if we have an optimal speed for each type of worker compare the monitored one with the 
+   theoretical one */
 	if(has_opt_v)
 	{
 		for(i = 0; i < nsched_ctxs; i++)
@@ -553,7 +556,9 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 				return 1;
 		}
 	}
-	else
+	else /* if we have not been able to compute a theoretical velocity consider the env variable
+		SC_MAX_VELOCITY_GAP and compare the speed of the contexts, whenever the difference
+		btw them is greater than the max value the function returns true */
 	{
 		for(i = 0; i < nsched_ctxs; i++)
 		{
@@ -575,7 +580,7 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 						{
 							double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v;
 							double max_vel = _get_max_velocity_gap();
-							if(gap > max_vel-1 && gap < max_vel+1)
+							if(gap > max_vel)
 								return 1;
 						}
 					}

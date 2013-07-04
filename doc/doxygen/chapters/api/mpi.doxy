@@ -98,6 +98,22 @@ communication completes, its resources are automatically released back
 to the system, there is no need to test or to wait for the completion
 of the request.
 
+\fn int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg, int sequential_consistency)
+\ingroup API_MPI_Support
+Posts a nonblocking receive in \p data_handle from the node \p source
+using the message tag \p mpi_tag within the communicator \p comm. On
+completion, the \p callback function is called with the argument \p
+arg.
+The parameter \p sequential_consistency allows to enable or disable
+the sequential consistency for \p data handle (sequential consistency
+will be enabled or disabled based on the value of the parameter \p
+sequential_consistency and the value of the sequential consistency
+defined for \p data_handle).
+Similarly to the pthread detached functionality, when a detached
+communication completes, its resources are automatically released back
+to the system, there is no need to test or to wait for the completion
+of the request.
+
 \fn int starpu_mpi_wait(starpu_mpi_req *req, MPI_Status *status)
 \ingroup API_MPI_Support
 Returns when the operation identified by request \p req is complete.

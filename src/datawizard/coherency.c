@@ -241,6 +241,7 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 	if ((starpu_node_get_kind(src_node) == STARPU_DISK_RAM && starpu_node_get_kind(dst_node) == STARPU_CPU_RAM) ||
 	    (starpu_node_get_kind(src_node) == STARPU_CPU_RAM && starpu_node_get_kind(dst_node) == STARPU_DISK_RAM))
 	{
+		/* FIXME: not necessarily a worker :/ */
 		*handling_node = STARPU_MAIN_RAM;
 		return 1;
 	}
@@ -284,12 +285,12 @@ static int determine_request_path(starpu_data_handle_t handle,
 		/* GPU -> RAM */
 		src_nodes[0] = src_node;
 		dst_nodes[0] = STARPU_MAIN_RAM;
-		handling_nodes[0] = src_node;
+		handling_nodes[0] = starpu_node_get_kind(src_node) == STARPU_DISK_RAM ? dst_node : src_node;
 
 		/* RAM -> GPU */
 		src_nodes[1] = STARPU_MAIN_RAM;
 		dst_nodes[1] = dst_node;
-		handling_nodes[1] = dst_node;
+		handling_nodes[1] = starpu_node_get_kind(dst_node) == STARPU_DISK_RAM ? src_node : dst_node;
 
 		return 2;
 	}

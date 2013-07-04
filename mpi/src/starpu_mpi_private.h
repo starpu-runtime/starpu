@@ -144,6 +144,8 @@ LIST_TYPE(_starpu_mpi_req,
 
 	int is_internal_req;
 	struct _starpu_mpi_req *internal_req;
+
+	int sequential_consistency;
 );
 
 #ifdef __cplusplus

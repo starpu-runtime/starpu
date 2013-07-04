@@ -26,6 +26,7 @@ int main(int argc, char **argv)
 {
 	int ret, rank, size, i;
 	starpu_data_handle_t tab_handle[NB];
+	int value[NB];
 
 	MPI_Init(NULL, NULL);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -47,7 +48,8 @@ int main(int argc, char **argv)
 
 	for(i=0 ; i<NB ; i++)
 	{
-		starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
+		value[i]=i*rank;
+		starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&value[i], sizeof(int));
 		starpu_data_set_tag(tab_handle[i], i);
 	}
 
@@ -79,6 +81,8 @@ int main(int argc, char **argv)
 		for(i=0 ; i<NB ; i++)
 		{
 			starpu_mpi_wait(&req[i], NULL);
+			int *rvalue = (int *)starpu_data_get_local_ptr(tab_handle[i]);
+			STARPU_ASSERT_MSG(*rvalue==i*other_rank, "Incorrect received value: %d != %d\n", *rvalue, i*other_rank);
 		}
 	}
 

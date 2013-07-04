@@ -44,8 +44,6 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 {
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned nbasic_workers = starpu_worker_get_count();
-	unsigned ncombined_workers = starpu_combined_worker_get_count();
-	unsigned ntotal_workers = nbasic_workers + ncombined_workers;
 		
 	_starpu_sched_find_worker_combinations(workerids, nworkers);
 
@@ -71,7 +69,7 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 
 	for (i = 0; i < ncombinedworkers; i++)
 	{
-		workerid = ntotal_workers + i;
+		workerid = nbasic_workers + i;
 
 		/* Note that we ASSUME that the workers are sorted by size ! */
 		int *workers;

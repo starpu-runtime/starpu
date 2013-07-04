@@ -207,6 +207,9 @@ static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_
 	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
 	     global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
 	else
+#ifdef STARPU_DEVEL
+#warning devid looks wrong
+#endif
 	     global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.local_memory;
 
 #else /* STARPU_HAVE_HWLOC */

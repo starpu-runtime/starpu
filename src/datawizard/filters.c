@@ -148,6 +148,9 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		/* This is lazy allocation, allocate it now in main RAM, so as
 		 * to have somewhere to gather pieces later */
 		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[0], 0);
+#ifdef STARPU_DEVEL
+#warning we should reclaim memory if allocation failed
+#endif
 		STARPU_ASSERT(!ret);
 	}
 

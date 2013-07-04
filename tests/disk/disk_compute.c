@@ -27,6 +27,10 @@
 #include <unistd.h>
 #include <math.h>
 
+#ifdef STARPU_HAVE_WINDOWS
+        #include <io.h>
+#endif 
+
 #define NX (1024)
 
 int main(int argc, char **argv)
@@ -61,7 +65,7 @@ int main(int argc, char **argv)
 
 
 	/* register a disk */
-	int new_dd = starpu_disk_register(&starpu_disk_unistd_o_direct_ops, (void *) base, 1024*1024*1);
+	int new_dd = starpu_disk_register(&starpu_disk_unistd_ops, (void *) base, 1024*1024*1);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 	
@@ -99,7 +103,11 @@ int main(int argc, char **argv)
 	fclose(f);
 
 	int descriptor = open(path_file_start, O_RDWR);
-	fdatasync(descriptor);
+#ifdef STARPU_HAVE_WINDOWS
+	_commit(descriptor);
+#else
+	fsync(descriptor);
+#endif
 	close(descriptor);
 
 	/* create a file to store result */
@@ -114,8 +122,12 @@ int main(int argc, char **argv)
 	fclose(f);
 
         descriptor = open(path_file_end, O_RDWR);
-        fdatasync(descriptor);
-        close(descriptor);
+#ifdef STARPU_HAVE_WINDOWS
+        _commit(descriptor);
+#else
+        fsync(descriptor);
+#endif
+	close(descriptor);
 
 	/* And now, you want to use your datas in StarPU */
 	/* Open the file ON the disk */

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009, 2011  Université de Bordeaux 1
+# Copyright (C) 2009, 2011, 2013  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # Permission is granted to copy, distribute and/or modify this document
@@ -109,7 +109,7 @@ chapters/version.sty: $(chapters)
 	@if test -s timestamp_updated ; then \
 		echo "\newcommand{\STARPUUPDATED}{"`cat timestamp_updated`"}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	else \
-		echo "\newcommand{\STARPUUPDATED}{unknown_date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
+		echo "\newcommand{\STARPUUPDATED}{unknown date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	fi
 	@echo "\newcommand{\STARPUVERSION}{$(VERSION)}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty
 	@-for f in timestamp timestamp_updated timestamp_updated_month ; do \
@@ -138,6 +138,15 @@ EXTRA_DIST	= 		\
 	$(chapters) 		\
 	chapters/version.sty	\
 	chapters/version.html	\
+	chapters/tasks_size_overhead.png	\
+	chapters/tasks_size_overhead.eps	\
+	chapters/tasks_size_overhead.pdf	\
+	chapters/starpu_non_linear_memset_regression_based.png	\
+	chapters/starpu_non_linear_memset_regression_based.eps	\
+	chapters/starpu_non_linear_memset_regression_based.pdf	\
+	chapters/starpu_starpu_slu_lu_model_11.png	\
+	chapters/starpu_starpu_slu_lu_model_11.eps	\
+	chapters/starpu_starpu_slu_lu_model_11.pdf	\
 	doxygen.cfg 		\
 	refman.tex
 
@@ -194,6 +203,7 @@ dist_pdf_DATA = $(DOX_PDF)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
+	cp $(top_srcdir)/doc/doxygen/chapters/*pdf $(DOX_LATEX_DIR)
 	cd $(DOX_LATEX_DIR); \
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
 	sed -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\

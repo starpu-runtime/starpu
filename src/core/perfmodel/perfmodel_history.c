@@ -1078,7 +1078,7 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 
 	regmodel = &model->per_arch[arch][nimpl].regression;
 
-	if (regmodel->valid)
+	if (regmodel->valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
                 exp = regmodel->alpha*pow((double)size, regmodel->beta);
 
 	return exp;

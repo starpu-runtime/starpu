@@ -32,8 +32,12 @@ static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type
 #endif
 static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle,
 							int dest, int mpi_tag, MPI_Comm comm,
-							unsigned detached, void (*callback)(void *), void *arg);
-static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, unsigned detached, void (*callback)(void *), void *arg);
+							unsigned detached, void (*callback)(void *), void *arg,
+							int sequential_consistency);
+static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle,
+							int source, int mpi_tag, MPI_Comm comm,
+							unsigned detached, void (*callback)(void *), void *arg,
+							int sequential_consistency);
 static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req);
 
 /* The list of requests that have been newly submitted by the application */
@@ -73,6 +77,7 @@ struct _starpu_mpi_copy_handle
  /********************************************************/
 
 static struct _starpu_mpi_req *_starpu_mpi_req_hashmap = NULL;
+/** stores data which have been received by MPI but have not been requested by the application */
 static struct _starpu_mpi_copy_handle *_starpu_mpi_copy_handle_hashmap = NULL;
 
 static struct _starpu_mpi_req* find_req(int mpi_tag)
@@ -99,7 +104,7 @@ static void add_req(struct _starpu_mpi_req *req)
 	{
 		_STARPU_MPI_DEBUG(3, "Error add_req : request %p with tag %d already in the hashmap. \n", req, req->mpi_tag);
 		int seq_const = starpu_data_get_sequential_consistency_flag(req->data_handle);
-		if (seq_const)
+		if (seq_const &&  req->sequential_consistency)
 		{
 			STARPU_ASSERT_MSG(!test_req, "Error add_req : request %p with tag %d wanted to be added to the hashmap, while another request %p with the same tag is already in it. \n Sequential consistency is activated : this is not supported by StarPU.", req, req->mpi_tag, test_req);
 		}
@@ -213,6 +218,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
 	req->internal_req = NULL;
 	req->is_internal_req = 0;
 	req->envelope = NULL;
+	req->sequential_consistency = 1;
  }
 
  /********************************************************/
@@ -225,7 +231,8 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
 							       int srcdst, int mpi_tag, MPI_Comm comm,
 							       unsigned detached, void (*callback)(void *), void *arg,
 							       enum _starpu_mpi_request_type request_type, void (*func)(struct _starpu_mpi_req *),
-							       enum starpu_data_access_mode mode)
+							       enum starpu_data_access_mode mode,
+							       int sequential_consistency)
  {
 
 	 _STARPU_MPI_LOG_IN();
@@ -245,11 +252,12 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
 	 req->callback = callback;
 	 req->callback_arg = arg;
 	 req->func = func;
+	 req->sequential_consistency = sequential_consistency;
 
 	 /* Asynchronously request StarPU to fetch the data in main memory: when
 	  * it is available in main memory, _starpu_mpi_submit_new_mpi_request(req) is called and
 	  * the request is actually submitted */
-	 starpu_data_acquire_cb(data_handle, mode, _starpu_mpi_submit_new_mpi_request, (void *)req);
+	 starpu_data_acquire_cb_sequential_consistency(data_handle, mode, _starpu_mpi_submit_new_mpi_request, (void *)req, sequential_consistency);
 
 	 _STARPU_MPI_LOG_OUT();
 	 return req;
@@ -343,9 +351,10 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
 
 static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle,
 							int dest, int mpi_tag, MPI_Comm comm,
-							unsigned detached, void (*callback)(void *), void *arg)
+							unsigned detached, void (*callback)(void *), void *arg,
+							int sequential_consistency)
 {
-	return _starpu_mpi_isend_irecv_common(data_handle, dest, mpi_tag, comm, detached, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func, STARPU_R);
+	return _starpu_mpi_isend_irecv_common(data_handle, dest, mpi_tag, comm, detached, callback, arg, SEND_REQ, _starpu_mpi_isend_size_func, STARPU_R, sequential_consistency);
 }
 
 int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int mpi_tag, MPI_Comm comm)
@@ -354,7 +363,7 @@ int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 	STARPU_ASSERT_MSG(public_req, "starpu_mpi_isend needs a valid starpu_mpi_req");
 
 	struct _starpu_mpi_req *req;
-	req = _starpu_mpi_isend_common(data_handle, dest, mpi_tag, comm, 0, NULL, NULL);
+	req = _starpu_mpi_isend_common(data_handle, dest, mpi_tag, comm, 0, NULL, NULL, 1);
 
 	STARPU_ASSERT_MSG(req, "Invalid return for _starpu_mpi_isend_common");
 	*public_req = req;
@@ -367,7 +376,7 @@ int starpu_mpi_isend_detached(starpu_data_handle_t data_handle,
 			      int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
 {
 	_STARPU_MPI_LOG_IN();
-	_starpu_mpi_isend_common(data_handle, dest, mpi_tag, comm, 1, callback, arg);
+	_starpu_mpi_isend_common(data_handle, dest, mpi_tag, comm, 1, callback, arg, 1);
 
 	_STARPU_MPI_LOG_OUT();
 	return 0;
@@ -420,9 +429,9 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, unsigned detached, void (*callback)(void *), void *arg)
+static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, unsigned detached, void (*callback)(void *), void *arg, int sequential_consistency)
 {
-	return _starpu_mpi_isend_irecv_common(data_handle, source, mpi_tag, comm, detached, callback, arg, RECV_REQ, _starpu_mpi_irecv_data_func, STARPU_W);
+	return _starpu_mpi_isend_irecv_common(data_handle, source, mpi_tag, comm, detached, callback, arg, RECV_REQ, _starpu_mpi_irecv_data_func, STARPU_W, sequential_consistency);
 }
 
 int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int source, int mpi_tag, MPI_Comm comm)
@@ -438,7 +447,7 @@ int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 		starpu_data_set_tag(data_handle, mpi_tag);
 
 	struct _starpu_mpi_req *req;
-	req = _starpu_mpi_irecv_common(data_handle, source, mpi_tag, comm, 0, NULL, NULL);
+	req = _starpu_mpi_irecv_common(data_handle, source, mpi_tag, comm, 0, NULL, NULL, 1);
 
 	STARPU_ASSERT_MSG(req, "Invalid return for _starpu_mpi_irecv_common");
 	*public_req = req;
@@ -458,7 +467,15 @@ int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, int 
 	if (tag == -1)
 		starpu_data_set_tag(data_handle, mpi_tag);
 
-	_starpu_mpi_irecv_common(data_handle, source, mpi_tag, comm, 1, callback, arg);
+	_starpu_mpi_irecv_common(data_handle, source, mpi_tag, comm, 1, callback, arg, 1);
+	_STARPU_MPI_LOG_OUT();
+	return 0;
+}
+
+int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg, int sequential_consistency)
+{
+	_STARPU_MPI_LOG_IN();
+	_starpu_mpi_irecv_common(data_handle, source, mpi_tag, comm, 1, callback, arg, sequential_consistency);
 
 	_STARPU_MPI_LOG_OUT();
 	return 0;
@@ -527,8 +544,7 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&(req->req_mutex));
 
 	/* Initialize the request structure */
-	STARPU_PTHREAD_MUTEX_INIT(&(waiting_req->req_mutex), NULL);
-	STARPU_PTHREAD_COND_INIT(&(waiting_req->req_cond), NULL);
+	 _starpu_mpi_request_init(waiting_req);
 	waiting_req->status = status;
 	waiting_req->other_request = req;
 	waiting_req->func = _starpu_mpi_wait_func;
@@ -759,12 +775,12 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 		{
 			if (req->request_type == SEND_REQ)
 			{
-				// We already know the request to send the size is completed, we just call MPI_Test to make sure that the request object is deallocated
-				MPI_Status status;
-				int flag;
-				ret = MPI_Test(&req->size_req, &flag, &status);
-				STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Test returning %d", ret);
-				STARPU_ASSERT_MSG(flag, "MPI_Test returning flag %d", flag);
+				// We need to make sure the communication for sending the size
+				// has completed, as MPI can re-order messages, let's call
+				// MPI_Wait to make sure data have been sent
+				ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
+				STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %d", ret);
+
 			}
 			if (req->request_type == RECV_REQ)
 				// req->ptr is freed by starpu_data_unpack
@@ -1036,14 +1052,14 @@ static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 {
 	if (req->detached)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		/* put the submitted request into the list of pending requests
+		 * so that it can be handled by the progression mechanisms */
+		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 		_starpu_mpi_req_list_push_front(detached_requests, req);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
 		starpu_wake_all_blocked_workers();
 
-		/* put the submitted request into the list of pending requests
-		 * so that it can be handled by the progression mechanisms */
 		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -1141,7 +1157,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		unsigned block = _starpu_mpi_req_list_empty(new_requests) && (HASH_COUNT(_starpu_mpi_req_hashmap) == 0);
 
 #ifndef STARPU_MPI_ACTIVITY
+		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 		block = block && _starpu_mpi_req_list_empty(detached_requests);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 #endif /* STARPU_MPI_ACTIVITY */
 
 		if (block)
@@ -1230,7 +1248,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					add_chandle(chandle);
 
 					_STARPU_MPI_DEBUG(3, "Posting internal detached irecv on copy_handle with tag %d from src %d ..\n", chandle->mpi_tag, status.MPI_SOURCE);
-					chandle->req = _starpu_mpi_irecv_common(chandle->handle, status.MPI_SOURCE, chandle->mpi_tag, MPI_COMM_WORLD, 1, NULL, NULL);
+					chandle->req = _starpu_mpi_irecv_common(chandle->handle, status.MPI_SOURCE, chandle->mpi_tag, MPI_COMM_WORLD, 1, NULL, NULL, 1);
 					chandle->req->is_internal_req = 1;
 
 					// We wait until the request is pushed in the
