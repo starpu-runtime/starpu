@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	fclose(f);
 
 	int descriptor = open(path_file_start, O_RDWR);
-#if STARPU_HAVE_WINDOWS
+#ifdef STARPU_HAVE_WINDOWS
 	_commit(descriptor);
 #else
 	fsync(descriptor);
@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 	fclose(f);
 
         descriptor = open(path_file_end, O_RDWR);
-#if STARPU_HAVE_WINDOWS
+#ifdef STARPU_HAVE_WINDOWS
         _commit(descriptor);
 #else
         fsync(descriptor);
