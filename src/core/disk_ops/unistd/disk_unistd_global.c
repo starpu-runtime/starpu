@@ -26,7 +26,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/disk_ops/unistd/disk_unistd_global.h>
 
-#if STARPU_HAVE_WINDOWS
+#ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
 #endif
 
@@ -52,7 +52,7 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 	strcat(baseCpy,template);
 #ifdef STARPU_LINUX_SYS
 	id = mkostemp(baseCpy, obj->flags);
-#elif STARPU_HAVE_WINDOWS
+#elif defined(STARPU_HAVE_WINDOWS)
 	/* size in windows is a multiple of char */
 	_mktemp(baseCpy);
 	id = open(baseCpy, obj->flags);
