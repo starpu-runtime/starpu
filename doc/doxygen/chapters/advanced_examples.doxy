@@ -390,7 +390,9 @@ starpu_perfmodel::size_base however permits the application to
 override that, when for instance some of the data do not matter for
 task cost (e.g. mere reference table), or when using sparse
 structures (in which case it is the number of non-zeros which matter), or when
-there is some hidden parameter such as the number of iterations, etc.
+there is some hidden parameter such as the number of iterations, or when the application
+actually has a very good idea of the complexity of the algorithm, and just not
+the speed of the processor, etc.
 The example in the directory <c>examples/pi</c> uses this to include
 the number of iterations in the base.
 

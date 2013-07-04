@@ -140,10 +140,13 @@ EXTRA_DIST	= 		\
 	chapters/version.html	\
 	chapters/tasks_size_overhead.png	\
 	chapters/tasks_size_overhead.eps	\
+	chapters/tasks_size_overhead.pdf	\
 	chapters/starpu_non_linear_memset_regression_based.png	\
 	chapters/starpu_non_linear_memset_regression_based.eps	\
+	chapters/starpu_non_linear_memset_regression_based.pdf	\
 	chapters/starpu_starpu_slu_lu_model_11.png	\
 	chapters/starpu_starpu_slu_lu_model_11.eps	\
+	chapters/starpu_starpu_slu_lu_model_11.pdf	\
 	doxygen.cfg 		\
 	refman.tex
 
