@@ -131,13 +131,13 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 	int start = wsd->last_push_child;
 	int i = start;
 	i = (i+1)%node->nchilds;
+
 	STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
 	ret = _starpu_prio_deque_push_task(wsd->fifos + i, task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
 
-	node->available(node);
 	wsd->last_push_child = (start + 1) % node->nchilds;
-	node->childs[i]->available(node->childs[i]);
+	node->available(node);
 	return ret;
 }
 

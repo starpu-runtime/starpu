@@ -284,11 +284,13 @@ int starpu_sched_node_worker_push_task(struct starpu_sched_node * node, struct s
 	t->ntasks = 1;
 
 	task->workerid = starpu_bitmap_first(node->workers);
+#if 0 /* dead lock problem */
 	if (starpu_get_prefetch_flag())
 	{
 		unsigned memory_node = starpu_worker_get_memory_node(task->workerid);
 		starpu_prefetch_task_input_on_node(task, memory_node);
 	}
+#endif
 	STARPU_PTHREAD_MUTEX_LOCK(&data->list->mutex);
 	_starpu_worker_task_list_push(data->list, t);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->list->mutex);
