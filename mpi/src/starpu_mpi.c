@@ -544,7 +544,7 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&(req->req_mutex));
 
 	/* Initialize the request structure */
-	 _starpu_mpi_request_init(req);
+	 _starpu_mpi_request_init(waiting_req);
 	waiting_req->status = status;
 	waiting_req->other_request = req;
 	waiting_req->func = _starpu_mpi_wait_func;
