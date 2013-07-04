@@ -22,6 +22,7 @@ struct starpu_unistd_global_obj {
         char * path;
         double size;
 	int flags;
+	starpu_pthread_mutex_t mutex;
 };
 
  void * starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, size_t size STARPU_ATTRIBUTE_UNUSED);

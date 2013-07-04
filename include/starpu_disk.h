@@ -24,8 +24,8 @@ struct starpu_disk_ops {
 	 void    (*free)   (void *base, void *obj, size_t size);
 	 void *  (*open)   (void *base, void *pos, size_t size);     /* open an existing file */
 	 void    (*close)  (void *base, void *obj, size_t size);
-	ssize_t  (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk); 
-	ssize_t  (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk); 
+	ssize_t  (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size, void * async); 
+	ssize_t  (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size, void * async); 
 	/* readv, writev, read2d, write2d, etc. */
 	 void *  (*plug)   (void *parameter);
 	 void    (*unplug) (void *base);

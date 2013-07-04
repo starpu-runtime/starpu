@@ -83,6 +83,8 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 		return NULL;
 	}
 
+	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
+
 	obj->descriptor = id;
 	obj->path = baseCpy;
 	obj->size = size;
@@ -96,6 +98,8 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 starpu_unistd_global_free (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+
+	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
 
 	unlink(tmp->path);
 	close(tmp->descriptor);
@@ -127,6 +131,8 @@ starpu_unistd_global_open (struct starpu_unistd_global_obj * obj, void *base, vo
 		return NULL;
 	}
 
+	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
+
 	obj->descriptor = id;
 	obj->path = baseCpy;
 	obj->size = size;
@@ -142,6 +148,8 @@ starpu_unistd_global_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_
 {
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
 
+	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
+
 	close(tmp->descriptor);
 	free(tmp->path);
 	free(tmp);	
@@ -154,12 +162,16 @@ starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *
 {
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+
 	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd read failed");
 
 	ssize_t nb = read(tmp->descriptor, buf, size);
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd read failed");
 	
+	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+
 	return nb;
 }
 
@@ -170,11 +182,15 @@ starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const
 {
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+
 	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed");
 
 	ssize_t nb = write (tmp->descriptor, buf, size);
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed");
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 
 	return nb;
 }

@@ -37,6 +37,7 @@ struct starpu_stdio_obj {
 	FILE * file;
 	char * path;
 	double size;
+	starpu_pthread_mutex_t mutex;
 };
 
 
@@ -102,6 +103,8 @@ starpu_stdio_alloc (void *base, size_t size)
 		return NULL;
 	}
 
+	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
+
 	obj->descriptor = id;
 	obj->file = f;
 	obj->path = baseCpy;
@@ -116,6 +119,8 @@ static void
 starpu_stdio_free (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+
+	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
 
 	unlink(tmp->path);
 	fclose(tmp->file);
@@ -159,6 +164,8 @@ starpu_stdio_open (void *base, void *pos, size_t size)
 		return NULL;
 	}
 
+	STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
+
 	obj->descriptor = id;
 	obj->file = f;
 	obj->path = baseCpy;
@@ -175,6 +182,8 @@ starpu_stdio_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size S
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
+	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
+
 	fclose(tmp->file);
 	close(tmp->descriptor);
 	free(tmp->path);
@@ -187,10 +196,15 @@ static ssize_t
 starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
-		int res = fseek(tmp->file, offset, SEEK_SET); 
+	
+	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+
+	int res = fseek(tmp->file, offset, SEEK_SET); 
 		STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
 
 		ssize_t nb = fread (buf, 1, size, tmp->file);
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 
 	return nb;
 }
@@ -202,10 +216,14 @@ starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *b
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+
 	int res = fseek(tmp->file, offset, SEEK_SET); 
 	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
 
 	ssize_t nb = fwrite (buf, 1, size, tmp->file);
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 
 	return nb;
 }
