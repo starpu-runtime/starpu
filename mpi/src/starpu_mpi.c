@@ -1052,14 +1052,14 @@ static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 {
 	if (req->detached)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		/* put the submitted request into the list of pending requests
+		 * so that it can be handled by the progression mechanisms */
+		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 		_starpu_mpi_req_list_push_front(detached_requests, req);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
 		starpu_wake_all_blocked_workers();
 
-		/* put the submitted request into the list of pending requests
-		 * so that it can be handled by the progression mechanisms */
 		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -1157,7 +1157,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		unsigned block = _starpu_mpi_req_list_empty(new_requests) && (HASH_COUNT(_starpu_mpi_req_hashmap) == 0);
 
 #ifndef STARPU_MPI_ACTIVITY
+		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 		block = block && _starpu_mpi_req_list_empty(detached_requests);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 #endif /* STARPU_MPI_ACTIVITY */
 
 		if (block)
