@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <math.h>
 
-#if STARPU_HAVE_WINDOWS
+#ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
 #endif 
 
