@@ -239,6 +239,7 @@ int main(int argc, char **argv)
 
 			starpu_data_unregister(matrix_handle[0]);
 			starpu_data_unregister(matrix_handle[1]);
+			free(matrix);
 		}
 
 		{
@@ -266,6 +267,7 @@ int main(int argc, char **argv)
 
 			starpu_data_unregister(block_handle[0]);
 			starpu_data_unregister(block_handle[1]);
+			free(block);
 		}
 	}
 	else if (rank == 1)
