@@ -976,13 +976,18 @@ static unsigned _starpu_mpi_progression_hook_func(void *arg STARPU_ATTRIBUTE_UNU
 {
 	unsigned may_block = 1;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 	if (!_starpu_mpi_req_list_empty(detached_requests))
 	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		may_block = 0;
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	else
+		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
+
 
 	return may_block;
 }
