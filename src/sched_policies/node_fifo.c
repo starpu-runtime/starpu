@@ -123,59 +123,21 @@ static struct starpu_task * pop_task(struct starpu_sched_node * node, unsigned s
 		return father->pop_task(father,sched_ctx_id);
 	return NULL;
 }
-/*
-struct starpu_task_list  starpu_sched_node_fifo_get_non_executable_tasks(struct starpu_sched_node * node)
-{
-	struct starpu_task_list list;
-	starpu_task_list_init(&list);
-	struct _starpu_fifo_data * data = node->data;
-	struct _starpu_prio_deque * fifo = data->fifo;
-	struct starpu_task * task;
-	for (task  = starpu_task_list_begin(&fifo->taskq);
-	     task != starpu_task_list_end(&fifo->taskq);
-	     task  = starpu_task_list_next(task))
-	{
-		STARPU_ASSERT(task);
-		if(!starpu_sched_node_can_execute_task(node, task))
-		{
-			starpu_task_list_erase(&fifo->taskq, task);
-			starpu_task_list_push_front(&list, task);
-			fifo->ntasks--;
-		}
-	}
-	return list;
-}
-*/
-void init_fifo_data(struct starpu_sched_node * node)
-{
-	STARPU_ASSERT(starpu_sched_node_is_fifo(node));
-	struct _starpu_fifo_data * data = malloc(sizeof(*data));
-	_starpu_prio_deque_init(&data->fifo);
-	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
-	node->data = data;
-	node->init_data = NULL;
-}
-void deinit_fifo_data(struct starpu_sched_node * node)
-{
-	struct _starpu_fifo_data * data = node->data;
-	STARPU_PTHREAD_MUTEX_DESTROY(&data->mutex);
-	_starpu_prio_deque_destroy(&data->fifo);
-	free(data);
-}
-
 
 int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
 {
-	return node->deinit_data == deinit_fifo_data;
+	return node->push_task == push_task;
 }
 
 struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
+	struct _starpu_fifo_data * data = malloc(sizeof(*data));
+	_starpu_prio_deque_init(&data->fifo);
+	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
+	node->data = data;
 	node->estimated_end = fifo_estimated_end;
 	node->estimated_load = estimated_load;
-	node->init_data = init_fifo_data;
-	node->deinit_data = deinit_fifo_data;
 	node->push_task = push_task;
 	node->pop_task = pop_task;
 	return node;

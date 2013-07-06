@@ -155,8 +155,6 @@ void starpu_sched_node_destroy_rec(struct starpu_sched_node * node, unsigned sch
 			if(!shared)//if not shared we want to destroy it and his childs
 				PUSH(child);
 		}
-		if(n->deinit_data)
-			n->deinit_data(n);
 		starpu_sched_node_destroy(n);
 	}
 	free(stack);
@@ -390,8 +388,8 @@ struct starpu_sched_node * starpu_sched_node_create(void)
 	node->workers = starpu_bitmap_create();
 	node->workers_in_ctx = starpu_bitmap_create();
 	node->available = available;
-	node->init_data = take_node_and_does_nothing;
-	node->deinit_data = take_node_and_does_nothing;
+	node->add_child = starpu_sched_node_add_child;
+	node->remove_child = starpu_sched_node_remove_child;
 	node->pop_task = pop_task_node;
 	node->estimated_load = estimated_load;
 	node->estimated_end = _starpu_sched_node_estimated_end_min;
@@ -450,8 +448,6 @@ void starpu_sched_node_init_rec(struct starpu_sched_node * node)
 	for(i = 0; i < node->nchilds; i++)
 		starpu_bitmap_or(node->workers, node->childs[i]->workers);
 	set_is_homogeneous(node);
-	if(node->init_data)
-		node->init_data(node);
 }
 
 
@@ -479,29 +475,12 @@ void _starpu_set_workers_bitmaps(void)
 	}
 }
 
-static void helper_starpu_call_init_data(struct starpu_sched_node *node)
-{
-	int i;
-	for(i = 0; i < node->nchilds; i++)
-		helper_starpu_call_init_data(node->childs[i]);
-	if(node->init_data)
-		node->init_data(node);
-}
-
-void starpu_sched_tree_call_init_data(struct starpu_sched_tree * t)
-{
-	helper_starpu_call_init_data(t->root);
-}
-
 
 static int push_task_to_first_suitable_parent(struct starpu_sched_node * node, struct starpu_task * task, int sched_ctx_id)
 {
 	if(node == NULL || node->fathers[sched_ctx_id] == NULL)
 		return 1;
 
-//	struct starpu_sched_tree *t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
-
-	
 	struct starpu_sched_node * father = node->fathers[sched_ctx_id];
 	if(starpu_sched_node_can_execute_task(father,task))
 		return father->push_task(father, task);

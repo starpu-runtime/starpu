@@ -77,14 +77,8 @@ struct starpu_sched_node
 	 */
 	void * data;
 
-	/* this function is called after all childs has been set, and the
-	 * workers member was filled, can be used to init data, or anything you want
-	 */
-	void (*init_data)(struct starpu_sched_node *);
-	/* this function is called to free data allocated by init_data
-	 * just before the call of starpu_sched_node_destroy(node)
-	 */
-	void (*deinit_data)(struct starpu_sched_node *);
+	void (*add_child)(struct starpu_sched_node * node, struct starpu_sched_node * child);
+	void (*remove_child)(struct starpu_sched_node * node, struct starpu_sched_node * child);
 
 #ifdef STARPU_HAVE_HWLOC
 	/* in case of a hierarchical scheduler, this is set to the part of

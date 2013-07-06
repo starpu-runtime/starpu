@@ -244,8 +244,6 @@ struct starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct 
 		set_worker_leaf(tree->root,worker_node, sched_ctx_id, specs);
 	}
 
-	_starpu_set_workers_bitmaps();
-	starpu_sched_tree_call_init_data(tree);
 #ifdef STARPU_DEVEL
 	fprintf(stderr, "scheduler created :\n");
 	helper_display_scheduler(stderr, 0, tree->root);

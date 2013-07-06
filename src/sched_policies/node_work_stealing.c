@@ -11,8 +11,9 @@ struct _starpu_work_stealing_data
 	unsigned performed_total;
 	unsigned last_pop_child;
 	unsigned last_push_child;
-	struct _starpu_prio_deque * fifos;	
-	starpu_pthread_mutex_t * mutexes;
+	struct _starpu_prio_deque ** fifos;	
+	starpu_pthread_mutex_t ** mutexes;
+	int size;
 };
 
 
@@ -30,10 +31,10 @@ static struct starpu_task *  steal_task_round_robin(struct starpu_sched_node *no
 	struct starpu_task * task = NULL;
 	while (1)
 	{
-		struct _starpu_prio_deque * fifo = wsd->fifos + i;
-		STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
+		struct _starpu_prio_deque * fifo = wsd->fifos[i];
+		STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes[i]);
 		task = _starpu_prio_deque_deque_task_for_worker(fifo, workerid);
-		STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
+		STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
 		if(task)
 		{
 			fifo->nprocessed--;
@@ -103,17 +104,17 @@ static struct starpu_task * pop_task(struct starpu_sched_node * node, unsigned s
 	}
 	STARPU_ASSERT(i < node->nchilds);
 	struct _starpu_work_stealing_data * wsd = node->data;
-	STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
-	struct starpu_task * task = _starpu_prio_deque_pop_task(wsd->fifos + i);
-	STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
+	STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes[i]);
+	struct starpu_task * task = _starpu_prio_deque_pop_task(wsd->fifos[i]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
 	if(task)
 		return task;
 	task  = steal_task(node, workerid);
 	if(task)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
-		wsd->fifos[i].nprocessed++;
-		STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
+		STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes[i]);
+		wsd->fifos[i]->nprocessed++;
+		STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
 		return task;
 	}
 	if(node->fathers[sched_ctx_id])
@@ -128,15 +129,14 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
 	struct _starpu_work_stealing_data * wsd = node->data;
 	int ret = -1;
-	int start = wsd->last_push_child;
-	int i = start;
+	int i = wsd->last_push_child;
 	i = (i+1)%node->nchilds;
 
-	STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
-	ret = _starpu_prio_deque_push_task(wsd->fifos + i, task);
-	STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
+	STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes[i]);
+	ret = _starpu_prio_deque_push_task(wsd->fifos[i], task);
+	STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
 
-	wsd->last_push_child = (start + 1) % node->nchilds;
+	wsd->last_push_child = i;
 	node->available(node);
 	return ret;
 }
@@ -163,9 +163,9 @@ int _starpu_ws_push_task(struct starpu_task *task)
 			STARPU_ASSERT(i < node->nchilds);
 			
 			struct _starpu_work_stealing_data * wsd = node->data;
-			STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes + i);
-			int ret = _starpu_prio_deque_push_task(wsd->fifos + i , task);
-			STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes + i);
+			STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes[i]);
+			int ret = _starpu_prio_deque_push_task(wsd->fifos[i] , task);
+			STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
 			
 			//we need to wake all workers
 			int j;
@@ -185,57 +185,70 @@ int _starpu_ws_push_task(struct starpu_task *task)
 }
 
 
-static void init_ws_data(struct starpu_sched_node *node)
-{
-	struct _starpu_work_stealing_data * wsd = malloc(sizeof(*wsd));
-	memset(wsd, 0, sizeof(*wsd));
-	node->data = wsd;
-	int i;
-	for(i = 0; i < node->nchilds; i++){
-		STARPU_ASSERT(node->childs[i] != node);
-		STARPU_ASSERT(node->childs[i] != NULL);
-	}
-	int size = node->nchilds;
-	wsd->fifos = malloc(sizeof(struct _starpu_prio_deque) * size);
-	wsd->mutexes = malloc(sizeof(starpu_pthread_rwlock_t) * size);
 
-	for(i = 0; i < size; i++)
-	{
-		_starpu_prio_deque_init(wsd->fifos + i);
-		STARPU_PTHREAD_MUTEX_INIT(wsd->mutexes + i, NULL);
-	}
-	node->init_data = NULL;
-}
-
-static void deinit_ws_data(struct starpu_sched_node *node)
+void _ws_add_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 {
 	struct _starpu_work_stealing_data * wsd = node->data;
-	int i;
-	for(i = 0; i < node->nchilds; i++)
+	starpu_sched_node_add_child(node, child);
+	if(wsd->size < node->nchilds)
 	{
-		STARPU_PTHREAD_MUTEX_DESTROY(wsd->mutexes + i);
-		_starpu_prio_deque_destroy(wsd->fifos + i);
+		STARPU_ASSERT(wsd->size == node->nchilds - 1);
+		wsd->fifos = realloc(wsd->fifos, node->nchilds * sizeof(*wsd->fifos));
+		wsd->mutexes = realloc(wsd->mutexes, node->nchilds * sizeof(*wsd->mutexes));
+		wsd->size = node->nchilds;
 	}
-	free(wsd->mutexes);
-	free(wsd->fifos);
-	free(wsd);
-	node->data = NULL;
+
+	struct _starpu_prio_deque * fifo = malloc(sizeof(*fifo));
+	_starpu_prio_deque_init(fifo);
+	wsd->fifos[node->nchilds - 1] = fifo;
+
+	starpu_pthread_mutex_t * mutex = malloc(sizeof(*mutex));
+	STARPU_PTHREAD_MUTEX_INIT(mutex,NULL);
+	wsd->mutexes[node->nchilds - 1] = mutex;
 }
 
+void _ws_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
+{
+	struct _starpu_work_stealing_data * wsd = node->data;
+
+	STARPU_PTHREAD_MUTEX_DESTROY(wsd->mutexes[node->nchilds - 1]);
+	free(wsd->mutexes[node->nchilds - 1]);
+
+	int i_node;
+	for(i_node = 0; i_node < node->nchilds; i_node++)
+	{
+		if(node->childs[i_node] == child)
+			break;
+	}
+	STARPU_ASSERT(i_node != node->nchilds);
+	struct _starpu_prio_deque * tmp_fifo = wsd->fifos[i_node];
+	wsd->fifos[i_node] = wsd->fifos[node->nchilds - 1];
+
+	
+	node->childs[i_node] = node->childs[node->nchilds - 1];
+	node->nchilds--;
+	struct starpu_task * task;
+	while((task = _starpu_prio_deque_pop_task(tmp_fifo)))
+		node->push_task(node, task);
+	_starpu_prio_deque_destroy(tmp_fifo);
+	free(tmp_fifo);
+}
 
 struct starpu_sched_node * starpu_sched_node_work_stealing_create(void)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
+	struct _starpu_work_stealing_data * wsd = malloc(sizeof(*wsd));
+	memset(wsd, 0, sizeof(*wsd));
 	node->pop_task = pop_task;
-	node->init_data = init_ws_data;
-	node->deinit_data = deinit_ws_data;
 	node->push_task = push_task;
-	return node;
+	node->add_child = _ws_add_child;
+	node->remove_child = _ws_remove_child;
+	return  node;
 }
 
 int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node)
 {
-	return node->deinit_data == deinit_ws_data;
+	return node->push_task == push_task;
 }
 
 
@@ -257,8 +270,6 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 		node->fathers[sched_ctx_id] = ws;
 		starpu_sched_node_add_child(ws, node);
 	}
-	_starpu_set_workers_bitmaps();
-	starpu_sched_tree_call_init_data(data);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
 

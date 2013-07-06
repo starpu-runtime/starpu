@@ -1,67 +1,41 @@
 #include <core/workers.h>
 #include <starpu_sched_node.h>
 
-struct _starpu_random_data
-{
-	double * relative_speedup;
-};
-
-
 static double compute_relative_speedup(struct starpu_sched_node * node)
 {
-	if(starpu_sched_node_is_simple_worker(node))
-	{
-		int id = starpu_sched_node_worker_get_workerid(node);
-		enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(id);
-		return starpu_worker_get_relative_speedup(perf_arch);
-	}
-	if(starpu_sched_node_is_combined_worker(node))
-	{
-		struct _starpu_combined_worker * c = starpu_sched_node_combined_worker_get_combined_worker(node);
-		return starpu_worker_get_relative_speedup(c->perf_arch);
-		
-	}
 	double sum = 0.0;
-	int i;
-	for(i = 0; i < node->nchilds; i++)
-		sum += compute_relative_speedup(node->childs[i]);
+	int id;
+	for(id = starpu_bitmap_first(node->workers_in_ctx);
+	    id != -1;
+	    id = starpu_bitmap_next(node->workers_in_ctx, id))
+	{
+		enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(id);
+		sum += starpu_worker_get_relative_speedup(perf_arch);
+
+	}
+	STARPU_ASSERT(sum != 0.0);
 	return sum;
 }
 
-static void init_data_random(struct starpu_sched_node * node)
-{
-	struct _starpu_random_data * rd = malloc(sizeof(struct _starpu_random_data));
-	node->data = rd;
-	rd->relative_speedup = malloc(sizeof(double) * node->nchilds);
-	int i;
-	for(i = 0; i < node->nchilds; i++)
-		rd->relative_speedup[i] = compute_relative_speedup(node->childs[i]);
-	node->init_data = NULL;
-}
-
-static void deinit_data_random(struct starpu_sched_node * node)
-{
-	struct _starpu_random_data * rd = node->data;
-	free(rd->relative_speedup);
-	free(rd);
-	
-}
 
 static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
-	struct _starpu_random_data * rd = node->data;
-
 	int indexes_nodes[node->nchilds];
+	double speedup[node->nchilds];
 	int size=0,i;
 	double alpha_sum = 0.0;
 	for(i = 0; i < node->nchilds ; i++)
 	{
 		if(starpu_sched_node_can_execute_task(node->childs[i],task))
 		{
-			indexes_nodes[size++] = i;
-			alpha_sum += rd->relative_speedup[i];
+			speedup[size] = compute_relative_speedup(node->childs[i]);
+			alpha_sum += speedup[size];
+			indexes_nodes[size] = i;
+			size++;
 		}
 	}
+	if(size == 0)
+		return -ENODEV;
 
 	double random = starpu_drand48()*alpha_sum;
 	double alpha = 0.0;
@@ -70,12 +44,12 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 	for(i = 0; i < size ; i++)
 	{
 		int index = indexes_nodes[i];
-		if(alpha + rd->relative_speedup[index] >= random)
+		if(alpha + speedup[i] >= random)
 		{	
 			select = node->childs[index];
 			break;
 		}
-		alpha += rd->relative_speedup[index];
+		alpha += speedup[i];
 	}
 	STARPU_ASSERT(select != NULL);
 	int ret_val = select->push_task(select,task);
@@ -83,7 +57,6 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 
 	return ret_val;
 }
-
 
 double random_estimated_end(struct starpu_sched_node * node)
 {
@@ -96,18 +69,14 @@ double random_estimated_end(struct starpu_sched_node * node)
 struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
-	node->data = NULL;
-	node->init_data = init_data_random;
 	node->estimated_end = random_estimated_end;
-	node->deinit_data = deinit_data_random;
 	node->push_task = push_task;
-	starpu_srand48(time(NULL));
 	return node;
 }
 
 int starpu_sched_node_is_random(struct starpu_sched_node *node)
 {
-	return node->deinit_data == deinit_data_random;
+	return node->push_task == push_task;
 }
 
 
@@ -128,8 +97,6 @@ static void initialize_random_center_policy(unsigned sched_ctx_id)
 		node->fathers[sched_ctx_id] = data->root;
 		starpu_sched_node_add_child(data->root, node);
 	}
-	_starpu_set_workers_bitmaps();
-	starpu_sched_tree_call_init_data(data);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 }
 static void deinitialize_random_center_policy(unsigned sched_ctx_id)

@@ -210,7 +210,7 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 			struct starpu_task * task = t->task;
 			t->task = NULL;
 			int * p = t->left ? t->pntasks : &t->ntasks;
-			STARPU_ATOMIC_ADD(p, -1);
+			(void) STARPU_ATOMIC_ADD(p, -1);
 			if(*p == 0)
 				_starpu_task_grid_unset_left_right_member(t);
 			l->ntasks--;
@@ -481,21 +481,6 @@ static double combined_worker_estimated_load(struct starpu_sched_node * node)
 	return load;
 }
 
-static void worker_deinit_data(struct starpu_sched_node * node)
-{
-	struct _starpu_worker_node_data * data = node->data;
-	if(data->list)
-		_starpu_worker_task_list_destroy(data->list);
-	free(data);
-	node->data = NULL;
-	int i;
-	for(i = 0; i < STARPU_NMAXWORKERS; i++)
-		if(_worker_nodes[i] == node)
-			break;
-	STARPU_ASSERT(i < STARPU_NMAXWORKERS);
-	_worker_nodes[i] = NULL;
-}
-
 
 static int starpu_sched_node_combined_worker_push_task(struct starpu_sched_node * node, struct starpu_task *task)
 {
@@ -588,7 +573,6 @@ static struct starpu_sched_node * starpu_sched_node_worker_create(int workerid)
 	node->estimated_end = simple_worker_estimated_end;
 	node->estimated_load = simple_worker_estimated_load;
 	node->available = simple_worker_available;
-	node->deinit_data = worker_deinit_data;
 	node->workers = starpu_bitmap_create();
 	starpu_bitmap_set(node->workers, workerid);
 	starpu_bitmap_or(node->workers_in_ctx, node->workers);
@@ -627,7 +611,6 @@ static struct starpu_sched_node  * starpu_sched_node_combined_worker_create(int 
 	node->estimated_end = combined_worker_estimated_end;
 	node->estimated_load = combined_worker_estimated_load;
 	node->available = combined_worker_available;
-	node->deinit_data = worker_deinit_data;
 	node->workers = starpu_bitmap_create();
 	starpu_bitmap_set(node->workers, workerid);
 	starpu_bitmap_or(node->workers_in_ctx, node->workers);

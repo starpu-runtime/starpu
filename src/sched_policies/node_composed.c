@@ -127,8 +127,6 @@ void composed_node_init_data(struct starpu_sched_node *node)
 );
 	c->bottom->nchilds = node->nchilds;
 	c->bottom->childs = node->childs;
-
-	node->init_data = NULL;
 }
 
 void composed_node_deinit_data(struct starpu_sched_node * _node)
@@ -141,7 +139,6 @@ void composed_node_deinit_data(struct starpu_sched_node * _node)
 	do
 	{
 		node->workers = NULL;
-		node->deinit_data(node);
 		next = node->childs ? node->childs[0] : NULL;
 		starpu_sched_node_destroy(node);
 	}while(next);
@@ -162,8 +159,6 @@ struct starpu_sched_node * starpu_sched_node_composed_node_create(struct _starpu
 	node->pop_task = composed_node_pop_task;
 	node->available = composed_node_available;
 	node->estimated_load = composed_node_estimated_load;
-	node->init_data = composed_node_init_data;
-	node->deinit_data = composed_node_deinit_data;
 
 	return node;
 }

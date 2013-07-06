@@ -4,7 +4,7 @@
 /* set implementation, task->predicted and task->predicted_transfer with the first worker of workers that can execute that task
  * or have to be calibrated
  */
-static void select_best_implementation_and_set_preds(struct starpu_bitmap * workers, struct starpu_task * task, int calibrating)
+static void select_best_implementation_and_set_preds(struct starpu_bitmap * workers, struct starpu_task * task)
 {
 	int best_impl = -1;
 	double len = DBL_MAX;
@@ -20,7 +20,7 @@ static void select_best_implementation_and_set_preds(struct starpu_bitmap * work
 			{
 				enum starpu_perfmodel_archtype archtype = starpu_worker_get_perf_archtype(workerid);
 				double d = starpu_task_expected_length(task, archtype, impl);
-				if(calibrating && isnan(d))
+				if(isnan(d))
 				{
 					best_impl = impl;
 					len = 0.0;
@@ -48,7 +48,7 @@ static void select_best_implementation_and_set_preds(struct starpu_bitmap * work
 static int select_best_implementation_push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
 	STARPU_ASSERT(node->nchilds == 1);
-	select_best_implementation_and_set_preds(node->workers_in_ctx, task, 0);
+	select_best_implementation_and_set_preds(node->workers_in_ctx, task);
 	return node->childs[0]->push_task(node->childs[0],task);
 }
 
@@ -60,7 +60,7 @@ static struct starpu_task * select_best_implementation_pop_task(struct starpu_sc
 		return NULL;
 	t = node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id], sched_ctx_id);
 	if(t)
-		select_best_implementation_and_set_preds(node->workers_in_ctx, t,0);
+		select_best_implementation_and_set_preds(node->workers_in_ctx, t);
 	return t;
 }
 
@@ -69,7 +69,7 @@ static struct starpu_task * select_best_implementation_pop_task(struct starpu_sc
 static int select_calibration_push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
 	STARPU_ASSERT(node->nchilds == 1);
-	select_best_implementation_and_set_preds(node->workers_in_ctx, task, 1);
+	select_best_implementation_and_set_preds(node->workers_in_ctx, task);
 	return node->childs[0]->push_task(node->childs[0],task);
 }
 
@@ -80,7 +80,7 @@ static struct starpu_task * select_calibration_pop_task(struct starpu_sched_node
 		return NULL;
 	t = node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id], sched_ctx_id);
 	if(t)
-		select_best_implementation_and_set_preds(node->workers_in_ctx, t, 1);
+		select_best_implementation_and_set_preds(node->workers_in_ctx, t);
 	return t;
 }
 

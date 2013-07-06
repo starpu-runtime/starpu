@@ -120,9 +120,62 @@ static void param_modified(struct starpu_top_param* d)
 }
 #endif /* !STARPU_USE_TOP */
 
-void init_heft_data(struct starpu_sched_node *node)
+void _heft_add_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 {
+	starpu_sched_node_add_child(node, child);
+	struct _starpu_heft_data * data = node->data;
+	starpu_sched_node_add_child(data->no_perf_model_node,child);
+	starpu_sched_node_add_child(data->calibrating_node, child);
+}
 
+void _heft_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
+{
+	starpu_sched_node_remove_child(node, child);
+	struct _starpu_heft_data * data = node->data;
+	starpu_sched_node_remove_child(data->no_perf_model_node,child);
+	starpu_sched_node_remove_child(data->calibrating_node, child);
+}
+
+struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data * params)
+{
+	struct starpu_sched_node * node = starpu_sched_node_create();
+
+	struct _starpu_heft_data * data = malloc(sizeof(*data));
+	data->alpha = params->alpha;
+	data->beta = params->beta;
+	data->gamma = params->gamma;
+	data->idle_power = params->idle_power;
+
+	data->no_perf_model_node = params->no_perf_model_node_create(params->arg_no_perf_model);
+	starpu_bitmap_destroy(data->no_perf_model_node->workers);
+	starpu_bitmap_destroy(data->no_perf_model_node->workers_in_ctx);
+	data->no_perf_model_node->workers = node->workers;
+	data->no_perf_model_node->workers_in_ctx = node->workers_in_ctx;
+
+	data->calibrating_node = params->calibrating_node_create(params->arg_calibrating_node);
+	starpu_bitmap_destroy(data->calibrating_node->workers);
+	starpu_bitmap_destroy(data->calibrating_node->workers_in_ctx);
+	data->calibrating_node->workers = node->workers;
+	data->calibrating_node->workers_in_ctx = node->workers_in_ctx;
+
+	node->push_task = push_task;
+	node->add_child = _heft_add_child;
+	node->remove_child = _heft_remove_child;
+	node->data = data;
+
+	return node;
+}
+
+int starpu_sched_node_is_heft(struct starpu_sched_node * node)
+{
+	return node->push_task == push_task;
+}
+
+
+
+static void initialize_heft_center_policy(unsigned sched_ctx_id)
+{
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
 	if (strval_alpha)
 		alpha = atof(strval_alpha);
@@ -150,89 +203,14 @@ void init_heft_data(struct starpu_sched_node *node)
 					    idle_power_minimum, idle_power_maximum, param_modified);
 #endif /* !STARPU_USE_TOP */
 
-	struct starpu_heft_data * params = node->data;
-	struct _starpu_heft_data * data = malloc(sizeof(*data));
-	data->alpha = params->alpha;
-	data->beta = params->beta;
-	data->gamma = params->gamma;
-	data->idle_power = params->idle_power;
-
-	data->no_perf_model_node = params->no_perf_model_node_create(params->arg_no_perf_model);
-	data->calibrating_node = params->calibrating_node_create(params->arg_calibrating_node);
-
-	int i;
-	for(i = 0; i < node->nchilds; i++)
-	{
-		starpu_sched_node_add_child(data->no_perf_model_node, node->childs[i]);
-		starpu_sched_node_add_child(data->calibrating_node, node->childs[i]);
-	}
-	starpu_bitmap_destroy(data->no_perf_model_node->workers_in_ctx);
-	starpu_bitmap_destroy(data->no_perf_model_node->workers);
-	data->no_perf_model_node->workers_in_ctx = node->workers_in_ctx;
-	data->no_perf_model_node->workers = node->workers;
-
-	starpu_bitmap_destroy(data->calibrating_node->workers);
-	starpu_bitmap_destroy(data->calibrating_node->workers_in_ctx);
-	data->calibrating_node->workers = data->calibrating_node->workers_in_ctx = node->workers;
-
-	data->no_perf_model_node->init_data(data->no_perf_model_node);
-	data->calibrating_node->init_data(data->calibrating_node);
-
-	node->data = data;
-	node->init_data = NULL;
-}
-
-
-void deinit_heft_data(struct starpu_sched_node * node)
-{
-	struct _starpu_heft_data * data = node->data;
-	data->calibrating_node->workers = NULL;
-	data->calibrating_node->workers_in_ctx = NULL;
-
-	data->no_perf_model_node->workers = NULL;
-	data->no_perf_model_node->workers_in_ctx = NULL;
-
-	data->calibrating_node->deinit_data(data->calibrating_node);
-	data->no_perf_model_node->deinit_data(data->no_perf_model_node);
-
-	starpu_sched_node_destroy(data->no_perf_model_node);
-	starpu_sched_node_destroy(data->calibrating_node);
-
-	free(node->data);
-}
-
-
-struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data * data)
-{
-	struct starpu_sched_node * node = starpu_sched_node_create();
-
-	node->push_task = push_task;
-	node->init_data = init_heft_data;
-	node->deinit_data = deinit_heft_data;
-	node->data = data;
-
-	return node;
-}
-
-int starpu_sched_node_is_heft(struct starpu_sched_node * node)
-{
-	return node->deinit_data == deinit_heft_data;
-}
-
-
-
-static void initialize_heft_center_policy(unsigned sched_ctx_id)
-{
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	
 	struct starpu_sched_tree * t = starpu_sched_tree_create();
-	struct starpu_sched_node * random = starpu_sched_node_random_create(NULL);
 	struct starpu_heft_data data =
 		{
-			.alpha = 1.0,
-			.beta = 1.0,
-			.gamma = 1.0,
-			.idle_power = 200,
+			.alpha = alpha,
+			.beta = beta,
+			.gamma = _gamma,
+			.idle_power = idle_power,
 			.no_perf_model_node_create = starpu_sched_node_random_create,
 			. arg_no_perf_model = NULL,
 			.calibrating_node_create = starpu_sched_node_random_create,
@@ -252,22 +230,9 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 
 		starpu_sched_node_add_child(t->root, impl_node);
 		starpu_sched_node_set_father(impl_node, t->root, sched_ctx_id);
-
-
-		struct starpu_sched_node * calibration_node = starpu_sched_node_calibration_create(NULL);
-		starpu_sched_node_add_child(calibration_node, worker_node);
-		calibration_node->workers_in_ctx = impl_node->workers;
-		starpu_sched_node_add_child(random, calibration_node);
-
-
 	}
 
 	starpu_sched_node_init_rec(t->root);
-	starpu_sched_node_init_rec(random);
-//	_starpu_set_workers_bitmaps();
-//	starpu_sched_tree_call_init_data(t);
-	starpu_bitmap_destroy(random->workers_in_ctx);
-	random->workers_in_ctx = t->root->workers_in_ctx;
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
 }
 
@@ -277,7 +242,6 @@ static void deinitialize_heft_center_policy(unsigned sched_ctx_id)
 	starpu_sched_tree_destroy(t, sched_ctx_id);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
-
 
 
 
