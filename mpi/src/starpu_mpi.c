@@ -813,12 +813,6 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 		req->envelope = NULL;
 	}
 
-	if (req->internal_req)
-	{
-		free(req->internal_req);
-		req->internal_req = NULL;
-	}
-
 	/* Execute the specified callback, if any */
 	if (req->callback)
 		req->callback(req->callback_arg);
@@ -1045,8 +1039,7 @@ static void _starpu_mpi_test_detached_requests(void)
 		if (flag)
 		{
 			_starpu_mpi_req_list_erase(detached_requests, req);
-			if (!req->is_internal_req)
-				free(req);
+			free(req);
 		}
 
 	}
