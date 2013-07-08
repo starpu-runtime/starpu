@@ -870,11 +870,12 @@ static void _starpu_mpi_copy_cb(void* arg)
 	starpu_data_unregister_submit(args->copy_handle);
 
 	_STARPU_MPI_DEBUG(3, "Done, handling request %p termination of the already received request\n",args->req);
+	// If the request is detached, we need to call _starpu_mpi_handle_request_termination
+	// as it will not be called automatically as the request is not in the list detached_requests
 	if (args->req->detached)
 		_starpu_mpi_handle_request_termination(args->req);
 	// else: If the request is not detached its termination will
 	// be handled when calling starpu_mpi_wait
-
 
 	free(args);
 }
