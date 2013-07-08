@@ -1,0 +1,48 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2013 Corentin Salingue
+ * See the file version.doxy for copying conditions.
+ */
+
+
+/*! \defgroup API_Out_Of_Core Out Of Core
+
+
+
+\struct starpu_disk_ops
+\ingroup API_Out_Of_Core
+This is a set of functions to manipulate datas on disk.
+
+\fn int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, size_t size) 
+\ingroup API_Out_Of_Core
+Register a disk memory node with a set of functions to manipulate datas. <br />
+SUCCESS: return the disk node. <br />
+FAIL: return an error code. <br />
+The \p size must be at least 1 MB !
+
+\fn void * starpu_disk_open (unsigned node, void *pos, size_t size)
+\ingroup API_Out_Of_Core
+Add an existing file memory in a disk node. The \p pos is defined in the starpu_disk_ops. \p size: this is a size of your file.
+\p pos is the name of the file.
+
+\fn void starpu_disk_close (unsigned node, void *obj, size_t size)
+\ingroup API_Out_Of_Core
+Close an existing file memory opened with starpu_disk_open.
+
+\var starpu_disk_stdio_ops
+\ingroup API_Out_Of_Core
+This set uses the stdio library (fwrite, fread...) to read/write on disk. <br />
+<strong>Warning: It creates one file per allocation !</strong>  <br />
+
+\var starpu_disk_unistd_ops
+\ingroup API_Out_Of_Core
+This set uses the unistd library (write, read...) to read/write on disk. <br />
+<strong>Warning: It creates one file per allocation !</strong>  <br />
+
+\var starpu_disk_unistd_o_direct_ops
+\ingroup API_Out_Of_Core
+This set uses the unistd library (write, read...) to read/write on disk with the O_DIRECT flag. <br />
+<strong>Warning: It creates one file per allocation !</strong>  <br />
+Only available on Linux.
+
+*/

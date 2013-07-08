@@ -90,7 +90,7 @@ register_data(void)
 	rowptr2[HEIGHT] = rowptr[HEIGHT];
 
 	starpu_csr_data_register(&csr_handle,
-				 0,
+				 STARPU_MAIN_RAM,
 				 NNZ,
 				 HEIGHT,
 				 (uintptr_t) nzval,
@@ -99,7 +99,7 @@ register_data(void)
 				 0,
 				 sizeof(nzval[0]));
 	starpu_csr_data_register(&csr2_handle,
-				 0,
+				 STARPU_MAIN_RAM,
 				 NNZ,
 				 HEIGHT,
 				 (uintptr_t) nzval2,

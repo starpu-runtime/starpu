@@ -32,6 +32,14 @@ New features:
 	  the envelope.
   * New STARPU_COMMUTE flag which can be passed along STARPU_W or STARPU_RW to
     let starpu commute write accesses.
+  * Out-of-core support, through registration of disk areas as additional memory
+    nodes.
+  * StarPU-MPI: new function
+    starpu_mpi_irecv_detached_sequential_consistency which allows to
+    enable or disable the sequential consistency for the given data
+    handle (sequential consistency will be enabled or disabled based
+    on the value of the function parameter and the value of the
+    sequential consistency defined for the given data)
 
 Small features:
   * Add cl_arg_free field to enable automatic free(cl_arg) on task
@@ -39,7 +47,15 @@ Small features:
   * New functions starpu_data_acquire_cb_sequential_consistency() and
     starpu_data_acquire_on_node_cb_sequential_consistency() which allows
     to enable or disable sequential consistency
+  * New configure option --enable-fxt-lock which enables additional
+    trace events focused on locks behaviour during the execution
 
+Changes:
+  * Fix of the livelock issue discovered while executing applications
+    on a CPU+GPU cluster of machines by adding a maximum trylock 
+    threshold before a blocking lock.
+  * Data interfaces (variable, vector, matrix and block) now define
+    pack und unpack functions
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================

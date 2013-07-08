@@ -221,10 +221,37 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 
+#ifdef STARPU_USE_SC_HYPERVISOR
+		struct _starpu_sched_ctx *sched_ctx = NULL;
+		struct starpu_sched_ctx_performance_counters *perf_counters = NULL;
+		int j;
+		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
+		{
+			sched_ctx = args->sched_ctx[j];
+			if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+			{
+				perf_counters = sched_ctx->perf_counters;
+				if(perf_counters != NULL && perf_counters->notify_idle_cycle)
+				{
+					perf_counters->notify_idle_cycle(sched_ctx->id, args->workerid, 1.0);
+					
+				}
+			}
+		}
+#endif //STARPU_USE_SC_HYPERVISOR
+
 		return NULL;
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+
+#ifdef STARPU_USE_SC_HYPERVISOR
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
+
+	if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_end)
+		perf_counters->notify_idle_end(task->sched_ctx, args->workerid);
+#endif //STARPU_USE_SC_HYPERVISOR
 
 	_starpu_worker_set_status_wakeup(workerid);
 

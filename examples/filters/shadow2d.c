@@ -202,10 +202,10 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare source matrix to StarPU */
-	starpu_matrix_data_register(&handle, 0, (uintptr_t)matrix, NX + 2*SHADOWX, NX + 2*SHADOWX, NY + 2*SHADOWY, sizeof(matrix[0][0]));
+	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX + 2*SHADOWX, NX + 2*SHADOWX, NY + 2*SHADOWY, sizeof(matrix[0][0]));
 
 	/* Declare destination matrix to StarPU */
-	starpu_matrix_data_register(&handle2, 0, (uintptr_t)matrix2, NX + PARTSX*2*SHADOWX, NX + PARTSX*2*SHADOWX, NY + PARTSY*2*SHADOWY, sizeof(matrix2[0][0]));
+	starpu_matrix_data_register(&handle2, STARPU_MAIN_RAM, (uintptr_t)matrix2, NX + PARTSX*2*SHADOWX, NX + PARTSX*2*SHADOWX, NY + PARTSY*2*SHADOWY, sizeof(matrix2[0][0]));
 
         /* Partition the source matrix in PARTSY*PARTSX sub-matrices with shadows */
 	/* NOTE: the resulting handles should only be used in read-only mode,
@@ -258,8 +258,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	starpu_data_unpartition(handle, 0);
-	starpu_data_unpartition(handle2, 0);
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
+	starpu_data_unpartition(handle2, STARPU_MAIN_RAM);
         starpu_data_unregister(handle);
         starpu_data_unregister(handle2);
 	starpu_shutdown();

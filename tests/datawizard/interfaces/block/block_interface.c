@@ -71,7 +71,7 @@ register_data(void)
 
 	/* Registering data */
 	starpu_block_data_register(&_block_handle,
-                                    0,
+                                    STARPU_MAIN_RAM,
                                     (uintptr_t)_block,
 				    NX,
 				    NX * NY,
@@ -80,7 +80,7 @@ register_data(void)
 				    NZ,
 				    sizeof(_block[0]));
 	starpu_block_data_register(&_block2_handle,
-                                    0,
+                                    STARPU_MAIN_RAM,
                                     (uintptr_t)_block2,
 				    NX,
 				    NX * NY,

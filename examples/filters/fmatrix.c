@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare data to StarPU */
-	starpu_matrix_data_register(&handle, 0, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));
+	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));
 
         /* Partition the matrix in PARTS sub-matrices */
 	struct starpu_data_filter f =
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	}
 
         /* Unpartition the data, unregister it from StarPU and shutdown */
-	starpu_data_unpartition(handle, 0);
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
         starpu_data_unregister(handle);
 	starpu_shutdown();
 

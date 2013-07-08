@@ -12,6 +12,7 @@
 \file starpu.h
 \file starpu_data_filters.h
 \file starpu_data_interfaces.h
+\file starpu_disk.h
 \file starpu_worker.h
 \file starpu_task.h
 \file starpu_task_bundle.h

@@ -658,9 +658,9 @@ if (PARALLEL) {
 		plan->fft1_args[z].i = i;
 
 		/* Register the twisted1 buffer of size n2. */
-		starpu_vector_data_register(&plan->twisted1_handle[z], 0, (uintptr_t) &plan->twisted1[z*plan->totsize2], plan->totsize2, sizeof(*plan->twisted1));
+		starpu_vector_data_register(&plan->twisted1_handle[z], STARPU_MAIN_RAM, (uintptr_t) &plan->twisted1[z*plan->totsize2], plan->totsize2, sizeof(*plan->twisted1));
 		/* Register the fft1 buffer of size n2. */
-		starpu_vector_data_register(&plan->fft1_handle[z], 0, (uintptr_t) &plan->fft1[z*plan->totsize2], plan->totsize2, sizeof(*plan->fft1));
+		starpu_vector_data_register(&plan->fft1_handle[z], STARPU_MAIN_RAM, (uintptr_t) &plan->fft1[z*plan->totsize2], plan->totsize2, sizeof(*plan->fft1));
 
 		/* We'll need the result of fft1 on the CPU for the second
 		 * twist anyway, so tell starpu to not keep the fft1 buffer in
@@ -717,8 +717,8 @@ if (PARALLEL) {
 		plan->fft2_args[z].jj = jj;
 
 		/* Register n3 twisted2 buffers of size n1 */
-		starpu_vector_data_register(&plan->twisted2_handle[z], 0, (uintptr_t) &plan->twisted2[z*plan->totsize4], plan->totsize4, sizeof(*plan->twisted2));
-		starpu_vector_data_register(&plan->fft2_handle[z], 0, (uintptr_t) &plan->fft2[z*plan->totsize4], plan->totsize4, sizeof(*plan->fft2));
+		starpu_vector_data_register(&plan->twisted2_handle[z], STARPU_MAIN_RAM, (uintptr_t) &plan->twisted2[z*plan->totsize4], plan->totsize4, sizeof(*plan->twisted2));
+		starpu_vector_data_register(&plan->fft2_handle[z], STARPU_MAIN_RAM, (uintptr_t) &plan->fft2[z*plan->totsize4], plan->totsize4, sizeof(*plan->fft2));
 
 		/* We'll need the result of fft2 on the CPU for the third
 		 * twist anyway, so tell starpu to not keep the fft2 buffer in

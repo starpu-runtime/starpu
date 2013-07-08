@@ -266,10 +266,13 @@ schedulers, for instance <c>STARPU_SCHED=dmda</c>.
 
 \subsection TaskSizeOverhead Task Size Overhead
 
-This benchmark gives a glimpse into how big a size should be for StarPU overhead
-to be low enough.  Run <c>tasks_size_overhead.sh</c>, it will generate a plot
+This benchmark gives a glimpse into how long a task should be (in µs) for StarPU overhead
+to be low enough to keep efficiency.  Run <c>tasks_size_overhead.sh</c>, it will generate a plot
 of the speedup of tasks of various sizes, depending on the number of CPUs being
 used.
+
+\image html tasks_size_overhead.png
+\image latex tasks_size_overhead.eps "" width=\textwidth
 
 \subsection DataTransferLatency Data Transfer Latency
 

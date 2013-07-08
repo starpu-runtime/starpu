@@ -1184,8 +1184,8 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 #endif
 				_starpu_memory_node_add_nworkers(memory_node);
 
-				_starpu_register_bus(0, memory_node);
-				_starpu_register_bus(memory_node, 0);
+				_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
+				_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef HAVE_CUDA_MEMCPY_PEER
 				unsigned worker2;
 				for (worker2 = 0; worker2 < worker; worker2++)
@@ -1221,8 +1221,8 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif
 				_starpu_memory_node_add_nworkers(memory_node);
-				_starpu_register_bus(0, memory_node);
-				_starpu_register_bus(memory_node, 0);
+				_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
+				_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 				break;
 #endif
 

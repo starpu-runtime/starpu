@@ -65,12 +65,12 @@ register_data(void)
 
 	/* Registering data */
 	starpu_vector_data_register(&vector_handle,
-                                    0,
+                                    STARPU_MAIN_RAM,
                                     (uintptr_t)vector,
 				    VECTOR_SIZE,
 				    sizeof(int));
 	starpu_vector_data_register(&vector2_handle,
-                                    0,
+                                    STARPU_MAIN_RAM,
                                     (uintptr_t)vector2,
 				    VECTOR_SIZE,
 				    sizeof(int));

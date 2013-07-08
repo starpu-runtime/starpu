@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	{
 		forks[f] = 0;
 
-		starpu_vector_data_register(&fork_handles[f], 0, (uintptr_t)&forks[f], 1, sizeof(unsigned));
+		starpu_vector_data_register(&fork_handles[f], STARPU_MAIN_RAM, (uintptr_t)&forks[f], 1, sizeof(unsigned));
 	}
 
 	unsigned ntasks = 1024;

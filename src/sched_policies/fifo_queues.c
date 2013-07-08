@@ -163,7 +163,7 @@ struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo_
 
 	if (!starpu_task_list_empty(&fifo_queue->taskq))
 	{
-		task = starpu_task_list_pop_back(&fifo_queue->taskq);
+		task = starpu_task_list_pop_front(&fifo_queue->taskq);
 		fifo_queue->ntasks--;
 		_STARPU_TRACE_JOB_POP(task, 0);
 	}

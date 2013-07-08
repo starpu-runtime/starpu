@@ -114,8 +114,8 @@ int submit_codelet(struct starpu_codelet cl, struct submit_task_func func)
 	starpu_data_handle_t handles[2];
 	int ret;
 
-	starpu_variable_data_register(&handles[0], 0, (uintptr_t)x, sizeof(*x));
-	starpu_variable_data_register(&handles[1], 0, (uintptr_t)y, sizeof(*y));
+	starpu_variable_data_register(&handles[0], STARPU_MAIN_RAM, (uintptr_t)x, sizeof(*x));
+	starpu_variable_data_register(&handles[1], STARPU_MAIN_RAM, (uintptr_t)y, sizeof(*y));
 
 	ret = func.func(cl, handles[0], handles[1]);
 	starpu_data_unregister(handles[0]);

@@ -242,7 +242,7 @@ static void init_matrix(int rank)
 				}
 
 				/* Register it to StarPU */
-				starpu_matrix_data_register(handleptr, 0,
+				starpu_matrix_data_register(handleptr, STARPU_MAIN_RAM,
 					(uintptr_t)*blockptr, size/nblocks,
 					size/nblocks, size/nblocks, sizeof(TYPE));
 			}
@@ -261,7 +261,7 @@ static void init_matrix(int rank)
 #ifdef SINGLE_TMP11
 	starpu_malloc((void **)&tmp_11_block, blocksize);
 	allocated_memory_extra += blocksize;
-	starpu_matrix_data_register(&tmp_11_block_handle, 0, (uintptr_t)tmp_11_block,
+	starpu_matrix_data_register(&tmp_11_block_handle, STARPU_MAIN_RAM, (uintptr_t)tmp_11_block,
 			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 #else
 	tmp_11_block_handles = calloc(nblocks, sizeof(starpu_data_handle_t));
@@ -276,7 +276,7 @@ static void init_matrix(int rank)
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_11_block[k]);
 
-			starpu_matrix_data_register(&tmp_11_block_handles[k], 0,
+			starpu_matrix_data_register(&tmp_11_block_handles[k], STARPU_MAIN_RAM,
 				(uintptr_t)tmp_11_block[k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 		}
@@ -311,7 +311,7 @@ static void init_matrix(int rank)
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_12_block[k]);
 
-			starpu_matrix_data_register(&tmp_12_block_handles[k], 0,
+			starpu_matrix_data_register(&tmp_12_block_handles[k], STARPU_MAIN_RAM,
 				(uintptr_t)tmp_12_block[k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 		}
@@ -322,7 +322,7 @@ static void init_matrix(int rank)
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_21_block[k]);
 
-			starpu_matrix_data_register(&tmp_21_block_handles[k], 0,
+			starpu_matrix_data_register(&tmp_21_block_handles[k], STARPU_MAIN_RAM,
 				(uintptr_t)tmp_21_block[k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 		}
@@ -334,7 +334,7 @@ static void init_matrix(int rank)
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_12_block[i][k]);
 
-			starpu_matrix_data_register(&tmp_12_block_handles[i][k], 0,
+			starpu_matrix_data_register(&tmp_12_block_handles[i][k], STARPU_MAIN_RAM,
 				(uintptr_t)tmp_12_block[i][k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 		}
@@ -345,7 +345,7 @@ static void init_matrix(int rank)
 			allocated_memory_extra += blocksize;
 			STARPU_ASSERT(tmp_21_block[i][k]);
 
-			starpu_matrix_data_register(&tmp_21_block_handles[i][k], 0,
+			starpu_matrix_data_register(&tmp_21_block_handles[i][k], STARPU_MAIN_RAM,
 				(uintptr_t)tmp_21_block[i][k],
 				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
 		}

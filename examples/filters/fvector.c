@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare data to StarPU */
-	starpu_vector_data_register(&handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
+	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 
         /* Partition the vector in PARTS sub-vectors */
 	struct starpu_data_filter f =
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
-	starpu_data_unpartition(handle, 0);
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
         starpu_data_unregister(handle);
 	starpu_shutdown();
 

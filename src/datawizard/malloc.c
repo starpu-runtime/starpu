@@ -18,7 +18,9 @@
 #include <errno.h>
 
 #include <core/workers.h>
+#include <core/disk.h>
 #include <common/config.h>
+#include <common/fxt.h>
 #include <starpu.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <datawizard/memory_manager.h>
@@ -94,9 +96,9 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			size_t freed;
 			size_t reclaim = 2 * dim;
 			_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
-			_STARPU_TRACE_START_MEMRECLAIM(0);
+			_STARPU_TRACE_START_MEMRECLAIM(0,0);
 			freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
-			_STARPU_TRACE_END_MEMRECLAIM(0);
+			_STARPU_TRACE_END_MEMRECLAIM(0,0);
 			if (freed < dim)
 			{
 				// We could not reclaim enough memory
@@ -368,7 +370,7 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	{
 		case STARPU_CPU_RAM:
 		{
-			addr = (uintptr_t)malloc(size);
+			starpu_malloc((void**) &addr, size);
 			break;
 		}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -419,6 +421,12 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 #endif
 			}
 #endif
+	        case STARPU_DISK_RAM:
+		{
+			addr = (uintptr_t) _starpu_disk_alloc(dst_node, size);
+			break;
+		}
+			
 #ifdef STARPU_USE_MIC
 		case STARPU_MIC_RAM:
 			if (_starpu_mic_allocate_memory((void **)(&addr), size, dst_node))
@@ -438,6 +446,10 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	if (addr == 0)
 	{
 		// Allocation failed, gives the memory back to the memory manager
+		const char* file;					
+		file = strrchr(__FILE__,'/');							
+		file += sizeof(char);										
+		_STARPU_TRACE_MEMORY_FULL(size);
 		_starpu_memory_manager_deallocate_size(size, dst_node);
 	}
 	return addr;
@@ -450,7 +462,7 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:
-			free((void*)addr);
+			starpu_free((void*)addr);
 			break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
@@ -486,6 +498,12 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
                         break;
 		}
 #endif
+	        case STARPU_DISK_RAM:
+		{
+			_starpu_disk_free (dst_node, (void *) addr , size);
+			break;
+		}
+
 #ifdef STARPU_USE_MIC
 		case STARPU_MIC_RAM:
 			_starpu_mic_free_memory((void*) addr, size, dst_node);

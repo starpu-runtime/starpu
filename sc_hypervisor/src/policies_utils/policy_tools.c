@@ -437,7 +437,7 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
                                 times[w][t] = NAN;
 			else
 			{
-                                times[w][t] = length / 1000.;
+                                times[w][t] = (length / 1000.);
 
 				double transfer_time = 0.0;
 				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
@@ -447,7 +447,7 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 					if(!worker_in_ctx && !size_ctxs)
 					{
 						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
-						transfer_time +=  (tp->footprint / transfer_velocity) / 1000. ;
+						transfer_time +=  (tp->data_size / transfer_velocity) / 1000. ;
 					}
 					double latency = starpu_get_latency_RAM_CUDA(worker);
 					transfer_time += latency/1000.;
@@ -456,6 +456,7 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 //				printf("%d/%d %s x %d time = %lf transfer_time = %lf\n", w, tp->sched_ctx_id, tp->cl->model->symbol, tp->n, times[w][t], transfer_time);
 				times[w][t] += transfer_time;
 			}
+//			printf("sc%d w%d task %s nt %d times %lf s\n", tp->sched_ctx_id, w, tp->cl->model->symbol, tp->n, times[w][t]);
                 }
         }
 }
@@ -498,6 +499,7 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 		}
 	}
 
+/*if an optimal speed has not been computed yet do it now */
 	if(!has_opt_v)
 	{
 		int nw = 1;
@@ -533,6 +535,8 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 		}
 	}
 
+/* if we have an optimal speed for each type of worker compare the monitored one with the 
+   theoretical one */
 	if(has_opt_v)
 	{
 		for(i = 0; i < nsched_ctxs; i++)
@@ -553,7 +557,9 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 				return 1;
 		}
 	}
-	else
+	else /* if we have not been able to compute a theoretical velocity consider the env variable
+		SC_MAX_VELOCITY_GAP and compare the speed of the contexts, whenever the difference
+		btw them is greater than the max value the function returns true */
 	{
 		for(i = 0; i < nsched_ctxs; i++)
 		{
@@ -575,7 +581,7 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 						{
 							double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v;
 							double max_vel = _get_max_velocity_gap();
-							if(gap > max_vel-1 && gap < max_vel+1)
+							if(gap > max_vel)
 								return 1;
 						}
 					}

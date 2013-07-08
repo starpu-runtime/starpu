@@ -43,10 +43,10 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	starpu_variable_data_register(&send_handle[0], 0, (uintptr_t)&send[0], sizeof(unsigned));
-	starpu_variable_data_register(&send_handle[1], 0, (uintptr_t)&send[1], sizeof(unsigned));
-	starpu_variable_data_register(&recv_handle[0], 0, (uintptr_t)&recv[0], sizeof(unsigned));
-	starpu_variable_data_register(&recv_handle[1], 0, (uintptr_t)&recv[1], sizeof(unsigned));
+	starpu_variable_data_register(&send_handle[0], STARPU_MAIN_RAM, (uintptr_t)&send[0], sizeof(unsigned));
+	starpu_variable_data_register(&send_handle[1], STARPU_MAIN_RAM, (uintptr_t)&send[1], sizeof(unsigned));
+	starpu_variable_data_register(&recv_handle[0], STARPU_MAIN_RAM, (uintptr_t)&recv[0], sizeof(unsigned));
+	starpu_variable_data_register(&recv_handle[1], STARPU_MAIN_RAM, (uintptr_t)&recv[1], sizeof(unsigned));
 
 	if (rank == 0)
 	{

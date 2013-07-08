@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 	*data = 42;
 
 	/* register a piece of data */
-	starpu_vector_data_register(&handle, 0, (uintptr_t)data,
+	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)data,
 						1, sizeof(unsigned));
 
 	struct starpu_task *task = starpu_task_create();

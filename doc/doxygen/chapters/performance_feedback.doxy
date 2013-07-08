@@ -253,6 +253,10 @@ starpu_shutdown(). The trace is a binary file whose name has the form
 <c>/tmp/</c> directory by default, or by the directory specified by
 the environment variable \ref STARPU_FXT_PREFIX.
 
+The additional configure option \ref enable-fxt-lock "--enable-fxt-lock" can 
+be used to generate trace events which describes the locks behaviour during 
+the execution.
+
 \subsection CreatingAGanttDiagram Creating a Gantt Diagram
 
 When the FxT trace file <c>filename</c> has been generated, it is possible to
@@ -415,6 +419,9 @@ starpu_perfmodel_load_symbol(). The source code of the tool
 The tool <c>starpu_perfmodel_plot</c> can be used to draw performance
 models. It writes a <c>.gp</c> file in the current directory, to be
 run with the tool <c>gnuplot</c>, which shows the corresponding curve.
+
+\image html starpu_non_linear_memset_regression_based.png
+\image latex starpu_non_linear_memset_regression_based.eps "" width=\textwidth
 
 When the field starpu_task::flops is set, <c>starpu_perfmodel_plot</c> can
 directly draw a GFlops curve, by simply adding the <c>-f</c> option:

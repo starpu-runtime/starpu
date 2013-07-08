@@ -85,12 +85,12 @@ main (int argc, char *argv[])
   expected_register_arguments.pointer = x;
   expected_register_arguments.elements = 1;
   expected_register_arguments.element_size = sizeof x[0];
-  starpu_vector_data_register (&handle, 0, (uintptr_t) x, 1, sizeof x[0]);
+  starpu_vector_data_register (&handle, STARPU_MAIN_RAM, (uintptr_t) x, 1, sizeof x[0]);
 
   expected_register_arguments.pointer = y;
   expected_register_arguments.elements = 1;
   expected_register_arguments.element_size = sizeof *y;
-  starpu_vector_data_register (&handle, 0, (uintptr_t) y, 1, sizeof *y);
+  starpu_vector_data_register (&handle, STARPU_MAIN_RAM, (uintptr_t) y, 1, sizeof *y);
 
   struct insert_task_argument expected_pointer_task[] =
     {

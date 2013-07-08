@@ -46,7 +46,7 @@ int main(void)
 		return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_variable_data_register(&handle, 0, (uintptr_t)buffer, 1024*sizeof(int));
+	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)buffer, 1024*sizeof(int));
 
 	t1 = starpu_task_create();
 

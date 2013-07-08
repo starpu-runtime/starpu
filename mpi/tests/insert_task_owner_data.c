@@ -52,14 +52,14 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		x[0] = 11;
-		starpu_variable_data_register(&data_handles[0], 0, (uintptr_t)&x[0], sizeof(x[0]));
+		starpu_variable_data_register(&data_handles[0], STARPU_MAIN_RAM, (uintptr_t)&x[0], sizeof(x[0]));
 		starpu_variable_data_register(&data_handles[1], -1, (uintptr_t)NULL, sizeof(x[1]));
 	}
 	else if (rank == 1)
 	{
 		x[1] = 12;
 		starpu_variable_data_register(&data_handles[0], -1, (uintptr_t)NULL, sizeof(x[0]));
-		starpu_variable_data_register(&data_handles[1], 0, (uintptr_t)&x[1], sizeof(x[1]));
+		starpu_variable_data_register(&data_handles[1], STARPU_MAIN_RAM, (uintptr_t)&x[1], sizeof(x[1]));
 	}
 	else
 	{

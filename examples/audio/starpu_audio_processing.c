@@ -413,7 +413,7 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 
-	starpu_vector_data_register(&A_handle, 0, (uintptr_t)A, niter*nsamples, sizeof(float));
+	starpu_vector_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A, niter*nsamples, sizeof(float));
 
 	struct starpu_data_filter f =
 	{
@@ -458,7 +458,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Writing output data\n");
 
 	/* make sure that the output is in RAM before quitting StarPU */
-	starpu_data_unpartition(A_handle, 0);
+	starpu_data_unpartition(A_handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(A_handle);
 
 	starpu_cublas_shutdown();

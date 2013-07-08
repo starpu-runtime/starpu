@@ -230,7 +230,7 @@ static size_t custom_interface_get_size(starpu_data_handle_t handle)
 	struct custom_data_interface *data_interface;
 
 	data_interface = (struct custom_data_interface *)
-				starpu_data_get_interface_on_node(handle, 0);
+				starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 	size = data_interface->nx * data_interface->ops->cpu_elemsize;
 	return size;
 }
@@ -243,7 +243,7 @@ static uint32_t footprint_custom_interface_crc32(starpu_data_handle_t handle)
 static void display_custom_interface(starpu_data_handle_t handle, FILE *f)
 {
 	struct custom_data_interface *ci = (struct custom_data_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 	fprintf(f, "Custom interface of size %d", ci->nx);
 }
 
@@ -252,7 +252,7 @@ custom_get_nx(starpu_data_handle_t handle)
 {
 	struct custom_data_interface *data_interface;
 	data_interface = (struct custom_data_interface *)
-				starpu_data_get_interface_on_node(handle, 0);
+				starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 	return data_interface->nx;
 }
 

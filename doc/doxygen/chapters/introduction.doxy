@@ -145,7 +145,7 @@ simply replace calling the function with submitting a task.
 A \b codelet records pointers to various implementations of the same
 theoretical function.
 
-A <b>memory node</b> can be either the main RAM or GPU-embedded memory.
+A <b>memory node</b> can be either the main RAM, GPU-embedded memory or a disk memory.
 
 A \b bus is a link between memory nodes.
 
@@ -213,6 +213,7 @@ The documentation chapters include
 <li> \ref HowToOptimizePerformanceWithStarPU
 <li> \ref PerformanceFeedback
 <li> \ref TipsAndTricksToKnowAbout
+<li> \ref OutOfCore
 <li> \ref MPISupport
 <li> \ref FFTSupport
 <li> \ref MICSCCSupport

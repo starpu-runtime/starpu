@@ -34,7 +34,7 @@ register_handle(void)
 	int i;
 	for (i = 0; i < NX; i++)
 		vector[i] = i;
-	starpu_multiformat_data_register(&handle, 0, vector, NX, &ops);
+	starpu_multiformat_data_register(&handle, STARPU_MAIN_RAM, vector, NX, &ops);
 }
 
 static void

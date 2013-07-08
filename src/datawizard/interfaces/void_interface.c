@@ -64,7 +64,7 @@ static void register_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UN
 /* declare a new data with the void interface */
 void starpu_void_data_register(starpu_data_handle_t *handleptr)
 {
-	starpu_data_register(handleptr, 0, NULL, &starpu_interface_void_ops);
+	starpu_data_register(handleptr, STARPU_MAIN_RAM, NULL, &starpu_interface_void_ops);
 }
 
 

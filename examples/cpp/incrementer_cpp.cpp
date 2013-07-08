@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_vector_data_register(&float_array_handle, 0, (uintptr_t)&float_array, 4, sizeof(float));
+	starpu_vector_data_register(&float_array_handle, STARPU_MAIN_RAM, (uintptr_t)&float_array, 4, sizeof(float));
 
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_load_opencl_from_file("examples/incrementer/incrementer_kernels_opencl_kernel.cl", &opencl_program, NULL);

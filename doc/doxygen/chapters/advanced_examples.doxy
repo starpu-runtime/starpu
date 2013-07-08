@@ -201,7 +201,7 @@ int vector[NX];
 starpu_data_handle_t handle;
 
 /* Declare data to StarPU */
-starpu_vector_data_register(&handle, 0, (uintptr_t)vector,
+starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)vector,
                             NX, sizeof(vector[0]));
 
 /* Partition the vector in PARTS sub-vectors */
@@ -390,9 +390,24 @@ starpu_perfmodel::size_base however permits the application to
 override that, when for instance some of the data do not matter for
 task cost (e.g. mere reference table), or when using sparse
 structures (in which case it is the number of non-zeros which matter), or when
-there is some hidden parameter such as the number of iterations, etc.
+there is some hidden parameter such as the number of iterations, or when the application
+actually has a very good idea of the complexity of the algorithm, and just not
+the speed of the processor, etc.
 The example in the directory <c>examples/pi</c> uses this to include
 the number of iterations in the base.
+
+StarPU will automatically determine when the performance model is calibrated,
+or rather, it will assume the performance model is calibrated until the
+application submits a task for which the performance can not be predicted. For
+::STARPU_HISTORY_BASED, StarPU will require 10 (::_STARPU_CALIBRATION_MINIMUM)
+measurements for a given size before estimating that an average can be taken as
+estimation for further executions with the same size. For
+::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED, StarPU will require
+10 (::_STARPU_CALIBRATION_MINIMUM) measurements, and that the minimum measured
+data size is smaller than 90% of the maximum measured data size (i.e. the
+measurement interval is large enough for a regression to have a meaning).
+Calibration can also be forced by setting the \ref STARPU_CALIBRATE environment
+variable to <c>1</c>, or even reset by setting it to <c>2</c>.
 
 How to use schedulers which can benefit from such performance model is explained
 in \ref TaskSchedulingPolicy.
@@ -1106,8 +1121,7 @@ Complex data interfaces can then be registered to StarPU.
 
 \code{.c}
 double real = 45.0;
-double imaginary = 12.0;
-starpu_complex_data_register(&handle1, 0, &real, &imaginary, 1);
+double imaginary = 12.0;starpu_complex_data_register(&handle1, STARPU_MAIN_RAM, &real, &imaginary, 1);
 starpu_insert_task(&cl_display, STARPU_R, handle1, 0);
 \endcode
 

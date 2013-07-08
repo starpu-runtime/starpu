@@ -108,7 +108,7 @@ int main(int argc, char **argv)
 			if (mpi_rank == my_rank)
 			{
 				//fprintf(stderr, "[%d] Owning data[%d][%d]\n", my_rank, x, y);
-				starpu_variable_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
+				starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
 			}
 			else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
 				 || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))

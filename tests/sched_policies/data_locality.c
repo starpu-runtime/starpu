@@ -71,7 +71,7 @@ static starpu_data_handle_t rw_handle;
 static void
 init_data(void)
 {
-	starpu_variable_data_register(&rw_handle, 0, (uintptr_t) &var,
+	starpu_variable_data_register(&rw_handle, STARPU_MAIN_RAM, (uintptr_t) &var,
 					sizeof(var));
 }
 

@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_malloc((void **)&v, VECTORSIZE*sizeof(unsigned));
-	starpu_vector_data_register(&v_handle, 0, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
+	starpu_vector_data_register(&v_handle, STARPU_MAIN_RAM, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
 	unsigned nworker = starpu_worker_get_count();
 
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 		{
 			/* synchronous prefetch */
 			unsigned node = starpu_worker_get_memory_node(worker);
-			ret = starpu_data_prefetch_on_node(v_handle, node, 0);
+			ret = starpu_data_prefetch_on_node(v_handle, node, STARPU_MAIN_RAM);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_prefetch_on_node");
 
 			/* execute a task */

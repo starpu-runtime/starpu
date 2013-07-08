@@ -212,7 +212,7 @@ Here an example of how to use the function.
 \code{.c}
 float var;
 starpu_data_handle_t var_handle;
-starpu_variable_data_register(&var_handle, 0, (uintptr_t)&var, sizeof(var));
+starpu_variable_data_register(&var_handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
 \endcode
 
 \fn void starpu_vector_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize)
@@ -223,7 +223,7 @@ Here an example of how to use the function.
 \code{.c}
 float vector[NX];
 starpu_data_handle_t vector_handle;
-starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX, sizeof(vector[0]));
+starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 \endcode
 
 \fn void starpu_matrix_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize)
@@ -238,7 +238,7 @@ Here an example of how to use the function.
 float *matrix;
 starpu_data_handle_t matrix_handle;
 matrix = (float*)malloc(width * height * sizeof(float));
-starpu_matrix_data_register(&matrix_handle, 0, (uintptr_t)matrix, width, width, height, sizeof(float));
+starpu_matrix_data_register(&matrix_handle, STARPU_MAIN_RAM, (uintptr_t)matrix, width, width, height, sizeof(float));
 \endcode
 
 \fn void starpu_block_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx, uint32_t ny, uint32_t nz, size_t elemsize)
@@ -252,7 +252,7 @@ Here an example of how to use the function.
 float *block;
 starpu_data_handle_t block_handle;
 block = (float*)malloc(nx*ny*nz*sizeof(float));
-starpu_block_data_register(&block_handle, 0, (uintptr_t)block, nx, nx*ny, nx, ny, nz, sizeof(float));
+starpu_block_data_register(&block_handle, STARPU_MAIN_RAM, (uintptr_t)block, nx, nx*ny, nx, ny, nz, sizeof(float));
 \endcode
 
 \fn void starpu_bcsr_data_register(starpu_data_handle_t *handle, unsigned home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize)

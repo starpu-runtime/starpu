@@ -18,6 +18,7 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memalloc.h>
 #include <datawizard/footprint.h>
+#include <core/disk.h>
 #include <starpu.h>
 
 /* This per-node spinlock protect lru_list */
@@ -42,6 +43,8 @@ static struct _starpu_mem_chunk_list *memchunk_cache[STARPU_MAXNODES];
 const unsigned starpu_memstrategy_data_size_coefficient=2;
 
 static void starpu_lru(unsigned node);
+static int get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node);
+static unsigned choose_target(starpu_data_handle_t handle, unsigned node);
 
 void _starpu_init_mem_chunk_lists(void)
 {
@@ -369,19 +372,15 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
-			if (handle->home_node != -1)
-				target = handle->home_node;
-			else
-				/* NULL-registered data, push to RAM if it's not what we are flushing */
-				if (node != 0)
-					target = 0;
+			
+			/* choose the best target */
+			target = choose_target(handle, node);
 
 			if (target != -1) {
 #ifdef STARPU_MEMORY_STATS
 				if (handle->per_node[node].state == STARPU_OWNER)
 					_starpu_memory_handle_stats_invalidated(handle, node);
 #endif
-
 				transfer_subtree_to_node(handle, node, target);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
@@ -757,13 +756,20 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 
-	/* We would never flush the node 0 cache, unless
-	 * malloc() returns NULL, which is very unlikely... */
+	/* We would only flush the RAM nodes cache if memory gets tight, either
+	 * because StarPU automatically knows the total memory size of the
+	 * machine, or because the user has provided a limitation.
+	 *
+	 * We don't really want the former scenario to be eating a lot of
+	 * memory just for caching allocations. Allocating main memory is cheap
+	 * anyway.
+	 */
 	/* This is particularly important when
 	 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
 	 * wouldn't even re-use these allocations! */
 	if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
 	{
+		/* Free data immediately */
 		free_memory_on_node(mc, node);
 
 		free(mc->chunk_interface);
@@ -853,17 +859,23 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			handle->busy_count++;
 			_starpu_spin_unlock(&handle->header_lock);
 
-			_STARPU_TRACE_START_MEMRECLAIM(dst_node);
+			_STARPU_TRACE_START_MEMRECLAIM(dst_node,is_prefetch);
 			if (is_prefetch)
 			{
 				flush_memchunk_cache(dst_node, reclaim);
 			}
 			else
 				_starpu_memory_reclaim_generic(dst_node, 0, reclaim);
-			_STARPU_TRACE_END_MEMRECLAIM(dst_node);
+			_STARPU_TRACE_END_MEMRECLAIM(dst_node,is_prefetch);
 
-		        while (_starpu_spin_trylock(&handle->header_lock))
-		                _starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
+			int cpt = 0;
+			while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
+			{
+				cpt++;
+				_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
+			}
+			if (cpt == STARPU_SPIN_MAXTRY)
+				_starpu_spin_lock(&handle->header_lock);
 
 			replicate->refcnt--;
 			STARPU_ASSERT(replicate->refcnt >= 0);
@@ -1009,4 +1021,90 @@ void starpu_data_display_memory_stats(void)
 	}
 	fprintf(stderr, "\n#---------------------\n");
 #endif
+}
+
+
+static int
+get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
+{
+	int target = -1;
+	unsigned nnodes = starpu_memory_nodes_get_count();
+	unsigned int i;
+	double time_disk = 0;
+				
+	for (i = 0; i < nnodes; i++)
+	{
+		if (starpu_node_get_kind(i) == STARPU_DISK_RAM && i != node &&
+		    (_starpu_memory_manager_test_allocate_size_(_starpu_data_get_size(handle), i) == 1 ||
+		     handle->per_node[i].allocated))
+		{
+			/* if we can write on the disk */
+			if (_starpu_get_disk_flag(i) != STARPU_DISK_NO_RECLAIM)
+			{
+				/* only time can change between disk <-> main_ram 
+				 * and not between main_ram <-> worker if we compare diks*/
+				double time_tmp = _starpu_predict_transfer_time(i, STARPU_MAIN_RAM, _starpu_data_get_size(handle));
+				if (target == -1 || time_disk > time_tmp)
+				{
+					target = i;
+					time_disk = time_tmp;
+				}
+			}	
+		}
+	}
+	return target;
+}
+
+
+static unsigned
+choose_target(starpu_data_handle_t handle, unsigned node)
+{
+	unsigned target = -1;
+	size_t size_handle = _starpu_data_get_size(handle);
+	if (handle->home_node != -1)
+		/* try to push on RAM if we can before to push on disk */
+		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && node != STARPU_MAIN_RAM)
+		{
+			if (handle->per_node[STARPU_MAIN_RAM].allocated || 
+			    _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
+			{
+				target = STARPU_MAIN_RAM;
+			}
+			else
+			{
+				target = get_better_disk_can_accept_size(handle, node);
+			}
+
+		}
+          	/* others memory nodes */
+		else 
+		{
+			target = handle->home_node;
+		}
+	else
+	{
+		/* handle->home_node == -1 */
+		/* no place for datas in RAM, we push on disk */
+		if (node == STARPU_MAIN_RAM)
+		{
+			target = get_better_disk_can_accept_size(handle, node);
+		}
+		/* node != 0 */
+		/* try to push data to RAM if we can before to push on disk*/
+		else if (handle->per_node[STARPU_MAIN_RAM].allocated || 
+			 _starpu_memory_manager_test_allocate_size_(size_handle, STARPU_MAIN_RAM) == 1)
+		{
+			target = STARPU_MAIN_RAM;
+		}
+		/* no place in RAM */
+		else
+		{
+			target = get_better_disk_can_accept_size(handle, node);
+		}
+	}
+	/* we haven't the right to write on the disk */
+	if (starpu_node_get_kind(target) == STARPU_DISK_RAM && _starpu_get_disk_flag(target) == STARPU_DISK_NO_RECLAIM)
+		target = -1;
+
+	return target;
 }

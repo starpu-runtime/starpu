@@ -42,6 +42,8 @@ static size_t variable_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_variable_interface_crc32(starpu_data_handle_t handle);
 static int variable_compare(void *data_interface_a, void *data_interface_b);
 static void display_variable_interface(starpu_data_handle_t handle, FILE *f);
+static int pack_variable_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
+static int unpack_variable_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
 struct starpu_data_interface_ops starpu_interface_variable_ops =
 {
@@ -56,6 +58,8 @@ struct starpu_data_interface_ops starpu_interface_variable_ops =
 	.interfaceid = STARPU_VARIABLE_INTERFACE_ID,
 	.interface_size = sizeof(struct starpu_variable_interface),
 	.display = display_variable_interface,
+	.pack_data = pack_variable_handle,
+	.unpack_data = unpack_variable_handle
 };
 
 static void *variable_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
@@ -134,6 +138,37 @@ static void display_variable_interface(starpu_data_handle_t handle, FILE *f)
 		starpu_data_get_interface_on_node(handle, 0);
 
 	fprintf(f, "%ld\t", (long)variable_interface->elemsize);
+}
+
+static int pack_variable_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)
+{
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *)
+		starpu_data_get_interface_on_node(handle, node);
+
+	*count = variable_interface->elemsize;
+
+	if (ptr != NULL)
+	{
+		*ptr = malloc(*count);
+		memcpy(*ptr, (void*)variable_interface->ptr, variable_interface->elemsize);
+	}
+
+	return 0;
+}
+
+static int unpack_variable_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *)
+		starpu_data_get_interface_on_node(handle, node);
+
+	STARPU_ASSERT(count == variable_interface->elemsize);
+
+	memcpy((void*)variable_interface->ptr, ptr, variable_interface->elemsize);
+	return 0;
 }
 
 static size_t variable_interface_get_size(starpu_data_handle_t handle)

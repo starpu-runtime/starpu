@@ -46,7 +46,6 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned nbasic_workers = starpu_worker_get_count();
 	unsigned ncombined_workers= starpu_combined_worker_get_count();
-	unsigned ntotal_workers = nbasic_workers + ncombined_workers;
 	unsigned workerid, i;
 
 	/* Find the master of each worker. We first assign the worker as its

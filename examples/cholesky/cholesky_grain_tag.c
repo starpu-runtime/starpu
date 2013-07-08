@@ -189,7 +189,7 @@ static int cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned 
 
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (i,j) */
-	starpu_matrix_data_register(&dataA, 0, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
 
 	starpu_data_set_sequential_consistency_flag(dataA, 0);
 
@@ -250,7 +250,7 @@ static int cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned 
 	{
 		/* stall the application until the end of computations */
 		starpu_tag_wait(TAG11_AUX(nblocks-1, reclevel));
-		starpu_data_unpartition(dataA, 0);
+		starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 		starpu_data_unregister(dataA);
 		return 0;
 	}
@@ -274,7 +274,7 @@ static int cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned 
 
 		free(tag_array);
 
-		starpu_data_unpartition(dataA, 0);
+		starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 		starpu_data_unregister(dataA);
 
 		float *newmatA = &matA[nbigblocks*(size/nblocks)*(ld+1)];

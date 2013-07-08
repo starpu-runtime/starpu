@@ -110,19 +110,19 @@ int main(int argc, char *argv[])
 	err = starpu_malloc((void **)&pointer, count * sizeof(int));
 	STARPU_ASSERT((err == 0) && (pointer != NULL));
 
-	starpu_variable_data_register(&handle, 0, (uintptr_t)pointer,
+	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer,
 				      sizeof(int));
-	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, 0) == pointer);
+	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
 	starpu_data_unregister(handle);
 
-	starpu_vector_data_register(&handle, 0, (uintptr_t)pointer,
+	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer,
 				    count, sizeof(int));
-	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, 0) == pointer);
+	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
 	starpu_data_unregister(handle);
 
-	starpu_matrix_data_register(&handle, 0, (uintptr_t)pointer, 0,
+	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, 0,
 				    count, 1, sizeof(int));
-	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, 0) == pointer);
+	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
 	starpu_data_unregister(handle);
 
 	starpu_free(pointer);
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 	/* Lazy allocation.  */
 	starpu_vector_data_register(&handle, -1, 0 /* NULL */,
 				    count, sizeof(int));
-	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, 0) == NULL);
+	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == NULL);
 
 	/* Pass the handle to a task.  */
 	err = starpu_insert_task(&cl,
@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
 
 	/* Make sure we have a local pointer to it.  */
 	ret = EXIT_SUCCESS;
-	pointer = (int *) starpu_data_handle_to_pointer(handle, 0);
+	pointer = (int *) starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
 	if (pointer == NULL)
 	{
 	     FPRINTF(stderr, "pointer should be non NULL\n");

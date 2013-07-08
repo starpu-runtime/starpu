@@ -295,7 +295,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx)
 {
-	int worker = -1, nworkers = 0;
+	unsigned worker = 0, nworkers = 0;
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 
 	struct starpu_sched_ctx_iterator it;
@@ -637,27 +637,6 @@ pick:
 
 		}
 	  }
-
-#ifdef STARPU_USE_SC_HYPERVISOR
-	struct _starpu_sched_ctx *sched_ctx = NULL;
-	struct starpu_sched_ctx_performance_counters *perf_counters = NULL;
-	int j;
-	for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-	{
-		sched_ctx = worker->sched_ctx[j];
-		if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
-		{
-			perf_counters = sched_ctx->perf_counters;
-			if(perf_counters != NULL && perf_counters->notify_idle_cycle && perf_counters->notify_idle_end)
-			{
-				if(!task)
-					perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
-				else
-					perf_counters->notify_idle_end(sched_ctx->id, worker->workerid);
-			}
-		}
-	}
-#endif //STARPU_USE_SC_HYPERVISOR
 
 
 	if (!task)

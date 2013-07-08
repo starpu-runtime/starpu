@@ -664,12 +664,12 @@ ram_to_ram(void)
 	dst = *current_config->dummy_handle;
 
 	/* We do not care about the nodes */
-	src_interface = starpu_data_get_interface_on_node(src, 0);
-	dst_interface = starpu_data_get_interface_on_node(dst, 0);
+	src_interface = starpu_data_get_interface_on_node(src, STARPU_MAIN_RAM);
+	dst_interface = starpu_data_get_interface_on_node(dst, STARPU_MAIN_RAM);
 	if (src->ops->copy_methods->ram_to_ram)
-		src->ops->copy_methods->ram_to_ram(src_interface, 0, dst_interface, 0);
+		src->ops->copy_methods->ram_to_ram(src_interface, STARPU_MAIN_RAM, dst_interface, STARPU_MAIN_RAM);
 	else
-		src->ops->copy_methods->any_to_any(src_interface, 0, dst_interface, 0, NULL);
+		src->ops->copy_methods->any_to_any(src_interface, STARPU_MAIN_RAM, dst_interface, STARPU_MAIN_RAM, NULL);
 
 	err = create_task(&task, STARPU_CPU_WORKER, -1);
 	if (err != 0)
@@ -764,8 +764,8 @@ compare(void)
 
 	handle = *current_config->handle;
 	dummy_handle = *current_config->dummy_handle;
-	interface_a = starpu_data_get_interface_on_node(handle, 0);
-	interface_b = starpu_data_get_interface_on_node(dummy_handle, 0);
+	interface_a = starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	interface_b = starpu_data_get_interface_on_node(dummy_handle, STARPU_MAIN_RAM);
 
 	err = handle->ops->compare(interface_a, interface_b);
 

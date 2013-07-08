@@ -60,28 +60,6 @@ The header starpu.h should be included in any code using StarPU.
 
 \subsection DefiningACodelet Defining A Codelet
 
-\code{.c}
-struct params
-{
-    int i;
-    float f;
-};
-void cpu_func(void *buffers[], void *cl_arg)
-{
-    struct params *params = cl_arg;
-
-    printf("Hello world (params = {%i, %f} )\n", params->i, params->f);
-}
-
-struct starpu_codelet cl =
-{
-    .where = STARPU_CPU,
-    .cpu_funcs = { cpu_func, NULL },
-    .cpu_funcs_name = { "cpu_func", NULL },
-    .nbuffers = 0
-};
-\endcode
-
 A codelet is a structure that represents a computational kernel. Such a codelet
 may contain an implementation of the same kernel on different architectures
 (e.g. CUDA, x86, ...). For compatibility, make sure that the whole
@@ -91,22 +69,10 @@ compiler implicitly do it as examplified above.
 
 The field starpu_codelet::nbuffers specifies the number of data buffers that are
 manipulated by the codelet: here the codelet does not access or modify any data
-that is controlled by our data management library. Note that the argument
-passed to the codelet (the parameter <c>cl_arg</c> of the function
-<c>cpu_func</c>) does not count as a buffer since it is not managed by
-our data management library, but just contain trivial parameters.
+that is controlled by our data management library.
 
-\internal
-TODO need a crossref to the proper description of "where" see bla for more ...
-\endinternal
-
-We create a codelet which may only be executed on the CPUs. The field
-starpu_codelet::where is a bitmask that defines where the codelet may
-be executed. Here, the value ::STARPU_CPU means that only CPUs can
-execute this codelet. Note that field starpu_codelet::where is
-optional, when unset its value is automatically set based on the
-availability of the different fields <c>XXX_funcs</c>.
-When a CPU core executes a codelet, it calls the function
+We create a codelet which may only be executed on the CPUs. When a CPU
+core will execute a codelet, it will call the function
 <c>cpu_func</c>, which \em must have the following prototype:
 
 \code{.c}
@@ -115,57 +81,23 @@ void (*cpu_func)(void *buffers[], void *cl_arg);
 
 In this example, we can ignore the first argument of this function which gives a
 description of the input and output buffers (e.g. the size and the location of
-the matrices) since there is none.
-The second argument is a pointer to a buffer passed as an
-argument to the codelet by the means of the field starpu_task::cl_arg.
-
-\internal
-TODO rewrite so that it is a little clearer ?
-\endinternal
-
-Be aware that this may be a pointer to a
-\em copy of the actual buffer, and not the pointer given by the programmer:
-if the codelet modifies this buffer, there is no guarantee that the initial
-buffer will be modified as well: this for instance implies that the buffer
-cannot be used as a synchronization medium. If synchronization is needed, data
-has to be registered to StarPU, see \ref VectorScalingUsingStarPUAPI.
-
-\subsection SubmittingATask Submitting A Task
+the matrices) since there is none. We also ignore the second argument
+which is a pointer to optional arguments for the codelet.
 
 \code{.c}
-void callback_func(void *callback_arg)
+void cpu_func(void *buffers[], void *cl_arg)
 {
-    printf("Callback function (arg %x)\n", callback_arg);
+    printf("Hello world\n");
 }
 
-int main(int argc, char **argv)
+struct starpu_codelet cl =
 {
-    /* initialize StarPU */
-    starpu_init(NULL);
-
-    struct starpu_task *task = starpu_task_create();
-
-    task->cl = &cl; /* Pointer to the codelet defined above */
-
-    struct params params = { 1, 2.0f };
-    task->cl_arg = &params;
-    task->cl_arg_size = sizeof(params);
-
-    task->callback_func = callback_func;
-    task->callback_arg = 0x42;
-
-    /* starpu_task_submit will be a blocking call */
-    task->synchronous = 1;
-
-    /* submit the task to StarPU */
-    starpu_task_submit(task);
-
-    /* terminate StarPU */
-    starpu_shutdown();
-
-    return 0;
-}
+    .cpu_funcs = { cpu_func, NULL },
+    .nbuffers = 0
+};
 \endcode
+
+\subsection SubmittingATask Submitting A Task
 
 Before submitting any tasks to StarPU, starpu_init() must be called. The
 <c>NULL</c> argument specifies that we use the default configuration. Tasks cannot
@@ -187,6 +119,52 @@ kernel should be offloaded on the different architectures, and the task
 structure is a wrapper containing a codelet and the piece of data on which the
 codelet should operate.
 
+If the field starpu_task::synchronous is non-zero, task submission
+will be synchronous: the function starpu_task_submit() will not return
+until the task has been executed. Note that the function starpu_shutdown()
+does not guarantee that asynchronous tasks have been executed before
+it returns, starpu_task_wait_for_all() can be used to that effect, or
+data can be unregistered (starpu_data_unregister()), which will
+implicitly wait for all the tasks scheduled to work on it, unless
+explicitly disabled thanks to
+starpu_data_set_default_sequential_consistency_flag() or
+starpu_data_set_sequential_consistency_flag().
+
+\code{.c}
+int main(int argc, char **argv)
+{
+    /* initialize StarPU */
+    starpu_init(NULL);
+
+    struct starpu_task *task = starpu_task_create();
+
+    task->cl = &cl; /* Pointer to the codelet defined above */
+
+    /* starpu_task_submit will be a blocking call. If unset,
+    starpu_task_wait() needs to be called after submitting the task. */
+    task->synchronous = 1;
+
+    /* submit the task to StarPU */
+    starpu_task_submit(task);
+
+    /* terminate StarPU */
+    starpu_shutdown();
+
+    return 0;
+}
+\endcode
+
+\subsection ExecutionOfHelloWorld Execution Of Hello World
+
+\verbatim
+$ make hello_world
+cc $(pkg-config --cflags starpu-1.2)  $(pkg-config --libs starpu-1.2) hello_world.c -o hello_world
+$ ./hello_world
+Hello world
+\endverbatim
+
+\subsection PassingArgumentsToTheCodelet Passing Arguments To The Codelet
+
 The optional field starpu_task::cl_arg field is a pointer to a buffer
 (of size starpu_task::cl_arg_size) with some parameters for the kernel
 described by the codelet. For instance, if a codelet implements a
@@ -199,6 +177,74 @@ until the task terminates, and if several tasks are submitted with
 various parameters, each of them must be given a pointer to their
 own buffer.
 
+\code{.c}
+struct params
+{
+    int i;
+    float f;
+};
+
+void cpu_func(void *buffers[], void *cl_arg)
+{
+    struct params *params = cl_arg;
+
+    printf("Hello world (params = {%i, %f} )\n", params->i, params->f);
+}
+\endcode
+
+As said before, the field starpu_codelet::nbuffers specifies the
+number of data buffers that are manipulated by the codelet. It does
+not count the argument --- the parameter <c>cl_arg</c> of the function
+<c>cpu_func</c> --- since it is not managed by our data management
+library, but just contains trivial parameters.
+
+\internal
+TODO rewrite so that it is a little clearer ?
+\endinternal
+
+Be aware that this may be a pointer to a
+\em copy of the actual buffer, and not the pointer given by the programmer:
+if the codelet modifies this buffer, there is no guarantee that the initial
+buffer will be modified as well: this for instance implies that the buffer
+cannot be used as a synchronization medium. If synchronization is needed, data
+has to be registered to StarPU, see \ref VectorScalingUsingStarPUAPI.
+
+\code{.c}
+int main(int argc, char **argv)
+{
+    /* initialize StarPU */
+    starpu_init(NULL);
+
+    struct starpu_task *task = starpu_task_create();
+
+    task->cl = &cl; /* Pointer to the codelet defined above */
+
+    struct params params = { 1, 2.0f };
+    task->cl_arg = &params;
+    task->cl_arg_size = sizeof(params);
+
+    /* starpu_task_submit will be a blocking call */
+    task->synchronous = 1;
+
+    /* submit the task to StarPU */
+    starpu_task_submit(task);
+
+    /* terminate StarPU */
+    starpu_shutdown();
+
+    return 0;
+}
+\endcode
+
+\verbatim
+$ make hello_world
+cc $(pkg-config --cflags starpu-1.2)  $(pkg-config --libs starpu-1.2) hello_world.c -o hello_world
+$ ./hello_world
+Hello world (params = {1, 2.000000} )
+\endverbatim
+
+\subsection DefiningACallback Defining A Callback
+
 Once a task has been executed, an optional callback function
 starpu_task::callback_func is called when defined.
 While the computational kernel could be offloaded on various architectures, the
@@ -210,26 +256,65 @@ function. The prototype of a callback function must be:
 void (*callback_function)(void *);
 \endcode
 
-If the field starpu_task::synchronous is non-zero, task submission
-will be synchronous: the function starpu_task_submit() will not return
-until the task has been executed. Note that the function starpu_shutdown()
-does not guarantee that asynchronous tasks have been executed before
-it returns, starpu_task_wait_for_all() can be used to that effect, or
-data can be unregistered (starpu_data_unregister()), which will
-implicitly wait for all the tasks scheduled to work on it, unless
-explicitly disabled thanks to
-starpu_data_set_default_sequential_consistency_flag() or
-starpu_data_set_sequential_consistency_flag().
+\code{.c}
+void callback_func(void *callback_arg)
+{
+    printf("Callback function (arg %x)\n", callback_arg);
+}
 
-\subsection ExecutionOfHelloWorld Execution Of Hello World
+int main(int argc, char **argv)
+{
+    /* initialize StarPU */
+    starpu_init(NULL);
+
+    struct starpu_task *task = starpu_task_create();
+
+    task->cl = &cl; /* Pointer to the codelet defined above */
+
+    task->callback_func = callback_func;
+    task->callback_arg = 0x42;
+
+    /* starpu_task_submit will be a blocking call */
+    task->synchronous = 1;
+
+    /* submit the task to StarPU */
+    starpu_task_submit(task);
+
+    /* terminate StarPU */
+    starpu_shutdown();
+
+    return 0;
+}
+\endcode
 
 \verbatim
 $ make hello_world
 cc $(pkg-config --cflags starpu-1.2)  $(pkg-config --libs starpu-1.2) hello_world.c -o hello_world
 $ ./hello_world
-Hello world (params = {1, 2.000000} )
+Hello world
 Callback function (arg 42)
 \endverbatim
+
+\subsection WhereToExecuteACodelet Where To Execute A Codelet
+
+\code{.c}
+struct starpu_codelet cl =
+{
+    .where = STARPU_CPU,
+    .cpu_funcs = { cpu_func, NULL },
+    .cpu_funcs_name = { "cpu_func", NULL },
+     .nbuffers = 0
+};
+\endcode
+
+We create a codelet which may only be executed on the CPUs. The
+optional field starpu_codelet::where is a bitmask that defines where
+the codelet may be executed. Here, the value ::STARPU_CPU means that
+only CPUs can execute this codelet. When the optional field
+starpu_codelet::where is unset, its value is automatically set based
+on the availability of the different fields <c>XXX_funcs</c>.
+
+TODO: explain starpu_codelet::cpu_funcs_name
 
 \section VectorScalingUsingTheCExtension Vector Scaling Using the C Extension
 
@@ -444,14 +529,14 @@ The following lines show how to declare an array of <c>NX</c> elements of type
 float vector[NX];
 
 starpu_data_handle_t vector_handle;
-starpu_vector_data_register(&vector_handle, 0, (uintptr_t)vector, NX,
+starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX,
                             sizeof(vector[0]));
 \endcode
 
 The first argument, called the <b>data handle</b>, is an opaque pointer which
 designates the array in StarPU. This is also the structure which is used to
 describe which data is used by a task. The second argument is the node number
-where the data originally resides. Here it is 0 since the array <c>vector</c> is in
+where the data originally resides. Here it is STARPU_MAIN_RAM since the array <c>vector</c> is in
 the main memory. Then comes the pointer <c>vector</c> where the data can be found in main memory,
 the number of elements in the vector and the size of each element.
 The following shows how to construct a StarPU task that will manipulate the

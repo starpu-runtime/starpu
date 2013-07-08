@@ -153,23 +153,23 @@ int main( int argc, char** argv)
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	
-	starpu_vector_data_register(&graph_nodes_handle, 0,
+	starpu_vector_data_register(&graph_nodes_handle, STARPU_MAIN_RAM,
 				    (uintptr_t) graph_nodes, nb_nodes,
 				    sizeof(graph_nodes[0] ));
-	starpu_vector_data_register(&graph_edges_handle, 0,
+	starpu_vector_data_register(&graph_edges_handle, STARPU_MAIN_RAM,
 				    (uintptr_t)graph_edges, nb_edges,
 				    sizeof(graph_edges[0]));
-	starpu_vector_data_register(&graph_mask_handle, 0,
+	starpu_vector_data_register(&graph_mask_handle, STARPU_MAIN_RAM,
 				    (uintptr_t)graph_mask, nb_nodes,
 				    sizeof(graph_mask[0] ));
-	starpu_vector_data_register(&updating_graph_mask_handle, 0,
+	starpu_vector_data_register(&updating_graph_mask_handle, STARPU_MAIN_RAM,
 				    (uintptr_t)updating_graph_mask,
 				    nb_nodes,
 				    sizeof(updating_graph_mask[0]));
-	starpu_vector_data_register(&graph_visited_handle, 0,
+	starpu_vector_data_register(&graph_visited_handle, STARPU_MAIN_RAM,
 				    (uintptr_t)graph_visited, nb_nodes,
 				    sizeof(graph_visited[0]));
-	starpu_vector_data_register(&cost_handle, 0, (uintptr_t)cost,
+	starpu_vector_data_register(&cost_handle, STARPU_MAIN_RAM, (uintptr_t)cost,
 				    nb_nodes, sizeof(cost[0]));
 	
 	for(int it=0; it < NB_ITERATION; it++)

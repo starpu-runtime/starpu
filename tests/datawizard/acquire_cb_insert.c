@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -78,13 +78,13 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare x */
-	starpu_variable_data_register(&x_handle, 0, (uintptr_t)&x, sizeof(x));
+	starpu_variable_data_register(&x_handle, STARPU_MAIN_RAM, (uintptr_t)&x, sizeof(x));
 
 	/* Allocate and Declare f */
 	ret = starpu_malloc((void**)&f, N * sizeof(*f));
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
 	memset(f, 0, N * sizeof(*f));
-	starpu_vector_data_register(&f_handle, 0, (uintptr_t)f, N, sizeof(*f));
+	starpu_vector_data_register(&f_handle, STARPU_MAIN_RAM, (uintptr_t)f, N, sizeof(*f));
 
 	/* Partition f */
 	struct starpu_data_filter filter =
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 
 	ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
-	starpu_data_unpartition(f_handle, 0);
+	starpu_data_unpartition(f_handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(f_handle);
 	starpu_data_unregister(x_handle);
 

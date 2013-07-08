@@ -122,7 +122,7 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "Cannot allocate more than %d buffers\n", mb);
 			break;
 		}
-		starpu_variable_data_register(&handle_array[i], 0, (uintptr_t)host_ptr_array[i], BLOCK_SIZE);
+		starpu_variable_data_register(&handle_array[i], STARPU_MAIN_RAM, (uintptr_t)host_ptr_array[i], BLOCK_SIZE);
 		STARPU_ASSERT(handle_array[i]);
 	}
 

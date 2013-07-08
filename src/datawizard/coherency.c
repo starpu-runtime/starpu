@@ -20,6 +20,7 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/write_back.h>
 #include <core/dependencies/data_concurrency.h>
+#include <core/disk.h>
 #include <profiling/profiling.h>
 #include <math.h>
 #include <core/task.h>
@@ -85,27 +86,40 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 	if (cost && src_node != -1)
 		/* Could estimate through cost, return that */
 		return src_node;
+	
+	int i_ram = -1;
+	int i_gpu = -1;
+	int i_disk = -1;
 
 	/* Revert to dumb strategy: take RAM unless only a GPU has it */
 	for (i = 0; i < nnodes; i++)
 	{
+		
 		if (src_node_mask & (1<<i))
 		{
-			/* this is a potential candidate */
-			src_node = i;
-
 			/* however GPU are expensive sources, really !
 			 * 	Unless peer transfer is supported.
 			 * 	Other should be ok */
 
-			if (
-#ifndef HAVE_CUDA_MEMCPY_PEER
-					starpu_node_get_kind(i) != STARPU_CUDA_RAM &&
-#endif
-					starpu_node_get_kind(i) != STARPU_OPENCL_RAM)
-				break ;
+			if (starpu_node_get_kind(i) == STARPU_CUDA_RAM ||
+			    starpu_node_get_kind(i) == STARPU_OPENCL_RAM)
+				i_gpu = i;
+
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM)
+				i_ram = i;
+			if (starpu_node_get_kind(i) == STARPU_DISK_RAM)			
+				i_disk = i;
 		}
 	}
+	
+	/* we have to use cpu_ram in first */
+	if (i_ram != -1)
+		src_node = i_ram;
+	/* no luck we have to use the disk memory */
+	else if (i_gpu != -1)
+		src_node = i_gpu;
+	else
+		src_node = i_disk;
 
 	STARPU_ASSERT(src_node != -1);
 
@@ -156,6 +170,10 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 
 static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 {
+	/* only support disk <-> ram and disk <-> disk */
+	if (starpu_node_get_kind(node) == STARPU_DISK_RAM || starpu_node_get_kind(handling_node) == STARPU_DISK_RAM)
+		return 0;
+
 	if (node == handling_node)
 		return 1;
 
@@ -219,6 +237,19 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 		return 1;
 	}
 
+	/* Link between disk and ram */
+	if ((starpu_node_get_kind(src_node) == STARPU_DISK_RAM && starpu_node_get_kind(dst_node) == STARPU_CPU_RAM) ||
+	    (starpu_node_get_kind(src_node) == STARPU_CPU_RAM && starpu_node_get_kind(dst_node) == STARPU_DISK_RAM))
+	{
+		/* FIXME: not necessarily a worker :/ */
+		*handling_node = STARPU_MAIN_RAM;
+		return 1;
+	}
+
+	/* link between disk and disk, and they have the same kind */
+	if (_starpu_is_same_kind_disk(src_node, dst_node))
+		return 1;
+
 	return 0;
 }
 
@@ -236,7 +267,7 @@ static int determine_request_path(starpu_data_handle_t handle,
 	{
 		/* The destination node should only allocate the data, no transfer is required */
 		STARPU_ASSERT(max_len >= 1);
-		src_nodes[0] = 0; // ignored
+		src_nodes[0] = STARPU_MAIN_RAM; // ignored
 		dst_nodes[0] = dst_node;
 		handling_nodes[0] = dst_node;
 		return 1;
@@ -251,17 +282,15 @@ static int determine_request_path(starpu_data_handle_t handle,
 		 * through main memory. */
 		STARPU_ASSERT(max_len >= 2);
 
-		/* XXX we hardcode 0 as the RAM node ... */
-
 		/* GPU -> RAM */
 		src_nodes[0] = src_node;
-		dst_nodes[0] = 0;
-		handling_nodes[0] = src_node;
+		dst_nodes[0] = STARPU_MAIN_RAM;
+		handling_nodes[0] = starpu_node_get_kind(src_node) == STARPU_DISK_RAM ? dst_node : src_node;
 
 		/* RAM -> GPU */
-		src_nodes[1] = 0;
+		src_nodes[1] = STARPU_MAIN_RAM;
 		dst_nodes[1] = dst_node;
-		handling_nodes[1] = dst_node;
+		handling_nodes[1] = starpu_node_get_kind(dst_node) == STARPU_DISK_RAM ? src_node : dst_node;
 
 		return 2;
 	}
@@ -494,8 +523,14 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 	unsigned local_node = _starpu_memory_node_get_local_key();
         _STARPU_LOG_IN();
 
-	while (_starpu_spin_trylock(&handle->header_lock))
+	int cpt = 0;
+	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
+	{
+		cpt++;
 		_starpu_datawizard_progress(local_node, 1);
+	}
+	if (cpt == STARPU_SPIN_MAXTRY)
+		_starpu_spin_lock(&handle->header_lock);
 
 	if (!detached)
 	{
@@ -565,8 +600,14 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 		_starpu_write_through_data(handle, memory_node, wt_mask);
 
 	unsigned local_node = _starpu_memory_node_get_local_key();
-	while (_starpu_spin_trylock(&handle->header_lock))
+	int cpt = 0;
+	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
+	{
+		cpt++;
 		_starpu_datawizard_progress(local_node, 1);
+	}
+	if (cpt == STARPU_SPIN_MAXTRY)
+		_starpu_spin_lock(&handle->header_lock);
 
 	/* Release refcnt taken by fetch_data_on_node */
 	replicate->refcnt--;

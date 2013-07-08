@@ -19,6 +19,7 @@
 #define __COMMON_THREAD_H__
 
 #include <starpu.h>
+#include <common/fxt.h>
 
 #define _starpu_pthread_barrier_t pthread_barrier_t
 

@@ -92,8 +92,14 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 	 * lock to be available. */
 	if (request_from_codelet)
 	{
-		while (_starpu_spin_trylock(&handle->header_lock))
+		int cpt = 0;
+		while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
+		{
+			cpt++;
 			_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
+		}
+		if (cpt == STARPU_SPIN_MAXTRY)
+			_starpu_spin_lock(&handle->header_lock);
 	}
 	else
 	{

@@ -86,3 +86,18 @@ starpu_ssize_t starpu_memory_get_available(unsigned node)
 	else
 		return global_size[node] - used_size[node];
 }
+
+int _starpu_memory_manager_test_allocate_size_(size_t size, unsigned node)
+{
+	int ret;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
+	if (global_size[node] == 0)
+		ret = 1;
+	else if (used_size[node] + size <= global_size[node])
+		ret = 1;
+	else
+		ret = 0;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
+	return ret;
+}

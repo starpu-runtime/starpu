@@ -84,19 +84,42 @@ int starpu_pthread_mutex_destroy(starpu_pthread_mutex_t *mutex)
 
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 {
+	const char *file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+
+	_STARPU_TRACE_LOCKING_MUTEX(file,__LINE__);
+
 	if (!*mutex) STARPU_PTHREAD_MUTEX_INIT(mutex, NULL);
+
 	xbt_mutex_acquire(*mutex);
+
+	_STARPU_TRACE_MUTEX_LOCKED(file,__LINE__);
+
 	return 0;
 }
 
 int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 {
+	const char *file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_UNLOCKING_MUTEX(file,__LINE__);
+
 	xbt_mutex_release(*mutex);
+
+	_STARPU_TRACE_MUTEX_UNLOCKED(file,__LINE__);
+
 	return 0;
 }
 
 int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 {
+	const char *file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_TRYLOCK_MUTEX(file,__LINE__);
+
 	xbt_mutex_acquire(*mutex);
 	return 0;
 }
@@ -162,9 +185,17 @@ int starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
 
 int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
 {
+	const char* file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_COND_WAIT_BEGIN(file,__LINE__);
+
 	if (!*cond)
 		STARPU_PTHREAD_COND_INIT(cond, NULL);
 	xbt_cond_wait(*cond, *mutex);
+
+	_STARPU_TRACE_COND_WAIT_END(file,__LINE__);
+
 	return 0;
 }
 
@@ -187,19 +218,140 @@ int starpu_pthread_rwlock_destroy(starpu_pthread_rwlock_t *rwlock)
 
 int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
 {
-	return starpu_pthread_mutex_lock(rwlock);
+	const char* file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_RDLOCKING_RWLOCK(file,__LINE__);
+
+ 	int p_ret = starpu_pthread_mutex_lock(rwlock);
+
+	_STARPU_TRACE_RWLOCK_RDLOCKED(file,__LINE__);
+
+	return p_ret;
 }
 
 int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
 {
-	return starpu_pthread_mutex_lock(rwlock);
+	const char* file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_WRLOCKING_RWLOCK(file,__LINE__);
+
+ 	int p_ret = starpu_pthread_mutex_lock(rwlock);
+
+	_STARPU_TRACE_RWLOCK_WRLOCKED(file,__LINE__);
+
+	return p_ret;
 }
 
 int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 {
-	return starpu_pthread_mutex_unlock(rwlock);
+	const char* file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_UNLOCKING_RWLOCK(file,__LINE__);
+
+ 	int p_ret = starpu_pthread_mutex_unlock(rwlock);
+
+	_STARPU_TRACE_RWLOCK_UNLOCKED(file,__LINE__);
+
+	return p_ret;
 }
 
+#elif !defined(_MSC_VER) /* !STARPU_SIMGRID */
 
+int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
+{
+	const char *file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_LOCKING_MUTEX(file,__LINE__);
 
-#endif /* STARPU_SIMGRID */
+	int p_ret = pthread_mutex_lock(mutex);
+
+	_STARPU_TRACE_MUTEX_LOCKED(file,__LINE__);
+
+	return p_ret;
+}
+
+int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
+{
+	const char *file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_UNLOCKING_MUTEX(file,__LINE__);
+
+	int p_ret = pthread_mutex_unlock(mutex);
+
+	_STARPU_TRACE_MUTEX_UNLOCKED(file,__LINE__);
+
+	return p_ret;
+}
+
+int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
+{
+	const char *file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_LOCKING_MUTEX(file,__LINE__);
+
+	return pthread_mutex_trylock(mutex);
+}
+
+int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
+{
+	const char* file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_COND_WAIT_BEGIN(file,__LINE__);
+
+ 	int p_ret = pthread_cond_wait(cond, mutex);
+
+	_STARPU_TRACE_COND_WAIT_END(file,__LINE__);
+
+	return p_ret;
+}
+
+int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
+{
+	const char* file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_RDLOCKING_RWLOCK(file,__LINE__);
+
+ 	int p_ret = pthread_rwlock_rdlock(rwlock);
+
+	_STARPU_TRACE_RWLOCK_RDLOCKED(file,__LINE__);
+
+	return p_ret;
+}
+
+int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
+{
+	const char* file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_WRLOCKING_RWLOCK(file,__LINE__);
+
+ 	int p_ret = pthread_rwlock_wrlock(rwlock);
+
+	_STARPU_TRACE_RWLOCK_WRLOCKED(file,__LINE__);
+
+	return p_ret;
+}
+
+int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
+{
+	const char* file;
+	file = strrchr(__FILE__,'/');
+	file += sizeof(char);
+	_STARPU_TRACE_UNLOCKING_RWLOCK(file,__LINE__);
+
+ 	int p_ret = pthread_rwlock_unlock(rwlock);
+
+	_STARPU_TRACE_RWLOCK_UNLOCKED(file,__LINE__);
+
+	return p_ret;
+}
+
+#endif /* STARPU_SIMGRID, _MSC_VER */

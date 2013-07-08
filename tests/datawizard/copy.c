@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	}
 
         foo = 0.0f;
-	starpu_variable_data_register(&float_array_handle, 0, (uintptr_t)&foo, sizeof(foo));
+	starpu_variable_data_register(&float_array_handle, STARPU_MAIN_RAM, (uintptr_t)&foo, sizeof(foo));
 
         for (i = 0; i < nloops; i++)
 	{

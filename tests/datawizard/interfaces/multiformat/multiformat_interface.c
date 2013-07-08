@@ -149,12 +149,12 @@ register_data(void)
 		array_of_structs[i].y = i;
 	}
 	starpu_multiformat_data_register(&multiformat_handle,
-					 0,
+					 STARPU_MAIN_RAM,
 					 &array_of_structs,
 					 N_ELEMENTS,
 					 &format_ops);
 	starpu_multiformat_data_register(&multiformat_dummy_handle,
-					 0,
+					 STARPU_MAIN_RAM,
 					 &array_of_structs_dummy,
 					 N_ELEMENTS,
 					 &format_ops);
