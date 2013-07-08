@@ -78,15 +78,6 @@ int push_task(struct starpu_task * task)
 	return ret;
 }
 
-void _update_worker_bits(struct starpu_sched_node * node, struct starpu_bitmap * workers_in_ctx)
-{
-	if(starpu_sched_node_is_worker(node))
-		return;
-	starpu_bitmap_unset_and(node->workers_in_ctx, node->workers, workers_in_ctx);
-	int i;
-	for(i = 0; i < node->nchilds; i++)
-		_update_worker_bits(node->childs[i], workers_in_ctx);
-}
 
 
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
@@ -96,7 +87,7 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 		starpu_bitmap_set(t->workers, workerids[i]);
-	_update_worker_bits(t->root, t->workers);
+	starpu_sched_tree_update_workers_in_ctx(t);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
 
@@ -107,7 +98,7 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 		starpu_bitmap_unset(t->workers, workerids[i]);
-	_update_worker_bits(t->root, t->workers);
+	starpu_sched_tree_update_workers_in_ctx(t);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
 
@@ -159,10 +150,11 @@ void starpu_sched_node_destroy_rec(struct starpu_sched_node * node, unsigned sch
 	}
 	free(stack);
 }
-struct starpu_sched_tree * starpu_sched_tree_create(void)
+struct starpu_sched_tree * starpu_sched_tree_create(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree * t = malloc(sizeof(*t));
 	memset(t, 0, sizeof(*t));
+	t->sched_ctx_id = sched_ctx_id;
 	t->workers = starpu_bitmap_create();
 	STARPU_PTHREAD_RWLOCK_INIT(&t->lock,NULL);
 	return t;
@@ -199,9 +191,9 @@ void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct star
 	node->childs[pos] = node->childs[--node->nchilds];
 }
 
-struct starpu_bitmap * _starpu_get_worker_mask(struct starpu_task * task)
+struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id)
 {
-	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(task->sched_ctx);
+	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	return t->workers;
 }
 
@@ -397,6 +389,8 @@ struct starpu_sched_node * starpu_sched_node_create(void)
 }
 void starpu_sched_node_destroy(struct starpu_sched_node *node)
 {
+	if(starpu_sched_node_is_worker(node))
+		return;
 	int i,j;
 	for(i = 0; i < node->nchilds; i++)
 	{
@@ -415,15 +409,13 @@ void starpu_sched_node_destroy(struct starpu_sched_node *node)
 
 static void set_is_homogeneous(struct starpu_sched_node * node)
 {
-	STARPU_ASSERT(starpu_bitmap_cardinal(node->workers) > 0);
-	if(starpu_bitmap_cardinal(node->workers) == 1)
+	STARPU_ASSERT(starpu_bitmap_cardinal(node->workers_in_ctx) > 0);
+	if(starpu_bitmap_cardinal(node->workers_in_ctx) == 1)
 		node->is_homogeneous = 1;
-	int worker = starpu_bitmap_first(node->workers);
+	int worker = starpu_bitmap_first(node->workers_in_ctx);
 	uint32_t last_worker = _starpu_get_worker_struct(worker)->worker_mask;
-	for(;
-	    worker != -1;
-	    worker = starpu_bitmap_next(node->workers, worker))
-		
+	
+	do
 	{
 		if(last_worker != _starpu_get_worker_struct(worker)->worker_mask)
 		{
@@ -431,8 +423,63 @@ static void set_is_homogeneous(struct starpu_sched_node * node)
 			return;
 		}
 		last_worker = _starpu_get_worker_struct(worker)->worker_mask;
-	}
+		worker = starpu_bitmap_next(node->workers_in_ctx, worker);
+	}while(worker != -1);
 	node->is_homogeneous = 1;
+}
+
+void _starpu_sched_node_update_workers(struct starpu_sched_node * node)
+{
+	if(starpu_sched_node_is_worker(node))
+		return;
+	starpu_bitmap_unset_all(node->workers);
+	int i;
+	for(i = 0; i < node->nchilds; i++)
+	{
+		_starpu_sched_node_update_workers(node->childs[i]);
+		starpu_bitmap_or(node->workers, node->childs[i]->workers);
+	}
+}
+
+void _starpu_sched_node_update_workers_in_ctx(struct starpu_sched_node * node, unsigned sched_ctx_id)
+{
+	if(starpu_sched_node_is_worker(node))
+		return;
+	struct starpu_bitmap * workers_in_ctx = _starpu_get_worker_mask(sched_ctx_id);
+	starpu_bitmap_unset_and(node->workers_in_ctx,node->workers, workers_in_ctx);
+	int i,j;
+	for(i = 0; i < node->nchilds; i++)
+	{
+		struct starpu_sched_node * child = node->childs[i];
+		_starpu_sched_node_update_workers_in_ctx(child, sched_ctx_id);
+		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
+			if(child->fathers[j] == node)
+			{
+				starpu_bitmap_or(node->workers_in_ctx, child->workers_in_ctx);
+				break;
+			}
+	}
+	set_is_homogeneous(node);
+}
+
+void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree * t)
+{
+	_starpu_sched_node_update_workers_in_ctx(t->root, t->sched_ctx_id);
+}
+
+void starpu_sched_tree_update_workers(struct starpu_sched_tree * t)
+{
+	_starpu_sched_node_update_workers(t->root);
+}
+
+void _update_worker_bits(struct starpu_sched_node * node, struct starpu_bitmap * workers_in_ctx)
+{
+	if(starpu_sched_node_is_worker(node))
+		return;
+	starpu_bitmap_unset_and(node->workers_in_ctx, node->workers, workers_in_ctx);
+	int i;
+	for(i = 0; i < node->nchilds; i++)
+		_update_worker_bits(node->childs[i], workers_in_ctx);
 }
 
 

@@ -243,6 +243,7 @@ struct starpu_sched_node * starpu_sched_node_work_stealing_create(void)
 	node->push_task = push_task;
 	node->add_child = _ws_add_child;
 	node->remove_child = _ws_remove_child;
+	node->data = wsd;
 	return  node;
 }
 
@@ -256,11 +257,10 @@ int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node)
 static void initialize_ws_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-	struct starpu_sched_tree *data = malloc(sizeof(struct starpu_sched_tree));
-	STARPU_PTHREAD_RWLOCK_INIT(&data->lock,NULL);
+	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
 	struct starpu_sched_node * ws;
- 	data->root = ws = starpu_sched_node_work_stealing_create();
-	data->workers = starpu_bitmap_create();
+ 	t->root = ws = starpu_sched_node_work_stealing_create();
+	t->workers = starpu_bitmap_create();
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count(); i++)
 	{
@@ -268,9 +268,10 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 		if(!node)
 			continue;
 		node->fathers[sched_ctx_id] = ws;
-		starpu_sched_node_add_child(ws, node);
+		ws->add_child(ws, node);
 	}
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
+	starpu_sched_tree_update_workers(t);
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
 }
 
 static void deinitialize_ws_center_policy(unsigned sched_ctx_id)

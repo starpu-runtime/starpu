@@ -66,6 +66,9 @@ struct starpu_sched_node
 	 */
 	struct starpu_bitmap * workers;
 	/* the workers available in context
+	 * this member is set with : 
+	 * node->workers UNION tree->workers UNION
+	 * node->child[i]->workers_in_ctx iff exist x such as node->childs[i]->fathers[x] == node
 	 */
 	struct starpu_bitmap * workers_in_ctx;
 	
@@ -80,6 +83,9 @@ struct starpu_sched_node
 	void (*add_child)(struct starpu_sched_node * node, struct starpu_sched_node * child);
 	void (*remove_child)(struct starpu_sched_node * node, struct starpu_sched_node * child);
 
+	/* this function is called by starpu_sched_node_destroy just before freeing node
+	 */
+	void (*deinit_data)(struct starpu_sched_node * node);
 #ifdef STARPU_HAVE_HWLOC
 	/* in case of a hierarchical scheduler, this is set to the part of
 	 * topology that is binded to this node, eg: a numa node for a ws
@@ -94,6 +100,7 @@ struct starpu_sched_tree
 {
 	struct starpu_sched_node * root;
 	struct starpu_bitmap * workers;
+	unsigned sched_ctx_id;
 	/* this lock is used to protect the scheduler,
 	 * it is taken in read mode pushing a task
 	 * and in write mode for adding or removing workers
@@ -172,13 +179,22 @@ struct starpu_sched_node * starpu_sched_node_best_implementation_create(void * a
 struct starpu_sched_node * starpu_sched_node_calibration_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 /*create an empty tree
  */
-struct starpu_sched_tree * starpu_sched_tree_create(void);
+struct starpu_sched_tree * starpu_sched_tree_create(unsigned sched_ctx_id);
 void starpu_sched_tree_destroy(struct starpu_sched_tree * tree, unsigned sched_ctx_id);
 
 /* destroy node and all his child
  * except if they are shared between several contexts
  */
 void starpu_sched_node_destroy_rec(struct starpu_sched_node * node, unsigned sched_ctx_id);
+
+/* update all the node->workers member recursively
+ */
+void starpu_sched_tree_update_workers(struct starpu_sched_tree * t);
+/* 
+ *
+ */
+void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree * t);
+
 
 int starpu_sched_tree_push_task(struct starpu_task * task);
 struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx_id);
@@ -189,7 +205,7 @@ void starpu_sched_node_worker_post_exec_hook(struct starpu_task * task);
 
 /* return the bitmap of worker that are allowed to use in this scheduling context
  */
-struct starpu_bitmap * _starpu_get_worker_mask(struct starpu_task * task);
+struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id);
 
 /* this function is called to initialize a scheduler tree
  */
@@ -205,8 +221,6 @@ void starpu_sched_tree_call_init_data(struct starpu_sched_tree * t);
  */
 int starpu_sched_node_push_tasks_to_firsts_suitable_parent(struct starpu_sched_node * node, struct starpu_task_list * list, int sched_ctx_id);
 
-
-struct starpu_bitmap;
 
 struct starpu_bitmap * starpu_bitmap_create(void);
 void starpu_bitmap_destroy(struct starpu_bitmap *);

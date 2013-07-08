@@ -46,9 +46,11 @@ struct composed_node
 {
 	struct starpu_sched_node *top,*bottom;
 };
-struct composed_node create_composed_node(struct starpu_sched_node * sched_ctx_ids_father[STARPU_NMAX_SCHED_CTXS], struct starpu_bitmap * workers, struct _starpu_composed_sched_node_recipe * recipe
+struct composed_node create_composed_node(struct starpu_bitmap * workers,
+					  struct starpu_bitmap * workers_in_ctx,
+					  struct _starpu_composed_sched_node_recipe * recipe
 #ifdef STARPU_HAVE_HWLOC
-					    ,hwloc_obj_t obj
+					  ,hwloc_obj_t obj
 #endif
 )
 {
@@ -66,8 +68,6 @@ struct composed_node create_composed_node(struct starpu_sched_node * sched_ctx_i
 #ifdef STARPU_HAVE_HWLOC
 	c.top->obj = obj;
 #endif
-	memcpy(c.top->fathers, sched_ctx_ids_father, sizeof(sched_ctx_ids_father));
-
 	for(i  = fun_create_node_list_next(i);
 	    i != fun_create_node_list_end(list);
 	    i  = fun_create_node_list_next(i))
@@ -81,9 +81,11 @@ struct composed_node create_composed_node(struct starpu_sched_node * sched_ctx_i
 //we want to be able to to traverse scheduler bottom up for all sched ctxs
 		int j;
 		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-			if(sched_ctx_ids_father[j])
-				starpu_sched_node_set_father(node, c.bottom,(unsigned)j);
+			starpu_sched_node_set_father(node, c.bottom,(unsigned)j);
+		starpu_bitmap_destroy(node->workers);
 		node->workers = workers;
+		starpu_bitmap_destroy(node->workers_in_ctx);
+		node->workers = workers_in_ctx;
 		c.bottom = node;
 	}
 	STARPU_ASSERT(!starpu_sched_node_is_worker(c.bottom));
@@ -96,12 +98,19 @@ static int composed_node_push_task(struct starpu_sched_node * node, struct starp
 	struct composed_node *c = node->data;
 	return c->top->push_task(c->top,task);
 }
-struct starpu_task * composed_node_pop_task(struct starpu_sched_node *node,
-					    unsigned sched_ctx_id)
+struct starpu_task * composed_node_pop_task(struct starpu_sched_node *node, unsigned sched_ctx_id)
 {
 	struct composed_node *c = node->data;
-	return c->bottom->pop_task(c->bottom, sched_ctx_id);
+	struct starpu_task * t = c->bottom->pop_task(c->bottom, sched_ctx_id);
+	if(t)
+		return t;
+
+	if(node->fathers[sched_ctx_id])
+		return node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id], sched_ctx_id);
+	return NULL;
 }
+
+
 void composed_node_available(struct starpu_sched_node *node)
 {
 	struct composed_node * c = node->data;
@@ -114,19 +123,15 @@ double composed_node_estimated_load(struct starpu_sched_node * node)
 	return c->top->estimated_load(c->top);
 }
 
-
-
-void composed_node_init_data(struct starpu_sched_node *node)
+static void composed_node_add_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 {
-	struct _starpu_composed_sched_node_recipe * recipe = node->data;
-	struct composed_node * c = malloc(sizeof(struct composed_node));
-	*c = create_composed_node(node->fathers, node->workers, recipe
-#ifdef STARPU_HAVE_HWLOC
-				   ,node->obj
-#endif 
-);
-	c->bottom->nchilds = node->nchilds;
-	c->bottom->childs = node->childs;
+	struct composed_node * c = node->data;
+	c->bottom->add_child(c->bottom, child);
+}
+static void composed_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
+{
+	struct composed_node * c = node->data;
+	c->bottom->remove_child(c->bottom, child);
 }
 
 void composed_node_deinit_data(struct starpu_sched_node * _node)
@@ -154,11 +159,21 @@ struct starpu_sched_node * starpu_sched_node_composed_node_create(struct _starpu
 		return l->_head->create_node(l->_head->arg);
 	struct starpu_sched_node * node = starpu_sched_node_create();
 
-	node->data = recipe;
+	struct composed_node * c = malloc(sizeof(struct composed_node));
+	*c = create_composed_node(node->workers, node->workers_in_ctx, recipe
+#ifdef STARPU_HAVE_HWLOC
+				   ,node->obj
+#endif 
+);
+	c->bottom->nchilds = node->nchilds;
+	c->bottom->childs = node->childs;
+
+	node->data = c;
 	node->push_task = composed_node_push_task;
 	node->pop_task = composed_node_pop_task;
 	node->available = composed_node_available;
 	node->estimated_load = composed_node_estimated_load;
-
+	node->add_child = composed_node_add_child;
+	node->remove_child = composed_node_remove_child;
 	return node;
 }

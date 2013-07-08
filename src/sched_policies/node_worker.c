@@ -481,7 +481,6 @@ static double combined_worker_estimated_load(struct starpu_sched_node * node)
 	return load;
 }
 
-
 static int starpu_sched_node_combined_worker_push_task(struct starpu_sched_node * node, struct starpu_task *task)
 {
 	STARPU_ASSERT(starpu_sched_node_is_combined_worker(node));
@@ -573,7 +572,6 @@ static struct starpu_sched_node * starpu_sched_node_worker_create(int workerid)
 	node->estimated_end = simple_worker_estimated_end;
 	node->estimated_load = simple_worker_estimated_load;
 	node->available = simple_worker_available;
-	node->workers = starpu_bitmap_create();
 	starpu_bitmap_set(node->workers, workerid);
 	starpu_bitmap_or(node->workers_in_ctx, node->workers);
 	_worker_nodes[workerid] = node;
@@ -611,7 +609,6 @@ static struct starpu_sched_node  * starpu_sched_node_combined_worker_create(int 
 	node->estimated_end = combined_worker_estimated_end;
 	node->estimated_load = combined_worker_estimated_load;
 	node->available = combined_worker_available;
-	node->workers = starpu_bitmap_create();
 	starpu_bitmap_set(node->workers, workerid);
 	starpu_bitmap_or(node->workers_in_ctx, node->workers);
 	_worker_nodes[workerid] = node;
@@ -716,7 +713,7 @@ void starpu_sched_node_worker_post_exec_hook(struct starpu_task * task)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&list->mutex);
 }
 
-static void starpu_sched_node_worker_push_task_notify(struct starpu_task *task, int workerid, unsigned sched_ctx_id)
+static void starpu_sched_node_worker_push_task_notify(struct starpu_task *task, int workerid, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 
 	struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(workerid);
@@ -746,7 +743,7 @@ static void starpu_sched_node_worker_push_task_notify(struct starpu_task *task, 
 	{
 		if (starpu_timing_now() + predicted_transfer < list->exp_end)
 		{
-			/* We may hope that the transfer will be finished by
+			/* We may hope that the transfer will be finshied by
 			 * the start of the task. */
 			predicted_transfer = 0;
 		}

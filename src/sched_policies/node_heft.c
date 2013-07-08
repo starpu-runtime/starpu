@@ -204,7 +204,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 #endif /* !STARPU_USE_TOP */
 
 	
-	struct starpu_sched_tree * t = starpu_sched_tree_create();
+	struct starpu_sched_tree * t = starpu_sched_tree_create(sched_ctx_id);
 	struct starpu_heft_data data =
 		{
 			.alpha = alpha,
@@ -225,14 +225,14 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 		STARPU_ASSERT(worker_node);
 
 		struct starpu_sched_node * impl_node = starpu_sched_node_best_implementation_create(NULL);
-		starpu_sched_node_add_child(impl_node, worker_node);
+		impl_node->add_child(impl_node, worker_node);
 		starpu_sched_node_set_father(worker_node, impl_node, sched_ctx_id);
 
-		starpu_sched_node_add_child(t->root, impl_node);
+		t->root->add_child(t->root, impl_node);
 		starpu_sched_node_set_father(impl_node, t->root, sched_ctx_id);
 	}
 
-	starpu_sched_node_init_rec(t->root);
+	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
 }
 

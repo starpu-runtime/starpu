@@ -222,9 +222,7 @@ static void helper_display_scheduler(FILE* out, unsigned depth, struct starpu_sc
 #endif //STARPU_DEVEL
 struct starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_specs specs)
 {
-	struct starpu_sched_tree * tree = malloc(sizeof(*tree));
-	STARPU_PTHREAD_RWLOCK_INIT(&tree->lock,NULL);
-	tree->workers = starpu_bitmap_create();
+	struct starpu_sched_tree * tree = starpu_sched_tree_create(sched_ctx_id);
 	
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	hwloc_topology_t topology = config->topology.hwtopology;
@@ -244,6 +242,8 @@ struct starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct 
 		set_worker_leaf(tree->root,worker_node, sched_ctx_id, specs);
 	}
 
+
+	starpu_sched_tree_update_workers(t);
 #ifdef STARPU_DEVEL
 	fprintf(stderr, "scheduler created :\n");
 	helper_display_scheduler(stderr, 0, tree->root);
