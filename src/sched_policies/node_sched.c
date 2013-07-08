@@ -2,6 +2,7 @@
 #include <core/workers.h>
 #include <starpu_sched_node.h>
 #include <starpu_thread_util.h>
+#include "sched_node.h"
 #include <float.h>
 
 double starpu_sched_compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
@@ -84,10 +85,12 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
 {
 	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->lock);
+	_starpu_sched_node_lock_all_workers();
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 		starpu_bitmap_set(t->workers, workerids[i]);
 	starpu_sched_tree_update_workers_in_ctx(t);
+	_starpu_sched_node_unlock_all_workers();
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
 
@@ -95,10 +98,12 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 {
 	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&t->lock);
+	_starpu_sched_node_lock_all_workers();
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 		starpu_bitmap_unset(t->workers, workerids[i]);
 	starpu_sched_tree_update_workers_in_ctx(t);
+	_starpu_sched_node_unlock_all_workers();
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&t->lock);
 }
 
@@ -201,19 +206,20 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_sched_tree *tree = starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&tree->lock);
+	int workerid = starpu_worker_get_id();
+	if(-1 == workerid)
+		STARPU_PTHREAD_RWLOCK_RDLOCK(&tree->lock);
 	int ret_val = tree->root->push_task(tree->root,task);
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&tree->lock);
+	if(-1 == workerid)
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&tree->lock);
 	return ret_val;
 }
 struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *tree = starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&tree->lock);
 	int workerid = starpu_worker_get_id();
 	struct starpu_sched_node * node = starpu_sched_node_worker_get(workerid);
 	struct starpu_task * task = node->pop_task(node, sched_ctx_id);
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&tree->lock);
 	return task;
 }
 /*
@@ -340,8 +346,7 @@ static double estimated_transfer_length(struct starpu_sched_node * node, struct 
 	double sum = 0.0;
 	int nb = 0, i = 0;
 	for(i = 0; i < node->nchilds; i++)
-	{
-		struct starpu_sched_node * c = node->childs[i];
+	{		struct starpu_sched_node * c = node->childs[i];
 		if(starpu_sched_node_can_execute_task(c, task))
 		{
 			sum += c->estimated_transfer_length(c, task);

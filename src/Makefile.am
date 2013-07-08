@@ -134,6 +134,7 @@ noinst_HEADERS = 						\
 	top/starpu_top_connection.h				\
 	top/starpu_top_core.h					\
 	sched_policies/prio_deque.h				\
+	sched_policies/sched_node.h				\
 	sched_policies/node_composed.h
 #	sched_policies/scheduler_maker.h			
 

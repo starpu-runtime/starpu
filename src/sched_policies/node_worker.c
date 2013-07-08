@@ -74,8 +74,15 @@ struct _starpu_worker_task_list
 
 struct _starpu_worker_node_data
 {
-	struct _starpu_worker * worker;
-	struct _starpu_combined_worker * combined_worker;
+	union 
+	{
+		struct
+		{
+			struct _starpu_worker * worker;
+			starpu_pthread_mutex_t lock;
+		};	
+		struct _starpu_combined_worker * combined_worker;
+	};
 	struct _starpu_worker_task_list * list;
 };
 
@@ -310,11 +317,12 @@ struct starpu_task * starpu_sched_node_worker_pop_task(struct starpu_sched_node 
 		starpu_push_task_end(task);
 		return task;
 	}
-
+	STARPU_PTHREAD_MUTEX_LOCK(&data->lock);
 	struct starpu_sched_node *father = node->fathers[sched_ctx_id];
 	if(father == NULL)
 		return NULL;
 	task = father->pop_task(father,sched_ctx_id);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->lock);
 	if(!task)
 		return NULL;
 	if(task->cl->type == STARPU_SPMD)
@@ -347,6 +355,28 @@ void starpu_sched_node_worker_destroy(struct starpu_sched_node *node)
 	starpu_sched_node_destroy(node);
 	_worker_nodes[id] = NULL;
 }
+
+void _starpu_sched_node_lock_all_workers(void)
+{
+	unsigned i;
+	for(i = 0; i < starpu_worker_get_count(); i++)
+	{
+		struct _starpu_worker_node_data * data = starpu_sched_node_worker_create(i)->data;
+		STARPU_PTHREAD_MUTEX_LOCK(&data->lock);
+	}
+}
+void _starpu_sched_node_unlock_all_workers(void)
+{
+	unsigned i;
+	for(i = 0; i < starpu_worker_get_count(); i++)
+	{
+		struct _starpu_worker_node_data * data = starpu_sched_node_worker_create(i)->data;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->lock);
+	}
+}
+
+
+
 
 static void simple_worker_available(struct starpu_sched_node * worker_node)
 {
@@ -564,9 +594,12 @@ static struct starpu_sched_node * starpu_sched_node_worker_create(int workerid)
 	struct starpu_sched_node * node = starpu_sched_node_create();
 	struct _starpu_worker_node_data * data = malloc(sizeof(*data));
 	memset(data, 0, sizeof(*data));
+
 	data->worker = worker;
+	STARPU_PTHREAD_MUTEX_INIT(&data->lock,NULL);
 	data->list = _starpu_worker_task_list_create();
 	node->data = data;
+
 	node->push_task = starpu_sched_node_worker_push_task;
 	node->pop_task = starpu_sched_node_worker_pop_task;
 	node->estimated_end = simple_worker_estimated_end;

@@ -1,5 +1,5 @@
-#ifndef __SCHED_NODE_H__
-#define __SCHED_NODE_H__
+#ifndef __STARPU_SCHED_NODE_H__
+#define __STARPU_SCHED_NODE_H__
 #include <starpu.h>
 #include <common/starpu_spinlock.h>
 
