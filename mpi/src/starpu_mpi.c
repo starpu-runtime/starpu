@@ -1039,7 +1039,11 @@ static void _starpu_mpi_test_detached_requests(void)
 		if (flag)
 		{
 			_starpu_mpi_req_list_erase(detached_requests, req);
-			free(req);
+#ifdef STARPU_DEVEL
+#warning FIXME: when do we free internal requests
+#endif
+			if (!req->is_internal_req)
+				free(req);
 		}
 
 	}
