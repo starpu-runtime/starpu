@@ -100,7 +100,7 @@ sc_hypervisor_ioctl(sched_ctx_id,
 @end cartouche
 
 The @b{Gflops rate} based strategy resizes the scheduling contexts such that they all finish at the same time.
-The velocity of each of them is considered and once one of them is significantly slower the resizing process is triggered.
+The speed of each of them is considered and once one of them is significantly slower the resizing process is triggered.
 In order to do these computations the user has to input the total number of instructions needed to be executed by the
 parallel kernels and the number of instruction to be executed by each task.
 The number of flops to be executed by a context are passed as parameter when they are registered to the hypervisor,

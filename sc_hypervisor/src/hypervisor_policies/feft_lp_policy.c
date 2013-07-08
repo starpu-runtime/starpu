@@ -62,9 +62,9 @@ static void feft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 	if(ret != EBUSY)
 	{
 		unsigned criteria = sc_hypervisor_get_resize_criteria();
-		if(criteria != SC_NOTHING && criteria == SC_VELOCITY)
+		if(criteria != SC_NOTHING && criteria == SC_SPEED)
 		{
-			if(sc_hypervisor_check_velocity_gap_btw_ctxs())
+			if(sc_hypervisor_check_speed_gap_btw_ctxs())
 			{
 				_try_resizing();
 			}
