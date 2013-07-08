@@ -32,6 +32,14 @@ struct _starpu_sink_topology
 	unsigned nb_cpus;
 };
 
+struct arg_sink_thread
+{
+	struct mp_task ** task;
+	struct _starpu_mp_node *node;
+	pthread_mutex_t* mutex;
+	int coreid;
+};
+
 void _starpu_sink_common_worker(void);
 
 void _starpu_sink_common_execute(const struct _starpu_mp_node *node, void *arg, int arg_size);
@@ -40,7 +48,7 @@ void _starpu_sink_nbcores (const struct _starpu_mp_node *node);
 void _starpu_sink_common_allocate(const struct _starpu_mp_node *mp_node, void *arg, int arg_size);
 void _starpu_sink_common_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, void *arg, int arg_size);
 
-void _starpu_sink_common_init(struct _starpu_mp_node *node);
+void* _starpu_sink_thread(void * thread_arg);
 
 #endif /* STARPU_USE_MP */
 

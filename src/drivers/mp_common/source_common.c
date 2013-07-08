@@ -30,7 +30,7 @@
 #include <drivers/mp_common/mp_common.h>
 
 
-static int
+	static int
 _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker)
 {
 	uint32_t mask = 0;
@@ -38,14 +38,16 @@ _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *w
 	struct timespec codelet_end;
 
 	_starpu_driver_end_job(worker, j, worker->perf_arch, &codelet_end, 0,
-			       profiling);
+			profiling);
 
 	_starpu_driver_update_job_feedback(j, worker, worker->perf_arch,
-					   &j->cl_start, &codelet_end,
-					   profiling);
+			&j->cl_start, &codelet_end,
+			profiling);
 
-	_starpu_push_task_output (j, mask);
-
+	if(worker->current_rank == 0)
+	{
+		_starpu_push_task_output (j, mask);
+	}
 	_starpu_handle_job_termination(j);
 
 	return 0;
@@ -53,7 +55,7 @@ _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *w
 
 
 
-static int
+	static int
 _starpu_src_common_process_completed_job (struct _starpu_worker_set *workerset, void * arg, int arg_size STARPU_ATTRIBUTE_UNUSED)
 {
 	void *arg_ptr = arg;
@@ -66,8 +68,15 @@ _starpu_src_common_process_completed_job (struct _starpu_worker_set *workerset, 
 	struct starpu_task *task = worker->current_task;
 	struct _starpu_job *j = _starpu_get_job_associated_to_task (task);
 
-	_starpu_src_common_finalize_job (j, worker);
+	struct _starpu_worker * old_worker = _starpu_get_local_worker_key();
+	_starpu_set_local_worker_key(worker);
+	if(worker->current_rank == 0)
+	{
+		_starpu_src_common_finalize_job (j, worker);
+	}
 	worker->current_task = NULL;
+
+	_starpu_set_local_worker_key(old_worker);
 
 	return 0;
 }
@@ -78,25 +87,26 @@ _starpu_src_common_process_completed_job (struct _starpu_worker_set *workerset, 
  * return 1 if the message has been handle
  */
 static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node, 
-				    void ** arg, int* arg_size, 
-				    enum _starpu_mp_command *answer)
+		void ** arg, int* arg_size, 
+		enum _starpu_mp_command *answer)
 {
 	struct _starpu_worker_set * worker_set = _starpu_get_worker_struct(starpu_worker_get_id())->set;
 	*answer = _starpu_mp_common_recv_command(node, arg, arg_size);
 	switch(*answer) 
 	{
-	case STARPU_EXECUTION_COMPLETED:
-		_starpu_src_common_process_completed_job (worker_set, *arg, *arg_size);
-		break;
-	default:
-		return 0;
-		break;
+		case STARPU_EXECUTION_COMPLETED:
+			_starpu_src_common_process_completed_job (worker_set, *arg, *arg_size);
+			break;
+		default:
+			return 0;
+			break;
 	}
+
 	return 1;
 }
 
 enum _starpu_mp_command _starpu_src_common_wait_command_sync(const struct _starpu_mp_node *node, 
-							     void ** arg, int* arg_size)
+		void ** arg, int* arg_size)
 {
 	enum _starpu_mp_command answer;
 	while(_starpu_src_common_handle_async(node,arg,arg_size,&answer));
@@ -109,16 +119,16 @@ void _starpu_src_common_recv_async(struct _starpu_mp_node * baseworker_node)
 	enum _starpu_mp_command answer;
 	void *arg;
 	int arg_size;
-  
+
 	if(!_starpu_src_common_handle_async(baseworker_node,&arg,&arg_size,&answer))
 	{
-	printf("incorrect commande: unknown command or sync command");
-	STARPU_ASSERT(0);
+		printf("incorrect commande: unknown command or sync command");
+		STARPU_ASSERT(0);
 	}	
 }
 
 
-int
+	int
 _starpu_src_common_sink_nbcores (const struct _starpu_mp_node *node, int *buf)
 {
 	// Send a request to the sink NODE for the number of cores on it.
@@ -144,7 +154,7 @@ _starpu_src_common_sink_nbcores (const struct _starpu_mp_node *node, int *buf)
  * else it returns -ESPIPE if the function was not found.
  */
 int _starpu_src_common_lookup(struct _starpu_mp_node *node,
-			      void (**func_ptr)(void), const char *func_name)
+		void (**func_ptr)(void), const char *func_name)
 {
 	enum _starpu_mp_command answer;
 	void *arg;
@@ -155,10 +165,10 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node,
 
 	//_STARPU_DEBUG("Looking up %s\n", func_name);
 	_starpu_mp_common_send_command(node, STARPU_LOOKUP, (void *) func_name,
-				       arg_size);
+			arg_size);
 
 	answer = _starpu_src_common_wait_command_sync(node, (void **) &arg,
-						      &arg_size);
+			&arg_size);
 
 	if (answer == STARPU_ERROR_LOOKUP) 
 	{
@@ -189,13 +199,13 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node,
  * Data interfaces in task are send to the sink.
  */
 int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
-				      void (*kernel)(void), unsigned coreid,
-				      enum starpu_codelet_type type,
-				      int is_parallel_task, int cb_workerid,
-				      starpu_data_handle_t *handles,
-				      void **interfaces,
-				      unsigned nb_interfaces,
-				      void *cl_arg, size_t cl_arg_size)
+		void (*kernel)(void), unsigned coreid,
+		enum starpu_codelet_type type,
+		int is_parallel_task, int cb_workerid,
+		starpu_data_handle_t *handles,
+		void **interfaces,
+		unsigned nb_interfaces,
+		void *cl_arg, size_t cl_arg_size)
 {
 
 	void *buffer, *buffer_ptr, *arg =NULL;
@@ -205,16 +215,13 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 
 	buffer_size = sizeof(kernel) + sizeof(coreid) + sizeof(type)
 		+ sizeof(nb_interfaces) + nb_interfaces * sizeof(union _starpu_interface) + sizeof(is_parallel_task);
-
+	
 	/*if the task is paralle*/
-	if(type == STARPU_FORKJOIN && is_parallel_task)
+	if(is_parallel_task)
 	{
-		_STARPU_DEBUG("\n Parallele\n");
-		_STARPU_DEBUG("type:%d\n",type);
-		_STARPU_DEBUG("cb_workerid:%d\n",cb_workerid);
 		cb_worker = _starpu_get_combined_worker_struct(cb_workerid);
 		cb_worker_size = cb_worker->worker_size;
-		buffer_size = sizeof(cb_worker_size) + cb_worker_size * sizeof(devid);
+		buffer_size += sizeof(cb_workerid) + sizeof(cb_worker_size) + cb_worker_size * sizeof(devid);
 	}
 
 	/* If the user didn't give any cl_arg, there is no need to send it */
@@ -224,7 +231,6 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 		buffer_size += cl_arg_size;
 	}
 	
-
 	/* We give to send_command a buffer we just allocated, which contains
 	 * a pointer to the function (sink-side), core on which execute this
 	 * function (sink-side), number of interfaces we send,
@@ -240,8 +246,11 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 	*(int *) buffer_ptr = is_parallel_task;
 	buffer_ptr += sizeof(is_parallel_task);
 
-	if(type == STARPU_FORKJOIN && is_parallel_task)
+	if(is_parallel_task)
 	{
+
+		*(int *) buffer_ptr = cb_workerid;
+		buffer_ptr += sizeof(cb_workerid);
 
 		*(int *) buffer_ptr = cb_worker_size;
 		buffer_ptr += sizeof(cb_worker_size);
@@ -253,7 +262,7 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 			buffer_ptr += sizeof(devid);
 		}
 	}
-		
+
 	*(unsigned *) buffer_ptr = coreid;
 	buffer_ptr += sizeof(coreid);
 
@@ -268,7 +277,7 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 	{
 		starpu_data_handle_t handle = handles[i];
 		memcpy (buffer_ptr, interfaces[i],
-			handle->ops->interface_size);
+				handle->ops->interface_size);
 		/* The sink side has no mean to get the type of each
 		 * interface, we use a union to make it generic and permit the
 		 * sink to go through the array */
@@ -283,7 +292,7 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 
 	if (answer == STARPU_ERROR_EXECUTE)
 		return -EINVAL;
-	
+
 	STARPU_ASSERT(answer == STARPU_EXECUTION_SUBMITTED);
 
 	free(buffer);
@@ -292,10 +301,10 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 }
 
 static int _starpu_src_common_execute(struct _starpu_job *j, 
-				      struct _starpu_worker *worker, 
-				      struct _starpu_mp_node * node)
+		struct _starpu_worker *worker, 
+		struct _starpu_mp_node * node)
 {
-        int ret;
+	int ret;
 	uint32_t mask = 0;
 
 	STARPU_ASSERT(j);
@@ -304,33 +313,42 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 	int profiling = starpu_profiling_status_get();
 
 	STARPU_ASSERT(task);
-	
-	ret = _starpu_fetch_task_input(j, mask);
-	if (ret != 0)
+	if (worker->current_rank == 0) 
 	{
-		/* there was not enough memory, so the input of
-		 * the codelet cannot be fetched ... put the
-		 * codelet back, and try it later */
-		return -EAGAIN;
+		ret = _starpu_fetch_task_input(j, mask);
+		if (ret != 0)
+		{
+			/* there was not enough memory, so the input of
+			 * the codelet cannot be fetched ... put the
+			 * codelet back, and try it later */
+			return -EAGAIN;
+		}
 	}
 
 	void (*kernel)(void)  = node->get_kernel_from_job(node,j);
 
 
-	_starpu_driver_start_job(worker, j, &j->cl_start, 0, profiling);
+	if ((worker->current_rank == 0) || (task->cl->type != STARPU_FORKJOIN))
+	{
 
-	_STARPU_DEBUG("j->task_size:%d\n",j->task_size);	
-	_STARPU_DEBUG("j->cb_workerid:%d\n",j->combined_workerid);	
-
-	_STARPU_DEBUG("cb_worker_count:%d\n",starpu_combined_worker_get_count());
+		_starpu_driver_start_job(worker, j, &j->cl_start, 0, profiling);
 
 
-	_starpu_src_common_execute_kernel(node, kernel, worker->devid, task->cl->type,
-					  (j->task_size > 1),
-					  j->combined_workerid, task->handles,
-					  task->interfaces, task->cl->nbuffers,
-					  task->cl_arg, task->cl_arg_size);
+		_STARPU_DEBUG("workerid:%d\n",worker->devid);
+		_STARPU_DEBUG("rank:%d\n",worker->current_rank);
+		_STARPU_DEBUG("type:%d\n",task->cl->type);
+		_STARPU_DEBUG("is_parallel_task:%d\n",(j->task_size > 1));
+		_STARPU_DEBUG("cb_workerid:%d\n",j->combined_workerid);
+		_STARPU_DEBUG("j->task_size:%d\n",j->task_size);
+		_STARPU_DEBUG("cb_worker_count:%d\n\n",starpu_combined_worker_get_count());
 
+		_starpu_src_common_execute_kernel(node, kernel, worker->devid, task->cl->type,
+				(j->task_size > 1),
+				j->combined_workerid, task->handles,
+				task->interfaces, task->cl->nbuffers,
+				task->cl_arg, task->cl_arg_size);
+
+	}
 	return 0;
 }
 
@@ -342,14 +360,14 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
  * else it returns 1 if the allocation fail.
  */
 int _starpu_src_common_allocate(const struct _starpu_mp_node *mp_node,
-				void **addr, size_t size)
+		void **addr, size_t size)
 {
 	enum _starpu_mp_command answer;
 	void *arg;
 	int arg_size;
 
 	_starpu_mp_common_send_command(mp_node, STARPU_ALLOCATE, &size,
-				       sizeof(size));
+			sizeof(size));
 
 	answer = _starpu_mp_common_recv_command(mp_node, &arg, &arg_size);
 
@@ -357,7 +375,7 @@ int _starpu_src_common_allocate(const struct _starpu_mp_node *mp_node,
 		return 1;
 
 	STARPU_ASSERT(answer == STARPU_ANSWER_ALLOCATE &&
-		      arg_size == sizeof(*addr));
+			arg_size == sizeof(*addr));
 
 	memcpy(addr, arg, arg_size);
 
@@ -368,15 +386,15 @@ int _starpu_src_common_allocate(const struct _starpu_mp_node *mp_node,
  * area pointed by ADDR.
  */
 void _starpu_src_common_free(const struct _starpu_mp_node *mp_node,
-			     void *addr)
+		void *addr)
 {
 	_starpu_mp_common_send_command(mp_node, STARPU_FREE, &addr, sizeof(addr));
 }
 
 /* Send SIZE bytes pointed by SRC to DST on the sink linked to the MP_NODE.
- */
+*/
 int _starpu_src_common_copy_host_to_sink(const struct _starpu_mp_node *mp_node,
-					 void *src, void *dst, size_t size)
+		void *src, void *dst, size_t size)
 {
 	struct _starpu_mp_transfer_command cmd = {size, dst};
 
@@ -387,9 +405,9 @@ int _starpu_src_common_copy_host_to_sink(const struct _starpu_mp_node *mp_node,
 }
 
 /* Receive SIZE bytes pointed by SRC on the sink linked to the MP_NODE and store them in DST.
- */
+*/
 int _starpu_src_common_copy_sink_to_host(const struct _starpu_mp_node *mp_node,
-					 void *src, void *dst, size_t size)
+		void *src, void *dst, size_t size)
 {
 	struct _starpu_mp_transfer_command cmd = {size, src};
 
@@ -403,7 +421,7 @@ int _starpu_src_common_copy_sink_to_host(const struct _starpu_mp_node *mp_node,
  * to the sink linked to DST_NODE. The latter store them in DST.
  */
 int _starpu_src_common_copy_sink_to_sink(const struct _starpu_mp_node *src_node,
-					 const struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size)
+		const struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size)
 {
 	enum _starpu_mp_command answer;
 	void *arg;
@@ -433,7 +451,7 @@ int _starpu_src_common_copy_sink_to_sink(const struct _starpu_mp_node *src_node,
  * MPI).
  */
 static void _starpu_src_common_cat_3(char *final, const char *first, 
-				     const char *second, const char *third)
+		const char *second, const char *third)
 {
 	strcpy(final, first);
 	strcat(final, second);
@@ -471,9 +489,9 @@ static int _starpu_src_common_test_suffixes(char *located_file_name, const char 
 }
 
 int _starpu_src_common_locate_file(char *located_file_name,
-				   const char *env_file_name, const char *env_mic_path,
-				   const char *config_file_name, const char *actual_file_name,
-				   const char **suffixes)
+		const char *env_file_name, const char *env_mic_path,
+		const char *config_file_name, const char *actual_file_name,
+		const char **suffixes)
 {
 	if (env_file_name != NULL)
 	{
@@ -541,13 +559,13 @@ int _starpu_src_common_locate_file(char *located_file_name,
 }
 
 void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, 
-			       unsigned baseworkerid, 
-			       struct _starpu_mp_node * mp_node)
+		unsigned baseworkerid, 
+		struct _starpu_mp_node * mp_node)
 { 
 	struct _starpu_worker * baseworker = &worker_set->workers[baseworkerid];
 	unsigned memnode = baseworker->memory_node;
 	struct starpu_task **tasks = malloc(sizeof(struct starpu_task *)*worker_set->nworkers);
- 
+
 	/*main loop*/
 	while (_starpu_machine_is_running())
 	{
@@ -561,7 +579,8 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 		/* poll the device for completed jobs.*/
 		if (mp_node->mp_recv_is_ready(mp_node))
 			_starpu_src_common_recv_async(mp_node);
-		
+
+
 		/* get task for each worker*/
 		res = _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers);
 
@@ -575,23 +594,20 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 				if(tasks[i] != NULL)
 				{
 					j = _starpu_get_job_associated_to_task(tasks[i]);
-			
-					worker_set->workers[i].current_task = j->task;
-
+					_starpu_set_local_worker_key(&worker_set->workers[i]);
 					res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);
-		
 					if (res)
 					{
 						switch (res)
 						{
-						case -EAGAIN:
-							_STARPU_DISP("ouch, Xeon Phi could not actually run task %p, putting it back...\n", tasks[i]);
-							_starpu_push_task_to_workers(tasks[i]);
-							STARPU_ABORT();
-							continue;
-							break;
-						default:
-							STARPU_ASSERT(0);
+							case -EAGAIN:
+								_STARPU_DISP("ouch, Xeon Phi could not actually run task %p, putting it back...\n", tasks[i]);
+								_starpu_push_task_to_workers(tasks[i]);
+								STARPU_ABORT();
+								continue;
+								break;
+							default:
+								STARPU_ASSERT(0);
 						}
 					}
 					//_STARPU_DEBUG(" exec fin\n");

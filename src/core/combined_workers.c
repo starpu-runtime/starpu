@@ -67,9 +67,14 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	{
 		int id = workerid_array[i];
 
+#ifdef STARPU_USE_MIC
+		STARPU_ASSERT(config->workers[id].arch == STARPU_CPU_WORKER || config->workers[id].arch == STARPU_MIC_WORKER);
+		STARPU_ASSERT(config->workers[id].worker_mask == STARPU_CPU || config->workers[id].worker_mask == STARPU_MIC);
+#else/* STARPU_USE_MIC */
 		/* We only combine CPUs */
-		STARPU_ASSERT(config->workers[id].perf_arch == STARPU_CPU_DEFAULT);
+		STARPU_ASSERT(config->workers[id].arch == STARPU_CPU_WORKER);
 		STARPU_ASSERT(config->workers[id].worker_mask == STARPU_CPU);
+#endif /* STARPU_USE_MIC */
 
 		/* We only combine valid "basic" workers */
 		if ((id < 0) || (id >= basic_worker_count))

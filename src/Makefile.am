@@ -108,7 +108,6 @@ noinst_HEADERS = 						\
 	drivers/mp_common/mp_common.h				\
 	drivers/mp_common/source_common.h			\
 	drivers/mp_common/sink_common.h				\
-	drivers/mp_common/task_fifo.h				\
 	drivers/cpu/driver_cpu.h				\
 	drivers/cuda/driver_cuda.h				\
 	drivers/opencl/driver_opencl.h				\
@@ -177,7 +176,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	sched_policies/parallel_heft.c				\
 	sched_policies/parallel_eager.c				\
 	drivers/driver_common/driver_common.c			\
-	drivers/mp_common/task_fifo.c				\
 	datawizard/memory_nodes.c				\
 	datawizard/write_back.c					\
 	datawizard/coherency.c					\

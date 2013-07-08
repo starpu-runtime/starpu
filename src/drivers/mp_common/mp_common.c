@@ -27,6 +27,8 @@
 #include <drivers/scc/driver_scc_source.h>
 #include <drivers/scc/driver_scc_sink.h>
 
+#include <common/list.h>
+
 /* Allocate and initialize the sink structure, when the function returns
  * all the pointer of functions are linked to the right ones.
  */
@@ -41,8 +43,6 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	node->kind = node_kind;
 
 	node->peer_id = peer_id;
-
-	task_fifo_init(&(node->dead_queue));
 
 	switch(node->kind)
 	{

@@ -21,9 +21,9 @@
 
 #include <starpu.h>
 #include <common/config.h>
-
-#include "task_fifo.h"
-
+#include <common/list.h>
+#include <common/barrier.h>
+#include <common/thread.h>
 #ifdef STARPU_USE_MP
 
 #ifdef STARPU_USE_MIC
@@ -37,7 +37,25 @@
 
 #define STARPU_MP_COMMON_REPORT_ERROR(node, status)			\
 	(node)->report_error(__starpu_func__, __FILE__, __LINE__, (status))
+LIST_TYPE(mp_barrier,
+		int id;
+		_starpu_pthread_barrier_t barrier;
+	 );
 
+
+LIST_TYPE(mp_task,
+		void (*kernel)(void **, void *);
+		void *interfaces[STARPU_NMAXBUFS]; 
+		void *cl_arg;
+		unsigned coreid;
+		enum starpu_codelet_type type;
+		int is_parallel_task;
+		int combined_workerid;
+		int combined_worker_size;
+		int combined_worker[STARPU_NMAXWORKERS];
+		_starpu_pthread_barrier_t * barrier;
+		struct mp_task * next;
+	 );
 
 enum _starpu_mp_command
 {
@@ -142,12 +160,20 @@ struct _starpu_mp_node
 	 *  - sink_sink_dt_connections[j] is not initialized for the sink number j. */
 	union _starpu_mp_connection *sink_sink_dt_connections;
 
-        /*dead queue where the finished kernel are added */
-        struct mp_task_fifo dead_queue;
+	/* table to store pointer of the thread workers*/
+	void* thread_table;
 
-	/**/
+        /*dead queue where the finished kernel are added */
+        struct mp_task_list* dead_queue;
+	pthread_mutex_t dead_queue_mutex;
+
+	/*list of barrier for combined worker*/
+	struct mp_barrier_list* barrier_list;
+	pthread_mutex_t barrier_mutex;
+
+	/*table where worker comme pick task*/
 	struct mp_task ** run_table;
-	pthread_mutex_t * mutex_table;
+	pthread_mutex_t * mutex_run_table;
 
 	/* Node general functions */
 	void (*init)(struct _starpu_mp_node *node);
@@ -166,7 +192,7 @@ struct _starpu_mp_node
 	void (*dt_recv_from_device)(const struct _starpu_mp_node *, int, void *, int);
 
 	void (*(*get_kernel_from_job)(const struct _starpu_mp_node *,struct _starpu_job *))(void);
-	void (*bind_thread)(const struct _starpu_mp_node *, cpu_set_t *,int);
+	void (*bind_thread)(const struct _starpu_mp_node *, int,int *,int);
 	void (*execute)(const struct _starpu_mp_node *, void *, int);
 	void (*nbcores)(const struct _starpu_mp_node *);
 	void (*allocate)(const struct _starpu_mp_node *, void *, int);

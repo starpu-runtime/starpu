@@ -36,18 +36,69 @@
 
 void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 {
-	//unsigned int i;
-	
+	pthread_t thread, self;
+	cpu_set_t cpuset;
+	pthread_attr_t attr;
+	int i, j, ret;
+	struct arg_sink_thread * arg;
+
+	/*Bind on the first core*/
+	self = pthread_self();
+	CPU_ZERO(&cpuset);
+	CPU_SET(0,&cpuset);
+	pthread_setaffinity_np(self,sizeof(cpu_set_t),&cpuset);
+
 	/* Initialize connection with the source */
 	_starpu_mic_common_accept(&node->mp_connection.mic_endpoint,
 					 STARPU_MIC_SOURCE_PORT_NUMBER);
 
 	_starpu_mic_common_accept(&node->host_sink_dt_connection.mic_endpoint,
 									 STARPU_MIC_SOURCE_DT_PORT_NUMBER);
+	//init the set
+	CPU_ZERO(&cpuset);
 
 	node->nb_cores = COISysGetCoreCount();
 
-	_starpu_sink_common_init(node);
+	node->thread_table = malloc(sizeof(pthread_t)*node->nb_cores);
+
+	node->run_table = malloc(sizeof(struct mp_task *)*node->nb_cores);
+	node->mutex_run_table = malloc(sizeof(pthread_mutex_t)*node->nb_cores);
+
+	node->barrier_list = mp_task_list_new();
+	node->dead_queue = mp_task_list_new();
+	pthread_mutex_init(&node->dead_queue_mutex,NULL);
+	pthread_mutex_init(&node->barrier_mutex,NULL);
+
+
+	/*for each core init the mutex, the task pointer and launch the thread */
+	for(i=1; i<node->nb_cores; i++)
+	{
+		node->run_table[i] = NULL;
+
+		pthread_mutex_init(&node->mutex_run_table[i],NULL);
+		pthread_mutex_lock(&node->mutex_run_table[i]);
+
+		//init the set
+		CPU_ZERO(&cpuset);
+		for(j=0;j<HYPER_THREAD_NUMBER;j++)
+			CPU_SET(j+i*HYPER_THREAD_NUMBER,&cpuset);
+
+		ret = pthread_attr_init(&attr);
+		STARPU_ASSERT(ret == 0);
+		ret = pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);
+		STARPU_ASSERT(ret == 0);
+
+		/*prepare the argument for the thread*/
+		arg= malloc(sizeof(struct arg_sink_thread));
+		arg->task = &node->run_table[i];
+		arg->coreid = i;
+		arg->node = node;
+		arg->mutex = &node->mutex_run_table[i];
+		
+		ret = pthread_create(&thread, &attr, _starpu_sink_thread, arg);
+		((pthread_t *)node->thread_table)[i] = thread;
+		STARPU_ASSERT(ret == 0);
+	}
 
 	//node->sink_sink_dt_connections = malloc(node->nb_mp_sinks * sizeof(union _starpu_mp_connection));
 
@@ -145,11 +196,18 @@ void _starpu_mic_sink_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUT
 
 /* bind the thread to a core
  */
-void _starpu_mic_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, cpu_set_t * cpuset, int coreid)
+void _starpu_mic_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, int coreid, int * core_table, int nb_core)
 {
-	int j, ret;
+	cpu_set_t cpuset;
+	int i, j, ret;
+
+  	//init the set
+	CPU_ZERO(&cpuset);
 
 	//adding the core to the set
-	for(j=0;j<HYPER_THREAD_NUMBER;j++)
-		CPU_SET(j+coreid*HYPER_THREAD_NUMBER,cpuset);
+	for(i=0;i<nb_core;i++)
+		for(j=0;j<HYPER_THREAD_NUMBER;j++)
+			CPU_SET(j+core_table[i]*HYPER_THREAD_NUMBER,&cpuset);
+
+	pthread_setaffinity_np(((pthread_t*)mp_node->thread_table)[coreid],sizeof(cpu_set_t),&cpuset);
 }

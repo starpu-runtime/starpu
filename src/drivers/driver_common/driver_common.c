@@ -243,8 +243,11 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_task ** tasks, int nworkers)
 {
 	int i, count = 0;
+	struct _starpu_job * j;
+	int is_parallel_task;
+	struct _starpu_combined_worker *combined_worker;
 	/*for each worker*/
-	for (i = 1; (i < nworkers); i++)
+	for (i = 1; i < nworkers; i++)
 	{
 		/*if the worker is already executinf a task then */
 		if(workers[i].current_task)
@@ -255,16 +258,39 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		else
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&workers[i].sched_mutex);
+			_starpu_set_local_worker_key(&workers[i]);
 			tasks[i] = _starpu_pop_task(&workers[i]);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&workers[i].sched_mutex);
 			if(tasks[i] != NULL)
 			{
 				count ++;
-				_starpu_worker_set_status_sleeping(workers[i].workerid);
+				j = _starpu_get_job_associated_to_task(tasks[i]);
+				is_parallel_task = (j->task_size > 1);
+				workers[i].current_task = j->task;
+				/* Get the rank in case it is a parallel task */
+				if (is_parallel_task)
+				{
+
+					STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+					workers[i].current_rank = j->active_task_alias_count++;
+					STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+					
+					combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
+					workers[i].combined_workerid = j->combined_workerid;
+					workers[i].worker_size = combined_worker->worker_size;
+				}
+				else
+				{
+					workers[i].combined_workerid = workers[i].workerid;
+					workers[i].worker_size = 1;
+					workers[i].current_rank = 0;
+				}
+
+				_starpu_worker_set_status_wakeup(workers[i].workerid);
 			}
 			else
 			{
-				_starpu_worker_set_status_wakeup(workers[i].workerid);
+				_starpu_worker_set_status_sleeping(workers[i].workerid);
 			}
 		}
 	}

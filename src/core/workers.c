@@ -1424,7 +1424,7 @@ struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id)
 {
 	unsigned basic_worker_count = starpu_worker_get_count();
 	
-	_STARPU_DEBUG("basic_worker_count:%d\n",basic_worker_count);
+	//_STARPU_DEBUG("basic_worker_count:%d\n",basic_worker_count);
 
 	STARPU_ASSERT(id >= basic_worker_count);
 	return &config.combined_workers[id - basic_worker_count];

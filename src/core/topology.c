@@ -1264,6 +1264,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 		if (is_a_set_of_accelerators)
 		{
+/* TODO: il faudrait changer quand on change de device */
 			if (accelerator_bindid == -1)
 				accelerator_bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 
