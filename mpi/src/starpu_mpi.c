@@ -1272,7 +1272,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				 * the data handle, then submit the corresponding receive with _starpu_mpi_handle_new_request. */
 				else
 				{
-					_STARPU_MPI_DEBUG(3, "Found !\n");
+					_STARPU_MPI_DEBUG(3, "A matching receive has been found for the incoming data with tag %d\n", recv_env->mpi_tag);
 
 					delete_req(found_req);
 
