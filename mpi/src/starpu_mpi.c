@@ -1135,12 +1135,12 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	}
 
 	{
-	     int rank, worldsize;
-	     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	     MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
-	     TRACE_MPI_START(rank, worldsize);
+		int rank, worldsize;
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
+		TRACE_MPI_START(rank, worldsize);
 #ifdef STARPU_USE_FXT
-	     starpu_profiling_set_id(rank);
+		starpu_profiling_set_id(rank);
 #endif //STARPU_USE_FXT
 	}
 
