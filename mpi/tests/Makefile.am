@@ -83,6 +83,7 @@ starpu_mpi_TESTS =				\
 	mpi_isend				\
 	mpi_earlyrecv				\
 	mpi_earlyrecv2				\
+	mpi_earlyrecv2_detached			\
 	mpi_irecv				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
@@ -111,6 +112,7 @@ noinst_PROGRAMS =				\
 	mpi_isend				\
 	mpi_earlyrecv				\
 	mpi_earlyrecv2				\
+	mpi_earlyrecv2_detached			\
 	mpi_irecv				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
@@ -137,6 +139,8 @@ mpi_isend_LDADD =					\
 mpi_earlyrecv_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_earlyrecv2_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_earlyrecv2_detached_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_irecv_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
