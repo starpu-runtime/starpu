@@ -24,13 +24,16 @@ struct starpu_disk_ops {
 	 void    (*free)   (void *base, void *obj, size_t size);
 	 void *  (*open)   (void *base, void *pos, size_t size);     /* open an existing file */
 	 void    (*close)  (void *base, void *obj, size_t size);
-	ssize_t  (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size, void * async); 
-	ssize_t  (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size, void * async); 
+	 int     (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size, void * async); 
+	 int     (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size, void * async); 
+	 int     (*async_write)  (void *base, void *obj, void *buf, off_t offset, size_t size, void * async); 
+	 int     (*async_read)   (void *base, void *obj, void *buf, off_t offset, size_t size, void * async); 
 	/* readv, writev, read2d, write2d, etc. */
 	 void *  (*plug)   (void *parameter);
 	 void    (*unplug) (void *base);
-	  int    (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
-	  int    (*bandwidth) (unsigned node);
+	 int    (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size, void * async_channel);
+	 int    (*bandwidth)    (unsigned node);
+	 void   (*wait_request) (void * async_channel);
 };
 
 

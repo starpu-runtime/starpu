@@ -24,6 +24,7 @@
 #include <starpu_opencl.h>
 #include <starpu_cuda.h>
 #include <profiling/profiling.h>
+#include <core/disk.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -88,7 +89,7 @@ static unsigned communication_cnt = 0;
 static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				    struct _starpu_data_replicate *src_replicate,
 				    struct _starpu_data_replicate *dst_replicate,
-				    struct _starpu_data_request *req STARPU_ATTRIBUTE_UNUSED)
+				    struct _starpu_data_request *req)
 {
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
@@ -575,19 +576,19 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 		return _starpu_disk_copy_src_to_disk(
 			(void*) src + src_offset, src_node,
 			(void*) dst, dst_offset, dst_node,
-			size, &async_channel->event._starpu_aiocb_disk);
+			size, async_channel);
 	}
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_CPU_RAM):
 		return _starpu_disk_copy_disk_to_src(
 			(void*) src, src_offset, src_node,
 			(void*) dst + dst_offset, dst_node,
-			size, &async_channel->event._starpu_aiocb_disk);
+			size, async_channel);
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_DISK_RAM):
 		return _starpu_disk_copy_disk_to_disk(
 			(void*) src, src_offset, src_node,
 			(void*) dst, dst_offset, dst_node,
-			size, &async_channel->event._starpu_aiocb_disk);
+			size, async_channel);
 
 	default:
 		STARPU_ABORT();
@@ -646,6 +647,8 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 		_starpu_mic_wait_request_completion(&(async_channel->event.mic_event));
 		break;
 #endif
+	case STARPU_MAIN_RAM:
+		starpu_disk_wait_request(async_channel);
 	case STARPU_CPU_RAM:
 	default:
 		STARPU_ABORT();
@@ -667,7 +670,6 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 #ifdef STARPU_USE_CUDA
 	cudaEvent_t event;
 #endif
-
 	switch (kind)
 	{
 #ifdef STARPU_USE_CUDA

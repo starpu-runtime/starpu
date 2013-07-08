@@ -19,10 +19,12 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <aio.h>
 
 #include <starpu.h>
 #include <core/disk.h>
 #include <core/perfmodel/perfmodel.h>
+#include <datawizard/copy_driver.h>
 
 #ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
@@ -192,27 +194,47 @@ starpu_stdio_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size S
 
 
 /* read the memory disk */
-static ssize_t 
-starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk)
+static int 
+starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
-	
+		
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
 	int res = fseek(tmp->file, offset, SEEK_SET); 
-		STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
+	STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
 
-		ssize_t nb = fread (buf, 1, size, tmp->file);
+	ssize_t nb = fread (buf, 1, size, tmp->file);
+	STARPU_ASSERT_MSG(nb >= 0, "Stdio read failed");
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 
-	return nb;
+	return 0;
 }
 
+static int
+starpu_stdio_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
+{
+	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+      
+	struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
+        struct aiocb *aiocb = &channel->event.disk_event._starpu_aiocb_disk;
+        
+	memset(aiocb, 0, sizeof(struct aiocb));
+        
+	aiocb->aio_fildes = tmp->descriptor;
+        aiocb->aio_offset = offset;
+	aiocb->aio_nbytes = size;
+        aiocb->aio_buf = buf;
+        aiocb->aio_reqprio = 0;
+        aiocb->aio_lio_opcode = LIO_NOP; 
+
+	return aio_read(aiocb);
+}
 
 /* write on the memory disk */
-static ssize_t 
-starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk)
+static int 
+starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * async_channel)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
@@ -228,6 +250,24 @@ starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *b
 	return nb;
 }
 
+static int
+starpu_stdio_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
+{
+        struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+
+        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
+        struct aiocb *aiocb = &channel->event.disk_event._starpu_aiocb_disk ;
+        memset(aiocb, 0, sizeof(struct aiocb));
+
+        aiocb->aio_fildes = tmp->descriptor;
+        aiocb->aio_offset = offset;
+        aiocb->aio_nbytes = size;
+        aiocb->aio_buf = buf;
+        aiocb->aio_reqprio = 0;
+        aiocb->aio_lio_opcode = LIO_NOP; 
+
+        return aio_write(aiocb);
+}
 
 /* create a new copy of parameter == base */
 static void * 
@@ -272,7 +312,7 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(node, mem, buf, 0, SIZE_DISK_MIN, NULL);
+		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, SIZE_DISK_MIN, NULL);
 		/* clean cache memory */
 		int res = fflush (tmp->file);
 		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
@@ -298,7 +338,7 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(node, mem, buf, rand() % (SIZE_DISK_MIN -1) , 1, NULL);
+		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_DISK_MIN -1) , 1, NULL);
 
 		int res = fflush (tmp->file);
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
@@ -321,7 +361,18 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	return 1;
 }
 
-
+static void 
+starpu_stdio_wait_request(void * async_channel)
+{
+	struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
+	const struct aiocb * aiocb = &channel->event.disk_event._starpu_aiocb_disk;
+	const struct aiocb * list[1];
+	list[0] = aiocb;
+	int values = -1;
+	while(values < 0)
+		/* Wait the answer of the request TIMESTAMP IS NULL */
+		values = aio_suspend(list, 1, NULL);
+}
 
 struct starpu_disk_ops starpu_disk_stdio_ops = {
 	.alloc = starpu_stdio_alloc,
@@ -329,9 +380,12 @@ struct starpu_disk_ops starpu_disk_stdio_ops = {
 	.open = starpu_stdio_open,
 	.close = starpu_stdio_close,
 	.read = starpu_stdio_read,
+	.async_read = starpu_stdio_async_read,
 	.write = starpu_stdio_write,
+	.async_write = starpu_stdio_async_write,
 	.plug = starpu_stdio_plug,
 	.unplug = starpu_stdio_unplug,
 	.copy = NULL,
-	.bandwidth = get_stdio_bandwidth_between_disk_and_main_ram
+	.bandwidth = get_stdio_bandwidth_between_disk_and_main_ram,
+	.wait_request = starpu_stdio_wait_request
 };

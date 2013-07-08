@@ -121,30 +121,69 @@ _starpu_disk_free(unsigned node, void *obj, size_t size)
 	disk_register_list[pos]->functions->free(disk_register_list[pos]->base, obj, size);
 }
 
-ssize_t 
-_starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk)
+/* src_node == disk node and dst_node == STARPU_MAIN_RAM */
+int 
+_starpu_disk_read(unsigned src_node, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
 {
-	int pos = get_location_with_node(node);
-	return disk_register_list[pos]->functions->read(disk_register_list[pos]->base, obj, buf, offset, size, _starpu_aiocb_disk);
+	int pos = get_location_with_node(src_node);
+        int values = 0;
+
+        if (async_channel != NULL && disk_register_list[pos]->functions->async_read != NULL)
+	{
+		struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel; 
+		channel->event.disk_event.memory_node = src_node;
+		channel->type = STARPU_DISK_RAM;
+	
+		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		values = disk_register_list[pos]->functions->async_read(disk_register_list[pos]->base, obj, buf, offset, size, async_channel);
+		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+	}
+	/* asynchronous request failed or synchronous request is asked */	
+	if (async_channel == NULL || values < 0)
+	{
+		
+		disk_register_list[pos]->functions->read(disk_register_list[pos]->base, obj, buf, offset, size, async_channel);
+		return 0;
+	}
+	return -EAGAIN;
 }
 
-
-ssize_t 
-_starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size, void * _starpu_aiocb_disk)
+/* src_node == STARPU_MAIN_RAM and dst_node == disk node */
+int 
+_starpu_disk_write(unsigned src_node, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
 {
-	int pos = get_location_with_node(node);
-	return disk_register_list[pos]->functions->write(disk_register_list[pos]->base, obj, buf, offset, size, _starpu_aiocb_disk);
+	int pos = get_location_with_node(dst_node);
+        int values = 0;
+
+        if (async_channel != NULL && disk_register_list[pos]->functions->async_write != NULL)
+        {
+        	struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
+        	channel->event.disk_event.memory_node = dst_node;
+		channel->type = STARPU_DISK_RAM;
+
+                _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+		return disk_register_list[pos]->functions->async_write(disk_register_list[pos]->base, obj, buf, offset, size, async_channel);
+        	_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+        }
+        /* asynchronous request failed or synchronous request is asked */
+        if (async_channel == NULL || values < 0)
+        {
+		return disk_register_list[pos]->functions->write(disk_register_list[pos]->base, obj, buf, offset, size, async_channel);
+        	return 0;
+        }
+        return -EAGAIN;
+
 }
 
 int
-_starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size, void * _starpu_aiocb_disk)
+_starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size, void * async_channel)
 {
 	int pos_src = get_location_with_node(node_src);
 	int pos_dst = get_location_with_node(node_dst);
 	/* both nodes have same copy function */
 	return disk_register_list[pos_src]->functions->copy(disk_register_list[pos_src]->base, obj_src, offset_src, 
 						        disk_register_list[pos_dst]->base, obj_dst, offset_dst,
-							size);
+							size, async_channel);
 }
 
 void * 
@@ -161,6 +200,11 @@ starpu_disk_close(unsigned node, void *obj, size_t size)
 	disk_register_list[position]->functions->close(disk_register_list[position]->base, obj, size);	
 }
 
+void starpu_disk_wait_request(struct _starpu_async_channel *async_channel)
+{
+	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
+	disk_register_list[position]->functions->wait_request((void *) async_channel);
+}
 
 static void 
 add_disk_in_list(unsigned node,  struct starpu_disk_ops * func, void * base)
