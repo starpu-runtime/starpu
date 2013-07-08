@@ -29,43 +29,43 @@
  *      + pour les itérateurs : FOO
  *  - déclare les accesseurs suivants :
  *     * création d'une cellule
- *   FOO_t      FOO_new(void);
+ *   FOO*       FOO_new(void);
  *     * suppression d'une cellule
- *   void       FOO_delete(FOO_t);
+ *   void       FOO_delete(FOO*);
  *     * création d'une liste (vide)
- *   FOO_list_t FOO_list_new(void);
+ *   FOO_list*  FOO_list_new(void);
  *     * suppression d'une liste
- *   void       FOO_list_delete(FOO_list_t);
+ *   void       FOO_list_delete(FOO_list*);
  *     * teste si une liste est vide
- *   int        FOO_list_empty(FOO_list_t);
+ *   int        FOO_list_empty(FOO_list*);
  *     * retire un élément de la liste
- *   void       FOO_list_erase(FOO_list_t, FOO_t);
+ *   void       FOO_list_erase(FOO_list*, FOO*);
  *     * ajoute une élément en queue de liste
- *   void       FOO_list_push_back(FOO_list_t, FOO_t);
+ *   void       FOO_list_push_back(FOO_list*, FOO*);
  *     * ajoute un élément en tête de list
- *   void       FOO_list_push_front(FOO_list_t, FOO_t);
+ *   void       FOO_list_push_front(FOO_list*, FOO*);
  *     * ajoute la deuxième liste à la fin de la première liste
- *   FOO_t      FOO_list_push_list_back(FOO_list_t, FOO_list_t);
+ *   FOO*       FOO_list_push_list_back(FOO_list*, FOO_list*);
  *     * ajoute la première liste au début de la deuxième liste
- *   FOO_t      FOO_list_push_list_front(FOO_list_t, FOO_list_t);
+ *   FOO*       FOO_list_push_list_front(FOO_list*, FOO_list*);
  *     * retire l'élément en queue de liste
- *   FOO_t      FOO_list_pop_back(FOO_list_t);
+ *   FOO*       FOO_list_pop_back(FOO_list*);
  *     * retire l'élement en tête de liste
- *   FOO_t      FOO_list_pop_front(FOO_list_t);
+ *   FOO*       FOO_list_pop_front(FOO_list*);
  *     * retourne l'élément en queue de liste
- *   FOO_t      FOO_list_back(FOO_list_t);
+ *   FOO*       FOO_list_back(FOO_list*);
  *     * retourne l'élement en tête de liste
- *   FOO_t      FOO_list_front(FOO_list_t);
+ *   FOO*       FOO_list_front(FOO_list*);
  *     * vérifie si la liste chainée est cohérente
- *   int	FOO_list_check(FOO_list_t);
+ *   int	FOO_list_check(FOO_list*);
  *     *
- *   FOO_t      FOO_list_begin(FOO_list_t);
+ *   FOO*       FOO_list_begin(FOO_list*);
  *     *
- *   FOO_t      FOO_list_end(FOO_list_t);
+ *   FOO*       FOO_list_end(FOO_list*);
  *     *
- *   FOO_t      FOO_list_next(FOO_t)
+ *   FOO*       FOO_list_next(FOO*)
  *     *
- *   int        FOO_list_size(FOO_list_t)
+ *   int        FOO_list_size(FOO_list*)
  * *********************************************************
  * Exemples d'utilisation :
  *  - au départ, on a :
@@ -79,16 +79,16 @@
  *      int a;
  *      int b;
  *    );
- *    qui crée les types ma_structure_t et ma_structure_list_t.
+ *    qui crée les types struct ma_structure et struct ma_structure_list.
  *  - allocation d'une liste vide :
- *  ma_structure_list_t l = ma_structure_list_new();
+ *  struct ma_structure_list * l = ma_structure_list_new();
  *  - ajouter un élément 'e' en tête de la liste 'l' :
- *  ma_structure_t e = ma_structure_new();
+ *  ma_structure * e = ma_structure_new();
  *  e->a = 0;
- *  e->b = 1;
+ *  e->b = 0;
  *  ma_structure_list_push_front(l, e);
  *  - itérateur de liste :
- *  ma_structure i;
+ *  ma_structure * i;
  *  for(i  = ma_structure_list_begin(l);
  *      i != ma_structure_list_end(l);
  *      i  = ma_structure_list_next(i))
