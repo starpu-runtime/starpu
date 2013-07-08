@@ -270,6 +270,13 @@ fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
 </dd>
 
+<dt>--enable-maxmicthreads</dt>
+<dd>
+\anchor enable-maxmicthreads
+\addindex __configure__--enable-maxmicthreads
+Specify the maximum number of MIC threads
+</dd>
+
 <dt>--disable-asynchronous-mic-copy</dt>
 <dd>
 \anchor disable-asynchronous-mic-copy
