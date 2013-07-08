@@ -1381,12 +1381,22 @@ static void write_bus_bandwidth_file_content(void)
 
 double starpu_get_bandwidth_RAM_CUDA(unsigned cudadev)
 {
-	return bandwidth_matrix[0][cudadev+1];
+	return bandwidth_matrix[STARPU_MAIN_RAM][cudadev+1];
 }
 
 double starpu_get_latency_RAM_CUDA(unsigned cudadev)
 {
-	return latency_matrix[0][cudadev+1];
+	return latency_matrix[STARPU_MAIN_RAM][cudadev+1];
+}
+
+double starpu_get_bandwidth_CUDA_RAM(unsigned cudadev)
+{
+	return bandwidth_matrix[1][STARPU_MAIN_RAM];
+}
+
+double starpu_get_latency_CUDA_RAM(unsigned cudadev)
+{
+	return latency_matrix[1][STARPU_MAIN_RAM];
 }
 
 void starpu_bus_print_bandwidth(FILE *f)
