@@ -471,7 +471,7 @@ static double simple_worker_estimated_end(struct starpu_sched_node * node)
 {
 	struct _starpu_worker_node_data * data = node->data;
 	STARPU_PTHREAD_MUTEX_LOCK(&data->list->mutex);
-	double tmp = data->list->exp_end;
+	double tmp = data->list->exp_end = starpu_timing_now() + data->list->exp_len;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->list->mutex);
 	return tmp;
 }
