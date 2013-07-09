@@ -299,9 +299,8 @@ void _lp_find_workers_to_remove(int nw, int tmp_nw_move[nw], int tmp_workers_mov
 	}
 }
 
-void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw])
+void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *sched_ctxs)
 {
-	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int s, s2, w;
 	for(s = 0; s < ns; s++)
 	{
@@ -490,7 +489,7 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 	}
 	
 	if(!do_size)
-		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
+		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers, sched_ctxs_input);
 	else
 	{
 		int *current_sched_ctxs = sched_ctxs_input == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs_input;
@@ -507,7 +506,7 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 			}
 		}
 		if(has_workers)
-			sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
+			sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers, current_sched_ctxs);
 		else
 			sc_hypervisor_lp_distribute_resources_in_ctxs(current_sched_ctxs, ns, 2, nworkers_rounded, nworkers, workers_input, nw);
 	}
