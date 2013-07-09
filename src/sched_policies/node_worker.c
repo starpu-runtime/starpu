@@ -223,7 +223,7 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 			l->ntasks--;
 			if(!isnan(task->predicted))
 			{
-				l->exp_len -= task->predicted;
+				l->exp_len -= task->predicted_transfer;
 				l->exp_end = l->exp_start + l->exp_len;
 			}
 
