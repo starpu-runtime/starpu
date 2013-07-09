@@ -54,12 +54,35 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 											 estimated_lengths[i],
 											 estimated_transfer_length[i]);
 			if(estimated_ends_with_task[i] < best_exp_end_with_task)	
-			best_exp_end_with_task = estimated_ends_with_task[i];
+				best_exp_end_with_task = estimated_ends_with_task[i];
 			if(estimated_ends_with_task[i] > max_exp_end_with_task)
 				max_exp_end_with_task = estimated_ends_with_task[i];
 			suitable_nodes[nsuitable_nodes++] = i;
 		}
 	}
+
+#if 0
+	fprintf(stderr,"estimated end           ");
+	for(i = 0; i < node->nchilds; i++)
+	{
+		fprintf(stderr,"%f ",estimated_ends[i]);
+	}
+	fprintf(stderr,"\n");
+	fprintf(stderr,"estimated end with task ");
+		for(i = 0; i < node->nchilds; i++)
+	{
+		fprintf(stderr,"%f ",estimated_ends_with_task[i]);
+	}
+	fprintf(stderr,"\n");
+	fprintf(stderr,"estimated length        ");
+		for(i = 0; i < node->nchilds; i++)
+	{
+		fprintf(stderr,"%f ",estimated_lengths[i]);
+	}
+	fprintf(stderr,"\n\n");
+#endif
+
+
 	double best_fitness = DBL_MAX;
 	int best_inode = -1;
 	for(i = 0; i < nsuitable_nodes; i++)
@@ -71,14 +94,12 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 					     max_exp_end_with_task,
 					     estimated_transfer_length[inode],
 					     0.0);
-//		fprintf(stderr,"%f %d\n", tmp, inode);
 		if(tmp < best_fitness)
 		{
 			best_fitness = tmp;
 			best_inode = inode;
 		}
 	}
-//	fprintf(stderr,"push %d\n",best_inode);
 	STARPU_ASSERT(best_inode != -1);
 	best_node = node->childs[best_inode];
 	return best_node->push_task(best_node, task);
@@ -254,8 +275,8 @@ struct starpu_sched_policy _starpu_sched_tree_heft_policy =
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.push_task = starpu_sched_tree_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = NULL,
-	.post_exec_hook = NULL,
+	.pre_exec_hook = starpu_sched_node_worker_pre_exec_hook,
+	.post_exec_hook = starpu_sched_node_worker_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "tree-heft",
 	.policy_description = "heft tree policy"

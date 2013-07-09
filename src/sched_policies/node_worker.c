@@ -131,8 +131,8 @@ static inline void _starpu_worker_task_list_push(struct _starpu_worker_task_list
 	double predicted = t->task->predicted;
 	double predicted_transfer = t->task->predicted_transfer;
 
-	/* Sometimes workers didn't take the tasks as early as we expected */
-	l->exp_start = STARPU_MAX(l->exp_start, starpu_timing_now());
+	/* Sometimes workers didn't take the tasks as early as we expected 
+	   l->exp_start = STARPU_MAX(l->exp_start, starpu_timing_now());*/
 	l->exp_end = l->exp_start + l->exp_len;
 
 	if ((starpu_timing_now() + predicted_transfer) < l->exp_end)
@@ -220,7 +220,7 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 			(void) STARPU_ATOMIC_ADD(p, -1);
 			if(*p == 0)
 				_starpu_task_grid_unset_left_right_member(t);
-			l->ntasks--;
+//			l->ntasks--;
 			if(!isnan(task->predicted))
 			{
 				l->exp_len -= task->predicted_transfer;
@@ -719,16 +719,18 @@ void starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task)
 	{
 		struct _starpu_worker_task_list * list = _worker_get_list();
 		STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
-		STARPU_ASSERT(list->ntasks != 0);
-		list->ntasks--;
 		if(!task->execute_on_a_specific_worker)
-			list->exp_len = STARPU_MAX(list->exp_len - task->predicted, 0.0);
+		{
+			STARPU_ASSERT(list->ntasks != 0);
+			list->ntasks--;
+		}
 
 		list->exp_start = starpu_timing_now() + task->predicted;
+
 		if(list->ntasks == 0)
 		{
 			list->exp_end = list->exp_start;
-			list->exp_end = 0.0;
+			list->exp_len = 0.0;
 		}
 		else
 			list->exp_end = list->exp_start + list->exp_len;
@@ -749,6 +751,7 @@ void starpu_sched_node_worker_post_exec_hook(struct starpu_task * task)
 static void starpu_sched_node_worker_push_task_notify(struct starpu_task *task, int workerid, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
 {
 
+#if 0
 	struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(workerid);
 	/* dont work with parallel tasks */
 	if(starpu_sched_node_is_combined_worker(worker_node))
@@ -802,4 +805,5 @@ static void starpu_sched_node_worker_push_task_notify(struct starpu_task *task, 
 	list->ntasks++;
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&list->mutex);
+#endif
 }
