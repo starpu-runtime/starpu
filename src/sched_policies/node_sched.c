@@ -8,6 +8,9 @@
 double starpu_sched_compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
 {
 
+	if(now > predicted_end)
+		return predicted_end + predicted_length;
+
 	if (now + predicted_transfer < predicted_end)
 	{
 		/* We may hope that the transfer will be finished by

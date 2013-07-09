@@ -65,19 +65,25 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 	fprintf(stderr,"estimated end           ");
 	for(i = 0; i < node->nchilds; i++)
 	{
-		fprintf(stderr,"%f ",estimated_ends[i]);
+		fprintf(stderr,"%.0f ",estimated_ends[i]);
 	}
 	fprintf(stderr,"\n");
 	fprintf(stderr,"estimated end with task ");
 		for(i = 0; i < node->nchilds; i++)
 	{
-		fprintf(stderr,"%f ",estimated_ends_with_task[i]);
+		fprintf(stderr,"%.0f ",estimated_ends_with_task[i]);
+	}
+	fprintf(stderr,"\n");
+	fprintf(stderr,"transfere length        ");
+		for(i = 0; i < node->nchilds; i++)
+	{
+		fprintf(stderr,"%.0f ",estimated_transfer_length[i]);
 	}
 	fprintf(stderr,"\n");
 	fprintf(stderr,"estimated length        ");
 		for(i = 0; i < node->nchilds; i++)
 	{
-		fprintf(stderr,"%f ",estimated_lengths[i]);
+		fprintf(stderr,"%.0f ",estimated_lengths[i]);
 	}
 	fprintf(stderr,"\n\n");
 #endif
@@ -100,6 +106,7 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 			best_inode = inode;
 		}
 	}
+	//	fprintf(stderr,"push on %d\n",best_inode);
 	STARPU_ASSERT(best_inode != -1);
 	best_node = node->childs[best_inode];
 	return best_node->push_task(best_node, task);
