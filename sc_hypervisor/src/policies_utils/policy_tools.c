@@ -17,7 +17,6 @@
 #include "sc_hypervisor_policy.h"
 #include "sc_hypervisor_intern.h"
 #include "sc_hypervisor_lp.h"
-#include <math.h>
 
 static int _compute_priority(unsigned sched_ctx)
 {
@@ -365,7 +364,7 @@ double sc_hypervisor_get_slowest_ctx_exec_time(void)
 
 //		double elapsed_time  = (curr_time - sc_w->start_time)/1000000;
 		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
-		double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/sc_hypervisor_get_ctx_velocity(sc_w);
+		double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/sc_hypervisor_get_ctx_speed(sc_w);
 		if(elapsed_time > slowest_time)
 			slowest_time = elapsed_time;
 
@@ -388,7 +387,7 @@ double sc_hypervisor_get_fastest_ctx_exec_time(void)
 		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
 
 		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
-		double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/sc_hypervisor_get_ctx_velocity(sc_w);
+		double elapsed_time = (config->ispeed_ctx_sample/1000000000.0)/sc_hypervisor_get_ctx_speed(sc_w);
 		
 		if(elapsed_time < fastest_time)
 			fastest_time = elapsed_time;
@@ -437,25 +436,38 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
                                 times[w][t] = NAN;
 			else
 			{
-                                times[w][t] = length / 1000.;
+                                times[w][t] = (length / 1000.);
 
 				double transfer_time = 0.0;
+				unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
 				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-				if(arch == STARPU_CUDA_WORKER)
+				if(!worker_in_ctx && !size_ctxs)
 				{
-					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
-					if(!worker_in_ctx && !size_ctxs)
+					if(arch == STARPU_CUDA_WORKER)
 					{
-						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
-						transfer_time +=  (tp->footprint / transfer_velocity) / 1000. ;
+						double transfer_speed = starpu_get_bandwidth_RAM_CUDA(worker);
+						transfer_time +=  (tp->data_size / transfer_speed) / 1000. ;
+						double latency = starpu_get_latency_RAM_CUDA(worker);
+						transfer_time += latency/1000.;
+						
+						
 					}
-					double latency = starpu_get_latency_RAM_CUDA(worker);
-					transfer_time += latency/1000.;
-
+					else if(arch == STARPU_CPU_WORKER)
+					{
+						if(!starpu_sched_ctx_contains_type_of_worker(arch, tp->sched_ctx_id))
+						{
+							double transfer_speed = starpu_get_bandwidth_CUDA_RAM(worker);
+							transfer_time += (tp->data_size / transfer_speed) / 1000. ;
+							double latency = starpu_get_latency_CUDA_RAM(worker);
+							transfer_time += latency / 1000.;
+						}
+					}
 				}
+
 //				printf("%d/%d %s x %d time = %lf transfer_time = %lf\n", w, tp->sched_ctx_id, tp->cl->model->symbol, tp->n, times[w][t], transfer_time);
 				times[w][t] += transfer_time;
 			}
+//			printf("sc%d w%d task %s nt %d times %lf s\n", tp->sched_ctx_id, w, tp->cl->model->symbol, tp->n, times[w][t]);
                 }
         }
 }
@@ -476,8 +488,8 @@ unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker)
 	return 0;
 }
 
-/* check if there is a big velocity gap between the contexts */
-unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
+/* check if there is a big speed gap between the contexts */
+unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void)
 {
 	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
@@ -524,8 +536,8 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 			{
 				sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
 				double v[nw];
-				v[0] = sc_hypervisor_get_velocity(sc_w, STARPU_CUDA_WORKER);
-				v[1] = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+				v[0] = sc_hypervisor_get_speed(sc_w, STARPU_CUDA_WORKER);
+				v[1] = sc_hypervisor_get_speed(sc_w, STARPU_CPU_WORKER);
 				
 				optimal_v[i] = nworkers_per_type[i][0] * v[0] + nworkers_per_type[i][1]* v[1];
 				_set_optimal_v(i, optimal_v[i]);
@@ -542,7 +554,7 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 		{
 			sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
 			
-			double ctx_v = sc_hypervisor_get_ctx_velocity(sc_w);
+			double ctx_v = sc_hypervisor_get_ctx_speed(sc_w);
 			if(ctx_v == -1.0)
 				return 0;
 		}
@@ -551,19 +563,19 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 		{
 			sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
 			
-			double ctx_v = sc_hypervisor_get_ctx_velocity(sc_w);
+			double ctx_v = sc_hypervisor_get_ctx_speed(sc_w);
 			if(ctx_v != -1.0 && ((ctx_v < 0.8*optimal_v[i]) || ctx_v > 1.2*optimal_v[i])) 
 				return 1;
 		}
 	}
-	else /* if we have not been able to compute a theoretical velocity consider the env variable
-		SC_MAX_VELOCITY_GAP and compare the speed of the contexts, whenever the difference
+	else /* if we have not been able to compute a theoretical speed consider the env variable
+		SC_MAX_SPEED_GAP and compare the speed of the contexts, whenever the difference
 		btw them is greater than the max value the function returns true */
 	{
 		for(i = 0; i < nsched_ctxs; i++)
 		{
 			sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
-			double ctx_v = sc_hypervisor_get_ctx_velocity(sc_w);
+			double ctx_v = sc_hypervisor_get_ctx_speed(sc_w);
 			if(ctx_v != -1.0)
 			{
 				for(j = 0; j < nsched_ctxs; j++)
@@ -575,11 +587,11 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 							return 1;
 						
 						other_sc_w = sc_hypervisor_get_wrapper(sched_ctxs[j]);
-						double other_ctx_v = sc_hypervisor_get_ctx_velocity(other_sc_w);
+						double other_ctx_v = sc_hypervisor_get_ctx_speed(other_sc_w);
 						if(other_ctx_v != -1.0)
 						{
 							double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v;
-							double max_vel = _get_max_velocity_gap();
+							double max_vel = _get_max_speed_gap();
 							if(gap > max_vel)
 								return 1;
 						}
@@ -601,7 +613,7 @@ unsigned sc_hypervisor_criteria_fulfilled(unsigned sched_ctx, int worker)
 		if(criteria == SC_IDLE)
 			return sc_hypervisor_check_idle(sched_ctx, worker);
 		else
-			return sc_hypervisor_check_velocity_gap_btw_ctxs();
+			return sc_hypervisor_check_speed_gap_btw_ctxs();
 	}
 	else
 		return 0;

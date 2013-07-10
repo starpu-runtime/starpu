@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 {
 	int ret;
-	char *string;
+	char *string = NULL;
 
 	FPRINTF(stderr, "Testing with env=%d - conf=%d\n", env_cpu, conf_cpu);
 

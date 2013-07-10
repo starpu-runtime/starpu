@@ -198,5 +198,8 @@ mpi_reduction_SOURCES += mpi_reduction_kernels.c
 user_defined_datatype_SOURCES = user_defined_datatype.c
 user_defined_datatype_SOURCES += $(top_srcdir)/examples/interface/complex_interface.c
 
+mpi_earlyrecv2_SOURCES = mpi_earlyrecv2.c
+mpi_earlyrecv2_SOURCES += $(top_srcdir)/examples/interface/complex_interface.c
+
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

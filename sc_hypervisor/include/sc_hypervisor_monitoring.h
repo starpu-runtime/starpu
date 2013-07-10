@@ -77,8 +77,9 @@ struct sc_hypervisor_wrapper
 	/* nr of tasks executed on each worker in this ctx */
 	int elapsed_tasks[STARPU_NMAXWORKERS];
 
-	/* the average speed of workers when they belonged to this context */
-	double ref_velocity[STARPU_NMAXWORKERS];
+	/* the average speed of the type of workers when they belonged to this context */
+	/* 0 - cuda 1 - cpu */
+	double ref_speed[2];
 
 	/* number of flops submitted to this ctx */
 	double submitted_flops;
@@ -118,11 +119,11 @@ double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrappe
 /* get the number of flops executed by a context since the begining */
 double sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper* sc_w);
 
-/* compute an average value of the cpu/cuda velocity */
-double sc_hypervisorsc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
+/* compute an average value of the cpu/cuda speed */
+double sc_hypervisorsc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
 
-/* compte the actual velocity of all workers of a specific type of worker */
-double sc_hypervisor_get_velocity(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch);
+/* compte the actual speed of all workers of a specific type of worker */
+double sc_hypervisor_get_speed(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch);
 
 #ifdef __cplusplus
 }

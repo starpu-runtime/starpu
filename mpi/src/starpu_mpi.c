@@ -544,8 +544,7 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&(req->req_mutex));
 
 	/* Initialize the request structure */
-	STARPU_PTHREAD_MUTEX_INIT(&(waiting_req->req_mutex), NULL);
-	STARPU_PTHREAD_COND_INIT(&(waiting_req->req_cond), NULL);
+	 _starpu_mpi_request_init(waiting_req);
 	waiting_req->status = status;
 	waiting_req->other_request = req;
 	waiting_req->func = _starpu_mpi_wait_func;
@@ -767,8 +766,9 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_LOG_IN();
 
-	_STARPU_MPI_DEBUG(2, "complete MPI request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n",
-			  req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
+	_STARPU_MPI_DEBUG(2, "complete MPI request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d internal_req %p\n",
+			  req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr,
+			  _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype, req->internal_req);
 
 	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
 	{
@@ -776,12 +776,12 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 		{
 			if (req->request_type == SEND_REQ)
 			{
-				// We already know the request to send the size is completed, we just call MPI_Test to make sure that the request object is deallocated
-				MPI_Status status;
-				int flag;
-				ret = MPI_Test(&req->size_req, &flag, &status);
-				STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Test returning %d", ret);
-				STARPU_ASSERT_MSG(flag, "MPI_Test returning flag %d", flag);
+				// We need to make sure the communication for sending the size
+				// has completed, as MPI can re-order messages, let's call
+				// MPI_Wait to make sure data have been sent
+				ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
+				STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %d", ret);
+
 			}
 			if (req->request_type == RECV_REQ)
 				// req->ptr is freed by starpu_data_unpack
@@ -811,12 +811,6 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 	{
 		free(req->envelope);
 		req->envelope = NULL;
-	}
-
-	if (req->internal_req)
-	{
-		free(req->internal_req);
-		req->internal_req = NULL;
 	}
 
 	/* Execute the specified callback, if any */
@@ -870,11 +864,12 @@ static void _starpu_mpi_copy_cb(void* arg)
 	starpu_data_unregister_submit(args->copy_handle);
 
 	_STARPU_MPI_DEBUG(3, "Done, handling request %p termination of the already received request\n",args->req);
+	// If the request is detached, we need to call _starpu_mpi_handle_request_termination
+	// as it will not be called automatically as the request is not in the list detached_requests
 	if (args->req->detached)
 		_starpu_mpi_handle_request_termination(args->req);
 	// else: If the request is not detached its termination will
 	// be handled when calling starpu_mpi_wait
-
 
 	free(args);
 }
@@ -977,13 +972,18 @@ static unsigned _starpu_mpi_progression_hook_func(void *arg STARPU_ATTRIBUTE_UNU
 {
 	unsigned may_block = 1;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 	if (!_starpu_mpi_req_list_empty(detached_requests))
 	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		may_block = 0;
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+	else
+		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
+
 
 	return may_block;
 }
@@ -1039,6 +1039,9 @@ static void _starpu_mpi_test_detached_requests(void)
 		if (flag)
 		{
 			_starpu_mpi_req_list_erase(detached_requests, req);
+#ifdef STARPU_DEVEL
+#warning FIXME: when do we free internal requests
+#endif
 			if (!req->is_internal_req)
 				free(req);
 		}
@@ -1053,14 +1056,14 @@ static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 {
 	if (req->detached)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		/* put the submitted request into the list of pending requests
+		 * so that it can be handled by the progression mechanisms */
+		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 		_starpu_mpi_req_list_push_front(detached_requests, req);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
 		starpu_wake_all_blocked_workers();
 
-		/* put the submitted request into the list of pending requests
-		 * so that it can be handled by the progression mechanisms */
 		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		STARPU_PTHREAD_COND_SIGNAL(&cond_progression);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -1131,12 +1134,12 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	}
 
 	{
-	     int rank, worldsize;
-	     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	     MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
-	     TRACE_MPI_START(rank, worldsize);
+		int rank, worldsize;
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
+		TRACE_MPI_START(rank, worldsize);
 #ifdef STARPU_USE_FXT
-	     starpu_profiling_set_id(rank);
+		starpu_profiling_set_id(rank);
 #endif //STARPU_USE_FXT
 	}
 
@@ -1158,7 +1161,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		unsigned block = _starpu_mpi_req_list_empty(new_requests) && (HASH_COUNT(_starpu_mpi_req_hashmap) == 0);
 
 #ifndef STARPU_MPI_ACTIVITY
+		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
 		block = block && _starpu_mpi_req_list_empty(detached_requests);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 #endif /* STARPU_MPI_ACTIVITY */
 
 		if (block)
@@ -1266,7 +1271,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				 * the data handle, then submit the corresponding receive with _starpu_mpi_handle_new_request. */
 				else
 				{
-					_STARPU_MPI_DEBUG(3, "Found !\n");
+					_STARPU_MPI_DEBUG(3, "A matching receive has been found for the incoming data with tag %d\n", recv_env->mpi_tag);
 
 					delete_req(found_req);
 
