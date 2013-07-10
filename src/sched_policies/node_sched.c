@@ -201,7 +201,8 @@ struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id)
 	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	return t->workers;
 }
-
+void _starpu_sched_node_block_worker(int workerid);
+void _starpu_sched_node_unblock_worker(int workerid);
 int starpu_sched_tree_push_task(struct starpu_task * task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
@@ -209,9 +210,14 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 	int workerid = starpu_worker_get_id();
 	if(-1 == workerid)
 		STARPU_PTHREAD_RWLOCK_RDLOCK(&tree->lock);
+	else
+		_starpu_sched_node_block_worker(workerid);
+		
 	int ret_val = tree->root->push_task(tree->root,task);
 	if(-1 == workerid)
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&tree->lock);
+	else
+		_starpu_sched_node_unblock_worker(workerid);
 	return ret_val;
 }
 struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx_id)
