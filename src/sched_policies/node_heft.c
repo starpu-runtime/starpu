@@ -36,7 +36,7 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 	double estimated_transfer_length[node->nchilds];
 	int suitable_nodes[node->nchilds];
 	int nsuitable_nodes = 0;
-	double now = starpu_timing_now();
+
 	int i;
 	for(i = 0; i < node->nchilds; i++)
 	{
@@ -49,6 +49,7 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 				return d->no_perf_model_node->push_task(d->no_perf_model_node, task);
 			estimated_transfer_length[i] = starpu_sched_node_transfer_length(c, task);
 			estimated_ends[i] = c->estimated_end(c);
+	double now = starpu_timing_now();
 			estimated_ends_with_task[i] = starpu_sched_compute_expected_time(now,
 											 estimated_ends[i],
 											 estimated_lengths[i],
@@ -86,9 +87,9 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 		fprintf(stderr,"%.0f ",estimated_lengths[i]);
 	}
 	fprintf(stderr,"\n\n");
+
+	fprintf(stderr,"fitness                 ");
 #endif
-
-
 	double best_fitness = DBL_MAX;
 	int best_inode = -1;
 	for(i = 0; i < nsuitable_nodes; i++)
@@ -100,13 +101,18 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 					     max_exp_end_with_task,
 					     estimated_transfer_length[inode],
 					     0.0);
+#if 0
+		fprintf(stderr,"%.0f ",tmp);
+#endif
 		if(tmp < best_fitness)
 		{
 			best_fitness = tmp;
 			best_inode = inode;
 		}
 	}
-	//	fprintf(stderr,"push on %d\n",best_inode);
+#if 0
+	fprintf(stderr,"push on %d\n",best_inode);
+#endif
 	STARPU_ASSERT(best_inode != -1);
 	best_node = node->childs[best_inode];
 	return best_node->push_task(best_node, task);

@@ -291,7 +291,7 @@ int starpu_sched_node_worker_push_task(struct starpu_sched_node * node, struct s
 	t->ntasks = 1;
 
 	task->workerid = starpu_bitmap_first(node->workers);
-#if 0 /* dead lock problem */
+#if 1 /* dead lock problem */
 	if (starpu_get_prefetch_flag())
 	{
 		unsigned memory_node = starpu_worker_get_memory_node(task->workerid);
@@ -471,7 +471,8 @@ static double simple_worker_estimated_end(struct starpu_sched_node * node)
 {
 	struct _starpu_worker_node_data * data = node->data;
 	STARPU_PTHREAD_MUTEX_LOCK(&data->list->mutex);
-	double tmp = data->list->exp_end = starpu_timing_now() + data->list->exp_len;
+	data->list->exp_start = STARPU_MAX(starpu_timing_now(), data->list->exp_start);
+	double tmp = data->list->exp_end = data->list->exp_start + data->list->exp_len;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->list->mutex);
 	return tmp;
 }
