@@ -48,6 +48,7 @@ void starpu_sched_ctx_stop_task_submission(void);
 
 void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id);
 
+unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids);
 
 struct starpu_sched_ctx_performance_counters
 {
