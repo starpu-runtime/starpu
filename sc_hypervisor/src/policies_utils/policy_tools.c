@@ -17,7 +17,6 @@
 #include "sc_hypervisor_policy.h"
 #include "sc_hypervisor_intern.h"
 #include "sc_hypervisor_lp.h"
-#include <math.h>
 
 static int _compute_priority(unsigned sched_ctx)
 {
