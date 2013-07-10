@@ -92,7 +92,7 @@ starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	sed 's/#undef \(.*\)/#define \1 1/' $< > $@
 
 chapters/version.sty: $(chapters)
-	@-for f in $(chapters) ; do \
+	@for f in $(chapters) ; do \
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f 2>/dev/null ; fi \
         done | sort -r | head -1 > timestamp
 	@if test -s timestamp ; then \
@@ -105,7 +105,7 @@ chapters/version.sty: $(chapters)
 		echo "\newcommand{\STARPUUPDATED}{unknown date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	fi
 	@echo "\newcommand{\STARPUVERSION}{$(VERSION)}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty
-	@-for f in timestamp timestamp_updated timestamp_updated_month ; do \
+	@for f in timestamp timestamp_updated timestamp_updated_month ; do \
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
