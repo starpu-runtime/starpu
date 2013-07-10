@@ -110,7 +110,7 @@ chapters/version.sty: $(chapters)
 	done
 
 chapters/version.html: $(chapters)
-	@-for f in $(chapters) ; do \
+	@for f in $(chapters) ; do \
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f 2>/dev/null ; fi \
         done | sort -r | head -1 > timestamp
 	@if test -s timestamp ; then \
@@ -123,7 +123,7 @@ chapters/version.html: $(chapters)
 	else \
 		echo "Its contents was last updated on <em>unknown_date</em>." >> $(top_srcdir)/doc/doxygen/chapters/version.html;\
 	fi
-	@-for f in timestamp timestamp_updated timestamp_updated_month ; do \
+	@for f in timestamp timestamp_updated timestamp_updated_month ; do \
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
