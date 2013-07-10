@@ -170,8 +170,6 @@ Small features:
   * New function starpu_get_version() to return as 3 integers the
     release version of StarPU.
   * Enable by default data allocation cache
-  * Explicitly name the non-sleeping-non-running time "Overhead", and use
-    another color in vite traces.
 
 Changes:
   * Rename all filter functions to follow the pattern
@@ -238,6 +236,14 @@ Small changes:
   * Fix forcing calibration of never-calibrated archs.
   * CUDA applications are no longer compiled with the "-arch sm_13"
     option. It is specifically added to applications which need it.
+  * Explicitly name the non-sleeping-non-running time "Overhead", and use
+    another color in vite traces.
+  * Use C99 variadic macro support, not GNU.
+  * Fix performance regression: dmda queues were inadvertently made
+    LIFOs in r9611.
+  * Invert GPU-GPU direct transfer control environment variable name,
+    i.e environment variable STARPU_ENABLE_CUDA_GPU_GPU_DIRECT should
+    be used instead of STARPU_DISABLE_CUDA_GPU_GPU_DIRECT.
 
 StarPU 1.0.3 (svn revision 7379)
 ==============================================
