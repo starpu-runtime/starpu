@@ -61,5 +61,7 @@ struct starpu_disk_ops starpu_disk_unistd_ops = {
 	.plug = starpu_unistd_global_plug,
 	.unplug = starpu_unistd_global_unplug,
 	.copy = NULL,
-	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram
+	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram,
+	.async_read = NULL,
+	.async_write = NULL
 };
