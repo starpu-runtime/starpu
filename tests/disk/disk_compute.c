@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 	for (j = 0; j < NX; ++j)
 		if (A[j] != C[j])
 		{
-//			printf("Fail A %d != C %d \n", A[j], C[j]);
+			printf("Fail A %d != C %d \n", A[j], C[j]);
 			try = 0;
 		}
 

@@ -162,7 +162,7 @@ _starpu_disk_write(unsigned src_node, unsigned dst_node, void *obj, void *buf, o
 		channel->type = STARPU_DISK_RAM;
 
                 _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-		return disk_register_list[pos]->functions->async_write(disk_register_list[pos]->base, obj, buf, offset, size, async_channel);
+		values = disk_register_list[pos]->functions->async_write(disk_register_list[pos]->base, obj, buf, offset, size, async_channel);
         	_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
         }
         /* asynchronous request failed or synchronous request is asked */
@@ -204,6 +204,12 @@ void starpu_disk_wait_request(struct _starpu_async_channel *async_channel)
 {
 	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
 	disk_register_list[position]->functions->wait_request((void *) async_channel);
+}
+
+int starpu_disk_test_request(struct _starpu_async_channel *async_channel)
+{
+	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
+	return disk_register_list[position]->functions->test_request((void *) async_channel);
 }
 
 static void 

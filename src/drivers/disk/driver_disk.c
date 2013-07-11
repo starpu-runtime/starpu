@@ -22,8 +22,8 @@ int _starpu_disk_copy_src_to_disk(void * src, unsigned src_node, void * dst, siz
 {
 	STARPU_ASSERT(starpu_node_get_kind(src_node) == STARPU_CPU_RAM);
 	
-	_starpu_disk_write(src_node, dst_node, dst, src, dst_offset, size, async_channel);
-	return 0;
+	return _starpu_disk_write(src_node, dst_node, dst, src, dst_offset, size, async_channel);
+	
 }
 
 
@@ -31,8 +31,7 @@ int _starpu_disk_copy_disk_to_src(void * src, size_t src_offset, unsigned src_no
 {
 	STARPU_ASSERT(starpu_node_get_kind(dst_node) == STARPU_CPU_RAM);
 
-	_starpu_disk_read(src_node, dst_node, src, dst, src_offset, size, async_channel);
-	return 0;
+	return _starpu_disk_read(src_node, dst_node, src, dst, src_offset, size, async_channel);
 }
 
 

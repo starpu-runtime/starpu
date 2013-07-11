@@ -34,8 +34,10 @@ int _starpu_disk_write(unsigned src_node, unsigned dst_node, void *obj, void *bu
 
 int _starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size, void * async_channel);
 
-
+/* force the request to compute */
 void starpu_disk_wait_request(struct _starpu_async_channel *async_channel);
+/* return 1 if the request is finished, 0 if not finished */
+int starpu_disk_test_request(struct _starpu_async_channel *async_channel);
 /* interface to compare memory disk */
 
 int _starpu_is_same_kind_disk(unsigned node1, unsigned node2);

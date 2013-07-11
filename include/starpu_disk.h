@@ -34,6 +34,7 @@ struct starpu_disk_ops {
 	 int    (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size, void * async_channel);
 	 int    (*bandwidth)    (unsigned node);
 	 void   (*wait_request) (void * async_channel);
+	 int    (*test_request) (void * async_channel);
 };
 
 

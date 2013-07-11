@@ -399,20 +399,21 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_DISK_RAM):
 		if(copy_methods->any_to_any)
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
+
 		else
 			STARPU_ABORT();
 		break;
 		
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_CPU_RAM):
-		if(copy_methods->any_to_any)
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
+		if(copy_methods->any_to_any) 
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 		else
 			STARPU_ABORT();
 		break;
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_DISK_RAM):	
-		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 		break;
 		
 	default:
@@ -710,6 +711,9 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 		success = _starpu_mic_request_is_complete(&(async_channel->event.mic_event));
 		break;
 #endif
+	case STARPU_DISK_RAM:
+		success = starpu_disk_test_request(async_channel);
+		break;
 	case STARPU_CPU_RAM:
 	default:
 		STARPU_ABORT();

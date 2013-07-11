@@ -20,6 +20,8 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <aio.h>
+#include <errno.h>
+#include <time.h>
 
 #include <starpu.h>
 #include <core/disk.h>
@@ -369,9 +371,40 @@ starpu_stdio_wait_request(void * async_channel)
 	const struct aiocb * list[1];
 	list[0] = aiocb;
 	int values = -1;
-	while(values < 0)
+	int error_disk = EAGAIN;
+	while(values < 0 || error_disk == EAGAIN)
+	{
 		/* Wait the answer of the request TIMESTAMP IS NULL */
 		values = aio_suspend(list, 1, NULL);
+		error_disk = errno;
+	}
+}
+
+static int
+starpu_stdio_test_request(void * async_channel)
+{
+	struct timespec time_wait_request;
+	time_wait_request.tv_sec = 0;
+	time_wait_request.tv_nsec = 0;
+
+        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
+        const struct aiocb * aiocb = &channel->event.disk_event._starpu_aiocb_disk;
+        const struct aiocb * list[1];
+        list[0] = aiocb;
+        int values = -1;
+        int error_disk = EAGAIN;
+        
+	/* Wait the answer of the request */
+        values = aio_suspend(list, 1, &time_wait_request);
+        error_disk = errno;
+	/* request is finished */
+	if (values == 0)
+		return 1;
+	/* values == -1 */
+	if (error_disk == EAGAIN)
+		return 0;
+	/* an error occured */
+	STARPU_ABORT();	
 }
 
 struct starpu_disk_ops starpu_disk_stdio_ops = {
@@ -387,5 +420,6 @@ struct starpu_disk_ops starpu_disk_stdio_ops = {
 	.unplug = starpu_stdio_unplug,
 	.copy = NULL,
 	.bandwidth = get_stdio_bandwidth_between_disk_and_main_ram,
-	.wait_request = starpu_stdio_wait_request
+	.wait_request = starpu_stdio_wait_request,
+	.test_request = starpu_stdio_test_request
 };
