@@ -262,10 +262,18 @@ of use can be seen in \ref PerformanceModelExample.
 
 \fn double starpu_get_bandwidth_RAM_CUDA(unsigned cudadev)
 \ingroup API_Performance_Model
-Used to compute the velocity of resources
+Used to compute the execution time of tasks
 
 \fn double starpu_get_latency_RAM_CUDA(unsigned cudadev)
 \ingroup API_Performance_Model
-Used to compute the velocity of resources
+Used to compute the execution time of tasks
+
+\fn double starpu_get_bandwidth_CUDA_RAM(unsigned cudadev)
+\ingroup API_Performance_Mode
+Used to compute the execution time of tasks
+
+\fn double starpu_get_latency_CUDA_RAM(unsigned cudadev)
+\ingroup API_Performance_Model
+Used to compute the execution time of tasks
 
 */

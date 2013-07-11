@@ -237,9 +237,18 @@ int _starpu_submit_job(struct _starpu_job *j)
 	   && sched_ctx->perf_counters != NULL)
 	{
 		_starpu_compute_buffers_footprint(j->task->cl->model, STARPU_CPU_DEFAULT, 0, j);
-		sched_ctx->perf_counters->notify_submitted_job(j->task, j->footprint);
+		int i;
+		size_t data_size = 0;
+		for(i = 0; i < STARPU_NMAXBUFS; i++)
+		{
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+			if (handle != NULL)
+				data_size += _starpu_data_get_size(handle);
+		}
+
+		sched_ctx->perf_counters->notify_submitted_job(j->task, j->footprint, data_size);
 	}
-#endif
+#endif//STARPU_USE_SC_HYPERVISOR
 
 	/* We retain handle reference count */
 	if (task->cl)

@@ -41,13 +41,13 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		int ncuda = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
 		if(ncuda != 0)
 		{
-			v[i][0] = sc_hypervisor_get_velocity(sc_w, STARPU_CUDA_WORKER);
-			v[i][1] = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+			v[i][0] = sc_hypervisor_get_speed(sc_w, STARPU_CUDA_WORKER);
+			v[i][1] = sc_hypervisor_get_speed(sc_w, STARPU_CPU_WORKER);
 		}
 		else
-			v[i][0] = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+			v[i][0] = sc_hypervisor_get_speed(sc_w, STARPU_CPU_WORKER);
 #else
-		v[i][0] = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+		v[i][0] = sc_hypervisor_get_speed(sc_w, STARPU_CPU_WORKER);
 #endif // STARPU_USE_CUDA
 		
 		flops[i] = sc_w->remaining_flops < 0.0 ? 0.0 : sc_w->remaining_flops/1000000000; //sc_w->total_flops/1000000000; /* in gflops*/
@@ -83,7 +83,7 @@ double sc_hypervisor_lp_get_tmax(int nw, int *workers)
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	double res[nsched_ctxs][ntypes_of_workers];
-	return sc_hypervisor_lp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, res, total_nw) * 1000;
+	return sc_hypervisor_lp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, res, total_nw) * 1000.0;
 }
 
 void sc_hypervisor_lp_round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns][nw])
@@ -299,9 +299,8 @@ void _lp_find_workers_to_remove(int nw, int tmp_nw_move[nw], int tmp_workers_mov
 	}
 }
 
-void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw])
+void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *sched_ctxs)
 {
-	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int s, s2, w;
 	for(s = 0; s < ns; s++)
 	{
@@ -490,7 +489,7 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 	}
 	
 	if(!do_size)
-		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
+		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers, sched_ctxs_input);
 	else
 	{
 		int *current_sched_ctxs = sched_ctxs_input == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs_input;
@@ -507,7 +506,7 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 			}
 		}
 		if(has_workers)
-			sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
+			sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers, current_sched_ctxs);
 		else
 			sc_hypervisor_lp_distribute_resources_in_ctxs(current_sched_ctxs, ns, 2, nworkers_rounded, nworkers, workers_input, nw);
 	}

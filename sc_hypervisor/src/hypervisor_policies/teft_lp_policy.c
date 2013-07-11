@@ -53,6 +53,7 @@ static double _compute_workers_distrib(int ns, int nw, double final_w_in_s[ns][n
 	double tasks[nw][nt];
 	double times[nw][nt];
 	
+	/* times in ms */
 	sc_hypervisor_get_tasks_times(nw, nt, times, workers, size_ctxs, task_pools);
 
 	double res = 0.0;
@@ -101,7 +102,8 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 
 	/* smallest possible tmax, difficult to obtain as we
 	   compute the nr of flops and not the tasks */
-	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, workers);
+        /*lp computes it in s but it's converted to ms just before return */
+	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, workers); 
 	double smallest_tmax = possible_tmax / 3;
 	double tmax = possible_tmax * ns;
 	double tmin = smallest_tmax;
@@ -149,21 +151,24 @@ static void size_if_required()
 	}
 }
 
-static void teft_lp_handle_submitted_job(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint)
+static void teft_lp_handle_submitted_job(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, size_t data_size)
 {
 	/* count the tasks of the same type */
 	starpu_pthread_mutex_lock(&mutex);
-	sc_hypervisor_policy_add_task_to_pool(cl, sched_ctx, footprint, &task_pools);
+	sc_hypervisor_policy_add_task_to_pool(cl, sched_ctx, footprint, &task_pools, data_size);
 	starpu_pthread_mutex_unlock(&mutex);
 
 	size_if_required();
 }
 
-static void _try_resizing(void)
+static void _try_resizing(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
 	starpu_trace_user_event(2);
-	int ns = sc_hypervisor_get_nsched_ctxs();
-	int nw = starpu_worker_get_count(); /* Number of different workers */
+	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
+	int nw = workers == NULL ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
+
+	sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
+
 	int nt = 0; /* Number of different kinds of tasks */
 	
 //			starpu_pthread_mutex_lock(&mutex);
@@ -195,19 +200,21 @@ static void _try_resizing(void)
 	specific_data.tmp_task_pools = tmp_task_pools;
 	specific_data.size_ctxs = 0;
 
-			/* smallest possible tmax, difficult to obtain as we
-			   compute the nr of flops and not the tasks */
+	/* smallest possible tmax, difficult to obtain as we
+	   compute the nr of flops and not the tasks */
+        /*lp computes it in s but it's converted to ms just before return */
 	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, NULL);
-	double smallest_tmax = possible_tmax / 3;
+	double smallest_tmax = 0.0;//possible_tmax / 3;
 	double tmax = possible_tmax * ns;
 	double tmin = smallest_tmax;
+
 	unsigned found_sol = sc_hypervisor_lp_execute_dichotomy(ns, nw, w_in_s, 1, (void*)&specific_data, 
 								tmin, tmax, smallest_tmax, _compute_workers_distrib);
 //			starpu_pthread_mutex_unlock(&mutex);
 	
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
-		sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, NULL, NULL, 0);
+		sc_hypervisor_lp_place_resources_in_ctx(ns, nw, w_in_s, sched_ctxs, workers, 0);
 	
 	struct sc_hypervisor_policy_task_pool *next = NULL;
 	struct sc_hypervisor_policy_task_pool *tmp_tp = tmp_task_pools;
@@ -222,6 +229,7 @@ static void _try_resizing(void)
 		free(tasks_per_worker[i]);
 	free(tasks_per_worker);
 }
+
 static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
@@ -236,12 +244,12 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 		}
 
 		unsigned criteria = sc_hypervisor_get_resize_criteria();
-		if(criteria != SC_NOTHING && criteria == SC_VELOCITY)
+		if(criteria != SC_NOTHING && criteria == SC_SPEED)
 		{
 			
-			if(sc_hypervisor_check_velocity_gap_btw_ctxs())
+			if(sc_hypervisor_check_speed_gap_btw_ctxs())
 			{
-				_try_resizing();
+				_try_resizing(NULL, -1, NULL, -1);
 			}
 		}
 
@@ -274,7 +282,7 @@ static int teft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 			
 			if(sc_hypervisor_check_idle(sched_ctx, worker))
 			{
-				_try_resizing();
+				_try_resizing(NULL, -1, NULL, -1);
 //				sc_hypervisor_move_workers(sched_ctx, 3 - sched_ctx, &worker, 1, 1);
 			}
 		}
@@ -288,8 +296,33 @@ static void teft_lp_size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, i
 	sc_hypervisor_save_size_req(sched_ctxs, nsched_ctxs, workers, nworkers);
 }
 
+static void teft_lp_resize_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
+{
+	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
+	if(ret != EBUSY)
+	{
+		struct sc_hypervisor_wrapper* sc_w  = NULL;
+		int s = 0;
+		for(s = 0; s < nsched_ctxs; s++)
+		{
+			 sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
+			
+			if((sc_w->submitted_flops + (0.1*sc_w->total_flops)) < sc_w->total_flops)
+			{
+				starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+				return;
+			}
+		}
+
+
+		_try_resizing(sched_ctxs, nsched_ctxs, workers, nworkers);
+		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+	}
+}
+
 struct sc_hypervisor_policy teft_lp_policy = {
 	.size_ctxs = teft_lp_size_ctxs,
+	.resize_ctxs = teft_lp_resize_ctxs,
 	.handle_poped_task = teft_lp_handle_poped_task,
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = teft_lp_handle_idle_cycle,

@@ -126,7 +126,7 @@ static void display_sched_help_message(void)
 	 }
 }
 
-static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_config *config, const char *required_policy)
+struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_config *config, const char *required_policy)
 {
 	struct starpu_sched_policy *selected_policy = NULL;
 	struct starpu_conf *user_conf = config->conf;
@@ -155,7 +155,7 @@ static struct starpu_sched_policy *select_sched_policy(struct _starpu_machine_co
 	return &_starpu_sched_eager_policy;
 }
 
-void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _starpu_sched_ctx *sched_ctx, const char *required_policy)
+void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _starpu_sched_ctx *sched_ctx, struct starpu_sched_policy *selected_policy)
 {
 	/* Perhaps we have to display some help */
 	display_sched_help_message();
@@ -167,9 +167,6 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _st
 
 	/* Set calibrate flag */
 	_starpu_set_calibrate_flag(config->conf->calibrate);
-
-	struct starpu_sched_policy *selected_policy;
-	selected_policy = select_sched_policy(config, required_policy);
 
 	load_sched_policy(selected_policy, sched_ctx);
 
@@ -295,7 +292,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx)
 {
-	int worker = -1, nworkers = 0;
+	unsigned worker = 0, nworkers = 0;
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 
 	struct starpu_sched_ctx_iterator it;

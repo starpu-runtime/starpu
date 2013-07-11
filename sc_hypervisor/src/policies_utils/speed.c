@@ -19,7 +19,7 @@
 #include <math.h>
 
 
-double sc_hypervisor_get_ctx_velocity(struct sc_hypervisor_wrapper* sc_w)
+double sc_hypervisor_get_ctx_speed(struct sc_hypervisor_wrapper* sc_w)
 {
 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
         double elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
@@ -43,7 +43,7 @@ double sc_hypervisor_get_ctx_velocity(struct sc_hypervisor_wrapper* sc_w)
 	return -1.0;
 }
 
-double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w, unsigned worker)
+double sc_hypervisor_get_speed_per_worker(struct sc_hypervisor_wrapper *sc_w, unsigned worker)
 {
 	if(!starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx))
 		return -1.0;
@@ -74,8 +74,8 @@ double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w,
 /* /\* 			if(!worker_in_ctx) *\/ */
 /* /\* 			{ *\/ */
 
-/* /\* 				double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker); *\/ */
-/* /\* 				elapsed_time +=  (elapsed_data_used / transfer_velocity) / 1000000 ; *\/ */
+/* /\* 				double transfer_speed = starpu_get_bandwidth_RAM_CUDA(worker); *\/ */
+/* /\* 				elapsed_time +=  (elapsed_data_used / transfer_speed) / 1000000 ; *\/ */
 /* /\* 			} *\/ */
 /* 			double latency = starpu_get_latency_RAM_CUDA(worker); */
 /* //			printf("%d/%d: latency %lf elapsed_time before %lf ntasks %d\n", worker, sc_w->sched_ctx, latency, elapsed_time, elapsed_tasks); */
@@ -84,7 +84,6 @@ double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w,
 /* 		} */
 			
                 double vel  = (elapsed_flops/elapsed_time);/* in Gflops/s */
-		sc_w->ref_velocity[worker] = sc_w->ref_velocity[worker] > 1.0 ? (sc_w->ref_velocity[worker] + vel) / 2 : vel; 
                 return vel;
         }
 
@@ -94,8 +93,8 @@ double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w,
 }
 
 
-/* compute an average value of the cpu/cuda velocity */
-double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
+/* compute an average value of the cpu/cuda speed */
+double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
 {
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
         int worker;
@@ -104,7 +103,7 @@ double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* 
 	if(workers->init_iterator)
                 workers->init_iterator(workers, &it);
 
-	double velocity = 0.0;
+	double speed = 0.0;
 	unsigned nworkers = 0;
         while(workers->has_next(workers, &it))
 	{
@@ -112,57 +111,51 @@ double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* 
                 enum starpu_worker_archtype req_arch = starpu_worker_get_type(worker);
                 if(arch == req_arch)
                 {
-			double _vel = sc_hypervisor_get_velocity_per_worker(sc_w, worker);
-			if(_vel == -1.0) return -1.0;
-			velocity += _vel;
-			nworkers++;
-		}
-	}
-			
+			double _vel = sc_hypervisor_get_speed_per_worker(sc_w, worker);
+			if(_vel > 0.0)
+			{
+				speed += _vel;
+				nworkers++;
 
-        return (nworkers != 0 ? velocity / nworkers : -1.0);
+			}
+		}
+	}			
+
+	speed = ((nworkers != 0 && speed > 0.1) ? speed / nworkers : -1.0);
+	if(speed != -1.0)
+	{
+		if(arch == STARPU_CUDA_WORKER)
+			sc_w->ref_speed[0] = sc_w->ref_speed[0] > 1.0 ? (sc_w->ref_speed[0] + speed) / 2 : speed; 
+		else
+			sc_w->ref_speed[1] = sc_w->ref_speed[1] > 1.0 ? (sc_w->ref_speed[1] + speed) / 2 : speed; 
+	}
+	return speed;
 }
 
-/* compute an average value of the cpu/cuda old velocity */
-double sc_hypervisor_get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
+/* compute an average value of the cpu/cuda old speed */
+double sc_hypervisor_get_ref_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
 {
-	double ref_velocity = 0.0;
-	unsigned nw = 0;
+	if(arch == STARPU_CUDA_WORKER && sc_w->ref_speed[0] > 0.0)
+		return sc_w->ref_speed[0];
+	else
+		if(arch == STARPU_CPU_WORKER && sc_w->ref_speed[1] > 0.0)
+			return sc_w->ref_speed[1];
 
-	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
-	int worker;
-
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-
-	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
-                enum starpu_worker_archtype req_arch = starpu_worker_get_type(worker);
-                if(arch == req_arch)
-                {
-			if(sc_w->ref_velocity[worker] < 1.0) return -1.0;
-			ref_velocity += sc_w->ref_velocity[worker];
-			nw++;
-		}
-	}
-	
-	return (nw != 0 ? ref_velocity / nw : -1.0);
+	return -1.0;
 }
 
-double sc_hypervisor_get_velocity(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch)
+double sc_hypervisor_get_speed(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch)
 {
 
-	double velocity = sc_hypervisor_get_velocity_per_worker_type(sc_w, arch);
-	if(velocity == -1.0)
+	double speed = sc_hypervisor_get_speed_per_worker_type(sc_w, arch);
+	if(speed == -1.0)
 	{
-		velocity = sc_hypervisor_get_ref_velocity_per_worker_type(sc_w, arch);
+		speed = sc_hypervisor_get_ref_speed_per_worker_type(sc_w, arch);
 	}
-	if(velocity == -1.0)
+	if(speed == -1.0)
 	{
-		velocity = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
+		speed = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
 	}
        
-	return velocity;
+	return speed;
 }

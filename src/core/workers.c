@@ -1002,7 +1002,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_initialize_current_task_key();
 
 	if (!is_a_sink)
-		_starpu_create_sched_ctx(config.conf->sched_policy_name, NULL, -1, 1, "init");
+	{
+		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
+		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init");
+
+	}
 
 	_starpu_initialize_registered_performance_models();
 
