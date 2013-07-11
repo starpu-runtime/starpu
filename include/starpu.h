@@ -146,8 +146,6 @@ void starpu_display_stats();
 
 void starpu_get_version(int *major, int *minor, int *release);
 
-int starpu_worker_get_mp_nodeid(int id);
-
 #ifdef __cplusplus
 }
 #endif
