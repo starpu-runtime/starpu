@@ -770,42 +770,43 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 			  req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr,
 			  _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype, req->internal_req);
 
-	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
+	if (req->internal_req)
 	{
-		if (req->user_datatype == 1)
+		struct _starpu_mpi_copy_handle *chandle = find_chandle(starpu_data_get_tag(req->data_handle));
+		_STARPU_MPI_DEBUG(3, "Handling deleting of copy_handle structure from the hashmap..\n");
+		delete_chandle(chandle);
+		free(chandle);
+	}
+	else
+	{
+		if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
 		{
-			if (req->request_type == SEND_REQ)
+			if (req->user_datatype == 1)
 			{
-				// We need to make sure the communication for sending the size
-				// has completed, as MPI can re-order messages, let's call
-				// MPI_Wait to make sure data have been sent
-				ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
-				STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %d", ret);
-
-			}
-			if (req->request_type == RECV_REQ)
-				// req->ptr is freed by starpu_data_unpack
-				starpu_data_unpack(req->data_handle, req->ptr, req->count);
-			else
-				free(req->ptr);
-		}
-		else
-		{
-			struct _starpu_mpi_copy_handle *chandle = find_chandle(starpu_data_get_tag(req->data_handle));
-			if (chandle && (req->data_handle != chandle->handle))
-			{
-				_STARPU_MPI_DEBUG(3, "Handling deleting of copy_handle structure from the hashmap..\n");
-				delete_chandle(chandle);
-				free(chandle);
+				if (req->request_type == SEND_REQ)
+				{
+					// We need to make sure the communication for sending the size
+					// has completed, as MPI can re-order messages, let's call
+					// MPI_Wait to make sure data have been sent
+					ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
+					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %d", ret);
+					free(req->ptr);
+				}
+				if (req->request_type == RECV_REQ)
+				{
+					// req->ptr is freed by starpu_data_unpack
+					starpu_data_unpack(req->data_handle, req->ptr, req->count);
+				}
 			}
 			else
 			{
-				_STARPU_MPI_DEBUG(3, "NOT deleting chandle %p from hashmap (tag %d %d)\n", chandle, req->mpi_tag, starpu_data_get_tag(req->data_handle));
 				_starpu_mpi_handle_free_datatype(req->data_handle, &req->datatype);
 			}
 		}
-		starpu_data_release(req->data_handle);
 	}
+
+	if (req->data_handle)
+		starpu_data_release(req->data_handle);
 
 	if (req->envelope)
 	{
