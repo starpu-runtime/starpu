@@ -393,9 +393,11 @@ struct starpu_sched_node * starpu_sched_node_create(void)
 	node->available = available;
 	node->add_child = starpu_sched_node_add_child;
 	node->remove_child = starpu_sched_node_remove_child;
+	node->notify_change_workers = take_node_and_does_nothing;
 	node->pop_task = pop_task_node;
 	node->estimated_load = estimated_load;
 	node->estimated_end = _starpu_sched_node_estimated_end_min;
+	node->deinit_data = take_node_and_does_nothing;
 	return node;
 }
 void starpu_sched_node_destroy(struct starpu_sched_node *node)
@@ -411,6 +413,7 @@ void starpu_sched_node_destroy(struct starpu_sched_node *node)
 				child->fathers[i] = NULL;
 
 	}
+	node->deinit_data(node);
 	free(node->childs);
 	starpu_bitmap_destroy(node->workers);
 	starpu_bitmap_destroy(node->workers_in_ctx);
@@ -449,6 +452,7 @@ void _starpu_sched_node_update_workers(struct starpu_sched_node * node)
 	{
 		_starpu_sched_node_update_workers(node->childs[i]);
 		starpu_bitmap_or(node->workers, node->childs[i]->workers);
+		node->notify_change_workers(node);
 	}
 }
 
@@ -471,6 +475,7 @@ void _starpu_sched_node_update_workers_in_ctx(struct starpu_sched_node * node, u
 			}
 	}
 	set_is_homogeneous(node);
+	node->notify_change_workers(node);
 }
 
 void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree * t)

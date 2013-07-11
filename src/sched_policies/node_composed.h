@@ -1,6 +1,6 @@
 #ifndef __NODE_COMPOSED_H__
 #define __NODE_COMPOSED_H__
-#include <starpu_node_sched.h>
+#include <starpu_sched_node.h>
 
 struct _starpu_composed_sched_node_recipe;
 

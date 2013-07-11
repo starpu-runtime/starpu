@@ -46,9 +46,7 @@ struct composed_node
 {
 	struct starpu_sched_node *top,*bottom;
 };
-struct composed_node create_composed_node(struct starpu_bitmap * workers,
-					  struct starpu_bitmap * workers_in_ctx,
-					  struct _starpu_composed_sched_node_recipe * recipe
+struct composed_node create_composed_node(struct _starpu_composed_sched_node_recipe * recipe
 #ifdef STARPU_HAVE_HWLOC
 					  ,hwloc_obj_t obj
 #endif
@@ -82,10 +80,6 @@ struct composed_node create_composed_node(struct starpu_bitmap * workers,
 		int j;
 		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
 			starpu_sched_node_set_father(node, c.bottom,(unsigned)j);
-		starpu_bitmap_destroy(node->workers);
-		node->workers = workers;
-		starpu_bitmap_destroy(node->workers_in_ctx);
-		node->workers = workers_in_ctx;
 		c.bottom = node;
 	}
 	STARPU_ASSERT(!starpu_sched_node_is_worker(c.bottom));
@@ -126,12 +120,34 @@ double composed_node_estimated_load(struct starpu_sched_node * node)
 static void composed_node_add_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 {
 	struct composed_node * c = node->data;
+	starpu_sched_node_add_child(node, child);
 	c->bottom->add_child(c->bottom, child);
 }
 static void composed_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 {
 	struct composed_node * c = node->data;
 	c->bottom->remove_child(c->bottom, child);
+}
+
+static void composed_node_notify_change_workers(struct starpu_sched_node * node)
+{
+	struct composed_node * c = node->data;
+	struct starpu_bitmap * workers = node->workers;
+	struct starpu_bitmap * workers_in_ctx = node->workers_in_ctx;
+	int is_homogeneous = node->is_homogeneous;
+	struct starpu_sched_node * n;
+	for(n = c->top; ;n = n->childs[0])
+	{
+		starpu_bitmap_unset_all(n->workers);
+		starpu_bitmap_or(n->workers, workers);
+	       
+		starpu_bitmap_unset_all(n->workers_in_ctx);
+		starpu_bitmap_or(n->workers_in_ctx, workers_in_ctx);
+		
+		n->is_homogeneous = is_homogeneous;
+		if(n == c->bottom)
+			break;
+	}
 }
 
 void composed_node_deinit_data(struct starpu_sched_node * _node)
@@ -160,9 +176,9 @@ struct starpu_sched_node * starpu_sched_node_composed_node_create(struct _starpu
 	struct starpu_sched_node * node = starpu_sched_node_create();
 
 	struct composed_node * c = malloc(sizeof(struct composed_node));
-	*c = create_composed_node(node->workers, node->workers_in_ctx, recipe
+	*c = create_composed_node(recipe
 #ifdef STARPU_HAVE_HWLOC
-				   ,node->obj
+				  ,node->obj
 #endif 
 );
 	c->bottom->nchilds = node->nchilds;
@@ -175,5 +191,6 @@ struct starpu_sched_node * starpu_sched_node_composed_node_create(struct _starpu
 	node->estimated_load = composed_node_estimated_load;
 	node->add_child = composed_node_add_child;
 	node->remove_child = composed_node_remove_child;
+	node->notify_change_workers = composed_node_notify_change_workers;
 	return node;
 }

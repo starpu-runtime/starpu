@@ -9,7 +9,13 @@ struct _starpu_fifo_data
 	starpu_pthread_mutex_t mutex;
 };
 
-
+void _fifo_node_deinit_data(struct starpu_sched_node * node)
+{
+	struct _starpu_fifo_data * f = node->data;
+	_starpu_prio_deque_destroy(&f->fifo);
+	STARPU_PTHREAD_MUTEX_LOCK(&f->mutex);
+	free(f);
+}
 
 static double fifo_estimated_end(struct starpu_sched_node * node)
 {
@@ -140,5 +146,6 @@ struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRI
 	node->estimated_load = estimated_load;
 	node->push_task = push_task;
 	node->pop_task = pop_task;
+	node->deinit_data = _fifo_node_deinit_data;
 	return node;
 }

@@ -234,7 +234,12 @@ void _ws_remove_child(struct starpu_sched_node * node, struct starpu_sched_node 
 	free(tmp_fifo);
 }
 
-struct starpu_sched_node * starpu_sched_node_work_stealing_create(void)
+void _work_stealing_node_deinit_data(struct starpu_sched_node * node)
+{
+	free(node->data);
+}
+
+struct starpu_sched_node * starpu_sched_node_work_stealing_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
 	struct _starpu_work_stealing_data * wsd = malloc(sizeof(*wsd));
@@ -243,6 +248,7 @@ struct starpu_sched_node * starpu_sched_node_work_stealing_create(void)
 	node->push_task = push_task;
 	node->add_child = _ws_add_child;
 	node->remove_child = _ws_remove_child;
+	node->deinit_data = _work_stealing_node_deinit_data;
 	node->data = wsd;
 	return  node;
 }
@@ -259,7 +265,7 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
 	struct starpu_sched_node * ws;
- 	t->root = ws = starpu_sched_node_work_stealing_create();
+ 	t->root = ws = starpu_sched_node_work_stealing_create(NULL);
 	t->workers = starpu_bitmap_create();
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count(); i++)

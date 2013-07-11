@@ -170,6 +170,33 @@ void _heft_remove_child(struct starpu_sched_node * node, struct starpu_sched_nod
 	starpu_sched_node_remove_child(data->calibrating_node, child);
 }
 
+static void _heft_notify_change_in_workers(struct starpu_sched_node * node)
+{
+	struct _starpu_heft_data * data = node->data;
+	starpu_bitmap_unset_all(data->no_perf_model_node->workers_in_ctx);
+	starpu_bitmap_unset_all(data->no_perf_model_node->workers);
+
+	starpu_bitmap_or(data->no_perf_model_node->workers_in_ctx, node->workers_in_ctx);
+	starpu_bitmap_or(data->no_perf_model_node->workers, node->workers);
+
+	data->no_perf_model_node->is_homogeneous = node->is_homogeneous;
+
+
+	starpu_bitmap_unset_all(data->calibrating_node->workers_in_ctx);
+	starpu_bitmap_unset_all(data->calibrating_node->workers);
+
+	starpu_bitmap_or(data->calibrating_node->workers_in_ctx, node->workers_in_ctx);
+	starpu_bitmap_or(data->calibrating_node->workers, node->workers);
+
+	data->calibrating_node->is_homogeneous = node->is_homogeneous;
+}
+void _heft_node_deinit_data(struct starpu_sched_node * node)
+{
+	struct _starpu_heft_data * d = node->data;
+	starpu_sched_node_destroy(d->no_perf_model_node);
+	starpu_sched_node_destroy(d->calibrating_node);
+	free(d);
+}
 struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data * params)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
@@ -181,21 +208,15 @@ struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data
 	data->idle_power = params->idle_power;
 
 	data->no_perf_model_node = params->no_perf_model_node_create(params->arg_no_perf_model);
-	starpu_bitmap_destroy(data->no_perf_model_node->workers);
-	starpu_bitmap_destroy(data->no_perf_model_node->workers_in_ctx);
-	data->no_perf_model_node->workers = node->workers;
-	data->no_perf_model_node->workers_in_ctx = node->workers_in_ctx;
 
 	data->calibrating_node = params->calibrating_node_create(params->arg_calibrating_node);
-	starpu_bitmap_destroy(data->calibrating_node->workers);
-	starpu_bitmap_destroy(data->calibrating_node->workers_in_ctx);
-	data->calibrating_node->workers = node->workers;
-	data->calibrating_node->workers_in_ctx = node->workers_in_ctx;
 
 	node->push_task = push_task;
 	node->add_child = _heft_add_child;
 	node->remove_child = _heft_remove_child;
 	node->data = data;
+	node->deinit_data = _heft_node_deinit_data;
+	node->notify_change_workers = _heft_notify_change_in_workers;
 
 	return node;
 }

@@ -1,5 +1,6 @@
 #include "scheduler_maker.h"
-#include <starpu_node_sched.h>
+#include "sched_node.h"
+#include <starpu_sched_node.h>
 #include "node_composed.h"
 #include <common/list.h>
 #include <stdarg.h>
@@ -74,7 +75,7 @@ static struct sched_node_list helper_make_scheduler(hwloc_obj_t obj, struct star
 		return l;
 	for(i = 0; i < l.size; i++)
 	{
-		starpu_sched_node_add_child(node, l.arr[i]);
+		node->add_child(node, l.arr[i]);
 		starpu_sched_node_set_father(l.arr[i],node,sched_ctx_id);
 	}
 	destroy_list(&l);
@@ -152,7 +153,7 @@ static struct starpu_sched_node * where_should_we_plug_this(struct starpu_sched_
 	{	
 		struct starpu_sched_node * node = starpu_sched_node_composed_node_create(specs.hwloc_node_composed_sched_node);
 		node->obj = obj;
-		starpu_sched_node_add_child(father, node);
+		father->add_child(father, node);
 		starpu_sched_node_set_father(node, father, sched_ctx_id);
 		return node;
 	}
@@ -175,13 +176,13 @@ static void set_worker_leaf(struct starpu_sched_node * root, struct starpu_sched
 #endif
 		tmp->obj = worker_node->obj;
 		starpu_sched_node_set_father(tmp, node, sched_ctx_id);
-		starpu_sched_node_add_child(node, tmp);
+		node->add_child(node, tmp);
 		node = tmp;
 		
 	}
 	_starpu_destroy_composed_sched_node_recipe(recipe);
 	starpu_sched_node_set_father(worker_node, node, sched_ctx_id);
-	starpu_sched_node_add_child(node, worker_node);
+	node->add_child(node, worker_node);
 }
 
 #ifdef STARPU_DEVEL
@@ -199,7 +200,7 @@ static const char * name_sched_node(struct starpu_sched_node * node)
 		return "random node";
 	if(starpu_sched_node_is_worker(node))
 	{
-		struct _starpu_worker * w = starpu_sched_node_worker_get_worker(node);
+		struct _starpu_worker * w = _starpu_sched_node_worker_get_worker(node);
 #define SIZE 256
 		static char output[SIZE];
 		snprintf(output, SIZE,"node worker %d %s",w->workerid,w->name);
@@ -243,7 +244,7 @@ struct starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct 
 	}
 
 
-	starpu_sched_tree_update_workers(t);
+	starpu_sched_tree_update_workers(tree);
 #ifdef STARPU_DEVEL
 	fprintf(stderr, "scheduler created :\n");
 	helper_display_scheduler(stderr, 0, tree->root);

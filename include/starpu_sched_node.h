@@ -83,6 +83,10 @@ struct starpu_sched_node
 	void (*add_child)(struct starpu_sched_node * node, struct starpu_sched_node * child);
 	void (*remove_child)(struct starpu_sched_node * node, struct starpu_sched_node * child);
 
+	/* this function is called for each node when workers are added or removed from a context
+	 */
+	void (*notify_change_workers)(struct starpu_sched_node * node);
+
 	/* this function is called by starpu_sched_node_destroy just before freeing node
 	 */
 	void (*deinit_data)(struct starpu_sched_node * node);
@@ -137,7 +141,7 @@ struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRI
 int starpu_sched_node_is_fifo(struct starpu_sched_node * node);
 //struct starpu_task_list  starpu_sched_node_fifo_get_non_executable_tasks(struct starpu_sched_node * fifo_node);
 
-struct starpu_sched_node * starpu_sched_node_work_stealing_create(void);
+struct starpu_sched_node * starpu_sched_node_work_stealing_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node);
 
 struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED);
