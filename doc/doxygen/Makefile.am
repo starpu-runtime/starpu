@@ -103,8 +103,8 @@ chapters/version.sty: $(chapters)
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
         done | sort -r | head -1 > timestamp
 	if test -s timestamp ; then \
-		LC_ALL=C date --date=`cat timestamp` +"%d %B %Y" > timestamp_updated ;\
-		LC_ALL=C date --date=`cat timestamp` +"%B %Y" > timestamp_updated_month ;\
+		LC_ALL=C date --date=@`cat timestamp` +"%d %B %Y" > timestamp_updated ;\
+		LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month ;\
 	fi
 	if test -s timestamp_updated ; then \
 		echo "\newcommand{\STARPUUPDATED}{"`cat timestamp_updated`"}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
@@ -121,8 +121,8 @@ chapters/version.html: $(chapters)
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
         done | sort -r | head -1 > timestamp
 	if test -s timestamp ; then \
-		LC_ALL=C date --date=`cat timestamp` +"%d %B %Y" > timestamp_updated ;\
-		LC_ALL=C date --date=`cat timestamp` +"%B %Y" > timestamp_updated_month ;\
+		LC_ALL=C date --date=@`cat timestamp` +"%d %B %Y" > timestamp_updated ;\
+		LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month ;\
 	fi
 	echo "This manual documents the usage of StarPU version $(VERSION)." > $(top_srcdir)/doc/doxygen/chapters/version.html
 	if test -s timestamp_updated ; then \
