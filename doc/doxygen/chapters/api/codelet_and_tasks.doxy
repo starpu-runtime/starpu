@@ -137,7 +137,7 @@ initialize the whole structure to zero, either by using explicit
 memset, or the function starpu_codelet_init(), or by letting the
 compiler implicitly do it in e.g. static storage case.
 \ingroup API_Codelet_And_Tasks
-\var starpu_codelet::where.
+\var starpu_codelet::where
 Optional field to indicate which types of processing units are able to
 execute the codelet. The different values ::STARPU_CPU, ::STARPU_CUDA,
 ::STARPU_OPENCL can be combined to specify on which types of processing
