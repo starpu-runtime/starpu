@@ -7,13 +7,23 @@
 
 /*! \defgroup API_Out_Of_Core Out Of Core
 
-
-
 \struct starpu_disk_ops
 \ingroup API_Out_Of_Core
 This is a set of functions to manipulate datas on disk.
+\var starpu_disk_ops::alloc
+\var starpu_disk_ops::free
+\var starpu_disk_ops::open
+open an existing file
+\var starpu_disk_ops::close
+\var starpu_disk_ops::read
+~= pread
+\var starpu_disk_ops::write
+\var starpu_disk_ops::plug
+\var starpu_disk_ops::unplug
+\var starpu_disk_ops::copy
+\var starpu_disk_ops::bandwidth
 
-\fn int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, size_t size) 
+\fn int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, size_t size)
 \ingroup API_Out_Of_Core
 Register a disk memory node with a set of functions to manipulate datas. <br />
 SUCCESS: return the disk node. <br />
