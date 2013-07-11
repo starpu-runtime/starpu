@@ -133,6 +133,7 @@ static struct sc_hypervisor_policy *_select_hypervisor_policy(struct sc_hypervis
 /* initializez the performance counters that starpu will use to retrive hints for resizing */
 struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hypervisor_policy *hypervisor_policy)
 {
+	printf("****************$$$$$$$$$$$$$$$$$$$hereeeeeeeeeeeeeeeeeeeeeeeeeeeee\n");
 	hypervisor.min_tasks = 0;
 	hypervisor.nsched_ctxs = 0;
 	char* vel_gap = getenv("SC_HYPERVISOR_MAX_SPEED_GAP");
