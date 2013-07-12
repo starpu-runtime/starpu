@@ -56,7 +56,6 @@ The task is waiting for a task.
 \ingroup API_Codelet_And_Tasks
 The task is waiting for some data.
 
-
 \def STARPU_CPU
 \ingroup API_Codelet_And_Tasks
 This macro is used when setting the field starpu_codelet::where
@@ -110,25 +109,33 @@ this macro indicates the codelet will have several implementations.
 The use of this macro is deprecated. One should always only define the
 field starpu_codelet::opencl_funcs.
 
-\def starpu_cpu_func_t
+\typedef starpu_cpu_func_t
 \ingroup API_Codelet_And_Tasks
 CPU implementation of a codelet.
 
-\def starpu_cuda_func_t
+\typedef starpu_cuda_func_t
 \ingroup API_Codelet_And_Tasks
 CUDA implementation of a codelet.
 
-\def starpu_opencl_func_t
+\typedef starpu_opencl_func_t
 \ingroup API_Codelet_And_Tasks
 OpenCL implementation of a codelet.
 
-\def starpu_mic_func_t
+\typedef starpu_mic_func_t
 \ingroup API_Codelet_And_Tasks
 MIC implementation of a codelet.
 
-\def starpu_scc_func_t
+\typedef starpu_scc_func_t
 \ingroup API_Codelet_And_Tasks
 SCC implementation of a codelet.
+
+\typedef starpu_mic_kernel_t
+\ingroup API_Codelet_And_Tasks
+MIC kernel for a codelet
+
+\typedef *starpu_scc_kernel_t
+\ingroup API_Codelet_And_Tasks
+SCC kernel for a codelet
 
 \struct starpu_codelet
 The codelet structure describes a kernel that is possibly

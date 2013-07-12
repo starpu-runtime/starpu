@@ -96,7 +96,7 @@ enum starpu_data_interface_id
 	STARPU_VOID_INTERFACE_ID=6,
 	STARPU_MULTIFORMAT_INTERFACE_ID=7,
 	STARPU_COO_INTERFACE_ID=8,
-	STARPU_MAX_INTERFACE_ID=9 /* maximum number of data interfaces */
+	STARPU_MAX_INTERFACE_ID=9
 };
 
 struct starpu_data_interface_ops
