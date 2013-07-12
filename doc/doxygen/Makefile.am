@@ -93,7 +93,8 @@ chapters =	\
 	chapters/api/task_lists.doxy \
 	chapters/api/top.doxy \
 	chapters/api/versioning.doxy \
-	chapters/api/workers.doxy
+	chapters/api/workers.doxy \
+	chapters/api/threads.doxy
 
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	sed 's/#undef \(.*\)/#define \1 1/' $< > $@
