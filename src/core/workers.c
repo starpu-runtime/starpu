@@ -1238,6 +1238,7 @@ void starpu_shutdown(void)
 	_STARPU_DEBUG("Shutdown finished\n");
 }
 
+
 unsigned starpu_worker_get_count(void)
 {
 	return config.topology.nworkers;
