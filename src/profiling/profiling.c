@@ -66,6 +66,11 @@ int _starpu_profiling =
 #endif
 	;
 
+void starpu_profiling_init()
+{
+	_starpu_profiling_init();
+}
+
 int starpu_profiling_status_set(int status)
 {
 	ANNOTATE_HAPPENS_AFTER(&_starpu_profiling);

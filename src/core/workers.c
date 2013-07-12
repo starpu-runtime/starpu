@@ -1038,11 +1038,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	return 0;
 }
 
-void starpu_profiling_init()
-{
-	_starpu_profiling_init();
-}
-
 /*
  * Handle runtime termination
  */
