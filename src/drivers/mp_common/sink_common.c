@@ -52,7 +52,7 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 }
 
 void
-_starpu_sink_nbcores (const struct _starpu_mp_node *node)
+_starpu_sink_common_get_nb_cores (struct _starpu_mp_node *node)
 {
 	// Process packet received from `_starpu_src_common_sink_cores'.
      	_starpu_mp_common_send_command (node, STARPU_ANSWER_SINK_NBCORES,
@@ -167,69 +167,71 @@ void _starpu_sink_common_worker(void)
 
 	/* Create and initialize the node */
 	node = _starpu_mp_common_node_create(node_kind, -1);
-	
+
+	sleep(1);
+
 	while (!exit_starpu)
 	{
 		if(node->mp_recv_is_ready(node))
-		{	
+		{
+
 			command = _starpu_mp_common_recv_command(node, &arg, &arg_size);
 			switch(command)
 			{
-			case STARPU_EXIT:
-				exit_starpu = 1;
-				break;
-			case STARPU_EXECUTE:
-				node->execute(node, arg, arg_size);
-				break;
-			case STARPU_SINK_NBCORES:
-				node->nbcores (node);
-				break;
-			case STARPU_LOOKUP:
-				_starpu_sink_common_lookup(node, (char *) arg);
-				break;
+				case STARPU_EXIT:
+					exit_starpu = 1;
+					break;
+				case STARPU_EXECUTE:
+					node->execute(node, arg, arg_size);
+					break;
+				case STARPU_SINK_NBCORES:
+					_starpu_sink_common_get_nb_cores(node);
+					break;
+				case STARPU_LOOKUP:
+					_starpu_sink_common_lookup(node, (char *) arg);
+					break;
 
-			case STARPU_ALLOCATE:
-				node->allocate(node, arg, arg_size);
-				break;
+				case STARPU_ALLOCATE:
+					node->allocate(node, arg, arg_size);
+					break;
 
-			case STARPU_FREE:
-				node->free(node, arg, arg_size);
-				break;
+				case STARPU_FREE:
+					node->free(node, arg, arg_size);
+					break;
 
-			case STARPU_RECV_FROM_HOST:
-				_starpu_sink_common_copy_from_host(node, arg, arg_size);
-				break;
+				case STARPU_RECV_FROM_HOST:
+					_starpu_sink_common_copy_from_host(node, arg, arg_size);
+					break;
 
-			case STARPU_SEND_TO_HOST:
-				_starpu_sink_common_copy_to_host(node, arg, arg_size);
-				break;
+				case STARPU_SEND_TO_HOST:
+					_starpu_sink_common_copy_to_host(node, arg, arg_size);
+					break;
 
-			case STARPU_RECV_FROM_SINK:
-				_starpu_sink_common_copy_from_sink(node, arg, arg_size);
-				break;
+				case STARPU_RECV_FROM_SINK:
+					_starpu_sink_common_copy_from_sink(node, arg, arg_size);
+					break;
 
-			case STARPU_SEND_TO_SINK:
-				_starpu_sink_common_copy_to_sink(node, arg, arg_size);
-				break;
+				case STARPU_SEND_TO_SINK:
+					_starpu_sink_common_copy_to_sink(node, arg, arg_size);
+					break;
 
-			default:
-				printf("Oops, command %x unrecognized\n", command);
+				default:
+					printf("Oops, command %x unrecognized\n", command);
 			}
 		}
-
-		pthread_mutex_lock(&node->dead_queue_mutex);
-		if(!mp_task_list_empty(node->dead_queue))
+		pthread_mutex_lock(&node->message_queue_mutex);
+		if(!mp_message_list_empty(node->message_queue))
 		{
-			struct mp_task * task = mp_task_list_pop_back(node->dead_queue);
-			pthread_mutex_unlock(&node->dead_queue_mutex);
+			struct mp_message * message = mp_message_list_pop_back(node->message_queue);
+			pthread_mutex_unlock(&node->message_queue_mutex);
 			//_STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
-			_starpu_mp_common_send_command(node, STARPU_EXECUTION_COMPLETED,
-						       &(task->coreid), sizeof(task->coreid));
-			mp_task_delete(task);
+			_starpu_mp_common_send_command(node, message->type, 
+					&message->buffer, message->size);
+			mp_message_delete(message);
 		}
 		else
 		{
-			pthread_mutex_unlock(&node->dead_queue_mutex);
+			pthread_mutex_unlock(&node->message_queue_mutex);
 		}
 	}
 
@@ -240,13 +242,9 @@ void _starpu_sink_common_worker(void)
 }
 
 
-
-
 void* _starpu_sink_thread(void * thread_arg)
 {
-
 	struct mp_task **task = ((struct arg_sink_thread *)thread_arg)->task;
-	struct mp_task * task_tmp;
 	struct _starpu_mp_node *node = ((struct arg_sink_thread *)thread_arg)->node;
 	pthread_mutex_t * mutex = ((struct arg_sink_thread *)thread_arg)->mutex;
 	int coreid =((struct arg_sink_thread *)thread_arg)->coreid;
@@ -254,33 +252,62 @@ void* _starpu_sink_thread(void * thread_arg)
 	while(1)
 	{
 		pthread_mutex_lock(mutex);
-		if((*task) != NULL)
+		if((*task)->is_parallel_task)
 		{
-			task_tmp = (*task);
-			if(task_tmp->is_parallel_task)
+			STARPU_PTHREAD_BARRIER_WAIT(&(*task)->mp_barrier->before_work_barrier);
+			if((*task)->coreid == (*task)->combined_worker[0])
 			{
-				_STARPU_DEBUG("BARRIER WAIT\n");
-				STARPU_PTHREAD_BARRIER_WAIT(task_tmp->barrier);
-				_STARPU_DEBUG("BARRIER JUMP\n");
+				//init message to tell the sink that the execution has begun
+				struct mp_message * message = mp_message_new();
+				message->type = STARPU_PRE_EXECUTION;
+				*(int *) message->buffer = (*task)->combined_workerid;
+				message->size = sizeof((*task)->combined_workerid);
+
+				//append the message to the queue	
+				pthread_mutex_lock(&node->message_queue_mutex);
+				mp_message_list_push_front(node->message_queue,message);
+				pthread_mutex_unlock(&node->message_queue_mutex);
+
+				if((*task)->type == STARPU_FORKJOIN)
+					node->bind_thread(node, coreid, (*task)->combined_worker, (*task)->combined_worker_size);
 			}
-			if(task_tmp->type == STARPU_FORKJOIN && task_tmp->is_parallel_task)
-				node->bind_thread(node, coreid, task_tmp->combined_worker, task_tmp->combined_worker_size);
-
-			//execute the task
-			task_tmp->kernel(task_tmp->interfaces,task_tmp->cl_arg);
-
-
-			if(task_tmp->type == STARPU_FORKJOIN && task_tmp->is_parallel_task)
-				node->bind_thread(node, coreid, &coreid, 1);
-
-			(*task) = NULL;
-
-			//append the finished task to the dead queue
-			pthread_mutex_lock(&node->dead_queue_mutex);
-			mp_task_list_push_front(node->dead_queue,task_tmp);
-			pthread_mutex_unlock(&node->dead_queue_mutex);
-
 		}
+		if((*task)->type != STARPU_FORKJOIN || (*task)->coreid == (*task)->combined_worker[0])
+		{
+			//execute the task
+			(*task)->kernel((*task)->interfaces,(*task)->cl_arg);
+		}
+
+
+		if((*task)->is_parallel_task)
+		{
+			STARPU_PTHREAD_BARRIER_WAIT(&(*task)->mp_barrier->after_work_barrier);
+			if((*task)->coreid == (*task)->combined_worker[0])
+			{
+				//erase the barrier from the list
+				pthread_mutex_lock(&node->barrier_mutex);
+				mp_barrier_list_erase(node->barrier_list,(*task)->mp_barrier);
+				pthread_mutex_unlock(&node->barrier_mutex);
+		
+				if((*task)->type == STARPU_FORKJOIN)
+					node->bind_thread(node, coreid, &coreid, 1);
+
+			}
+		}
+		//init message to tell the sink that the execution is completed
+		struct mp_message * message = mp_message_new();
+		message->type = STARPU_EXECUTION_COMPLETED;
+		message->size = sizeof((*task)->coreid);
+		*(int*) message->buffer = (*task)->coreid;
+
+		free(*task);
+		(*task) = NULL;
+
+		//append the message to the queue
+		pthread_mutex_lock(&node->message_queue_mutex);
+		mp_message_list_push_front(node->message_queue,message);
+		pthread_mutex_unlock(&node->message_queue_mutex);
+
 	}
 	pthread_exit(NULL);
 }
@@ -294,7 +321,7 @@ static void _starpu_sink_common_execute_thread(struct _starpu_mp_node *node, str
 }
 
 /**/
-_starpu_pthread_barrier_t * _starpu_sink_common_get_barrier(struct _starpu_mp_node * node, int cb_workerid, int cb_workersize)
+struct mp_barrier * _starpu_sink_common_get_barrier(struct _starpu_mp_node * node, int cb_workerid, int cb_workersize)
 {
 	struct mp_barrier * b = NULL;
 	pthread_mutex_lock(&node->barrier_mutex);
@@ -304,19 +331,19 @@ _starpu_pthread_barrier_t * _starpu_sink_common_get_barrier(struct _starpu_mp_no
 				b != mp_barrier_list_end(node->barrier_list) && b->id != cb_workerid; 
 				b = mp_barrier_list_next(b));
 
-		if(b->id == cb_workerid)
+		if(b != NULL && b->id == cb_workerid)
 		{
 			pthread_mutex_unlock(&node->barrier_mutex);
-			return &b->barrier;
+			return b;
 		}
 	}
-       	b = mp_barrier_new();
+	b = mp_barrier_new();
 	b->id = cb_workerid;
-
-	STARPU_PTHREAD_BARRIER_INIT(&b->barrier,NULL,cb_workersize);
+	STARPU_PTHREAD_BARRIER_INIT(&b->before_work_barrier,NULL,cb_workersize);
+	STARPU_PTHREAD_BARRIER_INIT(&b->after_work_barrier,NULL,cb_workersize);
 	mp_barrier_list_push_back(node->barrier_list,b);
 	pthread_mutex_unlock(&node->barrier_mutex);
-	return &b->barrier;
+	return b;
 }
 
 
@@ -328,15 +355,15 @@ _starpu_pthread_barrier_t * _starpu_sink_common_get_barrier(struct _starpu_mp_no
  * addresses of the received interfaces
  */
 
-void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
-				 void *arg, int arg_size)
+void _starpu_sink_common_execute(struct _starpu_mp_node *node,
+		void *arg, int arg_size)
 {
-	unsigned id = 0;
-	unsigned nb_interfaces;
+	int id = 0;
+	unsigned nb_interfaces, i;
 
 	void *arg_ptr = arg;
 	struct mp_task *task = malloc(sizeof(struct mp_task));
-	
+
 	task->kernel = *(void(**)(void **, void *)) arg_ptr;
 	arg_ptr += sizeof(task->kernel);
 
@@ -345,7 +372,7 @@ void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
 
 	task->is_parallel_task = *(int *) arg_ptr;
 	arg_ptr += sizeof(task->is_parallel_task);
-	
+
 	if(task->is_parallel_task)
 	{
 		task->combined_workerid= *(int *) arg_ptr;
@@ -353,15 +380,14 @@ void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
 
 		task->combined_worker_size = *(int *) arg_ptr;
 		arg_ptr += sizeof(task->combined_worker_size);
-	
+
 		for (id = 0; id < task->combined_worker_size; id++)
 		{
-			
+
 			task->combined_worker[id] = *(int*) arg_ptr;
 			arg_ptr += sizeof(task->combined_worker[id]);
 		}
-		
-		task->barrier = _starpu_sink_common_get_barrier(node,task->combined_workerid,task->combined_worker_size);
+		task->mp_barrier = _starpu_sink_common_get_barrier(node,task->combined_workerid,task->combined_worker_size);
 	}
 
 	task->coreid = *(unsigned *) arg_ptr;
@@ -374,9 +400,9 @@ void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
 	 * during execution. As in sink-side there is no mean to know which
 	 * kind of interface to expect, the array is composed of unions of
 	 * interfaces, thus we expect the same size anyway */
-	for (id = 0; id < nb_interfaces; id++)
+	for (i = 0; i < nb_interfaces; i++)
 	{
-		task->interfaces[id] = arg_ptr;
+		task->interfaces[i] = arg_ptr;
 		arg_ptr += sizeof(union _starpu_interface);
 	}
 
@@ -386,11 +412,12 @@ void _starpu_sink_common_execute(const struct _starpu_mp_node *node,
 	else
 		task->cl_arg = NULL;
 
-	
+
 	//_STARPU_DEBUG("telling host that we have submitted the task %p.\n", task->kernel);
 	_starpu_mp_common_send_command(node, STARPU_EXECUTION_SUBMITTED,
-				       NULL, 0);
+			NULL, 0);
 
 	//_STARPU_DEBUG("executing the task %p\n", task->kernel);
 	_starpu_sink_common_execute_thread(node, task);	
+
 }

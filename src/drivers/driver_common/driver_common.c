@@ -274,7 +274,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	int is_parallel_task;
 	struct _starpu_combined_worker *combined_worker;
 	/*for each worker*/
-	for (i = 1; i < nworkers; i++)
+	for (i = 0; i < nworkers; i++)
 	{
 		/*if the worker is already executinf a task then */
 		if(workers[i].current_task)

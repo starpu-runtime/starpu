@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include "../helper.h"
 
-#define N	1
+#define N	1000	
 #define VECTORSIZE	1024
 
 starpu_data_handle_t v_handle;

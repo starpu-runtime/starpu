@@ -102,6 +102,8 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	combined_worker->worker_size = nworkers;
 	combined_worker->perf_arch = (enum starpu_perfmodel_archtype) (STARPU_CPU_DEFAULT + nworkers - 1);
 	combined_worker->worker_mask = STARPU_CPU;
+	combined_worker->count = nworkers -1;
+	pthread_mutex_init(&combined_worker->count_mutex,NULL);
 
 	/* We assume that the memory node should either be that of the first
 	 * entry, and it is very likely that every worker in the combination

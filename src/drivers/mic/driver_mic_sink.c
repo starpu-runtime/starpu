@@ -27,9 +27,6 @@
 #include "driver_mic_common.h"
 #include "driver_mic_sink.h"
 
-#define HYPER_THREAD_NUMBER 4
-
-
 /* Initialize the MIC sink, initializing connection to the source
  * and to the other devices (not implemented yet).
  */
@@ -39,7 +36,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	pthread_t thread, self;
 	cpu_set_t cpuset;
 	pthread_attr_t attr;
-	int i, j, ret;
+	int i, ret;
 	struct arg_sink_thread * arg;
 
 	/*Bind on the first core*/
@@ -48,30 +45,33 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	CPU_SET(0,&cpuset);
 	pthread_setaffinity_np(self,sizeof(cpu_set_t),&cpuset);
 
+
 	/* Initialize connection with the source */
 	_starpu_mic_common_accept(&node->mp_connection.mic_endpoint,
 					 STARPU_MIC_SOURCE_PORT_NUMBER);
 
 	_starpu_mic_common_accept(&node->host_sink_dt_connection.mic_endpoint,
 									 STARPU_MIC_SOURCE_DT_PORT_NUMBER);
+	
 	//init the set
 	CPU_ZERO(&cpuset);
 
-	node->nb_cores = COISysGetCoreCount();
+//	node->nb_cores = COISysGetCoreCount();
 
+	node->nb_cores = COISysGetHardwareThreadCount() - COISysGetHardwareThreadCount() / COISysGetCoreCount();
 	node->thread_table = malloc(sizeof(pthread_t)*node->nb_cores);
 
 	node->run_table = malloc(sizeof(struct mp_task *)*node->nb_cores);
 	node->mutex_run_table = malloc(sizeof(pthread_mutex_t)*node->nb_cores);
 
-	node->barrier_list = mp_task_list_new();
-	node->dead_queue = mp_task_list_new();
-	pthread_mutex_init(&node->dead_queue_mutex,NULL);
+	node->barrier_list = mp_barrier_list_new();
+	node->message_queue = mp_message_list_new();
+	pthread_mutex_init(&node->message_queue_mutex,NULL);
 	pthread_mutex_init(&node->barrier_mutex,NULL);
 
 
 	/*for each core init the mutex, the task pointer and launch the thread */
-	for(i=1; i<node->nb_cores; i++)
+	for(i=0; i<node->nb_cores; i++)
 	{
 		node->run_table[i] = NULL;
 
@@ -80,8 +80,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 
 		//init the set
 		CPU_ZERO(&cpuset);
-		for(j=0;j<HYPER_THREAD_NUMBER;j++)
-			CPU_SET(j+i*HYPER_THREAD_NUMBER,&cpuset);
+		CPU_SET(i,&cpuset);
 
 		ret = pthread_attr_init(&attr);
 		STARPU_ASSERT(ret == 0);
@@ -143,13 +142,6 @@ void _starpu_mic_sink_report_error(const char *func, const char *file, const int
 	STARPU_ASSERT(0);
 }
 
-/* Return the number of cores on the callee, a MIC device or Processor Xeon
- */
-unsigned int _starpu_mic_sink_get_nb_core(void)
-{
-	return (unsigned int) COISysGetCoreCount();
-}
-
 /* Allocate memory on the MIC.
  * Memory is register for remote direct access. */
 void _starpu_mic_sink_allocate(const struct _starpu_mp_node *mp_node, void *arg, int arg_size)
@@ -199,15 +191,14 @@ void _starpu_mic_sink_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUT
 void _starpu_mic_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, int coreid, int * core_table, int nb_core)
 {
 	cpu_set_t cpuset;
-	int i, j, ret;
+	int i;
 
   	//init the set
 	CPU_ZERO(&cpuset);
 
 	//adding the core to the set
 	for(i=0;i<nb_core;i++)
-		for(j=0;j<HYPER_THREAD_NUMBER;j++)
-			CPU_SET(j+core_table[i]*HYPER_THREAD_NUMBER,&cpuset);
+		CPU_SET(core_table[i],&cpuset);
 
 	pthread_setaffinity_np(((pthread_t*)mp_node->thread_table)[coreid],sizeof(cpu_set_t),&cpuset);
 }

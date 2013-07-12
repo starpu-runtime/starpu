@@ -446,8 +446,8 @@ void _starpu_create_sampling_directory_if_needed(void)
 {
 	if (!directory_existence_was_tested)
 	{
-		char perf_model_dir[256];
-		_starpu_get_perf_model_dir(perf_model_dir, 256);
+		char perf_model_dir[STARPU_NMAXWORKERS];
+		_starpu_get_perf_model_dir(perf_model_dir, STARPU_NMAXWORKERS);
 
 		/* The performance of the codelets are stored in
 		 * $STARPU_PERF_MODEL_DIR/codelets/ while those of the bus are stored in
@@ -461,18 +461,18 @@ void _starpu_create_sampling_directory_if_needed(void)
 
 
 		/* Per-task performance models */
-		char perf_model_dir_codelets[256];
-		_starpu_get_perf_model_dir_codelets(perf_model_dir_codelets, 256);
+		char perf_model_dir_codelets[STARPU_NMAXWORKERS];
+		_starpu_get_perf_model_dir_codelets(perf_model_dir_codelets, STARPU_NMAXWORKERS);
 		_starpu_mkpath_and_check(perf_model_dir_codelets, S_IRWXU);
 
 		/* Performance of the memory subsystem */
-		char perf_model_dir_bus[256];
-		_starpu_get_perf_model_dir_bus(perf_model_dir_bus, 256);
+		char perf_model_dir_bus[STARPU_NMAXWORKERS];
+		_starpu_get_perf_model_dir_bus(perf_model_dir_bus, STARPU_NMAXWORKERS);
 		_starpu_mkpath_and_check(perf_model_dir_bus, S_IRWXU);
 
 		/* Performance debug measurements */
-		char perf_model_dir_debug[256];
-		_starpu_get_perf_model_dir_debug(perf_model_dir_debug, 256);
+		char perf_model_dir_debug[STARPU_NMAXWORKERS];
+		_starpu_get_perf_model_dir_debug(perf_model_dir_debug, STARPU_NMAXWORKERS);
 		_starpu_mkpath_and_check(perf_model_dir_debug, S_IRWXU);
 
 		directory_existence_was_tested = 1;

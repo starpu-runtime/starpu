@@ -223,7 +223,6 @@ static void assign_combinations_without_hwloc(struct starpu_worker_collection* w
 			}
 		}
 	}
-	_STARPU_DEBUG("%d\n",count);
 }
 
 
@@ -266,22 +265,18 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 #ifdef STARPU_USE_MIC
 		else if(worker->arch == STARPU_MIC_WORKER)
 		{
-			if(worker->devid != 0)
+			for(j=0; mic_id[j] != worker->mp_nodeid && mic_id[j] != -1 && j<nb_mics; j++);
+			if(j<nb_mics)
 			{
-				for(j=0; mic_id[j] != worker->mp_nodeid && mic_id[j] != -1 && j<nb_mics; j++);
-				if(j<nb_mics)
+				if(mic_id[j] == -1)
 				{
-					if(mic_id[j] == -1)
-					{
-						mic_id[j] = worker->mp_nodeid;					
-					}
-					mic_workers[j][nmics_table[j]++] = i;
+					mic_id[j] = worker->mp_nodeid;					
 				}
+				mic_workers[j][nmics_table[j]++] = i;
 			}
 		}
-	
-
 #endif /* STARPU_USE_MIC */
+
 	}
 
 

@@ -65,13 +65,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->get_kernel_from_job =_starpu_mic_src_get_kernel_from_job;
 		node->bind_thread = NULL;
 		node->execute = NULL;
-		node->nbcores = NULL;
 		node->allocate = NULL;
 		node->free = NULL;
-
-		/* A source node is only working on one core,
-		 * there is no need for this function */
-		node->get_nb_core = NULL;
 	}
 	break;
 
@@ -93,11 +88,9 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->get_kernel_from_job = NULL;
 		node->bind_thread = _starpu_mic_sink_bind_thread;
 		node->execute = _starpu_sink_common_execute;
-		node->nbcores = _starpu_sink_nbcores;
 		node->allocate = _starpu_mic_sink_allocate;
 		node->free = _starpu_mic_sink_free;
 
-		node->get_nb_core = _starpu_mic_sink_get_nb_core;
 	}
 	break;
 #endif /* STARPU_USE_MIC */
@@ -118,12 +111,10 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->dt_recv_from_device = NULL;
 
 		node->get_kernel_from_job =_starpu_scc_src_get_kernel_from_job;
-		node->bind_thread = _starpu_scc_sink_bind_thread;
+		node->bind_thread = NULL;
 		node->execute = NULL;
 		node->allocate = NULL;
 		node->free = NULL;
-
-		node->get_nb_core = NULL;
 	}
 	break;
 
@@ -146,8 +137,6 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->execute = _starpu_scc_sink_execute;
 		node->allocate = _starpu_sink_common_allocate;
 		node->free = _starpu_sink_common_free;
-
-		node->get_nb_core = NULL;
 	}
 	break;
 #endif /* STARPU_USE_SCC */

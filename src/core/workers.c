@@ -438,7 +438,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		AYU_event(AYU_INIT, 0, (void*) &n);
 	}
 #endif
-
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];

@@ -37,26 +37,6 @@
 
 #define STARPU_MP_COMMON_REPORT_ERROR(node, status)			\
 	(node)->report_error(__starpu_func__, __FILE__, __LINE__, (status))
-LIST_TYPE(mp_barrier,
-		int id;
-		_starpu_pthread_barrier_t barrier;
-	 );
-
-
-LIST_TYPE(mp_task,
-		void (*kernel)(void **, void *);
-		void *interfaces[STARPU_NMAXBUFS]; 
-		void *cl_arg;
-		unsigned coreid;
-		enum starpu_codelet_type type;
-		int is_parallel_task;
-		int combined_workerid;
-		int combined_worker_size;
-		int combined_worker[STARPU_NMAXWORKERS];
-		_starpu_pthread_barrier_t * barrier;
-		struct mp_task * next;
-	 );
-
 enum _starpu_mp_command
 {
 	STARPU_EXIT,
@@ -78,6 +58,7 @@ enum _starpu_mp_command
 	STARPU_ANSWER_SINK_NBCORES,
 	STARPU_EXECUTION_SUBMITTED,
 	STARPU_EXECUTION_COMPLETED,
+	STARPU_PRE_EXECUTION,
 };
 
 enum _starpu_mp_node_kind
@@ -115,13 +96,41 @@ struct _starpu_mp_transfer_command_to_device
 	void *addr;
 };
 
+LIST_TYPE(mp_barrier,
+		int id;
+		_starpu_pthread_barrier_t before_work_barrier;
+		_starpu_pthread_barrier_t after_work_barrier;
+	 );
+
+LIST_TYPE(mp_message,
+		enum _starpu_mp_command type;
+		char buffer[BUFFER_SIZE];
+		int size;
+	 );
+
+struct mp_task 
+{
+	void (*kernel)(void **, void *);
+	void *interfaces[STARPU_NMAXBUFS]; 
+	void *cl_arg;
+	unsigned coreid;
+	enum starpu_codelet_type type;
+	int is_parallel_task;
+	int combined_workerid;
+	int combined_worker_size;
+	int combined_worker[STARPU_NMAXWORKERS];
+ 	struct mp_barrier* mp_barrier;
+};
+
+
 /* Message-passing working node, whether source
  * or sink */
 struct _starpu_mp_node
 {
 	enum _starpu_mp_node_kind kind;
 
-	/*the number of core*/
+	/*the number of core on the device
+	 * Must be initialized during init function*/
 	int nb_cores;
 
 	/* Buffer used for scif data transfers, allocated
@@ -164,8 +173,8 @@ struct _starpu_mp_node
 	void* thread_table;
 
         /*dead queue where the finished kernel are added */
-        struct mp_task_list* dead_queue;
-	pthread_mutex_t dead_queue_mutex;
+        struct mp_message_list* message_queue;
+	pthread_mutex_t message_queue_mutex;
 
 	/*list of barrier for combined worker*/
 	struct mp_barrier_list* barrier_list;
@@ -193,12 +202,9 @@ struct _starpu_mp_node
 
 	void (*(*get_kernel_from_job)(const struct _starpu_mp_node *,struct _starpu_job *))(void);
 	void (*bind_thread)(const struct _starpu_mp_node *, int,int *,int);
-	void (*execute)(const struct _starpu_mp_node *, void *, int);
-	void (*nbcores)(const struct _starpu_mp_node *);
+	void (*execute)(struct _starpu_mp_node *, void *, int);
 	void (*allocate)(const struct _starpu_mp_node *, void *, int);
 	void (*free)(const struct _starpu_mp_node *, void *, int);
-
-	unsigned int (*get_nb_core)(void);
 };
 
 struct _starpu_mp_node * _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind, int peer_devid);

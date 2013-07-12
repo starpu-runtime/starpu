@@ -21,16 +21,16 @@
 #include <unistd.h>
 #include "../helper.h"
 
-#define N	1
+#define N	1000
 #define VECTORSIZE	1024
 
 void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
-	int worker_size = starpu_combined_worker_get_size();
+	//int worker_size = starpu_combined_worker_get_size();
 	//STARPU_ASSERT(worker_size > 0);
-	usleep(1000/worker_size);
+	//usleep(1000/worker_size);
 #if 0
 	int id = starpu_worker_get_id();
 	int combined_id = starpu_combined_worker_get_id();

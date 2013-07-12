@@ -31,38 +31,49 @@
 
 
 	static int
-_starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker)
+_starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker) 
 {
 	uint32_t mask = 0;
 	int profiling = starpu_profiling_status_get();
 	struct timespec codelet_end;
-
 	_starpu_driver_end_job(worker, j, worker->perf_arch, &codelet_end, 0,
 			profiling);
-
-	_starpu_driver_update_job_feedback(j, worker, worker->perf_arch,
-			&j->cl_start, &codelet_end,
-			profiling);
-
-	if(worker->current_rank == 0)
+	int count = 0;	
+	if(j->task_size > 1)
 	{
-		_starpu_push_task_output (j, mask);
-	}
-	_starpu_handle_job_termination(j);
+		struct _starpu_combined_worker * cb_worker = _starpu_get_combined_worker_struct(worker->combined_workerid); 
 
+		pthread_mutex_lock(&cb_worker->count_mutex);
+		count = cb_worker->count--;
+		if(count == 0)
+			cb_worker->count = cb_worker->worker_size - 1; 
+		pthread_mutex_unlock(&cb_worker->count_mutex);
+	//	_STARPU_DEBUG("\ncb_workerid:%d, count:%d\n",worker->combined_workerid, count);
+	}
+	if(count == 0)
+	{
+
+		_starpu_driver_update_job_feedback(j, worker, worker->perf_arch,
+				&j->cl_start, &codelet_end,
+				profiling);
+
+		_starpu_push_task_output (j, mask);
+
+		_starpu_handle_job_termination(j);
+	}
 	return 0;
 }
 
 
 
 	static int
-_starpu_src_common_process_completed_job (struct _starpu_worker_set *workerset, void * arg, int arg_size STARPU_ATTRIBUTE_UNUSED)
+_starpu_src_common_process_completed_job (struct _starpu_worker_set *workerset, void * arg, int arg_size)
 {
-	void *arg_ptr = arg;
 	int coreid;
 
-	coreid = *(int *) arg_ptr;
-	arg_ptr += sizeof (coreid); // Useless.
+	STARPU_ASSERT(sizeof(coreid) == arg_size);	
+	
+	coreid = *(int *) arg;
 
 	struct _starpu_worker *worker = &workerset->workers[coreid];
 	struct starpu_task *task = worker->current_task;
@@ -70,10 +81,8 @@ _starpu_src_common_process_completed_job (struct _starpu_worker_set *workerset, 
 
 	struct _starpu_worker * old_worker = _starpu_get_local_worker_key();
 	_starpu_set_local_worker_key(worker);
-	if(worker->current_rank == 0)
-	{
-		_starpu_src_common_finalize_job (j, worker);
-	}
+	
+	_starpu_src_common_finalize_job (j, worker);
 	worker->current_task = NULL;
 
 	_starpu_set_local_worker_key(old_worker);
@@ -81,6 +90,19 @@ _starpu_src_common_process_completed_job (struct _starpu_worker_set *workerset, 
 	return 0;
 }
 
+static void _starpu_src_common_pre_exec(void * arg, int arg_size)
+{
+	int cb_workerid, i;
+	STARPU_ASSERT(sizeof(cb_workerid) == arg_size);
+	cb_workerid = *(int *) arg;
+	struct _starpu_combined_worker *combined_worker = _starpu_get_combined_worker_struct(cb_workerid);
+	for(i=0; i < combined_worker->worker_size; i++)
+	{
+		struct _starpu_worker * worker = _starpu_get_worker_struct(combined_worker->combined_workerid[i]);
+		_starpu_set_local_worker_key(worker);
+		_starpu_sched_pre_exec_hook(worker->current_task);
+	}	
+}
 
 /* recv a message and handle asynchrone message
  * return 0 if the message has not been handle (it's certainly mean that it's a synchrone message)
@@ -95,7 +117,10 @@ static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node,
 	switch(*answer) 
 	{
 		case STARPU_EXECUTION_COMPLETED:
-			_starpu_src_common_process_completed_job (worker_set, *arg, *arg_size);
+			_starpu_src_common_process_completed_job(worker_set, *arg, *arg_size);
+			break;
+		case STARPU_PRE_EXECUTION:
+			_starpu_src_common_pre_exec(*arg,*arg_size);
 			break;
 		default:
 			return 0;
@@ -105,7 +130,7 @@ static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node,
 	return 1;
 }
 
-enum _starpu_mp_command _starpu_src_common_wait_command_sync(const struct _starpu_mp_node *node, 
+static enum _starpu_mp_command _starpu_src_common_wait_command_sync(const struct _starpu_mp_node *node, 
 		void ** arg, int* arg_size)
 {
 	enum _starpu_mp_command answer;
@@ -114,12 +139,11 @@ enum _starpu_mp_command _starpu_src_common_wait_command_sync(const struct _starp
 }
 
 
-void _starpu_src_common_recv_async(struct _starpu_mp_node * baseworker_node)
+static void _starpu_src_common_recv_async(struct _starpu_mp_node * baseworker_node)
 {
 	enum _starpu_mp_command answer;
 	void *arg;
 	int arg_size;
-
 	if(!_starpu_src_common_handle_async(baseworker_node,&arg,&arg_size,&answer))
 	{
 		printf("incorrect commande: unknown command or sync command");
@@ -209,9 +233,9 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 {
 
 	void *buffer, *buffer_ptr, *arg =NULL;
-	int i, buffer_size = 0, cb_worker_size = 0, arg_size =0;
+	int j, buffer_size = 0, cb_worker_size = 0, arg_size =0;
 	struct _starpu_combined_worker * cb_worker;
-	unsigned devid;
+	unsigned devid ,i;
 
 	buffer_size = sizeof(kernel) + sizeof(coreid) + sizeof(type)
 		+ sizeof(nb_interfaces) + nb_interfaces * sizeof(union _starpu_interface) + sizeof(is_parallel_task);
@@ -255,9 +279,9 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 		*(int *) buffer_ptr = cb_worker_size;
 		buffer_ptr += sizeof(cb_worker_size);
 
-		for (i = 0; i < cb_worker_size; i++)
+		for (j = 0; j < cb_worker_size; j++)
 		{
-			int devid = _starpu_get_worker_struct(cb_worker->combined_workerid[i])->devid;
+			int devid = _starpu_get_worker_struct(cb_worker->combined_workerid[j])->devid;
 			*(int *) buffer_ptr = devid;
 			buffer_ptr += sizeof(devid);
 		}
@@ -327,28 +351,18 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 
 	void (*kernel)(void)  = node->get_kernel_from_job(node,j);
 
-
-	if ((worker->current_rank == 0) || (task->cl->type != STARPU_FORKJOIN))
-	{
-
-		_starpu_driver_start_job(worker, j, &j->cl_start, 0, profiling);
+	_starpu_driver_start_job(worker, j, &j->cl_start, 0, profiling);
 
 
-		_STARPU_DEBUG("workerid:%d\n",worker->devid);
-		_STARPU_DEBUG("rank:%d\n",worker->current_rank);
-		_STARPU_DEBUG("type:%d\n",task->cl->type);
-		_STARPU_DEBUG("is_parallel_task:%d\n",(j->task_size > 1));
-		_STARPU_DEBUG("cb_workerid:%d\n",j->combined_workerid);
-		_STARPU_DEBUG("j->task_size:%d\n",j->task_size);
-		_STARPU_DEBUG("cb_worker_count:%d\n\n",starpu_combined_worker_get_count());
+	_STARPU_DEBUG("\nworkerid:%d, rank:%d, type:%d,	cb_workerid:%d, task_size:%d\n\n",worker->devid,worker->current_rank,task->cl->type,j->combined_workerid,j->task_size);
 
-		_starpu_src_common_execute_kernel(node, kernel, worker->devid, task->cl->type,
-				(j->task_size > 1),
-				j->combined_workerid, task->handles,
-				task->interfaces, task->cl->nbuffers,
-				task->cl_arg, task->cl_arg_size);
+	_starpu_src_common_execute_kernel(node, kernel, worker->devid, task->cl->type,
+			(j->task_size > 1),
+			j->combined_workerid, task->handles,
+			task->interfaces, task->cl->nbuffers,
+			task->cl_arg, task->cl_arg_size);
 
-	}
+
 	return 0;
 }
 
@@ -577,9 +591,8 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 		_STARPU_TRACE_END_PROGRESS(memnode);
 
 		/* poll the device for completed jobs.*/
-		if (mp_node->mp_recv_is_ready(mp_node))
+		while(mp_node->mp_recv_is_ready(mp_node))
 			_starpu_src_common_recv_async(mp_node);
-
 
 		/* get task for each worker*/
 		res = _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers);
@@ -588,8 +601,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 		if(res != 0)
 		{
 			unsigned i;
-			//_STARPU_DEBUG(" nb_tasks:%d\n", res);
-			for(i=1; i<worker_set->nworkers; i++)
+			for(i=0; i<worker_set->nworkers; i++)
 			{
 				if(tasks[i] != NULL)
 				{
