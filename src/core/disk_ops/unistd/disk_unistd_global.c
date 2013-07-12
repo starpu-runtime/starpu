@@ -20,11 +20,14 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <stdint.h>
+#include <aio.h>
+#include <errno.h>
 
 #include <starpu.h>
 #include <core/disk.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/disk_ops/unistd/disk_unistd_global.h>
+#include <datawizard/copy_driver.h>
 
 #ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
@@ -176,6 +179,28 @@ starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *
 }
 
 
+int
+starpu_unistd_global_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
+{
+        struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+
+        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
+        struct aiocb *aiocb = &channel->event.disk_event._starpu_aiocb_disk;
+
+        memset(aiocb, 0, sizeof(struct aiocb));
+
+        aiocb->aio_fildes = tmp->descriptor;
+        aiocb->aio_offset = offset;
+        aiocb->aio_nbytes = size;
+        aiocb->aio_buf = buf;
+        aiocb->aio_reqprio = 0;
+        aiocb->aio_lio_opcode = LIO_NOP;
+
+        return aio_read(aiocb);
+}
+
+
+
 /* write on the memory disk */
  int 
 starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * async_channel)
@@ -194,6 +219,27 @@ starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const
 
 	return nb;
 }
+
+
+int
+starpu_unistd_global_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
+{
+        struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+
+        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
+        struct aiocb *aiocb = &channel->event.disk_event._starpu_aiocb_disk ;
+        memset(aiocb, 0, sizeof(struct aiocb));
+
+        aiocb->aio_fildes = tmp->descriptor;
+        aiocb->aio_offset = offset;
+        aiocb->aio_nbytes = size;
+        aiocb->aio_buf = buf;
+        aiocb->aio_reqprio = 0;
+        aiocb->aio_lio_opcode = LIO_NOP;
+
+        return aio_write(aiocb);
+}
+
 
 
 /* create a new copy of parameter == base */
@@ -286,4 +332,48 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*1000000, (NITER/timing_slowness)*1000000,
 					       timing_latency/NITER, timing_latency/NITER, node);
 	return 1;
+}
+
+void
+starpu_unistd_global_wait_request(void * async_channel)
+{
+        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
+        const struct aiocb * aiocb = &channel->event.disk_event._starpu_aiocb_disk;
+        const struct aiocb * list[1];
+        list[0] = aiocb;
+        int values = -1;
+        int error_disk = EAGAIN;
+        while(values < 0 || error_disk == EAGAIN)
+        {
+                /* Wait the answer of the request TIMESTAMP IS NULL */
+                values = aio_suspend(list, 1, NULL);
+                error_disk = errno;
+        }
+}
+
+int
+starpu_unistd_global_test_request(void * async_channel)
+{
+        struct timespec time_wait_request;
+        time_wait_request.tv_sec = 0;
+        time_wait_request.tv_nsec = 0;
+
+        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
+        const struct aiocb * aiocb = &channel->event.disk_event._starpu_aiocb_disk;
+        const struct aiocb * list[1];
+        list[0] = aiocb;
+        int values = -1;
+        int error_disk = EAGAIN;
+
+        /* Wait the answer of the request */
+        values = aio_suspend(list, 1, &time_wait_request);
+        error_disk = errno;
+        /* request is finished */
+        if (values == 0)
+                return 1;
+        /* values == -1 */
+        if (error_disk == EAGAIN)
+                return 0;
+        /* an error occured */
+        STARPU_ABORT();
 }

@@ -92,9 +92,12 @@ struct starpu_disk_ops starpu_disk_unistd_o_direct_ops = {
 	.close = starpu_unistd_global_close,
 	.read = starpu_unistd_o_direct_read,
 	.write = starpu_unistd_o_direct_write,
-	.async_write = NULL,
 	.plug = starpu_unistd_o_direct_plug,
 	.unplug = starpu_unistd_global_unplug,
 	.copy = NULL,
-	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram
+	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram,
+        .async_read = starpu_unistd_global_async_read,
+        .async_write = starpu_unistd_global_async_write,
+        .wait_request = starpu_unistd_global_wait_request,
+        .test_request = starpu_unistd_global_test_request
 };
