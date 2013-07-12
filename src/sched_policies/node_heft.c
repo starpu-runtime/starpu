@@ -279,6 +279,13 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 		struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(i);
 		STARPU_ASSERT(worker_node);
 
+#if 1
+		struct starpu_sched_node * ws = starpu_sched_node_work_stealing_create(NULL);
+		ws->add_child(ws, worker_node);
+		starpu_sched_node_set_father(worker_node, ws, sched_ctx_id);
+		worker_node = ws;
+#endif
+
 		struct starpu_sched_node * impl_node = starpu_sched_node_best_implementation_create(NULL);
 		impl_node->add_child(impl_node, worker_node);
 		starpu_sched_node_set_father(worker_node, impl_node, sched_ctx_id);

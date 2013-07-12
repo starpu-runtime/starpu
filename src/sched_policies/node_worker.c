@@ -223,7 +223,7 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 			(void) STARPU_ATOMIC_ADD(p, -1);
 			if(*p == 0)
 				_starpu_task_grid_unset_left_right_member(t);
-//			l->ntasks--;
+			l->ntasks--;
 			if(!isnan(task->predicted))
 			{
 				l->exp_len -= task->predicted_transfer;
@@ -294,7 +294,7 @@ int starpu_sched_node_worker_push_task(struct starpu_sched_node * node, struct s
 	t->ntasks = 1;
 
 	task->workerid = starpu_bitmap_first(node->workers);
-#if 1 /* dead lock problem */
+#if 1 /* dead lock problem? */
 	if (starpu_get_prefetch_flag())
 	{
 		unsigned memory_node = starpu_worker_get_memory_node(task->workerid);
@@ -748,11 +748,6 @@ void starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task)
 	{
 		struct _starpu_worker_task_list * list = _worker_get_list();
 		STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
-		if(!task->execute_on_a_specific_worker)
-		{
-			STARPU_ASSERT(list->ntasks != 0);
-			list->ntasks--;
-		}
 
 		list->exp_start = starpu_timing_now() + task->predicted;
 
