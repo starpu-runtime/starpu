@@ -109,6 +109,12 @@ this macro indicates the codelet will have several implementations.
 The use of this macro is deprecated. One should always only define the
 field starpu_codelet::opencl_funcs.
 
+\def STARPU_NMAXBUFS
+\ingroup API_Codelet_And_Tasks
+Defines the maximum number of buffers that tasks will be able to take
+as parameters. The default value is 8, it can be changed by using the
+configure option \ref enable-maxbuffers "--enable-maxbuffers".
+
 \typedef starpu_cpu_func_t
 \ingroup API_Codelet_And_Tasks
 CPU implementation of a codelet.
