@@ -1379,9 +1379,6 @@ static void write_bus_bandwidth_file_content(void)
 }
 #endif /* STARPU_SIMGRID */
 
-double starpu_bus_get_bandwidth(unsigned srcnode, unsigned dstnode);
-double starpu_bus_get_latency(unsigned srcnode, unsigned dstnode);
-
 void starpu_bus_print_bandwidth(FILE *f)
 {
 	unsigned src, dst, maxnode;
