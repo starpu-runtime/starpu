@@ -152,10 +152,9 @@ static void _starpu_src_common_recv_async(struct _starpu_mp_node * baseworker_no
 }
 
 
-	int
-_starpu_src_common_sink_nbcores (const struct _starpu_mp_node *node, int *buf)
+/* Send a request to the sink NODE for the number of cores on it. */
+int _starpu_src_common_sink_nbcores (const struct _starpu_mp_node *node, int *buf)
 {
-	// Send a request to the sink NODE for the number of cores on it.
 
 	enum _starpu_mp_command answer;
 	void *arg;
@@ -608,21 +607,20 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 					j = _starpu_get_job_associated_to_task(tasks[i]);
 					_starpu_set_local_worker_key(&worker_set->workers[i]);
 					res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);
-					if (res)
+					switch (res)
 					{
-						switch (res)
-						{
-							case -EAGAIN:
-								_STARPU_DISP("ouch, Xeon Phi could not actually run task %p, putting it back...\n", tasks[i]);
-								_starpu_push_task_to_workers(tasks[i]);
-								STARPU_ABORT();
-								continue;
-								break;
-							default:
-								STARPU_ASSERT(0);
-						}
+						case 0:
+							/* The task task has been launched with no error */
+							break;
+						case -EAGAIN:
+							_STARPU_DISP("ouch, Xeon Phi could not actually run task %p, putting it back...\n", tasks[i]);
+							_starpu_push_task_to_workers(tasks[i]);
+							STARPU_ABORT();
+							continue;
+							break;
+						default:
+							STARPU_ASSERT(0);
 					}
-					//_STARPU_DEBUG(" exec fin\n");
 				}
 			}
 		}

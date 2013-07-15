@@ -34,6 +34,8 @@ void _starpu_scc_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_A
 
 void _starpu_scc_sink_execute(const struct _starpu_mp_node *node, void *arg, int arg_size);
 
+void (*_starpu_scc_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void);
+
 #endif /* STARPU_USE_SCC */
 
 

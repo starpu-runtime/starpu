@@ -16,6 +16,7 @@
 
 
 #include <RCCE.h>
+#include <dlfcn.h>
 
 #include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/sink_common.h>
@@ -144,3 +145,10 @@ void _starpu_scc_sink_execute(const struct _starpu_mp_node *node, void *arg, int
 
 	_starpu_sink_common_execute(node, arg, arg_size);
 }
+
+void (*_starpu_scc_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
+{
+	void *dl_handle = dlopen(NULL, RTLD_NOW);
+	return dlsym(dl_handle, func_name);
+}
+

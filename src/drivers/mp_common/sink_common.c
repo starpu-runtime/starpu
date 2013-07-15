@@ -15,8 +15,6 @@
  */
 
 
-#include <dlfcn.h>
-
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
@@ -68,8 +66,7 @@ static void _starpu_sink_common_lookup(const struct _starpu_mp_node *node,
 				       char *func_name)
 {
 	void (*func)(void);
-	void *dl_handle = dlopen(NULL, RTLD_NOW);
-	func = dlsym(dl_handle, func_name);
+	func = node->lookup(node,func_name);
 	
 	//_STARPU_DEBUG("Looked up %s, got %p\n", func_name, func);
 
@@ -356,7 +353,7 @@ static void _starpu_sink_common_execute_thread(struct _starpu_mp_node *node, str
 /* Search for the mp_barrier correspondind to the specified combined worker 
  * and create it if it doesn't exist
  */
-struct mp_barrier * _starpu_sink_common_get_barrier(struct _starpu_mp_node * node, int cb_workerid, int cb_workersize)
+static struct mp_barrier * _starpu_sink_common_get_barrier(struct _starpu_mp_node * node, int cb_workerid, int cb_workersize)
 {
 	struct mp_barrier * b = NULL;
 	pthread_mutex_lock(&node->barrier_mutex);

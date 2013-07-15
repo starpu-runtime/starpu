@@ -16,6 +16,7 @@
 
 
 #include <errno.h>
+#include <dlfcn.h>
 
 #include <common/COISysInfo_common.h>
 
@@ -202,3 +203,10 @@ void _starpu_mic_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_A
 
 	pthread_setaffinity_np(((pthread_t*)mp_node->thread_table)[coreid],sizeof(cpu_set_t),&cpuset);
 }
+
+void (*_starpu_mic_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
+{
+	void *dl_handle = dlopen(NULL, RTLD_NOW);
+	return dlsym(dl_handle, func_name);
+}
+

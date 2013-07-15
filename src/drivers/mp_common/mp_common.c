@@ -63,6 +63,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->dt_recv = _starpu_mic_common_dt_recv;
 
 		node->get_kernel_from_job =_starpu_mic_src_get_kernel_from_job;
+		node->lookup = NULL;
 		node->bind_thread = NULL;
 		node->execute = NULL;
 		node->allocate = NULL;
@@ -86,6 +87,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->dt_recv = _starpu_mic_common_dt_recv;
 
 		node->get_kernel_from_job = NULL;
+		node->lookup = _starpu_mic_sink_lookup;
 		node->bind_thread = _starpu_mic_sink_bind_thread;
 		node->execute = _starpu_sink_common_execute;
 		node->allocate = _starpu_mic_sink_allocate;
@@ -111,6 +113,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->dt_recv_from_device = NULL;
 
 		node->get_kernel_from_job =_starpu_scc_src_get_kernel_from_job;
+		node->lookup = NULL;
 		node->bind_thread = NULL;
 		node->execute = NULL;
 		node->allocate = NULL;
@@ -133,6 +136,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		node->dt_recv_from_device = _starpu_scc_sink_recv_from_device;
 
 		node->get_kernel_from_job = NULL;
+		node->lookup = _starpu_scc_sink_lookup;
 		node->bind_thread = _starpu_scc_sink_bind_thread;
 		node->execute = _starpu_scc_sink_execute;
 		node->allocate = _starpu_sink_common_allocate;
