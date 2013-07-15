@@ -103,7 +103,7 @@ clean-local:
 # TODO: resources
 install-exec-local:
 	$(MKDIR_P) $(DESTDIR)$(bindir)
-	$(INSTALL_STRIP_PROGRAM) starpu-top/starpu_top$(EXEEXT) $(DESTDIR)$(bindir)
+	-$(INSTALL_STRIP_PROGRAM) starpu-top/starpu_top$(EXEEXT) $(DESTDIR)$(bindir)
 uninstall-local:
 	$(RM) $(DESTDIR)$(bindir)/starpu_top$(EXEEXT)
 	$(RM) starpu-top/starpu_top$(EXEEXT)
