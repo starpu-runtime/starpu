@@ -32,15 +32,52 @@ double starpu_sched_compute_expected_time(double now, double predicted_end, doub
 	return predicted_end;
 }
 
-static void available(struct starpu_sched_node * node)
+
+static void _wake_simple_worker(int workerid)
+{
+	STARPU_ASSERT(0 <= workerid && workerid < starpu_worker_get_count());
+	starpu_pthread_mutex_t * sched_mutex;
+	starpu_pthread_cond_t * sched_cond;
+	if(workerid == starpu_worker_get_id())
+		return;
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+}
+
+static void _wake_combined_worker(int workerid)
+{
+	STARPU_ASSERT(starpu_worker_get_count() <= workerid
+		      && workerid < starpu_worker_get_count() + starpu_combined_worker_get_count());
+	int me = starpu_worker_get_id();
+	struct _starpu_combined_worker * combined_worker = _starpu_get_combined_worker_struct(workerid);
+	int * list = combined_worker->combined_workerid;
+	int size = combined_worker->worker_size;
+	int i;
+	for(i = 0; i < size; i++)
+		_wake_simple_worker(list[i]);
+}
+
+void starpu_sched_node_available(struct starpu_sched_node * node)
 {
 	(void)node;
+	STARPU_ASSERT(!starpu_sched_node_is_worker(node));
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	int i;
-	for(i = 0; i < node->nchilds; i++)
-		node->childs[i]->available(node->childs[i]);
+	for(i = starpu_bitmap_first(node->workers_in_ctx);
+	    i != -1;
+	    i = starpu_bitmap_next(node->workers_in_ctx, i))
+	{
+		if(i < starpu_worker_get_count())
+			_wake_simple_worker(i);
+		else
+			_wake_combined_worker(i);
+	}
 #endif
 }
+
+
 static struct starpu_task * pop_task_node(struct starpu_sched_node * node, unsigned sched_ctx_id)
 {
 	if(node->fathers[sched_ctx_id] == NULL)
@@ -390,7 +427,6 @@ struct starpu_sched_node * starpu_sched_node_create(void)
 	memset(node,0,sizeof(*node));
 	node->workers = starpu_bitmap_create();
 	node->workers_in_ctx = starpu_bitmap_create();
-	node->available = available;
 	node->add_child = starpu_sched_node_add_child;
 	node->remove_child = starpu_sched_node_remove_child;
 	node->notify_change_workers = take_node_and_does_nothing;

@@ -104,13 +104,13 @@ struct starpu_task * composed_node_pop_task(struct starpu_sched_node *node, unsi
 	return NULL;
 }
 
-
+/*
 void composed_node_available(struct starpu_sched_node *node)
 {
 	struct composed_node * c = node->data;
 	c->top->available(c->top);
 }
-	
+*/	
 double composed_node_estimated_load(struct starpu_sched_node * node)
 {
 	struct composed_node * c = node->data;
@@ -187,7 +187,7 @@ struct starpu_sched_node * starpu_sched_node_composed_node_create(struct _starpu
 	node->data = c;
 	node->push_task = composed_node_push_task;
 	node->pop_task = composed_node_pop_task;
-	node->available = composed_node_available;
+//	node->available = composed_node_available;
 	node->estimated_load = composed_node_estimated_load;
 	node->add_child = composed_node_add_child;
 	node->remove_child = composed_node_remove_child;

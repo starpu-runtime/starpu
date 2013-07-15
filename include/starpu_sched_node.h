@@ -35,15 +35,6 @@ struct starpu_sched_node
 	struct starpu_task * (*pop_task)(struct starpu_sched_node *,
 					 unsigned sched_ctx_id);
 
-	/* this function notify underlying worker that a task as been pushed
-	 * and would be returned by a pop_task call
-	 * it should be called each time a node localy store a task
-
-	 * default implementation simply perform a recursive call on childrens
-	 * this function can be called by a worker as it doesn't try to wake up himself
-	 */
-	void (*available)(struct starpu_sched_node *);
-
 	/* this function is an heuristic that compute load of subtree, basicaly
 	 * it compute
 	 * estimated_load(node) = sum(estimated_load(node_childs)) +
@@ -198,7 +189,9 @@ void starpu_sched_tree_update_workers(struct starpu_sched_tree * t);
  *
  */
 void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree * t);
-
+/* wake up underlaying workers of node
+ */
+void starpu_sched_node_available(struct starpu_sched_node * node);
 
 int starpu_sched_tree_push_task(struct starpu_task * task);
 struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx_id);

@@ -54,7 +54,6 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 	}
 	STARPU_ASSERT(select != NULL);
 	int ret_val = select->push_task(select,task);
-	node->available(node);
 
 	return ret_val;
 }

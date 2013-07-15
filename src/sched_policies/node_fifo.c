@@ -90,7 +90,9 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 	STARPU_ASSERT(!isnan(fifo->exp_start));
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
-	node->available(node);
+
+	starpu_sched_node_available(node);
+//	node->available(node);
 	return ret;
 }
 

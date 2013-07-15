@@ -193,7 +193,8 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 	STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
 
 	wsd->last_push_child = i;
-	node->available(node);
+//	node->available(node);
+	starpu_sched_node_available(node);
 	return ret;
 }
 
@@ -229,14 +230,15 @@ int _starpu_ws_push_task(struct starpu_task *task)
 			STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
 			
 			//we need to wake all workers
-			int j;
+/*			int j;
 			for(j = 0; j < node->nchilds; j++)
 			{
 				if(j == i)
 					continue;
 				node->childs[j]->available(node->childs[j]);
 			}
-
+*/
+			starpu_sched_node_available(node);
 			return ret;
 		}
 	}
