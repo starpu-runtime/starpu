@@ -32,6 +32,9 @@ int _starpu_disk_read(unsigned src_node, unsigned dst_node, void *obj, void *buf
 /* src_node is for the moment the STARU_MAIN_RAM, dst_node is a disk node */ 
 int _starpu_disk_write(unsigned src_node, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, void * async_channel);
 
+int _starpu_disk_full_read(unsigned src_node, unsigned dst_node, void * obj, void ** ptr, size_t * size);
+int _starpu_disk_full_write(unsigned src_node, unsigned dst_node, void * obj, void * ptr, size_t size);
+
 int _starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size, void * async_channel);
 
 /* force the request to compute */

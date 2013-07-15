@@ -402,14 +402,28 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 
 		else
-			STARPU_ABORT();
+		{
+			//TODO OBJ
+			void * obj;
+			void * ptr = NULL;
+			starpu_ssize_t size = 0;
+			handle->ops->pack_data(handle, src_node, &ptr, &size);
+			ret = _starpu_disk_full_write(src_node, dst_node, obj, ptr, size);
+		}
 		break;
 		
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_CPU_RAM):
 		if(copy_methods->any_to_any) 
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 		else
-			STARPU_ABORT();
+		{
+			//TODO OBJ
+			void * obj;
+			void * ptr = NULL;
+			size_t size = 0;
+			ret = _starpu_disk_full_read(src_node, dst_node, obj, &ptr, &size);
+			handle->ops->unpack_data(handle, dst_node, ptr, size); 
+		}
 		break;
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_DISK_RAM):	
