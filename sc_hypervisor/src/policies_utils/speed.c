@@ -74,10 +74,10 @@ double sc_hypervisor_get_speed_per_worker(struct sc_hypervisor_wrapper *sc_w, un
 /* /\* 			if(!worker_in_ctx) *\/ */
 /* /\* 			{ *\/ */
 
-/* /\* 				double transfer_speed = starpu_get_bandwidth_RAM_CUDA(worker); *\/ */
+/* /\* 				double transfer_speed = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker)); *\/ */
 /* /\* 				elapsed_time +=  (elapsed_data_used / transfer_speed) / 1000000 ; *\/ */
 /* /\* 			} *\/ */
-/* 			double latency = starpu_get_latency_RAM_CUDA(worker); */
+/* 			double latency = starpu_transfer_latency(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker)); */
 /* //			printf("%d/%d: latency %lf elapsed_time before %lf ntasks %d\n", worker, sc_w->sched_ctx, latency, elapsed_time, elapsed_tasks); */
 /* 			elapsed_time += (elapsed_tasks * latency)/1000000; */
 /* //			printf("elapsed time after %lf \n", elapsed_time); */

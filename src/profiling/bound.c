@@ -585,7 +585,7 @@ void starpu_bound_print_lp(FILE *output)
 							/* The data transfer from w to w2 only happens if tasks run there */
 							fprintf(output, "d_t%luw%ut%luw%u >= %f - 2e5 + 1e5 t%luw%u + 1e5 t%luw%u;\n",
 									t1->deps[i].dep->id, w, t1->id, w2,
-									_starpu_predict_transfer_time(n, n2, t1->deps[i].size)/1000.,
+									starpu_transfer_predict(n, n2, t1->deps[i].size)/1000.,
 									t1->deps[i].dep->id, w, t1->id, w2);
 						}
 					}
