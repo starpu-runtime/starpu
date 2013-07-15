@@ -462,10 +462,10 @@ double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w,
 /* 			if(!worker_in_ctx) */
 /* 			{ */
 
-/* 				double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker); */
+/* 				double transfer_velocity = starpu_transfer_bandwidth(0, starpu_worker_get_memory_node(worker)); */
 /* 				elapsed_time +=  (elapsed_data_used / transfer_velocity) / 1000000 ; */
 /* 			} */
-			double latency = starpu_get_latency_RAM_CUDA(worker);
+			double latency = starpu_transfer_latency(0, starpu_worker_get_memory_node(worker));
 //			printf("%d/%d: latency %lf elapsed_time before %lf ntasks %d\n", worker, sc_w->sched_ctx, latency, elapsed_time, elapsed_tasks);
 			elapsed_time += (elapsed_tasks * latency)/1000000;
 //			printf("elapsed time after %lf \n", elapsed_time);
@@ -615,12 +615,12 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
 					if(!worker_in_ctx && !size_ctxs)
 					{
-						double transfer_velocity = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker));
+						double transfer_velocity = starpu_transfer_bandwidth(0, starpu_worker_get_memory_node(worker));
 						transfer_time +=  (tp->data_size / transfer_velocity) / 1000. ;
 						
 						
 					}
-					double latency = starpu_transfer_latency(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker));
+					double latency = starpu_transfer_latency(0, starpu_worker_get_memory_node(worker));
 					transfer_time += latency/1000.;
 				}
 //				printf("%d/%d %s x %d time = %lf transfer_time = %lf\n", w, tp->sched_ctx_id, tp->cl->model->symbol, tp->n, times[w][t], transfer_time);
