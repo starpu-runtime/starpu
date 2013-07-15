@@ -172,7 +172,7 @@ struct _starpu_mp_node
 	/* table to store pointer of the thread workers*/
 	void* thread_table;
 
-        /*dead queue where the finished kernel are added */
+        /*list where threads add messages to send to the source node */
         struct mp_message_list* message_queue;
 	pthread_mutex_t message_queue_mutex;
 

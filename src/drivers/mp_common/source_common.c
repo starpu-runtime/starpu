@@ -30,15 +30,17 @@
 #include <drivers/mp_common/mp_common.h>
 
 
-	static int
-_starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker) 
+/* Finalize the execution of a task by a worker*/
+static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker) 
 {
 	uint32_t mask = 0;
 	int profiling = starpu_profiling_status_get();
 	struct timespec codelet_end;
 	_starpu_driver_end_job(worker, j, worker->perf_arch, &codelet_end, 0,
 			profiling);
-	int count = 0;	
+	int count = 0;
+
+	/* If it's a combined worker, we check if it's the last one of his combined */
 	if(j->task_size > 1)
 	{
 		struct _starpu_combined_worker * cb_worker = _starpu_get_combined_worker_struct(worker->combined_workerid); 
@@ -50,6 +52,8 @@ _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *w
 		pthread_mutex_unlock(&cb_worker->count_mutex);
 	//	_STARPU_DEBUG("\ncb_workerid:%d, count:%d\n",worker->combined_workerid, count);
 	}
+
+	/* Finalize the execution */
 	if(count == 0)
 	{
 
@@ -65,9 +69,8 @@ _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *w
 }
 
 
-
-	static int
-_starpu_src_common_process_completed_job (struct _starpu_worker_set *workerset, void * arg, int arg_size)
+/* */
+static int _starpu_src_common_process_completed_job(struct _starpu_worker_set *workerset, void * arg, int arg_size)
 {
 	int coreid;
 
@@ -90,6 +93,7 @@ _starpu_src_common_process_completed_job (struct _starpu_worker_set *workerset, 
 	return 0;
 }
 
+/* Tell the scheduler when the execution has begun */
 static void _starpu_src_common_pre_exec(void * arg, int arg_size)
 {
 	int cb_workerid, i;
@@ -104,8 +108,8 @@ static void _starpu_src_common_pre_exec(void * arg, int arg_size)
 	}	
 }
 
-/* recv a message and handle asynchrone message
- * return 0 if the message has not been handle (it's certainly mean that it's a synchrone message)
+/* recv a message and handle asynchronous message
+ * return 0 if the message has not been handle (it's certainly mean that it's a synchronous message)
  * return 1 if the message has been handle
  */
 static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node, 
@@ -130,6 +134,8 @@ static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node,
 	return 1;
 }
 
+
+/* Handle all asynchronous messages and return when a synchronous message is received */
 static enum _starpu_mp_command _starpu_src_common_wait_command_sync(const struct _starpu_mp_node *node, 
 		void ** arg, int* arg_size)
 {
@@ -138,7 +144,7 @@ static enum _starpu_mp_command _starpu_src_common_wait_command_sync(const struct
 	return answer;
 }
 
-
+/* Handle a asynchrone message and return a error if a synchronous message is received */
 static void _starpu_src_common_recv_async(struct _starpu_mp_node * baseworker_node)
 {
 	enum _starpu_mp_command answer;
@@ -323,6 +329,8 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 	return 0;
 }
 
+
+/* Get the information and call the function to send to the sink a message to execute the task*/
 static int _starpu_src_common_execute(struct _starpu_job *j, 
 		struct _starpu_worker *worker, 
 		struct _starpu_mp_node * node)
@@ -571,6 +579,8 @@ int _starpu_src_common_locate_file(char *located_file_name,
 	return 1;
 }
 
+
+/* Function looping on the source node */
 void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, 
 		unsigned baseworkerid, 
 		struct _starpu_mp_node * mp_node)
