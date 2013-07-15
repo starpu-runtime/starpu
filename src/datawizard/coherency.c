@@ -61,7 +61,7 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 		{
 			if (src_node_mask & (1<<i))
 			{
-				double time = _starpu_predict_transfer_time(i, destination, size);
+				double time = starpu_transfer_predict(i, destination, size);
 				unsigned handling_node;
 
 				/* Avoid indirect transfers */

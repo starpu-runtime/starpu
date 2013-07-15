@@ -615,12 +615,13 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
 					if(!worker_in_ctx && !size_ctxs)
 					{
-						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
-						transfer_time +=  (tp->footprint / transfer_velocity) / 1000. ;
+						double transfer_velocity = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker));
+						transfer_time +=  (tp->data_size / transfer_velocity) / 1000. ;
+						
+						
 					}
-					double latency = starpu_get_latency_RAM_CUDA(worker);
+					double latency = starpu_transfer_latency(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker));
 					transfer_time += latency/1000.;
-
 				}
 //				printf("%d/%d %s x %d time = %lf transfer_time = %lf\n", w, tp->sched_ctx_id, tp->cl->model->symbol, tp->n, times[w][t], transfer_time);
 				times[w][t] += transfer_time;

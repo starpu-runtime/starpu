@@ -288,7 +288,7 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx);
 					if(!worker_in_ctx)
 					{
-						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker) / 1000;
+						double transfer_velocity = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker)) / 1000;
 						velocity[s][w] = (velocity[s][w] * transfer_velocity) / (velocity[s][w] + transfer_velocity);
 					}
 				}

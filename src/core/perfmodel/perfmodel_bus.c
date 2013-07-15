@@ -1346,16 +1346,6 @@ static void write_bus_bandwidth_file_content(void)
 }
 #endif /* STARPU_SIMGRID */
 
-double starpu_get_bandwidth_RAM_CUDA(unsigned cudadev)
-{
-	return bandwidth_matrix[0][cudadev+1];
-}
-
-double starpu_get_latency_RAM_CUDA(unsigned cudadev)
-{
-	return latency_matrix[0][cudadev+1];
-}
-
 void starpu_bus_print_bandwidth(FILE *f)
 {
 	unsigned src, dst, maxnode;
@@ -1817,19 +1807,19 @@ void _starpu_load_bus_performance_files(void)
 }
 
 /* (in MB/s) */
-double _starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node)
+double starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node)
 {
 	return bandwidth_matrix[src_node][dst_node];
 }
 
 /* (in µs) */
-double _starpu_transfer_latency(unsigned src_node, unsigned dst_node)
+double starpu_transfer_latency(unsigned src_node, unsigned dst_node)
 {
 	return latency_matrix[src_node][dst_node];
 }
 
 /* (in µs) */
-double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_t size)
+double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size)
 {
 	double bandwidth = bandwidth_matrix[src_node][dst_node];
 	double latency = latency_matrix[src_node][dst_node];
