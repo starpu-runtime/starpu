@@ -400,6 +400,11 @@ size_t starpu_data_get_size(starpu_data_handle_t handle);
 
 starpu_data_handle_t starpu_data_lookup(const void *ptr);
 
+struct starpu_disk_interface
+{
+	uintptr_t dev_handle;
+};
+
 #ifdef __cplusplus
 }
 #endif

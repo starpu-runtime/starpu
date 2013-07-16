@@ -403,12 +403,14 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 
 		else
 		{
-			//TODO OBJ
-			void * obj;
+			struct starpu_disk_interface * disk_interface = (struct starpu_disk_interface *) dst_interface; 
+			void * obj = (void *) disk_interface->dev_handle;
 			void * ptr = NULL;
 			starpu_ssize_t size = 0;
 			handle->ops->pack_data(handle, src_node, &ptr, &size);
 			ret = _starpu_disk_full_write(src_node, dst_node, obj, ptr, size);
+			/* ptr is allocated in pack_data */
+			free(ptr);
 		}
 		break;
 		
@@ -417,12 +419,14 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 		else
 		{
-			//TODO OBJ
-			void * obj;
+			struct starpu_disk_interface * disk_interface = (struct starpu_disk_interface *) src_interface; 
+			void * obj = (void *) disk_interface->dev_handle;
 			void * ptr = NULL;
 			size_t size = 0;
 			ret = _starpu_disk_full_read(src_node, dst_node, obj, &ptr, &size);
 			handle->ops->unpack_data(handle, dst_node, ptr, size); 
+			/* ptr is allocated in full_read */
+			free(ptr);
 		}
 		break;
 

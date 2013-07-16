@@ -65,5 +65,7 @@ struct starpu_disk_ops starpu_disk_unistd_ops = {
 	.async_read = starpu_unistd_global_async_read,
 	.async_write = starpu_unistd_global_async_write,
 	.wait_request = starpu_unistd_global_wait_request,
-	.test_request = starpu_unistd_global_test_request
+	.test_request = starpu_unistd_global_test_request,
+        .full_read = starpu_unistd_global_full_read,
+        .full_write = starpu_unistd_global_full_write
 };

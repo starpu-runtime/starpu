@@ -153,13 +153,13 @@ _starpu_disk_read(unsigned src_node, unsigned dst_node, void *obj, void *buf, of
 int _starpu_disk_full_read(unsigned src_node, unsigned dst_node, void * obj, void ** ptr, size_t * size)
 {
 	int pos = get_location_with_node(src_node);
-        return disk_register_list[pos]->functions->full_read(disk_register_list[pos]->base, obj, ptr, size);
+        return disk_register_list[pos]->functions->full_read(src_node, disk_register_list[pos]->base, obj, ptr, size);
 }
 
 int _starpu_disk_full_write(unsigned src_node, unsigned dst_node, void * obj, void * ptr, size_t size)
 {
 	int pos = get_location_with_node(dst_node);
-        return disk_register_list[pos]->functions->full_write(disk_register_list[pos]->base, obj, ptr, size);
+        return disk_register_list[pos]->functions->full_write(dst_node, disk_register_list[pos]->base, obj, ptr, size);
 }
 
 /* src_node == STARPU_MAIN_RAM and dst_node == disk node */

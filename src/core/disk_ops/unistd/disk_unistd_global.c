@@ -28,6 +28,7 @@
 #include <core/perfmodel/perfmodel.h>
 #include <core/disk_ops/unistd/disk_unistd_global.h>
 #include <datawizard/copy_driver.h>
+#include <datawizard/memory_manager.h>
 
 #ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
@@ -199,6 +200,15 @@ starpu_unistd_global_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, 
         return aio_read(aiocb);
 }
 
+int
+starpu_unistd_global_full_read(unsigned node, void *base, void * obj, void ** ptr, size_t * size)
+{
+        struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+
+        *size = tmp->size;
+        *ptr = malloc(*size);
+	return _starpu_disk_read(node, STARPU_MAIN_RAM, obj, *ptr, 0, *size, NULL);
+}
 
 
 /* write on the memory disk */
@@ -240,6 +250,28 @@ starpu_unistd_global_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
         return aio_write(aiocb);
 }
 
+int
+starpu_unistd_global_full_write (unsigned node, void * base, void * obj, void * ptr, size_t size)
+{
+        struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+
+        /* update file size to realise the next good full_read */
+        if(size != tmp->size)
+        {
+                _starpu_memory_manager_deallocate_size(tmp->size, node);
+                if (_starpu_memory_manager_can_allocate_size(size, node))
+                {
+#ifdef STARPU_HAVE_WINDOWS
+                        int val = _chsize(tmp->descriptor, size);
+#else
+                        int val = ftruncate(tmp->descriptor,size);
+#endif
+
+                        STARPU_ASSERT_MSG(val < 0,"StarPU Error to truncate file in STDIO full_write function");
+                }
+        }
+	return _starpu_disk_write(STARPU_MAIN_RAM, node, obj, ptr, 0, tmp->size, NULL);
+}
 
 
 /* create a new copy of parameter == base */

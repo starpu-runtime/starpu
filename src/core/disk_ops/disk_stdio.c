@@ -27,6 +27,7 @@
 #include <core/disk.h>
 #include <core/perfmodel/perfmodel.h>
 #include <datawizard/copy_driver.h>
+#include <datawizard/memory_manager.h>
 
 #ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
@@ -234,6 +235,16 @@ starpu_stdio_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *bu
 	return aio_read(aiocb);
 }
 
+static int
+starpu_stdio_full_read(unsigned node, void *base, void * obj, void ** ptr, size_t * size)
+{
+	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+
+	*size = tmp->size;
+	*ptr = malloc(*size);
+	return _starpu_disk_read(node, STARPU_MAIN_RAM, obj, *ptr, 0, *size, NULL);
+}
+
 /* write on the memory disk */
 static int 
 starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * async_channel)
@@ -270,6 +281,30 @@ starpu_stdio_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *b
 
         return aio_write(aiocb);
 }
+
+static int
+starpu_stdio_full_write (unsigned node, void * base, void * obj, void * ptr, size_t size)
+{
+	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
+	
+	/* update file size to realise the next good full_read */
+	if(size != tmp->size)
+	{
+		_starpu_memory_manager_deallocate_size(tmp->size, node);
+		if (_starpu_memory_manager_can_allocate_size(size, node))
+		{
+#ifdef STARPU_HAVE_WINDOWS
+			int val = _chsize(tmp->descriptor, size);
+#else
+			int val = ftruncate(tmp->descriptor,size);
+#endif
+
+			STARPU_ASSERT_MSG(val < 0,"StarPU Error to truncate file in STDIO full_write function");
+		}
+	}	
+	return _starpu_disk_write(STARPU_MAIN_RAM, node, obj, ptr, 0, tmp->size, NULL);
+}
+
 
 /* create a new copy of parameter == base */
 static void * 
@@ -421,5 +456,7 @@ struct starpu_disk_ops starpu_disk_stdio_ops = {
 	.copy = NULL,
 	.bandwidth = get_stdio_bandwidth_between_disk_and_main_ram,
 	.wait_request = starpu_stdio_wait_request,
-	.test_request = starpu_stdio_test_request
+	.test_request = starpu_stdio_test_request,
+	.full_read = starpu_stdio_full_read,
+	.full_write = starpu_stdio_full_write
 };
