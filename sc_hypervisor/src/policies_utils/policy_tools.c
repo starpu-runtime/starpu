@@ -616,7 +616,7 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 					if(!worker_in_ctx && !size_ctxs)
 					{
 						double transfer_velocity = starpu_transfer_bandwidth(0, starpu_worker_get_memory_node(worker));
-						transfer_time +=  (tp->data_size / transfer_velocity) / 1000. ;
+						transfer_time +=  (tp->footprint / transfer_velocity) / 1000. ;
 						
 						
 					}
