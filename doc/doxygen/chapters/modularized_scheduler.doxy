@@ -5,42 +5,48 @@
 
 Scheduler are a tree-like structure of homogeneous nodes that each
 provides push and pop primitives. Each node may have one father by
-context, specially worker nodes ase they are shared between all contexts.
+context, specially worker nodes as they are shared between all contexts.
 
 Tasks make a top bottom traversal of tree.
 
 A push call on a node make either a recursive call on one of its
 childs or make the task stored in the node and made available to a
-pop, in this case that node should call available to wake workers
+pop, in this case that node should call starpu_sched_node_available to wake workers
 up. Push must be called on a child, and only if this child can execute
 the task.
 
 A pop call on a node can either return a localy stored task or perform
 a recursive call on its father in its current context. Only workers
-can call pop.
+should call pop.
 
 
 \section Initialization
-The scheduler is initialized with all workers, and workers are then
-added or removed by simply masking them. 
-Scheduler nodes are created by <tt> starpu_sched_node_foo_create(void
-\* arg) </tt>, arg may be stored in starpu_sched_node::data
-The starpu_sched_node::init_data is the last function to be called during
-initialization, it can use starpu_sched_node::workers and
-starpu_sched_node::data.
+Scheduler node are created with the starpu_sched_node_foo_create() functions
+and then must be assembled using them starpu_sched_node::add_child and
+starpu_sched_node::remove_child function.
+A father can be set in order to allow him to be reacheable by a starpu_sched_node::pop_task
+call.
+
+Underlayings workers are memoized in starpu_sched_node::workers. Hence the
+function starpu_sched_tree_update_workers should be called when the scheduler is
+finished, or modified.
+
+\section Adding and removing workers
+
+
+
+
 
 \section Push
 All scheduler node must define a starpu_sched_node::push_task
 function. The caller ensure that the node can realy execute the task.
 
+
 \section Pop
 starpu_sched_node::push_task should either return a local task or
-perform a recursive call on 
+perform a recursive call on
 starpu_sched_node::fathers[sched_ctx_id], or \c NULL if its a root
 node.
-
-
-
 
 
 \section WorkersAndCombinedWorkers Workers and Combined workers

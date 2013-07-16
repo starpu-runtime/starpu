@@ -10,9 +10,10 @@
 
 
 
-struct starpu_bitmap{
+struct starpu_bitmap
+{
 	unsigned long * bits;
-	int size;
+	int size; /* the size of bits array in number of unsigned long */
 	int cardinal;
 };
 
@@ -51,6 +52,8 @@ void starpu_bitmap_set(struct starpu_bitmap * b, int e)
 
 	if(!starpu_bitmap_get(b, e))
 		b->cardinal++;
+	else
+		return;
 	if((e/LONG_BIT) + 1 > b->size)
 	{
 		b->bits = realloc(b->bits, sizeof(unsigned long) * ((e/LONG_BIT) + 1));
@@ -193,7 +196,7 @@ int starpu_bitmap_next(struct starpu_bitmap *b, int e)
 {
 	int nb_long = e / LONG_BIT;
 	int nb_bit = e % LONG_BIT;
-	unsigned long rest = (~0ul << (nb_bit + 1)) & b->bits[nb_long];
+	unsigned long rest = nb_bit == LONG_BIT - 1 ? 0 : (~0ul << (nb_bit + 1)) & b->bits[nb_long];
 	if(nb_bit != (LONG_BIT - 1) && rest)
 	{
 		int i = get_first_bit_rank(rest);
