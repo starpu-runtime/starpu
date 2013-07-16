@@ -75,7 +75,9 @@ void _starpu_profiling_reset_counters()
 {
 	int worker;
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	{
 		_starpu_worker_reset_profiling_info(worker);
+	}
 
 	int busid;
 	int bus_cnt = starpu_bus_get_count();
@@ -108,6 +110,12 @@ int starpu_profiling_status_set(int status)
 void _starpu_profiling_init(void)
 {
 	const char *env;
+	int worker;
+
+	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	{
+		STARPU_PTHREAD_MUTEX_INIT(&worker_info_mutex[worker], NULL);
+	}
 
 	_starpu_profiling_reset_counters();
 
