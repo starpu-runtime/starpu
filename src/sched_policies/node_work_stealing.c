@@ -351,7 +351,7 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 static void deinitialize_ws_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *t = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_sched_tree_destroy(t, sched_ctx_id);
+	starpu_sched_tree_destroy(t);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 

@@ -397,13 +397,13 @@ void starpu_sched_node_worker_destroy(struct starpu_sched_node *node)
 	_worker_nodes[id] = NULL;
 }
 
-void _starpu_sched_node_block_worker(int workerid)
+void _starpu_sched_node_lock_worker(int workerid)
 {
 	STARPU_ASSERT(0 <= workerid && workerid < (int) starpu_worker_get_count());
 	struct _starpu_worker_node_data * data = starpu_sched_node_worker_create(workerid)->data;
 	STARPU_PTHREAD_MUTEX_LOCK(&data->lock);
 }
-void _starpu_sched_node_unblock_worker(int workerid)
+void _starpu_sched_node_unlock_worker(int workerid)
 {
 	STARPU_ASSERT(0 <= workerid && workerid < (int)starpu_worker_get_count());
 	struct _starpu_worker_node_data * data = starpu_sched_node_worker_create(workerid)->data;
@@ -414,13 +414,13 @@ void _starpu_sched_node_lock_all_workers(void)
 {
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count(); i++)
-		_starpu_sched_node_block_worker(i);
+		_starpu_sched_node_lock_worker(i);
 }
 void _starpu_sched_node_unlock_all_workers(void)
 {
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count(); i++)
-		_starpu_sched_node_unblock_worker(i);
+		_starpu_sched_node_unlock_worker(i);
 }
 
 

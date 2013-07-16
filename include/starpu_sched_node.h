@@ -100,7 +100,7 @@ struct starpu_sched_tree
 	 * it is taken in read mode pushing a task
 	 * and in write mode for adding or removing workers
 	 */
-	starpu_pthread_rwlock_t lock;
+	starpu_pthread_mutex_t lock;
 };
 
 
@@ -159,10 +159,6 @@ struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data
 
 int starpu_sched_node_is_heft(struct starpu_sched_node * node);
 
-/* compute predicted_end by taking in account the case of the predicted transfer and the predicted_end overlap
- */
-double starpu_sched_compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer);
-
 /* this node select the best implementation for the first worker in context that can execute task.
  * and fill task->predicted and task->predicted_transfer
  * cannot have several childs if push_task is called
@@ -175,7 +171,7 @@ struct starpu_sched_node * starpu_sched_node_calibration_create(void * arg STARP
 /*create an empty tree
  */
 struct starpu_sched_tree * starpu_sched_tree_create(unsigned sched_ctx_id);
-void starpu_sched_tree_destroy(struct starpu_sched_tree * tree, unsigned sched_ctx_id);
+void starpu_sched_tree_destroy(struct starpu_sched_tree * tree);
 
 /* destroy node and all his child
  * except if they are shared between several contexts

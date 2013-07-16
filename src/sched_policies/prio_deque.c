@@ -4,10 +4,12 @@
 
 void _starpu_prio_deque_init(struct _starpu_prio_deque * pdeque)
 {
+	STARPU_ASSERT(pdeque);
 	memset(pdeque,0,sizeof(*pdeque));
 }
 void _starpu_prio_deque_destroy(struct _starpu_prio_deque * pdeque)
 {
+	STARPU_ASSERT(pdeque);
 	int i;
 	for(i = 0; i < pdeque->size_array; i++)
 	{
@@ -18,11 +20,17 @@ void _starpu_prio_deque_destroy(struct _starpu_prio_deque * pdeque)
 
 int _starpu_prio_deque_is_empty(struct _starpu_prio_deque * pdeque)
 {
+	STARPU_ASSERT(pdeque);
 	return pdeque->ntasks == 0;
 }
 
+
+/* return the struct starpu_prio_list * of prio,
+ * create it and return it if none exist yet
+ */
 static struct starpu_task_list * get_prio(struct _starpu_prio_deque * pdeque, int prio)
 {
+	STARPU_ASSERT(pdeque);
 	int i;
 	for(i = 0; i < pdeque->size_array; i++)
 	{
@@ -48,12 +56,16 @@ static struct starpu_task_list * get_prio(struct _starpu_prio_deque * pdeque, in
 
 int _starpu_prio_deque_push_task(struct _starpu_prio_deque * pdeque, struct starpu_task * task)
 {
+	STARPU_ASSERT(pdeque && task);
 	struct starpu_task_list * list = get_prio(pdeque, task->priority);
 	starpu_task_list_push_back(list, task);
 	pdeque->ntasks++;
 	return 0;
 }
 
+
+
+/* a little dirty code factorization */
 
 static inline int pred_true(struct starpu_task * t STARPU_ATTRIBUTE_UNUSED, void * v STARPU_ATTRIBUTE_UNUSED)
 {
@@ -68,7 +80,6 @@ static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)
 			return 1;
 	return 0;
 }
-
 
 #define REMOVE_TASK(pdeque, first_task_field, next_task_field, predicate, parg)	\
 	{								\
@@ -95,16 +106,21 @@ struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_prio_deque * pde
 }
 struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid)
 {
+	STARPU_ASSERT(pdeque);
+	STARPU_ASSERT(0 <= workerid && (unsigned) workerid < starpu_worker_get_count());
 	REMOVE_TASK(pdeque, head, prev, pred_can_execute, &workerid);
 }
 
-// deque a task of the higher priority available
+/* deque a task of the higher priority available */
 struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_prio_deque * pdeque)
 {
+	STARPU_ASSERT(pdeque);
 	REMOVE_TASK(pdeque, tail, next, pred_true, STARPU_POISON_PTR);
 }
 
 struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid)
 {
+	STARPU_ASSERT(pdeque);
+	STARPU_ASSERT(0 <= workerid && (unsigned) workerid < starpu_worker_get_count());
 	REMOVE_TASK(pdeque, tail, next, pred_can_execute, &workerid);
 }

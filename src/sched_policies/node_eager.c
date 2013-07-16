@@ -26,7 +26,7 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_sched_tree_destroy(tree, sched_ctx_id);
+	starpu_sched_tree_destroy(tree);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 

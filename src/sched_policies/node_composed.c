@@ -1,5 +1,10 @@
 #include <starpu_sched_node.h>
 #include <common/list.h>
+
+
+/* a composed node is parametred by a list of pair
+ * (create_node_function(arg), arg)
+ */
 LIST_TYPE(fun_create_node,
 	  struct starpu_sched_node *(*create_node)(void * arg);
 	  void * arg;
@@ -19,14 +24,17 @@ struct _starpu_composed_sched_node_recipe * starpu_sched_node_create_recipe(void
 	return recipe;
 }
 
-void starpu_sched_recipe_add_node(struct _starpu_composed_sched_node_recipe * recipe, struct starpu_sched_node *(*create_node)(void * arg), void * arg)
+void starpu_sched_recipe_add_node(struct _starpu_composed_sched_node_recipe * recipe,
+				  struct starpu_sched_node *(*create_node)(void * arg),
+				  void * arg)
 {
 	struct fun_create_node * e = fun_create_node_new();
 	e->create_node = create_node;
 	e->arg = arg;
 	fun_create_node_list_push_back(recipe->list, e);
 }
-struct _starpu_composed_sched_node_recipe * starpu_sched_node_create_recipe_singleton(struct starpu_sched_node *(*create_node)(void * arg), void * arg)
+struct _starpu_composed_sched_node_recipe * starpu_sched_node_create_recipe_singleton(struct starpu_sched_node *(*create_node)(void * arg),
+										      void * arg)
 {
 	struct _starpu_composed_sched_node_recipe * r = starpu_sched_node_create_recipe();
 	starpu_sched_recipe_add_node(r, create_node, arg);
@@ -42,10 +50,16 @@ void _starpu_destroy_composed_sched_node_recipe(struct _starpu_composed_sched_no
 	free(recipe);
 }
 
+
+
 struct composed_node
 {
 	struct starpu_sched_node *top,*bottom;
 };
+
+/* this function actualy build the composed node data by changing the list of
+ * (node_create_fun, arg_create_fun) into a tree where all nodes have 1 childs
+ */
 struct composed_node create_composed_node(struct _starpu_composed_sched_node_recipe * recipe
 #ifdef STARPU_HAVE_HWLOC
 					  ,hwloc_obj_t obj
@@ -53,11 +67,8 @@ struct composed_node create_composed_node(struct _starpu_composed_sched_node_rec
 )
 {
 	struct composed_node c;
-	if(!recipe)
-	{
-		c.top = c.bottom = NULL;
-		return c;
-	}
+	STARPU_ASSERT(recipe);
+
 	struct fun_create_node_list * list = recipe->list;
 	struct fun_create_node * i = fun_create_node_list_begin(list);
 	STARPU_ASSERT(i);
@@ -76,16 +87,19 @@ struct composed_node create_composed_node(struct _starpu_composed_sched_node_rec
 		node->obj = obj;
 #endif
 		starpu_sched_node_add_child(c.bottom, node);
-//we want to be able to to traverse scheduler bottom up for all sched ctxs
-		int j;
+
+		/* we want to be able to traverse scheduler bottom up for all sched ctxs
+		 * when a worker call pop()
+		 */
+		unsigned j;
 		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-			starpu_sched_node_set_father(node, c.bottom,(unsigned)j);
+			starpu_sched_node_set_father(node, c.bottom, j);
 		c.bottom = node;
 	}
 	STARPU_ASSERT(!starpu_sched_node_is_worker(c.bottom));
 	return c;
 }
-		
+
 
 static int composed_node_push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
@@ -104,13 +118,6 @@ struct starpu_task * composed_node_pop_task(struct starpu_sched_node *node, unsi
 	return NULL;
 }
 
-/*
-void composed_node_available(struct starpu_sched_node *node)
-{
-	struct composed_node * c = node->data;
-	c->top->available(c->top);
-}
-*/	
 double composed_node_estimated_load(struct starpu_sched_node * node)
 {
 	struct composed_node * c = node->data;
@@ -140,10 +147,10 @@ static void composed_node_notify_change_workers(struct starpu_sched_node * node)
 	{
 		starpu_bitmap_unset_all(n->workers);
 		starpu_bitmap_or(n->workers, workers);
-	       
+
 		starpu_bitmap_unset_all(n->workers_in_ctx);
 		starpu_bitmap_or(n->workers_in_ctx, workers_in_ctx);
-		
+
 		n->is_homogeneous = is_homogeneous;
 		if(n == c->bottom)
 			break;
@@ -179,7 +186,7 @@ struct starpu_sched_node * starpu_sched_node_composed_node_create(struct _starpu
 	*c = create_composed_node(recipe
 #ifdef STARPU_HAVE_HWLOC
 				  ,node->obj
-#endif 
+#endif
 );
 	c->bottom->nchilds = node->nchilds;
 	c->bottom->childs = node->childs;
@@ -187,7 +194,6 @@ struct starpu_sched_node * starpu_sched_node_composed_node_create(struct _starpu
 	node->data = c;
 	node->push_task = composed_node_push_task;
 	node->pop_task = composed_node_pop_task;
-//	node->available = composed_node_available;
 	node->estimated_load = composed_node_estimated_load;
 	node->add_child = composed_node_add_child;
 	node->remove_child = composed_node_remove_child;

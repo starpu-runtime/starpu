@@ -18,13 +18,25 @@ static double compute_relative_speedup(struct starpu_sched_node * node)
 }
 
 
-static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
+static int random_push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
 	STARPU_ASSERT(node->nchilds > 0);
+
+	/* indexes_nodes and size are used to memoize node that can execute tasks
+	 * during the first phase of algorithm, it contain the size indexes of the nodes
+	 * that can execute task.
+	 */
 	int indexes_nodes[node->nchilds];
+	int size=0;
+
+	/* speedup[i] is revelant only if i is in the size firsts elements of
+	 * indexes_nodes
+	 */
 	double speedup[node->nchilds];
-	int size=0,i;
+
 	double alpha_sum = 0.0;
+
+	int i;
 	for(i = 0; i < node->nchilds ; i++)
 	{
 		if(starpu_sched_node_can_execute_task(node->childs[i],task))
@@ -38,6 +50,9 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 	if(size == 0)
 		return -ENODEV;
 
+	/* not fully sure that this code is correct
+	 * because of bad properties of double arithmetic
+	 */
 	double random = starpu_drand48()*alpha_sum;
 	double alpha = 0.0;
 	struct starpu_sched_node * select  = NULL;
@@ -57,7 +72,9 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 
 	return ret_val;
 }
-
+/* taking the min of estimated_end not seems to be a good value to return here
+ * as random scheduler balance between childs very poorly
+ */
 double random_estimated_end(struct starpu_sched_node * node)
 {
 	double sum = 0.0;
@@ -66,17 +83,18 @@ double random_estimated_end(struct starpu_sched_node * node)
 		sum += node->childs[i]->estimated_end(node->childs[i]);
 	return sum / node->nchilds;
 }
+
 struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
 	node->estimated_end = random_estimated_end;
-	node->push_task = push_task;
+	node->push_task = random_push_task;
 	return node;
 }
 
 int starpu_sched_node_is_random(struct starpu_sched_node *node)
 {
-	return node->push_task == push_task;
+	return node->push_task == random_push_task;
 }
 
 
@@ -101,7 +119,7 @@ static void initialize_random_center_policy(unsigned sched_ctx_id)
 static void deinitialize_random_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_sched_tree_destroy(tree, sched_ctx_id);
+	starpu_sched_tree_destroy(tree);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 

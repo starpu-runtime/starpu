@@ -22,15 +22,27 @@ struct _starpu_prio_deque
 void _starpu_prio_deque_init(struct _starpu_prio_deque *);
 void _starpu_prio_deque_destroy(struct _starpu_prio_deque *);
 
+/* return 0 iff the struct _starpu_prio_deque is not empty */
 int _starpu_prio_deque_is_empty(struct _starpu_prio_deque *);
 
-int _starpu_prio_deque_push_task(struct _starpu_prio_deque *, struct starpu_task*);
+/* push a task in O(nb priorities) */
+int _starpu_prio_deque_push_task(struct _starpu_prio_deque *, struct starpu_task *);
 
-struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_prio_deque*);
-struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque*, int workerid);
 
-// deque a task of the higher priority available
+/* all _starpu_prio_deque_pop/deque_task function return a task or a NULL pointer if none are available
+ * in O(nb priorities)
+ */
+
+struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_prio_deque *);
+
+/* return a task that can be executed by workerid
+ */
+struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque *, int workerid);
+
+/* deque a task of the higher priority available */
 struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_prio_deque *);
+/* return a task that can be executed by workerid
+ */
 struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque *, int workerid);
 
-#endif // __PRIO_DEQUE_H__
+#endif /* __PRIO_DEQUE_H__ */

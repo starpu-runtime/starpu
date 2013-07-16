@@ -37,7 +37,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 
 	r = starpu_sched_node_create_recipe();
 	starpu_sched_recipe_add_node(r, starpu_sched_node_best_implementation_create, NULL);
-	starpu_sched_recipe_add_node(r, starpu_sched_node_work_stealing_create ,NULL);
+	starpu_sched_recipe_add_node(r, starpu_sched_node_fifo_create ,NULL);
 
 	specs.hwloc_node_composed_sched_node = r;
 	specs.worker_composed_sched_node = recipe_for_worker;
@@ -55,7 +55,7 @@ static void deinitialize_heft_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *t = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	starpu_sched_tree_destroy(t, sched_ctx_id);
+	starpu_sched_tree_destroy(t);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
