@@ -45,15 +45,16 @@ struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 {
 	struct _starpu_fifo_taskq *fifo;
 	fifo = (struct _starpu_fifo_taskq *) malloc(sizeof(struct _starpu_fifo_taskq));
-	
+
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	starpu_task_list_init(&fifo->taskq);
 	fifo->ntasks = 0;
 	fifo->nprocessed = 0;
-	
+
 	fifo->exp_start = starpu_timing_now();
 	fifo->exp_len = 0.0;
 	fifo->exp_end = fifo->exp_start;
+
 	return fifo;
 }
 
@@ -71,6 +72,7 @@ int
 _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task)
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
+
 	if (list->head == NULL)
 	{
 		list->head = task;
@@ -123,6 +125,7 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct star
 
 	fifo_queue->ntasks++;
 	fifo_queue->nprocessed++;
+
 	return 0;
 }
 
@@ -147,6 +150,7 @@ int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_
 struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue, int workerid)
 {
 	struct starpu_task *task;
+
 	for (task  = starpu_task_list_begin(&fifo_queue->taskq);
 	     task != starpu_task_list_end(&fifo_queue->taskq);
 	     task  = starpu_task_list_next(task))
