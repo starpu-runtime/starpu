@@ -198,7 +198,7 @@ starpu_stdio_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size S
 
 /* read the memory disk */
 static int 
-starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
+starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 		
@@ -236,7 +236,7 @@ starpu_stdio_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *bu
 }
 
 static int
-starpu_stdio_full_read(unsigned node, void *base, void * obj, void ** ptr, size_t * size)
+starpu_stdio_full_read(unsigned node, void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
@@ -247,7 +247,7 @@ starpu_stdio_full_read(unsigned node, void *base, void * obj, void ** ptr, size_
 
 /* write on the memory disk */
 static int 
-starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * async_channel)
+starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
@@ -283,7 +283,7 @@ starpu_stdio_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *b
 }
 
 static int
-starpu_stdio_full_write (unsigned node, void * base, void * obj, void * ptr, size_t size)
+starpu_stdio_full_write (unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 	
@@ -299,7 +299,11 @@ starpu_stdio_full_write (unsigned node, void * base, void * obj, void * ptr, siz
 			int val = ftruncate(tmp->descriptor,size);
 #endif
 
-			STARPU_ASSERT_MSG(val < 0,"StarPU Error to truncate file in STDIO full_write function");
+			STARPU_ASSERT_MSG(val >= 0,"StarPU Error to truncate file in STDIO full_write function");
+		}
+		else
+		{
+			STARPU_ASSERT_MSG(0, "Can't allocate size %u on the disk !", (int) size); 
 		}
 	}	
 	return _starpu_disk_write(STARPU_MAIN_RAM, node, obj, ptr, 0, tmp->size, NULL);

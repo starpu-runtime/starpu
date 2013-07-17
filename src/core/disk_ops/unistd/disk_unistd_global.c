@@ -162,7 +162,7 @@ starpu_unistd_global_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_
 
 /* read the memory disk */
  int 
-starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
+starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
 
@@ -201,7 +201,7 @@ starpu_unistd_global_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, 
 }
 
 int
-starpu_unistd_global_full_read(unsigned node, void *base, void * obj, void ** ptr, size_t * size)
+starpu_unistd_global_full_read(unsigned node, void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
 {
         struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
 
@@ -213,7 +213,7 @@ starpu_unistd_global_full_read(unsigned node, void *base, void * obj, void ** pt
 
 /* write on the memory disk */
  int 
-starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * async_channel)
+starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
 
@@ -251,7 +251,7 @@ starpu_unistd_global_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 }
 
 int
-starpu_unistd_global_full_write (unsigned node, void * base, void * obj, void * ptr, size_t size)
+starpu_unistd_global_full_write (unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
 {
         struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
 
@@ -267,8 +267,13 @@ starpu_unistd_global_full_write (unsigned node, void * base, void * obj, void * 
                         int val = ftruncate(tmp->descriptor,size);
 #endif
 
-                        STARPU_ASSERT_MSG(val < 0,"StarPU Error to truncate file in STDIO full_write function");
+                        STARPU_ASSERT_MSG(val >= 0,"StarPU Error to truncate file in UNISTD full_write function");
                 }
+                else
+                {
+                        STARPU_ASSERT_MSG(0, "Can't allocate size %u on the disk !", (int) size);
+                }
+
         }
 	return _starpu_disk_write(STARPU_MAIN_RAM, node, obj, ptr, 0, tmp->size, NULL);
 }

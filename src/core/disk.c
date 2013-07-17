@@ -123,7 +123,7 @@ _starpu_disk_free(unsigned node, void *obj, size_t size)
 
 /* src_node == disk node and dst_node == STARPU_MAIN_RAM */
 int 
-_starpu_disk_read(unsigned src_node, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
+_starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
 {
 	int pos = get_location_with_node(src_node);
         int values = -1;
@@ -150,13 +150,13 @@ _starpu_disk_read(unsigned src_node, unsigned dst_node, void *obj, void *buf, of
 	return -EAGAIN;
 }
 
-int _starpu_disk_full_read(unsigned src_node, unsigned dst_node, void * obj, void ** ptr, size_t * size)
+int _starpu_disk_full_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
 {
 	int pos = get_location_with_node(src_node);
         return disk_register_list[pos]->functions->full_read(src_node, disk_register_list[pos]->base, obj, ptr, size);
 }
 
-int _starpu_disk_full_write(unsigned src_node, unsigned dst_node, void * obj, void * ptr, size_t size)
+int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void * obj, void * ptr, size_t size)
 {
 	int pos = get_location_with_node(dst_node);
         return disk_register_list[pos]->functions->full_write(dst_node, disk_register_list[pos]->base, obj, ptr, size);
@@ -164,7 +164,7 @@ int _starpu_disk_full_write(unsigned src_node, unsigned dst_node, void * obj, vo
 
 /* src_node == STARPU_MAIN_RAM and dst_node == disk node */
 int 
-_starpu_disk_write(unsigned src_node, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
+_starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
 {
 	int pos = get_location_with_node(dst_node);
         int values = -1;
