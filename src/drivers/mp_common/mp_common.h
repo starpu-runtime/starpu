@@ -134,6 +134,9 @@ struct _starpu_mp_node
 	 * Must be initialized during init function*/
 	int nb_cores;
 
+	/*Is starpu running*/
+	int is_running;
+
 	/* Buffer used for scif data transfers, allocated
 	 * during node initialization.
 	 * Size : BUFFER_SIZE */

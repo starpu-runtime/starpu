@@ -1422,7 +1422,7 @@ unsigned starpu_worker_is_combined_worker(int id)
 
 struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
-	if (id == STARPU_NMAX_SCHED_CTXS) return NULL;
+	if(id == STARPU_NMAX_SCHED_CTXS) return NULL;
 	return &config.sched_ctxs[id];
 }
 

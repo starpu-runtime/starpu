@@ -54,10 +54,10 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	_starpu_mic_common_accept(&node->host_sink_dt_connection.mic_endpoint,
 									 STARPU_MIC_SOURCE_DT_PORT_NUMBER);
 	
+	node->is_running = 1;
+
 	//init the set
 	CPU_ZERO(&cpuset);
-
-//	node->nb_cores = COISysGetCoreCount();
 
 	node->nb_cores = COISysGetHardwareThreadCount() - COISysGetHardwareThreadCount() / COISysGetCoreCount();
 	node->thread_table = malloc(sizeof(pthread_t)*node->nb_cores);
@@ -117,6 +117,26 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 
 void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 {
+	
+	int i;
+	node->is_running = 0;
+	for(i=0; i<node->nb_cores; i++)
+	{
+		sem_post(&node->sem_run_table[i]);
+		pthread_join(((pthread_t *)node->thread_table)[i],NULL);
+		sem_destroy(&node->sem_run_table[i]);
+	}
+
+	free(node->thread_table);
+	free(node->run_table);
+	free(node->sem_run_table);
+
+	mp_barrier_list_delete(node->barrier_list);
+	mp_message_list_delete(node->message_queue);
+
+	pthread_mutex_destroy(&node->message_queue_mutex);
+	pthread_mutex_destroy(&node->barrier_mutex);
+	
 	//unsigned int i;
 
 	//for (i = 0; i < node->nb_mp_sinks; ++i)

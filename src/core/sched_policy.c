@@ -611,7 +611,6 @@ pick:
 				sched_ctx = _starpu_get_initial_sched_ctx();
 			else
 				sched_ctx = _get_next_sched_ctx_to_pop_into(worker);
-
 			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
 				if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)

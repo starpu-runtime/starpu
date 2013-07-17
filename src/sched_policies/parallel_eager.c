@@ -203,8 +203,6 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		return task;
 	}
 
-	_STARPU_DEBUG("workerid:%d\n", workerid);
-
 	int master = data->master_id[workerid];
 
 	//_STARPU_DEBUG("workerid:%d, master:%d\n",workerid,master);
@@ -237,8 +235,6 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 				}
 			}
 		}
-
-		_STARPU_DEBUG("## best_workerid:%d, best_size:%d\n",best_workerid,best_size);
 
 		/* In case nobody can execute this task, we let the master
 		 * worker take it anyway, so that it can discard it afterward.

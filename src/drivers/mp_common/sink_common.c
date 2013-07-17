@@ -258,82 +258,85 @@ void* _starpu_sink_thread(void * thread_arg)
 	/* free the structure */
 	free(thread_arg);
 
-
-	while(1)
+	while(node->is_running)
 	{
 		/*Wait there is a task available */
 		sem_wait(sem);
 
-		/* If it's a parallel task */
-		if((*task)->is_parallel_task)
+		if((*task) != NULL)
 		{
-			/* Synchronize with others threads of the combined worker*/
-			STARPU_PTHREAD_BARRIER_WAIT(&(*task)->mp_barrier->before_work_barrier);
 
-			/* The first thread of the combined worker 
-			 * tell the sink that the execution has begun
-			 */
-			if((*task)->coreid == (*task)->combined_worker[0])
+			/* If it's a parallel task */
+			if((*task)->is_parallel_task)
 			{
-				/* Init message to tell the sink that the execution has begun */
-				struct mp_message * message = mp_message_new();
-				message->type = STARPU_PRE_EXECUTION;
-				*(int *) message->buffer = (*task)->combined_workerid;
-				message->size = sizeof((*task)->combined_workerid);
+				/* Synchronize with others threads of the combined worker*/
+				STARPU_PTHREAD_BARRIER_WAIT(&(*task)->mp_barrier->before_work_barrier);
 
-				/* Append the message to the queue */	
-				pthread_mutex_lock(&node->message_queue_mutex);
-				mp_message_list_push_front(node->message_queue,message);
-				pthread_mutex_unlock(&node->message_queue_mutex);
-
-				/* If the mode is FORKJOIN, 
-				 * the first thread binds himself on all core of the combined worker 
+				/* The first thread of the combined worker 
+				 * tell the sink that the execution has begun
 				 */
-				if((*task)->type == STARPU_FORKJOIN)
-					node->bind_thread(node, coreid, (*task)->combined_worker, (*task)->combined_worker_size);
+				if((*task)->coreid == (*task)->combined_worker[0])
+				{
+					/* Init message to tell the sink that the execution has begun */
+					struct mp_message * message = mp_message_new();
+					message->type = STARPU_PRE_EXECUTION;
+					*(int *) message->buffer = (*task)->combined_workerid;
+					message->size = sizeof((*task)->combined_workerid);
+
+					/* Append the message to the queue */	
+					pthread_mutex_lock(&node->message_queue_mutex);
+					mp_message_list_push_front(node->message_queue,message);
+					pthread_mutex_unlock(&node->message_queue_mutex);
+
+					/* If the mode is FORKJOIN, 
+					 * the first thread binds himself on all core of the combined worker 
+					 */
+					if((*task)->type == STARPU_FORKJOIN)
+						node->bind_thread(node, coreid, (*task)->combined_worker, (*task)->combined_worker_size);
+				}
 			}
-		}
-		if((*task)->type != STARPU_FORKJOIN || (*task)->coreid == (*task)->combined_worker[0])
-		{
-			/* execute the task */
-			(*task)->kernel((*task)->interfaces,(*task)->cl_arg);
-		}
-
-		/* If it's a parallel task */
-		if((*task)->is_parallel_task)
-		{
-			/* Synchronize with others threads of the combined worker*/
-			STARPU_PTHREAD_BARRIER_WAIT(&(*task)->mp_barrier->after_work_barrier);
-
-			/* The fisrt thread of the combined */
-			if((*task)->coreid == (*task)->combined_worker[0])
+			if((*task)->type != STARPU_FORKJOIN || (*task)->coreid == (*task)->combined_worker[0])
 			{
-				/* Erase the barrier from the list */
-				pthread_mutex_lock(&node->barrier_mutex);
-				mp_barrier_list_erase(node->barrier_list,(*task)->mp_barrier);
-				pthread_mutex_unlock(&node->barrier_mutex);
-			
-				/* If the mode is FORKJOIN, 
-				 * the first thread rebinds himself on his own core 
-				 */
-				if((*task)->type == STARPU_FORKJOIN)
-					node->bind_thread(node, coreid, &coreid, 1);
-
+				/* execute the task */
+				(*task)->kernel((*task)->interfaces,(*task)->cl_arg);
 			}
+
+			/* If it's a parallel task */
+			if((*task)->is_parallel_task)
+			{
+				/* Synchronize with others threads of the combined worker*/
+				STARPU_PTHREAD_BARRIER_WAIT(&(*task)->mp_barrier->after_work_barrier);
+
+				/* The fisrt thread of the combined */
+				if((*task)->coreid == (*task)->combined_worker[0])
+				{
+					/* Erase the barrier from the list */
+					pthread_mutex_lock(&node->barrier_mutex);
+					mp_barrier_list_erase(node->barrier_list,(*task)->mp_barrier);
+					pthread_mutex_unlock(&node->barrier_mutex);
+
+					/* If the mode is FORKJOIN, 
+					 * the first thread rebinds himself on his own core 
+					 */
+					if((*task)->type == STARPU_FORKJOIN)
+						node->bind_thread(node, coreid, &coreid, 1);
+
+				}
+			}
+			/* Init message to tell the sink that the execution is completed */
+			struct mp_message * message = mp_message_new();
+			message->type = STARPU_EXECUTION_COMPLETED;
+			message->size = sizeof((*task)->coreid);
+			*(int*) message->buffer = (*task)->coreid;
+
+			free(*task);
+			(*task) = NULL;
+
+			/* Append the message to the queue */
+			pthread_mutex_lock(&node->message_queue_mutex);
+			mp_message_list_push_front(node->message_queue,message);
+			pthread_mutex_unlock(&node->message_queue_mutex);
 		}
-		/* Init message to tell the sink that the execution is completed */
-		struct mp_message * message = mp_message_new();
-		message->type = STARPU_EXECUTION_COMPLETED;
-		message->size = sizeof((*task)->coreid);
-		*(int*) message->buffer = (*task)->coreid;
-
-		free(*task);
-		(*task) = NULL;
-
-		/* Append the message to the queue */
-		pthread_mutex_lock(&node->message_queue_mutex);
-		mp_message_list_push_front(node->message_queue,message);
-		pthread_mutex_unlock(&node->message_queue_mutex);
 
 	}
 	pthread_exit(NULL);

@@ -342,11 +342,6 @@ if test x$enable_cpu = xyes; then
 	AC_DEFINE(STARPU_USE_CPU, [1], [CPU driver is activated])
 fi
 
-# How many parallel worker can we support ?
-nmaxcombinedworkers=`expr 2 \* $maxcpus`
-AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
-	[$nmaxcombinedworkers], [Maximum number of worker combinations])
-
 ###############################################################################
 #                                                                             #
 #                                 CUDA settings                               #
@@ -1475,6 +1470,15 @@ nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmi
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
+
+# Computes the maximun number of combined worker
+nmaxcombinedworkers=`expr $maxcpus + $nmaxmicthreads`  
+AC_MSG_CHECKING(Maximum number of workers combinations)
+AC_MSG_RESULT($nmaxcombinedworkers)
+AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
+	[$nmaxcombinedworkers], [Maximum number of worker combinations])
+
+
 
 # Computes the maximum number of implementations per arch
 AC_MSG_CHECKING(maximum number of implementations)
