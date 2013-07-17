@@ -29,8 +29,8 @@ struct _starpu_peager_data
         starpu_pthread_mutex_t policy_mutex;
 };
 
-#define STARPU_NMAXCOMBINED_WORKERS 200
-/* XXX instead of 10, we should use some "MAX combination .."*/
+#define STARPU_NMAXCOMBINED_WORKERS 480
+/* instead of STARPU_NMAXCOMBINED_WORKERS, we should use some "MAX combination .."*/
 static int possible_combinations_cnt[STARPU_NMAXWORKERS];
 static int possible_combinations[STARPU_NMAXWORKERS][STARPU_NMAXCOMBINED_WORKERS];
 static int possible_combinations_size[STARPU_NMAXWORKERS][STARPU_NMAXCOMBINED_WORKERS];
@@ -203,6 +203,7 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		return task;
 	}
 
+	_STARPU_DEBUG("workerid:%d\n", workerid);
 
 	int master = data->master_id[workerid];
 
@@ -236,6 +237,8 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 				}
 			}
 		}
+
+		_STARPU_DEBUG("## best_workerid:%d, best_size:%d\n",best_workerid,best_size);
 
 		/* In case nobody can execute this task, we let the master
 		 * worker take it anyway, so that it can discard it afterward.

@@ -18,6 +18,7 @@
 #define __MP_COMMON_H__
 
 #include <pthread.h>
+#include <semaphore.h>
 
 #include <starpu.h>
 #include <common/config.h>
@@ -182,7 +183,7 @@ struct _starpu_mp_node
 
 	/*table where worker comme pick task*/
 	struct mp_task ** run_table;
-	pthread_mutex_t * mutex_run_table;
+	sem_t * sem_run_table;
 
 	/* Node general functions */
 	void (*init)(struct _starpu_mp_node *node);

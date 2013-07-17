@@ -21,7 +21,7 @@
 #include <unistd.h>
 #include "../helper.h"
 
-#define N	1000
+#define N	10
 #define VECTORSIZE	1024
 
 void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)

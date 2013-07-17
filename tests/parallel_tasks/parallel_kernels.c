@@ -28,9 +28,9 @@ void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
-	//int worker_size = starpu_combined_worker_get_size();
-	//STARPU_ASSERT(worker_size > 0);
-	//usleep(1000/worker_size);
+	int worker_size = starpu_combined_worker_get_size();
+	STARPU_ASSERT(worker_size > 0);
+	usleep(1000/worker_size);
 #if 0
 	int id = starpu_worker_get_id();
 	int combined_id = starpu_combined_worker_get_id();

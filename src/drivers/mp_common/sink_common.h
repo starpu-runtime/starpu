@@ -36,7 +36,7 @@ struct arg_sink_thread
 {
 	struct mp_task ** task;
 	struct _starpu_mp_node *node;
-	pthread_mutex_t* mutex;
+	sem_t* sem;
 	int coreid;
 };
 

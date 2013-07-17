@@ -253,7 +253,7 @@ void* _starpu_sink_thread(void * thread_arg)
 	/* Retrieve the information from the structure */
 	struct mp_task **task = ((struct arg_sink_thread *)thread_arg)->task;
 	struct _starpu_mp_node *node = ((struct arg_sink_thread *)thread_arg)->node;
-	pthread_mutex_t * mutex = ((struct arg_sink_thread *)thread_arg)->mutex;
+	sem_t * sem = ((struct arg_sink_thread *)thread_arg)->sem;
 	int coreid =((struct arg_sink_thread *)thread_arg)->coreid;
 	/* free the structure */
 	free(thread_arg);
@@ -262,7 +262,7 @@ void* _starpu_sink_thread(void * thread_arg)
 	while(1)
 	{
 		/*Wait there is a task available */
-		pthread_mutex_lock(mutex);
+		sem_wait(sem);
 
 		/* If it's a parallel task */
 		if((*task)->is_parallel_task)
@@ -347,7 +347,7 @@ static void _starpu_sink_common_execute_thread(struct _starpu_mp_node *node, str
 	/* Add the task to the specific thread */
 	node->run_table[task->coreid] = task;
 	/* Unlock the mutex to wake up the thread which will execute the task */
-	pthread_mutex_unlock(&node->mutex_run_table[task->coreid]);
+	sem_post(&node->sem_run_table[task->coreid]);
 }
 
 /* Search for the mp_barrier correspondind to the specified combined worker 

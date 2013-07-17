@@ -63,7 +63,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	node->thread_table = malloc(sizeof(pthread_t)*node->nb_cores);
 
 	node->run_table = malloc(sizeof(struct mp_task *)*node->nb_cores);
-	node->mutex_run_table = malloc(sizeof(pthread_mutex_t)*node->nb_cores);
+	node->sem_run_table = malloc(sizeof(sem_t)*node->nb_cores);
 
 	node->barrier_list = mp_barrier_list_new();
 	node->message_queue = mp_message_list_new();
@@ -76,8 +76,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	{
 		node->run_table[i] = NULL;
 
-		pthread_mutex_init(&node->mutex_run_table[i],NULL);
-		pthread_mutex_lock(&node->mutex_run_table[i]);
+		sem_init(&node->sem_run_table[i],0,0);
 
 		//init the set
 		CPU_ZERO(&cpuset);
@@ -93,7 +92,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 		arg->task = &node->run_table[i];
 		arg->coreid = i;
 		arg->node = node;
-		arg->mutex = &node->mutex_run_table[i];
+		arg->sem = &node->sem_run_table[i];
 		
 		ret = pthread_create(&thread, &attr, _starpu_sink_thread, arg);
 		((pthread_t *)node->thread_table)[i] = thread;
