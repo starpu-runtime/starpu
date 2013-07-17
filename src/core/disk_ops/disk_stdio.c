@@ -300,6 +300,7 @@ starpu_stdio_full_write (unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, voi
 #endif
 
 			STARPU_ASSERT_MSG(val >= 0,"StarPU Error to truncate file in STDIO full_write function");
+			tmp->size = size;
 		}
 		else
 		{

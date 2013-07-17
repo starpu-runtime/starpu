@@ -268,6 +268,7 @@ starpu_unistd_global_full_write (unsigned node, void * base STARPU_ATTRIBUTE_UNU
 #endif
 
                         STARPU_ASSERT_MSG(val >= 0,"StarPU Error to truncate file in UNISTD full_write function");
+			tmp->size = size;
                 }
                 else
                 {
