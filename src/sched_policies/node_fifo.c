@@ -27,7 +27,7 @@ static double fifo_estimated_end(struct starpu_sched_node * node)
 	int card = starpu_bitmap_cardinal(node->workers_in_ctx);
 	STARPU_ASSERT(card != 0);
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
-	double estimated_end = fifo->exp_start + fifo->exp_len / card;
+	double estimated_end = (fifo->exp_start = starpu_timing_now()) + fifo->exp_len / card;
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
 	return estimated_end;
