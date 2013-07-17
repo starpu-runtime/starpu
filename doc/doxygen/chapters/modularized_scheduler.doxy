@@ -15,7 +15,7 @@ pop, in this case that node should call starpu_sched_node_available to wake work
 up. Push must be called on a child, and only if this child can execute
 the task.
 
-A pop call on a node can either return a localy stored task or perform
+A pop call on a node can either return a locally stored task or perform
 a recursive call on its father in its current context. Only workers
 should call pop.
 
@@ -24,10 +24,10 @@ should call pop.
 Scheduler node are created with the starpu_sched_node_foo_create() functions
 and then must be assembled using them starpu_sched_node::add_child and
 starpu_sched_node::remove_child functions.
-A father can be set to allow him to be reacheable by a starpu_sched_node::pop_task
+A father can be set to allow him to be reachable by a starpu_sched_node::pop_task
 call.
 
-Underlayings workers are memoized in starpu_sched_node::workers. Hence the
+Underlyings workers are memoized in starpu_sched_node::workers. Hence the
 function starpu_sched_tree_update_workers should be called when the scheduler is
 finished, or modified.
 
@@ -36,13 +36,9 @@ The hypervisor can balance load between contexts by adding or removing workers f
 
 
 
-
-
-
 \section Push
 All scheduler node must define a starpu_sched_node::push_task
-function. The caller ensure that the node can realy execute the task.
-
+function. The caller ensure that the node can actually execute the task.
 
 \section Pop
 starpu_sched_node::push_task should either return a local task or

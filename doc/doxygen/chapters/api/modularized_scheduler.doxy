@@ -203,6 +203,10 @@ starpu_sched_node_heft_create parameters
 	 recursively destroy non shared parts of a \p node 's tree
 
 
+\fn starpu_sched_node_available(struct starpu_sched_node * node)
+\ingroup API_Modularized_Scheduler
+	 notify all node's underlying workers that a task is available to pop
+
 \fn int starpu_sched_tree_push_task(struct starpu_task * task)
 \ingroup API_Modularized_Scheduler
 	 compatibility with starpu_sched_policy interface
