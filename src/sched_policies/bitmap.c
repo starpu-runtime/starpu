@@ -23,6 +23,9 @@ static int check_bitmap(struct starpu_bitmap *b);
 
 static int _count_bit(unsigned long e)
 {
+#if (__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__) >= 4)
+	return __builtin_popcountl(e);
+#else
 	int c = 0;
 	while(e)
 	{
@@ -30,6 +33,7 @@ static int _count_bit(unsigned long e)
 		e >>= 1;
 	}
 	return c;
+#endif
 }
 
 struct starpu_bitmap * starpu_bitmap_create(void)
@@ -139,13 +143,30 @@ int starpu_bitmap_cardinal(struct starpu_bitmap * b)
 static inline int get_first_bit_rank(unsigned long ms)
 {
 	STARPU_ASSERT(ms != 0);
+#if (__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 4))
+	return __builtin_ffsl(ms) - 1;
+#else
 	unsigned long m = 1ul;
 	int i = 0;
 	while(!(m&ms))
 		i++,m<<=1;
 	return i;
+#endif
 }
 
+static inline int get_last_bit_rank(unsigned long l)
+{
+	STARPU_ASSERT(l != 0);
+#if (__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 4))
+	return 8*sizeof(l) - __builtin_clzl(l);
+#else
+	int ibit = LONG_BIT - 1;
+	while((!(1ul << ibit)) & l)
+		ibit--;
+	STARPU_ASSERT(ibit >= 0);
+	return ibit;
+#endif
+}
 
 int starpu_bitmap_first(struct starpu_bitmap * b)
 {
@@ -185,11 +206,7 @@ int starpu_bitmap_last(struct starpu_bitmap * b)
 	}
 	STARPU_ASSERT(ilong >= 0);
 	unsigned long l = b->bits[ilong];
-	int ibit = LONG_BIT - 1;
-	while((!(1ul << ibit)) & l)
-		ibit--;
-	STARPU_ASSERT(ibit >= 0);
-	return ilong * LONG_BIT + ibit;
+	return ilong * LONG_BIT + get_last_bit_rank(l);
 }
 
 int starpu_bitmap_next(struct starpu_bitmap *b, int e)
