@@ -131,9 +131,16 @@ void starpu_sched_ctx_stop_task_submission()
 void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	/* if is the initial sched_ctx no point in taking the mutex, the workers are
+	   not launched yet */
+	if(!sched_ctx->is_initial_sched)
+		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+
 	worker->shares_tasks_lists[sched_ctx_id] = 1;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+
+	if(!sched_ctx->is_initial_sched)
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 }
 
 static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers,
