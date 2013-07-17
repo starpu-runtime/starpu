@@ -220,8 +220,7 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 			struct starpu_task * task = t->task;
 			t->task = NULL;
 			int * p = t->left ? t->pntasks : &t->ntasks;
-			(void) STARPU_ATOMIC_ADD(p, -1);
-			if(*p == 0)
+			if(STARPU_ATOMIC_ADD(p, -1) == 0)
 				_starpu_task_grid_unset_left_right_member(t);
 			l->ntasks--;
 			if(!isnan(task->predicted))

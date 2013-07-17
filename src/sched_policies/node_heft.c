@@ -99,12 +99,16 @@ static int heft_push_task(struct starpu_sched_node * node, struct starpu_task * 
 	for(i = 0; i < nsuitable_nodes; i++)
 	{
 		int inode = suitable_nodes[i];
+#ifdef STARPU_DEVEL
+#warning FIXME: take power consumption into account
+#endif
 		double tmp = compute_fitness(d,
 					     estimated_ends_with_task[inode],
 					     best_exp_end_with_task,
 					     max_exp_end_with_task,
 					     estimated_transfer_length[inode],
 					     0.0);
+
 		if(tmp < best_fitness)
 		{
 			best_fitness = tmp;

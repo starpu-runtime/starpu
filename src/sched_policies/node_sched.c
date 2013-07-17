@@ -255,7 +255,6 @@ void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct star
 {
 	STARPU_ASSERT(node && child);
 	STARPU_ASSERT(!starpu_sched_node_is_worker(node));
-	STARPU_ASSERT(node && child);
 	int pos;
 	for(pos = 0; pos < node->nchilds; pos++)
 		if(node->childs[pos] == child)
@@ -417,11 +416,11 @@ struct starpu_sched_node * starpu_sched_node_create(void)
 	node->workers_in_ctx = starpu_bitmap_create();
 	node->add_child = starpu_sched_node_add_child;
 	node->remove_child = starpu_sched_node_remove_child;
-	node->notify_change_workers = take_node_and_does_nothing;
 	node->pop_task = pop_task_node;
 	node->estimated_load = estimated_load;
 	node->estimated_end = _starpu_sched_node_estimated_end_min;
 	node->deinit_data = take_node_and_does_nothing;
+	node->notify_change_workers = take_node_and_does_nothing;
 	return node;
 }
 

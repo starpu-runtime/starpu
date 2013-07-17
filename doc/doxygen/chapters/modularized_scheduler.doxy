@@ -23,15 +23,17 @@ should call pop.
 \section Initialization
 Scheduler node are created with the starpu_sched_node_foo_create() functions
 and then must be assembled using them starpu_sched_node::add_child and
-starpu_sched_node::remove_child function.
-A father can be set in order to allow him to be reacheable by a starpu_sched_node::pop_task
+starpu_sched_node::remove_child functions.
+A father can be set to allow him to be reacheable by a starpu_sched_node::pop_task
 call.
 
 Underlayings workers are memoized in starpu_sched_node::workers. Hence the
 function starpu_sched_tree_update_workers should be called when the scheduler is
 finished, or modified.
 
-\section Adding and removing workers
+\section AddingAndRemovingWorkers Adding and removing workers
+The hypervisor can balance load between contexts by adding or removing workers from a scheduler.
+
 
 
 

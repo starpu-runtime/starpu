@@ -23,7 +23,7 @@ function call node->deinit_data(node) to free data allocated during
 creation
 
 Workers nodes are particulars, there is no creation function, only
-accessor to garanty unicity of worker nodes. worker_node->workers and
+accessor to guaranty uniqueness of worker nodes. worker_node->workers and
 worker_node->workers_in_ctx should not be modified.
 
 
@@ -48,9 +48,11 @@ node. We also have a problem for shared object. The first way seems to
 be better.
 
 
-
-
+Various things
 
 In several place realloc is used (in prio_deque and for
 starpu_sched_node_add_child), because we should not have a lot
 different priority level nor adding too many childs.
+
+Estimated_end is defined differently for work stealing and fifo.
+I dont know which approach is better.

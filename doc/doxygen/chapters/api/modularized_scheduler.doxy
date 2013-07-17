@@ -7,91 +7,106 @@ This structure represent a scheduler module.
 \var starpu_sched_node::push_task
 	push a task in the scheduler module.
 \var starpu_sched_node::pop_task
-	pop a task from the scheduler module, the task returned by this function is executable by the caller if its a worker
-\var starpu_sched_node::available
-	notify workers downstairs that a task is waiting for a pop, this member dont seems to be necessary
+	pop a task from the scheduler module, the task returned by this function is executable by the caller
+	It should use starpu_sched_node::fathers[sched_ctx_id] to perform a recursive call.
+
 \var starpu_sched_node::estimated_load
-	is an heuristic to compute load of scheduler module
-\var starpu_sched_node::estimated_execute_preds
-	compute executions prediction for a task
+	is an heuristic to compute load of scheduler module. Basically the number of tasks divided by the sum
+	of relatives speedup of workers available in context.
+\var starpu_sched_node::estimated_end
+	return the time when a worker will enter in starvation. This function is relevant only if the task->predicted
+	member has been set.
 \var starpu_sched_node::nchilds
 	the number of modules downstairs
 \var starpu_sched_node::childs
 	modules downstairs
 \var starpu_sched_node::workers
-	this member contain the set of underlaying workers
+	this member contain the set of underlying workers
+\var starpu_sched_node::workers_in_ctx
+	this member contain the subset of starpu_sched_node::workers that is currently available in the context
+	The push method should take this member into account.
 \var starpu_sched_node::is_homogeneous
-	this is set to true iff all underlaying workers are the same
+	this is set to true iff all underlying workers are the same starpu_worker_archtype.
 \var starpu_sched_node::data
 	data used by the scheduler module
+\var starpu_sched_node::add_child
+	add a child to node
+\var starpu_sched_node::remove_child
+	remove a child from node
+
 \var starpu_sched_node::fathers
 	the array of scheduler module above indexed by scheduling context index
-\var starpu_sched_node::init_data
-	is called after all the scheduler is created and should init data member
-	you can store things in node->data while calling _sched_node_create(arg)
-	and use it with init_data
-\var starpu_sched_node::deinit_data
-	is called just before starpu_sched_node_destroy
-\var starpu_sched_node::obj
-	the hwloc object associed to scheduler module
 
-\struct starpu_task_execute_preds
-\ingroup API_Modularized_Scheduler
-this structure containt predictions for a task and is filled by starpu_sched_node::estimated_execute_preds
-\var starpu_task_execute_preds::state
-	indicate status of prediction, if several status are possible, in order of priority it will be : CALIBRATING, PERF_MODEL, NO_PERF_MODEL, CANNOT_EXECUTE
-\var starpu_task_execute_preds::archtype
-\var starpu_task_execute_preds::impl
-	those members are revelant is state is PERF_MODEL or CALIBRATING and is set to best or uncalibrated archtype and implementation, respectively, or suitable values if state is NO_PERF_MODEL
-\var starpu_task_execute_preds::expected_finish_time
-	expected finish time of task
-\var starpu_task_execute_preds::expected_length
-	expected compute time of task
-\var starpu_task_execute_preds::expected_transfer_length
-	expected time for transfering data to worker's memory node
-\var starpu_task_execute_preds::expected_power
-	expected power consumption for task
+\var starpu_sched_node::notify_change_workers
+	this function is called when starpu_sched_node::workers_in_ctx or starpu_sched_node::workers is changed
+\var starpu_sched_node::deinit_data
+	called by starpu_sched_node_destroy. Should free data allocated during creation
+\var starpu_sched_node::obj
+	the hwloc object associated to scheduler module
 
 \struct starpu_sched_tree
 \ingroup API_Modularized_Scheduler
+The actual scheduler
 \var starpu_sched_tree::root
 	this is the entry module of the scheduler
 \var starpu_sched_tree::workers
 	this is the set of workers available in this context, this value is used to mask workers in modules
-\var lock
-	this lock protect the worker member
+\var starpu_sched_tree::lock
+	this lock protect concurrent access from the hypervisor and the application.
+\var starpu_sched_tree::sched_ctx_id
+	the context id of the scheduler
 
 \fn struct starpu_sched_node * starpu_sched_node_create(void)
 \ingroup API_Modularized_Scheduler
-        allocate and initalise node field with defaults values :
+	 allocate and initialize node field with defaults values :
 	.pop_task make recursive call on father
-	.available make a recursive call on childrens
-	.estimated_load compute relative speedup and tasks in subtree
-	.estimated_execute_preds return the average of recursive call on childs
+	.estimated_load compute relative speedup and tasks in sub tree
+	.estimated_end return the average of recursive call on childs
+	.add_child is starpu_sched_node_add_child
+	.remove_child is starpu_sched_node_remove_child
+	.notify_change_workers does nothing
+	.deinit_data does nothing
 
 
 \fn void starpu_sched_node_destroy(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
-    	 free data allocated by starpu_sched_node_create, but dont call node->deinit_data(node)
+    	 free data allocated by starpu_sched_node_create and call node->deinit_data(node)
+	 set to null the member starpu_sched_node::fathers[sched_ctx_id] of all child if its equal to \p node
+
 \fn void starpu_sched_node_set_father(struct starpu_sched_node * node, struct starpu_sched_node * father_node, unsigned sched_ctx_id)
 \ingroup API_Modularized_Scheduler
-    	 set node->fathers[sched_ctx_id] to father_node
+	 set node->fathers[sched_ctx_id] to father_node
+
 \fn void starpu_sched_node_add_child(struct starpu_sched_node* node, struct starpu_sched_node * child)
 \ingroup API_Modularized_Scheduler
-    	 add child to node->childs and increment nchilds as well
+	 add child to node->childs and increment nchilds as well.
 	 and dont modify child->fathers
+	 \p child must not be already in starpu_sched_node::childs of \p node
+
 \fn void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 \ingroup API_Modularized_Scheduler
-    	 remove child from node->childs and decrement nchilds
+	 remove child from node->childs and decrements nchilds
+	 \p child must be in starpu_sched_node::child of \p node
 
 
 \fn int starpu_sched_node_can_execute_task(struct starpu_sched_node * node, struct starpu_task * task)
 \ingroup API_Modularized_Scheduler
 	 return true iff \p node can execute \p task, this function take into account the workers available in the scheduling context
 
+\fn int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sched_node * node, struct starpu_task * task, double * length);
+\ingroup API_Modularized_Scheduler
+	 return a non null value if \p node can execute \p task.
+	 write the execution prediction length for the best implementation of the best worker available and write this at \p length address.
+	 this result is more relevant if starpu_sched_node::is_homogeneous is non null.
+	 if a worker need to be calibrated for an implementation, nan is set to \p length.
+
+\fn double starpu_sched_node_transfer_length(struct starpu_sched_node * node, struct starpu_task * task);
+\ingroup API_Modularized_Scheduler
+	 return the average time to transfer \p task data to underlying \p node workers.
+
 \fn struct starpu_sched_node * starpu_sched_node_worker_get(int workerid)
 \ingroup API_Modularized_Scheduler
-	 return the struct starpu_sched_node corresponding to \p workerid
+	 return the struct starpu_sched_node corresponding to \p workerid. Undefined if \p workerid is not a valid workerid
 
 
 \fn int starpu_sched_node_is_worker(struct starpu_sched_node * node)
@@ -110,47 +125,72 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 
 \fn struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 \ingroup API_Modularized_Scheduler
-	 return a struct starpu_sched_node with a fifo. A stable sort is performed according to tasks priorities.
-	 a push_task call on this node does not perform recursive calls, underlaying nodes will have to call pop_task to get it.
-	 estimated_execute_preds function compute the estimated length by dividing the sequencial length by the number of underlaying workers
+	 Return a struct starpu_sched_node with a fifo. A stable sort is performed according to tasks priorities.
+	 A push_task call on this node does not perform recursive calls, underlaying nodes will have to call pop_task to get it.
+	 starpu_sched_node::estimated_end function compute the estimated length by dividing the sequential length by the number of underlying workers. Do not take into account tasks that are currently executed.
 
 \fn int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
 	 return true iff \p node is a fifo node
 
-
-\fn struct starpu_sched_node * starpu_sched_node_work_stealing_create(void)
+\fn struct starpu_sched_node * starpu_sched_node_work_stealing_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 \ingroup API_Modularized_Scheduler
-	 return a node that perform a work stealing scheduling,
-	 a special function may be used instead of starpu_sched_tree_push_task that push tasks in the good fifo
-	  
+	 return a node that perform a work stealing scheduling. Tasks are pushed in a round robin way. estimated_end return the average of expected length of fifos, starting at the average of the expected_end of his childs. When a worker have to steal a task, it steal a task in a round robin way, and get the last pushed task of the higher priority.
+
+
+\fn int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
+\ingroup API_Modularized_Scheduler
+	 undefined if there is no work stealing node in the scheduler. If any, \p task is pushed in a default way if the caller is the application, and in the caller's fifo if its a worker.
+
 \fn int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
 	 return true iff \p node is a work stealing node
 
 \fn struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 \ingroup API_Modularized_Scheduler
-	 create a node that perform a random scheduling
+	 create a node that perform a random scheduling. 
 
 \fn int starpu_sched_node_is_random(struct starpu_sched_node *);
 \ingroup API_Modularized_Scheduler
 	 return true iff \p node is a random node
 
-
-\fn struct starpu_sched_node * starpu_sched_node_heft_create(void * arg STARPU_ATTRIBUTE_UNUSED)
+\fn struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data * heft_data)
 \ingroup API_Modularized_Scheduler
-	 this node perform a heft scheduling using data provided by estimated_execute_preds, if no pred_model are available a random node is used to push tasks
-
-\fn void starpu_sched_node_heft_set_no_model_node(struct starpu_sched_node * heft_node, struct starpu_sched_node * (*create_no_model_node)(void * arg), void * arg)
-\ingroup API_Modularized_Scheduler
-	 this should disapear and use arg to pass that kind of parameters
+	 this node perform a heft scheduling using data provided by estimated_execute_preds, if no pred_model are available a random node is used to push tasks.
 
 \fn int starpu_sched_node_is_heft(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
 	 return true iff \p node is a heft node
-\fn double starpu_sched_compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
+
+\struct starpu_heft_data
 \ingroup API_Modularized_Scheduler
-	 compute expected end of a fifo with a task of \p predicted_length by taking in acount the fact that data may not be ready at \p predicted_end
+starpu_sched_node_heft_create parameters
+\var starpu_heft_data::alpha
+	 coefficient applied to computation length 
+\var starpu_heft_data::beta
+	 coefficient applied to communication length
+\var starpu_heft_data::gamma
+	 coefficient applied to power consumption
+\var starpu_heft_data::idle_power
+	 idle consumption of the machine
+\var starpu_heft_data::no_perf_model_node_create
+	 called to create the node to push task for whom no perf model is available
+\var starpu_heft_data::arg_no_perf_model
+	 argument passed to starpu_heft_data::no_perf_model_node_create
+\var starpu_heft_data::calibrating_node_create
+	 idem for tasks with an non calibrated implementation
+\var starpu_heft_data::arg_calibrating_node
+	 argument passed to starpu_heft_data::calibrating_node_create
+
+
+\fn struct starpu_sched_node * starpu_sched_node_best_implementation_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+\ingroup API_Modularized_Scheduler
+	 Select the implementation that offer the shortest computation length for the first worker that can execute the task.
+	 Or an implementation that need to be calibrated.
+	 Also set starpu_task::predicted and starpu_task::predicted_transfer for memory node of the first suitable workerid.
+	 If starpu_sched_node::push method is called and starpu_sched_node::nchild > 1 the result is undefined.
+
+
 
 \fn struct starpu_sched_tree * starpu_sched_tree_create(void)
 \ingroup API_Modularized_Scheduler
@@ -183,11 +223,14 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 \ingroup API_Modularized_Scheduler
 	 compatibility with starpu_sched_policy interface
 
-\fn struct starpu_bitmap * _starpu_get_worker_mask(struct starpu_task *task)
+
+\fn void starpu_sched_tree_update_workers(struct starpu_sched_tree * t)
 \ingroup API_Modularized_Scheduler
-	 return a ref to bitmap that give available worker to execute \p task
+	 recursively set all starpu_sched_node::workers, do not take into account shared parts (except workers).
 
-
+\fn void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree * t)
+\ingroup API_Modularized_Scheduler
+	 recursively set all starpu_sched_node::workers_in_ctx, do not take into account shared parts (except workers)
 
 \struct starpu_bitmap;
 \ingroup API_Modularized_Scheduler
@@ -231,4 +274,3 @@ this structure containt predictions for a task and is filled by starpu_sched_nod
 	 return the position of set bit right after \p e in \p bitmap, -1 if none
 
 */
-

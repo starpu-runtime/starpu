@@ -200,7 +200,7 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 
 
 //this function is special, when a worker call it, we want to push the task in his fifo
-int _starpu_ws_push_task(struct starpu_task *task)
+int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 {
 	int workerid = starpu_worker_get_id();
 	if(workerid == -1)
@@ -362,7 +362,7 @@ struct starpu_sched_policy _starpu_sched_tree_ws_policy =
 	.deinit_sched = deinitialize_ws_center_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
-	.push_task = _starpu_ws_push_task,
+	.push_task = starpu_sched_tree_work_stealing_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,

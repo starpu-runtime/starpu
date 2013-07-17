@@ -64,26 +64,6 @@ static struct starpu_task * select_best_implementation_pop_task(struct starpu_sc
 	return t;
 }
 
-
-
-static int select_calibration_push_task(struct starpu_sched_node * node, struct starpu_task * task)
-{
-	STARPU_ASSERT(node->nchilds == 1);
-	select_best_implementation_and_set_preds(node->workers_in_ctx, task);
-	return node->childs[0]->push_task(node->childs[0],task);
-}
-
-static struct starpu_task * select_calibration_pop_task(struct starpu_sched_node * node, unsigned sched_ctx_id)
-{
-	struct starpu_task * t;
-	if(!node->fathers[sched_ctx_id])
-		return NULL;
-	t = node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id], sched_ctx_id);
-	if(t)
-		select_best_implementation_and_set_preds(node->workers_in_ctx, t);
-	return t;
-}
-
 struct starpu_sched_node * starpu_sched_node_best_implementation_create(void * ARG STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
@@ -93,10 +73,7 @@ struct starpu_sched_node * starpu_sched_node_best_implementation_create(void * A
 }
 
 
-struct starpu_sched_node * starpu_sched_node_calibration_create(void * arg STARPU_ATTRIBUTE_UNUSED)
-{
-	struct starpu_sched_node * node = starpu_sched_node_create();
-	node->push_task = select_calibration_push_task;
-	node->pop_task = select_calibration_pop_task;
-	return node;
-}
+
+
+
+

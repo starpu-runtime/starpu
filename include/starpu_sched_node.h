@@ -105,9 +105,6 @@ struct starpu_sched_tree
 
 
 
-int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sched_node * node, struct starpu_task * task, double * length);
-double starpu_sched_node_transfer_length(struct starpu_sched_node * node, struct starpu_task * task);
-
 struct starpu_sched_node * starpu_sched_node_create(void);
 
 void starpu_sched_node_destroy(struct starpu_sched_node * node);
@@ -117,6 +114,9 @@ void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct star
 
 
 int starpu_sched_node_can_execute_task(struct starpu_sched_node * node, struct starpu_task * task);
+int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sched_node * node, struct starpu_task * task, double * length);
+double starpu_sched_node_transfer_length(struct starpu_sched_node * node, struct starpu_task * task);
+
 
 /* no public create function for workers because we dont want to have several node_worker for a single workerid */
 struct starpu_sched_node * starpu_sched_node_worker_get(int workerid);
@@ -130,10 +130,10 @@ int starpu_sched_node_worker_get_workerid(struct starpu_sched_node * worker_node
 
 struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_node_is_fifo(struct starpu_sched_node * node);
-//struct starpu_task_list  starpu_sched_node_fifo_get_non_executable_tasks(struct starpu_sched_node * fifo_node);
 
 struct starpu_sched_node * starpu_sched_node_work_stealing_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node);
+int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task);
 
 struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_node_is_random(struct starpu_sched_node *);
@@ -164,10 +164,7 @@ int starpu_sched_node_is_heft(struct starpu_sched_node * node);
  * cannot have several childs if push_task is called
  */
 struct starpu_sched_node * starpu_sched_node_best_implementation_create(void * arg STARPU_ATTRIBUTE_UNUSED);
-/* this node select an implementation that need to be calibrated.
- * cannot have several childs if push_task is called.
- */
-struct starpu_sched_node * starpu_sched_node_calibration_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+
 /*create an empty tree
  */
 struct starpu_sched_tree * starpu_sched_tree_create(unsigned sched_ctx_id);
@@ -181,8 +178,7 @@ void starpu_sched_node_destroy_rec(struct starpu_sched_node * node, unsigned sch
 /* update all the node->workers member recursively
  */
 void starpu_sched_tree_update_workers(struct starpu_sched_tree * t);
-/* 
- *
+/* idem for workers_in_ctx 
  */
 void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree * t);
 /* wake up underlaying workers of node
@@ -196,23 +192,6 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 void starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task);
 void starpu_sched_node_worker_post_exec_hook(struct starpu_task * task);
 
-/* return the bitmap of worker that are allowed to use in this scheduling context
- */
-struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id);
-
-/* this function is called to initialize a scheduler tree
- */
-void starpu_sched_node_init_rec(struct starpu_sched_node * node);
-/* this function fill all the node->workers members
- */
-void _starpu_set_workers_bitmaps(void);
-/* this function call init data on all nodes in postfix order
- */
-void starpu_sched_tree_call_init_data(struct starpu_sched_tree * t);
-
-/* push task of list lower as possible in the tree, a non null value is returned if some task couldn't be pushed
- */
-int starpu_sched_node_push_tasks_to_firsts_suitable_parent(struct starpu_sched_node * node, struct starpu_task_list * list, int sched_ctx_id);
 
 
 struct starpu_bitmap * starpu_bitmap_create(void);
