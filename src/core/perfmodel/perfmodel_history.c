@@ -400,7 +400,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, un
 	/* Dump the history into the model file in case it is necessary */
 	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 	{
-		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean (us)\t\tdev (us)\t\tsum\t\tsum2\t\tn\n");
+		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean (us)\tdev (us)\t\tsum\t\tsum2\t\tn\n");
 		ptr = per_arch_model->list;
 		while (ptr)
 		{
