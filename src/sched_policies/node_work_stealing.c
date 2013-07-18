@@ -112,7 +112,10 @@ static struct starpu_task * pop_task(struct starpu_sched_node * node, unsigned s
 	if(task)
 	{
 		if(!isnan(task->predicted))
+		{
 			wsd->fifos[i]->exp_len -= task->predicted;
+			wsd->fifos[i]->exp_start = starpu_timing_now() + task->predicted;
+		}
 	}
 	else
 		wsd->fifos[i]->exp_len = 0.0;
@@ -143,18 +146,20 @@ double _ws_estimated_end(struct starpu_sched_node * node)
 	STARPU_ASSERT(starpu_sched_node_is_work_stealing(node));
 	struct _starpu_work_stealing_data * wsd = node->data;
 	double sum_len = 0.0;
-	double sum_end = 0.0;
+	double sum_start = 0.0;
 	int i;
 	for(i = 0; i < node->nchilds; i++)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(wsd->mutexes[i]);
 		sum_len += wsd->fifos[i]->exp_len;
+		wsd->fifos[i]->exp_start = STARPU_MAX(starpu_timing_now(), wsd->fifos[i]->exp_start);
+		sum_start += wsd->fifos[i]->exp_start;
 		STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
-		sum_end += node->childs[i]->estimated_end(node->childs[i]);
+
 	}
 	int nb_workers = starpu_bitmap_cardinal(node->workers_in_ctx);
 
-	return sum_end / node->nchilds + sum_len / nb_workers;
+	return (sum_start + sum_len) / nb_workers;
 }
 
 double _ws_estimated_load(struct starpu_sched_node * node)
