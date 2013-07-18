@@ -73,11 +73,13 @@ endif
 if STARPU_USE_FXT
 bin_PROGRAMS += 			\
 	starpu_fxt_tool			\
-	starpu_fxt_stats
+	starpu_fxt_stats		\
+	starpu_fxt_data_trace
 
 STARPU_TOOLS += 			\
 	starpu_fxt_tool			\
-	starpu_fxt_stats
+	starpu_fxt_stats		\
+	starpu_fxt_data_trace
 
 starpu_fxt_tool_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 starpu_fxt_tool_LDADD = $(FXT_LIBS)
@@ -86,6 +88,10 @@ starpu_fxt_tool_LDFLAGS = $(FXT_LDFLAGS)
 starpu_fxt_stats_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 starpu_fxt_stats_LDADD = $(FXT_LIBS)
 starpu_fxt_stats_LDFLAGS = $(FXT_LDFLAGS)
+
+starpu_fxt_data_trace_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
+starpu_fxt_data_trace_LDADD = $(FXT_LIBS)
+starpu_fxt_data_trace_LDFLAGS = $(FXT_LDFLAGS)
 endif
 
 bin_PROGRAMS += 			\
