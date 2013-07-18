@@ -86,7 +86,7 @@ The actual scheduler
 
 \fn void starpu_sched_node_destroy(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
-    	 free data allocated by starpu_sched_node_create and call node->deinit_data(node)
+	 free data allocated by starpu_sched_node_create and call node->deinit_data(node)
 	 set to null the member starpu_sched_node::fathers[sched_ctx_id] of all child if its equal to \p node
 
 \fn void starpu_sched_node_set_father(struct starpu_sched_node * node, struct starpu_sched_node * father_node, unsigned sched_ctx_id)
@@ -96,7 +96,7 @@ The actual scheduler
 \fn void starpu_sched_node_add_child(struct starpu_sched_node* node, struct starpu_sched_node * child)
 \ingroup API_Modularized_Scheduler
 	 add child to node->childs and increment nchilds as well.
-	 and dont modify child->fathers
+	 and do not modify child->fathers
 	 \p child must not be already in starpu_sched_node::childs of \p node
 
 \fn void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
@@ -142,7 +142,7 @@ The actual scheduler
 \fn struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 \ingroup API_Modularized_Scheduler
 	 Return a struct starpu_sched_node with a fifo. A stable sort is performed according to tasks priorities.
-	 A push_task call on this node does not perform recursive calls, underlaying nodes will have to call pop_task to get it.
+	 A push_task call on this node does not perform recursive calls, underlying nodes will have to call pop_task to get it.
 	 starpu_sched_node::estimated_end function compute the estimated length by dividing the sequential length by the number of underlying workers. Do not take into account tasks that are currently executed.
 
 \fn int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
@@ -164,7 +164,7 @@ The actual scheduler
 
 \fn struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 \ingroup API_Modularized_Scheduler
-	 create a node that perform a random scheduling. 
+	 create a node that perform a random scheduling
 
 \fn int starpu_sched_node_is_random(struct starpu_sched_node *);
 \ingroup API_Modularized_Scheduler
@@ -172,7 +172,7 @@ The actual scheduler
 
 \fn struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data * heft_data)
 \ingroup API_Modularized_Scheduler
-	 this node perform a heft scheduling using data provided by estimated_execute_preds, if no pred_model are available a random node is used to push tasks.
+	 this node perform a heft scheduling
 
 \fn int starpu_sched_node_is_heft(struct starpu_sched_node * node)
 \ingroup API_Modularized_Scheduler
@@ -182,7 +182,7 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 starpu_sched_node_heft_create parameters
 \var starpu_heft_data::alpha
-	 coefficient applied to computation length 
+	 coefficient applied to computation length
 \var starpu_heft_data::beta
 	 coefficient applied to communication length
 \var starpu_heft_data::gamma
@@ -293,4 +293,29 @@ starpu_sched_node_heft_create parameters
 \ingroup API_Modularized_Scheduler
 	 return the position of set bit right after \p e in \p bitmap, -1 if none
 
+
+\struct starpu_sched_node_composed_recipe;
+\ingroup API_Modularized_Scheduler
+	parameters for starpu_sched_node_composed_node_create
+
+\fn struct starpu_sched_node_composed_recipe * starpu_sched_node_create_recipe(void)
+\ingroup API_Modularized_Scheduler
+	 return an empty recipe for a composed node, it should not be used without modification
+
+
+\fn struct starpu_sched_node_composed_recipe * starpu_sched_node_create_recipe_singleton(struct starpu_sched_node *(*create_node)(void * arg), void * arg)
+\ingroup API_Modularized_Scheduler
+	 return a recipe to build a composed node with a \p create_node
+
+\fn void starpu_sched_recipe_add_node(struct starpu_sched_node_composed_recipe * recipe, struct starpu_sched_node *(*create_node)(void * arg), void * arg)
+\ingroup API_Modularized_Scheduler
+	 add \p create_node under all previous nodes in recipe
+
+\fn void starpu_destroy_composed_sched_node_recipe(struct starpu_sched_node_composed_recipe *)
+\ingroup API_Modularized_Scheduler
+	 destroy composed_sched_node, this should be done after starpu_sched_node_composed_node_create was called
+
+\fn struct starpu_sched_node * starpu_sched_node_composed_node_create(struct starpu_sched_node_composed_recipe * recipe)
+\ingroup API_Modularized_Scheduler
+	 create a node that behave as all node of recipe where linked. Except that you cant use starpu_sched_node_is_foo function
 */

@@ -6,16 +6,6 @@
 #include <stdarg.h>
 #include <core/workers.h>
 
-static void set_all_data_to_null(struct starpu_sched_node * node)
-{
-	if(node)
-	{
-		node->data = NULL;
-		int i;
-		for(i = 0; i < node->nchilds; i++)
-			set_all_data_to_null(node->childs[i]);
-	}
-}
 
 struct sched_node_list
 {
@@ -165,7 +155,7 @@ static void set_worker_leaf(struct starpu_sched_node * root, struct starpu_sched
 {
 	struct _starpu_worker * worker = worker_node->data;
 	struct starpu_sched_node * node = where_should_we_plug_this(root,worker_node,specs, sched_ctx_id);
-	struct _starpu_composed_sched_node_recipe * recipe = specs.worker_composed_sched_node ?
+	struct starpu_sched_node_composed_recipe * recipe = specs.worker_composed_sched_node ?
 		specs.worker_composed_sched_node(worker->arch):NULL;
 	STARPU_ASSERT(node);
 	if(recipe)
@@ -180,7 +170,7 @@ static void set_worker_leaf(struct starpu_sched_node * root, struct starpu_sched
 		node = tmp;
 		
 	}
-	_starpu_destroy_composed_sched_node_recipe(recipe);
+	starpu_destroy_composed_sched_node_recipe(recipe);
 	starpu_sched_node_set_father(worker_node, node, sched_ctx_id);
 	node->add_child(node, worker_node);
 }

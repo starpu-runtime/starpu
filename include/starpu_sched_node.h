@@ -232,4 +232,17 @@ int starpu_bitmap_last(struct starpu_bitmap *);
 int starpu_bitmap_next(struct starpu_bitmap *, int e);
 
 
+struct starpu_sched_node_composed_recipe;
+
+/* create empty recipe */
+struct starpu_sched_node_composed_recipe * starpu_sched_node_create_recipe(void);
+struct starpu_sched_node_composed_recipe * starpu_sched_node_create_recipe_singleton(struct starpu_sched_node *(*create_node)(void * arg), void * arg);
+
+/* add a function creation node to recipe */
+void starpu_sched_recipe_add_node(struct starpu_sched_node_composed_recipe * recipe, struct starpu_sched_node *(*create_node)(void * arg), void * arg);
+
+void starpu_destroy_composed_sched_node_recipe(struct starpu_sched_node_composed_recipe *);
+
+struct starpu_sched_node * starpu_sched_node_composed_node_create(struct starpu_sched_node_composed_recipe * recipe);
+
 #endif

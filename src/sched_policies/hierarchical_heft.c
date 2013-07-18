@@ -2,9 +2,9 @@
 #include <core/workers.h>
 #include "scheduler_maker.h"
 
-static struct  _starpu_composed_sched_node_recipe *  recipe_for_worker(enum starpu_worker_archtype a STARPU_ATTRIBUTE_UNUSED)
+static struct  starpu_sched_node_composed_recipe *  recipe_for_worker(enum starpu_worker_archtype a STARPU_ATTRIBUTE_UNUSED)
 {
-	struct _starpu_composed_sched_node_recipe * r = starpu_sched_node_create_recipe();
+	struct starpu_sched_node_composed_recipe * r = starpu_sched_node_create_recipe();
 	starpu_sched_recipe_add_node(r, starpu_sched_node_best_implementation_create, NULL);
 	starpu_sched_recipe_add_node(r, starpu_sched_node_fifo_create, NULL);
 	return r;
@@ -31,7 +31,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 		.calibrating_node_create = starpu_sched_node_random_create,
 		.arg_calibrating_node = NULL,
 	};
-	struct _starpu_composed_sched_node_recipe * r = starpu_sched_node_create_recipe();
+	struct starpu_sched_node_composed_recipe * r = starpu_sched_node_create_recipe();
 	starpu_sched_recipe_add_node(r,(struct starpu_sched_node * (*)(void*))starpu_sched_node_heft_create,&heft_data);
 	specs.hwloc_machine_composed_sched_node = r;
 
@@ -44,7 +44,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 
 	struct starpu_sched_tree *t = _starpu_make_scheduler(sched_ctx_id, specs);
 
-	_starpu_destroy_composed_sched_node_recipe(specs.hwloc_machine_composed_sched_node);
+	starpu_destroy_composed_sched_node_recipe(specs.hwloc_machine_composed_sched_node);
 
 
 	starpu_sched_tree_update_workers(t);
