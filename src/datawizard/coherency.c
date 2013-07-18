@@ -712,7 +712,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 	}
 
 #ifdef STARPU_USE_FXT
-	FUT_DO_PROBE2(_STARPU_FUT_DATA_LOAD, best_workerid, total_size);
+	FUT_DO_PROBE2(_STARPU_FUT_DATA_LOAD, workerid, total_size);
 #endif
 	/* Now that we have taken the data locks in locking order, fill the codelet interfaces in function order.  */
 	for (index = 0; index < nbuffers; index++)
