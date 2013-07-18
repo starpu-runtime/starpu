@@ -54,7 +54,6 @@ flags for starpu_sched_node::properties
 
 \def STARPU_SCHED_NODE_IS_HOMOGENEOUS
 \ingroup API_Modularized_Scheduler
-\def STARPU_SCHED_NODE_HOMOGENEOUS
      indicate if node is homogeneous
 \def STARPU_SCHED_NODE_IS_SINGLE_MEMORY_NODE
 \ingroup API_Modularized_Scheduler
