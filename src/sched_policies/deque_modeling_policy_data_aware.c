@@ -346,17 +346,6 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_prefetch_task_input_on_node(task, memory_node);
 	}
 
-	unsigned i;
-
-#ifdef STARPU_USE_FXT
-	unsigned total_size = 0;
-	for (i = 0; i < task->cl->nbuffers; i++)
-	{
-		total_size += _starpu_data_get_size(task->handles[i]);
-	}
-	FUT_DO_PROBE2(_STARPU_FUT_DATA_LOAD, best_workerid, total_size);
-#endif
-
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
 	{

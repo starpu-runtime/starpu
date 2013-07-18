@@ -681,6 +681,10 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 
 	int workerid = starpu_worker_get_id();
 
+#ifdef STARPU_USE_FXT
+	unsigned total_size = 0;
+#endif
+
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
@@ -701,8 +705,15 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 		ret = fetch_data(handle, local_replicate, mode);
 		if (STARPU_UNLIKELY(ret))
 			goto enomem;
+
+#ifdef STARPU_USE_FXT
+		total_size += _starpu_data_get_size(handle);
+#endif
 	}
 
+#ifdef STARPU_USE_FXT
+	FUT_DO_PROBE2(_STARPU_FUT_DATA_LOAD, best_workerid, total_size);
+#endif
 	/* Now that we have taken the data locks in locking order, fill the codelet interfaces in function order.  */
 	for (index = 0; index < nbuffers; index++)
 	{
