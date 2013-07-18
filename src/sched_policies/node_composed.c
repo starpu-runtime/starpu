@@ -141,7 +141,6 @@ static void composed_node_notify_change_workers(struct starpu_sched_node * node)
 	struct composed_node * c = node->data;
 	struct starpu_bitmap * workers = node->workers;
 	struct starpu_bitmap * workers_in_ctx = node->workers_in_ctx;
-	int is_homogeneous = node->is_homogeneous;
 	struct starpu_sched_node * n;
 	for(n = c->top; ;n = n->childs[0])
 	{
@@ -151,7 +150,7 @@ static void composed_node_notify_change_workers(struct starpu_sched_node * node)
 		starpu_bitmap_unset_all(n->workers_in_ctx);
 		starpu_bitmap_or(n->workers_in_ctx, workers_in_ctx);
 
-		n->is_homogeneous = is_homogeneous;
+		n->properties = node->properties;
 		if(n == c->bottom)
 			break;
 	}

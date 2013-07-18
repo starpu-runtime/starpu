@@ -43,7 +43,7 @@ static double fifo_estimated_load(struct starpu_sched_node * node)
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	double relative_speedup = 0.0;
 	double load;
-	if(node->is_homogeneous)
+	if(STARPU_SCHED_NODE_IS_HOMOGENEOUS(node))
 	{		
 		int first_worker = starpu_bitmap_first(node->workers_in_ctx);
 		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker));

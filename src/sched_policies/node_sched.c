@@ -344,7 +344,7 @@ int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sche
 				}
 			}
 		}
-		if(node->is_homogeneous)
+		if(STARPU_SCHED_NODE_IS_HOMOGENEOUS(node))
 			break;
 	}
 
@@ -381,6 +381,15 @@ double starpu_sched_node_transfer_length(struct starpu_sched_node * node, struct
 	int nworkers = starpu_bitmap_cardinal(node->workers_in_ctx);
 	double sum = 0.0;
 	int worker;
+	if(STARPU_SCHED_NODE_IS_SINGLE_MEMORY_NODE(node))
+	{
+		unsigned memory_node  = starpu_worker_get_memory_node(starpu_bitmap_first(node->workers_in_ctx));
+		if(task->bundle)
+			return starpu_task_bundle_expected_data_transfer_time(task->bundle,memory_node);
+		else
+			return starpu_task_expected_data_transfer_time(memory_node, task);
+	}
+
 	for(worker = starpu_bitmap_first(node->workers_in_ctx);
 	    worker != -1;
 	    worker = starpu_bitmap_next(node->workers_in_ctx, worker))
@@ -451,27 +460,35 @@ void starpu_sched_node_destroy(struct starpu_sched_node *node)
 	free(node);
 }
 
-/* set the node->is_homogeneous member according to node->workers_in_ctx
- */
-static void set_is_homogeneous(struct starpu_sched_node * node)
+static void set_properties(struct starpu_sched_node * node)
 {
 	STARPU_ASSERT(node);
+	node->properties = 0;
 	STARPU_ASSERT(starpu_bitmap_cardinal(node->workers_in_ctx) > 0);
-	if(starpu_bitmap_cardinal(node->workers_in_ctx) == 1)
-		node->is_homogeneous = 1;
+
 	int worker = starpu_bitmap_first(node->workers_in_ctx);
 	uint32_t first_worker = _starpu_get_worker_struct(worker)->worker_mask;
-
+	unsigned first_memory_node = _starpu_get_worker_struct(worker)->memory_node;
+	int is_homogeneous = 1;
+	int is_all_same_node = 1;
 	for(;
 	    worker != -1;
 	    worker = starpu_bitmap_next(node->workers_in_ctx, worker))		
+	{
 		if(first_worker != _starpu_get_worker_struct(worker)->worker_mask)
-		{
-			node->is_homogeneous = 0;
-			return;
-		}
-	node->is_homogeneous = 1;
+			is_homogeneous = 0;
+		if(first_memory_node != _starpu_get_worker_struct(worker)->memory_node)
+			is_all_same_node = 0;
+	}
+	
+
+	if(is_homogeneous)
+		node->properties |= STARPU_SCHED_NODE_HOMOGENEOUS;
+	if(is_all_same_node)
+		node->properties |= STARPU_SCHED_NODE_SINGLE_MEMORY_NODE;
 }
+
+
 /* recursively set the node->workers member of node's subtree
  */
 void _starpu_sched_node_update_workers(struct starpu_sched_node * node)
@@ -510,7 +527,7 @@ void _starpu_sched_node_update_workers_in_ctx(struct starpu_sched_node * node, u
 				break;
 			}
 	}
-	set_is_homogeneous(node);
+	set_properties(node);
 	node->notify_change_workers(node);
 }
 

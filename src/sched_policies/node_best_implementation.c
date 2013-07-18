@@ -67,7 +67,6 @@ static int select_best_implementation_push_task(struct starpu_sched_node * node,
 static struct starpu_task * select_best_implementation_pop_task(struct starpu_sched_node * node, unsigned sched_ctx_id)
 {
 	struct starpu_task * t;
-	STARPU_ASSERT(node->is_homogeneous);
 	if(!node->fathers[sched_ctx_id])
 		return NULL;
 	t = node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id], sched_ctx_id);

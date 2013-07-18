@@ -186,7 +186,7 @@ static void heft_notify_change_in_workers(struct starpu_sched_node * node)
 	starpu_bitmap_or(data->no_perf_model_node->workers_in_ctx, node->workers_in_ctx);
 	starpu_bitmap_or(data->no_perf_model_node->workers, node->workers);
 
-	data->no_perf_model_node->is_homogeneous = node->is_homogeneous;
+	data->no_perf_model_node->properties = node->properties;
 
 
 	starpu_bitmap_unset_all(data->calibrating_node->workers_in_ctx);
@@ -195,7 +195,7 @@ static void heft_notify_change_in_workers(struct starpu_sched_node * node)
 	starpu_bitmap_or(data->calibrating_node->workers_in_ctx, node->workers_in_ctx);
 	starpu_bitmap_or(data->calibrating_node->workers, node->workers);
 
-	data->calibrating_node->is_homogeneous = node->is_homogeneous;
+	data->calibrating_node->properties = node->properties;
 }
 void heft_node_deinit_data(struct starpu_sched_node * node)
 {

@@ -63,10 +63,6 @@ struct starpu_sched_node
 	 */
 	struct starpu_bitmap * workers_in_ctx;
 	
-	/* is_homogeneous is 0 iff workers in the node's subtree are heterogeneous,
-	 * this field is set and updated automaticaly, you shouldn't write on it
-	 */
-	int is_homogeneous;
 	/* node's private data, no restriction on use
 	 */
 	void * data;
@@ -81,6 +77,11 @@ struct starpu_sched_node
 	/* this function is called by starpu_sched_node_destroy just before freeing node
 	 */
 	void (*deinit_data)(struct starpu_sched_node * node);
+	/* is_homogeneous is 0 iff workers in the node's subtree are heterogeneous,
+	 * this field is set and updated automaticaly, you shouldn't write on it
+	 */
+	int properties;
+
 #ifdef STARPU_HAVE_HWLOC
 	/* in case of a hierarchical scheduler, this is set to the part of
 	 * topology that is binded to this node, eg: a numa node for a ws
@@ -89,7 +90,14 @@ struct starpu_sched_node
 	hwloc_obj_t obj;
 #endif
 };
+enum starpu_sched_node_properties
+{
+	STARPU_SCHED_NODE_HOMOGENEOUS = (1<<0),
+	STARPU_SCHED_NODE_SINGLE_MEMORY_NODE = (1<<1)
+};
 
+#define STARPU_SCHED_NODE_IS_HOMOGENEOUS(node) ((node)->properties & STARPU_SCHED_NODE_HOMOGENEOUS)
+#define STARPU_SCHED_NODE_IS_SINGLE_MEMORY_NODE(node) ((node)->properties & STARPU_SCHED_NODE_SINGLE_MEMORY_NODE)
 
 struct starpu_sched_tree
 {

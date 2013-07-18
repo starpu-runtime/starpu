@@ -25,8 +25,8 @@ This structure represent a scheduler module.
 \var starpu_sched_node::workers_in_ctx
 	this member contain the subset of starpu_sched_node::workers that is currently available in the context
 	The push method should take this member into account.
-\var starpu_sched_node::is_homogeneous
-	this is set to true iff all underlying workers are the same starpu_worker_archtype.
+\var starpu_sched_node::properties
+	flags starpu_sched_node_properties for things
 \var starpu_sched_node::data
 	data used by the scheduler module
 \var starpu_sched_node::add_child
@@ -43,6 +43,23 @@ This structure represent a scheduler module.
 	called by starpu_sched_node_destroy. Should free data allocated during creation
 \var starpu_sched_node::obj
 	the hwloc object associated to scheduler module
+
+\enum starpu_sched_node_properties
+\ingroup API_Modularized_Scheduler
+flags for starpu_sched_node::properties
+\var STARPU_SCHED_NODE_HOMOGENEOUS
+     indicate that all workers have the same starpu_worker_archtype
+\var STARPU_SCHED_NODE_SINGLE_MEMORY_NODE
+     indicate that all workers have the same memory node
+
+\def STARPU_SCHED_NODE_IS_HOMOGENEOUS
+\ingroup API_Modularized_Scheduler
+\def STARPU_SCHED_NODE_HOMOGENEOUS
+     indicate if node is homogeneous
+\def STARPU_SCHED_NODE_IS_SINGLE_MEMORY_NODE
+\ingroup API_Modularized_Scheduler
+     indicate if all workers have the same memory node
+
 
 \struct starpu_sched_tree
 \ingroup API_Modularized_Scheduler
