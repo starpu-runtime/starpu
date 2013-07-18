@@ -299,12 +299,12 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	parse_args(argc, argv);
-
 #ifdef STARPU_QUICK_CHECK
 	size /= 4;
 	nblocks /= 4;
 #endif
+
+	parse_args(argc, argv);
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
