@@ -1,7 +1,6 @@
-#include "scheduler_maker.h"
 #include "sched_node.h"
+#include "scheduler_maker.h"
 #include <starpu_sched_node.h>
-#include "node_composed.h"
 #include <common/list.h>
 #include <stdarg.h>
 #include <core/workers.h>

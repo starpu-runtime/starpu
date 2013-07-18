@@ -3,7 +3,6 @@
 #ifndef __SCHEDULER_MAKER_H__
 #define __SCHEDULER_MAKER_H__
 #include <starpu_sched_node.h>
-#include "node_composed.h"
 #include <common/list.h>
 
 
