@@ -400,6 +400,7 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
+		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
 		ws->queue_array[workerid] = _starpu_create_deque();
 		/**
 		 * The first WS_POP_TASK will increase NPROCESSED though no task was actually performed yet,

@@ -20,28 +20,27 @@
 #include <sys/time.h>
 
 #ifdef STARPU_HAVE_GLPK_H
-static void _try_resizing(int *sched_ctxs, int nsched_ctxs)
+static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
 {
 	/* for vite */
 	starpu_trace_user_event(2);
 	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
-	sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
+	unsigned *curr_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
+	unsigned curr_nworkers = nworkers == -1 ? starpu_worker_get_count() : (unsigned)nworkers;
+	
+	struct types_of_workers *tw = sc_hypervisor_get_types_of_workers(workers, curr_nworkers);
+	int nw = tw->nw;
+	double nworkers_per_ctx[ns][nw];
 
-	double nworkers_per_ctx[ns][2];
-	int nw = 1;
-#ifdef STARPU_USE_CUDA
-	int ncuda = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
-	nw = ncuda != 0 ? 2 : 1;
-#endif
 	int total_nw[nw];
-	sc_hypervisor_group_workers_by_type(NULL, -1, nw, total_nw);
+	sc_hypervisor_group_workers_by_type(tw, total_nw);
 	
 	
 	struct timeval start_time;
 	struct timeval end_time;
 	gettimeofday(&start_time, NULL);
 	
-	double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_ctx, total_nw);
+	double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_ctx, total_nw, tw);
 	gettimeofday(&end_time, NULL);
 	
 	long diff_s = end_time.tv_sec  - start_time.tv_sec;
@@ -53,7 +52,7 @@ static void _try_resizing(int *sched_ctxs, int nsched_ctxs)
 	{
 		int nworkers_per_ctx_rounded[nsched_ctxs][nw];
 		sc_hypervisor_lp_round_double_to_int(ns, nw, nworkers_per_ctx, nworkers_per_ctx_rounded);
-		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, nw, nworkers_per_ctx_rounded, nworkers_per_ctx, sched_ctxs);
+		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, nw, nworkers_per_ctx_rounded, nworkers_per_ctx, curr_sched_ctxs, tw);
 	}
 }
 
@@ -68,27 +67,29 @@ static void feft_lp_handle_poped_task(__attribute__((unused))unsigned sched_ctx,
 		{
 			if(sc_hypervisor_check_speed_gap_btw_ctxs())
 			{
-				_try_resizing(NULL, -1);
+				_try_resizing(NULL, -1, NULL, -1);
 			}
 		}
 		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
 
 }
-static void feft_lp_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
+static void feft_lp_size_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
 {
 	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
-	int nw = 1;
-#ifdef STARPU_USE_CUDA
-	int ncuda = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
-	nw = ncuda != 0 ? 2 : 1;
-#endif
+	unsigned *curr_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
+	unsigned curr_nworkers = nworkers == -1 ? starpu_worker_get_count() : (unsigned)nworkers;
+	
+	struct types_of_workers *tw = sc_hypervisor_get_types_of_workers(workers, curr_nworkers);
+	int nw = tw->nw;
 	double nworkers_per_type[ns][nw];
+
 	int total_nw[nw];
-	sc_hypervisor_group_workers_by_type(workers, nworkers, nw, total_nw);
+	sc_hypervisor_group_workers_by_type(tw, total_nw);
+	
 
 	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
-	double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_type, total_nw);
+	double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_type, total_nw, tw);
 	if(vmax != 0.0)
 	{
 // 		printf("********size\n");
@@ -113,13 +114,12 @@ static void feft_lp_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *workers, in
 /* 				printf("ctx %d/worker type %d: n = %d \n", i, 1, nworkers_per_type_rounded[i][1]); */
 /* #endif */
 /* 		} */
-		int *current_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
 
 		unsigned has_workers = 0;
 		int s;
 		for(s = 0; s < ns; s++)
 		{
-			int nworkers_ctx = sc_hypervisor_get_nworkers_ctx(current_sched_ctxs[s], STARPU_ANY_WORKER);
+			int nworkers_ctx = sc_hypervisor_get_nworkers_ctx(curr_sched_ctxs[s], STARPU_ANY_WORKER);
 			if(nworkers_ctx != 0)
 			{
 				has_workers = 1;
@@ -127,9 +127,9 @@ static void feft_lp_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *workers, in
 			}
 		}
 		if(has_workers)
-			sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, nw, nworkers_per_type_rounded, nworkers_per_type, current_sched_ctxs);
+			sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, nw, nworkers_per_type_rounded, nworkers_per_type, curr_sched_ctxs, tw);
 		else
-			sc_hypervisor_lp_distribute_resources_in_ctxs(sched_ctxs, ns, nw, nworkers_per_type_rounded, nworkers_per_type, workers, nworkers);
+			sc_hypervisor_lp_distribute_resources_in_ctxs(sched_ctxs, ns, nw, nworkers_per_type_rounded, nworkers_per_type, workers, curr_nworkers, tw);
 	}
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }
@@ -145,7 +145,7 @@ static void feft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 			
 			if(sc_hypervisor_check_idle(sched_ctx, worker))
 			{
-				_try_resizing(NULL, -1);
+				_try_resizing(NULL, -1, NULL, -1);
 //				sc_hypervisor_move_workers(sched_ctx, 3 - sched_ctx, &worker, 1, 1);
 			}
 		}
@@ -153,8 +153,8 @@ static void feft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 	}
 }
 
-static void feft_lp_resize_ctxs(int *sched_ctxs, int nsched_ctxs , 
-				__attribute__((unused))int *workers, __attribute__((unused))int nworkers)
+static void feft_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , 
+				int *workers, int nworkers)
 {
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
@@ -172,7 +172,7 @@ static void feft_lp_resize_ctxs(int *sched_ctxs, int nsched_ctxs ,
 			 }
 		}
 
-		_try_resizing(sched_ctxs, nsched_ctxs);
+		_try_resizing(sched_ctxs, nsched_ctxs, workers, nworkers);
 		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
 }

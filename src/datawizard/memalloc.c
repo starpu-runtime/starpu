@@ -1043,7 +1043,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 			{
 				/* only time can change between disk <-> main_ram 
 				 * and not between main_ram <-> worker if we compare diks*/
-				double time_tmp = _starpu_predict_transfer_time(i, STARPU_MAIN_RAM, _starpu_data_get_size(handle));
+				double time_tmp = starpu_transfer_predict(i, STARPU_MAIN_RAM, _starpu_data_get_size(handle));
 				if (target == -1 || time_disk > time_tmp)
 				{
 					target = i;

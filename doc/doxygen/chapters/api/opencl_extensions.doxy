@@ -14,6 +14,16 @@ This macro is defined when StarPU has been installed with
 OpenCL support. It should be used in your code to detect the
 availability of OpenCL as shown in \ref FullSourceCodeVectorScal.
 
+\def STARPU_MAXOPENCLDEVS
+\ingroup API_OpenCL_Extensions
+This macro defines the maximum number of OpenCL devices that are
+supported by StarPU.
+
+\def STARPU_OPENCL_DATADIR
+\ingroup API_OpenCL_Extensions
+This macro defines the directory in which the OpenCL codelets of the
+applications provided with StarPU have been installed.
+
 \struct starpu_opencl_program
 \ingroup API_OpenCL_Extensions
 Stores the OpenCL programs as compiled for the different OpenCL

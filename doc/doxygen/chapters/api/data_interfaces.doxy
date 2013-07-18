@@ -186,6 +186,32 @@ to manage asynchronicity. This must return -EAGAIN if any of the
 starpu_interface_copy() calls has returned -EAGAIN (i.e. at least some
 transfer is still ongoing), and return 0 otherwise.
 
+\enum starpu_data_interface_id
+\ingroup API_Data_Interfaces
+Identifier for all predefined StarPU data interfaces
+\var starpu_data_interface_id::STARPU_UNKNOWN_INTERFACE_ID
+Unknown interface
+\var starpu_data_interface_id::STARPU_MATRIX_INTERFACE_ID
+Identifier for the matrix data interface
+\var starpu_data_interface_id::STARPU_BLOCK_INTERFACE_ID
+Identifier for block data interface
+\var starpu_data_interface_id::STARPU_VECTOR_INTERFACE_ID
+Identifier for the vector data interface
+\var starpu_data_interface_id::STARPU_CSR_INTERFACE_ID
+Identifier for the csr data interface
+\var starpu_data_interface_id::STARPU_BCSR_INTERFACE_ID
+Identifier for the bcsr data interface
+\var starpu_data_interface_id::STARPU_VARIABLE_INTERFACE_ID
+Identifier for the variable data interface
+\var starpu_data_interface_id::STARPU_VOID_INTERFACE_ID
+Identifier for the void data interface
+\var starpu_data_interface_id::STARPU_MULTIFORMAT_INTERFACE_ID
+Identifier for the multiformat data interface
+\var starpu_data_interface_id::STARPU_COO_INTERFACE_ID
+Identifier for the coo data interface
+\var starpu_data_interface_id::STARPU_MAX_INTERFACE_ID
+Maximum number of data interfaces
+
 @name Registering Data
 \ingroup API_Data_Interfaces
 
@@ -726,7 +752,7 @@ addition to this.
 Return a pointer to the row pointer array of the matrix
 designated by \p interface.
 
-\def STARPU_CSR_GET_ROWPTR_DEV_HANDLE(interface)
+\def STARPU_BCSR_GET_ROWPTR_DEV_HANDLE(interface)
 \ingroup API_Data_Interfaces
 Return a device handle for the row pointer array of the matrix
 designated by \p interface. The offset documented below has to be used in

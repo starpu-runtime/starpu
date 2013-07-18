@@ -23,7 +23,7 @@ struct size_request
 {
 	int *workers;
 	int nworkers;
-	int *sched_ctxs;
+	unsigned *sched_ctxs;
 	int nsched_ctxs;
 };
 
@@ -58,7 +58,7 @@ struct configuration_entry
 struct sc_hypervisor
 {
 	struct sc_hypervisor_wrapper sched_ctx_w[STARPU_NMAX_SCHED_CTXS];
-	int sched_ctxs[STARPU_NMAX_SCHED_CTXS];
+	unsigned sched_ctxs[STARPU_NMAX_SCHED_CTXS];
 	unsigned nsched_ctxs;
 	unsigned resize[STARPU_NMAX_SCHED_CTXS];
 	unsigned allow_remove[STARPU_NMAX_SCHED_CTXS];

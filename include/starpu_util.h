@@ -30,8 +30,6 @@ extern "C"
 {
 #endif
 
-/* Return true (non-zero) if GCC version MAJ.MIN or later is being used
- * (macro taken from glibc.)  */
 #if defined __GNUC__ && defined __GNUC_MINOR__
 # define STARPU_GNUC_PREREQ(maj, min) \
 	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))

@@ -260,20 +260,16 @@ existing set of measurements done in good conditions, that StarPU
 could benefit from instead of doing on-line measurements. And example
 of use can be seen in \ref PerformanceModelExample.
 
-\fn double starpu_get_bandwidth_RAM_CUDA(unsigned cudadev)
+\fn double starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node)
 \ingroup API_Performance_Model
-Used to compute the execution time of tasks
+Return the bandwidth of data transfer between two memory nodes
 
-\fn double starpu_get_latency_RAM_CUDA(unsigned cudadev)
+\fn double starpu_transfer_latency(unsigned src_node, unsigned dst_node)
 \ingroup API_Performance_Model
-Used to compute the execution time of tasks
+Return the latency of data transfer between two memory nodes
 
-\fn double starpu_get_bandwidth_CUDA_RAM(unsigned cudadev)
-\ingroup API_Performance_Mode
-Used to compute the execution time of tasks
-
-\fn double starpu_get_latency_CUDA_RAM(unsigned cudadev)
+\fn double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size)
 \ingroup API_Performance_Model
-Used to compute the execution time of tasks
+Return the estimated time to transfer a given size between two memory nodes.
 
 */

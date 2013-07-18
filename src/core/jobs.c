@@ -294,6 +294,20 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	_starpu_decrement_nready_tasks();
 
 	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
+
+	struct _starpu_worker *worker;
+	worker = _starpu_get_local_worker_key();
+	if (worker)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+
+		if(worker->removed_from_ctx[sched_ctx] == 1 && worker->shares_tasks_lists[sched_ctx] == 1)
+		{
+			_starpu_worker_gets_out_of_ctx(sched_ctx, worker);
+			worker->removed_from_ctx[sched_ctx] = 0;
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	}
 }
 
 /* This function is called when a new task is submitted to StarPU

@@ -251,7 +251,7 @@ This is the same as starpu_data_acquire_cb(), except that the
 data will be available on the given memory node instead of main
 memory.
 
-\int int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
+\fn int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
 \ingroup API_Data_Management
 This is the same as starpu_data_acquire_cb_sequential_consistency(), except that the
 data will be available on the given memory node instead of main

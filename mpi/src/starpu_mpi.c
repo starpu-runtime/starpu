@@ -770,42 +770,43 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 			  req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr,
 			  _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype, req->internal_req);
 
-	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
+	if (req->internal_req)
 	{
-		if (req->user_datatype == 1)
+		struct _starpu_mpi_copy_handle *chandle = find_chandle(starpu_data_get_tag(req->data_handle));
+		_STARPU_MPI_DEBUG(3, "Handling deleting of copy_handle structure from the hashmap..\n");
+		delete_chandle(chandle);
+		free(chandle);
+	}
+	else
+	{
+		if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
 		{
-			if (req->request_type == SEND_REQ)
+			if (req->user_datatype == 1)
 			{
-				// We need to make sure the communication for sending the size
-				// has completed, as MPI can re-order messages, let's call
-				// MPI_Wait to make sure data have been sent
-				ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
-				STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %d", ret);
-
-			}
-			if (req->request_type == RECV_REQ)
-				// req->ptr is freed by starpu_data_unpack
-				starpu_data_unpack(req->data_handle, req->ptr, req->count);
-			else
-				free(req->ptr);
-		}
-		else
-		{
-			struct _starpu_mpi_copy_handle *chandle = find_chandle(starpu_data_get_tag(req->data_handle));
-			if (chandle && (req->data_handle != chandle->handle))
-			{
-				_STARPU_MPI_DEBUG(3, "Handling deleting of copy_handle structure from the hashmap..\n");
-				delete_chandle(chandle);
-				free(chandle);
+				if (req->request_type == SEND_REQ)
+				{
+					// We need to make sure the communication for sending the size
+					// has completed, as MPI can re-order messages, let's call
+					// MPI_Wait to make sure data have been sent
+					ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
+					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %d", ret);
+					free(req->ptr);
+				}
+				if (req->request_type == RECV_REQ)
+				{
+					// req->ptr is freed by starpu_data_unpack
+					starpu_data_unpack(req->data_handle, req->ptr, req->count);
+				}
 			}
 			else
 			{
-				_STARPU_MPI_DEBUG(3, "NOT deleting chandle %p from hashmap (tag %d %d)\n", chandle, req->mpi_tag, starpu_data_get_tag(req->data_handle));
 				_starpu_mpi_handle_free_datatype(req->data_handle, &req->datatype);
 			}
 		}
-		starpu_data_release(req->data_handle);
 	}
+
+	if (req->data_handle)
+		starpu_data_release(req->data_handle);
 
 	if (req->envelope)
 	{
@@ -908,61 +909,53 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 			_STARPU_MPI_DEBUG(3, "Calling data_acquire_cb on starpu_mpi_copy_cb..\n");
 			starpu_data_acquire_cb(chandle->handle,STARPU_R,_starpu_mpi_copy_cb,(void*) cb_args);
 		}
-		else
+		/* Case : the request is the internal receive request submitted by StarPU-MPI to receive
+		 * incoming data without a matching pending receive already submitted by the application.
+		 * We immediately allocate the pointer associated to the data_handle, and pushing it into
+		 * the list of new_requests, so as the real MPI request can be submitted before the next
+		 * submission of the envelope-catching request. */
+		else if (chandle && (req->data_handle == chandle->handle))
 		{
-			/* Case : the request is the internal receive request submitted by StarPU-MPI to receive
-			 * incoming data without a matching pending receive already submitted by the application.
-			 * We immediately allocate the pointer associated to the data_handle, and pushing it into
-			 * the list of new_requests, so as the real MPI request can be submitted before the next
-			 * submission of the envelope-catching request. */
-			if (chandle && (req->data_handle == chandle->handle))
+			_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->user_datatype);
+			if (req->user_datatype == 0)
 			{
-				_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->user_datatype);
-				if (req->user_datatype == 0)
-				{
-					req->count = 1;
-					req->ptr = starpu_data_get_local_ptr(req->data_handle);
-				}
-				else
-				{
-					req->count = chandle->env->psize;
-					req->ptr = malloc(req->count);
-
-					STARPU_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
-				}
-
-				_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
-				_starpu_mpi_req_list_push_front(new_requests, req);
-
-				/* inform the starpu mpi thread that the request has beenbe pushed in the new_requests list */
-				STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-				STARPU_PTHREAD_MUTEX_LOCK(&req->posted_mutex);
-				req->posted = 1;
-				STARPU_PTHREAD_COND_BROADCAST(&req->posted_cond);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&req->posted_mutex);
-				STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+				req->count = 1;
+				req->ptr = starpu_data_get_local_ptr(req->data_handle);
 			}
-			/* Case : a classic receive request with no send received earlier than expected.
-			 * We just add the pending receive request to the requests' hashmap. */
 			else
 			{
-				add_req(req);
+				req->count = chandle->env->psize;
+				req->ptr = malloc(req->count);
+				STARPU_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
 			}
 
-			newer_requests = 1;
-			STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
+			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
+			_starpu_mpi_req_list_push_front(new_requests, req);
+
+			/* inform the starpu mpi thread that the request has beenbe pushed in the new_requests list */
+			STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&req->posted_mutex);
+			req->posted = 1;
+			STARPU_PTHREAD_COND_BROADCAST(&req->posted_cond);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&req->posted_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+		}
+		/* Case : a classic receive request with no send received earlier than expected.
+		 * We just add the pending receive request to the requests' hashmap. */
+		else
+		{
+			add_req(req);
 		}
 	}
 	else
 	{
 		_starpu_mpi_req_list_push_front(new_requests, req);
-
-		newer_requests = 1;
 		_STARPU_MPI_DEBUG(3, "Pushing new request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n",
 				  req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
-		STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
 	}
 
+	newer_requests = 1;
+	STARPU_PTHREAD_COND_BROADCAST(&cond_progression);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	_STARPU_MPI_LOG_OUT();
 }
@@ -1311,7 +1304,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	STARPU_ASSERT_MSG(_starpu_mpi_req_list_empty(new_requests), "List of new requests not empty");
 	STARPU_ASSERT_MSG(posted_requests == 0, "Number of posted request is not zero");
 	STARPU_ASSERT_MSG(HASH_COUNT(_starpu_mpi_req_hashmap) == 0, "Number of receive requests left is not zero");
-
+	STARPU_ASSERT_MSG(HASH_COUNT(_starpu_mpi_copy_handle_hashmap) == 0, "Number of copy requests left is not zero");
 	if (argc_argv->initialize_mpi)
 	{
 		_STARPU_MPI_DEBUG(3, "Calling MPI_Finalize()\n");

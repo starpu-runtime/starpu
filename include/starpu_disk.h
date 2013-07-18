@@ -39,18 +39,15 @@ struct starpu_disk_ops {
 	 int 	(*full_write)   (unsigned node, void * base, void * obj, void * ptr, size_t size);
 };
 
-
 /* Posix functions to use disk memory */
 extern struct starpu_disk_ops starpu_disk_stdio_ops;
 extern struct starpu_disk_ops starpu_disk_unistd_ops;
 extern struct starpu_disk_ops starpu_disk_unistd_o_direct_ops;
 
-/*functions to add an existing memory */
 void starpu_disk_close(unsigned node, void *obj, size_t size);
 
 void * starpu_disk_open(unsigned node, void *pos, size_t size);
 
-/* interface to create and to free a memory disk */
 int starpu_disk_register(struct starpu_disk_ops * func, void *parameter, size_t size);
 
 #endif /* __STARPU_DISK_H__ */

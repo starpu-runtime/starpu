@@ -8,6 +8,16 @@
 
 /*! \defgroup API_Standard_Memory_Library Standard Memory Library
 
+\def starpu_data_malloc_pinned_if_possible
+\ingroup API_Standard_Memory_Library
+\deprecated
+Equivalent to starpu_malloc(). This macro is provided to avoid breaking old codes.
+
+\def starpu_data_free_pinned_if_possible
+\ingroup API_Standard_Memory_Library
+\deprecated
+Equivalent to starpu_free(). This macro is provided to avoid breaking old codes.
+
 \def STARPU_MALLOC_PINNED
 \ingroup API_Standard_Memory_Library
 Value passed to the function starpu_malloc_flags() to indicate the memory allocation should be pinned.

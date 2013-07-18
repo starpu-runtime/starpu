@@ -468,7 +468,11 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 		int ctx;
 		for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
+		{
 			workerarg->removed_from_ctx[ctx] = 0;
+			workerarg->shares_tasks_lists[ctx] = 0;
+		}
+
 
 		STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
 		STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
@@ -1038,11 +1042,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	return 0;
 }
 
-void starpu_profiling_init()
-{
-	_starpu_profiling_init();
-}
-
 /*
  * Handle runtime termination
  */
@@ -1242,6 +1241,7 @@ void starpu_shutdown(void)
 
 	_STARPU_DEBUG("Shutdown finished\n");
 }
+
 
 unsigned starpu_worker_get_count(void)
 {

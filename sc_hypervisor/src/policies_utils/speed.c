@@ -74,10 +74,10 @@ double sc_hypervisor_get_speed_per_worker(struct sc_hypervisor_wrapper *sc_w, un
 /* /\* 			if(!worker_in_ctx) *\/ */
 /* /\* 			{ *\/ */
 
-/* /\* 				double transfer_speed = starpu_get_bandwidth_RAM_CUDA(worker); *\/ */
+/* /\* 				double transfer_speed = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker)); *\/ */
 /* /\* 				elapsed_time +=  (elapsed_data_used / transfer_speed) / 1000000 ; *\/ */
 /* /\* 			} *\/ */
-/* 			double latency = starpu_get_latency_RAM_CUDA(worker); */
+/* 			double latency = starpu_transfer_latency(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker)); */
 /* //			printf("%d/%d: latency %lf elapsed_time before %lf ntasks %d\n", worker, sc_w->sched_ctx, latency, elapsed_time, elapsed_tasks); */
 /* 			elapsed_time += (elapsed_tasks * latency)/1000000; */
 /* //			printf("elapsed time after %lf \n", elapsed_time); */
@@ -96,40 +96,61 @@ double sc_hypervisor_get_speed_per_worker(struct sc_hypervisor_wrapper *sc_w, un
 /* compute an average value of the cpu/cuda speed */
 double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
 {
-	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
-        int worker;
+	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx);
 
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
-
-	double speed = 0.0;
-	unsigned nworkers = 0;
-        while(workers->has_next(workers, &it))
+	double ctx_elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
+	double ctx_sample = config->ispeed_ctx_sample;
+	if(ctx_elapsed_flops > ctx_sample)
 	{
-                worker = workers->get_next(workers, &it);
-                enum starpu_worker_archtype req_arch = starpu_worker_get_type(worker);
-                if(arch == req_arch)
-                {
-			double _vel = sc_hypervisor_get_speed_per_worker(sc_w, worker);
-			if(_vel > 0.0)
+		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
+		int worker;
+		
+		struct starpu_sched_ctx_iterator it;
+		if(workers->init_iterator)
+			workers->init_iterator(workers, &it);
+		
+		double speed = 0.0;
+		unsigned nworkers = 0;
+		double all_workers_flops = 0.0;
+		double all_workers_idle_time = 0.0;
+		while(workers->has_next(workers, &it))
+		{
+			worker = workers->get_next(workers, &it);
+			enum starpu_worker_archtype req_arch = starpu_worker_get_type(worker);
+			if(arch == req_arch)
 			{
-				speed += _vel;
+				all_workers_flops += sc_w->elapsed_flops[worker] / 1000000000.0; /*in gflops */
+				all_workers_idle_time += sc_w->idle_time[worker]; /* in seconds */
 				nworkers++;
-
 			}
+		}			
+		
+		if(nworkers != 0)
+		{
+			double curr_time = starpu_timing_now();
+			
+			/* compute speed for the last frame */
+			double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
+			elapsed_time -= all_workers_idle_time;
+			speed = (all_workers_flops / elapsed_time) / nworkers;
 		}
-	}			
-
-	speed = ((nworkers != 0 && speed > 0.1) ? speed / nworkers : -1.0);
-	if(speed != -1.0)
-	{
-		if(arch == STARPU_CUDA_WORKER)
-			sc_w->ref_speed[0] = sc_w->ref_speed[0] > 1.0 ? (sc_w->ref_speed[0] + speed) / 2 : speed; 
 		else
-			sc_w->ref_speed[1] = sc_w->ref_speed[1] > 1.0 ? (sc_w->ref_speed[1] + speed) / 2 : speed; 
+			speed = -1.0;
+		
+		if(speed != -1.0)
+		{
+			/* if ref_speed started being corrupted bc of the old bad distribution
+			   register only the last frame otherwise make the average with the speed 
+			   behavior of the application until now */
+			if(arch == STARPU_CUDA_WORKER)
+				sc_w->ref_speed[0] = (sc_w->ref_speed[0] > 0.1) ? ((sc_w->ref_speed[0] + speed ) / 2.0) : speed; 
+			else
+				sc_w->ref_speed[1] = (sc_w->ref_speed[1] > 0.1) ? ((sc_w->ref_speed[1] + speed ) / 2.0) : speed; 
+		}
+		return speed;
 	}
-	return speed;
+
+	return -1.0;
 }
 
 /* compute an average value of the cpu/cuda old speed */
