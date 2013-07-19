@@ -18,6 +18,8 @@
 #ifndef __COPY_DRIVER_H__
 #define __COPY_DRIVER_H__
 
+#include <aio.h>
+
 #include <common/config.h>
 #include <datawizard/memory_nodes.h>
 #include "coherency.h"
@@ -48,6 +50,12 @@ struct _starpu_mic_async_event
 };
 #endif
 
+struct _starpu_disk_async_event
+{
+        struct aiocb _starpu_aiocb_disk;
+	unsigned memory_node;
+};
+
 /* this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
 union _starpu_async_channel_event
@@ -69,6 +77,7 @@ union _starpu_async_channel_event
 #ifdef STARPU_USE_MIC
 	struct _starpu_mic_async_event mic_event;
 #endif
+	struct _starpu_disk_async_event disk_event;
 };
 
 struct _starpu_async_channel

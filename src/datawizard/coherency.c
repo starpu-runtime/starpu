@@ -36,9 +36,9 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 	/* first find a valid copy, either a STARPU_OWNER or a STARPU_SHARED */
 	unsigned node;
 
-	unsigned src_node_mask = 0;
 	size_t size = _starpu_data_get_size(handle);
 	double cost = INFINITY;
+	unsigned src_node_mask = 0;
 
 	for (node = 0; node < nnodes; node++)
 	{

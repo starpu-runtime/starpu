@@ -27,7 +27,6 @@
 #include <common/fxt.h>
 #include <common/list.h>
 
-#include <datawizard/data_request.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/datastats.h>
 #include <datawizard/memstats.h>

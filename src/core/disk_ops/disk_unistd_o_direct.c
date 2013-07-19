@@ -53,26 +53,26 @@ starpu_unistd_o_direct_open (void *base, void *pos, size_t size)
 
 
 /* read the memory disk */
-static ssize_t 
-starpu_unistd_o_direct_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
+static int 
+starpu_unistd_o_direct_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only read a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
 
 	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
 
-	return starpu_unistd_global_read (base, obj, buf, offset, size);
+	return starpu_unistd_global_read (base, obj, buf, offset, size, async_channel);
 }
 
 
 /* write on the memory disk */
-static ssize_t 
-starpu_unistd_o_direct_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
+static int 
+starpu_unistd_o_direct_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * async_channel)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "You can only write a multiple of page size %u Bytes (Here %u)", getpagesize(), (int) size);
 
 	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function");
 
-	return starpu_unistd_global_write (base, obj, buf, offset, size);
+	return starpu_unistd_global_write (base, obj, buf, offset, size, async_channel);
 }
 
 
@@ -95,5 +95,11 @@ struct starpu_disk_ops starpu_disk_unistd_o_direct_ops = {
 	.plug = starpu_unistd_o_direct_plug,
 	.unplug = starpu_unistd_global_unplug,
 	.copy = NULL,
-	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram
+	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram,
+        .async_read = starpu_unistd_global_async_read,
+        .async_write = starpu_unistd_global_async_write,
+        .wait_request = starpu_unistd_global_wait_request,
+        .test_request = starpu_unistd_global_test_request,
+	.full_read = starpu_unistd_global_full_read,
+	.full_write = starpu_unistd_global_full_write
 };
