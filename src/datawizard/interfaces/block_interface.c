@@ -675,10 +675,33 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	uint32_t ldz_dst = dst_block->ldz;
 
 	unsigned y, z;
+
+	if (ldy_src == nx && ldy_dst == nx && ldz_src == ny && ldz_dst == ny)
+	{
+		/* Optimise non-partitioned and z-partitioned case */
+		if (starpu_interface_copy(src_block->dev_handle, src_block->offset, src_node,
+		                          dst_block->dev_handle, dst_block->offset, dst_node,
+		                          nx*ny*nz*elemsize, async_data))
+				ret = -EAGAIN;
+	}
+	else
 	for (z = 0; z < nz; z++)
 	{
+		if (ldy_src == nx && ldy_dst == nx)
+		{
+			/* Optimise y-partitioned case */
+			uint32_t src_offset = z*ldz_src*elemsize;
+			uint32_t dst_offset = z*ldz_dst*elemsize;
+
+			if (starpu_interface_copy(src_block->dev_handle, src_block->offset + src_offset, src_node,
+			                          dst_block->dev_handle, dst_block->offset + dst_offset, dst_node,
+			                          nx*ny*elemsize, async_data))
+				ret = -EAGAIN;
+		}
+		else
 		for (y = 0; y < ny; y++)
 		{
+			/* Eerf, x-partitioned case */
 			uint32_t src_offset = (y*ldy_src + z*ldz_src)*elemsize;
 			uint32_t dst_offset = (y*ldy_dst + z*ldz_dst)*elemsize;
 
