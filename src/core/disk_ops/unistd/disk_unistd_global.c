@@ -20,7 +20,9 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <stdint.h>
+#ifdef HAVE_AIO_H
 #include <aio.h>
+#endif
 #include <errno.h>
 
 #include <starpu.h>
@@ -182,6 +184,7 @@ starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *
 }
 
 
+#ifdef HAVE_AIO_H
 int
 starpu_unistd_global_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
 {
@@ -201,6 +204,7 @@ starpu_unistd_global_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, 
 
         return aio_read(aiocb);
 }
+#endif
 
 int
 starpu_unistd_global_full_read(unsigned node, void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
@@ -233,6 +237,7 @@ starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const
 }
 
 
+#ifdef HAVE_AIO_H
 int
 starpu_unistd_global_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
 {
@@ -251,6 +256,7 @@ starpu_unistd_global_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 
         return aio_write(aiocb);
 }
+#endif
 
 int
 starpu_unistd_global_full_write (unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
@@ -374,6 +380,7 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	return 1;
 }
 
+#ifdef HAVE_AIO_H
 void
 starpu_unistd_global_wait_request(void * async_channel)
 {
@@ -417,3 +424,4 @@ starpu_unistd_global_test_request(void * async_channel)
         /* an error occured */
         STARPU_ABORT();
 }
+#endif

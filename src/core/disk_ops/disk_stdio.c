@@ -209,6 +209,7 @@ starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off
 	return 0;
 }
 
+#ifdef HAVE_AIO_H
 static int
 starpu_stdio_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
 {
@@ -228,6 +229,7 @@ starpu_stdio_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *bu
 
 	return aio_read(aiocb);
 }
+#endif
 
 static int
 starpu_stdio_full_read(unsigned node, void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
@@ -257,6 +259,7 @@ starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *b
 	return nb;
 }
 
+#ifdef HAVE_AIO_H
 static int
 starpu_stdio_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
 {
@@ -275,6 +278,7 @@ starpu_stdio_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *b
 
         return aio_write(aiocb);
 }
+#endif
 
 static int
 starpu_stdio_full_write (unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
@@ -397,6 +401,7 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	return 1;
 }
 
+#ifdef HAVE_AIO_H
 static void 
 starpu_stdio_wait_request(void * async_channel)
 {
@@ -440,6 +445,7 @@ starpu_stdio_test_request(void * async_channel)
 	/* an error occured */
 	STARPU_ABORT();	
 }
+#endif
 
 struct starpu_disk_ops starpu_disk_stdio_ops = {
 	.alloc = starpu_stdio_alloc,
@@ -447,15 +453,21 @@ struct starpu_disk_ops starpu_disk_stdio_ops = {
 	.open = starpu_stdio_open,
 	.close = starpu_stdio_close,
 	.read = starpu_stdio_read,
+#ifdef HAVE_AIO_H
 	.async_read = starpu_stdio_async_read,
+#endif
 	.write = starpu_stdio_write,
+#ifdef HAVE_AIO_H
 	.async_write = starpu_stdio_async_write,
+#endif
 	.plug = starpu_stdio_plug,
 	.unplug = starpu_stdio_unplug,
 	.copy = NULL,
 	.bandwidth = get_stdio_bandwidth_between_disk_and_main_ram,
+#ifdef HAVE_AIO_H
 	.wait_request = starpu_stdio_wait_request,
 	.test_request = starpu_stdio_test_request,
+#endif
 	.full_read = starpu_stdio_full_read,
 	.full_write = starpu_stdio_full_write
 };
