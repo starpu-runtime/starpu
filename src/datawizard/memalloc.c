@@ -1103,7 +1103,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		}
 	}
 	/* we haven't the right to write on the disk */
-	if (starpu_node_get_kind(target) == STARPU_DISK_RAM && _starpu_get_disk_flag(target) == STARPU_DISK_NO_RECLAIM)
+	if (target != -1 && starpu_node_get_kind(target) == STARPU_DISK_RAM && _starpu_get_disk_flag(target) == STARPU_DISK_NO_RECLAIM)
 		target = -1;
 
 	return target;
