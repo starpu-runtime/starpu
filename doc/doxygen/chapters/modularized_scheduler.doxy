@@ -136,8 +136,8 @@ struct starpu_sched_policy scheduling_policy =
 	.pre_exec_hook = starpu_sched_node_worker_pre_exec_hook,
 	.post_exec_hook = starpu_sched_node_worker_post_exec_hook,
 	.pop_every_task = NULL,
-	.policy_name = "tree-heft",
-	.policy_description = "heft tree policy"
+	.policy_name = "heft-ws",
+	.policy_description = "heft + ws scheduler"
 };
 \endcode
 
