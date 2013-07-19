@@ -111,12 +111,13 @@ starpu_unistd_global_open (struct starpu_unistd_global_obj * obj, void *base, vo
 {
 	/* create template */
 	unsigned int sizeBase = 16;
-	while(sizeBase < (strlen(base)+strlen(pos)+1))
+	while(sizeBase < (strlen(base)+1+strlen(pos)+1))
 		sizeBase *= 2;
 	
 	char * baseCpy = malloc(sizeBase*sizeof(char));
 	STARPU_ASSERT(baseCpy != NULL);
 	strcpy(baseCpy,(char *) base);
+	strcat(baseCpy,(char *) "/");
 	strcat(baseCpy,(char *) pos);
 
 	int id = open(baseCpy, obj->flags);

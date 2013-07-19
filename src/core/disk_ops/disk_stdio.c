@@ -50,16 +50,13 @@ starpu_stdio_alloc (void *base, size_t size)
 	int id = -1;
 
 	/* create template for mkstemp */
-	unsigned int sizeBase = 16;
-	while(sizeBase < (strlen(base)+7))
-		sizeBase *= 2;
-
-	char * baseCpy = malloc(sizeBase*sizeof(char));
+	char * baseCpy = malloc(strlen(base)+8);
 	STARPU_ASSERT(baseCpy != NULL);
 
 	char * tmp = "STARPU_XXXXXX";
 
 	strcpy(baseCpy, (char *) base);
+	strcat(baseCpy,"/");
 	strcat(baseCpy,tmp);
 
 #ifdef STARPU_HAVE_WINDOWS
@@ -134,13 +131,10 @@ starpu_stdio_open (void *base, void *pos, size_t size)
 	STARPU_ASSERT(obj != NULL);
 
 	/* create template */
-	unsigned int sizeBase = 16;
-	while(sizeBase < (strlen(base)+strlen(pos)+1))
-		sizeBase *= 2;
-	
-	char * baseCpy = malloc(sizeBase*sizeof(char));
+	char * baseCpy = malloc(strlen(base)+1+strlen(pos)+1);
 	STARPU_ASSERT(baseCpy != NULL);
 	strcpy(baseCpy,(char *) base);
+	strcat(baseCpy,(char *) "/");
 	strcat(baseCpy,(char *) pos);
 
 	int id = open(baseCpy, O_RDWR);

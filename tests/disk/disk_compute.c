@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 	int pid = getpid();
 	snprintf(pid_str, 16, "%d", pid);
 
-	char * base = "/tmp/";
+	char * base = "/tmp";
 
 	char * name_file_start = malloc(128*sizeof(char));
 	strcpy(name_file_start, "STARPU_DISK_COMPUTE_DATA_");
