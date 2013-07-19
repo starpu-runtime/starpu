@@ -1973,7 +1973,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		default:
 #ifdef STARPU_VERBOSE
 			fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
-				(unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time-options->file_offset));
+				(unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time));
 #endif
 			break;
 		}
