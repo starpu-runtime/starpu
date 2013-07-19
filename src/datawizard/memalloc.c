@@ -1059,7 +1059,7 @@ get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node)
 static unsigned
 choose_target(starpu_data_handle_t handle, unsigned node)
 {
-	unsigned target = -1;
+	int target = -1;
 	size_t size_handle = _starpu_data_get_size(handle);
 	if (handle->home_node != -1)
 		/* try to push on RAM if we can before to push on disk */
