@@ -161,6 +161,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/dependencies/data_concurrency.c			\
 	core/disk_ops/disk_stdio.c				\
 	core/disk_ops/disk_unistd.c                             \
+	core/disk_ops/disk_leveldb.cpp				\
 	core/disk_ops/unistd/disk_unistd_global.c		\
 	core/perfmodel/perfmodel_history.c			\
 	core/perfmodel/perfmodel_bus.c				\
