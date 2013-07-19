@@ -100,6 +100,7 @@ enum starpu_node_kind
 	STARPU_MIC_RAM    = 0x05,
 	STARPU_SCC_RAM    = 0x06,
 	STARPU_SCC_SHM    = 0x07
+
 };
 
 unsigned starpu_worker_get_memory_node(unsigned workerid);

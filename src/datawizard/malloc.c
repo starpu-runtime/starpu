@@ -189,7 +189,6 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 	if (_malloc_align != sizeof(void*))
 	{
-		
 		if (posix_memalign(A, _malloc_align, dim))
 		{
 			ret = -ENOMEM;
@@ -363,6 +362,7 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 #ifdef STARPU_USE_CUDA
 	cudaError_t status;
 #endif
+
 	if (_starpu_memory_manager_can_allocate_size(size, dst_node) == 0)
 		return 0;
 
