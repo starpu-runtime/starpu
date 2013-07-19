@@ -155,10 +155,10 @@ starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
 
 	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed");
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
 	ssize_t nb = read(tmp->descriptor, buf, size);
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd read failed");
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd read failed: size %lu got errno %d", (unsigned long) size, errno);
 	
 	return nb;
 }
@@ -171,10 +171,10 @@ starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
 
 	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for write failed");
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for write failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
 	ssize_t nb = write (tmp->descriptor, buf, size);
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed");
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: size %lu got errno %d", (unsigned long) size, errno);
 
 	return nb;
 }
