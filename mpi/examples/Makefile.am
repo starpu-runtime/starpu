@@ -50,7 +50,6 @@ EXTRA_DIST = 				\
 	mpi_lu/plu_example.c		\
 	mpi_lu/plu_implicit_example.c	\
 	mpi_lu/plu_solve.c		\
-	mpi_lu/plu_implicit_solve.c	\
 	mpi_lu/pxlu.h			\
 	mpi_lu/pxlu.c			\
 	mpi_lu/pxlu_implicit.c		\
