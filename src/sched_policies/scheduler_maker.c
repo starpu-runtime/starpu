@@ -1,9 +1,36 @@
-#include "sched_node.h"
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2013  Simon Archipoff
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
 #include <starpu_sched_node.h>
 #include <common/list.h>
-#include <stdarg.h>
 #include <core/workers.h>
 
+#include "sched_node.h"
+
+
+
+/* The scheduler is built by a recursive function called on the hwloc topology with a starpu_sched_specs structure,
+ * each call return a set of starpu_sched_node, not a single one, because you may have a topology like that :
+ * MACHINE -- MEMORY NODE -- SOCKET
+ *                        \- SOCKET
+ * and you have defined a node for MACHINE, and a node for SOCKET, but not for MEMORY NODE then the recursive call
+ * on MEMORY NODE will return 2 starpu_sched_node for those 2 sockets
+ *
+ *
+ */
 
 struct sched_node_list
 {
@@ -25,6 +52,7 @@ static void add_node(struct sched_node_list *list, struct starpu_sched_node * no
 	list->arr[list->size] = node;
 	list->size++;
 }
+/* this is the function that actualy built the scheduler, but without workers */
 static struct sched_node_list helper_make_scheduler(hwloc_obj_t obj, struct starpu_sched_specs specs, unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(obj);
@@ -72,7 +100,7 @@ static struct sched_node_list helper_make_scheduler(hwloc_obj_t obj, struct star
 	add_node(&l, node);
 	return l;
 }
-
+/* return the firt node in prefix order such as node->obj == obj, or NULL */
 struct starpu_sched_node * _find_sched_node_with_obj(struct starpu_sched_node * node, hwloc_obj_t obj)
 {
 	if(node == NULL)
@@ -89,23 +117,27 @@ struct starpu_sched_node * _find_sched_node_with_obj(struct starpu_sched_node * 
 	return NULL;
 }
 
-
-static int is_same_kind_of_all(struct starpu_sched_node * root, struct _starpu_worker * w)
+/* return true if all workers in the tree have the same perf_arch as w_ref,
+ * if there is no worker it return true
+ */
+static int is_same_kind_of_all(struct starpu_sched_node * root, struct _starpu_worker * w_ref)
 {
 	if(starpu_sched_node_is_worker(root))
 	{
-		struct _starpu_worker * w_ = root->data;
-		return w_->perf_arch == w->perf_arch;
+		struct _starpu_worker * w = root->data;
+		return w->perf_arch == w_ref->perf_arch;
 	}
 	
 	int i;
 	for(i = 0;i < root->nchilds; i++)
-		if(!is_same_kind_of_all(root->childs[i], w))
+		if(!is_same_kind_of_all(root->childs[i], w_ref))
 			return 0;
 	return 1;
 }
-
-struct starpu_sched_node * find_mem_node(struct starpu_sched_node * root, struct starpu_sched_node * worker_node, unsigned sched_ctx_id)
+/* buggy function
+ * return the starpu_sched_node linked to the supposed memory node of worker_node
+ */
+static struct starpu_sched_node * find_mem_node(struct starpu_sched_node * root, struct starpu_sched_node * worker_node)
 {
 	struct starpu_sched_node * node = worker_node;
 	while(node->obj->type != HWLOC_OBJ_NODE
@@ -125,7 +157,7 @@ struct starpu_sched_node * find_mem_node(struct starpu_sched_node * root, struct
 
 static struct starpu_sched_node * where_should_we_plug_this(struct starpu_sched_node *root, struct starpu_sched_node * worker_node, struct starpu_sched_specs specs, unsigned sched_ctx_id)
 {
-	struct starpu_sched_node * mem = find_mem_node(root ,worker_node, sched_ctx_id);
+	struct starpu_sched_node * mem = find_mem_node(root ,worker_node);
 	if(specs.mix_heterogeneous_workers || mem->fathers[sched_ctx_id] == NULL)
 		return mem;
 	hwloc_obj_t obj = mem->obj;

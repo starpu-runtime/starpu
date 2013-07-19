@@ -241,7 +241,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	worker_collection/worker_list.c				\
 	sched_policies/node_worker.c				\
 	sched_policies/node_sched.c				\
-	sched_policies/node_eager.c				\
 	sched_policies/node_fifo.c 				\
 	sched_policies/node_work_stealing.c			\
 	sched_policies/prio_deque.c				\

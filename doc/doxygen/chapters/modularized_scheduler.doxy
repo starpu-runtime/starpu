@@ -1,3 +1,9 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2013 Simon Archipoff
+ * See the file version.doxy for copying conditions.
+ */
+
 /*! \page ModularizedScheduler Modularized Scheduler
 
 
@@ -59,4 +65,5 @@ A push call simply enqueue task in worker queue, no sort is performed
 here.
 If a worker call pop and get a parallel task, it will execute it with the
 combined worker it belong to.
+
 */

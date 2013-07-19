@@ -1,3 +1,17 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2013 Simon Archipoff
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 
 
@@ -9,7 +23,6 @@ the application to push a task
 and one mutex per worker wich should be taken by workers when they pop
 or push a task.
 The hypervisor must take all of them to modifying the scheduler.
-
 
 
 
@@ -25,8 +38,6 @@ creation
 Workers nodes are particulars, there is no creation function, only
 accessor to guaranty uniqueness of worker nodes. worker_node->workers and
 worker_node->workers_in_ctx should not be modified.
-
-
 
 
 
@@ -48,11 +59,18 @@ node. We also have a problem for shared object. The first way seems to
 be better.
 
 
+Hierarchical construction
+
+Bugs everywhere, works only in simple and particulars cases.
+Its difficult to guess where we should plug accelerators because we cant rely on
+hwloc topology. Hierarchical heft seems to work on simple machines with numa nodes
+and GPUs
+this fail if hwloc_socket_composed_sched_node or hwloc_cache_composed_sched_node is not
+NULL
+
+
 Various things
 
 In several place realloc is used (in prio_deque and for
 starpu_sched_node_add_child), because we should not have a lot
 different priority level nor adding too many childs.
-
-Estimated_end is defined differently for work stealing and fifo.
-I dont know which approach is better.
