@@ -1889,4 +1889,107 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 
 	options->nworkers = nworkers;
 }
+
+static FILE *out_data_total_trace_file;
+
+struct parse_task
+{
+	unsigned exec_time;
+	unsigned data_total;
+};
+
+static struct parse_task tasks[STARPU_NMAXWORKERS];
+
+#define NANO_SEC_TO_MILI_SEC 0.000001
+
+static void write_task(struct parse_task pt)
+{
+	double time = pt.exec_time * NANO_SEC_TO_MILI_SEC;
+	fprintf(out_data_total_trace_file, "%lf %d\n", time, pt.data_total);
+}
+
+
+void starpu_fxt_write_data_trace(char *filename_in)
+{
+	int fd_in;
+	fd_in = open(filename_in, O_RDONLY);
+	if (fd_in < 0)
+	{
+	        perror("open failed :");
+	        exit(-1);
+	}
+
+	static fxt_t fut;
+	fut = fxt_fdopen(fd_in);
+	if (!fut)
+	{
+	        perror("fxt_fdopen :");
+	        exit(-1);
+	}
+
+	fxt_blockev_t block;
+	block = fxt_blockev_enter(fut);
+
+	out_data_total_trace_file = fopen("data_total.txt", "w+");
+	if(!out_data_total_trace_file)
+        {
+                perror("open failed :");
+                exit(-1);
+        }
+
+	struct fxt_ev_64 ev;
+	while(1)
+	{
+		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
+		if (ret != FXT_EV_OK)
+		{
+			break;
+		}
+		
+		unsigned workerid;
+
+		switch (ev.code)
+		{
+		case _STARPU_FUT_WORKER_INIT_START:
+			register_worker_id(ev.param[4], ev.param[1]);
+			break;
+			
+		case _STARPU_FUT_START_CODELET_BODY:
+			workerid = find_worker_id(ev.param[2]);
+			tasks[workerid].exec_time = ev.time;
+			break;
+			
+		case _STARPU_FUT_END_CODELET_BODY:
+			workerid = find_worker_id(ev.param[4]);
+			tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
+			write_task(tasks[workerid]);
+			break;
+
+		case _STARPU_FUT_DATA_LOAD:
+			workerid = ev.param[0];
+			tasks[workerid].data_total = ev.param[1];
+			break;
+			
+		default:
+#ifdef STARPU_VERBOSE
+			fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
+				(unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time));
+#endif
+			break;
+		}
+	}
+	
+	if (close(fd_in))
+	{
+	        perror("close failed :");
+	        exit(-1);
+	}
+	
+	if(fclose(out_data_total_trace_file))
+	{
+		perror("close failed :");
+		exit(-1);
+	}
+
+}
 #endif // STARPU_USE_FXT

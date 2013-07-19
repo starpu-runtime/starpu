@@ -119,12 +119,13 @@ starpu_unistd_global_open (struct starpu_unistd_global_obj * obj, void *base, vo
 {
 	/* create template */
 	unsigned int sizeBase = 16;
-	while(sizeBase < (strlen(base)+strlen(pos)+1))
+	while(sizeBase < (strlen(base)+1+strlen(pos)+1))
 		sizeBase *= 2;
 	
 	char * baseCpy = malloc(sizeBase*sizeof(char));
 	STARPU_ASSERT(baseCpy != NULL);
 	strcpy(baseCpy,(char *) base);
+	strcat(baseCpy,(char *) "/");
 	strcat(baseCpy,(char *) pos);
 
 	int id = open(baseCpy, obj->flags);
@@ -169,10 +170,10 @@ starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
 	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd read failed");
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
 	ssize_t nb = read(tmp->descriptor, buf, size);
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd read failed");
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd read failed: size %lu got errno %d", (unsigned long) size, errno);
 	
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 
@@ -220,10 +221,10 @@ starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 	
 	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed");
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for write failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
 	ssize_t nb = write (tmp->descriptor, buf, size);
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed");
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: size %lu got errno %d", (unsigned long) size, errno);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 

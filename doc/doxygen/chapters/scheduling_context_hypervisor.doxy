@@ -92,10 +92,10 @@ sc_hypervisor_resize(sched_ctx, 2);
 The user can use the same tag to change the resizing configuration of the contexts if he considers it necessary.
 
 \code{.c}
-sc_hypervisor_ioctl(sched_ctx,
-                    HYPERVISOR_MIN_WORKERS, 6,
-                    HYPERVISOR_MAX_WORKERS, 12,
-                    HYPERVISOR_TIME_TO_APPLY, 2,
+sc_hypervisor_ctl(sched_ctx,
+                    SC_HYPERVISOR_MIN_WORKERS, 6,
+                    SC_HYPERVISOR_MAX_WORKERS, 12,
+                    SC_HYPERVISOR_TIME_TO_APPLY, 2,
                     NULL);
 \endcode
 
@@ -107,9 +107,9 @@ for a period longer than the one imposed by the user
 \code{.c}
 int workerids[3] = {1, 3, 10};
 int workerids2[9] = {0, 2, 4, 5, 6, 7, 8, 9, 11};
-sc_hypervisor_ioctl(sched_ctx_id,
-            HYPERVISOR_MAX_IDLE, workerids, 3, 10000.0,
-            HYPERVISOR_MAX_IDLE, workerids2, 9, 50000.0,
+sc_hypervisor_ctl(sched_ctx_id,
+            SC_HYPERVISOR_MAX_IDLE, workerids, 3, 10000.0,
+            SC_HYPERVISOR_MAX_IDLE, workerids2, 9, 50000.0,
             NULL);
 \endcode
 

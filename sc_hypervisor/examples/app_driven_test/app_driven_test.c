@@ -80,11 +80,11 @@ void* submit_tasks_thread(void *arg)
 			task[i]->hypervisor_tag = tag;
 			/* indicate particular settings the context should have when the 
 			   resizing will be done */
-			sc_hypervisor_ioctl(sched_ctx,
-						   HYPERVISOR_TIME_TO_APPLY, tag,
-						   HYPERVISOR_MIN_WORKERS, 2,
-						   HYPERVISOR_MAX_WORKERS, 12,
-						   HYPERVISOR_NULL);
+			sc_hypervisor_ctl(sched_ctx,
+						   SC_HYPERVISOR_TIME_TO_APPLY, tag,
+						   SC_HYPERVISOR_MIN_WORKERS, 2,
+						   SC_HYPERVISOR_MAX_WORKERS, 12,
+						   SC_HYPERVISOR_NULL);
 			printf("require resize for sched_ctx %d at tag %d\n", sched_ctx, tag);
 			/* specify that the contexts should be resized when the task having this
 			   particular tag will finish executing */

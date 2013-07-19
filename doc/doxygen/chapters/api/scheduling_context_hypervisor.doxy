@@ -178,75 +178,75 @@ finished executing
 \ingroup API_Scheduling_Context_Hypervisor
 Requires reconsidering the distribution of ressources over the indicated scheduling contexts 
 
-\fn void sc_hypervisor_ioctl(unsigned sched_ctx, ...)
+\fn void sc_hypervisor_ctl(unsigned sched_ctx, ...)
 \ingroup API_Scheduling_Context_Hypervisor
 Inputs conditions to the context sched_ctx with the following
 arguments. The argument list must be zero-terminated.
 
-\def HYPERVISOR_MAX_IDLE
+\def SC_HYPERVISOR_MAX_IDLE
 \ingroup API_Scheduling_Context_Hypervisor
-This macro is used when calling sc_hypervisor_ioctl() and must be
+This macro is used when calling sc_hypervisor_ctl() and must be
 followed by 3 arguments: an array of int for the workerids to apply
 the condition, an int to indicate the size of the array, and a double
 value indicating the maximum idle time allowed for a worker before the
 resizing process should be triggered
 
-\def HYPERVISOR_PRIORITY
+\def SC_HYPERVISOR_PRIORITY
 \ingroup API_Scheduling_Context_Hypervisor
-This macro is used when calling sc_hypervisor_ioctl() and must be
+This macro is used when calling sc_hypervisor_ctl() and must be
 followed by 3 arguments: an array of int for the workerids to apply
 the condition, an int to indicate the size of the array, and an int
 value indicating the priority of the workers previously mentioned. The
 workers with the smallest priority are moved the first.
 
-\def HYPERVISOR_MIN_WORKERS
+\def SC_HYPERVISOR_MIN_WORKERS
 \ingroup API_Scheduling_Context_Hypervisor
-This macro is used when calling sc_hypervisor_ioctl() and must be
+This macro is used when calling sc_hypervisor_ctl() and must be
 followed by 1 argument(int) indicating the minimum number of workers a
 context should have, underneath this limit the context cannot execute.
 
-\def HYPERVISOR_MAX_WORKERS
+\def SC_HYPERVISOR_MAX_WORKERS
 \ingroup API_Scheduling_Context_Hypervisor
-This macro is used when calling sc_hypervisor_ioctl() and must be
+This macro is used when calling sc_hypervisor_ctl() and must be
 followed by 1 argument(int) indicating the maximum number of workers a
 context should have, above this limit the context would not be able to
 scale
 
-\def HYPERVISOR_GRANULARITY
+\def SC_HYPERVISOR_GRANULARITY
 \ingroup API_Scheduling_Context_Hypervisor
-This macro is used when calling sc_hypervisor_ioctl() and must be
+This macro is used when calling sc_hypervisor_ctl() and must be
 followed by 1 argument(int) indicating the granularity of the resizing
 process (the number of workers should be moved from the context once
 it is resized) This parameter is ignore for the Gflops rate based
 strategy (see \ref ResizingStrategies), the number of workers that have to
 be moved is calculated by the strategy.
 
-\def HYPERVISOR_FIXED_WORKERS
+\def SC_HYPERVISOR_FIXED_WORKERS
 \ingroup API_Scheduling_Context_Hypervisor
-This macro is used when calling sc_hypervisor_ioctl() and must be
+This macro is used when calling sc_hypervisor_ctl() and must be
 followed by 2 arguments: an array of int for the workerids to apply
 the condition and an int to indicate the size of the array. These
 workers are not allowed to be moved from the context.
 
-\def HYPERVISOR_MIN_TASKS
+\def SC_HYPERVISOR_MIN_TASKS
 \ingroup API_Scheduling_Context_Hypervisor
-This macro is used when calling sc_hypervisor_ioctl() and must be
+This macro is used when calling sc_hypervisor_ctl() and must be
 followed by 1 argument (int) that indicated the minimum number of
 tasks that have to be executed before the context could be resized.
 This parameter is ignored for the Application Driven strategy (see \ref 
 ResizingStrategies) where the user indicates exactly when the resize
 should be done.
 
-\def HYPERVISOR_NEW_WORKERS_MAX_IDLE
+\def SC_HYPERVISOR_NEW_WORKERS_MAX_IDLE
 \ingroup API_Scheduling_Context_Hypervisor
-This macro is used when calling sc_hypervisor_ioctl() and must be
+This macro is used when calling sc_hypervisor_ctl() and must be
 followed by 1 argument, a double value indicating the maximum idle
 time allowed for workers that have just been moved from other contexts
 in the current context.
 
-\def HYPERVISOR_TIME_TO_APPLY
+\def SC_HYPERVISOR_TIME_TO_APPLY
 \ingroup API_Scheduling_Context_Hypervisor
-This macro is used when calling sc_hypervisor_ioctl() and must be
+This macro is used when calling sc_hypervisor_ctl() and must be
 followed by 1 argument (int) indicating the tag an executed task
 should have such that this configuration should be taken into account.
 

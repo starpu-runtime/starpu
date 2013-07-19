@@ -582,6 +582,19 @@ Computation took (in ms)
 Synthetic GFlops : 44.21
 \endverbatim
 
+\section DataTrace Data trace and tasks length
+It is possible to get statistics about tasks length and data size by using :
+\verbatim
+$starpu_fxt_data_trace filename
+\endverbatim
+Where filename is the FxT trace file. This will create 2 files : <c>data_total.txt</c> which
+shows each task length and total data size and <c>data_trace.gp</c> which can be plotted to 
+get a .eps image of these results. On the image, each point represents a task.
+
+\image html data_trace.png
+\image latex data_trace.eps "" width=\textwidth
+
+
 \internal
 TODO: data transfer stats are similar to the ones displayed when
 setting STARPU_BUS_STATS

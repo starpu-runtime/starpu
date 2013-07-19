@@ -370,7 +370,13 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 	{
 		case STARPU_CPU_RAM:
 		{
-			starpu_malloc((void**) &addr, size);
+			starpu_malloc_flags((void**) &addr, size,
+#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+					0
+#else
+					STARPU_MALLOC_PINNED
+#endif
+					);
 			break;
 		}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -462,7 +468,13 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	switch(kind)
 	{
 		case STARPU_CPU_RAM:
-			starpu_free((void*)addr);
+			starpu_free_flags((void*)addr, size,
+#if defined(STARPU_USE_CUDA) && !defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+					0
+#else
+					STARPU_MALLOC_PINNED
+#endif
+					);
 			break;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
