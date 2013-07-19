@@ -173,7 +173,7 @@ static void init_matrix(int rank)
 
 	size_t blocksize = (size_t)(size/nblocks)*(size/nblocks)*sizeof(TYPE);
 
-	int disk_node = starpu_disk_register(&starpu_disk_unistd_ops, path, 1024*1024);
+	int disk_node = starpu_disk_register(&starpu_disk_unistd_ops, path, STARPU_MAX(1024*1024, size*size*sizeof(TYPE)));
 
 	char filename[sizeof(nblocks)*3 + 1 + sizeof(nblocks)*3 + 1];
 
@@ -273,7 +273,8 @@ int main(int argc, char **argv)
 
 	init_matrix(rank);
 
-	fprintf(stderr, "%dMB on disk\n", (int)(allocated_memory/(1024*1024)));
+	if (rank == 0)
+		fprintf(stderr, "%dMB on disk\n", (int)(allocated_memory/(1024*1024)));
 
 	TYPE *a_r = NULL;
 //	STARPU_PLU(display_data_content)(a_r, size);
