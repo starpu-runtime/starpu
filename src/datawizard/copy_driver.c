@@ -401,8 +401,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 #endif
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_DISK_RAM):
-		if(copy_methods->any_to_any || starpu_asynchronous_copy_disabled())
-			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
+		if(copy_methods->any_to_any)
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
 
 		else
 		{
@@ -418,8 +418,8 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 		break;
 		
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_CPU_RAM):
-		if(copy_methods->any_to_any || starpu_asynchronous_copy_disabled()) 
-			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
+		if(copy_methods->any_to_any) 
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled()  ? &req->async_channel : NULL);
 		else
 		{
 			struct starpu_disk_interface * disk_interface = (struct starpu_disk_interface *) src_interface; 
