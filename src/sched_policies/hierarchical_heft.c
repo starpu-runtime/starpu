@@ -1,6 +1,5 @@
 #include <starpu_sched_node.h>
 #include <core/workers.h>
-#include "scheduler_maker.h"
 
 static struct  starpu_sched_node_composed_recipe *  recipe_for_worker(enum starpu_worker_archtype a STARPU_ATTRIBUTE_UNUSED)
 {
@@ -42,7 +41,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 	specs.hwloc_node_composed_sched_node = r;
 	specs.worker_composed_sched_node = recipe_for_worker;
 
-	struct starpu_sched_tree *t = _starpu_make_scheduler(sched_ctx_id, specs);
+	struct starpu_sched_tree *t = starpu_sched_node_make_scheduler(sched_ctx_id, specs);
 
 	starpu_destroy_composed_sched_node_recipe(specs.hwloc_machine_composed_sched_node);
 

@@ -33,11 +33,13 @@ int starpu_get_prefetch_flag(void)
 
 static struct starpu_sched_policy *predefined_policies[] =
 {
+#ifdef STARPU_HAVE_HWLOC
+	&_starpu_sched_tree_heft_hierarchical_policy,
+#endif
 	&_starpu_sched_tree_eager_policy,
 	&_starpu_sched_tree_random_policy,
 	&_starpu_sched_tree_ws_policy,
 	&_starpu_sched_tree_heft_policy,
-//	&_starpu_sched_tree_heft_hierarchical_policy,
 	&_starpu_sched_eager_policy,
 	&_starpu_sched_prio_policy,
 	&_starpu_sched_random_policy,

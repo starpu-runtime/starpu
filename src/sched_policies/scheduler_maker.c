@@ -1,5 +1,4 @@
 #include "sched_node.h"
-#include "scheduler_maker.h"
 #include <starpu_sched_node.h>
 #include <common/list.h>
 #include <stdarg.h>
@@ -210,7 +209,7 @@ static void helper_display_scheduler(FILE* out, unsigned depth, struct starpu_sc
 		helper_display_scheduler(out, depth + 1, node->childs[i]);
 }
 #endif //STARPU_DEVEL
-struct starpu_sched_tree * _starpu_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_specs specs)
+struct starpu_sched_tree * starpu_sched_node_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_specs specs)
 {
 	struct starpu_sched_tree * tree = starpu_sched_tree_create(sched_ctx_id);
 	

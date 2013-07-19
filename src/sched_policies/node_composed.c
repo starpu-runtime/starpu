@@ -133,6 +133,7 @@ static void composed_node_add_child(struct starpu_sched_node * node, struct star
 static void composed_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 {
 	struct composed_node * c = node->data;
+	starpu_sched_node_remove_child(node, child);
 	c->bottom->remove_child(c->bottom, child);
 }
 

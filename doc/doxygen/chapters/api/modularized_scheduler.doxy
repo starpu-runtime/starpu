@@ -318,4 +318,30 @@ starpu_sched_node_heft_create parameters
 \fn struct starpu_sched_node * starpu_sched_node_composed_node_create(struct starpu_sched_node_composed_recipe * recipe)
 \ingroup API_Modularized_Scheduler
 	 create a node that behave as all node of recipe where linked. Except that you cant use starpu_sched_node_is_foo function
+	 if recipe contain a single create_foo arg_foo pair, create_foo(arg_foo) is returned instead of a composed node
+
+
+\struct starpu_sched_specs
+\ingroup API_Modularized_Scheduler
+	 Define how build a scheduler according to topology.
+\var starpu_sched_specs::hwloc_machine_composed_sched_node
+     the composed node to put on the top of the scheduler
+\var starpu_sched_specs::hwloc_node_composed_sched_node
+     the composed node to put for each memory node
+\var starpu_sched_specs::hwloc_socket_composed_sched_node
+     the composed node to put for each socket
+\var starpu_sched_specs::hwloc_cache_composed_sched_node
+     the composed node to put for each cache
+     
+\var starpu_sched_specs::worker_composed_sched_node
+     a function that return a starpu_sched_node_composed_recipe to put on top of a worker of type \p archtype
+\var starpu_sched_specs::mix_heterogeneous_workers
+     this flag is a dirty hack because of the poor expressivity of this interface. As example, if you want to build
+     a heft node with a fifo node per numa node, and you also have GPUs, if this flag is set, GPUs will share those fifos.
+     If this flag is not set, a new fifo will be built for each of them (if they have the same starpu_perf_arch and the same
+     numa node it will be shared
+
+\fn struct starpu_sched_tree * starpu_sched_node_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_specs s);
+\ingroup API_Modularized_Scheduler
+	 this function build a scheduler for \p sched_ctx_id according to \p s and the hwloc topology of the machine.
 */
