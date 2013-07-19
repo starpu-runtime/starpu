@@ -47,12 +47,13 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 	const char *template = "STARPU_XXXXXX";
 
 	/* create template for mkstemp */
-	unsigned int sizeBase = strlen(base) + strlen(template)+1;
+	unsigned int sizeBase = strlen(base) + 1 + strlen(template)+1;
 
 	char * baseCpy = malloc(sizeBase*sizeof(char));
 	STARPU_ASSERT(baseCpy != NULL);
 
 	strcpy(baseCpy, (char *) base);
+	strcat(baseCpy,"/");
 	strcat(baseCpy,template);
 #ifdef STARPU_LINUX_SYS
 	id = mkostemp(baseCpy, obj->flags);
