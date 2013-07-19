@@ -625,7 +625,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 {
 	struct starpu_matrix_interface *src_matrix = (struct starpu_matrix_interface *) src_interface;
 	struct starpu_matrix_interface *dst_matrix = (struct starpu_matrix_interface *) dst_interface;
-	int ret;
+	int ret = 0;
 
 	unsigned y;
 	uint32_t nx = dst_matrix->nx;

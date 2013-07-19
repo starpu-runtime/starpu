@@ -662,7 +662,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 {
 	struct starpu_block_interface *src_block = (struct starpu_block_interface *) src_interface;
 	struct starpu_block_interface *dst_block = (struct starpu_block_interface *) dst_interface;
-	int ret;
+	int ret = 0;
 
 	uint32_t nx = dst_block->nx;
 	uint32_t ny = dst_block->ny;
