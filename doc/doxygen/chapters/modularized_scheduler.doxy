@@ -37,10 +37,6 @@ Underlyings workers are memoized in starpu_sched_node::workers. Hence the
 function starpu_sched_tree_update_workers should be called when the scheduler is
 finished, or modified.
 
-\section AddingAndRemovingWorkers Adding and removing workers
-The hypervisor can balance load between contexts by adding or removing workers from a scheduler.
-
-
 
 \section Push
 All scheduler node must define a starpu_sched_node::push_task
@@ -65,5 +61,85 @@ A push call simply enqueue task in worker queue, no sort is performed
 here.
 If a worker call pop and get a parallel task, it will execute it with the
 combined worker it belong to.
+
+\section Example
+
+Here we build a simple scheduler with a heft node on top and a work stealing node per memory node, and a best_impl node per worker,
+which use random node to push uncalibrated tasks and tasks with no perf model, this is probably stupid.
+
+\code{.c}
+
+static void initialize_scheduler(unsigned sched_ctx_id)
+{
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+	struct starpu_sched_tree * t = starpu_sched_tree_create(sched_ctx_id);
+	
+	struct starpu_sched_node * ws_nodes[STARPU_NMAXWORKERS] = {0};
+
+	struct starpu_heft_data data =
+		{
+			.alpha = 1,
+			.beta = 2,
+			.gamma = 0,
+			.idle_power = 0,
+			.no_perf_model_node_create = starpu_sched_node_random_create,
+			.arg_no_perf_model = NULL,
+			.calibrating_node_create = starpu_sched_node_random_create,
+			.arg_calibrating_node = NULL
+		};
+
+	struct starpu_sched_node * heft = starpu_sched_node_heft_create(&data);
+
+	unsigned i;
+	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
+	{
+		struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(i);
+		struct starpu_sched_node * best_impl = starpu_sched_node_best_implementation_create(NULL);
+		best_impl->add_child(best_impl, worker_node);
+		starpu_sched_node_set_father(worker_node, best_impl, sched_ctx_id);
+		
+		int memory_node = starpu_worker_get_memory_node(i);
+
+		if(!ws_nodes[memory_node])
+		{
+			ws_nodes[memory_node] = starpu_sched_node_work_stealing_create(NULL);
+			heft->add_child(heft, ws_nodes[memory_node]);
+			starpu_sched_node_set_father(ws_nodes[memory_node], heft, sched_ctx_id);
+		}
+
+		struct starpu_sched_node * ws = ws_nodes[memory_node];
+		ws->add_child(ws,best_impl);
+		starpu_sched_node_set_father(best_impl, ws, sched_ctx_id);
+	}
+
+	t->root = heft;
+	starpu_sched_tree_update_workers(t);
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
+}
+
+static void deinitialize_scheduler(unsigned sched_ctx_id)
+{
+	struct starpu_sched_tree *t = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	starpu_sched_tree_destroy(t);
+	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
+}
+
+
+struct starpu_sched_policy scheduling_policy =
+{
+	.init_sched = initialize_scheduler,
+	.deinit_sched = deinitialize_scheduler,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_node_worker_pre_exec_hook,
+	.post_exec_hook = starpu_sched_node_worker_post_exec_hook,
+	.pop_every_task = NULL,
+	.policy_name = "tree-heft",
+	.policy_description = "heft tree policy"
+};
+\endcode
+
 
 */
