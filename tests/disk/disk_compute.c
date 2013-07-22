@@ -47,20 +47,17 @@ int main(int argc, char **argv)
 
 	char * base = "/tmp";
 
-	char * name_file_start = malloc(128*sizeof(char));
-	strcpy(name_file_start, "/STARPU_DISK_COMPUTE_DATA_");
-	strcat(name_file_start, pid_str);
+	const char *name_file_start = "STARPU_DISK_COMPUTE_DATA_";
+	const char *name_file_end = "STARPU_DISK_COMPUTE_DATA_RESULT_";
 
-	char * name_file_end = malloc(128*sizeof(char));
-	strcpy(name_file_end, "/STARPU_DISK_COMPUTE_DATA_RESULT_");
-	strcat(name_file_end, pid_str);
-
-	char * path_file_start = malloc(128*sizeof(char));
+	char * path_file_start = malloc(strlen(base) + 1 + strlen(name_file_start) + 1);
 	strcpy(path_file_start, base);
+	strcat(path_file_start, "/");
 	strcat(path_file_start, name_file_start);
 
-	char * path_file_end = malloc(128*sizeof(char));
+	char * path_file_end = malloc(strlen(base) + 1 + strlen(name_file_end) + 1);
 	strcpy(path_file_end, base);
+	strcat(path_file_end, "/");
 	strcat(path_file_end, name_file_end);
 
 
@@ -176,8 +173,6 @@ int main(int argc, char **argv)
 	unlink(path_file_start);
 	unlink(path_file_end);
 
-	free(name_file_start);
-	free(name_file_end);
 	free(path_file_start);
 	free(path_file_end);
 
