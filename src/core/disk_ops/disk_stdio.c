@@ -19,7 +19,9 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#ifdef HAVE_AIO_H
 #include <aio.h>
+#endif
 #include <errno.h>
 #include <time.h>
 
