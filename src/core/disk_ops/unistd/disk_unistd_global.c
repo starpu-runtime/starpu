@@ -121,11 +121,7 @@ starpu_unistd_global_free (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t
 starpu_unistd_global_open (struct starpu_unistd_global_obj * obj, void *base, void *pos, size_t size)
 {
 	/* create template */
-	unsigned int sizeBase = 16;
-	while(sizeBase < (strlen(base)+1+strlen(pos)+1))
-		sizeBase *= 2;
-	
-	char * baseCpy = malloc(sizeBase*sizeof(char));
+	char * baseCpy = malloc(strlen(base)+1+strlen(pos)+1);
 	STARPU_ASSERT(baseCpy != NULL);
 	strcpy(baseCpy,(char *) base);
 	strcat(baseCpy,(char *) "/");
