@@ -388,6 +388,8 @@ MPI (complex numbers),
 <c>starpu_mpi_insert_task</c>. The non-distributed version can check for
 <algorithm correctness in 1-node configuration, the distributed version uses
 exactly the same source code, to be used over MPI,
-<li><c>mpi_lu</c> is an LU decomposition example, provided in both explicit and
-implicit versions.
+<li><c>mpi_lu</c> is an LU decomposition example, provided in three versions:
+<c>plu_example</c> uses explicit MPI data transfers, <c>plu_implicit_example</c>
+uses implicit MPI data transfers, <c>plu_outofcore_example</c> uses implicit MPI
+data transfers and supports data matrices which do not fit in memory (out-of-core).
 </ul>

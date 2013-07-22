@@ -17,6 +17,12 @@
 #ifndef __DISK_UNISTD_GLOBAL_H__
 #define __DISK_UNISTD_GLOBAL_H__
 
+#include <fcntl.h>
+
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 struct starpu_unistd_global_obj {
         int descriptor;
         char * path;
