@@ -209,28 +209,6 @@ starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off
 	return 0;
 }
 
-#ifdef HAVE_AIO_H
-static int
-starpu_stdio_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
-{
-	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
-      
-	struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
-        struct aiocb *aiocb = &channel->event.disk_event._starpu_aiocb_disk;
-        
-	memset(aiocb, 0, sizeof(struct aiocb));
-        
-	aiocb->aio_fildes = tmp->descriptor;
-        aiocb->aio_offset = offset;
-	aiocb->aio_nbytes = size;
-        aiocb->aio_buf = buf;
-        aiocb->aio_reqprio = 0;
-        aiocb->aio_lio_opcode = LIO_NOP; 
-
-	return aio_read(aiocb);
-}
-#endif
-
 static int
 starpu_stdio_full_read(unsigned node, void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
 {
@@ -258,27 +236,6 @@ starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *b
 
 	return nb;
 }
-
-#ifdef HAVE_AIO_H
-static int
-starpu_stdio_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
-{
-        struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
-
-        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
-        struct aiocb *aiocb = &channel->event.disk_event._starpu_aiocb_disk ;
-        memset(aiocb, 0, sizeof(struct aiocb));
-
-        aiocb->aio_fildes = tmp->descriptor;
-        aiocb->aio_offset = offset;
-        aiocb->aio_nbytes = size;
-        aiocb->aio_buf = buf;
-        aiocb->aio_reqprio = 0;
-        aiocb->aio_lio_opcode = LIO_NOP; 
-
-        return aio_write(aiocb);
-}
-#endif
 
 static int
 starpu_stdio_full_write (unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
@@ -401,51 +358,6 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	return 1;
 }
 
-#ifdef HAVE_AIO_H
-static void 
-starpu_stdio_wait_request(void * async_channel)
-{
-	struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
-	const struct aiocb * aiocb = &channel->event.disk_event._starpu_aiocb_disk;
-	const struct aiocb * list[1];
-	list[0] = aiocb;
-	int values = -1;
-	int error_disk = EAGAIN;
-	while(values < 0 || error_disk == EAGAIN)
-	{
-		/* Wait the answer of the request TIMESTAMP IS NULL */
-		values = aio_suspend(list, 1, NULL);
-		error_disk = errno;
-	}
-}
-
-static int
-starpu_stdio_test_request(void * async_channel)
-{
-	struct timespec time_wait_request;
-	time_wait_request.tv_sec = 0;
-	time_wait_request.tv_nsec = 0;
-
-        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
-        const struct aiocb * aiocb = &channel->event.disk_event._starpu_aiocb_disk;
-        const struct aiocb * list[1];
-        list[0] = aiocb;
-        int values = -1;
-        int error_disk = EAGAIN;
-        
-	/* Wait the answer of the request */
-        values = aio_suspend(list, 1, &time_wait_request);
-        error_disk = errno;
-	/* request is finished */
-	if (values == 0)
-		return 1;
-	/* values == -1 */
-	if (error_disk == EAGAIN)
-		return 0;
-	/* an error occured */
-	STARPU_ABORT();	
-}
-#endif
 
 struct starpu_disk_ops starpu_disk_stdio_ops = {
 	.alloc = starpu_stdio_alloc,
@@ -453,21 +365,11 @@ struct starpu_disk_ops starpu_disk_stdio_ops = {
 	.open = starpu_stdio_open,
 	.close = starpu_stdio_close,
 	.read = starpu_stdio_read,
-#ifdef HAVE_AIO_H
-	.async_read = starpu_stdio_async_read,
-#endif
 	.write = starpu_stdio_write,
-#ifdef HAVE_AIO_H
-	.async_write = starpu_stdio_async_write,
-#endif
 	.plug = starpu_stdio_plug,
 	.unplug = starpu_stdio_unplug,
 	.copy = NULL,
 	.bandwidth = get_stdio_bandwidth_between_disk_and_main_ram,
-#ifdef HAVE_AIO_H
-	.wait_request = starpu_stdio_wait_request,
-	.test_request = starpu_stdio_test_request,
-#endif
 	.full_read = starpu_stdio_full_read,
 	.full_write = starpu_stdio_full_write
 };
