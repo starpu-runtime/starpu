@@ -66,7 +66,7 @@ starpu_stdio_alloc (void *base, size_t size)
 
 #ifdef STARPU_HAVE_WINDOWS
         _mktemp(baseCpy);
-        id = open(baseCpy, O_RDWR);
+        id = open(baseCpy, O_RDWR | O_BINARY);
 #else
 	id = mkstemp(baseCpy);
 
