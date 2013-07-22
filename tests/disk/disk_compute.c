@@ -48,11 +48,11 @@ int main(int argc, char **argv)
 	char * base = "/tmp";
 
 	char * name_file_start = malloc(128*sizeof(char));
-	strcpy(name_file_start, "STARPU_DISK_COMPUTE_DATA_");
+	strcpy(name_file_start, "/STARPU_DISK_COMPUTE_DATA_");
 	strcat(name_file_start, pid_str);
 
 	char * name_file_end = malloc(128*sizeof(char));
-	strcpy(name_file_end, "STARPU_DISK_COMPUTE_DATA_RESULT_");
+	strcpy(name_file_end, "/STARPU_DISK_COMPUTE_DATA_RESULT_");
 	strcat(name_file_end, pid_str);
 
 	char * path_file_start = malloc(128*sizeof(char));
