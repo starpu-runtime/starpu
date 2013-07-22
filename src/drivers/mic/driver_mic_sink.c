@@ -31,7 +31,6 @@
 /* Initialize the MIC sink, initializing connection to the source
  * and to the other devices (not implemented yet).
  */
-
 void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 {
 	pthread_t thread, self;
@@ -43,7 +42,7 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	/*Bind on the first core*/
 	self = pthread_self();
 	CPU_ZERO(&cpuset);
-	CPU_SET(0,&cpuset);
+	CPU_SET(241,&cpuset);
 	pthread_setaffinity_np(self,sizeof(cpu_set_t),&cpuset);
 
 
@@ -56,9 +55,6 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	
 	node->is_running = 1;
 
-	//init the set
-	CPU_ZERO(&cpuset);
-
 	node->nb_cores = COISysGetHardwareThreadCount() - COISysGetHardwareThreadCount() / COISysGetCoreCount();
 	node->thread_table = malloc(sizeof(pthread_t)*node->nb_cores);
 
@@ -67,8 +63,10 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 
 	node->barrier_list = mp_barrier_list_new();
 	node->message_queue = mp_message_list_new();
-	pthread_mutex_init(&node->message_queue_mutex,NULL);
-	pthread_mutex_init(&node->barrier_mutex,NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&node->message_queue_mutex,NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&node->barrier_mutex,NULL);
+
+	STARPU_PTHREAD_BARRIER_INIT(&node->init_completed_barrier, NULL, node->nb_cores+1);
 
 
 	/*for each core init the mutex, the task pointer and launch the thread */
@@ -89,7 +87,6 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 
 		/*prepare the argument for the thread*/
 		arg= malloc(sizeof(struct arg_sink_thread));
-		arg->task = &node->run_table[i];
 		arg->coreid = i;
 		arg->node = node;
 		arg->sem = &node->sem_run_table[i];
@@ -114,7 +111,6 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 
 /* Deinitialize the MIC sink, close all the connections.
  */
-
 void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 {
 	
@@ -134,9 +130,9 @@ void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 	mp_barrier_list_delete(node->barrier_list);
 	mp_message_list_delete(node->message_queue);
 
-	pthread_mutex_destroy(&node->message_queue_mutex);
-	pthread_mutex_destroy(&node->barrier_mutex);
-	
+	STARPU_PTHREAD_MUTEX_DESTROY(&node->message_queue_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&node->barrier_mutex);
+	STARPU_PTHREAD_BARRIER_DESTROY(&node->init_completed_barrier);
 	//unsigned int i;
 
 	//for (i = 0; i < node->nb_mp_sinks; ++i)

@@ -238,9 +238,8 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 {
 
 	void *buffer, *buffer_ptr, *arg =NULL;
-	int j, buffer_size = 0, cb_worker_size = 0, arg_size =0;
-	struct _starpu_combined_worker * cb_worker;
-	unsigned devid ,i;
+	int buffer_size = 0, arg_size =0;
+	unsigned i;
 
 	buffer_size = sizeof(kernel) + sizeof(coreid) + sizeof(type)
 		+ sizeof(nb_interfaces) + nb_interfaces * sizeof(union _starpu_interface) + sizeof(is_parallel_task);
@@ -248,9 +247,7 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 	/*if the task is paralle*/
 	if(is_parallel_task)
 	{
-		cb_worker = _starpu_get_combined_worker_struct(cb_workerid);
-		cb_worker_size = cb_worker->worker_size;
-		buffer_size += sizeof(cb_workerid) + sizeof(cb_worker_size) + cb_worker_size * sizeof(devid);
+		buffer_size += sizeof(cb_workerid); 
 	}
 
 	/* If the user didn't give any cl_arg, there is no need to send it */
@@ -277,19 +274,8 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 
 	if(is_parallel_task)
 	{
-
-		*(int *) buffer_ptr = cb_workerid;
+		*(int *) buffer_ptr = cb_workerid ;
 		buffer_ptr += sizeof(cb_workerid);
-
-		*(int *) buffer_ptr = cb_worker_size;
-		buffer_ptr += sizeof(cb_worker_size);
-
-		for (j = 0; j < cb_worker_size; j++)
-		{
-			int devid = _starpu_get_worker_struct(cb_worker->combined_workerid[j])->devid;
-			*(int *) buffer_ptr = devid;
-			buffer_ptr += sizeof(devid);
-		}
 	}
 
 	*(unsigned *) buffer_ptr = coreid;
@@ -579,6 +565,30 @@ int _starpu_src_common_locate_file(char *located_file_name,
 	return 1;
 }
 
+/* Send workers to the sink node 
+ */
+static void _starpu_src_common_send_workers(struct _starpu_mp_node * node, int baseworkerid, int nworkers)
+{	
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	int worker_size = sizeof(struct _starpu_worker)*nworkers;	
+	int combined_worker_size = STARPU_NMAX_COMBINEDWORKERS*sizeof(struct _starpu_combined_worker);
+	int msg[5];
+	msg[0] = nworkers;
+	msg[1] = worker_size;
+	msg[2] = combined_worker_size;
+	msg[3] = baseworkerid;
+	msg[4] = starpu_worker_get_count();
+
+	/* tell the sink node that we will send him all workers */
+	_starpu_mp_common_send_command(node, STARPU_SYNC_WORKERS, 
+			&msg, sizeof(msg));
+
+	/* Send all worker to the sink node */
+	node->dt_send(node,&config->workers[baseworkerid],worker_size);
+
+	/* Send all combined workers to the sink node */
+	node->dt_send(node, &config->combined_workers,combined_worker_size);
+}	
 
 /* Function looping on the source node */
 void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, 
@@ -588,6 +598,8 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 	struct _starpu_worker * baseworker = &worker_set->workers[baseworkerid];
 	unsigned memnode = baseworker->memory_node;
 	struct starpu_task **tasks = malloc(sizeof(struct starpu_task *)*worker_set->nworkers);
+
+	_starpu_src_common_send_workers(mp_node, baseworkerid, worker_set->nworkers);
 
 	/*main loop*/
 	while (_starpu_machine_is_running())

@@ -34,7 +34,6 @@ struct _starpu_sink_topology
 
 struct arg_sink_thread
 {
-	struct mp_task ** task;
 	struct _starpu_mp_node *node;
 	sem_t* sem;
 	int coreid;

@@ -14,6 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifndef __BARRIER_COUNTER_H__
+#define __BARRIER_COUNTER_H__
+
 #include <common/utils.h>
 #include <common/barrier.h>
 
@@ -37,3 +40,4 @@ int _starpu_barrier_counter_increment_until_full_counter(struct _starpu_barrier_
 
 int _starpu_barrier_counter_increment(struct _starpu_barrier_counter *barrier_c);
 
+#endif

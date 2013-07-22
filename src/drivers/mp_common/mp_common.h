@@ -60,6 +60,7 @@ enum _starpu_mp_command
 	STARPU_EXECUTION_SUBMITTED,
 	STARPU_EXECUTION_COMPLETED,
 	STARPU_PRE_EXECUTION,
+	STARPU_SYNC_WORKERS,
 };
 
 enum _starpu_mp_node_kind
@@ -118,8 +119,6 @@ struct mp_task
 	enum starpu_codelet_type type;
 	int is_parallel_task;
 	int combined_workerid;
-	int combined_worker_size;
-	int combined_worker[STARPU_NMAXWORKERS];
  	struct mp_barrier* mp_barrier;
 };
 
@@ -129,6 +128,8 @@ struct mp_task
 struct _starpu_mp_node
 {
 	enum _starpu_mp_node_kind kind;
+
+	int baseworkerid;
 
 	/*the number of core on the device
 	 * Must be initialized during init function*/
@@ -173,16 +174,19 @@ struct _starpu_mp_node
 	 *  - sink_sink_dt_connections[j] is not initialized for the sink number j. */
 	union _starpu_mp_connection *sink_sink_dt_connections;
 
+	/* */
+	_starpu_pthread_barrier_t init_completed_barrier; 
+	
 	/* table to store pointer of the thread workers*/
 	void* thread_table;
 
         /*list where threads add messages to send to the source node */
         struct mp_message_list* message_queue;
-	pthread_mutex_t message_queue_mutex;
+	starpu_pthread_mutex_t message_queue_mutex;
 
 	/*list of barrier for combined worker*/
 	struct mp_barrier_list* barrier_list;
-	pthread_mutex_t barrier_mutex;
+	starpu_pthread_mutex_t barrier_mutex;
 
 	/*table where worker comme pick task*/
 	struct mp_task ** run_table;

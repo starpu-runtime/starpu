@@ -683,8 +683,8 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 		if (0 == _starpu_init_mic_node (config, i, &handles[i], &process[i]))
 			topology->nmicdevices++;
 
-	i = 0;
-	for (; i < topology->nmicdevices; i++)
+	
+	for (i = 0; i < topology->nmicdevices; i++)
 		_starpu_init_mic_config (config, user_conf, i);
 #endif
 }

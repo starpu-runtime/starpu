@@ -37,10 +37,9 @@ void _starpu_mic_common_send(const struct _starpu_mp_node *node, void *msg, int 
 }
 
 
-/* 
- *
+/* Teel is the mic endpoint is ready
+ * return 1 if a message has been receive, 0 if no message has been receive
  */
-
 int _starpu_mic_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
 {
   struct scif_pollepd pollepd;
