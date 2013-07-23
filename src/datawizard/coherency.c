@@ -102,10 +102,13 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 			 * 	Other should be ok */
 
 			if (starpu_node_get_kind(i) == STARPU_CUDA_RAM ||
-			    starpu_node_get_kind(i) == STARPU_OPENCL_RAM)
+			    starpu_node_get_kind(i) == STARPU_OPENCL_RAM ||
+			    starpu_node_get_kind(i) == STARPU_MIC_RAM)
 				i_gpu = i;
 
-			if (starpu_node_get_kind(i) == STARPU_CPU_RAM)
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM || 
+			    starpu_node_get_kind(i) == STARPU_SCC_RAM ||
+			    starpu_node_get_kind(i) == STARPU_SCC_SHM)
 				i_ram = i;
 			if (starpu_node_get_kind(i) == STARPU_DISK_RAM)			
 				i_disk = i;
