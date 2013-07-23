@@ -117,7 +117,7 @@ starpu_leveldb_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size
 
 /* read the memory disk */
 static int 
-starpu_leveldb_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
+starpu_leveldb_read (void *base, void *obj, void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
 	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;	
@@ -156,31 +156,39 @@ starpu_leveldb_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *
 }
 
 static int
-starpu_leveldb_full_read(unsigned node, void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
+starpu_leveldb_full_read(unsigned node, void *base, void * obj, void ** ptr, size_t * size)
 {
-	struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
+        struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
+        struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
 
 	*size = tmp->size;
-	*ptr = malloc(*size);
+	*ptr = (size_t *)malloc(*size);
 	return _starpu_disk_read(node, STARPU_MAIN_RAM, obj, *ptr, 0, *size, NULL);
 }
 
 /* write on the memory disk */
 static int 
-starpu_leveldb_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
+starpu_leveldb_write (void *base, void *obj, const void *buf, off_t offset, size_t size, void * async_channel)
 {
-	struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
+        struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
+        struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
-	int res = fseek(tmp->file, offset, SEEK_SET); 
-	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
+	uintptr_t buf_tmp = (uintptr_t) buf;
+	void * buffer = (void *) malloc(tmp->size);
+	starpu_leveldb_read (base, obj, buffer, 0, tmp->size, async_channel);
+	memcpy(buffer, (void *) (buf_tmp+offset), size); 
 
-	ssize_t nb = fwrite (buf, 1, size, tmp->file);
+	leveldb::WriteOptions write_options;
+	write_options.sync = true;	
 
+	base_tmp->db->Put(write_options, tmp->key, (char *)buffer);
+
+	free(buffer);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 
-	return nb;
+	return 0;
 }
 
 static int
@@ -203,31 +211,24 @@ starpu_leveldb_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void 
 }
 
 static int
-starpu_leveldb_full_write (unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
+starpu_leveldb_full_write (unsigned node, void * base, void * obj, void * ptr, size_t size)
 {
 	struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
+	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
 	
 	/* update file size to realise the next good full_read */
 	if(size != tmp->size)
 	{
 		_starpu_memory_manager_deallocate_size(tmp->size, node);
 		if (_starpu_memory_manager_can_allocate_size(size, node))
-		{
-#ifdef STARPU_HAVE_WINDOWS
-			int val = _chsize(tmp->descriptor, size);
-#else
-			int val = ftruncate(tmp->descriptor,size);
-#endif
-
-			STARPU_ASSERT_MSG(val >= 0,"StarPU Error to truncate file in STDIO full_write function");
 			tmp->size = size;
-		}
 		else
-		{
 			STARPU_ASSERT_MSG(0, "Can't allocate size %u on the disk !", (int) size); 
-		}
 	}	
-	return _starpu_disk_write(STARPU_MAIN_RAM, node, obj, ptr, 0, tmp->size, NULL);
+	leveldb::WriteOptions write_options;
+	write_options.sync = true;
+
+        base_tmp->db->Put(write_options, tmp->key, (char *)ptr);
 }
 
 
@@ -265,7 +266,7 @@ static void
 starpu_leveldb_unplug (void *base)
 {
 	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
-	if(tmp->created)
+	if(base_tmp->created)
 		delete base_tmp->db;
 	free(base);
 }
