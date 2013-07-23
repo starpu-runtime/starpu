@@ -128,6 +128,9 @@ unsigned sc_hypervisor_can_resize(unsigned sched_ctx);
 /* indicate the types of tasks a context will execute in order to better decide the sizing of ctxs */
 void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, size_t data_size);
 
+/* change dynamically the total number of flops of a context, move the deadline of the finishing time of the context */
+void sc_hypervisor_update_total_flops(unsigned sched_ctx, double total_flops);
+
 #ifdef __cplusplus
 }
 #endif
