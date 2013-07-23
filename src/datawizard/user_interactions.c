@@ -133,6 +133,8 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 	STARPU_PTHREAD_COND_INIT(&wrapper->cond, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&wrapper->lock, NULL);
 	wrapper->finished = 0;
+	wrapper->pre_sync_task = NULL;
+	wrapper->post_sync_task = NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int sequential_consistency = handle->sequential_consistency;
