@@ -229,11 +229,11 @@ starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *b
 	int res = fseek(tmp->file, offset, SEEK_SET); 
 	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
 
-	ssize_t nb = fwrite (buf, 1, size, tmp->file);
+	fwrite (buf, 1, size, tmp->file);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 
-	return nb;
+	return 0;
 }
 
 static int
