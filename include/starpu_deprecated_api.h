@@ -24,7 +24,7 @@ extern "C"
 #endif
 
 #if defined(STARPU_USE_DEPRECATED_API) || defined(STARPU_USE_DEPRECATED_ONE_ZERO_API)
-#warning Your application is using former types. You may want to update to use the latest API, by using tools/dev/rename.sh.
+#warning Your application is using deprecated types. You may want to update to use the latest API, by using tools/dev/rename.sh.
 #endif /* defined(STARPU_USE_DEPRECATED_API) || defined(STARPU_USE_DEPRECATED_ONE_ZERO_API) */
 
 #ifdef STARPU_USE_DEPRECATED_ONE_ZERO_API
