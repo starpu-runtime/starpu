@@ -258,6 +258,8 @@ AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 
 AC_CHECK_HEADERS([valgrind/valgrind.h], [AC_DEFINE([STARPU_HAVE_VALGRIND_H], [1], [Define to 1 if you have the <valgrind/valgrind.h> header file.])])
 AC_CHECK_HEADERS([valgrind/helgrind.h], [AC_DEFINE([STARPU_HAVE_HELGRIND_H], [1], [Define to 1 if you have the <valgrind/helgrind.h> header file.])])
 
+AC_CHECK_HEADERS([aio.h])
+
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
 STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP
 
@@ -2179,11 +2181,25 @@ AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
 			enable_build_doc=$enableval, enable_build_doc=yes)
 
-# Check whether doxygen is installed
+# Check whether doxygen and pdflatex are installed
 AC_PATH_PROG(doxygencommand, doxygen)
 if test "$doxygencommand" = "" ; then
 	enable_build_doc="no"
+else
+	DOXYGEN_VERSION_MAJOR=`$doxygencommand --version| cut -d '.' -f1`
+	DOXYGEN_VERSION_MINOR=`$doxygencommand --version| cut -d '.' -f2`
+	if test $DOXYGEN_VERSION_MAJOR -ge 1 -a $DOXYGEN_VERSION_MINOR -ge 8 ; then
+	   	enable_build_doc="yes"
+	else
+	   	enable_build_doc="no"
+	fi
 fi
+AC_PATH_PROG(pdflatex, pdflatex)
+if test "pdflatexcommand" = "" ; then
+	enable_build_doc="no"
+fi
+AC_MSG_CHECKING(whether documentation should be compiled)
+AC_MSG_RESULT($enable_build_doc)
 
 AM_CONDITIONAL(BUILD_DOC, [test x$enable_build_doc != xno])
 

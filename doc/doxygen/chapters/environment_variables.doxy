@@ -70,6 +70,20 @@ STARPU_OPENCL_ONLY_ON_CPUS to 1, the OpenCL driver will ONLY enable
 CPU devices.
 </dd>
 
+<dt>STARPU_NMIC</dt>
+<dd>
+\anchor STARPU_NMIC
+\addindex __env__STARPU_NMIC
+MIC equivalent of the environment variable \ref STARPU_NCUDA.
+</dd>
+
+<dt>STARPU_NSCC</dt>
+<dd>
+\anchor STARPU_NSCC
+\addindex __env__STARPU_NSCC
+SCC equivalent of the environment variable \ref STARPU_NCUDA.
+</dd>
+
 <dt>STARPU_WORKERS_NOBIND</dt>
 <dd>
 \anchor STARPU_WORKERS_NOBIND
@@ -133,6 +147,28 @@ OpenCL equivalent of the \ref STARPU_WORKERS_CUDAID environment variable.
 
 This variable is ignored if the field
 starpu_conf::use_explicit_workers_opencl_gpuid passed to starpu_init()
+is set.
+</dd>
+
+<dt>STARPU_WORKERS_MICID</dt>
+<dd>
+\anchor STARPU_WORKERS_MICID
+\addindex __env__STARPU_WORKERS_MICID
+MIC equivalent of the \ref STARPU_WORKERS_CUDAID environment variable.
+
+This variable is ignored if the field
+starpu_conf::use_explicit_workers_mic_deviceid passed to starpu_init()
+is set.
+</dd>
+
+<dt>STARPU_WORKERS_SCCID</dt>
+<dd>
+\anchor STARPU_WORKERS_SCCID
+\addindex __env__STARPU_WORKERS_SCCID
+SCC equivalent of the \ref STARPU_WORKERS_CUDAID environment variable.
+
+This variable is ignored if the field
+starpu_conf::use_explicit_workers_scc_deviceid passed to starpu_init()
 is set.
 </dd>
 

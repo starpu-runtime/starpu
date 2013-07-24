@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -58,10 +58,6 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 void _starpu_create_sampling_directory_if_needed(void);
 
 void _starpu_load_bus_performance_files(void);
-double _starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node);
-double _starpu_transfer_latency(unsigned src_node, unsigned dst_node);
-double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_t size);
-
 
 void _starpu_set_calibrate_flag(unsigned val);
 unsigned _starpu_get_calibrate_flag(void);

@@ -20,6 +20,7 @@
 #include <starpu.h>
 #include <sc_hypervisor_config.h>
 #include <sc_hypervisor_monitoring.h>
+#include <math.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -45,9 +46,11 @@ struct sc_hypervisor_policy
 	/* indicate if it is a policiy create by the user or not */
 	unsigned custom;
 
-	/* if knwing the future the hypervisor can find the good 
-	   distribution of workers on contexts even at the begining of the program */
-	void (*size_ctxs)(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
+	/* Distribute workers to contexts even at the begining of the program */
+	void (*size_ctxs)(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
+
+	/* Require explicit resizing */
+	void (*resize_ctxs)(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
 
 	/* the hypervisor takes a decision when the worker was idle for another cyle in this ctx */
 	void (*handle_idle_cycle)(unsigned sched_ctx, int worker);
@@ -84,7 +87,10 @@ void sc_hypervisor_register_ctx(unsigned sched_ctx, double total_flops);
 void sc_hypervisor_unregister_ctx(unsigned sched_ctx);
 
 /* submit a requirement of resizing when a task taged with task_tag is executed */
-void sc_hypervisor_resize(unsigned sched_ctx, int task_tag);
+void sc_hypervisor_post_resize_request(unsigned sched_ctx, int task_tag);
+
+/* reevaluate the distribution of the resources and eventually resize if needed */
+void sc_hypervisor_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
 
 /* don't allow the hypervisor to resize a context */
 void sc_hypervisor_stop_resize(unsigned sched_ctx);
@@ -105,13 +111,13 @@ void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigne
 void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int *workers_to_move, unsigned nworkers_to_move, unsigned now);
 
 /* ask the hypervisor to chose a distribution of workers in the required contexts */
-void sc_hypervisor_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
+void sc_hypervisor_size_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
 
 /* check if there are pending demands of resizing */
-unsigned sc_hypervisor_get_size_req(int **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers);
+unsigned sc_hypervisor_get_size_req(unsigned **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers);
 
 /* save a demand of resizing */
-void sc_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
+void sc_hypervisor_save_size_req(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
 
 /* clear the list of pending demands of resizing */
 void sc_hypervisor_free_size_req(void);
@@ -120,7 +126,10 @@ void sc_hypervisor_free_size_req(void);
 unsigned sc_hypervisor_can_resize(unsigned sched_ctx);
 
 /* indicate the types of tasks a context will execute in order to better decide the sizing of ctxs */
-	void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, size_t data_size);
+void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, size_t data_size);
+
+/* change dynamically the total number of flops of a context, move the deadline of the finishing time of the context */
+void sc_hypervisor_update_diff_total_flops(unsigned sched_ctx, double diff_total_flops);
 
 #ifdef __cplusplus
 }

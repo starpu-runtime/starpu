@@ -13,6 +13,11 @@
 This macro is defined when StarPU has been installed with MIC support.
 It should be used in your code to detect the availability of MIC.
 
+\def STARPU_MAXMICDEVS
+\ingroup API_MIC_Extensions
+This macro defines the maximum number of MIC devices that are
+supported by StarPU.
+
 \typedef starpu_mic_func_symbol_t
 \ingroup API_MIC_Extensions
 Type for MIC function symbols

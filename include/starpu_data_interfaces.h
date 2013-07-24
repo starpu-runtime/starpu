@@ -96,7 +96,7 @@ enum starpu_data_interface_id
 	STARPU_VOID_INTERFACE_ID=6,
 	STARPU_MULTIFORMAT_INTERFACE_ID=7,
 	STARPU_COO_INTERFACE_ID=8,
-	STARPU_MAX_INTERFACE_ID=9 /* maximum number of data interfaces */
+	STARPU_MAX_INTERFACE_ID=9
 };
 
 struct starpu_data_interface_ops
@@ -399,6 +399,11 @@ int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count);
 size_t starpu_data_get_size(starpu_data_handle_t handle);
 
 starpu_data_handle_t starpu_data_lookup(const void *ptr);
+
+struct starpu_disk_interface
+{
+	uintptr_t dev_handle;
+};
 
 #ifdef __cplusplus
 }

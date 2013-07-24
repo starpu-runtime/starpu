@@ -1,0 +1,306 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Threads Threads
+
+\brief This section describes the thread facilities provided
+by StarPU. The thread function are either implemented on top of the
+pthread library or the Simgrid library when the simulated performance
+mode is enabled (\ref SimulatedPerformance).
+
+\def STARPU_PTHREAD_CREATE_ON
+\ingroup API_Threads
+This macro calls the function starpu_pthread_create_on() and aborts on error.
+
+\def STARPU_PTHREAD_CREATE
+\ingroup API_Threads
+This macro calls the function starpu_pthread_create() and aborts on error.
+
+\def STARPU_PTHREAD_MUTEX_INIT
+\ingroup API_Threads
+This macro calls the function starpu_pthread_mutex_init() and aborts
+on error.
+
+\def STARPU_PTHREAD_MUTEX_DESTROY
+\ingroup API_Threads
+This macro calls the function starpu_pthread_mutex_destroy() and
+aborts on error.
+
+\def STARPU_PTHREAD_MUTEX_LOCK
+\ingroup API_Threads
+This macro calls the function starpu_pthread_mutex_lock() and aborts
+on error.
+
+\def STARPU_PTHREAD_MUTEX_UNLOCK
+\ingroup API_Threads
+This macro calls the function starpu_pthread_mutex_unlock() and aborts
+on error.
+
+\def STARPU_PTHREAD_KEY_CREATE
+\ingroup API_Threads
+This macro calls the function starpu_pthread_key_create() and aborts
+on error.
+
+\def STARPU_PTHREAD_KEY_DELETE
+\ingroup API_Threads
+This macro calls the function starpu_pthread_key_delete() and aborts
+on error.
+
+\def STARPU_PTHREAD_SETSPECIFIC
+\ingroup API_Threads
+This macro calls the function starpu_pthread_setspecific() and aborts
+on error.
+
+\def STARPU_PTHREAD_GETSPECIFIC
+\ingroup API_Threads
+This macro calls the function starpu_pthread_getspecific() and aborts
+on error.
+
+\def STARPU_PTHREAD_RWLOCK_INIT
+\ingroup API_Threads
+This macro calls the function starpu_pthread_rwlock_init() and aborts
+on error.
+
+\def STARPU_PTHREAD_RWLOCK_RDLOCK
+\ingroup API_Threads
+This macro calls the function starpu_pthread_rwlock_rdlock() and
+aborts on error.
+
+\def STARPU_PTHREAD_RWLOCK_WRLOCK
+\ingroup API_Threads
+This macro calls the function starpu_pthread_rwlock_wrlock() and
+aborts on error.
+
+\def STARPU_PTHREAD_RWLOCK_UNLOCK
+\ingroup API_Threads
+This macro calls the function starpu_pthread_rwlock_unlock() and
+aborts on error.
+
+\def STARPU_PTHREAD_RWLOCK_DESTROY
+\ingroup API_Threads
+This macro calls the function starpu_pthread_rwlock_destroy() and
+aborts on error.
+
+\def STARPU_PTHREAD_COND_INIT
+\ingroup API_Threads
+This macro calls the function starpu_pthread_cond_init() and aborts on error.
+
+\def STARPU_PTHREAD_COND_DESTROY
+\ingroup API_Threads
+This macro calls the function starpu_pthread_cond_destroy() and aborts
+on error.
+
+\def STARPU_PTHREAD_COND_SIGNAL
+\ingroup API_Threads
+This macro calls the function starpu_pthread_cond_signal() and aborts
+on error.
+
+\def STARPU_PTHREAD_COND_BROADCAST
+\ingroup API_Threads
+This macro calls the function starpu_pthread_cond_broadcast() and
+aborts on error.
+
+\def STARPU_PTHREAD_COND_WAIT
+\ingroup API_Threads
+This macro calls the function starpu_pthread_cond_wait() and aborts on error.
+
+\def STARPU_PTHREAD_BARRIER_INIT
+\ingroup API_Threads
+This macro calls the function starpu_pthread_barrier_init() and aborts
+on error.
+
+\def STARPU_PTHREAD_BARRIER_DESTROY
+\ingroup API_Threads
+This macro calls the function starpu_pthread_barrier_destroy() and
+aborts on error.
+
+\def STARPU_PTHREAD_BARRIER_WAIT
+\ingroup API_Threads
+This macro calls the function starpu_pthread_barrier_wait() and aborts
+on error.
+
+\fn int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, int where)
+\ingroup API_Threads
+
+\fn int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg)
+\ingroup API_Threads
+This function starts a new thread in the calling process.  The new
+thread starts execution by invoking \p start_routine; \p arg is passed
+as the sole argument of \p start_routine.
+
+\fn int starpu_pthread_join(starpu_pthread_t thread, void **retval)
+\ingroup API_Threads
+This function waits for the thread specified by \p thread to
+terminate.  If that thread has already terminated, then the function
+returns immediately. The thread specified by \p thread must be
+joinable.
+
+\fn int starpu_pthread_attr_init(starpu_pthread_attr_t *attr)
+\ingroup API_Threads
+This function initializes the thread attributes object pointed to by
+\p attr with default attribute values.
+
+It does not do anything when the simulated performance mode is enabled
+(\ref SimulatedPerformance).
+
+\fn int starpu_pthread_attr_destroy(starpu_pthread_attr_t *attr)
+\ingroup API_Threads
+This function destroys a thread attributes object which is no longer
+required. Destroying a thread attributes object has no effect on
+threads that were created using that object.
+
+It does not do anything when the simulated performance mode is enabled
+(\ref SimulatedPerformance).
+
+\fn int starpu_pthread_attr_setdetachstate(starpu_pthread_attr_t *attr, int detachstate)
+\ingroup API_Threads
+This function sets the detach state attribute of the thread attributes
+object referred to by \p attr to the value specified in \p
+detachstate.  The detach state attribute determines whether a thread
+created using the thread attributes object \p attr will be created in
+a joinable or a detached state.
+
+It does not do anything when the simulated performance mode is enabled
+(\ref SimulatedPerformance).
+
+\fn int starpu_pthread_mutex_init(starpu_pthread_mutex_t *mutex, const starpu_pthread_mutexattr_t *mutexattr)
+\ingroup API_Threads
+This function initializes the mutex object pointed to by \p mutex
+according to the mutex attributes specified in \p mutexattr.  If \p
+mutexattr is NULL, default attributes are used instead.
+
+\fn int starpu_pthread_mutex_destroy(starpu_pthread_mutex_t *mutex)
+\ingroup API_Threads
+This function destroys a mutex object, freeing the resources it might
+hold. The mutex must be unlocked on entrance.
+
+\fn int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
+\ingroup API_Threads
+This function locks the given mutex. If the mutex is currently
+unlocked, it becomes locked and owned by the calling thread, and the
+function returns immediately. If the mutex is already locked by
+another thread, the function suspends the calling thread until the
+mutex is unlocked.
+
+This function also produces trace when the configure option \ref
+enable-fxt-lock "--enable-fxt-lock" is enabled.
+
+\fn int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
+\ingroup API_Threads
+This function unlocks the given mutex. The mutex is assumed to be
+locked and owned by the calling thread on entrance to
+starpu_pthread_mutex_unlock().
+
+This function also produces trace when the configure option \ref
+enable-fxt-lock "--enable-fxt-lock" is enabled.
+
+\fn int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
+\ingroup API_Threads
+This function behaves identically to starpu_pthread_mutex_lock(),
+except that it does not block the calling thread if the mutex is
+already locked by another thread (or by the calling thread in the case
+of a ``fast''  mutex). Instead, the function returns immediately with
+the error code EBUSY.
+
+This function also produces trace when the configure option \ref
+enable-fxt-lock "--enable-fxt-lock" is enabled.
+
+\typedef STARPU_PTHREAD_MUTEX_INITIALIZER
+\ingroup API_Threads
+This macro initializes the mutex given in parameter.
+
+\fn int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) (void *))
+\ingroup API_Threads
+This function allocates a new TSD key. The key is stored in the
+location pointed to by \p key.
+
+\fn int starpu_pthread_key_delete(starpu_pthread_key_t key)
+\ingroup API_Threads
+This function deallocates a TSD key. It does not check whether
+non-NULL values are associated with that key in the currently
+executing threads, nor call the destructor function associated with
+the key.
+
+\fn int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
+\ingroup API_Threads
+This function changes the value associated with \p key in the calling
+thread, storing the given \p pointer instead.
+
+\fn  *starpu_pthread_getspecific(starpu_pthread_key_t key)
+\ingroup API_Threads
+This function returns the value associated with \p key on success, and
+NULL on error.
+
+\typedef STARPU_PTHREAD_COND_INITIALIZER
+\ingroup API_Threads
+This macro initializes the condition variable given in parameter.
+
+\fn starpu_pthread_cond_init(starpu_pthread_cond_t *cond, starpu_pthread_condattr_t *cond_attr)
+\ingroup API_Threads
+This function initializes the condition variable \p cond, using the
+condition attributes specified in \p cond_attr, or default attributes
+if \p cond_attr is NULL.
+
+\fn starpu_pthread_cond_signal(starpu_pthread_cond_t *cond)
+\ingroup API_Threads
+This function restarts one of the threads that are waiting on the
+condition variable \p cond. If no threads are waiting on \p cond,
+nothing happens. If several threads are waiting on \p cond, exactly
+one is restarted, but it not specified which.
+
+\fn starpu_pthread_cond_broadcast(starpu_pthread_cond_t *cond)
+\ingroup API_Threads
+This function restarts all the threads that are waiting on the
+condition variable \p cond. Nothing happens if no threads are waiting on cond.
+
+\fn starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
+\ingroup API_Threads
+This function atomically unlocks the mutex (as per
+starpu_pthread_mutex_unlock()) and waits for the condition variable \p cond
+to be signaled. The thread execution is suspended and does not consume
+any CPU time until the condition variable is signaled. The mutex must
+be locked by the calling thread on entrance to
+starpu_pthread_cond_wait(). Before returning to the calling thread, the
+function re-acquires mutex (as per starpu_pthread_mutex_lock()).
+
+This function also produces trace when the configure option \ref
+enable-fxt-lock "--enable-fxt-lock" is enabled.
+
+\fn starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, const struct timespec *abstime)
+\ingroup API_Threads
+This function atomically unlocks \p mutex and waits on \p cond, as
+starpu_pthread_cond_wait() does, but it also bounds the duration of
+the wait.
+
+\fn starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
+\ingroup API_Threads
+This function destroys a condition variable, freeing the resources it
+might hold. No threads must be waiting on the condition variable on
+entrance to the function.
+
+\fn starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *rwlock, const starpu_pthread_rwlockattr_t *attr)
+\ingroup API_Threads
+This function is the same as starpu_pthread_mutex_init().
+
+\fn starpu_pthread_rwlock_destroy(starpu_pthread_rwlock_t *rwlock)
+\ingroup API_Threads
+This function is the same as starpu_pthread_mutex_destroy().
+
+\fn starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
+\ingroup API_Threads
+This function is the same as starpu_pthread_mutex_lock().
+
+\fn starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
+\ingroup API_Threads
+This function is the same as starpu_pthread_mutex_lock().
+
+\fn starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
+\ingroup API_Threads
+This function is the same as starpu_pthread_mutex_unlock().
+
+*/

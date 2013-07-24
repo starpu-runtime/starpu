@@ -135,6 +135,8 @@
 
 #define _STARPU_FUT_MEMORY_FULL			0x5152
 
+#define _STARPU_FUT_DATA_LOAD 0x5153
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>

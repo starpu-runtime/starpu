@@ -250,8 +250,8 @@
 	}                                                                      \
 } while (0)
 
-#define STARPU_PTHREAD_BARRIER_WAIT(barrier) do {                             \
-	int p_ret = pthread_barrier_wait(barrier);                             \
+#define STARPU_PTHREAD_BARRIER_WAIT(barrier) do {                             	\
+	int p_ret = pthread_barrier_wait((barrier));				\
 	if (STARPU_UNLIKELY(!((p_ret == 0) || (p_ret == PTHREAD_BARRIER_SERIAL_THREAD)))) { \
 		fprintf(stderr,                                                \
 			"%s:%d pthread_barrier_wait: %s\n",                    \

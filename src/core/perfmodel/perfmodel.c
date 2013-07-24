@@ -274,7 +274,7 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 		return 0.0;
 
 	unsigned src_node = _starpu_select_src_node(handle, memory_node);
-	return _starpu_predict_transfer_time(src_node, memory_node, size);
+	return starpu_transfer_predict(src_node, memory_node, size);
 }
 
 /* Data transfer performance modeling */

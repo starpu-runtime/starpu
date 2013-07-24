@@ -24,27 +24,30 @@ struct starpu_disk_ops {
 	 void    (*free)   (void *base, void *obj, size_t size);
 	 void *  (*open)   (void *base, void *pos, size_t size);     /* open an existing file */
 	 void    (*close)  (void *base, void *obj, size_t size);
-	ssize_t  (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size);        /* ~= pread */
-	ssize_t  (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size); 
+	 int     (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size, void * async); 
+	 int     (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size, void * async); 
+	 int     (*async_write)  (void *base, void *obj, void *buf, off_t offset, size_t size, void * async); 
+	 int     (*async_read)   (void *base, void *obj, void *buf, off_t offset, size_t size, void * async); 
 	/* readv, writev, read2d, write2d, etc. */
 	 void *  (*plug)   (void *parameter);
 	 void    (*unplug) (void *base);
-	  int    (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
-	  int    (*bandwidth) (unsigned node);
+	 int    (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size, void * async_channel);
+	 int    (*bandwidth)    (unsigned node);
+	 void   (*wait_request) (void * async_channel);
+	 int    (*test_request) (void * async_channel);
+	 int	(*full_read)    (unsigned node, void * base, void * obj, void ** ptr, size_t * size);
+	 int 	(*full_write)   (unsigned node, void * base, void * obj, void * ptr, size_t size);
 };
-
 
 /* Posix functions to use disk memory */
 extern struct starpu_disk_ops starpu_disk_stdio_ops;
 extern struct starpu_disk_ops starpu_disk_unistd_ops;
 extern struct starpu_disk_ops starpu_disk_unistd_o_direct_ops;
 
-/*functions to add an existing memory */
 void starpu_disk_close(unsigned node, void *obj, size_t size);
 
 void * starpu_disk_open(unsigned node, void *pos, size_t size);
 
-/* interface to create and to free a memory disk */
 int starpu_disk_register(struct starpu_disk_ops * func, void *parameter, size_t size);
 
 #endif /* __STARPU_DISK_H__ */

@@ -24,7 +24,11 @@ extern "C"
 {
 #endif
 
+
 unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name);
+
+struct starpu_sched_policy;
+unsigned starpu_sched_ctx_create_with_custom_policy(struct starpu_sched_policy *policy, int *workerids, int nworkers, const char *sched_name);
 
 unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap);
 
@@ -44,6 +48,7 @@ void starpu_sched_ctx_stop_task_submission(void);
 
 void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id);
 
+unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids);
 
 struct starpu_sched_ctx_performance_counters
 {
@@ -81,6 +86,8 @@ unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id);
 unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2);
 
 unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id);
+
+unsigned starpu_sched_ctx_contains_type_of_worker(enum starpu_worker_archtype arch, unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid);
 

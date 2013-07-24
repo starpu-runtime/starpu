@@ -50,9 +50,9 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 		if(count == 0)
 			cb_worker->count = cb_worker->worker_size - 1; 
 		pthread_mutex_unlock(&cb_worker->count_mutex);
-	//	_STARPU_DEBUG("\ncb_workerid:%d, count:%d\n",worker->combined_workerid, count);
 	}
 
+	_STARPU_DEBUG("\nworkerid:%d\n",worker->workerid);
 	/* Finalize the execution */
 	if(count == 0)
 	{

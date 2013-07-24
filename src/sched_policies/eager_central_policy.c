@@ -130,17 +130,29 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	VALGRIND_HG_MUTEX_UNLOCK_POST(&data->policy_mutex);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	 task = _starpu_fifo_pop_task(data->fifo, workerid);
+	task = _starpu_fifo_pop_task(data->fifo, workerid);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 	return task;
+}
+
+static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+{
+
+	int workerid;
+	unsigned i;
+	for (i = 0; i < nworkers; i++)
+	{
+		workerid = workerids[i];
+		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
+	}
 }
 
 struct starpu_sched_policy _starpu_sched_eager_policy =
 {
 	.init_sched = initialize_eager_center_policy,
 	.deinit_sched = deinitialize_eager_center_policy,
-	.add_workers = NULL,
+	.add_workers = eager_add_workers,
 	.remove_workers = NULL,
 	.push_task = push_task_eager_policy,
 	.pop_task = pop_task_eager_policy,

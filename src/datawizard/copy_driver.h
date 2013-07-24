@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,6 +17,10 @@
 
 #ifndef __COPY_DRIVER_H__
 #define __COPY_DRIVER_H__
+
+#ifdef HAVE_AIO_H
+#include <aio.h>
+#endif
 
 #include <common/config.h>
 #include <datawizard/memory_nodes.h>
@@ -48,6 +52,14 @@ struct _starpu_mic_async_event
 };
 #endif
 
+struct _starpu_disk_async_event
+{
+#ifdef HAVE_AIO_H
+        struct aiocb _starpu_aiocb_disk;
+#endif
+	unsigned memory_node;
+};
+
 /* this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
 union _starpu_async_channel_event
@@ -69,6 +81,7 @@ union _starpu_async_channel_event
 #ifdef STARPU_USE_MIC
 	struct _starpu_mic_async_event mic_event;
 #endif
+	struct _starpu_disk_async_event disk_event;
 };
 
 struct _starpu_async_channel

@@ -36,9 +36,9 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 	/* first find a valid copy, either a STARPU_OWNER or a STARPU_SHARED */
 	unsigned node;
 
-	unsigned src_node_mask = 0;
 	size_t size = _starpu_data_get_size(handle);
 	double cost = INFINITY;
+	unsigned src_node_mask = 0;
 
 	for (node = 0; node < nnodes; node++)
 	{
@@ -62,7 +62,7 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 		{
 			if (src_node_mask & (1<<i))
 			{
-				double time = _starpu_predict_transfer_time(i, destination, size);
+				double time = starpu_transfer_predict(i, destination, size);
 				unsigned handling_node;
 
 				/* Avoid indirect transfers */
@@ -102,10 +102,13 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 			 * 	Other should be ok */
 
 			if (starpu_node_get_kind(i) == STARPU_CUDA_RAM ||
-			    starpu_node_get_kind(i) == STARPU_OPENCL_RAM)
+			    starpu_node_get_kind(i) == STARPU_OPENCL_RAM ||
+			    starpu_node_get_kind(i) == STARPU_MIC_RAM)
 				i_gpu = i;
 
-			if (starpu_node_get_kind(i) == STARPU_CPU_RAM)
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM || 
+			    starpu_node_get_kind(i) == STARPU_SCC_RAM ||
+			    starpu_node_get_kind(i) == STARPU_SCC_SHM)
 				i_ram = i;
 			if (starpu_node_get_kind(i) == STARPU_DISK_RAM)			
 				i_disk = i;
@@ -681,6 +684,10 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 
 	int workerid = starpu_worker_get_id();
 
+#ifdef STARPU_USE_FXT
+	unsigned total_size = 0;
+#endif
+
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)
 	{
@@ -701,8 +708,15 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 		ret = fetch_data(handle, local_replicate, mode);
 		if (STARPU_UNLIKELY(ret))
 			goto enomem;
+
+#ifdef STARPU_USE_FXT
+		total_size += _starpu_data_get_size(handle);
+#endif
 	}
 
+#ifdef STARPU_USE_FXT
+	FUT_DO_PROBE2(_STARPU_FUT_DATA_LOAD, workerid, total_size);
+#endif
 	/* Now that we have taken the data locks in locking order, fill the codelet interfaces in function order.  */
 	for (index = 0; index < nbuffers; index++)
 	{

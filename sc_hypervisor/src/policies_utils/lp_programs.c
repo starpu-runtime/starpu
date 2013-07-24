@@ -23,7 +23,7 @@
 #ifdef STARPU_HAVE_GLPK_H
 
 double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_in_s[ns][nw], double tasks[nw][nt],
-					       double times[nw][nt], unsigned is_integer, double tmax, int *in_sched_ctxs,
+					       double times[nw][nt], unsigned is_integer, double tmax, unsigned *in_sched_ctxs,
 					       struct sc_hypervisor_policy_task_pool *tmp_task_pools)
 {
 	struct sc_hypervisor_policy_task_pool * tp;
@@ -80,7 +80,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 					glp_set_col_bnds(lp, nw*nt+s*nw+w+1, GLP_DB, 0.0, 1.0);
 			}
 
-		int *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
+		unsigned *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 
 		int curr_row_idx = 0;
 		/* Total worker execution time */
@@ -110,7 +110,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 				glp_set_row_name(lp, curr_row_idx+s*nw+w+1, title);
 				for (t = 0, tp = tmp_task_pools; tp; t++, tp = tp->next)
 				{
-					if((int)tp->sched_ctx_id == sched_ctxs[s])
+					if(tp->sched_ctx_id == sched_ctxs[s])
 					{
 						ia[n] = curr_row_idx+s*nw+w+1;
 						ja[n] = colnum(w, t);

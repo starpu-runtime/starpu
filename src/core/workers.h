@@ -105,6 +105,9 @@ struct _starpu_worker
 	   parallel sections to be executed on their allocated resources */
 	unsigned parallel_sect;
 
+	/* indicate whether the workers shares tasks lists with other workers*/
+	/* in this case when removing him from a context it disapears instantly */
+	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS];
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;
 #endif /* __GLIBC__ */

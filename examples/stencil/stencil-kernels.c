@@ -18,6 +18,8 @@
 #include "stencil.h"
 #include <sys/time.h>
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
 #ifndef timersub
 #define	timersub(x, y, res) \
 	do \
@@ -382,9 +384,9 @@ void update_func_cpu(void *descr[], void *arg)
 	int workerid = starpu_worker_get_id();
 	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
-fprintf(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
+		FPRINTF(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 	else
-	DEBUG( "!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
+		DEBUG( "!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 #ifdef STARPU_USE_MPI
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);

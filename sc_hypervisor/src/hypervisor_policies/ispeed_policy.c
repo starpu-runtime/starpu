@@ -18,20 +18,20 @@
 
 static unsigned _get_fastest_sched_ctx(void)
 {
-	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	int fastest_sched_ctx = STARPU_NMAX_SCHED_CTXS;
-	double curr_velocity = 0.0;
-	double biggest_velocity = 0.0;
+	double curr_speed = 0.0;
+	double biggest_speed = 0.0;
 	int i;
 	for(i = 0; i < nsched_ctxs; i++)
 	{
-		curr_velocity = sc_hypervisor_get_ctx_velocity(sc_hypervisor_get_wrapper(sched_ctxs[i]));
-		if( curr_velocity > biggest_velocity)
+		curr_speed = sc_hypervisor_get_ctx_speed(sc_hypervisor_get_wrapper(sched_ctxs[i]));
+		if( curr_speed > biggest_speed)
 		{
 			fastest_sched_ctx = sched_ctxs[i];
-			biggest_velocity = curr_velocity;
+			biggest_speed = curr_speed;
 		}
 	}
 
@@ -40,19 +40,19 @@ static unsigned _get_fastest_sched_ctx(void)
 
 static unsigned _get_slowest_sched_ctx(void)
 {
-	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
-	double smallest_velocity = sc_hypervisor_get_ctx_velocity(sc_hypervisor_get_wrapper(sched_ctxs[0]));
-	unsigned slowest_sched_ctx = smallest_velocity == -1.0  ? STARPU_NMAX_SCHED_CTXS : sched_ctxs[0];
-	double curr_velocity = 0.0;
+	double smallest_speed = sc_hypervisor_get_ctx_speed(sc_hypervisor_get_wrapper(sched_ctxs[0]));
+	unsigned slowest_sched_ctx = smallest_speed == -1.0  ? STARPU_NMAX_SCHED_CTXS : sched_ctxs[0];
+	double curr_speed = 0.0;
 	int i;
 	for(i = 1; i < nsched_ctxs; i++)
 	{
-		curr_velocity = sc_hypervisor_get_ctx_velocity(sc_hypervisor_get_wrapper(sched_ctxs[i]));
-		if((curr_velocity < smallest_velocity || smallest_velocity == 0.0) && curr_velocity != -1.0)
+		curr_speed = sc_hypervisor_get_ctx_speed(sc_hypervisor_get_wrapper(sched_ctxs[i]));
+		if((curr_speed < smallest_speed || smallest_speed == 0.0) && curr_speed != -1.0)
 		{
-			smallest_velocity = curr_velocity;
+			smallest_speed = curr_speed;
 			slowest_sched_ctx = sched_ctxs[i];
 		}
 	}
@@ -104,8 +104,8 @@ static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_
 
 					if(!considered)
 					{
-						double worker_velocity = sc_hypervisor_get_velocity_per_worker(sc_w, worker);
-						if(worker_velocity != -1.0)
+						double worker_speed = sc_hypervisor_get_speed_per_worker(sc_w, worker);
+						if(worker_speed != -1.0)
 						{
 							/* the first iteration*/
 							if(curr_workers[index] < 0)
@@ -119,9 +119,9 @@ static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_
 							else if(config->priority[worker] ==
 								config->priority[curr_workers[index]])
 							{
-								double curr_worker_velocity = sc_hypervisor_get_velocity_per_worker(sc_w, curr_workers[index]);
-//								printf("speed[%d] = %lf speed[%d] = %lf\n", worker, worker_velocity, curr_workers[index], curr_worker_velocity);
-								if(worker_velocity < curr_worker_velocity && curr_worker_velocity != -1.0)
+								double curr_worker_speed = sc_hypervisor_get_speed_per_worker(sc_w, curr_workers[index]);
+//								printf("speed[%d] = %lf speed[%d] = %lf\n", worker, worker_speed, curr_workers[index], curr_worker_speed);
+								if(worker_speed < curr_worker_speed && curr_worker_speed != -1.0)
 								{
 									curr_workers[index] = worker;
 								}
@@ -141,7 +141,7 @@ static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_
 	return curr_workers;
 }			
 
-static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
+static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, __attribute__((unused))struct starpu_task *task, __attribute__((unused))uint32_t footprint)
 {
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
@@ -161,9 +161,9 @@ static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, struct star
 						double new_speed = 0.0;
 						int i;
 						for(i = 0; i < nworkers_to_move; i++)
-							new_speed += sc_hypervisor_get_velocity_per_worker(sc_hypervisor_get_wrapper(fastest_sched_ctx), workers_to_move[i]);
-						double fastest_speed = sc_hypervisor_get_ctx_velocity(sc_hypervisor_get_wrapper(fastest_sched_ctx));
-						double slowest_speed = sc_hypervisor_get_ctx_velocity(sc_hypervisor_get_wrapper(slowest_sched_ctx));
+							new_speed += sc_hypervisor_get_speed_per_worker(sc_hypervisor_get_wrapper(fastest_sched_ctx), workers_to_move[i]);
+						double fastest_speed = sc_hypervisor_get_ctx_speed(sc_hypervisor_get_wrapper(fastest_sched_ctx));
+						double slowest_speed = sc_hypervisor_get_ctx_speed(sc_hypervisor_get_wrapper(slowest_sched_ctx));
 //						printf("fast_speed(%d) %lf slow_speed(%d) %lf new speed(%d) %lf \n", fastest_sched_ctx, fastest_speed, slowest_sched_ctx, 
 //						       slowest_speed, workers_to_move[0], new_speed);
 						if(fastest_speed != -1.0 && slowest_speed != -1.0 && (slowest_speed + new_speed) <= (fastest_speed - new_speed))

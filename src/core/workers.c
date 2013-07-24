@@ -472,7 +472,11 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 		int ctx;
 		for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
+		{
 			workerarg->removed_from_ctx[ctx] = 0;
+			workerarg->shares_tasks_lists[ctx] = 0;
+		}
+
 
 		STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
 		STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
@@ -1006,7 +1010,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_initialize_current_task_key();
 
 	if (!is_a_sink)
-		_starpu_create_sched_ctx(config.conf->sched_policy_name, NULL, -1, 1, "init");
+	{
+		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
+		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init");
+
+	}
 
 	_starpu_initialize_registered_performance_models();
 
@@ -1036,11 +1044,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 
 	return 0;
-}
-
-void starpu_profiling_init()
-{
-	_starpu_profiling_init();
 }
 
 /*
@@ -1242,6 +1245,7 @@ void starpu_shutdown(void)
 
 	_STARPU_DEBUG("Shutdown finished\n");
 }
+
 
 unsigned starpu_worker_get_count(void)
 {

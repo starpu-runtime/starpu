@@ -66,6 +66,29 @@ int _starpu_profiling =
 #endif
 	;
 
+void starpu_profiling_init()
+{
+	_starpu_profiling_init();
+}
+
+void _starpu_profiling_reset_counters()
+{
+	int worker;
+	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	{
+		_starpu_worker_reset_profiling_info(worker);
+	}
+
+	int busid;
+	int bus_cnt = starpu_bus_get_count();
+	for (busid = 0; busid < bus_cnt; busid++)
+	{
+		struct starpu_profiling_bus_info *bus_info;
+		bus_info = busid_to_node_pair[busid].bus_info;
+		_starpu_bus_reset_profiling_info(bus_info);
+	}
+}
+
 int starpu_profiling_status_set(int status)
 {
 	ANNOTATE_HAPPENS_AFTER(&_starpu_profiling);
@@ -78,19 +101,7 @@ int starpu_profiling_status_set(int status)
 	/* If we enable profiling, we reset the counters. */
 	if (status == STARPU_PROFILING_ENABLE)
 	{
-		int worker;
-		for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
-			_starpu_worker_reset_profiling_info(worker);
-
-		int busid;
-		int bus_cnt = starpu_bus_get_count();
-		for (busid = 0; busid < bus_cnt; busid++)
-		{
-			struct starpu_profiling_bus_info *bus_info;
-			bus_info = busid_to_node_pair[busid].bus_info;
-
-			_starpu_bus_reset_profiling_info(bus_info);
-		}
+		_starpu_profiling_reset_counters();
 	}
 
 	return prev_value;
@@ -98,13 +109,16 @@ int starpu_profiling_status_set(int status)
 
 void _starpu_profiling_init(void)
 {
-	int worker;
 	const char *env;
+	int worker;
+
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 	{
 		STARPU_PTHREAD_MUTEX_INIT(&worker_info_mutex[worker], NULL);
-		_starpu_worker_reset_profiling_info(worker);
 	}
+
+	_starpu_profiling_reset_counters();
+
 	if ((env = getenv("STARPU_PROFILING")) && atoi(env))
 	{
 		ANNOTATE_HAPPENS_AFTER(&_starpu_profiling);
