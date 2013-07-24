@@ -19,6 +19,11 @@
 
 #include <starpu.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /**
  * Initialises the memory manager
  */
@@ -55,5 +60,9 @@ void _starpu_memory_manager_deallocate_size(size_t size, unsigned node);
 
 
 int _starpu_memory_manager_test_allocate_size_(size_t size, unsigned node);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __MEMORY_MANAGER_H__ */

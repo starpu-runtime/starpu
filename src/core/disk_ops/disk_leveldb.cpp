@@ -203,11 +203,9 @@ starpu_leveldb_plug (void *parameter)
 
 	leveldb::DB* db;
 	leveldb::Options options;
-	options.create_if_missing = true;
 	try {
 		options.error_if_exists = true;
 		leveldb::Status status = leveldb::DB::Open(options, (char *) parameter, &db);
-		STARPU_ASSERT_MSG(status.ok(), "StarPU leveldb plug failed !");
 		tmp->created = true;
 	}
 	catch(...)
@@ -218,7 +216,7 @@ starpu_leveldb_plug (void *parameter)
 		tmp->created = false;
 	}
 	tmp->db = db;
-
+	
 	return (void *) tmp;	
 }
 
