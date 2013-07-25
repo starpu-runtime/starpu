@@ -1490,7 +1490,7 @@ AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADERS([leveldb/db.h], [AC_DEFINE([STARPU_HAVE_LEVELDB_H], [1], [Define to 1 if you have the <leveldb/db.h> header file.])])
 AC_LANG_POP([C++])
-STARPU_HAVE_LIBRARY(LEVELDB, [leveldb], starpu_leveldb_bool=xno, starpu_leveldb_bool=xyes)
+STARPU_HAVE_LIBRARY(LEVELDB, [leveldb], starpu_leveldb_bool=xyes, starpu_leveldb_bool=xno)
 
 AM_CONDITIONAL(STARPU_HAVE_LEVELDB, test x$starpu_leveldb_bool = xyes)
 
