@@ -161,7 +161,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/dependencies/data_concurrency.c			\
 	core/disk_ops/disk_stdio.c				\
 	core/disk_ops/disk_unistd.c                             \
-	core/disk_ops/disk_leveldb.cpp				\
 	core/disk_ops/unistd/disk_unistd_global.c		\
 	core/perfmodel/perfmodel_history.c			\
 	core/perfmodel/perfmodel_bus.c				\
@@ -273,7 +272,9 @@ if STARPU_LINUX_SYS
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_unistd_o_direct.c
 endif
 
-
+if STARPU_HAVE_LEVELDB
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_leveldb.cpp
+endif
 
 #########################################
 #										#
