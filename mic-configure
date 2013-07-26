@@ -28,7 +28,8 @@ do
 
 done
 
-if [ ! -x "${mic_host}-gcc" ]
+x=$(type -t ${mic_host}-gcc)
+if [ -z "$x" ]
 then
     echo "[error] please add path to ${mic_host}-gcc in your PATH"
     exit 1
