@@ -367,7 +367,7 @@ int ws_push_task(struct starpu_task *task)
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
 	{
-		int id = workerid;
+		intptr_t id = workerid;
 		AYU_event(AYU_ADDTASKTOQUEUE, j->job_id, &id);
 	}
 #endif

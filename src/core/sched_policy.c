@@ -329,7 +329,7 @@ int _starpu_push_task(struct _starpu_job *j)
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
 	{
-		int id = -1;
+		intptr_t id = -1;
 		AYU_event(AYU_ADDTASKTOQUEUE, j->job_id, &id);
 	}
 #endif
