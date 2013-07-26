@@ -245,7 +245,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
 	{
-		int id = workerid;
+		intptr_t id = workerid;
 		AYU_event(AYU_PRERUNTASK, _starpu_get_job_associated_to_task(task)->job_id, &id);
 	}
 #endif

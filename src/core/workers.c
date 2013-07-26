@@ -432,11 +432,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif
 
 #ifdef HAVE_AYUDAME_H
-	if (AYU_event)
-	{
-		unsigned long n = nworkers;
-		AYU_event(AYU_INIT, 0, (void*) &n);
-	}
+	if (AYU_event) AYU_event(AYU_INIT, 0, NULL);
 #endif
 
 	for (worker = 0; worker < nworkers; worker++)
