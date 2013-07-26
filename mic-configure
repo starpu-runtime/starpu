@@ -28,6 +28,12 @@ do
 
 done
 
+if [ ! -x "${mic_host}-gcc" ]
+then
+    echo "[error] please add path to ${mic_host}-gcc in your PATH"
+    exit 1
+fi
+
 for arch in mic host
 do
 	# We call the configure script from a build directory further in the
