@@ -993,7 +993,6 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
     __coi_dir=$1
     __coi_include_dir=$2
     __coi_lib_dir=$3
-    __coi_lib_name=$4
 
     if test "$__coi_dir" != "no" -a "$__coi_dir" != "" ; then
 	AC_MSG_CHECKING(whether MIC's COI runtime is available in $__coi_dir)
@@ -1022,14 +1021,14 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
     AC_CHECK_HEADER([source/COIEngine_source.h],[have_valid_coi=yes],[have_valid_coi=no])
 
     if test "$have_valid_coi" = "yes" ; then
-	AC_HAVE_LIBRARY([$__coi_lib_name],[have_valid_coi=yes],[have_valid_coi=no])
+	AC_HAVE_LIBRARY([$4],[have_valid_coi=yes],[have_valid_coi=no])
 
         if test "$have_valid_coi" = "no" ; then
             if test "$3" = "no" -a "$__coi_dir" != "no" ; then
 		# ${__coi_dir}/lib didn't work, let's try with lib64
                 __coi_lib_dir="$__coi_dir/lib64"
 		LDFLAGS="${SAVED_LDFLAGS} -L$__coi_lib_dir"
-	        AC_HAVE_LIBRARY([$__coi_lib_name],[have_valid_coi=yes],[have_valid_coi=no])
+	        AC_HAVE_LIBRARY([$4],[have_valid_coi=yes],[have_valid_coi=no])
             fi
         fi
     fi
@@ -1048,12 +1047,12 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
 
 if test x$enable_mic = xyes ; then
 
-    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, "coi_host")
+    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_host)
 
     # Host runtime is not compatible, we are probably cross-compiling
     # Let's have a look for the device runtime which lib has a different name
     if test "$have_valid_coi" = "no" ; then
-	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, "coi_device")
+	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_device)
     fi
 
     if test "$have_valid_coi" = "no" ; then
