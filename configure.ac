@@ -1038,7 +1038,7 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
     fi
 
     if test "$have_valid_coi" = "yes" -a "$__coi_lib_dir" != "no"; then
-        STARPU_COI_LDFLAGS="-L$__coi_lib_dir -l$__coi_lib_name"
+        STARPU_COI_LDFLAGS="-L$__coi_lib_dir -l$4"
     fi
 
     CPPFLAGS="${SAVED_CPPFLAGS}"
