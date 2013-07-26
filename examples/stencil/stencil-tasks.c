@@ -221,7 +221,8 @@ static struct starpu_codelet null =
 	.cpu_funcs_name = {"null_func", NULL},
 	.cuda_funcs = {null_func, NULL},
 	.opencl_funcs = {null_func, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.name = "start"
 };
 
 void create_start_task(int z, int dir)
