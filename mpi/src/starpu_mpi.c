@@ -76,59 +76,60 @@ struct _starpu_mpi_copy_handle
  /*                                                      */
  /********************************************************/
 
-static struct _starpu_mpi_req *_starpu_mpi_req_hashmap = NULL;
+/** stores application requests for which data have not been received yet */
+static struct _starpu_mpi_req *_starpu_mpi_app_req_hashmap = NULL;
 /** stores data which have been received by MPI but have not been requested by the application */
 static struct _starpu_mpi_copy_handle *_starpu_mpi_copy_handle_hashmap = NULL;
 
-static struct _starpu_mpi_req* find_req(int mpi_tag)
+static struct _starpu_mpi_req* find_app_req(int mpi_tag)
 {
-	struct _starpu_mpi_req* req; // = malloc(sizeof(struct _starpu_mpi_req));
+	struct _starpu_mpi_req* req;
 
-	HASH_FIND_INT(_starpu_mpi_req_hashmap, &mpi_tag, req);
+	HASH_FIND_INT(_starpu_mpi_app_req_hashmap, &mpi_tag, req);
 
 	return req;
 }
 
-static void add_req(struct _starpu_mpi_req *req)
+static void add_app_req(struct _starpu_mpi_req *req)
 {
 	struct _starpu_mpi_req *test_req;
 
-	test_req = find_req(req->mpi_tag);
+	test_req = find_app_req(req->mpi_tag);
 
 	if (test_req == NULL)
 	{
-		HASH_ADD_INT(_starpu_mpi_req_hashmap, mpi_tag, req);
-		_STARPU_MPI_DEBUG(3, "Adding request %p with tag %d in the hashmap. \n", req, req->mpi_tag);
+		HASH_ADD_INT(_starpu_mpi_app_req_hashmap, mpi_tag, req);
+		_STARPU_MPI_DEBUG(3, "Adding request %p with tag %d in the application request hashmap. \n", req, req->mpi_tag);
 	}
 	else
 	{
-		_STARPU_MPI_DEBUG(3, "Error add_req : request %p with tag %d already in the hashmap. \n", req, req->mpi_tag);
+		_STARPU_MPI_DEBUG(3, "[Error] request %p with tag %d already in the application request hashmap. \n", req, req->mpi_tag);
 		int seq_const = starpu_data_get_sequential_consistency_flag(req->data_handle);
 		if (seq_const &&  req->sequential_consistency)
 		{
-			STARPU_ASSERT_MSG(!test_req, "Error add_req : request %p with tag %d wanted to be added to the hashmap, while another request %p with the same tag is already in it. \n Sequential consistency is activated : this is not supported by StarPU.", req, req->mpi_tag, test_req);
+			STARPU_ASSERT_MSG(!test_req, "[Error] request %p with tag %d wanted to be added to the application request hashmap, while another request %p with the same tag is already in it. \n Sequential consistency is activated : this is not supported by StarPU.", req, req->mpi_tag, test_req);
 		}
 		else
 		{
-			STARPU_ASSERT_MSG(!test_req, "Error add_req : request %p with tag %d wanted to be added to the hashmap, while another request %p with the same tag is already in it. \n Sequential consistency isn't activated for this handle : you should want to add dependencies between requests for which the sequential consistency is deactivated.", req, req->mpi_tag, test_req);
+			STARPU_ASSERT_MSG(!test_req, "[Error] request %p with tag %d wanted to be added to the application request hashmap, while another request %p with the same tag is already in it. \n Sequential consistency isn't activated for this handle : you should want to add dependencies between requests for which the sequential consistency is deactivated.", req, req->mpi_tag, test_req);
 		}
 	}
 }
 
-static void delete_req(struct _starpu_mpi_req *req)
+static void delete_app_req(struct _starpu_mpi_req *req)
 {
 	struct _starpu_mpi_req *test_req;
 
-	test_req = find_req(req->mpi_tag);
+	test_req = find_app_req(req->mpi_tag);
 
 	if (test_req != NULL)
 	{
-		HASH_DEL(_starpu_mpi_req_hashmap, req);
-		_STARPU_MPI_DEBUG(3, "Deleting request %p with tag %d from the hashmap. \n", req, req->mpi_tag);
+		HASH_DEL(_starpu_mpi_app_req_hashmap, req);
+		_STARPU_MPI_DEBUG(3, "Deleting application request %p with tag %d from the application request hashmap. \n", req, req->mpi_tag);
 	}
 	else
 	{
-		_STARPU_MPI_DEBUG(3, "Warning delete_req : request %p with tag %d isn't in the hashmap. \n", req, req->mpi_tag);
+		_STARPU_MPI_DEBUG(3, "[Warning] request %p with tag %d is NOT in the application request hashmap. \n", req, req->mpi_tag);
 	}
 }
 
@@ -944,7 +945,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 		 * We just add the pending receive request to the requests' hashmap. */
 		else
 		{
-			add_req(req);
+			add_app_req(req);
 		}
 	}
 	else
@@ -1151,7 +1152,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	while (running || posted_requests || !(_starpu_mpi_req_list_empty(new_requests)) || !(_starpu_mpi_req_list_empty(detached_requests)))
 	{
 		/* shall we block ? */
-		unsigned block = _starpu_mpi_req_list_empty(new_requests) && (HASH_COUNT(_starpu_mpi_req_hashmap) == 0);
+		unsigned block = _starpu_mpi_req_list_empty(new_requests) && (HASH_COUNT(_starpu_mpi_app_req_hashmap) == 0);
 
 #ifndef STARPU_MPI_ACTIVITY
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
@@ -1191,7 +1192,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		/* If there is no currently submitted header_req submitted to catch envelopes from senders, and there is some pending receive
 		 * requests in our side, we resubmit a header request. */
 		MPI_Request header_req;
-		if ((HASH_COUNT(_starpu_mpi_req_hashmap) > 0) && (header_req_submitted == 0))// && (HASH_COUNT(_starpu_mpi_copy_handle_hashmap) == 0))
+		if ((HASH_COUNT(_starpu_mpi_app_req_hashmap) > 0) && (header_req_submitted == 0))// && (HASH_COUNT(_starpu_mpi_copy_handle_hashmap) == 0))
 		{
 			_STARPU_MPI_DEBUG(3, "Posting a receive to get a data envelop\n");
 			MPI_Irecv(recv_env, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, MPI_ANY_SOURCE, _starpu_mpi_tag, MPI_COMM_WORLD, &header_req);
@@ -1215,9 +1216,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 			if (flag)
 			{
-				_STARPU_MPI_DEBUG(3, "Searching for request with tag %d (size %ld)\n", recv_env->mpi_tag, recv_env->psize);
+				_STARPU_MPI_DEBUG(3, "Searching for application request with tag %d (size %ld)\n", recv_env->mpi_tag, recv_env->psize);
 
-				struct _starpu_mpi_req *found_req = find_req(recv_env->mpi_tag);
+				struct _starpu_mpi_req *found_req = find_app_req(recv_env->mpi_tag);
 
 				/* Case : a data will arrive before the matching receive has been submitted in our side of the application.
 				 * We will allow a temporary handle to store the incoming data, by submitting a starpu_mpi_irecv_detached
@@ -1266,7 +1267,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				{
 					_STARPU_MPI_DEBUG(3, "A matching receive has been found for the incoming data with tag %d\n", recv_env->mpi_tag);
 
-					delete_req(found_req);
+					delete_app_req(found_req);
 
 					_starpu_mpi_handle_allocate_datatype(found_req->data_handle, &found_req->datatype, &found_req->user_datatype);
 					if (found_req->user_datatype == 0)
@@ -1303,7 +1304,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	STARPU_ASSERT_MSG(_starpu_mpi_req_list_empty(detached_requests), "List of detached requests not empty");
 	STARPU_ASSERT_MSG(_starpu_mpi_req_list_empty(new_requests), "List of new requests not empty");
 	STARPU_ASSERT_MSG(posted_requests == 0, "Number of posted request is not zero");
-	STARPU_ASSERT_MSG(HASH_COUNT(_starpu_mpi_req_hashmap) == 0, "Number of receive requests left is not zero");
+	STARPU_ASSERT_MSG(HASH_COUNT(_starpu_mpi_app_req_hashmap) == 0, "Number of receive requests left is not zero");
 	STARPU_ASSERT_MSG(HASH_COUNT(_starpu_mpi_copy_handle_hashmap) == 0, "Number of copy requests left is not zero");
 	if (argc_argv->initialize_mpi)
 	{
