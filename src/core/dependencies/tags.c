@@ -244,7 +244,7 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
 	{
-		intptr_t id = -1;
+		intptr_t id = 0;
 		AYU_event(AYU_PRERUNTASK, tag->id + AYUDAME_OFFSET, &id);
 		AYU_event(AYU_POSTRUNTASK, tag->id + AYUDAME_OFFSET, NULL);
 	}
