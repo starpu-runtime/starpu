@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/uthash.h>
+#include <string.h>
 
 #ifdef STARPU_HAVE_POTI
 #include <poti.h>
@@ -1890,24 +1891,51 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	options->nworkers = nworkers;
 }
 
-static FILE *out_data_total_trace_file;
+#define DATA_STR_MAX_SIZE 15
 
 struct parse_task
 {
 	unsigned exec_time;
 	unsigned data_total;
+	char *codelet_name;
 };
 
 static struct parse_task tasks[STARPU_NMAXWORKERS];
 
+struct starpu_data_trace_kernel
+{
+	UT_hash_handle hh;
+	char *name;
+	FILE *file;
+} *kernels;
+
 #define NANO_SEC_TO_MILI_SEC 0.000001
+
+static FILE *codelet_list;
 
 static void write_task(struct parse_task pt)
 {
+	struct starpu_data_trace_kernel *kernel;
+	char *codelet_name = pt.codelet_name;
+	HASH_FIND_STR(kernels, codelet_name, kernel);
+	//fprintf(stderr, "%p %p %s\n", kernel, kernels, codelet_name);
+	if(kernel == NULL)
+	{
+		kernel = malloc(sizeof(*kernel));
+		kernel->name = strdup(codelet_name);
+		//fprintf(stderr, "%s\n", kernel->name);
+		kernel->file = fopen(codelet_name, "w+");
+		if(!kernel->file)
+		{
+			perror("open failed :");
+			exit(-1);
+		}
+		HASH_ADD_STR(kernels, name, kernel); 
+		fprintf(codelet_list, "%s\n", codelet_name);
+	}
 	double time = pt.exec_time * NANO_SEC_TO_MILI_SEC;
-	fprintf(out_data_total_trace_file, "%lf %d\n", time, pt.data_total);
+	fprintf(kernel->file, "%lf %d\n", time, pt.data_total);
 }
-
 
 void starpu_fxt_write_data_trace(char *filename_in)
 {
@@ -1927,17 +1955,21 @@ void starpu_fxt_write_data_trace(char *filename_in)
 	        exit(-1);
 	}
 
+	codelet_list = fopen("codelet_list", "w+");
+	if(!codelet_list)
+	{
+		perror("open failed :");
+		exit(-1);
+	}
+
 	fxt_blockev_t block;
 	block = fxt_blockev_enter(fut);
 
-	out_data_total_trace_file = fopen("data_total.txt", "w+");
-	if(!out_data_total_trace_file)
-        {
-                perror("open failed :");
-                exit(-1);
-        }
-
 	struct fxt_ev_64 ev;
+
+	unsigned workerid;
+	unsigned long has_name = 0;
+
 	while(1)
 	{
 		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
@@ -1946,8 +1978,6 @@ void starpu_fxt_write_data_trace(char *filename_in)
 			break;
 		}
 		
-		unsigned workerid;
-
 		switch (ev.code)
 		{
 		case _STARPU_FUT_WORKER_INIT_START:
@@ -1957,6 +1987,9 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		case _STARPU_FUT_START_CODELET_BODY:
 			workerid = find_worker_id(ev.param[2]);
 			tasks[workerid].exec_time = ev.time;
+			has_name = ev.param[3];
+			tasks[workerid].codelet_name = strdup(has_name ? (char *) &ev.param[4] : "unknow");
+			//fprintf(stderr, "start codelet :[%d][%s]\n", workerid, tasks[workerid].codelet_name);
 			break;
 			
 		case _STARPU_FUT_END_CODELET_BODY:
@@ -1985,11 +2018,25 @@ void starpu_fxt_write_data_trace(char *filename_in)
 	        exit(-1);
 	}
 	
-	if(fclose(out_data_total_trace_file))
+	if(fclose(codelet_list))
 	{
 		perror("close failed :");
 		exit(-1);
 	}
+	
+	struct starpu_data_trace_kernel *kernel, *tmp;	
 
+	HASH_ITER(hh, kernels, kernel, tmp)
+	{
+		if(fclose(kernel->file))
+		{ 
+			perror("close failed :");
+			exit(-1);
+		}
+		HASH_DEL(kernels, kernel);
+		free(kernel->name);
+		free(kernel);
+	}
+		
 }
 #endif // STARPU_USE_FXT
