@@ -527,6 +527,9 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->empty_ctx_mutex);
 	sem_destroy(&sched_ctx->parallel_code_sem);
 	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_bitmap_free(sched_ctx->hwloc_workers_set);
+#endif //STARPU_HAVE_HWLOC
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx_manag);

@@ -18,6 +18,8 @@
 #include <common/uthash.h>
 
 #define SC_SPEED_MAX_GAP_DEFAULT 50
+#define SC_HYPERVISOR_DEFAULT_CPU_SPEED 5.0
+#define SC_HYPERVISOR_DEFAULT_CUDA_SPEED 100.0
 
 struct size_request
 {

@@ -165,17 +165,20 @@ double sc_hypervisor_get_ref_speed_per_worker_type(struct sc_hypervisor_wrapper*
 	return -1.0;
 }
 
+/* returns the speed necessary for the linear programs (either the monitored one either a default value) */
 double sc_hypervisor_get_speed(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch)
 {
-
+	/* monitored speed in the last frame */
 	double speed = sc_hypervisor_get_speed_per_worker_type(sc_w, arch);
 	if(speed == -1.0)
 	{
+		/* avg value of the monitored speed over the entier current execution */
 		speed = sc_hypervisor_get_ref_speed_per_worker_type(sc_w, arch);
 	}
 	if(speed == -1.0)
 	{
-		speed = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
+		/* a default value */
+		speed = arch == STARPU_CPU_WORKER ? SC_HYPERVISOR_DEFAULT_CPU_SPEED : SC_HYPERVISOR_DEFAULT_CUDA_SPEED;
 	}
        
 	return speed;
