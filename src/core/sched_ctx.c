@@ -1280,7 +1280,6 @@ void _starpu_sched_ctx_rebind_thread_to_its_cpu(unsigned cpuid)
 static void _starpu_sched_ctx_get_workers_to_sleep(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 	struct starpu_sched_ctx_iterator it;
 	struct _starpu_worker *worker = NULL;
@@ -1297,7 +1296,7 @@ static void _starpu_sched_ctx_get_workers_to_sleep(unsigned sched_ctx_id)
 
 	while(workers->has_next(workers, &it))
 	{
-		int w = workers->get_next(workers, &it);
+		workers->get_next(workers, &it);
 		sem_wait(&sched_ctx->parallel_code_sem);
 	}
 	return;

@@ -53,8 +53,6 @@ struct _starpu_dmda_data
 	long int ready_task_cnt;
 };
 
-static double idle_power = 0.0;
-
 /* The dmda scheduling policy uses
  *
  * alpha * T_computation + beta * T_communication + gamma * Consumption
