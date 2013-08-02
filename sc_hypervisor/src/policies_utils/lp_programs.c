@@ -292,7 +292,8 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 
 	/*1/tmax should belong to the interval [0.0;1.0]*/
 	glp_set_col_name(lp, n, "vmax");
-	glp_set_col_bnds(lp, n, GLP_DB, 0.0, 1.0);
+//	glp_set_col_bnds(lp, n, GLP_DB, 0.0, 1.0);
+	glp_set_col_bnds(lp, n, GLP_LO, 0.0, 0.0);
 	/* Z = 1/tmax -> 1/tmax structural variable, nCPUs & nGPUs in ctx are auxiliar variables */
 	glp_set_obj_coef(lp, n, 1.0);
 
@@ -429,6 +430,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 
 	double vmax = glp_get_obj_val(lp);
 
+//	printf("vmax = %lf \n", vmax);
 	n = 1;
 	for(s = 0; s < ns; s++)
 	{
