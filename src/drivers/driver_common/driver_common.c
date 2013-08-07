@@ -206,11 +206,11 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 #ifdef STARPU_USE_SC_HYPERVISOR
 		struct _starpu_sched_ctx *sched_ctx = NULL;
 		struct starpu_sched_ctx_performance_counters *perf_counters = NULL;
-		int j;
-		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
+		struct _starpu_sched_ctx_list *l = NULL;
+		for (l = args->sched_ctx_list; l; l = l->next)
 		{
-			sched_ctx = args->sched_ctx[j];
-			if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+			sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+			if(sched_ctx->id != 0)
 			{
 				perf_counters = sched_ctx->perf_counters;
 				if(perf_counters != NULL && perf_counters->notify_idle_cycle)

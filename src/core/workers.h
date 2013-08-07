@@ -29,7 +29,7 @@
 #include <core/topology.h>
 #include <core/errorcheck.h>
 #include <core/sched_ctx.h>
-
+#include <core/sched_ctx_list.h>
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
@@ -84,7 +84,7 @@ struct _starpu_worker
 	char short_name[10];
 	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
 
-	struct _starpu_sched_ctx **sched_ctx;
+	struct _starpu_sched_ctx_list *sched_ctx_list;
 	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/
 	struct _starpu_barrier_counter tasks_barrier; /* wait for the tasks submitted */
        
