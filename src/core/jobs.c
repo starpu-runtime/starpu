@@ -284,7 +284,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event)
 		{
-			int64_t AYU_data[2] = {j->exclude_from_dag?-1:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
+			int64_t AYU_data[2] = {j->exclude_from_dag?0:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
 			AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
 		}
 #endif

@@ -221,7 +221,8 @@ static struct starpu_codelet null =
 	.cpu_funcs_name = {"null_func", NULL},
 	.cuda_funcs = {null_func, NULL},
 	.opencl_funcs = {null_func, NULL},
-	.nbuffers = 2
+	.nbuffers = 2,
+	.name = "start"
 };
 
 void create_start_task(int z, int dir)
@@ -267,11 +268,15 @@ void create_tasks(int rank)
 	}
 
 	for (iter = 0; iter <= niter; iter++)
+	{
 	for (bz = 0; bz < nbz; bz++)
 	{
 		if ((iter > 0) && (get_block_mpi_node(bz) == rank))
 			create_task_update(iter, bz, rank);
 
+	}
+	for (bz = 0; bz < nbz; bz++)
+	{
 		if (iter != niter)
 		{
 			if ((get_block_mpi_node(bz) == rank) || (get_block_mpi_node(bz+1) == rank))
@@ -280,6 +285,7 @@ void create_tasks(int rank)
 			if ((get_block_mpi_node(bz) == rank) || (get_block_mpi_node(bz-1) == rank))
 				create_task_save(iter, bz, -1, rank);
 		}
+	}
 	}
 }
 

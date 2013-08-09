@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include "../helper.h"
 
-#define N	1000	
+#define N	1000
 #define VECTORSIZE	1024
 
 starpu_data_handle_t v_handle;
@@ -33,10 +33,9 @@ void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	int worker_size = starpu_combined_worker_get_size();
 	STARPU_ASSERT(worker_size > 0);
 
-	//FPRINTF(stderr, "WORKERSIZE : %d\n", worker_size);
+//	FPRINTF(stderr, "WORKERSIZE : %d\n", worker_size);
 
 	usleep(1000/worker_size);
-
 #if 0
 	int id = starpu_worker_get_id();
 	int combined_id = starpu_combined_worker_get_id();
@@ -50,9 +49,9 @@ static struct starpu_codelet cl =
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {codelet_null, NULL},
+	.cpu_funcs_name = {"codelet_null", NULL},
 	.cuda_funcs = {codelet_null, NULL},
         .opencl_funcs = {codelet_null, NULL},
-	.cpu_funcs_name = {"codelet_null", NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_R}
 };

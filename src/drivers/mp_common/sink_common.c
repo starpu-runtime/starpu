@@ -251,6 +251,7 @@ void _starpu_sink_common_worker(void)
 	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
 
 
+	struct _starpu_machine_config *config;
 	while (!exit_starpu)
 	{
 		/* If we have received a message */
@@ -264,6 +265,7 @@ void _starpu_sink_common_worker(void)
 					exit_starpu = 1;
 					break;
 				case STARPU_EXECUTE:
+					config = _starpu_get_machine_config();
 					node->execute(node, arg, arg_size);
 					break;
 				case STARPU_SINK_NBCORES:
@@ -305,21 +307,22 @@ void _starpu_sink_common_worker(void)
 			}
 		}
 
-		pthread_mutex_lock(&node->message_queue_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 		/* If the list is not empty */
 		if(!mp_message_list_empty(node->message_queue))
 		{
 			/* We pop a message and send it to the host */
 			struct mp_message * message = mp_message_list_pop_back(node->message_queue);
-			pthread_mutex_unlock(&node->message_queue_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 			//_STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
+			config = _starpu_get_machine_config();
 			_starpu_mp_common_send_command(node, message->type, 
 					&message->buffer, message->size);
 			mp_message_delete(message);
 		}
 		else
 		{
-			pthread_mutex_unlock(&node->message_queue_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 		}
 	}
 
@@ -376,6 +379,7 @@ static void _starpu_sink_common_erase_barrier(struct _starpu_mp_node * node, str
  */
 static void _starpu_sink_common_append_message(struct _starpu_mp_node *node, struct mp_message * message)
 {
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 	mp_message_list_push_front(node->message_queue,message);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
@@ -506,6 +510,10 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 	/* tell the sink that the execution is completed */
 	_starpu_sink_common_execution_completed_message(node,task);
 
+	/*free the task*/
+	unsigned i;
+	for (i = 0; i < task->nb_interfaces; i++)
+		free(task->interfaces[i]);
 	free(task);
 
 }
@@ -518,7 +526,6 @@ void* _starpu_sink_thread(void * thread_arg)
 {
 	/* Retrieve the information from the structure */
 	struct _starpu_mp_node *node = ((struct arg_sink_thread *)thread_arg)->node;
-	sem_t * sem = ((struct arg_sink_thread *)thread_arg)->sem;
 	int coreid =((struct arg_sink_thread *)thread_arg)->coreid;
 	/* free the structure */
 	free(thread_arg);
@@ -531,7 +538,7 @@ void* _starpu_sink_thread(void * thread_arg)
 	while(node->is_running)
 	{
 		/*Wait there is a task available */
-		sem_wait(sem);
+		sem_wait(&node->sem_run_table[coreid]);
 		if(node->run_table[coreid] != NULL)
 			_starpu_sink_common_execute_kernel(node,coreid,node->run_table[coreid],worker);
 
@@ -562,7 +569,7 @@ static void _starpu_sink_common_execute_thread(struct _starpu_mp_node *node, str
 void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 		void *arg, int arg_size)
 {
-	unsigned nb_interfaces, i;
+	unsigned i;
 
 	void *arg_ptr = arg;
 	struct mp_task *task = malloc(sizeof(struct mp_task));
@@ -587,16 +594,19 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node,
 	task->coreid = *(unsigned *) arg_ptr;
 	arg_ptr += sizeof(task->coreid);
 
-	nb_interfaces = *(unsigned *) arg_ptr;
-	arg_ptr += sizeof(nb_interfaces);
+	task->nb_interfaces = *(unsigned *) arg_ptr;
+	arg_ptr += sizeof(task->nb_interfaces);
 
 	/* The function needs an array pointing to each interface it needs
 	 * during execution. As in sink-side there is no mean to know which
 	 * kind of interface to expect, the array is composed of unions of
 	 * interfaces, thus we expect the same size anyway */
-	for (i = 0; i < nb_interfaces; i++)
+	for (i = 0; i < task->nb_interfaces; i++)
 	{
-		task->interfaces[i] = arg_ptr;
+		union _starpu_interface * interface = malloc(sizeof(union _starpu_interface));   
+		memcpy(interface, arg_ptr, 
+				sizeof(union _starpu_interface));
+		task->interfaces[i] = interface;
 		arg_ptr += sizeof(union _starpu_interface);
 	}
 

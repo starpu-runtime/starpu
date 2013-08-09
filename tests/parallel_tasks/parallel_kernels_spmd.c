@@ -21,17 +21,17 @@
 #include <unistd.h>
 #include "../helper.h"
 
-#define N	100
+#define N	1000
 #define VECTORSIZE	1024
 
 void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
-//	int worker_size = starpu_combined_worker_get_size();
-//	STARPU_ASSERT(worker_size > 0);
+	int worker_size = starpu_combined_worker_get_size();
+	STARPU_ASSERT(worker_size > 0);
 
-//	usleep(1000/worker_size);
+	usleep(1000/worker_size);
 #if 0
 	int id = starpu_worker_get_id();
 	int combined_id = starpu_combined_worker_get_id();
@@ -51,9 +51,9 @@ static struct starpu_codelet cl =
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {codelet_null, NULL},
+	.cpu_funcs_name = {"codelet_null", NULL},
 	.cuda_funcs = {codelet_null, NULL},
         .opencl_funcs = {codelet_null, NULL},
-	.cpu_funcs_name = {"codelet_null", NULL},
 	.model = &model,
 	.nbuffers = 1,
 	.modes = {STARPU_R}
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 
         struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	conf.sched_policy_name = "peager";
+	conf.sched_policy_name = "pheft";
 	conf.calibrate = 1;
 
 	ret = starpu_init(&conf);

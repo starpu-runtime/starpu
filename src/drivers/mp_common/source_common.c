@@ -38,7 +38,8 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 	struct timespec codelet_end;
 	_starpu_driver_end_job(worker, j, worker->perf_arch, &codelet_end, 0,
 			profiling);
-	int count = 0;
+	
+	int count = worker->current_rank;
 
 	/* If it's a combined worker, we check if it's the last one of his combined */
 	if(j->task_size > 1)
@@ -52,7 +53,6 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 		pthread_mutex_unlock(&cb_worker->count_mutex);
 	}
 
-	_STARPU_DEBUG("\nworkerid:%d\n",worker->workerid);
 	/* Finalize the execution */
 	if(count == 0)
 	{
@@ -69,7 +69,7 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 }
 
 
-/* */
+/* Complete the execution of the job */
 static int _starpu_src_common_process_completed_job(struct _starpu_worker_set *workerset, void * arg, int arg_size)
 {
 	int coreid;
@@ -79,17 +79,15 @@ static int _starpu_src_common_process_completed_job(struct _starpu_worker_set *w
 	coreid = *(int *) arg;
 
 	struct _starpu_worker *worker = &workerset->workers[coreid];
-	struct starpu_task *task = worker->current_task;
-	struct _starpu_job *j = _starpu_get_job_associated_to_task (task);
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(worker->current_task);
 
 	struct _starpu_worker * old_worker = _starpu_get_local_worker_key();
-	_starpu_set_local_worker_key(worker);
-	
-	_starpu_src_common_finalize_job (j, worker);
-	worker->current_task = NULL;
 
+	_starpu_set_local_worker_key(worker);
+	_starpu_src_common_finalize_job (j, worker);
 	_starpu_set_local_worker_key(old_worker);
 
+	worker->current_task = NULL;
 	return 0;
 }
 
@@ -112,49 +110,129 @@ static void _starpu_src_common_pre_exec(void * arg, int arg_size)
  * return 0 if the message has not been handle (it's certainly mean that it's a synchronous message)
  * return 1 if the message has been handle
  */
-static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node, 
-		void ** arg, int* arg_size, 
-		enum _starpu_mp_command *answer)
+static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, 
+		void * arg, int arg_size, 
+		enum _starpu_mp_command answer)
 {
-	struct _starpu_worker_set * worker_set = _starpu_get_worker_struct(starpu_worker_get_id())->set;
-	*answer = _starpu_mp_common_recv_command(node, arg, arg_size);
-	switch(*answer) 
+	struct _starpu_worker_set * worker_set=NULL; 
+	switch(answer) 
 	{
 		case STARPU_EXECUTION_COMPLETED:
-			_starpu_src_common_process_completed_job(worker_set, *arg, *arg_size);
+			worker_set = _starpu_get_worker_struct(starpu_worker_get_id())->set;
+			_starpu_src_common_process_completed_job(worker_set, arg, arg_size);
 			break;
 		case STARPU_PRE_EXECUTION:
-			_starpu_src_common_pre_exec(*arg,*arg_size);
+			_starpu_src_common_pre_exec(arg,arg_size);
 			break;
 		default:
 			return 0;
 			break;
 	}
-
 	return 1;
 }
 
 
-/* Handle all asynchronous messages and return when a synchronous message is received */
-static enum _starpu_mp_command _starpu_src_common_wait_command_sync(const struct _starpu_mp_node *node, 
+static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
+	/* while the list is not empty */
+	while(!mp_message_list_empty(node->message_queue))
+	{
+		/* We pop a message and handle it */
+		struct mp_message * message = mp_message_list_pop_back(node->message_queue);
+		_starpu_src_common_handle_async(node, message->buffer, 
+				message->size, message->type);
+		mp_message_delete(message);
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
+}
+
+/* Store a message if is asynchronous 
+ * return 1 if the message has been stored
+ * return 0 if the message is unknown or synchrone */
+int _starpu_src_common_store_message(struct _starpu_mp_node *node, 
+		void * arg, int arg_size, enum _starpu_mp_command answer)
+{
+	struct mp_message * message = NULL;
+	switch(answer)
+	{
+		case STARPU_EXECUTION_COMPLETED:
+		case STARPU_PRE_EXECUTION:
+			message = mp_message_new();
+			message->type = answer;
+			memcpy(message->buffer, arg, arg_size); 
+			message->size = arg_size; 
+
+			STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
+			mp_message_list_push_front(node->message_queue,message);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
+			return 1;
+			break;
+		default:
+			return 0;
+			break;
+	}
+}
+
+/* Store all asynchronous messages and return when a synchronous message is received */
+static enum _starpu_mp_command _starpu_src_common_wait_command_sync(struct _starpu_mp_node *node, 
 		void ** arg, int* arg_size)
 {
 	enum _starpu_mp_command answer;
-	while(_starpu_src_common_handle_async(node,arg,arg_size,&answer));
+	int is_sync = 0;
+	while(!is_sync)
+	{
+		answer = _starpu_mp_common_recv_command(node, arg, arg_size);
+		if(!_starpu_src_common_store_message(node,*arg,*arg_size,answer))
+			is_sync=1;
+	}
 	return answer;
 }
 
 /* Handle a asynchrone message and return a error if a synchronous message is received */
-static void _starpu_src_common_recv_async(struct _starpu_mp_node * baseworker_node)
+static void _starpu_src_common_recv_async(struct _starpu_mp_node * node)
 {
 	enum _starpu_mp_command answer;
 	void *arg;
 	int arg_size;
-	if(!_starpu_src_common_handle_async(baseworker_node,&arg,&arg_size,&answer))
+	answer = _starpu_mp_common_recv_command(node, &arg, &arg_size);
+	if(!_starpu_src_common_handle_async(node,arg,arg_size,answer))
 	{
 		printf("incorrect commande: unknown command or sync command");
 		STARPU_ASSERT(0);
 	}	
+}
+
+/* Handle all asynchrone message while a completed execution message from a specific worker has been receive */
+ enum _starpu_mp_command _starpu_src_common_wait_completed_execution(struct _starpu_mp_node *node, int devid, void **arg, int * arg_size)
+{
+	enum _starpu_mp_command answer;
+
+	int completed = 0;	
+	while(!completed)
+	{
+		answer = _starpu_mp_common_recv_command (node, arg, arg_size);
+
+		if(answer == STARPU_EXECUTION_COMPLETED)
+		{
+			int coreid;
+			STARPU_ASSERT(sizeof(coreid) == *arg_size);	
+			coreid = *(int *) *arg;
+			if(devid == coreid)
+				completed = 1;
+			else
+				if(!_starpu_src_common_store_message(node, *arg, *arg_size, answer))
+					/* We receive a unknown or asynchronous message  */
+					STARPU_ASSERT(0);
+		}
+		else
+		{
+			if(!_starpu_src_common_store_message(node, *arg, *arg_size, answer))
+				/* We receive a unknown or asynchronous message  */
+				STARPU_ASSERT(0);
+		}
+	}
+	return answer;
 }
 
 
@@ -227,7 +305,7 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node,
  * pointer.
  * Data interfaces in task are send to the sink.
  */
-int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
+int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 		void (*kernel)(void), unsigned coreid,
 		enum starpu_codelet_type type,
 		int is_parallel_task, int cb_workerid,
@@ -288,9 +366,11 @@ int _starpu_src_common_execute_kernel(const struct _starpu_mp_node *node,
 	 * executed on a sink with a different memory, whereas a codelet is
 	 * executed on the host part for the other accelerators.
 	 * Thus we need to send a copy of each interface on the MP device */
+
 	for (i = 0; i < nb_interfaces; i++)
 	{
 		starpu_data_handle_t handle = handles[i];
+
 		memcpy (buffer_ptr, interfaces[i],
 				handle->ops->interface_size);
 		/* The sink side has no mean to get the type of each
@@ -366,7 +446,7 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
  * allocated area ;
  * else it returns 1 if the allocation fail.
  */
-int _starpu_src_common_allocate(const struct _starpu_mp_node *mp_node,
+int _starpu_src_common_allocate(struct _starpu_mp_node *mp_node,
 		void **addr, size_t size)
 {
 	enum _starpu_mp_command answer;
@@ -376,7 +456,7 @@ int _starpu_src_common_allocate(const struct _starpu_mp_node *mp_node,
 	_starpu_mp_common_send_command(mp_node, STARPU_ALLOCATE, &size,
 			sizeof(size));
 
-	answer = _starpu_mp_common_recv_command(mp_node, &arg, &arg_size);
+	answer = _starpu_src_common_wait_command_sync(mp_node, &arg, &arg_size);
 
 	if (answer == STARPU_ERROR_ALLOCATE)
 		return 1;
@@ -595,8 +675,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 		unsigned baseworkerid, 
 		struct _starpu_mp_node * mp_node)
 { 
-	struct _starpu_worker * baseworker = &worker_set->workers[baseworkerid];
-	unsigned memnode = baseworker->memory_node;
+	unsigned memnode = worker_set->workers[0].memory_node;
 	struct starpu_task **tasks = malloc(sizeof(struct starpu_task *)*worker_set->nworkers);
 
 	_starpu_src_common_send_workers(mp_node, baseworkerid, worker_set->nworkers);
@@ -610,6 +689,9 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 		_STARPU_TRACE_START_PROGRESS(memnode);
 		_starpu_datawizard_progress(memnode, 1);
 		_STARPU_TRACE_END_PROGRESS(memnode);
+
+		/* Handle message which have been store */
+		_starpu_src_common_handle_stored_async(mp_node);
 
 		/* poll the device for completed jobs.*/
 		while(mp_node->mp_recv_is_ready(mp_node))

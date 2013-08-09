@@ -23,6 +23,8 @@
 #define STARPU_DISK_ALL 1
 #define STARPU_DISK_NO_RECLAIM 2
 
+#include <datawizard/copy_driver.h>
+
 /* interface to manipulate memory disk */
 void * _starpu_disk_alloc (unsigned node, size_t size);
 

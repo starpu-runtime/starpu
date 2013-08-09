@@ -50,8 +50,8 @@ static struct starpu_codelet cl =
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {codelet_null, NULL},
 	.cuda_funcs = {codelet_null, NULL},
-        .opencl_funcs = {codelet_null, NULL},
 	.cpu_funcs_name = {"codelet_null", NULL},
+        .opencl_funcs = {codelet_null, NULL},
 	.model = &model,
 	.nbuffers = 1,
 	.modes = {STARPU_R}
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 
         struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	conf.sched_policy_name = "peager";
+	conf.sched_policy_name = "pheft";
 	conf.calibrate = 1;
 
 	ret = starpu_init(&conf);

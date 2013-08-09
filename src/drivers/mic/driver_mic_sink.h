@@ -34,7 +34,7 @@
 void _starpu_mic_sink_report_error(const char *func, const char *file, const int line, const int status);
 
 void _starpu_mic_sink_init(struct _starpu_mp_node *node);
-
+void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node);
 void _starpu_mic_sink_deinit(struct _starpu_mp_node *node);
 
 void _starpu_mic_sink_allocate(const struct _starpu_mp_node *mp_node, void *arg, int arg_size);

@@ -10,7 +10,7 @@
 
 \section UsingTheTemanejoTaskDebugger Using The Temanejo Task Debugger
 
-StarPU can connect to Temanejo (see
+StarPU can connect to Temanejo >= 1.0rc2 (see
 http://www.hlrs.de/temanejo), to permit
 nice visual task debugging. To do so, build Temanejo's <c>libayudame.so</c>,
 install <c>Ayudame.h</c> to e.g. <c>/usr/local/include</c>, apply the

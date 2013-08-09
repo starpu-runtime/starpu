@@ -33,11 +33,8 @@
  */
 void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 {
-	pthread_t thread, self;
+	pthread_t self;
 	cpu_set_t cpuset;
-	pthread_attr_t attr;
-	int i, ret;
-	struct arg_sink_thread * arg;
 
 	/*Bind on the first core*/
 	self = pthread_self();
@@ -53,48 +50,8 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	_starpu_mic_common_accept(&node->host_sink_dt_connection.mic_endpoint,
 									 STARPU_MIC_SOURCE_DT_PORT_NUMBER);
 	
-	node->is_running = 1;
-
 	node->nb_cores = COISysGetHardwareThreadCount() - COISysGetHardwareThreadCount() / COISysGetCoreCount();
 	node->thread_table = malloc(sizeof(pthread_t)*node->nb_cores);
-
-	node->run_table = malloc(sizeof(struct mp_task *)*node->nb_cores);
-	node->sem_run_table = malloc(sizeof(sem_t)*node->nb_cores);
-
-	node->barrier_list = mp_barrier_list_new();
-	node->message_queue = mp_message_list_new();
-	STARPU_PTHREAD_MUTEX_INIT(&node->message_queue_mutex,NULL);
-	STARPU_PTHREAD_MUTEX_INIT(&node->barrier_mutex,NULL);
-
-	STARPU_PTHREAD_BARRIER_INIT(&node->init_completed_barrier, NULL, node->nb_cores+1);
-
-
-	/*for each core init the mutex, the task pointer and launch the thread */
-	for(i=0; i<node->nb_cores; i++)
-	{
-		node->run_table[i] = NULL;
-
-		sem_init(&node->sem_run_table[i],0,0);
-
-		//init the set
-		CPU_ZERO(&cpuset);
-		CPU_SET(i,&cpuset);
-
-		ret = pthread_attr_init(&attr);
-		STARPU_ASSERT(ret == 0);
-		ret = pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);
-		STARPU_ASSERT(ret == 0);
-
-		/*prepare the argument for the thread*/
-		arg= malloc(sizeof(struct arg_sink_thread));
-		arg->coreid = i;
-		arg->node = node;
-		arg->sem = &node->sem_run_table[i];
-		
-		ret = pthread_create(&thread, &attr, _starpu_sink_thread, arg);
-		((pthread_t *)node->thread_table)[i] = thread;
-		STARPU_ASSERT(ret == 0);
-	}
 
 	//node->sink_sink_dt_connections = malloc(node->nb_mp_sinks * sizeof(union _starpu_mp_connection));
 
@@ -109,6 +66,40 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	//								STARPU_MIC_SINK_SINK_DT_PORT_NUMBER(node->devid, i));
 }
 
+/* Launch all workers on the mic
+ */
+void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node)
+{
+	int i, ret;
+	struct arg_sink_thread * arg;
+	cpu_set_t cpuset;
+	pthread_attr_t attr;
+	pthread_t thread;
+	
+	/*for each core init the mutex, the task pointer and launch the thread */
+	for(i=0; i<node->nb_cores; i++)
+	{
+		//init the set
+		CPU_ZERO(&cpuset);
+		CPU_SET(i,&cpuset);
+
+		ret = pthread_attr_init(&attr);
+		STARPU_ASSERT(ret == 0);
+		ret = pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);
+		STARPU_ASSERT(ret == 0);
+
+		/*prepare the argument for the thread*/
+		arg= malloc(sizeof(struct arg_sink_thread));
+		arg->coreid = i;
+		arg->node = node;
+		
+		ret = pthread_create(&thread, &attr, _starpu_sink_thread, arg);
+		STARPU_ASSERT(ret == 0);
+		((pthread_t *)node->thread_table)[i] = thread;
+	}
+
+}
+
 /* Deinitialize the MIC sink, close all the connections.
  */
 void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
@@ -120,19 +111,13 @@ void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 	{
 		sem_post(&node->sem_run_table[i]);
 		pthread_join(((pthread_t *)node->thread_table)[i],NULL);
-		sem_destroy(&node->sem_run_table[i]);
 	}
 
 	free(node->thread_table);
-	free(node->run_table);
-	free(node->sem_run_table);
 
-	mp_barrier_list_delete(node->barrier_list);
-	mp_message_list_delete(node->message_queue);
+	scif_close(node->host_sink_dt_connection.mic_endpoint);
+	scif_close(node->mp_connection.mic_endpoint);
 
-	STARPU_PTHREAD_MUTEX_DESTROY(&node->message_queue_mutex);
-	STARPU_PTHREAD_MUTEX_DESTROY(&node->barrier_mutex);
-	STARPU_PTHREAD_BARRIER_DESTROY(&node->init_completed_barrier);
 	//unsigned int i;
 
 	//for (i = 0; i < node->nb_mp_sinks; ++i)
@@ -143,14 +128,11 @@ void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 
 	//free(node->sink_sink_dt_connections);
 
-	scif_close(node->host_sink_dt_connection.mic_endpoint);
-	scif_close(node->mp_connection.mic_endpoint);
 }
 
 /* Report an error which occured when using a MIC device
  * and print this error in a human-readable style
  */
-
 void _starpu_mic_sink_report_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);

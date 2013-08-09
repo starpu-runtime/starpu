@@ -83,6 +83,7 @@ int main(int argc, char **argv)
 
 	ret = check_cpu(-1, -1, -1, &cpu_init);
 	if (ret) return ret;
+	if (cpu_init == 0) return STARPU_TEST_SKIPPED;
 
 	if (cpu_init >= STARPU_MAXCPUS-5)
 	{

@@ -34,11 +34,17 @@ void _starpu_scc_sink_init(struct _starpu_mp_node *node)
 	 * get nb_cores *
 	 ****************/
 	node->nb_cores = 1; 
+	STARPU_ASSERT(0);
 
+}
+
+void _starpu_scc_sink_launch_workers(struct _starpu_mp_node *node)
+{
 	/*****************
 	 *     TODO      *
 	 * init thread   *
 	 *****************/
+	STARPU_ASSERT(0);
 }
 
 void _starpu_scc_sink_deinit(struct _starpu_mp_node *node)

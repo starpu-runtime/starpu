@@ -25,6 +25,7 @@
 #include <drivers/mp_common/mp_common.h>
 
 void _starpu_scc_sink_init(struct _starpu_mp_node *node);
+void _starpu_scc_sink_launch_workers(struct _starpu_mp_node *node);
 void _starpu_scc_sink_deinit(struct _starpu_mp_node *node);
 
 void _starpu_scc_sink_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len);

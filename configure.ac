@@ -964,7 +964,7 @@ AC_DEFINE_UNQUOTED(STARPU_MAXMICDEVS, [$nmaxmicdev],
 AC_MSG_CHECKING(maximum number of MIC threads)
 AC_ARG_ENABLE(maxmicthreads, [AS_HELP_STRING([--enable-maxmicthreads=<number>],
 			[maximum number of MIC threads])],
-			nmaxmicthreads=$enableval, nmaxmicthreads=960)
+			nmaxmicthreads=$enableval, nmaxmicthreads=940)
 AC_MSG_RESULT($nmaxmicthread)
 
 AC_DEFINE_UNQUOTED(STARPU_MAXMICCORES, [$nmaxmicthreads],

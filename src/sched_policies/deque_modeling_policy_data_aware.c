@@ -349,7 +349,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
 	{
-		int id = best_workerid;
+		intptr_t id = best_workerid;
 		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
 	}
 #endif

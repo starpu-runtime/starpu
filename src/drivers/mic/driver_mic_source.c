@@ -73,7 +73,7 @@ starpu_pthread_mutex_t nb_mic_worker_init_mutex = PTHREAD_MUTEX_INITIALIZER;
 //	return config->workers[workerid].devid;
 //}
 
-const struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node()
+struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node()
 {
 	struct _starpu_worker *actual_worker = _starpu_get_local_worker_key();
 	STARPU_ASSERT(actual_worker);

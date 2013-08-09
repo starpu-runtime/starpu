@@ -25,6 +25,8 @@
 #include <common/list.h>
 #include <common/barrier.h>
 #include <common/thread.h>
+#include <datawizard/interfaces/data_interface.h>
+
 #ifdef STARPU_USE_MP
 
 #ifdef STARPU_USE_MIC
@@ -113,7 +115,8 @@ LIST_TYPE(mp_message,
 struct mp_task 
 {
 	void (*kernel)(void **, void *);
-	void *interfaces[STARPU_NMAXBUFS]; 
+	void * interfaces[STARPU_NMAXBUFS]; 
+	unsigned nb_interfaces;
 	void *cl_arg;
 	unsigned coreid;
 	enum starpu_codelet_type type;
@@ -194,6 +197,7 @@ struct _starpu_mp_node
 
 	/* Node general functions */
 	void (*init)(struct _starpu_mp_node *node);
+	void (*launch_workers)(struct _starpu_mp_node *node);
 	void (*deinit)(struct _starpu_mp_node *node);
 	void (*report_error)(const char *, const char *, const int, const int);
 

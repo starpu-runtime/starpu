@@ -21,7 +21,7 @@
 #include <unistd.h>
 #include "../helper.h"
 
-#define N	10
+#define N	1000
 #define VECTORSIZE	1024
 
 void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
@@ -43,9 +43,9 @@ static struct starpu_codelet cl =
 	.type = STARPU_FORKJOIN,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {codelet_null, NULL},
+	.cpu_funcs_name = {"codelet_null", NULL},
 	.cuda_funcs = {codelet_null, NULL},
         .opencl_funcs = {codelet_null, NULL},
-	.cpu_funcs_name = {"codelet_null", NULL},
 	.nbuffers = 1,
 	.modes = {STARPU_R}
 };

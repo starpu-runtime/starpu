@@ -31,6 +31,11 @@ enum _starpu_mp_command _starpu_src_common_wait_command_sync(struct _starpu_mp_n
 void _starpu_src_common_recv_async(struct _starpu_worker_set *worker_set, 
 				   struct _starpu_mp_node * baseworker_node);
 
+int _starpu_src_common_store_message(struct _starpu_mp_node *node, 
+		void * arg, int arg_size, enum _starpu_mp_command answer);
+
+enum _starpu_mp_command _starpu_src_common_wait_completed_execution(struct _starpu_mp_node *node, int devid, void **arg, int * arg_size);
+
 int _starpu_src_common_sink_nbcores (const struct _starpu_mp_node *node, int *buf);
 
 int _starpu_src_common_lookup(const struct _starpu_mp_node *node,
