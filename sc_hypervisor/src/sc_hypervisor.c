@@ -628,6 +628,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 					if(sc_w->resize_ack.moved_workers[j] == worker)
 					{
 						only_remove = 1;
+						_reset_resize_sample_info(sched_ctx, STARPU_NMAX_SCHED_CTXS);
 						starpu_pthread_mutex_unlock(&sc_w->mutex);
 						break;
 					}
@@ -647,7 +648,6 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 	/* if there is no ctx waiting for its ack return 1*/
 	if(resize_ack == NULL)
 	{
-		_reset_resize_sample_info(sched_ctx, STARPU_NMAX_SCHED_CTXS);
 		return 1;
 	}
 
