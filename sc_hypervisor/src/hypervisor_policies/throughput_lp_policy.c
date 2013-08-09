@@ -282,7 +282,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 	}
 }
 
-static void debit_lp_handle_poped_task(__attribute__((unused))unsigned sched_ctx, __attribute__((unused))int worker, 
+static void throughput_lp_handle_poped_task(__attribute__((unused))unsigned sched_ctx, __attribute__((unused))int worker, 
 				       __attribute__((unused))struct starpu_task *task, __attribute__((unused))uint32_t footprint)
 {
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
@@ -300,7 +300,7 @@ static void debit_lp_handle_poped_task(__attribute__((unused))unsigned sched_ctx
 	}
 }
 
-static void debit_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
+static void throughput_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 {
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
         if(ret != EBUSY)
@@ -319,7 +319,7 @@ static void debit_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
         }
 }
 
-static void debit_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
+static void throughput_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
@@ -329,7 +329,7 @@ static void debit_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *wo
 	}
 }
 
-static void debit_lp_end_ctx(__attribute__((unused))unsigned sched_ctx)
+static void throughput_lp_end_ctx(__attribute__((unused))unsigned sched_ctx)
 {
 /* 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx); */
 /* 	int worker; */
@@ -339,18 +339,18 @@ static void debit_lp_end_ctx(__attribute__((unused))unsigned sched_ctx)
 	return;
 }
 
-struct sc_hypervisor_policy debit_lp_policy = {
+struct sc_hypervisor_policy throughput_lp_policy = {
 	.size_ctxs = NULL,
-	.resize_ctxs = debit_lp_resize_ctxs,
-	.handle_poped_task = debit_lp_handle_poped_task,
+	.resize_ctxs = throughput_lp_resize_ctxs,
+	.handle_poped_task = throughput_lp_handle_poped_task,
 	.handle_pushed_task = NULL,
-	.handle_idle_cycle = debit_lp_handle_idle_cycle,
+	.handle_idle_cycle = throughput_lp_handle_idle_cycle,
 	.handle_idle_end = NULL,
 	.handle_post_exec_hook = NULL,
 	.handle_submitted_job = NULL,
-	.end_ctx = debit_lp_end_ctx,
+	.end_ctx = throughput_lp_end_ctx,
 	.custom = 0,
-	.name = "debit_lp"
+	.name = "throughput_lp"
 };
 
 #endif /* STARPU_HAVE_GLPK_H */

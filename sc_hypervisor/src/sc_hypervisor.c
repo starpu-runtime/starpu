@@ -38,7 +38,7 @@ extern struct sc_hypervisor_policy gflops_rate_policy;
 extern struct sc_hypervisor_policy feft_lp_policy;
 extern struct sc_hypervisor_policy teft_lp_policy;
 extern struct sc_hypervisor_policy ispeed_lp_policy;
-extern struct sc_hypervisor_policy debit_lp_policy;
+extern struct sc_hypervisor_policy throughput_lp_policy;
 #endif // STARPU_HAVE_GLPK_
 extern struct sc_hypervisor_policy ispeed_policy;
 
@@ -51,7 +51,7 @@ static struct sc_hypervisor_policy *predefined_policies[] =
 	&feft_lp_policy,
 	&teft_lp_policy,
 	&ispeed_lp_policy,
-	&debit_lp_policy,
+	&throughput_lp_policy,
 #endif // STARPU_HAVE_GLPK_H
 	&gflops_rate_policy,
 	&ispeed_policy

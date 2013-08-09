@@ -37,7 +37,7 @@ libsc_hypervisor_la_SOURCES = 				\
 	hypervisor_policies/teft_lp_policy.c		\
 	hypervisor_policies/ispeed_policy.c		\
 	hypervisor_policies/ispeed_lp_policy.c		\
-	hypervisor_policies/debit_lp_policy.c
+	hypervisor_policies/throughput_lp_policy.c
 
 noinst_HEADERS = sc_hypervisor_intern.h		
 
