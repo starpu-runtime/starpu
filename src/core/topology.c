@@ -641,7 +641,6 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 		config->workers[worker_idx].devid = miccore_id;
 		config->workers[worker_idx].worker_mask = STARPU_MIC;
 		config->worker_mask |= STARPU_MIC;
-		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 	}
 
 	topology->nworkers += topology->nmiccores[mic_idx];
@@ -779,7 +778,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_CUDA;
-		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 		config->worker_mask |= STARPU_CUDA;
 
 		struct handle_entry *entry;
@@ -854,7 +852,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
-		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 		config->worker_mask |= STARPU_OPENCL;
 	}
 
@@ -979,7 +976,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		config->workers[worker_idx].devid = cpu;
 		config->workers[worker_idx].worker_mask = STARPU_CPU;
 		config->worker_mask |= STARPU_CPU;
-		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 	}
 
 	topology->nworkers += topology->ncpus;

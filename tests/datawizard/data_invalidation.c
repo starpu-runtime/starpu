@@ -141,6 +141,8 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	if(starpu_cpu_worker_get_count() == 0) return STARPU_TEST_SKIPPED;
+
 	/* The buffer should never be explicitely allocated */
 	starpu_vector_data_register(&v_handle, (uint32_t)-1, (uintptr_t)NULL, VECTORSIZE, sizeof(char));
 

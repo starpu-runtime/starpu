@@ -56,7 +56,7 @@ static unsigned _compute_max_speed(int ns, int nw, double w_in_s[ns][nw], unsign
 	long diff_s = end_time.tv_sec  - start_time.tv_sec;
 	long diff_us = end_time.tv_usec  - start_time.tv_usec;
 
-	float timing = (float)(diff_s*1000000 + diff_us)/1000;
+	__attribute__((unused)) float timing = (float)(diff_s*1000000 + diff_us)/1000;
 
 	if(res > 0.0)
 		return 1;

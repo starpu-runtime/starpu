@@ -1102,7 +1102,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 
 out:
 		STARPU_ASSERT(starpu_task_list_empty(&worker->local_tasks));
-		_starpu_delete_sched_ctx_for_worker(workerid);
+		_starpu_sched_ctx_list_delete(worker->sched_ctx_list);
 		_starpu_job_list_delete(worker->terminated_jobs);
 	}
 }

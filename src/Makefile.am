@@ -66,6 +66,7 @@ noinst_HEADERS = 						\
 	core/progress_hook.h                                    \
 	core/sched_policy.h					\
 	core/sched_ctx.h					\
+	core/sched_ctx_list.h					\
 	core/perfmodel/perfmodel.h				\
 	core/perfmodel/regression.h				\
 	core/jobs.h						\
@@ -170,6 +171,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/sched_policy.c					\
 	core/simgrid.c						\
 	core/sched_ctx.c					\
+	core/sched_ctx_list.c					\
 	core/parallel_task.c					\
 	core/detect_combined_workers.c				\
 	sched_policies/eager_central_policy.c			\

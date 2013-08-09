@@ -47,7 +47,6 @@ static struct starpu_codelet wrong_codelet =
 	.cpu_funcs = {wrong_func, NULL},
 	.cuda_funcs = {wrong_func, NULL},
         .opencl_funcs = {wrong_func, NULL},
-	.cpu_funcs_name = {"wrong_func", NULL},
 	.model = NULL,
 	.nbuffers = 0
 };

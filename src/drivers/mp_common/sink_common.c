@@ -204,7 +204,6 @@ static void _starpu_sink_common_recv_workers(struct _starpu_mp_node * node, void
 		workers[i].current_task = NULL;
 		workers[i].set = NULL;
 		workers[i].terminated_jobs = NULL;
-		workers[i].sched_ctx = NULL;
 	
 		//_starpu_barrier_counter_init(&workers[i].tasks_barrier, 1);
 		//_starpu_barrier_counter_destroy(&workers[i].tasks_barrier);
@@ -442,9 +441,12 @@ static int _starpu_sink_common_get_current_rank(int workerid, struct _starpu_com
 
 /* Execute the task 
  */
-static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int coreid, struct mp_task *task, struct _starpu_worker * worker)
+static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int coreid, struct _starpu_worker * worker)
 {
 	struct _starpu_combined_worker * combined_worker = NULL;
+	struct mp_task* task = node->run_table[coreid];
+
+
 	/* If it's a parallel task */
 	if(task->is_parallel_task)
 	{
@@ -540,7 +542,7 @@ void* _starpu_sink_thread(void * thread_arg)
 		/*Wait there is a task available */
 		sem_wait(&node->sem_run_table[coreid]);
 		if(node->run_table[coreid] != NULL)
-			_starpu_sink_common_execute_kernel(node,coreid,node->run_table[coreid],worker);
+			_starpu_sink_common_execute_kernel(node,coreid,worker);
 
 	}
 	pthread_exit(NULL);

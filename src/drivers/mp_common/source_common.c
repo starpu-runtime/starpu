@@ -131,7 +131,7 @@ static int _starpu_src_common_handle_async(const struct _starpu_mp_node *node ST
 	return 1;
 }
 
-
+/* Handle all message which have been stored in the message_queue */
 static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
@@ -209,6 +209,7 @@ static void _starpu_src_common_recv_async(struct _starpu_mp_node * node)
 	enum _starpu_mp_command answer;
 
 	int completed = 0;	
+	/*While the waited completed execution message has not been receive*/
 	while(!completed)
 	{
 		answer = _starpu_mp_common_recv_command (node, arg, arg_size);

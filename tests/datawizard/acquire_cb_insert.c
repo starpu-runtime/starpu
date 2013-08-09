@@ -77,6 +77,8 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	if(starpu_cpu_worker_get_count() == 0) return STARPU_TEST_SKIPPED;
+
 	/* Declare x */
 	starpu_variable_data_register(&x_handle, STARPU_MAIN_RAM, (uintptr_t)&x, sizeof(x));
 

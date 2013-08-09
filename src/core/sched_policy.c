@@ -209,19 +209,19 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		starpu_prefetch_task_input_on_node(task, memory_node);
 
 	/* if we push a task on a specific worker, notify all the sched_ctxs the worker belongs to */
-	unsigned i;
 	struct _starpu_sched_ctx *sched_ctx;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-	{
-		sched_ctx = worker->sched_ctx[i];
-		if (sched_ctx != NULL && sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
+	struct _starpu_sched_ctx_list *l = NULL;
+        for (l = worker->sched_ctx_list; l; l = l->next)
+        {
+		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+		if (sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
 			sched_ctx->sched_policy->push_task_notify(task, workerid, sched_ctx->id);
 	}
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 	starpu_sched_ctx_call_pushed_task_cb(workerid, task->sched_ctx);
 #endif //STARPU_USE_SC_HYPERVISOR
-
+	unsigned i;
 	if (is_basic_worker)
 	{
 		unsigned node = starpu_worker_get_memory_node(workerid);
@@ -536,40 +536,33 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 }
 
 struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker *worker)
-{
-	while(1)
+{	
+	struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
+	unsigned smallest_counter =  worker->nsched_ctxs;
+	struct _starpu_sched_ctx_list *l = NULL;
+	for (l = worker->sched_ctx_list; l; l = l->next)
 	{
-		struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
-		unsigned smallest_counter =  worker->nsched_ctxs;
-		unsigned i;
-		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+		if(worker->removed_from_ctx[sched_ctx->id])
+			return sched_ctx;
+		if(sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs &&
+		   smallest_counter > sched_ctx->pop_counter[worker->workerid])
 		{
-			sched_ctx = worker->sched_ctx[i];
-			
-			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS && worker->removed_from_ctx[sched_ctx->id])
-				return sched_ctx;
-			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS &&
-			   sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs &&
-			   smallest_counter > sched_ctx->pop_counter[worker->workerid])
-			{
-				good_sched_ctx = sched_ctx;
-				smallest_counter = sched_ctx->pop_counter[worker->workerid];
-			}
+			good_sched_ctx = sched_ctx;
+			smallest_counter = sched_ctx->pop_counter[worker->workerid];
 		}
-		
-		if(good_sched_ctx == NULL)
-		{
-			for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-			{
-				sched_ctx = worker->sched_ctx[i];
-				if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
-					sched_ctx->pop_counter[worker->workerid] = 0;
-			}
-			
-			continue;
-		}
-		return good_sched_ctx;
 	}
+	
+	if(good_sched_ctx == NULL)
+	{
+		for (l = worker->sched_ctx_list; l; l = l->next)
+		{
+			sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+			sched_ctx->pop_counter[worker->workerid] = 0;
+		}
+		return _starpu_get_sched_ctx_struct(worker->sched_ctx_list->sched_ctx);
+	}
+	return good_sched_ctx;
 }
 
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
@@ -592,45 +585,31 @@ pick:
 
 	/* get tasks from the stacks of the strategy */
 	if(!task)
-	{
-		struct _starpu_sched_ctx *sched_ctx;
+	{		
+		struct _starpu_sched_ctx *sched_ctx ;
 
-		//unsigned lucky_ctx = STARPU_NMAX_SCHED_CTXS;
-
-		int been_here[STARPU_NMAX_SCHED_CTXS];
-		int i;
-		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-			been_here[i] = 0;
-
-		while(!task)
+		if(!task)
 		{
 			if(worker->nsched_ctxs == 1)
 				sched_ctx = _starpu_get_initial_sched_ctx();
 			else
 				sched_ctx = _get_next_sched_ctx_to_pop_into(worker);
-			if(sched_ctx != NULL && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+
+			if(sched_ctx && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
 				if (sched_ctx->sched_policy && sched_ctx->sched_policy->pop_task)
 				{
 					task = sched_ctx->sched_policy->pop_task(sched_ctx->id);
-					//lucky_ctx = sched_ctx->id;
 				}
 			}
 
-			if(!task && worker->removed_from_ctx[sched_ctx->id])
+			if(!task && sched_ctx && worker->removed_from_ctx[sched_ctx->id])
 			{
 				_starpu_worker_gets_out_of_ctx(sched_ctx->id, worker);
 				worker->removed_from_ctx[sched_ctx->id] = 0;
 			}
 
-			if((!task && sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
-				break;
-
-
-			been_here[sched_ctx->id] = 1;
-
 			sched_ctx->pop_counter[worker->workerid]++;
-
 		}
 	  }
 
