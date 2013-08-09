@@ -27,7 +27,7 @@ starpu_init().
         Insert a task into the scheduler.
 \var starpu_sched_policy::push_task_notify
         Notify the scheduler that a task was pushed on a given worker.
-	This method is called when a task that was explicitely
+	This method is called when a task that was explicitly
 	assigned to a worker becomes ready and is about to be executed
 	by the worker. This method therefore permits to keep the state
 	of the scheduler coherent even when StarPU bypasses the
