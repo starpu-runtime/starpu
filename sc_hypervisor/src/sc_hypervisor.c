@@ -437,18 +437,26 @@ static void _reset_idle_time(unsigned sched_ctx)
 
 void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sched_ctx)
 {
-	/* info concerning only the gflops_rate strateg */
-	struct sc_hypervisor_wrapper *sender_sc_w = &hypervisor.sched_ctx_w[sender_sched_ctx];
-	struct sc_hypervisor_wrapper *receiver_sc_w = &hypervisor.sched_ctx_w[receiver_sched_ctx];
-	
 	double start_time =  starpu_timing_now();
-	sender_sc_w->start_time = start_time;
-	_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
-	_reset_idle_time(sender_sched_ctx);
+	if(sender_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+	{
+		/* info concerning only the gflops_rate strateg */
+		struct sc_hypervisor_wrapper *sender_sc_w = &hypervisor.sched_ctx_w[sender_sched_ctx];
+		
+		sender_sc_w->start_time = start_time;
+		_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
+		_reset_idle_time(sender_sched_ctx);
+	}
 
-	receiver_sc_w->start_time = start_time;
-	_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
-	_reset_idle_time(receiver_sched_ctx);
+	if(receiver_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+	{
+
+		struct sc_hypervisor_wrapper *receiver_sc_w = &hypervisor.sched_ctx_w[receiver_sched_ctx];
+		
+		receiver_sc_w->start_time = start_time;
+		_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
+		_reset_idle_time(receiver_sched_ctx);
+	}
 }
 
 /* actually move the workers: the cpus are moved, gpus are only shared  */
@@ -527,6 +535,7 @@ void sc_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworke
 		unsigned i;
 		for(i = 0; i < nworkers_to_add; i++)
 			new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
+		_reset_resize_sample_info(STARPU_NMAX_SCHED_CTXS, sched_ctx);
 
 	}
 	return;
@@ -554,6 +563,7 @@ void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigne
 			printf("\n");
 			
 			starpu_sched_ctx_remove_workers(workers_to_remove, nworkers_to_remove, sched_ctx);
+			_reset_resize_sample_info(sched_ctx, STARPU_NMAX_SCHED_CTXS);
 		}
 		else
 		{
@@ -636,7 +646,10 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 
 	/* if there is no ctx waiting for its ack return 1*/
 	if(resize_ack == NULL)
+	{
+		_reset_resize_sample_info(sched_ctx, STARPU_NMAX_SCHED_CTXS);
 		return 1;
+	}
 
 	int ret = starpu_pthread_mutex_trylock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
 	if(ret != EBUSY)
