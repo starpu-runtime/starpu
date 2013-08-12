@@ -388,7 +388,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	/* the request has been handled */
 	_starpu_spin_lock(&r->lock);
 	starpu_handle_data_request_completion(r);
-_STARPU_DEBUG("MEMORY!\n");
+
 	return 0;
 }
 
