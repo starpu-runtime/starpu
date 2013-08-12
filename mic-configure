@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ROOT_DIR=$PWD
+ROOT_DIR=$(dirname $0)
 
 cat > ./mic-config.log << EOF
 This file was created by StarPU mic-configure
@@ -28,12 +28,23 @@ do
 
 done
 
+x=$(type -t ${mic_host}-gcc)
+if [ -z "$x" ]
+then
+    echo "[error] please add path to ${mic_host}-gcc in your PATH"
+    exit 1
+fi
+
 for arch in mic host
 do
 	# We call the configure script from a build directory further in the
 	# arborescence
 
-	command="${ROOT_DIR}/configure"
+	case $ROOT_DIR in
+		/*) command="${ROOT_DIR}/configure";;
+		*) command="../${ROOT_DIR}/configure";;
+	esac
+
 	params="--enable-mic --with-coi-dir=$coi_dir --prefix=$prefix/$arch"
 
 	if test x$arch = xmic ; then
@@ -44,7 +55,7 @@ do
 	fi
 
 	# If the build directory doesn't exist yet, create it
-	if [ ! -d "${ROOT_DIR}/build_${arch}" ] ; then
+	if [ ! -d "build_${arch}" ] ; then
 		mkdir "build_${arch}"
 	fi
 
@@ -59,7 +70,7 @@ do
 	then
 		exit $?
 	fi
-	cd "${ROOT_DIR}"
+	cd ..
 done
 
 cat > Makefile << EOF

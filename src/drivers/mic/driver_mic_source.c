@@ -73,7 +73,7 @@ starpu_pthread_mutex_t nb_mic_worker_init_mutex = PTHREAD_MUTEX_INITIALIZER;
 //	return config->workers[workerid].devid;
 //}
 
-const struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node()
+struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node()
 {
 	struct _starpu_worker *actual_worker = _starpu_get_local_worker_key();
 	STARPU_ASSERT(actual_worker);
@@ -108,96 +108,6 @@ void _starpu_mic_clear_kernels(void)
 		HASH_DEL(kernels, kernel);
 		free(kernel);
 	}
-}
-
-static int
-_starpu_mic_src_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker)
-{
-	uint32_t mask = 0;
-	int profiling = starpu_profiling_status_get();
-	struct timespec codelet_end;
-
-	_starpu_driver_end_job(worker, j, worker->perf_arch, &codelet_end, 0,
-			       profiling);
-
-	_starpu_driver_update_job_feedback(j, worker, worker->perf_arch,
-					   &j->cl_start, &codelet_end,
-					   profiling);
-
-	_starpu_push_task_output (j, mask);
-
-	_starpu_handle_job_termination(j);
-
-	return 0;
-}
-
-static int
-_starpu_mic_src_process_completed_job (struct _starpu_worker_set *workerset)
-{
-	struct _starpu_mp_node *node = mic_nodes[workerset->workers[0].mp_nodeid];
-	enum _starpu_mp_command answer;
-	void *arg;
-	int arg_size;
-
-	answer = _starpu_mp_common_recv_command (node, &arg, &arg_size);
-	STARPU_ASSERT (answer == STARPU_EXECUTION_COMPLETED);
-
-	void *arg_ptr = arg;
-	int coreid;
-
-	coreid = *(int *) arg_ptr;
-	arg_ptr += sizeof (coreid); // Useless.
-
-	struct _starpu_worker *worker = &workerset->workers[coreid];
-	struct starpu_task *task = worker->current_task;
-	struct _starpu_job *j = _starpu_get_job_associated_to_task (task);
-
-	_starpu_mic_src_finalize_job (j, worker);
-
-	worker->current_task = NULL;
-
-	return 0;
-}
-
-
-static int _starpu_mic_src_execute_job(struct _starpu_job *j, struct _starpu_worker *args)
-{
-	int ret;
-	uint32_t mask = 0;
-
-	STARPU_ASSERT(j);
-	struct starpu_task *task = j->task;
-
-	//struct timespec codelet_end;
-
-	int profiling = starpu_profiling_status_get();
-	unsigned calibrate_model = 0;
-
-	STARPU_ASSERT(task);
-	struct starpu_codelet *cl = task->cl;
-	STARPU_ASSERT(cl);
-
-	if (cl->model && cl->model->benchmarking)
-		calibrate_model = 1;
-
-	ret = _starpu_fetch_task_input(j, mask);
-	if (ret != 0)
-	{
-		/* there was not enough memory, so the input of
-		 * the codelet cannot be fetched ... put the
-		 * codelet back, and try it later */
-		return -EAGAIN;
-	}
-
-
-	starpu_mic_kernel_t kernel = _starpu_mic_src_get_kernel_from_codelet(j->task->cl, j->nimpl);
-
-	_starpu_driver_start_job (args, j, &j->cl_start, 0, profiling);
-
-	_starpu_src_common_execute_kernel_from_task(mic_nodes[args->mp_nodeid],
-						    (void (*)(void)) kernel, args->devid, task);
-
-	return 0;
 }
 
 int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char *func_name)
@@ -248,9 +158,11 @@ int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char
 	return 0;
 }
 
+
 starpu_mic_kernel_t _starpu_mic_src_get_kernel(starpu_mic_func_symbol_t symbol)
 {
 	int workerid = starpu_worker_get_id();
+	
 	/* This function has to be called in the codelet only, by the thread
 	 * which will handle the task */
 	if (workerid < 0)
@@ -364,6 +276,43 @@ starpu_mic_kernel_t _starpu_mic_src_get_kernel_from_codelet(struct starpu_codele
 
 	return kernel;
 }
+
+
+
+void(* _starpu_mic_src_get_kernel_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void)
+{
+	starpu_mic_kernel_t kernel = NULL;
+
+	starpu_mic_func_t func = _starpu_task_get_mic_nth_implementation(j->task->cl, j->nimpl);
+	if (func)
+	{
+		/* We execute the function contained in the codelet, it must return a
+		 * pointer to the function to execute on the device, either specified
+		 * directly by the user or by a call to starpu_mic_get_func().
+		 */
+		kernel = func();
+	}
+	else
+	{
+		/* If user dont define any starpu_mic_fun_t in cl->mic_func we try to use
+		 * cpu_func_name.
+		 */
+		char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
+		if (func_name)
+		{
+			starpu_mic_func_symbol_t symbol;
+
+			_starpu_mic_src_register_kernel(&symbol, func_name);
+
+			kernel = _starpu_mic_src_get_kernel(symbol);
+		}
+	}
+	STARPU_ASSERT(kernel);
+
+	return (void (*)(void))kernel;
+}
+
+
 
 /* Initialize the node structure describing the MIC source.
  */
@@ -553,18 +502,20 @@ int _starpu_mic_request_is_complete(struct _starpu_mic_async_event *event)
 	return 1;
 }
 
+
+
 void *_starpu_mic_src_worker(void *arg)
 {
-	struct _starpu_worker_set *args = arg;
+	struct _starpu_worker_set *worker_set = arg;
 	/* As all workers of a set share common data, we just use the first
 	 * one for intializing the following stuffs. */
-	struct _starpu_worker *baseworker = &args->workers[0];
+	struct _starpu_worker *baseworker = &worker_set->workers[0];
 	struct _starpu_machine_config *config = baseworker->config;
 	unsigned baseworkerid = baseworker - config->workers;
 	unsigned mp_nodeid = baseworker->mp_nodeid;
 	unsigned i;
 
-	unsigned memnode = baseworker->memory_node;
+	/* unsigned memnode = baseworker->memory_node; */
 
 	_starpu_worker_init(baseworker, _STARPU_FUT_MIC_KEY);
 
@@ -582,130 +533,14 @@ void *_starpu_mic_src_worker(void *arg)
 	_STARPU_TRACE_WORKER_INIT_END;
 
 	/* tell the main thread that this one is ready */
-	STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
-	args->set_is_initialized = 1;
-	STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+	worker_set->set_is_initialized = 1;
+	STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
 
-
-	while (_starpu_machine_is_running())
-	{
-		int res;
-		struct starpu_task *task = NULL;
-		struct _starpu_job * j;
-		unsigned micworkerid = 0;
-
-		_STARPU_TRACE_START_PROGRESS(memnode);
-		_starpu_datawizard_progress(memnode, 1);
-		_STARPU_TRACE_END_PROGRESS(memnode);
-
-		STARPU_PTHREAD_MUTEX_LOCK(&baseworker->sched_mutex);
-
-		/* We pop tasklists of each worker in the set and process the
-		 * first non-empty list. */
-		for (micworkerid = 0 ; (micworkerid < args->nworkers) && (task == NULL); micworkerid++)
-		    task = _starpu_pop_task (&args->workers[micworkerid]);
-
-		if (task != NULL) {
-			micworkerid--;
-			goto task_found;
-		}
-
-#if 0 // XXX: synchronous execution for now
-		/* No task to submit, so we can poll the MIC device for
-		 * completed jobs. */
-		struct pollfd fd = {
-		    .fd = mic_nodes[baseworker->mp_nodeid]->mp_connection.mic_endpoint,
-		    .events = POLLIN
-		};
-
-		if (0 < poll (&fd, 1, 0)) {
-		    _starpu_mic_src_process_completed_job (args);
-		    goto restart_loop;
-		}
-#endif
-
-		/* At this point, there is really nothing to do for the thread
-		 * so we can block.
-		 * XXX: blocking drivers is in fact broken. DO NOT USE IT ! */
-		if (_starpu_worker_get_status(baseworkerid) != STATUS_SLEEPING)
-		{
-			_STARPU_TRACE_WORKER_SLEEP_START;
-			_starpu_worker_restart_sleeping(baseworkerid);
-			_starpu_worker_set_status(baseworkerid, STATUS_SLEEPING);
-		}
-
-		if (_starpu_worker_can_block(memnode))
-			STARPU_PTHREAD_COND_WAIT(&baseworker->sched_cond, &baseworker->sched_mutex);
-		else
-		{
-			if (_starpu_machine_is_running())
-				STARPU_UYIELD();
-		}
-
-		if (_starpu_worker_get_status(baseworkerid) == STATUS_SLEEPING)
-		{
-			_STARPU_TRACE_WORKER_SLEEP_END;
-			_starpu_worker_stop_sleeping(baseworkerid);
-			_starpu_worker_set_status(baseworkerid, STATUS_UNKNOWN);
-		}
-
-	restart_loop:
-		STARPU_PTHREAD_MUTEX_UNLOCK(&baseworker->sched_mutex);
-		continue;
-
-	task_found:
-		/* If the MIC core associated to `micworkerid' is already
-		 * processing a job, we push back this one in the worker task
-		 * list. */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&baseworker->sched_mutex);
-
-		if (args->workers[micworkerid].current_task) {
-		    _starpu_push_task_to_workers(task);
-		    continue;
-		}
-
-		STARPU_ASSERT(task);
-		j = _starpu_get_job_associated_to_task(task);
-
-		/* can a MIC device do that task ? */
-		if (!_STARPU_MIC_MAY_PERFORM(j))
-		{
-			/* this isn't a mic task */
-			_starpu_push_task_to_workers(task);
-			continue;
-		}
-
-		args->workers[micworkerid].current_task = j->task;
-
-		res = _starpu_mic_src_execute_job (j, &args->workers[micworkerid]);
-
-		if (res)
-		{
-			switch (res)
-			{
-				case -EAGAIN:
-					_STARPU_DISP("ouch, Xeon Phi could not actually run task %p, putting it back...\n", task);
-					_starpu_push_task_to_workers(task);
-					STARPU_ABORT();
-					continue;
-				default:
-					STARPU_ASSERT(0);
-			}
-		}
-
-		/* XXX: synchronous execution for now */
-		_starpu_mic_src_process_completed_job (args);
-	}
+	_starpu_src_common_worker(worker_set, baseworkerid, mic_nodes[mp_nodeid]);
 
 	_STARPU_TRACE_WORKER_DEINIT_START;
-
-	_starpu_handle_all_pending_node_data_requests(memnode);
-
-	/* In case there remains some memory that was automatically
-	 * allocated by StarPU, we release it now. Note that data
-	 * coherency is not maintained anymore at that point ! */
-	_starpu_free_all_automatically_allocated_buffers(memnode);
 
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CUDA_KEY);
 

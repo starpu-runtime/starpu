@@ -26,7 +26,7 @@
 starpu_data_handle_t v_handle;
 static unsigned *v;
 
-static void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
@@ -49,6 +49,7 @@ static struct starpu_codelet cl =
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {codelet_null, NULL},
+	.cpu_funcs_name = {"codelet_null", NULL},
 	.cuda_funcs = {codelet_null, NULL},
         .opencl_funcs = {codelet_null, NULL},
 	.nbuffers = 1,

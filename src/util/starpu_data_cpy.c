@@ -78,8 +78,13 @@ void mp_cpy_kernel(void *descr[], void *cl_arg)
 	void *dst_interface = descr[0];
 	void *src_interface = descr[1];
 
-	STARPU_ASSERT(copy_methods->ram_to_ram);
-	copy_methods->ram_to_ram(src_interface, 0, dst_interface, 0);
+	if(copy_methods->ram_to_ram)
+		copy_methods->ram_to_ram(src_interface, STARPU_MAIN_RAM, dst_interface, STARPU_MAIN_RAM);
+	else if(copy_methods->any_to_any)
+		copy_methods->any_to_any(src_interface, STARPU_MAIN_RAM, dst_interface, STARPU_MAIN_RAM, NULL);
+	else
+		STARPU_ABORT();
+
 }
 
 static starpu_mic_kernel_t mic_cpy_func()

@@ -27,12 +27,14 @@
 #include <drivers/scc/driver_scc_source.h>
 #include <drivers/scc/driver_scc_sink.h>
 
+#include <common/list.h>
+
 /* Allocate and initialize the sink structure, when the function returns
  * all the pointer of functions are linked to the right ones.
  */
 struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
-    _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
-				  int peer_id)
+_starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
+			      int peer_id)
 {
 	struct _starpu_mp_node *node;
 
@@ -45,111 +47,120 @@ struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
 	switch(node->kind)
 	{
 #ifdef STARPU_USE_MIC
-		case STARPU_MIC_SOURCE:
-			{
-				node->nb_mp_sinks = starpu_mic_worker_get_count();
-				node->devid = peer_id;
+	case STARPU_MIC_SOURCE:
+	{
+		node->nb_mp_sinks = starpu_mic_worker_get_count();
+		node->devid = peer_id;
 
-				node->init = _starpu_mic_src_init;
-				node->deinit = _starpu_mic_src_deinit;
-				node->report_error = _starpu_mic_src_report_scif_error;
+		node->init = _starpu_mic_src_init;
+		node->launch_workers= NULL;
+		node->deinit = _starpu_mic_src_deinit;
+		node->report_error = _starpu_mic_src_report_scif_error;
 
-				node->mp_send = _starpu_mic_common_send;
-				node->mp_recv = _starpu_mic_common_recv;
-				node->dt_send = _starpu_mic_common_dt_send;
-				node->dt_recv = _starpu_mic_common_dt_recv;
+		node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
+		node->mp_send = _starpu_mic_common_send;
+		node->mp_recv = _starpu_mic_common_recv;
+		node->dt_send = _starpu_mic_common_dt_send;
+		node->dt_recv = _starpu_mic_common_dt_recv;
 
-				node->execute = NULL;
-				node->nbcores = NULL;
-				node->allocate = NULL;
-				node->free = NULL;
+		node->get_kernel_from_job =_starpu_mic_src_get_kernel_from_job;
+		node->lookup = NULL;
+		node->bind_thread = NULL;
+		node->execute = NULL;
+		node->allocate = NULL;
+		node->free = NULL;
+	}
+	break;
 
-				/* A source node is only working on one core,
-				 * there is no need for this function */
-				node->get_nb_core = NULL;
-			}
-			break;
+	case STARPU_MIC_SINK:
+	{
+		node->devid = atoi(getenv("DEVID"));;
+		node->nb_mp_sinks = atoi(getenv("NB_MIC"));
 
-		case STARPU_MIC_SINK:
-			{
-				node->devid = atoi(getenv("DEVID"));;
-				node->nb_mp_sinks = atoi(getenv("NB_MIC"));
+		node->init = _starpu_mic_sink_init;
+		node->launch_workers = _starpu_mic_sink_launch_workers;
+		node->deinit = _starpu_mic_sink_deinit;
+		node->report_error = _starpu_mic_sink_report_error;
 
-				node->init = _starpu_mic_sink_init;
-				node->deinit = _starpu_mic_sink_deinit;
-				node->report_error = _starpu_mic_sink_report_error;
+		node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
+		node->mp_send = _starpu_mic_common_send;
+		node->mp_recv = _starpu_mic_common_recv;
+		node->dt_send = _starpu_mic_common_dt_send;
+		node->dt_recv = _starpu_mic_common_dt_recv;
 
-				node->mp_send = _starpu_mic_common_send;
-				node->mp_recv = _starpu_mic_common_recv;
-				node->dt_send = _starpu_mic_common_dt_send;
-				node->dt_recv = _starpu_mic_common_dt_recv;
+		node->get_kernel_from_job = NULL;
+		node->lookup = _starpu_mic_sink_lookup;
+		node->bind_thread = _starpu_mic_sink_bind_thread;
+		node->execute = _starpu_sink_common_execute;
+		node->allocate = _starpu_mic_sink_allocate;
+		node->free = _starpu_mic_sink_free;
 
-				node->execute = _starpu_sink_common_execute;
-				node->nbcores = _starpu_sink_nbcores;
-				node->allocate = _starpu_mic_sink_allocate;
-				node->free = _starpu_mic_sink_free;
-
-				node->get_nb_core = _starpu_mic_sink_get_nb_core;
-			}
-			break;
+	}
+	break;
 #endif /* STARPU_USE_MIC */
 
 #ifdef STARPU_USE_SCC
-		case STARPU_SCC_SOURCE:
-			{
-				node->init = _starpu_scc_src_init;
-				node->deinit = NULL;
-				node->report_error = _starpu_scc_common_report_rcce_error;
+	case STARPU_SCC_SOURCE:
+	{
+		node->init = _starpu_scc_src_init;
+		node->deinit = NULL;
+		node->deinit = NULL;
+		node->report_error = _starpu_scc_common_report_rcce_error;
+				
+		node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
+		node->mp_send = _starpu_scc_common_send;
+		node->mp_recv = _starpu_scc_common_recv;
+		node->dt_send = _starpu_scc_common_send;
+		node->dt_recv = _starpu_scc_common_recv;
+		node->dt_send_to_device = NULL;
+		node->dt_recv_from_device = NULL;
 
-				node->mp_send = _starpu_scc_common_send;
-				node->mp_recv = _starpu_scc_common_recv;
-				node->dt_send = _starpu_scc_common_send;
-				node->dt_recv = _starpu_scc_common_recv;
-				node->dt_send_to_device = NULL;
-				node->dt_recv_from_device = NULL;
+		node->get_kernel_from_job =_starpu_scc_src_get_kernel_from_job;
+		node->lookup = NULL;
+		node->bind_thread = NULL;
+		node->execute = NULL;
+		node->allocate = NULL;
+		node->free = NULL;
+	}
+	break;
 
-				node->execute = NULL;
-				node->allocate = NULL;
-				node->free = NULL;
+	case STARPU_SCC_SINK:
+	{
+		node->init = _starpu_scc_sink_init;
+		node->launch_workers = _starpu_scc_sink_launch_workers;
+		node->deinit = _starpu_scc_sink_deinit;
+		node->report_error = _starpu_scc_common_report_rcce_error;
 
-				node->get_nb_core = NULL;
-			}
-			break;
+		node->mp_recv_is_ready = _starpu_scc_common_recv_is_ready;
+		node->mp_send = _starpu_scc_common_send;
+		node->mp_recv = _starpu_scc_common_recv;
+		node->dt_send = _starpu_scc_common_send;
+		node->dt_recv = _starpu_scc_common_recv;
+		node->dt_send_to_device = _starpu_scc_sink_send_to_device;
+		node->dt_recv_from_device = _starpu_scc_sink_recv_from_device;
 
-		case STARPU_SCC_SINK:
-			{
-				node->init = _starpu_scc_sink_init;
-				node->deinit = _starpu_scc_sink_deinit;
-				node->report_error = _starpu_scc_common_report_rcce_error;
-
-				node->mp_send = _starpu_scc_common_send;
-				node->mp_recv = _starpu_scc_common_recv;
-				node->dt_send = _starpu_scc_common_send;
-				node->dt_recv = _starpu_scc_common_recv;
-				node->dt_send_to_device = _starpu_scc_sink_send_to_device;
-				node->dt_recv_from_device = _starpu_scc_sink_recv_from_device;
-
-				node->execute = _starpu_scc_sink_execute;
-				node->allocate = _starpu_sink_common_allocate;
-				node->free = _starpu_sink_common_free;
-
-				node->get_nb_core = NULL;
-			}
-			break;
+		node->get_kernel_from_job = NULL;
+		node->lookup = _starpu_scc_sink_lookup;
+		node->bind_thread = _starpu_scc_sink_bind_thread;
+		node->execute = _starpu_scc_sink_execute;
+		node->allocate = _starpu_sink_common_allocate;
+		node->free = _starpu_sink_common_free;
+	}
+	break;
 #endif /* STARPU_USE_SCC */
 
 #ifdef STARPU_USE_MPI
-		case STARPU_MPI_SOURCE:
-			STARPU_ABORT();
-			break;
+	case STARPU_MPI_SOURCE:
+		STARPU_ABORT();
+		break;
 
-		case STARPU_MPI_SINK:
-			STARPU_ABORT();
-			break;
+	case STARPU_MPI_SINK:
+		STARPU_ABORT();
+		break;
 #endif /* STARPU_USE_MPI */
 
-		default:
-			STARPU_ASSERT(0);
+	default:
+		STARPU_ASSERT(0);
 	}
 
 	/* Let's allocate the buffer, we want it to be big enough to contain
@@ -159,15 +170,60 @@ struct _starpu_mp_node * STARPU_ATTRIBUTE_MALLOC
 	if (node->init)
 		node->init(node);
 
+	node->message_queue = mp_message_list_new();
+	STARPU_PTHREAD_MUTEX_INIT(&node->message_queue_mutex,NULL);
+
+	/* If the node is a sink then we must initialize some field */
+	if(node->kind == STARPU_MIC_SINK || node->kind == STARPU_SCC_SINK)
+	{
+		int i;
+		node->is_running = 1;
+		node->run_table = malloc(sizeof(struct mp_task *)*node->nb_cores);
+		node->sem_run_table = malloc(sizeof(sem_t)*node->nb_cores);
+
+		for(i=0; i<node->nb_cores; i++)
+		{
+			node->run_table[i] = NULL;
+			sem_init(&node->sem_run_table[i],0,0);
+		}
+		node->barrier_list = mp_barrier_list_new();
+		STARPU_PTHREAD_MUTEX_INIT(&node->barrier_mutex,NULL);
+
+		STARPU_PTHREAD_BARRIER_INIT(&node->init_completed_barrier, NULL, node->nb_cores+1);
+
+		node->launch_workers(node);
+	}	
+
+
 	return node;
 }
 
 /* Deinitialize the sink structure and release the structure */
-
 void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node)
 {
 	if (node->deinit)
 		node->deinit(node);
+		
+	mp_message_list_delete(node->message_queue);
+	STARPU_PTHREAD_MUTEX_DESTROY(&node->message_queue_mutex);
+
+	/* If the node is a sink then we must destroy some field */
+	if(node->kind == STARPU_MIC_SINK || node->kind == STARPU_SCC_SINK)
+	{
+		int i;
+		for(i=0; i<node->nb_cores; i++)
+		{
+			sem_destroy(&node->sem_run_table[i]);
+		}
+
+		free(node->run_table);
+		free(node->sem_run_table);
+
+		mp_barrier_list_delete(node->barrier_list);
+
+		STARPU_PTHREAD_MUTEX_DESTROY(&node->barrier_mutex);
+		STARPU_PTHREAD_BARRIER_DESTROY(&node->init_completed_barrier);
+	}
 
 	free(node->buffer);
 
@@ -175,7 +231,6 @@ void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node)
 }
 
 /* Send COMMAND to RECIPIENT, along with ARG if ARG_SIZE is non-zero */
-
 void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
 				    const enum _starpu_mp_command command,
 				    void *arg, int arg_size)
@@ -202,7 +257,6 @@ void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
  * However, the data pointed by arg shouldn't be relied on after a new call to
  * STARPU_MP_COMMON_RECV_COMMAND as it might corrupt it.
  */
-
 enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_node *node,
 						       void **arg, int *arg_size)
 {

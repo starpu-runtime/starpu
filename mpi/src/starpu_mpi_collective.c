@@ -57,6 +57,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 		callback_arg->nb = 0;
 		callback_arg->callback = (rank == root) ? scallback : rcallback;
 		callback_arg->arg = (rank == root) ? sarg : rarg;
+		if (callback_arg->callback == NULL)
 
 		for(x = 0; x < count ; x++)
 		{

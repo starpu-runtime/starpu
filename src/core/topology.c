@@ -682,8 +682,8 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 		if (0 == _starpu_init_mic_node (config, i, &handles[i], &process[i]))
 			topology->nmicdevices++;
 
-	i = 0;
-	for (; i < topology->nmicdevices; i++)
+	
+	for (i = 0; i < topology->nmicdevices; i++)
 		_starpu_init_mic_config (config, user_conf, i);
 #endif
 }
@@ -1094,6 +1094,9 @@ _starpu_bind_thread_on_cpus (
 		}
 	}
 #else
+#ifdef __GLIBC__
+	pthread_setaffinity_np(pthread_self(),sizeof(cpu_set_t),&combined_worker->cpu_set);
+#endif
 #warning no parallel worker CPU binding support
 #endif
 }
@@ -1260,6 +1263,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 		if (is_a_set_of_accelerators)
 		{
+/* TODO: il faudrait changer quand on change de device */
 			if (accelerator_bindid == -1)
 				accelerator_bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 

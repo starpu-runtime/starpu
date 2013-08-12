@@ -19,7 +19,6 @@
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mic/driver_mic_common.h>
 
-
 void _starpu_mic_common_report_scif_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);
@@ -33,9 +32,24 @@ void _starpu_mic_common_report_scif_error(const char *func, const char *file, co
 
 void _starpu_mic_common_send(const struct _starpu_mp_node *node, void *msg, int len)
 {
-	if ((scif_send(node->mp_connection.mic_endpoint, msg, len, SCIF_SEND_BLOCK)) < 0)
+  if ((scif_send(node->mp_connection.mic_endpoint, msg, len, SCIF_SEND_BLOCK)) < 0)
 		STARPU_MP_COMMON_REPORT_ERROR(node, errno);
 }
+
+
+/* Teel is the mic endpoint is ready
+ * return 1 if a message has been receive, 0 if no message has been receive
+ */
+int _starpu_mic_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
+{
+  struct scif_pollepd pollepd;
+  pollepd.epd = mp_node->mp_connection.mic_endpoint;
+  pollepd.events = SCIF_POLLIN;
+  pollepd.revents = 0;
+  return  scif_poll(&pollepd,1,0);
+	
+}
+
 
 /* Handles the error so the caller (which must be generic) doesn't have to
  * care about it.
@@ -49,7 +63,7 @@ void _starpu_mic_common_recv(const struct _starpu_mp_node *node, void *msg, int 
 
 /* Handles the error so the caller (which must be generic) doesn't have to
  * care about it.
- */
+x */
 void _starpu_mic_common_dt_send(const struct _starpu_mp_node *mp_node, void *msg, int len)
 {
 	if ((scif_send(mp_node->host_sink_dt_connection.mic_endpoint, msg, len, SCIF_SEND_BLOCK)) < 0)
@@ -114,7 +128,7 @@ void _starpu_mic_common_accept(scif_epd_t *endpoint, uint16_t port_number)
 	_STARPU_DEBUG("MIC accepting connection on %u...\n", port_number);
 	if ((scif_accept(init_epd, &portID, endpoint, SCIF_ACCEPT_SYNC)) < 0)
 		STARPU_MIC_COMMON_REPORT_SCIF_ERROR(errno);
-	_STARPU_DEBUG("done\n", init_epd);
+	_STARPU_DEBUG("done : %d\n", init_epd);
 
 	scif_close(init_epd);
 }

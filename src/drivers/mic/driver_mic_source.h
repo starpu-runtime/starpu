@@ -24,6 +24,7 @@
 
 #include <source/COIProcess_source.h>
 #include <source/COIEngine_source.h>
+#include <core/workers.h>
 
 #include <drivers/mp_common/mp_common.h>
 
@@ -41,9 +42,10 @@ struct _starpu_mic_async_event *event;
 #define STARPU_MIC_SRC_REPORT_SCIF_ERROR(status) \
 	_starpu_mic_src_report_scif_error(__starpu_func__, __FILE__, __LINE__, status)
 
-const struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node();
+struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node();
 const struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int memory_node);
 
+void(* _starpu_mic_src_get_kernel_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void);
 int _starpu_mic_src_register_kernel(starpu_mic_func_symbol_t *symbol, const char *func_name);
 starpu_mic_kernel_t _starpu_mic_src_get_kernel(starpu_mic_func_symbol_t symbol);
 

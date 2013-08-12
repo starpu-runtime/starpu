@@ -53,6 +53,8 @@ struct _starpu_mic_free_command
 
 void _starpu_mic_common_report_scif_error(const char *func, const char *file, int line, const int status);
 
+int _starpu_mic_common_recv_is_ready(const struct _starpu_mp_node *mp_node);
+
 void _starpu_mic_common_send(const struct _starpu_mp_node *node, void *msg, int len);
 
 void _starpu_mic_common_recv(const struct _starpu_mp_node *node, void *msg, int len);

@@ -16,12 +16,14 @@
 
 
 #include <errno.h>
+#include <dlfcn.h>
 
 #include <common/COISysInfo_common.h>
 
 #include <starpu.h>
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mp_common/sink_common.h>
+#include <datawizard/interfaces/data_interface.h>
 
 #include "driver_mic_common.h"
 #include "driver_mic_sink.h"
@@ -29,17 +31,27 @@
 /* Initialize the MIC sink, initializing connection to the source
  * and to the other devices (not implemented yet).
  */
-
 void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 {
-	//unsigned int i;
-	
+	pthread_t self;
+	cpu_set_t cpuset;
+
+	/*Bind on the first core*/
+	self = pthread_self();
+	CPU_ZERO(&cpuset);
+	CPU_SET(241,&cpuset);
+	pthread_setaffinity_np(self,sizeof(cpu_set_t),&cpuset);
+
+
 	/* Initialize connection with the source */
 	_starpu_mic_common_accept(&node->mp_connection.mic_endpoint,
 					 STARPU_MIC_SOURCE_PORT_NUMBER);
 
 	_starpu_mic_common_accept(&node->host_sink_dt_connection.mic_endpoint,
 									 STARPU_MIC_SOURCE_DT_PORT_NUMBER);
+	
+	node->nb_cores = COISysGetHardwareThreadCount() - COISysGetHardwareThreadCount() / COISysGetCoreCount();
+	node->thread_table = malloc(sizeof(pthread_t)*node->nb_cores);
 
 	//node->sink_sink_dt_connections = malloc(node->nb_mp_sinks * sizeof(union _starpu_mp_connection));
 
@@ -54,11 +66,58 @@ void _starpu_mic_sink_init(struct _starpu_mp_node *node)
 	//								STARPU_MIC_SINK_SINK_DT_PORT_NUMBER(node->devid, i));
 }
 
+/* Launch all workers on the mic
+ */
+void _starpu_mic_sink_launch_workers(struct _starpu_mp_node *node)
+{
+	int i, ret;
+	struct arg_sink_thread * arg;
+	cpu_set_t cpuset;
+	pthread_attr_t attr;
+	pthread_t thread;
+	
+	/*for each core init the mutex, the task pointer and launch the thread */
+	for(i=0; i<node->nb_cores; i++)
+	{
+		//init the set
+		CPU_ZERO(&cpuset);
+		CPU_SET(i,&cpuset);
+
+		ret = pthread_attr_init(&attr);
+		STARPU_ASSERT(ret == 0);
+		ret = pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);
+		STARPU_ASSERT(ret == 0);
+
+		/*prepare the argument for the thread*/
+		arg= malloc(sizeof(struct arg_sink_thread));
+		arg->coreid = i;
+		arg->node = node;
+		
+		ret = pthread_create(&thread, &attr, _starpu_sink_thread, arg);
+		STARPU_ASSERT(ret == 0);
+		((pthread_t *)node->thread_table)[i] = thread;
+	}
+
+}
+
 /* Deinitialize the MIC sink, close all the connections.
  */
-
 void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 {
+	
+	int i;
+	node->is_running = 0;
+	for(i=0; i<node->nb_cores; i++)
+	{
+		sem_post(&node->sem_run_table[i]);
+		pthread_join(((pthread_t *)node->thread_table)[i],NULL);
+	}
+
+	free(node->thread_table);
+
+	scif_close(node->host_sink_dt_connection.mic_endpoint);
+	scif_close(node->mp_connection.mic_endpoint);
+
 	//unsigned int i;
 
 	//for (i = 0; i < node->nb_mp_sinks; ++i)
@@ -69,26 +128,16 @@ void _starpu_mic_sink_deinit(struct _starpu_mp_node *node)
 
 	//free(node->sink_sink_dt_connections);
 
-	scif_close(node->host_sink_dt_connection.mic_endpoint);
-	scif_close(node->mp_connection.mic_endpoint);
 }
 
 /* Report an error which occured when using a MIC device
  * and print this error in a human-readable style
  */
-
 void _starpu_mic_sink_report_error(const char *func, const char *file, const int line, const int status)
 {
 	const char *errormsg = strerror(status);
 	printf("SINK: oops in %s (%s:%u)... %d: %s \n", func, file, line, status, errormsg);
 	STARPU_ASSERT(0);
-}
-
-/* Return the number of cores on the callee, a MIC device or Processor Xeon
- */
-unsigned int _starpu_mic_sink_get_nb_core(void)
-{
-	return (unsigned int) COISysGetCoreCount();
 }
 
 /* Allocate memory on the MIC.
@@ -133,3 +182,28 @@ void _starpu_mic_sink_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUT
 #endif
 	free(addr);
 }
+
+
+/* bind the thread to a core
+ */
+void _starpu_mic_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, int coreid, int * core_table, int nb_core)
+{
+	cpu_set_t cpuset;
+	int i;
+
+  	//init the set
+	CPU_ZERO(&cpuset);
+
+	//adding the core to the set
+	for(i=0;i<nb_core;i++)
+		CPU_SET(core_table[i],&cpuset);
+
+	pthread_setaffinity_np(((pthread_t*)mp_node->thread_table)[coreid],sizeof(cpu_set_t),&cpuset);
+}
+
+void (*_starpu_mic_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
+{
+	void *dl_handle = dlopen(NULL, RTLD_NOW);
+	return dlsym(dl_handle, func_name);
+}
+

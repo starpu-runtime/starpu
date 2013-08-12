@@ -109,12 +109,6 @@ static void parse_args(int rank, int argc, char **argv)
 			char *argptr;
 			q = strtol(argv[++i], &argptr, 10);
 		}
-
-		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0) {
-			fprintf(stderr,"usage: %s [-size n] [-nblocks b] [-check] [-display] [-numa] [-p p] [-q q]\n", argv[0]);
-			fprintf(stderr,"\np * q must be equal to the number of MPI nodes\n");
-			exit(0);
-		}
 	}
 }
 

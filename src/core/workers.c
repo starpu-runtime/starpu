@@ -293,10 +293,15 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	}
 	else
 	{
-		if ((cl->type == STARPU_SPMD)
+		if ((cl->type == STARPU_SPMD) 
 #ifdef STARPU_HAVE_HWLOC
 				|| (cl->type == STARPU_FORKJOIN)
+#else
+#ifdef __GLIBC__
+				|| (cl->type == STARPU_FORKJOIN)
 #endif
+#endif
+
 				)
 		{
 			/* TODO we should add other types of constraints */
@@ -434,7 +439,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event) AYU_event(AYU_INIT, 0, NULL);
 #endif
-
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
@@ -1418,13 +1422,15 @@ unsigned starpu_worker_is_combined_worker(int id)
 
 struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
-	if (id == STARPU_NMAX_SCHED_CTXS) return NULL;
+	if(id == STARPU_NMAX_SCHED_CTXS) return NULL;
 	return &config.sched_ctxs[id];
 }
 
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id)
 {
 	unsigned basic_worker_count = starpu_worker_get_count();
+	
+	//_STARPU_DEBUG("basic_worker_count:%d\n",basic_worker_count);
 
 	STARPU_ASSERT(id >= basic_worker_count);
 	return &config.combined_workers[id - basic_worker_count];

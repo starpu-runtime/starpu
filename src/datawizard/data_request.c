@@ -358,6 +358,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	/* perform the transfer */
 	/* the header of the data must be locked by the worker that submitted the request */
 
+
 	r->retval = _starpu_driver_copy_data_1_to_1(handle, src_replicate,
 						    dst_replicate, !(r_mode & STARPU_R), r, may_alloc);
 
@@ -387,7 +388,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	/* the request has been handled */
 	_starpu_spin_lock(&r->lock);
 	starpu_handle_data_request_completion(r);
-
+_STARPU_DEBUG("MEMORY!\n");
 	return 0;
 }
 
