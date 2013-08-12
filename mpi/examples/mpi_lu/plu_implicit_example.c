@@ -46,30 +46,9 @@ static size_t allocated_memory_extra = 0;
 static starpu_data_handle_t *dataA_handles;
 static TYPE **dataA;
 
-/* In order to implement the distributed LU decomposition, we allocate
- * temporary buffers */
-#ifdef SINGLE_TMP11
-static starpu_data_handle_t tmp_11_block_handle;
-static TYPE *tmp_11_block;
-#else
-static starpu_data_handle_t *tmp_11_block_handles;
-static TYPE **tmp_11_block;
-#endif
-#ifdef SINGLE_TMP1221
-static starpu_data_handle_t *tmp_12_block_handles;
-static TYPE **tmp_12_block;
-static starpu_data_handle_t *tmp_21_block_handles;
-static TYPE **tmp_21_block;
-#else
-static starpu_data_handle_t *(tmp_12_block_handles[2]);
-static TYPE **(tmp_12_block[2]);
-static starpu_data_handle_t *(tmp_21_block_handles[2]);
-static TYPE **(tmp_21_block[2]);
-#endif
-
 int get_block_rank(unsigned i, unsigned j);
 
-static void parse_args(int rank, int argc, char **argv)
+static void parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++) {
@@ -135,69 +114,6 @@ static void fill_block_with_random(TYPE *blockptr, unsigned psize, unsigned pnbl
 	     }
 }
 
-#ifdef SINGLE_TMP11
-starpu_data_handle_t STARPU_PLU(get_tmp_11_block_handle)(void)
-{
-	return tmp_11_block_handle;
-}
-#else
-starpu_data_handle_t STARPU_PLU(get_tmp_11_block_handle)(unsigned k)
-{
-	return tmp_11_block_handles[k];
-}
-#endif
-
-#ifdef SINGLE_TMP1221
-starpu_data_handle_t STARPU_PLU(get_tmp_12_block_handle)(unsigned j)
-{
-	return tmp_12_block_handles[j];
-}
-
-starpu_data_handle_t STARPU_PLU(get_tmp_21_block_handle)(unsigned i)
-{
-	return tmp_21_block_handles[i];
-}
-#else
-starpu_data_handle_t STARPU_PLU(get_tmp_12_block_handle)(unsigned j, unsigned k)
-{
-	return tmp_12_block_handles[k%2][j];
-}
-
-starpu_data_handle_t STARPU_PLU(get_tmp_21_block_handle)(unsigned i, unsigned k)
-{
-	return tmp_21_block_handles[k%2][i];
-}
-#endif
-
-static unsigned tmp_11_block_is_needed(int rank, unsigned pnblocks, unsigned k)
-{
-	return 1;
-}
-
-static unsigned tmp_12_block_is_needed(int rank, unsigned pnblocks, unsigned j)
-{
-	unsigned i;
-	for (i = 1; i < pnblocks; i++)
-	{
-		if (get_block_rank(i, j) == rank)
-			return 1;
-	}
-
-	return 0;
-}
-
-static unsigned tmp_21_block_is_needed(int rank, unsigned pnblocks, unsigned i)
-{
-	unsigned j;
-	for (j = 1; j < pnblocks; j++)
-	{
-		if (get_block_rank(i, j) == rank)
-			return 1;
-	}
-
-	return 0;
-}
-
 static void init_matrix(int rank)
 {
 #ifdef STARPU_HAVE_LIBNUMA
@@ -224,11 +140,12 @@ static void init_matrix(int rank)
 	{
 		for (i = 0; i < nblocks; i++)
 		{
+			int block_rank = get_block_rank(i, j);
 			TYPE **blockptr = &dataA[j+i*nblocks];
 //			starpu_data_handle_t *handleptr = &dataA_handles[j+nblocks*i];
 			starpu_data_handle_t *handleptr = &dataA_handles[j+nblocks*i];
 
-			if (get_block_rank(i, j) == rank)
+			if (block_rank == rank)
 			{
 				/* This blocks should be treated by the current MPI process */
 				/* Allocate and fill it */
@@ -253,110 +170,14 @@ static void init_matrix(int rank)
 					size/nblocks, size/nblocks, sizeof(TYPE));
 			}
 			else {
+				starpu_matrix_data_register(handleptr, -1,
+					0, size/nblocks,
+					size/nblocks, size/nblocks, sizeof(TYPE));
 				*blockptr = STARPU_POISON_PTR;
-				*handleptr = STARPU_POISON_PTR;
 			}
+			starpu_data_set_rank(*handleptr, block_rank);
+			starpu_data_set_tag(*handleptr, j+i*nblocks);
 		}
-	}
-
-	/* Allocate the temporary buffers required for the distributed algorithm */
-
-	unsigned k;
-
-	/* tmp buffer 11 */
-#ifdef SINGLE_TMP11
-	starpu_malloc((void **)&tmp_11_block, blocksize);
-	allocated_memory_extra += blocksize;
-	starpu_matrix_data_register(&tmp_11_block_handle, STARPU_MAIN_RAM, (uintptr_t)tmp_11_block,
-			size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
-#else
-	tmp_11_block_handles = calloc(nblocks, sizeof(starpu_data_handle_t));
-	tmp_11_block = calloc(nblocks, sizeof(TYPE *));
-	allocated_memory_extra += nblocks*(sizeof(starpu_data_handle_t) + sizeof(TYPE *));
-
-	for (k = 0; k < nblocks; k++)
-	{
-		if (tmp_11_block_is_needed(rank, nblocks, k))
-		{
-			starpu_malloc((void **)&tmp_11_block[k], blocksize);
-			allocated_memory_extra += blocksize;
-			STARPU_ASSERT(tmp_11_block[k]);
-
-			starpu_matrix_data_register(&tmp_11_block_handles[k], STARPU_MAIN_RAM,
-				(uintptr_t)tmp_11_block[k],
-				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
-		}
-	}
-#endif
-
-	/* tmp buffers 12 and 21 */
-#ifdef SINGLE_TMP1221
-	tmp_12_block_handles = calloc(nblocks, sizeof(starpu_data_handle_t));
-	tmp_21_block_handles = calloc(nblocks, sizeof(starpu_data_handle_t));
-	tmp_12_block = calloc(nblocks, sizeof(TYPE *));
-	tmp_21_block = calloc(nblocks, sizeof(TYPE *));
-
-	allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle_t) + sizeof(TYPE *));
-#else
-	for (i = 0; i < 2; i++) {
-		tmp_12_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle_t));
-		tmp_21_block_handles[i] = calloc(nblocks, sizeof(starpu_data_handle_t));
-		tmp_12_block[i] = calloc(nblocks, sizeof(TYPE *));
-		tmp_21_block[i] = calloc(nblocks, sizeof(TYPE *));
-
-		allocated_memory_extra += 2*nblocks*(sizeof(starpu_data_handle_t) + sizeof(TYPE *));
-	}
-#endif
-
-	for (k = 0; k < nblocks; k++)
-	{
-#ifdef SINGLE_TMP1221
-		if (tmp_12_block_is_needed(rank, nblocks, k))
-		{
-			starpu_malloc((void **)&tmp_12_block[k], blocksize);
-			allocated_memory_extra += blocksize;
-			STARPU_ASSERT(tmp_12_block[k]);
-
-			starpu_matrix_data_register(&tmp_12_block_handles[k], STARPU_MAIN_RAM,
-				(uintptr_t)tmp_12_block[k],
-				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
-		}
-
-		if (tmp_21_block_is_needed(rank, nblocks, k))
-		{
-			starpu_malloc((void **)&tmp_21_block[k], blocksize);
-			allocated_memory_extra += blocksize;
-			STARPU_ASSERT(tmp_21_block[k]);
-
-			starpu_matrix_data_register(&tmp_21_block_handles[k], STARPU_MAIN_RAM,
-				(uintptr_t)tmp_21_block[k],
-				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
-		}
-#else
-	for (i = 0; i < 2; i++) {
-		if (tmp_12_block_is_needed(rank, nblocks, k))
-		{
-			starpu_malloc((void **)&tmp_12_block[i][k], blocksize);
-			allocated_memory_extra += blocksize;
-			STARPU_ASSERT(tmp_12_block[i][k]);
-
-			starpu_matrix_data_register(&tmp_12_block_handles[i][k], STARPU_MAIN_RAM,
-				(uintptr_t)tmp_12_block[i][k],
-				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
-		}
-
-		if (tmp_21_block_is_needed(rank, nblocks, k))
-		{
-			starpu_malloc((void **)&tmp_21_block[i][k], blocksize);
-			allocated_memory_extra += blocksize;
-			STARPU_ASSERT(tmp_21_block[i][k]);
-
-			starpu_matrix_data_register(&tmp_21_block_handles[i][k], STARPU_MAIN_RAM,
-				(uintptr_t)tmp_21_block[i][k],
-				size/nblocks, size/nblocks, size/nblocks, sizeof(TYPE));
-		}
-	}
-#endif
 	}
 
 	//display_all_blocks(nblocks, size/nblocks);
@@ -408,40 +229,22 @@ int main(int argc, char **argv)
 	int rank;
 	int world_size;
 
-	/*
-	 *	Initialization
-	 */
-	int thread_support;
-	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support) != MPI_SUCCESS) {
-		fprintf(stderr,"MPI_Init_thread failed\n");
-		exit(1);
-	}
-	if (thread_support == MPI_THREAD_FUNNELED)
-		fprintf(stderr,"Warning: MPI only has funneled thread support, not serialized, hoping this will work\n");
-	if (thread_support < MPI_THREAD_FUNNELED)
-		fprintf(stderr,"Warning: MPI does not have thread support!\n");
-
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
 	starpu_srand48((long int)time(NULL));
 
-	parse_args(rank, argc, argv);
+	parse_args(argc, argv);
 
 	int ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	/* We disable sequential consistency in this example */
-	starpu_data_set_default_sequential_consistency_flag(0);
+	ret = starpu_mpi_init(&argc, &argv, 1);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
-	starpu_mpi_init(NULL, NULL, 0);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 
 	STARPU_ASSERT(p*q == world_size);
 
 	starpu_cublas_init();
-
-	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
-	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 
 	/*
 	 * 	Problem Init
@@ -484,39 +287,19 @@ int main(int argc, char **argv)
 //		STARPU_PLU(compute_ax)(size, x, y, nblocks, rank);
 	}
 
-	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
-	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
-
 	double timing = STARPU_PLU(plu_main)(nblocks, rank, world_size);
 
 	/*
 	 * 	Report performance
 	 */
 
-	int reduce_ret;
-	double min_timing = timing;
-	double max_timing = timing;
-	double sum_timing = timing;
-
-	reduce_ret = MPI_Reduce(&timing, &min_timing, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-	STARPU_ASSERT(reduce_ret == MPI_SUCCESS);
-
-	reduce_ret = MPI_Reduce(&timing, &max_timing, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-	STARPU_ASSERT(reduce_ret == MPI_SUCCESS);
-
-	reduce_ret = MPI_Reduce(&timing, &sum_timing, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-	STARPU_ASSERT(reduce_ret == MPI_SUCCESS);
-
 	if (rank == 0)
 	{
-		fprintf(stderr, "Computation took: %f ms\n", max_timing/1000);
-		fprintf(stderr, "\tMIN : %f ms\n", min_timing/1000);
-		fprintf(stderr, "\tMAX : %f ms\n", max_timing/1000);
-		fprintf(stderr, "\tAVG : %f ms\n", sum_timing/(world_size*1000));
+		fprintf(stderr, "Computation took: %f ms\n", timing/1000);
 
 		unsigned n = size;
 		double flop = (2.0f*n*n*n)/3.0f;
-		fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/max_timing/1000.0f));
+		fprintf(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
 	}
 
 	/*
@@ -566,16 +349,9 @@ int main(int argc, char **argv)
 	 * 	Termination
 	 */
 
-	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
-	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
-
 	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
 	starpu_shutdown();
-
-#if 0
-	MPI_Finalize();
-#endif
 
 	return 0;
 }
