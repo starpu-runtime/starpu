@@ -123,7 +123,7 @@ struct _starpu_combined_worker
 	int worker_size;
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	int combined_workerid[STARPU_NMAXWORKERS];
-#ifdef STARPU_USE_MIC 
+#ifdef STARPU_USE_MP
 	int count;
 	pthread_mutex_t count_mutex;
 #endif
