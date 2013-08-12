@@ -1095,9 +1095,10 @@ _starpu_bind_thread_on_cpus (
 	}
 #else
 #ifdef __GLIBC__
-	pthread_setaffinity_np(pthread_self(),sizeof(cpu_set_t),&combined_worker->cpu_set);
+	sched_setaffinity(0,sizeof(combined_worker->cpu_set),&combined_worker->cpu_set);
+#else
+#  warning no parallel worker CPU binding support
 #endif
-#warning no parallel worker CPU binding support
 #endif
 }
 
