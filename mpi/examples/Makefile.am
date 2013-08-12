@@ -44,13 +44,16 @@ BUILT_SOURCES =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-EXTRA_DIST = 					\
+EXTRA_DIST = 				\
 	mpi_lu/mpi_lu-float.h		\
 	mpi_lu/mpi_lu-double.h		\
 	mpi_lu/plu_example.c		\
+	mpi_lu/plu_implicit_example.c	\
+	mpi_lu/plu_outofcore_example.c	\
 	mpi_lu/plu_solve.c		\
 	mpi_lu/pxlu.h			\
 	mpi_lu/pxlu.c			\
+	mpi_lu/pxlu_implicit.c		\
 	mpi_lu/pxlu_kernels.h		\
 	mpi_lu/pxlu_kernels.c		\
 	matrix_decomposition/mpi_cholesky_codelets.h 	\
@@ -101,7 +104,11 @@ if !NO_BLAS_LIB
 
 examplebin_PROGRAMS += 			\
 	mpi_lu/plu_example_float	\
-	mpi_lu/plu_example_double
+	mpi_lu/plu_example_double	\
+	mpi_lu/plu_implicit_example_float	\
+	mpi_lu/plu_implicit_example_double	\
+	mpi_lu/plu_outofcore_example_float	\
+	mpi_lu/plu_outofcore_example_double
 
 mpi_lu_plu_example_float_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
@@ -126,7 +133,56 @@ mpi_lu_plu_example_double_SOURCES =	\
 	mpi_lu/pdlu_kernels.c	    	\
 	mpi_lu/pdlu.c		    	\
 	$(top_srcdir)/examples/common/blas.c
+
+mpi_lu_plu_implicit_example_float_LDADD =	\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
+	$(STARPU_LIBNUMA_LDFLAGS)				\
+	$(STARPU_BLAS_LDFLAGS) -lm
+
+mpi_lu_plu_implicit_example_float_SOURCES =	\
+	mpi_lu/plu_implicit_example_float.c	\
+	mpi_lu/plu_solve_float.c		\
+	mpi_lu/pslu_kernels.c			\
+	mpi_lu/pslu_implicit.c			\
+	$(top_srcdir)/examples/common/blas.c
+
+mpi_lu_plu_implicit_example_double_LDADD =	\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
+	$(STARPU_LIBNUMA_LDFLAGS)				\
+	$(STARPU_BLAS_LDFLAGS) -lm
+
+mpi_lu_plu_implicit_example_double_SOURCES =	\
+	mpi_lu/plu_outofcore_example_double.c	\
+	mpi_lu/plu_solve_double.c		\
+	mpi_lu/pdlu_kernels.c			\
+	mpi_lu/pdlu_implicit.c			\
+	$(top_srcdir)/examples/common/blas.c
+
+mpi_lu_plu_outofcore_example_float_LDADD =	\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
+	$(STARPU_LIBNUMA_LDFLAGS)				\
+	$(STARPU_BLAS_LDFLAGS) -lm
+
+mpi_lu_plu_outofcore_example_float_SOURCES =	\
+	mpi_lu/plu_outofcore_example_float.c	\
+	mpi_lu/plu_solve_float.c		\
+	mpi_lu/pslu_kernels.c			\
+	mpi_lu/pslu_implicit.c			\
+	$(top_srcdir)/examples/common/blas.c
+
+mpi_lu_plu_outofcore_example_double_LDADD =	\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
+	$(STARPU_LIBNUMA_LDFLAGS)				\
+	$(STARPU_BLAS_LDFLAGS) -lm
+
+mpi_lu_plu_outofcore_example_double_SOURCES =	\
+	mpi_lu/plu_outofcore_example_double.c	\
+	mpi_lu/plu_solve_double.c		\
+	mpi_lu/pdlu_kernels.c			\
+	mpi_lu/pdlu_implicit.c			\
+	$(top_srcdir)/examples/common/blas.c
 endif
+
 
 ########################
 # MPI Cholesky example #
