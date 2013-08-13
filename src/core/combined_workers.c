@@ -113,7 +113,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 		combined_worker->perf_arch = (enum starpu_perfmodel_archtype) (STARPU_CPU_DEFAULT + nworkers - 1);
 		combined_worker->worker_mask = STARPU_CPU;
 	}
-#ifdef STARPU_USE_MIC 
+#ifdef STARPU_USE_MP
 	combined_worker->count = nworkers -1;
 	pthread_mutex_init(&combined_worker->count_mutex,NULL);
 #endif
