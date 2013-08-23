@@ -10,16 +10,20 @@ EOF
 
 prefix="/usr/local"
 coi_dir="/opt/intel/mic/coi"
+scif_dir="/opt/intel/mic/scif"
 mic_host="x86_64-k1om-linux"
 
 for arg in $*
 do
-	case $arg in 
+	case $arg in
 		--prefix=*)
 			prefix="${arg#--prefix=}"
 			;;
 		--with-coi-dir=*)
 			coi_dir="${arg#--with-coi-dir=}"
+			;;
+		--with-scif-dir=*)
+			scif_dir="${arg#--with-scif-dir=}"
 			;;
 		--mic-host=*)
 			mic_host="${arg#--mic-host=}"
@@ -45,13 +49,13 @@ do
 		*) command="../${ROOT_DIR}/configure";;
 	esac
 
-	params="--enable-mic --with-coi-dir=$coi_dir --prefix=$prefix/$arch"
+	params="--enable-mic --with-coi-dir=$coi_dir --with-scif-dir=$scif_dir --prefix=$prefix/$arch"
 
 	if test x$arch = xmic ; then
 		# TODO: fix hwloc detection to look for another pkg-config place, and not just believe in the host version of hwloc.pc...
-		params="$params --without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --host=$mic_host"
+		params="$params --without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
 	else
-		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib"
+		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib --with-scif-lib-dir=$scif_dir/host-linux-release/lib"
 	fi
 
 	# If the build directory doesn't exist yet, create it
