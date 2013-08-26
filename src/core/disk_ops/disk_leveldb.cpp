@@ -313,6 +313,7 @@ get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 	return 1;
 }
 
+#if __cplusplus >= 201103L
 struct starpu_disk_ops starpu_disk_leveldb_ops = {
 	.alloc = starpu_leveldb_alloc,
 	.free = starpu_leveldb_free,
@@ -326,8 +327,28 @@ struct starpu_disk_ops starpu_disk_leveldb_ops = {
 	.unplug = starpu_leveldb_unplug,
 	.copy = NULL,
 	.bandwidth = get_leveldb_bandwidth_between_disk_and_main_ram,
-	.wait_request = NULL, 
+	.wait_request = NULL,
 	.test_request = NULL,
 	.full_read = starpu_leveldb_full_read,
 	.full_write = starpu_leveldb_full_write
 };
+#else
+struct starpu_disk_ops starpu_disk_leveldb_ops = {
+	starpu_leveldb_alloc,
+	starpu_leveldb_free,
+	starpu_leveldb_open,
+	starpu_leveldb_close,
+	starpu_leveldb_read,
+	starpu_leveldb_write,
+	NULL,
+	NULL,
+	starpu_leveldb_plug,
+	starpu_leveldb_unplug,
+	NULL,
+	get_leveldb_bandwidth_between_disk_and_main_ram,
+	NULL,
+	NULL,
+	starpu_leveldb_full_read,
+	starpu_leveldb_full_write
+};
+#endif
