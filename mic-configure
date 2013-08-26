@@ -62,6 +62,7 @@ do
 
 	if [ $compiler = "icc" -a "$arch" = "mic" ] ; then
 	    export CC="icc -mmic"
+	    export CXX="icc -mmic"
 	    export LD="icc -mmic"
 	fi
 
