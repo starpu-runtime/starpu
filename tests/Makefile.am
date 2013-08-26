@@ -611,7 +611,7 @@ endif
 perfmodels_feed_SOURCES=\
 	perfmodels/feed.c
 
-sched_policies_execute_all_tasks_LDFLAGS = -lm
+sched_policies_execute_all_tasks_LDFLAGS = $(AM_LDFLAGS) -lm
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
