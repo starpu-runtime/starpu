@@ -10,32 +10,47 @@ EOF
 
 prefix="/usr/local"
 coi_dir="/opt/intel/mic/coi"
+scif_dir="/opt/intel/mic/scif"
 mic_host="x86_64-k1om-linux"
 
 for arg in $*
 do
-	case $arg in 
+	case $arg in
 		--prefix=*)
 			prefix="${arg#--prefix=}"
 			;;
 		--with-coi-dir=*)
 			coi_dir="${arg#--with-coi-dir=}"
 			;;
+		--with-scif-dir=*)
+			scif_dir="${arg#--with-scif-dir=}"
+			;;
 		--mic-host=*)
 			mic_host="${arg#--mic-host=}"
 			;;
 	esac
-
 done
 
+# Test gcc compiler
 x=$(type -t ${mic_host}-gcc)
 if [ -z "$x" ]
 then
-    echo "[error] please add path to ${mic_host}-gcc in your PATH"
-    exit 1
+    # Test icc compiler
+    echo "int main(int argc, char **argv) { return 0; }" > /tmp/icc_$USER_$$.c
+    icc -mmic /tmp/icc_$USER_$$.c > /dev/null 2>/tmp/icc_$USER_$$.err
+    l=$(grep -c "invalid argument" /tmp/icc_$USER_$$.err)
+    if [ "$l" != "0" ]
+    then
+        echo "[error] no compiler found. please add path to either ${mic_host}-gcc or to an enabled mic icc compiler in your PATH"
+	exit 1
+    else
+	compiler="icc"
+    fi
+else
+    compiler="gcc"
 fi
 
-for arch in mic host
+for arch in host mic
 do
 	# We call the configure script from a build directory further in the
 	# arborescence
@@ -45,13 +60,18 @@ do
 		*) command="../${ROOT_DIR}/configure";;
 	esac
 
-	params="--enable-mic --with-coi-dir=$coi_dir --prefix=$prefix/$arch"
+	if [ $compiler = "icc" -a "$arch" = "mic" ] ; then
+	    export CC="icc -mmic"
+	    export CXX="icc -mmic"
+	fi
+
+	params="--enable-mic --with-coi-dir=$coi_dir --with-scif-dir=$scif_dir --prefix=$prefix/$arch"
 
 	if test x$arch = xmic ; then
 		# TODO: fix hwloc detection to look for another pkg-config place, and not just believe in the host version of hwloc.pc...
-		params="$params --without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --host=$mic_host"
+		params="$params --without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
 	else
-		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib"
+		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib --with-scif-lib-dir=$scif_dir/host-linux-release/lib"
 	fi
 
 	# If the build directory doesn't exist yet, create it

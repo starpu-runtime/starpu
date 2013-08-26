@@ -370,9 +370,9 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 					    suffixes);
 
 	if (0 != mic_file_found) {
-		fprintf(stderr, "No MIC program specified, use the environment"
-			"variable STARPU_MIC_SINK_PROGRAM_NAME or the environment"
-			"or the field 'starpu_conf.mic_sink_program_path'"
+		fprintf(stderr, "No MIC program specified, use the environment\n"
+			"variable STARPU_MIC_SINK_PROGRAM_NAME or the environment\n"
+			"or the field 'starpu_conf.mic_sink_program_path'\n"
 			"to define it.\n");
 
 		return -1;

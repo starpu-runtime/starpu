@@ -1037,8 +1037,89 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
         STARPU_COI_CPPFLAGS="-I$__coi_include_dir"
     fi
 
-    if test "$have_valid_coi" = "yes" -a "$__coi_lib_dir" != "no"; then
-        STARPU_COI_LDFLAGS="-L$__coi_lib_dir -l$4"
+    if test "$have_valid_coi" = "yes" ; then
+        if test "$__coi_lib_dir" != "no"; then
+	    STARPU_COI_LDFLAGS="-L$__coi_lib_dir"
+        fi
+	STARPU_COI_LDFLAGS="${STARPU_COI_LDFLAGS} -l$4"
+    fi
+
+    CPPFLAGS="${SAVED_CPPFLAGS}"
+    LDFLAGS="${SAVED_LDFLAGS}"
+])
+
+AC_ARG_WITH(scif-dir,
+	[AS_HELP_STRING([--with-scif-dir=<path>],
+	[specify the MIC's SCIF installation directory])],
+	[scif_dir="$withval"],
+	[scif_dir=no])
+
+AC_ARG_WITH(scif-include-dir,
+	[AS_HELP_STRING([--with-scif-include-dir=<path>],
+	[specify where the MIC's SCIF headers are installed])],
+	[scif_include_dir="$withval"],
+	[scif_include_dir=no])
+
+AC_ARG_WITH(scif-lib-dir,
+	[AS_HELP_STRING([--with-scif-lib-dir=<path>],
+	[specify where the MIC's SCIF libraries are installed])],
+	[scif_lib_dir="$withval"],
+	[scif_lib_dir=no])
+
+AC_DEFUN([STARPU_CHECK_SCIF_RUNTIME],
+[
+    __scif_dir=$1
+    __scif_include_dir=$2
+    __scif_lib_dir=$3
+
+    if test "$__scif_dir" != "no" -a "$__scif_dir" != "" ; then
+	AC_MSG_CHECKING(whether MIC's SCIF runtime is available in $__scif_dir)
+    else
+	AC_MSG_CHECKING(whether MIC's SCIF runtime is available)
+    fi
+    AC_MSG_RESULT()
+
+    if test "$__scif_include_dir" = "no" -a "$__scif_dir" != "no" ; then
+        __scif_include_dir="${__scif_dir}/include"
+    fi
+    if test "$__scif_lib_dir" = "no" -a "$__scif_dir" != "no" ; then
+        __scif_lib_dir="${__scif_dir}/lib"
+    fi
+
+    SAVED_CPPFLAGS="$CPPFLAGS"
+    SAVED_LDFLAGS="$LDFLAGS"
+
+    if test "$__scif_include_dir" != "no" ; then
+        CPPFLAGS="${CPPFLAGS} -I$__scif_include_dir"
+    fi
+    if test "$__scif_lib_dir" != "no" ; then
+	LDFLAGS="${LDFLAGS} -L$__scif_lib_dir"
+    fi
+
+#    AC_CHECK_HEADER([source/SCIFEngine_source.h],[have_valid_scif=yes],[have_valid_scif=no])
+
+#    if test "$have_valid_scif" = "yes" ; then
+	AC_HAVE_LIBRARY([scif],[have_valid_scif=yes],[have_valid_scif=no])
+
+        if test "$have_valid_scif" = "no" ; then
+            if test "$3" = "no" -a "$__scif_dir" != "no" ; then
+		# ${__scif_dir}/lib didn't work, let's try with lib64
+                __scif_lib_dir="$__scif_dir/lib64"
+		LDFLAGS="${SAVED_LDFLAGS} -L$__scif_lib_dir"
+	        AC_HAVE_LIBRARY([scif],[have_valid_scif=yes],[have_valid_scif=no])
+            fi
+        fi
+#    fi
+
+    if test "$have_valid_scif" = "yes" -a "$__scif_include_dir" != "no"; then
+        STARPU_SCIF_CPPFLAGS="-I$__scif_include_dir"
+    fi
+
+    if test "$have_valid_scif" = "yes" ; then
+        if test "$__scif_lib_dir" != "no"; then
+	    STARPU_SCIF_LDFLAGS="-L$__scif_lib_dir"
+        fi
+	STARPU_SCIF_LDFLAGS="${STARPU_SCIF_LDFLAGS} -lscif"
     fi
 
     CPPFLAGS="${SAVED_CPPFLAGS}"
@@ -1055,12 +1136,19 @@ if test x$enable_mic = xyes ; then
 	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_device)
     fi
 
+    STARPU_CHECK_SCIF_RUNTIME($scif_dir, $scif_include_dir, $scif_lib_dir)
+
     if test "$have_valid_coi" = "no" ; then
 	AC_MSG_ERROR([cannot find MIC's COI runtime])
+    fi
+    if test "$have_valid_scif" = "no" ; then
+	AC_MSG_ERROR([cannot find MIC's SCIF runtime])
     fi
 
     AC_SUBST(STARPU_COI_CPPFLAGS)
     AC_SUBST(STARPU_COI_LDFLAGS)
+    AC_SUBST(STARPU_SCIF_CPPFLAGS)
+    AC_SUBST(STARPU_SCIF_LDFLAGS)
 fi
 
 ###############################################################################
