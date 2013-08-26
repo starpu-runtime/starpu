@@ -1037,8 +1037,11 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
         STARPU_COI_CPPFLAGS="-I$__coi_include_dir"
     fi
 
-    if test "$have_valid_coi" = "yes" -a "$__coi_lib_dir" != "no"; then
-        STARPU_COI_LDFLAGS="-L$__coi_lib_dir -l$4"
+    if test "$have_valid_coi" = "yes" ; then
+        if test "$__coi_lib_dir" != "no"; then
+	    STARPU_COI_LDFLAGS="-L$__coi_lib_dir"
+        fi
+	STARPU_COI_LDFLAGS="${STARPU_COI_LDFLAGS} -l$4"
     fi
 
     CPPFLAGS="${SAVED_CPPFLAGS}"
@@ -1096,14 +1099,14 @@ AC_DEFUN([STARPU_CHECK_SCIF_RUNTIME],
 #    AC_CHECK_HEADER([source/SCIFEngine_source.h],[have_valid_scif=yes],[have_valid_scif=no])
 
 #    if test "$have_valid_scif" = "yes" ; then
-	AC_HAVE_LIBRARY([$4],[have_valid_scif=yes],[have_valid_scif=no])
+	AC_HAVE_LIBRARY([scif],[have_valid_scif=yes],[have_valid_scif=no])
 
         if test "$have_valid_scif" = "no" ; then
             if test "$3" = "no" -a "$__scif_dir" != "no" ; then
 		# ${__scif_dir}/lib didn't work, let's try with lib64
                 __scif_lib_dir="$__scif_dir/lib64"
 		LDFLAGS="${SAVED_LDFLAGS} -L$__scif_lib_dir"
-	        AC_HAVE_LIBRARY([$4],[have_valid_scif=yes],[have_valid_scif=no])
+	        AC_HAVE_LIBRARY([scif],[have_valid_scif=yes],[have_valid_scif=no])
             fi
         fi
 #    fi
@@ -1112,8 +1115,11 @@ AC_DEFUN([STARPU_CHECK_SCIF_RUNTIME],
         STARPU_SCIF_CPPFLAGS="-I$__scif_include_dir"
     fi
 
-    if test "$have_valid_scif" = "yes" -a "$__scif_lib_dir" != "no"; then
-        STARPU_SCIF_LDFLAGS="-L$__scif_lib_dir -l$4"
+    if test "$have_valid_scif" = "yes" ; then
+        if test "$__scif_lib_dir" != "no"; then
+	    STARPU_SCIF_LDFLAGS="-L$__scif_lib_dir"
+        fi
+	STARPU_SCIF_LDFLAGS="${STARPU_SCIF_LDFLAGS} -lscif"
     fi
 
     CPPFLAGS="${SAVED_CPPFLAGS}"
@@ -1123,14 +1129,14 @@ AC_DEFUN([STARPU_CHECK_SCIF_RUNTIME],
 if test x$enable_mic = xyes ; then
 
     STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_host)
-    STARPU_CHECK_SCIF_RUNTIME($scif_dir, $scif_include_dir, $scif_lib_dir, scif_host)
 
     # Host runtime is not compatible, we are probably cross-compiling
     # Let's have a look for the device runtime which lib has a different name
     if test "$have_valid_coi" = "no" ; then
 	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_device)
-	    STARPU_CHECK_SCIF_RUNTIME($scif_dir, $scif_include_dir, $scif_lib_dir, scif_device)
     fi
+
+    STARPU_CHECK_SCIF_RUNTIME($scif_dir, $scif_include_dir, $scif_lib_dir)
 
     if test "$have_valid_coi" = "no" ; then
 	AC_MSG_ERROR([cannot find MIC's COI runtime])
