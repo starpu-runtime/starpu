@@ -163,7 +163,7 @@ static void parse_args(int argc, char **argv)
 	if (!symbol && !list)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
-                usage(argv);
+                usage();
 		exit(-1);
 	}
 
