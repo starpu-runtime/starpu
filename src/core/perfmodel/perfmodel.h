@@ -24,6 +24,11 @@
 #include <core/task_bundle.h>
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 struct _starpu_perfmodel_list
 {
 	struct _starpu_perfmodel_list *next;
@@ -72,4 +77,9 @@ int *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 
 void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, 
 					    double latency_write, double latency_read, unsigned node);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // __PERFMODEL_H__

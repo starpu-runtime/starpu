@@ -11,17 +11,25 @@
 \ingroup API_Out_Of_Core
 This is a set of functions to manipulate datas on disk.
 \var starpu_disk_ops::alloc
+Create a new location for datas
 \var starpu_disk_ops::free
+Free an allocated data
 \var starpu_disk_ops::open
-open an existing file
+Open an existing location of datas
 \var starpu_disk_ops::close
+Close without delete a location of datas
 \var starpu_disk_ops::read
-~= pread
+Read a data
 \var starpu_disk_ops::write
+Write a data
 \var starpu_disk_ops::plug
+Connect a disk memory
 \var starpu_disk_ops::unplug
+Disconnect a disk memory
 \var starpu_disk_ops::copy
+Copy disk to disk
 \var starpu_disk_ops::bandwidth
+Measue the bandwidth and the latency for the disk
 
 \fn int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, size_t size)
 \ingroup API_Out_Of_Core
@@ -43,6 +51,7 @@ Close an existing file memory opened with starpu_disk_open.
 \ingroup API_Out_Of_Core
 This set uses the stdio library (fwrite, fread...) to read/write on disk. <br />
 <strong>Warning: It creates one file per allocation !</strong>  <br />
+It doesn't support asynchronous transfers.
 
 \var starpu_disk_unistd_ops
 \ingroup API_Out_Of_Core
@@ -53,6 +62,12 @@ This set uses the unistd library (write, read...) to read/write on disk. <br />
 \ingroup API_Out_Of_Core
 This set uses the unistd library (write, read...) to read/write on disk with the O_DIRECT flag. <br />
 <strong>Warning: It creates one file per allocation !</strong>  <br />
-Only available on Linux.
+Only available on Linux systems.
+
+\var starpu_disk_leveldb_ops
+\ingroup API_Out_Of_Core
+This set uses the leveldb created by Google <br />
+Show here: https://code.google.com/p/leveldb/ <br />
+It doesn't support asynchronous transfers.
 
 */

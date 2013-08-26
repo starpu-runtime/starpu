@@ -37,6 +37,11 @@
 #include <starpu_opencl.h>
 #endif
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 struct _starpu_data_request;
 struct _starpu_data_replicate;
 
@@ -101,4 +106,9 @@ int _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
 
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel);
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // __COPY_DRIVER_H__
