@@ -508,10 +508,10 @@ unsigned starpu_sched_ctx_create_with_custom_policy(struct starpu_sched_policy *
 }
 
 #ifdef STARPU_USE_SC_HYPERVISOR
-void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, struct starpu_sched_ctx_performance_counters *perf_counters)
+void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, void* perf_counters)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	sched_ctx->perf_counters = perf_counters;
+	sched_ctx->perf_counters = (struct starpu_sched_ctx_performance_counters *)perf_counters;
 	return;
 }
 #endif

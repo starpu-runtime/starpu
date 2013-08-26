@@ -75,6 +75,7 @@ versinclude_HEADERS = 				\
 	include/starpu_bound.h			\
 	include/starpu_scheduler.h		\
 	include/starpu_sched_ctx.h		\
+	include/starpu_sched_ctx_hypervisor.h	\
 	include/starpu_top.h			\
 	include/starpu_deprecated_api.h         \
 	include/starpu_hash.h			\

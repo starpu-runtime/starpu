@@ -150,7 +150,7 @@ static struct sc_hypervisor_policy *_select_hypervisor_policy(struct sc_hypervis
 
 
 /* initializez the performance counters that starpu will use to retrive hints for resizing */
-struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hypervisor_policy *hypervisor_policy)
+void* sc_hypervisor_init(struct sc_hypervisor_policy *hypervisor_policy)
 {	
 /* Perhaps we have to display some help */
 	display_sched_help_message();
@@ -220,7 +220,7 @@ struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hyper
 
 	starpu_sched_ctx_notify_hypervisor_exists();
 
-	return perf_counters;
+	return (void*)perf_counters;
 }
 
 const char* sc_hypervisor_get_policy()
