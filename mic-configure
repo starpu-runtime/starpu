@@ -12,6 +12,7 @@ prefix="/usr/local"
 coi_dir="/opt/intel/mic/coi"
 scif_dir="/opt/intel/mic/scif"
 mic_host="x86_64-k1om-linux"
+options=""
 
 for arg in $*
 do
@@ -28,8 +29,10 @@ do
 		--mic-host=*)
 			mic_host="${arg#--mic-host=}"
 			;;
+	        *)
+		        options="$options $arg"
+		        ;;
 	esac
-
 done
 
 # Test gcc compiler
@@ -83,9 +86,9 @@ do
 	cd "build_${arch}"
 
 	if test x$arch = xmic ; then
-		LDFLAGS=-export-dynamic $command $* $params
+		LDFLAGS=-export-dynamic $command $* $params $options
 	else
-		$command $* $params
+		$command $* $params $options
 	fi
 	if [ "$?" != 0 ]
 	then
