@@ -32,11 +32,23 @@ do
 
 done
 
+# Test gcc compiler
 x=$(type -t ${mic_host}-gcc)
 if [ -z "$x" ]
 then
-    echo "[error] please add path to ${mic_host}-gcc in your PATH"
-    exit 1
+    # Test icc compiler
+    echo "int main(int argc, char **argv) { return 0; }" > /tmp/icc_$USER_$$.c
+    icc -mmic /tmp/icc_$USER_$$.c > /dev/null 2>/tmp/icc_$USER_$$.err
+    l=$(grep -c "invalid argument" /tmp/icc_$USER_$$.err)
+    if [ "$l" != "0" ]
+    then
+        echo "[error] no compiler found. please add path to either ${mic_host}-gcc or to an enabled mic icc compiler in your PATH"
+	exit 1
+    else
+	compiler="icc"
+    fi
+else
+    compiler="gcc"
 fi
 
 for arch in mic host
@@ -48,6 +60,11 @@ do
 		/*) command="${ROOT_DIR}/configure";;
 		*) command="../${ROOT_DIR}/configure";;
 	esac
+
+	if [ $compiler = "icc" -a "$arch" = "mic" ] ; then
+	    export CC="icc -mmic"
+	    export LD="icc -mmic"
+	fi
 
 	params="--enable-mic --with-coi-dir=$coi_dir --with-scif-dir=$scif_dir --prefix=$prefix/$arch"
 
