@@ -263,6 +263,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 		}
 	}
 
+	/* Dump entries in size order */
 	while (1)
 	{
 		last = minimum;
