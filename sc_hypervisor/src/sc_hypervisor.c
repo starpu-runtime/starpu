@@ -99,6 +99,25 @@ static struct sc_hypervisor_policy *_find_hypervisor_policy_from_name(const char
 	return NULL;
 }
 
+static void display_sched_help_message(void)
+{
+	const char* policy_name = getenv("SC_HYPERVISOR_POLICY");
+	if (policy_name && (strcmp(policy_name, "help") == 0))
+	{
+		fprintf(stderr, "SC_HYPERVISOR_POLICY can be either of\n");
+		/* display the description of all predefined policies */
+		unsigned i;
+		for (i = 0; i < sizeof(predefined_policies)/sizeof(predefined_policies[0]); i++)
+		{
+			struct sc_hypervisor_policy *p = predefined_policies[i];
+			if (p->name)
+			{
+				fprintf(stderr, "%s\n", p->name);
+			}
+		}
+	}
+}
+
 static struct sc_hypervisor_policy *_select_hypervisor_policy(struct sc_hypervisor_policy* hypervisor_policy)
 {
 	struct sc_hypervisor_policy *selected_policy = NULL;
@@ -132,7 +151,10 @@ static struct sc_hypervisor_policy *_select_hypervisor_policy(struct sc_hypervis
 
 /* initializez the performance counters that starpu will use to retrive hints for resizing */
 struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hypervisor_policy *hypervisor_policy)
-{
+{	
+/* Perhaps we have to display some help */
+	display_sched_help_message();
+
 	hypervisor.min_tasks = 0;
 	hypervisor.nsched_ctxs = 0;
 	char* vel_gap = getenv("SC_HYPERVISOR_MAX_SPEED_GAP");
