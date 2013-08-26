@@ -224,12 +224,12 @@ starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const
 	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for write failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
-	ssize_t nb = write (tmp->descriptor, buf, size);
+	write (tmp->descriptor, buf, size);
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: size %lu got errno %d", (unsigned long) size, errno);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 
-	return nb;
+	return 0;
 }
 
 

@@ -258,9 +258,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		void *ptr;
 		ptr = starpu_data_handle_to_pointer(child, 0);
 		if (ptr != NULL)
-		{
 			_starpu_data_register_ram_pointer(child, ptr);
-		}
 	}
 	/* now let the header */
 	_starpu_spin_unlock(&initial_handle->header_lock);

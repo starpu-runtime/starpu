@@ -289,7 +289,8 @@ static void gflops_rate_resize(unsigned sched_ctx)
 	}
 }
 
-static void gflops_rate_handle_poped_task(unsigned sched_ctx, int worker)
+static void gflops_rate_handle_poped_task(unsigned sched_ctx, __attribute__((unused)) int worker, 
+					  __attribute__((unused))struct starpu_task *task, __attribute__((unused))uint32_t footprint)
 {
 	gflops_rate_resize(sched_ctx);
 }

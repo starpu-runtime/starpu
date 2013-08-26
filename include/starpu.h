@@ -140,6 +140,7 @@ void starpu_topology_print(FILE *f);
 int starpu_asynchronous_copy_disabled(void);
 int starpu_asynchronous_cuda_copy_disabled(void);
 int starpu_asynchronous_opencl_copy_disabled(void);
+int starpu_asynchronous_mic_copy_disabled(void);
 
 void starpu_display_stats();
 

@@ -29,6 +29,7 @@
 
 void _starpu_scc_src_mp_deinit();
 
+void (*_starpu_scc_src_get_kernel_from_job(const struct _starpu_mp_node *,struct _starpu_job *j))(void);
 int _starpu_scc_src_register_kernel(starpu_scc_func_symbol_t *symbol, const char *func_name);
 starpu_scc_kernel_t _starpu_scc_src_get_kernel(starpu_scc_func_symbol_t symbol);
 

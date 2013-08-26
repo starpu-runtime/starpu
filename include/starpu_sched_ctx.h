@@ -50,6 +50,47 @@ void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids);
 
+unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id);
+
+unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2);
+
+unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id);
+
+unsigned starpu_sched_ctx_contains_type_of_worker(enum starpu_worker_archtype arch, unsigned sched_ctx_id);
+
+unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid);
+
+unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id);
+
+void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id);
+
+int starpu_sched_get_min_priority(void);
+
+int starpu_sched_get_max_priority(void);
+
+int starpu_sched_set_min_priority(int min_prio);
+
+int starpu_sched_set_max_priority(int max_prio);
+
+int starpu_sched_ctx_get_min_priority(unsigned sched_ctx_id);
+
+int starpu_sched_ctx_get_max_priority(unsigned sched_ctx_id);
+
+int starpu_sched_ctx_set_min_priority(unsigned sched_ctx_id, int min_prio);
+
+int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio);
+
+#define STARPU_MIN_PRIO		(starpu_sched_get_min_priority())
+#define STARPU_MAX_PRIO		(starpu_sched_get_max_priority())
+
+#define STARPU_DEFAULT_PRIO	0
+
+struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type);
+
+void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
+
+struct starpu_worker_collection *starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
+
 struct starpu_sched_ctx_performance_counters
 {
 	void (*notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time);
@@ -74,51 +115,6 @@ void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
 
 void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
 
-
-struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type);
-
-void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
-
-struct starpu_worker_collection *starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
-
-unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id);
-
-unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2);
-
-unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id);
-
-unsigned starpu_sched_ctx_contains_type_of_worker(enum starpu_worker_archtype arch, unsigned sched_ctx_id);
-
-unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid);
-
-unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id);
-
-void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id);
-
-double starpu_sched_ctx_get_max_time_worker_on_ctx(void);
-
-int starpu_sched_get_min_priority(void);
-
-int starpu_sched_get_max_priority(void);
-
-int starpu_sched_set_min_priority(int min_prio);
-
-int starpu_sched_set_max_priority(int max_prio);
-
-int starpu_sched_ctx_get_min_priority(unsigned sched_ctx_id);
-
-int starpu_sched_ctx_get_max_priority(unsigned sched_ctx_id);
-
-int starpu_sched_ctx_set_min_priority(unsigned sched_ctx_id, int min_prio);
-
-int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio);
-
-#define STARPU_MIN_PRIO		(starpu_sched_get_min_priority())
-#define STARPU_MAX_PRIO		(starpu_sched_get_max_priority())
-
-#define STARPU_DEFAULT_PRIO	0
-
-/* execute any parallel code on the workers of the sched_ctx (workers are blocked) */
 void *starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void *param, unsigned sched_ctx_id);
 
 #ifdef __cplusplus

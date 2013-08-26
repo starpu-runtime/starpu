@@ -29,8 +29,8 @@ struct _starpu_peager_data
         starpu_pthread_mutex_t policy_mutex;
 };
 
-#define STARPU_NMAXCOMBINED_WORKERS 10
-/* XXX instead of 10, we should use some "MAX combination .."*/
+#define STARPU_NMAXCOMBINED_WORKERS 520 
+/* instead of STARPU_NMAXCOMBINED_WORKERS, we should use some "MAX combination .."*/
 static int possible_combinations_cnt[STARPU_NMAXWORKERS];
 static int possible_combinations[STARPU_NMAXWORKERS][STARPU_NMAXCOMBINED_WORKERS];
 static int possible_combinations_size[STARPU_NMAXWORKERS][STARPU_NMAXCOMBINED_WORKERS];
@@ -42,15 +42,11 @@ static int possible_combinations_size[STARPU_NMAXWORKERS][STARPU_NMAXCOMBINED_WO
 
 static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
+	_starpu_sched_find_worker_combinations(workerids, nworkers);
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned nbasic_workers = starpu_worker_get_count();
-		
-	_starpu_sched_find_worker_combinations(workerids, nworkers);
-
+	unsigned ncombined_workers= starpu_combined_worker_get_count();
 	unsigned workerid, i;
-	unsigned ncombinedworkers;
-
-	ncombinedworkers = starpu_combined_worker_get_count();
 
 	/* Find the master of each worker. We first assign the worker as its
 	 * own master, and then iterate over the different worker combinations
@@ -67,7 +63,7 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 	}
 
 
-	for (i = 0; i < ncombinedworkers; i++)
+	for (i = 0; i < ncombined_workers; i++)
 	{
 		workerid = nbasic_workers + i;
 
@@ -77,19 +73,16 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 		starpu_combined_worker_get_description(workerid, &size, &workers);
 
 		int master = workers[0];
-
 		int j;
 		for (j = 0; j < size; j++)
 		{
 			if (data->master_id[workers[j]] > master)
 				data->master_id[workers[j]] = master;
-
 			int cnt = possible_combinations_cnt[workers[j]]++;
 			possible_combinations[workers[j]][cnt] = workerid;
 			possible_combinations_size[workers[j]][cnt] = size;
 		}
 	}
-
 
 	for(i = 0; i < nworkers; i++)
 	{
@@ -176,9 +169,11 @@ static int push_task_peager_policy(struct starpu_task *task)
 	{
 		worker = workers->get_next(workers, &it);
 		int master = data->master_id[worker];
-		/* If this is not a CPU, then the worker simply grabs tasks from the fifo */
-		if ((!starpu_worker_is_combined_worker(worker) && starpu_worker_get_type(worker) != STARPU_CPU_WORKER)
-		    || (master == worker))
+		/* If this is not a CPU or a MIC, then the worker simply grabs tasks from the fifo */
+		if ((!starpu_worker_is_combined_worker(worker) && 
+		    starpu_worker_get_type(worker) != STARPU_MIC_WORKER &&
+		    starpu_worker_get_type(worker) != STARPU_CPU_WORKER)  
+			|| (master == worker))
 		{
 			starpu_pthread_mutex_t *sched_mutex;
 			starpu_pthread_cond_t *sched_cond;
@@ -198,8 +193,8 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 
 	int workerid = starpu_worker_get_id();
 
-	/* If this is not a CPU, then the worker simply grabs tasks from the fifo */
-	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER)
+	/* If this is not a CPU or a MIC, then the worker simply grabs tasks from the fifo */
+	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER && starpu_worker_get_type(workerid) != STARPU_MIC_WORKER)
 	{
 		struct starpu_task *task = NULL;
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
@@ -210,6 +205,9 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 	}
 
 	int master = data->master_id[workerid];
+
+	//_STARPU_DEBUG("workerid:%d, master:%d\n",workerid,master);
+
 
 	if (master == workerid)
 	{
@@ -248,9 +246,9 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 		/* Is this a basic worker or a combined worker ? */
 		int nbasic_workers = (int)starpu_worker_get_count();
 		int is_basic_worker = (best_workerid < nbasic_workers);
-
 		if (is_basic_worker)
 		{
+
 			/* The master is alone */
 			return task;
 		}

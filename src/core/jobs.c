@@ -129,9 +129,12 @@ void _starpu_wait_job(struct _starpu_job *j)
 	 * way, _starpu_wait_job won't return until the entire task was really
 	 * executed (so that we cannot destroy the task while it is still being
 	 * manipulated by the driver). */
-	while (j->terminated != 2)
-		STARPU_PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
 
+	while (j->terminated != 2)
+	{
+		STARPU_PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
+	}
+	
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
         _STARPU_LOG_OUT();
 }
@@ -281,7 +284,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event)
 		{
-			int64_t AYU_data[2] = {j->exclude_from_dag?-1:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
+			int64_t AYU_data[2] = {j->exclude_from_dag?0:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
 			AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
 		}
 #endif

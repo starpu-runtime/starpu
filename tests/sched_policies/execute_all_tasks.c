@@ -26,7 +26,7 @@
 
 #define NTASKS           8
 
-static void
+void
 dummy(void *buffers[], void *args)
 {
 	(void) buffers;
@@ -50,6 +50,7 @@ run(struct starpu_sched_policy *p)
 	struct starpu_codelet cl =
 	{
 		.cpu_funcs    = {dummy, NULL},
+		.cpu_funcs_name = {"dummy", NULL},
 		.cuda_funcs   = {dummy, NULL},
 		.opencl_funcs = {dummy, NULL},
 		.nbuffers     = 0

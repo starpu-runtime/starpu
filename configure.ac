@@ -344,11 +344,6 @@ if test x$enable_cpu = xyes; then
 	AC_DEFINE(STARPU_USE_CPU, [1], [CPU driver is activated])
 fi
 
-# How many parallel worker can we support ?
-nmaxcombinedworkers=`expr 2 \* $maxcpus`
-AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
-	[$nmaxcombinedworkers], [Maximum number of worker combinations])
-
 ###############################################################################
 #                                                                             #
 #                                 CUDA settings                               #
@@ -969,7 +964,7 @@ AC_DEFINE_UNQUOTED(STARPU_MAXMICDEVS, [$nmaxmicdev],
 AC_MSG_CHECKING(maximum number of MIC threads)
 AC_ARG_ENABLE(maxmicthreads, [AS_HELP_STRING([--enable-maxmicthreads=<number>],
 			[maximum number of MIC threads])],
-			nmaxmicthreads=$enableval, nmaxmicthreads=128)
+			nmaxmicthreads=$enableval, nmaxmicthreads=940)
 AC_MSG_RESULT($nmaxmicthread)
 
 AC_DEFINE_UNQUOTED(STARPU_MAXMICCORES, [$nmaxmicthreads],
@@ -998,7 +993,6 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
     __coi_dir=$1
     __coi_include_dir=$2
     __coi_lib_dir=$3
-    __coi_lib_name=$4
 
     if test "$__coi_dir" != "no" -a "$__coi_dir" != "" ; then
 	AC_MSG_CHECKING(whether MIC's COI runtime is available in $__coi_dir)
@@ -1027,14 +1021,14 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
     AC_CHECK_HEADER([source/COIEngine_source.h],[have_valid_coi=yes],[have_valid_coi=no])
 
     if test "$have_valid_coi" = "yes" ; then
-	AC_HAVE_LIBRARY([$__coi_lib_name],[have_valid_coi=yes],[have_valid_coi=no])
+	AC_HAVE_LIBRARY([$4],[have_valid_coi=yes],[have_valid_coi=no])
 
         if test "$have_valid_coi" = "no" ; then
             if test "$3" = "no" -a "$__coi_dir" != "no" ; then
 		# ${__coi_dir}/lib didn't work, let's try with lib64
                 __coi_lib_dir="$__coi_dir/lib64"
 		LDFLAGS="${SAVED_LDFLAGS} -L$__coi_lib_dir"
-	        AC_HAVE_LIBRARY([$__coi_lib_name],[have_valid_coi=yes],[have_valid_coi=no])
+	        AC_HAVE_LIBRARY([$4],[have_valid_coi=yes],[have_valid_coi=no])
             fi
         fi
     fi
@@ -1043,8 +1037,89 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
         STARPU_COI_CPPFLAGS="-I$__coi_include_dir"
     fi
 
-    if test "$have_valid_coi" = "yes" -a "$__coi_lib_dir" != "no"; then
-        STARPU_COI_LDFLAGS="-L$__coi_lib_dir -l$__coi_lib_name"
+    if test "$have_valid_coi" = "yes" ; then
+        if test "$__coi_lib_dir" != "no"; then
+	    STARPU_COI_LDFLAGS="-L$__coi_lib_dir"
+        fi
+	STARPU_COI_LDFLAGS="${STARPU_COI_LDFLAGS} -l$4"
+    fi
+
+    CPPFLAGS="${SAVED_CPPFLAGS}"
+    LDFLAGS="${SAVED_LDFLAGS}"
+])
+
+AC_ARG_WITH(scif-dir,
+	[AS_HELP_STRING([--with-scif-dir=<path>],
+	[specify the MIC's SCIF installation directory])],
+	[scif_dir="$withval"],
+	[scif_dir=no])
+
+AC_ARG_WITH(scif-include-dir,
+	[AS_HELP_STRING([--with-scif-include-dir=<path>],
+	[specify where the MIC's SCIF headers are installed])],
+	[scif_include_dir="$withval"],
+	[scif_include_dir=no])
+
+AC_ARG_WITH(scif-lib-dir,
+	[AS_HELP_STRING([--with-scif-lib-dir=<path>],
+	[specify where the MIC's SCIF libraries are installed])],
+	[scif_lib_dir="$withval"],
+	[scif_lib_dir=no])
+
+AC_DEFUN([STARPU_CHECK_SCIF_RUNTIME],
+[
+    __scif_dir=$1
+    __scif_include_dir=$2
+    __scif_lib_dir=$3
+
+    if test "$__scif_dir" != "no" -a "$__scif_dir" != "" ; then
+	AC_MSG_CHECKING(whether MIC's SCIF runtime is available in $__scif_dir)
+    else
+	AC_MSG_CHECKING(whether MIC's SCIF runtime is available)
+    fi
+    AC_MSG_RESULT()
+
+    if test "$__scif_include_dir" = "no" -a "$__scif_dir" != "no" ; then
+        __scif_include_dir="${__scif_dir}/include"
+    fi
+    if test "$__scif_lib_dir" = "no" -a "$__scif_dir" != "no" ; then
+        __scif_lib_dir="${__scif_dir}/lib"
+    fi
+
+    SAVED_CPPFLAGS="$CPPFLAGS"
+    SAVED_LDFLAGS="$LDFLAGS"
+
+    if test "$__scif_include_dir" != "no" ; then
+        CPPFLAGS="${CPPFLAGS} -I$__scif_include_dir"
+    fi
+    if test "$__scif_lib_dir" != "no" ; then
+	LDFLAGS="${LDFLAGS} -L$__scif_lib_dir"
+    fi
+
+#    AC_CHECK_HEADER([source/SCIFEngine_source.h],[have_valid_scif=yes],[have_valid_scif=no])
+
+#    if test "$have_valid_scif" = "yes" ; then
+	AC_HAVE_LIBRARY([scif],[have_valid_scif=yes],[have_valid_scif=no])
+
+        if test "$have_valid_scif" = "no" ; then
+            if test "$3" = "no" -a "$__scif_dir" != "no" ; then
+		# ${__scif_dir}/lib didn't work, let's try with lib64
+                __scif_lib_dir="$__scif_dir/lib64"
+		LDFLAGS="${SAVED_LDFLAGS} -L$__scif_lib_dir"
+	        AC_HAVE_LIBRARY([scif],[have_valid_scif=yes],[have_valid_scif=no])
+            fi
+        fi
+#    fi
+
+    if test "$have_valid_scif" = "yes" -a "$__scif_include_dir" != "no"; then
+        STARPU_SCIF_CPPFLAGS="-I$__scif_include_dir"
+    fi
+
+    if test "$have_valid_scif" = "yes" ; then
+        if test "$__scif_lib_dir" != "no"; then
+	    STARPU_SCIF_LDFLAGS="-L$__scif_lib_dir"
+        fi
+	STARPU_SCIF_LDFLAGS="${STARPU_SCIF_LDFLAGS} -lscif"
     fi
 
     CPPFLAGS="${SAVED_CPPFLAGS}"
@@ -1053,20 +1128,27 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
 
 if test x$enable_mic = xyes ; then
 
-    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, "coi_host")
+    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_host)
 
     # Host runtime is not compatible, we are probably cross-compiling
     # Let's have a look for the device runtime which lib has a different name
     if test "$have_valid_coi" = "no" ; then
-	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, "coi_device")
+	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_device)
     fi
+
+    STARPU_CHECK_SCIF_RUNTIME($scif_dir, $scif_include_dir, $scif_lib_dir)
 
     if test "$have_valid_coi" = "no" ; then
 	AC_MSG_ERROR([cannot find MIC's COI runtime])
     fi
+    if test "$have_valid_scif" = "no" ; then
+	AC_MSG_ERROR([cannot find MIC's SCIF runtime])
+    fi
 
     AC_SUBST(STARPU_COI_CPPFLAGS)
     AC_SUBST(STARPU_COI_LDFLAGS)
+    AC_SUBST(STARPU_SCIF_CPPFLAGS)
+    AC_SUBST(STARPU_SCIF_LDFLAGS)
 fi
 
 ###############################################################################
@@ -1477,6 +1559,15 @@ nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmi
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
+
+# Computes the maximun number of combined worker
+nmaxcombinedworkers=`expr $maxcpus + $nmaxmicthreads`  
+AC_MSG_CHECKING(Maximum number of workers combinations)
+AC_MSG_RESULT($nmaxcombinedworkers)
+AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
+	[$nmaxcombinedworkers], [Maximum number of worker combinations])
+
+
 
 # Computes the maximum number of implementations per arch
 AC_MSG_CHECKING(maximum number of implementations)

@@ -51,8 +51,8 @@ lib_LTLIBRARIES = libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ $(STARPU_RCCE_CPPFLAGS) -DBUILDING_STARPU
 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_RCCE_CFLAGS) $(FXT_CFLAGS)
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_RCCE_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS) $(STARPU_LEVELDB_LDFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(STARPU_RCCE_CFLAGS) $(FXT_CFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(STARPU_RCCE_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS) $(STARPU_LEVELDB_LDFLAGS)
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) $(FXT_LDFLAGS) -no-undefined									\
   -version-info $(libstarpu_so_version)
 
@@ -66,6 +66,7 @@ noinst_HEADERS = 						\
 	core/progress_hook.h                                    \
 	core/sched_policy.h					\
 	core/sched_ctx.h					\
+	core/sched_ctx_list.h					\
 	core/perfmodel/perfmodel.h				\
 	core/perfmodel/regression.h				\
 	core/jobs.h						\
@@ -170,6 +171,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/sched_policy.c					\
 	core/simgrid.c						\
 	core/sched_ctx.c					\
+	core/sched_ctx_list.c					\
 	core/parallel_task.c					\
 	core/detect_combined_workers.c				\
 	sched_policies/eager_central_policy.c			\

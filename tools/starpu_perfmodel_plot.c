@@ -163,7 +163,7 @@ static void parse_args(int argc, char **argv)
 	if (!symbol && !list)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
-                usage(argv);
+                usage();
 		exit(-1);
 	}
 
@@ -263,6 +263,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 		}
 	}
 
+	/* Dump entries in size order */
 	while (1)
 	{
 		last = minimum;

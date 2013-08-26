@@ -60,78 +60,39 @@ static void _starpu_scc_src_deinit_context(int devid)
 
 	_starpu_mp_common_node_destroy(scc_mp_nodes[devid]);
 }
-
-static int _starpu_scc_src_execute_job(struct _starpu_job *j, struct _starpu_worker *args)
+void (*_starpu_scc_src_get_kernel_from_job(const struct _starpu_mp_node *,struct _starpu_job *j))(void)
 {
-	int ret;
-	uint32_t mask = 0;
+  starpu_scc_kernel_t kernel = NULL;
 
-	STARPU_ASSERT(j);
-	struct starpu_task *task = j->task;
-
-	struct timespec codelet_start, codelet_end;
-
-	int profiling = starpu_profiling_status_get();
-	unsigned calibrate_model = 0;
-
-	STARPU_ASSERT(task);
-	struct starpu_codelet *cl = task->cl;
-	STARPU_ASSERT(cl);
-
-	if (cl->model && cl->model->benchmarking)
-		calibrate_model = 1;
-
-	ret = _starpu_fetch_task_input(j, mask);
-	if (ret != 0)
+  starpu_scc_func_t func = _starpu_task_get_scc_nth_implementation(j->task->cl, j->nimpl);
+  if (func)
+    {
+      /* We execute the function contained in the codelet, it must return a
+       * pointer to the function to execute on the device, either specified
+       * directly by the user or by a call to starpu_scc_get_kernel().
+       */
+      kernel = func();
+    }
+  else
+    {
+      /* If user doesn't define any starpu_scc_func_t in cl->scc_funcs we try to use
+       * cpu_funcs_name.
+       */
+      char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
+      if (func_name)
 	{
-		/* there was not enough memory, so the input of
-		 * the codelet cannot be fetched ... put the
-		 * codelet back, and try it later */
-		return -EAGAIN;
+	  starpu_scc_func_symbol_t symbol;
+
+	  _starpu_scc_src_register_kernel(&symbol, func_name);
+
+	  kernel = _starpu_scc_src_get_kernel(symbol);
 	}
+    }
+  STARPU_ASSERT(kernel);  
 
-
-	starpu_scc_kernel_t kernel = NULL;
-
-	starpu_scc_func_t func = _starpu_task_get_scc_nth_implementation(j->task->cl, j->nimpl);
-	if (func)
-	{
-		/* We execute the function contained in the codelet, it must return a
-		 * pointer to the function to execute on the device, either specified
-		 * directly by the user or by a call to starpu_scc_get_kernel().
-		 */
-		kernel = func();
-	}
-	else
-	{
-		/* If user doesn't define any starpu_scc_func_t in cl->scc_funcs we try to use
-		 * cpu_funcs_name.
-		 */
-		char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
-		if (func_name)
-		{
-			starpu_scc_func_symbol_t symbol;
-
-			_starpu_scc_src_register_kernel(&symbol, func_name);
-
-			kernel = _starpu_scc_src_get_kernel(symbol);
-		}
-	}
-	STARPU_ASSERT(kernel);
-
-	_starpu_driver_start_job(args, j, &codelet_start, 0, profiling);
-
-	_starpu_src_common_execute_kernel_from_task(scc_mp_nodes[args->devid], (void (*)(void)) kernel, 0, task);
-
-	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0, profiling);
-
-	_starpu_driver_update_job_feedback(j, args, args->perf_arch, &codelet_start, &codelet_end, profiling);
-
-	_starpu_push_task_output(j, mask);
-
-
-	return 0;
+  return (void (*)(void))kernel;
 }
+
 
 void _starpu_scc_src_mp_deinit()
 {
@@ -320,7 +281,7 @@ int _starpu_scc_copy_sink_to_sink(void *src, unsigned src_node, void *dst, unsig
 
 void *_starpu_scc_src_worker(void *arg)
 {
-	struct _starpu_worker *args = arg;
+	struct _starpu_worker_set *args = arg;
 
 	int devid = args->devid;
 	int workerid = args->workerid;
@@ -350,63 +311,9 @@ void *_starpu_scc_src_worker(void *arg)
 	STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
-	struct _starpu_job * j;
-	struct starpu_task *task;
-	int res;
-
-	while (_starpu_machine_is_running())
-	{
-		_STARPU_TRACE_START_PROGRESS(memnode);
-		_starpu_datawizard_progress(memnode, 1);
-		_STARPU_TRACE_END_PROGRESS(memnode);
-
-		task = _starpu_get_worker_task(args, workerid, memnode);
-		if (!task)
-			continue;
-
-		j = _starpu_get_job_associated_to_task(task);
-
-		/* can a SCC device do that task ? */
-		if (!_STARPU_SCC_MAY_PERFORM(j))
-		{
-			/* this isn't a SCC task */
-			_starpu_push_task_to_workers(task);
-			continue;
-		}
-
-		_starpu_set_current_task(task);
-		args->current_task = j->task;
-
-		res = _starpu_scc_src_execute_job(j, args);
-
-		_starpu_set_current_task(NULL);
-		args->current_task = NULL;
-
-		if (res)
-		{
-			switch (res)
-			{
-				case -EAGAIN:
-					_STARPU_DISP("ouch, SCC could not actually run task %p, putting it back...\n", task);
-					_starpu_push_task_to_workers(task);
-					STARPU_ABORT();
-					continue;
-				default:
-					STARPU_ASSERT(0);
-			}
-		}
-
-		_starpu_handle_job_termination(j);
-	}
+	_starpu_src_common_worker(args, baseworkerid, scc_mp_nodes[mp_nodeid]);
 
 	_STARPU_TRACE_WORKER_DEINIT_START;
-
-	_starpu_handle_all_pending_node_data_requests(memnode);
-
-	/* In case there remains some memory that was automatically
-	 * allocated by StarPU, we release it now. Note that data
-	 * coherency is not maintained anymore at that point ! */
-	_starpu_free_all_automatically_allocated_buffers(memnode);
 
 	_starpu_scc_src_deinit_context(args->devid);
 

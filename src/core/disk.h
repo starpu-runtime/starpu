@@ -28,6 +28,8 @@ extern "C"
 {
 #endif
 
+#include <datawizard/copy_driver.h>
+
 /* interface to manipulate memory disk */
 void * _starpu_disk_alloc (unsigned node, size_t size);
 

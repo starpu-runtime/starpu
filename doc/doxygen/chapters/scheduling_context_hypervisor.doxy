@@ -10,8 +10,8 @@
 
 \section WhatIsTheHypervisor What Is The Hypervisor
 
-StarPU proposes a platform for constructing Scheduling Contexts, for
-deleting and modifying them dynamically. A parallel kernel, can thus
+StarPU proposes a platform to construct Scheduling Contexts, to
+delete and modify them dynamically. A parallel kernel, can thus
 be isolated into a scheduling context and interferences between
 several parallel kernels are avoided. If the user knows exactly how
 many workers each scheduling context needs, he can assign them to the
@@ -31,11 +31,11 @@ platform for implementing additional custom ones is available.
 
 \section StartTheHypervisor Start the Hypervisor
 
-The Hypervisor must be initialised once at the beging of the
+The Hypervisor must be initialized once at the beginning of the
 application. At this point a resizing policy should be indicated. This
 strategy depends on the information the application is able to provide
 to the hypervisor as well as on the accuracy needed for the resizing
-procedure. For exemple, the application may be able to provide an
+procedure. For example, the application may be able to provide an
 estimation of the workload of the contexts. In this situation the
 hypervisor may decide what resources the contexts need. However, if no
 information is provided the hypervisor evaluates the behavior of the
@@ -46,17 +46,25 @@ The hypervisor resizes only the registered contexts.
 
 The runtime provides the hypervisor with information concerning the
 behavior of the resources and the application. This is done by using
-the performance_counters, some callbacks indicating when the resources
-are idle or not efficient, when the application submits tasks or when
-it becames to slow.
+the <c>performance_counters</c> which represent callbacks indicating 
+when the resources are idle or not efficient, when the application 
+submits tasks or when it becomes to slow.
 
 \section TriggerTheHypervisor Trigger the Hypervisor
 
-The resizing is triggered either when the application requires it or
+The resizing is triggered either when the application requires it 
+(<c> sc_hypervisor_resize_ctxs </c>) or
 when the initials distribution of resources alters the performance of
-the application( the application is to slow or the resource are idle
-for too long time, threashold indicated by the user). When this
-happens different resizing strategy are applied that target minimising
+the application (the application is to slow or the resource are idle
+for too long time). If the environment 
+variable <c>SC_HYPERVISOR_TRIGGER_RESIZE</c> is set to <c>speed</c> 
+the monitored speed of the contexts is compared to a theoretical value
+computed with a linear program, and the resizing is triggered
+whenever the two values do not correspond. Otherwise, if the environment 
+variable is set to <c>idle</c> the hypervisor triggers the resizing algorithm
+whenever the workers are idle for a period longer than the threshold 
+indicated by the programmer. When this
+happens different resizing strategy are applied that target minimizing
 the total execution of the application, the instant speed or the idle
 time of the resources.
 
@@ -100,8 +108,7 @@ sc_hypervisor_ctl(sched_ctx,
 \endcode
 
 
-The <b>Idleness</b> based strategy resizes the scheduling contexts every time one of their workers stays idle
-for a period longer than the one imposed by the user
+The <b>Idleness</b> based strategy moves workers unused in a certain context to another one needing them.
 (see \ref UsersInputInTheResizingProcess "Users’ Input In The Resizing Process")
 
 \code{.c}
@@ -114,7 +121,7 @@ sc_hypervisor_ctl(sched_ctx_id,
 \endcode
 
 The <b>Gflops rate</b> based strategy resizes the scheduling contexts such that they all finish at the same time.
-The speed of each of them is considered and once one of them is significantly slower the resizing process is triggered.
+The speed of each of them is computed and once one of them is significantly slower the resizing process is triggered.
 In order to do these computations the user has to input the total number of instructions needed to be executed by the
 parallel kernels and the number of instruction to be executed by each
 task.
@@ -141,5 +148,48 @@ starpu_insert_task(&codelet,
                     STARPU_FLOPS, (double) 100,
                     0);
 \endcode
+
+The <b>Feft</b> strategy uses a linear program to predict the best distribution of resources
+such that the application finishes in a minimum amount of time. As for the <b>Gflops rate </b>
+strategy the programmers has to indicate the total number of flops to be executed
+when registering the context. This number of flops may be updated dynamically during the execution
+of the application whenever this information is not very accurate from the beginning.
+The function <c>sc_hypervisor_update_diff_total_flop </c> is called in order add or remove
+a difference to the flops left to be executed.
+Tasks are provided also the number of flops corresponding to each one of them. During the 
+execution of the application the hypervisor monitors the consumed flops and recomputes
+the time left and the number of resources to use. The speed of each type of resource
+is (re)evaluated and inserter in the linear program in order to better adapt to the 
+needs of the application.
+
+The <b>Teft</b> strategy uses a linear program too, that considers all the types of tasks
+and the number of each of them and it tries to allocates resources such that the application
+finishes in a minimum amount of time. A previous calibration of StarPU would be useful
+in order to have good predictions of the execution time of each type of task.
+
+The types of tasks may be determines directly by the hypervisor when they are submitted.
+However there are applications that do not expose all the graph of tasks from the beginning.
+In this case in order to let the hypervisor know about all the tasks the function
+<c> sc_hypervisor_set_type_of_task </c> will just inform the hypervisor about future tasks
+without submitting them right away.
+
+The <b>Ispeed </b> strategy divides the execution of the application in several frames.
+For each frame the hypervisor computes the speed of the contexts and tries making them
+run at the same speed. The strategy requires less contribution from the user as
+the hypervisor requires only the size of the frame in terms of flops.
+
+\code{.c}
+int workerids[3] = {1, 3, 10};
+int workerids2[9] = {0, 2, 4, 5, 6, 7, 8, 9, 11};
+sc_hypervisor_ctl(sched_ctx_id,
+                  SC_HYPERVISOR_ISPEED_W_SAMPLE, workerids, 3, 2000000000.0,
+                  SC_HYPERVISOR_ISPEED_W_SAMPLE, workerids2, 9, 200000000000.0,
+                  SC_HYPERVISOR_ISPEED_CTX_SAMPLE, 60000000000.0,
+            NULL);
+\endcode
+
+The <b>Throughput </b> strategy focuses on maximizing the throughput of the resources
+and resizes the contexts such that the machine is running at its maximum efficiency
+(maximum instant speed of the workers).
 
 */

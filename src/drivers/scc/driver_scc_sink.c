@@ -16,6 +16,7 @@
 
 
 #include <RCCE.h>
+#include <dlfcn.h>
 
 #include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/sink_common.h>
@@ -27,6 +28,23 @@
 void _starpu_scc_sink_init(struct _starpu_mp_node *node)
 {
 	node->mp_connection.scc_nodeid = _starpu_scc_common_get_src_node_id();
+
+	/****************
+	 *     TODO     *
+	 * get nb_cores *
+	 ****************/
+	node->nb_cores = 1; 
+	STARPU_ASSERT(0);
+
+}
+
+void _starpu_scc_sink_launch_workers(struct _starpu_mp_node *node)
+{
+	/*****************
+	 *     TODO      *
+	 * init thread   *
+	 *****************/
+	STARPU_ASSERT(0);
 }
 
 void _starpu_scc_sink_deinit(struct _starpu_mp_node *node)
@@ -50,6 +68,15 @@ void _starpu_scc_sink_recv_from_device(const struct _starpu_mp_node *node, int s
 	if ((ret = RCCE_recv(msg, len, STARPU_TO_SCC_SINK_ID(src_devid))) != RCCE_SUCCESS)
 		STARPU_MP_COMMON_REPORT_ERROR(node, ret);
 }
+
+void _starpu_scc_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, cpu_set_t * cpuset, int coreid, pthread_t *thread)
+{
+	/****************
+	 *     TODO     *
+	 ****************/
+	STARPU_ASSERT(0);
+}
+
 
 /* arg -> [Function pointer on sink, number of interfaces, interfaces
  * (union _starpu_interface), cl_arg]
@@ -124,3 +151,10 @@ void _starpu_scc_sink_execute(const struct _starpu_mp_node *node, void *arg, int
 
 	_starpu_sink_common_execute(node, arg, arg_size);
 }
+
+void (*_starpu_scc_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
+{
+	void *dl_handle = dlopen(NULL, RTLD_NOW);
+	return dlsym(dl_handle, func_name);
+}
+
