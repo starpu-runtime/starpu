@@ -51,7 +51,7 @@ else
     compiler="gcc"
 fi
 
-for arch in mic host
+for arch in host mic
 do
 	# We call the configure script from a build directory further in the
 	# arborescence
