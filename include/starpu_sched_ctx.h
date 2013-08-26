@@ -95,8 +95,6 @@ unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id);
 
-double starpu_sched_ctx_get_max_time_worker_on_ctx(void);
-
 int starpu_sched_get_min_priority(void);
 
 int starpu_sched_get_max_priority(void);

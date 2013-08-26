@@ -26,7 +26,6 @@ static starpu_pthread_mutex_t finished_submit_mutex = STARPU_PTHREAD_MUTEX_INITI
 struct starpu_task stop_submission_task = STARPU_TASK_INITIALIZER;
 starpu_pthread_key_t sched_ctx_key;
 unsigned with_hypervisor = 0;
-double max_time_worker_on_ctx = -1.0;
 
 static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *config);
 
@@ -718,10 +717,6 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 		config->sched_ctxs[i].id = STARPU_NMAX_SCHED_CTXS;
 
-	char* max_time_on_ctx = getenv("STARPU_MAX_TIME_ON_CTX");
-	if (max_time_on_ctx != NULL)
-		max_time_worker_on_ctx = atof(max_time_on_ctx);
-
 	return;
 }
 
@@ -1022,8 +1017,6 @@ unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 
 unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id)
 {
-	if(max_time_worker_on_ctx == -1.0) return 1;
-
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	return worker->active_ctx == sched_ctx_id;
 }
@@ -1051,11 +1044,6 @@ void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id)
 	{
 		_starpu_fetch_tasks_from_empty_ctx_list(active_sched_ctx);
 	}
-}
-
-double starpu_sched_ctx_get_max_time_worker_on_ctx(void)
-{
-	return max_time_worker_on_ctx;
 }
 
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor)
