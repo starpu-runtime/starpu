@@ -128,17 +128,6 @@ Return 1 if the worker belongs to the context and 0 otherwise
 \ingroup API_Scheduling_Contexts
 Check if a worker is shared between several contexts
 
-\fn unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id)
-\ingroup API_Scheduling_Contexts
-Manage sharing of resources between contexts: checkOB which ctx has
-its turn to pop.
-
-\fn void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id)
-\ingroup API_Scheduling_Contexts
-Manage sharing of resources between contexts: by default a round_robin
-strategy is executed but the user can interfere to tell which ctx has
-its turn to pop.
-
 @name Scheduling Context Priorities
 \ingroup API_Scheduling_Contexts
 

@@ -525,7 +525,7 @@ on the desktop machine.
 
 If the desktop machine does not have CUDA or OpenCL, StarPU is still able to
 use simgrid to simulate execution with CUDA/OpenCL devices, but the application
-source code will probably disable the CUDA and OpenCL codelets in that
+source code will probably disable the CUDA and OpenCL codelets in thatcd sc
 case. Since during simgrid execution, the functions of the codelet are actually
 not called, one can use dummy functions such as the following to still permit
 CUDA or OpenCL execution:
