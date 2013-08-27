@@ -301,7 +301,7 @@ already gives the good results that a precise estimation would give.
 The scheduling policies <c>heft</c>, <c>dmda</c> and <c>pheft</c>
 perform data prefetch (see \ref STARPU_PREFETCH):
 as soon as a scheduling decision is taken for a task, requests are issued to
-transfer its required data to the target processing unit, if needeed, so that
+transfer its required data to the target processing unit, if needed, so that
 when the processing unit actually starts the task, its data will hopefully be
 already available and it will not have to wait for the transfer to finish.
 

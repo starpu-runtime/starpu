@@ -16,7 +16,6 @@
 
 #include <sc_hypervisor_intern.h>
 #include <sc_hypervisor_policy.h>
-#include <common/uthash.h>
 #include <starpu_config.h>
 
 unsigned imposed_resize = 0;
