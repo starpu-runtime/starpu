@@ -171,10 +171,13 @@ The <b>heft</b> (heterogeneous earliest finish time) scheduler is deprecated. It
 is now just an alias for <b>dmda</b>.
 
 The <b>pheft</b> (parallel HEFT) scheduler is similar to heft, it also supports
-parallel tasks (still experimental).
+parallel tasks (still experimental). Should not be used when several contexts using
+it are being executed simultaneously.
 
 The <b>peager</b> (parallel eager) scheduler is similar to eager, it also
-supports parallel tasks (still experimental).
+supports parallel tasks (still experimental). Should not be used when several 
+contexts using it are being executed simultaneously.
+
 
 \section PerformanceModelCalibration Performance Model Calibration
 
