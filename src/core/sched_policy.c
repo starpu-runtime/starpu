@@ -302,7 +302,7 @@ static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struc
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
-		if (starpu_worker_can_execute_task(worker, task, 0) && starpu_sched_ctx_is_ctxs_turn(worker, sched_ctx->id))
+		if (starpu_worker_can_execute_task(worker, task, 0))
 			nworkers++;
 	}
 

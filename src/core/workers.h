@@ -90,11 +90,6 @@ struct _starpu_worker
        
 	unsigned has_prev_init; /* had already been inited in another ctx */
 
-	/* indicated in each ctx the workers can execute tasks on,
-	 used for overlapping ctx in order to determine on which 
-	ctx the worker is allowed to pop */
-	unsigned active_ctx;
-
 	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS];
 
 	/* conditions variables used when parallel sections are executed in contexts */

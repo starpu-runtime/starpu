@@ -39,7 +39,6 @@ static void _starpu_worker_gets_into_ctx(unsigned sched_ctx_id, struct _starpu_w
 		/* add context to worker */
 		_starpu_sched_ctx_list_add(&worker->sched_ctx_list, sched_ctx_id);
 		worker->nsched_ctxs++;
-		worker->active_ctx = sched_ctx_id;
 	}
 	worker->removed_from_ctx[sched_ctx_id] = 0;
 	return;
@@ -1013,37 +1012,6 @@ unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	return worker->nsched_ctxs > 1;
-}
-
-unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id)
-{
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	return worker->active_ctx == sched_ctx_id;
-}
-
-void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id)
-{
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-
-	struct _starpu_sched_ctx *other_sched_ctx = NULL;
-	struct _starpu_sched_ctx *active_sched_ctx = NULL;
-	struct _starpu_sched_ctx_list *l = NULL;
-        for (l = worker->sched_ctx_list; l; l = l->next)
-	{
-		other_sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
-		if(other_sched_ctx != NULL && other_sched_ctx->id != STARPU_NMAX_SCHED_CTXS &&
-		   other_sched_ctx->id != 0 && other_sched_ctx->id != sched_ctx_id)
-		{
-			worker->active_ctx = other_sched_ctx->id;
-			active_sched_ctx = other_sched_ctx;
-			break;
-		}
-	}
-
-	if(active_sched_ctx != NULL && worker->active_ctx != sched_ctx_id)
-	{
-		_starpu_fetch_tasks_from_empty_ctx_list(active_sched_ctx);
-	}
 }
 
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor)
