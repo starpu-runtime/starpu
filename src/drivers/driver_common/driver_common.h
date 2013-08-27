@@ -25,10 +25,10 @@
 
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j,
 			      struct timespec *codelet_start, int rank, int profiling);
-void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, enum starpu_perfmodel_archtype perf_arch,
+void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch,
 			    struct timespec *codelet_end, int rank, int profiling);
 void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker_args,
-					enum starpu_perfmodel_archtype perf_arch,
+					struct starpu_perfmodel_arch* perf_arch,
 					struct timespec *codelet_start, struct timespec *codelet_end, int profiling);
 
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode);

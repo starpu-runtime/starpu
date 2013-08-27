@@ -18,6 +18,7 @@
 #define SC_HYPERVISOR_H
 
 #include <starpu.h>
+#include <starpu_sched_ctx_hypervisor.h>
 #include <sc_hypervisor_config.h>
 #include <sc_hypervisor_monitoring.h>
 #include <math.h>
@@ -29,13 +30,6 @@ extern "C"
 
 /* synchronise the hypervisor when several workers try to update its information */
 starpu_pthread_mutex_t act_hypervisor_mutex;
-
-
-/* Forward declaration of an internal data structure
- * FIXME: Remove when no longer exposed.  */
-/* the resizing is not done instantly, a request is kept and executed 
-   when available */
-struct resize_request_entry;
 
 /* platform of resizing contexts */
 struct sc_hypervisor_policy
@@ -75,7 +69,7 @@ struct sc_hypervisor_policy
 };
 
 /* start the hypervisor indicating the resizing policy to user */
-struct starpu_sched_ctx_performance_counters *sc_hypervisor_init(struct sc_hypervisor_policy *policy);
+void* sc_hypervisor_init(struct sc_hypervisor_policy *policy);
 
 /* shutdown the hypervisor */
 void sc_hypervisor_shutdown(void);

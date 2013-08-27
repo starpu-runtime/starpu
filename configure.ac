@@ -1578,6 +1578,13 @@ AC_MSG_RESULT($maximplementations)
 AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
 		[maximum number of implementations])
 
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADERS([leveldb/db.h], [AC_DEFINE([STARPU_HAVE_LEVELDB], [1], [Define to 1 if you have the <leveldb/db.h> header file.])])
+STARPU_HAVE_LIBRARY(LEVELDB, [leveldb])
+AM_CONDITIONAL(STARPU_HAVE_LEVELDB, test "x$ac_cv_lib_leveldb_main" = "xyes")
+AC_LANG_POP([C++])
+
+
 ###############################################################################
 #                                                                             #
 #                                    MPI                                      #

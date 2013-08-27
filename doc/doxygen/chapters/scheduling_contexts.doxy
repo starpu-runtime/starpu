@@ -136,13 +136,14 @@ starpu_sched_ctx_delete(sched_ctx1);
 
 \section EmptyingAContext Emptying A Context
 
-A context may not have any resources at the begining or at a certain
+A context may have no resources at the begining or at a certain
 moment of the execution. Task can still be submitted to these contexts
-and they will execute them as soon as they will have resources. A list
+and they will be executed as soon as the contexts will have resources. A list
 of tasks pending to be executed is kept and when workers are added to
-the contexts the tasks are submitted. However, if no resources are
-allocated the program will not terminate. If these tasks have not much
-priority the programmer can forbid the application to submitted them
+the contexts these tasks start being submitted. However, if resources 
+are never allocated to the context the program will not terminate. 
+If these tasks have low
+priority the programmer can forbid the application to submit them
 by calling the function <c>starpu_sched_ctx_stop_task_submission()</c>.
 
 \section ContextsSharingWorkers Contexts Sharing Workers

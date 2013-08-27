@@ -550,4 +550,57 @@ end of the execution of an application (\ref DataStatistics).
 
 </dl>
 
+\section ConfiguringTheHypervisor Configuring The Hypervisor
+
+<dl>
+
+<dt>SC_HYPERVISOR_POLICY</dt>
+<dd>
+\anchor SC_HYPERVISOR_POLICY
+\addindex __env__SC_HYPERVISOR_POLICY
+Choose between the different resizing policies proposed by StarPU for the hypervisor: 
+idle, app_driven, feft_lp, teft_lp; ispeed_lp, throughput_lp etc.
+
+Use <c>SC_HYPERVISOR_POLICY=help</c> to get the list of available policies for the hypervisor
+</dd>
+
+<dt>SC_HYPERVISOR_TRIGGER_RESIZE</dt>
+<dd>
+\anchor SC_HYPERVISOR_TRIGGER_RESIZE
+\addindex __env__SC_HYPERVISOR_TRIGGER_RESIZE
+Choose how should the hypervisor be triggered: <c>speed</c> if the resizing algorithm should
+be called whenever the speed of the context does not correspond to an optimal precomputed value,
+<c>idle</c> it the resizing algorithm should be called whenever the workers are idle for a period
+longer than the value indicated when configuring the hypervisor.
+</dd>
+
+<dt>SC_HYPERVISOR_START_RESIZE</dt>
+<dd>
+\anchor SC_HYPERVISOR_START_RESIZE
+\addindex __env__SC_HYPERVISOR_START_RESIZE
+Indicate the moment when the resizing should be available. The value correspond to the percentage
+of the total time of execution of the application. The default value is the resizing frame.
+</dd>
+
+<dt>SC_HYPERVISOR_MAX_SPEED_GAP</dt>
+<dd>
+\anchor SC_HYPERVISOR_MAX_SPEED_GAP
+\addindex __env__SC_HYPERVISOR_MAX_SPEED_GAP
+Indicate the ratio of speed difference between contexts that should trigger the hypervisor.
+This situation may occur only when a theoretical speed could not be computed and the hypervisor
+has no value to compare the speed to. Otherwise the resizing of a context is not influenced by the 
+the speed of the other contexts, but only by the the value that a context should have.
+</dd>
+
+<dt>SC_HYPERVISOR_STOP_PRINT</dt>
+<dd>
+\anchor SC_HYPERVISOR_STOP_PRINT
+\addindex __env__SC_HYPERVISOR_STOP_PRINT
+By default the values of the speed of the workers is printed during the execution
+of the application. If the value 1 is given to this environment variable this printing
+is not done.
+
+</dd>
+
+</dl>
 */

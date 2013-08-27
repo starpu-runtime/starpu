@@ -33,12 +33,12 @@ extern "C"
 
 enum starpu_worker_archtype
 {
-	STARPU_ANY_WORKER,
 	STARPU_CPU_WORKER,
 	STARPU_CUDA_WORKER,
 	STARPU_OPENCL_WORKER,
 	STARPU_MIC_WORKER,
-	STARPU_SCC_WORKER
+	STARPU_SCC_WORKER,
+	STARPU_ANY_WORKER
 };
 
 struct starpu_sched_ctx_iterator

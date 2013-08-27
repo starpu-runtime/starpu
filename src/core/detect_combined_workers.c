@@ -248,11 +248,11 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	mic_id = malloc(sizeof(int)*nb_mics);
 	nmics_table = malloc(sizeof(unsigned)*nb_mics);
 	mic_workers = malloc(sizeof(int*)*nb_mics);
-	for(i=0; i<nb_mics; i++)
+	for(j=0; j<nb_mics; j++)
 	{
-		mic_id[i] = -1;
-		nmics_table[i] = 0;
-		mic_workers[i] = malloc(sizeof(int)*STARPU_NMAXWORKERS);
+		mic_id[j] = -1;
+		nmics_table[j] = 0;
+		mic_workers[j] = malloc(sizeof(int)*STARPU_NMAXWORKERS);
 	}
 #endif /* STARPU_USE_MIC */
 
@@ -292,13 +292,13 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	mic_min = starpu_get_env_number("STARPU_MIN_WORKERSIZE");
 	if (mic_min < 2)
 		mic_min = 2;
-	for(i=0; i<nb_mics; i++)
+	for(j=0; j<nb_mics; j++)
 	{
 		mic_max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
-		if (mic_max == -1 || mic_max > (int) nmics_table[i])
-			mic_max = nmics_table[i];
-		assign_combinations_without_hwloc(workers,mic_workers[i],nmics_table[i],mic_min,mic_max);
-		free(mic_workers[i]);
+		if (mic_max == -1 || mic_max > (int) nmics_table[j])
+			mic_max = nmics_table[j];
+		assign_combinations_without_hwloc(workers,mic_workers[j],nmics_table[j],mic_min,mic_max);
+		free(mic_workers[j]);
 	}
 	free(mic_id);
 	free(nmics_table);
@@ -325,7 +325,7 @@ static void combine_all_cpu_workers(int *workerids, int nworkers)
 	{
 		worker = _starpu_get_worker_struct(workerids[i]);
 
-		if (worker->perf_arch == STARPU_CPU_DEFAULT)
+		if (worker->arch == STARPU_CPU_WORKER)
 			cpu_workers[ncpus++] = workerids[i];
 	}
 

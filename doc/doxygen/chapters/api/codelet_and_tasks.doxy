@@ -649,6 +649,13 @@ starpu_task_submit() can be called from anywhere, including codelet
 functions and callbacks, provided that the field
 starpu_task::synchronous is set to 0.
 
+\fn int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id)
+\ingroup API_Codelet_And_Tasks
+This function submits a task to StarPU to the context <c> sched_ctx_id </c>.
+By default starpu_task_submit submits the task to a global context that is
+created automatically by StarPU.
+
+
 \fn int starpu_task_wait_for_all(void)
 \ingroup API_Codelet_And_Tasks
 This function blocks until all the tasks that were submitted

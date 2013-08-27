@@ -241,7 +241,7 @@ void construct_contexts(void (*bench)(float*, unsigned, unsigned))
 	struct sc_hypervisor_policy policy;
 	policy.custom = 0;
 	policy.name = "idle";
-	struct starpu_sched_ctx_performance_counters *perf_counters = sc_hypervisor_init(&policy);
+	void *perf_counters = sc_hypervisor_init(&policy);
 	int nworkers1 = cpu1 + gpu + gpu1;
 	int nworkers2 = cpu2 + gpu + gpu2;
 	unsigned n_all_gpus = gpu + gpu1 + gpu2;

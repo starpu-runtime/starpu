@@ -50,6 +50,9 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	 if(starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) < 2)
+		 return STARPU_TEST_SKIPPED;
+
 	starpu_task_init(&task);
 	task.cl = &cl;
 
@@ -66,12 +69,18 @@ int main(int argc, char **argv)
 		measured_fast = 0.002+size*0.00000001;
 		measured_slow = 0.001+size*0.0000001;
 
+		struct starpu_perfmodel_arch arch;
+		arch.type = STARPU_CUDA_WORKER;
+		arch.ncore = 0;
 		/* Simulate Fast GPU */
-		starpu_perfmodel_update_history(&model, &task, STARPU_CUDA_DEFAULT, 0, 0, measured_fast);
-		starpu_perfmodel_update_history(&nl_model, &task, STARPU_CUDA_DEFAULT, 0, 0, measured_fast);
+		arch.devid = 0;
+		starpu_perfmodel_update_history(&model, &task, &arch, 0, 0, measured_fast);
+		starpu_perfmodel_update_history(&nl_model, &task, &arch, 0, 0, measured_fast);
+		
 		/* Simulate Slow GPU */
-		starpu_perfmodel_update_history(&model, &task, STARPU_CUDA_DEFAULT + 1, 0, 0, measured_slow);
-		starpu_perfmodel_update_history(&nl_model, &task, STARPU_CUDA_DEFAULT + 1, 0, 0, measured_slow);
+		arch.devid = 1;
+		starpu_perfmodel_update_history(&model, &task, &arch, 0, 0, measured_slow);
+		starpu_perfmodel_update_history(&nl_model, &task, &arch, 0, 0, measured_slow);
 		starpu_task_clean(&task);
 		starpu_data_unregister(handle);
 	}

@@ -11,7 +11,7 @@
 \section WhatIsTheHypervisor What Is The Hypervisor
 
 StarPU proposes a platform to construct Scheduling Contexts, to
-deleting and modify them dynamically. A parallel kernel, can thus
+delete and modify them dynamically. A parallel kernel, can thus
 be isolated into a scheduling context and interferences between
 several parallel kernels are avoided. If the user knows exactly how
 many workers each scheduling context needs, he can assign them to the
@@ -191,5 +191,28 @@ sc_hypervisor_ctl(sched_ctx_id,
 The <b>Throughput </b> strategy focuses on maximizing the throughput of the resources
 and resizes the contexts such that the machine is running at its maximum efficiency
 (maximum instant speed of the workers).
+
+\section  Defining a new hypervisor policy
+
+While Scheduling Context Hypervisor Plugin comes with a variety of
+resizing policies (see \ref ResizingStrategies), it may sometimes be
+desirable to implement custom policies to address specific problems.
+The API described below allows users to write their own resizing policy.
+
+Here an example of how to define a new policy
+
+\code{.c}
+struct sc_hypervisor_policy dummy_policy =
+{
+       .handle_poped_task = dummy_handle_poped_task,
+       .handle_pushed_task = dummy_handle_pushed_task,
+       .handle_idle_cycle = dummy_handle_idle_cycle,
+       .handle_idle_end = dummy_handle_idle_end,
+       .handle_post_exec_hook = dummy_handle_post_exec_hook,
+       .custom = 1,
+       .name = "dummy"
+};
+\endcode
+
 
 */

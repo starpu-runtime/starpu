@@ -633,8 +633,10 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	for (miccore_id = 0; miccore_id < topology->nmiccores[mic_idx]; miccore_id++)
 	{
 		int worker_idx = topology->nworkers + miccore_id;
-		enum starpu_perfmodel_archtype arch =
-			(enum starpu_perfmodel_archtype)((int)STARPU_MIC_DEFAULT + mic_idx);
+		struct starpu_perfmodel_arch arch;
+		arch.type = STARPU_MIC_WORKER;
+		arch.devid = mic_idx;
+		arch.ncore = 0; 
 		config->workers[worker_idx].arch = STARPU_MIC_WORKER;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].mp_nodeid = mic_idx;
@@ -971,7 +973,9 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	{
 		int worker_idx = topology->nworkers + cpu;
 		config->workers[worker_idx].arch = STARPU_CPU_WORKER;
-		config->workers[worker_idx].perf_arch = STARPU_CPU_DEFAULT;
+		config->workers[worker_idx].perf_arch.type = STARPU_CPU_WORKER;
+		config->workers[worker_idx].perf_arch.devid = 0;
+		config->workers[worker_idx].perf_arch.ncore = 0;
 		config->workers[worker_idx].mp_nodeid = -1;
 		config->workers[worker_idx].devid = cpu;
 		config->workers[worker_idx].worker_mask = STARPU_CPU;
@@ -1095,9 +1099,10 @@ _starpu_bind_thread_on_cpus (
 	}
 #else
 #ifdef __GLIBC__
-	pthread_setaffinity_np(pthread_self(),sizeof(cpu_set_t),&combined_worker->cpu_set);
+	sched_setaffinity(0,sizeof(combined_worker->cpu_set),&combined_worker->cpu_set);
+#else
+#  warning no parallel worker CPU binding support
 #endif
-#warning no parallel worker CPU binding support
 #endif
 }
 

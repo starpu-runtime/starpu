@@ -58,7 +58,7 @@ struct _starpu_worker
         starpu_pthread_mutex_t mutex;
 	enum starpu_worker_archtype arch; /* what is the type of worker ? */
 	uint32_t worker_mask; /* what is the type of worker ? */
-	enum starpu_perfmodel_archtype perf_arch; /* in case there are different models of the same arch */
+	struct starpu_perfmodel_arch perf_arch; /* in case there are different models of the same arch */
 	starpu_pthread_t worker_thread; /* the thread which runs the worker */
 	int mp_nodeid; /* which mp node hold the cpu/gpu/etc (-1 for this
 			* node) */
@@ -118,12 +118,12 @@ struct _starpu_worker
 
 struct _starpu_combined_worker
 {
-	enum starpu_perfmodel_archtype perf_arch; /* in case there are different models of the same arch */
+	struct starpu_perfmodel_arch perf_arch; /* in case there are different models of the same arch */
 	uint32_t worker_mask; /* what is the type of workers ? */
 	int worker_size;
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	int combined_workerid[STARPU_NMAXWORKERS];
-#ifdef STARPU_USE_MIC 
+#ifdef STARPU_USE_MP
 	int count;
 	pthread_mutex_t count_mutex;
 #endif

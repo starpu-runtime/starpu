@@ -19,6 +19,7 @@
 
 #include <starpu.h>
 #include <starpu_sched_ctx.h>
+#include <starpu_sched_ctx_hypervisor.h>
 #include <starpu_scheduler.h>
 #include <common/config.h>
 #include <common/barrier_counter.h>

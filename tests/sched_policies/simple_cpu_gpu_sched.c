@@ -40,7 +40,7 @@ dummy(void *buffers[], void *args)
  */
 static double
 cpu_task_cpu(struct starpu_task *task,
-	     enum starpu_perfmodel_archtype arch,
+	     struct starpu_perfmodel_arch* arch,
 	     unsigned nimpl)
 {
 	(void) task;
@@ -51,7 +51,7 @@ cpu_task_cpu(struct starpu_task *task,
 
 static double
 cpu_task_gpu(struct starpu_task *task,
-	     enum starpu_perfmodel_archtype arch,
+	     struct starpu_perfmodel_arch* arch,
 	     unsigned nimpl)
 {
 	(void) task;
@@ -63,7 +63,7 @@ cpu_task_gpu(struct starpu_task *task,
 
 static double
 gpu_task_cpu(struct starpu_task *task,
-	     enum starpu_perfmodel_archtype arch,
+	     struct starpu_perfmodel_arch* arch,
 	     unsigned nimpl)
 {
 	(void) task;
@@ -75,7 +75,7 @@ gpu_task_cpu(struct starpu_task *task,
 
 static double
 gpu_task_gpu(struct starpu_task *task,
-	     enum starpu_perfmodel_archtype arch,
+	     struct starpu_perfmodel_arch* arch,
 	     unsigned nimpl)
 {
 	(void) task;
@@ -99,17 +99,26 @@ static struct starpu_perfmodel model_gpu_task =
 static void
 init_perfmodels(void)
 {
-	int i;
-	for (i = STARPU_CPU_DEFAULT; i < STARPU_CUDA_DEFAULT; i++)
+	unsigned devid, ncore;
+
+	for(devid=0; model_cpu_task.per_arch[STARPU_CPU_WORKER][devid] != NULL; devid++)
 	{
-		model_cpu_task.per_arch[i][0].cost_function = cpu_task_cpu;
-		model_gpu_task.per_arch[i][0].cost_function = gpu_task_cpu;
+		for(ncore=0; model_cpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore] != NULL; ncore++)
+		{
+			model_cpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore][0].cost_function = cpu_task_cpu;
+			model_gpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore][0].cost_function = gpu_task_cpu;
+		}
 	}
-	for (i = STARPU_CUDA_DEFAULT; i < STARPU_NARCH_VARIATIONS; i++)
+
+	for(devid=0; model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid] != NULL; devid++)
 	{
-		model_cpu_task.per_arch[i][0].cost_function = cpu_task_gpu;
-		model_gpu_task.per_arch[i][0].cost_function = gpu_task_gpu;
+		for(ncore=0; model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore] != NULL; ncore++)
+		{
+			model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = cpu_task_cpu;
+			model_gpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = gpu_task_cpu;
+		}
 	}
+
 }
 
 /*

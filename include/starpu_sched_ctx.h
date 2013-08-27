@@ -50,37 +50,6 @@ void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids);
 
-struct starpu_sched_ctx_performance_counters
-{
-	void (*notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time);
-	void (*notify_idle_end)(unsigned sched_ctx_id, int worker);
-	void (*notify_pushed_task)(unsigned sched_ctx_id, int worker);
-	void (*notify_poped_task)(unsigned sched_ctx_id, int worker, struct starpu_task *task, size_t data_size, uint32_t footprint);
-	void (*notify_post_exec_hook)(unsigned sched_ctx_id, int taskid);
-	void (*notify_submitted_job)(struct starpu_task *task, uint32_t footprint, size_t data_size);
-	void (*notify_delete_context)(unsigned sched_ctx);
-};
-
-#ifdef STARPU_USE_SC_HYPERVISOR
-void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, struct starpu_sched_ctx_performance_counters *perf_counters);
-void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
-#endif //STARPU_USE_SC_HYPERVISOR
-
-void starpu_sched_ctx_notify_hypervisor_exists(void);
-
-unsigned starpu_sched_ctx_check_if_hypervisor_exists(void);
-
-void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
-
-void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
-
-
-struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type);
-
-void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
-
-struct starpu_worker_collection *starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
-
 unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2);
@@ -94,8 +63,6 @@ unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid);
 unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id);
-
-double starpu_sched_ctx_get_max_time_worker_on_ctx(void);
 
 int starpu_sched_get_min_priority(void);
 
@@ -118,8 +85,21 @@ int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio);
 
 #define STARPU_DEFAULT_PRIO	0
 
-/* execute any parallel code on the workers of the sched_ctx (workers are blocked) */
+struct starpu_worker_collection *starpu_sched_ctx_create_worker_collection(unsigned sched_ctx_id, enum starpu_worker_collection_type type);
+
+void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
+
+struct starpu_worker_collection *starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
+
+void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
+
+void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
+
 void *starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void *param, unsigned sched_ctx_id);
+
+#ifdef STARPU_USE_SC_HYPERVISOR
+void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
+#endif //STARPU_USE_SC_HYPERVISOR
 
 #ifdef __cplusplus
 }

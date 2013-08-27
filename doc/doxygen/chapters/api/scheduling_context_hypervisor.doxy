@@ -2,7 +2,7 @@
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * Copyright (C) 2011, 2012, 2013 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
 
@@ -15,16 +15,26 @@ This structure contains all the methods that implement a hypervisor resizing pol
         Indicates the name of the policy, if there is not a custom policy, the policy corresponding to this name will be used by the hypervisor
 \var sc_hypervisor_policy::custom
         Indicates whether the policy is custom or not
+\var sc_hypervisor_policy::size_ctxs
+	Distribute workers to contexts even at the begining of the program
+\var sc_hypervisor_policy::resize_ctxs
+	Require explicit resizing
 \var sc_hypervisor_policy::handle_idle_cycle
         It is called whenever the indicated worker executes another idle cycle in sched_ctx
 \var sc_hypervisor_policy::handle_pushed_task
         It is called whenever a task is pushed on the worker’s queue corresponding to the context sched_ctx
 \var sc_hypervisor_policy::handle_poped_task
         It is called whenever a task is poped from the worker’s queue corresponding to the context sched_ctx
+\var sc_hypervisor_policy::handle_poped_task
+	The hypervisor takes a decision when another task was poped from this worker in this ctx
 \var sc_hypervisor_policy::handle_idle_end
         It is called whenever a task is executed on the indicated worker and context after a long period of idle time
 \var sc_hypervisor_policy::handle_post_exec_hook
         It is called whenever a tag task has just been executed. The table of resize requests is provided as well as the tag
+\var sc_hypervisor_policy::handle_submitted_job
+	The hypervisor takes a decision when a job was submitted in this ctx
+\var sc_hypervisor_policy::end_ctx
+	The hypervisor takes a decision when a certain ctx was deleted
 
 \struct sc_hypervisor_policy_config
 \ingroup API_Scheduling_Context_Hypervisor
@@ -41,10 +51,18 @@ can be used to construct new resize strategies.
         Indicates the priority of each worker in the context
 \var sc_hypervisor_policy_config::max_idle
         Indicates the maximum idle time accepted before a resize is triggered
+\var sc_hypervisor_policy_config::min_working
+	Indicates that underneath this limit the priority of the worker is reduced
 \var sc_hypervisor_policy_config::fixed_workers
         Indicates which workers can be moved and which ones are fixed
 \var sc_hypervisor_policy_config:: new_workers_max_idle
         Indicates the maximum idle time accepted before a resize is triggered for the workers that just arrived in the new context
+\var sc_hypervisor_policy_config::empty_ctx_max_idle
+         Indicates that above this context we allow removing all workers
+\var sc_hypervisor_policy_config::ispeed_w_sample
+         Indicates the sample used to compute the instant speed per worker
+\var sc_hypervisor_policy_config::ispeed_ctx_sample
+        Indicates the sample used to compute the instant speed per ctxs
 
 \struct sc_hypervisor_wrapper
 \ingroup API_Scheduling_Context_Hypervisor
@@ -102,9 +120,8 @@ Number of tasks of this kind
 \var sc_hypervisor_policy_task_pool::next
 Other task kinds
 
-@name Managing the hypervisor
+\fn void *sc_hypervisor_init(struct sc_hypervisor_policy *policy)
 \ingroup API_Scheduling_Context_Hypervisor
-
 There is a single hypervisor that is in charge of resizing contexts
 and the resizing strategy is chosen at the initialization of the
 hypervisor. A single resize can be done at a time.
@@ -114,9 +131,7 @@ performance counters to StarPU. By incrementing them, StarPU can help
 the hypervisor in the resizing decision making process. TODO maybe
 they should be hidden to the user
 
-\fn struct starpu_sched_ctx_performance_counters *sc_hypervisor_init(struct sc_hypervisor_policy *policy)
-\ingroup API_Scheduling_Context_Hypervisor
-Initializes the hypervisor to use the strategy provided as parameter
+This function initializes the hypervisor to use the strategy provided as parameter
 and creates the performance counters (see starpu_sched_ctx_performance_counters).
 These performance counters represent actually some callbacks that will
 be used by the contexts to notify the information needed by the
@@ -133,41 +148,20 @@ no synchronization between this function and starpu_shutdown(). Thus,
 this should be called after starpu_shutdown(), because the performance
 counters will still need allocated callback functions.
 
-@name Registering Scheduling Contexts to the hypervisor
-\ingroup API_Scheduling_Context_Hypervisor
-
-Scheduling Contexts that have to be resized by the hypervisor must be
-first registered to the hypervisor. Whenever we want to exclude
-contexts from the resizing process we have to unregister them from the
-hypervisor.
-
 \fn void sc_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
 \ingroup API_Scheduling_Context_Hypervisor
-Register the context to the hypervisor, and indicate the number of
+Scheduling Contexts that have to be resized by the hypervisor must be
+first registered to the hypervisor. 
+This function registers the context to the hypervisor, and indicate the number of
 flops the context will execute (needed for Gflops rate based strategy
 see \ref ResizingStrategies or any other custom strategy needing it, for
 the others we can pass 0.0)
 
 \fn void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
 \ingroup API_Scheduling_Context_Hypervisor
-Unregister the context from the hypervisor.
-
-@name Users’ Input In The Resizing Process
-\anchor UsersInputInTheResizingProcess
-\ingroup API_Scheduling_Context_Hypervisor
-
-The user can totally forbid the resizing of a certain context or can
-then change his mind and allow it (in this case the resizing is
-managed by the hypervisor, that can forbid it or allow it)
-
-\fn void sc_hypervisor_stop_resize(unsigned sched_ctx)
-\ingroup API_Scheduling_Context_Hypervisor
-Forbid resizing of a context
-
-\fn void sc_hypervisor_start_resize(unsigned sched_ctx)
-\ingroup API_Scheduling_Context_Hypervisor
-Allow resizing of a context. The user can then provide information to
-the hypervisor concerning the conditions of resizing.
+Whenever we want to exclude
+contexts from the resizing process we have to unregister them from the
+hypervisor.
 
 \fn void sc_hypervisor_post_resize_request(unsigned sched_ctx, int task_tag)
 \ingroup API_Scheduling_Context_Hypervisor
@@ -177,6 +171,65 @@ finished executing
 \fn void sc_hypervisor_resize_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 \ingroup API_Scheduling_Context_Hypervisor
 Requires reconsidering the distribution of ressources over the indicated scheduling contexts 
+
+\fn void sc_hypervisor_stop_resize(unsigned sched_ctx)
+\ingroup API_Scheduling_Context_Hypervisor
+The user can totally forbid the resizing of a certain context or can
+then change his mind and allow it (in this case the resizing is
+managed by the hypervisor, that can forbid it or allow it)
+
+\fn void sc_hypervisor_start_resize(unsigned sched_ctx)
+\ingroup API_Scheduling_Context_Hypervisor
+Allow resizing of a context. The user can then provide information to
+the hypervisor concerning the conditions of resizing.
+
+\fn char *sc_hypervisor_get_policy();
+\ingroup API_Scheduling_Context_Hypervisor
+Returns the name of the resizing policy the hypervisor uses
+
+\fn void sc_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx)
+\ingroup API_Scheduling_Context_Hypervisor
+Ask the hypervisor to add workers to a sched_ctx 
+
+\fn void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigned nworkers_to_remove, unsigned sched_ctx, unsigned now)
+\ingroup API_Scheduling_Context_Hypervisor
+Ask the hypervisor to remove workers from a sched_ctx 
+
+\fn void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int *workers_to_move, unsigned nworkers_to_move, unsigned now)
+\ingroup API_Scheduling_Context_Hypervisor
+Moves workers from one context to another
+   
+\fn void sc_hypervisor_size_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
+\ingroup API_Scheduling_Context_Hypervisor
+Ask the hypervisor to chose a distribution of workers in the required contexts
+   
+\fn unsigned sc_hypervisor_get_size_req(unsigned **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers)
+\ingroup API_Scheduling_Context_Hypervisor
+Check if there are pending demands of resizing
+
+\fn void sc_hypervisor_save_size_req(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
+\ingroup API_Scheduling_Context_Hypervisor
+Save a demand of resizing
+
+\fn void sc_hypervisor_free_size_req(void)
+\ingroup API_Scheduling_Context_Hypervisor
+Clear the list of pending demands of resizing
+
+\fn unsigned sc_hypervisor_can_resize(unsigned sched_ctx)
+\ingroup API_Scheduling_Context_Hypervisor
+Check out if a context can be resized
+
+\fn void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, size_t data_size)
+\ingroup API_Scheduling_Context_Hypervisor
+Indicate the types of tasks a context will execute in order to better decide the sizing of ctxs
+
+\fn void sc_hypervisor_update_diff_total_flops(unsigned sched_ctx, double diff_total_flops)
+\ingroup API_Scheduling_Context_Hypervisor
+Change dynamically the total number of flops of a context, move the deadline of the finishing time of the context
+
+\fn void sc_hypervisor_update_diff_elapsed_flops(unsigned sched_ctx, double diff_task_flops)
+\ingroup API_Scheduling_Context_Hypervisor
+Change dynamically the number of the elapsed flops in a context, modify the past in order to better compute the speed 
 
 \fn void sc_hypervisor_ctl(unsigned sched_ctx, ...)
 \ingroup API_Scheduling_Context_Hypervisor
@@ -250,36 +303,33 @@ This macro is used when calling sc_hypervisor_ctl() and must be
 followed by 1 argument (int) indicating the tag an executed task
 should have such that this configuration should be taken into account.
 
-@name Defining a new hypervisor policy
+
+\def SC_HYPERVISOR_ISPEED_W_SAMPLE
 \ingroup API_Scheduling_Context_Hypervisor
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 argument, a double, that indicates the number of flops
+needed to be executed before computing the speed of a worker
 
-While Scheduling Context Hypervisor Plugin comes with a variety of
-resizing policies (see \ref ResizingStrategies), it may sometimes be
-desirable to implement custom policies to address specific problems.
-The API described below allows users to write their own resizing policy.
-
-Here an example of how to define a new policy
-
-\code{.c}
-struct sc_hypervisor_policy dummy_policy =
-{
-       .handle_poped_task = dummy_handle_poped_task,
-       .handle_pushed_task = dummy_handle_pushed_task,
-       .handle_idle_cycle = dummy_handle_idle_cycle,
-       .handle_idle_end = dummy_handle_idle_end,
-       .handle_post_exec_hook = dummy_handle_post_exec_hook,
-       .custom = 1,
-       .name = "dummy"
-};
-\endcode
-
-\fn void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int *workers_to_move, unsigned nworkers_to_move, unsigned now);
+\def SC_HYPERVISOR_ISPEED_CTX_SAMPLE
 \ingroup API_Scheduling_Context_Hypervisor
-    Moves workers from one context to another
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 argument, a double, that indicates the number of flops
+needed to be executed before computing the speed of a context
+
+
+\def SC_HYPERVISOR_NULL
+\ingroup API_Scheduling_Context_Hypervisor
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 arguments
+
 
 \fn struct sc_hypervisor_policy_config *sc_hypervisor_get_config(unsigned sched_ctx);
 \ingroup API_Scheduling_Context_Hypervisor
-    Returns the configuration structure of a context
+Returns the configuration structure of a context
+
+\fn void sc_hypervisor_set_config(unsigned sched_ctx, void *config);
+\ingroup API_Scheduling_Context_Hypervisor
+Set a certain configuration to a contexts
 
 \fn int *sc_hypervisor_get_sched_ctxs();
 \ingroup API_Scheduling_Context_Hypervisor
@@ -297,8 +347,5 @@ struct sc_hypervisor_policy dummy_policy =
 \ingroup API_Scheduling_Context_Hypervisor
     Returns the flops of a context elapsed from the last resize
 
-\fn char *sc_hypervisor_get_policy();
-\ingroup API_Scheduling_Context_Hypervisor
-    Returns the name of the resizing policy the hypervisor uses
 
 */

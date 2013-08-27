@@ -23,6 +23,11 @@
 #define STARPU_DISK_ALL 1
 #define STARPU_DISK_NO_RECLAIM 2
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include <datawizard/copy_driver.h>
 
 /* interface to manipulate memory disk */
@@ -55,5 +60,9 @@ int _starpu_get_disk_flag(unsigned node);
 /* unregister disk */
 
 void _starpu_disk_unregister(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __DISK_H__ */

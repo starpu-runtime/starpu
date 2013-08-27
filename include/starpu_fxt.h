@@ -31,7 +31,7 @@ struct starpu_fxt_codelet_event
 {
 	char symbol[256];
 	int workerid;
-	enum starpu_perfmodel_archtype archtype;
+	struct starpu_perfmodel_arch arch;
 	uint32_t hash;
 	size_t size;
 	float time;
@@ -54,7 +54,7 @@ struct starpu_fxt_options
 	int file_rank;
 
 	char worker_names[STARPU_NMAXWORKERS][256];
-	enum starpu_perfmodel_archtype worker_archtypes[STARPU_NMAXWORKERS];
+	struct starpu_perfmodel_arch worker_archtypes[STARPU_NMAXWORKERS];
 	int nworkers;
 
 	struct starpu_fxt_codelet_event **dumped_codelets;

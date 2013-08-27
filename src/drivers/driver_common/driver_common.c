@@ -71,7 +71,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	_STARPU_TRACE_START_CODELET_BODY(j);
 }
 
-void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, enum starpu_perfmodel_archtype perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)
+void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
@@ -100,7 +100,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	args->status = STATUS_UNKNOWN;
 }
 void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker_args,
-					enum starpu_perfmodel_archtype perf_arch,
+					struct starpu_perfmodel_arch* perf_arch,
 					struct timespec *codelet_start, struct timespec *codelet_end, int profiling)
 {
 	struct starpu_profiling_task_info *profiling_info = j->task->profiling_info;
@@ -146,7 +146,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 
 	if (profiling_info && profiling_info->power_consumed && cl->power_model && cl->power_model->benchmarking)
 	{
-		_starpu_update_perfmodel_history(j, j->task->cl->power_model,  perf_arch, worker_args->devid, profiling_info->power_consumed,j->nimpl);
+		_starpu_update_perfmodel_history(j, j->task->cl->power_model, perf_arch, worker_args->devid, profiling_info->power_consumed,j->nimpl);
 	}
 }
 

@@ -24,6 +24,11 @@
 #include <core/task_bundle.h>
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 struct _starpu_perfmodel_list
 {
 	struct _starpu_perfmodel_list *next;
@@ -39,7 +44,7 @@ void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_bus(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_debug(char *path, size_t maxlen);
 
-double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, struct _starpu_job *j, unsigned nimpl);
+double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
 int _starpu_register_model(struct starpu_perfmodel *model);
 void _starpu_load_per_arch_based_model(struct starpu_perfmodel *model);
 void _starpu_load_common_based_model(struct starpu_perfmodel *model);
@@ -49,10 +54,10 @@ void _starpu_initialize_registered_performance_models(void);
 void _starpu_deinitialize_registered_performance_models(void);
 
 double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model,
-					enum starpu_perfmodel_archtype arch, struct _starpu_job *j, unsigned nimpl);
+					struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
 double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model,
-					enum starpu_perfmodel_archtype arch, struct _starpu_job *j, unsigned nimpl);
-void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch,
+					struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
+void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch,
 				unsigned cpuid, double measured, unsigned nimpl);
 
 void _starpu_create_sampling_directory_if_needed(void);
@@ -72,4 +77,9 @@ int *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 
 void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, 
 					    double latency_write, double latency_read, unsigned node);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // __PERFMODEL_H__
