@@ -357,6 +357,12 @@ task->execute_on_a_specific_worker = 1;
 task->worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
 \endcode
 
+Note however that using scheduling contexts while statically scheduling tasks on workers
+could be tricky. Be careful to schedule the tasks exactly on the workers of the corresponding
+contexts, otherwise the workers' corresponding scheduling structures may not be allocated or
+the execution of the application may deadlock. Moreover, the hypervisor should be used when
+statically scheduling tasks.
+
 \section Profiling Profiling
 
 A quick view of how many tasks each worker has executed can be obtained by setting
