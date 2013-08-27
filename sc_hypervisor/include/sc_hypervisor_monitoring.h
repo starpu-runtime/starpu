@@ -49,8 +49,11 @@ struct sc_hypervisor_wrapper
 
 	/* idle time of workers in this context */
 	double current_idle_time[STARPU_NMAXWORKERS];
-	
+
+	/* idle time from the last resize */
 	double idle_time[STARPU_NMAXWORKERS];
+
+	/* time when the idle started */
 	double idle_start_time[STARPU_NMAXWORKERS];
 	
 	/* list of workers that will leave this contexts (lazy resizing process) */
