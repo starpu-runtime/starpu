@@ -63,6 +63,11 @@ tasks will be submitted to. The return value should be at most
 \ingroup API_Scheduling_Contexts
 Create a context indicating an approximate interval of resources
 
+\fn void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args)
+\ingroup API_Scheduling_Contexts
+Execute the callback whenever the last task of the context finished executing, it is called with the pramaters: sched_ctx and any other paramter needed
+by the application (packed in a void*)
+
 \fn void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
 This function adds dynamically the workers in \p workerids_ctx to the
