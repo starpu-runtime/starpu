@@ -506,6 +506,14 @@ unsigned starpu_sched_ctx_create_with_custom_policy(struct starpu_sched_policy *
 	return sched_ctx->id;
 }
 
+void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->close_callback = close_callback;
+	sched_ctx->close_args = args;
+	return;
+}
+
 #ifdef STARPU_USE_SC_HYPERVISOR
 void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, void* perf_counters)
 {
@@ -747,8 +755,8 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	int finished = _starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->tasks_barrier);
-/*when finished decrementing the tasks if the user signaled he will not submit tasks anymore
-  we can move all its workers to the inheritor context */
+        /* when finished decrementing the tasks if the user signaled he will not submit tasks anymore
+           we can move all its workers to the inheritor context */
 	if(finished && sched_ctx->inheritor != STARPU_NMAX_SCHED_CTXS)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&finished_submit_mutex);
@@ -760,6 +768,9 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 			STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
 			if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
+				if(sched_ctx->close_callback)
+					sched_ctx->close_callback(sched_ctx->id, sched_ctx->close_args);
+
 				int *workerids = NULL;
 				unsigned nworkers = starpu_sched_ctx_get_workers_list(sched_ctx->id, &workerids);
 				
