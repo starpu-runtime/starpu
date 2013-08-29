@@ -600,13 +600,22 @@ static struct starpu_perfmodel_per_arch*** initialize_arch_model(int maxdevid, u
 void initialize_model(struct starpu_perfmodel *model)
 {
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
+	intialize_model_without_conf(model,1,&conf->topology.ncpus,
+			conf->topology.ncudagpus,NULL,
+			conf->topology.nopenclgpus,NULL,
+			conf->topology.nmicdevices,conf->topology.nmiccores,
+			conf->topology.nsccdevices,NULL); 
+}
+
+void intialize_model_without_conf(struct starpu_perfmodel* model, int dev_cpu, unsigned* core_cpu, int dev_cuda, unsigned* core_cuda, int dev_opencl, unsigned* core_opencl, int dev_mic, unsigned* core_mic, int dev_scc, unsigned* core_scc)
+{
 	model->per_arch = malloc(sizeof(*model->per_arch)*(STARPU_NARCH));
 
-	model->per_arch[STARPU_CPU_WORKER] = initialize_arch_model(1,&conf->topology.ncpus); 
-	model->per_arch[STARPU_CUDA_WORKER] = initialize_arch_model(conf->topology.ncudagpus,NULL); 
-	model->per_arch[STARPU_OPENCL_WORKER] = initialize_arch_model(conf->topology.nopenclgpus,NULL); 
-	model->per_arch[STARPU_MIC_WORKER] = initialize_arch_model(conf->topology.nmicdevices,conf->topology.nmiccores); 
-	model->per_arch[STARPU_SCC_WORKER] = initialize_arch_model(conf->topology.nsccdevices,NULL); 
+	model->per_arch[STARPU_CPU_WORKER] = initialize_arch_model(dev_cpu,core_cpu); 
+	model->per_arch[STARPU_CUDA_WORKER] = initialize_arch_model(dev_cuda,core_cuda); 
+	model->per_arch[STARPU_OPENCL_WORKER] = initialize_arch_model(dev_opencl,core_opencl); 
+	model->per_arch[STARPU_MIC_WORKER] = initialize_arch_model(dev_mic,core_mic); 
+	model->per_arch[STARPU_SCC_WORKER] = initialize_arch_model(dev_scc,core_scc); 
 }
 
 static void get_model_debug_path(struct starpu_perfmodel *model, const char *arch, char *path, size_t maxlen)

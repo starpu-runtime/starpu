@@ -36,7 +36,7 @@
 #define PERTURBATE(a)	(a)
 #endif
 
-static double cpu_chol_task_11_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+static double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -51,7 +51,7 @@ static double cpu_chol_task_11_cost(struct starpu_task *task, enum starpu_perfmo
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_11_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+static double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -66,7 +66,7 @@ static double cuda_chol_task_11_cost(struct starpu_task *task, enum starpu_perfm
 	return PERTURBATE(cost);
 }
 
-static double cpu_chol_task_21_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+static double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -81,7 +81,7 @@ static double cpu_chol_task_21_cost(struct starpu_task *task, enum starpu_perfmo
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_21_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+static double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -96,7 +96,7 @@ static double cuda_chol_task_21_cost(struct starpu_task *task, enum starpu_perfm
 	return PERTURBATE(cost);
 }
 
-static double cpu_chol_task_22_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+static double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -111,7 +111,7 @@ static double cpu_chol_task_22_cost(struct starpu_task *task, enum starpu_perfmo
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_22_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+static double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -125,6 +125,9 @@ static double cuda_chol_task_22_cost(struct starpu_task *task, enum starpu_perfm
 
 	return PERTURBATE(cost);
 }
+
+
+
 
 struct starpu_perfmodel chol_model_11 =
 {
