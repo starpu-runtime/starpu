@@ -292,6 +292,10 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	initialize_chol_model(&chol_model_11,11);
+	initialize_chol_model(&chol_model_21,21);
+	initialize_chol_model(&chol_model_22,22);
+
 	starpu_cublas_init();
 
 #ifndef STARPU_SIMGRID

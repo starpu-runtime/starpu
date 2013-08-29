@@ -194,10 +194,10 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *mode
 		fprintf(stderr,"Arch: %s\n", arch_name);
 
 #ifdef STARPU_USE_FXT
-	if (!gflops && !no_fxt_file && archtype_is_found[arch] && nimpl == 0)
+	if (!gflops && !no_fxt_file && archtype_is_found[arch->type][arch->devid][arch->ncore] && nimpl == 0)
 	{
 		print_comma(gnuplot_file, first);
-		fprintf(gnuplot_file, "\"< grep -w \\^%d %s\" using 2:3 title \"Profiling %s\"", arch, data_file_name, arch_name);
+		fprintf(gnuplot_file, "\"< grep -w \\^%d_%d_%d %s\" using 2:3 title \"Profiling %s\"", arch->type, arch->devid, arch->ncore, data_file_name, arch_name);
 	}
 #endif
 
@@ -420,6 +420,41 @@ static void display_all_perf_models(FILE *gnuplot_file, struct starpu_perfmodel 
 }
 
 #ifdef STARPU_USE_FXT
+static int ** init_archtype_is_found_per_arch(int maxdevid, unsigned* maxncore_table)
+{
+	int devid, ncore;
+	int ** archtype_is_found_per_arch = malloc(sizeof(*archtype_is_found_per_arch)*(maxdevid+1));
+	archtype_is_found_per_arch[maxdevid] = NULL;
+	for(devid=0; devid<maxdevid; devid++)
+	{
+		int maxncore;
+		if(maxncore_table != NULL)
+			maxncore = maxncore_table[devid];
+		else
+			maxncore = 1;
+		
+		archtype_is_found_per_arch[devid] = malloc(sizeof(*archtype_is_found_per_arch[devid])*(maxncore+1));
+		archtype_is_found_per_arch[devid][maxncore] = NULL;
+		for(ncore=0; ncore<maxncore; ncore++)
+			archtype_is_found_per_arch[devid][ncore] = 0;
+	}
+	return archtype_is_found_per_arch;
+
+}
+
+
+static void init_achrtype_is_found()
+{
+	struct _starpu_machine_config *conf = _starpu_get_machine_config();
+
+	archtype_is_found[STARPU_CPU_WORKER] = init_archtype_is_found_per_arch(1,&conf->topology.ncpus);
+	archtype_is_found[STARPU_CUDA_WORKER] = init_archtype_is_found_per_arch(conf->topology.ncudagpus,NULL); 
+	archtype_is_found[STARPU_OPENCL_WORKER] = init_archtype_is_found_per_arch(conf->topology.nopenclgpus,NULL); 
+	archtype_is_found[STARPU_MIC_WORKER] = init_archtype_is_found_per_arch(conf->topology.nmicdevices,conf->topology.nmiccores); 
+	archtype_is_found[STARPU_SCC_WORKER] = init_archtype_is_found_per_arch(conf->topology.nsccdevices,NULL); 
+}
+
+
 static void dump_data_file(FILE *data_file)
 {
 	memset(archtype_is_found, 0, STARPU_NARCH_VARIATIONS*sizeof(int));
@@ -430,13 +465,13 @@ static void dump_data_file(FILE *data_file)
 		/* Dump only if the symbol matches user's request */
 		if (strncmp(dumped_codelets[i].symbol, symbol, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long)-1) == 0)
 		{
-			enum starpu_perfmodel_archtype archtype = dumped_codelets[i].archtype;
-			archtype_is_found[archtype] = 1;
+			struct starpu_perfmodel_arch* arch = dumped_codelets[i].arch;
+			archtype_is_found[arch->type][arch->devid][arch->ncore] = 1;
 
 			size_t size = dumped_codelets[i].size;
 			float time = dumped_codelets[i].time;
 
-			fprintf(data_file, "%d	%f	%f\n", archtype, (float)size, time);
+			fprintf(data_file, "%d_%d_%d	%f	%f\n", arch->type, arch->devid, arch->ncore, (float)size, time);
 		}
 	}
 }

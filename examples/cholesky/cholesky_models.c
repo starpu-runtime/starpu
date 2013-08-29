@@ -127,8 +127,33 @@ static double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_per
 }
 
 
-
-
+void initialize_chol_model(struct starpu_perfmodel* model, int i)
+{
+	intialize_model(model);
+	model.type = STARPU_HISTORY_BASED;
+	switch(i)
+	{
+		case(11):
+			model.per_arch[STARPU_CPU_WORKER][0][0][0] = { .cost_function = cpu_chol_task_11_cost };
+			model.per_arch[STARPU_CUDA_WORKER][0][0][0] = { .cost_function = cuda_chol_task_11_cost };
+			 model.symbol = "chol_model_11";
+			 break;
+		case(21):
+			 model.per_arch[STARPU_CPU_WORKER][0][0][0] = { .cost_function = cpu_chol_task_21_cost };
+			 model.per_arch[STARPU_CUDA_WORKER][0][0][0] = { .cost_function = cuda_chol_task_21_cost };
+			 model.symbol = "chol_model_21";
+			 break;
+		case(22):
+			 model.per_arch[STARPU_CPU_WORKER][0][0][0] = { .cost_function = cpu_chol_task_22_cost };
+			 model.per_arch[STARPU_CUDA_WORKER][0][0][0] = { .cost_function = cuda_chol_task_22_cost };
+			 model.symbol = "chol_model_22";
+			 break;
+		default:
+			 STARPU_ABORT();
+			 break;
+	}
+}
+/*
 struct starpu_perfmodel chol_model_11 =
 {
 	.per_arch =
@@ -160,4 +185,4 @@ struct starpu_perfmodel chol_model_22 =
 	},
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "chol_model_22"
-};
+};*/

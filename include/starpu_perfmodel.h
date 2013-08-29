@@ -34,7 +34,6 @@ struct starpu_task;
 struct starpu_data_descr;
 
 #define STARPU_NARCH STARPU_ANY_WORKER
-//char archtype_name[STARPU_NARCH] = {"cpu","cuda","opencl","mic","scc"};
 
 struct starpu_perfmodel_arch
 {
@@ -42,25 +41,6 @@ struct starpu_perfmodel_arch
 	int devid;
 	int ncore;
 };
-
-#ifdef __STDC_VERSION__
-#  if __STDC_VERSION__ > 199901L || STARPU_GNUC_PREREQ(4, 6)
-
-/* Make sure the following assertions hold, since StarPU relies on it.  */
-
-_Static_assert(STARPU_CPU_DEFAULT == 0,
-	       "invalid STARPU_CPU_DEFAULT value");
-_Static_assert(STARPU_CPU_DEFAULT < STARPU_CUDA_DEFAULT,
-	       "invalid STARPU_{CPU,CUDA}_DEFAULT values");
-_Static_assert(STARPU_CUDA_DEFAULT < STARPU_OPENCL_DEFAULT,
-	       "invalid STARPU_{CUDA,OPENCL}_DEFAULT values");
-_Static_assert(STARPU_OPENCL_DEFAULT < STARPU_MIC_DEFAULT,
-	       "invalid STARPU_{OPENCL,MIC}_DEFAULT values");
-_Static_assert(STARPU_MIC_DEFAULT < STARPU_SCC_DEFAULT,
-	       "invalid STARPU_{MIC,SCC}_DEFAULT values");
-
-#  endif
-#endif
 
 struct starpu_perfmodel_history_entry
 {

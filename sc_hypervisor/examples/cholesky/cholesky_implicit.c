@@ -342,6 +342,10 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
+	initialize_chol_model(&chol_model_11,11);
+	initialize_chol_model(&chol_model_21,21);
+	initialize_chol_model(&chol_model_22,22);
+
 	starpu_cublas_init();
 
 	if(with_ctxs)

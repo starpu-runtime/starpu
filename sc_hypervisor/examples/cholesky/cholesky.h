@@ -79,9 +79,17 @@ void chol_cublas_codelet_update_u21(void *descr[], void *_args);
 void chol_cublas_codelet_update_u22(void *descr[], void *_args);
 #endif
 
+/*
 extern struct starpu_perfmodel chol_model_11;
 extern struct starpu_perfmodel chol_model_21;
 extern struct starpu_perfmodel chol_model_22;
+*/
+
+struct starpu_perfmodel chol_model_11;
+struct starpu_perfmodel chol_model_21;
+struct starpu_perfmodel chol_model_22;
+
+void initialize_chol_model(struct starpu_perfmodel* model, int i);
 
 static void STARPU_ATTRIBUTE_UNUSED parse_args(int argc, char **argv)
 {
