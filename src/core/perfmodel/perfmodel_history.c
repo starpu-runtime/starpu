@@ -1074,7 +1074,7 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *archname, size_t maxlen,unsigned nimpl)
 {
-	snprintf(archname, maxlen, "%s_%d_ncore_%d_impl_%u", 
+	snprintf(archname, maxlen, "%s_%dncore_%dimpl_%u", 
 			starpu_perfmodel_get_archtype_name(arch->type),
 			arch->devid, 
 			arch->ncore, 

@@ -325,9 +325,14 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 		minimum = ULONG_MAX;
 		/* Get the next minimum */
 		for (archtype = archmin; archtype < archmax; archtype++)
+		{
 			if(model->per_arch[archtype]!=NULL)
+			{
 				for(dev = devmin; model->per_arch[archtype][dev] != NULL && (devmax == 0 || dev < devmax);dev++)
+				{
 					for(core = coremin; model->per_arch[archtype][dev][core] != NULL && (coremax == 0 || core < coremax); core++)
+				
+					{
 						for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
 						{
 							struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[archtype][dev][core][implid];
@@ -338,6 +343,10 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 									minimum = size;
 							}
 						}
+					}
+				}
+			}
+		}
 		if (minimum == ULONG_MAX)
 			break;
 
@@ -573,6 +582,10 @@ int main(int argc, char **argv)
 	int ret;
 	struct starpu_perfmodel model;
 
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return 1;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
 #ifdef __MINGW32__
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
@@ -641,6 +654,8 @@ int main(int argc, char **argv)
 	}
 
 	_STARPU_DISP("Gnuplot file <%s> generated\n", gnuplot_file_name);
+
+	starpu_shutdown();
 
 	return 0;
 }
