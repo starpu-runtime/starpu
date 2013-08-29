@@ -37,7 +37,7 @@ struct _starpu_perfmodel_list
 
 struct starpu_data_descr;
 struct _starpu_job;
-enum starpu_perfmodel_archtype;
+struct starpu_perfmodel_arch;
 
 void _starpu_get_perf_model_dir(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen);
