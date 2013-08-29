@@ -677,7 +677,7 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 					arch.ncore = ncore;
 					for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 					{
-						starpu_perfmodel_debugfilepath(model, arch, model->per_arch[arch][devid][ncore][nimpl].debug_path, 256, nimpl);
+						starpu_perfmodel_debugfilepath(model, &arch, model->per_arch[archtype][devid][ncore][nimpl].debug_path, 256, nimpl);
 					}
 				}
 			}
