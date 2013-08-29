@@ -661,16 +661,28 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 #ifdef STARPU_MODEL_DEBUG
 	_starpu_create_sampling_directory_if_needed();
 
-	unsigned arch;
-	unsigned nimpl;
-
-	for (arch = 0; arch < STARPU_NARCH; arch++)
-		for(devid=0; model->per_arch[arch][devid] != NULL; devid++)
-			for(ncore=0; model->per_arch[arch][devid][ncore] != NULL; ncore++)
-				for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+	unsigned archtype, devid, ncore, nimpl;
+	struct starpu_perfmodel_arch arch;
+	
+	for (archtype = 0; archtype < STARPU_NARCH; archtype++)
+	{
+		arch.type = archtype;
+		if(model->per_arch[archtype] != NULL)
+		{
+			for(devid=0; model->per_arch[archtype][devid] != NULL; devid++)
+			{
+				arch.devid = devid;
+				for(ncore=0; model->per_arch[archtype][devid][ncore] != NULL; ncore++)
 				{
-					starpu_perfmodel_debugfilepath(model, arch, model->per_arch[arch][devid][ncore][nimpl].debug_path, 256, nimpl);
+					arch.ncore = ncore;
+					for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+					{
+						starpu_perfmodel_debugfilepath(model, arch, model->per_arch[arch][devid][ncore][nimpl].debug_path, 256, nimpl);
+					}
 				}
+			}
+		}
+	}
 #endif
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
