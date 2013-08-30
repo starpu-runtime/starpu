@@ -836,14 +836,14 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
 	length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
   #endif
-	_starpu_simgrid_execute_job(j, args->perf_arch, length);
+	_starpu_simgrid_execute_job(j, &args->perf_arch, length);
 #else
 	func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
 
-	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0, profiling);
+	_starpu_driver_end_job(args, j, &args->perf_arch, &codelet_end, 0, profiling);
 
-	_starpu_driver_update_job_feedback(j, args, args->perf_arch,
+	_starpu_driver_update_job_feedback(j, args, &args->perf_arch,
 					   &codelet_start, &codelet_end, profiling);
 
 	_starpu_push_task_output(j, mask);
