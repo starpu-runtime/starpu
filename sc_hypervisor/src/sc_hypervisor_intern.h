@@ -15,7 +15,7 @@
  */
 
 #include <sc_hypervisor.h>
-#include <common/uthash.h>
+#include "uthash.h"
 
 #define SC_SPEED_MAX_GAP_DEFAULT 50
 #define SC_HYPERVISOR_DEFAULT_CPU_SPEED 5.0

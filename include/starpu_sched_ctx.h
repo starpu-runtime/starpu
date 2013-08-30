@@ -32,6 +32,8 @@ unsigned starpu_sched_ctx_create_with_custom_policy(struct starpu_sched_policy *
 
 unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap);
 
+void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args);
+
 void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
 
 void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
@@ -59,10 +61,6 @@ unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id);
 unsigned starpu_sched_ctx_contains_type_of_worker(enum starpu_worker_archtype arch, unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid);
-
-unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id);
-
-void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id);
 
 int starpu_sched_get_min_priority(void);
 

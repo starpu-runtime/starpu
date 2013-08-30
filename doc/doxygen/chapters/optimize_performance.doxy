@@ -171,10 +171,13 @@ The <b>heft</b> (heterogeneous earliest finish time) scheduler is deprecated. It
 is now just an alias for <b>dmda</b>.
 
 The <b>pheft</b> (parallel HEFT) scheduler is similar to heft, it also supports
-parallel tasks (still experimental).
+parallel tasks (still experimental). Should not be used when several contexts using
+it are being executed simultaneously.
 
 The <b>peager</b> (parallel eager) scheduler is similar to eager, it also
-supports parallel tasks (still experimental).
+supports parallel tasks (still experimental). Should not be used when several 
+contexts using it are being executed simultaneously.
+
 
 \section PerformanceModelCalibration Performance Model Calibration
 
@@ -298,7 +301,7 @@ already gives the good results that a precise estimation would give.
 The scheduling policies <c>heft</c>, <c>dmda</c> and <c>pheft</c>
 perform data prefetch (see \ref STARPU_PREFETCH):
 as soon as a scheduling decision is taken for a task, requests are issued to
-transfer its required data to the target processing unit, if needeed, so that
+transfer its required data to the target processing unit, if needed, so that
 when the processing unit actually starts the task, its data will hopefully be
 already available and it will not have to wait for the transfer to finish.
 
@@ -356,6 +359,12 @@ instance, to force execution of a task on CUDA0:
 task->execute_on_a_specific_worker = 1;
 task->worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0);
 \endcode
+
+Note however that using scheduling contexts while statically scheduling tasks on workers
+could be tricky. Be careful to schedule the tasks exactly on the workers of the corresponding
+contexts, otherwise the workers' corresponding scheduling structures may not be allocated or
+the execution of the application may deadlock. Moreover, the hypervisor should not be used when
+statically scheduling tasks.
 
 \section Profiling Profiling
 
@@ -516,7 +525,7 @@ on the desktop machine.
 
 If the desktop machine does not have CUDA or OpenCL, StarPU is still able to
 use simgrid to simulate execution with CUDA/OpenCL devices, but the application
-source code will probably disable the CUDA and OpenCL codelets in that
+source code will probably disable the CUDA and OpenCL codelets in thatcd sc
 case. Since during simgrid execution, the functions of the codelet are actually
 not called, one can use dummy functions such as the following to still permit
 CUDA or OpenCL execution:

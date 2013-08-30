@@ -63,6 +63,11 @@ tasks will be submitted to. The return value should be at most
 \ingroup API_Scheduling_Contexts
 Create a context indicating an approximate interval of resources
 
+\fn void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args)
+\ingroup API_Scheduling_Contexts
+Execute the callback whenever the last task of the context finished executing, it is called with the pramaters: sched_ctx and any other paramter needed
+by the application (packed in a void*)
+
 \fn void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
 This function adds dynamically the workers in \p workerids_ctx to the
@@ -127,17 +132,6 @@ Return 1 if the worker belongs to the context and 0 otherwise
 \fn unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 \ingroup API_Scheduling_Contexts
 Check if a worker is shared between several contexts
-
-\fn unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id)
-\ingroup API_Scheduling_Contexts
-Manage sharing of resources between contexts: checkOB which ctx has
-its turn to pop.
-
-\fn void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id)
-\ingroup API_Scheduling_Contexts
-Manage sharing of resources between contexts: by default a round_robin
-strategy is executed but the user can interfere to tell which ctx has
-its turn to pop.
 
 @name Scheduling Context Priorities
 \ingroup API_Scheduling_Contexts

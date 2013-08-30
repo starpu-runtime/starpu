@@ -39,7 +39,6 @@ static void _starpu_worker_gets_into_ctx(unsigned sched_ctx_id, struct _starpu_w
 		/* add context to worker */
 		_starpu_sched_ctx_list_add(&worker->sched_ctx_list, sched_ctx_id);
 		worker->nsched_ctxs++;
-		worker->active_ctx = sched_ctx_id;
 	}
 	worker->removed_from_ctx[sched_ctx_id] = 0;
 	return;
@@ -507,6 +506,14 @@ unsigned starpu_sched_ctx_create_with_custom_policy(struct starpu_sched_policy *
 	return sched_ctx->id;
 }
 
+void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->close_callback = close_callback;
+	sched_ctx->close_args = args;
+	return;
+}
+
 #ifdef STARPU_USE_SC_HYPERVISOR
 void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, void* perf_counters)
 {
@@ -748,8 +755,8 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	int finished = _starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->tasks_barrier);
-/*when finished decrementing the tasks if the user signaled he will not submit tasks anymore
-  we can move all its workers to the inheritor context */
+        /* when finished decrementing the tasks if the user signaled he will not submit tasks anymore
+           we can move all its workers to the inheritor context */
 	if(finished && sched_ctx->inheritor != STARPU_NMAX_SCHED_CTXS)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&finished_submit_mutex);
@@ -761,6 +768,9 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 			STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
 			if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
+				if(sched_ctx->close_callback)
+					sched_ctx->close_callback(sched_ctx->id, sched_ctx->close_args);
+
 				int *workerids = NULL;
 				unsigned nworkers = starpu_sched_ctx_get_workers_list(sched_ctx->id, &workerids);
 				
@@ -1013,37 +1023,6 @@ unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	return worker->nsched_ctxs > 1;
-}
-
-unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id)
-{
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	return worker->active_ctx == sched_ctx_id;
-}
-
-void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id)
-{
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-
-	struct _starpu_sched_ctx *other_sched_ctx = NULL;
-	struct _starpu_sched_ctx *active_sched_ctx = NULL;
-	struct _starpu_sched_ctx_list *l = NULL;
-        for (l = worker->sched_ctx_list; l; l = l->next)
-	{
-		other_sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
-		if(other_sched_ctx != NULL && other_sched_ctx->id != STARPU_NMAX_SCHED_CTXS &&
-		   other_sched_ctx->id != 0 && other_sched_ctx->id != sched_ctx_id)
-		{
-			worker->active_ctx = other_sched_ctx->id;
-			active_sched_ctx = other_sched_ctx;
-			break;
-		}
-	}
-
-	if(active_sched_ctx != NULL && worker->active_ctx != sched_ctx_id)
-	{
-		_starpu_fetch_tasks_from_empty_ctx_list(active_sched_ctx);
-	}
 }
 
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor)

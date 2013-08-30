@@ -85,6 +85,7 @@ chapters =	\
 	chapters/api/performance_model.doxy \
 	chapters/api/profiling.doxy \
 	chapters/api/running_driver.doxy \
+	chapters/api/scheduling_context_hypervisor_usage.doxy \
 	chapters/api/scheduling_context_hypervisor.doxy \
 	chapters/api/scheduling_contexts.doxy \
 	chapters/api/scheduling_policy.doxy \

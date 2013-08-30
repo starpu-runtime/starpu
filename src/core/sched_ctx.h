@@ -112,6 +112,10 @@ struct _starpu_sched_ctx
 	/* a structure containing a series of performance counters determining the resize procedure */
 	struct starpu_sched_ctx_performance_counters *perf_counters;
 #endif //STARPU_USE_SC_HYPERVISOR
+
+	void (*close_callback)(unsigned sched_ctx_id, void* args);
+
+	void *close_args;
 };
 
 struct _starpu_machine_config;
