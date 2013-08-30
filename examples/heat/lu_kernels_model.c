@@ -214,62 +214,89 @@ double task_22_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* 
 	return PERTURBATE(cost);
 }
 
-void initialize_chol_model(struct starpu_perfmodel* model, int i)
+void initialize_chol_model(struct starpu_perfmodel* model, char * symbol, 
+		double (*cost_function)(struct starpu_task *, unsigned), 
+		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned), 
+		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned))
 {
 	intialize_model(model);
 	model.type = STARPU_HISTORY_BASED;
-	switch(i)
-	{
-		case(11):
-			model.cost_function = task_11_cost;
-			model.per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = task_11_cost_cpu;
-			model.per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = task_11_cost_cuda;
-#ifdef STARPU_ATLAS
-			model.symbol = "lu_model_11_atlas";
-#elif defined(STARPU_GOTO)
-			model.symbol = "lu_model_11_goto";
-#else
-			model.symbol = "lu_model_11";
-#endif
-			break;
-		case(12):
-			model.cost_function = task_12_cost;
-			model.per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = task_12_cost_cpu;
-			model.per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = task_12_cost_cuda;
-#ifdef STARPU_ATLAS
-			model.symbol = "lu_model_12_atlas";
-#elif defined(STARPU_GOTO)
-			model.symbol = "lu_model_12_goto";
-#else
-			model.symbol = "lu_model_12";
-#endif
-			break;
-			case(21):
-			model.cost_function = task_21_cost;
-			model.per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = task_21_cost_cpu;
-			model.per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = task_21_cost_cuda;
-#ifdef STARPU_ATLAS
-			model.symbol = "lu_model_21_atlas";
-#elif defined(STARPU_GOTO)
-			model.symbol = "lu_model_21_goto";
-#else
-			model.symbol = "lu_model_21";
-#endif
-			break;
-			case(22):
-			model.cost_function = task_22_cost;
-			model.per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = task_22_cost_cpu;
-			model.per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = task_22_cost_cuda;
-#ifdef STARPU_ATLAS
-			model.symbol = "lu_model_22_atlas";
-#elif defined(STARPU_GOTO)
-			model.symbol = "lu_model_22_goto";
-#else
-			model.symbol = "lu_model_22";
-#endif
-			break;
-		default:
-			 STARPU_ABORT();
-			 break;
-	}
+	model.symbol = symbol;
+	model.cost = cost_function;
+	model.per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = cpu_cost_function;
+	model.per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = cuda_cost_function;
 }
+
+/*
+struct starpu_perfmodel model_11 =
+{
+	.cost_function = task_11_cost,
+	.per_arch =
+	{
+		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_11_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_11_cost_cuda }
+	},
+	.type = STARPU_HISTORY_BASED,
+#ifdef STARPU_ATLAS
+	.symbol = "lu_model_11_atlas"
+#elif defined(STARPU_GOTO)
+		.symbol = "lu_model_11_goto"
+#else
+		.symbol = "lu_model_11"
+#endif
+};
+
+struct starpu_perfmodel model_12 =
+{
+	.cost_function = task_12_cost,
+	.per_arch =
+	{
+		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_12_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_12_cost_cuda }
+	},
+	.type = STARPU_HISTORY_BASED,
+#ifdef STARPU_ATLAS
+	.symbol = "lu_model_12_atlas"
+#elif defined(STARPU_GOTO)
+		.symbol = "lu_model_12_goto"
+#else
+		.symbol = "lu_model_12"
+#endif
+};
+
+struct starpu_perfmodel model_21 =
+{
+	.cost_function = task_21_cost,
+	.per_arch =
+	{
+		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_21_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_21_cost_cuda }
+	},
+	.type = STARPU_HISTORY_BASED,
+#ifdef STARPU_ATLAS
+	.symbol = "lu_model_21_atlas"
+#elif defined(STARPU_GOTO)
+		.symbol = "lu_model_21_goto"
+#else
+		.symbol = "lu_model_21"
+#endif
+};
+
+struct starpu_perfmodel model_22 =
+{
+	.cost_function = task_22_cost,
+	.per_arch =
+	{
+		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_22_cost_cpu },
+		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_22_cost_cuda }
+	},
+	.type = STARPU_HISTORY_BASED,
+#ifdef STARPU_ATLAS
+	.symbol = "lu_model_22_atlas"
+#elif defined(STARPU_GOTO)
+		.symbol = "lu_model_22_goto"
+#else
+		.symbol = "lu_model_22"
+#endif
+};
+*/
