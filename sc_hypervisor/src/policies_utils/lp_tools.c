@@ -347,7 +347,7 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 				
 				if(nw_move > 0)
 				{
-					sc_hypervisor_move_workers(sched_ctxs[s], sched_ctxs[s2], workers_move, nw_move, 0);
+					sc_hypervisor_move_workers(sched_ctxs[s], sched_ctxs[s2], workers_move, nw_move, !(_sc_hypervisor_use_lazy_resize()));
 					nw_move = 0;
 				}
 
@@ -367,7 +367,7 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 		_lp_find_workers_to_remove(nw, tmp_nw_move, tmp_workers_move, 
 					   &nw_move, workers_move);
 		if(nw_move > 0)
-			sc_hypervisor_remove_workers_from_sched_ctx(workers_move, nw_move, sched_ctxs[s], 0);
+			sc_hypervisor_remove_workers_from_sched_ctx(workers_move, nw_move, sched_ctxs[s], !(_sc_hypervisor_use_lazy_resize()));
 	}
 }
 int _lp_get_unwanted_workers(int *workers_add, int nw_add, unsigned sched_ctx, int *workers_remove)
@@ -475,7 +475,7 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 			sc_hypervisor_add_workers_to_sched_ctx(workers_add, nw_add, sched_ctxs[s]);
 			int workers_remove[STARPU_NMAXWORKERS];
 			int nw_remove = _lp_get_unwanted_workers(workers_add, nw_add, sched_ctxs[s], workers_remove);
-			sc_hypervisor_remove_workers_from_sched_ctx(workers_remove, nw_remove, sched_ctxs[s], 0);
+			sc_hypervisor_remove_workers_from_sched_ctx(workers_remove, nw_remove, sched_ctxs[s], !(_sc_hypervisor_use_lazy_resize()));
 			sc_hypervisor_start_resize(sched_ctxs[s]);
 		}
 
