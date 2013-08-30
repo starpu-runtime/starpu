@@ -19,6 +19,11 @@
 
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
+
+struct starpu_perfmodel chol_model_11;
+struct starpu_perfmodel chol_model_21;
+struct starpu_perfmodel chol_model_22;
+
 /*
  *	Create the codelets
  */
@@ -342,9 +347,9 @@ int main(int argc, char **argv)
 
 	starpu_init(NULL);
 
-	initialize_chol_model(&chol_model_11,11);
-	initialize_chol_model(&chol_model_21,21);
-	initialize_chol_model(&chol_model_22,22);
+	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
+	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,cuda_chol_task_21_cost);
+	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,cuda_chol_task_22_cost);
 
 	starpu_cublas_init();
 

@@ -132,23 +132,23 @@ void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);
 void chol_cpu_codelet_update_u22(void **, void *);
 
+double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+
 #ifdef STARPU_USE_CUDA
 void chol_cublas_codelet_update_u11(void *descr[], void *_args);
 void chol_cublas_codelet_update_u21(void *descr[], void *_args);
 void chol_cublas_codelet_update_u22(void *descr[], void *_args);
+
+double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 #endif
 
-/*
-extern struct starpu_perfmodel chol_model_11;
-extern struct starpu_perfmodel chol_model_21;
-extern struct starpu_perfmodel chol_model_22;
-*/
-
-struct starpu_perfmodel chol_model_11;
-struct starpu_perfmodel chol_model_21;
-struct starpu_perfmodel chol_model_22;
-
-void initialize_chol_model(struct starpu_perfmodel* model, int i);
+void initialize_chol_model(struct starpu_perfmodel* model, char* symbol, 
+		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned), 
+		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned));
 
 static void STARPU_ATTRIBUTE_UNUSED parse_args(int argc, char **argv)
 {

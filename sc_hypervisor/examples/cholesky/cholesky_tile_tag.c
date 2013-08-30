@@ -17,6 +17,10 @@
 
 #include "cholesky.h"
 
+struct starpu_perfmodel chol_model_11;
+struct starpu_perfmodel chol_model_21;
+struct starpu_perfmodel chol_model_22;
+
 /* A [ y ] [ x ] */
 float *A[NMAXBLOCKS][NMAXBLOCKS];
 starpu_data_handle_t A_state[NMAXBLOCKS][NMAXBLOCKS];
@@ -239,9 +243,9 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	initialize_chol_model(&chol_model_11,11);
-	initialize_chol_model(&chol_model_21,21);
-	initialize_chol_model(&chol_model_22,22);
+	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
+	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,cuda_chol_task_21_cost);
+	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,cuda_chol_task_22_cost);
 
 	/* Disable sequential consistency */
 	starpu_data_set_default_sequential_consistency_flag(0);
