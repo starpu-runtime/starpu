@@ -136,6 +136,11 @@ int main(int argc, char **argv)
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
 #endif
+	int ret;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV) return 1;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	parse_args(argc, argv);
 

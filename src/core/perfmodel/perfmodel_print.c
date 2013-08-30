@@ -176,10 +176,10 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 		for (archtype = 0; archtype < STARPU_NARCH; archtype++)
 		{
 			perf_arch.type = archtype;
-			for(devid = 0; model->per_arch[archtype] != NULL; devid++)
+			for(devid = 0; model->per_arch[archtype][devid] != NULL; devid++)
 			{
 				perf_arch.devid = devid;
-				for(ncore = 0; model->per_arch[archtype][ncore] != NULL; ncore++)
+				for(ncore = 0; model->per_arch[archtype][devid][ncore] != NULL; ncore++)
 				{
 					perf_arch.ncore = ncore;
 					for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
