@@ -600,14 +600,14 @@ static struct starpu_perfmodel_per_arch*** initialize_arch_model(int maxdevid, u
 void initialize_model(struct starpu_perfmodel *model)
 {
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
-	intialize_model_without_conf(model,1,&conf->topology.ncpus,
+	initialize_model_without_conf(model,1,&conf->topology.ncpus,
 			conf->topology.ncudagpus,NULL,
 			conf->topology.nopenclgpus,NULL,
 			conf->topology.nmicdevices,conf->topology.nmiccores,
 			conf->topology.nsccdevices,NULL); 
 }
 
-void intialize_model_without_conf(struct starpu_perfmodel* model, int dev_cpu, unsigned* core_cpu, int dev_cuda, unsigned* core_cuda, int dev_opencl, unsigned* core_opencl, int dev_mic, unsigned* core_mic, int dev_scc, unsigned* core_scc)
+void initialize_model_without_conf(struct starpu_perfmodel* model, int dev_cpu, unsigned* core_cpu, int dev_cuda, unsigned* core_cuda, int dev_opencl, unsigned* core_opencl, int dev_mic, unsigned* core_mic, int dev_scc, unsigned* core_scc)
 {
 	model->per_arch = malloc(sizeof(*model->per_arch)*(STARPU_NARCH));
 
