@@ -162,4 +162,9 @@ Whether \ref STARPU_PREFETCH was set
 \ingroup API_Scheduling_Policy
 Prefetch data for a given task on a given node
 
+\fn void starpu_sched_ctx_worker_shares_tasks_lists (int workerid, int sched_ctx_id)
+\ingroup API_Scheduling_Policy
+The scheduling policies indicates if the worker may pop tasks from the list of other workers
+or if there is a central list with task for all the workers
+
 */
