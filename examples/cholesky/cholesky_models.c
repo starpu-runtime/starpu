@@ -26,6 +26,7 @@
  */
 
 #include <starpu.h>
+#include <starpu_perfmodel.h>
 #include "cholesky.h"
 
 /* #define USE_PERTURBATION	1 */
@@ -131,9 +132,9 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
 		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned))
 {
 	initialize_model(model);
-	model.type = STARPU_HISTORY_BASED;
-	model.symbol = symbol;
-	model.per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = cpu_cost_function;
-	model.per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = cuda_cost_function;
+	model->type = STARPU_HISTORY_BASED;
+	model->symbol = symbol;
+	model->per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = cpu_cost_function;
+	model->per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = cuda_cost_function;
 }
 

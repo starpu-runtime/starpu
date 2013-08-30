@@ -25,6 +25,11 @@
 #define debug(fmt, ...)
 #endif
 
+struct starpu_perfmodel model_11;
+struct starpu_perfmodel model_12;
+struct starpu_perfmodel model_21;
+struct starpu_perfmodel model_22;
+
 unsigned *advance_11; /* size nblocks, whether the 11 task is done */
 unsigned *advance_12_21; /* size nblocks*nblocks */
 unsigned *advance_22; /* array of nblocks *nblocks*nblocks */
@@ -700,6 +705,27 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 	if (ret == -ENODEV)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+#ifdef STARPU_ATLAS
+	char * symbol_11 = "lu_model_11_atlas";
+	char * symbol_12 = "lu_model_12_atlas";
+	char * symbol_21 = "lu_model_21_atlas";
+	char * symbol_22 = "lu_model_22_atlas";
+#elif defined(STARPU_GOTO)
+	char * symbol_11 = "lu_model_11_goto";
+	char * symbol_12 = "lu_model_12_goto";
+	char * symbol_21 = "lu_model_21_goto";
+	char * symbol_22 = "lu_model_22_goto";
+#else
+	char * symbol_11 = "lu_model_11";
+	char * symbol_12 = "lu_model_12";
+	char * symbol_21 = "lu_model_21";
+	char * symbol_22 = "lu_model_22";
+#endif
+	initialize_lu_kernels_model(&model_11,symbol_11,task_11_cost,task_11_cost_cpu,task_11_cost_cuda);
+	initialize_lu_kernels_model(&model_12,symbol_12,task_12_cost,task_12_cost_cpu,task_12_cost_cuda);
+	initialize_lu_kernels_model(&model_21,symbol_21,task_21_cost,task_21_cost_cpu,task_21_cost_cuda);
+	initialize_lu_kernels_model(&model_22,symbol_22,task_22_cost,task_22_cost_cpu,task_22_cost_cuda);
 
 	starpu_cublas_init();
 

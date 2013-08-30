@@ -27,6 +27,11 @@
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
 
+struct starpu_perfmodel model_11;
+struct starpu_perfmodel model_12;
+struct starpu_perfmodel model_21;
+struct starpu_perfmodel model_22;
+
 static unsigned no_prio = 0;
 
 /*
