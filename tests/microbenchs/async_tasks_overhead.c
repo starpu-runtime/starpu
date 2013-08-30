@@ -103,9 +103,6 @@ int main(int argc, char **argv)
 	/* Create an array of tasks */
 	struct starpu_task **tasks = (struct starpu_task **) malloc(ntasks*sizeof(struct starpu_task *));
 	
-	int lala=1;
-while(lala);
-
 	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
