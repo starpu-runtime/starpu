@@ -101,24 +101,32 @@ init_perfmodels(void)
 {
 	unsigned devid, ncore;
 
-	for(devid=0; model_cpu_task.per_arch[STARPU_CPU_WORKER][devid] != NULL; devid++)
+	initialize_model(&model_cpu_task);
+	initialize_model(&model_gpu_task);
+	
+	if(model_cpu_task.per_arch[STARPU_CPU_WORKER] != NULL)
 	{
-		for(ncore=0; model_cpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore] != NULL; ncore++)
+		for(devid=0; model_cpu_task.per_arch[STARPU_CPU_WORKER][devid] != NULL; devid++)
 		{
-			model_cpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore][0].cost_function = cpu_task_cpu;
-			model_gpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore][0].cost_function = gpu_task_cpu;
+			for(ncore=0; model_cpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore] != NULL; ncore++)
+			{
+				model_cpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore][0].cost_function = cpu_task_cpu;
+				model_gpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore][0].cost_function = gpu_task_cpu;
+			}
 		}
 	}
 
-	for(devid=0; model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid] != NULL; devid++)
+	if(model_cpu_task.per_arch[STARPU_CUDA_WORKER] != NULL)
 	{
-		for(ncore=0; model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore] != NULL; ncore++)
+		for(devid=0; model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid] != NULL; devid++)
 		{
-			model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = cpu_task_cpu;
-			model_gpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = gpu_task_cpu;
+			for(ncore=0; model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore] != NULL; ncore++)
+			{
+				model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = cpu_task_cpu;
+				model_gpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = gpu_task_cpu;
+			}
 		}
 	}
-
 }
 
 /*

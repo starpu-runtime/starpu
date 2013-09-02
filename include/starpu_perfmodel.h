@@ -132,6 +132,7 @@ struct starpu_perfmodel
 };
 
 void initialize_model(struct starpu_perfmodel *model);
+void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model);
 
 struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid);
 

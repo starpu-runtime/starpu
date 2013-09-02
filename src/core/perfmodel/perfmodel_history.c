@@ -338,7 +338,7 @@ static void parse_device(FILE *f, struct starpu_perfmodel *model, unsigned scan_
 	if(ncore < maxncore)
 		for(i=ncore; i<maxncore; i++)
 		{
-			arch.ncore = ncore;
+			arch.ncore = i;
 			skip_parse_arch(f,&arch);
 		}
 }
@@ -398,6 +398,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	for(archtype=0; archtype<STARPU_NARCH; archtype++)
 		parse_archtype(f, model, scan_history, archtype);
 }
+
 
 static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, unsigned nimpl)
 {
@@ -618,6 +619,45 @@ void initialize_model(struct starpu_perfmodel *model)
 			conf->topology.nsccdevices,NULL); 
 }
 
+void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
+{
+	unsigned ret, archtype, devid, i, ndevice, * maxncore;
+	struct starpu_perfmodel_arch arch;
+
+	for(archtype=0; archtype<STARPU_NARCH; archtype++)
+	{
+		arch.type = archtype;
+
+		_starpu_drop_comments(f);
+		ret = fscanf(f, "%u\n", &ndevice);
+		STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
+
+		if(ndevice != 0)
+			maxncore = malloc(sizeof((*maxncore)*ndevice));
+		else 
+			maxncore = NULL;
+
+		for(devid=0; devid < ndevice; devid++)
+		{
+			arch.devid = devid;
+
+			_starpu_drop_comments(f);
+			ret = fscanf(f, "%u\n", &maxncore[devid]);
+			STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
+
+			for(i=0; i<maxncore[devid]; i++)
+			{
+				arch.ncore = i;
+		
+				skip_parse_arch(f,&arch);
+			}
+		}
+
+		model->per_arch[archtype] = initialize_arch_model(ndevice,maxncore); 
+		if(maxncore != NULL)
+			free(maxncore);
+	}
+}
 static void get_model_debug_path(struct starpu_perfmodel *model, const char *arch, char *path, size_t maxlen)
 {
 	STARPU_ASSERT(path);
@@ -1023,7 +1063,6 @@ int starpu_perfmodel_list(FILE *output)
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model)
 {
 	model->symbol = strdup(symbol);
-	initialize_model(model);
 
 	/* where is the file if it exists ? */
 	char path[256];
@@ -1053,6 +1092,16 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 
 	FILE *f = fopen(path, "r");
 	STARPU_ASSERT(f);
+
+	if(_starpu_is_initialized())
+	{
+		initialize_model(model);
+	}
+	else
+	{
+		initialize_model_with_file(f, model);	
+		rewind(f);
+	}
 
 	parse_model_file(f, model, 1);
 
