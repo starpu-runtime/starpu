@@ -775,7 +775,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
 		int devid = _starpu_get_next_cuda_gpuid(config);
 		config->workers[worker_idx].perf_arch.type = STARPU_CUDA_WORKER;
-		config->workers[worker_idx].perf_arch.devid = devid;
+		config->workers[worker_idx].perf_arch.devid = cudagpu;
 		config->workers[worker_idx].perf_arch.ncore = 0;
 		config->workers[worker_idx].mp_nodeid = -1;
 		config->workers[worker_idx].devid = devid;
@@ -849,7 +849,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		}
 		config->workers[worker_idx].arch = STARPU_OPENCL_WORKER;
 		config->workers[worker_idx].perf_arch.type = STARPU_OPENCL_WORKER;
-		config->workers[worker_idx].perf_arch.devid = devid;
+		config->workers[worker_idx].perf_arch.devid = openclgpu;
 		config->workers[worker_idx].perf_arch.ncore = 0;
 		config->workers[worker_idx].mp_nodeid = -1;
 		config->workers[worker_idx].devid = devid;
@@ -911,7 +911,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		config->workers[topology->nworkers + sccdev].arch = STARPU_SCC_WORKER;
 		int devid = _starpu_get_next_scc_deviceid(config);
 		config->workers[topology->nworkers + sccdev].perf_arch.type = STARPU_SCC_WORKER;
-		config->workers[topology->nworkers + sccdev].perf_arch.devid = devid;
+		config->workers[topology->nworkers + sccdev].perf_arch.devid = sccdev;
 		config->workers[topology->nworkers + sccdev].perf_arch.ncore = 0;
 		config->workers[topology->nworkers + sccdev].mp_nodeid = -1;
 		config->workers[topology->nworkers + sccdev].devid = devid;

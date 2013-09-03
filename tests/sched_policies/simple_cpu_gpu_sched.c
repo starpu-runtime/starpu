@@ -122,8 +122,20 @@ init_perfmodels(void)
 		{
 			for(ncore=0; model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore] != NULL; ncore++)
 			{
-				model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = cpu_task_cpu;
-				model_gpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = gpu_task_cpu;
+				model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = cpu_task_gpu;
+				model_gpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = gpu_task_gpu;
+			}
+		}
+	}
+
+	if(model_cpu_task.per_arch[STARPU_OPENCL_WORKER] != NULL)
+	{
+		for(devid=0; model_cpu_task.per_arch[STARPU_OPENCL_WORKER][devid] != NULL; devid++)
+		{
+			for(ncore=0; model_cpu_task.per_arch[STARPU_OPENCL_WORKER][devid][ncore] != NULL; ncore++)
+			{
+				model_cpu_task.per_arch[STARPU_OPENCL_WORKER][devid][ncore][0].cost_function = cpu_task_gpu;
+				model_gpu_task.per_arch[STARPU_OPENCL_WORKER][devid][ncore][0].cost_function = gpu_task_gpu;
 			}
 		}
 	}
@@ -193,8 +205,8 @@ run(struct starpu_sched_policy *policy)
 	cpu_task_worker = starpu_worker_get_type(cpu_task->profiling_info->workerid);
 	gpu_task_worker = starpu_worker_get_type(gpu_task->profiling_info->workerid);
 	if (cpu_task_worker != STARPU_CPU_WORKER ||
-	    (gpu_task_worker != STARPU_CUDA_WORKER &&
-	     gpu_task_worker != STARPU_OPENCL_WORKER))
+			(gpu_task_worker != STARPU_CUDA_WORKER &&
+			 gpu_task_worker != STARPU_OPENCL_WORKER))
 		ret = 1;
 	else
 		ret = 0;
