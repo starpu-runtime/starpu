@@ -594,8 +594,8 @@ pick:
 			been_here[i] = 0;
 
 		while(!task)
-		{
 #endif
+		{
 			if(worker->nsched_ctxs == 1)
 				sched_ctx = _starpu_get_initial_sched_ctx();
 			else
