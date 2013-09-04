@@ -323,6 +323,8 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	if (req)
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 
+	/* Sleep 10µs for the GPU transfer queueing */
+	MSG_process_sleep(0.000010);
 	transfer_submit(transfer);
 	/* Note: from here, transfer might be already freed */
 
