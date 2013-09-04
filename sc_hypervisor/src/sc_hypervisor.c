@@ -953,6 +953,12 @@ int sc_hypervisor_get_nsched_ctxs()
 	return ns;
 }
 
+int _sc_hypervisor_use_lazy_resize(void)
+{
+	char* lazy = getenv("SC_HYPERVISOR_LAZY_RESIZE");
+	return lazy ? atof(lazy)  : 1;
+}
+
 void sc_hypervisor_save_size_req(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
 {
 	hypervisor.sr = (struct size_request*)malloc(sizeof(struct size_request));

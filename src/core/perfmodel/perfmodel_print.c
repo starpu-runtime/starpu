@@ -236,12 +236,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			{
 				perf_arch.devid = devid;
 				for (implid = 0; implid <STARPU_MAXIMPLEMENTATIONS; implid ++)
-				{
-					char archname[32];
-					starpu_perfmodel_get_arch_name(&perf_arch, archname, 32, implid);
-					fprintf(output, "performance model for %s\n", archname);
 					starpu_perfmodel_print(model, &perf_arch, implid, parameter, footprint, output);
-				}
 			}
 			return 0;
 		}

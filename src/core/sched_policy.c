@@ -543,8 +543,8 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 	for (l = worker->sched_ctx_list; l; l = l->next)
 	{
 		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
-		if(worker->removed_from_ctx[sched_ctx->id])
-			return sched_ctx;
+/* 		if(worker->removed_from_ctx[sched_ctx->id]) */
+/* 			return sched_ctx; */
 		if(sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs &&
 		   smallest_counter > sched_ctx->pop_counter[worker->workerid])
 		{
@@ -587,8 +587,14 @@ pick:
 	if(!task)
 	{		
 		struct _starpu_sched_ctx *sched_ctx ;
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+		int been_here[STARPU_NMAX_SCHED_CTXS];
+		int i;
+		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+			been_here[i] = 0;
 
-		if(!task)
+		while(!task)
+#endif
 		{
 			if(worker->nsched_ctxs == 1)
 				sched_ctx = _starpu_get_initial_sched_ctx();
@@ -608,7 +614,13 @@ pick:
 				_starpu_worker_gets_out_of_ctx(sched_ctx->id, worker);
 				worker->removed_from_ctx[sched_ctx->id] = 0;
 			}
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+			if((!task && sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
+				break;
 
+
+			been_here[sched_ctx->id] = 1;
+#endif
 			sched_ctx->pop_counter[worker->workerid]++;
 		}
 	  }

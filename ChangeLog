@@ -49,6 +49,9 @@ Small features:
     to enable or disable sequential consistency
   * New configure option --enable-fxt-lock which enables additional
     trace events focused on locks behaviour during the execution
+  * New function starpu_perfmodel_directory() to print directory
+    storing performance models. Available through the new option -d of
+    the tool starpu_perfmodel_display
 
 Changes:
   * Fix of the livelock issue discovered while executing applications

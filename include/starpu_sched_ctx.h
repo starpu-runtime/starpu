@@ -60,6 +60,8 @@ unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id);
 
 unsigned starpu_sched_ctx_contains_type_of_worker(enum starpu_worker_archtype arch, unsigned sched_ctx_id);
 
+unsigned starpu_sched_ctx_worker_get_id(unsigned sched_ctx_id);
+
 unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid);
 
 int starpu_sched_get_min_priority(void);

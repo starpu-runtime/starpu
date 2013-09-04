@@ -599,8 +599,15 @@ the speed of the other contexts, but only by the the value that a context should
 By default the values of the speed of the workers is printed during the execution
 of the application. If the value 1 is given to this environment variable this printing
 is not done.
-
 </dd>
 
+<dt>SC_HYPERVISOR_LAZY_RESIZE</dt>
+<dd>
+\anchor SC_HYPERVISOR_LAZY_RESIZE
+\addindex __env__SC_HYPERVISOR_LAZY_RESIZE
+By default the hypervisor resizes the contexts in a lazy way, that is workers are firstly added to a new context
+before removing them from the previous one. Once this workers are clearly taken into account 
+into the new context (a task was poped there) we remove them from the previous one. However if the application
+would like that the change in the distribution of workers should change right away this variable should be set to 0
 </dl>
 */

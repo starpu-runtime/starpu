@@ -1523,6 +1523,21 @@ void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sc
 	*sched_mutex = &config.workers[workerid].sched_mutex;
 }
 
+int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
+{
+	int success = 0;
+	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	if (config.workers[workerid].status == STATUS_SLEEPING)
+	{
+		config.workers[workerid].status = STATUS_WAKING_UP;
+		STARPU_PTHREAD_COND_SIGNAL(cond);
+		success = 1;
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	return success;
+}
+
+
 int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();

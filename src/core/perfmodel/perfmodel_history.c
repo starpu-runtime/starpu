@@ -519,7 +519,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 			arch.devid = devid;
 			fprintf(f, "###############\n");
 			fprintf(f, "# %s_%u\n", name, devid); 
-			fprintf(f, "# number of workers on %s_%d devices\n", name, devid);
+			fprintf(f, "# number of workers on device %s_%d\n", name, devid);
 			if(ncore != NULL)
 				fprintf(f, "%u\n", ncore[devid]);
 			else
@@ -1026,6 +1026,13 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+}
+
+void starpu_perfmodel_directory(FILE *output)
+{
+	char perf_model_dir[256];
+	_starpu_get_perf_model_dir(perf_model_dir, 256);
+	fprintf(output, "directory: <%s>\n", perf_model_dir);
 }
 
 /* This function is intended to be used by external tools that should read

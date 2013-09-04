@@ -35,7 +35,9 @@ enum _starpu_worker_status
 	/* during the execution of the callback */
 	STATUS_CALLBACK,
 	/* while sleeping because there is nothing to do */
-	STATUS_SLEEPING
+	STATUS_SLEEPING,
+	/* while a sleeping worker is about to wake up (to avoid waking twice for the same worker) */
+	STATUS_WAKING_UP
 };
 
 /* Specify what the local worker is currently doing (eg. executing a callback).

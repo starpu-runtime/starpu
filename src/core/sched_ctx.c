@@ -1018,6 +1018,14 @@ unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_
 	}
 	return 0;
 }
+unsigned starpu_sched_ctx_worker_get_id(unsigned sched_ctx_id)
+{
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1)
+		if(starpu_sched_ctx_contains_worker(workerid, sched_ctx_id))
+			return workerid;
+	return -1;
+}
 		 
 unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 {

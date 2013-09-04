@@ -235,6 +235,10 @@ returns the architecture type of a given worker.
 \ingroup API_Performance_Model
 prints a list of all performance models on \p output
 
+\fn int starpu_perfmodel_directory(FILE *output)
+\ingroup API_Performance_Model
+prints the directory name storing performance models on \p output
+
 \fn void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output)
 \ingroup API_Performance_Model
 todo

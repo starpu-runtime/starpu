@@ -129,6 +129,12 @@ blocked)
 \ingroup API_Scheduling_Contexts
 Return 1 if the worker belongs to the context and 0 otherwise
 
+\fn unsigned starpu_sched_ctx_worker_get_id(unsigned sched_ctx_id)
+\ingroup API_Scheduling_Contexts
+Return the workerid if the worker belongs to the context and -1 otherwise.
+If the thread calling this function is not a worker the function returns -1
+as it calls the function \ref starpu_worker_get_id()
+
 \fn unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 \ingroup API_Scheduling_Contexts
 Check if a worker is shared between several contexts
