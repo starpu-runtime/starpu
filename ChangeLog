@@ -14,11 +14,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-StarPU 1.1.0rc4 (svn revision 10951)
-
-Changes:
-  * Perfmodels: Modification of perfmodels output format for future improvements.
-
 StarPU 1.1.0rc3 (svn revision xxx)
 ==============================================
 The scheduling context release
@@ -27,6 +22,9 @@ Small features:
   * New function starpu_perfmodel_directory() to print directory
     storing performance models. Available through the new option -d of
     the tool starpu_perfmodel_display
+
+Changes:
+  * Modification of perfmodels output format for future improvements.
 
 StarPU 1.1.0rc2 (svn revision 10575)
 ==============================================
