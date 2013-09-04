@@ -32,6 +32,8 @@
 
 /* display all available models */
 static int plist = 0;
+/* display directory */
+static int pdirectory = 0;
 /* what kernel ? */
 static char *psymbol = NULL;
 /* what parameter should be displayed ? (NULL = all) */
@@ -54,6 +56,7 @@ static void usage()
         fprintf(stderr, "   -p <parameter>      specify the parameter (e.g. a, b, c, mean, stddev)\n");
         fprintf(stderr, "   -a <arch>           specify the architecture (e.g. cpu, cpu:k, cuda)\n");
 	fprintf(stderr, "   -f <footprint>      display the history-based model for the specified footprint\n");
+	fprintf(stderr, "   -d                  display the directory storing performance models\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
         fprintf(stderr, "Reports bugs to <"PACKAGE_BUGREPORT">.");
@@ -71,6 +74,7 @@ static void parse_args(int argc, char **argv)
 		{"help",      no_argument,       NULL, 'h'},
 		/* XXX Would be cleaner to set a flag */
 		{"list",      no_argument,       NULL, 'l'},
+		{"dir",       no_argument,       NULL, 'd'},
 		{"parameter", required_argument, NULL, 'p'},
 		{"symbol",    required_argument, NULL, 's'},
 		{"version",   no_argument,       NULL, 'v'},
@@ -78,7 +82,7 @@ static void parse_args(int argc, char **argv)
 	};
 
 	int option_index;
-	while ((c = getopt_long(argc, argv, "ls:p:a:f:h", long_options, &option_index)) != -1)
+	while ((c = getopt_long(argc, argv, "dls:p:a:f:h", long_options, &option_index)) != -1)
 	{
 		switch (c)
 		{
@@ -108,6 +112,11 @@ static void parse_args(int argc, char **argv)
 			sscanf(optarg, "%08x", &pspecific_footprint);
 			break;
 
+		case 'd':
+			/* directory */
+			pdirectory = 1;
+			break;
+
 		case 'h':
 			usage();
 			exit(EXIT_SUCCESS);
@@ -122,7 +131,7 @@ static void parse_args(int argc, char **argv)
 		}
 	}
 
-	if (!psymbol && !plist)
+	if (!psymbol && !plist && !pdirectory)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
                 usage();
@@ -143,7 +152,11 @@ int main(int argc, char **argv)
 	{
                 starpu_perfmodel_list(stdout);
         }
-        else
+        else if (pdirectory)
+	{
+		starpu_perfmodel_directory(stdout);
+	}
+	else
 	{
 		struct starpu_perfmodel model;
                 int ret = starpu_perfmodel_load_symbol(psymbol, &model);
