@@ -910,6 +910,13 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 }
 
+void starpu_perfmodel_directory(FILE *output)
+{
+	char perf_model_dir[256];
+	_starpu_get_perf_model_dir(perf_model_dir, 256);
+	fprintf(output, "directory: <%s>\n", perf_model_dir);
+}
+
 /* This function is intended to be used by external tools that should read
  * the performance model files */
 int starpu_perfmodel_list(FILE *output)

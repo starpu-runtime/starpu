@@ -18,6 +18,11 @@ StarPU 1.1.0rc3 (svn revision xxx)
 ==============================================
 The scheduling context release
 
+Small features:
+  * New function starpu_perfmodel_directory() to print directory
+    storing performance models. Available through the new option -d of
+    the tool starpu_perfmodel_display
+
 StarPU 1.1.0rc2 (svn revision 10575)
 ==============================================
 The scheduling context release
