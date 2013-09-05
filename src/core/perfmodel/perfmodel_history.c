@@ -459,16 +459,14 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	}
 
 	/* Writing stuff */
-
 	char *name = "unknown";
 	unsigned substract_to_arch = 0;
 	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
 	{
-		unsigned char arch_already_visited = 0;
-
 		switch (arch)
 		{
 			case STARPU_CPU_DEFAULT:
+				arch_base = arch;
 				name = "CPU";
 				fprintf(f, "####################\n");
 				fprintf(f, "# %ss\n", name);
@@ -480,6 +478,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 				fprintf(f, "%u\n", my_narch = narch[0]);
 				break;
 			case STARPU_CUDA_DEFAULT:
+				arch_base = arch;
 				name = "CUDA";
 				substract_to_arch = STARPU_MAXCPUS;
 				fprintf(f, "####################\n");
@@ -488,6 +487,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 				fprintf(f, "%u\n", my_narch = narch[1]);
 				break;
 			case STARPU_OPENCL_DEFAULT:
+				arch_base = arch;
 				name = "OPENCL";
 				substract_to_arch += STARPU_MAXCUDADEVS;
 				fprintf(f, "####################\n");
@@ -496,9 +496,6 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 				fprintf(f, "%u\n", my_narch = narch[2]);
 				break;
 			default:
-				/* The current worker arch was already written,
-				 * we don't need to write it again */
-				arch_already_visited = 1;
 				break;
 		}
 
