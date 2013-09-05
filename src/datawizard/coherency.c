@@ -486,8 +486,14 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_
 	unsigned local_node = _starpu_memory_node_get_local_key();
         _STARPU_LOG_IN();
 
-	while (_starpu_spin_trylock(&handle->header_lock))
+	int cpt = 0;
+	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
+	{
+		cpt++;
 		_starpu_datawizard_progress(local_node, 1);
+	}
+	if (cpt == STARPU_SPIN_MAXTRY)
+		_starpu_spin_lock(&handle->header_lock);
 
 	if (!detached)
 	{
@@ -557,8 +563,14 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 		_starpu_write_through_data(handle, memory_node, wt_mask);
 
 	unsigned local_node = _starpu_memory_node_get_local_key();
-	while (_starpu_spin_trylock(&handle->header_lock))
+	int cpt = 0;
+	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
+	{
+		cpt++;
 		_starpu_datawizard_progress(local_node, 1);
+	}
+	if (cpt == STARPU_SPIN_MAXTRY)
+		_starpu_spin_lock(&handle->header_lock);
 
 	/* Release refcnt taken by fetch_data_on_node */
 	replicate->refcnt--;
