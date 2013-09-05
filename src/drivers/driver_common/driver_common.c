@@ -206,7 +206,10 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		{
 			if (_starpu_machine_is_running())
 			{
-				STARPU_UYIELD();
+				int delay = args->spinning_backoff;
+				args->spinning_backoff<<=1; /* TODO : check if a max is needed */ 
+				while(delay--)
+					STARPU_UYIELD();
 #ifdef STARPU_SIMGRID
 				static int warned;
 				if (!warned)
@@ -249,6 +252,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
 
+	args->spinning_backoff = 1;
 	if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_end)
 		perf_counters->notify_idle_end(task->sched_ctx, args->workerid);
 #endif //STARPU_USE_SC_HYPERVISOR
