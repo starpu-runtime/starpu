@@ -327,7 +327,7 @@ static void parse_archtype(FILE *f, struct starpu_perfmodel *model, unsigned sca
 
 static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned scan_history)
 {
-	int ret;
+	int ret, version;
 	unsigned arch, archmax;
 
 	_STARPU_DEBUG("Start parsing\n");
