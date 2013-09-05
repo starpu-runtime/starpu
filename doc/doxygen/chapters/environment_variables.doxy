@@ -610,4 +610,14 @@ before removing them from the previous one. Once this workers are clearly taken 
 into the new context (a task was poped there) we remove them from the previous one. However if the application
 would like that the change in the distribution of workers should change right away this variable should be set to 0
 </dl>
+
+<dt>SC_HYPERVISOR_SAMPLE_CRITERIA</dt>
+<dd>
+\anchor SC_HYPERVISOR_SAMPLE_CRITERIA
+\addindex __env__SC_HYPERVISOR_SAMPLE_CRITERIA
+By default the hypervisor uses a sample of flops when computing the speed of the contexts and of the workers.
+If this variable is set to <c>time</c> the hypervisor uses a sample of time (10% of an aproximation of the total
+execution time of the application)
+</dl>
+
 */
