@@ -323,6 +323,12 @@ int _starpu_push_task(struct _starpu_job *j)
 	_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
 	_starpu_increment_nready_tasks();
 	task->status = STARPU_TASK_READY;
+#ifdef STARPU_USE_SC_HYPERVISOR
+	if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->perf_counters != NULL 
+	   && sched_ctx->perf_counters->notify_ready_task)
+		sched_ctx->perf_counters->notify_ready_task(sched_ctx->id, task);
+#endif //STARPU_USE_SC_HYPERVISOR
+
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
 	{
@@ -342,6 +348,11 @@ int _starpu_push_task(struct _starpu_job *j)
 			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 			starpu_task_list_push_front(&sched_ctx->empty_ctx_tasks, task);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+#ifdef STARPU_USE_SC_HYPERVISOR
+			if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->perf_counters != NULL 
+			   && sched_ctx->perf_counters->notify_empty_ctx)
+				sched_ctx->perf_counters->notify_empty_ctx(sched_ctx->id, task);
+#endif
 			return 0;
 		}
 	}
@@ -381,6 +392,12 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->empty_ctx_mutex);
 			starpu_task_list_push_back(&sched_ctx->empty_ctx_tasks, task);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->empty_ctx_mutex);
+#ifdef STARPU_USE_SC_HYPERVISOR
+			if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->perf_counters != NULL 
+			   && sched_ctx->perf_counters->notify_empty_ctx)
+				sched_ctx->perf_counters->notify_empty_ctx(sched_ctx->id, task);
+#endif
+
 			return -EAGAIN;
 		}
 	}

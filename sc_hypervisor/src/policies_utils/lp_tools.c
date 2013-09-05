@@ -31,6 +31,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 	int nw = tw->nw;
 	int i = 0;
 	struct sc_hypervisor_wrapper* sc_w;
+
 	for(i = 0; i < nsched_ctxs; i++)
 	{
 		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
@@ -38,8 +39,18 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		for(w = 0; w < nw; w++)
 			v[i][w] = sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw)); 
 		
-		flops[i] = sc_w->remaining_flops < 0.0 ? 0.0 : sc_w->remaining_flops/1000000000; /* in gflops*/
-//		printf("%d: flops %lf\n", sched_ctxs[i], flops[i]);
+//		flops[i] = sc_w->ready_flops/1000000000.0; /* in gflops*/
+		if(sc_w->remaining_flops < 0.0)
+			flops[i] = sc_w->ready_flops/1000000000.0; /* in gflops*/
+		else
+		{
+			if((sc_w->ready_flops/1000000000.0) < 0.5)
+				flops[i] = 0.0;
+			else
+				flops[i] = sc_w->remaining_flops/1000000000.0; /* in gflops*/
+		}
+/* 		printf("%d: flops %lf remaining flops %lf ready flops %lf nready_tasks %d\n",  */
+/* 		       sched_ctxs[i], flops[i], sc_w->remaining_flops/1000000000, sc_w->ready_flops/1000000000, sc_w->nready_tasks); */
 	}
 
 	double vmax = 1/sc_hypervisor_lp_simulate_distrib_flops(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw);
@@ -51,7 +62,29 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 #else
 		optimal_v = res[i][0] * v[i][0];
 #endif //STARPU_USE_CUDA
-//				printf("%d: set opt %lf\n", i, optimal_v[i]);
+		int w;
+		unsigned no_workers = 1;
+		for(w = 0; w < nw; w++)
+			if(res[i][w] != 0.0)
+			{
+				no_workers = 0;
+				break;
+			}
+
+		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
+
+/* if the hypervisor gave 0 workers to a context but the context still 
+has some last flops or a ready task that does not even have any flops
+we give a worker (in shared mode) to the context in order to leave him
+finish its work = we give -1.0 value instead of 0.0 and further on in
+the distribution function we take this into account and revert the variable
+to its 0.0 value */
+		if(no_workers && (flops[i] != 0.0 || sc_w->nready_tasks > 0))
+		{
+			for(w = 0; w < nw; w++)
+				res[i][w] = -1.0;
+		}
+
 		if(optimal_v != 0.0)
 			_set_optimal_v(i, optimal_v);
 	}
@@ -135,14 +168,17 @@ void sc_hypervisor_lp_round_double_to_int(int ns, int nw, double res[ns][nw], in
 }
 
 void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched_ctx_idx, 
-				  int tmp_nw_move[nw], int tmp_workers_move[nw][STARPU_NMAXWORKERS], 
-				  int tmp_nw_add[nw], int tmp_workers_add[nw][STARPU_NMAXWORKERS],
+				   int tmp_nw_move[nw], int tmp_workers_move[nw][STARPU_NMAXWORKERS], 
+				   int tmp_nw_add[nw], int tmp_workers_add[nw][STARPU_NMAXWORKERS],
 				   int res_rounded[ns][nw], double res[ns][nw], struct types_of_workers *tw)
 {
 	int w;
 	double target_res = 0.0;
 	for(w = 0; w < nw; w++)
+	{
 		target_res += res[sched_ctx_idx][w];
+		if(res[sched_ctx_idx][w] == -1.0) res[sched_ctx_idx][w] = 0.0;
+	}
 
 	for(w = 0; w < nw; w++)
 	{
@@ -156,7 +192,7 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 				int nworkers_to_move = nworkers_ctx - res_rounded[sched_ctx_idx][w];
 				int *workers_to_move = sc_hypervisor_get_idlest_workers(sched_ctx, &nworkers_to_move, arch);
 				int i;
-				if(target_res == 0.0 && nworkers_to_move > 0)
+				if(target_res < 0.0 && nworkers_to_move > 0)
 				{
 					tmp_workers_add[w][tmp_nw_add[w]++] = workers_to_move[0];
 					for(i = 1; i < nworkers_to_move; i++)
@@ -324,7 +360,8 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 		/* find workers that ctx s has to give away */
 		_lp_find_workers_to_give_away(nw, ns, sched_ctxs[s], s, 
 					      tmp_nw_move, tmp_workers_move, 
-					      tmp_nw_add, tmp_workers_add, res_rounded, res, tw);
+					      tmp_nw_add, tmp_workers_add, res_rounded, 
+					      res, tw);
 		for(s2 = 0; s2 < ns; s2++)
 		{
 			if(sched_ctxs[s2] != sched_ctxs[s])
@@ -399,7 +436,8 @@ int _lp_get_unwanted_workers(int *workers_add, int nw_add, unsigned sched_ctx, i
 	return nw_remove;
 }
 
-void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *workers, int nworkers, struct types_of_workers *tw)
+void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns, int nw, int res_rounded[ns][nw], 
+						   double res[ns][nw], int *workers, int nworkers, struct types_of_workers *tw)
 {
 	int s, w;
 	int start[nw];
@@ -411,7 +449,10 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
                 int nw_add = 0;
 		double target_res = 0.0;
 		for(w = 0; w < nw; w++)
+		{
 			target_res += res[s][w];
+			if(res[s][w] == -1.0) res[s][w] = 0.0;
+		}
 
 		for(w = 0; w < nw; w++)
 		{
@@ -420,15 +461,19 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 			if(arch == STARPU_CPU_WORKER) 
 			{
 				int nworkers_to_add = res_rounded[s][w];
-				if(target_res == 0.0)
+				if(target_res < 0.0)
 				{
 					nworkers_to_add=1;
 					int old_start = start[w];
+					if(start[w] == nworkers)
+						start[w]--;
 					int *workers_to_add = sc_hypervisor_get_idlest_workers_in_list(&start[w], workers, nworkers, &nworkers_to_add, arch);
 					start[w] = old_start;
 					int i;
 					for(i = 0; i < nworkers_to_add; i++)
+					{
 						workers_add[nw_add++] = workers_to_add[i];
+					}
 					free(workers_to_add);
 				}
 				else
@@ -473,11 +518,12 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 		if(nw_add > 0)
 		{
 			sc_hypervisor_add_workers_to_sched_ctx(workers_add, nw_add, sched_ctxs[s]);
-			int workers_remove[STARPU_NMAXWORKERS];
-			int nw_remove = _lp_get_unwanted_workers(workers_add, nw_add, sched_ctxs[s], workers_remove);
-			sc_hypervisor_remove_workers_from_sched_ctx(workers_remove, nw_remove, sched_ctxs[s], !(_sc_hypervisor_use_lazy_resize()));
-			sc_hypervisor_start_resize(sched_ctxs[s]);
 		}
+		int workers_remove[STARPU_NMAXWORKERS];
+		int nw_remove = _lp_get_unwanted_workers(workers_add, nw_add, sched_ctxs[s], workers_remove);
+		sc_hypervisor_remove_workers_from_sched_ctx(workers_remove, nw_remove, sched_ctxs[s], !(_sc_hypervisor_use_lazy_resize()));
+		sc_hypervisor_start_resize(sched_ctxs[s]);
+
 
 //		sc_hypervisor_stop_resize(current_sched_ctxs[s]);
 	}
