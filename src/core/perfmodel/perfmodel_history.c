@@ -326,7 +326,9 @@ static void parse_archtype(FILE *f, struct starpu_perfmodel *model, unsigned sca
 
 static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned scan_history)
 {
+	int ret;
 	unsigned arch, archmax;
+
 	_STARPU_DEBUG("Start parsing\n");
 
 	/* Parsing performance model version */
@@ -334,6 +336,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	ret = fscanf(f, "%d\n", &version);
 	STARPU_ASSERT_MSG(version == _STARPU_PERFMODEL_VERSION, "Incorrect performance model file with a model version %d not being the current model version (%d)\n",
 			  version, _STARPU_PERFMODEL_VERSION);
+	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 
 	/* Parsing each kind of archtype */
 
