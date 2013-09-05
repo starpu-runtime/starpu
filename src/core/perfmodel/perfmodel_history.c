@@ -624,11 +624,11 @@ void initialize_model_without_conf(struct starpu_perfmodel* model, int dev_cpu, 
 void initialize_model(struct starpu_perfmodel *model)
 {
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
-	initialize_model_without_conf(model,1,&conf->topology.ncpus,
-			conf->topology.ncudagpus,NULL,
-			conf->topology.nopenclgpus,NULL,
-			conf->topology.nmicdevices,conf->topology.nmiccores,
-			conf->topology.nsccdevices,NULL); 
+	initialize_model_without_conf(model,1,&conf->topology.nhwcpus,
+			conf->topology.nhwcudagpus,NULL,
+			conf->topology.nhwopenclgpus,NULL,
+			conf->topology.nhwmicdevices,conf->topology.nhwmiccores,
+			conf->topology.nhwscc,NULL); 
 }
 
 void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
@@ -822,8 +822,6 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 {
 	unsigned arch, devid, ncore, nimpl;
 
-	_STARPU_DEBUG("\n\n#####\nDeinit:%p\n#####\n\n",model);
-		
 	if(model->per_arch != NULL)
 	{
 		for (arch = 0; arch < STARPU_NARCH; arch++)
