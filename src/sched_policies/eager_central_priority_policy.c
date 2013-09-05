@@ -119,6 +119,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	starpu_push_task_end(task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
 	unsigned worker = 0;
@@ -139,6 +140,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 		    break; // wake up a single worker
 	}
 
+#endif
 	return 0;
 }
 
