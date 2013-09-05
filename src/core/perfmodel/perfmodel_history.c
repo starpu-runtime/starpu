@@ -933,7 +933,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 void starpu_perfmodel_directory(FILE *output)
 {
 	char perf_model_dir[256];
-	_starpu_get_perf_model_dir(perf_model_dir, 256);
+	_starpu_get_perf_model_dir_codelets(perf_model_dir, 256);
 	fprintf(output, "directory: <%s>\n", perf_model_dir);
 }
 
