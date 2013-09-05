@@ -40,6 +40,13 @@ New features:
     handle (sequential consistency will be enabled or disabled based
     on the value of the function parameter and the value of the
     sequential consistency defined for the given data)
+  * Performance models files are now stored in a directory whose name
+    include the version of the performance model format. The version
+    number is also written in the file itself.
+    When updating the format, the internal variable
+    _STARPU_PERFMODEL_VERSION should be updated. It is then possible
+    to switch easily between differents versions of StarPU having
+    different performance model formats.
 
 Small features:
   * Add cl_arg_free field to enable automatic free(cl_arg) on task

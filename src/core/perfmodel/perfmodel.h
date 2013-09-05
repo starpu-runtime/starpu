@@ -29,6 +29,17 @@ extern "C"
 {
 #endif
 
+/**
+ * Performance models files are stored in a directory whose name
+ * include the version of the performance model format. The version
+ * number is also written in the file itself.
+ * When updating the format, the variable _STARPU_PERFMODEL_VERSION
+ * should be updated. It is then possible to switch easily between
+ * differents versions of StarPU having different performance model
+ * formats.
+ */
+#define _STARPU_PERFMODEL_VERSION 42
+
 struct _starpu_perfmodel_list
 {
 	struct _starpu_perfmodel_list *next;
