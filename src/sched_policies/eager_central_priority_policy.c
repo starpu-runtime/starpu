@@ -134,9 +134,9 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 		starpu_pthread_mutex_t *sched_mutex;
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+
+		if (starpu_wakeup_worker(worker, sched_cond, sched_mutex))
+		    break; // wake up a single worker
 	}
 
 	return 0;
