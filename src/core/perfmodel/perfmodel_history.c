@@ -392,7 +392,16 @@ static void parse_archtype(FILE *f, struct starpu_perfmodel *model, unsigned sca
 static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned scan_history)
 {
 	unsigned archtype;
+	int ret, version;
+
 	_STARPU_DEBUG("Start parsing\n");
+
+	/* Parsing performance model version */
+	_starpu_drop_comments(f);
+	ret = fscanf(f, "%d\n", &version);
+	STARPU_ASSERT_MSG(version == _STARPU_PERFMODEL_VERSION, "Incorrect performance model file with a model version %d not being the current model version (%d)\n",
+			  version, _STARPU_PERFMODEL_VERSION);
+	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 
 	/* Parsing each kind of archtype */
 	for(archtype=0; archtype<STARPU_NARCH; archtype++)
@@ -472,6 +481,10 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	unsigned archtype, ndevice, *ncore, devid, nc, nimpl;
 	struct starpu_perfmodel_arch arch;
 
+	fprintf(f, "##################\n");
+	fprintf(f, "# Performance Model Version\n");
+	fprintf(f, "%d\n\n", _STARPU_PERFMODEL_VERSION);
+
 	for(archtype=0; archtype<STARPU_NARCH; archtype++)
 	{
 		arch.type = archtype;
@@ -543,7 +556,6 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 				}
 				else
 					STARPU_ASSERT_MSG(0, "Unknown history-based performance model %u", archtype);
-
 
 				fprintf(f, "##########\n");
 				fprintf(f, "# %u worker(s) in parallel\n", nc+1);
@@ -623,7 +635,16 @@ void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
 {
 	unsigned ret, archtype, devid, i, ndevice, * maxncore;
 	struct starpu_perfmodel_arch arch;
+	int version;
 
+	/* Parsing performance model version */
+	_starpu_drop_comments(f);
+	ret = fscanf(f, "%d\n", &version);
+	STARPU_ASSERT_MSG(version == _STARPU_PERFMODEL_VERSION, "Incorrect performance model file with a model version %d not being the current model version (%d)\n",
+			version, _STARPU_PERFMODEL_VERSION);
+	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
+
+	model->per_arch = malloc(sizeof(*model->per_arch)*(STARPU_NARCH));
 	for(archtype=0; archtype<STARPU_NARCH; archtype++)
 	{
 		arch.type = archtype;
@@ -801,43 +822,53 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 {
 	unsigned arch, devid, ncore, nimpl;
 
-	for (arch = 0; arch < STARPU_NARCH; arch++)
+	_STARPU_DEBUG("\n\n#####\nDeinit:%p\n#####\n\n",model);
+		
+	if(model->per_arch != NULL)
 	{
-		if( model->per_arch[arch] != NULL)
+		for (arch = 0; arch < STARPU_NARCH; arch++)
 		{
-			for(devid=0; model->per_arch[arch][devid] != NULL; devid++)
+			if( model->per_arch[arch] != NULL)
 			{
-				for(ncore=0; model->per_arch[arch][devid][ncore] != NULL; ncore++)
+				for(devid=0; model->per_arch[arch][devid] != NULL; devid++)
 				{
-					for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-					{	
-						struct starpu_perfmodel_per_arch *archmodel = &model->per_arch[arch][devid][ncore][nimpl];
-						struct starpu_perfmodel_history_list *list, *plist;
-						struct starpu_perfmodel_history_table *entry, *tmp;
+					for(ncore=0; model->per_arch[arch][devid][ncore] != NULL; ncore++)
+					{
+						for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+						{	
+							struct starpu_perfmodel_per_arch *archmodel = &model->per_arch[arch][devid][ncore][nimpl];
+							struct starpu_perfmodel_history_list *list, *plist;
+							struct starpu_perfmodel_history_table *entry, *tmp;
 
-						HASH_ITER(hh, archmodel->history, entry, tmp)
-						{
-							HASH_DEL(archmodel->history, entry);
-							free(entry);
-						}
-						archmodel->history = NULL;
+							HASH_ITER(hh, archmodel->history, entry, tmp)
+							{
+								HASH_DEL(archmodel->history, entry);
+								free(entry);
+							}
+							archmodel->history = NULL;
 
-						list = archmodel->list;
-						while (list)
-						{
-							free(list->entry);
-							plist = list;
-							list = list->next;
-							free(plist);
+							list = archmodel->list;
+							while (list)
+							{
+								free(list->entry);
+								plist = list;
+								list = list->next;
+								free(plist);
+							}
+							archmodel->list = NULL;
 						}
-						archmodel->list = NULL;
+						free(model->per_arch[arch][devid][ncore]);
+						model->per_arch[arch][devid][ncore] = NULL;
 					}
-					free(model->per_arch[arch][devid][ncore]);
+					free(model->per_arch[arch][devid]);
+					model->per_arch[arch][devid] = NULL;
 				}
-				free(model->per_arch[arch][devid]);
+				free(model->per_arch[arch]);
+				model->per_arch[arch] = NULL;
 			}
-			free(model->per_arch[arch]);
 		}
+		free(model->per_arch);
+		model->per_arch = NULL;
 	}
 
 	model->is_loaded = 0;
@@ -996,7 +1027,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 		else
 		{
 			/* We load the available file */
-			_STARPU_DEBUG("File exists\n");
+                        _STARPU_DEBUG("File exists\n");
 			FILE *f;
 			f = fopen(path, "r");
 			STARPU_ASSERT(f);
@@ -1031,7 +1062,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 void starpu_perfmodel_directory(FILE *output)
 {
 	char perf_model_dir[256];
-	_starpu_get_perf_model_dir(perf_model_dir, 256);
+	_starpu_get_perf_model_dir_codelets(perf_model_dir, 256);
 	fprintf(output, "directory: <%s>\n", perf_model_dir);
 }
 

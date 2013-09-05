@@ -80,10 +80,10 @@ extern "C"
 #else
 #  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
 #    define STARPU_ASSERT(x)		do { if (STARPU_UNLIKELY(!(x))) *(int*)NULL = 0; } while(0)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n", __starpu_func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); *(int*)NULL = 0; }} while(0)
 #  else
 #    define STARPU_ASSERT(x)		assert(x)
-#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n", __starpu_func__, ## __VA_ARGS__); } ; assert(x); } while(0)
+#    define STARPU_ASSERT_MSG(x, msg, ...)	do { if (STARPU_UNLIKELY(!(x))) { fprintf(stderr, "\n[starpu][%s][assert failure] " msg "\n\n", __starpu_func__, ## __VA_ARGS__); } ; assert(x); } while(0)
 
 #  endif
 #endif

@@ -445,8 +445,9 @@ void _starpu_get_perf_model_dir(char *path, size_t maxlen)
 
 void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen)
 {
-	_starpu_get_perf_model_dir(path, maxlen);
-	strncat(path, "/codelets/", maxlen);
+	char perf_model_path[256];
+	_starpu_get_perf_model_dir(perf_model_path, maxlen);
+	snprintf(path, maxlen, "%s/codelets/%d/", perf_model_path, _STARPU_PERFMODEL_VERSION);
 }
 
 void _starpu_get_perf_model_dir_bus(char *path, size_t maxlen)

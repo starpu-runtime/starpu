@@ -66,7 +66,6 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	conf.sched_policy_name = "eager";
 	conf.calibrate = 1;
 
-	initialize_model(model);
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

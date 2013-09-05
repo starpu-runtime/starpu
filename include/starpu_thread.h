@@ -18,16 +18,16 @@
 #ifndef __STARPU_THREAD_H__
 #define __STARPU_THREAD_H__
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #ifdef STARPU_SIMGRID
 #include <xbt/synchro_core.h>
 #include <msg/msg.h>
 #elif !defined(_MSC_VER)
 #include <pthread.h>
-#endif
-
-#ifdef __cplusplus
-extern "C"
-{
 #endif
 
 /*
