@@ -18,6 +18,15 @@ StarPU 1.1.0rc3 (svn revision xxx)
 ==============================================
 The scheduling context release
 
+New features:
+  * Performance models files are now stored in a directory whose name
+    include the version of the performance model format. The version
+    number is also written in the file itself.
+    When updating the format, the internal variable
+    _STARPU_PERFMODEL_VERSION should be updated. It is then possible
+    to switch easily between differents versions of StarPU having
+    different performance model formats.
+
 Small features:
   * New function starpu_perfmodel_directory() to print directory
     storing performance models. Available through the new option -d of

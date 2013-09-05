@@ -295,6 +295,13 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 static void parse_device(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, unsigned * arch, unsigned archmax)
 {
 	unsigned maxncore, ncore, ret;
+	int version;
+
+	/* Parsing performance model version */
+	_starpu_drop_comments(f);
+	ret = fscanf(f, "%d\n", &version);
+	STARPU_ASSERT_MSG(version == _STARPU_PERFMODEL_VERSION, "Incorrect performance model file with a model version %d not being the current model version (%d)\n",
+			  version, _STARPU_PERFMODEL_VERSION);
 
 	/* Parsing maximun number of worker for this device */
 	_starpu_drop_comments(f);
@@ -419,6 +426,10 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	unsigned arch, arch_base = 0, my_narch = 0;
 	unsigned nimpl;
 	unsigned idx = 0;
+
+	fprintf(f, "##################\n");
+	fprintf(f, "# Performance Model Version\n");
+	fprintf(f, "%d\n\n", _STARPU_PERFMODEL_VERSION);
 
 	/* Finding the number of archs to write for each kind of device */
 	for (arch = 0; arch < STARPU_NARCH_VARIATIONS; arch++)
@@ -888,7 +899,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 		else
 		{
 			/* We load the available file */
-			_STARPU_DEBUG("File exists\n");
+                        _STARPU_DEBUG("File exists\n");
 			FILE *f;
 			f = fopen(path, "r");
 			STARPU_ASSERT(f);
