@@ -297,12 +297,6 @@ static void parse_device(FILE *f, struct starpu_perfmodel *model, unsigned scan_
 	unsigned maxncore, ncore, ret;
 	int version;
 
-	/* Parsing performance model version */
-	_starpu_drop_comments(f);
-	ret = fscanf(f, "%d\n", &version);
-	STARPU_ASSERT_MSG(version == _STARPU_PERFMODEL_VERSION, "Incorrect performance model file with a model version %d not being the current model version (%d)\n",
-			  version, _STARPU_PERFMODEL_VERSION);
-
 	/* Parsing maximun number of worker for this device */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &maxncore);
@@ -335,6 +329,12 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 {
 	unsigned arch, archmax;
 	_STARPU_DEBUG("Start parsing\n");
+
+	/* Parsing performance model version */
+	_starpu_drop_comments(f);
+	ret = fscanf(f, "%d\n", &version);
+	STARPU_ASSERT_MSG(version == _STARPU_PERFMODEL_VERSION, "Incorrect performance model file with a model version %d not being the current model version (%d)\n",
+			  version, _STARPU_PERFMODEL_VERSION);
 
 	/* Parsing each kind of archtype */
 
