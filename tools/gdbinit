@@ -341,6 +341,56 @@ define starpu-print-frequests
   end
 end
 
+define starpu-memusage
+  set $node = 0
+  while $node < descr.nnodes
+    printf "Node %u:\n", $node
+    set $total = 0
+    set $wt = 0
+    set $home = 0
+    set $redux = 0
+    set $relax = 0
+    set $noref = 0
+    set $nodataref = 0
+    set $mc = mc_list[$node]->_head
+    while $mc != 0
+      set $total = $total + 1
+      set $handle = $mc->data
+      if $handle->wt_mask & (1 << $node)
+        set $wt = $wt + 1
+      end
+      if $node == $handle->home_node
+        set $home = $home + 1
+      end
+      if $mc->relaxed_coherency == 2
+        set $redux = $redux + 1
+      end
+      if $mc->relaxed_coherency == 1
+        set $relax = $relax + 1
+        if $mc->replicate
+          if $mc->replicate->refcnt == 0
+            set $noref = $noref + 1
+          end
+        end
+      end
+      if $mc->relaxed_coherency == 0
+        if $handle->per_node[$node].refcnt == 0
+          set $nodataref = $nodataref + 1
+        end
+      end
+      set $mc = $mc->_next
+    end
+    printf "  Total: %u\n", $total
+    printf "  WT: %u\n", $wt
+    printf "  home: %u\n", $home
+    printf "  redux: %u\n", $redux
+    printf "  relax: %u\n", $relax
+    printf "  noref: %u\n", $noref
+    printf "  nodataref: %u\n", $nodataref
+    set $node = $node + 1
+  end
+end
+
 document starpu
 List of StarPU-specific gdb functions:
 starpu-workers          prints a list of the StarPU workers
@@ -356,4 +406,5 @@ starpu-print-prequests  prints all pending StarPU data requests
 starpu-print-frequests  prints all StarPU prefetch data requests
 starpu-tasks            prints a list of the tasks flowing in StarPU
 starpu-tags             prints a list of the tags known to StarPU
+starpu-memusage         prints the memory node usage
 end
