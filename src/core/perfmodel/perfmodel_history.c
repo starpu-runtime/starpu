@@ -619,6 +619,8 @@ void initialize_model_without_conf(struct starpu_perfmodel* model, int dev_cpu, 
 	model->per_arch[STARPU_OPENCL_WORKER] = initialize_arch_model(dev_opencl,core_opencl); 
 	model->per_arch[STARPU_MIC_WORKER] = initialize_arch_model(dev_mic,core_mic); 
 	model->per_arch[STARPU_SCC_WORKER] = initialize_arch_model(dev_scc,core_scc); 
+
+	model->is_loaded = 1;
 }
 
 void initialize_model(struct starpu_perfmodel *model)
@@ -678,6 +680,7 @@ void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
 		if(maxncore != NULL)
 			free(maxncore);
 	}
+	model->is_loaded = 1;
 }
 static void get_model_debug_path(struct starpu_perfmodel *model, const char *arch, char *path, size_t maxlen)
 {
@@ -1050,7 +1053,6 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 
 	_STARPU_DEBUG("Performance model file %s for model %s is loaded\n", path, model->symbol);
 
-	model->is_loaded = 1;
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 

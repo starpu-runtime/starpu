@@ -103,7 +103,7 @@ init_perfmodels(void)
 
 	initialize_model(&model_cpu_task);
 	initialize_model(&model_gpu_task);
-	
+
 	if(model_cpu_task.per_arch[STARPU_CPU_WORKER] != NULL)
 	{
 		for(devid=0; model_cpu_task.per_arch[STARPU_CPU_WORKER][devid] != NULL; devid++)
