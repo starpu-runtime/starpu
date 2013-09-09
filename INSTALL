@@ -228,7 +228,7 @@ variable STARPUPATH.
 cd c:\cygwin\home\ci\starpu\
 set STARPUPATH=c:\cygwin\home\ci\starpu\
 cd bin\msvc
-starpu_exec.bat starpu_simple.c
+starpu_open.bat starpu_simple.c
 
 The batch script will run Microsoft Visual C with a basic project file
 to run the given application.
