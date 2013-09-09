@@ -126,6 +126,7 @@ struct starpu_perfmodel
 
 	const char *symbol;
 
+	unsigned is_init;
 	unsigned is_loaded;
 	unsigned benchmarking;
 	starpu_pthread_rwlock_t model_rwlock;
