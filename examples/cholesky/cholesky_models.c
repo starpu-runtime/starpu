@@ -135,6 +135,7 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
 	model->type = STARPU_HISTORY_BASED;
 	model->symbol = symbol;
 	model->per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = cpu_cost_function;
-	model->per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = cuda_cost_function;
+	if(starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) != 0)
+		model->per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = cuda_cost_function;
 }
 
