@@ -225,14 +225,30 @@ Visual C. They are installed in path_to_starpu/bin/msvc.
 To execute a StarPU application, you first need to set the environment
 variable STARPUPATH.
 
-cd c:\cygwin\home\ci\starpu\
-set STARPUPATH=c:\cygwin\home\ci\starpu\
-cd bin\msvc
-starpu_open.bat starpu_simple.c
+c:\....> cd c:\cygwin\home\ci\starpu\
+c:\....> set STARPUPATH=c:\cygwin\home\ci\starpu\
+c:\....> cd bin\msvc
+c:\....> starpu_open.bat starpu_simple.c
 
 The batch script will run Microsoft Visual C with a basic project file
 to run the given application.
 
 The batch script starpu_clean.bat can be used to delete all
 compilation generated files.
+
+The batch script starpu_exec.bat can be used to compile and execute a
+StarPU application from the command prompt.
+
+c:\....> cd c:\cygwin\home\ci\starpu\
+c:\....> set STARPUPATH=c:\cygwin\home\ci\starpu\
+c:\....> cd bin\msvc
+c:\....> starpu_exec.bat ..\..\..\..\examples\basic_examples\hello_world.c
+
+MSVS StarPU Execution
+...
+/out:hello_world.exe
+...
+Hello world (params = {1, 2.00000})
+Callback function got argument 0000042
+c:\....>
 
