@@ -556,14 +556,14 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		}
 	}
 
-	fprintf(f,"####################");
-	fprintf(f,"# MICs");
-	fprintf(f,"# number of MIC devices");
-	fprintf(f,"0");
-	fprintf(f,"####################");
-	fprintf(f,"# SCCs");
-	fprintf(f,"# number of SCC devices");
-	fprintf(f,"0");
+	fprintf(f,"####################\n");
+	fprintf(f,"# MICs\n");
+	fprintf(f,"# number of MIC devices\n");
+	fprintf(f,"0\n");
+	fprintf(f,"####################\n");
+	fprintf(f,"# SCCs\n");
+	fprintf(f,"# number of SCC devices\n");
+	fprintf(f,"0\n");
 }
 
 static void initialize_per_arch_model(struct starpu_perfmodel_per_arch *per_arch_model)
