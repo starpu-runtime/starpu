@@ -37,7 +37,6 @@
 #endif
 
 #define NITER	64
-#define SIZE_BENCH (4*getpagesize())
 
 /* ------------------- use UNISTD to write on disk -------------------  */
 
@@ -315,11 +314,11 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 
 	srand (time (NULL)); 
 	char * buf;
-	starpu_malloc((void *) &buf, SIZE_BENCH*sizeof(char));
+	starpu_malloc((void *) &buf, SIZE_DISK_MIN*sizeof(char));
 	STARPU_ASSERT(buf != NULL);
 	
 	/* allocate memory */
-	void * mem = _starpu_disk_alloc(node, SIZE_BENCH);
+	void * mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
 	/* fail to alloc */
 	if (mem == NULL)
 		return 0;
@@ -330,7 +329,7 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, SIZE_BENCH, NULL);
+		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, SIZE_DISK_MIN, NULL);
 
 #ifdef STARPU_HAVE_WINDOWS
 		res = _commit(tmp->descriptor);
@@ -355,7 +354,7 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_BENCH -1) , getpagesize(), NULL);
+		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_DISK_MIN -1) , getpagesize(), NULL);
 
 #ifdef STARPU_HAVE_WINDOWS
 		res = _commit(tmp->descriptor);
@@ -368,7 +367,7 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	gettimeofday(&end, NULL);
 	timing_latency = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 
-	_starpu_disk_free(node, mem, SIZE_BENCH);
+	_starpu_disk_free(node, mem, SIZE_DISK_MIN);
 	starpu_free(buf);
 
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*1000000, (NITER/timing_slowness)*1000000,
