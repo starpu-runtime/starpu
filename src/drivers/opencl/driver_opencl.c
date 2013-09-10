@@ -651,6 +651,7 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *d)
 
 	task = _starpu_get_worker_task(args, workerid, memnode);
 
+
 	if (task == NULL)
 		return 0;
 

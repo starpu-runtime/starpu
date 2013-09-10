@@ -28,6 +28,10 @@
 #include <top/starpu_top_core.h>
 #include <core/debug.h>
 
+
+#define BACKOFF_MAX 8192  /* TODO : calibrate MAX & MIN */
+#define BACKOFF_MIN 4
+
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct timespec *codelet_start, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
@@ -173,6 +177,20 @@ static void _starpu_worker_set_status_wakeup(int workerid)
 	}
 }
 
+
+static void _starpu_exponential_backoff(struct _starpu_worker *args)
+{
+	int delay = args->spinning_backoff;
+	
+	if (args->spinning_backoff < BACKOFF_MAX)
+		args->spinning_backoff<<=1; 
+	
+	while(delay--)
+		STARPU_UYIELD();
+}
+
+
+
 /* Workers may block when there is no work to do at all. */
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode)
 {
@@ -206,7 +224,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		{
 			if (_starpu_machine_is_running())
 			{
-				STARPU_UYIELD();
+				_starpu_exponential_backoff(args);
 #ifdef STARPU_SIMGRID
 				static int warned;
 				if (!warned)
@@ -254,6 +272,8 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	_starpu_worker_set_status_wakeup(workerid);
+	args->spinning_backoff = BACKOFF_MIN;
+
 
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)

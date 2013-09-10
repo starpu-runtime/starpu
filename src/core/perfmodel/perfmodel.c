@@ -105,7 +105,7 @@ double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arc
 	}
 	else if (perf_arch->type == STARPU_MIC_WORKER)
 	{
-		return _STARPU_MIC_ALPHA;
+		return _STARPU_MIC_ALPHA * (perf_arch->ncore + 1);
 	}
 	STARPU_ABORT();
 

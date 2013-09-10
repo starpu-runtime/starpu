@@ -415,7 +415,7 @@ void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
 	worker->worker_is_running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
-
+	worker->spinning_backoff = 1;
 }
 
 static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)

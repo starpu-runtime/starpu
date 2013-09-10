@@ -30,6 +30,7 @@ EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
 	msvc/starpu_clean.bat		\
+	msvc/starpu_open.bat		\
 	msvc/starpu_exec.bat		\
 	msvc/starpu.sln			\
 	msvc/starpu/starpu.vcxproj
@@ -126,6 +127,7 @@ if STARPU_HAVE_WINDOWS
 STARPU_MSVC_dir		 =	$(bindir)
 nobase_STARPU_MSVC__DATA =		\
 	msvc/starpu_clean.bat		\
+	msvc/starpu_open.bat		\
 	msvc/starpu_exec.bat		\
 	msvc/starpu.sln			\
 	msvc/starpu/starpu.vcxproj
