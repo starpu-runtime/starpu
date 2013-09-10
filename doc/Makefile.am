@@ -9,7 +9,9 @@
 #
 # See the GNU Free Documentation License in COPYING.GFDL for more details.
 
+if BUILD_DOC
 SUBDIRS = doxygen
+endif
 
 EXTRA_DIST =    tutorial/hello_world.c \
 		tutorial/hello_world_plugin.c \
