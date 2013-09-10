@@ -76,8 +76,7 @@ static void parse_args(int argc, char **argv)
 #ifdef STARPU_HAVE_LIBNUMA
 			numa = 1;
 #else
-			if (rank == 0)
-				fprintf(stderr, "Warning: libnuma is not available\n");
+			fprintf(stderr, "Warning: libnuma is not available\n");
 #endif
 		}
 
