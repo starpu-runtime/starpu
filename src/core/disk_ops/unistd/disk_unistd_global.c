@@ -38,6 +38,12 @@
 
 #define NITER	64
 
+#ifdef O_DIRECT
+#  define MEM_SIZE getpagesize()
+#else
+#  define MEM_SIZE 1
+#endif
+
 /* ------------------- use UNISTD to write on disk -------------------  */
 
 /* allocation memory on disk */
@@ -346,15 +352,14 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	/* free memory */
 	starpu_free(buf);
 
-	
-	starpu_malloc((void *) &buf, getpagesize()*sizeof(char));
+	starpu_malloc((void *) &buf, MEM_SIZE*sizeof(char));
 	STARPU_ASSERT(buf != NULL);
 
 	/* Measure latency */
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_DISK_MIN -1) , getpagesize(), NULL);
+		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_DISK_MIN -1) , MEM_SIZE, NULL);
 
 #ifdef STARPU_HAVE_WINDOWS
 		res = _commit(tmp->descriptor);
