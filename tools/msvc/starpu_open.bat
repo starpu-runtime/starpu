@@ -18,12 +18,14 @@ REM See the GNU Lesser General Public License in COPYING.LGPL for more details.
 TITLE MSVC StarPU Execution
 ECHO.
 ECHO MSVC StarPU Execution
+
+IF NOT EXIST %STARPUPATH%\AUTHORS GOTO starpunotfound
+
 ECHO.
 ECHO %STARPUPATH%
 
 IF "%1" == "" GOTO invalidparam
 IF NOT EXIST %1 GOTO invalidparam
-IF NOT EXIST %STARPUPATH%\AUTHORS GOTO starpunotfound
 
 COPY %1 starpu\starpu_appli.c
 FOR %%F IN (%STARPUPATH%\bin\*dll) DO COPY %%F starpu\%%~nF
