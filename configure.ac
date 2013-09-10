@@ -2356,13 +2356,16 @@ AC_OUTPUT([
 	libstarpu.pc
 	starpu-1.0.pc
 	starpu-1.1.pc
+	starpu-1.2.pc
 	mpi/libstarpumpi.pc
 	mpi/starpumpi-1.0.pc
 	mpi/starpumpi-1.1.pc
+	mpi/starpumpi-1.2.pc
 	starpufft/Makefile
 	starpufft/libstarpufft.pc
 	starpufft/starpufft-1.0.pc
 	starpufft/starpufft-1.1.pc
+	starpufft/starpufft-1.2.pc
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
