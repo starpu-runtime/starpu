@@ -848,7 +848,9 @@ static void notify_poped_task(unsigned sched_ctx, int worker, struct starpu_task
 		if(hypervisor.policy.handle_poped_task)
 			hypervisor.policy.handle_poped_task(sched_ctx, worker, task, footprint);
 	}
+	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
 	_ack_resize_completed(sched_ctx, worker);
+	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	if(hypervisor.sched_ctx_w[sched_ctx].poped_tasks[worker] % 200 == 0)
 		_print_current_time();
 }

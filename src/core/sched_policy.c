@@ -313,6 +313,10 @@ static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struc
 
 int _starpu_push_task(struct _starpu_job *j)
 {
+
+	if(j->task->prolog_func)
+		j->task->prolog_func(j->task->prolog_arg);
+
 	struct starpu_task *task = j->task;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	unsigned nworkers = 0;

@@ -44,7 +44,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 			flops[i] = sc_w->ready_flops/1000000000.0; /* in gflops*/
 		else
 		{
-			if((sc_w->ready_flops/1000000000.0) < 0.5)
+			if((sc_w->ready_flops/1000000000.0) <= 0.000002)
 				flops[i] = 0.0;
 			else
 				flops[i] = sc_w->remaining_flops/1000000000.0; /* in gflops*/
