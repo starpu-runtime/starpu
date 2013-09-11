@@ -40,7 +40,7 @@ versinclude_HEADERS = 				\
 	starpufft.h
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libstarpufft.pc starpufft-1.0.pc starpufft-1.1.pc
+pkgconfig_DATA = libstarpufft.pc starpufft-1.0.pc starpufft-1.1.pc starpufft-1.2.pc
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = starpufft.c starpufftf.c starpufft_common.c
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS) $(FFTWF_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_CUFFT_LDFLAGS)
