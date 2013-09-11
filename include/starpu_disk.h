@@ -18,6 +18,8 @@
 #ifndef __STARPU_DISK_H__
 #define __STARPU_DISK_H__
 
+#include <sys/types.h>
+
 /* list of functions to use on disk */
 struct starpu_disk_ops {
  	 void *  (*alloc)  (void *base, size_t size);
