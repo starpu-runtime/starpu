@@ -413,8 +413,6 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 		return 0;
 	}
 
-	if(j->task->prolog_func)
-		j->task->prolog_func(j->task->prolog_arg);
 	ret = _starpu_push_task(j);
 
 	_STARPU_LOG_OUT();
