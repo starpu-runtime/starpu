@@ -126,8 +126,8 @@ struct starpu_task
 	void (*callback_func)(void *);
 	void *callback_arg;
 
-	void (*prolog_func)(void *);
-	void *prolog_arg;
+	void (*prologue_func)(void *);
+	void *prologue_arg;
 
 	unsigned use_tag;
 	starpu_tag_t tag_id;

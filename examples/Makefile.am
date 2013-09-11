@@ -182,7 +182,7 @@ examplebin_PROGRAMS +=				\
 	spmd/vector_scal_spmd			\
 	spmv/spmv				\
 	callback/callback			\
-	callback/prolog		\
+	callback/prologue			\
 	incrementer/incrementer			\
 	binary/binary				\
 	interface/complex			\

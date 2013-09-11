@@ -47,7 +47,7 @@ New features:
     _STARPU_PERFMODEL_VERSION should be updated. It is then possible
     to switch easily between differents versions of StarPU having
     different performance model formats.
-  * Tasks can now define a optional prolog callback which is executed
+  * Tasks can now define a optional prologue callback which is executed
     on the host just before the task is pushed. Tasks which depend on
     the task might already be executing.
 
