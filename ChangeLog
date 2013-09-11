@@ -48,8 +48,8 @@ New features:
     to switch easily between differents versions of StarPU having
     different performance model formats.
   * Tasks can now define a optional prologue callback which is executed
-    on the host just before the task is pushed. Tasks which depend on
-    the task might already be executing.
+    on the host when the task becomes ready for execution, before getting
+    scheduled.
 
 Small features:
   * Add cl_arg_free field to enable automatic free(cl_arg) on task
