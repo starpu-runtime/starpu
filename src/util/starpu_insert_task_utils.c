@@ -322,7 +322,7 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 		else if (arg_type==STARPU_PROLOG_CALLBACK_ARG)
 		{
 			void *callback_arg = va_arg(varg_list, void *);
-			cl_arg_wrapper->callback_arg = callback_arg;
+			prolog_cl_arg_wrapper->callback_arg = callback_arg;
 		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
