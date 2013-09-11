@@ -32,6 +32,7 @@ EXTRA_DIST =				\
 	msvc/starpu_clean.bat		\
 	msvc/starpu_open.bat		\
 	msvc/starpu_exec.bat		\
+	msvc/starpu_var.bat		\
 	msvc/starpu.sln			\
 	msvc/starpu/starpu.vcxproj
 
@@ -129,6 +130,7 @@ nobase_STARPU_MSVC__DATA =		\
 	msvc/starpu_clean.bat		\
 	msvc/starpu_open.bat		\
 	msvc/starpu_exec.bat		\
+	msvc/starpu_var.bat		\
 	msvc/starpu.sln			\
 	msvc/starpu/starpu.vcxproj
 endif
