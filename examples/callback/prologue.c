@@ -63,8 +63,8 @@ int main(int argc, char **argv)
 
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &cl;
-	task->prologue_func = callback_func;
-	task->prologue_arg = NULL;
+	task->prologue_callback_func = callback_func;
+	task->prologue_callback_arg = NULL;
 	task->handles[0] = handle;
 
 	ret = starpu_task_submit(task);
