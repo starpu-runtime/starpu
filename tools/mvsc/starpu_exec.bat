@@ -15,9 +15,9 @@ REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 REM
 REM See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-TITLE MSVC StarPU Execution
+TITLE MVSC StarPU Execution
 ECHO.
-ECHO MSVC StarPU Execution
+ECHO MVSC StarPU Execution
 
 IF "%1" == "" GOTO invalidparam
 IF NOT EXIST %1 GOTO invalidparam

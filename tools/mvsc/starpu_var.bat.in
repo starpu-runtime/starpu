@@ -15,9 +15,9 @@ REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 REM
 REM See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-TITLE MSVC StarPU Environment
+TITLE MVSC StarPU Environment
 ECHO.
-ECHO MSVC StarPU Environment
+ECHO MVSC StarPU Environment
 
 IF NOT EXIST %STARPU_PATH%\AUTHORS GOTO starpunotfound
 
