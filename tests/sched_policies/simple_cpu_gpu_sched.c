@@ -101,8 +101,8 @@ init_perfmodels(void)
 {
 	unsigned devid, ncore;
 
-	initialize_model(&model_cpu_task);
-	initialize_model(&model_gpu_task);
+	starpu_initialize_model(&model_cpu_task);
+	starpu_initialize_model(&model_gpu_task);
 
 	if(model_cpu_task.per_arch[STARPU_CPU_WORKER] != NULL)
 	{

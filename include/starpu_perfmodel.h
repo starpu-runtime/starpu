@@ -132,8 +132,8 @@ struct starpu_perfmodel
 	starpu_pthread_rwlock_t model_rwlock;
 };
 
-void initialize_model(struct starpu_perfmodel *model);
-void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model);
+void starpu_initialize_model(struct starpu_perfmodel *model);
+void starpu_initialize_model_with_file(FILE*f, struct starpu_perfmodel *model);
 
 struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid);
 

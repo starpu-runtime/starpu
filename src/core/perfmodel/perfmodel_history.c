@@ -562,84 +562,131 @@ static struct starpu_perfmodel_per_arch*** initialize_arch_model(int maxdevid, u
 	return arch_model;
 }
 
-void initialize_model_without_conf(struct starpu_perfmodel* model, int dev_cpu, unsigned* core_cpu, int dev_cuda, unsigned* core_cuda, int dev_opencl, unsigned* core_opencl, int dev_mic, unsigned* core_mic, int dev_scc, unsigned* core_scc)
-{
-	if(!model->is_init)
-	{
-		model->per_arch = malloc(sizeof(*model->per_arch)*(STARPU_NARCH));
-
-		model->per_arch[STARPU_CPU_WORKER] = initialize_arch_model(dev_cpu,core_cpu); 
-		model->per_arch[STARPU_CUDA_WORKER] = initialize_arch_model(dev_cuda,core_cuda); 
-		model->per_arch[STARPU_OPENCL_WORKER] = initialize_arch_model(dev_opencl,core_opencl); 
-		model->per_arch[STARPU_MIC_WORKER] = initialize_arch_model(dev_mic,core_mic); 
-		model->per_arch[STARPU_SCC_WORKER] = initialize_arch_model(dev_scc,core_scc); 
-
-		model->is_init = 1;
-	}
-}
-
-void initialize_model(struct starpu_perfmodel *model)
+static void initialize_model(struct starpu_perfmodel *model)
 {
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
-	initialize_model_without_conf(model,1,&conf->topology.nhwcpus,
-			conf->topology.nhwcudagpus,NULL,
-			conf->topology.nhwopenclgpus,NULL,
-			conf->topology.nhwmicdevices,conf->topology.nhwmiccores,
-			conf->topology.nhwscc,NULL); 
+	model->per_arch = malloc(sizeof(*model->per_arch)*(STARPU_NARCH));
+
+	model->per_arch[STARPU_CPU_WORKER] = initialize_arch_model(1,&conf->topology.nhwcpus); 
+	model->per_arch[STARPU_CUDA_WORKER] = initialize_arch_model(conf->topology.nhwcudagpus,NULL); 
+	model->per_arch[STARPU_OPENCL_WORKER] = initialize_arch_model(conf->topology.nhwopenclgpus,NULL); 
+	model->per_arch[STARPU_MIC_WORKER] = initialize_arch_model(conf->topology.nhwmicdevices,conf->topology.nhwmiccores); 
+	model->per_arch[STARPU_SCC_WORKER] = initialize_arch_model(conf->topology.nhwscc,NULL); 
+
 }
 
-void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
+static void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
 {
 	unsigned ret, archtype, devid, i, ndevice, * maxncore;
 	struct starpu_perfmodel_arch arch;
 	int version;
 
-	if(!model->is_init)
+	/* Parsing performance model version */
+	_starpu_drop_comments(f);
+	ret = fscanf(f, "%d\n", &version);
+	STARPU_ASSERT_MSG(version == _STARPU_PERFMODEL_VERSION, "Incorrect performance model file with a model version %d not being the current model version (%d)\n",
+			version, _STARPU_PERFMODEL_VERSION);
+	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
+
+	model->per_arch = malloc(sizeof(*model->per_arch)*(STARPU_NARCH));
+	for(archtype=0; archtype<STARPU_NARCH; archtype++)
 	{
-		/* Parsing performance model version */
+		arch.type = archtype;
+
 		_starpu_drop_comments(f);
-		ret = fscanf(f, "%d\n", &version);
-		STARPU_ASSERT_MSG(version == _STARPU_PERFMODEL_VERSION, "Incorrect performance model file with a model version %d not being the current model version (%d)\n",
-				version, _STARPU_PERFMODEL_VERSION);
+		ret = fscanf(f, "%u\n", &ndevice);
 		STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 
-		model->per_arch = malloc(sizeof(*model->per_arch)*(STARPU_NARCH));
-		for(archtype=0; archtype<STARPU_NARCH; archtype++)
+		if(ndevice != 0)
+			maxncore = malloc(sizeof((*maxncore)*ndevice));
+		else 
+			maxncore = NULL;
+
+		for(devid=0; devid < ndevice; devid++)
 		{
-			arch.type = archtype;
+			arch.devid = devid;
 
 			_starpu_drop_comments(f);
-			ret = fscanf(f, "%u\n", &ndevice);
+			ret = fscanf(f, "%u\n", &maxncore[devid]);
 			STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 
-			if(ndevice != 0)
-				maxncore = malloc(sizeof((*maxncore)*ndevice));
-			else 
-				maxncore = NULL;
-
-			for(devid=0; devid < ndevice; devid++)
+			for(i=0; i<maxncore[devid]; i++)
 			{
-				arch.devid = devid;
+				arch.ncore = i;
 
-				_starpu_drop_comments(f);
-				ret = fscanf(f, "%u\n", &maxncore[devid]);
-				STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
-
-				for(i=0; i<maxncore[devid]; i++)
-				{
-					arch.ncore = i;
-
-					parse_arch(f,NULL,0,&arch);
-				}
+				parse_arch(f,NULL,0,&arch);
 			}
-
-			model->per_arch[archtype] = initialize_arch_model(ndevice,maxncore); 
-			if(maxncore != NULL)
-				free(maxncore);
 		}
-		model->is_init = 1;
+
+		model->per_arch[archtype] = initialize_arch_model(ndevice,maxncore); 
+		if(maxncore != NULL)
+			free(maxncore);
 	}
 }
+
+void starpu_initialize_model(struct starpu_perfmodel *model)
+{
+	STARPU_ASSERT(model && model->symbol);
+
+	int already_init;
+
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
+	already_init = model->is_init;
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+
+	if (already_init)
+		return;
+
+	/* The model is still not loaded so we grab the lock in write mode, and
+	 * if it's not loaded once we have the lock, we do load it. */
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+
+	/* Was the model initialized since the previous test ? */
+	if (model->is_init)
+	{
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		return;
+	}
+
+	STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
+	if(model->type != STARPU_COMMON)
+		initialize_model(model);	
+	model->is_init = 1;
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+}
+
+void starpu_initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
+{
+	STARPU_ASSERT(model && model->symbol);
+
+	int already_init;
+
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
+	already_init = model->is_init;
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+
+	if (already_init)
+		return;
+
+	/* The model is still not loaded so we grab the lock in write mode, and
+	 * if it's not loaded once we have the lock, we do load it. */
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
+
+	/* Was the model initialized since the previous test ? */
+	if (model->is_init)
+	{
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+		return;
+	}
+
+	STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
+	if(model->type != STARPU_COMMON)
+		initialize_model_with_file(f,model);
+	model->is_init = 1;
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+}
+
+
 static void get_model_debug_path(struct starpu_perfmodel *model, const char *arch, char *path, size_t maxlen)
 {
 	STARPU_ASSERT(path);
@@ -695,20 +742,23 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 	unsigned archtype, devid, ncore, nimpl;
 	struct starpu_perfmodel_arch arch;
 	
-	for (archtype = 0; archtype < STARPU_NARCH; archtype++)
+	if(model->is_init)
 	{
-		arch.type = archtype;
-		if(model->per_arch[archtype] != NULL)
+		for (archtype = 0; archtype < STARPU_NARCH; archtype++)
 		{
-			for(devid=0; model->per_arch[archtype][devid] != NULL; devid++)
+			arch.type = archtype;
+			if(model->per_arch[archtype] != NULL)
 			{
-				arch.devid = devid;
-				for(ncore=0; model->per_arch[archtype][devid][ncore] != NULL; ncore++)
+				for(devid=0; model->per_arch[archtype][devid] != NULL; devid++)
 				{
-					arch.ncore = ncore;
-					for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+					arch.devid = devid;
+					for(ncore=0; model->per_arch[archtype][devid][ncore] != NULL; ncore++)
 					{
-						starpu_perfmodel_debugfilepath(model, &arch, model->per_arch[archtype][devid][ncore][nimpl].debug_path, 256, nimpl);
+						arch.ncore = ncore;
+						for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+						{
+							starpu_perfmodel_debugfilepath(model, &arch, model->per_arch[archtype][devid][ncore][nimpl].debug_path, 256, nimpl);
+						}
 					}
 				}
 			}
@@ -783,7 +833,7 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 {
 	unsigned arch, devid, ncore, nimpl;
 
-	if(model->per_arch != NULL)
+	if(model->is_init && model->per_arch != NULL)
 	{
 		for (arch = 0; arch < STARPU_NARCH; arch++)
 		{
@@ -871,58 +921,16 @@ void _starpu_deinitialize_registered_performance_models(void)
  */
 void _starpu_load_per_arch_based_model(struct starpu_perfmodel *model)
 {
-	STARPU_ASSERT(model && model->symbol);
-
-	int already_loaded;
-
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
-	already_loaded = model->is_loaded;
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
-
-	if (already_loaded)
-		return;
-
-	/* The model is still not loaded so we grab the lock in write mode, and
-	 * if it's not loaded once we have the lock, we do load it. */
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
-
-	/* Was the model initialized since the previous test ? */
-	if (model->is_loaded)
-	{
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
-		return;
-	}
-
-	STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_ASSERT(model);
+	STARPU_ASSERT(model->symbol);
+	starpu_initialize_model(model);
 }
 
 void _starpu_load_common_based_model(struct starpu_perfmodel *model)
 {
-	STARPU_ASSERT(model && model->symbol);
-
-	int already_loaded;
-
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
-	already_loaded = model->is_loaded;
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
-
-	if (already_loaded)
-		return;
-
-	/* The model is still not loaded so we grab the lock in write mode, and
-	 * if it's not loaded once we have the lock, we do load it. */
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
-
-	/* Was the model initialized since the previous test ? */
-	if (model->is_loaded)
-	{
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
-		return;
-	}
-
-	STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+	STARPU_ASSERT(model);
+	STARPU_ASSERT(model->symbol);
+	starpu_initialize_model(model);
 }
 
 /* We first try to grab the global lock in read mode to check whether the model
@@ -933,90 +941,65 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
-
-	int already_loaded;
-
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
-	already_loaded = model->is_loaded;
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
-
-	if (already_loaded)
-		return;
-
-
-	/* The model is still not loaded so we grab the lock in write mode, and
-	 * if it's not loaded once we have the lock, we do load it. */
-
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
-
-	/* Was the model initialized since the previous test ? */
-	if (model->is_loaded)
-	{
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
-		return;
-	}
-
-	STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
+	starpu_initialize_model(model);
 
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 
-	/* make sure the performance model directory exists (or create it) */
-	_starpu_create_sampling_directory_if_needed();
-
-	char path[256];
-	get_model_path(model, path, 256);
-
-	_STARPU_DEBUG("Opening performance model file %s for model %s ...\n", path, model->symbol);
-
-	unsigned calibrate_flag = _starpu_get_calibrate_flag();
-	model->benchmarking = calibrate_flag;
-
-	/* try to open an existing file and load it */
-	int res;
-	res = access(path, F_OK);
-	if (res == 0)
+	if(!model->is_loaded)
 	{
-		if (calibrate_flag == 2)
+		/* make sure the performance model directory exists (or create it) */
+		_starpu_create_sampling_directory_if_needed();
+
+		char path[256];
+		get_model_path(model, path, 256);
+
+		_STARPU_DEBUG("Opening performance model file %s for model %s ...\n", path, model->symbol);
+
+		unsigned calibrate_flag = _starpu_get_calibrate_flag();
+		model->benchmarking = calibrate_flag;
+
+		/* try to open an existing file and load it */
+		int res;
+		res = access(path, F_OK);
+		if (res == 0)
 		{
-			/* The user specified that the performance model should
-			 * be overwritten, so we don't load the existing file !
-			 * */
-                        _STARPU_DEBUG("Overwrite existing file\n");
-			initialize_model(model);
+			if (calibrate_flag == 2)
+			{
+				/* The user specified that the performance model should
+				 * be overwritten, so we don't load the existing file !
+				 * */
+				_STARPU_DEBUG("Overwrite existing file\n");
+			}
+			else
+			{
+				/* We load the available file */
+				_STARPU_DEBUG("File exists\n");
+				FILE *f;
+				f = fopen(path, "r");
+				STARPU_ASSERT(f);
+
+				parse_model_file(f, model, scan_history);
+
+				fclose(f);
+			}
 		}
 		else
 		{
-			/* We load the available file */
-                        _STARPU_DEBUG("File exists\n");
-			FILE *f;
-			f = fopen(path, "r");
-			STARPU_ASSERT(f);
-
-			initialize_model(model);
-			parse_model_file(f, model, scan_history);
-
-			fclose(f);
+			_STARPU_DEBUG("File does not exists\n");
+			if (!calibrate_flag)
+			{
+				_STARPU_DISP("Warning: model %s is not calibrated, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol);
+				_starpu_set_calibrate_flag(1);
+				model->benchmarking = 1;
+			}
 		}
+
+		_STARPU_DEBUG("Performance model file %s for model %s is loaded\n", path, model->symbol);
+
+		model->is_loaded = 1;
 	}
-	else
-	{
-		_STARPU_DEBUG("File does not exists\n");
-		if (!calibrate_flag)
-		{
-			_STARPU_DISP("Warning: model %s is not calibrated, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol);
-			_starpu_set_calibrate_flag(1);
-			model->benchmarking = 1;
-		}
-		initialize_model(model);
-	}
-
-	_STARPU_DEBUG("Performance model file %s for model %s is loaded\n", path, model->symbol);
-
-	model->is_loaded = 1;
-
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 }
 
 void starpu_perfmodel_directory(FILE *output)
@@ -1091,15 +1074,8 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 	FILE *f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
-	if(_starpu_is_initialized())
-	{
-		initialize_model(model);
-	}
-	else
-	{
-		initialize_model_with_file(f, model);	
-		rewind(f);
-	}
+	starpu_initialize_model_with_file(f, model);	
+	rewind(f);
 
 	parse_model_file(f, model, 1);
 

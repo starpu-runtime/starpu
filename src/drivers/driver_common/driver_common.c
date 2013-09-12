@@ -29,7 +29,7 @@
 #include <core/debug.h>
 
 
-#define BACKOFF_MAX 8192  /* TODO : calibrate MAX & MIN */
+#define BACKOFF_MAX 4 //8192  /* TODO : calibrate MAX & MIN */
 #define BACKOFF_MIN 4
 
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct timespec *codelet_start, int rank, int profiling)

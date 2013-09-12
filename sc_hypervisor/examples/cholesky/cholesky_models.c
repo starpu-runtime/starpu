@@ -130,7 +130,7 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
 		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned), 
 		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned))
 {
-	initialize_model(model);
+	starpu_initialize_model(model);
 	model->type = STARPU_HISTORY_BASED;
 	model->symbol = symbol;
 	model->per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = cpu_cost_function;

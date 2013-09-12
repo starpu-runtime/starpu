@@ -150,8 +150,6 @@ void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 	if (!load_model)
 		return;
 
-	initialize_model(model);
-
 	switch (model->type)
 	{
 		case STARPU_PER_ARCH:
