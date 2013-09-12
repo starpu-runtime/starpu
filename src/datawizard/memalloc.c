@@ -650,6 +650,11 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 {
 	size_t freed = 0;
 
+	if (reclaim)
+	{
+		_STARPU_DISP("Not enough memory left. Trying to purge some data out\n");
+	}
+
 	/* remove all buffers for which there was a removal request */
 	freed += flush_memchunk_cache(node, reclaim);
 
