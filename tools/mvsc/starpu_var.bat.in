@@ -19,22 +19,21 @@ TITLE MSVC StarPU Environment
 ECHO.
 ECHO MSVC StarPU Environment
 
-set STARPU_PATH=@prefix@
-
-IF NOT EXIST %STARPUPATH%\AUTHORS GOTO starpunotfound
+IF NOT EXIST %STARPU_PATH%\AUTHORS GOTO starpunotfound
 
 ECHO.
-ECHO Setting environment from %STARPUPATH%
+ECHO Setting environment from %STARPU_PATH%
 
 set STARPU_LIBDIR=%STARPU_PATH%/lib
 set STARPU_INCLUDEDIR=%PREFIX%/include
 set STARPU_CFLAGS=/I%STARPU_INCLUDEDIR%\starpu\@STARPU_EFFECTIVE_VERSION@ @STARPU_CUDA_CPPFLAGS@
+set STARPU_LDFLAGS=/link %STARPU_PATH%\lib\libstarpu-@STARPU_EFFECTIVE_VERSION@.lib
 
 GOTO end
 
 :starpunotfound
   ECHO.
-  ECHO You need to set the variable STARPUPATH to a valid StarPU installation directory
+  ECHO You need to set the variable STARPU_PATH to a valid StarPU installation directory
   exit /B 1
   GOTO end
 
