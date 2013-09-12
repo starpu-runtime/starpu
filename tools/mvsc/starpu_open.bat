@@ -19,17 +19,17 @@ TITLE MVSC StarPU Execution
 ECHO.
 ECHO MVSC StarPU Execution
 
-IF NOT EXIST %STARPUPATH%\AUTHORS GOTO starpunotfound
+IF NOT EXIST %STARPU_PATH%\AUTHORS GOTO starpunotfound
 
 ECHO.
-ECHO %STARPUPATH%
+ECHO %STARPU_PATH%
 
 IF "%1" == "" GOTO invalidparam
 IF NOT EXIST %1 GOTO invalidparam
 
 COPY %1 starpu\starpu_appli.c
-FOR %%F IN (%STARPUPATH%\bin\*dll) DO COPY %%F starpu\%%~nF
-FOR %%F IN (%STARPUPATH%\bin\*dll) DO COPY %%F starpu
+FOR %%F IN (%STARPU_PATH%\bin\*dll) DO COPY %%F starpu\%%~nF
+FOR %%F IN (%STARPU_PATH%\bin\*dll) DO COPY %%F starpu
 COPY c:\MinGW\bin\pthreadGC2.dll starpu
 IF EXIST Debug RMDIR /S /Q Debug
 IF EXIST starpu\Debug RMDIR /S /Q starpu\Debug
@@ -45,7 +45,7 @@ GOTO end
 
 :starpunotfound
   ECHO.
-  ECHO You need to set the variable STARPUPATH to a valid StarPU installation directory
+  ECHO You need to set the variable STARPU_PATH to a valid StarPU installation directory
   GOTO end
 
 :end
