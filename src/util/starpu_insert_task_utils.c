@@ -80,6 +80,16 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 			va_arg(varg_list, _starpu_callback_func_t);
 			va_arg(varg_list, void *);
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+		{
+			(void)va_arg(varg_list, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			va_arg(varg_list, _starpu_callback_func_t);
+			va_arg(varg_list, void *);
+		}
+
 		else if (arg_type==STARPU_CALLBACK_ARG)
 		{
 			(void)va_arg(varg_list, void *);
