@@ -295,7 +295,6 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 static void parse_device(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, unsigned * arch, unsigned archmax)
 {
 	unsigned maxncore, ncore, ret;
-	int version;
 
 	/* Parsing maximun number of worker for this device */
 	_starpu_drop_comments(f);
