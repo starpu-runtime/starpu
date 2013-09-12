@@ -650,9 +650,13 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 {
 	size_t freed = 0;
 
-	if (reclaim)
+	if (reclaim && !force)
 	{
-		_STARPU_DISP("Not enough memory left. Trying to purge some data out\n");
+		static int warned;
+		if (!warned) {
+			_STARPU_DISP("Not enough memory left on node %u. Trying to purge %lu bytes out\n", node, (unsigned long) reclaim);
+			warned = 1;
+		}
 	}
 
 	/* remove all buffers for which there was a removal request */
