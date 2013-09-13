@@ -31,7 +31,7 @@ void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	int worker_size = starpu_combined_worker_get_size();
 	STARPU_ASSERT(worker_size > 0);
 	usleep(1000/worker_size);
-#if 1
+#if 0
 	int id = starpu_worker_get_id();
 	int combined_id = starpu_combined_worker_get_id();
 	FPRINTF(stderr, "worker id %d - combined id %d - worker size %d\n", id, combined_id, worker_size);
