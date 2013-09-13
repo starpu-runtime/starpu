@@ -47,33 +47,3 @@ int _starpu_read_double(FILE *f, char *format, double *val)
 	return fscanf(f, format, val);
 #endif
 }
-
-#define STRING "booh"
-
-int _starpu_check_number(double val, int nan)
-{
-	char *filename = tmpnam(NULL);
-
-	/* write the double value in the file followed by a predefined string */
-	FILE *f = fopen(filename, "w");
-	fprintf(f, "%lf %s\n", val, STRING);
-	fclose(f);
-
-	/* read the double value and the string back from the file */
-	f = fopen(filename, "r");
-	double lat;
-	char str[10];
-	int x = _starpu_read_double(f, "%lf", &lat);
-	int y = fscanf(f, "%s", str);
-	fclose(f);
-
-	/* check that what has been read is identical to what has been written */
-	int pass;
-	pass = (x == 1) && (y == 1);
-	pass = pass && strcmp(str, STRING) == 0;
-	if (nan)
-		pass = pass && isnan(val) && isnan(lat);
-	else
-		pass = pass && lat == val;
-	return pass;
-}
