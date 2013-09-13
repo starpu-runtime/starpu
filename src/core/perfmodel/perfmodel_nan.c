@@ -28,18 +28,23 @@ int _starpu_read_double(FILE *f, char *format, double *val)
 #ifdef STARPU_HAVE_WINDOWS
 /** Windows cannot read NAN values, yes, it is really bad ... */
 	int x1 = getc(f);
-	int x2 = getc(f);
-	int x3 = getc(f);
 
-	if (x1 == 'n' && x2 == 'a' && x3 == 'n')
+	if (x1 == 'n')
 	{
-		*val = NAN;
-		return 1;
+	     int x2 = getc(f);
+	     int x3 = getc(f);
+	     if (x2 == 'a' && x3 == 'n')
+	     {
+		     *val = NAN;
+		     return 1;
+	     }
+	     else
+	     {
+		     return 0;
+	     }
 	}
 	else
 	{
-		ungetc(x3, f);
-		ungetc(x2, f);
 		ungetc(x1, f);
 		return fscanf(f, format, val);
 	}
