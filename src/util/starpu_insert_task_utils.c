@@ -45,14 +45,14 @@ void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 
 size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 {
-	long int arg_type;
+	long long int arg_type;
 	size_t arg_buffer_size;
 
 	arg_buffer_size = 0;
 
 	arg_buffer_size += sizeof(char);
 
-	while ((arg_type = va_arg(varg_list, long int)) != 0)
+	while ((arg_type = va_arg(varg_list, long long int)) != 0)
 	{
 		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
@@ -130,7 +130,7 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 
 int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list varg_list)
 {
-	long int arg_type;
+	long long int arg_type;
 	unsigned current_arg_offset = 0;
 	unsigned char nargs = 0;
 	char *_arg_buffer;
@@ -142,7 +142,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 	/* We will begin the buffer with the number of args (which is stored as a char) */
 	current_arg_offset += sizeof(char);
 
-	while((arg_type = va_arg(varg_list, long int)) != 0)
+	while((arg_type = va_arg(varg_list, long long int)) != 0)
 	{
 		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
@@ -238,7 +238,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 
 int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
 {
-	long int arg_type;
+	long long int arg_type;
 	unsigned current_buffer = 0;
 
 	struct insert_task_cb_wrapper *cl_arg_wrapper = (struct insert_task_cb_wrapper *) malloc(sizeof(struct insert_task_cb_wrapper));
@@ -251,7 +251,7 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 
 	prologue_cl_arg_wrapper->callback_func = NULL;
 
-	while((arg_type = va_arg(varg_list, long int)) != 0)
+	while((arg_type = va_arg(varg_list, long long int)) != 0)
 	{
 		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
