@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <config.h>
 
 int _starpu_read_double(FILE *f, char *format, double *val)
 {
