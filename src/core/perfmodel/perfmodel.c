@@ -146,7 +146,6 @@ void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 		return;
 
 	int load_model = _starpu_register_model(model);
-
 	if (!load_model)
 		return;
 

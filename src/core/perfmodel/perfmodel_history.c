@@ -589,8 +589,6 @@ static void initialize_model(struct starpu_perfmodel *model)
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
 	model->per_arch = malloc(sizeof(*model->per_arch)*(STARPU_NARCH));
 
-	_STARPU_DEBUG("n onpecl:%u\n\n\n\n\n\n",conf->topology.nhwopenclgpus);
-
 	model->per_arch[STARPU_CPU_WORKER] = initialize_arch_model(1,&conf->topology.nhwcpus); 
 	model->per_arch[STARPU_CUDA_WORKER] = initialize_arch_model(conf->topology.nhwcudagpus,NULL); 
 	model->per_arch[STARPU_OPENCL_WORKER] = initialize_arch_model(conf->topology.nhwopenclgpus,NULL); 
@@ -732,6 +730,10 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
  */
 int _starpu_register_model(struct starpu_perfmodel *model)
 {
+	STARPU_ASSERT(model);
+	STARPU_ASSERT(model->symbol);
+	starpu_initialize_model(model);
+
 	/* If the model has already been loaded, there is nothing to do */
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
 	if (model->is_loaded)
@@ -765,19 +767,25 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 
 	unsigned archtype, devid, ncore, nimpl;
 	struct starpu_perfmodel_arch arch;
+
+	_STARPU_DEBUG("\n\n ###\nHere\n ###\n\n");
 	
 	if(model->is_init)
 	{
+		_STARPU_DEBUG("Init\n");
 		for (archtype = 0; archtype < STARPU_NARCH; archtype++)
 		{
+			_STARPU_DEBUG("Archtype\n");
 			arch.type = archtype;
 			if(model->per_arch[archtype] != NULL)
 			{
 				for(devid=0; model->per_arch[archtype][devid] != NULL; devid++)
 				{
+					_STARPU_DEBUG("Devid\n");
 					arch.devid = devid;
 					for(ncore=0; model->per_arch[archtype][devid][ncore] != NULL; ncore++)
 					{
+						_STARPU_DEBUG("Ncore\n");
 						arch.ncore = ncore;
 						for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 						{
