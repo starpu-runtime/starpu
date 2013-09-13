@@ -31,7 +31,6 @@ extern "C"
 
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
 
-#define STARPU_DATA		 (0<<16)
 #define STARPU_VALUE		 (1<<16)
 #define STARPU_CALLBACK		 (2<<16)
 #define STARPU_CALLBACK_WITH_ARG (3<<16)
