@@ -238,8 +238,6 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 	int res = fscanf(f, "%u\n", &nentries);
 	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
 
-	_STARPU_DEBUG("nentries:%u\n", nentries);
-
 	scan_reg_model(f, &per_arch_model->regression);
 
 	/* parse entries */
@@ -268,21 +266,17 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 {
 	struct starpu_perfmodel_per_arch dummy;
 	unsigned nimpls, implmax, impl, i, ret;
-	_STARPU_DEBUG("Parsing %s_%u_ncore_%u\n", 
-			starpu_perfmodel_get_archtype_name(arch->type),
-			arch->devid,
-			arch->ncore);	
+	//_STARPU_DEBUG("Parsing %s_%u_ncore_%u\n", 
+	//		starpu_perfmodel_get_archtype_name(arch->type),
+	//		arch->devid,
+	//		arch->ncore);	
 
 	/* Parsing number of implementation */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &nimpls);
 	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 
-	if( model != NULL &&
-			model->per_arch != NULL &&
-			model->per_arch[arch->type] != NULL &&
-			model->per_arch[arch->type][arch->devid] != NULL &&
-			model->per_arch[arch->type][arch->devid][arch->ncore] != NULL)
+	if( model != NULL)
 	{
 		/* Parsing each implementation */
 		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
@@ -303,42 +297,68 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 
 static void parse_device(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, enum starpu_worker_archtype archtype, unsigned devid)
 {
-	unsigned maxncore, ncore, ret;
+	unsigned maxncore, ncore, ret, i;
 	struct starpu_perfmodel_arch arch;
 	arch.type = archtype;
 	arch.devid = devid;
-	_STARPU_DEBUG("Parsing device %s_%u arch\n",  
-			starpu_perfmodel_get_archtype_name(archtype),
-			devid);
+	//_STARPU_DEBUG("Parsing device %s_%u arch\n",  
+	//		starpu_perfmodel_get_archtype_name(archtype),
+	//		devid);
 
 	/* Parsing maximun number of worker for this device */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &maxncore);
 	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
-	
+
 	/* Parsing each arch */
-	for(ncore=0; ncore < maxncore; ncore++)
+	if(model !=NULL)
 	{
-		arch.ncore = ncore;
-		parse_arch(f,model,scan_history,&arch);
+		for(ncore=0; ncore < maxncore && model->per_arch[archtype][devid][ncore] != NULL; ncore++)
+		{
+			arch.ncore = ncore;
+			parse_arch(f,model,scan_history,&arch);
+		}
+	}
+	else
+	{
+		ncore=0;
+	}
+
+	for(i=ncore; i < maxncore; i++)
+	{
+		arch.ncore = i;
+		parse_arch(f,NULL,scan_history,&arch);
 	}
 }
 
 
 static void parse_archtype(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, enum starpu_worker_archtype archtype)
 {
-	unsigned ndevice, devid, ret;
-	_STARPU_DEBUG("Parsing %s arch\n", starpu_perfmodel_get_archtype_name(archtype));
+	unsigned ndevice, devid, ret, i;
+	//_STARPU_DEBUG("Parsing %s arch\n", starpu_perfmodel_get_archtype_name(archtype));
 
 	/* Parsing number of device for this archtype */
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%u\n", &ndevice);
 	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
-
+	
 	/* Parsing each device for this archtype*/
-	for(devid=0; devid < ndevice; devid++)
-		parse_device(f,model,scan_history,archtype,devid);
+	if(model != NULL)
+	{
+		for(devid=0; devid < ndevice && model->per_arch[archtype][devid] != NULL; devid++)
+		{
+				parse_device(f,model,scan_history,archtype,devid);
+		}
+	}
+	else
+	{
+		devid=0;
+	}
 
+	for(i=devid; i < ndevice; i++)
+	{
+		parse_device(f,NULL,scan_history,archtype,i);
+	}
 }
 
 static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned scan_history)
@@ -346,7 +366,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	unsigned archtype;
 	int ret, version;
 
-	_STARPU_DEBUG("Start parsing\n");
+	//_STARPU_DEBUG("Start parsing\n");
 
 	/* Parsing performance model version */
 	_starpu_drop_comments(f);
@@ -357,7 +377,9 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 
 	/* Parsing each kind of archtype */
 	for(archtype=0; archtype<STARPU_NARCH; archtype++)
+	{
 		parse_archtype(f, model, scan_history, archtype);
+	}
 }
 
 
@@ -566,6 +588,8 @@ static void initialize_model(struct starpu_perfmodel *model)
 {
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
 	model->per_arch = malloc(sizeof(*model->per_arch)*(STARPU_NARCH));
+
+	_STARPU_DEBUG("n onpecl:%u\n\n\n\n\n\n",conf->topology.nhwopenclgpus);
 
 	model->per_arch[STARPU_CPU_WORKER] = initialize_arch_model(1,&conf->topology.nhwcpus); 
 	model->per_arch[STARPU_CUDA_WORKER] = initialize_arch_model(conf->topology.nhwcudagpus,NULL); 
