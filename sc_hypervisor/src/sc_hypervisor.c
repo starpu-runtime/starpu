@@ -193,7 +193,7 @@ void* sc_hypervisor_init(struct sc_hypervisor_policy *hypervisor_policy)
 		hypervisor.sched_ctx_w[i].ready_flops = 0.0;
 		hypervisor.sched_ctx_w[i].total_flops_available = 0;
 		hypervisor.sched_ctx_w[i].nready_tasks = 0;
-
+		hypervisor.sched_ctx_w[i].to_be_sized = 0;
 		int j;
 		for(j = 0; j < STARPU_NMAXWORKERS; j++)
 		{
@@ -313,8 +313,7 @@ void sc_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
 
 	hypervisor.sched_ctx_w[sched_ctx].total_flops = total_flops;
 	hypervisor.sched_ctx_w[sched_ctx].remaining_flops = total_flops;
-	if(strcmp(hypervisor.policy.name, "app_driven") == 0)
-		hypervisor.resize[sched_ctx] = 1;
+	hypervisor.resize[sched_ctx] = 1;
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }
 
@@ -848,7 +847,9 @@ static void notify_poped_task(unsigned sched_ctx, int worker, struct starpu_task
 		if(hypervisor.policy.handle_poped_task)
 			hypervisor.policy.handle_poped_task(sched_ctx, worker, task, footprint);
 	}
+	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
 	_ack_resize_completed(sched_ctx, worker);
+	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	if(hypervisor.sched_ctx_w[sched_ctx].poped_tasks[worker] % 200 == 0)
 		_print_current_time();
 }

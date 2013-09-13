@@ -66,26 +66,30 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
 
-	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
-	if (limit == -1)
-	{
-	     sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
-	     limit = starpu_get_env_number(name);
-	}
-	if (limit == -1)
-	{
-		return;
-	}
-
-	global_mem[devid] = limit * 1024*1024;
-
 #ifdef STARPU_USE_OPENCL
 	/* Request the size of the current device's memory */
 	cl_int err;
 	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
+#endif
 
+	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
+	if (limit == -1)
+	{
+		sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
+		limit = starpu_get_env_number(name);
+	}
+	if (limit == -1)
+	{
+		global_mem[devid] = totalGlobalMem;
+	}
+	else
+	{
+		global_mem[devid] = limit * 1024*1024;
+	}
+
+#ifdef STARPU_USE_OPENCL
 	/* How much memory to waste ? */
 	to_waste = totalGlobalMem - global_mem[devid];
 #endif
@@ -608,6 +612,7 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	_starpu_memory_manager_set_global_memory_size(args->memory_node, _starpu_opencl_get_global_mem_size(devid));
 
 	args->status = STATUS_UNKNOWN;
+	float size = (float) global_mem[devid] / (1<<30);
 
 #ifdef STARPU_SIMGRID
 	const char *devname = "Simgrid";
@@ -616,7 +621,7 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	char devname[128];
 	_starpu_opencl_get_device_name(devid, devname, 128);
 #endif
-	snprintf(args->name, sizeof(args->name), "OpenCL %u (%s)", devid, devname);
+	snprintf(args->name, sizeof(args->name), "OpenCL %u (%s %.1f GiB)", devid, devname, size);
 	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %u", devid);
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);

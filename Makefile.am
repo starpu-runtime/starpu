@@ -19,10 +19,7 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 
 SUBDIRS = src
 SUBDIRS += tools tests
-
-if BUILD_DOC
-SUBDIRS += doc/doxygen
-endif
+SUBDIRS += doc
 
 if USE_MPI
 SUBDIRS += mpi
@@ -49,7 +46,7 @@ SUBDIRS += sc_hypervisor
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libstarpu.pc starpu-1.0.pc starpu-1.1.pc
+pkgconfig_DATA = libstarpu.pc starpu-1.0.pc starpu-1.1.pc starpu-1.2.pc
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\

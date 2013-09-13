@@ -15,32 +15,27 @@ REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 REM
 REM See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-TITLE MSVC StarPU Execution
+TITLE MVSC StarPU Execution
 ECHO.
-ECHO MSVC StarPU Execution
+ECHO MVSC StarPU Execution
+
+IF NOT EXIST %STARPU_PATH%\AUTHORS GOTO starpunotfound
+
 ECHO.
-ECHO Using StarPU in %STARPUPATH%
+ECHO %STARPU_PATH%
 
 IF "%1" == "" GOTO invalidparam
 IF NOT EXIST %1 GOTO invalidparam
-IF NOT EXIST %STARPUPATH%\AUTHORS GOTO starpunotfound
 
-mkdir starpu
-FOR %%F IN (%STARPUPATH%\bin\*dll) DO COPY %%F starpu\%%~nF
-FOR %%F IN (%STARPUPATH%\bin\*dll) DO COPY %%F starpu
+COPY %1 starpu\starpu_appli.c
+FOR %%F IN (%STARPU_PATH%\bin\*dll) DO COPY %%F starpu\%%~nF
+FOR %%F IN (%STARPU_PATH%\bin\*dll) DO COPY %%F starpu
 COPY c:\MinGW\bin\pthreadGC2.dll starpu
-COPY %STARPUPATH%\lib\libstarpu-1.0.lib starpu
+IF EXIST Debug RMDIR /S /Q Debug
+IF EXIST starpu\Debug RMDIR /S /Q starpu\Debug
 
-set OLDPATH=%PATH%
-call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" x86
-echo cd starpu
-echo dir %STARPUPATH%\include\starpu\1.0
-cl %1 /I%STARPUPATH%\include\starpu\1.0 /link starpu\libstarpu-1.0.lib
+"C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\VCExpress.exe" starpu.sln
 
-set PATH=starpu;%PATH%
-.\%~n1.exe
-
-set PATH=%OLDPATH%
 GOTO end
 
 :invalidparam
@@ -50,7 +45,7 @@ GOTO end
 
 :starpunotfound
   ECHO.
-  ECHO You need to set the variable STARPUPATH to a valid StarPU installation directory
+  ECHO You need to set the variable STARPU_PATH to a valid StarPU installation directory
   GOTO end
 
 :end

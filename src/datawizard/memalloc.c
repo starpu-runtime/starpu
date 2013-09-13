@@ -21,13 +21,6 @@
 #include <core/disk.h>
 #include <starpu.h>
 
-/* This per-node spinlock protect lru_list */
-static struct _starpu_spinlock lru_rwlock[STARPU_MAXNODES];
-
-/* Last Recently used memory chunkgs */
-static struct _starpu_mem_chunk_lru_list *starpu_lru_list[STARPU_MAXNODES];
-
-
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
 /* Note: handle header lock is always taken before this */
 static starpu_pthread_rwlock_t mc_rwlock[STARPU_MAXNODES];
@@ -42,7 +35,6 @@ static struct _starpu_mem_chunk_list *memchunk_cache[STARPU_MAXNODES];
 /* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */
 const unsigned starpu_memstrategy_data_size_coefficient=2;
 
-static void starpu_lru(unsigned node);
 static int get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node);
 static unsigned choose_target(starpu_data_handle_t handle, unsigned node);
 
@@ -52,9 +44,7 @@ void _starpu_init_mem_chunk_lists(void)
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
 		STARPU_PTHREAD_RWLOCK_INIT(&mc_rwlock[i], NULL);
-		_starpu_spin_init(&lru_rwlock[i]);
 		mc_list[i] = _starpu_mem_chunk_list_new();
-		starpu_lru_list[i] = _starpu_mem_chunk_lru_list_new();
 		memchunk_cache[i] = _starpu_mem_chunk_list_new();
 	}
 }
@@ -66,8 +56,6 @@ void _starpu_deinit_mem_chunk_lists(void)
 	{
 		_starpu_mem_chunk_list_delete(mc_list[i]);
 		_starpu_mem_chunk_list_delete(memchunk_cache[i]);
-		_starpu_mem_chunk_lru_list_delete(starpu_lru_list[i]);
-		_starpu_spin_destroy(&lru_rwlock[i]);
 		STARPU_PTHREAD_RWLOCK_DESTROY(&mc_rwlock[i]);
 	}
 }
@@ -434,7 +422,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	/* reinsert the mem chunk in the list of active memory chunks */
 	if (!is_already_in_mc_list)
 	{
-		_starpu_mem_chunk_list_push_front(mc_list[node], mc);
+		_starpu_mem_chunk_list_push_back(mc_list[node], mc);
 	}
 }
 
@@ -662,7 +650,14 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 {
 	size_t freed = 0;
 
-	starpu_lru(node);
+	if (reclaim && !force)
+	{
+		static int warned;
+		if (!warned) {
+			_STARPU_DISP("Not enough memory left on node %u. Trying to purge %lu bytes out\n", node, (unsigned long) reclaim);
+			warned = 1;
+		}
+	}
 
 	/* remove all buffers for which there was a removal request */
 	freed += flush_memchunk_cache(node, reclaim);
@@ -932,53 +927,16 @@ unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsi
 	return handle->per_node[memory_node].allocated;
 }
 
-/* Record that this memchunk has been recently used */
+/* This memchunk has been recently used, put it last on the mc_list, so we will
+ * try to evict it as late as possible */
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node)
 {
-	_starpu_spin_lock(&lru_rwlock[node]);
-	struct _starpu_mem_chunk_lru *mc_lru=_starpu_mem_chunk_lru_new();
-	mc_lru->mc=mc;
-	_starpu_mem_chunk_lru_list_push_front(starpu_lru_list[node],mc_lru);
-	_starpu_spin_unlock(&lru_rwlock[node]);
-}
-
-/* Push the given memchunk, recently used, at the end of the chunks to be evicted */
-/* The mc_rwlock[node] rw-lock should be taken prior to calling this function.*/
-static void _starpu_memchunk_recently_used_move(struct _starpu_mem_chunk *mc, unsigned node)
-{
-	/* Note: Sometimes the memchunk is not in the list... */
-	struct _starpu_mem_chunk *mc_iter;
-	for (mc_iter = _starpu_mem_chunk_list_begin(mc_list[node]);
-	     mc_iter != _starpu_mem_chunk_list_end(mc_list[node]);
-	     mc_iter = _starpu_mem_chunk_list_next(mc_iter) )
-	{
-		if (mc_iter==mc)
-		{
-			_starpu_mem_chunk_list_erase(mc_list[node], mc);
-			_starpu_mem_chunk_list_push_back(mc_list[node], mc);
-			return;
-		}
-
-	}
-}
-
-/* Put the recently used memchunks at the end of the mc_list, in the same order
- * as the LRU list, so that the most recently used memchunk eventually comes
- * last in the mc_list */
-static void starpu_lru(unsigned node)
-{
+	if (!mc)
+		/* user-allocated memory */
+		return;
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
-
-	_starpu_spin_lock(&lru_rwlock[node]);
-	while (!_starpu_mem_chunk_lru_list_empty(starpu_lru_list[node]))
-	{
-		struct _starpu_mem_chunk_lru *mc_lru=_starpu_mem_chunk_lru_list_front(starpu_lru_list[node]);
-		_starpu_memchunk_recently_used_move(mc_lru->mc, node);
-		_starpu_mem_chunk_lru_list_erase(starpu_lru_list[node], mc_lru);
-		_starpu_mem_chunk_lru_delete(mc_lru);
-	}
-	_starpu_spin_unlock(&lru_rwlock[node]);
-
+	_starpu_mem_chunk_list_erase(mc_list[node], mc);
+	_starpu_mem_chunk_list_push_back(mc_list[node], mc);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[node]);
 }
 

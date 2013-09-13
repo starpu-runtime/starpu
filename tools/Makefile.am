@@ -29,11 +29,12 @@ dist_pkgdata_DATA = gdbinit
 EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
-	msvc/starpu_clean.bat		\
-	msvc/starpu_open.bat		\
-	msvc/starpu_exec.bat		\
-	msvc/starpu.sln			\
-	msvc/starpu/starpu.vcxproj
+	mvsc/starpu_clean.bat		\
+	mvsc/starpu_open.bat		\
+	mvsc/starpu_exec.bat		\
+	mvsc/starpu_var.bat		\
+	mvsc/starpu.sln			\
+	mvsc/starpu/starpu.vcxproj
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
@@ -124,13 +125,14 @@ dist_bin_SCRIPTS +=			\
 	starpu_codelet_profile
 
 if STARPU_HAVE_WINDOWS
-STARPU_MSVC_dir		 =	$(bindir)
-nobase_STARPU_MSVC__DATA =		\
-	msvc/starpu_clean.bat		\
-	msvc/starpu_open.bat		\
-	msvc/starpu_exec.bat		\
-	msvc/starpu.sln			\
-	msvc/starpu/starpu.vcxproj
+STARPU_MVSC_dir		 =	$(bindir)
+nobase_STARPU_MVSC__DATA =		\
+	mvsc/starpu_clean.bat		\
+	mvsc/starpu_open.bat		\
+	mvsc/starpu_exec.bat		\
+	mvsc/starpu_var.bat		\
+	mvsc/starpu.sln			\
+	mvsc/starpu/starpu.vcxproj
 endif
 
 if STARPU_HAVE_HELP2MAN

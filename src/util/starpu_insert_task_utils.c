@@ -80,6 +80,15 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 			va_arg(varg_list, _starpu_callback_func_t);
 			va_arg(varg_list, void *);
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+		{
+			(void)va_arg(varg_list, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list, void *);
+		}
+
 		else if (arg_type==STARPU_CALLBACK_ARG)
 		{
 			(void)va_arg(varg_list, void *);
@@ -172,6 +181,15 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 		{
 			(void)va_arg(varg_list, void *);
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+		{
+			va_arg(varg_list, _starpu_callback_func_t);
+			va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			(void)va_arg(varg_list, int);
@@ -227,6 +245,11 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 	STARPU_ASSERT(cl_arg_wrapper);
 
 	cl_arg_wrapper->callback_func = NULL;
+
+	struct insert_task_cb_wrapper *prologue_cl_arg_wrapper = (struct insert_task_cb_wrapper *) malloc(sizeof(struct insert_task_cb_wrapper));
+	STARPU_ASSERT(prologue_cl_arg_wrapper);
+
+	prologue_cl_arg_wrapper->callback_func = NULL;
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -296,6 +319,20 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 			void *callback_arg = va_arg(varg_list, void *);
 			cl_arg_wrapper->callback_arg = callback_arg;
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+		{
+			void (*callback_func)(void *);
+			void *callback_arg;
+			callback_func = va_arg(varg_list, _starpu_callback_func_t);
+			callback_arg = va_arg(varg_list, void *);
+			prologue_cl_arg_wrapper->callback_func = callback_func;
+			prologue_cl_arg_wrapper->callback_arg = callback_arg;
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			void *callback_arg = va_arg(varg_list, void *);
+			prologue_cl_arg_wrapper->callback_arg = callback_arg;
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			/* Followed by a priority level */
@@ -346,6 +383,9 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 	(*task)->callback_func = starpu_task_insert_callback_wrapper;
 	(*task)->callback_arg = cl_arg_wrapper;
 
+	(*task)->prologue_callback_func = starpu_task_insert_callback_wrapper;
+	(*task)->prologue_callback_arg = prologue_cl_arg_wrapper;
+
 	int ret = starpu_task_submit(*task);
 
 	if (STARPU_UNLIKELY(ret == -ENODEV))
@@ -356,6 +396,7 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 			(*task)->cl->name ? (*task)->cl->name :
 			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
 		free(cl_arg_wrapper);
+		free(prologue_cl_arg_wrapper);
 	}
 
 	return ret;

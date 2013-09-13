@@ -1146,7 +1146,7 @@ static void write_bus_latency_file_content(void)
 
 			if (dst)
 				fputc('\t', f);
-			fprintf(f, "%f", latency);
+			fprintf(f, "%lf", latency);
 		}
 
 		fprintf(f, "\n");

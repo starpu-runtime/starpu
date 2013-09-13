@@ -47,6 +47,9 @@ New features:
     _STARPU_PERFMODEL_VERSION should be updated. It is then possible
     to switch easily between differents versions of StarPU having
     different performance model formats.
+  * Tasks can now define a optional prologue callback which is executed
+    on the host when the task becomes ready for execution, before getting
+    scheduled.
 
 Small features:
   * Add cl_arg_free field to enable automatic free(cl_arg) on task
@@ -60,7 +63,7 @@ Small features:
     storing performance models. Available through the new option -d of
     the tool starpu_perfmodel_display
   * New batch files to execute StarPU applications under Microsoft
-    Visual Studio (They are installed in path_to_starpu/bin/msvc)/
+    Visual Studio (They are installed in path_to_starpu/bin/mvsc)/
 
 Changes:
   * Fix of the livelock issue discovered while executing applications
