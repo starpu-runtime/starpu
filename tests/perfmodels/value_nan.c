@@ -45,7 +45,7 @@ int _check_number(double val, int nan)
 		pass = pass && isnan(val) && isnan(lat);
 	else
 		pass = pass && lat == val;
-	return pass;
+	return pass?0:1;
 }
 
 int main(int argc, char **argv)
@@ -55,7 +55,7 @@ int main(int argc, char **argv)
 	ret = _check_number(42.0, 0);
 	FPRINTF(stderr, "%s when reading %lf\n", ret?"Success":"Error", 42.0);
 
-	if (ret)
+	if (ret==0)
 	{
 	     ret = _check_number(NAN, 1);
 	     FPRINTF(stderr, "%s when reading %lf\n", ret?"Success":"Error", NAN);
