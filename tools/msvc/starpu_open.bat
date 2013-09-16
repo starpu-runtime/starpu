@@ -22,38 +22,30 @@ ECHO MSVC StarPU Execution
 IF NOT EXIST %STARPUPATH%\AUTHORS GOTO starpunotfound
 
 ECHO.
-ECHO Using StarPU in %STARPUPATH%
+ECHO %STARPUPATH%
 
 IF "%1" == "" GOTO invalidparam
 IF NOT EXIST %1 GOTO invalidparam
 
-mkdir starpu
+COPY %1 starpu\starpu_appli.c
 FOR %%F IN (%STARPUPATH%\bin\*dll) DO COPY %%F starpu\%%~nF
 FOR %%F IN (%STARPUPATH%\bin\*dll) DO COPY %%F starpu
 COPY c:\MinGW\bin\pthreadGC2.dll starpu
-COPY %STARPUPATH%\lib\libstarpu-1.2.lib starpu
+IF EXIST Debug RMDIR /S /Q Debug
+IF EXIST starpu\Debug RMDIR /S /Q starpu\Debug
 
-set OLDPATH=%PATH%
-call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" x86
-echo cd starpu
-cl %1 /I%STARPUPATH%\include\starpu\1.2 /link starpu\libstarpu-1.2.lib
+"C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\VCExpress.exe" starpu.sln
 
-set PATH=starpu;%PATH%
-.\%~n1.exe
-
-set PATH=%OLDPATH%
 GOTO end
 
 :invalidparam
   ECHO.
   ECHO Syntax error. You need to give the name of a StarPU application
-  EXIT /B 2
   GOTO end
 
 :starpunotfound
   ECHO.
   ECHO You need to set the variable STARPUPATH to a valid StarPU installation directory
-  EXIT /B 1
   GOTO end
 
 :end
