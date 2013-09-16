@@ -34,6 +34,7 @@ Small features:
 
 Changes:
   * Modification of perfmodels output format for future improvements.
+  * Fix for properly dealing with NAN on windows systems
 
 StarPU 1.1.0rc2 (svn revision 10575)
 ==============================================
