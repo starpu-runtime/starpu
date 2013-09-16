@@ -94,36 +94,36 @@ starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 chapters/version.sty: $(chapters)
 	for f in $(chapters) ; do \
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
-        done | sort -r | head -1 > timestamp
-	if test -s timestamp ; then \
-		LC_ALL=C date --date=@`cat timestamp` +"%d %B %Y" > timestamp_updated ;\
-		LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month ;\
+        done | sort -r | head -1 > timestamp_sty
+	if test -s timestamp_sty ; then \
+		LC_ALL=C date --date=@`cat timestamp_sty` +"%d %B %Y" > timestamp_sty_updated ;\
+		LC_ALL=C date --date=@`cat timestamp_sty` +"%B %Y" > timestamp_sty_updated_month ;\
 	fi
-	if test -s timestamp_updated ; then \
-		echo "\newcommand{\STARPUUPDATED}{"`cat timestamp_updated`"}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
+	if test -s timestamp_sty_updated ; then \
+		echo "\newcommand{\STARPUUPDATED}{"`cat timestamp_sty_updated`"}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	else \
 		echo "\newcommand{\STARPUUPDATED}{unknown date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	fi
 	echo "\newcommand{\STARPUVERSION}{$(VERSION)}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty
-	for f in timestamp timestamp_updated timestamp_updated_month ; do \
+	for f in timestamp_sty timestamp_sty_updated timestamp_sty_updated_month ; do \
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
 chapters/version.html: $(chapters)
 	for f in $(chapters) ; do \
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
-        done | sort -r | head -1 > timestamp
-	if test -s timestamp ; then \
-		LC_ALL=C date --date=@`cat timestamp` +"%d %B %Y" > timestamp_updated ;\
-		LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month ;\
+        done | sort -r | head -1 > timestamp_html
+	if test -s timestamp_html ; then \
+		LC_ALL=C date --date=@`cat timestamp_html` +"%d %B %Y" > timestamp_html_updated ;\
+		LC_ALL=C date --date=@`cat timestamp_html` +"%B %Y" > timestamp_html_updated_month ;\
 	fi
 	echo "This manual documents the usage of StarPU version $(VERSION)." > $(top_srcdir)/doc/doxygen/chapters/version.html
-	if test -s timestamp_updated ; then \
-		echo "Its contents was last updated on "`cat timestamp_updated`"." >> $(top_srcdir)/doc/doxygen/chapters/version.html;\
+	if test -s timestamp_html_updated ; then \
+		echo "Its contents was last updated on "`cat timestamp_html_updated`"." >> $(top_srcdir)/doc/doxygen/chapters/version.html;\
 	else \
 		echo "Its contents was last updated on <em>unknown_date</em>." >> $(top_srcdir)/doc/doxygen/chapters/version.html;\
 	fi
-	for f in timestamp timestamp_updated timestamp_updated_month ; do \
+	for f in timestamp_html timestamp_html_updated timestamp_html_updated_month ; do \
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
