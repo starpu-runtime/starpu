@@ -80,4 +80,6 @@ int *_starpu_get_cuda_affinity_vector(unsigned gpuid);
 int *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 #endif
 
+int _starpu_read_double(FILE *f, char *format, double *val);
+
 #endif // __PERFMODEL_H__

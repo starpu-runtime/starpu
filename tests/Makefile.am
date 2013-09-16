@@ -213,6 +213,7 @@ noinst_PROGRAMS =				\
 	perfmodels/non_linear_regression_based	\
 	perfmodels/feed				\
 	perfmodels/valid_model			\
+	perfmodels/value_nan			\
 	sched_policies/data_locality            \
 	sched_policies/execute_all_tasks        \
 	sched_policies/prio        		\
