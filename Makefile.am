@@ -19,10 +19,7 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 
 SUBDIRS = src
 SUBDIRS += tools tests
-
-if BUILD_DOC
 SUBDIRS += doc
-endif
 
 if USE_MPI
 SUBDIRS += mpi
