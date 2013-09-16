@@ -32,7 +32,7 @@ Small features:
     storing performance models. Available through the new option -d of
     the tool starpu_perfmodel_display
   * New batch files to execute StarPU applications under Microsoft
-    Visual Studio (They are installed in path_to_starpu/bin/msvc)/
+    Visual Studio (They are installed in path_to_starpu/bin/mvsc)/
 
 Changes:
   * Modification of perfmodels output format for future improvements.

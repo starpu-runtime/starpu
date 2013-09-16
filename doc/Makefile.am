@@ -15,7 +15,7 @@ endif
 
 EXTRA_DIST =    tutorial/hello_world.c \
 		tutorial/hello_world_plugin.c \
-		tutorial/hello_world_msvc.c \
+		tutorial/hello_world_mvsc.c \
 		tutorial/Makefile \
 		tutorial/README \
 		tutorial/vector_scal.c \
