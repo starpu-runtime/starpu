@@ -152,12 +152,14 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 
 	_starpu_drop_comments(f);
 
-	res = fscanf(f, "%le\t%le\t%le\t%le\t%le\t%le\t%u\t%lu\t%lu\n",
-		&reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny,
-		&reg_model->sumlnxlny, &reg_model->alpha, &reg_model->beta,
-		&reg_model->nsample,
-		&reg_model->minx, &reg_model->maxx);
-	STARPU_ASSERT_MSG(res == 9, "Incorrect performance model file");
+	res = fscanf(f, "%le\t%le\t%le\t%le", &reg_model->sumlnx, &reg_model->sumlnx2, &reg_model->sumlny, &reg_model->sumlnxlny);
+	STARPU_ASSERT_MSG(res == 4, "Incorrect performance model file");
+	res = _starpu_read_double(f, "\t%le", &reg_model->alpha);
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+	res = _starpu_read_double(f, "\t%le", &reg_model->beta);
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+	res = fscanf(f, "\t%u\t%lu\t%lu\n", &reg_model->nsample, &reg_model->minx, &reg_model->maxx);
+	STARPU_ASSERT_MSG(res == 3, "Incorrect performance model file");
 
 	/* If any of the parameters describing the linear regression model is NaN, the model is invalid */
 	unsigned invalid = (isnan(reg_model->alpha)||isnan(reg_model->beta));
@@ -169,8 +171,12 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 
 	_starpu_drop_comments(f);
 
-	res = fscanf(f, "%le\t%le\t%le\n", &reg_model->a, &reg_model->b, &reg_model->c);
-	STARPU_ASSERT_MSG(res == 3, "Incorrect performance model file");
+	res = _starpu_read_double(f, "%le\t", &reg_model->a);
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+	res = _starpu_read_double(f, "%le\t", &reg_model->b);
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
+	res = _starpu_read_double(f, "%le\n", &reg_model->c);
+	STARPU_ASSERT_MSG(res == 1, "Incorrect performance model file");
 
 	/* If any of the parameters describing the non-linear regression model is NaN, the model is invalid */
 	unsigned nl_invalid = (isnan(reg_model->a)||isnan(reg_model->b)||isnan(reg_model->c));

@@ -71,6 +71,7 @@ Changes:
     threshold before a blocking lock.
   * Data interfaces (variable, vector, matrix and block) now define
     pack und unpack functions
+  * Fix for properly dealing with NAN on windows systems
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================

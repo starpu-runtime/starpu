@@ -322,11 +322,8 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
 		{
 			void (*callback_func)(void *);
-			void *callback_arg;
 			callback_func = va_arg(varg_list, _starpu_callback_func_t);
-			callback_arg = va_arg(varg_list, void *);
 			prologue_cl_arg_wrapper->callback_func = callback_func;
-			prologue_cl_arg_wrapper->callback_arg = callback_arg;
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
 		{

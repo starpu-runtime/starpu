@@ -23,6 +23,7 @@ static struct sc_hypervisor_policy_config* _create_config(void)
 	config->max_nworkers = -1;
 	config->new_workers_max_idle = -1.0;
 	config->ispeed_ctx_sample = 0.0;
+	config->time_sample = 0.5;
 
 	int i;
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
@@ -183,6 +184,11 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 		case SC_HYPERVISOR_ISPEED_CTX_SAMPLE:
 			config->ispeed_ctx_sample = va_arg(varg_list, double);
 			break;
+
+		case SC_HYPERVISOR_TIME_SAMPLE:
+			config->time_sample = va_arg(varg_list, double);
+			break;
+
 
 /* not important for the strateg, needed just to jump these args in the iteration of the args */
 		case SC_HYPERVISOR_TIME_TO_APPLY:

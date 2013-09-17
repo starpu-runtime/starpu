@@ -51,8 +51,8 @@ void callback_func(void *callback_arg)
 
 void prologue_callback_func(void *callback_arg)
 {
-	int *x = (int*)callback_arg;
-	printf("x = %d\n", *x);
+	double *x = (double*)callback_arg;
+	printf("x = %lf\n", *x);
 }
 
 
@@ -78,8 +78,8 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	int *x = (int*)malloc(sizeof(int));
-	*x = -999;
+	double *x = (double*)malloc(sizeof(double));
+	*x = -999.0;
 	int ret2 = starpu_insert_task(&cl,
 				      STARPU_RW, handle,
 				      STARPU_PROLOGUE_CALLBACK, prologue_callback_func,

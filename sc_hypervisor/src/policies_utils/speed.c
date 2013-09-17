@@ -40,13 +40,7 @@ double sc_hypervisor_get_ctx_speed(struct sc_hypervisor_wrapper* sc_w)
 	unsigned can_compute_speed = 0;
 	char *speed_sample_criteria = getenv("SC_HYPERVISOR_SAMPLE_CRITERIA");
 	if(speed_sample_criteria && (strcmp(speed_sample_criteria, "time") == 0))
-	{
-		int n_all_cpus = starpu_cpu_worker_get_count();
-		int n_all_cuda = starpu_cuda_worker_get_count();
-		double th_speed = SC_HYPERVISOR_DEFAULT_CPU_SPEED * n_all_cpus + SC_HYPERVISOR_DEFAULT_CUDA_SPEED * n_all_cuda;
-		double time_sample = 0.1 * ((total_flops/1000000000.0) / th_speed);
-		can_compute_speed = elapsed_time > 1.0;//time_sample;
-	}
+		can_compute_speed = elapsed_time > config->time_sample;
 	else
 		can_compute_speed = elapsed_flops >= redim_sample;
 
@@ -121,14 +115,7 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 	unsigned can_compute_speed = 0;
 	char *speed_sample_criteria = getenv("SC_HYPERVISOR_SAMPLE_CRITERIA");
 	if(speed_sample_criteria && (strcmp(speed_sample_criteria, "time") == 0))
-	{
-		int n_all_cpus = starpu_cpu_worker_get_count();
-		int n_all_cuda = starpu_cuda_worker_get_count();
-		double th_speed = SC_HYPERVISOR_DEFAULT_CPU_SPEED * n_all_cpus + SC_HYPERVISOR_DEFAULT_CUDA_SPEED * n_all_cuda;
-		double total_flops = sc_w->total_flops;
-		double time_sample = 0.1 * ((total_flops/1000000000.0) / th_speed);
-		can_compute_speed = elapsed_time > 1.0;
-	}
+		can_compute_speed = elapsed_time > config->time_sample;
 	else
 		can_compute_speed = ctx_elapsed_flops > ctx_sample;
 
