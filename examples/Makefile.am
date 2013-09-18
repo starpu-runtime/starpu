@@ -265,10 +265,14 @@ STARPU_EXAMPLES +=				\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
 	sched_ctx/sched_ctx			\
-	sched_ctx/parallel_code			\
 	sched_ctx/dummy_sched_with_ctx		\
 	reductions/dot_product			\
 	reductions/minmax_reduction
+
+if STARPU_LONG_CHECK
+STARPU_EXAMPLES +=				\
+	sched_ctx/parallel_code
+endif
 
 if STARPU_HAVE_F77_H
 STARPU_EXAMPLES +=				\
