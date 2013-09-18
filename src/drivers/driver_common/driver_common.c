@@ -173,9 +173,13 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		}
 
 		if (_starpu_worker_can_block(memnode))
+		{
 			STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+		}
 		else
 		{
+			STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);			
 			if (_starpu_machine_is_running())
 			{
 				STARPU_UYIELD();
@@ -190,8 +194,6 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 #endif
 			}
 		}
-
-		STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 
 		return NULL;
 	}
