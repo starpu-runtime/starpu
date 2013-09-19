@@ -219,9 +219,13 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		_starpu_worker_set_status_sleeping(workerid);
 
 		if (_starpu_worker_can_block(memnode))
+		{
 			STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+		}
 		else
 		{
+			STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);			
 			if (_starpu_machine_is_running())
 			{
 				_starpu_exponential_backoff(args);
@@ -236,8 +240,6 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 #endif
 			}
 		}
-
-		STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 		struct _starpu_sched_ctx *sched_ctx = NULL;
