@@ -22,11 +22,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <common/config.h>
+#include "../helper.h"
 
 /* size of one vector */
+#if SIZEOF_VOID_P == 4
+#define	NX	(30*1000/sizeof(double))
+#else
 #define	NX	(30*1000000/sizeof(double))
-#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
-
+#endif
 
 int main(int argc, char **argv)
 {
@@ -44,7 +48,7 @@ int main(int argc, char **argv)
 	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) "/tmp", 1024*1024*200);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
-	
+
 	unsigned dd = (unsigned) new_dd;
 
 	/* allocate two memory spaces */
@@ -60,12 +64,12 @@ int main(int argc, char **argv)
 		A[j] = j;
 		F[j] = -j;
 	}
-	
+
 	starpu_data_handle_t vector_handleA, vector_handleB, vector_handleC, vector_handleD, vector_handleE, vector_handleF;
 
 	/* register vector in starpu */
 	starpu_vector_data_register(&vector_handleA, STARPU_MAIN_RAM, (uintptr_t)A, NX, sizeof(double));
-	starpu_vector_data_register(&vector_handleB, -1, (uintptr_t) NULL, NX, sizeof(double));	
+	starpu_vector_data_register(&vector_handleB, -1, (uintptr_t) NULL, NX, sizeof(double));
 	starpu_vector_data_register(&vector_handleC, -1, (uintptr_t) NULL, NX, sizeof(double));
 	starpu_vector_data_register(&vector_handleD, -1, (uintptr_t) NULL, NX, sizeof(double));
 	starpu_vector_data_register(&vector_handleE, -1, (uintptr_t) NULL, NX, sizeof(double));
@@ -88,13 +92,13 @@ int main(int argc, char **argv)
 	starpu_data_unregister(vector_handleD);
 	starpu_data_unregister(vector_handleE);
 	starpu_data_unregister(vector_handleF);
-	
+
 	/* check if computation is correct */
 	int try = 1;
 	for (j = 0; j < NX; ++j)
 		if (A[j] != F[j])
 		{
-			printf("Fail A %f != F %f \n", A[j], F[j]);
+			FPRINTF(stderr, "Fail A %f != F %f \n", A[j], F[j]);
 			try = 0;
 		}
 
@@ -112,7 +116,7 @@ int main(int argc, char **argv)
 	return (try ? EXIT_SUCCESS : EXIT_FAILURE);
 
 enodev:
-	return 77;
+	return STARPU_TEST_SKIPPED;
 enoent:
-	return 77;
+	return STARPU_TEST_SKIPPED;
 }
