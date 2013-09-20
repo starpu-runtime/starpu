@@ -511,8 +511,15 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 	struct _starpu_task_wrapper_list *post_sync_tasks = NULL;
 	unsigned do_submit_tasks = 0;
 
-	if (handle->post_sync_tasks_cnt > 0)
+	VALGRIND_HG_MUTEX_LOCK_PRE(&handle->sequential_consistency_mutex, 0);
+	VALGRIND_HG_MUTEX_LOCK_POST(&handle->sequential_consistency_mutex);
+	unsigned count = handle->post_sync_tasks_cnt;
+	VALGRIND_HG_MUTEX_UNLOCK_PRE(&handle->sequential_consistency_mutex);
+	VALGRIND_HG_MUTEX_UNLOCK_POST(&handle->sequential_consistency_mutex);
+
+	if (count)
 	{
+		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 		if (--handle->post_sync_tasks_cnt == 0)
 		{
 			/* unlock all tasks : we need not hold the lock while unlocking all these tasks */
@@ -520,6 +527,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 			post_sync_tasks = handle->post_sync_tasks;
 			handle->post_sync_tasks = NULL;
 		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 	}
 
 	if (do_submit_tasks)
