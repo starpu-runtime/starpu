@@ -312,11 +312,12 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
 
 	if (req->user_datatype == 0)
 	{
+		int size;
 		req->count = 1;
 		req->ptr = starpu_data_get_local_ptr(req->data_handle);
 
-		req->envelope->psize = (ssize_t)req->count;
-
+		MPI_Type_size(req->datatype, &size);
+		req->envelope->size = (ssize_t)req->count * size;
 		_STARPU_MPI_DEBUG(1, "Post MPI isend count (%ld) datatype_size %ld request to %d with tag %d\n",req->count,starpu_data_get_size(req->data_handle),req->srcdst, _starpu_mpi_tag);
 		MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, _starpu_mpi_tag, req->comm, &req->size_req);
 	}
