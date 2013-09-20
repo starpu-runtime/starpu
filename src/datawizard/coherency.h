@@ -178,6 +178,7 @@ struct _starpu_data_state
 	unsigned long last_submitted_ghost_sync_id;
 	struct _starpu_jobid_list *last_submitted_ghost_accessors_id;
 
+	/* protected by sequential_consistency_mutex */
 	struct _starpu_task_wrapper_list *post_sync_tasks;
 	unsigned post_sync_tasks_cnt;
 
