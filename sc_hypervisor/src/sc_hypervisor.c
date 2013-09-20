@@ -763,6 +763,114 @@ void sc_hypervisor_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *work
 		hypervisor.policy.resize_ctxs(sched_ctxs, nsched_ctxs, workers, nworkers);
 }
 
+void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
+{
+	unsigned sched_ctx;
+	int total_max_nworkers = 0;
+	int max_cpus = starpu_cpu_worker_get_count();
+	double max_workers_idle_time[nsched_ctxs];
+	unsigned configured = 0;
+	int i;
+	for(i = 0; i < nsched_ctxs; i++)
+	{
+		sched_ctx = sched_ctxs[i];
+
+		if(hypervisor.sched_ctx_w[sched_ctx].to_be_sized) continue;
+
+		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctx);
+		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
+		int worker;
+		
+		struct starpu_sched_ctx_iterator it;
+		if(workers->init_iterator)
+			workers->init_iterator(workers, &it);
+		
+		max_workers_idle_time[i] = 0.0;
+		while(workers->has_next(workers, &it))
+		{
+			worker = workers->get_next(workers, &it);
+			if(hypervisor.sched_ctx_w[sched_ctx].idle_start_time[worker]==0.0)
+			{
+//				if(max_workers_idle_time[i] < hypervisor.sched_ctx_w[sched_ctx].idle_time[worker])
+					max_workers_idle_time[i] += hypervisor.sched_ctx_w[sched_ctx].idle_time[worker]; /* in seconds */
+			}
+			else
+			{
+				double end_time  = starpu_timing_now();
+				double idle = (end_time - hypervisor.sched_ctx_w[sched_ctx].idle_start_time[worker]) / 1000000.0; /* in seconds */ 
+				//if(max_workers_idle_time[i] < idle)
+					max_workers_idle_time[i] += idle;
+			}				
+		}			
+
+		if(hypervisor.sched_ctx_w[sched_ctx].nready_tasks < config->max_nworkers || hypervisor.sched_ctx_w[sched_ctx].nready_tasks == 0)
+		{
+			double curr_time = starpu_timing_now();
+			double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /* in seconds */
+			double norm_idle_time = max_workers_idle_time[i] / elapsed_time;
+
+			config->max_nworkers = 	workers->nworkers - lrint(norm_idle_time);
+			printf("%d: few tasks %d idle %lf norme_idle_time %lf nworkers %d decr %d \n", sched_ctx, hypervisor.sched_ctx_w[sched_ctx].nready_tasks, max_workers_idle_time[i], norm_idle_time, workers->nworkers, config->max_nworkers);
+		}
+		else
+		{			
+			if(max_workers_idle_time[i] > 0.000002)
+			{
+				if(config->max_nworkers > 0)
+					config->max_nworkers--;
+				printf("%d: idle for long time %lf max_nworkers decr %d \n", sched_ctx, max_workers_idle_time[i], config->max_nworkers);
+			}
+			else
+			{
+				config->max_nworkers = ((workers->nworkers + hypervisor.sched_ctx_w[sched_ctx].nready_tasks) > max_cpus) 
+					? max_cpus : (workers->nworkers + hypervisor.sched_ctx_w[sched_ctx].nready_tasks);
+				printf("%d: max_nworkers incr %d \n",  sched_ctx, config->max_nworkers);
+				
+			}
+		}
+
+		total_max_nworkers += config->max_nworkers;
+		configured = 1;
+	}
+	if(configured && total_max_nworkers < max_cpus)
+	{
+		int diff = max_cpus - total_max_nworkers;
+		double min_idle = max_workers_idle_time[0];
+		unsigned min_idle_sched_ctx = sched_ctxs[0];
+		
+		/* try to find one that has some ready tasks */
+		for(i = 1; i < nsched_ctxs; i++)
+		{
+			if(hypervisor.sched_ctx_w[sched_ctx].nready_tasks != 0)
+			{
+				if(max_workers_idle_time[i] < min_idle || 
+				   (min_idle_sched_ctx == sched_ctxs[0] && hypervisor.sched_ctx_w[sched_ctxs[0]].nready_tasks == 0))
+				{
+					min_idle = max_workers_idle_time[i];
+					min_idle_sched_ctx = sched_ctxs[i];
+				}
+			}
+		}
+
+		printf("*************min idle %lf ctx %d ready tasks %d\n", min_idle, min_idle_sched_ctx, hypervisor.sched_ctx_w[sched_ctxs[0]].nready_tasks);
+		/* if we didn't find an a context with ready tasks try another time with less constraints */
+		if(min_idle_sched_ctx == sched_ctxs[0] && hypervisor.sched_ctx_w[sched_ctxs[0]].nready_tasks == 0)
+		{
+			for(i = 1; i < nsched_ctxs; i++)
+			{
+				if(max_workers_idle_time[i] < min_idle)
+				{
+					min_idle = max_workers_idle_time[i];
+					min_idle_sched_ctx = sched_ctxs[i];
+				}
+			}
+		}
+			
+		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(min_idle_sched_ctx);
+		config->max_nworkers += diff;
+		printf("%d: redib max_nworkers incr %d \n",  min_idle_sched_ctx, config->max_nworkers);
+	}
+}
 /* notifies the hypervisor that the worker is no longer idle and a new task was pushed on its queue */
 static void notify_idle_end(unsigned sched_ctx, int worker)
 {
@@ -777,7 +885,7 @@ static void notify_idle_end(unsigned sched_ctx, int worker)
 		sc_w->idle_time[worker] += (end_time - sc_w->idle_start_time[worker]) / 1000000.0; /* in seconds */ 
 		sc_w->idle_start_time[worker] = 0.0;
 	}
-
+			
 	if(hypervisor.policy.handle_idle_end)
 		hypervisor.policy.handle_idle_end(sched_ctx, worker);
 
@@ -793,7 +901,7 @@ static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time)
 
 		if(sc_w->idle_start_time[worker] == 0.0)
 			sc_w->idle_start_time[worker] = starpu_timing_now();
-
+		
 		if(hypervisor.policy.handle_idle_cycle)
 		{
 			hypervisor.policy.handle_idle_cycle(sched_ctx, worker);
@@ -842,6 +950,31 @@ static void notify_poped_task(unsigned sched_ctx, int worker, struct starpu_task
 		hypervisor.sched_ctx_w[sched_ctx].ready_flops = 0.0;
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 
+/* 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctx); */
+	
+/* 	unsigned finished_sample = 0; */
+/* 	char *speed_sample_criteria = getenv("SC_HYPERVISOR_SAMPLE_CRITERIA"); */
+/* 	if(speed_sample_criteria && (strcmp(speed_sample_criteria, "time") == 0)) */
+/* 	{ */
+
+/* 		double curr_time = starpu_timing_now(); */
+/* 		double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /\* in seconds *\/ */
+
+/* 		finished_sample = elapsed_time > config->time_sample; */
+/* 	} */
+/* 	else */
+/* 	{ */
+/* 		double ctx_elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(&hypervisor.sched_ctx_w[sched_ctx]); */
+/* 		double ctx_sample = config->ispeed_ctx_sample; */
+
+/* 		finished_sample = ctx_elapsed_flops > ctx_sample; */
+/* 	} */
+
+/* 	if(finished_sample) */
+/* 	{ */
+/* 		sc_hypervisor_update_resize_interval(sched_ctx); */
+/* 	} */
+	
 	if(hypervisor.resize[sched_ctx])
 	{	
 		if(hypervisor.policy.handle_poped_task)
