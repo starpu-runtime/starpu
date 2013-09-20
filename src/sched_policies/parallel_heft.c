@@ -112,14 +112,14 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	if (!starpu_worker_is_combined_worker(best_workerid))
 	{
-		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
-		/* TODO */
-		task->predicted_transfer = 0;
 		starpu_pthread_mutex_t *sched_mutex;
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(best_workerid, &sched_mutex, &sched_cond);
 
 		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+		task->predicted = exp_end_predicted - worker_exp_end[best_workerid];
+		/* TODO */
+		task->predicted_transfer = 0;
 		worker_exp_len[best_workerid] += task->predicted;
 		worker_exp_end[best_workerid] = exp_end_predicted;
 		worker_exp_start[best_workerid] = exp_end_predicted - worker_exp_len[best_workerid];
