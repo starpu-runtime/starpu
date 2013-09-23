@@ -317,6 +317,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		int ret;
 		/* Acquire the child data. This will may trigger collapsing a reduction */
 		ret = starpu_data_acquire_on_node(child_handle, gathering_node, STARPU_RW);
+		_starpu_unlock_post_sync_tasks(child_handle);
 		/* for now we pretend that the RAM is almost unlimited and that gathering
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
