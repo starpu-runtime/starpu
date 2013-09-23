@@ -421,7 +421,8 @@ int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 	entry = (struct handle_tag_entry *) malloc(sizeof(*entry));
 	STARPU_ASSERT(entry != NULL);
 
-	STARPU_ASSERT_MSG(!(starpu_data_get_data_handle_from_tag(tag)),"data handle %p already has tag %d\n", starpu_data_get_data_handle_from_tag(tag), tag);
+	STARPU_ASSERT_MSG(!(starpu_data_get_data_handle_from_tag(tag)),
+			  "There is already a data handle %p registered with the tag %d\n", starpu_data_get_data_handle_from_tag(tag), tag);
 
 	entry->tag = tag;
 	entry->handle = handle;
