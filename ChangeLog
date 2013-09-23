@@ -72,6 +72,11 @@ Changes:
   * Data interfaces (variable, vector, matrix and block) now define
     pack und unpack functions
   * Fix for properly dealing with NAN on windows systems
+  * StarPU-MPI: Fix for being able to receive a data which has not yet
+    been registered by the application (i.e it did not call
+    starpu_data_set_tag(), the data is received as a raw memory)
+  * StarPU-MPI: Fix for being able to receive data with the same tag
+    from several nodes (see mpi/tests/gather.c)
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================
