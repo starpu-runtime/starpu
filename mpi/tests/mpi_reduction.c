@@ -111,6 +111,7 @@ int main(int argc, char **argv)
 	handles = (starpu_data_handle_t *) malloc(nb_elements*sizeof(handles[0]));
 	for(x = 0; x < nb_elements; x+=step)
 	{
+		handles[x] = NULL;
 		int mpi_rank = my_distrib(x/step, size);
 		if (mpi_rank == my_rank)
 		{
