@@ -152,30 +152,24 @@ static struct _starpu_mpi_copy_handle* find_chandle(int mpi_tag, int source)
 
 static void add_chandle(struct _starpu_mpi_copy_handle *chandle)
 {
+	_STARPU_MPI_DEBUG(60, "Trying to add chandle %p with tag %d in the hashmap[%d]\n", chandle, chandle->mpi_tag, chandle->source);
 	STARPU_ASSERT_MSG(find_chandle(chandle->mpi_tag, chandle->source) == NULL,
-			  "Error add_chandle : copied handle %p with tag %d already in the hashmap[%d]\n", chandle, chandle->mpi_tag, chandle->source);
+			  "Error add_chandle : chandle %p with tag %d already in the hashmap[%d]\n", chandle, chandle->mpi_tag, chandle->source);
 
 	HASH_ADD_INT(_starpu_mpi_copy_handle_hashmap[chandle->source], mpi_tag, chandle);
 	_starpu_mpi_copy_handle_hashmap_count ++;
-	_STARPU_MPI_DEBUG(60, "Adding copied handle %p with tag %d in the hashmap[%d]\n", chandle, chandle->mpi_tag, chandle->source);
 }
 
 static void delete_chandle(struct _starpu_mpi_copy_handle *chandle)
 {
 	struct _starpu_mpi_copy_handle *test_chandle;
 
-	test_chandle = find_chandle(chandle->mpi_tag, chandle->source);
+	_STARPU_MPI_DEBUG(60, "Trying to delete chandle %p with tag %d in the hashmap[%d]\n", chandle, chandle->mpi_tag, chandle->source);
+	STARPU_ASSERT_MSG(find_chandle(chandle->mpi_tag, chandle->source) != NULL,
+			  "Error delete_chandle : chandle %p with tag %d is NOT in the hashmap[%d]\n", chandle, chandle->mpi_tag, chandle->source);
 
-	if (test_chandle != NULL)
-	{
-		HASH_DEL(_starpu_mpi_copy_handle_hashmap[chandle->source], chandle);
-		_starpu_mpi_copy_handle_hashmap_count --;
-		_STARPU_MPI_DEBUG(3, "Deleting copied handle %p with tag %d from the hashmap[%d]\n", chandle, chandle->mpi_tag, chandle->source);
-	}
-	else
-	{
-		_STARPU_MPI_DEBUG(3, "Warning delete_chandle : copied handle %p with tag %d isn't in the hashmap[%d]\n", chandle, chandle->mpi_tag, chandle->source);
-	}
+	HASH_DEL(_starpu_mpi_copy_handle_hashmap[chandle->source], chandle);
+	_starpu_mpi_copy_handle_hashmap_count --;
 }
 
 static void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
@@ -969,6 +963,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 			 * We just add the pending receive request to the requests' hashmap. */
 			else
 			{
+				_STARPU_MPI_DEBUG(3, "Adding the pending receive request %p (srcdst %d tag %d) into the request hashmap\n", req, req->srcdst, req->mpi_tag);
 				add_app_req(req);
 			}
 		}
