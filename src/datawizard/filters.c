@@ -273,6 +273,8 @@ void _starpu_empty_codelet_function(void *buffers[], void *args)
 void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gathering_node)
 {
 	unsigned child;
+	unsigned worker;
+	unsigned nworkers = starpu_worker_get_count();
 	unsigned node;
 	unsigned sizes[root_handle->nchildren];
 
@@ -326,6 +328,14 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		_starpu_spin_lock(&child_handle->header_lock);
 
 		_starpu_data_free_interfaces(child_handle);
+
+		for (worker = 0; worker < nworkers; worker++)
+		{
+			struct _starpu_data_replicate *local = &child_handle->per_worker[worker];
+			if (local->allocated && local->automatically_allocated)
+				_starpu_request_mem_chunk_removal(child_handle, local, starpu_worker_get_memory_node(worker), sizes[child]);
+		}
+
 		_starpu_memory_stats_free(child_handle);
 		_starpu_data_requester_list_delete(child_handle->req_list);
 		_starpu_data_requester_list_delete(child_handle->reduction_req_list);
