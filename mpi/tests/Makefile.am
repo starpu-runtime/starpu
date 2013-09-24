@@ -103,7 +103,8 @@ starpu_mpi_TESTS =				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
 	user_defined_datatype			\
-	gather
+	gather					\
+	gather2
 
 noinst_PROGRAMS =				\
 	datatypes				\
@@ -132,7 +133,8 @@ noinst_PROGRAMS =				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
 	user_defined_datatype			\
-	gather
+	gather					\
+	gather2
 
 mpi_isend_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -187,6 +189,8 @@ mpi_reduction_LDADD =			\
 user_defined_datatype_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 gather_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+gather2_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c
