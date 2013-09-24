@@ -1199,6 +1199,7 @@ static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 static void *_starpu_mpi_progress_thread_func(void *arg)
 {
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
+	int rank, worldsize;
 
 	if (argc_argv->initialize_mpi)
 	{
@@ -1217,10 +1218,10 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_starpu_mpi_print_thread_level_support(provided, " has been initialized with");
 	}
 
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
+
 	{
-		int rank, worldsize;
-		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-		MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
 		TRACE_MPI_START(rank, worldsize);
 #ifdef STARPU_USE_FXT
 		starpu_profiling_set_id(rank);
@@ -1419,11 +1420,10 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	{
-		int nb_nodes, n;
+		int n;
 		struct _starpu_mpi_copy_handle_hashlist *hashlist;
 
-		MPI_Comm_size(MPI_COMM_WORLD, &nb_nodes);
-		for(n=0 ; n<nb_nodes; n++)
+		for(n=0 ; n<worldsize; n++)
 		{
 			for(hashlist=_starpu_mpi_copy_handle_hashmap[n]; hashlist != NULL; hashlist=hashlist->hh.next)
 			{
