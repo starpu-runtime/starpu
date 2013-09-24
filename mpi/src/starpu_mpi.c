@@ -774,8 +774,8 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 
 	if (req->internal_req)
 	{
-		struct _starpu_mpi_copy_handle *chandle = find_chandle(starpu_data_get_tag(req->data_handle), req->srcdst);
-		STARPU_ASSERT_MSG(chandle, "Could not find a copy data handle with the tag %d and the node %d\n", starpu_data_get_tag(req->data_handle), req->srcdst);
+		struct _starpu_mpi_copy_handle *chandle = find_chandle(req->mpi_tag, req->srcdst);
+		STARPU_ASSERT_MSG(chandle, "Could not find a copy data handle with the tag %d and the node %d\n", req->mpi_tag, req->srcdst);
 		_STARPU_MPI_DEBUG(3, "Handling deleting of copy_handle structure from the hashmap..\n");
 		delete_chandle(chandle);
 		free(chandle);
