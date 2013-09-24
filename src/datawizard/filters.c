@@ -333,6 +333,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		for (worker = 0; worker < nworkers; worker++)
 		{
 			struct _starpu_data_replicate *local = &child_handle->per_worker[worker];
+			STARPU_ASSERT(local->state == STARPU_INVALID);
 			if (local->allocated && local->automatically_allocated)
 				_starpu_request_mem_chunk_removal(child_handle, local, starpu_worker_get_memory_node(worker), sizes[child]);
 		}
