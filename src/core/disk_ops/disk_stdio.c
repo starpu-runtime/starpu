@@ -293,7 +293,7 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	struct timeval end;
 	
 	srand (time (NULL)); 
-	char * buf = malloc(SIZE_DISK_MIN*sizeof(char));
+	char * buf = malloc(SIZE_DISK_MIN);
 	STARPU_ASSERT(buf != NULL);
 	
 	/* allocate memory */
@@ -302,6 +302,8 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	if (mem == NULL)
 		return 0;
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) mem;
+
+	memset(buf, 0, SIZE_DISK_MIN);
 
 	/* Measure upload slowness */
 	gettimeofday(&start, NULL);
