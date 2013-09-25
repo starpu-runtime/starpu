@@ -230,11 +230,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
         _STARPU_LOG_IN();
 
 	/* unless asynchronous, it is forbidden to call this function from a callback or a codelet */
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-	{
-                _STARPU_LOG_OUT_TAG("EDEADLK");
-		return -EDEADLK;
-        }
+	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "Acquiring a data synchronously is not possible from a codelet or from a task callback, use starpu_data_acquire_cb instead.");
 
 	if (_starpu_data_is_multiformat_handle(handle) &&
 	    _starpu_handle_needs_conversion_task(handle, 0))
