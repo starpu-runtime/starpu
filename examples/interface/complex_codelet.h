@@ -20,6 +20,8 @@
 #ifndef __COMPLEX_CODELET_H
 #define __COMPLEX_CODELET_H
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
 void compare_complex_codelet(void *descr[], void *_args)
 {
 	int nx1 = STARPU_COMPLEX_GET_NX(descr[0]);
@@ -70,7 +72,7 @@ void display_complex_codelet(void *descr[], void *_args)
 
 	for(i=0 ; i<nx ; i++)
 	{
-		fprintf(stderr, "[%s] Complex[%d] = %3.2f + %3.2f i\n", _args?msg:NULL, i, real[i], imaginary[i]);
+		FPRINTF(stderr, "[%s] Complex[%d] = %3.2f + %3.2f i\n", _args?msg:NULL, i, real[i], imaginary[i]);
 	}
 }
 

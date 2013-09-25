@@ -18,8 +18,6 @@
 #include "complex_interface.h"
 #include "complex_codelet.h"
 
-#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
-
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
        if (starpu_worker_get_type(workerid) == STARPU_OPENCL_WORKER)
