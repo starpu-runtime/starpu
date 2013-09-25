@@ -1114,11 +1114,24 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 
 		/* We do not care about racing access to the mean, we only want a
 		 * good-enough estimation, thus simulate taking the rdlock */
-		ANNOTATE_RWLOCK_ACQUIRED(&model->model_rwlock, 0);
 
-		if (entry && entry->history_entry && entry->history_entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
-			exp = entry->history_entry->mean;
-		else if (!model->benchmarking)
+		if (entry) {
+			STARPU_HG_DISABLE_CHECKING(entry->history_entry);
+			if (entry->history_entry) {
+				STARPU_HG_DISABLE_CHECKING(entry->history_entry->nsample);
+				if (entry->history_entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
+				{
+					STARPU_HG_DISABLE_CHECKING(entry->history_entry->mean);
+					exp = entry->history_entry->mean;
+					STARPU_HG_ENABLE_CHECKING(entry->history_entry->mean);
+				}
+				STARPU_HG_ENABLE_CHECKING(entry->history_entry->nsample);
+			}
+			STARPU_HG_ENABLE_CHECKING(entry->history_entry);
+		}
+
+		STARPU_HG_DISABLE_CHECKING(model->benchmarking);
+		if (isnan(exp) && !model->benchmarking)
 		{
 			char archname[32];
 
@@ -1127,7 +1140,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 			_starpu_set_calibrate_flag(1);
 			model->benchmarking = 1;
 		}
-		ANNOTATE_RWLOCK_RELEASED(&model->model_rwlock, 0);
+		STARPU_HG_ENABLE_CHECKING(model->benchmarking);
 	}
 
 	return exp;
@@ -1135,7 +1148,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 
 double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, struct _starpu_job *j,unsigned nimpl)
 {
-	double exp;
+	double exp = NAN;
 	struct starpu_perfmodel_per_arch *per_arch_model;
 	struct starpu_perfmodel_history_entry *entry;
 	struct starpu_perfmodel_history_table *history, *elt;
@@ -1152,16 +1165,22 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 
 	/* We do not care about racing access to the mean, we only want a
 	 * good-enough estimation, thus simulate taking the rdlock */
-	ANNOTATE_RWLOCK_ACQUIRED(&model->model_rwlock, 0);
 
-	exp = entry?entry->mean:NAN;
-
-	if (entry && entry->nsample < _STARPU_CALIBRATION_MINIMUM)
+	if (entry) {
+		STARPU_HG_DISABLE_CHECKING(entry->nsample);
 		/* TODO: report differently if we've scheduled really enough
 		 * of that task and the scheduler should perhaps put it aside */
-		/* Not calibrated enough */
-		exp = NAN;
+		if (entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
+		{
+			/* Calibrated enough */
+			STARPU_HG_DISABLE_CHECKING(entry->mean);
+			exp = entry->mean;
+			STARPU_HG_ENABLE_CHECKING(entry->mean);
+		}
+		STARPU_HG_ENABLE_CHECKING(entry->nsample);
+	}
 
+	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 	if (isnan(exp) && !model->benchmarking)
 	{
 		char archname[32];
@@ -1171,8 +1190,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 		_starpu_set_calibrate_flag(1);
 		model->benchmarking = 1;
 	}
-
-	ANNOTATE_RWLOCK_RELEASED(&model->model_rwlock, 0);
+	STARPU_HG_ENABLE_CHECKING(model->benchmarking);
 
 	return exp;
 }

@@ -196,11 +196,12 @@ static double compute_expected_end(int workerid, double length)
 		double res;
 		/* This is a basic worker */
 
-		VALGRIND_HG_MUTEX_LOCK_PRE(sched_mutex, 0);
-		VALGRIND_HG_MUTEX_LOCK_POST(sched_mutex);
+		/* Tell helgrid that we are fine with getting outdated values, this is just an estimation */
+		STARPU_HG_DISABLE_CHECKING(worker_exp_start[workerid]);
+		STARPU_HG_DISABLE_CHECKING(worker_exp_len[workerid]);
 		res = worker_exp_start[workerid] + worker_exp_len[workerid] + length;
-		VALGRIND_HG_MUTEX_UNLOCK_PRE(sched_mutex);
-		VALGRIND_HG_MUTEX_UNLOCK_POST(sched_mutex);
+		STARPU_HG_ENABLE_CHECKING(worker_exp_len[workerid]);
+		STARPU_HG_ENABLE_CHECKING(worker_exp_start[workerid]);
 
 		return res;
 	}
@@ -213,8 +214,9 @@ static double compute_expected_end(int workerid, double length)
 
 		double exp_end = DBL_MIN;
 
-		VALGRIND_HG_MUTEX_LOCK_PRE(sched_mutex, 0);
-		VALGRIND_HG_MUTEX_LOCK_POST(sched_mutex);
+		/* Tell helgrid that we are fine with getting outdated values, this is just an estimation */
+		STARPU_HG_DISABLE_CHECKING(worker_exp_start);
+		STARPU_HG_DISABLE_CHECKING(worker_exp_len);
 
 		int i;
 		for (i = 0; i < worker_size; i++)
@@ -225,8 +227,8 @@ static double compute_expected_end(int workerid, double length)
 			exp_end = STARPU_MAX(exp_end, local_exp_end);
 		}
 
-		VALGRIND_HG_MUTEX_UNLOCK_PRE(sched_mutex);
-		VALGRIND_HG_MUTEX_UNLOCK_POST(sched_mutex);
+		STARPU_HG_ENABLE_CHECKING(worker_exp_len);
+		STARPU_HG_ENABLE_CHECKING(worker_exp_start);
 
 		return exp_end;
 	}
@@ -245,11 +247,10 @@ static double compute_ntasks_end(int workerid)
 		double res;
 		/* This is a basic worker */
 
-		VALGRIND_HG_MUTEX_LOCK_PRE(sched_mutex, 0);
-		VALGRIND_HG_MUTEX_LOCK_POST(sched_mutex);
+		/* Tell helgrid that we are fine with getting outdated values, this is just an estimation */
+		STARPU_HG_DISABLE_CHECKING(ntasks[workerid]);
 		res = ntasks[workerid] / starpu_worker_get_relative_speedup(perf_arch);
-		VALGRIND_HG_MUTEX_UNLOCK_PRE(sched_mutex);
-		VALGRIND_HG_MUTEX_UNLOCK_POST(sched_mutex);
+		STARPU_HG_ENABLE_CHECKING(ntasks[workerid]);
 
 		return res;
 	}
@@ -262,8 +263,8 @@ static double compute_ntasks_end(int workerid)
 
 		int ntasks_end=0;
 
-		VALGRIND_HG_MUTEX_LOCK_PRE(sched_mutex, 0);
-		VALGRIND_HG_MUTEX_LOCK_POST(sched_mutex);
+		/* Tell helgrid that we are fine with getting outdated values, this is just an estimation */
+		STARPU_HG_DISABLE_CHECKING(ntasks);
 
 		int i;
 		for (i = 0; i < worker_size; i++)
@@ -272,8 +273,7 @@ static double compute_ntasks_end(int workerid)
 			ntasks_end = STARPU_MAX(ntasks_end, (int) ((double) ntasks[combined_workerid[i]] / starpu_worker_get_relative_speedup(perf_arch)));
 		}
 
-		VALGRIND_HG_MUTEX_UNLOCK_PRE(sched_mutex);
-		VALGRIND_HG_MUTEX_UNLOCK_POST(sched_mutex);
+		STARPU_HG_ENABLE_CHECKING(ntasks);
 
 		return ntasks_end;
 	}
