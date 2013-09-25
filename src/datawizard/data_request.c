@@ -393,17 +393,15 @@ void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 	struct _starpu_data_request_list *new_data_requests;
 
 	/* Note: we here tell valgrind that list_empty (reading a pointer) is
-	 * as safe as if we had the lock held */
-	VALGRIND_HG_MUTEX_LOCK_PRE(&data_requests_list_mutex[src_node], 0);
-	VALGRIND_HG_MUTEX_LOCK_POST(&data_requests_list_mutex[src_node]);
+	 * as safe as if we had the lock held, and we don't care about missing
+	 * an entry, we will get called again sooner or later. */
+	STARPU_HG_DISABLE_CHECKING(*data_requests[src_node]);
 	if (_starpu_data_request_list_empty(data_requests[src_node]))
 	{
-		VALGRIND_HG_MUTEX_UNLOCK_PRE(&data_requests_list_mutex[src_node]);
-		VALGRIND_HG_MUTEX_UNLOCK_POST(&data_requests_list_mutex[src_node]);
+		STARPU_HG_ENABLE_CHECKING(*data_requests[src_node]);
 		return;
 	}
-	VALGRIND_HG_MUTEX_UNLOCK_PRE(&data_requests_list_mutex[src_node]);
-	VALGRIND_HG_MUTEX_UNLOCK_POST(&data_requests_list_mutex[src_node]);
+	STARPU_HG_ENABLE_CHECKING(*data_requests[src_node]);
 
 	/* take all the entries from the request list */
         STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);

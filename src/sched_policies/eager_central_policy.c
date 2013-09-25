@@ -117,17 +117,14 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 
 	/* Tell helgrind that it's fine to check for empty fifo without actual
 	 * mutex (it's just a pointer) */
-	VALGRIND_HG_MUTEX_LOCK_PRE(&data->policy_mutex, 0);
-	VALGRIND_HG_MUTEX_LOCK_POST(&data->policy_mutex);
+	STARPU_HG_DISABLE_CHECKING(*data->fifo);
 	/* block until some event happens */
 	if (_starpu_fifo_empty(data->fifo))
 	{
-		VALGRIND_HG_MUTEX_UNLOCK_PRE(&data->policy_mutex);
-		VALGRIND_HG_MUTEX_UNLOCK_POST(&data->policy_mutex);
+		STARPU_HG_ENABLE_CHECKING(*data->fifo);
 		return NULL;
 	}
-	VALGRIND_HG_MUTEX_UNLOCK_PRE(&data->policy_mutex);
-	VALGRIND_HG_MUTEX_UNLOCK_POST(&data->policy_mutex);
+	STARPU_HG_ENABLE_CHECKING(*data->fifo);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	 task = _starpu_fifo_pop_task(data->fifo, workerid);

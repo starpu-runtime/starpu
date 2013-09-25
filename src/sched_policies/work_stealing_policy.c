@@ -73,11 +73,10 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 		unsigned njobs;
 
 		starpu_worker_get_sched_condition(worker, &victim_sched_mutex, &victim_sched_cond);
-		VALGRIND_HG_MUTEX_LOCK_PRE(victim_sched_mutex, 0);
-		VALGRIND_HG_MUTEX_LOCK_POST(victim_sched_mutex);
+		/* Tell helgrid that we are fine with getting outdated values, this is just an estimation */
+		STARPU_HG_DISABLE_CHECKING(ws->queue_array[worker]->njobs);
 		njobs = ws->queue_array[worker]->njobs;
-		VALGRIND_HG_MUTEX_UNLOCK_PRE(victim_sched_mutex);
-		VALGRIND_HG_MUTEX_UNLOCK_POST(victim_sched_mutex);
+		STARPU_HG_ENABLE_CHECKING(ws->queue_array[worker]->njobs);
 
 		if (njobs)
 			break;
