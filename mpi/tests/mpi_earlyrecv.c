@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 
-	fprintf(stderr, "rank %d exchanging with rank %d\n", rank, other_rank);
+	FPRINTF_MPI("rank %d exchanging with rank %d\n", rank, other_rank);
 
 	if (rank%2)
 	{
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 				MPI_Status status;
 				starpu_mpi_test(&request[i], &flag, &status);
 				if (flag)
-					fprintf(stderr, "request[%d] = %d %p\n", i, flag, request[i]);
+					FPRINTF_MPI("request[%d] = %d %p\n", i, flag, request[i]);
 			}
 		}
 		finished = request[0] == NULL;

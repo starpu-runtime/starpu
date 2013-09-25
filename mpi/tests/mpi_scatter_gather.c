@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,6 +15,7 @@
  */
 
 #include <starpu_mpi.h>
+#include "helper.h"
 
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int x, int y, int nb_nodes)
@@ -35,12 +36,12 @@ void cpu_codelet(void *descr[], void *_args)
 	starpu_codelet_unpack_args(_args, &rank);
 	factor = block[0];
 
-	//fprintf(stderr,"rank %d factor %f\n", rank, factor);
+	//FPRINTF_MPI("rank %d factor %f\n", rank, factor);
 	for (j = 0; j < nx; j++)
 	{
 		for (i = 0; i < nx; i++)
 		{
-			//fprintf(stderr,"rank %d factor %f --> %f %f\n", rank, factor, block[j+i*ld], block[j+i*ld]*factor);
+			//FPRINTF_MPI("rank %d factor %f --> %f %f\n", rank, factor, block[j+i*ld], block[j+i*ld]*factor);
 			block[j+i*ld] *= factor;
 		}
 	}
@@ -56,13 +57,13 @@ static struct starpu_codelet cl =
 void scallback(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	char *msg = arg;
-	fprintf(stderr, "Sending completed for <%s>\n", msg);
+	FPRINTF_MPI("Sending completed for <%s>\n", msg);
 }
 
 void rcallback(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	char *msg = arg;
-	fprintf(stderr, "Reception completed for <%s>\n", msg);
+	FPRINTF_MPI("Reception completed for <%s>\n", msg);
 }
 
 int main(int argc, char **argv)

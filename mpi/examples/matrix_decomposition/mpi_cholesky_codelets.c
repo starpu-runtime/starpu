@@ -186,7 +186,7 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 		}
 	}
 
-	fprintf(stderr, "[%d] compute explicit LLt ...\n", rank);
+	FPRINTF(stderr, "[%d] compute explicit LLt ...\n", rank);
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
@@ -203,7 +203,7 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 	SSYRK("L", "N", size, size, 1.0f,
 			rmat, size, 0.0f, test_mat, size);
 
-	fprintf(stderr, "[%d] comparing results ...\n", rank);
+	FPRINTF(stderr, "[%d] comparing results ...\n", rank);
 	if (display)
 	{
 		for (j = 0; j < size; j++)
@@ -241,7 +241,7 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 							float err = abs(test_mat[j +i*size] - orig);
 							if (err > 0.00001)
 							{
-								fprintf(stderr, "[%d] Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", rank, i, j, test_mat[j +i*size], orig, err);
+								FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", rank, i, j, test_mat[j +i*size], orig, err);
 								*correctness = 0;
 								*flops = 0;
 								break;

@@ -64,8 +64,8 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		fprintf(stdout, "Computation time (in ms): %2.2f\n", timing/1000);
-		fprintf(stdout, "Synthetic GFlops : %2.2f\n", (flops/timing/1000.0f));
+		FPRINTF(stdout, "Computation time (in ms): %2.2f\n", timing/1000);
+		FPRINTF(stdout, "Synthetic GFlops : %2.2f\n", (flops/timing/1000.0f));
 	}
 
 	return 0;

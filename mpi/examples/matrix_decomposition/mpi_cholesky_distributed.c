@@ -22,6 +22,8 @@
 #include "mpi_decomposition_matrix.h"
 #include "mpi_decomposition_params.h"
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
 int main(int argc, char **argv)
 {
 	/* create a simple definite positive symetric matrix example
@@ -56,8 +58,8 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		fprintf(stdout, "Computation time (in ms): %2.2f\n", timing/1000);
-		fprintf(stdout, "Synthetic GFlops : %2.2f\n", (flops/timing/1000.0f));
+		FPRINTF(stdout, "Computation time (in ms): %2.2f\n", timing/1000);
+		FPRINTF(stdout, "Synthetic GFlops : %2.2f\n", (flops/timing/1000.0f));
 	}
 
 	return 0;

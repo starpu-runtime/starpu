@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 	{
 		dst = (rank == 0) ? 1 : 0;
 		result = (comm_amount_with_cache[dst] == comm_amount_without_cache[dst] * 5);
-		fprintf(stderr, "Communication cache mechanism is %sworking\n", result?"":"NOT ");
+		FPRINTF_MPI("Communication cache mechanism is %sworking\n", result?"":"NOT ");
 	}
 	else
 		result = 1;

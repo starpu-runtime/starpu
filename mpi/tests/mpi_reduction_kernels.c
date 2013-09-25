@@ -51,14 +51,14 @@ void dot_cpu_func(void *descr[], void *cl_arg)
 
 	long int *dot = (long int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-	FPRINTF_MPI("Before dot=%ld (adding %d elements...)\n", *dot, n);
+	//FPRINTF_MPI("Before dot=%ld (adding %d elements...)\n", *dot, n);
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
-		FPRINTF_MPI("Adding %ld\n", local_x[i]);
+		//FPRINTF_MPI("Adding %ld\n", local_x[i]);
 		*dot += local_x[i];
 	}
-	FPRINTF_MPI("After dot=%ld\n", *dot);
+	//FPRINTF_MPI("After dot=%ld\n", *dot);
 }
 
 /*

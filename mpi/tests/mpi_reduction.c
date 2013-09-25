@@ -17,6 +17,7 @@
 
 #include <starpu_mpi.h>
 #include <math.h>
+#include "helper.h"
 
 extern void init_cpu_func(void *descr[], void *cl_arg);
 extern void redux_cpu_func(void *descr[], void *cl_arg);
@@ -147,7 +148,7 @@ int main(int argc, char **argv)
 		starpu_mpi_insert_task(MPI_COMM_WORLD, &display_codelet, STARPU_R, dot_handle, 0);
 	}
 
-	fprintf(stderr, "Waiting ...\n");
+	FPRINTF_MPI("Waiting ...\n");
 	starpu_task_wait_for_all();
 
 	for(x = 0; x < nb_elements; x+=step)
@@ -166,9 +167,9 @@ int main(int argc, char **argv)
 
 	if (my_rank == 0)
 	{
-		fprintf(stderr, "[%d] sum=%ld\n", my_rank, sum);
-		fprintf(stderr, "[%d] dot=%ld\n", my_rank, dot);
-		fprintf(stderr, "%s when computing reduction\n", (sum == dot) ? "Success" : "Error");
+		FPRINTF(stderr, "[%d] sum=%ld\n", my_rank, sum);
+		FPRINTF(stderr, "[%d] dot=%ld\n", my_rank, dot);
+		FPRINTF(stderr, "%s when computing reduction\n", (sum == dot) ? "Success" : "Error");
 	}
 
 	return 0;

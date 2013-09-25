@@ -17,6 +17,8 @@
 #include <starpu_mpi.h>
 #include <math.h>
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
 void stencil5_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	unsigned *xy = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -25,7 +27,7 @@ void stencil5_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	unsigned *xym1 = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[3]);
 	unsigned *xyp1 = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[4]);
 
-	//fprintf(stdout, "VALUES: %d %d %d %d %d\n", *xy, *xm1y, *xp1y, *xym1, *xyp1);
+	//FPRINTF(stdout, "VALUES: %d %d %d %d %d\n", *xy, *xm1y, *xp1y, *xym1, *xyp1);
 	*xy = (*xy + *xm1y + *xp1y + *xym1 + *xyp1) / 5;
 }
 
@@ -107,14 +109,14 @@ int main(int argc, char **argv)
 			int mpi_rank = my_distrib(x, y, size);
 			if (mpi_rank == my_rank)
 			{
-				//fprintf(stderr, "[%d] Owning data[%d][%d]\n", my_rank, x, y);
+				//FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", my_rank, x, y);
 				starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
 			}
 			else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
 				 || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
 			{
 				/* I don't own that index, but will need it for my computations */
-				//fprintf(stderr, "[%d] Neighbour of data[%d][%d]\n", my_rank, x, y);
+				//FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", my_rank, x, y);
 				starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
 			}
 			else
@@ -143,7 +145,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	fprintf(stderr, "Waiting ...\n");
+	FPRINTF(stderr, "Waiting ...\n");
 	starpu_task_wait_for_all();
 
 	for(x = 0; x < X; x++)
@@ -162,15 +164,15 @@ int main(int argc, char **argv)
 
 	if (display)
 	{
-		fprintf(stdout, "[%d] mean=%d\n", my_rank, mean);
+		FPRINTF(stdout, "[%d] mean=%d\n", my_rank, mean);
 		for(x = 0; x < X; x++)
 		{
-			fprintf(stdout, "[%d] ", my_rank);
+			FPRINTF(stdout, "[%d] ", my_rank);
 			for (y = 0; y < Y; y++)
 			{
-				fprintf(stdout, "%3u ", matrix[x][y]);
+				FPRINTF(stdout, "%3u ", matrix[x][y]);
 			}
-			fprintf(stdout, "\n");
+			FPRINTF(stdout, "\n");
 		}
 	}
 

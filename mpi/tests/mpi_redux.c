@@ -26,7 +26,7 @@ void callback(void *arg)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	*received = *received + 1;
-	fprintf(stderr, "received = %d\n", *received);
+	FPRINTF_MPI("received = %d\n", *received);
 	STARPU_PTHREAD_COND_SIGNAL(&cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
