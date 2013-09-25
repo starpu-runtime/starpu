@@ -188,25 +188,6 @@ double sc_hypervisor_get_speed(struct sc_hypervisor_wrapper *sc_w, enum starpu_w
 {
 	/* monitored speed in the last frame */
 	double speed = sc_hypervisor_get_speed_per_worker_type(sc_w, arch);
-/* 	if(speed != -1.0 && arch == STARPU_CPU_WORKER) */
-/* 	{ */
-/* 		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sc_w->sched_ctx); */
-/* 		double ratio = speed / SC_HYPERVISOR_DEFAULT_CPU_SPEED; */
-/* 		if(ratio < 0.3) */
-/* 		{ */
-/* 			if(config->max_nworkers > 0) */
-/* 				config->max_nworkers--; */
-/* 			printf("%d: ratio %lf max_nworkers descr %d \n", sc_w->sched_ctx, ratio, config->max_nworkers); */
-/* 		} */
-/* 		if(ratio > 0.9) */
-/* 		{ */
-/* 			int max_cpus = starpu_cpu_worker_get_count(); */
-/* 			if(config->max_nworkers < max_cpus) */
-/* 				config->max_nworkers++; */
-/* 			printf("%d: ratio %lf max_nworkers incr %d \n",  sc_w->sched_ctx, ratio, config->max_nworkers); */
-/* 		} */
-/* 	} */
-
 	if(speed == -1.0)
 	{
 		/* avg value of the monitored speed over the entier current execution */

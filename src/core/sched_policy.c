@@ -641,7 +641,8 @@ pick:
 				else 
 				{
 					struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
-					perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
+					if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_cycle)
+						perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
 				}
 #endif //STARPU_USE_SC_HYPERVISOR
 					

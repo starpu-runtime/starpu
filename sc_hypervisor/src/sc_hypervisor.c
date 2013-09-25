@@ -458,6 +458,7 @@ static void _reset_idle_time(unsigned sched_ctx)
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
 	{
 		hypervisor.sched_ctx_w[sched_ctx].idle_time[i] = 0.0;
+		hypervisor.sched_ctx_w[sched_ctx].idle_start_time[i] = hypervisor.sched_ctx_w[sched_ctx].idle_start_time[i] != 0.0 ? starpu_timing_now() : 0.0;
 	}
 	return;
 }
@@ -473,6 +474,12 @@ void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sche
 		sender_sc_w->start_time = start_time;
 		_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
 		_reset_idle_time(sender_sched_ctx);
+		int i;
+		for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		{
+			sender_sc_w->idle_start_time[i] = 0.0;
+		}
+		
 	}
 
 	if(receiver_sched_ctx != STARPU_NMAX_SCHED_CTXS)
@@ -483,6 +490,12 @@ void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sche
 		receiver_sc_w->start_time = start_time;
 		_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
 		_reset_idle_time(receiver_sched_ctx);
+		int i;
+		for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		{
+			receiver_sc_w->idle_start_time[i] = (hypervisor.sched_ctx_w[receiver_sched_ctx].idle_start_time[i] != 0.0) ? starpu_timing_now() : 0.0;
+		}
+
 	}
 }
 
@@ -791,84 +804,85 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 			worker = workers->get_next(workers, &it);
 			if(hypervisor.sched_ctx_w[sched_ctx].idle_start_time[worker]==0.0)
 			{
-//				if(max_workers_idle_time[i] < hypervisor.sched_ctx_w[sched_ctx].idle_time[worker])
-					max_workers_idle_time[i] += hypervisor.sched_ctx_w[sched_ctx].idle_time[worker]; /* in seconds */
+				max_workers_idle_time[i] += hypervisor.sched_ctx_w[sched_ctx].idle_time[worker]; /* in seconds */
 			}
 			else
 			{
 				double end_time  = starpu_timing_now();
 				double idle = (end_time - hypervisor.sched_ctx_w[sched_ctx].idle_start_time[worker]) / 1000000.0; /* in seconds */ 
-				//if(max_workers_idle_time[i] < idle)
-					max_workers_idle_time[i] += idle;
+				max_workers_idle_time[i] += hypervisor.sched_ctx_w[sched_ctx].idle_time[worker] + idle;
 			}				
 		}			
 
-		if(hypervisor.sched_ctx_w[sched_ctx].nready_tasks < config->max_nworkers || hypervisor.sched_ctx_w[sched_ctx].nready_tasks == 0)
-		{
-			double curr_time = starpu_timing_now();
-			double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /* in seconds */
-			double norm_idle_time = max_workers_idle_time[i] / elapsed_time;
+		
+		double curr_time = starpu_timing_now();
+		double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /* in seconds */
+		double norm_idle_time = max_workers_idle_time[i] / elapsed_time;
 
-			config->max_nworkers = 	workers->nworkers - lrint(norm_idle_time);
-			printf("%d: few tasks %d idle %lf norme_idle_time %lf nworkers %d decr %d \n", sched_ctx, hypervisor.sched_ctx_w[sched_ctx].nready_tasks, max_workers_idle_time[i], norm_idle_time, workers->nworkers, config->max_nworkers);
-		}
-		else
-		{			
-			if(max_workers_idle_time[i] > 0.000002)
-			{
-				if(config->max_nworkers > 0)
-					config->max_nworkers--;
-				printf("%d: idle for long time %lf max_nworkers decr %d \n", sched_ctx, max_workers_idle_time[i], config->max_nworkers);
-			}
-			else
-			{
-				config->max_nworkers = ((workers->nworkers + hypervisor.sched_ctx_w[sched_ctx].nready_tasks) > max_cpus) 
-					? max_cpus : (workers->nworkers + hypervisor.sched_ctx_w[sched_ctx].nready_tasks);
-				printf("%d: max_nworkers incr %d \n",  sched_ctx, config->max_nworkers);
-				
-			}
-		}
+		config->max_nworkers = 	workers->nworkers - lrint(norm_idle_time) + hypervisor.sched_ctx_w[sched_ctx].nready_tasks;
+		
+		if(config->max_nworkers < 0)
+			config->max_nworkers = 0;
+		if(config->max_nworkers > max_cpus)
+			config->max_nworkers = max_cpus;
+		
+		printf("%d: ready tasks  %d idle for long %lf norm_idle_time %lf elapsed_time %lf nworkers %d max %d \n", 
+		       sched_ctx, hypervisor.sched_ctx_w[sched_ctx].nready_tasks, max_workers_idle_time[i], norm_idle_time, elapsed_time, workers->nworkers, config->max_nworkers);
+
+/* 		if(max_workers_idle_time[i] > 0.000002) */
+/* 		{ */
+/* 			double curr_time = starpu_timing_now(); */
+/* 			double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /\* in seconds *\/ */
+/* 			double norm_idle_time = max_workers_idle_time[i] / elapsed_time; */
+
+/* 			config->max_nworkers = 	workers->nworkers - lrint(norm_idle_time); */
+/* 			if(config->max_nworkers < 0) */
+/* 				config->max_nworkers = 0; */
+			
+/* 			printf("%d: ready tasks  %d idle for long %lf norm_idle_time %lf elapsed_time %lf nworkers %d decr %d \n",  */
+/* 			       sched_ctx, hypervisor.sched_ctx_w[sched_ctx].nready_tasks, max_workers_idle_time[i], norm_idle_time, elapsed_time, workers->nworkers, config->max_nworkers); */
+
+/* 		} */
+/* 		else */
+/* 		{ */
+/* 			double curr_time = starpu_timing_now(); */
+/* 			double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /\* in seconds *\/ */
+/* 			double norm_idle_time = max_workers_idle_time[i] / elapsed_time; */
+			
+/* 			if(workers->nworkers == 0 && hypervisor.sched_ctx_w[sched_ctx].nready_tasks == 1) */
+/* 				config->max_nworkers = 0; */
+/* 			else */
+/* 			{ */
+/* 				config->max_nworkers = (hypervisor.sched_ctx_w[sched_ctx].nready_tasks > max_cpus)  */
+/* 					? max_cpus : hypervisor.sched_ctx_w[sched_ctx].nready_tasks; */
+/* 				config->max_nworkers = workers->nworkers > config->max_nworkers ? workers->nworkers : config->max_nworkers; */
+/* 			} */
+/* 			printf("%d: ready tasks  %d not idle %lf norm_idle_time %lf elapsed_time %lf nworkers %d incr %d \n",  */
+/* 			       sched_ctx, hypervisor.sched_ctx_w[sched_ctx].nready_tasks, max_workers_idle_time[i], norm_idle_time, elapsed_time, workers->nworkers, config->max_nworkers); */
+/* 		} */
 
 		total_max_nworkers += config->max_nworkers;
 		configured = 1;
 	}
+
+	/*if the sum of the max cpus is smaller than the total cpus available 
+	  increase the max for the ones having more ready tasks to exec */
 	if(configured && total_max_nworkers < max_cpus)
 	{
 		int diff = max_cpus - total_max_nworkers;
-		double min_idle = max_workers_idle_time[0];
-		unsigned min_idle_sched_ctx = sched_ctxs[0];
-		
-		/* try to find one that has some ready tasks */
-		for(i = 1; i < nsched_ctxs; i++)
+		int max_nready = -1;
+		unsigned max_nready_sched_ctx = sched_ctxs[0];
+		for(i = 0; i < nsched_ctxs; i++)
 		{
-			if(hypervisor.sched_ctx_w[sched_ctx].nready_tasks != 0)
+			if(max_nready < hypervisor.sched_ctx_w[sched_ctxs[i]].nready_tasks)
 			{
-				if(max_workers_idle_time[i] < min_idle || 
-				   (min_idle_sched_ctx == sched_ctxs[0] && hypervisor.sched_ctx_w[sched_ctxs[0]].nready_tasks == 0))
-				{
-					min_idle = max_workers_idle_time[i];
-					min_idle_sched_ctx = sched_ctxs[i];
-				}
+				max_nready = hypervisor.sched_ctx_w[sched_ctxs[i]].nready_tasks;
+				max_nready_sched_ctx = sched_ctxs[i];
 			}
 		}
-
-		printf("*************min idle %lf ctx %d ready tasks %d\n", min_idle, min_idle_sched_ctx, hypervisor.sched_ctx_w[sched_ctxs[0]].nready_tasks);
-		/* if we didn't find an a context with ready tasks try another time with less constraints */
-		if(min_idle_sched_ctx == sched_ctxs[0] && hypervisor.sched_ctx_w[sched_ctxs[0]].nready_tasks == 0)
-		{
-			for(i = 1; i < nsched_ctxs; i++)
-			{
-				if(max_workers_idle_time[i] < min_idle)
-				{
-					min_idle = max_workers_idle_time[i];
-					min_idle_sched_ctx = sched_ctxs[i];
-				}
-			}
-		}
-			
-		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(min_idle_sched_ctx);
+		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(max_nready_sched_ctx);
 		config->max_nworkers += diff;
-		printf("%d: redib max_nworkers incr %d \n",  min_idle_sched_ctx, config->max_nworkers);
+		printf("%d: redib max_nworkers incr %d \n",  max_nready_sched_ctx, config->max_nworkers);
 	}
 }
 /* notifies the hypervisor that the worker is no longer idle and a new task was pushed on its queue */
