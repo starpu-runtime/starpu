@@ -630,18 +630,28 @@ pick:
 				}
 			}
 
-			if(!task && sched_ctx && worker->removed_from_ctx[sched_ctx->id])
+			if(!task)
 			{
-				_starpu_worker_gets_out_of_ctx(sched_ctx->id, worker);
-				worker->removed_from_ctx[sched_ctx->id] = 0;
-			}
+				if(sched_ctx && worker->removed_from_ctx[sched_ctx->id])
+				{
+					_starpu_worker_gets_out_of_ctx(sched_ctx->id, worker);
+					worker->removed_from_ctx[sched_ctx->id] = 0;
+				} 
+#ifdef STARPU_USE_SC_HYPERVISOR
+				else 
+				{
+					struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
+					perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
+				}
+#endif //STARPU_USE_SC_HYPERVISOR
+					
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-			if((!task && sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
-				break;
-
-
-			been_here[sched_ctx->id] = 1;
+				if((sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
+					break;
+				been_here[sched_ctx->id] = 1;
 #endif
+			}
+			
 			sched_ctx->pop_counter[worker->workerid]++;
 		}
 	  }
@@ -649,6 +659,17 @@ pick:
 
 	if (!task)
 		return NULL;
+
+
+
+#ifdef STARPU_USE_SC_HYPERVISOR
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
+
+	if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_end)
+		perf_counters->notify_idle_end(task->sched_ctx, worker->workerid);
+#endif //STARPU_USE_SC_HYPERVISOR
+
 
 	/* Make sure we do not bother with all the multiformat-specific code if
 	 * it is not necessary. */
