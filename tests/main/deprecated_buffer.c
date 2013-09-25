@@ -121,13 +121,16 @@ int submit_codelet(struct starpu_codelet cl, struct submit_task_func func)
 	starpu_data_unregister(handles[0]);
 	starpu_data_unregister(handles[1]);
 
-	if (ret == -ENODEV) return ret;
-
-	FPRINTF(stderr, "%s when executing codelet <%s> with func <%s>\n", *x==*y?"success":"error", cl.name, func.name);
-	return (*x != *y);
+	if (!ret)
+	{
+		FPRINTF(stderr, "%s when executing codelet <%s> with func <%s>\n", *x==*y?"success":"error", cl.name, func.name);
+		ret = (*x != *y);
+	}
 
 	starpu_free(x);
 	starpu_free(y);
+
+	return ret;
 }
 
 int main(int argc, char **argv)
