@@ -141,6 +141,9 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->last_submitted_writer = NULL;
 	handle->last_submitted_readers = NULL;
 	handle->post_sync_tasks = NULL;
+
+	/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
+	STARPU_HG_DISABLE_CHECKING(handle->post_sync_tasks_cnt);
 	handle->post_sync_tasks_cnt = 0;
 
 	/* By default, there are no methods available to perform a reduction */

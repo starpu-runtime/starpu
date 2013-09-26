@@ -188,6 +188,8 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		child->last_submitted_writer = NULL;
 		child->last_submitted_readers = NULL;
 		child->post_sync_tasks = NULL;
+		/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
+		STARPU_HG_DISABLE_CHECKING(child->post_sync_tasks_cnt);
 		child->post_sync_tasks_cnt = 0;
 
 		/* The methods used for reduction are propagated to the

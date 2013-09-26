@@ -36,6 +36,12 @@ void _starpu_init_data_request_lists(void)
 	{
 		prefetch_requests[i] = _starpu_data_request_list_new();
 		data_requests[i] = _starpu_data_request_list_new();
+
+		/* Tell helgrind that we are fine with checking for list_empty
+		 * in _starpu_handle_node_data_requests, we will call it
+		 * periodically anyway */
+		STARPU_HG_DISABLE_CHECKING(data_requests[i]->_head);
+
 		STARPU_PTHREAD_MUTEX_INIT(&data_requests_list_mutex[i], NULL);
 
 		data_requests_pending[i] = _starpu_data_request_list_new();
@@ -392,16 +398,8 @@ void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_list *new_data_requests;
 
-	/* Note: we here tell valgrind that list_empty (reading a pointer) is
-	 * as safe as if we had the lock held, and we don't care about missing
-	 * an entry, we will get called again sooner or later. */
-	STARPU_HG_DISABLE_CHECKING(*data_requests[src_node]);
 	if (_starpu_data_request_list_empty(data_requests[src_node]))
-	{
-		STARPU_HG_ENABLE_CHECKING(*data_requests[src_node]);
 		return;
-	}
-	STARPU_HG_ENABLE_CHECKING(*data_requests[src_node]);
 
 	/* take all the entries from the request list */
         STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);

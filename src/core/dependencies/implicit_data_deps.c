@@ -511,12 +511,10 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 	struct _starpu_task_wrapper_list *post_sync_tasks = NULL;
 	unsigned do_submit_tasks = 0;
 
-	/* Tell helgrind we are fine with getting outdated values: count can
-	 * only be zero if we don't have to care about post_sync_tasks_cnt at
-	 * all */
-	STARPU_HG_DISABLE_CHECKING(handle->post_sync_tasks_cnt);
+	/* Here helgrind would shout that this is an unprotected access, but
+	 * count can only be zero if we don't have to care about
+	 * post_sync_tasks_cnt at all.  */
 	unsigned count = handle->post_sync_tasks_cnt;
-	STARPU_HG_ENABLE_CHECKING(handle->post_sync_tasks_cnt);
 
 	if (count)
 	{
