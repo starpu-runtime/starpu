@@ -103,6 +103,8 @@ if STARPU_COVERAGE_ENABLED
 TESTS	+=	coverage/coverage.sh
 endif
 
+XFAIL_TESTS=	errorcheck/invalid_blocking_calls
+
 noinst_PROGRAMS =				\
 	main/deprecated_func			\
 	main/deprecated_buffer			\
