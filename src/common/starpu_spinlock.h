@@ -54,55 +54,29 @@ int _starpu_spin_destroy(struct _starpu_spinlock *lock);
 
 int _starpu_spin_lock(struct _starpu_spinlock *lock);
 #define _starpu_spin_lock(lock) ({ \
-	const char *file;   \
-	if (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER) \
-	{ \
-		file = strrchr(__FILE__,'/'); \
-		file += sizeof(char);\
-		_STARPU_TRACE_LOCKING_SPINLOCK(file,__LINE__); \
-	}\
+	_STARPU_TRACE_LOCKING_SPINLOCK(); \
 	_starpu_spin_lock(lock); \
-	if (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER) \
-	{ \
-		file = strrchr(__FILE__,'/'); \
-		file += sizeof(char);\
-		_STARPU_TRACE_SPINLOCK_LOCKED(file,__LINE__); \
-	}\
+	_STARPU_TRACE_SPINLOCK_LOCKED(); \
 	STARPU_RECORD_LOCK(lock); \
 	0; \
 }) 
 
 int _starpu_spin_trylock(struct _starpu_spinlock *lock);
 #define _starpu_spin_trylock(lock) ({ \
-	const char *file;   \
-	if (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER) \
-	{ \
-		file = strrchr(__FILE__,'/'); \
-		file += sizeof(char);\
-		_STARPU_TRACE_TRYLOCK_SPINLOCK(file,__LINE__); \
-	}\
+	_STARPU_TRACE_TRYLOCK_SPINLOCK(); \
 	int err = _starpu_spin_trylock(lock); \
-	if (!err) \
+	if (!err) { \
 		STARPU_RECORD_LOCK(lock); \
+		_STARPU_TRACE_SPINLOCK_LOCKED(); \
+	} \
 	err; \
 })
 int _starpu_spin_checklocked(struct _starpu_spinlock *lock);
 int _starpu_spin_unlock(struct _starpu_spinlock *lock);
 #define _starpu_spin_unlock(lock) ({ \
-	const char *file;   \
-	if (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER) \
-	{ \
-		file = strrchr(__FILE__,'/'); \
-		file += sizeof(char);\
-		_STARPU_TRACE_UNLOCKING_SPINLOCK(file,__LINE__); \
-	}\
+	_STARPU_TRACE_UNLOCKING_SPINLOCK(); \
 	_starpu_spin_unlock(lock); \
-	if (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER) \
-	{ \
-		file = strrchr(__FILE__,'/'); \
-		file += sizeof(char);\
-		_STARPU_TRACE_SPINLOCK_UNLOCKED(file,__LINE__); \
-	}\
+	_STARPU_TRACE_SPINLOCK_UNLOCKED(); \
 	0; \
 }) 
 

@@ -400,11 +400,11 @@ do {										\
 /* We skip these events becasue they are called so often that they cause FxT to
  * fail and make the overall trace unreadable anyway. */
 #define _STARPU_TRACE_START_PROGRESS(memnode)		\
-	do {} while (0);
+	do {} while (0)
 //	FUT_DO_PROBE2(_STARPU_FUT_START_PROGRESS, memnode, _starpu_gettid());
 
 #define _STARPU_TRACE_END_PROGRESS(memnode)		\
-	do {} while (0);
+	do {} while (0)
 	//FUT_DO_PROBE2(_STARPU_FUT_END_PROGRESS, memnode, _starpu_gettid());
 	
 #define _STARPU_TRACE_USER_EVENT(code)			\
@@ -418,80 +418,146 @@ do {										\
 
 #ifdef STARPU_FXT_LOCK_TRACES 
 
-#define _STARPU_TRACE_LOCKING_MUTEX(file,line)	\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_MUTEX,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_LOCKING_MUTEX()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_MUTEX,__LINE__,_starpu_gettid(),file); \
+} while (0)
 
-#define _STARPU_TRACE_MUTEX_LOCKED(file,line)			\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_MUTEX_LOCKED,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_MUTEX_LOCKED()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_MUTEX_LOCKED,__LINE__,_starpu_gettid(),file); \
+} while(0)
 
-#define _STARPU_TRACE_UNLOCKING_MUTEX(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_MUTEX,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_UNLOCKING_MUTEX()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_MUTEX,__LINE__,_starpu_gettid(),file); \
+} while(0)
 
-#define _STARPU_TRACE_MUTEX_UNLOCKED(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_MUTEX_UNLOCKED,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_MUTEX_UNLOCKED()	do {\
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_MUTEX_UNLOCKED,__LINE__,_starpu_gettid(),file); \
+} while(0)
 
-#define _STARPU_TRACE_TRYLOCK_MUTEX(file,line)			\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_MUTEX,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_TRYLOCK_MUTEX()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_MUTEX,__LINE__,_starpu_gettid(),file); \
+} while(0)
 
-#define _STARPU_TRACE_RDLOCKING_RWLOCK(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RDLOCKING_RWLOCK,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_RDLOCKING_RWLOCK()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RDLOCKING_RWLOCK,__LINE__,_starpu_gettid(),file); \
+} while(0)
 
-#define _STARPU_TRACE_RWLOCK_RDLOCKED(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RWLOCK_RDLOCKED,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_RWLOCK_RDLOCKED()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RWLOCK_RDLOCKED,__LINE__,_starpu_gettid(),file); \
+} while(0)
 
-#define _STARPU_TRACE_WRLOCKING_RWLOCK(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_WRLOCKING_RWLOCK,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_WRLOCKING_RWLOCK()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_WRLOCKING_RWLOCK,__LINE__,_starpu_gettid(),file); \
+} while(0)
 
-#define _STARPU_TRACE_RWLOCK_WRLOCKED(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RWLOCK_WRLOCKED,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_RWLOCK_WRLOCKED()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RWLOCK_WRLOCKED,__LINE__,_starpu_gettid(),file); \
+} while(0)
 
-#define _STARPU_TRACE_UNLOCKING_RWLOCK(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_RWLOCK,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_UNLOCKING_RWLOCK()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_RWLOCK,__LINE__,_starpu_gettid(),file); \
+} while(0)
 
-#define _STARPU_TRACE_RWLOCK_UNLOCKED(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RWLOCK_UNLOCKED,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_RWLOCK_UNLOCKED()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_RWLOCK_UNLOCKED,__LINE__,_starpu_gettid(),file); \
+} while(0)
 
-#define _STARPU_TRACE_LOCKING_SPINLOCK(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_SPINLOCK,line,_starpu_gettid(),file);
+#define STARPU_TRACE_SPINLOCK_CONDITITION (starpu_worker_get_type(starpu_worker_get_id()) == STARPU_CUDA_WORKER)
 
-#define _STARPU_TRACE_SPINLOCK_LOCKED(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_LOCKED,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_LOCKING_SPINLOCK()	do {\
+	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
+		const char *file; \
+		file = strrchr(__FILE__,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_LOCKING_SPINLOCK,__LINE__,_starpu_gettid(),file); \
+	} \
+} while(0)
 
-#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file,line)	\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_SPINLOCK,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_SPINLOCK_LOCKED()		do { \
+	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
+		const char *file; \
+		file = strrchr(__FILE__,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_LOCKED,__LINE__,_starpu_gettid(),file); \
+	} \
+} while(0)
 
-#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_UNLOCKED,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK()	do { \
+	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
+		const char *file; \
+		file = strrchr(__FILE__,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_UNLOCKING_SPINLOCK,__LINE__,_starpu_gettid(),file); \
+	} \
+} while(0)
 
-#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_SPINLOCK,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED()	do { \
+	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
+		const char *file; \
+		file = strrchr(__FILE__,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_SPINLOCK_UNLOCKED,__LINE__,_starpu_gettid(),file); \
+	} \
+} while(0)
 
-#define _STARPU_TRACE_COND_WAIT_BEGIN(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_COND_WAIT_BEGIN,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK()	do { \
+	if (STARPU_TRACE_SPINLOCK_CONDITITION) { \
+		const char *file; \
+		file = strrchr(__FILE__,'/') + 1; \
+		_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_TRYLOCK_SPINLOCK,__LINE__,_starpu_gettid(),file); \
+	} \
+} while(0)
 
-#define _STARPU_TRACE_COND_WAIT_END(file,line)		\
-	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_COND_WAIT_END,line,_starpu_gettid(),file);
+#define _STARPU_TRACE_COND_WAIT_BEGIN()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_COND_WAIT_BEGIN,__LINE__,_starpu_gettid(),file); \
+} while(0)
+
+#define _STARPU_TRACE_COND_WAIT_END()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_COND_WAIT_END,__LINE__,_starpu_gettid(),file); \
+} while(0)
 
 #else // !STARPU_FXT_LOCK_TRACES
 
-#define _STARPU_TRACE_LOCKING_MUTEX(file,line)			do {} while(0)
-#define _STARPU_TRACE_MUTEX_LOCKED(file,line)			do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_MUTEX(file,line)		do {} while(0)
-#define _STARPU_TRACE_MUTEX_UNLOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_TRYLOCK_MUTEX(file,line)			do {} while(0)
-#define _STARPU_TRACE_RDLOCKING_RWLOCK(file,line)		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_RDLOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_WRLOCKING_RWLOCK(file,line)		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_WRLOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_RWLOCK(file,line)		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_UNLOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_LOCKING_SPINLOCK(file,line)		do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_LOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file,line)	do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file,line)		do {} while(0)
-#define _STARPU_TRACE_COND_WAIT_BEGIN(file,line)		do {} while(0)
-#define _STARPU_TRACE_COND_WAIT_END(file,line)			do {} while(0)
+#define _STARPU_TRACE_LOCKING_MUTEX()			do {} while(0)
+#define _STARPU_TRACE_MUTEX_LOCKED()			do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_MUTEX()		do {} while(0)
+#define _STARPU_TRACE_MUTEX_UNLOCKED()		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_MUTEX()			do {} while(0)
+#define _STARPU_TRACE_RDLOCKING_RWLOCK()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_RDLOCKED()		do {} while(0)
+#define _STARPU_TRACE_WRLOCKING_RWLOCK()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_WRLOCKED()		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_RWLOCK()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_UNLOCKED()		do {} while(0)
+#define _STARPU_TRACE_LOCKING_SPINLOCK()		do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_LOCKED()		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK()	do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED()		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK()		do {} while(0)
+#define _STARPU_TRACE_COND_WAIT_BEGIN()		do {} while(0)
+#define _STARPU_TRACE_COND_WAIT_END()			do {} while(0)
 
 #endif // STARPU_FXT_LOCK_TRACES
 
@@ -544,24 +610,24 @@ do {										\
 #define _STARPU_TRACE_USER_EVENT(code)		do {} while(0)
 #define _STARPU_TRACE_SET_PROFILING(status)	do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL		do {} while(0)
-#define _STARPU_TRACE_LOCKING_MUTEX(file,line)			do {} while(0)
-#define _STARPU_TRACE_MUTEX_LOCKED(file,line)			do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_MUTEX(file,line)		do {} while(0)
-#define _STARPU_TRACE_MUTEX_UNLOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_TRYLOCK_MUTEX(file,line)			do {} while(0)
-#define _STARPU_TRACE_RDLOCKING_RWLOCK(file,line)		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_RDLOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_WRLOCKING_RWLOCK(file,line)		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_WRLOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_RWLOCK(file,line)		do {} while(0)
-#define _STARPU_TRACE_RWLOCK_UNLOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_LOCKING_SPINLOCK(file,line)		do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_LOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_UNLOCKING_SPINLOCK(file,line)	do {} while(0)
-#define _STARPU_TRACE_SPINLOCK_UNLOCKED(file,line)		do {} while(0)
-#define _STARPU_TRACE_TRYLOCK_SPINLOCK(file,line)		do {} while(0)
-#define _STARPU_TRACE_COND_WAIT_BEGIN(file,line)		do {} while(0)
-#define _STARPU_TRACE_COND_WAIT_END(file,line)			do {} while(0)
+#define _STARPU_TRACE_LOCKING_MUTEX()			do {} while(0)
+#define _STARPU_TRACE_MUTEX_LOCKED()			do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_MUTEX()		do {} while(0)
+#define _STARPU_TRACE_MUTEX_UNLOCKED()		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_MUTEX()			do {} while(0)
+#define _STARPU_TRACE_RDLOCKING_RWLOCK()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_RDLOCKED()		do {} while(0)
+#define _STARPU_TRACE_WRLOCKING_RWLOCK()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_WRLOCKED()		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_RWLOCK()		do {} while(0)
+#define _STARPU_TRACE_RWLOCK_UNLOCKED()		do {} while(0)
+#define _STARPU_TRACE_LOCKING_SPINLOCK()		do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_LOCKED()		do {} while(0)
+#define _STARPU_TRACE_UNLOCKING_SPINLOCK()	do {} while(0)
+#define _STARPU_TRACE_SPINLOCK_UNLOCKED()		do {} while(0)
+#define _STARPU_TRACE_TRYLOCK_SPINLOCK()		do {} while(0)
+#define _STARPU_TRACE_COND_WAIT_BEGIN()		do {} while(0)
+#define _STARPU_TRACE_COND_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_MEMORY_FULL(size)				do {} while(0)
 
 #endif // STARPU_USE_FXT
