@@ -123,6 +123,9 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	struct starpu_task *task = NULL;
 
 	/* block until some event happens */
+	/* Here helgrind would shout that this is unprotected, this is just an
+	 * integer access, and we hold the sched mutex, so we can not miss any
+	 * wake up. */
 	if (_starpu_fifo_empty(data->fifo))
 		return NULL;
 

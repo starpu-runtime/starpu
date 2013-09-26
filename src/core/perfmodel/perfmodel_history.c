@@ -1112,8 +1112,9 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		HASH_FIND_UINT32_T(history, &key, entry);
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
-		/* We do not care about racing access to the mean, we only want a
-		 * good-enough estimation */
+		/* Here helgrind would shout that this is unprotected access.
+		 * We do not care about racing access to the mean, we only want
+		 * a good-enough estimation */
 
 		if (entry && entry->history_entry && entry->history_entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
 			exp = entry->history_entry->mean;
@@ -1150,8 +1151,9 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 	entry = (elt == NULL) ? NULL : elt->history_entry;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
-	/* We do not care about racing access to the mean, we only want a
-	 * good-enough estimation, thus simulate taking the rdlock */
+	/* Here helgrind would shout that this is unprotected access.
+	 * We do not care about racing access to the mean, we only want
+	 * a good-enough estimation */
 
 	if (entry && entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
 		/* TODO: report differently if we've scheduled really enough

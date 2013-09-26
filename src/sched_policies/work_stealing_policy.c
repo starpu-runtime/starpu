@@ -73,6 +73,9 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 		unsigned njobs;
 
 		starpu_worker_get_sched_condition(worker, &victim_sched_mutex, &victim_sched_cond);
+		/* Here helgrind would shout that this is unprotected, but we
+		 * are fine with getting outdated values, this is just an
+		 * estimation */
 		njobs = ws->queue_array[worker]->njobs;
 
 		if (njobs)
