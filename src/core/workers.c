@@ -415,7 +415,6 @@ void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
 	worker->worker_is_running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
-	worker->spinning_backoff = 1;
 }
 
 static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
@@ -447,38 +446,26 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif
 
 		workerarg->config = pconfig;
-
-		_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
-
 		STARPU_PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
-		STARPU_PTHREAD_COND_INIT(&workerarg->started_cond, NULL);
-		STARPU_PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
-
-		workerarg->worker_size = 1;
+		/* arch initialized by topology.c */
+		/* worker_mask initialized by topology.c */
+		/* perf_arch initialized by topology.c */
+		/* worker_thread initialized below */
+		/* mp_nodeid initialized by topology.c */
+		/* devid initialized by topology.c */
+		/* bindid initialized by topology.c */
+		/* workerid initialized by topology.c */
 		workerarg->combined_workerid = workerarg->workerid;
 		workerarg->current_rank = 0;
-		workerarg->has_prev_init = 0;
-		/* mutex + cond only for the local list */
-		/* we have a single local list */
-		/* afterwards there would be a mutex + cond for the list of each strategy */
-		workerarg->run_by_starpu = 1;
-		workerarg->worker_is_running = 0;
-		workerarg->worker_is_initialized = 0;
-		workerarg->set = NULL;
-
-		int ctx;
-		for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
-		{
-			workerarg->removed_from_ctx[ctx] = 0;
-			workerarg->shares_tasks_lists[ctx] = 0;
-		}
-
-
-		STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
+		workerarg->worker_size = 1;
+		STARPU_PTHREAD_COND_INIT(&workerarg->started_cond, NULL);
+		STARPU_PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
+		/* memory_node initialized by topology.c */
 		STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
-		STARPU_PTHREAD_MUTEX_INIT(&workerarg->parallel_sect_mutex, NULL);
-		STARPU_PTHREAD_COND_INIT(&workerarg->parallel_sect_cond, NULL);
-		workerarg->parallel_sect = 0;
+		STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
+		starpu_task_list_init(&workerarg->local_tasks);
+		workerarg->current_task = NULL;
+		workerarg->set = NULL;
 
 		/* if some codelet's termination cannot be handled directly :
 		 * for instance in the Gordon driver, Gordon tasks' callbacks
@@ -487,9 +474,34 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		 * directly */
 		workerarg->terminated_jobs = _starpu_job_list_new();
 
-		starpu_task_list_init(&workerarg->local_tasks);
-
+		workerarg->worker_is_running = 0;
+		workerarg->worker_is_initialized = 0;
 		workerarg->status = STATUS_INITIALIZING;
+		/* name initialized by driver */
+		/* short_name initialized by driver */
+		workerarg->run_by_starpu = 1;
+
+		workerarg->sched_ctx_list = NULL;
+		workerarg->nsched_ctxs = 0;
+		_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
+
+		workerarg->has_prev_init = 0;
+
+		int ctx;
+		for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
+			workerarg->removed_from_ctx[ctx] = 0;
+
+		workerarg->spinning_backoff = 1;
+
+		STARPU_PTHREAD_COND_INIT(&workerarg->parallel_sect_cond, NULL);
+		STARPU_PTHREAD_MUTEX_INIT(&workerarg->parallel_sect_mutex, NULL);
+
+		workerarg->parallel_sect = 0;
+
+		for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
+			workerarg->shares_tasks_lists[ctx] = 0;
+
+		/* cpu_set/hwloc_cpu_set initialized in topology.c */
 
 		_STARPU_DEBUG("initialising worker %u/%u\n", worker, nworkers);
 

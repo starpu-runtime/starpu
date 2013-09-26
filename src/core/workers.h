@@ -52,6 +52,7 @@
 
 #include <starpu_parameters.h>
 
+/* This is initialized from in _starpu_launch_drivers */
 struct _starpu_worker
 {
 	struct _starpu_machine_config *config;
