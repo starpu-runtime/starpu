@@ -42,6 +42,11 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 	/* there is only a single queue in that trivial design */
 	data->fifo =  _starpu_create_fifo();
 
+	 /* Tell helgrind that it's fine to check for empty fifo in
+	  * pop_task_eager_policy without actual mutex (it's just an integer)
+	  */
+	STARPU_HG_DISABLE_CHECKING(data->fifo->ntasks);
+
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 }
@@ -117,16 +122,9 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 
 	struct starpu_task *task = NULL;
 
-	/* Tell helgrind that it's fine to check for empty fifo without actual
-	 * mutex (it's just a pointer) */
-	STARPU_HG_DISABLE_CHECKING(*data->fifo);
 	/* block until some event happens */
 	if (_starpu_fifo_empty(data->fifo))
-	{
-		STARPU_HG_ENABLE_CHECKING(*data->fifo);
 		return NULL;
-	}
-	STARPU_HG_ENABLE_CHECKING(*data->fifo);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	task = _starpu_fifo_pop_task(data->fifo, workerid);

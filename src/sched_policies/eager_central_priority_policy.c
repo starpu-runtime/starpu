@@ -84,6 +84,11 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 
 	/* only a single queue (even though there are several internaly) */
 	data->taskq = _starpu_create_priority_taskq();
+
+	/* Tell helgrind that it's fine to check for empty fifo in
+	 * _starpu_priority_pop_task without actual mutex (it's just an
+	 * integer) */
+	STARPU_HG_DISABLE_CHECKING(data->taskq->total_ntasks);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 
@@ -154,16 +159,9 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 
 	struct _starpu_priority_taskq *taskq = data->taskq;
 
-	/* Tell helgrind that it's fine to check for empty fifo without actual
-	 * mutex (it's just a pointer) */
-	STARPU_HG_DISABLE_CHECKING(taskq->total_ntasks);
 	/* block until some event happens */
 	if (taskq->total_ntasks == 0)
-	{
-		STARPU_HG_ENABLE_CHECKING(taskq->total_ntasks);
 		return NULL;
-	}
-	STARPU_HG_ENABLE_CHECKING(taskq->total_ntasks);
 
 	/* release this mutex before trying to wake up other workers */
 	starpu_pthread_mutex_t *curr_sched_mutex;

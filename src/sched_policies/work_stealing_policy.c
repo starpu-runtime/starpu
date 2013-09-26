@@ -73,10 +73,7 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 		unsigned njobs;
 
 		starpu_worker_get_sched_condition(worker, &victim_sched_mutex, &victim_sched_cond);
-		/* Tell helgrid that we are fine with getting outdated values, this is just an estimation */
-		STARPU_HG_DISABLE_CHECKING(ws->queue_array[worker]->njobs);
 		njobs = ws->queue_array[worker]->njobs;
-		STARPU_HG_ENABLE_CHECKING(ws->queue_array[worker]->njobs);
 
 		if (njobs)
 			break;
@@ -401,6 +398,11 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 		workerid = workerids[i];
 		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
 		ws->queue_array[workerid] = _starpu_create_deque();
+
+		/* Tell helgrid that we are fine with getting outdated values,
+		 * this is just an estimation */
+		STARPU_HG_DISABLE_CHECKING(ws->queue_array[workerid]->njobs);
+
 		/**
 		 * The first WS_POP_TASK will increase NPROCESSED though no task was actually performed yet,
 		 * we need to initialize it at -1.

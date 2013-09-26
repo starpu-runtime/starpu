@@ -1113,22 +1113,10 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
 		/* We do not care about racing access to the mean, we only want a
-		 * good-enough estimation, thus simulate taking the rdlock */
+		 * good-enough estimation */
 
-		if (entry) {
-			STARPU_HG_DISABLE_CHECKING(entry->history_entry);
-			if (entry->history_entry) {
-				STARPU_HG_DISABLE_CHECKING(entry->history_entry->nsample);
-				if (entry->history_entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
-				{
-					STARPU_HG_DISABLE_CHECKING(entry->history_entry->mean);
-					exp = entry->history_entry->mean;
-					STARPU_HG_ENABLE_CHECKING(entry->history_entry->mean);
-				}
-				STARPU_HG_ENABLE_CHECKING(entry->history_entry->nsample);
-			}
-			STARPU_HG_ENABLE_CHECKING(entry->history_entry);
-		}
+		if (entry && entry->history_entry && entry->history_entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
+			exp = entry->history_entry->mean;
 
 		STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 		if (isnan(exp) && !model->benchmarking)
@@ -1140,7 +1128,6 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 			_starpu_set_calibrate_flag(1);
 			model->benchmarking = 1;
 		}
-		STARPU_HG_ENABLE_CHECKING(model->benchmarking);
 	}
 
 	return exp;
@@ -1166,19 +1153,11 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 	/* We do not care about racing access to the mean, we only want a
 	 * good-enough estimation, thus simulate taking the rdlock */
 
-	if (entry) {
-		STARPU_HG_DISABLE_CHECKING(entry->nsample);
+	if (entry && entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
 		/* TODO: report differently if we've scheduled really enough
 		 * of that task and the scheduler should perhaps put it aside */
-		if (entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
-		{
-			/* Calibrated enough */
-			STARPU_HG_DISABLE_CHECKING(entry->mean);
-			exp = entry->mean;
-			STARPU_HG_ENABLE_CHECKING(entry->mean);
-		}
-		STARPU_HG_ENABLE_CHECKING(entry->nsample);
-	}
+		/* Calibrated enough */
+		exp = entry->mean;
 
 	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 	if (isnan(exp) && !model->benchmarking)
@@ -1190,7 +1169,6 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, e
 		_starpu_set_calibrate_flag(1);
 		model->benchmarking = 1;
 	}
-	STARPU_HG_ENABLE_CHECKING(model->benchmarking);
 
 	return exp;
 }
@@ -1230,6 +1208,13 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				/* this is the first entry with such a footprint */
 				entry = (struct starpu_perfmodel_history_entry *) malloc(sizeof(struct starpu_perfmodel_history_entry));
 				STARPU_ASSERT(entry);
+
+				/* Tell  helgrind that we do not care about
+				 * racing access to the sampling, we only want a
+				 * good-enough estimation */
+				STARPU_HG_DISABLE_CHECKING(entry->nsample);
+				STARPU_HG_DISABLE_CHECKING(entry->mean);
+
 				entry->mean = measured;
 				entry->sum = measured;
 
