@@ -884,6 +884,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_STARPU_DISP("Warning: StarPU was configured with --enable-debug (-O0), and is thus not optimized\n");
 #endif
 #endif
+#ifdef STARPU_SPINLOCK_CHECK
+	_STARPU_DISP("Warning: StarPU was configured with --enable-spinlock-check, which slows down a bit\n");
+#endif
 #if 0
 #ifndef STARPU_NO_ASSERT
 	_STARPU_DISP("Warning: StarPU was configured without --enable-fast\n");
