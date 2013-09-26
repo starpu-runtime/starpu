@@ -398,6 +398,9 @@ void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_list *new_data_requests;
 
+	/* Here helgrind would should that this is an un protected access.
+	 * We however don't care about missing an entry, we will get called
+	 * again sooner or later. */
 	if (_starpu_data_request_list_empty(data_requests[src_node]))
 		return;
 

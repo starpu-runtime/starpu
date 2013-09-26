@@ -193,6 +193,9 @@ static double compute_expected_end(int workerid, double length)
 		double res;
 		/* This is a basic worker */
 
+		/* Here helgrind would shout that this is unprotected, but we
+		 * are fine with getting outdated values, this is just an
+		 * estimation */
 		res = worker_exp_start[workerid] + worker_exp_len[workerid] + length;
 
 		return res;
@@ -206,6 +209,9 @@ static double compute_expected_end(int workerid, double length)
 
 		double exp_end = DBL_MIN;
 
+		/* Here helgrind would shout that this is unprotected, but we
+		 * are fine with getting outdated values, this is just an
+		 * estimation */
 		int i;
 		for (i = 0; i < worker_size; i++)
 		{
@@ -232,6 +238,9 @@ static double compute_ntasks_end(int workerid)
 		double res;
 		/* This is a basic worker */
 
+		/* Here helgrind would shout that this is unprotected, but we
+		 * are fine with getting outdated values, this is just an
+		 * estimation */
 		res = ntasks[workerid] / starpu_worker_get_relative_speedup(perf_arch);
 
 		return res;
@@ -245,6 +254,9 @@ static double compute_ntasks_end(int workerid)
 
 		int ntasks_end=0;
 
+		/* Here helgrind would shout that this is unprotected, but we
+		 * are fine with getting outdated values, this is just an
+		 * estimation */
 		int i;
 		for (i = 0; i < worker_size; i++)
 		{
