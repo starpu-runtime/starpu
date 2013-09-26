@@ -22,11 +22,11 @@ the following configure options.
 Enable debugging messages.
 </dd>
 
-<dt>--enable-debug</dt>
+<dt>--enable-spinlock-check</dt>
 <dd>
-\anchor enable-debug
-\addindex __configure__--enable-debug
-Enable debugging messages.
+\anchor enable-spinlock-check
+\addindex __configure__--enable-spinlock-check
+Enable checking that spinlocks are taken and released properly.
 </dd>
 
 <dt>--enable-fast</dt>

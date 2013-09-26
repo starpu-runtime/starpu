@@ -918,13 +918,19 @@ AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debug mode])],
 			enable_debug=$enableval, enable_debug=no)
 AC_MSG_RESULT($enable_debug)
 
+AC_ARG_ENABLE(spinlock_check, [AS_HELP_STRING([--enable-spinlock-check], [enable spinlock check])], enable_spinlock_check=$enableval, enable_spinlock_check=no)
+
 if test x$enable_debug = xyes; then
 	CFLAGS="$CFLAGS -O0"
-	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
+	enable_spinlock_check=yes
 else
 	CFLAGS="-O3 $CFLAGS"
 fi
 CFLAGS+=" -gdwarf-2 -g3 "
+
+if test x$enable_spinlock_check = xyes; then
+	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
+fi
 
 AC_MSG_CHECKING(whether extra checks should be performed)
 AC_ARG_ENABLE(fast, [AS_HELP_STRING([--enable-fast],
