@@ -595,7 +595,7 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	STARPU_ASSERT(args);
 	int devid = args->devid;
 
-	_starpu_worker_init(args, _STARPU_FUT_OPENCL_KEY);
+	_starpu_worker_start(args, _STARPU_FUT_OPENCL_KEY);
 
 #ifndef STARPU_SIMGRID
 	_starpu_opencl_init_context(devid);

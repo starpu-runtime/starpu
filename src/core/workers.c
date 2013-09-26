@@ -311,7 +311,59 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 struct itimerval prof_itimer;
 #endif
 
-void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
+static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig)
+{
+	workerarg->config = pconfig;
+	STARPU_PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
+	/* arch initialized by topology.c */
+	/* worker_mask initialized by topology.c */
+	/* perf_arch initialized by topology.c */
+	/* worker_thread initialized below */
+	/* devid initialized by topology.c */
+	/* bindid initialized by topology.c */
+	/* workerid initialized by topology.c */
+	workerarg->combined_workerid = workerarg->workerid;
+	workerarg->current_rank = 0;
+	workerarg->worker_size = 1;
+	STARPU_PTHREAD_COND_INIT(&workerarg->started_cond, NULL);
+	STARPU_PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
+	/* memory_node initialized by topology.c */
+	STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
+	starpu_task_list_init(&workerarg->local_tasks);
+	workerarg->current_task = NULL;
+	workerarg->set = NULL;
+
+	/* if some codelet's termination cannot be handled directly :
+	 * for instance in the Gordon driver, Gordon tasks' callbacks
+	 * may be executed by another thread than that of the Gordon
+	 * driver so that we cannot call the push_codelet_output method
+	 * directly */
+	workerarg->terminated_jobs = _starpu_job_list_new();
+
+	workerarg->worker_is_running = 0;
+	workerarg->worker_is_initialized = 0;
+	workerarg->status = STATUS_INITIALIZING;
+	/* name initialized by driver */
+	/* short_name initialized by driver */
+	workerarg->run_by_starpu = 1;
+
+	_starpu_init_sched_ctx_for_worker(workerarg->workerid); /* sched_ctx */
+	workerarg->nsched_ctxs = 0;
+	_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
+
+	workerarg->has_prev_init = 0;
+
+	workerarg->active_ctx = STARPU_GLOBAL_SCHED_CTX;
+
+	int ctx;
+	for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
+		workerarg->removed_from_ctx[ctx] = 0;
+
+	/* cpu_set/hwloc_cpu_set initialized in topology.c */
+}
+
+void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key)
 {
 	(void) fut_key;
 	int devid = worker->devid;
@@ -371,55 +423,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
-
-		workerarg->config = pconfig;
-		STARPU_PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
-		/* arch initialized by topology.c */
-		/* worker_mask initialized by topology.c */
-		/* perf_arch initialized by topology.c */
-		/* worker_thread initialized below */
-		/* devid initialized by topology.c */
-		/* bindid initialized by topology.c */
-		/* workerid initialized by topology.c */
-		workerarg->combined_workerid = workerarg->workerid;
-		workerarg->current_rank = 0;
-		workerarg->worker_size = 1;
-		STARPU_PTHREAD_COND_INIT(&workerarg->started_cond, NULL);
-		STARPU_PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
-		/* memory_node initialized by topology.c */
-		STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
-		STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
-		starpu_task_list_init(&workerarg->local_tasks);
-		workerarg->current_task = NULL;
-		workerarg->set = NULL;
-
-		/* if some codelet's termination cannot be handled directly :
-		 * for instance in the Gordon driver, Gordon tasks' callbacks
-		 * may be executed by another thread than that of the Gordon
-		 * driver so that we cannot call the push_codelet_output method
-		 * directly */
-		workerarg->terminated_jobs = _starpu_job_list_new();
-
-		workerarg->worker_is_running = 0;
-		workerarg->worker_is_initialized = 0;
-		workerarg->status = STATUS_INITIALIZING;
-		/* name initialized by driver */
-		/* short_name initialized by driver */
-		workerarg->run_by_starpu = 1;
-
-		workerarg->sched_ctx = NULL;
-		workerarg->nsched_ctxs = 0;
-		_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
-
-		workerarg->has_prev_init = 0;
-
-		workerarg->active_ctx = STARPU_GLOBAL_SCHED_CTX;
-
-		int ctx;
-		for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
-			workerarg->removed_from_ctx[ctx] = 0;
-
-		/* cpu_set/hwloc_cpu_set initialized in topology.c */
 
 		_STARPU_DEBUG("initialising worker %u\n", worker);
 
@@ -679,6 +682,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 
 int starpu_init(struct starpu_conf *user_conf)
 {
+	unsigned worker;
 	int ret;
 
 #ifndef STARPU_SIMGRID
@@ -804,6 +808,9 @@ int starpu_init(struct starpu_conf *user_conf)
 	/* We need to store the current task handled by the different
 	 * threads */
 	_starpu_initialize_current_task_key();
+
+	for (worker = 0; worker < config.topology.nworkers; worker++)
+		_starpu_worker_init(&config.workers[worker], &config);
 
 	_starpu_create_sched_ctx(config.conf->sched_policy_name, NULL, -1, 1, "init");
 

@@ -43,7 +43,7 @@
 
 #include <starpu_parameters.h>
 
-/* This is initialized from in _starpu_launch_drivers */
+/* This is initialized from in _starpu_worker_init */
 struct _starpu_worker
 {
 	struct _starpu_machine_config *config;
@@ -273,7 +273,7 @@ void _starpu_block_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthr
 void _starpu_set_local_worker_key(struct _starpu_worker *worker);
 
 /* This function initializes the current thread for the given worker */
-void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key);
+void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key);
 
 /* Returns the _starpu_worker structure that describes the state of the
  * current worker. */
