@@ -291,7 +291,7 @@ void *_starpu_scc_src_worker(void *arg)
 	unsigned mp_nodeid = args->mp_nodeid;
 	unsigned i;
 
-	_starpu_worker_init(args, _STARPU_FUT_SCC_KEY);
+	_starpu_worker_start(args, _STARPU_FUT_SCC_KEY);
 
 	_starpu_scc_src_init_context(devid);
 

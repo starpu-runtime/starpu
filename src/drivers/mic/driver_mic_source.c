@@ -517,7 +517,7 @@ void *_starpu_mic_src_worker(void *arg)
 
 	/* unsigned memnode = baseworker->memory_node; */
 
-	_starpu_worker_init(baseworker, _STARPU_FUT_MIC_KEY);
+	_starpu_worker_start(baseworker, _STARPU_FUT_MIC_KEY);
 
 	// Current task for a thread managing a worker set has no sense.
 	_starpu_set_current_task(NULL);

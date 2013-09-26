@@ -238,7 +238,7 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 
 	int devid = cpu_worker->devid;
 
-	_starpu_worker_init(cpu_worker, _STARPU_FUT_CPU_KEY);
+	_starpu_worker_start(cpu_worker, _STARPU_FUT_CPU_KEY);
 	/* FIXME: when we have NUMA support, properly turn node number into NUMA node number */
 	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->memory_node, cpu_worker->config));
 
