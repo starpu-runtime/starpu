@@ -200,14 +200,6 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_WMB() STARPU_SYNCHRONIZE()
 #endif
 
-/* This is needed in some places to make valgrind yield to another thread to be
- * able to progress.  */
-#if defined(__i386__) || defined(__x86_64__)
-#define STARPU_UYIELD() __asm__ __volatile("rep; nop")
-#else
-#define STARPU_UYIELD() ((void)0)
-#endif
-
 #ifdef __cplusplus
 }
 #endif
