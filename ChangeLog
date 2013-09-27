@@ -26,6 +26,9 @@ New features:
     _STARPU_PERFMODEL_VERSION should be updated. It is then possible
     to switch easily between differents versions of StarPU having
     different performance model formats.
+  * Tasks can now define a optional prologue callback which is executed
+    on the host when the task becomes ready for execution, before getting
+    scheduled.
 
 Small features:
   * New function starpu_perfmodel_directory() to print directory

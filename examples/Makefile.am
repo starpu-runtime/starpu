@@ -175,6 +175,7 @@ examplebin_PROGRAMS +=				\
 	spmd/vector_scal_spmd			\
 	spmv/spmv				\
 	callback/callback			\
+	callback/prologue			\
 	incrementer/incrementer			\
 	binary/binary				\
 	interface/complex			\
@@ -247,6 +248,7 @@ STARPU_EXAMPLES +=				\
 	spmd/vector_scal_spmd			\
 	spmv/spmv				\
 	callback/callback			\
+	callback/prologue			\
 	incrementer/incrementer			\
 	binary/binary				\
 	interface/complex			\
