@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	if (rank%2)
 	{
 		starpu_mpi_isend(tab_handle[0], &request[0], other_rank, 0, MPI_COMM_WORLD);
-		starpu_mpi_recv(tab_handle[2], other_rank, 2, MPI_COMM_WORLD, NULL);
+		starpu_mpi_recv(tab_handle[2], other_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		starpu_mpi_isend(tab_handle[1], &request[1], other_rank, 1, MPI_COMM_WORLD);
 		nb_requests = 2;
 	}
