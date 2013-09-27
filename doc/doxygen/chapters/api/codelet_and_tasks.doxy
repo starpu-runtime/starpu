@@ -317,6 +317,14 @@ the buffer in local store (LS) instead. This field is ignored for CPU,
 CUDA and OpenCL codelets, where the starpu_task::cl_arg pointer is
 given as such.
 
+\var starpu_task::cl_arg_free
+Optional field. In case starpu_task::cl_arg was allocated by the
+application through <c>malloc()</c>, setting starpu_task::cl_arg_free
+to 1 makes StarPU automatically call <c>free(cl_arg)</c> when
+destroying the task. This saves the user from defining a callback just
+for that. This is mostly useful when targetting MIC or SCC, where the
+codelet does not execute in the same memory space as the main thread.
+
 \var starpu_task::callback_func
 Optional field, the default value is <c>NULL</c>. This is a function
 pointer of prototype <c>void (*f)(void *)</c> which specifies a
