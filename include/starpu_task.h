@@ -110,6 +110,8 @@ struct starpu_task
 
 	void *cl_arg;
 	size_t cl_arg_size;
+	/* must StarPU release cl_arg ? - 0 by default */
+	unsigned cl_arg_free;
 
 	void (*callback_func)(void *);
 	void *callback_arg;

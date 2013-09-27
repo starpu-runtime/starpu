@@ -36,6 +36,8 @@ Small features:
     the tool starpu_perfmodel_display
   * New batch files to execute StarPU applications under Microsoft
     Visual Studio (They are installed in path_to_starpu/bin/mvsc)/
+  * Add cl_arg_free field to enable automatic free(cl_arg) on task
+    destroy.
 
 Changes:
   * Modification of perfmodels output format for future improvements.
