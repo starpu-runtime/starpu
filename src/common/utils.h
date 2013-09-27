@@ -25,6 +25,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <pthread.h>
+#ifdef STARPU_HAVE_SCHED_YIELD
+#include <sched.h>
+#endif
 
 #ifdef STARPU_HAVE_HELGRIND_H
 #include <valgrind/helgrind.h>
@@ -55,6 +58,19 @@
 #define STARPU_DEBUG_PREFIX "[starpu-mic]"
 #else
 #define STARPU_DEBUG_PREFIX "[starpu]"
+#endif
+
+/* This is needed in some places to make valgrind yield to another thread to be
+ * able to progress.  */
+#if defined(__i386__) || defined(__x86_64__)
+#define _STARPU_UYIELD() __asm__ __volatile("rep; nop")
+#else
+#define _STARPU_UYIELD() ((void)0)
+#endif
+#if defined(STARPU_HAVE_SCHED_YIELD) && defined(STARPU_HAVE_HELGRIND_H)
+#define STARPU_UYIELD() do { if (RUNNING_ON_VALGRIND) sched_yield(); else _STARPU_UYIELD(); } while (0)
+#else
+#define STARPU_UYIELD() _STARPU_UYIELD()
 #endif
 
 #ifdef STARPU_VERBOSE
