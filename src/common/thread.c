@@ -90,7 +90,7 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 
 	xbt_mutex_acquire(*mutex);
 
-	_STARPU_TRACE_MUTEX_LOCKED(file,__LINE__);
+	_STARPU_TRACE_MUTEX_LOCKED();
 
 	return 0;
 }
