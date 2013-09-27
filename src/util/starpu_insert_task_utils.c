@@ -39,8 +39,6 @@ void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 	/* Execute the callback specified by the application */
 	if (cl_arg_wrapper->callback_func)
 		cl_arg_wrapper->callback_func(cl_arg_wrapper->callback_arg);
-
-	free(cl_arg_wrapper);
 }
 
 size_t _starpu_insert_task_get_arg_size(va_list varg_list)
@@ -379,9 +377,11 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 	 * application's callback, if any. */
 	(*task)->callback_func = starpu_task_insert_callback_wrapper;
 	(*task)->callback_arg = cl_arg_wrapper;
+	(*task)->callback_arg_free = 1;
 
 	(*task)->prologue_callback_func = starpu_task_insert_callback_wrapper;
 	(*task)->prologue_callback_arg = prologue_cl_arg_wrapper;
+	(*task)->prologue_callback_arg_free = 1;
 
 	int ret = starpu_task_submit(*task);
 

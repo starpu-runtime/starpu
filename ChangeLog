@@ -52,8 +52,6 @@ New features:
     scheduled.
 
 Small features:
-  * Add cl_arg_free field to enable automatic free(cl_arg) on task
-    destroy.
   * New functions starpu_data_acquire_cb_sequential_consistency() and
     starpu_data_acquire_on_node_cb_sequential_consistency() which allows
     to enable or disable sequential consistency
@@ -64,6 +62,9 @@ Small features:
     the tool starpu_perfmodel_display
   * New batch files to execute StarPU applications under Microsoft
     Visual Studio (They are installed in path_to_starpu/bin/mvsc)/
+  * Add cl_arg_free, callback_arg_free, prologue_callback_arg_free fields to
+    enable automatic free(cl_arg); free(callback_arg);
+    free(prologue_callback_arg) on task destroy.
 
 Changes:
   * Fix of the livelock issue discovered while executing applications

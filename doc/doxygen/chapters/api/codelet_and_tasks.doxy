@@ -406,6 +406,12 @@ Optional field, the default value is <c>NULL</c>. This is the pointer
 passed to the callback function. This field is ignored if the field
 starpu_task::callback_func is set to <c>NULL</c>.
 
+\var starpu_task::callback_arg_free
+Optional field. In case starpu_task::callback_arg was allocated by the
+application through <c>malloc()</c>, setting starpu_task::callback_arg_free
+to 1 makes StarPU automatically call <c>free(callback_arg)</c> when
+destroying the task.
+
 \var starpu_task::prologue_func
 Optional field, the default value is <c>NULL</c>. This is a function
 pointer of prototype <c>void (*f)(void *)</c> which specifies a
@@ -420,6 +426,12 @@ executed if the field is set to NULL.
 Optional field, the default value is <c>NULL</c>. This is the pointer
 passed to the prologue function. This field is ignored if the field
 starpu_task::prologue_func is set to <c>NULL</c>.
+
+\var starpu_task::prologue_callback__arg_free
+Optional field. In case starpu_task::prologue_callback__arg was allocated by the
+application through <c>malloc()</c>, setting starpu_task::prologue_callback__arg_free
+to 1 makes StarPU automatically call <c>free(prologue_callback__arg)</c> when
+destroying the task.
 
 \var starpu_task::use_tag
 Optional field, the default value is 0. If set, this flag indicates
