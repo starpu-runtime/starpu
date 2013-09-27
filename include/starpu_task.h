@@ -115,9 +115,13 @@ struct starpu_task
 
 	void (*callback_func)(void *);
 	void *callback_arg;
+	/* must StarPU release callback_arg ? - 0 by default */
+	unsigned callback_arg_free;
 
 	void (*prologue_callback_func)(void *);
 	void *prologue_callback_arg;
+	/* must StarPU release prologue_callback_arg ? - 0 by default */
+	unsigned prologue_callback_arg_free;
 
 	unsigned use_tag;
 	starpu_tag_t tag_id;
