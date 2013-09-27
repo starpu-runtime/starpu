@@ -236,6 +236,10 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	unsigned node;
 	unsigned worker;
 
+	/* Tell helgrind that our access to busy_count in
+	 * starpu_data_unregister is actually safe */
+	STARPU_HG_DISABLE_CHECKING(handle->busy_count);
+
 	handle->ops = interface_ops;
 	handle->mf_node = mf_node;
 
@@ -550,23 +554,20 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	_starpu_spin_unlock(&handle->header_lock);
 
 	/* Wait for all requests to finish (notably WT requests) */
-	/* Note: we here tell valgrind that reading busy_count is as
-	 * safe is if we had the lock held */
-	_STARPU_VALGRIND_HG_SPIN_LOCK_PRE(&handle->header_lock);
-	_STARPU_VALGRIND_HG_SPIN_LOCK_POST(&handle->header_lock);
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 	while (1) {
 		int busy;
-		busy = handle->busy_count;
-		if (!busy)
+		/* Here helgrind would shout that this an unprotected access,
+		 * but this is actually fine: all threads who do busy_count--
+		 * are supposed to call _starpu_data_check_not_busy, which will
+		 * wake us up through the busy_mutex/busy_cond. */
+		if (!handle->busy_count)
 			break;
 		/* This is woken by _starpu_data_check_not_busy, always called
 		 * after decrementing busy_count */
 		STARPU_PTHREAD_COND_WAIT(&handle->busy_cond, &handle->busy_mutex);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&handle->busy_mutex);
-	_STARPU_VALGRIND_HG_SPIN_UNLOCK_PRE(&handle->header_lock);
-	_STARPU_VALGRIND_HG_SPIN_UNLOCK_POST(&handle->header_lock);
 
 	/* Wait for finished requests to release the handle */
 	_starpu_spin_lock(&handle->header_lock);

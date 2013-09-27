@@ -51,19 +51,6 @@
 #define STARPU_HG_DISABLE_CHECKING(variable) VALGRIND_HG_DISABLE_CHECKING(&(variable), sizeof(variable))
 #define STARPU_HG_ENABLE_CHECKING(variable)  VALGRIND_HG_ENABLE_CHECKING(&(variable), sizeof(variable))
 
-#define _STARPU_VALGRIND_HG_SPIN_LOCK_PRE(lock) \
-	DO_CREQ_v_WW(_VG_USERREQ__HG_PTHREAD_SPIN_LOCK_PRE, \
-			struct _starpu_spinlock *, lock, long, 0)
-#define _STARPU_VALGRIND_HG_SPIN_LOCK_POST(lock) \
-	DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_SPIN_LOCK_POST, \
-			struct _starpu_spinlock *, lock)
-#define _STARPU_VALGRIND_HG_SPIN_UNLOCK_PRE(lock) \
-	DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_SPIN_INIT_OR_UNLOCK_PRE, \
-			struct _starpu_spinlock *, lock)
-#define _STARPU_VALGRIND_HG_SPIN_UNLOCK_POST(lock) \
-	DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_SPIN_INIT_OR_UNLOCK_POST, \
-			struct _starpu_spinlock *, lock)
-
 #ifdef STARPU_VERBOSE
 #  define _STARPU_DEBUG(fmt, ...) do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, "[starpu][%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); fflush(stderr); }} while(0)
 #else
