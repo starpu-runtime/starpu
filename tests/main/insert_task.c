@@ -120,7 +120,7 @@ enodev:
         }
 
         FPRINTF(stderr, "VALUES: %d (should be %d) %f (should be %f)\n", xx, x*_ifactor, ff, f*_ffactor);
-	return (ret == -ENODEV ? 0 : xx == x*_ifactor && ff == f*_ffactor);
+	return (ret == -ENODEV ? ret : xx == x*_ifactor && ff == f*_ffactor);
 }
 
 int main(int argc, char **argv)
@@ -137,21 +137,25 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "Testing codelet with insert task and with arguments\n");
 	ret = test_codelet(&mycodelet_args, 1, 1, 4, 2.0);
+	if (ret == -ENODEV) goto enodev;
 	if (ret)
 	{
 		FPRINTF(stderr, "Testing codelet with insert task and without arguments\n");
 		ret = test_codelet(&mycodelet_noargs, 1, 0, 9, 7.0);
 	}
+	if (ret == -ENODEV) goto enodev;
 	if (ret)
 	{
 		FPRINTF(stderr, "Testing codelet with task_create and with arguments\n");
 		ret = test_codelet(&mycodelet_args, 0, 1, 5, 3.0);
 	}
+	if (ret == -ENODEV) goto enodev;
 	if (ret)
 	{
 		FPRINTF(stderr, "Testing codelet with task_create and without arguments\n");
 		ret = test_codelet(&mycodelet_noargs, 0, 0, 7, 5.0);
 	}
+	if (ret == -ENODEV) goto enodev;
 
 	starpu_shutdown();
 
