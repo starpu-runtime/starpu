@@ -257,6 +257,12 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 		{
 			entry = (struct starpu_perfmodel_history_entry *) malloc(sizeof(struct starpu_perfmodel_history_entry));
 			STARPU_ASSERT(entry);
+
+			/* Tell  helgrind that we do not care about
+			 * racing access to the sampling, we only want a
+			 * good-enough estimation */
+			STARPU_HG_DISABLE_CHECKING(entry->nsample);
+			STARPU_HG_DISABLE_CHECKING(entry->mean);
 		}
 
 		scan_history_entry(f, entry);
