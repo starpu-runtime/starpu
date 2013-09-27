@@ -103,7 +103,8 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 			}
 		}
 	}
-	fprintf(stderr, "Warning: scheduling policy \"%s\" was not found, try \"help\" to get a list\n", policy_name);
+	if (strcmp(policy_name, "help") != 0)
+	     fprintf(stderr, "Warning: scheduling policy \"%s\" was not found, try \"help\" to get a list\n", policy_name);
 
 	/* nothing was found */
 	return NULL;
@@ -117,12 +118,13 @@ static void display_sched_help_message(void)
 		/* display the description of all predefined policies */
 		struct starpu_sched_policy **policy;
 
-		fprintf(stderr, "STARPU_SCHED can be either of\n");
+		fprintf(stderr, "\nThe variable STARPU_SCHED can be set to one of the following strings:\n");
 		for(policy=predefined_policies ; *policy!=NULL ; policy++)
 		{
 			struct starpu_sched_policy *p = *policy;
 			fprintf(stderr, "%s\t-> %s\n", p->policy_name, p->policy_description);
 		}
+		fprintf(stderr, "\n");
 	 }
 }
 
