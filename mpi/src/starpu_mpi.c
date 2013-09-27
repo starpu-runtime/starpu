@@ -250,7 +250,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
 	/* Initialize the request structure */
 	req->data_handle = NULL;
 
-	req->datatype = NULL;
+	req->datatype = 0;
 	req->ptr = NULL;
 	req->count = -1;
 	req->user_datatype = -1;
@@ -262,7 +262,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
 	req->func = NULL;
 
 	req->status = NULL;
-	req->request = NULL;
+	req->request = 0;
 	req->flag = NULL;
 
 	req->ret = -1;
@@ -283,7 +283,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
 	req->callback = NULL;
 	req->callback_arg = NULL;
 
-	req->size_req = NULL;
+	req->size_req = 0;
 	req->internal_req = NULL;
 	req->is_internal_req = 0;
 	req->envelope = NULL;
@@ -1237,6 +1237,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
+	MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 
 	{
 		TRACE_MPI_START(rank, worldsize);
