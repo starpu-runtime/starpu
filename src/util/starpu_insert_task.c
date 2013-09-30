@@ -97,7 +97,7 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 	return ret;
 }
 
-struct starpu_task *starpu_init_task(struct starpu_codelet *cl, ...)
+struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
 {
 	va_list varg_list;
 	void *arg_buffer = NULL;

@@ -90,15 +90,15 @@ int test_codelet(struct starpu_codelet *codelet, int insert_task, int args, int 
 	{
 		struct starpu_task *task;
 		if (args)
-			task = starpu_init_task(codelet,
-						STARPU_VALUE, &_ifactor, sizeof(_ifactor),
-						STARPU_VALUE, &_ffactor, sizeof(_ffactor),
-						STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
-						0);
+			task = starpu_task_build(codelet,
+						 STARPU_VALUE, &_ifactor, sizeof(_ifactor),
+						 STARPU_VALUE, &_ffactor, sizeof(_ffactor),
+						 STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+						 0);
 		else
-			task = starpu_init_task(codelet,
-						STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
-						0);
+			task = starpu_task_build(codelet,
+						 STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+						 0);
 		task->cl_arg_free = 1;
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
@@ -138,13 +138,13 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	if (ret)
 	{
-		FPRINTF(stderr, "Testing codelet with init_task and with arguments\n");
+		FPRINTF(stderr, "Testing codelet with task_build and with arguments\n");
 		ret = test_codelet(&mycodelet_args, 0, 1, 5, 3.0);
 	}
 	if (ret == -ENODEV) goto enodev;
 	if (ret)
 	{
-		FPRINTF(stderr, "Testing codelet with init_task and without arguments\n");
+		FPRINTF(stderr, "Testing codelet with task_build and without arguments\n");
 		ret = test_codelet(&mycodelet_noargs, 0, 0, 7, 5.0);
 	}
 	if (ret == -ENODEV) goto enodev;

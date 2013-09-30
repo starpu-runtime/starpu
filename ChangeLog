@@ -65,7 +65,7 @@ Small features:
   * Add cl_arg_free, callback_arg_free, prologue_callback_arg_free fields to
     enable automatic free(cl_arg); free(callback_arg);
     free(prologue_callback_arg) on task destroy.
-  * New function starpu_init_task
+  * New function starpu_task_build
 
 Changes:
   * Fix of the livelock issue discovered while executing applications
