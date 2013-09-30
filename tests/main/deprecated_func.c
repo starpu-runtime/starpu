@@ -20,8 +20,6 @@
 
 void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -30,8 +28,6 @@ void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 void cpu2_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
