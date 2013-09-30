@@ -96,3 +96,31 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 	}
 	return ret;
 }
+
+struct starpu_task *starpu_init_task(struct starpu_codelet *cl, ...)
+{
+	va_list varg_list;
+	void *arg_buffer = NULL;
+
+	/* Compute the size */
+	size_t arg_buffer_size = 0;
+	va_start(varg_list, cl);
+	arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
+
+	if (arg_buffer_size)
+	{
+		va_start(varg_list, cl);
+		_starpu_codelet_pack_args(&arg_buffer, arg_buffer_size, varg_list);
+	}
+
+	struct starpu_task *task = starpu_task_create();
+
+	if (cl && cl->nbuffers > STARPU_NMAXBUFS)
+	{
+		task->dyn_handles = malloc(cl->nbuffers * sizeof(starpu_data_handle_t));
+	}
+
+	va_start(varg_list, cl);
+	_starpu_insert_task_create(arg_buffer, arg_buffer_size, cl, &task, varg_list);
+	return task;
+}

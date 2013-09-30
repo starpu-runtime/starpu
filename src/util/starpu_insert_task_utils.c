@@ -234,7 +234,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 	return 0;
 }
 
-int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+void _starpu_insert_task_create(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
 {
 	int arg_type;
 	unsigned current_buffer = 0;
@@ -382,6 +382,11 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 	(*task)->prologue_callback_func = starpu_task_insert_callback_wrapper;
 	(*task)->prologue_callback_arg = prologue_cl_arg_wrapper;
 	(*task)->prologue_callback_arg_free = 1;
+}
+
+int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+{
+	_starpu_insert_task_create(arg_buffer, arg_buffer_size, cl, task, varg_list);
 
 	int ret = starpu_task_submit(*task);
 
