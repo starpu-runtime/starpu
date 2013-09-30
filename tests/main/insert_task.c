@@ -90,6 +90,7 @@ int main(int argc, char **argv)
         }
 
 	struct starpu_task *task = starpu_task_create();
+	task->cl_arg_free = 1;
 	task->cl = &mycodelet;
 	task->handles[0] = data_handles[0];
 	task->handles[1] = data_handles[1];
