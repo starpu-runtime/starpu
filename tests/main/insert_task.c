@@ -23,30 +23,19 @@ static float _ffactor = 10.0;
 
 void func_cpu_args(void *descr[], void *_args)
 {
-	/*
-	 * Do not use STARPU_SKIP_IF_VALGRIND here.
-	 * We need to call starpu_codelet_unpack_args() in order to make sure
-	 * there are no memory leaks in the program.
-	 */
-
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	float *x1 = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
 	int ifactor;
 	float ffactor;
 
 	starpu_codelet_unpack_args(_args, &ifactor, &ffactor);
-	/*
-	 * It is safe to use STARPU_SKIP_IF_VALGRIND here
-	 */
-	STARPU_SKIP_IF_VALGRIND;
+
         *x0 = *x0 * ifactor;
         *x1 = *x1 * ffactor;
 }
 
 void func_cpu_noargs(void *descr[], void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	float *x1 = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -80,7 +69,7 @@ int test_codelet(struct starpu_codelet *codelet, int insert_task, int args, int 
 	starpu_variable_data_register(&data_handles[0], STARPU_MAIN_RAM, (uintptr_t)&xx, sizeof(xx));
 	starpu_variable_data_register(&data_handles[1], STARPU_MAIN_RAM, (uintptr_t)&ff, sizeof(ff));
 
-        FPRINTF(stderr, "VALUES: %d (%d) %f (%f)\n", xx, _ifactor, ff, _ffactor);
+        FPRINTF(stderr, "values: %d (%d) %f (%f)\n", xx, _ifactor, ff, _ffactor);
 
 	if (insert_task)
 	{
@@ -99,18 +88,21 @@ int test_codelet(struct starpu_codelet *codelet, int insert_task, int args, int 
 	}
 	else
 	{
-		struct starpu_task *task = starpu_task_create();
-		task->cl = codelet;
-		task->handles[0] = data_handles[0];
-		task->handles[1] = data_handles[1];
+		struct starpu_task *task;
 		if (args)
-			starpu_codelet_pack_args(&task->cl_arg, &task->cl_arg_size,
-						 STARPU_VALUE, &_ifactor, sizeof(_ifactor),
-						 STARPU_VALUE, &_ffactor, sizeof(_ffactor),
-						 0);
+			task = starpu_init_task(codelet,
+						STARPU_VALUE, &_ifactor, sizeof(_ifactor),
+						STARPU_VALUE, &_ffactor, sizeof(_ffactor),
+						STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+						0);
+		else
+			task = starpu_init_task(codelet,
+						STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+						0);
+		task->cl_arg_free = 1;
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
 enodev:
@@ -119,7 +111,7 @@ enodev:
                 starpu_data_unregister(data_handles[i]);
         }
 
-        FPRINTF(stderr, "VALUES: %d (should be %d) %f (should be %f)\n", xx, x*_ifactor, ff, f*_ffactor);
+        FPRINTF(stderr, "values: %d (should be %d) %f (should be %f)\n\n", xx, x*_ifactor, ff, f*_ffactor);
 	return (ret == -ENODEV ? ret : xx == x*_ifactor && ff == f*_ffactor);
 }
 
@@ -146,13 +138,13 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	if (ret)
 	{
-		FPRINTF(stderr, "Testing codelet with task_create and with arguments\n");
+		FPRINTF(stderr, "Testing codelet with init_task and with arguments\n");
 		ret = test_codelet(&mycodelet_args, 0, 1, 5, 3.0);
 	}
 	if (ret == -ENODEV) goto enodev;
 	if (ret)
 	{
-		FPRINTF(stderr, "Testing codelet with task_create and without arguments\n");
+		FPRINTF(stderr, "Testing codelet with init_task and without arguments\n");
 		ret = test_codelet(&mycodelet_noargs, 0, 0, 7, 5.0);
 	}
 	if (ret == -ENODEV) goto enodev;
