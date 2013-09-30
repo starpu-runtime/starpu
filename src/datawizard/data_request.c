@@ -426,6 +426,7 @@ void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 	 * requests, and we handle the request(s) one by one in the former
 	 * list, without concurrency issues.*/
 	data_requests[src_node] = _starpu_data_request_list_new();
+	STARPU_HG_DISABLE_CHECKING(data_requests[src_node]->_head);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 
