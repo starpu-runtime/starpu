@@ -392,8 +392,6 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 			(cl == NULL) ? "none" :
 			(*task)->cl->name ? (*task)->cl->name :
 			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
-		free(cl_arg_wrapper);
-		free(prologue_cl_arg_wrapper);
 	}
 
 	return ret;
