@@ -59,7 +59,7 @@ struct starpu_codelet mycodelet_noargs =
         .nbuffers = 2
 };
 
-int test_codelet(struct starpu_codelet *codelet, int insert_task, int args, int x, float f)
+int test_codelet(struct starpu_codelet *codelet, int task_insert, int args, int x, float f)
 {
         starpu_data_handle_t data_handles[2];
 	int xx = x;
@@ -71,20 +71,20 @@ int test_codelet(struct starpu_codelet *codelet, int insert_task, int args, int 
 
         FPRINTF(stderr, "values: %d (%d) %f (%f)\n", xx, _ifactor, ff, _ffactor);
 
-	if (insert_task)
+	if (task_insert)
 	{
 		if (args)
-			ret = starpu_insert_task(codelet,
+			ret = starpu_task_insert(codelet,
 						 STARPU_VALUE, &_ifactor, sizeof(_ifactor),
 						 STARPU_VALUE, &_ffactor, sizeof(_ffactor),
 						 STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
 						 0);
 		else
-			ret = starpu_insert_task(codelet,
+			ret = starpu_task_insert(codelet,
 						 STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
 						 0);
 		if (ret == -ENODEV) goto enodev;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 	else
 	{
@@ -127,12 +127,12 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	FPRINTF(stderr, "Testing codelet with insert task and with arguments\n");
+	FPRINTF(stderr, "Testing codelet with task_insert and with arguments\n");
 	ret = test_codelet(&mycodelet_args, 1, 1, 4, 2.0);
 	if (ret == -ENODEV) goto enodev;
 	if (ret)
 	{
-		FPRINTF(stderr, "Testing codelet with insert task and without arguments\n");
+		FPRINTF(stderr, "Testing codelet with task_insert and without arguments\n");
 		ret = test_codelet(&mycodelet_noargs, 1, 0, 9, 7.0);
 	}
 	if (ret == -ENODEV) goto enodev;

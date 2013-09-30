@@ -200,33 +200,33 @@ int main(void)
 			sem_wait(&sems[l%C]);
 
 		/* Now submit the next stage */
-		ret = starpu_insert_task(&pipeline_codelet_x,
+		ret = starpu_task_insert(&pipeline_codelet_x,
 				STARPU_W, buffersX[l%K],
 				STARPU_VALUE, &x, sizeof(x),
 				0);
 		if (ret == -ENODEV) goto enodev;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task x");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert x");
 
-		ret = starpu_insert_task(&pipeline_codelet_x,
+		ret = starpu_task_insert(&pipeline_codelet_x,
 				STARPU_W, buffersY[l%K],
 				STARPU_VALUE, &y, sizeof(y),
 				0);
 		if (ret == -ENODEV) goto enodev;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task y");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert y");
 
-		ret = starpu_insert_task(&pipeline_codelet_axpy,
+		ret = starpu_task_insert(&pipeline_codelet_axpy,
 				STARPU_R, buffersX[l%K],
 				STARPU_RW, buffersY[l%K],
 				0);
 		if (ret == -ENODEV) goto enodev;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task axpy");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert axpy");
 
-		ret = starpu_insert_task(&pipeline_codelet_sum,
+		ret = starpu_task_insert(&pipeline_codelet_sum,
 				STARPU_R, buffersY[l%K],
 				STARPU_CALLBACK_WITH_ARG, (void (*)(void*))sem_post, &sems[l%C],
 				0);
 		if (ret == -ENODEV) goto enodev;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task sum");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert sum");
 	}
 	starpu_task_wait_for_all();
 

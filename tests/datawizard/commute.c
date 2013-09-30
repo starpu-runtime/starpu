@@ -141,7 +141,7 @@ static void test(enum starpu_data_access_mode begin_mode, enum starpu_data_acces
 		exit(STARPU_TEST_SKIPPED);
 	if (starpu_task_submit(commute2_t) == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
-	starpu_insert_task(&codelet_commute3, STARPU_RW|STARPU_COMMUTE, x_handle, 0);
+	starpu_task_insert(&codelet_commute3, STARPU_RW|STARPU_COMMUTE, x_handle, 0);
 	if (starpu_task_submit(end_t) == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
 

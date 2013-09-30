@@ -112,12 +112,12 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	ret = starpu_insert_task(&dummy_small_cl,
+	ret = starpu_task_insert(&dummy_small_cl,
 				 STARPU_VALUE, &dummy_small_cl.nbuffers, sizeof(dummy_small_cl.nbuffers),
 				 STARPU_RW, handle,
 				 0);
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
         ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
@@ -126,12 +126,12 @@ int main(int argc, char **argv)
 	{
 		handles[i] = handle;
 	}
-	ret = starpu_insert_task(&dummy_big_cl,
+	ret = starpu_task_insert(&dummy_big_cl,
 				 STARPU_VALUE, &dummy_big_cl.nbuffers, sizeof(dummy_big_cl.nbuffers),
 				 STARPU_DATA_ARRAY, handles, dummy_big_cl.nbuffers,
 				 0);
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
         ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 	free(handles);

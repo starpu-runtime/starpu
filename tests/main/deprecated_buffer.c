@@ -43,16 +43,16 @@ struct starpu_codelet cl_without_mode =
 	.nbuffers = 2
 };
 
-int submit_codelet_insert_task(struct starpu_codelet cl, starpu_data_handle_t handles0, starpu_data_handle_t handles1)
+int submit_codelet_task_insert(struct starpu_codelet cl, starpu_data_handle_t handles0, starpu_data_handle_t handles1)
 {
 	int ret;
 
-	ret = starpu_insert_task(&cl,
+	ret = starpu_task_insert(&cl,
 				 STARPU_R, handles0,
 				 STARPU_W, handles1,
 				 0);
 	if (ret == -ENODEV) return ret;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	starpu_task_wait_for_all();
 	return 0;
@@ -134,7 +134,7 @@ int submit_codelet(struct starpu_codelet cl, struct submit_task_func func)
 int main(int argc, char **argv)
 {
 	int ret;
-	struct submit_task_func insert_task = { .func = submit_codelet_insert_task, .name = "insert_task" };
+	struct submit_task_func task_insert = { .func = submit_codelet_task_insert, .name = "task_insert" };
 	struct submit_task_func with_buffers = { .func = submit_codelet_with_buffers, .name = "with_buffers" };
 	struct submit_task_func with_handles = { .func = submit_codelet_with_handles, .name = "with_handles" };
 
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	ret = submit_codelet(cl_with_mode, insert_task);
+	ret = submit_codelet(cl_with_mode, task_insert);
 	if (ret == -ENODEV)
 	{
 		starpu_shutdown();
@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 	}
 	if (!ret)
 	{
-		ret = submit_codelet(cl_without_mode, insert_task);
+		ret = submit_codelet(cl_without_mode, task_insert);
 	}
 	if (!ret)
 	{

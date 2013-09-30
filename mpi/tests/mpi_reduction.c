@@ -138,14 +138,14 @@ int main(int argc, char **argv)
 	{
 		for (x = 0; x < nb_elements; x+=step)
 		{
-			starpu_mpi_insert_task(MPI_COMM_WORLD,
+			starpu_mpi_task_insert(MPI_COMM_WORLD,
 					       &dot_codelet,
 					       STARPU_R, handles[x],
 					       STARPU_REDUX, dot_handle,
 					       0);
 		}
 		starpu_mpi_redux_data(MPI_COMM_WORLD, dot_handle);
-		starpu_mpi_insert_task(MPI_COMM_WORLD, &display_codelet, STARPU_R, dot_handle, 0);
+		starpu_mpi_task_insert(MPI_COMM_WORLD, &display_codelet, STARPU_R, dot_handle, 0);
 	}
 
 	FPRINTF_MPI("Waiting ...\n");

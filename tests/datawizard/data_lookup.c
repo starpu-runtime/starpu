@@ -56,12 +56,12 @@ static int test_lazy_allocation(void)
 	starpu_vector_data_register(&handle, -1, 0 /* NULL */,
 				    count, sizeof(float));
 
-	ret = starpu_insert_task(&cl,
+	ret = starpu_task_insert(&cl,
 				 STARPU_W, handle,
 				 STARPU_VALUE, &count, sizeof(size_t),
 				 0);
 	if (ret == -ENODEV) return ret;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	/* yes, we do not perform the computation but we did detect that no one
 	 * could perform the kernel, so this is not an error from StarPU */

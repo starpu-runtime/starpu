@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -106,7 +106,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 	{
 		for(i=0 ; i<nx ; i++) matrix[i] = i;
 		starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)matrix, nx, sizeof(matrix[0]));
-		ret = starpu_insert_task(vector_codelet, STARPU_RW, vector_handle, 0);
+		ret = starpu_task_insert(vector_codelet, STARPU_RW, vector_handle, 0);
 		starpu_data_unregister(vector_handle);
 		if (ret == -ENODEV) goto end;
 	}
@@ -121,7 +121,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 	{
 		for(i=0 ; i<nx ; i++) matrix[i] = i;
 		starpu_matrix_data_register(&matrix_handle, STARPU_MAIN_RAM, (uintptr_t)matrix, nx/2, nx/2, 2, sizeof(matrix[0]));
-		ret = starpu_insert_task(matrix_codelet, STARPU_RW, matrix_handle, 0);
+		ret = starpu_task_insert(matrix_codelet, STARPU_RW, matrix_handle, 0);
 		starpu_data_unregister(matrix_handle);
 		if (ret == -ENODEV) goto end;
 	}

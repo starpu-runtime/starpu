@@ -39,15 +39,15 @@ struct callback_arg {
 
 static void create_task_11(unsigned k)
 {
-	starpu_mpi_insert_task(MPI_COMM_WORLD,
-			&STARPU_PLU(cl11),
-			STARPU_VALUE, &k, sizeof(k),
-			STARPU_VALUE, &k, sizeof(k),
-			STARPU_VALUE, &k, sizeof(k),
-			STARPU_RW, STARPU_PLU(get_block_handle)(k, k),
-			STARPU_PRIORITY, !no_prio ?
-				STARPU_MAX_PRIO : STARPU_MIN_PRIO,
-			0);
+	starpu_mpi_task_insert(MPI_COMM_WORLD,
+			       &STARPU_PLU(cl11),
+			       STARPU_VALUE, &k, sizeof(k),
+			       STARPU_VALUE, &k, sizeof(k),
+			       STARPU_VALUE, &k, sizeof(k),
+			       STARPU_RW, STARPU_PLU(get_block_handle)(k, k),
+			       STARPU_PRIORITY, !no_prio ?
+			       STARPU_MAX_PRIO : STARPU_MIN_PRIO,
+			       0);
 }
 
 /*
@@ -57,17 +57,17 @@ static void create_task_11(unsigned k)
 static void create_task_12(unsigned k, unsigned j)
 {
 #warning temporary fix 
-	starpu_mpi_insert_task(MPI_COMM_WORLD,
-			//&STARPU_PLU(cl12),
-			&STARPU_PLU(cl21),
-			STARPU_VALUE, &j, sizeof(j),
-			STARPU_VALUE, &j, sizeof(j),
-			STARPU_VALUE, &k, sizeof(k),
-			STARPU_R, STARPU_PLU(get_block_handle)(k, k),
-			STARPU_RW, STARPU_PLU(get_block_handle)(k, j),
-			STARPU_PRIORITY, !no_prio && (j == k+1) ?
-				STARPU_MAX_PRIO : STARPU_MIN_PRIO,
-			0);
+	starpu_mpi_task_insert(MPI_COMM_WORLD,
+			       //&STARPU_PLU(cl12),
+			       &STARPU_PLU(cl21),
+			       STARPU_VALUE, &j, sizeof(j),
+			       STARPU_VALUE, &j, sizeof(j),
+			       STARPU_VALUE, &k, sizeof(k),
+			       STARPU_R, STARPU_PLU(get_block_handle)(k, k),
+			       STARPU_RW, STARPU_PLU(get_block_handle)(k, j),
+			       STARPU_PRIORITY, !no_prio && (j == k+1) ?
+			       STARPU_MAX_PRIO : STARPU_MIN_PRIO,
+			       0);
 }
 
 /*
@@ -77,17 +77,17 @@ static void create_task_12(unsigned k, unsigned j)
 static void create_task_21(unsigned k, unsigned i)
 {
 #warning temporary fix 
-	starpu_mpi_insert_task(MPI_COMM_WORLD,
-			//&STARPU_PLU(cl21),
-			&STARPU_PLU(cl12),
-			STARPU_VALUE, &i, sizeof(i),
-			STARPU_VALUE, &i, sizeof(i),
-			STARPU_VALUE, &k, sizeof(k),
-			STARPU_R, STARPU_PLU(get_block_handle)(k, k),
-			STARPU_RW, STARPU_PLU(get_block_handle)(i, k),
-			STARPU_PRIORITY, !no_prio && (i == k+1) ?
-				STARPU_MAX_PRIO : STARPU_MIN_PRIO,
-			0);
+	starpu_mpi_task_insert(MPI_COMM_WORLD,
+			       //&STARPU_PLU(cl21),
+			       &STARPU_PLU(cl12),
+			       STARPU_VALUE, &i, sizeof(i),
+			       STARPU_VALUE, &i, sizeof(i),
+			       STARPU_VALUE, &k, sizeof(k),
+			       STARPU_R, STARPU_PLU(get_block_handle)(k, k),
+			       STARPU_RW, STARPU_PLU(get_block_handle)(i, k),
+			       STARPU_PRIORITY, !no_prio && (i == k+1) ?
+			       STARPU_MAX_PRIO : STARPU_MIN_PRIO,
+			       0);
 }
 
 /*
@@ -96,17 +96,17 @@ static void create_task_21(unsigned k, unsigned i)
 
 static void create_task_22(unsigned k, unsigned i, unsigned j)
 {
-	starpu_mpi_insert_task(MPI_COMM_WORLD,
-			&STARPU_PLU(cl22),
-			STARPU_VALUE, &i, sizeof(i),
-			STARPU_VALUE, &j, sizeof(j),
-			STARPU_VALUE, &k, sizeof(k),
-			STARPU_R, STARPU_PLU(get_block_handle)(k, j),
-			STARPU_R, STARPU_PLU(get_block_handle)(i, k),
-			STARPU_RW, STARPU_PLU(get_block_handle)(i, j),
-			STARPU_PRIORITY, !no_prio && (i == k + 1) && (j == k +1) ?
-				STARPU_MAX_PRIO : STARPU_MIN_PRIO,
-			0);
+	starpu_mpi_task_insert(MPI_COMM_WORLD,
+			       &STARPU_PLU(cl22),
+			       STARPU_VALUE, &i, sizeof(i),
+			       STARPU_VALUE, &j, sizeof(j),
+			       STARPU_VALUE, &k, sizeof(k),
+			       STARPU_R, STARPU_PLU(get_block_handle)(k, j),
+			       STARPU_R, STARPU_PLU(get_block_handle)(i, k),
+			       STARPU_RW, STARPU_PLU(get_block_handle)(i, j),
+			       STARPU_PRIORITY, !no_prio && (i == k + 1) && (j == k +1) ?
+			       STARPU_MAX_PRIO : STARPU_MIN_PRIO,
+			       0);
 }
 
 /*

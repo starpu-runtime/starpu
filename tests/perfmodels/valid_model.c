@@ -81,7 +81,7 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
         starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, 100, sizeof(int));
 	for (loop = 0; loop < nloops; loop++)
 	{
-		ret = starpu_insert_task(codelet, STARPU_W, handle, 0);
+		ret = starpu_task_insert(codelet, STARPU_W, handle, 0);
 		if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}

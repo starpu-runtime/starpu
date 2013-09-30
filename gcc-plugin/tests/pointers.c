@@ -92,14 +92,14 @@ main (int argc, char *argv[])
   expected_register_arguments.element_size = sizeof *y;
   starpu_vector_data_register (&handle, STARPU_MAIN_RAM, (uintptr_t) y, 1, sizeof *y);
 
-  struct insert_task_argument expected_pointer_task[] =
+  struct task_insert_argument expected_pointer_task[] =
     {
       { STARPU_R,  x },
       { STARPU_RW, y },
       { 0, 0, 0 }
     };
 
-  expected_insert_task_arguments = expected_pointer_task;
+  expected_task_insert_arguments = expected_pointer_task;
 
   /* Invoke the task, which should make sure it gets called with
      EXPECTED.  */
@@ -110,7 +110,7 @@ main (int argc, char *argv[])
 
   /* Likewise with `my_mixed_task'.  */
 
-  struct insert_task_argument expected_mixed_task[] =
+  struct task_insert_argument expected_mixed_task[] =
     {
       { STARPU_RW, x },
       { STARPU_VALUE, &z, sizeof z },
@@ -118,7 +118,7 @@ main (int argc, char *argv[])
       { 0, 0, 0 }
     };
 
-  expected_insert_task_arguments = expected_mixed_task;
+  expected_task_insert_arguments = expected_mixed_task;
 
   my_mixed_task (x, 0x77, y);
 

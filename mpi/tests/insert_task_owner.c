@@ -101,41 +101,41 @@ int main(int argc, char **argv)
 	}
 
 	node = starpu_data_get_rank(data_handlesx1);
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_r_w,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_R, data_handlesx0, STARPU_W, data_handlesx1,
 				     0);
 	assert(err == 0);
 
 	node = starpu_data_get_rank(data_handlesx0);
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_r,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_rw_r,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_R, data_handlesx1,
 				     0);
 	assert(err == 0);
 
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_rw_rw,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1,
 				     0);
 	assert(err == -EINVAL);
 
 	node = 1;
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_rw_rw,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
 				     0);
 	assert(err == 0);
 
 	node = 0;
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_rw,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_rw_rw,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
 				     0);
 	assert(err == 0);
 
 	node = 0;
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_r,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_r_r,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_R, data_handlesx0, STARPU_R, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
 				     0);
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 	   going to overwrite the node even though the data model clearly specifies
 	   which node is going to execute the codelet */
 	node = 0;
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_r_w,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_R, data_handlesx0, STARPU_W, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
 				     0);
@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 	   going to overwrite the node even though the data model clearly specifies
 	   which node is going to execute the codelet */
 	node = 0;
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_w_r,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_w_r,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_W, data_handlesx0, STARPU_R, data_handlesx1, STARPU_EXECUTE_ON_NODE, node,
 				     0);

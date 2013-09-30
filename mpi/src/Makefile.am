@@ -36,14 +36,14 @@ noinst_HEADERS =					\
 	starpu_mpi_private.h				\
 	starpu_mpi_fxt.h				\
 	starpu_mpi_stats.h				\
-	starpu_mpi_insert_task.h			\
+	starpu_mpi_task_insert.h			\
 	starpu_mpi_datatype.h
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi.c					\
 	starpu_mpi_helper.c				\
 	starpu_mpi_datatype.c				\
-	starpu_mpi_insert_task.c			\
+	starpu_mpi_task_insert.c			\
 	starpu_mpi_collective.c				\
 	starpu_mpi_stats.c				\
 	starpu_mpi_private.c

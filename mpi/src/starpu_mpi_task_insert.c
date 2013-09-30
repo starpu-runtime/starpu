@@ -22,7 +22,7 @@
 #include <starpu_data.h>
 #include <common/utils.h>
 #include <common/uthash.h>
-#include <util/starpu_insert_task_utils.h>
+#include <util/starpu_task_insert_utils.h>
 #include <datawizard/coherency.h>
 #include <core/task.h>
 
@@ -195,7 +195,7 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 			 * The application knows we won't do anything
 			 * about this task */
 			/* Yes, the app could actually not call
-			 * insert_task at all itself, this is just a
+			 * task_insert at all itself, this is just a
 			 * safeguard. */
 			_STARPU_MPI_DEBUG(3, "oh oh\n");
 			_STARPU_MPI_LOG_OUT();
@@ -363,7 +363,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 	}
 }
 
-int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
+int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
 	int arg_type;
 	va_list varg_list;
@@ -585,7 +585,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	{
 		/* Get the number of buffers and the size of the arguments */
 		va_start(varg_list, codelet);
-		arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
+		arg_buffer_size = _starpu_task_insert_get_arg_size(varg_list);
 
 		/* Pack arguments if needed */
 		if (arg_buffer_size)
@@ -604,8 +604,8 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			task->dyn_handles = malloc(codelet->nbuffers * sizeof(starpu_data_handle_t));
 		}
-		int ret = _starpu_insert_task_create_and_submit(arg_buffer, arg_buffer_size, codelet, &task, varg_list);
-		STARPU_ASSERT_MSG(ret==0, "_starpu_insert_task_create_and_submit failure %d", ret);
+		int ret = _starpu_task_insert_create_and_submit(arg_buffer, arg_buffer_size, codelet, &task, varg_list);
+		STARPU_ASSERT_MSG(ret==0, "_starpu_task_insert_create_and_submit failure %d", ret);
 	}
 
 	if (inconsistent_execute)
@@ -865,7 +865,7 @@ void _starpu_mpi_redux_data_recv_callback(void *callback_arg)
 	starpu_mpi_irecv_detached_sequential_consistency(args->new_handle, args->node, args->tag, args->comm, _starpu_mpi_redux_data_detached_callback, args, 0);
 }
 
-/* TODO: this should rather be implicitly called by starpu_mpi_insert_task when
+/* TODO: this should rather be implicitly called by starpu_mpi_task_insert when
  * a data previously accessed in REDUX mode gets accessed in R mode. */
 void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 {
@@ -934,7 +934,7 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 				taskBs[j] = args->taskB; j++;
 
 				// Submit taskA
-				starpu_insert_task(&_starpu_mpi_redux_data_read_cl,
+				starpu_task_insert(&_starpu_mpi_redux_data_read_cl,
 						   STARPU_R, data_handle,
 						   STARPU_CALLBACK_WITH_ARG, _starpu_mpi_redux_data_recv_callback, args,
 						   0);
@@ -953,7 +953,7 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 	{
 		_STARPU_MPI_DEBUG(1, "Sending redux handle to %d ...\n", rank);
 		starpu_mpi_isend_detached(data_handle, rank, tag, comm, NULL, NULL);
-		starpu_insert_task(data_handle->init_cl, STARPU_W, data_handle, 0);
+		starpu_task_insert(data_handle->init_cl, STARPU_W, data_handle, 0);
 	}
 	/* FIXME: In order to prevent simultaneous receive submissions
 	 * on the same handle, we need to wait that all the starpu_mpi

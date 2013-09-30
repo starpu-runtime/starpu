@@ -97,7 +97,7 @@ the current thread will submit tasks to the coresponding context.
 When the application may not assign a thread of submission to each
 context, the id of the context must be indicated by using the
 function <c>starpu_task_submit_to_ctx</c> or the field <c>STARPU_SCHED_CTX</c> 
-for <c>starpu_insert_task</c>.
+for starpu_task_insert().
 
 \section DeletingAContext Deleting A Context
 

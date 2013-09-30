@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 			if (owner == rank)
 			{
 				//fprintf(stderr,"[%d] Computing on data[%d]\n", rank, x);
-				starpu_insert_task(&cl,
+				starpu_task_insert(&cl,
 						   STARPU_VALUE, &rank, sizeof(rank),
 						   STARPU_RW, data_handles[x],
 						   0);

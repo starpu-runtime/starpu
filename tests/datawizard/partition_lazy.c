@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < f.nchildren; i++)
 	{
-		ret = starpu_insert_task(&mycodelet,
+		ret = starpu_task_insert(&mycodelet,
 					 STARPU_W,
 					 starpu_data_get_sub_data(handle, 1, i),
 					 0);

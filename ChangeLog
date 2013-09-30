@@ -66,6 +66,9 @@ Small features:
     enable automatic free(cl_arg); free(callback_arg);
     free(prologue_callback_arg) on task destroy.
   * New function starpu_task_build
+  * Functions starpu_insert_task and starpu_mpi_insert_task are
+    renamed in starpu_task_insert and starpu_mpi_task_insert. Old
+    names are kept to avoid breaking old codes.
 
 Changes:
   * Fix of the livelock issue discovered while executing applications

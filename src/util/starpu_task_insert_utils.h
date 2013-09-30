@@ -14,18 +14,18 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __STARPU_INSERT_TASK_UTILS_H__
-#define __STARPU_INSERT_TASK_UTILS_H__
+#ifndef __STARPU_TASK_INSERT_UTILS_H__
+#define __STARPU_TASK_INSERT_UTILS_H__
 
 #include <stdlib.h>
 #include <stdarg.h>
 #include <starpu.h>
 
-size_t _starpu_insert_task_get_arg_size(va_list varg_list);
+size_t _starpu_task_insert_get_arg_size(va_list varg_list);
 int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list varg_list);
-void _starpu_insert_task_create(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list);
-int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list);
-int _starpu_insert_task_create_and_submit_array(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, starpu_data_handle_t *handles, unsigned nb_handles, va_list varg_list);
+void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list);
+int _starpu_task_insert_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list);
+int _starpu_task_insert_create_and_submit_array(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, starpu_data_handle_t *handles, unsigned nb_handles, va_list varg_list);
 
-#endif // __STARPU_INSERT_TASK_UTILS_H__
+#endif // __STARPU_TASK_INSERT_UTILS_H__
 

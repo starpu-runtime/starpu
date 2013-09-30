@@ -288,20 +288,20 @@ int dot_kernel(starpu_data_handle_t v1,
 	if (use_reduction)
 		starpu_data_invalidate_submit(s);
 	else {
-		ret = starpu_insert_task(&bzero_variable_cl, STARPU_W, s, 0);
+		ret = starpu_task_insert(&bzero_variable_cl, STARPU_W, s, 0);
 		if (ret == -ENODEV) return ret;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
 	{
-		ret = starpu_insert_task(&dot_kernel_cl,
+		ret = starpu_task_insert(&dot_kernel_cl,
 					 use_reduction?STARPU_REDUX:STARPU_RW, s,
 					 STARPU_R, starpu_data_get_sub_data(v1, 1, b),
 					 STARPU_R, starpu_data_get_sub_data(v2, 1, b),
 					 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 	return 0;
 }
@@ -442,12 +442,12 @@ int gemv_kernel(starpu_data_handle_t v1,
 
 	for (b2 = 0; b2 < nblocks; b2++)
 	{
-		ret = starpu_insert_task(&scal_kernel_cl,
+		ret = starpu_task_insert(&scal_kernel_cl,
 					 STARPU_RW, starpu_data_get_sub_data(v1, 1, b2),
 					 STARPU_VALUE, &p1, sizeof(p1),
 					 0);
 		if (ret == -ENODEV) return ret;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
 	for (b2 = 0; b2 < nblocks; b2++)
@@ -455,14 +455,14 @@ int gemv_kernel(starpu_data_handle_t v1,
 		for (b1 = 0; b1 < nblocks; b1++)
 		{
 			TYPE one = 1.0;
-			ret = starpu_insert_task(&gemv_kernel_cl,
+			ret = starpu_task_insert(&gemv_kernel_cl,
 						 use_reduction?STARPU_REDUX:STARPU_RW,	starpu_data_get_sub_data(v1, 1, b2),
 						 STARPU_R,	starpu_data_get_sub_data(matrix, 2, b2, b1),
 						 STARPU_R,	starpu_data_get_sub_data(v2, 1, b1),
 						 STARPU_VALUE,	&one,	sizeof(one),
 						 STARPU_VALUE,	&p2,	sizeof(p2),
 						 0);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 	}
 	return 0;
@@ -535,14 +535,14 @@ int scal_axpy_kernel(starpu_data_handle_t v1, TYPE p1,
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
 	{
-		ret = starpu_insert_task(&scal_axpy_kernel_cl,
+		ret = starpu_task_insert(&scal_axpy_kernel_cl,
 					 STARPU_RW, starpu_data_get_sub_data(v1, 1, b),
 					 STARPU_R,  starpu_data_get_sub_data(v2, 1, b),
 					 STARPU_VALUE, &p1, sizeof(p1),
 					 STARPU_VALUE, &p2, sizeof(p2),
 					 0);
 		if (ret == -ENODEV) return ret;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 	return 0;
 }
@@ -609,13 +609,13 @@ int axpy_kernel(starpu_data_handle_t v1,
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
 	{
-		ret = starpu_insert_task(&axpy_kernel_cl,
+		ret = starpu_task_insert(&axpy_kernel_cl,
 					 STARPU_RW, starpu_data_get_sub_data(v1, 1, b),
 					 STARPU_R,  starpu_data_get_sub_data(v2, 1, b),
 					 STARPU_VALUE, &p1, sizeof(p1),
 					 0);
 		if (ret == -ENODEV) return ret;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 	return 0;
 }

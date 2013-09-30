@@ -78,7 +78,7 @@ int submit_codelet(struct starpu_codelet cl, int where)
 	starpu_variable_data_register(&handles[1], STARPU_MAIN_RAM, (uintptr_t)&y, sizeof(y));
 
 	cl.where = where;
-	ret = starpu_insert_task(&cl,
+	ret = starpu_task_insert(&cl,
 				 STARPU_R, handles[0],
 				 STARPU_W, handles[1],
 				 0);

@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 		{
 			for (y = 1; y < Y-1; y++)
 			{
-				starpu_mpi_insert_task(MPI_COMM_WORLD, &stencil5_cl, STARPU_RW, data_handles[x][y],
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &stencil5_cl, STARPU_RW, data_handles[x][y],
 						       STARPU_R, data_handles[x-1][y], STARPU_R, data_handles[x+1][y],
 						       STARPU_R, data_handles[x][y-1], STARPU_R, data_handles[x][y+1],
 						       0);

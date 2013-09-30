@@ -76,7 +76,7 @@ The <b>Application driven</b> strategy uses the user's input concerning the mome
 Thus, the users tags the task that should trigger the resizing
 process. We can set directly the field starpu_task::hypervisor_tag or
 use the macro ::STARPU_HYPERVISOR_TAG in the function
-starpu_insert_task().
+starpu_task_insert().
 
 \code{.c}
 task.hypervisor_tag = 2;
@@ -85,7 +85,7 @@ task.hypervisor_tag = 2;
 or
 
 \code{.c}
-starpu_insert_task(&codelet,
+starpu_task_insert(&codelet,
 		    ...,
 		    STARPU_HYPERVISOR_TAG, 2,
                     0);
@@ -131,7 +131,7 @@ The number of flops to be executed by a context are passed as
  (<c>sc_hypervisor_register_ctx(sched_ctx_id, flops)</c>) and the one
  to be executed by each task are passed when the task is submitted.
  The corresponding field is starpu_task::flops and the corresponding
- macro in the function starpu_insert_task() is ::STARPU_FLOPS
+ macro in the function starpu_task_insert() is ::STARPU_FLOPS
  (<b>Caution</b>: but take care of passing a double, not an integer,
  otherwise parameter passing will be bogus). When the task is executed
  the resizing process is triggered.
@@ -143,7 +143,7 @@ task.flops = 100;
 or
 
 \code{.c}
-starpu_insert_task(&codelet,
+starpu_task_insert(&codelet,
                     ...,
                     STARPU_FLOPS, (double) 100,
                     0);

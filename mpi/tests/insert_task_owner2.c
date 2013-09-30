@@ -93,12 +93,12 @@ int main(int argc, char **argv)
 	starpu_data_set_rank(data_handles[3], 1);
 	starpu_data_set_tag(data_handles[3], 3);
 
-	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
+	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
 				     STARPU_R, data_handles[0], STARPU_RW, data_handles[1],
 				     STARPU_W, data_handles[2],
 				     STARPU_W, data_handles[3],
 				     STARPU_EXECUTE_ON_NODE, 1, 0);
-	STARPU_CHECK_RETURN_VALUE(err, "starpu_mpi_insert_task");
+	STARPU_CHECK_RETURN_VALUE(err, "starpu_mpi_task_insert");
 	starpu_task_wait_for_all();
 
 	int *values = malloc(4 * sizeof(int *));
