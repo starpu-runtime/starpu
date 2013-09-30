@@ -92,6 +92,8 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "v -> %d\n", v);
 
+	free(x);
+
 	starpu_shutdown();
 
 	return 0;
