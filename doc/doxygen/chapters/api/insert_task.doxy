@@ -95,4 +95,11 @@ starpu_codelet_unpack_args().
 Retrieve the arguments of type ::STARPU_VALUE associated to a
 task automatically created using the function starpu_insert_task().
 
+\fn struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
+\ingroup API_Insert_Task
+Create a task corresponding to \p cl with the following arguments.
+The argument list must be zero-terminated. The arguments
+following the codelet are the same as the ones for the function
+starpu_task_insert().
+
 */
