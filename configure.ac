@@ -225,8 +225,16 @@ AM_CONDITIONAL([STARPU_LONG_CHECK], [test "x$enable_long_check" = "xyes"])
 
 AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])
 
-AC_CHECK_HEADERS([valgrind/valgrind.h], [AC_DEFINE([STARPU_HAVE_VALGRIND_H], [1], [Define to 1 if you have the <valgrind/valgrind.h> header file.])])
-AC_CHECK_HEADERS([valgrind/helgrind.h], [AC_DEFINE([STARPU_HAVE_HELGRIND_H], [1], [Define to 1 if you have the <valgrind/helgrind.h> header file.])])
+AC_ARG_ENABLE(valgrind, [AS_HELP_STRING([--disable-valgrind],
+				   [Do not check the availability of valgrind.h and helgrind.h])],
+				   enable_valgrind=$enableval, enable_valgrind=yes)
+if test "$enable_valgrind" != "no" ; then
+   AC_CHECK_HEADERS([valgrind/valgrind.h], [AC_DEFINE([STARPU_HAVE_VALGRIND_H], [1], [Define to 1 if you have the <valgrind/valgrind.h> header file.])])
+   AC_CHECK_HEADERS([valgrind/helgrind.h], [AC_DEFINE([STARPU_HAVE_HELGRIND_H], [1], [Define to 1 if you have the <valgrind/helgrind.h> header file.])])
+fi
+if test "$enable_valgrind" = "full" ; then
+   AC_DEFINE([STARPU_VALGRIND_FULL], [1], [Define to 1 to disable STARPU_SKIP_IF_VALGRIND when running tests.])
+fi
 
 AC_CHECK_FUNC([sched_yield], [AC_DEFINE([STARPU_HAVE_SCHED_YIELD], [1], [Define to 1 if the function sched_yield is available.])])
 
