@@ -262,7 +262,8 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		_starpu_spin_lock(&handle->header_lock);
 		handle->refcnt--;
 		handle->busy_count--;
-		_starpu_spin_unlock(&handle->header_lock);
+		if (!_starpu_data_check_not_busy(handle))
+			_starpu_spin_unlock(&handle->header_lock);
 		starpu_task_clean(conversion_task);
 		free(conversion_task);
 	}

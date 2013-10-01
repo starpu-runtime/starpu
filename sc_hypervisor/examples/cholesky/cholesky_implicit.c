@@ -96,17 +96,17 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 		if(k == 0 && with_ctxs)
 		{
-			 ret = starpu_insert_task(&cl11,
-					   STARPU_PRIORITY, prio_level,
-					   STARPU_RW, sdatakk,
-					   STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
-					   STARPU_HYPERVISOR_TAG, hypervisor_tag,
-					   0);
+			 ret = starpu_task_insert(&cl11,
+						  STARPU_PRIORITY, prio_level,
+						  STARPU_RW, sdatakk,
+						  STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
+						  STARPU_HYPERVISOR_TAG, hypervisor_tag,
+						  0);
 			set_hypervisor_conf(START_BENCH, hypervisor_tag++);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 		else
-			starpu_insert_task(&cl11,
+			starpu_task_insert(&cl11,
 					   STARPU_PRIORITY, prio_level,
 					   STARPU_RW, sdatakk,
 					   STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
@@ -116,12 +116,12 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
                         starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
 
-                        ret = starpu_insert_task(&cl21,
+                        ret = starpu_task_insert(&cl21,
 						 STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatakj,
 						 0);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 			for (i = k+1; i<nblocks; i++)
 			{
@@ -133,25 +133,25 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					if(k == (nblocks-2) && j == (nblocks-1) &&
 					   i == (k + 1) && with_ctxs)
 					{
-						ret = starpu_insert_task(&cl22,
+						ret = starpu_task_insert(&cl22,
 								   STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
 								   STARPU_R, sdataki,
 								   STARPU_R, sdatakj,
 								   STARPU_RW, sdataij,
 								   STARPU_HYPERVISOR_TAG, hypervisor_tag,
 								   0);
-						STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 						set_hypervisor_conf(END_BENCH, hypervisor_tag++);
 					}
 					
 					else
-						ret = starpu_insert_task(&cl22,
+						ret = starpu_task_insert(&cl22,
 								   STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
 								   STARPU_R, sdataki,
 								   STARPU_R, sdatakj,
 								   STARPU_RW, sdataij,
 								   0);
-						STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 					
                    }
 			}

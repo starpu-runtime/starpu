@@ -62,7 +62,7 @@ typedef double         cl_double;
 /* Number of tasks submitted.  */
 static unsigned int tasks_submitted;
 
-struct insert_task_argument
+struct task_insert_argument
 {
   /* `STARPU_VALUE', etc. */
   int type;
@@ -75,18 +75,18 @@ struct insert_task_argument
 };
 
 /* Pointer to a zero-terminated array listing the expected
-   `starpu_insert_task' arguments.  */
-const struct insert_task_argument *expected_insert_task_arguments;
+   `starpu_task_insert' arguments.  */
+const struct task_insert_argument *expected_task_insert_arguments;
 
 /* Expected targets of the codelets submitted.  */
-static int expected_insert_task_targets = STARPU_CPU | STARPU_OPENCL;
+static int expected_task_insert_targets = STARPU_CPU | STARPU_OPENCL;
 
 
 int
-starpu_insert_task (struct starpu_codelet *cl, ...)
+starpu_task_insert (struct starpu_codelet *cl, ...)
 {
   assert (cl->name != NULL && strlen (cl->name) > 0);
-  assert (cl->where == expected_insert_task_targets);
+  assert (cl->where == expected_task_insert_targets);
 
   assert ((cl->where & STARPU_CPU) == 0
 	  ? cl->cpu_funcs[0] == NULL
@@ -106,8 +106,8 @@ starpu_insert_task (struct starpu_codelet *cl, ...)
 
   va_start (args, cl);
 
-  const struct insert_task_argument *expected;
-  for (expected = expected_insert_task_arguments,
+  const struct task_insert_argument *expected;
+  for (expected = expected_task_insert_arguments,
 	 cl_args_offset = 1, scalars = 0, pointers = 0;
        expected->type != 0;
        expected++)
@@ -528,9 +528,9 @@ clSetKernelArg (cl_kernel kernel, cl_uint index, size_t size,
 		const void *value)
 {
   size_t n;
-  const struct insert_task_argument *arg;
+  const struct task_insert_argument *arg;
 
-  for (n = 0, arg = expected_insert_task_arguments;
+  for (n = 0, arg = expected_task_insert_arguments;
        n < index;
        n++, arg++)
     assert (arg->pointer != NULL);

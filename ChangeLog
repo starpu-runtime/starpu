@@ -52,8 +52,6 @@ New features:
     scheduled.
 
 Small features:
-  * Add cl_arg_free field to enable automatic free(cl_arg) on task
-    destroy.
   * New functions starpu_data_acquire_cb_sequential_consistency() and
     starpu_data_acquire_on_node_cb_sequential_consistency() which allows
     to enable or disable sequential consistency
@@ -64,6 +62,13 @@ Small features:
     the tool starpu_perfmodel_display
   * New batch files to execute StarPU applications under Microsoft
     Visual Studio (They are installed in path_to_starpu/bin/mvsc)/
+  * Add cl_arg_free, callback_arg_free, prologue_callback_arg_free fields to
+    enable automatic free(cl_arg); free(callback_arg);
+    free(prologue_callback_arg) on task destroy.
+  * New function starpu_task_build
+  * Functions starpu_insert_task and starpu_mpi_insert_task are
+    renamed in starpu_task_insert and starpu_mpi_task_insert. Old
+    names are kept to avoid breaking old codes.
 
 Changes:
   * Fix of the livelock issue discovered while executing applications
@@ -72,6 +77,11 @@ Changes:
   * Data interfaces (variable, vector, matrix and block) now define
     pack und unpack functions
   * Fix for properly dealing with NAN on windows systems
+  * StarPU-MPI: Fix for being able to receive data which have not yet
+    been registered by the application (i.e it did not call
+    starpu_data_set_tag(), data are received as a raw memory)
+  * StarPU-MPI: Fix for being able to receive data with the same tag
+    from several nodes (see mpi/tests/gather.c)
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================

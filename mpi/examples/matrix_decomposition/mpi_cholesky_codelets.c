@@ -112,20 +112,20 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 		int prio = STARPU_DEFAULT_PRIO;
 		if (!noprio) prio = STARPU_MAX_PRIO;
 
-		starpu_mpi_insert_task(MPI_COMM_WORLD, &cl11,
-				STARPU_PRIORITY, prio,
-				STARPU_RW, data_handles[k][k],
-				0);
+		starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+				       STARPU_PRIORITY, prio,
+				       STARPU_RW, data_handles[k][k],
+				       0);
 
 		for (j = k+1; j<nblocks; j++)
 		{
 			prio = STARPU_DEFAULT_PRIO;
 			if (!noprio&& (j == k+1)) prio = STARPU_MAX_PRIO;
-			starpu_mpi_insert_task(MPI_COMM_WORLD, &cl21,
-					STARPU_PRIORITY, prio,
-					STARPU_R, data_handles[k][k],
-					STARPU_RW, data_handles[k][j],
-					0);
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+					       STARPU_PRIORITY, prio,
+					       STARPU_R, data_handles[k][k],
+					       STARPU_RW, data_handles[k][j],
+					       0);
 
 			for (i = k+1; i<nblocks; i++)
 			{
@@ -133,12 +133,12 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 				{
 					prio = STARPU_DEFAULT_PRIO;
 					if (!noprio && (i == k + 1) && (j == k +1) ) prio = STARPU_MAX_PRIO;
-					starpu_mpi_insert_task(MPI_COMM_WORLD, &cl22,
-							STARPU_PRIORITY, prio,
-							STARPU_R, data_handles[k][i],
-							STARPU_R, data_handles[k][j],
-							STARPU_RW, data_handles[i][j],
-							0);
+					starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+							       STARPU_PRIORITY, prio,
+							       STARPU_R, data_handles[k][i],
+							       STARPU_R, data_handles[k][j],
+							       STARPU_RW, data_handles[i][j],
+							       0);
 				}
 			}
 		}
@@ -186,7 +186,7 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 		}
 	}
 
-	fprintf(stderr, "[%d] compute explicit LLt ...\n", rank);
+	FPRINTF(stderr, "[%d] compute explicit LLt ...\n", rank);
 	for (j = 0; j < size; j++)
 	{
 		for (i = 0; i < size; i++)
@@ -203,7 +203,7 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 	SSYRK("L", "N", size, size, 1.0f,
 			rmat, size, 0.0f, test_mat, size);
 
-	fprintf(stderr, "[%d] comparing results ...\n", rank);
+	FPRINTF(stderr, "[%d] comparing results ...\n", rank);
 	if (display)
 	{
 		for (j = 0; j < size; j++)
@@ -241,7 +241,7 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 							float err = abs(test_mat[j +i*size] - orig);
 							if (err > 0.00001)
 							{
-								fprintf(stderr, "[%d] Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", rank, i, j, test_mat[j +i*size], orig, err);
+								FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", rank, i, j, test_mat[j +i*size], orig, err);
 								*correctness = 0;
 								*flops = 0;
 								break;

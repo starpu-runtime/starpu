@@ -99,7 +99,7 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func, int detac
 		{
 			for(i=0 ; i<NB ; i++)
 			{
-			     starpu_mpi_wait(&req[i], NULL);
+			     starpu_mpi_wait(&req[i], MPI_STATUS_IGNORE);
 			     func(handles[i], i, rank, &ret);
 			}
 		}

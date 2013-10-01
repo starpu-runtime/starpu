@@ -525,7 +525,7 @@ declare_codelet (tree task_decl)
   return cl_decl;
 }
 
-/* Build the body of TASK_DECL, which will call `starpu_insert_task'.  */
+/* Build the body of TASK_DECL, which will call `starpu_task_insert'.  */
 
 void
 define_task (tree task_decl)
@@ -583,22 +583,22 @@ define_task (tree task_decl)
   /* Introduce a local variable to hold the error code.  */
 
   tree error_var = build_decl (loc, VAR_DECL,
-  			       create_tmp_var_name (".insert_task_error"),
+  			       create_tmp_var_name (".task_insert_error"),
   			       integer_type_node);
   DECL_CONTEXT (error_var) = task_decl;
   DECL_ARTIFICIAL (error_var) = true;
 
   /* Build this:
 
-       err = starpu_insert_task (...);
+       err = starpu_task_insert (...);
        if (err != 0)
          { printf ...; abort (); }
    */
 
-  static tree insert_task_fn;
-  LOOKUP_STARPU_FUNCTION (insert_task_fn, "starpu_insert_task");
+  static tree task_insert_fn;
+  LOOKUP_STARPU_FUNCTION (task_insert_fn, "starpu_task_insert");
 
-  tree call = build_call_expr_loc_vec (loc, insert_task_fn, args);
+  tree call = build_call_expr_loc_vec (loc, task_insert_fn, args);
 
   tree assignment = build2 (INIT_EXPR, TREE_TYPE (error_var),
   			    error_var, call);

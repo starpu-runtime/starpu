@@ -70,9 +70,9 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 		STARPU_ASSERT_MSG(!job->submitted || !task->destroy || task->detach, "Task dependencies have to be set before submission (submitted %u destroy %d detach %d)", job->submitted, task->destroy, task->detach);
 	else
 		STARPU_ASSERT_MSG(job->terminated <= 1, "Task dependencies have to be set before termination (terminated %u)", job->terminated);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
 
 	struct _starpu_cg *cg = create_cg_task(ndeps, job);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
 
 	unsigned i;
 	for (i = 0; i < ndeps; i++)

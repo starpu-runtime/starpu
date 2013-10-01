@@ -67,7 +67,7 @@ int compute(char *file_name, int load_as_file)
 
 	for (i = 0; i < niter; i++)
 	{
-		ret = starpu_insert_task(&cl, STARPU_RW, float_array_handle, 0);
+		ret = starpu_task_insert(&cl, STARPU_RW, float_array_handle, 0);
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
 			FPRINTF(stderr, "No worker may execute this task\n");

@@ -82,14 +82,14 @@ void test_cache(int rank, int size, int enabled, size_t *comm_amount)
 
 	for(i = 0; i < 5; i++)
 	{
-		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 
 	for(i = 0; i < 5; i++)
 	{
-		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 
 	starpu_task_wait_for_all();
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 	{
 		dst = (rank == 0) ? 1 : 0;
 		result = (comm_amount_with_cache[dst] == comm_amount_without_cache[dst] * 5);
-		fprintf(stderr, "Communication cache mechanism is %sworking\n", result?"":"NOT ");
+		FPRINTF_MPI("Communication cache mechanism is %sworking\n", result?"":"NOT ");
 	}
 	else
 		result = 1;

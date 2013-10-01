@@ -191,6 +191,8 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		child->last_sync_task = NULL;
 		child->last_submitted_accessors = NULL;
 		child->post_sync_tasks = NULL;
+		/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
+		STARPU_HG_DISABLE_CHECKING(child->post_sync_tasks_cnt);
 		child->post_sync_tasks_cnt = 0;
 
 		/* The methods used for reduction are propagated to the
@@ -274,6 +276,8 @@ void _starpu_empty_codelet_function(void *buffers[], void *args)
 void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gathering_node)
 {
 	unsigned child;
+	unsigned worker;
+	unsigned nworkers = starpu_worker_get_count();
 	unsigned node;
 	unsigned sizes[root_handle->nchildren];
 
@@ -315,16 +319,34 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		}
 
 		int ret;
-		ret = _starpu_fetch_data_on_node(child_handle, &child_handle->per_node[gathering_node], STARPU_R, 0, 0, NULL, NULL);
 		/* for now we pretend that the RAM is almost unlimited and that gathering
 		 * data should be possible from the node that does the unpartionning ... we
 		 * don't want to have the programming deal with memory shortage at that time,
 		 * really */
+		if (child_handle->current_mode == STARPU_REDUX)
+		{
+			/* Acquire the child data on the gathering node. This will trigger collapsing the reduction */
+			ret = starpu_data_acquire_on_node(child_handle, gathering_node, STARPU_RW);
+			_starpu_unlock_post_sync_tasks(child_handle);
+		} else
+		{
+			/* Simply transfer any pending data */
+			ret = _starpu_fetch_data_on_node(child_handle, &child_handle->per_node[gathering_node], STARPU_R, 0, 0, NULL, NULL);
+		}
 		STARPU_ASSERT(ret == 0);
 
 		_starpu_spin_lock(&child_handle->header_lock);
 
 		_starpu_data_free_interfaces(child_handle);
+
+		for (worker = 0; worker < nworkers; worker++)
+		{
+			struct _starpu_data_replicate *local = &child_handle->per_worker[worker];
+			STARPU_ASSERT(local->state == STARPU_INVALID);
+			if (local->allocated && local->automatically_allocated)
+				_starpu_request_mem_chunk_removal(child_handle, local, starpu_worker_get_memory_node(worker), sizes[child]);
+		}
+
 		_starpu_memory_stats_free(child_handle);
 		_starpu_data_requester_list_delete(child_handle->req_list);
 		_starpu_data_requester_list_delete(child_handle->reduction_req_list);

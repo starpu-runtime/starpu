@@ -103,7 +103,8 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 			}
 		}
 	}
-	fprintf(stderr, "Warning: scheduling policy \"%s\" was not found, try \"help\" to get a list\n", policy_name);
+	if (strcmp(policy_name, "help") != 0)
+	     fprintf(stderr, "Warning: scheduling policy \"%s\" was not found, try \"help\" to get a list\n", policy_name);
 
 	/* nothing was found */
 	return NULL;
@@ -117,12 +118,13 @@ static void display_sched_help_message(void)
 		/* display the description of all predefined policies */
 		struct starpu_sched_policy **policy;
 
-		fprintf(stderr, "STARPU_SCHED can be either of\n");
+		fprintf(stderr, "\nThe variable STARPU_SCHED can be set to one of the following strings:\n");
 		for(policy=predefined_policies ; *policy!=NULL ; policy++)
 		{
 			struct starpu_sched_policy *p = *policy;
 			fprintf(stderr, "%s\t-> %s\n", p->policy_name, p->policy_description);
 		}
+		fprintf(stderr, "\n");
 	 }
 }
 
@@ -630,18 +632,29 @@ pick:
 				}
 			}
 
-			if(!task && sched_ctx && worker->removed_from_ctx[sched_ctx->id])
+			if(!task)
 			{
-				_starpu_worker_gets_out_of_ctx(sched_ctx->id, worker);
-				worker->removed_from_ctx[sched_ctx->id] = 0;
-			}
+				if(sched_ctx && worker->removed_from_ctx[sched_ctx->id])
+				{
+					_starpu_worker_gets_out_of_ctx(sched_ctx->id, worker);
+					worker->removed_from_ctx[sched_ctx->id] = 0;
+				} 
+#ifdef STARPU_USE_SC_HYPERVISOR
+				else 
+				{
+					struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
+					if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_cycle)
+						perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
+				}
+#endif //STARPU_USE_SC_HYPERVISOR
+					
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-			if((!task && sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
-				break;
-
-
-			been_here[sched_ctx->id] = 1;
+				if((sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
+					break;
+				been_here[sched_ctx->id] = 1;
 #endif
+			}
+			
 			sched_ctx->pop_counter[worker->workerid]++;
 		}
 	  }
@@ -649,6 +662,17 @@ pick:
 
 	if (!task)
 		return NULL;
+
+
+
+#ifdef STARPU_USE_SC_HYPERVISOR
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
+
+	if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_end)
+		perf_counters->notify_idle_end(task->sched_ctx, worker->workerid);
+#endif //STARPU_USE_SC_HYPERVISOR
+
 
 	/* Make sure we do not bother with all the multiformat-specific code if
 	 * it is not necessary. */

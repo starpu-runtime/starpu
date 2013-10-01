@@ -21,7 +21,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <stdarg.h>
-#include <util/starpu_insert_task_utils.h>
+#include <util/starpu_task_insert_utils.h>
 
 void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 {
@@ -29,7 +29,7 @@ void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 
 	/* Compute the size */
 	va_start(varg_list, arg_buffer_size);
-	*arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
+	*arg_buffer_size = _starpu_task_insert_get_arg_size(varg_list);
 
 	va_start(varg_list, arg_buffer_size);
 	_starpu_codelet_pack_args(arg_buffer, *arg_buffer_size, varg_list);
@@ -62,7 +62,7 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 	va_end(varg_list);
 }
 
-int starpu_insert_task(struct starpu_codelet *cl, ...)
+int starpu_task_insert(struct starpu_codelet *cl, ...)
 {
 	va_list varg_list;
 	void *arg_buffer = NULL;
@@ -70,7 +70,7 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 	/* Compute the size */
 	size_t arg_buffer_size = 0;
 	va_start(varg_list, cl);
-	arg_buffer_size = _starpu_insert_task_get_arg_size(varg_list);
+	arg_buffer_size = _starpu_task_insert_get_arg_size(varg_list);
 
 	if (arg_buffer_size)
 	{
@@ -87,7 +87,7 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 	}
 
 	va_start(varg_list, cl);
-	int ret = _starpu_insert_task_create_and_submit(arg_buffer, arg_buffer_size, cl, &task, varg_list);
+	int ret = _starpu_task_insert_create_and_submit(arg_buffer, arg_buffer_size, cl, &task, varg_list);
 
 	if (ret == -ENODEV)
 	{
@@ -95,4 +95,32 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 		starpu_task_destroy(task);
 	}
 	return ret;
+}
+
+struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
+{
+	va_list varg_list;
+	void *arg_buffer = NULL;
+
+	/* Compute the size */
+	size_t arg_buffer_size = 0;
+	va_start(varg_list, cl);
+	arg_buffer_size = _starpu_task_insert_get_arg_size(varg_list);
+
+	if (arg_buffer_size)
+	{
+		va_start(varg_list, cl);
+		_starpu_codelet_pack_args(&arg_buffer, arg_buffer_size, varg_list);
+	}
+
+	struct starpu_task *task = starpu_task_create();
+
+	if (cl && cl->nbuffers > STARPU_NMAXBUFS)
+	{
+		task->dyn_handles = malloc(cl->nbuffers * sizeof(starpu_data_handle_t));
+	}
+
+	va_start(varg_list, cl);
+	_starpu_task_insert_create(arg_buffer, arg_buffer_size, cl, &task, varg_list);
+	return task;
 }

@@ -54,13 +54,13 @@ int main(int argc, char **argv)
 	f = 2.0;
 	starpu_variable_data_register(&data_handles[1], STARPU_MAIN_RAM, (uintptr_t)&f, sizeof(f));
 
-        ret = starpu_insert_task(&mycodelet,
+        ret = starpu_task_insert(&mycodelet,
 				 STARPU_DATA_ARRAY, data_handles, 2,
 				 STARPU_VALUE, &factor, sizeof(factor),
 				 STARPU_PRIORITY, 1,
 				 0);
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
         ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");

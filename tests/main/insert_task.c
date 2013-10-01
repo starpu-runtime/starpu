@@ -18,35 +18,102 @@
 #include <starpu.h>
 #include "../helper.h"
 
-void func_cpu(void *descr[], void *_args)
-{
-	/*
-	 * Do not use STARPU_SKIP_IF_VALGRIND here.
-	 * We need to call starpu_codelet_unpack_args() in order to make sure
-	 * there are no memory leaks in the program.
-	 */
+static int _ifactor = 12;
+static float _ffactor = 10.0;
 
+void func_cpu_args(void *descr[], void *_args)
+{
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	float *x1 = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
 	int ifactor;
 	float ffactor;
 
 	starpu_codelet_unpack_args(_args, &ifactor, &ffactor);
-	/*
-	 * It is safe to use STARPU_SKIP_IF_VALGRIND here
-	 */
-	STARPU_SKIP_IF_VALGRIND;
+
         *x0 = *x0 * ifactor;
         *x1 = *x1 * ffactor;
 }
 
-struct starpu_codelet mycodelet =
+void func_cpu_noargs(void *descr[], void *_args)
+{
+	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	float *x1 = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
+
+        *x0 = *x0 * _ifactor;
+        *x1 = *x1 * _ffactor;
+}
+
+struct starpu_codelet mycodelet_args =
 {
 	.modes = { STARPU_RW, STARPU_RW },
-	.cpu_funcs = {func_cpu, NULL},
-	.cpu_funcs_name = {"func_cpu", NULL},
+	.cpu_funcs = {func_cpu_args, NULL},
+	.cpu_funcs_name = {"func_cpu_args", NULL},
         .nbuffers = 2
 };
+
+struct starpu_codelet mycodelet_noargs =
+{
+	.modes = { STARPU_RW, STARPU_RW },
+	.cpu_funcs = {func_cpu_noargs, NULL},
+	.cpu_funcs_name = {"func_cpu_noargs", NULL},
+        .nbuffers = 2
+};
+
+int test_codelet(struct starpu_codelet *codelet, int task_insert, int args, int x, float f)
+{
+        starpu_data_handle_t data_handles[2];
+	int xx = x;
+	float ff = f;
+	int i, ret;
+
+	starpu_variable_data_register(&data_handles[0], STARPU_MAIN_RAM, (uintptr_t)&xx, sizeof(xx));
+	starpu_variable_data_register(&data_handles[1], STARPU_MAIN_RAM, (uintptr_t)&ff, sizeof(ff));
+
+        FPRINTF(stderr, "values: %d (%d) %f (%f)\n", xx, _ifactor, ff, _ffactor);
+
+	if (task_insert)
+	{
+		if (args)
+			ret = starpu_task_insert(codelet,
+						 STARPU_VALUE, &_ifactor, sizeof(_ifactor),
+						 STARPU_VALUE, &_ffactor, sizeof(_ffactor),
+						 STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+						 0);
+		else
+			ret = starpu_task_insert(codelet,
+						 STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+						 0);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	}
+	else
+	{
+		struct starpu_task *task;
+		if (args)
+			task = starpu_task_build(codelet,
+						 STARPU_VALUE, &_ifactor, sizeof(_ifactor),
+						 STARPU_VALUE, &_ffactor, sizeof(_ffactor),
+						 STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+						 0);
+		else
+			task = starpu_task_build(codelet,
+						 STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
+						 0);
+		task->cl_arg_free = 1;
+		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+
+enodev:
+        for(i=0 ; i<2 ; i++)
+	{
+                starpu_data_unregister(data_handles[i]);
+        }
+
+        FPRINTF(stderr, "values: %d (should be %d) %f (should be %f)\n\n", xx, x*_ifactor, ff, f*_ffactor);
+	return (ret == -ENODEV ? ret : xx == x*_ifactor && ff == f*_ffactor);
+}
 
 int main(int argc, char **argv)
 {
@@ -60,68 +127,31 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	x = 1;
-	starpu_variable_data_register(&data_handles[0], STARPU_MAIN_RAM, (uintptr_t)&x, sizeof(x));
-	f = 2.0;
-	starpu_variable_data_register(&data_handles[1], STARPU_MAIN_RAM, (uintptr_t)&f, sizeof(f));
-
-        FPRINTF(stderr, "VALUES: %d (%d) %f (%f)\n", x, ifactor, f, ffactor);
-
-        ret = starpu_insert_task(&mycodelet,
-				 STARPU_VALUE, &ifactor, sizeof(ifactor),
-				 STARPU_VALUE, &ffactor, sizeof(ffactor),
-				 STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
-				 0);
+	FPRINTF(stderr, "Testing codelet with task_insert and with arguments\n");
+	ret = test_codelet(&mycodelet_args, 1, 1, 4, 2.0);
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
-
-        ret = starpu_task_wait_for_all();
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
-
-        for(i=0 ; i<2 ; i++)
+	if (ret)
 	{
-                ret = starpu_data_acquire(data_handles[i], STARPU_R);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
-        }
-        FPRINTF(stderr, "VALUES: %d %f\n", x, f);
-
-        for(i=0 ; i<2 ; i++)
-	{
-                starpu_data_release(data_handles[i]);
-        }
-
-	struct starpu_task *task = starpu_task_create();
-	task->cl = &mycodelet;
-	task->handles[0] = data_handles[0];
-	task->handles[1] = data_handles[1];
-	starpu_codelet_pack_args(&task->cl_arg, &task->cl_arg_size,
-			    STARPU_VALUE, &ifactor, sizeof(ifactor),
-			    STARPU_VALUE, &ffactor, sizeof(ffactor),
-			    0);
-
-	ret = starpu_task_submit(task);
+		FPRINTF(stderr, "Testing codelet with task_insert and without arguments\n");
+		ret = test_codelet(&mycodelet_noargs, 1, 0, 9, 7.0);
+	}
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
-
-        ret = starpu_task_wait_for_all();
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
-
-        for(i=0 ; i<2 ; i++)
+	if (ret)
 	{
-                ret = starpu_data_acquire(data_handles[i], STARPU_R);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
-        }
-        FPRINTF(stderr, "VALUES: %d %f\n", x, f);
-
-        for(i=0 ; i<2 ; i++)
+		FPRINTF(stderr, "Testing codelet with task_build and with arguments\n");
+		ret = test_codelet(&mycodelet_args, 0, 1, 5, 3.0);
+	}
+	if (ret == -ENODEV) goto enodev;
+	if (ret)
 	{
-                starpu_data_release(data_handles[i]);
-		starpu_data_unregister(data_handles[i]);
-        }
+		FPRINTF(stderr, "Testing codelet with task_build and without arguments\n");
+		ret = test_codelet(&mycodelet_noargs, 0, 0, 7, 5.0);
+	}
+	if (ret == -ENODEV) goto enodev;
 
 	starpu_shutdown();
 
-	return EXIT_SUCCESS;
+	STARPU_RETURN(ret?0:1);
 
 enodev:
 	starpu_shutdown();

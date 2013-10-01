@@ -54,8 +54,8 @@ AC_CANONICAL_SYSTEM
 dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
 dnl when they're available.
 m4_ifdef([AM_SILENT_RULES],
-  [AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign silent-rules color-tests parallel-tests])],
-  [AM_INIT_AUTOMAKE([1.10 -Wall -Werror foreign])])
+  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests])],
+  [AM_INIT_AUTOMAKE([1.10 -Wall foreign])])
 
 m4_ifdef([AM_SILENT_RULES],
   [AM_SILENT_RULES(yes)])
@@ -257,6 +257,8 @@ AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 
 
 AC_CHECK_HEADERS([valgrind/valgrind.h], [AC_DEFINE([STARPU_HAVE_VALGRIND_H], [1], [Define to 1 if you have the <valgrind/valgrind.h> header file.])])
 AC_CHECK_HEADERS([valgrind/helgrind.h], [AC_DEFINE([STARPU_HAVE_HELGRIND_H], [1], [Define to 1 if you have the <valgrind/helgrind.h> header file.])])
+
+AC_CHECK_FUNC([sched_yield], [AC_DEFINE([STARPU_HAVE_SCHED_YIELD], [1], [Define to 1 if the function sched_yield is available.])])
 
 AC_CHECK_HEADERS([aio.h])
 
@@ -1291,13 +1293,19 @@ AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debug mode])],
 			enable_debug=$enableval, enable_debug=no)
 AC_MSG_RESULT($enable_debug)
 
+AC_ARG_ENABLE(spinlock_check, [AS_HELP_STRING([--enable-spinlock-check], [enable spinlock check])], enable_spinlock_check=$enableval, enable_spinlock_check=no)
+
 if test x$enable_debug = xyes; then
 	CFLAGS="$CFLAGS -O0"
-	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
+	enable_spinlock_check=yes
 else
 	CFLAGS="-O3 $CFLAGS"
 fi
 CFLAGS+=" -gdwarf-2 -g3 "
+
+if test x$enable_spinlock_check = xyes; then
+	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
+fi
 
 AC_MSG_CHECKING(whether extra checks should be performed)
 AC_ARG_ENABLE(fast, [AS_HELP_STRING([--enable-fast],

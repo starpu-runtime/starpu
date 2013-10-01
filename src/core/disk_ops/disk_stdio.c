@@ -55,10 +55,9 @@ starpu_stdio_alloc (void *base, size_t size)
 	int id = -1;
 
 	/* create template for mkstemp */
-	char * baseCpy = malloc(strlen(base)+8);
-	STARPU_ASSERT(baseCpy != NULL);
-
 	char * tmp = "STARPU_XXXXXX";
+	char * baseCpy = malloc(strlen(base)+1+strlen(tmp)+1);
+	STARPU_ASSERT(baseCpy != NULL);
 
 	strcpy(baseCpy, (char *) base);
 	strcat(baseCpy,"/");
@@ -294,7 +293,7 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	struct timeval end;
 	
 	srand (time (NULL)); 
-	char * buf = malloc(SIZE_DISK_MIN*sizeof(char));
+	char * buf = malloc(SIZE_DISK_MIN);
 	STARPU_ASSERT(buf != NULL);
 	
 	/* allocate memory */
@@ -303,6 +302,8 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	if (mem == NULL)
 		return 0;
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) mem;
+
+	memset(buf, 0, SIZE_DISK_MIN);
 
 	/* Measure upload slowness */
 	gettimeofday(&start, NULL);

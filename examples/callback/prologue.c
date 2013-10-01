@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 
 	double *x = (double*)malloc(sizeof(double));
 	*x = -999.0;
-	int ret2 = starpu_insert_task(&cl,
+	int ret2 = starpu_task_insert(&cl,
 				      STARPU_RW, handle,
 				      STARPU_PROLOGUE_CALLBACK, prologue_callback_func,
 				      STARPU_PROLOGUE_CALLBACK_ARG, x,
@@ -91,6 +91,8 @@ int main(int argc, char **argv)
 	starpu_data_unregister(handle);
 
 	FPRINTF(stderr, "v -> %d\n", v);
+
+	free(x);
 
 	starpu_shutdown();
 

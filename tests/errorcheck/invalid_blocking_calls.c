@@ -28,17 +28,11 @@ void wrong_func(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;
 
-	int ret;
-
+	/* The function is expected to fail. This is indicated in tests/Makefile.am */
 	/* try to fetch data in the RAM while we are in a codelet, such a
 	 * blocking call is forbidden */
-	ret = starpu_data_acquire(handle, STARPU_RW);
-	if (ret != -EDEADLK)
-		exit(-1);
-
-	ret = starpu_tag_wait(TAG);
-	if (ret != -EDEADLK)
-		exit(-1);
+	starpu_data_acquire(handle, STARPU_RW);
+	starpu_tag_wait(TAG);
 }
 
 static struct starpu_codelet wrong_codelet =
@@ -53,15 +47,9 @@ static struct starpu_codelet wrong_codelet =
 
 static void wrong_callback(void *arg)
 {
-	int ret;
-
-	ret  = starpu_data_acquire(handle, STARPU_RW);
-	if (ret != -EDEADLK)
-		exit(-1);
-
-	ret = starpu_tag_wait(TAG);
-	if (ret != -EDEADLK)
-		exit(-1);
+	/* The function is expected to fail. This is indicated in tests/Makefile.am */
+	starpu_data_acquire(handle, STARPU_RW);
+	starpu_tag_wait(TAG);
 }
 
 int main(int argc, char **argv)

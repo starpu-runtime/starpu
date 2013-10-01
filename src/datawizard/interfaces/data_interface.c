@@ -200,6 +200,9 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->last_sync_task = NULL;
 	handle->last_submitted_accessors = NULL;
 	handle->post_sync_tasks = NULL;
+
+	/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
+	STARPU_HG_DISABLE_CHECKING(handle->post_sync_tasks_cnt);
 	handle->post_sync_tasks_cnt = 0;
 
 	/* By default, there are no methods available to perform a reduction */
@@ -291,6 +294,10 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 {
 	unsigned node;
 	unsigned worker;
+
+	/* Tell helgrind that our access to busy_count in
+	 * starpu_data_unregister is actually safe */
+	STARPU_HG_DISABLE_CHECKING(handle->busy_count);
 
 	handle->ops = interface_ops;
 	handle->mf_node = mf_node;
@@ -421,7 +428,8 @@ int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 	entry = (struct handle_tag_entry *) malloc(sizeof(*entry));
 	STARPU_ASSERT(entry != NULL);
 
-	STARPU_ASSERT_MSG(!(starpu_data_get_data_handle_from_tag(tag)),"data handle %p already has tag %d\n", starpu_data_get_data_handle_from_tag(tag), tag);
+	STARPU_ASSERT_MSG(!(starpu_data_get_data_handle_from_tag(tag)),
+			  "There is already a data handle %p registered with the tag %d\n", starpu_data_get_data_handle_from_tag(tag), tag);
 
 	entry->tag = tag;
 	entry->handle = handle;
@@ -677,14 +685,11 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 	while (1) {
 		int busy;
-		/* Note: we here tell valgrind that reading busy_count is as
-		 * safe is if we had the lock held */
-		_STARPU_VALGRIND_HG_SPIN_LOCK_PRE(&handle->header_lock);
-		_STARPU_VALGRIND_HG_SPIN_LOCK_POST(&handle->header_lock);
-		busy = handle->busy_count;
-		_STARPU_VALGRIND_HG_SPIN_UNLOCK_PRE(&handle->header_lock);
-		_STARPU_VALGRIND_HG_SPIN_UNLOCK_POST(&handle->header_lock);
-		if (!busy)
+		/* Here helgrind would shout that this an unprotected access,
+		 * but this is actually fine: all threads who do busy_count--
+		 * are supposed to call _starpu_data_check_not_busy, which will
+		 * wake us up through the busy_mutex/busy_cond. */
+		if (!handle->busy_count)
 			break;
 		/* This is woken by _starpu_data_check_not_busy, always called
 		 * after decrementing busy_count */

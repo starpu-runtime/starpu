@@ -391,7 +391,7 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 	STARPU_ASSERT(args);
 	unsigned devid = args->devid;
 
-	_starpu_worker_init(args, _STARPU_FUT_CUDA_KEY);
+	_starpu_worker_start(args, _STARPU_FUT_CUDA_KEY);
 
 #ifndef STARPU_SIMGRID
 	init_context(devid);

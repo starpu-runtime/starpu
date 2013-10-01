@@ -38,7 +38,7 @@ main (int argc, char *argv[])
   static const char forty_two = 42;
   static const int  sizeof_x = sizeof x;
 
-  struct insert_task_argument expected_pointer_task[] =
+  struct task_insert_argument expected_pointer_task[] =
     {
       { STARPU_VALUE, &forty_two, sizeof forty_two },
       { STARPU_R,  x },
@@ -47,7 +47,7 @@ main (int argc, char *argv[])
       { 0, 0, 0 }
     };
 
-  expected_insert_task_arguments = expected_pointer_task;
+  expected_task_insert_arguments = expected_pointer_task;
 
   expected_register_arguments.pointer = (void *) x;
   expected_register_arguments.elements = sizeof x / sizeof x[0];

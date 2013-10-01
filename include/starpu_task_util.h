@@ -46,7 +46,9 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_PROLOGUE_CALLBACK   (13<<16)
 #define STARPU_PROLOGUE_CALLBACK_ARG (14<<16)
 
-int starpu_insert_task(struct starpu_codelet *cl, ...);
+struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
+int starpu_task_insert(struct starpu_codelet *cl, ...);
+#define starpu_insert_task starpu_task_insert
 
 void starpu_codelet_unpack_args(void *cl_arg, ...);
 

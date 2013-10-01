@@ -128,6 +128,8 @@ void sc_hypervisor_update_diff_total_flops(unsigned sched_ctx, double diff_total
 /* change dynamically the number of the elapsed flops in a context, modify the past in order to better compute the speed */
 void sc_hypervisor_update_diff_elapsed_flops(unsigned sched_ctx, double diff_task_flops);
 
+/* updates the min and max workers needed by each context */
+	void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs);
 #ifdef __cplusplus
 }
 #endif

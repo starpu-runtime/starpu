@@ -255,6 +255,12 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 		{
 			entry = (struct starpu_perfmodel_history_entry *) malloc(sizeof(struct starpu_perfmodel_history_entry));
 			STARPU_ASSERT(entry);
+
+			/* Tell  helgrind that we do not care about
+			 * racing access to the sampling, we only want a
+			 * good-enough estimation */
+			STARPU_HG_DISABLE_CHECKING(entry->nsample);
+			STARPU_HG_DISABLE_CHECKING(entry->mean);
 		}
 
 		scan_history_entry(f, entry);
@@ -1210,13 +1216,15 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		HASH_FIND_UINT32_T(history, &key, entry);
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
-		/* We do not care about racing access to the mean, we only want a
-		 * good-enough estimation, thus simulate taking the rdlock */
-		ANNOTATE_RWLOCK_ACQUIRED(&model->model_rwlock, 0);
+		/* Here helgrind would shout that this is unprotected access.
+		 * We do not care about racing access to the mean, we only want
+		 * a good-enough estimation */
 
 		if (entry && entry->history_entry && entry->history_entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
 			exp = entry->history_entry->mean;
-		else if (!model->benchmarking)
+
+		STARPU_HG_DISABLE_CHECKING(model->benchmarking);
+		if (isnan(exp) && !model->benchmarking)
 		{
 			char archname[32];
 
@@ -1225,7 +1233,6 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 			_starpu_set_calibrate_flag(1);
 			model->benchmarking = 1;
 		}
-		ANNOTATE_RWLOCK_RELEASED(&model->model_rwlock, 0);
 	}
 
 	return exp;
@@ -1233,7 +1240,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 
 double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j,unsigned nimpl)
 {
-	double exp;
+	double exp = NAN;
 	struct starpu_perfmodel_per_arch *per_arch_model;
 	struct starpu_perfmodel_history_entry *entry;
 	struct starpu_perfmodel_history_table *history, *elt;
@@ -1248,18 +1255,17 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 	entry = (elt == NULL) ? NULL : elt->history_entry;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);
 
-	/* We do not care about racing access to the mean, we only want a
-	 * good-enough estimation, thus simulate taking the rdlock */
-	ANNOTATE_RWLOCK_ACQUIRED(&model->model_rwlock, 0);
+	/* Here helgrind would shout that this is unprotected access.
+	 * We do not care about racing access to the mean, we only want
+	 * a good-enough estimation */
 
-	exp = entry?entry->mean:NAN;
-
-	if (entry && entry->nsample < _STARPU_CALIBRATION_MINIMUM)
+	if (entry && entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
 		/* TODO: report differently if we've scheduled really enough
 		 * of that task and the scheduler should perhaps put it aside */
-		/* Not calibrated enough */
-		exp = NAN;
+		/* Calibrated enough */
+		exp = entry->mean;
 
+	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 	if (isnan(exp) && !model->benchmarking)
 	{
 		char archname[32];
@@ -1269,8 +1275,6 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 		_starpu_set_calibrate_flag(1);
 		model->benchmarking = 1;
 	}
-
-	ANNOTATE_RWLOCK_RELEASED(&model->model_rwlock, 0);
 
 	return exp;
 }
@@ -1310,6 +1314,13 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				/* this is the first entry with such a footprint */
 				entry = (struct starpu_perfmodel_history_entry *) malloc(sizeof(struct starpu_perfmodel_history_entry));
 				STARPU_ASSERT(entry);
+
+				/* Tell  helgrind that we do not care about
+				 * racing access to the sampling, we only want a
+				 * good-enough estimation */
+				STARPU_HG_DISABLE_CHECKING(entry->nsample);
+				STARPU_HG_DISABLE_CHECKING(entry->mean);
+
 				entry->mean = measured;
 				entry->sum = measured;
 

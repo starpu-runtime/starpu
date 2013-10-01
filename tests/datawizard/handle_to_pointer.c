@@ -134,10 +134,10 @@ int main(int argc, char *argv[])
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == NULL);
 
 	/* Pass the handle to a task.  */
-	err = starpu_insert_task(&cl,
-			   STARPU_W, handle,
-			   STARPU_VALUE, &count, sizeof(count),
-			   0);
+	err = starpu_task_insert(&cl,
+				 STARPU_W, handle,
+				 STARPU_VALUE, &count, sizeof(count),
+				 0);
 	if (err == -ENODEV)
 		return STARPU_TEST_SKIPPED;
 

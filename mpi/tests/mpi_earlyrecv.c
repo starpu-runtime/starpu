@@ -52,12 +52,12 @@ int main(int argc, char **argv)
 
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 
-	fprintf(stderr, "rank %d exchanging with rank %d\n", rank, other_rank);
+	FPRINTF_MPI("rank %d exchanging with rank %d\n", rank, other_rank);
 
 	if (rank%2)
 	{
 		starpu_mpi_isend(tab_handle[0], &request[0], other_rank, 0, MPI_COMM_WORLD);
-		starpu_mpi_recv(tab_handle[2], other_rank, 2, MPI_COMM_WORLD, NULL);
+		starpu_mpi_recv(tab_handle[2], other_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		starpu_mpi_isend(tab_handle[1], &request[1], other_rank, 1, MPI_COMM_WORLD);
 		nb_requests = 2;
 	}
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 				MPI_Status status;
 				starpu_mpi_test(&request[i], &flag, &status);
 				if (flag)
-					fprintf(stderr, "request[%d] = %d %p\n", i, flag, request[i]);
+					FPRINTF_MPI("request[%d] = %d %p\n", i, flag, request[i]);
 			}
 		}
 		finished = request[0] == NULL;

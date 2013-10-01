@@ -232,7 +232,7 @@ task, and trigger the required MPI transfers.
 
 The list of functions is described in \ref MPIInsertTask "MPI Insert Task".
 
-Here an stencil example showing how to use starpu_mpi_insert_task(). One
+Here an stencil example showing how to use starpu_mpi_task_insert(). One
 first needs to define a distribution function which specifies the
 locality of the data. Note that that distribution information needs to
 be given to StarPU by calling starpu_data_set_rank(). A MPI tag
@@ -291,14 +291,14 @@ data which will be needed by the tasks that we will execute.
     }
 \endcode
 
-Now starpu_mpi_insert_task() can be called for the different
+Now starpu_mpi_task_insert() can be called for the different
 steps of the application.
 
 \code{.c}
     for(loop=0 ; loop<niter; loop++)
         for (x = 1; x < X-1; x++)
             for (y = 1; y < Y-1; y++)
-                starpu_mpi_insert_task(MPI_COMM_WORLD, &stencil5_cl,
+                starpu_mpi_task_insert(MPI_COMM_WORLD, &stencil5_cl,
                                        STARPU_RW, data_handles[x][y],
                                        STARPU_R, data_handles[x-1][y],
                                        STARPU_R, data_handles[x+1][y],
@@ -365,7 +365,7 @@ for(x = 0; x < nblocks ;  x++) {
     if (data_handles[x]) {
         int owner = starpu_data_get_rank(data_handles[x]);
         if (owner == rank) {
-            starpu_insert_task(&cl, STARPU_RW, data_handles[x], 0);
+            starpu_task_insert(&cl, STARPU_RW, data_handles[x], 0);
         }
     }
 }
@@ -383,9 +383,9 @@ MPI examples are available in the StarPU source code in mpi/examples:
 <ul>
 <li><c>complex</c> is a simple example using a user-define data interface over
 MPI (complex numbers),
-<li><c>stencil5</c> is a simple stencil example using <c>starpu_mpi_insert_task</c>,
+<li><c>stencil5</c> is a simple stencil example using starpu_mpi_task_insert(),
 <li><c>matrix_decomposition</c> is a cholesky decomposition example using
-<c>starpu_mpi_insert_task</c>. The non-distributed version can check for
+starpu_mpi_task_insert(). The non-distributed version can check for
 <algorithm correctness in 1-node configuration, the distributed version uses
 exactly the same source code, to be used over MPI,
 <li><c>mpi_lu</c> is an LU decomposition example, provided in three versions:

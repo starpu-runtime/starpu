@@ -73,11 +73,10 @@ static unsigned select_victim_round_robin(unsigned sched_ctx_id)
 		unsigned njobs;
 
 		starpu_worker_get_sched_condition(worker, &victim_sched_mutex, &victim_sched_cond);
-		VALGRIND_HG_MUTEX_LOCK_PRE(victim_sched_mutex, 0);
-		VALGRIND_HG_MUTEX_LOCK_POST(victim_sched_mutex);
+		/* Here helgrind would shout that this is unprotected, but we
+		 * are fine with getting outdated values, this is just an
+		 * estimation */
 		njobs = ws->queue_array[worker]->njobs;
-		VALGRIND_HG_MUTEX_UNLOCK_PRE(victim_sched_mutex);
-		VALGRIND_HG_MUTEX_UNLOCK_POST(victim_sched_mutex);
 
 		if (njobs)
 			break;
@@ -402,6 +401,11 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 		workerid = workerids[i];
 		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
 		ws->queue_array[workerid] = _starpu_create_deque();
+
+		/* Tell helgrid that we are fine with getting outdated values,
+		 * this is just an estimation */
+		STARPU_HG_DISABLE_CHECKING(ws->queue_array[workerid]->njobs);
+
 		/**
 		 * The first WS_POP_TASK will increase NPROCESSED though no task was actually performed yet,
 		 * we need to initialize it at -1.

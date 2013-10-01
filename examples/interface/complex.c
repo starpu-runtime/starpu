@@ -18,8 +18,6 @@
 #include "complex_interface.h"
 #include "complex_codelet.h"
 
-#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
-
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
        if (starpu_worker_get_type(workerid) == STARPU_OPENCL_WORKER)
@@ -95,21 +93,21 @@ int main(int argc, char **argv)
 	starpu_complex_data_register(&handle1, STARPU_MAIN_RAM, &real, &imaginary, 1);
 	starpu_complex_data_register(&handle2, STARPU_MAIN_RAM, &copy_real, &copy_imaginary, 1);
 
-	ret = starpu_insert_task(&cl_display, STARPU_VALUE, "handle1", strlen("handle1"), STARPU_R, handle1, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1"), STARPU_R, handle1, 0);
 	if (ret == -ENODEV) goto end;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_insert_task(&cl_display, STARPU_VALUE, "handle2", strlen("handle2"), STARPU_R, handle2, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle2", strlen("handle2"), STARPU_R, handle2, 0);
 	if (ret == -ENODEV) goto end;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_insert_task(&cl_compare,
+	ret = starpu_task_insert(&cl_compare,
 				 STARPU_R, handle1,
 				 STARPU_R, handle2,
 				 STARPU_VALUE, &compare_ptr, sizeof(compare_ptr),
 				 0);
 	if (ret == -ENODEV) goto end;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	starpu_task_wait_for_all();
 	if (compare != 0)
 	{
@@ -117,28 +115,28 @@ int main(int argc, char **argv)
 	     goto end;
 	}
 
-	ret = starpu_insert_task(&cl_copy,
+	ret = starpu_task_insert(&cl_copy,
 				 STARPU_R, handle1,
 				 STARPU_W, handle2,
 				 0);
 	if (ret == -ENODEV) goto end;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_insert_task(&cl_display, STARPU_VALUE, "handle1", strlen("handle1"), STARPU_R, handle1, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1"), STARPU_R, handle1, 0);
 	if (ret == -ENODEV) goto end;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_insert_task(&cl_display, STARPU_VALUE, "handle2", strlen("handle2"), STARPU_R, handle2, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle2", strlen("handle2"), STARPU_R, handle2, 0);
 	if (ret == -ENODEV) goto end;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_insert_task(&cl_compare,
+	ret = starpu_task_insert(&cl_compare,
 				 STARPU_R, handle1,
 				 STARPU_R, handle2,
 				 STARPU_VALUE, &compare_ptr, sizeof(compare_ptr),
 				 0);
 	if (ret == -ENODEV) goto end;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	starpu_task_wait_for_all();
 

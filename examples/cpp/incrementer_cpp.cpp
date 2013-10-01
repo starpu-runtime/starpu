@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
 	for (i = 0; i < niter; i++)
 	{
-		ret = starpu_insert_task(&cl,
+		ret = starpu_task_insert(&cl,
 					 STARPU_RW, float_array_handle,
 					 0);
                 if (STARPU_UNLIKELY(ret == -ENODEV))

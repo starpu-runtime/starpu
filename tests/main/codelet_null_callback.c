@@ -33,10 +33,10 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	ret = starpu_insert_task(NULL,
+	ret = starpu_task_insert(NULL,
 				 STARPU_CALLBACK_WITH_ARG, callback, &x,
 				 0);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	starpu_task_wait_for_all();
 	starpu_shutdown();
