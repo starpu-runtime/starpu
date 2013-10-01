@@ -34,8 +34,6 @@ extern void increment_opencl(void *buffers[], void *args);
 
 void increment_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	(*tokenptr)++;
 }
@@ -122,7 +120,7 @@ int main(int argc, char **argv)
 		ret = EXIT_SUCCESS;
 	else
 		ret = EXIT_FAILURE;
-	STARPU_RETURN(ret);
+	return ret;
 
 enodev:
 	starpu_data_unregister(token_handle);

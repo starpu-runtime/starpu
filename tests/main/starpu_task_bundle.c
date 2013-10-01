@@ -23,8 +23,6 @@
 
 void func_cpu(void *descr[], void *args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	float *x = (float *) STARPU_VARIABLE_GET_PTR(descr[0]);
 	float factor;
 

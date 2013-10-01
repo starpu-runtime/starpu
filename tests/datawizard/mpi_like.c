@@ -55,8 +55,6 @@ void opencl_codelet_unsigned_inc(void *buffers[], void *args);
 
 static void increment_handle_cpu_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val += 1;
 }
@@ -233,5 +231,5 @@ int main(int argc, char **argv)
 		ret = EXIT_FAILURE;
 	}
 
-	STARPU_RETURN(ret);
+	return ret;
 }

@@ -77,8 +77,6 @@ static void initialize_per_worker_handle(void *arg STARPU_ATTRIBUTE_UNUSED)
 
 static void cpu_redux_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	unsigned *a = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *b = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -102,8 +100,6 @@ static struct starpu_codelet reduction_codelet =
 
 static void cpu_func_incr(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*val = *val + 1;
 }

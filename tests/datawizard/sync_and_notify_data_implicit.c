@@ -62,16 +62,12 @@ static unsigned v[VECTORSIZE] STARPU_ATTRIBUTE_ALIGNED(128) = {0, 0, 0, 0};
 
 void cpu_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	val[0]++;
 }
 
 void cpu_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	val[2]++;
 }
@@ -176,7 +172,7 @@ int main(int argc, char **argv)
 		FPRINTF(stderr, "Incorrect result\n");
 		ret = EXIT_FAILURE;
 	}
-	STARPU_RETURN(ret);
+	return ret;
 
 enodev:
 	starpu_data_unregister(v_handle);

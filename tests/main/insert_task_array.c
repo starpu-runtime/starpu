@@ -26,7 +26,6 @@ void func_cpu(void *descr[], void *_args)
 
 	starpu_codelet_unpack_args(_args, &factor);
 
-	STARPU_SKIP_IF_VALGRIND;
         *x0 = *x0 * factor;
         *x1 = *x1 * (float)factor;
 }
@@ -84,6 +83,6 @@ enodev:
 	{
 		FPRINTF(stderr, "VALUES: %d %f\n", x, f);
 		ret = !(x == 12 && f == 24.0);
-		STARPU_RETURN(ret);
+		return ret;
 	}
 }

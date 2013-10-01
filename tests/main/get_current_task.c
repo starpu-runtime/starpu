@@ -30,7 +30,6 @@ static unsigned ntasks = 65536;
 
 static void check_task_func(void *descr[], void *arg)
 {
-	STARPU_SKIP_IF_VALGRIND;
 
 	/* We check that the returned task is valid from the codelet */
 	struct starpu_task *task = (struct starpu_task *) arg;

@@ -24,8 +24,6 @@
 
 void which_index_cpu(void *descr[], void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	/* A real case would actually compute something */
@@ -41,8 +39,6 @@ struct starpu_codelet which_index =
 
 void work_cpu(void *descr[], void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	int i, n = STARPU_VECTOR_GET_NX(descr[0]);
 	float *x0 = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
@@ -128,7 +124,7 @@ int main(int argc, char **argv)
 
 	starpu_free(f);
 	starpu_shutdown();
-	STARPU_RETURN(ret);
+	return ret;
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
