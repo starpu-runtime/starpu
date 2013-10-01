@@ -101,18 +101,11 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 
 	combined_worker->worker_size = nworkers;
 
-#ifdef STARPU_USE_MIC
-	if(config->workers[workerid_array[0]].worker_mask == STARPU_MIC)
-	{
-		combined_worker->perf_arch = (enum starpu_perfmodel_archtype) (STARPU_MIC_DEFAULT + config->workers[workerid_array[0]].mp_nodeid /* *STARPU_MAXMICCPUS + nworkers - 1*/);
-		combined_worker->worker_mask = STARPU_MIC;
-	}
-#endif
-	if(config->workers[workerid_array[0]].worker_mask == STARPU_CPU)
-	{
-		combined_worker->perf_arch = (enum starpu_perfmodel_archtype) (STARPU_CPU_DEFAULT + nworkers - 1);
-		combined_worker->worker_mask = STARPU_CPU;
-	}
+	combined_worker->perf_arch.type = config->workers[workerid_array[0]].perf_arch.type;
+	combined_worker->perf_arch.devid = config->workers[workerid_array[0]].perf_arch.devid; 
+	combined_worker->perf_arch.ncore = nworkers - 1;
+	combined_worker->worker_mask = config->workers[workerid_array[0]].worker_mask;
+	
 #ifdef STARPU_USE_MP
 	combined_worker->count = nworkers -1;
 	pthread_mutex_init(&combined_worker->count_mutex,NULL);

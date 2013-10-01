@@ -337,7 +337,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	register_worker_id(threadid, workerid);
 
 	char *kindstr = "";
-	enum starpu_perfmodel_archtype archtype = 0;
+	struct starpu_perfmodel_arch arch;
 
 	switch (ev->param[0])
 	{
@@ -348,27 +348,37 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		case _STARPU_FUT_CPU_KEY:
 			set_next_cpu_worker_color(workerid);
 			kindstr = "CPU";
-			archtype = STARPU_CPU_DEFAULT;
+			arch.type = STARPU_CPU_WORKER;
+			arch.devid = 0;
+			arch.ncore = 0;
 			break;
 		case _STARPU_FUT_CUDA_KEY:
 			set_next_cuda_worker_color(workerid);
 			kindstr = "CUDA";
-			archtype = STARPU_CUDA_DEFAULT + devid;
+			arch.type = STARPU_CUDA_WORKER;
+			arch.devid = devid;
+			arch.ncore = 0;
 			break;
 		case _STARPU_FUT_OPENCL_KEY:
 			set_next_opencl_worker_color(workerid);
 			kindstr = "OPENCL";
-			archtype = STARPU_OPENCL_DEFAULT + devid;
+			arch.type = STARPU_OPENCL_WORKER;
+			arch.devid = devid;
+			arch.ncore = 0;
 			break;
 		case _STARPU_FUT_MIC_KEY:
 			set_next_mic_worker_color(workerid);
 			kindstr = "mic";
-			archtype = STARPU_MIC_DEFAULT + devid;
+			arch.type = STARPU_MIC_WORKER;
+			arch.devid = devid;
+			arch.ncore = 0;
 			break;
 		case _STARPU_FUT_SCC_KEY:
 			set_next_scc_worker_color(workerid);
 			kindstr = "scc";
-			archtype = STARPU_SCC_DEFAULT + devid;
+			arch.type = STARPU_SCC_WORKER;
+			arch.devid = devid;
+			arch.ncore = 0;
 			break;
 		default:
 			STARPU_ABORT();
@@ -405,7 +415,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
 
 	snprintf(options->worker_names[workerid], 256, "%s %d", kindstr, devid);
-	options->worker_archtypes[workerid] = archtype;
+	options->worker_archtypes[workerid] = arch;
 }
 
 static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -600,14 +610,14 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	if (options->dumped_codelets)
 	{
-		enum starpu_perfmodel_archtype archtype = ev->param[3];
+		struct starpu_perfmodel_arch* arch = ev->param[3];
 
 		dumped_codelets_count++;
 		dumped_codelets = realloc(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
 
 		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, 256, "%s", last_codelet_symbol[worker]);
 		dumped_codelets[dumped_codelets_count - 1].workerid = worker;
-		dumped_codelets[dumped_codelets_count - 1].archtype = archtype;
+		dumped_codelets[dumped_codelets_count - 1].arch = *arch;
 
 		dumped_codelets[dumped_codelets_count - 1].size = codelet_size;
 		dumped_codelets[dumped_codelets_count - 1].hash = codelet_hash;

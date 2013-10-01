@@ -230,7 +230,7 @@ static double compute_expected_end(int workerid, double length)
 
 static double compute_ntasks_end(int workerid)
 {
-	enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
+	struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerid);
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 
@@ -347,7 +347,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			}
 
 
-			enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+			struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker);
 
 			local_task_length[worker_ctx][nimpl] = starpu_task_expected_length(task, perf_arch,nimpl);
 

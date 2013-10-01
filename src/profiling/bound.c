@@ -25,6 +25,7 @@
 #include <starpu_config.h>
 #include <profiling/bound.h>
 #include <core/jobs.h>
+#include <core/workers.h>
 
 #ifdef STARPU_HAVE_GLPK_H
 #include <glpk.h>
@@ -100,7 +101,7 @@ struct bound_task
 	int depsn;
 
 	/* Estimated duration */
-	double duration[STARPU_NARCH_VARIATIONS];
+	double** duration[STARPU_NARCH];
 
 	/* Other tasks */
 	struct bound_task *next;
@@ -186,7 +187,31 @@ static int good_job(struct _starpu_job *j)
 		return 0;
 	return 1;
 }
+static double** initialize_arch_duration(int maxdevid, unsigned* maxncore_table)
+{
+	int devid, maxncore;
+	double ** arch_model = malloc(sizeof(*arch_model)*(maxdevid+1));
+	arch_model[maxdevid] = NULL;
+	for(devid=0; devid<maxdevid; devid++)
+	{
+		if(maxncore_table != NULL)
+			maxncore = maxncore_table[devid];
+		else
+			maxncore = 1;
+		arch_model[devid] = malloc(sizeof(*arch_model[devid])*(maxncore+1));
+	}
+	return arch_model;
+}
 
+static void initialize_duration(struct bound_task *task)
+{
+	struct _starpu_machine_config *conf = _starpu_get_machine_config();
+	task->duration[STARPU_CPU_WORKER] = initialize_arch_duration(1,&conf->topology.ncpus); 
+	task->duration[STARPU_CUDA_WORKER] = initialize_arch_duration(conf->topology.ncudagpus,NULL); 
+	task->duration[STARPU_OPENCL_WORKER] = initialize_arch_duration(conf->topology.nopenclgpus,NULL); 
+	task->duration[STARPU_MIC_WORKER] = initialize_arch_duration(conf->topology.nmicdevices,conf->topology.nmiccores); 
+	task->duration[STARPU_SCC_WORKER] = initialize_arch_duration(conf->topology.nsccdevices,NULL); 
+}
 /* Create a new task (either because it has just been submitted, or a
  * dependency was added before submission) */
 static void new_task(struct _starpu_job *j)
@@ -202,10 +227,11 @@ static void new_task(struct _starpu_job *j)
 	t->tag_id = j->task->tag_id;
 	t->use_tag = j->task->use_tag;
 	t->cl = j->task->cl;
-	t->footprint = _starpu_compute_buffers_footprint(NULL, STARPU_CPU_DEFAULT, 0, j);
+	t->footprint = _starpu_compute_buffers_footprint(NULL, STARPU_CPU_WORKER, 0, j);
 	t->priority = j->task->priority;
 	t->deps = NULL;
 	t->depsn = 0;
+	initialize_duration(t);
 	t->next = tasks;
 	j->bound_task = t;
 	tasks = t;
@@ -236,7 +262,7 @@ void _starpu_bound_record(struct _starpu_job *j)
 	{
 		struct bound_task_pool *tp;
 
-		_starpu_compute_buffers_footprint(NULL, STARPU_CPU_DEFAULT, 0, j);
+		_starpu_compute_buffers_footprint(NULL, STARPU_CPU_WORKER, 0, j);
 
 		if (last && last->cl == j->task->cl && last->footprint == j->footprint)
 			tp = last;
@@ -400,7 +426,7 @@ static void _starpu_get_tasks_times(int nw, int nt, double *times)
 				.footprint = tp->footprint,
 				.footprint_is_computed = 1,
 			};
-			enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(w);
+			struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w);
 			double length = _starpu_history_based_job_expected_perf(tp->cl->model, arch, &j, j.nimpl);
 			if (isnan(length))
 				times[w*nt+t] = NAN;
@@ -486,15 +512,15 @@ void starpu_bound_print_lp(FILE *output)
 			};
 			for (w = 0; w < nw; w++)
 			{
-				enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(w);
-				if (_STARPU_IS_ZERO(t1->duration[arch]))
+				struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w);
+				if (_STARPU_IS_ZERO(t1->duration[arch->type][arch->devid][arch->ncore]))
 				{
 					double length = _starpu_history_based_job_expected_perf(t1->cl->model, arch, &j,j.nimpl);
 					if (isnan(length))
 						/* Avoid problems with binary coding of doubles */
-						t1->duration[arch] = NAN;
+						t1->duration[arch->type][arch->devid][arch->ncore] = NAN;
 					else
-						t1->duration[arch] = length / 1000.;
+						t1->duration[arch->type][arch->devid][arch->ncore] = length / 1000.;
 				}
 			}
 			nt++;
@@ -519,8 +545,8 @@ void starpu_bound_print_lp(FILE *output)
 		{
 			for (w = 0; w < nw; w++)
 			{
-				enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(w);
-				if (!isnan(t1->duration[arch]))
+				struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w);
+				if (!isnan(t1->duration[arch->type][arch->devid][arch->ncore]))
 					fprintf(output, " +t%luw%d", t1->id, w);
 			}
 			fprintf(output, " = 1;\n");
@@ -533,9 +559,9 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "/* %s %x */\tc%lu = s%lu", _starpu_codelet_get_model_name(t1->cl), (unsigned) t1->footprint, t1->id, t1->id);
 			for (w = 0; w < nw; w++)
 			{
-				enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(w);
-				if (!isnan(t1->duration[arch]))
-					fprintf(output, " + %f t%luw%d", t1->duration[arch], t1->id, w);
+				struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w);
+				if (!isnan(t1->duration[arch->type][arch->devid][arch->ncore]))
+					fprintf(output, " + %f t%luw%d", t1->duration[arch->type][arch->devid][arch->ncore], t1->id, w);
 			}
 			fprintf(output, ";\n");
 		}
@@ -616,8 +642,8 @@ void starpu_bound_print_lp(FILE *output)
 				{
 					for (w = 0; w < nw; w++)
 					{
-						enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(w);
-						if (!isnan(t1->duration[arch]))
+						struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w);
+						if (!isnan(t1->duration[arch->type][arch->devid][arch->ncore]))
 						{
 							fprintf(output, "s%lu - c%lu >= -3e5 + 1e5 t%luw%d + 1e5 t%luw%d + 1e5 t%luafter%lu;\n",
 									t1->id, t2->id, t1->id, w, t2->id, w, t1->id, t2->id);

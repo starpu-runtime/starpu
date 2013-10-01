@@ -249,8 +249,6 @@ void _starpu_sink_common_worker(void)
 	starpu_pthread_key_t worker_key;
 	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
 
-
-	struct _starpu_machine_config *config;
 	while (!exit_starpu)
 	{
 		/* If we have received a message */
@@ -264,7 +262,6 @@ void _starpu_sink_common_worker(void)
 					exit_starpu = 1;
 					break;
 				case STARPU_EXECUTE:
-					config = _starpu_get_machine_config();
 					node->execute(node, arg, arg_size);
 					break;
 				case STARPU_SINK_NBCORES:
@@ -314,7 +311,6 @@ void _starpu_sink_common_worker(void)
 			struct mp_message * message = mp_message_list_pop_back(node->message_queue);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 			//_STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
-			config = _starpu_get_machine_config();
 			_starpu_mp_common_send_command(node, message->type, 
 					&message->buffer, message->size);
 			mp_message_delete(message);
@@ -378,7 +374,6 @@ static void _starpu_sink_common_erase_barrier(struct _starpu_mp_node * node, str
  */
 static void _starpu_sink_common_append_message(struct _starpu_mp_node *node, struct mp_message * message)
 {
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 	mp_message_list_push_front(node->message_queue,message);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);

@@ -166,7 +166,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j);
 void _starpu_handle_job_termination(struct _starpu_job *j);
 
 /* Get the sum of the size of the data accessed by the job. */
-size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, unsigned nimpl, struct _starpu_job *j);
+size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned nimpl, struct _starpu_job *j);
 
 /* Get a task from the local pool of tasks that were explicitly attributed to
  * that worker. */

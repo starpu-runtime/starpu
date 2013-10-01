@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 }
 
 /* Task execution submitted by StarPU */
-void _starpu_simgrid_execute_job(struct _starpu_job *j, enum starpu_perfmodel_archtype perf_arch, double length)
+void _starpu_simgrid_execute_job(struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length)
 {
 	struct starpu_task *task = j->task;
 	msg_task_t simgrid_task;

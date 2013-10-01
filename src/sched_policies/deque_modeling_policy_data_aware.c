@@ -407,7 +407,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 		worker = workers->get_next(workers, &it);
 		struct _starpu_fifo_taskq *fifo  = dt->queue_array[worker];
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
-		enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker);
 
 		/* Sometimes workers didn't take the tasks as early as we expected */
 		double exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
@@ -543,7 +543,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	{
 		worker = workers->get_next(workers, &it);
 		struct _starpu_fifo_taskq *fifo = dt->queue_array[worker];
-		enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker);
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 
 		/* Sometimes workers didn't take the tasks as early as we expected */
@@ -760,7 +760,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	}
 	else if (task->bundle)
 	{
-		enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(best_in_ctx);
+		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(best_in_ctx);
 		unsigned memory_node = starpu_worker_get_memory_node(best);
 		model_best = starpu_task_expected_length(task, perf_arch, selected_impl);
 		transfer_model_best = starpu_task_expected_data_transfer_time(memory_node, task);
@@ -931,7 +931,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsign
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	/* Compute the expected penality */
-	enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
+	struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(workerid);
 	unsigned memory_node = starpu_worker_get_memory_node(workerid);
 
 	double predicted = starpu_task_expected_length(task, perf_arch,

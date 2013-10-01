@@ -351,14 +351,14 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 	STARPU_ASSERT(func);
 
 #ifdef STARPU_SIMGRID
-	_starpu_simgrid_execute_job(j, args->perf_arch, NAN);
+	_starpu_simgrid_execute_job(j, &args->perf_arch, NAN);
 #else
 	func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
 
-	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0, profiling);
+	_starpu_driver_end_job(args, j, &args->perf_arch, &codelet_end, 0, profiling);
 
-	_starpu_driver_update_job_feedback(j, args, args->perf_arch, &codelet_start, &codelet_end, profiling);
+	_starpu_driver_update_job_feedback(j, args, &args->perf_arch, &codelet_start, &codelet_end, profiling);
 
 	_starpu_push_task_output(j, mask);
 

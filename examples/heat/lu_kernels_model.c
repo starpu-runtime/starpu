@@ -102,7 +102,7 @@ double task_22_cost(struct starpu_task *task, unsigned nimpl)
  */
 
 
-double task_11_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double task_11_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -114,7 +114,7 @@ double task_11_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtyp
 	return PERTURBATE(cost);
 }
 
-double task_12_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double task_12_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -127,7 +127,7 @@ double task_12_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtyp
 }
 
 
-double task_21_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double task_21_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -141,7 +141,7 @@ double task_21_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtyp
 
 
 
-double task_22_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double task_22_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t nx, ny, nz;
 
@@ -161,7 +161,7 @@ double task_22_cost_cuda(struct starpu_task *task, enum starpu_perfmodel_archtyp
  *
  */
 
-double task_11_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double task_11_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -173,7 +173,7 @@ double task_11_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype
 	return PERTURBATE(cost);
 }
 
-double task_12_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double task_12_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -186,7 +186,7 @@ double task_12_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype
 }
 
 
-double task_21_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double task_21_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -200,7 +200,7 @@ double task_21_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype
 
 
 
-double task_22_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double task_22_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t nx, ny, nz;
 
@@ -214,74 +214,17 @@ double task_22_cost_cpu(struct starpu_task *task, enum starpu_perfmodel_archtype
 	return PERTURBATE(cost);
 }
 
-struct starpu_perfmodel model_11 =
+void initialize_lu_kernels_model(struct starpu_perfmodel* model, char * symbol, 
+		double (*cost_function)(struct starpu_task *, unsigned), 
+		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned), 
+		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned))
 {
-	.cost_function = task_11_cost,
-	.per_arch =
-	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_11_cost_cpu },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_11_cost_cuda }
-	},
-	.type = STARPU_HISTORY_BASED,
-#ifdef STARPU_ATLAS
-	.symbol = "lu_model_11_atlas"
-#elif defined(STARPU_GOTO)
-	.symbol = "lu_model_11_goto"
-#else
-	.symbol = "lu_model_11"
-#endif
-};
+	model->type = STARPU_HISTORY_BASED;
+	model->symbol = symbol;
+	starpu_initialize_model(model);
+	model->cost_function = cost_function;
+	model->per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = cpu_cost_function;
+	if(starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) != 0)
+		model->per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = cuda_cost_function;
+}
 
-struct starpu_perfmodel model_12 =
-{
-	.cost_function = task_12_cost,
-	.per_arch =
-	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_12_cost_cpu },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_12_cost_cuda }
-	},
-	.type = STARPU_HISTORY_BASED,
-#ifdef STARPU_ATLAS
-	.symbol = "lu_model_12_atlas"
-#elif defined(STARPU_GOTO)
-	.symbol = "lu_model_12_goto"
-#else
-	.symbol = "lu_model_12"
-#endif
-};
-
-struct starpu_perfmodel model_21 =
-{
-	.cost_function = task_21_cost,
-	.per_arch =
-	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_21_cost_cpu },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_21_cost_cuda }
-	},
-	.type = STARPU_HISTORY_BASED,
-#ifdef STARPU_ATLAS
-	.symbol = "lu_model_21_atlas"
-#elif defined(STARPU_GOTO)
-	.symbol = "lu_model_21_goto"
-#else
-	.symbol = "lu_model_21"
-#endif
-};
-
-struct starpu_perfmodel model_22 =
-{
-	.cost_function = task_22_cost,
-	.per_arch =
-	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_function = task_22_cost_cpu },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_function = task_22_cost_cuda }
-	},
-	.type = STARPU_HISTORY_BASED,
-#ifdef STARPU_ATLAS
-	.symbol = "lu_model_22_atlas"
-#elif defined(STARPU_GOTO)
-	.symbol = "lu_model_22_goto"
-#else
-	.symbol = "lu_model_22"
-#endif
-};

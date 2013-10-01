@@ -244,7 +244,11 @@ int _starpu_submit_job(struct _starpu_job *j)
 	if(sched_ctx != NULL && j->task->sched_ctx != _starpu_get_initial_sched_ctx()->id && j->task->sched_ctx != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL)
 	{
-		_starpu_compute_buffers_footprint(j->task->cl->model, STARPU_CPU_DEFAULT, 0, j);
+		struct starpu_perfmodel_arch arch;
+		arch.type = STARPU_CPU_WORKER;
+		arch.devid = 0;
+		arch.ncore = 0;
+		_starpu_compute_buffers_footprint(j->task->cl->model, &arch, 0, j);
 		int i;
 		size_t data_size = 0;
 		for(i = 0; i < STARPU_NMAXBUFS; i++)

@@ -48,7 +48,7 @@ unsigned _starpu_get_calibrate_flag(void)
 	return calibrate_flag;
 }
 
-enum starpu_perfmodel_archtype starpu_worker_get_perf_archtype(int workerid)
+struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
@@ -56,26 +56,26 @@ enum starpu_perfmodel_archtype starpu_worker_get_perf_archtype(int workerid)
 	unsigned nworkers = config->topology.nworkers;
 
 	if (workerid < (int)config->topology.nworkers)
-		return config->workers[workerid].perf_arch;
+		return &config->workers[workerid].perf_arch;
 
 	/* We have a combined worker */
 	unsigned ncombinedworkers = config->topology.ncombinedworkers;
 	STARPU_ASSERT(workerid < (int)(ncombinedworkers + nworkers));
-	return config->combined_workers[workerid - nworkers].perf_arch;
+	return &config->combined_workers[workerid - nworkers].perf_arch;
 }
 
 /*
  * PER ARCH model
  */
 
-static double per_arch_task_expected_perf(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, struct starpu_task *task, unsigned nimpl)
+static double per_arch_task_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, struct starpu_task *task, unsigned nimpl)
 {
 	double exp = NAN;
-	double (*per_arch_cost_function)(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl);
+	double (*per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 	double (*per_arch_cost_model)(struct starpu_data_descr *);
 
-	per_arch_cost_function = model->per_arch[arch][nimpl].cost_function;
-	per_arch_cost_model = model->per_arch[arch][nimpl].cost_model;
+	per_arch_cost_function = model->per_arch[arch->type][arch->devid][arch->ncore][nimpl].cost_function;
+	per_arch_cost_model = model->per_arch[arch->type][arch->devid][arch->ncore][nimpl].cost_model;
 
 	if (per_arch_cost_function)
 		exp = per_arch_cost_function(task, arch, nimpl);
@@ -89,28 +89,31 @@ static double per_arch_task_expected_perf(struct starpu_perfmodel *model, enum s
  * Common model
  */
 
-double starpu_worker_get_relative_speedup(enum starpu_perfmodel_archtype perf_archtype)
+double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arch)
 {
-	if (perf_archtype < STARPU_CUDA_DEFAULT)
+	if (perf_arch->type == STARPU_CPU_WORKER)
 	{
-		return _STARPU_CPU_ALPHA * (perf_archtype + 1);
+		return _STARPU_CPU_ALPHA * (perf_arch->ncore + 1);
 	}
-	else if (perf_archtype < STARPU_OPENCL_DEFAULT)
+	else if (perf_arch->type == STARPU_CUDA_WORKER)
 	{
 		return _STARPU_CUDA_ALPHA;
 	}
-	else if (perf_archtype < STARPU_NARCH_VARIATIONS)
+	else if (perf_arch->type == STARPU_OPENCL_WORKER)
 	{
 		return _STARPU_OPENCL_ALPHA;
 	}
-
+	else if (perf_arch->type == STARPU_MIC_WORKER)
+	{
+		return _STARPU_MIC_ALPHA * (perf_arch->ncore + 1);
+	}
 	STARPU_ABORT();
 
 	/* Never reached ! */
 	return NAN;
 }
 
-static double common_task_expected_perf(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, struct starpu_task *task, unsigned nimpl)
+static double common_task_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct starpu_task *task, unsigned nimpl)
 {
 	double exp;
 	double alpha;
@@ -143,7 +146,6 @@ void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 		return;
 
 	int load_model = _starpu_register_model(model);
-
 	if (!load_model)
 		return;
 
@@ -170,7 +172,7 @@ void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 	model->is_loaded = 1;
 }
 
-static double starpu_model_expected_perf(struct starpu_task *task, struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch,  unsigned nimpl)
+static double starpu_model_expected_perf(struct starpu_task *task, struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch,  unsigned nimpl)
 {
 	if (model)
 	{
@@ -203,19 +205,19 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 	return 0.0;
 }
 
-double starpu_task_expected_length(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 
 	return starpu_model_expected_perf(task, task->cl->model, arch, nimpl);
 }
 
-double starpu_task_expected_power(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double starpu_task_expected_power(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	return starpu_model_expected_perf(task, task->cl->power_model, arch, nimpl);
 }
 
 double starpu_task_expected_conversion_time(struct starpu_task *task,
-					    enum starpu_perfmodel_archtype arch,
+					    struct starpu_perfmodel_arch* arch,
 					    unsigned nimpl)
 {
 	unsigned i;
@@ -230,14 +232,28 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		handle = STARPU_TASK_GET_HANDLE(task, i);
 		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
-
-		if (arch < STARPU_CUDA_DEFAULT)
-			node_kind = STARPU_CPU_RAM;
-		else if (arch < STARPU_OPENCL_DEFAULT)
-			node_kind = STARPU_CUDA_RAM;
-		else
-			node_kind = STARPU_OPENCL_RAM;
-
+		
+		switch(arch->type)
+		{
+			case STARPU_CPU_WORKER:
+				node_kind = STARPU_CPU_RAM;
+				break;
+			case STARPU_CUDA_WORKER:
+				node_kind = STARPU_CUDA_RAM;
+				break;
+			case STARPU_OPENCL_WORKER:
+				node_kind = STARPU_OPENCL_RAM;
+				break;
+			case STARPU_MIC_WORKER:
+				node_kind = STARPU_MIC_RAM;
+				break;
+			case STARPU_SCC_WORKER:
+				node_kind = STARPU_SCC_RAM;
+				break;
+			default:
+				STARPU_ABORT();
+				break;
+		}
 		if (!_starpu_handle_needs_conversion_task_for_arch(handle, node_kind))
 			continue;
 
@@ -298,7 +314,7 @@ double starpu_task_expected_data_transfer_time(unsigned memory_node, struct star
 }
 
 /* Return the expected duration of the entire task bundle in µs */
-double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	double expected_length = 0.0;
 
@@ -329,7 +345,7 @@ double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum star
 }
 
 /* Return the expected power consumption of the entire task bundle in J */
-double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	double expected_power = 0.0;
 

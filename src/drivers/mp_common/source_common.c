@@ -36,7 +36,7 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 	uint32_t mask = 0;
 	int profiling = starpu_profiling_status_get();
 	struct timespec codelet_end;
-	_starpu_driver_end_job(worker, j, worker->perf_arch, &codelet_end, 0,
+	_starpu_driver_end_job(worker, j, &worker->perf_arch, &codelet_end, 0,
 			profiling);
 	
 	int count = worker->current_rank;
@@ -57,7 +57,7 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 	if(count == 0)
 	{
 
-		_starpu_driver_update_job_feedback(j, worker, worker->perf_arch,
+		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch,
 				&j->cl_start, &codelet_end,
 				profiling);
 
