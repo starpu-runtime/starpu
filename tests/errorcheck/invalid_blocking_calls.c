@@ -26,8 +26,6 @@ static unsigned *data;
 
 void wrong_func(void *descr[], void *arg)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	/* The function is expected to fail. This is indicated in tests/Makefile.am */
 	/* try to fetch data in the RAM while we are in a codelet, such a
 	 * blocking call is forbidden */
