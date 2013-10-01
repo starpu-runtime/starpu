@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,7 @@
 //#define STARPU_TEST_OUTPUT
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-#ifdef STARPU_HAVE_VALGRIND_H
+#if defined(STARPU_HAVE_VALGRIND_H) && !defined(STARPU_VALGRIND_FULL)
 static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 
 #  define STARPU_SKIP_IF_VALGRIND \
@@ -55,11 +55,7 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 			return;						\
 		}							\
 	} while(0)
-#else
-#  define STARPU_SKIP_IF_VALGRIND
-#endif
 
-#ifdef STARPU_HAVE_VALGRIND_H
 #  define STARPU_RETURN(ret) \
 	do								\
 	{								\
@@ -70,7 +66,10 @@ static int _starpu_valgrind_print_once STARPU_ATTRIBUTE_UNUSED = 0;
 		} \
 		else return ret; \
 	} while(0)
-#else
+
+#else /* defined(STARPU_HAVE_VALGRIND_H) && !defined(STARPU_VALGRIND_FULL) */
 #  define STARPU_RETURN(ret) return ret
-#endif
+#  define STARPU_SKIP_IF_VALGRIND
+#endif  /* defined(STARPU_HAVE_VALGRIND_H) && !defined(STARPU_VALGRIND_FULL) */
+
 #endif /* _TESTS_HELPER_H */
