@@ -599,7 +599,6 @@ static void initialize_model(struct starpu_perfmodel *model)
 	model->per_arch[STARPU_OPENCL_WORKER] = initialize_arch_model(conf->topology.nhwopenclgpus,NULL);
 	model->per_arch[STARPU_MIC_WORKER] = initialize_arch_model(conf->topology.nhwmicdevices,conf->topology.nhwmiccores);
 	model->per_arch[STARPU_SCC_WORKER] = initialize_arch_model(conf->topology.nhwscc,NULL);
-
 }
 
 static void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
@@ -735,8 +734,6 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
  */
 int _starpu_register_model(struct starpu_perfmodel *model)
 {
-	STARPU_ASSERT(model);
-	STARPU_ASSERT(model->symbol);
 	starpu_perfmodel_init(model);
 
 	/* If the model has already been loaded, there is nothing to do */
@@ -958,15 +955,11 @@ void _starpu_deinitialize_registered_performance_models(void)
  */
 void _starpu_load_per_arch_based_model(struct starpu_perfmodel *model)
 {
-	STARPU_ASSERT(model);
-	STARPU_ASSERT(model->symbol);
 	starpu_perfmodel_init(model);
 }
 
 void _starpu_load_common_based_model(struct starpu_perfmodel *model)
 {
-	STARPU_ASSERT(model);
-	STARPU_ASSERT(model->symbol);
 	starpu_perfmodel_init(model);
 }
 
@@ -976,8 +969,6 @@ void _starpu_load_common_based_model(struct starpu_perfmodel *model)
  * is still not loaded once we have the lock, we do load it.  */
 void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned scan_history)
 {
-	STARPU_ASSERT(model);
-	STARPU_ASSERT(model->symbol);
 	starpu_perfmodel_init(model);
 
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
