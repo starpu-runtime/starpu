@@ -148,6 +148,7 @@ static void delete_app_req(struct _starpu_mpi_req *req)
 	}
 }
 
+#ifdef STARPU_VERBOSE
 static void _starpu_mpi_copy_handle_display_hash(int source, int tag)
 {
 	struct _starpu_mpi_copy_handle_hashlist *hashlist;
@@ -172,6 +173,7 @@ static void _starpu_mpi_copy_handle_display_hash(int source, int tag)
 		}
 	}
 }
+#endif
 
 static struct _starpu_mpi_copy_handle *pop_chandle(int mpi_tag, int source, int delete)
 {
