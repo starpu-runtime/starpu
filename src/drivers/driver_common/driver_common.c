@@ -22,6 +22,7 @@
 #include <profiling/profiling.h>
 #include <common/utils.h>
 #include <core/debug.h>
+#include <core/sched_ctx.h>
 #include <drivers/driver_common/driver_common.h>
 #include <starpu_top.h>
 #include <core/sched_policy.h>
@@ -218,7 +219,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 
 		_starpu_worker_set_status_sleeping(workerid);
 
-		if (_starpu_worker_can_block(memnode))
+		if (_starpu_worker_can_block(memnode) && !_starpu_sched_ctx_last_worker_awake(args))
 		{
 			STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);

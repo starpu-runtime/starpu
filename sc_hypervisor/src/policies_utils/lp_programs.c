@@ -255,8 +255,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 	int s, w;
 	glp_prob *lp;
 
-	int ne = //ns * (nw*ns + 1) +
-		(ns*nw+1)*(2*ns+nw)
+	int ne = (ns*nw+1)*(ns+nw)
 		+ 1; /* glp dumbness */
 	int n = 1;
 	int ia[ne], ja[ne];
@@ -276,16 +275,26 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 	{
 		for(w = 0; w < nw; w++)
 		{
+			struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[s]);
 			char name[32];
 			snprintf(name, sizeof(name), "worker%dctx%d", w, s);
 			glp_set_col_name(lp, n, name);
 			if (integer)
 			{
 				glp_set_col_kind(lp, n, GLP_IV);
-				glp_set_col_bnds(lp, n, GLP_LO, 0, 0);
+				printf("ctx %d idx %d min %d max %d \n", sched_ctxs[s], s, config->min_nworkers, config->max_nworkers);
+				if(config->max_nworkers == 0)
+					glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers, config->max_nworkers);
+				else
+					glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers, config->max_nworkers);
 			}
 			else
-				glp_set_col_bnds(lp, n, GLP_LO, 0.0, 0.0);
+			{
+				if(config->max_nworkers == 0)
+					glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers*1.0, config->max_nworkers*1.0);
+				else
+					glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers*1.0, config->max_nworkers*1.0);
+			}
 			n++;
 		}
 	}
@@ -338,69 +347,6 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 		n++;
 	}
 
-	/* one row corresponds to one ctx*/
-	glp_add_rows(lp, ns);
-
-	for(s = 0; s < ns; s++)
-	{
-		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[s]);
-		char name[32];
-		snprintf(name, sizeof(name), "ctx%d", s);
-		glp_set_row_name(lp, ns+s+1, name);
-		glp_set_row_bnds(lp, ns+s+1, GLP_LO, 0., 0.);
-		
-
-		int s2;
-		for(s2 = 0; s2 < ns; s2++)
-		{
-			if(s2 == s)
-			{
-
-				for(w = 0; w < nw; w++)
-				{
-					/* only for CPUs for now */
-					if(w == 0)
-					{
-						ia[n] = ns+s+1;
-						ja[n] = w+s2*nw + 1;
-						ar[n] = 1.0;
-//					printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
-					}
-					else
-					{
-						ia[n] = ns+s+1;
-						ja[n] = w+s2*nw + 1;
-						ar[n] = 0.0;
-//					printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
-
-					}
-					n++;
-				}
-			}
-			else
-			{
-				for(w = 0; w < nw; w++)
-				{
-
-					ia[n] = ns+s+1;
-					ja[n] = w+s2*nw + 1;
-					ar[n] = 0.0;
-//					printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
-					n++;
-				}
-				
-			}
-				
-		}
-		ia[n] = ns+s+1;
-		ja[n] = ns*nw+1;
-		ar[n] = 0.0;
-		n++;
-		
-		glp_set_row_bnds(lp, ns+s+1, GLP_UP, config->min_nworkers, config->max_nworkers);
-
-	}
-
 	/*we add another linear constraint : sum(all cpus) = 9 and sum(all gpus) = 3 */
 	glp_add_rows(lp, nw);
 
@@ -408,7 +354,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 	{
 		char name[32];
 		snprintf(name, sizeof(name), "w%d", w);
-		glp_set_row_name(lp, 2*ns+w+1, name);
+		glp_set_row_name(lp, ns+w+1, name);
 		for(s = 0; s < ns; s++)
 		{
 			int w2;
@@ -416,14 +362,14 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 			{
 				if(w2 == w)
 				{
-					ia[n] = 2*ns+w+1;
+					ia[n] = ns+w+1;
 					ja[n] = w2+s*nw + 1;
 					ar[n] = 1.0;
 //					printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
 				}
 				else
 				{
-					ia[n] = 2*ns+w+1;
+					ia[n] = ns+w+1;
 					ja[n] = w2+s*nw + 1;
 					ar[n] = 0.0;
 //					printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
@@ -432,7 +378,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 			}
 		}
 		/* 1/tmax */
-		ia[n] = 2*ns+w+1;
+		ia[n] = ns+w+1;
 		ja[n] = ns*nw+1;
 		ar[n] = 0.0;
 //		printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
@@ -440,11 +386,11 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 
 		/*sum(all gpus) = 3*/
 		if(w == 0)
-			glp_set_row_bnds(lp, 2*ns+w+1, GLP_FX, total_nw[0], total_nw[0]);
+			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[0], total_nw[0]);
 
 		/*sum(all cpus) = 9*/
 		if(w == 1)
-			glp_set_row_bnds(lp, 2*ns+w+1, GLP_FX, total_nw[1], total_nw[1]);
+			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[1], total_nw[1]);
 	}
 
 	STARPU_ASSERT(n == ne);
@@ -493,7 +439,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 
 	double vmax = glp_get_obj_val(lp);
 
-//	printf("vmax = %lf \n", vmax);
+	printf("vmax = %lf \n", vmax);
 	n = 1;
 	for(s = 0; s < ns; s++)
 	{
@@ -503,7 +449,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
                                 res[s][w] = (double)glp_mip_col_val(lp, n);
 			else
 				res[s][w] = glp_get_col_prim(lp, n);
-//			printf("%d/%d: res %lf flops = %lf v = %lf\n", w,s, res[s][w], flops[s], v[s][w]);
+			printf("%d/%d: res %lf flops = %lf v = %lf\n", w,s, res[s][w], flops[s], v[s][w]);
 			n++;
 		}
 	}

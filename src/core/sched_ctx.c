@@ -1116,6 +1116,36 @@ int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio)
 	return 0;
 }
 
+unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
+{
+	struct _starpu_sched_ctx_list *l = NULL;
+        for (l = worker->sched_ctx_list; l; l = l->next)
+        {
+		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+		
+		unsigned last_worker_awake = 1;
+		struct starpu_worker_collection *workers = sched_ctx->workers;
+		struct starpu_sched_ctx_iterator it;
+
+		int workerid;
+		if(workers->init_iterator)
+			workers->init_iterator(workers, &it);
+		
+		while(workers->has_next(workers, &it))
+		{
+			workerid = workers->get_next(workers, &it);
+			if(workerid != worker->workerid && _starpu_worker_get_status(workerid) != STATUS_SLEEPING)
+			{
+				last_worker_awake = 0;
+				break;
+			}
+		}
+		if(last_worker_awake)
+			return 1;
+	}
+	return 0;
+}
+
 static void _starpu_sched_ctx_bind_thread_to_ctx_cpus(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);

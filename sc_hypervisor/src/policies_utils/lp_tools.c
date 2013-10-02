@@ -89,7 +89,8 @@ we give a worker (in shared mode) to the context in order to leave him
 finish its work = we give -1.0 value instead of 0.0 and further on in
 the distribution function we take this into account and revert the variable
 to its 0.0 value */ 
-		if(no_workers && (flops[i] != 0.0 || sc_w->nready_tasks > 0))
+//		if(no_workers && (flops[i] != 0.0 || sc_w->nready_tasks > 0))
+		if(no_workers)
 		{
 			for(w = 0; w < nw; w++)
 				res[i][w] = -1.0;
