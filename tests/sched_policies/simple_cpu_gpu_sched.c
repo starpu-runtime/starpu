@@ -85,12 +85,12 @@ gpu_task_gpu(struct starpu_task *task,
 	return 1.0;
 }
 
-static struct starpu_perfmodel model_cpu_task = 
+static struct starpu_perfmodel model_cpu_task =
 {
 	.type = STARPU_PER_ARCH,
 	.symbol = "model_cpu_task"
 };
-static struct starpu_perfmodel model_gpu_task = 
+static struct starpu_perfmodel model_gpu_task =
 {
 	.type = STARPU_PER_ARCH,
 	.symbol = "model_gpu_task"
@@ -101,8 +101,8 @@ init_perfmodels(void)
 {
 	unsigned devid, ncore;
 
-	starpu_initialize_model(&model_cpu_task);
-	starpu_initialize_model(&model_gpu_task);
+	starpu_perfmodel_init(&model_cpu_task);
+	starpu_perfmodel_init(&model_gpu_task);
 
 	if(model_cpu_task.per_arch[STARPU_CPU_WORKER] != NULL)
 	{

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
  */
 
 /*
- *	Number of flops of Gemm 
+ *	Number of flops of Gemm
  */
 
 #include <starpu.h>
@@ -126,14 +126,13 @@ double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_
 	return PERTURBATE(cost);
 }
 
-void initialize_chol_model(struct starpu_perfmodel* model, char * symbol, 
-		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned), 
+void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
+		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned),
 		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned))
 {
-	starpu_initialize_model(model);
+	starpu_perfmodel_init(model);
 	model->type = STARPU_HISTORY_BASED;
 	model->symbol = symbol;
 	model->per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = cpu_cost_function;
 	model->per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = cuda_cost_function;
 }
-

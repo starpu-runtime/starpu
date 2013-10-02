@@ -651,7 +651,7 @@ static void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
 	}
 }
 
-void starpu_initialize_model(struct starpu_perfmodel *model)
+void starpu_perfmodel_init(struct starpu_perfmodel *model)
 {
 	STARPU_ASSERT(model && model->symbol);
 
@@ -682,7 +682,7 @@ void starpu_initialize_model(struct starpu_perfmodel *model)
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 }
 
-void starpu_initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
+void starpu_perfmodel_init_with_file(FILE*f, struct starpu_perfmodel *model)
 {
 	STARPU_ASSERT(model && model->symbol);
 
@@ -737,7 +737,7 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
-	starpu_initialize_model(model);
+	starpu_perfmodel_init(model);
 
 	/* If the model has already been loaded, there is nothing to do */
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
@@ -960,14 +960,14 @@ void _starpu_load_per_arch_based_model(struct starpu_perfmodel *model)
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
-	starpu_initialize_model(model);
+	starpu_perfmodel_init(model);
 }
 
 void _starpu_load_common_based_model(struct starpu_perfmodel *model)
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
-	starpu_initialize_model(model);
+	starpu_perfmodel_init(model);
 }
 
 /* We first try to grab the global lock in read mode to check whether the model
@@ -978,7 +978,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
-	starpu_initialize_model(model);
+	starpu_perfmodel_init(model);
 
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 
@@ -1111,7 +1111,7 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 	FILE *f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
-	starpu_initialize_model_with_file(f, model);
+	starpu_perfmodel_init_with_file(f, model);
 	rewind(f);
 
 	parse_model_file(f, model, 1);
