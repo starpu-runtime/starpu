@@ -27,8 +27,19 @@
 }
 
 {
-   fprintf addr error
+   fprintf addr4 error
    Memcheck:Addr4
+   ...
+   fun:vfprintf
+   fun:buffered_vfprintf
+   fun:vfprintf
+   fun:fprintf
+   fun:main
+}
+
+{
+   fprintf addr8 error
+   Memcheck:Addr8
    ...
    fun:vfprintf
    fun:buffered_vfprintf
