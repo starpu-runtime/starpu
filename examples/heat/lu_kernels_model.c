@@ -220,8 +220,8 @@ void initialize_lu_kernels_model(struct starpu_perfmodel* model, char * symbol,
 		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned))
 {
 	model->symbol = symbol;
-	starpu_perfmodel_init(model);
 	model->type = STARPU_HISTORY_BASED;
+	starpu_perfmodel_init(model);
 	model->cost_function = cost_function;
 	model->per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = cpu_cost_function;
 	if(starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) != 0)
