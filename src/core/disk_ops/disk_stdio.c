@@ -308,7 +308,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	/* free memory */
 	free(buf);
 
-	buf = malloc(1, sizeof(char));
+	buf = malloc(sizeof(char));
 	STARPU_ASSERT(buf != NULL);
 
 	*buf = 0;
