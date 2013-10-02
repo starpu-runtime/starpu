@@ -25,3 +25,14 @@
    fun:vfprintf
    fun:fprintf
 }
+
+{
+   fprintf addr error
+   Memcheck:Addr4
+   ...
+   fun:vfprintf
+   fun:buffered_vfprintf
+   fun:vfprintf
+   fun:fprintf
+   fun:main
+}
