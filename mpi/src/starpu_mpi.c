@@ -1456,6 +1456,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			{
 				_starpu_mpi_copy_handle_list_delete(hashlist->list);
 			}
+			struct _starpu_mpi_copy_handle_hashlist *current, *tmp;
+			HASH_ITER(hh, _starpu_mpi_copy_handle_hashmap[n], current, tmp)
+			{
+			     HASH_DEL(_starpu_mpi_copy_handle_hashmap[n], current);
+			}
 		}
 	}
 
