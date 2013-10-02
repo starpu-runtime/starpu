@@ -1081,6 +1081,7 @@ int starpu_perfmodel_list(FILE *output)
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model)
 {
 	model->symbol = strdup(symbol);
+	starpu_perfmodel_init(model);
 
 	/* where is the file if it exists ? */
 	char path[256];
