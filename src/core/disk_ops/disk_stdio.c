@@ -36,7 +36,8 @@
 
 /* ------------------- use STDIO to write on disk -------------------  */
 
-struct starpu_stdio_obj {
+struct starpu_stdio_obj
+{
 	int descriptor;
 	FILE * file;
 	char * path;
@@ -44,12 +45,9 @@ struct starpu_stdio_obj {
 	starpu_pthread_mutex_t mutex;
 };
 
-
 /* allocation memory on disk */
-static void * 
-starpu_stdio_alloc (void *base, size_t size)
+static void *starpu_stdio_alloc (void *base, size_t size)
 {
-	
 	struct starpu_stdio_obj * obj = malloc(sizeof(struct starpu_stdio_obj));
 	STARPU_ASSERT(obj != NULL);
 	int id = -1;
@@ -113,10 +111,8 @@ starpu_stdio_alloc (void *base, size_t size)
 	return (void *) obj;
 }
 
-
 /* free memory on disk */
-static void
-starpu_stdio_free (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
+static void starpu_stdio_free(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
@@ -130,10 +126,8 @@ starpu_stdio_free (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size ST
 	free(tmp);
 }
 
-
 /* open an existing memory on disk */
-static void * 
-starpu_stdio_open (void *base, void *pos, size_t size)
+static void *starpu_stdio_open (void *base, void *pos, size_t size)
 {
 	struct starpu_stdio_obj * obj = malloc(sizeof(struct starpu_stdio_obj));
 	STARPU_ASSERT(obj != NULL);
@@ -169,13 +163,11 @@ starpu_stdio_open (void *base, void *pos, size_t size)
 	obj->size = size;
 
 	return (void *) obj;
-	
 }
 
 
 /* free memory without delete it */
-static void 
-starpu_stdio_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
+static void starpu_stdio_close(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
@@ -184,19 +176,17 @@ starpu_stdio_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size S
 	fclose(tmp->file);
 	close(tmp->descriptor);
 	free(tmp->path);
-	free(tmp);	
+	free(tmp);
 }
 
-
 /* read the memory disk */
-static int 
-starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
+static int starpu_stdio_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
-		
+
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
-	int res = fseek(tmp->file, offset, SEEK_SET); 
+	int res = fseek(tmp->file, offset, SEEK_SET);
 	STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
 
 	ssize_t nb = fread (buf, 1, size, tmp->file);
@@ -207,8 +197,7 @@ starpu_stdio_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off
 	return 0;
 }
 
-static int
-starpu_stdio_full_read(unsigned node, void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
+static int starpu_stdio_full_read(unsigned node, void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
@@ -218,14 +207,13 @@ starpu_stdio_full_read(unsigned node, void *base STARPU_ATTRIBUTE_UNUSED, void *
 }
 
 /* write on the memory disk */
-static int 
-starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
+static int starpu_stdio_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
-	int res = fseek(tmp->file, offset, SEEK_SET); 
+	int res = fseek(tmp->file, offset, SEEK_SET);
 	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
 
 	fwrite (buf, 1, size, tmp->file);
@@ -235,11 +223,10 @@ starpu_stdio_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *b
 	return 0;
 }
 
-static int
-starpu_stdio_full_write (unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
+static int starpu_stdio_full_write(unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
-	
+
 	/* update file size to realise the next good full_read */
 	if(size != tmp->size)
 	{
@@ -257,45 +244,38 @@ starpu_stdio_full_write (unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, voi
 		}
 		else
 		{
-			STARPU_ASSERT_MSG(0, "Can't allocate size %u on the disk !", (int) size); 
+			STARPU_ASSERT_MSG(0, "Can't allocate size %u on the disk !", (int) size);
 		}
-	}	
+	}
 	return _starpu_disk_write(STARPU_MAIN_RAM, node, obj, ptr, 0, tmp->size, NULL);
 }
 
-
 /* create a new copy of parameter == base */
-static void * 
-starpu_stdio_plug (void *parameter)
+static void *starpu_stdio_plug(void *parameter)
 {
 	char * tmp = malloc(sizeof(char)*(strlen(parameter)+1));
 	STARPU_ASSERT(tmp != NULL);
 	strcpy(tmp,(char *) parameter);
-	return (void *) tmp;	
+	return (void *) tmp;
 }
 
-
 /* free memory allocated for the base */
-static void
-starpu_stdio_unplug (void *base)
+static void starpu_stdio_unplug(void *base)
 {
 	free(base);
 }
 
-
-static int
-get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
+static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 {
-
 	unsigned iter;
 	double timing_slowness, timing_latency;
 	struct timeval start;
 	struct timeval end;
-	
-	srand (time (NULL)); 
+
+	srand (time (NULL));
 	char * buf = malloc(SIZE_DISK_MIN);
 	STARPU_ASSERT(buf != NULL);
-	
+
 	/* allocate memory */
 	void * mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
 	/* fail to alloc */
@@ -358,8 +338,8 @@ get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	return 1;
 }
 
-
-struct starpu_disk_ops starpu_disk_stdio_ops = {
+struct starpu_disk_ops starpu_disk_stdio_ops =
+{
 	.alloc = starpu_stdio_alloc,
 	.free = starpu_stdio_free,
 	.open = starpu_stdio_open,
