@@ -75,6 +75,7 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 
 	old_nsamples = 0;
 	lmodel.is_init=0;
+	lmodel.type = model->type;
 	ret = starpu_perfmodel_load_symbol(codelet->model->symbol, &lmodel);
 	if (ret != 1)
 		for (archtype = 0; archtype < STARPU_NARCH; archtype++)
