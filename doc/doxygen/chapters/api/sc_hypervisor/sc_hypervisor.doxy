@@ -6,10 +6,10 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \defgroup API_Scheduling_Context_Hypervisor Scheduling Context Hypervisor - Building a new resizing policy
+/*! \defgroup API_SC_Hypervisor Scheduling Context Hypervisor - Building a new resizing policy
 
 \struct sc_hypervisor_policy
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 This structure contains all the methods that implement a hypervisor resizing policy.
 \var sc_hypervisor_policy::name
         Indicates the name of the policy, if there is not a custom policy, the policy corresponding to this name will be used by the hypervisor
@@ -37,7 +37,7 @@ This structure contains all the methods that implement a hypervisor resizing pol
 	The hypervisor takes a decision when a certain ctx was deleted
 
 \struct sc_hypervisor_policy_config
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 This structure contains all configuration information of a
 context. It contains configuration information for each context, which
 can be used to construct new resize strategies.
@@ -65,7 +65,7 @@ can be used to construct new resize strategies.
         todo
 
 \struct sc_hypervisor_wrapper
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 This structure is a wrapper of the contexts available in StarPU
 and contains all information about a context obtained by incrementing
 the performance counters.
@@ -120,7 +120,7 @@ the performance counters.
 	The number of ready tasks in a context
 
 \struct sc_hypervisor_resize_ack
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 This structures checks if the workers moved to another context
 are actually taken into account in that context.
 \var sc_hypervisor_resize_ack::receiver_sched_ctx
@@ -135,7 +135,7 @@ are actually taken into account in that context.
 
 \struct sc_hypervisor_policy_task_pool
 task wrapper linked list
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 \var sc_hypervisor_policy_task_pool::cl
 Which codelet has been executed
 \var sc_hypervisor_policy_task_pool::footprint
@@ -150,48 +150,48 @@ The quantity of data(in bytes) needed by the task to execute
 Other task kinds
 
 \fn void sc_hypervisor_post_resize_request(unsigned sched_ctx, int task_tag)
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 Requires resizing the context \p sched_ctx whenever a task tagged with the id \p task_tag
 finished executing 
 
 \fn unsigned sc_hypervisor_get_size_req(unsigned **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers)
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 Check if there are pending demands of resizing
 
 \fn void sc_hypervisor_save_size_req(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 Save a demand of resizing
 
 \fn void sc_hypervisor_free_size_req(void)
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 Clear the list of pending demands of resizing
 
 \fn unsigned sc_hypervisor_can_resize(unsigned sched_ctx)
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 Check out if a context can be resized
 
 \fn struct sc_hypervisor_policy_config *sc_hypervisor_get_config(unsigned sched_ctx)
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 Returns the configuration structure of a context
 
 \fn void sc_hypervisor_set_config(unsigned sched_ctx, void *config)
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
 Set a certain configuration to a contexts
 
 \fn unsigned *sc_hypervisor_get_sched_ctxs()
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
     Gets the contexts managed by the hypervisor
 
 \fn int sc_hypervisor_get_nsched_ctxs()
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
     Gets the number of contexts managed by the hypervisor
 
 \fn struct sc_hypervisor_wrapper *sc_hypervisor_get_wrapper(unsigned sched_ctx)
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
     Returns the wrapper corresponding the context \p sched_ctx
 
 \fn double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper *sc_w)
-\ingroup API_Scheduling_Context_Hypervisor
+\ingroup API_SC_Hypervisor
     Returns the flops of a context elapsed from the last resize
 
 
