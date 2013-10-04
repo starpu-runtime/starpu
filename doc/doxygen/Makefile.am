@@ -85,8 +85,6 @@ chapters =	\
 	chapters/api/performance_model.doxy \
 	chapters/api/profiling.doxy \
 	chapters/api/running_driver.doxy \
-	chapters/api/scheduling_context_hypervisor_usage.doxy \
-	chapters/api/scheduling_context_hypervisor.doxy \
 	chapters/api/scheduling_contexts.doxy \
 	chapters/api/scheduling_policy.doxy \
 	chapters/api/standard_memory_library.doxy \
@@ -96,7 +94,9 @@ chapters =	\
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy \
 	chapters/api/threads.doxy \
-	chapters/api/toolbox.doxy
+	chapters/api/toolbox.doxy \
+	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
+	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy
 
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	sed 's/#undef \(.*\)/#define \1 1/' $< > $@
