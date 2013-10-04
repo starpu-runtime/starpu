@@ -57,12 +57,12 @@ can be used to construct new resize strategies.
         Indicates which workers can be moved and which ones are fixed
 \var sc_hypervisor_policy_config:: new_workers_max_idle
         Indicates the maximum idle time accepted before a resize is triggered for the workers that just arrived in the new context
-\var sc_hypervisor_policy_config::empty_ctx_max_idle
-         Indicates that above this context we allow removing all workers
 \var sc_hypervisor_policy_config::ispeed_w_sample
          Indicates the sample used to compute the instant speed per worker
 \var sc_hypervisor_policy_config::ispeed_ctx_sample
         Indicates the sample used to compute the instant speed per ctxs
+\var sc_hypervisor_policy_config::time_sample
+        todo
 
 \struct sc_hypervisor_wrapper
 \ingroup API_Scheduling_Context_Hypervisor
@@ -178,7 +178,7 @@ Returns the configuration structure of a context
 \ingroup API_Scheduling_Context_Hypervisor
 Set a certain configuration to a contexts
 
-\fn int *sc_hypervisor_get_sched_ctxs()
+\fn unsigned *sc_hypervisor_get_sched_ctxs()
 \ingroup API_Scheduling_Context_Hypervisor
     Gets the contexts managed by the hypervisor
 

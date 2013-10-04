@@ -184,6 +184,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_bound.h		\
 	$(top_srcdir)/include/starpu_scheduler.h	\
 	$(top_srcdir)/include/starpu_sched_ctx.h	\
+	$(top_srcdir)/include/starpu_sched_ctx_hypervisor.h		\
 	$(top_srcdir)/include/starpu_top.h		\
 	$(top_srcdir)/include/starpu_hash.h		\
 	$(top_srcdir)/include/starpu_rand.h		\

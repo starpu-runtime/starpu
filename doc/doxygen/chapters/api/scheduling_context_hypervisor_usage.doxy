@@ -97,14 +97,6 @@ Change dynamically the total number of flops of a context, move the deadline of 
 \ingroup API_Scheduling_Context_Hypervisor_usage
 Change dynamically the number of the elapsed flops in a context, modify the past in order to better compute the speed 
 
-\fn int *sc_hypervisor_get_sched_ctxs()
-\ingroup API_Scheduling_Context_Hypervisor_usage
-    Gets the contexts managed by the hypervisor
-
-\fn int sc_hypervisor_get_nsched_ctxs()
-\ingroup API_Scheduling_Context_Hypervisor_usage
-    Gets the number of contexts managed by the hypervisor
-
 \fn void sc_hypervisor_ctl(unsigned sched_ctx, ...)
 \ingroup API_Scheduling_Context_Hypervisor_usage
 Inputs conditions to the context sched_ctx with the following
