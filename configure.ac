@@ -912,7 +912,7 @@ AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [en
 				enable_blocking=$enableval, enable_blocking=no)
 AC_MSG_RESULT($enable_blocking)
 
-if test x$enable_blocking = xno -a x$enable_simgrid != xyes ; then
+if test x$enable_blocking = xno ; then
 	AC_DEFINE(STARPU_NON_BLOCKING_DRIVERS, [1], [drivers must progress])
 fi
 
