@@ -147,7 +147,7 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 			}
 		}			
 		
-		if(nworkers != 0)
+		if(nworkers != 0 && all_workers_flops != 0.0)
 		{
 //			elapsed_time -= max_workers_idle_time;
 			speed = (all_workers_flops / elapsed_time) / nworkers;

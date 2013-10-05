@@ -437,18 +437,39 @@ static void _set_elapsed_flops_per_sched_ctx(unsigned sched_ctx, double val)
 double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper* sc_w)
 {
 	double ret_val = 0.0;
-	int i;
-	for(i = 0; i < STARPU_NMAXWORKERS; i++)
-		ret_val += sc_w->elapsed_flops[i];
+
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
+	int worker;
+	
+	struct starpu_sched_ctx_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+		
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		ret_val += sc_w->elapsed_flops[worker];
+	}
+
 	return ret_val;
 }
 
 double sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper* sc_w)
 {
 	double ret_val = 0.0;
-	int i;
-	for(i = 0; i < STARPU_NMAXWORKERS; i++)
-		ret_val += sc_w->total_elapsed_flops[i];
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
+	int worker;
+	
+	struct starpu_sched_ctx_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+		
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		ret_val += sc_w->total_elapsed_flops[worker];
+	}
+
 	return ret_val;
 }
 
@@ -822,8 +843,8 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 		if(lrint(norm_idle_time) >= 1)
 		{
 			config->max_nworkers = 	workers->nworkers - lrint(norm_idle_time);
-			if(config->max_nworkers > hypervisor.sched_ctx_w[sched_ctx].nready_tasks)
-				config->max_nworkers = hypervisor.sched_ctx_w[sched_ctx].nready_tasks - 1;
+/* 			if(config->max_nworkers > hypervisor.sched_ctx_w[sched_ctx].nready_tasks) */
+/* 				config->max_nworkers = hypervisor.sched_ctx_w[sched_ctx].nready_tasks - 1; */
 		}
 		else
 		{
