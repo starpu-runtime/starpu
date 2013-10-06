@@ -840,7 +840,7 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 		double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /* in seconds */
 		double norm_idle_time = max_workers_idle_time[i] / elapsed_time;
 
-		if(lrint(norm_idle_time) >= 1)
+		if(norm_idle_time >= 0.9)
 		{
 			config->max_nworkers = 	workers->nworkers - lrint(norm_idle_time);
 /* 			if(config->max_nworkers > hypervisor.sched_ctx_w[sched_ctx].nready_tasks) */
@@ -848,7 +848,7 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 		}
 		else
 		{
-			if(max_workers_idle_time[i] < 0.000001)
+			if(norm_idle_time < 0.1)//(max_workers_idle_time[i] < 0.000001)
 				config->max_nworkers = 	workers->nworkers + hypervisor.sched_ctx_w[sched_ctx].nready_tasks - 1;
 			else
 				config->max_nworkers = workers->nworkers;

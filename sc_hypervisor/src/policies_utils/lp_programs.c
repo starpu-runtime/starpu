@@ -387,7 +387,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 //		printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
 		n++;
 
-		if(last_vmax == -1.0)
+//		if(last_vmax == -1.0)
 		{
 			/*sum(all gpus) = 3*/
 			if(w == 0)
@@ -398,16 +398,16 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 				glp_set_row_bnds(lp, ns+w+1, GLP_UP, 0, total_nw[1]);
 
 		}
-		else
-		{
-			/*sum(all gpus) = 3*/
-			if(w == 0)
-				glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[0], total_nw[0]);
+/* 		else */
+/* 		{ */
+/* 			/\*sum(all gpus) = 3*\/ */
+/* 			if(w == 0) */
+/* 				glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[0], total_nw[0]); */
 			
-			/*sum(all cpus) = 9*/
-			if(w == 1)
-				glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[1], total_nw[1]);
-		}
+/* 			/\*sum(all cpus) = 9*\/ */
+/* 			if(w == 1) */
+/* 				glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[1], total_nw[1]); */
+/* 		} */
 	}
 
 	STARPU_ASSERT(n == ne);

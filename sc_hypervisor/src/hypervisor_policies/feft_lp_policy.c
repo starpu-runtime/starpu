@@ -56,6 +56,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, i
 		sc_hypervisor_lp_round_double_to_int(ns, nw, nworkers_per_ctx, nworkers_per_ctx_rounded);
 //		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, nw, nworkers_per_ctx_rounded, nworkers_per_ctx, curr_sched_ctxs, tw);
 		sc_hypervisor_lp_distribute_resources_in_ctxs(curr_sched_ctxs, ns, nw, nworkers_per_ctx_rounded, nworkers_per_ctx, workers, curr_nworkers, tw);
+		sc_hypervisor_lp_share_remaining_resources(ns, curr_sched_ctxs, curr_nworkers, workers);
 	}
 }
 
