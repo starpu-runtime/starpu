@@ -882,6 +882,7 @@ void _starpu_mpi_redux_data_detached_callback(void *arg)
 	STARPU_ASSERT(ret == 0);
 
 	starpu_data_unregister_submit(args->new_handle);
+	free(args);
 }
 
 void _starpu_mpi_redux_data_recv_callback(void *callback_arg)
