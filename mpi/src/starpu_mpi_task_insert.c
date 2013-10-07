@@ -946,7 +946,6 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 				 * reduction.
 				 */
 
-				/* FIXME: free args */
 				struct _starpu_mpi_redux_data_args *args = malloc(sizeof(struct _starpu_mpi_redux_data_args));
 				args->data_handle = data_handle;
 				args->tag = tag;
