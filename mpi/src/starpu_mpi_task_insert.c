@@ -586,16 +586,17 @@ int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		/* Get the number of buffers and the size of the arguments */
 		va_start(varg_list, codelet);
 		arg_buffer_size = _starpu_task_insert_get_arg_size(varg_list);
+		va_end(varg_list);
 
 		/* Pack arguments if needed */
 		if (arg_buffer_size)
 		{
 			va_start(varg_list, codelet);
 			_starpu_codelet_pack_args(&arg_buffer, arg_buffer_size, varg_list);
+			va_end(varg_list);
 		}
 
 		_STARPU_MPI_DEBUG(1, "Execution of the codelet %p (%s)\n", codelet, codelet->name);
-		va_start(varg_list, codelet);
 
 		struct starpu_task *task = starpu_task_create();
 		task->cl_arg_free = 1;
@@ -604,7 +605,11 @@ int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			task->dyn_handles = malloc(codelet->nbuffers * sizeof(starpu_data_handle_t));
 		}
+
+		va_start(varg_list, codelet);
 		int ret = _starpu_task_insert_create_and_submit(arg_buffer, arg_buffer_size, codelet, &task, varg_list);
+		va_end(varg_list);
+
 		STARPU_ASSERT_MSG(ret==0, "_starpu_task_insert_create_and_submit failure %d", ret);
 	}
 

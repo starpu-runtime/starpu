@@ -122,7 +122,6 @@ size_t _starpu_task_insert_get_arg_size(va_list varg_list)
 		}
 	}
 
-	va_end(varg_list);
 	return arg_buffer_size;
 }
 
@@ -230,7 +229,6 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 	}
 
 	*arg_buffer = _arg_buffer;
-	va_end(varg_list);
 	return 0;
 }
 
@@ -364,8 +362,6 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 			(*task)->use_tag = 1;
 		}
 	}
-
-	va_end(varg_list);
 
 	STARPU_ASSERT(cl == NULL || current_buffer == cl->nbuffers);
 
