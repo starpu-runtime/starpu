@@ -769,6 +769,17 @@ int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	return ret;
 }
 
+int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
+{
+	va_list varg_list;
+	int ret;
+
+	va_start(varg_list, codelet);
+	ret = _starpu_mpi_task_insert_v(comm, codelet, varg_list);
+	va_end(varg_list);
+	return ret;
+}
+
 void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
 {
 	int me, rank, tag;
