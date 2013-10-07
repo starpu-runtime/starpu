@@ -176,7 +176,11 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 {
 	if (model)
 	{
+		if (model->symbol)
+			_starpu_load_perfmodel(model);
+
 		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+
 		switch (model->type)
 		{
 			case STARPU_PER_ARCH:
@@ -207,7 +211,6 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
-
 	return starpu_model_expected_perf(task, task->cl->model, arch, nimpl);
 }
 
