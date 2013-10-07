@@ -48,6 +48,7 @@ void _starpu_init_data_request_lists(void)
 		/* Tell helgrind that we are fine with checking for list_empty
 		 * in _starpu_handle_node_data_requests, we will call it
 		 * periodically anyway */
+		STARPU_HG_DISABLE_CHECKING(data_requests[i]);
 		STARPU_HG_DISABLE_CHECKING(data_requests[i]->_head);
 
 		STARPU_PTHREAD_MUTEX_INIT(&data_requests_list_mutex[i], NULL);
