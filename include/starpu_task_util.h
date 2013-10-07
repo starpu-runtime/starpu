@@ -48,7 +48,8 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 int starpu_task_insert(struct starpu_codelet *cl, ...);
-#define starpu_insert_task starpu_task_insert
+/* the function starpu_insert_task has the same semantics as starpu_task_insert, it is kept to avoid breaking old codes */
+int starpu_insert_task(struct starpu_codelet *cl, ...);
 
 void starpu_codelet_unpack_args(void *cl_arg, ...);
 

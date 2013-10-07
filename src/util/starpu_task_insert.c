@@ -115,6 +115,17 @@ int starpu_task_insert(struct starpu_codelet *cl, ...)
 	return ret;
 }
 
+int starpu_insert_task(struct starpu_codelet *cl, ...)
+{
+	va_list varg_list;
+	int ret;
+
+	va_start(varg_list, cl);
+	ret = _starpu_task_insert_v(cl, varg_list);
+	va_end(varg_list);
+	return ret;
+}
+
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
 {
 	va_list varg_list;
