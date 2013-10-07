@@ -820,6 +820,8 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 			workers->init_iterator(workers, &it);
 		
 		max_workers_idle_time[i] = 0.0;
+		int nshared_workers = 0;
+		double cpu_used_in_shared = 0.0;
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);
@@ -832,7 +834,12 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 				double end_time  = starpu_timing_now();
 				double idle = (end_time - hypervisor.sched_ctx_w[sched_ctx].idle_start_time[worker]) / 1000000.0; /* in seconds */ 
 				max_workers_idle_time[i] += hypervisor.sched_ctx_w[sched_ctx].idle_time[worker] + idle;
-			}				
+			}		
+			/* if the worker is not shared between contexts */
+			/* 2 = the 1st one: the global ctx, the 2nd one: the current ctx */
+			int nctxs = starpu_worker_get_nsched_ctxs(worker);
+			if( nctxs > 2)
+				cpu_used_in_shared += (nctxs * 1.0 - 2.0) / (nctxs * 1.0);
 		}			
 
 		
@@ -840,18 +847,19 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 		double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /* in seconds */
 		double norm_idle_time = max_workers_idle_time[i] / elapsed_time;
 
+		int unused_cpus = lrint(cpu_used_in_shared);
 		if(norm_idle_time >= 0.9)
 		{
-			config->max_nworkers = 	workers->nworkers - lrint(norm_idle_time);
+			config->max_nworkers = 	workers->nworkers - unused_cpus - lrint(norm_idle_time);
 /* 			if(config->max_nworkers > hypervisor.sched_ctx_w[sched_ctx].nready_tasks) */
 /* 				config->max_nworkers = hypervisor.sched_ctx_w[sched_ctx].nready_tasks - 1; */
 		}
 		else
 		{
 			if(norm_idle_time < 0.1)//(max_workers_idle_time[i] < 0.000001)
-				config->max_nworkers = 	workers->nworkers + hypervisor.sched_ctx_w[sched_ctx].nready_tasks - 1;
+				config->max_nworkers = workers->nworkers - unused_cpus + hypervisor.sched_ctx_w[sched_ctx].nready_tasks - 1;
 			else
-				config->max_nworkers = workers->nworkers;
+				config->max_nworkers = workers->nworkers - unused_cpus;
 		}
 		
 		if(config->max_nworkers < 0)
@@ -859,8 +867,8 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 		if(config->max_nworkers > max_cpus)
 			config->max_nworkers = max_cpus;
 		
-		printf("%d: ready tasks  %d idle for long %lf norm_idle_time %lf elapsed_time %lf nworkers %d max %d \n", 
-		       sched_ctx, hypervisor.sched_ctx_w[sched_ctx].nready_tasks, max_workers_idle_time[i], norm_idle_time, elapsed_time, workers->nworkers, config->max_nworkers);
+		printf("%d: ready tasks  %d idle for long %lf norm_idle_time %lf elapsed_time %lf cpu_used_in_shared %d nworker %d max %d \n", 
+		       sched_ctx, hypervisor.sched_ctx_w[sched_ctx].nready_tasks, max_workers_idle_time[i], norm_idle_time, elapsed_time, unused_cpus, workers->nworkers, config->max_nworkers);
 
 
 		total_max_nworkers += config->max_nworkers;
