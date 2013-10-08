@@ -219,15 +219,15 @@ external tools that should read the performance model files.
 unloads the given model which has been previously loaded
 through the function starpu_perfmodel_load_symbol()
 
-\fn void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, char *path, size_t maxlen, unsigned nimpl)
+\fn void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, char *path, size_t maxlen, unsigned nimpl)
 \ingroup API_Performance_Model
 returns the path to the debugging information for the performance model.
 
-\fn void starpu_perfmodel_get_arch_name(enum starpu_perfmodel_archtype arch, char *archname, size_t maxlen, unsigned nimpl)
+\fn void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch *arch, char *archname, size_t maxlen, unsigned nimpl)
 \ingroup API_Performance_Model
 returns the architecture name for \p arch
 
-\fn enum starpu_perfmodel_archtype starpu_worker_get_perf_archtype(int workerid)
+\fn struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid)
 \ingroup API_Performance_Model
 returns the architecture type of a given worker.
 
@@ -235,11 +235,11 @@ returns the architecture type of a given worker.
 \ingroup API_Performance_Model
 prints a list of all performance models on \p output
 
-\fn int starpu_perfmodel_directory(FILE *output)
+\fn void starpu_perfmodel_directory(FILE *output)
 \ingroup API_Performance_Model
 prints the directory name storing performance models on \p output
 
-\fn void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output)
+\fn void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output)
 \ingroup API_Performance_Model
 todo
 
@@ -255,7 +255,7 @@ prints a matrix of bus bandwidths on \p f.
 \ingroup API_Performance_Model
 prints the affinity devices on \p f.
 
-\fn void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned cpuid, unsigned nimpl, double measured);
+\fn void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned cpuid, unsigned nimpl, double measured);
 \ingroup API_Performance_Model
 This feeds the performance model model with an explicit
 measurement measured (in µs), in addition to measurements done by StarPU

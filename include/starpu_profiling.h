@@ -80,7 +80,7 @@ struct starpu_profiling_bus_info
 	int transfer_count;
 };
 
-void starpu_profiling_init();
+void starpu_profiling_init(void);
 void starpu_profiling_set_id(int new_id);
 int starpu_profiling_status_set(int status);
 int starpu_profiling_status_get(void);

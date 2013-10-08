@@ -38,7 +38,7 @@ struct starpu_sched_ctx_performance_counters
 };
 
 #ifdef STARPU_USE_SC_HYPERVISOR
-void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, void* perf_counters);
+void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, void *perf_counters);
 #endif //STARPU_USE_SC_HYPERVISOR
 
 void starpu_sched_ctx_notify_hypervisor_exists(void);

@@ -68,17 +68,17 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 int starpu_get_prefetch_flag(void);
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
-uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arch);
+uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
+double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
+double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch *perf_arch);
 double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task);
 double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode);
-double starpu_task_expected_power(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double starpu_task_expected_conversion_time(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double starpu_task_expected_power(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
+double starpu_task_expected_conversion_time(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
-double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node);
-double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
 void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
 #ifdef __cplusplus

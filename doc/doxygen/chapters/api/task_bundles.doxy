@@ -44,11 +44,11 @@ Inform the runtime that the user will not modify \p bundle anymore, it
 means no more inserting or removing task. Thus the runtime can destroy
 it when possible.
 
-\fn double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+\fn double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Task_Bundles
 Return the expected duration of \p bundle in micro-seconds.
 
-\fn double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+\fn double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Task_Bundles
 Return the expected power consumption of \p bundle in J.
 

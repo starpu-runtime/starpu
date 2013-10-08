@@ -124,7 +124,7 @@ previous status is returned.
 Return the current profiling status or a negative value in case
 there was an error.
 
-\fn int starpu_profiling_init(void)
+\fn void starpu_profiling_init(void)
 \ingroup API_Profiling
 This function resets performance counters and enable profiling if the
 environment variable \ref STARPU_PROFILING is set to a positive value.
