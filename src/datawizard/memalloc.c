@@ -561,7 +561,7 @@ static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 		if (handle)
 			if (_starpu_spin_trylock(&handle->header_lock)) {
 				/* The handle is still busy, leave this chunk for later */
-				_starpu_mem_chunk_list_push_front(busy_memchunk_cache, mc);
+				_starpu_mem_chunk_list_push_back(busy_memchunk_cache, mc);
 				continue;
 			}
 
