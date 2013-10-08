@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	double * A,*B,*C,*D,*E,*F;
 
 	/* limit main ram to force to push in disk */
-	putenv("STARPU_LIMIT_CPU_MEM=160");
+	setenv("STARPU_LIMIT_CPU_MEM", "160", 1);
 
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
