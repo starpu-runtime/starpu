@@ -98,6 +98,8 @@ struct _starpu_task_wrapper_list
 	struct _starpu_task_wrapper_list *next;
 };
 
+extern int _starpu_has_not_important_data;
+
 struct _starpu_data_state
 {
 	struct _starpu_data_requester_list *req_list;

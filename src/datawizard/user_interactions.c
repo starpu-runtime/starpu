@@ -444,8 +444,12 @@ int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, uns
  *	It is possible to specify that a piece of data can be discarded without
  *	impacting the application.
  */
+int _starpu_has_not_important_data;
 void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_important)
 {
+	if (!is_important)
+		_starpu_has_not_important_data = 1;
+
 	_starpu_spin_lock(&handle->header_lock);
 
 	/* first take all the children lock (in order !) */

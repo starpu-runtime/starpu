@@ -515,6 +515,9 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 		return 1;
 	}
 
+	if (!_starpu_has_not_important_data)
+		return 0;
+
 	/* now look for some non essential data in the active list */
 	for (mc = _starpu_mem_chunk_list_begin(mc_list[node]);
 	     mc != _starpu_mem_chunk_list_end(mc_list[node]);
