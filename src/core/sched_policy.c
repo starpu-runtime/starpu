@@ -399,6 +399,10 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 	int ret;
 	if (STARPU_UNLIKELY(task->execute_on_a_specific_worker))
 	{
+		unsigned node = starpu_worker_get_memory_node(task->workerid);
+		if (starpu_get_prefetch_flag())
+			starpu_prefetch_task_input_on_node(task, node);
+
 		ret = _starpu_push_task_on_specific_worker(task, task->workerid);
 	}
 	else
