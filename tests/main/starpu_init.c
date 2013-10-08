@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,8 +18,8 @@
 #include "../helper.h"
 #include <stdlib.h>
 
-#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_USE_CPU)
-#warning unsetenv is not defined. Skipping test
+#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_HAVE_SETENV) || !defined(STARPU_USE_CPU)
+#warning unsetenv or setenv are not defined. Or CPU are not enabled. Skipping test
 int main(int argc, char **argv)
 {
 	return STARPU_TEST_SKIPPED;
@@ -30,29 +30,27 @@ int main(int argc, char **argv)
 static int check_cpu(int env_cpu, int conf_cpu, int expected_cpu, int *cpu)
 {
 	int ret;
-	char *string = NULL;
 
 	FPRINTF(stderr, "Testing with env=%d - conf=%d\n", env_cpu, conf_cpu);
 
 	if (env_cpu != -1)
 	{
-		string = malloc(50);
-		sprintf(string, "STARPU_NCPUS=%d", env_cpu);
-		putenv(string);
+		char string[10];
+		sprintf(string, "%d", env_cpu);
+		setenv("STARPU_NCPUS", string, 1);
 	}
 
 	struct starpu_conf user_conf;
 	starpu_conf_init(&user_conf);
 	if (conf_cpu != -1)
 	{
-	     user_conf.ncpus = conf_cpu;
+		user_conf.ncpus = conf_cpu;
 	}
 	ret = starpu_init(&user_conf);
 
 	if (env_cpu != -1)
 	{
 		unsetenv("STARPU_NCPUS");
-		free(string);
 	}
 
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
