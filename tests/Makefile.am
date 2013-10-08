@@ -45,7 +45,7 @@ EXTRA_DIST =					\
 	perfmodels/opencl_memset_kernel.cl
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo
+	*.gcno *.gcda *.linkinfo core
 
 BUILT_SOURCES =
 SUBDIRS =
