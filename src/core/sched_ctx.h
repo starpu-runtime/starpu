@@ -173,7 +173,8 @@ void _starpu_sched_ctx_signal_worker_blocked(int workerid);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 /* Notifies the hypervisor that a tasks was poped from the workers' list */
-void _starpu_sched_ctx_call_poped_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint);
+void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint);
+
 #endif //STARPU_USE_SC_HYPERVISOR
 
 #endif // __SCHED_CONTEXT_H__

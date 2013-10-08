@@ -27,10 +27,9 @@ extern "C"
 struct starpu_sched_ctx_performance_counters
 {
 	void (*notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time);
-	void (*notify_idle_end)(unsigned sched_ctx_id, int worker);
+	void (*notify_poped_task)(unsigned sched_ctx_id, int worker);
 	void (*notify_pushed_task)(unsigned sched_ctx_id, int worker);
-	void (*notify_poped_task)(unsigned sched_ctx_id, int worker, struct starpu_task *task, size_t data_size, uint32_t footprint);
-	void (*notify_post_exec_hook)(unsigned sched_ctx_id, int taskid);
+	void (*notify_post_exec_task)(struct starpu_task *task, size_t data_size, uint32_t footprint, int hypervisor_tag);
 	void (*notify_submitted_job)(struct starpu_task *task, uint32_t footprint, size_t data_size);
 	void (*notify_ready_task)(unsigned sched_ctx_id, struct starpu_task *task);
 	void (*notify_empty_ctx)(unsigned sched_ctx_id, struct starpu_task *task);

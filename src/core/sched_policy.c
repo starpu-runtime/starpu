@@ -688,8 +688,8 @@ pick:
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
 
-	if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_end)
-		perf_counters->notify_idle_end(task->sched_ctx, worker->workerid);
+	if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_poped_task)
+		perf_counters->notify_poped_task(task->sched_ctx, worker->workerid);
 #endif //STARPU_USE_SC_HYPERVISOR
 
 
@@ -778,12 +778,6 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-
-#ifdef STARPU_USE_SC_HYPERVISOR
-	if(task->hypervisor_tag > 0 && sched_ctx != NULL &&
-	   sched_ctx->id != 0 && sched_ctx->perf_counters != NULL)
-		sched_ctx->perf_counters->notify_post_exec_hook(sched_ctx->id, task->hypervisor_tag);
-#endif //STARPU_USE_SC_HYPERVISOR
 
 	if (sched_ctx->sched_policy->post_exec_hook)
 		sched_ctx->sched_policy->post_exec_hook(task);

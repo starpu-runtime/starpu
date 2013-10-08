@@ -240,8 +240,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		_starpu_sched_post_exec_hook(task);
 #ifdef STARPU_USE_SC_HYPERVISOR
-		_starpu_sched_ctx_call_poped_task_cb(workerid, task, data_size, j->footprint);
+		_starpu_sched_ctx_post_exec_task_cb(workerid, task, data_size, j->footprint);
 #endif //STARPU_USE_SC_HYPERVISOR
+
 	}
 
 	_STARPU_TRACE_TASK_DONE(j);
