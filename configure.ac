@@ -1874,22 +1874,24 @@ AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
 			enable_build_doc=$enableval, enable_build_doc=yes)
 
-# Check whether doxygen and pdflatex are installed
-AC_PATH_PROG(doxygencommand, doxygen)
-if test "$doxygencommand" = "" ; then
-	enable_build_doc="no"
-else
-	DOXYGEN_VERSION_MAJOR=`$doxygencommand --version| cut -d '.' -f1`
+if test "$enable_build_doc" = "yes" ; then
+   # Check whether doxygen and pdflatex are installed
+   AC_PATH_PROG(doxygencommand, doxygen)
+   if test "$doxygencommand" = "" ; then
+      	enable_build_doc="no"
+   else
+   	DOXYGEN_VERSION_MAJOR=`$doxygencommand --version| cut -d '.' -f1`
 	DOXYGEN_VERSION_MINOR=`$doxygencommand --version| cut -d '.' -f2`
 	if test $DOXYGEN_VERSION_MAJOR -ge 1 -a $DOXYGEN_VERSION_MINOR -ge 8 ; then
 	   	enable_build_doc="yes"
 	else
 	   	enable_build_doc="no"
 	fi
-fi
-AC_PATH_PROG(pdflatex, pdflatex)
-if test "pdflatexcommand" = "" ; then
+   fi
+   AC_PATH_PROG(pdflatex, pdflatex)
+   if test "pdflatexcommand" = "" ; then
 	enable_build_doc="no"
+   fi
 fi
 AC_MSG_CHECKING(whether documentation should be compiled)
 AC_MSG_RESULT($enable_build_doc)
