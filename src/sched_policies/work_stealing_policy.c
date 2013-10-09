@@ -347,6 +347,7 @@ int ws_push_task(struct starpu_task *task)
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 	
+	/* !! C'est ballot de tout locker! */
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);

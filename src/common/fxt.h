@@ -379,14 +379,14 @@ do {										\
 #define _STARPU_TRACE_USER_DEFINED_END		\
 	FUT_DO_PROBE1(_STARPU_FUT_USER_DEFINED_END, _starpu_gettid());
 
-#define _STARPU_TRACE_START_ALLOC(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_START_ALLOC, memnode, _starpu_gettid());
+#define _STARPU_TRACE_START_ALLOC(memnode, size)		\
+	FUT_DO_PROBE3(_STARPU_FUT_START_ALLOC, memnode, _starpu_gettid(), size);
 	
 #define _STARPU_TRACE_END_ALLOC(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_ALLOC, memnode, _starpu_gettid());
 
-#define _STARPU_TRACE_START_ALLOC_REUSE(memnode)		\
-	FUT_DO_PROBE2(_STARPU_FUT_START_ALLOC_REUSE, memnode, _starpu_gettid());
+#define _STARPU_TRACE_START_ALLOC_REUSE(memnode, size)		\
+	FUT_DO_PROBE3(_STARPU_FUT_START_ALLOC_REUSE, memnode, _starpu_gettid(), size);
 	
 #define _STARPU_TRACE_END_ALLOC_REUSE(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_ALLOC_REUSE, memnode, _starpu_gettid());
@@ -599,9 +599,9 @@ do {										\
 #define _STARPU_TRACE_WORKER_SLEEP_END		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_START		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_END		do {} while(0)
-#define _STARPU_TRACE_START_ALLOC(memnode)	do {} while(0)
+#define _STARPU_TRACE_START_ALLOC(memnode, size)	do {} while(0)
 #define _STARPU_TRACE_END_ALLOC(memnode)		do {} while(0)
-#define _STARPU_TRACE_START_ALLOC_REUSE(a)	do {} while(0)
+#define _STARPU_TRACE_START_ALLOC_REUSE(a, size)	do {} while(0)
 #define _STARPU_TRACE_END_ALLOC_REUSE(a)		do {} while(0)
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
 #define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)

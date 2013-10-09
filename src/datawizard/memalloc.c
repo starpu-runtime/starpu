@@ -827,6 +827,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	unsigned attempts = 0;
 	starpu_ssize_t allocated_memory;
 	int ret;
+	starpu_ssize_t data_size = _starpu_data_get_size(handle);
 
 	_starpu_spin_checklocked(&handle->header_lock);
 
@@ -836,14 +837,13 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	/* perhaps we can directly reuse a buffer in the free-list */
 	uint32_t footprint = _starpu_compute_data_footprint(handle);
 
-	_STARPU_TRACE_START_ALLOC_REUSE(dst_node);
+	_STARPU_TRACE_START_ALLOC_REUSE(dst_node, data_size);
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[dst_node]);
 
 	if (try_to_find_reusable_mem_chunk(dst_node, handle, replicate, footprint))
 	{
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
 		_starpu_allocation_cache_hit(dst_node);
-		starpu_ssize_t data_size = _starpu_data_get_size(handle);
 		return data_size;
 	}
 
@@ -856,7 +856,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 		STARPU_ASSERT(handle->ops);
 		STARPU_ASSERT(handle->ops->allocate_data_on_node);
 
-		_STARPU_TRACE_START_ALLOC(dst_node);
+		_STARPU_TRACE_START_ALLOC(dst_node, data_size);
 		STARPU_ASSERT(replicate->data_interface);
 
 #if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
