@@ -780,7 +780,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	else
 	{
 		/* put it in the list of buffers to be removed */
-		uint32_t footprint = _starpu_compute_data_footprint(handle);
+		uint32_t footprint = mc->footprint;
 		struct mc_cache_entry *entry;
 		STARPU_PTHREAD_RWLOCK_WRLOCK(&mc_rwlock[node]);
 		HASH_FIND(hh, mc_cache[node], &footprint, sizeof(footprint), entry);
