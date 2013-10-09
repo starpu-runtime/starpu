@@ -354,8 +354,8 @@ static starpu_pthread_mutex_t cuda_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALIZE
 static starpu_pthread_mutex_t opencl_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif
 
-uintptr_t
-starpu_malloc_on_node(unsigned dst_node, size_t size)
+static uintptr_t
+_starpu_malloc_on_node(unsigned dst_node, size_t size)
 {
 	uintptr_t addr = 0;
 
@@ -462,7 +462,7 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 }
 
 void
-starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
+_starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 {
 	enum starpu_node_kind kind = starpu_node_get_kind(dst_node);
 	switch(kind)
@@ -533,3 +533,301 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 
 }
 
+/*
+ * On CUDA which has very expensive malloc, for small sizes, allocate big
+ * chunks divided in blocks, and we actually allocate segments of consecutive
+ * blocks.
+ *
+ * We try to keep the list of chunks with increasing occupancy, so we can
+ * quickly find free segments to allocate.
+ */
+
+/* Size of each chunk, 32MiB granularity brings 128 chunks to be allocated in
+ * order to fill a 4GiB GPU. */
+#define CHUNK_SIZE (32*1024*1024)
+
+/* Maximum segment size we will allocate in chunks */
+#define CHUNK_ALLOC_MAX (CHUNK_SIZE / 8)
+
+/* Granularity of allocation, i.e. block size, StarPU will never allocate less
+ * than this.
+ * 16KiB (i.e. 64x64 float) granularity eats 2MiB RAM for managing a 4GiB GPU.
+ */
+#define CHUNK_ALLOC_MIN (16*1024)
+
+/* Number of blocks */
+#define CHUNK_NBLOCKS (CHUNK_SIZE/CHUNK_ALLOC_MIN)
+
+/* Linked list for available segments */
+struct block {
+	int length;	/* Number of consecutive free blocks */
+	int next;	/* next free segment */
+};
+
+/* One chunk */
+LIST_TYPE(_starpu_chunk,
+	uintptr_t base;
+
+	/* Available number of blocks, for debugging */
+	int available;
+
+	/* Overestimation of the maximum size of available segments in this chunk */
+	int available_max;
+
+	/* Bitmap describing availability of the block */
+	/* Block 0 is always empty, and is just the head of the free segments list */
+	struct block bitmap[CHUNK_NBLOCKS+1];
+)
+
+/* One list of chunks per node */
+static struct _starpu_chunk_list *chunks[STARPU_MAXNODES];
+/* Number of completely free chunks */
+static int nfreechunks[STARPU_MAXNODES];
+/* This protects chunks and nfreechunks */
+static starpu_pthread_mutex_t chunk_mutex[STARPU_MAXNODES];
+
+void
+_starpu_malloc_init(void)
+{
+	int i;
+	for (i = 0; i < STARPU_MAXNODES; i++)
+	{
+		chunks[i] = _starpu_chunk_list_new();
+		nfreechunks[i] = 0;
+		STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[i], NULL);
+	}
+}
+
+void
+_starpu_malloc_shutdown(unsigned dst_node)
+{
+	struct _starpu_chunk *chunk, *next_chunk;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&chunk_mutex[dst_node]);
+	for (chunk = _starpu_chunk_list_begin(chunks[dst_node]);
+	     chunk != _starpu_chunk_list_end(chunks[dst_node]);
+	     chunk = next_chunk)
+	{
+		next_chunk = _starpu_chunk_list_next(chunk);
+		STARPU_ASSERT(chunk->available == CHUNK_NBLOCKS);
+		_starpu_free_on_node(dst_node, chunk->base, CHUNK_SIZE);
+		_starpu_chunk_list_erase(chunks[dst_node], chunk);
+		free(chunk);
+	}
+	_starpu_chunk_list_delete(chunks[dst_node]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);
+	STARPU_PTHREAD_MUTEX_DESTROY(&chunk_mutex[dst_node]);
+}
+
+/* Create a new chunk */
+static struct _starpu_chunk *_starpu_new_chunk(unsigned dst_node)
+{
+	struct _starpu_chunk *chunk;
+	uintptr_t base = _starpu_malloc_on_node(dst_node, CHUNK_SIZE);
+
+	if (!base)
+		return NULL;
+
+	/* Create a new chunk */
+	chunk = _starpu_chunk_new();
+	chunk->base = base;
+
+	/* First block is just a fake block pointing to the free segments list */
+	chunk->bitmap[0].length = 0;
+	chunk->bitmap[0].next = 1;
+
+	/* At first we have only one big segment for the whole chunk */
+	chunk->bitmap[1].length = CHUNK_NBLOCKS;
+	chunk->bitmap[1].next = -1;
+
+	chunk->available_max = CHUNK_NBLOCKS;
+	chunk->available = CHUNK_NBLOCKS;
+	return chunk;
+}
+
+uintptr_t
+starpu_malloc_on_node(unsigned dst_node, size_t size)
+{
+	/* Big allocation, allocate normally */
+	if (size > CHUNK_ALLOC_MAX || starpu_node_get_kind(dst_node) != STARPU_CUDA_RAM)
+		return _starpu_malloc_on_node(dst_node, size);
+
+	/* Round up allocation to block size */
+	int nblocks = (size + CHUNK_ALLOC_MIN - 1) / CHUNK_ALLOC_MIN;
+
+	struct _starpu_chunk *chunk;
+	int prevblock, block;
+	int available_max;
+	struct block *bitmap;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&chunk_mutex[dst_node]);
+
+	/* Try to find a big enough segment among the chunks */
+	for (chunk = _starpu_chunk_list_begin(chunks[dst_node]);
+	     chunk != _starpu_chunk_list_end(chunks[dst_node]);
+	     chunk = _starpu_chunk_list_next(chunk))
+	{
+		if (chunk->available_max < nblocks)
+			continue;
+
+		bitmap = chunk->bitmap;
+		available_max = 0;
+		for (prevblock = block = 0;
+			block != -1;
+			prevblock = block, block = bitmap[prevblock].next)
+		{
+			STARPU_ASSERT(block >= 0 && block <= CHUNK_NBLOCKS);
+			int length = bitmap[block].length;
+			if (length >= nblocks) {
+
+				if (length >= 2*nblocks)
+				{
+					/* This one this has quite some room,
+					 * put it front, to make finding it
+					 * easier next time. */
+					_starpu_chunk_list_erase(chunks[dst_node], chunk);
+					_starpu_chunk_list_push_front(chunks[dst_node], chunk);
+				}
+				if (chunk->available == CHUNK_NBLOCKS)
+					/* This one was empty, it's not empty any more */
+					nfreechunks[dst_node]--;
+				goto found;
+			}
+			if (length > available_max)
+				available_max = length;
+		}
+
+		/* Didn't find a big enough segment in this chunk, its
+		 * available_max is out of date */
+		chunk->available_max = available_max;
+	}
+
+	/* Didn't find a big enough segment, create another chunk.  */
+	chunk = _starpu_new_chunk(dst_node);
+	if (!chunk)
+	{
+		/* Really no memory any more, fail */
+		STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);
+		errno = ENOMEM;
+		return 0;
+	}
+
+	/* And make it easy to find. */
+	_starpu_chunk_list_push_front(chunks[dst_node], chunk);
+	bitmap = chunk->bitmap;
+	prevblock = 0;
+	block = 1;
+
+found:
+
+	chunk->available -= nblocks;
+	STARPU_ASSERT(bitmap[block].length >= nblocks);
+	STARPU_ASSERT(block <= CHUNK_NBLOCKS);
+	if (bitmap[block].length == nblocks)
+	{
+		/* Fits exactly, drop this segment from the skip list */
+		bitmap[prevblock].next = bitmap[block].next;
+	}
+	else
+	{
+		/* Still some room */
+		STARPU_ASSERT(block + nblocks <= CHUNK_NBLOCKS);
+		bitmap[prevblock].next = block + nblocks;
+		bitmap[block + nblocks].length = bitmap[block].length - nblocks;
+		bitmap[block + nblocks].next = bitmap[block].next;
+	}
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);
+
+	return chunk->base + (block-1) * CHUNK_ALLOC_MIN;
+}
+
+void
+starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
+{
+	/* Big allocation, deallocate normally */
+	if (size > CHUNK_ALLOC_MAX || starpu_node_get_kind(dst_node) != STARPU_CUDA_RAM)
+	{
+		_starpu_free_on_node(dst_node, addr, size);
+		return;
+	}
+
+	struct _starpu_chunk *chunk;
+
+	/* Round up allocation to block size */
+	int nblocks = (size + CHUNK_ALLOC_MIN - 1) / CHUNK_ALLOC_MIN;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&chunk_mutex[dst_node]);
+	for (chunk = _starpu_chunk_list_begin(chunks[dst_node]);
+	     chunk != _starpu_chunk_list_end(chunks[dst_node]);
+	     chunk = _starpu_chunk_list_next(chunk))
+		if (addr >= chunk->base && addr < chunk->base + CHUNK_SIZE)
+			break;
+	STARPU_ASSERT(chunk != _starpu_chunk_list_end(chunks[dst_node]));
+
+	struct block *bitmap = chunk->bitmap;
+	int block = ((addr - chunk->base) / CHUNK_ALLOC_MIN) + 1, prevblock, nextblock;
+
+	/* Look for free segment just before this one */
+	for (prevblock = 0;
+		prevblock != -1;
+		prevblock = nextblock)
+	{
+		STARPU_ASSERT(prevblock >= 0 && prevblock <= CHUNK_NBLOCKS);
+		nextblock = bitmap[prevblock].next;
+		if (nextblock > block || nextblock == -1)
+			break;
+	}
+	STARPU_ASSERT(prevblock != -1);
+
+	chunk->available += nblocks;
+
+	/* Insert in free segments list */
+	bitmap[block].next = nextblock;
+	bitmap[prevblock].next = block;
+	bitmap[block].length = nblocks;
+
+	STARPU_ASSERT(nextblock >= -1 && nextblock <= CHUNK_NBLOCKS);
+	if (nextblock == block + nblocks)
+	{
+		/* This freed segment is just before a free segment, merge them */
+		bitmap[block].next = bitmap[nextblock].next;
+		bitmap[block].length += bitmap[nextblock].length;
+
+		if (bitmap[block].length > chunk->available_max)
+			chunk->available_max = bitmap[block].length;
+	}
+
+	if (prevblock > 0 && prevblock + bitmap[prevblock].length == block)
+	{
+		/* This free segment is just after a free segment, merge them */
+		bitmap[prevblock].next = bitmap[block].next;
+		bitmap[prevblock].length += bitmap[block].length;
+
+		if (bitmap[prevblock].length > chunk->available_max)
+			chunk->available_max = bitmap[prevblock].length;
+
+		block = prevblock;
+	}
+
+	if (chunk->available == CHUNK_NBLOCKS)
+	{
+		/* This chunk is now empty, but avoid chunk free/alloc
+		 * ping-pong by keeping some of these.  */
+		if (nfreechunks[dst_node] >= 1) {
+			/* We already have free chunks, release this one */
+			_starpu_free_on_node(dst_node, chunk->base, CHUNK_SIZE);
+			_starpu_chunk_list_erase(chunks[dst_node], chunk);
+			free(chunk);
+		} else
+			nfreechunks[dst_node]++;
+	}
+	else
+	{
+		/* Freed some room, put this first in chunks list */
+		_starpu_chunk_list_erase(chunks[dst_node], chunk);
+		_starpu_chunk_list_push_front(chunks[dst_node], chunk);
+	}
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);
+}

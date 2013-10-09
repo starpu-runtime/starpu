@@ -27,6 +27,7 @@
 #include <core/debug.h>
 #include <core/disk.h>
 #include <core/task.h>
+#include <datawizard/malloc.h>
 #include <profiling/profiling.h>
 #include <starpu_task_list.h>
 #include <drivers/mp_common/sink_common.h>
@@ -995,6 +996,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_open_debug_logfile();
 
 	_starpu_data_interface_init();
+
+	_starpu_malloc_init();
 
 	_starpu_timing_init();
 

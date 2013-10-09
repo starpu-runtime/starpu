@@ -509,6 +509,8 @@ int _starpu_cuda_driver_deinit(struct starpu_driver *d)
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
+	_starpu_malloc_shutdown(memnode);
+
 #ifndef STARPU_SIMGRID
 	deinit_context(args->workerid);
 #endif

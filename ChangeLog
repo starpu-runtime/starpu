@@ -50,6 +50,8 @@ New features:
   * Tasks can now define a optional prologue callback which is executed
     on the host when the task becomes ready for execution, before getting
     scheduled.
+  * Small CUDA allocations (<= 4MiB) are now batched to avoid the huge
+    cudaMalloc overhead.
 
 Small features:
   * New functions starpu_data_acquire_cb_sequential_consistency() and
