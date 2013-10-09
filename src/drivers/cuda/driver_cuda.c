@@ -30,6 +30,7 @@
 #include <cuda_gl_interop.h>
 #endif
 #include <datawizard/memory_manager.h>
+#include <datawizard/malloc.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
