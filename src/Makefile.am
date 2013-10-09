@@ -85,6 +85,7 @@ noinst_HEADERS = 						\
 	datawizard/filters.h					\
 	datawizard/write_back.h					\
 	datawizard/datastats.h					\
+	datawizard/malloc.h					\
 	datawizard/memstats.h					\
 	datawizard/memory_manager.h				\
 	datawizard/memalloc.h					\

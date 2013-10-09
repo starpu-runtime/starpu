@@ -26,6 +26,7 @@
 #include <core/workers.h>
 #include <core/debug.h>
 #include <core/task.h>
+#include <datawizard/malloc.h>
 #include <profiling/profiling.h>
 #include <starpu_task_list.h>
 
@@ -786,6 +787,8 @@ int starpu_init(struct starpu_conf *user_conf)
 	_starpu_open_debug_logfile();
 
 	_starpu_data_interface_init();
+
+	_starpu_malloc_init();
 
 	_starpu_timing_init();
 

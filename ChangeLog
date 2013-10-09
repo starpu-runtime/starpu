@@ -29,6 +29,8 @@ New features:
   * Tasks can now define a optional prologue callback which is executed
     on the host when the task becomes ready for execution, before getting
     scheduled.
+  * Small CUDA allocations (<= 4MiB) are now batched to avoid the huge
+    cudaMalloc overhead.
 
 Small features:
   * New function starpu_perfmodel_directory() to print directory
