@@ -202,6 +202,9 @@ static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_
 #if defined(STARPU_HAVE_HWLOC)
         int depth_node;
 	struct _starpu_machine_topology *topology = &config->topology;
+
+#if 0
+	/* Do not limit ourself to a single NUMA node yet, as we don't have real NUMA support for now */
         depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
 
 	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
@@ -211,6 +214,10 @@ static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_
 #warning devid looks wrong
 #endif
 	     global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.local_memory;
+#else
+        depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_MACHINE);
+	global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, 0)->memory.total_memory;
+#endif
 
 #else /* STARPU_HAVE_HWLOC */
 #ifdef STARPU_DEVEL
