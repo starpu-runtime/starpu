@@ -19,6 +19,10 @@
 #include <stdlib.h>
 #include <datawizard/memory_manager.h>
 
+#define SIZE_LIMIT 128
+#define STR_LIMIT "128"
+#define SIZE_ALLOC 128
+
 #if !defined(STARPU_HAVE_SETENV)
 #warning setenv is not defined. Skipping test
 int main(int argc, char **argv)
@@ -35,10 +39,10 @@ int test_prefetch(unsigned memnodes)
 	unsigned i;
 	ssize_t available_size;
 
-	buffers[0] = malloc(1*1024*512);
+	buffers[0] = malloc(SIZE_ALLOC*1024*512);
 	STARPU_ASSERT(buffers[0]);
 
-	starpu_variable_data_register(&handles[0], 0, (uintptr_t)buffers[0], 1*1024*512);
+	starpu_variable_data_register(&handles[0], 0, (uintptr_t)buffers[0], SIZE_ALLOC*1024*512);
 	for(i=1 ; i<memnodes ; i++)
 	{
 		starpu_data_prefetch_on_node(handles[0], i, 0);
@@ -48,13 +52,13 @@ int test_prefetch(unsigned memnodes)
 	{
 		available_size = starpu_memory_get_available(i);
 		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
-		STARPU_CHECK_RETURN_VALUE_IS((int) available_size, 1*1024*512, "starpu_memory_get_available (node %u)", i);
+		STARPU_CHECK_RETURN_VALUE_IS((int) available_size, SIZE_ALLOC*1024*512, "starpu_memory_get_available (node %u)", i);
 	}
 
-	buffers[1] = malloc(1*1024*256);
+	buffers[1] = malloc(SIZE_ALLOC*1024*256);
 	STARPU_ASSERT(buffers[1]);
 
-	starpu_variable_data_register(&handles[1], 0, (uintptr_t)buffers[1], 1*1024*256);
+	starpu_variable_data_register(&handles[1], 0, (uintptr_t)buffers[1], SIZE_ALLOC*1024*256);
 	for(i=1 ; i<memnodes ; i++)
 	{
 		starpu_data_prefetch_on_node(handles[1], i, 0);
@@ -64,13 +68,13 @@ int test_prefetch(unsigned memnodes)
 	{
 		available_size = starpu_memory_get_available(i);
 		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
-		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, 1*1024*256, "starpu_memory_get_available (node %u)", i);
+		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_ALLOC*1024*256, "starpu_memory_get_available (node %u)", i);
 	}
 
-	buffers[2] = malloc(1*1024*600);
+	buffers[2] = malloc(SIZE_ALLOC*1024*600);
 	STARPU_ASSERT(buffers[2]);
 
-	starpu_variable_data_register(&handles[2], 0, (uintptr_t)buffers[2], 1*1024*600);
+	starpu_variable_data_register(&handles[2], 0, (uintptr_t)buffers[2], SIZE_ALLOC*1024*600);
 	for(i=1 ; i<memnodes ; i++)
 	{
 		starpu_data_prefetch_on_node(handles[2], i, 0);
@@ -84,10 +88,10 @@ int test_prefetch(unsigned memnodes)
 		STARPU_CHECK_RETURN_VALUE((available_size == 0), "starpu_memory_get_available (node %u)", i);
 	}
 
-	buffers[3] = malloc(1*1024*512);
+	buffers[3] = malloc(SIZE_ALLOC*1024*512);
 	STARPU_ASSERT(buffers[3]);
 
-	starpu_variable_data_register(&handles[3], 0, (uintptr_t)buffers[3], 1*1024*512);
+	starpu_variable_data_register(&handles[3], 0, (uintptr_t)buffers[3], SIZE_ALLOC*1024*512);
 	for(i=0 ; i<memnodes ; i++)
 	{
 		starpu_data_prefetch_on_node(handles[3], i, 0);
@@ -97,7 +101,7 @@ int test_prefetch(unsigned memnodes)
 	{
 		available_size = starpu_memory_get_available(i);
 		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
-		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, 1*1024*512, "starpu_memory_get_available (node %u)", i);
+		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_ALLOC*1024*512, "starpu_memory_get_available (node %u)", i);
 	}
 
 	for(i=0 ; i<4 ; i++)
@@ -106,15 +110,14 @@ int test_prefetch(unsigned memnodes)
 		starpu_data_unregister(handles[i]);
 	}
 
-#ifdef STARPU_DEVEL
-#warning is is normal that all memory has not been cleaned here? i was assuming the available memory to be 1G
+	for(i=1 ; i<memnodes ; i++)
+	{
+		available_size = starpu_memory_get_available(i);
+		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
+#ifndef STARPU_USE_ALLOCATION_CACHE
+		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_ALLOC*1024*1024, "starpu_memory_get_available (node %u)", i);
 #endif
-//	for(i=1 ; i<memnodes ; i++)
-//	{
-//		available_size = starpu_memory_get_available(i);
-//		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
-//		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, 1*1024*1024, "starpu_memory_get_available (node %u)", i);
-//	}
+	}
 
 	return 0;
 }
@@ -131,27 +134,27 @@ void test_malloc()
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
 	FPRINTF(stderr, "Allocation succesfull for 1 b\n");
 
-	ret = starpu_malloc_flags((void **)&buffer2, 1*1024*512, STARPU_MALLOC_COUNT);
+	ret = starpu_malloc_flags((void **)&buffer2, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
-	FPRINTF(stderr, "Allocation succesfull for %d b\n", 1*1024*512);
+	FPRINTF(stderr, "Allocation succesfull for %d b\n", SIZE_ALLOC*1024*512);
 
-	ret = starpu_malloc_flags((void **)&buffer3, 1*1024*512, STARPU_MALLOC_COUNT);
+	ret = starpu_malloc_flags((void **)&buffer3, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
 	STARPU_CHECK_RETURN_VALUE_IS(ret, -ENOMEM, "starpu_malloc_flags");
-	FPRINTF(stderr, "Allocation failed for %d b\n", 1*1024*512);
+	FPRINTF(stderr, "Allocation failed for %d b\n", SIZE_ALLOC*1024*512);
 
-	ret = starpu_malloc_flags((void **)&buffer3, 1*1024*512, 0);
+	ret = starpu_malloc_flags((void **)&buffer3, SIZE_ALLOC*1024*512, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
-	FPRINTF(stderr, "Allocation successful for %d b\n", 1*1024*512);
-	starpu_free_flags(buffer3, 1*1024*512, 0);
+	FPRINTF(stderr, "Allocation successful for %d b\n", SIZE_ALLOC*1024*512);
+	starpu_free_flags(buffer3, SIZE_ALLOC*1024*512, 0);
 
-	starpu_free_flags(buffer2, 1*1024*512, STARPU_MALLOC_COUNT);
-	FPRINTF(stderr, "Freeing %d b\n", 1*1024*512);
+	starpu_free_flags(buffer2, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
+	FPRINTF(stderr, "Freeing %d b\n", SIZE_ALLOC*1024*512);
 
-	ret = starpu_malloc_flags((void **)&buffer3, 1*1024*512, STARPU_MALLOC_COUNT);
+	ret = starpu_malloc_flags((void **)&buffer3, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc_flags");
-	FPRINTF(stderr, "Allocation succesfull for %d b\n", 1*1024*512);
+	FPRINTF(stderr, "Allocation succesfull for %d b\n", SIZE_ALLOC*1024*512);
 
-	starpu_free_flags(buffer3, 1*1024*512, STARPU_MALLOC_COUNT);
+	starpu_free_flags(buffer3, SIZE_ALLOC*1024*512, STARPU_MALLOC_COUNT);
 	starpu_free_flags(buffer, 1, STARPU_MALLOC_COUNT);
 }
 
@@ -161,9 +164,9 @@ int main(int argc, char **argv)
 	unsigned memnodes, i;
 	ssize_t available_size;
 
-	setenv("STARPU_LIMIT_CUDA_MEM", "1", 1);
-	setenv("STARPU_LIMIT_OPENCL_MEM", "1", 1);
-	setenv("STARPU_LIMIT_CPU_MEM", "1", 1);
+	setenv("STARPU_LIMIT_CUDA_MEM", STR_LIMIT, 1);
+	setenv("STARPU_LIMIT_OPENCL_MEM", STR_LIMIT, 1);
+	setenv("STARPU_LIMIT_CPU_MEM", STR_LIMIT, 1);
 
         ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -180,7 +183,7 @@ int main(int argc, char **argv)
 			return STARPU_TEST_SKIPPED;
 		}
 		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
-		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, 1*1024*1024, "starpu_memory_get_available (node %u)", i);
+		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_LIMIT*1024*1024, "starpu_memory_get_available (node %u)", i);
 	}
 
 	test_malloc();
