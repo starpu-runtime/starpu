@@ -23,6 +23,7 @@
 
 #include <starpu.h>
 #include <starpu_scheduler.h>
+#include <starpu_bitmap.h>
 
 #include <common/fxt.h>
 
@@ -45,6 +46,7 @@ struct _starpu_eager_central_prio_data
 {
 	struct _starpu_priority_taskq *taskq;
 	starpu_pthread_mutex_t policy_mutex;
+	struct starpu_bitmap *waiters;
 };
 
 /*
@@ -93,6 +95,7 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 
 	/* only a single queue (even though there are several internaly) */
 	data->taskq = _starpu_create_priority_taskq(starpu_sched_ctx_get_min_priority(sched_ctx_id), starpu_sched_ctx_get_max_priority(sched_ctx_id));
+	data->waiters = starpu_bitmap_create();
 
 	/* Tell helgrind that it's fine to check for empty fifo in
 	 * _starpu_priority_pop_task without actual mutex (it's just an
@@ -109,6 +112,7 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 
 	/* deallocate the task queue */
 	_starpu_destroy_priority_taskq(data->taskq);
+	starpu_bitmap_destroy(data->waiters);
 
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
@@ -142,18 +146,32 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 	
-#ifndef STARPU_NON_BLOCKING_DRIVERS
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
+
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+		if (starpu_bitmap_get(data->waiters, worker))
+		{
+			/* This worker is waiting for a task */
+			unsigned nimpl;
+			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+				if (starpu_worker_can_execute_task(worker, task, nimpl))
+				{
+					/* It can execute this one, tell him! */
+					starpu_bitmap_unset(data->waiters, worker);
+					break;
+				}
+		}
+#else
 		starpu_pthread_mutex_t *sched_mutex;
 		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 
 		if (starpu_wakeup_worker(worker, sched_cond, sched_mutex))
 		    break; // wake up a single worker
-	}
 #endif
+	}
 
 #endif
 	return 0;
@@ -174,6 +192,10 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	 * integer access, and we hold the sched mutex, so we can not miss any
 	 * wake up. */
 	if (taskq->total_ntasks == 0)
+		return NULL;
+
+	if (starpu_bitmap_get(data->waiters, workerid))
+		/* Nobody woke us, avoid bothering the mutex */
 		return NULL;
 
 	/* release this mutex before trying to wake up other workers */
@@ -226,23 +248,29 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		if(workers->init_iterator)
 			workers->init_iterator(workers, &it);
 		
-#ifndef STARPU_NON_BLOCKING_DRIVERS
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);
 			if(worker != workerid)
 			{
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+				starpu_bitmap_unset(data->waiters, worker);
+#else
 				starpu_pthread_mutex_t *sched_mutex;
 				starpu_pthread_cond_t *sched_cond;
 				starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 				STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 				STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 				STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+#endif
 			}
 		}
-#endif
 	
 	}
+
+	if (!chosen_task)
+		/* Tell pushers that we are waiting for tasks for us */
+		starpu_bitmap_set(data->waiters, workerid);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
