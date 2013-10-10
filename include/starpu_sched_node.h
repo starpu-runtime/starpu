@@ -18,6 +18,7 @@
 #define __STARPU_SCHED_NODE_H__
 #include <starpu.h>
 #include <common/starpu_spinlock.h>
+#include <starpu_bitmap.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -216,36 +217,6 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 void starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task);
 void starpu_sched_node_worker_post_exec_hook(struct starpu_task * task);
 
-
-
-struct starpu_bitmap * starpu_bitmap_create(void);
-void starpu_bitmap_destroy(struct starpu_bitmap *);
-
-void starpu_bitmap_set(struct starpu_bitmap *, int);
-void starpu_bitmap_unset(struct starpu_bitmap *, int);
-void starpu_bitmap_unset_all(struct starpu_bitmap *);
-
-int starpu_bitmap_get(struct starpu_bitmap *, int);
-
-/* basicaly compute starpu_bitmap_unset_all(a) ; a = b & c; */
-void starpu_bitmap_unset_and(struct starpu_bitmap * a, struct starpu_bitmap * b, struct starpu_bitmap * c);
-
-/* this is basically compute a |= b;*/
-void starpu_bitmap_or(struct starpu_bitmap * a,
-		       struct starpu_bitmap * b);
-
-//return 1 iff e set in b1 AND e set in b2
-int starpu_bitmap_and_get(struct starpu_bitmap * b1,
-			   struct starpu_bitmap * b2,
-			   int e);
-
-int starpu_bitmap_cardinal(struct starpu_bitmap *);
-
-//return the index of first bit, -1 if none
-int starpu_bitmap_first(struct starpu_bitmap *);
-int starpu_bitmap_last(struct starpu_bitmap *);
-//return the index of bit right after e, -1 if none
-int starpu_bitmap_next(struct starpu_bitmap *, int e);
 
 
 struct starpu_sched_node_composed_recipe;

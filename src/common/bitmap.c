@@ -15,7 +15,7 @@
  */
 
 #include <starpu.h>
-#include <starpu_sched_node.h>
+#include <starpu_bitmap.h>
 
 #include <limits.h>
 #include <string.h>
@@ -25,8 +25,6 @@
 #define LONG_BIT (sizeof(unsigned long) * 8)
 #endif
 
-
-
 struct starpu_bitmap
 {
 	unsigned long * bits;
@@ -34,8 +32,29 @@ struct starpu_bitmap
 	int cardinal;
 };
 
-#ifndef STARPU_NO_ASSERT
-static int check_bitmap(struct starpu_bitmap *b);
+//#define DEBUG_BITMAP
+
+#ifdef DEBUG_BITMAP
+static int check_bitmap(struct starpu_bitmap *b)
+{
+	int card = b->cardinal;
+	int i = starpu_bitmap_first(b);
+	int j;
+	for(j = 0; j < card; j++)
+	{
+		if(i == -1)
+			return 0;
+		int tmp = starpu_bitmap_next(b,i);
+		if(tmp == i)
+			return 0;
+		i = tmp;
+	}
+	if(i != -1)
+		return 0;
+	return 1;
+}
+#else
+#define check_bitmap(b) 1
 #endif
 
 static int _count_bit(unsigned long e)
@@ -243,24 +262,3 @@ int starpu_bitmap_next(struct starpu_bitmap *b, int e)
 			return nb_long * LONG_BIT + get_first_bit_rank(b->bits[nb_long]);
 	return -1;
 }
-
-#ifndef STARPU_NO_ASSERT
-static int check_bitmap(struct starpu_bitmap *b)
-{
-	int card = b->cardinal;
-	int i = starpu_bitmap_first(b);
-	int j;
-	for(j = 0; j < card; j++)
-	{
-		if(i == -1)
-			return 0;
-		int tmp = starpu_bitmap_next(b,i);
-		if(tmp == i)
-			return 0;
-		i = tmp;
-	}
-	if(i != -1)
-		return 0;
-	return 1;
-}
-#endif
