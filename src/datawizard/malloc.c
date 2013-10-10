@@ -522,21 +522,20 @@ static int nfreechunks[STARPU_MAXNODES];
 static starpu_pthread_mutex_t chunk_mutex[STARPU_MAXNODES];
 
 void
-_starpu_malloc_init(void)
+_starpu_malloc_init(unsigned dst_node)
 {
-	int i;
-	for (i = 0; i < STARPU_MAXNODES; i++)
-	{
-		chunks[i] = _starpu_chunk_list_new();
-		nfreechunks[i] = 0;
-		STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[i], NULL);
-	}
+	chunks[dst_node] = _starpu_chunk_list_new();
+	nfreechunks[dst_node] = 0;
+	STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[dst_node], NULL);
 }
 
 void
 _starpu_malloc_shutdown(unsigned dst_node)
 {
 	struct _starpu_chunk *chunk, *next_chunk;
+
+	if (!chunks[dst_node])
+		return;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&chunk_mutex[dst_node]);
 	for (chunk = _starpu_chunk_list_begin(chunks[dst_node]);
@@ -549,6 +548,7 @@ _starpu_malloc_shutdown(unsigned dst_node)
 		free(chunk);
 	}
 	_starpu_chunk_list_delete(chunks[dst_node]);
+	chunks[dst_node] = NULL;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);
 	STARPU_PTHREAD_MUTEX_DESTROY(&chunk_mutex[dst_node]);
 }
