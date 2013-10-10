@@ -271,6 +271,17 @@ struct _starpu_machine_config
 	/* Which SCC do we use? */
 	int current_scc_deviceid;
 
+	/* Memory node for cpus, if only one */
+	int cpus_nodeid;
+	/* Memory node for CUDA, if only one */
+	int cuda_nodeid;
+	/* Memory node for OpenCL, if only one */
+	int opencl_nodeid;
+	/* Memory node for MIC, if only one */
+	int mic_nodeid;
+	/* Memory node for SCC, if only one */
+	int scc_nodeid;
+
 	/* Basic workers : each of this worker is running its own driver and
 	 * can be combined with other basic workers. */
 	struct _starpu_worker workers[STARPU_NMAXWORKERS];

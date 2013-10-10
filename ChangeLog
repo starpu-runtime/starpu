@@ -52,6 +52,8 @@ New features:
     scheduled.
   * Small CUDA allocations (<= 4MiB) are now batched to avoid the huge
     cudaMalloc overhead.
+  * Prefetching is now done for all schedulers when it can be done whatever
+    the scheduling decision.
 
 Small features:
   * New functions starpu_data_acquire_cb_sequential_consistency() and

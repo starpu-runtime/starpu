@@ -421,6 +421,24 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 	}
 	else
 	{
+		struct _starpu_machine_config *config = _starpu_get_machine_config();
+
+		/* When a task can only be executed on a given arch and we have
+		 * only one memory node for that arch, we can systematically
+		 * prefetch before the scheduling decision. */
+		if (starpu_get_prefetch_flag()) {
+			if (task->cl->where == STARPU_CPU && config->cpus_nodeid >= 0)
+				starpu_prefetch_task_input_on_node(task, config->cpus_nodeid);
+			else if (task->cl->where == STARPU_CUDA && config->cuda_nodeid >= 0)
+				starpu_prefetch_task_input_on_node(task, config->cuda_nodeid);
+			else if (task->cl->where == STARPU_OPENCL && config->opencl_nodeid >= 0)
+				starpu_prefetch_task_input_on_node(task, config->opencl_nodeid);
+			else if (task->cl->where == STARPU_MIC && config->mic_nodeid >= 0)
+				starpu_prefetch_task_input_on_node(task, config->mic_nodeid);
+			else if (task->cl->where == STARPU_SCC && config->scc_nodeid >= 0)
+				starpu_prefetch_task_input_on_node(task, config->scc_nodeid);
+		}
+
 		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 		/* check out if there are any workers in the context */
 		starpu_pthread_mutex_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
