@@ -88,6 +88,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 	
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -98,6 +99,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
+#endif
 
 	return ret_val;
 }

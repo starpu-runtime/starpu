@@ -133,6 +133,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 	
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -143,6 +144,7 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
+#endif
 
 	return 0;
 }
@@ -214,6 +216,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		if(workers->init_iterator)
 			workers->init_iterator(workers, &it);
 		
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);
@@ -227,6 +230,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 				STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 			}
 		}
+#endif
 	
 	}
 
