@@ -46,10 +46,6 @@ EXTRA_DIST = 					\
 	lu/xlu_implicit_pivot.c			\
 	lu/xlu_kernels.c			\
 	lu/lu_example.c				\
-	sched_ctx_utils/sched_ctx_utils.c			\
-	sched_ctx/sched_ctx.c					\
-	sched_ctx/parallel_code.c				\
-	sched_ctx/dummy_sched_with_ctx.c			\
 	incrementer/incrementer_kernels_opencl_kernel.cl 	\
 	basic_examples/variable_kernels_opencl_kernel.cl	\
 	matvecmult/matvecmult_kernel.cl				\
