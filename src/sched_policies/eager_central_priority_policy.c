@@ -182,7 +182,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		if (taskq->ntasks[priolevel] > 0)
 		{
 			for (task  = starpu_task_list_begin(&taskq->taskq[priolevel]);
-			     task != starpu_task_list_end(&taskq->taskq[priolevel]);
+			     task != starpu_task_list_end(&taskq->taskq[priolevel]) && !chosen_task;
 			     task  = nexttask) 
 			{
 				unsigned nimpl;
