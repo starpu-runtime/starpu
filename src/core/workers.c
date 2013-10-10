@@ -997,8 +997,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_data_interface_init();
 
-	_starpu_malloc_init();
-
 	_starpu_timing_init();
 
 	_starpu_profiling_init();

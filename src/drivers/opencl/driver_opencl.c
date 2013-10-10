@@ -29,6 +29,7 @@
 #include "driver_opencl_utils.h"
 #include <common/utils.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/malloc.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -611,6 +612,8 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	_starpu_opencl_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(args->memory_node, _starpu_opencl_get_global_mem_size(devid));
 
+	_starpu_malloc_init(args->memory_node);
+
 	args->status = STATUS_UNKNOWN;
 	float size = (float) global_mem[devid] / (1<<30);
 
@@ -712,6 +715,8 @@ int _starpu_opencl_driver_deinit(struct starpu_driver *d)
 	 * allocated by StarPU, we release it now. Note that data
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
+
+	_starpu_malloc_shutdown(memnode);
 
 #ifndef STARPU_SIMGRID
 	unsigned devid   = args->devid;

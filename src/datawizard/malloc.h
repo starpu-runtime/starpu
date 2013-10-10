@@ -17,7 +17,7 @@
 #ifndef __ALLOC_H__
 #define __ALLOC_H__
 
-void _starpu_malloc_init(void);
+void _starpu_malloc_init(unsigned dst_node);
 void _starpu_malloc_shutdown(unsigned dst_node);
 
 #endif

@@ -29,6 +29,7 @@
 #include "driver_cpu.h"
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/malloc.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>

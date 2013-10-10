@@ -401,6 +401,8 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 	_starpu_cuda_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(args->memory_node, _starpu_cuda_get_global_mem_size(devid));
 
+	_starpu_malloc_init(args->memory_node);
+
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
 
