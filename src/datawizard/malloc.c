@@ -609,7 +609,6 @@ _starpu_malloc_shutdown(unsigned dst_node)
 	     chunk = next_chunk)
 	{
 		next_chunk = _starpu_chunk_list_next(chunk);
-		STARPU_ASSERT(chunk->available == CHUNK_NBLOCKS);
 		_starpu_free_on_node(dst_node, chunk->base, CHUNK_SIZE);
 		_starpu_chunk_list_erase(chunks[dst_node], chunk);
 		free(chunk);
