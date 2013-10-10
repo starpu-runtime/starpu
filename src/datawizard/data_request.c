@@ -348,12 +348,22 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 }
 
 /* TODO : accounting to see how much time was spent working for other people ... */
-static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc)
+static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc, int prefetch)
 {
 	starpu_data_handle_t handle = r->handle;
 
-	_starpu_spin_lock(&handle->header_lock);
-	_starpu_spin_lock(&r->lock);
+	if (prefetch) {
+		if (_starpu_spin_trylock(&handle->header_lock))
+			return -EBUSY;
+		if (_starpu_spin_trylock(&r->lock))
+		{
+			_starpu_spin_unlock(&handle->header_lock);
+			return -EBUSY;
+		}
+	} else {
+		_starpu_spin_lock(&handle->header_lock);
+		_starpu_spin_lock(&r->lock);
+	}
 
 	struct _starpu_data_replicate *src_replicate = r->src_replicate;
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
@@ -453,8 +463,8 @@ void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 
 		r = _starpu_data_request_list_pop_front(local_list);
 
-		res = starpu_handle_data_request(r, may_alloc);
-		if (res == -ENOMEM)
+		res = starpu_handle_data_request(r, may_alloc, 0);
+		if (res != 0 && res != -EAGAIN)
 		{
 			_starpu_data_request_list_push_back(new_data_requests, r);
 			break;
@@ -523,8 +533,8 @@ void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc
 
 		r = _starpu_data_request_list_pop_front(local_list);
 
-		res = starpu_handle_data_request(r, may_alloc);
-		if (res == -ENOMEM )
+		res = starpu_handle_data_request(r, may_alloc, 1);
+		if (res != 0 && res != -EAGAIN)
 		{
 			if (r->prefetch)
 				_starpu_data_request_list_push_back(new_prefetch_requests, r);
