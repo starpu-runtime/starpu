@@ -79,6 +79,7 @@ static int push_task_eager_policy(struct starpu_task *task)
 	starpu_push_task_end(task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
 	unsigned worker = 0;
@@ -88,7 +89,6 @@ static int push_task_eager_policy(struct starpu_task *task)
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 	
-#ifndef STARPU_NON_BLOCKING_DRIVERS
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
