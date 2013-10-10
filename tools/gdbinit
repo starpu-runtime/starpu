@@ -408,6 +408,7 @@ define starpu-print-prequests
   set $node = 0
   while $node < descr.nnodes
     printf "Node %u:\n", $node
+    printf "%u pending requests\n", data_requests_npending[$node]
     set $request = data_requests_pending[$node]._head
     while $request != 0
       printf " Request %p: handle %p ", $request, $request->handle
