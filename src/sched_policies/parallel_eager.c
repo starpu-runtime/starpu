@@ -165,6 +165,7 @@ static int push_task_peager_policy(struct starpu_task *task)
                 workers->init_iterator(workers, &it);
 
 
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -183,6 +184,7 @@ static int push_task_peager_policy(struct starpu_task *task)
 			STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 		}
 	}
+#endif
 
 	return ret_val;
 }
@@ -273,7 +275,9 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 
 				_starpu_fifo_push_task(data->local_fifo[local_worker], alias);
 
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 				STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+#endif
 				STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 			}
