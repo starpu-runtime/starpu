@@ -1327,6 +1327,8 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 	config->cpus_nodeid = -1;
 	config->cuda_nodeid = -1;
 	config->opencl_nodeid = -1;
+	config->mic_nodeid = -1;
+	config->scc_nodeid = -1;
 	for (i = 0; i < starpu_worker_get_count(); i++)
 	{
 		switch (starpu_worker_get_type(i))
