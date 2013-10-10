@@ -120,6 +120,10 @@ size_t _starpu_task_insert_get_arg_size(va_list varg_list)
 		{
 			(void)va_arg(varg_list, starpu_tag_t);
 		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
+		}
 	}
 
 	return arg_buffer_size;
@@ -215,6 +219,10 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 		else if (arg_type==STARPU_TAG)
 		{
 			(void)va_arg(varg_list, starpu_tag_t);
+		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
 		}
 	}
 
@@ -360,6 +368,10 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 			starpu_tag_t tag = va_arg(varg_list, starpu_tag_t);
 			(*task)->tag_id = tag;
 			(*task)->use_tag = 1;
+		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
 		}
 	}
 
