@@ -86,6 +86,9 @@ Changes:
     starpu_data_set_tag(), data are received as a raw memory)
   * StarPU-MPI: Fix for being able to receive data with the same tag
     from several nodes (see mpi/tests/gather.c)
+  * Function starpu_sched_ctx_create() now takes a variable argument
+    list to define the scheduler to be used, and the minimum and
+    maximum priority values
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================

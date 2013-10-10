@@ -26,17 +26,17 @@
 
 #include <common/fxt.h>
 
-#define MIN_LEVEL	(-5)
-#define MAX_LEVEL	(+5)
-
-#define NPRIO_LEVELS	(MAX_LEVEL - MIN_LEVEL + 1)
+#define DEFAULT_MIN_LEVEL	(-5)
+#define DEFAULT_MAX_LEVEL	(+5)
 
 struct _starpu_priority_taskq
 {
+	int min_prio;
+	int max_prio;
 	/* the actual lists
 	 *	taskq[p] is for priority [p - STARPU_MIN_PRIO] */
-	struct starpu_task_list taskq[NPRIO_LEVELS];
-	unsigned ntasks[NPRIO_LEVELS];
+	struct starpu_task_list *taskq;
+	unsigned *ntasks;
 
 	unsigned total_ntasks;
 };
@@ -51,15 +51,19 @@ struct _starpu_eager_central_prio_data
  * Centralized queue with priorities
  */
 
-static struct _starpu_priority_taskq *_starpu_create_priority_taskq(void)
+static struct _starpu_priority_taskq *_starpu_create_priority_taskq(int min_prio, int max_prio)
 {
 	struct _starpu_priority_taskq *central_queue;
 
 	central_queue = (struct _starpu_priority_taskq *) malloc(sizeof(struct _starpu_priority_taskq));
+	central_queue->min_prio = min_prio;
+	central_queue->max_prio = max_prio;
 	central_queue->total_ntasks = 0;
+	central_queue->taskq = malloc((max_prio-min_prio+1) * sizeof(struct starpu_task_list));
+	central_queue->ntasks = malloc((max_prio-min_prio+1) * sizeof(unsigned));
 
-	unsigned prio;
-	for (prio = 0; prio < NPRIO_LEVELS; prio++)
+	int prio;
+	for (prio = 0; prio < (max_prio-min_prio+1); prio++)
 	{
 		starpu_task_list_init(&central_queue->taskq[prio]);
 		central_queue->ntasks[prio] = 0;
@@ -70,6 +74,8 @@ static struct _starpu_priority_taskq *_starpu_create_priority_taskq(void)
 
 static void _starpu_destroy_priority_taskq(struct _starpu_priority_taskq *priority_queue)
 {
+	free(priority_queue->ntasks);
+	free(priority_queue->taskq);
 	free(priority_queue);
 }
 
@@ -79,11 +85,14 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)malloc(sizeof(struct _starpu_eager_central_prio_data));
 
 	/* In this policy, we support more than two levels of priority. */
-	starpu_sched_ctx_set_min_priority(sched_ctx_id, MIN_LEVEL);
-	starpu_sched_ctx_set_max_priority(sched_ctx_id, MAX_LEVEL);
+
+	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_min_priority(sched_ctx_id, DEFAULT_MIN_LEVEL);
+	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_max_priority(sched_ctx_id, DEFAULT_MAX_LEVEL);
 
 	/* only a single queue (even though there are several internaly) */
-	data->taskq = _starpu_create_priority_taskq();
+	data->taskq = _starpu_create_priority_taskq(starpu_sched_ctx_get_min_priority(sched_ctx_id), starpu_sched_ctx_get_max_priority(sched_ctx_id));
 
 	/* Tell helgrind that it's fine to check for empty fifo in
 	 * _starpu_priority_pop_task without actual mutex (it's just an
@@ -91,7 +100,6 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	STARPU_HG_DISABLE_CHECKING(data->taskq->total_ntasks);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
-
 }
 
 static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
@@ -176,7 +184,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	   there's no need for their own mutex to be locked */
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
-	unsigned priolevel = NPRIO_LEVELS - 1;
+	unsigned priolevel = taskq->max_prio - taskq->min_prio;
 	do
 	{
 		if (taskq->ntasks[priolevel] > 0)

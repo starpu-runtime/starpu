@@ -882,8 +882,10 @@ static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)
 	initialize_dmda_policy(sched_ctx_id);
 
 	/* The application may use any integer */
-	starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
-	starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
+	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
+	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
 }
 
 static void deinitialize_dmda_policy(unsigned sched_ctx_id)

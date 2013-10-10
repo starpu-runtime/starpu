@@ -98,6 +98,8 @@ struct _starpu_sched_ctx
          * task (level 1) or it is not (level 0). */
      	int min_priority;
 	int max_priority;
+     	int min_priority_is_set;
+	int max_priority_is_set;
 
 	/* semaphore that block appl thread until threads are ready 
 	   to exec the parallel code */
@@ -124,7 +126,9 @@ struct _starpu_machine_config;
 void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config);
 
 /* allocate all structures belonging to a context */
-struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerid, int nworkerids, unsigned is_init_sched, const char *sched_name);
+struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerid, int nworkerids, unsigned is_init_sched, const char *sched_name,
+						    int min_prio_set, int min_prio,
+						    int max_prio_set, int max_prio);
 
 /* delete all sched_ctx */
 void _starpu_delete_all_sched_ctxs();

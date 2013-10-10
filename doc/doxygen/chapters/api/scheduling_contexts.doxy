@@ -39,27 +39,55 @@ hypervisor how the application and the resources are executing.
 @name Scheduling Contexts Basic API
 \ingroup API_Scheduling_Contexts
 
-\fn unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name)
+\fn unsigned starpu_sched_ctx_create(int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name, ...)
 \ingroup API_Scheduling_Contexts
-This function creates a scheduling context which uses the scheduling
-policy \p policy_name and assigns the workers in \p workerids_ctx to
-execute the tasks submitted to it.
-The return value represents the identifier of the context that has
-just been created. It will be further used to indicate the context the
-tasks will be submitted to. The return value should be at most
-\ref STARPU_NMAX_SCHED_CTXS.
+This function creates a scheduling context with the given parameters
+(see below) and assigns the workers in \p workerids_ctx to execute the
+tasks submitted to it. The return value represents the identifier of
+the context that has just been created. It will be further used to
+indicate the context the tasks will be submitted to. The return value
+should be at most \ref STARPU_NMAX_SCHED_CTXS.
 
-\fn unsigned starpu_sched_ctx_create_with_custom_policy(struct starpu_sched_policy *policy, int *workerids, int nworkers, const char *sched_name)
+The arguments following the name of the scheduling context can be of
+the following types:
+<ul>
+<li> ::STARPU_SCHED_CTX_POLICY_NAME, followed by the name of a
+predefined scheduling policy
+</li>
+<li> ::STARPU_SCHED_CTX_POLICY_STRUCT, followed by a pointer to a
+custom scheduling policy (struct starpu_sched_policy *)
+</li>
+<li> ::STARPU_SCHED_CTX_POLICY_MIN_PRIO, followed by a integer
+representing the minimum priority value to be defined for the
+scheduling policy.
+</li>
+<li> ::STARPU_SCHED_CTX_POLICY_MAX_PRIO, followed by a integer
+representing the maximum priority value to be defined for the
+scheduling policy.
+</li>
+</ul>
+
+\def STARPU_SCHED_CTX_POLICY_NAME
 \ingroup API_Scheduling_Contexts
-This function creates a scheduling context which uses the scheduling
-policy \p policy (the pointer to the custom scheduling policy) and assigns the workers in \p workerids to
-execute the tasks submitted to it.
-The return value represents the identifier of the context that has
-just been created. It will be further used to indicate the context the
-tasks will be submitted to. The return value should be at most
-\ref STARPU_NMAX_SCHED_CTXS.
+This macro is used when calling starpu_sched_ctx_create() to specify a
+name for a scheduling policy
 
-\fn unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap)
+\def STARPU_SCHED_CTX_POLICY_STRUCT
+\ingroup API_Scheduling_Contexts
+This macro is used when calling starpu_sched_ctx_create() to specify a
+pointer to a scheduling policy
+
+\def STARPU_SCHED_CTX_POLICY_MIN_PRIO
+\ingroup API_Scheduling_Contexts
+This macro is used when calling starpu_sched_ctx_create() to specify a
+minimum scheduler priority value.
+
+\def STARPU_SCHED_CTX_POLICY_MAX_PRIO
+\ingroup API_Scheduling_Contexts
+This macro is used when calling starpu_sched_ctx_create() to specify a
+maximum scheduler priority value.
+
+\fn unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap)
 \ingroup API_Scheduling_Contexts
 Create a context indicating an approximate interval of resources
 

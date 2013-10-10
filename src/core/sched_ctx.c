@@ -17,6 +17,7 @@
 #include <core/sched_policy.h>
 #include <core/sched_ctx.h>
 #include <common/utils.h>
+#include <stdarg.h>
 
 starpu_pthread_rwlock_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
 
@@ -252,9 +253,11 @@ static void _starpu_sched_ctx_create_hwloc_tree(struct _starpu_sched_ctx *sched_
 }
 #endif
 
-struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerids,
-				  int nworkers_ctx, unsigned is_initial_sched,
-				  const char *sched_name)
+struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerids,
+						   int nworkers_ctx, unsigned is_initial_sched,
+						   const char *sched_ctx_name,
+						   int min_prio_set, int min_prio,
+						   int max_prio_set, int max_prio)
 {
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 
@@ -279,11 +282,13 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *
 
 	sched_ctx->sched_policy = (struct starpu_sched_policy*)malloc(sizeof(struct starpu_sched_policy));
 	sched_ctx->is_initial_sched = is_initial_sched;
-	sched_ctx->name = sched_name;
+	sched_ctx->name = sched_ctx_name;
 	sched_ctx->inheritor = STARPU_NMAX_SCHED_CTXS;
 	sched_ctx->finished_submit = 0;
-	sched_ctx->min_priority = 0;
-	sched_ctx->max_priority = 1;
+	sched_ctx->min_priority_is_set = min_prio_set;
+	if (sched_ctx->min_priority_is_set) sched_ctx->min_priority = min_prio;
+	sched_ctx->max_priority_is_set = max_prio_set;
+	if (sched_ctx->max_priority_is_set) sched_ctx->max_priority = max_prio;
 	sem_init(&sched_ctx->parallel_code_sem, 0, 0);
 
 	_starpu_barrier_counter_init(&sched_ctx->tasks_barrier, 0);
@@ -445,7 +450,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 	}
 }
 
-unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_name,
+unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name,
 						 int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus,
 						 unsigned allow_overlap)
 {
@@ -464,7 +469,7 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	for(i = 0; i < nw; i++)
 		printf("%d ", workers[i]);
 	printf("\n");
-	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_name);
+	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_ctx_name, 0, 0, 0, 0);
 	sched_ctx->min_ncpus = min_ncpus;
 	sched_ctx->max_ncpus = max_ncpus;
 	sched_ctx->min_ngpus = min_ngpus;
@@ -478,26 +483,49 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 
 }
 
-unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids,
-				 int nworkers, const char *sched_name)
+unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx_name, ...)
 {
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
-	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(config, policy_name);
+	va_list varg_list;
+	int arg_type;
+	int min_prio_set = 0;
+	int max_prio_set = 0;
+	int min_prio = 0;
+	int max_prio = 0;
+	struct starpu_sched_policy *sched_policy;
+
+	va_start(varg_list, sched_ctx_name);
+	while ((arg_type = va_arg(varg_list, int)) != 0)
+	{
+		if (arg_type == STARPU_SCHED_CTX_POLICY_NAME)
+		{
+			char *policy_name = va_arg(varg_list, char *);
+			struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+			sched_policy = _starpu_select_sched_policy(config, policy_name);
+		}
+		else if (arg_type == STARPU_SCHED_CTX_POLICY_STRUCT)
+		{
+			sched_policy = va_arg(varg_list, struct starpu_sched_policy *);
+		}
+		else if (arg_type == STARPU_SCHED_CTX_POLICY_MIN_PRIO)
+		{
+			min_prio = va_arg(varg_list, int);
+			min_prio_set = 1;
+		}
+		else if (arg_type == STARPU_SCHED_CTX_POLICY_MAX_PRIO)
+		{
+			max_prio = va_arg(varg_list, int);
+			max_prio_set = 1;
+		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
+		}
+
+	}
+	va_end(varg_list);
 
 	struct _starpu_sched_ctx *sched_ctx = NULL;
-	sched_ctx = _starpu_create_sched_ctx(selected_policy, workerids, nworkers, 0, sched_name);
-
-	_starpu_update_workers_with_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id);
-#ifdef STARPU_USE_SC_HYPERVISOR
-	sched_ctx->perf_counters = NULL;
-#endif
-	return sched_ctx->id;
-}
-
-unsigned starpu_sched_ctx_create_with_custom_policy(struct starpu_sched_policy *policy, int *workerids, int nworkers, const char *sched_name)
-{
-	struct _starpu_sched_ctx *sched_ctx = NULL;
-	sched_ctx = _starpu_create_sched_ctx(policy, workerids, nworkers, 0, sched_name);
+	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio);
 
 	_starpu_update_workers_with_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id);
 #ifdef STARPU_USE_SC_HYPERVISOR
@@ -1119,6 +1147,18 @@ int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio)
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	sched_ctx->max_priority = max_prio;
 	return 0;
+}
+
+int starpu_sched_ctx_min_priority_is_set(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	return sched_ctx->min_priority_is_set;
+}
+
+int starpu_sched_ctx_max_priority_is_set(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	return sched_ctx->max_priority_is_set;
 }
 
 unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
