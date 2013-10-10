@@ -204,16 +204,16 @@ define starpu-print-data
     while $n < config.topology.nworkers
       set $replicate = $data->per_worker[$n]
       printf "Worker %2d %10s:", $n, config->workers[$n]->name
-      if $replicate->state == 0
+      if $replicate.state == 0
         printf " OWNER"
       end
-      if $replicate->state == 1
+      if $replicate.state == 1
         printf " SHARED"
       end
-      if $replicate->state == 2
+      if $replicate.state == 2
         printf " INVALID"
       end
-      if $replicate->initialized
+      if $replicate.initialized
         printf " initialized"
       end
       printf "\n"
@@ -224,16 +224,16 @@ define starpu-print-data
     while $n < descr.nnodes
       set $replicate = &$data->per_node[$n]
       printf "Node %2d (%2d):", $n, $replicate->refcnt
-      if $replicate->state == 0
+      if $replicate.state == 0
         printf " OWNER"
       end
-      if $replicate->state == 1
+      if $replicate.state == 1
         printf " SHARED"
       end
-      if $replicate->state == 2
+      if $replicate.state == 2
         printf " INVALID"
       end
-      if $replicate->initialized
+      if $replicate.initialized
         printf " initialized"
       end
       printf "\n"
@@ -267,6 +267,94 @@ define starpu-print-datas
     printf "\n"
     set $entry = (struct handle_entry *) $entry.hh.next
   end
+end
+
+define starpu-print-datas-summary
+  set language c
+  set $entry = registered_handles
+
+  set $data_n = 0
+  set $pw_data_n = 0
+  set $data_n_allocated = 0
+  set $replicate_n_owners = 0
+  set $replicate_n_shared = 0
+  set $replicate_n_invalid = 0
+  set $replicate_n_initialized = 0
+  set $replicate_n_allocated = 0
+  set $pw_replicate_n_owners = 0
+  set $pw_replicate_n_shared = 0
+  set $pw_replicate_n_invalid = 0
+  set $pw_replicate_n_initialized = 0
+  set $pw_replicate_n_allocated = 0
+
+  while $entry
+    set $data = (starpu_data_handle_t) $entry->handle
+  
+    if $data->current_mode & (4|8)
+      set $pw_data_n = $pw_data_n + 1
+      set $n = 0
+      while $n < config.topology.nworkers
+        set $replicate = $data->per_worker[$n]
+        if $replicate.state == 0
+          set $pw_replicate_n_owners = $pw_replicate_n_owners + 1
+        end
+        if $replicate.state == 1
+          set $pw_replicate_n_shared = $pw_replicate_n_shared + 1
+        end
+        if $replicate.state == 2
+          set $pw_replicate_n_invalid = $pw_replicate_n_invalid + 1
+        end
+        if $replicate.initialized
+          set $pw_replicate_n_initialized = $pw_replicate_n_initialized + 1
+        end
+        if $replicate.allocated
+          set $pw_replicate_n_allocated = $pw_replicate_n_allocated + 1
+        end
+        set $n = $n + 1
+      end
+    else
+      set $data_n = $data_n + 1
+      set $n = 0
+      while $n < descr.nnodes
+        set $replicate = &$data->per_node[$n]
+        if $replicate.state == 0
+          set $replicate_n_owners = $replicate_n_owners + 1
+        end
+        if $replicate.state == 1
+          set $replicate_n_shared = $replicate_n_shared + 1
+        end
+        if $replicate.state == 2
+          set $replicate_n_invalid = $replicate_n_invalid + 1
+        end
+        if $replicate.initialized
+          set $replicate_n_initialized = $replicate_n_initialized + 1
+        end
+        if $replicate.allocated
+          set $replicate_n_allocated = $replicate_n_allocated + 1
+	  set $data_allocated = 1
+        end
+        set $n = $n + 1
+      end
+      if $data_allocated
+        set $data_n_allocated = $data_n_allocated + 1
+      end
+    end
+    set $entry = (struct handle_entry *) $entry.hh.next
+  end
+  printf "Number of handles: %d\n", $data_n
+  printf "Number of allocated handles: %d\n", $data_n_allocated
+  printf "Number of OWNER replicates: %d\n", $replicate_n_owners
+  printf "Number of SHARED replicates: %d\n", $replicate_n_shared
+  printf "Number of INVALID replicates: %d\n", $replicate_n_invalid
+  printf "Number of initialized replicates: %d\n", $replicate_n_initialized
+  printf "Number of allocated replicates: %d\n", $replicate_n_allocated
+
+  printf "Number of per-worker handles: %d\n", $pw_data_n
+  printf "Number of OWNER per-worker replicates: %d\n", $pw_replicate_n_owners
+  printf "Number of SHARED per-worker replicates: %d\n", $pw_replicate_n_shared
+  printf "Number of INVALID per-worker replicates: %d\n", $pw_replicate_n_invalid
+  printf "Number of initialized per-worker replicates: %d\n", $pw_replicate_n_initialized
+  printf "Number of allocated per-worker replicates: %d\n", $pw_replicate_n_allocated
 end
 
 define starpu-print-request
@@ -423,6 +511,7 @@ starpu-print-job        prints a StarPU job
 starpu-print-task       prints a StarPU task
 starpu-print-data       prints a StarPU data handle
 starpu-print-datas      prints all StarPU data handles
+starpu-print-datas-summary  prints a summary of data handles
 starpu-print-request    prints a StarPU data request
 starpu-print-requests   prints all StarPU data requests
 starpu-print-prequests  prints all pending StarPU data requests
