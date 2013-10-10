@@ -244,7 +244,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/node_fifo.c 				\
 	sched_policies/node_work_stealing.c			\
 	sched_policies/prio_deque.c				\
-	sched_policies/bitmap.c					\
 	sched_policies/node_random.c				\
 	sched_policies/node_heft.c				\
 	sched_policies/node_composed.c				\
