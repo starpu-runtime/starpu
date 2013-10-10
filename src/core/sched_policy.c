@@ -441,11 +441,11 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
 		/* check out if there are any workers in the context */
-		starpu_pthread_mutex_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
-		STARPU_PTHREAD_MUTEX_LOCK(changing_ctx_mutex);
+		starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+		STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
 		nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
 		ret = nworkers == 0 ? -1 : sched_ctx->sched_policy->push_task(task);
-		STARPU_PTHREAD_MUTEX_UNLOCK(changing_ctx_mutex);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
 
 		if(ret == -1)
 		{

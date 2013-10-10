@@ -18,7 +18,7 @@
 #include <core/sched_ctx.h>
 #include <common/utils.h>
 
-starpu_pthread_mutex_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
+starpu_pthread_rwlock_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
 
 extern struct starpu_worker_collection worker_list;
 static starpu_pthread_mutex_t sched_ctx_manag = STARPU_PTHREAD_MUTEX_INITIALIZER;
@@ -309,7 +309,7 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *
 		int i;
 		/*initialize the mutexes for all contexts */
 		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-			STARPU_PTHREAD_MUTEX_INIT(&changing_ctx_mutex[i], NULL);
+			STARPU_PTHREAD_RWLOCK_INIT(&changing_ctx_mutex[i], NULL);
 		for(i = 0; i < nworkers; i++)
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(i);
@@ -556,7 +556,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 	unsigned inheritor_sched_ctx_id = sched_ctx->inheritor;
 	struct _starpu_sched_ctx *inheritor_sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx->inheritor);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&changing_ctx_mutex[sched_ctx_id]);
 	STARPU_ASSERT(sched_ctx->id != STARPU_NMAX_SCHED_CTXS);
 
 	int *workerids;
@@ -586,7 +586,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 	/* workerids is malloc-ed in starpu_sched_ctx_get_workers_list, don't forget to free it when
 	   you don't use it anymore */
 	free(workerids);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 	return;
 }
 
@@ -597,16 +597,16 @@ void _starpu_delete_all_sched_ctxs()
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
 		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(i);
-		STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[i]);
+		STARPU_PTHREAD_RWLOCK_WRLOCK(&changing_ctx_mutex[i]);
 		if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 		{
 			_starpu_sched_ctx_free_scheduling_data(sched_ctx);
 			_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
 			_starpu_delete_sched_ctx(sched_ctx);
 		}
-		STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[i]);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[i]);
 
-		STARPU_PTHREAD_MUTEX_DESTROY(&changing_ctx_mutex[i]);
+		STARPU_PTHREAD_RWLOCK_DESTROY(&changing_ctx_mutex[i]);
 	}
 	return;
 }
@@ -637,7 +637,7 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 	else
                 /* you're not suppose to get here if you deleted the context
 		   so no point in having the mutex locked */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx->id]);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx->id]);
 	
 	while(!starpu_task_list_empty(&sched_ctx->empty_ctx_tasks))
 	{
@@ -659,7 +659,7 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 
 
 	/* leave the mutex as it was to avoid pbs in the caller function */
-	STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx->id]);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx->id]);
 	return;
 
 }
@@ -669,7 +669,7 @@ void starpu_sched_ctx_add_workers(int *workers_to_add, int nworkers_to_add, unsi
 	int added_workers[nworkers_to_add];
 	int n_added_workers = 0;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&changing_ctx_mutex[sched_ctx_id]);
 
 	STARPU_ASSERT(workers_to_add != NULL && nworkers_to_add > 0);
 	_starpu_check_workers(workers_to_add, nworkers_to_add);
@@ -684,11 +684,16 @@ void starpu_sched_ctx_add_workers(int *workers_to_add, int nworkers_to_add, unsi
 			_starpu_update_workers_with_ctx(added_workers, n_added_workers, sched_ctx->id);
 		}
 
-		_starpu_fetch_tasks_from_empty_ctx_list(sched_ctx);
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 
+	if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+	{
+		STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx_id]);
+		_starpu_fetch_tasks_from_empty_ctx_list(sched_ctx);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+	}
 
 	return;
 }
@@ -701,7 +706,7 @@ void starpu_sched_ctx_remove_workers(int *workers_to_remove, int nworkers_to_rem
 
 	_starpu_check_workers(workers_to_remove, nworkers_to_remove);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&changing_ctx_mutex[sched_ctx_id]);
 	/* if the context has not already been deleted */
 	if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 	{
@@ -711,7 +716,7 @@ void starpu_sched_ctx_remove_workers(int *workers_to_remove, int nworkers_to_rem
 			_starpu_update_workers_without_ctx(removed_workers, n_removed_workers, sched_ctx->id, 0);
 
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 	return;
 }
 
@@ -765,7 +770,7 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 			STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
 
 			/* take care the context is not deleted or changed at the same time */
-			STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
+			STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx_id]);
 			if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
 				if(sched_ctx->close_callback)
@@ -780,7 +785,7 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 					free(workerids);
 				}
 			}
-			STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 
 			return;
 		}
@@ -915,7 +920,7 @@ int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu
 	return npus;
 }
 
-starpu_pthread_mutex_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id)
+starpu_pthread_rwlock_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id)
 {
 	return &changing_ctx_mutex[sched_ctx_id];
 }
