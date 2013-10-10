@@ -28,8 +28,8 @@ int main(int argc, char **argv)
 
 	unsigned sched_ctx1 = starpu_sched_ctx_create(NULL, -1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "prio", 0);
 
-	fprintf(stderr, "min prio %d\n", starpu_sched_ctx_get_min_priority(sched_ctx1));
-	fprintf(stderr, "max prio %d\n", starpu_sched_ctx_get_max_priority(sched_ctx1));
+	FPRINTF(stderr, "min prio %d\n", starpu_sched_ctx_get_min_priority(sched_ctx1));
+	FPRINTF(stderr, "max prio %d\n", starpu_sched_ctx_get_max_priority(sched_ctx1));
 
 	unsigned sched_ctx2 = starpu_sched_ctx_create(NULL, -1, "ctx2",
 						      STARPU_SCHED_CTX_POLICY_NAME, "prio",
