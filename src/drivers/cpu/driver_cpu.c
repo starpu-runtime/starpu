@@ -189,7 +189,7 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 	return _starpu_get_worker_struct(n);
 }
 
-static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_config *config)
+static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine_config *config)
 {
 	size_t global_mem;
 	starpu_ssize_t limit;
@@ -210,10 +210,9 @@ static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_
 	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
 	     global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
 	else
-	     global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.local_memory;
+	     global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid)->memory.local_memory;
 #else
-        depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_MACHINE);
-	global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, 0)->memory.total_memory;
+	global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
 #endif
 
 #else /* STARPU_HAVE_HWLOC */
