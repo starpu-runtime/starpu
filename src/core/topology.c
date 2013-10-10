@@ -902,6 +902,7 @@ int
 _starpu_build_topology (struct _starpu_machine_config *config)
 {
 	int ret;
+	int i;
 
 	ret = _starpu_init_machine_config(config);
 	if (ret)
@@ -911,6 +912,36 @@ _starpu_build_topology (struct _starpu_machine_config *config)
 	_starpu_memory_nodes_init();
 
 	_starpu_init_workers_binding(config);
+
+	config->cpus_nodeid = -1;
+	config->cuda_nodeid = -1;
+	config->opencl_nodeid = -1;
+	for (i = 0; i < starpu_worker_get_count(); i++)
+	{
+		switch (starpu_worker_get_type(i))
+		{
+			case STARPU_CPU_WORKER:
+				if (config->cpus_nodeid == -1)
+					config->cpus_nodeid = starpu_worker_get_memory_node(i);
+				else if (config->cpus_nodeid != starpu_worker_get_memory_node(i))
+					config->cpus_nodeid = -2;
+				break;
+			case STARPU_CUDA_WORKER:
+				if (config->cuda_nodeid == -1)
+					config->cuda_nodeid = starpu_worker_get_memory_node(i);
+				else if (config->cuda_nodeid != starpu_worker_get_memory_node(i))
+					config->cuda_nodeid = -2;
+				break;
+			case STARPU_OPENCL_WORKER:
+				if (config->opencl_nodeid == -1)
+					config->opencl_nodeid = starpu_worker_get_memory_node(i);
+				else if (config->opencl_nodeid != starpu_worker_get_memory_node(i))
+					config->opencl_nodeid = -2;
+				break;
+			case STARPU_ANY_WORKER:
+				STARPU_ASSERT(0);
+		}
+	}
 
 	return 0;
 }

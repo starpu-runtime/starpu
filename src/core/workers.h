@@ -210,6 +210,13 @@ struct _starpu_machine_config
 	/* Which GPU(s) do we use for OpenCL ? */
 	int current_opencl_gpuid;
 
+	/* Memory node for cpus, if only one */
+	int cpus_nodeid;
+	/* Memory node for CUDA, if only one */
+	int cuda_nodeid;
+	/* Memory node for OpenCL, if only one */
+	int opencl_nodeid;
+
 	/* Basic workers : each of this worker is running its own driver and
 	 * can be combined with other basic workers. */
 	struct _starpu_worker workers[STARPU_NMAXWORKERS];
