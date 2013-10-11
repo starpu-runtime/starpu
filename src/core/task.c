@@ -723,26 +723,22 @@ int starpu_task_wait_for_all(void)
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
 #endif
+		return 0;
 	}
 	else
 	{
 		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
-		_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id);
-#ifdef HAVE_AYUDAME_H
-		/* TODO: improve Temanejo into knowing about contexts ... */
-		if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
-#endif
+		return starpu_task_wait_for_all_in_ctx(sched_ctx_id);
 	}
-	return 0;
 }
 
 int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
 {
 	_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx);
 #ifdef HAVE_AYUDAME_H
+	/* TODO: improve Temanejo into knowing about contexts ... */
 	if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
 #endif
-
 	return 0;
 }
 /*
