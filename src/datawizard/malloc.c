@@ -108,9 +108,15 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 		}
 	}
 
-#ifndef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_PINNED)
 	{
+#ifdef STARPU_SIMGRID
+		/* FIXME: CUDA seems to be taking 650µs every 1MiB.
+		 * Ideally we would simulate this batching in 1MiB requests
+		 * instead of computing an average value.
+		 */
+		MSG_process_sleep((float) dim * 0.000650 / 1048576.);
+#else /* STARPU_SIMGRID */
 		if (_starpu_can_submit_cuda_task())
 		{
 #ifdef STARPU_USE_CUDA
@@ -176,8 +182,8 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 //			goto end;
 //#endif /* STARPU_USE_OPENCL */
 //		}
-	}
 #endif /* STARPU_SIMGRID */
+	}
 
 	if (_starpu_can_submit_scc_task())
 	{
@@ -387,7 +393,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 #endif
 			/* Sleep 10µs for the allocation */
 			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
-			MSG_process_sleep(0.000010);
+			MSG_process_sleep(0.000175);
 			addr = 1;
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
@@ -407,7 +413,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 #ifdef STARPU_SIMGRID
 				/* Sleep 10µs for the allocation */
 				STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
-				MSG_process_sleep(0.000010);
+				MSG_process_sleep(0.000175);
 				addr = 1;
 				STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
@@ -482,7 +488,7 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 #ifdef STARPU_SIMGRID
 			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 			/* Sleep 10µs for the free */
-			MSG_process_sleep(0.000010);
+			MSG_process_sleep(0.000125);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			cudaError_t err;
@@ -499,7 +505,7 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 #ifdef STARPU_SIMGRID
 			STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 			/* Sleep 10µs for the free */
-			MSG_process_sleep(0.000010);
+			MSG_process_sleep(0.000125);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
 			cl_int err;
