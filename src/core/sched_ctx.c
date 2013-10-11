@@ -842,6 +842,15 @@ unsigned starpu_sched_ctx_get_context()
 	return *sched_ctx;
 }
 
+unsigned _starpu_sched_ctx_get_current_context()
+{
+	unsigned sched_ctx = starpu_sched_ctx_get_context();
+	if (sched_ctx == STARPU_NMAX_SCHED_CTXS)
+		return _starpu_get_initial_sched_ctx()->id;
+	else
+		return sched_ctx;
+}
+
 void starpu_sched_ctx_notify_hypervisor_exists()
 {
 	with_hypervisor = 1;
@@ -1105,22 +1114,22 @@ void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 
 int starpu_sched_get_min_priority(void)
 {
-	return starpu_sched_ctx_get_min_priority(_starpu_get_initial_sched_ctx()->id);
+	return starpu_sched_ctx_get_min_priority(_starpu_sched_ctx_get_current_context());
 }
 
 int starpu_sched_get_max_priority(void)
 {
-	return starpu_sched_ctx_get_max_priority(_starpu_get_initial_sched_ctx()->id);
+	return starpu_sched_ctx_get_max_priority(_starpu_sched_ctx_get_current_context());
 }
 
 int starpu_sched_set_min_priority(int min_prio)
 {
-	return starpu_sched_ctx_set_min_priority(_starpu_get_initial_sched_ctx()->id, min_prio);
+	return starpu_sched_ctx_set_min_priority(_starpu_sched_ctx_get_current_context(), min_prio);
 }
 
 int starpu_sched_set_max_priority(int max_prio)
 {
-	return starpu_sched_ctx_set_max_priority(_starpu_get_initial_sched_ctx()->id, max_prio);
+	return starpu_sched_ctx_set_max_priority(_starpu_sched_ctx_get_current_context(), max_prio);
 }
 
 int starpu_sched_ctx_get_min_priority(unsigned sched_ctx_id)

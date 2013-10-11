@@ -89,6 +89,10 @@ Changes:
   * Function starpu_sched_ctx_create() now takes a variable argument
     list to define the scheduler to be used, and the minimum and
     maximum priority values
+  * The functions starpu_sched_set/get_min/max_priority set/get the
+    priorities of the current scheduling context, i.e the one which
+    was set by a call to starpu_sched_ctx_set_context() or the initial
+    context if the function was not called yet.
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================
