@@ -31,6 +31,7 @@
 #include <math.h>
 #include <string.h>
 #include <core/debug.h>
+#include <core/sched_ctx.h>
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
