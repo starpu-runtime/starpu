@@ -22,15 +22,41 @@
 
 int _check_number(double val, int nan)
 {
-	char *filename = tmpnam(NULL);
+	char *tmp = "starpu_XXXXXX";
+	char *filename = malloc(100);
+	int id;
+
+	strcpy(filename, tmp);
+#ifdef STARPU_HAVE_WINDOWS
+        _mktemp(filename);
+        id = open(filename, O_RDWR);
+#else
+	id = mkstemp(filename);
+
+#endif
+	/* fail */
+	if (id < 0)
+	{
+		return 1;
+	}
 
 	/* write the double value in the file followed by a predefined string */
 	FILE *f = fopen(filename, "w");
+	if (!f)
+	{
+		FPRINTF(stderr, "Error when opening file %s\n", filename);
+		return 1;
+	}
 	fprintf(f, "%lf %s\n", val, STRING);
 	fclose(f);
 
 	/* read the double value and the string back from the file */
 	f = fopen(filename, "r");
+	if (!f)
+	{
+		FPRINTF(stderr, "Error when opening file %s\n", filename);
+		return 1;
+	}
 	double lat;
 	char str[10];
 	int x = _starpu_read_double(f, "%lf", &lat);
