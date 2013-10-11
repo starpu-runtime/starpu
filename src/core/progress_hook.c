@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2013  Université de Bordeaux 1
  * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -86,7 +86,9 @@ void starpu_progression_hook_deregister(int hook_id)
 unsigned _starpu_execute_registered_progression_hooks(void)
 {
 	/* If there is no hook registered, we short-cut loop. */
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&progression_hook_rwlock);
+	if (STARPU_PTHREAD_RWLOCK_TRYRDLOCK(&progression_hook_rwlock))
+		/* It is busy, do not bother */
+		return;
 	int no_hook = (active_hook_cnt == 0);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&progression_hook_rwlock);
 

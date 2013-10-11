@@ -190,9 +190,19 @@ int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
 	return starpu_pthread_mutex_lock(rwlock);
 }
 
+int starpu_pthread_rwlock_tryrdlock(starpu_pthread_rwlock_t *rwlock)
+{
+	return starpu_pthread_mutex_trylock(rwlock);
+}
+
 int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
 {
 	return starpu_pthread_mutex_lock(rwlock);
+}
+
+int starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock)
+{
+	return starpu_pthread_mutex_trylock(rwlock);
 }
 
 int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)

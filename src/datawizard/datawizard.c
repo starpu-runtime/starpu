@@ -36,8 +36,10 @@ void _starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc)
 
 	/* in case some other driver requested data */
 	_starpu_handle_pending_node_data_requests(memory_node);
-	_starpu_handle_node_data_requests(memory_node, may_alloc);
-	_starpu_handle_node_prefetch_requests(memory_node, may_alloc);
+	if (_starpu_handle_node_data_requests(memory_node, may_alloc) == 0)
+		/* We pushed all pending requests, we can afford pushing
+		 * prefetch requests */
+		_starpu_handle_node_prefetch_requests(memory_node, may_alloc);
 	_starpu_execute_registered_progression_hooks();
 }
 

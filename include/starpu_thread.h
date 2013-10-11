@@ -157,7 +157,9 @@ typedef int starpu_pthread_rwlockattr_t;
 int starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *rwlock, const starpu_pthread_rwlockattr_t *attr);
 int starpu_pthread_rwlock_destroy(starpu_pthread_rwlock_t *rwlock);
 int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock);
+int starpu_pthread_rwlock_tryrdlock(starpu_pthread_rwlock_t *rwlock);
 int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock);
+int starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock);
 int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 
 #elif !defined(_MSC_VER) /* STARPU_SIMGRID */
@@ -168,7 +170,9 @@ typedef pthread_rwlockattr_t starpu_pthread_rwlockattr_t;
 #define starpu_pthread_rwlock_init pthread_rwlock_init
 #define starpu_pthread_rwlock_destroy pthread_rwlock_destroy
 #define starpu_pthread_rwlock_rdlock pthread_rwlock_rdlock
+#define starpu_pthread_rwlock_tryrdlock pthread_rwlock_tryrdlock
 #define starpu_pthread_rwlock_wrlock pthread_rwlock_wrlock
+#define starpu_pthread_rwlock_trywrlock pthread_rwlock_trywrlock
 #define starpu_pthread_rwlock_unlock pthread_rwlock_unlock
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
