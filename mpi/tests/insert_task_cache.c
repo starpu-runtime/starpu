@@ -14,13 +14,14 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <common/config.h>
 #include <starpu.h>
 #include <starpu_mpi.h>
 #include <math.h>
 #include "helper.h"
 
-#if !defined(STARPU_HAVE_UNSETENV)
-#warning unsetenv is not defined. Skipping test
+#if !defined(STARPU_HAVE_SETENV)
+#warning setenv is not defined. Skipping test
 int main(int argc, char **argv)
 {
 	return STARPU_TEST_SKIPPED;
@@ -46,16 +47,14 @@ int my_distrib(int x)
 	return x;
 }
 
-void test_cache(int rank, int size, int enabled, size_t *comm_amount)
+void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 {
 	int i;
 	int ret;
 	unsigned v[2][N];
 	starpu_data_handle_t data_handles[2];
-	char string[50];
 
-	sprintf(string, "STARPU_MPI_CACHE=%d", enabled);
-	putenv(string);
+	setenv("STARPU_MPI_CACHE", enabled, 1);
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -82,14 +81,14 @@ void test_cache(int rank, int size, int enabled, size_t *comm_amount)
 
 	for(i = 0; i < 5; i++)
 	{
-		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 
 	for(i = 0; i < 5; i++)
 	{
-		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
+		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 
 	starpu_task_wait_for_all();
@@ -110,34 +109,30 @@ int main(int argc, char **argv)
 	int result=0;
 	size_t *comm_amount_with_cache;
 	size_t *comm_amount_without_cache;
-	char *string;
 
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-	string = malloc(50);
-	sprintf(string, "STARPU_COMM_STATS=1");
-	putenv(string);
+	setenv("STARPU_COMM_STATS", "1", 1);
 
 	comm_amount_with_cache = malloc(size * sizeof(size_t));
 	comm_amount_without_cache = malloc(size * sizeof(size_t));
 
-	test_cache(rank, size, 0, comm_amount_with_cache);
-	test_cache(rank, size, 1, comm_amount_without_cache);
+	test_cache(rank, size, "0", comm_amount_with_cache);
+	test_cache(rank, size, "1", comm_amount_without_cache);
 
 	if (rank == 0 || rank == 1)
 	{
 		dst = (rank == 0) ? 1 : 0;
 		result = (comm_amount_with_cache[dst] == comm_amount_without_cache[dst] * 5);
-		fprintf(stderr, "Communication cache mechanism is %sworking\n", result?"":"NOT ");
+		FPRINTF_MPI("Communication cache mechanism is %sworking\n", result?"":"NOT ");
 	}
 	else
 		result = 1;
 
 	free(comm_amount_without_cache);
 	free(comm_amount_with_cache);
-	free(string);
 
 	MPI_Finalize();
 	return !result;

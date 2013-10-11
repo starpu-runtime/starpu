@@ -29,6 +29,7 @@
 #include "driver_opencl_utils.h"
 #include <common/utils.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/malloc.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -66,26 +67,30 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
 
-	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
-	if (limit == -1)
-	{
-	     sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
-	     limit = starpu_get_env_number(name);
-	}
-	if (limit == -1)
-	{
-		return;
-	}
-
-	global_mem[devid] = limit * 1024*1024;
-
 #ifdef STARPU_USE_OPENCL
 	/* Request the size of the current device's memory */
 	cl_int err;
 	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
+#endif
 
+	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
+	if (limit == -1)
+	{
+		sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
+		limit = starpu_get_env_number(name);
+	}
+	if (limit == -1)
+	{
+		global_mem[devid] = totalGlobalMem;
+	}
+	else
+	{
+		global_mem[devid] = limit * 1024*1024;
+	}
+
+#ifdef STARPU_USE_OPENCL
 	/* How much memory to waste ? */
 	to_waste = totalGlobalMem - global_mem[devid];
 #endif
@@ -595,7 +600,7 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	STARPU_ASSERT(args);
 	int devid = args->devid;
 
-	_starpu_worker_init(args, _STARPU_FUT_OPENCL_KEY);
+	_starpu_worker_start(args, _STARPU_FUT_OPENCL_KEY);
 
 #ifndef STARPU_SIMGRID
 	_starpu_opencl_init_context(devid);
@@ -607,7 +612,10 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	_starpu_opencl_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(args->memory_node, _starpu_opencl_get_global_mem_size(devid));
 
+	_starpu_malloc_init(args->memory_node);
+
 	args->status = STATUS_UNKNOWN;
+	float size = (float) global_mem[devid] / (1<<30);
 
 #ifdef STARPU_SIMGRID
 	const char *devname = "Simgrid";
@@ -616,7 +624,7 @@ int _starpu_opencl_driver_init(struct starpu_driver *d)
 	char devname[128];
 	_starpu_opencl_get_device_name(devid, devname, 128);
 #endif
-	snprintf(args->name, sizeof(args->name), "OpenCL %u (%s)", devid, devname);
+	snprintf(args->name, sizeof(args->name), "OpenCL %u (%s %.1f GiB)", devid, devname, size);
 	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %u", devid);
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
@@ -650,6 +658,7 @@ int _starpu_opencl_driver_run_once(struct starpu_driver *d)
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
 	task = _starpu_get_worker_task(args, workerid, memnode);
+
 
 	if (task == NULL)
 		return 0;
@@ -706,6 +715,8 @@ int _starpu_opencl_driver_deinit(struct starpu_driver *d)
 	 * allocated by StarPU, we release it now. Note that data
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
+
+	_starpu_malloc_shutdown(memnode);
 
 #ifndef STARPU_SIMGRID
 	unsigned devid   = args->devid;
@@ -836,14 +847,14 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
 	length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
   #endif
-	_starpu_simgrid_execute_job(j, args->perf_arch, length);
+	_starpu_simgrid_execute_job(j, &args->perf_arch, length);
 #else
 	func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
 
-	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0, profiling);
+	_starpu_driver_end_job(args, j, &args->perf_arch, &codelet_end, 0, profiling);
 
-	_starpu_driver_update_job_feedback(j, args, args->perf_arch,
+	_starpu_driver_update_job_feedback(j, args, &args->perf_arch,
 					   &codelet_start, &codelet_end, profiling);
 
 	_starpu_push_task_output(j, mask);

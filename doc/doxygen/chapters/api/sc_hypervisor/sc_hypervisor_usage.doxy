@@ -1,0 +1,191 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_SC_Hypervisor_usage Scheduling Context Hypervisor - Regular usage
+
+\fn void *sc_hypervisor_init(struct sc_hypervisor_policy *policy)
+\ingroup API_SC_Hypervisor_usage
+There is a single hypervisor that is in charge of resizing contexts
+and the resizing strategy is chosen at the initialization of the
+hypervisor. A single resize can be done at a time.
+
+The Scheduling Context Hypervisor Plugin provides a series of
+performance counters to StarPU. By incrementing them, StarPU can help
+the hypervisor in the resizing decision making process.
+
+This function initializes the hypervisor to use the strategy provided as parameter
+and creates the performance counters (see starpu_sched_ctx_performance_counters).
+These performance counters represent actually some callbacks that will
+be used by the contexts to notify the information needed by the
+hypervisor.
+
+Note: The Hypervisor is actually a worker that takes this role once
+certain conditions trigger the resizing process (there is no
+additional thread assigned to the hypervisor).
+
+\fn void sc_hypervisor_shutdown(void)
+\ingroup API_SC_Hypervisor_usage
+The hypervisor and all information concerning it is cleaned. There is
+no synchronization between this function and starpu_shutdown(). Thus,
+this should be called after starpu_shutdown(), because the performance
+counters will still need allocated callback functions.
+
+\fn void sc_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
+\ingroup API_SC_Hypervisor_usage
+Scheduling Contexts that have to be resized by the hypervisor must be
+first registered to the hypervisor. 
+This function registers the context to the hypervisor, and indicate the number of
+flops the context will execute (used for Gflops rate based strategy
+or any other custom strategy needing it, for the others we can pass 0.0)
+
+\fn void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
+\ingroup API_SC_Hypervisor_usage
+Whenever we want to exclude
+contexts from the resizing process we have to unregister them from the
+hypervisor.
+
+\fn void sc_hypervisor_resize_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
+\ingroup API_SC_Hypervisor_usage
+Requires reconsidering the distribution of ressources over the indicated scheduling contexts 
+
+\fn void sc_hypervisor_stop_resize(unsigned sched_ctx)
+\ingroup API_SC_Hypervisor_usage
+The user can totally forbid the resizing of a certain context or can
+then change his mind and allow it (in this case the resizing is
+managed by the hypervisor, that can forbid it or allow it)
+
+\fn void sc_hypervisor_start_resize(unsigned sched_ctx)
+\ingroup API_SC_Hypervisor_usage
+Allow resizing of a context. The user can then provide information to
+the hypervisor concerning the conditions of resizing.
+
+\fn char *sc_hypervisor_get_policy();
+\ingroup API_SC_Hypervisor_usage
+Returns the name of the resizing policy the hypervisor uses
+
+\fn void sc_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx)
+\ingroup API_SC_Hypervisor_usage
+Ask the hypervisor to add workers to a sched_ctx 
+
+\fn void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigned nworkers_to_remove, unsigned sched_ctx, unsigned now)
+\ingroup API_SC_Hypervisor_usage
+Ask the hypervisor to remove workers from a sched_ctx 
+
+\fn void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sched_ctx, int *workers_to_move, unsigned nworkers_to_move, unsigned now)
+\ingroup API_SC_Hypervisor_usage
+Moves workers from one context to another
+   
+\fn void sc_hypervisor_size_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
+\ingroup API_SC_Hypervisor_usage
+Ask the hypervisor to chose a distribution of workers in the required contexts
+   
+
+\fn void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, size_t data_size)
+\ingroup API_SC_Hypervisor_usage
+Indicate the types of tasks a context will execute in order to better decide the sizing of ctxs
+
+\fn void sc_hypervisor_update_diff_total_flops(unsigned sched_ctx, double diff_total_flops)
+\ingroup API_SC_Hypervisor_usage
+Change dynamically the total number of flops of a context, move the deadline of the finishing time of the context
+
+\fn void sc_hypervisor_update_diff_elapsed_flops(unsigned sched_ctx, double diff_task_flops)
+\ingroup API_SC_Hypervisor_usage
+Change dynamically the number of the elapsed flops in a context, modify the past in order to better compute the speed 
+
+\fn void sc_hypervisor_ctl(unsigned sched_ctx, ...)
+\ingroup API_SC_Hypervisor_usage
+Inputs conditions to the context sched_ctx with the following
+arguments. The argument list must be zero-terminated.
+
+\def SC_HYPERVISOR_MAX_IDLE
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 3 arguments: an array of int for the workerids to apply
+the condition, an int to indicate the size of the array, and a double
+value indicating the maximum idle time allowed for a worker before the
+resizing process should be triggered
+
+\def SC_HYPERVISOR_PRIORITY
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 3 arguments: an array of int for the workerids to apply
+the condition, an int to indicate the size of the array, and an int
+value indicating the priority of the workers previously mentioned. The
+workers with the smallest priority are moved the first.
+
+\def SC_HYPERVISOR_MIN_WORKERS
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 argument(int) indicating the minimum number of workers a
+context should have, underneath this limit the context cannot execute.
+
+\def SC_HYPERVISOR_MAX_WORKERS
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 argument(int) indicating the maximum number of workers a
+context should have, above this limit the context would not be able to
+scale
+
+\def SC_HYPERVISOR_GRANULARITY
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 argument(int) indicating the granularity of the resizing
+process (the number of workers should be moved from the context once
+it is resized) This parameter is ignore for the Gflops rate based
+strategy (see \ref ResizingStrategies), the number of workers that have to
+be moved is calculated by the strategy.
+
+\def SC_HYPERVISOR_FIXED_WORKERS
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 2 arguments: an array of int for the workerids to apply
+the condition and an int to indicate the size of the array. These
+workers are not allowed to be moved from the context.
+
+\def SC_HYPERVISOR_MIN_TASKS
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 argument (int) that indicated the minimum number of
+tasks that have to be executed before the context could be resized.
+This parameter is ignored for the Application Driven strategy (see \ref 
+ResizingStrategies) where the user indicates exactly when the resize
+should be done.
+
+\def SC_HYPERVISOR_NEW_WORKERS_MAX_IDLE
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 argument, a double value indicating the maximum idle
+time allowed for workers that have just been moved from other contexts
+in the current context.
+
+\def SC_HYPERVISOR_TIME_TO_APPLY
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 argument (int) indicating the tag an executed task
+should have such that this configuration should be taken into account.
+
+
+\def SC_HYPERVISOR_ISPEED_W_SAMPLE
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 argument, a double, that indicates the number of flops
+needed to be executed before computing the speed of a worker
+
+\def SC_HYPERVISOR_ISPEED_CTX_SAMPLE
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 argument, a double, that indicates the number of flops
+needed to be executed before computing the speed of a context
+
+
+\def SC_HYPERVISOR_NULL
+\ingroup API_SC_Hypervisor_usage
+This macro is used when calling sc_hypervisor_ctl() and must be
+followed by 1 arguments
+
+*/

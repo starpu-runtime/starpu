@@ -31,7 +31,7 @@ struct starpu_fxt_codelet_event
 {
 	char symbol[256];
 	int workerid;
-	enum starpu_perfmodel_archtype archtype;
+	struct starpu_perfmodel_arch arch;
 	uint32_t hash;
 	size_t size;
 	float time;
@@ -54,7 +54,7 @@ struct starpu_fxt_options
 	int file_rank;
 
 	char worker_names[STARPU_NMAXWORKERS][256];
-	enum starpu_perfmodel_archtype worker_archtypes[STARPU_NMAXWORKERS];
+	struct starpu_perfmodel_arch worker_archtypes[STARPU_NMAXWORKERS];
 	int nworkers;
 
 	struct starpu_fxt_codelet_event **dumped_codelets;
@@ -65,6 +65,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options);
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
 void starpu_fxt_start_profiling(void);
 void starpu_fxt_stop_profiling(void);
+void starpu_fxt_write_data_trace(char *filename_in);
 
 #ifdef __cplusplus
 }

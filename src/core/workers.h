@@ -29,7 +29,7 @@
 #include <core/topology.h>
 #include <core/errorcheck.h>
 #include <core/sched_ctx.h>
-
+#include <core/sched_ctx_list.h>
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
@@ -52,13 +52,14 @@
 
 #include <starpu_parameters.h>
 
+/* This is initialized from in _starpu_worker_init */
 struct _starpu_worker
 {
 	struct _starpu_machine_config *config;
         starpu_pthread_mutex_t mutex;
 	enum starpu_worker_archtype arch; /* what is the type of worker ? */
 	uint32_t worker_mask; /* what is the type of worker ? */
-	enum starpu_perfmodel_archtype perf_arch; /* in case there are different models of the same arch */
+	struct starpu_perfmodel_arch perf_arch; /* in case there are different models of the same arch */
 	starpu_pthread_t worker_thread; /* the thread which runs the worker */
 	int mp_nodeid; /* which mp node hold the cpu/gpu/etc (-1 for this
 			* node) */
@@ -84,18 +85,15 @@ struct _starpu_worker
 	char short_name[10];
 	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
 
-	struct _starpu_sched_ctx **sched_ctx;
+	struct _starpu_sched_ctx_list *sched_ctx_list;
 	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/
 	struct _starpu_barrier_counter tasks_barrier; /* wait for the tasks submitted */
-       
+
 	unsigned has_prev_init; /* had already been inited in another ctx */
 
-	/* indicated in each ctx the workers can execute tasks on,
-	 used for overlapping ctx in order to determine on which 
-	ctx the worker is allowed to pop */
-	unsigned active_ctx;
-
 	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS];
+
+	unsigned spinning_backoff ; /* number of cycles to pause when spinning  */
 
 	/* conditions variables used when parallel sections are executed in contexts */
 	starpu_pthread_cond_t parallel_sect_cond;
@@ -104,6 +102,10 @@ struct _starpu_worker
 	/* boolean indicating that workers should block in order to allow
 	   parallel sections to be executed on their allocated resources */
 	unsigned parallel_sect;
+
+	/* indicate whether the workers shares tasks lists with other workers*/
+	/* in this case when removing him from a context it disapears instantly */
+	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS];
 
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;
@@ -118,11 +120,15 @@ struct _starpu_worker
 
 struct _starpu_combined_worker
 {
-	enum starpu_perfmodel_archtype perf_arch; /* in case there are different models of the same arch */
+	struct starpu_perfmodel_arch perf_arch; /* in case there are different models of the same arch */
 	uint32_t worker_mask; /* what is the type of workers ? */
 	int worker_size;
 	unsigned memory_node; /* which memory node is associated that worker to ? */
 	int combined_workerid[STARPU_NMAXWORKERS];
+#ifdef STARPU_USE_MP
+	int count;
+	pthread_mutex_t count_mutex;
+#endif
 
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;
@@ -268,6 +274,17 @@ struct _starpu_machine_config
 	/* Which SCC do we use? */
 	int current_scc_deviceid;
 
+	/* Memory node for cpus, if only one */
+	int cpus_nodeid;
+	/* Memory node for CUDA, if only one */
+	int cuda_nodeid;
+	/* Memory node for OpenCL, if only one */
+	int opencl_nodeid;
+	/* Memory node for MIC, if only one */
+	int mic_nodeid;
+	/* Memory node for SCC, if only one */
+	int scc_nodeid;
+
 	/* Basic workers : each of this worker is running its own driver and
 	 * can be combined with other basic workers. */
 	struct _starpu_worker workers[STARPU_NMAXWORKERS];
@@ -339,7 +356,7 @@ void _starpu_block_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthr
 void _starpu_set_local_worker_key(struct _starpu_worker *worker);
 
 /* This function initializes the current thread for the given worker */
-void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key);
+void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key);
 
 /* Returns the _starpu_worker structure that describes the state of the
  * current worker. */

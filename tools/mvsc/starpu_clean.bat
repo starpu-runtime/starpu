@@ -15,9 +15,9 @@ REM MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 REM
 REM See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-TITLE MSVC StarPU Cleaning
+TITLE MVSC StarPU Cleaning
 ECHO.
-ECHO MSVC StarPU Cleaning
+ECHO MVSC StarPU Cleaning
 ECHO.
 
 FOR %%d in (debug starpu\debug ipch) DO IF EXIST %%d RMDIR /S /Q %%d

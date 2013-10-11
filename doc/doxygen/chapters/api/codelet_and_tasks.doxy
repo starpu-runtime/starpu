@@ -56,7 +56,6 @@ The task is waiting for a task.
 \ingroup API_Codelet_And_Tasks
 The task is waiting for some data.
 
-
 \def STARPU_CPU
 \ingroup API_Codelet_And_Tasks
 This macro is used when setting the field starpu_codelet::where
@@ -110,25 +109,39 @@ this macro indicates the codelet will have several implementations.
 The use of this macro is deprecated. One should always only define the
 field starpu_codelet::opencl_funcs.
 
-\def starpu_cpu_func_t
+\def STARPU_NMAXBUFS
+\ingroup API_Codelet_And_Tasks
+Defines the maximum number of buffers that tasks will be able to take
+as parameters. The default value is 8, it can be changed by using the
+configure option \ref enable-maxbuffers "--enable-maxbuffers".
+
+\typedef starpu_cpu_func_t
 \ingroup API_Codelet_And_Tasks
 CPU implementation of a codelet.
 
-\def starpu_cuda_func_t
+\typedef starpu_cuda_func_t
 \ingroup API_Codelet_And_Tasks
 CUDA implementation of a codelet.
 
-\def starpu_opencl_func_t
+\typedef starpu_opencl_func_t
 \ingroup API_Codelet_And_Tasks
 OpenCL implementation of a codelet.
 
-\def starpu_mic_func_t
+\typedef starpu_mic_func_t
 \ingroup API_Codelet_And_Tasks
 MIC implementation of a codelet.
 
-\def starpu_scc_func_t
+\typedef starpu_scc_func_t
 \ingroup API_Codelet_And_Tasks
 SCC implementation of a codelet.
+
+\typedef starpu_mic_kernel_t
+\ingroup API_Codelet_And_Tasks
+MIC kernel for a codelet
+
+\typedef *starpu_scc_kernel_t
+\ingroup API_Codelet_And_Tasks
+SCC kernel for a codelet
 
 \struct starpu_codelet
 The codelet structure describes a kernel that is possibly
@@ -137,7 +150,7 @@ initialize the whole structure to zero, either by using explicit
 memset, or the function starpu_codelet_init(), or by letting the
 compiler implicitly do it in e.g. static storage case.
 \ingroup API_Codelet_And_Tasks
-\var starpu_codelet::where.
+\var starpu_codelet::where
 Optional field to indicate which types of processing units are able to
 execute the codelet. The different values ::STARPU_CPU, ::STARPU_CUDA,
 ::STARPU_OPENCL can be combined to specify on which types of processing
@@ -393,6 +406,33 @@ Optional field, the default value is <c>NULL</c>. This is the pointer
 passed to the callback function. This field is ignored if the field
 starpu_task::callback_func is set to <c>NULL</c>.
 
+\var starpu_task::callback_arg_free
+Optional field. In case starpu_task::callback_arg was allocated by the
+application through <c>malloc()</c>, setting starpu_task::callback_arg_free
+to 1 makes StarPU automatically call <c>free(callback_arg)</c> when
+destroying the task.
+
+\var starpu_task::prologue_callback_func
+Optional field, the default value is <c>NULL</c>. This is a function
+pointer of prototype <c>void (*f)(void *)</c> which specifies a
+possible callback. 
+If this pointer is non-null, the callback function
+is executed on the host when the task becomes ready for execution,
+before getting scheduled. The callback is passed the
+value contained in the starpu_task::prologue_callback_arg field. No callback is
+executed if the field is set to NULL.
+
+\var starpu_task::prologue_callback_arg (optional) (default: NULL)
+Optional field, the default value is <c>NULL</c>. This is the pointer
+passed to the prologue callback function. This field is ignored if the field
+starpu_task::prologue_callback_func is set to <c>NULL</c>.
+
+\var starpu_task::prologue_callback_arg_free
+Optional field. In case starpu_task::prologue_callback_arg was allocated by the
+application through <c>malloc()</c>, setting starpu_task::prologue_callback_arg_free
+to 1 makes StarPU automatically call <c>free(prologue_callback_arg)</c> when
+destroying the task.
+
 \var starpu_task::use_tag
 Optional field, the default value is 0. If set, this flag indicates
 that the task should be associated with the tag contained in the
@@ -635,6 +675,13 @@ no GPU available and this task is only implemented for CUDA devices).
 starpu_task_submit() can be called from anywhere, including codelet
 functions and callbacks, provided that the field
 starpu_task::synchronous is set to 0.
+
+\fn int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id)
+\ingroup API_Codelet_And_Tasks
+This function submits a task to StarPU to the context <c> sched_ctx_id </c>.
+By default starpu_task_submit submits the task to a global context that is
+created automatically by StarPU.
+
 
 \fn int starpu_task_wait_for_all(void)
 \ingroup API_Codelet_And_Tasks

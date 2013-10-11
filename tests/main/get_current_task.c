@@ -30,7 +30,6 @@ static unsigned ntasks = 65536;
 
 void check_task_func(void *descr[], void *arg)
 {
-	STARPU_SKIP_IF_VALGRIND;
 }
 
 static void check_task_callback(void *arg)

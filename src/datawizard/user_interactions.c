@@ -230,11 +230,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
         _STARPU_LOG_IN();
 
 	/* unless asynchronous, it is forbidden to call this function from a callback or a codelet */
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-	{
-                _STARPU_LOG_OUT_TAG("EDEADLK");
-		return -EDEADLK;
-        }
+	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "Acquiring a data synchronously is not possible from a codelet or from a task callback, use starpu_data_acquire_cb instead.");
 
 	if (_starpu_data_is_multiformat_handle(handle) &&
 	    _starpu_handle_needs_conversion_task(handle, 0))
@@ -448,8 +444,12 @@ int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, uns
  *	It is possible to specify that a piece of data can be discarded without
  *	impacting the application.
  */
+int _starpu_has_not_important_data;
 void starpu_data_advise_as_important(starpu_data_handle_t handle, unsigned is_important)
 {
+	if (!is_important)
+		_starpu_has_not_important_data = 1;
+
 	_starpu_spin_lock(&handle->header_lock);
 
 	/* first take all the children lock (in order !) */

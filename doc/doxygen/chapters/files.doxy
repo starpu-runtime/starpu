@@ -33,6 +33,7 @@
 \file starpu_scheduler.h
 \file starpu_sched_node.h
 \file starpu_sched_ctx.h
+\file starpu_sched_ctx_hypervisor.h
 \file starpu_top.h
 \file starpu_hash.h
 \file starpu_rand.h

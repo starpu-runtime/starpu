@@ -30,6 +30,7 @@
 #include <cuda_gl_interop.h>
 #endif
 #include <datawizard/memory_manager.h>
+#include <datawizard/malloc.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -351,14 +352,14 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 	STARPU_ASSERT(func);
 
 #ifdef STARPU_SIMGRID
-	_starpu_simgrid_execute_job(j, args->perf_arch, NAN);
+	_starpu_simgrid_execute_job(j, &args->perf_arch, NAN);
 #else
 	func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
 
-	_starpu_driver_end_job(args, j, args->perf_arch, &codelet_end, 0, profiling);
+	_starpu_driver_end_job(args, j, &args->perf_arch, &codelet_end, 0, profiling);
 
-	_starpu_driver_update_job_feedback(j, args, args->perf_arch, &codelet_start, &codelet_end, profiling);
+	_starpu_driver_update_job_feedback(j, args, &args->perf_arch, &codelet_start, &codelet_end, profiling);
 
 	_starpu_push_task_output(j, mask);
 
@@ -391,7 +392,7 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 	STARPU_ASSERT(args);
 	unsigned devid = args->devid;
 
-	_starpu_worker_init(args, _STARPU_FUT_CUDA_KEY);
+	_starpu_worker_start(args, _STARPU_FUT_CUDA_KEY);
 
 #ifndef STARPU_SIMGRID
 	init_context(devid);
@@ -399,6 +400,8 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 
 	_starpu_cuda_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(args->memory_node, _starpu_cuda_get_global_mem_size(devid));
+
+	_starpu_malloc_init(args->memory_node);
 
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(args->config, args->bindid);
@@ -508,6 +511,8 @@ int _starpu_cuda_driver_deinit(struct starpu_driver *d)
 	 * allocated by StarPU, we release it now. Note that data
 	 * coherency is not maintained anymore at that point ! */
 	_starpu_free_all_automatically_allocated_buffers(memnode);
+
+	_starpu_malloc_shutdown(memnode);
 
 #ifndef STARPU_SIMGRID
 	deinit_context(args->workerid);

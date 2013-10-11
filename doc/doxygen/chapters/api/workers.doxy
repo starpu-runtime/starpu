@@ -8,6 +8,10 @@
 
 /*! \defgroup API_Workers_Properties Workers’ Properties
 
+\def STARPU_NMAXWORKERS
+\ingroup API_Workers_Properties
+Define the maximum number of workers managed by StarPU.
+
 \enum starpu_node_kind
 \ingroup API_Workers_Properties
 TODO
@@ -56,6 +60,49 @@ Intel MIC device
 \var starpu_worker_archtype::STARPU_SCC_WORKER
 \ingroup API_Workers_Properties
 Intel SCC device
+
+
+\struct starpu_worker_collection
+\ingroup API_Workers_Properties
+A scheduling context manages a collection of workers that can
+be memorized using different data structures. Thus, a generic
+structure is available in order to simplify the choice of its type.
+Only the list data structure is available but further data
+structures(like tree) implementations are foreseen.
+\var starpu_worker_collection::workerids
+        The workerids managed by the collection
+\var starpu_worker_collection::nworkers
+        The number of workers in the collection
+\var starpu_worker_collection::type
+        The type of structure (currently ::STARPU_WORKER_LIST is the only one available)
+\var starpu_worker_collection::has_next
+        Checks if there is another element in collection
+\var starpu_worker_collection::get_next
+        return the next element in the collection
+\var starpu_worker_collection::add
+        add a new element in the collection
+\var starpu_worker_collection::remove
+        remove an element from the collection
+\var starpu_worker_collection::init
+        Initialize the collection
+\var starpu_worker_collection::deinit
+        Deinitialize the colection
+\var starpu_worker_collection::init_iterator
+        Initialize the cursor if there is one
+
+\enum starpu_worker_collection_type
+\ingroup API_Workers_Properties
+Types of structures the worker collection can implement
+\var starpu_worker_collection_type::STARPU_WORKER_LIST
+\ingroup API_Workers_Properties
+The collection is an array
+
+\struct starpu_sched_ctx_iterator
+\ingroup API_Workers_Properties
+Structure needed to iterate on the collection
+\var starpu_sched_ctx_iterator::cursor
+The index of the current worker in the collection, needed when iterating on
+the collection.
 
 
 \fn unsigned starpu_worker_get_count(void)

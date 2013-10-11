@@ -24,8 +24,6 @@
 
 void which_index_cpu(void *descr[], void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	/* A real case would actually compute something */
@@ -42,8 +40,6 @@ struct starpu_codelet which_index =
 
 void work_cpu(void *descr[], void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	int i, n = STARPU_VECTOR_GET_NX(descr[0]);
 	float *x0 = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 
@@ -64,7 +60,7 @@ static starpu_data_handle_t x_handle, f_handle;
 
 void callback(void *arg)
 {
-	starpu_insert_task(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0);
+	starpu_task_insert(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0);
 	starpu_data_release(x_handle);
 }
 
@@ -76,6 +72,8 @@ int main(int argc, char **argv)
 	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	if(starpu_cpu_worker_get_count() == 0) return STARPU_TEST_SKIPPED;
 
 	/* Declare x */
 	starpu_variable_data_register(&x_handle, STARPU_MAIN_RAM, (uintptr_t)&x, sizeof(x));
@@ -95,16 +93,16 @@ int main(int argc, char **argv)
 	starpu_data_partition(f_handle, &filter);
 
 	/* Compute which portion we will work on */
-        ret = starpu_insert_task(&which_index, STARPU_W, x_handle, 0);
+        ret = starpu_task_insert(&which_index, STARPU_W, x_handle, 0);
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	/* And submit the corresponding task */
 #ifdef __GCC__
 	STARPU_DATA_ACQUIRE_CB(
 			x_handle,
 			STARPU_R,
-			starpu_insert_task(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0)
+			starpu_task_insert(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0)
 			);
 #else
 	starpu_data_acquire_cb(x_handle, STARPU_W, callback, NULL);
@@ -130,7 +128,7 @@ int main(int argc, char **argv)
 
 	starpu_free(f);
 	starpu_shutdown();
-	STARPU_RETURN(ret);
+	return ret;
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");

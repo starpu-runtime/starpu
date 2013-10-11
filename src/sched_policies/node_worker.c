@@ -299,6 +299,7 @@ struct _starpu_combined_worker * _starpu_sched_node_combined_worker_get_combined
 	return data->combined_worker;
 }
 
+/*
 enum starpu_perfmodel_archtype starpu_sched_node_worker_get_perf_arch(struct starpu_sched_node * worker_node)
 {
 	STARPU_ASSERT(starpu_sched_node_is_worker(worker_node));
@@ -307,6 +308,7 @@ enum starpu_perfmodel_archtype starpu_sched_node_worker_get_perf_arch(struct sta
 	else
 		return _starpu_sched_node_combined_worker_get_combined_worker(worker_node)->perf_arch;
 }
+*/
 
 static void simple_worker_available(struct starpu_sched_node * worker_node)
 {
@@ -516,7 +518,8 @@ static double simple_worker_estimated_load(struct starpu_sched_node * node)
 	struct _starpu_worker_task_list * l = d->list;
 	int ntasks_in_fifo = l ? l->ntasks : 0;
 	return (double) (nb_task + ntasks_in_fifo)
-		/ starpu_worker_get_relative_speedup(starpu_bitmap_first(node->workers));
+		/ starpu_worker_get_relative_speedup(
+				starpu_worker_get_perf_archtype(starpu_bitmap_first(node->workers)));
 }
 
 static double combined_worker_estimated_load(struct starpu_sched_node * node)

@@ -6,4 +6,4 @@ top_builddir="@top_builddir@"
 NATIVE=${PWD/\/build_mic\//\/build_host\/}
 DIR="$(dirname "$1")"
 FILE="$(basename "$1")"
-SINK_LD_LIBRARY_PATH="$top_builddir/src/.libs" STARPU_MIC_SINK_PROGRAM_NAME="$DIR/.libs/$FILE" $top_srcdir/build_host/tests/loader "$NATIVE/$1"
+SINK_LD_LIBRARY_PATH="$top_builddir/src/.libs:$SINK_LD_LIBRARY_PATH" STARPU_MIC_SINK_PROGRAM_NAME="$DIR/.libs/$FILE" $top_builddir/../build_host/tests/loader "$NATIVE/$1"

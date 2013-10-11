@@ -86,7 +86,6 @@ chapters =	\
 	chapters/api/performance_model.doxy \
 	chapters/api/profiling.doxy \
 	chapters/api/running_driver.doxy \
-	chapters/api/scheduling_context_hypervisor.doxy \
 	chapters/api/scheduling_contexts.doxy \
 	chapters/api/scheduling_policy.doxy \
 	chapters/api/standard_memory_library.doxy \
@@ -94,61 +93,68 @@ chapters =	\
 	chapters/api/task_lists.doxy \
 	chapters/api/top.doxy \
 	chapters/api/versioning.doxy \
-	chapters/api/workers.doxy
+	chapters/api/workers.doxy \
+	chapters/api/threads.doxy \
+	chapters/api/toolbox.doxy \
+	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
+	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy
 
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	sed 's/#undef \(.*\)/#define \1 1/' $< > $@
 
 chapters/version.sty: $(chapters)
-	@for f in $(chapters) ; do \
-                if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f 2>/dev/null ; fi \
-        done | sort -r | head -1 > timestamp
-	@if test -s timestamp ; then \
-		LC_ALL=C date --date=@`cat timestamp` +"%d %B %Y" > timestamp_updated 2>/dev/null;\
-		LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month 2>/dev/null;\
+	for f in $(chapters) ; do \
+                if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
+        done | sort -r | head -1 > timestamp_sty
+	if test -s timestamp_sty ; then \
+		LC_ALL=C date --date=@`cat timestamp_sty` +"%d %B %Y" > timestamp_sty_updated ;\
+		LC_ALL=C date --date=@`cat timestamp_sty` +"%B %Y" > timestamp_sty_updated_month ;\
 	fi
-	@if test -s timestamp_updated ; then \
-		echo "\newcommand{\STARPUUPDATED}{"`cat timestamp_updated`"}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
+	if test -s timestamp_sty_updated ; then \
+		echo "\newcommand{\STARPUUPDATED}{"`cat timestamp_sty_updated`"}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	else \
 		echo "\newcommand{\STARPUUPDATED}{unknown date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	fi
-	@echo "\newcommand{\STARPUVERSION}{$(VERSION)}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty
-	@for f in timestamp timestamp_updated timestamp_updated_month ; do \
+	echo "\newcommand{\STARPUVERSION}{$(VERSION)}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty
+	for f in timestamp_sty timestamp_sty_updated timestamp_sty_updated_month ; do \
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
 chapters/version.html: $(chapters)
-	@for f in $(chapters) ; do \
-                if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f 2>/dev/null ; fi \
-        done | sort -r | head -1 > timestamp
-	@if test -s timestamp ; then \
-		LC_ALL=C date --date=@`cat timestamp` +"%d %B %Y" > timestamp_updated 2>/dev/null;\
-		LC_ALL=C date --date=@`cat timestamp` +"%B %Y" > timestamp_updated_month 2>/dev/null;\
+	for f in $(chapters) ; do \
+                if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
+        done | sort -r | head -1 > timestamp_html
+	if test -s timestamp_html ; then \
+		LC_ALL=C date --date=@`cat timestamp_html` +"%d %B %Y" > timestamp_html_updated ;\
+		LC_ALL=C date --date=@`cat timestamp_html` +"%B %Y" > timestamp_html_updated_month ;\
 	fi
-	@echo "This manual documents the usage of StarPU version $(VERSION)." > $(top_srcdir)/doc/doxygen/chapters/version.html
-	@if test -s timestamp_updated ; then \
-		echo "Its contents was last updated on "`cat timestamp_updated`"." >> $(top_srcdir)/doc/doxygen/chapters/version.html;\
+	echo "This manual documents the usage of StarPU version $(VERSION)." > $(top_srcdir)/doc/doxygen/chapters/version.html
+	if test -s timestamp_html_updated ; then \
+		echo "Its contents was last updated on "`cat timestamp_html_updated`"." >> $(top_srcdir)/doc/doxygen/chapters/version.html;\
 	else \
 		echo "Its contents was last updated on <em>unknown_date</em>." >> $(top_srcdir)/doc/doxygen/chapters/version.html;\
 	fi
-	@for f in timestamp timestamp_updated timestamp_updated_month ; do \
+	for f in timestamp_html timestamp_html_updated timestamp_html_updated_month ; do \
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
-EXTRA_DIST	= 		\
-	$(chapters) 		\
-	chapters/version.sty	\
-	chapters/version.html	\
-	chapters/tasks_size_overhead.png	\
-	chapters/tasks_size_overhead.eps	\
-	chapters/tasks_size_overhead.pdf	\
+EXTRA_DIST	= 					\
+	$(chapters) 					\
+	chapters/version.sty				\
+	chapters/version.html				\
+	chapters/data_trace.eps				\
+	chapters/data_trace.pdf				\
+	chapters/data_trace.png				\
 	chapters/starpu_non_linear_memset_regression_based.png	\
 	chapters/starpu_non_linear_memset_regression_based.eps	\
 	chapters/starpu_non_linear_memset_regression_based.pdf	\
 	chapters/starpu_starpu_slu_lu_model_11.png	\
 	chapters/starpu_starpu_slu_lu_model_11.eps	\
 	chapters/starpu_starpu_slu_lu_model_11.pdf	\
-	doxygen.cfg 		\
+	chapters/tasks_size_overhead.png		\
+	chapters/tasks_size_overhead.eps		\
+	chapters/tasks_size_overhead.pdf		\
+	doxygen.cfg 					\
 	refman.tex
 
 dox_inputs = $(DOX_CONFIG) 				\
@@ -180,6 +186,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_scheduler.h	\
 	$(top_srcdir)/include/starpu_sched_node.h	\
 	$(top_srcdir)/include/starpu_sched_ctx.h	\
+	$(top_srcdir)/include/starpu_sched_ctx_hypervisor.h		\
 	$(top_srcdir)/include/starpu_top.h		\
 	$(top_srcdir)/include/starpu_hash.h		\
 	$(top_srcdir)/include/starpu_rand.h		\

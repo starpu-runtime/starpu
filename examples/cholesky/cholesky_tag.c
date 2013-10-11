@@ -17,6 +17,11 @@
  */
 
 #include "cholesky.h"
+#include <starpu_perfmodel.h>
+
+struct starpu_perfmodel chol_model_11;
+struct starpu_perfmodel chol_model_21;
+struct starpu_perfmodel chol_model_22;
 
 /*
  *	Some useful functions
@@ -257,6 +262,16 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+#ifdef STARPU_USE_CUDA
+	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
+	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,cuda_chol_task_21_cost);
+	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,cuda_chol_task_22_cost);
+#else
+	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,NULL);
+	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,NULL);
+	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,NULL);
+#endif
 
 	starpu_cublas_init();
 

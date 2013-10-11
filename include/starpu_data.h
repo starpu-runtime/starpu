@@ -81,8 +81,6 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node);
 
 void starpu_data_display_memory_stats();
 
-/* XXX These macros are provided to avoid breaking old codes. But consider
- * these function names as deprecated. */
 #define starpu_data_malloc_pinned_if_possible	starpu_malloc
 #define starpu_data_free_pinned_if_possible	starpu_free
 

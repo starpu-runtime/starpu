@@ -129,9 +129,12 @@ void _starpu_wait_job(struct _starpu_job *j)
 	 * way, _starpu_wait_job won't return until the entire task was really
 	 * executed (so that we cannot destroy the task while it is still being
 	 * manipulated by the driver). */
-	while (j->terminated != 2)
-		STARPU_PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
 
+	while (j->terminated != 2)
+	{
+		STARPU_PTHREAD_COND_WAIT(&j->sync_cond, &j->sync_mutex);
+	}
+	
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
         _STARPU_LOG_OUT();
 }
@@ -237,8 +240,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		_starpu_sched_post_exec_hook(task);
 #ifdef STARPU_USE_SC_HYPERVISOR
-		_starpu_sched_ctx_call_poped_task_cb(workerid, task, data_size, j->footprint);
+		_starpu_sched_ctx_post_exec_task_cb(workerid, task, data_size, j->footprint);
 #endif //STARPU_USE_SC_HYPERVISOR
+
 	}
 
 	_STARPU_TRACE_TASK_DONE(j);
@@ -281,7 +285,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event)
 		{
-			int64_t AYU_data[2] = {j->exclude_from_dag?-1:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
+			int64_t AYU_data[2] = {j->exclude_from_dag?0:_starpu_ayudame_get_func_id(task->cl), task->priority > STARPU_MIN_PRIO};
 			AYU_event(AYU_ADDTASK, j->job_id, AYU_data);
 		}
 #endif
@@ -294,6 +298,20 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	_starpu_decrement_nready_tasks();
 
 	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
+
+	struct _starpu_worker *worker;
+	worker = _starpu_get_local_worker_key();
+	if (worker)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+
+		if(worker->removed_from_ctx[sched_ctx] == 1 && worker->shares_tasks_lists[sched_ctx] == 1)
+		{
+			_starpu_worker_gets_out_of_ctx(sched_ctx, worker);
+			worker->removed_from_ctx[sched_ctx] = 0;
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+	}
 }
 
 /* This function is called when a new task is submitted to StarPU

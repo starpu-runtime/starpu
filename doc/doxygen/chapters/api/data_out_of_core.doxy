@@ -7,25 +7,43 @@
 
 /*! \defgroup API_Out_Of_Core Out Of Core
 
-
-
 \struct starpu_disk_ops
 \ingroup API_Out_Of_Core
 This is a set of functions to manipulate datas on disk.
+\var starpu_disk_ops::alloc
+Create a new location for datas
+\var starpu_disk_ops::free
+Free an allocated data
+\var starpu_disk_ops::open
+Open an existing location of datas
+\var starpu_disk_ops::close
+Close without delete a location of datas
+\var starpu_disk_ops::read
+Read a data
+\var starpu_disk_ops::write
+Write a data
+\var starpu_disk_ops::plug
+Connect a disk memory
+\var starpu_disk_ops::unplug
+Disconnect a disk memory
+\var starpu_disk_ops::copy
+Copy disk to disk
+\var starpu_disk_ops::bandwidth
+Measue the bandwidth and the latency for the disk
 
-\fn int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, size_t size) 
+\fn int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, size_t size)
 \ingroup API_Out_Of_Core
 Register a disk memory node with a set of functions to manipulate datas. <br />
 SUCCESS: return the disk node. <br />
 FAIL: return an error code. <br />
 The \p size must be at least 1 MB !
 
-\fn void * starpu_disk_open (unsigned node, void *pos, size_t size)
+\fn void *starpu_disk_open(unsigned node, void *pos, size_t size)
 \ingroup API_Out_Of_Core
 Add an existing file memory in a disk node. The \p pos is defined in the starpu_disk_ops. \p size: this is a size of your file.
 \p pos is the name of the file.
 
-\fn void starpu_disk_close (unsigned node, void *obj, size_t size)
+\fn void starpu_disk_close(unsigned node, void *obj, size_t size)
 \ingroup API_Out_Of_Core
 Close an existing file memory opened with starpu_disk_open.
 
@@ -33,6 +51,7 @@ Close an existing file memory opened with starpu_disk_open.
 \ingroup API_Out_Of_Core
 This set uses the stdio library (fwrite, fread...) to read/write on disk. <br />
 <strong>Warning: It creates one file per allocation !</strong>  <br />
+It doesn't support asynchronous transfers.
 
 \var starpu_disk_unistd_ops
 \ingroup API_Out_Of_Core
@@ -43,6 +62,12 @@ This set uses the unistd library (write, read...) to read/write on disk. <br />
 \ingroup API_Out_Of_Core
 This set uses the unistd library (write, read...) to read/write on disk with the O_DIRECT flag. <br />
 <strong>Warning: It creates one file per allocation !</strong>  <br />
-Only available on Linux.
+Only available on Linux systems.
+
+\var starpu_disk_leveldb_ops
+\ingroup API_Out_Of_Core
+This set uses the leveldb created by Google <br />
+Show here: https://code.google.com/p/leveldb/ <br />
+It doesn't support asynchronous transfers.
 
 */

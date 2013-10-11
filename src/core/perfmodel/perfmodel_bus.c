@@ -717,6 +717,7 @@ static void benchmark_all_gpu_devices(void)
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_set_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
+	hwloc_bitmap_free(former_cpuset);
 #elif __linux__
 	/* Restore the former affinity */
 	ret = sched_setaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
@@ -1000,7 +1001,7 @@ static int load_bus_latency_file_content(void)
 		_starpu_drop_comments(f);
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
-			n = fscanf(f, "%lf", &latency);
+			n = _starpu_read_double(f, "%lf", &latency);
 			if (n != 1)
 			{
 				_STARPU_DISP("Error while reading latency file <%s>. Expected a number\n", path);
@@ -1039,7 +1040,7 @@ static int load_bus_latency_file_content(void)
 				break;
 			ungetc(n, f);
 
-			n = fscanf(f, "%lf", &latency);
+			n = _starpu_read_double(f, "%lf", &latency);
 			if (n && !isnan(latency))
 			{
 				_STARPU_DISP("Too many nodes in latency file %s for this configuration (%d)\n", path, STARPU_MAXNODES);
@@ -1146,7 +1147,7 @@ static void write_bus_latency_file_content(void)
 
 			if (dst)
 				fputc('\t', f);
-			fprintf(f, "%f", latency);
+			fprintf(f, "%lf", latency);
 		}
 
 		fprintf(f, "\n");
@@ -1217,7 +1218,7 @@ static int load_bus_bandwidth_file_content(void)
 		_starpu_drop_comments(f);
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 		{
-			n = fscanf(f, "%lf", &bandwidth);
+			n = _starpu_read_double(f, "%lf", &bandwidth);
 			if (n != 1)
 			{
 				_STARPU_DISP("Error while reading bandwidth file <%s>. Expected a number\n", path);
@@ -1256,7 +1257,7 @@ static int load_bus_bandwidth_file_content(void)
 				break;
 			ungetc(n, f);
 
-			n = fscanf(f, "%lf", &bandwidth);
+			n = _starpu_read_double(f, "%lf", &bandwidth);
 			if (n && !isnan(bandwidth))
 			{
 				_STARPU_DISP("Too many nodes in bandwidth file %s for this configuration (%d)\n", path, STARPU_MAXNODES);
@@ -1378,26 +1379,6 @@ static void write_bus_bandwidth_file_content(void)
 	fclose(f);
 }
 #endif /* STARPU_SIMGRID */
-
-double starpu_get_bandwidth_RAM_CUDA(unsigned cudadev)
-{
-	return bandwidth_matrix[STARPU_MAIN_RAM][cudadev+1];
-}
-
-double starpu_get_latency_RAM_CUDA(unsigned cudadev)
-{
-	return latency_matrix[STARPU_MAIN_RAM][cudadev+1];
-}
-
-double starpu_get_bandwidth_CUDA_RAM(unsigned cudadev)
-{
-	return bandwidth_matrix[1][STARPU_MAIN_RAM];
-}
-
-double starpu_get_latency_CUDA_RAM(unsigned cudadev)
-{
-	return latency_matrix[1][STARPU_MAIN_RAM];
-}
 
 void starpu_bus_print_bandwidth(FILE *f)
 {
@@ -1877,19 +1858,19 @@ void _starpu_load_bus_performance_files(void)
 }
 
 /* (in MB/s) */
-double _starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node)
+double starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node)
 {
 	return bandwidth_matrix[src_node][dst_node];
 }
 
 /* (in µs) */
-double _starpu_transfer_latency(unsigned src_node, unsigned dst_node)
+double starpu_transfer_latency(unsigned src_node, unsigned dst_node)
 {
 	return latency_matrix[src_node][dst_node];
 }
 
 /* (in µs) */
-double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_t size)
+double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size)
 {
 	double bandwidth = bandwidth_matrix[src_node][dst_node];
 	double latency = latency_matrix[src_node][dst_node];

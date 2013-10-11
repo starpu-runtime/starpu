@@ -53,8 +53,6 @@ struct _starpu_dmda_data
 	long int ready_task_cnt;
 };
 
-static double idle_power = 0.0;
-
 /* The dmda scheduling policy uses
  *
  * alpha * T_computation + beta * T_communication + gamma * Consumption
@@ -70,6 +68,7 @@ static double idle_power = 0.0;
 static double alpha = _STARPU_SCHED_ALPHA_DEFAULT;
 static double beta = _STARPU_SCHED_BETA_DEFAULT;
 static double _gamma = _STARPU_SCHED_GAMMA_DEFAULT;
+static double idle_power = 0.0;
 static const float alpha_minimum=0;
 static const float alpha_maximum=10.0;
 static const float beta_minimum=0;
@@ -349,7 +348,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
 	{
-		int id = best_workerid;
+		intptr_t id = best_workerid;
 		AYU_event(AYU_ADDTASKTOQUEUE, _starpu_get_job_associated_to_task(task)->job_id, &id);
 	}
 #endif
@@ -358,7 +357,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 		ret =_starpu_fifo_push_sorted_task(dt->queue_array[best_workerid], task);
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+#endif
 		starpu_push_task_end(task);
 		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
@@ -368,8 +369,9 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 		starpu_task_list_push_back (&dt->queue_array[best_workerid]->taskq, task);
 		dt->queue_array[best_workerid]->ntasks++;
 		dt->queue_array[best_workerid]->nprocessed++;
-		
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
+#endif
 		starpu_push_task_end(task);
 		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
@@ -408,7 +410,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 		worker = workers->get_next(workers, &it);
 		struct _starpu_fifo_taskq *fifo  = dt->queue_array[worker];
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
-		enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker);
 
 		/* Sometimes workers didn't take the tasks as early as we expected */
 		double exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
@@ -544,7 +546,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	{
 		worker = workers->get_next(workers, &it);
 		struct _starpu_fifo_taskq *fifo = dt->queue_array[worker];
-		enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(worker);
+		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker);
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 
 		/* Sometimes workers didn't take the tasks as early as we expected */
@@ -761,7 +763,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	}
 	else if (task->bundle)
 	{
-		enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(best_in_ctx);
+		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(best_in_ctx);
 		unsigned memory_node = starpu_worker_get_memory_node(best);
 		model_best = starpu_task_expected_length(task, perf_arch, selected_impl);
 		transfer_model_best = starpu_task_expected_data_transfer_time(memory_node, task);
@@ -866,6 +868,7 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 		dt->idle_power = atof(strval_idle_power);
 
 #ifdef STARPU_USE_TOP
+	/* FIXME: broken, needs to access context variable */
 	starpu_top_register_parameter_float("DMDA_ALPHA", &alpha,
 					    alpha_minimum, alpha_maximum, param_modified);
 	starpu_top_register_parameter_float("DMDA_BETA", &beta,
@@ -882,8 +885,10 @@ static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)
 	initialize_dmda_policy(sched_ctx_id);
 
 	/* The application may use any integer */
-	starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
-	starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
+	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
+	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
 }
 
 static void deinitialize_dmda_policy(unsigned sched_ctx_id)
@@ -931,7 +936,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsign
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	/* Compute the expected penality */
-	enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(workerid);
+	struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(workerid);
 	unsigned memory_node = starpu_worker_get_memory_node(workerid);
 
 	double predicted = starpu_task_expected_length(task, perf_arch,

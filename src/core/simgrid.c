@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 }
 
 /* Task execution submitted by StarPU */
-void _starpu_simgrid_execute_job(struct _starpu_job *j, enum starpu_perfmodel_archtype perf_arch, double length)
+void _starpu_simgrid_execute_job(struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length)
 {
 	struct starpu_task *task = j->task;
 	msg_task_t simgrid_task;
@@ -323,6 +323,8 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	if (req)
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 
+	/* Sleep 10µs for the GPU transfer queueing */
+	MSG_process_sleep(0.000010);
 	transfer_submit(transfer);
 	/* Note: from here, transfer might be already freed */
 

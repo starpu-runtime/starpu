@@ -370,9 +370,9 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 					    suffixes);
 
 	if (0 != mic_file_found) {
-		fprintf(stderr, "No MIC program specified, use the environment"
-			"variable STARPU_MIC_SINK_PROGRAM_NAME or the environment"
-			"or the field 'starpu_conf.mic_sink_program_path'"
+		fprintf(stderr, "No MIC program specified, use the environment\n"
+			"variable STARPU_MIC_SINK_PROGRAM_NAME or the environment\n"
+			"or the field 'starpu_conf.mic_sink_program_path'\n"
 			"to define it.\n");
 
 		return -1;
@@ -633,15 +633,16 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	for (miccore_id = 0; miccore_id < topology->nmiccores[mic_idx]; miccore_id++)
 	{
 		int worker_idx = topology->nworkers + miccore_id;
-		enum starpu_perfmodel_archtype arch =
-			(enum starpu_perfmodel_archtype)((int)STARPU_MIC_DEFAULT + mic_idx);
+		struct starpu_perfmodel_arch arch;
+		arch.type = STARPU_MIC_WORKER;
+		arch.devid = mic_idx;
+		arch.ncore = 0; 
 		config->workers[worker_idx].arch = STARPU_MIC_WORKER;
 		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].mp_nodeid = mic_idx;
 		config->workers[worker_idx].devid = miccore_id;
 		config->workers[worker_idx].worker_mask = STARPU_MIC;
 		config->worker_mask |= STARPU_MIC;
-		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 	}
 
 	topology->nworkers += topology->nmiccores[mic_idx];
@@ -683,8 +684,8 @@ _starpu_init_mp_config (struct _starpu_machine_config *config,
 		if (0 == _starpu_init_mic_node (config, i, &handles[i], &process[i]))
 			topology->nmicdevices++;
 
-	i = 0;
-	for (; i < topology->nmicdevices; i++)
+	
+	for (i = 0; i < topology->nmicdevices; i++)
 		_starpu_init_mic_config (config, user_conf, i);
 #endif
 }
@@ -773,13 +774,12 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		int worker_idx = topology->nworkers + cudagpu;
 		config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
 		int devid = _starpu_get_next_cuda_gpuid(config);
-		enum starpu_perfmodel_archtype arch =
-			(enum starpu_perfmodel_archtype)((int)STARPU_CUDA_DEFAULT + devid);
+		config->workers[worker_idx].perf_arch.type = STARPU_CUDA_WORKER;
+		config->workers[worker_idx].perf_arch.devid = cudagpu;
+		config->workers[worker_idx].perf_arch.ncore = 0;
 		config->workers[worker_idx].mp_nodeid = -1;
 		config->workers[worker_idx].devid = devid;
-		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_CUDA;
-		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 		config->worker_mask |= STARPU_CUDA;
 
 		struct handle_entry *entry;
@@ -848,13 +848,12 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 			break;
 		}
 		config->workers[worker_idx].arch = STARPU_OPENCL_WORKER;
-		enum starpu_perfmodel_archtype arch =
-			(enum starpu_perfmodel_archtype)((int)STARPU_OPENCL_DEFAULT + devid);
+		config->workers[worker_idx].perf_arch.type = STARPU_OPENCL_WORKER;
+		config->workers[worker_idx].perf_arch.devid = openclgpu;
+		config->workers[worker_idx].perf_arch.ncore = 0;
 		config->workers[worker_idx].mp_nodeid = -1;
 		config->workers[worker_idx].devid = devid;
-		config->workers[worker_idx].perf_arch = arch;
 		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
-		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 		config->worker_mask |= STARPU_OPENCL;
 	}
 
@@ -911,10 +910,11 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	{
 		config->workers[topology->nworkers + sccdev].arch = STARPU_SCC_WORKER;
 		int devid = _starpu_get_next_scc_deviceid(config);
-		enum starpu_perfmodel_archtype arch = (enum starpu_perfmodel_archtype)((int)STARPU_SCC_DEFAULT + devid);
+		config->workers[topology->nworkers + sccdev].perf_arch.type = STARPU_SCC_WORKER;
+		config->workers[topology->nworkers + sccdev].perf_arch.devid = sccdev;
+		config->workers[topology->nworkers + sccdev].perf_arch.ncore = 0;
 		config->workers[topology->nworkers + sccdev].mp_nodeid = -1;
 		config->workers[topology->nworkers + sccdev].devid = devid;
-		config->workers[topology->nworkers + sccdev].perf_arch = arch;
 		config->workers[topology->nworkers + sccdev].worker_mask = STARPU_SCC;
 		config->worker_mask |= STARPU_SCC;
 	}
@@ -974,12 +974,13 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	{
 		int worker_idx = topology->nworkers + cpu;
 		config->workers[worker_idx].arch = STARPU_CPU_WORKER;
-		config->workers[worker_idx].perf_arch = STARPU_CPU_DEFAULT;
+		config->workers[worker_idx].perf_arch.type = STARPU_CPU_WORKER;
+		config->workers[worker_idx].perf_arch.devid = 0;
+		config->workers[worker_idx].perf_arch.ncore = 0;
 		config->workers[worker_idx].mp_nodeid = -1;
 		config->workers[worker_idx].devid = cpu;
 		config->workers[worker_idx].worker_mask = STARPU_CPU;
 		config->worker_mask |= STARPU_CPU;
-		_starpu_init_sched_ctx_for_worker(config->workers[worker_idx].workerid);
 	}
 
 	topology->nworkers += topology->ncpus;
@@ -1098,7 +1099,11 @@ _starpu_bind_thread_on_cpus (
 		}
 	}
 #else
-#warning no parallel worker CPU binding support
+#ifdef __GLIBC__
+	sched_setaffinity(0,sizeof(combined_worker->cpu_set),&combined_worker->cpu_set);
+#else
+#  warning no parallel worker CPU binding support
+#endif
 #endif
 }
 
@@ -1264,6 +1269,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 		if (is_a_set_of_accelerators)
 		{
+/* TODO: il faudrait changer quand on change de device */
 			if (accelerator_bindid == -1)
 				accelerator_bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 
@@ -1307,6 +1313,7 @@ int
 _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 {
 	int ret;
+	int i;
 
 	ret = _starpu_init_machine_config(config, no_mp_config);
 	if (ret)
@@ -1316,6 +1323,50 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 	_starpu_memory_nodes_init();
 
 	_starpu_init_workers_binding(config, no_mp_config);
+
+	config->cpus_nodeid = -1;
+	config->cuda_nodeid = -1;
+	config->opencl_nodeid = -1;
+	config->mic_nodeid = -1;
+	config->scc_nodeid = -1;
+	for (i = 0; i < starpu_worker_get_count(); i++)
+	{
+		switch (starpu_worker_get_type(i))
+		{
+			case STARPU_CPU_WORKER:
+				if (config->cpus_nodeid == -1)
+					config->cpus_nodeid = starpu_worker_get_memory_node(i);
+				else if (config->cpus_nodeid != starpu_worker_get_memory_node(i))
+					config->cpus_nodeid = -2;
+				break;
+			case STARPU_CUDA_WORKER:
+				if (config->cuda_nodeid == -1)
+					config->cuda_nodeid = starpu_worker_get_memory_node(i);
+				else if (config->cuda_nodeid != starpu_worker_get_memory_node(i))
+					config->cuda_nodeid = -2;
+				break;
+			case STARPU_OPENCL_WORKER:
+				if (config->opencl_nodeid == -1)
+					config->opencl_nodeid = starpu_worker_get_memory_node(i);
+				else if (config->opencl_nodeid != starpu_worker_get_memory_node(i))
+					config->opencl_nodeid = -2;
+				break;
+			case STARPU_MIC_WORKER:
+				if (config->mic_nodeid == -1)
+					config->mic_nodeid = starpu_worker_get_memory_node(i);
+				else if (config->mic_nodeid != starpu_worker_get_memory_node(i))
+					config->mic_nodeid = -2;
+				break;
+			case STARPU_SCC_WORKER:
+				if (config->scc_nodeid == -1)
+					config->scc_nodeid = starpu_worker_get_memory_node(i);
+				else if (config->scc_nodeid != starpu_worker_get_memory_node(i))
+					config->scc_nodeid = -2;
+				break;
+			case STARPU_ANY_WORKER:
+				STARPU_ASSERT(0);
+		}
+	}
 
 	return 0;
 }

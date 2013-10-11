@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -67,9 +67,14 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	{
 		int id = workerid_array[i];
 
+#ifdef STARPU_USE_MIC
+		STARPU_ASSERT(config->workers[id].arch == STARPU_CPU_WORKER || config->workers[id].arch == STARPU_MIC_WORKER);
+		STARPU_ASSERT(config->workers[id].worker_mask == STARPU_CPU || config->workers[id].worker_mask == STARPU_MIC);
+#else/* STARPU_USE_MIC */
 		/* We only combine CPUs */
-		STARPU_ASSERT(config->workers[id].perf_arch == STARPU_CPU_DEFAULT);
+		STARPU_ASSERT(config->workers[id].arch == STARPU_CPU_WORKER);
 		STARPU_ASSERT(config->workers[id].worker_mask == STARPU_CPU);
+#endif /* STARPU_USE_MIC */
 
 		/* We only combine valid "basic" workers */
 		if ((id < 0) || (id >= basic_worker_count))
@@ -97,8 +102,16 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 		&config->combined_workers[combined_worker_id];
 
 	combined_worker->worker_size = nworkers;
-	combined_worker->perf_arch = (enum starpu_perfmodel_archtype) (STARPU_CPU_DEFAULT + nworkers - 1);
-	combined_worker->worker_mask = STARPU_CPU;
+
+	combined_worker->perf_arch.type = config->workers[workerid_array[0]].perf_arch.type;
+	combined_worker->perf_arch.devid = config->workers[workerid_array[0]].perf_arch.devid; 
+	combined_worker->perf_arch.ncore = nworkers - 1;
+	combined_worker->worker_mask = config->workers[workerid_array[0]].worker_mask;
+	
+#ifdef STARPU_USE_MP
+	combined_worker->count = nworkers -1;
+	pthread_mutex_init(&combined_worker->count_mutex,NULL);
+#endif
 
 	/* We assume that the memory node should either be that of the first
 	 * entry, and it is very likely that every worker in the combination

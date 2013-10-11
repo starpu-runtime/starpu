@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -24,6 +24,22 @@
 #include <core/task_bundle.h>
 #include <stdio.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/**
+ * Performance models files are stored in a directory whose name
+ * include the version of the performance model format. The version
+ * number is also written in the file itself.
+ * When updating the format, the variable _STARPU_PERFMODEL_VERSION
+ * should be updated. It is then possible to switch easily between
+ * differents versions of StarPU having different performance model
+ * formats.
+ */
+#define _STARPU_PERFMODEL_VERSION 43
+
 struct _starpu_perfmodel_list
 {
 	struct _starpu_perfmodel_list *next;
@@ -32,14 +48,14 @@ struct _starpu_perfmodel_list
 
 struct starpu_data_descr;
 struct _starpu_job;
-enum starpu_perfmodel_archtype;
+struct starpu_perfmodel_arch;
 
 void _starpu_get_perf_model_dir(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_bus(char *path, size_t maxlen);
 void _starpu_get_perf_model_dir_debug(char *path, size_t maxlen);
 
-double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, struct _starpu_job *j, unsigned nimpl);
+double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
 int _starpu_register_model(struct starpu_perfmodel *model);
 void _starpu_load_per_arch_based_model(struct starpu_perfmodel *model);
 void _starpu_load_common_based_model(struct starpu_perfmodel *model);
@@ -49,19 +65,15 @@ void _starpu_initialize_registered_performance_models(void);
 void _starpu_deinitialize_registered_performance_models(void);
 
 double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model,
-					enum starpu_perfmodel_archtype arch, struct _starpu_job *j, unsigned nimpl);
+					struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
 double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model,
-					enum starpu_perfmodel_archtype arch, struct _starpu_job *j, unsigned nimpl);
-void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch,
+					struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
+void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch,
 				unsigned cpuid, double measured, unsigned nimpl);
 
 void _starpu_create_sampling_directory_if_needed(void);
 
 void _starpu_load_bus_performance_files(void);
-double _starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node);
-double _starpu_transfer_latency(unsigned src_node, unsigned dst_node);
-double _starpu_predict_transfer_time(unsigned src_node, unsigned dst_node, size_t size);
-
 
 void _starpu_set_calibrate_flag(unsigned val);
 unsigned _starpu_get_calibrate_flag(void);
@@ -76,4 +88,11 @@ int *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 
 void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, 
 					    double latency_write, double latency_read, unsigned node);
+
+int _starpu_read_double(FILE *f, char *format, double *val);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // __PERFMODEL_H__

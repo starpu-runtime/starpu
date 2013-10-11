@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -65,12 +65,14 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 
 	job = _starpu_get_job_associated_to_task(task);
 
+	STARPU_PTHREAD_MUTEX_LOCK(&job->sync_mutex);
 	if (check)
 		STARPU_ASSERT_MSG(!job->submitted || !task->destroy || task->detach, "Task dependencies have to be set before submission (submitted %u destroy %d detach %d)", job->submitted, task->destroy, task->detach);
 	else
 		STARPU_ASSERT_MSG(job->terminated <= 1, "Task dependencies have to be set before termination (terminated %u)", job->terminated);
 
 	struct _starpu_cg *cg = create_cg_task(ndeps, job);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&job->sync_mutex);
 
 	unsigned i;
 	for (i = 0; i < ndeps; i++)
@@ -81,6 +83,7 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 		dep_job = _starpu_get_job_associated_to_task(dep_task);
 
 		STARPU_ASSERT_MSG(dep_job != job, "A task must not depend on itself.");
+		STARPU_PTHREAD_MUTEX_LOCK(&dep_job->sync_mutex);
 		if (check)
 		{
 			STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->destroy || dep_job->task->detach, "Unless it is not to be destroyed automatically, a task dependencies have to be set before submission");
@@ -88,6 +91,7 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 			STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->regenerate, "For regenerated tasks, dependencies have to be set before first submission");
 		} else
 			STARPU_ASSERT_MSG(dep_job->terminated <= 1, "Task dependencies have to be set before termination (terminated %u)", dep_job->terminated);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&dep_job->sync_mutex);
 
 		_STARPU_TRACE_TASK_DEPS(dep_job, job);
 		_starpu_bound_task_dep(job, dep_job);

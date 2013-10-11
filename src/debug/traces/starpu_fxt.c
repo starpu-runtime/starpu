@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/uthash.h>
+#include <string.h>
 
 #ifdef STARPU_HAVE_POTI
 #include <poti.h>
@@ -304,7 +305,7 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		memmanager_container_alias (new_memnode_container_alias, STARPU_POTI_STR_LEN, prefix, ev->param[0]);
 		/* TODO: ramkind */
 		snprintf(new_memnode_container_name, STARPU_POTI_STR_LEN, "%sMEMMANAGER%"PRIu64"", prefix, ev->param[0]);
-		poti_CreateContainer(get_event_time_stamp(ev, options), new_memnode_container_alias, "Mm", program_container, new_memnode_container_name);
+		poti_CreateContainer(get_event_time_stamp(ev, options), new_memnode_container_alias, "Mm", new_memnode_container_alias, new_memnode_container_name);
 #else
 		fprintf(out_paje_file, "7	%.9f	%smn%"PRIu64"	Mn	%sp	%sMEMNODE%"PRIu64"\n", get_event_time_stamp(ev, options), prefix, ev->param[0], prefix, options->file_prefix, ev->param[0]);
 		fprintf(out_paje_file, "7	%.9f	%smm%"PRIu64"	Mm	%sp	%sMEMMANAGER%"PRIu64"\n", get_event_time_stamp(ev, options), prefix, ev->param[0], prefix, options->file_prefix, ev->param[0]);
@@ -336,7 +337,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	register_worker_id(threadid, workerid);
 
 	char *kindstr = "";
-	enum starpu_perfmodel_archtype archtype = 0;
+	struct starpu_perfmodel_arch arch;
 
 	switch (ev->param[0])
 	{
@@ -347,27 +348,37 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		case _STARPU_FUT_CPU_KEY:
 			set_next_cpu_worker_color(workerid);
 			kindstr = "CPU";
-			archtype = STARPU_CPU_DEFAULT;
+			arch.type = STARPU_CPU_WORKER;
+			arch.devid = 0;
+			arch.ncore = 0;
 			break;
 		case _STARPU_FUT_CUDA_KEY:
 			set_next_cuda_worker_color(workerid);
 			kindstr = "CUDA";
-			archtype = STARPU_CUDA_DEFAULT + devid;
+			arch.type = STARPU_CUDA_WORKER;
+			arch.devid = devid;
+			arch.ncore = 0;
 			break;
 		case _STARPU_FUT_OPENCL_KEY:
 			set_next_opencl_worker_color(workerid);
 			kindstr = "OPENCL";
-			archtype = STARPU_OPENCL_DEFAULT + devid;
+			arch.type = STARPU_OPENCL_WORKER;
+			arch.devid = devid;
+			arch.ncore = 0;
 			break;
 		case _STARPU_FUT_MIC_KEY:
 			set_next_mic_worker_color(workerid);
 			kindstr = "mic";
-			archtype = STARPU_MIC_DEFAULT + devid;
+			arch.type = STARPU_MIC_WORKER;
+			arch.devid = devid;
+			arch.ncore = 0;
 			break;
 		case _STARPU_FUT_SCC_KEY:
 			set_next_scc_worker_color(workerid);
 			kindstr = "scc";
-			archtype = STARPU_SCC_DEFAULT + devid;
+			arch.type = STARPU_SCC_WORKER;
+			arch.devid = devid;
+			arch.ncore = 0;
 			break;
 		default:
 			STARPU_ABORT();
@@ -404,7 +415,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
 
 	snprintf(options->worker_names[workerid], 256, "%s %d", kindstr, devid);
-	options->worker_archtypes[workerid] = archtype;
+	options->worker_archtypes[workerid] = arch;
 }
 
 static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -599,14 +610,14 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	if (options->dumped_codelets)
 	{
-		enum starpu_perfmodel_archtype archtype = ev->param[3];
+		struct starpu_perfmodel_arch* arch = ev->param[3];
 
 		dumped_codelets_count++;
 		dumped_codelets = realloc(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
 
 		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, 256, "%s", last_codelet_symbol[worker]);
 		dumped_codelets[dumped_codelets_count - 1].workerid = worker;
-		dumped_codelets[dumped_codelets_count - 1].archtype = archtype;
+		dumped_codelets[dumped_codelets_count - 1].arch = *arch;
 
 		dumped_codelets[dumped_codelets_count - 1].size = codelet_size;
 		dumped_codelets[dumped_codelets_count - 1].hash = codelet_hash;
@@ -1888,5 +1899,154 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_dag_terminate();
 
 	options->nworkers = nworkers;
+}
+
+#define DATA_STR_MAX_SIZE 15
+
+struct parse_task
+{
+	unsigned exec_time;
+	unsigned data_total;
+	char *codelet_name;
+};
+
+static struct parse_task tasks[STARPU_NMAXWORKERS];
+
+struct starpu_data_trace_kernel
+{
+	UT_hash_handle hh;
+	char *name;
+	FILE *file;
+} *kernels;
+
+#define NANO_SEC_TO_MILI_SEC 0.000001
+
+static FILE *codelet_list;
+
+static void write_task(struct parse_task pt)
+{
+	struct starpu_data_trace_kernel *kernel;
+	char *codelet_name = pt.codelet_name;
+	HASH_FIND_STR(kernels, codelet_name, kernel);
+	//fprintf(stderr, "%p %p %s\n", kernel, kernels, codelet_name);
+	if(kernel == NULL)
+	{
+		kernel = malloc(sizeof(*kernel));
+		kernel->name = strdup(codelet_name);
+		//fprintf(stderr, "%s\n", kernel->name);
+		kernel->file = fopen(codelet_name, "w+");
+		if(!kernel->file)
+		{
+			perror("open failed :");
+			exit(-1);
+		}
+		HASH_ADD_STR(kernels, name, kernel); 
+		fprintf(codelet_list, "%s\n", codelet_name);
+	}
+	double time = pt.exec_time * NANO_SEC_TO_MILI_SEC;
+	fprintf(kernel->file, "%lf %d\n", time, pt.data_total);
+}
+
+void starpu_fxt_write_data_trace(char *filename_in)
+{
+	int fd_in;
+	fd_in = open(filename_in, O_RDONLY);
+	if (fd_in < 0)
+	{
+	        perror("open failed :");
+	        exit(-1);
+	}
+
+	static fxt_t fut;
+	fut = fxt_fdopen(fd_in);
+	if (!fut)
+	{
+	        perror("fxt_fdopen :");
+	        exit(-1);
+	}
+
+	codelet_list = fopen("codelet_list", "w+");
+	if(!codelet_list)
+	{
+		perror("open failed :");
+		exit(-1);
+	}
+
+	fxt_blockev_t block;
+	block = fxt_blockev_enter(fut);
+
+	struct fxt_ev_64 ev;
+
+	unsigned workerid;
+	unsigned long has_name = 0;
+
+	while(1)
+	{
+		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
+		if (ret != FXT_EV_OK)
+		{
+			break;
+		}
+		
+		switch (ev.code)
+		{
+		case _STARPU_FUT_WORKER_INIT_START:
+			register_worker_id(ev.param[4], ev.param[1]);
+			break;
+			
+		case _STARPU_FUT_START_CODELET_BODY:
+			workerid = find_worker_id(ev.param[2]);
+			tasks[workerid].exec_time = ev.time;
+			has_name = ev.param[3];
+			tasks[workerid].codelet_name = strdup(has_name ? (char *) &ev.param[4] : "unknow");
+			//fprintf(stderr, "start codelet :[%d][%s]\n", workerid, tasks[workerid].codelet_name);
+			break;
+			
+		case _STARPU_FUT_END_CODELET_BODY:
+			workerid = find_worker_id(ev.param[4]);
+			tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
+			write_task(tasks[workerid]);
+			break;
+
+		case _STARPU_FUT_DATA_LOAD:
+			workerid = ev.param[0];
+			tasks[workerid].data_total = ev.param[1];
+			break;
+			
+		default:
+#ifdef STARPU_VERBOSE
+			fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
+				(unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time));
+#endif
+			break;
+		}
+	}
+	
+	if (close(fd_in))
+	{
+	        perror("close failed :");
+	        exit(-1);
+	}
+	
+	if(fclose(codelet_list))
+	{
+		perror("close failed :");
+		exit(-1);
+	}
+	
+	struct starpu_data_trace_kernel *kernel, *tmp;	
+
+	HASH_ITER(hh, kernels, kernel, tmp)
+	{
+		if(fclose(kernel->file))
+		{ 
+			perror("close failed :");
+			exit(-1);
+		}
+		HASH_DEL(kernels, kernel);
+		free(kernel->name);
+		free(kernel);
+	}
+		
 }
 #endif // STARPU_USE_FXT

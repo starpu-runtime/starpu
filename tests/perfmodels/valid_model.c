@@ -60,11 +60,12 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	int ret;
 	int old_nsamples, new_nsamples;
 	struct starpu_conf conf;
-	unsigned archid;
+	unsigned archid, archtype, devid, ncore;
 
 	starpu_conf_init(&conf);
 	conf.sched_policy_name = "eager";
 	conf.calibrate = 1;
+
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -73,15 +74,20 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	codelet->model = model;
 
 	old_nsamples = 0;
+	lmodel.is_init=0;
+	lmodel.type = model->type;
 	ret = starpu_perfmodel_load_symbol(codelet->model->symbol, &lmodel);
 	if (ret != 1)
-		for (archid = 0; archid < STARPU_NARCH_VARIATIONS; archid++)
-			old_nsamples += lmodel.per_arch[archid][0].regression.nsample;
+		for (archtype = 0; archtype < STARPU_NARCH; archtype++)
+			if(lmodel.per_arch[archtype] != NULL)
+				for(devid=0; lmodel.per_arch[archtype][devid] != NULL; devid++)
+					for(ncore=0; lmodel.per_arch[archtype][devid][ncore] != NULL; ncore++)
+						old_nsamples += lmodel.per_arch[archtype][devid][ncore][0].regression.nsample;
 
         starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, 100, sizeof(int));
 	for (loop = 0; loop < nloops; loop++)
 	{
-		ret = starpu_insert_task(codelet, STARPU_W, handle, 0);
+		ret = starpu_task_insert(codelet, STARPU_W, handle, 0);
 		if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -89,18 +95,26 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	starpu_perfmodel_unload_model(&lmodel);
 	starpu_shutdown(); // To force dumping perf models on disk
 
+	// We need to call starpu_init again to initialise values used by perfmodels
+	ret = starpu_init(NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_perfmodel_load_symbol(codelet->model->symbol, &lmodel);
 	if (ret == 1)
 	{
 		FPRINTF(stderr, "The performance model for the symbol <%s> could not be loaded\n", codelet->model->symbol);
+		starpu_shutdown();
 		return 1;
 	}
 
 	new_nsamples = 0;
-	for (archid = 0; archid < STARPU_NARCH_VARIATIONS; archid++)
-		new_nsamples += lmodel.per_arch[archid][0].regression.nsample;
+	for (archtype = 0; archtype < STARPU_NARCH; archtype++)
+		if(lmodel.per_arch[archtype] != NULL)
+			for(devid=0; lmodel.per_arch[archtype][devid] != NULL; devid++)
+				for(ncore=0; lmodel.per_arch[archtype][devid][ncore] != NULL; ncore++)
+					new_nsamples += lmodel.per_arch[archtype][devid][ncore][0].regression.nsample;
 
 	ret = starpu_perfmodel_unload_model(&lmodel);
+	starpu_shutdown();
 	if (ret == 1)
 	{
 		FPRINTF(stderr, "The performance model for the symbol <%s> could not be UNloaded\n", codelet->model->symbol);

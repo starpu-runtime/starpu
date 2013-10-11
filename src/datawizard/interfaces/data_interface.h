@@ -34,6 +34,7 @@ union _starpu_interface
 	struct starpu_bcsr_interface bcsr;
 	struct starpu_variable_interface variable;
 	struct starpu_multiformat_interface multiformat;
+	struct starpu_disk_interface disk;
 };
 
 /* Some data interfaces or filters use this interface internally */

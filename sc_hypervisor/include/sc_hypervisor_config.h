@@ -24,21 +24,21 @@ extern "C"
 {
 #endif
 
-/* ioctl properties*/
-#define HYPERVISOR_MAX_IDLE -1
-#define HYPERVISOR_MIN_WORKING -2
-#define HYPERVISOR_PRIORITY -3
-#define HYPERVISOR_MIN_WORKERS -4
-#define HYPERVISOR_MAX_WORKERS -5
-#define HYPERVISOR_GRANULARITY -6
-#define HYPERVISOR_FIXED_WORKERS -7
-#define HYPERVISOR_MIN_TASKS -8
-#define HYPERVISOR_NEW_WORKERS_MAX_IDLE -9
-#define HYPERVISOR_TIME_TO_APPLY -10
-#define HYPERVISOR_EMPTY_CTX_MAX_IDLE -11
-#define HYPERVISOR_NULL -12
-#define	HYPERVISOR_ISPEED_W_SAMPLE -13
-#define HYPERVISOR_ISPEED_CTX_SAMPLE -14
+/* ctl properties*/
+#define SC_HYPERVISOR_MAX_IDLE -1
+#define SC_HYPERVISOR_MIN_WORKING -2
+#define SC_HYPERVISOR_PRIORITY -3
+#define SC_HYPERVISOR_MIN_WORKERS -4
+#define SC_HYPERVISOR_MAX_WORKERS -5
+#define SC_HYPERVISOR_GRANULARITY -6
+#define SC_HYPERVISOR_FIXED_WORKERS -7
+#define SC_HYPERVISOR_MIN_TASKS -8
+#define SC_HYPERVISOR_NEW_WORKERS_MAX_IDLE -9
+#define SC_HYPERVISOR_TIME_TO_APPLY -10
+#define SC_HYPERVISOR_NULL -11
+#define	SC_HYPERVISOR_ISPEED_W_SAMPLE -12
+#define SC_HYPERVISOR_ISPEED_CTX_SAMPLE -13
+#define SC_HYPERVISOR_TIME_SAMPLE -14
 
 
 #define MAX_IDLE_TIME 5000000000
@@ -72,15 +72,14 @@ struct sc_hypervisor_policy_config
 	/* max idle for the workers that will be added during the resizing process*/
 	double new_workers_max_idle;
 
-	/* above this context we allow removing all workers */
-	double empty_ctx_max_idle[STARPU_NMAXWORKERS];
-
 	/* sample used to compute the instant speed per worker*/
 	double ispeed_w_sample[STARPU_NMAXWORKERS];
 
 	/* sample used to compute the instant speed per ctx*/
 	double ispeed_ctx_sample;
-
+	
+        /* sample used to compute the instant speed per ctx (in seconds)*/
+	double time_sample;
 };
 
 /* set a certain configuration to a context */
@@ -90,7 +89,7 @@ void sc_hypervisor_set_config(unsigned sched_ctx, void *config);
 struct sc_hypervisor_policy_config *sc_hypervisor_get_config(unsigned sched_ctx);
 
 /* impose different parameters to a configuration of a context */
-void sc_hypervisor_ioctl(unsigned sched_ctx, ...);
+void sc_hypervisor_ctl(unsigned sched_ctx, ...);
 
 #ifdef __cplusplus
 }

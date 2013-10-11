@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
  */
 
 /*
- *	Number of flops of Gemm 
+ *	Number of flops of Gemm
  */
 
 #include <starpu.h>
@@ -36,7 +36,7 @@
 #define PERTURBATE(a)	(a)
 #endif
 
-static double cpu_chol_task_11_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -51,7 +51,7 @@ static double cpu_chol_task_11_cost(struct starpu_task *task, enum starpu_perfmo
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_11_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -66,7 +66,7 @@ static double cuda_chol_task_11_cost(struct starpu_task *task, enum starpu_perfm
 	return PERTURBATE(cost);
 }
 
-static double cpu_chol_task_21_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -81,7 +81,7 @@ static double cpu_chol_task_21_cost(struct starpu_task *task, enum starpu_perfmo
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_21_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -96,7 +96,7 @@ static double cuda_chol_task_21_cost(struct starpu_task *task, enum starpu_perfm
 	return PERTURBATE(cost);
 }
 
-static double cpu_chol_task_22_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -111,7 +111,7 @@ static double cpu_chol_task_22_cost(struct starpu_task *task, enum starpu_perfmo
 	return PERTURBATE(cost);
 }
 
-static double cuda_chol_task_22_cost(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	uint32_t n;
 
@@ -126,35 +126,13 @@ static double cuda_chol_task_22_cost(struct starpu_task *task, enum starpu_perfm
 	return PERTURBATE(cost);
 }
 
-struct starpu_perfmodel chol_model_11 =
+void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
+		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned),
+		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned))
 {
-	.per_arch =
-	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_function = cpu_chol_task_11_cost },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_function = cuda_chol_task_11_cost }
-	},
-	.type = STARPU_HISTORY_BASED,
-	.symbol = "chol_model_11"
-};
-
-struct starpu_perfmodel chol_model_21 =
-{
-	.per_arch =
-	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_function = cpu_chol_task_21_cost },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_function = cuda_chol_task_21_cost }
-	},
-	.type = STARPU_HISTORY_BASED,
-	.symbol = "chol_model_21"
-};
-
-struct starpu_perfmodel chol_model_22 =
-{
-	.per_arch =
-	{
-		[STARPU_CPU_DEFAULT][0] = { .cost_function = cpu_chol_task_22_cost },
-		[STARPU_CUDA_DEFAULT][0] = { .cost_function = cuda_chol_task_22_cost }
-	},
-	.type = STARPU_HISTORY_BASED,
-	.symbol = "chol_model_22"
-};
+	model->symbol = symbol;
+	model->type = STARPU_HISTORY_BASED;
+	starpu_perfmodel_init(model);
+	model->per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = cpu_cost_function;
+	model->per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = cuda_cost_function;
+}

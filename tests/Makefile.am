@@ -15,10 +15,10 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
+AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) $(FXT_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/
-AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(FXT_LDFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(FXT_LDFLAGS)
 
 EXTRA_DIST =					\
 	helper.h				\
@@ -45,7 +45,7 @@ EXTRA_DIST =					\
 	perfmodels/opencl_memset_kernel.cl
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo
+	*.gcno *.gcda *.linkinfo core
 
 BUILT_SOURCES =
 SUBDIRS =
@@ -102,6 +102,8 @@ TESTS = $(noinst_PROGRAMS)
 if STARPU_COVERAGE_ENABLED
 TESTS	+=	coverage/coverage.sh
 endif
+
+XFAIL_TESTS=	errorcheck/invalid_blocking_calls
 
 noinst_PROGRAMS =				\
 	main/deprecated_func			\
@@ -223,6 +225,7 @@ noinst_PROGRAMS =				\
 	perfmodels/non_linear_regression_based	\
 	perfmodels/feed				\
 	perfmodels/valid_model			\
+	perfmodels/value_nan			\
 	sched_policies/data_locality            \
 	sched_policies/execute_all_tasks        \
 	sched_policies/prio        		\
@@ -611,7 +614,7 @@ endif
 perfmodels_feed_SOURCES=\
 	perfmodels/feed.c
 
-sched_policies_execute_all_tasks_LDFLAGS = -lm
+sched_policies_execute_all_tasks_LDFLAGS = $(AM_LDFLAGS) -lm
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

@@ -26,7 +26,7 @@ void callback(void *arg)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	*received = *received + 1;
-	fprintf(stderr, "received = %d\n", *received);
+	FPRINTF_MPI("received = %d\n", *received);
 	STARPU_PTHREAD_COND_SIGNAL(&cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 		starpu_data_unregister_submit(handles[0]);
 
 		starpu_variable_data_register(&handles[0], STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(int));
-		starpu_mpi_recv(handles[0], 0, 12+rank, MPI_COMM_WORLD, NULL);
+		starpu_mpi_recv(handles[0], 0, 12+rank, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		starpu_data_unregister(handles[0]);
 	}
 

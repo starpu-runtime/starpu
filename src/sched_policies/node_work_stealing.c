@@ -199,7 +199,7 @@ double _ws_estimated_load(struct starpu_sched_node * node)
 	    -1 != workerid;
 	    workerid = starpu_bitmap_next(node->workers_in_ctx, workerid))
 	{
-		speedup += starpu_worker_get_relative_speedup(workerid);
+		speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(workerid));
 	}
 	
 	return ntasks / speedup;

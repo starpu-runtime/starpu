@@ -1,0 +1,111 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Toolbox Toolbox
+
+\brief The following macros allow to make GCC extensions portable, and
+to have a code which can be compiled with any C compiler.
+
+\def STARPU_GNUC_PREREQ
+\ingroup API_Toolbox
+Return true (non-zero) if GCC version MAJ.MIN or later is being used (macro taken from glibc.)
+
+\def STARPU_UNLIKELY
+\ingroup API_Toolbox
+When building with a GNU C Compiler, this macro allows programmers to mark an expression as unlikely.
+
+\def STARPU_LIKELY
+\ingroup API_Toolbox
+When building with a GNU C Compiler, this macro allows programmers to mark an expression as likely.
+
+\def STARPU_ATTRIBUTE_UNUSED
+\ingroup API_Toolbox
+When building with a GNU C Compiler, this macro is defined to __attribute__((unused))
+
+\def STARPU_ATTRIBUTE_INTERNAL
+\ingroup API_Toolbox
+When building with a GNU C Compiler, this macro is defined to __attribute__((visibility ("internal")))
+
+\def STARPU_ATTRIBUTE_MALLOC
+\ingroup API_Toolbox
+When building with a GNU C Compiler, this macro is defined to __attribute__((malloc))
+
+\def STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
+\ingroup API_Toolbox
+When building with a GNU C Compiler, this macro is defined to __attribute__((warn_unused_result))
+
+\def STARPU_ATTRIBUTE_PURE
+\ingroup API_Toolbox
+When building with a GNU C Compiler, this macro is defined to __attribute__((pure))
+
+\def STARPU_ATTRIBUTE_ALIGNED
+\ingroup API_Toolbox
+When building with a GNU C Compiler, this macro is defined to__attribute__((aligned(size)))
+
+\def STARPU_WARN_UNUSED_RESULT
+\ingroup API_Toolbox
+When building with a GNU C Compiler, this macro is defined to__attribute__((__warn_unused_result__))
+
+\def STARPU_POISON_PTR
+\ingroup API_Toolbox
+This macro defines a value which can be used to mark pointers as
+invalid values.
+
+\def STARPU_MIN
+\ingroup API_Toolbox
+This macro returns the min of the two parameters.
+
+\def STARPU_MAX
+\ingroup API_Toolbox
+This macro returns the max of the two parameters.
+
+\def STARPU_ASSERT
+\ingroup API_Toolbox
+Unless StarPU has been configured with the option \ref enable-fast
+"--enable-fast", this macro will abort if the expression is false.
+
+\def STARPU_ASSERT_MSG
+\ingroup API_Toolbox
+Unless StarPU has been configured with the option \ref enable-fast
+"--enable-fast", this macro will abort if the expression is false. The
+given message will be displayed.
+
+\def STARPU_ABORT
+\ingroup API_Toolbox
+This macro aborts the program.
+
+\def STARPU_ABORT_MSG
+\ingroup API_Toolbox
+This macro aborts the program, and displays the given message.
+
+\def STARPU_CHECK_RETURN_VALUE
+\ingroup API_Toolbox
+If \p err has a value which is not 0, the given message is displayed
+before aborting.
+
+\def STARPU_CHECK_RETURN_VALUE_IS
+\ingroup API_Toolbox
+If \p err has a value which is not \p value, the given message is displayed
+before aborting.
+
+\def STARPU_RMB
+\ingroup API_Toolbox
+This macro can be used to do a synchronization.
+
+\def STARPU_WMB
+\ingroup API_Toolbox
+This macro can be used to do a synchronization.
+
+\fn int starpu_get_env_number(const char *str)
+\ingroup API_Toolbox
+If \p str is the name of a existing environment variable which is
+defined to an integer, the function returns the value of the integer.
+It returns 0 otherwise.
+
+*/
+

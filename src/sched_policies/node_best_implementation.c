@@ -32,7 +32,7 @@ static int find_best_impl(struct starpu_task * task, int workerid)
 	{
 		if(starpu_worker_can_execute_task(workerid, task, impl))
 		{
-			enum starpu_perfmodel_archtype archtype = starpu_worker_get_perf_archtype(workerid);
+			struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid);
 			double d = starpu_task_expected_length(task, archtype, impl);
 			if(isnan(d))
 			{

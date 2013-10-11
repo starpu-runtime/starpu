@@ -21,7 +21,7 @@
 #define MATRIX_SIZE (NX*NY)
 
 #if defined(STARPU_USE_CPU) || defined(STAPRU_USE_MIC)
-static void test_coo_cpu_func(void *buffers[], void *args);
+void test_coo_cpu_func(void *buffers[], void *args);
 #endif
 #ifdef STARPU_USE_CUDA
 extern void test_coo_cuda_func(void *buffers[], void *args);

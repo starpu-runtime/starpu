@@ -15,11 +15,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#define WINVER WindowsXP
+
 #include <starpu_config.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 #  include <w32api.h>
-#  define WINVER WindowsXP
 #  include <ws2tcpip.h>
 #else
 #  include <sys/socket.h>

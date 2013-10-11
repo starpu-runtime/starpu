@@ -72,7 +72,7 @@ void* submit_tasks_thread(void *arg)
 	}
 
 	starpu_task_wait_for_all();
-	return;
+	return NULL;
 }
 
 int main()
@@ -84,8 +84,8 @@ int main()
 
 
 	/* create contexts */
-	unsigned sched_ctx1 = starpu_sched_ctx_create("dmda", NULL, 0, "sched_ctx1");
-	unsigned sched_ctx2 = starpu_sched_ctx_create("dmda", NULL, 0, "sched_ctx2");
+	unsigned sched_ctx1 = starpu_sched_ctx_create(NULL, 0, "sched_ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
+	unsigned sched_ctx2 = starpu_sched_ctx_create(NULL, 0, "sched_ctx2", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
 
 	/* initialize the hypervisor */
 	struct sc_hypervisor_policy policy;
@@ -98,8 +98,8 @@ int main()
 
 	/* let starpu know which performance counters should use 
 	   to inform the hypervisor how the application and the resources are executing */
-	starpu_sched_ctx_set_perf_counters(sched_ctx1, (struct starpu_sched_ctx_performance_counters*)perf_counters);
-	starpu_sched_ctx_set_perf_counters(sched_ctx2, (struct starpu_sched_ctx_performance_counters*)perf_counters);
+	starpu_sched_ctx_set_perf_counters(sched_ctx1, perf_counters);
+	starpu_sched_ctx_set_perf_counters(sched_ctx2, perf_counters);
 
 	double flops1 = NTASKS*NINCR*1000000000.0;
 	double flops2 = NTASKS*NINCR*1000000000.0;

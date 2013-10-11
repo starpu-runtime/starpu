@@ -20,7 +20,7 @@ AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STAR
 AM_CXXFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(MAGMA_LIBS) $(HWLOC_LIBS) @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
-AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS)
+AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
 SUBDIRS = stencil
 
@@ -46,10 +46,6 @@ EXTRA_DIST = 					\
 	lu/xlu_implicit_pivot.c			\
 	lu/xlu_kernels.c			\
 	lu/lu_example.c				\
-	sched_ctx_utils/sched_ctx_utils.c			\
-	sched_ctx/sched_ctx.c					\
-	sched_ctx/parallel_code.c				\
-	sched_ctx/dummy_sched_with_ctx.c			\
 	incrementer/incrementer_kernels_opencl_kernel.cl 	\
 	basic_examples/variable_kernels_opencl_kernel.cl	\
 	matvecmult/matvecmult_kernel.cl				\
@@ -182,6 +178,7 @@ examplebin_PROGRAMS +=				\
 	spmd/vector_scal_spmd			\
 	spmv/spmv				\
 	callback/callback			\
+	callback/prologue			\
 	incrementer/incrementer			\
 	binary/binary				\
 	interface/complex			\
@@ -190,6 +187,7 @@ examplebin_PROGRAMS +=				\
 	sched_ctx/sched_ctx			\
 	sched_ctx/parallel_code			\
 	sched_ctx/dummy_sched_with_ctx		\
+	sched_ctx/prio				\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	mandelbrot/mandelbrot			\
@@ -256,6 +254,7 @@ STARPU_EXAMPLES +=				\
 	spmd/vector_scal_spmd			\
 	spmv/spmv				\
 	callback/callback			\
+	callback/prologue			\
 	incrementer/incrementer			\
 	binary/binary				\
 	interface/complex			\
@@ -263,10 +262,15 @@ STARPU_EXAMPLES +=				\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
 	sched_ctx/sched_ctx			\
-	sched_ctx/parallel_code			\
+	sched_ctx/prio				\
 	sched_ctx/dummy_sched_with_ctx		\
 	reductions/dot_product			\
 	reductions/minmax_reduction
+
+if STARPU_LONG_CHECK
+STARPU_EXAMPLES +=				\
+	sched_ctx/parallel_code
+endif
 
 if STARPU_HAVE_F77_H
 STARPU_EXAMPLES +=				\

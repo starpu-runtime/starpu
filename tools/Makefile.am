@@ -16,10 +16,10 @@
 
 SUBDIRS =
 
-AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS)
+AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(GLOBAL_AM_CFLAGS)
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_builddir)/src -I$(top_srcdir)/src
-AM_LDFLAGS = $(STARPU_COI_LDFLAGS)
+AM_LDFLAGS = $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
 bin_PROGRAMS =
 dist_bin_SCRIPTS =
@@ -29,10 +29,12 @@ dist_pkgdata_DATA = gdbinit
 EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
-	msvc/starpu_clean.bat		\
-	msvc/starpu_exec.bat		\
-	msvc/starpu.sln			\
-	msvc/starpu/starpu.vcxproj
+	mvsc/starpu_clean.bat		\
+	mvsc/starpu_open.bat		\
+	mvsc/starpu_exec.bat		\
+	mvsc/starpu_var.bat		\
+	mvsc/starpu.sln			\
+	mvsc/starpu/starpu.vcxproj
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
@@ -73,11 +75,13 @@ endif
 if STARPU_USE_FXT
 bin_PROGRAMS += 			\
 	starpu_fxt_tool			\
-	starpu_fxt_stats
+	starpu_fxt_stats		\
+	starpu_fxt_data_trace
 
 STARPU_TOOLS += 			\
 	starpu_fxt_tool			\
-	starpu_fxt_stats
+	starpu_fxt_stats		\
+	starpu_fxt_data_trace
 
 starpu_fxt_tool_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 starpu_fxt_tool_LDADD = $(FXT_LIBS)
@@ -86,6 +90,10 @@ starpu_fxt_tool_LDFLAGS = $(FXT_LDFLAGS)
 starpu_fxt_stats_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
 starpu_fxt_stats_LDADD = $(FXT_LIBS)
 starpu_fxt_stats_LDFLAGS = $(FXT_LDFLAGS)
+
+starpu_fxt_data_trace_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
+starpu_fxt_data_trace_LDADD = $(FXT_LIBS)
+starpu_fxt_data_trace_LDFLAGS = $(FXT_LDFLAGS)
 endif
 
 bin_PROGRAMS += 			\
@@ -117,12 +125,14 @@ dist_bin_SCRIPTS +=			\
 	starpu_codelet_profile
 
 if STARPU_HAVE_WINDOWS
-STARPU_MSVC_dir		 =	$(bindir)
-nobase_STARPU_MSVC__DATA =		\
-	msvc/starpu_clean.bat		\
-	msvc/starpu_exec.bat		\
-	msvc/starpu.sln			\
-	msvc/starpu/starpu.vcxproj
+STARPU_MVSC_dir		 =	$(bindir)
+nobase_STARPU_MVSC__DATA =		\
+	mvsc/starpu_clean.bat		\
+	mvsc/starpu_open.bat		\
+	mvsc/starpu_exec.bat		\
+	mvsc/starpu_var.bat		\
+	mvsc/starpu.sln			\
+	mvsc/starpu/starpu.vcxproj
 endif
 
 if STARPU_HAVE_HELP2MAN

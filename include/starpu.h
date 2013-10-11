@@ -140,13 +140,11 @@ void starpu_topology_print(FILE *f);
 int starpu_asynchronous_copy_disabled(void);
 int starpu_asynchronous_cuda_copy_disabled(void);
 int starpu_asynchronous_opencl_copy_disabled(void);
+int starpu_asynchronous_mic_copy_disabled(void);
 
-void starpu_profiling_init();
 void starpu_display_stats();
 
 void starpu_get_version(int *major, int *minor, int *release);
-
-int starpu_worker_get_mp_nodeid(int id);
 
 #ifdef __cplusplus
 }

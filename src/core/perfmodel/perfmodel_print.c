@@ -28,7 +28,7 @@ void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per
 	ptr = per_arch_model->list;
 
 	if (!parameter && ptr)
-		fprintf(output, "# hash\t\tsize\t\tflops\t\tmean (us)\t\tstddev (us)\t\tn\n");
+		fprintf(output, "# hash\t\tsize\t\tflops\t\tmean (us)\tstddev (us)\t\tn\n");
 
 	while (ptr)
 	{
@@ -61,9 +61,9 @@ void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per
 	}
 }
 
-void starpu_perfmodel_print(struct starpu_perfmodel *model, enum starpu_perfmodel_archtype arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output)
+void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output)
 {
-	struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[arch][nimpl];
+	struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[arch->type][arch->devid][arch->ncore][nimpl];
 	char archname[32];
 
 	if (arch_model->regression.nsample || arch_model->regression.valid || arch_model->regression.nl_valid || arch_model->list)
@@ -171,13 +171,22 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 	if (arch == NULL)
 	{
 		/* display all architectures */
-		unsigned archid;
-		unsigned implid;
-		for (archid = 0; archid < STARPU_NARCH_VARIATIONS; archid++)
+		unsigned archtype, devid, ncore, implid;
+		struct starpu_perfmodel_arch perf_arch;
+		for (archtype = 0; archtype < STARPU_NARCH; archtype++)
 		{
-			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-			{ /* Display all codelets on each arch */
-				starpu_perfmodel_print(model, (enum starpu_perfmodel_archtype) archid, implid, parameter, footprint, output);
+			perf_arch.type = archtype;
+			for(devid = 0; model->per_arch[archtype][devid] != NULL; devid++)
+			{
+				perf_arch.devid = devid;
+				for(ncore = 0; model->per_arch[archtype][devid][ncore] != NULL; ncore++)
+				{
+					perf_arch.ncore = ncore;
+					for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
+					{ /* Display all codelets on each arch */
+						starpu_perfmodel_print(model, &perf_arch, implid, parameter, footprint, output);
+					}
+				}
 			}
 		}
 	}
@@ -186,8 +195,12 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 		if (strcmp(arch, "cpu") == 0)
 		{
 			unsigned implid;
+			struct starpu_perfmodel_arch perf_arch;
+			perf_arch.type = STARPU_CPU_WORKER;
+			perf_arch.devid = 0;
+			perf_arch.ncore = 0;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-				starpu_perfmodel_print(model, STARPU_CPU_DEFAULT,implid, parameter, footprint, output); /* Display all codelets on cpu */
+				starpu_perfmodel_print(model, &perf_arch,implid, parameter, footprint, output); /* Display all codelets on cpu */
 			return 0;
 		}
 
@@ -202,24 +215,28 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			}
 
 			unsigned implid;
+			struct starpu_perfmodel_arch perf_arch;
+			perf_arch.type = STARPU_CPU_WORKER;
+			perf_arch.devid = 0;
+			perf_arch.ncore = k-1;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-				starpu_perfmodel_print(model, (enum starpu_perfmodel_archtype) (STARPU_CPU_DEFAULT + k - 1), implid, parameter, footprint, output);
+				starpu_perfmodel_print(model, &perf_arch, implid, parameter, footprint, output);
 			return 0;
 		}
 
 		if (strcmp(arch, "cuda") == 0)
 		{
-			unsigned archid;
+			unsigned devid;
 			unsigned implid;
-			for (archid = STARPU_CUDA_DEFAULT; archid < STARPU_CUDA_DEFAULT + STARPU_MAXCUDADEVS; archid++)
+			struct starpu_perfmodel_arch perf_arch;
+			perf_arch.type = STARPU_CUDA_WORKER;
+			perf_arch.ncore = 0;
+
+			for (devid = 0; model->per_arch[STARPU_CUDA_WORKER] != NULL; devid++)
 			{
+				perf_arch.devid = devid;
 				for (implid = 0; implid <STARPU_MAXIMPLEMENTATIONS; implid ++)
-				{
-					char archname[32];
-					starpu_perfmodel_get_arch_name((enum starpu_perfmodel_archtype) archid, archname, 32, implid);
-					fprintf(output, "performance model for %s\n", archname);
-					starpu_perfmodel_print(model, (enum starpu_perfmodel_archtype) archid, implid, parameter, footprint, output);
-				}
+					starpu_perfmodel_print(model, &perf_arch, implid, parameter, footprint, output);
 			}
 			return 0;
 		}
@@ -230,10 +247,13 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 		nmatched = sscanf(arch, "cuda_%d", &gpuid);
 		if (nmatched == 1)
 		{
-			int archid = STARPU_CUDA_DEFAULT+ gpuid;
+			struct starpu_perfmodel_arch perf_arch;
+			perf_arch.type = STARPU_CUDA_WORKER;
+			perf_arch.devid = gpuid;
+			perf_arch.ncore = 0;
 			unsigned implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
-				starpu_perfmodel_print(model, (enum starpu_perfmodel_archtype) archid, implid, parameter, footprint, output);
+				starpu_perfmodel_print(model, &perf_arch, implid, parameter, footprint, output);
 			return 0;
 		}
 

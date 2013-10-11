@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	starpu_pthread_mutex_init(&mut, NULL);
 	int nprocs1 = 1;
 	int nprocs2 = 1;
-	int procs1[20], procs2[20];
+	int procs1[STARPU_NMAXWORKERS], procs2[STARPU_NMAXWORKERS];
 	procs1[0] = 0;
 	procs2[0] = 0;
 
@@ -76,8 +76,8 @@ int main(int argc, char **argv)
 #endif
 
 	/*create contexts however you want*/
-	unsigned sched_ctx1 = starpu_sched_ctx_create("dmda", procs1, nprocs1, "ctx1");
-	unsigned sched_ctx2 = starpu_sched_ctx_create("dmda", procs2, nprocs2, "ctx2");
+	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
+	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", STARPU_SCHED_CTX_POLICY_NAME, "eager",  0);
 
 	/*indicate what to do with the resources when context 2 finishes (it depends on your application)*/
 	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);

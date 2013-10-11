@@ -332,7 +332,7 @@ int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sche
 	    workerid != -1;
 	    workerid = starpu_bitmap_next(node->workers_in_ctx, workerid))
 	{
-		enum starpu_perfmodel_archtype archtype = starpu_worker_get_perf_archtype(workerid);
+		struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid);
 		int nimpl;
 		for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{

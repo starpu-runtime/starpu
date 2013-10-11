@@ -31,19 +31,24 @@ extern "C"
 
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
 
-#define STARPU_VALUE		 (1<<19)
-#define STARPU_CALLBACK		 (1<<20)
-#define STARPU_CALLBACK_WITH_ARG (1<<21)
-#define STARPU_CALLBACK_ARG	 (1<<22)
-#define STARPU_PRIORITY		 (1<<23)
-#define STARPU_EXECUTE_ON_NODE	 (1<<24)
-#define STARPU_EXECUTE_ON_DATA	 (1<<25)
-#define STARPU_DATA_ARRAY        (1<<26)
-#define STARPU_TAG               (1<<27)
-#define STARPU_HYPERVISOR_TAG	 (1<<28)
-#define STARPU_FLOPS	         (1<<29)
-#define STARPU_SCHED_CTX	 (1<<30)
+#define STARPU_VALUE		 (1<<16)
+#define STARPU_CALLBACK		 (2<<16)
+#define STARPU_CALLBACK_WITH_ARG (3<<16)
+#define STARPU_CALLBACK_ARG	 (4<<16)
+#define STARPU_PRIORITY		 (5<<16)
+#define STARPU_EXECUTE_ON_NODE	 (6<<16)
+#define STARPU_EXECUTE_ON_DATA	 (7<<16)
+#define STARPU_DATA_ARRAY        (8<<16)
+#define STARPU_TAG               (9<<16)
+#define STARPU_HYPERVISOR_TAG	 (10<<16)
+#define STARPU_FLOPS	         (11<<16)
+#define STARPU_SCHED_CTX	 (12<<16)
+#define STARPU_PROLOGUE_CALLBACK   (13<<16)
+#define STARPU_PROLOGUE_CALLBACK_ARG (14<<16)
 
+struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
+int starpu_task_insert(struct starpu_codelet *cl, ...);
+/* the function starpu_insert_task has the same semantics as starpu_task_insert, it is kept to avoid breaking old codes */
 int starpu_insert_task(struct starpu_codelet *cl, ...);
 
 void starpu_codelet_unpack_args(void *cl_arg, ...);

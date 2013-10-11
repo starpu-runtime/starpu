@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <util/starpu_insert_task_utils.h>
+#include <util/starpu_task_insert_utils.h>
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/task.h>
@@ -25,7 +25,7 @@ typedef void (*_starpu_callback_func_t)(void *);
 /* Deal with callbacks. The unpack function may be called multiple times when
  * we have a parallel task, and we should not free the cl_arg parameter from
  * the callback function. */
-struct insert_task_cb_wrapper
+struct task_insert_cb_wrapper
 {
 	_starpu_callback_func_t callback_func;
 	void *callback_arg;
@@ -34,16 +34,14 @@ struct insert_task_cb_wrapper
 static
 void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 {
-	struct insert_task_cb_wrapper *cl_arg_wrapper = (struct insert_task_cb_wrapper *) _cl_arg_wrapper;
+	struct task_insert_cb_wrapper *cl_arg_wrapper = (struct task_insert_cb_wrapper *) _cl_arg_wrapper;
 
 	/* Execute the callback specified by the application */
 	if (cl_arg_wrapper->callback_func)
 		cl_arg_wrapper->callback_func(cl_arg_wrapper->callback_arg);
-
-	free(cl_arg_wrapper);
 }
 
-size_t _starpu_insert_task_get_arg_size(va_list varg_list)
+size_t _starpu_task_insert_get_arg_size(va_list varg_list)
 {
 	int arg_type;
 	size_t arg_buffer_size;
@@ -80,6 +78,15 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 			va_arg(varg_list, _starpu_callback_func_t);
 			va_arg(varg_list, void *);
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+		{
+			(void)va_arg(varg_list, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list, void *);
+		}
+
 		else if (arg_type==STARPU_CALLBACK_ARG)
 		{
 			(void)va_arg(varg_list, void *);
@@ -113,9 +120,12 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 		{
 			(void)va_arg(varg_list, starpu_tag_t);
 		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
+		}
 	}
 
-	va_end(varg_list);
 	return arg_buffer_size;
 }
 
@@ -172,6 +182,14 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 		{
 			(void)va_arg(varg_list, void *);
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+		{
+			va_arg(varg_list, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			(void)va_arg(varg_list, int);
@@ -196,10 +214,13 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 		{
 			(void)va_arg(varg_list, double);
 		}
-
 		else if (arg_type==STARPU_TAG)
 		{
 			(void)va_arg(varg_list, starpu_tag_t);
+		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
 		}
 	}
 
@@ -214,19 +235,23 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 	}
 
 	*arg_buffer = _arg_buffer;
-	va_end(varg_list);
 	return 0;
 }
 
-int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
 {
 	int arg_type;
 	unsigned current_buffer = 0;
 
-	struct insert_task_cb_wrapper *cl_arg_wrapper = (struct insert_task_cb_wrapper *) malloc(sizeof(struct insert_task_cb_wrapper));
+	struct task_insert_cb_wrapper *cl_arg_wrapper = (struct task_insert_cb_wrapper *) malloc(sizeof(struct task_insert_cb_wrapper));
 	STARPU_ASSERT(cl_arg_wrapper);
 
 	cl_arg_wrapper->callback_func = NULL;
+
+	struct task_insert_cb_wrapper *prologue_cl_arg_wrapper = (struct task_insert_cb_wrapper *) malloc(sizeof(struct task_insert_cb_wrapper));
+	STARPU_ASSERT(prologue_cl_arg_wrapper);
+
+	prologue_cl_arg_wrapper->callback_func = NULL;
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -243,7 +268,7 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 			if (STARPU_CODELET_GET_MODE(cl, current_buffer))
 			{
 				STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, current_buffer) == mode,
-						   "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_insert_task\n",
+						   "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
 						  cl->name, STARPU_CODELET_GET_MODE(cl, current_buffer),
 						  current_buffer, mode);
 			}
@@ -296,6 +321,17 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 			void *callback_arg = va_arg(varg_list, void *);
 			cl_arg_wrapper->callback_arg = callback_arg;
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+		{
+			void (*callback_func)(void *);
+			callback_func = va_arg(varg_list, _starpu_callback_func_t);
+			prologue_cl_arg_wrapper->callback_func = callback_func;
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			void *callback_arg = va_arg(varg_list, void *);
+			prologue_cl_arg_wrapper->callback_arg = callback_arg;
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			/* Followed by a priority level */
@@ -331,9 +367,11 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 			(*task)->tag_id = tag;
 			(*task)->use_tag = 1;
 		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
+		}
 	}
-
-	va_end(varg_list);
 
 	STARPU_ASSERT(cl == NULL || current_buffer == cl->nbuffers);
 
@@ -345,6 +383,16 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 	 * application's callback, if any. */
 	(*task)->callback_func = starpu_task_insert_callback_wrapper;
 	(*task)->callback_arg = cl_arg_wrapper;
+	(*task)->callback_arg_free = 1;
+
+	(*task)->prologue_callback_func = starpu_task_insert_callback_wrapper;
+	(*task)->prologue_callback_arg = prologue_cl_arg_wrapper;
+	(*task)->prologue_callback_arg_free = 1;
+}
+
+int _starpu_task_insert_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+{
+	_starpu_task_insert_create(arg_buffer, arg_buffer_size, cl, task, varg_list);
 
 	int ret = starpu_task_submit(*task);
 
@@ -355,7 +403,6 @@ int _starpu_insert_task_create_and_submit(void *arg_buffer, size_t arg_buffer_si
 			(cl == NULL) ? "none" :
 			(*task)->cl->name ? (*task)->cl->name :
 			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
-		free(cl_arg_wrapper);
 	}
 
 	return ret;

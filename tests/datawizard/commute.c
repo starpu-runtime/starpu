@@ -85,7 +85,9 @@ void end(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
 {
 	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
-	if (codelet_end.modes[0] & STARPU_W)
+	enum starpu_data_access_mode end_mode = *(enum starpu_data_access_mode*) _args;
+
+	if (end_mode & STARPU_W)
 		(*x)++;
 }
 
@@ -105,7 +107,7 @@ static void test(enum starpu_data_access_mode begin_mode, enum starpu_data_acces
 	int ret;
 
 	codelet_begin.modes[0] = begin_mode;
-	codelet_end.modes[0] = end_mode;
+	codelet_end.modes[0] = end_mode;	
 
 	begin_t = starpu_task_create();
 	begin_t->cl = &codelet_begin;
@@ -130,6 +132,8 @@ static void test(enum starpu_data_access_mode begin_mode, enum starpu_data_acces
 	end_t->cl = &codelet_end;
 	end_t->handles[0] = x_handle;
 	end_t->detach = 0;
+	end_t->cl_arg = &end_mode;
+	end_t->cl_arg_size = sizeof(end_mode);
 
 	if (starpu_task_submit(begin_t) == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
@@ -137,7 +141,7 @@ static void test(enum starpu_data_access_mode begin_mode, enum starpu_data_acces
 		exit(STARPU_TEST_SKIPPED);
 	if (starpu_task_submit(commute2_t) == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
-	starpu_insert_task(&codelet_commute3, STARPU_RW|STARPU_COMMUTE, x_handle, 0);
+	starpu_task_insert(&codelet_commute3, STARPU_RW|STARPU_COMMUTE, x_handle, 0);
 	if (starpu_task_submit(end_t) == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
 

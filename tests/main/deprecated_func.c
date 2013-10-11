@@ -20,8 +20,6 @@
 
 void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -30,8 +28,6 @@ void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 void cpu2_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *valout = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
@@ -82,7 +78,7 @@ int submit_codelet(struct starpu_codelet cl, int where)
 	starpu_variable_data_register(&handles[1], STARPU_MAIN_RAM, (uintptr_t)&y, sizeof(y));
 
 	cl.where = where;
-	ret = starpu_insert_task(&cl,
+	ret = starpu_task_insert(&cl,
 				 STARPU_R, handles[0],
 				 STARPU_W, handles[1],
 				 0);

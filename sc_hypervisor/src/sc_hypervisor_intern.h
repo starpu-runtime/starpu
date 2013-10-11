@@ -15,15 +15,17 @@
  */
 
 #include <sc_hypervisor.h>
-#include <common/uthash.h>
+#include "uthash.h"
 
 #define SC_SPEED_MAX_GAP_DEFAULT 50
+#define SC_HYPERVISOR_DEFAULT_CPU_SPEED 5.0
+#define SC_HYPERVISOR_DEFAULT_CUDA_SPEED 100.0
 
 struct size_request
 {
 	int *workers;
 	int nworkers;
-	int *sched_ctxs;
+	unsigned *sched_ctxs;
 	int nsched_ctxs;
 };
 
@@ -43,6 +45,20 @@ struct resize_request_entry
 	UT_hash_handle hh;
 };
 
+/* structure to indicate when the moving of workers was actually done 
+   (moved workers can be seen in the new ctx ) */
+struct resize_ack
+{
+	/* receiver context */
+	int receiver_sched_ctx;
+	/* list of workers required to be moved */
+	int *moved_workers;
+	/* number of workers required to be moved */
+	int nmoved_workers;
+	/* list of workers that actually got in the receiver ctx */
+	int *acked_workers;
+};
+
 struct configuration_entry
 {
 	/* Key: the tag of tasks concerned by this configuration.  */
@@ -58,7 +74,7 @@ struct configuration_entry
 struct sc_hypervisor
 {
 	struct sc_hypervisor_wrapper sched_ctx_w[STARPU_NMAX_SCHED_CTXS];
-	int sched_ctxs[STARPU_NMAX_SCHED_CTXS];
+	unsigned sched_ctxs[STARPU_NMAX_SCHED_CTXS];
 	unsigned nsched_ctxs;
 	unsigned resize[STARPU_NMAX_SCHED_CTXS];
 	unsigned allow_remove[STARPU_NMAX_SCHED_CTXS];
@@ -104,4 +120,7 @@ void _remove_config(unsigned sched_ctx);
 double _get_max_speed_gap();
 
 double _get_optimal_v(unsigned sched_ctx);
+
 void _set_optimal_v(unsigned sched_ctx, double optimal_v);
+
+int _sc_hypervisor_use_lazy_resize(void);

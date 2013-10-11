@@ -19,11 +19,13 @@
 
 #include <starpu.h>
 #include <starpu_sched_ctx.h>
+#include <starpu_sched_ctx_hypervisor.h>
 #include <starpu_scheduler.h>
 #include <common/config.h>
 #include <common/barrier_counter.h>
 #include <profiling/profiling.h>
 #include <semaphore.h>
+#include "sched_ctx_list.h"
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -96,6 +98,8 @@ struct _starpu_sched_ctx
          * task (level 1) or it is not (level 0). */
      	int min_priority;
 	int max_priority;
+     	int min_priority_is_set;
+	int max_priority_is_set;
 
 	/* semaphore that block appl thread until threads are ready 
 	   to exec the parallel code */
@@ -110,6 +114,10 @@ struct _starpu_sched_ctx
 	/* a structure containing a series of performance counters determining the resize procedure */
 	struct starpu_sched_ctx_performance_counters *perf_counters;
 #endif //STARPU_USE_SC_HYPERVISOR
+
+	void (*close_callback)(unsigned sched_ctx_id, void* args);
+
+	void *close_args;
 };
 
 struct _starpu_machine_config;
@@ -117,14 +125,10 @@ struct _starpu_machine_config;
 /* init sched_ctx_id of all contextes*/
 void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config);
 
-/* init the list of contexts of the worker */
-void _starpu_init_sched_ctx_for_worker(unsigned workerid);
-
-/* free the list of contexts of the worker */
-void _starpu_delete_sched_ctx_for_worker(unsigned workerid);
-
 /* allocate all structures belonging to a context */
-struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerid, int nworkerids, unsigned is_init_sched, const char *sched_name);
+struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerid, int nworkerids, unsigned is_init_sched, const char *sched_name,
+						    int min_prio_set, int min_prio,
+						    int max_prio_set, int max_prio);
 
 /* delete all sched_ctx */
 void _starpu_delete_all_sched_ctxs();
@@ -159,7 +163,11 @@ void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker
 unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_id);
 
 /* mutex synchronising several simultaneous modifications of a context */
-starpu_pthread_mutex_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
+starpu_pthread_rwlock_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
+
+/* indicates wheather this worker should go to sleep or not 
+   (if it is the last one awake in a context he should better keep awake) */
+unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);
 
 /*rebind each thread on its cpu after finishing a parallel code */
 void _starpu_sched_ctx_rebind_thread_to_its_cpu(unsigned cpuid);
@@ -169,7 +177,8 @@ void _starpu_sched_ctx_signal_worker_blocked(int workerid);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 /* Notifies the hypervisor that a tasks was poped from the workers' list */
-void _starpu_sched_ctx_call_poped_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint);
+void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint);
+
 #endif //STARPU_USE_SC_HYPERVISOR
 
 #endif // __SCHED_CONTEXT_H__

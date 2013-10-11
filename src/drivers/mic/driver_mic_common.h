@@ -27,16 +27,17 @@
 #define STARPU_TO_MIC_ID(id) ((id) + 1)
 
 /* TODO: rather allocate ports on the host and pass them as parameters to the device process */
-#define STARPU_MIC_PORTS_BEGIN 1099
+// We use the last SCIF reserved port and add 1000 to be safe
+#define STARPU_MIC_PORTS_BEGIN SCIF_PORT_RSVD+1000
 
 #define STARPU_MIC_SOURCE_PORT_NUMBER STARPU_MIC_PORTS_BEGIN
-#define STARPU_MIC_SINK_PORT_NUMBER(id) ((id) + STARPU_MIC_PORTS_BEGIN + 1)
+#define STARPU_MIC_SINK_PORT_NUMBER(id) ((id) + STARPU_MIC_PORTS_BEGIN)
 
-#define STARPU_MIC_SOURCE_DT_PORT_NUMBER (STARPU_MAXMICDEVS + STARPU_MIC_PORTS_BEGIN + 1)
-#define STARPU_MIC_SINK_DT_PORT_NUMBER(id) ((id) + STARPU_MAXMICDEVS + STARPU_MIC_PORTS_BEGIN + 2)
+#define STARPU_MIC_SOURCE_DT_PORT_NUMBER (STARPU_MAXMICDEVS + STARPU_MIC_PORTS_BEGIN)
+#define STARPU_MIC_SINK_DT_PORT_NUMBER(id) ((id) + STARPU_MAXMICDEVS + STARPU_MIC_PORTS_BEGIN + 1)
 
 #define STARPU_MIC_SINK_SINK_DT_PORT_NUMBER(me, peer_id) \
-((me) * STARPU_MAXMICDEVS + (peer_id) +  2 * STARPU_MAXMICDEVS + STARPU_MIC_PORTS_BEGIN + 2)
+((me) * STARPU_MAXMICDEVS + (peer_id) +  2 * STARPU_MAXMICDEVS + STARPU_MIC_PORTS_BEGIN + 1)
 
 #define STARPU_MIC_PAGE_SIZE 0x1000
 #define STARPU_MIC_GET_PAGE_SIZE_MULTIPLE(size) \
@@ -52,6 +53,8 @@ struct _starpu_mic_free_command
 };
 
 void _starpu_mic_common_report_scif_error(const char *func, const char *file, int line, const int status);
+
+int _starpu_mic_common_recv_is_ready(const struct _starpu_mp_node *mp_node);
 
 void _starpu_mic_common_send(const struct _starpu_mp_node *node, void *msg, int len);
 

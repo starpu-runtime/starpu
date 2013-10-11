@@ -18,10 +18,12 @@
 #include <interface/complex_interface.h>
 #include <interface/complex_codelet.h>
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
 void display_foo_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	int *foo = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	fprintf(stderr, "foo = %d\n", *foo);
+	FPRINTF(stderr, "foo = %d\n", *foo);
 }
 
 struct starpu_codelet foo_display =
@@ -75,17 +77,17 @@ int main(int argc, char **argv)
 		{
 			int *compare_ptr = &compare;
 
-			starpu_insert_task(&cl_display, STARPU_VALUE, "node0 initial value", strlen("node0 initial value"), STARPU_R, handle, 0);
+			starpu_task_insert(&cl_display, STARPU_VALUE, "node0 initial value", strlen("node0 initial value"), STARPU_R, handle, 0);
 			starpu_mpi_isend_detached(handle, 1, 10, MPI_COMM_WORLD, NULL, NULL);
 			starpu_mpi_irecv_detached(handle2, 1, 20, MPI_COMM_WORLD, NULL, NULL);
 
-			starpu_insert_task(&cl_display, STARPU_VALUE, "node0 received value", strlen("node0 received value"), STARPU_R, handle2, 0);
-			starpu_insert_task(&cl_compare, STARPU_R, handle, STARPU_R, handle2, STARPU_VALUE, &compare_ptr, sizeof(compare_ptr), 0);
+			starpu_task_insert(&cl_display, STARPU_VALUE, "node0 received value", strlen("node0 received value"), STARPU_R, handle2, 0);
+			starpu_task_insert(&cl_compare, STARPU_R, handle, STARPU_R, handle2, STARPU_VALUE, &compare_ptr, sizeof(compare_ptr), 0);
 		}
 		else if (rank == 1)
 		{
 			starpu_mpi_irecv_detached(handle, 0, 10, MPI_COMM_WORLD, NULL, NULL);
-			starpu_insert_task(&cl_display, STARPU_VALUE, "node1 received value", strlen("node1 received value"), STARPU_R, handle, 0);
+			starpu_task_insert(&cl_display, STARPU_VALUE, "node1 received value", strlen("node1 received value"), STARPU_R, handle, 0);
 			starpu_mpi_isend_detached(handle, 0, 20, MPI_COMM_WORLD, NULL, NULL);
 		}
 

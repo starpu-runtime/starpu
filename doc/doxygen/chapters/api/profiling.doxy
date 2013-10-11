@@ -98,6 +98,16 @@ todo
 \var starpu_profiling_bus_info::transfer_count
         Number of transfers during profiling.
 
+\typedef STARPU_PROFILING_DISABLE
+\ingroup API_Profiling
+This value is used when calling the function
+starpu_profiling_status_set() to disable profiling.
+
+\typedef STARPU_PROFILING_ENABLE
+\ingroup API_Profiling
+This value is used when calling the function
+starpu_profiling_status_set() to enable profiling.
+
 \fn int starpu_profiling_status_set(int status)
 \ingroup API_Profiling
 This function sets the profiling status. Profiling is activated
@@ -113,6 +123,11 @@ previous status is returned.
 \ingroup API_Profiling
 Return the current profiling status or a negative value in case
 there was an error.
+
+\fn void starpu_profiling_init(void)
+\ingroup API_Profiling
+This function resets performance counters and enable profiling if the
+environment variable \ref STARPU_PROFILING is set to a positive value.
 
 \fn void starpu_profiling_set_id(int new_id)
 \ingroup API_Profiling

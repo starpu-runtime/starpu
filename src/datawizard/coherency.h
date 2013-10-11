@@ -27,7 +27,6 @@
 #include <common/fxt.h>
 #include <common/list.h>
 
-#include <datawizard/data_request.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/datastats.h>
 #include <datawizard/memstats.h>
@@ -98,6 +97,8 @@ struct _starpu_task_wrapper_list
 	struct starpu_task *task;
 	struct _starpu_task_wrapper_list *next;
 };
+
+extern int _starpu_has_not_important_data;
 
 struct _starpu_data_state
 {
@@ -179,6 +180,7 @@ struct _starpu_data_state
 	unsigned long last_submitted_ghost_sync_id;
 	struct _starpu_jobid_list *last_submitted_ghost_accessors_id;
 
+	/* protected by sequential_consistency_mutex */
 	struct _starpu_task_wrapper_list *post_sync_tasks;
 	unsigned post_sync_tasks_cnt;
 

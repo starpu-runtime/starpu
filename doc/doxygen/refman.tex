@@ -40,7 +40,6 @@
 \lstset{language=C++,inputencoding=utf8,basicstyle=\footnotesize,breaklines=true,breakatwhitespace=true,tabsize=8,numbers=left }
 \makeindex
 \setcounter{tocdepth}{3}
-\renewcommand{\footrulewidth}{0.4pt}
 \renewcommand{\familydefault}{\sfdefault}
 \hfuzz=15pt
 \setlength{\emergencystretch}{15pt}
@@ -85,10 +84,8 @@ Documentation License”.
 \end{quote}
 \end{figure}
 
-\clearemptydoublepage
 \pagenumbering{roman}
 \tableofcontents
-\clearemptydoublepage
 \pagenumbering{arabic}
 \hypersetup{pageanchor=true,citecolor=blue}
 
@@ -198,6 +195,8 @@ Documentation License”.
 \input{group__API__Versioning}
 \input{group__API__Initialization__and__Termination}
 \input{group__API__Standard__Memory__Library}
+\input{group__API__Toolbox}
+\input{group__API__Threads}
 \input{group__API__Workers__Properties}
 \input{group__API__Data__Management}
 \input{group__API__Data__Interfaces}
@@ -227,7 +226,8 @@ Documentation License”.
 \input{group__API__StarPUTop__Interface}
 \input{group__API__Scheduling__Contexts}
 \input{group__API__Scheduling__Policy}
-\input{group__API__Scheduling__Context__Hypervisor}
+\input{group__API__SC__Hypervisor__usage}
+\input{group__API__SC__Hypervisor}
 \input{group__API__Modularized__Scheduler}
 
 \chapter{File Index}
@@ -258,6 +258,7 @@ Documentation License”.
 \input{starpu__rand_8h}
 \input{starpu__scc_8h}
 \input{starpu__sched__ctx_8h}
+\input{starpu__sched__ctx__hypervisor_8h}
 \input{starpu__scheduler_8h}
 \input{starpu__sink_8h}
 \input{starpu__stdlib_8h}

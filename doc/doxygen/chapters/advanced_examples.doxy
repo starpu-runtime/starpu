@@ -399,11 +399,11 @@ the number of iterations in the base.
 StarPU will automatically determine when the performance model is calibrated,
 or rather, it will assume the performance model is calibrated until the
 application submits a task for which the performance can not be predicted. For
-::STARPU_HISTORY_BASED, StarPU will require 10 (::_STARPU_CALIBRATION_MINIMUM)
+::STARPU_HISTORY_BASED, StarPU will require 10 (_STARPU_CALIBRATION_MINIMUM)
 measurements for a given size before estimating that an average can be taken as
 estimation for further executions with the same size. For
 ::STARPU_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED, StarPU will require
-10 (::_STARPU_CALIBRATION_MINIMUM) measurements, and that the minimum measured
+10 (_STARPU_CALIBRATION_MINIMUM) measurements, and that the minimum measured
 data size is smaller than 90% of the maximum measured data size (i.e. the
 measurement interval is large enough for a regression to have a meaning).
 Calibration can also be forced by setting the \ref STARPU_CALIBRATE environment
@@ -481,7 +481,7 @@ to a less optimal solution. This increases even more computation time.
 
 \section InsertTaskUtility Insert Task Utility
 
-StarPU provides the wrapper function starpu_insert_task() to ease
+StarPU provides the wrapper function starpu_task_insert() to ease
 the creation and submission of tasks.
 
 Here the implementation of the codelet:
@@ -508,17 +508,17 @@ struct starpu_codelet mycodelet = {
 };
 \endcode
 
-And the call to the function starpu_insert_task():
+And the call to the function starpu_task_insert():
 
 \code{.c}
-starpu_insert_task(&mycodelet,
+starpu_task_insert(&mycodelet,
                    STARPU_VALUE, &ifactor, sizeof(ifactor),
                    STARPU_VALUE, &ffactor, sizeof(ffactor),
                    STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],
                    0);
 \endcode
 
-The call to starpu_insert_task() is equivalent to the following
+The call to starpu_task_insert() is equivalent to the following
 code:
 
 \code{.c}
@@ -540,7 +540,7 @@ int ret = starpu_task_submit(task);
 Here a similar call using ::STARPU_DATA_ARRAY.
 
 \code{.c}
-starpu_insert_task(&mycodelet,
+starpu_task_insert(&mycodelet,
                    STARPU_DATA_ARRAY, data_handles, 2,
                    STARPU_VALUE, &ifactor, sizeof(ifactor),
                    STARPU_VALUE, &ffactor, sizeof(ffactor),
@@ -554,11 +554,11 @@ instance, assuming that the index variable <c>i</c> was registered as handle
 
 \code{.c}
 /* Compute which portion we will work on, e.g. pivot */
-starpu_insert_task(&which_index, STARPU_W, i_handle, 0);
+starpu_task_insert(&which_index, STARPU_W, i_handle, 0);
 
 /* And submit the corresponding task */
 STARPU_DATA_ACQUIRE_CB(i_handle, STARPU_R,
-                       starpu_insert_task(&work, STARPU_RW, A_handle[i], 0));
+                       starpu_task_insert(&work, STARPU_RW, A_handle[i], 0));
 \endcode
 
 The macro ::STARPU_DATA_ACQUIRE_CB submits an asynchronous request for
@@ -637,7 +637,7 @@ dot products with partitioned vectors:
 
 \code{.c}
 for (b = 0; b < nblocks; b++)
-    starpu_insert_task(&dot_kernel_cl,
+    starpu_task_insert(&dot_kernel_cl,
         STARPU_REDUX, dtq_handle,
         STARPU_R, starpu_data_get_sub_data(v1, 1, b),
         STARPU_R, starpu_data_get_sub_data(v2, 1, b),
@@ -659,9 +659,9 @@ the initial status <c>register(NULL)</c>.
 The example <c>cg</c> also uses reduction for the blocked gemv kernel,
 leading to yet more relaxed dependencies and more parallelism.
 
-::STARPU_REDUX can also be passed to starpu_mpi_insert_task() in the MPI
+::STARPU_REDUX can also be passed to starpu_mpi_task_insert() in the MPI
 case. That will however not produce any MPI communication, but just pass
-::STARPU_REDUX to the underlying starpu_insert_task(). It is up to the
+::STARPU_REDUX to the underlying starpu_task_insert(). It is up to the
 application to call starpu_mpi_redux_data(), which posts tasks that will
 reduce the partial results among MPI nodes into the MPI node which owns the
 data. For instance, some hypothetical application which collects partial results
@@ -670,11 +670,11 @@ with a new reduction:
 
 \code{.c}
 for (i = 0; i < 100; i++) {
-    starpu_mpi_insert_task(MPI_COMM_WORLD, &init_res, STARPU_W, res, 0);
-    starpu_mpi_insert_task(MPI_COMM_WORLD, &work, STARPU_RW, A,
+    starpu_mpi_task_insert(MPI_COMM_WORLD, &init_res, STARPU_W, res, 0);
+    starpu_mpi_task_insert(MPI_COMM_WORLD, &work, STARPU_RW, A,
                STARPU_R, B, STARPU_REDUX, res, 0);
     starpu_mpi_redux_data(MPI_COMM_WORLD, res);
-    starpu_mpi_insert_task(MPI_COMM_WORLD, &work2, STARPU_RW, B, STARPU_R, res, 0);
+    starpu_mpi_task_insert(MPI_COMM_WORLD, &work2, STARPU_RW, B, STARPU_R, res, 0);
 }
 \endcode
 
@@ -705,9 +705,9 @@ unregistration.
 
 \code{.c}
 starpu_vector_data_register(&handle, -1, 0, n, sizeof(float));
-starpu_insert_task(&produce_data, STARPU_W, handle, 0);
-starpu_insert_task(&compute_data, STARPU_RW, handle, 0);
-starpu_insert_task(&summarize_data, STARPU_R, handle, STARPU_W, result_handle, 0);
+starpu_task_insert(&produce_data, STARPU_W, handle, 0);
+starpu_task_insert(&compute_data, STARPU_RW, handle, 0);
+starpu_task_insert(&summarize_data, STARPU_R, handle, STARPU_W, result_handle, 0);
 starpu_data_unregister_submit(handle);
 \endcode
 
@@ -725,7 +725,7 @@ provides per-worker buffers without content consistency.
 \code{.c}
 starpu_vector_data_register(&workspace, -1, 0, sizeof(float));
 for (i = 0; i < N; i++)
-    starpu_insert_task(&compute, STARPU_R, input[i],
+    starpu_task_insert(&compute, STARPU_R, input[i],
                        STARPU_SCRATCH, workspace, STARPU_W, output[i], 0);
 \endcode
 
@@ -1028,7 +1028,7 @@ starpu_vector_data_register(&handle, starpu_worker_get_memory_node(workerid),
                             output, num_bytes / sizeof(float4), sizeof(float4));
 
 /* The handle can now be used as usual */
-starpu_insert_task(&cl, STARPU_RW, handle, 0);
+starpu_task_insert(&cl, STARPU_RW, handle, 0);
 
 /* ... */
 
@@ -1122,7 +1122,7 @@ Complex data interfaces can then be registered to StarPU.
 \code{.c}
 double real = 45.0;
 double imaginary = 12.0;starpu_complex_data_register(&handle1, STARPU_MAIN_RAM, &real, &imaginary, 1);
-starpu_insert_task(&cl_display, STARPU_R, handle1, 0);
+starpu_task_insert(&cl_display, STARPU_R, handle1, 0);
 \endcode
 
 and used by codelets.
@@ -1186,7 +1186,7 @@ for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
 {
 	handles[i] = handle;
 }
-starpu_insert_task(&dummy_big_cl,
+starpu_task_insert(&dummy_big_cl,
         	 STARPU_VALUE, &dummy_big_cl.nbuffers, sizeof(dummy_big_cl.nbuffers),
 		 STARPU_DATA_ARRAY, handles, dummy_big_cl.nbuffers,
 		 0);

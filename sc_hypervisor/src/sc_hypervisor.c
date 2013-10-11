@@ -16,7 +16,6 @@
 
 #include <sc_hypervisor_intern.h>
 #include <sc_hypervisor_policy.h>
-#include <common/uthash.h>
 #include <starpu_config.h>
 
 unsigned imposed_resize = 0;
@@ -25,10 +24,11 @@ struct starpu_sched_ctx_performance_counters* perf_counters = NULL;
 
 static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time);
 static void notify_pushed_task(unsigned sched_ctx, int worker);
-static void notify_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, size_t data_size, uint32_t footprint);
-static void notify_post_exec_hook(unsigned sched_ctx, int taskid);
-static void notify_idle_end(unsigned sched_ctx, int  worker);
+static void notify_post_exec_task(struct starpu_task *task, size_t data_size, uint32_t footprint, int hypervisor_tag);
+static void notify_poped_task(unsigned sched_ctx, int  worker);
 static void notify_submitted_job(struct starpu_task *task, unsigned footprint, size_t data_size);
+static void notify_ready_task(unsigned sched_ctx, struct starpu_task *task);
+static void notify_empty_ctx(unsigned sched_ctx, struct starpu_task *task);
 static void notify_delete_context(unsigned sched_ctx);
 
 extern struct sc_hypervisor_policy idle_policy;
@@ -38,7 +38,7 @@ extern struct sc_hypervisor_policy gflops_rate_policy;
 extern struct sc_hypervisor_policy feft_lp_policy;
 extern struct sc_hypervisor_policy teft_lp_policy;
 extern struct sc_hypervisor_policy ispeed_lp_policy;
-extern struct sc_hypervisor_policy debit_lp_policy;
+extern struct sc_hypervisor_policy throughput_lp_policy;
 #endif // STARPU_HAVE_GLPK_
 extern struct sc_hypervisor_policy ispeed_policy;
 
@@ -51,7 +51,7 @@ static struct sc_hypervisor_policy *predefined_policies[] =
 	&feft_lp_policy,
 	&teft_lp_policy,
 	&ispeed_lp_policy,
-	&debit_lp_policy,
+	&throughput_lp_policy,
 #endif // STARPU_HAVE_GLPK_H
 	&gflops_rate_policy,
 	&ispeed_policy
@@ -99,6 +99,25 @@ static struct sc_hypervisor_policy *_find_hypervisor_policy_from_name(const char
 	return NULL;
 }
 
+static void display_sched_help_message(void)
+{
+	const char* policy_name = getenv("SC_HYPERVISOR_POLICY");
+	if (policy_name && (strcmp(policy_name, "help") == 0))
+	{
+		fprintf(stderr, "SC_HYPERVISOR_POLICY can be either of\n");
+		/* display the description of all predefined policies */
+		unsigned i;
+		for (i = 0; i < sizeof(predefined_policies)/sizeof(predefined_policies[0]); i++)
+		{
+			struct sc_hypervisor_policy *p = predefined_policies[i];
+			if (p->name)
+			{
+				fprintf(stderr, "%s\n", p->name);
+			}
+		}
+	}
+}
+
 static struct sc_hypervisor_policy *_select_hypervisor_policy(struct sc_hypervisor_policy* hypervisor_policy)
 {
 	struct sc_hypervisor_policy *selected_policy = NULL;
@@ -131,8 +150,11 @@ static struct sc_hypervisor_policy *_select_hypervisor_policy(struct sc_hypervis
 
 
 /* initializez the performance counters that starpu will use to retrive hints for resizing */
-struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hypervisor_policy *hypervisor_policy)
-{
+void* sc_hypervisor_init(struct sc_hypervisor_policy *hypervisor_policy)
+{	
+/* Perhaps we have to display some help */
+	display_sched_help_message();
+
 	hypervisor.min_tasks = 0;
 	hypervisor.nsched_ctxs = 0;
 	char* vel_gap = getenv("SC_HYPERVISOR_MAX_SPEED_GAP");
@@ -167,13 +189,18 @@ struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hyper
 
 		hypervisor.sched_ctx_w[i].ref_speed[0] = -1.0;
 		hypervisor.sched_ctx_w[i].ref_speed[1] = -1.0;
-
+		hypervisor.sched_ctx_w[i].ready_flops = 0.0;
+		hypervisor.sched_ctx_w[i].total_flops_available = 0;
+		hypervisor.sched_ctx_w[i].nready_tasks = 0;
+		hypervisor.sched_ctx_w[i].to_be_sized = 0;
 		int j;
 		for(j = 0; j < STARPU_NMAXWORKERS; j++)
 		{
 			hypervisor.sched_ctx_w[i].current_idle_time[j] = 0.0;
 			hypervisor.sched_ctx_w[i].idle_time[j] = 0.0;
 			hypervisor.sched_ctx_w[i].idle_start_time[j] = 0.0;
+			hypervisor.sched_ctx_w[i].exec_time[j] = 0.0;
+			hypervisor.sched_ctx_w[i].exec_start_time[j] = 0.0;
 			hypervisor.sched_ctx_w[i].pushed_tasks[j] = 0;
 			hypervisor.sched_ctx_w[i].poped_tasks[j] = 0;
 			hypervisor.sched_ctx_w[i].elapsed_flops[j] = 0.0;
@@ -191,14 +218,15 @@ struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hyper
 	perf_counters->notify_idle_cycle = notify_idle_cycle;
 	perf_counters->notify_pushed_task = notify_pushed_task;
 	perf_counters->notify_poped_task = notify_poped_task;
-	perf_counters->notify_post_exec_hook = notify_post_exec_hook;
-	perf_counters->notify_idle_end = notify_idle_end;
+	perf_counters->notify_post_exec_task = notify_post_exec_task;
 	perf_counters->notify_submitted_job = notify_submitted_job;
+	perf_counters->notify_ready_task = notify_ready_task;
+	perf_counters->notify_empty_ctx = notify_empty_ctx;
 	perf_counters->notify_delete_context = notify_delete_context;
 
 	starpu_sched_ctx_notify_hypervisor_exists();
 
-	return perf_counters;
+	return (void*)perf_counters;
 }
 
 const char* sc_hypervisor_get_policy()
@@ -247,7 +275,6 @@ static void _print_current_time()
 
 void sc_hypervisor_shutdown(void)
 {
-//	printf("shutdown\n");
 	int i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
@@ -261,8 +288,7 @@ void sc_hypervisor_shutdown(void)
 	perf_counters->notify_idle_cycle = NULL;
 	perf_counters->notify_pushed_task = NULL;
 	perf_counters->notify_poped_task = NULL;
-	perf_counters->notify_post_exec_hook = NULL;
-	perf_counters->notify_idle_end = NULL;
+	perf_counters->notify_post_exec_task = NULL;
 	perf_counters->notify_delete_context = NULL;
 
 	free(perf_counters);
@@ -286,12 +312,11 @@ void sc_hypervisor_register_ctx(unsigned sched_ctx, double total_flops)
 
 	hypervisor.sched_ctx_w[sched_ctx].total_flops = total_flops;
 	hypervisor.sched_ctx_w[sched_ctx].remaining_flops = total_flops;
-	if(strcmp(hypervisor.policy.name, "app_driven") == 0)
-		hypervisor.resize[sched_ctx] = 1;
+	hypervisor.resize[sched_ctx] = 1;
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }
 
-static int _get_first_free_sched_ctx(int *sched_ctxs, int nsched_ctxs)
+static int _get_first_free_sched_ctx(unsigned *sched_ctxs, int nsched_ctxs)
 {
 	int i;
 	for(i = 0; i < nsched_ctxs; i++)
@@ -305,7 +330,7 @@ static int _get_first_free_sched_ctx(int *sched_ctxs, int nsched_ctxs)
    and have instead {5, 7, MAXVAL, MAXVAL, MAXVAL}
    it is easier afterwards to iterate the array
 */
-static void _rearange_sched_ctxs(int *sched_ctxs, int old_nsched_ctxs)
+static void _rearange_sched_ctxs(unsigned *sched_ctxs, int old_nsched_ctxs)
 {
 	int first_free_id = STARPU_NMAX_SCHED_CTXS;
 	int i;
@@ -332,7 +357,7 @@ void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
 	unsigned i;
 	for(i = 0; i < hypervisor.nsched_ctxs; i++)
 	{
-		if(hypervisor.sched_ctxs[i] == (int)sched_ctx)
+		if(hypervisor.sched_ctxs[i] == sched_ctx)
 		{
 			hypervisor.sched_ctxs[i] = STARPU_NMAX_SCHED_CTXS;
 			break;
@@ -344,8 +369,6 @@ void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
 	hypervisor.sched_ctx_w[sched_ctx].sched_ctx = STARPU_NMAX_SCHED_CTXS;
 	_remove_config(sched_ctx);
 
-/* 	free(hypervisor.configurations[sched_ctx]); */
-/* 	free(hypervisor.resize_requests[sched_ctx]); */
 	starpu_pthread_mutex_destroy(&hypervisor.conf_mut[sched_ctx]);
 	starpu_pthread_mutex_destroy(&hypervisor.resize_mut[sched_ctx]);
 	if(hypervisor.nsched_ctxs == 1)
@@ -374,21 +397,6 @@ static int get_ntasks( int *tasks)
 		ntasks += tasks[j];
 	}
 	return ntasks;
-}
-
-
-static void _get_cpus(int *workers, int nworkers, int *cpus, int *ncpus)
-{
-	int i, worker;
-	*ncpus = 0;
-
-	for(i = 0; i < nworkers; i++)
-	{
-		worker = workers[i];
-		enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-		if(arch == STARPU_CPU_WORKER)
-			cpus[(*ncpus)++] = worker;
-	}
 }
 
 int sc_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_worker_archtype arch)
@@ -428,18 +436,39 @@ static void _set_elapsed_flops_per_sched_ctx(unsigned sched_ctx, double val)
 double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper* sc_w)
 {
 	double ret_val = 0.0;
-	int i;
-	for(i = 0; i < STARPU_NMAXWORKERS; i++)
-		ret_val += sc_w->elapsed_flops[i];
+
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
+	int worker;
+	
+	struct starpu_sched_ctx_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+		
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		ret_val += sc_w->elapsed_flops[worker];
+	}
+
 	return ret_val;
 }
 
 double sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper* sc_w)
 {
 	double ret_val = 0.0;
-	int i;
-	for(i = 0; i < STARPU_NMAXWORKERS; i++)
-		ret_val += sc_w->total_elapsed_flops[i];
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
+	int worker;
+	
+	struct starpu_sched_ctx_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+		
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		ret_val += sc_w->total_elapsed_flops[worker];
+	}
+
 	return ret_val;
 }
 
@@ -449,24 +478,50 @@ static void _reset_idle_time(unsigned sched_ctx)
 	for(i = 0; i < STARPU_NMAXWORKERS; i++)
 	{
 		hypervisor.sched_ctx_w[sched_ctx].idle_time[i] = 0.0;
+		hypervisor.sched_ctx_w[sched_ctx].idle_start_time[i] = hypervisor.sched_ctx_w[sched_ctx].idle_start_time[i] != 0.0 ? starpu_timing_now() : 0.0;
 	}
 	return;
 }
 
 void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sched_ctx)
 {
-	/* info concerning only the gflops_rate strateg */
-	struct sc_hypervisor_wrapper *sender_sc_w = &hypervisor.sched_ctx_w[sender_sched_ctx];
-	struct sc_hypervisor_wrapper *receiver_sc_w = &hypervisor.sched_ctx_w[receiver_sched_ctx];
-	
 	double start_time =  starpu_timing_now();
-	sender_sc_w->start_time = start_time;
-	_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
-	_reset_idle_time(sender_sched_ctx);
+	if(sender_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+	{
+		/* info concerning only the gflops_rate strateg */
+		struct sc_hypervisor_wrapper *sender_sc_w = &hypervisor.sched_ctx_w[sender_sched_ctx];
+		
+		sender_sc_w->start_time = start_time;
+		_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
+		_reset_idle_time(sender_sched_ctx);
+		int i;
+		for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		{
+			sender_sc_w->idle_start_time[i] = 0.0;
+			hypervisor.sched_ctx_w[sender_sched_ctx].exec_start_time[i] = 0.0;
+			hypervisor.sched_ctx_w[sender_sched_ctx].exec_time[i] = 0.0;
+		}
+		
+	}
 
-	receiver_sc_w->start_time = start_time;
-	_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
-	_reset_idle_time(receiver_sched_ctx);
+	if(receiver_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+	{
+
+		struct sc_hypervisor_wrapper *receiver_sc_w = &hypervisor.sched_ctx_w[receiver_sched_ctx];
+		
+		receiver_sc_w->start_time = start_time;
+		_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
+		_reset_idle_time(receiver_sched_ctx);
+		int i;
+		for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		{
+			receiver_sc_w->idle_start_time[i] = (hypervisor.sched_ctx_w[receiver_sched_ctx].idle_start_time[i] != 0.0) ? starpu_timing_now() : 0.0;
+			hypervisor.sched_ctx_w[receiver_sched_ctx].exec_start_time[i] = 0.0;
+			hypervisor.sched_ctx_w[receiver_sched_ctx].exec_time[i] = 0.0;
+
+		}
+
+	}
 }
 
 /* actually move the workers: the cpus are moved, gpus are only shared  */
@@ -517,7 +572,7 @@ void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sch
 				}
 
 				hypervisor.resize[sender_sched_ctx] = 0;
-
+				if(imposed_resize)  imposed_resize = 0;
 				starpu_pthread_mutex_unlock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
 			}
 		}
@@ -545,6 +600,7 @@ void sc_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworke
 		unsigned i;
 		for(i = 0; i < nworkers_to_add; i++)
 			new_config->max_idle[workers_to_add[i]] = new_config->max_idle[workers_to_add[i]] != MAX_IDLE_TIME ? new_config->max_idle[workers_to_add[i]] :  new_config->new_workers_max_idle;
+		_reset_resize_sample_info(STARPU_NMAX_SCHED_CTXS, sched_ctx);
 
 	}
 	return;
@@ -572,6 +628,7 @@ void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigne
 			printf("\n");
 			
 			starpu_sched_ctx_remove_workers(workers_to_remove, nworkers_to_remove, sched_ctx);
+			_reset_resize_sample_info(sched_ctx, STARPU_NMAX_SCHED_CTXS);
 		}
 		else
 		{
@@ -604,6 +661,7 @@ void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigne
 				}
 
 				hypervisor.resize[sched_ctx] = 0;
+				if(imposed_resize)  imposed_resize = 0;
 				starpu_pthread_mutex_unlock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
 			}
 		}
@@ -615,7 +673,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 {
 	if(worker != -1 && !starpu_sched_ctx_contains_worker(worker, sched_ctx))
 		return 0;
-
+	
 	struct sc_hypervisor_resize_ack *resize_ack = NULL;
 	unsigned sender_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 
@@ -627,7 +685,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 			struct sc_hypervisor_wrapper *sc_w = &hypervisor.sched_ctx_w[hypervisor.sched_ctxs[i]];
 			starpu_pthread_mutex_lock(&sc_w->mutex);
 			unsigned only_remove = 0;
-			if(sc_w->resize_ack.receiver_sched_ctx == -1 && hypervisor.sched_ctxs[i] != (int)sched_ctx &&
+			if(sc_w->resize_ack.receiver_sched_ctx == -1 && hypervisor.sched_ctxs[i] != sched_ctx &&
 			   sc_w->resize_ack.nmoved_workers > 0 && starpu_sched_ctx_contains_worker(worker, hypervisor.sched_ctxs[i]))
 			{
 				int j;
@@ -635,6 +693,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 					if(sc_w->resize_ack.moved_workers[j] == worker)
 					{
 						only_remove = 1;
+						_reset_resize_sample_info(sched_ctx, STARPU_NMAX_SCHED_CTXS);
 						starpu_pthread_mutex_unlock(&sc_w->mutex);
 						break;
 					}
@@ -653,7 +712,9 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 
 	/* if there is no ctx waiting for its ack return 1*/
 	if(resize_ack == NULL)
+	{
 		return 1;
+	}
 
 	int ret = starpu_pthread_mutex_trylock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
 	if(ret != EBUSY)
@@ -734,15 +795,113 @@ void sc_hypervisor_post_resize_request(unsigned sched_ctx, int task_tag)
 	starpu_pthread_mutex_unlock(&hypervisor.resize_mut[sched_ctx]);
 }
 
-void sc_hypervisor_resize_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
+void sc_hypervisor_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
 	if(hypervisor.policy.resize_ctxs)
 		hypervisor.policy.resize_ctxs(sched_ctxs, nsched_ctxs, workers, nworkers);
 }
 
-/* notifies the hypervisor that the worker is no longer idle and a new task was pushed on its queue */
-static void notify_idle_end(unsigned sched_ctx, int worker)
+void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 {
+	unsigned sched_ctx;
+	int total_max_nworkers = 0;
+	int max_cpus = starpu_cpu_worker_get_count();
+	double max_workers_idle_time[nsched_ctxs];
+	unsigned configured = 0;
+	int i;
+	for(i = 0; i < nsched_ctxs; i++)
+	{
+		sched_ctx = sched_ctxs[i];
+
+		if(hypervisor.sched_ctx_w[sched_ctx].to_be_sized) continue;
+
+		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctx);
+		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx);
+		int worker;
+		
+		struct starpu_sched_ctx_iterator it;
+		if(workers->init_iterator)
+			workers->init_iterator(workers, &it);
+		
+		max_workers_idle_time[i] = 0.0;
+		int nshared_workers = 0;
+		double cpu_used_in_shared = 0.0;
+		double exec_time = 0.0;
+		while(workers->has_next(workers, &it))
+		{
+			worker = workers->get_next(workers, &it);
+			if(hypervisor.sched_ctx_w[sched_ctx].idle_start_time[worker]==0.0)
+			{
+				max_workers_idle_time[i] += hypervisor.sched_ctx_w[sched_ctx].idle_time[worker]; /* in seconds */
+			}
+			else
+			{
+				double end_time  = starpu_timing_now();
+				double idle = (end_time - hypervisor.sched_ctx_w[sched_ctx].idle_start_time[worker]) / 1000000.0; /* in seconds */ 
+				max_workers_idle_time[i] += hypervisor.sched_ctx_w[sched_ctx].idle_time[worker] + idle;
+			}		
+			exec_time += hypervisor.sched_ctx_w[sched_ctx].exec_time[worker];
+		}			
+
+		
+		double curr_time = starpu_timing_now();
+		double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /* in seconds */
+		double norm_idle_time = max_workers_idle_time[i] / elapsed_time;
+		double norm_exec_time = exec_time / elapsed_time;
+
+		if(norm_idle_time >= 0.9)
+		{
+//			config->max_nworkers = 	workers->nworkers - lrint(norm_idle_time);
+			config->max_nworkers = lrint(norm_exec_time);
+/* 			if(config->max_nworkers > hypervisor.sched_ctx_w[sched_ctx].nready_tasks) */
+/* 				config->max_nworkers = hypervisor.sched_ctx_w[sched_ctx].nready_tasks - 1; */
+		}
+		else
+		{
+			if(norm_idle_time < 0.1)//(max_workers_idle_time[i] < 0.000001)
+				config->max_nworkers = lrint(norm_exec_time)  + hypervisor.sched_ctx_w[sched_ctx].nready_tasks - 1; //workers->nworkers + hypervisor.sched_ctx_w[sched_ctx].nready_tasks - 1;
+/* 			else */
+/* 				config->max_nworkers = workers->nworkers; */
+		}
+		
+		if(config->max_nworkers < 0)
+			config->max_nworkers = 0;
+		if(config->max_nworkers > max_cpus)
+			config->max_nworkers = max_cpus;
+		
+		printf("%d: ready tasks  %d idle for long %lf norm_idle_time %lf elapsed_time %lf norm_exec_time %lf nworker %d max %d \n", 
+		       sched_ctx, hypervisor.sched_ctx_w[sched_ctx].nready_tasks, max_workers_idle_time[i], norm_idle_time, elapsed_time, norm_exec_time, workers->nworkers, config->max_nworkers);
+
+
+		total_max_nworkers += config->max_nworkers;
+		configured = 1;
+	}
+
+	/*if the sum of the max cpus is smaller than the total cpus available 
+	  increase the max for the ones having more ready tasks to exec */
+	if(configured && total_max_nworkers < max_cpus)
+	{
+		int diff = max_cpus - total_max_nworkers;
+		int max_nready = -1;
+		unsigned max_nready_sched_ctx = sched_ctxs[0];
+		for(i = 0; i < nsched_ctxs; i++)
+		{
+			if(max_nready < hypervisor.sched_ctx_w[sched_ctxs[i]].nready_tasks)
+			{
+				max_nready = hypervisor.sched_ctx_w[sched_ctxs[i]].nready_tasks;
+				max_nready_sched_ctx = sched_ctxs[i];
+			}
+		}
+		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(max_nready_sched_ctx);
+		config->max_nworkers += diff;
+		printf("%d: redib max_nworkers incr %d \n",  max_nready_sched_ctx, config->max_nworkers);
+	}
+}
+/* notifies the hypervisor that the worker is no longer idle and a new task was pushed on its queue */
+static void notify_poped_task(unsigned sched_ctx, int worker)
+{
+	hypervisor.sched_ctx_w[sched_ctx].exec_start_time[worker] = starpu_timing_now();
+
 	if(hypervisor.resize[sched_ctx])
 		hypervisor.sched_ctx_w[sched_ctx].current_idle_time[worker] = 0.0;
 
@@ -754,7 +913,7 @@ static void notify_idle_end(unsigned sched_ctx, int worker)
 		sc_w->idle_time[worker] += (end_time - sc_w->idle_start_time[worker]) / 1000000.0; /* in seconds */ 
 		sc_w->idle_start_time[worker] = 0.0;
 	}
-
+			
 	if(hypervisor.policy.handle_idle_end)
 		hypervisor.policy.handle_idle_end(sched_ctx, worker);
 
@@ -770,7 +929,7 @@ static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time)
 
 		if(sc_w->idle_start_time[worker] == 0.0)
 			sc_w->idle_start_time[worker] = starpu_timing_now();
-
+		
 		if(hypervisor.policy.handle_idle_cycle)
 		{
 			hypervisor.policy.handle_idle_cycle(sched_ctx, worker);
@@ -802,31 +961,73 @@ static void notify_pushed_task(unsigned sched_ctx, int worker)
 		hypervisor.policy.handle_pushed_task(sched_ctx, worker);
 }
 
-/* notifies the hypervisor that a task was poped from the queue of the worker */
-static void notify_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, size_t data_size, uint32_t footprint)
+
+/* notifies the hypervisor that a tagged task has just been executed */
+static void notify_post_exec_task(struct starpu_task *task, size_t data_size, uint32_t footprint, int task_tag)
 {
+	unsigned sched_ctx = task->sched_ctx;
+	int worker = starpu_worker_get_id();
+
 	hypervisor.sched_ctx_w[sched_ctx].poped_tasks[worker]++;
 	hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[worker] += task->flops;
 	hypervisor.sched_ctx_w[sched_ctx].elapsed_data[worker] += data_size ;
 	hypervisor.sched_ctx_w[sched_ctx].elapsed_tasks[worker]++ ;
 	hypervisor.sched_ctx_w[sched_ctx].total_elapsed_flops[worker] += task->flops;
-	hypervisor.sched_ctx_w[sched_ctx].remaining_flops -= task->flops; //sc_hypervisor_get_elapsed_flops_per_sched_ctx(&hypervisor.sched_ctx_w[sched_ctx]);
 
+	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
+	hypervisor.sched_ctx_w[sched_ctx].remaining_flops -= task->flops;
+	hypervisor.sched_ctx_w[sched_ctx].nready_tasks--;
+	hypervisor.sched_ctx_w[sched_ctx].ready_flops -= task->flops;
+	if(hypervisor.sched_ctx_w[sched_ctx].ready_flops < 0.0)
+		hypervisor.sched_ctx_w[sched_ctx].ready_flops = 0.0;
+	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+
+/* 	struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctx); */
+	
+/* 	unsigned finished_sample = 0; */
+/* 	char *speed_sample_criteria = getenv("SC_HYPERVISOR_SAMPLE_CRITERIA"); */
+/* 	if(speed_sample_criteria && (strcmp(speed_sample_criteria, "time") == 0)) */
+/* 	{ */
+
+/* 		double curr_time = starpu_timing_now(); */
+/* 		double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /\* in seconds *\/ */
+
+/* 		finished_sample = elapsed_time > config->time_sample; */
+/* 	} */
+/* 	else */
+/* 	{ */
+/* 		double ctx_elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(&hypervisor.sched_ctx_w[sched_ctx]); */
+/* 		double ctx_sample = config->ispeed_ctx_sample; */
+
+/* 		finished_sample = ctx_elapsed_flops > ctx_sample; */
+/* 	} */
+
+/* 	if(finished_sample) */
+/* 	{ */
+/* 		sc_hypervisor_update_resize_interval(sched_ctx); */
+/* 	} */
+	
 	if(hypervisor.resize[sched_ctx])
 	{	
 		if(hypervisor.policy.handle_poped_task)
 			hypervisor.policy.handle_poped_task(sched_ctx, worker, task, footprint);
 	}
+	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
 	_ack_resize_completed(sched_ctx, worker);
+	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	if(hypervisor.sched_ctx_w[sched_ctx].poped_tasks[worker] % 200 == 0)
 		_print_current_time();
-}
 
-/* notifies the hypervisor that a tagged task has just been executed */
-static void notify_post_exec_hook(unsigned sched_ctx, int task_tag)
-{
-	STARPU_ASSERT(task_tag > 0);
-
+	if(task_tag <= 0)
+	{
+		int workerid = starpu_worker_get_id();
+		double current_time = starpu_timing_now();
+		hypervisor.sched_ctx_w[sched_ctx].exec_time[worker] += current_time - 
+			hypervisor.sched_ctx_w[sched_ctx].exec_start_time[worker] / 1000000.0; /* in seconds */ 
+		hypervisor.sched_ctx_w[sched_ctx].exec_start_time[worker] = 0.0;
+		return; 
+	}
+	
 	unsigned conf_sched_ctx;
 	unsigned i;
 	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
@@ -885,6 +1086,19 @@ static void notify_submitted_job(struct starpu_task *task, uint32_t footprint, s
 		hypervisor.policy.handle_submitted_job(task->cl, task->sched_ctx, footprint, data_size);
 }
 
+static void notify_ready_task(unsigned sched_ctx_id, struct starpu_task *task)
+{
+	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
+	hypervisor.sched_ctx_w[sched_ctx_id].nready_tasks++;
+	hypervisor.sched_ctx_w[sched_ctx_id].ready_flops += task->flops;
+	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+}
+
+static void notify_empty_ctx(unsigned sched_ctx_id, struct starpu_task *task)
+{
+	sc_hypervisor_resize_ctxs(NULL, -1 , NULL, -1);
+}
+
 void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, size_t data_size)
 {
 	type_of_tasks_known = 1;
@@ -898,11 +1112,11 @@ static void notify_delete_context(unsigned sched_ctx)
 	sc_hypervisor_unregister_ctx(sched_ctx);
 }
 
-void sc_hypervisor_size_ctxs(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
+void sc_hypervisor_size_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
 {
 	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
-	unsigned curr_nsched_ctxs = sched_ctxs == NULL ? hypervisor.nsched_ctxs : nsched_ctxs;
-	int *curr_sched_ctxs = sched_ctxs == NULL ? hypervisor.sched_ctxs : sched_ctxs;
+	unsigned curr_nsched_ctxs = sched_ctxs == NULL ? hypervisor.nsched_ctxs : (unsigned)nsched_ctxs;
+	unsigned *curr_sched_ctxs = sched_ctxs == NULL ? hypervisor.sched_ctxs : sched_ctxs;
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	unsigned s;
 	for(s = 0; s < curr_nsched_ctxs; s++)
@@ -917,7 +1131,7 @@ struct sc_hypervisor_wrapper* sc_hypervisor_get_wrapper(unsigned sched_ctx)
 	return &hypervisor.sched_ctx_w[sched_ctx];
 }
 
-int* sc_hypervisor_get_sched_ctxs()
+unsigned* sc_hypervisor_get_sched_ctxs()
 {
 	return hypervisor.sched_ctxs;
 }
@@ -929,7 +1143,13 @@ int sc_hypervisor_get_nsched_ctxs()
 	return ns;
 }
 
-void sc_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
+int _sc_hypervisor_use_lazy_resize(void)
+{
+	char* lazy = getenv("SC_HYPERVISOR_LAZY_RESIZE");
+	return lazy ? atoi(lazy)  : 1;
+}
+
+void sc_hypervisor_save_size_req(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
 {
 	hypervisor.sr = (struct size_request*)malloc(sizeof(struct size_request));
 	hypervisor.sr->sched_ctxs = sched_ctxs;
@@ -938,7 +1158,7 @@ void sc_hypervisor_save_size_req(int *sched_ctxs, int nsched_ctxs, int *workers,
 	hypervisor.sr->nworkers = nworkers;
 }
 
-unsigned sc_hypervisor_get_size_req(int **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers)
+unsigned sc_hypervisor_get_size_req(unsigned **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers)
 {
 	if(hypervisor.sr != NULL)
 	{
@@ -968,4 +1188,51 @@ double _get_optimal_v(unsigned sched_ctx)
 void _set_optimal_v(unsigned sched_ctx, double optimal_v)
 {
 	hypervisor.optimal_v[sched_ctx] = optimal_v;
+}
+
+static struct types_of_workers* _init_structure_types_of_workers(void)
+{
+	struct types_of_workers *tw = (struct types_of_workers*)malloc(sizeof(struct types_of_workers));
+        tw->ncpus = 0;
+	tw->ncuda = 0;
+        tw->nw = 0;
+        return tw;
+}
+
+struct types_of_workers* sc_hypervisor_get_types_of_workers(int *workers, unsigned nworkers)
+{
+	struct types_of_workers *tw = _init_structure_types_of_workers();
+
+        unsigned w;
+	for(w = 0; w < nworkers; w++)
+        {
+                enum starpu_worker_archtype arch = workers == NULL ? starpu_worker_get_type((int)w) : starpu_worker_get_type(workers[w]);
+                if(arch == STARPU_CPU_WORKER)
+			tw->ncpus++;
+                if(arch == STARPU_CUDA_WORKER)
+			tw->ncuda++;
+        }
+        if(tw->ncpus > 0) tw->nw++;
+        if(tw->ncuda > 0) tw->nw++;
+	return tw;
+}
+
+void sc_hypervisor_update_diff_total_flops(unsigned sched_ctx, double diff_total_flops)
+{
+	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
+	hypervisor.sched_ctx_w[sched_ctx].total_flops += diff_total_flops;
+	hypervisor.sched_ctx_w[sched_ctx].remaining_flops += diff_total_flops;	
+	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+}
+
+void sc_hypervisor_update_diff_elapsed_flops(unsigned sched_ctx, double diff_elapsed_flops)
+{
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1)
+	{
+		starpu_pthread_mutex_lock(&act_hypervisor_mutex);
+		hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[workerid] += diff_elapsed_flops;
+		hypervisor.sched_ctx_w[sched_ctx].total_elapsed_flops[workerid] += diff_elapsed_flops;
+		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+	}
 }

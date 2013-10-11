@@ -18,6 +18,7 @@
 
 INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 		       	 @top_srcdir@/doc/doxygen/chapters/api \
+		       	 @top_srcdir@/doc/doxygen/chapters/api/sc_hypervisor \
                          @top_builddir@/doc/doxygen/starpu_config.h \
 	 		 @top_srcdir@/include/starpu_bound.h \
 			 @top_srcdir@/include/starpu_cublas.h \
@@ -39,6 +40,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu_rand.h \
 			 @top_srcdir@/include/starpu_scc.h \
 			 @top_srcdir@/include/starpu_sched_ctx.h \
+			 @top_srcdir@/include/starpu_sched_ctx_hypervisor.h \
 			 @top_srcdir@/include/starpu_scheduler.h \
 			 @top_srcdir@/include/starpu_sink.h \
 			 @top_srcdir@/include/starpu_stdlib.h \

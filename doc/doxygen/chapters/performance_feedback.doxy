@@ -10,7 +10,7 @@
 
 \section UsingTheTemanejoTaskDebugger Using The Temanejo Task Debugger
 
-StarPU can connect to Temanejo (see
+StarPU can connect to Temanejo >= 1.0rc2 (see
 http://www.hlrs.de/temanejo), to permit
 nice visual task debugging. To do so, build Temanejo's <c>libayudame.so</c>,
 install <c>Ayudame.h</c> to e.g. <c>/usr/local/include</c>, apply the
@@ -35,7 +35,10 @@ call starpu_profiling_status_set() with the parameter
 is already enabled or not by calling starpu_profiling_status_get().
 Enabling monitoring also reinitialize all previously collected
 feedback. The environment variable \ref STARPU_PROFILING can also be
-set to <c>1</c> to achieve the same effect.
+set to <c>1</c> to achieve the same effect. The function
+starpu_profiling_init() can also be called during the execution to
+reinitialize performance counters and to start the profiling if the
+environment variable \ref STARPU_PROFILING is set to <c>1</c>.
 
 Likewise, performance monitoring is stopped by calling
 starpu_profiling_status_set() with the parameter
@@ -578,6 +581,21 @@ Computation took (in ms)
 518.16
 Synthetic GFlops : 44.21
 \endverbatim
+
+\section DataTrace Data trace and tasks length
+It is possible to get statistics about tasks length and data size by using :
+\verbatim
+$starpu_fxt_data_trace filename [codelet1 codelet2 ... codeletn]
+\endverbatim
+Where filename is the FxT trace file and codeletX the names of the codelets you 
+want to profile (if no names are specified, starpu_fxt_data_trace will use them all). 
+This will create a file, <c>data_trace.gp</c> which
+can be plotted to get a .eps image of these results. On the image, each point represents a 
+task, and each color corresponds to a codelet.
+
+\image html data_trace.png
+\image latex data_trace.eps "" width=\textwidth
+
 
 \internal
 TODO: data transfer stats are similar to the ones displayed when

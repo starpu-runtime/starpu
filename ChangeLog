@@ -40,15 +40,39 @@ New features:
     handle (sequential consistency will be enabled or disabled based
     on the value of the function parameter and the value of the
     sequential consistency defined for the given data)
+  * Performance models files are now stored in a directory whose name
+    include the version of the performance model format. The version
+    number is also written in the file itself.
+    When updating the format, the internal variable
+    _STARPU_PERFMODEL_VERSION should be updated. It is then possible
+    to switch easily between differents versions of StarPU having
+    different performance model formats.
+  * Tasks can now define a optional prologue callback which is executed
+    on the host when the task becomes ready for execution, before getting
+    scheduled.
+  * Small CUDA allocations (<= 4MiB) are now batched to avoid the huge
+    cudaMalloc overhead.
+  * Prefetching is now done for all schedulers when it can be done whatever
+    the scheduling decision.
 
 Small features:
-  * Add cl_arg_free field to enable automatic free(cl_arg) on task
-    destroy.
   * New functions starpu_data_acquire_cb_sequential_consistency() and
     starpu_data_acquire_on_node_cb_sequential_consistency() which allows
     to enable or disable sequential consistency
   * New configure option --enable-fxt-lock which enables additional
     trace events focused on locks behaviour during the execution
+  * New function starpu_perfmodel_directory() to print directory
+    storing performance models. Available through the new option -d of
+    the tool starpu_perfmodel_display
+  * New batch files to execute StarPU applications under Microsoft
+    Visual Studio (They are installed in path_to_starpu/bin/mvsc)/
+  * Add cl_arg_free, callback_arg_free, prologue_callback_arg_free fields to
+    enable automatic free(cl_arg); free(callback_arg);
+    free(prologue_callback_arg) on task destroy.
+  * New function starpu_task_build
+  * Functions starpu_insert_task and starpu_mpi_insert_task are
+    renamed in starpu_task_insert and starpu_mpi_task_insert. Old
+    names are kept to avoid breaking old codes.
 
 Changes:
   * Fix of the livelock issue discovered while executing applications
@@ -56,6 +80,15 @@ Changes:
     threshold before a blocking lock.
   * Data interfaces (variable, vector, matrix and block) now define
     pack und unpack functions
+  * Fix for properly dealing with NAN on windows systems
+  * StarPU-MPI: Fix for being able to receive data which have not yet
+    been registered by the application (i.e it did not call
+    starpu_data_set_tag(), data are received as a raw memory)
+  * StarPU-MPI: Fix for being able to receive data with the same tag
+    from several nodes (see mpi/tests/gather.c)
+  * Function starpu_sched_ctx_create() now takes a variable argument
+    list to define the scheduler to be used, and the minimum and
+    maximum priority values
 
 StarPU 1.1.0 (svn revision xxxx)
 ==============================================

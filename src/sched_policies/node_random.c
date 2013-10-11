@@ -25,7 +25,7 @@ static double compute_relative_speedup(struct starpu_sched_node * node)
 	    id != -1;
 	    id = starpu_bitmap_next(node->workers_in_ctx, id))
 	{
-		enum starpu_perfmodel_archtype perf_arch = starpu_worker_get_perf_archtype(id);
+		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(id);
 		sum += starpu_worker_get_relative_speedup(perf_arch);
 
 	}

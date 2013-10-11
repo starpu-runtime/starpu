@@ -64,6 +64,10 @@ returns the local pointer to the data with CUDA format.
 \ingroup API_Multiformat_Data_Interface
 returns the local pointer to the data with OpenCL format.
 
+\def STARPU_MULTIFORMAT_GET_MIC_PTR(interface)
+\ingroup API_Multiformat_Data_Interface
+returns the local pointer to the data with MIC format.
+
 \def STARPU_MULTIFORMAT_GET_NX(interface)
 \ingroup API_Multiformat_Data_Interface
 returns the number of elements in the data.

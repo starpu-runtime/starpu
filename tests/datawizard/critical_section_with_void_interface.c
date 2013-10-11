@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux 1
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,8 +29,6 @@ int critical_var;
 
 static void critical_section(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	/* We do not protect this variable because it is only accessed when the
 	 * "void_handle" piece of data is accessed. */
 	critical_var++;
@@ -82,7 +80,7 @@ int main(int argc, char **argv)
 
 	starpu_shutdown();
 
-	STARPU_RETURN(ret);
+	return ret;
 
 enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");

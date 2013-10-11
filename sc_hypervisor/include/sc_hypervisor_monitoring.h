@@ -49,10 +49,19 @@ struct sc_hypervisor_wrapper
 
 	/* idle time of workers in this context */
 	double current_idle_time[STARPU_NMAXWORKERS];
-	
+
+	/* idle time from the last resize */
 	double idle_time[STARPU_NMAXWORKERS];
+
+	/* time when the idle started */
 	double idle_start_time[STARPU_NMAXWORKERS];
 	
+	/* time during which the worker executed tasks */
+	double exec_time[STARPU_NMAXWORKERS];
+
+	/* time when the worker started executing a task */
+	double exec_start_time[STARPU_NMAXWORKERS];
+
 	/* list of workers that will leave this contexts (lazy resizing process) */
 	int worker_to_be_removed[STARPU_NMAXWORKERS];
 
@@ -87,6 +96,9 @@ struct sc_hypervisor_wrapper
 	/* number of flops that still have to be executed in this ctx */
 	double remaining_flops;
 	
+	/* number of flops coresponding to the ready tasks in this ctx */
+	double ready_flops;
+
 	/* the start time of the resizing sample of this context*/
 	double start_time;
 
@@ -99,13 +111,23 @@ struct sc_hypervisor_wrapper
 
 	/* mutex to protect the ack of workers */
 	starpu_pthread_mutex_t mutex;
+
+	/* boolean indicating if the resizing strategy can see the
+	   flops of all the execution or not */
+	unsigned total_flops_available;
+
+	/* the number of ready tasks submitted to a ctx */
+	int nready_tasks;
+
+	/* boolean indicating that a context is being sized */
+	unsigned to_be_sized;
 };
 
 /* return the wrapper of context that saves its monitoring information */
 struct sc_hypervisor_wrapper *sc_hypervisor_get_wrapper(unsigned sched_ctx);
 
 /* get the list of registered contexts */
-int *sc_hypervisor_get_sched_ctxs();
+unsigned *sc_hypervisor_get_sched_ctxs();
 
 /* get the number of registered contexts */
 int sc_hypervisor_get_nsched_ctxs();

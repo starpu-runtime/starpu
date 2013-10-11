@@ -21,11 +21,6 @@
 #include <stdlib.h>
 #include <starpu_config.h>
 
-#ifdef STARPU_HAVE_HWLOC
-#include <hwloc.h>
-#endif
-
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -33,12 +28,12 @@ extern "C"
 
 enum starpu_worker_archtype
 {
-	STARPU_ANY_WORKER,
 	STARPU_CPU_WORKER,
 	STARPU_CUDA_WORKER,
 	STARPU_OPENCL_WORKER,
 	STARPU_MIC_WORKER,
-	STARPU_SCC_WORKER
+	STARPU_SCC_WORKER,
+	STARPU_ANY_WORKER
 };
 
 struct starpu_sched_ctx_iterator
@@ -98,6 +93,8 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen);
 int starpu_worker_get_devid(int id);
 
 int starpu_worker_get_mp_nodeid(int id);
+
+int starpu_worker_get_nsched_ctxs(int workerid);
 
 #ifdef __cplusplus
 }

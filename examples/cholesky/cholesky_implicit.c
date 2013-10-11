@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,9 @@
 /*
  *	Create the codelets
  */
+struct starpu_perfmodel chol_model_11;
+struct starpu_perfmodel chol_model_21;
+struct starpu_perfmodel chol_model_22;
 
 static struct starpu_codelet cl11 =
 {
@@ -96,27 +99,27 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	{
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 
-                ret = starpu_insert_task(&cl11,
+                ret = starpu_task_insert(&cl11,
 					 STARPU_PRIORITY, prio_level,
 					 STARPU_RW, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 					 0);
 		if (ret == -ENODEV) return 77;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 		for (j = k+1; j<nblocks; j++)
 		{
                         starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
 
-                        ret = starpu_insert_task(&cl21,
+                        ret = starpu_task_insert(&cl21,
 						 STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatakj,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 						 0);
 			if (ret == -ENODEV) return 77;
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 			for (i = k+1; i<nblocks; i++)
 			{
@@ -125,7 +128,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					starpu_data_handle_t sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
 					starpu_data_handle_t sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
 
-					ret = starpu_insert_task(&cl22,
+					ret = starpu_task_insert(&cl22,
 								 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
 								 STARPU_R, sdataki,
 								 STARPU_R, sdatakj,
@@ -133,7 +136,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 								 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 								 0);
 					if (ret == -ENODEV) return 77;
-					STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
                                 }
 			}
 		}
@@ -345,6 +348,16 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
                 return 77;
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+#ifdef STARPU_USE_CUDA
+	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
+	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,cuda_chol_task_21_cost);
+	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,cuda_chol_task_22_cost);
+#else
+	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,NULL);
+	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,NULL);
+	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,NULL);
+#endif
 
 	starpu_cublas_init();
 

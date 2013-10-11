@@ -1,0 +1,198 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_SC_Hypervisor Scheduling Context Hypervisor - Building a new resizing policy
+
+\struct sc_hypervisor_policy
+\ingroup API_SC_Hypervisor
+This structure contains all the methods that implement a hypervisor resizing policy.
+\var sc_hypervisor_policy::name
+        Indicates the name of the policy, if there is not a custom policy, the policy corresponding to this name will be used by the hypervisor
+\var sc_hypervisor_policy::custom
+        Indicates whether the policy is custom or not
+\var sc_hypervisor_policy::size_ctxs
+	Distribute workers to contexts even at the beginning of the program
+\var sc_hypervisor_policy::resize_ctxs
+	Require explicit resizing
+\var sc_hypervisor_policy::handle_idle_cycle
+        It is called whenever the indicated worker executes another idle cycle in sched_ctx
+\var sc_hypervisor_policy::handle_pushed_task
+        It is called whenever a task is pushed on the worker’s queue corresponding to the context sched_ctx
+\var sc_hypervisor_policy::handle_poped_task
+        It is called whenever a task is poped from the worker’s queue corresponding to the context sched_ctx
+\var sc_hypervisor_policy::handle_poped_task
+	The hypervisor takes a decision when another task was poped from this worker in this ctx
+\var sc_hypervisor_policy::handle_idle_end
+        It is called whenever a task is executed on the indicated worker and context after a long period of idle time
+\var sc_hypervisor_policy::handle_post_exec_hook
+        It is called whenever a tag task has just been executed. The table of resize requests is provided as well as the tag
+\var sc_hypervisor_policy::handle_submitted_job
+	The hypervisor takes a decision when a job was submitted in this ctx
+\var sc_hypervisor_policy::end_ctx
+	The hypervisor takes a decision when a certain ctx was deleted
+
+\struct sc_hypervisor_policy_config
+\ingroup API_SC_Hypervisor
+This structure contains all configuration information of a
+context. It contains configuration information for each context, which
+can be used to construct new resize strategies.
+\var sc_hypervisor_policy_config::min_nworkers
+        Indicates the minimum number of workers needed by the context
+\var sc_hypervisor_policy_config::max_nworkers
+        Indicates the maximum number of workers needed by the context
+\var sc_hypervisor_policy_config::granularity
+        Indicates the workers granularity of the context
+\var sc_hypervisor_policy_config::priority
+        Indicates the priority of each worker in the context
+\var sc_hypervisor_policy_config::max_idle
+        Indicates the maximum idle time accepted before a resize is triggered
+\var sc_hypervisor_policy_config::min_working
+	Indicates that underneath this limit the priority of the worker is reduced
+\var sc_hypervisor_policy_config::fixed_workers
+        Indicates which workers can be moved and which ones are fixed
+\var sc_hypervisor_policy_config:: new_workers_max_idle
+        Indicates the maximum idle time accepted before a resize is triggered for the workers that just arrived in the new context
+\var sc_hypervisor_policy_config::ispeed_w_sample
+         Indicates the sample used to compute the instant speed per worker
+\var sc_hypervisor_policy_config::ispeed_ctx_sample
+        Indicates the sample used to compute the instant speed per ctxs
+\var sc_hypervisor_policy_config::time_sample
+        todo
+
+\struct sc_hypervisor_wrapper
+\ingroup API_SC_Hypervisor
+This structure is a wrapper of the contexts available in StarPU
+and contains all information about a context obtained by incrementing
+the performance counters.
+\var sc_hypervisor_wrapper::sched_ctx
+        The context wrapped
+\var sc_hypervisor_wrapper::config
+        The corresponding resize configuration
+\var sc_hypervisor_wrapper::current_idle_time
+        The idle time counter of each worker of the context
+\var sc_hypervisor_wrapper::idle_time
+	The time the workers were idle from the last resize
+\var sc_hypervisor_wrapper::idle_start_time
+	The moment when the workers started being idle
+\var sc_hypervisor_wrapper::worker_to_be_removed
+	The list of workers that will leave this contexts (lazy resizing process)
+\var sc_hypervisor_wrapper::pushed_tasks
+        The number of pushed tasks of each worker of the context
+\var sc_hypervisor_wrapper::poped_tasks
+        The number of poped tasks of each worker of the context
+\var sc_hypervisor_wrapper::total_flops
+        The total number of flops to execute by the context
+\var sc_hypervisor_wrapper::total_elapsed_flops
+        The number of flops executed by each workers of the context
+\var sc_hypervisor_wrapper::elapsed_flops
+        The number of flops executed by each worker of the context from last resize
+\var sc_hypervisor_wrapper::elapsed_data
+	The quantity of data (in bytes) used to execute tasks on each worker in this ctx
+\var sc_hypervisor_wrapper::elapsed_tasks
+	The nr of tasks executed on each worker in this ctx
+\var sc_hypervisor_wrapper::ref_speed
+	The average speed of the workers (type of workers) when they belonged to this context
+	0 - cuda 1 - cpu
+\var sc_hypervisor_wrapper::submitted_flops
+	The number of flops submitted to this ctx
+\var sc_hypervisor_wrapper::remaining_flops
+        The number of flops that still have to be executed by the workers in the context
+\var sc_hypervisor_wrapper::ready_flops
+	The number of flops corresponding to the ready tasks in this context
+\var sc_hypervisor_wrapper::start_time
+        The time when he started executed
+\var sc_hypervisor_wrapper::real_start_time
+	The first time a task was pushed to this context
+\var sc_hypervisor_wrapper::resize_ack
+        The structure confirming the last resize finished and a new one can be done
+\var sc_hypervisor_wrapper::mutex
+	The mutex needed to synchronize the acknowledgment of the workers into 
+	the receiver context
+\var sc_hypervisor_wrapper::total_flops_available
+	A boolean indicating if the hypervisor can use the flops corresponding to 
+	the entire execution of the context
+\var sc_hypervisor_wrapper::nready_tasks
+	The number of ready tasks in a context
+
+\struct sc_hypervisor_resize_ack
+\ingroup API_SC_Hypervisor
+This structures checks if the workers moved to another context
+are actually taken into account in that context.
+\var sc_hypervisor_resize_ack::receiver_sched_ctx
+        The context receiving the new workers
+\var sc_hypervisor_resize_ack::moved_workers
+        The workers moved to the receiver context
+\var sc_hypervisor_resize_ack::nmoved_workers
+        The number of workers moved
+\var sc_hypervisor_resize_ack::acked_workers
+        If the value corresponding to a worker is 1, this one is taken
+	into account in the new context if 0 not yet
+
+\struct sc_hypervisor_policy_task_pool
+task wrapper linked list
+\ingroup API_SC_Hypervisor
+\var sc_hypervisor_policy_task_pool::cl
+Which codelet has been executed
+\var sc_hypervisor_policy_task_pool::footprint
+Task footprint key
+\var sc_hypervisor_policy_task_pool::sched_ctx_id
+Context the task belongs to
+\var sc_hypervisor_policy_task_pool::n
+Number of tasks of this kind
+\var sc_hypervisor_policy_task_pool::data_size
+The quantity of data(in bytes) needed by the task to execute
+\var sc_hypervisor_policy_task_pool::next
+Other task kinds
+
+\fn void sc_hypervisor_post_resize_request(unsigned sched_ctx, int task_tag)
+\ingroup API_SC_Hypervisor
+Requires resizing the context \p sched_ctx whenever a task tagged with the id \p task_tag
+finished executing 
+
+\fn unsigned sc_hypervisor_get_size_req(unsigned **sched_ctxs, int* nsched_ctxs, int **workers, int *nworkers)
+\ingroup API_SC_Hypervisor
+Check if there are pending demands of resizing
+
+\fn void sc_hypervisor_save_size_req(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
+\ingroup API_SC_Hypervisor
+Save a demand of resizing
+
+\fn void sc_hypervisor_free_size_req(void)
+\ingroup API_SC_Hypervisor
+Clear the list of pending demands of resizing
+
+\fn unsigned sc_hypervisor_can_resize(unsigned sched_ctx)
+\ingroup API_SC_Hypervisor
+Check out if a context can be resized
+
+\fn struct sc_hypervisor_policy_config *sc_hypervisor_get_config(unsigned sched_ctx)
+\ingroup API_SC_Hypervisor
+Returns the configuration structure of a context
+
+\fn void sc_hypervisor_set_config(unsigned sched_ctx, void *config)
+\ingroup API_SC_Hypervisor
+Set a certain configuration to a contexts
+
+\fn unsigned *sc_hypervisor_get_sched_ctxs()
+\ingroup API_SC_Hypervisor
+    Gets the contexts managed by the hypervisor
+
+\fn int sc_hypervisor_get_nsched_ctxs()
+\ingroup API_SC_Hypervisor
+    Gets the number of contexts managed by the hypervisor
+
+\fn struct sc_hypervisor_wrapper *sc_hypervisor_get_wrapper(unsigned sched_ctx)
+\ingroup API_SC_Hypervisor
+    Returns the wrapper corresponding the context \p sched_ctx
+
+\fn double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrapper *sc_w)
+\ingroup API_SC_Hypervisor
+    Returns the flops of a context elapsed from the last resize
+
+
+*/

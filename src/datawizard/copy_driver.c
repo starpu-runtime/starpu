@@ -27,6 +27,7 @@
 #include <starpu_opencl.h>
 #include <starpu_cuda.h>
 #include <profiling/profiling.h>
+#include <core/disk.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -91,7 +92,7 @@ static unsigned communication_cnt = 0;
 static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				    struct _starpu_data_replicate *src_replicate,
 				    struct _starpu_data_replicate *dst_replicate,
-				    struct _starpu_data_request *req STARPU_ATTRIBUTE_UNUSED)
+				    struct _starpu_data_request *req)
 {
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
@@ -400,15 +401,40 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 #endif
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_DISK_RAM):
-		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		if(copy_methods->any_to_any)
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled() ? &req->async_channel : NULL);
+
+		else
+		{
+			struct starpu_disk_interface * disk_interface = (struct starpu_disk_interface *) dst_interface; 
+			void * obj = (void *) disk_interface->dev_handle;
+			void * ptr = NULL;
+			starpu_ssize_t size = 0;
+			handle->ops->pack_data(handle, src_node, &ptr, &size);
+			ret = _starpu_disk_full_write(src_node, dst_node, obj, ptr, size);
+			/* ptr is allocated in pack_data */
+			free(ptr);
+		}
 		break;
 		
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_CPU_RAM):
-		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		if(copy_methods->any_to_any) 
+			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled()  ? &req->async_channel : NULL);
+		else
+		{
+			struct starpu_disk_interface * disk_interface = (struct starpu_disk_interface *) src_interface; 
+			void * obj = (void *) disk_interface->dev_handle;
+			void * ptr = NULL;
+			size_t size = 0;
+			ret = _starpu_disk_full_read(src_node, dst_node, obj, &ptr, &size);
+			handle->ops->unpack_data(handle, dst_node, ptr, size); 
+			/* ptr is allocated in full_read */
+			free(ptr);
+		}
 		break;
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM,STARPU_DISK_RAM):	
-		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
 		break;
 		
 	default:
@@ -485,9 +511,8 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
  */
 int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data)
 {
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	struct _starpu_async_channel *async_channel = async_data;
-#endif
+
 	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 
@@ -579,19 +604,19 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 		return _starpu_disk_copy_src_to_disk(
 			(void*) src + src_offset, src_node,
 			(void*) dst, dst_offset, dst_node,
-			size);
+			size, async_channel);
 	}
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_CPU_RAM):
 		return _starpu_disk_copy_disk_to_src(
 			(void*) src, src_offset, src_node,
 			(void*) dst + dst_offset, dst_node,
-			size);
+			size, async_channel);
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_DISK_RAM):
 		return _starpu_disk_copy_disk_to_disk(
 			(void*) src, src_offset, src_node,
 			(void*) dst, dst_offset, dst_node,
-			size);
+			size, async_channel);
 
 	default:
 		STARPU_ABORT();
@@ -650,6 +675,8 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 		_starpu_mic_wait_request_completion(&(async_channel->event.mic_event));
 		break;
 #endif
+	case STARPU_MAIN_RAM:
+		starpu_disk_wait_request(async_channel);
 	case STARPU_CPU_RAM:
 	default:
 		STARPU_ABORT();
@@ -706,6 +733,9 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 		success = _starpu_mic_request_is_complete(&(async_channel->event.mic_event));
 		break;
 #endif
+	case STARPU_DISK_RAM:
+		success = starpu_disk_test_request(async_channel);
+		break;
 	case STARPU_CPU_RAM:
 	default:
 		STARPU_ABORT();

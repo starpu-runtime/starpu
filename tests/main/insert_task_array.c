@@ -26,7 +26,6 @@ void func_cpu(void *descr[], void *_args)
 
 	starpu_codelet_unpack_args(_args, &factor);
 
-	STARPU_SKIP_IF_VALGRIND;
         *x0 = *x0 * factor;
         *x1 = *x1 * (float)factor;
 }
@@ -54,13 +53,13 @@ int main(int argc, char **argv)
 	f = 2.0;
 	starpu_variable_data_register(&data_handles[1], STARPU_MAIN_RAM, (uintptr_t)&f, sizeof(f));
 
-        ret = starpu_insert_task(&mycodelet,
+        ret = starpu_task_insert(&mycodelet,
 				 STARPU_DATA_ARRAY, data_handles, 2,
 				 STARPU_VALUE, &factor, sizeof(factor),
 				 STARPU_PRIORITY, 1,
 				 0);
 	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
         ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
@@ -84,6 +83,6 @@ enodev:
 	{
 		FPRINTF(stderr, "VALUES: %d %f\n", x, f);
 		ret = !(x == 12 && f == 24.0);
-		STARPU_RETURN(ret);
+		return ret;
 	}
 }

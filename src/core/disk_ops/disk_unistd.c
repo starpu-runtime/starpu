@@ -35,7 +35,7 @@ starpu_unistd_alloc (void *base, size_t size)
         struct starpu_unistd_global_obj * obj = malloc(sizeof(struct starpu_unistd_global_obj));
         STARPU_ASSERT(obj != NULL);
 	/* only flags change between unistd and unistd_o_direct */
-	obj->flags = O_RDWR;
+	obj->flags = O_RDWR | O_BINARY;
 	return starpu_unistd_global_alloc (obj, base, size);
 }
 
@@ -46,7 +46,7 @@ starpu_unistd_open (void *base, void *pos, size_t size)
 	struct starpu_unistd_global_obj * obj = malloc(sizeof(struct starpu_unistd_global_obj));
 	STARPU_ASSERT(obj != NULL);
 	/* only flags change between unistd and unistd_o_direct */
-	obj->flags = O_RDWR;
+	obj->flags = O_RDWR | O_BINARY;
 	return starpu_unistd_global_open (obj, base, pos, size);	
 
 }
@@ -61,5 +61,13 @@ struct starpu_disk_ops starpu_disk_unistd_ops = {
 	.plug = starpu_unistd_global_plug,
 	.unplug = starpu_unistd_global_unplug,
 	.copy = NULL,
-	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram
+	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram,
+#ifdef HAVE_AIO_H
+	.async_read = starpu_unistd_global_async_read,
+	.async_write = starpu_unistd_global_async_write,
+	.wait_request = starpu_unistd_global_wait_request,
+	.test_request = starpu_unistd_global_test_request,
+#endif
+        .full_read = starpu_unistd_global_full_read,
+        .full_write = starpu_unistd_global_full_write
 };

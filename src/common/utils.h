@@ -25,23 +25,14 @@
 #include <stdlib.h>
 #include <math.h>
 #include <pthread.h>
+#ifdef STARPU_HAVE_SCHED_YIELD
+#include <sched.h>
+#endif
 
 #ifdef STARPU_HAVE_HELGRIND_H
 #include <valgrind/helgrind.h>
 #endif
 
-#ifndef VALGRIND_HG_MUTEX_LOCK_PRE
-#define VALGRIND_HG_MUTEX_LOCK_PRE(mutex, istrylock) ((void)0)
-#endif
-#ifndef VALGRIND_HG_MUTEX_LOCK_POST
-#define VALGRIND_HG_MUTEX_LOCK_POST(mutex) ((void)0)
-#endif
-#ifndef VALGRIND_HG_MUTEX_UNLOCK_PRE
-#define VALGRIND_HG_MUTEX_UNLOCK_PRE(mutex) ((void)0)
-#endif
-#ifndef VALGRIND_HG_MUTEX_UNLOCK_POST
-#define VALGRIND_HG_MUTEX_UNLOCK_POST(mutex) ((void)0)
-#endif
 #ifndef DO_CREQ_v_WW
 #define DO_CREQ_v_WW(_creqF, _ty1F, _arg1F, _ty2F, _arg2F) ((void)0)
 #endif
@@ -54,30 +45,32 @@
 #ifndef ANNOTATE_HAPPENS_AFTER
 #define ANNOTATE_HAPPENS_AFTER(obj) ((void)0)
 #endif
-#ifndef ANNOTATE_RWLOCK_ACQUIRED
-#define ANNOTATE_RWLOCK_ACQUIRED(lock, is_w) ((void)0)
+#ifndef VALGRIND_HG_DISABLE_CHECKING
+#define VALGRIND_HG_DISABLE_CHECKING(start, len) ((void)0)
 #endif
-#ifndef ANNOTATE_RWLOCK_RELEASED
-#define ANNOTATE_RWLOCK_RELEASED(lock, is_w) ((void)0)
+#ifndef VALGRIND_HG_ENABLE_CHECKING
+#define VALGRIND_HG_ENABLE_CHECKING(start, len) ((void)0)
 #endif
-
-#define _STARPU_VALGRIND_HG_SPIN_LOCK_PRE(lock) \
-	DO_CREQ_v_WW(_VG_USERREQ__HG_PTHREAD_SPIN_LOCK_PRE, \
-			struct _starpu_spinlock *, lock, long, 0)
-#define _STARPU_VALGRIND_HG_SPIN_LOCK_POST(lock) \
-	DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_SPIN_LOCK_POST, \
-			struct _starpu_spinlock *, lock)
-#define _STARPU_VALGRIND_HG_SPIN_UNLOCK_PRE(lock) \
-	DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_SPIN_INIT_OR_UNLOCK_PRE, \
-			struct _starpu_spinlock *, lock)
-#define _STARPU_VALGRIND_HG_SPIN_UNLOCK_POST(lock) \
-	DO_CREQ_v_W(_VG_USERREQ__HG_PTHREAD_SPIN_INIT_OR_UNLOCK_POST, \
-			struct _starpu_spinlock *, lock)
+#define STARPU_HG_DISABLE_CHECKING(variable) VALGRIND_HG_DISABLE_CHECKING(&(variable), sizeof(variable))
+#define STARPU_HG_ENABLE_CHECKING(variable)  VALGRIND_HG_ENABLE_CHECKING(&(variable), sizeof(variable))
 
 #if defined(__KNC__) || defined(__KNF__)
 #define STARPU_DEBUG_PREFIX "[starpu-mic]"
 #else
 #define STARPU_DEBUG_PREFIX "[starpu]"
+#endif
+
+/* This is needed in some places to make valgrind yield to another thread to be
+ * able to progress.  */
+#if defined(__i386__) || defined(__x86_64__)
+#define _STARPU_UYIELD() __asm__ __volatile("rep; nop")
+#else
+#define _STARPU_UYIELD() ((void)0)
+#endif
+#if defined(STARPU_HAVE_SCHED_YIELD) && defined(STARPU_HAVE_HELGRIND_H)
+#define STARPU_UYIELD() do { if (RUNNING_ON_VALGRIND) sched_yield(); else _STARPU_UYIELD(); } while (0)
+#else
+#define STARPU_UYIELD() _STARPU_UYIELD()
 #endif
 
 #ifdef STARPU_VERBOSE

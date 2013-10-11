@@ -80,11 +80,11 @@ void* submit_tasks_thread(void *arg)
 			task[i]->hypervisor_tag = tag;
 			/* indicate particular settings the context should have when the 
 			   resizing will be done */
-			sc_hypervisor_ioctl(sched_ctx,
-						   HYPERVISOR_TIME_TO_APPLY, tag,
-						   HYPERVISOR_MIN_WORKERS, 2,
-						   HYPERVISOR_MAX_WORKERS, 12,
-						   HYPERVISOR_NULL);
+			sc_hypervisor_ctl(sched_ctx,
+						   SC_HYPERVISOR_TIME_TO_APPLY, tag,
+						   SC_HYPERVISOR_MIN_WORKERS, 2,
+						   SC_HYPERVISOR_MAX_WORKERS, 12,
+						   SC_HYPERVISOR_NULL);
 			printf("require resize for sched_ctx %d at tag %d\n", sched_ctx, tag);
 			/* specify that the contexts should be resized when the task having this
 			   particular tag will finish executing */
@@ -124,8 +124,8 @@ int main()
 		ressources2[i] = nres1+i;
 
 	/* create contexts */
-	unsigned sched_ctx1 = starpu_sched_ctx_create("dmda", ressources1, nres1, "sched_ctx1");
-	unsigned sched_ctx2 = starpu_sched_ctx_create("dmda", ressources2, nres2, "sched_ctx2");
+	unsigned sched_ctx1 = starpu_sched_ctx_create(ressources1, nres1, "sched_ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
+	unsigned sched_ctx2 = starpu_sched_ctx_create(ressources2, nres2, "sched_ctx2", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
 
 	/* initialize the hypervisor */
 	struct sc_hypervisor_policy policy;
@@ -138,8 +138,8 @@ int main()
 
 	/* let starpu know which performance counters should use 
 	   to inform the hypervisor how the application and the resources are executing */
-	starpu_sched_ctx_set_perf_counters(sched_ctx1, (struct starpu_sched_ctx_performance_counters*)perf_counters);
-	starpu_sched_ctx_set_perf_counters(sched_ctx2, (struct starpu_sched_ctx_performance_counters*)perf_counters);
+	starpu_sched_ctx_set_perf_counters(sched_ctx1, perf_counters);
+	starpu_sched_ctx_set_perf_counters(sched_ctx2, perf_counters);
 
 	/* register the contexts that should be managed by the hypervisor
 	   and indicate an approximate amount of workload if known;

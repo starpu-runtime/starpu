@@ -23,17 +23,31 @@
 #define STARPU_DISK_ALL 1
 #define STARPU_DISK_NO_RECLAIM 2
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+#include <datawizard/copy_driver.h>
+
 /* interface to manipulate memory disk */
 void * _starpu_disk_alloc (unsigned node, size_t size);
 
 void _starpu_disk_free (unsigned node, void *obj, size_t size);
+/* src_node is a disk node, dst_node is for the moment the STARPU_MAIN_RAM */
+int _starpu_disk_read(unsigned src_node, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, void * async_channel);
+/* src_node is for the moment the STARU_MAIN_RAM, dst_node is a disk node */ 
+int _starpu_disk_write(unsigned src_node, unsigned dst_node, void *obj, void *buf, off_t offset, size_t size, void * async_channel);
 
-ssize_t _starpu_disk_read(unsigned node, void *obj, void *buf, off_t offset, size_t size);
+int _starpu_disk_full_read(unsigned src_node, unsigned dst_node, void * obj, void ** ptr, size_t * size);
+int _starpu_disk_full_write(unsigned src_node, unsigned dst_node, void * obj, void * ptr, size_t size);
 
-ssize_t _starpu_disk_write(unsigned node, void *obj, const void *buf, off_t offset, size_t size);
+int _starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size, void * async_channel);
 
-int _starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned node_dst, void* obj_dst, off_t offset_dst, size_t size);
-
+/* force the request to compute */
+void starpu_disk_wait_request(struct _starpu_async_channel *async_channel);
+/* return 1 if the request is finished, 0 if not finished */
+int starpu_disk_test_request(struct _starpu_async_channel *async_channel);
 /* interface to compare memory disk */
 
 int _starpu_is_same_kind_disk(unsigned node1, unsigned node2);
@@ -46,5 +60,9 @@ int _starpu_get_disk_flag(unsigned node);
 /* unregister disk */
 
 void _starpu_disk_unregister(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __DISK_H__ */

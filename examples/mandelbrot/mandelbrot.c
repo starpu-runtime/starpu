@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -529,7 +529,7 @@ int main(int argc, char **argv)
 			per_block_cnt[iby] = 0;
 			int *pcnt = &per_block_cnt[iby];
 
-			ret = starpu_insert_task(use_spmd?&spmd_mandelbrot_cl:&mandelbrot_cl,
+			ret = starpu_task_insert(use_spmd?&spmd_mandelbrot_cl:&mandelbrot_cl,
 						 STARPU_VALUE, &iby, sizeof(iby),
 						 STARPU_VALUE, &block_size, sizeof(block_size),
 						 STARPU_VALUE, &stepX, sizeof(stepX),
@@ -537,7 +537,7 @@ int main(int argc, char **argv)
 						 STARPU_W, block_handles[iby],
 						 STARPU_VALUE, &pcnt, sizeof(int *),
 						 0);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 
 		for (iby = 0; iby < nblocks; iby++)

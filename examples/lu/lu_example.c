@@ -182,6 +182,8 @@ static void init_matrix(void)
 			/* also randomize the imaginary component for complex number cases */
 			A[i + j*size] += (TYPE)(I*starpu_drand48());
 #endif
+			if (i == j)
+				A[i + j*size] *= 100;
 		}
 	}
 
@@ -299,12 +301,12 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	parse_args(argc, argv);
-
 #ifdef STARPU_QUICK_CHECK
 	size /= 4;
 	nblocks /= 4;
 #endif
+
+	parse_args(argc, argv);
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)

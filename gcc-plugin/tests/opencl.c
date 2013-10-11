@@ -46,15 +46,15 @@ main ()
 #pragma starpu register a
 
   static int x = 123;
-  struct insert_task_argument expected[] =
+  struct task_insert_argument expected[] =
     {
       { STARPU_VALUE, &x, sizeof x },
       { STARPU_RW, a },
       { 0, 0, 0 }
     };
 
-  expected_insert_task_arguments = expected;
-  expected_insert_task_targets = STARPU_OPENCL;
+  expected_task_insert_arguments = expected;
+  expected_task_insert_targets = STARPU_OPENCL;
   size_t y = 8; expected_cl_enqueue_kernel_arguments.global_work_size = &y;
 
   my_task (123, a);

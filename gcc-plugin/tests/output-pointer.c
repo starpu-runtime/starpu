@@ -84,14 +84,14 @@ main (int argc, char *argv[])
   expected_register_arguments.element_size = sizeof x[0];
   starpu_vector_data_register (&handle, STARPU_MAIN_RAM, (uintptr_t) x, 42, sizeof x[0]);
 
-  struct insert_task_argument expected[] =
+  struct task_insert_argument expected[] =
     {
       { STARPU_VALUE, &size, sizeof size },
       { STARPU_W, x },
       { 0, 0, 0 }
     };
 
-  expected_insert_task_arguments = expected;
+  expected_task_insert_arguments = expected;
 
   /* Invoke the task, which makes sure it gets called with EXPECTED.  */
   my_pointer_task (size, x);

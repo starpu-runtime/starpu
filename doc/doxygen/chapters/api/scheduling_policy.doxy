@@ -27,7 +27,7 @@ starpu_init().
         Insert a task into the scheduler.
 \var starpu_sched_policy::push_task_notify
         Notify the scheduler that a task was pushed on a given worker.
-	This method is called when a task that was explicitely
+	This method is called when a task that was explicitly
 	assigned to a worker becomes ready and is about to be executed
 	by the worker. This method therefore permits to keep the state
 	of the scheduler coherent even when StarPU bypasses the
@@ -73,15 +73,6 @@ condition variable. For instance, in the case of a scheduling strategy
 with a single task queue, the same condition variable would be used to
 block and wake up all workers.
 
-\fn void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data)
-\ingroup API_Scheduling_Policy
-Each scheduling policy uses some specific data (queues, variables,
-additional condition variables). It is memorize through a local
-structure. This function assigns it to a scheduling context.
-
-\fn void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id)
-\ingroup API_Scheduling_Policy
-Returns the policy data previously assigned to a context
 
 \fn int starpu_sched_set_min_priority(int min_prio)
 \ingroup API_Scheduling_Policy
@@ -135,15 +126,15 @@ otherwise the task may fail to execute.
 \ingroup API_Scheduling_Policy
 Return the current date in micro-seconds.
 
-\fn uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+\fn uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy
 Returns the footprint for a given task
 
-\fn double starpu_task_expected_length(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+\fn double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy
 Returns expected task duration in micro-seconds.
 
-\fn double starpu_worker_get_relative_speedup(enum starpu_perfmodel_archtype perf_archtype)
+\fn double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch *perf_arch)
 \ingroup API_Scheduling_Policy
 Returns an estimated speedup factor relative to CPU speed
 
@@ -155,11 +146,11 @@ Returns expected data transfer time in micro-seconds.
 \ingroup API_Scheduling_Policy
 Predict the transfer time (in micro-seconds) to move \p handle to a memory node
 
-\fn double starpu_task_expected_power(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+\fn double starpu_task_expected_power(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy
 Returns expected power consumption in J
 
-\fn double starpu_task_expected_conversion_time(struct starpu_task *task, enum starpu_perfmodel_archtype arch, unsigned nimpl)
+\fn double starpu_task_expected_conversion_time(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy
 Returns expected conversion time in ms (multiformat interface only)
 
@@ -170,5 +161,10 @@ Whether \ref STARPU_PREFETCH was set
 \fn int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 \ingroup API_Scheduling_Policy
 Prefetch data for a given task on a given node
+
+\fn void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id)
+\ingroup API_Scheduling_Policy
+The scheduling policies indicates if the worker may pop tasks from the list of other workers
+or if there is a central list with task for all the workers
 
 */

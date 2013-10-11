@@ -14,7 +14,7 @@
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS)
 LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src/ -I$(top_builddir)/include -I$(top_srcdir)/sc_hypervisor/include/ -I$(top_srcdir)/sc_hypervisor/src
+AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/sc_hypervisor/include/ -I$(top_srcdir)/sc_hypervisor/src
 AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS)
 
 lib_LTLIBRARIES = libsc_hypervisor.la
@@ -37,7 +37,7 @@ libsc_hypervisor_la_SOURCES = 				\
 	hypervisor_policies/teft_lp_policy.c		\
 	hypervisor_policies/ispeed_policy.c		\
 	hypervisor_policies/ispeed_lp_policy.c		\
-	hypervisor_policies/debit_lp_policy.c
+	hypervisor_policies/throughput_lp_policy.c
 
 noinst_HEADERS = sc_hypervisor_intern.h		
 

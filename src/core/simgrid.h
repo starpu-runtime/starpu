@@ -30,7 +30,7 @@ struct _starpu_pthread_args
 
 #define MAX_TSD 16
 
-void _starpu_simgrid_execute_job(struct _starpu_job *job, enum starpu_perfmodel_archtype perf_arch, double length);
+void _starpu_simgrid_execute_job(struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length);
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req);
 /* Return the number of hosts prefixed by PREFIX */
 int _starpu_simgrid_get_nbhosts(const char *prefix);

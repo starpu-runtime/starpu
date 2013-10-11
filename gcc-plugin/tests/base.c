@@ -106,7 +106,7 @@ main (int argc, char *argv[])
   unsigned char y = 77;
   long y_as_long_int = 77;
 
-  struct insert_task_argument expected[] =
+  struct task_insert_argument expected[] =
     {
       { STARPU_VALUE, &x, sizeof x },
       { STARPU_VALUE, &y, sizeof y },
@@ -114,7 +114,7 @@ main (int argc, char *argv[])
       { 0, 0, 0 }
     };
 
-  expected_insert_task_arguments = expected;
+  expected_task_insert_arguments = expected;
 
   /* Invoke the task, which should make sure it gets called with
      EXPECTED.  */
@@ -135,14 +135,14 @@ main (int argc, char *argv[])
 
   assert (tasks_submitted == 9);
 
-  struct insert_task_argument expected2[] =
+  struct task_insert_argument expected2[] =
     {
       { STARPU_VALUE, &x, sizeof x },
       { 0, 0, 0 }
     };
 
   tasks_submitted = 0;
-  expected_insert_task_arguments = expected2;
+  expected_task_insert_arguments = expected2;
 
   my_other_task (42);
   assert (tasks_submitted == 1);

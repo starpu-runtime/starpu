@@ -82,7 +82,7 @@ int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl)
 	unsigned i;
 	const char *name;
 	if (!cl)
-		return -1;
+		return 0;
 	name = _starpu_codelet_get_model_name(cl);
 	STARPU_PTHREAD_MUTEX_LOCK(&ayudame_mutex);
 	for (i=0; i < ncodelets; i++)
@@ -92,7 +92,7 @@ int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl)
 				((name && codelets[i].name) && !strcmp(codelets[i].name, name))))
 		{
 			STARPU_PTHREAD_MUTEX_UNLOCK(&ayudame_mutex);
-			return i;
+			return i + 1;
 		}
 	}
 	if (ncodelets == ncodelets_alloc)
@@ -111,8 +111,8 @@ int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl)
 		codelets[ncodelets].name = NULL;
 	i = ncodelets++;
 	if (name)
-		AYU_event(AYU_REGISTERFUNCTION, i, (void*) name);
+		AYU_event(AYU_REGISTERFUNCTION, i+1, (void*) name);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&ayudame_mutex);
-	return i;
+	return i + 1;
 }
 #endif

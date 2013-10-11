@@ -27,6 +27,7 @@
 #include <core/debug.h>
 #include <core/disk.h>
 #include <core/task.h>
+#include <datawizard/malloc.h>
 #include <profiling/profiling.h>
 #include <starpu_task_list.h>
 #include <drivers/mp_common/sink_common.h>
@@ -293,10 +294,15 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	}
 	else
 	{
-		if ((cl->type == STARPU_SPMD)
+		if ((cl->type == STARPU_SPMD) 
 #ifdef STARPU_HAVE_HWLOC
 				|| (cl->type == STARPU_FORKJOIN)
+#else
+#ifdef __GLIBC__
+				|| (cl->type == STARPU_FORKJOIN)
 #endif
+#endif
+
 				)
 		{
 			/* TODO we should add other types of constraints */
@@ -378,7 +384,68 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 struct itimerval prof_itimer;
 #endif
 
-void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
+static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig)
+{
+	workerarg->config = pconfig;
+	STARPU_PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
+	/* arch initialized by topology.c */
+	/* worker_mask initialized by topology.c */
+	/* perf_arch initialized by topology.c */
+	/* worker_thread initialized by _starpu_launch_drivers */
+	/* mp_nodeid initialized by topology.c */
+	/* devid initialized by topology.c */
+	/* bindid initialized by topology.c */
+	/* workerid initialized by topology.c */
+	workerarg->combined_workerid = workerarg->workerid;
+	workerarg->current_rank = 0;
+	workerarg->worker_size = 1;
+	STARPU_PTHREAD_COND_INIT(&workerarg->started_cond, NULL);
+	STARPU_PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
+	/* memory_node initialized by topology.c */
+	STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
+	starpu_task_list_init(&workerarg->local_tasks);
+	workerarg->current_task = NULL;
+	workerarg->set = NULL;
+
+	/* if some codelet's termination cannot be handled directly :
+	 * for instance in the Gordon driver, Gordon tasks' callbacks
+	 * may be executed by another thread than that of the Gordon
+	 * driver so that we cannot call the push_codelet_output method
+	 * directly */
+	workerarg->terminated_jobs = _starpu_job_list_new();
+
+	workerarg->worker_is_running = 0;
+	workerarg->worker_is_initialized = 0;
+	workerarg->status = STATUS_INITIALIZING;
+	/* name initialized by driver */
+	/* short_name initialized by driver */
+	workerarg->run_by_starpu = 1;
+
+	workerarg->sched_ctx_list = NULL;
+	workerarg->nsched_ctxs = 0;
+	_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
+
+	workerarg->has_prev_init = 0;
+
+	int ctx;
+	for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
+		workerarg->removed_from_ctx[ctx] = 0;
+
+	workerarg->spinning_backoff = 1;
+
+	STARPU_PTHREAD_COND_INIT(&workerarg->parallel_sect_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&workerarg->parallel_sect_mutex, NULL);
+
+	workerarg->parallel_sect = 0;
+
+	for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
+		workerarg->shares_tasks_lists[ctx] = 0;
+
+	/* cpu_set/hwloc_cpu_set initialized in topology.c */
+}
+
+void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key)
 {
 	(void) fut_key;
 	int devid = worker->devid;
@@ -410,7 +477,6 @@ void _starpu_worker_init(struct _starpu_worker *worker, unsigned fut_key)
 	worker->worker_is_running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&worker->started_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
-
 }
 
 static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
@@ -432,60 +498,14 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif
 
 #ifdef HAVE_AYUDAME_H
-	if (AYU_event)
-	{
-		unsigned long n = nworkers;
-		AYU_event(AYU_INIT, 0, (void*) &n);
-	}
+	if (AYU_event) AYU_event(AYU_INIT, 0, NULL);
 #endif
-
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 #ifdef STARPU_USE_MIC
 		unsigned mp_nodeid = workerarg->mp_nodeid;
 #endif
-
-		workerarg->config = pconfig;
-
-		_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
-
-		STARPU_PTHREAD_MUTEX_INIT(&workerarg->mutex, NULL);
-		STARPU_PTHREAD_COND_INIT(&workerarg->started_cond, NULL);
-		STARPU_PTHREAD_COND_INIT(&workerarg->ready_cond, NULL);
-
-		workerarg->worker_size = 1;
-		workerarg->combined_workerid = workerarg->workerid;
-		workerarg->current_rank = 0;
-		workerarg->has_prev_init = 0;
-		/* mutex + cond only for the local list */
-		/* we have a single local list */
-		/* afterwards there would be a mutex + cond for the list of each strategy */
-		workerarg->run_by_starpu = 1;
-		workerarg->worker_is_running = 0;
-		workerarg->worker_is_initialized = 0;
-		workerarg->set = NULL;
-
-		int ctx;
-		for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
-			workerarg->removed_from_ctx[ctx] = 0;
-
-		STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
-		STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
-		STARPU_PTHREAD_MUTEX_INIT(&workerarg->parallel_sect_mutex, NULL);
-		STARPU_PTHREAD_COND_INIT(&workerarg->parallel_sect_cond, NULL);
-		workerarg->parallel_sect = 0;
-
-		/* if some codelet's termination cannot be handled directly :
-		 * for instance in the Gordon driver, Gordon tasks' callbacks
-		 * may be executed by another thread than that of the Gordon
-		 * driver so that we cannot call the push_codelet_output method
-		 * directly */
-		workerarg->terminated_jobs = _starpu_job_list_new();
-
-		starpu_task_list_init(&workerarg->local_tasks);
-
-		workerarg->status = STATUS_INITIALIZING;
 
 		_STARPU_DEBUG("initialising worker %u/%u\n", worker, nworkers);
 
@@ -853,6 +873,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 {
 	int is_a_sink = 0; /* Always defined. If the MP infrastructure is not
 			    * used, we cannot be a sink. */
+	unsigned worker;
 #ifdef STARPU_USE_MP
 	_starpu_set_argc_argv(argc, argv);
 
@@ -879,6 +900,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifndef __OPTIMIZE__
 	_STARPU_DISP("Warning: StarPU was configured with --enable-debug (-O0), and is thus not optimized\n");
 #endif
+#endif
+#ifdef STARPU_SPINLOCK_CHECK
+	_STARPU_DISP("Warning: StarPU was configured with --enable-spinlock-check, which slows down a bit\n");
 #endif
 #if 0
 #ifndef STARPU_NO_ASSERT
@@ -1001,10 +1025,13 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	 * threads */
 	_starpu_initialize_current_task_key();
 
+	for (worker = 0; worker < config.topology.nworkers; worker++)
+		_starpu_worker_init(&config.workers[worker], &config);
+
 	if (!is_a_sink)
 	{
 		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
-		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init");
+		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", 0, 0, 0, 0);
 
 	}
 
@@ -1036,11 +1063,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 
 	return 0;
-}
-
-void starpu_profiling_init()
-{
-	_starpu_profiling_init();
 }
 
 /*
@@ -1103,7 +1125,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 
 out:
 		STARPU_ASSERT(starpu_task_list_empty(&worker->local_tasks));
-		_starpu_delete_sched_ctx_for_worker(workerid);
+		_starpu_sched_ctx_list_delete(&worker->sched_ctx_list);
 		_starpu_job_list_delete(worker->terminated_jobs);
 	}
 }
@@ -1242,6 +1264,7 @@ void starpu_shutdown(void)
 
 	_STARPU_DEBUG("Shutdown finished\n");
 }
+
 
 unsigned starpu_worker_get_count(void)
 {
@@ -1422,13 +1445,15 @@ unsigned starpu_worker_is_combined_worker(int id)
 
 struct _starpu_sched_ctx *_starpu_get_sched_ctx_struct(unsigned id)
 {
-	if (id == STARPU_NMAX_SCHED_CTXS) return NULL;
+	if(id == STARPU_NMAX_SCHED_CTXS) return NULL;
 	return &config.sched_ctxs[id];
 }
 
 struct _starpu_combined_worker *_starpu_get_combined_worker_struct(unsigned id)
 {
 	unsigned basic_worker_count = starpu_worker_get_count();
+	
+	//_STARPU_DEBUG("basic_worker_count:%d\n",basic_worker_count);
 
 	STARPU_ASSERT(id >= basic_worker_count);
 	return &config.combined_workers[id - basic_worker_count];
@@ -1521,6 +1546,21 @@ void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sc
 	*sched_mutex = &config.workers[workerid].sched_mutex;
 }
 
+int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex)
+{
+	int success = 0;
+	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	if (config.workers[workerid].status == STATUS_SLEEPING)
+	{
+		config.workers[workerid].status = STATUS_WAKING_UP;
+		STARPU_PTHREAD_COND_SIGNAL(cond);
+		success = 1;
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	return success;
+}
+
+
 int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
@@ -1594,6 +1634,11 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 {
 	return &config.sched_ctxs[STARPU_GLOBAL_SCHED_CTX];
+}
+
+int starpu_worker_get_nsched_ctxs(int workerid)
+{
+	return config.workers[workerid].nsched_ctxs;
 }
 
 int

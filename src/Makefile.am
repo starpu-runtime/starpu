@@ -51,8 +51,8 @@ lib_LTLIBRARIES = libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ $(STARPU_RCCE_CPPFLAGS) -DBUILDING_STARPU
 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_RCCE_CFLAGS) $(FXT_CFLAGS)
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_RCCE_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(STARPU_RCCE_CFLAGS) $(FXT_CFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(STARPU_RCCE_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS) $(STARPU_LEVELDB_LDFLAGS)
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) $(FXT_LDFLAGS) -no-undefined									\
   -version-info $(libstarpu_so_version)
 
@@ -66,6 +66,7 @@ noinst_HEADERS = 						\
 	core/progress_hook.h                                    \
 	core/sched_policy.h					\
 	core/sched_ctx.h					\
+	core/sched_ctx_list.h					\
 	core/perfmodel/perfmodel.h				\
 	core/perfmodel/regression.h				\
 	core/jobs.h						\
@@ -87,6 +88,7 @@ noinst_HEADERS = 						\
 	datawizard/filters.h					\
 	datawizard/write_back.h					\
 	datawizard/datastats.h					\
+	datawizard/malloc.h					\
 	datawizard/memstats.h					\
 	datawizard/memory_manager.h				\
 	datawizard/memalloc.h					\
@@ -125,7 +127,7 @@ noinst_HEADERS = 						\
 	debug/traces/starpu_fxt.h				\
 	profiling/bound.h					\
 	profiling/profiling.h					\
-	util/starpu_insert_task_utils.h				\
+	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
 	util/starpu_task_list_inline.h				\
 	starpu_parameters.h					\
@@ -169,10 +171,12 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
 	core/perfmodel/perfmodel_print.c			\
+	core/perfmodel/perfmodel_nan.c				\
 	core/perfmodel/regression.c				\
 	core/sched_policy.c					\
 	core/simgrid.c						\
 	core/sched_ctx.c					\
+	core/sched_ctx_list.c					\
 	core/parallel_task.c					\
 	core/detect_combined_workers.c				\
 	sched_policies/eager_central_policy.c			\
@@ -223,8 +227,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	util/file.c						\
 	util/misc.c						\
 	util/starpu_data_cpy.c					\
-	util/starpu_insert_task.c				\
-	util/starpu_insert_task_utils.c				\
+	util/starpu_task_insert.c				\
+	util/starpu_task_insert_utils.c				\
 	util/starpu_inlines.c					\
 	debug/traces/starpu_fxt.c				\
 	debug/traces/starpu_fxt_mpi.c				\
@@ -251,6 +255,11 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/node_best_implementation.c		\
 	sched_policies/hierarchical_heft.c			\
 	sched_policies/scheduler_maker.c			
+
+
+if STARPU_HAVE_LEVELDB
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_leveldb.cpp
+endif
 
 if STARPU_USE_CPU
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
@@ -285,7 +294,6 @@ endif
 if STARPU_LINUX_SYS
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_unistd_o_direct.c
 endif
-
 
 
 #########################################

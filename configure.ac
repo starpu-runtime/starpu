@@ -54,8 +54,8 @@ AC_CANONICAL_SYSTEM
 dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
 dnl when they're available.
 m4_ifdef([AM_SILENT_RULES],
-  [AM_INIT_AUTOMAKE([1.11 -Wall -Werror foreign silent-rules color-tests parallel-tests])],
-  [AM_INIT_AUTOMAKE([1.10 -Wall -Werror foreign])])
+  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests])],
+  [AM_INIT_AUTOMAKE([1.10 -Wall foreign])])
 
 m4_ifdef([AM_SILENT_RULES],
   [AM_SILENT_RULES(yes)])
@@ -255,8 +255,20 @@ AM_CONDITIONAL([STARPU_LONG_CHECK], [test "x$enable_long_check" = "xyes"])
 
 AC_CHECK_HEADERS([malloc.h], [AC_DEFINE([STARPU_HAVE_MALLOC_H], [1], [Define to 1 if you have the <malloc.h> header file.])])
 
-AC_CHECK_HEADERS([valgrind/valgrind.h], [AC_DEFINE([STARPU_HAVE_VALGRIND_H], [1], [Define to 1 if you have the <valgrind/valgrind.h> header file.])])
-AC_CHECK_HEADERS([valgrind/helgrind.h], [AC_DEFINE([STARPU_HAVE_HELGRIND_H], [1], [Define to 1 if you have the <valgrind/helgrind.h> header file.])])
+AC_ARG_ENABLE(valgrind, [AS_HELP_STRING([--disable-valgrind],
+				   [Do not check the availability of valgrind.h and helgrind.h])],
+				   enable_valgrind=$enableval, enable_valgrind=yes)
+if test "$enable_valgrind" != "no" ; then
+   AC_CHECK_HEADERS([valgrind/valgrind.h], [AC_DEFINE([STARPU_HAVE_VALGRIND_H], [1], [Define to 1 if you have the <valgrind/valgrind.h> header file.])])
+   AC_CHECK_HEADERS([valgrind/helgrind.h], [AC_DEFINE([STARPU_HAVE_HELGRIND_H], [1], [Define to 1 if you have the <valgrind/helgrind.h> header file.])])
+fi
+if test "$enable_valgrind" = "full" ; then
+   AC_DEFINE([STARPU_VALGRIND_FULL], [1], [Define to 1 to disable STARPU_SKIP_IF_VALGRIND when running tests.])
+fi
+
+AC_CHECK_FUNC([sched_yield], [AC_DEFINE([STARPU_HAVE_SCHED_YIELD], [1], [Define to 1 if the function sched_yield is available.])])
+
+AC_CHECK_HEADERS([aio.h])
 
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
 STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP
@@ -341,11 +353,6 @@ AM_CONDITIONAL(STARPU_USE_CPU, test x$enable_cpu = xyes)
 if test x$enable_cpu = xyes; then
 	AC_DEFINE(STARPU_USE_CPU, [1], [CPU driver is activated])
 fi
-
-# How many parallel worker can we support ?
-nmaxcombinedworkers=`expr 2 \* $maxcpus`
-AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
-	[$nmaxcombinedworkers], [Maximum number of worker combinations])
 
 ###############################################################################
 #                                                                             #
@@ -497,7 +504,7 @@ if test x$enable_cuda = xyes -o x$enable_cuda = xmaybe; then
 	STARPU_CHECK_CUDA("$CUDA_ROOT", "$CUDA_PATH", "$CUDA_INC_PATH", "$CUDA_LIB_PATH")
     fi
     if test "$have_valid_cuda" = "no" ; then
-	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
+	for f in "/usr/local/cuda" "/c/cuda" "/cygdrive/c/cuda" "/opt/cuda" "$CUDA_ROOT" "$CUDA_PATH" "$CUDA_INC_PATH/.." "$CUDA_INC/.." "$CUDA_BIN/.." "$CUDA_SDK/.." "$CUDA_INSTALL_PATH" "$CUDA_TOOLKIT"; do
 	    if test -n "$f" ; then
 		STARPU_CHECK_CUDA("$f", "no", "no")
 		if test "$have_valid_cuda" = "yes" ; then
@@ -945,7 +952,7 @@ AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [en
 				enable_blocking=$enableval, enable_blocking=no)
 AC_MSG_RESULT($enable_blocking)
 
-if test x$enable_blocking = xno -a x$enable_simgrid != xyes ; then
+if test x$enable_blocking = xno ; then
 	AC_DEFINE(STARPU_NON_BLOCKING_DRIVERS, [1], [drivers must progress])
 fi
 
@@ -967,7 +974,7 @@ AC_DEFINE_UNQUOTED(STARPU_MAXMICDEVS, [$nmaxmicdev],
 AC_MSG_CHECKING(maximum number of MIC threads)
 AC_ARG_ENABLE(maxmicthreads, [AS_HELP_STRING([--enable-maxmicthreads=<number>],
 			[maximum number of MIC threads])],
-			nmaxmicthreads=$enableval, nmaxmicthreads=128)
+			nmaxmicthreads=$enableval, nmaxmicthreads=940)
 AC_MSG_RESULT($nmaxmicthread)
 
 AC_DEFINE_UNQUOTED(STARPU_MAXMICCORES, [$nmaxmicthreads],
@@ -996,7 +1003,6 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
     __coi_dir=$1
     __coi_include_dir=$2
     __coi_lib_dir=$3
-    __coi_lib_name=$4
 
     if test "$__coi_dir" != "no" -a "$__coi_dir" != "" ; then
 	AC_MSG_CHECKING(whether MIC's COI runtime is available in $__coi_dir)
@@ -1025,14 +1031,14 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
     AC_CHECK_HEADER([source/COIEngine_source.h],[have_valid_coi=yes],[have_valid_coi=no])
 
     if test "$have_valid_coi" = "yes" ; then
-	AC_HAVE_LIBRARY([$__coi_lib_name],[have_valid_coi=yes],[have_valid_coi=no])
+	AC_HAVE_LIBRARY([$4],[have_valid_coi=yes],[have_valid_coi=no])
 
         if test "$have_valid_coi" = "no" ; then
             if test "$3" = "no" -a "$__coi_dir" != "no" ; then
 		# ${__coi_dir}/lib didn't work, let's try with lib64
                 __coi_lib_dir="$__coi_dir/lib64"
 		LDFLAGS="${SAVED_LDFLAGS} -L$__coi_lib_dir"
-	        AC_HAVE_LIBRARY([$__coi_lib_name],[have_valid_coi=yes],[have_valid_coi=no])
+	        AC_HAVE_LIBRARY([$4],[have_valid_coi=yes],[have_valid_coi=no])
             fi
         fi
     fi
@@ -1041,8 +1047,89 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
         STARPU_COI_CPPFLAGS="-I$__coi_include_dir"
     fi
 
-    if test "$have_valid_coi" = "yes" -a "$__coi_lib_dir" != "no"; then
-        STARPU_COI_LDFLAGS="-L$__coi_lib_dir -l$__coi_lib_name"
+    if test "$have_valid_coi" = "yes" ; then
+        if test "$__coi_lib_dir" != "no"; then
+	    STARPU_COI_LDFLAGS="-L$__coi_lib_dir"
+        fi
+	STARPU_COI_LDFLAGS="${STARPU_COI_LDFLAGS} -l$4"
+    fi
+
+    CPPFLAGS="${SAVED_CPPFLAGS}"
+    LDFLAGS="${SAVED_LDFLAGS}"
+])
+
+AC_ARG_WITH(scif-dir,
+	[AS_HELP_STRING([--with-scif-dir=<path>],
+	[specify the MIC's SCIF installation directory])],
+	[scif_dir="$withval"],
+	[scif_dir=no])
+
+AC_ARG_WITH(scif-include-dir,
+	[AS_HELP_STRING([--with-scif-include-dir=<path>],
+	[specify where the MIC's SCIF headers are installed])],
+	[scif_include_dir="$withval"],
+	[scif_include_dir=no])
+
+AC_ARG_WITH(scif-lib-dir,
+	[AS_HELP_STRING([--with-scif-lib-dir=<path>],
+	[specify where the MIC's SCIF libraries are installed])],
+	[scif_lib_dir="$withval"],
+	[scif_lib_dir=no])
+
+AC_DEFUN([STARPU_CHECK_SCIF_RUNTIME],
+[
+    __scif_dir=$1
+    __scif_include_dir=$2
+    __scif_lib_dir=$3
+
+    if test "$__scif_dir" != "no" -a "$__scif_dir" != "" ; then
+	AC_MSG_CHECKING(whether MIC's SCIF runtime is available in $__scif_dir)
+    else
+	AC_MSG_CHECKING(whether MIC's SCIF runtime is available)
+    fi
+    AC_MSG_RESULT()
+
+    if test "$__scif_include_dir" = "no" -a "$__scif_dir" != "no" ; then
+        __scif_include_dir="${__scif_dir}/include"
+    fi
+    if test "$__scif_lib_dir" = "no" -a "$__scif_dir" != "no" ; then
+        __scif_lib_dir="${__scif_dir}/lib"
+    fi
+
+    SAVED_CPPFLAGS="$CPPFLAGS"
+    SAVED_LDFLAGS="$LDFLAGS"
+
+    if test "$__scif_include_dir" != "no" ; then
+        CPPFLAGS="${CPPFLAGS} -I$__scif_include_dir"
+    fi
+    if test "$__scif_lib_dir" != "no" ; then
+	LDFLAGS="${LDFLAGS} -L$__scif_lib_dir"
+    fi
+
+#    AC_CHECK_HEADER([source/SCIFEngine_source.h],[have_valid_scif=yes],[have_valid_scif=no])
+
+#    if test "$have_valid_scif" = "yes" ; then
+	AC_HAVE_LIBRARY([scif],[have_valid_scif=yes],[have_valid_scif=no])
+
+        if test "$have_valid_scif" = "no" ; then
+            if test "$3" = "no" -a "$__scif_dir" != "no" ; then
+		# ${__scif_dir}/lib didn't work, let's try with lib64
+                __scif_lib_dir="$__scif_dir/lib64"
+		LDFLAGS="${SAVED_LDFLAGS} -L$__scif_lib_dir"
+	        AC_HAVE_LIBRARY([scif],[have_valid_scif=yes],[have_valid_scif=no])
+            fi
+        fi
+#    fi
+
+    if test "$have_valid_scif" = "yes" -a "$__scif_include_dir" != "no"; then
+        STARPU_SCIF_CPPFLAGS="-I$__scif_include_dir"
+    fi
+
+    if test "$have_valid_scif" = "yes" ; then
+        if test "$__scif_lib_dir" != "no"; then
+	    STARPU_SCIF_LDFLAGS="-L$__scif_lib_dir"
+        fi
+	STARPU_SCIF_LDFLAGS="${STARPU_SCIF_LDFLAGS} -lscif"
     fi
 
     CPPFLAGS="${SAVED_CPPFLAGS}"
@@ -1051,20 +1138,27 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
 
 if test x$enable_mic = xyes ; then
 
-    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, "coi_host")
+    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_host)
 
     # Host runtime is not compatible, we are probably cross-compiling
     # Let's have a look for the device runtime which lib has a different name
     if test "$have_valid_coi" = "no" ; then
-	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, "coi_device")
+	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_device)
     fi
+
+    STARPU_CHECK_SCIF_RUNTIME($scif_dir, $scif_include_dir, $scif_lib_dir)
 
     if test "$have_valid_coi" = "no" ; then
 	AC_MSG_ERROR([cannot find MIC's COI runtime])
     fi
+    if test "$have_valid_scif" = "no" ; then
+	AC_MSG_ERROR([cannot find MIC's SCIF runtime])
+    fi
 
     AC_SUBST(STARPU_COI_CPPFLAGS)
     AC_SUBST(STARPU_COI_LDFLAGS)
+    AC_SUBST(STARPU_SCIF_CPPFLAGS)
+    AC_SUBST(STARPU_SCIF_LDFLAGS)
 fi
 
 ###############################################################################
@@ -1207,13 +1301,19 @@ AC_ARG_ENABLE(debug, [AS_HELP_STRING([--enable-debug], [enable debug mode])],
 			enable_debug=$enableval, enable_debug=no)
 AC_MSG_RESULT($enable_debug)
 
+AC_ARG_ENABLE(spinlock_check, [AS_HELP_STRING([--enable-spinlock-check], [enable spinlock check])], enable_spinlock_check=$enableval, enable_spinlock_check=no)
+
 if test x$enable_debug = xyes; then
 	CFLAGS="$CFLAGS -O0"
-	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
+	enable_spinlock_check=yes
 else
 	CFLAGS="-O3 $CFLAGS"
 fi
 CFLAGS+=" -gdwarf-2 -g3 "
+
+if test x$enable_spinlock_check = xyes; then
+	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
+fi
 
 AC_MSG_CHECKING(whether extra checks should be performed)
 AC_ARG_ENABLE(fast, [AS_HELP_STRING([--enable-fast],
@@ -1242,6 +1342,7 @@ AC_SUBST(COVERAGE, $enable_coverage)
 AM_CONDITIONAL(STARPU_COVERAGE_ENABLED, [test "x$enable_coverage" = "xyes"])
 if test x$enable_coverage = xyes; then
 	CFLAGS="${CFLAGS} --coverage"
+	CXXFLAGS="${CXXFLAGS} --coverage"
 	LDFLAGS="${LDFLAGS} --coverage"
 fi
 
@@ -1476,6 +1577,15 @@ AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
 
+# Computes the maximun number of combined worker
+nmaxcombinedworkers=`expr $maxcpus + $nmaxmicthreads`  
+AC_MSG_CHECKING(Maximum number of workers combinations)
+AC_MSG_RESULT($nmaxcombinedworkers)
+AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
+	[$nmaxcombinedworkers], [Maximum number of worker combinations])
+
+
+
 # Computes the maximum number of implementations per arch
 AC_MSG_CHECKING(maximum number of implementations)
 AC_ARG_ENABLE(maximplementations, [AS_HELP_STRING([--enable-maximplementations=<number>],
@@ -1484,6 +1594,13 @@ AC_ARG_ENABLE(maximplementations, [AS_HELP_STRING([--enable-maximplementations=<
 AC_MSG_RESULT($maximplementations)
 AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
 		[maximum number of implementations])
+
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADERS([leveldb/db.h], [AC_DEFINE([STARPU_HAVE_LEVELDB], [1], [Define to 1 if you have the <leveldb/db.h> header file.])])
+STARPU_HAVE_LIBRARY(LEVELDB, [leveldb])
+AM_CONDITIONAL(STARPU_HAVE_LEVELDB, test "x$ac_cv_lib_leveldb_main" = "xyes")
+AC_LANG_POP([C++])
+
 
 ###############################################################################
 #                                                                             #
@@ -2175,22 +2292,24 @@ AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
 			enable_build_doc=$enableval, enable_build_doc=yes)
 
-# Check whether doxygen and pdflatex are installed
-AC_PATH_PROG(doxygencommand, doxygen)
-if test "$doxygencommand" = "" ; then
-	enable_build_doc="no"
-else
-	DOXYGEN_VERSION_MAJOR=`$doxygencommand --version| cut -d '.' -f1`
+if test "$enable_build_doc" = "yes" ; then
+   # Check whether doxygen and pdflatex are installed
+   AC_PATH_PROG(doxygencommand, doxygen)
+   if test "$doxygencommand" = "" ; then
+      	enable_build_doc="no"
+   else
+   	DOXYGEN_VERSION_MAJOR=`$doxygencommand --version| cut -d '.' -f1`
 	DOXYGEN_VERSION_MINOR=`$doxygencommand --version| cut -d '.' -f2`
 	if test $DOXYGEN_VERSION_MAJOR -ge 1 -a $DOXYGEN_VERSION_MINOR -ge 8 ; then
 	   	enable_build_doc="yes"
 	else
 	   	enable_build_doc="no"
 	fi
-fi
-AC_PATH_PROG(pdflatex, pdflatex)
-if test "pdflatexcommand" = "" ; then
+   fi
+   AC_PATH_PROG(pdflatex, pdflatex)
+   if test "pdflatexcommand" = "" ; then
 	enable_build_doc="no"
+   fi
 fi
 AC_MSG_CHECKING(whether documentation should be compiled)
 AC_MSG_RESULT($enable_build_doc)
@@ -2256,13 +2375,16 @@ AC_OUTPUT([
 	libstarpu.pc
 	starpu-1.0.pc
 	starpu-1.1.pc
+	starpu-1.2.pc
 	mpi/libstarpumpi.pc
 	mpi/starpumpi-1.0.pc
 	mpi/starpumpi-1.1.pc
+	mpi/starpumpi-1.2.pc
 	starpufft/Makefile
 	starpufft/libstarpufft.pc
 	starpufft/starpufft-1.0.pc
 	starpufft/starpufft-1.1.pc
+	starpufft/starpufft-1.2.pc
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
@@ -2282,9 +2404,11 @@ AC_OUTPUT([
 	sc_hypervisor/Makefile
 	sc_hypervisor/src/Makefile
 	sc_hypervisor/examples/Makefile
+	doc/Makefile
 	doc/doxygen/Makefile
 	doc/doxygen/doxygen-config.cfg
 	doc/doxygen/doxygen_filter.sh
+	tools/mvsc/starpu_var.bat
 ])
 
 AC_MSG_NOTICE([

@@ -19,10 +19,7 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 
 SUBDIRS = src
 SUBDIRS += tools tests
-
-if BUILD_DOC
-SUBDIRS += doc/doxygen
-endif
+SUBDIRS += doc
 
 if USE_MPI
 SUBDIRS += mpi
@@ -49,7 +46,7 @@ SUBDIRS += sc_hypervisor
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libstarpu.pc starpu-1.0.pc starpu-1.1.pc
+pkgconfig_DATA = libstarpu.pc starpu-1.0.pc starpu-1.1.pc starpu-1.2.pc
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
@@ -76,6 +73,7 @@ versinclude_HEADERS = 				\
 	include/starpu_bound.h			\
 	include/starpu_scheduler.h		\
 	include/starpu_sched_ctx.h		\
+	include/starpu_sched_ctx_hypervisor.h	\
 	include/starpu_top.h			\
 	include/starpu_deprecated_api.h         \
 	include/starpu_hash.h			\
@@ -100,14 +98,14 @@ all-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE)
 clean-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE) clean ; $(RM) Makefile
-	$(RM) starpu-top/starpu_top.1 starpu-top/starpu_top
+	$(RM) starpu-top/starpu_top.1 starpu-top/starpu_top$(EXEEXT)
 # TODO: resources
 install-exec-local:
 	$(MKDIR_P) $(DESTDIR)$(bindir)
-	$(INSTALL_STRIP_PROGRAM) starpu-top/starpu_top $(DESTDIR)$(bindir)
+	-$(INSTALL_STRIP_PROGRAM) starpu-top/starpu_top$(EXEEXT) $(DESTDIR)$(bindir)
 uninstall-local:
-	$(RM) $(DESTDIR)$(bindir)/starpu_top
-	$(RM) starpu-top/starpu_top
+	$(RM) $(DESTDIR)$(bindir)/starpu_top$(EXEEXT)
+	$(RM) starpu-top/starpu_top$(EXEEXT)
 	$(RM) starpu-top/Makefile
 
 if STARPU_HAVE_HELP2MAN
@@ -124,7 +122,7 @@ else
 txtdir = ${docdir}
 endif
 txt_DATA = AUTHORS COPYING.LGPL README STARPU-REVISION
-EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl
+EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl mic-configure
 
 DISTCLEANFILES = STARPU-REVISION
 

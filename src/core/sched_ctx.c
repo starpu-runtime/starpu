@@ -17,8 +17,9 @@
 #include <core/sched_policy.h>
 #include <core/sched_ctx.h>
 #include <common/utils.h>
+#include <stdarg.h>
 
-starpu_pthread_mutex_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
+starpu_pthread_rwlock_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
 
 extern struct starpu_worker_collection worker_list;
 static starpu_pthread_mutex_t sched_ctx_manag = STARPU_PTHREAD_MUTEX_INITIALIZER;
@@ -26,26 +27,19 @@ static starpu_pthread_mutex_t finished_submit_mutex = STARPU_PTHREAD_MUTEX_INITI
 struct starpu_task stop_submission_task = STARPU_TASK_INITIALIZER;
 starpu_pthread_key_t sched_ctx_key;
 unsigned with_hypervisor = 0;
-double max_time_worker_on_ctx = -1.0;
 
 static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *config);
-static unsigned _starpu_worker_get_first_free_sched_ctx(struct _starpu_worker *worker);
-
-static unsigned _starpu_worker_get_sched_ctx_id(struct _starpu_worker *worker, unsigned sched_ctx_id);
 
 static void _starpu_worker_gets_into_ctx(unsigned sched_ctx_id, struct _starpu_worker *worker)
 {
-	unsigned worker_sched_ctx_id = _starpu_worker_get_sched_ctx_id(worker, sched_ctx_id);
+	unsigned ret_sched_ctx = _starpu_sched_ctx_list_get_sched_ctx(worker->sched_ctx_list, sched_ctx_id);
 	/* the worker was planning to go away in another ctx but finally he changed his mind & 
 	   he's staying */
-	if (worker_sched_ctx_id  == STARPU_NMAX_SCHED_CTXS)
+	if (ret_sched_ctx == STARPU_NMAX_SCHED_CTXS)
 	{
-		worker_sched_ctx_id = _starpu_worker_get_first_free_sched_ctx(worker);
-		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 		/* add context to worker */
-		worker->sched_ctx[worker_sched_ctx_id] = sched_ctx;
+		_starpu_sched_ctx_list_add(&worker->sched_ctx_list, sched_ctx_id);
 		worker->nsched_ctxs++;
-		worker->active_ctx = sched_ctx_id;
 	}
 	worker->removed_from_ctx[sched_ctx_id] = 0;
 	return;
@@ -53,12 +47,16 @@ static void _starpu_worker_gets_into_ctx(unsigned sched_ctx_id, struct _starpu_w
 
 void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker *worker)
 {
-	unsigned worker_sched_ctx_id = _starpu_worker_get_sched_ctx_id(worker, sched_ctx_id);
+	unsigned ret_sched_ctx = _starpu_sched_ctx_list_get_sched_ctx(worker->sched_ctx_list, sched_ctx_id);
 	/* remove context from worker */
-	if(worker->sched_ctx[worker_sched_ctx_id]->sched_policy && worker->sched_ctx[worker_sched_ctx_id]->sched_policy->remove_workers)
-		worker->sched_ctx[worker_sched_ctx_id]->sched_policy->remove_workers(sched_ctx_id, &worker->workerid, 1);
-	worker->sched_ctx[worker_sched_ctx_id] = NULL;
-	worker->nsched_ctxs--;
+	if(ret_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+	{
+		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+		if(sched_ctx && sched_ctx->sched_policy && sched_ctx->sched_policy->remove_workers)
+			sched_ctx->sched_policy->remove_workers(sched_ctx_id, &worker->workerid, 1);
+		_starpu_sched_ctx_list_remove(&worker->sched_ctx_list, sched_ctx_id);
+		worker->nsched_ctxs--;
+	}
 	return;
 }
 
@@ -126,6 +124,21 @@ void starpu_sched_ctx_stop_task_submission()
 {
 	_starpu_exclude_task_from_dag(&stop_submission_task);
 	_starpu_task_submit_internally(&stop_submission_task);
+}
+
+void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	/* if is the initial sched_ctx no point in taking the mutex, the workers are
+	   not launched yet */
+	if(!sched_ctx->is_initial_sched)
+		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
+
+	worker->shares_tasks_lists[sched_ctx_id] = 1;
+
+	if(!sched_ctx->is_initial_sched)
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 }
 
 static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers,
@@ -240,9 +253,11 @@ static void _starpu_sched_ctx_create_hwloc_tree(struct _starpu_sched_ctx *sched_
 }
 #endif
 
-struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerids,
-				  int nworkers_ctx, unsigned is_initial_sched,
-				  const char *sched_name)
+struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerids,
+						   int nworkers_ctx, unsigned is_initial_sched,
+						   const char *sched_ctx_name,
+						   int min_prio_set, int min_prio,
+						   int max_prio_set, int max_prio)
 {
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 
@@ -267,11 +282,13 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *
 
 	sched_ctx->sched_policy = (struct starpu_sched_policy*)malloc(sizeof(struct starpu_sched_policy));
 	sched_ctx->is_initial_sched = is_initial_sched;
-	sched_ctx->name = sched_name;
+	sched_ctx->name = sched_ctx_name;
 	sched_ctx->inheritor = STARPU_NMAX_SCHED_CTXS;
 	sched_ctx->finished_submit = 0;
-	sched_ctx->min_priority = 0;
-	sched_ctx->max_priority = 1;
+	sched_ctx->min_priority_is_set = min_prio_set;
+	if (sched_ctx->min_priority_is_set) sched_ctx->min_priority = min_prio;
+	sched_ctx->max_priority_is_set = max_prio_set;
+	if (sched_ctx->max_priority_is_set) sched_ctx->max_priority = max_prio;
 	sem_init(&sched_ctx->parallel_code_sem, 0, 0);
 
 	_starpu_barrier_counter_init(&sched_ctx->tasks_barrier, 0);
@@ -297,11 +314,13 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *
 		int i;
 		/*initialize the mutexes for all contexts */
 		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-			STARPU_PTHREAD_MUTEX_INIT(&changing_ctx_mutex[i], NULL);
+			STARPU_PTHREAD_RWLOCK_INIT(&changing_ctx_mutex[i], NULL);
 		for(i = 0; i < nworkers; i++)
 		{
 			struct _starpu_worker *worker = _starpu_get_worker_struct(i);
-			worker->sched_ctx[_starpu_worker_get_first_free_sched_ctx(worker)] = sched_ctx;
+			worker->sched_ctx_list = (struct _starpu_sched_ctx_list*)malloc(sizeof(struct _starpu_sched_ctx_list));
+			_starpu_sched_ctx_list_init(worker->sched_ctx_list);
+			_starpu_sched_ctx_list_add(&worker->sched_ctx_list, sched_ctx->id);
 			worker->nsched_ctxs++;
 		}
 	}
@@ -431,7 +450,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 	}
 }
 
-unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_name,
+unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name,
 						 int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus,
 						 unsigned allow_overlap)
 {
@@ -450,7 +469,7 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	for(i = 0; i < nw; i++)
 		printf("%d ", workers[i]);
 	printf("\n");
-	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_name);
+	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_ctx_name, 0, 0, 0, 0);
 	sched_ctx->min_ncpus = min_ncpus;
 	sched_ctx->max_ncpus = max_ncpus;
 	sched_ctx->min_ngpus = min_ngpus;
@@ -464,14 +483,49 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 
 }
 
-unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids,
-				 int nworkers, const char *sched_name)
+unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx_name, ...)
 {
-	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
-	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(config, policy_name);
+	va_list varg_list;
+	int arg_type;
+	int min_prio_set = 0;
+	int max_prio_set = 0;
+	int min_prio = 0;
+	int max_prio = 0;
+	struct starpu_sched_policy *sched_policy;
+
+	va_start(varg_list, sched_ctx_name);
+	while ((arg_type = va_arg(varg_list, int)) != 0)
+	{
+		if (arg_type == STARPU_SCHED_CTX_POLICY_NAME)
+		{
+			char *policy_name = va_arg(varg_list, char *);
+			struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+			sched_policy = _starpu_select_sched_policy(config, policy_name);
+		}
+		else if (arg_type == STARPU_SCHED_CTX_POLICY_STRUCT)
+		{
+			sched_policy = va_arg(varg_list, struct starpu_sched_policy *);
+		}
+		else if (arg_type == STARPU_SCHED_CTX_POLICY_MIN_PRIO)
+		{
+			min_prio = va_arg(varg_list, int);
+			min_prio_set = 1;
+		}
+		else if (arg_type == STARPU_SCHED_CTX_POLICY_MAX_PRIO)
+		{
+			max_prio = va_arg(varg_list, int);
+			max_prio_set = 1;
+		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
+		}
+
+	}
+	va_end(varg_list);
 
 	struct _starpu_sched_ctx *sched_ctx = NULL;
-	sched_ctx = _starpu_create_sched_ctx(selected_policy, workerids, nworkers, 0, sched_name);
+	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio);
 
 	_starpu_update_workers_with_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id);
 #ifdef STARPU_USE_SC_HYPERVISOR
@@ -480,23 +534,19 @@ unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids,
 	return sched_ctx->id;
 }
 
-unsigned starpu_sched_ctx_create_with_custom_policy(struct starpu_sched_policy *policy, int *workerids, int nworkers, const char *sched_name)
-{
-	struct _starpu_sched_ctx *sched_ctx = NULL;
-	sched_ctx = _starpu_create_sched_ctx(policy, workerids, nworkers, 0, sched_name);
-
-	_starpu_update_workers_with_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id);
-#ifdef STARPU_USE_SC_HYPERVISOR
-	sched_ctx->perf_counters = NULL;
-#endif
-	return sched_ctx->id;
-}
-
-#ifdef STARPU_USE_SC_HYPERVISOR
-void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, struct starpu_sched_ctx_performance_counters *perf_counters)
+void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	sched_ctx->perf_counters = perf_counters;
+	sched_ctx->close_callback = close_callback;
+	sched_ctx->close_args = args;
+	return;
+}
+
+#ifdef STARPU_USE_SC_HYPERVISOR
+void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, void* perf_counters)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->perf_counters = (struct starpu_sched_ctx_performance_counters *)perf_counters;
 	return;
 }
 #endif
@@ -512,6 +562,9 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->empty_ctx_mutex);
 	sem_destroy(&sched_ctx->parallel_code_sem);
 	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_bitmap_free(sched_ctx->hwloc_workers_set);
+#endif //STARPU_HAVE_HWLOC
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx_manag);
@@ -531,7 +584,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 	unsigned inheritor_sched_ctx_id = sched_ctx->inheritor;
 	struct _starpu_sched_ctx *inheritor_sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx->inheritor);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&changing_ctx_mutex[sched_ctx_id]);
 	STARPU_ASSERT(sched_ctx->id != STARPU_NMAX_SCHED_CTXS);
 
 	int *workerids;
@@ -561,7 +614,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 	/* workerids is malloc-ed in starpu_sched_ctx_get_workers_list, don't forget to free it when
 	   you don't use it anymore */
 	free(workerids);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 	return;
 }
 
@@ -572,16 +625,16 @@ void _starpu_delete_all_sched_ctxs()
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
 		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(i);
-		STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[i]);
+		STARPU_PTHREAD_RWLOCK_WRLOCK(&changing_ctx_mutex[i]);
 		if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 		{
 			_starpu_sched_ctx_free_scheduling_data(sched_ctx);
 			_starpu_barrier_counter_destroy(&sched_ctx->tasks_barrier);
 			_starpu_delete_sched_ctx(sched_ctx);
 		}
-		STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[i]);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[i]);
 
-		STARPU_PTHREAD_MUTEX_DESTROY(&changing_ctx_mutex[i]);
+		STARPU_PTHREAD_RWLOCK_DESTROY(&changing_ctx_mutex[i]);
 	}
 	return;
 }
@@ -612,7 +665,7 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 	else
                 /* you're not suppose to get here if you deleted the context
 		   so no point in having the mutex locked */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx->id]);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx->id]);
 	
 	while(!starpu_task_list_empty(&sched_ctx->empty_ctx_tasks))
 	{
@@ -634,7 +687,7 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 
 
 	/* leave the mutex as it was to avoid pbs in the caller function */
-	STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx->id]);
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx->id]);
 	return;
 
 }
@@ -644,7 +697,7 @@ void starpu_sched_ctx_add_workers(int *workers_to_add, int nworkers_to_add, unsi
 	int added_workers[nworkers_to_add];
 	int n_added_workers = 0;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&changing_ctx_mutex[sched_ctx_id]);
 
 	STARPU_ASSERT(workers_to_add != NULL && nworkers_to_add > 0);
 	_starpu_check_workers(workers_to_add, nworkers_to_add);
@@ -659,11 +712,16 @@ void starpu_sched_ctx_add_workers(int *workers_to_add, int nworkers_to_add, unsi
 			_starpu_update_workers_with_ctx(added_workers, n_added_workers, sched_ctx->id);
 		}
 
-		_starpu_fetch_tasks_from_empty_ctx_list(sched_ctx);
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 
+	if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+	{
+		STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx_id]);
+		_starpu_fetch_tasks_from_empty_ctx_list(sched_ctx);
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+	}
 
 	return;
 }
@@ -676,7 +734,7 @@ void starpu_sched_ctx_remove_workers(int *workers_to_remove, int nworkers_to_rem
 
 	_starpu_check_workers(workers_to_remove, nworkers_to_remove);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_WRLOCK(&changing_ctx_mutex[sched_ctx_id]);
 	/* if the context has not already been deleted */
 	if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 	{
@@ -686,7 +744,7 @@ void starpu_sched_ctx_remove_workers(int *workers_to_remove, int nworkers_to_rem
 			_starpu_update_workers_without_ctx(removed_workers, n_removed_workers, sched_ctx->id, 0);
 
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 	return;
 }
 
@@ -699,29 +757,7 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config)
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 		config->sched_ctxs[i].id = STARPU_NMAX_SCHED_CTXS;
 
-	char* max_time_on_ctx = getenv("STARPU_MAX_TIME_ON_CTX");
-	if (max_time_on_ctx != NULL)
-		max_time_worker_on_ctx = atof(max_time_on_ctx);
-
 	return;
-}
-
-/* unused sched_ctx pointers of a worker are NULL */
-void _starpu_init_sched_ctx_for_worker(unsigned workerid)
-{
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	worker->sched_ctx = (struct _starpu_sched_ctx**)malloc(STARPU_NMAX_SCHED_CTXS * sizeof(struct _starpu_sched_ctx*));
-	unsigned i;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-		worker->sched_ctx[i] = NULL;
-
-	return;
-}
-
-void _starpu_delete_sched_ctx_for_worker(unsigned workerid)
-{
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	free(worker->sched_ctx);
 }
 
 /* sched_ctx aren't necessarly one next to another */
@@ -738,34 +774,6 @@ static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *
 	return STARPU_NMAX_SCHED_CTXS;
 }
 
-static unsigned _starpu_worker_get_first_free_sched_ctx(struct _starpu_worker *worker)
-{
-	unsigned i;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-		if(worker->sched_ctx[i] == NULL)
-			return i;
-	STARPU_ASSERT(0);
-	return STARPU_NMAX_SCHED_CTXS;
-}
-
-static unsigned _starpu_worker_get_sched_ctx_id(struct _starpu_worker *worker, unsigned sched_ctx_id)
-{
-	unsigned to_be_deleted = STARPU_NMAX_SCHED_CTXS;
-	unsigned i;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-	{
-		if(worker->sched_ctx[i] != NULL)
-		{
-			if(worker->sched_ctx[i]->id == sched_ctx_id)
-				return i;
-			else if(worker->sched_ctx[i]->id == STARPU_NMAX_SCHED_CTXS)
-				to_be_deleted = i;
-		}
-	}
-
-	return to_be_deleted;
-}
-
 int _starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
@@ -780,8 +788,8 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	int finished = _starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->tasks_barrier);
-/*when finished decrementing the tasks if the user signaled he will not submit tasks anymore
-  we can move all its workers to the inheritor context */
+        /* when finished decrementing the tasks if the user signaled he will not submit tasks anymore
+           we can move all its workers to the inheritor context */
 	if(finished && sched_ctx->inheritor != STARPU_NMAX_SCHED_CTXS)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&finished_submit_mutex);
@@ -790,9 +798,12 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 			STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
 
 			/* take care the context is not deleted or changed at the same time */
-			STARPU_PTHREAD_MUTEX_LOCK(&changing_ctx_mutex[sched_ctx_id]);
+			STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx_id]);
 			if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
+				if(sched_ctx->close_callback)
+					sched_ctx->close_callback(sched_ctx->id, sched_ctx->close_args);
+
 				int *workerids = NULL;
 				unsigned nworkers = starpu_sched_ctx_get_workers_list(sched_ctx->id, &workerids);
 				
@@ -802,7 +813,7 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 					free(workerids);
 				}
 			}
-			STARPU_PTHREAD_MUTEX_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 
 			return;
 		}
@@ -937,7 +948,7 @@ int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu
 	return npus;
 }
 
-starpu_pthread_mutex_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id)
+starpu_pthread_rwlock_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id)
 {
 	return &changing_ctx_mutex[sched_ctx_id];
 }
@@ -985,13 +996,6 @@ unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sc
 
 unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id)
 {
-/* 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid); */
-/* 	unsigned i; */
-/* 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++) */
-/* 	{ */
-/* 		if(worker->sched_ctx[i] && worker->sched_ctx[i]->id == sched_ctx_id) */
-/* 			return 1; */
-/* 	} */
         struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
         struct starpu_worker_collection *workers = sched_ctx->workers;
@@ -1047,49 +1051,19 @@ unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_
 	}
 	return 0;
 }
+unsigned starpu_sched_ctx_worker_get_id(unsigned sched_ctx_id)
+{
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1)
+		if(starpu_sched_ctx_contains_worker(workerid, sched_ctx_id))
+			return workerid;
+	return -1;
+}
 		 
 unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	return worker->nsched_ctxs > 1;
-}
-
-unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id)
-{
-	if(max_time_worker_on_ctx == -1.0) return 1;
-
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-	return worker->active_ctx == sched_ctx_id;
-}
-
-void starpu_sched_ctx_set_turn_to_other_ctx(int workerid, unsigned sched_ctx_id)
-{
-	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
-
-	struct _starpu_sched_ctx *other_sched_ctx = NULL;
-	struct _starpu_sched_ctx *active_sched_ctx = NULL;
-	int i;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-	{
-		other_sched_ctx = worker->sched_ctx[i];
-		if(other_sched_ctx != NULL && other_sched_ctx->id != STARPU_NMAX_SCHED_CTXS &&
-		   other_sched_ctx->id != 0 && other_sched_ctx->id != sched_ctx_id)
-		{
-			worker->active_ctx = other_sched_ctx->id;
-			active_sched_ctx = other_sched_ctx;
-			break;
-		}
-	}
-
-	if(active_sched_ctx != NULL && worker->active_ctx != sched_ctx_id)
-	{
-		_starpu_fetch_tasks_from_empty_ctx_list(active_sched_ctx);
-	}
-}
-
-double starpu_sched_ctx_get_max_time_worker_on_ctx(void)
-{
-	return max_time_worker_on_ctx;
 }
 
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor)
@@ -1111,12 +1085,12 @@ void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id)
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 
-void _starpu_sched_ctx_call_poped_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint)
+void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-	if(sched_ctx != NULL && task->sched_ctx != _starpu_get_initial_sched_ctx()->id && task->sched_ctx != STARPU_NMAX_SCHED_CTXS
-	   && sched_ctx->perf_counters != NULL)
-		sched_ctx->perf_counters->notify_poped_task(task->sched_ctx, workerid, task, data_size, footprint);
+	if(sched_ctx != NULL && task->sched_ctx != _starpu_get_initial_sched_ctx()->id && 
+	   task->sched_ctx != STARPU_NMAX_SCHED_CTXS  && sched_ctx->perf_counters != NULL)
+		sched_ctx->perf_counters->notify_post_exec_task(task, data_size, footprint, task->hypervisor_tag);
 }
 
 void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
@@ -1172,6 +1146,48 @@ int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	sched_ctx->max_priority = max_prio;
+	return 0;
+}
+
+int starpu_sched_ctx_min_priority_is_set(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	return sched_ctx->min_priority_is_set;
+}
+
+int starpu_sched_ctx_max_priority_is_set(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	return sched_ctx->max_priority_is_set;
+}
+
+unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
+{
+	struct _starpu_sched_ctx_list *l = NULL;
+        for (l = worker->sched_ctx_list; l; l = l->next)
+        {
+		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+		
+		unsigned last_worker_awake = 1;
+		struct starpu_worker_collection *workers = sched_ctx->workers;
+		struct starpu_sched_ctx_iterator it;
+
+		int workerid;
+		if(workers->init_iterator)
+			workers->init_iterator(workers, &it);
+		
+		while(workers->has_next(workers, &it))
+		{
+			workerid = workers->get_next(workers, &it);
+			if(workerid != worker->workerid && _starpu_worker_get_status(workerid) != STATUS_SLEEPING)
+			{
+				last_worker_awake = 0;
+				break;
+			}
+		}
+		if(last_worker_awake)
+			return 1;
+	}
 	return 0;
 }
 
@@ -1262,7 +1278,6 @@ void _starpu_sched_ctx_rebind_thread_to_its_cpu(unsigned cpuid)
 static void _starpu_sched_ctx_get_workers_to_sleep(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 	struct starpu_sched_ctx_iterator it;
 	struct _starpu_worker *worker = NULL;
@@ -1279,7 +1294,7 @@ static void _starpu_sched_ctx_get_workers_to_sleep(unsigned sched_ctx_id)
 
 	while(workers->has_next(workers, &it))
 	{
-		int w = workers->get_next(workers, &it);
+		workers->get_next(workers, &it);
 		sem_wait(&sched_ctx->parallel_code_sem);
 	}
 	return;
@@ -1289,15 +1304,12 @@ void _starpu_sched_ctx_signal_worker_blocked(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	struct _starpu_sched_ctx *sched_ctx = NULL;
-	unsigned i;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	struct _starpu_sched_ctx_list *l = NULL;
+	for (l = worker->sched_ctx_list; l; l = l->next)
 	{
-		if(worker->sched_ctx[i] != NULL && worker->sched_ctx[i]->id != STARPU_NMAX_SCHED_CTXS
-			&& worker->sched_ctx[i]->id != 0)
-		{
-			sched_ctx = worker->sched_ctx[i];
+		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+		if(sched_ctx->id != 0)
 			sem_post(&sched_ctx->parallel_code_sem);
-		}
 	}	
 	return;
 }

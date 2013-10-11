@@ -125,7 +125,7 @@ static int is_same_kind_of_all(struct starpu_sched_node * root, struct _starpu_w
 	if(starpu_sched_node_is_worker(root))
 	{
 		struct _starpu_worker * w = root->data;
-		return w->perf_arch == w_ref->perf_arch;
+		return w->perf_arch.type == w_ref->perf_arch.type;
 	}
 	
 	int i;

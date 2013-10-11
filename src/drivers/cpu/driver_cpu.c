@@ -29,6 +29,7 @@
 #include "driver_cpu.h"
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/malloc.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -111,7 +112,7 @@ _starpu_cpu_discover_devices(struct _starpu_machine_config *config)
  * Handle binding CPUs on cores.
  * In the case of a combined worker WORKER_TASK != J->TASK */
 
-static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_task, struct _starpu_worker *cpu_args, int rank, enum starpu_perfmodel_archtype perf_arch)
+static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_task, struct _starpu_worker *cpu_args, int rank, struct starpu_perfmodel_arch* perf_arch)
 {
 	int ret;
 	int is_parallel_task = (j->task_size > 1);
@@ -189,7 +190,7 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 	return _starpu_get_worker_struct(n);
 }
 
-static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_config *config)
+static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine_config *config)
 {
 	size_t global_mem;
 	starpu_ssize_t limit;
@@ -202,15 +203,18 @@ static size_t _starpu_cpu_get_global_mem_size(int devid, struct _starpu_machine_
 #if defined(STARPU_HAVE_HWLOC)
         int depth_node;
 	struct _starpu_machine_topology *topology = &config->topology;
+
+#if 0
+	/* Do not limit ourself to a single NUMA node yet, as we don't have real NUMA support for now */
         depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
 
 	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
 	     global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
 	else
-#ifdef STARPU_DEVEL
-#warning devid looks wrong
+	     global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, nodeid)->memory.local_memory;
+#else
+	global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
 #endif
-	     global_mem = hwloc_get_obj_by_depth(topology->hwtopology, depth_node, devid)->memory.local_memory;
 
 #else /* STARPU_HAVE_HWLOC */
 #ifdef STARPU_DEVEL
@@ -238,7 +242,7 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 
 	int devid = cpu_worker->devid;
 
-	_starpu_worker_init(cpu_worker, _STARPU_FUT_CPU_KEY);
+	_starpu_worker_start(cpu_worker, _STARPU_FUT_CPU_KEY);
 	/* FIXME: when we have NUMA support, properly turn node number into NUMA node number */
 	_starpu_memory_manager_set_global_memory_size(cpu_worker->memory_node, _starpu_cpu_get_global_mem_size(cpu_worker->memory_node, cpu_worker->config));
 
@@ -292,7 +296,7 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 	int rank = 0;
 	int is_parallel_task = (j->task_size > 1);
 
-	enum starpu_perfmodel_archtype perf_arch;
+	struct starpu_perfmodel_arch* perf_arch;
 
 	/* Get the rank in case it is a parallel task */
 	if (is_parallel_task)
@@ -307,14 +311,14 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 		cpu_worker->combined_workerid = j->combined_workerid;
 		cpu_worker->worker_size = combined_worker->worker_size;
 		cpu_worker->current_rank = rank;
-		perf_arch = combined_worker->perf_arch;
+		perf_arch = &combined_worker->perf_arch;
 	}
 	else
 	{
 		cpu_worker->combined_workerid = cpu_worker->workerid;
 		cpu_worker->worker_size = 1;
 		cpu_worker->current_rank = 0;
-		perf_arch = cpu_worker->perf_arch;
+		perf_arch = &cpu_worker->perf_arch;
 	}
 
 	_starpu_set_current_task(j->task);

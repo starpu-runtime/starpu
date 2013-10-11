@@ -438,7 +438,7 @@ create_task(struct starpu_task **taskp, enum starpu_worker_archtype type, int id
  * <device1>_to_<device2> functions.
  * They all create and submit a task that has to be executed on <device2>,
  * forcing a copy between <device1> and <device2>.
- * XXX : could we sometimes use starp_insert_task() ? It seems hars because we
+ * XXX : could we sometimes use starpu_task_insert() ? It seems hars because we
  * need to set the execute_on_a_specific_worker field...
  */
 #ifdef STARPU_USE_CUDA

@@ -11,6 +11,12 @@
 @name Initialisation
 \ingroup API_MPI_Support
 
+\def STARPU_USE_MPI
+\ingroup API_MPI_Support
+This macro is defined when StarPU has been installed with MPI
+support. It should be used in your code to detect the availability of
+MPI.
+
 \fn int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 \ingroup API_MPI_Support
 Initializes the starpumpi library. \p initialize_mpi indicates if MPI
@@ -198,23 +204,27 @@ Returns the last value set by starpu_data_set_rank().
 
 \def STARPU_EXECUTE_ON_NODE
 \ingroup API_MPI_Support
-this macro is used when calling starpu_mpi_insert_task(), and must be
+this macro is used when calling starpu_mpi_task_insert(), and must be
 followed by a integer value which specified the node on which to
 execute the codelet.
 
 \def STARPU_EXECUTE_ON_DATA
 \ingroup API_MPI_Support
-this macro is used when calling starpu_mpi_insert_task(), and must be
+this macro is used when calling starpu_mpi_task_insert(), and must be
 followed by a data handle to specify that the node owning the given
 data will execute the codelet.
 
-\fn int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
+\def starpu_mpi_insert_task
+\ingroup API_MPI_Support
+Convenience macro for the function starpu_mpi_task_insert() which used to be called starpu_mpi_insert_task.
+
+\fn int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support
 Create and submit a task corresponding to codelet with the following
 arguments. The argument list must be zero-terminated.
 
 The arguments following the codelets are the same types as for the
-function starpu_insert_task(). The extra argument
+function starpu_task_insert(). The extra argument
 ::STARPU_EXECUTE_ON_NODE followed by an integer allows to specify the
 MPI node to execute the codelet. It is also possible to specify that
 the node owning a specific data will execute the codelet, by using

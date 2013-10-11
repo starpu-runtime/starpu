@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ROOT_DIR=$PWD
+ROOT_DIR=$(dirname $0)
 
 cat > ./mic-config.log << EOF
 This file was created by StarPU mic-configure
@@ -10,41 +10,72 @@ EOF
 
 prefix="/usr/local"
 coi_dir="/opt/intel/mic/coi"
+scif_dir="/opt/intel/mic/scif"
 mic_host="x86_64-k1om-linux"
 
 for arg in $*
 do
-	case $arg in 
+	case $arg in
 		--prefix=*)
 			prefix="${arg#--prefix=}"
 			;;
 		--with-coi-dir=*)
 			coi_dir="${arg#--with-coi-dir=}"
 			;;
+		--with-scif-dir=*)
+			scif_dir="${arg#--with-scif-dir=}"
+			;;
 		--mic-host=*)
 			mic_host="${arg#--mic-host=}"
 			;;
 	esac
-
 done
 
-for arch in mic host
+# Test gcc compiler
+x=$(type -t ${mic_host}-gcc)
+if [ -z "$x" ]
+then
+    # Test icc compiler
+    echo "int main(int argc, char **argv) { return 0; }" > /tmp/icc_$USER_$$.c
+    icc -mmic /tmp/icc_$USER_$$.c > /dev/null 2>/tmp/icc_$USER_$$.err
+    l=$(grep -c "invalid argument" /tmp/icc_$USER_$$.err)
+    if [ "$l" != "0" ]
+    then
+        echo "[error] no compiler found. please add path to either ${mic_host}-gcc or to an enabled mic icc compiler in your PATH"
+	exit 1
+    else
+	compiler="icc"
+    fi
+else
+    compiler="gcc"
+fi
+
+for arch in host mic
 do
 	# We call the configure script from a build directory further in the
 	# arborescence
 
-	command="${ROOT_DIR}/configure"
-	params="--enable-mic --with-coi-dir=$coi_dir --prefix=$prefix/$arch"
+	case $ROOT_DIR in
+		/*) command="${ROOT_DIR}/configure";;
+		*) command="../${ROOT_DIR}/configure";;
+	esac
+
+	if [ $compiler = "icc" -a "$arch" = "mic" ] ; then
+	    export CC="icc -mmic"
+	    export CXX="icc -mmic"
+	fi
+
+	params="--enable-mic --with-coi-dir=$coi_dir --with-scif-dir=$scif_dir --prefix=$prefix/$arch"
 
 	if test x$arch = xmic ; then
 		# TODO: fix hwloc detection to look for another pkg-config place, and not just believe in the host version of hwloc.pc...
-		params="$params --without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --host=$mic_host"
+		params="$params --without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
 	else
-		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib"
+		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib --with-scif-lib-dir=$scif_dir/host-linux-release/lib"
 	fi
 
 	# If the build directory doesn't exist yet, create it
-	if [ ! -d "${ROOT_DIR}/build_${arch}" ] ; then
+	if [ ! -d "build_${arch}" ] ; then
 		mkdir "build_${arch}"
 	fi
 
@@ -59,7 +90,7 @@ do
 	then
 		exit $?
 	fi
-	cd "${ROOT_DIR}"
+	cd ..
 done
 
 cat > Makefile << EOF
@@ -77,6 +108,10 @@ distclean: clean
 check:
 	\$(MAKE) -C build_host check
 	\$(MAKE) -C build_mic check
+
+showcheck:
+	\$(MAKE) -C build_host showcheck
+	\$(MAKE) -C build_mic showcheck
 
 install:
 	\$(MAKE) -C build_host install
