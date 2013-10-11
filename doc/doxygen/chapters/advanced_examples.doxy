@@ -343,7 +343,7 @@ tasks with varying size so that the regression can be computed. StarPU will not
 trust the regression unless there is at least 10% difference between the minimum
 and maximum observed input size. It can be useful to set the
 environment variable \ref STARPU_CALIBRATE to <c>1</c> and run the application
-on varying input sizes with \ref STARPU_SCHED set to <c>eager</c> scheduler,
+on varying input sizes with \ref STARPU_SCHED set to <c>dmda</c> scheduler,
 so as to feed the performance model for a variety of
 inputs. The application can also provide the measurements explictly by
 using the function starpu_perfmodel_update_history(). The tools
