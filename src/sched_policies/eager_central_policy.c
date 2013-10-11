@@ -70,10 +70,9 @@ static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 }
 
 static int push_task_eager_policy(struct starpu_task *task)
- {
+{
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	int ret_val = 0;
 		
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	starpu_task_list_push_back(&data->fifo->taskq,task);
@@ -81,7 +80,6 @@ static int push_task_eager_policy(struct starpu_task *task)
 	data->fifo->nprocessed++;
 
 	starpu_push_task_end(task);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 
 	/*if there are no tasks block */
@@ -98,28 +96,34 @@ static int push_task_eager_policy(struct starpu_task *task)
 		worker = workers->get_next(workers, &it);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-		if (starpu_bitmap_get(data->waiters, worker))
-		{
-			/* This worker is waiting for a task */
-			unsigned nimpl;
-			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-				if (starpu_worker_can_execute_task(worker, task, nimpl))
-				{
-					/* It can execute this one, tell him! */
-					starpu_bitmap_unset(data->waiters, worker);
-					break;
-				}
-		}
-#else
-		starpu_pthread_mutex_t *sched_mutex;
-		starpu_pthread_cond_t *sched_cond;
-		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-
-		if (starpu_wakeup_worker(worker, sched_cond, sched_mutex))
-		    break; // wake up a single worker
+		if (!starpu_bitmap_get(data->waiters, worker))
+			/* This worker is not waiting for a task */
+			continue;
 #endif
+
+		unsigned nimpl;
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+			if (starpu_worker_can_execute_task(worker, task, nimpl))
+			{
+				/* It can execute this one, tell him! */
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+				starpu_bitmap_unset(data->waiters, worker);
+				/* We really woke at least somebody, no need to wake somebody else */
+				goto out;
+#else
+				starpu_pthread_mutex_t *sched_mutex;
+				starpu_pthread_cond_t *sched_cond;
+				starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+
+				if (starpu_wakeup_worker(worker, sched_cond, sched_mutex))
+				    goto out; // wake up a single worker
+#endif
+			}
 	}
-	return ret_val;
+out:
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+
+	return 0;
 }
 
 static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
