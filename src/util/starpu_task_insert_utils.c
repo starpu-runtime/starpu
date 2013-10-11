@@ -185,7 +185,6 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
 		{
 			va_arg(varg_list, _starpu_callback_func_t);
-			va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
 		{
@@ -215,7 +214,6 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 		{
 			(void)va_arg(varg_list, double);
 		}
-
 		else if (arg_type==STARPU_TAG)
 		{
 			(void)va_arg(varg_list, starpu_tag_t);
