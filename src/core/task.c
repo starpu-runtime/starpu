@@ -74,7 +74,7 @@ void starpu_task_init(struct starpu_task *task)
 	task->predicted_transfer = NAN;
 
 	task->magic = 42;
-	task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
+	task->sched_ctx = STARPU_NMAX_SCHED_CTXS;
 
 	task->flops = 0.0;
 
@@ -411,19 +411,21 @@ int starpu_task_submit(struct starpu_task *task)
 	int ret;
 	unsigned is_sync = task->synchronous;
 	starpu_task_bundle_t bundle = task->bundle;
-	unsigned nsched_ctxs = _starpu_get_nsched_ctxs();
-	unsigned set_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 
 	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
 	* task structure, it is possible that this job structure was already
 	* allocated. */
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	if (task->sched_ctx == _starpu_get_initial_sched_ctx()->id  && nsched_ctxs != 1 && !j->internal)
+	if (j->internal)
 	{
-		set_sched_ctx = starpu_sched_ctx_get_context();
-		if (set_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-			task->sched_ctx = set_sched_ctx;
+		// Internal tasks are submitted to initial context
+		task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
+	}
+	else if (task->sched_ctx == STARPU_NMAX_SCHED_CTXS)
+	{
+		// If the task has not specified a context, we set the current context
+		task->sched_ctx = _starpu_sched_ctx_get_current_context();
 	}
 
 	if (is_sync)
