@@ -578,6 +578,18 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	}
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+
+	if (j->internal)
+	{
+		// Internal tasks are submitted to initial context
+		j->task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
+	}
+	else if (task->sched_ctx == STARPU_NMAX_SCHED_CTXS)
+	{
+		// If the task has not specified a context, we set the current context
+		j->task->sched_ctx = _starpu_sched_ctx_get_current_context();
+	}
+
 	_starpu_increment_nsubmitted_tasks();
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
@@ -632,6 +644,18 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	}
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+
+	if (j->internal)
+	{
+		// Internal tasks are submitted to initial context
+		j->task->sched_ctx = _starpu_get_initial_sched_ctx()->id;
+	}
+	else if (task->sched_ctx == STARPU_NMAX_SCHED_CTXS)
+	{
+		// If the task has not specified a context, we set the current context
+		j->task->sched_ctx = _starpu_sched_ctx_get_current_context();
+	}
+
 	_starpu_increment_nsubmitted_tasks();
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
