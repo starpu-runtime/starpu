@@ -18,6 +18,10 @@
 #include <core/perfmodel/perfmodel.h>
 #include "../helper.h"
 
+#ifdef STARPU_HAVE_WINDOWS
+#include <io.h>
+#endif
+
 #define STRING "booh"
 
 int _check_number(double val, int nan)
