@@ -39,6 +39,7 @@
 static starpu_pthread_cond_t submitted_cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t submitted_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static long int nsubmitted = 0, nready = 0;
+static int watchdog_ok;
 
 static void _starpu_increment_nsubmitted_tasks(void);
 
@@ -795,6 +796,9 @@ void _starpu_decrement_nsubmitted_tasks(void)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 
+	if (!watchdog_ok)
+		watchdog_ok = 1;
+
 	if (--nsubmitted == 0)
 	{
 		if (!config->submitting)
@@ -1004,4 +1008,59 @@ starpu_scc_func_t _starpu_task_get_scc_nth_implementation(struct starpu_codelet 
 char *_starpu_task_get_cpu_name_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
 	return cl->cpu_funcs_name[nimpl];
+}
+
+static starpu_pthread_t watchdog_thread;
+
+/* Check from times to times that StarPU does finish some tasks */
+static void *watchdog_func(void *foo)
+{
+	struct timespec ts, req, rem;
+	char *timeout_env;
+	unsigned long long timeout;
+
+	if (! (timeout_env = getenv("STARPU_WATCHDOG_TIMEOUT")))
+		return NULL;
+
+	timeout = atoll(timeout_env);
+	ts.tv_sec = timeout / 1000000;
+	ts.tv_nsec = (timeout % 1000000) * 1000;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	while (_starpu_machine_is_running())
+	{
+		int last_nsubmitted = starpu_task_nsubmitted();
+		watchdog_ok = 0;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+
+		req = ts;
+		while (nanosleep(&ts, &rem))
+			ts = rem;
+
+		STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+		if (!watchdog_ok && last_nsubmitted
+				&& last_nsubmitted == starpu_task_nsubmitted())
+		{
+			fprintf(stderr,"The StarPU watchdog detected that no task finished for %u.%06us (can be configure through STARPU_WATCHDOG_TIMEOUT)\n", ts.tv_sec, ts.tv_nsec/1000);
+			if (getenv("STARPU_WATCHDOG_CRASH"))
+			{
+				fprintf(stderr,"Crashing the process\n");
+				assert(0);
+			}
+			else
+				fprintf(stderr,"Set the STARPU_WATCHDOG_CRASH environment variable if you want to abort the process in such a case\n");
+		}
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	return NULL;
+}
+
+void _starpu_watchdog_init(void)
+{
+	STARPU_PTHREAD_CREATE(&watchdog_thread, NULL, watchdog_func, NULL);
+}
+
+void _starpu_watchdog_shutdown(void)
+{
+	starpu_pthread_join(watchdog_thread, NULL);
 }

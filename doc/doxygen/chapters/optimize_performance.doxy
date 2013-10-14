@@ -382,6 +382,23 @@ Statistics on the execution can then be obtained by using <c>export
 STARPU_BUS_STATS=1</c> and <c>export STARPU_WORKER_STATS=1</c> .
  More details on performance feedback are provided by the next chapter.
 
+\section Detection stuck conditions
+
+It may happen that for some reason, StarPU does not make progress for a long
+period of time.  Reason are sometimes due to contention inside StarPU, but
+sometimes this is due to external reasons, such as stuck MPI driver, or CUDA
+driver, etc.
+
+<c>export STARPU_WATCHDOG_TIMEOUT=10000</c>
+
+allows to make StarPU print an error message whenever StarPU does not terminate
+any task for 10ms. In addition to that,
+
+<c>export STARPU_WATCHDOG_CRASH=1</c>
+
+triggers a crash in that condition, thus allowing to catch the situation in gdb
+etc.
+
 \section CUDA-specificOptimizations CUDA-specific Optimizations
 
 Due to CUDA limitations, StarPU will have a hard time overlapping its own

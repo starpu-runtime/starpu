@@ -80,4 +80,7 @@ char *_starpu_task_get_cpu_name_nth_implementation(struct starpu_codelet *cl, un
 #define _STARPU_TASK_SET_INTERFACE(task, interface, i) do { if (task->dyn_handles) task->dyn_interfaces[i] = interface; else task->interfaces[i] = interface;} while(0)
 #define _STARPU_TASK_GET_INTERFACES(task) ((task->dyn_handles) ? task->dyn_interfaces : task->interfaces)
 
+void _starpu_watchdog_init(void);
+void _starpu_watchdog_shutdown(void);
+
 #endif // __CORE_TASK_H__
