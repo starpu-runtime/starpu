@@ -258,7 +258,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		child->footprint = _starpu_compute_data_footprint(child);
 
 		void *ptr;
-		ptr = starpu_data_handle_to_pointer(child, 0);
+		ptr = starpu_data_handle_to_pointer(child, STARPU_MAIN_RAM);
 		if (ptr != NULL)
 			_starpu_data_register_ram_pointer(child, ptr);
 	}

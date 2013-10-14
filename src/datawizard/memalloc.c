@@ -941,9 +941,9 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 	replicate->allocated = 1;
 	replicate->automatically_allocated = 1;
 
-	if (dst_node == 0)
+	if (dst_node == STARPU_MAIN_RAM)
 	{
-		void *ptr = starpu_data_handle_to_pointer(handle, 0);
+		void *ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
 		if (ptr != NULL)
 		{
 			_starpu_data_register_ram_pointer(handle, ptr);
