@@ -505,6 +505,25 @@ When set to 0, data statistics will not be displayed at the
 end of the execution of an application (\ref DataStatistics).
 </dd>
 
+<dt>STARPU_WATCHDOG_TIMEOUT</dt>
+<dd>
+\anchor STARPU_WATCHDOG_TIMEOUT
+\addindex __env__STARPU_WATCHDOG_TIMEOUT
+When set to a value other than 0, allows to make StarPU print an error
+message whenever StarPU does not terminate any task for 10ms. Should
+be used in combination with \ref STARPU_WATCHDOG_CRASH (see \ref
+DetectionStuckConditions).
+</dd>
+
+<dt>STARPU_WATCHDOG_CRASH</dt>
+<dd>
+\anchor STARPU_WATCHDOG_CRASH
+\addindex __env__STARPU_WATCHDOG_CRASH
+When set to a value other than 0, it triggers a crash when the watch
+dog is reached, thus allowing to catch the situation in gdb, etc
+(see \ref DetectionStuckConditions)
+</dd>
+
 </dl>
 
 */
