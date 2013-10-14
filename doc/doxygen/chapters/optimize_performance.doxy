@@ -382,7 +382,7 @@ Statistics on the execution can then be obtained by using <c>export
 STARPU_BUS_STATS=1</c> and <c>export STARPU_WORKER_STATS=1</c> .
  More details on performance feedback are provided by the next chapter.
 
-\section Detection stuck conditions
+\section DetectionStuckConditions Detection Stuck Conditions
 
 It may happen that for some reason, StarPU does not make progress for a long
 period of time.  Reason are sometimes due to contention inside StarPU, but
