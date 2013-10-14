@@ -436,7 +436,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	else
 	{
 		/* if the data is in write only mode, there is no need for a source */
-		if (requesting_node == 0) {
+		if (requesting_node == STARPU_MAIN_RAM) {
 			/* And this is the main RAM, really no need for a
 			 * request, just allocate */
 			if (_starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch) == 0)
