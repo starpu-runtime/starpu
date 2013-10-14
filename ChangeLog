@@ -33,6 +33,8 @@ New features:
     cudaMalloc overhead.
   * Prefetching is now done for all schedulers when it can be done whatever
     the scheduling decision.
+  * Add a watchdog which permits to easily trigger a crash when StarPU gets
+    stuck.
 
 Small features:
   * New function starpu_perfmodel_directory() to print directory
