@@ -850,14 +850,22 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&mc_rwlock[dst_node]);
 	_STARPU_TRACE_END_ALLOC_REUSE(dst_node);
 #endif
+	STARPU_ASSERT(handle->ops);
+	STARPU_ASSERT(handle->ops->allocate_data_on_node);
+	STARPU_ASSERT(replicate->data_interface);
+
+	char interface[handle->ops->interface_size];
+
+	memcpy(interface, replicate->data_interface, handle->ops->interface_size);
+
+	/* Take temporary reference on the replicate */
+	replicate->refcnt++;
+	handle->busy_count++;
+	_starpu_spin_unlock(&handle->header_lock);
 
 	do
 	{
-		STARPU_ASSERT(handle->ops);
-		STARPU_ASSERT(handle->ops->allocate_data_on_node);
-
 		_STARPU_TRACE_START_ALLOC(dst_node, data_size);
-		STARPU_ASSERT(replicate->data_interface);
 
 #if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 		if (starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
@@ -870,7 +878,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 		}
 #endif
 
-		allocated_memory = handle->ops->allocate_data_on_node(replicate->data_interface, dst_node);
+		allocated_memory = handle->ops->allocate_data_on_node(interface, dst_node);
 		_STARPU_TRACE_END_ALLOC(dst_node);
 
 		if (allocated_memory == -ENOMEM)
@@ -880,11 +888,6 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			if (starpu_memstrategy_data_size_coefficient*handle_size > reclaim)
 				reclaim = starpu_memstrategy_data_size_coefficient*handle_size;
 
-			/* Take temporary reference on the replicate */
-			replicate->refcnt++;
-			handle->busy_count++;
-			_starpu_spin_unlock(&handle->header_lock);
-
 			_STARPU_TRACE_START_MEMRECLAIM(dst_node,is_prefetch);
 			if (is_prefetch)
 			{
@@ -893,26 +896,35 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			else
 				_starpu_memory_reclaim_generic(dst_node, 0, reclaim);
 			_STARPU_TRACE_END_MEMRECLAIM(dst_node,is_prefetch);
-
-			int cpt = 0;
-			while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
-			{
-				cpt++;
-				_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
-			}
-			if (cpt == STARPU_SPIN_MAXTRY)
-				_starpu_spin_lock(&handle->header_lock);
-
-			replicate->refcnt--;
-			STARPU_ASSERT(replicate->refcnt >= 0);
-			STARPU_ASSERT(handle->busy_count > 0);
-			handle->busy_count--;
-			ret = _starpu_data_check_not_busy(handle);
-			STARPU_ASSERT(ret == 0);
 		}
-
 	}
 	while((allocated_memory == -ENOMEM) && attempts++ < 2);
+
+	int cpt = 0;
+	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
+	{
+		cpt++;
+		_starpu_datawizard_progress(_starpu_memory_node_get_local_key(), 0);
+	}
+	if (cpt == STARPU_SPIN_MAXTRY)
+		_starpu_spin_lock(&handle->header_lock);
+
+	replicate->refcnt--;
+	STARPU_ASSERT(replicate->refcnt >= 0);
+	STARPU_ASSERT(handle->busy_count > 0);
+	handle->busy_count--;
+	ret = _starpu_data_check_not_busy(handle);
+	STARPU_ASSERT(ret == 0);
+
+	if (replicate->allocated)
+	{
+		/* Argl, somebody allocated it in between already, drop this one */
+		handle->ops->free_data_on_node(interface, dst_node);
+		allocated_memory = 0;
+	}
+	else
+		/* Install allocated interface */
+		memcpy(replicate->data_interface, interface, handle->ops->interface_size);
 
 	return allocated_memory;
 }
