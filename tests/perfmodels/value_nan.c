@@ -18,9 +18,14 @@
 #include <core/perfmodel/perfmodel.h>
 #include "../helper.h"
 
+#ifdef STARPU_HAVE_WINDOWS
+#include <io.h>
+#include <fcntl.h>
+#endif
+
 #define STRING "booh"
 
-int _check_number(double val, int nan)
+int _check_number(double val, int checknan)
 {
 	char *tmp = "starpu_XXXXXX";
 	char *filename = malloc(100);
@@ -29,7 +34,7 @@ int _check_number(double val, int nan)
 	strcpy(filename, tmp);
 #ifdef STARPU_HAVE_WINDOWS
         _mktemp(filename);
-        id = open(filename, O_RDWR);
+        id = open(filename, _O_RDWR);
 #else
 	id = mkstemp(filename);
 
@@ -67,7 +72,7 @@ int _check_number(double val, int nan)
 	int pass;
 	pass = (x == 1) && (y == 1);
 	pass = pass && strcmp(str, STRING) == 0;
-	if (nan)
+	if (checknan)
 		pass = pass && isnan(val) && isnan(lat);
 	else
 		pass = pass && lat == val;
