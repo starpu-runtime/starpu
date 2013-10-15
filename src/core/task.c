@@ -32,6 +32,9 @@
 #include <string.h>
 #include <core/debug.h>
 #include <time.h>
+#ifdef STARPU_HAVE_WINDOWS
+#include <windows.h>
+#endif
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
@@ -939,12 +942,25 @@ unsigned starpu_task_get_implementation(struct starpu_task *task)
 	return _starpu_get_job_associated_to_task(task)->nimpl;
 }
 
+void _starpu_sleep(struct timespec ts)
+{
+#ifdef STARPU_HAVE_WINDOWS
+	Sleep((ts.tv_sec * 1000) + (ts.tv_nsec / 1000000));
+#else
+	struct timespec req, rem;
+
+	req = ts;
+	while (nanosleep(&req, &rem))
+		req = rem;
+#endif
+}
+
 static starpu_pthread_t watchdog_thread;
 
 /* Check from times to times that StarPU does finish some tasks */
 static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
 {
-	struct timespec ts, req, rem;
+	struct timespec ts;
 	char *timeout_env;
 	unsigned long long timeout;
 
@@ -962,9 +978,7 @@ static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
 		watchdog_ok = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
-		req = ts;
-		while (nanosleep(&req, &rem))
-			req = rem;
+		_starpu_sleep(ts);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 		if (!watchdog_ok && last_nsubmitted
