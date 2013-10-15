@@ -31,6 +31,7 @@
 #include <math.h>
 #include <string.h>
 #include <core/debug.h>
+#include <time.h>
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
@@ -941,9 +942,9 @@ unsigned starpu_task_get_implementation(struct starpu_task *task)
 static starpu_pthread_t watchdog_thread;
 
 /* Check from times to times that StarPU does finish some tasks */
-static void *watchdog_func(void *foo)
+static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
 {
-	struct timespec ts, req, rem;
+	struct timespec ts, rem;
 	char *timeout_env;
 	unsigned long long timeout;
 
@@ -961,7 +962,6 @@ static void *watchdog_func(void *foo)
 		watchdog_ok = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
-		req = ts;
 		while (nanosleep(&ts, &rem))
 			ts = rem;
 
@@ -969,7 +969,7 @@ static void *watchdog_func(void *foo)
 		if (!watchdog_ok && last_nsubmitted
 				&& last_nsubmitted == starpu_task_nsubmitted())
 		{
-			fprintf(stderr,"The StarPU watchdog detected that no task finished for %u.%06us (can be configure through STARPU_WATCHDOG_TIMEOUT)\n", ts.tv_sec, ts.tv_nsec/1000);
+			fprintf(stderr,"The StarPU watchdog detected that no task finished for %u.%06us (can be configure through STARPU_WATCHDOG_TIMEOUT)\n", (unsigned)ts.tv_sec, (unsigned)ts.tv_nsec/1000);
 			if (getenv("STARPU_WATCHDOG_CRASH"))
 			{
 				fprintf(stderr,"Crashing the process\n");
