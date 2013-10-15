@@ -1034,8 +1034,9 @@ static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
 		watchdog_ok = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
-		while (nanosleep(&ts, &rem))
-			ts = rem;
+		req = ts
+		while (nanosleep(&req, &rem))
+			req = rem;
 
 		STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 		if (!watchdog_ok && last_nsubmitted
