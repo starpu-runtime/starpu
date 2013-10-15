@@ -1016,7 +1016,7 @@ static starpu_pthread_t watchdog_thread;
 /* Check from times to times that StarPU does finish some tasks */
 static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
 {
-	struct timespec ts, rem;
+	struct timespec ts, req, rem;
 	char *timeout_env;
 	unsigned long long timeout;
 
