@@ -84,12 +84,12 @@ int main(int argc, char **argv)
 	int ret;
 
 	ret = _check_number(42.0, 0);
-	FPRINTF(stderr, "%s when reading %lf\n", ret?"Success":"Error", 42.0);
+	FPRINTF(stderr, "%s when reading %lf\n", ret==0?"Success":"Error", 42.0);
 
 	if (ret==0)
 	{
 	     ret = _check_number(NAN, 1);
-	     FPRINTF(stderr, "%s when reading %lf\n", ret?"Success":"Error", NAN);
+	     FPRINTF(stderr, "%s when reading %lf\n", ret==0?"Success":"Error", NAN);
 	}
 
 	return ret;
