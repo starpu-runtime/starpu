@@ -838,9 +838,9 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	STARPU_ASSERT(handle->ops->allocate_data_on_node);
 	STARPU_ASSERT(replicate->data_interface);
 
-	char interface[handle->ops->interface_size];
+	char data_interface[handle->ops->interface_size];
 
-	memcpy(interface, replicate->data_interface, handle->ops->interface_size);
+	memcpy(data_interface, replicate->data_interface, handle->ops->interface_size);
 
 	/* Take temporary reference on the replicate */
 	replicate->refcnt++;
@@ -862,7 +862,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 		}
 #endif
 
-		allocated_memory = handle->ops->allocate_data_on_node(interface, dst_node);
+		allocated_memory = handle->ops->allocate_data_on_node(data_interface, dst_node);
 		_STARPU_TRACE_END_ALLOC(dst_node);
 
 		if (allocated_memory == -ENOMEM)
@@ -903,12 +903,12 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	if (replicate->allocated)
 	{
 		/* Argl, somebody allocated it in between already, drop this one */
-		handle->ops->free_data_on_node(interface, dst_node);
+		handle->ops->free_data_on_node(data_interface, dst_node);
 		allocated_memory = 0;
 	}
 	else
 		/* Install allocated interface */
-		memcpy(replicate->data_interface, interface, handle->ops->interface_size);
+		memcpy(replicate->data_interface, data_interface, handle->ops->interface_size);
 
 	return allocated_memory;
 }
