@@ -257,7 +257,8 @@ Disable asynchronous copies between CPU and MIC devices.
 <dd>
 \anchor STARPU_ENABLE_CUDA_GPU_GPU_DIRECT
 \addindex __env__STARPU_ENABLE_CUDA_GPU_GPU_DIRECT
-Enable direct CUDA transfers from GPU to GPU, without copying through RAM.
+Enable (1) or Disable (0) direct CUDA transfers from GPU to GPU, without copying
+through RAM. The default is Enabled.
 This permits to test the performance effect of GPU-Direct.
 </dd>
 
