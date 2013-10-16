@@ -943,9 +943,9 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		if (ncpu == -1)
 		{
 			unsigned mic_busy_cpus = 0;
-			unsigned i = 0;
-			for (i = 0; i < STARPU_MAXMICDEVS; i++)
-				mic_busy_cpus += (topology->nmiccores[i] ? 1 : 0);
+			unsigned j = 0;
+			for (j = 0; j < STARPU_MAXMICDEVS; j++)
+				mic_busy_cpus += (topology->nmiccores[j] ? 1 : 0);
 
 			unsigned already_busy_cpus = mic_busy_cpus + topology->ncudagpus
 				+ topology->nopenclgpus + topology->nsccdevices;
