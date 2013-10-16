@@ -465,6 +465,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
 		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
+		}
 
 	}
 	va_end(varg_list);
