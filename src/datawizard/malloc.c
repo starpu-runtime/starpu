@@ -366,14 +366,18 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 		}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
+		{
 #ifdef STARPU_SIMGRID
+			static uintptr_t last[STARPU_MAXNODES];
 #ifdef STARPU_DEVEL
 #warning TODO: record used memory, using a simgrid property to know the available memory
 #endif
 			/* Sleep 10µs for the allocation */
 			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 			MSG_process_sleep(0.000175);
-			addr = 1;
+			if (!last[dst_node])
+				last[dst_node] = 1<<10;
+			addr = last[dst_node]+=size;
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			status = cudaMalloc((void **)&addr, size);
@@ -386,14 +390,18 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 #endif
 			break;
 #endif
+		}
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	        case STARPU_OPENCL_RAM:
 			{
 #ifdef STARPU_SIMGRID
+				static uintptr_t last[STARPU_MAXNODES];
 				/* Sleep 10µs for the allocation */
 				STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 				MSG_process_sleep(0.000175);
-				addr = 1;
+				if (!last[dst_node])
+					last[dst_node] = 1<<10;
+				addr = last[dst_node]+=size;
 				STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
                                 int ret;
@@ -715,6 +723,7 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	{
 		STARPU_ASSERT(prevblock >= 0 && prevblock <= CHUNK_NBLOCKS);
 		nextblock = bitmap[prevblock].next;
+		STARPU_ASSERT_MSG(nextblock != block, "It seems data 0x%lx (size %u) on node %u is being freed a second time\n", (unsigned long) addr, (unsigned) size, dst_node);
 		if (nextblock > block || nextblock == -1)
 			break;
 	}
