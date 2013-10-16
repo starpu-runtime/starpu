@@ -201,7 +201,7 @@ main(void)
 		FPRINTF(stdout, "Running with policy %s.\n", policy->policy_name);
 		int ret = run(policy);
 		if (ret == -ENODEV && global_ret == 0)
-			global_ret = 77;
+			global_ret = STARPU_TEST_SKIPPED;
 		if (ret == 1 && global_ret == 0)
 			global_ret = ret;
 	}
