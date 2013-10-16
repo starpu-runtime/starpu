@@ -398,7 +398,9 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 			MSG_process_sleep(0.000175);
 			if (!last[dst_node])
 				last[dst_node] = 1<<10;
-			addr = last[dst_node]+=size;
+			addr = last[dst_node];
+			last[dst_node]+=size;
+			STARPU_ASSERT(last[dst_node] >= addr);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			status = cudaMalloc((void **)&addr, size);
@@ -422,7 +424,9 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 				MSG_process_sleep(0.000175);
 				if (!last[dst_node])
 					last[dst_node] = 1<<10;
-				addr = last[dst_node]+=size;
+				addr = last[dst_node];
+				last[dst_node]+=size;
+				STARPU_ASSERT(last[dst_node] >= addr);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
                                 int ret;
