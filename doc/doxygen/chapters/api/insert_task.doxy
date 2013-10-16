@@ -13,7 +13,7 @@
 Create and submit a task corresponding to \p cl with the
 following arguments. The argument list must be zero-terminated.
 
-The arguments following the codelets can be of the following types:
+The arguments following the codelet can be of the following types:
 <ul>
 <li> ::STARPU_R, ::STARPU_W, ::STARPU_RW, ::STARPU_SCRATCH,
 ::STARPU_REDUX an access mode followed by a data handle;
