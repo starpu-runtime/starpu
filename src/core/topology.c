@@ -1195,8 +1195,8 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				unsigned worker2;
 				for (worker2 = 0; worker2 < worker; worker2++)
 				{
-					struct _starpu_worker *workerarg = &config->workers[worker];
-					if (workerarg->arch == STARPU_CUDA_WORKER)
+					struct _starpu_worker *workerarg2 = &config->workers[worker2];
+					if (workerarg2->arch == STARPU_CUDA_WORKER)
 					{
 						unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
 						_starpu_register_bus(memory_node2, memory_node);
