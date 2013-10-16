@@ -53,8 +53,7 @@
 #include <starpu_parameters.h>
 
 /* This is initialized from in _starpu_worker_init */
-struct _starpu_worker
-{
+LIST_TYPE(_starpu_worker,
 	struct _starpu_machine_config *config;
         starpu_pthread_mutex_t mutex;
 	enum starpu_worker_archtype arch; /* what is the type of worker ? */
@@ -113,7 +112,7 @@ struct _starpu_worker
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_t hwloc_cpu_set;
 #endif
-};
+);
 
 struct _starpu_combined_worker
 {
