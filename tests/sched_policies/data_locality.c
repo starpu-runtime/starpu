@@ -156,6 +156,7 @@ run(struct starpu_sched_policy *policy)
 	return ret;
 
 enodev:
+	FPRINTF(stderr, "No device found\n");
 	starpu_shutdown();
 	return -ENODEV;
 
@@ -192,17 +193,18 @@ main(void)
 {
 	int i;
 	int n_policies = sizeof(policies)/sizeof(policies[0]);
+	int global_ret = 0;
+
 	for (i = 0; i < n_policies; ++i)
 	{
 		struct starpu_sched_policy *policy = policies[i];
-		FPRINTF(stdout, "Running with policy %s.\n",
-			policy->policy_name);
+		FPRINTF(stdout, "Running with policy %s.\n", policy->policy_name);
 		int ret = run(policy);
-		if (ret == -ENODEV)
-			return STARPU_TEST_SKIPPED;
-		if (ret == 1)
-			return EXIT_FAILURE;
+		if (ret == -ENODEV && global_ret == 0)
+			global_ret = 77;
+		if (ret == 1 && global_ret == 0)
+			global_ret = ret;
 	}
 
-	return EXIT_SUCCESS;
+	return global_ret;
 }
