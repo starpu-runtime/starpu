@@ -313,8 +313,9 @@ void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 	 * detect when either of them are finished. We however don't allow
 	 * several tasks to share a tag when it is used to wake them by
 	 * dependency */
+	if (tag->job != job)
+		tag->is_assigned++;
 	tag->job = job;
-	tag->is_assigned++;
 
 	job->tag = tag;
 	/* the tag is now associated to a job */
