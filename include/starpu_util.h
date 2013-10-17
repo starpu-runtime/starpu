@@ -59,6 +59,16 @@ extern "C"
 #  define STARPU_ATTRIBUTE_ALIGNED(size)
 #endif
 
+/* Note that if we're compiling C++, then just use the "inline"
+   keyword, since it's part of C++ */
+#if defined(c_plusplus) || defined(__cplusplus)
+#  define STARPU_INLINE inline
+#elif defined(_MSC_VER) || defined(__HP_cc)
+#  define STARPU_INLINE __inline
+#else
+#  define STARPU_INLINE __inline__
+#endif
+
 #if STARPU_GNUC_PREREQ(3, 1) && !defined(BUILDING_STARPU) && !defined(STARPU_USE_DEPRECATED_API) && !defined(STARPU_USE_DEPRECATED_ONE_ZERO_API)
 #define STARPU_DEPRECATED  __attribute__((__deprecated__))
 #else
