@@ -1395,6 +1395,7 @@ _starpu_destroy_topology (
 		if (worker_obj->userdata)
 		{
 			_starpu_worker_list_delete(worker_obj->userdata);
+			worker_obj->userdata = NULL;
 		}
 #endif
 	}
