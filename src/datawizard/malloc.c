@@ -412,11 +412,11 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 			}
 #endif
 			break;
-#endif
 		}
+#endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	        case STARPU_OPENCL_RAM:
-			{
+		{
 #ifdef STARPU_SIMGRID
 				static uintptr_t last[STARPU_MAXNODES];
 				/* Sleep 10µs for the allocation */
@@ -443,14 +443,14 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 				}
 				break;
 #endif
-			}
+		}
 #endif
 	        case STARPU_DISK_RAM:
 		{
 			addr = (uintptr_t) _starpu_disk_alloc(dst_node, size);
 			break;
 		}
-			
+
 #ifdef STARPU_USE_MIC
 		case STARPU_MIC_RAM:
 			if (_starpu_mic_allocate_memory((void **)(&addr), size, dst_node))
