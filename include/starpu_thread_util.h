@@ -21,14 +21,6 @@
 #include <starpu_util.h>
 #include <errno.h>
 
-#ifndef STARPU_INLINE
-#ifdef __GNUC_GNU_INLINE__
-#define STARPU_INLINE extern inline
-#else
-#define STARPU_INLINE inline
-#endif
-#endif
-
 /*
  * Encapsulation of the starpu_pthread_create_* functions.
  */
@@ -89,7 +81,7 @@
 
 #define STARPU_PTHREAD_MUTEX_TRYLOCK(mutex) \
 	_STARPU_PTHREAD_MUTEX_TRYLOCK(mutex, __FILE__, __LINE__)
-STARPU_INLINE
+static STARPU_INLINE
 int _STARPU_PTHREAD_MUTEX_TRYLOCK(starpu_pthread_mutex_t *mutex, char *file, int line)
 {
 	int p_ret = starpu_pthread_mutex_trylock(mutex);
@@ -169,7 +161,7 @@ int _STARPU_PTHREAD_MUTEX_TRYLOCK(starpu_pthread_mutex_t *mutex, char *file, int
 
 #define STARPU_PTHREAD_RWLOCK_TRYRDLOCK(rwlock) \
 	_starpu_pthread_rwlock_tryrdlock(rwlock, __FILE__, __LINE__)
-STARPU_INLINE
+static STARPU_INLINE
 int _starpu_pthread_rwlock_tryrdlock(starpu_pthread_rwlock_t *rwlock, char *file, int line)
 {
 	int p_ret = starpu_pthread_rwlock_tryrdlock(rwlock);
@@ -194,7 +186,7 @@ int _starpu_pthread_rwlock_tryrdlock(starpu_pthread_rwlock_t *rwlock, char *file
 
 #define STARPU_PTHREAD_RWLOCK_TRYWRLOCK(rwlock) \
 	_starpu_pthread_rwlock_trywrlock(rwlock, __FILE__, __LINE__)
-STARPU_INLINE
+static STARPU_INLINE
 int _starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock, char *file, int line)
 {
 	int p_ret = starpu_pthread_rwlock_trywrlock(rwlock);
