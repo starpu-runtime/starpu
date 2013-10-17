@@ -588,8 +588,8 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 	for (l = worker->sched_ctx_list; l; l = l->next)
 	{
 		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
-		if(worker->removed_from_ctx[sched_ctx->id] == 1 && worker->shares_tasks_lists[sched_ctx->id] == 1)
-			return sched_ctx;
+/* 		if(worker->removed_from_ctx[sched_ctx->id] == 1 && worker->shares_tasks_lists[sched_ctx->id] == 1) */
+/* 			return sched_ctx; */
 		if(sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs &&
 		   smallest_counter > sched_ctx->pop_counter[worker->workerid])
 		{
