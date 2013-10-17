@@ -28,7 +28,7 @@
 int _check_number(double val, int checknan)
 {
 	char *tmp = "starpu_XXXXXX";
-	char *filename = malloc(100);
+	char filename[100];
 	int id;
 
 	strcpy(filename, tmp);
