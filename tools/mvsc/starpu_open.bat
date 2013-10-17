@@ -1,4 +1,4 @@
-rem @ECHO OFF
+@ECHO OFF
 
 REM StarPU --- Runtime system for heterogeneous multicore architectures.
 REM
