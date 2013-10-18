@@ -42,10 +42,6 @@
 /* TODO we could make this hierarchical to avoid contention ? */
 static starpu_pthread_cond_t submitted_cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t submitted_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
-static long int nsubmitted = 0, nready = 0;
-static int watchdog_ok;
-
-static void _starpu_increment_nsubmitted_tasks(void);
 
 /* This key stores the task currently handled by the thread, note that we
  * cannot use the worker structure to store that information because it is
@@ -242,7 +238,6 @@ int _starpu_submit_job(struct _starpu_job *j)
 	/* notify bound computation of a new task */
 	_starpu_bound_record(j);
 
-	_starpu_increment_nsubmitted_tasks();
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
@@ -595,7 +590,6 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 		j->task->sched_ctx = _starpu_sched_ctx_get_current_context();
 	}
 
-	_starpu_increment_nsubmitted_tasks();
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
@@ -661,11 +655,10 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 		j->task->sched_ctx = _starpu_sched_ctx_get_current_context();
 	}
 
-	_starpu_increment_nsubmitted_tasks();
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 1;
-	_starpu_increment_nready_tasks();
+	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops);
 
 	for (i=0 ; i<task->cl->nbuffers ; i++)
 	{
@@ -743,18 +736,24 @@ int starpu_task_wait_for_all(void)
 		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 			return -EDEADLK;
 
-		STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
-
-		_STARPU_TRACE_TASK_WAIT_FOR_ALL;
-
-		while (nsubmitted > 0)
-			STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
-
-		STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
-
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
 #endif
+		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+		if(config->topology.nsched_ctxs == 1)
+			starpu_task_wait_for_all_in_ctx(0);
+		else
+		{
+			int s;
+			for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+			{
+				if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+				{
+					starpu_task_wait_for_all_in_ctx(config->sched_ctxs[s].id);
+				}
+			}
+		}
+
 		return 0;
 	}
 	else
@@ -782,42 +781,22 @@ int starpu_task_wait_for_no_ready(void)
 	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
 		return -EDEADLK;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
-
-	_STARPU_TRACE_TASK_WAIT_FOR_ALL;
-
-	while (nready > 0)
-		STARPU_PTHREAD_COND_WAIT(&submitted_cond, &submitted_mutex);
-
-	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
-
-	return 0;
-}
-
-void _starpu_decrement_nsubmitted_tasks(void)
-{
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-
-	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
-
-	if (!watchdog_ok)
-		watchdog_ok = 1;
-
-	if (--nsubmitted == 0)
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	if(config->topology.nsched_ctxs == 1)
+		_starpu_wait_for_no_ready_of_sched_ctx(0);
+	else
 	{
-		if (!config->submitting)
+		int s;
+		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 		{
-			ANNOTATE_HAPPENS_AFTER(&config->running);
-			config->running = 0;
-			ANNOTATE_HAPPENS_BEFORE(&config->running);
+			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			{
+				_starpu_wait_for_no_ready_of_sched_ctx(config->sched_ctxs[s].id);
+			}
 		}
-		STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 	}
 
-	_STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
-
-	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
-
+	return 0;
 }
 
 void
@@ -826,57 +805,65 @@ starpu_drivers_request_termination(void)
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
 	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
-
+	int nsubmitted = starpu_task_nsubmitted();
 	config->submitting = 0;
 	if (nsubmitted == 0)
 	{
 		ANNOTATE_HAPPENS_AFTER(&config->running);
 		config->running = 0;
 		ANNOTATE_HAPPENS_BEFORE(&config->running);
-		STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
+		int s;
+		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+		{
+			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			{
+				_starpu_check_nsubmitted_tasks_of_sched_ctx(config->sched_ctxs[s].id);
+			}
+		}
 	}
-
-	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
-}
-
-static void _starpu_increment_nsubmitted_tasks(void)
-{
-	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
-
-	nsubmitted++;
-
-	_STARPU_TRACE_UPDATE_TASK_CNT(nsubmitted);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 }
 
 int starpu_task_nsubmitted(void)
 {
+	int nsubmitted = 0;
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	if(config->topology.nsched_ctxs == 1)
+		nsubmitted = _starpu_get_nsubmitted_tasks_of_sched_ctx(0);
+	else
+	{
+		int s;
+		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+		{
+			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			{
+				nsubmitted += _starpu_get_nsubmitted_tasks_of_sched_ctx(config->sched_ctxs[s].id);
+			}
+		}
+	}
 	return nsubmitted;
 }
 
-void _starpu_increment_nready_tasks(void)
-{
-	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
-
-	nready++;
-
-	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
-}
-
-void _starpu_decrement_nready_tasks(void)
-{
-	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
-
-	if (--nready == 0)
-		STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
-
-	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
-
-}
 
 int starpu_task_nready(void)
 {
+	int nready = 0;
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	if(config->topology.nsched_ctxs == 1)
+		nready = _starpu_get_nready_tasks_of_sched_ctx(0);
+	else
+	{
+		int s;
+		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+		{
+			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			{
+				nready += _starpu_get_nready_tasks_of_sched_ctx(config->sched_ctxs[s].id);
+			}
+		}
+	}
+
 	return nready;
 }
 
@@ -1042,18 +1029,19 @@ static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
 	timeout = atoll(timeout_env);
 	ts.tv_sec = timeout / 1000000;
 	ts.tv_nsec = (timeout % 1000000) * 1000;
-
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	
 	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
 	while (_starpu_machine_is_running())
 	{
 		int last_nsubmitted = starpu_task_nsubmitted();
-		watchdog_ok = 0;
+		config->watchdog_ok = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
 
 		_starpu_sleep(ts);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
-		if (!watchdog_ok && last_nsubmitted
+		if (!config->watchdog_ok && last_nsubmitted
 				&& last_nsubmitted == starpu_task_nsubmitted())
 		{
 			fprintf(stderr,"The StarPU watchdog detected that no task finished for %u.%06us (can be configure through STARPU_WATCHDOG_TIMEOUT)\n", (unsigned)ts.tv_sec, (unsigned)ts.tv_nsec/1000);

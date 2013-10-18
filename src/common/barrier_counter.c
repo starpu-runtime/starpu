@@ -56,7 +56,7 @@ int _starpu_barrier_counter_wait_for_full_counter(struct _starpu_barrier_counter
 	return 0;
 }
 
-int _starpu_barrier_counter_decrement_until_empty_counter(struct _starpu_barrier_counter *barrier_c)
+int _starpu_barrier_counter_decrement_until_empty_counter(struct _starpu_barrier_counter *barrier_c, double flops)
 {
 	struct _starpu_barrier *barrier = &barrier_c->barrier;
 	int ret = 0;
@@ -64,6 +64,7 @@ int _starpu_barrier_counter_decrement_until_empty_counter(struct _starpu_barrier
 
 	if (--barrier->reached_start == 0)
 	{
+		barrier->reached_flops -= flops;
 		ret = 1;
 		STARPU_PTHREAD_COND_BROADCAST(&barrier->cond);
 	}
@@ -72,7 +73,7 @@ int _starpu_barrier_counter_decrement_until_empty_counter(struct _starpu_barrier
 	return ret;
 }
 
-int _starpu_barrier_counter_increment_until_full_counter(struct _starpu_barrier_counter *barrier_c)
+int _starpu_barrier_counter_increment_until_full_counter(struct _starpu_barrier_counter *barrier_c, double flops)
 {
 	struct _starpu_barrier *barrier = &barrier_c->barrier;
 	int ret = 0;
@@ -80,6 +81,7 @@ int _starpu_barrier_counter_increment_until_full_counter(struct _starpu_barrier_
 
 	if(++barrier->reached_start == barrier->count)
 	{
+		barrier->reached_flops += flops;
 		ret = 1;
 		STARPU_PTHREAD_COND_BROADCAST(&barrier_c->cond2);
 	}
@@ -88,14 +90,26 @@ int _starpu_barrier_counter_increment_until_full_counter(struct _starpu_barrier_
 	return ret;
 }
 
-int _starpu_barrier_counter_increment(struct _starpu_barrier_counter *barrier_c)
+int _starpu_barrier_counter_increment(struct _starpu_barrier_counter *barrier_c, double flops)
 {
 	struct _starpu_barrier *barrier = &barrier_c->barrier;
 	STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 
 	barrier->reached_start++;
+	barrier->reached_flops += flops;
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
 	return 0;
 }
 
+int _starpu_barrier_counter_check(struct _starpu_barrier_counter *barrier_c)
+{
+	struct _starpu_barrier *barrier = &barrier_c->barrier;
+	int ret = 0;
+	STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
+
+	if(barrier->reached_start == 0)
+		STARPU_PTHREAD_COND_BROADCAST(&barrier->cond);
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
+}

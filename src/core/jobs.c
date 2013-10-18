@@ -143,6 +143,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
 	unsigned sched_ctx = task->sched_ctx;
+	double flops = task->flops;
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
 	task->status = STARPU_TASK_FINISHED;
@@ -294,10 +295,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		int ret = _starpu_submit_job(j);
 		STARPU_ASSERT(!ret);
 	}
-	_starpu_decrement_nsubmitted_tasks();
-	_starpu_decrement_nready_tasks();
 
 	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
+	_starpu_decrement_nready_tasks_of_sched_ctx(sched_ctx, flops);
 
 	struct _starpu_worker *worker;
 	worker = _starpu_get_local_worker_key();

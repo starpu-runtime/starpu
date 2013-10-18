@@ -34,10 +34,12 @@ int _starpu_barrier_counter_wait_for_empty_counter(struct _starpu_barrier_counte
 
 int _starpu_barrier_counter_wait_for_full_counter(struct _starpu_barrier_counter *barrier_c);
 
-int _starpu_barrier_counter_decrement_until_empty_counter(struct _starpu_barrier_counter *barrier_c);
+int _starpu_barrier_counter_decrement_until_empty_counter(struct _starpu_barrier_counter *barrier_c, double flops);
 
-int _starpu_barrier_counter_increment_until_full_counter(struct _starpu_barrier_counter *barrier_c);
+int _starpu_barrier_counter_increment_until_full_counter(struct _starpu_barrier_counter *barrier_c, double flops);
 
-int _starpu_barrier_counter_increment(struct _starpu_barrier_counter *barrier_c);
+int _starpu_barrier_counter_increment(struct _starpu_barrier_counter *barrier_c, double flops);
+
+int _starpu_barrier_counter_check(struct _starpu_barrier_counter *barrier_c);
 
 #endif

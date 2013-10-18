@@ -24,7 +24,8 @@ struct starpu_sched_ctx_performance_counters* perf_counters = NULL;
 
 static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time);
 static void notify_pushed_task(unsigned sched_ctx, int worker);
-static void notify_post_exec_task(struct starpu_task *task, size_t data_size, uint32_t footprint, int hypervisor_tag);
+static void notify_post_exec_task(struct starpu_task *task, size_t data_size, uint32_t footprint, 
+				  int hypervisor_tag, int nready_tasks, double ready_flops);
 static void notify_poped_task(unsigned sched_ctx, int  worker);
 static void notify_submitted_job(struct starpu_task *task, unsigned footprint, size_t data_size);
 static void notify_ready_task(unsigned sched_ctx, struct starpu_task *task);
@@ -996,7 +997,7 @@ static void notify_poped_task(unsigned sched_ctx, int worker)
 
  
 /* notifies the hypervisor that a tagged task has just been executed */
-static void notify_post_exec_task(struct starpu_task *task, size_t data_size, uint32_t footprint, int task_tag)
+static void notify_post_exec_task(struct starpu_task *task, size_t data_size, uint32_t footprint, int task_tag, int ready_tasks, double ready_flops)
 {
 	unsigned sched_ctx = task->sched_ctx;
 	int worker = starpu_worker_get_id();
@@ -1017,8 +1018,8 @@ static void notify_post_exec_task(struct starpu_task *task, size_t data_size, ui
 
 	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
 	hypervisor.sched_ctx_w[sched_ctx].remaining_flops -= task->flops;
-	hypervisor.sched_ctx_w[sched_ctx].nready_tasks--;
-	hypervisor.sched_ctx_w[sched_ctx].ready_flops -= task->flops;
+	hypervisor.sched_ctx_w[sched_ctx].nready_tasks = ready_tasks;
+	hypervisor.sched_ctx_w[sched_ctx].ready_flops = ready_flops;
 	if(hypervisor.sched_ctx_w[sched_ctx].ready_flops < 0.0)
 		hypervisor.sched_ctx_w[sched_ctx].ready_flops = 0.0;
 	_ack_resize_completed(sched_ctx, worker);
