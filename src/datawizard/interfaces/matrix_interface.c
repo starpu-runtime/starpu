@@ -342,7 +342,35 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		src_matrix->nx*elemsize, src_matrix->ny, kind);
 	if (STARPU_UNLIKELY(cures))
 	{
-		int ret = copy_any_to_any(src_interface, src_node, dst_interface, dst_node, (void *)&is_async);
+		int ret = 0;
+		unsigned y;
+		uint32_t nx = dst_matrix->nx;
+		uint32_t ny = dst_matrix->ny;
+		uint32_t ld_src = src_matrix->ld;
+		uint32_t ld_dst = dst_matrix->ld;
+
+		if (ld_src == nx && ld_dst == nx)
+		{
+			/* Optimize unpartitioned and y-partitioned cases */
+			if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset, src_node,
+						  dst_matrix->dev_handle, dst_matrix->offset, dst_node,
+						  nx*ny*elemsize, (void *)&is_async))
+				ret = -EAGAIN;
+		}
+		else
+		{
+			for (y = 0; y < ny; y++)
+			{
+				uint32_t src_offset = y*ld_src*elemsize;
+				uint32_t dst_offset = y*ld_dst*elemsize;
+
+				if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset + src_offset, src_node,
+							  dst_matrix->dev_handle, dst_matrix->offset + dst_offset, dst_node,
+							  nx*elemsize, (void *)&is_async))
+					ret = -EAGAIN;
+			}
+		}
+
 		if (ret == -EAGAIN) return ret;
 		if (ret) STARPU_CUDA_REPORT_ERROR(cures);
 	}
