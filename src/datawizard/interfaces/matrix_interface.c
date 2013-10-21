@@ -648,15 +648,17 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 			ret = -EAGAIN;
 	}
 	else
-	for (y = 0; y < ny; y++)
 	{
-		uint32_t src_offset = y*ld_src*elemsize;
-		uint32_t dst_offset = y*ld_dst*elemsize;
+	     for (y = 0; y < ny; y++)
+	     {
+		     uint32_t src_offset = y*ld_src*elemsize;
+		     uint32_t dst_offset = y*ld_dst*elemsize;
 
-		if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset + src_offset, src_node,
-		                          dst_matrix->dev_handle, dst_matrix->offset + dst_offset, dst_node,
-		                          nx*elemsize, async_data))
-			ret = -EAGAIN;
+		     if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset + src_offset, src_node,
+					       dst_matrix->dev_handle, dst_matrix->offset + dst_offset, dst_node,
+					       nx*elemsize, async_data))
+			     ret = -EAGAIN;
+	     }
 	}
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)nx*ny*elemsize);
