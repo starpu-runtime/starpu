@@ -81,14 +81,15 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 		sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
 		limit = starpu_get_env_number(name);
 	}
+#ifdef STARPU_USE_OPENCL
 	if (limit == -1)
 	{
-		global_mem[devid] = totalGlobalMem;
+		/* Use 90% of the available memory by default.  */
+		limit = totalGlobalMem / (1024*1024) * 0.9;
 	}
-	else
-	{
-		global_mem[devid] = limit * 1024*1024;
-	}
+#endif
+
+	global_mem[devid] = limit * 1024*1024;
 
 #ifdef STARPU_USE_OPENCL
 	/* How much memory to waste ? */

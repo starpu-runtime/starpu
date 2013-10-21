@@ -80,7 +80,8 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	char name[30];
 
 #ifdef STARPU_USE_CUDA
-	global_mem[devid] = props[devid].totalGlobalMem;
+	/* Find the size of the memory on the device */
+	totalGlobalMem = props[devid].totalGlobalMem;
 #endif
 
 	limit = starpu_get_env_number("STARPU_LIMIT_CUDA_MEM");
@@ -89,17 +90,17 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 		sprintf(name, "STARPU_LIMIT_CUDA_%u_MEM", devid);
 		limit = starpu_get_env_number(name);
 	}
+#ifdef STARPU_USE_CUDA
 	if (limit == -1)
 	{
-		return;
+		/* Use 90% of the available memory by default.  */
+		limit = totalGlobalMem / (1024*1024) * 0.9;
 	}
+#endif
 
 	global_mem[devid] = limit * 1024*1024;
 
 #ifdef STARPU_USE_CUDA
-	/* Find the size of the memory on the device */
-	totalGlobalMem = props[devid].totalGlobalMem;
-
 	/* How much memory to waste ? */
 	to_waste = totalGlobalMem - global_mem[devid];
 
