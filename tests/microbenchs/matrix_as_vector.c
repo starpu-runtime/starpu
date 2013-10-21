@@ -93,7 +93,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 	struct timeval start;
 	struct timeval end;
 
-	matrix = malloc(nx*sizeof(matrix[0]));
+	starpu_malloc((void **) &matrix, nx*sizeof(matrix[0]));
 	maxloops = LOOPS;
 #ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
@@ -156,7 +156,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 		ret = EXIT_FAILURE;
 	}
 end:
-	free(matrix);
+	starpu_free(matrix);
 	return ret;
 }
 
