@@ -354,7 +354,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 			/* Optimize unpartitioned and y-partitioned cases */
 			if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset, src_node,
 						  dst_matrix->dev_handle, dst_matrix->offset, dst_node,
-						  nx*ny*elemsize, (void *)&is_async))
+						  nx*ny*elemsize, (void*)(uintptr_t)is_async))
 				ret = -EAGAIN;
 		}
 		else
@@ -366,7 +366,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 
 				if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset + src_offset, src_node,
 							  dst_matrix->dev_handle, dst_matrix->offset + dst_offset, dst_node,
-							  nx*elemsize, (void *)&is_async))
+							  nx*elemsize, (void*)(uintptr_t)is_async))
 					ret = -EAGAIN;
 			}
 		}
