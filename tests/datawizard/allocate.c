@@ -114,9 +114,7 @@ int test_prefetch(unsigned memnodes)
 	{
 		available_size = starpu_memory_get_available(i);
 		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
-#ifndef STARPU_USE_ALLOCATION_CACHE
-		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_ALLOC*1024*1024, "starpu_memory_get_available (node %u)", i);
-#endif
+		/* STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_ALLOC*1024*1024, "starpu_memory_get_available (node %u)", i); */
 	}
 
 	return 0;
