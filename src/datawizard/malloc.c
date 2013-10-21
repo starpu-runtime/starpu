@@ -91,7 +91,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 
 	if (flags & STARPU_MALLOC_COUNT)
 	{
-		if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
+		if (_starpu_memory_manager_can_allocate_size(dim, STARPU_MAIN_RAM) == 0)
 		{
 			size_t freed;
 			size_t reclaim = 2 * dim;
@@ -344,7 +344,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 out:
 	if (flags & STARPU_MALLOC_COUNT)
 	{
-		_starpu_memory_manager_deallocate_size(dim, 0);
+		_starpu_memory_manager_deallocate_size(dim, STARPU_MAIN_RAM);
 	}
 
 	return 0;
