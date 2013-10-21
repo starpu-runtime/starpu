@@ -67,26 +67,31 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
 
-	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
-	if (limit == -1)
-	{
-	     sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
-	     limit = starpu_get_env_number(name);
-	}
-	if (limit == -1)
-	{
-		return;
-	}
-
-	global_mem[devid] = limit * 1024*1024;
-
 #ifdef STARPU_USE_OPENCL
 	/* Request the size of the current device's memory */
 	cl_int err;
 	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
+#endif
 
+	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
+	if (limit == -1)
+	{
+	     sprintf(name, "STARPU_LIMIT_OPENCL_%u_MEM", devid);
+	     limit = starpu_get_env_number(name);
+	}
+#ifdef STARPU_USE_OPENCL
+	if (limit == -1)
+	{
+		/* Use 90% of the available memory by default.  */
+		limit = totalGlobalMem / (1024*1024) * 0.9;
+	}
+#endif
+
+	global_mem[devid] = limit * 1024*1024;
+
+#ifdef STARPU_USE_OPENCL
 	/* How much memory to waste ? */
 	to_waste = totalGlobalMem - global_mem[devid];
 #endif
