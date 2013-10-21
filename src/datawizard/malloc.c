@@ -393,7 +393,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 #ifdef STARPU_DEVEL
 #warning TODO: record used memory, using a simgrid property to know the available memory
 #endif
-			/* Sleep 10µs for the allocation */
+			/* Sleep for the allocation */
 			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 			MSG_process_sleep(0.000175);
 			if (!last[dst_node])
@@ -419,7 +419,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 		{
 #ifdef STARPU_SIMGRID
 				static uintptr_t last[STARPU_MAXNODES];
-				/* Sleep 10µs for the allocation */
+				/* Sleep for the allocation */
 				STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 				MSG_process_sleep(0.000175);
 				if (!last[dst_node])
@@ -499,7 +499,7 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 		{
 #ifdef STARPU_SIMGRID
 			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
-			/* Sleep 10µs for the free */
+			/* Sleep for the free */
 			MSG_process_sleep(0.000125);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
@@ -516,7 +516,7 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 		{
 #ifdef STARPU_SIMGRID
 			STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
-			/* Sleep 10µs for the free */
+			/* Sleep for the free */
 			MSG_process_sleep(0.000125);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
