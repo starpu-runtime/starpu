@@ -405,7 +405,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		src_matrix->nx*elemsize, src_matrix->ny, kind);
 	if (STARPU_UNLIKELY(cures))
 	{
-		int ret = copy_any_to_any(src_interface, src_node, dst_interface, dst_node, (void *)&is_async);
+		int ret = copy_any_to_any(src_interface, src_node, dst_interface, dst_node, (void*)(uintptr_t)is_async);
 		if (ret == -EAGAIN) return ret;
 		if (ret) STARPU_CUDA_REPORT_ERROR(cures);
 	}
