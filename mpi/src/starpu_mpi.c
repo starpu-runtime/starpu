@@ -1534,18 +1534,6 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 	argc_argv->argc = argc;
 	argc_argv->argv = argv;
 
-	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
-
-	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	while (!running)
-		STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-
-#ifdef STARPU_MPI_ACTIVITY
-	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
-	STARPU_ASSERT_MSG(hookid >= 0, "starpu_progression_hook_register failed");
-#endif /* STARPU_MPI_ACTIVITY */
-
 	_starpu_mpi_add_sync_point_in_fxt();
 	_starpu_mpi_comm_amounts_init(MPI_COMM_WORLD);
 	_starpu_mpi_cache_init(MPI_COMM_WORLD);
@@ -1558,6 +1546,18 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 		_starpu_mpi_copy_handle_hashmap = malloc(nb_nodes * sizeof(struct _starpu_mpi_copy_handle_hash_list *));
 		for(k=0 ; k<nb_nodes ; k++) _starpu_mpi_copy_handle_hashmap[k] = NULL;
 	}
+
+#ifdef STARPU_MPI_ACTIVITY
+	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
+	STARPU_ASSERT_MSG(hookid >= 0, "starpu_progression_hook_register failed");
+#endif /* STARPU_MPI_ACTIVITY */
+
+	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
+
+	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
+	while (!running)
+		STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	return 0;
 }
