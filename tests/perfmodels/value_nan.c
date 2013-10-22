@@ -17,6 +17,7 @@
 #include <config.h>
 #include <core/perfmodel/perfmodel.h>
 #include "../helper.h"
+#include <unistd.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <io.h>
@@ -67,6 +68,7 @@ int _check_number(double val, int checknan)
 	int x = _starpu_read_double(f, "%lf", &lat);
 	int y = fscanf(f, "%s", str);
 	fclose(f);
+	unlink(filename);
 
 	/* check that what has been read is identical to what has been written */
 	int pass;
