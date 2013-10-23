@@ -483,6 +483,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 {
 	pconfig->running = 1;
 	pconfig->submitting = 1;
+	STARPU_HG_DISABLE_CHECKING(pconfig->watchdog_ok);
 
 	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
 
