@@ -427,7 +427,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 
 	STARPU_ASSERT(new_replicate->data_interface);
 	STARPU_ASSERT(mc->chunk_interface);
-	memcpy(new_replicate->data_interface, mc->chunk_interface, old_replicate->handle->ops->interface_size);
+	memcpy(new_replicate->data_interface, mc->chunk_interface, mc->size_interface);
 
 	mc->data = new_replicate->handle;
 	/* mc->ops, mc->footprint and mc->interface should be
@@ -712,6 +712,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 
 	/* Save a copy of the interface */
 	mc->chunk_interface = malloc(interface_size);
+	mc->size_interface = interface_size;
 	STARPU_ASSERT(mc->chunk_interface);
 	memcpy(mc->chunk_interface, replicate->data_interface, interface_size);
 
