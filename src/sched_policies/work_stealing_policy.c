@@ -332,6 +332,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	return task;
 }
 
+static
 int ws_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;

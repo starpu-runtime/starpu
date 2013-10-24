@@ -64,6 +64,7 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 	va_end(varg_list);
 }
 
+static
 int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 {
 	void *arg_buffer = NULL;

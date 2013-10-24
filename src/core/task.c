@@ -40,7 +40,7 @@
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
 /* TODO we could make this hierarchical to avoid contention ? */
-static starpu_pthread_cond_t submitted_cond = STARPU_PTHREAD_COND_INITIALIZER;
+//static starpu_pthread_cond_t submitted_cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t submitted_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 /* This key stores the task currently handled by the thread, note that we
@@ -999,19 +999,6 @@ starpu_scc_func_t _starpu_task_get_scc_nth_implementation(struct starpu_codelet 
 char *_starpu_task_get_cpu_name_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
 	return cl->cpu_funcs_name[nimpl];
-}
-
-void _starpu_sleep(struct timespec ts)
-{
-#ifdef STARPU_HAVE_WINDOWS
-	Sleep((ts.tv_sec * 1000) + (ts.tv_nsec / 1000000));
-#else
-	struct timespec req, rem;
-
-	req = ts;
-	while (nanosleep(&req, &rem))
-		req = rem;
-#endif
 }
 
 static starpu_pthread_t watchdog_thread;

@@ -556,6 +556,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 	return conversion_task;
 }
 
+static
 struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker *worker)
 {	
 	struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;

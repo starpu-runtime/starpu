@@ -105,11 +105,11 @@ int _starpu_barrier_counter_increment(struct _starpu_barrier_counter *barrier_c,
 int _starpu_barrier_counter_check(struct _starpu_barrier_counter *barrier_c)
 {
 	struct _starpu_barrier *barrier = &barrier_c->barrier;
-	int ret = 0;
 	STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 
 	if(barrier->reached_start == 0)
 		STARPU_PTHREAD_COND_BROADCAST(&barrier->cond);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
+	return 0;
 }

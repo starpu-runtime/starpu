@@ -561,7 +561,7 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_max_priority(sched_ctx_id, DEFAULT_MAX_PRIORITY);
 	STARPU_ASSERT_MSG(starpu_sched_ctx_get_min_priority(sched_ctx_id) < starpu_sched_ctx_get_max_priority(sched_ctx_id),
-			  "Priority min %d should be lower than priority max\n",
+			  "Priority min %d should be lower than priority max %d\n",
 			  starpu_sched_ctx_get_min_priority(sched_ctx_id), starpu_sched_ctx_get_max_priority(sched_ctx_id));
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)hd);

@@ -63,6 +63,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 void _starpu_load_perfmodel(struct starpu_perfmodel *model);
 void _starpu_initialize_registered_performance_models(void);
 void _starpu_deinitialize_registered_performance_models(void);
+void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model);
 
 double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model,
 					struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
@@ -90,6 +91,7 @@ void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double band
 					    double latency_write, double latency_read, unsigned node);
 
 int _starpu_read_double(FILE *f, char *format, double *val);
+void _starpu_simgrid_get_platform_path(char *path, size_t maxlen);
 
 #ifdef __cplusplus
 }

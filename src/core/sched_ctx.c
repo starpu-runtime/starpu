@@ -867,7 +867,7 @@ int _starpu_get_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 int _starpu_check_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	_starpu_barrier_counter_check(&sched_ctx->tasks_barrier);
+	return _starpu_barrier_counter_check(&sched_ctx->tasks_barrier);
 }
 
 void _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops)
