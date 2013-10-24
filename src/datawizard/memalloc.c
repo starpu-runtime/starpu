@@ -408,14 +408,6 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	 * of the "to free" list, and reassign it to the new
 	 * piece of data */
 
-	if (!is_already_in_mc_list)
-	{
-		uint32_t footprint = _starpu_compute_data_footprint(new_replicate->handle);
-		struct mc_cache_entry *entry;
-		HASH_FIND(hh, mc_cache[node], &footprint, sizeof(footprint), entry);
-		_starpu_mem_chunk_list_erase(entry->list, mc);
-	}
-
 	struct _starpu_data_replicate *old_replicate = mc->replicate;
 	old_replicate->allocated = 0;
 	old_replicate->automatically_allocated = 0;
