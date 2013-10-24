@@ -18,6 +18,7 @@
 #include <datawizard/footprint.h>
 #include <starpu_hash.h>
 #include <core/task.h>
+#include <starpu_scheduler.h>
 
 uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, unsigned nimpl, struct _starpu_job *j)
 {
