@@ -442,7 +442,8 @@ int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 	return 0;
 }
 
-int starpu_data_release_tag(starpu_data_handle_t handle)
+static
+int _starpu_data_release_tag(starpu_data_handle_t handle)
 {
 	struct handle_tag_entry *tag_entry;
 
@@ -734,7 +735,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->sequential_consistency_mutex);
 
-	starpu_data_release_tag(handle);
+	_starpu_data_release_tag(handle);
 
 	free(handle);
 }
