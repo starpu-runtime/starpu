@@ -34,6 +34,7 @@ struct mc_cache_entry
 {
 	UT_hash_handle hh;
 	struct _starpu_mem_chunk_list *list;
+	uint32_t footprint;
 };
 static struct mc_cache_entry *mc_cache[STARPU_MAXNODES];
 
@@ -796,7 +797,8 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 		if (!entry) {
 			entry = malloc(sizeof(*entry));
 			entry->list = _starpu_mem_chunk_list_new();
-			HASH_ADD_KEYPTR(hh, mc_cache[node], &footprint, sizeof(footprint), entry);
+			entry->footprint = footprint;
+			HASH_ADD(hh, mc_cache[node], footprint, sizeof(entry->footprint), entry);
 		}
 		_starpu_mem_chunk_list_push_front(entry->list, mc);
 		_starpu_spin_unlock(&mc_lock[node]);
