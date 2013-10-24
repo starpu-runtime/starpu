@@ -847,6 +847,16 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 			return;
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
+		/* FIXME: */
+		/* We also need to check for config->submitting = 0 (i.e. the
+		 * user calle starpu_drivers_request_termination()), in which
+		 * case we need to set config->running to 0 and wake workers,
+		 * so they can terminate, just like
+		 * starpu_drivers_request_termination() does.
+		 *
+		 * Set FIXME to 1 in tests/main/driver_api/run_driver.c to
+		 * check it is actually fixed.
+		 */
 	}
 
 	return;

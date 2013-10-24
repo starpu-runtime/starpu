@@ -15,6 +15,7 @@
  */
 
 #include <starpu.h>
+#include <unistd.h>
 
 #include "../../helper.h"
 
@@ -31,12 +32,18 @@
  * - STARPU_TEST_SKIPPED (non-critical errors)
  */
 
+/* See FIXME in src/core/sched_ctx.c about starpu_drivers_request_termination.
+ * This test should really use non-synchronous tasks, to properly cover all
+ * needed cases. */
+#define FIXME 0
+
 #if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static void
 dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(*(int *)args)++;
+	usleep(1000000);
 }
 
 static struct starpu_codelet cl =
@@ -93,7 +100,9 @@ test_cpu(void)
 	cl.where = STARPU_CPU;
 	task->cl = &cl;
 	task->cl_arg = &var;
+#if !FIXME
 	task->synchronous = 1;
+#endif
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV)
 	{
@@ -102,14 +111,14 @@ test_cpu(void)
 		goto out;
 	}
 
-	FPRINTF(stderr, "[CPU] Var = %d (expected value: 1)\n", var);
-	ret = !!(var != 1);
-
 out:
 	starpu_drivers_request_termination();
 	if (starpu_pthread_join(driver_thread, NULL) != 0)
 		return 1;
 	starpu_shutdown();
+
+	FPRINTF(stderr, "[CPU] Var = %d (expected value: 1)\n", var);
+	ret = !!(var != 1);
 	return ret;
 }
 #endif /* STARPU_USE_CPU */
@@ -150,7 +159,9 @@ test_cuda(void)
 	cl.where = STARPU_CUDA;
 	task->cl = &cl;
 	task->cl_arg = &var;
+#if !FIXME
 	task->synchronous = 1;
+#endif
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV)
 	{
@@ -159,14 +170,14 @@ test_cuda(void)
 		goto out;
 	}
 
-	FPRINTF(stderr, "[CUDA] Var = %d (expected value: 1)\n", var);
-	ret = !!(var != 1);
-
 out:
 	starpu_drivers_request_termination();
 	if (starpu_pthread_join(driver_thread, NULL) != 0)
 		return 1;
 	starpu_shutdown();
+
+	FPRINTF(stderr, "[CUDA] Var = %d (expected value: 1)\n", var);
+	ret = !!(var != 1);
 	return ret;
 }
 #endif /* STARPU_USE_CUDA */
@@ -233,7 +244,9 @@ test_opencl(void)
 	cl.where = STARPU_OPENCL;
 	task->cl = &cl;
 	task->cl_arg = &var;
+#if !FIXME
 	task->synchronous = 1;
+#endif
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV)
 	{
@@ -242,14 +255,14 @@ test_opencl(void)
 		goto out;
 	}
 
-	FPRINTF(stderr, "[OpenCL] Var = %d (expected value: 1)\n", var);
-	ret = !!(var != 1);
-
 out:
 	starpu_drivers_request_termination();
 	if (starpu_pthread_join(driver_thread, NULL) != 0)
 		return 1;
 	starpu_shutdown();
+
+	FPRINTF(stderr, "[OpenCL] Var = %d (expected value: 1)\n", var);
+	ret = !!(var != 1);
 	return ret;
 }
 #endif /* STARPU_USE_OPENCL */
