@@ -20,4 +20,6 @@
 void _starpu_malloc_init(unsigned dst_node);
 void _starpu_malloc_shutdown(unsigned dst_node);
 
+void _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size);
+
 #endif
