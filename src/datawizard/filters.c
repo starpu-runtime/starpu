@@ -281,6 +281,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	unsigned node;
 	unsigned sizes[root_handle->nchildren];
 
+	_STARPU_TRACE_START_UNPARTITION(root_handle, gathering_node);
 	_starpu_spin_lock(&root_handle->header_lock);
 
 	STARPU_ASSERT_MSG(root_handle->nchildren != 0, "data %p is not partitioned, can not unpartition it", root_handle);
@@ -435,6 +436,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 
 	/* now the parent may be used again so we release the lock */
 	_starpu_spin_unlock(&root_handle->header_lock);
+	_STARPU_TRACE_END_UNPARTITION(root_handle, gathering_node);
 }
 
 /* each child may have his own interface type */
