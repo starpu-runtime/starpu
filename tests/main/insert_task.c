@@ -21,7 +21,6 @@
 static int _ifactor = 12;
 static float _ffactor = 10.0;
 
-static
 void func_cpu_args(void *descr[], void *_args)
 {
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -35,7 +34,6 @@ void func_cpu_args(void *descr[], void *_args)
         *x1 = *x1 * ffactor;
 }
 
-static
 void func_cpu_noargs(void *descr[], void *_args)
 {
 	int *x0 = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);

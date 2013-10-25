@@ -88,7 +88,6 @@ static void neutral_opencl_kernel(void *descr[], void *arg)
 }
 #endif
 
-static
 void redux_cpu_kernel(void *descr[], void *arg)
 {
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -96,7 +95,6 @@ void redux_cpu_kernel(void *descr[], void *arg)
 	*dst = *dst + *src;
 }
 
-static
 void neutral_cpu_kernel(void *descr[], void *arg)
 {
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -170,7 +168,6 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 }
 #endif
 
-static
 void increment_cpu_kernel(void *descr[], void *arg)
 {
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);

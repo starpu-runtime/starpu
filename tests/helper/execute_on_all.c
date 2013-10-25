@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include "../helper.h"
 
-static
 void func(void *arg)
 {
 	int *ptr = (int *) arg;

@@ -29,7 +29,6 @@ static double cumulated = 0.0;
 static double cumulated_push = 0.0;
 static double cumulated_pop = 0.0;
 
-static
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }

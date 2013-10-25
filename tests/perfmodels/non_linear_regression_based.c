@@ -33,7 +33,6 @@ static void memset_cuda(void *descr[], void *arg)
 }
 #endif
 
-static
 void memset_cpu(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;

@@ -60,14 +60,12 @@ struct starpu_opencl_program opencl_code;
 starpu_data_handle_t v_handle;
 static unsigned v[VECTORSIZE] STARPU_ATTRIBUTE_ALIGNED(128) = {0, 0, 0, 0};
 
-static
 void cpu_codelet_incA(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);
 	val[0]++;
 }
 
-static
 void cpu_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	unsigned *val = (unsigned *)STARPU_VECTOR_GET_PTR(descr[0]);

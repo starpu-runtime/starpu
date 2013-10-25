@@ -27,7 +27,6 @@
   #define NLOOPS	128
 #endif
 
-static
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }

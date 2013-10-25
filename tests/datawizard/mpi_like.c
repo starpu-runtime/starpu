@@ -48,7 +48,6 @@ static struct thread_data problem_data[NTHREADS];
  * data from its neighbour and increment it before transmitting it to its
  * successor. */
 
-static
 void increment_handle_cpu_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);

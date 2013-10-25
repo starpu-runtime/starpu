@@ -32,7 +32,6 @@ extern void increment_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 extern void increment_opencl(void *buffers[], void *args);
 #endif
 
-static
 void increment_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);

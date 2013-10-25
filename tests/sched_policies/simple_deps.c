@@ -24,8 +24,7 @@
  * Applies to : all schedulers.
  */
 
-static void
-dummy(void *buffers[], void *args)
+void dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;

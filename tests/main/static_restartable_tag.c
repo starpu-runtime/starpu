@@ -30,12 +30,11 @@ static unsigned ntasks = 65536;
 #endif
 static starpu_tag_t tag = 0x32;
 
-static
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }
 
-static struct starpu_codelet dummy_codelet = 
+static struct starpu_codelet dummy_codelet =
 {
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},
@@ -55,8 +54,6 @@ static void parse_args(int argc, char **argv)
 			ntasks = atoi(optarg);
 			break;
 	}
-
-	
 }
 
 

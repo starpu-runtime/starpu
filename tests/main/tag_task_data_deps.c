@@ -25,7 +25,7 @@
 #include <starpu.h>
 #include "../helper.h"
 
-static void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
+void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	unsigned duration = (uintptr_t) arg;
 	if (duration)

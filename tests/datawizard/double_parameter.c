@@ -18,7 +18,6 @@
 #include <starpu.h>
 #include "../helper.h"
 
-static
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }

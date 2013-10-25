@@ -28,7 +28,6 @@ static unsigned ntasks = 64;
 static unsigned ntasks = 65536;
 #endif
 
-static
 void check_task_func(void *descr[], void *arg)
 {
 }

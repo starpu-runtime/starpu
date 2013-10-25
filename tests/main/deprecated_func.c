@@ -18,7 +18,6 @@
 #include <starpu.h>
 #include "../helper.h"
 
-static
 void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -27,7 +26,6 @@ void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	*valout = *valin;
 }
 
-static
 void cpu2_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	int *valin = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);

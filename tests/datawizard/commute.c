@@ -18,7 +18,6 @@
 #include <starpu.h>
 #include "../helper.h"
 
-static
 void begin(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
 {
 	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -33,7 +32,6 @@ static struct starpu_codelet codelet_begin =
 	.nbuffers = 1,
 };
 
-static
 void commute1(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
 {
 	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -49,7 +47,6 @@ static struct starpu_codelet codelet_commute1 =
 	.modes = {STARPU_RW | STARPU_COMMUTE}
 };
 
-static
 void commute2(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
 {
 	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -65,7 +62,6 @@ static struct starpu_codelet codelet_commute2 =
 	.modes = {STARPU_W | STARPU_COMMUTE}
 };
 
-static
 void commute3(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args STARPU_ATTRIBUTE_UNUSED)
 {
 }
@@ -79,7 +75,6 @@ static struct starpu_codelet codelet_commute3 =
 };
 
 static struct starpu_codelet codelet_end;
-static
 void end(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
 {
 	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -106,7 +101,7 @@ static void test(enum starpu_data_access_mode begin_mode, enum starpu_data_acces
 	int ret;
 
 	codelet_begin.modes[0] = begin_mode;
-	codelet_end.modes[0] = end_mode;	
+	codelet_end.modes[0] = end_mode;
 
 	begin_t = starpu_task_create();
 	begin_t->cl = &codelet_begin;

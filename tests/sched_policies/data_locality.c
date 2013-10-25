@@ -29,8 +29,7 @@
  * Applies to : dmda, pheft.
  */
 
-static void
-dummy(void *buffers[], void *args)
+void dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;

@@ -21,7 +21,6 @@
 #define NB_BUNDLE 10
 #define NB_ITERATION 5
 
-static
 void func_cpu(void *descr[], void *args)
 {
 	float *x = (float *) STARPU_VARIABLE_GET_PTR(descr[0]);

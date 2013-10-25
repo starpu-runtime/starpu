@@ -56,7 +56,6 @@ static void cuda_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args
 }
 #endif
 
-static
 void cpu_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
@@ -64,7 +63,6 @@ void cpu_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	*buf = 42;
 }
 
-static
 void display_var(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;

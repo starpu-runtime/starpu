@@ -39,7 +39,6 @@ void cuda_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }
 
-static
 void cpu_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }

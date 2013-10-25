@@ -63,7 +63,7 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 }
 #endif
 
-static void increment_cpu_kernel(void *descr[], void *arg)
+void increment_cpu_kernel(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;
 

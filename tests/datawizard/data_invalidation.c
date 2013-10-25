@@ -78,7 +78,6 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 }
 #endif /* !STARPU_USE_OPENCL */
 
-static
 void cpu_memset_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -107,7 +106,6 @@ static struct starpu_codelet memset_cl =
  *	Check content
  */
 
-static
 void cpu_check_content_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;

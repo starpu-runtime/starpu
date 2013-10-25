@@ -24,7 +24,6 @@
 
 #define LOOPS 100
 
-static
 void vector_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -55,7 +54,6 @@ void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 #endif /* STARPU_USE_CUDA */
 }
 
-static
 void matrix_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;

@@ -43,7 +43,6 @@ extern void cuda_f(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 extern void opencl_f(void *buffers[], void *args);
 #endif
 
-static
 void cpu_f(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;

@@ -34,7 +34,6 @@ float *buffer;
 
 starpu_data_handle_t v_handle;
 
-static
 void dummy_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }

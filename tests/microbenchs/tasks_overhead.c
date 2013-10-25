@@ -34,7 +34,6 @@ static unsigned nbuffers = 0;
 
 struct starpu_task *tasks;
 
-static
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }

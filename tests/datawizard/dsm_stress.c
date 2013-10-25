@@ -65,7 +65,6 @@ static void opencl_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_ar
 {
 }
 
-static
 void cpu_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }

@@ -23,13 +23,13 @@
 
 static int i = 0, j;
 
-static void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	i++;
 	FPRINTF(stdout, "called third task, i = %d\n", i);
 }
 
-static struct starpu_codelet dummy_codelet = 
+static struct starpu_codelet dummy_codelet =
 {
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},
@@ -48,7 +48,7 @@ static void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
 	FPRINTF(stdout, "submitted third task, i = %d\n", i);
 }
 
-static struct starpu_codelet callback_submit_codelet = 
+static struct starpu_codelet callback_submit_codelet =
 {
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},
@@ -69,7 +69,7 @@ static void task_submit_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg ST
 	FPRINTF(stdout, "submitted second task, i = %d\n", i);
 }
 
-static struct starpu_codelet task_submit_codelet = 
+static struct starpu_codelet task_submit_codelet =
 {
 	.cpu_funcs = {task_submit_func, NULL},
 	.cuda_funcs = {task_submit_func, NULL},

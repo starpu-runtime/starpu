@@ -27,7 +27,7 @@ starpu_data_handle_t void_handle;
 
 int critical_var;
 
-static void critical_section(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void critical_section(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	/* We do not protect this variable because it is only accessed when the
 	 * "void_handle" piece of data is accessed. */

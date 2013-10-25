@@ -17,7 +17,6 @@
 #include "../test_interfaces.h"
 #include "../../../helper.h"
 
-static
 void fake_func(void *buffers[], void *arg)
 {
 	(void) buffers;

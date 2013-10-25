@@ -22,7 +22,6 @@
 #include <sys/types.h>
 #include "../helper.h"
 
-static
 void task(void **buffers, void *args)
 {
 	float *numbers;

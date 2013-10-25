@@ -54,7 +54,6 @@ static void callback(void *arg)
 	}
 }
 
-static
 void codelet_sleep(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
