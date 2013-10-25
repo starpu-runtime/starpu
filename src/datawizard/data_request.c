@@ -24,8 +24,8 @@
  * Data interfaces should also have to declare how many asynchronous requests
  * they have actually started (think of e.g. csr).
  */
-#define MAX_PENDING_REQUESTS_PER_NODE 400
-#define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 200
+#define MAX_PENDING_REQUESTS_PER_NODE 20
+#define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 10
 
 /* requests that have not been treated at all */
 static struct _starpu_data_request_list *data_requests[STARPU_MAXNODES];
