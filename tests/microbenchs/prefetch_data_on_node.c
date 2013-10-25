@@ -33,13 +33,15 @@
 starpu_data_handle_t v_handle;
 static unsigned *v;
 
-static void callback(void *arg)
+static
+void callback(void *arg)
 {
 	unsigned node = (unsigned)(uintptr_t) arg;
 
 	starpu_data_prefetch_on_node(v_handle, node, 1);
 }
 
+static
 void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 //	fprintf(stderr, "pif\n");

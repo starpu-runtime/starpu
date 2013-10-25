@@ -35,6 +35,7 @@ float *buffer[NBUFFERS_DEF];
 
 starpu_data_handle_t v_handle[NBUFFERS_DEF];
 
+static
 void dummy_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 }
@@ -53,6 +54,7 @@ static struct starpu_codelet cl =
 	.nbuffers = 1
 };
 
+static
 int use_handle(starpu_data_handle_t handle)
 {
 	int ret;
@@ -70,6 +72,7 @@ static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 static unsigned n_synced_buffers;
 
+static
 void callback_sync_data(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);

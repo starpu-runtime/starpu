@@ -32,6 +32,7 @@ extern void increment_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args);
 extern void increment_opencl(void *buffers[], void *args);
 #endif
 
+static
 void increment_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -55,6 +56,7 @@ static struct starpu_codelet increment_cl =
 unsigned token = 0;
 starpu_data_handle_t token_handle;
 
+static
 int increment_token(void)
 {
 	int ret;
@@ -66,6 +68,7 @@ int increment_token(void)
 	return ret;
 }
 
+static
 void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
         starpu_data_release(token_handle);

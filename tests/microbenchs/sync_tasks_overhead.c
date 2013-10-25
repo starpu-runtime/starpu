@@ -24,6 +24,7 @@
 
 static unsigned ntasks = 65536;
 
+static
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }
@@ -38,6 +39,7 @@ static struct starpu_codelet dummy_codelet =
 	.nbuffers = 0
 };
 
+static
 int inject_one_task(void)
 {
 	int ret;

@@ -34,6 +34,7 @@ static unsigned nbuffers = 0;
 
 struct starpu_task *tasks;
 
+static
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }
@@ -49,6 +50,7 @@ static struct starpu_codelet dummy_codelet =
 	.modes = {STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW}
 };
 
+static
 int inject_one_task(void)
 {
 	struct starpu_task *task = starpu_task_create();

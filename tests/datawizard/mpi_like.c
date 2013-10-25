@@ -18,8 +18,9 @@
 #include <config.h>
 #include <starpu.h>
 #include <errno.h>
-#include "../helper.h"
 #include <common/thread.h>
+#include "../helper.h"
+#include "./mpi_like.h"
 
 #define NTHREADS	4
 #define NITER		2
@@ -46,13 +47,8 @@ static struct thread_data problem_data[NTHREADS];
 /* We implement some ring transfer, every thread will try to receive a piece of
  * data from its neighbour and increment it before transmitting it to its
  * successor. */
-#ifdef STARPU_USE_CUDA
-void cuda_codelet_unsigned_inc(void *descr[], STARPU_ATTRIBUTE_UNUSED void *cl_arg);
-#endif
-#ifdef STARPU_USE_OPENCL
-void opencl_codelet_unsigned_inc(void *buffers[], void *args);
-#endif
 
+static
 void increment_handle_cpu_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
@@ -73,7 +69,8 @@ static struct starpu_codelet increment_handle_cl =
 	.nbuffers = 1
 };
 
-static void increment_handle(struct thread_data *thread_data)
+static
+void increment_handle(struct thread_data *thread_data)
 {
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &increment_handle_cl;

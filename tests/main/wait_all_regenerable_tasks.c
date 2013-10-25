@@ -39,6 +39,7 @@ static void callback(void *arg)
 		task->regenerate = 0;
 }
 
+static
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }

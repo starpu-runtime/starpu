@@ -24,6 +24,7 @@
 int *glob_argc;
 char ***glob_argv;
 
+static
 void *launch_starpu(void *unused)
 {
 	int ret;
@@ -35,6 +36,7 @@ void *launch_starpu(void *unused)
 	return NULL;
 }
 
+static
 void *shutdown_starpu(void *unused)
 {
 	(void) unused;

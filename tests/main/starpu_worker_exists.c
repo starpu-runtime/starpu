@@ -40,6 +40,7 @@ static int can_never_execute(unsigned workerid,
 	return 0;
 }
 
+static
 void fake(void *buffers[], void *args)
 {
 	(void) buffers;

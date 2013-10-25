@@ -24,6 +24,7 @@
 
 #define LOOPS 100
 
+static
 void vector_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -37,6 +38,7 @@ void vector_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	matrix[0] = sum/nx;
 }
 
+static
 void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_CUDA
@@ -53,6 +55,7 @@ void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 #endif /* STARPU_USE_CUDA */
 }
 
+static
 void matrix_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -67,6 +70,7 @@ void matrix_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	matrix[0] = sum / (nx*ny);
 }
 
+static
 void matrix_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_CUDA
@@ -84,6 +88,7 @@ void matrix_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 #endif /* STARPU_USE_CUDA */
 }
 
+static
 int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_codelet *matrix_codelet, char *device_name)
 {
 	float *matrix, mean;
@@ -163,6 +168,7 @@ end:
 #define NX_MIN 1024
 #define NX_MAX 1024*1024
 
+static
 int check_size_on_device(uint32_t where, char *device_name)
 {
 	int nx, ret;

@@ -31,6 +31,7 @@ int main(int argc, char **argv)
 }
 #else
 
+static
 int test_prefetch(unsigned memnodes)
 {
 	int ret;
@@ -120,6 +121,7 @@ int test_prefetch(unsigned memnodes)
 	return 0;
 }
 
+static
 void test_malloc()
 {
 	int ret;

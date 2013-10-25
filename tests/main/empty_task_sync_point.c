@@ -29,6 +29,7 @@ static starpu_tag_t tagD = 0x3042;
 static starpu_tag_t tagE = 0x4042;
 static starpu_tag_t tagF = 0x5042;
 
+static
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }

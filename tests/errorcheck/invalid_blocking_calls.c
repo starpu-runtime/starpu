@@ -24,6 +24,7 @@
 static starpu_data_handle_t handle;
 static unsigned *data;
 
+static
 void wrong_func(void *descr[], void *arg)
 {
 	/* The function is expected to fail. This is indicated in tests/Makefile.am */

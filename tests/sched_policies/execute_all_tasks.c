@@ -26,8 +26,8 @@
 
 #define NTASKS           8
 
-void
-dummy(void *buffers[], void *args)
+static
+void dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;

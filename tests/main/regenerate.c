@@ -33,7 +33,8 @@ static unsigned completed = 0;
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 
-static void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
+static
+void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_task *task = starpu_task_get_current();
 
@@ -51,6 +52,7 @@ static void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
 	}
 }
 
+static
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }

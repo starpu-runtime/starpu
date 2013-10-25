@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include "../helper.h"
 
+static
 void cpu_task(void **buffers, void *args)
 {
 	int *numbers;

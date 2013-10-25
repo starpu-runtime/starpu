@@ -41,6 +41,7 @@ static void callback(void *arg)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
+static
 void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 }

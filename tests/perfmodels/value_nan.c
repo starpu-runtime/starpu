@@ -26,6 +26,7 @@
 
 #define STRING "booh"
 
+static
 int _check_number(double val, int checknan)
 {
 	char *tmp = "starpu_XXXXXX";

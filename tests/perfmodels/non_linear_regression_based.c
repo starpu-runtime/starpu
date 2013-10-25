@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012  Université de Bordeaux 1
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,6 +33,7 @@ static void memset_cuda(void *descr[], void *arg)
 }
 #endif
 
+static
 void memset_cpu(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;

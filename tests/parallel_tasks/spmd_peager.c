@@ -26,6 +26,7 @@
 starpu_data_handle_t v_handle;
 static unsigned *v;
 
+static
 void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -82,7 +83,7 @@ int main(int argc, char **argv)
 
 		task->handles[0] = v_handle;
 
-		int ret = starpu_task_submit(task);
+		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}

@@ -39,6 +39,7 @@ struct data
 
 struct data buffers[NBUFFERS];
 
+static
 void callback_sync_data(void *arg)
 {
 	struct data *data = (struct data *) arg;
