@@ -103,6 +103,9 @@
 
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL	0x513b
 
+#define _STARPU_FUT_START_UNPARTITION 0x5154
+#define _STARPU_FUT_END_UNPARTITION 0x5155
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -364,6 +367,12 @@ do {										\
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL			\
 	FUT_DO_PROBE0(_STARPU_FUT_TASK_WAIT_FOR_ALL)
 
+#define _STARPU_TRACE_START_UNPARTITION(handle, memnode)		\
+	FUT_DO_PROBE3(_STARPU_FUT_START_UNPARTITION, memnode, _starpu_gettid(), handle);
+	
+#define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		\
+	FUT_DO_PROBE3(_STARPU_FUT_END_UNPARTITION, memnode, _starpu_gettid(), handle);
+
 #else // !STARPU_USE_FXT
 
 /* Dummy macros in case FxT is disabled */
@@ -410,6 +419,8 @@ do {										\
 #define _STARPU_TRACE_USER_EVENT(code)		do {} while(0)
 #define _STARPU_TRACE_SET_PROFILING(status)	do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL		do {} while(0)
+#define _STARPU_TRACE_START_UNPARTITION(handle, memnode)	do {} while(0)
+#define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {} while(0)
 
 #endif // STARPU_USE_FXT
 
