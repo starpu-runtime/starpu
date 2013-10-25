@@ -27,6 +27,7 @@
 #include <core/task.h>
 
 #include <starpu_mpi_private.h>
+#include <starpu_mpi_task_insert.h>
 
 /* Whether we are allowed to keep copies of remote data. */
 struct _starpu_data_entry
@@ -64,6 +65,7 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 	for(i=0 ; i<nb_nodes ; i++) _cache_received_data[i] = NULL;
 }
 
+static
 void _starpu_mpi_cache_empty_tables(int world_size)
 {
 	int i;
@@ -308,6 +310,7 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 	}
 }
 
+static
 void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int do_execute, MPI_Comm comm)
 {
 	if (_cache_enabled)
@@ -363,6 +366,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 	}
 }
 
+static
 int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_list varg_list)
 {
 	int arg_type;
@@ -857,6 +861,7 @@ void _starpu_mpi_redux_data_dummy_func(STARPU_ATTRIBUTE_UNUSED void *buffers[], 
 {
 }
 
+static
 struct starpu_codelet _starpu_mpi_redux_data_read_cl =
 {
 	.cpu_funcs = {_starpu_mpi_redux_data_dummy_func, NULL},
@@ -877,6 +882,7 @@ struct starpu_codelet _starpu_mpi_redux_data_readwrite_cl =
 	.name = "_starpu_mpi_redux_data_write_cl"
 };
 
+static
 void _starpu_mpi_redux_data_detached_callback(void *arg)
 {
 	struct _starpu_mpi_redux_data_args *args = (struct _starpu_mpi_redux_data_args *) arg;
@@ -889,6 +895,7 @@ void _starpu_mpi_redux_data_detached_callback(void *arg)
 	free(args);
 }
 
+static
 void _starpu_mpi_redux_data_recv_callback(void *callback_arg)
 {
 	struct _starpu_mpi_redux_data_args *args = (struct _starpu_mpi_redux_data_args *) callback_arg;
