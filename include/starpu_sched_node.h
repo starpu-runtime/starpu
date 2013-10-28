@@ -141,6 +141,7 @@ void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct star
 int starpu_sched_node_can_execute_task(struct starpu_sched_node * node, struct starpu_task * task);
 int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sched_node * node, struct starpu_task * task, double * length);
 double starpu_sched_node_transfer_length(struct starpu_sched_node * node, struct starpu_task * task);
+void starpu_sched_node_prefetch_on_node(struct starpu_sched_node * node, struct starpu_task * task);
 
 
 /* no public create function for workers because we dont want to have several node_worker for a single workerid */

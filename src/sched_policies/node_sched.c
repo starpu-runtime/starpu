@@ -428,7 +428,15 @@ double starpu_sched_node_transfer_length(struct starpu_sched_node * node, struct
 	return sum / nworkers;
 }
 
-
+void starpu_sched_node_prefetch_on_node(struct starpu_sched_node * node, struct starpu_task * task)
+{
+       if (starpu_get_prefetch_flag() && (node->properties >= STARPU_SCHED_NODE_SINGLE_MEMORY_NODE))
+       {
+               int worker = starpu_bitmap_first(node->workers_in_ctx);
+               unsigned memory_node = starpu_worker_get_memory_node(worker);
+               starpu_prefetch_task_input_on_node(task, memory_node);
+       }
+}
 
 
 void take_node_and_does_nothing(struct starpu_sched_node * node STARPU_ATTRIBUTE_UNUSED)

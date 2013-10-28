@@ -118,6 +118,9 @@ static int heft_push_task(struct starpu_sched_node * node, struct starpu_task * 
 
 	STARPU_ASSERT(best_inode != -1);
 	best_node = node->childs[best_inode];
+
+    starpu_sched_node_prefetch_on_node(best_node, task);
+
 	return best_node->push_task(best_node, task);
 }
 
