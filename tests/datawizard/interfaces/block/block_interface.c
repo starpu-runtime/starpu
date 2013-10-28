@@ -33,7 +33,6 @@ extern void test_block_cuda_func(void *buffers[], void *_args);
 extern void test_block_opencl_func(void *buffers[], void *args);
 #endif
 
-
 static starpu_data_handle_t _block_handle;
 static starpu_data_handle_t _block2_handle;
 

@@ -22,6 +22,7 @@
 #include <math.h>
 #include <string.h>
 #include <config.h>
+#include <core/perfmodel/perfmodel.h>
 
 int _starpu_read_double(FILE *f, char *format, double *val)
 {

@@ -299,25 +299,6 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	}
 }
 
-static int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx)
-{
-	unsigned worker = 0, nworkers = 0;
-	struct starpu_worker_collection *workers = sched_ctx->workers;
-
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-
-	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
-		if (starpu_worker_can_execute_task(worker, task, 0))
-			nworkers++;
-	}
-
-	return nworkers;
-}
-
 /* the generic interface that call the proper underlying implementation */
 
 int _starpu_push_task(struct _starpu_job *j)
@@ -334,13 +315,8 @@ int _starpu_push_task(struct _starpu_job *j)
 	_STARPU_LOG_IN();
 
 	_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
-	_starpu_increment_nready_tasks();
+	_starpu_increment_nready_tasks_of_sched_ctx(task->sched_ctx, task->flops);
 	task->status = STARPU_TASK_READY;
-#ifdef STARPU_USE_SC_HYPERVISOR
-	if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->perf_counters != NULL 
-	   && sched_ctx->perf_counters->notify_ready_task)
-		sched_ctx->perf_counters->notify_ready_task(sched_ctx->id, task);
-#endif //STARPU_USE_SC_HYPERVISOR
 
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
@@ -587,6 +563,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 	return conversion_task;
 }
 
+static
 struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker *worker)
 {	
 	struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
@@ -595,8 +572,8 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 	for (l = worker->sched_ctx_list; l; l = l->next)
 	{
 		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
-		if(worker->removed_from_ctx[sched_ctx->id] == 1 && worker->shares_tasks_lists[sched_ctx->id] == 1)
-			return sched_ctx;
+/* 		if(worker->removed_from_ctx[sched_ctx->id] == 1 && worker->shares_tasks_lists[sched_ctx->id] == 1) */
+/* 			return sched_ctx; */
 		if(sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs &&
 		   smallest_counter > sched_ctx->pop_counter[worker->workerid])
 		{

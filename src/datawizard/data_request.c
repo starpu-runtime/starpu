@@ -24,8 +24,8 @@
  * Data interfaces should also have to declare how many asynchronous requests
  * they have actually started (think of e.g. csr).
  */
-#define MAX_PENDING_REQUESTS_PER_NODE 400
-#define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 200
+#define MAX_PENDING_REQUESTS_PER_NODE 20
+#define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 10
 
 /* requests that have not been treated at all */
 static struct _starpu_data_request_list *data_requests[STARPU_MAXNODES];
@@ -356,17 +356,12 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 {
 	starpu_data_handle_t handle = r->handle;
 
-	if (prefetch) {
-		if (_starpu_spin_trylock(&handle->header_lock))
-			return -EBUSY;
-		if (_starpu_spin_trylock(&r->lock))
-		{
-			_starpu_spin_unlock(&handle->header_lock);
-			return -EBUSY;
-		}
-	} else {
-		_starpu_spin_lock(&handle->header_lock);
-		_starpu_spin_lock(&r->lock);
+	if (_starpu_spin_trylock(&handle->header_lock))
+		return -EBUSY;
+	if (_starpu_spin_trylock(&r->lock))
+	{
+		_starpu_spin_unlock(&handle->header_lock);
+		return -EBUSY;
 	}
 
 	struct _starpu_data_replicate *src_replicate = r->src_replicate;
@@ -420,19 +415,25 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	return 0;
 }
 
-void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
+int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 {
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_list *new_data_requests;
+	struct _starpu_data_request_list *empty_list;
+	int ret = 0;
 
 	/* Here helgrind would should that this is an un protected access.
 	 * We however don't care about missing an entry, we will get called
 	 * again sooner or later. */
 	if (_starpu_data_request_list_empty(data_requests[src_node]))
-		return;
+		return 0;
+
+	empty_list = _starpu_data_request_list_new();
 
 	/* take all the entries from the request list */
-        STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
+	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_list_mutex[src_node]))
+		/* List is busy, do not bother with it */
+		return -EBUSY;
 
 	struct _starpu_data_request_list *local_list = data_requests[src_node];
 
@@ -441,13 +442,14 @@ void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 		/* there is no request */
                 STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 
-		return;
+		_starpu_data_request_list_delete(empty_list);
+		return 0;
 	}
 
 	/* There is an entry: we create a new empty list to replace the list of
 	 * requests, and we handle the request(s) one by one in the former
 	 * list, without concurrency issues.*/
-	data_requests[src_node] = _starpu_data_request_list_new();
+	data_requests[src_node] = empty_list;
 	STARPU_HG_DISABLE_CHECKING(data_requests[src_node]->_head);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
@@ -463,6 +465,7 @@ void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 		{
 			/* Too many requests at the same time, skip pushing
 			 * more for now */
+			ret = -EBUSY;
 			break;
 		}
 
@@ -471,6 +474,8 @@ void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 		res = starpu_handle_data_request(r, may_alloc, 0);
 		if (res != 0 && res != -EAGAIN)
 		{
+			/* handle is busy, or not enough memory, postpone for now */
+			ret = res;
 			_starpu_data_request_list_push_back(new_data_requests, r);
 			break;
 		}
@@ -491,6 +496,8 @@ void _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 
 	_starpu_data_request_list_delete(new_data_requests);
 	_starpu_data_request_list_delete(local_list);
+
+	return ret;
 }
 
 void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc)
@@ -498,12 +505,17 @@ void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_list *new_data_requests;
 	struct _starpu_data_request_list *new_prefetch_requests;
+	struct _starpu_data_request_list *empty_list;
 
 	if (_starpu_data_request_list_empty(prefetch_requests[src_node]))
 		return;
 
+	empty_list = _starpu_data_request_list_new();
+
 	/* take all the entries from the request list */
-        STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
+	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_list_mutex[src_node]))
+		/* List is busy, do not bother with it */
+		return;
 
 	struct _starpu_data_request_list *local_list = prefetch_requests[src_node];
 
@@ -511,13 +523,14 @@ void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc
 	{
 		/* there is no request */
                 STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
+		_starpu_data_request_list_delete(empty_list);
 		return;
 	}
 
 	/* There is an entry: we create a new empty list to replace the list of
 	 * requests, and we handle the request(s) one by one in the former
 	 * list, without concurrency issues.*/
-	prefetch_requests[src_node] = _starpu_data_request_list_new();
+	prefetch_requests[src_node] = empty_list;
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
 
@@ -582,12 +595,16 @@ static void _handle_pending_node_data_requests(unsigned src_node, unsigned force
 //	_STARPU_DEBUG("_starpu_handle_pending_node_data_requests ...\n");
 //
 	struct _starpu_data_request_list *new_data_requests_pending;
+	struct _starpu_data_request_list *empty_list;
 	unsigned taken, kept;
 
 	if (_starpu_data_request_list_empty(data_requests_pending[src_node]))
 		return;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
+	empty_list = _starpu_data_request_list_new();
+	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_pending_list_mutex[src_node]) && !force)
+		/* List is busy, do not bother with it */
+		return;
 
 	/* for all entries of the list */
 	struct _starpu_data_request_list *local_list = data_requests_pending[src_node];
@@ -595,9 +612,10 @@ static void _handle_pending_node_data_requests(unsigned src_node, unsigned force
 	{
 		/* there is no request */
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[src_node]);
+		_starpu_data_request_list_delete(empty_list);
 		return;
 	}
-	data_requests_pending[src_node] = _starpu_data_request_list_new();
+	data_requests_pending[src_node] = empty_list;
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[src_node]);
 
@@ -613,8 +631,19 @@ static void _handle_pending_node_data_requests(unsigned src_node, unsigned force
 
 		starpu_data_handle_t handle = r->handle;
 
-		_starpu_spin_lock(&handle->header_lock);
+		if (force)
+			/* Have to wait for the handle, whatever it takes */
+			_starpu_spin_lock(&handle->header_lock);
+		else
+			if (_starpu_spin_trylock(&handle->header_lock))
+			{
+				/* Handle is busy, retry this later */
+				_starpu_data_request_list_push_back(new_data_requests_pending, r);
+				kept++;
+				continue;
+			}
 
+		/* This shouldn't be too hard to acquire */
 		_starpu_spin_lock(&r->lock);
 
 		/* wait until the transfer is terminated */

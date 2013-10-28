@@ -33,6 +33,10 @@
 #define DBL_MAX __DBL_MAX__
 #endif
 
+/* if no priority is set when creating the scheduling context, we use the following ones */
+#define DEFAULT_MIN_PRIORITY 0
+#define DEFAULT_MAX_PRIORITY 1
+
 //static unsigned ncombinedworkers;
 //static enum starpu_perfmodel_archtype applicable_perf_archtypes[STARPU_NARCH_VARIATIONS];
 //static unsigned napplicable_perf_archtypes = 0;
@@ -551,6 +555,14 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 	hd->beta = _STARPU_SCHED_BETA_DEFAULT;
 	hd->_gamma = _STARPU_SCHED_GAMMA_DEFAULT;
 	hd->idle_power = 0.0;
+
+	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_min_priority(sched_ctx_id, DEFAULT_MIN_PRIORITY);
+	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_max_priority(sched_ctx_id, DEFAULT_MAX_PRIORITY);
+	STARPU_ASSERT_MSG(starpu_sched_ctx_get_min_priority(sched_ctx_id) < starpu_sched_ctx_get_max_priority(sched_ctx_id),
+			  "Priority min %d should be lower than priority max %d\n",
+			  starpu_sched_ctx_get_min_priority(sched_ctx_id), starpu_sched_ctx_get_max_priority(sched_ctx_id));
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)hd);
 

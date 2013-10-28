@@ -288,7 +288,7 @@ void starpu_tag_restart(starpu_tag_t id)
 	struct _starpu_tag *tag = gettag_struct(id);
 
 	_starpu_spin_lock(&tag->lock);
-	STARPU_ASSERT_MSG(tag->state == STARPU_DONE, "Only completed tags can be restarted (%llu was %d)", (unsigned long long) id, tag->state);
+	STARPU_ASSERT_MSG(tag->state == STARPU_DONE || tag->state == STARPU_INVALID_STATE || tag->state == STARPU_ASSOCIATED || tag->state == STARPU_BLOCKED, "Only completed tags can be restarted (%llu was %d)", (unsigned long long) id, tag->state);
 	tag->state = STARPU_BLOCKED;
 	_starpu_spin_unlock(&tag->lock);
 }
@@ -313,8 +313,9 @@ void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 	 * detect when either of them are finished. We however don't allow
 	 * several tasks to share a tag when it is used to wake them by
 	 * dependency */
+	if (tag->job != job)
+		tag->is_assigned++;
 	tag->job = job;
-	tag->is_assigned++;
 
 	job->tag = tag;
 	/* the tag is now associated to a job */

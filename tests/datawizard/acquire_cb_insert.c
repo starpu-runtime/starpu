@@ -58,6 +58,7 @@ struct starpu_codelet work =
 static int x;
 static starpu_data_handle_t x_handle, f_handle;
 
+static
 void callback(void *arg)
 {
 	starpu_task_insert(&work, STARPU_W, starpu_data_get_sub_data(f_handle, 1, x), 0);

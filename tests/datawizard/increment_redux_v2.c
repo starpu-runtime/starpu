@@ -97,8 +97,6 @@ static void neutral_opencl_kernel(void *descr[], void *arg)
 }
 #endif
 
-
-
 void redux_cpu_kernel(void *descr[], void *arg)
 {
 	STARPU_SKIP_IF_VALGRIND;

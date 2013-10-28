@@ -59,6 +59,12 @@ struct _starpu_sched_ctx
 	/* wait for the tasks submitted to the context to be executed */
 	struct _starpu_barrier_counter tasks_barrier;
 
+	/* wait for the tasks ready of the context to be executed */
+	struct _starpu_barrier_counter ready_tasks_barrier;
+
+	/* amount of ready flops in a context */
+	double ready_flops;
+
 	/* cond to block push when there are no workers in the ctx */
 	starpu_pthread_cond_t no_workers_cond;
 
@@ -141,6 +147,14 @@ int _starpu_wait_for_all_tasks_of_sched_ctx(unsigned sched_ctx_id);
  * task currently submitted to the context */
 void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id);
 void _starpu_increment_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id);
+int _starpu_get_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id);
+int _starpu_check_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id);
+
+void _starpu_decrement_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops);
+void _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops);
+int _starpu_get_nready_tasks_of_sched_ctx(unsigned sched_ctx_id);
+double _starpu_get_nready_flops_of_sched_ctx(unsigned sched_ctx_id);
+int _starpu_wait_for_no_ready_of_sched_ctx(unsigned sched_ctx_id);
 
 /* Return the corresponding index of the workerid in the ctx table */
 int _starpu_get_index_in_ctx_of_workerid(unsigned sched_ctx, unsigned workerid);
@@ -174,6 +188,15 @@ void _starpu_sched_ctx_rebind_thread_to_its_cpu(unsigned cpuid);
 
 /* let the appl know that the worker blocked to execute parallel code */
 void _starpu_sched_ctx_signal_worker_blocked(int workerid);
+
+/* If starpu_sched_ctx_set_context() has been called, returns the context
+ * id set by its last call, or the id of the initial context */
+unsigned _starpu_sched_ctx_get_current_context();
+
+/* verify how many workers can execute a certain task */
+int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx);
+
+void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 /* Notifies the hypervisor that a tasks was poped from the workers' list */

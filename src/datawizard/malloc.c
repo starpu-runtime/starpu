@@ -24,6 +24,7 @@
 #include <starpu.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <datawizard/memory_manager.h>
+#include <datawizard/malloc.h>
 
 static size_t _malloc_align = sizeof(void*);
 
@@ -91,7 +92,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 
 	if (flags & STARPU_MALLOC_COUNT)
 	{
-		if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
+		if (_starpu_memory_manager_can_allocate_size(dim, STARPU_MAIN_RAM) == 0)
 		{
 			size_t freed;
 			size_t reclaim = 2 * dim;
@@ -108,9 +109,15 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 		}
 	}
 
-#ifndef STARPU_SIMGRID
 	if (flags & STARPU_MALLOC_PINNED)
 	{
+#ifdef STARPU_SIMGRID
+		/* FIXME: CUDA seems to be taking 650µs every 1MiB.
+		 * Ideally we would simulate this batching in 1MiB requests
+		 * instead of computing an average value.
+		 */
+		MSG_process_sleep((float) dim * 0.000650 / 1048576.);
+#else /* STARPU_SIMGRID */
 		if (_starpu_can_submit_cuda_task())
 		{
 #ifdef STARPU_USE_CUDA
@@ -176,8 +183,8 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 //			goto end;
 //#endif /* STARPU_USE_OPENCL */
 //		}
-	}
 #endif /* STARPU_SIMGRID */
+	}
 
 	if (_starpu_can_submit_scc_task())
 	{
@@ -338,7 +345,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 out:
 	if (flags & STARPU_MALLOC_COUNT)
 	{
-		_starpu_memory_manager_deallocate_size(dim, 0);
+		_starpu_memory_manager_deallocate_size(dim, STARPU_MAIN_RAM);
 	}
 
 	return 0;
@@ -381,14 +388,20 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 		}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		case STARPU_CUDA_RAM:
+		{
 #ifdef STARPU_SIMGRID
+			static uintptr_t last[STARPU_MAXNODES];
 #ifdef STARPU_DEVEL
 #warning TODO: record used memory, using a simgrid property to know the available memory
 #endif
-			/* Sleep 10µs for the allocation */
+			/* Sleep for the allocation */
 			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
-			MSG_process_sleep(0.000010);
-			addr = 1;
+			MSG_process_sleep(0.000175);
+			if (!last[dst_node])
+				last[dst_node] = 1<<10;
+			addr = last[dst_node];
+			last[dst_node]+=size;
+			STARPU_ASSERT(last[dst_node] >= addr);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			status = cudaMalloc((void **)&addr, size);
@@ -400,15 +413,21 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 			}
 #endif
 			break;
+		}
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	        case STARPU_OPENCL_RAM:
-			{
+		{
 #ifdef STARPU_SIMGRID
-				/* Sleep 10µs for the allocation */
+				static uintptr_t last[STARPU_MAXNODES];
+				/* Sleep for the allocation */
 				STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
-				MSG_process_sleep(0.000010);
-				addr = 1;
+				MSG_process_sleep(0.000175);
+				if (!last[dst_node])
+					last[dst_node] = 1<<10;
+				addr = last[dst_node];
+				last[dst_node]+=size;
+				STARPU_ASSERT(last[dst_node] >= addr);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
                                 int ret;
@@ -425,14 +444,14 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 				}
 				break;
 #endif
-			}
+		}
 #endif
 	        case STARPU_DISK_RAM:
 		{
 			addr = (uintptr_t) _starpu_disk_alloc(dst_node, size);
 			break;
 		}
-			
+
 #ifdef STARPU_USE_MIC
 		case STARPU_MIC_RAM:
 			if (_starpu_mic_allocate_memory((void **)(&addr), size, dst_node))
@@ -481,8 +500,8 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 		{
 #ifdef STARPU_SIMGRID
 			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
-			/* Sleep 10µs for the free */
-			MSG_process_sleep(0.000010);
+			/* Sleep for the free */
+			MSG_process_sleep(0.000125);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			cudaError_t err;
@@ -498,8 +517,8 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 		{
 #ifdef STARPU_SIMGRID
 			STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
-			/* Sleep 10µs for the free */
-			MSG_process_sleep(0.000010);
+			/* Sleep for the free */
+			MSG_process_sleep(0.000125);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
 			cl_int err;
@@ -774,6 +793,7 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 	{
 		STARPU_ASSERT(prevblock >= 0 && prevblock <= CHUNK_NBLOCKS);
 		nextblock = bitmap[prevblock].next;
+		STARPU_ASSERT_MSG(nextblock != block, "It seems data 0x%lx (size %u) on node %u is being freed a second time\n", (unsigned long) addr, (unsigned) size, dst_node);
 		if (nextblock > block || nextblock == -1)
 			break;
 	}

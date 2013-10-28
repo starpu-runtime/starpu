@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include "../helper.h"
 
+static
 void callback(void *ptr)
 {
      int *x = (int *)ptr;

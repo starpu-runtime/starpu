@@ -52,6 +52,7 @@ static struct starpu_codelet cl =
 	.nbuffers = 1
 };
 
+static
 int use_handle(starpu_data_handle_t handle)
 {
 	int ret;

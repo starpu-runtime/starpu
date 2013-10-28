@@ -55,6 +55,7 @@ static struct starpu_codelet increment_cl =
 unsigned token = 0;
 starpu_data_handle_t token_handle;
 
+static
 int increment_token(int synchronous)
 {
 	struct starpu_task *task = starpu_task_create();
@@ -64,6 +65,7 @@ int increment_token(int synchronous)
 	return starpu_task_submit(task);
 }
 
+static
 void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
         starpu_data_release(token_handle);

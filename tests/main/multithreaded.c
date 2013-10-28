@@ -46,6 +46,7 @@ static struct starpu_codelet dummy_codelet =
 	.nbuffers = 0
 };
 
+static
 void *thread_func(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret;
@@ -61,7 +62,7 @@ void *thread_func(void *arg STARPU_ATTRIBUTE_UNUSED)
 		task->callback_arg = NULL;
 
 		ret = starpu_task_submit(task);
-		STARPU_ASSERT(!ret);
+		STARPU_ASSERT_MSG(!ret, "task submission failed with error code %d", ret);
 	}
 
 	ret = starpu_task_wait_for_all();

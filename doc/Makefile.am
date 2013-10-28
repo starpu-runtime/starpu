@@ -28,3 +28,8 @@ EXTRA_DIST =    tutorial/hello_world.c \
 
 txtdir = ${docdir}/tutorial
 txt_DATA = $(EXTRA_DIST)
+
+showcheck:
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheck ; \
+	done

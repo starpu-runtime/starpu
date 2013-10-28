@@ -191,7 +191,7 @@ int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
 int starpu_data_acquire_cb(starpu_data_handle_t handle,
 			   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 {
-	return starpu_data_acquire_on_node_cb(handle, 0, mode, callback, arg);
+	return starpu_data_acquire_on_node_cb(handle, STARPU_MAIN_RAM, mode, callback, arg);
 }
 
 int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle,

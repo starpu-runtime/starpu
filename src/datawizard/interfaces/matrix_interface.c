@@ -404,7 +404,11 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		(char *)src_matrix->ptr, src_matrix->ld*elemsize,
 		src_matrix->nx*elemsize, src_matrix->ny, kind);
 	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
+	{
+		int ret = copy_any_to_any(src_interface, src_node, dst_interface, dst_node, (void*)(uintptr_t)is_async);
+		if (ret == -EAGAIN) return ret;
+		if (ret) STARPU_CUDA_REPORT_ERROR(cures);
+	}
 #endif
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)src_matrix->nx*src_matrix->ny*src_matrix->elemsize);
@@ -644,15 +648,17 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 			ret = -EAGAIN;
 	}
 	else
-	for (y = 0; y < ny; y++)
 	{
-		uint32_t src_offset = y*ld_src*elemsize;
-		uint32_t dst_offset = y*ld_dst*elemsize;
+	     for (y = 0; y < ny; y++)
+	     {
+		     uint32_t src_offset = y*ld_src*elemsize;
+		     uint32_t dst_offset = y*ld_dst*elemsize;
 
-		if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset + src_offset, src_node,
-		                          dst_matrix->dev_handle, dst_matrix->offset + dst_offset, dst_node,
-		                          nx*elemsize, async_data))
-			ret = -EAGAIN;
+		     if (starpu_interface_copy(src_matrix->dev_handle, src_matrix->offset + src_offset, src_node,
+					       dst_matrix->dev_handle, dst_matrix->offset + dst_offset, dst_node,
+					       nx*elemsize, async_data))
+			     ret = -EAGAIN;
+	     }
 	}
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)nx*ny*elemsize);

@@ -59,6 +59,7 @@ struct starpu_codelet mycodelet_noargs =
         .nbuffers = 2
 };
 
+static
 int test_codelet(struct starpu_codelet *codelet, int task_insert, int args, int x, float f)
 {
         starpu_data_handle_t data_handles[2];

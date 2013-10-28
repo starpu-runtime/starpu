@@ -23,6 +23,7 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFL
 EXTRA_DIST =					\
 	helper.h				\
 	datawizard/scal.h			\
+	datawizard/mpi_like.h			\
 	microbenchs/tasks_size_overhead.sh	\
 	microbenchs/tasks_size_overhead.gp	\
 	datawizard/scratch_opencl_kernel.cl     \
@@ -61,7 +62,7 @@ if STARPU_USE_CUDA
 # TODO define NVCCFLAGS
 NVCC ?= nvcc
 
-NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_builddir)/include $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
+NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_builddir)/src/common -I$(top_builddir)/include $(HWLOC_CFLAGS) $(SIMGRID_CFLAGS)
 
 .cu.cubin:
 	$(MKDIR_P) `dirname $@`

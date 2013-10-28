@@ -589,9 +589,9 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
 		if (((nx*ny) == src_block->ldz) && (src_block->ldz == dst_block->ldz))
 		{
 			ret = starpu_opencl_copy_async_sync(src_block->dev_handle, src_block->offset, src_node,
-								dst_block->dev_handle, dst_block->offset, dst_node,
-							       src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
-							       event);
+							    dst_block->dev_handle, dst_block->offset, dst_node,
+							    src_block->nx*src_block->ny*src_block->nz*src_block->elemsize,
+							    event);
                 }
 		else
 		{
@@ -615,8 +615,8 @@ static int copy_opencl_common(void *src_interface, unsigned src_node, void *dst_
 								    dst_block->dev_handle,
 								    dst_block->offset + layer*dst_block->ldz*dst_block->elemsize + j*dst_block->ldy*dst_block->elemsize,
 								    dst_node,
-								       src_block->nx*src_block->elemsize,
-								       event);
+								    src_block->nx*src_block->elemsize,
+								    event);
                         }
                 }
         }

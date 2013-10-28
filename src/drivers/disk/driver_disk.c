@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <core/disk.h>
 #include <starpu_profiling.h>
+#include <drivers/disk/driver_disk.h>
 
 int _starpu_disk_copy_src_to_disk(void * src, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size, void * async_channel)
 {

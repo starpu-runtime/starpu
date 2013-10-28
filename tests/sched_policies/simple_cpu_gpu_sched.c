@@ -27,9 +27,7 @@
  * Applies to : dmda and to what other schedulers ?
  */
 
-
-static void
-dummy(void *buffers[], void *args)
+void dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;

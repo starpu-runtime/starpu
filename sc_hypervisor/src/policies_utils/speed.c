@@ -138,7 +138,7 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 		{
 			worker = workers->get_next(workers, &it);
 			enum starpu_worker_archtype req_arch = starpu_worker_get_type(worker);
-			if(arch == req_arch)
+			if(arch == req_arch && sc_w->compute_idle[worker])
 			{
 				all_workers_flops += sc_w->elapsed_flops[worker] / 1000000000.0; /*in gflops */
 				if(max_workers_idle_time < sc_w->idle_time[worker])

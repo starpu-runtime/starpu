@@ -21,8 +21,7 @@
 #define NTASKS 8
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
-static void
-dummy(void *buffers[], void *args)
+void dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(*(int *)args)++;

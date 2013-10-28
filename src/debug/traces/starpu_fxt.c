@@ -1380,9 +1380,14 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				handle_worker_status(&ev, options, "P");
 				break;
 
+			case _STARPU_FUT_START_UNPARTITION:
+				handle_worker_status(&ev, options, "U");
+				break;
+
 			case _STARPU_FUT_END_FETCH_INPUT:
 			case _STARPU_FUT_END_PROGRESS:
 			case _STARPU_FUT_END_PUSH_OUTPUT:
+			case _STARPU_FUT_END_UNPARTITION:
 				handle_worker_status(&ev, options, "B");
 				break;
 

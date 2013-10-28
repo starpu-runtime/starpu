@@ -118,4 +118,6 @@ const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 
 int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
 
+void _starpu_sleep(struct timespec ts);
+
 #endif // __COMMON_UTILS_H__

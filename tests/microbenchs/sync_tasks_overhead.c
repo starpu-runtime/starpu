@@ -28,7 +28,7 @@ void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUT
 {
 }
 
-static struct starpu_codelet dummy_codelet = 
+static struct starpu_codelet dummy_codelet =
 {
 	.cpu_funcs = {dummy_func, NULL},
 	.cuda_funcs = {dummy_func, NULL},
@@ -38,6 +38,7 @@ static struct starpu_codelet dummy_codelet =
 	.nbuffers = 0
 };
 
+static
 int inject_one_task(void)
 {
 	int ret;
@@ -63,8 +64,6 @@ static void parse_args(int argc, char **argv)
 			ntasks = atoi(optarg);
 			break;
 	}
-
-	
 }
 
 int main(int argc, char **argv)

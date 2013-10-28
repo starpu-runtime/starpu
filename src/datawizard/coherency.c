@@ -24,6 +24,7 @@
 #include <profiling/profiling.h>
 #include <math.h>
 #include <core/task.h>
+#include <starpu_scheduler.h>
 
 static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node);
 unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
@@ -428,11 +429,29 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	/* find someone who already has the data */
 	unsigned src_node = 0;
 
-	/* if the data is in write only mode, there is no need for a source */
 	if (mode & STARPU_R)
 	{
 		src_node = _starpu_select_src_node(handle, requesting_node);
 		STARPU_ASSERT(src_node != requesting_node);
+	}
+	else
+	{
+		/* if the data is in write only mode, there is no need for a source */
+		if (requesting_node == STARPU_MAIN_RAM) {
+			/* And this is the main RAM, really no need for a
+			 * request, just allocate */
+			if (_starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch) == 0)
+			{
+				_starpu_update_data_state(handle, dst_replicate, mode);
+
+				_starpu_spin_unlock(&handle->header_lock);
+
+				if (callback_func)
+					callback_func(callback_arg);
+				_STARPU_LOG_OUT_TAG("data immediately allocated");
+				return NULL;
+			}
+		}
 	}
 
 	/* We can safely assume that there won't be more than 2 hops in the

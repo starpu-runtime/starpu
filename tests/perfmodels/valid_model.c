@@ -18,7 +18,7 @@
 #include <starpu.h>
 #include "../helper.h"
 
-static void func(void *descr[], void *arg)
+void func(void *descr[], void *arg)
 {
 }
 

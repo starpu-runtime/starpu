@@ -483,6 +483,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 {
 	pconfig->running = 1;
 	pconfig->submitting = 1;
+	STARPU_HG_DISABLE_CHECKING(pconfig->watchdog_ok);
 
 	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
 
@@ -1041,6 +1042,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (!is_a_sink)
 		_starpu_launch_drivers(&config);
 
+	_starpu_watchdog_init();
+
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	initialized = INITIALIZED;
 	/* Tell everybody that we initialized */
@@ -1214,6 +1217,8 @@ void starpu_shutdown(void)
 	starpu_profiling_worker_helper_display_summary();
 
 	_starpu_deinitialize_registered_performance_models();
+
+	_starpu_watchdog_shutdown();
 
 	/* wait for their termination */
 	_starpu_terminate_workers(&config);

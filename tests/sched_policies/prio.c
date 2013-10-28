@@ -30,7 +30,7 @@
  * Applies to : all schedulers.
  */
 
-static void
+void
 A(void *buffers[], void *args)
 {
 	(void) buffers;
@@ -39,7 +39,7 @@ A(void *buffers[], void *args)
 	usleep(1000);
 }
 
-static void
+void
 B(void *buffers[], void *args)
 {
 	(void) buffers;

@@ -230,6 +230,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 						taskq->ntasks[priolevel]--;
 						taskq->total_ntasks--;
 						_STARPU_TRACE_JOB_POP(task, 0);
+						break;
 					} else skipped = 1;
 				}
 			}

@@ -159,3 +159,17 @@ void _starpu_gethostname(char *hostname, size_t size)
 			*c = 0;
 	}
 }
+
+void _starpu_sleep(struct timespec ts)
+{
+#ifdef STARPU_HAVE_WINDOWS
+	Sleep((ts.tv_sec * 1000) + (ts.tv_nsec / 1000000));
+#else
+	struct timespec req, rem;
+
+	req = ts;
+	while (nanosleep(&req, &rem))
+		req = rem;
+#endif
+}
+

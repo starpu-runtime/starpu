@@ -68,6 +68,7 @@ struct starpu_codelet cl_cpu_func_funcs =
 	.name = "cpu_func_funcs",
 };
 
+static
 int submit_codelet(struct starpu_codelet cl, int where)
 {
 	int x=42, y=14;

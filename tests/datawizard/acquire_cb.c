@@ -20,6 +20,7 @@
 unsigned token = 0;
 starpu_data_handle_t token_handle;
 
+static
 void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	token = 42;

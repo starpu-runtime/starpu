@@ -53,8 +53,7 @@
 #include <starpu_parameters.h>
 
 /* This is initialized from in _starpu_worker_init */
-struct _starpu_worker
-{
+LIST_TYPE(_starpu_worker,
 	struct _starpu_machine_config *config;
         starpu_pthread_mutex_t mutex;
 	enum starpu_worker_archtype arch; /* what is the type of worker ? */
@@ -116,7 +115,7 @@ struct _starpu_worker
 	/* hwloc_obj_t of the device controled by the worker*/
 	hwloc_obj_t hw_obj;
 #endif
-};
+);
 
 struct _starpu_combined_worker
 {
@@ -313,6 +312,8 @@ struct _starpu_machine_config
 
 	/* this flag is set until the application is finished submitting tasks */
 	unsigned submitting;
+
+	int watchdog_ok;
 };
 
 /* Three functions to manage argv, argc */

@@ -44,4 +44,6 @@ int starpu_bitmap_first(struct starpu_bitmap *);
 int starpu_bitmap_last(struct starpu_bitmap *);
 //return the index of bit right after e, -1 if none
 int starpu_bitmap_next(struct starpu_bitmap *, int e);
+int starpu_bitmap_has_next(struct starpu_bitmap * b, int e);
+
 #endif

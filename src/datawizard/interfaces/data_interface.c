@@ -283,7 +283,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	/* now the data is available ! */
 	_starpu_spin_unlock(&handle->header_lock);
 
-	ptr = starpu_data_handle_to_pointer(handle, 0);
+	ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
 	if (ptr != NULL)
 	{
 		_starpu_data_register_ram_pointer(handle, ptr);
@@ -442,7 +442,8 @@ int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 	return 0;
 }
 
-int starpu_data_release_tag(starpu_data_handle_t handle)
+static
+int _starpu_data_release_tag(starpu_data_handle_t handle)
 {
 	struct handle_tag_entry *tag_entry;
 
@@ -476,7 +477,7 @@ void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
 
-	ram_ptr = starpu_data_handle_to_pointer(handle, 0);
+	ram_ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 		free(handle->per_node[node].data_interface);
@@ -734,7 +735,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->sequential_consistency_mutex);
 
-	starpu_data_release_tag(handle);
+	_starpu_data_release_tag(handle);
 
 	free(handle);
 }

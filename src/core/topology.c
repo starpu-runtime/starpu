@@ -943,9 +943,9 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		if (ncpu == -1)
 		{
 			unsigned mic_busy_cpus = 0;
-			unsigned i = 0;
-			for (i = 0; i < STARPU_MAXMICDEVS; i++)
-				mic_busy_cpus += (topology->nmiccores[i] ? 1 : 0);
+			unsigned j = 0;
+			for (j = 0; j < STARPU_MAXMICDEVS; j++)
+				mic_busy_cpus += (topology->nmiccores[j] ? 1 : 0);
 
 			unsigned already_busy_cpus = mic_busy_cpus + topology->ncudagpus
 				+ topology->nopenclgpus + topology->nsccdevices;
@@ -1195,8 +1195,8 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				unsigned worker2;
 				for (worker2 = 0; worker2 < worker; worker2++)
 				{
-					struct _starpu_worker *workerarg = &config->workers[worker];
-					if (workerarg->arch == STARPU_CUDA_WORKER)
+					struct _starpu_worker *workerarg2 = &config->workers[worker2];
+					if (workerarg2->arch == STARPU_CUDA_WORKER)
 					{
 						unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
 						_starpu_register_bus(memory_node2, memory_node);
@@ -1291,16 +1291,17 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 #ifdef STARPU_HAVE_HWLOC
 		/* Put the worker descriptor in the userdata field of the
 		 * hwloc object describing the CPU */
-		hwloc_obj_t worker_obj;
-		worker_obj =
-			hwloc_get_obj_by_depth (config->topology.hwtopology,
-						config->cpu_depth,
-						workerarg->bindid);
-		worker_obj->userdata = &config->workers[worker];
+		hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
+								config->cpu_depth,
+								workerarg->bindid);
+		if (worker_obj->userdata == NULL)
+		{
+			worker_obj->userdata = _starpu_worker_list_new();
+		}
+		_starpu_worker_list_push_front(worker_obj->userdata, workerarg);
 
 		/* Clear the cpu set and set the cpu */
-		workerarg->hwloc_cpu_set =
-			hwloc_bitmap_dup (worker_obj->cpuset);
+		workerarg->hwloc_cpu_set = hwloc_bitmap_dup (worker_obj->cpuset);
 #endif
 	}
 #ifdef STARPU_SIMGRID
@@ -1388,6 +1389,14 @@ _starpu_destroy_topology (
 #ifdef STARPU_HAVE_HWLOC
 		struct _starpu_worker *workerarg = &config->workers[worker];
 		hwloc_bitmap_free(workerarg->hwloc_cpu_set);
+		hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
+								config->cpu_depth,
+								workerarg->bindid);
+		if (worker_obj->userdata)
+		{
+			_starpu_worker_list_delete(worker_obj->userdata);
+			worker_obj->userdata = NULL;
+		}
 #endif
 	}
 

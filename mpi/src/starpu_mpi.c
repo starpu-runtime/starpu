@@ -25,6 +25,7 @@
 #include <common/config.h>
 #include <common/thread.h>
 
+static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_submit_new_mpi_request(void *arg);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 #ifdef STARPU_VERBOSE
@@ -1248,6 +1249,19 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 #endif //STARPU_USE_FXT
 	}
 
+	_starpu_mpi_add_sync_point_in_fxt();
+	_starpu_mpi_comm_amounts_init(MPI_COMM_WORLD);
+	_starpu_mpi_cache_init(MPI_COMM_WORLD);
+
+	{
+		int nb_nodes, k;
+		MPI_Comm_size(MPI_COMM_WORLD, &nb_nodes);
+		_starpu_mpi_app_req_hashmap = malloc(nb_nodes * sizeof(struct _starpu_mpi_req *));
+		for(k=0 ; k<nb_nodes ; k++) _starpu_mpi_app_req_hashmap[k] = NULL;
+		_starpu_mpi_copy_handle_hashmap = malloc(nb_nodes * sizeof(struct _starpu_mpi_copy_handle_hash_list *));
+		for(k=0 ; k<nb_nodes ; k++) _starpu_mpi_copy_handle_hashmap[k] = NULL;
+	}
+
 	/* notify the main thread that the progression thread is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	running = 1;
@@ -1534,30 +1548,17 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 	argc_argv->argc = argc;
 	argc_argv->argv = argv;
 
+#ifdef STARPU_MPI_ACTIVITY
+	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
+	STARPU_ASSERT_MSG(hookid >= 0, "starpu_progression_hook_register failed");
+#endif /* STARPU_MPI_ACTIVITY */
+
 	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	while (!running)
 		STARPU_PTHREAD_COND_WAIT(&cond_progression, &mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-
-#ifdef STARPU_MPI_ACTIVITY
-	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
-	STARPU_ASSERT_MSG(hookid >= 0, "starpu_progression_hook_register failed");
-#endif /* STARPU_MPI_ACTIVITY */
-
-	_starpu_mpi_add_sync_point_in_fxt();
-	_starpu_mpi_comm_amounts_init(MPI_COMM_WORLD);
-	_starpu_mpi_cache_init(MPI_COMM_WORLD);
-
-	{
-		int nb_nodes, k;
-		MPI_Comm_size(MPI_COMM_WORLD, &nb_nodes);
-		_starpu_mpi_app_req_hashmap = malloc(nb_nodes * sizeof(struct _starpu_mpi_req *));
-		for(k=0 ; k<nb_nodes ; k++) _starpu_mpi_app_req_hashmap[k] = NULL;
-		_starpu_mpi_copy_handle_hashmap = malloc(nb_nodes * sizeof(struct _starpu_mpi_copy_handle_hash_list *));
-		for(k=0 ; k<nb_nodes ; k++) _starpu_mpi_copy_handle_hashmap[k] = NULL;
-	}
 
 	return 0;
 }

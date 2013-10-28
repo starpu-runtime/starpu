@@ -23,6 +23,7 @@ int _starpu_barrier_init(struct _starpu_barrier *barrier, int count)
 	barrier->count = count;
 	barrier->reached_start = 0;
 	barrier->reached_exit = 0;
+	barrier->reached_flops = 0.0;
 	STARPU_PTHREAD_MUTEX_INIT(&barrier->mutex, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&barrier->mutex_exit, NULL);
 	STARPU_PTHREAD_COND_INIT(&barrier->cond, NULL);

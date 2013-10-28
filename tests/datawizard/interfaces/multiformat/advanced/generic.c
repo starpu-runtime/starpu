@@ -73,6 +73,7 @@ void opencl_func(void *buffers[], void *args)
 	global_stats.opencl++;
 }
 
+static
 void cpu_to_opencl_func(void *buffers[], void *args)
 {
 	STARPU_SKIP_IF_VALGRIND;
@@ -80,6 +81,7 @@ void cpu_to_opencl_func(void *buffers[], void *args)
 	global_stats.cpu_to_opencl++;
 }
 
+static
 void opencl_to_cpu_func(void *buffers[], void *args)
 {
 	STARPU_SKIP_IF_VALGRIND;

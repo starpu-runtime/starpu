@@ -37,7 +37,8 @@ static void launch_gdb(const char *exe)
 {
 #ifdef STARPU_GDB_PATH
 # define CORE_FILE "core"
-# define GDB_COMMAND "thread apply all bt full"
+# define GDB_ALL_COMMAND "thread apply all bt full"
+# define GDB_COMMAND "bt full"
 	int err;
 	pid_t pid;
 	struct stat st;
@@ -74,13 +75,16 @@ static void launch_gdb(const char *exe)
 			err = execl(gdb, "gdb", "--mode=execute",
 				    STARPU_GDB_PATH, "--batch",
 				    "-ex", GDB_COMMAND,
+				    "-ex", GDB_ALL_COMMAND,
 				    exe, CORE_FILE, NULL);
 		}
 		else
 		{
 			/* Run gdb directly  */
 			gdb = STARPU_GDB_PATH;
-			err = execl(gdb, "gdb", "--batch", "-ex", GDB_COMMAND,
+			err = execl(gdb, "gdb", "--batch",
+				    "-ex", GDB_COMMAND,
+				    "-ex", GDB_ALL_COMMAND,
 				    exe, CORE_FILE, NULL);
 		}
 		if (err != 0)
@@ -106,6 +110,7 @@ static void launch_gdb(const char *exe)
 		}
 	}
 # undef GDB_COMMAND
+# undef GDB_ALL_COMMAND
 # undef CORE_FILE
 #endif	/* STARPU_GDB_PATH */
 }

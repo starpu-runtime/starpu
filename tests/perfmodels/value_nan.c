@@ -17,31 +17,65 @@
 #include <config.h>
 #include <core/perfmodel/perfmodel.h>
 #include "../helper.h"
+#include <unistd.h>
+
+#ifdef STARPU_HAVE_WINDOWS
+#include <io.h>
+#include <fcntl.h>
+#endif
 
 #define STRING "booh"
 
-int _check_number(double val, int nan)
+static
+int _check_number(double val, int checknan)
 {
-	char *filename = tmpnam(NULL);
+	char *tmp = "starpu_XXXXXX";
+	char filename[100];
+	int id;
+
+	strcpy(filename, tmp);
+#ifdef STARPU_HAVE_WINDOWS
+        _mktemp(filename);
+        id = open(filename, _O_RDWR);
+#else
+	id = mkstemp(filename);
+
+#endif
+	/* fail */
+	if (id < 0)
+	{
+		return 1;
+	}
 
 	/* write the double value in the file followed by a predefined string */
 	FILE *f = fopen(filename, "w");
+	if (!f)
+	{
+		FPRINTF(stderr, "Error when opening file %s\n", filename);
+		return 1;
+	}
 	fprintf(f, "%lf %s\n", val, STRING);
 	fclose(f);
 
 	/* read the double value and the string back from the file */
 	f = fopen(filename, "r");
+	if (!f)
+	{
+		FPRINTF(stderr, "Error when opening file %s\n", filename);
+		return 1;
+	}
 	double lat;
 	char str[10];
 	int x = _starpu_read_double(f, "%lf", &lat);
 	int y = fscanf(f, "%s", str);
 	fclose(f);
+	unlink(filename);
 
 	/* check that what has been read is identical to what has been written */
 	int pass;
 	pass = (x == 1) && (y == 1);
 	pass = pass && strcmp(str, STRING) == 0;
-	if (nan)
+	if (checknan)
 		pass = pass && isnan(val) && isnan(lat);
 	else
 		pass = pass && lat == val;

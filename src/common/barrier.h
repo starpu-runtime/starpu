@@ -29,6 +29,7 @@ struct _starpu_barrier
 	int count;
 	int reached_start;
 	int reached_exit;
+	double reached_flops;
 	starpu_pthread_mutex_t mutex;
 	starpu_pthread_mutex_t mutex_exit;
 	starpu_pthread_cond_t cond;

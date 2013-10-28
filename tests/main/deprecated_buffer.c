@@ -43,6 +43,7 @@ struct starpu_codelet cl_without_mode =
 	.nbuffers = 2
 };
 
+static
 int submit_codelet_task_insert(struct starpu_codelet cl, starpu_data_handle_t handles0, starpu_data_handle_t handles1)
 {
 	int ret;
@@ -58,6 +59,7 @@ int submit_codelet_task_insert(struct starpu_codelet cl, starpu_data_handle_t ha
 	return 0;
 }
 
+static
 int submit_codelet_with_buffers(struct starpu_codelet cl, starpu_data_handle_t handles0, starpu_data_handle_t handles1)
 {
 	int ret;
@@ -78,6 +80,7 @@ int submit_codelet_with_buffers(struct starpu_codelet cl, starpu_data_handle_t h
 	return 0;
 }
 
+static
 int submit_codelet_with_handles(struct starpu_codelet cl, starpu_data_handle_t handles0, starpu_data_handle_t handles1)
 {
 	int ret;
@@ -102,6 +105,7 @@ struct submit_task_func
 	char *name;
 };
 
+static
 int submit_codelet(struct starpu_codelet cl, struct submit_task_func func)
 {
 	int *x, *y;

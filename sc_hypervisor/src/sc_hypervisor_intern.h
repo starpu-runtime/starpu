@@ -124,3 +124,5 @@ double _get_optimal_v(unsigned sched_ctx);
 void _set_optimal_v(unsigned sched_ctx, double optimal_v);
 
 int _sc_hypervisor_use_lazy_resize(void);
+
+void _sc_hypervisor_allow_compute_idle(unsigned sched_ctx, int worker, unsigned allow);

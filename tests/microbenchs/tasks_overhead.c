@@ -49,6 +49,7 @@ static struct starpu_codelet dummy_codelet =
 	.modes = {STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW, STARPU_RW}
 };
 
+static
 int inject_one_task(void)
 {
 	struct starpu_task *task = starpu_task_create();

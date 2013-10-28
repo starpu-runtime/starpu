@@ -137,6 +137,9 @@
 
 #define _STARPU_FUT_DATA_LOAD 0x5153
 
+#define _STARPU_FUT_START_UNPARTITION 0x5154
+#define _STARPU_FUT_END_UNPARTITION 0x5155
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -564,6 +567,12 @@ do {										\
 #define _STARPU_TRACE_MEMORY_FULL(size)	\
 	FUT_DO_PROBE2(_STARPU_FUT_MEMORY_FULL,size,_starpu_gettid());
 
+#define _STARPU_TRACE_START_UNPARTITION(handle, memnode)		\
+	FUT_DO_PROBE3(_STARPU_FUT_START_UNPARTITION, memnode, _starpu_gettid(), handle);
+	
+#define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		\
+	FUT_DO_PROBE3(_STARPU_FUT_END_UNPARTITION, memnode, _starpu_gettid(), handle);
+
 #else // !STARPU_USE_FXT
 
 /* Dummy macros in case FxT is disabled */
@@ -629,6 +638,8 @@ do {										\
 #define _STARPU_TRACE_COND_WAIT_BEGIN()		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_MEMORY_FULL(size)				do {} while(0)
+#define _STARPU_TRACE_START_UNPARTITION(handle, memnode)	do {} while(0)
+#define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {} while(0)
 
 #endif // STARPU_USE_FXT
 

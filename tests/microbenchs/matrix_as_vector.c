@@ -37,6 +37,7 @@ void vector_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	matrix[0] = sum/nx;
 }
 
+static
 void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_CUDA
@@ -67,6 +68,7 @@ void matrix_cpu_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	matrix[0] = sum / (nx*ny);
 }
 
+static
 void matrix_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_USE_CUDA
@@ -84,6 +86,7 @@ void matrix_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 #endif /* STARPU_USE_CUDA */
 }
 
+static
 int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_codelet *matrix_codelet, char *device_name)
 {
 	float *matrix, mean;
@@ -93,7 +96,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 	struct timeval start;
 	struct timeval end;
 
-	matrix = malloc(nx*sizeof(matrix[0]));
+	starpu_malloc((void **) &matrix, nx*sizeof(matrix[0]));
 	maxloops = LOOPS;
 #ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
@@ -156,13 +159,14 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 		ret = EXIT_FAILURE;
 	}
 end:
-	free(matrix);
+	starpu_free(matrix);
 	return ret;
 }
 
 #define NX_MIN 1024
 #define NX_MAX 1024*1024
 
+static
 int check_size_on_device(uint32_t where, char *device_name)
 {
 	int nx, ret;

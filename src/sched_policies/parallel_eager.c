@@ -157,15 +157,14 @@ static int push_task_peager_policy(struct starpu_task *task)
 
         /*if there are no tasks block */
         /* wake people waiting for a task */
-        int worker = -1;
         struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
         struct starpu_sched_ctx_iterator it;
         if(workers->init_iterator)
                 workers->init_iterator(workers, &it);
 
-
 #ifndef STARPU_NON_BLOCKING_DRIVERS
+        int worker = -1;
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);

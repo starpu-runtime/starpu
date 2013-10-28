@@ -129,7 +129,6 @@ noinst_HEADERS = 						\
 	profiling/profiling.h					\
 	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
-	util/starpu_task_list_inline.h				\
 	starpu_parameters.h					\
 	top/starpu_top_message_queue.h				\
 	top/starpu_top_connection.h				\
@@ -229,7 +228,6 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	util/starpu_data_cpy.c					\
 	util/starpu_task_insert.c				\
 	util/starpu_task_insert_utils.c				\
-	util/starpu_inlines.c					\
 	debug/traces/starpu_fxt.c				\
 	debug/traces/starpu_fxt_mpi.c				\
 	debug/traces/starpu_fxt_dag.c				\
