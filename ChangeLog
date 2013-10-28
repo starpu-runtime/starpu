@@ -75,6 +75,9 @@ Small features:
   * Functions starpu_insert_task and starpu_mpi_insert_task are
     renamed in starpu_task_insert and starpu_mpi_task_insert. Old
     names are kept to avoid breaking old codes.
+  * New configure option --enable-calibration-heuristic which allows
+    the user to set the maximum authorized deviation of the 
+    history-based calibrator. 
 
 Changes:
   * Fix of the livelock issue discovered while executing applications

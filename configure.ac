@@ -1601,6 +1601,19 @@ STARPU_HAVE_LIBRARY(LEVELDB, [leveldb])
 AM_CONDITIONAL(STARPU_HAVE_LEVELDB, test "x$ac_cv_lib_leveldb_main" = "xyes")
 AC_LANG_POP([C++])
 
+# Defines the calibration heuristic for the history-based calibration of StarPU
+AC_MSG_CHECKING(calibration heuristic of history-based StarPU calibrator)
+AC_ARG_ENABLE(calibration-heuristic, [AS_HELP_STRING([--enable-calibration-heuristic=<number>],
+			[Define the maximum authorized deviation of StarPU history-based calibrator.])],
+			calibration_heuristic=$enableval, calibration_heuristic=10)
+if test $calibration_heuristic -gt 100; then
+	AC_MSG_RESULT(uncorrect parameter $calibration_heuristic  set default parameter 10)
+	AC_DEFINE_UNQUOTED(STARPU_HISTORYMAXERROR, [$calibration_heuristic], [calibration heuristic value])
+else
+	AC_MSG_RESULT($calibration_heuristic)
+	AC_DEFINE_UNQUOTED(STARPU_HISTORYMAXERROR, [$calibration_heuristic], [calibration heuristic value])
+fi
+
 
 ###############################################################################
 #                                                                             #
