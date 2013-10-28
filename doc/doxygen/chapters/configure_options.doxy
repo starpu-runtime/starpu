@@ -526,6 +526,16 @@ export SIMGRID_LIBS="-L/usr/local/simgrid/lib -lsimgrid"
 
 </dd>
 
+<dt>--enable-calibration-heuristic</dt>
+<dd>
+\anchor enable-calibration-heuristic
+\addindex __configure__--enable-calibration-heuristic
+Allows to set the maximum authorized percentage of deviation 
+for the history-based calibrator of StarPU. A correct value 
+of this parameter must be in [0..100]. The default value of 
+this parameter is 10. Experimental.
+</dd>
+
 </dl>
 
 */

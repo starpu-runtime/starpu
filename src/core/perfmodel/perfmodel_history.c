@@ -35,6 +35,7 @@
 #include <windows.h>
 #endif
 
+#define HISTORYMAXERROR	(STARPU_HISTORYMAXERROR > 100 ? 10 : STARPU_HISTORYMAXERROR)
 #define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
 #define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
 
@@ -1311,19 +1312,43 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 				entry->footprint = key;
 				entry->nsample = 1;
+				entry->nerror = 0;
 
 				insert_history_entry(entry, list, &per_arch_model->history);
 			}
 			else
 			{
-				/* there is already some entry with the same footprint */
-				entry->sum += measured;
-				entry->sum2 += measured*measured;
-				entry->nsample++;
+				/* There is already an entry with the same footprint */
 
-				unsigned n = entry->nsample;
-				entry->mean = entry->sum / n;
-				entry->deviation = sqrt((entry->sum2 - (entry->sum*entry->sum)/n)/n);
+				double local_deviation = (measured/entry->mean)*100;
+				
+				if (entry->nsample && (local_deviation < (100 - HISTORYMAXERROR) || local_deviation > (100 + HISTORYMAXERROR)))
+				{
+					entry->nerror++;
+
+					/* Too many errors: we flush out all the entries */
+					if (entry->nerror >= entry->nsample)
+					{
+						entry->sum = 0.0;
+						entry->sum2 = 0.0;
+						entry->nsample = 0;
+						entry->nerror = 0;
+						entry->mean = 0.0;
+						entry->deviation = 0.0;
+						_STARPU_DEBUG("Too many errors for model %s\n", model->symbol);
+					}
+				}
+				else
+				{
+					entry->sum += measured;
+					entry->sum2 += measured*measured;
+					entry->nsample++;
+
+					unsigned n = entry->nsample;
+					entry->mean = entry->sum / n;
+					entry->deviation = sqrt((entry->sum2 - (entry->sum*entry->sum)/n)/n);
+				}
+
 				if (j->task->flops != 0.)
 				{
 					if (entry->flops == 0.)
