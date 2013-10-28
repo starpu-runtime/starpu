@@ -207,6 +207,9 @@ void starpu_sched_tree_update_workers(struct starpu_sched_tree * t);
 /* idem for workers_in_ctx 
  */
 void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree * t);
+/* wake up one underlaying workers of node which can execute the task
+ */
+void starpu_sched_node_wake_available_worker(struct starpu_sched_node * node, struct starpu_task * task );
 /* wake up underlaying workers of node
  */
 void starpu_sched_node_available(struct starpu_sched_node * node);

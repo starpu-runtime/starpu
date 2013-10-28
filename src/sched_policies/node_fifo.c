@@ -110,7 +110,7 @@ static int fifo_push_task(struct starpu_sched_node * node, struct starpu_task * 
 	STARPU_ASSERT(!isnan(fifo->exp_start));
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
-	starpu_sched_node_available(node);
+	starpu_sched_node_wake_available_worker(node,task);
 
 	return ret;
 }
@@ -125,7 +125,6 @@ static struct starpu_task * fifo_pop_task(struct starpu_sched_node * node, unsig
 	struct starpu_task * task = _starpu_prio_deque_pop_task_for_worker(fifo, starpu_worker_get_id());
 	if(task)
 	{
-
 		if(!isnan(task->predicted))
 		{
 			fifo->exp_start = starpu_timing_now() + task->predicted;

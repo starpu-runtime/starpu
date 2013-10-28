@@ -35,9 +35,12 @@ static void wake_simple_worker(int workerid)
 	if(workerid == starpu_worker_get_id())
 		return;
 	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+	starpu_wakeup_worker(workerid, sched_cond, sched_mutex);
+	/*
 	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	*/
 }
 
 /* wake up all workers of a combined workers
@@ -55,6 +58,39 @@ static void wake_combined_worker(int workerid)
 	int i;
 	for(i = 0; i < size; i++)
 		wake_simple_worker(list[i]);
+}
+
+
+/* this function must not be called on worker nodes :
+ * because this wouldn't have sense
+ * and should dead lock
+ */
+void starpu_sched_node_wake_available_worker(struct starpu_sched_node * node, struct starpu_task * task)
+{
+	(void)node;
+	STARPU_ASSERT(node);
+	STARPU_ASSERT(!starpu_sched_node_is_worker(node));
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	int i;
+	unsigned nimpl;
+	for(i = starpu_bitmap_first(node->workers_in_ctx);
+	    i != -1;
+	    i = starpu_bitmap_next(node->workers_in_ctx, i))
+	{
+		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+		{
+			if (starpu_worker_can_execute_task(i, task, nimpl))
+			{
+				if(i < (int) starpu_worker_get_count())
+					wake_simple_worker(i);
+				else
+					wake_combined_worker(i);
+				goto out;
+			}
+		}
+	}
+out:
+#endif
 }
 
 
