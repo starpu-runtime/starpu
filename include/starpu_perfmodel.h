@@ -49,6 +49,7 @@ struct starpu_perfmodel_history_entry
 	double sum;
 	double sum2;
 	unsigned nsample;
+	unsigned nerror;
 	uint32_t footprint;
 #ifdef STARPU_HAVE_WINDOWS
 	unsigned size;
