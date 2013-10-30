@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -295,7 +295,8 @@ static void load_subblock_from_buffer_opencl(struct starpu_block_interface *bloc
 
         cl_command_queue cq;
         starpu_opencl_get_current_queue(&cq);
-        clEnqueueCopyBuffer(cq, boundary_data, block_data, 0, offset, boundary_size, 0, NULL, &event);
+        cl_int ret = clEnqueueCopyBuffer(cq, boundary_data, block_data, 0, offset, boundary_size, 0, NULL, &event);
+	if (ret != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(ret);
 
 	clWaitForEvents(1, &event);
 	clReleaseEvent(event);
