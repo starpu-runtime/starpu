@@ -1319,9 +1319,9 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			else
 			{
 				/* There is already an entry with the same footprint */
-				
+
 				double local_deviation = (measured/entry->mean)*100;
-			
+				
 				if (entry->nsample && (local_deviation < (100 - HISTORYMAXERROR) || local_deviation > (100 + HISTORYMAXERROR)))
 				{
 					entry->nerror++;
