@@ -1456,6 +1456,24 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				}
 				break;
 
+			case _STARPU_FUT_START_WRITEBACK:
+				if (!options->no_bus)
+				{
+					handle_memnode_event(&ev, options, "W");
+				}
+				break;
+
+			case _STARPU_FUT_END_WRITEBACK:
+				if (!options->no_bus)
+				{
+					unsigned memnode = ev.param[0];
+					if (reclaiming[memnode])
+						handle_memnode_event(&ev, options, "R");
+					else
+						handle_memnode_event(&ev, options, "No");
+				}
+				break;
+
 			case _STARPU_FUT_START_MEMRECLAIM:
 				if (!options->no_bus)
 				{

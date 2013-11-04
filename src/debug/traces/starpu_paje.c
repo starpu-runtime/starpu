@@ -148,7 +148,8 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	poti_DefineEntityValue("A", "MS", "Allocating", ".4 .1 .0");
 	poti_DefineEntityValue("Ar", "MS", "AllocatingReuse", ".1 .1 .8");
 	poti_DefineEntityValue("F", "MS", "Freeing", ".6 .3 .0");
-	poti_DefineEntityValue("R", "MS", "Reclaiming", ".0 .1 .4");
+	poti_DefineEntityValue("W", "MS", "WritingBack", ".0 .0 .4");
+	poti_DefineEntityValue("R", "MS", "Reclaiming", ".0 .1 .6");
 	poti_DefineEntityValue("Co", "MS", "DriverCopy", ".3 .5 .1");
 	poti_DefineEntityValue("CoA", "MS", "DriverCopyAsync", ".1 .3 .1");
 	poti_DefineEntityValue("No", "MS", "Nothing", ".0 .0 .0");
@@ -258,7 +259,8 @@ void _starpu_fxt_write_paje_header(FILE *file)
 6       A       MS      Allocating         \".4 .1 .0\"		\n\
 6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n\
 6       F       MS      Freeing         \".6 .3 .0\"		\n\
-6       R       MS      Reclaiming         \".0 .1 .4\"		\n\
+6       W       MS      WritingBack         \".0 .0 .4\"		\n\
+6       R       MS      Reclaiming         \".0 .1 .6\"		\n\
 6       Co       MS     DriverCopy         \".3 .5 .1\"		\n\
 6       CoA      MS     DriverCopyAsync         \".1 .3 .1\"		\n\
 6       No       MS     Nothing         \".0 .0 .0\"		\n\
