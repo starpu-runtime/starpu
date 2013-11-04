@@ -501,7 +501,7 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 #ifdef STARPU_SIMGRID
 			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 			/* Sleep for the free */
-			MSG_process_sleep(0.000125);
+			MSG_process_sleep(0.000750);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			cudaError_t err;
@@ -518,7 +518,7 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 #ifdef STARPU_SIMGRID
 			STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 			/* Sleep for the free */
-			MSG_process_sleep(0.000125);
+			MSG_process_sleep(0.000750);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
 			cl_int err;
