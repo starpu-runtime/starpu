@@ -94,6 +94,7 @@ static char last_codelet_symbol[STARPU_NMAXWORKERS][128];
 static double last_activity_flush_timestamp[STARPU_NMAXWORKERS];
 static double accumulated_sleep_time[STARPU_NMAXWORKERS];
 static double accumulated_exec_time[STARPU_NMAXWORKERS];
+static double reclaiming[STARPU_MAXNODES];
 
 LIST_TYPE(_starpu_symbol_name,
 	char *name;
@@ -1431,15 +1432,46 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				handle_memnode_event(&ev, options, "Ar");
 				break;
 
-			case _STARPU_FUT_START_MEMRECLAIM:
-				handle_memnode_event(&ev, options, "R");
-				break;
-
 			case _STARPU_FUT_END_ALLOC:
 			case _STARPU_FUT_END_ALLOC_REUSE:
-			case _STARPU_FUT_END_MEMRECLAIM:
 				if (!options->no_bus)
 				handle_memnode_event(&ev, options, "No");
+				break;
+
+			case _STARPU_FUT_START_FREE:
+				if (!options->no_bus)
+				{
+					handle_memnode_event(&ev, options, "F");
+				}
+				break;
+
+			case _STARPU_FUT_END_FREE:
+				if (!options->no_bus)
+				{
+					unsigned memnode = ev.param[0];
+					if (reclaiming[memnode])
+						handle_memnode_event(&ev, options, "R");
+					else
+						handle_memnode_event(&ev, options, "No");
+				}
+				break;
+
+			case _STARPU_FUT_START_MEMRECLAIM:
+				if (!options->no_bus)
+				{
+					unsigned memnode = ev.param[0];
+					reclaiming[memnode] = 1;
+					handle_memnode_event(&ev, options, "R");
+				}
+				break;
+
+			case _STARPU_FUT_END_MEMRECLAIM:
+				if (!options->no_bus)
+				{
+					unsigned memnode = ev.param[0];
+					reclaiming[memnode] = 0;
+					handle_memnode_event(&ev, options, "No");
+				}
 				break;
 
 			case _STARPU_FUT_USER_EVENT:
