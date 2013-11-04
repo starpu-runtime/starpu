@@ -273,7 +273,9 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 		}
 #endif
 
+		_STARPU_TRACE_START_FREE(node, mc->size);
 		mc->ops->free_data_on_node(mc->chunk_interface, node);
+		_STARPU_TRACE_END_FREE(node);
 
 		if (handle)
 			notify_handle_children(handle, replicate, node);
@@ -914,7 +916,9 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	if (replicate->allocated)
 	{
 		/* Argl, somebody allocated it in between already, drop this one */
+		_STARPU_TRACE_START_FREE(dst_node, data_size);
 		handle->ops->free_data_on_node(data_interface, dst_node);
+		_STARPU_TRACE_END_FREE(dst_node);
 		allocated_memory = 0;
 	}
 	else

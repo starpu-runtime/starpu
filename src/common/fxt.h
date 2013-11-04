@@ -140,6 +140,9 @@
 #define _STARPU_FUT_START_UNPARTITION 0x5154
 #define _STARPU_FUT_END_UNPARTITION 0x5155
 
+#define	_STARPU_FUT_START_FREE		0x5156
+#define	_STARPU_FUT_END_FREE		0x5157
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -394,6 +397,12 @@ do {										\
 #define _STARPU_TRACE_END_ALLOC_REUSE(memnode)		\
 	FUT_DO_PROBE2(_STARPU_FUT_END_ALLOC_REUSE, memnode, _starpu_gettid());
 	
+#define _STARPU_TRACE_START_FREE(memnode, size)		\
+	FUT_DO_PROBE3(_STARPU_FUT_START_FREE, memnode, _starpu_gettid(), size);
+	
+#define _STARPU_TRACE_END_FREE(memnode)		\
+	FUT_DO_PROBE2(_STARPU_FUT_END_FREE, memnode, _starpu_gettid());
+
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)		\
 	FUT_DO_PROBE3(_STARPU_FUT_START_MEMRECLAIM, memnode, is_prefetch, _starpu_gettid());
 	
@@ -612,6 +621,8 @@ do {										\
 #define _STARPU_TRACE_END_ALLOC(memnode)		do {} while(0)
 #define _STARPU_TRACE_START_ALLOC_REUSE(a, size)	do {} while(0)
 #define _STARPU_TRACE_END_ALLOC_REUSE(a)		do {} while(0)
+#define _STARPU_TRACE_START_FREE(memnode, size)	do {} while(0)
+#define _STARPU_TRACE_END_FREE(memnode)		do {} while(0)
 #define _STARPU_TRACE_START_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
 #define _STARPU_TRACE_END_MEMRECLAIM(memnode,is_prefetch)	do {} while(0)
 #define _STARPU_TRACE_START_PROGRESS(memnode)	do {} while(0)
