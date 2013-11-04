@@ -31,6 +31,7 @@ struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	starpu_task_list_init(&fifo->taskq);
 	fifo->ntasks = 0;
+	STARPU_HG_DISABLE_CHECKING(fifo->ntasks);
 	fifo->nprocessed = 0;
 
 	fifo->exp_start = starpu_timing_now();
