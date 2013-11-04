@@ -383,7 +383,9 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 				if (handle->per_node[node].state == STARPU_OWNER)
 					_starpu_memory_handle_stats_invalidated(handle, node);
 #endif
+				_STARPU_TRACE_START_WRITEBACK(node);
 				transfer_subtree_to_node(handle, node, target);
+				_STARPU_TRACE_END_WRITEBACK(node);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
@@ -455,7 +457,9 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
+			_STARPU_TRACE_START_WRITEBACK(node);
 			transfer_subtree_to_node(old_data, node, 0);
+			_STARPU_TRACE_END_WRITEBACK(node);
 
 			/* now replace the previous data */
 			reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
