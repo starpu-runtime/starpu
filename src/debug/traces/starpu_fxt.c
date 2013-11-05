@@ -515,9 +515,9 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 	{
 #ifdef STARPU_HAVE_POTI
 		create_paje_state_color(name, "S", red, green, blue);
-		create_paje_state_color(name, "Ctx1", 255.0, 255.0, 0.0);
+		create_paje_state_color(name, "Ctx1", 255.0, 102.0, 255.0);
 		create_paje_state_color(name, "Ctx2", .0, 255.0, 0.0);
-		create_paje_state_color(name, "Ctx3", 75.0, .0, 130.0);
+		create_paje_state_color(name, "Ctx3", 255.0, 255.0, .0);
 		create_paje_state_color(name, "Ctx4", .0, 245.0, 255.0);
 		create_paje_state_color(name, "Ctx5", .0, .0, .0);
 		create_paje_state_color(name, "Ctx6", .0, .0, 128.0);
@@ -527,9 +527,9 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 		create_paje_state_color(name, "Ctx10", 154.0, 205.0, 50.0);
 #else
 		fprintf(out_paje_file, "6	%s	S	%s	\"%f %f %f\" \n", name, name, red, green, blue);
-		fprintf(out_paje_file, "6	%s	Ctx1	%s	\"255.0 255.0 0.0\" \n", name, name);
+		fprintf(out_paje_file, "6	%s	Ctx1	%s	\"255.0 102.0 255.0\" \n", name, name);
 		fprintf(out_paje_file, "6	%s	Ctx2	%s	\".0 255.0 .0\" \n", name, name);
-		fprintf(out_paje_file, "6	%s	Ctx3	%s	\"75.0 .0 130.0\" \n", name, name);
+		fprintf(out_paje_file, "6	%s	Ctx3	%s	\"225.0 225.0 .0\" \n", name, name);
 		fprintf(out_paje_file, "6	%s	Ctx4	%s	\".0 245.0 255.0\" \n", name, name);
 		fprintf(out_paje_file, "6	%s	Ctx5	%s	\".0 .0 .0\" \n", name, name);
 		fprintf(out_paje_file, "6	%s	Ctx6	%s	\".0 .0 128.0\" \n", name, name);

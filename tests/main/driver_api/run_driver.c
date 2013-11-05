@@ -35,7 +35,7 @@
 /* See FIXME in src/core/sched_ctx.c about starpu_drivers_request_termination.
  * This test should really use non-synchronous tasks, to properly cover all
  * needed cases. */
-#define FIXME 0
+#define FIXME 1
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static void
