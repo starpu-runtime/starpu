@@ -32,11 +32,6 @@
  * - STARPU_TEST_SKIPPED (non-critical errors)
  */
 
-/* See FIXME in src/core/sched_ctx.c about starpu_drivers_request_termination.
- * This test should really use non-synchronous tasks, to properly cover all
- * needed cases. */
-#define FIXME 1
-
 #if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static void
 dummy(void *buffers[], void *args)
@@ -100,9 +95,8 @@ test_cpu(void)
 	cl.where = STARPU_CPU;
 	task->cl = &cl;
 	task->cl_arg = &var;
-#if !FIXME
 	task->synchronous = 1;
-#endif
+
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV)
 	{
@@ -159,9 +153,8 @@ test_cuda(void)
 	cl.where = STARPU_CUDA;
 	task->cl = &cl;
 	task->cl_arg = &var;
-#if !FIXME
 	task->synchronous = 1;
-#endif
+
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV)
 	{
@@ -244,9 +237,8 @@ test_opencl(void)
 	cl.where = STARPU_OPENCL;
 	task->cl = &cl;
 	task->cl_arg = &var;
-#if !FIXME
 	task->synchronous = 1;
-#endif
+
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV)
 	{
