@@ -280,8 +280,6 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
 	/* TODO: check that the task operand sizes will fit on that device */
-	/* TODO: call application-provided function for various cases like
-	 * double support, shared memory size limit, etc. */
 
 	struct starpu_codelet *cl = task->cl;
 	unsigned nworkers = config.topology.nworkers;
@@ -290,7 +288,8 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 	if (workerid < nworkers)
 	{
 		return !!((task->cl->where & config.workers[workerid].worker_mask) &&
-				_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl));
+				_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl) &&
+				(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl)));
 	}
 	else
 	{
@@ -311,7 +310,8 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 			int worker_size = (int)config.combined_workers[workerid - nworkers].worker_size;
 			int worker0 = config.combined_workers[workerid - nworkers].combined_workerid[0];
 			return !!((worker_size <= task->cl->max_parallelism) &&
-				_starpu_can_use_nth_implementation(config.workers[worker0].arch, task->cl, nimpl));
+				_starpu_can_use_nth_implementation(config.workers[worker0].arch, task->cl, nimpl) &&
+				(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl)));
 		}
 		else
 		{
