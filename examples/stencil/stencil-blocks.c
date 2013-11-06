@@ -267,7 +267,7 @@ static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, 
 
 void display_memory_consumption(int rank)
 {
-	fprintf(stderr, "%lu MB of memory were allocated on node %d\n", allocated/(1024*1024), rank);
+	fprintf(stderr, "%lu B of memory were allocated on node %d\n", allocated, rank);
 }
 
 void allocate_memory_on_node(int rank)
