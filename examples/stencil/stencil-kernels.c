@@ -289,8 +289,8 @@ static void load_subblock_from_buffer_opencl(struct starpu_block_interface *bloc
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
 	unsigned offset = firstz*block->ldz;
-	cl_mem block_data = (cl_mem)block->ptr;
-	cl_mem boundary_data = (cl_mem)boundary->ptr;
+	cl_mem block_data = (cl_mem)block->dev_handle;
+	cl_mem boundary_data = (cl_mem)boundary->dev_handle;
 	cl_event event;
 
         cl_command_queue cq;
@@ -351,7 +351,7 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 	for (i=1; i<=K; i++)
 	{
 		struct starpu_block_interface *oldb = descr[i%2], *newb = descr[(i+1)%2];
-		TYPE *old = (void*) oldb->ptr, *newer = (void*) newb->ptr;
+		TYPE *old = (void*) oldb->dev_handle, *newer = (void*) newb->dev_handle;
 
 		/* Shadow data */
 		opencl_shadow_host(block->bz, old, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
@@ -361,15 +361,19 @@ fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, worke
 		opencl_life_update_host(block->bz, old, newer, oldb->nx, oldb->ny, oldb->nz, oldb->ldy, oldb->ldz, i);
 #else
 		cl_event event;
-                clEnqueueCopyBuffer(cq, old, newer, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, &event);
+                cl_int ret = clEnqueueCopyBuffer(cq, old, newer, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, &event);
+		if (ret != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(ret);
+
 		clWaitForEvents(1, &event);
 		clReleaseEvent(event);
 #endif /* LIFE */
 	}
 
+#ifndef LIFE
 	cl_int err;
 	if ((err = clFinish(cq)))
 		STARPU_OPENCL_REPORT_ERROR(err);
+#endif
 
 	if (block->bz == 0)
 		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
@@ -526,14 +530,15 @@ static void load_subblock_into_buffer_opencl(struct starpu_block_interface *bloc
 	size_t boundary_size = K*block->ldz*block->elemsize;
 
 	unsigned offset = firstz*block->ldz;
-	cl_mem block_data = (cl_mem)block->ptr;
-	cl_mem boundary_data = (cl_mem)boundary->ptr;
+	cl_mem block_data = (cl_mem)block->dev_handle;
+	cl_mem boundary_data = (cl_mem)boundary->dev_handle;
 
         cl_command_queue cq;
         starpu_opencl_get_current_queue(&cq);
 	cl_event event;
 
-        clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, &event);
+        cl_int ret = clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, &event);
+	if (ret != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(ret);
 
 	clWaitForEvents(1, &event);
 	clReleaseEvent(event);
