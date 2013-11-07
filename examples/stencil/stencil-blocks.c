@@ -267,7 +267,7 @@ static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, 
 
 void display_memory_consumption(int rank)
 {
-	fprintf(stderr, "%lu B of memory were allocated on node %d\n", allocated, rank);
+	FPRINTF(stderr, "%lu B of memory were allocated on node %d\n", allocated, rank);
 }
 
 void allocate_memory_on_node(int rank)
@@ -280,7 +280,7 @@ void allocate_memory_on_node(int rank)
 		int node = block->mpi_node;
 
 		unsigned size_bz = block_sizes_z[bz];
-	
+
 		/* Main blocks */
 		if (node == rank)
 		{

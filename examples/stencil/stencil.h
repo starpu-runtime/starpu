@@ -29,6 +29,8 @@
 #endif
 #endif
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
 #define LIFE
 
 #ifdef LIFE
