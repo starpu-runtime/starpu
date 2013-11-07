@@ -782,6 +782,7 @@ starpu_drivers_request_termination(void)
 		ANNOTATE_HAPPENS_AFTER(&config->running);
 		config->running = 0;
 		ANNOTATE_HAPPENS_BEFORE(&config->running);
+		STARPU_WMB();
 		STARPU_PTHREAD_COND_BROADCAST(&submitted_cond);
 	}
 
