@@ -22,15 +22,17 @@
 #include <math.h>
 #include <string.h>
 #include <config.h>
+#include <ctype.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 static
 void _starpu_read_spaces(FILE *f)
 {
 	int c = getc(f);
-	if (c == ' ')
+	if (isspace(c))
 	{
-		while (c == ' ') c = getc(f);
+		while (isspace(c)) c = getc(f);
+		ungetc(c, f);
 	}
 	else
 	{
