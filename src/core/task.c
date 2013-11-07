@@ -811,6 +811,7 @@ starpu_drivers_request_termination(void)
 		ANNOTATE_HAPPENS_AFTER(&config->running);
 		config->running = 0;
 		ANNOTATE_HAPPENS_BEFORE(&config->running);
+		STARPU_WMB();
 		int s;
 		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 		{
