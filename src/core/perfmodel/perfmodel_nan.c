@@ -23,6 +23,22 @@
 #include <string.h>
 #include <config.h>
 
+#ifdef STARPU_HAVE_WINDOWS
+static
+void _starpu_read_spaces(FILE *f)
+{
+	int c = getc(f);
+	if (c == ' ')
+	{
+		while (c == ' ') c = getc(f);
+	}
+	else
+	{
+		ungetc(c, f);
+	}
+}
+#endif /* STARPU_HAVE_WINDOWS */
+
 int _starpu_read_double(FILE *f, char *format, double *val)
 {
 #ifdef STARPU_HAVE_WINDOWS
@@ -35,6 +51,7 @@ int _starpu_read_double(FILE *f, char *format, double *val)
 	     int x3 = getc(f);
 	     if (x2 == 'a' && x3 == 'n')
 	     {
+		     _starpu_read_spaces(f);
 		     *val = NAN;
 		     return 1;
 	     }
