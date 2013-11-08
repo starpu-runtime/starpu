@@ -144,9 +144,21 @@ EXTRA_DIST	= 					\
 	chapters/data_trace.eps				\
 	chapters/data_trace.pdf				\
 	chapters/data_trace.png				\
+	chapters/distrib_data.png	\
+	chapters/distrib_data.eps	\
+	chapters/distrib_data.pdf	\
+	chapters/distrib_data_histo.png	\
+	chapters/distrib_data_histo.eps	\
+	chapters/distrib_data_histo.pdf	\
+	chapters/starpu_chol_model_11_type.png	\
+	chapters/starpu_chol_model_11_type.eps	\
+	chapters/starpu_chol_model_11_type.pdf	\
 	chapters/starpu_non_linear_memset_regression_based.png	\
 	chapters/starpu_non_linear_memset_regression_based.eps	\
 	chapters/starpu_non_linear_memset_regression_based.pdf	\
+	chapters/starpu_non_linear_memset_regression_based_2.png	\
+	chapters/starpu_non_linear_memset_regression_based_2.eps	\
+	chapters/starpu_non_linear_memset_regression_based_2.pdf	\
 	chapters/starpu_starpu_slu_lu_model_11.png	\
 	chapters/starpu_starpu_slu_lu_model_11.eps	\
 	chapters/starpu_starpu_slu_lu_model_11.pdf	\

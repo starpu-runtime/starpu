@@ -430,11 +430,14 @@ When the field starpu_task::flops is set, <c>starpu_perfmodel_plot</c> can
 directly draw a GFlops curve, by simply adding the <c>-f</c> option:
 
 \verbatim
-$ starpu_perfmodel_display -f -s chol_model_11
+$ starpu_perfmodel_plot -f -s chol_model_11
 \endverbatim
 
 This will however disable displaying the regression model, for which we can not
 compute GFlops.
+
+\image html starpu_chol_model_11_type.png
+\image latex starpu_chol_model_11_type.eps "" width=\textwidth
 
 When the FxT trace file <c>filename</c> has been generated, it is possible to
 get a profiling of each codelet by calling:
@@ -448,6 +451,9 @@ This will create profiling data files, and a <c>.gp</c> file in the current
 directory, which draws the distribution of codelet time over the application
 execution, according to data input size.
 
+\image html distrib_data.png
+\image latex distrib_data.eps "" width=\textwidth
+
 This is also available in the tool <c>starpu_perfmodel_plot</c>, by passing it
 the fxt trace:
 
@@ -458,6 +464,9 @@ $ starpu_perfmodel_plot -s non_linear_memset_regression_based -i /tmp/prof_file_
 It will produce a <c>.gp</c> file which contains both the performance model
 curves, and the profiling measurements.
 
+\image html starpu_non_linear_memset_regression_based_2.png
+\image latex starpu_non_linear_memset_regression_based_2.eps "" width=\textwidth
+
 If you have the statistical tool <c>R</c> installed, you can additionally use
 
 \verbatim
@@ -466,6 +475,9 @@ $ starpu_codelet_histo_profile distrib.data
 
 Which will create one <c>.pdf</c> file per codelet and per input size, showing a
 histogram of the codelet execution time distribution.
+
+\image html distrib_data_histo.png
+\image latex distrib_data_histo.eps "" width=\textwidth
 
 \section TheoreticalLowerBoundOnExecutionTime Theoretical Lower Bound On Execution Time
 
