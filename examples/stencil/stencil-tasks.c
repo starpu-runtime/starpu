@@ -179,7 +179,6 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 	/* We are going to synchronize with the last tasks */
 	if (iter == niter)
 	{
-		task->detach = 0;
 		task->use_tag = 1;
 		task->tag_id = TAG_FINISH(z);
 	}
