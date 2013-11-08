@@ -626,7 +626,7 @@ static void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
 		STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 
 		if(ndevice != 0)
-			maxncore = malloc(sizeof((*maxncore)*ndevice));
+			maxncore = malloc(sizeof(*maxncore)*ndevice);
 		else
 			maxncore = NULL;
 
