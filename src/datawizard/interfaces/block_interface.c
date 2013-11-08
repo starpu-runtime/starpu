@@ -194,7 +194,7 @@ static void display_block_interface(starpu_data_handle_t handle, FILE *f)
 {
 	struct starpu_block_interface *block_interface;
 
-	block_interface = (struct starpu_block_interface *) starpu_data_get_interface_on_node(handle, 0);
+	block_interface = (struct starpu_block_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	fprintf(f, "%u\t%u\t%u\t", block_interface->nx, block_interface->ny, block_interface->nz);
 }
@@ -265,7 +265,7 @@ static size_t block_interface_get_size(starpu_data_handle_t handle)
 	size_t size;
 	struct starpu_block_interface *block_interface;
 
-	block_interface = (struct starpu_block_interface *) starpu_data_get_interface_on_node(handle, 0);
+	block_interface = (struct starpu_block_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	size = block_interface->nx*block_interface->ny*block_interface->nz*block_interface->elemsize;
 
@@ -276,7 +276,7 @@ static size_t block_interface_get_size(starpu_data_handle_t handle)
 uint32_t starpu_block_get_nx(starpu_data_handle_t handle)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return block_interface->nx;
 }
@@ -284,7 +284,7 @@ uint32_t starpu_block_get_nx(starpu_data_handle_t handle)
 uint32_t starpu_block_get_ny(starpu_data_handle_t handle)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return block_interface->ny;
 }
@@ -292,7 +292,7 @@ uint32_t starpu_block_get_ny(starpu_data_handle_t handle)
 uint32_t starpu_block_get_nz(starpu_data_handle_t handle)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return block_interface->nz;
 }
@@ -339,7 +339,7 @@ uintptr_t starpu_block_get_local_ptr(starpu_data_handle_t handle)
 size_t starpu_block_get_elemsize(starpu_data_handle_t handle)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return block_interface->elemsize;
 }

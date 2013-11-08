@@ -192,7 +192,7 @@ int starpu_data_acquire_cb(starpu_data_handle_t handle,
 int starpu_data_acquire_cb_sequential_consistency(starpu_data_handle_t handle,
 						  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
 {
-	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, 0, mode, callback, arg, sequential_consistency);
+	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, STARPU_MAIN_RAM, mode, callback, arg, sequential_consistency);
 }
 
 /*

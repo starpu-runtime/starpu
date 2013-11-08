@@ -151,7 +151,7 @@ coo_interface_get_size(starpu_data_handle_t handle)
 {
 	struct starpu_coo_interface *coo_interface;
 	coo_interface = (struct starpu_coo_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return coo_interface->nx * coo_interface->ny * coo_interface->elemsize;
 }
@@ -161,7 +161,7 @@ coo_interface_footprint(starpu_data_handle_t handle)
 {
 	struct starpu_coo_interface *coo_interface;
 	coo_interface = (struct starpu_coo_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return starpu_hash_crc32c_be(coo_interface->nx * coo_interface->ny, 0);
 }
@@ -185,7 +185,7 @@ display_coo_interface(starpu_data_handle_t handle, FILE *f)
 {
 	struct starpu_coo_interface *coo_interface =
 	coo_interface = (struct starpu_coo_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	fprintf(f, "%u\t%u", coo_interface->nx, coo_interface->ny);
 }

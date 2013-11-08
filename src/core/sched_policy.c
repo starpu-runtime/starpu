@@ -472,7 +472,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_MIC) || defined(STARPU_USE_SCC) || defined(STARPU_SIMGRID)
 	/* The node does not really matter here */
-	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, 0);
+	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 #endif
 
 	_starpu_spin_lock(&handle->header_lock);

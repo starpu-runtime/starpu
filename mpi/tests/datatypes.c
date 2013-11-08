@@ -195,7 +195,7 @@ int main(int argc, char **argv)
 		{
 			float v = 42.12;
 			starpu_data_handle_t variable_handle[2];
-			starpu_variable_data_register(&variable_handle[0], 0, (uintptr_t)&v, sizeof(v));
+			starpu_variable_data_register(&variable_handle[0], STARPU_MAIN_RAM, (uintptr_t)&v, sizeof(v));
 			starpu_variable_data_register(&variable_handle[1], -1, (uintptr_t)NULL, sizeof(v));
 
 			send_recv_and_check(rank, 1, variable_handle[0], 0x42, variable_handle[1], 0x1337, &error, check_variable);
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
 			int vector[4] = {1, 2, 3, 4};
 			starpu_data_handle_t vector_handle[2];
 
-			starpu_vector_data_register(&vector_handle[0], 0, (uintptr_t)vector, 4, sizeof(vector[0]));
+			starpu_vector_data_register(&vector_handle[0], STARPU_MAIN_RAM, (uintptr_t)vector, 4, sizeof(vector[0]));
 			starpu_vector_data_register(&vector_handle[1], -1, (uintptr_t)NULL, 4, sizeof(vector[0]));
 
 			send_recv_and_check(rank, 1, vector_handle[0], 0x43, vector_handle[1], 0x2337, &error, check_vector);
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
 				}
 			}
 
-			starpu_matrix_data_register(&matrix_handle[0], 0, (uintptr_t)matrix, nx, nx, ny, sizeof(char));
+			starpu_matrix_data_register(&matrix_handle[0], STARPU_MAIN_RAM, (uintptr_t)matrix, nx, nx, ny, sizeof(char));
 			starpu_matrix_data_register(&matrix_handle[1], -1, (uintptr_t)NULL, nx, nx, ny, sizeof(char));
 
 			send_recv_and_check(rank, 1, matrix_handle[0], 0x75, matrix_handle[1], 0x8555, &error, check_matrix);
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
 				}
 			}
 
-			starpu_block_data_register(&block_handle[0], 0, (uintptr_t)block, nx, nx*ny, nx, ny, nz, sizeof(float));
+			starpu_block_data_register(&block_handle[0], STARPU_MAIN_RAM, (uintptr_t)block, nx, nx*ny, nx, ny, nz, sizeof(float));
 			starpu_block_data_register(&block_handle[1], -1, (uintptr_t)NULL, nx, nx*ny, nx, ny, nz, sizeof(float));
 
 			send_recv_and_check(rank, 1, block_handle[0], 0x73, block_handle[1], 0x8337, &error, check_block);

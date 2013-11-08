@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 
 			FPRINTF_MPI("receiving from node %d\n", n);
 			for(i=0 ; i<2 ; i++)
-				starpu_variable_data_register(&handle[i], 0, (uintptr_t)&var[i], sizeof(var[i]));
+				starpu_variable_data_register(&handle[i], STARPU_MAIN_RAM, (uintptr_t)&var[i], sizeof(var[i]));
 
 			starpu_mpi_recv(handle[0], n, 42, MPI_COMM_WORLD, &status[0]);
 			starpu_data_acquire(handle[0], STARPU_R);
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 		var[1] = var[0] * 2;
 		var[2] = var[0] * 4;
 		for(i=0 ; i<3 ; i++)
-			starpu_variable_data_register(&handle[i], 0, (uintptr_t)&var[i], sizeof(var[i]));
+			starpu_variable_data_register(&handle[i], STARPU_MAIN_RAM, (uintptr_t)&var[i], sizeof(var[i]));
 		starpu_mpi_send(handle[0], 0, 42, MPI_COMM_WORLD);
 		starpu_mpi_send(handle[1], 0, 42, MPI_COMM_WORLD);
 		starpu_mpi_send(handle[2], 0, 44, MPI_COMM_WORLD);
