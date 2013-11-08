@@ -450,15 +450,16 @@ static void init_archtype_is_found(struct starpu_perfmodel *model)
 	for(archtype = 0; archtype < STARPU_NARCH; archtype++)
 	{
 	
-		for(devid=0; model->per_arch[archtype][devid] != NULL; devid++);
+		for(devid=0; model->per_arch[archtype][devid] != NULL; devid++)
+			;
 		ndevice = devid;
 		if(ndevice != 0)
 		{
 			maxncore = malloc(sizeof(*maxncore)*ndevice);
-			for(devid=0; devid < ndevice; devid++);
+			for(devid=0; devid < ndevice; devid++)
 			{
-			
-				for(ncore=0; model->per_arch[archtype][devid][ncore] != NULL; ncore++);
+				for(ncore=0; model->per_arch[archtype][devid][ncore] != NULL; ncore++)
+					;
 				maxncore[devid] = ncore;
 			}
 		}
