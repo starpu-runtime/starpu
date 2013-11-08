@@ -317,7 +317,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 
 int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
-	return starpu_data_acquire_on_node(handle, 0, mode);
+	return starpu_data_acquire_on_node(handle, STARPU_MAIN_RAM, mode);
 }
 
 /* This function must be called after starpu_data_acquire so that the
