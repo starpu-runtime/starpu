@@ -152,6 +152,11 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
 	last_tick = (struct timeval *) calloc(nbz, sizeof(*last_tick));
 }
 
+static void free_problem(int rank)
+{
+     	free_memory_on_node(rank);
+}
+
 /*
  *	Main body
  */
@@ -353,6 +358,7 @@ int main(int argc, char **argv)
 		FPRINTF(stdout, "\tAVG : %f ms\n", sum_timing/(world_size*1000));
 	}
 
+	free_problem(rank);
 	starpu_shutdown();
 
 #ifdef STARPU_USE_MPI

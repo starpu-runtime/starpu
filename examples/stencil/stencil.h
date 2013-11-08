@@ -100,6 +100,7 @@ void assign_blocks_to_workers(int rank);
 void create_tasks(int rank);
 void wait_end_tasks(int rank);
 void check(int rank);
+void free_memory_on_node(int rank);
 
 void display_memory_consumption(int rank);
 

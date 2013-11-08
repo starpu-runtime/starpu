@@ -265,6 +265,12 @@ static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, 
 	starpu_block_data_register(handleptr, STARPU_MAIN_RAM, (uintptr_t)*ptr, nx, nx*ny, nx, ny, nz, sizeof(TYPE));
 }
 
+static void free_block_on_node(starpu_data_handle_t handleptr)
+{
+	starpu_free((void *)starpu_block_get_local_ptr(handleptr));
+	starpu_data_unregister(handleptr);
+}
+
 void display_memory_consumption(int rank)
 {
 	FPRINTF(stderr, "%lu B of memory were allocated on node %d\n", allocated, rank);
@@ -319,6 +325,42 @@ void allocate_memory_on_node(int rank)
 			allocate_block_on_node(&block->boundaries_handle[B][1], &block->boundaries[B][1],
 						(sizex + 2*K), (sizey + 2*K), K);
 		} 
+	}
+}
+
+void free_memory_on_node(int rank)
+{
+	unsigned bz;
+	for (bz = 0; bz < nbz; bz++)
+	{
+		struct block_description *block = get_block_description(bz);
+
+		int node = block->mpi_node;
+
+		unsigned size_bz = block_sizes_z[bz];
+
+		/* Main blocks */
+		if (node == rank)
+		{
+			free_block_on_node(block->layers_handle[0]);
+			free_block_on_node(block->layers_handle[1]);
+		}
+
+		/* Boundary blocks : Top */
+		int top_node = block->boundary_blocks[T]->mpi_node;
+		if ((node == rank) || (top_node == rank))
+		{
+			free_block_on_node(block->boundaries_handle[T][0]);
+			free_block_on_node(block->boundaries_handle[T][1]);
+		}
+
+		/* Boundary blocks : Bottom */
+		int bottom_node = block->boundary_blocks[B]->mpi_node;
+		if ((node == rank) || (bottom_node == rank))
+		{
+			free_block_on_node(block->boundaries_handle[B][0]);
+			free_block_on_node(block->boundaries_handle[B][1]);
+		}
 	}
 }
 
