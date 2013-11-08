@@ -157,6 +157,12 @@ void create_blocks_array(unsigned _sizex, unsigned _sizey, unsigned _sizez, unsi
 	}
 }
 
+void free_blocks_array()
+{
+	free(blocks);
+	free(block_sizes_z);
+}
+
 /*
  *	Initialization of the blocks
  */

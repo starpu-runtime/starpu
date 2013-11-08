@@ -155,6 +155,10 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
 static void free_problem(int rank)
 {
      	free_memory_on_node(rank);
+	free_blocks_array();
+	free(who_runs_what);
+	free(who_runs_what_index);
+	free(last_tick);
 }
 
 /*
@@ -300,6 +304,7 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(reduce_ret == MPI_SUCCESS);
 
 	memcpy(who_runs_what, who_runs_what_tmp, nbz * who_runs_what_len * sizeof(*who_runs_what));
+	free(who_runs_what_tmp);
 
 	/* XXX we should do a gather instead, here we assume that non initialized values are still 0 */
 	int *who_runs_what_index_tmp = malloc(nbz * sizeof(*who_runs_what_index));
@@ -307,6 +312,7 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(reduce_ret == MPI_SUCCESS);
 
 	memcpy(who_runs_what_index, who_runs_what_index_tmp, nbz * sizeof(*who_runs_what_index));
+	free(who_runs_what_index_tmp);
 #endif
 
 	if (rank == 0)
