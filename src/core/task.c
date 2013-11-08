@@ -83,6 +83,7 @@ void starpu_task_init(struct starpu_task *task)
 
 	task->dyn_handles = NULL;
 	task->dyn_interfaces = NULL;
+	task->name = NULL;
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task
