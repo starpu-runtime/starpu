@@ -35,7 +35,6 @@
 #include <windows.h>
 #endif
 
-#define HISTORYMAXERROR	(STARPU_HISTORYMAXERROR > 100 ? 10 : STARPU_HISTORYMAXERROR)
 #define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
 #define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
 
@@ -1320,9 +1319,11 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			{
 				/* There is already an entry with the same footprint */
 
-				double local_deviation = (measured/entry->mean)*100;
+				double local_deviation = measured/entry->mean;
 				
-				if (entry->nsample && (local_deviation < (100 - HISTORYMAXERROR) || local_deviation > (100 + HISTORYMAXERROR)))
+				if (entry->nsample &&
+					(100 * local_deviation > (100 + STARPU_HISTORYMAXERROR)
+					 || (100 / local_deviation > (100 + STARPU_HISTORYMAXERROR))))
 				{
 					entry->nerror++;
 
