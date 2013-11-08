@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 		{
 			/* synchronous prefetch */
 			unsigned node = starpu_worker_get_memory_node(worker);
-			ret = starpu_data_prefetch_on_node(v_handle, node, STARPU_MAIN_RAM);
+			ret = starpu_data_prefetch_on_node(v_handle, node, 0);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_prefetch_on_node");
 
 			/* execute a task */
