@@ -255,6 +255,22 @@ do {									\
     }									\
 } while (0);
 
+#ifndef FUT_RAW_PROBE7
+#define FUT_RAW_PROBE7(CODE,P1,P2,P3,P4,P5,P6,P7) do {		\
+		if(fut_active) {					\
+			unsigned long *args __attribute__((unused))=	\
+				fut_getstampedbuffer(CODE,		\
+						     FUT_SIZE(7)); \
+			*(args++)=(unsigned long)(P1);*(args++)=(unsigned long)(P2);*(args++)=(unsigned long)(P3);*(args++)=(unsigned long)(P4);*(args++)=(unsigned long)(P5);*(args++)=(unsigned long)(P6);*(args++)=(unsigned long)(P7);				\
+				}					\
+	} while (0)
+#endif
+
+#ifndef FUT_DO_PROBE7
+#define FUT_DO_PROBE7(CODE,P1,P2,P3,P4,P5,P6,P7) do { \
+        FUT_RAW_PROBE7(FUT_CODE(CODE, 7),P1,P2,P3,P4,P5,P6,P7); \
+} while (0)
+#endif
 
 
 /* workerkind = _STARPU_FUT_CPU_KEY for instance */
@@ -284,7 +300,7 @@ do {									\
 do {									\
 	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));	\
 	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));\
-	FUT_DO_PROBE5(_STARPU_FUT_END_CODELET_BODY, (job), (job_size), (job_hash), (archtype), _starpu_gettid());	\
+	FUT_DO_PROBE7(_STARPU_FUT_END_CODELET_BODY, (job), (job_size), (job_hash), (archtype)->type, (archtype)->devid, (archtype)->ncore, _starpu_gettid());	\
 } while(0);
 
 #define _STARPU_TRACE_START_CALLBACK(job)	\

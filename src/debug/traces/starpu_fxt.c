@@ -101,7 +101,8 @@ static unsigned get_colour_symbol_blue(char *name)
 }
 
 static double last_codelet_start[STARPU_NMAXWORKERS];
-static char last_codelet_symbol[STARPU_NMAXWORKERS][128];
+/* _STARPU_FUT_DO_PROBE4STR records only 4 longs */
+static char last_codelet_symbol[STARPU_NMAXWORKERS][4*sizeof(unsigned long)];
 
 /* If more than a period of time has elapsed, we flush the profiling info,
  * otherwise they are accumulated everytime there is a new relevant event. */
@@ -588,7 +589,7 @@ static struct starpu_fxt_codelet_event *dumped_codelets;
 static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
-	worker = find_worker_id(ev->param[4]);
+	worker = find_worker_id(ev->param[6]);
 	if (worker < 0) return;
 
 	char *prefix = options->file_prefix;
@@ -599,7 +600,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	uint32_t codelet_hash = ev->param[2];
 
 	if (out_paje_file)
-		worker_set_state(end_codelet_time, prefix, ev->param[4], "B");
+		worker_set_state(end_codelet_time, prefix, ev->param[6], "B");
 
 	double codelet_length = (end_codelet_time - last_codelet_start[worker]);
 
@@ -611,14 +612,14 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	if (options->dumped_codelets)
 	{
-		struct starpu_perfmodel_arch* arch = ev->param[3];
-
 		dumped_codelets_count++;
 		dumped_codelets = realloc(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
 
 		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, 256, "%s", last_codelet_symbol[worker]);
 		dumped_codelets[dumped_codelets_count - 1].workerid = worker;
-		dumped_codelets[dumped_codelets_count - 1].arch = *arch;
+		dumped_codelets[dumped_codelets_count - 1].arch.type = ev->param[3];
+		dumped_codelets[dumped_codelets_count - 1].arch.devid = ev->param[4];
+		dumped_codelets[dumped_codelets_count - 1].arch.ncore = ev->param[5];
 
 		dumped_codelets[dumped_codelets_count - 1].size = codelet_size;
 		dumped_codelets[dumped_codelets_count - 1].hash = codelet_hash;
