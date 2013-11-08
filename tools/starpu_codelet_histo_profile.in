@@ -64,7 +64,7 @@ size <- unique(mytable[,3])
 
 pdf(paste("$inputfile", codelet, arch, hash, size, "pdf", sep="."));
 
-h <- hist(val[val > quantile(val,0.01) & val<quantile(val,0.99)], col="red", breaks=50, density=10)
+try ( { h <- hist(val[val > quantile(val,0.01) & val<quantile(val,0.99)], col="red", breaks=50, density=10) } )
 
 dev.off()
 
