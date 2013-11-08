@@ -466,6 +466,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 #endif
 
 	conversion_task = starpu_task_create();
+	conversion_task->name = "conversion_task";
 	conversion_task->synchronous = 0;
 	STARPU_TASK_SET_HANDLE(conversion_task, handle, 0);
 

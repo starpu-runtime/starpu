@@ -233,6 +233,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 					/* Perform the reduction between replicates i
 					 * and i+step and put the result in replicate i */
 					struct starpu_task *redux_task = starpu_task_create();
+					redux_task->name = "redux_task_between_replicates";
 
 					/* Mark these tasks so that StarPU does not block them
 					 * when they try to access the handle (normal tasks are
@@ -294,6 +295,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		if (empty)
 		{
 			struct starpu_task *redux_task = starpu_task_create();
+			redux_task->name = "redux_task_empty";
 
 			/* Mark these tasks so that StarPU does not block them
 			 * when they try to access the handle (normal tasks are
@@ -320,6 +322,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 		for (replicate = 0; replicate < replicate_count; replicate++)
 		{
 			struct starpu_task *redux_task = starpu_task_create();
+			redux_task->name = "redux_task_reduction";
 
 			/* Mark these tasks so that StarPU does not block them
 			 * when they try to access the handle (normal tasks are

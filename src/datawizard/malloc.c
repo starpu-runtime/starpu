@@ -141,6 +141,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 
 			malloc_pinned_cl.where = STARPU_CUDA;
 			struct starpu_task *task = starpu_task_create();
+			task->name = "cuda_malloc_pinned";
 			task->callback_func = NULL;
 			task->cl = &malloc_pinned_cl;
 			task->cl_arg = &s;
@@ -171,6 +172,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 //
 //			malloc_pinned_cl.where = STARPU_OPENCL;
 //			struct starpu_task *task = starpu_task_create();
+//		        task->name = "opencl_malloc_pinned";
 //			task->callback_func = NULL;
 //			task->cl = &malloc_pinned_cl;
 //			task->cl_arg = &s;
@@ -295,6 +297,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 
 				free_pinned_cl.where = STARPU_CUDA;
 				struct starpu_task *task = starpu_task_create();
+				task->name = "cuda_free_pinned";
 				task->callback_func = NULL;
 				task->cl = &free_pinned_cl;
 				task->cl_arg = A;
@@ -319,6 +322,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 //
 //                free_pinned_cl.where = STARPU_OPENCL;
 //		struct starpu_task *task = starpu_task_create();
+//              task->name = "opencl_free_pinned";
 //		task->callback_func = NULL;
 //		task->cl = &free_pinned_cl;
 //		task->cl_arg = A;

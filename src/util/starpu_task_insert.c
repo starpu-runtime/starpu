@@ -86,6 +86,7 @@ int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 	}
 
 	struct starpu_task *task = starpu_task_create();
+	task->name = "task_insert";
 	task->cl_arg_free = 1;
 
 	if (cl && cl->nbuffers > STARPU_NMAXBUFS)
@@ -146,6 +147,7 @@ struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
 	}
 
 	struct starpu_task *task = starpu_task_create();
+	task->name = "task_build";
 
 	if (cl && cl->nbuffers > STARPU_NMAXBUFS)
 	{

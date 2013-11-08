@@ -141,6 +141,7 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 
 	struct starpu_task *task = starpu_task_create();
 	STARPU_ASSERT(task);
+	task->name = "data_cpy";
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 	if (reduction)
