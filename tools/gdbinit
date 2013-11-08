@@ -71,6 +71,7 @@ define starpu-print-task
   end
 
   printf "StarPU Task (%p)\n", $task
+  printf "\tname:\t\t\t\t<%s>\n", $task->name
   printf "\tcodelet:\t\t\t<%p>\n", $task->cl
   printf "\tcallback:\t\t\t<%p>\n", $task->callback_func
   printf "\tsynchronous:\t\t\t<%d>\n", $task->synchronous
