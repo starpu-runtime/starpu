@@ -255,10 +255,9 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					 * number of dependencies. */
 					struct starpu_task *sync_task = starpu_task_create();
 					STARPU_ASSERT(sync_task);
+					sync_task->name = "sync_task_redux";
 					sync_task->cl = NULL;
-#ifdef STARPU_USE_FXT
-					_starpu_get_job_associated_to_task(sync_task)->model_name = "sync_task_redux";
-#endif
+
 					/* Make this task wait for the previous ones */
 					_starpu_add_sync_task(handle, sync_task, sync_task);
 					/* And the requested task wait for this one */
@@ -528,11 +527,9 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_d
 	{
 		struct starpu_task *sync_task, *new_task;
 		sync_task = starpu_task_create();
+		sync_task->name = "sync_task_seq_cons";
 		sync_task->detach = 0;
 		sync_task->destroy = 1;
-#ifdef STARPU_USE_FXT
-		_starpu_get_job_associated_to_task(sync_task)->model_name = "sync_task";
-#endif
 
 		/* It is not really a RW access, but we want to make sure that
 		 * all previous accesses are done */

@@ -143,19 +143,14 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 	{
 		struct starpu_task *new_task;
 		wrapper->pre_sync_task = starpu_task_create();
+		wrapper->pre_sync_task->name = "acquire_cb_pre";
 		wrapper->pre_sync_task->detach = 1;
 		wrapper->pre_sync_task->callback_func = starpu_data_acquire_cb_pre_sync_callback;
 		wrapper->pre_sync_task->callback_arg = wrapper;
 
 		wrapper->post_sync_task = starpu_task_create();
+		wrapper->post_sync_task->name = "acquire_cb_post";
 		wrapper->post_sync_task->detach = 1;
-
-#ifdef STARPU_USE_FXT
-                struct _starpu_job *job = _starpu_get_job_associated_to_task(wrapper->pre_sync_task);
-                job->model_name = "acquire_cb_pre";
-                job = _starpu_get_job_associated_to_task(wrapper->post_sync_task);
-                job->model_name = "acquire_cb_post";
-#endif
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
@@ -265,17 +260,12 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum
 	{
 		struct starpu_task *new_task;
 		wrapper.pre_sync_task = starpu_task_create();
+		wrapper.pre_sync_task->name = "acquire_pre";
 		wrapper.pre_sync_task->detach = 0;
 
 		wrapper.post_sync_task = starpu_task_create();
+		wrapper.post_sync_task->name = "acquire_post";
 		wrapper.post_sync_task->detach = 1;
-
-#ifdef STARPU_USE_FXT
-                struct _starpu_job *job = _starpu_get_job_associated_to_task(wrapper.pre_sync_task);
-                job->model_name = "acquire_pre";
-                job = _starpu_get_job_associated_to_task(wrapper.post_sync_task);
-                job->model_name = "acquire_post";
-#endif
 
 		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
