@@ -29,7 +29,7 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	//*x2 = 45;
 	//*y = 144;
 
-	FPRINTF(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
+	FPRINTF(stderr, "-------> CODELET VALUES: %d %d (x2) %d\n", *x0, *x1, *y);
 	*y = (*x0 + *x1) * 100;
 	*x1 = 12;
 	*x2 = 24;
