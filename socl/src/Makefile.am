@@ -132,6 +132,5 @@ libsocl_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
   cl_getextensionfunctionaddress.c \
   cl_icdgetplatformidskhr.c
 
-
-
-
+showcheck:
+	-cat /dev/null
