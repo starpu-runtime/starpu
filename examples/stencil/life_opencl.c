@@ -93,10 +93,8 @@ opencl_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int
 		threads_per_dim_y /= 2;
 #if 0
 	unsigned threads_per_dim_z = 4;
-	size_t dimBlock[] = {threads_per_dim_x, threads_per_dim_y, threads_per_dim_z};
 	size_t dimGrid[] = {nx / threads_per_dim_x, ny / threads_per_dim_y, nz / threads_per_dim_z};
 #else
-	size_t dimBlock[] = {threads_per_dim_x, threads_per_dim_y, 1};
 	size_t dimGrid[] = {((nx + threads_per_dim_x-1) / threads_per_dim_x)*threads_per_dim_x, ((ny + threads_per_dim_y-1) / threads_per_dim_y)*threads_per_dim_y, 1};
 #endif
 
@@ -119,7 +117,7 @@ opencl_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int
   clSetKernelArg(kernel, 8, sizeof(iter), &iter);
 
   cl_event ev;
-  clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dimGrid, dimBlock, 0, NULL, &ev);
+  clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dimGrid, NULL, 0, NULL, &ev);
   clWaitForEvents(1, &ev);
   starpu_opencl_collect_stats(ev);
   clReleaseEvent(ev);
