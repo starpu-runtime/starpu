@@ -84,20 +84,10 @@ void opencl_life_free(void)
 void
 opencl_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int nz, int ldy, int ldz, int iter)
 {
-	unsigned max_parallelism = 512;
-	unsigned threads_per_dim_x = max_parallelism;
-	while (threads_per_dim_x / 2 >= nx)
-		threads_per_dim_x /= 2;
-	unsigned threads_per_dim_y = max_parallelism / threads_per_dim_x;
-	while (threads_per_dim_y / 2 >= ny)
-		threads_per_dim_y /= 2;
 #if 0
-	unsigned threads_per_dim_z = 4;
-	size_t dimBlock[] = {threads_per_dim_x, threads_per_dim_y, threads_per_dim_z};
-	size_t dimGrid[] = {nx / threads_per_dim_x, ny / threads_per_dim_y, nz / threads_per_dim_z};
+	size_t dim[] = {nx, ny, nz};
 #else
-	size_t dimBlock[] = {threads_per_dim_x, threads_per_dim_y, 1};
-	size_t dimGrid[] = {((nx + threads_per_dim_x-1) / threads_per_dim_x)*threads_per_dim_x, ((ny + threads_per_dim_y-1) / threads_per_dim_y)*threads_per_dim_y, 1};
+	size_t dim[] = {nx, ny, 1};
 #endif
 
   int devid,id;
@@ -119,7 +109,7 @@ opencl_life_update_host(int bz, const TYPE *old, TYPE *newp, int nx, int ny, int
   clSetKernelArg(kernel, 8, sizeof(iter), &iter);
 
   cl_event ev;
-  clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dimGrid, dimBlock, 0, NULL, &ev);
+  clEnqueueNDRangeKernel(cq, kernel, 3, NULL, dim, NULL, 0, NULL, &ev);
   clWaitForEvents(1, &ev);
   starpu_opencl_collect_stats(ev);
   clReleaseEvent(ev);
