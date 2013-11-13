@@ -113,7 +113,10 @@ int main(int argc, char **argv)
 		}
 		starpu_data_unregister(data_handles[i]);
 	}
-        FPRINTF(stderr, "[%d][local ptr] VALUES: %d %d %d %d\n", rank, values[0], values[1], values[2], values[3]);
+	if (rank == 0)
+	{
+		FPRINTF(stderr, "[%d][local ptr] VALUES: %d %d %d %d\n", rank, values[0], values[1], values[2], values[3]);
+	}
         FPRINTF(stderr, "[%d][end] VALUES: %d %d %d %d\n", rank, x[0], x[1], x[2], y);
 
 	free(values);
