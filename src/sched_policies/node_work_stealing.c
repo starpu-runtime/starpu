@@ -272,8 +272,6 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 }
 
 
-
-
 void _ws_add_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 {
 	struct _starpu_work_stealing_data * wsd = node->data;
@@ -329,6 +327,11 @@ void _work_stealing_node_deinit_data(struct starpu_sched_node * node)
 	free(node->data);
 }
 
+int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node)
+{
+	return node->push_task == push_task;
+}
+
 struct starpu_sched_node * starpu_sched_node_work_stealing_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
@@ -344,53 +347,3 @@ struct starpu_sched_node * starpu_sched_node_work_stealing_create(void * arg STA
 	node->data = wsd;
 	return  node;
 }
-
-int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node)
-{
-	return node->push_task == push_task;
-}
-
-
-
-static void initialize_ws_center_policy(unsigned sched_ctx_id)
-{
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
-	struct starpu_sched_node * ws;
- 	t->root = ws = starpu_sched_node_work_stealing_create(NULL);
-	t->workers = starpu_bitmap_create();
-	unsigned i;
-	for(i = 0; i < starpu_worker_get_count(); i++)
-	{
-		struct starpu_sched_node * node = starpu_sched_node_worker_get(i);
-		if(!node)
-			continue;
-		node->fathers[sched_ctx_id] = ws;
-		ws->add_child(ws, node);
-	}
-	starpu_sched_tree_update_workers(t);
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
-}
-
-static void deinitialize_ws_center_policy(unsigned sched_ctx_id)
-{
-	struct starpu_sched_tree *t = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_sched_tree_destroy(t);
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
-}
-
-
-struct starpu_sched_policy _starpu_sched_tree_ws_policy =
-{
-	.init_sched = initialize_ws_center_policy,
-	.deinit_sched = deinitialize_ws_center_policy,
-	.add_workers = starpu_sched_tree_add_workers,
-	.remove_workers = starpu_sched_tree_remove_workers,
-	.push_task = starpu_sched_tree_work_stealing_push_task,
-	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = NULL,
-	.post_exec_hook = NULL,
-	.pop_every_task = NULL,
-	.policy_name = "tree-ws",
-	.policy_description = "work stealing tree policy"
-};

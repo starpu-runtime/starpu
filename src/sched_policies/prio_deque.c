@@ -80,6 +80,16 @@ int _starpu_prio_deque_push_task(struct _starpu_prio_deque * pdeque, struct star
 	return 0;
 }
 
+int _starpu_prio_deque_push_back_task(struct _starpu_prio_deque * pdeque, struct starpu_task * task)
+{
+	STARPU_ASSERT(pdeque && task);
+	struct starpu_task_list * list = get_prio(pdeque, task->priority);
+	starpu_task_list_push_front(list, task);
+	pdeque->ntasks++;
+	return 0;
+}
+
+
 
 
 /* a little dirty code factorization */

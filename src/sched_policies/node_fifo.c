@@ -17,20 +17,22 @@
 #include <starpu_sched_node.h>
 #include <starpu_scheduler.h>
 
-#include "prio_deque.h"
+#include "fifo_queues.h"
 
 
 struct _starpu_fifo_data
 {
-	struct _starpu_prio_deque fifo;
+	struct _starpu_fifo_taskq * fifo;
 	starpu_pthread_mutex_t mutex;
+	unsigned ntasks_threshold;
+	double exp_len_threshold;
 };
 
 void fifo_node_deinit_data(struct starpu_sched_node * node)
 {
 	STARPU_ASSERT(node && node->data);
 	struct _starpu_fifo_data * f = node->data;
-	_starpu_prio_deque_destroy(&f->fifo);
+	_starpu_destroy_fifo(f->fifo);
 	STARPU_PTHREAD_MUTEX_DESTROY(&f->mutex);
 	free(f);
 }
@@ -39,7 +41,7 @@ static double fifo_estimated_end(struct starpu_sched_node * node)
 {
 	STARPU_ASSERT(node && node->data);
 	struct _starpu_fifo_data * data = node->data;
-	struct _starpu_prio_deque * fifo = &data->fifo;
+	struct _starpu_fifo_taskq * fifo = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int card = starpu_bitmap_cardinal(node->workers_in_ctx);
 	STARPU_ASSERT(card != 0);
@@ -56,7 +58,7 @@ static double fifo_estimated_load(struct starpu_sched_node * node)
 	STARPU_ASSERT(node && node->data);
 	STARPU_ASSERT(starpu_bitmap_cardinal(node->workers_in_ctx) != 0);
 	struct _starpu_fifo_data * data = node->data;
-	struct _starpu_prio_deque * fifo = &data->fifo;
+	struct _starpu_fifo_taskq * fifo = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	double relative_speedup = 0.0;
 	double load;
@@ -96,33 +98,54 @@ static int fifo_push_task(struct starpu_sched_node * node, struct starpu_task * 
 	STARPU_ASSERT(node && node->data && task);
 	STARPU_ASSERT(starpu_sched_node_can_execute_task(node,task));
 	struct _starpu_fifo_data * data = node->data;
-	struct _starpu_prio_deque * fifo = &data->fifo;
+	struct _starpu_fifo_taskq * fifo = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
+	int ret;
+
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
-	int ret = _starpu_prio_deque_push_task(fifo, task);
+	double exp_len;
 	if(!isnan(task->predicted))
+		exp_len = fifo->exp_len + task->predicted;
+	else
+		exp_len = fifo->exp_len;
+
+	if((data->ntasks_threshold != 0) && (data->exp_len_threshold != 0.0) && 
+			((fifo->ntasks >= data->ntasks_threshold) || (exp_len >= data->exp_len_threshold)))
 	{
-		fifo->exp_len += task->predicted;
-		fifo->exp_end = fifo->exp_start + fifo->exp_len;
+		ret = 1;
+		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 	}
-	STARPU_ASSERT(!isnan(fifo->exp_end));
-	STARPU_ASSERT(!isnan(fifo->exp_len));
-	STARPU_ASSERT(!isnan(fifo->exp_start));
-	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+	else
+	{
+		ret = _starpu_fifo_push_task(fifo,task);
+		if(!isnan(task->predicted))
+		{
+			fifo->exp_len += exp_len;
+			fifo->exp_end = fifo->exp_start + fifo->exp_len;
+		}
+		STARPU_ASSERT(!isnan(fifo->exp_end));
+		STARPU_ASSERT(!isnan(fifo->exp_len));
+		STARPU_ASSERT(!isnan(fifo->exp_start));
+		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
-	starpu_sched_node_wake_available_worker(node,task);
-
+		node->avail(node);
+	}
 	return ret;
+}
+
+int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
+{
+	return node->push_task == fifo_push_task;
 }
 
 static struct starpu_task * fifo_pop_task(struct starpu_sched_node * node, unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(node && node->data);
 	struct _starpu_fifo_data * data = node->data;
-	struct _starpu_prio_deque * fifo = &data->fifo;
+	struct _starpu_fifo_taskq * fifo = data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	STARPU_PTHREAD_MUTEX_LOCK(mutex);
-	struct starpu_task * task = _starpu_prio_deque_pop_task_for_worker(fifo, starpu_worker_get_id());
+	struct starpu_task * task = _starpu_fifo_pop_task(fifo, starpu_worker_get_id());
 	if(task)
 	{
 		if(!isnan(task->predicted))
@@ -138,73 +161,39 @@ static struct starpu_task * fifo_pop_task(struct starpu_sched_node * node, unsig
 	STARPU_ASSERT(!isnan(fifo->exp_len));
 	STARPU_ASSERT(!isnan(fifo->exp_start));
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+
+	node->room(node, sched_ctx_id);
+	
 	if(task)
 		return task;
-	struct starpu_sched_node * father = node->fathers[sched_ctx_id];
-	if(father)
-		return father->pop_task(father,sched_ctx_id);
+
 	return NULL;
 }
 
-int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
-{
-	return node->push_task == fifo_push_task;
-}
-
-struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_node * starpu_sched_node_fifo_create(struct starpu_fifo_data * params)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
 	struct _starpu_fifo_data * data = malloc(sizeof(*data));
-	_starpu_prio_deque_init(&data->fifo);
+	data->fifo = _starpu_create_fifo();
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	node->data = data;
 	node->estimated_end = fifo_estimated_end;
 	node->estimated_load = fifo_estimated_load;
 	node->push_task = fifo_push_task;
+	node->push_back_task = fifo_push_task;
 	node->pop_task = fifo_pop_task;
 	node->deinit_data = fifo_node_deinit_data;
+
+	if(params)
+	{
+		data->ntasks_threshold=params->ntasks_threshold;
+		data->exp_len_threshold=params->exp_len_threshold;
+	}
+	else
+	{
+		data->ntasks_threshold=0;
+		data->exp_len_threshold=0.0;
+	}
+
 	return node;
 }
-
-
-
-
-static void initialize_eager_center_policy(unsigned sched_ctx_id)
-{
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
-	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
- 	t->root = starpu_sched_node_fifo_create(NULL);
-	unsigned i;
-	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
-	{
-		struct starpu_sched_node * node = starpu_sched_node_worker_get(i);
-		if(!node)
-			continue;
-		node->fathers[sched_ctx_id] = t->root;
-		t->root->add_child(t->root, node);
-	}
-	starpu_sched_tree_update_workers(t);
-	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
-}
-
-static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
-{
-	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_sched_tree_destroy(tree);
-	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
-}
-
-struct starpu_sched_policy _starpu_sched_tree_eager_policy =
-{
-	.init_sched = initialize_eager_center_policy,
-	.deinit_sched = deinitialize_eager_center_policy,
-	.add_workers = starpu_sched_tree_add_workers,
-	.remove_workers = starpu_sched_tree_remove_workers,
-	.push_task = starpu_sched_tree_push_task,
-	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = starpu_sched_node_worker_pre_exec_hook,
-	.post_exec_hook = starpu_sched_node_worker_post_exec_hook,
-	.pop_every_task = NULL,//pop_every_task_eager_policy,
-	.policy_name = "tree",
-	.policy_description = "test tree policy"
-};

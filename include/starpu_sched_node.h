@@ -52,6 +52,12 @@ struct starpu_sched_node
 	struct starpu_task * (*pop_task)(struct starpu_sched_node *,
 					 unsigned sched_ctx_id);
 
+	/* node->push_back_task(node, task)
+	 * This function is called when a push fails after a pop has been done,
+	 * to push it back correctly to the popped node
+	 */
+	int (*push_back_task)(struct starpu_sched_node *,
+			 struct starpu_task *);
 	/* this function is an heuristic that compute load of subtree, basicaly
 	 * it compute
 	 * estimated_load(node) = sum(estimated_load(node_childs)) +
@@ -99,6 +105,9 @@ struct starpu_sched_node
 	 */
 	int properties;
 
+	void (*room)(struct starpu_sched_node * node, unsigned sched_ctx_id);
+	int (*avail)(struct starpu_sched_node * node);
+
 #ifdef STARPU_HAVE_HWLOC
 	/* in case of a hierarchical scheduler, this is set to the part of
 	 * topology that is binded to this node, eg: a numa node for a ws
@@ -128,8 +137,6 @@ struct starpu_sched_tree
 	starpu_pthread_mutex_t lock;
 };
 
-
-
 struct starpu_sched_node * starpu_sched_node_create(void);
 
 void starpu_sched_node_destroy(struct starpu_sched_node * node);
@@ -154,8 +161,23 @@ int starpu_sched_node_is_simple_worker(struct starpu_sched_node * node);
 int starpu_sched_node_is_combined_worker(struct starpu_sched_node * node);
 int starpu_sched_node_worker_get_workerid(struct starpu_sched_node * worker_node);
 
-struct starpu_sched_node * starpu_sched_node_fifo_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+struct starpu_fifo_data
+{
+	unsigned ntasks_threshold;
+	double exp_len_threshold;
+};
+
+struct starpu_sched_node * starpu_sched_node_fifo_create(struct starpu_fifo_data * fifo_data);
 int starpu_sched_node_is_fifo(struct starpu_sched_node * node);
+
+struct starpu_prio_data
+{
+	unsigned ntasks_threshold;
+	double exp_len_threshold;
+};
+
+struct starpu_sched_node * starpu_sched_node_prio_create(struct starpu_prio_data * prio_data);
+int starpu_sched_node_is_prio(struct starpu_sched_node * node);
 
 struct starpu_sched_node * starpu_sched_node_work_stealing_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_node_is_work_stealing(struct starpu_sched_node * node);
@@ -171,10 +193,6 @@ struct starpu_heft_data
 	double beta;
 	double gamma;
 	double idle_power;
-	struct starpu_sched_node * (*no_perf_model_node_create)(void * arg_no_perf_model);
-	void * arg_no_perf_model;
-	struct starpu_sched_node * (*calibrating_node_create)(void * arg_calibrating_node);
-	void * arg_calibrating_node;
 };
 
 /* create a node with heft_data paremeters
@@ -190,6 +208,17 @@ int starpu_sched_node_is_heft(struct starpu_sched_node * node);
  * cannot have several childs if push_task is called
  */
 struct starpu_sched_node * starpu_sched_node_best_implementation_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+
+struct starpu_calibrator_data
+{
+	struct starpu_sched_node * (*no_perf_model_node_create)(void * arg_no_perf_model);
+	void * arg_no_perf_model;
+	struct starpu_sched_node * next_node;
+};
+
+struct starpu_sched_node * starpu_sched_node_calibrator_create(struct starpu_calibrator_data * calibrator_data);
+int starpu_sched_node_is_calibrator(struct starpu_sched_node * node);
+int starpu_sched_node_calibrator_room(struct starpu_sched_node * node, unsigned sched_ctx_id);
 
 /*create an empty tree
  */

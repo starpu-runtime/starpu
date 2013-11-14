@@ -1673,6 +1673,12 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 			case _STARPU_FUT_MEMORY_FULL:
 				break;
 
+			case _STARPU_FUT_SCHED_NODE_POP_PRIO:
+				break;
+
+			case _STARPU_FUT_SCHED_NODE_PUSH_PRIO:
+				break;
+
 			default:
 #ifdef STARPU_VERBOSE
 				fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",

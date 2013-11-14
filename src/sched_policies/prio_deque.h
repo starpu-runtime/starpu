@@ -42,6 +42,7 @@ int _starpu_prio_deque_is_empty(struct _starpu_prio_deque *);
 
 /* push a task in O(nb priorities) */
 int _starpu_prio_deque_push_task(struct _starpu_prio_deque *, struct starpu_task *);
+int _starpu_prio_deque_push_back_task(struct _starpu_prio_deque *, struct starpu_task *);
 
 
 /* all _starpu_prio_deque_pop/deque_task function return a task or a NULL pointer if none are available

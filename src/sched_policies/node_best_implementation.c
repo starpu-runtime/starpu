@@ -72,8 +72,6 @@ static void select_best_implementation_and_set_preds(struct starpu_bitmap * work
 }
 
 
-
-
 static int select_best_implementation_push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
 	STARPU_ASSERT(node->nchilds == 1);

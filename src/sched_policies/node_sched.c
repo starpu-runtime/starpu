@@ -474,6 +474,32 @@ void starpu_sched_node_prefetch_on_node(struct starpu_sched_node * node, struct 
        }
 }
 
+void starpu_sched_node_room(struct starpu_sched_node * node, unsigned sched_ctx_id)
+{
+	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
+	STARPU_ASSERT(node);
+	struct starpu_sched_node * father = node->fathers[sched_ctx_id];
+	if(father != NULL)
+		father->room(father, sched_ctx_id);
+}
+
+int starpu_sched_node_avail(struct starpu_sched_node * node)
+{
+	STARPU_ASSERT(node);
+	int ret;
+	if(node->nchilds > 0)
+	{
+		int i;
+		for(i = 0; i < node->nchilds; i++)
+		{
+			struct starpu_sched_node * child = node->childs[i];
+			ret = child->avail(child);
+			if(ret)
+				break;
+		}
+	}
+	return 0;
+}
 
 void take_node_and_does_nothing(struct starpu_sched_node * node STARPU_ATTRIBUTE_UNUSED)
 {
@@ -488,6 +514,8 @@ struct starpu_sched_node * starpu_sched_node_create(void)
 	node->add_child = starpu_sched_node_add_child;
 	node->remove_child = starpu_sched_node_remove_child;
 	node->pop_task = pop_task_node;
+	node->room = starpu_sched_node_room;
+	node->avail = starpu_sched_node_avail;
 	node->estimated_load = estimated_load;
 	node->estimated_end = _starpu_sched_node_estimated_end_min;
 	node->deinit_data = take_node_and_does_nothing;

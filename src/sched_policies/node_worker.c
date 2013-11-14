@@ -310,22 +310,23 @@ enum starpu_perfmodel_archtype starpu_sched_node_worker_get_perf_arch(struct sta
 }
 */
 
-static void simple_worker_available(struct starpu_sched_node * worker_node)
+static int simple_worker_available(struct starpu_sched_node * worker_node)
 {
 	(void) worker_node;
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	struct _starpu_worker * w = _starpu_sched_node_worker_get_worker(worker_node);
 	if(w->workerid == starpu_worker_get_id())
-		return;
+		return 1;
 	starpu_pthread_mutex_t *sched_mutex = &w->sched_mutex;
 	starpu_pthread_cond_t *sched_cond = &w->sched_cond;
 	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 #endif
+	return 1;
 }
 
-static void combined_worker_available(struct starpu_sched_node * node)
+static int combined_worker_available(struct starpu_sched_node * node)
 {
 	(void) node;
 #ifndef STARPU_NON_BLOCKING_DRIVERS
@@ -346,6 +347,7 @@ static void combined_worker_available(struct starpu_sched_node * node)
 		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 	}
 #endif
+	return 1;
 }
 
 static int simple_worker_push_task(struct starpu_sched_node * node, struct starpu_task *task)
@@ -646,7 +648,6 @@ static struct starpu_sched_node * starpu_sched_node_worker_create(int workerid)
 	node->pop_task = simple_worker_pop_task;
 	node->estimated_end = simple_worker_estimated_end;
 	node->estimated_load = simple_worker_estimated_load;
-//	node->available = simple_worker_available;
 	node->deinit_data = _worker_node_deinit_data;
 	starpu_bitmap_set(node->workers, workerid);
 	starpu_bitmap_or(node->workers_in_ctx, node->workers);
@@ -684,6 +685,7 @@ static struct starpu_sched_node  * starpu_sched_node_combined_worker_create(int 
 	node->pop_task = NULL;
 	node->estimated_end = combined_worker_estimated_end;
 	node->estimated_load = combined_worker_estimated_load;
+	node->avail = combined_worker_available;
 	node->deinit_data = _worker_node_deinit_data;
 	starpu_bitmap_set(node->workers, workerid);
 	starpu_bitmap_or(node->workers_in_ctx, node->workers);
@@ -737,7 +739,7 @@ static int _worker_consistant(struct starpu_sched_node * node)
 }
 #endif
 
-int _starpu_sched_node_worker_get_workerid(struct starpu_sched_node * worker_node)
+int starpu_sched_node_worker_get_workerid(struct starpu_sched_node * worker_node)
 {
 #ifndef STARPU_NO_ASSERT
 	STARPU_ASSERT(_worker_consistant(worker_node));

@@ -247,11 +247,17 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/node_fifo.c 				\
 	sched_policies/node_work_stealing.c			\
 	sched_policies/prio_deque.c				\
+	sched_policies/node_prio.c 				\
 	sched_policies/node_random.c				\
 	sched_policies/node_heft.c				\
-	sched_policies/node_composed.c				\
 	sched_policies/node_best_implementation.c		\
-	sched_policies/hierarchical_heft.c			\
+	sched_policies/node_calibrator.c				\
+	sched_policies/node_composed.c				\
+	sched_policies/tree_eager.c				\
+	sched_policies/tree_prio.c				\
+	sched_policies/tree_random.c				\
+	sched_policies/tree_ws.c				\
+	sched_policies/tree_dmda.c				\
 	sched_policies/scheduler_maker.c			
 
 
