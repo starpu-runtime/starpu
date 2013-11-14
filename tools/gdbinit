@@ -136,8 +136,17 @@ define starpu-tags
 end
 
 define starpu-tasks
-  printf "%d submitted tasks\n", nsubmitted
-  printf "%d ready tasks\n", nready
+  set language c
+  set $num=0
+  set $nsubmitted=0
+  set $nready=0
+  while $num<config->topology->nsched_ctxs
+  	set $nsubmitted = $nsubmitted + config->sched_ctxs[$num]->tasks_barrier->barrier->reached_start 
+  	set $nready = $nready + config->sched_ctxs[$num]->ready_tasks_barrier->barrier->reached_start
+	set $num = $num + 1
+  end
+  printf "%d submitted tasks\n", $nsubmitted
+  printf "%d ready tasks\n", $nready
   printf "Tasks being run:\n"
   set $n = 0
   while $n < config.topology.nworkers
