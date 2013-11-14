@@ -29,7 +29,7 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	//*x2 = 45;
 	//*y = 144;
 
-	FPRINTF(stderr, "-------> CODELET VALUES: %d %d %d %d\n", *x0, *x1, *x2, *y);
+	FPRINTF(stderr, "-------> CODELET VALUES: %d %d (x2) %d\n", *x0, *x1, *y);
 	*y = (*x0 + *x1) * 100;
 	*x1 = 12;
 	*x2 = 24;
@@ -113,7 +113,10 @@ int main(int argc, char **argv)
 		}
 		starpu_data_unregister(data_handles[i]);
 	}
-        FPRINTF(stderr, "[%d][local ptr] VALUES: %d %d %d %d\n", rank, values[0], values[1], values[2], values[3]);
+	if (rank == 0)
+	{
+		FPRINTF(stderr, "[%d][local ptr] VALUES: %d %d %d %d\n", rank, values[0], values[1], values[2], values[3]);
+	}
         FPRINTF(stderr, "[%d][end] VALUES: %d %d %d %d\n", rank, x[0], x[1], x[2], y);
 
 	free(values);

@@ -331,6 +331,9 @@ starpu_task_create(), or declared statically. In the latter case, the
 programmer has to zero the structure starpu_task and to fill the
 different fields properly. The indicated default values correspond to
 the configuration of a task allocated with starpu_task_create().
+\var starpu_task::name
+Optional name of the task. This can be useful for debugging
+purposes.
 \var starpu_task::cl
 Is a pointer to the corresponding structure starpu_codelet. This
 describes where the kernel should be executed, and supplies the

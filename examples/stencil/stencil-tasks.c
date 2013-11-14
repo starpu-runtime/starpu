@@ -32,7 +32,7 @@
 #if 0
 # define DEBUG(fmt, ...) fprintf(stderr,fmt,##__VA_ARGS__)
 #else
-# define DEBUG(fmt, ...) 
+# define DEBUG(fmt, ...)
 #endif
 
 /*
@@ -65,7 +65,7 @@ static void create_task_save_local(unsigned iter, unsigned z, int dir, int local
 	int ret = starpu_task_submit(save_task);
 	if (ret)
 	{
-		fprintf(stderr, "Could not submit task save: %d\n", ret);
+		FPRINTF(stderr, "Could not submit task save: %d\n", ret);
 		STARPU_ABORT();
 	}
 }
@@ -179,7 +179,6 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 	/* We are going to synchronize with the last tasks */
 	if (iter == niter)
 	{
-		task->detach = 0;
 		task->use_tag = 1;
 		task->tag_id = TAG_FINISH(z);
 	}
@@ -207,7 +206,7 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 	int ret = starpu_task_submit(task);
 	if (ret)
 	{
-		fprintf(stderr, "Could not submit task update block: %d\n", ret);
+		FPRINTF(stderr, "Could not submit task update block: %d\n", ret);
 		STARPU_ABORT();
 	}
 }
@@ -243,7 +242,7 @@ void create_start_task(int z, int dir)
 	int ret = starpu_task_submit(wait_init);
 	if (ret)
 	{
-		fprintf(stderr, "Could not submit task initial wait: %d\n", ret);
+		FPRINTF(stderr, "Could not submit task initial wait: %d\n", ret);
 		STARPU_ABORT();
 	}
 }
@@ -269,23 +268,23 @@ void create_tasks(int rank)
 
 	for (iter = 0; iter <= niter; iter++)
 	{
-	for (bz = 0; bz < nbz; bz++)
-	{
-		if ((iter > 0) && (get_block_mpi_node(bz) == rank))
-			create_task_update(iter, bz, rank);
+	     for (bz = 0; bz < nbz; bz++)
+	     {
+		  if ((iter > 0) && (get_block_mpi_node(bz) == rank))
+			  create_task_update(iter, bz, rank);
 
-	}
-	for (bz = 0; bz < nbz; bz++)
-	{
-		if (iter != niter)
-		{
-			if ((get_block_mpi_node(bz) == rank) || (get_block_mpi_node(bz+1) == rank))
-				create_task_save(iter, bz, +1, rank);
-	
-			if ((get_block_mpi_node(bz) == rank) || (get_block_mpi_node(bz-1) == rank))
-				create_task_save(iter, bz, -1, rank);
-		}
-	}
+	     }
+	     for (bz = 0; bz < nbz; bz++)
+	     {
+		     if (iter != niter)
+		     {
+			     if ((get_block_mpi_node(bz) == rank) || (get_block_mpi_node(bz+1) == rank))
+				     create_task_save(iter, bz, +1, rank);
+
+			     if ((get_block_mpi_node(bz) == rank) || (get_block_mpi_node(bz-1) == rank))
+				     create_task_save(iter, bz, -1, rank);
+		     }
+	     }
 	}
 }
 
@@ -308,7 +307,13 @@ void wait_end_tasks(int rank)
 			struct block_description *block = get_block_description(bz);
 			starpu_data_acquire(block->layers_handle[0], STARPU_R);
 			starpu_data_acquire(block->layers_handle[1], STARPU_R);
+			/* the data_acquire here is done to make sure
+			 * the data is sent back to the ram memory, we
+			 * can safely do a data_release, to avoid the
+			 * data_unregister to block later on
+			 */
+			starpu_data_release(block->layers_handle[0]);
+			starpu_data_release(block->layers_handle[1]);
 		}
 	}
 }
-

@@ -141,7 +141,7 @@ static int vector_compare(void *data_interface_a, void *data_interface_b)
 static void display_vector_interface(starpu_data_handle_t handle, FILE *f)
 {
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	fprintf(f, "%u\t", vector_interface->nx);
 }
@@ -181,7 +181,7 @@ static size_t vector_interface_get_size(starpu_data_handle_t handle)
 {
 	size_t size;
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	size = vector_interface->nx*vector_interface->elemsize;
 
@@ -192,7 +192,7 @@ static size_t vector_interface_get_size(starpu_data_handle_t handle)
 uint32_t starpu_vector_get_nx(starpu_data_handle_t handle)
 {
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return vector_interface->nx;
 }
@@ -213,7 +213,7 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle)
 size_t starpu_vector_get_elemsize(starpu_data_handle_t handle)
 {
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return vector_interface->elemsize;
 }

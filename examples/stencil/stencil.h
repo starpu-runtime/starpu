@@ -29,6 +29,8 @@
 #endif
 #endif
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
 #define LIFE
 
 #ifdef LIFE
@@ -91,6 +93,7 @@ int MPI_TAG1(int z, int iter, int dir);
 #define MIN(a,b)	((a)<(b)?(a):(b))
 
 void create_blocks_array(unsigned sizex, unsigned sizey, unsigned sizez, unsigned nbz);
+void free_blocks_array();
 struct block_description *get_block_description(int z);
 void assign_blocks_to_mpi_nodes(int world_size);
 void allocate_memory_on_node(int rank);
@@ -98,6 +101,7 @@ void assign_blocks_to_workers(int rank);
 void create_tasks(int rank);
 void wait_end_tasks(int rank);
 void check(int rank);
+void free_memory_on_node(int rank);
 
 void display_memory_consumption(int rank);
 

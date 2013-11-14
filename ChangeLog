@@ -76,12 +76,14 @@ Small features:
     renamed in starpu_task_insert and starpu_mpi_task_insert. Old
     names are kept to avoid breaking old codes.
   * New configure option --enable-calibration-heuristic which allows
-    the user to set the maximum authorized deviation of the 
-    history-based calibrator. 
+    the user to set the maximum authorized deviation of the
+    history-based calibrator.
+  * Tasks can now have a name (via the field const char *name of
+    struct starpu_task)
 
 Changes:
   * Fix of the livelock issue discovered while executing applications
-    on a CPU+GPU cluster of machines by adding a maximum trylock 
+    on a CPU+GPU cluster of machines by adding a maximum trylock
     threshold before a blocking lock.
   * Data interfaces (variable, vector, matrix and block) now define
     pack und unpack functions

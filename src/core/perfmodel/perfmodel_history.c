@@ -35,7 +35,6 @@
 #include <windows.h>
 #endif
 
-#define HISTORYMAXERROR	(STARPU_HISTORYMAXERROR > 100 ? 10 : STARPU_HISTORYMAXERROR)
 #define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
 #define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
 
@@ -262,6 +261,7 @@ static void parse_per_arch_model_file(FILE *f, struct starpu_perfmodel_per_arch 
 			 * good-enough estimation */
 			STARPU_HG_DISABLE_CHECKING(entry->nsample);
 			STARPU_HG_DISABLE_CHECKING(entry->mean);
+			entry->nerror = 0;
 		}
 
 		scan_history_entry(f, entry);
@@ -625,7 +625,7 @@ static void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
 		STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 
 		if(ndevice != 0)
-			maxncore = malloc(sizeof((*maxncore)*ndevice));
+			maxncore = malloc(sizeof(*maxncore)*ndevice);
 		else
 			maxncore = NULL;
 
@@ -1067,7 +1067,6 @@ int starpu_perfmodel_list(FILE *output)
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model)
 {
 	model->symbol = strdup(symbol);
-	starpu_perfmodel_init(model);
 
 	/* where is the file if it exists ? */
 	char path[256];
@@ -1142,7 +1141,7 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *archname, size_t maxlen,unsigned nimpl)
 {
-	snprintf(archname, maxlen, "%s_%dncore_%dimpl_%u",
+	snprintf(archname, maxlen, "%s%d_ncore%d_impl%u",
 			starpu_perfmodel_get_archtype_name(arch->type),
 			arch->devid,
 			arch->ncore,
@@ -1320,9 +1319,11 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			{
 				/* There is already an entry with the same footprint */
 
-				double local_deviation = (measured/entry->mean)*100;
+				double local_deviation = measured/entry->mean;
 				
-				if (entry->nsample && (local_deviation < (100 - HISTORYMAXERROR) || local_deviation > (100 + HISTORYMAXERROR)))
+				if (entry->nsample &&
+					(100 * local_deviation > (100 + STARPU_HISTORYMAXERROR)
+					 || (100 / local_deviation > (100 + STARPU_HISTORYMAXERROR))))
 				{
 					entry->nerror++;
 

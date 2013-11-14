@@ -64,6 +64,7 @@ void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigne
 	{
 		unsigned worker = workers[w];
 		tasks[w] = starpu_task_create();
+		tasks[w]->name = name;
 
 		tasks[w]->cl = &wrapper_cl;
 		tasks[w]->cl_arg = &args;
@@ -73,10 +74,6 @@ void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigne
 
 		tasks[w]->detach = 0;
 		tasks[w]->destroy = 0;
-
-#ifdef STARPU_USE_FXT
-		_starpu_get_job_associated_to_task(tasks[w])->model_name = name;
-#endif
 
 		_starpu_exclude_task_from_dag(tasks[w]);
 
@@ -134,6 +131,7 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		tasks[worker] = starpu_task_create();
+		tasks[worker]->name = wrapper_cl.name;
 
 		tasks[worker]->cl = &wrapper_cl;
 		tasks[worker]->cl_arg = &args;
@@ -143,10 +141,6 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
 
 		tasks[worker]->detach = 0;
 		tasks[worker]->destroy = 0;
-
-#ifdef STARPU_USE_FXT
-		_starpu_get_job_associated_to_task(tasks[worker])->model_name = wrapper_cl.name;
-#endif
 
 		_starpu_exclude_task_from_dag(tasks[worker]);
 

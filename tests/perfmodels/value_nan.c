@@ -31,21 +31,22 @@ int _check_number(double val, int checknan)
 {
 	char *tmp = "starpu_XXXXXX";
 	char filename[100];
-	int id;
 
 	strcpy(filename, tmp);
+
 #ifdef STARPU_HAVE_WINDOWS
         _mktemp(filename);
-        id = open(filename, _O_RDWR);
 #else
-	id = mkstemp(filename);
-
-#endif
-	/* fail */
-	if (id < 0)
 	{
-		return 1;
+	     int id = mkstemp(filename);
+	     /* fail */
+	     if (id < 0)
+	     {
+		  FPRINTF(stderr, "Error when creating temp file\n");
+		  return 1;
+	     }
 	}
+#endif
 
 	/* write the double value in the file followed by a predefined string */
 	FILE *f = fopen(filename, "w");

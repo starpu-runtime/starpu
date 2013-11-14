@@ -106,7 +106,7 @@ LIST_TYPE(_starpu_job,
 	 * with dot) */
         unsigned exclude_from_dag;
 
-	/* Is that task internal to StarPU ? */
+	/* Is that task internal to StarPU? */
 	unsigned internal;
 
 	/* Each job is attributed a unique id. */
@@ -121,10 +121,6 @@ LIST_TYPE(_starpu_job,
 	/* Used by MIC driver to record codelet start time instead of using a
 	 * local variable */
 	struct timespec cl_start;
-
-	/* A symbol name may be associated to the job directly for debug
-	 * purposes (for instance if the codelet is NULL). */
-        const char *model_name;
 
 	struct bound_task *bound_task;
 

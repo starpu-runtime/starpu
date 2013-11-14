@@ -273,7 +273,9 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 		}
 #endif
 
+		_STARPU_TRACE_START_FREE(node, mc->size);
 		mc->ops->free_data_on_node(mc->chunk_interface, node);
+		_STARPU_TRACE_END_FREE(node);
 
 		if (handle)
 			notify_handle_children(handle, replicate, node);
@@ -381,7 +383,9 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 				if (handle->per_node[node].state == STARPU_OWNER)
 					_starpu_memory_handle_stats_invalidated(handle, node);
 #endif
+				_STARPU_TRACE_START_WRITEBACK(node);
 				transfer_subtree_to_node(handle, node, target);
+				_STARPU_TRACE_END_WRITEBACK(node);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
@@ -453,7 +457,9 @@ static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned no
 
 			/* in case there was nobody using that buffer, throw it
 			 * away after writing it back to main memory */
+			_STARPU_TRACE_START_WRITEBACK(node);
 			transfer_subtree_to_node(old_data, node, 0);
+			_STARPU_TRACE_END_WRITEBACK(node);
 
 			/* now replace the previous data */
 			reuse_mem_chunk(node, replicate, mc, is_already_in_mc_list);
@@ -670,7 +676,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 	{
 		static int warned;
 		if (!warned) {
-			_STARPU_DISP("Not enough memory left on node %u. Trying to purge %lu bytes out\n", node, (unsigned long) reclaim);
+			_STARPU_DISP("Not enough memory left on node %u. Trying to purge %lu bytes out. This message will not be printed again for further purges\n", node, (unsigned long) reclaim);
 			warned = 1;
 		}
 	}
@@ -914,7 +920,9 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	if (replicate->allocated)
 	{
 		/* Argl, somebody allocated it in between already, drop this one */
+		_STARPU_TRACE_START_FREE(dst_node, data_size);
 		handle->ops->free_data_on_node(data_interface, dst_node);
+		_STARPU_TRACE_END_FREE(dst_node);
 		allocated_memory = 0;
 	}
 	else

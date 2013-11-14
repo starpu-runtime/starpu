@@ -97,7 +97,7 @@ static void complex_free_data_on_node(void *data_interface, unsigned node)
 static size_t complex_get_size(starpu_data_handle_t handle)
 {
 	size_t size;
-	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, 0);
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	size = complex_interface->nx * 2 * sizeof(double);
 	return size;

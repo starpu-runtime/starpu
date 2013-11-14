@@ -23,10 +23,15 @@
 /* default parameter values */
 static unsigned  bind_tasks = 0;
 
-static unsigned niter = 32;
 static unsigned ticks = 1000;
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned niter = 4;
+#define SIZE 16
+#else
+static unsigned niter = 32;
 #define SIZE 128
+#endif
 
 /* Problem size */
 static unsigned sizex = SIZE;
@@ -147,6 +152,15 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
 	last_tick = (struct timeval *) calloc(nbz, sizeof(*last_tick));
 }
 
+static void free_problem(int rank)
+{
+     	free_memory_on_node(rank);
+	free_blocks_array();
+	free(who_runs_what);
+	free(who_runs_what_index);
+	free(last_tick);
+}
+
 /*
  *	Main body
  */
@@ -168,7 +182,7 @@ void f(unsigned task_per_worker[STARPU_NMAXWORKERS])
 		{
 			char name[32];
 			starpu_worker_get_name(worker, name, sizeof(name));
-			fprintf(stderr,"\t%s -> %d (%2.2f%%)\n", name, task_per_worker[worker], (100.0*task_per_worker[worker])/total);
+			FPRINTF(stderr,"\t%s -> %d (%2.2f%%)\n", name, task_per_worker[worker], (100.0*task_per_worker[worker])/total);
 		}
 	}
 }
@@ -196,12 +210,12 @@ int main(int argc, char **argv)
 	int thread_support;
 	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support))
 	{
-		fprintf(stderr, "MPI_Init_thread failed\n");
+		FPRINTF(stderr, "MPI_Init_thread failed\n");
 	}
 	if (thread_support == MPI_THREAD_FUNNELED)
-		fprintf(stderr,"Warning: MPI only has funneled thread support, not serialized, hoping this will work\n");
+		FPRINTF(stderr,"Warning: MPI only has funneled thread support, not serialized, hoping this will work\n");
 	if (thread_support < MPI_THREAD_FUNNELED)
-		fprintf(stderr,"Warning: MPI does not have thread support!\n");
+		FPRINTF(stderr,"Warning: MPI does not have thread support!\n");
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
 #else
@@ -211,7 +225,7 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		fprintf(stderr, "Running on %d nodes\n", world_size);
+		FPRINTF(stderr, "Running on %d nodes\n", world_size);
 		fflush(stderr);
 	}
 
@@ -238,7 +252,7 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 #endif
 	if (rank == 0)
-		fprintf(stderr, "GO !\n");
+		FPRINTF(stderr, "GO !\n");
 
 	gettimeofday(&start, NULL);
 
@@ -290,6 +304,7 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(reduce_ret == MPI_SUCCESS);
 
 	memcpy(who_runs_what, who_runs_what_tmp, nbz * who_runs_what_len * sizeof(*who_runs_what));
+	free(who_runs_what_tmp);
 
 	/* XXX we should do a gather instead, here we assume that non initialized values are still 0 */
 	int *who_runs_what_index_tmp = malloc(nbz * sizeof(*who_runs_what_index));
@@ -297,16 +312,17 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(reduce_ret == MPI_SUCCESS);
 
 	memcpy(who_runs_what_index, who_runs_what_index_tmp, nbz * sizeof(*who_runs_what_index));
+	free(who_runs_what_index_tmp);
 #endif
 
 	if (rank == 0)
 	{
 #if 1 
-		fprintf(stderr, "update:\n");
+		FPRINTF(stderr, "update:\n");
 		f(update_per_worker);
-		fprintf(stderr, "top:\n");
+		FPRINTF(stderr, "top:\n");
 		f(top_per_worker);
-		fprintf(stderr, "bottom:\n");
+		FPRINTF(stderr, "bottom:\n");
 		f(bottom_per_worker);
 #endif
 #if 1
@@ -320,20 +336,20 @@ int main(int argc, char **argv)
 			for (bz = 0; bz < nbz; bz++)
 			{
 				if ((bz % nzblocks_per_process) == 0)
-					fprintf(stderr, "| ");
+					FPRINTF(stderr, "| ");
 
 				if (who_runs_what_index[bz] <= iter)
-					fprintf(stderr,"_ ");
+					FPRINTF(stderr,"_ ");
 				else
 				{
 					last = 0;
 					if (who_runs_what[bz + iter * nbz] == -1)
-						fprintf(stderr,"* ");
+						FPRINTF(stderr,"* ");
 					else
-						fprintf(stderr, "%d ", who_runs_what[bz + iter * nbz]);
+						FPRINTF(stderr, "%d ", who_runs_what[bz + iter * nbz]);
 				}
 			}
-			fprintf(stderr, "\n");
+			FPRINTF(stderr, "\n");
 
 			if (last)
 				break;
@@ -342,12 +358,13 @@ int main(int argc, char **argv)
 
 		fflush(stderr);
 
-		fprintf(stdout, "Computation took: %f ms on %d MPI processes\n", max_timing/1000, world_size);
-		fprintf(stdout, "\tMIN : %f ms\n", min_timing/1000);
-		fprintf(stdout, "\tMAX : %f ms\n", max_timing/1000);
-		fprintf(stdout, "\tAVG : %f ms\n", sum_timing/(world_size*1000));
+		FPRINTF(stdout, "Computation took: %f ms on %d MPI processes\n", max_timing/1000, world_size);
+		FPRINTF(stdout, "\tMIN : %f ms\n", min_timing/1000);
+		FPRINTF(stdout, "\tMAX : %f ms\n", max_timing/1000);
+		FPRINTF(stdout, "\tAVG : %f ms\n", sum_timing/(world_size*1000));
 	}
 
+	free_problem(rank);
 	starpu_shutdown();
 
 #ifdef STARPU_USE_MPI

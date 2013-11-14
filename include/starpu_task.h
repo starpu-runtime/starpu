@@ -164,6 +164,8 @@ struct starpu_task
 	void *starpu_private;
 	int magic;
 
+	const char *name;
+
 	unsigned sched_ctx;
 	int hypervisor_tag;
 	double flops;
@@ -197,7 +199,8 @@ struct starpu_task
 	.flops = 0.0,					\
 	.scheduled = 0,					\
 	.dyn_handles = NULL,				\
-	.dyn_interfaces = NULL				\
+	.dyn_interfaces = NULL,				\
+	.name = NULL                        		\
 }
 
 #define STARPU_TASK_GET_HANDLE(task, i) ((task->dyn_handles) ? task->dyn_handles[i] : task->handles[i])

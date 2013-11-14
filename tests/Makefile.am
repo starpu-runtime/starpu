@@ -222,6 +222,7 @@ noinst_PROGRAMS =				\
 	parallel_tasks/parallel_kernels		\
 	parallel_tasks/parallel_kernels_spmd	\
 	parallel_tasks/spmd_peager		\
+	parallel_tasks/cuda_only		\
 	perfmodels/regression_based		\
 	perfmodels/non_linear_regression_based	\
 	perfmodels/feed				\

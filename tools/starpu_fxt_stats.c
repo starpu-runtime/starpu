@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 	else
 	{
 		fd_out = fopen(fout, "w");
-		if (fd_out < 0)
+		if (fd_out == NULL)
 		{
 			perror("open failed :");
 			exit(-1);

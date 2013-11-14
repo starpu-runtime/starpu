@@ -13,3 +13,11 @@
    fun:pthread_cancel_init
    ...
 }
+
+{
+   Helgrind 3.9 wrongly compares to-be-destroyed mutex with init value
+   Helgrind:Race
+   fun:my_memcmp
+   fun:pthread_mutex_destroy
+   ...
+}

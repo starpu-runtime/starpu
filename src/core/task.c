@@ -41,7 +41,6 @@
  * sure that no task remains !) */
 /* TODO we could make this hierarchical to avoid contention ? */
 //static starpu_pthread_cond_t submitted_cond = STARPU_PTHREAD_COND_INITIALIZER;
-static starpu_pthread_mutex_t submitted_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 /* This key stores the task currently handled by the thread, note that we
  * cannot use the worker structure to store that information because it is
@@ -84,6 +83,7 @@ void starpu_task_init(struct starpu_task *task)
 
 	task->dyn_handles = NULL;
 	task->dyn_interfaces = NULL;
+	task->name = NULL;
 }
 
 /* Free all the ressources allocated for a task, without deallocating the task
@@ -804,7 +804,7 @@ starpu_drivers_request_termination(void)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 	int nsubmitted = starpu_task_nsubmitted();
 	config->submitting = 0;
 	if (nsubmitted == 0)
@@ -812,6 +812,7 @@ starpu_drivers_request_termination(void)
 		ANNOTATE_HAPPENS_AFTER(&config->running);
 		config->running = 0;
 		ANNOTATE_HAPPENS_BEFORE(&config->running);
+		STARPU_WMB();
 		int s;
 		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 		{
@@ -822,7 +823,7 @@ starpu_drivers_request_termination(void)
 		}
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 }
 
 int starpu_task_nsubmitted(void)
@@ -1018,16 +1019,16 @@ static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
 	ts.tv_nsec = (timeout % 1000000) * 1000;
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 	
-	STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 	while (_starpu_machine_is_running())
 	{
 		int last_nsubmitted = starpu_task_nsubmitted();
 		config->watchdog_ok = 0;
-		STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 
 		_starpu_sleep(ts);
 
-		STARPU_PTHREAD_MUTEX_LOCK(&submitted_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 		if (!config->watchdog_ok && last_nsubmitted
 				&& last_nsubmitted == starpu_task_nsubmitted())
 		{
@@ -1041,12 +1042,14 @@ static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
 				fprintf(stderr,"Set the STARPU_WATCHDOG_CRASH environment variable if you want to abort the process in such a case\n");
 		}
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&submitted_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 	return NULL;
 }
 
 void _starpu_watchdog_init(void)
 {
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	STARPU_PTHREAD_MUTEX_INIT(&config->submitted_mutex, NULL);
 	STARPU_PTHREAD_CREATE(&watchdog_thread, NULL, watchdog_func, NULL);
 }
 

@@ -142,7 +142,7 @@ static int bcsr_compare(void *data_interface_a, void *data_interface_b)
 uint32_t starpu_bcsr_get_nnz(starpu_data_handle_t handle)
 {
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return data_interface->nnz;
 }
@@ -150,7 +150,7 @@ uint32_t starpu_bcsr_get_nnz(starpu_data_handle_t handle)
 uint32_t starpu_bcsr_get_nrow(starpu_data_handle_t handle)
 {
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return data_interface->nrow;
 }
@@ -158,7 +158,7 @@ uint32_t starpu_bcsr_get_nrow(starpu_data_handle_t handle)
 uint32_t starpu_bcsr_get_firstentry(starpu_data_handle_t handle)
 {
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return data_interface->firstentry;
 }
@@ -166,7 +166,7 @@ uint32_t starpu_bcsr_get_firstentry(starpu_data_handle_t handle)
 uint32_t starpu_bcsr_get_r(starpu_data_handle_t handle)
 {
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return data_interface->r;
 }
@@ -174,7 +174,7 @@ uint32_t starpu_bcsr_get_r(starpu_data_handle_t handle)
 uint32_t starpu_bcsr_get_c(starpu_data_handle_t handle)
 {
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return data_interface->c;
 }
@@ -182,7 +182,7 @@ uint32_t starpu_bcsr_get_c(starpu_data_handle_t handle)
 size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle)
 {
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return data_interface->elemsize;
 }
@@ -204,7 +204,7 @@ uint32_t *starpu_bcsr_get_local_colind(starpu_data_handle_t handle)
 {
 	/* XXX 0 */
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return data_interface->colind;
 }
@@ -213,7 +213,7 @@ uint32_t *starpu_bcsr_get_local_rowptr(starpu_data_handle_t handle)
 {
 	/* XXX 0 */
 	struct starpu_bcsr_interface *data_interface = (struct starpu_bcsr_interface *)
-		starpu_data_get_interface_on_node(handle, 0);
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
 	return data_interface->rowptr;
 }

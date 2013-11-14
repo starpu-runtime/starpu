@@ -101,7 +101,8 @@ static unsigned get_colour_symbol_blue(char *name)
 }
 
 static double last_codelet_start[STARPU_NMAXWORKERS];
-static char last_codelet_symbol[STARPU_NMAXWORKERS][128];
+/* _STARPU_FUT_DO_PROBE4STR records only 4 longs */
+static char last_codelet_symbol[STARPU_NMAXWORKERS][4*sizeof(unsigned long)];
 
 /* If more than a period of time has elapsed, we flush the profiling info,
  * otherwise they are accumulated everytime there is a new relevant event. */
@@ -109,6 +110,7 @@ static char last_codelet_symbol[STARPU_NMAXWORKERS][128];
 static double last_activity_flush_timestamp[STARPU_NMAXWORKERS];
 static double accumulated_sleep_time[STARPU_NMAXWORKERS];
 static double accumulated_exec_time[STARPU_NMAXWORKERS];
+static double reclaiming[STARPU_MAXNODES];
 
 LIST_TYPE(_starpu_symbol_name,
 	char *name;
@@ -514,9 +516,9 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 	{
 #ifdef STARPU_HAVE_POTI
 		create_paje_state_color(name, "S", red, green, blue);
-		create_paje_state_color(name, "Ctx1", 255.0, 255.0, 0.0);
+		create_paje_state_color(name, "Ctx1", 255.0, 102.0, 255.0);
 		create_paje_state_color(name, "Ctx2", .0, 255.0, 0.0);
-		create_paje_state_color(name, "Ctx3", 75.0, .0, 130.0);
+		create_paje_state_color(name, "Ctx3", 255.0, 255.0, .0);
 		create_paje_state_color(name, "Ctx4", .0, 245.0, 255.0);
 		create_paje_state_color(name, "Ctx5", .0, .0, .0);
 		create_paje_state_color(name, "Ctx6", .0, .0, 128.0);
@@ -526,9 +528,9 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 		create_paje_state_color(name, "Ctx10", 154.0, 205.0, 50.0);
 #else
 		fprintf(out_paje_file, "6	%s	S	%s	\"%f %f %f\" \n", name, name, red, green, blue);
-		fprintf(out_paje_file, "6	%s	Ctx1	%s	\"255.0 255.0 0.0\" \n", name, name);
+		fprintf(out_paje_file, "6	%s	Ctx1	%s	\"255.0 102.0 255.0\" \n", name, name);
 		fprintf(out_paje_file, "6	%s	Ctx2	%s	\".0 255.0 .0\" \n", name, name);
-		fprintf(out_paje_file, "6	%s	Ctx3	%s	\"75.0 .0 130.0\" \n", name, name);
+		fprintf(out_paje_file, "6	%s	Ctx3	%s	\"225.0 225.0 .0\" \n", name, name);
 		fprintf(out_paje_file, "6	%s	Ctx4	%s	\".0 245.0 255.0\" \n", name, name);
 		fprintf(out_paje_file, "6	%s	Ctx5	%s	\".0 .0 .0\" \n", name, name);
 		fprintf(out_paje_file, "6	%s	Ctx6	%s	\".0 .0 128.0\" \n", name, name);
@@ -587,7 +589,7 @@ static struct starpu_fxt_codelet_event *dumped_codelets;
 static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
-	worker = find_worker_id(ev->param[4]);
+	worker = find_worker_id(ev->param[6]);
 	if (worker < 0) return;
 
 	char *prefix = options->file_prefix;
@@ -598,7 +600,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	uint32_t codelet_hash = ev->param[2];
 
 	if (out_paje_file)
-		worker_set_state(end_codelet_time, prefix, ev->param[4], "B");
+		worker_set_state(end_codelet_time, prefix, ev->param[6], "B");
 
 	double codelet_length = (end_codelet_time - last_codelet_start[worker]);
 
@@ -610,14 +612,14 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	if (options->dumped_codelets)
 	{
-		struct starpu_perfmodel_arch* arch = ev->param[3];
-
 		dumped_codelets_count++;
 		dumped_codelets = realloc(dumped_codelets, dumped_codelets_count*sizeof(struct starpu_fxt_codelet_event));
 
 		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, 256, "%s", last_codelet_symbol[worker]);
 		dumped_codelets[dumped_codelets_count - 1].workerid = worker;
-		dumped_codelets[dumped_codelets_count - 1].arch = *arch;
+		dumped_codelets[dumped_codelets_count - 1].arch.type = ev->param[3];
+		dumped_codelets[dumped_codelets_count - 1].arch.devid = ev->param[4];
+		dumped_codelets[dumped_codelets_count - 1].arch.ncore = ev->param[5];
 
 		dumped_codelets[dumped_codelets_count - 1].size = codelet_size;
 		dumped_codelets[dumped_codelets_count - 1].hash = codelet_hash;
@@ -1466,15 +1468,64 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				handle_memnode_event(&ev, options, "Ar");
 				break;
 
-			case _STARPU_FUT_START_MEMRECLAIM:
-				handle_memnode_event(&ev, options, "R");
-				break;
-
 			case _STARPU_FUT_END_ALLOC:
 			case _STARPU_FUT_END_ALLOC_REUSE:
-			case _STARPU_FUT_END_MEMRECLAIM:
 				if (!options->no_bus)
 				handle_memnode_event(&ev, options, "No");
+				break;
+
+			case _STARPU_FUT_START_FREE:
+				if (!options->no_bus)
+				{
+					handle_memnode_event(&ev, options, "F");
+				}
+				break;
+
+			case _STARPU_FUT_END_FREE:
+				if (!options->no_bus)
+				{
+					unsigned memnode = ev.param[0];
+					if (reclaiming[memnode])
+						handle_memnode_event(&ev, options, "R");
+					else
+						handle_memnode_event(&ev, options, "No");
+				}
+				break;
+
+			case _STARPU_FUT_START_WRITEBACK:
+				if (!options->no_bus)
+				{
+					handle_memnode_event(&ev, options, "W");
+				}
+				break;
+
+			case _STARPU_FUT_END_WRITEBACK:
+				if (!options->no_bus)
+				{
+					unsigned memnode = ev.param[0];
+					if (reclaiming[memnode])
+						handle_memnode_event(&ev, options, "R");
+					else
+						handle_memnode_event(&ev, options, "No");
+				}
+				break;
+
+			case _STARPU_FUT_START_MEMRECLAIM:
+				if (!options->no_bus)
+				{
+					unsigned memnode = ev.param[0];
+					reclaiming[memnode] = 1;
+					handle_memnode_event(&ev, options, "R");
+				}
+				break;
+
+			case _STARPU_FUT_END_MEMRECLAIM:
+				if (!options->no_bus)
+				{
+					unsigned memnode = ev.param[0];
+					reclaiming[memnode] = 0;
+					handle_memnode_event(&ev, options, "No");
+				}
 				break;
 
 			case _STARPU_FUT_USER_EVENT:

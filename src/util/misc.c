@@ -38,11 +38,11 @@ const char *_starpu_job_get_model_name(struct _starpu_job *j)
 
 	struct starpu_task *task = j->task;
 	if (task)
+	{
 		ret = _starpu_codelet_get_model_name(task->cl);
+		if (!ret)
+			ret = task->name;
+	}
 
-#ifdef STARPU_USE_FXT
-	if (!ret)
-		ret = j->model_name;
-#endif
 	return ret;
 }

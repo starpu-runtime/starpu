@@ -312,6 +312,8 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 				.nbuffers = 1
 			};
 			struct starpu_task *task = starpu_task_create();
+			task->name = "convert_data";
+
 			STARPU_TASK_SET_HANDLE(task, child_handle, 0);
 			task->cl = &cl;
 			task->synchronous = 1;

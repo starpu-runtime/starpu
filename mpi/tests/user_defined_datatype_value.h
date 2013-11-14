@@ -26,7 +26,7 @@ struct starpu_value_interface
 int *starpu_value_get(starpu_data_handle_t handle)
 {
 	struct starpu_value_interface *value_interface =
-		(struct starpu_value_interface *) starpu_data_get_interface_on_node(handle, 0);
+		(struct starpu_value_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 	return value_interface->value;
 }
 

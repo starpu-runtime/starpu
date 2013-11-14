@@ -941,8 +941,8 @@ static void _starpu_mpi_copy_cb(void* arg)
 	else
 	{
 		struct starpu_data_interface_ops *itf = starpu_data_get_interface_ops(args->copy_handle);
-		void* itf_src = starpu_data_get_interface_on_node(args->copy_handle,0);
-		void* itf_dst = starpu_data_get_interface_on_node(args->data_handle,0);
+		void* itf_src = starpu_data_get_interface_on_node(args->copy_handle, STARPU_MAIN_RAM);
+		void* itf_dst = starpu_data_get_interface_on_node(args->data_handle, STARPU_MAIN_RAM);
 
 		if (!itf->copy_methods->ram_to_ram)
 		{
@@ -1380,7 +1380,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 						 */
 						_STARPU_MPI_DEBUG(20, "Posting a receive for a data of size %d which has not yet been registered\n", (int)chandle->env->size);
 						chandle->buffer = malloc(chandle->env->size);
-						starpu_vector_data_register(&chandle->handle, 0, (uintptr_t) chandle->buffer, chandle->env->size, 1);
+						starpu_vector_data_register(&chandle->handle, STARPU_MAIN_RAM, (uintptr_t) chandle->buffer, chandle->env->size, 1);
 						add_chandle(chandle);
 					}
 

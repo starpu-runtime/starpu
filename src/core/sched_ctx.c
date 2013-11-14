@@ -847,17 +847,39 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 			return;
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
-		/* FIXME: */
-		/* We also need to check for config->submitting = 0 (i.e. the
-		 * user calle starpu_drivers_request_termination()), in which
-		 * case we need to set config->running to 0 and wake workers,
-		 * so they can terminate, just like
-		 * starpu_drivers_request_termination() does.
-		 *
-		 * Set FIXME to 1 in tests/main/driver_api/run_driver.c to
-		 * check it is actually fixed.
-		 */
 	}
+
+	/* We also need to check for config->submitting = 0 (i.e. the
+	 * user calle starpu_drivers_request_termination()), in which
+	 * case we need to set config->running to 0 and wake workers,
+	 * so they can terminate, just like
+	 * starpu_drivers_request_termination() does.
+	 */
+
+	STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
+	if(config->submitting == 0)
+	{
+		STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx_id]);
+		if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
+		{
+			if(sched_ctx->close_callback)
+				sched_ctx->close_callback(sched_ctx->id, sched_ctx->close_args);
+		}
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+
+		ANNOTATE_HAPPENS_AFTER(&config->running);
+		config->running = 0;
+		ANNOTATE_HAPPENS_BEFORE(&config->running);
+		int s;
+		for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+		{
+			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
+			{
+				_starpu_check_nsubmitted_tasks_of_sched_ctx(config->sched_ctxs[s].id);
+			}
+		}
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 
 	return;
 }

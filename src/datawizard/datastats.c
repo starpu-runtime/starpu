@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,6 +29,7 @@ static unsigned miss_cnt[STARPU_MAXNODES];
 void _starpu_msi_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_STATS
+	STARPU_HG_DISABLE_CHECKING(hit_cnt[node]);
 	hit_cnt[node]++;
 #endif
 }
@@ -36,6 +37,7 @@ void _starpu_msi_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED)
 void _starpu_msi_cache_miss(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_STATS
+	STARPU_HG_DISABLE_CHECKING(miss_cnt[node]);
 	miss_cnt[node]++;
 #endif
 }
@@ -81,6 +83,7 @@ static unsigned alloc_cache_hit_cnt[STARPU_MAXNODES];
 void _starpu_allocation_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_STATS
+	STARPU_HG_DISABLE_CHECKING(alloc_cache_hit_cnt[node]);
 	alloc_cache_hit_cnt[node]++;
 #endif
 }
@@ -88,6 +91,7 @@ void _starpu_allocation_cache_hit(unsigned node STARPU_ATTRIBUTE_UNUSED)
 void _starpu_data_allocation_inc_stats(unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_STATS
+	STARPU_HG_DISABLE_CHECKING(alloc_cnt[node]);
 	alloc_cnt[node]++;
 #endif
 }
@@ -122,6 +126,7 @@ static size_t comm_amount[STARPU_MAXNODES][STARPU_MAXNODES];
 void _starpu_comm_amounts_inc(unsigned src  STARPU_ATTRIBUTE_UNUSED, unsigned dst  STARPU_ATTRIBUTE_UNUSED, size_t size  STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_STATS
+	STARPU_HG_DISABLE_CHECKING(comm_amount[src][dst]);
 	comm_amount[src][dst] += size;
 #endif /* STARPU_ENABLE_STATS */
 }
