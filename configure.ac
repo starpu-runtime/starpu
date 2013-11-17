@@ -1996,7 +1996,7 @@ AC_MSG_NOTICE([
 
 	Compile-time limits
 	(change these with --enable-maxcpus, --enable-maxcudadev,
-	--enable-maxopencldev, --enable-maxmicdev, --enable-maxnodes,
+	--enable-maxopencldev, --enable-maxnodes,
         --enable-maxbuffers)
         (Note these numbers do not represent the number of detected
 	devices, but the maximum number of devices StarPU can manage)
