@@ -333,7 +333,11 @@ int _starpu_push_task(struct _starpu_job *j)
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->perf_counters != NULL 
 			   && sched_ctx->perf_counters->notify_empty_ctx)
+			{
+				_STARPU_TRACE_HYPERVISOR_BEGIN();
 				sched_ctx->perf_counters->notify_empty_ctx(sched_ctx->id, task);
+				_STARPU_TRACE_HYPERVISOR_END();
+			}
 #endif
 			return 0;
 		}
@@ -377,7 +381,11 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 #ifdef STARPU_USE_SC_HYPERVISOR
 			if(sched_ctx != NULL && sched_ctx->id != 0 && sched_ctx->perf_counters != NULL 
 			   && sched_ctx->perf_counters->notify_empty_ctx)
+			{
+				_STARPU_TRACE_HYPERVISOR_BEGIN();
 				sched_ctx->perf_counters->notify_empty_ctx(sched_ctx->id, task);
+				_STARPU_TRACE_HYPERVISOR_END();
+			}
 #endif
 
 			return -EAGAIN;
@@ -563,29 +571,34 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 	struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
 	unsigned smallest_counter =  worker->nsched_ctxs;
 	struct _starpu_sched_ctx_list *l = NULL;
-	for (l = worker->sched_ctx_list; l; l = l->next)
+	if(!worker->reverse_phase)
 	{
-		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
-/* 		if(worker->removed_from_ctx[sched_ctx->id] == 1 && worker->shares_tasks_lists[sched_ctx->id] == 1) */
-/* 			return sched_ctx; */
-		if(sched_ctx->pop_counter[worker->workerid] < worker->nsched_ctxs &&
-		   smallest_counter > sched_ctx->pop_counter[worker->workerid])
-		{
-			good_sched_ctx = sched_ctx;
-			smallest_counter = sched_ctx->pop_counter[worker->workerid];
-		}
-	}
-	
-	if(good_sched_ctx == NULL)
-	{
+		/* find a context in which the worker hasn't poped yet */
 		for (l = worker->sched_ctx_list; l; l = l->next)
 		{
-			sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
-			sched_ctx->pop_counter[worker->workerid] = 0;
+			if(!worker->poped_in_ctx[l->sched_ctx])
+			{
+				worker->poped_in_ctx[l->sched_ctx] = !worker->poped_in_ctx[l->sched_ctx];
+				return	_starpu_get_sched_ctx_struct(l->sched_ctx);
+			}
 		}
-		return _starpu_get_sched_ctx_struct(worker->sched_ctx_list->sched_ctx);
+		worker->reverse_phase = !worker->reverse_phase;
 	}
-	return good_sched_ctx;
+	if(worker->reverse_phase)
+	{
+		/* if the context has already poped in every one start from the begining */
+		for (l = worker->sched_ctx_list; l; l = l->next)
+		{
+			if(worker->poped_in_ctx[l->sched_ctx])
+			{
+				worker->poped_in_ctx[l->sched_ctx] = !worker->poped_in_ctx[l->sched_ctx];
+				return	_starpu_get_sched_ctx_struct(l->sched_ctx);
+			}
+		}
+		worker->reverse_phase = !worker->reverse_phase;
+	}	
+	worker->poped_in_ctx[worker->sched_ctx_list->sched_ctx] = !worker->poped_in_ctx[worker->sched_ctx_list->sched_ctx];
+	return _starpu_get_sched_ctx_struct(worker->sched_ctx_list->sched_ctx);
 }
 
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
@@ -660,17 +673,20 @@ pick:
 				}
 #ifdef STARPU_USE_SC_HYPERVISOR
 				struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
-				if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_cycle)
+				if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_cycle && _starpu_sched_ctx_allow_hypervisor(sched_ctx->id))
+				{
+//					_STARPU_TRACE_HYPERVISOR_BEGIN();
 					perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
+//					_STARPU_TRACE_HYPERVISOR_END();
+				}
 #endif //STARPU_USE_SC_HYPERVISOR
 				
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-				if((sched_ctx->pop_counter[worker->workerid] == 0 && been_here[sched_ctx->id]) || worker->nsched_ctxs == 1)
+				if(been_here[sched_ctx->id] || worker->nsched_ctxs == 1)
 					break;
 				been_here[sched_ctx->id] = 1;
 #endif
 			}
-			sched_ctx->pop_counter[worker->workerid]++;
 		}
 	  }
 
@@ -684,8 +700,12 @@ pick:
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
 
-	if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_poped_task)
+	if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_poped_task && _starpu_sched_ctx_allow_hypervisor(sched_ctx->id))
+	{
+//		_STARPU_TRACE_HYPERVISOR_BEGIN();
 		perf_counters->notify_poped_task(task->sched_ctx, worker->workerid);
+//		_STARPU_TRACE_HYPERVISOR_END();
+	}
 #endif //STARPU_USE_SC_HYPERVISOR
 
 

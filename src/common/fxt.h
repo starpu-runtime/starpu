@@ -146,6 +146,9 @@
 #define	_STARPU_FUT_START_WRITEBACK	0x5158
 #define	_STARPU_FUT_END_WRITEBACK	0x5159
 
+#define	_STARPU_FUT_HYPERVISOR_BEGIN    0x5160
+#define	_STARPU_FUT_HYPERVISOR_END	0x5161
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -453,6 +456,13 @@ do {										\
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL			\
 	FUT_DO_PROBE0(_STARPU_FUT_TASK_WAIT_FOR_ALL)
 
+#define _STARPU_TRACE_HYPERVISOR_BEGIN()  \
+	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_BEGIN, _starpu_gettid());
+
+#define _STARPU_TRACE_HYPERVISOR_END() \
+	do {} while (0)
+//	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_END, _starpu_gettid());
+
 #ifdef STARPU_FXT_LOCK_TRACES 
 
 #define _STARPU_TRACE_LOCKING_MUTEX()	do { \
@@ -678,6 +688,8 @@ do {										\
 #define _STARPU_TRACE_MEMORY_FULL(size)				do {} while(0)
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)	do {} while(0)
 #define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {} while(0)
+#define _STARPU_TRACE_HYPERVISOR_BEGIN()        do {} while(0)
+#define _STARPU_TRACE_HYPERVISOR_END()                  do {} while(0)
 
 #endif // STARPU_USE_FXT
 

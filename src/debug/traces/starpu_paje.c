@@ -194,6 +194,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 		poti_DefineEntityValue("Sl", ctx, "Sleeping", ".9 .1 .0");
 		poti_DefineEntityValue("P", ctx, "Progressing", ".4 .1 .6");
 		poti_DefineEntityValue("U", ctx, "Unpartitioning", ".0 .0 1.0");
+		poti_DefineEntityValue("H", ctx, "Hypervisor", ".5 .18 .0");
 	}
 
 	/* Types for the Scheduler */
@@ -233,7 +234,8 @@ void _starpu_fxt_write_paje_header(FILE *file)
 6       B       S       Overhead         \".5 .18 .0\"		\n\
 6       Sl       S      Sleeping         \".9 .1 .0\"		\n\
 6       P       S       Progressing         \".4 .1 .6\"		\n\
-6       U       S       Unpartitioning      \".0 .0 1.0\"		\n");
+6       U       S       Unpartitioning      \".0 .0 1.0\"		\n\
+6       H       S       Hypervisor      \".5 .18 .0\"		\n");
 	fprintf(file, "\
 6       P       CtS       Processing         \"0 0 0\"		\n\
 6       Sl       CtS      Sleeping         \".9 .1 .0\"		\n\

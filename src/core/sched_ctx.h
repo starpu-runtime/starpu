@@ -89,10 +89,6 @@ struct _starpu_sched_ctx
 	/* max GPUs to execute*/
 	int max_ngpus;
 
-	/* needed for overlapping contexts to help the workers
-	   determine which is the next context to pop tasks from */
-	unsigned pop_counter[STARPU_NMAXWORKERS];
-
 	/* in case we delete the context leave resources to the inheritor*/
 	unsigned inheritor;
 
@@ -152,8 +148,6 @@ int _starpu_check_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id);
 
 void _starpu_decrement_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops);
 void _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops);
-int _starpu_get_nready_tasks_of_sched_ctx(unsigned sched_ctx_id);
-double _starpu_get_nready_flops_of_sched_ctx(unsigned sched_ctx_id);
 int _starpu_wait_for_no_ready_of_sched_ctx(unsigned sched_ctx_id);
 
 /* Return the corresponding index of the workerid in the ctx table */
@@ -197,6 +191,8 @@ unsigned _starpu_sched_ctx_get_current_context();
 int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx);
 
 void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx);
+
+unsigned _starpu_sched_ctx_allow_hypervisor(unsigned sched_ctx_id);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 /* Notifies the hypervisor that a tasks was poped from the workers' list */
