@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]
 
 #include <starpu.h>
 #include <xmmintrin.h>
@@ -75,4 +75,4 @@ void scal_sse_func(void *buffers[], void *cl_arg)
         }
     }
 }
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]

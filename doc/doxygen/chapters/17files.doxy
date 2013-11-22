@@ -1,0 +1,52 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+*/
+
+/*! \page Files Files
+
+\file starpu_deprecated_api.h
+\file starpu.h
+\file starpu_data_filters.h
+\file starpu_data_interfaces.h
+\file starpu_disk.h
+\file starpu_worker.h
+\file starpu_task.h
+\file starpu_task_bundle.h
+\file starpu_task_list.h
+\file starpu_task_util.h
+\file starpu_data.h
+\file starpu_perfmodel.h
+\file starpu_util.h
+\file starpu_fxt.h
+\file starpu_cuda.h
+\file starpu_opencl.h
+\file starpu_sink.h
+\file starpu_mic.h
+\file starpu_scc.h
+\file starpu_expert.h
+\file starpu_profiling.h
+\file starpu_bound.h
+\file starpu_scheduler.h
+\file starpu_sched_ctx.h
+\file starpu_sched_ctx_hypervisor.h
+\file starpu_top.h
+\file starpu_hash.h
+\file starpu_rand.h
+\file starpu_cublas.h
+\file starpu_driver.h
+\file starpu_stdlib.h
+\file starpu_thread.h
+\file starpu_thread_util.h
+\file starpu_mpi.h
+\file sc_hypervisor.h
+\file sc_hypervisor_config.h
+\file sc_hypervisor_lp.h
+\file sc_hypervisor_monitoring.h
+\file sc_hypervisor_policy.h
+\file starpu_config.h
+
+*/

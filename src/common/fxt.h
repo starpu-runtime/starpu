@@ -149,6 +149,9 @@
 #define _STARPU_FUT_SCHED_NODE_PUSH_PRIO 	0x515a
 #define _STARPU_FUT_SCHED_NODE_POP_PRIO 	0x515b
 
+#define	_STARPU_FUT_HYPERVISOR_BEGIN    0x5160
+#define	_STARPU_FUT_HYPERVISOR_END	0x5161
+
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
 #include <fxt/fut.h>
@@ -456,6 +459,13 @@ do {										\
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL			\
 	FUT_DO_PROBE0(_STARPU_FUT_TASK_WAIT_FOR_ALL)
 
+#define _STARPU_TRACE_HYPERVISOR_BEGIN()  \
+	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_BEGIN, _starpu_gettid());
+
+#define _STARPU_TRACE_HYPERVISOR_END() \
+	do {} while (0)
+//	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_END, _starpu_gettid());
+
 #ifdef STARPU_FXT_LOCK_TRACES 
 
 #define _STARPU_TRACE_LOCKING_MUTEX()	do { \
@@ -687,8 +697,13 @@ do {										\
 #define _STARPU_TRACE_MEMORY_FULL(size)				do {} while(0)
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)	do {} while(0)
 #define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {} while(0)
+<<<<<<< .courant
 #define _STARPU_TRACE_SCHED_NODE_PUSH_PRIO(workerid, ntasks, exp_len)	do {} while(0)
 #define _STARPU_TRACE_SCHED_NODE_POP_PRIO(workerid, ntasks, exp_len)	do {} while(0)
+=======
+#define _STARPU_TRACE_HYPERVISOR_BEGIN()        do {} while(0)
+#define _STARPU_TRACE_HYPERVISOR_END()                  do {} while(0)
+>>>>>>> .fusion-droit.r11635
 
 #endif // STARPU_USE_FXT
 

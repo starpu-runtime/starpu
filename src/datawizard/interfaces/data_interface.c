@@ -685,7 +685,6 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	/* Wait for all requests to finish (notably WT requests) */
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->busy_mutex);
 	while (1) {
-		int busy;
 		/* Here helgrind would shout that this an unprotected access,
 		 * but this is actually fine: all threads who do busy_count--
 		 * are supposed to call _starpu_data_check_not_busy, which will

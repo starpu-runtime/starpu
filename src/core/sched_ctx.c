@@ -27,6 +27,10 @@ static starpu_pthread_mutex_t finished_submit_mutex = STARPU_PTHREAD_MUTEX_INITI
 struct starpu_task stop_submission_task = STARPU_TASK_INITIALIZER;
 starpu_pthread_key_t sched_ctx_key;
 unsigned with_hypervisor = 0;
+double hyp_start_sample[STARPU_NMAX_SCHED_CTXS];
+double hyp_start_allow_sample[STARPU_NMAX_SCHED_CTXS];
+double flops[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
+size_t data_size[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
 
 static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *config);
 
@@ -327,12 +331,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		}
 	}
 
-	int w;
-	for(w = 0; w < STARPU_NMAXWORKERS; w++)
-	{
-		sched_ctx->pop_counter[w] = 0;
-	}
-
 	return sched_ctx;
 }
 
@@ -580,7 +578,11 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 #ifdef STARPU_USE_SC_HYPERVISOR
 	if(sched_ctx != NULL && sched_ctx_id != 0 && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
 	   && sched_ctx->perf_counters != NULL)
+	{
+		_STARPU_TRACE_HYPERVISOR_BEGIN();
 		sched_ctx->perf_counters->notify_delete_context(sched_ctx_id);
+		_STARPU_TRACE_HYPERVISOR_END();
+	}
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	unsigned inheritor_sched_ctx_id = sched_ctx->inheritor;
@@ -914,16 +916,16 @@ void _starpu_decrement_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double r
 	_starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->ready_tasks_barrier, ready_flops);
 }
 
-int _starpu_get_nready_tasks_of_sched_ctx(unsigned sched_ctx_id)
+int starpu_get_nready_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	return sched_ctx->ready_tasks_barrier.barrier.reached_start;
+	return _starpu_barrier_counter_get_reached_start(&sched_ctx->ready_tasks_barrier);
 }
 
-double _starpu_get_nready_flops_of_sched_ctx(unsigned sched_ctx_id)
+double starpu_get_nready_flops_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	return sched_ctx->ready_tasks_barrier.barrier.reached_flops;
+	return _starpu_barrier_counter_get_reached_flops(&sched_ctx->ready_tasks_barrier);
 }
 
 int _starpu_wait_for_no_ready_of_sched_ctx(unsigned sched_ctx_id)
@@ -958,11 +960,48 @@ unsigned _starpu_sched_ctx_get_current_context()
 void starpu_sched_ctx_notify_hypervisor_exists()
 {
 	with_hypervisor = 1;
+	int i, j;
+	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	{
+		hyp_start_sample[i] = starpu_timing_now();
+		hyp_start_allow_sample[i] = 0.0;
+		for(j = 0; j < STARPU_NMAXWORKERS; j++)
+		{
+			flops[i][j] = 0.0;
+			data_size[i][j] = 0;
+		}
+	}
 }
 
 unsigned starpu_sched_ctx_check_if_hypervisor_exists()
 {
 	return with_hypervisor;
+}
+
+unsigned _starpu_sched_ctx_allow_hypervisor(unsigned sched_ctx_id)
+{
+	return 1;
+	double now = starpu_timing_now();
+	if(hyp_start_allow_sample[sched_ctx_id] > 0.0)
+	{
+		double allow_sample = (now - hyp_start_allow_sample[sched_ctx_id]) / 1000000.0;
+		if(allow_sample < 0.001)
+			return 1;
+		else
+		{
+			hyp_start_allow_sample[sched_ctx_id] = 0.0;
+			hyp_start_sample[sched_ctx_id] = starpu_timing_now();
+			return 0;
+		}
+	}
+	double forbid_sample = (now - hyp_start_sample[sched_ctx_id]) / 1000000.0;
+	if(forbid_sample > 0.01)
+	{
+//		hyp_start_sample[sched_ctx_id] = starpu_timing_now();
+		hyp_start_allow_sample[sched_ctx_id] = starpu_timing_now();
+		return 1;
+	}
+	return 0;
 }
 
 unsigned _starpu_get_nsched_ctxs()
@@ -1198,14 +1237,25 @@ void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id)
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 
-void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint)
+void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task, size_t data_size2, uint32_t footprint)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	if(sched_ctx != NULL && task->sched_ctx != _starpu_get_initial_sched_ctx()->id && 
 	   task->sched_ctx != STARPU_NMAX_SCHED_CTXS  && sched_ctx->perf_counters != NULL)
-		sched_ctx->perf_counters->notify_post_exec_task(task, data_size, footprint, task->hypervisor_tag, 
-								_starpu_get_nready_tasks_of_sched_ctx(sched_ctx->id), 
-								_starpu_get_nready_flops_of_sched_ctx(sched_ctx->id));
+	{
+		flops[task->sched_ctx][workerid] += task->flops;
+		data_size[task->sched_ctx][workerid] += data_size2;
+
+		if(_starpu_sched_ctx_allow_hypervisor(sched_ctx->id) || task->hypervisor_tag > 0)
+		{
+			_STARPU_TRACE_HYPERVISOR_BEGIN();
+			sched_ctx->perf_counters->notify_post_exec_task(task, data_size[task->sched_ctx][workerid], footprint,
+									task->hypervisor_tag, flops[task->sched_ctx][workerid]);
+			_STARPU_TRACE_HYPERVISOR_END();
+			flops[task->sched_ctx][workerid] = 0.0;
+			data_size[task->sched_ctx][workerid] = 0;
+		}
+	}
 }
 
 void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
@@ -1213,8 +1263,12 @@ void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id)
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
 	if(sched_ctx != NULL && sched_ctx_id != _starpu_get_initial_sched_ctx()->id && sched_ctx_id != STARPU_NMAX_SCHED_CTXS
-	   && sched_ctx->perf_counters != NULL)
+	   && sched_ctx->perf_counters != NULL && _starpu_sched_ctx_allow_hypervisor(sched_ctx_id))
+	{
+		_STARPU_TRACE_HYPERVISOR_BEGIN();
 		sched_ctx->perf_counters->notify_pushed_task(sched_ctx_id, workerid);
+		_STARPU_TRACE_HYPERVISOR_END();
+	}
 }
 #endif //STARPU_USE_SC_HYPERVISOR
 

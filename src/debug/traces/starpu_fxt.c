@@ -685,6 +685,28 @@ static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "B");
 }
 
+static void handle_hyp_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	int worker;
+	worker = find_worker_id(ev->param[0]);
+	if (worker < 0)
+		return;
+
+	if (out_paje_file)
+		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H");
+}
+
+static void handle_hyp_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+/* 	int worker; */
+/* 	worker = find_worker_id(ev->param[0]); */
+/* 	if (worker < 0) */
+/* 		return; */
+
+/* 	if (out_paje_file) */
+/* 		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B"); */
+}
+
 static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
 {
 	int worker;
@@ -1677,6 +1699,14 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 
 			case _STARPU_FUT_SCHED_NODE_PUSH_PRIO:
+				break;
+
+			case _STARPU_FUT_HYPERVISOR_BEGIN:
+				handle_hyp_begin(&ev, options);
+				break;
+
+			case _STARPU_FUT_HYPERVISOR_END:
+				handle_hyp_end(&ev, options);
 				break;
 
 			default:

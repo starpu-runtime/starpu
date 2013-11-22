@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]
 #include <stdio.h>
 
 /* Task declaration.  */
@@ -43,4 +43,4 @@ int main ()
 
   return 0;
 }
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]

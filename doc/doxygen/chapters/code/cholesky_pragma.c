@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]
 extern void cholesky(unsigned nblocks, unsigned size,
                     float mat[nblocks][nblocks][size])
   __attribute__ ((task));
@@ -47,4 +47,4 @@ main (int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]

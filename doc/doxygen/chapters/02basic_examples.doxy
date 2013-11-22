@@ -22,7 +22,7 @@ implementations (for CPU, OpenCL, and/or CUDA), and invoke the task like
 a regular C function.  The example below defines <c>my_task</c> which
 has a single implementation for CPU:
 
-\snippet hello_pragma.c To be included
+\snippet hello_pragma.c To be included. You should update doxygen if you see that text.
 
 The code can then be compiled and linked with GCC and the flag <c>-fplugin</c>:
 
@@ -109,9 +109,7 @@ starpu_task_create(). This function only allocates and fills the
 corresponding structure with the default settings, but it does not
 submit the task to StarPU.
 
-\internal
-not really clear ;)
-\endinternal
+// not really clear ;)
 
 The field starpu_task::cl is a pointer to the codelet which the task will
 execute: in other words, the codelet structure describes which computational
@@ -198,9 +196,7 @@ not count the argument --- the parameter <c>cl_arg</c> of the function
 <c>cpu_func</c> --- since it is not managed by our data management
 library, but just contains trivial parameters.
 
-\internal
-TODO rewrite so that it is a little clearer ?
-\endinternal
+// TODO rewrite so that it is a little clearer ?
 
 Be aware that this may be a pointer to a
 \em copy of the actual buffer, and not the pointer given by the programmer:
@@ -352,7 +348,7 @@ vector_scal (unsigned size, float vector[size], float factor)
 Next, the body of the program, which uses the task defined above, can be
 implemented:
 
-\snippet hello_pragma2.c To be included
+\snippet hello_pragma2.c To be included. You should update doxygen if you see that text.
 
 The function <c>main</c> above does several things:
 
@@ -488,7 +484,7 @@ The actual implementation of the CUDA task goes into a separate
 compilation unit, in a <c>.cu</c> file.  It is very close to the
 implementation when using StarPU's standard C API (\ref DefinitionOfTheCUDAKernel).
 
-\snippet scal_pragma.cu To be included
+\snippet scal_pragma.cu To be included. You should update doxygen if you see that text.
 
 The complete source code, in the directory <c>gcc-plugin/examples/vector_scal</c>
 of the StarPU distribution, also shows how an SSE-specialized
@@ -628,7 +624,7 @@ that the vector pointer returned by ::STARPU_VECTOR_GET_PTR is here a
 pointer in GPU memory, so that it can be passed as such to the
 kernel call <c>vector_mult_cuda</c>.
 
-\snippet vector_scal_cuda.cu To be included
+\snippet vector_scal_cuda.cu To be included. You should update doxygen if you see that text.
 
 \subsection DefinitionOfTheOpenCLKernel Definition of the OpenCL Kernel
 
@@ -650,7 +646,7 @@ which returns a <c>cl_mem</c> (which is not a device pointer, but an OpenCL
 handle), which can be passed as such to the OpenCL kernel. The difference is
 important when using partitioning, see \ref PartitioningData.
 
-\snippet vector_scal_opencl.c To be included
+\snippet vector_scal_opencl.c To be included. You should update doxygen if you see that text.
 
 \subsection DefinitionOfTheMainCode Definition of the Main Code
 
@@ -661,7 +657,7 @@ starpu_codelet::cuda_funcs and starpu_codelet::opencl_funcs are set to
 define the pointers to the CUDA and OpenCL implementations of the
 task.
 
-\snippet vector_scal_c.c To be included
+\snippet vector_scal_c.c To be included. You should update doxygen if you see that text.
 
 \subsection ExecutionOfHybridVectorScaling Execution of Hybrid Vector Scaling
 

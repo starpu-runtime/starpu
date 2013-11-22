@@ -298,7 +298,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
 	_starpu_decrement_nready_tasks_of_sched_ctx(sched_ctx, flops);
-
 	struct _starpu_worker *worker;
 	worker = _starpu_get_local_worker_key();
 	if (worker)

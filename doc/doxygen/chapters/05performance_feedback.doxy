@@ -108,10 +108,8 @@ these values during the time, for the different workers.
 
 TODO: ajouter \ref STARPU_BUS_STATS
 
-\internal
-how to enable/disable performance monitoring
-what kind of information do we get ?
-\endinternal
+// how to enable/disable performance monitoring
+// what kind of information do we get ?
 
 The bus speed measured by StarPU can be displayed by using the tool
 <c>starpu_machine_display</c>, for instance:
@@ -608,10 +606,7 @@ task, and each color corresponds to a codelet.
 \image html data_trace.png
 \image latex data_trace.eps "" width=\textwidth
 
-
-\internal
-TODO: data transfer stats are similar to the ones displayed when
-setting STARPU_BUS_STATS
-\endinternal
+// TODO: data transfer stats are similar to the ones displayed when
+// setting STARPU_BUS_STATS
 
 */

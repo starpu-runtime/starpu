@@ -1,3 +1,4 @@
+
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011 - 2013  INRIA
@@ -24,8 +25,8 @@ int resize_no = 0;
 static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
 {
 	/* for vite */
-/* 	printf("resize_no = %d\n", resize_no); */
-/* 	starpu_trace_user_event(resize_no++); */
+	printf("resize_no = %d\n", resize_no);
+	starpu_trace_user_event(resize_no++);
 	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 	unsigned *curr_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
 	unsigned curr_nworkers = nworkers == -1 ? starpu_worker_get_count() : (unsigned)nworkers;
@@ -63,19 +64,20 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, i
 static void feft_lp_handle_poped_task(__attribute__((unused))unsigned sched_ctx, __attribute__((unused))int worker, 
 				      __attribute__((unused))struct starpu_task *task, __attribute__((unused))uint32_t footprint)
 {
-	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
-	if(ret != EBUSY)
+	unsigned criteria = sc_hypervisor_get_resize_criteria();
+	if(criteria != SC_NOTHING && criteria == SC_SPEED)
 	{
-		unsigned criteria = sc_hypervisor_get_resize_criteria();
-		if(criteria != SC_NOTHING && criteria == SC_SPEED)
+
+		int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
+		if(ret != EBUSY)
 		{
 			if(sc_hypervisor_check_speed_gap_btw_ctxs())
 			{
 				_try_resizing(NULL, -1, NULL, -1);
 			}
-		}
 	
-		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+			starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+		}
 	}
 
 }
@@ -151,16 +153,16 @@ static void feft_lp_size_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *worker
 
 static void feft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 {
-	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
-	if(ret != EBUSY)
+	unsigned criteria = sc_hypervisor_get_resize_criteria();
+	if(criteria != SC_NOTHING && criteria == SC_IDLE)
 	{
-		unsigned criteria = sc_hypervisor_get_resize_criteria();
-		if(criteria != SC_NOTHING && criteria == SC_IDLE)
+		int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
+		if(ret != EBUSY)
 		{
 			if(sc_hypervisor_check_idle(sched_ctx, worker))
 				_try_resizing(NULL, -1, NULL, -1);
+			starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 		}
-		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
 }
 

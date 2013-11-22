@@ -26,6 +26,7 @@
 #include <core/task_bundle.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <common/fxt.h>
 #include <profiling/profiling.h>
 #include <profiling/bound.h>
 #include <math.h>
@@ -259,7 +260,9 @@ int _starpu_submit_job(struct _starpu_job *j)
 				data_size += _starpu_data_get_size(handle);
 		}
 
+		_STARPU_TRACE_HYPERVISOR_BEGIN();
 		sched_ctx->perf_counters->notify_submitted_job(j->task, j->footprint, data_size);
+		_STARPU_TRACE_HYPERVISOR_END();
 	}
 #endif//STARPU_USE_SC_HYPERVISOR
 
@@ -659,7 +662,6 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 1;
 	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops);
-
 	for (i=0 ; i<task->cl->nbuffers ; i++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
@@ -852,7 +854,7 @@ int starpu_task_nready(void)
 	int nready = 0;
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
-		nready = _starpu_get_nready_tasks_of_sched_ctx(0);
+		nready = starpu_get_nready_tasks_of_sched_ctx(0);
 	else
 	{
 		int s;
@@ -860,7 +862,7 @@ int starpu_task_nready(void)
 		{
 			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
 			{
-				nready += _starpu_get_nready_tasks_of_sched_ctx(config->sched_ctxs[s].id);
+				nready += starpu_get_nready_tasks_of_sched_ctx(config->sched_ctxs[s].id);
 			}
 		}
 	}

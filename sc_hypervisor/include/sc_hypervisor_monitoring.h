@@ -100,14 +100,15 @@ struct sc_hypervisor_wrapper
 	/* number of flops that still have to be executed in this ctx */
 	double remaining_flops;
 	
-	/* number of flops coresponding to the ready tasks in this ctx */
-	double ready_flops;
-
 	/* the start time of the resizing sample of this context*/
 	double start_time;
 
 	/* the first time a task was pushed to this context*/
 	double real_start_time;
+	
+	/* the start time for sample in which the hyp is not allowed to react
+	   bc too expensive */
+	double hyp_react_start_time;
 
 	/* the workers don't leave the current ctx until the receiver ctx 
 	   doesn't ack the receive of these workers */
@@ -119,9 +120,6 @@ struct sc_hypervisor_wrapper
 	/* boolean indicating if the resizing strategy can see the
 	   flops of all the execution or not */
 	unsigned total_flops_available;
-
-	/* the number of ready tasks submitted to a ctx */
-	int nready_tasks;
 
 	/* boolean indicating that a context is being sized */
 	unsigned to_be_sized;

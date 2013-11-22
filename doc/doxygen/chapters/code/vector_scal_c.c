@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]
 /*
  * This example demonstrates how to use StarPU to scale an array by a factor.
  * It shows how to manipulate data with StarPU's data management library.
@@ -125,4 +125,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]
