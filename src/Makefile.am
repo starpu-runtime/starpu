@@ -261,8 +261,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/tree_random.c				\
 	sched_policies/tree_random_prefetching.c			\
 	sched_policies/tree_ws.c				\
-	sched_policies/tree_heft.c				\
-	sched_policies/scheduler_maker.c			
+	sched_policies/tree_heft.c
 
 
 if STARPU_HAVE_LEVELDB
