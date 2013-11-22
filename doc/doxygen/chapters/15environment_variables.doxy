@@ -640,4 +640,6 @@ If this variable is set to <c>time</c> the hypervisor uses a sample of time (10%
 execution time of the application)
 </dd>
 
+</dl>
+
 */
