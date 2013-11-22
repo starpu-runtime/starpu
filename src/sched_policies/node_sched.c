@@ -470,12 +470,14 @@ double starpu_sched_node_transfer_length(struct starpu_sched_node * node, struct
  */
 void starpu_sched_node_prefetch_on_node(struct starpu_sched_node * node, struct starpu_task * task)
 {
-       if (starpu_get_prefetch_flag() && (node->properties >= STARPU_SCHED_NODE_SINGLE_MEMORY_NODE))
-       {
-               int worker = starpu_bitmap_first(node->workers_in_ctx);
-               unsigned memory_node = starpu_worker_get_memory_node(worker);
-               starpu_prefetch_task_input_on_node(task, memory_node);
-       }
+	if (starpu_get_prefetch_flag() && (!task->prefetched)
+		&& (node->properties >= STARPU_SCHED_NODE_SINGLE_MEMORY_NODE))
+	{
+		int worker = starpu_bitmap_first(node->workers_in_ctx);
+		unsigned memory_node = starpu_worker_get_memory_node(worker);
+		starpu_prefetch_task_input_on_node(task, memory_node);
+		task->prefetched = 1;
+	}
 }
 
 /* The default implementation of the room function is a recursive call to its fathers.

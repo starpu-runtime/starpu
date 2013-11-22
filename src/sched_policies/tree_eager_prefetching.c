@@ -17,13 +17,16 @@
 #include <starpu_sched_node.h>
 #include <starpu_scheduler.h>
 
-#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 4
+#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 2
 #define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
 static unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
 static double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
 
 static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 {
+	_STARPU_DISP("Warning: you are running the default tree-eager-prefetching scheduler, which is not very smart. Make sure to read the StarPU documentation about adding performance models in order to be able to use the tree-heft scheduler instead.\n");
+
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	const char *strval_ntasks_threshold = getenv("STARPU_NTASKS_THRESHOLD");
 	if (strval_ntasks_threshold)
 		ntasks_threshold = atof(strval_ntasks_threshold);

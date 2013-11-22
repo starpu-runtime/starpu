@@ -19,6 +19,8 @@
 
 static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
+	_STARPU_DISP("Warning: you are running the default tree-eager scheduler, which is not very smart. Make sure to read the StarPU documentation about adding performance models in order to be able to use the tree-heft scheduler instead.\n");
+
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
  	t->root = starpu_sched_node_fifo_create(NULL);

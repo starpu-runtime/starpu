@@ -171,6 +171,7 @@ struct starpu_task
 	double flops;
 
 	unsigned scheduled;
+	unsigned prefetched;
 };
 
 #define STARPU_TASK_INITIALIZER 			\
@@ -198,6 +199,7 @@ struct starpu_task
 	.hypervisor_tag = 0,				\
 	.flops = 0.0,					\
 	.scheduled = 0,					\
+	.prefetched = 0,					\
 	.dyn_handles = NULL,				\
 	.dyn_interfaces = NULL,				\
 	.name = NULL                        		\

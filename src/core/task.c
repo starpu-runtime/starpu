@@ -81,6 +81,7 @@ void starpu_task_init(struct starpu_task *task)
 	task->flops = 0.0;
 
 	task->scheduled = 0;
+	task->prefetched = 0;
 
 	task->dyn_handles = NULL;
 	task->dyn_interfaces = NULL;

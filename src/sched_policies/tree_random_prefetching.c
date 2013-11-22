@@ -17,7 +17,7 @@
 #include <starpu_sched_node.h>
 #include <starpu_scheduler.h>
 
-#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 4
+#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 2
 #define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
 static unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
 static double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;

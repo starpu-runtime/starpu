@@ -658,6 +658,7 @@ static void _starpu_set_data_requested_flag_if_needed(struct _starpu_data_replic
 
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 {
+	STARPU_ASSERT(!task->prefetched);
 	unsigned nbuffers = task->cl->nbuffers;
 	unsigned index;
 
@@ -671,9 +672,6 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 		
-		if (replicate->state != STARPU_INVALID)
-			continue;
-
 		prefetch_data_on_node(handle, replicate, mode);
 
 		_starpu_set_data_requested_flag_if_needed(replicate);
