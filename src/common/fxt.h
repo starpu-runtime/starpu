@@ -697,13 +697,10 @@ do {										\
 #define _STARPU_TRACE_MEMORY_FULL(size)				do {} while(0)
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)	do {} while(0)
 #define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {} while(0)
-<<<<<<< .courant
 #define _STARPU_TRACE_SCHED_NODE_PUSH_PRIO(workerid, ntasks, exp_len)	do {} while(0)
 #define _STARPU_TRACE_SCHED_NODE_POP_PRIO(workerid, ntasks, exp_len)	do {} while(0)
-=======
 #define _STARPU_TRACE_HYPERVISOR_BEGIN()        do {} while(0)
 #define _STARPU_TRACE_HYPERVISOR_END()                  do {} while(0)
->>>>>>> .fusion-droit.r11635
 
 #endif // STARPU_USE_FXT
 
