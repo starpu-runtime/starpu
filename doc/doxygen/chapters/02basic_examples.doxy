@@ -109,9 +109,7 @@ starpu_task_create(). This function only allocates and fills the
 corresponding structure with the default settings, but it does not
 submit the task to StarPU.
 
-\internal
-not really clear ;)
-\endinternal
+// not really clear ;)
 
 The field starpu_task::cl is a pointer to the codelet which the task will
 execute: in other words, the codelet structure describes which computational
@@ -198,9 +196,7 @@ not count the argument --- the parameter <c>cl_arg</c> of the function
 <c>cpu_func</c> --- since it is not managed by our data management
 library, but just contains trivial parameters.
 
-\internal
-TODO rewrite so that it is a little clearer ?
-\endinternal
+// TODO rewrite so that it is a little clearer ?
 
 Be aware that this may be a pointer to a
 \em copy of the actual buffer, and not the pointer given by the programmer:

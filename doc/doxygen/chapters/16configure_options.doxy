@@ -408,9 +408,7 @@ CUDA. Still experimental.
 \anchor enable-opengl-render
 \addindex __configure__--enable-opengl-render
 Enable the use of OpenGL for the rendering of some examples.
-\internal
-TODO: rather default to enabled when detected
-\endinternal
+// TODO: rather default to enabled when detected
 </dd>
 
 <dt>--enable-blas-lib</dt>
