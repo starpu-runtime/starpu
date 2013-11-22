@@ -218,8 +218,9 @@ $(DOX_TAG): $(dox_inputs)
 	sed -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
 	sed -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
         # comment for the line above: what we really want to do is to remove the line, but dy doing so, it avoids opening the interactive menu when browsing files
-	sed -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js
+	if test -f html/navtree.js ; then sed -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
 	sed -i 's/.*"Files.html".*//' html/pages.html
+	if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
 
 dist_pdf_DATA = $(DOX_PDF)
 

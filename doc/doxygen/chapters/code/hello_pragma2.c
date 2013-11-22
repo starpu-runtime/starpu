@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]
 int main (void)
 {
 #pragma starpu initialize
@@ -40,4 +40,4 @@ int main (void)
 
   return valid ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]

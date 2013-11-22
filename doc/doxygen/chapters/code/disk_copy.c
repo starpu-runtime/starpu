@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]
 
 /* Try to write into disk memory
  * Use mechanism to push datas from main ram to disk ram
@@ -119,4 +119,4 @@ enoent:
 	return 77;
 }
 
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]

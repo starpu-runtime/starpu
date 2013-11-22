@@ -14,7 +14,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]
 #include <starpu.h>
 
 static __global__ void vector_mult_cuda(unsigned n, float *val,
@@ -41,4 +41,4 @@ extern "C" void scal_cuda_func(void *buffers[], void *_args)
 
         cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]

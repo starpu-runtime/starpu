@@ -16,7 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]
 #include <starpu.h>
 
 extern struct starpu_opencl_program programs;
@@ -75,4 +75,4 @@ void scal_opencl_func(void *buffers[], void *_args)
 	 starpu_opencl_release_kernel(kernel);
     }
 }
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]
