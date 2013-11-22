@@ -10,25 +10,25 @@
 
 \section MainApplication Main Application
 
-\snippet vector_scal_c.c To be included
+\snippet vector_scal_c.c To be included. You should update doxygen if you see that text.
 
 \section CPUKernel CPU Kernel
 
-\snippet vector_scal_cpu.c To be included
+\snippet vector_scal_cpu.c To be included. You should update doxygen if you see that text.
 
 \section CUDAKernel CUDA Kernel
 
-\snippet vector_scal_cuda.cu To be included
+\snippet vector_scal_cuda.cu To be included. You should update doxygen if you see that text.
 
 \section OpenCLKernel OpenCL Kernel
 
 \subsection InvokingtheKernel Invoking the Kernel
 
-\snippet vector_scal_opencl.c To be included
+\snippet vector_scal_opencl.c To be included. You should update doxygen if you see that text.
 
 \subsection SourceoftheKernel Source of the Kernel
 
-\snippet vector_scal_opencl_codelet.cl To be included
+\snippet vector_scal_opencl_codelet.cl To be included. You should update doxygen if you see that text.
 
 */
 
