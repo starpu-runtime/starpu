@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]
 static struct starpu_codelet cl11 =
 {
 	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
@@ -29,4 +29,4 @@ static struct starpu_codelet cl11 =
 	.modes = {STARPU_RW},
 	.model = &chol_model_11
 };
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]

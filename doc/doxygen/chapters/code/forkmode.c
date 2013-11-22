@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]
 void scal_cpu_func(void *buffers[], void *_args)
 {
     unsigned i;
@@ -39,4 +39,4 @@ static struct starpu_codelet cl =
     .cpu_funcs_name = {"scal_cpu_func", NULL},
     .nbuffers = 1,
 };
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]

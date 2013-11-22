@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]
 /* This program is valid, whether or not StarPU's GCC plug-in
    is being used.  */
 
@@ -70,4 +70,4 @@ main (int argc, char *argv[])
 
   return EXIT_SUCCESS;
 }
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]
