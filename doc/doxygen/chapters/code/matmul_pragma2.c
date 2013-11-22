@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]
 /* Use the `task' attribute only when StarPU's GCC plug-in
    is available.   */
 #ifdef STARPU_GCC_PLUGIN
@@ -26,4 +26,4 @@
 
 static void matmul (const float *A, const float *B, float *C,
                     unsigned nx, unsigned ny, unsigned nz) __task;
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]

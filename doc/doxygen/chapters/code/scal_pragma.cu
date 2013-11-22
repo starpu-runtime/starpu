@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]
 /* CUDA implementation of the `vector_scal' task, to be compiled with `nvcc'. */
 
 #include <starpu.h>
@@ -42,4 +42,4 @@ vector_scal_cuda (size_t size, float vector[], float factor)
 
   cudaStreamSynchronize (starpu_cuda_get_local_stream ());
 }
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]

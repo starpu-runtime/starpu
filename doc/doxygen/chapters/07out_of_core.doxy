@@ -47,10 +47,10 @@ All structures are in \ref API_Out_Of_Core .
 
 \section ExampleDiskCopy Examples: disk_copy
 
-\snippet disk_copy.c To be included. You should update doxygen if you see that text.
+\snippet disk_copy.c To be included. You should update doxygen if you see this text.
 
 \section ExampleDiskCompute Examples: disk_compute
 
-\snippet disk_compute.c To be included. You should update doxygen if you see that text.
+\snippet disk_compute.c To be included. You should update doxygen if you see this text.
 
 */
