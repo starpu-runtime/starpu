@@ -464,6 +464,10 @@ double starpu_sched_node_transfer_length(struct starpu_sched_node * node, struct
 	return sum / nworkers;
 }
 
+/* This function can be called by nodes when they think that a prefetching request can be submitted.
+ * For example, it is currently used by the MCT node to begin the prefetching on accelerators 
+ * on which it pushed tasks as soon as possible.
+ */
 void starpu_sched_node_prefetch_on_node(struct starpu_sched_node * node, struct starpu_task * task)
 {
        if (starpu_get_prefetch_flag() && (node->properties >= STARPU_SCHED_NODE_SINGLE_MEMORY_NODE))
@@ -474,6 +478,10 @@ void starpu_sched_node_prefetch_on_node(struct starpu_sched_node * node, struct 
        }
 }
 
+/* The default implementation of the room function is a recursive call to its fathers.
+ * A personally-made room in a node (like in prio nodes) is necessary to catch
+ * this recursive call somewhere, if the user wants to exploit it.
+ */
 void starpu_sched_node_room(struct starpu_sched_node * node, unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
@@ -483,6 +491,10 @@ void starpu_sched_node_room(struct starpu_sched_node * node, unsigned sched_ctx_
 		father->room(father, sched_ctx_id);
 }
 
+/* An avail call will try to wake up one worker associated to the childs of the
+ * node. It is currenly called by nodes which holds a queue (like fifo and prio
+ * nodes) to signify its childs that a task has been pushed on its local queue.
+ */
 int starpu_sched_node_avail(struct starpu_sched_node * node)
 {
 	STARPU_ASSERT(node);

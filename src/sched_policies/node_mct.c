@@ -19,7 +19,7 @@
 #include <starpu_perfmodel.h>
 #include <float.h>
 
-struct _starpu_heft_data
+struct _starpu_mct_data
 {
 	double alpha;
 	double beta;
@@ -58,7 +58,7 @@ double compute_expected_time(double now, double predicted_end, double predicted_
 }
 
 
-static double compute_fitness(struct _starpu_heft_data * d, double exp_end, double best_exp_end, double max_exp_end, double transfer_len, double local_power)
+static double compute_fitness(struct _starpu_mct_data * d, double exp_end, double best_exp_end, double max_exp_end, double transfer_len, double local_power)
 {
 	return d->alpha * (exp_end - best_exp_end)
 		+ d->beta * transfer_len
@@ -66,10 +66,10 @@ static double compute_fitness(struct _starpu_heft_data * d, double exp_end, doub
 		+ d->gamma * d->idle_power * (exp_end - max_exp_end);
 }
 
-static int heft_push_task(struct starpu_sched_node * node, struct starpu_task * task)
+static int mct_push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
-	STARPU_ASSERT(node && task && starpu_sched_node_is_heft(node));
-	struct _starpu_heft_data * d = node->data;	
+	STARPU_ASSERT(node && task && starpu_sched_node_is_mct(node));
+	struct _starpu_mct_data * d = node->data;	
 	struct starpu_sched_node * best_node = NULL;
 	double estimated_ends[node->nchilds];
 	double estimated_ends_with_task[node->nchilds];
@@ -128,29 +128,26 @@ static int heft_push_task(struct starpu_sched_node * node, struct starpu_task * 
 
 	int ret = best_node->push_task(best_node, task);
 
-	if(!ret)
-		starpu_sched_node_prefetch_on_node(best_node, task);
-
 	return ret;
 }
 
-void heft_node_deinit_data(struct starpu_sched_node * node)
+void mct_node_deinit_data(struct starpu_sched_node * node)
 {
-	STARPU_ASSERT(starpu_sched_node_is_heft(node));
-	struct _starpu_heft_data * d = node->data;
+	STARPU_ASSERT(starpu_sched_node_is_mct(node));
+	struct _starpu_mct_data * d = node->data;
 	free(d);
 }
 
-int starpu_sched_node_is_heft(struct starpu_sched_node * node)
+int starpu_sched_node_is_mct(struct starpu_sched_node * node)
 {
-	return node->push_task == heft_push_task;
+	return node->push_task == mct_push_task;
 }
 
-struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data * params)
+struct starpu_sched_node * starpu_sched_node_mct_create(struct starpu_mct_data * params)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
 
-	struct _starpu_heft_data * data = malloc(sizeof(*data));
+	struct _starpu_mct_data * data = malloc(sizeof(*data));
 	data->alpha = params->alpha;
 	data->beta = params->beta;
 	data->gamma = params->gamma;
@@ -158,8 +155,8 @@ struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data
 
 	node->data = data;
 
-	node->push_task = heft_push_task;
-	node->deinit_data = heft_node_deinit_data;
+	node->push_task = mct_push_task;
+	node->deinit_data = mct_node_deinit_data;
 
 	return node;
 }

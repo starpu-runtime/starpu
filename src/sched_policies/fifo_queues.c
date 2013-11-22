@@ -148,6 +148,24 @@ int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_
 	return 0;
 }
 
+int _starpu_fifo_push_back_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task)
+{
+
+	if (task->priority > 0)
+	{
+		_starpu_fifo_push_sorted_task(fifo_queue, task);
+	}
+	else
+	{
+		starpu_task_list_push_front(&fifo_queue->taskq, task);
+
+		fifo_queue->ntasks++;
+		fifo_queue->nprocessed++;
+	}
+
+	return 0;
+}
+
 struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue, int workerid)
 {
 	struct starpu_task *task;

@@ -115,7 +115,7 @@ static int prio_push_task(struct starpu_sched_node * node, struct starpu_task * 
 	struct _starpu_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int ret;
-
+	
 	STARPU_ASSERT(node->nchilds == 1);
 	struct starpu_sched_node * child = node->childs[0];
 	if(starpu_sched_node_is_worker(child))
@@ -135,18 +135,18 @@ static int prio_push_task(struct starpu_sched_node * node, struct starpu_task * 
 		if((data->ntasks_threshold != 0) && (data->exp_len_threshold != 0.0) && 
 				((prio->ntasks >= data->ntasks_threshold) || (exp_len >= data->exp_len_threshold)))
 		{
-			/*
-			if(task->predicted > data->exp_len_threshold)
+			static int warned;
+			if(task->predicted > data->exp_len_threshold && !warned)
 			{
-				_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio node queue, you should reconsider the value of this thresold\n",task->predicted,data->exp_len_threshold);
-				data->exp_len_threshold *= 2;
+				_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio node queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
+				warned = 1;
 			}
-			*/
 			ret = 1;
 			STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 		}
 		else
 		{
+			starpu_sched_node_prefetch_on_node(node, task);
 			ret = _starpu_prio_deque_push_task(prio,task);
 			STARPU_TRACE_SCHED_NODE_PUSH_PRIO(node, prio->ntasks, exp_len);
 			if(!isnan(task->predicted))
@@ -159,6 +159,9 @@ static int prio_push_task(struct starpu_sched_node * node, struct starpu_task * 
 			STARPU_ASSERT(!isnan(prio->exp_start));
 			STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
+			// When a task is pushed onto the local queue, we signify to our children
+			// that a task has been pushed, and that if everyone is sleeping, someone
+			// needs to wake up to come and take it.
 			node->avail(node);
 		}
 	}
@@ -202,6 +205,9 @@ static int prio_push_back_task(struct starpu_sched_node * node, struct starpu_ta
 		STARPU_ASSERT(!isnan(prio->exp_start));
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
+		// When a task is pushed onto the local queue, we signify to our children
+		// that a task has been pushed, and that if everyone is sleeping, someone
+		// needs to wake up to come and take it.
 		node->avail(node);
 	}
 	return ret;
@@ -238,6 +244,8 @@ static struct starpu_task * prio_pop_task(struct starpu_sched_node * node, unsig
 	STARPU_ASSERT(!isnan(prio->exp_start));
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
+	// When a pop is called, a room is called for pushing tasks onto
+	// the empty place of the queue left by the popped task.
 	struct starpu_sched_node * father = node->fathers[sched_ctx_id];
 	if(father != NULL)
 		father->room(father, sched_ctx_id);
@@ -248,6 +256,11 @@ static struct starpu_task * prio_pop_task(struct starpu_sched_node * node, unsig
 	return NULL;
 }
 
+/* When a room is caught by this function, we try to pop and push
+ * tasks from our local queue as much as possible, until a
+ * push fails, which means that the worker prio_nodes are
+ * currently "full".
+ */
 static void prio_room(struct starpu_sched_node * node, unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(node && starpu_sched_node_is_prio(node));

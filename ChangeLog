@@ -56,6 +56,10 @@ New features:
     the scheduling decision.
   * Add a watchdog which permits to easily trigger a crash when StarPU gets
     stuck.
+  * New hierarchical schedulers which allow the user to easily build
+    its own scheduler, by coding itself each "box" it wants, or by
+    combining existing boxes in StarPU to build it. Hierarchical
+    schedulers have very interesting scalability properties.
 
 Small features:
   * New functions starpu_data_acquire_cb_sequential_consistency() and

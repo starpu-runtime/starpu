@@ -22,17 +22,15 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
-	struct starpu_sched_node * ws;
- 	t->root = ws = starpu_sched_node_work_stealing_create(NULL);
-	t->workers = starpu_bitmap_create();
+ 	t->root = starpu_sched_node_work_stealing_create(NULL);
 	unsigned i;
-	for(i = 0; i < starpu_worker_get_count(); i++)
+	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		struct starpu_sched_node * node = starpu_sched_node_worker_get(i);
-		if(!node)
-			continue;
-		node->fathers[sched_ctx_id] = ws;
-		ws->add_child(ws, node);
+		struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(i);
+		STARPU_ASSERT(worker_node);
+
+		t->root->add_child(t->root, worker_node);
+		starpu_sched_node_set_father(worker_node, t->root, sched_ctx_id);
 	}
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);

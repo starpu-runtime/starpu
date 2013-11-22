@@ -240,7 +240,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	top/starpu_top.c					\
 	top/starpu_top_task.c					\
 	top/starpu_top_message_queue.c				\
-	top/starpu_top_connection.c                          	\
+	top/starpu_top_connection.c                        	\
 	worker_collection/worker_list.c				\
 	sched_policies/node_worker.c				\
 	sched_policies/node_sched.c				\
@@ -249,15 +249,19 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/prio_deque.c				\
 	sched_policies/node_prio.c 				\
 	sched_policies/node_random.c				\
-	sched_policies/node_heft.c				\
+	sched_policies/node_eager.c				\
+	sched_policies/node_mct.c				\
 	sched_policies/node_best_implementation.c		\
-	sched_policies/node_calibrator.c				\
+	sched_policies/node_perfmodel_select.c				\
 	sched_policies/node_composed.c				\
 	sched_policies/tree_eager.c				\
+	sched_policies/tree_eager_prefetching.c				\
 	sched_policies/tree_prio.c				\
+	sched_policies/tree_prio_prefetching.c				\
 	sched_policies/tree_random.c				\
+	sched_policies/tree_random_prefetching.c			\
 	sched_policies/tree_ws.c				\
-	sched_policies/tree_dmda.c				\
+	sched_policies/tree_heft.c				\
 	sched_policies/scheduler_maker.c			
 
 

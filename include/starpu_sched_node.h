@@ -53,8 +53,9 @@ struct starpu_sched_node
 					 unsigned sched_ctx_id);
 
 	/* node->push_back_task(node, task)
-	 * This function is called when a push fails after a pop has been done,
-	 * to push it back correctly to the popped node
+	 * This function can be called by room-made functions to permit
+	 * the user to specify a particular push function which allows to
+	 * push back the task if the push submitted by the room function fail.
 	 */
 	int (*push_back_task)(struct starpu_sched_node *,
 			 struct starpu_task *);
@@ -105,7 +106,20 @@ struct starpu_sched_node
 	 */
 	int properties;
 
+	/* This function is called by a node which implements a queue, allowing it to
+	 * signify to its fathers that an empty slot is available in its queue.
+	 * The basic implementation of this function is a recursive call to its
+	 * fathers, the user have to specify a personally-made function to catch those
+	 * calls.
+	 */ 
 	void (*room)(struct starpu_sched_node * node, unsigned sched_ctx_id);
+	/* This function allow a node to wake up a worker.
+	 * It is currently called by node which implements a queue, to signify to
+	 * its childs that a task have been pushed in its local queue, and is
+	 * available to been popped by a worker, for example.
+	 * The basic implementation of this function is a recursive call to
+	 * its childs, until at least one worker have been woken up.
+	 */
 	int (*avail)(struct starpu_sched_node * node);
 
 #ifdef STARPU_HAVE_HWLOC
@@ -186,8 +200,11 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task);
 struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_node_is_random(struct starpu_sched_node *);
 
+struct starpu_sched_node * starpu_sched_node_eager_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+int starpu_sched_node_is_eager(struct starpu_sched_node *);
 
-struct starpu_heft_data
+
+struct starpu_mct_data
 {
 	double alpha;
 	double beta;
@@ -195,13 +212,13 @@ struct starpu_heft_data
 	double idle_power;
 };
 
-/* create a node with heft_data paremeters
-   a copy the struct starpu_heft_data * given is performed during the init_data call
-   the heft node doesnt do anything but pushing tasks on no_perf_model_node and calibrating_node
+/* create a node with mct_data paremeters
+   a copy the struct starpu_mct_data * given is performed during the init_data call
+   the mct node doesnt do anything but pushing tasks on no_perf_model_node and calibrating_node
 */
-struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_heft_data * heft_data);
+struct starpu_sched_node * starpu_sched_node_mct_create(struct starpu_mct_data * mct_data);
 
-int starpu_sched_node_is_heft(struct starpu_sched_node * node);
+int starpu_sched_node_is_mct(struct starpu_sched_node * node);
 
 /* this node select the best implementation for the first worker in context that can execute task.
  * and fill task->predicted and task->predicted_transfer
@@ -209,16 +226,16 @@ int starpu_sched_node_is_heft(struct starpu_sched_node * node);
  */
 struct starpu_sched_node * starpu_sched_node_best_implementation_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 
-struct starpu_calibrator_data
+struct starpu_perfmodel_select_data
 {
-	struct starpu_sched_node * (*no_perf_model_node_create)(void * arg_no_perf_model);
-	void * arg_no_perf_model;
-	struct starpu_sched_node * next_node;
+	struct starpu_sched_node * calibrator_node;
+	struct starpu_sched_node * no_perfmodel_node;
+	struct starpu_sched_node * perfmodel_node;
 };
 
-struct starpu_sched_node * starpu_sched_node_calibrator_create(struct starpu_calibrator_data * calibrator_data);
-int starpu_sched_node_is_calibrator(struct starpu_sched_node * node);
-int starpu_sched_node_calibrator_room(struct starpu_sched_node * node, unsigned sched_ctx_id);
+struct starpu_sched_node * starpu_sched_node_perfmodel_select_create(struct starpu_perfmodel_select_data * perfmodel_select_data);
+int starpu_sched_node_is_perfmodel_select(struct starpu_sched_node * node);
+int starpu_sched_node_perfmodel_select_room(struct starpu_sched_node * node, unsigned sched_ctx_id);
 
 /*create an empty tree
  */
