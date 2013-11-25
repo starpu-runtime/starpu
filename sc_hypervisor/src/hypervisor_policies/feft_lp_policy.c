@@ -25,7 +25,7 @@ static void _try_resizing(int *sched_ctxs, int nsched_ctxs)
 	/* for vite */
 	starpu_trace_user_event(2);
 	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
-	sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
+	int curr_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
 
 	double nworkers_per_ctx[ns][2];
 	int nw = 1;
@@ -40,7 +40,7 @@ static void _try_resizing(int *sched_ctxs, int nsched_ctxs)
 	struct timeval start_time;
 	struct timeval end_time;
 	gettimeofday(&start_time, NULL);
-	
+	printf("###########################################try resize\n");
 	double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_ctx, total_nw);
 	gettimeofday(&end_time, NULL);
 	
@@ -53,7 +53,7 @@ static void _try_resizing(int *sched_ctxs, int nsched_ctxs)
 	{
 		int nworkers_per_ctx_rounded[nsched_ctxs][nw];
 		sc_hypervisor_lp_round_double_to_int(ns, nw, nworkers_per_ctx, nworkers_per_ctx_rounded);
-		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, nw, nworkers_per_ctx_rounded, nworkers_per_ctx, sched_ctxs);
+		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, nw, nworkers_per_ctx_rounded, nworkers_per_ctx, curr_sched_ctxs);
 	}
 }
 
