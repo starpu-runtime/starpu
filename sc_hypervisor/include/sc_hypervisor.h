@@ -20,6 +20,7 @@
 #include <starpu.h>
 #include <sc_hypervisor_config.h>
 #include <sc_hypervisor_monitoring.h>
+#include <math.h>
 
 #ifdef __cplusplus
 extern "C"
