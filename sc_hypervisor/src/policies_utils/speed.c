@@ -64,7 +64,7 @@ double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w,
                 double curr_time = starpu_timing_now();
                 double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
 		elapsed_time -= sc_w->idle_time[worker];
-		sc_w->idle_time[worker] = 0.0;
+		
 
 /* 		size_t elapsed_data_used = sc_w->elapsed_data[worker]; */
 /*  		enum starpu_worker_archtype arch = starpu_worker_get_type(worker); */
@@ -84,7 +84,6 @@ double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w,
 /* 		} */
 			
                 double vel  = (elapsed_flops/elapsed_time);/* in Gflops/s */
-//		printf("%d in ctx %d: vel %lf\n", worker, sc_w->sched_ctx, vel);
 		sc_w->ref_velocity[worker] = sc_w->ref_velocity[worker] > 1.0 ? (sc_w->ref_velocity[worker] + vel) / 2 : vel; 
                 return vel;
         }
@@ -143,12 +142,9 @@ double sc_hypervisor_get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapp
                 enum starpu_worker_archtype req_arch = starpu_worker_get_type(worker);
                 if(arch == req_arch)
                 {
-		
-			if(sc_w->ref_velocity[worker] > 1.0)
-			{
-				ref_velocity += sc_w->ref_velocity[worker];
-				nw++;
-			}
+			if(sc_w->ref_velocity[worker] < 1.0) return -1.0;
+			ref_velocity += sc_w->ref_velocity[worker];
+			nw++;
 		}
 	}
 	
@@ -160,9 +156,13 @@ double sc_hypervisor_get_velocity(struct sc_hypervisor_wrapper *sc_w, enum starp
 
 	double velocity = sc_hypervisor_get_velocity_per_worker_type(sc_w, arch);
 	if(velocity == -1.0)
+	{
 		velocity = sc_hypervisor_get_ref_velocity_per_worker_type(sc_w, arch);
+	}
 	if(velocity == -1.0)
+	{
 		velocity = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
+	}
        
 	return velocity;
 }
