@@ -983,11 +983,11 @@ struct types_of_workers* sc_hypervisor_get_types_of_workers(int *workers, unsign
 	return tw;
 }
 
-void sc_hypervisor_update_total_flops(unsigned sched_ctx, double total_flops)
+void sc_hypervisor_update_diff_total_flops(unsigned sched_ctx, double diff_total_flops)
 {
-	double diff = total_flops - hypervisor.sched_ctx_w[sched_ctx].total_flops;
+//	double diff = total_flops - hypervisor.sched_ctx_w[sched_ctx].total_flops;
 	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
-	hypervisor.sched_ctx_w[sched_ctx].total_flops = total_flops;
-	hypervisor.sched_ctx_w[sched_ctx].remaining_flops += diff;	
+	hypervisor.sched_ctx_w[sched_ctx].total_flops += diff_total_flops;
+	hypervisor.sched_ctx_w[sched_ctx].remaining_flops += diff_total_flops;	
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }
