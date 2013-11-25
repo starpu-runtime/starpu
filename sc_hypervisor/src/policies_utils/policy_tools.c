@@ -430,9 +430,9 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 				{
 					if(arch == STARPU_CUDA_WORKER)
 					{
-						double transfer_speed = starpu_get_bandwidth_RAM_CUDA(worker);
+						double transfer_speed = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker));
 						transfer_time +=  (tp->data_size / transfer_speed) / 1000. ;
-						double latency = starpu_get_latency_RAM_CUDA(worker);
+						double latency =  starpu_transfer_latency(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker));
 						transfer_time += latency/1000.;
 						
 						
@@ -441,9 +441,9 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 					{
 						if(!starpu_sched_ctx_contains_type_of_worker(arch, tp->sched_ctx_id))
 						{
-							double transfer_speed = starpu_get_bandwidth_CUDA_RAM(worker);
+							double transfer_speed = starpu_transfer_bandwidth(starpu_worker_get_memory_node(worker), STARPU_MAIN_RAM);
 							transfer_time += (tp->data_size / transfer_speed) / 1000. ;
-							double latency = starpu_get_latency_CUDA_RAM(worker);
+							double latency = starpu_transfer_latency(starpu_worker_get_memory_node(worker), STARPU_MAIN_RAM);
 							transfer_time += latency / 1000.;
 						}
 					}

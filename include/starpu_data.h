@@ -85,6 +85,8 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node);
 
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async);
 
+#define STARPU_MAIN_RAM 0
+
 enum starpu_node_kind
 {
 	STARPU_UNUSED     = 0x00,
