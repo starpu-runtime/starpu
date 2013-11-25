@@ -813,7 +813,8 @@ int starpu_init(struct starpu_conf *user_conf)
 	for (worker = 0; worker < config.topology.nworkers; worker++)
 		_starpu_worker_init(&config.workers[worker], &config);
 
-	_starpu_create_sched_ctx(config.conf->sched_policy_name, NULL, -1, 1, "init");
+	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
+	_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init");
 
 	_starpu_initialize_registered_performance_models();
 
