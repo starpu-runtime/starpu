@@ -76,6 +76,7 @@ double starpu_task_bundle_expected_length(starpu_task_bundle_t bundle, enum star
 double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundle, unsigned memory_node);
 double starpu_task_bundle_expected_power(starpu_task_bundle_t bundle, enum starpu_perfmodel_archtype arch, unsigned nimpl);
 
+void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id);
 #ifdef __cplusplus
 }
 #endif
