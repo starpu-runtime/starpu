@@ -50,6 +50,9 @@ struct sc_hypervisor_wrapper
 	/* idle time of workers in this context */
 	double current_idle_time[STARPU_NMAXWORKERS];
 	
+	double idle_time[STARPU_NMAXWORKERS];
+	double idle_start_time[STARPU_NMAXWORKERS];
+	
 	/* list of workers that will leave this contexts (lazy resizing process) */
 	int worker_to_be_removed[STARPU_NMAXWORKERS];
 
