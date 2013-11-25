@@ -322,6 +322,8 @@ Use the compiler <c>mpicc</c> at <c>path</c>, for StarPU-MPI.
 Enable the activity polling method for StarPU-MPI.
 </dd>
 
+</dl>
+
 \section AdvancedConfiguration Advanced Configuration
 
 <dl>
