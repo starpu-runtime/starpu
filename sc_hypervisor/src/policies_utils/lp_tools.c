@@ -20,11 +20,6 @@
 #include "sc_hypervisor_intern.h"
 #include <starpu_config.h>
 
-#ifdef STARPU_HAVE_GLPK_H
-
-
-#endif //STARPU_HAVE_GLPK_H
-
 double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers], 
 					     int total_nw[ntypes_of_workers], struct types_of_workers *tw)
 {
@@ -228,7 +223,7 @@ void _lp_find_workers_to_accept(int nw, int ns, unsigned sched_ctx, int sched_ct
 		
 		int nw_ctx2 = sc_hypervisor_get_nworkers_ctx(sched_ctx, arch);
 		int nw_needed = res_rounded[sched_ctx_idx][w] - nw_ctx2;
-		
+
 		if( nw_needed > 0 && tmp_nw_move[w] > 0)
 		{
 			*nw_move += nw_needed >= tmp_nw_move[w] ? tmp_nw_move[w] : nw_needed;
@@ -323,7 +318,6 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 		_lp_find_workers_to_give_away(nw, ns, sched_ctxs[s], s, 
 					      tmp_nw_move, tmp_workers_move, 
 					      tmp_nw_add, tmp_workers_add, res_rounded, res, tw);
-
 		for(s2 = 0; s2 < ns; s2++)
 		{
 			if(sched_ctxs[s2] != sched_ctxs[s])
