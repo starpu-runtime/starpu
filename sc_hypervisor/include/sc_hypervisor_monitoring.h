@@ -105,7 +105,7 @@ struct sc_hypervisor_wrapper
 struct sc_hypervisor_wrapper *sc_hypervisor_get_wrapper(unsigned sched_ctx);
 
 /* get the list of registered contexts */
-int *sc_hypervisor_get_sched_ctxs();
+unsigned *sc_hypervisor_get_sched_ctxs();
 
 /* get the number of registered contexts */
 int sc_hypervisor_get_nsched_ctxs();

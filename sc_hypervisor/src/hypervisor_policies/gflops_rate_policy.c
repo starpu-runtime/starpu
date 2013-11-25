@@ -70,11 +70,11 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
         if(nworkers_needed > 0)
         {
                 struct sc_hypervisor_policy_config *sender_config = sc_hypervisor_get_config(sender_sched_ctx);
-                unsigned potential_moving_cpus = sc_hypervisor_get_movable_nworkers(sender_config, sender_sched_ctx, STARPU_CPU_WORKER);
-                unsigned potential_moving_gpus = sc_hypervisor_get_movable_nworkers(sender_config, sender_sched_ctx, STARPU_CUDA_WORKER);
-                unsigned sender_nworkers = starpu_sched_ctx_get_nworkers(sender_sched_ctx);
+                int potential_moving_cpus = sc_hypervisor_get_movable_nworkers(sender_config, sender_sched_ctx, STARPU_CPU_WORKER);
+                int potential_moving_gpus = sc_hypervisor_get_movable_nworkers(sender_config, sender_sched_ctx, STARPU_CUDA_WORKER);
+                int sender_nworkers = (int)starpu_sched_ctx_get_nworkers(sender_sched_ctx);
                 struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(receiver_sched_ctx);
-                unsigned nworkers_ctx = starpu_sched_ctx_get_nworkers(receiver_sched_ctx);
+                int nworkers_ctx = (int)starpu_sched_ctx_get_nworkers(receiver_sched_ctx);
 
                 if(nworkers_needed < (potential_moving_cpus + 5 * potential_moving_gpus))
                 {
@@ -119,7 +119,7 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
 
                         if(sender_nworkers - nworkers_to_move >= sender_config->min_nworkers)
                         {
-                                unsigned nshared_workers = starpu_sched_ctx_get_nshared_workers(sender_sched_ctx, receiver_sched_ctx);
+                                int nshared_workers = (int)starpu_sched_ctx_get_nshared_workers(sender_sched_ctx, receiver_sched_ctx);
                                 if((nworkers_ctx + nworkers_to_move - nshared_workers) > config->max_nworkers)
                                         nworkers_to_move = nworkers_ctx > config->max_nworkers ? 0 : (config->max_nworkers - nworkers_ctx + nshared_workers);
 
@@ -165,11 +165,11 @@ static unsigned _gflops_rate_resize(unsigned sender_sched_ctx, unsigned receiver
 
 static int _find_fastest_sched_ctx()
 {
-	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	double first_exp_end = _get_exp_end(sched_ctxs[0]);
-	int fastest_sched_ctx = first_exp_end == -1.0  ? -1 : sched_ctxs[0];
+	int fastest_sched_ctx = first_exp_end == -1.0  ? -1 : (int)sched_ctxs[0];
 	double curr_exp_end = 0.0;
 	int i;
 	for(i = 1; i < nsched_ctxs; i++)
@@ -188,7 +188,7 @@ static int _find_fastest_sched_ctx()
 
 static int _find_slowest_sched_ctx()
 {
-	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	int slowest_sched_ctx = -1;
@@ -214,7 +214,7 @@ static int _find_slowest_sched_ctx()
 
 static int _find_slowest_available_sched_ctx(unsigned sched_ctx)
 {
-	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	int slowest_sched_ctx = -1;
@@ -296,6 +296,7 @@ static void gflops_rate_handle_poped_task(unsigned sched_ctx, int worker)
 
 struct sc_hypervisor_policy gflops_rate_policy = {
 	.size_ctxs = NULL,
+	.resize_ctxs = NULL,
 	.handle_poped_task = gflops_rate_handle_poped_task,
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = NULL,

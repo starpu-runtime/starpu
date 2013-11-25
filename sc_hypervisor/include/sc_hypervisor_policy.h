@@ -31,6 +31,13 @@ extern "C"
 #define SC_IDLE 1
 #define SC_SPEED 2
 
+struct types_of_workers
+{
+	unsigned ncpus;
+	unsigned ncuda;
+	unsigned nw;
+};
+
 struct sc_hypervisor_policy_task_pool
 {
 	struct starpu_codelet *cl;
@@ -42,7 +49,7 @@ struct sc_hypervisor_policy_task_pool
 };
 
 /* add task information to a task wrapper linked list */
-	void sc_hypervisor_policy_add_task_to_pool(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, struct sc_hypervisor_policy_task_pool **task_pools, size_t data_size);
+void sc_hypervisor_policy_add_task_to_pool(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, struct sc_hypervisor_policy_task_pool **task_pools, size_t data_size);
 
 /* remove task information from a task wrapper linked list */
 void sc_hypervisor_policy_remove_task_from_pool(struct starpu_task *task, uint32_t footprint, struct sc_hypervisor_policy_task_pool **task_pools);
@@ -63,7 +70,7 @@ int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum st
 int* sc_hypervisor_get_idlest_workers_in_list(int *start, int *workers, int nall_workers,  int *nworkers, enum starpu_worker_archtype arch);
 
 /* find workers that can be moved from a context (if the constraints of min, max, etc allow this) */
-unsigned sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_worker_archtype arch);
+int sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *config, unsigned sched_ctx, enum starpu_worker_archtype arch);
 
 /* compute how many workers should be moved from this context */
 int sc_hypervisor_compute_nworkers_to_move(unsigned req_sched_ctx);
@@ -93,7 +100,13 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 double sc_hypervisor_get_ref_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
 
 /* get the list of workers grouped by type */
-void sc_hypervisor_group_workers_by_type(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers]);
+void sc_hypervisor_group_workers_by_type(struct types_of_workers *tw, int *total_nw);
+
+/* get what type of worker corresponds to a certain index of types of workers */
+enum starpu_worker_archtype sc_hypervisor_get_arch_for_index(unsigned w, struct types_of_workers *tw);
+
+/* get the index of types of workers corresponding to the type of workers indicated */
+unsigned sc_hypervisor_get_index_for_arch(enum starpu_worker_archtype arch, struct types_of_workers *tw);
 
 /* check if we trigger resizing or not */
 unsigned sc_hypervisor_criteria_fulfilled(unsigned sched_ctx, int worker);
@@ -106,6 +119,9 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void);
 
 /* check what triggers resizing (idle, speed, etc.)*/
 unsigned sc_hypervisor_get_resize_criteria();
+
+/* load information concerning the type of workers into a types_of_workers struct */
+struct types_of_workers* sc_hypervisor_get_types_of_workers(int *workers, unsigned nworkers);
 
 #ifdef __cplusplus
 }

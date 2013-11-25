@@ -18,7 +18,7 @@
 
 static unsigned _get_fastest_sched_ctx(void)
 {
-	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	int fastest_sched_ctx = STARPU_NMAX_SCHED_CTXS;
@@ -40,7 +40,7 @@ static unsigned _get_fastest_sched_ctx(void)
 
 static unsigned _get_slowest_sched_ctx(void)
 {
-	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	double smallest_speed = sc_hypervisor_get_ctx_speed(sc_hypervisor_get_wrapper(sched_ctxs[0]));
@@ -141,7 +141,7 @@ static int* _get_slowest_workers(unsigned sched_ctx, int *nworkers, enum starpu_
 	return curr_workers;
 }			
 
-static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
+static void ispeed_handle_poped_task(unsigned sched_ctx, int worker, __attribute__((unused))struct starpu_task *task, __attribute__((unused))uint32_t footprint)
 {
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
