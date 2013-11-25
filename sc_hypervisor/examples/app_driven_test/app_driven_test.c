@@ -80,7 +80,7 @@ void* submit_tasks_thread(void *arg)
 			task[i]->hypervisor_tag = tag;
 			/* indicate particular settings the context should have when the 
 			   resizing will be done */
-			sc_hypervisor_ioctl(sched_ctx,
+			sc_hypervisor_ctl(sched_ctx,
 						   HYPERVISOR_TIME_TO_APPLY, tag,
 						   HYPERVISOR_MIN_WORKERS, 2,
 						   HYPERVISOR_MAX_WORKERS, 12,

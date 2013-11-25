@@ -24,7 +24,7 @@ extern "C"
 {
 #endif
 
-/* ioctl properties*/
+/* ctl properties*/
 #define HYPERVISOR_MAX_IDLE -1
 #define HYPERVISOR_MIN_WORKING -2
 #define HYPERVISOR_PRIORITY -3
@@ -90,7 +90,7 @@ void sc_hypervisor_set_config(unsigned sched_ctx, void *config);
 struct sc_hypervisor_policy_config *sc_hypervisor_get_config(unsigned sched_ctx);
 
 /* impose different parameters to a configuration of a context */
-void sc_hypervisor_ioctl(unsigned sched_ctx, ...);
+void sc_hypervisor_ctl(unsigned sched_ctx, ...);
 
 #ifdef __cplusplus
 }

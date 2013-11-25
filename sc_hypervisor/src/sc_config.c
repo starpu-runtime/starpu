@@ -102,7 +102,7 @@ struct sc_hypervisor_policy_config* sc_hypervisor_get_config(unsigned sched_ctx)
 	return hypervisor.sched_ctx_w[sched_ctx].config;
 }
 
-static struct sc_hypervisor_policy_config* _ioctl(unsigned sched_ctx, va_list varg_list, unsigned later)
+static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg_list, unsigned later)
 {
 	struct sc_hypervisor_policy_config *config = NULL;
 
@@ -215,7 +215,7 @@ static struct sc_hypervisor_policy_config* _ioctl(unsigned sched_ctx, va_list va
 }
 
 
-void sc_hypervisor_ioctl(unsigned sched_ctx, ...)
+void sc_hypervisor_ctl(unsigned sched_ctx, ...)
 {
 	va_list varg_list;
 	va_start(varg_list, sched_ctx);
@@ -246,7 +246,7 @@ void sc_hypervisor_ioctl(unsigned sched_ctx, ...)
 	va_start(varg_list, sched_ctx);
 
 	/* if config not null => save hypervisor configuration and consider it later */
-	struct sc_hypervisor_policy_config *config = _ioctl(sched_ctx, varg_list, (task_tag > 0));
+	struct sc_hypervisor_policy_config *config = _ctl(sched_ctx, varg_list, (task_tag > 0));
 	if(config != NULL)
 	{
 		struct configuration_entry *entry;
