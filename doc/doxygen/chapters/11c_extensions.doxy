@@ -107,9 +107,7 @@ as a type qualifier for output pointer or array parameters
 Declare the given function as an implementation of <c>task</c> to run on
 <c>target</c>.  <c>target</c> must be a string, currently one of
 <c>"cpu"</c>, <c>"opencl"</c>, or <c>"cuda"</c>.
-\internal
-FIXME: Update when OpenCL support is ready.
-\endinternal
+// FIXME: Update when OpenCL support is ready.
 </dd>
 </dl>
 

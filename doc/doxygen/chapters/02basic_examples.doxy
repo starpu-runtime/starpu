@@ -95,9 +95,7 @@ passed to the codelet (the parameter <c>cl_arg</c> of the function
 <c>cpu_func</c>) does not count as a buffer since it is not managed by
 our data management library, but just contain trivial parameters.
 
-\internal
-TODO need a crossref to the proper description of "where" see bla for more ...
-\endinternal
+// not really clear ;)
 
 We create a codelet which may only be executed on the CPUs. The field
 starpu_codelet::where is a bitmask that defines where the codelet may
@@ -118,9 +116,7 @@ the matrices) since there is none.
 The second argument is a pointer to a buffer passed as an
 argument to the codelet by the means of the field starpu_task::cl_arg.
 
-\internal
-TODO rewrite so that it is a little clearer ?
-\endinternal
+// TODO rewrite so that it is a little clearer ?
 
 Be aware that this may be a pointer to a
 \em copy of the actual buffer, and not the pointer given by the programmer:
