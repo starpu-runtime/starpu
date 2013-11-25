@@ -1879,14 +1879,6 @@ if test "$enable_build_doc" = "yes" ; then
    AC_PATH_PROG(doxygencommand, doxygen)
    if test "$doxygencommand" = "" ; then
       	enable_build_doc="no"
-   else
-   	DOXYGEN_VERSION_MAJOR=`$doxygencommand --version| cut -d '.' -f1`
-	DOXYGEN_VERSION_MINOR=`$doxygencommand --version| cut -d '.' -f2`
-	if test $DOXYGEN_VERSION_MAJOR -ge 1 -a $DOXYGEN_VERSION_MINOR -ge 8 ; then
-	   	enable_build_doc="yes"
-	else
-	   	enable_build_doc="no"
-	fi
    fi
    AC_PATH_PROG(pdflatex, pdflatex)
    if test "pdflatexcommand" = "" ; then
