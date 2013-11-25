@@ -157,6 +157,10 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 				   int res_rounded[ns][nw], double res[ns][nw], struct types_of_workers *tw)
 {
 	int w;
+	double target_res = 0.0;
+	for(w = 0; w < nw; w++)
+		target_res += res[sched_ctx_idx][w];
+
 	for(w = 0; w < nw; w++)
 	{
 		enum starpu_worker_archtype arch = sc_hypervisor_get_arch_for_index(w, tw);
@@ -167,6 +171,8 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 			if(nworkers_ctx > res_rounded[sched_ctx_idx][w])
 			{
 				int nworkers_to_move = nworkers_ctx - res_rounded[sched_ctx_idx][w];
+				if(target_res == 0.0 && nworkers_to_move > 0)
+					nworkers_to_move--;
 				int *workers_to_move = sc_hypervisor_get_idlest_workers(sched_ctx, &nworkers_to_move, arch);
 				int i;
 				for(i = 0; i < nworkers_to_move; i++)
@@ -386,6 +392,9 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 	{
 		int workers_add[STARPU_NMAXWORKERS];
                 int nw_add = 0;
+		double target_res = 0.0;
+		for(w = 0; w < nw; w++)
+			target_res += res[s][w];
 
 		for(w = 0; w < nw; w++)
 		{
@@ -393,13 +402,25 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 			
 			if(arch == STARPU_CPU_WORKER) 
 			{
-				
 				int nworkers_to_add = res_rounded[s][w];
-				int *workers_to_add = sc_hypervisor_get_idlest_workers_in_list(&start[w], workers, nworkers, &nworkers_to_add, arch);
-				int i;
-				for(i = 0; i < nworkers_to_add; i++)
-					workers_add[nw_add++] = workers_to_add[i];
-				free(workers_to_add);
+				if(target_res == 0.0)
+				{
+					nworkers_to_add=1;
+					start[w]--;
+					int *workers_to_add = sc_hypervisor_get_idlest_workers_in_list(&start[w], workers, nworkers, &nworkers_to_add, arch);
+					int i;
+					for(i = 0; i < nworkers_to_add; i++)
+						workers_add[nw_add++] = workers_to_add[i];
+					free(workers_to_add);
+				}
+				else
+				{
+					int *workers_to_add = sc_hypervisor_get_idlest_workers_in_list(&start[w], workers, nworkers, &nworkers_to_add, arch);
+					int i;
+					for(i = 0; i < nworkers_to_add; i++)
+						workers_add[nw_add++] = workers_to_add[i];
+					free(workers_to_add);
+				}
 			}
 			else
 			{
