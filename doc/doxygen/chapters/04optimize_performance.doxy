@@ -536,6 +536,6 @@ case. Since during simgrid execution, the functions of the codelet are actually
 not called, one can use dummy functions such as the following to still permit
 CUDA or OpenCL execution:
 
-\snippet simgrid.c To be included
+\snippet simgrid.c To be included. You should update doxygen if you see that text.
 
 */

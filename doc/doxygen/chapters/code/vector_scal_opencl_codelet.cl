@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]
 __kernel void vector_mult_opencl(int nx, __global float* val, float factor)
 {
         const int i = get_global_id(0);
@@ -22,4 +22,4 @@ __kernel void vector_mult_opencl(int nx, __global float* val, float factor)
                 val[i] *= factor;
         }
 }
-//! [To be included]
+//! [To be included. You should update doxygen if you see that text.]
