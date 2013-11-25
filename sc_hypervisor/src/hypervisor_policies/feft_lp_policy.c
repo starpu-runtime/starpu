@@ -143,8 +143,8 @@ static feft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 			
 			if(sc_hypervisor_check_idle(sched_ctx, worker))
 			{
-//				_try_resizing();
-				sc_hypervisor_move_workers(sched_ctx, 3 - sched_ctx, &worker, 1, 1);
+				_try_resizing();
+//				sc_hypervisor_move_workers(sched_ctx, 3 - sched_ctx, &worker, 1, 1);
 			}
 		}
 		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
