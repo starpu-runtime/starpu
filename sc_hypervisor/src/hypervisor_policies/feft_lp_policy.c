@@ -21,7 +21,7 @@
 #ifdef STARPU_HAVE_GLPK_H
 static void feft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
-	if(sc_hypervisor_has_velocity_gap_btw_ctxs())
+	if(sc_hypervisor_criteria_fulfilled(sched_ctx, worker))
 	{
 		int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
