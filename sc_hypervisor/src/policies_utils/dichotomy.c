@@ -82,7 +82,7 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 	long diff_s = end_time.tv_sec  - start_time.tv_sec;
 	long diff_us = end_time.tv_usec  - start_time.tv_usec;
 
-	float timing = (float)(diff_s*1000000 + diff_us)/1000;
+	__attribute__((unused)) float timing = (float)(diff_s*1000000 + diff_us)/1000;
 
 	return found_sol;
 }

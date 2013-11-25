@@ -491,7 +491,7 @@ static int parallel_heft_push_task(struct starpu_task *task)
 	return ret_val;
 }
 
-static void parallel_heft_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+static void parallel_heft_add_workers(__attribute__((unused)) unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	int workerid;
 	unsigned i;

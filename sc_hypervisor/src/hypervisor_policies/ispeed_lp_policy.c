@@ -219,7 +219,7 @@ static void ispeed_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *w
 	}
 }
 
-static void ispeed_lp_end_ctx(unsigned sched_ctx)
+static void ispeed_lp_end_ctx(__attribute__((unused))unsigned sched_ctx)
 {
 /* 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx); */
 /* 	int worker; */
