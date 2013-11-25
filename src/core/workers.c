@@ -359,7 +359,11 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 
 	int ctx;
 	for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
+	{
 		workerarg->removed_from_ctx[ctx] = 0;
+		workerarg->shares_tasks_lists[ctx] = 0;
+	}
+
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
