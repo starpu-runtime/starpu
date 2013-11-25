@@ -320,7 +320,7 @@ automatic variables.
 The following example illustrates use of the <c>heap_allocated</c>
 attribute:
 
-\snippet cholesky_pragma.c To be included. You should update doxygen if you see that text.
+\snippet cholesky_pragma.c To be included. You should update doxygen if you see this text.
 
 \section UsingCExtensionsConditionally Using C Extensions Conditionally
 
@@ -338,7 +338,7 @@ extensions.
 The code below illustrates how to define a task and its implementations
 in a way that allows it to be compiled without the GCC plug-in:
 
-\snippet matmul_pragma.c To be included. You should update doxygen if you see that text.
+\snippet matmul_pragma.c To be included. You should update doxygen if you see this text.
 
 The above program is a valid StarPU program when StarPU's GCC plug-in is
 used; it is also a valid sequential program when the plug-in is not
@@ -352,7 +352,7 @@ unable to parse the attribute syntax (In practice, Clang and
 several proprietary compilers implement attributes.), so you may want to
 wrap attributes in macros like this:
 
-\snippet matmul_pragma2.c To be included. You should update doxygen if you see that text.
+\snippet matmul_pragma2.c To be included. You should update doxygen if you see this text.
 
 */
 

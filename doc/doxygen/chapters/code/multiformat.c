@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]
 #define NX 1024
 struct point array_of_structs[NX];
 starpu_data_handle_t handle;
@@ -57,4 +57,4 @@ struct starpu_multiformat_data_interface_ops format_ops = {
 };
 
 starpu_multiformat_data_register(handle, 0, &array_of_structs, NX, &format_ops);
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]

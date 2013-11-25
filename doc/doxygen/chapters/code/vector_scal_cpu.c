@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]
 
 #include <starpu.h>
 #include <xmmintrin.h>
@@ -75,4 +75,4 @@ void scal_sse_func(void *buffers[], void *cl_arg)
         }
     }
 }
-//! [To be included. You should update doxygen if you see that text.]
+//! [To be included. You should update doxygen if you see this text.]
