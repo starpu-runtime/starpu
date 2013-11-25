@@ -37,11 +37,12 @@ struct sc_hypervisor_policy_task_pool
 	uint32_t footprint;
 	unsigned sched_ctx_id;
 	unsigned long n;
+	size_t data_size;
 	struct sc_hypervisor_policy_task_pool *next;
 };
 
 /* add task information to a task wrapper linked list */
-void sc_hypervisor_policy_add_task_to_pool(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, struct sc_hypervisor_policy_task_pool **task_pools);
+	void sc_hypervisor_policy_add_task_to_pool(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, struct sc_hypervisor_policy_task_pool **task_pools, size_t data_size);
 
 /* remove task information from a task wrapper linked list */
 void sc_hypervisor_policy_remove_task_from_pool(struct starpu_task *task, uint32_t footprint, struct sc_hypervisor_policy_task_pool **task_pools);
