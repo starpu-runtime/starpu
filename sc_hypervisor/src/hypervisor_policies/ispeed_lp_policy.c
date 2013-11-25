@@ -22,7 +22,7 @@
 
 struct ispeed_lp_data
 {
-	double **velocity;
+	double **speed;
 	double *flops;
 	double **flops_on_w;
 	int *workers;
@@ -38,7 +38,7 @@ static double _glp_resolve (int ns, int nw, double final_w_in_s[ns][nw],
 {
 	struct ispeed_lp_data *sd = (struct ispeed_lp_data *)specific_data;
 
-	double **velocity = sd->velocity;
+	double **speed = sd->speed;
 	double *flops = sd->flops;
 	
 	double **final_flops_on_w = sd->flops_on_w;
@@ -110,7 +110,7 @@ static double _glp_resolve (int ns, int nw, double final_w_in_s[ns][nw],
 				/* nflosp[s][w] */
 				ia[n] = curr_row_idx+s*nw+w+1;
 				ja[n] = colnum(w, s);
-				ar[n] = 1 / velocity[s][w];
+				ar[n] = 1 / speed[s][w];
 
 				n++;
 				
@@ -257,12 +257,12 @@ static double _glp_resolve (int ns, int nw, double final_w_in_s[ns][nw],
 static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_in_s[ns][nw], double **flops_on_w, int *in_sched_ctxs, int *workers)
 {
 //	double flops[ns];
-//	double velocity[ns][nw];
+//	double speed[ns][nw];
 	double *flops = (double*)malloc(ns*sizeof(double));
-	double **velocity = (double **)malloc(ns*sizeof(double*));
+	double **speed = (double **)malloc(ns*sizeof(double*));
 	int i;
 	for(i = 0; i < ns; i++)
-		velocity[i] = (double*)malloc(nw*sizeof(double));
+		speed[i] = (double*)malloc(nw*sizeof(double));
 
 	int *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 	
@@ -278,24 +278,24 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 			w_in_s[s][w] = 0.0;
 			int worker = workers == NULL ? w : workers[w];
 
-			velocity[s][w] = sc_hypervisor_get_velocity_per_worker(sc_w, worker);
-			if(velocity[s][w] == -1.0)
+			speed[s][w] = sc_hypervisor_get_speed_per_worker(sc_w, worker);
+			if(speed[s][w] == -1.0)
 			{
 				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-				velocity[s][w] = sc_hypervisor_get_velocity(sc_w, arch);
+				speed[s][w] = sc_hypervisor_get_speed(sc_w, arch);
 				if(arch == STARPU_CUDA_WORKER)
 				{
 					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx);
 					if(!worker_in_ctx)
 					{
-						double transfer_velocity = starpu_transfer_bandwidth(0, starpu_worker_get_memory_node(worker)) / 1000;
-						velocity[s][w] = (velocity[s][w] * transfer_velocity) / (velocity[s][w] + transfer_velocity);
+						double transfer_speed = starpu_get_bandwidth_RAM_CUDA(worker) / 1000;
+						speed[s][w] = (speed[s][w] * transfer_speed) / (speed[s][w] + transfer_speed);
 					}
 				}
 
 			}
 			
-//			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
+//			printf("v[w%d][s%d] = %lf\n",w, s, speed[s][w]);
 		}
 		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[s]);
 		flops[s] = config->ispeed_ctx_sample/1000000000; /* in gflops */
@@ -310,7 +310,7 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 	double tmin = 0.0;
 
         struct ispeed_lp_data specific_data;
-        specific_data.velocity = velocity;
+        specific_data.speed = speed;
         specific_data.flops = flops;
         specific_data.flops_on_w = flops_on_w;
         specific_data.workers = workers;
@@ -319,8 +319,8 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 								tmin, tmax, smallest_tmax, _glp_resolve);
 
 	for(i = 0; i < ns; i++)
-		free(velocity[i]);
-	free(velocity);
+		free(speed[i]);
+	free(speed);
 	
 	return found_sol;
 }
@@ -390,9 +390,9 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct s
         if(ret != EBUSY)
         {
                 unsigned criteria = sc_hypervisor_get_resize_criteria();
-                if(criteria != SC_NOTHING && criteria == SC_VELOCITY)
+                if(criteria != SC_NOTHING && criteria == SC_SPEED)
                 {
-                        if(sc_hypervisor_check_velocity_gap_btw_ctxs())
+                        if(sc_hypervisor_check_speed_gap_btw_ctxs())
                         {
                                 _try_resizing();
                         }
@@ -426,7 +426,7 @@ static void ispeed_lp_end_ctx(unsigned sched_ctx)
 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
 	int worker;
 /* 	for(worker = 0; worker < 12; worker++) */
-/* 		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_velocity[worker]); */
+/* 		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_speed[worker]); */
 
 	return;
 }

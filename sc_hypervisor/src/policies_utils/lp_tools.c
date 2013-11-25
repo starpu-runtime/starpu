@@ -41,13 +41,13 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		int ncuda = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
 		if(ncuda != 0)
 		{
-			v[i][0] = sc_hypervisor_get_velocity(sc_w, STARPU_CUDA_WORKER);
-			v[i][1] = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+			v[i][0] = sc_hypervisor_get_speed(sc_w, STARPU_CUDA_WORKER);
+			v[i][1] = sc_hypervisor_get_speed(sc_w, STARPU_CPU_WORKER);
 		}
 		else
-			v[i][0] = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+			v[i][0] = sc_hypervisor_get_speed(sc_w, STARPU_CPU_WORKER);
 #else
-		v[i][0] = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+		v[i][0] = sc_hypervisor_get_speed(sc_w, STARPU_CPU_WORKER);
 #endif // STARPU_USE_CUDA
 		
 		flops[i] = sc_w->remaining_flops < 0.0 ? 0.0 : sc_w->remaining_flops/1000000000; //sc_w->total_flops/1000000000; /* in gflops*/

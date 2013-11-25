@@ -58,10 +58,10 @@ static int* _get_workers_to_move(unsigned sender_sched_ctx, unsigned receiver_sc
 	struct sc_hypervisor_wrapper* sender_sc_w = sc_hypervisor_get_wrapper(sender_sched_ctx);
 	struct sc_hypervisor_wrapper* receiver_sc_w = sc_hypervisor_get_wrapper(receiver_sched_ctx);
         int *workers = NULL;
-        double v_receiver = sc_hypervisor_get_ctx_velocity(receiver_sc_w);
+        double v_receiver = sc_hypervisor_get_ctx_speed(receiver_sc_w);
         double receiver_remainig_flops = receiver_sc_w->remaining_flops;
         double sender_exp_end = _get_exp_end(sender_sched_ctx);
-        double sender_v_cpu = sc_hypervisor_get_velocity_per_worker_type(sender_sc_w, STARPU_CPU_WORKER);
+        double sender_v_cpu = sc_hypervisor_get_speed_per_worker_type(sender_sc_w, STARPU_CPU_WORKER);
         double v_for_rctx = (receiver_remainig_flops/(sender_exp_end - starpu_timing_now())) - v_receiver;
 
         int nworkers_needed = v_for_rctx/sender_v_cpu;

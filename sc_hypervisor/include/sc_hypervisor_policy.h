@@ -29,7 +29,7 @@ extern "C"
 #define HYPERVISOR_START_REDIM_SAMPLE 0.1
 #define SC_NOTHING 0
 #define SC_IDLE 1
-#define SC_VELOCITY 2
+#define SC_SPEED 2
 
 struct sc_hypervisor_policy_task_pool
 {
@@ -74,8 +74,8 @@ unsigned sc_hypervisor_policy_resize(unsigned sender_sched_ctx, unsigned receive
 /* check the policy's constraints in order to resize  and find a context willing the resources */
 unsigned sc_hypervisor_policy_resize_to_unknown_receiver(unsigned sender_sched_ctx, unsigned now);
 
-/* compute the velocity of a context */
-double sc_hypervisor_get_ctx_velocity(struct sc_hypervisor_wrapper* sc_w);
+/* compute the speed of a context */
+double sc_hypervisor_get_ctx_speed(struct sc_hypervisor_wrapper* sc_w);
 
 /* get the time of execution of the slowest context */
 double sc_hypervisor_get_slowest_ctx_exec_time(void);
@@ -83,14 +83,14 @@ double sc_hypervisor_get_slowest_ctx_exec_time(void);
 /* get the time of execution of the fastest context */
 double sc_hypervisor_get_fastest_ctx_exec_time(void);
 
-/* compute the velocity of a workers in a context */
-double sc_hypervisor_get_velocity_per_worker(struct sc_hypervisor_wrapper *sc_w, unsigned worker); 
+/* compute the speed of a workers in a context */
+double sc_hypervisor_get_speed_per_worker(struct sc_hypervisor_wrapper *sc_w, unsigned worker); 
 
-/* compute the velocity of a type of worker in a context */
-double sc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
+/* compute the speed of a type of worker in a context */
+double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
 
-/* compute the velocity of a type of worker in a context depending on its history */ 
-double sc_hypervisor_get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
+/* compute the speed of a type of worker in a context depending on its history */ 
+double sc_hypervisor_get_ref_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
 
 /* get the list of workers grouped by type */
 void sc_hypervisor_group_workers_by_type(int *workers, int nworkers, int ntypes_of_workers, int total_nw[ntypes_of_workers]);
@@ -101,10 +101,10 @@ unsigned sc_hypervisor_criteria_fulfilled(unsigned sched_ctx, int worker);
 /* check if worker was idle long enough */
 unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker);
 
-/* check if there is a velocity gap btw ctxs */
-unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void);
+/* check if there is a speed gap btw ctxs */
+unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void);
 
-/* check what triggers resizing (idle, velocity, etc.)*/
+/* check what triggers resizing (idle, speed, etc.)*/
 unsigned sc_hypervisor_get_resize_criteria();
 
 #ifdef __cplusplus

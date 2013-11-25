@@ -134,10 +134,10 @@ struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hyper
 {
 	hypervisor.min_tasks = 0;
 	hypervisor.nsched_ctxs = 0;
-	char* vel_gap = getenv("SC_HYPERVISOR_MAX_VELOCITY_GAP");
-	hypervisor.max_velocity_gap = vel_gap ? atof(vel_gap) : SC_VELOCITY_MAX_GAP_DEFAULT;
+	char* vel_gap = getenv("SC_HYPERVISOR_MAX_SPEED_GAP");
+	hypervisor.max_speed_gap = vel_gap ? atof(vel_gap) : SC_SPEED_MAX_GAP_DEFAULT;
 	char* crit =  getenv("SC_HYPERVISOR_TRIGGER_RESIZE");
-	hypervisor.resize_criteria = !crit ? SC_IDLE : strcmp(crit,"idle") == 0 ? SC_IDLE : (strcmp(crit,"speed") == 0 ? SC_VELOCITY : SC_NOTHING);
+	hypervisor.resize_criteria = !crit ? SC_IDLE : strcmp(crit,"idle") == 0 ? SC_IDLE : (strcmp(crit,"speed") == 0 ? SC_SPEED : SC_NOTHING);
 
 	starpu_pthread_mutex_init(&act_hypervisor_mutex, NULL);
 	hypervisor.start_executing_time = starpu_timing_now();
@@ -164,8 +164,8 @@ struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hyper
 		starpu_pthread_mutex_init(&hypervisor.sched_ctx_w[i].mutex, NULL);
 		hypervisor.optimal_v[i] = 0.0;
 
-		hypervisor.sched_ctx_w[i].ref_velocity[0] = -1.0;
-		hypervisor.sched_ctx_w[i].ref_velocity[1] = -1.0;
+		hypervisor.sched_ctx_w[i].ref_speed[0] = -1.0;
+		hypervisor.sched_ctx_w[i].ref_speed[1] = -1.0;
 
 		int j;
 		for(j = 0; j < STARPU_NMAXWORKERS; j++)
@@ -233,8 +233,8 @@ static void _print_current_time()
 			{
 				struct sc_hypervisor_wrapper *sc_w = &hypervisor.sched_ctx_w[hypervisor.sched_ctxs[i]];
 				
-				double cpu_speed = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
-				double cuda_speed = sc_hypervisor_get_velocity(sc_w, STARPU_CUDA_WORKER);
+				double cpu_speed = sc_hypervisor_get_speed(sc_w, STARPU_CPU_WORKER);
+				double cuda_speed = sc_hypervisor_get_speed(sc_w, STARPU_CUDA_WORKER);
 				int ncpus = sc_hypervisor_get_nworkers_ctx(sc_w->sched_ctx, STARPU_CPU_WORKER);
 				int ncuda = sc_hypervisor_get_nworkers_ctx(sc_w->sched_ctx, STARPU_CUDA_WORKER);
 				fprintf(stdout, "%d: cpu_v = %lf cuda_v = %lf ncpus = %d ncuda = %d\n", hypervisor.sched_ctxs[i], cpu_speed, cuda_speed, ncpus, ncuda);
@@ -354,9 +354,9 @@ void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
 }
 
 
-double _get_max_velocity_gap()
+double _get_max_speed_gap()
 {
-	return hypervisor.max_velocity_gap;
+	return hypervisor.max_speed_gap;
 }
 
 unsigned sc_hypervisor_get_resize_criteria()
