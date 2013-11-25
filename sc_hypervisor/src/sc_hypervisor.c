@@ -63,6 +63,7 @@ static void _load_hypervisor_policy(struct sc_hypervisor_policy *policy)
 
 	hypervisor.policy.name = policy->name;
 	hypervisor.policy.size_ctxs = policy->size_ctxs;
+	hypervisor.policy.resize_ctxs = policy->resize_ctxs;
 	hypervisor.policy.handle_poped_task = policy->handle_poped_task;
 	hypervisor.policy.handle_pushed_task = policy->handle_pushed_task;
 	hypervisor.policy.handle_idle_cycle = policy->handle_idle_cycle;
@@ -718,7 +719,7 @@ static unsigned _ack_resize_completed(unsigned sched_ctx, int worker)
 
 /* Enqueue a resize request for 'sched_ctx', to be executed when the
  * 'task_tag' tasks of 'sched_ctx' complete.  */
-void sc_hypervisor_resize(unsigned sched_ctx, int task_tag)
+void sc_hypervisor_post_resize_request(unsigned sched_ctx, int task_tag)
 {
 	struct resize_request_entry *entry;
 
@@ -731,6 +732,12 @@ void sc_hypervisor_resize(unsigned sched_ctx, int task_tag)
 	starpu_pthread_mutex_lock(&hypervisor.resize_mut[sched_ctx]);
 	HASH_ADD_INT(hypervisor.resize_requests[sched_ctx], task_tag, entry);
 	starpu_pthread_mutex_unlock(&hypervisor.resize_mut[sched_ctx]);
+}
+
+void sc_hypervisor_resize_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
+{
+	if(hypervisor.policy.resize_ctxs)
+		hypervisor.policy.resize_ctxs(sched_ctxs, nsched_ctxs, workers, nworkers);
 }
 
 /* notifies the hypervisor that the worker is no longer idle and a new task was pushed on its queue */
