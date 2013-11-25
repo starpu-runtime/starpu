@@ -440,19 +440,31 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
                                 times[w][t] = (length / 1000.);
 
 				double transfer_time = 0.0;
+				unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
 				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-				if(arch == STARPU_CUDA_WORKER)
+				if(!worker_in_ctx && !size_ctxs)
 				{
-					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
-					if(!worker_in_ctx && !size_ctxs)
+					if(arch == STARPU_CUDA_WORKER)
 					{
 						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
 						transfer_time +=  (tp->data_size / transfer_velocity) / 1000. ;
+						double latency = starpu_get_latency_RAM_CUDA(worker);
+						transfer_time += latency/1000.;
+						
+						
 					}
-					double latency = starpu_get_latency_RAM_CUDA(worker);
-					transfer_time += latency/1000.;
-
+					else if(arch == STARPU_CPU_WORKER)
+					{
+						if(!starpu_sched_ctx_contains_type_of_worker(arch, tp->sched_ctx_id))
+						{
+							double transfer_velocity = starpu_get_bandwidth_CUDA_RAM(worker);
+							transfer_time += (tp->data_size / transfer_velocity) / 1000. ;
+							double latency = starpu_get_latency_CUDA_RAM(worker);
+							transfer_time += latency / 1000.;
+						}
+					}
 				}
+
 //				printf("%d/%d %s x %d time = %lf transfer_time = %lf\n", w, tp->sched_ctx_id, tp->cl->model->symbol, tp->n, times[w][t], transfer_time);
 				times[w][t] += transfer_time;
 			}

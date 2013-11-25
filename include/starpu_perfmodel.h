@@ -168,6 +168,9 @@ void starpu_bus_print_affinity(FILE *f);
 double starpu_transfer_bandwidth(unsigned src_node, unsigned dst_node);
 double starpu_transfer_latency(unsigned src_node, unsigned dst_node);
 double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size);
+double starpu_get_bandwidth_CUDA_RAM(unsigned cudadev);
+double starpu_get_latency_CUDA_RAM(unsigned cudadev);
+
 
 #ifdef __cplusplus
 }
