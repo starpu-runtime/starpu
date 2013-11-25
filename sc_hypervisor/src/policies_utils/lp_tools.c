@@ -154,12 +154,19 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 			if(nworkers_ctx > res_rounded[sched_ctx_idx][w])
 			{
 				int nworkers_to_move = nworkers_ctx - res_rounded[sched_ctx_idx][w];
-				if(target_res == 0.0 && nworkers_to_move > 0)
-					nworkers_to_move--;
 				int *workers_to_move = sc_hypervisor_get_idlest_workers(sched_ctx, &nworkers_to_move, arch);
 				int i;
-				for(i = 0; i < nworkers_to_move; i++)
-					tmp_workers_move[w][tmp_nw_move[w]++] = workers_to_move[i];
+				if(target_res == 0.0 && nworkers_to_move > 0)
+				{
+					tmp_workers_add[w][tmp_nw_add[w]++] = workers_to_move[0];
+					for(i = 1; i < nworkers_to_move; i++)
+						tmp_workers_move[w][tmp_nw_move[w]++] = workers_to_move[i];
+				}
+				else
+				{
+					for(i = 0; i < nworkers_to_move; i++)
+						tmp_workers_move[w][tmp_nw_move[w]++] = workers_to_move[i];
+				}
 				free(workers_to_move);
 			}
 		}
@@ -246,7 +253,7 @@ void _lp_find_workers_to_accept(int nw, int ns, unsigned sched_ctx, int sched_ct
 		int x = floor(needed);
 		double x_double = (double)x;
 		double diff = needed - x_double;
-		if(diff > 0.3 && tmp_nw_add[w] > 0)
+		if((diff > 0.3 || needed > 0.3) && tmp_nw_add[w] > 0)
 		{
 			*nw_add = tmp_nw_add[w];
 			int i = 0;
