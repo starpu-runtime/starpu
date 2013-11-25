@@ -60,7 +60,7 @@ static void peager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned n
 	for(i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-
+		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
 		int cnt = possible_combinations_cnt[workerid]++;
 		possible_combinations[workerid][cnt] = workerid;
 		possible_combinations_size[workerid][cnt] = 1;
