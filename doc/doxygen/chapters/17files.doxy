@@ -23,9 +23,6 @@
 \file starpu_fxt.h
 \file starpu_cuda.h
 \file starpu_opencl.h
-\file starpu_sink.h
-\file starpu_mic.h
-\file starpu_scc.h
 \file starpu_expert.h
 \file starpu_profiling.h
 \file starpu_bound.h
