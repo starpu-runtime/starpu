@@ -40,12 +40,6 @@ CUDA workers
 \var starpu_perfmodel_archtype::STARPU_OPENCL_DEFAULT
 \ingroup API_Performance_Model
 OpenCL workers
-\var starpu_perfmodel_archtype::STARPU_MIC_DEFAULT
-\ingroup API_Performance_Model
-MIC workers
-\var starpu_perfmodel_archtype::STARPU_SCC_DEFAULT
-\ingroup API_Performance_Model
-SCC workers
 
 \enum starpu_perfmodel_type
 \ingroup API_Performance_Model
