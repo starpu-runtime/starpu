@@ -440,6 +440,16 @@ double sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sc_hypervisor_
 	return ret_val;
 }
 
+static void _reset_idle_time(unsigned sched_ctx)
+{
+	int i;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+	{
+		hypervisor.sched_ctx_w[sched_ctx].idle_time[i] = 0.0;
+	}
+	return;
+}
+
 void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sched_ctx)
 {
 	/* info concerning only the gflops_rate strateg */
@@ -449,9 +459,11 @@ void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sche
 	double start_time =  starpu_timing_now();
 	sender_sc_w->start_time = start_time;
 	_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
+	_reset_idle_time(sender_sched_ctx);
 
 	receiver_sc_w->start_time = start_time;
 	_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
+	_reset_idle_time(receiver_sched_ctx);
 }
 
 /* actually move the workers: the cpus are moved, gpus are only shared  */
