@@ -998,3 +998,15 @@ void sc_hypervisor_update_diff_total_flops(unsigned sched_ctx, double diff_total
 /* 	       hypervisor.sched_ctx_w[sched_ctx].total_flops, hypervisor.sched_ctx_w[sched_ctx].remaining_flops, sched_ctx); */
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }
+
+void sc_hypervisor_update_diff_elapsed_flops(unsigned sched_ctx, double diff_elapsed_flops)
+{
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1)
+	{
+		starpu_pthread_mutex_lock(&act_hypervisor_mutex);
+		hypervisor.sched_ctx_w[sched_ctx].elapsed_flops[workerid] += diff_elapsed_flops;
+		hypervisor.sched_ctx_w[sched_ctx].total_elapsed_flops[workerid] += diff_elapsed_flops;
+		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+	}
+}
