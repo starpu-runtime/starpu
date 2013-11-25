@@ -72,6 +72,10 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 					       double times[nw][nt], unsigned is_integer, double tmax, unsigned *in_sched_ctxs,
 					       struct sc_hypervisor_policy_task_pool *tmp_task_pools);
 
+/* linear program that simulates a distribution of flops over the workers on particular sample of the execution
+   of the application such that the entire sample would finish in a minimum amount of time */
+double sc_hypervisor_lp_simulate_distrib_flops_on_sample(int ns, int nw, double final_w_in_s[ns][nw], unsigned is_integer, double tmax, 
+							 double **speed, double flops[ns], double **final_flops_on_w);
 #endif // STARPU_HAVE_GLPK_H
 
 #ifdef __cplusplus

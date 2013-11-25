@@ -46,7 +46,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, i
 	long diff_s = end_time.tv_sec  - start_time.tv_sec;
 	long diff_us = end_time.tv_usec  - start_time.tv_usec;
 	
-	float timing = (float)(diff_s*1000000 + diff_us)/1000;
+	__attribute__((unused))	float timing = (float)(diff_s*1000000 + diff_us)/1000;
 	
 	if(vmax != 0.0)
 	{
@@ -142,12 +142,8 @@ static void feft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 		unsigned criteria = sc_hypervisor_get_resize_criteria();
 		if(criteria != SC_NOTHING && criteria == SC_IDLE)
 		{
-			
 			if(sc_hypervisor_check_idle(sched_ctx, worker))
-			{
 				_try_resizing(NULL, -1, NULL, -1);
-//				sc_hypervisor_move_workers(sched_ctx, 3 - sched_ctx, &worker, 1, 1);
-			}
 		}
 		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
@@ -182,7 +178,7 @@ struct sc_hypervisor_policy feft_lp_policy = {
 	.resize_ctxs = feft_lp_resize_ctxs,
 	.handle_poped_task = feft_lp_handle_poped_task,
 	.handle_pushed_task = NULL,
-	.handle_idle_cycle = feft_lp_handle_idle_cycle, //NULL,
+	.handle_idle_cycle = feft_lp_handle_idle_cycle,
 	.handle_idle_end = NULL,
 	.handle_post_exec_hook = NULL,
 	.handle_submitted_job = NULL,

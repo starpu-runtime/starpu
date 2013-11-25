@@ -247,7 +247,6 @@ static void _print_current_time()
 
 void sc_hypervisor_shutdown(void)
 {
-//	printf("shutdown\n");
 	int i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 	{
@@ -344,8 +343,6 @@ void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
 	hypervisor.sched_ctx_w[sched_ctx].sched_ctx = STARPU_NMAX_SCHED_CTXS;
 	_remove_config(sched_ctx);
 
-/* 	free(hypervisor.configurations[sched_ctx]); */
-/* 	free(hypervisor.resize_requests[sched_ctx]); */
 	starpu_pthread_mutex_destroy(&hypervisor.conf_mut[sched_ctx]);
 	starpu_pthread_mutex_destroy(&hypervisor.resize_mut[sched_ctx]);
 	if(hypervisor.nsched_ctxs == 1)
@@ -796,7 +793,7 @@ static void notify_poped_task(unsigned sched_ctx, int worker, struct starpu_task
 	hypervisor.sched_ctx_w[sched_ctx].elapsed_data[worker] += data_size ;
 	hypervisor.sched_ctx_w[sched_ctx].elapsed_tasks[worker]++ ;
 	hypervisor.sched_ctx_w[sched_ctx].total_elapsed_flops[worker] += task->flops;
-	hypervisor.sched_ctx_w[sched_ctx].remaining_flops -= task->flops; //sc_hypervisor_get_elapsed_flops_per_sched_ctx(&hypervisor.sched_ctx_w[sched_ctx]);
+	hypervisor.sched_ctx_w[sched_ctx].remaining_flops -= task->flops;
 
 	if(hypervisor.resize[sched_ctx])
 	{	
