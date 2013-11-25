@@ -346,7 +346,6 @@ static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct s
 			for(i = 0; i < ns; i++)
 				flops_on_w[i] = (double*)malloc(nw*sizeof(double));
 
-			printf("ns = %d nw = %d\n", ns, nw);
 			unsigned found_sol = _compute_flops_distribution_over_ctxs(ns, nw,  w_in_s, flops_on_w, NULL, NULL);
 			/* if we did find at least one solution redistribute the resources */
 			if(found_sol)
