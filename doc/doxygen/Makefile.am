@@ -24,24 +24,24 @@ DOX_PDF = starpu.pdf
 DOX_TAG = starpu.tag
 
 chapters =	\
-	chapters/advanced_examples.doxy \
-	chapters/basic_examples.doxy \
-	chapters/building.doxy \
-	chapters/c_extensions.doxy \
-	chapters/fft_support.doxy \
-	chapters/introduction.doxy \
-	chapters/mpi_support.doxy \
-	chapters/optimize_performance.doxy \
-	chapters/performance_feedback.doxy \
-	chapters/scheduling_context_hypervisor.doxy \
-	chapters/scheduling_contexts.doxy \
-	chapters/socl_opencl_extensions.doxy \
-	chapters/tips_and_tricks.doxy \
-	chapters/environment_variables.doxy \
-	chapters/configure_options.doxy \
-	chapters/fdl-1.3.doxy \
-	chapters/scaling-vector-example.doxy \
-	chapters/files.doxy \
+	chapters/00introduction.doxy \
+	chapters/01building.doxy \
+	chapters/02basic_examples.doxy \
+	chapters/03advanced_examples.doxy \
+	chapters/04optimize_performance.doxy \
+	chapters/05performance_feedback.doxy \
+	chapters/06tips_and_tricks.doxy \
+	chapters/08mpi_support.doxy \
+	chapters/09fft_support.doxy \
+	chapters/11c_extensions.doxy \
+	chapters/12socl_opencl_extensions.doxy \
+	chapters/13scheduling_contexts.doxy \
+	chapters/14scheduling_context_hypervisor.doxy \
+	chapters/15environment_variables.doxy \
+	chapters/16configure_options.doxy \
+	chapters/17files.doxy \
+	chapters/18scaling-vector-example.doxy \
+	chapters/19fdl-1.3.doxy \
 	chapters/code/hello_pragma2.c \
 	chapters/code/hello_pragma.c \
 	chapters/code/scal_pragma.cu \
