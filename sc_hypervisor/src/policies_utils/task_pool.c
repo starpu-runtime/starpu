@@ -17,7 +17,7 @@
 
 #include "sc_hypervisor_policy.h"
 
-void sc_hypervisor_policy_add_task_to_pool(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, struct sc_hypervisor_policy_task_pool **task_pools, size_t data_size)
+void sc_hypervisor_policy_add_task_to_pool(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, struct sc_hypervisor_policy_task_pool **task_pools)
 {
 	struct sc_hypervisor_policy_task_pool *tp = NULL;
 
@@ -35,7 +35,6 @@ void sc_hypervisor_policy_add_task_to_pool(struct starpu_codelet *cl, unsigned s
 		tp->sched_ctx_id = sched_ctx;
 		tp->n = 0;
 		tp->next = *task_pools;
-		tp->data_size = data_size;
 		*task_pools = tp;
 	}
 

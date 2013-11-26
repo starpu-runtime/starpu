@@ -105,8 +105,10 @@ these values during the time, for the different workers.
 
 TODO: ajouter \ref STARPU_BUS_STATS
 
-// how to enable/disable performance monitoring
-// what kind of information do we get ?
+\internal
+how to enable/disable performance monitoring
+what kind of information do we get ?
+\endinternal
 
 The bus speed measured by StarPU can be displayed by using the tool
 <c>starpu_machine_display</c>, for instance:
@@ -585,7 +587,9 @@ Computation took (in ms)
 Synthetic GFlops : 44.21
 \endverbatim
 
-// TODO: data transfer stats are similar to the ones displayed when
-// setting STARPU_BUS_STATS
+\internal
+TODO: data transfer stats are similar to the ones displayed when
+setting STARPU_BUS_STATS
+\endinternal
 
 */

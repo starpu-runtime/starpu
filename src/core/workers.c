@@ -359,11 +359,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 
 	int ctx;
 	for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
-	{
 		workerarg->removed_from_ctx[ctx] = 0;
-		workerarg->shares_tasks_lists[ctx] = 0;
-	}
-
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
@@ -817,8 +813,7 @@ int starpu_init(struct starpu_conf *user_conf)
 	for (worker = 0; worker < config.topology.nworkers; worker++)
 		_starpu_worker_init(&config.workers[worker], &config);
 
-	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
-	_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init");
+	_starpu_create_sched_ctx(config.conf->sched_policy_name, NULL, -1, 1, "init");
 
 	_starpu_initialize_registered_performance_models();
 

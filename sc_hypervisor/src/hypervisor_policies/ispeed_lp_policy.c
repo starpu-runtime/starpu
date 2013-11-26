@@ -22,37 +22,254 @@
 
 struct ispeed_lp_data
 {
-	double **speed;
+	double **velocity;
 	double *flops;
 	double **flops_on_w;
 	int *workers;
 };
 
+/*
+ * GNU Linear Programming Kit backend
+ */
 #ifdef STARPU_HAVE_GLPK_H
-static double _compute_workers_distrib(int ns, int nw, double final_w_in_s[ns][nw],
-					unsigned is_integer, double tmax, void *specific_data)
+#include <glpk.h>
+static double _glp_resolve (int ns, int nw, double final_w_in_s[ns][nw],
+			    unsigned is_integer, double tmax, void *specific_data)
 {
 	struct ispeed_lp_data *sd = (struct ispeed_lp_data *)specific_data;
 
-	double **speed = sd->speed;
+	double **velocity = sd->velocity;
 	double *flops = sd->flops;
 	
 	double **final_flops_on_w = sd->flops_on_w;
+        int *workers = sd->workers;
 	
-	return sc_hypervisor_lp_simulate_distrib_flops_on_sample(ns, nw, final_w_in_s, is_integer, tmax, speed, flops, final_flops_on_w);
+	double w_in_s[ns][nw];
+	double flops_on_w[ns][nw];
+
+	int w, s;
+	glp_prob *lp;
+
+//	printf("try with tmax %lf\n", tmax);
+	lp = glp_create_prob();
+	glp_set_prob_name(lp, "StarPU theoretical bound");
+	glp_set_obj_dir(lp, GLP_MAX);
+	glp_set_obj_name(lp, "total execution time");
+
+	{
+		int ne = 5 * ns * nw /* worker execution time */
+			+ 1; /* glp dumbness */
+		int n = 1;
+		int ia[ne], ja[ne];
+		double ar[ne];
+
+
+		/* Variables: number of flops assigned to worker w in context s, and 
+		 the acknwoledgment that the worker w belongs to the context s */
+		glp_add_cols(lp, 2*nw*ns);
+#define colnum(w, s) ((s)*nw+(w)+1)
+		for(s = 0; s < ns; s++)
+			for(w = 0; w < nw; w++)
+				glp_set_obj_coef(lp, nw*ns+colnum(w,s), 1.);
+		
+		for(s = 0; s < ns; s++)
+			for(w = 0; w < nw; w++)
+			{
+				char name[32];
+				snprintf(name, sizeof(name), "flopsw%ds%dn", w, s);
+				glp_set_col_name(lp, colnum(w,s), name);
+				glp_set_col_bnds(lp, colnum(w,s), GLP_LO, 0., 0.);
+
+				snprintf(name, sizeof(name), "w%ds%dn", w, s);
+				glp_set_col_name(lp, nw*ns+colnum(w,s), name);
+				if (is_integer)
+				{
+                                        glp_set_col_kind(lp, nw*ns+colnum(w, s), GLP_IV);
+					glp_set_col_bnds(lp, nw*ns+colnum(w,s), GLP_DB, 0, 1);
+				}
+				else
+					glp_set_col_bnds(lp, nw*ns+colnum(w,s), GLP_DB, 0.0, 1.0);
+
+			}
+
+
+		int curr_row_idx = 0;
+		/* Total worker execution time */
+		glp_add_rows(lp, nw*ns);
+
+		/*nflops[s][w]/v[s][w] < x[s][w]*tmax */
+		for(s = 0; s < ns; s++)
+		{
+			for (w = 0; w < nw; w++)
+			{
+				char name[32], title[64];
+				starpu_worker_get_name(w, name, sizeof(name));
+				snprintf(title, sizeof(title), "worker %s", name);
+				glp_set_row_name(lp, curr_row_idx+s*nw+w+1, title);
+
+				/* nflosp[s][w] */
+				ia[n] = curr_row_idx+s*nw+w+1;
+				ja[n] = colnum(w, s);
+				ar[n] = 1 / velocity[s][w];
+
+				n++;
+				
+				/* x[s][w] = 1 | 0 */
+				ia[n] = curr_row_idx+s*nw+w+1;
+				ja[n] = nw*ns+colnum(w,s);
+				ar[n] = (-1) * tmax;
+				n++;
+				glp_set_row_bnds(lp, curr_row_idx+s*nw+w+1, GLP_UP, 0.0, 0.0);
+			}
+		}
+
+		curr_row_idx += nw*ns;
+
+		/* sum(flops[s][w]) = flops[s] */
+		glp_add_rows(lp, ns);
+		for (s = 0; s < ns; s++)
+		{
+			char name[32], title[64];
+			starpu_worker_get_name(w, name, sizeof(name));
+			snprintf(title, sizeof(title), "flops %lf ctx%d", flops[s], s);
+			glp_set_row_name(lp, curr_row_idx+s+1, title);
+			for (w = 0; w < nw; w++)
+			{
+				ia[n] = curr_row_idx+s+1;
+				ja[n] = colnum(w, s);
+				ar[n] = 1;
+				n++;
+			}
+			glp_set_row_bnds(lp, curr_row_idx+s+1, GLP_FX, flops[s], flops[s]);
+		}
+
+		curr_row_idx += ns;
+
+		/* sum(x[s][w]) = 1 */
+		glp_add_rows(lp, nw);
+		for (w = 0; w < nw; w++)
+		{
+			char name[32], title[64];
+			starpu_worker_get_name(w, name, sizeof(name));
+			snprintf(title, sizeof(title), "w%x", w);
+			glp_set_row_name(lp, curr_row_idx+w+1, title);
+			for(s = 0; s < ns; s++)
+			{
+				ia[n] = curr_row_idx+w+1;
+				ja[n] = nw*ns+colnum(w,s);
+				ar[n] = 1;
+				n++;
+			}
+			if(is_integer)				
+				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1, 1);
+			else
+				glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_FX, 1.0, 1.0);
+		}
+
+		curr_row_idx += nw;
+
+		/* sum(nflops[s][w]) > 0*/
+		glp_add_rows(lp, nw);
+		for (w = 0; w < nw; w++)
+		{
+			char name[32], title[64];
+			starpu_worker_get_name(w, name, sizeof(name));
+			snprintf(title, sizeof(title), "flopsw%x", w);
+			glp_set_row_name(lp, curr_row_idx+w+1, title);
+			for(s = 0; s < ns; s++)
+			{
+				ia[n] = curr_row_idx+w+1;
+				ja[n] = colnum(w,s);
+				ar[n] = 1;
+				n++;
+			}
+
+			glp_set_row_bnds(lp, curr_row_idx+w+1, GLP_LO, 0.1, 0.);
+		}
+
+		if(n != ne)
+			printf("ns= %d nw = %d n = %d ne = %d\n", ns, nw, n, ne);
+		STARPU_ASSERT(n == ne);
+
+		glp_load_matrix(lp, ne-1, ia, ja, ar);
+	}
+
+	glp_smcp parm;
+	glp_init_smcp(&parm);
+	parm.msg_lev = GLP_MSG_OFF;
+	int ret = glp_simplex(lp, &parm);
+	if (ret)
+	{
+		glp_delete_prob(lp);
+		lp = NULL;
+		return 0.0;
+	}
+
+        if (is_integer)
+        {
+                glp_iocp iocp;
+                glp_init_iocp(&iocp);
+                iocp.msg_lev = GLP_MSG_OFF;
+                glp_intopt(lp, &iocp);
+		int stat = glp_mip_status(lp);
+		/* if we don't have a solution return */
+		if(stat == GLP_NOFEAS)
+		{
+			glp_delete_prob(lp);
+			lp = NULL;
+			return 0.0;
+		}
+        }
+
+	int stat = glp_get_prim_stat(lp);
+	/* if we don't have a solution return */
+	if(stat == GLP_NOFEAS)
+	{
+		glp_delete_prob(lp);
+		lp = NULL;
+		return 0.0;
+	}
+
+	double res = glp_get_obj_val(lp);
+
+	for(s = 0; s < ns; s++)
+		for(w = 0; w < nw; w++)
+		{
+			flops_on_w[s][w] = glp_get_col_prim(lp, colnum(w, s));
+			if (is_integer)
+				w_in_s[s][w] = (double)glp_mip_col_val(lp, nw*ns+colnum(w, s));
+			else
+				w_in_s[s][w] = glp_get_col_prim(lp, nw*ns+colnum(w,s));
+//			printf("w_in_s[s%d][w%d] = %lf flops[s%d][w%d] = %lf \n", s, w, w_in_s[s][w], s, w, flops_on_w[s][w]);
+		}
+
+	glp_delete_prob(lp);
+	for(s = 0; s < ns; s++)
+		for(w = 0; w < nw; w++)
+		{
+			final_w_in_s[s][w] = w_in_s[s][w];
+			final_flops_on_w[s][w] = flops_on_w[s][w];
+		}
+
+	return res;
 }
 
-static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_in_s[ns][nw], double **flops_on_w, unsigned *sched_ctxs, int *workers)
+static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_in_s[ns][nw], double **flops_on_w, int *in_sched_ctxs, int *workers)
 {
+//	double flops[ns];
+//	double velocity[ns][nw];
 	double *flops = (double*)malloc(ns*sizeof(double));
-	double **speed = (double **)malloc(ns*sizeof(double*));
+	double **velocity = (double **)malloc(ns*sizeof(double*));
 	int i;
 	for(i = 0; i < ns; i++)
-		speed[i] = (double*)malloc(nw*sizeof(double));
+		velocity[i] = (double*)malloc(nw*sizeof(double));
+
+	int *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 	
 	int w,s;
 
 	struct sc_hypervisor_wrapper* sc_w = NULL;
+	double total_flops = 0.0;
 	for(s = 0; s < ns; s++)
 	{
 		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
@@ -61,24 +278,24 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 			w_in_s[s][w] = 0.0;
 			int worker = workers == NULL ? w : workers[w];
 
-			speed[s][w] = sc_hypervisor_get_speed_per_worker(sc_w, worker);
-			if(speed[s][w] == -1.0)
+			velocity[s][w] = sc_hypervisor_get_velocity_per_worker(sc_w, worker);
+			if(velocity[s][w] == -1.0)
 			{
 				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-				speed[s][w] = sc_hypervisor_get_speed(sc_w, arch);
+				velocity[s][w] = sc_hypervisor_get_velocity(sc_w, arch);
 				if(arch == STARPU_CUDA_WORKER)
 				{
 					unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, sc_w->sched_ctx);
 					if(!worker_in_ctx)
 					{
-						double transfer_speed = starpu_get_bandwidth_RAM_CUDA(worker) / 1000;
-						speed[s][w] = (speed[s][w] * transfer_speed) / (speed[s][w] + transfer_speed);
+						double transfer_velocity = starpu_transfer_bandwidth(0, starpu_worker_get_memory_node(worker)) / 1000;
+						velocity[s][w] = (velocity[s][w] * transfer_velocity) / (velocity[s][w] + transfer_velocity);
 					}
 				}
 
 			}
 			
-//			printf("v[w%d][s%d] = %lf\n",w, s, speed[s][w]);
+//			printf("v[w%d][s%d] = %lf\n",w, s, velocity[s][w]);
 		}
 		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[s]);
 		flops[s] = config->ispeed_ctx_sample/1000000000; /* in gflops */
@@ -93,148 +310,108 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 	double tmin = 0.0;
 
         struct ispeed_lp_data specific_data;
-        specific_data.speed = speed;
+        specific_data.velocity = velocity;
         specific_data.flops = flops;
         specific_data.flops_on_w = flops_on_w;
         specific_data.workers = workers;
 
         unsigned found_sol = sc_hypervisor_lp_execute_dichotomy(ns, nw, w_in_s, 1, (void*)&specific_data, 
-								tmin, tmax, smallest_tmax, _compute_workers_distrib);
+								tmin, tmax, smallest_tmax, _glp_resolve);
 
 	for(i = 0; i < ns; i++)
-		free(speed[i]);
-	free(speed);
+		free(velocity[i]);
+	free(velocity);
 	
 	return found_sol;
 }
 
-static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
+
+
+static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
-	starpu_trace_user_event(2);
-        int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
-	int nw = nworkers == -1 ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
-        unsigned *curr_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
-
-        struct types_of_workers *tw = sc_hypervisor_get_types_of_workers(workers, nw);
-        int ntypes_of_workers = tw->nw;
-
-
-	double w_in_s[ns][nw];
-//			double flops_on_w[ns][nw];
-	double **flops_on_w = (double**)malloc(ns*sizeof(double*));
-	int i;
-	for(i = 0; i < ns; i++)
-		flops_on_w[i] = (double*)malloc(nw*sizeof(double));
-	
-	unsigned found_sol = _compute_flops_distribution_over_ctxs(ns, nw,  w_in_s, flops_on_w, curr_sched_ctxs, workers);
-	/* if we did find at least one solution redistribute the resources */
-	if(found_sol)
-	{
-		int w, s;
-		double nworkers_per_ctx[ns][ntypes_of_workers];
-		int nworkers_per_ctx_rounded[ns][ntypes_of_workers];
-		for(s = 0; s < ns; s++)
-		{
-			for(w = 0; w < ntypes_of_workers; w++)
-			{
-				nworkers_per_ctx[s][w] = 0.0;
-				nworkers_per_ctx_rounded[s][w] = 0;
-			}
-		}
-		
-		for(s = 0; s < ns; s++)
-		{
-			for(w = 0; w < nw; w++)
-			{
-				enum starpu_worker_archtype arch = starpu_worker_get_type(w);
-		
-				int idx = sc_hypervisor_get_index_for_arch(arch, tw);
-				nworkers_per_ctx[s][idx] += w_in_s[s][w];
-				if(arch == STARPU_CUDA_WORKER)
-				{
-					if(w_in_s[s][w] >= 0.3)
-						nworkers_per_ctx_rounded[s][idx]++;
-				}
-				else
-				{
-					if(w_in_s[s][w] > 0.5)
-						nworkers_per_ctx_rounded[s][idx]++;
-				}
-			}
-		}
-/* 				for(s = 0; s < ns; s++) */
-/* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
-/* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
-		
-		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, ntypes_of_workers, nworkers_per_ctx_rounded, nworkers_per_ctx, curr_sched_ctxs, tw);
-	}
-	for(i = 0; i < ns; i++)
-		free(flops_on_w[i]);
-	free(flops_on_w);
-}
-
-static void ispeed_lp_handle_poped_task(__attribute__((unused))unsigned sched_ctx, __attribute__((unused))int worker, 
-					__attribute__((unused))struct starpu_task *task, __attribute__((unused))uint32_t footprint)
-{
-        int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
-        if(ret != EBUSY)
-        {
-                unsigned criteria = sc_hypervisor_get_resize_criteria();
-                if(criteria != SC_NOTHING && criteria == SC_SPEED)
-                {
-                        if(sc_hypervisor_check_speed_gap_btw_ctxs())
-                        {
-                                _try_resizing(NULL, -1, NULL, -1);
-                        }
-                }
-                starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
-        }
-}
-
-static void ispeed_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
-{
-        int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
-        if(ret != EBUSY)
-        {
-                unsigned criteria = sc_hypervisor_get_resize_criteria();
-                if(criteria != SC_NOTHING && criteria == SC_IDLE)
-                {
-
-			if(sc_hypervisor_check_idle(sched_ctx, worker))
-                        {
-                                _try_resizing(NULL, -1, NULL, -1);
-                        }
-                }
-                starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
-        }
-}
-
-static void ispeed_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
-{
+	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
+	sc_hypervisor_get_velocity_per_worker(sc_w, worker);
 	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 	if(ret != EBUSY)
 	{
-		_try_resizing(sched_ctxs, nsched_ctxs, workers, nworkers);
+		if(sc_hypervisor_has_velocity_gap_btw_ctxs())
+		{
+			int ns = sc_hypervisor_get_nsched_ctxs();
+			int nw = starpu_worker_get_count(); /* Number of different workers */
+
+			double w_in_s[ns][nw];
+//			double flops_on_w[ns][nw];
+			double **flops_on_w = (double**)malloc(ns*sizeof(double*));
+			int i;
+			for(i = 0; i < ns; i++)
+				flops_on_w[i] = (double*)malloc(nw*sizeof(double));
+
+			printf("ns = %d nw = %d\n", ns, nw);
+			unsigned found_sol = _compute_flops_distribution_over_ctxs(ns, nw,  w_in_s, flops_on_w, NULL, NULL);
+			/* if we did find at least one solution redistribute the resources */
+			if(found_sol)
+			{
+				int w, s;
+				double nworkers[ns][2];
+				int nworkers_rounded[ns][2];
+				for(s = 0; s < ns; s++)
+				{
+					nworkers[s][0] = 0.0;
+					nworkers[s][1] = 0.0;
+					nworkers_rounded[s][0] = 0;
+					nworkers_rounded[s][1] = 0;
+
+				}
+
+				for(s = 0; s < ns; s++)
+				{
+					for(w = 0; w < nw; w++)
+					{
+						enum starpu_worker_archtype arch = starpu_worker_get_type(w);
+
+						if(arch == STARPU_CUDA_WORKER)
+						{
+							nworkers[s][0] += w_in_s[s][w];
+							if(w_in_s[s][w] >= 0.3)
+								nworkers_rounded[s][0]++;
+						}
+						else
+						{
+							nworkers[s][1] += w_in_s[s][w];
+							if(w_in_s[s][w] > 0.5)
+								nworkers_rounded[s][1]++;
+						}
+					}
+				}
+/* 				for(s = 0; s < ns; s++) */
+/* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
+/* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
+
+				sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
+			}
+			for(i = 0; i < ns; i++)
+				free(flops_on_w[i]);
+			free(flops_on_w);
+		}
 		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
 }
 
-static void ispeed_lp_end_ctx(__attribute__((unused))unsigned sched_ctx)
+static void ispeed_lp_end_ctx(unsigned sched_ctx)
 {
-/* 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx); */
-/* 	int worker; */
+	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
+	int worker;
 /* 	for(worker = 0; worker < 12; worker++) */
-/* 		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_speed[worker]); */
+/* 		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_velocity[worker]); */
 
 	return;
 }
 
 struct sc_hypervisor_policy ispeed_lp_policy = {
 	.size_ctxs = NULL,
-	.resize_ctxs = ispeed_lp_resize_ctxs,
 	.handle_poped_task = ispeed_lp_handle_poped_task,
 	.handle_pushed_task = NULL,
-	.handle_idle_cycle = ispeed_lp_handle_idle_cycle,
+	.handle_idle_cycle = NULL,
 	.handle_idle_end = NULL,
 	.handle_post_exec_hook = NULL,
 	.handle_submitted_job = NULL,

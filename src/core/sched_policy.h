@@ -27,11 +27,9 @@ struct starpu_machine_config;
 struct starpu_sched_policy *_starpu_get_sched_policy( struct _starpu_sched_ctx *sched_ctx);
 
 void _starpu_init_sched_policy(struct _starpu_machine_config *config,
-			       struct _starpu_sched_ctx *sched_ctx, struct starpu_sched_policy *policy);
+			       struct _starpu_sched_ctx *sched_ctx, const char *required_policy);
 
 void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx);
-
-struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_config *config, const char *required_policy);
 
 int _starpu_push_task(struct _starpu_job *task);
 

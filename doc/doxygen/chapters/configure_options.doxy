@@ -322,8 +322,6 @@ Use the compiler <c>mpicc</c> at <c>path</c>, for StarPU-MPI.
 Enable the activity polling method for StarPU-MPI.
 </dd>
 
-</dl>
-
 \section AdvancedConfiguration Advanced Configuration
 
 <dl>
@@ -371,7 +369,9 @@ CUDA. Still experimental.
 \anchor enable-opengl-render
 \addindex __configure__--enable-opengl-render
 Enable the use of OpenGL for the rendering of some examples.
-// TODO: rather default to enabled when detected
+\internal
+TODO: rather default to enabled when detected
+\endinternal
 </dd>
 
 <dt>--enable-blas-lib</dt>

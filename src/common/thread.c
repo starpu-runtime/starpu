@@ -97,7 +97,8 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 
 int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 {
-	return xbt_mutex_acquire(*mutex);
+	xbt_mutex_acquire(*mutex);
+	return 0;
 }
 
 static int used_key[MAX_TSD];

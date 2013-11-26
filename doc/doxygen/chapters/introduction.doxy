@@ -16,8 +16,9 @@
 
 \section Motivation Motivation
 
-// This is a comment and it will be removed before the file is processed by doxygen
-// complex machines with heterogeneous cores/devices
+\internal
+complex machines with heterogeneous cores/devices
+\endinternal
 
 The use of specialized hardware such as accelerators or coprocessors offers an
 interesting approach to overcome the physical limits encountered by processor
@@ -34,11 +35,14 @@ efficiently mapping and executing tasks onto an heterogeneous machine while
 transparently handling low-level issues such as data transfers in a portable
 fashion.
 
-// this leads to a complicated distributed memory design
-// which is not (easily) manageable by hand
-// added value/benefits of StarPU
-//    - portability
-//   - scheduling, perf. portability
+\internal
+this leads to a complicated distributed memory design
+which is not (easily) manageable by hand
+
+added value/benefits of StarPU
+   - portability
+   - scheduling, perf. portability
+\endinternal
 
 \section StarPUInANutshell StarPU in a Nutshell
 
@@ -69,7 +73,9 @@ policies in a portable fashion (\ref DefiningANewSchedulingPolicy).
 
 The remainder of this section describes the main concepts used in StarPU.
 
-// explain the notion of codelet and task (i.e. g(A, B)
+\internal
+explain the notion of codelet and task (i.e. g(A, B)
+\endinternal
 
 \subsection CodeletAndTasks Codelet and Tasks
 
@@ -77,7 +83,9 @@ One of the StarPU primary data structures is the \b codelet. A codelet describes
 computational kernel that can possibly be implemented on multiple architectures
 such as a CPU, a CUDA device or an OpenCL device.
 
-// TODO insert illustration f: f_spu, f_cpu, ...
+\internal
+TODO insert illustration f: f_spu, f_cpu, ...
+\endinternal
 
 Another important data structure is the \b task. Executing a StarPU task
 consists in applying a codelet on a data set, on one of the architectures on
@@ -100,8 +108,13 @@ submitting other tasks, or by expressing dependencies
 between tags (which can thus correspond to tasks that have not been submitted
 yet).
 
-// TODO insert illustration f(Ar, Brw, Cr) + ..
-// DSM
+\internal
+TODO insert illustration f(Ar, Brw, Cr) + ..
+\endinternal
+
+\internal
+DSM
+\endinternal
 
 \subsection StarPUDataManagementLibrary StarPU Data Management Library
 
@@ -117,12 +130,15 @@ several processing units as long as it is not modified.
 
 TODO
 
-// TODO: section describing what taskifying an application means: before
-// porting to StarPU, turn the program into:
-// "pure" functions, which only access data from their passed parameters
-// a main function which just calls these pure functions
-// and then it's trivial to use StarPU or any other kind of task-based library:
-// simply replace calling the function with submitting a task.
+\internal
+TODO: section describing what taskifying an application means: before
+porting to StarPU, turn the program into:
+"pure" functions, which only access data from their passed parameters
+a main function which just calls these pure functions
+
+and then it's trivial to use StarPU or any other kind of task-based library:
+simply replace calling the function with submitting a task.
+\endinternal
 
 \section Glossary Glossary
 
