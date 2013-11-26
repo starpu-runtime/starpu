@@ -396,13 +396,13 @@ struct starpu_task * simple_worker_pop_task(struct starpu_sched_node *node,unsig
 		return NULL;
 	if(task->cl->type == STARPU_SPMD)
 	{
-		int combined_workerid = starpu_combined_worker_get_id();
-		if(combined_workerid < 0)
+		int workerid = starpu_worker_get_id();
+		if(!starpu_worker_is_combined_worker(workerid))
 		{
 			starpu_push_task_end(task);
 			return task;
 		}
-		struct starpu_sched_node * combined_worker_node = starpu_sched_node_worker_get(combined_workerid);
+		struct starpu_sched_node * combined_worker_node = starpu_sched_node_worker_get(workerid);
 		(void)combined_worker_node->push_task(combined_worker_node, task);
 		/* we have pushed a task in queue, so can make a recursive call */
 		return simple_worker_pop_task(node, sched_ctx_id);
