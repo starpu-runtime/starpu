@@ -55,6 +55,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <strings.h>
 
 #include "sobol.h"
 #include "sobol_gold.h"
