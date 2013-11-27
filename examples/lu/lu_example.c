@@ -182,6 +182,8 @@ static void init_matrix(void)
 			/* also randomize the imaginary component for complex number cases */
 			A[i + j*size] += (TYPE)(I*starpu_drand48());
 #endif
+			if (i == j)
+				A[i + j*size] *= 100;
 		}
 	}
 
