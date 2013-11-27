@@ -59,7 +59,7 @@ int _starpu_memory_manager_can_allocate_size(size_t size, unsigned node)
 		used_size[node] += size;
 		ret = 1;
 	}
-	else if (used_size[node] + size < global_size[node])
+	else if (used_size[node] + size <= global_size[node])
 	{
 		used_size[node] += size;
 		ret = 1;
