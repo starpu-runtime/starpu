@@ -1,5 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
+ * Copyright (C) 2013  Université de Bordeaux 1
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -18,62 +19,14 @@
 #include <starpu_sched_node.h>
 #include "sched_node.h"
 #include <starpu_perfmodel.h>
+#include "helper_mct.h"
 #include <float.h>
-
-struct _starpu_mct_data
-{
-	double alpha;
-	double beta;
-	double gamma;
-	double idle_power;
-};
-
-/* compute predicted_end by taking into account the case of the predicted transfer and the predicted_end overlap
- */
-double compute_expected_time(double now, double predicted_end, double predicted_length, double *predicted_transfer)
-{
-	STARPU_ASSERT(!isnan(now + predicted_end + predicted_length + *predicted_transfer));
-	STARPU_ASSERT(now >= 0.0 && predicted_end >= 0.0 && predicted_length >= 0.0 && *predicted_transfer >= 0.0);
-
-	/* TODO: actually schedule transfers */
-	if (now + *predicted_transfer < predicted_end)
-	{
-		/* We may hope that the transfer will be finished by
-		 * the start of the task. */
-		*predicted_transfer = 0;
-	}
-	else
-	{
-		/* The transfer will not be finished by then, take the
-		 * remainder into account */
-		*predicted_transfer -= (predicted_end - now);
-	}
-
-	predicted_end += *predicted_transfer;
-	predicted_end += predicted_length;
-
-	return predicted_end;
-}
-
-
-static double compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end, double max_exp_end, double transfer_len, double local_power)
-{
-	/* Note: the expected end includes the data transfer duration, which we want to be able to tune separately */
-
-	return d->alpha * (exp_end - min_exp_end - transfer_len)
-		+ d->beta * transfer_len
-		+ d->gamma * local_power
-		+ d->gamma * d->idle_power * (exp_end - max_exp_end);
-}
 
 static int mct_push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
 	STARPU_ASSERT(node && task && starpu_sched_node_is_mct(node));
 	struct _starpu_mct_data * d = node->data;	
 	struct starpu_sched_node * best_node = NULL;
-
-	/* Estimated availability time of each child */
-	double estimated_ends[node->nchilds];
 
 	/* Estimated task duration for each child */
 	double estimated_lengths[node->nchilds];
@@ -91,27 +44,10 @@ static int mct_push_task(struct starpu_sched_node * node, struct starpu_task * t
 	int nsuitable_nodes = 0;
 
 	int i;
-	for(i = 0; i < node->nchilds; i++)
-	{
-		struct starpu_sched_node * c = node->childs[i];
-		if(starpu_sched_node_execute_preds(c, task, estimated_lengths + i))
-		{
-			estimated_transfer_length[i] = starpu_sched_node_transfer_length(c, task);
-			estimated_ends[i] = c->estimated_end(c);
-			double now = starpu_timing_now();
-			if (estimated_ends[i] < now)
-				estimated_ends[i] = now;
-			estimated_ends_with_task[i] = compute_expected_time(now,
-									    estimated_ends[i],
-									    estimated_lengths[i],
-									    &estimated_transfer_length[i]);
-			if(estimated_ends_with_task[i] < min_exp_end_with_task)	
-				min_exp_end_with_task = estimated_ends_with_task[i];
-			if(estimated_ends_with_task[i] > max_exp_end_with_task)
-				max_exp_end_with_task = estimated_ends_with_task[i];
-			suitable_nodes[nsuitable_nodes++] = i;
-		}
-	}
+
+	nsuitable_nodes = starpu_mct_compute_expected_times(node, task,
+			estimated_lengths, estimated_transfer_length, estimated_ends_with_task,
+			&min_exp_end_with_task, &max_exp_end_with_task, suitable_nodes);
 
 	double best_fitness = DBL_MAX;
 	int best_inode = -1;
@@ -121,7 +57,7 @@ static int mct_push_task(struct starpu_sched_node * node, struct starpu_task * t
 #ifdef STARPU_DEVEL
 #warning FIXME: take power consumption into account
 #endif
-		double tmp = compute_fitness(d,
+		double tmp = starpu_mct_compute_fitness(d,
 					     estimated_ends_with_task[inode],
 					     min_exp_end_with_task,
 					     max_exp_end_with_task,
@@ -155,86 +91,10 @@ int starpu_sched_node_is_mct(struct starpu_sched_node * node)
 	return node->push_task == mct_push_task;
 }
 
-/* Alpha, Beta and Gamma are MCT-specific values, which allows the
- * user to set more precisely the weight of each computing value.
- * Beta, for example, controls the weight of communications between
- * memories for the computation of the best node to choose. 
- */
-#define _STARPU_SCHED_ALPHA_DEFAULT 1.0
-#define _STARPU_SCHED_BETA_DEFAULT 1.0
-#define _STARPU_SCHED_GAMMA_DEFAULT 1000.0
-
-#ifdef STARPU_USE_TOP
-static void param_modified(struct starpu_top_param* d)
-{
-	/* Just to show parameter modification. */
-	fprintf(stderr, "%s has been modified : %f\n",
-			d->name, *(double*) d->value);
-}
-#endif /* !STARPU_USE_TOP */
-
-#ifdef STARPU_USE_TOP
-static const float alpha_minimum=0;
-static const float alpha_maximum=10.0;
-static const float beta_minimum=0;
-static const float beta_maximum=10.0;
-static const float gamma_minimum=0;
-static const float gamma_maximum=10000.0;
-static const float idle_power_minimum=0;
-static const float idle_power_maximum=10000.0;
-#endif /* !STARPU_USE_TOP */
-
 struct starpu_sched_node * starpu_sched_node_mct_create(struct starpu_mct_data * params)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
-
-	struct _starpu_mct_data * data = malloc(sizeof(*data));
-	if (params)
-	{
-		data->alpha = params->alpha;
-		data->beta = params->beta;
-		data->gamma = params->gamma;
-		data->idle_power = params->idle_power;
-	}
-	else
-	{
-		double alpha = _STARPU_SCHED_ALPHA_DEFAULT,
-		       beta = _STARPU_SCHED_BETA_DEFAULT,
-		       _gamma = _STARPU_SCHED_GAMMA_DEFAULT,
-		       idle_power = 0.0;
-
-		const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
-		if (strval_alpha)
-			alpha = atof(strval_alpha);
-
-		const char *strval_beta = getenv("STARPU_SCHED_BETA");
-		if (strval_beta)
-			beta = atof(strval_beta);
-
-		const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
-		if (strval_gamma)
-			_gamma = atof(strval_gamma);
-
-		const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
-		if (strval_idle_power)
-			idle_power = atof(strval_idle_power);
-
-		data->alpha = alpha;
-		data->beta = beta;
-		data->gamma = _gamma;
-		data->idle_power = idle_power;
-	}
-
-#ifdef STARPU_USE_TOP
-	starpu_top_register_parameter_float("MCT_ALPHA", &data->alpha,
-					    alpha_minimum, alpha_maximum, param_modified);
-	starpu_top_register_parameter_float("MCT_BETA", &data->beta,
-					    beta_minimum, beta_maximum, param_modified);
-	starpu_top_register_parameter_float("MCT_GAMMA", &data->gamma,
-					    gamma_minimum, gamma_maximum, param_modified);
-	starpu_top_register_parameter_float("MCT_IDLE_POWER", &data->idle_power,
-					    idle_power_minimum, idle_power_maximum, param_modified);
-#endif /* !STARPU_USE_TOP */
+	struct _starpu_mct_data *data = starpu_mct_init_parameters(params);
 
 	node->data = data;
 

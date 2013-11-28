@@ -79,6 +79,7 @@ noinst_HEADERS = 						\
 	core/simgrid.h						\
 	core/task_bundle.h					\
 	core/detect_combined_workers.h				\
+	sched_policies/helper_mct.h				\
 	sched_policies/fifo_queues.h				\
 	sched_policies/deque_queues.h				\
 	sched_policies/stack_queues.h				\
@@ -247,6 +248,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/node_fifo.c 				\
 	sched_policies/node_work_stealing.c			\
 	sched_policies/prio_deque.c				\
+	sched_policies/helper_mct.c				\
 	sched_policies/node_prio.c 				\
 	sched_policies/node_random.c				\
 	sched_policies/node_eager.c				\
