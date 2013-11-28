@@ -17,7 +17,8 @@
  */
 
 /* HEFT variant which tries to schedule a given number of tasks instead of just
- * the first of its scheduling window.  */
+ * the first of its scheduling window, and actually schedule the task for which
+ * the most benefit is achieved.  */
 
 #include <starpu_sched_node.h>
 #include "prio_deque.h"
