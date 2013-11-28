@@ -98,6 +98,13 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 	window_node->add_child(window_node, perfmodel_select_node);
 	starpu_sched_node_set_father(perfmodel_select_node, window_node, sched_ctx_id);
 
+	perfmodel_select_node->add_child(perfmodel_select_node, calibrator_node);
+	starpu_sched_node_set_father(calibrator_node, perfmodel_select_node, sched_ctx_id);
+	perfmodel_select_node->add_child(perfmodel_select_node, perfmodel_node);
+	starpu_sched_node_set_father(perfmodel_node, perfmodel_select_node, sched_ctx_id);
+	perfmodel_select_node->add_child(perfmodel_select_node, no_perfmodel_node);
+	starpu_sched_node_set_father(no_perfmodel_node, perfmodel_select_node, sched_ctx_id);
+
 	struct starpu_prio_data prio_data =
 		{
 			.ntasks_threshold = ntasks_threshold,
@@ -118,8 +125,8 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 		impl_node->add_child(impl_node, prio);
 		starpu_sched_node_set_father(prio, impl_node, sched_ctx_id);
 
-		perfmodel_select_node->add_child(perfmodel_select_node, impl_node);
-		starpu_sched_node_set_father(impl_node, perfmodel_select_node, sched_ctx_id);
+		perfmodel_node->add_child(perfmodel_node, impl_node);
+		starpu_sched_node_set_father(impl_node, perfmodel_node, sched_ctx_id);
 	}
 
 	starpu_sched_tree_update_workers(t);

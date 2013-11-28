@@ -71,27 +71,6 @@ int starpu_sched_node_is_perfmodel_select(struct starpu_sched_node * node)
 	return node->push_task == perfmodel_select_push_task;
 }
 
-void perfmodel_select_add_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
-{
-	STARPU_ASSERT(starpu_sched_node_is_perfmodel_select(node));
-	starpu_sched_node_add_child(node, child);
-	struct _starpu_perfmodel_select_data * data = node->data;
-	starpu_sched_node_add_child(data->calibrator_node,child);
-	starpu_sched_node_add_child(data->no_perfmodel_node,child);
-	starpu_sched_node_add_child(data->perfmodel_node, child);
-}
-
-void perfmodel_select_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
-{
-
-	STARPU_ASSERT(starpu_sched_node_is_perfmodel_select(node));
-	starpu_sched_node_remove_child(node, child);
-	struct _starpu_perfmodel_select_data * data = node->data;
-	starpu_sched_node_remove_child(data->calibrator_node,child);
-	starpu_sched_node_remove_child(data->no_perfmodel_node,child);
-	starpu_sched_node_remove_child(data->perfmodel_node, child);
-}
-
 static void perfmodel_select_notify_change_in_workers(struct starpu_sched_node * node)
 {
 	STARPU_ASSERT(starpu_sched_node_is_perfmodel_select(node));
@@ -121,9 +100,6 @@ void perfmodel_select_node_deinit_data(struct starpu_sched_node * node)
 {
 	STARPU_ASSERT(node && node->data);
 	struct _starpu_perfmodel_select_data * d = node->data;
-	starpu_sched_node_destroy(d->calibrator_node);
-	starpu_sched_node_destroy(d->no_perfmodel_node);
-	starpu_sched_node_destroy(d->perfmodel_node);
 	free(d);
 }
 
@@ -140,8 +116,6 @@ struct starpu_sched_node * starpu_sched_node_perfmodel_select_create(struct star
 	
 	node->data = data;
 	node->push_task = perfmodel_select_push_task;
-	node->add_child = perfmodel_select_add_child;
-	node->remove_child = perfmodel_select_remove_child;
 	node->deinit_data = perfmodel_select_node_deinit_data;
 	node->notify_change_workers = perfmodel_select_notify_change_in_workers;
 
