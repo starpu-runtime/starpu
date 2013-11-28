@@ -88,9 +88,9 @@ static int heft_progress_one(struct starpu_sched_node *node)
 		double estimated_ends_with_task[node->nchilds * ntasks];
 
 		/* Minimum transfer+task termination on all children */
-		double min_exp_end_with_task = DBL_MAX;
+		double min_exp_end_with_task[ntasks];
 		/* Maximum transfer+task termination on all children */
-		double max_exp_end_with_task = 0.0;
+		double max_exp_end_with_task[ntasks];
 
 		int suitable_nodes[node->nchilds * ntasks];
 
@@ -100,11 +100,14 @@ static int heft_progress_one(struct starpu_sched_node *node)
 		{
 			int offset = node->nchilds * n;
 
+			min_exp_end_with_task[n] = DBL_MAX;
+			max_exp_end_with_task[n] = 0.0;
+
 			nsuitable_nodes[n] = starpu_mct_compute_expected_times(node, tasks[n],
 					estimated_lengths + offset,
 					estimated_transfer_length + offset,
 					estimated_ends_with_task + offset,
-					&min_exp_end_with_task, &max_exp_end_with_task,
+					&min_exp_end_with_task[n], &max_exp_end_with_task[n],
 					suitable_nodes + offset);
 		}
 
@@ -123,8 +126,8 @@ static int heft_progress_one(struct starpu_sched_node *node)
 #endif
 				double tmp = starpu_mct_compute_fitness(d,
 							     estimated_ends_with_task[offset + inode],
-							     min_exp_end_with_task,
-							     max_exp_end_with_task,
+							     min_exp_end_with_task[n],
+							     max_exp_end_with_task[n],
 							     estimated_transfer_length[offset + inode],
 							     0.0);
 
