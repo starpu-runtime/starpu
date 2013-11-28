@@ -22,13 +22,13 @@ stcolor=$(tput sgr0)
 redcolor=$(tput setaf 1)
 greencolor=$(tput setaf 2)
 
-H_FILES=$(find include mpi/include -name '*.h')
+H_FILES=$(find ../../include ../../mpi/include -name '*.h')
 
-functions=$(spatch -very_quiet -sp_file tools/dev/starpu_funcs.cocci $H_FILES)
+functions=$(spatch -very_quiet -sp_file ./dev/starpu_funcs.cocci $H_FILES)
 for func in $functions ; do
 	fname=$(echo $func|awk -F ',' '{print $1}')
 	location=$(echo $func|awk -F ',' '{print $2}')
-	x=$(grep "$fname (" doc/starpu.texi doc/chapters/*texi | grep deftypefun)
+	x=$(grep "$fname(" chapters/api/*.doxy | grep "\\fn")
 	if test "$x" == "" ; then
 		echo "function ${redcolor}${fname}${stcolor} at location ${redcolor}$location${stcolor} is not (or incorrectly) documented"
 #	else
@@ -40,7 +40,7 @@ echo
 
 structs=$(grep "struct starpu" $H_FILES | grep -v "[;|,|(|)]" | awk '{print $2}')
 for struct in $structs ; do
-    x=$(grep "$struct\b" doc/starpu.texi doc/chapters/*texi | grep deftp)
+    x=$(grep -F "\\struct $struct" chapters/api/*.doxy)
     if test "$x" == "" ; then
 	echo "struct ${redcolor}${struct}${stcolor} is not (or incorrectly) documented"
     fi
@@ -50,7 +50,7 @@ echo
 
 enums=$(grep "enum starpu" $H_FILES | grep -v "[;|,|(|)]" | awk '{print $2}')
 for enum in $enums ; do
-    x=$(grep "$enum\b" doc/starpu.texi doc/chapters/*texi | grep deftp)
+    x=$(grep -F "\\enum $enum" chapters/api/*.doxy)
     if test "$x" == "" ; then
 	echo "enum ${redcolor}${enum}${stcolor} is not (or incorrectly) documented"
     fi
@@ -60,7 +60,7 @@ echo
 
 macros=$(grep "define\b" $H_FILES |grep -v deprecated|grep "#" | grep -v "__" | sed 's/#[ ]*/#/g' | awk '{print $2}' | awk -F'(' '{print $1}' | sort|uniq)
 for macro in $macros ; do
-    x=$(grep "$macro\b" doc/starpu.texi doc/chapters/*texi | grep defmac)
+    x=$(grep -F "\\def $macro" chapters/api/*.doxy)
     if test "$x" == "" ; then
 	echo "macro ${redcolor}${macro}${stcolor} is not (or incorrectly) documented"
     fi
@@ -70,7 +70,7 @@ echo
 
 variables=$(grep --exclude-dir=.svn -rs -E "(getenv|get_env)" src/| tr ' ' '\012'|grep -E "(getenv|get_env)" | grep "\"" | sed 's/.*("//' | sed 's/").*//'|sort|uniq)
 for variable in $variables ; do
-    x=$(grep "$variable" doc/starpu.texi doc/chapters/*texi | grep defvr)
+    x=$(grep "$variable" chapters/environment_variables.doxy | grep "\\anchor")
     if test "$x" == "" ; then
 	echo "variable ${redcolor}${variable}${stcolor} is not (or incorrectly) documented"
     fi
