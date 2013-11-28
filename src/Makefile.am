@@ -253,6 +253,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/node_random.c				\
 	sched_policies/node_eager.c				\
 	sched_policies/node_mct.c				\
+	sched_policies/node_heft.c				\
 	sched_policies/node_best_implementation.c		\
 	sched_policies/node_perfmodel_select.c				\
 	sched_policies/node_composed.c				\
@@ -263,7 +264,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/tree_random.c				\
 	sched_policies/tree_random_prefetching.c			\
 	sched_policies/tree_ws.c				\
-	sched_policies/tree_heft.c
+	sched_policies/tree_heft.c				\
+	sched_policies/tree_heft2.c
 
 
 if STARPU_HAVE_LEVELDB

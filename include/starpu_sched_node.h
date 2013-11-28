@@ -220,6 +220,10 @@ struct starpu_sched_node * starpu_sched_node_mct_create(struct starpu_mct_data *
 
 int starpu_sched_node_is_mct(struct starpu_sched_node * node);
 
+struct starpu_sched_node * starpu_sched_node_heft_create(struct starpu_mct_data * mct_data);
+
+int starpu_sched_node_is_heft(struct starpu_sched_node * node);
+
 /* this node select the best implementation for the first worker in context that can execute task.
  * and fill task->predicted and task->predicted_transfer
  * cannot have several childs if push_task is called

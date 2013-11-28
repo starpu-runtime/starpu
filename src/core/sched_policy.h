@@ -77,4 +77,5 @@ extern struct starpu_sched_policy _starpu_sched_tree_random_prefetching_policy;
 extern struct starpu_sched_policy _starpu_sched_tree_random_prio_prefetching_policy;
 extern struct starpu_sched_policy _starpu_sched_tree_ws_policy;
 extern struct starpu_sched_policy _starpu_sched_tree_heft_policy;
+extern struct starpu_sched_policy _starpu_sched_tree_heft2_policy;
 #endif // __SCHED_POLICY_H__
