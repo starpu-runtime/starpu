@@ -21,26 +21,26 @@
 
 /* compute predicted_end by taking into account the case of the predicted transfer and the predicted_end overlap
  */
-static double compute_expected_time(double now, double predicted_end, double predicted_length, double *predicted_transfer)
+static double compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
 {
-	STARPU_ASSERT(!isnan(now + predicted_end + predicted_length + *predicted_transfer));
-	STARPU_ASSERT(now >= 0.0 && predicted_end >= 0.0 && predicted_length >= 0.0 && *predicted_transfer >= 0.0);
+	STARPU_ASSERT(!isnan(now + predicted_end + predicted_length + predicted_transfer));
+	STARPU_ASSERT(now >= 0.0 && predicted_end >= 0.0 && predicted_length >= 0.0 && predicted_transfer >= 0.0);
 
 	/* TODO: actually schedule transfers */
-	if (now + *predicted_transfer < predicted_end)
+	if (now + predicted_transfer < predicted_end)
 	{
 		/* We may hope that the transfer will be finished by
 		 * the start of the task. */
-		*predicted_transfer = 0;
+		predicted_transfer = 0;
 	}
 	else
 	{
 		/* The transfer will not be finished by then, take the
 		 * remainder into account */
-		*predicted_transfer -= (predicted_end - now);
+		predicted_transfer -= (predicted_end - now);
 	}
 
-	predicted_end += *predicted_transfer;
+	predicted_end += predicted_transfer;
 	predicted_end += predicted_length;
 
 	return predicted_end;
@@ -50,7 +50,7 @@ double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, d
 {
 	/* Note: the expected end includes the data transfer duration, which we want to be able to tune separately */
 
-	return d->alpha * (exp_end - min_exp_end - transfer_len)
+	return d->alpha * (exp_end - min_exp_end)
 		+ d->beta * transfer_len
 		+ d->gamma * local_power
 		+ d->gamma * d->idle_power * (exp_end - max_exp_end);
@@ -77,7 +77,7 @@ int starpu_mct_compute_expected_times(struct starpu_sched_node *node, struct sta
 			estimated_ends_with_task[i] = compute_expected_time(now,
 									    estimated_end,
 									    estimated_lengths[i],
-									    &estimated_transfer_length[i]);
+									    estimated_transfer_length[i]);
 			if(estimated_ends_with_task[i] < *min_exp_end_with_task)
 				*min_exp_end_with_task = estimated_ends_with_task[i];
 			if(estimated_ends_with_task[i] > *max_exp_end_with_task)
