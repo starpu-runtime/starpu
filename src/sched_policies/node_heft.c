@@ -70,9 +70,9 @@ static int heft_progress_one(struct starpu_sched_node *node)
 		if (!tasks[ntasks])
 			break;
 	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 
 	if (!ntasks) {
-		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 		return 1;
 	}
 
@@ -142,6 +142,7 @@ static int heft_progress_one(struct starpu_sched_node *node)
 		best_node = node->childs[best_inode];
 
 		/* Push back the other tasks */
+		STARPU_PTHREAD_MUTEX_LOCK(mutex);
 		for (n = 0; n < ntasks; n++)
 			if ((int) n != best_task)
 				_starpu_prio_deque_push_back_task(prio, tasks[n]);
