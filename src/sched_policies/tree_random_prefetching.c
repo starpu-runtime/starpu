@@ -20,13 +20,14 @@
 
 #define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 2
 #define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
-static unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
-static double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
 
 /* Random scheduler with fifo queues for its scheduling window and its workers. */
 
 static void initialize_random_fifo_prefetching_center_policy(unsigned sched_ctx_id)
 {
+	unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
+	double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
+
 	const char *strval_ntasks_threshold = getenv("STARPU_NTASKS_THRESHOLD");
 	if (strval_ntasks_threshold)
 		ntasks_threshold = atof(strval_ntasks_threshold);
@@ -91,6 +92,9 @@ struct starpu_sched_policy _starpu_sched_tree_random_prefetching_policy =
 
 static void initialize_random_prio_prefetching_center_policy(unsigned sched_ctx_id)
 {
+	unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
+	double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
+
 	const char *strval_ntasks_threshold = getenv("STARPU_NTASKS_THRESHOLD");
 	if (strval_ntasks_threshold)
 		ntasks_threshold = atof(strval_ntasks_threshold);

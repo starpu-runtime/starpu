@@ -19,11 +19,12 @@
 
 #define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 4
 #define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
-static unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
-static double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
 
 static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
 {
+	unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
+	double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
+
 	const char *strval_ntasks_threshold = getenv("STARPU_NTASKS_THRESHOLD");
 	if (strval_ntasks_threshold)
 		ntasks_threshold = atof(strval_ntasks_threshold);

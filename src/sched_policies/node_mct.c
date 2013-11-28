@@ -155,15 +155,86 @@ int starpu_sched_node_is_mct(struct starpu_sched_node * node)
 	return node->push_task == mct_push_task;
 }
 
+/* Alpha, Beta and Gamma are MCT-specific values, which allows the
+ * user to set more precisely the weight of each computing value.
+ * Beta, for example, controls the weight of communications between
+ * memories for the computation of the best node to choose. 
+ */
+#define _STARPU_SCHED_ALPHA_DEFAULT 1.0
+#define _STARPU_SCHED_BETA_DEFAULT 1.0
+#define _STARPU_SCHED_GAMMA_DEFAULT 1000.0
+
+#ifdef STARPU_USE_TOP
+static void param_modified(struct starpu_top_param* d)
+{
+	/* Just to show parameter modification. */
+	fprintf(stderr, "%s has been modified : %f\n",
+			d->name, *(double*) d->value);
+}
+#endif /* !STARPU_USE_TOP */
+
+#ifdef STARPU_USE_TOP
+static const float alpha_minimum=0;
+static const float alpha_maximum=10.0;
+static const float beta_minimum=0;
+static const float beta_maximum=10.0;
+static const float gamma_minimum=0;
+static const float gamma_maximum=10000.0;
+static const float idle_power_minimum=0;
+static const float idle_power_maximum=10000.0;
+#endif /* !STARPU_USE_TOP */
+
 struct starpu_sched_node * starpu_sched_node_mct_create(struct starpu_mct_data * params)
 {
 	struct starpu_sched_node * node = starpu_sched_node_create();
 
 	struct _starpu_mct_data * data = malloc(sizeof(*data));
-	data->alpha = params->alpha;
-	data->beta = params->beta;
-	data->gamma = params->gamma;
-	data->idle_power = params->idle_power;
+	if (params)
+	{
+		data->alpha = params->alpha;
+		data->beta = params->beta;
+		data->gamma = params->gamma;
+		data->idle_power = params->idle_power;
+	}
+	else
+	{
+		double alpha = _STARPU_SCHED_ALPHA_DEFAULT,
+		       beta = _STARPU_SCHED_BETA_DEFAULT,
+		       _gamma = _STARPU_SCHED_GAMMA_DEFAULT,
+		       idle_power = 0.0;
+
+		const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
+		if (strval_alpha)
+			alpha = atof(strval_alpha);
+
+		const char *strval_beta = getenv("STARPU_SCHED_BETA");
+		if (strval_beta)
+			beta = atof(strval_beta);
+
+		const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
+		if (strval_gamma)
+			_gamma = atof(strval_gamma);
+
+		const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
+		if (strval_idle_power)
+			idle_power = atof(strval_idle_power);
+
+		data->alpha = alpha;
+		data->beta = beta;
+		data->gamma = _gamma;
+		data->idle_power = idle_power;
+	}
+
+#ifdef STARPU_USE_TOP
+	starpu_top_register_parameter_float("MCT_ALPHA", &data->alpha,
+					    alpha_minimum, alpha_maximum, param_modified);
+	starpu_top_register_parameter_float("MCT_BETA", &data->beta,
+					    beta_minimum, beta_maximum, param_modified);
+	starpu_top_register_parameter_float("MCT_GAMMA", &data->gamma,
+					    gamma_minimum, gamma_maximum, param_modified);
+	starpu_top_register_parameter_float("MCT_IDLE_POWER", &data->idle_power,
+					    idle_power_minimum, idle_power_maximum, param_modified);
+#endif /* !STARPU_USE_TOP */
 
 	node->data = data;
 

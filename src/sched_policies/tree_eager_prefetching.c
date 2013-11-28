@@ -20,11 +20,12 @@
 
 #define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 2
 #define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
-static unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
-static double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
 
 static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 {
+	unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
+	double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
+
 	_STARPU_DISP("Warning: you are running the default tree-eager-prefetching scheduler, which is not very smart. Make sure to read the StarPU documentation about adding performance models in order to be able to use the tree-heft scheduler instead.\n");
 
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
