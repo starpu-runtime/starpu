@@ -384,6 +384,10 @@ int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sche
 					d = starpu_task_expected_length(task, archtype, nimpl);
 				if(isnan(d))
 				{
+					/* TODO: this is not supposed to
+					 * happen, the perfmodel selector
+					 * should have forced it to a proper
+					 * worker already */
 					*length = d;
 					return can_execute;
 						
@@ -404,6 +408,8 @@ int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sche
 	}
 
 	if(len == DBL_MAX) /* we dont have perf model */
+		/* TODO: this is not supposed to happen, the perfmodel selector
+		 * should have forced it to a proper worker already */
 		len = 0.0; 
 	if(length)
 		*length = len;

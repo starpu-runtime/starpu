@@ -30,38 +30,37 @@ struct _starpu_mct_data
 
 /* compute predicted_end by taking into account the case of the predicted transfer and the predicted_end overlap
  */
-double compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
+double compute_expected_time(double now, double predicted_end, double predicted_length, double *predicted_transfer)
 {
-	STARPU_ASSERT(!isnan(now + predicted_end + predicted_length + predicted_transfer));
-	STARPU_ASSERT(now >= 0.0 && predicted_end >= 0.0 && predicted_length >= 0.0 && predicted_transfer >= 0.0);
-	if (now + predicted_transfer < predicted_end)
+	STARPU_ASSERT(!isnan(now + predicted_end + predicted_length + *predicted_transfer));
+	STARPU_ASSERT(now >= 0.0 && predicted_end >= 0.0 && predicted_length >= 0.0 && *predicted_transfer >= 0.0);
+
+	/* TODO: actually schedule transfers */
+	if (now + *predicted_transfer < predicted_end)
 	{
 		/* We may hope that the transfer will be finished by
 		 * the start of the task. */
-		predicted_transfer = 0;
+		*predicted_transfer = 0;
 	}
 	else
 	{
 		/* The transfer will not be finished by then, take the
 		 * remainder into account */
-		predicted_transfer += now;
-		predicted_transfer -= predicted_end;
-	}
-//	if(!isnan(predicted_transfer))
-	{
-		predicted_end += predicted_transfer;
-		predicted_length += predicted_transfer;
+		*predicted_transfer -= (predicted_end - now);
 	}
 
-//	if(!isnan(predicted_length))
-		predicted_end += predicted_length;
+	predicted_end += *predicted_transfer;
+	predicted_end += predicted_length;
+
 	return predicted_end;
 }
 
 
-static double compute_fitness(struct _starpu_mct_data * d, double exp_end, double best_exp_end, double max_exp_end, double transfer_len, double local_power)
+static double compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end, double max_exp_end, double transfer_len, double local_power)
 {
-	return d->alpha * (exp_end - best_exp_end)
+	/* Note: the expected end includes the data transfer duration, which we want to be able to tune separately */
+
+	return d->alpha * (exp_end - min_exp_end - transfer_len)
 		+ d->beta * transfer_len
 		+ d->gamma * local_power
 		+ d->gamma * d->idle_power * (exp_end - max_exp_end);
@@ -72,12 +71,22 @@ static int mct_push_task(struct starpu_sched_node * node, struct starpu_task * t
 	STARPU_ASSERT(node && task && starpu_sched_node_is_mct(node));
 	struct _starpu_mct_data * d = node->data;	
 	struct starpu_sched_node * best_node = NULL;
+
+	/* Estimated availability time of each child */
 	double estimated_ends[node->nchilds];
-	double estimated_ends_with_task[node->nchilds];
-	double best_exp_end_with_task = DBL_MAX;
-	double max_exp_end_with_task = 0.0;
+
+	/* Estimated task duration for each child */
 	double estimated_lengths[node->nchilds];
+	/* Estimated transfer duration for each child */
 	double estimated_transfer_length[node->nchilds];
+	/* Estimated transfer+task termination for each child */
+	double estimated_ends_with_task[node->nchilds];
+
+	/* Minimum transfer+task termination on all children */
+	double min_exp_end_with_task = DBL_MAX;
+	/* Maximum transfer+task termination on all children */
+	double max_exp_end_with_task = 0.0;
+
 	int suitable_nodes[node->nchilds];
 	int nsuitable_nodes = 0;
 
@@ -90,12 +99,14 @@ static int mct_push_task(struct starpu_sched_node * node, struct starpu_task * t
 			estimated_transfer_length[i] = starpu_sched_node_transfer_length(c, task);
 			estimated_ends[i] = c->estimated_end(c);
 			double now = starpu_timing_now();
+			if (estimated_ends[i] < now)
+				estimated_ends[i] = now;
 			estimated_ends_with_task[i] = compute_expected_time(now,
 									    estimated_ends[i],
 									    estimated_lengths[i],
-									    estimated_transfer_length[i]);
-			if(estimated_ends_with_task[i] < best_exp_end_with_task)	
-				best_exp_end_with_task = estimated_ends_with_task[i];
+									    &estimated_transfer_length[i]);
+			if(estimated_ends_with_task[i] < min_exp_end_with_task)	
+				min_exp_end_with_task = estimated_ends_with_task[i];
 			if(estimated_ends_with_task[i] > max_exp_end_with_task)
 				max_exp_end_with_task = estimated_ends_with_task[i];
 			suitable_nodes[nsuitable_nodes++] = i;
@@ -112,7 +123,7 @@ static int mct_push_task(struct starpu_sched_node * node, struct starpu_task * t
 #endif
 		double tmp = compute_fitness(d,
 					     estimated_ends_with_task[inode],
-					     best_exp_end_with_task,
+					     min_exp_end_with_task,
 					     max_exp_end_with_task,
 					     estimated_transfer_length[inode],
 					     0.0);
