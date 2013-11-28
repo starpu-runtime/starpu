@@ -118,9 +118,13 @@ static int prio_push_task(struct starpu_sched_node * node, struct starpu_task * 
 	
 	STARPU_ASSERT(node->nchilds == 1);
 	struct starpu_sched_node * child = node->childs[0];
+
 	if(starpu_sched_node_is_worker(child))
 		ret = 1;
 	else
+		/* TODO: no, don't try to push it immediately to the child.
+		 * Just push it to the queue, pop one task from the queue and
+		 * try to push that task to the child. */
 		ret = child->push_task(child,task);
 
 	if(ret)
