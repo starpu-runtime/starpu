@@ -44,22 +44,22 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 	if (strval_exp_len_threshold)
 		exp_len_threshold = atof(strval_exp_len_threshold);
 
-	
+
 /* The scheduling strategy look like this :
  *
- *									  |
- *								window_node
- *									  |
+ *                                    |
+ *                              window_node
+ *                                    |
  * perfmodel_node <--push-- perfmodel_select_node --push--> eager_node
- *			|						   						     |
- *			|						   						     |
- *			>----------------------------------------------------<
- *					  |								|
- *				best_impl_node					best_impl_node
- *					  |								|
- *				  prio_node						prio_node
- *					  |								|
- *				 worker_node				   worker_node
+ *          |                                                    |
+ *          |                                                    |
+ *          >----------------------------------------------------<
+ *                    |                                |
+ *              best_impl_node                    best_impl_node
+ *                    |                                |
+ *                prio_node                        prio_node
+ *                    |                                |
+ *               worker_node                   worker_node
  *
  * A window contain the tasks that failed to be pushed, so as when the prio_nodes reclaim
  * tasks by calling room to their father (classically, just after a successful pop have
