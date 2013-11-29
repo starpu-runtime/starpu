@@ -8,6 +8,10 @@
 
 /*! \defgroup API_Workers_Properties Workers’ Properties
 
+\def STARPU_NMAXWORKERS
+\ingroup API_Workers_Properties
+Define the maximum number of workers managed by StarPU.
+
 \enum starpu_node_kind
 \ingroup API_Workers_Properties
 TODO

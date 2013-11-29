@@ -11,6 +11,12 @@
 @name Initialisation
 \ingroup API_MPI_Support
 
+\def STARPU_USE_MPI
+\ingroup API_MPI_Support
+This macro is defined when StarPU has been installed with MPI
+support. It should be used in your code to detect the availability of
+MPI.
+
 \fn int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 \ingroup API_MPI_Support
 Initializes the starpumpi library. \p initialize_mpi indicates if MPI

@@ -14,6 +14,12 @@ This macro is defined when StarPU has been installed with CUDA
 support. It should be used in your code to detect the availability of
 CUDA as shown in \ref FullSourceCodeVectorScal.
 
+\def STARPU_MAXCUDADEVS
+\ingroup API_CUDA_Extensions
+This macro defines the maximum number of CUDA devices that are
+supported by StarPU.
+
+
 \fn cudaStream_t starpu_cuda_get_local_stream(void)
 \ingroup API_CUDA_Extensions
 This function gets the current worker’s CUDA stream. StarPU
