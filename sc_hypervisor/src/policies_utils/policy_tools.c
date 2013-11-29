@@ -465,10 +465,14 @@ unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker)
 	struct sc_hypervisor_policy_config *config = sc_w->config;
 	if(config != NULL)
 	{
-		printf("w%d/ctx%d: current idle %lf max_idle %lf\n", worker, sched_ctx, sc_w->idle_time[worker], config->max_idle[worker]);
-		if(sc_w->idle_time[worker] > config->max_idle[worker])
+		double end_time = starpu_timing_now();
+		double idle = (end_time - sc_w->idle_start_time[worker]) / 1000000.0; /* in seconds */ 
+		double idle_time = sc_w->idle_time[worker] + idle;
+
+
+		if(idle_time > config->max_idle[worker])
 		{
-//			sc_w->current_idle_time[worker] = 0.0;
+//			printf("w%d/ctx%d: current idle %lf all idle %lf max_idle %lf\n", worker, sched_ctx, idle, idle_time, config->max_idle[worker]);
 			return 1;
 		}
 	}
