@@ -97,6 +97,7 @@ static int heft_progress_one(struct starpu_sched_node *node)
 
 		unsigned nsuitable_nodes[ntasks];
 
+		/* Estimate durations */
 		for (n = 0; n < ntasks; n++)
 		{
 			int offset = node->nchilds * n;
@@ -112,38 +113,22 @@ static int heft_progress_one(struct starpu_sched_node *node)
 					suitable_nodes + offset);
 		}
 
-		double best_fitness = DBL_MAX;
-		int best_inode = -1;
-		int best_task = -1;
+		int best_task = 0;
+		double max_benefit = 0;
 
-		for (n = 0; n < ntasks; n++)
+		/* Find the task which provides the most computation time benefit */
+		for (n = 1; n < ntasks; n++)
 		{
-			for(i = 0; i < nsuitable_nodes[n]; i++)
+			double benefit = max_exp_end_with_task[n] - min_exp_end_with_task[n];
+			if (max_benefit < benefit)
 			{
-				int offset = node->nchilds * n;
-				int inode = suitable_nodes[offset + i];
-#ifdef STARPU_DEVEL
-#warning FIXME: take power consumption into account
-#endif
-				double tmp = starpu_mct_compute_fitness(d,
-							     estimated_ends_with_task[offset + inode],
-							     min_exp_end_with_task[n],
-							     max_exp_end_with_task[n],
-							     estimated_transfer_length[offset + inode],
-							     0.0);
-
-				if(tmp < best_fitness)
-				{
-					best_fitness = tmp;
-					best_inode = inode;
-					best_task = n;
-				}
+				max_benefit = benefit;
+				best_task = n;
 			}
 		}
 
-		STARPU_ASSERT(best_inode != -1);
-		STARPU_ASSERT(best_task >= 0);
-		best_node = node->childs[best_inode];
+		double best_fitness = DBL_MAX;
+		int best_inode = -1;
 
 		/* Push back the other tasks */
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
@@ -151,6 +136,33 @@ static int heft_progress_one(struct starpu_sched_node *node)
 			if ((int) n != best_task)
 				_starpu_prio_deque_push_back_task(prio, tasks[n]);
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+
+		/* And now find out which worker suits best for this task,
+		 * including data transfer */
+		for(i = 0; i < nsuitable_nodes[best_task]; i++)
+		{
+			int offset = node->nchilds * best_task;
+			int inode = suitable_nodes[offset + i];
+#ifdef STARPU_DEVEL
+#warning FIXME: take power consumption into account
+#endif
+			double tmp = starpu_mct_compute_fitness(d,
+						     estimated_ends_with_task[offset + inode],
+						     min_exp_end_with_task[best_task],
+						     max_exp_end_with_task[best_task],
+						     estimated_transfer_length[offset + inode],
+						     0.0);
+
+			if(tmp < best_fitness)
+			{
+				best_fitness = tmp;
+				best_inode = inode;
+			}
+		}
+
+		STARPU_ASSERT(best_inode != -1);
+		STARPU_ASSERT(best_task >= 0);
+		best_node = node->childs[best_inode];
 
 		int ret = best_node->push_task(best_node, tasks[best_task]);
 
