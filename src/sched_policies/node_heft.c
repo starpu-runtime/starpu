@@ -189,9 +189,22 @@ static void heft_progress(struct starpu_sched_node *node)
 		;
 }
 
-static void heft_room(struct starpu_sched_node *node, unsigned sched_ctx_id)
+static int heft_room(struct starpu_sched_node *node)
 {
 	heft_progress(node);
+	int ret, j;
+	for(j=0; j < node->nfathers; j++)
+	{
+		if(node->fathers[j] == NULL)
+			continue;
+		else
+		{
+			ret = node->fathers[j]->room(node->fathers[j]);
+			if(ret)
+				break;
+		}
+	}
+	return ret;
 }
 
 void heft_node_deinit_data(struct starpu_sched_node * node)

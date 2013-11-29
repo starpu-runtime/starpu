@@ -94,7 +94,7 @@ static double fifo_estimated_load(struct starpu_sched_node * node)
 	return load;
 }
 
-static int fifo_push_task(struct starpu_sched_node * node, struct starpu_task * task)
+static int fifo_push_local_task(struct starpu_sched_node * node, struct starpu_task * task, unsigned is_pushback)
 {
 	STARPU_ASSERT(node && node->data && task);
 	STARPU_ASSERT(starpu_sched_node_can_execute_task(node,task));
@@ -103,87 +103,39 @@ static int fifo_push_task(struct starpu_sched_node * node, struct starpu_task * 
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int ret;
 
-	STARPU_ASSERT(node->nchilds == 1);
-	struct starpu_sched_node * child = node->childs[0];
-	if(starpu_sched_node_is_worker(child))
-		ret = 1;
+	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	double exp_len;
+	if(!isnan(task->predicted))
+		exp_len = fifo->exp_len + task->predicted;
 	else
-		ret = child->push_task(child,task);
+		exp_len = fifo->exp_len;
 
-	if(ret)
+	if((data->ntasks_threshold != 0) && (data->exp_len_threshold != 0.0) && 
+			((fifo->ntasks >= data->ntasks_threshold) || (exp_len >= data->exp_len_threshold)))
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
-		double exp_len;
-		if(!isnan(task->predicted))
-			exp_len = fifo->exp_len + task->predicted;
-		else
-			exp_len = fifo->exp_len;
-
-		if((data->ntasks_threshold != 0) && (data->exp_len_threshold != 0.0) && 
-				((fifo->ntasks >= data->ntasks_threshold) || (exp_len >= data->exp_len_threshold)))
+		static int warned;
+		if(task->predicted > data->exp_len_threshold && !warned)
 		{
-			static int warned;
-			if(task->predicted > data->exp_len_threshold && !warned)
-			{
-				_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio node queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
-				warned = 1;
-			}
-			ret = 1;
-			STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+			_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio node queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
+			warned = 1;
 		}
-		else
-		{
-			starpu_sched_node_prefetch_on_node(node, task);
-			ret = _starpu_fifo_push_task(fifo,task);
-			if(!isnan(task->predicted))
-			{
-				fifo->exp_len = exp_len;
-				fifo->exp_end = fifo->exp_start + fifo->exp_len;
-			}
-			STARPU_ASSERT(!isnan(fifo->exp_end));
-			STARPU_ASSERT(!isnan(fifo->exp_len));
-			STARPU_ASSERT(!isnan(fifo->exp_start));
-			STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
-
-			// When a task is pushed onto the local queue, we signify to our children
-			// that a task has been pushed, and that if everyone is sleeping, someone
-			// needs to wake up to come and take it.
-			node->avail(node);
-		}
+		ret = 1;
+		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 	}
-	return ret;
-}
-
-static int fifo_push_back_task(struct starpu_sched_node * node, struct starpu_task * task)
-{
-	STARPU_ASSERT(node && node->data && task);
-	STARPU_ASSERT(starpu_sched_node_can_execute_task(node,task));
-	struct _starpu_fifo_data * data = node->data;
-	struct _starpu_fifo_taskq * fifo = data->fifo;
-	starpu_pthread_mutex_t * mutex = &data->mutex;
-	int ret;
-
-	STARPU_ASSERT(node->nchilds == 1);
-	struct starpu_sched_node * child = node->childs[0];
-	if(starpu_sched_node_is_worker(child))
-		ret = 1;
 	else
-		ret = child->push_task(child,task);
-
-	if(ret)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(mutex);
-		double exp_len;
-		if(!isnan(task->predicted))
-			exp_len = fifo->exp_len + task->predicted;
+		if(is_pushback)
+			ret = _starpu_fifo_push_back_task(fifo,task);
 		else
-			exp_len = fifo->exp_len;
+		{
+			ret = _starpu_fifo_push_task(fifo,task);
+			starpu_sched_node_prefetch_on_node(node, task);
+		}
 
-		_starpu_fifo_push_back_task(fifo,task);
 		if(!isnan(task->predicted))
 		{
 			fifo->exp_len = exp_len;
-			fifo->exp_end = fifo->exp_start + exp_len;
+			fifo->exp_end = fifo->exp_start + fifo->exp_len;
 		}
 		STARPU_ASSERT(!isnan(fifo->exp_end));
 		STARPU_ASSERT(!isnan(fifo->exp_len));
@@ -193,9 +145,16 @@ static int fifo_push_back_task(struct starpu_sched_node * node, struct starpu_ta
 		// When a task is pushed onto the local queue, we signify to our children
 		// that a task has been pushed, and that if everyone is sleeping, someone
 		// needs to wake up to come and take it.
-		node->avail(node);
+		if(!is_pushback)
+			node->avail(node);
 	}
+	
 	return ret;
+}
+
+static int fifo_push_task(struct starpu_sched_node * node, struct starpu_task * task)
+{
+	return fifo_push_local_task(node, task, 0);
 }
 
 int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
@@ -203,7 +162,7 @@ int starpu_sched_node_is_fifo(struct starpu_sched_node * node)
 	return node->push_task == fifo_push_task;
 }
 
-static struct starpu_task * fifo_pop_task(struct starpu_sched_node * node, unsigned sched_ctx_id)
+static struct starpu_task * fifo_pop_task(struct starpu_sched_node * node)
 {
 	STARPU_ASSERT(node && node->data);
 	struct _starpu_fifo_data * data = node->data;
@@ -229,9 +188,14 @@ static struct starpu_task * fifo_pop_task(struct starpu_sched_node * node, unsig
 
 	// When a pop is called, a room is called for pushing tasks onto
 	// the empty place of the queue left by the popped task.
-	struct starpu_sched_node * father = node->fathers[sched_ctx_id];
-	if(father != NULL)
-		father->room(father, sched_ctx_id);
+	int i;
+	for(i=0; i < node->nfathers; i++)
+	{
+		if(node->fathers[i] == NULL)
+			continue;
+		else
+			node->fathers[i]->room(node->fathers[i]);
+	}
 	
 	if(task)
 		return task;
@@ -244,20 +208,27 @@ static struct starpu_task * fifo_pop_task(struct starpu_sched_node * node, unsig
  * push fails, which means that the worker fifo_nodes are
  * currently "full".
  */
-static void fifo_room(struct starpu_sched_node * node, unsigned sched_ctx_id)
+static int fifo_room(struct starpu_sched_node * node)
 {
 	STARPU_ASSERT(node && starpu_sched_node_is_fifo(node));
 	int ret = 0;
 
-	struct starpu_task * task = node->pop_task(node, sched_ctx_id);
+	STARPU_ASSERT(node->nchilds == 1);
+	struct starpu_sched_node * child = node->childs[0];
+
+	struct starpu_task * task = node->pop_task(node);
 	if(task)
-		ret = node->push_back_task(node,task);	
+		ret = child->push_task(child,task);	
 	while(task && !ret) 
 	{
-		task = node->pop_task(node, sched_ctx_id);
+		task = node->pop_task(node);
 		if(task)
-			ret = node->push_back_task(node,task);	
+			ret = child->push_task(child,task);	
 	} 
+	if(task && ret)
+		fifo_push_local_task(node,task,1); 
+
+	return 1;
 }
 
 struct starpu_sched_node * starpu_sched_node_fifo_create(struct starpu_fifo_data * params)
@@ -270,7 +241,6 @@ struct starpu_sched_node * starpu_sched_node_fifo_create(struct starpu_fifo_data
 	node->estimated_end = fifo_estimated_end;
 	node->estimated_load = fifo_estimated_load;
 	node->push_task = fifo_push_task;
-	node->push_back_task = fifo_push_back_task;
 	node->pop_task = fifo_pop_task;
 	node->room = fifo_room;
 	node->deinit_data = fifo_node_deinit_data;

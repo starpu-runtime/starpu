@@ -35,6 +35,14 @@ static int mct_push_task(struct starpu_sched_node * node, struct starpu_task * t
 	/* Estimated transfer+task termination for each child */
 	double estimated_ends_with_task[node->nchilds];
 
+	int i;
+	for(i=0; i < node->nchilds; i++)
+	{
+		estimated_lengths[i] = 0.0;
+		estimated_transfer_length[i] = 0.0;
+		estimated_ends_with_task[i] = 0.0;
+
+	}
 	/* Minimum transfer+task termination on all children */
 	double min_exp_end_with_task = DBL_MAX;
 	/* Maximum transfer+task termination on all children */
@@ -43,11 +51,12 @@ static int mct_push_task(struct starpu_sched_node * node, struct starpu_task * t
 	int suitable_nodes[node->nchilds];
 	int nsuitable_nodes = 0;
 
-	int i;
-
 	nsuitable_nodes = starpu_mct_compute_expected_times(node, task,
 			estimated_lengths, estimated_transfer_length, estimated_ends_with_task,
 			&min_exp_end_with_task, &max_exp_end_with_task, suitable_nodes);
+
+	if(!nsuitable_nodes)
+		return 1;
 
 	double best_fitness = DBL_MAX;
 	int best_inode = -1;

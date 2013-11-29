@@ -121,26 +121,49 @@ void starpu_sched_node_available(struct starpu_sched_node * node)
 /* default implementation for node->pop_task()
  * just perform a recursive call on father
  */
-static struct starpu_task * pop_task_node(struct starpu_sched_node * node, unsigned sched_ctx_id)
+static struct starpu_task * pop_task_node(struct starpu_sched_node * node)
 {
-	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
 	STARPU_ASSERT(node);
-	if(node->fathers[sched_ctx_id] == NULL)
-		return NULL;
-	else
-		return node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id], sched_ctx_id);
+	struct starpu_task * task = NULL;
+	int i;
+	for(i=0; i < node->nfathers; i++)
+	{
+		if(node->fathers[i] == NULL)
+			continue;
+		else
+		{
+			task = node->fathers[i]->pop_task(node->fathers[i]);
+			if(task)
+				break;
+		}
+	}
+	return task;
 }
 
-
-void starpu_sched_node_set_father(struct starpu_sched_node *node,
-				  struct starpu_sched_node *father_node,
-				  unsigned sched_ctx_id)
+void starpu_sched_node_add_father(struct starpu_sched_node* node, struct starpu_sched_node * father)
 {
-	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
-	STARPU_ASSERT(node);
-	node->fathers[sched_ctx_id] = father_node;
+	STARPU_ASSERT(node && father);
+	int i;
+	for(i = 0; i < node->nfathers; i++){
+		STARPU_ASSERT(node->fathers[i] != node);
+		STARPU_ASSERT(node->fathers[i] != NULL);
+	}
+
+	node->fathers = realloc(node->fathers, sizeof(struct starpu_sched_node *) * (node->nfathers + 1));
+	node->fathers[node->nfathers] = father;
+	node->nfathers++;
 }
 
+void starpu_sched_node_remove_father(struct starpu_sched_node * node, struct starpu_sched_node * father)
+{
+	STARPU_ASSERT(node && father);
+	int pos;
+	for(pos = 0; pos < node->nfathers; pos++)
+		if(node->fathers[pos] == father)
+			break;
+	STARPU_ASSERT(pos != node->nfathers);
+	node->fathers[pos] = node->fathers[--node->nfathers];
+}
 
 
 /******************************************************************************
@@ -168,15 +191,14 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 	return ret_val;
 }
 
-struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx_id)
+struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx STARPU_ATTRIBUTE_UNUSED)
 {
-	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
 	int workerid = starpu_worker_get_id();
 	struct starpu_sched_node * node = starpu_sched_node_worker_get(workerid);
 
 	/* _starpu_sched_node_lock_worker(workerid) is called by node->pop_task()
 	 */
-	struct starpu_task * task = node->pop_task(node, sched_ctx_id);
+	struct starpu_task * task = node->pop_task(node);
 	return task;
 }
 
@@ -221,55 +243,19 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 
 
 
-void starpu_sched_node_destroy_rec(struct starpu_sched_node * node, unsigned sched_ctx_id)
+void starpu_sched_node_destroy_rec(struct starpu_sched_node * node)
 {
 	if(node == NULL)
 		return;
-	struct starpu_sched_node ** stack = NULL;
-	int top = -1;
-#define PUSH(n)								\
-	do{								\
-		stack = realloc(stack, sizeof(*stack) * (top + 2));	\
-		stack[++top] = n;					\
-	}while(0)
-#define POP() stack[top--]
-#define EMPTY() (top == -1)
 
-	/* we want to delete all subtrees exept if a pointer in fathers point in an other tree
-	 * ie an other context
-	 */
-	node->fathers[sched_ctx_id] = NULL;
-	int shared = 0;
+	int i;
+	if(node->nchilds > 0)
 	{
-		int i;
-		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
-			if(node->fathers[i] != NULL)
-				shared = 1;
+		for(i=0; i < node->nchilds; i++)
+			starpu_sched_node_destroy_rec(node->childs[i]);
 	}
-	if(!shared)
-		PUSH(node);
-	while(!EMPTY())
-	{
-		struct starpu_sched_node * n = POP();
-		int i;
-		for(i = 0; i < n->nchilds; i++)
-		{
-			struct starpu_sched_node * child = n->childs[i];
-			int j;
-			shared = 0;
-			STARPU_ASSERT(child->fathers[sched_ctx_id] == n);
-			child->fathers[sched_ctx_id] = NULL;
-			for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-			{
-				if(child->fathers[j] != NULL)/* child is shared */
-					shared = 1;
-			}
-			if(!shared)/* if not shared we want to destroy it and his childs */
-				PUSH(child);
-		}
-		starpu_sched_node_destroy(n);
-	}
-	free(stack);
+
+	starpu_sched_node_destroy(node);
 }
 
 struct starpu_sched_tree * starpu_sched_tree_create(unsigned sched_ctx_id)
@@ -287,11 +273,12 @@ void starpu_sched_tree_destroy(struct starpu_sched_tree * tree)
 {
 	STARPU_ASSERT(tree);
 	if(tree->root)
-		starpu_sched_node_destroy_rec(tree->root, tree->sched_ctx_id);
+		starpu_sched_node_destroy_rec(tree->root);
 	starpu_bitmap_destroy(tree->workers);
 	STARPU_PTHREAD_MUTEX_DESTROY(&tree->lock);
 	free(tree);
 }
+
 void starpu_sched_node_add_child(struct starpu_sched_node* node, struct starpu_sched_node * child)
 {
 	STARPU_ASSERT(node && child);
@@ -356,7 +343,7 @@ static double _starpu_sched_node_estimated_end_min(struct starpu_sched_node * no
  * and set prediction in *length. nan if a implementation need to be calibrated, 0.0 if no perf model are available
  * return false if no worker on the node can execute that task
  */
-int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sched_node * node, struct starpu_task * task, double * length)
+int starpu_sched_node_execute_preds(struct starpu_sched_node * node, struct starpu_task * task, double * length)
 {
 	STARPU_ASSERT(node && task);
 	int can_execute = 0;
@@ -491,13 +478,23 @@ void starpu_sched_node_prefetch_on_node(struct starpu_sched_node * node, struct 
  * A personally-made room in a node (like in prio nodes) is necessary to catch
  * this recursive call somewhere, if the user wants to exploit it.
  */
-void starpu_sched_node_room(struct starpu_sched_node * node, unsigned sched_ctx_id)
+int starpu_sched_node_room(struct starpu_sched_node * node)
 {
-	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
 	STARPU_ASSERT(node);
-	struct starpu_sched_node * father = node->fathers[sched_ctx_id];
-	if(father != NULL)
-		father->room(father, sched_ctx_id);
+	int ret = 0;
+	if(node->nfathers > 0)
+	{
+		int i;
+		for(i=0; i < node->nfathers; i++)
+		{
+			struct starpu_sched_node * father = node->fathers[i];
+			if(father != NULL)
+				ret = father->room(father);
+			if(ret)
+				break;
+		}
+	}
+	return ret;
 }
 
 /* An avail call will try to wake up one worker associated to the childs of the
@@ -534,6 +531,8 @@ struct starpu_sched_node * starpu_sched_node_create(void)
 	node->workers_in_ctx = starpu_bitmap_create();
 	node->add_child = starpu_sched_node_add_child;
 	node->remove_child = starpu_sched_node_remove_child;
+	node->add_father = starpu_sched_node_add_father;
+	node->remove_father = starpu_sched_node_remove_father;
 	node->pop_task = pop_task_node;
 	node->room = starpu_sched_node_room;
 	node->avail = starpu_sched_node_avail;
@@ -557,15 +556,26 @@ void starpu_sched_node_destroy(struct starpu_sched_node *node)
 	for(i = 0; i < node->nchilds; i++)
 	{
 		struct starpu_sched_node * child = node->childs[i];
-		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-			if(child->fathers[i] == node)
-				child->fathers[i] = NULL;
+		for(j = 0; j < child->nfathers; j++)
+			if(child->fathers[j] == node)
+				child->remove_father(child,node);
 
 	}
 	while(node->nchilds != 0)
 		node->remove_child(node, node->childs[0]);
+	for(i = 0; i < node->nfathers; i++)
+	{
+		struct starpu_sched_node * father = node->fathers[i];
+		for(j = 0; j < father->nchilds; j++)
+			if(father->childs[j] == node)
+				father->remove_child(father,node);
+
+	}
+	while(node->nfathers != 0)
+		node->remove_father(node, node->fathers[0]);
 	node->deinit_data(node);
 	free(node->childs);
+	free(node->fathers);
 	starpu_bitmap_destroy(node->workers);
 	starpu_bitmap_destroy(node->workers_in_ctx);
 	free(node);

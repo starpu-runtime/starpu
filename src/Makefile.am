@@ -252,6 +252,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/node_prio.c 				\
 	sched_policies/node_random.c				\
 	sched_policies/node_eager.c				\
+	sched_policies/node_eager_calibration.c				\
 	sched_policies/node_mct.c				\
 	sched_policies/node_heft.c				\
 	sched_policies/node_best_implementation.c		\

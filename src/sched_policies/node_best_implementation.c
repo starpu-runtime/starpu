@@ -80,16 +80,25 @@ static int select_best_implementation_push_task(struct starpu_sched_node * node,
 	return node->childs[0]->push_task(node->childs[0],task);
 }
 
-static struct starpu_task * select_best_implementation_pop_task(struct starpu_sched_node * node, unsigned sched_ctx_id)
+static struct starpu_task * select_best_implementation_pop_task(struct starpu_sched_node * node)
 {
-	struct starpu_task * t;
-	if(!node->fathers[sched_ctx_id])
-		return NULL;
-	t = node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id], sched_ctx_id);
-	if(t)
+	struct starpu_task * task = NULL;
+	int i;
+	for(i=0; i < node->nfathers; i++)
+	{
+		if(node->fathers[i] == NULL)
+			continue;
+		else
+		{
+			task = node->fathers[i]->pop_task(node->fathers[i]);
+			if(task)
+				break;
+		}
+	}
+	if(task)
 		/* this worker can execute this task as it was returned by a pop*/
-		(void)find_best_impl(t, starpu_worker_get_id());
-	return t;
+		(void)find_best_impl(task, starpu_worker_get_id());
+	return task;
 }
 
 struct starpu_sched_node * starpu_sched_node_best_implementation_create(void * ARG STARPU_ATTRIBUTE_UNUSED)

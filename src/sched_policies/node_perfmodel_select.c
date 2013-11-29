@@ -17,6 +17,14 @@
 #include <starpu_sched_node.h>
 #include <starpu_scheduler.h>
 
+/* The decision node takes care of the scheduling of tasks which are not
+ * calibrated, or tasks which don't have a performance model, because the scheduling
+ * architecture of this scheduler for tasks with no performance model is exactly
+ * the same as the tree-prio scheduler.
+ * Tasks with a perfmodel are pushed to the perfmodel_node, which takes care of the
+ * scheduling of those tasks on the correct worker_node.
+ */
+
 struct _starpu_perfmodel_select_data
 {
 	struct starpu_sched_node * calibrator_node;
@@ -30,40 +38,20 @@ static int perfmodel_select_push_task(struct starpu_sched_node * node, struct st
 	STARPU_ASSERT(starpu_sched_node_can_execute_task(node,task));
 
 	struct _starpu_perfmodel_select_data * data = node->data;
-	starpu_task_bundle_t bundle = task->bundle;
+	double length;
+	int can_execute = starpu_sched_node_execute_preds(node,task,&length);
 	
-
-	int workerid;
-	for(workerid = starpu_bitmap_first(node->workers_in_ctx);
-	    workerid != -1;
-	    workerid = starpu_bitmap_next(node->workers_in_ctx, workerid))
+	if(can_execute)
 	{
-		struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid);
-		int nimpl;
-		for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-		{
-			if(starpu_worker_can_execute_task(workerid,task,nimpl)
-			   || starpu_combined_worker_can_execute_task(workerid, task, nimpl))
-			{
-				double d;
-
-				if(bundle)
-					d = starpu_task_bundle_expected_length(bundle, archtype, nimpl);
-				else
-					d = starpu_task_expected_length(task, archtype, nimpl);
-
-				// If the task has not been calibrated, or has no performance model, or if the
-				// perfmodel_select has no associated node, i.e the perfmodel_select is the core of the
-				// current scheduler.
-				if(isnan(d))
-					return data->calibrator_node->push_task(data->calibrator_node,task);
-
-				if(_STARPU_IS_ZERO(d))
-					return data->no_perfmodel_node->push_task(data->no_perfmodel_node,task);
-			}
-		}
+		if(isnan(length))
+			return data->calibrator_node->push_task(data->calibrator_node,task);
+		if(_STARPU_IS_ZERO(length))
+			return data->no_perfmodel_node->push_task(data->no_perfmodel_node,task);
+		return data->perfmodel_node->push_task(data->perfmodel_node,task);
 	}
-	return data->perfmodel_node->push_task(data->perfmodel_node,task);
+	else
+		return 1;
+
 }
 
 int starpu_sched_node_is_perfmodel_select(struct starpu_sched_node * node)

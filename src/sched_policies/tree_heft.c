@@ -67,12 +67,6 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
  * been made by its associated worker_node), this call goes up to the window_node which
  * pops a task from its local queue and try to schedule it by pushing it to the
  * decision_node. 
- * The decision node takes care of the scheduling of tasks which are not
- * calibrated, or tasks which don't have a performance model, because the scheduling
- * architecture of this scheduler for tasks with no performance model is exactly
- * the same as the tree-prio scheduler.
- * Tasks with a perfmodel are pushed to the perfmodel_node, which takes care of the
- * scheduling of those tasks on the correct worker_node.
  * Finally, the task will be pushed to the prio_node which is the direct
  * father in the tree of the worker_node the task has been scheduled on. This
  * node will push the task on its local queue if no one of the two thresholds
@@ -85,7 +79,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 
 	struct starpu_sched_node * perfmodel_node = starpu_sched_node_mct_create(NULL);
 	struct starpu_sched_node * no_perfmodel_node = starpu_sched_node_eager_create(NULL);
-	struct starpu_sched_node * calibrator_node = starpu_sched_node_eager_create(NULL);
+	struct starpu_sched_node * calibrator_node = starpu_sched_node_eager_calibration_create(NULL);
 	
 	struct starpu_perfmodel_select_data perfmodel_select_data =
 		{
@@ -96,14 +90,14 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 
 	struct starpu_sched_node * perfmodel_select_node = starpu_sched_node_perfmodel_select_create(&perfmodel_select_data);
 	window_node->add_child(window_node, perfmodel_select_node);
-	starpu_sched_node_set_father(perfmodel_select_node, window_node, sched_ctx_id);
+	starpu_sched_node_add_father(perfmodel_select_node, window_node);
 
 	perfmodel_select_node->add_child(perfmodel_select_node, calibrator_node);
-	starpu_sched_node_set_father(calibrator_node, perfmodel_select_node, sched_ctx_id);
+	starpu_sched_node_add_father(calibrator_node, perfmodel_select_node);
 	perfmodel_select_node->add_child(perfmodel_select_node, perfmodel_node);
-	starpu_sched_node_set_father(perfmodel_node, perfmodel_select_node, sched_ctx_id);
+	starpu_sched_node_add_father(perfmodel_node, perfmodel_select_node);
 	perfmodel_select_node->add_child(perfmodel_select_node, no_perfmodel_node);
-	starpu_sched_node_set_father(no_perfmodel_node, perfmodel_select_node, sched_ctx_id);
+	starpu_sched_node_add_father(no_perfmodel_node, perfmodel_select_node);
 
 	struct starpu_prio_data prio_data =
 		{
@@ -119,14 +113,18 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 
 		struct starpu_sched_node * prio = starpu_sched_node_prio_create(&prio_data);
 		prio->add_child(prio, worker_node);
-		starpu_sched_node_set_father(worker_node, prio, sched_ctx_id);
+		starpu_sched_node_add_father(worker_node, prio);
 
 		struct starpu_sched_node * impl_node = starpu_sched_node_best_implementation_create(NULL);
 		impl_node->add_child(impl_node, prio);
-		starpu_sched_node_set_father(prio, impl_node, sched_ctx_id);
+		starpu_sched_node_add_father(prio, impl_node);
 
 		perfmodel_node->add_child(perfmodel_node, impl_node);
-		starpu_sched_node_set_father(impl_node, perfmodel_node, sched_ctx_id);
+		starpu_sched_node_add_father(impl_node, perfmodel_node);
+		no_perfmodel_node->add_child(no_perfmodel_node, impl_node);
+		starpu_sched_node_add_father(impl_node, no_perfmodel_node);
+		calibrator_node->add_child(calibrator_node, impl_node);
+		starpu_sched_node_add_father(impl_node, calibrator_node);
 	}
 
 	starpu_sched_tree_update_workers(t);

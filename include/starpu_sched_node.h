@@ -49,16 +49,8 @@ struct starpu_sched_node
 	 *
 	 * a default implementation simply do a recursive call on father
 	 */
-	struct starpu_task * (*pop_task)(struct starpu_sched_node *,
-					 unsigned sched_ctx_id);
+	struct starpu_task * (*pop_task)(struct starpu_sched_node *);
 
-	/* node->push_back_task(node, task)
-	 * This function can be called by room-made functions to permit
-	 * the user to specify a particular push function which allows to
-	 * push back the task if the push submitted by the room function fail.
-	 */
-	int (*push_back_task)(struct starpu_sched_node *,
-			 struct starpu_task *);
 	/* this function is an heuristic that compute load of subtree, basicaly
 	 * it compute
 	 * estimated_load(node) = sum(estimated_load(node_childs)) +
@@ -76,7 +68,8 @@ struct starpu_sched_node
 	/* may be shared by several contexts
 	 * so we need several fathers
 	 */
-	struct starpu_sched_node * fathers[STARPU_NMAX_SCHED_CTXS];
+	struct starpu_sched_node ** fathers;
+	int nfathers;
 	/* the set of workers in the node's subtree
 	 */
 	struct starpu_bitmap * workers;
@@ -93,6 +86,8 @@ struct starpu_sched_node
 
 	void (*add_child)(struct starpu_sched_node * node, struct starpu_sched_node * child);
 	void (*remove_child)(struct starpu_sched_node * node, struct starpu_sched_node * child);
+	void (*add_father)(struct starpu_sched_node * node, struct starpu_sched_node * father);
+	void (*remove_father)(struct starpu_sched_node * node, struct starpu_sched_node * father);
 
 	/* this function is called for each node when workers are added or removed from a context
 	 */
@@ -112,7 +107,7 @@ struct starpu_sched_node
 	 * fathers, the user have to specify a personally-made function to catch those
 	 * calls.
 	 */ 
-	void (*room)(struct starpu_sched_node * node, unsigned sched_ctx_id);
+	int (*room)(struct starpu_sched_node * node);
 	/* This function allow a node to wake up a worker.
 	 * It is currently called by node which implements a queue, to signify to
 	 * its childs that a task have been pushed in its local queue, and is
@@ -154,7 +149,8 @@ struct starpu_sched_tree
 struct starpu_sched_node * starpu_sched_node_create(void);
 
 void starpu_sched_node_destroy(struct starpu_sched_node * node);
-void starpu_sched_node_set_father(struct starpu_sched_node *node, struct starpu_sched_node *father_node, unsigned sched_ctx_id);
+void starpu_sched_node_add_father(struct starpu_sched_node *node, struct starpu_sched_node *father_node);
+void starpu_sched_node_remove_father(struct starpu_sched_node *node, struct starpu_sched_node *father_node);
 void starpu_sched_node_add_child(struct starpu_sched_node * node, struct starpu_sched_node * child);
 void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child);
 
@@ -203,6 +199,9 @@ int starpu_sched_node_is_random(struct starpu_sched_node *);
 struct starpu_sched_node * starpu_sched_node_eager_create(void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_node_is_eager(struct starpu_sched_node *);
 
+struct starpu_sched_node * starpu_sched_node_eager_calibration_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+int starpu_sched_node_is_eager_calibration(struct starpu_sched_node *);
+
 
 struct starpu_mct_data
 {
@@ -249,7 +248,7 @@ void starpu_sched_tree_destroy(struct starpu_sched_tree * tree);
 /* destroy node and all his child
  * except if they are shared between several contexts
  */
-void starpu_sched_node_destroy_rec(struct starpu_sched_node * node, unsigned sched_ctx_id);
+void starpu_sched_node_destroy_rec(struct starpu_sched_node * node);
 
 /* update all the node->workers member recursively
  */
@@ -265,7 +264,7 @@ void starpu_sched_node_wake_available_worker(struct starpu_sched_node * node, st
 void starpu_sched_node_available(struct starpu_sched_node * node);
 
 int starpu_sched_tree_push_task(struct starpu_task * task);
-struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx_id);
+struct starpu_task * starpu_sched_tree_pop_task();
 void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
 void starpu_sched_node_worker_pre_exec_hook(struct starpu_task * task);

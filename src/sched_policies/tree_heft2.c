@@ -59,15 +59,19 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 			.perfmodel_node = perfmodel_node,
 		};
 
+	struct starpu_sched_node * window_node = starpu_sched_node_prio_create(NULL);
+	t->root = window_node;
+
 	struct starpu_sched_node * perfmodel_select_node = starpu_sched_node_perfmodel_select_create(&perfmodel_select_data);
-	t->root = perfmodel_select_node;
+	window_node->add_child(window_node, perfmodel_select_node);
+	starpu_sched_node_add_father(perfmodel_select_node, window_node);
 
 	perfmodel_select_node->add_child(perfmodel_select_node, calibrator_node);
-	starpu_sched_node_set_father(calibrator_node, perfmodel_select_node, sched_ctx_id);
+	starpu_sched_node_add_father(calibrator_node, perfmodel_select_node);
 	perfmodel_select_node->add_child(perfmodel_select_node, perfmodel_node);
-	starpu_sched_node_set_father(perfmodel_node, perfmodel_select_node, sched_ctx_id);
+	starpu_sched_node_add_father(perfmodel_node, perfmodel_select_node);
 	perfmodel_select_node->add_child(perfmodel_select_node, no_perfmodel_node);
-	starpu_sched_node_set_father(no_perfmodel_node, perfmodel_select_node, sched_ctx_id);
+	starpu_sched_node_add_father(no_perfmodel_node, perfmodel_select_node);
 
 	struct starpu_prio_data prio_data =
 		{
@@ -83,14 +87,18 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 
 		struct starpu_sched_node * prio = starpu_sched_node_prio_create(&prio_data);
 		prio->add_child(prio, worker_node);
-		starpu_sched_node_set_father(worker_node, prio, sched_ctx_id);
+		starpu_sched_node_add_father(worker_node, prio);
 
 		struct starpu_sched_node * impl_node = starpu_sched_node_best_implementation_create(NULL);
 		impl_node->add_child(impl_node, prio);
-		starpu_sched_node_set_father(prio, impl_node, sched_ctx_id);
+		starpu_sched_node_add_father(prio, impl_node);
 
 		perfmodel_node->add_child(perfmodel_node, impl_node);
-		starpu_sched_node_set_father(impl_node, perfmodel_node, sched_ctx_id);
+		starpu_sched_node_add_father(impl_node, perfmodel_node);
+		no_perfmodel_node->add_child(no_perfmodel_node, impl_node);
+		starpu_sched_node_add_father(impl_node, no_perfmodel_node);
+		calibrator_node->add_child(calibrator_node, impl_node);
+		starpu_sched_node_add_father(impl_node, calibrator_node);
 	}
 
 	starpu_sched_tree_update_workers(t);

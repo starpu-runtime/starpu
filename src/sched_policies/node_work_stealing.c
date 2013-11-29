@@ -116,7 +116,7 @@ static int is_worker_of_node(struct starpu_sched_node * node, int workerid)
 
 
 
-static struct starpu_task * pop_task(struct starpu_sched_node * node, unsigned sched_ctx_id)
+static struct starpu_task * pop_task(struct starpu_sched_node * node)
 {
 	int workerid = starpu_worker_get_id();
 	int i;
@@ -155,8 +155,19 @@ static struct starpu_task * pop_task(struct starpu_sched_node * node, unsigned s
 
 		return task;
 	}
-	if(node->fathers[sched_ctx_id])
-		return node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id],sched_ctx_id);
+	for(i=0; i < node->nfathers; i++)
+	{
+		if(node->fathers[i] == NULL)
+			continue;
+		else
+		{
+			task = node->fathers[i]->pop_task(node->fathers[i]);
+			if(task)
+				break;
+		}
+	}
+	if(task)
+		return task;
 	else
 		return NULL;
 }

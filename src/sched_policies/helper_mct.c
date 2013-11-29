@@ -68,6 +68,11 @@ int starpu_mct_compute_expected_times(struct starpu_sched_node *node, struct sta
 		struct starpu_sched_node * c = node->childs[i];
 		if(starpu_sched_node_execute_preds(c, task, estimated_lengths + i))
 		{
+			if(isnan(estimated_lengths[i]))
+				/* The perfmodel had been purged since the task was pushed
+				 * onto the mct node. */
+				continue;
+
 			/* Estimated availability of worker */
 			double estimated_end = c->estimated_end(c);
 			double now = starpu_timing_now();

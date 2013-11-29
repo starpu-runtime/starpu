@@ -110,7 +110,7 @@ struct composed_node create_composed_node(struct starpu_sched_node_composed_reci
 		 */
 		unsigned j;
 		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-			starpu_sched_node_set_father(node, c.bottom, j);
+			starpu_sched_node_add_father(node, c.bottom);
 		c.bottom = node;
 	}
 	STARPU_ASSERT(!starpu_sched_node_is_worker(c.bottom));
@@ -123,16 +123,28 @@ static int composed_node_push_task(struct starpu_sched_node * node, struct starp
 	struct composed_node *c = node->data;
 	return c->top->push_task(c->top,task);
 }
-struct starpu_task * composed_node_pop_task(struct starpu_sched_node *node, unsigned sched_ctx_id)
+struct starpu_task * composed_node_pop_task(struct starpu_sched_node *node)
 {
 	struct composed_node *c = node->data;
-	struct starpu_task * t = c->bottom->pop_task(c->bottom, sched_ctx_id);
-	if(t)
-		return t;
+	struct starpu_task * task = NULL;
+	
+	task = c->bottom->pop_task(c->bottom);
+	if(task)
+		return task;
 
-	if(node->fathers[sched_ctx_id])
-		return node->fathers[sched_ctx_id]->pop_task(node->fathers[sched_ctx_id], sched_ctx_id);
-	return NULL;
+	int i;
+	for(i=0; i < node->nfathers; i++)
+	{
+		if(node->fathers[i] == NULL)
+			continue;
+		else
+		{
+			task = node->fathers[i]->pop_task(node->fathers[i]);
+			if(task)
+				break;
+		}
+	}
+	return task;
 }
 
 double composed_node_estimated_load(struct starpu_sched_node * node)
@@ -207,6 +219,8 @@ struct starpu_sched_node * starpu_sched_node_composed_node_create(struct starpu_
 );
 	c->bottom->nchilds = node->nchilds;
 	c->bottom->childs = node->childs;
+	c->bottom->nfathers = node->nfathers;
+	c->bottom->fathers = node->fathers;
 
 	node->data = c;
 	node->push_task = composed_node_push_task;

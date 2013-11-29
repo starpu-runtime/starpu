@@ -374,7 +374,7 @@ static int simple_worker_push_task(struct starpu_sched_node * node, struct starp
 	return 0;
 }
 
-struct starpu_task * simple_worker_pop_task(struct starpu_sched_node *node,unsigned sched_ctx_id)
+struct starpu_task * simple_worker_pop_task(struct starpu_sched_node *node)
 {
 	struct _starpu_worker_node_data * data = node->data;
 	struct _starpu_worker_task_list * list = data->list;
@@ -387,10 +387,18 @@ struct starpu_task * simple_worker_pop_task(struct starpu_sched_node *node,unsig
 		return task;
 	}
 	STARPU_PTHREAD_MUTEX_LOCK(&data->lock);
-	struct starpu_sched_node *father = node->fathers[sched_ctx_id];
-	if(father == NULL)
-		return NULL;
-	task = father->pop_task(father,sched_ctx_id);
+	int i;
+	for(i=0; i < node->nfathers; i++)
+	{
+		if(node->fathers[i] == NULL)
+			continue;
+		else
+		{
+			task = node->fathers[i]->pop_task(node->fathers[i]);
+			if(task)
+				break;
+		}
+	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->lock);
 	if(!task)
 		return NULL;
@@ -405,7 +413,7 @@ struct starpu_task * simple_worker_pop_task(struct starpu_sched_node *node,unsig
 		struct starpu_sched_node * combined_worker_node = starpu_sched_node_worker_get(workerid);
 		(void)combined_worker_node->push_task(combined_worker_node, task);
 		/* we have pushed a task in queue, so can make a recursive call */
-		return simple_worker_pop_task(node, sched_ctx_id);
+		return simple_worker_pop_task(node);
 
 	}
 	if(task)
