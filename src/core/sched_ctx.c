@@ -134,14 +134,15 @@ void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	int curr_workerid = starpu_worker_get_id();
 	/* if is the initial sched_ctx no point in taking the mutex, the workers are
-	   not launched yet */
-	if(!sched_ctx->is_initial_sched)
+	   not launched yet, or if the current worker is calling this */
+	if(!sched_ctx->is_initial_sched && workerid != curr_workerid)
 		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
 	worker->shares_tasks_lists[sched_ctx_id] = 1;
 
-	if(!sched_ctx->is_initial_sched)
+	if(!sched_ctx->is_initial_sched && workerid != curr_workerid)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 }
 
@@ -166,10 +167,15 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 				added_workers[(*n_added_workers)++] = worker;
 			else
 			{
+				int curr_workerid = starpu_worker_get_id();
 				struct _starpu_worker *worker_str = _starpu_get_worker_struct(workerids[i]);
-				STARPU_PTHREAD_MUTEX_LOCK(&worker_str->sched_mutex);
+				if(curr_workerid != workerids[i])
+					STARPU_PTHREAD_MUTEX_LOCK(&worker_str->sched_mutex);
+
 				worker_str->removed_from_ctx[sched_ctx->id] = 0;
-				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_str->sched_mutex);
+
+				if(curr_workerid != workerids[i])
+					STARPU_PTHREAD_MUTEX_UNLOCK(&worker_str->sched_mutex);
 			}
 		}
 		else
