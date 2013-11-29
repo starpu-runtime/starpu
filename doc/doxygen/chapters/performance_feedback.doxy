@@ -35,7 +35,10 @@ call starpu_profiling_status_set() with the parameter
 is already enabled or not by calling starpu_profiling_status_get().
 Enabling monitoring also reinitialize all previously collected
 feedback. The environment variable \ref STARPU_PROFILING can also be
-set to <c>1</c> to achieve the same effect.
+set to <c>1</c> to achieve the same effect. The function
+starpu_profiling_init() can also be called during the execution to
+reinitialize performance counters and to start the profiling if the
+environment variable \ref STARPU_PROFILING is set to <c>1</c>.
 
 Likewise, performance monitoring is stopped by calling
 starpu_profiling_status_set() with the parameter
