@@ -83,6 +83,9 @@ struct sc_hypervisor
 	
 	/* criteria to trigger resizing */
 	unsigned resize_criteria;
+
+	/* value of the speed to compare the speed of the context to */
+	double optimal_v[STARPU_NMAX_SCHED_CTXS];
 };
 
 struct sc_hypervisor_adjustment
@@ -100,3 +103,5 @@ void _remove_config(unsigned sched_ctx);
 
 double _get_max_velocity_gap();
 
+double _get_optimal_v(unsigned sched_ctx);
+void _set_optimal_v(unsigned sched_ctx, double optimal_v);

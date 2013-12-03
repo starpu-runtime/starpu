@@ -16,6 +16,7 @@
 
 #include "sc_hypervisor_policy.h"
 #include "sc_hypervisor_intern.h"
+#include "sc_hypervisor_lp.h"
 #include <math.h>
 
 static int _compute_priority(unsigned sched_ctx)
@@ -366,7 +367,14 @@ double sc_hypervisor_get_ctx_velocity(struct sc_hypervisor_wrapper* sc_w)
 /* 	if(elapsed_time2 > 5.0 && elapsed_flops < sample) */
 /* 		return (elapsed_flops/1000000000.0)/elapsed_time2;/\* in Gflops/s *\/ */
 
-	if(elapsed_flops >= sample)
+	double total_elapsed_flops = sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(sc_w);
+	double total_flops = sc_w->total_flops;
+	char *start_sample_prc_char = getenv("SC_HYPERVISOR_START_RESIZE");
+	double start_sample_prc = start_sample_prc_char ? atof(start_sample_prc_char) : 0.0;
+	double start_sample = start_sample_prc > 0.0 ? (start_sample_prc / 100) * total_flops : sample;
+	double redim_sample = elapsed_flops == total_elapsed_flops ? (start_sample > 0.0 ? start_sample : sample) : sample;
+
+	if(elapsed_flops >= redim_sample)
         {
                 double curr_time = starpu_timing_now();
                 double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
@@ -536,33 +544,104 @@ unsigned sc_hypervisor_check_velocity_gap_btw_ctxs(void)
 	struct sc_hypervisor_wrapper* sc_w;
 	struct sc_hypervisor_wrapper* other_sc_w;
 
+	
+	double optimal_v[nsched_ctxs];
+	unsigned has_opt_v = 1;
 	for(i = 0; i < nsched_ctxs; i++)
 	{
-		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
-		double ctx_v = sc_hypervisor_get_ctx_velocity(sc_w);
-		if(ctx_v != -1.0)
+		optimal_v[i] = _get_optimal_v(i);
+		if(optimal_v[i] == 0.0)
+		{
+			has_opt_v = 0;
+			break;
+		}
+	}
+
+	if(!has_opt_v)
+	{
+		int nw = 1;
+#ifdef STARPU_USE_CUDA
+		int ncuda = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
+		nw = ncuda != 0 ? 2 : 1;
+#endif	
+		double nworkers_per_type[nsched_ctxs][nw];
+		int total_nw[nw];
+		for(i = 0; i < nw; i++)
 		{
 			for(j = 0; j < nsched_ctxs; j++)
+				nworkers_per_type[j][i] = 0.0;
+			total_nw[i] = 0;
+		}
+		sc_hypervisor_group_workers_by_type(NULL, -1, nw, total_nw);
+		
+		double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(nsched_ctxs, nw, nworkers_per_type, total_nw);
+		
+		if(vmax != 0.0)
+		{
+			for(i = 0; i < nsched_ctxs; i++)
 			{
-				if(sched_ctxs[i] != sched_ctxs[j])
-				{
-					unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctxs[j]);
-					if(nworkers == 0) 
-						return 1;
+				sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
+				double v[nw];
+				v[0] = sc_hypervisor_get_velocity(sc_w, STARPU_CUDA_WORKER);
+				v[1] = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+				
+				optimal_v[i] = nworkers_per_type[i][0] * v[0] + nworkers_per_type[i][1]* v[1];
+				_set_optimal_v(i, optimal_v[i]);
+			}
+			has_opt_v = 1;
+		}
+	}
 
-					other_sc_w = sc_hypervisor_get_wrapper(sched_ctxs[j]);
-					double other_ctx_v = sc_hypervisor_get_ctx_velocity(other_sc_w);
-					if(other_ctx_v != -1.0)
+	if(has_opt_v)
+	{
+		for(i = 0; i < nsched_ctxs; i++)
+		{
+			sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
+			
+			double ctx_v = sc_hypervisor_get_ctx_velocity(sc_w);
+			if(ctx_v == -1.0)
+				return 0;
+		}
+
+		for(i = 0; i < nsched_ctxs; i++)
+		{
+			sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
+			
+			double ctx_v = sc_hypervisor_get_ctx_velocity(sc_w);
+			if(ctx_v != -1.0 && ((ctx_v < 0.8*optimal_v[i]) || ctx_v > 1.2*optimal_v[i])) 
+				return 1;
+		}
+	}
+	else
+	{
+		for(i = 0; i < nsched_ctxs; i++)
+		{
+			sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
+			double ctx_v = sc_hypervisor_get_ctx_velocity(sc_w);
+			if(ctx_v != -1.0)
+			{
+				for(j = 0; j < nsched_ctxs; j++)
+				{
+					if(sched_ctxs[i] != sched_ctxs[j])
 					{
-						double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v ;
-//						if(gap > 1.5)
-						if(gap > _get_max_velocity_gap())
+						unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctxs[j]);
+						if(nworkers == 0)
 							return 1;
+						
+						other_sc_w = sc_hypervisor_get_wrapper(sched_ctxs[j]);
+						double other_ctx_v = sc_hypervisor_get_ctx_velocity(other_sc_w);
+						if(other_ctx_v != -1.0)
+						{
+							double gap = ctx_v < other_ctx_v ? other_ctx_v / ctx_v : ctx_v / other_ctx_v;
+							double max_vel = _get_max_velocity_gap();
+							if(gap > max_vel-1 && gap < max_vel+1)
+								return 1;
+						}
 					}
 				}
 			}
+			
 		}
-
 	}
 	return 0;
 }
