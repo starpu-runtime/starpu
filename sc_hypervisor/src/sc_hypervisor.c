@@ -133,6 +133,11 @@ struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hyper
 {
 	hypervisor.min_tasks = 0;
 	hypervisor.nsched_ctxs = 0;
+	char* vel_gap = getenv("MAX_VELOCITY_GAP");
+	hypervisor.max_velocity_gap = vel_gap ? atof(vel_gap) : SC_VELOCITY_MAX_GAP_DEFAULT;
+	char* crit =  getenv("HYPERVISOR_TRIGGER_RESIZE");
+	hypervisor.resize_criteria = strcmp(crit,"idle") == 0 ? SC_IDLE : (strcmp(crit,"speed") == 0 ? SC_SPEED : SC_NOTHING);
+
 	starpu_pthread_mutex_init(&act_hypervisor_mutex, NULL);
 	hypervisor.start_executing_time = starpu_timing_now();
 	int i;
@@ -210,21 +215,24 @@ void sc_hypervisor_start_resize(unsigned sched_ctx)
 
 static void _print_current_time()
 {
-	double curr_time = starpu_timing_now();
-	double elapsed_time = (curr_time - hypervisor.start_executing_time) / 1000000.0; /* in seconds */
-	fprintf(stdout, "Time: %lf\n", elapsed_time);
-	int i;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+	if(!getenv("HYPERVISOR_STOP_PRINT"))
 	{
-		if(hypervisor.sched_ctxs[i] != STARPU_NMAX_SCHED_CTXS)
+		double curr_time = starpu_timing_now();
+		double elapsed_time = (curr_time - hypervisor.start_executing_time) / 1000000.0; /* in seconds */
+		fprintf(stdout, "Time: %lf\n", elapsed_time);
+		int i;
+		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
-			struct sc_hypervisor_wrapper *sc_w = &hypervisor.sched_ctx_w[hypervisor.sched_ctxs[i]];
-
-			double cpu_speed = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
-			double cuda_speed = sc_hypervisor_get_velocity(sc_w, STARPU_CUDA_WORKER);
-			int ncpus = sc_hypervisor_get_nworkers_ctx(sc_w->sched_ctx, STARPU_CPU_WORKER);
-			int ncuda = sc_hypervisor_get_nworkers_ctx(sc_w->sched_ctx, STARPU_CUDA_WORKER);
-			fprintf(stdout, "%d: cpu_v = %lf cuda_v = %lf ncpus = %d ncuda = %d\n", hypervisor.sched_ctxs[i], cpu_speed, cuda_speed, ncpus, ncuda);
+			if(hypervisor.sched_ctxs[i] != STARPU_NMAX_SCHED_CTXS)
+			{
+				struct sc_hypervisor_wrapper *sc_w = &hypervisor.sched_ctx_w[hypervisor.sched_ctxs[i]];
+				
+				double cpu_speed = sc_hypervisor_get_velocity(sc_w, STARPU_CPU_WORKER);
+				double cuda_speed = sc_hypervisor_get_velocity(sc_w, STARPU_CUDA_WORKER);
+				int ncpus = sc_hypervisor_get_nworkers_ctx(sc_w->sched_ctx, STARPU_CPU_WORKER);
+				int ncuda = sc_hypervisor_get_nworkers_ctx(sc_w->sched_ctx, STARPU_CUDA_WORKER);
+				fprintf(stdout, "%d: cpu_v = %lf cuda_v = %lf ncpus = %d ncuda = %d\n", hypervisor.sched_ctxs[i], cpu_speed, cuda_speed, ncpus, ncuda);
+			}
 		}
 	}
 	return;
@@ -362,6 +370,16 @@ static double _get_best_total_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, 
         }
 
 	return ret_val;
+}
+
+double _get_max_velocity_gap()
+{
+	return hypervisor.max_velocity_gap;
+}
+
+unsigned _get_resize_criteria()
+{
+	return hypervisor.resize_criteria;
 }
 
 /* compute an average value of the cpu/cuda velocity */
