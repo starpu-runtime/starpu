@@ -137,7 +137,7 @@ struct starpu_sched_ctx_performance_counters* sc_hypervisor_init(struct sc_hyper
 	char* vel_gap = getenv("MAX_VELOCITY_GAP");
 	hypervisor.max_velocity_gap = vel_gap ? atof(vel_gap) : SC_VELOCITY_MAX_GAP_DEFAULT;
 	char* crit =  getenv("HYPERVISOR_TRIGGER_RESIZE");
-	hypervisor.resize_criteria = strcmp(crit,"idle") == 0 ? SC_IDLE : (strcmp(crit,"speed") == 0 ? SC_VELOCITY : SC_NOTHING);
+	hypervisor.resize_criteria = !crit ? SC_NOTHING : strcmp(crit,"idle") == 0 ? SC_IDLE : (strcmp(crit,"speed") == 0 ? SC_VELOCITY : SC_NOTHING);
 
 	starpu_pthread_mutex_init(&act_hypervisor_mutex, NULL);
 	hypervisor.start_executing_time = starpu_timing_now();
