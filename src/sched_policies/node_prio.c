@@ -18,6 +18,7 @@
 #include <starpu_scheduler.h>
 
 #include "prio_deque.h"
+#include "sched_node.h"
 
 #define STARPU_TRACE_SCHED_NODE_PUSH_PRIO(node,ntasks,exp_len) do {                                 \
 	int workerid = STARPU_NMAXWORKERS + 1;									\
@@ -155,12 +156,6 @@ static int prio_push_local_task(struct starpu_sched_node * node, struct starpu_t
 		STARPU_ASSERT(!isnan(prio->exp_len));
 		STARPU_ASSERT(!isnan(prio->exp_start));
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
-
-		// When a task is pushed onto the local queue, we signify to our children
-		// that a task has been pushed, and that if everyone is sleeping, someone
-		// needs to wake up to come and take it.
-		if(!is_pushback)
-			node->avail(node);
 	}
 
 	return ret;
@@ -168,7 +163,8 @@ static int prio_push_local_task(struct starpu_sched_node * node, struct starpu_t
 
 static int prio_push_task(struct starpu_sched_node * node, struct starpu_task * task)
 {
-	return prio_push_local_task(node, task, 0);
+	int ret = prio_push_local_task(node, task, 0);
+	return ret;
 }
 
 int starpu_sched_node_is_prio(struct starpu_sched_node * node)
@@ -204,13 +200,17 @@ static struct starpu_task * prio_pop_task(struct starpu_sched_node * node)
 
 	// When a pop is called, a room is called for pushing tasks onto
 	// the empty place of the queue left by the popped task.
-	int i;
+	int i,ret;
 	for(i=0; i < node->nfathers; i++)
 	{
 		if(node->fathers[i] == NULL)
 			continue;
 		else
-			node->fathers[i]->room(node->fathers[i]);
+		{
+			ret = node->fathers[i]->room(node->fathers[i]);
+			if(ret)
+				break;
+		}
 	}
 	
 	if(task)
@@ -228,23 +228,29 @@ static int prio_room(struct starpu_sched_node * node)
 {
 	STARPU_ASSERT(node && starpu_sched_node_is_prio(node));
 	int ret = 0;
+	int res = 0;
 
 	STARPU_ASSERT(node->nchilds == 1);
 	struct starpu_sched_node * child = node->childs[0];
 
+	_starpu_sched_node_unlock_scheduling();
 	struct starpu_task * task = node->pop_task(node);
 	if(task)
 		ret = child->push_task(child,task);	
 	while(task && !ret) 
 	{
+		if(!res)
+			res = 1;
+
 		task = node->pop_task(node);
 		if(task)
 			ret = child->push_task(child,task);	
 	} 
+	_starpu_sched_node_lock_scheduling();
 	if(task && ret)
 		prio_push_local_task(node,task,1); 
 
-	return 1;
+	return res;
 }
 
 struct starpu_sched_node * starpu_sched_node_prio_create(struct starpu_prio_data * params)

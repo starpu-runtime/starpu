@@ -164,6 +164,12 @@ static int heft_progress_one(struct starpu_sched_node *node)
 		STARPU_ASSERT(best_task >= 0);
 		best_node = node->childs[best_inode];
 
+		if(starpu_sched_node_is_worker(best_node))
+		{
+			best_node->avail(best_node);
+			return 1;
+		}
+
 		int ret = best_node->push_task(best_node, tasks[best_task]);
 
 		if (ret)
@@ -176,6 +182,7 @@ static int heft_progress_one(struct starpu_sched_node *node)
 		}
 		else
 		{
+			best_node->avail(best_node);
 			return 0;
 		}
 	}
@@ -191,7 +198,9 @@ static void heft_progress(struct starpu_sched_node *node)
 
 static int heft_room(struct starpu_sched_node *node)
 {
+	_starpu_sched_node_unlock_scheduling();
 	heft_progress(node);
+	_starpu_sched_node_lock_scheduling();
 	int ret, j;
 	for(j=0; j < node->nfathers; j++)
 	{

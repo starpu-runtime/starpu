@@ -38,7 +38,7 @@ static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
  	t->root = starpu_sched_node_prio_create(NULL);
 	struct starpu_sched_node * eager_node = starpu_sched_node_eager_create(NULL);
 	t->root->add_child(t->root, eager_node);
-	starpu_sched_node_add_father(eager_node, t->root);
+	eager_node->add_father(eager_node, t->root);
 
 	struct starpu_prio_data prio_data =
 		{
@@ -54,10 +54,10 @@ static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
 
 		struct starpu_sched_node * prio_node = starpu_sched_node_prio_create(&prio_data);
 		prio_node->add_child(prio_node, worker_node);
-		starpu_sched_node_add_father(worker_node, prio_node);
+		worker_node->add_father(worker_node, prio_node);
 
 		eager_node->add_child(eager_node, prio_node);
-		starpu_sched_node_add_father(prio_node, eager_node);
+		prio_node->add_father(prio_node, eager_node);
 	}
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);

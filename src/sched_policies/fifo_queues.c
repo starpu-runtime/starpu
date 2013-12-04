@@ -160,7 +160,6 @@ int _starpu_fifo_push_back_task(struct _starpu_fifo_taskq *fifo_queue, struct st
 		starpu_task_list_push_front(&fifo_queue->taskq, task);
 
 		fifo_queue->ntasks++;
-		fifo_queue->nprocessed++;
 	}
 
 	return 0;

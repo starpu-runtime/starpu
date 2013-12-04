@@ -85,7 +85,15 @@ static int random_push_task(struct starpu_sched_node * node, struct starpu_task 
 		alpha += speedup[i];
 	}
 	STARPU_ASSERT(select != NULL);
+	if(starpu_sched_node_is_worker(select))
+	{
+		select->avail(select);
+		return 1;
+	}
+
 	int ret_val = select->push_task(select,task);
+	if(!ret_val)
+		select->avail(select);
 
 	return ret_val;
 }

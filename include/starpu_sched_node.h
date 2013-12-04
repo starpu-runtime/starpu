@@ -115,7 +115,7 @@ struct starpu_sched_node
 	 * The basic implementation of this function is a recursive call to
 	 * its childs, until at least one worker have been woken up.
 	 */
-	int (*avail)(struct starpu_sched_node * node);
+	void (*avail)(struct starpu_sched_node * node);
 
 #ifdef STARPU_HAVE_HWLOC
 	/* in case of a hierarchical scheduler, this is set to the part of
@@ -149,11 +149,6 @@ struct starpu_sched_tree
 struct starpu_sched_node * starpu_sched_node_create(void);
 
 void starpu_sched_node_destroy(struct starpu_sched_node * node);
-void starpu_sched_node_add_father(struct starpu_sched_node *node, struct starpu_sched_node *father_node);
-void starpu_sched_node_remove_father(struct starpu_sched_node *node, struct starpu_sched_node *father_node);
-void starpu_sched_node_add_child(struct starpu_sched_node * node, struct starpu_sched_node * child);
-void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child);
-
 
 int starpu_sched_node_can_execute_task(struct starpu_sched_node * node, struct starpu_task * task);
 int STARPU_WARN_UNUSED_RESULT starpu_sched_node_execute_preds(struct starpu_sched_node * node, struct starpu_task * task, double * length);
@@ -256,12 +251,6 @@ void starpu_sched_tree_update_workers(struct starpu_sched_tree * t);
 /* idem for workers_in_ctx 
  */
 void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree * t);
-/* wake up one underlaying workers of node which can execute the task
- */
-void starpu_sched_node_wake_available_worker(struct starpu_sched_node * node, struct starpu_task * task );
-/* wake up underlaying workers of node
- */
-void starpu_sched_node_available(struct starpu_sched_node * node);
 
 int starpu_sched_tree_push_task(struct starpu_task * task);
 struct starpu_task * starpu_sched_tree_pop_task();

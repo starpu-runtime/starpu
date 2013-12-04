@@ -25,6 +25,8 @@ void _starpu_sched_node_lock_all_workers(void);
 void _starpu_sched_node_unlock_all_workers(void);
 void _starpu_sched_node_lock_worker(int workerid);
 void _starpu_sched_node_unlock_worker(int workerid);
+void _starpu_sched_node_lock_scheduling(void);
+void _starpu_sched_node_unlock_scheduling(void);
 
 
 struct _starpu_worker * _starpu_sched_node_worker_get_worker(struct starpu_sched_node *);

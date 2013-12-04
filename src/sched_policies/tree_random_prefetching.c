@@ -41,7 +41,7 @@ static void initialize_random_fifo_prefetching_center_policy(unsigned sched_ctx_
  	t->root = starpu_sched_node_fifo_create(NULL);
 	struct starpu_sched_node * random_node = starpu_sched_node_random_create(NULL);
 	t->root->add_child(t->root, random_node);
-	starpu_sched_node_add_father(random_node, t->root);
+	random_node->add_father(random_node, t->root);
 
 	struct starpu_fifo_data fifo_data =
 		{
@@ -57,10 +57,10 @@ static void initialize_random_fifo_prefetching_center_policy(unsigned sched_ctx_
 
 		struct starpu_sched_node * fifo_node = starpu_sched_node_fifo_create(&fifo_data);
 		fifo_node->add_child(fifo_node, worker_node);
-		starpu_sched_node_add_father(worker_node, fifo_node);
+		worker_node->add_father(worker_node, fifo_node);
 
 		random_node->add_child(random_node, fifo_node);
-		starpu_sched_node_add_father(fifo_node, random_node);
+		fifo_node->add_father(fifo_node, random_node);
 	}
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
@@ -108,7 +108,7 @@ static void initialize_random_prio_prefetching_center_policy(unsigned sched_ctx_
  	t->root = starpu_sched_node_prio_create(NULL);
 	struct starpu_sched_node * random_node = starpu_sched_node_random_create(NULL);
 	t->root->add_child(t->root, random_node);
-	starpu_sched_node_add_father(random_node, t->root);
+	random_node->add_father(random_node, t->root);
 
 	struct starpu_prio_data prio_data =
 		{
@@ -124,10 +124,10 @@ static void initialize_random_prio_prefetching_center_policy(unsigned sched_ctx_
 
 		struct starpu_sched_node * prio_node = starpu_sched_node_prio_create(&prio_data);
 		prio_node->add_child(prio_node, worker_node);
-		starpu_sched_node_add_father(worker_node, prio_node);
+		worker_node->add_father(worker_node, prio_node);
 
 		random_node->add_child(random_node, prio_node);
-		starpu_sched_node_add_father(prio_node, random_node);
+		prio_node->add_father(prio_node, random_node);
 	}
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);

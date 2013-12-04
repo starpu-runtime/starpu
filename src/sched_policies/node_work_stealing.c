@@ -229,8 +229,7 @@ static int push_task(struct starpu_sched_node * node, struct starpu_task * task)
 	STARPU_PTHREAD_MUTEX_UNLOCK(wsd->mutexes[i]);
 
 	wsd->last_push_child = i;
-//	node->available(node);
-	starpu_sched_node_available(node);
+	node->avail(node);
 	return ret;
 }
 
@@ -274,7 +273,7 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 				node->childs[j]->available(node->childs[j]);
 			}
 */
-			starpu_sched_node_available(node);
+			node->avail(node);
 			return ret;
 		}
 	}
@@ -287,7 +286,7 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 void _ws_add_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 {
 	struct _starpu_work_stealing_data * wsd = node->data;
-	starpu_sched_node_add_child(node, child);
+	node->add_child(node, child);
 	if(wsd->size < node->nchilds)
 	{
 		STARPU_ASSERT(wsd->size == node->nchilds - 1);

@@ -24,100 +24,6 @@
 
 #include "sched_node.h"
 
-
-/* wake up worker workerid
- * if called by a worker it dont try to wake up himself
- */
-static void wake_simple_worker(int workerid)
-{
-	STARPU_ASSERT(0 <= workerid && (unsigned)  workerid < starpu_worker_get_count());
-	starpu_pthread_mutex_t * sched_mutex;
-	starpu_pthread_cond_t * sched_cond;
-	if(workerid == starpu_worker_get_id())
-		return;
-	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-	starpu_wakeup_worker(workerid, sched_cond, sched_mutex);
-	/*
-	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-	STARPU_PTHREAD_COND_SIGNAL(sched_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
-	*/
-}
-
-/* wake up all workers of a combined workers
- * this function must not be called during a pop (however this should not
- * even be possible) or you will have a dead lock
- */
-static void wake_combined_worker(int workerid)
-{
-	STARPU_ASSERT( 0 <= workerid
-		       && starpu_worker_get_count() <= (unsigned) workerid
-		       && (unsigned) workerid < starpu_worker_get_count() + starpu_combined_worker_get_count());
-	struct _starpu_combined_worker * combined_worker = _starpu_get_combined_worker_struct(workerid);
-	int * list = combined_worker->combined_workerid;
-	int size = combined_worker->worker_size;
-	int i;
-	for(i = 0; i < size; i++)
-		wake_simple_worker(list[i]);
-}
-
-
-/* this function must not be called on worker nodes :
- * because this wouldn't have sense
- * and should dead lock
- */
-void starpu_sched_node_wake_available_worker(struct starpu_sched_node * node, struct starpu_task * task)
-{
-	(void)node;
-	STARPU_ASSERT(node);
-	STARPU_ASSERT(!starpu_sched_node_is_worker(node));
-#ifndef STARPU_NON_BLOCKING_DRIVERS
-	int i;
-	unsigned nimpl;
-	for(i = starpu_bitmap_first(node->workers_in_ctx);
-	    i != -1;
-	    i = starpu_bitmap_next(node->workers_in_ctx, i))
-	{
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-		{
-			if (starpu_worker_can_execute_task(i, task, nimpl))
-			{
-				if(i < (int) starpu_worker_get_count())
-					wake_simple_worker(i);
-				else
-					wake_combined_worker(i);
-				goto out;
-			}
-		}
-	}
-out:
-#endif
-}
-
-
-/* this function must not be called on worker nodes :
- * because this wouldn't have sense
- * and should dead lock
- */
-void starpu_sched_node_available(struct starpu_sched_node * node)
-{
-	(void)node;
-	STARPU_ASSERT(node);
-	STARPU_ASSERT(!starpu_sched_node_is_worker(node));
-#ifndef STARPU_NON_BLOCKING_DRIVERS
-	int i;
-	for(i = starpu_bitmap_first(node->workers_in_ctx);
-	    i != -1;
-	    i = starpu_bitmap_next(node->workers_in_ctx, i))
-	{
-		if(i < (int) starpu_worker_get_count())
-			wake_simple_worker(i);
-		else
-			wake_combined_worker(i);
-	}
-#endif
-}
-
 /* default implementation for node->pop_task()
  * just perform a recursive call on father
  */
@@ -139,32 +45,6 @@ static struct starpu_task * pop_task_node(struct starpu_sched_node * node)
 	}
 	return task;
 }
-
-void starpu_sched_node_add_father(struct starpu_sched_node* node, struct starpu_sched_node * father)
-{
-	STARPU_ASSERT(node && father);
-	int i;
-	for(i = 0; i < node->nfathers; i++){
-		STARPU_ASSERT(node->fathers[i] != node);
-		STARPU_ASSERT(node->fathers[i] != NULL);
-	}
-
-	node->fathers = realloc(node->fathers, sizeof(struct starpu_sched_node *) * (node->nfathers + 1));
-	node->fathers[node->nfathers] = father;
-	node->nfathers++;
-}
-
-void starpu_sched_node_remove_father(struct starpu_sched_node * node, struct starpu_sched_node * father)
-{
-	STARPU_ASSERT(node && father);
-	int pos;
-	for(pos = 0; pos < node->nfathers; pos++)
-		if(node->fathers[pos] == father)
-			break;
-	STARPU_ASSERT(pos != node->nfathers);
-	node->fathers[pos] = node->fathers[--node->nfathers];
-}
-
 
 /******************************************************************************
  *          functions for struct starpu_sched_policy interface                *
@@ -240,9 +120,6 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 	STARPU_PTHREAD_MUTEX_UNLOCK(&t->lock);
 }
 
-
-
-
 void starpu_sched_node_destroy_rec(struct starpu_sched_node * node)
 {
 	if(node == NULL)
@@ -279,7 +156,7 @@ void starpu_sched_tree_destroy(struct starpu_sched_tree * tree)
 	free(tree);
 }
 
-void starpu_sched_node_add_child(struct starpu_sched_node* node, struct starpu_sched_node * child)
+static void starpu_sched_node_add_child(struct starpu_sched_node* node, struct starpu_sched_node * child)
 {
 	STARPU_ASSERT(node && child);
 	STARPU_ASSERT(!starpu_sched_node_is_worker(node));
@@ -293,7 +170,8 @@ void starpu_sched_node_add_child(struct starpu_sched_node* node, struct starpu_s
 	node->childs[node->nchilds] = child;
 	node->nchilds++;
 }
-void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
+
+static void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 {
 	STARPU_ASSERT(node && child);
 	STARPU_ASSERT(!starpu_sched_node_is_worker(node));
@@ -303,6 +181,31 @@ void starpu_sched_node_remove_child(struct starpu_sched_node * node, struct star
 			break;
 	STARPU_ASSERT(pos != node->nchilds);
 	node->childs[pos] = node->childs[--node->nchilds];
+}
+
+static void starpu_sched_node_add_father(struct starpu_sched_node* node, struct starpu_sched_node * father)
+{
+	STARPU_ASSERT(node && father);
+	int i;
+	for(i = 0; i < node->nfathers; i++){
+		STARPU_ASSERT(node->fathers[i] != node);
+		STARPU_ASSERT(node->fathers[i] != NULL);
+	}
+
+	node->fathers = realloc(node->fathers, sizeof(struct starpu_sched_node *) * (node->nfathers + 1));
+	node->fathers[node->nfathers] = father;
+	node->nfathers++;
+}
+
+static void starpu_sched_node_remove_father(struct starpu_sched_node * node, struct starpu_sched_node * father)
+{
+	STARPU_ASSERT(node && father);
+	int pos;
+	for(pos = 0; pos < node->nfathers; pos++)
+		if(node->fathers[pos] == father)
+			break;
+	STARPU_ASSERT(pos != node->nfathers);
+	node->fathers[pos] = node->fathers[--node->nfathers];
 }
 
 struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id)
@@ -371,10 +274,6 @@ int starpu_sched_node_execute_preds(struct starpu_sched_node * node, struct star
 					d = starpu_task_expected_length(task, archtype, nimpl);
 				if(isnan(d))
 				{
-					/* TODO: this is not supposed to
-					 * happen, the perfmodel selector
-					 * should have forced it to a proper
-					 * worker already */
 					*length = d;
 					return can_execute;
 						
@@ -395,8 +294,6 @@ int starpu_sched_node_execute_preds(struct starpu_sched_node * node, struct star
 	}
 
 	if(len == DBL_MAX) /* we dont have perf model */
-		/* TODO: this is not supposed to happen, the perfmodel selector
-		 * should have forced it to a proper worker already */
 		len = 0.0; 
 	if(length)
 		*length = len;
@@ -478,7 +375,7 @@ void starpu_sched_node_prefetch_on_node(struct starpu_sched_node * node, struct 
  * A personally-made room in a node (like in prio nodes) is necessary to catch
  * this recursive call somewhere, if the user wants to exploit it.
  */
-int starpu_sched_node_room(struct starpu_sched_node * node)
+static int starpu_sched_node_room(struct starpu_sched_node * node)
 {
 	STARPU_ASSERT(node);
 	int ret = 0;
@@ -501,22 +398,37 @@ int starpu_sched_node_room(struct starpu_sched_node * node)
  * node. It is currenly called by nodes which holds a queue (like fifo and prio
  * nodes) to signify its childs that a task has been pushed on its local queue.
  */
-int starpu_sched_node_avail(struct starpu_sched_node * node)
+static void starpu_sched_node_avail(struct starpu_sched_node * node)
 {
 	STARPU_ASSERT(node);
-	int ret;
-	if(node->nchilds > 0)
-	{
-		int i;
-		for(i = 0; i < node->nchilds; i++)
-		{
-			struct starpu_sched_node * child = node->childs[i];
-			ret = child->avail(child);
-			if(ret)
-				break;
-		}
-	}
-	return 0;
+	STARPU_ASSERT(!starpu_sched_node_is_worker(node));
+	int i;
+	for(i = 0; i < node->nchilds; i++)
+		node->childs[i]->avail(node->childs[i]);
+}
+
+/* Allows a worker to lock/unlock scheduling mutexes. Currently used in 
+ * self-defined room calls to allow avail calls to take those mutexes while the 
+ * current worker is pushing tasks on other workers (or itself). 
+ */
+void _starpu_sched_node_lock_scheduling(void)
+{
+	int workerid = starpu_worker_get_id();
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+	_starpu_sched_node_lock_worker(workerid);	
+	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+}
+
+void _starpu_sched_node_unlock_scheduling(void)
+{
+	int workerid = starpu_worker_get_id();
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	_starpu_sched_node_unlock_worker(workerid);	
 }
 
 void take_node_and_does_nothing(struct starpu_sched_node * node STARPU_ATTRIBUTE_UNUSED)

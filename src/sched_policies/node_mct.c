@@ -55,7 +55,11 @@ static int mct_push_task(struct starpu_sched_node * node, struct starpu_task * t
 			estimated_lengths, estimated_transfer_length, estimated_ends_with_task,
 			&min_exp_end_with_task, &max_exp_end_with_task, suitable_nodes);
 
-	if(!nsuitable_nodes)
+	/* If no suitable nodes were found, it means that the perfmodel of
+	 * the task had been purged since it has been pushed on the mct node.
+	 * We should send a push_fail message to its father so that it will
+	 * be able to reschedule the task properly. */
+	if(nsuitable_nodes == 0)
 		return 1;
 
 	double best_fitness = DBL_MAX;
@@ -80,10 +84,24 @@ static int mct_push_task(struct starpu_sched_node * node, struct starpu_task * t
 		}
 	}
 
-	STARPU_ASSERT(best_inode != -1);
+	/* If no best node is found, it means that the perfmodel of
+	 * the task had been purged since it has been pushed on the mct node.
+	 * We should send a push_fail message to its father so that it will
+	 * be able to reschedule the task properly. */
+	if(best_inode == -1)
+		return 1;
+
 	best_node = node->childs[best_inode];
 
+	if(starpu_sched_node_is_worker(best_node))
+	{
+		best_node->avail(best_node);
+		return 1;
+	}
+
 	int ret = best_node->push_task(best_node, task);
+	if(!ret)
+		best_node->avail(best_node);
 
 	return ret;
 }

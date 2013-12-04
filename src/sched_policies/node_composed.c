@@ -103,14 +103,14 @@ struct composed_node create_composed_node(struct starpu_sched_node_composed_reci
 #ifdef STARPU_HAVE_HWLOC
 		node->obj = obj;
 #endif
-		starpu_sched_node_add_child(c.bottom, node);
+		c.bottom->add_child(c.bottom, node);
 
 		/* we want to be able to traverse scheduler bottom up for all sched ctxs
 		 * when a worker call pop()
 		 */
 		unsigned j;
 		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-			starpu_sched_node_add_father(node, c.bottom);
+			node->add_father(node, c.bottom);
 		c.bottom = node;
 	}
 	STARPU_ASSERT(!starpu_sched_node_is_worker(c.bottom));
@@ -156,13 +156,13 @@ double composed_node_estimated_load(struct starpu_sched_node * node)
 static void composed_node_add_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 {
 	struct composed_node * c = node->data;
-	starpu_sched_node_add_child(node, child);
+	node->add_child(node, child);
 	c->bottom->add_child(c->bottom, child);
 }
 static void composed_node_remove_child(struct starpu_sched_node * node, struct starpu_sched_node * child)
 {
 	struct composed_node * c = node->data;
-	starpu_sched_node_remove_child(node, child);
+	node->remove_child(node, child);
 	c->bottom->remove_child(c->bottom, child);
 }
 

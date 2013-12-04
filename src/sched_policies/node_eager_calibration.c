@@ -48,7 +48,7 @@ static int eager_calibration_push_task(struct starpu_sched_node * node, struct s
 					int i;
 					for (i = 0; i < node->nchilds; i++)
 					{
-						int idworker;
+						int idworker,ret;
 						for(idworker = starpu_bitmap_first(node->childs[i]->workers);
 							idworker != -1;
 							idworker = starpu_bitmap_next(node->childs[i]->workers, idworker))
@@ -61,7 +61,14 @@ static int eager_calibration_push_task(struct starpu_sched_node * node, struct s
 									return 1;
 								}
 								else
-									return node->childs[i]->push_task(node->childs[i],task);
+								{
+									ret = node->childs[i]->push_task(node->childs[i],task);
+									if(!ret)
+									{
+										node->childs[i]->avail(node->childs[i]);
+										return ret;
+									}
+								}
 							}
 						}
 					}
