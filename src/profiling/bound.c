@@ -198,7 +198,7 @@ static double** initialize_arch_duration(int maxdevid, unsigned* maxncore_table)
 			maxncore = maxncore_table[devid];
 		else
 			maxncore = 1;
-		arch_model[devid] = malloc(sizeof(*arch_model[devid])*(maxncore+1));
+		arch_model[devid] = calloc(maxncore+1,sizeof(*arch_model[devid]));
 	}
 	return arch_model;
 }

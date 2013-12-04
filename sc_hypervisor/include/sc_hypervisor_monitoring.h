@@ -127,6 +127,11 @@ struct sc_hypervisor_wrapper
 	/* boolean indicating if we add the idle of this worker to 
 	   the idle of the context */
 	unsigned compute_idle[STARPU_NMAXWORKERS];
+
+	/* boolean indicating if we add the entiere idle of this 
+	   worker to the idle of the context or just half*/
+	unsigned compute_partial_idle[STARPU_NMAXWORKERS];
+
 };
 
 /* return the wrapper of context that saves its monitoring information */

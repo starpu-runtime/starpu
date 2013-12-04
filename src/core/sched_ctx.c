@@ -134,14 +134,15 @@ void starpu_sched_ctx_worker_shares_tasks_lists(int workerid, int sched_ctx_id)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	int curr_workerid = starpu_worker_get_id();
 	/* if is the initial sched_ctx no point in taking the mutex, the workers are
-	   not launched yet */
-	if(!sched_ctx->is_initial_sched)
+	   not launched yet, or if the current worker is calling this */
+	if(!sched_ctx->is_initial_sched && workerid != curr_workerid)
 		STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 
 	worker->shares_tasks_lists[sched_ctx_id] = 1;
 
-	if(!sched_ctx->is_initial_sched)
+	if(!sched_ctx->is_initial_sched && workerid != curr_workerid)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 }
 
@@ -166,10 +167,15 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 				added_workers[(*n_added_workers)++] = worker;
 			else
 			{
+				int curr_workerid = starpu_worker_get_id();
 				struct _starpu_worker *worker_str = _starpu_get_worker_struct(workerids[i]);
-				STARPU_PTHREAD_MUTEX_LOCK(&worker_str->sched_mutex);
+				if(curr_workerid != workerids[i])
+					STARPU_PTHREAD_MUTEX_LOCK(&worker_str->sched_mutex);
+
 				worker_str->removed_from_ctx[sched_ctx->id] = 0;
-				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_str->sched_mutex);
+
+				if(curr_workerid != workerids[i])
+					STARPU_PTHREAD_MUTEX_UNLOCK(&worker_str->sched_mutex);
 			}
 		}
 		else
@@ -818,7 +824,8 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 		config->watchdog_ok = 1;
 
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	int finished = _starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->tasks_barrier, 0.0);
+	int reached = _starpu_barrier_counter_get_reached_start(&sched_ctx->tasks_barrier);
+	int finished = reached == 1;
         /* when finished decrementing the tasks if the user signaled he will not submit tasks anymore
            we can move all its workers to the inheritor context */
 	if(finished && sched_ctx->inheritor != STARPU_NMAX_SCHED_CTXS)
@@ -828,8 +835,6 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 		{
 			STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
 
-			/* take care the context is not deleted or changed at the same time */
-			STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx_id]);
 			if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
 				if(sched_ctx->close_callback)
@@ -844,8 +849,7 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 					free(workerids);
 				}
 			}
-			STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
-
+			_starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->tasks_barrier, 0.0);
 			return;
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&finished_submit_mutex);
@@ -861,13 +865,11 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 	STARPU_PTHREAD_MUTEX_LOCK(&config->submitted_mutex);
 	if(config->submitting == 0)
 	{
-		STARPU_PTHREAD_RWLOCK_RDLOCK(&changing_ctx_mutex[sched_ctx_id]);
 		if(sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 		{
 			if(sched_ctx->close_callback)
 				sched_ctx->close_callback(sched_ctx->id, sched_ctx->close_args);
 		}
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
 
 		ANNOTATE_HAPPENS_AFTER(&config->running);
 		config->running = 0;
@@ -882,6 +884,8 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 		}
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
+
+	_starpu_barrier_counter_decrement_until_empty_counter(&sched_ctx->tasks_barrier, 0.0);
 
 	return;
 }

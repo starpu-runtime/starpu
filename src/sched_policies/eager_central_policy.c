@@ -175,13 +175,16 @@ static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	for (i = 0; i < nworkers; i++)
 	{
 		workerid = workerids[i];
-		starpu_pthread_mutex_t *sched_mutex;
-		starpu_pthread_cond_t *sched_cond;
-		starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-		starpu_wakeup_worker(workerid, sched_cond, sched_mutex);
+		int curr_workerid = starpu_worker_get_id();
+		if(workerid != curr_workerid)
+		{
+			starpu_pthread_mutex_t *sched_mutex;
+			starpu_pthread_cond_t *sched_cond;
+			starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+			starpu_wakeup_worker(workerid, sched_cond, sched_mutex);
+		}
 
 		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
-
 	}
 }
 
