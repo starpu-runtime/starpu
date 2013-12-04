@@ -183,6 +183,13 @@ void starpu_task_destroy(struct starpu_task *task)
 	_starpu_task_destroy(task);
 }
 
+int starpu_task_finished(struct starpu_task *task)
+{
+	STARPU_ASSERT(task);
+	STARPU_ASSERT_MSG(!task->detach, "starpu_task_finished can only be called on tasks with detach = 0");
+	return _starpu_job_finished(_starpu_get_job_associated_to_task(task));
+}
+
 int starpu_task_wait(struct starpu_task *task)
 {
         _STARPU_LOG_IN();

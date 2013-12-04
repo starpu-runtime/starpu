@@ -116,6 +116,15 @@ void _starpu_job_destroy(struct _starpu_job *j)
 	_starpu_job_delete(j);
 }
 
+int _starpu_job_finished(struct _starpu_job *j)
+{
+	int ret;
+	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	ret = j->terminated == 2;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	return ret;
+}
+
 void _starpu_wait_job(struct _starpu_job *j)
 {
 	STARPU_ASSERT(j->task);

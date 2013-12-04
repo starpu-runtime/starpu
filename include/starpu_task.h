@@ -234,6 +234,8 @@ void starpu_task_destroy(struct starpu_task *task);
 int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id);
 
+int starpu_task_finished(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
+
 int starpu_task_wait(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 
 int starpu_task_wait_for_all(void);
