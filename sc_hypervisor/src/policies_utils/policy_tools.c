@@ -352,7 +352,7 @@ double sc_hypervisor_get_fastest_ctx_exec_time(void)
 
 void sc_hypervisor_group_workers_by_type(struct types_of_workers *tw, int *total_nw)
 {
-	int w;
+	unsigned w;
 	for(w = 0; w < tw->nw; w++)
 		total_nw[w] = 0;
 
@@ -382,8 +382,9 @@ enum starpu_worker_archtype sc_hypervisor_get_arch_for_index(unsigned w, struct 
 	else
 		if(tw->ncuda != 0)
 			return STARPU_CUDA_WORKER;
-}
 
+	return STARPU_CPU_WORKER;
+}
 
 unsigned sc_hypervisor_get_index_for_arch(enum starpu_worker_archtype arch, struct types_of_workers *tw)
 {
@@ -403,6 +404,7 @@ unsigned sc_hypervisor_get_index_for_arch(enum starpu_worker_archtype arch, stru
 				return 0;
 		}
 	}
+	return 0;
 }
 
 void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *workers, unsigned size_ctxs, struct sc_hypervisor_policy_task_pool *task_pools)
@@ -521,7 +523,7 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void)
 				{
 					v[w] = sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw));
 					
-					optimal_v[i] += nworkers_per_ctx[i][w];
+					optimal_v[i] += nworkers_per_ctx[i][w]*v[w];
 				}
 				_set_optimal_v(i, optimal_v[i]);
 			}

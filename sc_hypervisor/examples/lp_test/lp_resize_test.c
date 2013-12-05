@@ -73,7 +73,7 @@ void* submit_tasks_thread(void *arg)
 	}
 
 	starpu_task_wait_for_all();
-	return;
+	return NULL;
 }
 
 int main()

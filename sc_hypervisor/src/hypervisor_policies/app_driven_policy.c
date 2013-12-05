@@ -15,7 +15,7 @@
  */
 #include <sc_hypervisor_policy.h>
 
-static void app_driven_handle_post_exec_hook(unsigned sched_ctx, int task_tag)
+static void app_driven_handle_post_exec_hook(unsigned sched_ctx, __attribute__((unused)) int task_tag)
 {
 	sc_hypervisor_policy_resize_to_unknown_receiver(sched_ctx, 1);
 }
