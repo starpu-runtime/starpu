@@ -131,6 +131,9 @@ void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ct
 /* change dynamically the total number of flops of a context, move the deadline of the finishing time of the context */
 void sc_hypervisor_update_diff_total_flops(unsigned sched_ctx, double diff_total_flops);
 
+/* change dynamically the number of the elapsed flops in a context, modify the past in order to better compute the speed */
+void sc_hypervisor_update_diff_elapsed_flops(unsigned sched_ctx, double diff_task_flops);
+
 #ifdef __cplusplus
 }
 #endif
