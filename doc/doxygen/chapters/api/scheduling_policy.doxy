@@ -73,15 +73,6 @@ condition variable. For instance, in the case of a scheduling strategy
 with a single task queue, the same condition variable would be used to
 block and wake up all workers.
 
-\fn void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data)
-\ingroup API_Scheduling_Policy
-Each scheduling policy uses some specific data (queues, variables,
-additional condition variables). It is memorize through a local
-structure. This function assigns it to a scheduling context.
-
-\fn void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id)
-\ingroup API_Scheduling_Policy
-Returns the policy data previously assigned to a context
 
 \fn int starpu_sched_set_min_priority(int min_prio)
 \ingroup API_Scheduling_Policy
