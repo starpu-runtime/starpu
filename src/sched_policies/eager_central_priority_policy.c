@@ -272,8 +272,21 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	return chosen_task;
 }
 
+static void eager_center_priority_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
+{
+
+        int workerid;
+	unsigned i;
+        for (i = 0; i < nworkers; i++)
+        {
+		workerid = workerids[i];
+                starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
+        }
+}
+
 struct starpu_sched_policy _starpu_sched_prio_policy =
 {
+	.add_workers = eager_center_priority_add_workers,
 	.init_sched = initialize_eager_center_priority_policy,
 	.deinit_sched = deinitialize_eager_center_priority_policy,
 	/* we always use priorities in that policy */
