@@ -102,6 +102,8 @@ the performance counters.
 	The number of flops submitted to this ctx
 \var sc_hypervisor_wrapper::remaining_flops
         The number of flops that still have to be executed by the workers in the context
+\var sc_hypervisor_wrapper::ready_flops
+	The number of flops corresponding to the ready tasks in this context
 \var sc_hypervisor_wrapper::start_time
         The time when he started executed
 \var sc_hypervisor_wrapper::real_start_time
@@ -111,7 +113,12 @@ the performance counters.
 \var sc_hypervisor_wrapper::mutex
 	The mutex needed to synchronize the acknowledgment of the workers into 
 	the receiver context
-	
+\var sc_hypervisor_wrapper::total_flops_available
+	A boolean indicating if the hypervisor can use the flops corresponding to 
+	the entire execution of the context
+\var sc_hypervisor_wrapper::nready_tasks
+	The number of ready tasks in a context
+
 \struct sc_hypervisor_resize_ack
 \ingroup API_Scheduling_Context_Hypervisor
 This structures checks if the workers moved to another context
