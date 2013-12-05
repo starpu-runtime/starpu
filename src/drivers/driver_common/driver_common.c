@@ -28,6 +28,10 @@
 #include <top/starpu_top_core.h>
 #include <core/debug.h>
 
+
+#define BACKOFF_MAX 8192  /* TODO : calibrate MAX & MIN */
+#define BACKOFF_MIN 4
+
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct timespec *codelet_start, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
@@ -150,6 +154,20 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	}
 }
 
+
+static void _starpu_exponential_backoff(struct _starpu_worker *args)
+{
+	int delay = args->spinning_backoff;
+	
+	if (args->spinning_backoff < BACKOFF_MAX)
+		args->spinning_backoff<<=1; 
+	
+	while(delay--)
+		STARPU_UYIELD();
+}
+
+
+
 /* Workers may block when there is no work to do at all. */
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode)
 {
@@ -184,10 +202,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 			STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);			
 			if (_starpu_machine_is_running())
 			{
-				int delay = args->spinning_backoff;
-				args->spinning_backoff<<=1; /* TODO : check if a max is needed */ 
-				while(delay--)
-					STARPU_UYIELD();
+				_starpu_exponential_backoff(args);
 #ifdef STARPU_SIMGRID
 				static int warned;
 				if (!warned)
@@ -228,7 +243,6 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
 
-	args->spinning_backoff = 1;
 	if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_end)
 		perf_counters->notify_idle_end(task->sched_ctx, args->workerid);
 #endif //STARPU_USE_SC_HYPERVISOR
@@ -239,6 +253,8 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		_starpu_worker_stop_sleeping(workerid);
 		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
 	}
+	args->spinning_backoff = BACKOFF_MIN;
+
 
 #ifdef HAVE_AYUDAME_H
 	if (AYU_event)
