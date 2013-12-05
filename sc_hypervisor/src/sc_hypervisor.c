@@ -462,7 +462,6 @@ void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sche
 		
 		sender_sc_w->start_time = start_time;
 		_set_elapsed_flops_per_sched_ctx(sender_sched_ctx, 0.0);
-		_reset_idle_time(sender_sched_ctx);
 	}
 
 	if(receiver_sched_ctx != STARPU_NMAX_SCHED_CTXS)
@@ -472,7 +471,6 @@ void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sche
 		
 		receiver_sc_w->start_time = start_time;
 		_set_elapsed_flops_per_sched_ctx(receiver_sched_ctx, 0.0);
-		_reset_idle_time(receiver_sched_ctx);
 	}
 }
 
