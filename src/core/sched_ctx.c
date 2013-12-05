@@ -163,7 +163,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 			workers->add(workers, worker);
 			workers_to_add[i] = worker;
 		}
-}
+	}
 
 	if(sched_ctx->sched_policy->add_workers)
 	{
@@ -215,7 +215,7 @@ static void _starpu_sched_ctx_free_scheduling_data(struct _starpu_sched_ctx *sch
 
 }
 
-struct _starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int *workerids,
+struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerids,
 				  int nworkers_ctx, unsigned is_initial_sched,
 				  const char *sched_name)
 {
@@ -251,7 +251,7 @@ struct _starpu_sched_ctx*  _starpu_create_sched_ctx(const char *policy_name, int
 	_starpu_barrier_counter_init(&sched_ctx->tasks_barrier, 0);
 
 	/*init the strategy structs and the worker_collection of the ressources of the context */
-	_starpu_init_sched_policy(config, sched_ctx, policy_name);
+	_starpu_init_sched_policy(config, sched_ctx, policy);
 
 	/* construct the collection of workers(list/tree/etc.) */
 	sched_ctx->workers->init(sched_ctx->workers);
@@ -405,6 +405,9 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 						 int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus,
 						 unsigned allow_overlap)
 {
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(config, policy_name);
+
 	struct _starpu_sched_ctx *sched_ctx = NULL;
 	int workers[max_ncpus + max_ngpus];
 	int nw = 0;
@@ -417,7 +420,7 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	for(i = 0; i < nw; i++)
 		printf("%d ", workers[i]);
 	printf("\n");
-	sched_ctx = _starpu_create_sched_ctx(policy_name, workers, nw, 0, sched_name);
+	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_name);
 	sched_ctx->min_ncpus = min_ncpus;
 	sched_ctx->max_ncpus = max_ncpus;
 	sched_ctx->min_ngpus = min_ngpus;
@@ -430,11 +433,27 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	return sched_ctx->id;
 
 }
+
 unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids,
 				 int nworkers, const char *sched_name)
 {
+	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(config, policy_name);
+
 	struct _starpu_sched_ctx *sched_ctx = NULL;
-	sched_ctx = _starpu_create_sched_ctx(policy_name, workerids, nworkers, 0, sched_name);
+	sched_ctx = _starpu_create_sched_ctx(selected_policy, workerids, nworkers, 0, sched_name);
+
+	_starpu_update_workers_with_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id);
+#ifdef STARPU_USE_SC_HYPERVISOR
+	sched_ctx->perf_counters = NULL;
+#endif
+	return sched_ctx->id;
+}
+
+unsigned starpu_sched_ctx_create_with_custom_policy(struct starpu_sched_policy *policy, int *workerids, int nworkers, const char *sched_name)
+{
+	struct _starpu_sched_ctx *sched_ctx = NULL;
+	sched_ctx = _starpu_create_sched_ctx(policy, workerids, nworkers, 0, sched_name);
 
 	_starpu_update_workers_with_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id);
 #ifdef STARPU_USE_SC_HYPERVISOR
