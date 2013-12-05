@@ -225,25 +225,27 @@ static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[n
 }
 
 
-static void _try_resizing(void)
+static void _try_resizing(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
-	int ns = sc_hypervisor_get_nsched_ctxs();
-	int nw = starpu_worker_get_count(); /* Number of different workers */
+	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
+	int nw = workers == NULL ? starpu_worker_get_count() : nworkers; /* Number of different workers */
 	
+	sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
+
 	double w_in_s[ns][nw];
-	unsigned found_sol = _compute_max_speed(ns, nw,  w_in_s, NULL, NULL);
+	unsigned found_sol = _compute_max_speed(ns, nw,  w_in_s, sched_ctxs, workers);
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
 	{
 		int w, s;
-		double nworkers[ns][2];
-		int nworkers_rounded[ns][2];
+		double nworkers_per_ctx[ns][2];
+		int nworkers_per_ctx_rounded[ns][2];
 		for(s = 0; s < ns; s++)
 		{
-			nworkers[s][0] = 0.0;
-			nworkers[s][1] = 0.0;
-			nworkers_rounded[s][0] = 0;
-			nworkers_rounded[s][1] = 0;
+			nworkers_per_ctx[s][0] = 0.0;
+			nworkers_per_ctx[s][1] = 0.0;
+			nworkers_per_ctx_rounded[s][0] = 0;
+			nworkers_per_ctx_rounded[s][1] = 0;
 			
 		}
 		
@@ -255,15 +257,15 @@ static void _try_resizing(void)
 				
 				if(arch == STARPU_CUDA_WORKER)
 				{
-					nworkers[s][0] += w_in_s[s][w];
+					nworkers_per_ctx[s][0] += w_in_s[s][w];
 					if(w_in_s[s][w] >= 0.3)
-						nworkers_rounded[s][0]++;
+						nworkers_per_ctx_rounded[s][0]++;
 				}
 				else
 				{
-					nworkers[s][1] += w_in_s[s][w];
+					nworkers_per_ctx[s][1] += w_in_s[s][w];
 					if(w_in_s[s][w] > 0.5)
-						nworkers_rounded[s][1]++;
+						nworkers_per_ctx_rounded[s][1]++;
 				}
 			}
 		}
@@ -271,7 +273,7 @@ static void _try_resizing(void)
 /* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
 /* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
 		
-		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
+		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_per_ctx_rounded, nworkers_per_ctx, sched_ctxs);
 		
 	}
 }
@@ -286,7 +288,7 @@ static void debit_lp_handle_poped_task(unsigned sched_ctx, int worker, struct st
 		{
 			if(sc_hypervisor_check_speed_gap_btw_ctxs())
 			{
-				_try_resizing();
+				_try_resizing(NULL, -1, NULL, -1);
 			}
 		}
                 starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
@@ -304,13 +306,23 @@ static debit_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 
 			if(sc_hypervisor_check_idle(sched_ctx, worker))
                         {
-                                _try_resizing();
+                                _try_resizing(NULL, -1, NULL, -1);
 //                              sc_hypervisor_move_workers(sched_ctx, 3 - sched_ctx, &worker, 1, 1);                                                                                                               \
                                                                                                                                                                                                                     
                         }
                 }
                 starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
         }
+}
+
+static void debit_lp_resize_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
+{
+	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
+	if(ret != EBUSY)
+	{
+		_try_resizing(sched_ctxs, nsched_ctxs, workers, nworkers);
+		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+	}
 }
 
 static void debit_lp_end_ctx(unsigned sched_ctx)
@@ -325,6 +337,7 @@ static void debit_lp_end_ctx(unsigned sched_ctx)
 
 struct sc_hypervisor_policy debit_lp_policy = {
 	.size_ctxs = NULL,
+	.resize_ctxs = debit_lp_resize_ctxs,
 	.handle_poped_task = debit_lp_handle_poped_task,
 	.handle_pushed_task = NULL,
 	.handle_idle_cycle = debit_lp_handle_idle_cycle,

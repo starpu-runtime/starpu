@@ -32,7 +32,7 @@ pthread_mutex_t mut[2];
  * argument of the codelet (task->cl_arg). Here, "buffers" is unused as there
  * are no data input/output managed by the DSM (cl.nbuffers = 0) */
 
-void cpu_func(void *buffers[], void *cl_arg)
+void cpu_func(__attribute__((unused))void *buffers[], void *cl_arg)
 {
 	unsigned sched_ctx = *((unsigned *) cl_arg);
 
@@ -66,7 +66,9 @@ void* submit_tasks_thread(void *arg)
 		task[i]->cl_arg_size = sizeof(unsigned);
 
 		task[i]->flops = NINCR*1000000000.0;
-		starpu_task_submit(task[i]);
+		int ret = starpu_task_submit(task[i]);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 	}
 
 	starpu_task_wait_for_all();

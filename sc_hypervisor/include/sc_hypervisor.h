@@ -45,9 +45,11 @@ struct sc_hypervisor_policy
 	/* indicate if it is a policiy create by the user or not */
 	unsigned custom;
 
-	/* if knwing the future the hypervisor can find the good 
-	   distribution of workers on contexts even at the begining of the program */
+	/* Distribute workers to contexts even at the begining of the program */
 	void (*size_ctxs)(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
+
+	/* Require explicit resizing */
+	void (*resize_ctxs)(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
 
 	/* the hypervisor takes a decision when the worker was idle for another cyle in this ctx */
 	void (*handle_idle_cycle)(unsigned sched_ctx, int worker);
@@ -84,7 +86,10 @@ void sc_hypervisor_register_ctx(unsigned sched_ctx, double total_flops);
 void sc_hypervisor_unregister_ctx(unsigned sched_ctx);
 
 /* submit a requirement of resizing when a task taged with task_tag is executed */
-void sc_hypervisor_resize(unsigned sched_ctx, int task_tag);
+void sc_hypervisor_post_resize_request(unsigned sched_ctx, int task_tag);
+
+/* reevaluate the distribution of the resources and eventually resize if needed */
+void sc_hypervisor_resize_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nworkers);
 
 /* don't allow the hypervisor to resize a context */
 void sc_hypervisor_stop_resize(unsigned sched_ctx);

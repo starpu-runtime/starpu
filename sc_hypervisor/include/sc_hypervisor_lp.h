@@ -44,7 +44,7 @@ double sc_hypervisor_lp_get_tmax(int nw, int *workers);
 void sc_hypervisor_lp_round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns][nw]);
 
 /* redistribute the ressource in contexts by assigning the first x available ressources to each one */
-void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw]);
+void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *sched_ctxs);
 
 /* make the first distribution of ressource in contexts by assigning the first x available ressources to each one */
 void sc_hypervisor_lp_distribute_resources_in_ctxs(int* sched_ctxs, int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *workers, int nworkers);
