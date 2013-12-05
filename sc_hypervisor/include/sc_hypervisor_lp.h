@@ -64,7 +64,7 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 #ifdef STARPU_HAVE_GLPK_H
 /* linear program that returns 1/tmax, and computes in table res the nr of workers needed by each context st 
    the system ends up in the smallest tmax*/
-double sc_hypervisor_lp_simulate_distrib_flops(int nsched_ctxs, int ntypes_of_workers, double velocity[nsched_ctxs][ntypes_of_workers], 
+double sc_hypervisor_lp_simulate_distrib_flops(int nsched_ctxs, int ntypes_of_workers, double speed[nsched_ctxs][ntypes_of_workers], 
 					       double flops[nsched_ctxs], double res[nsched_ctxs][ntypes_of_workers], int total_nw[ntypes_of_workers]);
 
 /* linear program that simulates a distribution of tasks that minimises the execution time of the tasks in the pool */

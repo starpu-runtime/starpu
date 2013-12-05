@@ -20,12 +20,12 @@
 #include <math.h>
 #include <sys/time.h>
 
-static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double w_in_s[ns][nw], int *workers, unsigned integer);
+static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[ns][nw], int *workers, unsigned integer);
 
 
-static unsigned _compute_max_velocity(int ns, int nw, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers)
+static unsigned _compute_max_speed(int ns, int nw, double w_in_s[ns][nw], int *in_sched_ctxs, int *workers)
 {
-	double velocity[ns][nw];
+	double speed[ns][nw];
 
 	int *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 	
@@ -41,7 +41,7 @@ static unsigned _compute_max_velocity(int ns, int nw, double w_in_s[ns][nw], int
 			int worker = workers == NULL ? w : workers[w];
 
 			enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-			velocity[s][w] = sc_hypervisor_get_velocity(sc_w, arch);
+			speed[s][w] = sc_hypervisor_get_speed(sc_w, arch);
 		}
 	}
 	
@@ -50,7 +50,7 @@ static unsigned _compute_max_velocity(int ns, int nw, double w_in_s[ns][nw], int
 	struct timeval end_time;
 	gettimeofday(&start_time, NULL);
 
-	double res = _glp_resolve(ns, nw, velocity, w_in_s, workers, 1);
+	double res = _glp_resolve(ns, nw, speed, w_in_s, workers, 1);
 	gettimeofday(&end_time, NULL);
 
 	long diff_s = end_time.tv_sec  - start_time.tv_sec;
@@ -68,7 +68,7 @@ static unsigned _compute_max_velocity(int ns, int nw, double w_in_s[ns][nw], int
  */
 #ifdef STARPU_HAVE_GLPK_H
 #include <glpk.h>
-static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double w_in_s[ns][nw], int *workers, unsigned integer)
+static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[ns][nw], int *workers, unsigned integer)
 {
 	int w, s;
 	glp_prob *lp;
@@ -76,7 +76,7 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double w_in_
 	lp = glp_create_prob();
 	glp_set_prob_name(lp, "StarPU theoretical bound");
 	glp_set_obj_dir(lp, GLP_MAX);
-	glp_set_obj_name(lp, "total velocity");
+	glp_set_obj_name(lp, "total speed");
 
 	{
 		int ne = 2 * ns * nw /* worker execution time */
@@ -115,10 +115,10 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double w_in_
 
 
 		int curr_row_idx = 0;
-		/* Total worker velocity */
+		/* Total worker speed */
 		glp_add_rows(lp, 1);
 
-		/*sum(x[s][w]*velocity[s][w]) >= vmax */
+		/*sum(x[s][w]*speed[s][w]) >= vmax */
 		char name[32], title[64];
 		starpu_worker_get_name(w, name, sizeof(name));
 		snprintf(title, sizeof(title), "worker %s", name);
@@ -131,7 +131,7 @@ static double _glp_resolve(int ns, int nw, double velocity[ns][nw], double w_in_
 				/* x[s][w] */
 				ia[n] = curr_row_idx + 1;
 				ja[n] = s*nw+w+1;
-				ar[n] = velocity[s][w];
+				ar[n] = speed[s][w];
 				n++;
 			}
 		}
@@ -231,7 +231,7 @@ static void _try_resizing(void)
 	int nw = starpu_worker_get_count(); /* Number of different workers */
 	
 	double w_in_s[ns][nw];
-	unsigned found_sol = _compute_max_velocity(ns, nw,  w_in_s, NULL, NULL);
+	unsigned found_sol = _compute_max_speed(ns, nw,  w_in_s, NULL, NULL);
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
 	{
@@ -282,9 +282,9 @@ static void debit_lp_handle_poped_task(unsigned sched_ctx, int worker, struct st
         if(ret != EBUSY)
 	{
 		unsigned criteria = sc_hypervisor_get_resize_criteria();
-		if(criteria != SC_NOTHING && criteria == SC_VELOCITY)
+		if(criteria != SC_NOTHING && criteria == SC_SPEED)
 		{
-			if(sc_hypervisor_check_velocity_gap_btw_ctxs())
+			if(sc_hypervisor_check_speed_gap_btw_ctxs())
 			{
 				_try_resizing();
 			}
@@ -318,7 +318,7 @@ static void debit_lp_end_ctx(unsigned sched_ctx)
 	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
 	int worker;
 /* 	for(worker = 0; worker < 12; worker++) */
-/* 		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_velocity[worker]); */
+/* 		printf("%d/%d: speed %lf\n", worker, sched_ctx, sc_w->ref_speed[worker]); */
 
 	return;
 }
