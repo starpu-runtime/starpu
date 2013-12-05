@@ -351,76 +351,6 @@ void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }
 
-static double _get_best_total_elapsed_flops(struct sc_hypervisor_wrapper* sc_w, int *npus, enum starpu_worker_archtype req_arch)
-{
-	double ret_val = 0.0;
-	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
-        int worker;
-
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
-
-        while(workers->has_next(workers, &it))
-	{
-                worker = workers->get_next(workers, &it);
-                enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-                if(arch == req_arch)
-                {
-			if(sc_w->total_elapsed_flops[worker] > ret_val)
-				ret_val = sc_w->total_elapsed_flops[worker];
-			(*npus)++;
-                }
-        }
-
-	return ret_val;
-}
-static double _get_total_idle_time_per_worker_type(struct sc_hypervisor_wrapper *sc_w, int *npus, enum starpu_worker_archtype req_arch)
-{
-	double ret_val = 0.0;
-	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
-        int worker;
-
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
-
-        while(workers->has_next(workers, &it))
-	{
-                worker = workers->get_next(workers, &it);
-                enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-                if(arch == req_arch)
-                {
-			ret_val += sc_w->idle_start_time[worker];
-			(*npus)++;
-                }
-        }
-
-	return ret_val;
-}
-
-static void _reset_idle_time_per_worker_type(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype req_arch)
-{
-	double ret_val = 0.0;
-	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
-        int worker;
-
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
-
-        while(workers->has_next(workers, &it))
-	{
-                worker = workers->get_next(workers, &it);
-                enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
-                if(arch == req_arch)
-                {
-			sc_w->idle_start_time[worker] = 0.0;
-                }
-        }
-
-	return;
-}
 
 double _get_max_velocity_gap()
 {
@@ -430,57 +360,6 @@ double _get_max_velocity_gap()
 unsigned sc_hypervisor_get_resize_criteria()
 {
 	return hypervisor.resize_criteria;
-}
-
-/* compute an average value of the cpu/cuda velocity */
-double sc_hypervisorsc_hypervisor_get_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
-{
-        int npus = 0;
-        double elapsed_flops = _get_best_total_elapsed_flops(sc_w, &npus, arch) / 1000000000.0 ; /* in gflops */
-	double total_idle_time = _get_total_idle_time_per_worker_type(sc_w, &npus, arch);
-	if(npus == 0)
-		return -1.0; 
-
-        if( elapsed_flops != 0.0)
-        {
-                double curr_time = starpu_timing_now();
-                double elapsed_time = (curr_time - sc_w->real_start_time) / 1000000.0; /* in seconds */
-		elapsed_time -= total_idle_time;
-		double velocity = (elapsed_flops/elapsed_time); /* in Gflops/s */
-		_reset_idle_time_per_worker_type(sc_w, arch);
-
-                return velocity;
-        }
-
-        return -1.0;
-}
-
-/* compute an average value of the cpu/cuda old velocity */
-double sc_hypervisor_get_ref_velocity_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch)
-{
-	double ref_velocity = 0.0;
-	unsigned nw = 0;
-
-	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
-	int worker;
-
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-
-	while(workers->has_next(workers, &it))
-	{
-		worker = workers->get_next(workers, &it);
-		if(sc_w->ref_velocity[worker] > 1.0)
-		{
-			ref_velocity += sc_w->ref_velocity[worker];
-			nw++;
-		}
-	}
-	
-	if(nw > 0)
-		return ref_velocity / nw;
-	return -1.0;
 }
 
 static int get_ntasks( int *tasks)
@@ -1057,18 +936,6 @@ void sc_hypervisor_free_size_req(void)
 		free(hypervisor.sr);
 		hypervisor.sr = NULL;
 	}
-}
-
-double sc_hypervisor_get_velocity(struct sc_hypervisor_wrapper *sc_w, enum starpu_worker_archtype arch)
-{
-
-	double velocity = sc_hypervisorsc_hypervisor_get_velocity_per_worker_type(sc_w, arch);
-	if(velocity == -1.0)
-		velocity = sc_hypervisor_get_ref_velocity_per_worker_type(sc_w, arch);
-	if(velocity == -1.0)
-		velocity = arch == STARPU_CPU_WORKER ? 5.0 : 100.0;
-       
-	return velocity;
 }
 
 double _get_optimal_v(unsigned sched_ctx)
