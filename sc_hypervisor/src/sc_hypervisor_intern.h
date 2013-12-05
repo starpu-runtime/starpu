@@ -45,6 +45,20 @@ struct resize_request_entry
 	UT_hash_handle hh;
 };
 
+/* structure to indicate when the moving of workers was actually done 
+   (moved workers can be seen in the new ctx ) */
+struct resize_ack
+{
+	/* receiver context */
+	int receiver_sched_ctx;
+	/* list of workers required to be moved */
+	int *moved_workers;
+	/* number of workers required to be moved */
+	int nmoved_workers;
+	/* list of workers that actually got in the receiver ctx */
+	int *acked_workers;
+};
+
 struct configuration_entry
 {
 	/* Key: the tag of tasks concerned by this configuration.  */

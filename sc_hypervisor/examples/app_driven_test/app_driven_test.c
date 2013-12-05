@@ -138,8 +138,8 @@ int main()
 
 	/* let starpu know which performance counters should use 
 	   to inform the hypervisor how the application and the resources are executing */
-	starpu_sched_ctx_set_perf_counters(sched_ctx1, (struct starpu_sched_ctx_performance_counters*)perf_counters);
-	starpu_sched_ctx_set_perf_counters(sched_ctx2, (struct starpu_sched_ctx_performance_counters*)perf_counters);
+	starpu_sched_ctx_set_perf_counters(sched_ctx1, perf_counters);
+	starpu_sched_ctx_set_perf_counters(sched_ctx2, perf_counters);
 
 	/* register the contexts that should be managed by the hypervisor
 	   and indicate an approximate amount of workload if known;

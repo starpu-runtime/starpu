@@ -203,7 +203,7 @@ Return the worker collection managed by the indicated context
 @name Scheduling Context Link with Hypervisor
 \ingroup API_Scheduling_Contexts
 
-\fn void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, struct starpu_sched_ctx_performance_counters *perf_counters)
+\fn void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, void *perf_counters)
 \ingroup API_Scheduling_Contexts
 Indicates to starpu the pointer to the performance counter
 

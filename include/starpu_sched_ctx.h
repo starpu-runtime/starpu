@@ -91,31 +91,15 @@ void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id);
 
 struct starpu_worker_collection *starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id);
 
-struct starpu_sched_ctx_performance_counters
-{
-	void (*notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time);
-	void (*notify_idle_end)(unsigned sched_ctx_id, int worker);
-	void (*notify_pushed_task)(unsigned sched_ctx_id, int worker);
-	void (*notify_poped_task)(unsigned sched_ctx_id, int worker, struct starpu_task *task, size_t data_size, uint32_t footprint);
-	void (*notify_post_exec_hook)(unsigned sched_ctx_id, int taskid);
-	void (*notify_submitted_job)(struct starpu_task *task, uint32_t footprint, size_t data_size);
-	void (*notify_delete_context)(unsigned sched_ctx);
-};
-
-#ifdef STARPU_USE_SC_HYPERVISOR
-void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, struct starpu_sched_ctx_performance_counters *perf_counters);
-void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
-#endif //STARPU_USE_SC_HYPERVISOR
-
-void starpu_sched_ctx_notify_hypervisor_exists(void);
-
-unsigned starpu_sched_ctx_check_if_hypervisor_exists(void);
-
 void starpu_sched_ctx_set_policy_data(unsigned sched_ctx_id, void *policy_data);
 
 void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
 
 void *starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void *param, unsigned sched_ctx_id);
+
+#ifdef STARPU_USE_SC_HYPERVISOR
+void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
+#endif //STARPU_USE_SC_HYPERVISOR
 
 #ifdef __cplusplus
 }

@@ -35,10 +35,9 @@ extern "C"
 #define SC_HYPERVISOR_MIN_TASKS -8
 #define SC_HYPERVISOR_NEW_WORKERS_MAX_IDLE -9
 #define SC_HYPERVISOR_TIME_TO_APPLY -10
-#define SC_HYPERVISOR_EMPTY_CTX_MAX_IDLE -11
-#define SC_HYPERVISOR_NULL -12
-#define	SC_HYPERVISOR_ISPEED_W_SAMPLE -13
-#define SC_HYPERVISOR_ISPEED_CTX_SAMPLE -14
+#define SC_HYPERVISOR_NULL -11
+#define	SC_HYPERVISOR_ISPEED_W_SAMPLE -12
+#define SC_HYPERVISOR_ISPEED_CTX_SAMPLE -13
 
 
 #define MAX_IDLE_TIME 5000000000
@@ -71,9 +70,6 @@ struct sc_hypervisor_policy_config
 
 	/* max idle for the workers that will be added during the resizing process*/
 	double new_workers_max_idle;
-
-	/* above this context we allow removing all workers */
-	double empty_ctx_max_idle[STARPU_NMAXWORKERS];
 
 	/* sample used to compute the instant speed per worker*/
 	double ispeed_w_sample[STARPU_NMAXWORKERS];

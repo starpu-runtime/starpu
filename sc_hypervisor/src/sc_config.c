@@ -31,7 +31,6 @@ static struct sc_hypervisor_policy_config* _create_config(void)
 		config->priority[i] = -1;
 		config->fixed_workers[i] = -1;
 		config->max_idle[i] = -1.0;
-		config->empty_ctx_max_idle[i] = -1.0;
 		config->min_working[i] = -1.0;
 		config->ispeed_w_sample[i] = 0.0;
 	}
@@ -52,7 +51,6 @@ static void _update_config(struct sc_hypervisor_policy_config *old, struct sc_hy
 		old->priority[i] = new->priority[i] != -1 ? new->priority[i] : old->priority[i];
 		old->fixed_workers[i] = new->fixed_workers[i] != -1 ? new->fixed_workers[i] : old->fixed_workers[i];
 		old->max_idle[i] = new->max_idle[i] != -1.0 ? new->max_idle[i] : old->max_idle[i];
-		old->empty_ctx_max_idle[i] = new->empty_ctx_max_idle[i] != -1.0 ? new->empty_ctx_max_idle[i] : old->empty_ctx_max_idle[i];
 		old->min_working[i] = new->min_working[i] != -1.0 ? new->min_working[i] : old->min_working[i];
 	}
 }
@@ -85,7 +83,6 @@ void _add_config(unsigned sched_ctx)
 		config->priority[i] = 0;
 		config->fixed_workers[i] = 0;
 		config->max_idle[i] = MAX_IDLE_TIME;
-		config->empty_ctx_max_idle[i] = MAX_IDLE_TIME;
 		config->min_working[i] = MIN_WORKING_TIME;
 	}
 
@@ -128,16 +125,6 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 			double max_idle = va_arg(varg_list, double);
 			for(i = 0; i < nworkers; i++)
 				config->max_idle[workerids[i]] = max_idle;
-
-			break;
-
-		case SC_HYPERVISOR_EMPTY_CTX_MAX_IDLE:
-			workerids = va_arg(varg_list, int*);
-			nworkers = va_arg(varg_list, int);
-			double empty_ctx_max_idle = va_arg(varg_list, double);
-
-			for(i = 0; i < nworkers; i++)
-				config->empty_ctx_max_idle[workerids[i]] = empty_ctx_max_idle;
 
 			break;
 
