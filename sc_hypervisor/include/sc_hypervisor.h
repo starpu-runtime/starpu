@@ -65,7 +65,7 @@ struct sc_hypervisor_policy
 	void (*handle_post_exec_hook)(unsigned sched_ctx, int task_tag);
 
 	/* the hypervisor takes a decision when a job was submitted in this ctx */
-	void (*handle_submitted_job)(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint);
+	void (*handle_submitted_job)(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, size_t data_size);
 	
 	/* the hypervisor takes a decision when a certain ctx was deleted */
 	void (*end_ctx)(unsigned sched_ctx);
@@ -120,7 +120,7 @@ void sc_hypervisor_free_size_req(void);
 unsigned sc_hypervisor_can_resize(unsigned sched_ctx);
 
 /* indicate the types of tasks a context will execute in order to better decide the sizing of ctxs */
-void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint);
+	void sc_hypervisor_set_type_of_task(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, size_t data_size);
 
 #ifdef __cplusplus
 }

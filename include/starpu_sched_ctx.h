@@ -52,7 +52,7 @@ struct starpu_sched_ctx_performance_counters
 	void (*notify_pushed_task)(unsigned sched_ctx_id, int worker);
 	void (*notify_poped_task)(unsigned sched_ctx_id, int worker, struct starpu_task *task, size_t data_size, uint32_t footprint);
 	void (*notify_post_exec_hook)(unsigned sched_ctx_id, int taskid);
-	void (*notify_submitted_job)(struct starpu_task *task, uint32_t footprint);
+	void (*notify_submitted_job)(struct starpu_task *task, uint32_t footprint, size_t data_size);
 	void (*notify_delete_context)(unsigned sched_ctx);
 };
 

@@ -53,6 +53,7 @@ static double _compute_workers_distrib(int ns, int nw, double final_w_in_s[ns][n
 	double tasks[nw][nt];
 	double times[nw][nt];
 	
+	/* times in ms */
 	sc_hypervisor_get_tasks_times(nw, nt, times, workers, size_ctxs, task_pools);
 
 	double res = 0.0;
@@ -101,7 +102,8 @@ static void _size_ctxs(int *sched_ctxs, int nsched_ctxs , int *workers, int nwor
 
 	/* smallest possible tmax, difficult to obtain as we
 	   compute the nr of flops and not the tasks */
-	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, workers);
+        /*lp computes it in s but it's converted to ms just before return */
+	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, workers); 
 	double smallest_tmax = possible_tmax / 3;
 	double tmax = possible_tmax * ns;
 	double tmin = smallest_tmax;
@@ -149,11 +151,11 @@ static void size_if_required()
 	}
 }
 
-static void teft_lp_handle_submitted_job(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint)
+static void teft_lp_handle_submitted_job(struct starpu_codelet *cl, unsigned sched_ctx, uint32_t footprint, size_t data_size)
 {
 	/* count the tasks of the same type */
 	starpu_pthread_mutex_lock(&mutex);
-	sc_hypervisor_policy_add_task_to_pool(cl, sched_ctx, footprint, &task_pools);
+	sc_hypervisor_policy_add_task_to_pool(cl, sched_ctx, footprint, &task_pools, data_size);
 	starpu_pthread_mutex_unlock(&mutex);
 
 	size_if_required();
@@ -195,12 +197,14 @@ static void _try_resizing(void)
 	specific_data.tmp_task_pools = tmp_task_pools;
 	specific_data.size_ctxs = 0;
 
-			/* smallest possible tmax, difficult to obtain as we
-			   compute the nr of flops and not the tasks */
+	/* smallest possible tmax, difficult to obtain as we
+	   compute the nr of flops and not the tasks */
+        /*lp computes it in s but it's converted to ms just before return */
 	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, NULL);
-	double smallest_tmax = possible_tmax / 3;
+	double smallest_tmax = 0.0;//possible_tmax / 3;
 	double tmax = possible_tmax * ns;
 	double tmin = smallest_tmax;
+
 	unsigned found_sol = sc_hypervisor_lp_execute_dichotomy(ns, nw, w_in_s, 1, (void*)&specific_data, 
 								tmin, tmax, smallest_tmax, _compute_workers_distrib);
 //			starpu_pthread_mutex_unlock(&mutex);

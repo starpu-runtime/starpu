@@ -83,7 +83,7 @@ double sc_hypervisor_lp_get_tmax(int nw, int *workers)
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	double res[nsched_ctxs][ntypes_of_workers];
-	return sc_hypervisor_lp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, res, total_nw) * 1000;
+	return sc_hypervisor_lp_get_nworkers_per_ctx(nsched_ctxs, ntypes_of_workers, res, total_nw) * 1000.0;
 }
 
 void sc_hypervisor_lp_round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns][nw])

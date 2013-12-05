@@ -241,7 +241,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 				w_in_s[s][w] = (double)glp_mip_col_val(lp, nw*nt+s*nw+w+1);
                         else
 				w_in_s[s][w] = glp_get_col_prim(lp, nw*nt+s*nw+w+1);
-//			printf("w_in_s[%d][%d]=%lf\n", s, w, w_in_s[s][w]);
+//			printf("w %d in ctx %d = %lf\n", w, s, w_in_s[s][w]);
 		}
 //	printf("\n");
 

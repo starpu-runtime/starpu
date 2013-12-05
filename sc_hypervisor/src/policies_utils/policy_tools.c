@@ -437,7 +437,7 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
                                 times[w][t] = NAN;
 			else
 			{
-                                times[w][t] = length / 1000.;
+                                times[w][t] = (length / 1000.);
 
 				double transfer_time = 0.0;
 				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
@@ -447,7 +447,7 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 					if(!worker_in_ctx && !size_ctxs)
 					{
 						double transfer_velocity = starpu_get_bandwidth_RAM_CUDA(worker);
-						transfer_time +=  (tp->footprint / transfer_velocity) / 1000. ;
+						transfer_time +=  (tp->data_size / transfer_velocity) / 1000. ;
 					}
 					double latency = starpu_get_latency_RAM_CUDA(worker);
 					transfer_time += latency/1000.;
@@ -456,6 +456,7 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 //				printf("%d/%d %s x %d time = %lf transfer_time = %lf\n", w, tp->sched_ctx_id, tp->cl->model->symbol, tp->n, times[w][t], transfer_time);
 				times[w][t] += transfer_time;
 			}
+//			printf("sc%d w%d task %s nt %d times %lf s\n", tp->sched_ctx_id, w, tp->cl->model->symbol, tp->n, times[w][t]);
                 }
         }
 }

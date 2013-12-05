@@ -77,8 +77,9 @@ struct sc_hypervisor_wrapper
 	/* nr of tasks executed on each worker in this ctx */
 	int elapsed_tasks[STARPU_NMAXWORKERS];
 
-	/* the average speed of workers when they belonged to this context */
-	double ref_velocity[STARPU_NMAXWORKERS];
+	/* the average speed of the type of workers when they belonged to this context */
+	/* 0 - cuda 1 - cpu */
+	double ref_velocity[2];
 
 	/* number of flops submitted to this ctx */
 	double submitted_flops;
