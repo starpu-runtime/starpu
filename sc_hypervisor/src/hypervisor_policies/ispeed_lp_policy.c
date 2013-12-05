@@ -325,76 +325,101 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 	return found_sol;
 }
 
-
-
-static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
+static void _try_resizing(void)
 {
-	struct sc_hypervisor_wrapper* sc_w = sc_hypervisor_get_wrapper(sched_ctx);
-	sc_hypervisor_get_velocity_per_worker(sc_w, worker);
-	int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
-	if(ret != EBUSY)
-	{
-		if(sc_hypervisor_criteria_fulfilled(sched_ctx, worker))
-		{
-			int ns = sc_hypervisor_get_nsched_ctxs();
-			int nw = starpu_worker_get_count(); /* Number of different workers */
-
-			double w_in_s[ns][nw];
+	int ns = sc_hypervisor_get_nsched_ctxs();
+	int nw = starpu_worker_get_count(); /* Number of different workers */
+	
+	double w_in_s[ns][nw];
 //			double flops_on_w[ns][nw];
-			double **flops_on_w = (double**)malloc(ns*sizeof(double*));
-			int i;
-			for(i = 0; i < ns; i++)
-				flops_on_w[i] = (double*)malloc(nw*sizeof(double));
-
-			unsigned found_sol = _compute_flops_distribution_over_ctxs(ns, nw,  w_in_s, flops_on_w, NULL, NULL);
-			/* if we did find at least one solution redistribute the resources */
-			if(found_sol)
+	double **flops_on_w = (double**)malloc(ns*sizeof(double*));
+	int i;
+	for(i = 0; i < ns; i++)
+		flops_on_w[i] = (double*)malloc(nw*sizeof(double));
+	
+	unsigned found_sol = _compute_flops_distribution_over_ctxs(ns, nw,  w_in_s, flops_on_w, NULL, NULL);
+	/* if we did find at least one solution redistribute the resources */
+	if(found_sol)
+	{
+		int w, s;
+		double nworkers[ns][2];
+		int nworkers_rounded[ns][2];
+		for(s = 0; s < ns; s++)
+		{
+			nworkers[s][0] = 0.0;
+			nworkers[s][1] = 0.0;
+			nworkers_rounded[s][0] = 0;
+			nworkers_rounded[s][1] = 0;
+			
+		}
+		
+		for(s = 0; s < ns; s++)
+		{
+			for(w = 0; w < nw; w++)
 			{
-				int w, s;
-				double nworkers[ns][2];
-				int nworkers_rounded[ns][2];
-				for(s = 0; s < ns; s++)
+				enum starpu_worker_archtype arch = starpu_worker_get_type(w);
+				
+				if(arch == STARPU_CUDA_WORKER)
 				{
-					nworkers[s][0] = 0.0;
-					nworkers[s][1] = 0.0;
-					nworkers_rounded[s][0] = 0;
-					nworkers_rounded[s][1] = 0;
-
+					nworkers[s][0] += w_in_s[s][w];
+					if(w_in_s[s][w] >= 0.3)
+						nworkers_rounded[s][0]++;
 				}
-
-				for(s = 0; s < ns; s++)
+				else
 				{
-					for(w = 0; w < nw; w++)
-					{
-						enum starpu_worker_archtype arch = starpu_worker_get_type(w);
-
-						if(arch == STARPU_CUDA_WORKER)
-						{
-							nworkers[s][0] += w_in_s[s][w];
-							if(w_in_s[s][w] >= 0.3)
-								nworkers_rounded[s][0]++;
-						}
-						else
-						{
-							nworkers[s][1] += w_in_s[s][w];
-							if(w_in_s[s][w] > 0.5)
-								nworkers_rounded[s][1]++;
-						}
-					}
+					nworkers[s][1] += w_in_s[s][w];
+					if(w_in_s[s][w] > 0.5)
+						nworkers_rounded[s][1]++;
 				}
+			}
+		}
 /* 				for(s = 0; s < ns; s++) */
 /* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
 /* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
-
-				sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
-			}
-			for(i = 0; i < ns; i++)
-				free(flops_on_w[i]);
-			free(flops_on_w);
-		}
-		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+		
+		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, 2, nworkers_rounded, nworkers);
 	}
+	for(i = 0; i < ns; i++)
+		free(flops_on_w[i]);
+	free(flops_on_w);
 }
+
+static void ispeed_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
+{
+        int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
+        if(ret != EBUSY)
+        {
+                unsigned criteria = sc_hypervisor_get_resize_criteria();
+                if(criteria != SC_NOTHING && criteria == SC_VELOCITY)
+                {
+                        if(sc_hypervisor_check_velocity_gap_btw_ctxs())
+                        {
+                                _try_resizing();
+                        }
+                }
+                starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+        }
+}
+
+static ispeed_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
+{
+        int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
+        if(ret != EBUSY)
+        {
+                unsigned criteria = sc_hypervisor_get_resize_criteria();
+                if(criteria != SC_NOTHING && criteria == SC_IDLE)
+                {
+
+			if(sc_hypervisor_check_idle(sched_ctx, worker))
+                        {
+                                _try_resizing();
+//                              sc_hypervisor_move_workers(sched_ctx, 3 - sched_ctx, &worker, 1, 1);                                                                                                                
+                        }
+                }
+                starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+        }
+}
+
 
 static void ispeed_lp_end_ctx(unsigned sched_ctx)
 {
@@ -410,7 +435,7 @@ struct sc_hypervisor_policy ispeed_lp_policy = {
 	.size_ctxs = NULL,
 	.handle_poped_task = ispeed_lp_handle_poped_task,
 	.handle_pushed_task = NULL,
-	.handle_idle_cycle = NULL,
+	.handle_idle_cycle = ispeed_lp_handle_idle_cycle,
 	.handle_idle_end = NULL,
 	.handle_post_exec_hook = NULL,
 	.handle_submitted_job = NULL,
