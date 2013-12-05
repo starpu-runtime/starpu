@@ -490,7 +490,7 @@ void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sch
 				}
 
 				hypervisor.resize[sender_sched_ctx] = 0;
-
+				if(imposed_resize)  imposed_resize = 0;
 				starpu_pthread_mutex_unlock(&hypervisor.sched_ctx_w[sender_sched_ctx].mutex);
 			}
 		}
@@ -577,6 +577,7 @@ void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigne
 				}
 
 				hypervisor.resize[sched_ctx] = 0;
+				if(imposed_resize)  imposed_resize = 0;
 				starpu_pthread_mutex_unlock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
 			}
 		}
