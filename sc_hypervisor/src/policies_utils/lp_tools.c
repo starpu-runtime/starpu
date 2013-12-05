@@ -153,13 +153,12 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 	for(w = 0; w < nw; w++)
 	{
 		enum starpu_worker_archtype arch = STARPU_ANY_WORKER;
-		if(w == 0) arch = STARPU_CUDA_WORKER;
-		if(w == 1) arch = STARPU_CPU_WORKER;
 		
-		
-		if(w == 1)
+		if(w == 1 || nw == 1) 
 		{
+			arch = STARPU_CPU_WORKER;
 			int nworkers_ctx = sc_hypervisor_get_nworkers_ctx(sched_ctx, arch);
+			printf("%d: cpus in ctx %d\n", sched_ctx, nworkers_ctx);
 			if(nworkers_ctx > res_rounded[sched_ctx_idx][w])
 			{
 				int nworkers_to_move = nworkers_ctx - res_rounded[sched_ctx_idx][w];
@@ -172,6 +171,7 @@ void _lp_find_workers_to_give_away(int nw, int ns, unsigned sched_ctx, int sched
 		}
 		else
 		{
+			arch = STARPU_CUDA_WORKER;
 			double nworkers_ctx = sc_hypervisor_get_nworkers_ctx(sched_ctx, arch) * 1.0;
 			if(nworkers_ctx > res[sched_ctx_idx][w])
 			{
@@ -227,9 +227,14 @@ void _lp_find_workers_to_accept(int nw, int ns, unsigned sched_ctx, int sched_ct
 	for(w = 0; w < nw; w++)
 	{
 		enum starpu_worker_archtype arch = STARPU_ANY_WORKER;
-		if(w == 0) arch = STARPU_CUDA_WORKER;
-		if(w == 1) arch = STARPU_CPU_WORKER;
-		
+		if(nw == 1)
+			arch = STARPU_CPU_WORKER;
+		else
+		{
+			if(w == 0) arch = STARPU_CUDA_WORKER;
+			if(w == 1) arch = STARPU_CPU_WORKER;
+		}
+
 		int nw_ctx2 = sc_hypervisor_get_nworkers_ctx(sched_ctx, arch);
 		int nw_needed = res_rounded[sched_ctx_idx][w] - nw_ctx2;
 		
