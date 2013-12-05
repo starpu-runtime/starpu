@@ -68,6 +68,7 @@ struct _starpu_dmda_data
 static double alpha = _STARPU_SCHED_ALPHA_DEFAULT;
 static double beta = _STARPU_SCHED_BETA_DEFAULT;
 static double _gamma = _STARPU_SCHED_GAMMA_DEFAULT;
+static double idle_power = 0.0;
 static const float alpha_minimum=0;
 static const float alpha_maximum=10.0;
 static const float beta_minimum=0;

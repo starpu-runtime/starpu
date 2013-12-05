@@ -109,8 +109,6 @@ struct _starpu_machine_config;
 /* init sched_ctx_id of all contextes*/
 void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config);
 
-void _starpu_init_sched_ctx_for_worker(unsigned workerid);
-
 /* allocate all structures belonging to a context */
 struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerid, int nworkerids, unsigned is_init_sched, const char *sched_name);
 

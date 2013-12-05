@@ -349,7 +349,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	/* short_name initialized by driver */
 	workerarg->run_by_starpu = 1;
 
-	_starpu_init_sched_ctx_for_worker(workerarg->workerid); /* sched_ctx */
+	workerarg->sched_ctx_list = NULL;
 	workerarg->nsched_ctxs = 0;
 	_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
 
