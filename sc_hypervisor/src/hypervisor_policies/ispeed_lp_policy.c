@@ -253,7 +253,7 @@ static double _glp_resolve (int ns, int nw, double final_w_in_s[ns][nw],
 	return res;
 }
 
-static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_in_s[ns][nw], double **flops_on_w, unsigned *in_sched_ctxs, int *workers)
+static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_in_s[ns][nw], double **flops_on_w, unsigned *sched_ctxs, int *workers)
 {
 //	double flops[ns];
 //	double speed[ns][nw];
@@ -262,8 +262,6 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 	int i;
 	for(i = 0; i < ns; i++)
 		speed[i] = (double*)malloc(nw*sizeof(double));
-
-	unsigned *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 	
 	int w,s;
 
@@ -327,11 +325,11 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 {
 	starpu_trace_user_event(2);
         int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
+	int nw = nworkers == -1 ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
         unsigned *curr_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
-        unsigned curr_nworkers = nworkers == -1 ? starpu_worker_get_count() : (unsigned)nworkers;
 
-        struct types_of_workers *tw = sc_hypervisor_get_types_of_workers(workers, curr_nworkers);
-        int nw = tw->nw;
+        struct types_of_workers *tw = sc_hypervisor_get_types_of_workers(workers, nw);
+        int ntypes_of_workers = tw->nw;
 
 
 	double w_in_s[ns][nw];
@@ -346,11 +344,11 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 	if(found_sol)
 	{
 		int w, s;
-		double nworkers_per_ctx[ns][nw];
-		int nworkers_per_ctx_rounded[ns][nw];
+		double nworkers_per_ctx[ns][ntypes_of_workers];
+		int nworkers_per_ctx_rounded[ns][ntypes_of_workers];
 		for(s = 0; s < ns; s++)
 		{
-			for(w = 0; w < nw; w++)
+			for(w = 0; w < ntypes_of_workers; w++)
 			{
 				nworkers_per_ctx[s][w] = 0.0;
 				nworkers_per_ctx_rounded[s][w] = 0;
@@ -368,12 +366,12 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 				if(arch == STARPU_CUDA_WORKER)
 				{
 					if(w_in_s[s][w] >= 0.3)
-						nworkers_per_ctx_rounded[s][0]++;
+						nworkers_per_ctx_rounded[s][idx]++;
 				}
 				else
 				{
 					if(w_in_s[s][w] > 0.5)
-						nworkers_per_ctx_rounded[s][1]++;
+						nworkers_per_ctx_rounded[s][idx]++;
 				}
 			}
 		}
@@ -381,7 +379,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 /* 					printf("%d: cpus = %lf gpus = %lf cpus_round = %d gpus_round = %d\n", s, nworkers[s][1], nworkers[s][0], */
 /* 					       nworkers_rounded[s][1], nworkers_rounded[s][0]); */
 		
-		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, nw, nworkers_per_ctx_rounded, nworkers_per_ctx, curr_sched_ctxs, tw);
+		sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, ntypes_of_workers, nworkers_per_ctx_rounded, nworkers_per_ctx, curr_sched_ctxs, tw);
 	}
 	for(i = 0; i < ns; i++)
 		free(flops_on_w[i]);
