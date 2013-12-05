@@ -19,6 +19,8 @@
 #include <math.h>
 #include <sys/time.h>
 
+/* executes the function lp_estimated_distrib_func over the interval [tmin, tmax] until it finds the lowest value that
+   still has solutions */
 unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw], unsigned solve_lp_integer, void *specific_data,
 					    double tmin, double tmax, double smallest_tmax,
 					    double (*lp_estimated_distrib_func)(int ns, int nw, double draft_w_in_s[ns][nw], 
@@ -82,7 +84,6 @@ unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw
 
 	float timing = (float)(diff_s*1000000 + diff_us)/1000;
 
-//        fprintf(stdout, "nd = %d total time: %f ms \n", nd, timing);
 	return found_sol;
 }
 

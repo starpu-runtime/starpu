@@ -85,7 +85,6 @@ static void _size_ctxs(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int
 		nt++;
 
 	double w_in_s[ns][nw];
-//	double tasks[nw][nt];
 	double **tasks=(double**)malloc(nw*sizeof(double*));
 	int i;
 	for(i = 0; i < nw; i++)
@@ -175,7 +174,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 
 	int nt = 0; /* Number of different kinds of tasks */
 	
-//			starpu_pthread_mutex_lock(&mutex);
+//	starpu_pthread_mutex_lock(&mutex);
 	
 	/* we don't take the mutex bc a correct value of the number of tasks is
 	   not required but we do a copy in order to be sure
@@ -190,7 +189,6 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 	
 	
 	double w_in_s[ns][nw];
-//			double tasks_per_worker[nw][nt];
 	double **tasks_per_worker=(double**)malloc(nw*sizeof(double*));
 	int i;
 	for(i = 0; i < nw; i++)
@@ -208,13 +206,13 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 	   compute the nr of flops and not the tasks */
         /*lp computes it in s but it's converted to ms just before return */
 	double possible_tmax = sc_hypervisor_lp_get_tmax(nw, NULL);
-	double smallest_tmax = 0.0;//possible_tmax / 3;
+	double smallest_tmax = 0.0;
 	double tmax = possible_tmax * ns;
 	double tmin = smallest_tmax;
 
 	unsigned found_sol = sc_hypervisor_lp_execute_dichotomy(ns, nw, w_in_s, 1, (void*)&specific_data, 
 								tmin, tmax, smallest_tmax, _compute_workers_distrib);
-//			starpu_pthread_mutex_unlock(&mutex);
+//	starpu_pthread_mutex_unlock(&mutex);
 	
 	/* if we did find at least one solution redistribute the resources */
 	if(found_sol)
@@ -282,7 +280,6 @@ static void teft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 			return;
 		}
 
-
 		unsigned criteria = sc_hypervisor_get_resize_criteria();
 		if(criteria != SC_NOTHING && criteria == SC_IDLE)
 		{
@@ -290,7 +287,6 @@ static void teft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 			if(sc_hypervisor_check_idle(sched_ctx, worker))
 			{
 				_try_resizing(NULL, -1, NULL, -1);
-//				sc_hypervisor_move_workers(sched_ctx, 3 - sched_ctx, &worker, 1, 1);
 			}
 		}
 		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
