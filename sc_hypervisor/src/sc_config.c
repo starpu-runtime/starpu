@@ -118,11 +118,11 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 	int *workerids;
 	int nworkers;
 
-	while ((arg_type = va_arg(varg_list, int)) != HYPERVISOR_NULL)
+	while ((arg_type = va_arg(varg_list, int)) != SC_HYPERVISOR_NULL)
 	{
 		switch(arg_type)
 		{
-		case HYPERVISOR_MAX_IDLE:
+		case SC_HYPERVISOR_MAX_IDLE:
 			workerids = va_arg(varg_list, int*);
 			nworkers = va_arg(varg_list, int);
 			double max_idle = va_arg(varg_list, double);
@@ -131,7 +131,7 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 
 			break;
 
-		case HYPERVISOR_EMPTY_CTX_MAX_IDLE:
+		case SC_HYPERVISOR_EMPTY_CTX_MAX_IDLE:
 			workerids = va_arg(varg_list, int*);
 			nworkers = va_arg(varg_list, int);
 			double empty_ctx_max_idle = va_arg(varg_list, double);
@@ -141,7 +141,7 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 
 			break;
 
-		case HYPERVISOR_MIN_WORKING:
+		case SC_HYPERVISOR_MIN_WORKING:
 			workerids = va_arg(varg_list, int*);
 			nworkers = va_arg(varg_list, int);
 			double min_working = va_arg(varg_list, double);
@@ -151,7 +151,7 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 
 			break;
 
-		case HYPERVISOR_PRIORITY:
+		case SC_HYPERVISOR_PRIORITY:
 			workerids = va_arg(varg_list, int*);
 			nworkers = va_arg(varg_list, int);
 			int priority = va_arg(varg_list, int);
@@ -160,19 +160,19 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 				config->priority[workerids[i]] = priority;
 			break;
 
-		case HYPERVISOR_MIN_WORKERS:
+		case SC_HYPERVISOR_MIN_WORKERS:
 			config->min_nworkers = va_arg(varg_list, unsigned);
 			break;
 
-		case HYPERVISOR_MAX_WORKERS:
+		case SC_HYPERVISOR_MAX_WORKERS:
 			config->max_nworkers = va_arg(varg_list, unsigned);
 			break;
 
-		case HYPERVISOR_GRANULARITY:
+		case SC_HYPERVISOR_GRANULARITY:
 			config->granularity = va_arg(varg_list, unsigned);
 			break;
 
-		case HYPERVISOR_FIXED_WORKERS:
+		case SC_HYPERVISOR_FIXED_WORKERS:
 			workerids = va_arg(varg_list, int*);
 			nworkers = va_arg(varg_list, int);
 
@@ -180,11 +180,11 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 				config->fixed_workers[workerids[i]] = 1;
 			break;
 
-		case HYPERVISOR_NEW_WORKERS_MAX_IDLE:
+		case SC_HYPERVISOR_NEW_WORKERS_MAX_IDLE:
 			config->new_workers_max_idle = va_arg(varg_list, double);
 			break;
 
-		case HYPERVISOR_ISPEED_W_SAMPLE:
+		case SC_HYPERVISOR_ISPEED_W_SAMPLE:
 			workerids = va_arg(varg_list, int*);
 			nworkers = va_arg(varg_list, int);
 			double sample = va_arg(varg_list, double);
@@ -193,16 +193,16 @@ static struct sc_hypervisor_policy_config* _ctl(unsigned sched_ctx, va_list varg
 				config->ispeed_w_sample[workerids[i]] = sample;
 			break;
 
-		case HYPERVISOR_ISPEED_CTX_SAMPLE:
+		case SC_HYPERVISOR_ISPEED_CTX_SAMPLE:
 			config->ispeed_ctx_sample = va_arg(varg_list, double);
 			break;
 
 /* not important for the strateg, needed just to jump these args in the iteration of the args */
-		case HYPERVISOR_TIME_TO_APPLY:
+		case SC_HYPERVISOR_TIME_TO_APPLY:
 			va_arg(varg_list, int);
 			break;
 
-		case HYPERVISOR_MIN_TASKS:
+		case SC_HYPERVISOR_MIN_TASKS:
 			va_arg(varg_list, int);
 			break;
 
@@ -224,16 +224,16 @@ void sc_hypervisor_ctl(unsigned sched_ctx, ...)
 	int stop = 0;
 	int task_tag = -1;
 
-	while ((arg_type = va_arg(varg_list, int)) != HYPERVISOR_NULL)
+	while ((arg_type = va_arg(varg_list, int)) != SC_HYPERVISOR_NULL)
 	{
 		switch(arg_type)
 		{
-		case HYPERVISOR_TIME_TO_APPLY:
+		case SC_HYPERVISOR_TIME_TO_APPLY:
 			task_tag = va_arg(varg_list, int);
 			stop = 1;
 			break;
 
-		case HYPERVISOR_MIN_TASKS:
+		case SC_HYPERVISOR_MIN_TASKS:
 			hypervisor.min_tasks = va_arg(varg_list, int);
 			hypervisor.check_min_tasks[sched_ctx] = 1;
 			break;
