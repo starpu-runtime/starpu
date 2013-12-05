@@ -112,6 +112,9 @@ struct sc_hypervisor_wrapper
 
 	/* the number of ready tasks submitted to a ctx */
 	int nready_tasks;
+
+	/* boolean indicating that a context is being sized */
+	unsigned to_be_sized;
 };
 
 /* return the wrapper of context that saves its monitoring information */

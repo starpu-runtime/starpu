@@ -39,17 +39,24 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		for(w = 0; w < nw; w++)
 			v[i][w] = sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw)); 
 		
-//		flops[i] = sc_w->ready_flops/1000000000.0; /* in gflops*/
-		if(sc_w->remaining_flops < 0.0)
-			flops[i] = sc_w->ready_flops/1000000000.0; /* in gflops*/
+		if(sc_w->to_be_sized)
+		{
+			flops[i] = sc_w->remaining_flops/1000000000.0; /* in gflops*/
+			sc_w->to_be_sized = 0;
+		}
 		else
 		{
-			if((sc_w->ready_flops/1000000000.0) < 0.5)
-				flops[i] = 0.0;
+			if(sc_w->remaining_flops < 0.0)
+				flops[i] = sc_w->ready_flops/1000000000.0; /* in gflops*/
 			else
-				flops[i] = sc_w->remaining_flops/1000000000.0; /* in gflops*/
+			{
+				if((sc_w->ready_flops/1000000000.0) <= 0.000002)
+					flops[i] = 0.0;
+				else
+					flops[i] = sc_w->remaining_flops/1000000000.0; /* in gflops*/
+			}
 		}
-/* 		printf("%d: flops %lf remaining flops %lf ready flops %lf nready_tasks %d\n",  */
+/* 		printf("%d: flops %lf remaining flops %lf ready flops %lf nready_tasks %d\n", */
 /* 		       sched_ctxs[i], flops[i], sc_w->remaining_flops/1000000000, sc_w->ready_flops/1000000000, sc_w->nready_tasks); */
 	}
 
@@ -78,7 +85,7 @@ has some last flops or a ready task that does not even have any flops
 we give a worker (in shared mode) to the context in order to leave him
 finish its work = we give -1.0 value instead of 0.0 and further on in
 the distribution function we take this into account and revert the variable
-to its 0.0 value */
+to its 0.0 value */ 
 		if(no_workers && (flops[i] != 0.0 || sc_w->nready_tasks > 0))
 		{
 			for(w = 0; w < nw; w++)
@@ -515,17 +522,11 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 				}
 			}
 		}
-		if(nw_add > 0)
-		{
-			sc_hypervisor_add_workers_to_sched_ctx(workers_add, nw_add, sched_ctxs[s]);
-		}
+//		sc_hypervisor_start_resize(sched_ctxs[s]);
+		sc_hypervisor_add_workers_to_sched_ctx(workers_add, nw_add, sched_ctxs[s]);
 		int workers_remove[STARPU_NMAXWORKERS];
 		int nw_remove = _lp_get_unwanted_workers(workers_add, nw_add, sched_ctxs[s], workers_remove);
 		sc_hypervisor_remove_workers_from_sched_ctx(workers_remove, nw_remove, sched_ctxs[s], !(_sc_hypervisor_use_lazy_resize()));
-		sc_hypervisor_start_resize(sched_ctxs[s]);
-
-
-//		sc_hypervisor_stop_resize(current_sched_ctxs[s]);
 	}
 }
 

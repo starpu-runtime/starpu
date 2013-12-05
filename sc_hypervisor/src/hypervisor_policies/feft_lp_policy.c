@@ -19,11 +19,13 @@
 #include <starpu_config.h>
 #include <sys/time.h>
 
+int resize_no = 0;
 #ifdef STARPU_HAVE_GLPK_H
 static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
 {
 	/* for vite */
-	starpu_trace_user_event(2);
+	printf("resize_no = %d\n", resize_no);
+	starpu_trace_user_event(resize_no++);
 	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 	unsigned *curr_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
 	unsigned curr_nworkers = nworkers == -1 ? starpu_worker_get_count() : (unsigned)nworkers;
@@ -90,6 +92,14 @@ static void feft_lp_size_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *worker
 	
 
 	starpu_pthread_mutex_lock(&act_hypervisor_mutex);
+	struct sc_hypervisor_wrapper* sc_w  = NULL;
+	int s = 0;
+	for(s = 0; s < nsched_ctxs; s++)
+	{
+		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
+		sc_w->to_be_sized = 1;
+	}
+
 	double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_type, total_nw, tw);
 	if(vmax != 0.0)
 	{
@@ -127,11 +137,13 @@ static void feft_lp_size_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *worker
 				break;
 			}
 		}
+
 		if(has_workers)
 			sc_hypervisor_lp_redistribute_resources_in_ctxs(ns, nw, nworkers_per_type_rounded, nworkers_per_type, curr_sched_ctxs, tw);
 		else
 			sc_hypervisor_lp_distribute_resources_in_ctxs(sched_ctxs, ns, nw, nworkers_per_type_rounded, nworkers_per_type, workers, curr_nworkers, tw);
 	}
+	printf("finished size ctxs\n");
 	starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 }
 
@@ -168,7 +180,6 @@ static void feft_lp_resize_ctxs(unsigned *sched_ctxs, int nsched_ctxs ,
 				 return;
 			 }
 		}
-
 		_try_resizing(sched_ctxs, nsched_ctxs, workers, nworkers);
 		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
