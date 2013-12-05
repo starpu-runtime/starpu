@@ -112,7 +112,7 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 		double speed = 0.0;
 		unsigned nworkers = 0;
 		double all_workers_flops = 0.0;
-		double all_workers_idle_time = 0.0;
+		double max_workers_idle_time = 0.0;
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);
@@ -120,7 +120,8 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 			if(arch == req_arch)
 			{
 				all_workers_flops += sc_w->elapsed_flops[worker] / 1000000000.0; /*in gflops */
-				all_workers_idle_time += sc_w->idle_time[worker]; /* in seconds */
+				if(max_workers_idle_time < sc_w->idle_time[worker])
+					max_workers_idle_time = sc_w->idle_time[worker]; /* in seconds */
 				nworkers++;
 			}
 		}			
@@ -131,7 +132,7 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 			
 			/* compute speed for the last frame */
 			double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
-			elapsed_time -= all_workers_idle_time;
+			elapsed_time -= max_workers_idle_time;
 			speed = (all_workers_flops / elapsed_time) / nworkers;
 		}
 		else
