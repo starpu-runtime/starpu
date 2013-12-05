@@ -34,10 +34,24 @@ double sc_hypervisor_get_ctx_speed(struct sc_hypervisor_wrapper* sc_w)
 	double start_sample = start_sample_prc > 0.0 ? (start_sample_prc / 100) * total_flops : sample;
 	double redim_sample = elapsed_flops == total_elapsed_flops ? (start_sample > 0.0 ? start_sample : sample) : sample;
 
-	if(elapsed_flops >= redim_sample)
+	double curr_time = starpu_timing_now();
+	double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
+	
+	unsigned can_compute_speed = 0;
+	char *speed_sample_criteria = getenv("SC_HYPERVISOR_SAMPLE_CRITERIA");
+	if(speed_sample_criteria && (strcmp(speed_sample_criteria, "time") == 0))
+	{
+		int n_all_cpus = starpu_cpu_worker_get_count();
+		int n_all_cuda = starpu_cuda_worker_get_count();
+		double th_speed = SC_HYPERVISOR_DEFAULT_CPU_SPEED * n_all_cpus + SC_HYPERVISOR_DEFAULT_CUDA_SPEED * n_all_cuda;
+		double time_sample = 0.1 * ((total_flops/1000000000.0) / th_speed);
+		can_compute_speed = elapsed_time >= time_sample;
+	}
+	else
+		can_compute_speed = elapsed_flops >= redim_sample;
+
+	if(can_compute_speed)
         {
-                double curr_time = starpu_timing_now();
-                double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
                 return (elapsed_flops/1000000000.0)/elapsed_time;/* in Gflops/s */
         }
 	return -1.0;
@@ -100,8 +114,28 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 
 	double ctx_elapsed_flops = sc_hypervisor_get_elapsed_flops_per_sched_ctx(sc_w);
 	double ctx_sample = config->ispeed_ctx_sample;
-	if(ctx_elapsed_flops > ctx_sample)
+
+	double curr_time = starpu_timing_now();
+	double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
+	
+	unsigned can_compute_speed = 0;
+	char *speed_sample_criteria = getenv("SC_HYPERVISOR_SAMPLE_CRITERIA");
+	if(speed_sample_criteria && (strcmp(speed_sample_criteria, "time") == 0))
 	{
+		int n_all_cpus = starpu_cpu_worker_get_count();
+		int n_all_cuda = starpu_cuda_worker_get_count();
+		double th_speed = SC_HYPERVISOR_DEFAULT_CPU_SPEED * n_all_cpus + SC_HYPERVISOR_DEFAULT_CUDA_SPEED * n_all_cuda;
+		double total_flops = sc_w->total_flops;
+		double time_sample = 0.1 * ((total_flops/1000000000.0) / th_speed);
+		can_compute_speed = elapsed_time >= time_sample;
+	}
+	else
+		can_compute_speed = ctx_elapsed_flops > ctx_sample;
+
+	if(can_compute_speed)
+        {
+		if(ctx_elapsed_flops == 0.0) return -1.0;
+
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sc_w->sched_ctx);
 		int worker;
 		
@@ -128,11 +162,7 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 		
 		if(nworkers != 0)
 		{
-			double curr_time = starpu_timing_now();
-			
-			/* compute speed for the last frame */
-			double elapsed_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */
-			elapsed_time -= max_workers_idle_time;
+//			elapsed_time -= max_workers_idle_time;
 			speed = (all_workers_flops / elapsed_time) / nworkers;
 		}
 		else

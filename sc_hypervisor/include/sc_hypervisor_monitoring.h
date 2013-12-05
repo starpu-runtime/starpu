@@ -90,6 +90,9 @@ struct sc_hypervisor_wrapper
 	/* number of flops that still have to be executed in this ctx */
 	double remaining_flops;
 	
+	/* number of flops coresponding to the ready tasks in this ctx */
+	double ready_flops;
+
 	/* the start time of the resizing sample of this context*/
 	double start_time;
 
@@ -102,6 +105,13 @@ struct sc_hypervisor_wrapper
 
 	/* mutex to protect the ack of workers */
 	starpu_pthread_mutex_t mutex;
+
+	/* boolean indicating if the resizing strategy can see the
+	   flops of all the execution or not */
+	unsigned total_flops_available;
+
+	/* the number of ready tasks submitted to a ctx */
+	int nready_tasks;
 };
 
 /* return the wrapper of context that saves its monitoring information */
