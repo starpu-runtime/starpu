@@ -82,6 +82,8 @@ unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sc
 
 unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id);
 
+unsigned starpu_sched_ctx_contains_type_of_worker(enum starpu_worker_archtype arch, unsigned sched_ctx_id);
+
 unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid);
 
 unsigned starpu_sched_ctx_is_ctxs_turn(int workerid, unsigned sched_ctx_id);
