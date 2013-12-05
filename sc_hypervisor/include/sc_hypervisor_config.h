@@ -38,6 +38,7 @@ extern "C"
 #define SC_HYPERVISOR_NULL -11
 #define	SC_HYPERVISOR_ISPEED_W_SAMPLE -12
 #define SC_HYPERVISOR_ISPEED_CTX_SAMPLE -13
+#define SC_HYPERVISOR_TIME_SAMPLE -14
 
 
 #define MAX_IDLE_TIME 5000000000
@@ -76,7 +77,9 @@ struct sc_hypervisor_policy_config
 
 	/* sample used to compute the instant speed per ctx*/
 	double ispeed_ctx_sample;
-
+	
+        /* sample used to compute the instant speed per ctx (in seconds)*/
+	double time_sample;
 };
 
 /* set a certain configuration to a context */
