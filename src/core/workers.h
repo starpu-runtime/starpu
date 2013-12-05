@@ -77,13 +77,17 @@ struct _starpu_worker
 	struct _starpu_sched_ctx_list *sched_ctx_list;
 	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/
 	struct _starpu_barrier_counter tasks_barrier; /* wait for the tasks submitted */
-       
+
 	unsigned has_prev_init; /* had already been inited in another ctx */
 
 	unsigned removed_from_ctx[STARPU_NMAX_SCHED_CTXS];
+
+	unsigned spinning_backoff ; /* number of cycles to pause when spinning  */
+
 	/* indicate whether the workers shares tasks lists with other workers*/
 	/* in this case when removing him from a context it disapears instantly */
 	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS];
+
 #ifdef __GLIBC__
 	cpu_set_t initial_cpu_set;
 	cpu_set_t current_cpu_set;
