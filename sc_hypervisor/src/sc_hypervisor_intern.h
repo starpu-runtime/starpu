@@ -120,4 +120,7 @@ void _remove_config(unsigned sched_ctx);
 double _get_max_speed_gap();
 
 double _get_optimal_v(unsigned sched_ctx);
+
 void _set_optimal_v(unsigned sched_ctx, double optimal_v);
+
+int _sc_hypervisor_use_lazy_resize(void);
