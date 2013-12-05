@@ -165,7 +165,9 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		 * driver may go block just after the scheduler got a new task to be
 		 * executed, and thus hanging. */
 
-		if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
+		if ( _starpu_worker_get_status(workerid) == STATUS_WAKING_UP)
+			_starpu_worker_set_status(workerid, STATUS_SLEEPING);
+		else if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
 		{
 			_STARPU_TRACE_WORKER_SLEEP_START;
 			_starpu_worker_restart_sleeping(workerid);
@@ -227,7 +229,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		perf_counters->notify_idle_end(task->sched_ctx, args->workerid);
 #endif //STARPU_USE_SC_HYPERVISOR
 
-	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
+	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING || _starpu_worker_get_status(workerid) == STATUS_WAKING_UP)
 	{
 		_STARPU_TRACE_WORKER_SLEEP_END;
 		_starpu_worker_stop_sleeping(workerid);
