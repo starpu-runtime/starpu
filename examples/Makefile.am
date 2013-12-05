@@ -48,7 +48,6 @@ EXTRA_DIST = 					\
 	lu/lu_example.c				\
 	sched_ctx_utils/sched_ctx_utils.c			\
 	sched_ctx/sched_ctx.c					\
-	sched_ctx/parallel_code.c				\
 	sched_ctx/dummy_sched_with_ctx.c			\
 	incrementer/incrementer_kernels_opencl_kernel.cl 	\
 	basic_examples/variable_kernels_opencl_kernel.cl	\
@@ -185,7 +184,6 @@ examplebin_PROGRAMS +=				\
 	profiling/profiling			\
 	sched_ctx/sched_ctx			\
 	sched_ctx/dummy_sched_with_ctx		\
-	sched_ctx/parallel_code			\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	mandelbrot/mandelbrot			\
@@ -260,7 +258,6 @@ STARPU_EXAMPLES +=				\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
 	sched_ctx/sched_ctx			\
-	sched_ctx/parallel_code			\
 	sched_ctx/dummy_sched_with_ctx		\
 	reductions/dot_product			\
 	reductions/minmax_reduction
@@ -893,9 +890,6 @@ examplebin_PROGRAMS +=		\
 	openmp/vector_scal_omp
 
 openmp_vector_scal_omp_CFLAGS = \
-	$(AM_CFLAGS) -fopenmp
-
-sched_ctx_parallel_code_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
 endif
