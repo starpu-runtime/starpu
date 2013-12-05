@@ -18,7 +18,7 @@
 
 unsigned worker_belong_to_other_sched_ctx(unsigned sched_ctx, int worker)
 {
-	int *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	int i;
