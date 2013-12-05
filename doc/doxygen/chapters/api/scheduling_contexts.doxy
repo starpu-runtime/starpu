@@ -169,11 +169,6 @@ Manage sharing of resources between contexts: by default a round_robin
 strategy is executed but the user can interfere to tell which ctx has
 its turn to pop.
 
-\fn double starpu_sched_ctx_get_max_time_worker_on_ctx(void)
-\ingroup API_Scheduling_Contexts
-Time sharing a resources, indicate how long a worker has been active
-in the current sched_ctx.
-
 @name Scheduling Context Priorities
 \ingroup API_Scheduling_Contexts
 

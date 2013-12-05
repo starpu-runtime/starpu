@@ -11,7 +11,7 @@
 \section WhatIsTheHypervisor What Is The Hypervisor
 
 StarPU proposes a platform to construct Scheduling Contexts, to
-deleting and modify them dynamically. A parallel kernel, can thus
+delete and modify them dynamically. A parallel kernel, can thus
 be isolated into a scheduling context and interferences between
 several parallel kernels are avoided. If the user knows exactly how
 many workers each scheduling context needs, he can assign them to the
