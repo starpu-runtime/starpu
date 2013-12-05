@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	starpu_pthread_mutex_init(&mut, NULL);
 	int nprocs1 = 1;
 	int nprocs2 = 1;
-	int procs1[20], procs2[20];
+	int procs1[60], procs2[60];
 	procs1[0] = 0;
 	procs2[0] = 0;
 
