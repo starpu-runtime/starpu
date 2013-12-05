@@ -85,6 +85,16 @@ just been created. It will be further used to indicate the context the
 tasks will be submitted to. The return value should be at most
 \ref STARPU_NMAX_SCHED_CTXS.
 
+\fn unsigned starpu_sched_ctx_create_with_custom_policy(struct starpu_sched_policy *policy, int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name)
+\ingroup API_Scheduling_Contexts
+This function creates a scheduling context which uses the scheduling
+policy \p policy (the pointer to the custom scheduling policy) and assigns the workers in \p workerids_ctx to
+execute the tasks submitted to it.
+The return value represents the identifier of the context that has
+just been created. It will be further used to indicate the context the
+tasks will be submitted to. The return value should be at most
+\ref STARPU_NMAX_SCHED_CTXS.
+
 \fn unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap)
 \ingroup API_Scheduling_Contexts
 Create a context indicating an approximate interval of resources
