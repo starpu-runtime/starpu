@@ -355,8 +355,6 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 
 	workerarg->has_prev_init = 0;
 
-	workerarg->active_ctx = STARPU_GLOBAL_SCHED_CTX;
-
 	int ctx;
 	for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
 	{
