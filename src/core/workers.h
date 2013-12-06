@@ -110,10 +110,14 @@ LIST_TYPE(_starpu_worker,
 	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS];	  
 
        /* boolean indicating at which moment we checked all ctxs and change phase for the booleab poped_in_ctx*/
-	unsigned reverse_phase;
+       /* one for each of the 2 priorities*/
+	unsigned reverse_phase[2];
 
+	/* indicate which priority of ctx is currently active: the values are 0 or 1*/
+	unsigned pop_ctx_priority;
 
-
+	/* flag to know if sched_mutex is locked or not */
+	unsigned sched_mutex_locked;
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;
 #endif /* __GLIBC__ */
@@ -401,5 +405,11 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 /* returns workers not belonging to any context, be careful no mutex is used, 
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
+
+/* if the current worker has the lock release it */
+void _starpu_unlock_mutex_if_prev_locked();
+
+/* if we prev released the lock relock it */
+void _starpu_relock_mutex_if_prev_locked();
 
 #endif // __WORKERS_H__

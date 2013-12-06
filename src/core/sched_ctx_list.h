@@ -21,6 +21,7 @@ struct _starpu_sched_ctx_list
 {
 	struct _starpu_sched_ctx_list *next;
 	unsigned sched_ctx;
+	unsigned priority;
 };
 
 void _starpu_sched_ctx_list_init(struct _starpu_sched_ctx_list *list);

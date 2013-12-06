@@ -571,34 +571,69 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 	struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
 	unsigned smallest_counter =  worker->nsched_ctxs;
 	struct _starpu_sched_ctx_list *l = NULL;
-	if(!worker->reverse_phase)
+	unsigned are_2_priorities = 0;
+	for (l = worker->sched_ctx_list; l; l = l->next)
+	{
+		if(l->priority != worker->pop_ctx_priority)
+		{
+			are_2_priorities = 1;
+			break;
+		}
+	}
+
+	if(!worker->reverse_phase[worker->pop_ctx_priority])
 	{
 		/* find a context in which the worker hasn't poped yet */
 		for (l = worker->sched_ctx_list; l; l = l->next)
 		{
-			if(!worker->poped_in_ctx[l->sched_ctx])
+			if(l->priority == worker->pop_ctx_priority)
 			{
-				worker->poped_in_ctx[l->sched_ctx] = !worker->poped_in_ctx[l->sched_ctx];
-				return	_starpu_get_sched_ctx_struct(l->sched_ctx);
+				if(!worker->poped_in_ctx[l->sched_ctx])
+				{
+					worker->poped_in_ctx[l->sched_ctx] = !worker->poped_in_ctx[l->sched_ctx];
+					return	_starpu_get_sched_ctx_struct(l->sched_ctx);
+				}
 			}
 		}
-		worker->reverse_phase = !worker->reverse_phase;
+		worker->reverse_phase[worker->pop_ctx_priority] = !worker->reverse_phase[worker->pop_ctx_priority];
+		if(are_2_priorities)
+			worker->pop_ctx_priority = !worker->pop_ctx_priority;
 	}
-	if(worker->reverse_phase)
+	are_2_priorities = 0;
+	if(worker->reverse_phase[worker->pop_ctx_priority])
 	{
 		/* if the context has already poped in every one start from the begining */
 		for (l = worker->sched_ctx_list; l; l = l->next)
 		{
-			if(worker->poped_in_ctx[l->sched_ctx])
+			if(l->priority == worker->pop_ctx_priority)
 			{
-				worker->poped_in_ctx[l->sched_ctx] = !worker->poped_in_ctx[l->sched_ctx];
-				return	_starpu_get_sched_ctx_struct(l->sched_ctx);
+				if(worker->poped_in_ctx[l->sched_ctx])
+				{
+					worker->poped_in_ctx[l->sched_ctx] = !worker->poped_in_ctx[l->sched_ctx];
+					return	_starpu_get_sched_ctx_struct(l->sched_ctx);
+				}
 			}
 		}
-		worker->reverse_phase = !worker->reverse_phase;
+		worker->reverse_phase[worker->pop_ctx_priority] = !worker->reverse_phase[worker->pop_ctx_priority];
+		if(are_2_priorities)
+			worker->pop_ctx_priority = !worker->pop_ctx_priority;
 	}	
-	worker->poped_in_ctx[worker->sched_ctx_list->sched_ctx] = !worker->poped_in_ctx[worker->sched_ctx_list->sched_ctx];
-	return _starpu_get_sched_ctx_struct(worker->sched_ctx_list->sched_ctx);
+
+	unsigned first_sched_ctx = STARPU_NMAX_SCHED_CTXS;
+	for (l = worker->sched_ctx_list; l; l = l->next)
+	{
+		if(l->priority == worker->pop_ctx_priority)
+		{
+			first_sched_ctx = l->sched_ctx;
+			break;
+		}
+	}
+
+	if(worker->pop_ctx_priority == 0 && first_sched_ctx == STARPU_NMAX_SCHED_CTXS)
+		first_sched_ctx = worker->sched_ctx_list->sched_ctx;
+
+	worker->poped_in_ctx[first_sched_ctx] = !worker->poped_in_ctx[first_sched_ctx];
+	return _starpu_get_sched_ctx_struct(first_sched_ctx);
 }
 
 struct starpu_task *_starpu_pop_task(struct _starpu_worker *worker)
@@ -639,7 +674,7 @@ pick:
 				while(1)
 				{
 					sched_ctx = _get_next_sched_ctx_to_pop_into(worker);
-					
+
 					if(worker->removed_from_ctx[sched_ctx->id] == 1 && worker->shares_tasks_lists[sched_ctx->id] == 1)
 					{
 						_starpu_worker_gets_out_of_ctx(sched_ctx->id, worker);
@@ -650,7 +685,6 @@ pick:
 						break;
 				}
 			}
-
 
 			if(sched_ctx && sched_ctx->id != STARPU_NMAX_SCHED_CTXS)
 			{
@@ -672,19 +706,24 @@ pick:
 					worker->removed_from_ctx[sched_ctx->id] = 0;
 				}
 #ifdef STARPU_USE_SC_HYPERVISOR
-				struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
-				if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_cycle && _starpu_sched_ctx_allow_hypervisor(sched_ctx->id))
+				if(worker->pop_ctx_priority)
 				{
+					struct starpu_sched_ctx_performance_counters *perf_counters = sched_ctx->perf_counters;
+					if(sched_ctx->id != 0 && perf_counters != NULL && perf_counters->notify_idle_cycle && _starpu_sched_ctx_allow_hypervisor(sched_ctx->id))
+					{
 //					_STARPU_TRACE_HYPERVISOR_BEGIN();
-					perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
+						perf_counters->notify_idle_cycle(sched_ctx->id, worker->workerid, 1.0);
 //					_STARPU_TRACE_HYPERVISOR_END();
+					}
 				}
 #endif //STARPU_USE_SC_HYPERVISOR
 				
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 				if(been_here[sched_ctx->id] || worker->nsched_ctxs == 1)
 					break;
+
 				been_here[sched_ctx->id] = 1;
+
 #endif
 			}
 		}
