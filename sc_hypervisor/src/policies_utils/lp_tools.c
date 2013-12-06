@@ -60,44 +60,117 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		}
 /* 		printf("%d: flops %lf remaining flops %lf ready flops %lf nready_tasks %d\n", */
 /* 		       sched_ctxs[i], flops[i], sc_w->remaining_flops/1000000000, sc_w->ready_flops/1000000000, sc_w->nready_tasks); */
+
 	}
-		
-	
-	double vmax = 1/sc_hypervisor_lp_simulate_distrib_flops(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw, sched_ctxs);
-	double optimal_v = 0.0;
-	for(i = 0; i < nsched_ctxs; i++)
+
+	double ret = sc_hypervisor_lp_simulate_distrib_flops(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw, sched_ctxs, -1.0);
+	double vmax = 0.0;
+	if(ret != 0.0)
 	{
-#ifdef STARPU_USE_CUDA
-		optimal_v = res[i][0] * v[i][0] + res[i][1]* v[i][1];
-#else
-		optimal_v = res[i][0] * v[i][0];
-#endif //STARPU_USE_CUDA
-		int w;
-		unsigned no_workers = 1;
-		for(w = 0; w < nw; w++)
-			if(res[i][w] != 0.0)
-			{
-				no_workers = 0;
-				break;
-			}
+		/* redo the lp after cleaning out the contexts that got all the max workers required */
+		unsigned selected_sched_ctxs[STARPU_NMAX_SCHED_CTXS];
+		double selected_flops[STARPU_NMAX_SCHED_CTXS];
+		double selected_v[STARPU_NMAX_SCHED_CTXS][ntypes_of_workers];
+		int nselected = 0;
+		int available_cpus = total_nw[0];	
+		int used_cpus = 0;
 
-		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
-
-/* if the hypervisor gave 0 workers to a context but the context still 
-has some last flops or a ready task that does not even have any flops
-we give a worker (in shared mode) to the context in order to leave him
-finish its work = we give -1.0 value instead of 0.0 and further on in
-the distribution function we take this into account and revert the variable
-to its 0.0 value */ 
-//		if(no_workers && (flops[i] != 0.0 || sc_w->nready_tasks > 0))
-		if(no_workers)
+		for(i = 0; i < nsched_ctxs; i++)
 		{
-			for(w = 0; w < nw; w++)
-				res[i][w] = -1.0;
+			struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[i]);
+			if(res[i][0] < config->max_nworkers && config->max_nworkers != 0 && flops[i] != 0.0)
+			{
+				selected_flops[nselected] = flops[i];
+				selected_v[nselected][0] = v[i][0];
+				selected_sched_ctxs[nselected++] = sched_ctxs[i];
+			}
+			 else
+				available_cpus -= res[i][0];
+			used_cpus += res[i][0];
 		}
 
-		if(optimal_v != 0.0)
-			_set_optimal_v(i, optimal_v);
+		if(used_cpus != total_nw[0])
+		{
+			double old_ret = ret;
+			
+			if(nselected <= 0 || nselected == nsched_ctxs)
+			{
+				nselected = nsched_ctxs;
+				for(i = 0; i < nsched_ctxs; i++)
+				{
+					selected_flops[i] = flops[i];
+					selected_v[i][0] = v[i][0];
+					selected_sched_ctxs[i] = sched_ctxs[i];
+				}
+			}
+			else
+				total_nw[0] = available_cpus;
+			
+			double selected_res[nselected][ntypes_of_workers];
+			ret = sc_hypervisor_lp_simulate_distrib_flops(nselected, ntypes_of_workers, selected_v, selected_flops, selected_res, total_nw, selected_sched_ctxs, ret);
+			
+			if(ret != 0)
+			{
+				int j;
+				for(i = 0; i < nsched_ctxs; i++)
+				{
+					for(j = 0; j < nselected; j++)
+					{
+						if(sched_ctxs[i] == selected_sched_ctxs[j])
+						{
+							res[i][0] = selected_res[j][0];
+							v[i][0] = selected_v[i][0];
+						}
+					}
+				}
+			}
+			else
+				ret = old_ret;
+		}
+
+	}
+
+	/* keep the first speed */
+	if(ret != 0.0)
+	{
+		vmax = 1 / ret;
+		double optimal_v = 0.0;
+		for(i = 0; i < nsched_ctxs; i++)
+		{
+#ifdef STARPU_USE_CUDA
+			optimal_v = res[i][0] * v[i][0] + res[i][1]* v[i][1];
+#else
+			optimal_v = res[i][0] * v[i][0];
+#endif //STARPU_USE_CUDA
+			int w;
+			unsigned no_workers = 1;
+			for(w = 0; w < nw; w++)
+			{
+				if(res[i][w] != 0.0)
+				{
+					no_workers = 0;
+					break;
+				}
+			}
+			
+			sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
+			
+/* if the hypervisor gave 0 workers to a context but the context still 
+   has some last flops or a ready task that does not even have any flops
+   we give a worker (in shared mode) to the context in order to leave him
+   finish its work = we give -1.0 value instead of 0.0 and further on in
+   the distribution function we take this into account and revert the variable
+   to its 0.0 value */ 
+//		if(no_workers && (flops[i] != 0.0 || sc_w->nready_tasks > 0))
+			if(no_workers)
+			{
+				for(w = 0; w < nw; w++)
+					res[i][w] = -1.0;
+			}
+			
+			if(optimal_v != 0.0)
+				_set_optimal_v(i, optimal_v);
+		}
 	}
 
 	return vmax;

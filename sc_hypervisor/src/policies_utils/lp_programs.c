@@ -249,7 +249,8 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 	return res;
 }
 
-double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], int  total_nw[nw], unsigned sched_ctxs[ns])
+double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], 
+					       int  total_nw[nw], unsigned sched_ctxs[ns], double last_vmax)
 {
 	int integer = 1;
 	int s, w;
@@ -282,7 +283,6 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 			if (integer)
 			{
 				glp_set_col_kind(lp, n, GLP_IV);
-				printf("ctx %d idx %d min %d max %d \n", sched_ctxs[s], s, config->min_nworkers, config->max_nworkers);
 				if(config->max_nworkers == 0)
 					glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers, config->max_nworkers);
 				else
@@ -302,7 +302,10 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 	/*1/tmax should belong to the interval [0.0;1.0]*/
 	glp_set_col_name(lp, n, "vmax");
 //	glp_set_col_bnds(lp, n, GLP_DB, 0.0, 1.0);
-	glp_set_col_bnds(lp, n, GLP_LO, 0.0, 0.0);
+	if(last_vmax != -1.0)
+		glp_set_col_bnds(lp, n, GLP_LO, last_vmax, last_vmax);
+	else
+		glp_set_col_bnds(lp, n, GLP_LO, 0.0, 0.0);
 	/* Z = 1/tmax -> 1/tmax structural variable, nCPUs & nGPUs in ctx are auxiliar variables */
 	glp_set_obj_coef(lp, n, 1.0);
 
@@ -384,13 +387,27 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 //		printf("ia[%d]=%d ja[%d]=%d ar[%d]=%lf\n", n, ia[n], n, ja[n], n, ar[n]);
 		n++;
 
-		/*sum(all gpus) = 3*/
-		if(w == 0)
-			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[0], total_nw[0]);
+		if(last_vmax == -1.0)
+		{
+			/*sum(all gpus) = 3*/
+			if(w == 0)
+				glp_set_row_bnds(lp, ns+w+1, GLP_UP, 0, total_nw[0]);
+			
+			/*sum(all cpus) = 9*/
+			if(w == 1)
+				glp_set_row_bnds(lp, ns+w+1, GLP_UP, 0, total_nw[1]);
 
-		/*sum(all cpus) = 9*/
-		if(w == 1)
-			glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[1], total_nw[1]);
+		}
+		else
+		{
+			/*sum(all gpus) = 3*/
+			if(w == 0)
+				glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[0], total_nw[0]);
+			
+			/*sum(all cpus) = 9*/
+			if(w == 1)
+				glp_set_row_bnds(lp, ns+w+1, GLP_FX, total_nw[1], total_nw[1]);
+		}
 	}
 
 	STARPU_ASSERT(n == ne);
@@ -399,7 +416,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 
 	glp_smcp parm;
 	glp_init_smcp(&parm);
-	parm.msg_lev = GLP_MSG_OFF;
+  	parm.msg_lev = GLP_MSG_OFF;
 	int ret = glp_simplex(lp, &parm);
 	if (ret)
         {
@@ -414,7 +431,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
         if(stat == GLP_NOFEAS)
         {
                 glp_delete_prob(lp);
-//              printf("no_sol in tmax = %lf\n", tmax);                                                                                                                                                             
+		printf("no_sol\n");                                                                                                                                                             
                 lp = NULL;
                 return 0.0;
         }
@@ -430,7 +447,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
                 /* if we don't have a solution return */
                 if(stat == GLP_NOFEAS)
                 {
-//                      printf("no int sol in tmax = %lf\n", tmax);                                                                                                                                                 
+			printf("no int sol\n");                                                                                                                                                 
                         glp_delete_prob(lp);
                         lp = NULL;
                         return 0.0;
@@ -449,7 +466,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
                                 res[s][w] = (double)glp_mip_col_val(lp, n);
 			else
 				res[s][w] = glp_get_col_prim(lp, n);
-			printf("%d/%d: res %lf flops = %lf v = %lf\n", w,s, res[s][w], flops[s], v[s][w]);
+  			printf("%d/%d: res %lf flops = %lf v = %lf\n", w,s, res[s][w], flops[s], v[s][w]);
 			n++;
 		}
 	}
