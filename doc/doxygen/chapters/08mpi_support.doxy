@@ -271,7 +271,7 @@ data which will be needed by the tasks that we will execute.
     for(x = 0; x < X; x++) {
         for (y = 0; y < Y; y++) {
             int mpi_rank = my_distrib(x, y, size);
-             if (mpi_rank == my_rank)
+            if (mpi_rank == my_rank)
                 /* Owning data */
                 starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM,
                                               (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
@@ -317,6 +317,63 @@ This can be a concern with a growing number of nodes. To avoid this, the
 application can prune the task for loops according to the data distribution,
 so as to only submit tasks on nodes which have to care about them (either to
 execute them, or to send the required data).
+
+\section MPIMigration MPI Data migration
+
+The application can dynamically change its mind about the data distribution, to
+balance the load over MPI nodes for instance. This can be done very simply by
+requesting an explicit move and then change the registered rank. For instance,
+we here switch to a new distribution function <c>my_distrib2</c>: we first
+register any data that wasn't registered already and will be needed, then
+migrate the data, and register the new location.
+
+\code{.c}
+    for(x = 0; x < X; x++) {
+        for (y = 0; y < Y; y++) {
+            int mpi_rank = my_distrib2(x, y, size);
+            if (!data_handles[x][y] && (mpi_rank == my_rank
+                  || my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
+                  || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size)))
+                /* Register newly-needed data */
+                starpu_variable_data_register(&data_handles[x][y], -1,
+                                              (uintptr_t)NULL, sizeof(unsigned));
+            if (data_handles[x][y]) {
+                /* Migrate the data */
+                starpu_mpi_get_data_on_node(MPI_COMM_WORLD, data_handles[x][y], mpi_rank);
+                /* And register the new rank of the matrix */
+                starpu_data_set_rank(data_handles[x][y], mpi_rank);
+            }
+        }
+    }
+\endcode
+
+From then on, further tasks submissions will use the new data distribution,
+which will thus change both MPI communications and task assignments.
+
+Very importantly, since all nodes have to agree on which node owns which data
+so as to determine MPI communications and task assignments the same way, all
+nodes have to perform the same data migration, and at the same point among task
+submissions. It thus does not require a strict synchronization, just a clear
+separation of task submissions before and after the data redistribution.
+
+Before data unregistration, it has to be migrated back to its original home
+node (the value, at least), since that is where the user-provided buffer
+resides. Otherwise the unregistration will complain that it does not have the
+latest value on the original home node.
+
+\code{.c}
+    for(x = 0; x < X; x++) {
+        for (y = 0; y < Y; y++) {
+            if (data_handles[x][y]) {
+                int mpi_rank = my_distrib(x, y, size);
+                /* Get back data to original place where the user-provided buffer is.  */
+                starpu_mpi_get_data_on_node(MPI_COMM_WORLD, data_handles[x][y], mpi_rank);
+                /* And unregister it */
+                starpu_data_unregister(data_handles[x][y]);
+            }
+        }
+    }
+\endcode
 
 \section MPICollective MPI Collective Operations
 
