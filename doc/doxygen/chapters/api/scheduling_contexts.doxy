@@ -124,7 +124,9 @@ Set the scheduling context the subsequent tasks will be submitted to
 
 \fn unsigned starpu_sched_ctx_get_context(void)
 \ingroup API_Scheduling_Contexts
-Return the scheduling context the tasks are currently submitted to
+Return the scheduling context the tasks are currently submitted to,
+or ::STARPU_NMAX_SCHED_CTXS if no default context has been defined
+by calling the function starpu_sched_ctx_set_context().
 
 \fn void starpu_sched_ctx_stop_task_submission(void)
 \ingroup API_Scheduling_Contexts
