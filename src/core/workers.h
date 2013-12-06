@@ -249,6 +249,8 @@ struct _starpu_machine_config
 	unsigned submitting;
 
 	int watchdog_ok;
+
+	starpu_pthread_mutex_t submitted_mutex;
 };
 
 /* Fill conf with environment variables */
