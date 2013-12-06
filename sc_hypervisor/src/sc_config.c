@@ -74,7 +74,7 @@ void _add_config(unsigned sched_ctx)
 {
 	struct sc_hypervisor_policy_config *config = _create_config();
 	config->min_nworkers = 0;
-	config->max_nworkers = STARPU_NMAXWORKERS;
+	config->max_nworkers = starpu_worker_get_count();
 	config->new_workers_max_idle = MAX_IDLE_TIME;
 
 	int i;

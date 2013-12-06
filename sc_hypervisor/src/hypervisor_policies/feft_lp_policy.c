@@ -73,6 +73,7 @@ static void feft_lp_handle_poped_task(__attribute__((unused))unsigned sched_ctx,
 				_try_resizing(NULL, -1, NULL, -1);
 			}
 		}
+	
 		starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 	}
 

@@ -28,6 +28,8 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 	double v[nsched_ctxs][ntypes_of_workers];
 	double flops[nsched_ctxs];
 
+	sc_hypervisor_update_resize_interval(sched_ctxs, nsched_ctxs);
+
 	int nw = tw->nw;
 	int i = 0;
 	struct sc_hypervisor_wrapper* sc_w;
@@ -59,8 +61,9 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 /* 		printf("%d: flops %lf remaining flops %lf ready flops %lf nready_tasks %d\n", */
 /* 		       sched_ctxs[i], flops[i], sc_w->remaining_flops/1000000000, sc_w->ready_flops/1000000000, sc_w->nready_tasks); */
 	}
-
-	double vmax = 1/sc_hypervisor_lp_simulate_distrib_flops(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw);
+		
+	
+	double vmax = 1/sc_hypervisor_lp_simulate_distrib_flops(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw, sched_ctxs);
 	double optimal_v = 0.0;
 	for(i = 0; i < nsched_ctxs; i++)
 	{
