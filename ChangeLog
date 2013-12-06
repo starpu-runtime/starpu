@@ -35,6 +35,7 @@ New features:
     the scheduling decision.
   * Add a watchdog which permits to easily trigger a crash when StarPU gets
     stuck.
+  * Document how to migrate data over MPI.
 
 Small features:
   * New function starpu_perfmodel_directory() to print directory
