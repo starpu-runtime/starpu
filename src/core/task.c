@@ -35,6 +35,7 @@
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
+#include <core/sched_ctx.h>
 
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
