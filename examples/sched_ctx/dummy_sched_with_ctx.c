@@ -157,7 +157,7 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	unsigned sched_ctx = starpu_sched_ctx_create_with_custom_policy(&dummy_sched_policy, NULL, -1, "dummy");
+	unsigned sched_ctx = starpu_sched_ctx_create(NULL, -1, "dummy", STARPU_SCHED_CTX_POLICY_STRUCT, &dummy_sched_policy, 0);
 #ifdef STARPU_QUICK_CHECK
 	ntasks /= 100;
 #endif

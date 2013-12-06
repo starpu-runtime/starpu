@@ -233,7 +233,7 @@ void construct_contexts(void (*bench)(unsigned, unsigned))
 	}
 	printf("\n ");
 
-	p1.ctx = starpu_sched_ctx_create("heft", procs, nprocs1, "sched_ctx1");
+	p1.ctx = starpu_sched_ctx_create(procs, nprocs1, "sched_ctx1", STARPU_SCHED_CTX_POLICY_NAME, "heft", 0);
 	p2.the_other_ctx = (int)p1.ctx;
 	p1.procs = procs;
 	p1.nprocs = nprocs1;
@@ -260,7 +260,7 @@ void construct_contexts(void (*bench)(unsigned, unsigned))
 	}
 	printf("\n");
 
-	p2.ctx = starpu_sched_ctx_create("heft", procs2, nprocs2, "sched_ctx2");
+	p2.ctx = starpu_sched_ctx_create(procs2, nprocs2, "sched_ctx2", STARPU_SCHED_CTX_POLICY_NAME, "heft", 0);
 	p1.the_other_ctx = (int)p2.ctx;
 	p2.procs = procs2;
 	starpu_sched_ctx_set_inheritor(p1.ctx, p2.ctx);

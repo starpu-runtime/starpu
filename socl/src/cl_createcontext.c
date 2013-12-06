@@ -141,7 +141,7 @@ soclCreateContext(const cl_context_properties * properties,
    for (i=0; i<num_devices; i++) {
       workers[i] = ctx->devices[i]->worker_id;
    }
-   ctx->sched_ctx = starpu_sched_ctx_create(scheduler, workers, num_devices, name);
+   ctx->sched_ctx = starpu_sched_ctx_create(workers, num_devices, name, STARPU_SCHED_CTX_POLICY_NAME, scheduler, 0);
 
    if (errcode_ret != NULL)
       *errcode_ret = CL_SUCCESS;

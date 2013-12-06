@@ -184,6 +184,7 @@ examplebin_PROGRAMS +=				\
 	profiling/profiling			\
 	sched_ctx/sched_ctx			\
 	sched_ctx/dummy_sched_with_ctx		\
+	sched_ctx/prio				\
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	mandelbrot/mandelbrot			\
@@ -258,6 +259,7 @@ STARPU_EXAMPLES +=				\
 	profiling/profiling			\
 	scheduler/dummy_sched			\
 	sched_ctx/sched_ctx			\
+	sched_ctx/prio				\
 	sched_ctx/dummy_sched_with_ctx		\
 	reductions/dot_product			\
 	reductions/minmax_reduction

@@ -815,7 +815,7 @@ int starpu_init(struct starpu_conf *user_conf)
 		_starpu_worker_init(&config.workers[worker], &config);
 
 	struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
-	_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init");
+	_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", 0, 0, 0, 0);
 
 	_starpu_initialize_registered_performance_models();
 

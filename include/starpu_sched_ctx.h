@@ -24,11 +24,12 @@ extern "C"
 {
 #endif
 
+#define STARPU_SCHED_CTX_POLICY_NAME		 (1<<16)
+#define STARPU_SCHED_CTX_POLICY_STRUCT		 (2<<16)
+#define STARPU_SCHED_CTX_POLICY_MIN_PRIO	 (3<<16)
+#define STARPU_SCHED_CTX_POLICY_MAX_PRIO	 (4<<16)
 
-unsigned starpu_sched_ctx_create(const char *policy_name, int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name);
-
-struct starpu_sched_policy;
-unsigned starpu_sched_ctx_create_with_custom_policy(struct starpu_sched_policy *policy, int *workerids, int nworkers, const char *sched_name);
+unsigned starpu_sched_ctx_create(int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name, ...);
 
 unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap);
 
@@ -79,6 +80,10 @@ int starpu_sched_ctx_get_max_priority(unsigned sched_ctx_id);
 int starpu_sched_ctx_set_min_priority(unsigned sched_ctx_id, int min_prio);
 
 int starpu_sched_ctx_set_max_priority(unsigned sched_ctx_id, int max_prio);
+
+int starpu_sched_ctx_min_priority_is_set(unsigned sched_ctx_id);
+
+int starpu_sched_ctx_max_priority_is_set(unsigned sched_ctx_id);
 
 #define STARPU_MIN_PRIO		(starpu_sched_get_min_priority())
 #define STARPU_MAX_PRIO		(starpu_sched_get_max_priority())
