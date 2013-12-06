@@ -52,6 +52,9 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 /* place resources in contexts dependig on whether they already have workers or not */
 void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][nw], unsigned *sched_ctxs, int *workers, unsigned do_size, struct types_of_workers *tw);
 
+/* not used resources are shared between all contexts */
+void sc_hypervisor_lp_share_remaining_resources(int ns, unsigned *sched_ctxs,  int nworkers, int *workers);
+
 /* dichotomy btw t1 & t2 */
 double sc_hypervisor_lp_find_tmax(double t1, double t2);
 

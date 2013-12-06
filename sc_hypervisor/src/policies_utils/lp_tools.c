@@ -72,24 +72,24 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		double selected_flops[STARPU_NMAX_SCHED_CTXS];
 		double selected_v[STARPU_NMAX_SCHED_CTXS][ntypes_of_workers];
 		int nselected = 0;
-		int available_cpus = total_nw[0];	
+		int available_cpus = total_nw[0];
 		int used_cpus = 0;
 
 		for(i = 0; i < nsched_ctxs; i++)
 		{
 			struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[i]);
-			if(res[i][0] < config->max_nworkers && config->max_nworkers != 0 && flops[i] != 0.0)
+			if(res[i][0] < config->max_nworkers && config->max_nworkers != 0 && flops[i] > 0.0001)
 			{
 				selected_flops[nselected] = flops[i];
 				selected_v[nselected][0] = v[i][0];
 				selected_sched_ctxs[nselected++] = sched_ctxs[i];
 			}
-			 else
+			else
 				available_cpus -= res[i][0];
 			used_cpus += res[i][0];
 		}
 
-		if(used_cpus != total_nw[0])
+		if(used_cpus < 0.8 * total_nw[0])
 		{
 			double old_ret = ret;
 			
@@ -668,6 +668,32 @@ void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][n
 			sc_hypervisor_lp_distribute_resources_in_ctxs(current_sched_ctxs, ns, ntypes_of_workers, nworkers_rounded, nworkers, workers_input, nw, tw);
 	}
 	return;
+}
+
+void sc_hypervisor_lp_share_remaining_resources(int ns, unsigned *sched_ctxs,  int nworkers, int *workers)
+{
+	int s, w, worker, nw = 0;
+	int remaining_workers[nworkers];
+	for(w = 0; w < nworkers; w++)
+	{
+		worker = workers == NULL ? w : workers[w];
+		unsigned found = 0;
+		for(s = 0; s < ns; s++)
+		{
+			if(starpu_sched_ctx_contains_worker(worker, sched_ctxs[s]))
+			{
+				found = 1;
+				break;
+			}
+		}
+		if(!found)
+			remaining_workers[nw++] = worker;
+	}
+
+	if(nw > 0)
+		for(s = 0; s < ns; s++)
+			sc_hypervisor_add_workers_to_sched_ctx(remaining_workers, nw, sched_ctxs[s]);		
+
 }
 
 double sc_hypervisor_lp_find_tmax(double t1, double t2)
