@@ -147,6 +147,16 @@ unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_
 /* mutex synchronising several simultaneous modifications of a context */
 starpu_pthread_rwlock_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched_ctx_id);
 
+/* indicates wheather this worker should go to sleep or not 
+   (if it is the last one awake in a context he should better keep awake) */
+unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);
+
+/*rebind each thread on its cpu after finishing a parallel code */
+void _starpu_sched_ctx_rebind_thread_to_its_cpu(unsigned cpuid);
+
+/* let the appl know that the worker blocked to execute parallel code */
+void _starpu_sched_ctx_signal_worker_blocked(int workerid);
+
 #ifdef STARPU_USE_SC_HYPERVISOR
 /* Notifies the hypervisor that a tasks was poped from the workers' list */
 void _starpu_sched_ctx_call_poped_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint);
