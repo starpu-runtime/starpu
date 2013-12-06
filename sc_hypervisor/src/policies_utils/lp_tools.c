@@ -729,13 +729,20 @@ void sc_hypervisor_lp_share_remaining_resources(int ns, unsigned *sched_ctxs,  i
 			}
 		}
 		if(!found)
+		{
 			remaining_workers[nw++] = worker;
+		}
 	}
 
 	if(nw > 0)
+	{
 		for(s = 0; s < ns; s++)
-			sc_hypervisor_add_workers_to_sched_ctx(remaining_workers, nw, sched_ctxs[s]);		
-
+		{
+			for(w = 0; w < nw; w++)
+				_sc_hypervisor_allow_compute_idle(sched_ctxs[s], remaining_workers[w], 0);
+			sc_hypervisor_add_workers_to_sched_ctx(remaining_workers, nw, sched_ctxs[s]);
+		}		
+	}
 }
 
 double sc_hypervisor_lp_find_tmax(double t1, double t2)

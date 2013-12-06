@@ -24,8 +24,8 @@ int resize_no = 0;
 static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers)
 {
 	/* for vite */
-	printf("resize_no = %d\n", resize_no);
-	starpu_trace_user_event(resize_no++);
+/* 	printf("resize_no = %d\n", resize_no); */
+/* 	starpu_trace_user_event(resize_no++); */
 	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 	unsigned *curr_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
 	unsigned curr_nworkers = nworkers == -1 ? starpu_worker_get_count() : (unsigned)nworkers;

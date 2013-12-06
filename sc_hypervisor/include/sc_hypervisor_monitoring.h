@@ -47,6 +47,10 @@ struct sc_hypervisor_wrapper
 	/* user configuration meant to limit resizing */
 	struct sc_hypervisor_policy_config *config;
 
+
+	/* the start time of the resizing sample of the workers of this context*/
+	double start_time_w[STARPU_NMAXWORKERS];
+
 	/* idle time of workers in this context */
 	double current_idle_time[STARPU_NMAXWORKERS];
 
@@ -121,6 +125,10 @@ struct sc_hypervisor_wrapper
 
 	/* boolean indicating that a context is being sized */
 	unsigned to_be_sized;
+
+	/* boolean indicating if we add the idle of this worker to 
+	   the idle of the context */
+	unsigned compute_idle[STARPU_NMAXWORKERS];
 };
 
 /* return the wrapper of context that saves its monitoring information */
