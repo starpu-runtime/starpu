@@ -86,6 +86,8 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen);
 
 int starpu_worker_get_devid(int id);
 
+int starpu_worker_get_nsched_ctxs(int workerid);
+
 #ifdef __cplusplus
 }
 #endif

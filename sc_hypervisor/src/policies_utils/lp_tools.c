@@ -63,7 +63,50 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 
 	}
 
-	double ret = sc_hypervisor_lp_simulate_distrib_flops(nsched_ctxs, ntypes_of_workers, v, flops, res, total_nw, sched_ctxs, -1.0);
+	unsigned tmp_sched_ctxs[STARPU_NMAX_SCHED_CTXS];
+	double tmp_flops[STARPU_NMAX_SCHED_CTXS];
+	double tmp_v[STARPU_NMAX_SCHED_CTXS][ntypes_of_workers];
+	double tmp_res[STARPU_NMAX_SCHED_CTXS][ntypes_of_workers];
+	int tmp_nsched_ctxs = 0;
+	for(i = 0; i < nsched_ctxs; i++)
+	{
+		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[i]);
+		if(config->max_nworkers != 0)
+		{
+			tmp_sched_ctxs[tmp_nsched_ctxs] = sched_ctxs[i];
+			tmp_flops[tmp_nsched_ctxs] = flops[i];
+			int w;
+			for(w = 0; w < ntypes_of_workers; w++)
+				tmp_v[tmp_nsched_ctxs][w] = v[i][w];
+			tmp_nsched_ctxs++;
+		}
+	}
+	
+	double ret = sc_hypervisor_lp_simulate_distrib_flops(tmp_nsched_ctxs, ntypes_of_workers, tmp_v, tmp_flops, tmp_res, total_nw, tmp_sched_ctxs, -1.0);
+
+	int j;
+	for(i = 0; i < nsched_ctxs; i++)
+	{
+		unsigned found = 0;
+		for(j = 0; j < tmp_nsched_ctxs; j++)
+		{
+			if(sched_ctxs[i] == tmp_sched_ctxs[j])
+			{
+				int w;
+				for(w = 0; w < ntypes_of_workers; w++)
+					res[i][w] = tmp_res[j][w];
+				found = 1;
+				break;
+			}
+		}
+		if(!found)
+		{
+			int w;
+			for(w = 0; w < ntypes_of_workers; w++)
+				res[i][w] = 0.0;
+		}
+	}
+
 	double vmax = 0.0;
 	if(ret != 0.0)
 	{
@@ -89,7 +132,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 			used_cpus += res[i][0];
 		}
 
-		if(used_cpus < 0.8 * total_nw[0])
+		if(used_cpus < 0.8 * total_nw[0] && nselected > 1)
 		{
 			double old_ret = ret;
 			
@@ -119,7 +162,6 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 						if(sched_ctxs[i] == selected_sched_ctxs[j])
 						{
 							res[i][0] = selected_res[j][0];
-							v[i][0] = selected_v[i][0];
 						}
 					}
 				}
