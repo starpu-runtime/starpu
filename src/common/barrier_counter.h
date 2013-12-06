@@ -42,4 +42,7 @@ int _starpu_barrier_counter_increment(struct _starpu_barrier_counter *barrier_c,
 
 int _starpu_barrier_counter_check(struct _starpu_barrier_counter *barrier_c);
 
+int _starpu_barrier_counter_get_reached_start(struct _starpu_barrier_counter *barrier_c);
+
+double _starpu_barrier_counter_get_reached_flops(struct _starpu_barrier_counter *barrier_c);
 #endif

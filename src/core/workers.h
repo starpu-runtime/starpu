@@ -88,6 +88,14 @@ struct _starpu_worker
 	/* in this case when removing him from a context it disapears instantly */
 	unsigned shares_tasks_lists[STARPU_NMAX_SCHED_CTXS];
 
+        /* boolean to chose the next ctx a worker will pop into */
+	unsigned poped_in_ctx[STARPU_NMAX_SCHED_CTXS];	  
+
+       /* boolean indicating at which moment we checked all ctxs and change phase for the booleab poped_in_ctx*/
+	unsigned reverse_phase;
+
+
+
 #ifdef __GLIBC__
 	cpu_set_t initial_cpu_set;
 	cpu_set_t current_cpu_set;

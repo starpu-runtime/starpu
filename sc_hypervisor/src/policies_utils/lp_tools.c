@@ -40,6 +40,9 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		int w;
 		for(w = 0; w < nw; w++)
 			v[i][w] = sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw)); 
+
+		double ready_flops = starpu_get_nready_flops_of_sched_ctx(sc_w->sched_ctx);
+		int nready_tasks = starpu_get_nready_tasks_of_sched_ctx(sc_w->sched_ctx);
 		
 		if(sc_w->to_be_sized)
 		{
@@ -49,17 +52,19 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		else
 		{
 			if(sc_w->remaining_flops < 0.0)
-				flops[i] = sc_w->ready_flops/1000000000.0; /* in gflops*/
+				flops[i] = ready_flops/1000000000.0; /* in gflops*/
 			else
 			{
-				if((sc_w->ready_flops/1000000000.0) <= 0.000002)
+				if((ready_flops/1000000000.0) <= 0.000002)
 					flops[i] = 0.0;
 				else
 					flops[i] = sc_w->remaining_flops/1000000000.0; /* in gflops*/
 			}
 		}
-/* 		printf("%d: flops %lf remaining flops %lf ready flops %lf nready_tasks %d\n", */
-/* 		       sched_ctxs[i], flops[i], sc_w->remaining_flops/1000000000, sc_w->ready_flops/1000000000, sc_w->nready_tasks); */
+		if(flops[i] < 0.0)
+			flops[i] = 0.0;
+		printf("%d: flops %lf remaining flops %lf ready flops %lf nready_tasks %d\n",
+		       sched_ctxs[i], flops[i], sc_w->remaining_flops/1000000000, ready_flops/1000000000, nready_tasks);
 
 	}
 
@@ -108,6 +113,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 	}
 
 	double vmax = 0.0;
+
 	if(ret != 0.0)
 	{
 		/* redo the lp after cleaning out the contexts that got all the max workers required */
@@ -591,7 +597,7 @@ void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns,
 				{
 					nworkers_to_add=1;
 					int old_start = start[w];
-					if(start[w] == nworkers)
+					if(start[w] != 0)
 						start[w]--;
 					int *workers_to_add = sc_hypervisor_get_idlest_workers_in_list(&start[w], workers, nworkers, &nworkers_to_add, arch);
 					start[w] = old_start;

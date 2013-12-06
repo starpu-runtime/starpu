@@ -360,7 +360,9 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	{
 		workerarg->removed_from_ctx[ctx] = 0;
 		workerarg->shares_tasks_lists[ctx] = 0;
+		workerarg->poped_in_ctx[ctx] = 0;
 	}
+	workerarg->reverse_phase = 0;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
