@@ -247,6 +247,8 @@ struct _starpu_machine_config
 
 	/* this flag is set until the application is finished submitting tasks */
 	unsigned submitting;
+
+	int watchdog_ok;
 };
 
 /* Fill conf with environment variables */
