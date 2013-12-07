@@ -71,9 +71,6 @@
 
 #define STARPU_PTHREAD_MUTEX_LOCK(mutex) do {				      \
 	int p_ret = starpu_pthread_mutex_lock(mutex);			      \
-	int workerid = starpu_worker_get_id();                                \
-	if(workerid != -1 && starpu_worker_mutex_is_sched_mutex(workerid, mutex)) \
-		starpu_worker_set_flag_sched_mutex_locked(workerid, 1);	      \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
 			"%s:%d starpu_pthread_mutex_lock: %s\n",               \
@@ -99,9 +96,6 @@ int _STARPU_PTHREAD_MUTEX_TRYLOCK(starpu_pthread_mutex_t *mutex, char *file, int
 
 #define STARPU_PTHREAD_MUTEX_UNLOCK(mutex) do {                               \
 	int p_ret = starpu_pthread_mutex_unlock(mutex);                        \
-	int workerid = starpu_worker_get_id();                                \
-	if(workerid != -1 && starpu_worker_mutex_is_sched_mutex(workerid, mutex)) \
-		starpu_worker_set_flag_sched_mutex_locked(workerid, 0);	      \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
 			"%s:%d starpu_pthread_mutex_unlock: %s\n",             \
