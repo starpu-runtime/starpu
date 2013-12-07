@@ -1770,10 +1770,8 @@ void _starpu_unlock_mutex_if_prev_locked()
 	if(workerid != -1)
 	{
 		struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
-		printf("got here but not locked\n");
 		if(w->sched_mutex_locked)
 		{
-			printf("unlock in decrement \n");
 			STARPU_PTHREAD_MUTEX_UNLOCK(&w->sched_mutex);
 			starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
 		}
