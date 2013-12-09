@@ -1,0 +1,273 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2013 Simon Archipoff
+ * Copyright (C) 2013 INRIA
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page HierarchicalScheduler Hierarchical Schedulers
+
+\section Introduction
+
+StarPU's Hierarchical Schedulers are made of individual Scheduling Components 
+hierarchically assembled as a Scheduling Tree. Each Scheduling Component has an 
+unique purpose, such as prioritizing tasks or mapping tasks over resources.
+A typical Scheduling Tree is shown below.
+
+<pre>
+                                  |
+              starpu_push_task    |
+                                  |
+                                  v
+                            Fifo_Component
+                                |  ^
+                                |  |        
+                                v  |
+                           Eager_Component
+                                |  ^
+                                |  |    
+                                v  |
+                 --------><--------------><--------
+                 |  ^                          |  ^
+                 |  |                          |  |        
+                 v  |                          v  |
+             Fifo_Component                 Fifo_Component
+                 |  ^                          |  ^
+                 |  |                          |  |        
+                 v  |                          v  |
+            Worker_Component               Worker_Component
+</pre>
+
+When a task is pushed by StarPU in a Hierarchical Scheduler, the task moves from
+a Scheduling Component to an other, following the hierarchy of the
+Scheduling Tree, and is stored in one of the Scheduling Components of the 
+strategy.
+When a worker wants to pop a task from the Hierarchical Scheduler, the
+corresponding Worker Component of the Scheduling Tree tries to pull a task from 
+its fathers, following the hierarchy, and gives it to the worker if it succeded 
+to get one.
+
+
+\section UsingHierarchicalSchedulers Using Hierarchical Schedulers
+
+\subsection ExistingHierarchicalSchedulers Existing Hierarchical Schedulers
+
+StarPU is currently shipped with the following pre-defined Hierarchical 
+Schedulers :
+
+- Eager-based Schedulers (with/without prefetching) : \n
+Naive scheduler, which tries to map a task on the first available resource
+it finds.
+	- tree-eager
+	- tree-eager-prefetching
+
+- Prio-based Schedulers (with/without prefetching) : \n
+Similar to Eager-Based Schedulers. Can handle tasks which have a defined 
+priority and schedule them accordingly.
+	- tree-prio
+	- tree-prio-prefetching
+
+- Random-based Schedulers (with/without prefetching) : \n
+Selects randomly a resource to be mapped on for each task. 
+	- With fifos :
+		- tree-random
+		- tree-random-prefetching
+	- With prios :
+		- tree-random-prio
+		- tree-random-prio-prefetching
+
+- HEFT Scheduler : \n
+Heterogeneous Earliest Finish Time Scheduler.
+This scheduler needs that every task submitted to StarPU have a
+defined performance model (\ref PerformanceModelCalibration)
+to work efficiently, but can handle tasks without a performance
+model.
+	- tree-heft
+
+
+\subsection ExampleTreeEagerPrefetchingStrategy An Example : The Tree-Eager-Prefetching Strategy
+
+<pre>
+                                 |
+             starpu_push_task    |
+                                 |
+                                 v
+                           Fifo_Component
+                                |  ^
+                        Push    |  |    Can_Push
+                                v  |
+                          Eager_Component
+                                |  ^
+                                |  |    
+                                v  |
+              --------><-------------------><---------
+              |  ^                                |  ^
+      Push    |  |    Can_Push            Push    |  |    Can_Push
+              v  |                                v  |
+         Fifo_Component                       Fifo_Component
+              |  ^                                |  ^
+      Pull    |  |    Can_Pull            Pull    |  |    Can_Pull
+              v  |                                v  |
+        Worker_Component                     Worker_Component
+</pre>
+
+\subsection Interface
+
+Each Scheduling Component must follow the following pre-defined Interface 
+to be able to interact with other Scheduling Components.
+
+	- Push (Caller_Component, Child_Component, Task) \n
+	The calling Scheduling Component transfers a task to its 
+	Child Component. When the Push function returns, the task no longer 
+	belongs to the calling Component. The Hierarchical Schedulers' 
+	model relies on this function to perform prefetching.
+
+	- Pull (Caller_Component, Parent_Component) -> Task \n
+	The calling Scheduling Component requests a task from
+	its Parent Component. When the Pull function ends, the returned 
+	task belongs to the calling Component.
+
+	- Can_Push (Caller_Component, Parent_Component) \n
+	The calling Scheduling Component notifies its Parent Component that 
+	it is ready to accept new tasks.
+
+	- Can_Pull (Caller_Component, Child_Component) \n
+	The calling Scheduling Component notifies its Child Component
+	that it is ready to give new tasks.
+
+
+\section BuildAHierarchicalScheduler Build a Hierarchical Scheduler
+
+\subsection PreImplementedComponents Pre-implemented Components
+
+StarPU is currently shipped with the following four Scheduling Components : 
+
+	- Flow-control Components : 
+	Those Components store tasks. They can also prioritize them if
+	they have a defined priority.
+		- Fifo, Prio
+
+	- Resource-Mapping Components : 
+	"Core" of the Scheduling Strategy, those Components are the
+	ones who make scheduling choices.
+		- Mct, Eager, Random, Work-Stealing
+
+	- Worker Components :
+	Each Worker Component modelize a concrete worker.
+		- Worker
+
+	- Special-Purpose Components :
+	Components dedicated to original purposes. The Perfmodel_Select 
+	Component decides which Resource-Mapping Component should be used to 
+	schedule a task. The Best_Implementation Component chooses which
+	implementation of a task should be used on the choosen resource.
+		- Perfmodel_Select, Best_Implementation
+
+\subsection ProgressionAndValidationRules Progression And Validation Rules
+
+Some rules must be followed to ensure the correctness of a Hierarchical 
+Scheduler :
+
+	- At least one Flow-control Component per Worker Component is needed in 
+	a Hierarchical Scheduler, to store incoming tasks from StarPU and to 
+	give tasks to Worker Components who asks for it. It is possible to use 
+	one Flow-control Component per Worker Component, or one for all Worker
+	Components, depending on how the Scheduling Tree is defined.
+
+	- At least one Resource-Mapping Component is needed in a Hierarchical
+	Scheduler. Resource-Mapping Components are the only ones who can make
+	scheduling choices, and so the only ones who can have several child.
+
+\subsection ImplementAHierarchicalScheduler Implement a Hierarchical Scheduler
+
+The following code present how the Tree-Eager-Prefetching Scheduler
+shown in Section \ref ExampleTreeEagerPrefetchingStrategy is implemented :
+
+\code{.c}
+static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
+{
+	unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
+	double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
+
+	[...]
+
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+
+	/* Creating the Scheduling Tree */
+	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
+
+	/* The Root Component is a Flow-control Fifo Component */
+ 	t->root = starpu_sched_component_fifo_create(NULL);
+
+	/* The Resource-mapping Component of the strategy is an Eager Component */
+	struct starpu_sched_component * eager_component = starpu_sched_component_eager_create(NULL);
+
+	/* Creating links between Components : the Eager Component is the child
+	 * of the Root Component */
+	t->root->add_child(t->root, eager_component);
+	eager_component->add_father(eager_component, t->root);
+
+	/* It is possible to define thresholds following several criterias for 
+	 * Flow-control Components : this will be explained further in Section 4.1°) 
+	 */
+	struct starpu_fifo_data fifo_data =
+		{
+			.ntasks_threshold = ntasks_threshold,
+			.exp_len_threshold = exp_len_threshold,
+		};
+
+	unsigned i;
+	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count() ; i++)
+	{
+		/* Each Worker Component has a Flow-control Fifo Component as father */
+		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(i);
+
+		struct starpu_sched_component * fifo_component = starpu_sched_component_fifo_create(&fifo_data);
+		fifo_component->add_child(fifo_component, worker_component);
+		worker_component->add_father(worker_component, fifo_component);
+
+		/* Each Flow-control Fifo Component associated to a Worker Component
+		 * is linked to the Eager Component as one of its children */
+		eager_component->add_child(eager_component, fifo_component);
+		fifo_component->add_father(fifo_component, eager_component);
+	}
+
+	starpu_sched_tree_update_workers(t);
+	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
+}
+
+/* Properly destroy the Scheduling Tree and all its Components */
+static void deinitialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
+{
+	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	starpu_sched_tree_destroy(tree);
+	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
+}
+
+/* Initializing the starpu_sched_policy struct associated to the Hierarchical
+ * Scheduler : only the init_sched and deinit_sched needs to be defined to
+ * implement a Hierarchical Scheduler */
+struct starpu_sched_policy _starpu_sched_tree_eager_prefetching_policy =
+{
+	.init_sched = initialize_eager_prefetching_center_policy,
+	.deinit_sched = deinitialize_eager_prefetching_center_policy,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	.pop_every_task = NULL,
+	.policy_name = "tree-eager-prefetching",
+	.policy_description = "eager with prefetching tree policy"
+};
+\endcode
+
+\section WriteASchedulingComponent Write a Scheduling Component
+
+\subsection SchedulingComponentsProgressionAndValidationRules Scheduling Components : Progression and Validation Rules by Type
+\subsection GenericComponentsInstanciation Generic Components' instanciation
+
+
+*/
+

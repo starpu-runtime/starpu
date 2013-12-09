@@ -31,7 +31,7 @@
 \file starpu_profiling.h
 \file starpu_bound.h
 \file starpu_scheduler.h
-\file starpu_sched_node.h
+\file starpu_sched_component.h
 \file starpu_sched_ctx.h
 \file starpu_sched_ctx_hypervisor.h
 \file starpu_top.h
