@@ -463,20 +463,8 @@ struct starpu_task * simple_worker_pop_task(struct starpu_sched_component *compo
 	}
 	STARPU_PTHREAD_MUTEX_LOCK(&data->lock);
 	int i;
-	_starpu_sched_component_worker_reset_status(component);
-	for(i=0; i < component->nfathers; i++)
-	{
-		if(component->fathers[i] == NULL)
-			continue;
-		else
-		{
-			task = component->fathers[i]->pop_task(component->fathers[i]);
-			if(task)
-				break;
-		}
-	}
-	if((!task) && _starpu_sched_component_worker_is_changed_status(component))
-	{
+	do {
+		_starpu_sched_component_worker_reset_status(component);
 		for(i=0; i < component->nfathers; i++)
 		{
 			if(component->fathers[i] == NULL)
@@ -488,8 +476,7 @@ struct starpu_task * simple_worker_pop_task(struct starpu_sched_component *compo
 					break;
 			}
 		}
-		STARPU_ASSERT(task);
-	}
+	} while((!task) && _starpu_sched_component_worker_is_changed_status(component));
 	_starpu_sched_component_worker_set_sleep_status(component);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->lock);
 	if(!task)
