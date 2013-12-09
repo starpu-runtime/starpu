@@ -21,6 +21,7 @@ void _starpu_sched_ctx_list_init(struct _starpu_sched_ctx_list *list)
 {
 	list->next = NULL;
 	list->sched_ctx = STARPU_NMAX_SCHED_CTXS;
+	list->priority = 1;
 }
 
 void _starpu_sched_ctx_list_add(struct _starpu_sched_ctx_list **list, unsigned sched_ctx)
@@ -31,6 +32,7 @@ void _starpu_sched_ctx_list_add(struct _starpu_sched_ctx_list **list, unsigned s
 	{
 		struct _starpu_sched_ctx_list *l = (struct _starpu_sched_ctx_list*)malloc(sizeof(struct _starpu_sched_ctx_list));
 		l->sched_ctx = sched_ctx;
+		l->priority = 1;
 		l->next = *list;
 		*list = l;
 	}

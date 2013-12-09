@@ -58,6 +58,12 @@ int my_distrib(int x, int y, int nb_nodes)
 	return ((int)(x / sqrt(nb_nodes) + (y / sqrt(nb_nodes)) * sqrt(nb_nodes))) % nb_nodes;
 }
 
+/* Shifted distribution, for migration example */
+int my_distrib2(int x, int y, int nb_nodes)
+{
+	return (my_distrib(x, y, nb_nodes) + 1) % nb_nodes;
+}
+
 
 static void parse_args(int argc, char **argv)
 {
@@ -91,6 +97,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
+	/* Initial data values */
 	for(x = 0; x < X; x++)
 	{
 		for (y = 0; y < Y; y++)
@@ -102,6 +109,7 @@ int main(int argc, char **argv)
 	}
 	mean /= value;
 
+	/* Initial distribution */
 	for(x = 0; x < X; x++)
 	{
 		for (y = 0; y < Y; y++)
@@ -132,6 +140,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+	/* First computation with initial distribution */
 	for(loop=0 ; loop<niter; loop++)
 	{
 		for (x = 1; x < X-1; x++)
@@ -148,12 +157,61 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "Waiting ...\n");
 	starpu_task_wait_for_all();
 
+	/* Now migrate data to a new distribution */
+
+	/* First register newly needed data */
+	for(x = 0; x < X; x++)
+	{
+		for (y = 0; y < Y; y++)
+		{
+			int mpi_rank = my_distrib2(x, y, size);
+			if (!data_handles[x][y] && (mpi_rank == my_rank
+				 || my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
+				 || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size)))
+			{
+				/* Register newly-needed data */
+				starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
+			}
+			if (data_handles[x][y] && mpi_rank != starpu_data_get_rank(data_handles[x][y]))
+			{
+				/* Migrate the data */
+				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
+				/* And register new rank of the matrix */
+				starpu_data_set_rank(data_handles[x][y], mpi_rank);
+			}
+		}
+	}
+
+	/* Second computation with new distribution */
+	for(loop=0 ; loop<niter; loop++)
+	{
+		for (x = 1; x < X-1; x++)
+		{
+			for (y = 1; y < Y-1; y++)
+			{
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &stencil5_cl, STARPU_RW, data_handles[x][y],
+						       STARPU_R, data_handles[x-1][y], STARPU_R, data_handles[x+1][y],
+						       STARPU_R, data_handles[x][y-1], STARPU_R, data_handles[x][y+1],
+						       0);
+			}
+		}
+	}
+	FPRINTF(stderr, "Waiting ...\n");
+	starpu_task_wait_for_all();
+
+	/* Unregister data */
 	for(x = 0; x < X; x++)
 	{
 		for (y = 0; y < Y; y++)
 		{
 			if (data_handles[x][y])
 			{
+				int mpi_rank = my_distrib(x, y, size);
+				/* Get back data to original place where the user-provided buffer is. */
+				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
+				/* Register original rank of the matrix (although useless) */
+				starpu_data_set_rank(data_handles[x][y], mpi_rank);
+				/* And unregister it */
 				starpu_data_unregister(data_handles[x][y]);
 			}
 		}

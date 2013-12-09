@@ -444,7 +444,10 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 		workerarg->shares_tasks_lists[ctx] = 0;
 		workerarg->poped_in_ctx[ctx] = 0;
 	}
-	workerarg->reverse_phase = 0;
+	workerarg->reverse_phase[0] = 0;
+	workerarg->reverse_phase[1] = 0;
+	workerarg->pop_ctx_priority = 1;
+	workerarg->sched_mutex_locked = 0;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
@@ -1759,4 +1762,43 @@ void starpu_get_version(int *major, int *minor, int *release)
 	*major = STARPU_MAJOR_VERSION;
 	*minor = STARPU_MINOR_VERSION;
 	*release = STARPU_RELEASE_VERSION;
+}
+
+void _starpu_unlock_mutex_if_prev_locked()
+{
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1)
+	{
+		struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+		if(w->sched_mutex_locked)
+		{
+			STARPU_PTHREAD_MUTEX_UNLOCK(&w->sched_mutex);
+			starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
+		}
+	}
+	return;
+}
+
+void _starpu_relock_mutex_if_prev_locked()
+{
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1)
+	{
+		struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+		if(w->sched_mutex_locked)
+			STARPU_PTHREAD_MUTEX_LOCK(&w->sched_mutex);
+	}
+	return;
+}
+
+void starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag)
+{
+	struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+	w->sched_mutex_locked = flag;
+}
+
+unsigned starpu_worker_mutex_is_sched_mutex(int workerid, pthread_mutex_t *mutex)
+{
+	struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+	return &w->sched_mutex == mutex;
 }

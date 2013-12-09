@@ -40,22 +40,6 @@ New features:
     handle (sequential consistency will be enabled or disabled based
     on the value of the function parameter and the value of the
     sequential consistency defined for the given data)
-  * Performance models files are now stored in a directory whose name
-    include the version of the performance model format. The version
-    number is also written in the file itself.
-    When updating the format, the internal variable
-    _STARPU_PERFMODEL_VERSION should be updated. It is then possible
-    to switch easily between differents versions of StarPU having
-    different performance model formats.
-  * Tasks can now define a optional prologue callback which is executed
-    on the host when the task becomes ready for execution, before getting
-    scheduled.
-  * Small CUDA allocations (<= 4MiB) are now batched to avoid the huge
-    cudaMalloc overhead.
-  * Prefetching is now done for all schedulers when it can be done whatever
-    the scheduling decision.
-  * Add a watchdog which permits to easily trigger a crash when StarPU gets
-    stuck.
   * New hierarchical schedulers which allow the user to easily build
     its own scheduler, by coding itself each "box" it wants, or by
     combining existing boxes in StarPU to build it. Hierarchical
@@ -199,6 +183,23 @@ New features:
     the Simgrid StarPU features should use it.
   * Allow to have a dynamically allocated number of buffers per task,
     and so overwrite the value defined --enable-maxbuffers=XXX
+  * Performance models files are now stored in a directory whose name
+    include the version of the performance model format. The version
+    number is also written in the file itself.
+    When updating the format, the internal variable
+    _STARPU_PERFMODEL_VERSION should be updated. It is then possible
+    to switch easily between differents versions of StarPU having
+    different performance model formats.
+  * Tasks can now define a optional prologue callback which is executed
+    on the host when the task becomes ready for execution, before getting
+    scheduled.
+  * Small CUDA allocations (<= 4MiB) are now batched to avoid the huge
+    cudaMalloc overhead.
+  * Prefetching is now done for all schedulers when it can be done whatever
+    the scheduling decision.
+  * Add a watchdog which permits to easily trigger a crash when StarPU gets
+    stuck.
+  * Document how to migrate data over MPI.
 
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid

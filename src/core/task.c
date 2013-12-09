@@ -199,7 +199,7 @@ int starpu_task_wait(struct starpu_task *task)
 
 	if (task->detach || task->synchronous)
 	{
-		_STARPU_DEBUG("Task is detached or asynchronous. Waiting returns immediately\n");
+		_STARPU_DEBUG("Task is detached or synchronous. Waiting returns immediately\n");
 		_STARPU_LOG_OUT_TAG("einval");
 		return -EINVAL;
 	}

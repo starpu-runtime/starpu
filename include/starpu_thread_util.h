@@ -69,8 +69,8 @@
 	}                                                                      \
 } while(0)
 
-#define STARPU_PTHREAD_MUTEX_LOCK(mutex) do {                                 \
-	int p_ret = starpu_pthread_mutex_lock(mutex);                          \
+#define STARPU_PTHREAD_MUTEX_LOCK(mutex) do {				      \
+	int p_ret = starpu_pthread_mutex_lock(mutex);			      \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
 			"%s:%d starpu_pthread_mutex_lock: %s\n",               \

@@ -223,6 +223,7 @@ int main(int argc, char **argv)
 		starpu_shutdown();
 
 		FPRINTF(stdout, "\n");
+		fflush(stdout);
 	}
 
 	free(tasks);

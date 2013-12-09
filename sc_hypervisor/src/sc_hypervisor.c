@@ -586,6 +586,7 @@ void sc_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworke
 			printf(" %d", workers_to_add[j]);
 		printf("\n");
 		starpu_sched_ctx_add_workers(workers_to_add, nworkers_to_add, sched_ctx);
+		starpu_sched_ctx_set_priority(workers_to_add, nworkers_to_add, sched_ctx, 1);
 		struct sc_hypervisor_policy_config *new_config = sc_hypervisor_get_config(sched_ctx);
 		unsigned i;
 		for(i = 0; i < nworkers_to_add; i++)
@@ -945,6 +946,25 @@ static void notify_pushed_task(unsigned sched_ctx, int worker)
 		hypervisor.policy.handle_pushed_task(sched_ctx, worker);
 }
 
+unsigned choose_ctx_to_steal(int worker)
+{
+	int j;
+	int ns = hypervisor.nsched_ctxs;
+	int max_ready_tasks = 0;
+	unsigned chosen_ctx = STARPU_NMAX_SCHED_CTXS;
+	for(j = 0; j < ns; j++)
+	{
+		unsigned other_ctx = hypervisor.sched_ctxs[j];
+		int nready = starpu_get_nready_tasks_of_sched_ctx(other_ctx);
+		if(!starpu_sched_ctx_contains_worker(worker, other_ctx) && max_ready_tasks < nready)
+		{
+			max_ready_tasks = nready;
+			chosen_ctx = other_ctx;
+		}
+	}
+	return chosen_ctx;
+}
+
 /* notifies the hypervisor that the worker spent another cycle in idle time */
 static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time)
 {
@@ -969,7 +989,33 @@ static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time)
 		{
 			if(sc_hypervisor_check_idle(sched_ctx, worker))
 			{
-				hypervisor.policy.handle_idle_cycle(sched_ctx, worker);
+				int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
+				if(ret != EBUSY)
+				{
+					int j;
+					int ns = hypervisor.nsched_ctxs;
+					unsigned idle_everywhere = 1;
+					for(j = 0; j < ns; j++)
+					{
+						if(starpu_sched_ctx_contains_worker(worker, hypervisor.sched_ctxs[j]))
+						{
+							if(!sc_hypervisor_check_idle(hypervisor.sched_ctxs[j], worker))
+								idle_everywhere = 0;
+						}
+					}
+					if(idle_everywhere)
+					{
+						unsigned other_ctx = choose_ctx_to_steal(worker);
+						if(other_ctx != STARPU_NMAX_SCHED_CTXS)
+						{
+							sc_hypervisor_add_workers_to_sched_ctx(&worker, 1, other_ctx);
+							starpu_sched_ctx_set_priority(&worker, 1, other_ctx, 0);
+							_sc_hypervisor_allow_compute_idle(other_ctx, worker, 0);
+						}
+					}
+					starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
+				}
+//				hypervisor.policy.handle_idle_cycle(sched_ctx, worker);
 			}
 		}
 	}
