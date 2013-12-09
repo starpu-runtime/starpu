@@ -492,8 +492,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	pconfig->submitting = 1;
 	STARPU_HG_DISABLE_CHECKING(pconfig->watchdog_ok);
 
-	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
-
 	unsigned nworkers = pconfig->topology.nworkers;
 
 	/* Launch workers asynchronously */
@@ -1036,11 +1034,12 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	for (worker = 0; worker < config.topology.nworkers; worker++)
 		_starpu_worker_init(&config.workers[worker], &config);
 
+	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
+
 	if (!is_a_sink)
 	{
 		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
 		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", 0, 0, 0, 0);
-
 	}
 
 	_starpu_initialize_registered_performance_models();
