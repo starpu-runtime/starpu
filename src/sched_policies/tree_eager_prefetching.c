@@ -42,7 +42,7 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
  	t->root = starpu_sched_component_fifo_create(NULL);
 	struct starpu_sched_component * eager_component = starpu_sched_component_eager_create(NULL);
 	t->root->add_child(t->root, eager_component);
-	eager_component->add_father(eager_component, t->root);
+	eager_component->add_parent(eager_component, t->root);
 
 	struct starpu_fifo_data fifo_data =
 		{
@@ -58,10 +58,10 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 
 		struct starpu_sched_component * fifo_component = starpu_sched_component_fifo_create(&fifo_data);
 		fifo_component->add_child(fifo_component, worker_component);
-		worker_component->add_father(worker_component, fifo_component);
+		worker_component->add_parent(worker_component, fifo_component);
 
 		eager_component->add_child(eager_component, fifo_component);
-		fifo_component->add_father(fifo_component, eager_component);
+		fifo_component->add_parent(fifo_component, eager_component);
 	}
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);

@@ -465,13 +465,13 @@ struct starpu_task * simple_worker_pop_task(struct starpu_sched_component *compo
 	int i;
 	do {
 		_starpu_sched_component_worker_reset_status(component);
-		for(i=0; i < component->nfathers; i++)
+		for(i=0; i < component->nparents; i++)
 		{
-			if(component->fathers[i] == NULL)
+			if(component->parents[i] == NULL)
 				continue;
 			else
 			{
-				task = component->fathers[i]->pop_task(component->fathers[i]);
+				task = component->parents[i]->pop_task(component->parents[i]);
 				if(task)
 					break;
 			}
@@ -506,7 +506,7 @@ void starpu_sched_component_worker_destroy(struct starpu_sched_component *compon
 	assert(_worker_components[id] == component);
 	int i;
 	for(i = 0; i < STARPU_NMAX_SCHED_CTXS ; i++)
-		if(component->fathers[i] != NULL)
+		if(component->parents[i] != NULL)
 			return;//this component is shared between several contexts
 	starpu_sched_component_destroy(component);
 	_worker_components[id] = NULL;

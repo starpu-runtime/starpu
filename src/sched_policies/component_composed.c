@@ -110,7 +110,7 @@ struct composed_component create_composed_component(struct starpu_sched_componen
 		 */
 		unsigned j;
 		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-			component->add_father(component, c.bottom);
+			component->add_parent(component, c.bottom);
 		c.bottom = component;
 	}
 	STARPU_ASSERT(!starpu_sched_component_is_worker(c.bottom));
@@ -133,13 +133,13 @@ struct starpu_task * composed_component_pop_task(struct starpu_sched_component *
 		return task;
 
 	int i;
-	for(i=0; i < component->nfathers; i++)
+	for(i=0; i < component->nparents; i++)
 	{
-		if(component->fathers[i] == NULL)
+		if(component->parents[i] == NULL)
 			continue;
 		else
 		{
-			task = component->fathers[i]->pop_task(component->fathers[i]);
+			task = component->parents[i]->pop_task(component->parents[i]);
 			if(task)
 				break;
 		}
@@ -219,8 +219,8 @@ struct starpu_sched_component * starpu_sched_component_composed_component_create
 );
 	c->bottom->nchildren = component->nchildren;
 	c->bottom->children = component->children;
-	c->bottom->nfathers = component->nfathers;
-	c->bottom->fathers = component->fathers;
+	c->bottom->nparents = component->nparents;
+	c->bottom->parents = component->parents;
 
 	component->data = c;
 	component->push_task = composed_component_push_task;

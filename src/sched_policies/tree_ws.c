@@ -31,7 +31,7 @@ static void initialize_ws_center_policy(unsigned sched_ctx_id)
 		STARPU_ASSERT(worker_component);
 
 		t->root->add_child(t->root, worker_component);
-		worker_component->add_father(worker_component, t->root);
+		worker_component->add_parent(worker_component, t->root);
 	}
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);

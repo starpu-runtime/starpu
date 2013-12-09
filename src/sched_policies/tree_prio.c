@@ -24,7 +24,7 @@ static void initialize_prio_center_policy(unsigned sched_ctx_id)
  	t->root = starpu_sched_component_prio_create(NULL);
 	struct starpu_sched_component * eager_component = starpu_sched_component_eager_create(NULL);
 	t->root->add_child(t->root, eager_component);
-	eager_component->add_father(eager_component, t->root);
+	eager_component->add_parent(eager_component, t->root);
 
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
@@ -33,7 +33,7 @@ static void initialize_prio_center_policy(unsigned sched_ctx_id)
 		STARPU_ASSERT(worker_component);
 
 		eager_component->add_child(eager_component, worker_component);
-		worker_component->add_father(worker_component, eager_component);
+		worker_component->add_parent(worker_component, eager_component);
 	}
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);

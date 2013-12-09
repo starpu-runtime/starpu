@@ -25,20 +25,20 @@
 #include "sched_component.h"
 
 /* default implementation for component->pop_task()
- * just perform a recursive call on father
+ * just perform a recursive call on parent
  */
 static struct starpu_task * pop_task_component(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component);
 	struct starpu_task * task = NULL;
 	int i;
-	for(i=0; i < component->nfathers; i++)
+	for(i=0; i < component->nparents; i++)
 	{
-		if(component->fathers[i] == NULL)
+		if(component->parents[i] == NULL)
 			continue;
 		else
 		{
-			task = component->fathers[i]->pop_task(component->fathers[i]);
+			task = component->parents[i]->pop_task(component->parents[i]);
 			if(task)
 				break;
 		}
@@ -183,29 +183,29 @@ static void starpu_sched_component_remove_child(struct starpu_sched_component * 
 	component->children[pos] = component->children[--component->nchildren];
 }
 
-static void starpu_sched_component_add_father(struct starpu_sched_component* component, struct starpu_sched_component * father)
+static void starpu_sched_component_add_parent(struct starpu_sched_component* component, struct starpu_sched_component * parent)
 {
-	STARPU_ASSERT(component && father);
+	STARPU_ASSERT(component && parent);
 	int i;
-	for(i = 0; i < component->nfathers; i++){
-		STARPU_ASSERT(component->fathers[i] != component);
-		STARPU_ASSERT(component->fathers[i] != NULL);
+	for(i = 0; i < component->nparents; i++){
+		STARPU_ASSERT(component->parents[i] != component);
+		STARPU_ASSERT(component->parents[i] != NULL);
 	}
 
-	component->fathers = realloc(component->fathers, sizeof(struct starpu_sched_component *) * (component->nfathers + 1));
-	component->fathers[component->nfathers] = father;
-	component->nfathers++;
+	component->parents = realloc(component->parents, sizeof(struct starpu_sched_component *) * (component->nparents + 1));
+	component->parents[component->nparents] = parent;
+	component->nparents++;
 }
 
-static void starpu_sched_component_remove_father(struct starpu_sched_component * component, struct starpu_sched_component * father)
+static void starpu_sched_component_remove_parent(struct starpu_sched_component * component, struct starpu_sched_component * parent)
 {
-	STARPU_ASSERT(component && father);
+	STARPU_ASSERT(component && parent);
 	int pos;
-	for(pos = 0; pos < component->nfathers; pos++)
-		if(component->fathers[pos] == father)
+	for(pos = 0; pos < component->nparents; pos++)
+		if(component->parents[pos] == parent)
 			break;
-	STARPU_ASSERT(pos != component->nfathers);
-	component->fathers[pos] = component->fathers[--component->nfathers];
+	STARPU_ASSERT(pos != component->nparents);
+	component->parents[pos] = component->parents[--component->nparents];
 }
 
 struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id)
@@ -371,7 +371,7 @@ void starpu_sched_component_prefetch_on_node(struct starpu_sched_component * com
 	}
 }
 
-/* The default implementation of the can_push function is a recursive call to its fathers.
+/* The default implementation of the can_push function is a recursive call to its parents.
  * A personally-made can_push in a component (like in prio components) is necessary to catch
  * this recursive call somewhere, if the user wants to exploit it.
  */
@@ -379,14 +379,14 @@ static int starpu_sched_component_can_push(struct starpu_sched_component * compo
 {
 	STARPU_ASSERT(component);
 	int ret = 0;
-	if(component->nfathers > 0)
+	if(component->nparents > 0)
 	{
 		int i;
-		for(i=0; i < component->nfathers; i++)
+		for(i=0; i < component->nparents; i++)
 		{
-			struct starpu_sched_component * father = component->fathers[i];
-			if(father != NULL)
-				ret = father->can_push(father);
+			struct starpu_sched_component * parent = component->parents[i];
+			if(parent != NULL)
+				ret = parent->can_push(parent);
 			if(ret)
 				break;
 		}
@@ -443,8 +443,8 @@ struct starpu_sched_component * starpu_sched_component_create(void)
 	component->workers_in_ctx = starpu_bitmap_create();
 	component->add_child = starpu_sched_component_add_child;
 	component->remove_child = starpu_sched_component_remove_child;
-	component->add_father = starpu_sched_component_add_father;
-	component->remove_father = starpu_sched_component_remove_father;
+	component->add_parent = starpu_sched_component_add_parent;
+	component->remove_parent = starpu_sched_component_remove_parent;
 	component->pop_task = pop_task_component;
 	component->can_push = starpu_sched_component_can_push;
 	component->can_pull = starpu_sched_component_can_pull;
@@ -456,7 +456,7 @@ struct starpu_sched_component * starpu_sched_component_create(void)
 }
 
 /* remove all child
- * for all child of component, if child->fathers[x] == component, set child->fathers[x] to null 
+ * for all child of component, if child->parents[x] == component, set child->parents[x] to null 
  * call component->deinit_data
  */
 void starpu_sched_component_destroy(struct starpu_sched_component *component)
@@ -468,26 +468,26 @@ void starpu_sched_component_destroy(struct starpu_sched_component *component)
 	for(i = 0; i < component->nchildren; i++)
 	{
 		struct starpu_sched_component * child = component->children[i];
-		for(j = 0; j < child->nfathers; j++)
-			if(child->fathers[j] == component)
-				child->remove_father(child,component);
+		for(j = 0; j < child->nparents; j++)
+			if(child->parents[j] == component)
+				child->remove_parent(child,component);
 
 	}
 	while(component->nchildren != 0)
 		component->remove_child(component, component->children[0]);
-	for(i = 0; i < component->nfathers; i++)
+	for(i = 0; i < component->nparents; i++)
 	{
-		struct starpu_sched_component * father = component->fathers[i];
-		for(j = 0; j < father->nchildren; j++)
-			if(father->children[j] == component)
-				father->remove_child(father,component);
+		struct starpu_sched_component * parent = component->parents[i];
+		for(j = 0; j < parent->nchildren; j++)
+			if(parent->children[j] == component)
+				parent->remove_child(parent,component);
 
 	}
-	while(component->nfathers != 0)
-		component->remove_father(component, component->fathers[0]);
+	while(component->nparents != 0)
+		component->remove_parent(component, component->parents[0]);
 	component->deinit_data(component);
 	free(component->children);
-	free(component->fathers);
+	free(component->parents);
 	starpu_bitmap_destroy(component->workers);
 	starpu_bitmap_destroy(component->workers_in_ctx);
 	free(component);
@@ -555,7 +555,7 @@ void _starpu_sched_component_update_workers_in_ctx(struct starpu_sched_component
 		struct starpu_sched_component * child = component->children[i];
 		_starpu_sched_component_update_workers_in_ctx(child, sched_ctx_id);
 		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
-			if(child->fathers[j] == component)
+			if(child->parents[j] == component)
 			{
 				starpu_bitmap_or(component->workers_in_ctx, child->workers_in_ctx);
 				break;

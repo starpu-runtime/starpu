@@ -57,7 +57,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 
 	/* If no suitable components were found, it means that the perfmodel of
 	 * the task had been purged since it has been pushed on the mct component.
-	 * We should send a push_fail message to its father so that it will
+	 * We should send a push_fail message to its parent so that it will
 	 * be able to reschedule the task properly. */
 	if(nsuitable_components == 0)
 		return 1;
@@ -86,7 +86,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 
 	/* If no best component is found, it means that the perfmodel of
 	 * the task had been purged since it has been pushed on the mct component.
-	 * We should send a push_fail message to its father so that it will
+	 * We should send a push_fail message to its parent so that it will
 	 * be able to reschedule the task properly. */
 	if(best_icomponent == -1)
 		return 1;

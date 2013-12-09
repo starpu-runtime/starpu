@@ -155,13 +155,13 @@ static struct starpu_task * pop_task(struct starpu_sched_component * component)
 
 		return task;
 	}
-	for(i=0; i < component->nfathers; i++)
+	for(i=0; i < component->nparents; i++)
 	{
-		if(component->fathers[i] == NULL)
+		if(component->parents[i] == NULL)
 			continue;
 		else
 		{
-			task = component->fathers[i]->pop_task(component->fathers[i]);
+			task = component->parents[i]->pop_task(component->parents[i]);
 			if(task)
 				break;
 		}
@@ -243,9 +243,9 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_sched_component * component =starpu_sched_component_worker_get(workerid);
-	while(component->fathers[sched_ctx_id] != NULL)
+	while(component->parents[sched_ctx_id] != NULL)
 	{
-		component = component->fathers[sched_ctx_id];
+		component = component->parents[sched_ctx_id];
 		if(starpu_sched_component_is_work_stealing(component))
 		{
 			if(!starpu_sched_component_can_execute_task(component, task))

@@ -185,13 +185,13 @@ static struct starpu_task * fifo_pop_task(struct starpu_sched_component * compon
 	// When a pop is called, a can_push is called for pushing tasks onto
 	// the empty place of the queue left by the popped task.
 	int i,ret;
-	for(i=0; i < component->nfathers; i++)
+	for(i=0; i < component->nparents; i++)
 	{
-		if(component->fathers[i] == NULL)
+		if(component->parents[i] == NULL)
 			continue;
 		else
 		{
-			ret = component->fathers[i]->can_push(component->fathers[i]);
+			ret = component->parents[i]->can_push(component->parents[i]);
 			if(ret)
 				break;
 		}

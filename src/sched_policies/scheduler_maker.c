@@ -92,7 +92,7 @@ static struct sched_component_list helper_make_scheduler(hwloc_obj_t obj, struct
 	for(i = 0; i < l.size; i++)
 	{
 		component->add_child(component, l.arr[i]);
-		starpu_sched_component_add_father(l.arr[i],component);
+		starpu_sched_component_add_parent(l.arr[i],component);
 	}
 	destroy_list(&l);
 	init_list(&l);
@@ -158,26 +158,26 @@ static struct starpu_sched_component * find_mem_component(struct starpu_sched_co
 static struct starpu_sched_component * where_should_we_plug_this(struct starpu_sched_component *root, struct starpu_sched_component * worker_component, struct starpu_sched_specs specs, unsigned sched_ctx_id)
 {
 	struct starpu_sched_component * mem = find_mem_component(root ,worker_component);
-	if(specs.mix_heterogeneous_workers || mem->fathers[sched_ctx_id] == NULL)
+	if(specs.mix_heterogeneous_workers || mem->parents[sched_ctx_id] == NULL)
 		return mem;
 	hwloc_obj_t obj = mem->obj;
-	struct starpu_sched_component * father = mem->fathers[sched_ctx_id];
+	struct starpu_sched_component * parent = mem->parents[sched_ctx_id];
 	int i;
-	for(i = 0; i < father->nchildren; i++)
+	for(i = 0; i < parent->nchildren; i++)
 	{
-		if(father->children[i]->obj == obj
-		   && is_same_kind_of_all(father->children[i], worker_component->data))
-			return father->children[i];
+		if(parent->children[i]->obj == obj
+		   && is_same_kind_of_all(parent->children[i], worker_component->data))
+			return parent->children[i];
 	}
 	if(obj->type == HWLOC_OBJ_NODE)
 	{	
 		struct starpu_sched_component * component = starpu_sched_component_composed_component_create(specs.hwloc_component_composed_sched_component);
 		component->obj = obj;
-		father->add_child(father, component);
-		starpu_sched_component_add_father(component, father);
+		parent->add_child(parent, component);
+		starpu_sched_component_add_parent(component, parent);
 		return component;
 	}
-	return father;
+	return parent;
 }
 
 static void set_worker_leaf(struct starpu_sched_component * root, struct starpu_sched_component * worker_component, unsigned sched_ctx_id,
@@ -195,13 +195,13 @@ static void set_worker_leaf(struct starpu_sched_component * root, struct starpu_
 #warning FIXME component->obj is set to worker_component->obj even for accelerators workers
 #endif
 		tmp->obj = worker_component->obj;
-		starpu_sched_component_add_father(tmp, component);
+		starpu_sched_component_add_parent(tmp, component);
 		component->add_child(component, tmp);
 		component = tmp;
 		
 	}
 	starpu_destroy_composed_sched_component_recipe(recipe);
-	starpu_sched_component_add_father(worker_component, component);
+	starpu_sched_component_add_parent(worker_component, component);
 	component->add_child(component, worker_component);
 }
 

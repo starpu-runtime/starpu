@@ -26,7 +26,7 @@
 
 /* struct starpu_sched_component are scheduler modules, a scheduler is a tree-like
  * structure of them, some parts of scheduler can be shared by several contexes
- * to perform some local optimisations, so, for all components, a list of father is
+ * to perform some local optimisations, so, for all components, a list of parent is
  * defined indexed by sched_ctx_id
  *
  * they embed there specialised method in a pseudo object-style, so calls are like component->push_task(component,task)
@@ -43,11 +43,11 @@ struct starpu_sched_component
 	 */
 	int (*push_task)(struct starpu_sched_component *,
 			 struct starpu_task *);
-	/* this function is called by workers to get a task on them fathers
+	/* this function is called by workers to get a task on them parents
 	 * this function should first return a localy stored task or perform
-	 * a recursive call on father
+	 * a recursive call on parent
 	 *
-	 * a default implementation simply do a recursive call on father
+	 * a default implementation simply do a recursive call on parent
 	 */
 	struct starpu_task * (*pop_task)(struct starpu_sched_component *);
 
@@ -66,17 +66,17 @@ struct starpu_sched_component
 	 */
 	struct starpu_sched_component ** children;
 	/* may be shared by several contexts
-	 * so we need several fathers
+	 * so we need several parents
 	 */
-	struct starpu_sched_component ** fathers;
-	int nfathers;
+	struct starpu_sched_component ** parents;
+	int nparents;
 	/* the set of workers in the component's subtree
 	 */
 	struct starpu_bitmap * workers;
 	/* the workers available in context
 	 * this member is set with : 
 	 * component->workers UNION tree->workers UNION
-	 * component->child[i]->workers_in_ctx iff exist x such as component->children[i]->fathers[x] == component
+	 * component->child[i]->workers_in_ctx iff exist x such as component->children[i]->parents[x] == component
 	 */
 	struct starpu_bitmap * workers_in_ctx;
 	
@@ -86,8 +86,8 @@ struct starpu_sched_component
 
 	void (*add_child)(struct starpu_sched_component * component, struct starpu_sched_component * child);
 	void (*remove_child)(struct starpu_sched_component * component, struct starpu_sched_component * child);
-	void (*add_father)(struct starpu_sched_component * component, struct starpu_sched_component * father);
-	void (*remove_father)(struct starpu_sched_component * component, struct starpu_sched_component * father);
+	void (*add_parent)(struct starpu_sched_component * component, struct starpu_sched_component * parent);
+	void (*remove_parent)(struct starpu_sched_component * component, struct starpu_sched_component * parent);
 
 	/* this function is called for each component when workers are added or removed from a context
 	 */
@@ -102,9 +102,9 @@ struct starpu_sched_component
 	int properties;
 
 	/* This function is called by a component which implements a queue, allowing it to
-	 * signify to its fathers that an empty slot is available in its queue.
+	 * signify to its parents that an empty slot is available in its queue.
 	 * The basic implementation of this function is a recursive call to its
-	 * fathers, the user have to specify a personally-made function to catch those
+	 * parents, the user have to specify a personally-made function to catch those
 	 * calls.
 	 */ 
 	int (*can_push)(struct starpu_sched_component * component);

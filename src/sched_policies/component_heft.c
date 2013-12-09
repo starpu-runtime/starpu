@@ -202,13 +202,13 @@ static int heft_can_push(struct starpu_sched_component *component)
 	heft_progress(component);
 	_starpu_sched_component_lock_scheduling();
 	int ret, j;
-	for(j=0; j < component->nfathers; j++)
+	for(j=0; j < component->nparents; j++)
 	{
-		if(component->fathers[j] == NULL)
+		if(component->parents[j] == NULL)
 			continue;
 		else
 		{
-			ret = component->fathers[j]->can_push(component->fathers[j]);
+			ret = component->parents[j]->can_push(component->parents[j]);
 			if(ret)
 				break;
 		}

@@ -84,13 +84,13 @@ static struct starpu_task * select_best_implementation_pop_task(struct starpu_sc
 {
 	struct starpu_task * task = NULL;
 	int i;
-	for(i=0; i < component->nfathers; i++)
+	for(i=0; i < component->nparents; i++)
 	{
-		if(component->fathers[i] == NULL)
+		if(component->parents[i] == NULL)
 			continue;
 		else
 		{
-			task = component->fathers[i]->pop_task(component->fathers[i]);
+			task = component->parents[i]->pop_task(component->parents[i]);
 			if(task)
 				break;
 		}
