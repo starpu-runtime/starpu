@@ -260,8 +260,4 @@ additional condition variables) the context
 Return the scheduling policy data (private information of the scheduler) of the contexts previously 
 assigned to.
 
-\fn void *starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void *param, unsigned sched_ctx_id)
-\ingroup API_Scheduling_Contexts
-execute any parallel code on the workers of the sched_ctx (workers are blocked)
-
 */
