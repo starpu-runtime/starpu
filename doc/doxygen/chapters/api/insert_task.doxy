@@ -100,6 +100,6 @@ task automatically created using the function starpu_insert_task().
 Create a task corresponding to \p cl with the following arguments.
 The argument list must be zero-terminated. The arguments
 following the codelet are the same as the ones for the function
-starpu_task_insert().
+starpu_insert_task().
 
 */
