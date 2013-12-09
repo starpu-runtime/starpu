@@ -44,7 +44,7 @@ Scheduling Tree, and is stored in one of the Scheduling Components of the
 strategy.
 When a worker wants to pop a task from the Hierarchical Scheduler, the
 corresponding Worker Component of the Scheduling Tree tries to pull a task from 
-its fathers, following the hierarchy, and gives it to the worker if it succeded 
+its parents, following the hierarchy, and gives it to the worker if it succeded 
 to get one.
 
 
@@ -143,8 +143,11 @@ to be able to interact with other Scheduling Components.
 StarPU is currently shipped with the following four Scheduling Components : 
 
 	- Flow-control Components : 
-	Those Components store tasks. They can also prioritize them if
-	they have a defined priority.
+	Components which store tasks. They can also prioritize them if
+	they have a defined priority. It is possible to define a threshold
+	for those Components following two criterias : the number of tasks
+	stored in the Component, or the sum of the expected length of all
+	tasks stored in the Component.
 		- Fifo, Prio
 
 	- Resource-Mapping Components : 
@@ -168,10 +171,10 @@ StarPU is currently shipped with the following four Scheduling Components :
 Some rules must be followed to ensure the correctness of a Hierarchical 
 Scheduler :
 
-	- At least one Flow-control Component per Worker Component is needed in 
-	a Hierarchical Scheduler, to store incoming tasks from StarPU and to 
-	give tasks to Worker Components who asks for it. It is possible to use 
-	one Flow-control Component per Worker Component, or one for all Worker
+	- At least one Flow-control Component without threshold per Worker Component 
+	is needed in a Hierarchical Scheduler, to store incoming tasks from StarPU 
+	and to give tasks to Worker Components who asks for it. It is possible to 
+	use one Flow-control Component per Worker Component, or one for all Worker
 	Components, depending on how the Scheduling Tree is defined.
 
 	- At least one Resource-Mapping Component is needed in a Hierarchical
@@ -180,10 +183,13 @@ Scheduler :
 
 \subsection ImplementAHierarchicalScheduler Implement a Hierarchical Scheduler
 
-The following code present how the Tree-Eager-Prefetching Scheduler
+The following code shows how the Tree-Eager-Prefetching Scheduler
 shown in Section \ref ExampleTreeEagerPrefetchingStrategy is implemented :
 
 \code{.c}
+#define _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT 2
+#define _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT 1000000000.0
+
 static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 {
 	unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
@@ -193,7 +199,7 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
-	/* Creating the Scheduling Tree */
+	/* Create the Scheduling Tree */
 	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
 
 	/* The Root Component is a Flow-control Fifo Component */
@@ -202,14 +208,14 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 	/* The Resource-mapping Component of the strategy is an Eager Component */
 	struct starpu_sched_component * eager_component = starpu_sched_component_eager_create(NULL);
 
-	/* Creating links between Components : the Eager Component is the child
+	/* Create links between Components : the Eager Component is the child
 	 * of the Root Component */
 	t->root->add_child(t->root, eager_component);
 	eager_component->add_father(eager_component, t->root);
 
-	/* It is possible to define thresholds following several criterias for 
-	 * Flow-control Components : this will be explained further in Section 4.1°) 
-	 */
+	/* A task threshold is set for the Flow-control Components which will be connected
+	 * to Worker Components. By doing so, this Hierarchical Scheduler will be able to
+	 * perform some prefetching on the resources */
 	struct starpu_fifo_data fifo_data =
 		{
 			.ntasks_threshold = ntasks_threshold,
