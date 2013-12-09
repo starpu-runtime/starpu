@@ -52,10 +52,6 @@ Small features:
     the tool starpu_perfmodel_display
   * New batch files to execute StarPU applications under Microsoft
     Visual Studio (They are installed in path_to_starpu/bin/mvsc)/
-  * Add cl_arg_free, callback_arg_free, prologue_callback_arg_free fields to
-    enable automatic free(cl_arg); free(callback_arg);
-    free(prologue_callback_arg) on task destroy.
-  * New function starpu_task_build
   * Functions starpu_insert_task and starpu_mpi_insert_task are
     renamed in starpu_task_insert and starpu_mpi_task_insert. Old
     names are kept to avoid breaking old codes.
@@ -215,6 +211,15 @@ Small features:
   * New function starpu_get_version() to return as 3 integers the
     release version of StarPU.
   * Enable by default data allocation cache
+  * New function starpu_perfmodel_directory() to print directory
+    storing performance models. Available through the new option -d of
+    the tool starpu_perfmodel_display
+  * New batch files to execute StarPU applications under Microsoft
+    Visual Studio (They are installed in path_to_starpu/bin/mvsc)/
+  * Add cl_arg_free, callback_arg_free, prologue_callback_arg_free fields to
+    enable automatic free(cl_arg); free(callback_arg);
+    free(prologue_callback_arg) on task destroy.
+  * New function starpu_task_build
 
 Changes:
   * Rename all filter functions to follow the pattern
@@ -269,7 +274,19 @@ Changes:
   * Tutorial is installed in ${docdir}/tutorial
   * Schedulers eager_central_policy, dm and dmda no longer erroneously respect
     priorities. dmdas has to be used to respect priorities.
+  * StarPU-MPI: Fix potential bug for user-defined datatypes. As MPI
+    can reorder messages, we need to make sure the sending of the size
+    of the data has been completed.
   * Documentation is now generated through doxygen.
+  * Modification of perfmodels output format for future improvements.
+  * Fix for properly dealing with NAN on windows systems
+  * Function starpu_sched_ctx_create() now takes a variable argument
+    list to define the scheduler to be used, and the minimum and
+    maximum priority values
+  * The functions starpu_sched_set/get_min/max_priority set/get the
+    priorities of the current scheduling context, i.e the one which
+    was set by a call to starpu_sched_ctx_set_context() or the initial
+    context if the function was not called yet.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
