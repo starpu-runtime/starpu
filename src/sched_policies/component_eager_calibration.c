@@ -14,20 +14,20 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu_sched_node.h>
+#include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 
-static int eager_calibration_push_task(struct starpu_sched_node * node, struct starpu_task * task)
+static int eager_calibration_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
-	STARPU_ASSERT(node && task && starpu_sched_node_is_eager_calibration(node));
-	STARPU_ASSERT(starpu_sched_node_can_execute_task(node,task));
+	STARPU_ASSERT(component && task && starpu_sched_component_is_eager_calibration(component));
+	STARPU_ASSERT(starpu_sched_component_can_execute_task(component,task));
 	
 	starpu_task_bundle_t bundle = task->bundle;
 
 	int workerid;
-	for(workerid = starpu_bitmap_first(node->workers_in_ctx);
+	for(workerid = starpu_bitmap_first(component->workers_in_ctx);
 	    workerid != -1;
-	    workerid = starpu_bitmap_next(node->workers_in_ctx, workerid))
+	    workerid = starpu_bitmap_next(component->workers_in_ctx, workerid))
 	{
 		struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid);
 		int nimpl;
@@ -46,26 +46,26 @@ static int eager_calibration_push_task(struct starpu_sched_node * node, struct s
 				if(isnan(d))
 				{
 					int i;
-					for (i = 0; i < node->nchilds; i++)
+					for (i = 0; i < component->nchildren; i++)
 					{
 						int idworker,ret;
-						for(idworker = starpu_bitmap_first(node->childs[i]->workers);
+						for(idworker = starpu_bitmap_first(component->children[i]->workers);
 							idworker != -1;
-							idworker = starpu_bitmap_next(node->childs[i]->workers, idworker))
+							idworker = starpu_bitmap_next(component->children[i]->workers, idworker))
 						{
 							if (idworker == workerid)
 							{
-								if(starpu_sched_node_is_worker(node->childs[i]))
+								if(starpu_sched_component_is_worker(component->children[i]))
 								{
-									node->childs[i]->avail(node->childs[i]);
+									component->children[i]->can_pull(component->children[i]);
 									return 1;
 								}
 								else
 								{
-									ret = node->childs[i]->push_task(node->childs[i],task);
+									ret = component->children[i]->push_task(component->children[i],task);
 									if(!ret)
 									{
-										node->childs[i]->avail(node->childs[i]);
+										component->children[i]->can_pull(component->children[i]);
 										return ret;
 									}
 								}
@@ -79,15 +79,15 @@ static int eager_calibration_push_task(struct starpu_sched_node * node, struct s
 	return 1;
 }
 
-int starpu_sched_node_is_eager_calibration(struct starpu_sched_node * node)
+int starpu_sched_component_is_eager_calibration(struct starpu_sched_component * component)
 {
-	return node->push_task == eager_calibration_push_task;
+	return component->push_task == eager_calibration_push_task;
 }
 
-struct starpu_sched_node * starpu_sched_node_eager_calibration_create(void * ARG STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component * starpu_sched_component_eager_calibration_create(void * ARG STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_sched_node * node = starpu_sched_node_create();
-	node->push_task = eager_calibration_push_task;
+	struct starpu_sched_component * component = starpu_sched_component_create();
+	component->push_task = eager_calibration_push_task;
 
-	return node;
+	return component;
 }

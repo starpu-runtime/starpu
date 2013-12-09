@@ -1,0 +1,233 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2013  INRIA
+ * Copyright (C) 2013  Simon Archipoff
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+#include <starpu_sched_component.h>
+#include <common/list.h>
+
+
+/* a composed component is parametred by a list of pair
+ * (create_component_function(arg), arg)
+ */
+LIST_TYPE(fun_create_component,
+	  struct starpu_sched_component *(*create_component)(void * arg);
+	  void * arg;
+);
+
+
+struct starpu_sched_component_composed_recipe
+{
+	struct fun_create_component_list * list;
+};
+
+
+struct starpu_sched_component_composed_recipe * starpu_sched_component_create_recipe(void)
+{
+	struct starpu_sched_component_composed_recipe * recipe = malloc(sizeof(*recipe));
+	recipe->list = fun_create_component_list_new();
+	return recipe;
+}
+
+void starpu_sched_recipe_add_component(struct starpu_sched_component_composed_recipe * recipe,
+				  struct starpu_sched_component *(*create_component)(void * arg),
+				  void * arg)
+{
+	struct fun_create_component * e = fun_create_component_new();
+	e->create_component = create_component;
+	e->arg = arg;
+	fun_create_component_list_push_back(recipe->list, e);
+}
+struct starpu_sched_component_composed_recipe * starpu_sched_component_create_recipe_singleton(struct starpu_sched_component *(*create_component)(void * arg),
+										      void * arg)
+{
+	struct starpu_sched_component_composed_recipe * r = starpu_sched_component_create_recipe();
+	starpu_sched_recipe_add_component(r, create_component, arg);
+	return r;
+}
+void starpu_destroy_composed_sched_component_recipe(struct starpu_sched_component_composed_recipe * recipe)
+{
+	if(!recipe)
+		return;
+	while(!fun_create_component_list_empty(recipe->list))
+		fun_create_component_delete(fun_create_component_list_pop_back(recipe->list));
+	fun_create_component_list_delete(recipe->list);
+	free(recipe);
+}
+
+
+
+struct composed_component
+{
+	struct starpu_sched_component *top,*bottom;
+};
+
+/* this function actualy build the composed component data by changing the list of
+ * (component_create_fun, arg_create_fun) into a tree where all components have 1 childs
+ */
+struct composed_component create_composed_component(struct starpu_sched_component_composed_recipe * recipe
+#ifdef STARPU_HAVE_HWLOC
+					  ,hwloc_obj_t obj
+#endif
+	)
+{
+	struct composed_component c;
+	STARPU_ASSERT(recipe);
+
+	struct fun_create_component_list * list = recipe->list;
+	struct fun_create_component * i = fun_create_component_list_begin(list);
+	STARPU_ASSERT(i);
+	STARPU_ASSERT(i->create_component(i->arg));
+	c.top = c.bottom = i->create_component(i->arg);
+#ifdef STARPU_HAVE_HWLOC
+	c.top->obj = obj;
+#endif
+	for(i  = fun_create_component_list_next(i);
+	    i != fun_create_component_list_end(list);
+	    i  = fun_create_component_list_next(i))
+	{
+		STARPU_ASSERT(i->create_component(i->arg));
+		struct starpu_sched_component * component = i->create_component(i->arg);
+#ifdef STARPU_HAVE_HWLOC
+		component->obj = obj;
+#endif
+		c.bottom->add_child(c.bottom, component);
+
+		/* we want to be able to traverse scheduler bottom up for all sched ctxs
+		 * when a worker call pop()
+		 */
+		unsigned j;
+		for(j = 0; j < STARPU_NMAX_SCHED_CTXS; j++)
+			component->add_father(component, c.bottom);
+		c.bottom = component;
+	}
+	STARPU_ASSERT(!starpu_sched_component_is_worker(c.bottom));
+	return c;
+}
+
+
+static int composed_component_push_task(struct starpu_sched_component * component, struct starpu_task * task)
+{
+	struct composed_component *c = component->data;
+	return c->top->push_task(c->top,task);
+}
+struct starpu_task * composed_component_pop_task(struct starpu_sched_component *component)
+{
+	struct composed_component *c = component->data;
+	struct starpu_task * task = NULL;
+	
+	task = c->bottom->pop_task(c->bottom);
+	if(task)
+		return task;
+
+	int i;
+	for(i=0; i < component->nfathers; i++)
+	{
+		if(component->fathers[i] == NULL)
+			continue;
+		else
+		{
+			task = component->fathers[i]->pop_task(component->fathers[i]);
+			if(task)
+				break;
+		}
+	}
+	return task;
+}
+
+double composed_component_estimated_load(struct starpu_sched_component * component)
+{
+	struct composed_component * c = component->data;
+	return c->top->estimated_load(c->top);
+}
+
+static void composed_component_add_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
+{
+	struct composed_component * c = component->data;
+	component->add_child(component, child);
+	c->bottom->add_child(c->bottom, child);
+}
+static void composed_component_remove_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
+{
+	struct composed_component * c = component->data;
+	component->remove_child(component, child);
+	c->bottom->remove_child(c->bottom, child);
+}
+
+static void composed_component_notify_change_workers(struct starpu_sched_component * component)
+{
+	struct composed_component * c = component->data;
+	struct starpu_bitmap * workers = component->workers;
+	struct starpu_bitmap * workers_in_ctx = component->workers_in_ctx;
+	struct starpu_sched_component * n;
+	for(n = c->top; ;n = n->children[0])
+	{
+		starpu_bitmap_unset_all(n->workers);
+		starpu_bitmap_or(n->workers, workers);
+
+		starpu_bitmap_unset_all(n->workers_in_ctx);
+		starpu_bitmap_or(n->workers_in_ctx, workers_in_ctx);
+
+		n->properties = component->properties;
+		if(n == c->bottom)
+			break;
+	}
+}
+
+void composed_component_deinit_data(struct starpu_sched_component * _component)
+{
+	struct composed_component *c = _component->data;
+	c->bottom->children = NULL;
+	c->bottom->nchildren = 0;
+	struct starpu_sched_component * component = c->top;
+	struct starpu_sched_component * next = NULL;
+	do
+	{
+		component->workers = NULL;
+		next = component->children ? component->children[0] : NULL;
+		starpu_sched_component_destroy(component);
+	}while(next);
+	free(c);
+	_component->data = NULL;
+}
+
+struct starpu_sched_component * starpu_sched_component_composed_component_create(struct starpu_sched_component_composed_recipe * recipe)
+{
+	STARPU_ASSERT(!fun_create_component_list_empty(recipe->list));
+	struct fun_create_component_list * l = recipe->list;
+	if(l->_head == l->_tail)
+		return l->_head->create_component(l->_head->arg);
+	struct starpu_sched_component * component = starpu_sched_component_create();
+
+	struct composed_component * c = malloc(sizeof(struct composed_component));
+	*c = create_composed_component(recipe
+#ifdef STARPU_HAVE_HWLOC
+				  ,component->obj
+#endif
+);
+	c->bottom->nchildren = component->nchildren;
+	c->bottom->children = component->children;
+	c->bottom->nfathers = component->nfathers;
+	c->bottom->fathers = component->fathers;
+
+	component->data = c;
+	component->push_task = composed_component_push_task;
+	component->pop_task = composed_component_pop_task;
+	component->estimated_load = composed_component_estimated_load;
+	component->add_child = composed_component_add_child;
+	component->remove_child = composed_component_remove_child;
+	component->notify_change_workers = composed_component_notify_change_workers;
+	return component;
+}

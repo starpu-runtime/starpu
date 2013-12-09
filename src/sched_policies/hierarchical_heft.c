@@ -1,11 +1,11 @@
-#include <starpu_sched_node.h>
+#include <starpu_sched_component.h>
 #include <core/workers.h>
 
-static struct  starpu_sched_node_composed_recipe *  recipe_for_worker(enum starpu_worker_archtype a STARPU_ATTRIBUTE_UNUSED)
+static struct  starpu_sched_component_composed_recipe *  recipe_for_worker(enum starpu_worker_archtype a STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_sched_node_composed_recipe * r = starpu_sched_node_create_recipe();
-	starpu_sched_recipe_add_node(r, starpu_sched_node_best_implementation_create, NULL);
-	starpu_sched_recipe_add_node(r, starpu_sched_node_fifo_create, NULL);
+	struct starpu_sched_component_composed_recipe * r = starpu_sched_component_create_recipe();
+	starpu_sched_recipe_add_component(r, starpu_sched_component_best_implementation_create, NULL);
+	starpu_sched_recipe_add_component(r, starpu_sched_component_fifo_create, NULL);
 	return r;
 }
 
@@ -25,25 +25,25 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 		.beta = 2.0,
 		.gamma = 0.0,
 		.idle_power = 0.0,
-		.no_perf_model_node_create = starpu_sched_node_random_create,
+		.no_perf_model_component_create = starpu_sched_component_random_create,
 		.arg_no_perf_model = NULL,
-		.calibrating_node_create = starpu_sched_node_random_create,
-		.arg_calibrating_node = NULL,
+		.calibrating_component_create = starpu_sched_component_random_create,
+		.arg_calibrating_component = NULL,
 	};
-	struct starpu_sched_node_composed_recipe * r = starpu_sched_node_create_recipe();
-	starpu_sched_recipe_add_node(r,(struct starpu_sched_node * (*)(void*))starpu_sched_node_heft_create,&heft_data);
-	specs.hwloc_machine_composed_sched_node = r;
+	struct starpu_sched_component_composed_recipe * r = starpu_sched_component_create_recipe();
+	starpu_sched_recipe_add_component(r,(struct starpu_sched_component * (*)(void*))starpu_sched_component_heft_create,&heft_data);
+	specs.hwloc_machine_composed_sched_component = r;
 
-	r = starpu_sched_node_create_recipe();
-	starpu_sched_recipe_add_node(r, starpu_sched_node_best_implementation_create, NULL);
-	starpu_sched_recipe_add_node(r, starpu_sched_node_fifo_create ,NULL);
+	r = starpu_sched_component_create_recipe();
+	starpu_sched_recipe_add_component(r, starpu_sched_component_best_implementation_create, NULL);
+	starpu_sched_recipe_add_component(r, starpu_sched_component_fifo_create ,NULL);
 
-	specs.hwloc_node_composed_sched_node = r;
-	specs.worker_composed_sched_node = recipe_for_worker;
+	specs.hwloc_component_composed_sched_component = r;
+	specs.worker_composed_sched_component = recipe_for_worker;
 
-	struct starpu_sched_tree *t = starpu_sched_node_make_scheduler(sched_ctx_id, specs);
+	struct starpu_sched_tree *t = starpu_sched_component_make_scheduler(sched_ctx_id, specs);
 
-	starpu_destroy_composed_sched_node_recipe(specs.hwloc_machine_composed_sched_node);
+	starpu_destroy_composed_sched_component_recipe(specs.hwloc_machine_composed_sched_component);
 
 
 	starpu_sched_tree_update_workers(t);

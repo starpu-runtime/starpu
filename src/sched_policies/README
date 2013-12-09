@@ -28,16 +28,16 @@ The hypervisor must take all of them to modifying the scheduler.
 
 Creation/Destruction
 
-All the struct starpu_sched_node * starpu_sched_node_foo_create()
-function return a initialized struct starpu_sched_node.
+All the struct starpu_sched_component * starpu_sched_component_foo_create()
+function return a initialized struct starpu_sched_component.
 
-The void starpu_sched_node_destroy(struct starpu_sched_node * node)
-function call node->deinit_data(node) to free data allocated during
+The void starpu_sched_component_destroy(struct starpu_sched_component * component)
+function call component->deinit_data(component) to free data allocated during
 creation
 
-Workers nodes are particulars, there is no creation function, only
-accessor to guaranty uniqueness of worker nodes. worker_node->workers and
-worker_node->workers_in_ctx should not be modified.
+Workers components are particulars, there is no creation function, only
+accessor to guaranty uniqueness of worker components. worker_component->workers and
+worker_component->workers_in_ctx should not be modified.
 
 
 
@@ -45,17 +45,17 @@ Add/Remove workers
 
 I see 2 way for adding/removing workers of the scheduler
 The hypervisor block all the scheduling and modify the scheduler in
-the way it wants, and then update all node->workers_in_ctx bitmaps, and
-all node->push_task should respect it.
+the way it wants, and then update all component->workers_in_ctx bitmaps, and
+all component->push_task should respect it.
 
 And the second one may be done in an atomic way. The struct
 starpu_sched_tree hold a struct starpu_bitmap * that represent
-available workers in context. All node can make a call to struct starpu_bitmap
-* starpu_sched_node_get_worker_mask(unsigned sched_ctx_id) to see
+available workers in context. All component can make a call to struct starpu_bitmap
+* starpu_sched_component_get_worker_mask(unsigned sched_ctx_id) to see
 where they can push a task according to available workers.
-But with this way we have a problem for node->estimated_end, in case
+But with this way we have a problem for component->estimated_end, in case
 of fifo, we have to know how many workers are available to the fifo
-node. We also have a problem for shared object. The first way seems to
+component. We also have a problem for shared object. The first way seems to
 be better.
 
 
@@ -63,14 +63,14 @@ Hierarchical construction
 
 Bugs everywhere, works only in simple and particulars cases.
 Its difficult to guess where we should plug accelerators because we cant rely on
-hwloc topology. Hierarchical heft seems to work on simple machines with numa nodes
+hwloc topology. Hierarchical heft seems to work on simple machines with numa components
 and GPUs
-this fail if hwloc_socket_composed_sched_node or hwloc_cache_composed_sched_node is not
+this fail if hwloc_socket_composed_sched_component or hwloc_cache_composed_sched_component is not
 NULL
 
 
 Various things
 
 In several place realloc is used (in prio_deque and for
-starpu_sched_node_add_child), because we should not have a lot
+starpu_sched_component_add_child), because we should not have a lot
 different priority level nor adding too many childs.

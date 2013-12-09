@@ -135,7 +135,7 @@ noinst_HEADERS = 						\
 	top/starpu_top_connection.h				\
 	top/starpu_top_core.h					\
 	sched_policies/prio_deque.h				\
-	sched_policies/sched_node.h
+	sched_policies/sched_component.h
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/barrier.c					\
@@ -243,20 +243,20 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	top/starpu_top_message_queue.c				\
 	top/starpu_top_connection.c                        	\
 	worker_collection/worker_list.c				\
-	sched_policies/node_worker.c				\
-	sched_policies/node_sched.c				\
-	sched_policies/node_fifo.c 				\
+	sched_policies/component_worker.c				\
+	sched_policies/component_sched.c				\
+	sched_policies/component_fifo.c 				\
 	sched_policies/prio_deque.c				\
 	sched_policies/helper_mct.c				\
-	sched_policies/node_prio.c 				\
-	sched_policies/node_random.c				\
-	sched_policies/node_eager.c				\
-	sched_policies/node_eager_calibration.c				\
-	sched_policies/node_mct.c				\
-	sched_policies/node_heft.c				\
-	sched_policies/node_best_implementation.c		\
-	sched_policies/node_perfmodel_select.c				\
-	sched_policies/node_composed.c				\
+	sched_policies/component_prio.c 				\
+	sched_policies/component_random.c				\
+	sched_policies/component_eager.c				\
+	sched_policies/component_eager_calibration.c				\
+	sched_policies/component_mct.c				\
+	sched_policies/component_heft.c				\
+	sched_policies/component_best_implementation.c		\
+	sched_policies/component_perfmodel_select.c				\
+	sched_policies/component_composed.c				\
 	sched_policies/tree_eager.c				\
 	sched_policies/tree_eager_prefetching.c				\
 	sched_policies/tree_prio.c				\

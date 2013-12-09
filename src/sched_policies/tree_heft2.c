@@ -16,11 +16,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu_sched_node.h>
+#include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 #include <float.h>
 
-/* The two thresolds concerns the prio nodes, which contains queues
+/* The two thresolds concerns the prio components, which contains queues
  * who can handle the priority of StarPU tasks. You can tune your
  * scheduling by benching those values and choose which one is the
  * best for your current application. 
@@ -48,30 +48,30 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 
 	struct starpu_sched_tree * t = starpu_sched_tree_create(sched_ctx_id);
 
-	struct starpu_sched_node * perfmodel_node = starpu_sched_node_heft_create(NULL);
-	struct starpu_sched_node * no_perfmodel_node = starpu_sched_node_eager_create(NULL);
-	struct starpu_sched_node * calibrator_node = starpu_sched_node_eager_create(NULL);
+	struct starpu_sched_component * perfmodel_component = starpu_sched_component_heft_create(NULL);
+	struct starpu_sched_component * no_perfmodel_component = starpu_sched_component_eager_create(NULL);
+	struct starpu_sched_component * calibrator_component = starpu_sched_component_eager_create(NULL);
 	
 	struct starpu_perfmodel_select_data perfmodel_select_data =
 		{
-			.calibrator_node = calibrator_node,
-			.no_perfmodel_node = no_perfmodel_node,
-			.perfmodel_node = perfmodel_node,
+			.calibrator_component = calibrator_component,
+			.no_perfmodel_component = no_perfmodel_component,
+			.perfmodel_component = perfmodel_component,
 		};
 
-	struct starpu_sched_node * window_node = starpu_sched_node_prio_create(NULL);
-	t->root = window_node;
+	struct starpu_sched_component * window_component = starpu_sched_component_prio_create(NULL);
+	t->root = window_component;
 
-	struct starpu_sched_node * perfmodel_select_node = starpu_sched_node_perfmodel_select_create(&perfmodel_select_data);
-	window_node->add_child(window_node, perfmodel_select_node);
-	perfmodel_select_node->add_father(perfmodel_select_node, window_node);
+	struct starpu_sched_component * perfmodel_select_component = starpu_sched_component_perfmodel_select_create(&perfmodel_select_data);
+	window_component->add_child(window_component, perfmodel_select_component);
+	perfmodel_select_component->add_father(perfmodel_select_component, window_component);
 
-	perfmodel_select_node->add_child(perfmodel_select_node, calibrator_node);
-	calibrator_node->add_father(calibrator_node, perfmodel_select_node);
-	perfmodel_select_node->add_child(perfmodel_select_node, perfmodel_node);
-	perfmodel_node->add_father(perfmodel_node, perfmodel_select_node);
-	perfmodel_select_node->add_child(perfmodel_select_node, no_perfmodel_node);
-	no_perfmodel_node->add_father(no_perfmodel_node, perfmodel_select_node);
+	perfmodel_select_component->add_child(perfmodel_select_component, calibrator_component);
+	calibrator_component->add_father(calibrator_component, perfmodel_select_component);
+	perfmodel_select_component->add_child(perfmodel_select_component, perfmodel_component);
+	perfmodel_component->add_father(perfmodel_component, perfmodel_select_component);
+	perfmodel_select_component->add_child(perfmodel_select_component, no_perfmodel_component);
+	no_perfmodel_component->add_father(no_perfmodel_component, perfmodel_select_component);
 
 	struct starpu_prio_data prio_data =
 		{
@@ -82,23 +82,23 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(i);
-		STARPU_ASSERT(worker_node);
+		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(i);
+		STARPU_ASSERT(worker_component);
 
-		struct starpu_sched_node * prio_node = starpu_sched_node_prio_create(&prio_data);
-		prio_node->add_child(prio_node, worker_node);
-		worker_node->add_father(worker_node, prio_node);
+		struct starpu_sched_component * prio_component = starpu_sched_component_prio_create(&prio_data);
+		prio_component->add_child(prio_component, worker_component);
+		worker_component->add_father(worker_component, prio_component);
 
-		struct starpu_sched_node * impl_node = starpu_sched_node_best_implementation_create(NULL);
-		impl_node->add_child(impl_node, prio_node);
-		prio_node->add_father(prio_node, impl_node);
+		struct starpu_sched_component * impl_component = starpu_sched_component_best_implementation_create(NULL);
+		impl_component->add_child(impl_component, prio_component);
+		prio_component->add_father(prio_component, impl_component);
 
-		perfmodel_node->add_child(perfmodel_node, impl_node);
-		impl_node->add_father(impl_node, perfmodel_node);
-		no_perfmodel_node->add_child(no_perfmodel_node, impl_node);
-		impl_node->add_father(impl_node, no_perfmodel_node);
-		calibrator_node->add_child(calibrator_node, impl_node);
-		impl_node->add_father(impl_node, calibrator_node);
+		perfmodel_component->add_child(perfmodel_component, impl_component);
+		impl_component->add_father(impl_component, perfmodel_component);
+		no_perfmodel_component->add_child(no_perfmodel_component, impl_component);
+		impl_component->add_father(impl_component, no_perfmodel_component);
+		calibrator_component->add_child(calibrator_component, impl_component);
+		impl_component->add_father(impl_component, calibrator_component);
 	}
 
 	starpu_sched_tree_update_workers(t);
@@ -120,8 +120,8 @@ struct starpu_sched_policy _starpu_sched_tree_heft2_policy =
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.push_task = starpu_sched_tree_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = starpu_sched_node_worker_pre_exec_hook,
-	.post_exec_hook = starpu_sched_node_worker_post_exec_hook,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "tree-heft2",
 	.policy_description = "heft tree2 policy"

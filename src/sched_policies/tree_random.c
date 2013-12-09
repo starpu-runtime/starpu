@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu_sched_node.h>
+#include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 
 /* Random scheduler with a fifo queue for its scheduling window */
@@ -24,19 +24,19 @@ static void initialize_random_fifo_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
- 	t->root = starpu_sched_node_fifo_create(NULL);
-	struct starpu_sched_node * random_node = starpu_sched_node_random_create(NULL);
-	t->root->add_child(t->root, random_node);
-	random_node->add_father(random_node, t->root);
+ 	t->root = starpu_sched_component_fifo_create(NULL);
+	struct starpu_sched_component * random_component = starpu_sched_component_random_create(NULL);
+	t->root->add_child(t->root, random_component);
+	random_component->add_father(random_component, t->root);
 
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(i);
-		STARPU_ASSERT(worker_node);
+		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(i);
+		STARPU_ASSERT(worker_component);
 
-		random_node->add_child(random_node, worker_node);
-		worker_node->add_father(worker_node, random_node);
+		random_component->add_child(random_component, worker_component);
+		worker_component->add_father(worker_component, random_component);
 	}
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
@@ -70,19 +70,19 @@ static void initialize_random_prio_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
- 	t->root = starpu_sched_node_prio_create(NULL);
-	struct starpu_sched_node * random_node = starpu_sched_node_random_create(NULL);
-	t->root->add_child(t->root, random_node);
-	random_node->add_father(random_node, t->root);
+ 	t->root = starpu_sched_component_prio_create(NULL);
+	struct starpu_sched_component * random_component = starpu_sched_component_random_create(NULL);
+	t->root->add_child(t->root, random_component);
+	random_component->add_father(random_component, t->root);
 
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		struct starpu_sched_node * worker_node = starpu_sched_node_worker_get(i);
-		STARPU_ASSERT(worker_node);
+		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(i);
+		STARPU_ASSERT(worker_component);
 
-		random_node->add_child(random_node, worker_node);
-		worker_node->add_father(worker_node, random_node);
+		random_component->add_child(random_component, worker_component);
+		worker_component->add_father(worker_component, random_component);
 	}
 	starpu_sched_tree_update_workers(t);
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);

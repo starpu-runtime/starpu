@@ -15,16 +15,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu_sched_node.h>
+#include <starpu_sched_component.h>
 #include <core/workers.h>
 
-static double compute_relative_speedup(struct starpu_sched_node * node)
+static double compute_relative_speedup(struct starpu_sched_component * component)
 {
 	double sum = 0.0;
 	int id;
-	for(id = starpu_bitmap_first(node->workers_in_ctx);
+	for(id = starpu_bitmap_first(component->workers_in_ctx);
 	    id != -1;
-	    id = starpu_bitmap_next(node->workers_in_ctx, id))
+	    id = starpu_bitmap_next(component->workers_in_ctx, id))
 	{
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(id);
 		sum += starpu_worker_get_relative_speedup(perf_arch);
@@ -35,32 +35,32 @@ static double compute_relative_speedup(struct starpu_sched_node * node)
 }
 
 
-static int random_push_task(struct starpu_sched_node * node, struct starpu_task * task)
+static int random_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
-	STARPU_ASSERT(node->nchilds > 0);
+	STARPU_ASSERT(component->nchildren > 0);
 
-	/* indexes_nodes and size are used to memoize node that can execute tasks
-	 * during the first phase of algorithm, it contain the size indexes of the nodes
+	/* indexes_components and size are used to memoize component that can execute tasks
+	 * during the first phase of algorithm, it contain the size indexes of the components
 	 * that can execute task.
 	 */
-	int indexes_nodes[node->nchilds];
+	int indexes_components[component->nchildren];
 	int size=0;
 
 	/* speedup[i] is revelant only if i is in the size firsts elements of
-	 * indexes_nodes
+	 * indexes_components
 	 */
-	double speedup[node->nchilds];
+	double speedup[component->nchildren];
 
 	double alpha_sum = 0.0;
 
 	int i;
-	for(i = 0; i < node->nchilds ; i++)
+	for(i = 0; i < component->nchildren ; i++)
 	{
-		if(starpu_sched_node_can_execute_task(node->childs[i],task))
+		if(starpu_sched_component_can_execute_task(component->children[i],task))
 		{
-			speedup[size] = compute_relative_speedup(node->childs[i]);
+			speedup[size] = compute_relative_speedup(component->children[i]);
 			alpha_sum += speedup[size];
-			indexes_nodes[size] = i;
+			indexes_components[size] = i;
 			size++;
 		}
 	}
@@ -72,52 +72,52 @@ static int random_push_task(struct starpu_sched_node * node, struct starpu_task 
 	 */
 	double random = starpu_drand48()*alpha_sum;
 	double alpha = 0.0;
-	struct starpu_sched_node * select  = NULL;
+	struct starpu_sched_component * select  = NULL;
 	
 	for(i = 0; i < size ; i++)
 	{
-		int index = indexes_nodes[i];
+		int index = indexes_components[i];
 		if(alpha + speedup[i] >= random)
 		{	
-			select = node->childs[index];
+			select = component->children[index];
 			break;
 		}
 		alpha += speedup[i];
 	}
 	STARPU_ASSERT(select != NULL);
-	if(starpu_sched_node_is_worker(select))
+	if(starpu_sched_component_is_worker(select))
 	{
-		select->avail(select);
+		select->can_pull(select);
 		return 1;
 	}
 
 	int ret_val = select->push_task(select,task);
 	if(!ret_val)
-		select->avail(select);
+		select->can_pull(select);
 
 	return ret_val;
 }
 /* taking the min of estimated_end not seems to be a good value to return here
  * as random scheduler balance between childs very poorly
  */
-double random_estimated_end(struct starpu_sched_node * node)
+double random_estimated_end(struct starpu_sched_component * component)
 {
 	double sum = 0.0;
 	int i;
-	for(i = 0; i < node->nchilds; i++)
-		sum += node->childs[i]->estimated_end(node->childs[i]);
-	return sum / node->nchilds;
+	for(i = 0; i < component->nchildren; i++)
+		sum += component->children[i]->estimated_end(component->children[i]);
+	return sum / component->nchildren;
 }
 
-struct starpu_sched_node * starpu_sched_node_random_create(void * arg STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component * starpu_sched_component_random_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_sched_node * node = starpu_sched_node_create();
-	node->estimated_end = random_estimated_end;
-	node->push_task = random_push_task;
-	return node;
+	struct starpu_sched_component * component = starpu_sched_component_create();
+	component->estimated_end = random_estimated_end;
+	component->push_task = random_push_task;
+	return component;
 }
 
-int starpu_sched_node_is_random(struct starpu_sched_node *node)
+int starpu_sched_component_is_random(struct starpu_sched_component *component)
 {
-	return node->push_task == random_push_task;
+	return component->push_task == random_push_task;
 }

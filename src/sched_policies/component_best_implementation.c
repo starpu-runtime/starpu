@@ -15,7 +15,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu_sched_node.h>
+#include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 
 #include <float.h>
@@ -73,24 +73,24 @@ static void select_best_implementation_and_set_preds(struct starpu_bitmap * work
 }
 
 
-static int select_best_implementation_push_task(struct starpu_sched_node * node, struct starpu_task * task)
+static int select_best_implementation_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
-	STARPU_ASSERT(node->nchilds == 1);
-	select_best_implementation_and_set_preds(node->workers_in_ctx, task);
-	return node->childs[0]->push_task(node->childs[0],task);
+	STARPU_ASSERT(component->nchildren == 1);
+	select_best_implementation_and_set_preds(component->workers_in_ctx, task);
+	return component->children[0]->push_task(component->children[0],task);
 }
 
-static struct starpu_task * select_best_implementation_pop_task(struct starpu_sched_node * node)
+static struct starpu_task * select_best_implementation_pop_task(struct starpu_sched_component * component)
 {
 	struct starpu_task * task = NULL;
 	int i;
-	for(i=0; i < node->nfathers; i++)
+	for(i=0; i < component->nfathers; i++)
 	{
-		if(node->fathers[i] == NULL)
+		if(component->fathers[i] == NULL)
 			continue;
 		else
 		{
-			task = node->fathers[i]->pop_task(node->fathers[i]);
+			task = component->fathers[i]->pop_task(component->fathers[i]);
 			if(task)
 				break;
 		}
@@ -101,10 +101,10 @@ static struct starpu_task * select_best_implementation_pop_task(struct starpu_sc
 	return task;
 }
 
-struct starpu_sched_node * starpu_sched_node_best_implementation_create(void * ARG STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component * starpu_sched_component_best_implementation_create(void * ARG STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_sched_node * node = starpu_sched_node_create();
-	node->push_task = select_best_implementation_push_task;
-	node->pop_task = select_best_implementation_pop_task;
-	return node;
+	struct starpu_sched_component * component = starpu_sched_component_create();
+	component->push_task = select_best_implementation_push_task;
+	component->pop_task = select_best_implementation_pop_task;
+	return component;
 }

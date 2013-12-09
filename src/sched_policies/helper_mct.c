@@ -16,7 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu_sched_node.h>
+#include <starpu_sched_component.h>
 #include "helper_mct.h"
 
 /* compute predicted_end by taking into account the case of the predicted transfer and the predicted_end overlap
@@ -56,21 +56,21 @@ double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, d
 		+ d->gamma * d->idle_power * (exp_end - max_exp_end);
 }
 
-int starpu_mct_compute_expected_times(struct starpu_sched_node *node, struct starpu_task *task,
+int starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,
 		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,
-		double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_nodes)
+		double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_components)
 {
-	int nsuitable_nodes = 0;
+	int nsuitable_components = 0;
 
 	int i;
-	for(i = 0; i < node->nchilds; i++)
+	for(i = 0; i < component->nchildren; i++)
 	{
-		struct starpu_sched_node * c = node->childs[i];
-		if(starpu_sched_node_execute_preds(c, task, estimated_lengths + i))
+		struct starpu_sched_component * c = component->children[i];
+		if(starpu_sched_component_execute_preds(c, task, estimated_lengths + i))
 		{
 			if(isnan(estimated_lengths[i]))
 				/* The perfmodel had been purged since the task was pushed
-				 * onto the mct node. */
+				 * onto the mct component. */
 				continue;
 
 			/* Estimated availability of worker */
@@ -78,7 +78,7 @@ int starpu_mct_compute_expected_times(struct starpu_sched_node *node, struct sta
 			double now = starpu_timing_now();
 			if (estimated_end < now)
 				estimated_end = now;
-			estimated_transfer_length[i] = starpu_sched_node_transfer_length(c, task);
+			estimated_transfer_length[i] = starpu_sched_component_transfer_length(c, task);
 			estimated_ends_with_task[i] = compute_expected_time(now,
 									    estimated_end,
 									    estimated_lengths[i],
@@ -87,16 +87,16 @@ int starpu_mct_compute_expected_times(struct starpu_sched_node *node, struct sta
 				*min_exp_end_with_task = estimated_ends_with_task[i];
 			if(estimated_ends_with_task[i] > *max_exp_end_with_task)
 				*max_exp_end_with_task = estimated_ends_with_task[i];
-			suitable_nodes[nsuitable_nodes++] = i;
+			suitable_components[nsuitable_components++] = i;
 		}
 	}
-	return nsuitable_nodes;
+	return nsuitable_components;
 }
 
 /* Alpha, Beta and Gamma are MCT-specific values, which allows the
  * user to set more precisely the weight of each computing value.
  * Beta, for example, controls the weight of communications between
- * memories for the computation of the best node to choose. 
+ * memories for the computation of the best component to choose. 
  */
 #define _STARPU_SCHED_ALPHA_DEFAULT 1.0
 #define _STARPU_SCHED_BETA_DEFAULT 1.0
