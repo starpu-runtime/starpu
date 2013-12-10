@@ -73,6 +73,8 @@ defined performance model (\ref PerformanceModelCalibration)
 to work efficiently, but can handle tasks without a performance
 model.
 
+It is currently needed to set the environment variable \ref STARPU_SCHED 
+to use those Schedulers. Hierarchical Schedulers' naming is tree-*
 
 \subsection ExampleTreeEagerPrefetchingStrategy An Example : The Tree-Eager-Prefetching Strategy
 
@@ -277,7 +279,27 @@ struct starpu_sched_policy _starpu_sched_tree_eager_prefetching_policy =
 \section WriteASchedulingComponent Write a Scheduling Component
 
 \subsection GenericSchedulingComponent Generic Scheduling Component
+
+Each Scheduling Component is instantiated from a Generic Scheduling Component,
+which implements a generic version of the Interface. The generic implementation
+of Pull, Can_Pull and Can_Push functions are recursive calls to their parents
+(respectively to their children). However, as a Generic Scheduling Component do
+not know how much children it will have when it will be instantiated, it do not
+implements the Push function.
+
 \subsection InstanciationRedefineInterface Instanciation : Redefine the Interface
+
+A Scheduling Component must implement all the functions of the Interface. It is
+so necessary to implement a Push function to instantiate a Scheduling Component.
+The implemented Push function is the "fingerprint" of a Scheduling Component.
+Depending on how functionalities or properties the programmer wants to give
+to the Scheduling Component he is implementing, it is possible to reimplement
+all the functions of the Interface. For example, a Flow-control Component
+reimplements the Pull and the Can_Push functions of the Interface, allowing him
+to catch the generic recursive calls of these functions. The Pull function of
+a Flow-control Component can, for example, pop a task from the local storage 
+queue of the Component, and give it to the calling Component which asks for it.
+
 \subsection DetailedProgressionAndValidationRules Detailed Progression and Validation Rules
 
 
