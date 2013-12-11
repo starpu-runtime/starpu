@@ -21,7 +21,6 @@
 #include "fifo_queues.h"
 #include "sched_component.h"
 
-
 struct _starpu_fifo_data
 {
 	struct _starpu_fifo_taskq * fifo;
@@ -30,7 +29,7 @@ struct _starpu_fifo_data
 	double exp_len_threshold;
 };
 
-void fifo_component_deinit_data(struct starpu_sched_component * component)
+static void fifo_component_deinit_data(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * f = component->data;
@@ -153,11 +152,6 @@ static int fifo_push_task(struct starpu_sched_component * component, struct star
 	return fifo_push_local_task(component, task, 0);
 }
 
-int starpu_sched_component_is_fifo(struct starpu_sched_component * component)
-{
-	return component->push_task == fifo_push_task;
-}
-
 static struct starpu_task * fifo_pop_task(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
@@ -235,6 +229,11 @@ static int fifo_can_push(struct starpu_sched_component * component)
 		fifo_push_local_task(component,task,1); 
 
 	return res;
+}
+
+int starpu_sched_component_is_fifo(struct starpu_sched_component * component)
+{
+	return component->push_task == fifo_push_task;
 }
 
 struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu_fifo_data * params)

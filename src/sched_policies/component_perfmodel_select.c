@@ -54,41 +54,16 @@ static int perfmodel_select_push_task(struct starpu_sched_component * component,
 
 }
 
-int starpu_sched_component_is_perfmodel_select(struct starpu_sched_component * component)
-{
-	return component->push_task == perfmodel_select_push_task;
-}
-
-static void perfmodel_select_notify_change_in_workers(struct starpu_sched_component * component)
-{
-	STARPU_ASSERT(starpu_sched_component_is_perfmodel_select(component));
-	struct _starpu_perfmodel_select_data * data = component->data;
-
-	starpu_bitmap_unset_all(data->no_perfmodel_component->workers_in_ctx);
-	starpu_bitmap_unset_all(data->no_perfmodel_component->workers);
-	starpu_bitmap_or(data->no_perfmodel_component->workers_in_ctx, component->workers_in_ctx);
-	starpu_bitmap_or(data->no_perfmodel_component->workers, component->workers);
-	data->no_perfmodel_component->properties = component->properties;
-
-	starpu_bitmap_unset_all(data->perfmodel_component->workers_in_ctx);
-	starpu_bitmap_unset_all(data->perfmodel_component->workers);
-	starpu_bitmap_or(data->perfmodel_component->workers_in_ctx, component->workers_in_ctx);
-	starpu_bitmap_or(data->perfmodel_component->workers, component->workers);
-	data->perfmodel_component->properties = component->properties;
-
-	starpu_bitmap_unset_all(data->calibrator_component->workers_in_ctx);
-	starpu_bitmap_unset_all(data->calibrator_component->workers);
-	starpu_bitmap_or(data->calibrator_component->workers_in_ctx, component->workers_in_ctx);
-	starpu_bitmap_or(data->calibrator_component->workers, component->workers);
-	data->calibrator_component->properties = component->properties;
-}
-
-void perfmodel_select_component_deinit_data(struct starpu_sched_component * component)
-
+static void perfmodel_select_component_deinit_data(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_perfmodel_select_data * d = component->data;
 	free(d);
+}
+
+int starpu_sched_component_is_perfmodel_select(struct starpu_sched_component * component)
+{
+	return component->push_task == perfmodel_select_push_task;
 }
 
 struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(struct starpu_perfmodel_select_data * params)
@@ -105,7 +80,6 @@ struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(s
 	component->data = data;
 	component->push_task = perfmodel_select_push_task;
 	component->deinit_data = perfmodel_select_component_deinit_data;
-	component->notify_change_workers = perfmodel_select_notify_change_in_workers;
 
 	return component;
 }

@@ -20,7 +20,6 @@
 
 #include <float.h>
 
-
 /* return true if workerid can execute task, and fill task->predicted and task->predicted_transfer
  *  according to best implementation predictions
  */
@@ -72,15 +71,19 @@ static void select_best_implementation_and_set_preds(struct starpu_bitmap * work
 			break;
 }
 
-
-static int select_best_implementation_push_task(struct starpu_sched_component * component, struct starpu_task * task)
+static int best_implementation_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	STARPU_ASSERT(component->nchildren == 1);
 	select_best_implementation_and_set_preds(component->workers_in_ctx, task);
 	return component->children[0]->push_task(component->children[0],task);
 }
 
-static struct starpu_task * select_best_implementation_pop_task(struct starpu_sched_component * component)
+int starpu_sched_component_is_best_implementation(struct starpu_sched_component * component)
+{
+	return component->push_task == best_implementation_push_task;
+}
+
+static struct starpu_task * best_implementation_pop_task(struct starpu_sched_component * component)
 {
 	struct starpu_task * task = NULL;
 	int i;
@@ -104,7 +107,7 @@ static struct starpu_task * select_best_implementation_pop_task(struct starpu_sc
 struct starpu_sched_component * starpu_sched_component_best_implementation_create(void * ARG STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_component * component = starpu_sched_component_create();
-	component->push_task = select_best_implementation_push_task;
-	component->pop_task = select_best_implementation_pop_task;
+	component->push_task = best_implementation_push_task;
+	component->pop_task = best_implementation_pop_task;
 	return component;
 }

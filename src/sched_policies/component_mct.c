@@ -106,7 +106,7 @@ static int mct_push_task(struct starpu_sched_component * component, struct starp
 	return ret;
 }
 
-void mct_component_deinit_data(struct starpu_sched_component * component)
+static void mct_component_deinit_data(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(starpu_sched_component_is_mct(component));
 	struct _starpu_mct_data * d = component->data;

@@ -34,7 +34,6 @@ static double compute_relative_speedup(struct starpu_sched_component * component
 	return sum;
 }
 
-
 static int random_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	STARPU_ASSERT(component->nchildren > 0);
@@ -97,10 +96,11 @@ static int random_push_task(struct starpu_sched_component * component, struct st
 
 	return ret_val;
 }
+
 /* taking the min of estimated_end not seems to be a good value to return here
  * as random scheduler balance between childs very poorly
  */
-double random_estimated_end(struct starpu_sched_component * component)
+static double random_estimated_end(struct starpu_sched_component * component)
 {
 	double sum = 0.0;
 	int i;
@@ -109,15 +109,15 @@ double random_estimated_end(struct starpu_sched_component * component)
 	return sum / component->nchildren;
 }
 
+int starpu_sched_component_is_random(struct starpu_sched_component *component)
+{
+	return component->push_task == random_push_task;
+}
+
 struct starpu_sched_component * starpu_sched_component_random_create(void * arg STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_component * component = starpu_sched_component_create();
 	component->estimated_end = random_estimated_end;
 	component->push_task = random_push_task;
 	return component;
-}
-
-int starpu_sched_component_is_random(struct starpu_sched_component *component)
-{
-	return component->push_task == random_push_task;
 }

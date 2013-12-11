@@ -34,7 +34,6 @@
 	_STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(workerid, ntasks, exp_len); \
 } while (0)
 
-
 struct _starpu_prio_data
 {
 	struct _starpu_prio_deque prio;
@@ -43,7 +42,7 @@ struct _starpu_prio_data
 	double exp_len_threshold;
 };
 
-void prio_component_deinit_data(struct starpu_sched_component * component)
+static void prio_component_deinit_data(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_prio_data * f = component->data;
@@ -167,11 +166,6 @@ static int prio_push_task(struct starpu_sched_component * component, struct star
 	return ret;
 }
 
-int starpu_sched_component_is_prio(struct starpu_sched_component * component)
-{
-	return component->push_task == prio_push_task;
-}
-
 static struct starpu_task * prio_pop_task(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
@@ -251,6 +245,11 @@ static int prio_can_push(struct starpu_sched_component * component)
 		prio_push_local_task(component,task,1); 
 
 	return res;
+}
+
+int starpu_sched_component_is_prio(struct starpu_sched_component * component)
+{
+	return component->push_task == prio_push_task;
 }
 
 struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu_prio_data * params)

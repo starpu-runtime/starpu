@@ -36,24 +36,6 @@ struct _starpu_heft_data
 	struct _starpu_mct_data *mct_data;
 };
 
-static void heft_progress(struct starpu_sched_component *component);
-
-static int heft_push_task(struct starpu_sched_component * component, struct starpu_task * task)
-{
-	STARPU_ASSERT(component && task && starpu_sched_component_is_heft(component));
-	struct _starpu_heft_data * data = component->data;
-	struct _starpu_prio_deque * prio = &data->prio;
-	starpu_pthread_mutex_t * mutex = &data->mutex;
-
-	STARPU_PTHREAD_MUTEX_LOCK(mutex);
-	_starpu_prio_deque_push_task(prio,task);
-	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
-
-	heft_progress(component);
-
-	return 0;
-}
-
 static int heft_progress_one(struct starpu_sched_component *component)
 {
 	struct _starpu_heft_data * data = component->data;
@@ -196,6 +178,22 @@ static void heft_progress(struct starpu_sched_component *component)
 		;
 }
 
+static int heft_push_task(struct starpu_sched_component * component, struct starpu_task * task)
+{
+	STARPU_ASSERT(component && task && starpu_sched_component_is_heft(component));
+	struct _starpu_heft_data * data = component->data;
+	struct _starpu_prio_deque * prio = &data->prio;
+	starpu_pthread_mutex_t * mutex = &data->mutex;
+
+	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	_starpu_prio_deque_push_task(prio,task);
+	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+
+	heft_progress(component);
+
+	return 0;
+}
+
 static int heft_can_push(struct starpu_sched_component *component)
 {
 	_starpu_sched_component_unlock_scheduling();
@@ -216,7 +214,7 @@ static int heft_can_push(struct starpu_sched_component *component)
 	return ret;
 }
 
-void heft_component_deinit_data(struct starpu_sched_component * component)
+static void heft_component_deinit_data(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(starpu_sched_component_is_heft(component));
 	struct _starpu_mct_data * d = component->data;

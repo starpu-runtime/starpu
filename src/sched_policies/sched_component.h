@@ -25,13 +25,14 @@ void _starpu_sched_component_lock_all_workers(void);
 void _starpu_sched_component_unlock_all_workers(void);
 void _starpu_sched_component_lock_worker(int workerid);
 void _starpu_sched_component_unlock_worker(int workerid);
-void _starpu_sched_component_lock_scheduling(void);
-void _starpu_sched_component_unlock_scheduling(void);
-
 
 struct _starpu_worker * _starpu_sched_component_worker_get_worker(struct starpu_sched_component *);
 struct _starpu_combined_worker * _starpu_sched_component_combined_worker_get_combined_worker(struct starpu_sched_component * worker_component);
 
 struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id);
+
+
+void _starpu_sched_component_lock_scheduling(void);
+void _starpu_sched_component_unlock_scheduling(void);
 
 #endif

@@ -19,80 +19,6 @@
 #include <starpu_sched_component.h>
 #include "helper_mct.h"
 
-/* compute predicted_end by taking into account the case of the predicted transfer and the predicted_end overlap
- */
-static double compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
-{
-	STARPU_ASSERT(!isnan(now + predicted_end + predicted_length + predicted_transfer));
-	STARPU_ASSERT(now >= 0.0 && predicted_end >= 0.0 && predicted_length >= 0.0 && predicted_transfer >= 0.0);
-
-	/* TODO: actually schedule transfers */
-	if (now + predicted_transfer < predicted_end)
-	{
-		/* We may hope that the transfer will be finished by
-		 * the start of the task. */
-		predicted_transfer = 0;
-	}
-	else
-	{
-		/* The transfer will not be finished by then, take the
-		 * remainder into account */
-		predicted_transfer -= (predicted_end - now);
-	}
-
-	predicted_end += predicted_transfer;
-	predicted_end += predicted_length;
-
-	return predicted_end;
-}
-
-double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end, double max_exp_end, double transfer_len, double local_power)
-{
-	/* Note: the expected end includes the data transfer duration, which we want to be able to tune separately */
-
-	return d->alpha * (exp_end - min_exp_end)
-		+ d->beta * transfer_len
-		+ d->gamma * local_power
-		+ d->gamma * d->idle_power * (exp_end - max_exp_end);
-}
-
-int starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,
-		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,
-		double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_components)
-{
-	int nsuitable_components = 0;
-
-	int i;
-	for(i = 0; i < component->nchildren; i++)
-	{
-		struct starpu_sched_component * c = component->children[i];
-		if(starpu_sched_component_execute_preds(c, task, estimated_lengths + i))
-		{
-			if(isnan(estimated_lengths[i]))
-				/* The perfmodel had been purged since the task was pushed
-				 * onto the mct component. */
-				continue;
-
-			/* Estimated availability of worker */
-			double estimated_end = c->estimated_end(c);
-			double now = starpu_timing_now();
-			if (estimated_end < now)
-				estimated_end = now;
-			estimated_transfer_length[i] = starpu_sched_component_transfer_length(c, task);
-			estimated_ends_with_task[i] = compute_expected_time(now,
-									    estimated_end,
-									    estimated_lengths[i],
-									    estimated_transfer_length[i]);
-			if(estimated_ends_with_task[i] < *min_exp_end_with_task)
-				*min_exp_end_with_task = estimated_ends_with_task[i];
-			if(estimated_ends_with_task[i] > *max_exp_end_with_task)
-				*max_exp_end_with_task = estimated_ends_with_task[i];
-			suitable_components[nsuitable_components++] = i;
-		}
-	}
-	return nsuitable_components;
-}
-
 /* Alpha, Beta and Gamma are MCT-specific values, which allows the
  * user to set more precisely the weight of each computing value.
  * Beta, for example, controls the weight of communications between
@@ -173,4 +99,78 @@ struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_mct_data *para
 #endif /* !STARPU_USE_TOP */
 
 	return data;
+}
+
+/* compute predicted_end by taking into account the case of the predicted transfer and the predicted_end overlap
+ */
+static double compute_expected_time(double now, double predicted_end, double predicted_length, double predicted_transfer)
+{
+	STARPU_ASSERT(!isnan(now + predicted_end + predicted_length + predicted_transfer));
+	STARPU_ASSERT(now >= 0.0 && predicted_end >= 0.0 && predicted_length >= 0.0 && predicted_transfer >= 0.0);
+
+	/* TODO: actually schedule transfers */
+	if (now + predicted_transfer < predicted_end)
+	{
+		/* We may hope that the transfer will be finished by
+		 * the start of the task. */
+		predicted_transfer = 0;
+	}
+	else
+	{
+		/* The transfer will not be finished by then, take the
+		 * remainder into account */
+		predicted_transfer -= (predicted_end - now);
+	}
+
+	predicted_end += predicted_transfer;
+	predicted_end += predicted_length;
+
+	return predicted_end;
+}
+
+double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end, double max_exp_end, double transfer_len, double local_power)
+{
+	/* Note: the expected end includes the data transfer duration, which we want to be able to tune separately */
+
+	return d->alpha * (exp_end - min_exp_end)
+		+ d->beta * transfer_len
+		+ d->gamma * local_power
+		+ d->gamma * d->idle_power * (exp_end - max_exp_end);
+}
+
+int starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,
+		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,
+		double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_components)
+{
+	int nsuitable_components = 0;
+
+	int i;
+	for(i = 0; i < component->nchildren; i++)
+	{
+		struct starpu_sched_component * c = component->children[i];
+		if(starpu_sched_component_execute_preds(c, task, estimated_lengths + i))
+		{
+			if(isnan(estimated_lengths[i]))
+				/* The perfmodel had been purged since the task was pushed
+				 * onto the mct component. */
+				continue;
+
+			/* Estimated availability of worker */
+			double estimated_end = c->estimated_end(c);
+			double now = starpu_timing_now();
+			if (estimated_end < now)
+				estimated_end = now;
+			estimated_transfer_length[i] = starpu_sched_component_transfer_length(c, task);
+			estimated_ends_with_task[i] = compute_expected_time(now,
+									    estimated_end,
+									    estimated_lengths[i],
+									    estimated_transfer_length[i]);
+			if(estimated_ends_with_task[i] < *min_exp_end_with_task)
+				*min_exp_end_with_task = estimated_ends_with_task[i];
+			if(estimated_ends_with_task[i] > *max_exp_end_with_task)
+				*max_exp_end_with_task = estimated_ends_with_task[i];
+			suitable_components[nsuitable_components++] = i;
+		}
+	}
+	return nsuitable_components;
 }

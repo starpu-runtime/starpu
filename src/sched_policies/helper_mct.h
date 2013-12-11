@@ -23,7 +23,9 @@ struct _starpu_mct_data
 };
 
 struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_mct_data *params);
+
 int starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,
 		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,
 		double *min_exp_end_with_task, double *max_exp_end_with_task, int *suitable_components);
+
 double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end, double max_exp_end, double transfer_len, double local_power);
