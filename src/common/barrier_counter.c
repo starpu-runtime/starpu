@@ -118,9 +118,9 @@ int _starpu_barrier_counter_get_reached_start(struct _starpu_barrier_counter *ba
 {
 	struct _starpu_barrier *barrier = &barrier_c->barrier;
 	int ret;
-//	STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 	ret = barrier->reached_start;
-//	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
 	return ret;
 }
 
@@ -128,8 +128,8 @@ double _starpu_barrier_counter_get_reached_flops(struct _starpu_barrier_counter 
 {
 	struct _starpu_barrier *barrier = &barrier_c->barrier;
 	double ret;
-//	STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&barrier->mutex);
 	ret = barrier->reached_flops;
-//	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&barrier->mutex);
 	return ret;
 }
