@@ -896,7 +896,7 @@ void _starpu_increment_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 int _starpu_get_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	return sched_ctx->tasks_barrier.barrier.reached_start;
+	return _starpu_barrier_counter_get_reached_start(&sched_ctx->tasks_barrier);
 }
 
 int _starpu_check_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
