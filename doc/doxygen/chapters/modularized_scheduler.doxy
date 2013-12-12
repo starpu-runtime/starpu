@@ -302,6 +302,52 @@ queue of the Component, and give it to the calling Component which asks for it.
 
 \subsection DetailedProgressionAndValidationRules Detailed Progression and Validation Rules
 
+	- A Reservoir is a Scheduling Component which redefines a Push and a Pull
+	function, in order to store tasks into it. A Reservoir delimit Scheduling
+	Areas in the Scheduling Tree.
+
+	- A Pump is the engine source of the Scheduler : it pushes/pulls tasks
+	to/from a Scheduling Component to an other. Native Pumps of a Scheduling 
+	Tree are located at the root of the Tree (incoming Push calls from StarPU), 
+	and at the leafs of the Tree (Pop calls coming from StarPU Workers). 
+	Pre-implemented Scheduling Components currently shipped with Pumps are 
+	Flow-Control Components and the Resource-Mapping Component Heft, within 
+	their defined Can_Push functions.
+
+	- A correct Scheduling Tree requires a Pump per Scheduling Area and per 
+	Execution Flow. 
+
+
+The Tree-Eager-Prefetching Scheduler shown in Section 
+\ref ExampleTreeEagerPrefetchingStrategy follows the previous assumptions :
+
+<pre>
+                                  starpu_push_task
+                                       <b>Pump</b>
+                                         |
+ Area 1                                  |
+                                         |
+                                         v
+            -----------------------Fifo_Component-----------------------------
+                                       <b>Pump</b>
+                                        |  ^
+                                Push    |  |    Can_Push
+                                        v  |
+ Area 2                           Eager_Component
+                                        |  ^
+                                        |  |    
+                                        v  |
+                      --------><-------------------><---------
+                      |  ^                                |  ^
+              Push    |  |    Can_Push            Push    |  |    Can_Push
+                      v  |                                v  |
+            -----Fifo_Component-----------------------Fifo_Component----------
+                      |  ^                                |  ^
+              Pull    |  |    Can_Pull            Pull    |  |    Can_Pull
+ Area 3               v  |                                v  |
+                     <b>Pump</b>                               <b>Pump</b>
+                Worker_Component                     Worker_Component
+</pre>
 
 */
 
