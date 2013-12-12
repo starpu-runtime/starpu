@@ -14,6 +14,33 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
+StarPU 1.1.0rc4 (svn revision 11942)
+==============================================
+The scheduling context release
+
+New features:
+  * Document how to migrate data over MPI.
+  * Documentation improvment
+  * Several bug fixes for the hypervisor and the scheduling contexts
+  * The function starpu_sched_ctx_create() now takes a variable
+    argument list to define the scheduler to be used, and the minimum
+    and maximum priority values. The scheduler to be used can either
+    be defined by its name or by a pointer to an existing scheduler
+    structure.
+  * The functions starpu_sched_set/get_min/max_priority set/get the
+    priorities of the current scheduling context, i.e the one which
+    was set by a call to starpu_sched_ctx_set_context() or the initial
+    context if the function has not been called yet.
+  * When initialising a task, its scheduling context is no longer set,
+    on submission, it is set to the initial context for internal
+    tasks, and to the current context for the other tasks.
+  * New function starpu_wakeup_worker() to be used by schedulers to
+    wake up a single worker (instead of all workers) when submitting a
+    single task.
+  * New function starpu_sched_ctx_register_close_callback() to specify
+    a callback which will be called when the last task of the context
+    will finish its execution.
+
 StarPU 1.1.0rc3 (svn revision 11621)
 ==============================================
 The scheduling context release
@@ -35,7 +62,6 @@ New features:
     the scheduling decision.
   * Add a watchdog which permits to easily trigger a crash when StarPU gets
     stuck.
-  * Document how to migrate data over MPI.
 
 Small features:
   * New function starpu_perfmodel_directory() to print directory
