@@ -389,21 +389,3 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 	(*task)->prologue_callback_arg = prologue_cl_arg_wrapper;
 	(*task)->prologue_callback_arg_free = 1;
 }
-
-int _starpu_task_insert_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
-{
-	_starpu_task_insert_create(arg_buffer, arg_buffer_size, cl, task, varg_list);
-
-	int ret = starpu_task_submit(*task);
-
-	if (STARPU_UNLIKELY(ret == -ENODEV))
-	{
-		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
-			*task, (*task)->cl,
-			(cl == NULL) ? "none" :
-			(*task)->cl->name ? (*task)->cl->name :
-			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
-	}
-
-	return ret;
-}
