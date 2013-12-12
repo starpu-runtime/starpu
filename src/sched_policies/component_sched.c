@@ -32,30 +32,6 @@
 
 
 
-/* Allows a worker to lock/unlock scheduling mutexes. Currently used in 
- * self-defined can_push calls to allow can_pull calls to take those mutexes while the 
- * current worker is pushing tasks on other workers (or itself). 
- */
-void _starpu_sched_component_lock_scheduling(void)
-{
-	int workerid = starpu_worker_get_id();
-	starpu_pthread_mutex_t *sched_mutex;
-	starpu_pthread_cond_t *sched_cond;
-	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-	_starpu_sched_component_lock_worker(workerid);	
-	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
-}
-
-void _starpu_sched_component_unlock_scheduling(void)
-{
-	int workerid = starpu_worker_get_id();
-	starpu_pthread_mutex_t *sched_mutex;
-	starpu_pthread_cond_t *sched_cond;
-	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
-	_starpu_sched_component_unlock_worker(workerid);	
-}
-
 /* this function find the best implementation or an implementation that need to be calibrated for a worker available
  * and set prediction in *length. nan if a implementation need to be calibrated, 0.0 if no perf model are available
  * return false if no worker on the component can execute that task
@@ -352,20 +328,14 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 	STARPU_ASSERT(task);
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_sched_tree *tree = starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	int workerid = starpu_worker_get_id();
+
 	/* application should take tree->lock to prevent concurent acces from hypervisor
 	 * worker take they own mutexes
 	 */
-	if(-1 == workerid)
-		STARPU_PTHREAD_MUTEX_LOCK(&tree->lock);
-	else
-		_starpu_sched_component_lock_worker(workerid);
-		
+	STARPU_PTHREAD_MUTEX_LOCK(&tree->lock);
 	int ret_val = tree->root->push_task(tree->root,task);
-	if(-1 == workerid)
-		STARPU_PTHREAD_MUTEX_UNLOCK(&tree->lock);
-	else
-		_starpu_sched_component_unlock_worker(workerid);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&tree->lock);
+	
 	return ret_val;
 }
 

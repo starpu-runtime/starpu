@@ -154,6 +154,9 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 		STARPU_ASSERT(!isnan(prio->exp_end));
 		STARPU_ASSERT(!isnan(prio->exp_len));
 		STARPU_ASSERT(!isnan(prio->exp_start));
+		
+		if(!is_pushback)
+			component->can_pull(component);
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 	}
 
@@ -227,7 +230,6 @@ static int prio_can_push(struct starpu_sched_component * component)
 	STARPU_ASSERT(component->nchildren == 1);
 	struct starpu_sched_component * child = component->children[0];
 
-	_starpu_sched_component_unlock_scheduling();
 	struct starpu_task * task = component->pop_task(component);
 	if(task)
 		ret = child->push_task(child,task);	
@@ -240,7 +242,6 @@ static int prio_can_push(struct starpu_sched_component * component)
 		if(task)
 			ret = child->push_task(child,task);	
 	} 
-	_starpu_sched_component_lock_scheduling();
 	if(task && ret)
 		prio_push_local_task(component,task,1); 
 

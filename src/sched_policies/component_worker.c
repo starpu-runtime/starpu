@@ -299,10 +299,68 @@ static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_w
 
 
 /******************************************************************************
+ *			Worker Components' Public Helper Functions (Part 1)		     	  *
+ *****************************************************************************/
+
+
+
+struct _starpu_worker * _starpu_sched_component_worker_get_worker(struct starpu_sched_component * worker_component)
+{
+	STARPU_ASSERT(starpu_sched_component_is_simple_worker(worker_component));
+	struct _starpu_worker_component_data * data = worker_component->data;
+	return data->worker;
+}
+struct _starpu_combined_worker * _starpu_sched_component_combined_worker_get_combined_worker(struct starpu_sched_component * worker_component)
+{
+	STARPU_ASSERT(starpu_sched_component_is_combined_worker(worker_component));
+	struct _starpu_worker_component_data * data = worker_component->data;
+	return data->combined_worker;
+}
+
+void _starpu_sched_component_lock_worker(int workerid)
+{
+	STARPU_ASSERT(0 <= workerid && workerid < (int) starpu_worker_get_count());
+	struct _starpu_worker_component_data * data = starpu_sched_component_worker_get(workerid)->data;
+	STARPU_PTHREAD_MUTEX_LOCK(&data->lock);
+}
+void _starpu_sched_component_unlock_worker(int workerid)
+{
+	STARPU_ASSERT(0 <= workerid && workerid < (int)starpu_worker_get_count());
+	struct _starpu_worker_component_data * data = starpu_sched_component_worker_get(workerid)->data;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&data->lock);
+}
+
+
+
+/******************************************************************************
  *				Worker Components' Private Helper Functions			      	  *
  *****************************************************************************/
 
 
+
+/* Allows a worker to lock/unlock scheduling mutexes. Currently used in 
+ * self-defined can_push calls to allow can_pull calls to take those mutexes while the 
+ * current worker is pushing tasks on other workers (or itself). 
+ */
+static void _starpu_sched_component_worker_lock_scheduling(void)
+{
+	int workerid = starpu_worker_get_id();
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+	_starpu_sched_component_lock_worker(workerid);	
+	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+}
+
+static void _starpu_sched_component_worker_unlock_scheduling(void)
+{
+	int workerid = starpu_worker_get_id();
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+	_starpu_sched_component_unlock_worker(workerid);	
+}
 
 static void _starpu_sched_component_worker_set_sleep_status(struct starpu_sched_component * worker_component)
 {
@@ -366,40 +424,6 @@ static int _worker_consistant(struct starpu_sched_component * component)
 
 
 /******************************************************************************
- *			Worker Components' Public Helper Functions (Part 1)		     	  *
- *****************************************************************************/
-
-
-
-struct _starpu_worker * _starpu_sched_component_worker_get_worker(struct starpu_sched_component * worker_component)
-{
-	STARPU_ASSERT(starpu_sched_component_is_simple_worker(worker_component));
-	struct _starpu_worker_component_data * data = worker_component->data;
-	return data->worker;
-}
-struct _starpu_combined_worker * _starpu_sched_component_combined_worker_get_combined_worker(struct starpu_sched_component * worker_component)
-{
-	STARPU_ASSERT(starpu_sched_component_is_combined_worker(worker_component));
-	struct _starpu_worker_component_data * data = worker_component->data;
-	return data->combined_worker;
-}
-
-void _starpu_sched_component_lock_worker(int workerid)
-{
-	STARPU_ASSERT(0 <= workerid && workerid < (int) starpu_worker_get_count());
-	struct _starpu_worker_component_data * data = starpu_sched_component_worker_get(workerid)->data;
-	STARPU_PTHREAD_MUTEX_LOCK(&data->lock);
-}
-void _starpu_sched_component_unlock_worker(int workerid)
-{
-	STARPU_ASSERT(0 <= workerid && workerid < (int)starpu_worker_get_count());
-	struct _starpu_worker_component_data * data = starpu_sched_component_worker_get(workerid)->data;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data->lock);
-}
-
-
-
-/******************************************************************************
  *				Simple Worker Components' Interface Functions			      *
  *****************************************************************************/
 
@@ -456,6 +480,7 @@ static int simple_worker_push_task(struct starpu_sched_component * component, st
 
 static struct starpu_task * simple_worker_pop_task(struct starpu_sched_component *component)
 {
+	int workerid = starpu_worker_get_id();
 	struct _starpu_worker_component_data * data = component->data;
 	struct _starpu_worker_task_list * list = data->list;
 	STARPU_PTHREAD_MUTEX_LOCK(&list->mutex);
@@ -466,7 +491,7 @@ static struct starpu_task * simple_worker_pop_task(struct starpu_sched_component
 		starpu_push_task_end(task);
 		return task;
 	}
-	STARPU_PTHREAD_MUTEX_LOCK(&data->lock);
+	_starpu_sched_component_lock_worker(workerid);	
 	int i;
 	do {
 		_starpu_sched_component_worker_reset_status(component);
@@ -476,14 +501,16 @@ static struct starpu_task * simple_worker_pop_task(struct starpu_sched_component
 				continue;
 			else
 			{
+				_starpu_sched_component_worker_unlock_scheduling();
 				task = component->parents[i]->pop_task(component->parents[i]);
+				_starpu_sched_component_worker_lock_scheduling();
 				if(task)
 					break;
 			}
 		}
 	} while((!task) && _starpu_sched_component_worker_is_changed_status(component));
 	_starpu_sched_component_worker_set_sleep_status(component);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data->lock);
+	_starpu_sched_component_unlock_worker(workerid);	
 	if(!task)
 		return NULL;
 	if(task->cl->type == STARPU_SPMD)

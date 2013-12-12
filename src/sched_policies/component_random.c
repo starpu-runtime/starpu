@@ -91,9 +91,6 @@ static int random_push_task(struct starpu_sched_component * component, struct st
 	}
 
 	int ret_val = select->push_task(select,task);
-	if(!ret_val)
-		select->can_pull(select);
-
 	return ret_val;
 }
 

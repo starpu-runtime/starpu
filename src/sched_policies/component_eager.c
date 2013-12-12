@@ -36,7 +36,7 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 				int i;
 				for (i = 0; i < component->nchildren; i++)
 				{
-					int idworker,ret;
+					int idworker;
 					for(idworker = starpu_bitmap_first(component->children[i]->workers);
 						idworker != -1;
 						idworker = starpu_bitmap_next(component->children[i]->workers, idworker))
@@ -49,14 +49,7 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 								return 1;
 							}
 							else
-							{
-								ret = component->children[i]->push_task(component->children[i],task);
-								if(!ret)
-								{
-									component->children[i]->can_pull(component->children[i]);
-									return ret;
-								}
-							}
+								return component->children[i]->push_task(component->children[i],task);
 						}
 					}
 				}

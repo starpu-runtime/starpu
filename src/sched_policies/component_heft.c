@@ -163,10 +163,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 			return 1;
 		}
 		else
-		{
-			best_component->can_pull(best_component);
 			return 0;
-		}
 	}
 }
 
@@ -196,9 +193,7 @@ static int heft_push_task(struct starpu_sched_component * component, struct star
 
 static int heft_can_push(struct starpu_sched_component *component)
 {
-	_starpu_sched_component_unlock_scheduling();
 	heft_progress(component);
-	_starpu_sched_component_lock_scheduling();
 	int ret, j;
 	for(j=0; j < component->nparents; j++)
 	{
