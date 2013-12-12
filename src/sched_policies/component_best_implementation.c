@@ -83,7 +83,7 @@ int starpu_sched_component_is_best_implementation(struct starpu_sched_component 
 	return component->push_task == best_implementation_push_task;
 }
 
-static struct starpu_task * best_implementation_pop_task(struct starpu_sched_component * component)
+static struct starpu_task * best_implementation_pull_task(struct starpu_sched_component * component)
 {
 	struct starpu_task * task = NULL;
 	int i;
@@ -93,7 +93,7 @@ static struct starpu_task * best_implementation_pop_task(struct starpu_sched_com
 			continue;
 		else
 		{
-			task = component->parents[i]->pop_task(component->parents[i]);
+			task = component->parents[i]->pull_task(component->parents[i]);
 			if(task)
 				break;
 		}
@@ -108,6 +108,6 @@ struct starpu_sched_component * starpu_sched_component_best_implementation_creat
 {
 	struct starpu_sched_component * component = starpu_sched_component_create();
 	component->push_task = best_implementation_push_task;
-	component->pop_task = best_implementation_pop_task;
+	component->pull_task = best_implementation_pull_task;
 	return component;
 }

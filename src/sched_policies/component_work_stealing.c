@@ -116,7 +116,7 @@ static int is_worker_of_component(struct starpu_sched_component * component, int
 
 
 
-static struct starpu_task * pop_task(struct starpu_sched_component * component)
+static struct starpu_task * pull_task(struct starpu_sched_component * component)
 {
 	int workerid = starpu_worker_get_id();
 	int i;
@@ -161,7 +161,7 @@ static struct starpu_task * pop_task(struct starpu_sched_component * component)
 			continue;
 		else
 		{
-			task = component->parents[i]->pop_task(component->parents[i]);
+			task = component->parents[i]->pull_task(component->parents[i]);
 			if(task)
 				break;
 		}
@@ -340,7 +340,7 @@ struct starpu_sched_component * starpu_sched_component_work_stealing_create(void
 	struct starpu_sched_component * component = starpu_sched_component_create();
 	struct _starpu_work_stealing_data * wsd = malloc(sizeof(*wsd));
 	memset(wsd, 0, sizeof(*wsd));
-	component->pop_task = pop_task;
+	component->pull_task = pull_task;
 	component->push_task = push_task;
 	component->add_child = _ws_add_child;
 	component->remove_child = _ws_remove_child;

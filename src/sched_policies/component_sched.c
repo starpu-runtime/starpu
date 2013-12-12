@@ -344,9 +344,9 @@ struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx STARPU_ATTRIB
 	int workerid = starpu_worker_get_id();
 	struct starpu_sched_component * component = starpu_sched_component_worker_get(workerid);
 
-	/* _starpu_sched_component_lock_worker(workerid) is called by component->pop_task()
+	/* _starpu_sched_component_lock_worker(workerid) is called by component->pull_task()
 	 */
-	struct starpu_task * task = component->pop_task(component);
+	struct starpu_task * task = component->pull_task(component);
 	return task;
 }
 
@@ -469,10 +469,10 @@ static void starpu_sched_component_remove_parent(struct starpu_sched_component *
 	component->parents[pos] = component->parents[--component->nparents];
 }
 
-/* default implementation for component->pop_task()
+/* default implementation for component->pull_task()
  * just perform a recursive call on parent
  */
-static struct starpu_task * starpu_sched_component_pop_task(struct starpu_sched_component * component)
+static struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component);
 	struct starpu_task * task = NULL;
@@ -483,7 +483,7 @@ static struct starpu_task * starpu_sched_component_pop_task(struct starpu_sched_
 			continue;
 		else
 		{
-			task = component->parents[i]->pop_task(component->parents[i]);
+			task = component->parents[i]->pull_task(component->parents[i]);
 			if(task)
 				break;
 		}
@@ -567,7 +567,7 @@ struct starpu_sched_component * starpu_sched_component_create(void)
 	component->remove_child = starpu_sched_component_remove_child;
 	component->add_parent = starpu_sched_component_add_parent;
 	component->remove_parent = starpu_sched_component_remove_parent;
-	component->pop_task = starpu_sched_component_pop_task;
+	component->pull_task = starpu_sched_component_pull_task;
 	component->can_push = starpu_sched_component_can_push;
 	component->can_pull = starpu_sched_component_can_pull;
 	component->estimated_load = starpu_sched_component_estimated_load;

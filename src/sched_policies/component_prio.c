@@ -169,7 +169,7 @@ static int prio_push_task(struct starpu_sched_component * component, struct star
 	return ret;
 }
 
-static struct starpu_task * prio_pop_task(struct starpu_sched_component * component)
+static struct starpu_task * prio_pull_task(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_prio_data * data = component->data;
@@ -230,7 +230,7 @@ static int prio_can_push(struct starpu_sched_component * component)
 	STARPU_ASSERT(component->nchildren == 1);
 	struct starpu_sched_component * child = component->children[0];
 
-	struct starpu_task * task = component->pop_task(component);
+	struct starpu_task * task = component->pull_task(component);
 	if(task)
 		ret = child->push_task(child,task);	
 	while(task && !ret) 
@@ -238,7 +238,7 @@ static int prio_can_push(struct starpu_sched_component * component)
 		if(!res)
 			res = 1;
 
-		task = component->pop_task(component);
+		task = component->pull_task(component);
 		if(task)
 			ret = child->push_task(child,task);	
 	} 
@@ -263,7 +263,7 @@ struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu
 	component->estimated_end = prio_estimated_end;
 	component->estimated_load = prio_estimated_load;
 	component->push_task = prio_push_task;
-	component->pop_task = prio_pop_task;
+	component->pull_task = prio_pull_task;
 	component->can_push = prio_can_push;
 	component->deinit_data = prio_component_deinit_data;
 

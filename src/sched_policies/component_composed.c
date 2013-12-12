@@ -123,12 +123,12 @@ static int composed_component_push_task(struct starpu_sched_component * componen
 	struct composed_component *c = component->data;
 	return c->top->push_task(c->top,task);
 }
-struct starpu_task * composed_component_pop_task(struct starpu_sched_component *component)
+struct starpu_task * composed_component_pull_task(struct starpu_sched_component *component)
 {
 	struct composed_component *c = component->data;
 	struct starpu_task * task = NULL;
 	
-	task = c->bottom->pop_task(c->bottom);
+	task = c->bottom->pull_task(c->bottom);
 	if(task)
 		return task;
 
@@ -139,7 +139,7 @@ struct starpu_task * composed_component_pop_task(struct starpu_sched_component *
 			continue;
 		else
 		{
-			task = component->parents[i]->pop_task(component->parents[i]);
+			task = component->parents[i]->pull_task(component->parents[i]);
 			if(task)
 				break;
 		}
@@ -224,7 +224,7 @@ struct starpu_sched_component * starpu_sched_component_composed_component_create
 
 	component->data = c;
 	component->push_task = composed_component_push_task;
-	component->pop_task = composed_component_pop_task;
+	component->pull_task = composed_component_pull_task;
 	component->estimated_load = composed_component_estimated_load;
 	component->add_child = composed_component_add_child;
 	component->remove_child = composed_component_remove_child;

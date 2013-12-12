@@ -79,7 +79,7 @@ struct starpu_sched_component
 	/* component->push_task(component, task)
 	 * this function is called to push a task on component subtree, this can either
 	 * perform a recursive call on a child or store the task in the component, then
-	 * it will be returned by a further pop_task call
+	 * it will be returned by a further pull_task call
 	 *
 	 * the caller must ensure that component is able to execute task
 	 */
@@ -91,7 +91,7 @@ struct starpu_sched_component
 	 *
 	 * a default implementation simply do a recursive call on parent
 	 */
-	struct starpu_task * (*pop_task)(struct starpu_sched_component *);
+	struct starpu_task * (*pull_task)(struct starpu_sched_component *);
 
 	/* This function is called by a component which implements a queue, allowing it to
 	 * signify to its parents that an empty slot is available in its queue.

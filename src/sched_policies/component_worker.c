@@ -478,7 +478,7 @@ static int simple_worker_push_task(struct starpu_sched_component * component, st
 	return 0;
 }
 
-static struct starpu_task * simple_worker_pop_task(struct starpu_sched_component *component)
+static struct starpu_task * simple_worker_pull_task(struct starpu_sched_component *component)
 {
 	int workerid = starpu_worker_get_id();
 	struct _starpu_worker_component_data * data = component->data;
@@ -502,7 +502,7 @@ static struct starpu_task * simple_worker_pop_task(struct starpu_sched_component
 			else
 			{
 				_starpu_sched_component_worker_unlock_scheduling();
-				task = component->parents[i]->pop_task(component->parents[i]);
+				task = component->parents[i]->pull_task(component->parents[i]);
 				_starpu_sched_component_worker_lock_scheduling();
 				if(task)
 					break;
@@ -524,7 +524,7 @@ static struct starpu_task * simple_worker_pop_task(struct starpu_sched_component
 		struct starpu_sched_component * combined_worker_component = starpu_sched_component_worker_get(workerid);
 		(void)combined_worker_component->push_task(combined_worker_component, task);
 		/* we have pushed a task in queue, so can make a recursive call */
-		return simple_worker_pop_task(component);
+		return simple_worker_pull_task(component);
 
 	}
 	if(task)
@@ -599,7 +599,7 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(int 
 	component->data = data;
 
 	component->push_task = simple_worker_push_task;
-	component->pop_task = simple_worker_pop_task;
+	component->pull_task = simple_worker_pull_task;
 	component->can_pull = simple_worker_can_pull;
 	component->estimated_end = simple_worker_estimated_end;
 	component->estimated_load = simple_worker_estimated_load;
@@ -775,7 +775,7 @@ static struct starpu_sched_component  * starpu_sched_component_combined_worker_c
 
 	component->data = data;
 	component->push_task = combined_worker_push_task;
-	component->pop_task = NULL;
+	component->pull_task = NULL;
 	component->estimated_end = combined_worker_estimated_end;
 	component->estimated_load = combined_worker_estimated_load;
 	component->can_pull = combined_worker_can_pull;

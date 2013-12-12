@@ -155,7 +155,7 @@ static int fifo_push_task(struct starpu_sched_component * component, struct star
 	return fifo_push_local_task(component, task, 0);
 }
 
-static struct starpu_task * fifo_pop_task(struct starpu_sched_component * component)
+static struct starpu_task * fifo_pull_task(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * data = component->data;
@@ -214,7 +214,7 @@ static int fifo_can_push(struct starpu_sched_component * component)
 	STARPU_ASSERT(component->nchildren == 1);
 	struct starpu_sched_component * child = component->children[0];
 
-	struct starpu_task * task = component->pop_task(component);
+	struct starpu_task * task = component->pull_task(component);
 	if(task)
 		ret = child->push_task(child,task);	
 	while(task && !ret) 
@@ -222,7 +222,7 @@ static int fifo_can_push(struct starpu_sched_component * component)
 		if(!res)
 			res = 1;
 
-		task = component->pop_task(component);
+		task = component->pull_task(component);
 		if(task)
 			ret = child->push_task(child,task);	
 	} 
@@ -247,7 +247,7 @@ struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu
 	component->estimated_end = fifo_estimated_end;
 	component->estimated_load = fifo_estimated_load;
 	component->push_task = fifo_push_task;
-	component->pop_task = fifo_pop_task;
+	component->pull_task = fifo_pull_task;
 	component->can_push = fifo_can_push;
 	component->deinit_data = fifo_component_deinit_data;
 
