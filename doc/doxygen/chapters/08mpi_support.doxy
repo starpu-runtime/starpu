@@ -318,6 +318,27 @@ application can prune the task for loops according to the data distribution,
 so as to only submit tasks on nodes which have to care about them (either to
 execute them, or to send the required data).
 
+A function starpu_mpi_task_build() is also provided with the aim to
+only construct the task structure. All MPI nodes need to call the
+function, only the node which is to execute the task will return a
+valid task structure. Following the execution of the task, all nodes
+need to call the function starpu_mpi_task_post_build() -- with the same
+list of arguments as starpu_mpi_task_build() -- to post all the
+necessary data communications.
+
+\code{.c}
+struct starpu_task *task;
+task = starpu_mpi_task_build(MPI_COMM_WORLD, &cl,
+                             STARPU_RW, data_handles[0],
+                             STARPU_R, data_handles[1],
+                             0);
+if (task) starpu_task_submit(task);
+starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
+                           STARPU_RW, data_handles[0],
+                           STARPU_R, data_handles[1],
+                           0);
+\endcode
+
 \section MPIMigration MPI Data migration
 
 The application can dynamically change its mind about the data distribution, to

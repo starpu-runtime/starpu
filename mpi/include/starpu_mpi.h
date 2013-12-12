@@ -47,6 +47,8 @@ int starpu_mpi_initialize(void) STARPU_DEPRECATED;
 int starpu_mpi_initialize_extended(int *rank, int *world_size) STARPU_DEPRECATED;
 int starpu_mpi_shutdown(void);
 
+struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *codelet, ...);
+int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...);
 /* the function starpu_mpi_insert_task has the same semantics as starpu_mpi_task_insert, it is kept to avoid breaking old codes */
 int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...);

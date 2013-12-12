@@ -40,6 +40,7 @@ New features:
     handle (sequential consistency will be enabled or disabled based
     on the value of the function parameter and the value of the
     sequential consistency defined for the given data)
+  * New functions starpu_mpi_task_build() and starpu_mpi_task_post_build()
 
 Small features:
   * New functions starpu_data_acquire_cb_sequential_consistency() and
