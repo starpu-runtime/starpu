@@ -406,6 +406,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 {
 	pconfig->running = 1;
 	pconfig->submitting = 1;
+	STARPU_HG_DISABLE_CHECKING(pconfig->watchdog_ok);
 
 	unsigned nworkers = pconfig->topology.nworkers;
 
