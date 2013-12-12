@@ -130,7 +130,7 @@ struct starpu_sched_component
 	int properties;
 
 #ifdef STARPU_HAVE_HWLOC
-	/* in case of a hierarchical scheduler, this is set to the part of
+	/* in case of a modularized scheduler, this is set to the part of
 	 * topology that is binded to this component, eg: a numa node for a ws
 	 * component that would balance load between underlying sockets
 	 */
