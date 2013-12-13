@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <starpu_config.h>
+#include <starpu_thread.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -98,7 +99,7 @@ int starpu_worker_get_nsched_ctxs(int workerid);
 
 void starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag);
 
-unsigned starpu_worker_mutex_is_sched_mutex(int workerid, pthread_mutex_t *mutex);
+unsigned starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex);
 
 #ifdef __cplusplus
 }
