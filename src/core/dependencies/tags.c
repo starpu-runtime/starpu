@@ -432,11 +432,7 @@ int starpu_tag_wait_array(unsigned ntags, starpu_tag_t *id)
 	_STARPU_LOG_IN();
 
 	/* It is forbidden to block within callbacks or codelets */
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-	{
-		_STARPU_LOG_OUT_TAG("edeadlk");
-		return -EDEADLK;
-	}
+	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_tag_wait must not be called from a task or callback");
 
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&tag_global_rwlock);
 	/* only wait the tags that are not done yet */

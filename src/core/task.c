@@ -196,11 +196,7 @@ int starpu_task_wait(struct starpu_task *task)
 		return -EINVAL;
 	}
 
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-	{
-		_STARPU_LOG_OUT_TAG("edeadlk");
-		return -EDEADLK;
-	}
+	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait must not be called from a task or callback");
 
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
@@ -436,12 +432,7 @@ int starpu_task_submit(struct starpu_task *task)
 	{
 		/* Perhaps it is not possible to submit a synchronous
 		 * (blocking) task */
-		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-		{
-			_STARPU_LOG_OUT_TAG("EDEADLK");
-			return -EDEADLK;
-		}
-
+		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "submitting a synchronous task must not be done from a task or a callback");
 		task->detach = 0;
 	}
 
@@ -735,8 +726,7 @@ int starpu_task_wait_for_all(void)
 	if (sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 	{
 		_STARPU_DEBUG("Waiting for all tasks\n");
-		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-			return -EDEADLK;
+		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_all must not be called from a task or callback");
 
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
@@ -780,8 +770,7 @@ int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
  */
 int starpu_task_wait_for_no_ready(void)
 {
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-		return -EDEADLK;
+	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_no_ready must not be called from a task or callback");
 
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
