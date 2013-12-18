@@ -14,95 +14,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
-StarPU 1.1.0rc4 (svn revision 11942)
-==============================================
-The scheduling context release
-
-New features:
-  * Document how to migrate data over MPI.
-  * Documentation improvment
-  * Several bug fixes for the hypervisor and the scheduling contexts
-  * The function starpu_sched_ctx_create() now takes a variable
-    argument list to define the scheduler to be used, and the minimum
-    and maximum priority values. The scheduler to be used can either
-    be defined by its name or by a pointer to an existing scheduler
-    structure.
-  * The functions starpu_sched_set/get_min/max_priority set/get the
-    priorities of the current scheduling context, i.e the one which
-    was set by a call to starpu_sched_ctx_set_context() or the initial
-    context if the function has not been called yet.
-  * When initialising a task, its scheduling context is no longer set,
-    on submission, it is set to the initial context for internal
-    tasks, and to the current context for the other tasks.
-  * New function starpu_wakeup_worker() to be used by schedulers to
-    wake up a single worker (instead of all workers) when submitting a
-    single task.
-  * New function starpu_sched_ctx_register_close_callback() to specify
-    a callback which will be called when the last task of the context
-    will finish its execution.
-
-StarPU 1.1.0rc3 (svn revision 11621)
-==============================================
-The scheduling context release
-
-New features:
-  * Performance models files are now stored in a directory whose name
-    include the version of the performance model format. The version
-    number is also written in the file itself.
-    When updating the format, the internal variable
-    _STARPU_PERFMODEL_VERSION should be updated. It is then possible
-    to switch easily between differents versions of StarPU having
-    different performance model formats.
-  * Tasks can now define a optional prologue callback which is executed
-    on the host when the task becomes ready for execution, before getting
-    scheduled.
-  * Small CUDA allocations (<= 4MiB) are now batched to avoid the huge
-    cudaMalloc overhead.
-  * Prefetching is now done for all schedulers when it can be done whatever
-    the scheduling decision.
-  * Add a watchdog which permits to easily trigger a crash when StarPU gets
-    stuck.
-
-Small features:
-  * New function starpu_perfmodel_directory() to print directory
-    storing performance models. Available through the new option -d of
-    the tool starpu_perfmodel_display
-  * New batch files to execute StarPU applications under Microsoft
-    Visual Studio (They are installed in path_to_starpu/bin/mvsc)/
-  * Add cl_arg_free, callback_arg_free, prologue_callback_arg_free fields to
-    enable automatic free(cl_arg); free(callback_arg);
-    free(prologue_callback_arg) on task destroy.
-  * New function starpu_task_build
-
-Changes:
-  * Modification of perfmodels output format for future improvements.
-  * Fix for properly dealing with NAN on windows systems
-  * Function starpu_sched_ctx_create() now takes a variable argument
-    list to define the scheduler to be used, and the minimum and
-    maximum priority values
-  * The functions starpu_sched_set/get_min/max_priority set/get the
-    priorities of the current scheduling context, i.e the one which
-    was set by a call to starpu_sched_ctx_set_context() or the initial
-    context if the function was not called yet.
-
-StarPU 1.1.0rc2 (svn revision 10575)
-==============================================
-The scheduling context release
-
-Changes:
-  * StarPU-MPI: Fix potential bug for user-defined datatypes. As MPI
-    can reorder messages, we need to make sure the sending of the size
-    of the data has been completed.
-  * Documentation is now generated through doxygen.
-
-Small Changes:
-  * Explicitly name the non-sleeping-non-running time "Overhead", and use
-    another color in vite traces.
-  * Use C99 variadic macro support, not GNU.
-  * Fix performance regression: dmda queues were inadvertently made
-    LIFOs in r9611.
-
-StarPU 1.1.0rc1 (svn revision 9750)
+StarPU 1.1.0 (svn revision 11960)
 ==============================================
 
 New features:
@@ -196,6 +108,30 @@ New features:
     the Simgrid StarPU features should use it.
   * Allow to have a dynamically allocated number of buffers per task,
     and so overwrite the value defined --enable-maxbuffers=XXX
+  * Performance models files are now stored in a directory whose name
+    include the version of the performance model format. The version
+    number is also written in the file itself.
+    When updating the format, the internal variable
+    _STARPU_PERFMODEL_VERSION should be updated. It is then possible
+    to switch easily between differents versions of StarPU having
+    different performance model formats.
+  * Tasks can now define a optional prologue callback which is executed
+    on the host when the task becomes ready for execution, before getting
+    scheduled.
+  * Small CUDA allocations (<= 4MiB) are now batched to avoid the huge
+    cudaMalloc overhead.
+  * Prefetching is now done for all schedulers when it can be done whatever
+    the scheduling decision.
+  * Add a watchdog which permits to easily trigger a crash when StarPU gets
+    stuck.
+  * Document how to migrate data over MPI.
+  * New function starpu_wakeup_worker() to be used by schedulers to
+    wake up a single worker (instead of all workers) when submitting a
+    single task.
+  * The functions starpu_sched_set/get_min/max_priority set/get the
+    priorities of the current scheduling context, i.e the one which
+    was set by a call to starpu_sched_ctx_set_context() or the initial
+    context if the function has not been called yet.
 
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid
@@ -215,6 +151,15 @@ Small features:
   * New function starpu_get_version() to return as 3 integers the
     release version of StarPU.
   * Enable by default data allocation cache
+  * New function starpu_perfmodel_directory() to print directory
+    storing performance models. Available through the new option -d of
+    the tool starpu_perfmodel_display
+  * New batch files to execute StarPU applications under Microsoft
+    Visual Studio (They are installed in path_to_starpu/bin/mvsc)/
+  * Add cl_arg_free, callback_arg_free, prologue_callback_arg_free fields to
+    enable automatic free(cl_arg); free(callback_arg);
+    free(prologue_callback_arg) on task destroy.
+  * New function starpu_task_build
 
 Changes:
   * Rename all filter functions to follow the pattern
@@ -269,6 +214,19 @@ Changes:
   * Tutorial is installed in ${docdir}/tutorial
   * Schedulers eager_central_policy, dm and dmda no longer erroneously respect
     priorities. dmdas has to be used to respect priorities.
+  * StarPU-MPI: Fix potential bug for user-defined datatypes. As MPI
+    can reorder messages, we need to make sure the sending of the size
+    of the data has been completed.
+  * Documentation is now generated through doxygen.
+  * Modification of perfmodels output format for future improvements.
+  * Fix for properly dealing with NAN on windows systems
+  * Function starpu_sched_ctx_create() now takes a variable argument
+    list to define the scheduler to be used, and the minimum and
+    maximum priority values
+  * The functions starpu_sched_set/get_min/max_priority set/get the
+    priorities of the current scheduling context, i.e the one which
+    was set by a call to starpu_sched_ctx_set_context() or the initial
+    context if the function was not called yet.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
@@ -280,6 +238,11 @@ Small changes:
   * Fix forcing calibration of never-calibrated archs.
   * CUDA applications are no longer compiled with the "-arch sm_13"
     option. It is specifically added to applications which need it.
+  * Explicitly name the non-sleeping-non-running time "Overhead", and use
+    another color in vite traces.
+  * Use C99 variadic macro support, not GNU.
+  * Fix performance regression: dmda queues were inadvertently made
+    LIFOs in r9611.
 
 StarPU 1.0.3 (svn revision 7379)
 ==============================================
