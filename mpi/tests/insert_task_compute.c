@@ -88,12 +88,15 @@ enodev:
 	}
 
 	ok = 1;
-	for(i=0; i<2; i++)
+	if (rank <= 1)
 	{
-		ok = ok && (x[i] == after[rank*2+i]);
-		FPRINTF_MPI("after computation x[%d] = %d, should be %d\n", i, x[i], after[rank*2+i]);
+		for(i=0; i<2; i++)
+		{
+			ok = ok && (x[i] == after[rank*2+i]);
+			FPRINTF_MPI("after computation x[%d] = %d, should be %d\n", i, x[i], after[rank*2+i]);
+		}
+		FPRINTF_MPI("result is %s\n", ok?"CORRECT":"NOT CORRECT");
 	}
-	FPRINTF_MPI("result is %s\n", ok?"CORRECT":"NOT CORRECT");
 
 nodata:
 	starpu_mpi_shutdown();
