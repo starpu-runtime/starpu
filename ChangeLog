@@ -16,6 +16,7 @@
 
 StarPU 1.1.0 (svn revision 11960)
 ==============================================
+The scheduling context release
 
 New features:
   * OpenGL interoperability support.
