@@ -26,6 +26,8 @@
 
 #include <starpu.h>
 #include <unistd.h>
+
+#if !(defined(STARPU_USE_CUDA) && defined(STARPU_OPENGL_RENDER))
 #include <GL/glut.h>
 
 void dummy(void *buffers[], void *cl_arg)
@@ -72,6 +74,7 @@ void callback_func(void *foo) {
 	/* Tell it was already the last submitted task */
 	starpu_drivers_request_termination();
 }
+#endif
 
 int main(int argc, char **argv)
 {
