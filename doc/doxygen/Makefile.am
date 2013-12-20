@@ -204,7 +204,7 @@ $(DOX_TAG): $(dox_inputs)
 	sed -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
 	sed -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
 
-dist_pdf_DATA = $(DOX_PDF)
+dist_pdf_DATA = $(DOX_PDF) $(DOX_HTML_DIR)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
