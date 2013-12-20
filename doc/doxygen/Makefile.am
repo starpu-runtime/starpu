@@ -222,7 +222,7 @@ $(DOX_TAG): $(dox_inputs)
 	sed -i 's/.*"Files.html".*//' html/pages.html
 	if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
 
-dist_pdf_DATA = $(DOX_PDF)
+dist_pdf_DATA = $(DOX_PDF) $(DOX_HTML_DIR)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
