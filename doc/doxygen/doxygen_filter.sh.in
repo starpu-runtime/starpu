@@ -3,7 +3,7 @@
 if [ "$(basename $1)" == "starpufft.h" ] ; then
     gcc -E $1 -I @top_srcdir@/include/ -I @top_builddir@/include/ |grep starpufft
 else
-    # the macro STARPU_DEPRECATED needs to be removed as it is properly processed by doxygen
+    # the macro STARPU_DEPRECATED needs to be removed as it is not properly processed by doxygen
     # lines starting with // in the doxygen input files are considered as comments to be removed
     sed -e 's/STARPU_DEPRECATED//' $1 | sed 's/\/\/.*//'
 fi
