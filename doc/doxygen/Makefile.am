@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2011, 2013  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 #
 # Permission is granted to copy, distribute and/or modify this document
 # under the terms of the GNU Free Documentation License, Version 1.3
@@ -156,7 +156,8 @@ EXTRA_DIST	= 		\
 	chapters/starpu_starpu_slu_lu_model_11.eps	\
 	chapters/starpu_starpu_slu_lu_model_11.pdf	\
 	doxygen.cfg 		\
-	refman.tex
+	refman.tex					\
+	$(DOX_HTML_DIR)
 
 dox_inputs = $(DOX_CONFIG) 				\
 	$(chapters) 					\
@@ -204,7 +205,7 @@ $(DOX_TAG): $(dox_inputs)
 	sed -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
 	sed -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
 
-dist_pdf_DATA = $(DOX_PDF) $(DOX_HTML_DIR)
+dist_pdf_DATA = $(DOX_PDF)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
