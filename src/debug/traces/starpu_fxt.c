@@ -540,7 +540,7 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 		fprintf(out_paje_file, "6	%s	Ctx10	%s	\"154.0 205.0 50.0\" \n", name, name);
 #endif
 	}
-		
+
 }
 
 
@@ -580,7 +580,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 #endif
 		}
 	}
-	
+
 }
 
 static long dumped_codelets_count;
@@ -2026,7 +2026,7 @@ static void write_task(struct parse_task pt)
 			perror("open failed :");
 			exit(-1);
 		}
-		HASH_ADD_STR(kernels, name, kernel); 
+		HASH_ADD_STR(kernels, name, kernel);
 		fprintf(codelet_list, "%s\n", codelet_name);
 	}
 	double time = pt.exec_time * NANO_SEC_TO_MILI_SEC;
@@ -2063,7 +2063,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 
 	struct fxt_ev_64 ev;
 
-	unsigned workerid;
+	int workerid=-1;
 	unsigned long has_name = 0;
 
 	while(1)
@@ -2073,13 +2073,13 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		{
 			break;
 		}
-		
+
 		switch (ev.code)
 		{
 		case _STARPU_FUT_WORKER_INIT_START:
 			register_worker_id(ev.param[4], ev.param[1]);
 			break;
-			
+
 		case _STARPU_FUT_START_CODELET_BODY:
 			workerid = find_worker_id(ev.param[2]);
 			tasks[workerid].exec_time = ev.time;
@@ -2087,9 +2087,10 @@ void starpu_fxt_write_data_trace(char *filename_in)
 			tasks[workerid].codelet_name = strdup(has_name ? (char *) &ev.param[4] : "unknow");
 			//fprintf(stderr, "start codelet :[%d][%s]\n", workerid, tasks[workerid].codelet_name);
 			break;
-			
+
 		case _STARPU_FUT_END_CODELET_BODY:
-			workerid = find_worker_id(ev.param[4]);
+			workerid = find_worker_id(ev.param[6]);
+			assert(workerid != -1);
 			tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
 			write_task(tasks[workerid]);
 			break;
@@ -2098,7 +2099,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 			workerid = ev.param[0];
 			tasks[workerid].data_total = ev.param[1];
 			break;
-			
+
 		default:
 #ifdef STARPU_VERBOSE
 			fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
@@ -2107,25 +2108,25 @@ void starpu_fxt_write_data_trace(char *filename_in)
 			break;
 		}
 	}
-	
+
 	if (close(fd_in))
 	{
 	        perror("close failed :");
 	        exit(-1);
 	}
-	
+
 	if(fclose(codelet_list))
 	{
 		perror("close failed :");
 		exit(-1);
 	}
-	
-	struct starpu_data_trace_kernel *kernel, *tmp;	
+
+	struct starpu_data_trace_kernel *kernel, *tmp;
 
 	HASH_ITER(hh, kernels, kernel, tmp)
 	{
 		if(fclose(kernel->file))
-		{ 
+		{
 			perror("close failed :");
 			exit(-1);
 		}
@@ -2133,6 +2134,6 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		free(kernel->name);
 		free(kernel);
 	}
-		
+
 }
 #endif // STARPU_USE_FXT
