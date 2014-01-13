@@ -802,7 +802,6 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 	unsigned sched_ctx;
 	int total_max_nworkers = 0;
 	int max_cpus = starpu_cpu_worker_get_count();
-	double max_workers_idle_time[nsched_ctxs];
 	unsigned configured = 0;
 	int i;
 	for(i = 0; i < nsched_ctxs; i++)
@@ -890,8 +889,8 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 		if(config->max_nworkers > max_cpus)
 			config->max_nworkers = max_cpus;
 		
-		printf("%d: ready tasks  %d idle for long %lf norm_idle_time %lf elapsed_time %lf norm_exec_time %lf nworker %d max %d \n", 
-		       sched_ctx, nready_tasks, max_workers_idle_time[i], norm_idle_time, elapsed_time, norm_exec_time, workers->nworkers, config->max_nworkers);
+		printf("%d: ready tasks  %d norm_idle_time %lf elapsed_time %lf norm_exec_time %lf nworker %d max %d \n", 
+		       sched_ctx, nready_tasks, norm_idle_time, elapsed_time, norm_exec_time, workers->nworkers, config->max_nworkers);
 
 
 		total_max_nworkers += config->max_nworkers;
@@ -1314,4 +1313,40 @@ void sc_hypervisor_update_diff_elapsed_flops(unsigned sched_ctx, double diff_ela
 		hypervisor.sched_ctx_w[sched_ctx].total_elapsed_flops[workerid] += diff_elapsed_flops;
 //		starpu_pthread_mutex_unlock(&hypervisor.sched_ctx_w[sched_ctx].mutex);
 	}
+}
+
+void sc_hypervisor_get_ctxs_on_level(unsigned **sched_ctxs, int *nsched_ctxs, unsigned hierarchy_level, unsigned father_sched_ctx_id)
+{
+	unsigned s;
+	*nsched_ctxs = 0;
+	*sched_ctxs = (unsigned*)malloc(hypervisor.nsched_ctxs * sizeof(unsigned));
+	for(s = 0; s < hypervisor.nsched_ctxs; s++)
+	{
+		/* if father == STARPU_NMAX_SCHED_CTXS we take all the ctxs in this level */
+		if(starpu_sched_ctx_get_hierarchy_level(hypervisor.sched_ctxs[s]) == hierarchy_level && 
+		   (starpu_sched_ctx_get_inheritor(hypervisor.sched_ctxs[s]) == father_sched_ctx_id || father_sched_ctx_id == STARPU_NMAX_SCHED_CTXS))
+			(*sched_ctxs)[(*nsched_ctxs)++] = hypervisor.sched_ctxs[s];
+	}
+	if(*nsched_ctxs == 0)
+		free(*sched_ctxs);
+	return;
+}
+
+unsigned sc_hypervisor_get_nhierarchy_levels(void)
+{
+	unsigned nlevels = 0;
+	unsigned level = 0;
+	unsigned levels[STARPU_NMAX_SCHED_CTXS];
+	unsigned s, l;
+	for(s = 0; s < hypervisor.nsched_ctxs; s++)
+	{
+		level = starpu_sched_ctx_get_hierarchy_level(hypervisor.sched_ctxs[s]);
+		unsigned found = 0;
+		for(l = 0; l < nlevels; l++)
+			if(levels[l] == level)
+				found = 1;
+		if(!found)
+			levels[nlevels++] = level;
+	}
+	return nlevels;
 }

@@ -28,6 +28,7 @@ extern "C"
 #define STARPU_SCHED_CTX_POLICY_STRUCT		 (2<<16)
 #define STARPU_SCHED_CTX_POLICY_MIN_PRIO	 (3<<16)
 #define STARPU_SCHED_CTX_POLICY_MAX_PRIO	 (4<<16)
+#define STARPU_SCHED_CTX_HIERARCHY_LEVEL         (5<<16)
 
 unsigned starpu_sched_ctx_create(int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name, ...);
 
@@ -42,6 +43,10 @@ void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsig
 void starpu_sched_ctx_delete(unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor);
+
+unsigned starpu_sched_ctx_get_inheritor(unsigned sched_ctx_id);
+
+unsigned starpu_sched_ctx_get_hierarchy_level(unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_context(unsigned *sched_ctx_id);
 

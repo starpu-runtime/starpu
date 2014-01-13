@@ -129,7 +129,13 @@ void sc_hypervisor_update_diff_total_flops(unsigned sched_ctx, double diff_total
 void sc_hypervisor_update_diff_elapsed_flops(unsigned sched_ctx, double diff_task_flops);
 
 /* updates the min and max workers needed by each context */
-	void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs);
+void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs);
+
+/* returns a list of contexts that are on the same level in the hierarchy of contexts */
+void sc_hypervisor_get_ctxs_on_level(unsigned **sched_ctxs, int *nsched_ctxs, unsigned hierarchy_level, unsigned father_sched_ctx_id);
+
+/* returns the number of levels of ctxs registered to the hyp */
+unsigned sc_hypervisor_get_nhierarchy_levels(void);
 #ifdef __cplusplus
 }
 #endif

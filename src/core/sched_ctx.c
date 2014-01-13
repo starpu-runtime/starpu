@@ -365,7 +365,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 				{
 					int _npus = 0;
 					int _pus[STARPU_NMAXWORKERS];
-					_npus = starpu_get_workers_of_sched_ctx(config->sched_ctxs[s].id, _pus, arch);
+					_npus = _starpu_get_workers_of_sched_ctx(config->sched_ctxs[s].id, _pus, arch);
 					int ctx_min = arch == STARPU_CPU_WORKER ? config->sched_ctxs[s].min_ncpus : config->sched_ctxs[s].min_ngpus;
 					if(_npus > ctx_min)
 					{
@@ -411,7 +411,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 					int _npus = 0;
 					int _pus[STARPU_NMAXWORKERS];
 
-					_npus = starpu_get_workers_of_sched_ctx(config->sched_ctxs[s].id, _pus, arch);
+					_npus = _starpu_get_workers_of_sched_ctx(config->sched_ctxs[s].id, _pus, arch);
 					if(needed_npus < (double)_npus)
 					{
 						double npus_to_rem = (double)_npus - needed_npus;
@@ -482,6 +482,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	int min_prio = 0;
 	int max_prio = 0;
 	struct starpu_sched_policy *sched_policy;
+	unsigned hierarchy_level = 0;
 
 	va_start(varg_list, sched_ctx_name);
 	while ((arg_type = va_arg(varg_list, int)) != 0)
@@ -506,6 +507,10 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 			max_prio = va_arg(varg_list, int);
 			max_prio_set = 1;
 		}
+		else if (arg_type == STARPU_SCHED_CTX_HIERARCHY_LEVEL)
+		{
+			hierarchy_level = va_arg(varg_list, unsigned);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
@@ -516,6 +521,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 
 	struct _starpu_sched_ctx *sched_ctx = NULL;
 	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio);
+	sched_ctx->hierarchy_level = hierarchy_level;
 
 	_starpu_unlock_mutex_if_prev_locked();
 	_starpu_update_workers_with_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id);
@@ -1077,7 +1083,7 @@ struct starpu_worker_collection* starpu_sched_ctx_get_worker_collection(unsigned
 	return sched_ctx->workers;
 }
 
-int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_worker_archtype arch)
+int _starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_worker_archtype arch)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
@@ -1093,7 +1099,7 @@ int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu
 	{
 		worker = workers->get_next(workers, &it);
 		enum starpu_worker_archtype curr_arch = starpu_worker_get_type(worker);
-		if(curr_arch == arch)
+		if(curr_arch == arch || arch == STARPU_ANY_WORKER)
 			pus[npus++] = worker;
 	}
 
@@ -1220,10 +1226,27 @@ unsigned starpu_sched_ctx_overlapping_ctxs_on_worker(int workerid)
 
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor)
 {
+	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
 	STARPU_ASSERT(inheritor < STARPU_NMAX_SCHED_CTXS);
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	sched_ctx->inheritor = inheritor;
 	return;
+}
+
+unsigned starpu_sched_ctx_get_inheritor(unsigned sched_ctx_id)
+{
+	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+
+	return	sched_ctx->inheritor;
+}
+
+unsigned starpu_sched_ctx_get_hierarchy_level(unsigned sched_ctx_id)
+{
+	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+
+	return	sched_ctx->hierarchy_level;
 }
 
 void starpu_sched_ctx_finished_submit(unsigned sched_ctx_id)

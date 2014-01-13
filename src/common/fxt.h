@@ -460,8 +460,7 @@ do {										\
 	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_BEGIN, _starpu_gettid());
 
 #define _STARPU_TRACE_HYPERVISOR_END() \
-	do {} while (0)
-//	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_END, _starpu_gettid());
+	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_END, _starpu_gettid());
 
 #ifdef STARPU_FXT_LOCK_TRACES 
 

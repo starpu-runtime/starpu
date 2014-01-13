@@ -21,7 +21,8 @@ AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_GLPK_LDFLA
 noinst_PROGRAMS =				\
 	app_driven_test/app_driven_test		\
 	lp_test/lp_test				\
-	lp_test/lp_resize_test
+	lp_test/lp_resize_test			\
+	hierarchical_ctxs/resize_hierarchical_ctxs
 
 if !NO_BLAS_LIB
 noinst_PROGRAMS +=				\

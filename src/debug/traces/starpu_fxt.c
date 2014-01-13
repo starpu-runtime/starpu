@@ -698,13 +698,13 @@ static void handle_hyp_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 static void handle_hyp_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-/* 	int worker; */
-/* 	worker = find_worker_id(ev->param[0]); */
-/* 	if (worker < 0) */
-/* 		return; */
+	int worker;
+	worker = find_worker_id(ev->param[0]);
+	if (worker < 0)
+		return;
 
-/* 	if (out_paje_file) */
-/* 		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B"); */
+	if (out_paje_file)
+		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
 }
 
 static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)

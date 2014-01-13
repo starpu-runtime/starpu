@@ -81,7 +81,6 @@ static int push_task_eager_policy(struct starpu_task *task)
 
 	starpu_push_task_end(task);
 
-
 	/*if there are no tasks block */
 	/* wake people waiting for a task */
 	unsigned worker = 0;
