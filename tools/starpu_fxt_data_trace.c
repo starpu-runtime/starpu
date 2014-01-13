@@ -47,7 +47,7 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
-static void write_plt(int argc, char **argv)
+static void write_gp(int argc, char **argv)
 {
 	FILE *codelet_list = fopen("codelet_list", "r");
 	if(!codelet_list)
@@ -58,7 +58,7 @@ static void write_plt(int argc, char **argv)
 	char codelet_name[MAX_LINE_SIZE];
 	FILE *plt = fopen("data_trace.gp", "w+");
 	if(!plt){
-		perror("Error while creating data_trace.plt:");
+		perror("Error while creating data_trace.gp:");
 		exit(-1);
 	}
 
@@ -68,8 +68,8 @@ static void write_plt(int argc, char **argv)
 	fprintf(plt, "set title \"Data trace\"\n");
 	fprintf(plt, "set logscale x\n");
 	fprintf(plt, "set logscale y\n");
-	fprintf(plt, "set xlabel \"tasks size (ms)\"\n");
-	fprintf(plt, "set ylabel \"data size (B)\"\n");
+	fprintf(plt, "set xlabel \"data size (B)\"\n");
+	fprintf(plt, "set ylabel \"tasks size (ms)\"\n");
 	fprintf(plt, "plot ");
 	int c_iter;
 	char *v_iter;
@@ -98,13 +98,13 @@ static void write_plt(int argc, char **argv)
 						begin = 0;
 					else
 						fprintf(plt, ", ");
-					fprintf(plt, "\"%s\" using 1:2 with dots lw 1 title \"%s\"", codelet_name, codelet_name);
+					fprintf(plt, "\"%s\" using 2:1 with dots lw 1 title \"%s\"", codelet_name, codelet_name);
 				}
 			}
 		}
 		else
 		{
-			fprintf(plt, "\"%s\" using 1:2 with dots lw 1 title \"%s\"", codelet_name, codelet_name);
+			fprintf(plt, "\"%s\" using 2:1 with dots lw 1 title \"%s\"", codelet_name, codelet_name);
 		}
 	}
 	fprintf(plt, "\n");
@@ -127,6 +127,6 @@ int main(int argc, char **argv)
 {
 	parse_args(argc, argv);
 	starpu_fxt_write_data_trace(argv[1]);
-	write_plt(argc - 2, argv + 2);
+	write_gp(argc - 2, argv + 2);
 	return 0;
 }
