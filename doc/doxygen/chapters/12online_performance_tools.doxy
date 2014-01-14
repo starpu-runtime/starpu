@@ -424,9 +424,4 @@ task, and each color corresponds to a codelet.
 \image html data_trace.png
 \image latex data_trace.eps "" width=\textwidth
 
-// TODO: data transfer stats are similar to the ones displayed when
-// setting STARPU_BUS_STATS
-
-
-
 */

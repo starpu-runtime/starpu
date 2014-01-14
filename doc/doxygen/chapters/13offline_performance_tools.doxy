@@ -477,4 +477,7 @@ Computation took (in ms)
 Synthetic GFlops : 44.21
 \endverbatim
 
+// TODO: data transfer stats are similar to the ones displayed when
+// setting STARPU_BUS_STATS
+
 */
