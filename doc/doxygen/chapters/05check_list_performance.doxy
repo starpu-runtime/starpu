@@ -1,0 +1,204 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page CheckListWhenPerformanceAreNotThere Check List When Performance Are Not There
+
+TODO: improve!
+
+Simply encapsulating application kernels into tasks already permits to
+seamlessly support CPU and GPUs at the same time. To achieve good
+performance, we give below a list of features which should be checked.
+
+\section DataRelatedFeaturesToImprovePerformance Data Related Features That May Improve Performance
+
+link to \ref DataManagement
+
+link to \ref DataPrefetch
+
+\section TaskRelatedFeaturesToImprovePerformance Task Related Features That May Improve Performance
+
+link to \ref TaskGranularity
+
+link to \ref TaskSubmission
+
+link to \ref TaskPriorities
+
+\section SchedulingRelatedFeaturesToImprovePerformance Scheduling Related Features That May Improve Performance
+
+link to \ref TaskSchedulingPolicy
+
+link to \ref TaskDistributionVsDataTransfer
+
+link to \ref Power-basedScheduling
+
+link to \ref StaticScheduling
+
+\section CUDA-specificOptimizations CUDA-specific Optimizations
+
+Due to CUDA limitations, StarPU will have a hard time overlapping its own
+communications and the codelet computations if the application does not use a
+dedicated CUDA stream for its computations instead of the default stream,
+which synchronizes all operations of the GPU. StarPU provides one by the use
+of starpu_cuda_get_local_stream() which can be used by all CUDA codelet
+operations to avoid this issue. For instance:
+
+\code{.c}
+func <<<grid,block,0,starpu_cuda_get_local_stream()>>> (foo, bar);
+cudaStreamSynchronize(starpu_cuda_get_local_stream());
+\endcode
+
+StarPU already does appropriate calls for the CUBLAS library.
+
+Unfortunately, some CUDA libraries do not have stream variants of
+kernels. That will lower the potential for overlapping.
+
+\section DetectionStuckConditions Detection Stuck Conditions
+
+It may happen that for some reason, StarPU does not make progress for a long
+period of time.  Reason are sometimes due to contention inside StarPU, but
+sometimes this is due to external reasons, such as stuck MPI driver, or CUDA
+driver, etc.
+
+<c>export STARPU_WATCHDOG_TIMEOUT=10000</c>
+
+allows to make StarPU print an error message whenever StarPU does not terminate
+any task for 10ms. In addition to that,
+
+<c>export STARPU_WATCHDOG_CRASH=1</c>
+
+triggers a crash in that condition, thus allowing to catch the situation in gdb
+etc.
+
+\section HowToLimitMemoryPerNode How to limit memory per node
+
+TODO
+
+Talk about
+\ref STARPU_LIMIT_CUDA_devid_MEM, \ref STARPU_LIMIT_CUDA_MEM,
+\ref STARPU_LIMIT_OPENCL_devid_MEM, \ref STARPU_LIMIT_OPENCL_MEM
+and \ref STARPU_LIMIT_CPU_MEM
+
+starpu_memory_get_available()
+
+\section PerformanceModelCalibration Performance Model Calibration
+
+Most schedulers are based on an estimation of codelet duration on each kind
+of processing unit. For this to be possible, the application programmer needs
+to configure a performance model for the codelets of the application (see
+\ref PerformanceModelExample for instance). History-based performance models
+use on-line calibration.  StarPU will automatically calibrate codelets
+which have never been calibrated yet, and save the result in
+<c>$STARPU_HOME/.starpu/sampling/codelets</c>.
+The models are indexed by machine name. To share the models between
+machines (e.g. for a homogeneous cluster), use <c>export
+STARPU_HOSTNAME=some_global_name</c>. To force continuing calibration,
+use <c>export STARPU_CALIBRATE=1</c> . This may be necessary if your application
+has not-so-stable performance. StarPU will force calibration (and thus ignore
+the current result) until 10 (<c>_STARPU_CALIBRATION_MINIMUM</c>) measurements have been
+made on each architecture, to avoid badly scheduling tasks just because the
+first measurements were not so good. Details on the current performance model status
+can be obtained from the command <c>starpu_perfmodel_display</c>: the <c>-l</c>
+option lists the available performance models, and the <c>-s</c> option permits
+to choose the performance model to be displayed. The result looks like:
+
+\verbatim
+$ starpu_perfmodel_display -s starpu_slu_lu_model_11
+performance model for cpu_impl_0
+# hash    size     flops         mean          dev           n
+914f3bef  1048576  0.000000e+00  2.503577e+04  1.982465e+02  8
+3e921964  65536    0.000000e+00  5.527003e+02  1.848114e+01  7
+e5a07e31  4096     0.000000e+00  1.717457e+01  5.190038e+00  14
+...
+\endverbatim
+
+Which shows that for the LU 11 kernel with a 1MiB matrix, the average
+execution time on CPUs was about 25ms, with a 0.2ms standard deviation, over
+8 samples. It is a good idea to check this before doing actual performance
+measurements.
+
+A graph can be drawn by using the tool <c>starpu_perfmodel_plot</c>:
+
+\verbatim
+$ starpu_perfmodel_plot -s starpu_slu_lu_model_11
+4096 16384 65536 262144 1048576 4194304 
+$ gnuplot starpu_starpu_slu_lu_model_11.gp
+$ gv starpu_starpu_slu_lu_model_11.eps
+\endverbatim
+
+\image html starpu_starpu_slu_lu_model_11.png
+\image latex starpu_starpu_slu_lu_model_11.eps "" width=\textwidth
+
+If a kernel source code was modified (e.g. performance improvement), the
+calibration information is stale and should be dropped, to re-calibrate from
+start. This can be done by using <c>export STARPU_CALIBRATE=2</c>.
+
+Note: due to CUDA limitations, to be able to measure kernel duration,
+calibration mode needs to disable asynchronous data transfers. Calibration thus
+disables data transfer / computation overlapping, and should thus not be used
+for eventual benchmarks. Note 2: history-based performance models get calibrated
+only if a performance-model-based scheduler is chosen.
+
+The history-based performance models can also be explicitly filled by the
+application without execution, if e.g. the application already has a series of
+measurements. This can be done by using starpu_perfmodel_update_history(),
+for instance:
+
+\code{.c}
+static struct starpu_perfmodel perf_model = {
+    .type = STARPU_HISTORY_BASED,
+    .symbol = "my_perfmodel",
+};
+
+struct starpu_codelet cl = {
+    .where = STARPU_CUDA,
+    .cuda_funcs = { cuda_func1, cuda_func2, NULL },
+    .nbuffers = 1,
+    .modes = {STARPU_W},
+    .model = &perf_model
+};
+
+void feed(void) {
+    struct my_measure *measure;
+    struct starpu_task task;
+    starpu_task_init(&task);
+
+    task.cl = &cl;
+
+    for (measure = &measures[0]; measure < measures[last]; measure++) {
+        starpu_data_handle_t handle;
+	starpu_vector_data_register(&handle, -1, 0, measure->size, sizeof(float));
+	task.handles[0] = handle;
+	starpu_perfmodel_update_history(&perf_model, &task,
+	                                STARPU_CUDA_DEFAULT + measure->cudadev, 0,
+	                                measure->implementation, measure->time);
+	starpu_task_clean(&task);
+	starpu_data_unregister(handle);
+    }
+}
+\endcode
+
+Measurement has to be provided in milliseconds for the completion time models,
+and in Joules for the energy consumption models.
+
+\section Profiling Profiling
+
+A quick view of how many tasks each worker has executed can be obtained by setting
+<c>export STARPU_WORKER_STATS=1</c> This is a convenient way to check that
+execution did happen on accelerators without penalizing performance with
+the profiling overhead.
+
+A quick view of how much data transfers have been issued can be obtained by setting
+<c>export STARPU_BUS_STATS=1</c> .
+
+More detailed profiling information can be enabled by using <c>export STARPU_PROFILING=1</c> or by
+calling starpu_profiling_status_set() from the source code.
+Statistics on the execution can then be obtained by using <c>export
+STARPU_BUS_STATS=1</c> and <c>export STARPU_WORKER_STATS=1</c> .
+ More details on performance feedback are provided by the next chapter.
+
+*/

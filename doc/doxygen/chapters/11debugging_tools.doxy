@@ -1,0 +1,42 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \page DebuggingTools Debugging Tools
+
+StarPU provides several tools to help debugging applications. Execution traces
+can be generated and displayed graphically, see \ref
+GeneratingTracesWithFxT. Some gdb helpers are also provided to show
+the whole StarPU state:
+
+\verbatim
+(gdb) source tools/gdbinit
+(gdb) help starpu
+\endverbatim
+
+The Temanejo task debugger can also be used, see \ref UsingTheTemanejoTaskDebugger.
+
+\section UsingTheTemanejoTaskDebugger Using The Temanejo Task Debugger
+
+StarPU can connect to Temanejo >= 1.0rc2 (see
+http://www.hlrs.de/temanejo), to permit
+nice visual task debugging. To do so, build Temanejo's <c>libayudame.so</c>,
+install <c>Ayudame.h</c> to e.g. <c>/usr/local/include</c>, apply the
+<c>tools/patch-ayudame</c> to it to fix C build, re-<c>./configure</c>, make
+sure that it found it, rebuild StarPU.  Run the Temanejo GUI, give it the path
+to your application, any options you want to pass it, the path to <c>libayudame.so</c>.
+
+Make sure to specify at least the same number of CPUs in the dialog box as your
+machine has, otherwise an error will happen during execution. Future versions
+of Temanejo should be able to tell StarPU the number of CPUs to use.
+
+Tag numbers have to be below <c>4000000000000000000ULL</c> to be usable for
+Temanejo (so as to distinguish them from tasks).
+
+
+
+*/

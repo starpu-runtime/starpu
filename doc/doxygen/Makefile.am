@@ -28,22 +28,28 @@ chapters =	\
 	chapters/01building.doxy \
 	chapters/02basic_examples.doxy \
 	chapters/03advanced_examples.doxy \
-	chapters/04optimize_performance.doxy \
-	chapters/05performance_feedback.doxy \
-	chapters/06tips_and_tricks.doxy \
-	chapters/07out_of_core.doxy \
-	chapters/08mpi_support.doxy \
-	chapters/09fft_support.doxy \
-	chapters/10mic_scc_support.doxy \
-	chapters/11c_extensions.doxy \
-	chapters/12socl_opencl_extensions.doxy \
-	chapters/13scheduling_contexts.doxy \
-	chapters/14scheduling_context_hypervisor.doxy \
-	chapters/15environment_variables.doxy \
-	chapters/16configure_options.doxy \
-	chapters/17files.doxy \
-	chapters/18scaling-vector-example.doxy \
-	chapters/19fdl-1.3.doxy \
+	chapters/05check_list_performance.doxy \
+	chapters/06tasks.doxy \
+	chapters/07data_management.doxy \
+	chapters/08scheduling.doxy \
+	chapters/09scheduling_contexts.doxy \
+	chapters/10scheduling_context_hypervisor.doxy \
+	chapters/11debugging_tools.doxy \
+	chapters/12online_performance_tools.doxy \
+	chapters/13offline_performance_tools.doxy \
+	chapters/14faq.doxy \
+	chapters/15out_of_core.doxy \
+	chapters/16mpi_support.doxy \
+	chapters/17fft_support.doxy \
+	chapters/18mic_scc_support.doxy \
+	chapters/19c_extensions.doxy \
+	chapters/20socl_opencl_extensions.doxy \
+	chapters/21simgrid.doxy \
+	chapters/40environment_variables.doxy \
+	chapters/41configure_options.doxy \
+	chapters/45files.doxy \
+	chapters/50scaling-vector-example.doxy \
+	chapters/51fdl-1.3.doxy \
 	chapters/code/hello_pragma2.c \
 	chapters/code/hello_pragma.c \
 	chapters/code/scal_pragma.cu \
@@ -218,8 +224,8 @@ $(DOX_TAG): $(dox_inputs)
 	$(DOXYGEN) $(DOX_CONFIG)
 	sed -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
 	sed -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
-        # comment for the line above: what we really want to do is to remove the line, but dy doing so, it avoids opening the interactive menu when browsing files
-	if test -f html/navtree.js ; then sed -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
+        # comment for the line below: what we really want to do is to remove the line, but dy doing so, it avoids opening the interactive menu when browsing files
+#	if test -f html/navtree.js ; then sed -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
 	sed -i 's/.*"Files.html".*//' html/pages.html
 	if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
 

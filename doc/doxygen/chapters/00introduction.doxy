@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
 */
@@ -184,30 +184,94 @@ http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html.
 A good overview is available in the research report at
 http://hal.archives-ouvertes.fr/inria-00467677.
 
+\section StarPUApplications StarPU Applications
+
+You can first have a look at the chapters \ref BasicExamples and \ref AdvancedExamples.
+A tutorial is also installed in the directory <c>share/doc/starpu/tutorial/</c>.
+
+Many examples are also available in the StarPU sources in the directory
+<c>examples/</c>. Simple examples include:
+
+<dl>
+<dt> <c>incrementer/</c> </dt>
+<dd> Trivial incrementation test. </dd>
+<dt> <c>basic_examples/</c> </dt>
+<dd>
+        Simple documented Hello world and vector/scalar product (as
+        shown in \ref BasicExamples), matrix
+        product examples (as shown in \ref PerformanceModelExample), an example using the blocked matrix data
+        interface, an example using the variable data interface, and an example
+        using different formats on CPUs and GPUs.
+</dd>
+<dt> <c>matvecmult/</c></dt>
+<dd>
+    OpenCL example from NVidia, adapted to StarPU.
+</dd>
+<dt> <c>axpy/</c></dt>
+<dd>
+    AXPY CUBLAS operation adapted to StarPU.
+</dd>
+<dt> <c>fortran/</c> </dt>
+<dd>
+    Example of Fortran bindings.
+</dd>
+</dl>
+
+More advanced examples include:
+
+<dl>
+<dt><c>filters/</c></dt>
+<dd>
+    Examples using filters, as shown in \ref PartitioningData.
+</dd>
+<dt><c>lu/</c></dt>
+<dd>
+    LU matrix factorization, see for instance <c>xlu_implicit.c</c>
+</dd>
+<dt><c>cholesky/</c></dt>
+<dd>
+    Cholesky matrix factorization, see for instance <c>cholesky_implicit.c</c>.
+</dd>
+</dl>
+
 \section FurtherReading Further Reading
 
 The documentation chapters include
 
-<ol>
-<li> Part: Using StarPU
+<ul>
+<li> Part 1: StarPU Basics
 <ul>
 <li> \ref BuildingAndInstallingStarPU
 <li> \ref BasicExamples
+</ul>
+<li> Part 2: StarPU Quick Programming Guide
+<ul>
 <li> \ref AdvancedExamples
-<li> \ref HowToOptimizePerformanceWithStarPU
-<li> \ref PerformanceFeedback
-<li> \ref TipsAndTricksToKnowAbout
+<li> \ref CheckListWhenPerformanceAreNotThere
+</ul>
+<li> Part 3: StarPU Inside
+<ul>
+<li> \ref TasksInStarPU
+<li> \ref DataManagement
+<li> \ref Scheduling
+<li> \ref SchedulingContexts
+<li> \ref SchedulingContextHypervisor
+<li> \ref DebuggingTools
+<li> \ref OnlinePerformanceTools
+<li> \ref OfflinePerformanceTools
+<li> \ref FrequentlyAskedQuestions
+</ul>
+<li> Part 4: StarPU Extensions
+<ul>
 <li> \ref OutOfCore
 <li> \ref MPISupport
 <li> \ref FFTSupport
 <li> \ref MICSCCSupport
 <li> \ref cExtensions
 <li> \ref SOCLOpenclExtensions
-<li> \ref SchedulingContexts
-<li> \ref SchedulingContextHypervisor
+<li> \ref SimGridSupport
 </ul>
-</li>
-<li> Part: Inside StarPU
+<li> Part 5: StarPU Reference API
 <ul>
 <li> \ref ExecutionConfigurationThroughEnvironmentVariables
 <li> \ref CompilationConfiguration
@@ -220,8 +284,7 @@ The documentation chapters include
 <li> \ref FullSourceCodeVectorScal
 <li> \ref GNUFreeDocumentationLicense
 </ul>
-</ol>
-
+</ul>
 
 Make sure to have had a look at those too!
 
