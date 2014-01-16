@@ -272,7 +272,7 @@ starpu_mic_kernel_t _starpu_mic_src_get_kernel_from_codelet(struct starpu_codele
 			kernel = _starpu_mic_src_get_kernel(symbol);
 		}
 	}
-	STARPU_ASSERT(kernel);
+	STARPU_ASSERT_MSG(kernel, "when STARPU_MIC is defined in 'where', mic_funcs or cpu_funcs_name has to be defined");
 
 	return kernel;
 }

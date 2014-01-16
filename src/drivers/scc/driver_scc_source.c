@@ -88,7 +88,7 @@ void (*_starpu_scc_src_get_kernel_from_job(const struct _starpu_mp_node *,struct
 	  kernel = _starpu_scc_src_get_kernel(symbol);
 	}
     }
-  STARPU_ASSERT(kernel);  
+  STARPU_ASSERT_MSG(kernel, "when STARPU_MIC is defined in 'where', mic_funcs or cpu_funcs_name has to be defined");
 
   return (void (*)(void))kernel;
 }
