@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011, 2014        INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -103,6 +103,10 @@ size_t _starpu_task_insert_get_arg_size(va_list varg_list)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		{
+			va_arg(varg_list, int);
+		}
 		else if (arg_type==STARPU_SCHED_CTX)
 		{
 			(void)va_arg(varg_list, unsigned);
@@ -201,6 +205,10 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 		else if (arg_type==STARPU_EXECUTE_ON_DATA)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		{
+			va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_SCHED_CTX)
 		{
@@ -345,6 +353,12 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 		else if (arg_type==STARPU_EXECUTE_ON_DATA)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		{
+			(*task)->workerid = va_arg(varg_list, int);
+			if ((*task)->workerid  != -1)
+				(*task)->execute_on_a_specific_worker = 1;
 		}
 		else if (arg_type==STARPU_SCHED_CTX)
 		{

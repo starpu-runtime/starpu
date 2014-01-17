@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -23,6 +23,9 @@ The arguments following the codelet can be of the following types:
 ::STARPU_REDUX an access mode followed by a data handle;
 <li> ::STARPU_DATA_ARRAY followed by an array of data handles and its
 number of elements;
+<li> ::STARPU_EXECUTE_ON_WORKER followed by an integer value
+specifying the worker on which to execute the task (as specified by
+starpu_task::execute_on_a_specific_worker)
 <li> the specific values ::STARPU_VALUE, ::STARPU_CALLBACK,
 ::STARPU_CALLBACK_ARG, ::STARPU_CALLBACK_WITH_ARG, ::STARPU_PRIORITY,
 ::STARPU_TAG, ::STARPU_FLOPS, ::STARPU_SCHED_CTX followed by the
@@ -70,6 +73,12 @@ be followed by a integer defining a priority level
 \def STARPU_DATA_ARRAY
 \ingroup API_Insert_Task
 TODO
+
+\def STARPU_EXECUTE_ON_WORKER
+\ingroup API_Insert_Task
+this macro is used when calling starpu_task_insert(), and must be
+followed by an integer value specifying the worker on which to execute
+the task (as specified by starpu_task::execute_on_a_specific_worker)
 
 \def STARPU_TAG
 \ingroup API_Insert_Task
