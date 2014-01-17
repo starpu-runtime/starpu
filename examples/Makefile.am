@@ -98,7 +98,7 @@ noinst_HEADERS = 				\
 	common/blas.h				\
 	mult/simple.h				\
 	mult/double.h				\
-	fortran/StarPU_fortran.h	\
+	fortran/StarPU_fortran.h		\
 	ppm_downscaler/ppm_downscaler.h		\
 	ppm_downscaler/yuv_downscaler.h		\
 	spmv/matrix_market/mmio.h		\
