@@ -200,7 +200,8 @@ examplebin_PROGRAMS +=				\
 
 if STARPU_HAVE_F77_H
 examplebin_PROGRAMS +=				\
-	basic_examples/vector_scal_fortran
+	basic_examples/vector_scal_fortran	\
+	fortran/hello
 endif
 endif
 
@@ -274,7 +275,8 @@ endif
 
 if STARPU_HAVE_F77_H
 STARPU_EXAMPLES +=				\
-	basic_examples/vector_scal_fortran
+	basic_examples/vector_scal_fortran	\
+	fortran/hello
 endif
 
 if !NO_BLAS_LIB
@@ -348,6 +350,11 @@ basic_examples_vector_scal_fortran_SOURCES +=	\
 basic_examples_vector_scal_fortran_LDADD =	\
 	$(STARPU_CUDA_FORTRAN_LDFLAGS)
 endif
+
+fortran_hello_SOURCES	=		\
+	fortran/hello_c.c		\
+	fortran/hello.F			\
+	fortran/StarPU_fortran.h
 endif
 
 #######################
