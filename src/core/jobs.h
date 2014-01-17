@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -136,8 +136,8 @@ LIST_TYPE(_starpu_job,
 	int active_task_alias_count;
 
 	/* Parallel workers may have to synchronize before/after the execution of a parallel task. */
-	_starpu_pthread_barrier_t before_work_barrier;
-	_starpu_pthread_barrier_t after_work_barrier;
+	starpu_pthread_barrier_t before_work_barrier;
+	starpu_pthread_barrier_t after_work_barrier;
 )
 
 /* Create an internal struct _starpu_job *structure to encapsulate the task. */

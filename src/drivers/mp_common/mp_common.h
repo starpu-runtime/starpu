@@ -102,8 +102,8 @@ struct _starpu_mp_transfer_command_to_device
 
 LIST_TYPE(mp_barrier,
 		int id;
-		_starpu_pthread_barrier_t before_work_barrier;
-		_starpu_pthread_barrier_t after_work_barrier;
+		starpu_pthread_barrier_t before_work_barrier;
+		starpu_pthread_barrier_t after_work_barrier;
 	 );
 
 LIST_TYPE(mp_message,
@@ -178,7 +178,7 @@ struct _starpu_mp_node
 	union _starpu_mp_connection *sink_sink_dt_connections;
 
 	/* */
-	_starpu_pthread_barrier_t init_completed_barrier; 
+	starpu_pthread_barrier_t init_completed_barrier; 
 	
 	/* table to store pointer of the thread workers*/
 	void* thread_table;
