@@ -74,7 +74,7 @@ int _starpu_barrier_wait(struct _starpu_barrier *barrier)
 	{
 		barrier->reached_start = 0;
 		STARPU_PTHREAD_COND_BROADCAST(&barrier->cond);
-		ret = PTHREAD_BARRIER_SERIAL_THREAD;
+		ret = STARPU_PTHREAD_BARRIER_SERIAL_THREAD;
 	}
 	else
 	{

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -277,30 +277,30 @@ int _starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock, char *file
  */
 
 #define STARPU_PTHREAD_BARRIER_INIT(barrier, attr, count) do {                \
-	int p_ret = pthread_barrier_init((barrier), (attr), (count));          \
+	int p_ret = starpu_pthread_barrier_init((barrier), (attr), (count));          \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
-			"%s:%d pthread_barrier_init: %s\n",                    \
+			"%s:%d starpu_pthread_barrier_init: %s\n",                    \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 		STARPU_ABORT();                                                \
 	}                                                                      \
 } while (0)
 
 #define STARPU_PTHREAD_BARRIER_DESTROY(barrier) do {                          \
-	int p_ret = pthread_barrier_destroy((barrier));                        \
+	int p_ret = starpu_pthread_barrier_destroy((barrier));                        \
 	if (STARPU_UNLIKELY(p_ret)) {                                          \
 		fprintf(stderr,                                                \
-			"%s:%d pthread_barrier_destroy: %s\n",                 \
+			"%s:%d starpu_pthread_barrier_destroy: %s\n",                 \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 		STARPU_ABORT();                                                \
 	}                                                                      \
 } while (0)
 
 #define STARPU_PTHREAD_BARRIER_WAIT(barrier) do {                             	\
-	int p_ret = pthread_barrier_wait((barrier));				\
-	if (STARPU_UNLIKELY(!((p_ret == 0) || (p_ret == PTHREAD_BARRIER_SERIAL_THREAD)))) { \
+	int p_ret = starpu_pthread_barrier_wait((barrier));				\
+	if (STARPU_UNLIKELY(!((p_ret == 0) || (p_ret == STARPU_PTHREAD_BARRIER_SERIAL_THREAD)))) { \
 		fprintf(stderr,                                                \
-			"%s:%d pthread_barrier_wait: %s\n",                    \
+			"%s:%d starpu_pthread_barrier_wait: %s\n",                    \
 			__FILE__, __LINE__, strerror(p_ret));                  \
 			STARPU_ABORT();                                        \
 	}                                                                      \
