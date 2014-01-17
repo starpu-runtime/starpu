@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -148,6 +148,9 @@
 
 #define	_STARPU_FUT_HYPERVISOR_BEGIN    0x5160
 #define	_STARPU_FUT_HYPERVISOR_END	0x5161
+
+#define _STARPU_FUT_BARRIER_WAIT_BEGIN		0x5162
+#define _STARPU_FUT_BARRIER_WAIT_END		0x5163
 
 #ifdef STARPU_USE_FXT
 #include <fxt/fxt.h>
@@ -584,6 +587,18 @@ do {										\
 	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_COND_WAIT_END,__LINE__,_starpu_gettid(),file); \
 } while(0)
 
+#define _STARPU_TRACE_BARRIER_WAIT_BEGIN()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_BARRIER_WAIT_BEGIN,__LINE__,_starpu_gettid(),file); \
+} while(0)
+
+#define _STARPU_TRACE_BARRIER_WAIT_END()	do { \
+	const char *file; \
+	file = strrchr(__FILE__,'/') + 1; \
+	_STARPU_FUT_DO_PROBE2STR(_STARPU_FUT_BARRIER_WAIT_END,__LINE__,_starpu_gettid(),file); \
+} while(0)
+
 #else // !STARPU_FXT_LOCK_TRACES
 
 #define _STARPU_TRACE_LOCKING_MUTEX()			do {} while(0)
@@ -604,6 +619,8 @@ do {										\
 #define _STARPU_TRACE_TRYLOCK_SPINLOCK()		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_BEGIN()		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_END()			do {} while(0)
+#define _STARPU_TRACE_BARRIER_WAIT_BEGIN()		do {} while(0)
+#define _STARPU_TRACE_BARRIER_WAIT_END()			do {} while(0)
 
 #endif // STARPU_FXT_LOCK_TRACES
 
@@ -684,6 +701,8 @@ do {										\
 #define _STARPU_TRACE_TRYLOCK_SPINLOCK()		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_BEGIN()		do {} while(0)
 #define _STARPU_TRACE_COND_WAIT_END()			do {} while(0)
+#define _STARPU_TRACE_BARRIER_WAIT_BEGIN()		do {} while(0)
+#define _STARPU_TRACE_BARRIER_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_MEMORY_FULL(size)				do {} while(0)
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)	do {} while(0)
 #define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {} while(0)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -108,7 +108,7 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 	
 #ifdef STARPU_USE_MP
 	combined_worker->count = nworkers -1;
-	pthread_mutex_init(&combined_worker->count_mutex,NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&combined_worker->count_mutex,NULL);
 #endif
 
 	/* We assume that the memory node should either be that of the first

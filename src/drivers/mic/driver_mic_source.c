@@ -51,12 +51,12 @@ struct _starpu_mic_kernel
 
 /* Mutex for concurrent access to the table.
  */
-starpu_pthread_mutex_t htbl_mutex = PTHREAD_MUTEX_INITIALIZER;
+starpu_pthread_mutex_t htbl_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 /* Number of MIC worker initialized.
  */
 unsigned int nb_mic_worker_init = 0;
-starpu_pthread_mutex_t nb_mic_worker_init_mutex = PTHREAD_MUTEX_INITIALIZER;
+starpu_pthread_mutex_t nb_mic_worker_init_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 
 /* Returns the ID of the MIC device controlled by the caller.
  * if the worker doesn't control a MIC device -ENODEV is returned

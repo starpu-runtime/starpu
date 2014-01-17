@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -198,7 +198,7 @@ int starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
 
 int starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *restrict rwlock, const starpu_pthread_rwlockattr_t *restrict attr)
 {
-	return starpu_pthread_mutex_init(rwlock, attr);
+	return starpu_pthread_mutex_init(rwlock, NULL);
 }
 
 int starpu_pthread_rwlock_destroy(starpu_pthread_rwlock_t *rwlock)
@@ -258,6 +258,47 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 	_STARPU_TRACE_RWLOCK_UNLOCKED();
 
 	return p_ret;
+}
+
+int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr, unsigned count)
+{
+	int ret = starpu_pthread_mutex_init(&barrier->mutex, NULL);
+	if (!ret)
+		ret = starpu_pthread_cond_init(&barrier->cond, NULL);
+	barrier->count = count;
+	barrier->done = 0;
+	return ret;
+}
+
+int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier)
+{
+	int ret = starpu_pthread_mutex_destroy(&barrier->mutex);
+	if (!ret)
+		ret = starpu_pthread_cond_destroy(&barrier->cond);
+	return ret;
+}
+
+int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
+{
+	int ret = 0;
+	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
+
+	starpu_pthread_mutex_lock(&barrier->mutex);
+	barrier->done++;
+	if (barrier->done == barrier->count)
+	{
+		barrier->done = 0;
+		starpu_pthread_cond_broadcast(&barrier->cond);
+		ret = STARPU_PTHREAD_BARRIER_SERIAL_THREAD;
+	} else {
+		starpu_pthread_cond_wait(&barrier->cond, &barrier->mutex);
+	}
+
+	starpu_pthread_mutex_unlock(&barrier->mutex);
+
+	_STARPU_TRACE_BARRIER_WAIT_END();
+
+	return ret;
 }
 
 #elif !defined(_MSC_VER) /* !STARPU_SIMGRID */
@@ -375,6 +416,18 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 	_STARPU_TRACE_RWLOCK_UNLOCKED();
 
 	return p_ret;
+}
+
+int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
+{
+	int ret;
+	_STARPU_TRACE_BARRIER_WAIT_BEGIN();
+
+	ret = pthread_barrier_wait(barrier);
+
+	_STARPU_TRACE_BARRIER_WAIT_END();
+
+	return ret;
 }
 
 #endif /* STARPU_SIMGRID, _MSC_VER */

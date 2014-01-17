@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,6 +23,7 @@ extern "C"
 {
 #endif
 
+#include <starpu_config.h>
 #ifdef STARPU_SIMGRID
 #include <xbt/synchro_core.h>
 #include <msg/msg.h>
@@ -181,10 +182,43 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
 
+/*
+ * Encapsulation of the pthread_barrier_* functions.
+ */
+
+#ifdef STARPU_SIMGRID
+
+typedef struct {
+	starpu_pthread_mutex_t mutex;
+	starpu_pthread_cond_t cond;
+	unsigned count;
+	unsigned done;
+} starpu_pthread_barrier_t;
+typedef int starpu_pthread_barrierattr_t;
+#define STARPU_PTHREAD_BARRIER_SERIAL_THREAD -1
+
+int starpu_pthread_barrier_init(starpu_pthread_barrier_t *barrier, const starpu_pthread_barrierattr_t *attr, unsigned count);
+int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier);
+int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier);
+
+#elif !defined(_MSC_VER) /* STARPU_SIMGRID */
+
+typedef pthread_barrier_t starpu_pthread_barrier_t;
+typedef pthread_barrierattr_t starpu_pthread_barrierattr_t;
+
+#define starpu_pthread_barrier_init pthread_barrier_init
+#define starpu_pthread_barrier_destroy pthread_barrier_destroy
+
+int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier);
+#define STARPU_PTHREAD_BARRIER_SERIAL_THREAD PTHREAD_BARRIER_SERIAL_THREAD
+
+#endif /* STARPU_SIMGRID, _MSC_VER */
+
 #ifdef _MSC_VER
 typedef void* starpu_pthread_rwlock_t;
 typedef void* starpu_pthread_mutex_t;
 typedef void* starpu_pthread_cond_t;
+typedef void* starpu_pthread_barrier_t;
 #endif /* _MSC_VER */
 
 #ifdef __cplusplus
