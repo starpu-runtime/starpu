@@ -1572,6 +1572,23 @@ AC_CHECK_FUNCS([clock_gettime])
 
 # Compute the maximum number of workers (we round it to 16 for alignment
 # purposes).
+if test x$enable_simgrid != xyes; then
+	if test x$enable_cpu != xyes; then
+		maxcpus=0
+	fi
+	if test x$enable_cuda != xyes; then
+		nmaxcudadev=0
+	fi
+	if test x$enable_opencl != xyes; then
+		nmaxopencldev=0
+	fi
+	if test x$enable_mic != xyes; then
+		nmaxmicthreads=0
+	fi
+	if test x$enable_rcce != xyes; then
+		nmaxsccdev=0
+	fi
+fi
 nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + $nmaxsccdev + 15 \) / 16 \) `
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
