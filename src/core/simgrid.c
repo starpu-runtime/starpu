@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2012-2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -348,9 +348,10 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 int
 _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct _starpu_pthread_args *args = MSG_process_get_data(MSG_process_self());
-	args->f(args->arg);
-	free(args);
+	struct _starpu_pthread_args *_args = MSG_process_get_data(MSG_process_self());
+	struct _starpu_pthread_args args = *_args;
+	free(_args);
+	args.f(args.arg);
 	return 0;
 }
 #endif
