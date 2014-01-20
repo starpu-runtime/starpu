@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
@@ -959,7 +959,9 @@ unsigned starpu_task_get_implementation(struct starpu_task *task)
 
 void _starpu_sleep(struct timespec ts)
 {
-#ifdef STARPU_HAVE_WINDOWS
+#ifdef STARPU_SIMGRID
+	MSG_process_sleep(ts.tv_sec + ts.tv_nsec / 1000000000.);
+#elif defined(STARPU_HAVE_WINDOWS)
 	Sleep((ts.tv_sec * 1000) + (ts.tv_nsec / 1000000));
 #else
 	struct timespec req, rem;
