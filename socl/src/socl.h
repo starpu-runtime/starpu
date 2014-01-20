@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012 University of Bordeaux
- * Copyright (C) 2012 CNRS
+ * Copyright (C) 2012,2014 Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,15 +25,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
-#include <pthread.h>
 #include "CL/cl.h"
 #include "ocl_icd.h"
 
 #include <starpu.h>
-#include <starpu_opencl.h>
-#include <starpu_data_interfaces.h>
-#include <starpu_profiling.h>
-#include <starpu_task.h>
 
 typedef struct starpu_task * starpu_task;
 
@@ -153,7 +148,7 @@ struct _cl_command_queue {
   cl_command barrier;
 
   /* Mutex */
-  pthread_mutex_t mutex;
+  starpu_pthread_mutex_t mutex;
 
   /* ID  */
 #ifdef DEBUG
@@ -280,7 +275,7 @@ struct _cl_kernel {
   split_func_t split_func;
   cl_ulong * split_perfs;
   void * split_data;
-  pthread_mutex_t split_lock;
+  starpu_pthread_mutex_t split_lock;
 
   /* ID  */
 #ifdef DEBUG

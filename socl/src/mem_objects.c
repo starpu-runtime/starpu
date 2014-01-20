@@ -20,15 +20,15 @@
 #define mem_object_hash_key 257
 
 static cl_mem p_mem_objects[mem_object_hash_key] = {NULL};
-static volatile pthread_spinlock_t p_mem_objects_spinlock[mem_object_hash_key];
+static starpu_pthread_spinlock_t p_mem_objects_spinlock[mem_object_hash_key];
 
-#define LOCK(i) pthread_spin_lock(&p_mem_objects_spinlock[i]);
-#define UNLOCK(i) pthread_spin_unlock(&p_mem_objects_spinlock[i]);
+#define LOCK(i) starpu_pthread_spin_lock(&p_mem_objects_spinlock[i]);
+#define UNLOCK(i) starpu_pthread_spin_unlock(&p_mem_objects_spinlock[i]);
 
 void mem_object_init(void) {
   int i;
   for (i=0; i<mem_object_hash_key; i++) {
-    pthread_spin_init(&p_mem_objects_spinlock[i], 0);
+    starpu_pthread_spin_init(&p_mem_objects_spinlock[i], 0);
   }
 }
 

@@ -159,7 +159,7 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
 		cl_event *       event) CL_API_SUFFIX__VERSION_1_1
 {
 
-   if (kernel->split_func != NULL && !pthread_mutex_trylock(&kernel->split_lock)) {
+   if (kernel->split_func != NULL && !starpu_pthread_mutex_trylock(&kernel->split_lock)) {
 
       cl_event beforeEvent, afterEvent, totalEvent;
 
@@ -199,7 +199,7 @@ soclEnqueueNDRangeKernel(cl_command_queue cq,
 
          kernel->split_perfs[iter] = end-start;
 
-         pthread_mutex_unlock(&kernel->split_lock);
+         starpu_pthread_mutex_unlock(&kernel->split_lock);
 
          event_complete(totalEvent);
 

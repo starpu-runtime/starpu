@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012 University of Bordeaux
- * Copyright (C) 2012 CNRS
+ * Copyright (C) 2012 Centre National de la Recherche Scientifique
  * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,7 +40,7 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	gc_entity_store(&cmd->event->cq, cq);
 
 	/* Lock command queue */
-	pthread_mutex_lock(&cq->mutex);
+	starpu_pthread_mutex_lock(&cq->mutex);
 
 	/*** Number of dependencies ***/
 	int ndeps = num_events;
@@ -99,13 +99,13 @@ void command_queue_enqueue_ex(cl_command_queue cq, cl_command cmd, cl_uint num_e
 	}
 
 	/* Submit command 
-    * We need to do it before unlocking because we don't want events to get
-    * released while we use them to set dependencies
-    */
-   command_submit_ex(cmd);
+	 * We need to do it before unlocking because we don't want events to get
+	 * released while we use them to set dependencies
+	 */
+	command_submit_ex(cmd);
 
 	/* Unlock command queue */
-	pthread_mutex_unlock(&cq->mutex);
+	starpu_pthread_mutex_unlock(&cq->mutex);
 
-   gc_entity_release(cmd);
+	gc_entity_release(cmd);
 }

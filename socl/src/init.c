@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012 University of Bordeaux
- * Copyright (C) 2012 CNRS
+ * Copyright (C) 2012,2014 Centre National de la Recherche Scientifique
  * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -16,7 +16,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <pthread.h>
 #include <stdlib.h>
 #include "socl.h"
 #include "gc.h"
@@ -24,11 +23,11 @@
 
 int _starpu_init_failed;
 volatile int _starpu_init = 0;
-static pthread_mutex_t _socl_mutex = PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_mutex_t _socl_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static struct starpu_conf conf;
 
 void socl_init_starpu(void) {
-  pthread_mutex_lock(&_socl_mutex);
+  starpu_pthread_mutex_lock(&_socl_mutex);
   if( ! _starpu_init ){
     starpu_conf_init(&conf);
     conf.ncuda = 0;
@@ -52,7 +51,7 @@ void socl_init_starpu(void) {
     starpu_data_set_default_sequential_consistency_flag(0);
     _starpu_init = 1;
   }
-  pthread_mutex_unlock(&_socl_mutex);
+  starpu_pthread_mutex_unlock(&_socl_mutex);
 
 }
 /**
@@ -73,7 +72,7 @@ void soclShutdown() {
    if (!shutdown) {
       shutdown = 1;
 
-      pthread_mutex_lock(&_socl_mutex);
+      starpu_pthread_mutex_lock(&_socl_mutex);
       if( _starpu_init )
          starpu_task_wait_for_all();
 
@@ -91,7 +90,7 @@ void soclShutdown() {
 
       if( _starpu_init )
          starpu_shutdown();
-      pthread_mutex_unlock(&_socl_mutex);
+      starpu_pthread_mutex_unlock(&_socl_mutex);
 
       if (socl_devices != NULL) {
          free(socl_devices);
