@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2009-2014  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012  Institut National de Recherche en Informatique et Automatique
@@ -974,7 +974,7 @@ AC_DEFINE_UNQUOTED(STARPU_MAXMICDEVS, [$nmaxmicdev],
 AC_MSG_CHECKING(maximum number of MIC threads)
 AC_ARG_ENABLE(maxmicthreads, [AS_HELP_STRING([--enable-maxmicthreads=<number>],
 			[maximum number of MIC threads])],
-			nmaxmicthreads=$enableval, nmaxmicthreads=940)
+			nmaxmicthreads=$enableval, nmaxmicthreads=480)
 AC_MSG_RESULT($nmaxmicthread)
 
 AC_DEFINE_UNQUOTED(STARPU_MAXMICCORES, [$nmaxmicthreads],
@@ -2429,6 +2429,7 @@ AC_MSG_NOTICE([
 	Maximum number of CPUs:           $maxcpus
 	Maximum number of CUDA devices:   $nmaxcudadev
 	Maximum number of OpenCL devices: $nmaxopencldev
+	Maximum number of SCC devices:    $nmaxsccdev
 	Maximum number of MIC threads:    $nmaxmicthreads
 	Maximum number of memory nodes:   $maxnodes
 	Maximum number of task buffers:   $nmaxbuffers
