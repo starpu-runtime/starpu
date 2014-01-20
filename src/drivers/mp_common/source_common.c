@@ -16,8 +16,6 @@
 
 
 #include <string.h>
-#include <pthread.h>
-
 #include <starpu.h>
 #include <core/task.h>
 #include <core/sched_policy.h>
@@ -46,11 +44,11 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 	{
 		struct _starpu_combined_worker * cb_worker = _starpu_get_combined_worker_struct(worker->combined_workerid); 
 
-		pthread_mutex_lock(&cb_worker->count_mutex);
+		starpu_pthread_mutex_lock(&cb_worker->count_mutex);
 		count = cb_worker->count--;
 		if(count == 0)
 			cb_worker->count = cb_worker->worker_size - 1; 
-		pthread_mutex_unlock(&cb_worker->count_mutex);
+		starpu_pthread_mutex_unlock(&cb_worker->count_mutex);
 	}
 
 	/* Finalize the execution */

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -135,7 +135,7 @@ struct _starpu_combined_worker
 	int combined_workerid[STARPU_NMAXWORKERS];
 #ifdef STARPU_USE_MP
 	int count;
-	pthread_mutex_t count_mutex;
+	starpu_pthread_mutex_t count_mutex;
 #endif
 
 #ifdef __GLIBC__
