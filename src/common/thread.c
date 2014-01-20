@@ -54,6 +54,13 @@ int starpu_pthread_join(starpu_pthread_t thread, void **retval)
 	return 0;
 }
 
+int starpu_pthread_exit(void *retval)
+{
+	MSG_process_kill(MSG_process_self());
+	return 0;
+}
+
+
 int starpu_pthread_attr_init(starpu_pthread_attr_t *attr)
 {
 	return 0;
