@@ -91,14 +91,13 @@ fields that the application may use to give hints to the scheduler (such as
 priority levels).
 
 By default, task dependencies are inferred from data dependency (sequential
-coherence) by StarPU. The application can however disable sequential coherency
-for some data, and dependencies be expressed by hand.
+coherency) by StarPU. The application can however disable sequential coherency
+for some data, and dependencies can be specifically expressed.
 A task may be identified by a unique 64-bit number chosen by the application
 which we refer as a \b tag.
-Task dependencies can be enforced by hand either by the means of callback functions, by
+Task dependencies can be enforced either by the means of callback functions, by
 submitting other tasks, or by expressing dependencies
-between tags (which can thus correspond to tasks that have not been submitted
-yet).
+between tags (which can thus correspond to tasks that have not yet been submitted).
 
 // TODO insert illustration f(Ar, Brw, Cr) + ..
 // DSM
@@ -107,7 +106,7 @@ yet).
 
 Because StarPU schedules tasks at runtime, data transfers have to be
 done automatically and ``just-in-time'' between processing units,
-relieving the application programmer from explicit data transfers.
+relieving application programmers from explicit data transfers.
 Moreover, to avoid unnecessary transfers, StarPU keeps data
 where it was last needed, even if was modified there, and it
 allows multiple copies of the same data to reside at the same time on
@@ -134,8 +133,8 @@ A <b>memory node</b> can be either the main RAM, GPU-embedded memory or a disk m
 A \b bus is a link between memory nodes.
 
 A <b>data handle</b> keeps track of replicates of the same data (\b registered by the
-application) over various memory nodes. The data management library manages
-keeping them coherent.
+application) over various memory nodes. The data management library manages to
+keep them coherent.
 
 The \b home memory node of a data handle is the memory node from which the data
 was registered (usually the main memory node).
