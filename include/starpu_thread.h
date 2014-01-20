@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,12 +24,14 @@ extern "C"
 #endif
 
 #include <starpu_config.h>
+#include <starpu_util.h>
 #ifdef STARPU_SIMGRID
 #include <xbt/synchro_core.h>
 #include <msg/msg.h>
 #elif !defined(_MSC_VER)
 #include <pthread.h>
 #endif
+#include <stdint.h>
 
 /*
  * Encapsulation of the pthread_create function.
@@ -215,6 +217,42 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier);
 #define STARPU_PTHREAD_BARRIER_SERIAL_THREAD PTHREAD_BARRIER_SERIAL_THREAD
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
+
+/*
+ * Encapsulation of the pthread_spin_* functions.
+ */
+
+#if defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)
+
+typedef struct
+{
+#ifdef STARPU_SIMGRID
+	int taken;
+#else /* we only have a trivial implementation yet ! */
+	uint32_t taken STARPU_ATTRIBUTE_ALIGNED(16);
+#endif
+} starpu_pthread_spinlock_t;
+
+int starpu_pthread_spin_init(starpu_pthread_spinlock_t *lock, int pshared);
+int starpu_pthread_spin_destroy(starpu_pthread_spinlock_t *lock);
+int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock);
+int starpu_pthread_spin_trylock(starpu_pthread_spinlock_t *lock);
+int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock);
+
+#else /* !( defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)) */
+
+typedef pthread_spinlock_t starpu_pthread_spinlock_t;
+#define starpu_pthread_spin_init pthread_spin_init
+#define starpu_pthread_spin_destroy pthread_spin_destroy
+#define starpu_pthread_spin_lock pthread_spin_lock
+#define starpu_pthread_spin_trylock pthread_spin_trylock
+#define starpu_pthread_spin_unlock pthread_spin_unlock
+
+#endif /* !( defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)) */
+
+/*
+ * Other needed pthread definitions
+ */
 
 #ifdef _MSC_VER
 typedef void* starpu_pthread_rwlock_t;

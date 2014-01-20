@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -437,3 +437,88 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 }
 
 #endif /* STARPU_SIMGRID, _MSC_VER */
+
+#if defined(STARPU_SIMGRID) || !defined(HAVE_PTHREAD_SPIN_LOCK)
+
+int starpu_pthread_spin_init(starpu_pthread_spinlock_t *lock, int pshared)
+{
+	lock->taken = 0;
+	return 0;
+}
+
+int starpu_pthread_spin_destroy(starpu_pthread_spinlock_t *lock)
+{
+	/* we don't do anything */
+	return 0;
+}
+
+int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
+{
+#ifdef STARPU_SIMGRID
+	while (1)
+	{
+		if (!lock->taken)
+		{
+			lock->taken = 1;
+			return 0;
+		}
+		/* Give hand to another thread, hopefully the one which has the
+		 * spinlock and probably just has also a short-lived mutex. */
+		MSG_process_sleep(0.000001);
+		STARPU_UYIELD();
+	}
+#else
+	uint32_t prev;
+	do
+	{
+		prev = STARPU_TEST_AND_SET(&lock->taken, 1);
+		if (prev)
+			STARPU_UYIELD();
+	}
+	while (prev);
+	return 0;
+#endif
+}
+
+int starpu_pthread_spin_trylock(starpu_pthread_spinlock_t *lock)
+{
+#ifdef STARPU_SIMGRID
+	if (lock->taken)
+		return EBUSY;
+	lock->taken = 1;
+	return 0;
+#else
+	uint32_t prev;
+	prev = STARPU_TEST_AND_SET(&lock->taken, 1);
+	return (prev == 0)?0:EBUSY;
+#endif
+}
+
+int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
+{
+#ifdef STARPU_SIMGRID
+	lock->taken = 0;
+	return 0;
+#else
+	STARPU_RELEASE(&lock->taken);
+	return 0;
+#endif
+}
+
+#endif /* defined(STARPU_SIMGRID) || !defined(HAVE_PTHREAD_SPIN_LOCK) */
+
+int _starpu_pthread_spin_checklocked(starpu_pthread_spinlock_t *lock)
+{
+#ifdef STARPU_SIMGRID
+	STARPU_ASSERT(lock->taken);
+	return !lock->taken;
+#elif defined(HAVE_PTHREAD_SPIN_LOCK)
+	int ret = pthread_spin_trylock((pthread_spinlock_t *)lock);
+	STARPU_ASSERT(ret != 0);
+	return ret == 0;
+#else
+	STARPU_ASSERT(lock->taken);
+	return !lock->taken;
+#endif
+}
+

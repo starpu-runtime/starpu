@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2014  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012  Institut National de Recherche en Informatique et Automatique
 #
@@ -197,6 +197,7 @@ AC_CHECK_FUNCS([sysconf])
 AC_CHECK_FUNC([pthread_spin_lock], have_pthread_spin_lock=yes, have_pthread_spin_lock=no)
 if test x$have_pthread_spin_lock = xyes; then
 	AC_DEFINE(HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
+	AC_DEFINE(STARPU_HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
 fi
 
 # yes, that's non portable, but it's still better than sched_setaffinity

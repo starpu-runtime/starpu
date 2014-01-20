@@ -121,5 +121,6 @@ struct timespec
 #undef STARPU_USE_TOP
 
 #undef STARPU_HAVE_HWLOC
+#undef STARPU_HAVE_PTHREAD_SPIN_LOCK
 
 #endif
