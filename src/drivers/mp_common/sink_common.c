@@ -540,7 +540,7 @@ void* _starpu_sink_thread(void * thread_arg)
 			_starpu_sink_common_execute_kernel(node,coreid,worker);
 
 	}
-	pthread_exit(NULL);
+	starpu_pthread_exit(NULL);
 }
 
 
