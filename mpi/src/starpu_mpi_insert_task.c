@@ -1,7 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2013  Université de Bordeaux 1
+ * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -402,6 +403,12 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			STARPU_ASSERT_MSG(xrank <= nb_nodes, "Node %d to execute codelet is not a valid node (%d)", xrank, nb_nodes);
 			do_execute = 1;
 		}
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		{
+			// the flag is decoded and set later when
+			// calling function _starpu_task_insert_create()
+			va_arg(varg_list, int);
+		}
 		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
@@ -570,6 +577,12 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		{
+			// the flag is decoded and set later when
+			// calling function _starpu_task_insert_create()
+			va_arg(varg_list, int);
+		}
 		else if (arg_type==STARPU_HYPERVISOR_TAG)
 		{
 			(void)va_arg(varg_list, int);
@@ -737,6 +750,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		else if (arg_type==STARPU_EXECUTE_ON_DATA)
 		{
 			va_arg(varg_list, starpu_data_handle_t);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		{
+			va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_HYPERVISOR_TAG)
 		{
