@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -174,6 +174,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
 			double res;
 			starpu_bound_compute(&res, NULL, 0);
+			FPRINTF(stderr, "Theoretical makespan: %2.2f\n", res);
 			FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
 		}
 	}
