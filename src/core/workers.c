@@ -870,6 +870,49 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY", &conf->disable_asynchronous_mic_copy);
 }
 
+struct starpu_tree* starpu_workers_get_tree(void)
+{
+	return config.topology.tree;
+}
+
+static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology)
+{
+#ifdef STARPU_HAVE_HWLOC
+	unsigned i;
+	for(i = 0; i < curr_obj->arity; i++)
+	{
+		starpu_tree_insert(tree->nodes[i], curr_obj->children[i]->os_index, depth, curr_obj->children[i]->type == HWLOC_OBJ_PU, curr_obj->children[i]->arity, tree);
+/* 		char string[128]; */
+/* 		hwloc_obj_snprintf(string, sizeof(string), topology, curr_obj->children[i], "#", 0); */
+/* 		printf("%*s%s %d is_pu %d \n", 0, "", string, curr_obj->children[i]->os_index, curr_obj->children[i]->type == HWLOC_OBJ_PU); */
+	
+		_fill_tree(tree->nodes[i], curr_obj->children[i], depth+1, topology);
+	}
+#endif
+}
+
+static void _starpu_build_tree(void)
+{
+#ifdef STARPU_HAVE_HWLOC
+	struct starpu_tree* tree = (struct starpu_tree*)malloc(sizeof(struct starpu_tree));
+	config.topology.tree = tree;
+
+	hwloc_topology_t topology;
+	hwloc_topology_init(&topology);
+	hwloc_topology_load(topology);
+
+	hwloc_obj_t root = hwloc_get_root_obj(topology);
+
+/* 	char string[128]; */
+/* 	hwloc_obj_snprintf(string, sizeof(string), topology, root, "#", 0); */
+/* 	printf("%*s%s %d is_pu = %d \n", 0, "", string, root->os_index, root->type == HWLOC_OBJ_PU); */
+
+	/* level, is_pu, is in the tree (it will be true only after add*/
+	starpu_tree_insert(tree, root->os_index, 0,root->type == HWLOC_OBJ_PU, root->arity, NULL);
+	_fill_tree(tree, root, 1, topology);
+#endif
+}
+
 int starpu_init(struct starpu_conf *user_conf)
 {
 	return starpu_initialize(user_conf, NULL, NULL);
@@ -1035,6 +1078,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_starpu_worker_init(&config.workers[worker], &config);
 
 	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
+
+	_starpu_build_tree();
 
 	if (!is_a_sink)
 	{
@@ -1536,6 +1581,24 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 	char *name = config.workers[id].name;
 
 	snprintf(dst, maxlen, "%s", name);
+}
+
+int _starpu_worker_get_bindid(int workerid)
+{
+	return config.workers[workerid].bindid;
+}
+
+int _starpu_worker_get_workerid(int bindid)
+{
+	unsigned nworkers = starpu_worker_get_count();
+
+	unsigned id;
+	for (id = 0; id < nworkers; id++)
+		if (config.workers[id].bindid == bindid)
+			return id;
+
+	/* Not found */
+	return -1;
 }
 
 /* Retrieve the status which indicates what the worker is currently doing. */

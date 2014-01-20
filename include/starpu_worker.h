@@ -40,10 +40,16 @@ enum starpu_worker_archtype
 struct starpu_sched_ctx_iterator
 {
 	int cursor;
+	void *value;
+	void *possible_value;
+	int visited[STARPU_NMAXWORKERS];
 };
 
 enum starpu_worker_collection_type
 {
+#ifdef STARPU_HAVE_HWLOC
+	STARPU_WORKER_TREE,
+#endif
 	STARPU_WORKER_LIST
 };
 
@@ -51,6 +57,7 @@ struct starpu_worker_collection
 {
 	void *workerids;
 	unsigned nworkers;
+	unsigned present[STARPU_NMAXWORKERS];
 	enum starpu_worker_collection_type type;
 	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	int (*get_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
@@ -60,6 +67,9 @@ struct starpu_worker_collection
 	void (*deinit)(struct starpu_worker_collection *workers);
 	void (*init_iterator)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 };
+
+extern struct starpu_worker_collection worker_list;
+extern struct starpu_worker_collection worker_tree;
 
 unsigned starpu_worker_get_count(void);
 unsigned starpu_combined_worker_get_count(void);
@@ -100,6 +110,8 @@ int starpu_worker_get_nsched_ctxs(int workerid);
 void starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag);
 
 unsigned starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex);
+
+struct starpu_tree* starpu_workers_get_tree(void);
 
 #ifdef __cplusplus
 }

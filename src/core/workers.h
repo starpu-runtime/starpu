@@ -172,6 +172,9 @@ struct _starpu_machine_topology
 #ifdef STARPU_HAVE_HWLOC
 	/* Topology as detected by hwloc. */
 	hwloc_topology_t hwtopology;
+
+	/* custom hwloc tree*/
+	struct starpu_tree *tree;
 #else
 	/* We maintain ABI compatibility with and without hwloc */
 	void *dummy;
@@ -405,6 +408,12 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 /* returns workers not belonging to any context, be careful no mutex is used, 
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
+
+/* get the os physical id of the worker */
+int _starpu_worker_get_bindid(int workerid);
+
+/* geet starpu workerid corresponding to the os physical id bindid */
+int _starpu_worker_get_workerid(int bindid);
 
 /* if the current worker has the lock release it */
 void _starpu_unlock_mutex_if_prev_locked();

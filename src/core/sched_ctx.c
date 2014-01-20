@@ -21,7 +21,6 @@
 
 starpu_pthread_rwlock_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
 
-extern struct starpu_worker_collection worker_list;
 static starpu_pthread_mutex_t sched_ctx_manag = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static starpu_pthread_mutex_t finished_submit_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 struct starpu_task stop_submission_task = STARPU_TASK_INITIALIZER;
@@ -464,7 +463,10 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	sched_ctx->min_ngpus = min_ngpus;
 	sched_ctx->max_ngpus = max_ngpus;
 	_starpu_unlock_mutex_if_prev_locked();
-	_starpu_update_workers_without_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id, 0);
+	int *added_workerids;
+	unsigned nw_ctx = starpu_sched_ctx_get_workers_list(sched_ctx->id, &added_workerids);
+	_starpu_update_workers_without_ctx(added_workerids, nw_ctx, sched_ctx->id, 0);
+	free(added_workerids);
 	_starpu_relock_mutex_if_prev_locked();
 #ifdef STARPU_USE_SC_HYPERVISOR
 	sched_ctx->perf_counters = NULL;
@@ -524,7 +526,10 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	sched_ctx->hierarchy_level = hierarchy_level;
 
 	_starpu_unlock_mutex_if_prev_locked();
-	_starpu_update_workers_with_ctx(sched_ctx->workers->workerids, sched_ctx->workers->nworkers, sched_ctx->id);
+	int *added_workerids;
+	unsigned nw_ctx = starpu_sched_ctx_get_workers_list(sched_ctx->id, &added_workerids);
+	_starpu_update_workers_with_ctx(added_workerids, nw_ctx, sched_ctx->id);
+	free(added_workerids);
 	_starpu_relock_mutex_if_prev_locked();
 #ifdef STARPU_USE_SC_HYPERVISOR
 	sched_ctx->perf_counters = NULL;
@@ -767,7 +772,7 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&changing_ctx_mutex[sched_ctx->id]);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
-
+	
 	struct starpu_sched_ctx_iterator it;
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
@@ -1035,7 +1040,20 @@ struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsig
 
 	switch(worker_collection_type)
 	{
-	case STARPU_WORKER_LIST:
+#ifdef STARPU_HAVE_HWLOC
+	case STARPU_WORKER_TREE:
+		sched_ctx->workers->has_next = worker_tree.has_next;
+		sched_ctx->workers->get_next = worker_tree.get_next;
+		sched_ctx->workers->add = worker_tree.add;
+		sched_ctx->workers->remove = worker_tree.remove;
+		sched_ctx->workers->init = worker_tree.init;
+		sched_ctx->workers->deinit = worker_tree.deinit;
+		sched_ctx->workers->init_iterator = worker_tree.init_iterator;
+		sched_ctx->workers->type = STARPU_WORKER_LIST;
+		break;
+#endif
+//	case STARPU_WORKER_LIST:
+	default:
 		sched_ctx->workers->has_next = worker_list.has_next;
 		sched_ctx->workers->get_next = worker_list.get_next;
 		sched_ctx->workers->add = worker_list.add;
@@ -1045,6 +1063,7 @@ struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsig
 		sched_ctx->workers->init_iterator = worker_list.init_iterator;
 		sched_ctx->workers->type = STARPU_WORKER_LIST;
 		break;
+
 	}
 
 	return sched_ctx->workers;

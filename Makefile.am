@@ -83,7 +83,8 @@ versinclude_HEADERS = 				\
 	include/starpu_driver.h			\
 	include/starpu_stdlib.h			\
 	include/starpu_thread.h			\
-	include/starpu_thread_util.h
+	include/starpu_thread_util.h		\
+	include/starpu_tree.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h

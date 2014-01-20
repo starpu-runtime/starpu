@@ -65,6 +65,7 @@ typedef UINT_PTR uintptr_t;
 #include <starpu_top.h>
 #include <starpu_fxt.h>
 #include <starpu_driver.h>
+#include <starpu_tree.h>
 
 #ifdef __cplusplus
 extern "C"

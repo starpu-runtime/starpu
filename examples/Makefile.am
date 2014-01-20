@@ -188,6 +188,8 @@ examplebin_PROGRAMS +=				\
 	sched_ctx/parallel_code			\
 	sched_ctx/dummy_sched_with_ctx		\
 	sched_ctx/prio				\
+	worker_collections/worker_tree_example  \
+	worker_collections/worker_list_example  \
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	mandelbrot/mandelbrot			\
@@ -265,6 +267,8 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/sched_ctx			\
 	sched_ctx/prio				\
 	sched_ctx/dummy_sched_with_ctx		\
+	worker_collections/worker_tree_example  \
+	worker_collections/worker_list_example  \
 	reductions/dot_product			\
 	reductions/minmax_reduction
 

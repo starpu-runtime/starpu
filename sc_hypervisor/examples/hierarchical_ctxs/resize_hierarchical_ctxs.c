@@ -115,6 +115,21 @@ int main()
 	sc_hypervisor_register_ctx(sched_ctx1, flops1);
 	sc_hypervisor_register_ctx(sched_ctx2, flops2);
 	sc_hypervisor_register_ctx(sched_ctx3, flops3);
+
+	unsigned ncpus =  starpu_cpu_worker_get_count();
+
+	sc_hypervisor_ctl(sched_ctx1,
+			  SC_HYPERVISOR_MAX_WORKERS, ncpus,
+			  SC_HYPERVISOR_NULL);
+
+	sc_hypervisor_ctl(sched_ctx2,
+			  SC_HYPERVISOR_MAX_WORKERS, ncpus,
+			  SC_HYPERVISOR_NULL);
+
+	sc_hypervisor_ctl(sched_ctx3,
+			  SC_HYPERVISOR_MAX_WORKERS, ncpus,
+			  SC_HYPERVISOR_NULL);
+
         /* lp strategy allows sizing the contexts because we know the total number of flops
 	   to be executed */
 	sc_hypervisor_size_ctxs(NULL, -1, NULL, -1);

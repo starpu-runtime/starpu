@@ -132,9 +132,9 @@ noinst_HEADERS = 						\
 	starpu_parameters.h					\
 	top/starpu_top_message_queue.h				\
 	top/starpu_top_connection.h				\
-	top/starpu_top_core.h
+	top/starpu_top_core.h					
 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/barrier.c					\
 	common/bitmap.c						\
 	common/barrier_counter.c				\
@@ -148,6 +148,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	core/jobs.c						\
 	core/task.c						\
 	core/task_bundle.c					\
+	core/tree.c						\
 	core/workers.c						\
 	core/combined_workers.c					\
 	core/topology.c						\
@@ -239,7 +240,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 						\
 	top/starpu_top_task.c					\
 	top/starpu_top_message_queue.c				\
 	top/starpu_top_connection.c                          	\
-	worker_collection/worker_list.c
+	worker_collection/worker_list.c				\
+	worker_collection/worker_tree.c				
 
 
 if STARPU_HAVE_LEVELDB
