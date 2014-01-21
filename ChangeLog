@@ -23,6 +23,7 @@ Small features:
     to execute the task.
   * New STARPU_DISABLE_PINNING environment variable to disable host memory
     pinning.
+  * Fix simgrid execution.
 
 
 StarPU 1.1.0 (svn revision 11960)
