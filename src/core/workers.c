@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
@@ -875,9 +875,9 @@ struct starpu_tree* starpu_workers_get_tree(void)
 	return config.topology.tree;
 }
 
+#ifdef STARPU_HAVE_HWLOC
 static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology)
 {
-#ifdef STARPU_HAVE_HWLOC
 	unsigned i;
 	for(i = 0; i < curr_obj->arity; i++)
 	{
@@ -885,11 +885,10 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 /* 		char string[128]; */
 /* 		hwloc_obj_snprintf(string, sizeof(string), topology, curr_obj->children[i], "#", 0); */
 /* 		printf("%*s%s %d is_pu %d \n", 0, "", string, curr_obj->children[i]->os_index, curr_obj->children[i]->type == HWLOC_OBJ_PU); */
-	
 		_fill_tree(tree->nodes[i], curr_obj->children[i], depth+1, topology);
 	}
-#endif
 }
+#endif
 
 static void _starpu_build_tree(void)
 {
