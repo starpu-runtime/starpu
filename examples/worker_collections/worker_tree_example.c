@@ -17,6 +17,8 @@
 
 #include <starpu.h>
 
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
 #if !defined(STARPU_HAVE_HWLOC)
 #warning hwloc is not enabled. Skipping test
 int main(int argc, char **argv)
@@ -43,7 +45,7 @@ int main()
 	co->init_iterator = worker_tree.init_iterator;
 	co->type = STARPU_WORKER_TREE;
 
-	printf("ncpus %d \n", ncpus);
+	FPRINTF(stderr, "ncpus %d \n", ncpus);
 
 	struct timeval start_time;
         struct timeval end_time;
@@ -62,7 +64,7 @@ int main()
 	for(i = 0; i < ncpus; i++)
 	{
 		int added = co->add(co, procs[i]);
-		printf("added proc %d to the tree \n", added);
+		FPRINTF(stderr, "added proc %d to the tree \n", added);
 	}
 
 	struct starpu_sched_ctx_iterator it;
@@ -73,22 +75,22 @@ int main()
 	while(co->has_next(co, &it))
 	{
 		pu = co->get_next(co, &it);
-		printf("pu = %d out of %d workers \n", pu, co->nworkers);
+		FPRINTF(stderr, "pu = %d out of %d workers \n", pu, co->nworkers);
 	}
 
 	for(i = 0; i < 6; i++)
 	{
 		co->remove(co, i);
-		printf("remove %d out of %d workers\n", i, co->nworkers);
+		FPRINTF(stderr, "remove %d out of %d workers\n", i, co->nworkers);
 	}
 
 	while(co->has_next(co, &it))
 	{
 		pu = co->get_next(co, &it);
-		printf("pu = %d out of %d workers \n", pu, co->nworkers);
+		FPRINTF(stderr, "pu = %d out of %d workers \n", pu, co->nworkers);
 	}
 
-	printf("timing init = %lf \n", timing);
+	FPRINTF(stderr, "timing init = %lf \n", timing);
 
 	co->deinit(co);
 	starpu_shutdown();

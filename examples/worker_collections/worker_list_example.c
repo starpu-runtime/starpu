@@ -1,21 +1,23 @@
-/* StarPU --- Runtime system for heterogeneous multicore architectures.                                                                                                                                            
- *                                                                                                                                                                                                                 
- * Copyright (C) 2010-2013  Université de Bordeaux 1                                                                                                                                                               
- * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique                                                                                                                                           
- *                                                                                                                                                                                                                 
- * StarPU is free software; you can redistribute it and/or modify                                                                                                                                                  
- * it under the terms of the GNU Lesser General Public License as published by                                                                                                                                     
- * the Free Software Foundation; either version 2.1 of the License, or (at                                                                                                                                         
- * your option) any later version.                                                                                                                                                                                 
- *                                                                                                                                                                                                                 
- * StarPU is distributed in the hope that it will be useful, but                                                                                                                                                   
- * WITHOUT ANY WARRANTY; without even the implied warranty of                                                                                                                                                      
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                                                                                                                                                            
- *                                                                                                                                                                                                                 
- * See the GNU Lesser General Public License in COPYING.LGPL for more details.                                                                                                                                     
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
 #include <starpu.h>
+
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 int main()
 {
@@ -35,7 +37,7 @@ int main()
 	co->init_iterator = worker_list.init_iterator;
 	co->type = STARPU_WORKER_LIST;
 
-	printf("ncpus %d \n", ncpus);
+	FPRINTF(stderr, "ncpus %d \n", ncpus);
 
 	struct timeval start_time;
         struct timeval end_time;
@@ -54,33 +56,33 @@ int main()
 	for(i = 0; i < ncpus; i++)
 	{
 		int added = co->add(co, procs[i]);
-		printf("added proc %d to the tree \n", added);
+		FPRINTF(stderr, "added proc %d to the tree \n", added);
 	}
 
 	struct starpu_sched_ctx_iterator it;
         if(co->init_iterator)
                 co->init_iterator(co, &it);
-	
+
 	int pu;
 	while(co->has_next(co, &it))
 	{
 		pu = co->get_next(co, &it);
-		printf("pu = %d out of %d workers \n", pu, co->nworkers);
+		FPRINTF(stderr, "pu = %d out of %d workers \n", pu, co->nworkers);
 	}
-	
+
 	for(i = 0; i < 6; i++)
 	{
 		co->remove(co, i);
-		printf("remove %d out of %d workers\n", i, co->nworkers);
+		FPRINTF(stderr, "remove %d out of %d workers\n", i, co->nworkers);
 	}
 
 	while(co->has_next(co, &it))
 	{
 		pu = co->get_next(co, &it);
-		printf("pu = %d out of %d workers \n", pu, co->nworkers);
+		FPRINTF(stderr, "pu = %d out of %d workers \n", pu, co->nworkers);
 	}
-	
-	printf("timing init = %lf \n", timing);
+
+	FPRINTF(stderr, "timing init = %lf \n", timing);
 	co->deinit(co);
 	starpu_shutdown();
 }
