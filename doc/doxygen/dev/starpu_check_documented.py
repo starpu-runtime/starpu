@@ -32,7 +32,7 @@ for function in functions:
         print "Function <" + bcolors.FAILURE + function[0] + bcolors.NORMAL + "> documented in <" + function[1] + "> does not exist in StarPU's API"
 
 for datatype in datatypes:
-    x = os.system("fgrep -l \"" + datatype[0] + "\" ../../include/*.h ../../mpi/include/*.h ../../starpufft/*h ../../sc_hypervisor/include/*.h > /dev/null")
+    x = os.system("fgrep -l \"" + datatype[0] + "\" ../../include/*.h ../../include/starpu_config.h.in ../../mpi/include/*.h ../../starpufft/*h ../../sc_hypervisor/include/*.h > /dev/null")
     if x != 0:
         print "Datatype <" + bcolors.FAILURE + datatype[0] + bcolors.NORMAL + "> documented in <" + datatype[1] + "> does not exist in StarPU's API"
 
