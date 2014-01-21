@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -235,7 +235,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 				if (!warned)
 				{
 					warned = 1;
-					_STARPU_DISP("Has to make simgrid spin for progression hooks\n");
+					_STARPU_DISP("Has to make simgrid spin for CPU idle time.  You can try to pass --enable-blocking-drivers to ./configure to avoid this\n");
 				}
 				MSG_process_sleep(0.000010);
 #endif
