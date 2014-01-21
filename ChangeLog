@@ -65,6 +65,8 @@ Small features:
     to execute the task.
   * New STARPU_DISABLE_PINNING environment variable to disable host memory
     pinning.
+  * New STARPU_DISABLE_KERNELS environment variable to disable actual kernel
+    execution.
 
 Changes:
   * Fix of the livelock issue discovered while executing applications

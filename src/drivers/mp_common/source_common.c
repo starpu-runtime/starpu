@@ -321,7 +321,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	buffer_size = sizeof(kernel) + sizeof(coreid) + sizeof(type)
 		+ sizeof(nb_interfaces) + nb_interfaces * sizeof(union _starpu_interface) + sizeof(is_parallel_task);
 	
-	/*if the task is paralle*/
+	/*if the task is parallel*/
 	if(is_parallel_task)
 	{
 		buffer_size += sizeof(cb_workerid); 
@@ -716,7 +716,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 							/* The task task has been launched with no error */
 							break;
 						case -EAGAIN:
-							_STARPU_DISP("ouch, Xeon Phi could not actually run task %p, putting it back...\n", tasks[i]);
+							_STARPU_DISP("ouch, this MP worker could not actually run task %p, putting it back...\n", tasks[i]);
 							_starpu_push_task_to_workers(tasks[i]);
 							STARPU_ABORT();
 							continue;

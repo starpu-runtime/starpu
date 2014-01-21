@@ -23,6 +23,11 @@ Valgrind can be used on StarPU: valgrind.h just needs to be found at ./configure
 time, to tell valgrind about some known false positives and disable host memory
 pinning.
 
+The STARPU_DISABLE_KERNELS environment variable can also be set to 1 to make
+StarPU do everything (schedule tasks, transfer memory, etc.) except actually
+calling the application-provided kernel functions, i.e. the computation will not
+happen. This permits to quickly check that the task scheme is working properly.
+
 The Temanejo task debugger can also be used, see \ref UsingTheTemanejoTaskDebugger.
 
 \section UsingTheTemanejoTaskDebugger Using The Temanejo Task Debugger

@@ -833,25 +833,28 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, j->nimpl);
 	STARPU_ASSERT_MSG(func, "when STARPU_OPENCL is defined in 'where', opencl_func or opencl_funcs has to be defined");
 
+	if (starpu_get_env_number("STARPU_DISABLE_KERNELS") <= 0)
+	{
 #ifdef STARPU_SIMGRID
-	double length = NAN;
-  #ifdef STARPU_OPENCL_SIMULATOR
-	func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-    #ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
-      #ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
-        #define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
-      #else
-        #error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
-      #endif
-    #endif
-	struct starpu_profiling_task_info *profiling_info = task->profiling_info;
-	STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
-	length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
-  #endif
-	_starpu_simgrid_execute_job(j, &args->perf_arch, length);
+		double length = NAN;
+	  #ifdef STARPU_OPENCL_SIMULATOR
+		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+	    #ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
+	      #ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+		#define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
+	      #else
+		#error The OpenCL simulator must provide CL_PROFILING_CLOCK_CYCLE_COUNT
+	      #endif
+	    #endif
+		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
+		STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
+		length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
+	  #endif
+		_starpu_simgrid_execute_job(j, &args->perf_arch, length);
 #else
-	func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
+	}
 
 	_starpu_driver_end_job(args, j, &args->perf_arch, &codelet_end, 0, profiling);
 
