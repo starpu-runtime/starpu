@@ -20,13 +20,8 @@ Some gdb helpers are also provided to show the whole StarPU state:
 \endverbatim
 
 Valgrind can be used on StarPU: valgrind.h just needs to be found at ./configure
-time, to tell valgrind about some known false positives. When working with GPUs,
-memory pinning should be disabled with
-
-export STARPU_DISABLE_PINNING=1
-
-otherwise valgrind will not properly catch errors about data allocated through
-starpu_malloc and friends.
+time, to tell valgrind about some known false positives and disable host memory
+pinning.
 
 The Temanejo task debugger can also be used, see \ref UsingTheTemanejoTaskDebugger.
 

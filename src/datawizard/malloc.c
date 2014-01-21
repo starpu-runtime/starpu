@@ -109,7 +109,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 		}
 	}
 
-	if (flags & STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0)
+	if (flags & STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0 && RUNNING_ON_VALGRIND == 0)
 	{
 #ifdef STARPU_SIMGRID
 		/* FIXME: CUDA seems to be taking 650µs every 1MiB.
