@@ -80,6 +80,10 @@ int starpu_pthread_mutex_destroy(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex);
+int starpu_pthread_mutexattr_gettype(const starpu_pthread_mutexattr_t *attr, int *type);
+int starpu_pthread_mutexattr_settype(starpu_pthread_mutexattr_t *attr, int type);
+int starpu_pthread_mutexattr_destroy(starpu_pthread_mutexattr_t *attr);
+int starpu_pthread_mutexattr_init(starpu_pthread_mutexattr_t *attr);
 
 #elif !defined(_MSC_VER) /* !STARPU_SIMGRID */
 
@@ -88,6 +92,10 @@ typedef pthread_mutexattr_t starpu_pthread_mutexattr_t;
 
 #define starpu_pthread_mutex_init pthread_mutex_init
 #define starpu_pthread_mutex_destroy pthread_mutex_destroy
+#define starpu_pthread_mutexattr_gettype pthread_mutexattr_gettype
+#define starpu_pthread_mutexattr_settype pthread_mutexattr_settype
+#define starpu_pthread_mutexattr_destroy pthread_mutexattr_destroy
+#define starpu_pthread_mutexattr_destroy pthread_mutexattr_init
 
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex);

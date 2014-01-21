@@ -123,6 +123,27 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 	return 0;
 }
 
+int starpu_pthread_mutexattr_gettype(const starpu_pthread_mutexattr_t *attr, int *type)
+{
+	return 0;
+}
+
+int starpu_pthread_mutexattr_settype(starpu_pthread_mutexattr_t *attr, int type)
+{
+	return 0;
+}
+
+int starpu_pthread_mutexattr_destroy(starpu_pthread_mutexattr_t *attr)
+{
+	return 0;
+}
+
+int starpu_pthread_mutexattr_init(starpu_pthread_mutexattr_t *attr)
+{
+	return 0;
+}
+
+
 static int used_key[MAX_TSD];
 
 int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) (void *))
