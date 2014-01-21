@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -214,6 +214,22 @@ enable-fxt-lock "--enable-fxt-lock" is enabled.
 \ingroup API_Threads
 This macro initializes the mutex given in parameter.
 
+\fn int starpu_pthread_mutexattr_gettype(const starpu_pthread_mutexattr_t *attr, int *type)
+\ingroup API_Threads
+todo
+
+\fn int starpu_pthread_mutexattr_settype(starpu_pthread_mutexattr_t *attr, int type)
+\ingroup API_Threads
+todo
+
+\fn int starpu_pthread_mutexattr_destroy(starpu_pthread_mutexattr_t *attr)
+\ingroup API_Threads
+todo
+
+\fn int starpu_pthread_mutexattr_init(starpu_pthread_mutexattr_t *attr)
+\ingroup API_Threads
+todo
+
 \fn int starpu_pthread_key_create(starpu_pthread_key_t *key, void (*destr_function) (void *))
 \ingroup API_Threads
 This function allocates a new TSD key. The key is stored in the
@@ -299,8 +315,45 @@ This function is the same as starpu_pthread_mutex_lock().
 \ingroup API_Threads
 This function is the same as starpu_pthread_mutex_lock().
 
+\fn int starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock)
+\ingroup API_Threads
+todo
+
 \fn starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 \ingroup API_Threads
 This function is the same as starpu_pthread_mutex_unlock().
+
+\fn int starpu_pthread_barrier_init(starpu_pthread_barrier_t *barrier, const starpu_pthread_barrierattr_t *attr, unsigned count)
+\ingroup API_Threads
+todo
+
+\fn int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier)
+\ingroup API_Threads
+todo
+
+\fn int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
+\ingroup API_Threads
+todo
+
+\fn int starpu_pthread_spin_init(starpu_pthread_spinlock_t *lock, int pshared)
+\ingroup API_Threads
+todo
+
+\fn int starpu_pthread_spin_destroy(starpu_pthread_spinlock_t *lock)
+\ingroup API_Threads
+todo
+
+\fn int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
+\ingroup API_Threads
+todo
+
+\fn int starpu_pthread_spin_trylock(starpu_pthread_spinlock_t *lock)
+\ingroup API_Threads
+todo
+
+\fn int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
+\ingroup API_Threads
+todo
+
 
 */
