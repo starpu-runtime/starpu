@@ -47,7 +47,7 @@ int _starpu_spin_destroy(struct _starpu_spinlock *lock STARPU_ATTRIBUTE_UNUSED)
 	starpu_pthread_mutexattr_destroy(&lock->errcheck_attr);
 	return starpu_pthread_mutex_destroy(&lock->errcheck_lock);
 #else
-	return starpu_starpu_pthread_spin_destroy(&lock->lock);
+	return starpu_pthread_spin_destroy(&lock->lock);
 #endif
 }
 
