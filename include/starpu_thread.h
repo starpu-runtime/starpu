@@ -95,7 +95,7 @@ typedef pthread_mutexattr_t starpu_pthread_mutexattr_t;
 #define starpu_pthread_mutexattr_gettype pthread_mutexattr_gettype
 #define starpu_pthread_mutexattr_settype pthread_mutexattr_settype
 #define starpu_pthread_mutexattr_destroy pthread_mutexattr_destroy
-#define starpu_pthread_mutexattr_destroy pthread_mutexattr_init
+#define starpu_pthread_mutexattr_init pthread_mutexattr_init
 
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex);
