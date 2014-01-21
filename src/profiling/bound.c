@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -114,7 +114,7 @@ struct bound_tag_dep
 };
 
 static struct bound_task_pool *task_pools, *last;
-static struct bound_task *tasks;
+static struct bound_task *tasks, *last_task;
 static struct bound_tag_dep *tag_deps;
 int _starpu_bound_recording;
 static int recorddeps;
@@ -137,6 +137,7 @@ void starpu_bound_start(int deps, int prio)
 
 	t = tasks;
 	tasks = NULL;
+	last_task = NULL;
 
 	td = tag_deps;
 	tag_deps = NULL;
@@ -206,9 +207,16 @@ static void new_task(struct _starpu_job *j)
 	t->priority = j->task->priority;
 	t->deps = NULL;
 	t->depsn = 0;
-	t->next = tasks;
+	t->next = NULL;
+	if (last_task)
+	{
+		last_task->next = t;
+		last_task = t;
+	} else {
+		tasks = t;
+		last_task = t;
+	}
 	j->bound_task = t;
-	tasks = t;
 }
 
 /* A new task was submitted, record it */
@@ -499,6 +507,64 @@ void starpu_bound_print_lp(FILE *output)
 			}
 			nt++;
 		}
+
+#if 1
+		unsigned narchs[STARPU_NARCH_VARIATIONS] = { };
+		enum starpu_perfmodel_archtype maxarch = 0, arch;
+		int first;
+		for (w = 0; w < nw; w++)
+		{
+			enum starpu_perfmodel_archtype arch = starpu_worker_get_perf_archtype(w);
+			narchs[arch]++;
+			if (arch >maxarch)
+				maxarch = arch;
+		}
+		fprintf(output, "[");
+		first = 1;
+		for (arch = 0; arch <= maxarch; arch++)
+		{
+			if (narchs[arch])
+			{
+				if (!first)
+					fprintf(output, ", ");
+				else
+					first = 0;
+				fprintf(output, "%d", narchs[arch]);
+			}
+		}
+		fprintf(output, "]\n");
+		for (arch = 0; arch <= maxarch; arch++)
+		{
+			if (narchs[arch])
+			{
+				fprintf(output,"[");
+				for (t1 = tasks; t1; t1 = t1->next)
+				{
+					if (!isnan(t1->duration[arch]))
+						fprintf(output, "%f%s", t1->duration[arch], t1->next?", ":"");
+				}
+				fprintf(output, "]\n");
+			}
+		}
+
+		unsigned long first_id = tasks->id;
+		unsigned long j = first_id;
+		for (t1 = tasks; t1; t1 = t1->next)
+		{
+			if (t1->id != j)
+			{
+				fprintf(stderr,"oops, tasks not in proper order\n");
+				exit(1);
+			}
+			fprintf(output, "[");
+			j++;
+			for (i = 0; i < t1->depsn; i++)
+			{
+				fprintf(output, "%lu%s", t1->deps[i].dep->id - first_id + 1, i == t1->depsn-1?"":", ");
+			}
+			fprintf(output, "]\n");
+		}
+#else
 		fprintf(output, "/* StarPU upper bound linear programming problem, to be run in lp_solve. */\n\n");
 		fprintf(output, "/* !! This is a big system, it will be long to solve !! */\n\n");
 
@@ -737,6 +803,7 @@ void starpu_bound_print_lp(FILE *output)
 		for (t1 = tasks; t1; t1 = t1->next)
 			for (w = 0; w < nw; w++)
 				fprintf(output, "bin t%luw%d;\n", t1->id, w);
+#endif
 	}
 	else
 	{
