@@ -285,10 +285,10 @@ multiplication using BLAS and cuBLAS. They output the obtained GFlops.
 
 \subsection CholeskyFactorization Cholesky Factorization
 
-<c>cholesky/*</c> perform a Cholesky factorization (single precision). They use different dependency primitives.
+<c>cholesky_*</c> perform a Cholesky factorization (single precision). They use different dependency primitives.
 
 \subsection LUFactorization LU Factorization
 
-<c>lu/*</c> perform an LU factorization. They use different dependency primitives.
+<c>lu_*</c> perform an LU factorization. They use different dependency primitives.
 
 */
