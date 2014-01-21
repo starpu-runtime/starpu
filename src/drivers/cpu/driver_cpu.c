@@ -156,11 +156,14 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			/* bind to parallel worker */
 			_starpu_bind_thread_on_cpus(cpu_args->config, _starpu_get_combined_worker_struct(j->combined_workerid));
 		STARPU_ASSERT_MSG(func, "when STARPU_CPU is defined in 'where', cpu_func or cpu_funcs has to be defined");
+		if (starpu_get_env_number("STARPU_DISABLE_KERNELS") <= 0)
+		{
 #ifdef STARPU_SIMGRID
-		_starpu_simgrid_execute_job(j, perf_arch, NAN);
+			_starpu_simgrid_execute_job(j, perf_arch, NAN);
 #else
-		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
+		}
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* rebind to single CPU */
 			_starpu_bind_thread_on_cpu(cpu_args->config, cpu_args->bindid);

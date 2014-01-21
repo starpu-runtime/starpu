@@ -18,12 +18,16 @@ StarPU 1.1.1 (svn revision xxx)
 ==============================================
 The scheduling context release
 
+Changes:
+  * Fix simgrid execution.
+
 Small features:
   * New STARPU_EXECUTE_ON_WORKER flag to specify the worker on which
     to execute the task.
   * New STARPU_DISABLE_PINNING environment variable to disable host memory
     pinning.
-  * Fix simgrid execution.
+  * New STARPU_DISABLE_KERNELS environment variable to disable actual kernel
+    execution.
 
 
 StarPU 1.1.0 (svn revision 11960)

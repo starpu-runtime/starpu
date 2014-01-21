@@ -534,6 +534,15 @@ dog is reached, thus allowing to catch the situation in gdb, etc
 (see \ref DetectionStuckConditions)
 </dd>
 
+<dt>STARPU_DISABLE_KERNELS</dt>
+<dd>
+\anchor STARPU_DISABLE_KERNELS
+\addindex __env__STARPU_DISABLE_KERNELS
+When set to a value other than 1, it disables actually calling the kernel
+functions, thus allowing to quickly check that the task scheme is working
+properly, without performing the actual application-provided computation.
+</dd>
+
 </dl>
 
 \section ConfiguringTheHypervisor Configuring The Hypervisor
@@ -605,5 +614,7 @@ By default the hypervisor uses a sample of flops when computing the speed of the
 If this variable is set to <c>time</c> the hypervisor uses a sample of time (10% of an aproximation of the total
 execution time of the application)
 </dd>
+
+</dl>
 
 */
