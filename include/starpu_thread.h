@@ -239,7 +239,7 @@ int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock);
 int starpu_pthread_spin_trylock(starpu_pthread_spinlock_t *lock);
 int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock);
 
-#else /* !( defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)) */
+#elif !defined(_MSC_VER) /* !( defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)) */
 
 typedef pthread_spinlock_t starpu_pthread_spinlock_t;
 #define starpu_pthread_spin_init pthread_spin_init
