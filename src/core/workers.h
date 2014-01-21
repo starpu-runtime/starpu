@@ -169,16 +169,13 @@ struct _starpu_machine_topology
 	unsigned ncombinedworkers;
 
 	unsigned nsched_ctxs;
+
 #ifdef STARPU_HAVE_HWLOC
 	/* Topology as detected by hwloc. */
 	hwloc_topology_t hwtopology;
-
+#endif
 	/* custom hwloc tree*/
 	struct starpu_tree *tree;
-#else
-	/* We maintain ABI compatibility with and without hwloc */
-	void *dummy;
-#endif
 
 	/* Total number of CPUs, as detected by the topology code. May
 	 * be different from the actual number of CPU workers.
