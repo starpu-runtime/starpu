@@ -100,6 +100,8 @@ chapters =	\
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy \
 	chapters/api/threads.doxy \
+	chapters/api/bitmap.doxy \
+	chapters/api/tree.doxy \
 	chapters/api/toolbox.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy

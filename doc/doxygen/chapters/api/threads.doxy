@@ -11,7 +11,7 @@
 \brief This section describes the thread facilities provided
 by StarPU. The thread function are either implemented on top of the
 pthread library or the Simgrid library when the simulated performance
-mode is enabled (\ref SimulatedPerformance).
+mode is enabled (\ref SimGridSupport).
 
 \def STARPU_PTHREAD_CREATE_ON
 \ingroup API_Threads
