@@ -31,7 +31,7 @@ struct _starpu_spinlock
 	starpu_pthread_mutexattr_t errcheck_attr;
 	starpu_pthread_mutex_t errcheck_lock;
 #elif defined(HAVE_PTHREAD_SPIN_LOCK)
-	_starpu_pthread_spinlock_t lock;
+	starpu_pthread_spinlock_t lock;
 #else
 	/* we only have a trivial implementation yet ! */
 	uint32_t taken STARPU_ATTRIBUTE_ALIGNED(16);
