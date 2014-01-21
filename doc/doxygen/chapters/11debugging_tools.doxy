@@ -10,13 +10,23 @@
 
 StarPU provides several tools to help debugging applications. Execution traces
 can be generated and displayed graphically, see \ref
-GeneratingTracesWithFxT. Some gdb helpers are also provided to show
-the whole StarPU state:
+GeneratingTracesWithFxT.
+
+Some gdb helpers are also provided to show the whole StarPU state:
 
 \verbatim
 (gdb) source tools/gdbinit
 (gdb) help starpu
 \endverbatim
+
+Valgrind can be used on StarPU: valgrind.h just needs to be found at ./configure
+time, to tell valgrind about some known false positives. When working with GPUs,
+memory pinning should be disabled with
+
+export STARPU_DISABLE_PINNING=1
+
+otherwise valgrind will not properly catch errors about data allocated through
+starpu_malloc and friends.
 
 The Temanejo task debugger can also be used, see \ref UsingTheTemanejoTaskDebugger.
 

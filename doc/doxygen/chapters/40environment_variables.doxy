@@ -262,6 +262,15 @@ through RAM. The default is Enabled.
 This permits to test the performance effect of GPU-Direct.
 </dd>
 
+<dt>STARPU_DISABLE_PINNING</dt>
+<dd>
+\anchor STARPU_DISABLE_PINNING
+\addindex __env__STARPU_DISABLE_PINNING
+Disable (1) or Enable (0) pinning host memory allocated through starpu_malloc
+and friends.  The default is Enabled.
+This permits to test the performance effect of memory pinning.
+</dd>
+
 </dl>
 
 \section ConfiguringTheSchedulingEngine Configuring The Scheduling Engine
