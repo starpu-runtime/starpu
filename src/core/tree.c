@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <stdlib.h>
 #include "starpu_tree.h"
 
 void starpu_tree_reset_visited(struct starpu_tree *tree, int *visited)
