@@ -42,7 +42,7 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 			v[i][w] = sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw)); 
 
 		double ready_flops = starpu_get_nready_flops_of_sched_ctx(sc_w->sched_ctx);
-		int nready_tasks = starpu_get_nready_tasks_of_sched_ctx(sc_w->sched_ctx);
+		int nready_tasks = starpu_sched_ctx_get_nready_tasks(sc_w->sched_ctx);
 		
 		if(sc_w->to_be_sized)
 		{
