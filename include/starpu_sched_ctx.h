@@ -109,7 +109,7 @@ void *starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void *param, uns
 
 int starpu_sched_ctx_get_nready_tasks(unsigned sched_ctx_id);
 
-double starpu_get_nready_flops_of_sched_ctx(unsigned sched_ctx_id);
+double starpu_sched_ctx_get_nready_flops(unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_priority(int *workers, int nworkers, unsigned sched_ctx_id, unsigned priority);
 

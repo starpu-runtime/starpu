@@ -933,7 +933,7 @@ int starpu_sched_ctx_get_nready_tasks(unsigned sched_ctx_id)
 	return _starpu_barrier_counter_get_reached_start(&sched_ctx->ready_tasks_barrier);
 }
 
-double starpu_get_nready_flops_of_sched_ctx(unsigned sched_ctx_id)
+double starpu_sched_ctx_get_nready_flops(unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	return _starpu_barrier_counter_get_reached_flops(&sched_ctx->ready_tasks_barrier);
