@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -163,6 +163,14 @@ source using the n-th message tag of the array \p mpi_tag within the
 n-th communicator of the array \p comm. On completion of the all the
 requests, \p tag is unlocked.
 
+\fn int starpu_mpi_get_communication_tag(void)
+\ingroup API_MPI_Support
+todo
+
+\fn void starpu_mpi_set_communication_tag(int tag)
+\ingroup API_MPI_Support
+todo
+
 @name Communication Cache
 \ingroup API_MPI_Support
 
@@ -214,9 +222,9 @@ this macro is used when calling starpu_mpi_task_insert(), and must be
 followed by a data handle to specify that the node owning the given
 data will execute the codelet.
 
-\def starpu_mpi_insert_task
+\fn int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support
-Convenience macro for the function starpu_mpi_task_insert() which used to be called starpu_mpi_insert_task.
+This function does the same as the function starpu_mpi_task_insert(). It has been kept to avoid breaking old codes.
 
 \fn int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support

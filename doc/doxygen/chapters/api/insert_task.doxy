@@ -8,9 +8,9 @@
 
 /*! \defgroup API_Insert_Task Insert_Task
 
-\def starpu_insert_task
+\fn starpu_insert_task(struct starpu_codelet *cl, ...)
 \ingroup API_Insert_Task
-Convenience macro for the function starpu_task_insert() which used to be called starpu_insert_task.
+This function does the same as the function starpu_task_insert(). It has been kept to avoid breaking old codes.
 
 \fn int starpu_task_insert(struct starpu_codelet *cl, ...)
 \ingroup API_Insert_Task
