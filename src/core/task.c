@@ -843,7 +843,7 @@ int starpu_task_nready(void)
 	int nready = 0;
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
-		nready = starpu_get_nready_tasks_of_sched_ctx(0);
+		nready = starpu_sched_ctx_get_nready_tasks(0);
 	else
 	{
 		int s;
@@ -851,7 +851,7 @@ int starpu_task_nready(void)
 		{
 			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
 			{
-				nready += starpu_get_nready_tasks_of_sched_ctx(config->sched_ctxs[s].id);
+				nready += starpu_sched_ctx_get_nready_tasks(config->sched_ctxs[s].id);
 			}
 		}
 	}

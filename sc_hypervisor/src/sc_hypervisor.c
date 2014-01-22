@@ -870,7 +870,7 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 
 		double curr_time = starpu_timing_now();
 		double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /* in seconds */
-		int nready_tasks = starpu_get_nready_tasks_of_sched_ctx(sched_ctx);
+		int nready_tasks = starpu_sched_ctx_get_nready_tasks(sched_ctx);
 		if(norm_idle_time >= 0.9)
 		{
 			config->max_nworkers = lrint(norm_exec_time);
@@ -906,7 +906,7 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs)
 		unsigned max_nready_sched_ctx = sched_ctxs[0];
 		for(i = 0; i < nsched_ctxs; i++)
 		{
-			int nready_tasks = starpu_get_nready_tasks_of_sched_ctx(sched_ctxs[i]);
+			int nready_tasks = starpu_sched_ctx_get_nready_tasks(sched_ctxs[i]);
 			if(max_nready < nready_tasks)
 			{
 				max_nready = nready_tasks;
@@ -954,7 +954,7 @@ unsigned choose_ctx_to_steal(int worker)
 	for(j = 0; j < ns; j++)
 	{
 		unsigned other_ctx = hypervisor.sched_ctxs[j];
-		int nready = starpu_get_nready_tasks_of_sched_ctx(other_ctx);
+		int nready = starpu_sched_ctx_get_nready_tasks(other_ctx);
 		if(!starpu_sched_ctx_contains_worker(worker, other_ctx) && max_ready_tasks < nready)
 		{
 			max_ready_tasks = nready;
