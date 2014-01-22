@@ -188,7 +188,7 @@ and in Joules for the energy consumption models.
 
 A quick view of how many tasks each worker has executed can be obtained by setting
 <c>export STARPU_WORKER_STATS=1</c> This is a convenient way to check that
-execution did happen on accelerators without penalizing performance with
+execution did happen on accelerators, without penalizing performance with
 the profiling overhead.
 
 A quick view of how much data transfers have been issued can be obtained by setting
