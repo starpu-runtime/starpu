@@ -20,6 +20,8 @@ The scheduling context release
 
 Changes:
   * Fix simgrid execution.
+  * Rename starpu_get_nready_tasks_of_sched_ctx to starpu_sched_ctx_get_nready_tasks
+  * Rename starpu_get_nready_flops_of_sched_ctx to starpu_sched_ctx_get_nready_flops
 
 Small features:
   * New STARPU_EXECUTE_ON_WORKER flag to specify the worker on which
