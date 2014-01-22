@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -404,7 +404,7 @@ int starpu_data_get_tag(starpu_data_handle_t handle)
 	return handle->tag;
 }
 
-starpu_data_handle_t starpu_data_get_data_handle_from_tag(int tag)
+starpu_data_handle_t _starpu_data_get_data_handle_from_tag(int tag)
 {
 	struct handle_tag_entry *ret;
 
@@ -428,8 +428,8 @@ int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 	entry = (struct handle_tag_entry *) malloc(sizeof(*entry));
 	STARPU_ASSERT(entry != NULL);
 
-	STARPU_ASSERT_MSG(!(starpu_data_get_data_handle_from_tag(tag)),
-			  "There is already a data handle %p registered with the tag %d\n", starpu_data_get_data_handle_from_tag(tag), tag);
+	STARPU_ASSERT_MSG(!(_starpu_data_get_data_handle_from_tag(tag)),
+			  "There is already a data handle %p registered with the tag %d\n", _starpu_data_get_data_handle_from_tag(tag), tag);
 
 	entry->tag = tag;
 	entry->handle = handle;
