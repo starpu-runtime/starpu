@@ -155,7 +155,6 @@ static struct starpu_perfmodel perf_model = {
 };
 
 struct starpu_codelet cl = {
-    .where = STARPU_CUDA,
     .cuda_funcs = { cuda_func1, cuda_func2, NULL },
     .nbuffers = 1,
     .modes = {STARPU_W},

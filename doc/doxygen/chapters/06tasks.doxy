@@ -124,7 +124,6 @@ void scal_sse_func(void *buffers[], void *cl_arg)
 
 \code{.c}
 struct starpu_codelet cl = {
-    .where = STARPU_CPU,
     .cpu_funcs = { scal_cpu_func, scal_sse_func, NULL },
     .cpu_funcs_name = { "scal_cpu_func", "scal_sse_func", NULL },
     .nbuffers = 1,
@@ -160,7 +159,6 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 }
 
 struct starpu_codelet cl = {
-    .where = STARPU_CPU|STARPU_CUDA,
     .can_execute = can_execute,
     .cpu_funcs = { cpu_func, NULL },
     .cpu_funcs_name = { "cpu_func", NULL },
@@ -206,7 +204,6 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 }
 
 struct starpu_codelet cl = {
-    .where = STARPU_CPU|STARPU_CUDA,
     .can_execute = can_execute,
     .cpu_funcs = { cpu_func, NULL },
     .cpu_funcs_name = { "cpu_func", NULL },
@@ -240,7 +237,6 @@ void func_cpu(void *descr[], void *_args)
 }
 
 struct starpu_codelet mycodelet = {
-        .where = STARPU_CPU,
         .cpu_funcs = { func_cpu, NULL },
         .cpu_funcs_name = { "func_cpu", NULL },
         .nbuffers = 2,
@@ -375,7 +371,6 @@ static void func(void *buffers[], void *args)
 static struct starpu_codelet cl =
 {
     .modes = { STARPU_RW },
-    .where = STARP_CPU,
     .type = STARPU_SPMD,
     .max_parallelism = INT_MAX,
     .cpu_funcs = { func, NULL },
