@@ -127,6 +127,9 @@ static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)
 		return NULL;						\
 	}
 
+/* deque a task of the higher priority available */
+
+/* From the front of the list for the highest priority */
 struct starpu_task * _starpu_prio_deque_pop_task(struct _starpu_prio_deque * pdeque)
 {
 	REMOVE_TASK(pdeque, head, prev, pred_true, STARPU_POISON_PTR);
@@ -138,7 +141,7 @@ struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_
 	REMOVE_TASK(pdeque, head, prev, pred_can_execute, &workerid);
 }
 
-/* deque a task of the higher priority available */
+/* From the back of the list for the highest priority */
 struct starpu_task * _starpu_prio_deque_deque_task(struct _starpu_prio_deque * pdeque)
 {
 	STARPU_ASSERT(pdeque);
