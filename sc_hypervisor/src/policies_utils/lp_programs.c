@@ -280,6 +280,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 			char name[32];
 			snprintf(name, sizeof(name), "worker%dctx%d", w, s);
 			glp_set_col_name(lp, n, name);
+
 			if (integer)
 			{
 				glp_set_col_kind(lp, n, GLP_IV);

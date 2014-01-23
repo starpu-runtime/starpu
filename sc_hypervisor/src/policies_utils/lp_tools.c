@@ -21,14 +21,16 @@
 #include <starpu_config.h>
 
 double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers], 
-					     int total_nw[ntypes_of_workers], struct types_of_workers *tw)
+					     int total_nw[ntypes_of_workers], struct types_of_workers *tw, unsigned *in_sched_ctxs)
 {
-	unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
+	unsigned *sched_ctxs = in_sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : in_sched_ctxs;
 #ifdef STARPU_HAVE_GLPK_H
 	double v[nsched_ctxs][ntypes_of_workers];
 	double flops[nsched_ctxs];
-
-	sc_hypervisor_update_resize_interval(sched_ctxs, nsched_ctxs);
+	
+	unsigned nhierarchy_levels = sc_hypervisor_get_nhierarchy_levels();
+	if(nhierarchy_levels <= 1)
+		sc_hypervisor_update_resize_interval(sched_ctxs, nsched_ctxs);
 
 	int nw = tw->nw;
 	int i = 0;
@@ -42,6 +44,10 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 			v[i][w] = sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw)); 
 
 		double ready_flops = starpu_sched_ctx_get_nready_flops(sc_w->sched_ctx);
+		unsigned nhierarchy_levels = sc_hypervisor_get_nhierarchy_levels();
+		if(nhierarchy_levels > 1)
+			ready_flops = sc_hypervisor_get_nready_flops_of_all_sons_of_sched_ctx(sc_w->sched_ctx);
+
 		int nready_tasks = starpu_sched_ctx_get_nready_tasks(sc_w->sched_ctx);
 		
 		if(sc_w->to_be_sized)
@@ -51,6 +57,9 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		}
 		else
 		{
+			if(nhierarchy_levels > 1)
+				flops[i] = sc_w->remaining_flops/1000000000.0; /* in gflops*/
+			else
 			if(sc_w->remaining_flops < 0.0)
 				flops[i] = ready_flops/1000000000.0; /* in gflops*/
 			else
@@ -216,8 +225,8 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 					res[i][w] = -1.0;
 			}
 			
-			if(optimal_v != 0.0)
-				_set_optimal_v(i, optimal_v);
+//			if(optimal_v != 0.0)
+				_set_optimal_v(sched_ctxs[i], optimal_v);
 		}
 	}
 
@@ -238,7 +247,7 @@ double sc_hypervisor_lp_get_tmax(int nworkers, int *workers)
 	int nsched_ctxs = sc_hypervisor_get_nsched_ctxs();
 
 	double res[nsched_ctxs][nw];
-	return sc_hypervisor_lp_get_nworkers_per_ctx(nsched_ctxs, nw, res, total_nw, tw) * 1000.0;
+	return sc_hypervisor_lp_get_nworkers_per_ctx(nsched_ctxs, nw, res, total_nw, tw, NULL) * 1000.0;
 }
 
 void sc_hypervisor_lp_round_double_to_int(int ns, int nw, double res[ns][nw], int res_rounded[ns][nw])

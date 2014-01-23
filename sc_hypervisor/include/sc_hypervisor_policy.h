@@ -115,7 +115,10 @@ unsigned sc_hypervisor_criteria_fulfilled(unsigned sched_ctx, int worker);
 unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker);
 
 /* check if there is a speed gap btw ctxs */
-unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void);
+unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
+
+/* check if there is a speed gap btw ctxs on one level */
+unsigned sc_hypervisor_check_speed_gap_btw_ctxs_on_level(int level, int *workers_in, int nworkers_in, unsigned father_sched_ctx_id, unsigned **sched_ctxs, int *nsched_ctxs);
 
 /* check what triggers resizing (idle, speed, etc.)*/
 unsigned sc_hypervisor_get_resize_criteria();

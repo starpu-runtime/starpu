@@ -35,7 +35,8 @@ extern "C"
 struct sc_hypervisor_policy_task_pool; 
 struct types_of_workers;
 /* returns tmax, and computes in table res the nr of workers needed by each context st the system ends up in the smallest tmax*/
-double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers], int total_nw[ntypes_of_workers], struct types_of_workers *tw);
+double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_workers, double res[nsched_ctxs][ntypes_of_workers], 
+					     int total_nw[ntypes_of_workers], struct types_of_workers *tw, unsigned *in_sched_ctxs);
 
 /* returns tmax of the system */
 double sc_hypervisor_lp_get_tmax(int nw, int *workers);

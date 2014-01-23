@@ -19,7 +19,6 @@
 #include <starpu.h>
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
-/* #include "tree.h" */
 #include "core/workers.h"
 
 static unsigned tree_has_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)

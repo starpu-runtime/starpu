@@ -476,12 +476,12 @@ unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker)
 }
 
 /* check if there is a big speed gap between the contexts */
-unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void)
+unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_in, int *workers_in, int nworkers_in)
 {
-	unsigned *sched_ctxs = sc_hypervisor_get_sched_ctxs();
-	int ns = sc_hypervisor_get_nsched_ctxs();
-	int *workers = NULL;
-	int nworkers = starpu_worker_get_count();
+	unsigned *sched_ctxs = sched_ctxs_in == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs_in;
+	int ns = ns_in == -1 ? sc_hypervisor_get_nsched_ctxs() : ns_in;
+	int *workers = workers_in;
+	int nworkers = nworkers_in == -1 ? starpu_worker_get_count() : nworkers_in;
 	int i = 0, j = 0;
 	struct sc_hypervisor_wrapper* sc_w;
 	struct sc_hypervisor_wrapper* other_sc_w;
@@ -491,7 +491,7 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void)
 	unsigned has_opt_v = 1;
 	for(i = 0; i < ns; i++)
 	{
-		optimal_v[i] = _get_optimal_v(i);
+		optimal_v[i] = _get_optimal_v(sched_ctxs[i]);
 		if(optimal_v[i] == 0.0)
 		{
 			has_opt_v = 0;
@@ -508,7 +508,7 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void)
 		int total_nw[nw];
 		sc_hypervisor_group_workers_by_type(tw, total_nw);
 
-		double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_ctx, total_nw, tw);
+		double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_ctx, total_nw, tw, sched_ctxs);
 
 		
 		if(vmax != 0.0)
@@ -522,10 +522,9 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void)
 				for(w = 0; w < nw; w++)
 				{
 					v[w] = sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw));
-					
-					optimal_v[i] += nworkers_per_ctx[i][w]*v[w];
+					optimal_v[i] += nworkers_per_ctx[i][w] == -1.0 ? 0.0 : nworkers_per_ctx[i][w]*v[w];
 				}
-				_set_optimal_v(i, optimal_v[i]);
+				_set_optimal_v(sched_ctxs[i], optimal_v[i]);
 			}
 			has_opt_v = 1;
 		}
@@ -549,8 +548,11 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void)
 			sc_w = sc_hypervisor_get_wrapper(sched_ctxs[i]);
 			
 			double ctx_v = sc_hypervisor_get_ctx_speed(sc_w);
+			ctx_v = ctx_v < 0.01 ? 0.0 : ctx_v;
 			if(ctx_v != -1.0 && ((ctx_v < 0.8*optimal_v[i]) || ctx_v > 1.2*optimal_v[i])) 
+			{
 				return 1;
+			}
 		}
 	}
 	else /* if we have not been able to compute a theoretical speed consider the env variable
@@ -589,6 +591,15 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void)
 	return 0;
 }
 
+unsigned sc_hypervisor_check_speed_gap_btw_ctxs_on_level(int level, int *workers_in, int nworkers_in, unsigned father_sched_ctx_id, unsigned **sched_ctxs, int *nsched_ctxs)
+{
+	sc_hypervisor_get_ctxs_on_level(sched_ctxs, nsched_ctxs, level, father_sched_ctx_id);
+	
+	
+	if(*nsched_ctxs  > 0)
+		return sc_hypervisor_check_speed_gap_btw_ctxs(*sched_ctxs, *nsched_ctxs, workers_in, nworkers_in);
+	return 0;	
+}
 
 unsigned sc_hypervisor_criteria_fulfilled(unsigned sched_ctx, int worker)
 {
@@ -598,7 +609,7 @@ unsigned sc_hypervisor_criteria_fulfilled(unsigned sched_ctx, int worker)
 		if(criteria == SC_IDLE)
 			return sc_hypervisor_check_idle(sched_ctx, worker);
 		else
-			return sc_hypervisor_check_speed_gap_btw_ctxs();
+			return sc_hypervisor_check_speed_gap_btw_ctxs(NULL, -1, NULL, -1);
 	}
 	else
 		return 0;

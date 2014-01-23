@@ -136,6 +136,9 @@ void sc_hypervisor_get_ctxs_on_level(unsigned **sched_ctxs, int *nsched_ctxs, un
 
 /* returns the number of levels of ctxs registered to the hyp */
 unsigned sc_hypervisor_get_nhierarchy_levels(void);
+
+/* returns the nready flops of all ctxs below in hierachy of sched_ctx */
+double sc_hypervisor_get_nready_flops_of_all_sons_of_sched_ctx(unsigned sched_ctx);
 #ifdef __cplusplus
 }
 #endif

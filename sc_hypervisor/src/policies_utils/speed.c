@@ -198,6 +198,6 @@ double sc_hypervisor_get_speed(struct sc_hypervisor_wrapper *sc_w, enum starpu_w
 		/* a default value */
 		speed = arch == STARPU_CPU_WORKER ? SC_HYPERVISOR_DEFAULT_CPU_SPEED : SC_HYPERVISOR_DEFAULT_CUDA_SPEED;
 	}
-       
+
 	return speed;
 }

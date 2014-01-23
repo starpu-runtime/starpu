@@ -182,7 +182,7 @@ static void ispeed_lp_handle_poped_task(__attribute__((unused))unsigned sched_ct
                 unsigned criteria = sc_hypervisor_get_resize_criteria();
                 if(criteria != SC_NOTHING && criteria == SC_SPEED)
                 {
-                        if(sc_hypervisor_check_speed_gap_btw_ctxs())
+                        if(sc_hypervisor_check_speed_gap_btw_ctxs(NULL, -1, NULL, -1))
                         {
                                 _try_resizing(NULL, -1, NULL, -1);
                         }
