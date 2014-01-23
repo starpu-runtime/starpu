@@ -1843,6 +1843,7 @@ IS_SUPPORTED_CFLAG(-W)
 IS_SUPPORTED_CFLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Wextra)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
+IS_SUPPORTED_CFLAG(-Werror=implicit-function-declaration)
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
