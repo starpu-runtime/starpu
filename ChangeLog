@@ -81,6 +81,10 @@ Changes:
   * StarPU-MPI: Fix for being able to receive data with the same tag
     from several nodes (see mpi/tests/gather.c)
 
+Small changes:
+  * Rename function starpu_trace_user_event() as
+    starpu_fxt_trace_user_event()
+
 StarPU 1.1.0 (svn revision 11960)
 ==============================================
 The scheduling context release

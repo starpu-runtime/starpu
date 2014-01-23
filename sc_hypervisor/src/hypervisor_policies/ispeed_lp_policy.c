@@ -110,7 +110,7 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 
 static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
-	starpu_trace_user_event(2);
+	starpu_fxt_trace_user_event(2);
         int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 	int nw = nworkers == -1 ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
         unsigned *curr_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;

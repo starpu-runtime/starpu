@@ -526,7 +526,7 @@ void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sch
 		for(j = 0; j < nworkers_to_move; j++)
 			printf(" %d", workers_to_move[j]);
 		printf("\n");
-		starpu_trace_user_event(1);
+		starpu_fxt_trace_user_event(1);
 		hypervisor.allow_remove[receiver_sched_ctx] = 0;
 		starpu_sched_ctx_add_workers(workers_to_move, nworkers_to_move, receiver_sched_ctx);
 

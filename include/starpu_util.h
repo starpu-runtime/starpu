@@ -249,9 +249,6 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 	}
 }
 
-/* Add an event in the execution trace if FxT is enabled */
-void starpu_trace_user_event(unsigned long code);
-
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
 void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char *name);

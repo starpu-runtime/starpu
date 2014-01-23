@@ -26,7 +26,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs, int *workers, i
 {
 	/* for vite */
 	printf("resize_no = %d\n", resize_no);
-	starpu_trace_user_event(resize_no++);
+	starpu_fxt_trace_user_event(resize_no++);
 	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 
 //	if(ns <= 1) return;
