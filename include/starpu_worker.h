@@ -105,8 +105,6 @@ int starpu_worker_get_devid(int id);
 
 int starpu_worker_get_mp_nodeid(int id);
 
-int starpu_worker_get_nsched_ctxs(int workerid);
-
 struct starpu_tree* starpu_workers_get_tree(void);
 
 #ifdef __cplusplus

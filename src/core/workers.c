@@ -1709,7 +1709,7 @@ struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 	return &config.sched_ctxs[STARPU_GLOBAL_SCHED_CTX];
 }
 
-int starpu_worker_get_nsched_ctxs(int workerid)
+int _starpu_worker_get_nsched_ctxs(int workerid)
 {
 	return config.workers[workerid].nsched_ctxs;
 }
