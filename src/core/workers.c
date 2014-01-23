@@ -1858,7 +1858,7 @@ void _starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag)
 	w->sched_mutex_locked = flag;
 }
 
-unsigned starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex)
+unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex)
 {
 	struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
 	return &w->sched_mutex == mutex;

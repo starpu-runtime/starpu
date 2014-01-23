@@ -107,8 +107,6 @@ int starpu_worker_get_mp_nodeid(int id);
 
 int starpu_worker_get_nsched_ctxs(int workerid);
 
-unsigned starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex);
-
 struct starpu_tree* starpu_workers_get_tree(void);
 
 #ifdef __cplusplus

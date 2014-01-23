@@ -337,8 +337,8 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 
 	int p_ret = pthread_mutex_lock(mutex);
 	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);	 
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
 
 	_STARPU_TRACE_MUTEX_LOCKED();
 
@@ -350,9 +350,9 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 	_STARPU_TRACE_UNLOCKING_MUTEX();
 
 	int p_ret = pthread_mutex_unlock(mutex);
-	int workerid = starpu_worker_get_id(); 
-	if(workerid != -1 && starpu_worker_mutex_is_sched_mutex(workerid, mutex)) 
-		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);	
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);
 
 	_STARPU_TRACE_MUTEX_UNLOCKED();
 
@@ -368,8 +368,8 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 
 	if (!ret)
 	{
-		int workerid = starpu_worker_get_id();	
-		if(workerid != -1 && starpu_worker_mutex_is_sched_mutex(workerid, mutex)) 
+		int workerid = starpu_worker_get_id();
+		if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
 			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
 
 		_STARPU_TRACE_MUTEX_LOCKED();

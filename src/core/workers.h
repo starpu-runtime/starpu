@@ -420,4 +420,6 @@ void _starpu_relock_mutex_if_prev_locked();
 
 void _starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag);
 
+unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex);
+
 #endif // __WORKERS_H__
