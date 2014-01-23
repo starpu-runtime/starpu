@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013 Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014 Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -713,7 +713,7 @@ _starpu_deinit_mp_config (struct _starpu_machine_config *config)
 #endif
 
 static int
-_starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_config)
+_starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
 {
 	int i;
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
@@ -1109,7 +1109,7 @@ _starpu_bind_thread_on_cpus (
 
 
 static void
-_starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_config)
+_starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
 {
 	/* launch one thread per CPU */
 	unsigned ram_memory_node;
@@ -1314,7 +1314,7 @@ int
 _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 {
 	int ret;
-	int i;
+	unsigned i;
 
 	ret = _starpu_init_machine_config(config, no_mp_config);
 	if (ret)

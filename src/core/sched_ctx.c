@@ -67,8 +67,7 @@ static void _starpu_update_workers_with_ctx(int *workerids, int nworkers, int sc
 {
 	int i;
 	struct _starpu_worker *worker = NULL;
- 	struct _starpu_worker *curr_worker = _starpu_get_local_worker_key();
-	
+
 	for(i = 0; i < nworkers; i++)
 	{
 		worker = _starpu_get_worker_struct(workerids[i]);
@@ -85,8 +84,7 @@ static void _starpu_update_workers_without_ctx(int *workerids, int nworkers, int
 {
 	int i;
 	struct _starpu_worker *worker = NULL;
- 	struct _starpu_worker *curr_worker = _starpu_get_local_worker_key();
-	
+
 	for(i = 0; i < nworkers; i++)
 	{
 		worker = _starpu_get_worker_struct(workerids[i]);
