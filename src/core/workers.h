@@ -418,4 +418,6 @@ void _starpu_unlock_mutex_if_prev_locked();
 /* if we prev released the lock relock it */
 void _starpu_relock_mutex_if_prev_locked();
 
+void _starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag);
+
 #endif // __WORKERS_H__

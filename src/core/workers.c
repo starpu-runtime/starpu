@@ -1834,7 +1834,7 @@ void _starpu_unlock_mutex_if_prev_locked()
 		if(w->sched_mutex_locked)
 		{
 			STARPU_PTHREAD_MUTEX_UNLOCK(&w->sched_mutex);
-			starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
+			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
 		}
 	}
 	return;
@@ -1852,7 +1852,7 @@ void _starpu_relock_mutex_if_prev_locked()
 	return;
 }
 
-void starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag)
+void _starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag)
 {
 	struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
 	w->sched_mutex_locked = flag;

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -106,8 +106,6 @@ int starpu_worker_get_devid(int id);
 int starpu_worker_get_mp_nodeid(int id);
 
 int starpu_worker_get_nsched_ctxs(int workerid);
-
-void starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag);
 
 unsigned starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex);
 
