@@ -140,6 +140,12 @@ terminate.  If that thread has already terminated, then the function
 returns immediately. The thread specified by \p thread must be
 joinable.
 
+\fn int starpu_pthread_exit(void *retval)
+\ingroup API_Threads
+This function terminates the calling thread and returns a value via
+\p retval that (if the thread is joinable) is available to another thread
+in the same process that calls starpu_pthread_join().
+
 \fn int starpu_pthread_attr_init(starpu_pthread_attr_t *attr)
 \ingroup API_Threads
 This function initializes the thread attributes object pointed to by
@@ -310,6 +316,10 @@ This function is the same as starpu_pthread_mutex_destroy().
 \fn starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
 \ingroup API_Threads
 This function is the same as starpu_pthread_mutex_lock().
+
+\fn int starpu_pthread_rwlock_tryrdlock(starpu_pthread_rwlock_t *rwlock)
+\ingroup API_Threads
+todo
 
 \fn starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
 \ingroup API_Threads
