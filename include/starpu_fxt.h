@@ -66,7 +66,6 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
 void starpu_fxt_start_profiling(void);
 void starpu_fxt_stop_profiling(void);
 void starpu_fxt_write_data_trace(char *filename_in);
-/* Add an event in the execution trace if FxT is enabled */
 void starpu_fxt_trace_user_event(unsigned long code);
 
 #ifdef __cplusplus
