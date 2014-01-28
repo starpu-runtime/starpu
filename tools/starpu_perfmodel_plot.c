@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2013  Université de Bordeaux 1
+ * Copyright (C) 2011-2014  Université de Bordeaux 1
  * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -635,7 +635,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 int main(int argc, char **argv)
 {
 	int ret;
-	struct starpu_perfmodel model;
+	struct starpu_perfmodel model = {};
 
 #ifdef __MINGW32__
 	WSADATA wsadata;
