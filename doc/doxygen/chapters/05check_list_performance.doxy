@@ -83,6 +83,8 @@ Talk about
 \ref STARPU_LIMIT_OPENCL_devid_MEM, \ref STARPU_LIMIT_OPENCL_MEM
 and \ref STARPU_LIMIT_CPU_MEM
 
+starpu_memory_get_total()
+
 starpu_memory_get_available()
 
 \section PerformanceModelCalibration Performance Model Calibration
