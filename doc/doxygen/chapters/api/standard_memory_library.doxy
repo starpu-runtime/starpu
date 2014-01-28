@@ -65,6 +65,12 @@ This function frees memory by specifying its size. The given
 flags should be consistent with the ones given to starpu_malloc_flags()
 when allocating the memory.
 
+\fn ssize_t starpu_memory_get_total(unsigned node)
+\ingroup API_Standard_Memory_Library
+If a memory limit is defined on the given node (see Section \ref
+HowToLimitMemoryPerNode), return the amount of total memory
+on the node. Otherwise return -1.
+
 \fn ssize_t starpu_memory_get_available(unsigned node)
 \ingroup API_Standard_Memory_Library
 If a memory limit is defined on the given node (see Section \ref

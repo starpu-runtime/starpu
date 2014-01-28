@@ -30,6 +30,7 @@ Small features:
     pinning.
   * New STARPU_DISABLE_KERNELS environment variable to disable actual kernel
     execution.
+  * New starpu_memory_get_total function to get the size of a memory node.
 
 
 StarPU 1.1.0 (svn revision 11960)
