@@ -212,6 +212,47 @@ Please note that buses are benchmarked when StarPU is launched for the
 first time. This may take a few minutes, or less if <c>hwloc</c> is
 installed. This step is done only once per user and per machine.
 
+\subsection RunningABasicStarPUApplicationOnMicrosoft Running a Basic StarPU Application on Microsoft Visual C
+
+Batch files are provided to run StarPU applications under Microsoft
+Visual C. They are installed in <c>$STARPU_PATH/bin/msvc</c>.
+
+To execute a StarPU application, you first need to set the environment
+variable <c>STARPU_PATH</c>.
+
+\verbatim
+c:\....> cd c:\cygwin\home\ci\starpu\
+c:\....> set STARPU_PATH=c:\cygwin\home\ci\starpu\
+c:\....> cd bin\msvc
+c:\....> starpu_open.bat starpu_simple.c
+\endverbatim
+
+The batch script will run Microsoft Visual C with a basic project file
+to run the given application.
+
+The batch script <c>starpu_clean.bat</c> can be used to delete all
+compilation generated files.
+
+The batch script <c>starpu_exec.bat</c> can be used to compile and execute a
+StarPU application from the command prompt.
+
+\verbatim
+c:\....> cd c:\cygwin\home\ci\starpu\
+c:\....> set STARPU_PATH=c:\cygwin\home\ci\starpu\
+c:\....> cd bin\msvc
+c:\....> starpu_exec.bat ..\..\..\..\examples\basic_examples\hello_world.c
+\endverbatim
+
+\verbatim
+MSVC StarPU Execution
+...
+/out:hello_world.exe
+...
+Hello world (params = {1, 2.00000})
+Callback function got argument 0000042
+c:\....>
+\endverbatim
+
 \subsection KernelThreadsStartedByStarPU Kernel Threads Started by StarPU
 
 StarPU automatically binds one thread per CPU core. It does not use
