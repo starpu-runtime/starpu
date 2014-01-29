@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
@@ -1053,7 +1053,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	/* Depending on whether we are a MP sink or not, we must build the
 	 * topology with MP nodes or not. */
-	ret = _starpu_build_topology(&config, is_a_sink ? 1 : 0);
+	ret = _starpu_build_topology(&config, is_a_sink);
 	if (ret)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
