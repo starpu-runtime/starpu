@@ -1863,3 +1863,17 @@ unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_
 	struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
 	return &w->sched_mutex == mutex;
 }
+
+unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
+{
+	unsigned s = 0;
+	unsigned nsched_ctxs = _starpu_worker_get_nsched_ctxs(workerid);
+	*sched_ctxs = (unsigned*)malloc(nsched_ctxs*sizeof(unsigned));
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	struct _starpu_sched_ctx_list *l = NULL;
+	for (l = worker->sched_ctx_list; l; l = l->next)
+	{
+		(*sched_ctxs)[s++] = l->sched_ctx;
+	}
+	return nsched_ctxs;
+}

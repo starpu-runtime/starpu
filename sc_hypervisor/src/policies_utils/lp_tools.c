@@ -77,6 +77,22 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 
 	}
 
+	if(nsched_ctxs == 1)
+	{
+		int w;
+		for(w = 0; w < nw; w++)
+			res[0][w] = total_nw[w];
+		double optimal_v = 0.0;
+#ifdef STARPU_USE_CUDA
+		optimal_v = res[0][0] * v[0][0] + res[0][1]* v[0][1];
+#else
+		optimal_v = res[0][0] * v[0][0];
+#endif //STARPU_USE_CUDA
+		_set_optimal_v(sched_ctxs[0], optimal_v);
+		return 1.0;
+	}
+
+
 	unsigned tmp_sched_ctxs[STARPU_NMAX_SCHED_CTXS];
 	double tmp_flops[STARPU_NMAX_SCHED_CTXS];
 	double tmp_v[STARPU_NMAX_SCHED_CTXS][ntypes_of_workers];

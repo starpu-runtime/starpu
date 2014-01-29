@@ -605,6 +605,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 	   !(nworkers_ctx == nworkers && nworkers_ctx == inheritor_sched_ctx->workers->nworkers))
 	{
 		starpu_sched_ctx_add_workers(workerids, nworkers_ctx, inheritor_sched_ctx_id);
+		starpu_sched_ctx_set_priority(workerids, nworkers_ctx, inheritor_sched_ctx_id, 1);
 	}
 
 	if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id))
@@ -698,6 +699,18 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 	return;
 
 }
+
+static void _set_priority_hierarchically(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx, unsigned priority)
+{
+	if(starpu_sched_ctx_get_hierarchy_level(sched_ctx) > 0)
+	{
+		unsigned father = starpu_sched_ctx_get_inheritor(sched_ctx);
+		starpu_sched_ctx_set_priority(workers_to_add, nworkers_to_add, father, priority);
+		_set_priority_hierarchically(workers_to_add, nworkers_to_add, father, priority);
+	}
+	return;
+}
+
 void starpu_sched_ctx_add_workers(int *workers_to_add, int nworkers_to_add, unsigned sched_ctx_id)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
@@ -720,10 +733,12 @@ void starpu_sched_ctx_add_workers(int *workers_to_add, int nworkers_to_add, unsi
 		{
 			_starpu_update_workers_with_ctx(added_workers, n_added_workers, sched_ctx->id);
 		}
+		_set_priority_hierarchically(workers_to_add, nworkers_to_add, sched_ctx_id, 0);
 
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&changing_ctx_mutex[sched_ctx_id]);
+
 
 	_starpu_relock_mutex_if_prev_locked();
 

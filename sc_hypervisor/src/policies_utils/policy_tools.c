@@ -594,8 +594,7 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_
 unsigned sc_hypervisor_check_speed_gap_btw_ctxs_on_level(int level, int *workers_in, int nworkers_in, unsigned father_sched_ctx_id, unsigned **sched_ctxs, int *nsched_ctxs)
 {
 	sc_hypervisor_get_ctxs_on_level(sched_ctxs, nsched_ctxs, level, father_sched_ctx_id);
-	
-	
+
 	if(*nsched_ctxs  > 0)
 		return sc_hypervisor_check_speed_gap_btw_ctxs(*sched_ctxs, *nsched_ctxs, workers_in, nworkers_in);
 	return 0;	
