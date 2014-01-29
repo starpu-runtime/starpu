@@ -148,10 +148,10 @@ StarPU may require to use specific flags or libraries (for instance
 If StarPU was not installed at some standard location, the path of StarPU's
 library must be specified in the environment variable <c>PKG_CONFIG_PATH</c> so
 that <c>pkg-config</c> can find it. For example if StarPU was installed in
-<c>$prefix_dir</c>:
+<c>$STARPU_PATH</c>:
 
 \verbatim
-$ PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$prefix_dir/lib/pkgconfig
+$ PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$STARPU_PATH/lib/pkgconfig
 \endverbatim
 
 The flags required to compile or link against StarPU are then
@@ -180,7 +180,7 @@ It is also necessary to set the environment variable <c>LD_LIBRARY_PATH</c> to
 locate dynamic libraries at runtime.
 
 \verbatim
-$ LD_LIBRARY_PATH=$prefix_dir/lib:$LD_LIBRARY_PATH
+$ LD_LIBRARY_PATH=$STARPU_PATH/lib:$LD_LIBRARY_PATH
 \endverbatim
 
 When using a Makefile, the following lines can be added to set the
@@ -195,7 +195,7 @@ LDFLAGS         +=      $$(pkg-config --libs starpu-1.2)
 
 Basic examples using StarPU are built in the directory
 <c>examples/basic_examples/</c> (and installed in
-<c>$prefix_dir/lib/starpu/examples/</c>). You can for example run the example
+<c>$STARPU_PATH/lib/starpu/examples/</c>). You can for example run the example
 <c>vector_scal</c>.
 
 \verbatim
@@ -259,7 +259,7 @@ $ STARPU_NCUDA=2 ./application
 \section BenchmarkingStarPU Benchmarking StarPU
 
 Some interesting benchmarks are installed among examples in
-<c>$prefix_dir/lib/starpu/examples/</c>. Make sure to try various
+<c>$STARPU_PATH/lib/starpu/examples/</c>. Make sure to try various
 schedulers, for instance <c>STARPU_SCHED=dmda</c>.
 
 \subsection TaskSizeOverhead Task Size Overhead
