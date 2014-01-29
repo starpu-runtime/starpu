@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
@@ -513,12 +513,13 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 
 /* TODO: factorise CPU computations, expensive with a lot of cores */
 static void compute_all_performance_predictions(struct starpu_task *task,
-						double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
-						double exp_end[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
+						unsigned nworkers,
+						double local_task_length[nworkers][STARPU_MAXIMPLEMENTATIONS],
+						double exp_end[nworkers][STARPU_MAXIMPLEMENTATIONS],
 						double *max_exp_endp,
 						double *best_exp_endp,
-						double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
-						double local_power[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS],
+						double local_data_penalty[nworkers][STARPU_MAXIMPLEMENTATIONS],
+						double local_power[nworkers][STARPU_MAXIMPLEMENTATIONS],
 						int *forced_worker, int *forced_impl, unsigned sched_ctx_id)
 {
 	int calibrating = 0;
@@ -545,6 +546,11 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
+
+		if (worker >= nworkers)
+			/* This is a just-added worker, discard it */
+			continue;
+
 		struct _starpu_fifo_taskq *fifo = dt->queue_array[worker];
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker);
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
@@ -675,12 +681,12 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	unsigned nworkers_ctx = workers->nworkers;
-	double local_task_length[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
-	double local_data_penalty[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
-	double local_power[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
+	double local_task_length[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_data_penalty[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
+	double local_power[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
 	/* Expected end of this task on the workers */
-	double exp_end[STARPU_NMAXWORKERS][STARPU_MAXIMPLEMENTATIONS];
+	double exp_end[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
 	/* This is the minimum among the exp_end[] matrix */
 	double best_exp_end;
@@ -694,8 +700,8 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 
-
 	compute_all_performance_predictions(task,
+					    nworkers_ctx,
 					    local_task_length,
 					    exp_end,
 					    &max_exp_end,
@@ -713,6 +719,10 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);
+			if (worker >= nworkers_ctx)
+				/* This is a just-added worker, discard it */
+				continue;
+
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
 				if (!starpu_worker_can_execute_task(worker, task, nimpl))
