@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013, 2014 Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -849,7 +849,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		}
 		config->workers[worker_idx].arch = STARPU_OPENCL_WORKER;
 		config->workers[worker_idx].perf_arch.type = STARPU_OPENCL_WORKER;
-		config->workers[worker_idx].perf_arch.devid = openclgpu;
+		config->workers[worker_idx].perf_arch.devid = devid;
 		config->workers[worker_idx].perf_arch.ncore = 0;
 		config->workers[worker_idx].mp_nodeid = -1;
 		config->workers[worker_idx].devid = devid;
