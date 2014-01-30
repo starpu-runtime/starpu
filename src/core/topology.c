@@ -1295,12 +1295,12 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					mic_init[mp_nodeid] = 1;
 #ifndef STARPU_SIMGRID
 					/* TODO */
-				//if (may_bind_automatically)
-				//{
-				//	/* StarPU is allowed to bind threads automatically */
-					//	preferred_binding = _starpu_get_mic_affinity_vector(mp_nodeid);
-				//	npreferred = config->topology.nhwcpus;
-				//}
+					//if (may_bind_automatically)
+					//{
+					//	/* StarPU is allowed to bind threads automatically */
+						//	preferred_binding = _starpu_get_mic_affinity_vector(mp_nodeid);
+					//	npreferred = config->topology.nhwcpus;
+					//}
 					mic_bindid[mp_nodeid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 #endif /* SIMGRID */
 					memory_node = mic_memory_nodes[mp_nodeid] = _starpu_memory_node_register(STARPU_MIC_RAM, mp_nodeid);
