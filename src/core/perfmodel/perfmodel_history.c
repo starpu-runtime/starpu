@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -428,7 +428,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, st
 	/* Dump the history into the model file in case it is necessary */
 	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 	{
-		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean (us)\tdev (us)\t\tsum\t\tsum2\t\tn\n");
+		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean (us)\tdev (us)\tsum\t\tsum2\t\tn\n");
 		ptr = per_arch_model->list;
 		while (ptr)
 		{
