@@ -378,30 +378,9 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 	return 0;
 }
 
-static struct _starpu_worker*
-_starpu_get_worker_from_driver(struct starpu_driver *d)
-{
-	unsigned nworkers = starpu_worker_get_count();
-	unsigned  workerid;
-	for (workerid = 0; workerid < nworkers; workerid++)
-	{
-		if (starpu_worker_get_type(workerid) == d->type)
-		{
-			struct _starpu_worker *worker;
-			worker = _starpu_get_worker_struct(workerid);
-			if (worker->devid == d->id.cuda_id)
-				return worker;
-		}
-	}
-
-	return NULL;
-}
-
 /* XXX Should this be merged with _starpu_init_cuda ? */
-int _starpu_cuda_driver_init(struct starpu_driver *d)
+int _starpu_cuda_driver_init(struct _starpu_worker *args)
 {
-	struct _starpu_worker* args = _starpu_get_worker_from_driver(d);
-	STARPU_ASSERT(args);
 	unsigned devid = args->devid;
 
 	_starpu_worker_start(args, _STARPU_FUT_CUDA_KEY);
@@ -453,11 +432,8 @@ int _starpu_cuda_driver_init(struct starpu_driver *d)
 	return 0;
 }
 
-int _starpu_cuda_driver_run_once(struct starpu_driver *d)
+int _starpu_cuda_driver_run_once(struct _starpu_worker *args)
 {
-	struct _starpu_worker* args = _starpu_get_worker_from_driver(d);
-	STARPU_ASSERT(args);
-
 	unsigned memnode = args->memory_node;
 	int workerid = args->workerid;
 
@@ -509,12 +485,9 @@ int _starpu_cuda_driver_run_once(struct starpu_driver *d)
 	return 0;
 }
 
-int _starpu_cuda_driver_deinit(struct starpu_driver *d)
+int _starpu_cuda_driver_deinit(struct _starpu_worker *args)
 {
-	struct _starpu_worker* args = _starpu_get_worker_from_driver(d);
-	STARPU_ASSERT(args);
 	unsigned memnode = args->memory_node;
-
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
 	_starpu_handle_all_pending_node_data_requests(memnode);
@@ -538,16 +511,11 @@ int _starpu_cuda_driver_deinit(struct starpu_driver *d)
 void *_starpu_cuda_worker(void *arg)
 {
 	struct _starpu_worker* args = arg;
-	struct starpu_driver d =
-		{
-			.type       = STARPU_CUDA_WORKER,
-			.id.cuda_id = args->devid
-		};
 
-	_starpu_cuda_driver_init(&d);
+	_starpu_cuda_driver_init(args);
 	while (_starpu_machine_is_running())
-		_starpu_cuda_driver_run_once(&d);
-	_starpu_cuda_driver_deinit(&d);
+		_starpu_cuda_driver_run_once(args);
+	_starpu_cuda_driver_deinit(args);
 
 	return NULL;
 }
@@ -665,25 +633,13 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 }
 #endif /* STARPU_USE_CUDA */
 
-int _starpu_run_cuda(struct starpu_driver *d)
+int _starpu_run_cuda(struct _starpu_worker *workerarg)
 {
-	STARPU_ASSERT(d && d->type == STARPU_CUDA_WORKER);
-
-	int workerid = starpu_worker_get_by_devid(STARPU_CUDA_WORKER, d->id.cuda_id);
-
-	_STARPU_DEBUG("Running cuda %u from the application\n", d->id.cuda_id);
-
-	struct _starpu_worker *workerarg = _starpu_get_worker_struct(workerid);
-
 	workerarg->set = NULL;
 	workerarg->worker_is_initialized = 0;
 
 	/* Let's go ! */
 	_starpu_cuda_worker(workerarg);
-
-	/* XXX: Should we wait for the driver to be ready, as it is done when
-	 * launching it the usual way ? Cf. the end of _starpu_launch_drivers()
-	 */
 
 	return 0;
 }
