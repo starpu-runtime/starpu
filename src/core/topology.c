@@ -1116,9 +1116,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	/* launch one thread per CPU */
 	unsigned ram_memory_node;
 
-	/* a single cpu is dedicated for the accelerators */
-	int accelerator_bindid = -1;
-
 	/* note that even if the CPU cpu are not used, we always have a RAM
 	 * node */
 	/* TODO : support NUMA  ;) */
@@ -1136,27 +1133,37 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	 * combinations in a matrix which we initialize here. */
 	_starpu_initialize_busid_matrix();
 
+	/* Each device is initialized,
+	 * giving it a memory node and a core bind id.
+	 */
+	/* TODO: STARPU_MAXNUMANODES */
+	unsigned numa_init[1] = { 1 };
+	unsigned numa_memory_nodes[1] = { ram_memory_node };
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
+	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
+	unsigned cuda_bindid[STARPU_MAXCUDADEVS];
+#endif
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+	unsigned opencl_init[STARPU_MAXOPENCLDEVS] = { };
+	unsigned opencl_memory_nodes[STARPU_MAXOPENCLDEVS];
+	unsigned opencl_bindid[STARPU_MAXOPENCLDEVS];
+#endif
 #ifdef STARPU_USE_MIC
-	/* Each MIC device has its own memory node. */
+	unsigned mic_init[STARPU_MAXMICDEVS] = { };
 	unsigned mic_memory_nodes[STARPU_MAXMICDEVS];
-
-	// Register the memory nodes for the MIC devices.
-	if (! no_mp_config) {
-	    unsigned i = 0;
-	    for (i = 0; i < config->topology.nmicdevices; i++) {
-		mic_memory_nodes[i] = _starpu_memory_node_register (STARPU_MIC_RAM, i);
-		_starpu_register_bus(STARPU_MAIN_RAM, mic_memory_nodes[i]);
-		_starpu_register_bus(mic_memory_nodes[i], STARPU_MAIN_RAM);
-	    }
-	}
+	unsigned mic_bindid[STARPU_MAXMICDEVS];
 #endif
 
 	unsigned worker;
 	for (worker = 0; worker < config->topology.nworkers; worker++)
 	{
 		unsigned memory_node = -1;
-		unsigned is_a_set_of_accelerators = 0;
 		struct _starpu_worker *workerarg = &config->workers[worker];
+		unsigned devid = workerarg->devid;
+#ifdef STARPU_USE_MIC
+		unsigned mp_nodeid = workerarg->mp_nodeid;
+#endif
 
 		/* Perhaps the worker has some "favourite" bindings  */
 		int *preferred_binding = NULL;
@@ -1166,33 +1173,62 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		switch (workerarg->arch)
 		{
 			case STARPU_CPU_WORKER:
-			/* "dedicate" a cpu cpu to that worker */
-				is_a_set_of_accelerators = 0;
-				memory_node = ram_memory_node;
-				_starpu_memory_node_add_nworkers(ram_memory_node);
+			{
+				/* TODO: NUMA */
+				int numaid = 0;
+				/* "dedicate" a cpu core to that worker */
+				if (numa_init[numaid])
+				{
+					memory_node = numa_memory_nodes[numaid];
+				}
+				else
+				{
+					numa_init[numaid] = 1;
+					memory_node = numa_memory_nodes[numaid] = _starpu_memory_node_register(STARPU_CPU_RAM, numaid);
+#ifdef STARPU_SIMGRID
+					snprintf(name, sizeof(name), "RAM%d", numaid);
+					host = MSG_get_host_by_name(name);
+					STARPU_ASSERT(host);
+					_starpu_simgrid_memory_node_set_host(memory_node, host);
+#endif
+				}
+				workerarg->bindid = _starpu_get_next_bindid(config, NULL, 0);
+				_starpu_memory_node_add_nworkers(memory_node);
 				break;
+			}
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
 #ifndef STARPU_SIMGRID
 				if (may_bind_automatically)
 				{
 					/* StarPU is allowed to bind threads automatically */
-					preferred_binding = _starpu_get_cuda_affinity_vector(workerarg->devid);
+					preferred_binding = _starpu_get_cuda_affinity_vector(devid);
 					npreferred = config->topology.nhwcpus;
 				}
-#endif
-				is_a_set_of_accelerators = 0;
-				memory_node = _starpu_memory_node_register(STARPU_CUDA_RAM, workerarg->devid);
+#endif /* SIMGRID */
+				if (cuda_init[devid])
+				{
+					memory_node = cuda_memory_nodes[devid];
+#ifndef STARPU_SIMGRID
+					workerarg->bindid = cuda_bindid[devid];
+#endif /* SIMGRID */
+				}
+				else
+				{
+					cuda_init[devid] = 1;
+#ifndef STARPU_SIMGRID
+					workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+#endif /* SIMGRID */
+					memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
+
+					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
+					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef STARPU_SIMGRID
-				snprintf(name, sizeof(name), "CUDA%d", workerarg->devid);
+					snprintf(name, sizeof(name), "CUDA%d", devid);
 				host = MSG_get_host_by_name(name);
 				STARPU_ASSERT(host);
 				_starpu_simgrid_memory_node_set_host(memory_node, host);
-#endif
-				_starpu_memory_node_add_nworkers(memory_node);
-
-				_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
-				_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
+#endif /* SIMGRID */
 #ifdef HAVE_CUDA_MEMCPY_PEER
 				unsigned worker2;
 				for (worker2 = 0; worker2 < worker; worker2++)
@@ -1205,7 +1241,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 						_starpu_register_bus(memory_node, memory_node2);
 					}
 				}
-#endif
+#endif /* MEMCPY_PEER */
+				}
+				_starpu_memory_node_add_nworkers(memory_node);
 				break;
 #endif
 
@@ -1215,39 +1253,63 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				if (may_bind_automatically)
 				{
 					/* StarPU is allowed to bind threads automatically */
-					preferred_binding = _starpu_get_opencl_affinity_vector(workerarg->devid);
+					preferred_binding = _starpu_get_opencl_affinity_vector(devid);
 					npreferred = config->topology.nhwcpus;
 				}
-#endif
-				is_a_set_of_accelerators = 0;
-				memory_node = _starpu_memory_node_register(STARPU_OPENCL_RAM, workerarg->devid);
+#endif /* SIMGRID */
+				if (opencl_init[devid])
+				{
+					memory_node = opencl_memory_nodes[devid];
+#ifndef STARPU_SIMGRID
+					workerarg->bindid = opencl_bindid[devid];
+#endif /* SIMGRID */
+				}
+				else
+				{
+					opencl_init[devid] = 1;
+#ifndef STARPU_SIMGRID
+					workerarg->bindid = opencl_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+#endif /* SIMGRID */
+					memory_node = opencl_memory_nodes[devid] = _starpu_memory_node_register(STARPU_OPENCL_RAM, devid);
+					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
+					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef STARPU_SIMGRID
-				snprintf(name, sizeof(name), "OpenCL%d", workerarg->devid);
+					snprintf(name, sizeof(name), "OpenCL%d", devid);
 				host = MSG_get_host_by_name(name);
 				STARPU_ASSERT(host);
 				_starpu_simgrid_memory_node_set_host(memory_node, host);
-#endif
+#endif /* SIMGRID */
+				}
 				_starpu_memory_node_add_nworkers(memory_node);
-				_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
-				_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 				break;
 #endif
 
 #ifdef STARPU_USE_MIC
 		        case STARPU_MIC_WORKER:
+				if (mic_init[mp_nodeid])
+				{
+					memory_node = mic_memory_nodes[mp_nodeid];
+				}
+				else
+				{
+					mic_init[mp_nodeid] = 1;
+#ifndef STARPU_SIMGRID
+					/* TODO */
 				//if (may_bind_automatically)
 				//{
 				//	/* StarPU is allowed to bind threads automatically */
-				//	preferred_binding = _starpu_get_mic_affinity_vector(workerarg->devid);
+					//	preferred_binding = _starpu_get_mic_affinity_vector(mp_nodeid);
 				//	npreferred = config->topology.nhwcpus;
 				//}
-				is_a_set_of_accelerators = 1;
-				memory_node = mic_memory_nodes[workerarg->mp_nodeid];
-				_starpu_memory_node_add_nworkers(memory_node);
-				/* memory_node = _starpu_memory_node_register(STARPU_MIC_RAM, workerarg->devid);*/
+					mic_bindid[mp_nodeid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+#endif /* SIMGRID */
+					memory_node = mic_memory_nodes[mp_nodeid] = _starpu_memory_node_register(STARPU_MIC_RAM, mp_nodeid);
+					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
+					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 
-				/* _starpu_register_bus(0, memory_node);
-				 * _starpu_register_bus(memory_node, 0); */
+				}
+				workerarg->bindid = mic_bindid[mp_nodeid];
+				_starpu_memory_node_add_nworkers(memory_node);
 				break;
 #endif /* STARPU_USE_MIC */
 
@@ -1258,7 +1320,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				struct _starpu_memory_node_descr *descr = _starpu_memory_node_get_description();
 				descr->nodes[ram_memory_node] = STARPU_SCC_SHM;
 
-				is_a_set_of_accelerators = 0;
 				memory_node = ram_memory_node;
 				_starpu_memory_node_add_nworkers(memory_node);
 			}
@@ -1269,41 +1330,40 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 				STARPU_ABORT();
 		}
 
-		if (is_a_set_of_accelerators)
-		{
-/* TODO: il faudrait changer quand on change de device */
-			if (accelerator_bindid == -1)
-				accelerator_bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
-
-			workerarg->bindid = accelerator_bindid;
-		}
-		else
-		{
-			workerarg->bindid = _starpu_get_next_bindid(config, preferred_binding, npreferred);
-		}
-
 		workerarg->memory_node = memory_node;
 
+		_STARPU_DEBUG("worker %d type %d devid %d bound to cpu %d, STARPU memory node %d\n", worker, workerarg->arch, devid, workerarg->bindid, memory_node);
+
 #ifdef __GLIBC__
-		/* Save the initial cpuset */
-		CPU_ZERO(&workerarg->cpu_set);
-		CPU_SET(workerarg->bindid, &workerarg->cpu_set);
+		if (workerarg->bindid != -1)
+		{
+			/* Save the initial cpuset */
+			CPU_ZERO(&workerarg->cpu_set);
+			CPU_SET(workerarg->bindid, &workerarg->cpu_set);
+		}
 #endif /* __GLIBC__ */
 
 #ifdef STARPU_HAVE_HWLOC
-		/* Put the worker descriptor in the userdata field of the
-		 * hwloc object describing the CPU */
-		hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
-								config->cpu_depth,
-								workerarg->bindid);
-		if (worker_obj->userdata == NULL)
+		if (workerarg->bindid == -1)
 		{
-			worker_obj->userdata = _starpu_worker_list_new();
+			workerarg->hwloc_cpu_set = hwloc_bitmap_alloc();
 		}
-		_starpu_worker_list_push_front(worker_obj->userdata, workerarg);
+		else
+		{
+			/* Put the worker descriptor in the userdata field of the
+			 * hwloc object describing the CPU */
+			hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
+									config->cpu_depth,
+									workerarg->bindid);
+			if (worker_obj->userdata == NULL)
+			{
+				worker_obj->userdata = _starpu_worker_list_new();
+			}
+			_starpu_worker_list_push_front(worker_obj->userdata, workerarg);
 
-		/* Clear the cpu set and set the cpu */
-		workerarg->hwloc_cpu_set = hwloc_bitmap_dup (worker_obj->cpuset);
+			/* Clear the cpu set and set the cpu */
+			workerarg->hwloc_cpu_set = hwloc_bitmap_dup (worker_obj->cpuset);
+		}
 #endif
 	}
 }
@@ -1388,13 +1448,16 @@ _starpu_destroy_topology (
 #ifdef STARPU_HAVE_HWLOC
 		struct _starpu_worker *workerarg = &config->workers[worker];
 		hwloc_bitmap_free(workerarg->hwloc_cpu_set);
-		hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
-								config->cpu_depth,
-								workerarg->bindid);
-		if (worker_obj->userdata)
+		if (workerarg->bindid != -1)
 		{
-			_starpu_worker_list_delete(worker_obj->userdata);
-			worker_obj->userdata = NULL;
+			hwloc_obj_t worker_obj = hwloc_get_obj_by_depth(config->topology.hwtopology,
+									config->cpu_depth,
+									workerarg->bindid);
+			if (worker_obj->userdata)
+			{
+				_starpu_worker_list_delete(worker_obj->userdata);
+				worker_obj->userdata = NULL;
+			}
 		}
 #endif
 	}
