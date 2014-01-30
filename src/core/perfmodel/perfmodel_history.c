@@ -279,10 +279,10 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 {
 	struct starpu_perfmodel_per_arch dummy;
 	unsigned nimpls, implmax, impl, i, ret;
-	//_STARPU_DEBUG("Parsing %s_%u_ncore_%u\n",
+	//_STARPU_DEBUG("Parsing %s_%u_parallel_%u\n",
 	//		starpu_perfmodel_get_archtype_name(arch->type),
 	//		arch->devid,
-	//		arch->ncore);
+	//		arch->ncore + 1);
 
 	/* Parsing number of implementation */
 	_starpu_drop_comments(f);
@@ -1141,10 +1141,10 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *archname, size_t maxlen,unsigned nimpl)
 {
-	snprintf(archname, maxlen, "%s%d_ncore%d_impl%u",
+	snprintf(archname, maxlen, "%s%d_parallel%d_impl%u",
 			starpu_perfmodel_get_archtype_name(arch->type),
 			arch->devid,
-			arch->ncore,
+			arch->ncore + 1,
 			nimpl);
 }
 
