@@ -1275,9 +1275,9 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef STARPU_SIMGRID
 					snprintf(name, sizeof(name), "OpenCL%d", devid);
-				host = MSG_get_host_by_name(name);
-				STARPU_ASSERT(host);
-				_starpu_simgrid_memory_node_set_host(memory_node, host);
+					host = MSG_get_host_by_name(name);
+					STARPU_ASSERT(host);
+					_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif /* SIMGRID */
 				}
 				_starpu_memory_node_add_nworkers(memory_node);
