@@ -1120,14 +1120,14 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	/* note that even if the CPU cpu are not used, we always have a RAM
 	 * node */
 	/* TODO : support NUMA  ;) */
-	ram_memory_node = _starpu_memory_node_register(STARPU_CPU_RAM, -1);
+	ram_memory_node = _starpu_memory_node_register(STARPU_CPU_RAM, 0);
+	STARPU_ASSERT(ram_memory_node == STARPU_MAIN_RAM);
 
 #ifdef STARPU_SIMGRID
 	char name[16];
-	xbt_dynar_t hosts = MSG_hosts_as_dynar();
 	msg_host_t host = MSG_get_host_by_name("RAM");
 	STARPU_ASSERT(host);
-	_starpu_simgrid_memory_node_set_host(0, host);
+	_starpu_simgrid_memory_node_set_host(STARPU_MAIN_RAM, host);
 #endif
 
 	/* We will store all the busid of the different (src, dst)
@@ -1143,8 +1143,8 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	    unsigned i = 0;
 	    for (i = 0; i < config->topology.nmicdevices; i++) {
 		mic_memory_nodes[i] = _starpu_memory_node_register (STARPU_MIC_RAM, i);
-		_starpu_register_bus(0, mic_memory_nodes[i]);
-		_starpu_register_bus(mic_memory_nodes[i], 0);
+		_starpu_register_bus(STARPU_MAIN_RAM, mic_memory_nodes[i]);
+		_starpu_register_bus(mic_memory_nodes[i], STARPU_MAIN_RAM);
 	    }
 	}
 #endif
@@ -1304,9 +1304,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		workerarg->hwloc_cpu_set = hwloc_bitmap_dup (worker_obj->cpuset);
 #endif
 	}
-#ifdef STARPU_SIMGRID
-	xbt_dynar_free(&hosts);
-#endif
 }
 
 
