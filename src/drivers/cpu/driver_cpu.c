@@ -184,15 +184,6 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	return 0;
 }
 
-static struct _starpu_worker*
-_starpu_get_worker_from_driver(struct starpu_driver *d)
-{
-	int n = starpu_worker_get_by_devid(STARPU_CPU_WORKER, d->id.cpu_id);
-	if (n == -1)
-		return NULL;
-	return _starpu_get_worker_struct(n);
-}
-
 static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config)
 {
 	size_t global_mem;
@@ -236,12 +227,8 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 		return limit*1024*1024;
 }
 
-int _starpu_cpu_driver_init(struct starpu_driver *d)
+int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 {
-	struct _starpu_worker *cpu_worker;
-	cpu_worker = _starpu_get_worker_from_driver(d);
-	STARPU_ASSERT(cpu_worker);
-
 	int devid = cpu_worker->devid;
 
 	_starpu_worker_start(cpu_worker, _STARPU_FUT_CPU_KEY);
@@ -263,12 +250,8 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 	return 0;
 }
 
-int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
+int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 {
-	struct _starpu_worker *cpu_worker;
-	cpu_worker = _starpu_get_local_worker_key();
-	STARPU_ASSERT(cpu_worker);
-
 	unsigned memnode = cpu_worker->memory_node;
 	int workerid = cpu_worker->workerid;
 
@@ -357,13 +340,9 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 	return 0;
 }
 
-int _starpu_cpu_driver_deinit(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
+int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 {
 	_STARPU_TRACE_WORKER_DEINIT_START;
-
-	struct _starpu_worker *cpu_worker;
-	cpu_worker = _starpu_get_local_worker_key();
-	STARPU_ASSERT(cpu_worker);
 
 	unsigned memnode = cpu_worker->memory_node;
 	_starpu_handle_all_pending_node_data_requests(memnode);
@@ -382,27 +361,17 @@ void *
 _starpu_cpu_worker(void *arg)
 {
 	struct _starpu_worker *args = arg;
-	struct starpu_driver d =
-	{
-		.type      = STARPU_CPU_WORKER,
-		.id.cpu_id = args->devid
-	};
 
-	_starpu_cpu_driver_init(&d);
+	_starpu_cpu_driver_init(args);
 	while (_starpu_machine_is_running())
-		_starpu_cpu_driver_run_once(&d);
-	_starpu_cpu_driver_deinit(&d);
+		_starpu_cpu_driver_run_once(args);
+	_starpu_cpu_driver_deinit(args);
 
 	return NULL;
 }
 
-int _starpu_run_cpu(struct starpu_driver *d)
+int _starpu_run_cpu(struct _starpu_worker *worker)
 {
-	STARPU_ASSERT(d && d->type == STARPU_CPU_WORKER);
-
-	struct _starpu_worker *worker = _starpu_get_worker_from_driver(d);
-	STARPU_ASSERT(worker);
-
 	worker->set = NULL;
 	worker->worker_is_initialized = 0;
 	_starpu_cpu_worker(worker);
