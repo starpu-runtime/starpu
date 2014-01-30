@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -247,6 +247,7 @@ struct _starpu_machine_topology
 	 * user's explicit parameters (from starpu_conf) or according
 	 * to the STARPU_WORKERS_MICID env. variable. Otherwise, they
 	 * are taken in ID order. */
+	/* TODO */
 	/* unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]; */
 
 	/* Which SCC(s) do we use ? */
