@@ -1230,17 +1230,17 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif /* SIMGRID */
 #ifdef HAVE_CUDA_MEMCPY_PEER
-				unsigned worker2;
-				for (worker2 = 0; worker2 < worker; worker2++)
-				{
-					struct _starpu_worker *workerarg2 = &config->workers[worker2];
-					if (workerarg2->arch == STARPU_CUDA_WORKER)
+					unsigned worker2;
+					for (worker2 = 0; worker2 < worker; worker2++)
 					{
-						unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
-						_starpu_register_bus(memory_node2, memory_node);
-						_starpu_register_bus(memory_node, memory_node2);
+						struct _starpu_worker *workerarg2 = &config->workers[worker2];
+						if (workerarg2->arch == STARPU_CUDA_WORKER)
+						{
+							unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
+							_starpu_register_bus(memory_node2, memory_node);
+							_starpu_register_bus(memory_node, memory_node2);
+						}
 					}
-				}
 #endif /* MEMCPY_PEER */
 				}
 				_starpu_memory_node_add_nworkers(memory_node);
