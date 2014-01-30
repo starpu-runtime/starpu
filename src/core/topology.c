@@ -1000,12 +1000,14 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 void
 _starpu_bind_thread_on_cpu (
 	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED,
-	unsigned cpuid)
+	int cpuid)
 {
 #ifdef STARPU_SIMGRID
 	return;
 #endif
 	if (starpu_get_env_number("STARPU_WORKERS_NOBIND") > 0)
+		return;
+	if (cpuid < 0)
 		return;
 #ifdef STARPU_HAVE_HWLOC
 	const struct hwloc_topology_support *support;
