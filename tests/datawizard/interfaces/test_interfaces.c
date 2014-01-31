@@ -159,7 +159,6 @@ data_interface_test_summary_success(data_interface_test_summary *s)
 
 enum operation
 {
-	CPU_TO_CPU,
 #ifdef STARPU_USE_CUDA
 	CPU_TO_CUDA,
 	CUDA_TO_CUDA,
@@ -173,6 +172,7 @@ enum operation
 	CPU_TO_MIC,
 	MIC_TO_CPU,
 #endif
+	CPU_TO_CPU
 };
 
 static int*
