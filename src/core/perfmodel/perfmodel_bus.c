@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2013 Corentin Salingue
  *
@@ -1398,6 +1398,8 @@ void starpu_bus_print_bandwidth(FILE *f)
 		fprintf(f, "CUDA %d\t", dst);
 	for (dst = 0; dst < nopencl; dst++)
 		fprintf(f, "OpenCL%d\t", dst);
+	for (dst = 0; dst < nmic; dst++)
+		fprintf(f, "MIC%d\t", dst);
 	fprintf(f, "\n");
 
 	for (src = 0; src <= maxnode; src++)
@@ -1406,8 +1408,10 @@ void starpu_bus_print_bandwidth(FILE *f)
 			fprintf(f, "RAM\t");
 		else if (src <= ncuda)
 			fprintf(f, "CUDA %d\t", src-1);
-		else
+		else if (src <= ncuda + nopencl)
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
+		else
+			fprintf(f, "MIC%d\t", src-ncuda-nopencl-1);
 		for (dst = 0; dst <= maxnode; dst++)
 			fprintf(f, "%.0f\t", bandwidth_matrix[src][dst]);
 
@@ -1421,8 +1425,10 @@ void starpu_bus_print_bandwidth(FILE *f)
 			fprintf(f, "RAM\t");
 		else if (src <= ncuda)
 			fprintf(f, "CUDA %d\t", src-1);
-		else
+		else if (src <= ncuda + nopencl)
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
+		else
+			fprintf(f, "MIC%d\t", src-ncuda-nopencl-1);
 		for (dst = 0; dst <= maxnode; dst++)
 			fprintf(f, "%.0f\t", latency_matrix[src][dst]);
 
@@ -1432,7 +1438,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	if (ncuda != 0 || nopencl != 0)
 		fprintf(f, "\nGPU\tCPU in preference order (logical index), host-to-device, device-to-host\n");
-	for (src = 1; src <= maxnode; src++)
+	for (src = 1; src <= ncuda + nopencl; src++)
 	{
 		struct dev_timing *timing;
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
