@@ -639,8 +639,8 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 		arch.ncore = 0; 
 		config->workers[worker_idx].arch = STARPU_MIC_WORKER;
 		config->workers[worker_idx].perf_arch = arch;
-		config->workers[worker_idx].mp_nodeid = mic_idx;
-		config->workers[worker_idx].devid = miccore_id;
+		config->workers[worker_idx].devid = mic_idx;
+		config->workers[worker_idx].subworkerid = miccore_id;
 		config->workers[worker_idx].worker_mask = STARPU_MIC;
 		config->worker_mask |= STARPU_MIC;
 	}
@@ -777,8 +777,8 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		config->workers[worker_idx].perf_arch.type = STARPU_CUDA_WORKER;
 		config->workers[worker_idx].perf_arch.devid = cudagpu;
 		config->workers[worker_idx].perf_arch.ncore = 0;
-		config->workers[worker_idx].mp_nodeid = -1;
 		config->workers[worker_idx].devid = devid;
+		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].worker_mask = STARPU_CUDA;
 		config->worker_mask |= STARPU_CUDA;
 
@@ -851,7 +851,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		config->workers[worker_idx].perf_arch.type = STARPU_OPENCL_WORKER;
 		config->workers[worker_idx].perf_arch.devid = devid;
 		config->workers[worker_idx].perf_arch.ncore = 0;
-		config->workers[worker_idx].mp_nodeid = -1;
+		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
 		config->worker_mask |= STARPU_OPENCL;
@@ -913,7 +913,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		config->workers[topology->nworkers + sccdev].perf_arch.type = STARPU_SCC_WORKER;
 		config->workers[topology->nworkers + sccdev].perf_arch.devid = sccdev;
 		config->workers[topology->nworkers + sccdev].perf_arch.ncore = 0;
-		config->workers[topology->nworkers + sccdev].mp_nodeid = -1;
+		config->workers[topology->nworkers + sccdev].subworkerid = 0;
 		config->workers[topology->nworkers + sccdev].devid = devid;
 		config->workers[topology->nworkers + sccdev].worker_mask = STARPU_SCC;
 		config->worker_mask |= STARPU_SCC;
@@ -977,7 +977,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		config->workers[worker_idx].perf_arch.type = STARPU_CPU_WORKER;
 		config->workers[worker_idx].perf_arch.devid = 0;
 		config->workers[worker_idx].perf_arch.ncore = 0;
-		config->workers[worker_idx].mp_nodeid = -1;
+		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].devid = cpu;
 		config->workers[worker_idx].worker_mask = STARPU_CPU;
 		config->worker_mask |= STARPU_CPU;
@@ -1161,9 +1161,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		unsigned memory_node = -1;
 		struct _starpu_worker *workerarg = &config->workers[worker];
 		unsigned devid = workerarg->devid;
-#ifdef STARPU_USE_MIC
-		unsigned mp_nodeid = workerarg->mp_nodeid;
-#endif
 
 		/* Perhaps the worker has some "favourite" bindings  */
 		int *preferred_binding = NULL;
@@ -1286,29 +1283,29 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 #ifdef STARPU_USE_MIC
 		        case STARPU_MIC_WORKER:
-				if (mic_init[mp_nodeid])
+				if (mic_init[devid])
 				{
-					memory_node = mic_memory_nodes[mp_nodeid];
+					memory_node = mic_memory_nodes[devid];
 				}
 				else
 				{
-					mic_init[mp_nodeid] = 1;
+					mic_init[devid] = 1;
 #ifndef STARPU_SIMGRID
 					/* TODO */
 					//if (may_bind_automatically)
 					//{
 					//	/* StarPU is allowed to bind threads automatically */
-						//	preferred_binding = _starpu_get_mic_affinity_vector(mp_nodeid);
+						//	preferred_binding = _starpu_get_mic_affinity_vector(devid);
 					//	npreferred = config->topology.nhwcpus;
 					//}
-					mic_bindid[mp_nodeid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
+					mic_bindid[devid] = _starpu_get_next_bindid(config, preferred_binding, npreferred);
 #endif /* SIMGRID */
-					memory_node = mic_memory_nodes[mp_nodeid] = _starpu_memory_node_register(STARPU_MIC_RAM, mp_nodeid);
+					memory_node = mic_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MIC_RAM, devid);
 					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 
 				}
-				workerarg->bindid = mic_bindid[mp_nodeid];
+				workerarg->bindid = mic_bindid[devid];
 				_starpu_memory_node_add_nworkers(memory_node);
 				break;
 #endif /* STARPU_USE_MIC */

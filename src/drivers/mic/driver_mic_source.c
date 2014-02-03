@@ -78,18 +78,18 @@ struct _starpu_mp_node *_starpu_mic_src_get_actual_thread_mp_node()
 	struct _starpu_worker *actual_worker = _starpu_get_local_worker_key();
 	STARPU_ASSERT(actual_worker);
 
-	int nodeid = actual_worker->mp_nodeid;
-	STARPU_ASSERT(nodeid >= 0 && nodeid < STARPU_MAXMICDEVS);
+	int devid = actual_worker->devid;
+	STARPU_ASSERT(devid >= 0 && devid < STARPU_MAXMICDEVS);
 
-	return mic_nodes[nodeid];
+	return mic_nodes[devid];
 }
 
 const struct _starpu_mp_node *_starpu_mic_src_get_mp_node_from_memory_node(int memory_node)
 {
-	int nodeid = _starpu_memory_node_get_devid(memory_node);
-	STARPU_ASSERT_MSG(nodeid >= 0 && nodeid < STARPU_MAXMICDEVS, "bogus nodeid %d for memory node %d\n", nodeid, memory_node);
+	int devid = _starpu_memory_node_get_devid(memory_node);
+	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMICDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 
-	return mic_nodes[nodeid];
+	return mic_nodes[devid];
 }
 
 static void _starpu_mic_src_free_kernel(void *kernel)
@@ -168,19 +168,19 @@ starpu_mic_kernel_t _starpu_mic_src_get_kernel(starpu_mic_func_symbol_t symbol)
 	if (workerid < 0)
 		return NULL;
 
-	int nodeid = starpu_worker_get_mp_nodeid(workerid);
+	int devid = starpu_worker_get_devid(workerid);
 
 	struct _starpu_mic_kernel *kernel = symbol;
 
-	if (kernel->func[nodeid] == NULL)
+	if (kernel->func[devid] == NULL)
 	{
-		struct _starpu_mp_node *node = mic_nodes[nodeid];
-		int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[nodeid], kernel->name);
+		struct _starpu_mp_node *node = mic_nodes[devid];
+		int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[devid], kernel->name);
 		if (ret)
 			return NULL;
 	}
 
-	return kernel->func[nodeid];
+	return kernel->func[devid];
 }
 
 /* Report an error which occured when using a MIC device
@@ -512,7 +512,7 @@ void *_starpu_mic_src_worker(void *arg)
 	struct _starpu_worker *baseworker = &worker_set->workers[0];
 	struct _starpu_machine_config *config = baseworker->config;
 	unsigned baseworkerid = baseworker - config->workers;
-	unsigned mp_nodeid = baseworker->mp_nodeid;
+	unsigned devid = baseworker->devid;
 	unsigned i;
 
 	/* unsigned memnode = baseworker->memory_node; */
@@ -522,10 +522,10 @@ void *_starpu_mic_src_worker(void *arg)
 	// Current task for a thread managing a worker set has no sense.
 	_starpu_set_current_task(NULL);
 
-	for (i = 0; i < config->topology.nmiccores[mp_nodeid]; i++)
+	for (i = 0; i < config->topology.nmiccores[devid]; i++)
 	{
 		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
-		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", mp_nodeid, i);
+		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", devid, i);
 	}
 
 	baseworker->status = STATUS_UNKNOWN;
@@ -538,7 +538,7 @@ void *_starpu_mic_src_worker(void *arg)
 	STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
 
-	_starpu_src_common_worker(worker_set, baseworkerid, mic_nodes[mp_nodeid]);
+	_starpu_src_common_worker(worker_set, baseworkerid, mic_nodes[devid]);
 
 	_STARPU_TRACE_WORKER_DEINIT_START;
 

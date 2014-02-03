@@ -60,9 +60,8 @@ LIST_TYPE(_starpu_worker,
 	uint32_t worker_mask; /* what is the type of worker ? */
 	struct starpu_perfmodel_arch perf_arch; /* in case there are different models of the same arch */
 	starpu_pthread_t worker_thread; /* the thread which runs the worker */
-	int mp_nodeid; /* which mp node hold the cpu/gpu/etc (-1 for this
-			* node) */
 	unsigned devid; /* which cpu/gpu/etc is controlled by the worker ? */
+	unsigned subworkerid; /* which sub-worker this one is for the cpu/gpu */
 	int bindid; /* which cpu is the driver bound to ? (logical index) */
 	int workerid; /* uniquely identify the worker among all processing units types */
 	int combined_workerid; /* combined worker currently using this worker */

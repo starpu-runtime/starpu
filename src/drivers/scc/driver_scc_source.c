@@ -288,19 +288,19 @@ void *_starpu_scc_src_worker(void *arg)
 	struct _starpu_machine_config *config = args->config;
 	unsigned memnode = args->memory_node;
 	unsigned baseworkerid = args - config->workers;
-	unsigned mp_nodeid = args->mp_nodeid;
+	unsigned subworkerid = args->subworkerid;
 	unsigned i;
 
 	_starpu_worker_start(args, _STARPU_FUT_SCC_KEY);
 
-	_starpu_scc_src_init_context(devid);
+	_starpu_scc_src_init_context(subworkerid);
 
 	args->status = STATUS_UNKNOWN;
 
-	for (i = 0; i < config->topology.nmiccores[mp_nodeid]; i++)
+	for (i = 0; i < config->topology.nmiccores[devid]; i++)
 	{
 		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
-		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", mp_nodeid, i);
+		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", devid, i);
 	}
 
 	_STARPU_TRACE_WORKER_INIT_END;
@@ -311,11 +311,11 @@ void *_starpu_scc_src_worker(void *arg)
 	STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
 
-	_starpu_src_common_worker(args, baseworkerid, scc_mp_nodes[mp_nodeid]);
+	_starpu_src_common_worker(args, baseworkerid, scc_mp_nodes[devid]);
 
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
-	_starpu_scc_src_deinit_context(args->devid);
+	_starpu_scc_src_deinit_context(args->subworkerid);
 
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_SCC_KEY);
 

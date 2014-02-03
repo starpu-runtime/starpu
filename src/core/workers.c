@@ -392,8 +392,8 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	/* worker_mask initialized by topology.c */
 	/* perf_arch initialized by topology.c */
 	/* worker_thread initialized by _starpu_launch_drivers */
-	/* mp_nodeid initialized by topology.c */
 	/* devid initialized by topology.c */
+	/* subworkerid initialized by topology.c */
 	/* bindid initialized by topology.c */
 	/* workerid initialized by topology.c */
 	workerarg->combined_workerid = workerarg->workerid;
@@ -510,7 +510,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 #ifdef STARPU_USE_MIC
-		unsigned mp_nodeid = workerarg->mp_nodeid;
+		unsigned devid = workerarg->devid;
+		unsigned subworkerid = workerarg->subworkerid;
 #endif
 
 		_STARPU_DEBUG("initialising worker %u/%u\n", worker, nworkers);
@@ -608,23 +609,23 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				 * which consists in spawning only one thread
 				 * per MIC device, which will control all MIC
 				 * workers of this device. (by using a worker set). */
-				if (mic_worker_set[mp_nodeid].started)
+				if (mic_worker_set[devid].started)
 					goto worker_set_initialized;
 
-				mic_worker_set[mp_nodeid].nworkers = pconfig->topology.nmiccores[mp_nodeid];
+				mic_worker_set[devid].nworkers = pconfig->topology.nmiccores[devid];
 
 				/* We assume all MIC workers of a given MIC
 				 * device are contiguous so that we can
 				 * address them with the first one only. */
-				mic_worker_set[mp_nodeid].workers = workerarg;
-				mic_worker_set[mp_nodeid].set_is_initialized = 0;
+				mic_worker_set[devid].workers = workerarg;
+				mic_worker_set[devid].set_is_initialized = 0;
 
 				STARPU_PTHREAD_CREATE_ON(
 						workerarg->name,
-						&mic_worker_set[mp_nodeid].worker_thread,
+						&mic_worker_set[devid].worker_thread,
 						NULL,
 						_starpu_mic_src_worker,
-						&mic_worker_set[mp_nodeid],
+						&mic_worker_set[devid],
 						worker+1);
 
 #ifdef STARPU_USE_FXT
@@ -634,15 +635,15 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
 
-				STARPU_PTHREAD_MUTEX_LOCK(&mic_worker_set[mp_nodeid].mutex);
-				while (!mic_worker_set[mp_nodeid].set_is_initialized)
-					STARPU_PTHREAD_COND_WAIT(&mic_worker_set[mp_nodeid].ready_cond,
-								  &mic_worker_set[mp_nodeid].mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&mic_worker_set[mp_nodeid].mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&mic_worker_set[devid].mutex);
+				while (!mic_worker_set[devid].set_is_initialized)
+					STARPU_PTHREAD_COND_WAIT(&mic_worker_set[devid].ready_cond,
+								  &mic_worker_set[devid].mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&mic_worker_set[devid].mutex);
 
 		worker_set_initialized:
-				workerarg->set = &mic_worker_set[mp_nodeid];
-				mic_worker_set[mp_nodeid].started = 1;
+				workerarg->set = &mic_worker_set[devid];
+				mic_worker_set[devid].started = 1;
 
 #ifdef STARPU_USE_FXT
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
@@ -1472,9 +1473,9 @@ int starpu_combined_worker_get_rank(void)
 	}
 }
 
-int starpu_worker_get_mp_nodeid(int id)
+int starpu_worker_get_subworkerid(int id)
 {
-	return config.workers[id].mp_nodeid;
+	return config.workers[id].subworkerid;
 }
 
 int starpu_worker_get_devid(int id)
