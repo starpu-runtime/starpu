@@ -39,7 +39,7 @@
 /* the number of CUDA devices */
 static int ncudagpus;
 
-static size_t global_mem[STARPU_NMAXWORKERS];
+static size_t global_mem[STARPU_MAXCUDADEVS];
 #ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 static cudaStream_t out_transfer_streams[STARPU_MAXCUDADEVS];
