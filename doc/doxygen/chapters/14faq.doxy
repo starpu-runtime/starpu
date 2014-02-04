@@ -194,15 +194,15 @@ security.models.extensions.user_set_cpu_affinity=1
 \section PauseResume Interleaving StarPU and non-StarPU code
 
 If your application only partially uses StarPU, and you do not want to
-call \ref starpu_init() / \ref starpu_shutdown() at the beginning/end
+call starpu_init() / starpu_shutdown() at the beginning/end
 of each section, StarPU workers will poll for work between the
-sections. To avoid this behavior, you can "pause" StarPU with the \ref
+sections. To avoid this behavior, you can "pause" StarPU with the 
 starpu_pause() function. This will prevent the StarPU workers from
 accepting new work (tasks that are already in progress will not be
 frozen), and stop them from polling for more work.
 
 Note that this does not prevent you from submitting new tasks, but
-they won't execute until \ref starpu_resume() is called. Also note
+they won't execute until starpu_resume() is called. Also note
 that StarPU must not be paused when you call starpu_shutdown(), and
 that this function pair works in a push/pull manner, ie you need to
 match the number of calls to these functions to clear their effect.
