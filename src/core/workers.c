@@ -489,6 +489,7 @@ void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key)
 static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 {
 	pconfig->running = 1;
+	pconfig->pause_depth = 0;
 	pconfig->submitting = 1;
 	STARPU_HG_DISABLE_CHECKING(pconfig->watchdog_ok);
 
@@ -1178,15 +1179,42 @@ out:
 	}
 }
 
+/* Condition variable and mutex used to pause/resume. */
+static starpu_pthread_cond_t pause_cond = STARPU_PTHREAD_COND_INITIALIZER;
+static starpu_pthread_mutex_t pause_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 unsigned _starpu_machine_is_running(void)
 {
 	unsigned ret;
-	/* running is just protected by a memory barrier */
+	/* running and pause_depth are just protected by a memory barrier */
 	STARPU_RMB();
+
+	if (STARPU_UNLIKELY(config.pause_depth > 0)) {
+		STARPU_PTHREAD_MUTEX_LOCK(&pause_mutex);
+		if (config.pause_depth > 0) {
+			STARPU_PTHREAD_COND_WAIT(&pause_cond, &pause_mutex);
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
+	}
+
 	ANNOTATE_HAPPENS_AFTER(&config.running);
 	ret = config.running;
 	ANNOTATE_HAPPENS_BEFORE(&config.running);
 	return ret;
+}
+
+void starpu_pause()
+{
+	config.pause_depth += 1;
+}
+
+void starpu_resume()
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&pause_mutex);
+	config.pause_depth -= 1;
+	if (!config.pause_depth) {
+		STARPU_PTHREAD_COND_BROADCAST(&pause_cond);
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
 }
 
 unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED)
@@ -1242,6 +1270,9 @@ void starpu_shutdown(void)
 	/* We're last */
 	initialized = CHANGING;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
+
+	/* If the workers are frozen, no progress can be made. */
+	STARPU_ASSERT(config.pause_depth <= 0);
 
 	starpu_task_wait_for_no_ready();
 

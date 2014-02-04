@@ -241,6 +241,18 @@ This is StarPU termination method. It must be called at the end of the
 application: statistics and other post-mortem debugging information
 are not guaranteed to be available until this method has been called.
 
+\fn void starpu_pause(void)
+\ingroup API_Initialization_and_Termination
+This call is used to suspend the processing of new tasks by
+workers. It can be used in a program where StarPU is used during only
+a part of the execution. Without this call, the workers continue to
+poll for new tasks in a tight loop, wasting CPU time. The symmetric
+call to \ref starpu_resume() should be used to unfreeze the workers.
+
+\fn vois starpu_resume(void)
+This is the symmetrical call to \ref starpu_pause(), used to resume
+the workers polling for new tasks.
+
 \fn int starpu_asynchronous_copy_disabled(void)
 \ingroup API_Initialization_and_Termination
 Return 1 if asynchronous data transfers between CPU and accelerators

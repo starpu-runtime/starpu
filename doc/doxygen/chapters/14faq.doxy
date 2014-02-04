@@ -190,4 +190,40 @@ Or add the following line in the file <c>/etc/sysctl.conf</c>
 security.models.extensions.user_set_cpu_affinity=1
 \endverbatim
 
+
+\section PauseResume Interleaving StarPU and non-StarPU code
+
+If your application only partially uses StarPU, and you do not want to
+call \ref starpu_init() / \ref starpu_shutdown() at the beginning/end
+of each section, StarPU workers will poll for work between the
+sections. To avoid this behavior, you can "pause" StarPU with the \ref
+starpu_pause() function. This will prevent the StarPU workers from
+accepting new work (tasks that are already in progress will not be
+frozen), and stop them from polling for more work.
+
+Note that this does not prevent you from submitting new tasks, but
+they won't execute until \ref starpu_resume() is called. Also note
+that StarPU must not be paused when you call starpu_shutdown(), and
+that this function pair works in a push/pull manner, ie you need to
+match the number of calls to these functions to clear their effect.
+
+
+One way to use these functions could be:
+\code{.c}
+starpu_init(NULL);
+starpu_pause(); // To submit all the tasks without a single one executing
+submit_some_tasks();
+starpu_resume(); // The tasks start executing
+
+
+starpu_task_wait_for_all();
+starpu_pause(); // Stop the workers from polling
+
+// Non-StarPU code
+
+starpu_resume();
+// ...
+starpu_shutdown();
+\endcode
+
 */

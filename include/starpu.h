@@ -131,6 +131,9 @@ int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 
 int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv);
 
+void starpu_pause();
+void starpu_resume();
+
 void starpu_shutdown(void);
 
 void starpu_topology_print(FILE *f);

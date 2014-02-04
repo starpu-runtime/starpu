@@ -316,6 +316,10 @@ struct _starpu_machine_config
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
 
+	/* Number of calls to starpu_pause() - calls to starpu_resume(). When >0,
+	 * StarPU should pause. */
+	int pause_depth;
+
 	/* all the sched ctx of the current instance of starpu */
 	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
 
