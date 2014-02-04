@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -247,10 +247,11 @@ This call is used to suspend the processing of new tasks by
 workers. It can be used in a program where StarPU is used during only
 a part of the execution. Without this call, the workers continue to
 poll for new tasks in a tight loop, wasting CPU time. The symmetric
-call to \ref starpu_resume() should be used to unfreeze the workers.
+call to starpu_resume() should be used to unfreeze the workers.
 
-\fn vois starpu_resume(void)
-This is the symmetrical call to \ref starpu_pause(), used to resume
+\fn void starpu_resume(void)
+\ingroup API_Initialization_and_Termination
+This is the symmetrical call to starpu_pause(), used to resume
 the workers polling for new tasks.
 
 \fn int starpu_asynchronous_copy_disabled(void)
