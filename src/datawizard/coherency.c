@@ -696,7 +696,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->acquire_data_start_time);
 
-	struct starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned local_memory_node = _starpu_memory_node_get_local_key();
@@ -799,7 +799,7 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->release_data_start_time);
 
-        struct starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
         unsigned nbuffers = task->cl->nbuffers;
 
 	int workerid = starpu_worker_get_id();
