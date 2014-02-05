@@ -841,6 +841,7 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 
 static void _starpu_dump_registered_models(void)
 {
+#ifndef STARPU_SIMGRID
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
 	struct _starpu_perfmodel_list *node;
@@ -855,6 +856,7 @@ static void _starpu_dump_registered_models(void)
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
+#endif
 }
 
 void _starpu_initialize_registered_performance_models(void)
