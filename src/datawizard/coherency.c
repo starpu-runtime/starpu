@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -765,11 +765,28 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 
 enomem:
 	_STARPU_TRACE_END_FETCH_INPUT(NULL);
-	/* try to unreference all the input that were successfully taken */
-	/* XXX broken ... */
 	_STARPU_DISP("something went wrong with buffer %u\n", index);
-	//push_codelet_output(task, index, mask);
-	_starpu_push_task_output(j, mask);
+
+	/* try to unreference all the input that were successfully taken */
+	unsigned index2;
+	for (index2 = 0; index2 < index; index2++)
+	{
+		starpu_data_handle_t handle = descrs[index2].handle;
+		enum starpu_data_access_mode mode = descrs[index2].mode;
+
+		struct _starpu_data_replicate *local_replicate;
+
+		if (index2 && descrs[index2-1].handle == descrs[index2].handle)
+			/* We have already released this data, skip it. This
+			 * depends on ordering putting writes before reads, see
+			 * _starpu_compar_handles */
+			continue;
+
+		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
+
+		_starpu_release_data_on_node(handle, mask, local_replicate);
+	}
+
 	return -1;
 }
 
