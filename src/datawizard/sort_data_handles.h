@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2014  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,12 +23,13 @@
 #include <stdlib.h>
 
 #include <stdarg.h>
+#include <core/jobs.h>
 #include <datawizard/coherency.h>
 #include <datawizard/memalloc.h>
 
 /* To avoid deadlocks, we reorder the different buffers accessed to by the task
  * so that we always grab the rw-lock associated to the handles in the same
  * order. */
-void _starpu_sort_task_handles(struct starpu_data_descr descr[], unsigned nbuffers);
+void _starpu_sort_task_handles(struct _starpu_data_descr descr[], unsigned nbuffers);
 
 #endif // SORT_DATA_HANDLES

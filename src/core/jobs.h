@@ -53,6 +53,11 @@ typedef void (*_starpu_cl_func_t)(void **, void *);
 #define _STARPU_MIC_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_MIC)
 #define _STARPU_SCC_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_SCC)
 
+struct _starpu_data_descr {
+	starpu_data_handle_t handle;
+	enum starpu_data_access_mode mode;
+};
+
 /* A job is the internal representation of a task. */
 LIST_TYPE(_starpu_job,
 
@@ -70,8 +75,8 @@ LIST_TYPE(_starpu_job,
 	/* To avoid deadlocks, we reorder the different buffers accessed to by
 	 * the task so that we always grab the rw-lock associated to the
 	 * handles in the same order. */
-	struct starpu_data_descr ordered_buffers[STARPU_NMAXBUFS];
-	struct starpu_data_descr *dyn_ordered_buffers;
+	struct _starpu_data_descr ordered_buffers[STARPU_NMAXBUFS];
+	struct _starpu_data_descr *dyn_ordered_buffers;
 
 	/* If a tag is associated to the job, this points to the internal data
 	 * structure that describes the tag status. */
