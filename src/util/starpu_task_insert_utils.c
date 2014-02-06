@@ -284,6 +284,7 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 			{
 #ifdef STARPU_DEVEL
 #  warning shall we print a warning to the user
+/* Magma uses it to avoid having to set it in the codelet structure */
 #endif
 				STARPU_CODELET_SET_MODE(cl, mode, current_buffer);
 			}
