@@ -339,6 +339,32 @@ starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
                            0);
 \endcode
 
+\section MPICache MPI cache support
+
+StarPU-MPI automatically optimizes duplicate data transmissions: if an MPI
+node B needs a piece of data D from MPI node A for several tasks, only one
+transmission of D will take place from A to B, and the value of D will be kept
+on B as long as no task modifies D.
+
+If a task modifies D, B will wait for all tasks which need the previous value of
+D, before invalidating the value of D. As a consequence, it releases the memory
+occupied by D. Whenever a task running on B needs the new value of D, allocation
+will take place again to receive it.
+
+Since tasks can be submitted dynamically, StarPU-MPI can not know whether the
+current value of data D will again be used by a newly-submitted task before
+being modified by another newly-submitted task, so until a task is submitted to
+modify the current value, it can not decide by itself whether to flush the cache
+or not.  The application can however explicitly tell StarPU-MPI to flush the
+cache by calling starpu_mpi_cache_flush() or starpu_mpi_cache_flush_all_data(),
+for instance in case the data will not be used at all any more (see for instance
+the cholesky example in mpi/examples/matrix_decomposition), or at least not in
+the close future. If a newly-submitted task actually needs the value again,
+another transmission of D will be initiated from A to B.
+
+The whole caching behavior can be disabled thanks to the ::STARPU_MPI_CACHE
+environment variable.
+
 \section MPIMigration MPI Data migration
 
 The application can dynamically change its mind about the data distribution, to
