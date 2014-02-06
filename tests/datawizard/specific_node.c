@@ -31,7 +31,7 @@ void specific_kernel(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNU
 {
 	/* We do not protect this variable because it is only accessed when the
 	 * "data_handle" piece of data is accessed. */
-	int *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
+	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	STARPU_ASSERT(dataptr == &data);
 	*dataptr++;
