@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
- * Copyright (C) 2011-2013  Université de Bordeaux 1
+ * Copyright (C) 2011-2014  Université de Bordeaux 1
  * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -100,22 +100,48 @@ void _starpu_mpi_cache_free(int world_size)
 
 void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 {
-	int nb_nodes;
+	int nb_nodes, i;
+	int mpi_rank, my_rank;
 
 	if (_cache_enabled == 0) return;
 
 	MPI_Comm_size(comm, &nb_nodes);
-	_starpu_mpi_cache_empty_tables(nb_nodes);
+	MPI_Comm_rank(comm, &my_rank);
+
+	for(i=0 ; i<nb_nodes ; i++)
+	{
+		struct _starpu_data_entry *entry, *tmp;
+		HASH_ITER(hh, _cache_sent_data[i], entry, tmp)
+		{
+			mpi_rank = starpu_data_get_rank((starpu_data_handle_t) entry->data);
+			if (mpi_rank != my_rank && mpi_rank != -1)
+				starpu_data_invalidate_submit((starpu_data_handle_t) entry->data);
+			HASH_DEL(_cache_sent_data[i], entry);
+			free(entry);
+		}
+		HASH_ITER(hh, _cache_received_data[i], entry, tmp)
+		{
+			mpi_rank = starpu_data_get_rank((starpu_data_handle_t) entry->data);
+			if (mpi_rank != my_rank && mpi_rank != -1)
+				starpu_data_invalidate_submit((starpu_data_handle_t) entry->data);
+			HASH_DEL(_cache_received_data[i], entry);
+			free(entry);
+		}
+	}
 }
 
 void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 {
 	struct _starpu_data_entry *avail;
-	int i, nb_nodes;
+	int i, my_rank, nb_nodes;
+	int mpi_rank;
 
 	if (_cache_enabled == 0) return;
 
 	MPI_Comm_size(comm, &nb_nodes);
+	MPI_Comm_rank(comm, &my_rank);
+	mpi_rank = starpu_data_get_rank(data_handle);
+
 	for(i=0 ; i<nb_nodes ; i++)
 	{
 		HASH_FIND_PTR(_cache_sent_data[i], &data_handle, avail);
@@ -133,6 +159,9 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 			free(avail);
 		}
 	}
+
+	if (mpi_rank != my_rank && mpi_rank != -1)
+		starpu_data_invalidate_submit(data_handle);
 }
 
 static
