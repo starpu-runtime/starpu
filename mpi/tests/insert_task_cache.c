@@ -91,6 +91,17 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 
+	for(i = 0; i < 5; i++)
+	{
+		starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[0]);
+	}
+
+	for(i = 0; i < 5; i++)
+	{
+		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
+	}
+
 	starpu_task_wait_for_all();
 
 	for(i = 0; i < 2; i++)
