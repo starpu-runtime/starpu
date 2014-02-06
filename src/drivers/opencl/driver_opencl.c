@@ -448,10 +448,7 @@ void _starpu_opencl_init(void)
         if (!init_done)
 	{
 #ifdef STARPU_SIMGRID
-		unsigned ncuda = _starpu_simgrid_get_nbhosts("CUDA");
-		unsigned nopencl = _starpu_simgrid_get_nbhosts("OpenCL");
-		nb_devices = nopencl - ncuda;
-		STARPU_ASSERT_MSG((nopencl == ncuda) || !ncuda, "Does not yet support selectively disabling OpenCL devices of NVIDIA cards.");
+		nb_devices = _starpu_simgrid_get_nbhosts("OpenCL");
 #else /* STARPU_USE_OPENCL */
                 cl_platform_id platform_id[_STARPU_OPENCL_PLATFORM_MAX];
                 cl_uint nb_platforms;
