@@ -34,7 +34,7 @@ void specific_kernel(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNU
 	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	STARPU_ASSERT(dataptr == &data);
-	*dataptr++;
+	(*dataptr)++;
 }
 
 static struct starpu_codelet specific_cl =
@@ -97,7 +97,7 @@ int main(STARPU_ATTRIBUTE_UNUSED int argc, STARPU_ATTRIBUTE_UNUSED char **argv)
 	/* Create a void data which will be used as an exclusion mechanism. */
 	starpu_variable_data_register(&data_handle, STARPU_MAIN_RAM, (uintptr_t) &data, sizeof(data));
 
-	int i;
+	unsigned i;
 	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
