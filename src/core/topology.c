@@ -197,7 +197,7 @@ _starpu_initialize_workers_opencl_gpuid (struct _starpu_machine_config*config)
 		"STARPU_WORKERS_OPENCLID",
 		topology->nhwopenclgpus);
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
         // Detect devices which are already used with CUDA
         {
                 unsigned tmp[STARPU_NMAXWORKERS];
