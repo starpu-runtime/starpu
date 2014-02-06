@@ -75,9 +75,9 @@ struct starpu_opencl_program opencl_program;
 int main(STARPU_ATTRIBUTE_UNUSED int argc, STARPU_ATTRIBUTE_UNUSED char **argv)
 {
 #ifdef STARPU_QUICK_CHECK
-	int ntasks = 10;
+	unsigned ntasks = 10;
 #else
-	int ntasks = 1000;
+	unsigned ntasks = 1000;
 #endif
 
 	int ret;
