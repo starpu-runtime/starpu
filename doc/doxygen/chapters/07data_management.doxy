@@ -511,10 +511,10 @@ needed data for the tasks on the embedded memory of the GPU.  It may however
 happen that the task kernel would rather have some of the datas kept in the
 main memory instead of copied in the GPU, a pivoting vector for instance.
 This can be achieved by setting the starpu_codelet::specific_nodes flag to
-1, and then fill the starpu_codelet::nodes array (or starpu_codelet when
+1, and then fill the starpu_codelet::nodes array (or starpu_codelet::dyn_nodes when
 starpu_codelet::nbuffers is greater than STARPU_NMAXBUFS) with the node numbers
 where data should be copied to, or -1 to let StarPU copy it to the memory node
-where the task will be executed . For instance, with the following codelet:
+where the task will be executed. For instance, with the following codelet:
 
 \code{.c}
 struct starpu_codelet cl =
