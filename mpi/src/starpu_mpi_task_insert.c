@@ -113,11 +113,14 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 {
 	struct _starpu_data_entry *avail;
-	int i, nb_nodes;
+	int i, my_rank, nb_nodes;
+	int mpi_rank = starpu_data_get_rank(data_handle);
 
 	if (_cache_enabled == 0) return;
 
 	MPI_Comm_size(comm, &nb_nodes);
+	MPI_Comm_rank(comm, &my_rank);
+
 	for(i=0 ; i<nb_nodes ; i++)
 	{
 		HASH_FIND_PTR(_cache_sent_data[i], &data_handle, avail);
@@ -135,6 +138,9 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 			free(avail);
 		}
 	}
+
+	if (mpi_rank != my_rank && mpi_rank != -1)
+		starpu_data_invalidate_submit(data_handle);
 }
 
 static
