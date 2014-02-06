@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
@@ -99,6 +99,10 @@ struct starpu_codelet
 	unsigned nbuffers;
 	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
 	enum starpu_data_access_mode *dyn_modes;
+
+	unsigned specific_nodes;
+	int nodes[STARPU_NMAXBUFS];
+	int *dyn_nodes;
 
 	struct starpu_perfmodel *model;
 	struct starpu_perfmodel *power_model;
@@ -208,6 +212,9 @@ struct starpu_task
 
 #define STARPU_CODELET_GET_MODE(codelet, i) ((codelet->dyn_modes) ? codelet->dyn_modes[i] : codelet->modes[i])
 #define STARPU_CODELET_SET_MODE(codelet, mode, i) do { if (codelet->dyn_modes) codelet->dyn_modes[i] = mode; else codelet->modes[i] = mode; } while(0)
+
+#define STARPU_CODELET_GET_NODE(codelet, i) ((codelet->dyn_nodes) ? codelet->dyn_nodes[i] : codelet->nodes[i])
+#define STARPU_CODELET_SET_NODE(codelet, __node, i) do { if (codelet->dyn_nodes) codelet->dyn_nodes[i] = __node; else codelet->nodes[i] = __node; } while(0)
 
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);

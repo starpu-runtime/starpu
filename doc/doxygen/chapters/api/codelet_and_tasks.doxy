@@ -278,12 +278,35 @@ unsufficient, this value can be set with the configure option
 
 \var starpu_codelet::dyn_modes
 Is an array of ::starpu_data_access_mode. It describes the required
-access modes to the data neeeded by the codelet (e.g. ::STARPU_RW).
+access modes to the data needed by the codelet (e.g. ::STARPU_RW).
 The number of entries in this array must be specified in the field
 starpu_codelet::nbuffers. This field should be used for codelets having a
 number of datas greater than \ref STARPU_NMAXBUFS (see \ref
 SettingTheDataHandlesForATask). When defining a codelet, one
 should either define this field or the field starpu_codelet::modes defined above.
+
+\var starpu_codelet::specific_nodes.
+Default value is 0. If this flag is set, StarPU will not systematically
+send all data to the memory node where the task will be executing, it
+will read the starpu_codelet::nodes or starpu_codelet::dyn_nodes array to
+determine, for each data, whether to send it on the memory node where the task
+will be executing (-1), or on a specific node (!= -1).
+
+\var starpu_codelet::nodes.
+Optional field. When starpu_codelet::specific_nodes is 1, this specifies
+the memory nodes where each data should be sent to for task execution.
+The number of entries in this array is starpu_codelet::nbuffers, and should
+not exceed \ref STARPU_NMAXBUFS.
+
+\var starpu_codelet::dyn_nodes
+Optional field. When starpu_codelet::specific_nodes is 1, this specifies
+the memory nodes where each data should be sent to for task execution.
+The number of entries in this array is starpu_codelet::nbuffers.
+This field should be used for codelets having a
+number of datas greater than \ref STARPU_NMAXBUFS (see \ref
+SettingTheDataHandlesForATask). When defining a codelet, one
+should either define this field or the field starpu_codelet::nodes defined
+above.
 
 \var starpu_codelet::model
 Optional pointer to the task duration performance model associated to

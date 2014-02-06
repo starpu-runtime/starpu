@@ -42,6 +42,7 @@ New features:
     sequential consistency defined for the given data)
   * New functions starpu_mpi_task_build() and starpu_mpi_task_post_build()
   * New functions starpu_pause() and starpu_resume()
+  * New codelet specific_nodes field to specify explicit target nodes for data.
 
 Small features:
   * New functions starpu_data_acquire_cb_sequential_consistency() and

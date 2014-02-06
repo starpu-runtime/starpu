@@ -200,6 +200,7 @@ noinst_PROGRAMS =				\
 	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
 	datawizard/readonly			\
+	datawizard/specific_node		\
 	disk/disk_copy				\
 	disk/disk_compute			\
 	errorcheck/starpu_init_noworker		\
@@ -383,6 +384,17 @@ datawizard_wt_host_SOURCES =			\
 	datawizard/wt_host.c
 datawizard_wt_broadcast_SOURCES =		\
 	datawizard/wt_broadcast.c
+
+datawizard_specific_node_SOURCES =		\
+	datawizard/specific_node.c
+if STARPU_USE_CUDA
+datawizard_specific_node_SOURCES +=		\
+	datawizard/cuda_codelet_unsigned_inc.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_specific_node_SOURCES +=			\
+	datawizard/opencl_codelet_unsigned_inc.c
+endif
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 main_deprecated_buffer_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations

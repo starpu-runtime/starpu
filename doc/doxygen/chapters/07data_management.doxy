@@ -504,5 +504,30 @@ The whole code for this complex data interface is available in the
 directory <c>examples/interface/</c>.
 
 
+\section SpecifyingATargetNode Specifying a target node for task data
+
+When executing a task on a GPU for instance, StarPU would normally copy all the
+needed data for the tasks on the embedded memory of the GPU.  It may however
+happen that the task kernel would rather have some of the datas kept in the
+main memory instead of copied in the GPU, a pivoting vector for instance.
+This can be achieved by setting the starpu_codelet::specific_nodes flag to
+1, and then fill the starpu_codelet::nodes array (or starpu_codelet when
+starpu_codelet::nbuffers is greater than STARPU_NMAXBUFS) with the node numbers
+where data should be copied to, or -1 to let StarPU copy it to the memory node
+where the task will be executed . For instance, with the following codelet:
+
+\code{.c}
+struct starpu_codelet cl =
+{
+	.cuda_funcs = { kernel, NULL },
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_RW},
+	.specific_nodes = 1,
+	.nodes = {STARPU_MAIN_RAM, -1},
+};
+\endcode
+
+the first data of the task will be kept in the main memory, while the second
+data will be copied to the CUDA GPU as usual.
 
 */
