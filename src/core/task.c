@@ -579,6 +579,10 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 			_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
 			enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
 			_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
+			int node = -1;
+			if (j->task->cl->specific_nodes)
+				node = STARPU_CODELET_GET_NODE(j->task->cl, i);
+			_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
 		}
 	}
 
@@ -639,6 +643,10 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
 		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
+		int node = -1;
+		if (j->task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(j->task->cl, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
 	}
 
         _STARPU_LOG_IN();

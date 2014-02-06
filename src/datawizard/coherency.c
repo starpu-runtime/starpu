@@ -637,13 +637,13 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 	return 0;
 }
 
-static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned local_memory_node)
+static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
 {
 	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 		return &handle->per_worker[workerid];
 	else
 		/* That's a "normal" buffer (R/W) */
-		return &handle->per_node[local_memory_node];
+		return &handle->per_node[node];
 }
 
 int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
@@ -668,6 +668,9 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 		int ret;
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
+		int node = descrs[index].node;
+		if (node == -1)
+			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate;
 
@@ -677,7 +680,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 			 * _starpu_compar_handles */
 			continue;
 
-		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
+		local_replicate = get_replicate(handle, mode, workerid, node);
 
 		ret = fetch_data(handle, local_replicate, mode);
 		if (STARPU_UNLIKELY(ret))
@@ -689,10 +692,13 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, index);
+		int node = descrs[index].node;
+		if (node == -1)
+			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate;
 
-		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
+		local_replicate = get_replicate(handle, mode, workerid, node);
 
 		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
 
@@ -721,6 +727,9 @@ enomem:
 	{
 		starpu_data_handle_t handle = descrs[index2].handle;
 		enum starpu_data_access_mode mode = descrs[index2].mode;
+		int node = descrs[index].node;
+		if (node == -1)
+			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate;
 
@@ -730,7 +739,7 @@ enomem:
 			 * _starpu_compar_handles */
 			continue;
 
-		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
+		local_replicate = get_replicate(handle, mode, workerid, node);
 
 		_starpu_release_data_on_node(handle, mask, local_replicate);
 	}
@@ -758,6 +767,9 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 	{
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
+		int node = descrs[index].node;
+		if (node == -1)
+			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate;
 
@@ -767,7 +779,7 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 			 * _starpu_compar_handles */
 			continue;
 
-		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
+		local_replicate = get_replicate(handle, mode, workerid, node);
 
 		/* Keep a reference for future
 		 * _starpu_release_task_enforce_sequential_consistency call */
