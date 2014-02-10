@@ -22,6 +22,7 @@ New features:
   * MPI:
         - New variable STARPU_MPI_CACHE_STATS to print statistics on
    	  cache holding received data.
+  * Use streams for GPUA->GPUB and GPUB->GPUA transfers.
 
 Small features:
   * New STARPU_EXECUTE_ON_WORKER flag to specify the worker on which
