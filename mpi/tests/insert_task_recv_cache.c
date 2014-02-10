@@ -67,7 +67,7 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 		int mpi_rank = my_distrib(i);
 		if (mpi_rank == rank)
 		{
-			starpu_vector_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&(v[i]), N, sizeof(unsigned));
+			starpu_vector_data_register(&data_handles[i], 0, (uintptr_t)&(v[i]), N, sizeof(unsigned));
 		}
 		else
 		{

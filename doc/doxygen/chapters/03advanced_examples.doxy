@@ -1217,7 +1217,7 @@ struct starpu_codelet cl =
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW},
 	.specific_nodes = 1,
-	.nodes = {STARPU_MAIN_RAM, -1},
+	.nodes = {0, -1},
 };
 \endcode
 
