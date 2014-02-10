@@ -154,6 +154,7 @@ New features:
     priorities of the current scheduling context, i.e the one which
     was set by a call to starpu_sched_ctx_set_context() or the initial
     context if the function has not been called yet.
+  * Fix for properly dealing with NAN on windows systems
 
 Small features:
   * Add starpu_worker_get_by_type and starpu_worker_get_by_devid
@@ -249,6 +250,9 @@ Changes:
     priorities of the current scheduling context, i.e the one which
     was set by a call to starpu_sched_ctx_set_context() or the initial
     context if the function was not called yet.
+  * MPI: Fix of the livelock issue discovered while executing applications
+    on a CPU+GPU cluster of machines by adding a maximum trylock
+    threshold before a blocking lock.
 
 Small changes:
   * STARPU_NCPU should now be used instead of STARPU_NCPUS. STARPU_NCPUS is
