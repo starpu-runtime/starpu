@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -400,6 +400,15 @@ Communication cache for starpumpi (\ref MPISupport) will be
 disabled when the environment variable \ref STARPU_MPI_CACHE is set
 to 0. It is enabled by default or for any other values of the variable
 \ref STARPU_MPI_CACHE.
+</dd>
+
+<dt>STARPU_MPI_CACHE_STATS</dt>
+<dd>
+\anchor STARPU_MPI_CACHE_STATS
+\addindex __env__STARPU_MPI_CACHE_STATS
+When set to 1, statistics are enabled for the communication cache (\ref MPISupport). For now,
+it prints messages on the standard output when data are added or removed from the received
+communication cache.
 </dd>
 
 </dl>
