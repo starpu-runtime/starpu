@@ -92,6 +92,7 @@ starpu_mpi_TESTS =				\
 	block_interface_pinned			\
 	insert_task				\
 	insert_task_cache			\
+	insert_task_recv_cache			\
 	insert_task_block			\
 	insert_task_owner			\
 	insert_task_owner2			\
@@ -117,6 +118,7 @@ noinst_PROGRAMS =				\
 	block_interface_pinned			\
 	insert_task				\
 	insert_task_cache			\
+	insert_task_recv_cache			\
 	insert_task_block			\
 	insert_task_owner			\
 	insert_task_owner2			\
@@ -155,6 +157,8 @@ block_interface_pinned_LDADD =			\
 insert_task_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_cache_LDADD =				\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+insert_task_recv_cache_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_block_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
