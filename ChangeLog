@@ -43,6 +43,7 @@ New features:
   * New functions starpu_mpi_task_build() and starpu_mpi_task_post_build()
   * New functions starpu_pause() and starpu_resume()
   * New codelet specific_nodes field to specify explicit target nodes for data.
+  * Use streams for GPUA->GPUB and GPUB->GPUA transfers.
 
 Small features:
   * New functions starpu_data_acquire_cb_sequential_consistency() and
