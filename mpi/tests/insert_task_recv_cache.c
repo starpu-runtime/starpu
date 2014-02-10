@@ -78,12 +78,12 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 		starpu_data_set_tag(data_handles[i], i);
 	}
 
-	// We call starpu_mpi_task_insert twice, when the cache is enabled, the 1st time puts the
+	// We call starpu_mpi_insert_task twice, when the cache is enabled, the 1st time puts the
 	// data in the cache, the 2nd time allows to check the data is not sent again
 	for(i = 0; i < 2; i++)
 	{
-		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
+		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
 	}
 
 	// Flush the cache for data_handles[1] which has been sent from node1 to node0
@@ -92,8 +92,8 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 	// Check again
 	for(i = 0; i < 2; i++)
 	{
-		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
+		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
 	}
 
 	starpu_task_wait_for_all();
