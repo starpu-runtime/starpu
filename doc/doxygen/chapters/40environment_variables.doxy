@@ -50,6 +50,13 @@ create as many CUDA workers as there are CUDA devices.
 OpenCL equivalent of the environment variable \ref STARPU_NCUDA.
 </dd>
 
+<dt>STARPU_NMICDEVS</dt>
+<dd>
+\anchor STARPU_NMICDEVS
+\addindex __env__STARPU_NMICDEVS
+MIC equivalent of the environment variable \ref STARPU_NCUDA.
+</dd>
+
 <dt>STARPU_OPENCL_ON_CPUS</dt>
 <dd>
 \anchor STARPU_OPENCL_ON_CPUS
