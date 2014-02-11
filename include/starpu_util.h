@@ -261,7 +261,7 @@ void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t whe
 
 void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char *name);
 
-void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigned num_workers, unsigned * workers, const char *name);
+void starpu_execute_on_specific_workers(void (*func)(void*), void *arg, unsigned num_workers, unsigned *workers, const char *name);
 
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
