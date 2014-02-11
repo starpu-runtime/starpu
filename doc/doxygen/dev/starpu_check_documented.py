@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import sys
 
 class bcolors:
     FAILURE = '\033[91m'
@@ -22,17 +23,21 @@ def loadFunctionsAndDatatypes(flist, dtlist, fname):
 functions = []
 datatypes = []
 
-for docfile in os.listdir('chapters/api'):
-    if docfile.count(".doxy"):
-        loadFunctionsAndDatatypes(functions, datatypes, "chapters/api/"+docfile)
+dirname=os.path.dirname(sys.argv[0])
+docfile_dir=dirname+"/../chapters/api/"
 
+for docfile in os.listdir(docfile_dir):
+    if docfile.count(".doxy"):
+        loadFunctionsAndDatatypes(functions, datatypes, docfile_dir+docfile)
+
+incfiles=dirname+"/../../../include/*.h " + dirname + "/../../../mpi/include/*.h " + dirname + "/../../../starpufft/*h " + dirname + "/../../../sc_hypervisor/include/*.h " + dirname + "/../../../include/starpu_config.h.in"
 for function in functions:
-    x = os.system("fgrep -l \"" + function[0] + "\" ../../include/*.h ../../mpi/include/*.h ../../starpufft/*h ../../sc_hypervisor/include/*.h > /dev/null")
+    x = os.system("fgrep -l \"" + function[0] + "\" " + incfiles + " > /dev/null")
     if x != 0:
         print "Function <" + bcolors.FAILURE + function[0] + bcolors.NORMAL + "> documented in <" + function[1] + "> does not exist in StarPU's API"
 
 for datatype in datatypes:
-    x = os.system("fgrep -l \"" + datatype[0] + "\" ../../include/*.h ../../include/starpu_config.h.in ../../mpi/include/*.h ../../starpufft/*h ../../sc_hypervisor/include/*.h > /dev/null")
+    x = os.system("fgrep -l \"" + datatype[0] + "\" " + incfiles + " > /dev/null")
     if x != 0:
         print "Datatype <" + bcolors.FAILURE + datatype[0] + bcolors.NORMAL + "> documented in <" + datatype[1] + "> does not exist in StarPU's API"
 
