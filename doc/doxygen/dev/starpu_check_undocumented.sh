@@ -60,7 +60,7 @@ if [ "$1" == "--enum" ] || [ "$1" == "" ] ; then
     starpu_enums=$(grep "enum starpu" $STARPU_H_FILES | grep -v "[;|,|(|)]" | awk '{print $2}')
     sc_enums=$(grep "enum starpu" $SC_H_FILES | grep -v "[;|,|(|)]" | awk '{print $2}')
     for enum in $starpu_enums $sc_enums ; do
-	x=$(grep -F "\\enum $enum" chapters/api/*.doxy)
+	x=$(grep -F "\\enum $enum" $dirname/../chapters/api/*.doxy)
 	if test "$x" == "" ; then
 	    echo "enum ${redcolor}${enum}${stcolor} is not (or incorrectly) documented"
 	fi
