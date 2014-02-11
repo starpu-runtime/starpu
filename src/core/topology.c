@@ -350,12 +350,12 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 	 * of node it is (architecture and type) as there is no way to discover
 	 * it itself */
 	char mic_idx_env[32];
-	sprintf(mic_idx_env, "DEVID=%d", mic_idx);
+	sprintf(mic_idx_env, "_STARPU_MIC_DEVID=%d", mic_idx);
 
 	/* XXX: this is currently necessary so that the remote process does not
 	 * segfault. */
 	char nb_mic_env[32];
-	sprintf(nb_mic_env, "NB_MIC=%d", 2);
+	sprintf(nb_mic_env, "_STARPU_MIC_NB=%d", 2);
 
 	const char *mic_sink_env[] = {"STARPU_SINK=STARPU_MIC", mic_idx_env, nb_mic_env, NULL};
 
