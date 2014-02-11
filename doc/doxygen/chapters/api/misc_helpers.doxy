@@ -37,7 +37,7 @@ instance.
 Same as starpu_execute_on_each_worker(), except that the task name is
 specified in the argument \p name.
 
-\fn void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigned num_workers, unsigned * workers, const char * name);
+\fn void starpu_execute_on_specific_workers(void (*func)(void*), void *arg, unsigned num_workers, unsigned *workers, const char *name);
 \ingroup API_Miscellaneous_Helpers
 Call \p func(\p arg) on every worker in the \p workers array. \p
 num_workers indicates the number of workers in this array.  This
