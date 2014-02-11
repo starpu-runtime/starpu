@@ -236,17 +236,18 @@ dist_pdf_DATA = $(DOX_PDF)
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	@cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
 	@cp $(top_srcdir)/doc/doxygen/chapters/*pdf $(DOX_LATEX_DIR)
-	@cd $(DOX_LATEX_DIR)
-	@rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out
-	@sed -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex
-	@sed -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex
-	@sed -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex
-	@sed -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex
-	@$(PDFLATEX) refman.tex
-	@$(MAKEINDEX) refman.idx
-	@$(PDFLATEX) refman.tex
-	@done=0; repeat=5
-	@while test $$done = 0 -a $$repeat -gt 0; do \
+	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
+	@cd $(DOX_LATEX_DIR) ;\
+	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\
+	sed -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
+	sed -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
+	sed -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
+	sed -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
+	$(PDFLATEX) refman.tex > /dev/null ;\
+	$(MAKEINDEX) refman.idx > /dev/null 2>&1 ;\
+	$(PDFLATEX) refman.tex > /dev/null ;\
+	done=0; repeat=5 ;\
+	while test $$done = 0 -a $$repeat -gt 0; do \
            if $(EGREP) 'Rerun (LaTeX|to get cross-references right)' refman.log > /dev/null 2>&1; then \
 	       $(PDFLATEX) refman.tex; \
 	       repeat=`expr $$repeat - 1`; \
@@ -254,7 +255,7 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	       done=1; \
 	   fi; \
 	done
-	@mv refman.pdf ../$(DOX_PDF)
+	mv $(DOX_LATEX_DIR)/refman.pdf $(DOX_PDF)
 
 CLEANFILES = $(DOX_TAG) starpu_config.h \
     -r \
