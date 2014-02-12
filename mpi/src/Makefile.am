@@ -38,6 +38,7 @@ noinst_HEADERS =					\
 	starpu_mpi_stats.h				\
 	starpu_mpi_task_insert.h			\
 	starpu_mpi_datatype.h				\
+	starpu_mpi_cache.h				\
 	starpu_mpi_cache_stats.h
 
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
@@ -48,6 +49,7 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi_collective.c				\
 	starpu_mpi_stats.c				\
 	starpu_mpi_private.c				\
+	starpu_mpi_cache.c				\
 	starpu_mpi_cache_stats.c
 
 showcheck:
