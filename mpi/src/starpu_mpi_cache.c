@@ -93,6 +93,7 @@ void _starpu_mpi_cache_free(int world_size)
 	_starpu_mpi_cache_empty_tables(world_size);
 	free(_cache_sent_data);
 	free(_cache_received_data);
+	_starpu_mpi_cache_stats_free();
 }
 
 void _starpu_mpi_cache_flush_sent(MPI_Comm comm, starpu_data_handle_t data)
