@@ -716,7 +716,9 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	size_t size = _starpu_data_get_size(handle);
 
+	_starpu_spin_unlock(&handle->header_lock);
 	if (handle->unregister_hook) handle->unregister_hook(handle);
+	_starpu_spin_lock(&handle->header_lock);
 
 	_starpu_data_free_interfaces(handle);
 
