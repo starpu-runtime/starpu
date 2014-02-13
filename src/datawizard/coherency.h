@@ -220,7 +220,7 @@ struct _starpu_data_state
 	unsigned int mf_node; //XXX
 
 	/* hook to be called when unregistering the data */
-	_starpu_data_handle_unregister_hook hook;
+	_starpu_data_handle_unregister_hook unregister_hook;
 };
 
 void _starpu_display_msi_stats(void);

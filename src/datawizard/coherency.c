@@ -881,5 +881,5 @@ unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, unsig
 
 void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func)
 {
-	handle->hook = func;
+	handle->unregister_hook = func;
 }
