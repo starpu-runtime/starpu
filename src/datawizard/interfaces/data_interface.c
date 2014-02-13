@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -716,9 +716,12 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	size_t size = _starpu_data_get_size(handle);
 
-	_starpu_spin_unlock(&handle->header_lock);
-	if (handle->unregister_hook) handle->unregister_hook(handle);
-	_starpu_spin_lock(&handle->header_lock);
+	if (handle->unregister_hook)
+	{
+		_starpu_spin_unlock(&handle->header_lock);
+		handle->unregister_hook(handle);
+		_starpu_spin_lock(&handle->header_lock);
+	}
 
 	_starpu_data_free_interfaces(handle);
 
