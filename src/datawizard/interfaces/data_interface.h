@@ -66,4 +66,7 @@ extern void _starpu_data_register_ram_pointer(starpu_data_handle_t handle,
 extern int _starpu_data_is_multiformat_handle(starpu_data_handle_t handle);
 extern starpu_data_handle_t _starpu_data_get_data_handle_from_tag(int tag);
 
+extern int _starpu_data_set_rank(starpu_data_handle_t handle, int rank);
+extern int _starpu_data_set_tag(starpu_data_handle_t handle, int tag);
+
 #endif // __DATA_INTERFACE_H__

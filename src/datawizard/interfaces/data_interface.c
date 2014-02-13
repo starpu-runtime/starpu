@@ -393,10 +393,16 @@ int starpu_data_get_rank(starpu_data_handle_t handle)
 	return handle->rank;
 }
 
-int starpu_data_set_rank(starpu_data_handle_t handle, int rank)
+int _starpu_data_set_rank(starpu_data_handle_t handle, int rank)
 {
 	handle->rank = rank;
 	return 0;
+}
+
+int starpu_data_set_rank(starpu_data_handle_t handle, int rank)
+{
+	_STARPU_DISP("Warning: You should call starpu_mpi_data_register which will insure MPI cache will be cleared when unregistering the data\n");
+	return _starpu_data_set_rank(handle, rank);
 }
 
 int starpu_data_get_tag(starpu_data_handle_t handle)
@@ -422,7 +428,7 @@ starpu_data_handle_t _starpu_data_get_data_handle_from_tag(int tag)
 	}
 }
 
-int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
+int _starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 {
 	struct handle_tag_entry *entry;
 	entry = (struct handle_tag_entry *) malloc(sizeof(*entry));
@@ -440,6 +446,12 @@ int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 
 	handle->tag = tag;
 	return 0;
+}
+
+int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
+{
+	_STARPU_DISP("Warning: You should call starpu_mpi_data_register which will insure MPI cache will be cleared when unregistering the data\n");
+	return _starpu_data_set_tag(handle, tag);
 }
 
 static
