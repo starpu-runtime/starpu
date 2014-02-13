@@ -27,7 +27,7 @@
 struct _starpu_data_entry
 {
 	UT_hash_handle hh;
-	void *data;
+	starpu_data_handle_t data;
 };
 
 static struct _starpu_data_entry **_cache_sent_data = NULL;
@@ -80,7 +80,7 @@ void _starpu_mpi_cache_empty_tables(int world_size)
 		HASH_ITER(hh, _cache_received_data[i], entry, tmp)
 		{
 			HASH_DEL(_cache_received_data[i], entry);
-			_starpu_mpi_cache_stats_dec(-1, i, (starpu_data_handle_t) entry->data);
+			_starpu_mpi_cache_stats_dec(-1, i, entry->data);
 			free(entry);
 		}
 	}
@@ -148,19 +148,19 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 		struct _starpu_data_entry *entry, *tmp;
 		HASH_ITER(hh, _cache_sent_data[i], entry, tmp)
 		{
-			mpi_rank = starpu_data_get_rank((starpu_data_handle_t) entry->data);
+			mpi_rank = starpu_data_get_rank(entry->data);
 			if (mpi_rank != my_rank && mpi_rank != -1)
-				starpu_data_invalidate_submit((starpu_data_handle_t) entry->data);
+				starpu_data_invalidate_submit(entry->data);
 			HASH_DEL(_cache_sent_data[i], entry);
 			free(entry);
 		}
 		HASH_ITER(hh, _cache_received_data[i], entry, tmp)
 		{
-			mpi_rank = starpu_data_get_rank((starpu_data_handle_t) entry->data);
+			mpi_rank = starpu_data_get_rank(entry->data);
 			if (mpi_rank != my_rank && mpi_rank != -1)
-				starpu_data_invalidate_submit((starpu_data_handle_t) entry->data);
+				starpu_data_invalidate_submit(entry->data);
 			HASH_DEL(_cache_received_data[i], entry);
-			_starpu_mpi_cache_stats_dec(my_rank, i, (starpu_data_handle_t) entry->data);
+			_starpu_mpi_cache_stats_dec(my_rank, i, entry->data);
 			free(entry);
 		}
 	}
