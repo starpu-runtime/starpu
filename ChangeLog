@@ -22,6 +22,11 @@ New features:
   * MPI:
         - New variable STARPU_MPI_CACHE_STATS to print statistics on
    	  cache holding received data.
+        - New function starpu_mpi_data_register() which sets the rank
+  	  and tag of a data, and also allows to automatically clear
+	  the MPI communication cache when unregistering the data. It
+	  should be called instead of both calling
+	  starpu_data_set_tag() and starpu_data_set_rank()
   * Use streams for GPUA->GPUB and GPUB->GPUA transfers.
 
 Small features:
