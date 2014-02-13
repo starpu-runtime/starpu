@@ -200,6 +200,12 @@ Tell StarPU-MPI which MPI tag to use when exchanging the data.
 \ingroup API_MPI_Support
 Returns the MPI tag to be used when exchanging the data.
 
+\fn int starpu_mpi_data_register(starpu_data_handle_t handle, int tag, int rank)
+\ingroup API_MPI_Support
+Calling this function should be prefered to calling both
+starpu_data_set_rank() and starpu_data_set_tag() as it also allows to
+automatically clear the MPI communication cache when unregistering the data.
+
 \fn int starpu_data_set_rank(starpu_data_handle_t handle, int rank)
 \ingroup API_MPI_Support
 Tell StarPU-MPI which MPI node "owns" a given data, that is, the node

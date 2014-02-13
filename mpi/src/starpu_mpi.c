@@ -25,6 +25,7 @@
 #include <common/config.h>
 #include <common/thread.h>
 #include <datawizard/interfaces/data_interface.h>
+#include <datawizard/coherency.h>
 
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_submit_new_mpi_request(void *arg);
@@ -1621,4 +1622,17 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_cache_free(world_size);
 
 	return 0;
+}
+
+void _starpu_mpi_clear_cache(starpu_data_handle_t data_handle)
+{
+	starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handle);
+}
+
+void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int rank)
+{
+	_starpu_data_set_rank(data_handle, rank);
+	_starpu_data_set_tag(data_handle, tag);
+	_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
+
 }
