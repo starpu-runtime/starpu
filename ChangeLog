@@ -134,6 +134,11 @@ New features:
         - When exchanging user-defined data interfaces, the size of
 	  the data is the size returned by the pack operation, i.e
 	  data with dynamic size can now be exchanged with StarPU-MPI.
+        - New function starpu_mpi_data_register() which sets the rank
+  	  and tag of a data, and also allows to automatically clear
+	  the MPI communication cache when unregistering the data. It
+	  should be called instead of both calling
+	  starpu_data_set_tag() and starpu_data_set_rank()
   * Add experimental simgrid support, to simulate execution with various
     number of CPUs, GPUs, amount of memory, etc.
   * Add support for OpenCL simulators (which provide simulated execution time)
