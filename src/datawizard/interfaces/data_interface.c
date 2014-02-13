@@ -704,6 +704,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 
 	size_t size = _starpu_data_get_size(handle);
 
+	if (handle->hook) handle->hook(handle);
+
 	_starpu_data_free_interfaces(handle);
 
 	/* Destroy the data now */

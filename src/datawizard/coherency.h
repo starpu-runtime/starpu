@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -99,6 +99,8 @@ struct _starpu_task_wrapper_list
 };
 
 extern int _starpu_has_not_important_data;
+
+typedef void (*_starpu_data_handle_unregister_hook)(starpu_data_handle_t);
 
 struct _starpu_data_state
 {
@@ -216,6 +218,9 @@ struct _starpu_data_state
 	_starpu_memory_stats_t memory_stats;
 
 	unsigned int mf_node; //XXX
+
+	/* hook to be called when unregistering the data */
+	_starpu_data_handle_unregister_hook hook;
 };
 
 void _starpu_display_msi_stats(void);
@@ -266,5 +271,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 void _starpu_data_start_reduction_mode(starpu_data_handle_t handle);
 void _starpu_data_end_reduction_mode(starpu_data_handle_t handle);
 void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle);
+
+void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func);
 
 #endif // __COHERENCY__H__
