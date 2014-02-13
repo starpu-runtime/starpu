@@ -21,8 +21,8 @@ Some gdb helpers are also provided to show the whole StarPU state:
 
 Valgrind can be used on StarPU: valgrind.h just needs to be found at ./configure
 time, to tell valgrind about some known false positives and disable host memory
-pinning. Other known false positives can be suppressed by using the suppression
-files in tools/valgrind/ *.suppr.
+pinning. Other known false positives can be suppressed by giving the suppression
+files in tools/valgrind/ *.suppr to valgrind's --suppressions option.
 
 The STARPU_DISABLE_KERNELS environment variable can also be set to 1 to make
 StarPU do everything (schedule tasks, transfer memory, etc.) except actually
