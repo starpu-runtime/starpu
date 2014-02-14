@@ -57,7 +57,7 @@ struct starpu_worker_collection
 {
 	void *workerids;
 	unsigned nworkers;
-	unsigned present[STARPU_NMAXWORKERS];
+	int present[STARPU_NMAXWORKERS];
 	enum starpu_worker_collection_type type;
 	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	int (*get_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);

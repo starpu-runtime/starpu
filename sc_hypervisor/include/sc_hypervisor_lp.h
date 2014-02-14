@@ -50,6 +50,9 @@ void sc_hypervisor_lp_redistribute_resources_in_ctxs(int ns, int nw, int res_rou
 /* make the first distribution of ressource in contexts by assigning the first x available ressources to each one */
 void sc_hypervisor_lp_distribute_resources_in_ctxs(unsigned* sched_ctxs, int ns, int nw, int res_rounded[ns][nw], double res[ns][nw], int *workers, int nworkers, struct types_of_workers *tw);
 
+/* make the first distribution of ressource in contexts by assigning the first x available ressources to each one, share not integer no of workers */
+void sc_hypervisor_lp_distribute_floating_no_resources_in_ctxs(unsigned* sched_ctxs, int ns, int nw, double res[ns][nw], int *workers, int nworkers, struct types_of_workers *tw);
+
 /* place resources in contexts dependig on whether they already have workers or not */
 void sc_hypervisor_lp_place_resources_in_ctx(int ns, int nw, double w_in_s[ns][nw], unsigned *sched_ctxs, int *workers, unsigned do_size, struct types_of_workers *tw);
 

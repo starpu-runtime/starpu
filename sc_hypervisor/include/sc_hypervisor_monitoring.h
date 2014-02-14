@@ -132,6 +132,10 @@ struct sc_hypervisor_wrapper
 	   worker to the idle of the context or just half*/
 	unsigned compute_partial_idle[STARPU_NMAXWORKERS];
 
+	/* consider the max in the lp */
+	unsigned consider_max;
+
+
 };
 
 /* return the wrapper of context that saves its monitoring information */

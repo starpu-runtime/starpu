@@ -1342,7 +1342,7 @@ void starpu_shutdown(void)
 	if (_starpu_scc_common_is_mp_initialized())
 		_starpu_scc_src_mp_deinit();
 #endif
-
+//	_starpu_print_idle_time();
 	_STARPU_DEBUG("Shutdown finished\n");
 }
 

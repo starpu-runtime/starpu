@@ -511,7 +511,7 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_
 		double vmax = sc_hypervisor_lp_get_nworkers_per_ctx(ns, nw, nworkers_per_ctx, total_nw, tw, sched_ctxs);
 
 		
-		if(vmax != 0.0)
+//		if(vmax != 0.0)
 		{
 			for(i = 0; i < ns; i++)
 			{

@@ -113,6 +113,9 @@ double starpu_sched_ctx_get_nready_flops(unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_priority(int *workers, int nworkers, unsigned sched_ctx_id, unsigned priority);
 
+void starpu_sched_ctx_set_priority_on_level(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx, unsigned priority);
+
+unsigned starpu_sched_ctx_get_priority(int worker, unsigned sched_ctx_id);
 #ifdef STARPU_USE_SC_HYPERVISOR
 void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif //STARPU_USE_SC_HYPERVISOR

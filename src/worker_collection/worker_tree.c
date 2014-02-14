@@ -64,7 +64,7 @@ static int tree_get_next(struct starpu_worker_collection *workers, struct starpu
 
 	ret = _starpu_worker_get_workerid(neighbour->id);
 	STARPU_ASSERT_MSG(ret != -1, "bind id not correct");
-	it->visited[ret] = 1;
+	it->visited[neighbour->id] = 1;
 
 	return ret;
 }

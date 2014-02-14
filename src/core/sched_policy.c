@@ -25,6 +25,8 @@
 #include <core/debug.h>
 
 static int use_prefetch = 0;
+double idle[STARPU_NMAXWORKERS];
+double idle_start[STARPU_NMAXWORKERS];
 
 int starpu_get_prefetch_flag(void)
 {
@@ -627,7 +629,8 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 		}
 	}
 
-	if(worker->pop_ctx_priority == 0 && first_sched_ctx == STARPU_NMAX_SCHED_CTXS)
+//	if(worker->pop_ctx_priority == 0 && first_sched_ctx == STARPU_NMAX_SCHED_CTXS)
+	if(first_sched_ctx == STARPU_NMAX_SCHED_CTXS)
 		first_sched_ctx = worker->sched_ctx_list->sched_ctx;
 
 	worker->poped_in_ctx[first_sched_ctx] = !worker->poped_in_ctx[first_sched_ctx];
@@ -729,9 +732,18 @@ pick:
 
 
 	if (!task)
+	{
+		idle_start[worker->workerid] = starpu_timing_now();
 		return NULL;
+	}
 
-
+	if(idle_start[worker->workerid] != 0.0)
+	{
+		double idle_end = starpu_timing_now();
+		idle[worker->workerid] += (idle_end - idle_start[worker->workerid]);
+		idle_start[worker->workerid] = 0.0;
+	}
+	
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
@@ -865,4 +877,22 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int prio)
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
 	return  _starpu_push_local_task(worker, task, prio);
+}
+
+void _starpu_print_idle_time()
+{
+	double all_idle = 0.0;
+	int i = 0;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		all_idle += idle[i];
+
+	FILE *f;
+	const char *sched_env = getenv("IDLE_FILE");
+	if(!sched_env)
+		f = fopen("idle_microsec", "a");
+	else
+		f = fopen(sched_env, "a");
+	fprintf(f, "%lf \n", all_idle);
+	fclose(f);
+	
 }

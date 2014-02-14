@@ -330,6 +330,20 @@ fi
 AM_CONDITIONAL([STARPU_BUILD_SC_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SC_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
 
+AC_ARG_ENABLE([sc_hypervisor_debug],
+  [AS_HELP_STRING([--enable-sc-hypervisor-debug],
+    [enable debug for resizing contexts (experimental)])],
+  [enable_sc_hypervisor_debug="yes"],
+  [enable_sc_hypervisor_debug="no"])
+
+
+AC_SUBST(STARPU_SC_HYPERVISOR_DEBUG, $enable_sc_hypervisor_debug)
+AM_CONDITIONAL([STARPU_SC_HYPERVISOR_DEBUG], [test "x$enable_sc_hypervisor_debug" = "xyes"])
+
+if test "x$enable_sc_hypervisor_debug" = "xyes"; then
+  AC_DEFINE(STARPU_SC_HYPERVISOR_DEBUG, [1], [enable debug sc_hypervisor])
+fi
+
 ###############################################################################
 #                                                                             #
 #                                 CPUs settings                               #

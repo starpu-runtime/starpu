@@ -252,7 +252,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], 
 					       int  total_nw[nw], unsigned sched_ctxs[ns], double last_vmax)
 {
-	int integer = 1;
+	int integer = 0;
 	int s, w;
 	glp_prob *lp;
 
@@ -272,11 +272,13 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 	   and another column corresponding to the 1/tmax bound (bc 1/tmax is a variable too)*/
 	glp_add_cols(lp, nw*ns+1);
 
+	struct sc_hypervisor_wrapper *sc_w = NULL;
 	for(s = 0; s < ns; s++)
 	{
+		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
+		struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[s]);
 		for(w = 0; w < nw; w++)
 		{
-			struct sc_hypervisor_policy_config *config = sc_hypervisor_get_config(sched_ctxs[s]);
 			char name[32];
 			snprintf(name, sizeof(name), "worker%dctx%d", w, s);
 			glp_set_col_name(lp, n, name);
@@ -284,22 +286,50 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
 			if (integer)
 			{
 				glp_set_col_kind(lp, n, GLP_IV);
-				if(config->max_nworkers == 0)
-					glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers, config->max_nworkers);
+				if(sc_w->consider_max)
+				{
+					if(config->max_nworkers == 0)
+						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers, config->max_nworkers);
+					else
+						glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers, config->max_nworkers);
+				}
 				else
-					glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers, config->max_nworkers);
+				{
+					if(total_nw[w] == 0)
+						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers, total_nw[w]);
+					else
+						glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers, total_nw[w]);
+				}
 			}
 			else
 			{
-				if(config->max_nworkers == 0)
-					glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers*1.0, config->max_nworkers*1.0);
+				if(sc_w->consider_max)
+				{
+					if(config->max_nworkers == 0)
+						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers*1.0, config->max_nworkers*1.0);
+					else
+						glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers*1.0, config->max_nworkers*1.0);
+#ifdef STARPU_SC_HYPERVISOR_DEBUG
+					printf("%d****************consider max %lf in lp\n", sched_ctxs[s], config->max_nworkers*1.0);
+#endif
+				}
 				else
-					glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers*1.0, config->max_nworkers*1.0);
+				{
+					if(total_nw[w] == 0)
+						glp_set_col_bnds(lp, n, GLP_FX, config->min_nworkers*1.0, total_nw[w]*1.0);
+					else
+						glp_set_col_bnds(lp, n, GLP_DB, config->min_nworkers*1.0, total_nw[w]*1.0);
+#ifdef STARPU_SC_HYPERVISOR_DEBUG
+					printf("%d****************don't consider max %d but total %d in lp\n", sched_ctxs[s], config->max_nworkers, total_nw[w]);
+#endif
+				}
 			}
 			n++;
 		}
 	}
-
+#ifdef STARPU_SC_HYPERVISOR_DEBUG
+	printf("ns = %d nw = %d\n", ns, nw);
+#endif
 	/*1/tmax should belong to the interval [0.0;1.0]*/
 	glp_set_col_name(lp, n, "vmax");
 //	glp_set_col_bnds(lp, n, GLP_DB, 0.0, 1.0);
@@ -456,8 +486,9 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
         }
 
 	double vmax = glp_get_obj_val(lp);
-
+#ifdef STARPU_SC_HYPERVISOR_DEBUG
 	printf("vmax = %lf \n", vmax);
+#endif
 	n = 1;
 	for(s = 0; s < ns; s++)
 	{
@@ -467,7 +498,9 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
                                 res[s][w] = (double)glp_mip_col_val(lp, n);
 			else
 				res[s][w] = glp_get_col_prim(lp, n);
+#ifdef STARPU_SC_HYPERVISOR_DEBUG
   			printf("%d/%d: res %lf flops = %lf v = %lf\n", w,s, res[s][w], flops[s], v[s][w]);
+#endif
 			n++;
 		}
 	}
