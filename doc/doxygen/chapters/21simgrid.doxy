@@ -11,6 +11,21 @@
 StarPU can use Simgrid in order to simulate execution on an arbitrary
 platform.
 
+\section Preparing your application for simulation.
+
+There are a few technical details which need to be handled for an application to
+be simulated through Simgrid.
+
+If the application uses <c>gettimeofday</c> to make its
+performance measurements, the real time will be used, which will be bogus. To
+get the simulated time, it has to use starpu_timing_now() which returns the
+virtual timestamp in ms.
+
+For some technical reason, the application's .c file which contains main() has
+to be recompiled with starpu.h, which in the simgrid case will #define main()
+into starpu_main(), and it is libstarpu which will provide the real main() and
+call the application's main().
+
 \section Calibration Calibration
 
 The idea is to first compile StarPU normally, and run the application,
@@ -74,11 +89,6 @@ parameter <c>--cfg=contexts/stack_size</c>, for example:
 $ ./example --cfg=contexts/stack_size:8192
 TEST FAILED !!!
 \endverbatim
-
-Note: of course, if the application uses <c>gettimeofday</c> to make its
-performance measurements, the real time will be used, which will be bogus. To
-get the simulated time, it has to use starpu_timing_now() which returns the
-virtual timestamp in ms.
 
 \section SimulationOnAnotherMachine Simulation On Another Machine
 
