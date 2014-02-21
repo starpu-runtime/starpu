@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -251,6 +251,14 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 
 /* Add an event in the execution trace if FxT is enabled */
 void starpu_trace_user_event(unsigned long code);
+
+static __starpu_inline int starpu_get_env_number_default(const char *str, int defval)
+{
+	int ret = starpu_get_env_number(str);
+	if (ret == -1)
+		ret = defval;
+	return ret;
+}
 
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
