@@ -608,7 +608,7 @@ properly, without performing the actual application-provided computation.
 \addindex __env__STARPU_HISTORY_MAX_ERROR
 History-based performance models will drop measurements which are really far
 froom the measured average. This specifies the allowed variation. The default is
-10, i.e. the measurement is allowed to be 110% faster or 110% slower than the
+10 (%), i.e. the measurement is allowed to be x1.1 faster or /1.1 slower than the
 average.
 </dd>
 
