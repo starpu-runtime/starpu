@@ -1322,11 +1322,15 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				/* There is already an entry with the same footprint */
 
 				double local_deviation = measured/entry->mean;
+				int historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
 				
 				if (entry->nsample &&
-					(100 * local_deviation > (100 + STARPU_HISTORYMAXERROR)
-					 || (100 / local_deviation > (100 + STARPU_HISTORYMAXERROR))))
+					(100 * local_deviation > (100 + historymaxerror)
+					 || (100 / local_deviation > (100 + historymaxerror))))
 				{
+					/* TODO: add aging, otherwise with
+					 * millions of tasks we're sure to
+					 * flush at least once... */
 					entry->nerror++;
 
 					/* Too many errors: we flush out all the entries */
@@ -1338,7 +1342,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 						entry->nerror = 0;
 						entry->mean = 0.0;
 						entry->deviation = 0.0;
-						_STARPU_DEBUG("Too many errors for model %s\n", model->symbol);
+						_STARPU_DISP("Too big deviation for model %s: %f vs average %f (%+f%%), flushing the performance model. Use the STARPU_HISTORY_MAX_ERROR environement variable to control the threshold (currently %d%%)\n", model->symbol, measured, entry->mean, measured * 100. / entry->mean - 100, historymaxerror);
 					}
 				}
 				else
