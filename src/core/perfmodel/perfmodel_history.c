@@ -1336,7 +1336,9 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 					/* Too many errors: we flush out all the entries */
 					if (entry->nerror >= entry->nsample)
 					{
-						_STARPU_DISP("Too big deviation for model %s: %f vs average %f over %u samples (%+f%%), flushing the performance model. Use the STARPU_HISTORY_MAX_ERROR environement variable to control the threshold (currently %d%%)\n", model->symbol, measured, entry->mean, entry->nsample, measured * 100. / entry->mean - 100, historymaxerror);
+						char archname[32];
+						starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
+						_STARPU_DISP("Too big deviation for model %s on %s: %f vs average %f over %u samples (%+f%%), flushing the performance model. Use the STARPU_HISTORY_MAX_ERROR environement variable to control the threshold (currently %d%%)\n", model->symbol, archname, measured, entry->mean, entry->nsample, measured * 100. / entry->mean - 100, historymaxerror);
 						entry->sum = 0.0;
 						entry->sum2 = 0.0;
 						entry->nsample = 0;
