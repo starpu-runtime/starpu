@@ -19,7 +19,7 @@ be simulated through Simgrid.
 If the application uses <c>gettimeofday</c> to make its
 performance measurements, the real time will be used, which will be bogus. To
 get the simulated time, it has to use starpu_timing_now() which returns the
-virtual timestamp in ms.
+virtual timestamp in us.
 
 For some technical reason, the application's .c file which contains main() has
 to be recompiled with starpu.h, which in the simgrid case will #define main()
