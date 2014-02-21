@@ -1342,7 +1342,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 						entry->nerror = 0;
 						entry->mean = 0.0;
 						entry->deviation = 0.0;
-						_STARPU_DISP("Too big deviation for model %s: %f vs average %f (%+f%%), flushing the performance model. Use the STARPU_HISTORY_MAX_ERROR environement variable to control the threshold (currently %d%%)\n", model->symbol, measured, entry->mean, measured * 100. / entry->mean - 100, historymaxerror);
+						_STARPU_DISP("Too big deviation for model %s: %f vs average %f over %u samples (%+f%%), flushing the performance model. Use the STARPU_HISTORY_MAX_ERROR environement variable to control the threshold (currently %d%%)\n", model->symbol, measured, entry->mean, entry->nsample, measured * 100. / entry->mean - 100, historymaxerror);
 					}
 				}
 				else
