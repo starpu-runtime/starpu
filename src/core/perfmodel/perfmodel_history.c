@@ -1439,6 +1439,10 @@ void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct star
 {
 	struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
 
+#ifdef STARPU_SIMGRID
+	STARPU_ASSERT_MSG(0, "We are not supposed to update history when simulating execution");
+#endif
+
 	_starpu_load_perfmodel(model);
 	/* Record measurement */
 	_starpu_update_perfmodel_history(job, model, arch, cpuid, measured, nimpl);
