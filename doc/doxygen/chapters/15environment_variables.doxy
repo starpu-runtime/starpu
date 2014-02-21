@@ -568,6 +568,16 @@ dog is reached, thus allowing to catch the situation in gdb, etc
 (see \ref DetectionStuckConditions)
 </dd>
 
+<dt>STARPU_HISTORY_MAX_ERROR</dt>
+<dd>
+\anchor STARPU_HISTORY_MAX_ERROR
+\addindex __env__STARPU_HISTORY_MAX_ERROR
+History-based performance models will drop measurements which are really far
+froom the measured average. This specifies the allowed variation. The default is
+10, i.e. the measurement is allowed to be 110% faster or 110% slower than the
+average.
+</dd>
+
 </dl>
 
 \section ConfiguringTheHypervisor Configuring The Hypervisor
