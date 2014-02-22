@@ -343,12 +343,15 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 
         /* Get the maximum size which can be allocated on the device */
         cl_device_id device;
-	cl_ulong maxMemAllocSize;
+	cl_ulong maxMemAllocSize, totalGlobalMem;
         starpu_opencl_get_device(dev, &device);
 	err = clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(maxMemAllocSize), &maxMemAllocSize, NULL);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
-	opencl_size[dev] = maxMemAllocSize;
         if (size > (size_t)maxMemAllocSize/4) size = maxMemAllocSize/4;
+
+	err = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE , sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	opencl_size[dev] = totalGlobalMem;
 
 	if (_starpu_opencl_get_device_type(dev) == CL_DEVICE_TYPE_CPU)
 	{
