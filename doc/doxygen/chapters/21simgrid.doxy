@@ -72,15 +72,10 @@ $ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
     matvecmult does not have a perfmodel, or is not calibrated enough
 \endverbatim
 
-The number of devices can be chosen as usual with \ref STARPU_NCPU,
-\ref STARPU_NCUDA, and \ref STARPU_NOPENCL.  For now, only the number of
-cpus can be arbitrarily chosen. The number of CUDA and OpenCL devices have to be
-lower than the real number on the current machine.
-
-The amount of simulated GPU memory is for now unbound by default, but
-it can be chosen by hand through the \ref STARPU_LIMIT_CUDA_MEM,
-\ref STARPU_LIMIT_CUDA_devid_MEM, \ref STARPU_LIMIT_OPENCL_MEM, and
-\ref STARPU_LIMIT_OPENCL_devid_MEM environment variables.
+The number of devices can be chosen as usual with \ref STARPU_NCPU, \ref
+STARPU_NCUDA, and \ref STARPU_NOPENCL, and the amount of GPU memory
+with \ref STARPU_LIMIT_CUDA_MEM, \ref STARPU_LIMIT_CUDA_devid_MEM, \ref
+STARPU_LIMIT_OPENCL_MEM, and \ref STARPU_LIMIT_OPENCL_devid_MEM.
 
 The Simgrid default stack size is small; to increase it use the
 parameter <c>--cfg=contexts/stack_size</c>, for example:
