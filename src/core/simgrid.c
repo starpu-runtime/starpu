@@ -57,6 +57,25 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	return ret;
 }
 
+unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid)
+{
+	char name[16];
+	msg_host_t host;
+	const char *memsize;
+
+	snprintf(name, sizeof(name), "%s%u", prefix, devid);
+
+	host = MSG_get_host_by_name(name);
+	if (!host)
+		return 0;
+
+	memsize = MSG_host_get_property_value(host, "memsize");
+	if (!memsize)
+		return 0;
+
+	return atoll(memsize);
+}
+
 #ifdef STARPU_DEVEL
 #warning TODO: use another way to start main, when simgrid provides it, and then include the application-provided configuration for platform numbers
 #endif
