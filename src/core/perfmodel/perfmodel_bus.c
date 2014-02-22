@@ -73,6 +73,7 @@ static unsigned nmic = 0;
 /* Benchmarking the performance of the bus */
 
 #ifdef STARPU_USE_CUDA
+static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXCPUS];
 static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_latency_htod[STARPU_MAXNODES] = {0.0};
@@ -85,6 +86,7 @@ static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
 #ifdef STARPU_USE_OPENCL
+static uint64_t opencl_size[STARPU_MAXCUDADEVS];
 static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXCPUS];
 static double opencldev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double opencldev_latency_htod[STARPU_MAXNODES] = {0.0};
@@ -131,6 +133,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	cudaError_t cures;
 	cures = cudaGetDeviceProperties(&prop, dev);
 	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
+	cuda_size[dev] = prop.totalGlobalMem;
         if (size > prop.totalGlobalMem/4) size = prop.totalGlobalMem/4;
 
 	/* Allocate a buffer on the device */
@@ -344,6 +347,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
         starpu_opencl_get_device(dev, &device);
 	err = clGetDeviceInfo(device, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(maxMemAllocSize), &maxMemAllocSize, NULL);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	opencl_size[dev] = maxMemAllocSize;
         if (size > (size_t)maxMemAllocSize/4) size = maxMemAllocSize/4;
 
 	if (_starpu_opencl_get_device_type(dev) == CL_DEVICE_TYPE_CPU)
@@ -1662,13 +1666,14 @@ static void write_bus_platform_file_content(void)
 		);
 
 	for (i = 0; i < ncpus; i++)
+		/* TODO: host memory for out-of-core simulation */
 		fprintf(f, "   <host id='CPU%d' power='2000000000'/>\n", i);
 
 	for (i = 0; i < ncuda; i++)
-		fprintf(f, "   <host id='CUDA%d' power='2000000000'/>\n", i);
+		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i, (unsigned long long) cuda_size[i]);
 
 	for (i = 0; i < nopencl; i++)
-		fprintf(f, "   <host id='OpenCL%d' power='2000000000'/>\n", i);
+		fprintf(f, "   <host id='OpenCL%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i, (unsigned long long) opencl_size[i]);
 
 	fprintf(f, "\n   <host id='RAM' power='1'/>\n");
 

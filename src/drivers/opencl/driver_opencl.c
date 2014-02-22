@@ -67,7 +67,9 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
 
-#ifdef STARPU_USE_OPENCL
+#ifdef STARPU_SIMGRID
+	totalGlobalMem = _starpu_simgrid_get_memsize("OpenCL", devid);
+#elif defined(STARPU_USE_OPENCL)
 	/* Request the size of the current device's memory */
 	cl_int err;
 	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);

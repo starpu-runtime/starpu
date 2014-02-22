@@ -79,7 +79,9 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 	size_t STARPU_ATTRIBUTE_UNUSED to_waste = 0;
 	char name[30];
 
-#ifdef STARPU_USE_CUDA
+#ifdef STARPU_SIMGRID
+	totalGlobalMem = _starpu_simgrid_get_memsize("CUDA", devid);
+#elif defined(STARPU_USE_CUDA)
 	/* Find the size of the memory on the device */
 	totalGlobalMem = props[devid].totalGlobalMem;
 #endif
