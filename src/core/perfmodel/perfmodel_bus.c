@@ -1626,6 +1626,8 @@ static void write_bus_platform_file_content(void)
 		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i,
 #ifdef STARPU_USE_CUDA
 				(unsigned long long) cuda_size[i]
+#else
+				0ULL
 #endif
 				);
 
@@ -1633,6 +1635,8 @@ static void write_bus_platform_file_content(void)
 		fprintf(f, "   <host id='OpenCL%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i,
 #ifdef STARPU_USE_OPENCL
 				(unsigned long long) opencl_size[i]
+#else
+				0ULL
 #endif
 				);
 
