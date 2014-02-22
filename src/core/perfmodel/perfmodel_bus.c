@@ -1673,10 +1673,18 @@ static void write_bus_platform_file_content(void)
 		fprintf(f, "   <host id='CPU%d' power='2000000000'/>\n", i);
 
 	for (i = 0; i < ncuda; i++)
-		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i, (unsigned long long) cuda_size[i]);
+		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i,
+#ifdef STARPU_USE_CUDA
+				(unsigned long long) cuda_size[i]
+#endif
+				);
 
 	for (i = 0; i < nopencl; i++)
-		fprintf(f, "   <host id='OpenCL%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i, (unsigned long long) opencl_size[i]);
+		fprintf(f, "   <host id='OpenCL%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i,
+#ifdef STARPU_USE_OPENCL
+				(unsigned long long) opencl_size[i]
+#endif
+				);
 
 	fprintf(f, "\n   <host id='RAM' power='1'/>\n");
 
