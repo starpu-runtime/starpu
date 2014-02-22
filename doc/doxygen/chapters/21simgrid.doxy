@@ -26,6 +26,16 @@ to be recompiled with starpu.h, which in the simgrid case will #define main()
 into starpu_main(), and it is libstarpu which will provide the real main() and
 call the application's main().
 
+To be able to test with crazy data sizes, one may want to only allocate
+application data if STARPU_SIMGRID is not defined.  Passing a NULL pointer to
+starpu_data_register functions is fine, data will never be read/written to by
+StarPU in Simgrid mode anyway.
+
+To be able to run the application with e.g. CUDA simulation on a system which
+does not have CUDA installed, one can fill the cuda_funcs with (void*)1, to
+express that there is a CUDA implementation, even if one does not actually
+provide it. StarPU will never actually run it in Simgrid mode anyway.
+
 \section Calibration Calibration
 
 The idea is to first compile StarPU normally, and run the application,
