@@ -72,8 +72,8 @@ static unsigned nmic = 0;
 
 /* Benchmarking the performance of the bus */
 
-#ifdef STARPU_USE_CUDA
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
+#ifdef STARPU_USE_CUDA
 static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXCPUS];
 static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_latency_htod[STARPU_MAXNODES] = {0.0};
@@ -85,8 +85,8 @@ static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 #endif
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
-#ifdef STARPU_USE_OPENCL
 static uint64_t opencl_size[STARPU_MAXCUDADEVS];
+#ifdef STARPU_USE_OPENCL
 static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXCPUS];
 static double opencldev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double opencldev_latency_htod[STARPU_MAXNODES] = {0.0};
@@ -1679,22 +1679,10 @@ static void write_bus_platform_file_content(void)
 		fprintf(f, "   <host id='CPU%d' power='2000000000'/>\n", i);
 
 	for (i = 0; i < ncuda; i++)
-		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i,
-#ifdef STARPU_USE_CUDA
-				(unsigned long long) cuda_size[i]
-#else
-				0ULL
-#endif
-				);
+		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i, (unsigned long long) cuda_size[i]);
 
 	for (i = 0; i < nopencl; i++)
-		fprintf(f, "   <host id='OpenCL%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i,
-#ifdef STARPU_USE_OPENCL
-				(unsigned long long) opencl_size[i]
-#else
-				0ULL
-#endif
-				);
+		fprintf(f, "   <host id='OpenCL%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i, (unsigned long long) opencl_size[i]);
 
 	fprintf(f, "\n   <host id='RAM' power='1'/>\n");
 
