@@ -207,14 +207,8 @@ static int transfers_are_sequential(struct transfer *new_transfer, struct transf
 			&& new_transfer->dst_node == old_transfer->dst_node)
 		return 1;
 
-	/* These constraints come from StarPU */
-
-	/* StarPU uses one stream per direction */
-	/* RAM->GPU and GPU->RAM are already handled by "same source/destination" */
-
-	/* StarPU uses one stream per running GPU for GPU-GPU transfers */
-	if (new_is_gpu_gpu && old_is_gpu_gpu && new_transfer->run_node == old_transfer->run_node)
-		return 1;
+	/* StarPU's constraint on CUDA transfers is using one stream per
+	 * source/destination pair, which is already handled above */
 
 	return 0;
 }
