@@ -220,6 +220,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
 			*xrank = starpu_data_get_rank(data);
+			STARPU_ASSERT_MSG(*xrank != -1, "Rank of the data must be set using starpu_mpi_data_register() or starpu_data_set_rank()");
 			_STARPU_MPI_DEBUG(1, "Executing on data node %d\n", *xrank);
 			STARPU_ASSERT_MSG(*xrank <= nb_nodes, "Node %d to execute codelet is not a valid node (%d)", *xrank, nb_nodes);
 			*do_execute = 1;
@@ -659,11 +660,11 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	tag = starpu_data_get_tag(data_handle);
 	if (rank == -1)
 	{
-		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
+		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register() or starpu_data_set_rank()\n");
 	}
 	if (tag == -1)
 	{
-		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
+		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register() or starpu_data_set_tag()\n");
 	}
 	MPI_Comm_rank(comm, &me);
 
