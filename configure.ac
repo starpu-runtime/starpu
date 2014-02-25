@@ -2334,13 +2334,17 @@ AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			enable_build_doc=$enableval, enable_build_doc=yes)
 
 if test "$enable_build_doc" = "yes" ; then
-   # Check whether doxygen and pdflatex are installed
+   # Check whether doxygen needed tools are installed
    AC_PATH_PROG(doxygencommand, doxygen)
    if test "$doxygencommand" = "" ; then
       	enable_build_doc="no"
    fi
-   AC_PATH_PROG(pdflatex, pdflatex)
-   if test "pdflatexcommand" = "" ; then
+   AC_PATH_PROG(pdflatexcommand, pdflatex)
+   if test "$pdflatexcommand" = "" ; then
+	enable_build_doc="no"
+   fi
+   AC_PATH_PROG(epstopdfcommand, epstopdf)
+   if test "$epstopdfcommand" = "" ; then
 	enable_build_doc="no"
    fi
 fi
