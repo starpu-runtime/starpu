@@ -229,6 +229,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
 			xrank = starpu_data_get_rank(data);
+			STARPU_ASSERT_MSG(xrank != -1, "Rank of the data must be set using starpu_mpi_data_register() or starpu_data_set_rank()");
 			_STARPU_MPI_DEBUG(1, "Executing on data node %d\n", xrank);
 			STARPU_ASSERT_MSG(xrank <= nb_nodes, "Node %d to execute codelet is not a valid node (%d)", xrank, nb_nodes);
 			do_execute = 1;
