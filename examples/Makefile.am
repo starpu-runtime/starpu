@@ -57,7 +57,7 @@ EXTRA_DIST = 					\
 	reductions/dot_product_opencl_kernels.cl	\
 	scheduler/schedulers.sh
 
-CLEANFILES = *.gcno *.gcda *.linkinfo *.mod
+CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
 
 if STARPU_USE_CUDA
 

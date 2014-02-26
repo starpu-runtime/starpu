@@ -36,7 +36,7 @@ EXTRA_DIST =				\
 	msvc/starpu.sln			\
 	msvc/starpu/starpu.vcxproj
 
-CLEANFILES = *.gcno *.gcda *.linkinfo
+CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log
 
 #####################################
 # What to install and what to check #

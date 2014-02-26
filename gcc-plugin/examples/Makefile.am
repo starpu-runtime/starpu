@@ -41,6 +41,7 @@ endif
 
 endif
 
+CLEANFILES = starpu_idle_microsec.log
 examplebin_PROGRAMS =			\
 	hello-starpu 			\
 	matrix-mult			\

@@ -122,7 +122,8 @@ EXTRA_DIST = $(outs) results run README
 
 pics: $(outs:.out=.xpm)
 
-CLEANFILES = *.xpm
+CLEANFILES = *.xpm starpu_idle_microsec.log
+
 
 .out.out2:
 	grep '^|' $< | tr -d ' ' > $@
