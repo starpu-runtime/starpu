@@ -47,7 +47,7 @@ check_PROGRAMS = $(LOADER) $(starpu_mpi_TESTS)
 
 BUILT_SOURCES =
 
-CLEANFILES = *.gcno *.gcda *.linkinfo
+CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log
 
 EXTRA_DIST = 					\
 	user_defined_datatype_value.h
