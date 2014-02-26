@@ -1342,7 +1342,7 @@ void starpu_shutdown(void)
 	if (_starpu_scc_common_is_mp_initialized())
 		_starpu_scc_src_mp_deinit();
 #endif
-//	_starpu_print_idle_time();
+	_starpu_print_idle_time();
 	_STARPU_DEBUG("Shutdown finished\n");
 }
 
@@ -1608,7 +1608,7 @@ void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 	snprintf(dst, maxlen, "%s", name);
 }
 
-int _starpu_worker_get_bindid(int workerid)
+int starpu_worker_get_bindid(int workerid)
 {
 	return config.workers[workerid].bindid;
 }

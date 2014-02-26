@@ -410,9 +410,6 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
-/* get the os physical id of the worker */
-int _starpu_worker_get_bindid(int workerid);
-
 /* geet starpu workerid corresponding to the os physical id bindid */
 int _starpu_worker_get_workerid(int bindid);
 

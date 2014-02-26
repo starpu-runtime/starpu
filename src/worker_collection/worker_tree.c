@@ -73,9 +73,10 @@ static int tree_add(struct starpu_worker_collection *workers, int worker)
 {
 	struct starpu_tree *tree = (struct starpu_tree *)workers->workerids;
 
-	if(!workers->present[worker])
+	int bindid = starpu_worker_get_bindid(worker);
+	if(!workers->present[bindid])
 	{
-		workers->present[worker] = 1;
+		workers->present[bindid] = 1;
 		workers->nworkers++;
 		return worker;
 	}
@@ -88,9 +89,10 @@ static int tree_remove(struct starpu_worker_collection *workers, int worker)
 {
 	struct starpu_tree *tree = (struct starpu_tree *)workers->workerids;
 
-	if(workers->present[worker])
+	int bindid = starpu_worker_get_bindid(worker);
+	if(workers->present[bindid])
 	{
-		workers->present[worker] = 0;
+		workers->present[bindid] = 0;
 		workers->nworkers--;
 		return worker;
 	}
