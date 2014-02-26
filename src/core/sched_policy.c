@@ -887,12 +887,11 @@ void _starpu_print_idle_time()
 		all_idle += idle[i];
 
 	FILE *f;
-	const char *sched_env = getenv("IDLE_FILE");
+	const char *sched_env = getenv("STARPU_IDLE_FILE");
 	if(!sched_env)
-		f = fopen("idle_microsec", "a");
+		f = fopen("starpu_idle_microsec.log", "a");
 	else
 		f = fopen(sched_env, "a");
 	fprintf(f, "%lf \n", all_idle);
 	fclose(f);
-	
 }
