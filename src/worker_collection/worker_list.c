@@ -61,7 +61,7 @@ static int list_add(struct starpu_worker_collection *workers, int worker)
 	int *workerids = (int *)workers->workerids;
 	unsigned *nworkers = &workers->nworkers;
 
-	STARPU_ASSERT(*nworkers < STARPU_NMAXWORKERS - 1);
+	STARPU_ASSERT(*nworkers < STARPU_NMAXWORKERS);
 
 	if(!_worker_belongs_to_ctx(workers, worker))
 	{

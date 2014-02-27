@@ -24,6 +24,8 @@
 static unsigned tree_has_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	STARPU_ASSERT(it != NULL);
+	if(workers->nworkers == 0)
+		return 0;
 
 	struct starpu_tree *tree = (struct starpu_tree*)workers->workerids;
 	struct starpu_tree *neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->present);
