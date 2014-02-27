@@ -44,6 +44,7 @@ Changes:
   * Rename starpu_get_nready_flops_of_sched_ctx to starpu_sched_ctx_get_nready_flops
   * New functions starpu_pause() and starpu_resume()
   * New codelet specific_nodes field to specify explicit target nodes for data.
+  * StarPU-MPI: Fix overzealous allocation of memory.
 
 StarPU 1.1.0 (svn revision 11960)
 ==============================================
