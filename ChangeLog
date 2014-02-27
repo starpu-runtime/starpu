@@ -80,6 +80,7 @@ Changes:
     starpu_data_set_tag(), data are received as a raw memory)
   * StarPU-MPI: Fix for being able to receive data with the same tag
     from several nodes (see mpi/tests/gather.c)
+  * StarPU-MPI: Fix overzealous allocation of memory.
 
 Small changes:
   * Rename function starpu_trace_user_event() as
