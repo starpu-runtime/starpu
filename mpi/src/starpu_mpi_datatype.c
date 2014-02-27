@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -225,7 +225,6 @@ char *_starpu_mpi_datatype(MPI_Datatype datatype)
      if (datatype == MPI_DOUBLE_PRECISION) return "MPI_DOUBLE_PRECISION";
      if (datatype == MPI_INTEGER) return "MPI_INTEGER";
      if (datatype == MPI_INTEGER4) return "MPI_INTEGER4";
-     if (datatype == MPI_INTEGER8) return "MPI_INTEGER8";
      if (datatype == MPI_PACKED) return "MPI_PACKED";
      if (datatype == 0) return "Unknown datatype";
      return "User defined MPI Datatype";
