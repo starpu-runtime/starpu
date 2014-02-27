@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -50,7 +50,7 @@ struct user_interaction_wrapper
 {
 	starpu_data_handle_t handle;
 	enum starpu_data_access_mode mode;
-	unsigned node;
+	int node;
 	starpu_pthread_cond_t cond;
 	starpu_pthread_mutex_t lock;
 	unsigned finished;
@@ -92,11 +92,14 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 
 	STARPU_ASSERT(handle);
 
-	struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
+	if (wrapper->node >= 0)
+	{
+		struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
 
-	ret = _starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 1,
-					 _starpu_data_acquire_fetch_data_callback, wrapper);
-	STARPU_ASSERT(!ret);
+		ret = _starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 1,
+						 _starpu_data_acquire_fetch_data_callback, wrapper);
+		STARPU_ASSERT(!ret);
+	}
 }
 
 static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
@@ -115,7 +118,7 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 }
 
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, unsigned node,
+int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,
 							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
 							  int sequential_consistency)
 {
@@ -177,7 +180,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 }
 
 
-int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node,
+int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node,
 				   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 {
 	return starpu_data_acquire_on_node_cb_sequential_consistency(handle, node, mode, callback, arg, 1);
@@ -218,7 +221,7 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 }
 
 /* The data must be released by calling starpu_data_release later on */
-int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode)
+int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data is not possible");
@@ -322,7 +325,7 @@ int starpu_data_acquire(starpu_data_handle_t handle, enum starpu_data_access_mod
 
 /* This function must be called after starpu_data_acquire so that the
  * application release the data */
-void starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node)
+void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
 {
 	STARPU_ASSERT(handle);
 
@@ -330,12 +333,19 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node)
 	_starpu_unlock_post_sync_tasks(handle);
 
 	/* The application can now release the rw-lock */
-	_starpu_release_data_on_node(handle, 0, &handle->per_node[node]);
+	if (node >= 0)
+		_starpu_release_data_on_node(handle, 0, &handle->per_node[node]);
+	else
+	{
+		_starpu_spin_lock(&handle->header_lock);
+		if (!_starpu_notify_data_dependencies(handle))
+			_starpu_spin_unlock(&handle->header_lock);
+	}
 }
 
 void starpu_data_release(starpu_data_handle_t handle)
 {
-	starpu_data_release_on_node(handle, 0);
+	starpu_data_release_on_node(handle, STARPU_MAIN_RAM);
 }
 
 static void _prefetch_data_on_node(void *arg)
