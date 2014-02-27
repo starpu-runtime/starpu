@@ -931,15 +931,52 @@ if test x$enable_opencl_simulator = xyes; then
 	AC_DEFINE(STARPU_OPENCL_SIMULATOR, 1, [Define this to enable using an OpenCL simulator])
 fi
 
+AC_ARG_WITH(simgrid-dir,
+	[AS_HELP_STRING([--with-simgrid-dir=<path>],
+	[specify SimGrid installation directory])],
+	[
+		simgrid_dir="$withval"
+		# in case this was not explicit yet
+		enable_simgrid=yes
+	], simgrid_dir=no)
+
+AC_ARG_WITH(simgrid-include-dir,
+	[AS_HELP_STRING([--with-simgrid-include-dir=<path>],
+	[specify where SimGrid headers are installed])],
+	[
+		simgrid_include_dir="$withval"
+		# in case this was not explicit yet
+		enable_simgrid=yes
+	], [simgrid_include_dir=no])
+
+AC_ARG_WITH(simgrid-lib-dir,
+	[AS_HELP_STRING([--with-simgrid-lib-dir=<path>],
+	[specify where SimGrid libraries are installed])],
+	[
+		simgrid_lib_dir="$withval"
+		# in case this was not explicit yet
+		enable_simgrid=yes
+	], [simgrid_lib_dir=no])
+
 AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
 			[Enable simulating execution in simgrid])],
 			enable_simgrid=$enableval, enable_simgrid=no)
 if test x$enable_simgrid = xyes ; then
-	if test -n "$SIMGRID_CFLAGS" ; then
-		CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
+   	if test -n "$SIMGRID_CFLAGS" ; then
+	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
 	fi
 	if test -n "$SIMGRID_LIBS" ; then
 		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
+	fi
+	if test "$simgrid_dir" != "no" ; then
+	   	CFLAGS="-I$simgrid_dir/include $CFLAGS"
+	   	LDFLAGS="-L$simgrid_dir/lib $LDFLAGS"
+	fi
+	if test "$simgrid_include_dir" != "no" ; then
+	   	CFLAGS="-I$simgrid_include_dir $CFLAGS"
+	fi
+	if test "$simgrid_lib_dir" != "no" ; then
+	   	LDFLAGS="-L$simgrid_lib_dir $LDFLAGS"
 	fi
 	AC_HAVE_LIBRARY([simgrid], [],
 		[
@@ -961,6 +998,8 @@ fi
 AM_CONDITIONAL(STARPU_SIMGRID, test x$enable_simgrid = xyes)
 AC_SUBST(SIMGRID_CFLAGS)
 AC_SUBST(SIMGRID_LIBS)
+AC_MSG_CHECKING(whether SimGrid is enabled)
+AC_MSG_RESULT($enable_simgrid)
 
 AC_MSG_CHECKING(whether blocking drivers should be enabled)
 AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [enable blocking drivers])],

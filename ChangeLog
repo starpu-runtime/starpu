@@ -240,6 +240,9 @@ Small features:
     enable automatic free(cl_arg); free(callback_arg);
     free(prologue_callback_arg) on task destroy.
   * New function starpu_task_build
+  * New configure options --with-simgrid-dir
+    --with-simgrid-include-dir and --with-simgrid-lib-dir to specify
+    the location of the SimGrid library
 
 Changes:
   * Rename all filter functions to follow the pattern

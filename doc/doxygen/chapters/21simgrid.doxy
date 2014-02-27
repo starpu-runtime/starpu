@@ -59,10 +59,26 @@ run several times before the model is calibrated.
 \section Simulation Simulation
 
 Then, recompile StarPU, passing \ref enable-simgrid "--enable-simgrid"
-to <c>./configure</c>, and re-run the application:
+to <c>./configure</c>.
 
 \verbatim
-$ ./configure --enable-simgrid && make
+$ ./configure --enable-simgrid
+\endverbatim
+
+To specify the location of SimGrid, you can either set the environment
+variables SIMGRID_CFLAGS and SIMGRID_LIBS, or use the configure
+options \ref with-simgrid-dir "--with-simgrid-dir",
+\ref with-simgrid-include-dir "--with-simgrid-include-dir" and
+\ref with-simgrid-lib-dir "--with-simgrid-lib-dir", for example
+
+\verbatim
+$ ./configure --with-simgrid-dir=/opt/local/simgrid
+\endverbatim
+
+You can then re-run the application.
+
+\verbatim
+$ make
 $ STARPU_SCHED=dmda ./examples/matvecmult/matvecmult
 TEST FAILED !!!
 \endverbatim
