@@ -12,7 +12,7 @@ prefix="/usr/local"
 coi_dir="/opt/intel/mic/coi"
 scif_dir="/opt/intel/mic/scif"
 mic_host="x86_64-k1om-linux"
-
+native_mic=0
 for arg in $*
 do
 	case $arg in
@@ -28,6 +28,9 @@ do
 		--mic-host=*)
 			mic_host="${arg#--mic-host=}"
 			;;
+	        --enable-native-mic)
+		        native_mic=1
+		        ;;
 	esac
 done
 
@@ -50,7 +53,13 @@ else
     compiler="gcc"
 fi
 
-for arch in host mic
+dev_list="host mic"
+if [ "$native_mic" -eq "1" ]
+then
+    dev_list="mic"
+fi
+
+for arch in $dev_list #host mic
 do
 	# We call the configure script from a build directory further in the
 	# arborescence
@@ -65,11 +74,16 @@ do
 	    export CXX="icc -mmic"
 	fi
 
-	params="--enable-mic --with-coi-dir=$coi_dir --with-scif-dir=$scif_dir --prefix=$prefix/$arch"
+	params="--with-coi-dir=$coi_dir --with-scif-dir=$scif_dir --prefix=$prefix/$arch"
 
 	if test x$arch = xmic ; then
+	    if [ "$native_mic" -eq "1" ]
+	    then
+		params="$params --disable-build-doc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
+	    else
 		# TODO: fix hwloc detection to look for another pkg-config place, and not just believe in the host version of hwloc.pc...
-		params="$params --disable-build-doc -without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
+		params="$params --enable-mic --disable-build-doc -without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
+	    fi
 	else
 		params="$params --with-coi-lib-dir=$coi_dir/host-linux-release/lib --with-scif-lib-dir=$scif_dir/host-linux-release/lib"
 	fi
@@ -92,7 +106,29 @@ do
 	fi
 	cd ..
 done
+if [ "$native_mic" -eq "1" ]
+then
+cat > Makefile << EOF
+all:
+	\$(MAKE) -C build_mic
 
+clean:
+	\$(MAKE) -C build_mic clean
+
+distclean: clean
+	rm -f Makefile
+
+check:
+	\$(MAKE) -C build_mic check
+
+showcheck:
+	\$(MAKE) -C build_mic showcheck
+
+install:
+	\$(MAKE) -C build_mic install
+	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.2.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc"
+EOF
+else
 cat > Makefile << EOF
 all:
 	\$(MAKE) -C build_host
@@ -118,3 +154,4 @@ install:
 	\$(MAKE) -C build_mic install
 	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.2.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc"
 EOF
+fi

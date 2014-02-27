@@ -41,7 +41,7 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 	it->possible_value = neighbour;
 	int id = _starpu_worker_get_workerid(neighbour->id);
 
-	STARPU_ASSERT_MSG(id != -1, "bind id not correct");
+	STARPU_ASSERT_MSG(id != -1, "bind id (%d) for workerid (%d) not correct", neighbour->id, id);
 
 	return 1;
 }

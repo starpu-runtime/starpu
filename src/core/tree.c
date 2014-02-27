@@ -70,7 +70,9 @@ struct starpu_tree* _get_down_to_leaves(struct starpu_tree *node, int *visited, 
 	{
 		if(node->nodes[i]->arity == 0)
 		{
-			if(!visited[node->nodes[i]->id] && present[node->nodes[i]->id] && node->nodes[i]->is_pu)
+			/* if it is a valid workerid (bindids can exist on the machine but they may not be used by StarPU) */
+			if(node->nodes[i]->is_pu && _starpu_worker_get_workerid(node->nodes[i]->id) != -1 &&
+			   !visited[node->nodes[i]->id] && present[node->nodes[i]->id] )
 				return node->nodes[i];
 		}
 		else
@@ -94,7 +96,9 @@ struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct s
 		{
 			if(father->nodes[i]->arity == 0)
 			{
-				if(!visited[father->nodes[i]->id] && present[father->nodes[i]->id] && father->nodes[i]->is_pu)
+				/* if it is a valid workerid (bindids can exist on the machine but they may not be used by StarPU) */
+				if(father->nodes[i]->is_pu && _starpu_worker_get_workerid(father->nodes[i]->id) != -1 &&
+				   !visited[father->nodes[i]->id] && present[father->nodes[i]->id])
 					return father->nodes[i];
 			}
 			else
