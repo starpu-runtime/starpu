@@ -209,9 +209,14 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 
 	STARPU_ASSERT(handle);
 
-	struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
+	if (wrapper->node >= 0)
+	{
+		int ret;
+		struct _starpu_data_replicate *replicate = &handle->per_node[wrapper->node];
 
-	_starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 0, NULL, NULL);
+		ret = _starpu_fetch_data_on_node(handle, replicate, wrapper->mode, 0, 0, NULL, NULL);
+		STARPU_ASSERT(!ret);
+	}
 
 	/* continuation of starpu_data_acquire */
 	STARPU_PTHREAD_MUTEX_LOCK(&wrapper->lock);
@@ -293,10 +298,13 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
  	* available again, otherwise we fetch the data directly */
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _starpu_data_acquire_continuation, &wrapper))
 	{
-		/* no one has locked this data yet, so we proceed immediately */
-		struct _starpu_data_replicate *replicate = &handle->per_node[node];
-		int ret = _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, NULL, NULL);
-		STARPU_ASSERT(!ret);
+		if (node >= 0)
+		{
+			/* no one has locked this data yet, so we proceed immediately */
+			struct _starpu_data_replicate *replicate = &handle->per_node[node];
+			int ret = _starpu_fetch_data_on_node(handle, replicate, mode, 0, 0, NULL, NULL);
+			STARPU_ASSERT(!ret);
+		}
 	}
 	else
 	{

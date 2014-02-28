@@ -482,21 +482,9 @@ struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_hand
  * Stop monitoring a piece of data
  */
 
-void _starpu_data_free_interfaces(starpu_data_handle_t handle)
+void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 {
-	const void *ram_ptr;
-	unsigned node;
-	unsigned worker;
-	unsigned nworkers = starpu_worker_get_count();
-
-	ram_ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
-
-	for (node = 0; node < STARPU_MAXNODES; node++)
-		free(handle->per_node[node].data_interface);
-
-	for (worker = 0; worker < nworkers; worker++)
-		free(handle->per_worker[worker].data_interface);
-
+	const void *ram_ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
 	if (ram_ptr != NULL)
 	{
 		/* Remove the PTR -> HANDLE mapping.  If a mapping from PTR
@@ -513,6 +501,19 @@ void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 
 		_starpu_spin_unlock(&registered_handles_lock);
 	}
+}
+
+void _starpu_data_free_interfaces(starpu_data_handle_t handle)
+{
+	unsigned node;
+	unsigned worker;
+	unsigned nworkers = starpu_worker_get_count();
+
+	for (node = 0; node < STARPU_MAXNODES; node++)
+		free(handle->per_node[node].data_interface);
+
+	for (worker = 0; worker < nworkers; worker++)
+		free(handle->per_worker[worker].data_interface);
 }
 
 struct _starpu_unregister_callback_arg
@@ -723,6 +724,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		_starpu_spin_lock(&handle->header_lock);
 	}
 
+	_starpu_data_unregister_ram_pointer(handle);
 	_starpu_data_free_interfaces(handle);
 
 	/* Destroy the data now */
@@ -792,8 +794,13 @@ static void _starpu_data_invalidate(void *data)
 		struct _starpu_data_replicate *local = &handle->per_node[node];
 
 		if (local->mc && local->allocated && local->automatically_allocated)
+		{
+			if (node == STARPU_MAIN_RAM)
+				_starpu_data_unregister_ram_pointer(handle);
+
 			/* free the data copy in a lazy fashion */
 			_starpu_request_mem_chunk_removal(handle, local, node, size);
+		}
 
 		local->state = STARPU_INVALID;
 	}
@@ -813,14 +820,14 @@ static void _starpu_data_invalidate(void *data)
 
 	_starpu_spin_unlock(&handle->header_lock);
 
-	starpu_data_release_on_node(handle, -1);
+	starpu_data_release_on_node(handle, 0);
 }
 
 void starpu_data_invalidate(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
-	starpu_data_acquire_on_node(handle, -1, STARPU_W);
+	starpu_data_acquire_on_node(handle, 0, STARPU_W);
 
 	_starpu_data_invalidate(handle);
 }
@@ -829,7 +836,7 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
-	starpu_data_acquire_on_node_cb(handle, -1, STARPU_W, _starpu_data_invalidate, handle);
+	starpu_data_acquire_on_node_cb(handle, 0, STARPU_W, _starpu_data_invalidate, handle);
 }
 
 enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle)
