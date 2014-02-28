@@ -687,7 +687,7 @@ static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle,
 		return &handle->per_node[node];
 }
 
-int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
+int _starpu_fetch_task_input(struct _starpu_job *j)
 {
 	_STARPU_TRACE_START_FETCH_INPUT(NULL);
 
@@ -793,13 +793,13 @@ enomem:
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
 
-		_starpu_release_data_on_node(handle, mask, local_replicate);
+		_starpu_release_data_on_node(handle, 0, local_replicate);
 	}
 
 	return -1;
 }
 
-void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
+void _starpu_push_task_output(struct _starpu_job *j)
 {
 	_STARPU_TRACE_START_PUSH_OUTPUT(NULL);
 
@@ -839,7 +839,7 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 		handle->busy_count++;
 		_starpu_spin_unlock(&handle->header_lock);
 
-		_starpu_release_data_on_node(handle, mask, local_replicate);
+		_starpu_release_data_on_node(handle, 0, local_replicate);
 	}
 
 	if (profiling && task->profiling_info)

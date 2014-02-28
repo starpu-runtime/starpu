@@ -737,7 +737,6 @@ cl_device_type _starpu_opencl_get_device_type(int devid)
 static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_worker *args)
 {
 	int ret;
-	uint32_t mask = 0;
 
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
@@ -749,7 +748,7 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
 
-	ret = _starpu_fetch_task_input(j, mask);
+	ret = _starpu_fetch_task_input(j);
 	if (ret != 0)
 	{
 		/* there was not enough memory, so the input of
@@ -791,7 +790,7 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	_starpu_driver_update_job_feedback(j, args, &args->perf_arch,
 					   &codelet_start, &codelet_end, profiling);
 
-	_starpu_push_task_output(j, mask);
+	_starpu_push_task_output(j);
 
 	return EXIT_SUCCESS;
 }

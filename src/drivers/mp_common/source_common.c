@@ -31,7 +31,6 @@
 /* Finalize the execution of a task by a worker*/
 static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker) 
 {
-	uint32_t mask = 0;
 	int profiling = starpu_profiling_status_get();
 	struct timespec codelet_end;
 	_starpu_driver_end_job(worker, j, &worker->perf_arch, &codelet_end, 0,
@@ -59,7 +58,7 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 				&j->cl_start, &codelet_end,
 				profiling);
 
-		_starpu_push_task_output (j, mask);
+		_starpu_push_task_output (j);
 
 		_starpu_handle_job_termination(j);
 	}
@@ -401,7 +400,6 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 		struct _starpu_mp_node * node)
 {
 	int ret;
-	uint32_t mask = 0;
 
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
@@ -411,7 +409,7 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 	STARPU_ASSERT(task);
 	if (worker->current_rank == 0) 
 	{
-		ret = _starpu_fetch_task_input(j, mask);
+		ret = _starpu_fetch_task_input(j);
 		if (ret != 0)
 		{
 			/* there was not enough memory, so the input of

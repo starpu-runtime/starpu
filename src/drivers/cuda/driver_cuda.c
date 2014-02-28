@@ -330,7 +330,6 @@ void _starpu_init_cuda(void)
 static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
 {
 	int ret;
-	uint32_t mask = 0;
 
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
@@ -343,7 +342,7 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
 
-	ret = _starpu_fetch_task_input(j, mask);
+	ret = _starpu_fetch_task_input(j);
 	if (ret != 0)
 	{
 		/* there was not enough memory, so the input of
@@ -375,7 +374,7 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 
 	_starpu_driver_update_job_feedback(j, args, &args->perf_arch, &codelet_start, &codelet_end, profiling);
 
-	_starpu_push_task_output(j, mask);
+	_starpu_push_task_output(j);
 
 	return 0;
 }
