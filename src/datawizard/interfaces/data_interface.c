@@ -690,14 +690,14 @@ static void _starpu_data_invalidate(void *data)
 
 	_starpu_spin_unlock(&handle->header_lock);
 
-	starpu_data_release_on_node(handle, 0);
+	starpu_data_release_on_node(handle, -1);
 }
 
 void starpu_data_invalidate(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
-	starpu_data_acquire_on_node(handle, 0, STARPU_W);
+	starpu_data_acquire_on_node(handle, -1, STARPU_W);
 
 	_starpu_data_invalidate(handle);
 }
@@ -706,7 +706,7 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT(handle);
 
-	starpu_data_acquire_on_node_cb(handle, 0, STARPU_W, _starpu_data_invalidate, handle);
+	starpu_data_acquire_on_node_cb(handle, -1, STARPU_W, _starpu_data_invalidate, handle);
 }
 
 enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t handle)

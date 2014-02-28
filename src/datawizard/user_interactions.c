@@ -100,6 +100,8 @@ static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 						 _starpu_data_acquire_fetch_data_callback, wrapper);
 		STARPU_ASSERT(!ret);
 	}
+	else
+		_starpu_data_acquire_fetch_data_callback(wrapper);
 }
 
 static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
