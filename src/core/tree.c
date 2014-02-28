@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 #include "starpu_tree.h"
+#include "workers.h"
 
 void starpu_tree_reset_visited(struct starpu_tree *tree, int *visited)
 {
