@@ -67,7 +67,7 @@ static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_
 		r_mode = STARPU_W;
 
 	/* If this is a STARPU_R, STARPU_SCRATCH or STARPU_REDUX type of
-	 * access, we only proceed if the cuurrent mode is the same as the
+	 * access, we only proceed if the current mode is the same as the
 	 * requested mode. */
 	if (r_mode == handle->current_mode)
 		return _starpu_data_requester_list_pop_front(req_list);
