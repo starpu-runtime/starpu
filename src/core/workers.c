@@ -1613,17 +1613,15 @@ int starpu_worker_get_bindid(int workerid)
 	return config.workers[workerid].bindid;
 }
 
-int _starpu_worker_get_workerid(int bindid)
+int _starpu_worker_get_workerids(int bindid, int *workerids)
 {
 	unsigned nworkers = starpu_worker_get_count();
-
+	int nw = 0;
 	unsigned id;
 	for (id = 0; id < nworkers; id++)
 		if (config.workers[id].bindid == bindid)
-			return id;
-
-	/* Not found */
-	return -1;
+			workerids[nw++] = id;
+	return nw;
 }
 
 /* Retrieve the status which indicates what the worker is currently doing. */

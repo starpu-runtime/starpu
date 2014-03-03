@@ -17,11 +17,18 @@
 #include <stdlib.h>
 #include "starpu_tree.h"
 #include "workers.h"
-
 void starpu_tree_reset_visited(struct starpu_tree *tree, int *visited)
 {
 	if(tree->arity == 0)
-		visited[tree->id] = 0;
+	{
+		int workerids[STARPU_NMAXWORKERS];
+		int nworkers = _starpu_worker_get_workerids(tree->id, workerids);
+		int w;
+		for(w = 0; w < nworkers; w++)
+		{
+			visited[workerids[w]] = 0;
+		}
+	}
 	int i;
 	for(i = 0; i < tree->arity; i++)
 		starpu_tree_reset_visited(tree->nodes[i], visited);
@@ -71,10 +78,17 @@ struct starpu_tree* _get_down_to_leaves(struct starpu_tree *node, int *visited, 
 	{
 		if(node->nodes[i]->arity == 0)
 		{
-			/* if it is a valid workerid (bindids can exist on the machine but they may not be used by StarPU) */
-			if(node->nodes[i]->is_pu && _starpu_worker_get_workerid(node->nodes[i]->id) != -1 &&
-			   !visited[node->nodes[i]->id] && present[node->nodes[i]->id] )
-				return node->nodes[i];
+			if(node->nodes[i]->is_pu)
+			{
+				int workerids[STARPU_NMAXWORKERS];
+				int nworkers = _starpu_worker_get_workerids(node->nodes[i]->id, workerids);
+				int w;
+				for(w = 0; w < nworkers; w++)
+				{
+					if(!visited[workerids[w]] && present[workerids[w]])
+						return node->nodes[i];
+				}
+			}
 		}
 		else
 		{
@@ -97,10 +111,17 @@ struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct s
 		{
 			if(father->nodes[i]->arity == 0)
 			{
-				/* if it is a valid workerid (bindids can exist on the machine but they may not be used by StarPU) */
-				if(father->nodes[i]->is_pu && _starpu_worker_get_workerid(father->nodes[i]->id) != -1 &&
-				   !visited[father->nodes[i]->id] && present[father->nodes[i]->id])
-					return father->nodes[i];
+				if(father->nodes[i]->is_pu)
+				{
+					int workerids[STARPU_NMAXWORKERS];
+					int nworkers = _starpu_worker_get_workerids(father->nodes[i]->id, workerids);
+					int w;
+					for(w = 0; w < nworkers; w++)
+					{
+						if(!visited[workerids[w]] && present[workerids[w]])
+							return father->nodes[i];
+					}
+				}
 			}
 			else
 			{

@@ -37,9 +37,18 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 		it->possible_value = NULL;
 		return 0;
 	}
-
-	it->possible_value = neighbour;
-	int id = _starpu_worker_get_workerid(neighbour->id);
+	int id = -1;
+	int workerids[STARPU_NMAXWORKERS];
+	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int w;
+	for(w = 0; w < nworkers; w++)
+	{
+		if(!it->visited[workerids[w]] && workers->present[workerids[w]])
+		{
+			id = workerids[w];
+			it->possible_value = neighbour;
+		}
+	}
 
 	STARPU_ASSERT_MSG(id != -1, "bind id (%d) for workerid (%d) not correct", neighbour->id, id);
 
@@ -62,11 +71,20 @@ static int tree_get_next(struct starpu_worker_collection *workers, struct starpu
 	
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
 	
-	it->value = neighbour;
-
-	ret = _starpu_worker_get_workerid(neighbour->id);
+	
+	int workerids[STARPU_NMAXWORKERS];
+	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
+	int w;
+	for(w = 0; w < nworkers; w++)
+	{
+		if(!it->visited[workerids[w]] && workers->present[workerids[w]])
+		{
+			ret = workerids[w];
+			it->visited[workerids[w]] = 1;
+			it->value = neighbour;
+		}
+	}
 	STARPU_ASSERT_MSG(ret != -1, "bind id not correct");
-	it->visited[neighbour->id] = 1;
 
 	return ret;
 }
@@ -75,10 +93,9 @@ static int tree_add(struct starpu_worker_collection *workers, int worker)
 {
 	struct starpu_tree *tree = (struct starpu_tree *)workers->workerids;
 
-	int bindid = starpu_worker_get_bindid(worker);
-	if(!workers->present[bindid])
+	if(!workers->present[worker])
 	{
-		workers->present[bindid] = 1;
+		workers->present[worker] = 1;
 		workers->nworkers++;
 		return worker;
 	}
@@ -91,10 +108,9 @@ static int tree_remove(struct starpu_worker_collection *workers, int worker)
 {
 	struct starpu_tree *tree = (struct starpu_tree *)workers->workerids;
 
-	int bindid = starpu_worker_get_bindid(worker);
-	if(workers->present[bindid])
+	if(workers->present[worker])
 	{
-		workers->present[bindid] = 0;
+		workers->present[worker] = 0;
 		workers->nworkers--;
 		return worker;
 	}
