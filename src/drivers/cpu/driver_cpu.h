@@ -36,11 +36,6 @@ int _starpu_run_cpu(struct _starpu_worker *);
 int _starpu_cpu_driver_init(struct _starpu_worker *);
 int _starpu_cpu_driver_run_once(struct _starpu_worker *);
 int _starpu_cpu_driver_deinit(struct _starpu_worker *);
-void _starpu_cpu_discover_devices(struct _starpu_machine_config *config);
-#else
-#define _starpu_cpu_discover_devices(config) do { \
-	(config)->topology.nhwcpus = 1; \
-} while (0)
 #endif /* !STARPU_USE_CPU */
 
 #endif //  __DRIVER_CPU_H__

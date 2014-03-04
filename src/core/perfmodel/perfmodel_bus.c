@@ -678,7 +678,6 @@ static void benchmark_all_gpu_devices(void)
 #endif
 
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	ncpus = _starpu_topology_get_nhwcpu(config);
 
 #ifdef STARPU_USE_CUDA
 	ncuda = _starpu_get_cuda_device_count();
@@ -1564,7 +1563,7 @@ static void check_bus_config_file(void)
                 fclose(f);
 
                 // Loading current configuration
-                ncpus = _starpu_topology_get_nhwcpu(config);
+                ncpus = _starpu_topology_get_nhwpu(config);
 #ifdef STARPU_USE_CUDA
 		ncuda = _starpu_get_cuda_device_count();
 #endif

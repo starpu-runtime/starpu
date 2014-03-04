@@ -181,6 +181,11 @@ struct _starpu_machine_topology
 	 */
 	unsigned nhwcpus;
 
+	/* Total number of PUs, as detected by the topology code. May
+	 * be different from the actual number of PU workers.
+	 */
+	unsigned nhwpus;
+
 	/* Total number of CUDA devices, as detected. May be different
 	 * from the actual number of CUDA workers.
 	 */
@@ -265,6 +270,7 @@ struct _starpu_machine_config
 
 #ifdef STARPU_HAVE_HWLOC
 	int cpu_depth;
+	int pu_depth;
 #endif
 
 	/* Where to bind workers ? */
