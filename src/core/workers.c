@@ -877,10 +877,10 @@ static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned 
 	unsigned i;
 	for(i = 0; i < curr_obj->arity; i++)
 	{
-		starpu_tree_insert(tree->nodes[i], curr_obj->children[i]->os_index, depth, curr_obj->children[i]->type == HWLOC_OBJ_PU, curr_obj->children[i]->arity, tree);
+		starpu_tree_insert(tree->nodes[i], curr_obj->children[i]->logical_index, depth, curr_obj->children[i]->type == HWLOC_OBJ_PU, curr_obj->children[i]->arity, tree);
 /* 		char string[128]; */
 /* 		hwloc_obj_snprintf(string, sizeof(string), topology, curr_obj->children[i], "#", 0); */
-/* 		printf("%*s%s %d is_pu %d \n", 0, "", string, curr_obj->children[i]->os_index, curr_obj->children[i]->type == HWLOC_OBJ_PU); */
+/* 		printf("%*s%s %d is_pu %d \n", 0, "", string, curr_obj->children[i]->logical_index, curr_obj->children[i]->type == HWLOC_OBJ_PU); */
 		_fill_tree(tree->nodes[i], curr_obj->children[i], depth+1, topology);
 	}
 }
@@ -900,10 +900,10 @@ static void _starpu_build_tree(void)
 
 /* 	char string[128]; */
 /* 	hwloc_obj_snprintf(string, sizeof(string), topology, root, "#", 0); */
-/* 	printf("%*s%s %d is_pu = %d \n", 0, "", string, root->os_index, root->type == HWLOC_OBJ_PU); */
+/* 	printf("%*s%s %d is_pu = %d \n", 0, "", string, root->logical_index, root->type == HWLOC_OBJ_PU); */
 
 	/* level, is_pu, is in the tree (it will be true only after add*/
-	starpu_tree_insert(tree, root->os_index, 0,root->type == HWLOC_OBJ_PU, root->arity, NULL);
+	starpu_tree_insert(tree, root->logical_index, 0,root->type == HWLOC_OBJ_PU, root->arity, NULL);
 	_fill_tree(tree, root, 1, topology);
 #endif
 }
