@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -30,6 +30,7 @@
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/malloc.h>
+#include <core/simgrid.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
