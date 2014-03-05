@@ -23,7 +23,6 @@ typedef void (*check_func)(starpu_data_handle_t handle_s, starpu_data_handle_t h
 void check_void(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
 {
 	FPRINTF_MPI("Success with void value\n");
-	*error = 1;
 }
 
 void check_variable(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
