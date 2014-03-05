@@ -180,7 +180,7 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
 		if (worker->perf_arch.type == STARPU_CPU_WORKER && worker->perf_arch.ncore == 0)
 		{
-			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->cpu_depth, worker->bindid);
+			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->pu_depth, worker->bindid);
 			obj = obj->parent;
 			while (obj)
 			{
