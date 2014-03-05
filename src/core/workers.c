@@ -1204,6 +1204,7 @@ unsigned _starpu_machine_is_running(void)
 
 void starpu_pause()
 {
+	STARPU_HG_DISABLE_CHECKING(config.pause_depth);
 	config.pause_depth += 1;
 }
 
