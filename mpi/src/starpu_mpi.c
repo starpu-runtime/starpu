@@ -351,8 +351,6 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
  {
 	 _STARPU_MPI_LOG_IN();
 
-	 STARPU_ASSERT_MSG(req->ptr, "Pointer containing data to send is invalid");
-
 	 _STARPU_MPI_DEBUG(2, "post MPI isend request %p type %s tag %d src %d data %p datasize %ld ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
 
 	 _starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, req->datatype, req->count);
@@ -485,8 +483,6 @@ int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI
 static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
-
-	STARPU_ASSERT_MSG(req->ptr, "Invalid pointer to receive data");
 
 	_STARPU_MPI_DEBUG(20, "post MPI irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
 
