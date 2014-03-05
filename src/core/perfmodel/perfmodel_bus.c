@@ -501,7 +501,7 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 	 * measure the bandwith for each pair of (CPU, GPU), which is slower.
 	 * */
 #ifdef STARPU_HAVE_HWLOC
-	int cpu_depth = hwloc_get_type_depth(hwtopology, HWLOC_OBJ_CORE);
+	int cpu_depth = hwloc_get_type_depth(hwtopology, HWLOC_OBJ_PU);
 	int nnuma_nodes = hwloc_get_nbobjs_by_depth(hwtopology, HWLOC_OBJ_NODE);
 
 	/* If no NUMA node was found, we assume that we have a single memory
