@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 
 	fprintf(stdout, "StarPU has found :\n");
 
-	fprintf(stdout, "\t%u CPU cores\n", ncpu);
+	fprintf(stdout, "\t%u CPU threads\n", ncpu);
 	display_worker_names(STARPU_CPU_WORKER);
 
 	fprintf(stdout, "\t%u CUDA devices\n", ncuda);

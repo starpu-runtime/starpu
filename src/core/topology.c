@@ -418,6 +418,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	if (topology_is_initialized)
 		return;
 
+	topology->nhwcpus = 0;
 	topology->nhwpus = 0;
 
 #ifndef STARPU_SIMGRID
@@ -428,7 +429,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 #endif
 
 #ifdef STARPU_SIMGRID
-	config->topology.nhwpus = _starpu_simgrid_get_nbhosts("CPU");
+	config->topology->nhwcpus = config->topology.nhwpus = _starpu_simgrid_get_nbhosts("CPU");
 #elif defined(STARPU_HAVE_HWLOC)
 	/* Discover the CPUs relying on the hwloc interface and fills CONFIG
 	 * accordingly. */
@@ -458,17 +459,17 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	/* Discover the CPUs relying on the sysconf(3) function and fills
 	 * CONFIG accordingly. */
 
-	config->topology.nhwpus = sysconf(_SC_NPROCESSORS_ONLN);
+	config->topology->nhwcpus = config->topology.nhwpus = sysconf(_SC_NPROCESSORS_ONLN);
 
 #elif defined(__MINGW32__) || defined(__CYGWIN__)
 	/* Discover the CPUs on Cygwin and MinGW systems. */
 
 	SYSTEM_INFO sysinfo;
 	GetSystemInfo(&sysinfo);
-	config->topology.nhwpus = sysinfo.dwNumberOfProcessors;
+	config->topology->nhwcpus = config->topology.nhwpus = sysinfo.dwNumberOfProcessors;
 #else
 #warning no way to know number of cores, assuming 1
-	config->topology.nhwpus = 1;
+	config->topology->nhwcpus = config->topology.nhwpus = 1;
 #endif
 
 	_starpu_cuda_discover_devices(config);
@@ -555,8 +556,7 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 	}
 	else
 	{
-		int nth_per_core = starpu_get_env_number("STARPU_NTHREADS_PER_CORE");
-		nth_per_core = nth_per_core == -1 ? 1 : nth_per_core;
+		int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
 		int k, l;
 		int nbindids=0;
 		int nhyperthreads = topology->nhwpus / topology->nhwcpus;
@@ -1036,9 +1036,11 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 			unsigned already_busy_cpus = mic_busy_cpus + topology->ncudagpus
 				+ topology->nopenclgpus + topology->nsccdevices;
 
-			long avail_cpus = (long) topology->nhwpus - (long) already_busy_cpus;
+			long avail_cpus = (long) topology->nhwcpus - (long) already_busy_cpus;
 			if (avail_cpus < 0)
 				avail_cpus = 0;
+			int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
+			avail_cpus *= nth_per_core;
 			ncpu = STARPU_MIN(avail_cpus, STARPU_MAXCPUS);
 		}
 		else
@@ -1568,21 +1570,24 @@ starpu_topology_print (FILE *output)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct _starpu_machine_topology *topology = &config->topology;
-	unsigned core;
+	unsigned pu;
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned ncombinedworkers = topology->ncombinedworkers;
+	unsigned nthreads_per_core = topology->nhwpus / topology->nhwcpus;
 
-	for (core = 0; core < topology->nhwpus; core++)
+	for (pu = 0; pu < topology->nhwpus; pu++)
 	{
-		fprintf(output, "core %u\t", core);
+		if ((pu % nthreads_per_core) == 0)
+			fprintf(output, "core %u", pu / nthreads_per_core);
+		fprintf(output, "\tPU %u\t", pu);
 		for (worker = 0;
 		     worker < nworkers + ncombinedworkers;
 		     worker++)
 		{
 			if (worker < nworkers)
 			{
-				if (topology->workers_bindid[worker] == core)
+				if (topology->workers_bindid[worker] == pu)
 				{
 					char name[256];
 					starpu_worker_get_name (worker, name,
@@ -1597,7 +1602,7 @@ starpu_topology_print (FILE *output)
 				starpu_combined_worker_get_description(worker, &worker_size, &combined_workerid);
 				for (i = 0; i < worker_size; i++)
 				{
-					if (topology->workers_bindid[combined_workerid[i]] == core)
+					if (topology->workers_bindid[combined_workerid[i]] == pu)
 						fprintf(output, "comb %u\t", worker-nworkers);
 				}
 			}
