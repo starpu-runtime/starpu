@@ -105,6 +105,21 @@ static void handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Da
 }
 
 /*
+ * 	Void
+ */
+
+static void handle_to_datatype_void(starpu_data_handle_t data_handle STARPU_ATTRIBUTE_UNUSED, MPI_Datatype *datatype)
+{
+	int ret;
+
+	ret = MPI_Type_contiguous(0, MPI_BYTE, datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
+
+	ret = MPI_Type_commit(datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+}
+
+/*
  *	Generic
  */
 
@@ -116,7 +131,7 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_MAX_INTERFACE_ID]
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
 	[STARPU_BCSR_INTERFACE_ID]	= NULL,
 	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_datatype_variable,
-	[STARPU_VOID_INTERFACE_ID]      = NULL,
+	[STARPU_VOID_INTERFACE_ID]	= handle_to_datatype_void,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
@@ -177,7 +192,7 @@ static handle_free_datatype_func handle_free_datatype_funcs[STARPU_MAX_INTERFACE
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
 	[STARPU_BCSR_INTERFACE_ID]	= NULL,
 	[STARPU_VARIABLE_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
-	[STARPU_VOID_INTERFACE_ID]      = NULL,
+	[STARPU_VOID_INTERFACE_ID]      = _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
