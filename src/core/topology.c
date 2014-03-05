@@ -429,7 +429,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 #endif
 
 #ifdef STARPU_SIMGRID
-	config->topology->nhwcpus = config->topology.nhwpus = _starpu_simgrid_get_nbhosts("CPU");
+	config->topology.nhwcpus = config->topology.nhwpus = _starpu_simgrid_get_nbhosts("CPU");
 #elif defined(STARPU_HAVE_HWLOC)
 	/* Discover the CPUs relying on the hwloc interface and fills CONFIG
 	 * accordingly. */
@@ -459,17 +459,17 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 	/* Discover the CPUs relying on the sysconf(3) function and fills
 	 * CONFIG accordingly. */
 
-	config->topology->nhwcpus = config->topology.nhwpus = sysconf(_SC_NPROCESSORS_ONLN);
+	config->topology.nhwcpus = config->topology.nhwpus = sysconf(_SC_NPROCESSORS_ONLN);
 
 #elif defined(__MINGW32__) || defined(__CYGWIN__)
 	/* Discover the CPUs on Cygwin and MinGW systems. */
 
 	SYSTEM_INFO sysinfo;
 	GetSystemInfo(&sysinfo);
-	config->topology->nhwcpus = config->topology.nhwpus = sysinfo.dwNumberOfProcessors;
+	config->topology.nhwcpus = config->topology.nhwpus = sysinfo.dwNumberOfProcessors;
 #else
 #warning no way to know number of cores, assuming 1
-	config->topology->nhwcpus = config->topology.nhwpus = 1;
+	config->topology.nhwcpus = config->topology.nhwpus = 1;
 #endif
 
 	_starpu_cuda_discover_devices(config);
