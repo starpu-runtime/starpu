@@ -484,7 +484,7 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 
 	/* it's the first time ... */
 	struct _starpu_symbol_name *entry = _starpu_symbol_name_new();
-	entry->name = malloc(strlen(name));
+	entry->name = malloc(strlen(name) + 1);
 	strcpy(entry->name, name);
 
 	_starpu_symbol_name_list_push_front(symbol_list, entry);
