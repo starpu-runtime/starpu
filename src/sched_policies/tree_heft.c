@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Université de Bordeaux 1
+ * Copyright (C) 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -19,6 +19,7 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 #include <float.h>
+#include <limits.h>
 
 /* The two thresolds concerns the prio components, which contains queues
  * who can handle the priority of StarPU tasks. You can tune your
