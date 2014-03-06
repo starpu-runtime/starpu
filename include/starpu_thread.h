@@ -198,7 +198,7 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
  * Encapsulation of the pthread_barrier_* functions.
  */
 
-#ifdef STARPU_SIMGRID
+#if defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_BARRIER)
 
 typedef struct {
 	starpu_pthread_mutex_t mutex;
@@ -213,7 +213,7 @@ int starpu_pthread_barrier_init(starpu_pthread_barrier_t *barrier, const starpu_
 int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier);
 int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier);
 
-#elif !defined(_MSC_VER) /* STARPU_SIMGRID */
+#elif !defined(_MSC_VER) /* STARPU_SIMGRID, !STARPU_HAVE_PTHREAD_BARRIER */
 
 typedef pthread_barrier_t starpu_pthread_barrier_t;
 typedef pthread_barrierattr_t starpu_pthread_barrierattr_t;
@@ -224,7 +224,7 @@ typedef pthread_barrierattr_t starpu_pthread_barrierattr_t;
 int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier);
 #define STARPU_PTHREAD_BARRIER_SERIAL_THREAD PTHREAD_BARRIER_SERIAL_THREAD
 
-#endif /* STARPU_SIMGRID, _MSC_VER */
+#endif /* STARPU_SIMGRID, !STARPU_HAVE_PTHREAD_BARRIER, _MSC_VER */
 
 /*
  * Encapsulation of the pthread_spin_* functions.

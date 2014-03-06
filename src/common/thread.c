@@ -287,7 +287,9 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 
 	return p_ret;
 }
+#endif /* STARPU_SIMGRID */
 
+#if defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_BARRIER)
 int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr, unsigned count)
 {
 	int ret = starpu_pthread_mutex_init(&barrier->mutex, NULL);
@@ -328,9 +330,9 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 
 	return ret;
 }
+#endif /* defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_BARRIER) */
 
-#elif !defined(_MSC_VER) /* !STARPU_SIMGRID */
-
+#if !defined(STARPU_SIMGRID) && !defined(_MSC_VER) /* !STARPU_SIMGRID */
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 {
 	_STARPU_TRACE_LOCKING_MUTEX();
@@ -445,7 +447,9 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 
 	return p_ret;
 }
+#endif
 
+#if !defined(STARPU_SIMGRID) && !defined(_MSC_VER) && defined(STARPU_HAVE_PTHREAD_BARRIER)
 int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 {
 	int ret;
@@ -457,8 +461,7 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 
 	return ret;
 }
-
-#endif /* STARPU_SIMGRID, _MSC_VER */
+#endif /* STARPU_SIMGRID, _MSC_VER, STARPU_HAVE_PTHREAD_BARRIER */
 
 #if defined(STARPU_SIMGRID) || !defined(HAVE_PTHREAD_SPIN_LOCK)
 

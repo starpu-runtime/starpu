@@ -200,6 +200,11 @@ if test x$have_pthread_spin_lock = xyes; then
 	AC_DEFINE(STARPU_HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
 fi
 
+AC_CHECK_FUNC([pthread_barrier_init], have_pthread_barrier=yes, have_pthread_barrier=no)
+if test x$have_pthread_barrier = xyes; then
+	AC_DEFINE(STARPU_HAVE_PTHREAD_BARRIER,[],[pthread_barrier is available])
+fi
+
 # yes, that's non portable, but it's still better than sched_setaffinity
 AC_CHECK_FUNCS(pthread_setaffinity_np)
 
