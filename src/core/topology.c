@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013 Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -923,19 +923,19 @@ _starpu_build_topology (struct _starpu_machine_config *config)
 			case STARPU_CPU_WORKER:
 				if (config->cpus_nodeid == -1)
 					config->cpus_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->cpus_nodeid != starpu_worker_get_memory_node(i))
+				else if (config->cpus_nodeid != (int) starpu_worker_get_memory_node(i))
 					config->cpus_nodeid = -2;
 				break;
 			case STARPU_CUDA_WORKER:
 				if (config->cuda_nodeid == -1)
 					config->cuda_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->cuda_nodeid != starpu_worker_get_memory_node(i))
+				else if (config->cuda_nodeid != (int) starpu_worker_get_memory_node(i))
 					config->cuda_nodeid = -2;
 				break;
 			case STARPU_OPENCL_WORKER:
 				if (config->opencl_nodeid == -1)
 					config->opencl_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->opencl_nodeid != starpu_worker_get_memory_node(i))
+				else if (config->opencl_nodeid != (int) starpu_worker_get_memory_node(i))
 					config->opencl_nodeid = -2;
 				break;
 			case STARPU_ANY_WORKER:
