@@ -1480,31 +1480,31 @@ _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 			case STARPU_CPU_WORKER:
 				if (config->cpus_nodeid == -1)
 					config->cpus_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->cpus_nodeid != starpu_worker_get_memory_node(i))
+				else if (config->cpus_nodeid != (int) starpu_worker_get_memory_node(i))
 					config->cpus_nodeid = -2;
 				break;
 			case STARPU_CUDA_WORKER:
 				if (config->cuda_nodeid == -1)
 					config->cuda_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->cuda_nodeid != starpu_worker_get_memory_node(i))
+				else if (config->cuda_nodeid != (int) starpu_worker_get_memory_node(i))
 					config->cuda_nodeid = -2;
 				break;
 			case STARPU_OPENCL_WORKER:
 				if (config->opencl_nodeid == -1)
 					config->opencl_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->opencl_nodeid != starpu_worker_get_memory_node(i))
+				else if (config->opencl_nodeid != (int) starpu_worker_get_memory_node(i))
 					config->opencl_nodeid = -2;
 				break;
 			case STARPU_MIC_WORKER:
 				if (config->mic_nodeid == -1)
 					config->mic_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->mic_nodeid != starpu_worker_get_memory_node(i))
+				else if (config->mic_nodeid != (int) starpu_worker_get_memory_node(i))
 					config->mic_nodeid = -2;
 				break;
 			case STARPU_SCC_WORKER:
 				if (config->scc_nodeid == -1)
 					config->scc_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->scc_nodeid != starpu_worker_get_memory_node(i))
+				else if (config->scc_nodeid != (int) starpu_worker_get_memory_node(i))
 					config->scc_nodeid = -2;
 				break;
 			case STARPU_ANY_WORKER:
