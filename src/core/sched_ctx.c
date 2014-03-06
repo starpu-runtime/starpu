@@ -465,7 +465,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	int max_prio_set = 0;
 	int min_prio = 0;
 	int max_prio = 0;
-	struct starpu_sched_policy *sched_policy;
+	struct starpu_sched_policy *sched_policy = NULL;
 
 	va_start(varg_list, sched_ctx_name);
 	while ((arg_type = va_arg(varg_list, int)) != 0)
