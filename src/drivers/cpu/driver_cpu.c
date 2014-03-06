@@ -152,10 +152,10 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 	global_mem = 0;
 #endif
 
-	if (limit == -1)
+	if (limit < 0)
 		// No limit is defined, we return the global memory size
 		return global_mem;
-	else if (limit*1024*1024 > global_mem)
+	else if ((size_t)limit * 1024*1024 > global_mem)
 		// The requested limit is higher than what is available, we return the global memory size
 		return global_mem;
 	else
