@@ -1144,12 +1144,12 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 				if (!pthread_equal(pthread_self(), set->worker_thread))
 					status = starpu_pthread_join(set->worker_thread, NULL);
 #endif
-#ifdef STARPU_VERBOSE
 				if (status)
 				{
+#ifdef STARPU_VERBOSE
 					_STARPU_DEBUG("starpu_pthread_join -> %d\n", status);
-				}
 #endif
+				}
 				set->started = 0;
 			}
 		}
@@ -1164,12 +1164,12 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 			if (!pthread_equal(pthread_self(), worker->worker_thread))
 				status = starpu_pthread_join(worker->worker_thread, NULL);
 #endif
-#ifdef STARPU_VERBOSE
 			if (status)
 			{
+#ifdef STARPU_VERBOSE
 				_STARPU_DEBUG("starpu_pthread_join -> %d\n", status);
-			}
 #endif
+			}
 		}
 
 out:
