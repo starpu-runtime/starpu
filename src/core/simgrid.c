@@ -69,6 +69,9 @@ unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devi
 	if (!host)
 		return 0;
 
+	if (!MSG_host_get_properties(host))
+		return 0;
+
 	memsize = MSG_host_get_property_value(host, "memsize");
 	if (!memsize)
 		return 0;
