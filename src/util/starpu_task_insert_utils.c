@@ -357,9 +357,12 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
-			(*task)->workerid = va_arg(varg_list, int);
-			if ((*task)->workerid  != -1)
+			int worker = va_arg(varg_list, int);
+			if (worker != -1)
+			{
+				(*task)->workerid = worker;
 				(*task)->execute_on_a_specific_worker = 1;
+			}
 		}
 		else if (arg_type==STARPU_SCHED_CTX)
 		{
