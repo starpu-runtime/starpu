@@ -103,14 +103,6 @@ STARPU_NCUDA, and \ref STARPU_NOPENCL, and the amount of GPU memory
 with \ref STARPU_LIMIT_CUDA_MEM, \ref STARPU_LIMIT_CUDA_devid_MEM, \ref
 STARPU_LIMIT_OPENCL_MEM, and \ref STARPU_LIMIT_OPENCL_devid_MEM.
 
-The Simgrid default stack size is small; to increase it use the
-parameter <c>--cfg=contexts/stack_size</c>, for example:
-
-\verbatim
-$ ./example --cfg=contexts/stack_size:8192
-TEST FAILED !!!
-\endverbatim
-
 \section SimulationOnAnotherMachine Simulation On Another Machine
 
 The simgrid support even permits to perform simulations on another machine, your
