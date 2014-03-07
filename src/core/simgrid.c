@@ -100,6 +100,9 @@ int main(int argc, char **argv)
 	/* Versions earlier than 3.9 didn't support our communication tasks */
 	MSG_config("workstation/model", "ptask_L07");
 #endif
+	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
+	extern xbt_cfg_t _sg_cfg_set;
+	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", 8192);
 
 	/* Load XML platform */
 	_starpu_simgrid_get_platform_path(path, sizeof(path));
