@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2014        INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -361,7 +361,7 @@ void _starpu_insert_task_create(void *arg_buffer, size_t arg_buffer_size, struct
 			int worker = va_arg(varg_list, int);
 			if (worker != -1)
 			{
-				(*task)->workerid = worker
+				(*task)->workerid = worker;
 				(*task)->execute_on_a_specific_worker = 1;
 			}
 		}
