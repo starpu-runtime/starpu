@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -184,6 +184,19 @@ void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 		policy->deinit_sched(sched_ctx->id);
 }
 
+static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task *task, struct _starpu_worker *worker, int workerid, int perf_workerid)
+{
+	/* if we push a task on a specific worker, notify all the sched_ctxs the worker belongs to */
+	struct _starpu_sched_ctx *sched_ctx;
+	struct _starpu_sched_ctx_list *l = NULL;
+        for (l = worker->sched_ctx_list; l; l = l->next)
+        {
+		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+		if (sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
+			sched_ctx->sched_policy->push_task_notify(task, workerid, perf_workerid, sched_ctx->id);
+	}
+}
+
 /* Enqueue a task into the list of tasks explicitely attached to a worker. In
  * case workerid identifies a combined worker, a task will be enqueued into
  * each worker of the combination. */
@@ -212,14 +225,20 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	if (use_prefetch)
 		starpu_prefetch_task_input_on_node(task, memory_node);
 
-	/* if we push a task on a specific worker, notify all the sched_ctxs the worker belongs to */
-	struct _starpu_sched_ctx *sched_ctx;
-	struct _starpu_sched_ctx_list *l = NULL;
-        for (l = worker->sched_ctx_list; l; l = l->next)
-        {
-		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
-		if (sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
-			sched_ctx->sched_policy->push_task_notify(task, workerid, sched_ctx->id);
+	if (is_basic_worker)
+		_starpu_push_task_on_specific_worker_notify_sched(task, worker, workerid, workerid);
+	else
+	{
+		/* Notify all workers of the combined worker */
+		int worker_size = combined_worker->worker_size;
+		int *combined_workerid = combined_worker->combined_workerid;
+
+		int j;
+		for (j = 0; j < worker_size; j++)
+		{
+			int subworkerid = combined_workerid[j];
+			_starpu_push_task_on_specific_worker_notify_sched(task, _starpu_get_worker_struct(subworkerid), subworkerid, workerid);
+		}
 	}
 
 #ifdef STARPU_USE_SC_HYPERVISOR

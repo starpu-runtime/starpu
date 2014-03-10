@@ -941,12 +941,12 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
-static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsigned sched_ctx_id)
+static void dmda_push_task_notify(struct starpu_task *task, int workerid, int perf_workerid, unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	/* Compute the expected penality */
-	struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(workerid);
+	struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(perf_workerid);
 	unsigned memory_node = starpu_worker_get_memory_node(workerid);
 
 	double predicted = starpu_task_expected_length(task, perf_arch,
