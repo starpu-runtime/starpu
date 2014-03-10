@@ -92,7 +92,7 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 		sprintf(name, "STARPU_LIMIT_CUDA_%u_MEM", devid);
 		limit = starpu_get_env_number(name);
 	}
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	if (limit == -1)
 	{
 		/* Use 90% of the available memory by default.  */
