@@ -200,7 +200,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 {
 	va_list varg_list_copy;
 	int inconsistent_execute = 0;
-	int arg_type;
+	int arg_type, arg_type_nocommute;
 	size_t *size_on_nodes;
 	int current_data = 0;
 
@@ -210,6 +210,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	va_copy(varg_list_copy, varg_list);
 	while ((arg_type = va_arg(varg_list_copy, int)) != 0)
 	{
+		arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
 		if (arg_type==STARPU_EXECUTE_ON_NODE)
 		{
 			*xrank = va_arg(varg_list_copy, int);
@@ -231,7 +232,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			// calling function _starpu_task_insert_create()
 			va_arg(varg_list_copy, int);
 		}
-		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
+		else if (arg_type_nocommute==STARPU_R || arg_type_nocommute==STARPU_W || arg_type_nocommute==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
@@ -348,7 +349,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 static
 int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, struct starpu_task **task, int *xrank_p, int *dest_p, va_list varg_list)
 {
-	int arg_type;
+	int arg_type, arg_type_nocommute;
 	va_list varg_list_copy;
 	int me, do_execute, xrank, nb_nodes;
 	size_t arg_buffer_size = 0;
@@ -370,7 +371,8 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	current_data = 0;
 	while ((arg_type = va_arg(varg_list_copy, int)) != 0)
 	{
-		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
+		arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
+		if (arg_type_nocommute==STARPU_R || arg_type_nocommute==STARPU_W || arg_type_nocommute==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
@@ -481,7 +483,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 static
 int _starpu_mpi_task_postbuild_v(MPI_Comm comm, struct starpu_codelet *codelet, va_list varg_list, int xrank, int dest, int do_execute)
 {
-	int arg_type;
+	int arg_type, arg_type_nocommute;
 	va_list varg_list_copy;
 	int current_data;
 	int me;
@@ -492,7 +494,8 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, struct starpu_codelet *codelet, 
 	current_data = 0;
 	while ((arg_type = va_arg(varg_list_copy, int)) != 0)
 	{
-		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
+		arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
+		if (arg_type_nocommute==STARPU_R || arg_type_nocommute==STARPU_W || arg_type_nocommute==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;

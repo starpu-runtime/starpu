@@ -64,7 +64,7 @@ static struct starpu_codelet cl22 =
 	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_RW},
+	.modes = {STARPU_R, STARPU_R, STARPU_RW | STARPU_COMMUTE},
 	.model = &chol_model_22
 };
 
@@ -132,7 +132,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 								 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
 								 STARPU_R, sdataki,
 								 STARPU_R, sdatakj,
-								 STARPU_RW, sdataij,
+								 STARPU_RW | STARPU_COMMUTE, sdataij,
 								 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 								 0);
 					if (ret == -ENODEV) return 77;

@@ -57,7 +57,7 @@ static struct starpu_codelet cl22 =
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
 #endif
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_RW},
+	.modes = {STARPU_R, STARPU_R, STARPU_RW | STARPU_COMMUTE},
 	.model = &chol_model_22
 };
 
@@ -139,7 +139,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 							       STARPU_PRIORITY, prio,
 							       STARPU_R, data_handles[k][i],
 							       STARPU_R, data_handles[k][j],
-							       STARPU_RW, data_handles[i][j],
+							       STARPU_RW | STARPU_COMMUTE, data_handles[i][j],
 							       0);
 				}
 			}
