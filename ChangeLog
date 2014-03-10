@@ -71,6 +71,8 @@ Small features:
   * New STARPU_DISABLE_KERNELS environment variable to disable actual kernel
     execution.
   * New starpu_memory_get_total function to get the size of a memory node.
+  * New starpu_parallel_task_barrier_init_n function to let a scheduler decide
+    a set of workers without going through combined workers.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
