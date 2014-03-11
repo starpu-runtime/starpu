@@ -221,12 +221,12 @@ struct _starpu_machine_topology
 	unsigned nhwmiccores[STARPU_MAXMICDEVS]; // Each MIC node has its set of cores.
 	unsigned nmiccores[STARPU_MAXMICDEVS];
 
-	/* Indicates the successive cpu identifier that should be used
+	/* Indicates the successive logical PU identifier that should be used
 	 * to bind the workers. It is either filled according to the
 	 * user's explicit parameters (from starpu_conf) or according
 	 * to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
 	 * round-robin policy is used to distributed the workers over
-	 * the cpus.
+	 * the cores.
 	 */
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
 

@@ -74,7 +74,9 @@ static unsigned nmic = 0;
 
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 #ifdef STARPU_USE_CUDA
+/* preference order of cores (logical indexes) */
 static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXCPUS];
+
 static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_latency_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_timing_dtoh[STARPU_MAXNODES] = {0.0};
@@ -85,8 +87,10 @@ static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 #endif
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
+
 static uint64_t opencl_size[STARPU_MAXCUDADEVS];
 #ifdef STARPU_USE_OPENCL
+/* preference order of cores (logical indexes) */
 static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXCPUS];
 static double opencldev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double opencldev_latency_htod[STARPU_MAXNODES] = {0.0};

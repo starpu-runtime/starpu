@@ -81,12 +81,12 @@ _starpu_initialize_workers_deviceid (int *explicit_workers_gpuid,
 
 	*current = 0;
 
-	/* conf->workers_bindid indicates the successive cpu identifier that
+	/* conf->workers_bindid indicates the successive logical PU identifier that
 	 * should be used to bind the workers. It should be either filled
 	 * according to the user's explicit parameters (from starpu_conf) or
 	 * according to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
 	 * round-robin policy is used to distributed the workers over the
-	 * cpus. */
+	 * cores. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
 	if ((strval = getenv(varname)))
@@ -494,12 +494,12 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 
 	config->current_bindid = 0;
 
-	/* conf->workers_bindid indicates the successive cpu identifier that
+	/* conf->workers_bindid indicates the successive logical PU identifier that
 	 * should be used to bind the workers. It should be either filled
 	 * according to the user's explicit parameters (from starpu_conf) or
 	 * according to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
 	 * round-robin policy is used to distributed the workers over the
-	 * cpus. */
+	 * cores. */
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
 	if ((strval = getenv("STARPU_WORKERS_CPUID")))
@@ -557,43 +557,38 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 	else
 	{
 		int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
-		int k, l;
+		int k;
 		int nbindids=0;
 		int nhyperthreads = topology->nhwpus / topology->nhwcpus;
 		STARPU_ASSERT_MSG(nth_per_core > 0 && nth_per_core <= nhyperthreads , "Incorrect number of hyperthreads");
+
+		i = 0; /* PU number currently assigned */
+		k = 0; /* Number of threads already put on the current core */
 		while(nbindids < STARPU_NMAXWORKERS)
 		{
-			k=0;
-			l= nhyperthreads-nth_per_core;
-			/* by default, we take a round robin policy */
-			for (i = 0; i < STARPU_NMAXWORKERS; i++)
+			if (k >= nth_per_core)
 			{
-				if(k >= nth_per_core)
-				{
-					if(l == 0)
-					{
-						k=0;
-						l= nhyperthreads-nth_per_core;
-					}
-					else
-						l--;
-				}
-		       
-				if(k < nth_per_core || nhyperthreads == nth_per_core)
-				{
-					topology->workers_bindid[nbindids++] =
-						(unsigned)(i % topology->nhwpus);
-					k++;
-				}
+				/* We have already put enough workers on this
+				 * core, skip remaining PUs from this core, and
+				 * proceed with next core */
+				i += nhyperthreads-nth_per_core;
+				k = 0;
+				continue;
 			}
+
+			/* Add a worker to this core, by using this logical PU */
+			topology->workers_bindid[nbindids++] =
+				(unsigned)(i % topology->nhwpus);
+			k++;
+			i++;
 		}
 	}
 }
 
-/* This function gets the identifier of the next cpu on which to bind a
- * worker. In case a list of preferred cpus was specified, we look for a an
- * available cpu among the list if possible, otherwise a round-robin policy is
- * used. */
+/* This function gets the identifier of the next core on which to bind a
+ * worker. In case a list of preferred cores was specified (logical indexes),
+ * we look for a an available core among the list if possible, otherwise a
+ * round-robin policy is used. */
 static inline int
 _starpu_get_next_bindid (struct _starpu_machine_config *config,
 			 int *preferred_binding, int npreferred)
@@ -602,7 +597,9 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 
 	unsigned found = 0;
 	int current_preferred;
+	int nhyperthreads = topology->nhwpus / topology->nhwcpus;
 
+	/* loop over the preference list */
 	for (current_preferred = 0;
 	     current_preferred < npreferred;
 	     current_preferred++)
@@ -610,23 +607,24 @@ _starpu_get_next_bindid (struct _starpu_machine_config *config,
 		if (found)
 			break;
 
-		unsigned requested_cpu = preferred_binding[current_preferred];
+		/* Try to get this core */
+		unsigned requested_core = preferred_binding[current_preferred];
 
-		/* can we bind the worker on the requested cpu ? */
+		/* can we bind the worker on the preferred core ? */
 		unsigned ind;
+		/* Look at the remaining cores to be bound to */
 		for (ind = config->current_bindid;
-		     ind < topology->nhwpus;
+		     ind < topology->nhwpus / nhyperthreads;
 		     ind++)
 		{
-			if (topology->workers_bindid[ind] == requested_cpu)
+			if (topology->workers_bindid[ind] == requested_core * nhyperthreads)
 			{
 				/* the cpu is available, we use it ! In order
 				 * to make sure that it will not be used again
-				 * later on, we remove the entry from the
-				 * list */
+				 * later on, we exchange it with the next bindid we were supposed to use */
 				topology->workers_bindid[ind] =
 					topology->workers_bindid[config->current_bindid];
-				topology->workers_bindid[config->current_bindid] = requested_cpu;
+				topology->workers_bindid[config->current_bindid] = requested_core * nhyperthreads;
 
 				found = 1;
 
