@@ -1681,7 +1681,7 @@ AC_LANG_POP([C++])
 AC_MSG_CHECKING(calibration heuristic of history-based StarPU calibrator)
 AC_ARG_ENABLE(calibration-heuristic, [AS_HELP_STRING([--enable-calibration-heuristic=<number>],
 			[Define the maximum authorized deviation of StarPU history-based calibrator.])],
-			calibration_heuristic=$enableval, calibration_heuristic=10)
+			calibration_heuristic=$enableval, calibration_heuristic=50)
 AC_MSG_RESULT($calibration_heuristic)
 AC_DEFINE_UNQUOTED(STARPU_HISTORYMAXERROR, [$calibration_heuristic], [calibration heuristic value])
 
