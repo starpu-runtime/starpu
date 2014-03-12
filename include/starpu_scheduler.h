@@ -69,6 +69,7 @@ int starpu_get_prefetch_flag(void);
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
 uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
+uint32_t starpu_task_data_footprint(struct starpu_task *task);
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch *perf_arch);
 double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task);

@@ -122,6 +122,7 @@ struct starpu_perfmodel
 	double (*cost_function)(struct starpu_task *, unsigned nimpl);
 
 	size_t (*size_base)(struct starpu_task *, unsigned nimpl);
+	uint32_t (*footprint)(struct starpu_task *);
 
 	struct starpu_perfmodel_per_arch**** per_arch; /*STARPU_MAXIMPLEMENTATIONS*/
 

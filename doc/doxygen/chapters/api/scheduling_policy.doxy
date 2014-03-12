@@ -128,7 +128,12 @@ otherwise the task may fail to execute.
 
 \fn uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy
-Returns the footprint for a given task
+Returns the footprint for a given task, taking into account user-provided
+perfmodel footprint or size_base functions.
+
+\fn uint32_t starpu_task_data_footprint(struct starpu_task *task)
+\ingroup API_Scheduling_Policy
+Returns the raw footprint for the data of a given task (without taking into account user-provided functions).
 
 \fn double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl)
 \ingroup API_Scheduling_Policy

@@ -103,8 +103,12 @@ must return a task duration estimation in micro-seconds.
 \var starpu_perfmodel::size_base
 Used by ::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED and
 ::STARPU_NL_REGRESSION_BASED. If not NULL, takes a task and
-implementation number, and returns the size to be used as index for
-history and regression.
+implementation number, and returns the size to be used as index to distinguish
+histories and as a base for regressions.
+\var starpu_perfmodel::footprint
+Used by ::STARPU_HISTORY_BASED. If not NULL, takes a task and returns the
+footprint to be used as index to distinguish histories. The default is to use
+the starpu_task_data_footprint function.
 \var starpu_perfmodel::per_arch
 Used by ::STARPU_PER_ARCH: array of structures starpu_per_arch_perfmodel
 \var starpu_perfmodel::is_loaded

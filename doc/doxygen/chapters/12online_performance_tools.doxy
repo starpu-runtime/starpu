@@ -363,17 +363,28 @@ of the task in micro-seconds, one per architecture.
 </ul>
 
 For ::STARPU_HISTORY_BASED, ::STARPU_REGRESSION_BASED, and
-::STARPU_NL_REGRESSION_BASED, the total size of task data (both input
-and output) is used as an index by default. The field
-starpu_perfmodel::size_base however permits the application to
-override that, when for instance some of the data do not matter for
-task cost (e.g. mere reference table), or when using sparse
+::STARPU_NL_REGRESSION_BASED, the dimensions of task data (both input
+and output) are used as an index by default. ::STARPU_HISTORY_BASED uses a CRC
+hash of the dimensions as an index to distinguish histories, and
+::REGRESSION_REGRESSION_BASED and ::STARPU_NL_REGRESSION_BASED use the total
+size as an index for the regression.
+
+The starpu_perfmodel::size_base and starpu_perfmodel::footprint fields however
+permit the application to override that, when for instance some of the data
+do not matter for task cost (e.g. mere reference table), or when using sparse
 structures (in which case it is the number of non-zeros which matter), or when
-there is some hidden parameter such as the number of iterations, or when the application
-actually has a very good idea of the complexity of the algorithm, and just not
-the speed of the processor, etc.
-The example in the directory <c>examples/pi</c> uses this to include
-the number of iterations in the base.
+there is some hidden parameter such as the number of iterations, or when the
+application actually has a very good idea of the complexity of the algorithm,
+and just not the speed of the processor, etc.  The example in the directory
+<c>examples/pi</c> uses this to include the number of iterations in the base
+size. starpu_perfmodel::size_base should be used when the variance of the actual
+performance is known (i.e. bigger returned value is longer execution
+time), and thus particularly useful for ::STARPU_REGRESSION_BASED or
+::STARPU_NL_REGRESSION_BASED. starpu_perfmodel::footprint can be used when the
+variance of the actual performance is unknown (irregular performance behavior,
+etc.), and thus only useful for ::STARPU_HISTORY_BASED.
+starpu_task_data_footprint() can be used as a base and combined with other
+parameters through starpu_hash_crc32c_be for instance.
 
 StarPU will automatically determine when the performance model is calibrated,
 or rather, it will assume the performance model is calibrated until the
