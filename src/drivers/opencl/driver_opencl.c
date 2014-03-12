@@ -46,7 +46,9 @@ static size_t global_mem[STARPU_MAXOPENCLDEVS];
 static cl_context contexts[STARPU_MAXOPENCLDEVS];
 static cl_device_id devices[STARPU_MAXOPENCLDEVS];
 static cl_command_queue queues[STARPU_MAXOPENCLDEVS];
-static cl_command_queue transfer_queues[STARPU_MAXOPENCLDEVS];
+static cl_command_queue in_transfer_queues[STARPU_MAXOPENCLDEVS];
+static cl_command_queue out_transfer_queues[STARPU_MAXOPENCLDEVS];
+static cl_command_queue peer_transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue alloc_queues[STARPU_MAXOPENCLDEVS];
 #endif
 
@@ -164,7 +166,11 @@ cl_int _starpu_opencl_init_context(int devid)
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
         props &= CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
-        transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
+        in_transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+        out_transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+        peer_transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         alloc_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], 0, &err);
@@ -189,7 +195,11 @@ cl_int _starpu_opencl_deinit_context(int devid)
         err = clReleaseCommandQueue(queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
-        err = clReleaseCommandQueue(transfer_queues[devid]);
+        err = clReleaseCommandQueue(in_transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+        err = clReleaseCommandQueue(out_transfer_queues[devid]);
+        if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+        err = clReleaseCommandQueue(peer_transfer_queues[devid]);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
         err = clReleaseCommandQueue(alloc_queues[devid]);
@@ -250,7 +260,7 @@ cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTR
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 
 	cl_event ev;
-	err = clEnqueueWriteBuffer(transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
+	err = clEnqueueWriteBuffer(in_transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
 
 	if (event)
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
@@ -288,7 +298,7 @@ cl_int starpu_opencl_copy_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_
 	if (event)
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 	cl_event ev;
-	err = clEnqueueReadBuffer(transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
+	err = clEnqueueReadBuffer(out_transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
 	if (event)
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	if (STARPU_LIKELY(err == CL_SUCCESS))
@@ -324,7 +334,7 @@ cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node STARPU_
 	if (event)
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 	cl_event ev;
-	err = clEnqueueCopyBuffer(transfer_queues[worker->devid], src, dst, src_offset, dst_offset, size, 0, NULL, &ev);
+	err = clEnqueueCopyBuffer(peer_transfer_queues[worker->devid], src, dst, src_offset, dst_offset, size, 0, NULL, &ev);
 	if (event)
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 	if (STARPU_LIKELY(err == CL_SUCCESS))
@@ -408,7 +418,7 @@ cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node S
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         if (event)
                 _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-        err = clEnqueueReadBufferRect(transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
+        err = clEnqueueReadBufferRect(out_transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                       buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
         if (event)
                 _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
@@ -428,7 +438,7 @@ cl_int _starpu_opencl_copy_rect_ram_to_opencl(void *ptr, unsigned src_node STARP
         blocking = (event == NULL) ? CL_TRUE : CL_FALSE;
         if (event)
                 _STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-        err = clEnqueueWriteBufferRect(transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
+        err = clEnqueueWriteBufferRect(in_transfer_queues[worker->devid], buffer, blocking, buffer_origin, host_origin, region, buffer_row_pitch,
                                        buffer_slice_pitch, host_row_pitch, host_slice_pitch, ptr, 0, NULL, event);
         if (event)
                 _STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
@@ -536,7 +546,9 @@ void _starpu_opencl_init(void)
 		{
                         contexts[i] = NULL;
                         queues[i] = NULL;
-                        transfer_queues[i] = NULL;
+                        in_transfer_queues[i] = NULL;
+                        out_transfer_queues[i] = NULL;
+                        peer_transfer_queues[i] = NULL;
                         alloc_queues[i] = NULL;
                 }
 #endif /* STARPU_USE_OPENCL */
