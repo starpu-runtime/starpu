@@ -74,7 +74,7 @@ data should be thrown away. If the handle is not to be reused, it can be
 unregistered:
 
 \code{.c}
-starpu_unregister_submit(handle);
+starpu_data_unregister_submit(handle);
 \endcode
 
 actual unregistration will be done after all tasks working on the handle
@@ -83,7 +83,7 @@ terminate.
 If the handle is to be reused, instead of unregistering it, it can simply be invalidated:
 
 \code{.c}
-starpu_invalidate_submit(handle);
+starpu_data_invalidate_submit(handle);
 \endcode
 
 the buffers containing the current value will then be freed, and reallocated
