@@ -518,7 +518,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 
 /* If sequential consistency mode is enabled, this function blocks until the
  * handle is available in the requested access mode. */
-int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_data_access_mode mode, const char *sync_name)
 {
 	/* If sequential consistency is enabled, wait until data is available */
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
@@ -527,7 +527,7 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_d
 	{
 		struct starpu_task *sync_task, *new_task;
 		sync_task = starpu_task_create();
-		sync_task->name = "sync_task_seq_cons";
+		sync_task->name = sync_name;
 		sync_task->detach = 0;
 		sync_task->destroy = 1;
 
