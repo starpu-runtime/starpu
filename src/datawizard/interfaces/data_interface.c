@@ -795,7 +795,8 @@ static void _starpu_data_unregister_submit_cb(void *arg)
 	_starpu_spin_lock(&handle->header_lock);
 	handle->lazy_unregister = 1;
 	/* The handle should be busy since we are working on it.
-         * when data_acquire releases the handle, it will be destroyed by _starpu_data_check_not_busy */
+	 * when we releases the handle below, it will be destroyed by
+	 * _starpu_data_check_not_busy */
 	STARPU_ASSERT(handle->busy_count);
         _starpu_spin_unlock(&handle->header_lock);
 
