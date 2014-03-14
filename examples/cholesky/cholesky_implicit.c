@@ -18,55 +18,6 @@
 
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
-/*
- *	Create the codelets
- */
-struct starpu_perfmodel chol_model_11;
-struct starpu_perfmodel chol_model_21;
-struct starpu_perfmodel chol_model_22;
-
-static struct starpu_codelet cl11 =
-{
-	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
-#elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
-#endif
-	.nbuffers = 1,
-	.modes = {STARPU_RW},
-	.model = &chol_model_11
-};
-
-static struct starpu_codelet cl21 =
-{
-	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
-#elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
-#endif
-	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_RW},
-	.model = &chol_model_21
-};
-
-static struct starpu_codelet cl22 =
-{
-	.type = STARPU_SEQ,
-	.max_parallelism = INT_MAX,
-	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
-#elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
-#endif
-	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_RW | STARPU_COMMUTE},
-	.model = &chol_model_22
-};
 
 /*
  *	code to bootstrap the factorization
