@@ -46,7 +46,7 @@ extern "C"
 
 enum starpu_codelet_type
 {
-	STARPU_SEQ,
+	STARPU_SEQ = 0,
 	STARPU_SPMD,
 	STARPU_FORKJOIN
 };
