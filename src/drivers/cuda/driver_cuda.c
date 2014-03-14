@@ -367,6 +367,8 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 		_starpu_simgrid_execute_job(j, &args->perf_arch, NAN);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+		if (cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC)
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif
 	}
 

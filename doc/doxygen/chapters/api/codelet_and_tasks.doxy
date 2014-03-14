@@ -223,6 +223,10 @@ If the field starpu_codelet::where is set, then the field
 starpu_codelet::cuda_funcs is ignored if ::STARPU_CUDA does not appear
 in the field starpu_codelet::where, it must be non-null otherwise.
 
+\var starpu_codelet::cuda_flags
+Optional array of flags for CUDA execution. They specify some semantic details
+about CUDA kernel execution, such as asynchronous execution.
+
 \var starpu_codelet::opencl_funcs
 Optional array of function pointers to the OpenCL implementations of
 the codelet. It must be terminated by a NULL value. The functions
@@ -234,6 +238,10 @@ If the field starpu_codelet::where field is set, then the field
 starpu_codelet::opencl_funcs is ignored if ::STARPU_OPENCL does not
 appear in the field starpu_codelet::where, it must be non-null
 otherwise.
+
+\var starpu_codelet::opencl_flags
+Optional array of flags for OpenCL execution. They specify some semantic details
+about OpenCL kernel execution, such as asynchronous execution.
 
 \var starpu_codelet::mic_funcs
 Optional array of function pointers to a function which returns the

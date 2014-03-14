@@ -780,6 +780,12 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 		double length = NAN;
 	  #ifdef STARPU_OPENCL_SIMULATOR
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+		if (cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC)
+		{
+			cl_command_queue queue;
+			starpu_opencl_get_queue(args->devid, &queue);
+			clFinish(queue);
+		}
 	    #ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
 	      #ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
 		#define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
@@ -794,6 +800,12 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 		_starpu_simgrid_execute_job(j, &args->perf_arch, length);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+		if (cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC)
+		{
+			cl_command_queue queue;
+			starpu_opencl_get_queue(args->devid, &queue);
+			clFinish(queue);
+		}
 #endif
 	}
 

@@ -41,6 +41,9 @@ extern "C"
 #define STARPU_MIC	((1ULL)<<7)
 #define STARPU_SCC	((1ULL)<<8)
 
+#define STARPU_CUDA_ASYNC	(1<<0)
+#define STARPU_OPENCL_ASYNC	(1<<0)
+
 enum starpu_codelet_type
 {
 	STARPU_SEQ,
@@ -90,7 +93,9 @@ struct starpu_codelet
 
 	starpu_cpu_func_t cpu_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_cuda_func_t cuda_funcs[STARPU_MAXIMPLEMENTATIONS];
+	char cuda_flags[STARPU_MAXIMPLEMENTATIONS];
 	starpu_opencl_func_t opencl_funcs[STARPU_MAXIMPLEMENTATIONS];
+	char opencl_flags[STARPU_MAXIMPLEMENTATIONS];
 	starpu_mic_func_t mic_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_scc_func_t scc_funcs[STARPU_MAXIMPLEMENTATIONS];
 

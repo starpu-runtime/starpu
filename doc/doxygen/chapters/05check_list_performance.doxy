@@ -54,8 +54,29 @@ cudaStreamSynchronize(starpu_cuda_get_local_stream());
 
 StarPU already does appropriate calls for the CUBLAS library.
 
+If the kernel can be made to only use this local stream or other self-allocated
+streams, i.e. the whole kernel submission can be made asynchronous, then
+one should enable asynchronous execution of the kernel. This means setting
+the corresponding cuda_flags[] flag in the codelet and dropping the
+cudaStreamSynchronize() call at the end of the kernel. That way, StarPU will be
+able to pipeline submitting tasks to GPUs, instead of synchronizing at each
+kernel submission. The kernel just has to make sure that StarPU can use the
+local stream to synchronize with the kernel startup and completion.
+
 Unfortunately, some CUDA libraries do not have stream variants of
 kernels. That will lower the potential for overlapping.
+
+\section OpenCL-specificOptimizations OpenCL-specific Optimizations
+
+If the kernel can be made to only use the StarPU-provided command queue or other self-allocated
+streams, i.e. the whole kernel submission can be made asynchronous, then
+one should enable asynchronous execution of the kernel. This means setting
+the corresponding opencl_flags[] flag in the codelet and dropping the
+clFinish() and starpu_opencl_collect_stats() calls at the end of the kernel.
+That way, StarPU will be able to pipeline submitting tasks to GPUs, instead of
+synchronizing at each kernel submission. The kernel just has to make sure
+that StarPU can use the command queue it has provided to synchronize with the
+kernel startup and completion.
 
 \section DetectionStuckConditions Detection Stuck Conditions
 
