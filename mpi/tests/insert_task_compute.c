@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,8 +56,7 @@ int test(int rank, int node, int *before, int *after, int task_insert)
 		if (rank <= 1)
 			FPRINTF_MPI("before computation x[%d] = %d\n", i, x[i]);
 		starpu_variable_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&x[i], sizeof(int));
-		starpu_data_set_rank(data_handles[i], i);
-		starpu_data_set_tag(data_handles[i], i);
+		starpu_mpi_data_register(data_handles[i], i, i);
 	}
 
 	if (task_insert)

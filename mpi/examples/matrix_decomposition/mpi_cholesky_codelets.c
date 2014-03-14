@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -98,8 +98,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 			}
 			if (data_handles[x][y])
 			{
-				starpu_data_set_rank(data_handles[x][y], mpi_rank);
-				starpu_data_set_tag(data_handles[x][y], (y*nblocks)+x);
+				starpu_mpi_data_register(data_handles[x][y], (y*nblocks)+x, mpi_rank);
 			}
 		}
 	}
