@@ -268,23 +268,20 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 			}
 			else
 			{
-				if (l || handle->last_submitted_ghost_accessors_id)
+				/* One previous accessor, make it the sync
+				 * task, and start depending on it. */
+				if (l)
 				{
-					/* One previous accessor, make it the sync
-					 * task, and start depending on it. */
-					if (l)
-					{
-						handle->last_sync_task = l->task;
-						handle->last_submitted_accessors = NULL;
-					}
-					else if (handle->last_submitted_ghost_accessors_id)
-					{
-						handle->last_submitted_ghost_sync_id = handle->last_submitted_ghost_accessors_id->id;
-						handle->last_submitted_ghost_sync_id_is_valid = 1;
-						free(handle->last_submitted_ghost_accessors_id);
-						handle->last_submitted_ghost_accessors_id = NULL;
-					}
+					handle->last_sync_task = l->task;
+					handle->last_submitted_accessors = NULL;
 					free(l);
+				}
+				else if (handle->last_submitted_ghost_accessors_id)
+				{
+					handle->last_submitted_ghost_sync_id = handle->last_submitted_ghost_accessors_id->id;
+					handle->last_submitted_ghost_sync_id_is_valid = 1;
+					free(handle->last_submitted_ghost_accessors_id);
+					handle->last_submitted_ghost_accessors_id = NULL;
 				}
 				_starpu_add_accessor(handle, pre_sync_task, post_sync_task);
 			}
