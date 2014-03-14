@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013 Université de Bordeaux 1
+ * Copyright (C) 2013-2014 Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,7 @@ static struct starpu_codelet codelet_begin =
 	.cpu_funcs = {begin, NULL},
 	.cpu_funcs_name = {"begin", NULL},
 	.nbuffers = 1,
+	.name = "begin",
 };
 
 void commute1(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
@@ -44,7 +45,8 @@ static struct starpu_codelet codelet_commute1 =
 	.cpu_funcs = {commute1, NULL},
 	.cpu_funcs_name = {"commute1", NULL},
 	.nbuffers = 1,
-	.modes = {STARPU_RW | STARPU_COMMUTE}
+	.modes = {STARPU_RW | STARPU_COMMUTE},
+	.name = "commute1",
 };
 
 void commute2(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
@@ -59,7 +61,8 @@ static struct starpu_codelet codelet_commute2 =
 	.cpu_funcs = {commute2, NULL},
 	.cpu_funcs_name = {"commute2", NULL},
 	.nbuffers = 1,
-	.modes = {STARPU_W | STARPU_COMMUTE}
+	.modes = {STARPU_W | STARPU_COMMUTE},
+	.name = "commute2",
 };
 
 void commute3(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args STARPU_ATTRIBUTE_UNUSED)
@@ -71,7 +74,8 @@ static struct starpu_codelet codelet_commute3 =
 	.cpu_funcs = {commute3, NULL},
 	.cpu_funcs_name = {"commute3", NULL},
 	.nbuffers = 1,
-	.modes = {STARPU_RW | STARPU_COMMUTE}
+	.modes = {STARPU_RW | STARPU_COMMUTE},
+	.name = "commute3",
 };
 
 static struct starpu_codelet codelet_end;
@@ -90,6 +94,7 @@ static struct starpu_codelet codelet_end =
 	.cpu_funcs = {end, NULL},
 	.cpu_funcs_name = {"end", NULL},
 	.nbuffers = 1,
+	.name = "end",
 };
 
 static int x;
@@ -107,7 +112,7 @@ static void test(enum starpu_data_access_mode begin_mode, enum starpu_data_acces
 	begin_t->cl = &codelet_begin;
 	begin_t->handles[0] = x_handle;
 	begin_t->use_tag = 1;
-	begin_t->tag_id = 0;
+	begin_t->tag_id = (order<<20) + (begin_mode<<10) + end_mode;
 
 	commute1_t = starpu_task_create();
 	commute1_t->cl = &codelet_commute1;
