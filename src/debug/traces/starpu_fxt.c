@@ -517,7 +517,7 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 #ifdef STARPU_HAVE_POTI
 		create_paje_state_color(name, "S", red, green, blue);
 		int i;
-		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+		for(i = 1; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
 			char ctx[10];
 			snprintf(ctx, sizeof(ctx), "Ctx%d", i);
@@ -556,7 +556,7 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 #else
 		fprintf(out_paje_file, "6	%s	S	%s	\"%f %f %f\" \n", name, name, red, green, blue);
 		int i;
-		for(i = 0; i < STARPU_NMAX_SCHED_CTXS; i++)
+		for(i = 1; i < STARPU_NMAX_SCHED_CTXS; i++)
 		{
 			if(i%10 == 1)
 				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"255.0 102.0 255.0\" \n", name, i, name);
