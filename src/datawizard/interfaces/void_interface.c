@@ -92,9 +92,11 @@ static void display_void_interface(starpu_data_handle_t handle STARPU_ATTRIBUTE_
 
 static int pack_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
 			    unsigned node STARPU_ATTRIBUTE_UNUSED,
-			    void **ptr STARPU_ATTRIBUTE_UNUSED,
-			    ssize_t *count STARPU_ATTRIBUTE_UNUSED)
+			    void **ptr,
+			    ssize_t *count)
 {
+	*count = 0;
+	*ptr = NULL;
 	return 0;
 }
 
