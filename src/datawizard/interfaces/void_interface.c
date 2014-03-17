@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
- * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,6 +39,8 @@ static size_t void_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_void_interface_crc32(starpu_data_handle_t handle);
 static int void_compare(void *data_interface_a, void *data_interface_b);
 static void display_void_interface(starpu_data_handle_t handle, FILE *f);
+static int pack_void_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
+static int unpack_void_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
 struct starpu_data_interface_ops starpu_interface_void_ops =
 {
@@ -51,7 +53,9 @@ struct starpu_data_interface_ops starpu_interface_void_ops =
 	.compare = void_compare,
 	.interfaceid = STARPU_VOID_INTERFACE_ID,
 	.interface_size = 0,
-	.display = display_void_interface
+	.display = display_void_interface,
+	.pack_data = pack_void_handle,
+	.unpack_data = unpack_void_handle
 };
 
 static void register_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
@@ -84,6 +88,22 @@ static int void_compare(void *data_interface_a STARPU_ATTRIBUTE_UNUSED,
 static void display_void_interface(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED, FILE *f)
 {
 	fprintf(f, "void\t");
+}
+
+static int pack_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
+			    unsigned node STARPU_ATTRIBUTE_UNUSED,
+			    void **ptr STARPU_ATTRIBUTE_UNUSED,
+			    ssize_t *count STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0;
+}
+
+static int unpack_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
+			      unsigned node STARPU_ATTRIBUTE_UNUSED,
+			      void *ptr STARPU_ATTRIBUTE_UNUSED,
+			      size_t count STARPU_ATTRIBUTE_UNUSED)
+{
+	return 0;
 }
 
 static size_t void_interface_get_size(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED)
