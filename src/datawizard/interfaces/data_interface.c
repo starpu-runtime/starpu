@@ -557,9 +557,37 @@ int _starpu_data_check_not_busy(starpu_data_handle_t handle)
 	return 0;
 }
 
+static
+void _starpu_check_if_valid_and_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate)
+{
+	unsigned node;
+	unsigned nnodes = starpu_memory_nodes_get_count();
+	int valid = 0;
+
+	for (node = 0; node < nnodes; node++)
+	{
+		if (handle->per_node[node].state != STARPU_INVALID)
+		{
+			/* we found a copy ! */
+			valid = 1;
+		}
+	}
+	if (valid)
+	{
+		int ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, 0, 0, NULL, NULL);
+		STARPU_ASSERT(!ret);
+		_starpu_release_data_on_node(handle, 0, &handle->per_node[handle->home_node]);
+	}
+	else
+	{
+		_starpu_spin_lock(&handle->header_lock);
+		if (!_starpu_notify_data_dependencies(handle))
+			_starpu_spin_unlock(&handle->header_lock);
+	}
+}
+
 static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 {
-	int ret;
 	struct _starpu_unregister_callback_arg *arg = (struct _starpu_unregister_callback_arg *) _arg;
 
 	starpu_data_handle_t handle = arg->handle;
@@ -568,8 +596,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 	struct _starpu_data_replicate *replicate = &handle->per_node[arg->memory_node];
 
-	ret = _starpu_fetch_data_on_node(handle, replicate, STARPU_R, 0, 0, NULL, NULL);
-	STARPU_ASSERT(!ret);
+	_starpu_check_if_valid_and_fetch_data_on_node(handle, replicate);
 
 	/* unlock the caller */
 	STARPU_PTHREAD_MUTEX_LOCK(&arg->mutex);
@@ -618,8 +645,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			{
 				/* no one has locked this data yet, so we proceed immediately */
 				struct _starpu_data_replicate *home_replicate = &handle->per_node[home_node];
-				int ret = _starpu_fetch_data_on_node(handle, home_replicate, STARPU_R, 0, 0, NULL, NULL);
-				STARPU_ASSERT(!ret);
+				_starpu_check_if_valid_and_fetch_data_on_node(handle, home_replicate);
 			}
 			else
 			{
@@ -630,7 +656,6 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			}
 			STARPU_PTHREAD_MUTEX_DESTROY(&arg.mutex);
 			STARPU_PTHREAD_COND_DESTROY(&arg.cond);
-			_starpu_release_data_on_node(handle, 0, &handle->per_node[home_node]);
 		}
 
 		/* If this handle uses a multiformat interface, we may have to convert
