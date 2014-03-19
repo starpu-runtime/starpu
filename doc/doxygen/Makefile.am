@@ -2,6 +2,7 @@
 #
 # Copyright (C) 2009, 2011, 2013  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+# Copyright (C) 2014  Inria
 #
 # Permission is granted to copy, distribute and/or modify this document
 # under the terms of the GNU Free Documentation License, Version 1.3
@@ -107,7 +108,7 @@ chapters =	\
 	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy
 
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
-	@sed 's/#undef \(.*\)/#define \1 1/' $< > $@
+	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
 
 chapters/version.sty: $(chapters)
 	@for f in $(chapters) ; do \
@@ -224,11 +225,11 @@ dox_inputs = $(DOX_CONFIG) 				\
 $(DOX_TAG): $(dox_inputs)
 	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
 	@$(DOXYGEN) $(DOX_CONFIG)
-	@sed -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
-	@sed -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
+	@$(SED) -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
+	@$(SED) -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
         # comment for the line below: what we really want to do is to remove the line, but dy doing so, it avoids opening the interactive menu when browsing files
-	@if test -f html/navtree.js ; then sed -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
-	@sed -i 's/.*"Files.html".*//' html/pages.html
+	@if test -f html/navtree.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
+	@$(SED) -i 's/.*"Files.html".*//' html/pages.html
 	@if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
 
 dist_pdf_DATA = $(DOX_PDF)
@@ -239,10 +240,10 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
 	@cd $(DOX_LATEX_DIR) ;\
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\
-	sed -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
-	sed -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
-	sed -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
-	sed -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
+	$(SED) -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
+	$(SED) -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
+	$(SED) -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
+	$(SED) -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
 	$(PDFLATEX) refman.tex > /dev/null ;\
 	$(MAKEINDEX) refman.idx > /dev/null 2>&1 ;\
 	$(PDFLATEX) refman.tex > /dev/null ;\
