@@ -119,11 +119,12 @@ chapters/version.sty: $(chapters)
 		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_sty` +"%B %Y" > timestamp_sty_updated_month ;\
 	fi
 	@if test -s timestamp_sty_updated ; then \
-		echo '\\newcommand{\\STARPUUPDATED}{'`cat timestamp_sty_updated`'}' > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
+		echo ':newcommand{:STARPUUPDATED}{'`cat timestamp_sty_updated`'}' > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	else \
-		echo '\\newcommand{\\STARPUUPDATED}{unknown date}' > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
+		echo ':newcommand{:STARPUUPDATED}{unknown date}' > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	fi
-	@echo '\\newcommand{\\STARPUVERSION}{$(VERSION)}' >> $(top_srcdir)/doc/doxygen/chapters/version.sty
+	@echo ':newcommand{:STARPUVERSION}{$(VERSION)}' >> $(top_srcdir)/doc/doxygen/chapters/version.sty
+	@$(SED) -i 's/:/\\/g' $(top_srcdir)/doc/doxygen/chapters/version.sty
 	@for f in timestamp_sty timestamp_sty_updated timestamp_sty_updated_month ; do \
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
