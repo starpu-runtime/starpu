@@ -203,7 +203,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		STARPU_PTHREAD_MUTEX_LOCK(&args->parallel_sect_mutex);
 		_starpu_sched_ctx_signal_worker_blocked(args->workerid);
 		STARPU_PTHREAD_COND_WAIT(&args->parallel_sect_cond, &args->parallel_sect_mutex);
-		_starpu_sched_ctx_rebind_thread_to_its_cpu(args->bindid);
+		starpu_sched_ctx_bind_current_thread_to_cpuid(args->bindid);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&args->parallel_sect_mutex);
 		args->parallel_sect = 0;
 	}

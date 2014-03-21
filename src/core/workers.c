@@ -269,6 +269,7 @@ static int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, 
 
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
+	if(config.workers[workerid].parallel_sect) return 0;
 	/* TODO: check that the task operand sizes will fit on that device */
 	return (task->cl->where & config.workers[workerid].worker_mask) &&
 		_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl) &&
@@ -448,6 +449,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->reverse_phase[1] = 0;
 	workerarg->pop_ctx_priority = 1;
 	workerarg->sched_mutex_locked = 0;
+	workerarg->master = -1;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }

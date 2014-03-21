@@ -116,6 +116,15 @@ void starpu_sched_ctx_set_priority(int *workers, int nworkers, unsigned sched_ct
 void starpu_sched_ctx_set_priority_on_level(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx, unsigned priority);
 
 unsigned starpu_sched_ctx_get_priority(int worker, unsigned sched_ctx_id);
+
+void starpu_sched_ctx_get_available_cpuids(unsigned sched_ctx_id, int **cpuids, int *ncpuids);
+
+void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid);
+
+int starpu_sched_ctx_book_workers_for_task(unsigned sched_ctx_id, int *workerids, int nworkers);
+
+void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int master);
+
 #ifdef STARPU_USE_SC_HYPERVISOR
 void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif /* STARPU_USE_SC_HYPERVISOR */

@@ -719,10 +719,6 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);
-			if (worker >= nworkers_ctx)
-				/* This is a just-added worker, discard it */
-				continue;
-
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
 				if (!starpu_worker_can_execute_task(worker, task, nimpl))
@@ -730,8 +726,6 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 					/* no one on that queue may execute this task */
 					continue;
 				}
-
-
 				fitness[worker_ctx][nimpl] = dt->alpha*(exp_end[worker_ctx][nimpl] - best_exp_end)
 					+ dt->beta*(local_data_penalty[worker_ctx][nimpl])
 					+ dt->_gamma*(local_power[worker_ctx][nimpl]);

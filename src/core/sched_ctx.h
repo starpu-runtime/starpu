@@ -180,9 +180,6 @@ starpu_pthread_rwlock_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched
    (if it is the last one awake in a context he should better keep awake) */
 unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);
 
-/*rebind each thread on its cpu after finishing a parallel code */
-void _starpu_sched_ctx_rebind_thread_to_its_cpu(unsigned cpuid);
-
 /* let the appl know that the worker blocked to execute parallel code */
 void _starpu_sched_ctx_signal_worker_blocked(int workerid);
 
