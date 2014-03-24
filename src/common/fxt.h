@@ -627,6 +627,9 @@ do {										\
 #define _STARPU_TRACE_MEMORY_FULL(size)	\
 	FUT_DO_PROBE2(_STARPU_FUT_MEMORY_FULL,size,_starpu_gettid());
 
+#define _STARPU_TRACE_DATA_LOAD(workerid,size)	\
+	FUT_DO_PROBE2(_STARPU_FUT_DATA_LOAD, workerid, size);
+
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)		\
 	FUT_DO_PROBE3(_STARPU_FUT_START_UNPARTITION, memnode, _starpu_gettid(), handle);
 	
@@ -704,6 +707,7 @@ do {										\
 #define _STARPU_TRACE_BARRIER_WAIT_BEGIN()		do {} while(0)
 #define _STARPU_TRACE_BARRIER_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_MEMORY_FULL(size)				do {} while(0)
+#define _STARPU_TRACE_MEMORY_FULL(workerid,size)		do {} while(0)
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)	do {} while(0)
 #define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {} while(0)
 #define _STARPU_TRACE_HYPERVISOR_BEGIN()        do {} while(0)
