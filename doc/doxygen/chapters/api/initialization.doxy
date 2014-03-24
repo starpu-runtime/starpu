@@ -132,7 +132,7 @@ implementations) however do not support concurrent calls to
 parallel code. In such case, setting this flag makes StarPU
 only start one parallel task at a time (but other CPU and
 GPU tasks are not affected and can be run concurrently).
-The parallel task scheduler will however still however
+The parallel task scheduler will however
 still try varying combined worker sizes to look for the
 most efficient ones. This can also be specified with the environment
 variable \ref STARPU_SINGLE_COMBINED_WORKER.
