@@ -1095,7 +1095,7 @@ static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 #ifdef STARPU_HAVE_POTI
 		char container[STARPU_POTI_STR_LEN], paje_value[STARPU_POTI_STR_LEN];
 		snprintf(container, STARPU_POTI_STR_LEN, "%sp", options->file_prefix);
-		snprintf(container, STARPU_POTI_STR_LEN, "%d", rank);
+		snprintf(paje_value, STARPU_POTI_STR_LEN, "%d", rank);
 		poti_NewEvent(get_event_time_stamp(ev, options), container, "event", paje_value);
 #else
 		fprintf(out_paje_file, "9	%.9f	event	%sp	%d\n", get_event_time_stamp(ev, options), options->file_prefix, rank);
