@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -102,6 +102,8 @@
 #define _STARPU_FUT_SET_PROFILING	0x513a
 
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL	0x513b
+
+#define _STARPU_FUT_EVENT	0x513c
 
 #define _STARPU_FUT_START_UNPARTITION 0x5154
 #define _STARPU_FUT_END_UNPARTITION 0x5155
@@ -387,6 +389,9 @@ do {										\
 
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL			\
 	FUT_DO_PROBE0(_STARPU_FUT_TASK_WAIT_FOR_ALL)
+
+#define _STARPU_TRACE_EVENT(S)			\
+	FUT_DO_PROBESTR(_STARPU_FUT_EVENT,S)
 
 #define _STARPU_TRACE_HYPERVISOR_BEGIN()  \
 	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_BEGIN, _starpu_gettid());
