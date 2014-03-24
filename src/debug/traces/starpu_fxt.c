@@ -1294,6 +1294,23 @@ static void handle_task_wait_for_all(void)
 	_starpu_fxt_dag_add_sync_point();
 }
 
+static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	char *event = (char*)&ev->param[0];
+
+	/* Add an event in the trace */
+	if (out_paje_file)
+	{
+#ifdef STARPU_HAVE_POTI
+		char container[STARPU_POTI_STR_LEN];
+		snprintf(container, STARPU_POTI_STR_LEN, "%sp", options->file_prefix);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "event", event);
+#else
+		fprintf(out_paje_file, "9	%.9f	event	%sp	%s\n", get_event_time_stamp(ev, options), options->file_prefix, event);
+#endif
+	}
+}
+
 static
 void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 {
@@ -1689,6 +1706,10 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 
 			case _STARPU_FUT_TASK_WAIT_FOR_ALL:
 				handle_task_wait_for_all();
+				break;
+
+			case _STARPU_FUT_EVENT:
+				handle_event(&ev, options);
 				break;
 
 			case _STARPU_FUT_LOCKING_MUTEX:

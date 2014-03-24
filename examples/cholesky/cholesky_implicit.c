@@ -41,10 +41,12 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	int prio_level = noprio?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
 
-	start = starpu_timing_now();
-
 	if (bound || bound_lp || bound_mps)
 		starpu_bound_start(bound_deps, 0);
+	starpu_fxt_start_profiling();
+
+	start = starpu_timing_now();
+
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
@@ -94,10 +96,12 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	}
 
 	starpu_task_wait_for_all();
-	if (bound || bound_lp || bound_mps)
-		starpu_bound_stop();
 
 	end = starpu_timing_now();
+
+	starpu_fxt_stop_profiling();
+	if (bound || bound_lp || bound_mps)
+		starpu_bound_stop();
 
 	double timing = end - start;
 
@@ -296,6 +300,7 @@ int main(int argc, char **argv)
 
 	int ret;
 	ret = starpu_init(NULL);
+	starpu_fxt_stop_profiling();
 
 	if (ret == -ENODEV)
                 return 77;
