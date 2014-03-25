@@ -2423,6 +2423,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_codelet_profile
   chmod +x tools/starpu_codelet_histo_profile
   chmod +x tools/starpu_workers_activity
+  chmod +x tools/starpu_paje_draw_histogram
+  chmod +x tools/starpu_paje_state_stats
   chmod +x doc/doxygen/doxygen_filter.sh
 ])
 
@@ -2450,6 +2452,8 @@ AC_OUTPUT([
 	tools/starpu_codelet_profile
 	tools/starpu_codelet_histo_profile
 	tools/starpu_workers_activity
+	tools/starpu_paje_draw_histogram
+	tools/starpu_paje_state_stats
 	socl/Makefile
 	socl/src/Makefile
 	socl/examples/Makefile

@@ -313,6 +313,46 @@ histogram of the codelet execution time distribution.
 \image html distrib_data_histo.png
 \image latex distrib_data_histo.eps "" width=\textwidth
 
+\section TraceStatistics Trace statistics
+
+More than just codelet performance, it is interesting to get statistics over all
+kinds of StarPU states (allocations, data transfers, etc.). This is particularly
+useful to check what may have gone wrong in the accurracy of the simgrid
+simulation.
+
+This requires the <c>R</c> statistical tool, with the plyr, ggplot2 and
+data.table packages. If your system distribution does not have packages for
+these, one can fetch them from CRAN:
+
+\verbatim
+$ R
+> install.packages("plyr")
+> install.packages("ggplot2")
+> install.packages("data.table")
+\endverbatim
+
+One can then get textual or .csv statistics over the trace states:
+
+\verbatim
+$ starpu_paje_state_stats -v native.trace simgrid.trace
+"Value"         "Events_native.csv" "Duration_native.csv" "Events_simgrid.csv" "Duration_simgrid.csv"
+"Callback"      220                 0.075978              220                  0
+"chol_model_11" 10                  565.176               10                   572.8695
+"chol_model_21" 45                  9184.828              45                   9170.719
+"chol_model_22" 165                 64712.07              165                  64299.203
+$ starpu_paje_state_stats native.trace simgrid.trace
+\endverbatim
+
+And one can plot histograms of execution times, of several states for instance:
+\verbatim
+$ starpu_paje_draw_histogram -n chol_model_11,chol_model_21,chol_model_22 native.trace simgrid.trace
+\endverbatim
+
+and see the resulting pdf file:
+
+\image html paje_draw_histogram.png
+\image latex paje_draw_histogram.eps "" width=\textwidth
+
 \section TheoreticalLowerBoundOnExecutionTime Theoretical Lower Bound On Execution Time
 
 StarPU can record a trace of what tasks are needed to complete the
