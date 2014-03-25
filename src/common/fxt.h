@@ -266,10 +266,10 @@ do {									\
 #ifndef FUT_RAW_PROBE7
 #define FUT_RAW_PROBE7(CODE,P1,P2,P3,P4,P5,P6,P7) do {		\
 		if(fut_active) {					\
-			unsigned long *args __attribute__((unused))=	\
+			unsigned long *__args __attribute__((unused))=	\
 				fut_getstampedbuffer(CODE,		\
 						     FUT_SIZE(7)); \
-			*(args++)=(unsigned long)(P1);*(args++)=(unsigned long)(P2);*(args++)=(unsigned long)(P3);*(args++)=(unsigned long)(P4);*(args++)=(unsigned long)(P5);*(args++)=(unsigned long)(P6);*(args++)=(unsigned long)(P7);				\
+			*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);*(__args++)=(unsigned long)(P5);*(__args++)=(unsigned long)(P6);*(__args++)=(unsigned long)(P7);				\
 				}					\
 	} while (0)
 #endif
