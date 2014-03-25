@@ -109,9 +109,9 @@ for file in $inputfiles; do
 	exit 5
     fi
 # Sorting traces
-    grep -s -e '^\(\(%\)\|\(\(1\|2\|3\|4\|5\|6\|7\|8\|9\)\>\)\)' $file > start.trace
-    grep -s -e '^\(\(%\)\|\(\(1\|2\|3\|4\|5\|6\|7\|8\|9\)\>\)\)' -v $file > end.trace
-    sort -V --key=2,2 end.trace > endSorted.trace
+    grep -e '^\(\(%\)\|\(\(1\|2\|3\|4\|5\|6\|7\|8\|9\)\>\)\)' $file > start.trace
+    grep -e '^\(\(%\)\|\(\(1\|2\|3\|4\|5\|6\|7\|8\|9\)\>\)\)' -v $file > end.trace
+    sort -s -V --key=2,2 end.trace > endSorted.trace
     cat start.trace endSorted.trace > outputSorted.trace
 
 # Transferring to .csv
