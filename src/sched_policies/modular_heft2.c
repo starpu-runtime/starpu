@@ -112,7 +112,7 @@ static void deinitialize_heft2_center_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
-struct starpu_sched_policy _starpu_sched_tree_heft2_policy =
+struct starpu_sched_policy _starpu_sched_modular_heft2_policy =
 {
 	.init_sched = initialize_heft2_center_policy,
 	.deinit_sched = deinitialize_heft2_center_policy,
@@ -123,6 +123,6 @@ struct starpu_sched_policy _starpu_sched_tree_heft2_policy =
 	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
-	.policy_name = "tree-heft2",
-	.policy_description = "heft tree2 policy"
+	.policy_name = "modular-heft2",
+	.policy_description = "heft modular2 policy"
 };

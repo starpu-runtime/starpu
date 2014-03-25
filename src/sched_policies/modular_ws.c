@@ -45,7 +45,7 @@ static void deinitialize_ws_center_policy(unsigned sched_ctx_id)
 }
 
 
-struct starpu_sched_policy _starpu_sched_tree_ws_policy =
+struct starpu_sched_policy _starpu_sched_modular_ws_policy =
 {
 	.init_sched = initialize_ws_center_policy,
 	.deinit_sched = deinitialize_ws_center_policy,
@@ -56,6 +56,6 @@ struct starpu_sched_policy _starpu_sched_tree_ws_policy =
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
-	.policy_name = "tree-ws",
-	.policy_description = "work stealing tree policy"
+	.policy_name = "modular-ws",
+	.policy_description = "work stealing modular policy"
 };

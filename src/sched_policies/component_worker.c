@@ -608,6 +608,7 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(int 
 	starpu_bitmap_or(component->workers_in_ctx, component->workers);
 	_worker_components[workerid] = component;
 
+	/*
 #ifdef STARPU_HAVE_HWLOC
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct _starpu_machine_topology *topology = &config->topology;
@@ -615,6 +616,7 @@ static struct starpu_sched_component * starpu_sched_component_worker_create(int 
 	STARPU_ASSERT(obj);
 	component->obj = obj;
 #endif
+	*/
 
 	return component;
 }

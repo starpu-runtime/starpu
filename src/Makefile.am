@@ -259,14 +259,14 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/component_best_implementation.c		\
 	sched_policies/component_perfmodel_select.c				\
 	sched_policies/component_composed.c				\
-	sched_policies/tree_eager.c				\
-	sched_policies/tree_eager_prefetching.c				\
-	sched_policies/tree_prio.c				\
-	sched_policies/tree_prio_prefetching.c				\
-	sched_policies/tree_random.c				\
-	sched_policies/tree_random_prefetching.c			\
-	sched_policies/tree_heft.c				\
-	sched_policies/tree_heft2.c
+	sched_policies/modular_eager.c				\
+	sched_policies/modular_eager_prefetching.c				\
+	sched_policies/modular_prio.c				\
+	sched_policies/modular_prio_prefetching.c				\
+	sched_policies/modular_random.c				\
+	sched_policies/modular_random_prefetching.c			\
+	sched_policies/modular_heft.c				\
+	sched_policies/modular_heft2.c
 
 
 if STARPU_HAVE_LEVELDB

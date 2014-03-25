@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013  INRIA
+ * Copyright (C) 2013  Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,11 +18,13 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 
-static void initialize_prio_center_policy(unsigned sched_ctx_id)
+static void initialize_eager_center_policy(unsigned sched_ctx_id)
 {
+	_STARPU_DISP("Warning: you are running the default tree-eager scheduler, which is not very smart. Make sure to read the StarPU documentation about adding performance models in order to be able to use the tree-heft scheduler instead.\n");
+
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
- 	t->root = starpu_sched_component_prio_create(NULL);
+ 	t->root = starpu_sched_component_fifo_create(NULL);
 	struct starpu_sched_component * eager_component = starpu_sched_component_eager_create(NULL);
 	t->root->add_child(t->root, eager_component);
 	eager_component->add_parent(eager_component, t->root);
@@ -39,17 +42,17 @@ static void initialize_prio_center_policy(unsigned sched_ctx_id)
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)t);
 }
 
-static void deinitialize_prio_center_policy(unsigned sched_ctx_id)
+static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_sched_tree_destroy(tree);
 	starpu_sched_ctx_delete_worker_collection(sched_ctx_id);
 }
 
-struct starpu_sched_policy _starpu_sched_tree_prio_policy =
+struct starpu_sched_policy _starpu_sched_modular_eager_policy =
 {
-	.init_sched = initialize_prio_center_policy,
-	.deinit_sched = deinitialize_prio_center_policy,
+	.init_sched = initialize_eager_center_policy,
+	.deinit_sched = deinitialize_eager_center_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.push_task = starpu_sched_tree_push_task,
@@ -57,6 +60,6 @@ struct starpu_sched_policy _starpu_sched_tree_prio_policy =
 	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
-	.policy_name = "tree-prio",
-	.policy_description = "prio tree policy"
+	.policy_name = "modular-eager",
+	.policy_description = "eager modular policy"
 };
