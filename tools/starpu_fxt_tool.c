@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2013  Universite de Bordeaux 1
+ * Copyright (C) 2011-2014  Universite de Bordeaux 1
  * Copyright (C) 2012-2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -38,7 +38,7 @@ static void usage(char **argv)
         fprintf(stderr, "   -no-bus             set the FxT no bus option\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
-        fprintf(stderr, "Reports bugs to <"PACKAGE_BUGREPORT">.");
+        fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
         fprintf(stderr, "\n");
 }
 

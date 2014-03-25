@@ -16,7 +16,7 @@ static void usage()
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
 	fprintf(stderr, "    filename           specify the FxT trace input file.\n");
 	fprintf(stderr, "    codeletX           specify the codelet name to profile (by default, all codelets are profiled)\n");
-        fprintf(stderr, "Reports bugs to <"PACKAGE_BUGREPORT">.");
+        fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
         fprintf(stderr, "\n");
 }
 
