@@ -28,6 +28,7 @@ New features:
 	  should be called instead of both calling
 	  starpu_data_set_tag() and starpu_data_set_rank()
   * Use streams for GPUA->GPUB and GPUB->GPUA transfers.
+  * Add paje traces statistics tools.
 
 Small features:
   * New STARPU_EXECUTE_ON_WORKER flag to specify the worker on which
