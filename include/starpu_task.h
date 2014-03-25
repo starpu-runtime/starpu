@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
@@ -41,9 +41,12 @@ extern "C"
 #define STARPU_MIC	((1ULL)<<7)
 #define STARPU_SCC	((1ULL)<<8)
 
+#define STARPU_CUDA_ASYNC	(1<<0)
+#define STARPU_OPENCL_ASYNC	(1<<0)
+
 enum starpu_codelet_type
 {
-	STARPU_SEQ,
+	STARPU_SEQ = 0,
 	STARPU_SPMD,
 	STARPU_FORKJOIN
 };
@@ -90,7 +93,9 @@ struct starpu_codelet
 
 	starpu_cpu_func_t cpu_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_cuda_func_t cuda_funcs[STARPU_MAXIMPLEMENTATIONS];
+	char cuda_flags[STARPU_MAXIMPLEMENTATIONS];
 	starpu_opencl_func_t opencl_funcs[STARPU_MAXIMPLEMENTATIONS];
+	char opencl_flags[STARPU_MAXIMPLEMENTATIONS];
 	starpu_mic_func_t mic_funcs[STARPU_MAXIMPLEMENTATIONS];
 	starpu_scc_func_t scc_funcs[STARPU_MAXIMPLEMENTATIONS];
 
@@ -99,6 +104,10 @@ struct starpu_codelet
 	unsigned nbuffers;
 	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
 	enum starpu_data_access_mode *dyn_modes;
+
+	unsigned specific_nodes;
+	int nodes[STARPU_NMAXBUFS];
+	int *dyn_nodes;
 
 	struct starpu_perfmodel *model;
 	struct starpu_perfmodel *power_model;
@@ -211,6 +220,9 @@ struct starpu_task
 #define STARPU_CODELET_GET_MODE(codelet, i) ((codelet->dyn_modes) ? codelet->dyn_modes[i] : codelet->modes[i])
 #define STARPU_CODELET_SET_MODE(codelet, mode, i) do { if (codelet->dyn_modes) codelet->dyn_modes[i] = mode; else codelet->modes[i] = mode; } while(0)
 
+#define STARPU_CODELET_GET_NODE(codelet, i) ((codelet->dyn_nodes) ? codelet->dyn_nodes[i] : codelet->nodes[i])
+#define STARPU_CODELET_SET_NODE(codelet, __node, i) do { if (codelet->dyn_nodes) codelet->dyn_nodes[i] = __node; else codelet->nodes[i] = __node; } while(0)
+
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
 
@@ -254,6 +266,7 @@ void starpu_codelet_display_stats(struct starpu_codelet *cl);
 struct starpu_task *starpu_task_get_current(void);
 
 void starpu_parallel_task_barrier_init(struct starpu_task *task, int workerid);
+void starpu_parallel_task_barrier_init_n(struct starpu_task *task, int worker_size);
 
 struct starpu_task *starpu_task_dup(struct starpu_task *task);
 

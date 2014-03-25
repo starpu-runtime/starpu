@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,7 +33,7 @@ struct starpu_sched_policy
 	void (*deinit_sched)(unsigned sched_ctx_id);
 
 	int (*push_task)(struct starpu_task *);
-	void (*push_task_notify)(struct starpu_task *, int workerid, unsigned sched_ctx_id);
+	void (*push_task_notify)(struct starpu_task *, int workerid, int perf_workerid, unsigned sched_ctx_id);
 	struct starpu_task *(*pop_task)(unsigned sched_ctx_id);
 	struct starpu_task *(*pop_every_task)(unsigned sched_ctx_id);
 
@@ -69,6 +69,7 @@ int starpu_get_prefetch_flag(void);
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node);
 
 uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
+uint32_t starpu_task_data_footprint(struct starpu_task *task);
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch *perf_arch);
 double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task);

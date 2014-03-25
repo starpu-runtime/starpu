@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
 */
@@ -91,14 +91,13 @@ fields that the application may use to give hints to the scheduler (such as
 priority levels).
 
 By default, task dependencies are inferred from data dependency (sequential
-coherence) by StarPU. The application can however disable sequential coherency
-for some data, and dependencies be expressed by hand.
+coherency) by StarPU. The application can however disable sequential coherency
+for some data, and dependencies can be specifically expressed.
 A task may be identified by a unique 64-bit number chosen by the application
 which we refer as a \b tag.
-Task dependencies can be enforced by hand either by the means of callback functions, by
+Task dependencies can be enforced either by the means of callback functions, by
 submitting other tasks, or by expressing dependencies
-between tags (which can thus correspond to tasks that have not been submitted
-yet).
+between tags (which can thus correspond to tasks that have not yet been submitted).
 
 // TODO insert illustration f(Ar, Brw, Cr) + ..
 // DSM
@@ -107,7 +106,7 @@ yet).
 
 Because StarPU schedules tasks at runtime, data transfers have to be
 done automatically and ``just-in-time'' between processing units,
-relieving the application programmer from explicit data transfers.
+relieving application programmers from explicit data transfers.
 Moreover, to avoid unnecessary transfers, StarPU keeps data
 where it was last needed, even if was modified there, and it
 allows multiple copies of the same data to reside at the same time on
@@ -134,8 +133,8 @@ A <b>memory node</b> can be either the main RAM, GPU-embedded memory or a disk m
 A \b bus is a link between memory nodes.
 
 A <b>data handle</b> keeps track of replicates of the same data (\b registered by the
-application) over various memory nodes. The data management library manages
-keeping them coherent.
+application) over various memory nodes. The data management library manages to
+keep them coherent.
 
 The \b home memory node of a data handle is the memory node from which the data
 was registered (usually the main memory node).
@@ -184,30 +183,94 @@ http://runtime.bordeaux.inria.fr/Publis/Keyword/STARPU.html.
 A good overview is available in the research report at
 http://hal.archives-ouvertes.fr/inria-00467677.
 
+\section StarPUApplications StarPU Applications
+
+You can first have a look at the chapters \ref BasicExamples and \ref AdvancedExamples.
+A tutorial is also installed in the directory <c>share/doc/starpu/tutorial/</c>.
+
+Many examples are also available in the StarPU sources in the directory
+<c>examples/</c>. Simple examples include:
+
+<dl>
+<dt> <c>incrementer/</c> </dt>
+<dd> Trivial incrementation test. </dd>
+<dt> <c>basic_examples/</c> </dt>
+<dd>
+        Simple documented Hello world and vector/scalar product (as
+        shown in \ref BasicExamples), matrix
+        product examples (as shown in \ref PerformanceModelExample), an example using the blocked matrix data
+        interface, an example using the variable data interface, and an example
+        using different formats on CPUs and GPUs.
+</dd>
+<dt> <c>matvecmult/</c></dt>
+<dd>
+    OpenCL example from NVidia, adapted to StarPU.
+</dd>
+<dt> <c>axpy/</c></dt>
+<dd>
+    AXPY CUBLAS operation adapted to StarPU.
+</dd>
+<dt> <c>fortran/</c> </dt>
+<dd>
+    Example of Fortran bindings.
+</dd>
+</dl>
+
+More advanced examples include:
+
+<dl>
+<dt><c>filters/</c></dt>
+<dd>
+    Examples using filters, as shown in \ref PartitioningData.
+</dd>
+<dt><c>lu/</c></dt>
+<dd>
+    LU matrix factorization, see for instance <c>xlu_implicit.c</c>
+</dd>
+<dt><c>cholesky/</c></dt>
+<dd>
+    Cholesky matrix factorization, see for instance <c>cholesky_implicit.c</c>.
+</dd>
+</dl>
+
 \section FurtherReading Further Reading
 
 The documentation chapters include
 
-<ol>
-<li> Part: Using StarPU
+<ul>
+<li> Part 1: StarPU Basics
 <ul>
 <li> \ref BuildingAndInstallingStarPU
 <li> \ref BasicExamples
+</ul>
+<li> Part 2: StarPU Quick Programming Guide
+<ul>
 <li> \ref AdvancedExamples
-<li> \ref HowToOptimizePerformanceWithStarPU
-<li> \ref PerformanceFeedback
-<li> \ref TipsAndTricksToKnowAbout
+<li> \ref CheckListWhenPerformanceAreNotThere
+</ul>
+<li> Part 3: StarPU Inside
+<ul>
+<li> \ref TasksInStarPU
+<li> \ref DataManagement
+<li> \ref Scheduling
+<li> \ref SchedulingContexts
+<li> \ref SchedulingContextHypervisor
+<li> \ref DebuggingTools
+<li> \ref OnlinePerformanceTools
+<li> \ref OfflinePerformanceTools
+<li> \ref FrequentlyAskedQuestions
+</ul>
+<li> Part 4: StarPU Extensions
+<ul>
 <li> \ref OutOfCore
 <li> \ref MPISupport
 <li> \ref FFTSupport
 <li> \ref MICSCCSupport
 <li> \ref cExtensions
 <li> \ref SOCLOpenclExtensions
-<li> \ref SchedulingContexts
-<li> \ref SchedulingContextHypervisor
+<li> \ref SimGridSupport
 </ul>
-</li>
-<li> Part: Inside StarPU
+<li> Part 5: StarPU Reference API
 <ul>
 <li> \ref ExecutionConfigurationThroughEnvironmentVariables
 <li> \ref CompilationConfiguration
@@ -220,8 +283,7 @@ The documentation chapters include
 <li> \ref FullSourceCodeVectorScal
 <li> \ref GNUFreeDocumentationLicense
 </ul>
-</ol>
-
+</ul>
 
 Make sure to have had a look at those too!
 

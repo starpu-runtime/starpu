@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -18,7 +18,7 @@ available, simply type:
 $ apt-cache search starpu
 \endverbatim
 
-To install what you need, type:
+To install what you need, type for example:
 
 \verbatim
 $ sudo apt-get install libstarpu-1.2 libstarpu-dev
@@ -42,8 +42,7 @@ If <c>hwloc</c> is not available on your system, the option
 \ref without-hwloc "--without-hwloc" should be explicitely given when calling the
 <c>configure</c> script. If <c>hwloc</c> is installed with a <c>pkg-config</c> file,
 no option is required, it will be detected automatically, otherwise
-\ref with-hwloc "--with-hwloc" should be used to specify the location of
-<c>hwloc</c>.
+\ref with-hwloc "--with-hwloc" should be used to specify its location.
 
 \subsection GettingSources Getting Sources
 
@@ -78,7 +77,7 @@ $ svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk StarPU
 Running <c>autogen.sh</c> is not necessary when using the tarball
 releases of StarPU.  If you are using the source code from the svn
 repository, you first need to generate the configure scripts and the
-Makefiles. This requires the availability of <c>autoconf</c>,
+Makefiles. This requires the availability of <c>autoconf</c> and
 <c>automake</c> >= 2.60.
 
 \verbatim
@@ -97,7 +96,7 @@ make sure to post the content of <c>config.log</c> when reporting the issue.
 
 By default, the files produced during the compilation are placed in
 the source directory. As the compilation generates a lot of files, it
-is advised to to put them all in a separate directory. It is then
+is advised to put them all in a separate directory. It is then
 easier to cleanup, and this allows to compile several configurations
 out of the same source tree. For that, simply enter the directory
 where you want the compilation to produce its files, and invoke the
@@ -141,19 +140,18 @@ libraries names (<c>libstarpu-1.2.so</c>, <c>libstarpumpi-1.2.so</c> and
 
 \subsection SettingFlagsForCompilingLinkingAndRunningApplications Setting Flags for Compiling, Linking and Running Applications
 
-StarPU provides a pkg-config executable to obtain relevant compiler
-and linker flags.
-Compiling and linking an application against StarPU may require to use
-specific flags or libraries (for instance <c>CUDA</c> or <c>libspe2</c>).
-To this end, it is possible to use the tool <c>pkg-config</c>.
+StarPU provides a <c>pkg-config</c> executable to obtain relevant compiler
+and linker flags. As compiling and linking an application against
+StarPU may require to use specific flags or libraries (for instance
+<c>CUDA</c> or <c>libspe2</c>).
 
 If StarPU was not installed at some standard location, the path of StarPU's
 library must be specified in the environment variable <c>PKG_CONFIG_PATH</c> so
 that <c>pkg-config</c> can find it. For example if StarPU was installed in
-<c>$prefix_dir</c>:
+<c>$STARPU_PATH</c>:
 
 \verbatim
-$ PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$prefix_dir/lib/pkgconfig
+$ PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$STARPU_PATH/lib/pkgconfig
 \endverbatim
 
 The flags required to compile or link against StarPU are then
@@ -182,7 +180,7 @@ It is also necessary to set the environment variable <c>LD_LIBRARY_PATH</c> to
 locate dynamic libraries at runtime.
 
 \verbatim
-$ LD_LIBRARY_PATH=$prefix_dir/lib:$LD_LIBRARY_PATH
+$ LD_LIBRARY_PATH=$STARPU_PATH/lib:$LD_LIBRARY_PATH
 \endverbatim
 
 When using a Makefile, the following lines can be added to set the
@@ -197,7 +195,7 @@ LDFLAGS         +=      $$(pkg-config --libs starpu-1.2)
 
 Basic examples using StarPU are built in the directory
 <c>examples/basic_examples/</c> (and installed in
-<c>$prefix_dir/lib/starpu/examples/</c>). You can for example run the example
+<c>$STARPU_PATH/lib/starpu/examples/</c>). You can for example run the example
 <c>vector_scal</c>.
 
 \verbatim
@@ -213,6 +211,47 @@ that directory (\ref STARPU_HOME).
 Please note that buses are benchmarked when StarPU is launched for the
 first time. This may take a few minutes, or less if <c>hwloc</c> is
 installed. This step is done only once per user and per machine.
+
+\subsection RunningABasicStarPUApplicationOnMicrosoft Running a Basic StarPU Application on Microsoft Visual C
+
+Batch files are provided to run StarPU applications under Microsoft
+Visual C. They are installed in <c>$STARPU_PATH/bin/msvc</c>.
+
+To execute a StarPU application, you first need to set the environment
+variable <c>STARPU_PATH</c>.
+
+\verbatim
+c:\....> cd c:\cygwin\home\ci\starpu\
+c:\....> set STARPU_PATH=c:\cygwin\home\ci\starpu\
+c:\....> cd bin\msvc
+c:\....> starpu_open.bat starpu_simple.c
+\endverbatim
+
+The batch script will run Microsoft Visual C with a basic project file
+to run the given application.
+
+The batch script <c>starpu_clean.bat</c> can be used to delete all
+compilation generated files.
+
+The batch script <c>starpu_exec.bat</c> can be used to compile and execute a
+StarPU application from the command prompt.
+
+\verbatim
+c:\....> cd c:\cygwin\home\ci\starpu\
+c:\....> set STARPU_PATH=c:\cygwin\home\ci\starpu\
+c:\....> cd bin\msvc
+c:\....> starpu_exec.bat ..\..\..\..\examples\basic_examples\hello_world.c
+\endverbatim
+
+\verbatim
+MSVC StarPU Execution
+...
+/out:hello_world.exe
+...
+Hello world (params = {1, 2.00000})
+Callback function got argument 0000042
+c:\....>
+\endverbatim
 
 \subsection KernelThreadsStartedByStarPU Kernel Threads Started by StarPU
 
@@ -261,13 +300,14 @@ $ STARPU_NCUDA=2 ./application
 \section BenchmarkingStarPU Benchmarking StarPU
 
 Some interesting benchmarks are installed among examples in
-<c>$prefix_dir/lib/starpu/examples/</c>. Make sure to try various
+<c>$STARPU_PATH/lib/starpu/examples/</c>. Make sure to try various
 schedulers, for instance <c>STARPU_SCHED=dmda</c>.
 
 \subsection TaskSizeOverhead Task Size Overhead
 
 This benchmark gives a glimpse into how long a task should be (in µs) for StarPU overhead
-to be low enough to keep efficiency.  Run <c>tasks_size_overhead.sh</c>, it will generate a plot
+to be low enough to keep efficiency.  Running
+<c>tasks_size_overhead.sh</c> generates a plot
 of the speedup of tasks of various sizes, depending on the number of CPUs being
 used.
 
@@ -286,10 +326,10 @@ multiplication using BLAS and cuBLAS. They output the obtained GFlops.
 
 \subsection CholeskyFactorization Cholesky Factorization
 
-<c>cholesky/*</c> perform a Cholesky factorization (single precision). They use different dependency primitives.
+<c>cholesky_*</c> perform a Cholesky factorization (single precision). They use different dependency primitives.
 
 \subsection LUFactorization LU Factorization
 
-<c>lu/*</c> perform an LU factorization. They use different dependency primitives.
+<c>lu_*</c> perform an LU factorization. They use different dependency primitives.
 
 */

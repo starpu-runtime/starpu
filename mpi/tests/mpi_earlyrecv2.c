@@ -140,6 +140,29 @@ int exchange_variable(int rank, int detached)
 	return ret;
 }
 
+void check_void(starpu_data_handle_t handle, int i, int rank, int *error)
+{
+}
+
+int exchange_void(int rank, int detached)
+{
+	int ret, i;
+	starpu_data_handle_t tab_handle[NB];
+
+	FPRINTF_MPI("Exchanging void data with detached=%d\n", detached);
+
+	for(i=0 ; i<NB ; i++)
+	{
+		starpu_void_data_register(&tab_handle[i]);
+		starpu_data_set_tag(tab_handle[i], i);
+	}
+	ret = exchange(rank, tab_handle, check_void, detached);
+	for(i=0 ; i<NB ; i++)
+		starpu_data_unregister(tab_handle[i]);
+
+	return ret;
+}
+
 void check_complex(starpu_data_handle_t handle, int i, int rank, int *error)
 {
 	double *real = starpu_complex_get_real(handle);
@@ -179,7 +202,7 @@ int exchange_complex(int rank, int detached)
 
 int main(int argc, char **argv)
 {
-	int ret, rank, size;
+	int ret=0, rank, size;
 
 	MPI_Init(NULL, NULL);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -202,6 +225,10 @@ int main(int argc, char **argv)
 	ret = exchange_variable(rank, 0);
 	if (ret == 0)
 		ret = exchange_variable(rank, 1);
+	if (ret == 0)
+		ret = exchange_void(rank, 0);
+	if (ret == 0)
+		ret = exchange_void(rank, 1);
 	if (ret == 0)
 		ret = exchange_complex(rank, 0);
 	if (ret == 0)

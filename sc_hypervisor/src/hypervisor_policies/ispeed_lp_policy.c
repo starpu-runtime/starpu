@@ -110,7 +110,6 @@ static unsigned _compute_flops_distribution_over_ctxs(int ns, int nw, double w_i
 
 static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
-	starpu_trace_user_event(2);
         int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 	int nw = nworkers == -1 ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
         unsigned *curr_sched_ctxs = sched_ctxs == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs;
@@ -182,7 +181,7 @@ static void ispeed_lp_handle_poped_task(__attribute__((unused))unsigned sched_ct
                 unsigned criteria = sc_hypervisor_get_resize_criteria();
                 if(criteria != SC_NOTHING && criteria == SC_SPEED)
                 {
-                        if(sc_hypervisor_check_speed_gap_btw_ctxs())
+                        if(sc_hypervisor_check_speed_gap_btw_ctxs(NULL, -1, NULL, -1))
                         {
                                 _try_resizing(NULL, -1, NULL, -1);
                         }

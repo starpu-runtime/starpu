@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -30,6 +30,7 @@
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/malloc.h>
+#include <core/simgrid.h>
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
@@ -40,71 +41,6 @@
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
-#endif
-
-#ifdef STARPU_SIMGRID
-#include <core/simgrid.h>
-#endif
-
-#ifdef STARPU_SIMGRID
-void
-_starpu_cpu_discover_devices(struct _starpu_machine_config *config)
-{
-	config->topology.nhwcpus = _starpu_simgrid_get_nbhosts("CPU");
-}
-#elif defined(STARPU_HAVE_HWLOC)
-void
-_starpu_cpu_discover_devices(struct _starpu_machine_config *config)
-{
-	/* Discover the CPUs relying on the hwloc interface and fills CONFIG
-	 * accordingly. */
-
-	struct _starpu_machine_topology *topology = &config->topology;
-
-	config->cpu_depth = hwloc_get_type_depth (topology->hwtopology,
-						  HWLOC_OBJ_CORE);
-
-	/* Would be very odd */
-	STARPU_ASSERT(config->cpu_depth != HWLOC_TYPE_DEPTH_MULTIPLE);
-
-	if (config->cpu_depth == HWLOC_TYPE_DEPTH_UNKNOWN) {
-		/* unknown, using logical procesors as fallback */
-		_STARPU_DISP("Warning: The OS did not report CPU cores. Assuming there is only one hardware thread per core.\n");
-		config->cpu_depth = hwloc_get_type_depth(topology->hwtopology,
-							 HWLOC_OBJ_PU);
-	}
-
-	topology->nhwcpus = hwloc_get_nbobjs_by_depth (topology->hwtopology,
-						       config->cpu_depth);
-}
-
-#elif defined(HAVE_SYSCONF)
-void
-_starpu_cpu_discover_devices(struct _starpu_machine_config *config)
-{
-	/* Discover the CPUs relying on the sysconf(3) function and fills
-	 * CONFIG accordingly. */
-
-	config->topology.nhwcpus = sysconf(_SC_NPROCESSORS_ONLN);
-}
-
-#elif defined(__MINGW32__) || defined(__CYGWIN__)
-void
-_starpu_cpu_discover_devices(struct _starpu_machine_config *config)
-{
-	/* Discover the CPUs on Cygwin and MinGW systems. */
-
-	SYSTEM_INFO sysinfo;
-	GetSystemInfo(&sysinfo);
-	config->topology.nhwcpus = sysinfo.dwNumberOfProcessors;
-}
-#else
-#warning no way to know number of cores, assuming 1
-void
-_starpu_cpu_discover_devices(struct _starpu_machine_config *config)
-{
-	config->topology.nhwcpus = 1;
-}
 #endif
 
 
@@ -126,7 +62,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 	if (rank == 0)
 	{
-		ret = _starpu_fetch_task_input(j, 0);
+		ret = _starpu_fetch_task_input(j);
 		if (ret != 0)
 		{
 			/* there was not enough memory so the codelet cannot be executed right now ... */
@@ -155,12 +91,15 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* bind to parallel worker */
 			_starpu_bind_thread_on_cpus(cpu_args->config, _starpu_get_combined_worker_struct(j->combined_workerid));
-		STARPU_ASSERT(func);
+		STARPU_ASSERT_MSG(func, "when STARPU_CPU is defined in 'where', cpu_func or cpu_funcs has to be defined");
+		if (starpu_get_env_number("STARPU_DISABLE_KERNELS") <= 0)
+		{
 #ifdef STARPU_SIMGRID
-		_starpu_simgrid_execute_job(j, perf_arch, NAN);
+			_starpu_simgrid_execute_job(j, perf_arch, NAN);
 #else
-		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
+		}
 		if (is_parallel_task && cl->type == STARPU_FORKJOIN)
 			/* rebind to single CPU */
 			_starpu_bind_thread_on_cpu(cpu_args->config, cpu_args->bindid);
@@ -175,19 +114,10 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	{
 		_starpu_driver_update_job_feedback(j, cpu_args,
 				perf_arch, &codelet_start, &codelet_end, profiling);
-		_starpu_push_task_output(j, 0);
+		_starpu_push_task_output(j);
 	}
 
 	return 0;
-}
-
-static struct _starpu_worker*
-_starpu_get_worker_from_driver(struct starpu_driver *d)
-{
-	int n = starpu_worker_get_by_devid(STARPU_CPU_WORKER, d->id.cpu_id);
-	if (n == -1)
-		return NULL;
-	return _starpu_get_worker_struct(n);
 }
 
 static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config)
@@ -222,10 +152,10 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 	global_mem = 0;
 #endif
 
-	if (limit == -1)
+	if (limit < 0)
 		// No limit is defined, we return the global memory size
 		return global_mem;
-	else if (limit*1024*1024 > global_mem)
+	else if ((size_t)limit * 1024*1024 > global_mem)
 		// The requested limit is higher than what is available, we return the global memory size
 		return global_mem;
 	else
@@ -233,12 +163,8 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED
 		return limit*1024*1024;
 }
 
-int _starpu_cpu_driver_init(struct starpu_driver *d)
+int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 {
-	struct _starpu_worker *cpu_worker;
-	cpu_worker = _starpu_get_worker_from_driver(d);
-	STARPU_ASSERT(cpu_worker);
-
 	int devid = cpu_worker->devid;
 
 	_starpu_worker_start(cpu_worker, _STARPU_FUT_CPU_KEY);
@@ -260,12 +186,8 @@ int _starpu_cpu_driver_init(struct starpu_driver *d)
 	return 0;
 }
 
-int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
+int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 {
-	struct _starpu_worker *cpu_worker;
-	cpu_worker = _starpu_get_local_worker_key();
-	STARPU_ASSERT(cpu_worker);
-
 	unsigned memnode = cpu_worker->memory_node;
 	int workerid = cpu_worker->workerid;
 
@@ -354,13 +276,9 @@ int _starpu_cpu_driver_run_once(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
 	return 0;
 }
 
-int _starpu_cpu_driver_deinit(struct starpu_driver *d STARPU_ATTRIBUTE_UNUSED)
+int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 {
 	_STARPU_TRACE_WORKER_DEINIT_START;
-
-	struct _starpu_worker *cpu_worker;
-	cpu_worker = _starpu_get_local_worker_key();
-	STARPU_ASSERT(cpu_worker);
 
 	unsigned memnode = cpu_worker->memory_node;
 	_starpu_handle_all_pending_node_data_requests(memnode);
@@ -379,27 +297,17 @@ void *
 _starpu_cpu_worker(void *arg)
 {
 	struct _starpu_worker *args = arg;
-	struct starpu_driver d =
-	{
-		.type      = STARPU_CPU_WORKER,
-		.id.cpu_id = args->devid
-	};
 
-	_starpu_cpu_driver_init(&d);
+	_starpu_cpu_driver_init(args);
 	while (_starpu_machine_is_running())
-		_starpu_cpu_driver_run_once(&d);
-	_starpu_cpu_driver_deinit(&d);
+		_starpu_cpu_driver_run_once(args);
+	_starpu_cpu_driver_deinit(args);
 
 	return NULL;
 }
 
-int _starpu_run_cpu(struct starpu_driver *d)
+int _starpu_run_cpu(struct _starpu_worker *worker)
 {
-	STARPU_ASSERT(d && d->type == STARPU_CPU_WORKER);
-
-	struct _starpu_worker *worker = _starpu_get_worker_from_driver(d);
-	STARPU_ASSERT(worker);
-
 	worker->set = NULL;
 	worker->worker_is_initialized = 0;
 	_starpu_cpu_worker(worker);

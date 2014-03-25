@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2014  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012  Institut National de Recherche en Informatique et Automatique
 #
@@ -70,6 +70,8 @@ AC_PROG_CPP
 AC_PROG_SED
 AC_PROG_LN_S
 AC_PROG_F77
+AC_CHECK_PROGS(PROG_STAT,gstat stat)
+AC_CHECK_PROGS(PROG_DATE,gdate date)
 
 LT_PREREQ([2.2])
 LT_INIT([win32-dll])
@@ -197,6 +199,12 @@ AC_CHECK_FUNCS([sysconf])
 AC_CHECK_FUNC([pthread_spin_lock], have_pthread_spin_lock=yes, have_pthread_spin_lock=no)
 if test x$have_pthread_spin_lock = xyes; then
 	AC_DEFINE(HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
+	AC_DEFINE(STARPU_HAVE_PTHREAD_SPIN_LOCK,[],[pthread_spin_lock is available])
+fi
+
+AC_CHECK_FUNC([pthread_barrier_init], have_pthread_barrier=yes, have_pthread_barrier=no)
+if test x$have_pthread_barrier = xyes; then
+	AC_DEFINE(STARPU_HAVE_PTHREAD_BARRIER,[],[pthread_barrier is available])
 fi
 
 # yes, that's non portable, but it's still better than sched_setaffinity
@@ -328,6 +336,20 @@ fi
 
 AM_CONDITIONAL([STARPU_BUILD_SC_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
 AM_CONDITIONAL([STARPU_USE_SC_HYPERVISOR], [test "x$build_sc_hypervisor" = "xyes"])
+
+AC_ARG_ENABLE([sc_hypervisor_debug],
+  [AS_HELP_STRING([--enable-sc-hypervisor-debug],
+    [enable debug for resizing contexts (experimental)])],
+  [enable_sc_hypervisor_debug="yes"],
+  [enable_sc_hypervisor_debug="no"])
+
+
+AC_SUBST(STARPU_SC_HYPERVISOR_DEBUG, $enable_sc_hypervisor_debug)
+AM_CONDITIONAL([STARPU_SC_HYPERVISOR_DEBUG], [test "x$enable_sc_hypervisor_debug" = "xyes"])
+
+if test "x$enable_sc_hypervisor_debug" = "xyes"; then
+  AC_DEFINE(STARPU_SC_HYPERVISOR_DEBUG, [1], [enable debug sc_hypervisor])
+fi
 
 ###############################################################################
 #                                                                             #
@@ -916,15 +938,52 @@ if test x$enable_opencl_simulator = xyes; then
 	AC_DEFINE(STARPU_OPENCL_SIMULATOR, 1, [Define this to enable using an OpenCL simulator])
 fi
 
+AC_ARG_WITH(simgrid-dir,
+	[AS_HELP_STRING([--with-simgrid-dir=<path>],
+	[specify SimGrid installation directory])],
+	[
+		simgrid_dir="$withval"
+		# in case this was not explicit yet
+		enable_simgrid=yes
+	], simgrid_dir=no)
+
+AC_ARG_WITH(simgrid-include-dir,
+	[AS_HELP_STRING([--with-simgrid-include-dir=<path>],
+	[specify where SimGrid headers are installed])],
+	[
+		simgrid_include_dir="$withval"
+		# in case this was not explicit yet
+		enable_simgrid=yes
+	], [simgrid_include_dir=no])
+
+AC_ARG_WITH(simgrid-lib-dir,
+	[AS_HELP_STRING([--with-simgrid-lib-dir=<path>],
+	[specify where SimGrid libraries are installed])],
+	[
+		simgrid_lib_dir="$withval"
+		# in case this was not explicit yet
+		enable_simgrid=yes
+	], [simgrid_lib_dir=no])
+
 AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
 			[Enable simulating execution in simgrid])],
 			enable_simgrid=$enableval, enable_simgrid=no)
 if test x$enable_simgrid = xyes ; then
-	if test -n "$SIMGRID_CFLAGS" ; then
-		CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
+   	if test -n "$SIMGRID_CFLAGS" ; then
+	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
 	fi
 	if test -n "$SIMGRID_LIBS" ; then
 		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
+	fi
+	if test "$simgrid_dir" != "no" ; then
+	   	CFLAGS="-I$simgrid_dir/include $CFLAGS"
+	   	LDFLAGS="-L$simgrid_dir/lib $LDFLAGS"
+	fi
+	if test "$simgrid_include_dir" != "no" ; then
+	   	CFLAGS="-I$simgrid_include_dir $CFLAGS"
+	fi
+	if test "$simgrid_lib_dir" != "no" ; then
+	   	LDFLAGS="-L$simgrid_lib_dir $LDFLAGS"
 	fi
 	AC_HAVE_LIBRARY([simgrid], [],
 		[
@@ -946,8 +1005,10 @@ fi
 AM_CONDITIONAL(STARPU_SIMGRID, test x$enable_simgrid = xyes)
 AC_SUBST(SIMGRID_CFLAGS)
 AC_SUBST(SIMGRID_LIBS)
+AC_MSG_CHECKING(whether SimGrid is enabled)
+AC_MSG_RESULT($enable_simgrid)
 
-AC_MSG_CHECKING(whether blocking drivers should be disabled)
+AC_MSG_CHECKING(whether blocking drivers should be enabled)
 AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [enable blocking drivers])],
 				enable_blocking=$enableval, enable_blocking=no)
 AC_MSG_RESULT($enable_blocking)
@@ -1572,6 +1633,23 @@ AC_CHECK_FUNCS([clock_gettime])
 
 # Compute the maximum number of workers (we round it to 16 for alignment
 # purposes).
+if test x$enable_simgrid != xyes; then
+	if test x$enable_cpu != xyes; then
+		maxcpus=0
+	fi
+	if test x$enable_cuda != xyes; then
+		nmaxcudadev=0
+	fi
+	if test x$enable_opencl != xyes; then
+		nmaxopencldev=0
+	fi
+	if test x$enable_mic != xyes; then
+		nmaxmicthreads=0
+	fi
+	if test x$enable_rcce != xyes; then
+		nmaxsccdev=0
+	fi
+fi
 nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + $nmaxsccdev + 15 \) / 16 \) `
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
@@ -1605,7 +1683,7 @@ AC_LANG_POP([C++])
 AC_MSG_CHECKING(calibration heuristic of history-based StarPU calibrator)
 AC_ARG_ENABLE(calibration-heuristic, [AS_HELP_STRING([--enable-calibration-heuristic=<number>],
 			[Define the maximum authorized deviation of StarPU history-based calibrator.])],
-			calibration_heuristic=$enableval, calibration_heuristic=10)
+			calibration_heuristic=$enableval, calibration_heuristic=50)
 AC_MSG_RESULT($calibration_heuristic)
 AC_DEFINE_UNQUOTED(STARPU_HISTORYMAXERROR, [$calibration_heuristic], [calibration heuristic value])
 
@@ -1825,6 +1903,7 @@ IS_SUPPORTED_CFLAG(-W)
 IS_SUPPORTED_CFLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Wextra)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
+IS_SUPPORTED_CFLAG(-Werror=implicit-function-declaration)
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
@@ -2301,13 +2380,17 @@ AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			enable_build_doc=$enableval, enable_build_doc=yes)
 
 if test "$enable_build_doc" = "yes" ; then
-   # Check whether doxygen and pdflatex are installed
+   # Check whether doxygen needed tools are installed
    AC_PATH_PROG(doxygencommand, doxygen)
    if test "$doxygencommand" = "" ; then
       	enable_build_doc="no"
    fi
-   AC_PATH_PROG(pdflatex, pdflatex)
-   if test "pdflatexcommand" = "" ; then
+   AC_PATH_PROG(pdflatexcommand, pdflatex)
+   if test "$pdflatexcommand" = "" ; then
+	enable_build_doc="no"
+   fi
+   AC_PATH_PROG(epstopdfcommand, epstopdf)
+   if test "$epstopdfcommand" = "" ; then
 	enable_build_doc="no"
    fi
 fi
@@ -2408,7 +2491,7 @@ AC_OUTPUT([
 	doc/doxygen/Makefile
 	doc/doxygen/doxygen-config.cfg
 	doc/doxygen/doxygen_filter.sh
-	tools/mvsc/starpu_var.bat
+	tools/msvc/starpu_var.bat
 ])
 
 AC_MSG_NOTICE([

@@ -20,7 +20,7 @@
 
 static unsigned list_has_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
-	int nworkers = (int)workers->nworkers;
+	int nworkers = workers->nworkers;
 	STARPU_ASSERT(it != NULL);
 
 	unsigned ret = it->cursor < nworkers ;
@@ -37,7 +37,7 @@ static int list_get_next(struct starpu_worker_collection *workers, struct starpu
 
 	STARPU_ASSERT(it->cursor < nworkers);
 
-	int ret = workerids[(it->cursor)++];
+	int ret = workerids[it->cursor++];
 
 	return ret;
 }
@@ -61,7 +61,7 @@ static int list_add(struct starpu_worker_collection *workers, int worker)
 	int *workerids = (int *)workers->workerids;
 	unsigned *nworkers = &workers->nworkers;
 
-	STARPU_ASSERT(*nworkers < STARPU_NMAXWORKERS - 1);
+	STARPU_ASSERT(*nworkers < STARPU_NMAXWORKERS);
 
 	if(!_worker_belongs_to_ctx(workers, worker))
 	{
@@ -154,7 +154,7 @@ static void list_deinit(struct starpu_worker_collection *workers)
 
 static void list_init_iterator(struct starpu_worker_collection *workers STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_ctx_iterator *it)
 {
-	*((int*)it) = 0;
+	it->cursor = 0;
 }
 
 struct starpu_worker_collection worker_list =

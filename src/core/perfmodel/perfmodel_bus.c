@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2013 Corentin Salingue
  *
@@ -72,9 +72,11 @@ static unsigned nmic = 0;
 
 /* Benchmarking the performance of the bus */
 
-#ifdef STARPU_USE_CUDA
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
+#ifdef STARPU_USE_CUDA
+/* preference order of cores (logical indexes) */
 static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXCPUS];
+
 static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_latency_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_timing_dtoh[STARPU_MAXNODES] = {0.0};
@@ -85,8 +87,10 @@ static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 #endif
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
-#ifdef STARPU_USE_OPENCL
+
 static uint64_t opencl_size[STARPU_MAXCUDADEVS];
+#ifdef STARPU_USE_OPENCL
+/* preference order of cores (logical indexes) */
 static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXCPUS];
 static double opencldev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double opencldev_latency_htod[STARPU_MAXNODES] = {0.0};
@@ -501,7 +505,7 @@ static void measure_bandwidth_between_cpus_and_dev(int dev, struct dev_timing *d
 	 * measure the bandwith for each pair of (CPU, GPU), which is slower.
 	 * */
 #ifdef STARPU_HAVE_HWLOC
-	int cpu_depth = hwloc_get_type_depth(hwtopology, HWLOC_OBJ_CORE);
+	int cpu_depth = hwloc_get_type_depth(hwtopology, HWLOC_OBJ_PU);
 	int nnuma_nodes = hwloc_get_nbobjs_by_depth(hwtopology, HWLOC_OBJ_NODE);
 
 	/* If no NUMA node was found, we assume that we have a single memory
@@ -1405,6 +1409,8 @@ void starpu_bus_print_bandwidth(FILE *f)
 		fprintf(f, "CUDA %d\t", dst);
 	for (dst = 0; dst < nopencl; dst++)
 		fprintf(f, "OpenCL%d\t", dst);
+	for (dst = 0; dst < nmic; dst++)
+		fprintf(f, "MIC%d\t", dst);
 	fprintf(f, "\n");
 
 	for (src = 0; src <= maxnode; src++)
@@ -1413,8 +1419,10 @@ void starpu_bus_print_bandwidth(FILE *f)
 			fprintf(f, "RAM\t");
 		else if (src <= ncuda)
 			fprintf(f, "CUDA %d\t", src-1);
-		else
+		else if (src <= ncuda + nopencl)
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
+		else
+			fprintf(f, "MIC%d\t", src-ncuda-nopencl-1);
 		for (dst = 0; dst <= maxnode; dst++)
 			fprintf(f, "%.0f\t", bandwidth_matrix[src][dst]);
 
@@ -1428,8 +1436,10 @@ void starpu_bus_print_bandwidth(FILE *f)
 			fprintf(f, "RAM\t");
 		else if (src <= ncuda)
 			fprintf(f, "CUDA %d\t", src-1);
-		else
+		else if (src <= ncuda + nopencl)
 			fprintf(f, "OpenCL%d\t", src-ncuda-1);
+		else
+			fprintf(f, "MIC%d\t", src-ncuda-nopencl-1);
 		for (dst = 0; dst <= maxnode; dst++)
 			fprintf(f, "%.0f\t", latency_matrix[src][dst]);
 
@@ -1439,7 +1449,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	if (ncuda != 0 || nopencl != 0)
 		fprintf(f, "\nGPU\tCPU in preference order (logical index), host-to-device, device-to-host\n");
-	for (src = 1; src <= maxnode; src++)
+	for (src = 1; src <= ncuda + nopencl; src++)
 	{
 		struct dev_timing *timing;
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
@@ -1673,22 +1683,10 @@ static void write_bus_platform_file_content(void)
 		fprintf(f, "   <host id='CPU%d' power='2000000000'/>\n", i);
 
 	for (i = 0; i < ncuda; i++)
-		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i,
-#ifdef STARPU_USE_CUDA
-				(unsigned long long) cuda_size[i]
-#else
-				0ULL
-#endif
-				);
+		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i, (unsigned long long) cuda_size[i]);
 
 	for (i = 0; i < nopencl; i++)
-		fprintf(f, "   <host id='OpenCL%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i,
-#ifdef STARPU_USE_OPENCL
-				(unsigned long long) opencl_size[i]
-#else
-				0ULL
-#endif
-				);
+		fprintf(f, "   <host id='OpenCL%d' power='2000000000'>\n    <prop id='memsize' value='%llu'/>\n   </host>\n", i, (unsigned long long) opencl_size[i]);
 
 	fprintf(f, "\n   <host id='RAM' power='1'/>\n");
 

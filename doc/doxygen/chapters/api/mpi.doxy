@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -163,19 +163,27 @@ source using the n-th message tag of the array \p mpi_tag within the
 n-th communicator of the array \p comm. On completion of the all the
 requests, \p tag is unlocked.
 
+\fn int starpu_mpi_get_communication_tag(void)
+\ingroup API_MPI_Support
+todo
+
+\fn void starpu_mpi_set_communication_tag(int tag)
+\ingroup API_MPI_Support
+todo
+
 @name Communication Cache
 \ingroup API_MPI_Support
 
 \fn void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 \ingroup API_MPI_Support
 Clear the send and receive communication cache for the data
-\p data_handle. The function has to be called synchronously by all the
+\p data_handle and invalidate the value. The function has to be called synchronously by all the
 MPI nodes. The function does nothing if the cache mechanism is
 disabled (see \ref STARPU_MPI_CACHE).
 
 \fn void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 \ingroup API_MPI_Support
-Clear the send and receive communication cache for all data. The
+Clear the send and receive communication cache for all data and invalidate their values. The
 function has to be called synchronously by all the MPI nodes. The
 function does nothing if the cache mechanism is disabled (see
 \ref STARPU_MPI_CACHE).
@@ -191,6 +199,12 @@ Tell StarPU-MPI which MPI tag to use when exchanging the data.
 \fn int starpu_data_get_tag(starpu_data_handle_t handle)
 \ingroup API_MPI_Support
 Returns the MPI tag to be used when exchanging the data.
+
+\fn int starpu_mpi_data_register(starpu_data_handle_t handle, int tag, int rank)
+\ingroup API_MPI_Support
+Calling this function should be prefered to calling both
+starpu_data_set_rank() and starpu_data_set_tag() as it also allows to
+automatically clear the MPI communication cache when unregistering the data.
 
 \fn int starpu_data_set_rank(starpu_data_handle_t handle, int rank)
 \ingroup API_MPI_Support
@@ -214,9 +228,9 @@ this macro is used when calling starpu_mpi_task_insert(), and must be
 followed by a data handle to specify that the node owning the given
 data will execute the codelet.
 
-\def starpu_mpi_insert_task
+\fn int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support
-Convenience macro for the function starpu_mpi_task_insert() which used to be called starpu_mpi_insert_task.
+This function does the same as the function starpu_mpi_task_insert(). It has been kept to avoid breaking old codes.
 
 \fn int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 \ingroup API_MPI_Support
@@ -255,6 +269,22 @@ The internal algorithm is as follows:
 The algorithm also includes a communication cache mechanism that
 allows not to send data twice to the same MPI node, unless the data
 has been modified. The cache can be disabled (see \ref STARPU_MPI_CACHE).
+
+\fn struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)
+\ingroup API_MPI_Support
+Create a task corresponding to codelet with the following arguments.
+The argument list must be zero-terminated. The function performs the
+first two steps of the function starpu_mpi_task_insert(). Only the MPI
+node selected in the first step of the algorithm will return a valid
+task structure which can then be submitted. The function
+starpu_mpi_task_post_build() MUST be called after the submission of
+the task, with the SAME list of arguments.
+
+\fn int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)
+\ingroup API_MPI_Support
+This function MUST be called after a call to starpu_mpi_task_build(),
+with the SAME list of arguments. It performs the fourth -- last -- step of the algorithm described in
+starpu_mpi_task_insert().
 
 \fn void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
 \ingroup API_MPI_Support

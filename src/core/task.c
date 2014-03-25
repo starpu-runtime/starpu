@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
@@ -204,11 +204,7 @@ int starpu_task_wait(struct starpu_task *task)
 		return -EINVAL;
 	}
 
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-	{
-		_STARPU_LOG_OUT_TAG("edeadlk");
-		return -EDEADLK;
-	}
+	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait must not be called from a task or callback");
 
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
@@ -444,12 +440,7 @@ int starpu_task_submit(struct starpu_task *task)
 	{
 		/* Perhaps it is not possible to submit a synchronous
 		 * (blocking) task */
-		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-		{
-			_STARPU_LOG_OUT_TAG("EDEADLK");
-			return -EDEADLK;
-		}
-
+		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "submitting a synchronous task must not be done from a task or a callback");
 		task->detach = 0;
 	}
 
@@ -616,6 +607,10 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 			_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
 			enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
 			_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
+			int node = -1;
+			if (j->task->cl->specific_nodes)
+				node = STARPU_CODELET_GET_NODE(j->task->cl, i);
+			_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
 		}
 	}
 
@@ -676,6 +671,10 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
 		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
+		int node = -1;
+		if (j->task->cl->specific_nodes)
+			node = STARPU_CODELET_GET_NODE(j->task->cl, i);
+		_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
 	}
 
         _STARPU_LOG_IN();
@@ -743,8 +742,7 @@ int starpu_task_wait_for_all(void)
 	if (sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 	{
 		_STARPU_DEBUG("Waiting for all tasks\n");
-		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-			return -EDEADLK;
+		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_all must not be called from a task or callback");
 
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event) AYU_event(AYU_BARRIER, 0, NULL);
@@ -788,8 +786,7 @@ int starpu_task_wait_for_all_in_ctx(unsigned sched_ctx)
  */
 int starpu_task_wait_for_no_ready(void)
 {
-	if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-		return -EDEADLK;
+	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_task_wait_for_no_ready must not be called from a task or callback");
 
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
@@ -862,7 +859,7 @@ int starpu_task_nready(void)
 	int nready = 0;
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 	if(config->topology.nsched_ctxs == 1)
-		nready = starpu_get_nready_tasks_of_sched_ctx(0);
+		nready = starpu_sched_ctx_get_nready_tasks(0);
 	else
 	{
 		int s;
@@ -870,7 +867,7 @@ int starpu_task_nready(void)
 		{
 			if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS)
 			{
-				nready += starpu_get_nready_tasks_of_sched_ctx(config->sched_ctxs[s].id);
+				nready += starpu_sched_ctx_get_nready_tasks(config->sched_ctxs[s].id);
 			}
 		}
 	}

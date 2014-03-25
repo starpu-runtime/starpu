@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012 Université de Bordeaux 1
+ * Copyright (C) 2012-2013 Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,9 @@
 
 #include <starpu.h>
 #include <unistd.h>
-#include <GL/glut.h>
+
+#if (defined(STARPU_USE_CUDA) && defined(STARPU_OPENGL_RENDER))
+#include <GL/freeglut.h>
 
 void dummy(void *buffers[], void *cl_arg)
 {
@@ -72,6 +74,7 @@ void callback_func(void *foo) {
 	/* Tell it was already the last submitted task */
 	starpu_drivers_request_termination();
 }
+#endif
 
 int main(int argc, char **argv)
 {

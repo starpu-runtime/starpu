@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,25 +19,17 @@
 
 #include <errno.h>
 #include <stdint.h>
-#include <starpu_thread.h>
 #include <common/config.h>
-#include <common/thread.h>
+#include <starpu.h>
 
 struct _starpu_spinlock
 {
-#ifdef STARPU_SIMGRID
-	int taken;
-#elif defined(STARPU_SPINLOCK_CHECK)
+#if defined(STARPU_SPINLOCK_CHECK)
 	starpu_pthread_mutexattr_t errcheck_attr;
 	starpu_pthread_mutex_t errcheck_lock;
-#elif defined(HAVE_PTHREAD_SPIN_LOCK)
-	_starpu_pthread_spinlock_t lock;
-#else
-	/* we only have a trivial implementation yet ! */
-	uint32_t taken STARPU_ATTRIBUTE_ALIGNED(16);
-#endif
-#ifdef STARPU_SPINLOCK_CHECK
 	const char *last_taker;
+#else
+	starpu_pthread_spinlock_t lock;
 #endif
 };
 

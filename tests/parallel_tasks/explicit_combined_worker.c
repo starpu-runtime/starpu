@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@ void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	int worker_size = starpu_combined_worker_get_size();
 	STARPU_ASSERT(worker_size > 0);
 	usleep(1000/worker_size);
-#if 0
+#if 1
 	int id = starpu_worker_get_id();
 	int combined_id = starpu_combined_worker_get_id();
 	FPRINTF(stderr, "worker id %d - combined id %d - worker size %d\n", id, combined_id, worker_size);
@@ -57,12 +57,12 @@ int main(int argc, char **argv)
 	unsigned *v;
 	int ret;
 
-//      struct starpu_conf conf;
-//      starpu_conf_init(&conf);
-//      conf.sched_policy_name = "pheft";
-//      conf.calibrate = 1;
+	struct starpu_conf conf;
+	ret = starpu_conf_init(&conf);
+	conf.sched_policy_name = "pheft";
+	conf.calibrate = 1;
 
-	ret = starpu_init(NULL);
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

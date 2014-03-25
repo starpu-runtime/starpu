@@ -1,211 +1,47 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
 
-/*! \page PerformanceFeedback Performance Feedback
+/*! \page OfflinePerformanceTools Offline Performance Tools
 
-\section UsingTheTemanejoTaskDebugger Using The Temanejo Task Debugger
-
-StarPU can connect to Temanejo >= 1.0rc2 (see
-http://www.hlrs.de/temanejo), to permit
-nice visual task debugging. To do so, build Temanejo's <c>libayudame.so</c>,
-install <c>Ayudame.h</c> to e.g. <c>/usr/local/include</c>, apply the
-<c>tools/patch-ayudame</c> to it to fix C build, re-<c>./configure</c>, make
-sure that it found it, rebuild StarPU.  Run the Temanejo GUI, give it the path
-to your application, any options you want to pass it, the path to <c>libayudame.so</c>.
-
-Make sure to specify at least the same number of CPUs in the dialog box as your
-machine has, otherwise an error will happen during execution. Future versions
-of Temanejo should be able to tell StarPU the number of CPUs to use.
-
-Tag numbers have to be below <c>4000000000000000000ULL</c> to be usable for
-Temanejo (so as to distinguish them from tasks).
-
-\section On-linePerformanceFeedback On-line Performance Feedback
-
-\subsection EnablingOn-linePerformanceMonitoring Enabling On-line Performance Monitoring
-
-In order to enable online performance monitoring, the application can
-call starpu_profiling_status_set() with the parameter
-::STARPU_PROFILING_ENABLE. It is possible to detect whether monitoring
-is already enabled or not by calling starpu_profiling_status_get().
-Enabling monitoring also reinitialize all previously collected
-feedback. The environment variable \ref STARPU_PROFILING can also be
-set to <c>1</c> to achieve the same effect. The function
-starpu_profiling_init() can also be called during the execution to
-reinitialize performance counters and to start the profiling if the
-environment variable \ref STARPU_PROFILING is set to <c>1</c>.
-
-Likewise, performance monitoring is stopped by calling
-starpu_profiling_status_set() with the parameter
-::STARPU_PROFILING_DISABLE. Note that this does not reset the
-performance counters so that the application may consult them later
-on.
-
-More details about the performance monitoring API are available in \ref API_Profiling.
-
-\subsection Per-taskFeedback Per-task Feedback
-
-If profiling is enabled, a pointer to a structure
-starpu_profiling_task_info is put in the field
-starpu_task::profiling_info when a task terminates. This structure is
-automatically destroyed when the task structure is destroyed, either
-automatically or by calling starpu_task_destroy().
-
-The structure starpu_profiling_task_info indicates the date when the
-task was submitted (starpu_profiling_task_info::submit_time), started
-(starpu_profiling_task_info::start_time), and terminated
-(starpu_profiling_task_info::end_time), relative to the initialization
-of StarPU with starpu_init(). It also specifies the identifier of the worker
-that has executed the task (starpu_profiling_task_info::workerid).
-These date are stored as <c>timespec</c> structures which the user may convert
-into micro-seconds using the helper function
-starpu_timing_timespec_to_us().
-
-It it worth noting that the application may directly access this structure from
-the callback executed at the end of the task. The structure starpu_task
-associated to the callback currently being executed is indeed accessible with
-the function starpu_task_get_current().
-
-\subsection Per-codeletFeedback Per-codelet Feedback
-
-The field starpu_codelet::per_worker_stats is
-an array of counters. The i-th entry of the array is incremented every time a
-task implementing the codelet is executed on the i-th worker.
-This array is not reinitialized when profiling is enabled or disabled.
-
-\subsection Per-workerFeedback Per-worker Feedback
-
-The second argument returned by the function
-starpu_profiling_worker_get_info() is a structure
-starpu_profiling_worker_info that gives statistics about the specified
-worker. This structure specifies when StarPU started collecting
-profiling information for that worker
-(starpu_profiling_worker_info::start_time), the
-duration of the profiling measurement interval
-(starpu_profiling_worker_info::total_time), the time spent executing
-kernels (starpu_profiling_worker_info::executing_time), the time
-spent sleeping because there is no task to execute at all
-(starpu_profiling_worker_info::sleeping_time), and the number of tasks that were executed
-while profiling was enabled. These values give an estimation of the
-proportion of time spent do real work, and the time spent either
-sleeping because there are not enough executable tasks or simply
-wasted in pure StarPU overhead.
-
-Calling starpu_profiling_worker_get_info() resets the profiling
-information associated to a worker.
-
-When an FxT trace is generated (see \ref GeneratingTracesWithFxT), it is also
-possible to use the tool <c>starpu_workers_activity</c> (see \ref
-MonitoringActivity) to generate a graphic showing the evolution of
-these values during the time, for the different workers.
-
-\subsection Bus-relatedFeedback Bus-related Feedback
-
-TODO: ajouter \ref STARPU_BUS_STATS
-
-// how to enable/disable performance monitoring
-// what kind of information do we get ?
-
-The bus speed measured by StarPU can be displayed by using the tool
-<c>starpu_machine_display</c>, for instance:
-
-\verbatim
-StarPU has found:
-        3 CUDA devices
-                CUDA 0 (Tesla C2050 02:00.0)
-                CUDA 1 (Tesla C2050 03:00.0)
-                CUDA 2 (Tesla C2050 84:00.0)
-from    to RAM          to CUDA 0       to CUDA 1       to CUDA 2
-RAM     0.000000        5176.530428     5176.492994     5191.710722
-CUDA 0  4523.732446     0.000000        2414.074751     2417.379201
-CUDA 1  4523.718152     2414.078822     0.000000        2417.375119
-CUDA 2  4534.229519     2417.069025     2417.060863     0.000000
-\endverbatim
-
-\subsection StarPU-TopInterface StarPU-Top Interface
-
-StarPU-Top is an interface which remotely displays the on-line state of a StarPU
-application and permits the user to change parameters on the fly.
-
-Variables to be monitored can be registered by calling the functions
-starpu_top_add_data_boolean(), starpu_top_add_data_integer(),
-starpu_top_add_data_float(), e.g.:
-
-\code{.c}
-starpu_top_data *data = starpu_top_add_data_integer("mynum", 0, 100, 1);
-\endcode
-
-The application should then call starpu_top_init_and_wait() to give its name
-and wait for StarPU-Top to get a start request from the user. The name is used
-by StarPU-Top to quickly reload a previously-saved layout of parameter display.
-
-\code{.c}
-starpu_top_init_and_wait("the application");
-\endcode
-
-The new values can then be provided thanks to
-starpu_top_update_data_boolean(), starpu_top_update_data_integer(),
-starpu_top_update_data_float(), e.g.:
-
-\code{.c}
-starpu_top_update_data_integer(data, mynum);
-\endcode
-
-Updateable parameters can be registered thanks to starpu_top_register_parameter_boolean(), starpu_top_register_parameter_integer(), starpu_top_register_parameter_float(), e.g.:
-
-\code{.c}
-float alpha;
-starpu_top_register_parameter_float("alpha", &alpha, 0, 10, modif_hook);
-\endcode
-
-<c>modif_hook</c> is a function which will be called when the parameter is being modified, it can for instance print the new value:
-
-\code{.c}
-void modif_hook(struct starpu_top_param *d) {
-    fprintf(stderr,"%s has been modified: %f\n", d->name, alpha);
-}
-\endcode
-
-Task schedulers should notify StarPU-Top when it has decided when a task will be
-scheduled, so that it can show it in its Gantt chart, for instance:
-
-\code{.c}
-starpu_top_task_prevision(task, workerid, begin, end);
-\endcode
-
-Starting StarPU-Top (StarPU-Top is started via the binary
-<c>starpu_top</c>.) and the application can be done two ways:
+To get an idea of what is happening, a lot of performance feedback is available,
+detailed in this chapter. The various informations should be checked for.
 
 <ul>
-<li> The application is started by hand on some machine (and thus already
-waiting for the start event). In the Preference dialog of StarPU-Top, the SSH
-checkbox should be unchecked, and the hostname and port (default is 2011) on
-which the application is already running should be specified. Clicking on the
-connection button will thus connect to the already-running application.
-</li>
-<li> StarPU-Top is started first, and clicking on the connection button will
-start the application itself (possibly on a remote machine). The SSH checkbox
-should be checked, and a command line provided, e.g.:
-
-\verbatim
-$ ssh myserver STARPU_SCHED=dmda ./application
-\endverbatim
-
-If port 2011 of the remote machine can not be accessed directly, an ssh port bridge should be added:
-
-\verbatim
-$ ssh -L 2011:localhost:2011 myserver STARPU_SCHED=dmda ./application
-\endverbatim
-
-and "localhost" should be used as IP Address to connect to.
+<li>
+What does the Gantt diagram look like? (see \ref CreatingAGanttDiagram)
+<ul>
+  <li> If it's mostly green (tasks running in the initial context) or context specific
+  color prevailing, then the machine is properly
+  utilized, and perhaps the codelets are just slow. Check their performance, see
+  \ref PerformanceOfCodelets.
+  </li>
+  <li> If it's mostly purple (FetchingInput), tasks keep waiting for data
+  transfers, do you perhaps have far more communication than computation? Did
+  you properly use CUDA streams to make sure communication can be
+  overlapped? Did you use data-locality aware schedulers to avoid transfers as
+  much as possible?
+  </li>
+  <li> If it's mostly red (Blocked), tasks keep waiting for dependencies,
+  do you have enough parallelism? It might be a good idea to check what the DAG
+  looks like (see \ref CreatingADAGWithGraphviz).
+  </li>
+  <li> If only some workers are completely red (Blocked), for some reason the
+  scheduler didn't assign tasks to them. Perhaps the performance model is bogus,
+  check it (see \ref PerformanceOfCodelets). Do all your codelets have a
+  performance model?  When some of them don't, the schedulers switches to a
+  greedy algorithm which thus performs badly.
+  </li>
+</ul>
 </li>
 </ul>
 
+You can also use the Temanejo task debugger (see \ref UsingTheTemanejoTaskDebugger) to
+visualize the task graph more easily.
 \section Off-linePerformanceFeedback Off-line Performance Feedback
 
 \subsection GeneratingTracesWithFxT Generating Traces With FxT
@@ -492,6 +328,55 @@ execution time.
 \ref TheoreticalLowerBoundOnExecutionTimeExample provides an example on how to
 use this.
 
+\section TheoreticalLowerBoundOnExecutionTimeExample Theoretical Lower Bound On Execution Time Example
+
+For kernels with history-based performance models (and provided that
+they are completely calibrated), StarPU can very easily provide a
+theoretical lower bound for the execution time of a whole set of
+tasks. See for instance <c>examples/lu/lu_example.c</c>: before
+submitting tasks, call the function starpu_bound_start(), and after
+complete execution, call starpu_bound_stop().
+starpu_bound_print_lp() or starpu_bound_print_mps() can then be used
+to output a Linear Programming problem corresponding to the schedule
+of your tasks. Run it through <c>lp_solve</c> or any other linear
+programming solver, and that will give you a lower bound for the total
+execution time of your tasks. If StarPU was compiled with the library
+<c>glpk</c> installed, starpu_bound_compute() can be used to solve it
+immediately and get the optimized minimum, in ms. Its parameter
+<c>integer</c> allows to decide whether integer resolution should be
+computed and returned 
+
+The <c>deps</c> parameter tells StarPU whether to take tasks, implicit
+data, and tag dependencies into account. Tags released in a callback
+or similar are not taken into account, only tags associated with a task are.
+It must be understood that the linear programming
+problem size is quadratic with the number of tasks and thus the time to solve it
+will be very long, it could be minutes for just a few dozen tasks. You should
+probably use <c>lp_solve -timeout 1 test.pl -wmps test.mps</c> to convert the
+problem to MPS format and then use a better solver, <c>glpsol</c> might be
+better than <c>lp_solve</c> for instance (the <c>--pcost</c> option may be
+useful), but sometimes doesn't manage to converge. <c>cbc</c> might look
+slower, but it is parallel. For <c>lp_solve</c>, be sure to try at least all the
+<c>-B</c> options. For instance, we often just use <c>lp_solve -cc -B1 -Bb
+-Bg -Bp -Bf -Br -BG -Bd -Bs -BB -Bo -Bc -Bi</c> , and the <c>-gr</c> option can
+also be quite useful. The resulting schedule can be observed by using
+the tool <c>starpu_lp2paje</c>, which converts it into the Paje
+format.
+
+Data transfer time can only be taken into account when <c>deps</c> is set. Only
+data transfers inferred from implicit data dependencies between tasks are taken
+into account. Other data transfers are assumed to be completely overlapped.
+
+Setting <c>deps</c> to 0 will only take into account the actual computations
+on processing units. It however still properly takes into account the varying
+performances of kernels and processing units, which is quite more accurate than
+just comparing StarPU performances with the fastest of the kernels being used.
+
+The <c>prio</c> parameter tells StarPU whether to simulate taking into account
+the priorities as the StarPU scheduler would, i.e. schedule prioritized
+tasks before less prioritized tasks, to check to which extend this results
+to a less optimal solution. This increases even more computation time.
+
 \section MemoryFeedback Memory Feedback
 
 It is possible to enable memory statistics. To do so, you need to pass
@@ -591,20 +476,6 @@ Computation took (in ms)
 518.16
 Synthetic GFlops : 44.21
 \endverbatim
-
-\section DataTrace Data trace and tasks length
-It is possible to get statistics about tasks length and data size by using :
-\verbatim
-$starpu_fxt_data_trace filename [codelet1 codelet2 ... codeletn]
-\endverbatim
-Where filename is the FxT trace file and codeletX the names of the codelets you 
-want to profile (if no names are specified, starpu_fxt_data_trace will use them all). 
-This will create a file, <c>data_trace.gp</c> which
-can be plotted to get a .eps image of these results. On the image, each point represents a 
-task, and each color corresponds to a codelet.
-
-\image html data_trace.png
-\image latex data_trace.eps "" width=\textwidth
 
 // TODO: data transfer stats are similar to the ones displayed when
 // setting STARPU_BUS_STATS

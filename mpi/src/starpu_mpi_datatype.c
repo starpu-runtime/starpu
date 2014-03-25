@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -105,6 +105,21 @@ static void handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Da
 }
 
 /*
+ * 	Void
+ */
+
+static void handle_to_datatype_void(starpu_data_handle_t data_handle STARPU_ATTRIBUTE_UNUSED, MPI_Datatype *datatype)
+{
+	int ret;
+
+	ret = MPI_Type_contiguous(0, MPI_BYTE, datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
+
+	ret = MPI_Type_commit(datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+}
+
+/*
  *	Generic
  */
 
@@ -116,7 +131,7 @@ static handle_to_datatype_func handle_to_datatype_funcs[STARPU_MAX_INTERFACE_ID]
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
 	[STARPU_BCSR_INTERFACE_ID]	= NULL,
 	[STARPU_VARIABLE_INTERFACE_ID]	= handle_to_datatype_variable,
-	[STARPU_VOID_INTERFACE_ID]      = NULL,
+	[STARPU_VOID_INTERFACE_ID]	= handle_to_datatype_void,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
@@ -177,7 +192,7 @@ static handle_free_datatype_func handle_free_datatype_funcs[STARPU_MAX_INTERFACE
 	[STARPU_CSR_INTERFACE_ID]	= NULL,
 	[STARPU_BCSR_INTERFACE_ID]	= NULL,
 	[STARPU_VARIABLE_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
-	[STARPU_VOID_INTERFACE_ID]      = NULL,
+	[STARPU_VOID_INTERFACE_ID]      = _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
 
@@ -225,7 +240,6 @@ char *_starpu_mpi_datatype(MPI_Datatype datatype)
      if (datatype == MPI_DOUBLE_PRECISION) return "MPI_DOUBLE_PRECISION";
      if (datatype == MPI_INTEGER) return "MPI_INTEGER";
      if (datatype == MPI_INTEGER4) return "MPI_INTEGER4";
-     if (datatype == MPI_INTEGER8) return "MPI_INTEGER8";
      if (datatype == MPI_PACKED) return "MPI_PACKED";
      if (datatype == 0) return "Unknown datatype";
      return "User defined MPI Datatype";

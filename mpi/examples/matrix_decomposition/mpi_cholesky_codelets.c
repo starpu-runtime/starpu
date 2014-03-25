@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009, 2010, 2014  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,7 +57,7 @@ static struct starpu_codelet cl22 =
 	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
 #endif
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_RW},
+	.modes = {STARPU_R, STARPU_R, STARPU_RW | STARPU_COMMUTE},
 	.model = &chol_model_22
 };
 
@@ -98,8 +98,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 			}
 			if (data_handles[x][y])
 			{
-				starpu_data_set_rank(data_handles[x][y], mpi_rank);
-				starpu_data_set_tag(data_handles[x][y], (y*nblocks)+x);
+				starpu_mpi_data_register(data_handles[x][y], (y*nblocks)+x, mpi_rank);
 			}
 		}
 	}
@@ -127,6 +126,8 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 					       STARPU_RW, data_handles[k][j],
 					       0);
 
+			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[k][k]);
+
 			for (i = k+1; i<nblocks; i++)
 			{
 				if (i <= j)
@@ -137,10 +138,12 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 							       STARPU_PRIORITY, prio,
 							       STARPU_R, data_handles[k][i],
 							       STARPU_R, data_handles[k][j],
-							       STARPU_RW, data_handles[i][j],
+							       STARPU_RW | STARPU_COMMUTE, data_handles[i][j],
 							       0);
 				}
 			}
+
+			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[k][j]);
 		}
 	}
 

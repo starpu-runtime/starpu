@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -37,7 +37,6 @@
 #include <core/errorcheck.h>
 #include <common/barrier.h>
 #include <common/utils.h>
-#include <common/thread.h>
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
@@ -53,6 +52,12 @@ typedef void (*_starpu_cl_func_t)(void **, void *);
 #define _STARPU_OPENCL_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_OPENCL)
 #define _STARPU_MIC_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_MIC)
 #define _STARPU_SCC_MAY_PERFORM(j)	((j)->task->cl->where & STARPU_SCC)
+
+struct _starpu_data_descr {
+	starpu_data_handle_t handle;
+	enum starpu_data_access_mode mode;
+	int node;
+};
 
 /* A job is the internal representation of a task. */
 LIST_TYPE(_starpu_job,
@@ -71,8 +76,8 @@ LIST_TYPE(_starpu_job,
 	/* To avoid deadlocks, we reorder the different buffers accessed to by
 	 * the task so that we always grab the rw-lock associated to the
 	 * handles in the same order. */
-	struct starpu_data_descr ordered_buffers[STARPU_NMAXBUFS];
-	struct starpu_data_descr *dyn_ordered_buffers;
+	struct _starpu_data_descr ordered_buffers[STARPU_NMAXBUFS];
+	struct _starpu_data_descr *dyn_ordered_buffers;
 
 	/* If a tag is associated to the job, this points to the internal data
 	 * structure that describes the tag status. */
@@ -179,9 +184,11 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 #define _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].handle : job->ordered_buffers[i].handle)
 #define _STARPU_JOB_GET_ORDERED_BUFFER_MODE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].mode : job->ordered_buffers[i].mode)
+#define _STARPU_JOB_GET_ORDERED_BUFFER_NODE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].node : job->ordered_buffers[i].node)
 
 #define _STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(job, handle, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i].handle = (handle); else job->ordered_buffers[i].handle = (handle);} while(0)
-#define _STARPU_JOB_SET_ORDERED_BUFFER_MODE(job, mode, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i].mode = mode; else job->ordered_buffers[i].mode = mode;} while(0)
+#define _STARPU_JOB_SET_ORDERED_BUFFER_MODE(job, __mode, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i].mode = __mode; else job->ordered_buffers[i].mode = __mode;} while(0)
+#define _STARPU_JOB_SET_ORDERED_BUFFER_NODE(job, __node, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i].node = __node; else job->ordered_buffers[i].node = __node;} while(0)
 
 #define _STARPU_JOB_SET_ORDERED_BUFFER(job, buffer, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i] = buffer; else job->ordered_buffers[i] = buffer;} while(0)
 #define _STARPU_JOB_GET_ORDERED_BUFFERS(job) (job->dyn_ordered_buffers) ? job->dyn_ordered_buffers : job->ordered_buffers

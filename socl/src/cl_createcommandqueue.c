@@ -30,7 +30,7 @@ static void release_callback_command_queue(void * e) {
   gc_entity_unstore(&cq->context);
 
   /* Destruct object */
-  pthread_mutex_destroy(&cq->mutex);
+  starpu_pthread_mutex_destroy(&cq->mutex);
 }
 
 
@@ -73,7 +73,7 @@ soclCreateCommandQueue(cl_context                   context,
 
    cq->commands = NULL;
    cq->barrier = NULL;
-   pthread_mutex_init(&cq->mutex, NULL);
+   starpu_pthread_mutex_init(&cq->mutex, NULL);
 
    if (errcode_ret != NULL)
       *errcode_ret = CL_SUCCESS;

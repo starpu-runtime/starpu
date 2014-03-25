@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2011, 2012, 2013       Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -180,7 +180,7 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
 		if (worker->perf_arch.type == STARPU_CPU_WORKER && worker->perf_arch.ncore == 0)
 		{
-			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->cpu_depth, worker->bindid);
+			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->pu_depth, worker->bindid);
 			obj = obj->parent;
 			while (obj)
 			{
@@ -268,12 +268,12 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 #ifdef STARPU_USE_MIC
 		else if(worker->arch == STARPU_MIC_WORKER)
 		{
-			for(j=0; mic_id[j] != worker->mp_nodeid && mic_id[j] != -1 && j<nb_mics; j++);
+			for(j=0; mic_id[j] != worker->devid && mic_id[j] != -1 && j<nb_mics; j++);
 			if(j<nb_mics)
 			{
 				if(mic_id[j] == -1)
 				{
-					mic_id[j] = worker->mp_nodeid;					
+					mic_id[j] = worker->devid;					
 				}
 				mic_workers[j][nmics_table[j]++] = i;
 			}

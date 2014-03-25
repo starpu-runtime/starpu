@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,6 +24,8 @@
 #include <starpu_mpi_task_insert.h>
 #include <common/config.h>
 #include <common/thread.h>
+#include <datawizard/interfaces/data_interface.h>
+#include <datawizard/coherency.h>
 
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_submit_new_mpi_request(void *arg);
@@ -349,8 +351,6 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req *req)
  {
 	 _STARPU_MPI_LOG_IN();
 
-	 STARPU_ASSERT_MSG(req->ptr, "Pointer containing data to send is invalid");
-
 	 _STARPU_MPI_DEBUG(2, "post MPI isend request %p type %s tag %d src %d data %p datasize %ld ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, starpu_data_get_size(req->data_handle), req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
 
 	 _starpu_mpi_comm_amounts_inc(req->comm, req->srcdst, req->datatype, req->count);
@@ -483,8 +483,6 @@ int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int mpi_tag, MPI
 static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
-
-	STARPU_ASSERT_MSG(req->ptr, "Invalid pointer to receive data");
 
 	_STARPU_MPI_DEBUG(20, "post MPI irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
 
@@ -935,6 +933,7 @@ static void _starpu_mpi_copy_cb(void* arg)
 		/* Data has been received as a raw memory, it has to be unpacked */
 		struct starpu_data_interface_ops *itf_src = starpu_data_get_interface_ops(args->copy_handle);
 		struct starpu_data_interface_ops *itf_dst = starpu_data_get_interface_ops(args->data_handle);
+		STARPU_ASSERT_MSG(itf_dst->unpack_data, "The data interface does not define an unpack function\n");
 		itf_dst->unpack_data(args->data_handle, 0, args->buffer, itf_src->get_size(args->copy_handle));
 		free(args->buffer);
 	}
@@ -1355,7 +1354,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					starpu_data_handle_t data_handle = NULL;
 
 					STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
-					data_handle = starpu_data_get_data_handle_from_tag(recv_env->mpi_tag);
+					data_handle = _starpu_data_get_data_handle_from_tag(recv_env->mpi_tag);
 					STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
 					struct _starpu_mpi_copy_handle* chandle = calloc(1, sizeof(struct _starpu_mpi_copy_handle));
@@ -1620,4 +1619,17 @@ int starpu_mpi_shutdown(void)
 	_starpu_mpi_cache_free(world_size);
 
 	return 0;
+}
+
+void _starpu_mpi_clear_cache(starpu_data_handle_t data_handle)
+{
+	starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handle);
+}
+
+void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int rank)
+{
+	_starpu_data_set_rank(data_handle, rank);
+	_starpu_data_set_tag(data_handle, tag);
+	_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
+
 }

@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2009-2014  Université de Bordeaux 1
+# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 # Copyright (C) 2010, 2011, 2012  Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -46,7 +46,7 @@ EXTRA_DIST =					\
 	perfmodels/opencl_memset_kernel.cl
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo core
+	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log
 
 BUILT_SOURCES =
 SUBDIRS =
@@ -144,6 +144,7 @@ noinst_PROGRAMS =				\
 	main/starpu_init			\
 	main/starpu_worker_exists		\
 	main/submit				\
+	main/pause_resume			\
 	main/codelet_null_callback		\
 	datawizard/allocate			\
 	datawizard/acquire_cb			\
@@ -199,6 +200,7 @@ noinst_PROGRAMS =				\
 	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
 	datawizard/readonly			\
+	datawizard/specific_node		\
 	disk/disk_copy				\
 	disk/disk_compute			\
 	errorcheck/starpu_init_noworker		\
@@ -226,6 +228,7 @@ noinst_PROGRAMS =				\
 	perfmodels/regression_based		\
 	perfmodels/non_linear_regression_based	\
 	perfmodels/feed				\
+	perfmodels/user_base			\
 	perfmodels/valid_model			\
 	perfmodels/value_nan			\
 	sched_policies/data_locality            \
@@ -382,6 +385,17 @@ datawizard_wt_host_SOURCES =			\
 	datawizard/wt_host.c
 datawizard_wt_broadcast_SOURCES =		\
 	datawizard/wt_broadcast.c
+
+datawizard_specific_node_SOURCES =		\
+	datawizard/specific_node.c
+if STARPU_USE_CUDA
+datawizard_specific_node_SOURCES +=		\
+	datawizard/cuda_codelet_unsigned_inc.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_specific_node_SOURCES +=			\
+	datawizard/opencl_codelet_unsigned_inc.c
+endif
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 main_deprecated_buffer_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations

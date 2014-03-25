@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -680,16 +680,16 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 	return 0;
 }
 
-static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned local_memory_node)
+static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
 {
 	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 		return &handle->per_worker[workerid];
 	else
 		/* That's a "normal" buffer (R/W) */
-		return &handle->per_node[local_memory_node];
+		return &handle->per_node[node];
 }
 
-int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
+int _starpu_fetch_task_input(struct _starpu_job *j)
 {
 	_STARPU_TRACE_START_FETCH_INPUT(NULL);
 
@@ -698,7 +698,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->acquire_data_start_time);
 
-	struct starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 	unsigned nbuffers = task->cl->nbuffers;
 
 	unsigned local_memory_node = _starpu_memory_node_get_local_key();
@@ -715,6 +715,9 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 		int ret;
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
+		int node = descrs[index].node;
+		if (node == -1)
+			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate;
 
@@ -724,7 +727,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 			 * _starpu_compar_handles */
 			continue;
 
-		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
+		local_replicate = get_replicate(handle, mode, workerid, node);
 
 		ret = fetch_data(handle, local_replicate, mode);
 		if (STARPU_UNLIKELY(ret))
@@ -735,18 +738,19 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 #endif
 	}
 
-#ifdef STARPU_USE_FXT
-	FUT_DO_PROBE2(_STARPU_FUT_DATA_LOAD, workerid, total_size);
-#endif
+	_STARPU_TRACE_DATA_LOAD(workerid,total_size)
 	/* Now that we have taken the data locks in locking order, fill the codelet interfaces in function order.  */
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
 		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, index);
+		int node = descrs[index].node;
+		if (node == -1)
+			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate;
 
-		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
+		local_replicate = get_replicate(handle, mode, workerid, node);
 
 		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
 
@@ -767,15 +771,35 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 
 enomem:
 	_STARPU_TRACE_END_FETCH_INPUT(NULL);
-	/* try to unreference all the input that were successfully taken */
-	/* XXX broken ... */
 	_STARPU_DISP("something went wrong with buffer %u\n", index);
-	//push_codelet_output(task, index, mask);
-	_starpu_push_task_output(j, mask);
+
+	/* try to unreference all the input that were successfully taken */
+	unsigned index2;
+	for (index2 = 0; index2 < index; index2++)
+	{
+		starpu_data_handle_t handle = descrs[index2].handle;
+		enum starpu_data_access_mode mode = descrs[index2].mode;
+		int node = descrs[index].node;
+		if (node == -1)
+			node = local_memory_node;
+
+		struct _starpu_data_replicate *local_replicate;
+
+		if (index2 && descrs[index2-1].handle == descrs[index2].handle)
+			/* We have already released this data, skip it. This
+			 * depends on ordering putting writes before reads, see
+			 * _starpu_compar_handles */
+			continue;
+
+		local_replicate = get_replicate(handle, mode, workerid, node);
+
+		_starpu_release_data_on_node(handle, 0, local_replicate);
+	}
+
 	return -1;
 }
 
-void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
+void _starpu_push_task_output(struct _starpu_job *j)
 {
 	_STARPU_TRACE_START_PUSH_OUTPUT(NULL);
 
@@ -784,7 +808,7 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->release_data_start_time);
 
-        struct starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
         unsigned nbuffers = task->cl->nbuffers;
 
 	int workerid = starpu_worker_get_id();
@@ -795,6 +819,9 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 	{
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
+		int node = descrs[index].node;
+		if (node == -1)
+			node = local_memory_node;
 
 		struct _starpu_data_replicate *local_replicate;
 
@@ -804,7 +831,7 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 			 * _starpu_compar_handles */
 			continue;
 
-		local_replicate = get_replicate(handle, mode, workerid, local_memory_node);
+		local_replicate = get_replicate(handle, mode, workerid, node);
 
 		/* Keep a reference for future
 		 * _starpu_release_task_enforce_sequential_consistency call */
@@ -812,7 +839,7 @@ void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask)
 		handle->busy_count++;
 		_starpu_spin_unlock(&handle->header_lock);
 
-		_starpu_release_data_on_node(handle, mask, local_replicate);
+		_starpu_release_data_on_node(handle, 0, local_replicate);
 	}
 
 	if (profiling && task->profiling_info)
@@ -852,3 +879,7 @@ unsigned _starpu_is_data_present_or_requested(starpu_data_handle_t handle, unsig
 	return ret;
 }
 
+void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func)
+{
+	handle->unregister_hook = func;
+}

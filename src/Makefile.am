@@ -151,6 +151,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/jobs.c						\
 	core/task.c						\
 	core/task_bundle.c					\
+	core/tree.c						\
 	core/workers.c						\
 	core/combined_workers.c					\
 	core/topology.c						\
@@ -243,6 +244,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	top/starpu_top_message_queue.c				\
 	top/starpu_top_connection.c                        	\
 	worker_collection/worker_list.c				\
+	worker_collection/worker_tree.c				\
 	sched_policies/component_worker.c				\
 	sched_policies/component_sched.c				\
 	sched_policies/component_fifo.c 				\

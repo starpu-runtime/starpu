@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2013, 2014  Centre National de la Recherche Scientifique
 #
 # Permission is granted to copy, distribute and/or modify this document
 # under the terms of the GNU Free Documentation License, Version 1.3
@@ -15,7 +15,7 @@ endif
 
 EXTRA_DIST =    tutorial/hello_world.c \
 		tutorial/hello_world_plugin.c \
-		tutorial/hello_world_mvsc.c \
+		tutorial/hello_world_msvc.c \
 		tutorial/Makefile \
 		tutorial/README \
 		tutorial/vector_scal.c \

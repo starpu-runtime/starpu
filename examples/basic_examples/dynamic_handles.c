@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -52,8 +52,6 @@ static void dummy_big_kernel(void *descr[], void *cl_arg)
 
 static struct starpu_codelet dummy_small_cl =
 {
-	.cuda_funcs = {dummy_small_kernel, NULL},
-	.opencl_funcs = {dummy_small_kernel, NULL},
 	.cpu_funcs = {dummy_small_kernel, NULL},
 	.modes = {STARPU_RW},
 	.nbuffers = 1
@@ -61,8 +59,6 @@ static struct starpu_codelet dummy_small_cl =
 
 struct starpu_codelet dummy_big_cl =
 {
-	.cuda_funcs = {dummy_big_kernel, NULL},
-	.opencl_funcs = {dummy_big_kernel, NULL},
 	.cpu_funcs = {dummy_big_kernel, NULL},
 	.nbuffers = STARPU_NMAXBUFS+1
 };

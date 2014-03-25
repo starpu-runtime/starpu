@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -18,55 +18,6 @@
 
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
-/*
- *	Create the codelets
- */
-struct starpu_perfmodel chol_model_11;
-struct starpu_perfmodel chol_model_21;
-struct starpu_perfmodel chol_model_22;
-
-static struct starpu_codelet cl11 =
-{
-	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
-#elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
-#endif
-	.nbuffers = 1,
-	.modes = {STARPU_RW},
-	.model = &chol_model_11
-};
-
-static struct starpu_codelet cl21 =
-{
-	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
-#elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
-#endif
-	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_RW},
-	.model = &chol_model_21
-};
-
-static struct starpu_codelet cl22 =
-{
-	.type = STARPU_SEQ,
-	.max_parallelism = INT_MAX,
-	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
-#elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
-#endif
-	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.model = &chol_model_22
-};
 
 /*
  *	code to bootstrap the factorization
@@ -90,10 +41,12 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	int prio_level = noprio?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
 
-	start = starpu_timing_now();
-
 	if (bound || bound_lp || bound_mps)
 		starpu_bound_start(bound_deps, 0);
+	starpu_fxt_start_profiling();
+
+	start = starpu_timing_now();
+
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
@@ -132,7 +85,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 								 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
 								 STARPU_R, sdataki,
 								 STARPU_R, sdatakj,
-								 STARPU_RW, sdataij,
+								 STARPU_RW | STARPU_COMMUTE, sdataij,
 								 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 								 0);
 					if (ret == -ENODEV) return 77;
@@ -143,10 +96,12 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	}
 
 	starpu_task_wait_for_all();
-	if (bound || bound_lp || bound_mps)
-		starpu_bound_stop();
 
 	end = starpu_timing_now();
+
+	starpu_fxt_stop_profiling();
+	if (bound || bound_lp || bound_mps)
+		starpu_bound_stop();
 
 	double timing = end - start;
 
@@ -174,6 +129,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
 			double res;
 			starpu_bound_compute(&res, NULL, 0);
+			FPRINTF(stderr, "Theoretical makespan: %2.2f\n", res);
 			FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
 		}
 	}
@@ -344,6 +300,7 @@ int main(int argc, char **argv)
 
 	int ret;
 	ret = starpu_init(NULL);
+	starpu_fxt_stop_profiling();
 
 	if (ret == -ENODEV)
                 return 77;

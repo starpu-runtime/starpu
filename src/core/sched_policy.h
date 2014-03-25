@@ -54,6 +54,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 
 void _starpu_sched_pre_exec_hook(struct starpu_task *task);
 
+void _starpu_print_idle_time();
 /*
  *	Predefined policies
  */

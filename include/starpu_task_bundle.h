@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2014  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2012  Inria
  *
@@ -40,4 +40,4 @@ void starpu_task_bundle_close(starpu_task_bundle_t bundle);
 }
 #endif
 
-#endif // __STARPU_TASK_BUNDLE_H__
+#endif /* __STARPU_TASK_BUNDLE_H__ */

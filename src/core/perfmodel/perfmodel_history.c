@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -279,10 +279,10 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 {
 	struct starpu_perfmodel_per_arch dummy;
 	unsigned nimpls, implmax, impl, i, ret;
-	//_STARPU_DEBUG("Parsing %s_%u_ncore_%u\n",
+	//_STARPU_DEBUG("Parsing %s_%u_parallel_%u\n",
 	//		starpu_perfmodel_get_archtype_name(arch->type),
 	//		arch->devid,
-	//		arch->ncore);
+	//		arch->ncore + 1);
 
 	/* Parsing number of implementation */
 	_starpu_drop_comments(f);
@@ -428,7 +428,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, st
 	/* Dump the history into the model file in case it is necessary */
 	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 	{
-		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean (us)\tdev (us)\t\tsum\t\tsum2\t\tn\n");
+		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean (us)\tdev (us)\tsum\t\tsum2\t\tn\n");
 		ptr = per_arch_model->list;
 		while (ptr)
 		{
@@ -542,7 +542,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 							max_impl = nimpl + 1;
 				}
 				else
-					STARPU_ASSERT_MSG(0, "Unknown history-based performance model %u", archtype);
+					STARPU_ASSERT_MSG(0, "Unknown history-based performance model %u", model->type);
 
 				fprintf(f, "##########\n");
 				fprintf(f, "# %u worker(s) in parallel\n", nc+1);
@@ -1143,10 +1143,10 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *archname, size_t maxlen,unsigned nimpl)
 {
-	snprintf(archname, maxlen, "%s%d_ncore%d_impl%u",
+	snprintf(archname, maxlen, "%s%d_parallel%d_impl%u",
 			starpu_perfmodel_get_archtype_name(arch->type),
 			arch->devid,
-			arch->ncore,
+			arch->ncore + 1,
 			nimpl);
 }
 
@@ -1328,17 +1328,14 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 					(100 * local_deviation > (100 + historymaxerror)
 					 || (100 / local_deviation > (100 + historymaxerror))))
 				{
-					/* TODO: add aging, otherwise with
-					 * millions of tasks we're sure to
-					 * flush at least once... */
 					entry->nerror++;
 
-					/* Too many errors: we flush out all the entries */
+					/* More errors than measurements, we're most probably completely wrong, we flush out all the entries */
 					if (entry->nerror >= entry->nsample)
 					{
 						char archname[32];
 						starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
-						_STARPU_DISP("Too big deviation for model %s on %s: %f vs average %f over %u samples (%+f%%), flushing the performance model. Use the STARPU_HISTORY_MAX_ERROR environement variable to control the threshold (currently %d%%)\n", model->symbol, archname, measured, entry->mean, entry->nsample, measured * 100. / entry->mean - 100, historymaxerror);
+						_STARPU_DISP("Too big deviation for model %s on %s: %f vs average %f, %u such errors against %u samples (%+f%%), flushing the performance model. Use the STARPU_HISTORY_MAX_ERROR environement variable to control the threshold (currently %d%%)\n", model->symbol, archname, measured, entry->mean, entry->nerror, entry->nsample, measured * 100. / entry->mean - 100, historymaxerror);
 						entry->sum = 0.0;
 						entry->sum2 = 0.0;
 						entry->nsample = 0;
@@ -1440,6 +1437,10 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch * arch, unsigned cpuid, unsigned nimpl, double measured)
 {
 	struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
+
+#ifdef STARPU_SIMGRID
+	STARPU_ASSERT_MSG(0, "We are not supposed to update history when simulating execution");
+#endif
 
 	_starpu_load_perfmodel(model);
 	/* Record measurement */

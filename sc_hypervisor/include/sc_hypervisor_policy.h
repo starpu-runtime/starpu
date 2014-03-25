@@ -99,6 +99,12 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 /* compute the speed of a type of worker in a context depending on its history */ 
 double sc_hypervisor_get_ref_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_w, enum starpu_worker_archtype arch);
 
+/* compute the average speed of a type of worker in all ctxs from the begining of appl */
+double sc_hypervisor_get_avg_speed(enum starpu_worker_archtype arch);
+
+/* verify if we need to consider the max in the lp */
+void sc_hypervisor_check_if_consider_max(struct types_of_workers *tw);
+
 /* get the list of workers grouped by type */
 void sc_hypervisor_group_workers_by_type(struct types_of_workers *tw, int *total_nw);
 
@@ -115,7 +121,10 @@ unsigned sc_hypervisor_criteria_fulfilled(unsigned sched_ctx, int worker);
 unsigned sc_hypervisor_check_idle(unsigned sched_ctx, int worker);
 
 /* check if there is a speed gap btw ctxs */
-unsigned sc_hypervisor_check_speed_gap_btw_ctxs(void);
+unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nworkers);
+
+/* check if there is a speed gap btw ctxs on one level */
+unsigned sc_hypervisor_check_speed_gap_btw_ctxs_on_level(int level, int *workers_in, int nworkers_in, unsigned father_sched_ctx_id, unsigned **sched_ctxs, int *nsched_ctxs);
 
 /* check what triggers resizing (idle, speed, etc.)*/
 unsigned sc_hypervisor_get_resize_criteria();

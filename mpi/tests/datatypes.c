@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,11 @@
 #include "helper.h"
 
 typedef void (*check_func)(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error);
+
+void check_void(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
+{
+	FPRINTF_MPI("Success with void value\n");
+}
 
 void check_variable(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
 {
@@ -193,6 +198,16 @@ int main(int argc, char **argv)
 		MPI_Status status;
 
 		{
+			starpu_data_handle_t void_handle[2];
+			starpu_void_data_register(&void_handle[0]);
+			starpu_void_data_register(&void_handle[1]);
+
+			send_recv_and_check(rank, 1, void_handle[0], 0x42, void_handle[1], 0x1337, &error, check_void);
+
+			starpu_data_unregister(void_handle[0]);
+			starpu_data_unregister(void_handle[1]);
+		}
+		{
 			float v = 42.12;
 			starpu_data_handle_t variable_handle[2];
 			starpu_variable_data_register(&variable_handle[0], STARPU_MAIN_RAM, (uintptr_t)&v, sizeof(v));
@@ -274,6 +289,12 @@ int main(int argc, char **argv)
 	{
 		MPI_Status status;
 
+		{
+			starpu_data_handle_t void_handle;
+			starpu_void_data_register(&void_handle);
+			send_recv_and_check(rank, 0, void_handle, 0x42, NULL, 0x1337, NULL, NULL);
+			starpu_data_unregister(void_handle);
+		}
 		{
 			starpu_data_handle_t variable_handle;
 			starpu_variable_data_register(&variable_handle, -1, (uintptr_t)NULL, sizeof(float));

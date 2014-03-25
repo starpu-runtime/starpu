@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -234,10 +234,13 @@ The list of functions is described in \ref MPIInsertTask "MPI Insert Task".
 
 Here an stencil example showing how to use starpu_mpi_task_insert(). One
 first needs to define a distribution function which specifies the
-locality of the data. Note that that distribution information needs to
-be given to StarPU by calling starpu_data_set_rank(). A MPI tag
-should also be defined for each data handle by calling
-starpu_data_set_tag().
+locality of the data. Note that the data needs to be registered to MPI
+by calling starpu_mpi_data_register(). This function allows to set
+the distribution information and the MPI tag which should be used when
+communicating the data. The function starpu_mpi_data_register() should
+be prefered to starpu_data_set_rank() and starpu_data_set_tag() as
+it also allows to automatically clear the MPI communication cache
+when unregistering the data.
 
 \code{.c}
 /* Returns the MPI node number where data is */
@@ -284,8 +287,7 @@ data which will be needed by the tasks that we will execute.
                 /* I know it's useless to allocate anything for this */
                 data_handles[x][y] = NULL;
             if (data_handles[x][y]) {
-                starpu_data_set_rank(data_handles[x][y], mpi_rank);
-                starpu_data_set_tag(data_handles[x][y], x*X+y);
+                starpu_mpi_data_register(data_handles[x][y], x*X+y, mpi_rank);
             }
         }
     }
@@ -317,6 +319,55 @@ This can be a concern with a growing number of nodes. To avoid this, the
 application can prune the task for loops according to the data distribution,
 so as to only submit tasks on nodes which have to care about them (either to
 execute them, or to send the required data).
+
+A function starpu_mpi_task_build() is also provided with the aim to
+only construct the task structure. All MPI nodes need to call the
+function, only the node which is to execute the task will return a
+valid task structure. Following the execution of the task, all nodes
+need to call the function starpu_mpi_task_post_build() -- with the same
+list of arguments as starpu_mpi_task_build() -- to post all the
+necessary data communications.
+
+\code{.c}
+struct starpu_task *task;
+task = starpu_mpi_task_build(MPI_COMM_WORLD, &cl,
+                             STARPU_RW, data_handles[0],
+                             STARPU_R, data_handles[1],
+                             0);
+if (task) starpu_task_submit(task);
+starpu_mpi_task_post_build(MPI_COMM_WORLD, &cl,
+                           STARPU_RW, data_handles[0],
+                           STARPU_R, data_handles[1],
+                           0);
+\endcode
+
+\section MPICache MPI cache support
+
+StarPU-MPI automatically optimizes duplicate data transmissions: if an MPI
+node B needs a piece of data D from MPI node A for several tasks, only one
+transmission of D will take place from A to B, and the value of D will be kept
+on B as long as no task modifies D.
+
+If a task modifies D, B will wait for all tasks which need the previous value of
+D, before invalidating the value of D. As a consequence, it releases the memory
+occupied by D. Whenever a task running on B needs the new value of D, allocation
+will take place again to receive it.
+
+Since tasks can be submitted dynamically, StarPU-MPI can not know whether the
+current value of data D will again be used by a newly-submitted task before
+being modified by another newly-submitted task, so until a task is submitted to
+modify the current value, it can not decide by itself whether to flush the cache
+or not.  The application can however explicitly tell StarPU-MPI to flush the
+cache by calling starpu_mpi_cache_flush() or starpu_mpi_cache_flush_all_data(),
+for instance in case the data will not be used at all any more (see for instance
+the cholesky example in mpi/examples/matrix_decomposition), or at least not in
+the close future. If a newly-submitted task actually needs the value again,
+another transmission of D will be initiated from A to B.
+
+The whole caching behavior can be disabled thanks to the ::STARPU_MPI_CACHE
+environment variable. The variable ::STARPU_MPI_CACHE_STATS can be set to 1
+to enable the runtime to display messages when data are added or removed
+from the cache holding the received data.
 
 \section MPIMigration MPI Data migration
 
@@ -409,8 +460,7 @@ for(x = 0; x < nblocks ;  x++)
         data_handles[x] = NULL;
     }
     if (data_handles[x]) {
-        starpu_data_set_rank(data_handles[x], mpi_rank);
-        starpu_data_set_tag(data_handles[x], x*nblocks+y);
+        starpu_mpi_data_register(data_handles[x], x*nblocks+y, mpi_rank);
     }
 }
 

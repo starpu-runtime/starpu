@@ -1,0 +1,46 @@
+/*
+ * This file is part of the StarPU Handbook.
+ * Copyright (C) 2014  Centre National de la Recherche Scientifique
+ * See the file version.doxy for copying conditions.
+ */
+
+/*! \defgroup API_Tree Tree
+
+\brief This section describes the tree facilities provided by StarPU.
+
+\struct starpu_tree
+\ingroup API_Tree
+\var starpu_tree::nodes
+todo
+\var starpu_tree::father
+todo
+\var starpu_tree::arity
+todo
+\var starpu_tree::id
+todo
+\var starpu_tree::level
+todo
+\var starpu_tree::is_pu
+todo
+
+\fn void starpu_tree_reset_visited(struct starpu_tree *tree, int *visited)
+\ingroup API_Tree
+todo
+
+\fn void starpu_tree_insert(struct starpu_tree *tree, int id, int level, int is_pu, int arity, struct starpu_tree *father)
+\ingroup API_Tree
+todo
+
+\fn struct starpu_tree *starpu_tree_get(struct starpu_tree *tree, int id)
+\ingroup API_Tree
+todo
+
+\fn struct starpu_tree *starpu_tree_get_neighbour(struct starpu_tree *tree, struct starpu_tree *node, int *visited, int *present)
+\ingroup API_Tree
+todo
+
+\fn int starpu_tree_free(struct starpu_tree *tree)
+\ingroup API_Tree
+todo
+
+*/

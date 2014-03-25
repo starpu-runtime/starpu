@@ -16,8 +16,6 @@
 
 
 #include <string.h>
-#include <pthread.h>
-
 #include <starpu.h>
 #include <core/task.h>
 #include <core/sched_policy.h>
@@ -33,7 +31,6 @@
 /* Finalize the execution of a task by a worker*/
 static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starpu_worker *worker) 
 {
-	uint32_t mask = 0;
 	int profiling = starpu_profiling_status_get();
 	struct timespec codelet_end;
 	_starpu_driver_end_job(worker, j, &worker->perf_arch, &codelet_end, 0,
@@ -46,11 +43,11 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 	{
 		struct _starpu_combined_worker * cb_worker = _starpu_get_combined_worker_struct(worker->combined_workerid); 
 
-		pthread_mutex_lock(&cb_worker->count_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&cb_worker->count_mutex);
 		count = cb_worker->count--;
 		if(count == 0)
 			cb_worker->count = cb_worker->worker_size - 1; 
-		pthread_mutex_unlock(&cb_worker->count_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&cb_worker->count_mutex);
 	}
 
 	/* Finalize the execution */
@@ -61,7 +58,7 @@ static int _starpu_src_common_finalize_job (struct _starpu_job *j, struct _starp
 				&j->cl_start, &codelet_end,
 				profiling);
 
-		_starpu_push_task_output (j, mask);
+		_starpu_push_task_output (j);
 
 		_starpu_handle_job_termination(j);
 	}
@@ -323,7 +320,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	buffer_size = sizeof(kernel) + sizeof(coreid) + sizeof(type)
 		+ sizeof(nb_interfaces) + nb_interfaces * sizeof(union _starpu_interface) + sizeof(is_parallel_task);
 	
-	/*if the task is paralle*/
+	/*if the task is parallel*/
 	if(is_parallel_task)
 	{
 		buffer_size += sizeof(cb_workerid); 
@@ -403,7 +400,6 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 		struct _starpu_mp_node * node)
 {
 	int ret;
-	uint32_t mask = 0;
 
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
@@ -413,7 +409,7 @@ static int _starpu_src_common_execute(struct _starpu_job *j,
 	STARPU_ASSERT(task);
 	if (worker->current_rank == 0) 
 	{
-		ret = _starpu_fetch_task_input(j, mask);
+		ret = _starpu_fetch_task_input(j);
 		if (ret != 0)
 		{
 			/* there was not enough memory, so the input of
@@ -718,7 +714,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 							/* The task task has been launched with no error */
 							break;
 						case -EAGAIN:
-							_STARPU_DISP("ouch, Xeon Phi could not actually run task %p, putting it back...\n", tasks[i]);
+							_STARPU_DISP("ouch, this MP worker could not actually run task %p, putting it back...\n", tasks[i]);
 							_starpu_push_task_to_workers(tasks[i]);
 							STARPU_ABORT();
 							continue;

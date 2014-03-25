@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -54,6 +54,7 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 	unsigned v[2][N];
 	starpu_data_handle_t data_handles[2];
 
+	FPRINTF_MPI("Testing with STARPU_MPI_CACHE=%s\n", enabled);
 	setenv("STARPU_MPI_CACHE", enabled, 1);
 
 	ret = starpu_init(NULL);
@@ -66,28 +67,31 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 		int mpi_rank = my_distrib(i);
 		if (mpi_rank == rank)
 		{
-			//FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", rank, x, y);
 			starpu_vector_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&(v[i]), N, sizeof(unsigned));
 		}
 		else
 		{
 			/* I don't own that index, but will need it for my computations */
-			//FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
 			starpu_vector_data_register(&data_handles[i], -1, (uintptr_t)NULL, N, sizeof(unsigned));
 		}
-		starpu_data_set_rank(data_handles[i], mpi_rank);
-		starpu_data_set_tag(data_handles[i], i);
+		starpu_mpi_data_register(data_handles[i], i, mpi_rank);
 	}
 
-	for(i = 0; i < 5; i++)
+	// We call starpu_mpi_task_insert twice, when the cache is enabled, the 1st time puts the
+	// data in the cache, the 2nd time allows to check the data is not sent again
+	for(i = 0; i < 2; i++)
 	{
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 
-	for(i = 0; i < 5; i++)
+	// Flush the cache for data_handles[1] which has been sent from node1 to node0
+	starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[1]);
+
+	// Check again
+	for(i = 0; i < 2; i++)
 	{
-		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[1], STARPU_R, data_handles[0], 0);
+		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1], 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 
@@ -105,7 +109,7 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 
 int main(int argc, char **argv)
 {
-	int dst, rank, size;
+	int rank, size;
 	int result=0;
 	size_t *comm_amount_with_cache;
 	size_t *comm_amount_without_cache;
@@ -115,6 +119,7 @@ int main(int argc, char **argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 	setenv("STARPU_COMM_STATS", "1", 1);
+	setenv("STARPU_MPI_CACHE_STATS", "1", 1);
 
 	comm_amount_with_cache = malloc(size * sizeof(size_t));
 	comm_amount_without_cache = malloc(size * sizeof(size_t));
@@ -122,11 +127,10 @@ int main(int argc, char **argv)
 	test_cache(rank, size, "0", comm_amount_with_cache);
 	test_cache(rank, size, "1", comm_amount_without_cache);
 
-	if (rank == 0 || rank == 1)
+	if (rank == 1)
 	{
-		dst = (rank == 0) ? 1 : 0;
-		result = (comm_amount_with_cache[dst] == comm_amount_without_cache[dst] * 5);
-		FPRINTF_MPI("Communication cache mechanism is %sworking\n", result?"":"NOT ");
+		result = (comm_amount_with_cache[0] == comm_amount_without_cache[0] * 2);
+		FPRINTF_MPI("Communication cache mechanism is %sworking (with cache: %d) (without cache: %d)\n", result?"":"NOT ", comm_amount_with_cache[0], comm_amount_without_cache[0]);
 	}
 	else
 		result = 1;

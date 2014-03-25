@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <starpu_config.h>
+#include <starpu_thread.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -39,10 +40,16 @@ enum starpu_worker_archtype
 struct starpu_sched_ctx_iterator
 {
 	int cursor;
+	void *value;
+	void *possible_value;
+	int visited[STARPU_NMAXWORKERS];
 };
 
 enum starpu_worker_collection_type
 {
+#ifdef STARPU_HAVE_HWLOC
+	STARPU_WORKER_TREE,
+#endif
 	STARPU_WORKER_LIST
 };
 
@@ -50,6 +57,7 @@ struct starpu_worker_collection
 {
 	void *workerids;
 	unsigned nworkers;
+	int present[STARPU_NMAXWORKERS];
 	enum starpu_worker_collection_type type;
 	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	int (*get_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
@@ -59,6 +67,9 @@ struct starpu_worker_collection
 	void (*deinit)(struct starpu_worker_collection *workers);
 	void (*init_iterator)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 };
+
+extern struct starpu_worker_collection worker_list;
+extern struct starpu_worker_collection worker_tree;
 
 unsigned starpu_worker_get_count(void);
 unsigned starpu_combined_worker_get_count(void);
@@ -73,6 +84,7 @@ unsigned starpu_scc_worker_get_count(void);
 unsigned starpu_mic_device_get_count(void);
 
 int starpu_worker_get_id(void);
+int starpu_worker_get_bindid(int workerid);
 
 int starpu_combined_worker_get_id(void);
 int starpu_combined_worker_get_size(void);
@@ -94,12 +106,9 @@ int starpu_worker_get_devid(int id);
 
 int starpu_worker_get_mp_nodeid(int id);
 
-int starpu_worker_get_nsched_ctxs(int workerid);
+struct starpu_tree* starpu_workers_get_tree(void);
 
-void starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag);
-
-unsigned starpu_worker_mutex_is_sched_mutex(int workerid, pthread_mutex_t *mutex);
-
+unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx);
 #ifdef __cplusplus
 }
 #endif

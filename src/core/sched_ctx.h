@@ -117,9 +117,12 @@ struct _starpu_sched_ctx
 	struct starpu_sched_ctx_performance_counters *perf_counters;
 #endif //STARPU_USE_SC_HYPERVISOR
 
+	/* callback called when the context finished executed its submitted tasks */
 	void (*close_callback)(unsigned sched_ctx_id, void* args);
-
 	void *close_args;
+	
+	/* value placing the contexts in their hierarchy */
+	unsigned hierarchy_level;
 };
 
 struct _starpu_machine_config;
@@ -161,7 +164,7 @@ starpu_pthread_mutex_t *_starpu_get_sched_mutex(struct _starpu_sched_ctx *sched_
 
 /* Get workers belonging to a certain context, it returns the number of workers
  take care: no mutex taken, the list of workers might not be updated */
-int starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_worker_archtype arch);
+int _starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_worker_archtype arch);
 
 /* Let the worker know it does not belong to the context and that
    it should stop poping from it */
@@ -176,9 +179,6 @@ starpu_pthread_rwlock_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched
 /* indicates wheather this worker should go to sleep or not 
    (if it is the last one awake in a context he should better keep awake) */
 unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);
-
-/*rebind each thread on its cpu after finishing a parallel code */
-void _starpu_sched_ctx_rebind_thread_to_its_cpu(unsigned cpuid);
 
 /* let the appl know that the worker blocked to execute parallel code */
 void _starpu_sched_ctx_signal_worker_blocked(int workerid);

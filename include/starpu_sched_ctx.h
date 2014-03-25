@@ -28,10 +28,11 @@ extern "C"
 #define STARPU_SCHED_CTX_POLICY_STRUCT		 (2<<16)
 #define STARPU_SCHED_CTX_POLICY_MIN_PRIO	 (3<<16)
 #define STARPU_SCHED_CTX_POLICY_MAX_PRIO	 (4<<16)
+#define STARPU_SCHED_CTX_HIERARCHY_LEVEL         (5<<16)
 
 unsigned starpu_sched_ctx_create(int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name, ...);
 
-unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap);
+unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const char *sched_ctx_name, int min_ncpus, int max_ncpus, int min_ngpus, int max_ngpus, unsigned allow_overlap);
 
 void starpu_sched_ctx_register_close_callback(unsigned sched_ctx_id, void (*close_callback)(unsigned sched_ctx_id, void* args), void *args);
 
@@ -42,6 +43,10 @@ void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsig
 void starpu_sched_ctx_delete(unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor);
+
+unsigned starpu_sched_ctx_get_inheritor(unsigned sched_ctx_id);
+
+unsigned starpu_sched_ctx_get_hierarchy_level(unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_context(unsigned *sched_ctx_id);
 
@@ -102,15 +107,27 @@ void *starpu_sched_ctx_get_policy_data(unsigned sched_ctx_id);
 
 void *starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void *param, unsigned sched_ctx_id);
 
-int starpu_get_nready_tasks_of_sched_ctx(unsigned sched_ctx_id);
+int starpu_sched_ctx_get_nready_tasks(unsigned sched_ctx_id);
 
-double starpu_get_nready_flops_of_sched_ctx(unsigned sched_ctx_id);
+double starpu_sched_ctx_get_nready_flops(unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_priority(int *workers, int nworkers, unsigned sched_ctx_id, unsigned priority);
 
+void starpu_sched_ctx_set_priority_on_level(int* workers_to_add, unsigned nworkers_to_add, unsigned sched_ctx, unsigned priority);
+
+unsigned starpu_sched_ctx_get_priority(int worker, unsigned sched_ctx_id);
+
+void starpu_sched_ctx_get_available_cpuids(unsigned sched_ctx_id, int **cpuids, int *ncpuids);
+
+void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid);
+
+int starpu_sched_ctx_book_workers_for_task(unsigned sched_ctx_id, int *workerids, int nworkers);
+
+void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int master);
+
 #ifdef STARPU_USE_SC_HYPERVISOR
 void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
-#endif //STARPU_USE_SC_HYPERVISOR
+#endif /* STARPU_USE_SC_HYPERVISOR */
 
 #ifdef __cplusplus
 }

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2010, 2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,10 +35,13 @@ void _starpu_destroy_topology(struct _starpu_machine_config *config);
 /* returns the number of physical cpus */
 unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config);
 
+/* returns the number of logical cpus */
+unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config);
+
 /* Bind the current thread on the CPU logically identified by "cpuid". The
  * logical ordering of the processors is either that of hwloc (if available),
  * or the ordering exposed by the OS. */
-void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config, unsigned cpuid);
+void _starpu_bind_thread_on_cpu(struct _starpu_machine_config *config, int cpuid);
 
 struct _starpu_combined_worker;
 /* Bind the current thread on the set of CPUs for the given combined worker. */

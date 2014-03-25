@@ -719,10 +719,6 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);
-			if (worker >= nworkers_ctx)
-				/* This is a just-added worker, discard it */
-				continue;
-
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
 				if (!starpu_worker_can_execute_task(worker, task, nimpl))
@@ -730,8 +726,6 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 					/* no one on that queue may execute this task */
 					continue;
 				}
-
-
 				fitness[worker_ctx][nimpl] = dt->alpha*(exp_end[worker_ctx][nimpl] - best_exp_end)
 					+ dt->beta*(local_data_penalty[worker_ctx][nimpl])
 					+ dt->_gamma*(local_power[worker_ctx][nimpl]);
@@ -941,12 +935,12 @@ static void dmda_pre_exec_hook(struct starpu_task *task)
 	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 }
 
-static void dmda_push_task_notify(struct starpu_task *task, int workerid, unsigned sched_ctx_id)
+static void dmda_push_task_notify(struct starpu_task *task, int workerid, int perf_workerid, unsigned sched_ctx_id)
 {
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[workerid];
 	/* Compute the expected penality */
-	struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(workerid);
+	struct starpu_perfmodel_arch *perf_arch = starpu_worker_get_perf_archtype(perf_workerid);
 	unsigned memory_node = starpu_worker_get_memory_node(workerid);
 
 	double predicted = starpu_task_expected_length(task, perf_arch,

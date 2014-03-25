@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2012 University of Bordeaux
- * Copyright (C) 2012 CNRS
+ * Copyright (C) 2012, 2014 Centre National de la Recherche Scientifique
  * Copyright (C) 2012 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,16 +31,16 @@ static volatile entity gc_list = NULL;
 static volatile entity entities = NULL;
 
 /* Mutex and cond for release */
-static pthread_mutex_t gc_mutex = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t  gc_cond = PTHREAD_COND_INITIALIZER;
+static starpu_pthread_mutex_t gc_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
+static starpu_pthread_cond_t  gc_cond = STARPU_PTHREAD_COND_INITIALIZER;
 
 /* Set to 1 to stop release thread execution */
 static volatile int gc_stop_required = 0;
 
-#define GC_LOCK pthread_mutex_lock(&gc_mutex)
-#define GC_UNLOCK { pthread_cond_signal(&gc_cond); \
-                    pthread_mutex_unlock(&gc_mutex);}
-#define GC_UNLOCK_NO_SIGNAL pthread_mutex_unlock(&gc_mutex)
+#define GC_LOCK starpu_pthread_mutex_lock(&gc_mutex)
+#define GC_UNLOCK { starpu_pthread_cond_signal(&gc_cond); \
+                    starpu_pthread_mutex_unlock(&gc_mutex);}
+#define GC_UNLOCK_NO_SIGNAL starpu_pthread_mutex_unlock(&gc_mutex)
 
 /* Thread routine */
 static void * gc_thread_routine(void *UNUSED(arg)) {
@@ -81,18 +81,18 @@ static void * gc_thread_routine(void *UNUSED(arg)) {
     }
 
     /* Otherwise we sleep */
-    pthread_cond_wait(&gc_cond, &gc_mutex);
+    starpu_pthread_cond_wait(&gc_cond, &gc_mutex);
 
   } while (1);
 
-  pthread_exit(NULL);
+  starpu_pthread_exit(NULL);
 }
 
-static pthread_t gc_thread;
+static starpu_pthread_t gc_thread;
 
 /* Start garbage collection */
 void gc_start(void) {
-  pthread_create(&gc_thread, NULL, gc_thread_routine, NULL);
+  starpu_pthread_create(&gc_thread, NULL, gc_thread_routine, NULL);
 }
 
 /* Stop garbage collection */
@@ -103,7 +103,7 @@ void gc_stop(void) {
 
   GC_UNLOCK;
 
-  pthread_join(gc_thread, NULL);
+  starpu_pthread_join(gc_thread, NULL);
 }
 
 int gc_entity_release_ex(entity e, const char * DEBUG_PARAM(caller)) {

@@ -140,6 +140,17 @@ double sc_hypervisor_get_speed_per_worker_type(struct sc_hypervisor_wrapper* sc_
 			enum starpu_worker_archtype req_arch = starpu_worker_get_type(worker);
 			if(arch == req_arch && sc_w->compute_idle[worker])
 			{
+				if(sc_w->exec_start_time[worker] != 0.0)
+				{
+					double current_exec_time = 0.0;
+					if(sc_w->exec_start_time[worker] < sc_w->start_time)
+						current_exec_time = (curr_time - sc_w->start_time) / 1000000.0; /* in seconds */ 
+					else
+						current_exec_time = (curr_time - sc_w->exec_start_time[worker]) / 1000000.0; /* in seconds */ 
+					double suppl_flops = current_exec_time * sc_hypervisor_get_ref_speed_per_worker_type(sc_w, req_arch);
+					all_workers_flops += suppl_flops;
+				}		
+
 				all_workers_flops += sc_w->elapsed_flops[worker] / 1000000000.0; /*in gflops */
 				if(max_workers_idle_time < sc_w->idle_time[worker])
 					max_workers_idle_time = sc_w->idle_time[worker]; /* in seconds */
@@ -198,6 +209,115 @@ double sc_hypervisor_get_speed(struct sc_hypervisor_wrapper *sc_w, enum starpu_w
 		/* a default value */
 		speed = arch == STARPU_CPU_WORKER ? SC_HYPERVISOR_DEFAULT_CPU_SPEED : SC_HYPERVISOR_DEFAULT_CUDA_SPEED;
 	}
-       
+
 	return speed;
+}
+
+double sc_hypervisor_get_avg_speed(enum starpu_worker_archtype arch)
+{
+	double total_executed_flops = 0.0;
+	double total_estimated_flops = 0.0;
+	struct sc_hypervisor_wrapper *sc_w;
+	double max_real_start_time = 0.0;
+	int s;
+	unsigned nworkers =  starpu_worker_get_count_by_type(arch);
+
+	unsigned *sched_ctxs;
+	int nsched_ctxs;
+	sc_hypervisor_get_ctxs_on_level(&sched_ctxs, &nsched_ctxs, 0, STARPU_NMAX_SCHED_CTXS);
+	
+	for(s = 0; s < nsched_ctxs; s++)
+	{
+		sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
+		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctxs[s]);
+		int worker;
+		
+		struct starpu_sched_ctx_iterator it;
+		if(workers->init_iterator)
+			workers->init_iterator(workers, &it);
+
+		while(workers->has_next(workers, &it))
+		{
+			worker = workers->get_next(workers, &it);
+			enum starpu_worker_archtype req_arch = starpu_worker_get_type(worker);
+			if(arch == req_arch)
+			{
+				total_executed_flops += sc_w->total_elapsed_flops[worker] / 1000000000.0; /*in gflops */;
+			}
+		}
+
+		total_estimated_flops += sc_w->total_flops / 1000000000.0; /*in gflops */;;
+
+		if(max_real_start_time < sc_w->real_start_time)
+			max_real_start_time = sc_w->real_start_time;
+	}
+	double speed = -1.0;
+#ifdef STARPU_SC_HYPERVISOR_DEBUG
+	printf("total_exec_flops %lf total_estimated_flops %lf max_real_start_time %lf nworkers %d \n", total_executed_flops, total_estimated_flops, max_real_start_time, nworkers);
+#endif
+	if(total_executed_flops > 0.5*total_estimated_flops)
+	{
+		double curr_time = starpu_timing_now();
+		double time = (curr_time - max_real_start_time) / 1000000.0; /* in seconds */
+#ifdef STARPU_SC_HYPERVISOR_DEBUG
+		printf("time = %lf\n", time);
+#endif
+		speed = (total_executed_flops / time) / nworkers; 
+	}
+
+	return speed;
+}
+
+void _consider_max_for_children(unsigned sched_ctx, unsigned consider_max)
+{
+	struct sc_hypervisor_wrapper *sc_w = sc_hypervisor_get_wrapper(sched_ctx);
+	sc_w->consider_max = consider_max;
+#ifdef STARPU_SC_HYPERVISOR_DEBUG
+	printf("ctx %d consider max %d \n", sched_ctx, sc_w->consider_max); 
+#endif
+
+	int level = starpu_sched_ctx_get_hierarchy_level(sched_ctx);
+	unsigned *sched_ctxs_child;
+	int nsched_ctxs_child = 0;
+	sc_hypervisor_get_ctxs_on_level(&sched_ctxs_child, &nsched_ctxs_child, level+1, sched_ctx);
+	int s;
+	for(s = 0; s < nsched_ctxs_child; s++)
+		_consider_max_for_children(sched_ctxs_child[s], consider_max);
+	if(nsched_ctxs_child > 0)
+		free(sched_ctxs_child);
+	return;
+}
+
+void sc_hypervisor_check_if_consider_max(struct types_of_workers *tw)
+{
+	unsigned *sched_ctxs;
+	int nsched_ctxs;
+	sc_hypervisor_get_ctxs_on_level(&sched_ctxs, &nsched_ctxs, 0, STARPU_NMAX_SCHED_CTXS);
+
+	int nw = tw->nw;
+	double avg_speed_per_tw[nw];
+	int w;
+	for(w = 0; w < nw; w++)
+	{
+		avg_speed_per_tw[w] = sc_hypervisor_get_avg_speed(sc_hypervisor_get_arch_for_index(w, tw));
+		if(avg_speed_per_tw[w] == -1.0)
+			return;
+	}
+
+	int s;
+	for(s = 0; s < nsched_ctxs; s++)
+	{
+		for(w = 0; w < nw; w++)
+		{
+			struct sc_hypervisor_wrapper *sc_w = sc_hypervisor_get_wrapper(sched_ctxs[s]);
+			double speed = sc_hypervisor_get_speed(sc_w, sc_hypervisor_get_arch_for_index(w, tw)); 
+#ifdef STARPU_SC_HYPERVISOR_DEBUG
+			printf("%d: speed %lf avg_speed %lf min %lf max %lf\n", sched_ctxs[s], speed, avg_speed_per_tw[w], (avg_speed_per_tw[w]*0.5), (avg_speed_per_tw[w]*1.5));
+#endif
+			if(speed < avg_speed_per_tw[w]*0.5 || speed > avg_speed_per_tw[w]*1.5)
+				_consider_max_for_children(sched_ctxs[s], 1);
+			else
+				_consider_max_for_children(sched_ctxs[s], 0);
+		}
+	}
 }

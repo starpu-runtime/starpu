@@ -166,7 +166,6 @@ static void teft_lp_handle_submitted_job(struct starpu_codelet *cl, unsigned sch
 
 static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, int nworkers)
 {
-	starpu_trace_user_event(2);
 	int ns = sched_ctxs == NULL ? sc_hypervisor_get_nsched_ctxs() : nsched_ctxs;
 	int nw = workers == NULL ? (int)starpu_worker_get_count() : nworkers; /* Number of different workers */
 
@@ -252,7 +251,7 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, __attribute__((unused)
 		if(criteria != SC_NOTHING && criteria == SC_SPEED)
 		{
 			
-			if(sc_hypervisor_check_speed_gap_btw_ctxs())
+			if(sc_hypervisor_check_speed_gap_btw_ctxs(NULL, -1, NULL, -1))
 			{
 				_try_resizing(NULL, -1, NULL, -1);
 			}

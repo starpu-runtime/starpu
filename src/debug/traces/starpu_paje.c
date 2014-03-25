@@ -179,9 +179,9 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	poti_DefineEntityValue("SdC", "CtS", "SendCompleted", "1.0 .5 1.0");
 	poti_DefineEntityValue("RvC", "CtS", "RecieveCompleted", "0.5 1.0 1.0");
 
-	for (i=1; i<=10; i++)
+	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 	{
-		char inctx[8];
+		char inctx[10];
 		snprintf(inctx, sizeof(inctx), "InCtx%u", i);
 		char *ctx = inctx+2;
 		poti_DefineStateType(ctx, "T", inctx);
@@ -220,7 +220,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 2       MPIev   MPICt    \"MPI event type\"			\n\
 3       S       T       \"Thread State\"                        \n\
 3       CtS     MPICt    \"Communication Thread State\"          \n");
-	for (i=1; i<=10; i++)
+	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 		fprintf(file, "3       Ctx%u      T     \"InCtx%u\"         		\n", i, i);
 	fprintf(file, "\
 3       MS       Mm       \"Memory Node State\"                        \n\
@@ -245,7 +245,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 6       RvS       CtS      RecieveSubmitted  \"0.1 1.0 1.0\"	\n\
 6       SdC       CtS      SendCompleted     \"1.0 .5 1.0\"	\n\
 6       RvC       CtS      RecieveCompleted  \"0.5 1.0 1.0\"	\n");
-	for (i=1; i<=10; i++)
+	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 		fprintf(file, "\
 6       I       Ctx%u      Initializing       \"0.0 .7 1.0\"            \n\
 6       D       Ctx%u      Deinitializing       \"0.0 .1 .7\"            \n\

@@ -18,6 +18,7 @@
 #define __STARPU_SCHED_COMPONENT_H__
 #include <starpu.h>
 #include <common/starpu_spinlock.h>
+#include <common/fxt.h>
 #include <starpu_bitmap.h>
 
 #ifdef STARPU_HAVE_HWLOC

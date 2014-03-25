@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2013  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -29,14 +29,14 @@ dist_pkgdata_DATA = gdbinit
 EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
-	mvsc/starpu_clean.bat		\
-	mvsc/starpu_open.bat		\
-	mvsc/starpu_exec.bat		\
-	mvsc/starpu_var.bat		\
-	mvsc/starpu.sln			\
-	mvsc/starpu/starpu.vcxproj
+	msvc/starpu_clean.bat		\
+	msvc/starpu_open.bat		\
+	msvc/starpu_exec.bat		\
+	msvc/starpu_var.bat		\
+	msvc/starpu.sln			\
+	msvc/starpu/starpu.vcxproj
 
-CLEANFILES = *.gcno *.gcda *.linkinfo
+CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log
 
 #####################################
 # What to install and what to check #
@@ -125,14 +125,14 @@ dist_bin_SCRIPTS +=			\
 	starpu_codelet_profile
 
 if STARPU_HAVE_WINDOWS
-STARPU_MVSC_dir		 =	$(bindir)
-nobase_STARPU_MVSC__DATA =		\
-	mvsc/starpu_clean.bat		\
-	mvsc/starpu_open.bat		\
-	mvsc/starpu_exec.bat		\
-	mvsc/starpu_var.bat		\
-	mvsc/starpu.sln			\
-	mvsc/starpu/starpu.vcxproj
+STARPU_MSVC_dir		 =	$(bindir)
+nobase_STARPU_MSVC__DATA =		\
+	msvc/starpu_clean.bat		\
+	msvc/starpu_open.bat		\
+	msvc/starpu_exec.bat		\
+	msvc/starpu_var.bat		\
+	msvc/starpu.sln			\
+	msvc/starpu/starpu.vcxproj
 endif
 
 if STARPU_HAVE_HELP2MAN
@@ -163,6 +163,9 @@ starpu_fxt_tool.1: starpu_fxt_tool$(EXEEXT)
 starpu_fxt_stats.1: starpu_fxt_stats$(EXEEXT)
 	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
+starpu_fxt_data_trace.1: starpu_fxt_data_trace$(EXEEXT)
+	chmod +x $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
 endif
 
 dist_man1_MANS =\
@@ -178,7 +181,8 @@ dist_man1_MANS =\
 if STARPU_USE_FXT
 dist_man1_MANS +=\
 	starpu_fxt_tool.1 \
-	starpu_fxt_stats.1
+	starpu_fxt_stats.1 \
+	starpu_fxt_data_trace.1
 endif
 
 clean-local:

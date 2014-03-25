@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -236,7 +236,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 			struct _starpu_task_wrapper_list *l = handle->last_submitted_accessors;
 			_STARPU_DEP_DEBUG("dependency\n");
 
-			if (l && l->next)
+			if ((l && l->next) || (handle->last_submitted_ghost_accessors_id && handle->last_submitted_ghost_accessors_id->next))
 			{
 				/* Several previous accessors */
 
@@ -268,13 +268,20 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 			}
 			else
 			{
+				/* One previous accessor, make it the sync
+				 * task, and start depending on it. */
 				if (l)
 				{
-					/* One previous accessor, make it the sync
-					 * task, and start depending on it. */
 					handle->last_sync_task = l->task;
 					handle->last_submitted_accessors = NULL;
 					free(l);
+				}
+				else if (handle->last_submitted_ghost_accessors_id)
+				{
+					handle->last_submitted_ghost_sync_id = handle->last_submitted_ghost_accessors_id->id;
+					handle->last_submitted_ghost_sync_id_is_valid = 1;
+					free(handle->last_submitted_ghost_accessors_id);
+					handle->last_submitted_ghost_accessors_id = NULL;
 				}
 				_starpu_add_accessor(handle, pre_sync_task, post_sync_task);
 			}
@@ -426,7 +433,7 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
-        struct starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 
 	if (!task->cl)
 		return;
@@ -518,7 +525,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 
 /* If sequential consistency mode is enabled, this function blocks until the
  * handle is available in the requested access mode. */
-int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_data_access_mode mode, const char *sync_name)
 {
 	/* If sequential consistency is enabled, wait until data is available */
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
@@ -527,7 +534,7 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_d
 	{
 		struct starpu_task *sync_task, *new_task;
 		sync_task = starpu_task_create();
-		sync_task->name = "sync_task_seq_cons";
+		sync_task->name = sync_name;
 		sync_task->detach = 0;
 		sync_task->destroy = 1;
 

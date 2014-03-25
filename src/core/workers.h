@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -60,9 +60,8 @@ LIST_TYPE(_starpu_worker,
 	uint32_t worker_mask; /* what is the type of worker ? */
 	struct starpu_perfmodel_arch perf_arch; /* in case there are different models of the same arch */
 	starpu_pthread_t worker_thread; /* the thread which runs the worker */
-	int mp_nodeid; /* which mp node hold the cpu/gpu/etc (-1 for this
-			* node) */
 	unsigned devid; /* which cpu/gpu/etc is controlled by the worker ? */
+	unsigned subworkerid; /* which sub-worker this one is for the cpu/gpu */
 	int bindid; /* which cpu is the driver bound to ? (logical index) */
 	int workerid; /* uniquely identify the worker among all processing units types */
 	int combined_workerid; /* combined worker currently using this worker */
@@ -118,6 +117,8 @@ LIST_TYPE(_starpu_worker,
 
 	/* flag to know if sched_mutex is locked or not */
 	unsigned sched_mutex_locked;
+	
+	int master;
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;
 #endif /* __GLIBC__ */
@@ -138,7 +139,7 @@ struct _starpu_combined_worker
 	int combined_workerid[STARPU_NMAXWORKERS];
 #ifdef STARPU_USE_MP
 	int count;
-	pthread_mutex_t count_mutex;
+	starpu_pthread_mutex_t count_mutex;
 #endif
 
 #ifdef __GLIBC__
@@ -172,18 +173,23 @@ struct _starpu_machine_topology
 	unsigned ncombinedworkers;
 
 	unsigned nsched_ctxs;
+
 #ifdef STARPU_HAVE_HWLOC
 	/* Topology as detected by hwloc. */
 	hwloc_topology_t hwtopology;
-#else
-	/* We maintain ABI compatibility with and without hwloc */
-	void *dummy;
 #endif
+	/* custom hwloc tree*/
+	struct starpu_tree *tree;
 
 	/* Total number of CPUs, as detected by the topology code. May
 	 * be different from the actual number of CPU workers.
 	 */
 	unsigned nhwcpus;
+
+	/* Total number of PUs, as detected by the topology code. May
+	 * be different from the actual number of PU workers.
+	 */
+	unsigned nhwpus;
 
 	/* Total number of CUDA devices, as detected. May be different
 	 * from the actual number of CUDA workers.
@@ -220,12 +226,12 @@ struct _starpu_machine_topology
 	unsigned nhwmiccores[STARPU_MAXMICDEVS]; // Each MIC node has its set of cores.
 	unsigned nmiccores[STARPU_MAXMICDEVS];
 
-	/* Indicates the successive cpu identifier that should be used
+	/* Indicates the successive logical PU identifier that should be used
 	 * to bind the workers. It is either filled according to the
 	 * user's explicit parameters (from starpu_conf) or according
 	 * to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
 	 * round-robin policy is used to distributed the workers over
-	 * the cpus.
+	 * the cores.
 	 */
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
 
@@ -250,6 +256,7 @@ struct _starpu_machine_topology
 	 * user's explicit parameters (from starpu_conf) or according
 	 * to the STARPU_WORKERS_MICID env. variable. Otherwise, they
 	 * are taken in ID order. */
+	/* TODO */
 	/* unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]; */
 
 	/* Which SCC(s) do we use ? */
@@ -268,6 +275,7 @@ struct _starpu_machine_config
 
 #ifdef STARPU_HAVE_HWLOC
 	int cpu_depth;
+	int pu_depth;
 #endif
 
 	/* Where to bind workers ? */
@@ -318,6 +326,10 @@ struct _starpu_machine_config
 
 	/* this flag is set until the runtime is stopped */
 	unsigned running;
+
+	/* Number of calls to starpu_pause() - calls to starpu_resume(). When >0,
+	 * StarPU should pause. */
+	int pause_depth;
 
 	/* all the sched ctx of the current instance of starpu */
 	struct _starpu_sched_ctx sched_ctxs[STARPU_NMAX_SCHED_CTXS];
@@ -409,10 +421,19 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
    the list might not be updated */
 int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
+/* geet starpu workerids corresponding to the os physical id bindid */
+int _starpu_worker_get_workerids(int bindid, int *workerids);
+
 /* if the current worker has the lock release it */
 void _starpu_unlock_mutex_if_prev_locked();
 
 /* if we prev released the lock relock it */
 void _starpu_relock_mutex_if_prev_locked();
+
+void _starpu_worker_set_flag_sched_mutex_locked(int workerid, unsigned flag);
+
+unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex);
+
+int _starpu_worker_get_nsched_ctxs(int workerid);
 
 #endif // __WORKERS_H__

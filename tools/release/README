@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2013, 2014  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -25,9 +25,9 @@ $HOME/src/starpu/trunk/examples
 
 one first need to set the following variables
 
-export STARPUPATH=$HOME/softs/starpu-1.1
-export PKG_CONFIG_PATH=$STARPUPATH/lib/pkgconfig/:$PKG_CONFIG_PATH
-export LD_LIBRARY_PATH=$STARPUPATH/lib:$LD_LIBRARY_PATH
+export STARPU_PATH=$HOME/softs/starpu-1.1
+export PKG_CONFIG_PATH=$STARPU_PATH/lib/pkgconfig/:$PKG_CONFIG_PATH
+export LD_LIBRARY_PATH=$STARPU_PATH/lib:$LD_LIBRARY_PATH
 
 and then call
 

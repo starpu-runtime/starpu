@@ -478,8 +478,11 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 	}
 	if(task->type != STARPU_FORKJOIN || worker->current_rank == 0)
 	{
-		/* execute the task */
-		task->kernel(task->interfaces,task->cl_arg);
+		if (starpu_get_env_number("STARPU_DISABLE_KERNELS") <= 0)
+		{
+			/* execute the task */
+			task->kernel(task->interfaces,task->cl_arg);
+		}
 	}
 
 	/* If it's a parallel task */
@@ -540,7 +543,7 @@ void* _starpu_sink_thread(void * thread_arg)
 			_starpu_sink_common_execute_kernel(node,coreid,worker);
 
 	}
-	pthread_exit(NULL);
+	starpu_pthread_exit(NULL);
 }
 
 

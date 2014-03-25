@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -203,7 +203,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		STARPU_PTHREAD_MUTEX_LOCK(&args->parallel_sect_mutex);
 		_starpu_sched_ctx_signal_worker_blocked(args->workerid);
 		STARPU_PTHREAD_COND_WAIT(&args->parallel_sect_cond, &args->parallel_sect_mutex);
-		_starpu_sched_ctx_rebind_thread_to_its_cpu(args->bindid);
+		starpu_sched_ctx_bind_current_thread_to_cpuid(args->bindid);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&args->parallel_sect_mutex);
 		args->parallel_sect = 0;
 	}
@@ -235,7 +235,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 				if (!warned)
 				{
 					warned = 1;
-					_STARPU_DISP("Has to make simgrid spin for progression hooks\n");
+					_STARPU_DISP("Has to make simgrid spin for CPU idle time.  You can try to pass --enable-blocking-drivers to ./configure to avoid this\n");
 				}
 				MSG_process_sleep(0.000010);
 #endif

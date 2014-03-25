@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -38,8 +38,8 @@ struct starpu_data_descr;
 struct starpu_perfmodel_arch
 {
 	enum starpu_worker_archtype type;
-	int devid;
-	int ncore;
+	int devid;	/* identifier of the precise device */
+	int ncore;	/* number of execution in parallel, minus 1 */
 };
 
 struct starpu_perfmodel_history_entry
@@ -122,6 +122,7 @@ struct starpu_perfmodel
 	double (*cost_function)(struct starpu_task *, unsigned nimpl);
 
 	size_t (*size_base)(struct starpu_task *, unsigned nimpl);
+	uint32_t (*footprint)(struct starpu_task *);
 
 	struct starpu_perfmodel_per_arch**** per_arch; /*STARPU_MAXIMPLEMENTATIONS*/
 

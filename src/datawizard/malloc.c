@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2010, 2012-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -109,7 +109,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 		}
 	}
 
-	if (flags & STARPU_MALLOC_PINNED)
+	if (flags & STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0 && RUNNING_ON_VALGRIND == 0)
 	{
 #ifdef STARPU_SIMGRID
 		/* FIXME: CUDA seems to be taking 650µs every 1MiB.
@@ -130,8 +130,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 #else
 			int push_res;
 
-			if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-				return -EDEADLK;
+			STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "without CUDA peer allocation support, pinned allocation must not be done from task or callback");
 
 			struct malloc_pinned_codelet_struct s =
 			{
@@ -161,8 +160,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 //#ifdef STARPU_USE_OPENCL
 //			int push_res;
 //
-//			if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-//				return -EDEADLK;
+//			STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "pinned OpenCL allocation must not be done from task or callback");
 //
 //			struct malloc_pinned_codelet_struct s =
 //				{
@@ -292,8 +290,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 			{
 				int push_res;
 
-				if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-					return -EDEADLK;
+				STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "without CUDA peer allocation support, pinned deallocation must not be done from task or callback");
 
 				free_pinned_cl.where = STARPU_CUDA;
 				struct starpu_task *task = starpu_task_create();
@@ -317,8 +314,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 //#ifdef STARPU_USE_OPENCL
 //		int push_res;
 //
-//		if (STARPU_UNLIKELY(!_starpu_worker_may_perform_blocking_calls()))
-//			return -EDEADLK;
+//		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "pinned OpenCL deallocation must not be done from task or callback");
 //
 //                free_pinned_cl.where = STARPU_OPENCL;
 //		struct starpu_task *task = starpu_task_create();

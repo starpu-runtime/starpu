@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -175,7 +175,7 @@ static struct gordon_task_wrapper_s *starpu_to_gordon_job(struct _starpu_job *j)
 
 static void handle_terminated_job(struct _starpu_job *j)
 {
-	_starpu_push_task_output(j, 0);
+	_starpu_push_task_output(j);
 	_starpu_handle_job_termination(j);
 	starpu_wake_all_blocked_workers();
 }
@@ -215,7 +215,7 @@ static void gordon_callback_list_func(void *arg)
 		}
 #endif
 
-		_starpu_push_task_output(j, 0);
+		_starpu_push_task_output(j);
 		_starpu_handle_job_termination(j);
 		//starpu_wake_all_blocked_workers();
 
@@ -253,7 +253,7 @@ static void gordon_callback_func(void *arg)
 int inject_task(struct _starpu_job *j, struct _starpu_worker *worker)
 {
 	struct starpu_task *task = j->task;
-	int ret = _starpu_fetch_task_input(j, 0);
+	int ret = _starpu_fetch_task_input(j);
 
 	if (ret != 0)
 	{
@@ -316,7 +316,7 @@ int inject_task_list(struct _starpu_job_list *list, struct _starpu_worker *worke
 		int ret;
 
 		struct starpu_task *task = j->task;
-		ret = _starpu_fetch_task_input(j, 0);
+		ret = _starpu_fetch_task_input(j);
 		STARPU_ASSERT(!ret);
 
 		_starpu_sched_pre_exec_hook(task);

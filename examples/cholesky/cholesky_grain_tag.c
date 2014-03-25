@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -17,10 +17,6 @@
  */
 
 #include "cholesky.h"
-
-struct starpu_perfmodel chol_model_11;
-struct starpu_perfmodel chol_model_21;
-struct starpu_perfmodel chol_model_22;
 
 /*
  *	Some useful functions
@@ -39,17 +35,6 @@ static struct starpu_task *create_task(starpu_tag_t id)
 /*
  *	Create the codelets
  */
-
-static struct starpu_codelet cl11 =
-{
-	.modes = { STARPU_RW },
-	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
-#endif
-	.nbuffers = 1,
-	.model = &chol_model_11
-};
 
 static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned k, unsigned reclevel)
 {
@@ -76,17 +61,6 @@ static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned 
 
 	return task;
 }
-
-static struct starpu_codelet cl21 =
-{
-	.modes = { STARPU_R, STARPU_RW },
-	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
-#endif
-	.nbuffers = 2,
-	.model = &chol_model_21
-};
 
 static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned reclevel)
 {
@@ -122,17 +96,6 @@ static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, un
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	return ret;
 }
-
-static struct starpu_codelet cl22 =
-{
-	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
-#endif
-	.nbuffers = 3,
-	.model = &chol_model_22
-};
 
 static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned reclevel)
 {

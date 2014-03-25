@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,6 +25,8 @@
 #include <core/debug.h>
 
 static int use_prefetch = 0;
+double idle[STARPU_NMAXWORKERS];
+double idle_start[STARPU_NMAXWORKERS];
 
 int starpu_get_prefetch_flag(void)
 {
@@ -193,6 +195,19 @@ void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 		policy->deinit_sched(sched_ctx->id);
 }
 
+static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task *task, struct _starpu_worker *worker, int workerid, int perf_workerid)
+{
+	/* if we push a task on a specific worker, notify all the sched_ctxs the worker belongs to */
+	struct _starpu_sched_ctx *sched_ctx;
+	struct _starpu_sched_ctx_list *l = NULL;
+        for (l = worker->sched_ctx_list; l; l = l->next)
+        {
+		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+		if (sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
+			sched_ctx->sched_policy->push_task_notify(task, workerid, perf_workerid, sched_ctx->id);
+	}
+}
+
 /* Enqueue a task into the list of tasks explicitely attached to a worker. In
  * case workerid identifies a combined worker, a task will be enqueued into
  * each worker of the combination. */
@@ -221,14 +236,20 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 	if (use_prefetch)
 		starpu_prefetch_task_input_on_node(task, memory_node);
 
-	/* if we push a task on a specific worker, notify all the sched_ctxs the worker belongs to */
-	struct _starpu_sched_ctx *sched_ctx;
-	struct _starpu_sched_ctx_list *l = NULL;
-        for (l = worker->sched_ctx_list; l; l = l->next)
-        {
-		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
-		if (sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
-			sched_ctx->sched_policy->push_task_notify(task, workerid, sched_ctx->id);
+	if (is_basic_worker)
+		_starpu_push_task_on_specific_worker_notify_sched(task, worker, workerid, workerid);
+	else
+	{
+		/* Notify all workers of the combined worker */
+		int worker_size = combined_worker->worker_size;
+		int *combined_workerid = combined_worker->combined_workerid;
+
+		int j;
+		for (j = 0; j < worker_size; j++)
+		{
+			int subworkerid = combined_workerid[j];
+			_starpu_push_task_on_specific_worker_notify_sched(task, _starpu_get_worker_struct(subworkerid), subworkerid, workerid);
+		}
 	}
 
 #ifdef STARPU_USE_SC_HYPERVISOR
@@ -578,9 +599,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 
 static
 struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker *worker)
-{	
-	struct _starpu_sched_ctx *sched_ctx, *good_sched_ctx = NULL;
-	unsigned smallest_counter =  worker->nsched_ctxs;
+{
 	struct _starpu_sched_ctx_list *l = NULL;
 	unsigned are_2_priorities = 0;
 	for (l = worker->sched_ctx_list; l; l = l->next)
@@ -640,7 +659,8 @@ struct _starpu_sched_ctx* _get_next_sched_ctx_to_pop_into(struct _starpu_worker 
 		}
 	}
 
-	if(worker->pop_ctx_priority == 0 && first_sched_ctx == STARPU_NMAX_SCHED_CTXS)
+//	if(worker->pop_ctx_priority == 0 && first_sched_ctx == STARPU_NMAX_SCHED_CTXS)
+	if(first_sched_ctx == STARPU_NMAX_SCHED_CTXS)
 		first_sched_ctx = worker->sched_ctx_list->sched_ctx;
 
 	worker->poped_in_ctx[first_sched_ctx] = !worker->poped_in_ctx[first_sched_ctx];
@@ -742,9 +762,18 @@ pick:
 
 
 	if (!task)
+	{
+		idle_start[worker->workerid] = starpu_timing_now();
 		return NULL;
+	}
 
-
+	if(idle_start[worker->workerid] != 0.0)
+	{
+		double idle_end = starpu_timing_now();
+		idle[worker->workerid] += (idle_end - idle_start[worker->workerid]);
+		idle_start[worker->workerid] = 0.0;
+	}
+	
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
@@ -878,4 +907,21 @@ int starpu_push_local_task(int workerid, struct starpu_task *task, int prio)
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
 	return  _starpu_push_local_task(worker, task, prio);
+}
+
+void _starpu_print_idle_time()
+{
+	double all_idle = 0.0;
+	int i = 0;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		all_idle += idle[i];
+
+	FILE *f;
+	const char *sched_env = getenv("STARPU_IDLE_FILE");
+	if(!sched_env)
+		f = fopen("starpu_idle_microsec.log", "a");
+	else
+		f = fopen(sched_env, "a");
+	fprintf(f, "%lf \n", all_idle);
+	fclose(f);
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -524,6 +524,30 @@ export SIMGRID_CFLAGS="-I/usr/local/simgrid/include"
 export SIMGRID_LIBS="-L/usr/local/simgrid/lib -lsimgrid"
 \endverbatim
 
+</dd>
+
+<dt>--with-simgrid-dir</dt>
+<dd>
+\anchor with-simgrid-dir
+\addindex __configure__--with-simgrid-dir
+Similar to the option \ref enable-simgrid "--enable-simgrid" but also
+allows to specify the location to the SimGrid library.
+</dd>
+
+<dt>--with-simgrid-include-dir</dt>
+<dd>
+\anchor with-simgrid-include-dir
+\addindex __configure__--with-simgrid-include-dir
+Similar to the option \ref enable-simgrid "--enable-simgrid" but also
+allows to specify the location to the SimGrid include directory.
+</dd>
+
+<dt>--with-simgrid-lib-dir</dt>
+<dd>
+\anchor with-simgrid-lib-dir
+\addindex __configure__--with-simgrid-lib-dir
+Similar to the option \ref enable-simgrid "--enable-simgrid" but also
+allows to specify the location to the SimGrid lib directory.
 </dd>
 
 <dt>--enable-calibration-heuristic</dt>

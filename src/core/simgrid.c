@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2012-2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -100,6 +100,9 @@ int main(int argc, char **argv)
 	/* Versions earlier than 3.9 didn't support our communication tasks */
 	MSG_config("workstation/model", "ptask_L07");
 #endif
+	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
+	extern xbt_cfg_t _sg_cfg_set;
+	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", 8192);
 
 	/* Load XML platform */
 	_starpu_simgrid_get_platform_path(path, sizeof(path));
@@ -364,9 +367,10 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 int
 _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct _starpu_pthread_args *args = MSG_process_get_data(MSG_process_self());
-	args->f(args->arg);
-	free(args);
+	struct _starpu_pthread_args *_args = MSG_process_get_data(MSG_process_self());
+	struct _starpu_pthread_args args = *_args;
+	free(_args);
+	args.f(args.arg);
 	return 0;
 }
 #endif

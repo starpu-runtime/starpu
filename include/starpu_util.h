@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -249,9 +249,6 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 	}
 }
 
-/* Add an event in the execution trace if FxT is enabled */
-void starpu_trace_user_event(unsigned long code);
-
 static __starpu_inline int starpu_get_env_number_default(const char *str, int defval)
 {
 	int ret = starpu_get_env_number(str);
@@ -262,18 +259,12 @@ static __starpu_inline int starpu_get_env_number_default(const char *str, int de
 
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
-/* Same as starpu_execute_on_each_worker, except that the task name is specified in the "name" parameter. */
-void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char * name);
+void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char *name);
 
-/* Call func(arg) on every worker in the "workers" array. "num_workers"
- * indicates the number of workers in this array.  This function is
- * synchronous, but the different workers may execute the function in parallel.
- * */
-void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigned num_workers, unsigned * workers, const char * name);
+void starpu_execute_on_specific_workers(void (*func)(void*), void *arg, unsigned num_workers, unsigned *workers, const char *name);
 
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
-/* Return the current date in us */
 double starpu_timing_now(void);
 
 #ifdef __cplusplus

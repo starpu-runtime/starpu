@@ -1,7 +1,8 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2011, 2013  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+# Copyright (C) 2014  Inria
 #
 # Permission is granted to copy, distribute and/or modify this document
 # under the terms of the GNU Free Documentation License, Version 1.3
@@ -28,22 +29,28 @@ chapters =	\
 	chapters/01building.doxy \
 	chapters/02basic_examples.doxy \
 	chapters/03advanced_examples.doxy \
-	chapters/04optimize_performance.doxy \
-	chapters/05performance_feedback.doxy \
-	chapters/06tips_and_tricks.doxy \
-	chapters/07out_of_core.doxy \
-	chapters/08mpi_support.doxy \
-	chapters/09fft_support.doxy \
-	chapters/10mic_scc_support.doxy \
-	chapters/11c_extensions.doxy \
-	chapters/12socl_opencl_extensions.doxy \
-	chapters/13scheduling_contexts.doxy \
-	chapters/14scheduling_context_hypervisor.doxy \
-	chapters/15environment_variables.doxy \
-	chapters/16configure_options.doxy \
-	chapters/17files.doxy \
-	chapters/18scaling-vector-example.doxy \
-	chapters/19fdl-1.3.doxy \
+	chapters/05check_list_performance.doxy \
+	chapters/06tasks.doxy \
+	chapters/07data_management.doxy \
+	chapters/08scheduling.doxy \
+	chapters/09scheduling_contexts.doxy \
+	chapters/10scheduling_context_hypervisor.doxy \
+	chapters/11debugging_tools.doxy \
+	chapters/12online_performance_tools.doxy \
+	chapters/13offline_performance_tools.doxy \
+	chapters/14faq.doxy \
+	chapters/15out_of_core.doxy \
+	chapters/16mpi_support.doxy \
+	chapters/17fft_support.doxy \
+	chapters/18mic_scc_support.doxy \
+	chapters/19c_extensions.doxy \
+	chapters/20socl_opencl_extensions.doxy \
+	chapters/21simgrid.doxy \
+	chapters/40environment_variables.doxy \
+	chapters/41configure_options.doxy \
+	chapters/45files.doxy \
+	chapters/50scaling-vector-example.doxy \
+	chapters/51fdl-1.3.doxy \
 	chapters/code/hello_pragma2.c \
 	chapters/code/hello_pragma.c \
 	chapters/code/scal_pragma.cu \
@@ -94,46 +101,49 @@ chapters =	\
 	chapters/api/versioning.doxy \
 	chapters/api/workers.doxy \
 	chapters/api/threads.doxy \
+	chapters/api/bitmap.doxy \
+	chapters/api/tree.doxy \
 	chapters/api/toolbox.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy
 
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
-	sed 's/#undef \(.*\)/#define \1 1/' $< > $@
+	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
 
 chapters/version.sty: $(chapters)
-	for f in $(chapters) ; do \
-                if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
+	@for f in $(chapters) ; do \
+                if test -f $(top_srcdir)/doc/doxygen/$$f ; then $(PROG_STAT) --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
         done | sort -r | head -1 > timestamp_sty
-	if test -s timestamp_sty ; then \
-		LC_ALL=C date --date=@`cat timestamp_sty` +"%d %B %Y" > timestamp_sty_updated ;\
-		LC_ALL=C date --date=@`cat timestamp_sty` +"%B %Y" > timestamp_sty_updated_month ;\
+	@if test -s timestamp_sty ; then \
+		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_sty` +"%d %B %Y" > timestamp_sty_updated ;\
+		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_sty` +"%B %Y" > timestamp_sty_updated_month ;\
 	fi
-	if test -s timestamp_sty_updated ; then \
-		echo "\newcommand{\STARPUUPDATED}{"`cat timestamp_sty_updated`"}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
+	@if test -s timestamp_sty_updated ; then \
+		echo ':newcommand{:STARPUUPDATED}{'`cat timestamp_sty_updated`'}' > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	else \
-		echo "\newcommand{\STARPUUPDATED}{unknown date}" > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
+		echo ':newcommand{:STARPUUPDATED}{unknown date}' > $(top_srcdir)/doc/doxygen/chapters/version.sty;\
 	fi
-	echo "\newcommand{\STARPUVERSION}{$(VERSION)}" >> $(top_srcdir)/doc/doxygen/chapters/version.sty
-	for f in timestamp_sty timestamp_sty_updated timestamp_sty_updated_month ; do \
+	@echo ':newcommand{:STARPUVERSION}{$(VERSION)}' >> $(top_srcdir)/doc/doxygen/chapters/version.sty
+	@$(SED) -i 's/:/\\/g' $(top_srcdir)/doc/doxygen/chapters/version.sty
+	@for f in timestamp_sty timestamp_sty_updated timestamp_sty_updated_month ; do \
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
 chapters/version.html: $(chapters)
-	for f in $(chapters) ; do \
-                if test -f $(top_srcdir)/doc/doxygen/$$f ; then stat --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
+	@for f in $(chapters) ; do \
+                if test -f $(top_srcdir)/doc/doxygen/$$f ; then $(PROG_STAT) --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
         done | sort -r | head -1 > timestamp_html
-	if test -s timestamp_html ; then \
-		LC_ALL=C date --date=@`cat timestamp_html` +"%d %B %Y" > timestamp_html_updated ;\
-		LC_ALL=C date --date=@`cat timestamp_html` +"%B %Y" > timestamp_html_updated_month ;\
+	@if test -s timestamp_html ; then \
+		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_html` +"%d %B %Y" > timestamp_html_updated ;\
+		LC_ALL=C $(PROG_DATE) --date=@`cat timestamp_html` +"%B %Y" > timestamp_html_updated_month ;\
 	fi
-	echo "This manual documents the usage of StarPU version $(VERSION)." > $(top_srcdir)/doc/doxygen/chapters/version.html
-	if test -s timestamp_html_updated ; then \
+	@echo "This manual documents the usage of StarPU version $(VERSION)." > $(top_srcdir)/doc/doxygen/chapters/version.html
+	@if test -s timestamp_html_updated ; then \
 		echo "Its contents was last updated on "`cat timestamp_html_updated`"." >> $(top_srcdir)/doc/doxygen/chapters/version.html;\
 	else \
 		echo "Its contents was last updated on <em>unknown_date</em>." >> $(top_srcdir)/doc/doxygen/chapters/version.html;\
 	fi
-	for f in timestamp_html timestamp_html_updated timestamp_html_updated_month ; do \
+	@for f in timestamp_html timestamp_html_updated timestamp_html_updated_month ; do \
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
@@ -166,7 +176,8 @@ EXTRA_DIST	= 					\
 	chapters/tasks_size_overhead.eps		\
 	chapters/tasks_size_overhead.pdf		\
 	doxygen.cfg 					\
-	refman.tex
+	refman.tex					\
+	$(DOX_HTML_DIR)
 
 dox_inputs = $(DOX_CONFIG) 				\
 	$(chapters) 					\
@@ -213,30 +224,31 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h
 
 $(DOX_TAG): $(dox_inputs)
-	rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
-	$(DOXYGEN) $(DOX_CONFIG)
-	sed -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
-	sed -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
-        # comment for the line above: what we really want to do is to remove the line, but dy doing so, it avoids opening the interactive menu when browsing files
-	if test -f html/navtree.js ; then sed -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
-	sed -i 's/.*"Files.html".*//' html/pages.html
-	if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
+	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)
+	@$(DOXYGEN) $(DOX_CONFIG)
+	@$(SED) -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
+	@$(SED) -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
+        # comment for the line below: what we really want to do is to remove the line, but dy doing so, it avoids opening the interactive menu when browsing files
+	@if test -f html/navtree.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
+	@$(SED) -i 's/.*"Files.html".*//' html/pages.html
+	@if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
 
 dist_pdf_DATA = $(DOX_PDF)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
-	cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
-	cp $(top_srcdir)/doc/doxygen/chapters/*pdf $(DOX_LATEX_DIR)
-	cd $(DOX_LATEX_DIR); \
-	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out; \
-	sed -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
-	sed -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
-	sed -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
-	sed -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
-	$(PDFLATEX) refman.tex; \
-	$(MAKEINDEX) refman.idx;\
-	$(PDFLATEX) refman.tex; \
-	done=0; repeat=5; \
+	@cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
+	@cp $(top_srcdir)/doc/doxygen/chapters/*pdf $(DOX_LATEX_DIR)
+	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
+	@cd $(DOX_LATEX_DIR) ;\
+	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\
+	$(SED) -i -e 's/__env__/\\_Environment Variables!/' -e 's/\\-\\_\\-\\-\\_\\-env\\-\\_\\-\\-\\_\\-//' ExecutionConfigurationThroughEnvironmentVariables.tex ;\
+	$(SED) -i -e 's/__configure__/\\_Configure Options!/' -e 's/\\-\\_\\-\\-\\_\\-configure\\-\\_\\-\\-\\_\\-//' CompilationConfiguration.tex ;\
+	$(SED) -i s'/\\item Module\\-Documentation/\\item \\hyperlink{ModuleDocumentation}{Module Documentation}/' index.tex ;\
+	$(SED) -i s'/\\item File\\-Documentation/\\item \\hyperlink{FileDocumentation}{File Documentation}/' index.tex ;\
+	$(PDFLATEX) refman.tex > /dev/null ;\
+	$(MAKEINDEX) refman.idx > /dev/null 2>&1 ;\
+	$(PDFLATEX) refman.tex > /dev/null ;\
+	done=0; repeat=5 ;\
 	while test $$done = 0 -a $$repeat -gt 0; do \
            if $(EGREP) 'Rerun (LaTeX|to get cross-references right)' refman.log > /dev/null 2>&1; then \
 	       $(PDFLATEX) refman.tex; \
@@ -244,8 +256,8 @@ $(DOX_PDF): $(DOX_TAG) refman.tex
 	   else \
 	       done=1; \
 	   fi; \
-	done; \
-	mv refman.pdf ../$(DOX_PDF)
+	done
+	mv $(DOX_LATEX_DIR)/refman.pdf $(DOX_PDF)
 
 CLEANFILES = $(DOX_TAG) starpu_config.h \
     -r \

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2011-2012, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 
 	fprintf(stdout, "StarPU has found :\n");
 
-	fprintf(stdout, "\t%u CPU cores\n", ncpu);
+	fprintf(stdout, "\t%u CPU threads\n", ncpu);
 	display_worker_names(STARPU_CPU_WORKER);
 
 	fprintf(stdout, "\t%u CUDA devices\n", ncuda);
@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 	fprintf(stdout, "\ntopology ...\n");
 	starpu_topology_print(stdout);
 
-	fprintf(stdout, "\nbandwidth ...\n");
+	fprintf(stdout, "\nbandwidth and latency ...\n");
 	starpu_bus_print_bandwidth(stdout);
 
 	starpu_shutdown();

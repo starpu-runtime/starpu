@@ -105,6 +105,8 @@
 
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL	0x513b
 
+#define _STARPU_FUT_EVENT	0x513c
+
 #define _STARPU_FUT_LOCKING_MUTEX	0x5140	
 #define _STARPU_FUT_MUTEX_LOCKED	0x5141	
 
@@ -462,12 +464,14 @@ do {										\
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL			\
 	FUT_DO_PROBE0(_STARPU_FUT_TASK_WAIT_FOR_ALL)
 
+#define _STARPU_TRACE_EVENT(S)			\
+	FUT_DO_PROBESTR(_STARPU_FUT_EVENT,S)
+
 #define _STARPU_TRACE_HYPERVISOR_BEGIN()  \
 	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_BEGIN, _starpu_gettid());
 
 #define _STARPU_TRACE_HYPERVISOR_END() \
-	do {} while (0)
-//	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_END, _starpu_gettid());
+	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_END, _starpu_gettid());
 
 #ifdef STARPU_FXT_LOCK_TRACES 
 
@@ -631,6 +635,9 @@ do {										\
 #define _STARPU_TRACE_MEMORY_FULL(size)	\
 	FUT_DO_PROBE2(_STARPU_FUT_MEMORY_FULL,size,_starpu_gettid());
 
+#define _STARPU_TRACE_DATA_LOAD(workerid,size)	\
+	FUT_DO_PROBE2(_STARPU_FUT_DATA_LOAD, workerid, size);
+
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)		\
 	FUT_DO_PROBE3(_STARPU_FUT_START_UNPARTITION, memnode, _starpu_gettid(), handle);
 	
@@ -714,6 +721,7 @@ do {										\
 #define _STARPU_TRACE_BARRIER_WAIT_BEGIN()		do {} while(0)
 #define _STARPU_TRACE_BARRIER_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_MEMORY_FULL(size)				do {} while(0)
+#define _STARPU_TRACE_MEMORY_FULL(workerid,size)		do {} while(0)
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)	do {} while(0)
 #define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {} while(0)
 #define _STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(workerid, ntasks, exp_len)	do {} while(0)

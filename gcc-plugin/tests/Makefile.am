@@ -89,7 +89,8 @@ CLEANFILES = *.gimple *.o			\
   unregister					\
   heap-allocated				\
   acquire					\
-  opencl
+  opencl					\
+  starpu_idle_microsec.log
 
 
 EXTRA_DIST += ./run-test.in			\

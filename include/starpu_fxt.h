@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,6 +66,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
 void starpu_fxt_start_profiling(void);
 void starpu_fxt_stop_profiling(void);
 void starpu_fxt_write_data_trace(char *filename_in);
+void starpu_fxt_trace_user_event(unsigned long code);
 
 #ifdef __cplusplus
 }

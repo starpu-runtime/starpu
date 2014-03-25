@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2013  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
 #
@@ -57,7 +57,7 @@ EXTRA_DIST = 					\
 	reductions/dot_product_opencl_kernels.cl	\
 	scheduler/schedulers.sh
 
-CLEANFILES = *.gcno *.gcda *.linkinfo
+CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
 
 if STARPU_USE_CUDA
 
@@ -98,7 +98,7 @@ noinst_HEADERS = 				\
 	common/blas.h				\
 	mult/simple.h				\
 	mult/double.h				\
-	fortran/bindings/StarPU_fortran.h	\
+	fortran/StarPU_fortran.h		\
 	ppm_downscaler/ppm_downscaler.h		\
 	ppm_downscaler/yuv_downscaler.h		\
 	spmv/matrix_market/mmio.h		\
@@ -188,6 +188,8 @@ examplebin_PROGRAMS +=				\
 	sched_ctx/parallel_code			\
 	sched_ctx/dummy_sched_with_ctx		\
 	sched_ctx/prio				\
+	worker_collections/worker_tree_example  \
+	worker_collections/worker_list_example  \
 	reductions/dot_product			\
 	reductions/minmax_reduction		\
 	mandelbrot/mandelbrot			\
@@ -200,7 +202,8 @@ examplebin_PROGRAMS +=				\
 
 if STARPU_HAVE_F77_H
 examplebin_PROGRAMS +=				\
-	basic_examples/vector_scal_fortran
+	basic_examples/vector_scal_fortran	\
+	fortran/hello
 endif
 endif
 
@@ -264,6 +267,8 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/sched_ctx			\
 	sched_ctx/prio				\
 	sched_ctx/dummy_sched_with_ctx		\
+	worker_collections/worker_tree_example  \
+	worker_collections/worker_list_example  \
 	reductions/dot_product			\
 	reductions/minmax_reduction
 
@@ -274,7 +279,8 @@ endif
 
 if STARPU_HAVE_F77_H
 STARPU_EXAMPLES +=				\
-	basic_examples/vector_scal_fortran
+	basic_examples/vector_scal_fortran	\
+	fortran/hello
 endif
 
 if !NO_BLAS_LIB
@@ -348,6 +354,11 @@ basic_examples_vector_scal_fortran_SOURCES +=	\
 basic_examples_vector_scal_fortran_LDADD =	\
 	$(STARPU_CUDA_FORTRAN_LDFLAGS)
 endif
+
+fortran_hello_SOURCES	=		\
+	fortran/hello_c.c		\
+	fortran/hello.F			\
+	fortran/StarPU_fortran.h
 endif
 
 #######################

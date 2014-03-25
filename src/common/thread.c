@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,8 +16,8 @@
  */
 
 #include <starpu.h>
-#include <common/thread.h>
 #include <core/simgrid.h>
+#include <core/workers.h>
 
 #ifdef STARPU_SIMGRID
 #include <xbt/synchro_core.h>
@@ -53,6 +53,13 @@ int starpu_pthread_join(starpu_pthread_t thread, void **retval)
 	MSG_process_sleep(1);
 	return 0;
 }
+
+int starpu_pthread_exit(void *retval)
+{
+	MSG_process_kill(MSG_process_self());
+	return 0;
+}
+
 
 int starpu_pthread_attr_init(starpu_pthread_attr_t *attr)
 {
@@ -116,6 +123,27 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 
 	return 0;
 }
+
+int starpu_pthread_mutexattr_gettype(const starpu_pthread_mutexattr_t *attr, int *type)
+{
+	return 0;
+}
+
+int starpu_pthread_mutexattr_settype(starpu_pthread_mutexattr_t *attr, int type)
+{
+	return 0;
+}
+
+int starpu_pthread_mutexattr_destroy(starpu_pthread_mutexattr_t *attr)
+{
+	return 0;
+}
+
+int starpu_pthread_mutexattr_init(starpu_pthread_mutexattr_t *attr)
+{
+	return 0;
+}
+
 
 static int used_key[MAX_TSD];
 
@@ -259,7 +287,9 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 
 	return p_ret;
 }
+#endif /* STARPU_SIMGRID */
 
+#if defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_BARRIER)
 int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr, unsigned count)
 {
 	int ret = starpu_pthread_mutex_init(&barrier->mutex, NULL);
@@ -300,17 +330,17 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 
 	return ret;
 }
+#endif /* defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_BARRIER) */
 
-#elif !defined(_MSC_VER) /* !STARPU_SIMGRID */
-
+#if !defined(STARPU_SIMGRID) && !defined(_MSC_VER) /* !STARPU_SIMGRID */
 int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex)
 {
 	_STARPU_TRACE_LOCKING_MUTEX();
 
 	int p_ret = pthread_mutex_lock(mutex);
 	int workerid = starpu_worker_get_id();
-	if(workerid != -1 && starpu_worker_mutex_is_sched_mutex(workerid, mutex))
-		starpu_worker_set_flag_sched_mutex_locked(workerid, 1);	 
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
 
 	_STARPU_TRACE_MUTEX_LOCKED();
 
@@ -322,9 +352,9 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 	_STARPU_TRACE_UNLOCKING_MUTEX();
 
 	int p_ret = pthread_mutex_unlock(mutex);
-	int workerid = starpu_worker_get_id(); 
-	if(workerid != -1 && starpu_worker_mutex_is_sched_mutex(workerid, mutex)) 
-		starpu_worker_set_flag_sched_mutex_locked(workerid, 0);	
+	int workerid = starpu_worker_get_id();
+	if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+		_starpu_worker_set_flag_sched_mutex_locked(workerid, 0);
 
 	_STARPU_TRACE_MUTEX_UNLOCKED();
 
@@ -340,9 +370,9 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 
 	if (!ret)
 	{
-		int workerid = starpu_worker_get_id();	
-		if(workerid != -1 && starpu_worker_mutex_is_sched_mutex(workerid, mutex)) 
-			starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
+		int workerid = starpu_worker_get_id();
+		if(workerid != -1 && _starpu_worker_mutex_is_sched_mutex(workerid, mutex))
+			_starpu_worker_set_flag_sched_mutex_locked(workerid, 1);
 
 		_STARPU_TRACE_MUTEX_LOCKED();
 	}
@@ -417,7 +447,9 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 
 	return p_ret;
 }
+#endif
 
+#if !defined(STARPU_SIMGRID) && !defined(_MSC_VER) && defined(STARPU_HAVE_PTHREAD_BARRIER)
 int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 {
 	int ret;
@@ -429,5 +461,89 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 
 	return ret;
 }
+#endif /* STARPU_SIMGRID, _MSC_VER, STARPU_HAVE_PTHREAD_BARRIER */
 
-#endif /* STARPU_SIMGRID, _MSC_VER */
+#if defined(STARPU_SIMGRID) || !defined(HAVE_PTHREAD_SPIN_LOCK)
+
+int starpu_pthread_spin_init(starpu_pthread_spinlock_t *lock, int pshared)
+{
+	lock->taken = 0;
+	return 0;
+}
+
+int starpu_pthread_spin_destroy(starpu_pthread_spinlock_t *lock)
+{
+	/* we don't do anything */
+	return 0;
+}
+
+int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
+{
+#ifdef STARPU_SIMGRID
+	while (1)
+	{
+		if (!lock->taken)
+		{
+			lock->taken = 1;
+			return 0;
+		}
+		/* Give hand to another thread, hopefully the one which has the
+		 * spinlock and probably just has also a short-lived mutex. */
+		MSG_process_sleep(0.000001);
+		STARPU_UYIELD();
+	}
+#else
+	uint32_t prev;
+	do
+	{
+		prev = STARPU_TEST_AND_SET(&lock->taken, 1);
+		if (prev)
+			STARPU_UYIELD();
+	}
+	while (prev);
+	return 0;
+#endif
+}
+
+int starpu_pthread_spin_trylock(starpu_pthread_spinlock_t *lock)
+{
+#ifdef STARPU_SIMGRID
+	if (lock->taken)
+		return EBUSY;
+	lock->taken = 1;
+	return 0;
+#else
+	uint32_t prev;
+	prev = STARPU_TEST_AND_SET(&lock->taken, 1);
+	return (prev == 0)?0:EBUSY;
+#endif
+}
+
+int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
+{
+#ifdef STARPU_SIMGRID
+	lock->taken = 0;
+	return 0;
+#else
+	STARPU_RELEASE(&lock->taken);
+	return 0;
+#endif
+}
+
+#endif /* defined(STARPU_SIMGRID) || !defined(HAVE_PTHREAD_SPIN_LOCK) */
+
+int _starpu_pthread_spin_checklocked(starpu_pthread_spinlock_t *lock)
+{
+#ifdef STARPU_SIMGRID
+	STARPU_ASSERT(lock->taken);
+	return !lock->taken;
+#elif defined(HAVE_PTHREAD_SPIN_LOCK)
+	int ret = pthread_spin_trylock((pthread_spinlock_t *)lock);
+	STARPU_ASSERT(ret != 0);
+	return ret == 0;
+#else
+	STARPU_ASSERT(lock->taken);
+	return !lock->taken;
+#endif
+}
+

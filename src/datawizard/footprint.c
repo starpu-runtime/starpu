@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011, 2013  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011, 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,17 +20,37 @@
 #include <core/task.h>
 #include <starpu_scheduler.h>
 
+uint32_t starpu_task_data_footprint(struct starpu_task *task)
+{
+	uint32_t footprint = 0;
+	unsigned buffer;
+
+	for (buffer = 0; buffer < task->cl->nbuffers; buffer++)
+	{
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
+
+		uint32_t handle_footprint = _starpu_data_get_footprint(handle);
+
+		footprint = starpu_hash_crc32c_be(handle_footprint, footprint);
+	}
+
+	return footprint;
+}
+
 uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, unsigned nimpl, struct _starpu_job *j)
 {
 	if (j->footprint_is_computed)
 		return j->footprint;
 
 	uint32_t footprint = 0;
-	unsigned buffer;
 
 	struct starpu_task *task = j->task;
 
-	if (model != NULL && 
+	if (model != NULL && model->footprint != NULL)
+	{
+		footprint = model->footprint(task);
+	}
+	else if (model != NULL && 
 			model->per_arch[arch->type] != NULL &&
 			model->per_arch[arch->type][arch->devid] != NULL &&
 			model->per_arch[arch->type][arch->devid][arch->ncore] != NULL &&
@@ -46,14 +66,7 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struc
 	}
 	else
 	{
-		for (buffer = 0; buffer < task->cl->nbuffers; buffer++)
-		{
-			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
-
-			uint32_t handle_footprint = _starpu_data_get_footprint(handle);
-
-			footprint = starpu_hash_crc32c_be(handle_footprint, footprint);
-		}
+		footprint = starpu_task_data_footprint(task);
 	}
 
 	j->footprint = footprint;

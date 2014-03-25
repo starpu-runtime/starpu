@@ -39,8 +39,7 @@ void starpu_task_list_init(struct starpu_task_list *list)
 }
 
 static STARPU_INLINE
-void starpu_task_list_push_front(struct starpu_task_list *list,
-				struct starpu_task *task)
+void starpu_task_list_push_front(struct starpu_task_list *list, struct starpu_task *task)
 {
 	if (list->tail == NULL)
 	{
@@ -57,8 +56,7 @@ void starpu_task_list_push_front(struct starpu_task_list *list,
 }
 
 static STARPU_INLINE
-void starpu_task_list_push_back(struct starpu_task_list *list,
-				struct starpu_task *task)
+void starpu_task_list_push_back(struct starpu_task_list *list, struct starpu_task *task)
 {
 	if (list->head == NULL)
 	{
@@ -93,8 +91,7 @@ int starpu_task_list_empty(struct starpu_task_list *list)
 }
 
 static STARPU_INLINE
-void starpu_task_list_erase(struct starpu_task_list *list,
-				struct starpu_task *task)
+void starpu_task_list_erase(struct starpu_task_list *list, struct starpu_task *task)
 {
 	struct starpu_task *p = task->prev;
 

@@ -69,7 +69,7 @@ void _starpu_scc_sink_recv_from_device(const struct _starpu_mp_node *node, int s
 		STARPU_MP_COMMON_REPORT_ERROR(node, ret);
 }
 
-void _starpu_scc_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, cpu_set_t * cpuset, int coreid, pthread_t *thread)
+void _starpu_scc_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, cpu_set_t * cpuset, int coreid, starpu_pthread_t *thread)
 {
 	/****************
 	 *     TODO     *

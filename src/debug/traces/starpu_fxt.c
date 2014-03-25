@@ -310,7 +310,7 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_memnode_container_alias, "Mm", new_memnode_container_alias, new_memnode_container_name);
 #else
 		fprintf(out_paje_file, "7	%.9f	%smn%"PRIu64"	Mn	%sp	%sMEMNODE%"PRIu64"\n", get_event_time_stamp(ev, options), prefix, ev->param[0], prefix, options->file_prefix, ev->param[0]);
-		fprintf(out_paje_file, "7	%.9f	%smm%"PRIu64"	Mm	%sp	%sMEMMANAGER%"PRIu64"\n", get_event_time_stamp(ev, options), prefix, ev->param[0], prefix, options->file_prefix, ev->param[0]);
+		fprintf(out_paje_file, "7	%.9f	%smm%"PRIu64"	Mm	%smn%"PRIu64"	%sMEMMANAGER%"PRIu64"\n", get_event_time_stamp(ev, options), prefix, ev->param[0], prefix, ev->param[0], options->file_prefix, ev->param[0]);
 #endif
 
 		if (!options->no_bus)
@@ -484,7 +484,7 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 
 	/* it's the first time ... */
 	struct _starpu_symbol_name *entry = _starpu_symbol_name_new();
-	entry->name = malloc(strlen(name));
+	entry->name = malloc(strlen(name) + 1);
 	strcpy(entry->name, name);
 
 	_starpu_symbol_name_list_push_front(symbol_list, entry);
@@ -516,31 +516,84 @@ static void create_paje_state_if_not_found(char *name, struct starpu_fxt_options
 	{
 #ifdef STARPU_HAVE_POTI
 		create_paje_state_color(name, "S", red, green, blue);
-		create_paje_state_color(name, "Ctx1", 255.0, 102.0, 255.0);
-		create_paje_state_color(name, "Ctx2", .0, 255.0, 0.0);
-		create_paje_state_color(name, "Ctx3", 255.0, 255.0, .0);
-		create_paje_state_color(name, "Ctx4", .0, 245.0, 255.0);
-		create_paje_state_color(name, "Ctx5", .0, .0, .0);
-		create_paje_state_color(name, "Ctx6", .0, .0, 128.0);
-		create_paje_state_color(name, "Ctx7", 105.0, 105.0, 105.0);
-		create_paje_state_color(name, "Ctx8", 255.0, .0, 255.0);
-		create_paje_state_color(name, "Ctx9", .0, .0, 1.0);
-		create_paje_state_color(name, "Ctx10", 154.0, 205.0, 50.0);
+		int i;
+		for(i = 1; i < STARPU_NMAX_SCHED_CTXS; i++)
+		{
+			char ctx[10];
+			snprintf(ctx, sizeof(ctx), "Ctx%d", i);
+			if(i%10 == 1)
+				create_paje_state_color(name, ctx, 255.0, 102.0, 255.0);
+			if(i%10 == 2)
+				create_paje_state_color(name, ctx, .0, 255.0, 0.0);
+			if(i%10 == 3)
+				create_paje_state_color(name, ctx, 255.0, 255.0, .0);
+			if(i%10 == 4)
+				create_paje_state_color(name, ctx, .0, 245.0, 255.0);
+			if(i%10 == 5)
+				create_paje_state_color(name, ctx, .0, .0, .0);
+			if(i%10 == 6)
+				create_paje_state_color(name, ctx, .0, .0, 128.0);
+			if(i%10 == 7)
+				create_paje_state_color(name, ctx, 105.0, 105.0, 105.0);
+			if(i%10 == 8)
+				create_paje_state_color(name, ctx, 255.0, .0, 255.0);
+			if(i%10 == 9)
+				create_paje_state_color(name, ctx, .0, .0, 1.0);
+			if(i%10 == 0)
+				create_paje_state_color(name, ctx, 154.0, 205.0, 50.0);
+
+		}
+/* 		create_paje_state_color(name, "Ctx1", 255.0, 102.0, 255.0); */
+/* 		create_paje_state_color(name, "Ctx2", .0, 255.0, 0.0); */
+/* 		create_paje_state_color(name, "Ctx3", 255.0, 255.0, .0); */
+/* 		create_paje_state_color(name, "Ctx4", .0, 245.0, 255.0); */
+/* 		create_paje_state_color(name, "Ctx5", .0, .0, .0); */
+/* 		create_paje_state_color(name, "Ctx6", .0, .0, 128.0); */
+/* 		create_paje_state_color(name, "Ctx7", 105.0, 105.0, 105.0); */
+/* 		create_paje_state_color(name, "Ctx8", 255.0, .0, 255.0); */
+/* 		create_paje_state_color(name, "Ctx9", .0, .0, 1.0); */
+/* 		create_paje_state_color(name, "Ctx10", 154.0, 205.0, 50.0); */
 #else
 		fprintf(out_paje_file, "6	%s	S	%s	\"%f %f %f\" \n", name, name, red, green, blue);
-		fprintf(out_paje_file, "6	%s	Ctx1	%s	\"255.0 102.0 255.0\" \n", name, name);
-		fprintf(out_paje_file, "6	%s	Ctx2	%s	\".0 255.0 .0\" \n", name, name);
-		fprintf(out_paje_file, "6	%s	Ctx3	%s	\"225.0 225.0 .0\" \n", name, name);
-		fprintf(out_paje_file, "6	%s	Ctx4	%s	\".0 245.0 255.0\" \n", name, name);
-		fprintf(out_paje_file, "6	%s	Ctx5	%s	\".0 .0 .0\" \n", name, name);
-		fprintf(out_paje_file, "6	%s	Ctx6	%s	\".0 .0 128.0\" \n", name, name);
-		fprintf(out_paje_file, "6	%s	Ctx7	%s	\"105.0 105.0 105.0\" \n", name, name);
-		fprintf(out_paje_file, "6	%s	Ctx8	%s	\"255.0 .0 255.0\" \n", name, name);
-		fprintf(out_paje_file, "6	%s	Ctx9	%s	\".0 .0 1.0\" \n", name, name);
-		fprintf(out_paje_file, "6	%s	Ctx10	%s	\"154.0 205.0 50.0\" \n", name, name);
+		int i;
+		for(i = 1; i < STARPU_NMAX_SCHED_CTXS; i++)
+		{
+			if(i%10 == 1)
+				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"255.0 102.0 255.0\" \n", name, i, name);
+			if(i%10 == 2)
+				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 255.0 .0\" \n", name, i, name);
+			if(i%10 == 3)
+				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"225.0 225.0 .0\" \n", name, i, name);
+			if(i%10 == 4)
+				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 245.0 255.0\" \n", name, i, name);
+			if(i%10 == 5)
+				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 .0 .0\" \n", name, i, name);
+			if(i%10 == 6)
+				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 .0 128.0\" \n", name, i, name);
+			if(i%10 == 7)
+				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"105.0 105.0 105.0\" \n", name, i, name);
+			if(i%10 == 8)
+				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"255.0 .0 255.0\" \n", name, i, name);
+			if(i%10 == 9)
+				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\".0 .0 1.0\" \n", name, i, name);
+			if(i%10 == 0)
+				fprintf(out_paje_file, "6	%s	Ctx%d	%s	\"154.0 205.0 50.0\" \n", name, i, name);
+
+		}
+
+/* 		fprintf(out_paje_file, "6	%s	Ctx1	%s	\"255.0 102.0 255.0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx2	%s	\".0 255.0 .0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx3	%s	\"225.0 225.0 .0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx4	%s	\".0 245.0 255.0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx5	%s	\".0 .0 .0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx6	%s	\".0 .0 128.0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx7	%s	\"105.0 105.0 105.0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx8	%s	\"255.0 .0 255.0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx9	%s	\".0 .0 1.0\" \n", name, name); */
+/* 		fprintf(out_paje_file, "6	%s	Ctx10	%s	\"154.0 205.0 50.0\" \n", name, name); */
 #endif
 	}
-		
+
 }
 
 
@@ -580,7 +633,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 #endif
 		}
 	}
-	
+
 }
 
 static long dumped_codelets_count;
@@ -698,13 +751,13 @@ static void handle_hyp_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 static void handle_hyp_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-/* 	int worker; */
-/* 	worker = find_worker_id(ev->param[0]); */
-/* 	if (worker < 0) */
-/* 		return; */
+	int worker;
+	worker = find_worker_id(ev->param[0]);
+	if (worker < 0)
+		return;
 
-/* 	if (out_paje_file) */
-/* 		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B"); */
+	if (out_paje_file)
+		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
 }
 
 static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
@@ -1042,7 +1095,7 @@ static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 #ifdef STARPU_HAVE_POTI
 		char container[STARPU_POTI_STR_LEN], paje_value[STARPU_POTI_STR_LEN];
 		snprintf(container, STARPU_POTI_STR_LEN, "%sp", options->file_prefix);
-		snprintf(container, STARPU_POTI_STR_LEN, "%d", rank);
+		snprintf(paje_value, STARPU_POTI_STR_LEN, "%d", rank);
 		poti_NewEvent(get_event_time_stamp(ev, options), container, "event", paje_value);
 #else
 		fprintf(out_paje_file, "9	%.9f	event	%sp	%d\n", get_event_time_stamp(ev, options), options->file_prefix, rank);
@@ -1239,6 +1292,23 @@ static void handle_set_profiling(struct fxt_ev_64 *ev, struct starpu_fxt_options
 static void handle_task_wait_for_all(void)
 {
 	_starpu_fxt_dag_add_sync_point();
+}
+
+static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	char *event = (char*)&ev->param[0];
+
+	/* Add an event in the trace */
+	if (out_paje_file)
+	{
+#ifdef STARPU_HAVE_POTI
+		char container[STARPU_POTI_STR_LEN];
+		snprintf(container, STARPU_POTI_STR_LEN, "%sp", options->file_prefix);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "event", event);
+#else
+		fprintf(out_paje_file, "9	%.9f	event	%sp	%s\n", get_event_time_stamp(ev, options), options->file_prefix, event);
+#endif
+	}
 }
 
 static
@@ -1636,6 +1706,10 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 
 			case _STARPU_FUT_TASK_WAIT_FOR_ALL:
 				handle_task_wait_for_all();
+				break;
+
+			case _STARPU_FUT_EVENT:
+				handle_event(&ev, options);
 				break;
 
 			case _STARPU_FUT_LOCKING_MUTEX:
@@ -2038,7 +2112,7 @@ static void write_task(struct parse_task pt)
 			perror("open failed :");
 			exit(-1);
 		}
-		HASH_ADD_STR(kernels, name, kernel); 
+		HASH_ADD_STR(kernels, name, kernel);
 		fprintf(codelet_list, "%s\n", codelet_name);
 	}
 	double time = pt.exec_time * NANO_SEC_TO_MILI_SEC;
@@ -2075,7 +2149,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 
 	struct fxt_ev_64 ev;
 
-	unsigned workerid;
+	int workerid=-1;
 	unsigned long has_name = 0;
 
 	while(1)
@@ -2085,23 +2159,24 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		{
 			break;
 		}
-		
+
 		switch (ev.code)
 		{
 		case _STARPU_FUT_WORKER_INIT_START:
 			register_worker_id(ev.param[4], ev.param[1]);
 			break;
-			
+
 		case _STARPU_FUT_START_CODELET_BODY:
 			workerid = find_worker_id(ev.param[2]);
 			tasks[workerid].exec_time = ev.time;
 			has_name = ev.param[3];
-			tasks[workerid].codelet_name = strdup(has_name ? (char *) &ev.param[4] : "unknow");
+			tasks[workerid].codelet_name = strdup(has_name ? (char *) &ev.param[4] : "unknown");
 			//fprintf(stderr, "start codelet :[%d][%s]\n", workerid, tasks[workerid].codelet_name);
 			break;
-			
+
 		case _STARPU_FUT_END_CODELET_BODY:
-			workerid = find_worker_id(ev.param[4]);
+			workerid = find_worker_id(ev.param[6]);
+			assert(workerid != -1);
 			tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
 			write_task(tasks[workerid]);
 			break;
@@ -2110,7 +2185,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 			workerid = ev.param[0];
 			tasks[workerid].data_total = ev.param[1];
 			break;
-			
+
 		default:
 #ifdef STARPU_VERBOSE
 			fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
@@ -2119,25 +2194,25 @@ void starpu_fxt_write_data_trace(char *filename_in)
 			break;
 		}
 	}
-	
+
 	if (close(fd_in))
 	{
 	        perror("close failed :");
 	        exit(-1);
 	}
-	
+
 	if(fclose(codelet_list))
 	{
 		perror("close failed :");
 		exit(-1);
 	}
-	
-	struct starpu_data_trace_kernel *kernel, *tmp;	
+
+	struct starpu_data_trace_kernel *kernel, *tmp;
 
 	HASH_ITER(hh, kernels, kernel, tmp)
 	{
 		if(fclose(kernel->file))
-		{ 
+		{
 			perror("close failed :");
 			exit(-1);
 		}
@@ -2145,6 +2220,6 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		free(kernel->name);
 		free(kernel);
 	}
-		
+
 }
 #endif // STARPU_USE_FXT

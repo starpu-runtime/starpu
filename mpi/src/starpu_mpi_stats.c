@@ -64,6 +64,7 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype data
 
 void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts)
 {
+	if (stats_enabled == 0) return;
 	memcpy(comm_amounts, comm_amount, world_size * sizeof(size_t));
 }
 
@@ -73,20 +74,19 @@ void _starpu_mpi_comm_amounts_display(int node)
 	size_t sum = 0;
 
 	if (stats_enabled == 0) return;
-	if (getenv("STARPU_SILENT")) return;
 
 	for (dst = 0; dst < world_size; dst++)
 	{
 		sum += comm_amount[dst];
 	}
 
-	fprintf(stderr, "\n[%d] Communication transfers stats:\nTOTAL transfers %f B\t%f MB\n", node, (float)sum, (float)sum/1024/1024);
+	fprintf(stderr, "\n[starpu_comm_stats][%d] TOTAL:\t%f B\t%f MB\n", node, (float)sum, (float)sum/1024/1024);
 
 	for (dst = 0; dst < world_size; dst++)
 	{
 		if (comm_amount[dst])
 		{
-			fprintf(stderr, "\t%d -> %d\t%f B\t%f MB\n",
+			fprintf(stderr, "[starpu_comm_stats][%d->%d]\t%f B\t%f MB\n",
 				node, dst, (float)comm_amount[dst], ((float)comm_amount[dst])/(1024*1024));
 		}
 	}

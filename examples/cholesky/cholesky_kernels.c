@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -74,7 +74,6 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STAR
 		cublasSgemm('n', 't', dy, dx, dz, 
 				-1.0f, left, ld21, right, ld12, 
 				 1.0f, center, ld22);
-		cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif
 
 	}
@@ -119,7 +118,6 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, STARPU_A
 #ifdef STARPU_USE_CUDA
 		case 1:
 			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 			break;
 #endif
 		default:
@@ -193,7 +191,6 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 				fprintf(stderr, "Error in Magma: %d\n", ret);
 				STARPU_ABORT();
 			}
-			cudaError_t cures = cudaStreamSynchronize(starpu_cuda_get_local_stream());
 			STARPU_ASSERT(!cures);
 			}
 #else
@@ -246,3 +243,51 @@ void chol_cublas_codelet_update_u11(void *descr[], void *_args)
 	chol_common_codelet_update_u11(descr, 1, _args);
 }
 #endif/* STARPU_USE_CUDA */
+
+struct starpu_codelet cl11 =
+{
+	.type = STARPU_SEQ,
+	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
+#endif
+#ifdef STARPU_HAVE_MAGMA
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
+	.model = &chol_model_11
+};
+
+struct starpu_codelet cl21 =
+{
+	.type = STARPU_SEQ,
+	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 2,
+	.modes = { STARPU_R, STARPU_RW },
+	.model = &chol_model_21
+};
+
+struct starpu_codelet cl22 =
+{
+	.type = STARPU_SEQ,
+	.max_parallelism = INT_MAX,
+	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 3,
+	.modes = { STARPU_R, STARPU_R, STARPU_RW | STARPU_COMMUTE },
+	.model = &chol_model_22
+};

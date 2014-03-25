@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -99,6 +99,8 @@ struct _starpu_task_wrapper_list
 };
 
 extern int _starpu_has_not_important_data;
+
+typedef void (*_starpu_data_handle_unregister_hook)(starpu_data_handle_t);
 
 struct _starpu_data_state
 {
@@ -216,6 +218,9 @@ struct _starpu_data_state
 	_starpu_memory_stats_t memory_stats;
 
 	unsigned int mf_node; //XXX
+
+	/* hook to be called when unregistering the data */
+	_starpu_data_handle_unregister_hook unregister_hook;
 };
 
 void _starpu_display_msi_stats(void);
@@ -243,10 +248,10 @@ size_t _starpu_data_get_size(starpu_data_handle_t handle);
 
 uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle);
 
-void _starpu_push_task_output(struct _starpu_job *j, uint32_t mask);
+void _starpu_push_task_output(struct _starpu_job *j);
 
 STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
-int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask);
+int _starpu_fetch_task_input(struct _starpu_job *j);
 
 unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, unsigned node);
 
@@ -266,5 +271,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 void _starpu_data_start_reduction_mode(starpu_data_handle_t handle);
 void _starpu_data_end_reduction_mode(starpu_data_handle_t handle);
 void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle);
+
+void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func);
 
 #endif // __COHERENCY__H__

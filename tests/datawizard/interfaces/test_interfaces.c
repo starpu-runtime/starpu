@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011  Institut National de Recherche en Informatique et Automatique
- * Copyright (C) 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -159,23 +159,20 @@ data_interface_test_summary_success(data_interface_test_summary *s)
 
 enum operation
 {
-	CPU_TO_CPU
 #ifdef STARPU_USE_CUDA
-	,
 	CPU_TO_CUDA,
 	CUDA_TO_CUDA,
-	CUDA_TO_CPU
+	CUDA_TO_CPU,
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
-	,
 	CPU_TO_OPENCL,
 	OPENCL_TO_CPU,
 #endif /* !STARPU_USE_OPENCL */
 #ifdef STARPU_USE_MIC
-	,
 	CPU_TO_MIC,
 	MIC_TO_CPU,
 #endif
+	CPU_TO_CPU
 };
 
 static int*

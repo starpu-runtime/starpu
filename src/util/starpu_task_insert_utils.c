@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011, 2014        INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -103,6 +103,10 @@ size_t _starpu_task_insert_get_arg_size(va_list varg_list)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		{
+			va_arg(varg_list, int);
+		}
 		else if (arg_type==STARPU_SCHED_CTX)
 		{
 			(void)va_arg(varg_list, unsigned);
@@ -202,6 +206,10 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		{
+			va_arg(varg_list, int);
+		}
 		else if (arg_type==STARPU_SCHED_CTX)
 		{
 			(void)va_arg(varg_list, unsigned);
@@ -276,6 +284,7 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 			{
 #ifdef STARPU_DEVEL
 #  warning shall we print a warning to the user
+/* Morse uses it to avoid having to set it in the codelet structure */
 #endif
 				STARPU_CODELET_SET_MODE(cl, mode, current_buffer);
 			}
@@ -346,6 +355,15 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		{
+			int worker = va_arg(varg_list, int);
+			if (worker != -1)
+			{
+				(*task)->workerid = worker;
+				(*task)->execute_on_a_specific_worker = 1;
+			}
+		}
 		else if (arg_type==STARPU_SCHED_CTX)
 		{
 			unsigned sched_ctx = va_arg(varg_list, unsigned);
@@ -388,22 +406,4 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 	(*task)->prologue_callback_func = starpu_task_insert_callback_wrapper;
 	(*task)->prologue_callback_arg = prologue_cl_arg_wrapper;
 	(*task)->prologue_callback_arg_free = 1;
-}
-
-int _starpu_task_insert_create_and_submit(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
-{
-	_starpu_task_insert_create(arg_buffer, arg_buffer_size, cl, task, varg_list);
-
-	int ret = starpu_task_submit(*task);
-
-	if (STARPU_UNLIKELY(ret == -ENODEV))
-	{
-		fprintf(stderr, "submission of task %p wih codelet %p failed (symbol `%s') (err: ENODEV)\n",
-			*task, (*task)->cl,
-			(cl == NULL) ? "none" :
-			(*task)->cl->name ? (*task)->cl->name :
-			((*task)->cl->model && (*task)->cl->model->symbol)?(*task)->cl->model->symbol:"none");
-	}
-
-	return ret;
 }
