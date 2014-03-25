@@ -108,8 +108,8 @@ for file in $inputfiles; do
 	exit 5
     fi
 # Sorting traces
-    head -1000 $file  > start.trace
-    tail --lines=+1001 $file  > end.trace
+    grep ^% $file > start.trace
+    grep -v ^% $file > end.trace
     sort -n -s --key=2,2 end.trace > endSorted.trace
     cat start.trace endSorted.trace > outputSorted.trace
 
