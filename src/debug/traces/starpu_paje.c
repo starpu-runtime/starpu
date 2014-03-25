@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -141,6 +141,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	poti_DefineContainerType("W", "T", "Worker");
 	poti_DefineContainerType("MPICt", "T", "MPI Communication Thread");
 	poti_DefineContainerType("Sc", "P", "Scheduler");
+	poti_DefineEventType("prog_event", "P", "program event type");
 
 	/* Types for the memory node */
 	poti_DefineVariableType("bw", "Mm", "Bandwidth", "0 0 0");
@@ -155,7 +156,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	poti_DefineEntityValue("No", "MS", "Nothing", ".0 .0 .0");
 
 	/* Types for the Worker of the Memory Node */
-	poti_DefineEventType("event", "T", "event type");
+	poti_DefineEventType("thread_event", "T", "thread event type");
 	poti_DefineStateType("S", "T", "Thread State");
 	poti_DefineEntityValue("I", "S", "Initializing", "0.0 .7 1.0");
 	poti_DefineEntityValue("D", "S", "Deinitializing", "0.0 .1 .7");
@@ -216,7 +217,8 @@ void _starpu_fxt_write_paje_header(FILE *file)
 1       W      T       \"Worker\"                               \n\
 1       MPICt   T       \"MPI Communication Thread\"              \n\
 1       Sc       P       \"Scheduler State\"                        \n\
-2       event   T       \"event type\"				\n\
+2       prog_event   P       \"program event type\"				\n\
+2       thread_event   T       \"thread event type\"				\n\
 2       MPIev   MPICt    \"MPI event type\"			\n\
 3       S       T       \"Thread State\"                        \n\
 3       CtS     MPICt    \"Communication Thread State\"          \n");

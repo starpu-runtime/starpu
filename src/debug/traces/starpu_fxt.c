@@ -315,9 +315,9 @@ static void handle_new_mem_node(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 
 		if (!options->no_bus)
 #ifdef STARPU_HAVE_POTI
-			poti_SetVariable(get_event_time_stamp(ev, options), new_memnode_container_alias, "bw", 0.0);
+			poti_SetVariable(get_event_time_stamp(ev, options), new_memnode_container_alias, "bw", get_event_time_stamp(ev, options));
 #else
-			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bw	0.0\n", 0.0f, prefix, ev->param[0]);
+			fprintf(out_paje_file, "13	%.9f	%smm%"PRIu64"	bw	0.0\n", get_event_time_stamp(ev, options), prefix, ev->param[0]);
 #endif
 	}
 }
@@ -712,7 +712,7 @@ static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 	}
 #ifdef STARPU_HAVE_POTI
 	if (out_paje_file)
-		poti_NewEvent(get_event_time_stamp(ev, options), container, "event", paje_value);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "thread_event", paje_value);
 #endif
 }
 
@@ -1096,9 +1096,9 @@ static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 		char container[STARPU_POTI_STR_LEN], paje_value[STARPU_POTI_STR_LEN];
 		snprintf(container, STARPU_POTI_STR_LEN, "%sp", options->file_prefix);
 		snprintf(paje_value, STARPU_POTI_STR_LEN, "%d", rank);
-		poti_NewEvent(get_event_time_stamp(ev, options), container, "event", paje_value);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "prog_event", paje_value);
 #else
-		fprintf(out_paje_file, "9	%.9f	event	%sp	%d\n", get_event_time_stamp(ev, options), options->file_prefix, rank);
+		fprintf(out_paje_file, "9	%.9f	prog_event	%sp	%d\n", get_event_time_stamp(ev, options), options->file_prefix, rank);
 #endif
 	}
 }
@@ -1304,9 +1304,9 @@ static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *option
 #ifdef STARPU_HAVE_POTI
 		char container[STARPU_POTI_STR_LEN];
 		snprintf(container, STARPU_POTI_STR_LEN, "%sp", options->file_prefix);
-		poti_NewEvent(get_event_time_stamp(ev, options), container, "event", event);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "prog_event", event);
 #else
-		fprintf(out_paje_file, "9	%.9f	event	%sp	%s\n", get_event_time_stamp(ev, options), options->file_prefix, event);
+		fprintf(out_paje_file, "9	%.9f	prog_event	%sp	%s\n", get_event_time_stamp(ev, options), options->file_prefix, event);
 #endif
 	}
 }
