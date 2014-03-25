@@ -712,7 +712,7 @@ do {										\
 #define _STARPU_TRACE_BARRIER_WAIT_BEGIN()		do {} while(0)
 #define _STARPU_TRACE_BARRIER_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_MEMORY_FULL(size)				do {} while(0)
-#define _STARPU_TRACE_MEMORY_FULL(workerid,size)		do {} while(0)
+#define _STARPU_TRACE_DATA_LOAD(workerid,size)		do {} while(0)
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)	do {} while(0)
 #define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {} while(0)
 #define _STARPU_TRACE_HYPERVISOR_BEGIN()        do {} while(0)
