@@ -50,6 +50,7 @@ New features:
   * Use streams for GPUA->GPUB and GPUB->GPUA transfers.
   * Add STARPU_CUDA_ASYNC and STARPU_OPENCL_ASYNC flags to allow asynchronous
     CUDA and OpenCL kernel execution.
+  * Add paje traces statistics tools.
 
 Small features:
   * New functions starpu_data_acquire_cb_sequential_consistency() and

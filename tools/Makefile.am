@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2009-2014  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -122,7 +122,9 @@ endif
 dist_bin_SCRIPTS +=			\
 	starpu_workers_activity		\
 	starpu_codelet_histo_profile	\
-	starpu_codelet_profile
+	starpu_codelet_profile		\
+	starpu_paje_draw_histogram	\
+	starpu_paje_state_stats
 
 if STARPU_HAVE_WINDOWS
 STARPU_MSVC_dir		 =	$(bindir)
@@ -146,25 +148,28 @@ starpu_perfmodel_plot.1: starpu_perfmodel_plot$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_lp2paje.1: starpu_lp2paje$(EXEEXT)
 	help2man --no-discard-stderr -N --output=$@ ./$<
-starpu_workers_activity.1: starpu_workers_activity$(EXEEXT)
+starpu_workers_activity.1: starpu_workers_activity
 	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
-starpu_codelet_profile.1: starpu_codelet_profile$(EXEEXT)
+starpu_codelet_profile.1: starpu_codelet_profile
 	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
-starpu_codelet_histo_profile.1: starpu_codelet_histo_profile$(EXEEXT)
+starpu_codelet_histo_profile.1: starpu_codelet_histo_profile
+	chmod +x $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
+starpu_paje_draw_histogram.1: starpu_paje_draw_histogram
+	chmod +x $<
+	help2man --no-discard-stderr -N --output=$@ ./$<
+starpu_paje_state_stats.1: starpu_paje_state_stats
 	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
 
 if STARPU_USE_FXT
 starpu_fxt_tool.1: starpu_fxt_tool$(EXEEXT)
-	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_fxt_stats.1: starpu_fxt_stats$(EXEEXT)
-	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
 starpu_fxt_data_trace.1: starpu_fxt_data_trace$(EXEEXT)
-	chmod +x $<
 	help2man --no-discard-stderr -N --output=$@ ./$<
 endif
 
@@ -176,7 +181,9 @@ dist_man1_MANS =\
 	starpu_lp2paje.1	\
 	starpu_workers_activity.1 \
 	starpu_codelet_profile.1 \
-	starpu_codelet_histo_profile.1
+	starpu_codelet_histo_profile.1 \
+	starpu_paje_draw_histogram.1 \
+	starpu_paje_state_stats.1
 
 if STARPU_USE_FXT
 dist_man1_MANS +=\
