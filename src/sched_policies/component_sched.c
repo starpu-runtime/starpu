@@ -329,12 +329,7 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_sched_tree *tree = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	/* application should take tree->lock to prevent concurent acces from hypervisor
-	 * worker take they own mutexes
-	 */
-	STARPU_PTHREAD_MUTEX_LOCK(&tree->lock);
 	int ret_val = tree->root->push_task(tree->root,task);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&tree->lock);
 	
 	return ret_val;
 }
