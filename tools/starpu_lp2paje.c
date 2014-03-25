@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 		}
 		fprintf(stderr, "Convert schedule optimized by lp into the Paje format\n\n");
 		fprintf(stderr, "Usage: lp_solve file.lp | %s > paje.trace\n", PROGNAME);
-		fprintf(stderr, "Reports bugs to <"PACKAGE_BUGREPORT">.");
+		fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
 		fprintf(stderr, "\n");
 		exit(EXIT_SUCCESS);
 	}
