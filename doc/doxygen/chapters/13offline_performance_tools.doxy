@@ -331,6 +331,9 @@ $ R
 > install.packages("data.table")
 \endverbatim
 
+The pj_dump tool from pajeng is also needed (see
+https://github.com/schnorr/pajeng)
+
 One can then get textual or .csv statistics over the trace states:
 
 \verbatim
