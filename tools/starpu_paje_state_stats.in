@@ -2,7 +2,8 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 # 
-# Copyright (C) 2014  Imag
+# Copyright (C) 2014  Université Joseph Fourier
+# Copyright (C) 2014  Université Bordeaux
 # 
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -109,10 +110,17 @@ for file in $inputfiles; do
 	exit 5
     fi
 # Sorting traces
-    head -1000 $file  > start.trace
-    tail --lines=+1001 $file  > end.trace
-    sort -n -s --key=2,2 end.trace > endSorted.trace
-    cat start.trace endSorted.trace > outputSorted.trace
+    grep -e '^\(\(%\)\|\(\(1\|2\|3\|4\|5\|6\|7\|8\)\>\)\)' $file > start.trace
+    grep -e '^\(\(%\)\|\(\(1\|2\|3\|4\|5\|6\|7\|8\)\>\)\)' -v $file > end.trace
+    sort -s -V --key=2,2 end.trace > endSorted.trace
+    if grep -q start_profiling endSorted.trace
+    then
+	echo Using start_profiling/stop_profiling trace selection.
+	sed -ne '/start_profiling/,/stop_profiling/p' < endSorted.trace > endSorted2.trace
+    else
+	cp endSorted.trace endSorted2.trace
+    fi
+    cat start.trace endSorted2.trace > outputSorted.trace
 
 # Transferring to .csv
     pj_dump -n outputSorted.trace > $file.csv
@@ -135,3 +143,4 @@ rm -f outputSorted.trace
 rm -f start.trace
 rm -f end.trace
 rm -f endSorted.trace
+rm -f endSorted2.trace

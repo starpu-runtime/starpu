@@ -79,7 +79,7 @@ do
 	if test x$arch = xmic ; then
 	    if [ "$native_mic" -eq "1" ]
 	    then
-		params="$params --disable-build-doc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"
+		params="$params --disable-build-doc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host --enable-maxcpus=250"
 	    else
 		# TODO: fix hwloc detection to look for another pkg-config place, and not just believe in the host version of hwloc.pc...
 		params="$params --enable-mic --disable-build-doc -without-hwloc --with-coi-lib-dir=$coi_dir/device-linux-release/lib --with-scif-lib-dir=$scif_dir/device-linux-release/lib --host=$mic_host"

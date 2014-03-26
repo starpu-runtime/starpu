@@ -162,6 +162,7 @@ EXTRA_DIST	= 					\
 	chapters/distrib_data_histo.pdf	\
 	chapters/paje_draw_histogram.eps	\
 	chapters/paje_draw_histogram.png	\
+	chapters/paje_draw_histogram.pdf	\
 	chapters/starpu_chol_model_11_type.png	\
 	chapters/starpu_chol_model_11_type.eps	\
 	chapters/starpu_chol_model_11_type.pdf	\

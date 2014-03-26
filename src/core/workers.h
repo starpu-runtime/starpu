@@ -117,8 +117,10 @@ LIST_TYPE(_starpu_worker,
 
 	/* flag to know if sched_mutex is locked or not */
 	unsigned sched_mutex_locked;
-	
+
+	/* id of the master worker */
 	int master;
+
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;
 #endif /* __GLIBC__ */
