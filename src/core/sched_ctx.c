@@ -1678,7 +1678,7 @@ void starpu_sched_ctx_get_available_cpuids(unsigned sched_ctx_id, int **cpuids, 
 	{
 		workerid = workers->get_next(workers, &it);
 		worker = _starpu_get_worker_struct(workerid);
-		if(worker->master == current_worker_id || workerid == current_worker_id)
+		if(worker->master == current_worker_id || workerid == current_worker_id || current_worker_id == -1)
 			(*cpuids)[w++] = starpu_worker_get_bindid(workerid);
 	}
 	*ncpuids = w;
@@ -1698,11 +1698,8 @@ int starpu_sched_ctx_book_workers_for_task(unsigned sched_ctx_id, int *workerids
 		if(current_worker_id == -1)
 		{
 			final_workerids[nfinal_workerids++] = workerids[w];
-			if(nfinal_workerids == nworkers - 1)
-			{
-				master = workerids[nfinal_workerids];
-				break;
-			}
+			if(nfinal_workerids == nworkers)
+				master = workerids[nfinal_workerids-1];
 		}
 		else
 		{
