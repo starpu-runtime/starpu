@@ -11,7 +11,7 @@
 StarPU can use Simgrid in order to simulate execution on an arbitrary
 platform.
 
-\section Preparing your application for simulation.
+\section Preparing Preparing your application for simulation.
 
 There are a few technical details which need to be handled for an application to
 be simulated through Simgrid.
