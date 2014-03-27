@@ -15,11 +15,47 @@
  */
 
 #include <starpu.h>
+#include <util/openmp_runtime_support.h>
 
 #ifdef STARPU_OPENMP
 #define __not_implemented__ do { fprintf (stderr, "omp lib function %s not implemented\n", __func__); abort(); } while (0)
 
 static double _starpu_omp_clock_ref = 0.0; /* clock reference for starpu_omp_get_wtick */
+
+static struct starpu_omp_global_icvs _global_icvs;
+static struct starpu_omp_initial_icv_values _initial_icv_values =
+{
+	.dyn_var = 0,
+	.nest_var = 0,
+	.nthreads_var = NULL,
+	.run_sched_var = 0,
+	.def_sched_var = 0,
+	.bind_var = NULL,
+	.stacksize_var = 0,
+	.wait_policy_var = 0,
+	.max_active_levels_var = 0,
+	.active_levels_var = 0,
+	.levels_var = 0,
+	.place_partition_var = 0,
+	.cancel_var = 0,
+	.default_device_var = 0
+};
+
+struct starpu_omp_global_icvs *starpu_omp_global_icvs = NULL;
+struct starpu_omp_initial_icv_values *starpu_omp_initial_icv_values = NULL;
+
+static void read_int_var(const char *var, int *dest)
+{
+	const char *env = getenv(var);
+	if (env) {
+		int v = (int)strtol(env, NULL, 16);
+		if (errno != 0) {
+			fprintf(stderr, "Warning: could not parse environment variable %s, strtol failed with error %s\n", var, strerror(errno));
+		} else {
+			*dest = v;
+		}
+	}
+}
 
 /*
  * Entry point to be called by the OpenMP runtime constructor
@@ -27,6 +63,23 @@ static double _starpu_omp_clock_ref = 0.0; /* clock reference for starpu_omp_get
 int starpu_omp_init(void)
 {
 	int ret;
+
+	read_int_var("OMP_DYNAMIC", &_initial_icv_values.dyn_var);
+	read_int_var("OMP_NESTED", &_initial_icv_values.nest_var);
+	/* TODO: OMP_NUM_THREADS */
+	read_int_var("OMP_SCHEDULE", &_initial_icv_values.run_sched_var);
+	/* TODO: OMP_PROC_BIND */
+	read_int_var("OMP_STACKSIZE", &_initial_icv_values.stacksize_var);
+	read_int_var("OMP_WAIT_POLICY", &_initial_icv_values.wait_policy_var);
+	read_int_var("OMP_THREAD_LIMIT", &_initial_icv_values.thread_limit_var);
+	read_int_var("OMP_MAX_ACTIVE_LEVELS", &_initial_icv_values.max_active_levels_var);
+	read_int_var("OMP_PLACES", &_initial_icv_values.place_partition_var);
+	read_int_var("OMP_CANCELLATION", &_initial_icv_values.cancel_var);
+	read_int_var("OMP_DEFAULT_DEVICE", &_initial_icv_values.default_device_var);
+	starpu_omp_initial_icv_values = &_initial_icv_values;
+
+	_global_icvs.cancel_var = starpu_omp_initial_icv_values->cancel_var;
+	starpu_omp_global_icvs = &_global_icvs;
 
 	ret = starpu_init(0);
 	if(ret < 0)

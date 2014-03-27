@@ -127,6 +127,7 @@ noinst_HEADERS = 						\
 	debug/traces/starpu_fxt.h				\
 	profiling/bound.h					\
 	profiling/profiling.h					\
+	util/openmp_runtime_support.h				\
 	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
 	starpu_parameters.h					\
