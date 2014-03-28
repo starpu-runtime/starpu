@@ -166,7 +166,7 @@ cl_int _starpu_opencl_init_context(int devid)
         err = clGetDeviceInfo(devices[devid], CL_DEVICE_QUEUE_PROPERTIES, sizeof(props), &props, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
-        props &= CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+        props &= ~CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
         in_transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         out_transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
