@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2012       inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,7 +40,6 @@ static void cuda_memset_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_ar
 	unsigned length = STARPU_VECTOR_GET_NX(descr[0]);
 
 	cudaMemsetAsync(buf, 42, length, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -88,6 +87,7 @@ static struct starpu_codelet memset_cl =
 	.cpu_funcs = {cpu_memset_codelet, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_memset_codelet, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_memset_codelet, NULL},

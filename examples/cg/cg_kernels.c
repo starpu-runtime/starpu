@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -73,7 +73,6 @@ static void accumulate_variable_cuda(void *descr[], void *cl_arg)
 	TYPE *v_src = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
  
 	cublasaxpy(1, (TYPE)1.0, v_src, 1, v_dst, 1);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -97,6 +96,7 @@ struct starpu_codelet accumulate_variable_cl =
 	.cpu_funcs = {accumulate_variable_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {accumulate_variable_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2,
@@ -111,7 +111,6 @@ static void accumulate_vector_cuda(void *descr[], void *cl_arg)
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
  
 	cublasaxpy(n, (TYPE)1.0, v_src, 1, v_dst, 1);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -136,6 +135,7 @@ struct starpu_codelet accumulate_vector_cl =
 	.cpu_funcs = {accumulate_vector_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {accumulate_vector_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2,
@@ -154,8 +154,6 @@ static void bzero_variable_cuda(void *descr[], void *cl_arg)
 	TYPE *v = (TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	zero_vector(v, 1);
- 
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -177,6 +175,7 @@ struct starpu_codelet bzero_variable_cl =
 	.cpu_funcs = {bzero_variable_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {bzero_variable_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.modes = {STARPU_W},
 	.nbuffers = 1,
@@ -190,8 +189,6 @@ static void bzero_vector_cuda(void *descr[], void *cl_arg)
 	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
  
 	zero_vector(v, n);
-
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -215,6 +212,7 @@ struct starpu_codelet bzero_vector_cl =
 	.cpu_funcs = {bzero_vector_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {bzero_vector_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.modes = {STARPU_W},
 	.nbuffers = 1,
@@ -322,7 +320,6 @@ static void scal_kernel_cuda(void *descr[], void *cl_arg)
 	/* v1 = p1 v1 */
 	TYPE alpha = p1;
 	cublasscal(n, alpha, v1, 1);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -350,6 +347,7 @@ static struct starpu_codelet scal_kernel_cl =
 	.cpu_funcs = {scal_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {scal_kernel_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 1,
 	.model = &scal_kernel_model
@@ -375,7 +373,6 @@ static void gemv_kernel_cuda(void *descr[], void *cl_arg)
 
 	/* Compute v1 = alpha M v2 + beta v1 */
 	cublasgemv('N', nx, ny, alpha, M, ld, v2, 1, beta, v1, 1);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -425,6 +422,7 @@ static struct starpu_codelet gemv_kernel_cl =
 	.cpu_funcs = {gemv_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {gemv_kernel_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 3,
 	.model = &gemv_kernel_model
@@ -488,7 +486,6 @@ static void scal_axpy_kernel_cuda(void *descr[], void *cl_arg)
 	 */
 	cublasscal(n, p1, v1, 1);
 	cublasaxpy(n, p2, v2, 1, v1, 1);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -522,6 +519,7 @@ static struct starpu_codelet scal_axpy_kernel_cl =
 	.cpu_funcs = {scal_axpy_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {scal_axpy_kernel_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 2,
 	.model = &scal_axpy_kernel_model
@@ -565,7 +563,6 @@ static void axpy_kernel_cuda(void *descr[], void *cl_arg)
 	/* Compute v1 = v1 + p1 * v2.
 	 */
 	cublasaxpy(n, p1, v2, 1, v1, 1);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -596,6 +593,7 @@ static struct starpu_codelet axpy_kernel_cl =
 	.cpu_funcs = {axpy_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {axpy_kernel_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 2,
 	.model = &axpy_kernel_model

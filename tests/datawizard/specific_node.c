@@ -60,6 +60,7 @@ static struct starpu_codelet cl =
 	.cpu_funcs = {specific_kernel, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_codelet_unsigned_inc, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_codelet_unsigned_inc, NULL},

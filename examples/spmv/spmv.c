@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011, 2013  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011, 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -98,6 +98,7 @@ static struct starpu_codelet spmv_cl =
 	.cpu_funcs = {spmv_kernel_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {spmv_kernel_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
         .opencl_funcs = {spmv_kernel_opencl, NULL},

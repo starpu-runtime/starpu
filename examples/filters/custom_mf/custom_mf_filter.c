@@ -158,6 +158,7 @@ static struct starpu_codelet cpu_cl =
 static struct starpu_codelet cuda_cl =
 {
 	.cuda_funcs = { custom_scal_cuda_func, NULL },
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 1,
 	.modes = { STARPU_RW },
 	.name = "cuda_codelet"
