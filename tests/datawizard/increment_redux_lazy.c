@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,7 +40,6 @@ static void redux_cuda_kernel(void *descr[], void *arg)
 	host_dst += host_src;
 
 	cudaMemcpyAsync(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 
 static void neutral_cuda_kernel(void *descr[], void *arg)
@@ -50,7 +49,6 @@ static void neutral_cuda_kernel(void *descr[], void *arg)
 	/* This is a dummy technique of course */
 	unsigned host_dst = 0;
 	cudaMemcpyAsync(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -105,6 +103,7 @@ static struct starpu_codelet redux_cl =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {redux_cuda_kernel, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {redux_opencl_kernel, NULL},
@@ -119,6 +118,7 @@ static struct starpu_codelet neutral_cl =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {neutral_cuda_kernel, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {neutral_opencl_kernel, NULL},
@@ -164,7 +164,6 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 	host_token++;
 
 	cudaMemcpyAsync(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -178,6 +177,7 @@ static struct starpu_codelet increment_cl =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {increment_cuda_kernel, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {increment_opencl_kernel, NULL},

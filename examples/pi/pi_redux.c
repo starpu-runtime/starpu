@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -252,7 +252,6 @@ static void init_cuda_func(void *descr[], void *cl_arg)
 {
         unsigned long *val = (unsigned long *)STARPU_VARIABLE_GET_PTR(descr[0]);
         cudaMemsetAsync(val, 0, sizeof(unsigned long), starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -262,6 +261,7 @@ static struct starpu_codelet init_codelet =
         .cpu_funcs_name = {"init_cpu_func", NULL},
 #ifdef STARPU_HAVE_CURAND
         .cuda_funcs = {init_cuda_func, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.modes = {STARPU_W},
         .nbuffers = 1
@@ -283,7 +283,6 @@ static void redux_cuda_func(void *descr[], void *cl_arg)
 	h_a += h_b;
 
 	cudaMemcpyAsync(d_a, &h_a, sizeof(h_a), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -301,6 +300,7 @@ static struct starpu_codelet redux_codelet =
 	.cpu_funcs_name = {"redux_cpu_func", NULL},
 #ifdef STARPU_HAVE_CURAND
 	.cuda_funcs = {redux_cuda_func, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2

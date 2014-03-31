@@ -46,6 +46,7 @@ static cudaStream_t out_transfer_streams[STARPU_MAXCUDADEVS];
 static cudaStream_t in_transfer_streams[STARPU_MAXCUDADEVS];
 static cudaStream_t peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
+static cudaEvent_t task_events[STARPU_MAXCUDADEVS];
 #endif /* STARPU_USE_CUDA */
 
 void
@@ -252,6 +253,10 @@ static void init_context(unsigned devid)
 
 	workerid = starpu_worker_get_id();
 
+	cures = cudaEventCreate(&task_events[workerid]);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+
 	cures = cudaStreamCreate(&streams[workerid]);
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
@@ -278,6 +283,7 @@ static void deinit_context(int workerid)
 	int devid = starpu_worker_get_devid(workerid);
 	int i;
 
+	cudaEventDestroy(task_events[workerid]);
 	cudaStreamDestroy(streams[workerid]);
 	cudaStreamDestroy(in_transfer_streams[devid]);
 	cudaStreamDestroy(out_transfer_streams[devid]);
@@ -327,20 +333,21 @@ void _starpu_init_cuda(void)
 	STARPU_ASSERT(ncudagpus <= STARPU_MAXCUDADEVS);
 }
 
-static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
+static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
 {
 	int ret;
 
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
 
-	struct timespec codelet_start, codelet_end;
-
 	int profiling = starpu_profiling_status_get();
 
 	STARPU_ASSERT(task);
 	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
+
+	_starpu_set_current_task(task);
+	args->current_task = j->task;
 
 	ret = _starpu_fetch_task_input(j);
 	if (ret != 0)
@@ -351,7 +358,7 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 		return -EAGAIN;
 	}
 
-	_starpu_driver_start_job(args, j, &codelet_start, 0, profiling);
+	_starpu_driver_start_job(args, j, &j->cl_start, 0, profiling);
 
 #if defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 	/* We make sure we do manipulate the proper device */
@@ -367,18 +374,28 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 		_starpu_simgrid_execute_job(j, &args->perf_arch, NAN);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-		if (cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC)
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif
 	}
 
+	return 0;
+}
+
+static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
+{
+	struct timespec codelet_end;
+
+	int profiling = starpu_profiling_status_get();
+
+	_starpu_set_current_task(NULL);
+	args->current_task = NULL;
+
 	_starpu_driver_end_job(args, j, &args->perf_arch, &codelet_end, 0, profiling);
 
-	_starpu_driver_update_job_feedback(j, args, &args->perf_arch, &codelet_start, &codelet_end, profiling);
+	_starpu_driver_update_job_feedback(j, args, &args->perf_arch, &j->cl_start, &codelet_end, profiling);
 
 	_starpu_push_task_output(j);
 
-	return 0;
+	_starpu_handle_job_termination(j);
 }
 
 /* XXX Should this be merged with _starpu_init_cuda ? */
@@ -440,12 +457,30 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *args)
 	unsigned memnode = args->memory_node;
 	int workerid = args->workerid;
 
-	_STARPU_TRACE_START_PROGRESS(memnode);
-	_starpu_datawizard_progress(memnode, 1);
-	_STARPU_TRACE_END_PROGRESS(memnode);
-
 	struct starpu_task *task;
-	struct _starpu_job *j = NULL;
+	struct _starpu_job *j;
+
+	task = starpu_task_get_current();
+
+	if (task)
+	{
+		/* On-going asynchronous task, check for its termination first */
+		cudaError_t cures = cudaEventQuery(task_events[workerid]);
+
+		if (cures != cudaSuccess)
+		{
+			/* Not ready yet, no better thing to do than waiting */
+			__starpu_datawizard_progress(memnode, 1, 0);
+
+			STARPU_ASSERT(cures == cudaErrorNotReady);
+			return 0;
+		}
+
+		/* Asynchronous task completed! */
+		finish_job_on_cuda(_starpu_get_job_associated_to_task(task), args);
+	}
+
+	__starpu_datawizard_progress(memnode, 1, 1);
 
 	task = _starpu_get_worker_task(args, workerid, memnode);
 
@@ -462,13 +497,8 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *args)
 		return 0;
 	}
 
-	_starpu_set_current_task(task);
-	args->current_task = j->task;
-
-	int res = execute_job_on_cuda(j, args);
-
-	_starpu_set_current_task(NULL);
-	args->current_task = NULL;
+	_STARPU_TRACE_END_PROGRESS(memnode);
+	int res = start_job_on_cuda(j, args);
 
 	if (res)
 	{
@@ -483,7 +513,23 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *args)
 		}
 	}
 
-	_starpu_handle_job_termination(j);
+#ifndef STARPU_SIMGRID
+	if (task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC)
+	{
+		/* Record event to synchronize with task termination later */
+		cudaEventRecord(task_events[workerid], starpu_cuda_get_local_stream());
+	}
+	else
+#else
+#ifdef STARPU_DEVEL
+#warning No CUDA asynchronous execution with simgrid yet.
+#endif
+#endif
+	/* Synchronous execution */
+	{
+		finish_job_on_cuda(j, args);
+	}
+	_STARPU_TRACE_START_PROGRESS(memnode);
 
 	return 0;
 }
@@ -516,8 +562,10 @@ void *_starpu_cuda_worker(void *arg)
 	struct _starpu_worker* args = arg;
 
 	_starpu_cuda_driver_init(args);
+	_STARPU_TRACE_START_PROGRESS(memnode);
 	while (_starpu_machine_is_running())
 		_starpu_cuda_driver_run_once(args);
+	_STARPU_TRACE_END_PROGRESS(memnode);
 	_starpu_cuda_driver_deinit(args);
 
 	return NULL;

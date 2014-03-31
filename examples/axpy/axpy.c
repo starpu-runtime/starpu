@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -71,7 +71,6 @@ void axpy_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 	TYPE *block_y = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 
 	CUBLASAXPY((int)n, alpha, block_x, 1, block_y, 1);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -84,6 +83,7 @@ static struct starpu_codelet axpy_cl =
 	.cpu_funcs = {axpy_cpu, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {axpy_gpu, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {axpy_opencl, NULL},

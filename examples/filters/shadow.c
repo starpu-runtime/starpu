@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2012-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -85,7 +85,6 @@ void cuda_func(void *buffers[], void *cl_arg)
 	/* If things go right, sizes should match */
 	STARPU_ASSERT(n == n2);
 	cudaMemcpyAsync(val2, val, n*sizeof(*val), cudaMemcpyDeviceToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -103,6 +102,7 @@ int main(int argc, char **argv)
                 .cpu_funcs_name = {"cpu_func", NULL},
 #ifdef STARPU_USE_CUDA
                 .cuda_funcs = {cuda_func, NULL},
+		.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
                 .nbuffers = 2,
 		.modes = {STARPU_R, STARPU_W}

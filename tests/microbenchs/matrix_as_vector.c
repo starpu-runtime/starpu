@@ -50,7 +50,6 @@ void vector_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	sum /= nx;
 
 	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif /* STARPU_USE_CUDA */
 }
 
@@ -82,7 +81,6 @@ void matrix_cuda_func(void *descr[], void *cl_arg STARPU_ATTRIBUTE_UNUSED)
 	sum /= nx*ny;
 
 	cudaMemcpyAsync(matrix, &sum, sizeof(matrix[0]), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 #endif /* STARPU_USE_CUDA */
 }
 
@@ -180,6 +178,7 @@ int check_size_on_device(uint32_t where, char *device_name)
 	vector_codelet.nbuffers = 1;
 	if (where == STARPU_CPU) vector_codelet.cpu_funcs[0] = vector_cpu_func;
 	if (where == STARPU_CUDA) vector_codelet.cuda_funcs[0] = vector_cuda_func;
+	if (where == STARPU_CUDA) vector_codelet.cuda_flags[0] = STARPU_CUDA_ASYNC;
 //	if (where == STARPU_OPENCL) vector_codelet.opencl_funcs[0] = vector_opencl_func;
 
 	starpu_codelet_init(&matrix_codelet);
@@ -187,6 +186,7 @@ int check_size_on_device(uint32_t where, char *device_name)
 	matrix_codelet.nbuffers = 1;
 	if (where == STARPU_CPU) matrix_codelet.cpu_funcs[0] = matrix_cpu_func;
 	if (where == STARPU_CUDA) matrix_codelet.cuda_funcs[0] = matrix_cuda_func;
+	if (where == STARPU_CUDA) vector_codelet.cuda_flags[0] = STARPU_CUDA_ASYNC;
 //	if (where == STARPU_OPENCL) matrix_codelet.opencl_funcs[0] = matrix_opencl_func;
 
 	for(nx=NX_MIN ; nx<=NX_MAX ; nx*=2)

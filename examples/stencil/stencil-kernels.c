@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -264,10 +264,6 @@ static void update_func_cuda(void *descr[], void *arg)
 #endif /* LIFE */
 	}
 
-	cudaError_t cures;
-	if ((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess)
-		STARPU_CUDA_REPORT_ERROR(cures);
-
 	if (block->bz == 0)
 		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
 }
@@ -465,6 +461,7 @@ struct starpu_codelet cl_update =
 	.cpu_funcs_name = {"update_func_cpu", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {update_func_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {update_func_opencl, NULL},
@@ -591,7 +588,6 @@ static void dummy_func_top_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg
 
 	load_subblock_into_buffer_cuda(descr[0], descr[2], block_size_z);
 	load_subblock_into_buffer_cuda(descr[1], descr[3], block_size_z);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 
 /* bottom save, CUDA version */
@@ -605,7 +601,6 @@ static void dummy_func_bottom_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *
 
 	load_subblock_into_buffer_cuda(descr[0], descr[2], K);
 	load_subblock_into_buffer_cuda(descr[1], descr[3], K);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif /* STARPU_USE_CUDA */
 
@@ -667,6 +662,7 @@ struct starpu_codelet save_cl_bottom =
 	.cpu_funcs_name = {"dummy_func_bottom_cpu", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dummy_func_bottom_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {dummy_func_bottom_opencl, NULL},
@@ -682,6 +678,7 @@ struct starpu_codelet save_cl_top =
 	.cpu_funcs_name = {"dummy_func_top_cpu", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dummy_func_top_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {dummy_func_top_opencl, NULL},

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -211,7 +211,6 @@ static void band_filter_kernel_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *
 
 	/* FFTW does not normalize its output ! */
 	cublasSscal (nsamples, 1.0f/nsamples, localA, 1);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -284,6 +283,7 @@ static struct starpu_codelet band_filter_cl =
 	.modes = { STARPU_RW },
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {band_filter_kernel_gpu, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.cpu_funcs = {band_filter_kernel_cpu, NULL},
 	.model = &band_filter_model,

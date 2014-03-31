@@ -31,5 +31,4 @@ extern "C" void redux_cuda_func(void *descr[], void *_args)
 	DOT_TYPE *dotb = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
 	cuda_redux<<<1,1, 0, starpu_cuda_get_local_stream()>>>(dota, dotb);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
