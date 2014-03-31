@@ -1697,9 +1697,12 @@ int starpu_sched_ctx_book_workers_for_task(unsigned sched_ctx_id, int *workerids
 	{
 		if(current_worker_id == -1)
 		{
-			final_workerids[nfinal_workerids++] = workerids[w];
-			if(nfinal_workerids == nworkers)
-				master = workerids[nfinal_workerids-1];
+			final_workerids[nfinal_workerids++] = workerids[w];                          
+			if(nfinal_workerids == nworkers - 1)                         
+			{
+				master = workerids[nfinal_workerids];  
+				break;  
+			}
 		}
 		else
 		{
