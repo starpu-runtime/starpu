@@ -219,6 +219,7 @@ noinst_PROGRAMS =				\
 	microbenchs/redundant_buffer		\
 	microbenchs/local_pingpong		\
 	microbenchs/matrix_as_vector		\
+	openmp/init_exit			\
 	overlap/overlap				\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
@@ -427,6 +428,9 @@ if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_tag_SOURCES +=		\
 	main/increment.cu
 endif
+
+openmp_init_exit_SOURCES = 	\
+	openmp/init_exit.c
 
 ###################
 # Block interface #
