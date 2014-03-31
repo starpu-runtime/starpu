@@ -839,6 +839,9 @@ profiling:
 		}
 	}
 
+	if(task->prologue_callback_pop_func)
+		task->prologue_callback_pop_func(task->prologue_callback_pop_arg);
+
 	return task;
 }
 
