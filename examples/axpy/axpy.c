@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -181,8 +181,6 @@ int main(int argc, char **argv)
 
 		task->handles[0] = starpu_data_get_sub_data(_handle_x, 1, b);
 		task->handles[1] = starpu_data_get_sub_data(_handle_y, 1, b);
-		fprintf(stderr,"sub x %d %p\n", b, task->handles[0]);
-		fprintf(stderr,"sub y %d %p\n", b, task->handles[1]);
 
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV)

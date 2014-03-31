@@ -261,7 +261,6 @@ cl_int starpu_opencl_copy_ram_to_opencl(void *ptr, unsigned src_node STARPU_ATTR
 
 	cl_event ev;
 	err = clEnqueueWriteBuffer(in_transfer_queues[worker->devid], buffer, CL_FALSE, offset, size, ptr, 0, NULL, &ev);
-	fprintf(stderr,"pushed to in queue from %p\n", ptr);
 
 	if (event)
 		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);

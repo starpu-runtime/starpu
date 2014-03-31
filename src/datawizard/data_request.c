@@ -466,7 +466,6 @@ int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 
 		r = _starpu_data_request_list_pop_front(local_list);
 
-		fprintf(stderr,"handling request for %p\n", r->handle);
 		res = starpu_handle_data_request(r, may_alloc, 0);
 		if (res != 0 && res != -EAGAIN)
 		{
@@ -652,7 +651,6 @@ static void _handle_pending_node_data_requests(unsigned src_node, unsigned force
 		{
 			if (_starpu_driver_test_request_completion(&r->async_channel))
 			{
-				fprintf(stderr,"request for %p finished\n", r->handle);
 				/* The request was completed */
 				starpu_handle_data_request_completion(r);
 			}
