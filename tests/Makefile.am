@@ -220,6 +220,7 @@ noinst_PROGRAMS =				\
 	microbenchs/local_pingpong		\
 	microbenchs/matrix_as_vector		\
 	openmp/init_exit			\
+	openmp/environment			\
 	overlap/overlap				\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
@@ -431,6 +432,9 @@ endif
 
 openmp_init_exit_SOURCES = 	\
 	openmp/init_exit.c
+
+openmp_environment_SOURCES = 	\
+	openmp/environment.c
 
 ###################
 # Block interface #
