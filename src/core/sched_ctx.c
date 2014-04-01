@@ -1645,7 +1645,7 @@ void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void* param, uns
 {
 	int *workerids;
 	int nworkers = starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
-	int master = starpu_sched_ctx_book_workers_for_task(sched_ctx_id, workerids, nworkers);
+	_starpu_sched_ctx_get_workers_to_sleep(sched_ctx_id, workerids, nworkers, -1);
 
 	/* bind current thread on all workers of the context */
 	_starpu_sched_ctx_bind_thread_to_ctx_cpus(sched_ctx_id);
@@ -1654,7 +1654,7 @@ void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void* param, uns
 	void* ret = func(param);
 
 	/* wake up starpu workers */
-	starpu_sched_ctx_unbook_workers_for_task(sched_ctx_id, master);
+	_starpu_sched_ctx_wake_up_workers(sched_ctx_id, -1);
 
 	return ret;
 }
@@ -1697,9 +1697,12 @@ int starpu_sched_ctx_book_workers_for_task(unsigned sched_ctx_id, int *workerids
 	{
 		if(current_worker_id == -1)
 		{
-			final_workerids[nfinal_workerids++] = workerids[w];
-			if(nfinal_workerids == nworkers)
-				master = workerids[nfinal_workerids-1];
+			final_workerids[nfinal_workerids++] = workerids[w];                          
+			if(nfinal_workerids == nworkers - 1)                         
+			{
+				master = workerids[nfinal_workerids];  
+				break;  
+			}
 		}
 		else
 		{
