@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2009-2014  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012  Institut National de Recherche en Informatique et Automatique
@@ -2048,8 +2048,7 @@ AC_MSG_NOTICE([
 
 	Compile-time limits
 	(change these with --enable-maxcpus, --enable-maxcudadev,
-	--enable-maxopencldev, --enable-maxnodes,
-        --enable-maxbuffers)
+	--enable-maxopencldev, --enable-maxbuffers)
         (Note these numbers do not represent the number of detected
 	devices, but the maximum number of devices StarPU can manage)
 
