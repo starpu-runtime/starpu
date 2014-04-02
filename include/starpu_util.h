@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -194,7 +194,7 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_SYNCHRONIZE() __asm__ __volatile__("sync" ::: "memory")
 #endif
 
-#if defined(__i386__)
+#if defined(__i386__) || defined(__KNC__) || defined(__KNF__)
 #define STARPU_RMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
 #define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
 #elif defined(__x86_64__)
