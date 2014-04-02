@@ -615,8 +615,11 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "data %p needs to be unpartitioned before unregistration", handle);
 	STARPU_ASSERT(!(nowait && handle->busy_count != 0));
 
+	/* no need to forbid the unregister in a task or callback when we have only CPUs,
+	   the data is on the RAM anyway */
+	unsigned only_cpus = _starpu_worker_have_only_CPUs();
 	int sequential_consistency = handle->sequential_consistency;
-	if (sequential_consistency && !nowait)
+	if (sequential_consistency && !nowait && !only_cpus)
 	{
 		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_data_unregister must not be called from a task or callback, perhaps you can use starpu_data_unregister_submit instead");
 
