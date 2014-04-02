@@ -394,14 +394,14 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 
 	if (r->retval == -EAGAIN)
 	{
-		/* The request was successful, but could not be terminted
-		 * immediatly. We will handle the completion of the request
+		/* The request was successful, but could not be terminated
+		 * immediately. We will handle the completion of the request
 		 * asynchronously. The request is put in the list of "pending"
 		 * requests in the meantime. */
 		_starpu_spin_unlock(&handle->header_lock);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[r->handling_node]);
-		_starpu_data_request_list_push_front(data_requests_pending[r->handling_node], r);
+		_starpu_data_request_list_push_back(data_requests_pending[r->handling_node], r);
 		data_requests_npending[r->handling_node]++;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[r->handling_node]);
 
