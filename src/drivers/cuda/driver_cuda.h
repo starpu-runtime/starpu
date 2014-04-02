@@ -48,8 +48,8 @@ void *_starpu_cuda_worker(void *);
 #  define _starpu_cuda_discover_devices(config) ((void) config)
 #endif
 #ifdef STARPU_USE_CUDA
-cudaStream_t starpu_cuda_get_in_transfer_stream(unsigned node);
-cudaStream_t starpu_cuda_get_out_transfer_stream(unsigned node);
+cudaStream_t starpu_cuda_get_local_in_transfer_stream(void);
+cudaStream_t starpu_cuda_get_local_out_transfer_stream(void);
 cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned dst_node);
 
 struct _starpu_worker;
