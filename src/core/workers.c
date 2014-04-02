@@ -1952,11 +1952,3 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 	return nsched_ctxs;
 }
 
-unsigned _starpu_worker_have_only_CPUs()
-{
-	int i;
-	for(i = 0; i < STARPU_NMAXWORKERS; i++)
-		if(config.workers[i].arch != STARPU_CPU_WORKER)
-			return 0;
-	return 1;
-}
