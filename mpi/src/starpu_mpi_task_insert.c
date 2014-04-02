@@ -279,6 +279,22 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			va_arg(varg_list_copy, void *);
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+                {
+                        (void)va_arg(varg_list, _starpu_callback_func_t);
+		}
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+                {
+                        (void)va_arg(varg_list, void *);
+                }
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
+                {
+			(void)va_arg(varg_list, _starpu_callback_func_t);
+                }
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+                {
+                        (void)va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			va_arg(varg_list_copy, int);
@@ -411,6 +427,22 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		{
 			va_arg(varg_list_copy, void *);
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+                {
+                        (void)va_arg(varg_list, _starpu_callback_func_t);
+		}
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+                {
+                        (void)va_arg(varg_list, void *);
+                }
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
+                {
+			(void)va_arg(varg_list, _starpu_callback_func_t);
+                }
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+                {
+                        (void)va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			va_arg(varg_list_copy, int);
@@ -534,6 +566,22 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, struct starpu_codelet *codelet, 
 		else if (arg_type==STARPU_CALLBACK_ARG)
 		{
 			va_arg(varg_list_copy, void *);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+                {
+                        (void)va_arg(varg_list, _starpu_callback_func_t);
+		}
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+                {
+                        (void)va_arg(varg_list, void *);
+                }
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
+                {
+			(void)va_arg(varg_list, _starpu_callback_func_t);
+                }
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+                {
+                        (void)va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
