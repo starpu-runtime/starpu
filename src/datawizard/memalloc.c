@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -301,7 +301,8 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 		mc->size = _starpu_data_get_size(handle);
 	}
 
-	mc->replicate->mc=NULL;
+	if (mc->replicate)
+		mc->replicate->mc=NULL;
 
 	/* free the actual buffer */
 	size = free_memory_on_node(mc, node);
@@ -414,9 +415,12 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	 * piece of data */
 
 	struct _starpu_data_replicate *old_replicate = mc->replicate;
-	old_replicate->allocated = 0;
-	old_replicate->automatically_allocated = 0;
-	old_replicate->initialized = 0;
+	if (old_replicate)
+	{
+		old_replicate->allocated = 0;
+		old_replicate->automatically_allocated = 0;
+		old_replicate->initialized = 0;
+	}
 
 	new_replicate->allocated = 1;
 	new_replicate->automatically_allocated = 1;
@@ -763,6 +767,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 
 	/* This memchunk doesn't have to do with the data any more. */
 	replicate->mc = NULL;
+	mc->replicate = NULL;
 	replicate->allocated = 0;
 	replicate->automatically_allocated = 0;
 
