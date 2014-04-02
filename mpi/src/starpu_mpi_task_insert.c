@@ -30,6 +30,8 @@
 #include <starpu_mpi_task_insert.h>
 #include <starpu_mpi_cache.h>
 
+typedef void (*_starpu_callback_func_t)(void *);
+
 static
 int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *dest, size_t *size_on_nodes)
 {
