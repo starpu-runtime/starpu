@@ -202,11 +202,20 @@ struct starpu_omp_thread
 	struct starpu_omp_region *owner_region;
 
 	/*
+	 * stack to execute the initial thread over
+	 * when preempting the initial task
+	 * note: should not be used for other threads
+	 */
+	void *initial_thread_stack;
+
+	/*
 	 * context to store the 'scheduler' state of the thread,
 	 * to which the execution of thread comes back upon a
 	 * blocking/recursive task operation
 	 */
 	ucontext_t ctx;
+
+	struct starpu_driver starpu_driver;
 };
 
 struct starpu_omp_region
