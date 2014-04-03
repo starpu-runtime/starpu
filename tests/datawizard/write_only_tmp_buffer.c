@@ -40,7 +40,6 @@ static void opencl_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_ar
 
         starpu_opencl_get_queue(devid, &queue);
         clEnqueueWriteBuffer(queue, buf, CL_TRUE, 0, sizeof(char), &ptr, 0, NULL, NULL);
-	clFinish(queue);
 }
 #endif
 
@@ -83,6 +82,7 @@ static struct starpu_codelet cl =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_codelet_null, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs_name = {"cpu_codelet_null", NULL},
 	.nbuffers = 1,

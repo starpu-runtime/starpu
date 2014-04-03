@@ -99,6 +99,7 @@ int main(int argc, char **argv)
 #endif
 #ifdef STARPU_USE_OPENCL
                 .opencl_funcs = {opencl_func, NULL},
+		.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 		.nbuffers = 1,
                 .modes = {STARPU_RW},

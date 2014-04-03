@@ -68,7 +68,6 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 			     0,      /* num_events_in_wait_list */
 			     NULL,   /* event_wait_list */
 			     NULL    /* event */);
-	clFinish(queue);
 }
 #endif
 
@@ -91,6 +90,7 @@ static struct starpu_codelet memset_cl =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_memset_codelet, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs_name = {"cpu_memset_codelet", NULL},
 	.nbuffers = 1,

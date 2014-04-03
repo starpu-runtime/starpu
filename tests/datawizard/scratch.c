@@ -71,6 +71,7 @@ static struct starpu_codelet cl_f =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_f, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs_name = {"cpu_f", NULL},
 	.nbuffers = 2,

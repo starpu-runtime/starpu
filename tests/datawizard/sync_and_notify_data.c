@@ -109,6 +109,7 @@ int main(int argc, char **argv)
 #endif
 #ifdef STARPU_USE_OPENCL
 				.opencl_funcs = {opencl_codelet_incA, NULL},
+				.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 				.cpu_funcs_name = {"cpu_codelet_incA", NULL},
 				.nbuffers = 1,
@@ -147,6 +148,7 @@ int main(int argc, char **argv)
 #endif
 #ifdef STARPU_USE_OPENCL
 				.opencl_funcs = {opencl_codelet_incC, NULL},
+				.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 				.cpu_funcs_name = {"cpu_codelet_incC", NULL},
 				.nbuffers = 1,

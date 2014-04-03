@@ -64,6 +64,7 @@ static struct starpu_codelet cl =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_codelet_unsigned_inc, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},

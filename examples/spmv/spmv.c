@@ -102,6 +102,7 @@ static struct starpu_codelet spmv_cl =
 #endif
 #ifdef STARPU_USE_OPENCL
         .opencl_funcs = {spmv_kernel_opencl, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_W},

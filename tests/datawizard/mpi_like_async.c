@@ -92,6 +92,7 @@ static struct starpu_codelet increment_handle_cl =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = { opencl_codelet_unsigned_inc, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs_name = {"increment_handle_cpu_kernel", NULL},
 	.nbuffers = 1

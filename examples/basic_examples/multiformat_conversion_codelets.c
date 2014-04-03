@@ -69,6 +69,7 @@ extern void cpu_to_opencl_opencl_func(void *buffers[], void *args);
 struct starpu_codelet cpu_to_opencl_cl =
 {
 	.opencl_funcs = {cpu_to_opencl_opencl_func, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 	.nbuffers = 1
 };
 
