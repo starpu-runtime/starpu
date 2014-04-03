@@ -87,15 +87,10 @@ void cpu_to_opencl_opencl_func(void *buffers[], void *args)
 				&local,  /* local_work_size */
 				0,       /* num_events_in_wait_list */
 				NULL,    /* event_wait_list */
-				&event);
+				NULL);
 
 		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);
 	}
-
-	clFinish(queue);
-	starpu_opencl_collect_stats(event);
-	clReleaseEvent(event);
-
 	starpu_opencl_release_kernel(kernel);
 }

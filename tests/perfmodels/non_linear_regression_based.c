@@ -60,6 +60,7 @@ static struct starpu_codelet memset_cl =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {memset_opencl, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs = {memset_cpu, NULL},
 	.cpu_funcs_name = {"memset_cpu", NULL},

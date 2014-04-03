@@ -174,15 +174,10 @@ void redux_opencl_func(void *buffers[], void *args)
                 if (local > global)
 			local=global;
 
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);
 	}
-
-	clFinish(queue);
-	starpu_opencl_collect_stats(event);
-	clReleaseEvent(event);
-
 	starpu_opencl_release_kernel(kernel);
 }
 #endif
@@ -198,6 +193,7 @@ static struct starpu_codelet redux_codelet =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {redux_opencl_func, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2,
@@ -293,15 +289,10 @@ void dot_opencl_func(void *buffers[], void *args)
                 if (local > global)
 			local=global;
 
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);
 	}
-
-	clFinish(queue);
-	starpu_opencl_collect_stats(event);
-	clReleaseEvent(event);
-
 	starpu_opencl_release_kernel(kernel);
 }
 #endif
@@ -317,6 +308,7 @@ static struct starpu_codelet dot_codelet =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {dot_opencl_func, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_REDUX},

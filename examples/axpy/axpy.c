@@ -87,6 +87,7 @@ static struct starpu_codelet axpy_cl =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {axpy_opencl, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},

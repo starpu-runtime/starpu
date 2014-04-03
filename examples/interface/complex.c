@@ -57,6 +57,7 @@ struct starpu_codelet cl_copy =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {copy_complex_codelet_opencl, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W},

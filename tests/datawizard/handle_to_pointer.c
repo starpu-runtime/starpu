@@ -77,7 +77,6 @@ static void opencl_task(void *buffers[], void *args)
 				NULL,           /* event_wait_list */
 				NULL            /* event */);
 	}
-	clFinish(queue);
 }
 #endif
 
@@ -90,6 +89,7 @@ static struct starpu_codelet cl =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_task, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs_name = {"cpu_task", NULL},
 	.nbuffers = 1,

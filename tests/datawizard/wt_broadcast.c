@@ -37,7 +37,6 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE
 	clEnqueueReadBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
 	h_token++;
 	clEnqueueWriteBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
-	clFinish(queue);
 }
 #endif
 
@@ -72,6 +71,7 @@ static struct starpu_codelet increment_cl =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {increment_opencl_kernel, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs = {increment_cpu_kernel, NULL},
 	.nbuffers = 1,

@@ -23,6 +23,7 @@ struct starpu_codelet mycodelet =
 	.cpu_funcs = { scal_func_cpu, NULL },
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = { scal_func_opencl, NULL },
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = { scal_func_cuda, NULL },
