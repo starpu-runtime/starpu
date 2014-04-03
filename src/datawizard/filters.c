@@ -338,7 +338,6 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		_starpu_spin_lock(&child_handle->header_lock);
 
 		_starpu_data_unregister_ram_pointer(child_handle);
-		_starpu_data_free_interfaces(child_handle);
 
 		for (worker = 0; worker < nworkers; worker++)
 		{
@@ -421,6 +420,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	for (child = 0; child < root_handle->nchildren; child++)
 	{
 		starpu_data_handle_t child_handle = starpu_data_get_child(root_handle, child);
+		_starpu_data_free_interfaces(child_handle);
 		_starpu_spin_unlock(&child_handle->header_lock);
 		_starpu_spin_destroy(&child_handle->header_lock);
 

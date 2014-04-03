@@ -48,6 +48,8 @@ Changes:
   * New functions starpu_pause() and starpu_resume()
   * New codelet specific_nodes field to specify explicit target nodes for data.
   * StarPU-MPI: Fix overzealous allocation of memory.
+  * Interfaces: Allow interface implementation to change pointers at will, in
+    unpack notably.
 
 StarPU 1.1.0 (svn revision 11960)
 ==============================================
