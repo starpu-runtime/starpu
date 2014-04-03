@@ -644,9 +644,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 								  &mic_worker_set[devid].mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&mic_worker_set[devid].mutex);
 
+				mic_worker_set[devid].started = 1;
 		worker_set_initialized:
 				workerarg->set = &mic_worker_set[devid];
-				mic_worker_set[devid].started = 1;
 
 #ifdef STARPU_USE_FXT
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
