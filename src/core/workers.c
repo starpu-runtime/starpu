@@ -648,13 +648,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		worker_set_initialized:
 				workerarg->set = &mic_worker_set[devid];
 
-#ifdef STARPU_USE_FXT
-				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-				while (!workerarg->worker_is_running)
-					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-#endif
-
 				break;
 #endif /* STARPU_USE_MIC */
 #ifdef STARPU_USE_SCC
