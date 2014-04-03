@@ -608,8 +608,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #endif
 #ifdef STARPU_USE_MIC
 			case STARPU_MIC_WORKER:
-				/* We use the Gordon approach for the MIC,
-				 * which consists in spawning only one thread
+				/* We spawn only one thread
 				 * per MIC device, which will control all MIC
 				 * workers of this device. (by using a worker set). */
 				if (mic_worker_set[devid].started)
