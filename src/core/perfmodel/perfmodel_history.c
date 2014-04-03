@@ -56,7 +56,7 @@ size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_p
 {
 	struct starpu_task *task = j->task;
 
-	if (model && model->per_arch[arch->type][arch->devid][arch->ncore][nimpl].size_base)
+	if (model && model->per_arch && model->per_arch[arch->type][arch->devid][arch->ncore][nimpl].size_base)
 	{
 		return model->per_arch[arch->type][arch->devid][arch->ncore][nimpl].size_base(task, arch, nimpl);
 	}

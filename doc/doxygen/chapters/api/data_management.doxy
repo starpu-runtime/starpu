@@ -163,9 +163,9 @@ will commit their changes in main memory (node 0).
 Issue a prefetch request for a given data to a given node, i.e.
 requests that the data be replicated to the given node, so that it is
 available there for tasks. If the \p async parameter is 0, the call will
-block until the transfer is achieved, else the call will return as
-soon as the request is scheduled (which may however have to wait for a
-task completion).
+block until the transfer is achieved, else the call will return immediately,
+after having just queued the request. In the latter case, the request will
+asynchronously wait for the completion of any task writing on the data.
 
 \fn starpu_data_handle_t starpu_data_lookup(const void *ptr)
 \ingroup API_Data_Management

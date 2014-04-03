@@ -50,7 +50,7 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struc
 	{
 		footprint = model->footprint(task);
 	}
-	else if (model != NULL && 
+	else if (model != NULL && model->per_arch &&
 			model->per_arch[arch->type] != NULL &&
 			model->per_arch[arch->type][arch->devid] != NULL &&
 			model->per_arch[arch->type][arch->devid][arch->ncore] != NULL &&

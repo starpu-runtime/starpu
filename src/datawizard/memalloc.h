@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2010, 2012-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,11 +33,13 @@ LIST_TYPE(_starpu_mem_chunk,
 
 	uint32_t footprint;
 
-	/* The footprint of the data is not sufficient to determine whether two
-	 * pieces of data have the same layout (there could be collision in the
-	 * hash function ...) so we still keep a copy of the actual layout (ie.
-	 * the data interface) to stay on the safe side. We make a copy of
-	 * because when a data is deleted, the memory chunk remains.
+	/*
+	 * When re-using a memchunk, the footprint of the data is not
+	 * sufficient to determine whether two pieces of data have the same
+	 * layout (there could be collision in the hash function ...) so we
+	 * still keep a copy of the actual layout (ie. the data interface) to
+	 * stay on the safe side while the memchunk is detached from an actual
+	 * data.
 	 */
 	struct starpu_data_interface_ops *ops;
 	void *chunk_interface;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -259,6 +259,8 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 	if (mc->automatically_allocated &&
 		(!handle || replicate->refcnt == 0))
 	{
+		void *interface;
+
 		if (handle)
 			STARPU_ASSERT(replicate->allocated);
 
@@ -273,8 +275,14 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 		}
 #endif
 
+		if (handle)
+			interface = replicate->data_interface;
+		else
+			interface = mc->chunk_interface;
+		STARPU_ASSERT(interface);
+
 		_STARPU_TRACE_START_FREE(node, mc->size);
-		mc->ops->free_data_on_node(mc->chunk_interface, node);
+		mc->ops->free_data_on_node(interface, node);
 		_STARPU_TRACE_END_FREE(node);
 
 		if (handle)
@@ -301,7 +309,8 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 		mc->size = _starpu_data_get_size(handle);
 	}
 
-	mc->replicate->mc=NULL;
+	if (mc->replicate)
+		mc->replicate->mc=NULL;
 
 	/* free the actual buffer */
 	size = free_memory_on_node(mc, node);
@@ -309,7 +318,6 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	/* remove the mem_chunk from the list */
 	_starpu_mem_chunk_list_erase(mc_list[node], mc);
 
-	free(mc->chunk_interface);
 	_starpu_mem_chunk_delete(mc);
 
 	return size;
@@ -351,7 +359,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 		if (mc->replicate->refcnt == 0)
 		{
-			/* Note taht there is no need to transfer any data or
+			/* Note that there is no need to transfer any data or
 			 * to update the status in terms of MSI protocol
 			 * because this memchunk is associated to a replicate
 			 * in "relaxed coherency" mode. */
@@ -409,22 +417,36 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
  * therefore not in the cache. */
 static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_replicate, struct _starpu_mem_chunk *mc, unsigned is_already_in_mc_list)
 {
+	void *interface;
+
 	/* we found an appropriate mem chunk: so we get it out
 	 * of the "to free" list, and reassign it to the new
 	 * piece of data */
 
 	struct _starpu_data_replicate *old_replicate = mc->replicate;
-	old_replicate->allocated = 0;
-	old_replicate->automatically_allocated = 0;
-	old_replicate->initialized = 0;
+	if (old_replicate)
+	{
+		old_replicate->allocated = 0;
+		old_replicate->automatically_allocated = 0;
+		old_replicate->initialized = 0;
+		interface = old_replicate->data_interface;
+	}
+	else
+		interface = mc->chunk_interface;
 
 	new_replicate->allocated = 1;
 	new_replicate->automatically_allocated = 1;
 	new_replicate->initialized = 0;
 
 	STARPU_ASSERT(new_replicate->data_interface);
-	STARPU_ASSERT(mc->chunk_interface);
-	memcpy(new_replicate->data_interface, mc->chunk_interface, mc->size_interface);
+	STARPU_ASSERT(interface);
+	memcpy(new_replicate->data_interface, interface, mc->size_interface);
+
+	if (!old_replicate)
+	{
+		free(mc->chunk_interface);
+		mc->chunk_interface = NULL;
+	}
 
 	mc->data = new_replicate->handle;
 	/* mc->ops, mc->footprint and mc->interface should be
@@ -717,12 +739,8 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	mc->relaxed_coherency = replicate->relaxed_coherency;
 	mc->replicate = replicate;
 	mc->replicate->mc = mc;
-
-	/* Save a copy of the interface */
-	mc->chunk_interface = malloc(interface_size);
+	mc->chunk_interface = NULL;
 	mc->size_interface = interface_size;
-	STARPU_ASSERT(mc->chunk_interface);
-	memcpy(mc->chunk_interface, replicate->data_interface, interface_size);
 
 	return mc;
 }
@@ -761,8 +779,14 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	 * by freeing this.  */
 	mc->size = size;
 
+	/* Also keep the interface parameters and pointers, for later reuse
+	 * while detached, or freed */
+	mc->chunk_interface = malloc(mc->size_interface);
+	memcpy(mc->chunk_interface, replicate->data_interface, mc->size_interface);
+
 	/* This memchunk doesn't have to do with the data any more. */
 	replicate->mc = NULL;
+	mc->replicate = NULL;
 	replicate->allocated = 0;
 	replicate->automatically_allocated = 0;
 

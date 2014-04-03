@@ -87,6 +87,8 @@ Changes:
   * StarPU-MPI: Fix for being able to receive data with the same tag
     from several nodes (see mpi/tests/gather.c)
   * StarPU-MPI: Fix overzealous allocation of memory.
+  * Interfaces: Allow interface implementation to change pointers at will, in
+    unpack notably.
 
 Small changes:
   * Rename function starpu_trace_user_event() as

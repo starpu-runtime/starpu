@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -934,7 +934,7 @@ static void _starpu_mpi_copy_cb(void* arg)
 		struct starpu_data_interface_ops *itf_src = starpu_data_get_interface_ops(args->copy_handle);
 		struct starpu_data_interface_ops *itf_dst = starpu_data_get_interface_ops(args->data_handle);
 		STARPU_ASSERT_MSG(itf_dst->unpack_data, "The data interface does not define an unpack function\n");
-		itf_dst->unpack_data(args->data_handle, 0, args->buffer, itf_src->get_size(args->copy_handle));
+		itf_dst->unpack_data(args->data_handle, STARPU_MAIN_RAM, args->buffer, itf_src->get_size(args->copy_handle));
 		free(args->buffer);
 	}
 	else
@@ -946,12 +946,12 @@ static void _starpu_mpi_copy_cb(void* arg)
 		if (!itf->copy_methods->ram_to_ram)
 		{
 			_STARPU_MPI_DEBUG(3, "Initiating any_to_any copy..\n");
-			itf->copy_methods->any_to_any(itf_src, 0, itf_dst, 0, NULL);
+			itf->copy_methods->any_to_any(itf_src, STARPU_MAIN_RAM, itf_dst, STARPU_MAIN_RAM, NULL);
 		}
 		else
 		{
 			_STARPU_MPI_DEBUG(3, "Initiating ram_to_ram copy..\n");
-			itf->copy_methods->ram_to_ram(itf_src, 0, itf_dst, 0);
+			itf->copy_methods->ram_to_ram(itf_src, STARPU_MAIN_RAM, itf_dst, STARPU_MAIN_RAM);
 		}
 	}
 
