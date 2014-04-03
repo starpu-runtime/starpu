@@ -460,7 +460,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *args)
 	struct starpu_task *task;
 	struct _starpu_job *j;
 
-	task = starpu_task_get_current();
+	task = args->current_task;
 
 	if (task)
 	{
