@@ -514,7 +514,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
 #ifdef STARPU_USE_MIC
 		unsigned devid = workerarg->devid;
-		unsigned subworkerid = workerarg->subworkerid;
 #endif
 
 		_STARPU_DEBUG("initialising worker %u/%u\n", worker, nworkers);
