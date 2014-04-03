@@ -185,6 +185,9 @@ struct starpu_task
 	double flops;
 
 	unsigned scheduled;
+#ifdef STARPU_OPENMP
+	struct starpu_omp_task *omp_task;
+#endif
 };
 
 #define STARPU_TASK_INITIALIZER 			\

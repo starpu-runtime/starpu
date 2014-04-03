@@ -226,6 +226,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	util/file.c						\
 	util/misc.c						\
 	util/openmp_runtime_support.c				\
+	util/openmp_runtime_support_environment.c		\
+	util/openmp_runtime_support_omp_api.c			\
 	util/starpu_data_cpy.c					\
 	util/starpu_task_insert.c				\
 	util/starpu_task_insert_utils.c				\

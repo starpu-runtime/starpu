@@ -21,6 +21,14 @@
 
 #ifdef STARPU_OPENMP
 
+/* ucontexts have been deprecated as of POSIX 1-2004
+ * _XOPEN_SOURCE required at least on OS/X
+ * 
+ * TODO: add detection in configure.ac
+ */
+#define _XOPEN_SOURCE
+#include <ucontext.h>
+
 /*
  * Arbitrary limit on the number of nested parallel sections
  */
@@ -150,8 +158,91 @@ struct starpu_omp_initial_icv_values
 	struct starpu_omp_place places;
 };
 
-extern struct starpu_omp_global_icvs *starpu_omp_global_icvs;
-extern struct starpu_omp_initial_icv_values *starpu_omp_initial_icv_values;
+enum starpu_omp_task_state
+{
+	starpu_omp_task_state_clear      = 0,
+	starpu_omp_task_state_preempted  = 1,
+	starpu_omp_task_state_terminated = 2,
+};
+
+struct starpu_omp_task
+{
+	struct starpu_omp_task *parent_task;
+	struct starpu_omp_thread *owner_thread;
+	struct starpu_omp_region *owner_region;
+	int is_implicit;
+	struct starpu_omp_data_environment_icvs data_env_icvs;
+	struct starpu_omp_implicit_task_icvs implicit_task_icvs;
+
+	struct starpu_task *starpu_task;
+	void **starpu_buffers;
+	void *starpu_cl_arg;
+
+	/* actual task function to be run */
+	void (*f)(void **, void*);
+
+	enum starpu_omp_task_state state;
+
+	/* 
+	 * context to store the processing state of the task
+	 * in case of blocking/recursive task operation
+	 */
+	ucontext_t ctx;
+
+	/*
+	 * stack to execute the task over, to be able to switch
+	 * in case blocking/recursive task operation
+	 */
+	void *stack;
+};
+
+struct starpu_omp_thread
+{
+	struct starpu_omp_task *current_task;
+	struct starpu_omp_region *owner_region;
+
+	/*
+	 * context to store the 'scheduler' state of the thread,
+	 * to which the execution of thread comes back upon a
+	 * blocking/recursive task operation
+	 */
+	ucontext_t ctx;
+};
+
+struct starpu_omp_region
+{
+	struct starpu_omp_region *parent_region;
+	struct starpu_omp_device *owner_device;
+	/* note: the list of threads include the master_thread as first element */
+	struct starpu_omp_thread **threads_list;
+	int nb_threads;
+};
+
+struct starpu_omp_device
+{
+	struct starpu_omp_device_icvs icvs;
+};
+
+struct starpu_omp_global
+{
+	struct starpu_omp_global_icvs icvs;
+	struct starpu_omp_task *initial_task;
+	struct starpu_omp_thread *initial_thread;
+	struct starpu_omp_region *initial_region;
+	struct starpu_omp_device *initial_device;
+};
+
+/* 
+ * internal global variables
+ */
+extern struct starpu_omp_initial_icv_values *_starpu_omp_initial_icv_values;
+extern struct starpu_omp_global *_starpu_omp_global_state;
+extern double _starpu_omp_clock_ref;
+
+/* 
+ * internal API
+ */
+void _starpu_omp_environment_init(void);
 #endif // STARPU_OPENMP
 
 #endif // __OPENMP_RUNTIME_SUPPORT_H__
