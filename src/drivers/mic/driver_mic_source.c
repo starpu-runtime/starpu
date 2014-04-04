@@ -518,6 +518,11 @@ void *_starpu_mic_src_worker(void *arg)
 	/* unsigned memnode = baseworker->memory_node; */
 
 	_starpu_worker_start(baseworker, _STARPU_FUT_MIC_KEY);
+	for (i = 1; i < worker_set->nworkers; i++)
+	{
+		struct _starpu_worker *worker = &worker_set->workers[i];
+		_STARPU_TRACE_WORKER_INIT_END(workerid);
+	}
 
 	// Current task for a thread managing a worker set has no sense.
 	_starpu_set_current_task(NULL);
@@ -530,7 +535,11 @@ void *_starpu_mic_src_worker(void *arg)
 
 	baseworker->status = STATUS_UNKNOWN;
 
-	_STARPU_TRACE_WORKER_INIT_END;
+	for (i = 0; i < worker_set->nworkers; i++)
+	{
+		struct _starpu_worker *worker = &worker_set->workers[i];
+		_STARPU_TRACE_WORKER_INIT_END(workerid);
+	}
 
 	/* tell the main thread that this one is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);

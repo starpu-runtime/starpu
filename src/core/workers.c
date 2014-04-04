@@ -326,6 +326,9 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
  * Runtime initialization methods
  */
 
+#ifdef STARPU_USE_CUDA
+static struct _starpu_worker_set cuda_worker_set[STARPU_MAXCUDADEVS];
+#endif
 #ifdef STARPU_USE_MIC
 static struct _starpu_worker_set mic_worker_set[STARPU_MAXMICDEVS];
 #endif
@@ -512,7 +515,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
-#ifdef STARPU_USE_MIC
+#if defined(STARPU_USE_MIC) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		unsigned devid = workerarg->devid;
 #endif
 
@@ -560,12 +563,22 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				driver.id.cuda_id = workerarg->devid;
 				if (_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
+					/* We spawn only one thread per CUDA device,
+					 * which will control all CUDA workers of this
+					 * device. (by using a worker set). */
+					if (cuda_worker_set[devid].started)
+						goto worker_set_initialized;
+
+					cuda_worker_set[devid].nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
+					cuda_worker_set[devid].workers = workerarg;
+					cuda_worker_set[devid].set_is_initialized = 0;
+
 					STARPU_PTHREAD_CREATE_ON(
 						workerarg->name,
-						&workerarg->worker_thread,
+						&cuda_worker_set[devid].worker_thread,
 						NULL,
 						_starpu_cuda_worker,
-						workerarg,
+						&cuda_worker_set[devid],
 						worker+1);
 #ifdef STARPU_USE_FXT
 					STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
@@ -573,6 +586,14 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
 					STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
+					STARPU_PTHREAD_MUTEX_LOCK(&cuda_worker_set[devid].mutex);
+					while (!cuda_worker_set[devid].set_is_initialized)
+						STARPU_PTHREAD_COND_WAIT(&cuda_worker_set[devid].ready_cond,
+									 &cuda_worker_set[devid].mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_worker_set[devid].mutex);
+					cuda_worker_set[devid].started = 1;
+		worker_set_initialized:
+					workerarg->set = &cuda_worker_set[devid];
 				}
 				else
 				{
@@ -697,14 +718,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				cpu++;
 				break;
 			case STARPU_CUDA_WORKER:
-				driver.id.cuda_id = workerarg->devid;
-				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
-					break;
-				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
-				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-				while (!workerarg->worker_is_initialized)
-					STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+				/* Already waited above */
 				break;
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 			case STARPU_OPENCL_WORKER:
@@ -1732,11 +1746,17 @@ int _starpu_worker_get_nsched_ctxs(int workerid)
 	return config.workers[workerid].nsched_ctxs;
 }
 
-static struct _starpu_worker *
+static void *
 _starpu_get_worker_from_driver(struct starpu_driver *d)
 {
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned workerid;
+
+#ifdef STARPU_USE_CUDA
+	if (d->type == STARPU_CUDA_WORKER)
+		return &cuda_worker_set[d->id.cuda_id];
+#endif
+
 	for (workerid = 0; workerid < nworkers; workerid++)
 	{
 		if (starpu_worker_get_type(workerid) == d->type)
@@ -1748,12 +1768,6 @@ _starpu_get_worker_from_driver(struct starpu_driver *d)
 #ifdef STARPU_USE_CPU
 			case STARPU_CPU_WORKER:
 				if (worker->devid == d->id.cpu_id)
-					return worker;
-				break;
-#endif
-#ifdef STARPU_USE_CUDA
-			case STARPU_CUDA_WORKER:
-				if (worker->devid == d->id.cuda_id)
 					return worker;
 				break;
 #endif
@@ -1786,7 +1800,7 @@ starpu_driver_run(struct starpu_driver *d)
 		return -EINVAL;
 	}
 
-	struct _starpu_worker *worker = _starpu_get_worker_from_driver(d);
+	void *worker = _starpu_get_worker_from_driver(d);
 
 	switch (d->type)
 	{
@@ -1812,7 +1826,7 @@ int
 starpu_driver_init(struct starpu_driver *d)
 {
 	STARPU_ASSERT(d);
-	struct _starpu_worker *worker = _starpu_get_worker_from_driver(d);
+	void *worker = _starpu_get_worker_from_driver(d);
 
 	switch (d->type)
 	{
@@ -1837,7 +1851,7 @@ int
 starpu_driver_run_once(struct starpu_driver *d)
 {
 	STARPU_ASSERT(d);
-	struct _starpu_worker *worker = _starpu_get_worker_from_driver(d);
+	void *worker = _starpu_get_worker_from_driver(d);
 
 	switch (d->type)
 	{
@@ -1862,7 +1876,7 @@ int
 starpu_driver_deinit(struct starpu_driver *d)
 {
 	STARPU_ASSERT(d);
-	struct _starpu_worker *worker = _starpu_get_worker_from_driver(d);
+	void *worker = _starpu_get_worker_from_driver(d);
 
 	switch (d->type)
 	{

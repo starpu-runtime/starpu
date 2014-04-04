@@ -220,6 +220,7 @@ noinst_PROGRAMS =				\
 	microbenchs/local_pingpong		\
 	microbenchs/matrix_as_vector		\
 	overlap/overlap				\
+	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
 	parallel_tasks/parallel_kernels_spmd	\
@@ -608,6 +609,13 @@ datawizard_interfaces_void_void_interface_SOURCES=\
 	datawizard/interfaces/test_interfaces.c        \
 	datawizard/interfaces/void/void_interface.c
 
+
+overlap_gpu_concurrency_SOURCES=\
+	overlap/gpu_concurrency.c
+if STARPU_USE_CUDA
+overlap_gpu_concurrency_SOURCES+=\
+	overlap/long_kernel.cu
+endif
 
 perfmodels_regression_based_SOURCES=\
 	perfmodels/regression_based.c

@@ -821,6 +821,9 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	int ncuda = config->conf->ncuda;
+	int nworker_per_cuda = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
+
+	STARPU_ASSERT_MSG(nworker_per_cuda > 0, "STARPU_NWORKER_PER_CUDA has to be > 0");
 
 	if (ncuda != 0)
 	{
@@ -855,25 +858,30 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < topology->ncudagpus; cudagpu++)
 	{
-		int worker_idx = topology->nworkers + cudagpu;
-		config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
 		int devid = _starpu_get_next_cuda_gpuid(config);
-		config->workers[worker_idx].perf_arch.type = STARPU_CUDA_WORKER;
-		config->workers[worker_idx].perf_arch.devid = cudagpu;
-		config->workers[worker_idx].perf_arch.ncore = 0;
-		config->workers[worker_idx].devid = devid;
-		config->workers[worker_idx].subworkerid = 0;
-		config->workers[worker_idx].worker_mask = STARPU_CUDA;
-		config->worker_mask |= STARPU_CUDA;
+		for (i = 0; i < nworker_per_cuda; i++)
+		{
+			int worker_idx = topology->nworkers + cudagpu * nworker_per_cuda + i;
+			config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
+			config->workers[worker_idx].perf_arch.type = STARPU_CUDA_WORKER;
+			config->workers[worker_idx].perf_arch.devid = devid;
+			// TODO: fix perfmodels etc.
+			//config->workers[worker_idx].perf_arch.ncore = nworker_per_cuda - 1;
+			config->workers[worker_idx].perf_arch.ncore = 0;
+			config->workers[worker_idx].devid = devid;
+			config->workers[worker_idx].subworkerid = i;
+			config->workers[worker_idx].worker_mask = STARPU_CUDA;
+			config->worker_mask |= STARPU_CUDA;
 
-		struct handle_entry *entry;
-		entry = (struct handle_entry *) malloc(sizeof(*entry));
-		STARPU_ASSERT(entry != NULL);
-		entry->gpuid = devid;
-		HASH_ADD_INT(devices_using_cuda, gpuid, entry);
+			struct handle_entry *entry;
+			entry = (struct handle_entry *) malloc(sizeof(*entry));
+			STARPU_ASSERT(entry != NULL);
+			entry->gpuid = devid;
+			HASH_ADD_INT(devices_using_cuda, gpuid, entry);
+		}
         }
 
-	topology->nworkers += topology->ncudagpus;
+	topology->nworkers += topology->ncudagpus * nworker_per_cuda;
 #endif
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
