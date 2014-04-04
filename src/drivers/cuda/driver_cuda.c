@@ -46,7 +46,7 @@ static cudaStream_t out_transfer_streams[STARPU_NMAXWORKERS];
 static cudaStream_t in_transfer_streams[STARPU_NMAXWORKERS];
 static cudaStream_t peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
-static cudaEvent_t task_events[STARPU_MAXCUDADEVS];
+static cudaEvent_t task_events[STARPU_NMAXWORKERS];
 #endif /* STARPU_USE_CUDA */
 
 void
