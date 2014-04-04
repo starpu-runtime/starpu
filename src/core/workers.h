@@ -121,6 +121,10 @@ LIST_TYPE(_starpu_worker,
 	/* id of the master worker */
 	int master;
 
+	/* semaphore that block appl thread until threads are ready 
+	   to exec the parallel code */
+	sem_t parallel_code_sem;
+
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;
 #endif /* __GLIBC__ */

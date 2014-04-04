@@ -103,10 +103,6 @@ struct _starpu_sched_ctx
      	int min_priority_is_set;
 	int max_priority_is_set;
 
-	/* semaphore that block appl thread until threads are ready 
-	   to exec the parallel code */
-	sem_t parallel_code_sem;
-
 	/* hwloc tree structure of workers */
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_t hwloc_workers_set;
