@@ -568,6 +568,7 @@ static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker
 int _starpu_opencl_driver_init(struct _starpu_worker *args)
 {
 	int devid = args->devid;
+	int workerid = args->workerid;
 
 	_starpu_worker_start(args, _STARPU_FUT_OPENCL_KEY);
 
@@ -598,7 +599,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *args)
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
-	_STARPU_TRACE_WORKER_INIT_END;
+	_STARPU_TRACE_WORKER_INIT_END(workerid);
 
 	/* tell the main thread that this one is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);

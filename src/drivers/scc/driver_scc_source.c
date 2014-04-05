@@ -303,7 +303,7 @@ void *_starpu_scc_src_worker(void *arg)
 		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", devid, i);
 	}
 
-	_STARPU_TRACE_WORKER_INIT_END;
+	_STARPU_TRACE_WORKER_INIT_END(workerid);
 
 	/* tell the main thread that this one is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);

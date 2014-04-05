@@ -47,6 +47,8 @@ New features:
   * Add STARPU_CUDA_ASYNC and STARPU_OPENCL_ASYNC flags to allow asynchronous
     CUDA and OpenCL kernel execution.
   * Add paje traces statistics tools.
+  * Add CUDA concurrent kernel execution support through
+    the STARPU_NWORKER_PER_CUDA environment variable.
 
 Small features:
   * New functions starpu_data_acquire_cb_sequential_consistency() and

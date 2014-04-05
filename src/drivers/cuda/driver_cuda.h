@@ -52,11 +52,11 @@ cudaStream_t starpu_cuda_get_local_in_transfer_stream(void);
 cudaStream_t starpu_cuda_get_local_out_transfer_stream(void);
 cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned dst_node);
 
-struct _starpu_worker;
-int _starpu_run_cuda(struct _starpu_worker *);
-int _starpu_cuda_driver_init(struct _starpu_worker *);
-int _starpu_cuda_driver_run_once(struct _starpu_worker *);
-int _starpu_cuda_driver_deinit(struct _starpu_worker *);
+struct _starpu_worker_set;
+int _starpu_run_cuda(struct _starpu_worker_set *);
+int _starpu_cuda_driver_init(struct _starpu_worker_set *);
+int _starpu_cuda_driver_run_once(struct _starpu_worker_set *);
+int _starpu_cuda_driver_deinit(struct _starpu_worker_set *);
 #endif
 
 #endif //  __DRIVER_CUDA_H__

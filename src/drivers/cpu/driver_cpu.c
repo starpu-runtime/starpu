@@ -176,7 +176,7 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 
 	cpu_worker->status = STATUS_UNKNOWN;
 
-	_STARPU_TRACE_WORKER_INIT_END;
+	_STARPU_TRACE_WORKER_INIT_END(cpu_worker->workerid);
 
 	/* tell the main thread that we are ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&cpu_worker->mutex);

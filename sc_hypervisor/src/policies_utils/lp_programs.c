@@ -252,7 +252,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
 double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw], double flops[ns], double res[ns][nw], 
 					       int  total_nw[nw], unsigned sched_ctxs[ns], double last_vmax)
 {
-	int integer = 0;
+	int integer = 1;
 	int s, w;
 	glp_prob *lp;
 

@@ -78,6 +78,7 @@ int main(int argc, char **argv)
 	int cpu_test1, cpu_test2, cpu_test3;
 
 	unsetenv("STARPU_NCPUS");
+	unsetenv("STARPU_NCPU");
 
 	ret = check_cpu(-1, -1, -1, &cpu_init);
 	if (ret) return ret;

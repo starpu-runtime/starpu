@@ -58,7 +58,7 @@ int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsig
 	return ret;
 }
 
-int _starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc)
+void _starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc)
 {
 	__starpu_datawizard_progress(memory_node, may_alloc, 1);
 }
