@@ -20,6 +20,7 @@
 #include <starpu.h>
 
 #ifdef STARPU_OPENMP
+#include <common/list.h>
 
 /* ucontexts have been deprecated as of POSIX 1-2004
  * _XOPEN_SOURCE required at least on OS/X
@@ -165,8 +166,8 @@ enum starpu_omp_task_state
 	starpu_omp_task_state_terminated = 2,
 };
 
-struct starpu_omp_task
-{
+LIST_TYPE(starpu_omp_task,
+
 	struct starpu_omp_task *parent_task;
 	struct starpu_omp_thread *owner_thread;
 	struct starpu_omp_region *owner_region;
@@ -179,7 +180,7 @@ struct starpu_omp_task
 	void *starpu_cl_arg;
 
 	/* actual task function to be run */
-	void (*f)(void **, void*);
+	void (*f)(void **starpu_buffers, void *starpu_cl_arg);
 
 	enum starpu_omp_task_state state;
 
@@ -194,12 +195,14 @@ struct starpu_omp_task
 	 * in case blocking/recursive task operation
 	 */
 	void *stack;
-};
+)
 
-struct starpu_omp_thread
-{
+LIST_TYPE(starpu_omp_thread,
+
 	struct starpu_omp_task *current_task;
 	struct starpu_omp_region *owner_region;
+
+	struct starpu_omp_task *primary_task;
 
 	/*
 	 * stack to execute the initial thread over
@@ -216,15 +219,19 @@ struct starpu_omp_thread
 	ucontext_t ctx;
 
 	struct starpu_driver starpu_driver;
-};
+)
 
 struct starpu_omp_region
 {
 	struct starpu_omp_region *parent_region;
 	struct starpu_omp_device *owner_device;
 	/* note: the list of threads include the master_thread as first element */
-	struct starpu_omp_thread **threads_list;
+	struct starpu_omp_thread_list *thread_list;
+	/* list of implicit omp task created to run the region */
+	struct starpu_omp_task_list *implicit_task_list;
 	int nb_threads;
+	int level;
+	struct starpu_task *continuation_starpu_task;
 };
 
 struct starpu_omp_device
