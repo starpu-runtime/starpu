@@ -26,7 +26,7 @@
 #define NITERS 1000000
 #define NTASKS 128
 
-#ifdef STARPU_CUDA
+#ifdef STARPU_USE_CUDA
 extern void long_kernel_cuda(unsigned long niters);
 void codelet_long_kernel(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
