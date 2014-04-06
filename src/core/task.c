@@ -215,6 +215,33 @@ int starpu_task_wait(struct starpu_task *task)
 	return 0;
 }
 
+#ifdef STARPU_OPENMP
+int _starpu_task_test_termination(struct starpu_task *task)
+{
+	STARPU_ASSERT(task);
+	STARPU_ASSERT_MSG(!task->detach, "starpu_task_wait can only be called on tasks with detach = 0");
+
+	if (task->detach || task->synchronous)
+	{
+		_STARPU_DEBUG("Task is detached or synchronous\n");
+		_STARPU_LOG_OUT_TAG("einval");
+		return -EINVAL;
+	}
+
+	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
+
+	int ret = _starpu_test_job_termination(j);
+
+	if (ret)
+	{
+		if (task->destroy)
+			_starpu_task_destroy(task);
+	}
+
+	return ret;
+}
+#endif
+
 struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);

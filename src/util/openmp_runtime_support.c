@@ -57,6 +57,7 @@ static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_regi
 		_STARPU_ERROR("memory allocation failed");
 
 	region->parent_region = parent_region;
+	region->initial_nested_region = NULL;
 	region->owner_device = owner_device;
 	region->thread_list = starpu_omp_thread_list_new();
 	region->implicit_task_list = starpu_omp_task_list_new();
@@ -66,17 +67,24 @@ static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_regi
 	return region;
 }
 
-static void omp_initial_thread_func(struct starpu_omp_thread *init_thread, struct starpu_omp_task *init_task)
+static void omp_initial_thread_func(void)
 {
+	struct starpu_omp_region *init_region = _global_state.initial_region;
+	struct starpu_omp_thread *init_thread = _global_state.initial_thread;
+	struct starpu_omp_task *init_task = _global_state.initial_task;
+	struct starpu_task *continuation_task = init_region->initial_nested_region->continuation_starpu_task;
 	while (1)
 	{
 		starpu_driver_run_once(&init_thread->starpu_driver);
 
-		/* TODO: check if we are leaving the first nested region or not
-		 *
+		/*
 		 * if we are leaving the first nested region we give control back to initial task
-		 * otherwise, we should continue to execute work */
-		swapcontext(&init_thread->ctx, &init_task->ctx);
+		 * otherwise, we should continue to execute work
+		 */
+		if (_starpu_task_test_termination(continuation_task))
+		{
+			swapcontext(&init_thread->ctx, &init_task->ctx);
+		}
 	}
 }
 
@@ -102,7 +110,7 @@ static void omp_initial_thread_setup(void)
 	initial_thread->ctx.uc_link          = NULL;
 	initial_thread->ctx.uc_stack.ss_sp   = initial_thread->initial_thread_stack;
 	initial_thread->ctx.uc_stack.ss_size = _STARPU_STACKSIZE;
-	makecontext(&initial_thread->ctx, omp_initial_thread_func, 2, initial_thread, initial_task);
+	makecontext(&initial_thread->ctx, omp_initial_thread_func, 0);
 	/* .starpu_driver */
 	/*
 	 * we configure starpu to not launch CPU worker 0
@@ -301,7 +309,7 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 		task->ctx.uc_link                 = NULL;
 		task->ctx.uc_stack.ss_sp          = task->stack;
 		task->ctx.uc_stack.ss_size        = _STARPU_STACKSIZE;
-		makecontext(&task->ctx, starpu_omp_task_entry, 1, task);
+		makecontext(&task->ctx, (void (*) ()) starpu_omp_task_entry, 1, task);
 	}
 
 	return task;
@@ -381,6 +389,8 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 
 		/* in that case, the continuation starpu task is only used for synchronisation */
 		new_region->continuation_starpu_task->cl = NULL;
+		parent_region->initial_nested_region = new_region;
+
 	}
 	else
 	{

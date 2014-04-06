@@ -26,6 +26,12 @@
 /* Internal version of starpu_task_destroy: don't check task->destroy flag */
 void _starpu_task_destroy(struct starpu_task *task);
 
+#ifdef STARPU_OPENMP
+/* Test for the termination of the task.
+ * Call starpu_task_destroy if required and the task is terminated. */
+int _starpu_task_test_termination(struct starpu_task *task);
+#endif
+
 /* A pthread key is used to store the task currently executed on the thread.
  * _starpu_initialize_current_task_key initializes this pthread key and
  * _starpu_set_current_task updates its current value. */

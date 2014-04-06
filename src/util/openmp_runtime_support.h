@@ -27,7 +27,9 @@
  * 
  * TODO: add detection in configure.ac
  */
+#ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE
+#endif
 #include <ucontext.h>
 
 /*
@@ -224,6 +226,8 @@ LIST_TYPE(starpu_omp_thread,
 struct starpu_omp_region
 {
 	struct starpu_omp_region *parent_region;
+	/* the first nested region of the initial region */
+	struct starpu_omp_region *initial_nested_region;
 	struct starpu_omp_device *owner_device;
 	/* note: the list of threads include the master_thread as first element */
 	struct starpu_omp_thread_list *thread_list;

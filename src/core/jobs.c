@@ -139,6 +139,15 @@ void _starpu_wait_job(struct _starpu_job *j)
         _STARPU_LOG_OUT();
 }
 
+#ifdef STARPU_OPENMP
+int _starpu_test_job_termination(struct _starpu_job *j)
+{
+	STARPU_ASSERT(j->task);
+	STARPU_ASSERT(!j->task->detach);
+	return (j->terminated == 2);
+}
+#endif
+
 void _starpu_handle_job_termination(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
