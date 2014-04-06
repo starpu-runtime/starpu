@@ -231,7 +231,7 @@ struct starpu_omp_region
 	struct starpu_omp_device *owner_device;
 	/* note: the list of threads include the master_thread as first element */
 	struct starpu_omp_thread_list *thread_list;
-	/* list of implicit omp task created to run the region */
+	/* list of implicit omp tasks created to run the region */
 	struct starpu_omp_task_list *implicit_task_list;
 	int nb_threads;
 	int level;
