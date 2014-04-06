@@ -50,7 +50,7 @@ static struct starpu_codelet cl =
 
 int main(int argc, char **argv)
 {
-#ifndef STARPU_CUDA
+#ifndef STARPU_USE_CUDA
 	return STARPU_TEST_SKIPPED;
 #else
 	int ret = starpu_initialize(NULL, &argc, &argv);
