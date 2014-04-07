@@ -60,6 +60,28 @@ struct _starpu_data_descr {
 	int node;
 };
 
+#ifdef STARPU_OPENMP
+enum _starpu_job_preemption_state {
+	/* Job has never met any preemption event. */
+	_starpu_job_preemption_state_clear                    = 0,
+	/* Job has gone through the preemption preparation step
+	 * and is ready to be preempted. */
+	_starpu_job_preemption_state_prepared_for_preemption  = 1 << 0,
+	/* Job has just been preempted and is being temporarily removed from
+	 * its worker. If this bit is unset and the job is being removed from
+	 * its worker, it means that the job is simply terminating */
+	_starpu_job_preemption_state_is_preempted             = 1 << 1,
+	/* Preempted job has just been unlocked and is being put back on a
+	 * worker. If this bit is unset and the job is being put on a worker,
+	 * it means that the job is simply starting */
+	_starpu_job_preemption_state_is_restarted             = 1 << 2,
+	/* Job was preempted at least once in its life time. Useful for
+	 * determinating whether profiling data should be cumulated with
+	 * previous runs */
+	_starpu_job_preemption_state_was_preempted            = 1 << 3
+};
+#endif
+
 /* A job is the internal representation of a task. */
 LIST_TYPE(_starpu_job,
 
@@ -107,6 +129,11 @@ LIST_TYPE(_starpu_job,
 	/* Indicates whether the task associated to this job is terminated or
 	 * not. */
 	unsigned terminated;
+
+#ifdef STARPU_OPENMP
+	/* Job preemption state and history. */
+	unsigned preemption_state;
+#endif
 
 	/* Should that task appear in the debug tools ? (eg. the DAG generated
 	 * with dot) */

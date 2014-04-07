@@ -37,6 +37,15 @@ static starpu_pthread_key_t omp_task_key;
 struct starpu_omp_global *_starpu_omp_global_state = NULL;
 double _starpu_omp_clock_ref = 0.0; /* clock reference for starpu_omp_get_wtick */
 
+static struct starpu_omp_device *create_omp_device_struct(void);
+static void destroy_omp_device_struct(struct starpu_omp_device *device);
+static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_region *parent_region, struct starpu_omp_device *owner_device);
+static void destroy_omp_region_struct(struct starpu_omp_region *region);
+static struct starpu_omp_thread *create_omp_thread_struct(struct starpu_omp_region *owner_region);
+static void destroy_omp_thread_struct(struct starpu_omp_thread *thread);
+static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *parent_task,
+		struct starpu_omp_thread *owner_thread, struct starpu_omp_region *owner_region, int is_implicit);
+static void destroy_omp_task_struct(struct starpu_omp_task *task);
 
 static struct starpu_omp_device *create_omp_device_struct(void)
 {
@@ -169,6 +178,16 @@ static void starpu_omp_task_preempt(void)
 }
 
 /*
+ * set a flag in starpu_task to indicate that the terminating/destroying sequence should not be applied on this task upon return,
+ * the preempting sequence should be performed instead
+ */
+static void _starpu_task_set_preempted(struct starpu_task *starpu_task)
+{
+	(void)starpu_task;
+	abort();/* TODO: implement */
+}
+
+/*
  * wrap a task function to allow the task to be preempted
  */
 static void starpu_omp_task_exec(void *buffers[], void *cl_arg)
@@ -228,6 +247,20 @@ static void starpu_omp_task_exec(void *buffers[], void *cl_arg)
 	}
 
 	/* TODO: analyse the cause of the return and take appropriate steps */
+	if (task->state == starpu_omp_task_state_terminated)
+	{
+		if (!task->is_implicit)
+		{
+			destroy_omp_task_struct(task);
+			task = NULL;
+		}
+	}
+	else if (task->state == starpu_omp_task_state_preempted)
+	{
+		_starpu_task_set_preempted(task->starpu_task);
+	}
+	else
+		_STARPU_ERROR("invalid omp task state");
 }
 
 /*
@@ -239,8 +272,9 @@ static void starpu_omp_task_exec(void *buffers[], void *cl_arg)
  */
 static void _starpu_task_prepare_for_preemption(struct starpu_task *starpu_task)
 {
-	/* TODO: implement funciton */
+	/* TODO: implement function */
 	(void)starpu_task;
+	abort();/* TODO: implement */
 }
 
 static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *parent_task,
@@ -296,12 +330,10 @@ static void destroy_omp_task_struct(struct starpu_omp_task *task)
 {
 	STARPU_ASSERT(task->state == starpu_omp_task_state_terminated);
 	STARPU_ASSERT(task->starpu_task == NULL);
-
 	if (task->stack != NULL)
 	{
 		free(task->stack);
 	}
-
 	memset(task, 0, sizeof(*task));
 	free(task);
 }
