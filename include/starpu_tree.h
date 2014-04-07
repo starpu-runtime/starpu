@@ -41,7 +41,7 @@ struct starpu_tree *starpu_tree_get(struct starpu_tree *tree, int id);
 
 struct starpu_tree *starpu_tree_get_neighbour(struct starpu_tree *tree, struct starpu_tree *node, int *visited, int *present);
 
-int starpu_tree_free(struct starpu_tree *tree);
+void starpu_tree_free(struct starpu_tree *tree);
 
 #ifdef __cplusplus
 }

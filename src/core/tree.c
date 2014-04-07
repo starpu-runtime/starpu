@@ -138,19 +138,16 @@ struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct s
 	return starpu_tree_get_neighbour(tree, father, visited, present);
 }
 
-int starpu_tree_free(struct starpu_tree *tree)
+void starpu_tree_free(struct starpu_tree *tree)
 {
-	if(tree->arity == 0)
-		return 1;
 	int i;
 	for(i = 0; i < tree->arity; i++)
 	{
-		if(starpu_tree_free(tree->nodes[i]))
-		{
-			free(tree->nodes);
-			tree->arity = 0;
-			return 1;
-		}
+		starpu_tree_free(tree->nodes[i]);
+		free(tree->nodes[i]);
+		tree->nodes[i] = NULL;
 	}
-	return 0;
+	free(tree->nodes);
+	tree->nodes = NULL;
+	tree->arity = 0;
 }

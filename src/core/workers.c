@@ -900,11 +900,7 @@ static void _starpu_build_tree(void)
 	struct starpu_tree* tree = (struct starpu_tree*)malloc(sizeof(struct starpu_tree));
 	config.topology.tree = tree;
 
-	hwloc_topology_t topology;
-	hwloc_topology_init(&topology);
-	hwloc_topology_load(topology);
-
-	hwloc_obj_t root = hwloc_get_root_obj(topology);
+	hwloc_obj_t root = hwloc_get_root_obj(config.topology.hwtopology);
 
 /* 	char string[128]; */
 /* 	hwloc_obj_snprintf(string, sizeof(string), topology, root, "#", 0); */
@@ -912,7 +908,7 @@ static void _starpu_build_tree(void)
 
 	/* level, is_pu, is in the tree (it will be true only after add*/
 	starpu_tree_insert(tree, root->logical_index, 0,root->type == HWLOC_OBJ_PU, root->arity, NULL);
-	_fill_tree(tree, root, 1, topology);
+	_fill_tree(tree, root, 1, config.topology.hwtopology);
 #endif
 }
 
