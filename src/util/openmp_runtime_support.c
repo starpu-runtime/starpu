@@ -50,7 +50,13 @@ static struct starpu_omp_device *create_omp_device_struct(void)
 	return dev;
 }
 
-static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_region *parent_region, struct starpu_omp_device *owner_device, int nb_threads)
+static void destroy_omp_device_struct(struct starpu_omp_device *device)
+{
+	memset(device, 0, sizeof(*device));
+	free(device);
+}
+
+static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_region *parent_region, struct starpu_omp_device *owner_device)
 {
 	struct starpu_omp_region *region = malloc(sizeof(*region));
 	if (region == NULL)
@@ -62,9 +68,23 @@ static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_regi
 	region->thread_list = starpu_omp_thread_list_new();
 	region->implicit_task_list = starpu_omp_task_list_new();
 
-	region->nb_threads = nb_threads;
+	region->nb_threads = 0;
 	region->level = (parent_region != NULL)?parent_region->level+1:0;
+	region->continuation_starpu_task = NULL;
 	return region;
+}
+
+static void destroy_omp_region_struct(struct starpu_omp_region *region)
+{
+	STARPU_ASSERT(region->nb_threads == 0);
+	STARPU_ASSERT(starpu_omp_thread_list_empty(region->thread_list));
+	STARPU_ASSERT(starpu_omp_task_list_empty(region->implicit_task_list));
+	STARPU_ASSERT(region->continuation_starpu_task == NULL);
+	STARPU_ASSERT(region->initial_nested_region == NULL);
+	starpu_omp_thread_list_delete(region->thread_list);
+	starpu_omp_task_list_delete(region->implicit_task_list);
+	memset(region, 0, sizeof(*region));
+	free(region);
 }
 
 static void omp_initial_thread_func(void)
@@ -88,57 +108,6 @@ static void omp_initial_thread_func(void)
 	}
 }
 
-/*
- * setup the main application thread to handle the possible preemption of the initial task
- */
-static void omp_initial_thread_setup(void)
-{
-	struct starpu_omp_thread *initial_thread = _global_state.initial_thread;
-	struct starpu_omp_task *initial_task = _global_state.initial_task;
-	/* .current_task */
-	initial_thread->current_task = initial_task;
-	/* .owner_region already set in create_omp_thread_struct */
-	/* .initial_thread_stack */
-	initial_thread->initial_thread_stack = malloc(_STARPU_STACKSIZE);
-	if (initial_thread->initial_thread_stack == NULL)
-		_STARPU_ERROR("memory allocation failed");
-	/* .ctx */
-	getcontext(&initial_thread->ctx);
-	/*
-	 * we do not use uc_link, the initial thread always should give hand back to the initial task
-	 */
-	initial_thread->ctx.uc_link          = NULL;
-	initial_thread->ctx.uc_stack.ss_sp   = initial_thread->initial_thread_stack;
-	initial_thread->ctx.uc_stack.ss_size = _STARPU_STACKSIZE;
-	makecontext(&initial_thread->ctx, omp_initial_thread_func, 0);
-	/* .starpu_driver */
-	/*
-	 * we configure starpu to not launch CPU worker 0
-	 * because we will use the main thread to play the role of worker 0
-	 */
-	struct starpu_conf conf;
-	int ret = starpu_conf_init(&conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_conf_init");
-	initial_thread->starpu_driver.type = STARPU_CPU_WORKER;
-	initial_thread->starpu_driver.id.cpu_id = 0;
-	conf.not_launched_drivers = &initial_thread->starpu_driver;
-	conf.n_not_launched_drivers = 1;
-	ret = starpu_init(&conf);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ret = starpu_driver_init(&initial_thread->starpu_driver);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_init");
-}
-
-static void omp_initial_thread_exit()
-{
-	struct starpu_omp_thread *initial_thread = _global_state.initial_thread;
-	int ret = starpu_driver_deinit(&initial_thread->starpu_driver);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_deinit");
-	starpu_shutdown();
-
-	/* TODO: free initial_thread data structures */
-}
-
 static struct starpu_omp_thread *create_omp_thread_struct(struct starpu_omp_region *owner_region)
 {
 	struct starpu_omp_thread *thread = malloc(sizeof(*thread));
@@ -156,6 +125,14 @@ static struct starpu_omp_thread *create_omp_thread_struct(struct starpu_omp_regi
 	memset(&thread->ctx, 0, sizeof(thread->ctx));
 	/* .starpu_driver will be initialized later on */
 	return thread;
+}
+
+static void destroy_omp_thread_struct(struct starpu_omp_thread *thread)
+{
+	STARPU_ASSERT(thread->current_task == NULL);
+	STARPU_ASSERT(thread->primary_task == NULL);
+	memset(thread, 0, sizeof(*thread));
+	free(thread);
 }
 
 static void starpu_omp_task_entry(struct starpu_omp_task *task)
@@ -315,26 +292,113 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 	return task;
 }
 
+static void destroy_omp_task_struct(struct starpu_omp_task *task)
+{
+	STARPU_ASSERT(task->state == starpu_omp_task_state_terminated);
+	STARPU_ASSERT(task->starpu_task == NULL);
+
+	if (task->stack != NULL)
+	{
+		free(task->stack);
+	}
+
+	memset(task, 0, sizeof(*task));
+	free(task);
+}
+
+/*
+ * setup the main application thread to handle the possible preemption of the initial task
+ */
+static void omp_initial_thread_setup(void)
+{
+	struct starpu_omp_thread *initial_thread = _global_state.initial_thread;
+	struct starpu_omp_task *initial_task = _global_state.initial_task;
+	/* .current_task */
+	initial_thread->current_task = initial_task;
+	/* .owner_region already set in create_omp_thread_struct */
+	/* .initial_thread_stack */
+	initial_thread->initial_thread_stack = malloc(_STARPU_STACKSIZE);
+	if (initial_thread->initial_thread_stack == NULL)
+		_STARPU_ERROR("memory allocation failed");
+	/* .ctx */
+	getcontext(&initial_thread->ctx);
+	/*
+	 * we do not use uc_link, the initial thread always should give hand back to the initial task
+	 */
+	initial_thread->ctx.uc_link          = NULL;
+	initial_thread->ctx.uc_stack.ss_sp   = initial_thread->initial_thread_stack;
+	initial_thread->ctx.uc_stack.ss_size = _STARPU_STACKSIZE;
+	makecontext(&initial_thread->ctx, omp_initial_thread_func, 0);
+	/* .starpu_driver */
+	/*
+	 * we configure starpu to not launch CPU worker 0
+	 * because we will use the main thread to play the role of worker 0
+	 */
+	struct starpu_conf conf;
+	int ret = starpu_conf_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_conf_init");
+	initial_thread->starpu_driver.type = STARPU_CPU_WORKER;
+	initial_thread->starpu_driver.id.cpu_id = 0;
+	conf.not_launched_drivers = &initial_thread->starpu_driver;
+	conf.n_not_launched_drivers = 1;
+	/* we are now ready to start StarPU */
+	ret = starpu_init(&conf);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_driver_init(&initial_thread->starpu_driver);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_init");
+}
+
+static void omp_initial_thread_exit()
+{
+	struct starpu_omp_thread *initial_thread = _global_state.initial_thread;
+	int ret = starpu_driver_deinit(&initial_thread->starpu_driver);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_deinit");
+	memset(&initial_thread->starpu_driver, 0, sizeof (initial_thread->starpu_driver));
+	/* the driver for the main thread is now de-inited, we can shutdown Starpu */
+	starpu_shutdown();
+	free(initial_thread->initial_thread_stack);
+	initial_thread->initial_thread_stack = NULL;
+	memset(&initial_thread->ctx, 0, sizeof (initial_thread->ctx));
+	initial_thread->current_task = NULL;
+}
+
+static void omp_initial_region_setup(void)
+{
+	starpu_omp_thread_list_push_back(_global_state.initial_region->thread_list,
+			_global_state.initial_thread);
+	_global_state.initial_region->nb_threads++;
+	starpu_omp_task_list_push_back(_global_state.initial_region->implicit_task_list,
+			_global_state.initial_task);
+	omp_initial_thread_setup();
+}
+
+static void omp_initial_region_exit(void)
+{
+	omp_initial_thread_exit();
+	_global_state.initial_task->state = starpu_omp_task_state_terminated;
+	starpu_omp_task_list_pop_front(_global_state.initial_region->implicit_task_list);
+	starpu_omp_thread_list_pop_front(_global_state.initial_region->thread_list);
+	_global_state.initial_region->nb_threads--;
+}
+
+
 /*
  * Entry point to be called by the OpenMP runtime constructor
  */
 int starpu_omp_init(void)
 {
+	STARPU_PTHREAD_KEY_CREATE(&omp_thread_key, NULL);
+	STARPU_PTHREAD_KEY_CREATE(&omp_task_key, NULL);
 	_starpu_omp_environment_init();
 	_global_state.icvs.cancel_var = _starpu_omp_initial_icv_values->cancel_var;
 	_global_state.initial_device = create_omp_device_struct();
-	_global_state.initial_region = create_omp_region_struct(NULL, _global_state.initial_device, 1);
+	_global_state.initial_region = create_omp_region_struct(NULL, _global_state.initial_device);
 	_global_state.initial_thread = create_omp_thread_struct(_global_state.initial_region);
-	starpu_omp_thread_list_push_back(_global_state.initial_region->thread_list,
-			_global_state.initial_thread);
 	_global_state.initial_task = create_omp_task_struct(NULL,
 			_global_state.initial_thread, _global_state.initial_region, 1);
 	_starpu_omp_global_state = &_global_state;
 
-	STARPU_PTHREAD_KEY_CREATE(&omp_thread_key, NULL);
-	STARPU_PTHREAD_KEY_CREATE(&omp_task_key, NULL);
-
-	omp_initial_thread_setup();
+	omp_initial_region_setup();
 
 	/* init clock reference for starpu_omp_get_wtick */
 	_starpu_omp_clock_ref = starpu_timing_now();
@@ -344,11 +408,19 @@ int starpu_omp_init(void)
 
 void starpu_omp_shutdown(void)
 {
-	omp_initial_thread_exit();
-	STARPU_PTHREAD_KEY_DELETE(omp_task_key);
-	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
+	omp_initial_region_exit();
 	/* TODO: free ICV variables */
 	/* TODO: free task/thread/region/device structures */
+	destroy_omp_task_struct(_global_state.initial_task);
+	_global_state.initial_task = NULL;
+	destroy_omp_thread_struct(_global_state.initial_thread);
+	_global_state.initial_thread = NULL;
+	destroy_omp_region_struct(_global_state.initial_region);
+	_global_state.initial_region = NULL;
+	destroy_omp_device_struct(_global_state.initial_device);
+	_global_state.initial_device = NULL;
+	STARPU_PTHREAD_KEY_DELETE(omp_task_key);
+	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
 }
 
 void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *parallel_region_cl_arg)
@@ -364,7 +436,7 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 	int nb_threads = (parent_region->level == 0)?starpu_cpu_worker_get_count():1;
 
 	struct starpu_omp_region *new_region = 
-		create_omp_region_struct(parent_region, _global_state.initial_device, 1);
+		create_omp_region_struct(parent_region, _global_state.initial_device);
 
 	int i;
 	for (i = 0; i < nb_threads; i++)
@@ -374,9 +446,12 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 		/* TODO: specify actual starpu worker */
 
 		starpu_omp_thread_list_push_back(new_region->thread_list, new_thread);
+		new_region->nb_threads++;
 		struct starpu_omp_task *new_task = create_omp_task_struct(parent_task, new_thread, new_region, 1);
 		starpu_omp_task_list_push_back(new_region->implicit_task_list, new_task);
+
 	}
+	STARPU_ASSERT(new_region->nb_threads == nb_threads);
 
 	/* 
 	 * if parent_task == initial_task, create a starpu task as a continuation to all the implicit
@@ -456,6 +531,21 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 	/*
 	 * TODO: free region resources
 	 */
+	for (i = 0; i < nb_threads; i++)
+	{
+		struct starpu_omp_thread *region_thread = starpu_omp_thread_list_pop_front(new_region->thread_list);
+		/* do not destroy the struct of the master thread */
+		if (i > 0)
+		{
+			destroy_omp_thread_struct(region_thread);
+		}
+		new_region->nb_threads--;
+		struct starpu_omp_task *implicit_task = starpu_omp_task_list_pop_front(new_region->implicit_task_list);
+		destroy_omp_task_struct(implicit_task);
+	}
+	STARPU_ASSERT(new_region->nb_threads == 0);
+
+	destroy_omp_region_struct(new_region);
 }
 
 /*

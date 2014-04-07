@@ -636,6 +636,26 @@ static void convert_places_string(const char *_str, struct starpu_omp_place *pla
 	free(str);
 }
 
+static void free_places(struct starpu_omp_place *places)
+{
+	int i;
+	for (i = 0; i < places->nb_numeric_places; i++)
+	{
+		if (places->numeric_places[i].nb_included_numeric_items > 0)
+		{
+			free(places->numeric_places[i].included_numeric_items);
+		}
+		if (places->numeric_places[i].nb_excluded_numeric_items > 0)
+		{
+			free(places->numeric_places[i].excluded_numeric_items);
+		}
+	}
+	if (places->nb_numeric_places > 0)
+	{
+		free(places->numeric_places);
+	}
+}
+
 static void read_omp_environment(void)
 {
 	read_boolean_var("OMP_DYNAMIC", &_initial_icv_values.dyn_var);
@@ -700,6 +720,33 @@ static void read_omp_environment(void)
 	}
 
 	_starpu_omp_initial_icv_values = &_initial_icv_values;
+}
+
+static void free_omp_environment(void)
+{
+	/**/
+	_starpu_omp_initial_icv_values = NULL;
+
+	/* OMP_DYNAMIC */
+	/* OMP_NESTED */
+	/* OMP_SCHEDULE */
+	/* OMP_STACKSIZE */
+	/* OMP_WAIT_POLICY */
+	/* OMP_THREAD_LIMIT */
+	/* OMP_MAX_ACTIVE_LEVELS */
+	/* OMP_CANCELLATION */
+	/* OMP_DEFAULT_DEVICE */
+
+	/* OMP_PROC_BIND */
+	free(_initial_icv_values.bind_var);
+	_initial_icv_values.bind_var = NULL;
+
+	/* OMP_NUM_THREADS */
+	free(_initial_icv_values.nthreads_var);
+	_initial_icv_values.nthreads_var = NULL;
+
+	/* OMP_PLACES */
+	free_places(&_initial_icv_values.places);
 }
 
 static void display_omp_environment(int verbosity_level)
@@ -873,5 +920,10 @@ void _starpu_omp_environment_init(void)
 	{
 		display_omp_environment(display_env);
 	}
+}
+
+void _starpu_omp_environment_exit(void)
+{
+	free_omp_environment();
 }
 #endif /* STARPU_OPENMP */

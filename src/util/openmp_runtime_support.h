@@ -229,7 +229,7 @@ struct starpu_omp_region
 	/* the first nested region of the initial region */
 	struct starpu_omp_region *initial_nested_region;
 	struct starpu_omp_device *owner_device;
-	/* note: the list of threads include the master_thread as first element */
+	/* note: the list of threads includes the master_thread as first element */
 	struct starpu_omp_thread_list *thread_list;
 	/* list of implicit omp tasks created to run the region */
 	struct starpu_omp_task_list *implicit_task_list;
@@ -263,6 +263,7 @@ extern double _starpu_omp_clock_ref;
  * internal API
  */
 void _starpu_omp_environment_init(void);
+void _starpu_omp_environment_exit(void);
 #endif // STARPU_OPENMP
 
 #endif // __OPENMP_RUNTIME_SUPPORT_H__
