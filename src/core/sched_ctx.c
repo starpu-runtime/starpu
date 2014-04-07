@@ -1646,7 +1646,7 @@ void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void* param, uns
 {
 	int *workerids;
 	int nworkers = starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
-	_starpu_sched_ctx_get_workers_to_sleep(sched_ctx_id, workerids, nworkers, -1);
+	_starpu_sched_ctx_get_workers_to_sleep(sched_ctx_id, workerids, nworkers, workerids[nworkers-1]);
 
 	/* bind current thread on all workers of the context */
 	_starpu_sched_ctx_bind_thread_to_ctx_cpus(sched_ctx_id);
@@ -1655,7 +1655,7 @@ void* starpu_sched_ctx_exec_parallel_code(void* (*func)(void*), void* param, uns
 	void* ret = func(param);
 
 	/* wake up starpu workers */
-	_starpu_sched_ctx_wake_up_workers(sched_ctx_id, -1);
+	_starpu_sched_ctx_wake_up_workers(sched_ctx_id, workerids[nworkers-1]);
 
 	return ret;
 }

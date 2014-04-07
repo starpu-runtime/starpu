@@ -1320,7 +1320,7 @@ void starpu_shutdown(void)
 	_starpu_delete_all_sched_ctxs();
 
 	_starpu_disk_unregister();
-
+	starpu_tree_free(config.topology.tree);
 	_starpu_destroy_topology(&config);
 #ifdef STARPU_USE_FXT
 	_starpu_stop_fxt_profiling();
