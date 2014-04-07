@@ -27,7 +27,7 @@ New features:
 	  the MPI communication cache when unregistering the data. It
 	  should be called instead of both calling
 	  starpu_data_set_tag() and starpu_data_set_rank()
-  * Use streams for GPUA->GPUB and GPUB->GPUA transfers.
+  * Use streams for all CUDA transfers, even initiated by CPUs.
   * Add paje traces statistics tools.
 
 Small features:
