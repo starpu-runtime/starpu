@@ -368,6 +368,9 @@ static int execute_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 		_starpu_simgrid_execute_job(j, args->perf_arch, NAN);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+#ifdef STARPU_DEBUG
+		STARPU_ASSERT_MSG(cudaStreamQuery(starpu_cuda_get_local_stream()) == cudaSuccess, "CUDA codelets have to wait for termination of their kernels on the starpu_cuda_get_local_stream() stream");
+#endif
 #endif
 	}
 
