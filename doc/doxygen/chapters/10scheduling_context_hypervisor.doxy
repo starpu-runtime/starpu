@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -192,7 +192,7 @@ The <b>Throughput </b> strategy focuses on maximizing the throughput of the reso
 and resizes the contexts such that the machine is running at its maximum efficiency
 (maximum instant speed of the workers).
 
-\section  Defining a new hypervisor policy
+\section DefiningANewHypervisorPolicy Defining A New Hypervisor Policy
 
 While Scheduling Context Hypervisor Plugin comes with a variety of
 resizing policies (see \ref ResizingStrategies), it may sometimes be
