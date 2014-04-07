@@ -685,7 +685,11 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *args)
 		int err;
 		cl_command_queue queue;
 		starpu_opencl_get_queue(args->devid, &queue);
+#ifdef HAVE_CLENQUEUEMARKERWITHWAITLIST
+		err = clEnqueueMarkerWithWaitList(queue, 0, NULL, &task_events[args->devid]);
+#else
 		err = clEnqueueMarker(queue, &task_events[args->devid]);
+#endif
 		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 	else

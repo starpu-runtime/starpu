@@ -853,6 +853,10 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	  enable_opencl=$have_valid_opencl
           ;;
    esac
+   save_LIBS="$LIBS"
+   LIBS="$LIBS $STARPU_OPENCL_LDFLAGS"
+   AC_CHECK_FUNCS([clEnqueueMarkerWithWaitList])
+   LIBS="$save_LIBS"
 fi
 
 AC_MSG_CHECKING(whether OpenCL should be used)

@@ -22,7 +22,7 @@ get the simulated time, it has to use starpu_timing_now() which returns the
 virtual timestamp in us.
 
 For some technical reason, the application's .c file which contains main() has
-to be recompiled with starpu.h, which in the simgrid case will #define main()
+to be recompiled with starpu.h, which in the simgrid case will # define main()
 into starpu_main(), and it is libstarpu which will provide the real main() and
 call the application's main().
 
