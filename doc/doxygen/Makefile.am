@@ -51,6 +51,7 @@ chapters =	\
 	chapters/45files.doxy \
 	chapters/50scaling-vector-example.doxy \
 	chapters/51fdl-1.3.doxy \
+	chapters/modularized_scheduler.doxy \
 	chapters/code/hello_pragma2.c \
 	chapters/code/hello_pragma.c \
 	chapters/code/scal_pragma.cu \
