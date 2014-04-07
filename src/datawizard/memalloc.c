@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -259,7 +259,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 	if (mc->automatically_allocated &&
 		(!handle || replicate->refcnt == 0))
 	{
-		void *interface;
+		void *data_interface;
 
 		if (handle)
 			STARPU_ASSERT(replicate->allocated);
@@ -276,13 +276,13 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 #endif
 
 		if (handle)
-			interface = replicate->data_interface;
+			data_interface = replicate->data_interface;
 		else
-			interface = mc->chunk_interface;
-		STARPU_ASSERT(interface);
+			data_interface = mc->chunk_interface;
+		STARPU_ASSERT(data_interface);
 
 		_STARPU_TRACE_START_FREE(node, mc->size);
-		mc->ops->free_data_on_node(interface, node);
+		mc->ops->free_data_on_node(data_interface, node);
 		_STARPU_TRACE_END_FREE(node);
 
 		if (handle)
@@ -417,7 +417,7 @@ static size_t try_to_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
  * therefore not in the cache. */
 static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_replicate, struct _starpu_mem_chunk *mc, unsigned is_already_in_mc_list)
 {
-	void *interface;
+	void *data_interface;
 
 	/* we found an appropriate mem chunk: so we get it out
 	 * of the "to free" list, and reassign it to the new
@@ -429,18 +429,18 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 		old_replicate->allocated = 0;
 		old_replicate->automatically_allocated = 0;
 		old_replicate->initialized = 0;
-		interface = old_replicate->data_interface;
+		data_interface = old_replicate->data_interface;
 	}
 	else
-		interface = mc->chunk_interface;
+		data_interface = mc->chunk_interface;
 
 	new_replicate->allocated = 1;
 	new_replicate->automatically_allocated = 1;
 	new_replicate->initialized = 0;
 
 	STARPU_ASSERT(new_replicate->data_interface);
-	STARPU_ASSERT(interface);
-	memcpy(new_replicate->data_interface, interface, mc->size_interface);
+	STARPU_ASSERT(data_interface);
+	memcpy(new_replicate->data_interface, data_interface, mc->size_interface);
 
 	if (!old_replicate)
 	{
