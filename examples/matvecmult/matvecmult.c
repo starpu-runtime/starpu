@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -50,14 +50,9 @@ void opencl_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 	{
 		size_t global=nx*ny;
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, &event);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
-
-	clFinish(queue);
-
-	starpu_opencl_collect_stats(event);
-	clReleaseEvent(event);
 	starpu_opencl_release_kernel(kernel);
 }
 #endif
@@ -130,6 +125,7 @@ static struct starpu_codelet cl =
 {
 #ifdef STARPU_USE_OPENCL
         .opencl_funcs[0] = opencl_codelet,
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
         .nbuffers = 3,
 	.modes[0] = STARPU_R,

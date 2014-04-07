@@ -123,7 +123,7 @@ LIST_TYPE(_starpu_job,
 	 * so we need a flag to differentiate them from "normal" tasks. */
 	unsigned reduction_task;
 
-	/* Used by MIC driver to record codelet start time instead of using a
+	/* Used to record codelet start time instead of using a
 	 * local variable */
 	struct timespec cl_start;
 

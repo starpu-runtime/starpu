@@ -50,6 +50,7 @@ static cl_command_queue in_transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue out_transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue peer_transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue alloc_queues[STARPU_MAXOPENCLDEVS];
+static cl_event task_events[STARPU_MAXOPENCLDEVS];
 #endif
 
 void
@@ -165,7 +166,7 @@ cl_int _starpu_opencl_init_context(int devid)
         err = clGetDeviceInfo(devices[devid], CL_DEVICE_QUEUE_PROPERTIES, sizeof(props), &props, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
-        props &= CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
+        props &= ~CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE;
         in_transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
         out_transfer_queues[devid] = clCreateCommandQueue(contexts[devid], devices[devid], props, &err);
@@ -561,11 +562,13 @@ void _starpu_opencl_init(void)
 #ifndef STARPU_SIMGRID
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
 #endif
-static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_worker *args);
+static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker *args);
+static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker *args);
 
 int _starpu_opencl_driver_init(struct _starpu_worker *args)
 {
 	int devid = args->devid;
+	int workerid = args->workerid;
 
 	_starpu_worker_start(args, _STARPU_FUT_OPENCL_KEY);
 
@@ -596,7 +599,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *args)
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
 
-	_STARPU_TRACE_WORKER_INIT_END;
+	_STARPU_TRACE_WORKER_INIT_END(workerid);
 
 	/* tell the main thread that this one is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
@@ -616,12 +619,35 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *args)
 	struct starpu_task *task;
 	int res;
 
-	_STARPU_TRACE_START_PROGRESS(memnode);
-	_starpu_datawizard_progress(memnode, 1);
+	task = starpu_task_get_current();
+
+	if (task)
+	{
+		cl_int status;
+		size_t size;
+		int err;
+		/* On-going asynchronous task, check for its termination first */
+
+		err = clGetEventInfo(task_events[args->devid], CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &status, &size);
+		STARPU_ASSERT(size == sizeof(cl_int));
+		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
+		if (status != CL_COMPLETE)
+		{
+			/* Not ready yet, no better thing to do than waiting */
+			__starpu_datawizard_progress(memnode, 1, 0);
+			return 0;
+		}
+
+		/* Asynchronous task completed! */
+		_starpu_opencl_stop_job(_starpu_get_job_associated_to_task(task), args);
+	}
+
+	__starpu_datawizard_progress(memnode, 1, 1);
+
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
 	task = _starpu_get_worker_task(args, workerid, memnode);
-
 
 	if (task == NULL)
 		return 0;
@@ -636,13 +662,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *args)
 		return 0;
 	}
 
-	_starpu_set_current_task(j->task);
-	args->current_task = j->task;
-
-	res = _starpu_opencl_execute_job(j, args);
-
-	_starpu_set_current_task(NULL);
-	args->current_task = NULL;
+	res = _starpu_opencl_start_job(j, args);
 
 	if (res)
 	{
@@ -658,7 +678,32 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *args)
 		}
 	}
 
-	_starpu_handle_job_termination(j);
+#ifndef STARPU_SIMGRID
+	if (task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC)
+	{
+		/* Record event to synchronize with task termination later */
+		int err;
+		cl_command_queue queue;
+		starpu_opencl_get_queue(args->devid, &queue);
+#ifdef CL_VERSION_1_2
+		err = clEnqueueMarkerWithWaitList(queue, 0, NULL, &task_events[args->devid]);
+#else
+		err = clEnqueueMarker(queue, &task_events[args->devid]);
+#endif
+		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+	}
+	else
+#else
+#ifdef STARPU_DEVEL
+#warning No CUDA asynchronous execution with simgrid yet.
+#endif
+#endif
+	/* Synchronous execution */
+	{
+		_starpu_opencl_stop_job(j, args);
+	}
+	_STARPU_TRACE_START_PROGRESS(memnode);
+
 	return 0;
 }
 
@@ -692,9 +737,11 @@ void *_starpu_opencl_worker(void *arg)
 	struct _starpu_worker* args = arg;
 
 	_starpu_opencl_driver_init(args);
+	_STARPU_TRACE_START_PROGRESS(memnode);
 	while (_starpu_machine_is_running())
 		_starpu_opencl_driver_run_once(args);
 	_starpu_opencl_driver_deinit(args);
+	_STARPU_TRACE_END_PROGRESS(memnode);
 
 	return NULL;
 }
@@ -746,7 +793,7 @@ cl_device_type _starpu_opencl_get_device_type(int devid)
 }
 #endif /* STARPU_USE_OPENCL */
 
-static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_worker *args)
+static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker *args)
 {
 	int ret;
 
@@ -754,11 +801,13 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 	struct starpu_task *task = j->task;
 
 	int profiling = starpu_profiling_status_get();
-	struct timespec codelet_start, codelet_end;
 
 	STARPU_ASSERT(task);
 	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
+
+	_starpu_set_current_task(j->task);
+	args->current_task = j->task;
 
 	ret = _starpu_fetch_task_input(j);
 	if (ret != 0)
@@ -769,7 +818,7 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 		return -EAGAIN;
 	}
 
-	_starpu_driver_start_job(args, j, &codelet_start, 0, profiling);
+	_starpu_driver_start_job(args, j, &j->cl_start, 0, profiling);
 
 	starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, j->nimpl);
 	STARPU_ASSERT_MSG(func, "when STARPU_OPENCL is defined in 'where', opencl_func or opencl_funcs has to be defined");
@@ -780,12 +829,6 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 		double length = NAN;
 	  #ifdef STARPU_OPENCL_SIMULATOR
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-		if (cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC)
-		{
-			cl_command_queue queue;
-			starpu_opencl_get_queue(args->devid, &queue);
-			clFinish(queue);
-		}
 	    #ifndef CL_PROFILING_CLOCK_CYCLE_COUNT
 	      #ifdef CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
 		#define CL_PROFILING_CLOCK_CYCLE_COUNT CL_PROFILING_COMMAND_SHAVE_CYCLE_COUNT
@@ -800,23 +843,28 @@ static int _starpu_opencl_execute_job(struct _starpu_job *j, struct _starpu_work
 		_starpu_simgrid_execute_job(j, &args->perf_arch, length);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-		if (cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC)
-		{
-			cl_command_queue queue;
-			starpu_opencl_get_queue(args->devid, &queue);
-			clFinish(queue);
-		}
 #endif
 	}
+	return 0;
+}
+
+static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker *args)
+{
+	struct timespec codelet_end;
+	int profiling = starpu_profiling_status_get();
+
+	_starpu_set_current_task(NULL);
+	args->current_task = NULL;
 
 	_starpu_driver_end_job(args, j, &args->perf_arch, &codelet_end, 0, profiling);
 
 	_starpu_driver_update_job_feedback(j, args, &args->perf_arch,
-					   &codelet_start, &codelet_end, profiling);
+					   &j->cl_start, &codelet_end, profiling);
 
 	_starpu_push_task_output(j);
 
-	return EXIT_SUCCESS;
+	_starpu_handle_job_termination(j);
+
 }
 
 #ifdef STARPU_USE_OPENCL

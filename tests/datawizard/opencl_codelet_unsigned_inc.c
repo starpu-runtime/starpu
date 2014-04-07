@@ -45,14 +45,9 @@ void opencl_codelet_unsigned_inc(void *buffers[], void *args)
 		size_t global=1;
 		size_t local=1;
 
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);
 	}
-
-	clFinish(queue);
-	starpu_opencl_collect_stats(event);
-	clReleaseEvent(event);
-
 	starpu_opencl_release_kernel(kernel);
 }

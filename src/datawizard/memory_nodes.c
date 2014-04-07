@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -69,9 +69,9 @@ unsigned _starpu_memory_node_get_local_key(void)
 	memory_node = (unsigned *) STARPU_PTHREAD_GETSPECIFIC(memory_node_key);
 
 	/* in case this is called by the programmer, we assume the RAM node
-	   is the appropriate memory node ... so we return 0 XXX */
+	   is the appropriate memory node ... XXX */
 	if (STARPU_UNLIKELY(!memory_node))
-		return 0;
+		return STARPU_MAIN_RAM;
 
 	return *memory_node;
 }

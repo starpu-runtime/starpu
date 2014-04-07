@@ -38,6 +38,7 @@ void cuda_to_cpu(void *buffers[], void *arg)
 extern void cpu_to_cuda_cuda_func(void *buffers[], void *args); struct starpu_codelet cpu_to_cuda_cl =
 {
 	.cuda_funcs = {cpu_to_cuda_cuda_func, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 1
 };
 

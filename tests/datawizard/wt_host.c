@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2011-2012, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,6 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE
 	clEnqueueReadBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
 	h_token++;
 	clEnqueueWriteBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
-	clFinish(queue);
 }
 #endif
 
@@ -59,7 +58,6 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 	host_token++;
 
 	cudaMemcpyAsync(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -75,9 +73,11 @@ static struct starpu_codelet increment_cl =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {increment_cuda_kernel, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {increment_opencl_kernel, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs = {increment_cpu_kernel, NULL},
 	.nbuffers = 1,

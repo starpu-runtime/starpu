@@ -172,6 +172,10 @@ void _starpu_task_destroy(struct starpu_task *task)
 		if (task->prologue_callback_arg_free)
 			free(task->prologue_callback_arg);
 
+		/* Does user want StarPU release prologue_pop_arg ? */
+		if (task->prologue_callback_pop_arg_free)
+			free(task->prologue_callback_pop_arg);
+
 		free(task);
 	}
 }

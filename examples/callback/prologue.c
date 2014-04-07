@@ -17,6 +17,7 @@
 
 #include <starpu.h>
 #include <sys/time.h>
+#include <omp.h>
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
@@ -27,6 +28,7 @@ void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 	int *val = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
 	*val += 1;
+	printf("task executing \n");
 }
 
 struct starpu_codelet cl =
@@ -55,6 +57,12 @@ void prologue_callback_func(void *callback_arg)
 	printf("x = %lf\n", *x);
 }
 
+void pop_prologue_callback_func(void *args)
+{
+	unsigned val = (unsigned) args;
+	printf("pop_prologue_callback val %d \n", val);
+}
+
 
 int main(int argc, char **argv)
 {
@@ -72,6 +80,10 @@ int main(int argc, char **argv)
 	task->cl = &cl;
 	task->prologue_callback_func = callback_func;
 	task->prologue_callback_arg = NULL;
+
+	task->prologue_callback_pop_func = pop_prologue_callback_func;
+	task->prologue_callback_pop_arg = (void*) 5;
+
 	task->handles[0] = handle;
 
 	ret = starpu_task_submit(task);
@@ -84,6 +96,8 @@ int main(int argc, char **argv)
 				      STARPU_RW, handle,
 				      STARPU_PROLOGUE_CALLBACK, prologue_callback_func,
 				      STARPU_PROLOGUE_CALLBACK_ARG, x,
+				      STARPU_PROLOGUE_CALLBACK_POP, pop_prologue_callback_func,
+				      STARPU_PROLOGUE_CALLBACK_POP_ARG, 5,
 				      0);
 
 

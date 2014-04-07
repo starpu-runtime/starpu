@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011  Université de Bordeaux 1
+ * Copyright (C) 2011, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -74,14 +74,9 @@ void scal_func_opencl(void *buffers[], void *_args)
                 if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
                 if (local > global) local=global;
 
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
-
-	clFinish(queue);
-	starpu_opencl_collect_stats(event);
-	clReleaseEvent(event);
-
 	starpu_opencl_release_kernel(kernel);
 }
 #endif
@@ -92,9 +87,11 @@ struct starpu_codelet scal_codelet =
 	.cpu_funcs = { scal_func_cpu, NULL },
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = { scal_func_opencl, NULL },
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = { scal_func_cuda, NULL },
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.cpu_funcs_name = {"scal_func_cpu", NULL},
 	.modes = { STARPU_RW },

@@ -86,7 +86,14 @@ size_t _starpu_task_insert_get_arg_size(va_list varg_list)
 		{
 			(void)va_arg(varg_list, void *);
 		}
-
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
+		{
+			(void)va_arg(varg_list, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+		{
+			(void)va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
 		{
 			(void)va_arg(varg_list, void *);
@@ -194,6 +201,14 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 		{
 			(void)va_arg(varg_list, void *);
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
+		{
+			va_arg(varg_list, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+		{
+			(void)va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			(void)va_arg(varg_list, int);
@@ -260,6 +275,11 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 	STARPU_ASSERT(prologue_cl_arg_wrapper);
 
 	prologue_cl_arg_wrapper->callback_func = NULL;
+
+	struct task_insert_cb_wrapper *prologue_pop_cl_arg_wrapper = (struct task_insert_cb_wrapper *) malloc(sizeof(struct task_insert_cb_wrapper));
+	STARPU_ASSERT(prologue_pop_cl_arg_wrapper);
+
+	prologue_pop_cl_arg_wrapper->callback_func = NULL;
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -341,6 +361,17 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 			void *callback_arg = va_arg(varg_list, void *);
 			prologue_cl_arg_wrapper->callback_arg = callback_arg;
 		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
+		{
+			void (*callback_func)(void *);
+			callback_func = va_arg(varg_list, _starpu_callback_func_t);
+			prologue_pop_cl_arg_wrapper->callback_func = callback_func;
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+		{
+			void *callback_arg = va_arg(varg_list, void *);
+			prologue_pop_cl_arg_wrapper->callback_arg = callback_arg;
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			/* Followed by a priority level */
@@ -406,4 +437,8 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 	(*task)->prologue_callback_func = starpu_task_insert_callback_wrapper;
 	(*task)->prologue_callback_arg = prologue_cl_arg_wrapper;
 	(*task)->prologue_callback_arg_free = 1;
+
+	(*task)->prologue_callback_pop_func = starpu_task_insert_callback_wrapper;
+	(*task)->prologue_callback_pop_arg = prologue_pop_cl_arg_wrapper;
+	(*task)->prologue_callback_pop_arg_free = 1;
 }

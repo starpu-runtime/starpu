@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -394,14 +394,14 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 
 	if (r->retval == -EAGAIN)
 	{
-		/* The request was successful, but could not be terminted
-		 * immediatly. We will handle the completion of the request
+		/* The request was successful, but could not be terminated
+		 * immediately. We will handle the completion of the request
 		 * asynchronously. The request is put in the list of "pending"
 		 * requests in the meantime. */
 		_starpu_spin_unlock(&handle->header_lock);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[r->handling_node]);
-		_starpu_data_request_list_push_front(data_requests_pending[r->handling_node], r);
+		_starpu_data_request_list_push_back(data_requests_pending[r->handling_node], r);
 		data_requests_npending[r->handling_node]++;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[r->handling_node]);
 
@@ -415,12 +415,14 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	return 0;
 }
 
-int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
+int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed)
 {
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_list *new_data_requests;
 	struct _starpu_data_request_list *empty_list;
 	int ret = 0;
+
+	*pushed = 0;
 
 	/* Here helgrind would should that this is an un protected access.
 	 * We however don't care about missing an entry, we will get called
@@ -479,6 +481,8 @@ int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 			_starpu_data_request_list_push_back(new_data_requests, r);
 			break;
 		}
+
+		(*pushed)++;
 	}
 
 	while (!_starpu_data_request_list_empty(local_list))
@@ -500,12 +504,14 @@ int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc)
 	return ret;
 }
 
-void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc)
+void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed)
 {
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_list *new_data_requests;
 	struct _starpu_data_request_list *new_prefetch_requests;
 	struct _starpu_data_request_list *empty_list;
+
+	*pushed = 0;
 
 	if (_starpu_data_request_list_empty(prefetch_requests[src_node]))
 		return;
@@ -563,6 +569,8 @@ void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc
 			}
 			break;
 		}
+
+		(*pushed)++;
 	}
 
 	while(!_starpu_data_request_list_empty(local_list))
@@ -590,7 +598,7 @@ void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc
 	_starpu_data_request_list_delete(local_list);
 }
 
-static void _handle_pending_node_data_requests(unsigned src_node, unsigned force)
+static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 {
 //	_STARPU_DEBUG("_starpu_handle_pending_node_data_requests ...\n");
 //
@@ -599,12 +607,12 @@ static void _handle_pending_node_data_requests(unsigned src_node, unsigned force
 	unsigned taken, kept;
 
 	if (_starpu_data_request_list_empty(data_requests_pending[src_node]))
-		return;
+		return 0;
 
 	empty_list = _starpu_data_request_list_new();
 	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_pending_list_mutex[src_node]) && !force)
 		/* List is busy, do not bother with it */
-		return;
+		return 0;
 
 	/* for all entries of the list */
 	struct _starpu_data_request_list *local_list = data_requests_pending[src_node];
@@ -613,7 +621,7 @@ static void _handle_pending_node_data_requests(unsigned src_node, unsigned force
 		/* there is no request */
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[src_node]);
 		_starpu_data_request_list_delete(empty_list);
-		return;
+		return 0;
 	}
 	data_requests_pending[src_node] = empty_list;
 
@@ -680,16 +688,18 @@ static void _handle_pending_node_data_requests(unsigned src_node, unsigned force
 
 	_starpu_data_request_list_delete(local_list);
 	_starpu_data_request_list_delete(new_data_requests_pending);
+
+	return taken - kept;
 }
 
-void _starpu_handle_pending_node_data_requests(unsigned src_node)
+int _starpu_handle_pending_node_data_requests(unsigned src_node)
 {
-	_handle_pending_node_data_requests(src_node, 0);
+	return _handle_pending_node_data_requests(src_node, 0);
 }
 
-void _starpu_handle_all_pending_node_data_requests(unsigned src_node)
+int _starpu_handle_all_pending_node_data_requests(unsigned src_node)
 {
-	_handle_pending_node_data_requests(src_node, 1);
+	return _handle_pending_node_data_requests(src_node, 1);
 }
 
 int _starpu_check_that_no_data_request_exists(unsigned node)

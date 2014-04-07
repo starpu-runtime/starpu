@@ -41,6 +41,4 @@ extern "C" void cuda_func(void *buffers[], void *_args)
 
         /* TODO: use more blocks and threads in blocks */
         fblock_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>(block, nx, ny, nz, ldy, ldz, *factor);
-
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

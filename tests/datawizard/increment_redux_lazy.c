@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,7 +40,6 @@ static void redux_cuda_kernel(void *descr[], void *arg)
 	host_dst += host_src;
 
 	cudaMemcpyAsync(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 
 static void neutral_cuda_kernel(void *descr[], void *arg)
@@ -50,7 +49,6 @@ static void neutral_cuda_kernel(void *descr[], void *arg)
 	/* This is a dummy technique of course */
 	unsigned host_dst = 0;
 	cudaMemcpyAsync(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -72,7 +70,6 @@ static void redux_opencl_kernel(void *descr[], void *arg)
 	h_dst += h_src;
 
 	clEnqueueWriteBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
-	clFinish(queue);
 }
 
 static void neutral_opencl_kernel(void *descr[], void *arg)
@@ -84,7 +81,6 @@ static void neutral_opencl_kernel(void *descr[], void *arg)
 	starpu_opencl_get_current_queue(&queue);
 
 	clEnqueueWriteBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
-	clFinish(queue);
 }
 #endif
 
@@ -105,9 +101,11 @@ static struct starpu_codelet redux_cl =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {redux_cuda_kernel, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {redux_opencl_kernel, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs = {redux_cpu_kernel, NULL},
 	.cpu_funcs_name = {"redux_cpu_kernel", NULL},
@@ -119,9 +117,11 @@ static struct starpu_codelet neutral_cl =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {neutral_cuda_kernel, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {neutral_opencl_kernel, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs = {neutral_cpu_kernel, NULL},
 	.cpu_funcs_name = {"neutral_cpu_kernel", NULL},
@@ -146,7 +146,6 @@ static void increment_opencl_kernel(void *descr[], void *cl_arg STARPU_ATTRIBUTE
 	clEnqueueReadBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
 	h_token++;
 	clEnqueueWriteBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
-	clFinish(queue);
 }
 #endif
 
@@ -164,7 +163,6 @@ static void increment_cuda_kernel(void *descr[], void *arg)
 	host_token++;
 
 	cudaMemcpyAsync(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -178,9 +176,11 @@ static struct starpu_codelet increment_cl =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {increment_cuda_kernel, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {increment_opencl_kernel, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs = {increment_cpu_kernel, NULL},
 	.cpu_funcs_name = {"increment_cpu_kernel", NULL},

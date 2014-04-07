@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -55,6 +55,7 @@ static struct starpu_codelet cl12 =
 	.cpu_funcs = {dw_cpu_codelet_update_u12, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dw_cublas_codelet_update_u12, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -66,6 +67,7 @@ static struct starpu_codelet cl21 =
 	.cpu_funcs = {dw_cpu_codelet_update_u21, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dw_cublas_codelet_update_u21, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -77,6 +79,7 @@ static struct starpu_codelet cl22 =
 	.cpu_funcs = {dw_cpu_codelet_update_u22, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dw_cublas_codelet_update_u22, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},

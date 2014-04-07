@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,7 +40,6 @@ static void opencl_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_ar
 
         starpu_opencl_get_queue(devid, &queue);
         clEnqueueWriteBuffer(queue, buf, CL_TRUE, 0, sizeof(char), &ptr, 0, NULL, NULL);
-	clFinish(queue);
 }
 #endif
 
@@ -52,7 +51,6 @@ static void cuda_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args
 	char *buf = (char *)STARPU_VECTOR_GET_PTR(descr[0]);
 
 	cudaMemsetAsync(buf, 42, 1, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -80,9 +78,11 @@ static struct starpu_codelet cl =
 	.cpu_funcs = {cpu_codelet_null, NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cuda_codelet_null, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_codelet_null, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.cpu_funcs_name = {"cpu_codelet_null", NULL},
 	.nbuffers = 1,

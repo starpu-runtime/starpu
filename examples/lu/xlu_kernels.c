@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -70,9 +70,6 @@ static inline void STARPU_LU(common_u22)(void *descr[],
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
 				STARPU_CUBLAS_REPORT_ERROR(status);
 
-			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
-				STARPU_CUDA_REPORT_ERROR(cures);
-
 			break;
 		}
 #endif
@@ -133,6 +130,7 @@ struct starpu_codelet cl22 =
 	.cpu_funcs = {STARPU_LU(cpu_u22), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u22), NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
 #endif
 	.nbuffers = 3,
@@ -180,9 +178,6 @@ static inline void STARPU_LU(common_u12)(void *descr[],
 			if (STARPU_UNLIKELY(status != CUBLAS_STATUS_SUCCESS))
 				STARPU_CUBLAS_REPORT_ERROR(status);
 
-			if (STARPU_UNLIKELY((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess))
-				STARPU_CUDA_REPORT_ERROR(cures);
-
 			break;
 #endif
 		default:
@@ -221,6 +216,7 @@ struct starpu_codelet cl12 =
 	.cpu_funcs = {STARPU_LU(cpu_u12), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u12), NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
 #endif
 	.nbuffers = 2,
@@ -266,8 +262,6 @@ static inline void STARPU_LU(common_u21)(void *descr[],
 			if (status != CUBLAS_STATUS_SUCCESS)
 				STARPU_CUBLAS_REPORT_ERROR(status);
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
-
 			break;
 #endif
 		default:
@@ -306,6 +300,7 @@ struct starpu_codelet cl21 =
 	.cpu_funcs = {STARPU_LU(cpu_u21), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u21), NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
 #endif
 	.nbuffers = 2,
@@ -596,8 +591,6 @@ static inline void STARPU_LU(common_pivot)(void *descr[],
 				}
 			}
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
-
 			break;
 #endif
 		default:
@@ -637,6 +630,7 @@ struct starpu_codelet cl_pivot =
 	.cpu_funcs = {STARPU_LU(cpu_pivot), NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_pivot), NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
 #endif
 	.nbuffers = 1,

@@ -754,7 +754,6 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	size_t size = _starpu_data_get_size(handle);
 
 	_starpu_data_unregister_ram_pointer(handle);
-	_starpu_data_free_interfaces(handle);
 
 	/* Destroy the data now */
 	unsigned node;
@@ -774,6 +773,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		if (local->allocated && local->automatically_allocated)
 			_starpu_request_mem_chunk_removal(handle, local, starpu_worker_get_memory_node(worker), size);
 	}
+	_starpu_data_free_interfaces(handle);
 
 	_starpu_memory_stats_free(handle);
 	_starpu_data_requester_list_delete(handle->req_list);

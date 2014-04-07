@@ -71,14 +71,9 @@ void opencl_f(void *buffers[], void *args)
                 if (local > global)
 			local=global;
 
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);
 	}
-
-	clFinish(queue);
-	starpu_opencl_collect_stats(event);
-	clReleaseEvent(event);
-
 	starpu_opencl_release_kernel(kernel);
 }

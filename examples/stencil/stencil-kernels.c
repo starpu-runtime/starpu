@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -264,10 +264,6 @@ static void update_func_cuda(void *descr[], void *arg)
 #endif /* LIFE */
 	}
 
-	cudaError_t cures;
-	if ((cures = cudaStreamSynchronize(starpu_cuda_get_local_stream())) != cudaSuccess)
-		STARPU_CUDA_REPORT_ERROR(cures);
-
 	if (block->bz == 0)
 		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
 }
@@ -293,11 +289,8 @@ static void load_subblock_from_buffer_opencl(struct starpu_block_interface *bloc
 
         cl_command_queue cq;
         starpu_opencl_get_current_queue(&cq);
-        cl_int ret = clEnqueueCopyBuffer(cq, boundary_data, block_data, 0, offset, boundary_size, 0, NULL, &event);
+        cl_int ret = clEnqueueCopyBuffer(cq, boundary_data, block_data, 0, offset, boundary_size, 0, NULL, NULL);
 	if (ret != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(ret);
-
-	clWaitForEvents(1, &event);
-	clReleaseEvent(event);
 }
 
 /*
@@ -362,16 +355,8 @@ static void update_func_opencl(void *descr[], void *arg)
                 cl_int ret = clEnqueueCopyBuffer(cq, old, newer, 0, 0, oldb->nx * oldb->ny * oldb->nz * sizeof(*newer), 0, NULL, &event);
 		if (ret != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(ret);
 
-		clWaitForEvents(1, &event);
-		clReleaseEvent(event);
 #endif /* LIFE */
 	}
-
-#ifndef LIFE
-	cl_int err;
-	if ((err = clFinish(cq)))
-		STARPU_OPENCL_REPORT_ERROR(err);
-#endif
 
 	if (block->bz == 0)
 		starpu_top_update_data_integer(starpu_top_achieved_loop, ++achieved_iter);
@@ -465,9 +450,11 @@ struct starpu_codelet cl_update =
 	.cpu_funcs_name = {"update_func_cpu", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {update_func_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {update_func_opencl, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.model = &cl_update_model,
 	.nbuffers = 6,
@@ -535,11 +522,8 @@ static void load_subblock_into_buffer_opencl(struct starpu_block_interface *bloc
         starpu_opencl_get_current_queue(&cq);
 	cl_event event;
 
-        cl_int ret = clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, &event);
+        cl_int ret = clEnqueueCopyBuffer(cq, block_data, boundary_data, offset, 0, boundary_size, 0, NULL, NULL);
 	if (ret != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(ret);
-
-	clWaitForEvents(1, &event);
-	clReleaseEvent(event);
 }
 #endif /* STARPU_USE_OPENCL */
 
@@ -591,7 +575,6 @@ static void dummy_func_top_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg
 
 	load_subblock_into_buffer_cuda(descr[0], descr[2], block_size_z);
 	load_subblock_into_buffer_cuda(descr[1], descr[3], block_size_z);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 
 /* bottom save, CUDA version */
@@ -605,7 +588,6 @@ static void dummy_func_bottom_cuda(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *
 
 	load_subblock_into_buffer_cuda(descr[0], descr[2], K);
 	load_subblock_into_buffer_cuda(descr[1], descr[3], K);
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif /* STARPU_USE_CUDA */
 
@@ -624,10 +606,6 @@ static void dummy_func_top_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *a
 
 	load_subblock_into_buffer_opencl(descr[0], descr[2], block_size_z);
 	load_subblock_into_buffer_opencl(descr[1], descr[3], block_size_z);
-
-        cl_command_queue cq;
-        starpu_opencl_get_current_queue(&cq);
-        clFinish(cq);
 }
 
 /* bottom save, OPENCL version */
@@ -641,10 +619,6 @@ static void dummy_func_bottom_opencl(void *descr[] STARPU_ATTRIBUTE_UNUSED, void
 
 	load_subblock_into_buffer_opencl(descr[0], descr[2], K);
 	load_subblock_into_buffer_opencl(descr[1], descr[3], K);
-
-        cl_command_queue cq;
-        starpu_opencl_get_current_queue(&cq);
-        clFinish(cq);
 }
 #endif /* STARPU_USE_OPENCL */
 
@@ -667,9 +641,11 @@ struct starpu_codelet save_cl_bottom =
 	.cpu_funcs_name = {"dummy_func_bottom_cpu", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dummy_func_bottom_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {dummy_func_bottom_opencl, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.model = &save_cl_bottom_model,
 	.nbuffers = 4,
@@ -682,9 +658,11 @@ struct starpu_codelet save_cl_top =
 	.cpu_funcs_name = {"dummy_func_top_cpu", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dummy_func_top_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {dummy_func_top_opencl, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.model = &save_cl_top_model,
 	.nbuffers = 4,

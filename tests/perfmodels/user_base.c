@@ -29,7 +29,7 @@ size_t get_size_base(struct starpu_task *task, unsigned nimpl)
 	return 3;
 };
 
-size_t get_footprint(struct starpu_task *task)
+uint32_t get_footprint(struct starpu_task *task)
 {
 	uint32_t orig = starpu_task_data_footprint(task);
 	return starpu_hash_crc32c_be(42, orig);

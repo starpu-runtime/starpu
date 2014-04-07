@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2010, 2012-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,8 +24,10 @@
 #include <msg/msg.h>
 #endif
 
-void _starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc)
+int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests)
 {
+	int ret = 0;
+
 #if STARPU_DEVEL
 #warning FIXME
 #endif
@@ -35,11 +37,28 @@ void _starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc)
 	STARPU_UYIELD();
 
 	/* in case some other driver requested data */
-	_starpu_handle_pending_node_data_requests(memory_node);
-	if (_starpu_handle_node_data_requests(memory_node, may_alloc) == 0)
-		/* We pushed all pending requests, we can afford pushing
-		 * prefetch requests */
-		_starpu_handle_node_prefetch_requests(memory_node, may_alloc);
+	if (_starpu_handle_pending_node_data_requests(memory_node))
+		ret = 1;
+	if (push_requests)
+	{
+		unsigned pushed;
+		if (_starpu_handle_node_data_requests(memory_node, may_alloc, &pushed) == 0)
+		{
+			if (pushed)
+				ret = 1;
+			/* We pushed all pending requests, we can afford pushing
+			 * prefetch requests */
+			_starpu_handle_node_prefetch_requests(memory_node, may_alloc, &pushed);
+		}
+		if (pushed)
+			ret = 1;
+	}
 	_starpu_execute_registered_progression_hooks();
+
+	return ret;
 }
 
+void _starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc)
+{
+	__starpu_datawizard_progress(memory_node, may_alloc, 1);
+}

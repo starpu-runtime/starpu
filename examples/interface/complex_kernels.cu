@@ -44,6 +44,4 @@ extern "C" void copy_complex_codelet_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED
 	unsigned nblocks = (nx + threads_per_block-1) / threads_per_block;
 
         complex_copy_cuda<<<nblocks, threads_per_block, 0, starpu_cuda_get_local_stream()>>>(o_real, o_imaginary, i_real, i_imaginary, nx);
-
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }

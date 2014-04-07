@@ -164,7 +164,9 @@ static void register_worker_id(unsigned long tid, int workerid)
 	STARPU_ASSERT_MSG(workerid < STARPU_NMAXWORKERS, "Too many workers in this trace, please increase in ./configure invocation the maximum number of CPUs and GPUs to the same value as was used for execution");
 
 	/* only register a thread once */
-	STARPU_ASSERT(entry == NULL);
+	//STARPU_ASSERT(entry == NULL);
+	if (entry)
+		return;
 
 	entry = malloc(sizeof(*entry));
 	entry->tid = tid;
@@ -423,12 +425,17 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
+	int worker;
 
 	if (out_paje_file)
 		worker_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B");
 
+	if (ev->nb_params < 2)
+		worker = find_worker_id(ev->param[0]);
+	else
+		worker = ev->param[1];
+
 	/* Initilize the accumulated time counters */
-	int worker = find_worker_id(ev->param[0]);
 	last_activity_flush_timestamp[worker] = get_event_time_stamp(ev, options);
 	accumulated_sleep_time[worker] = 0.0;
 	accumulated_exec_time[worker] = 0.0;

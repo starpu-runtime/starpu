@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -75,7 +75,6 @@ void init_cuda_func(void *descr[], void *cl_arg)
 {
 	DOT_TYPE *dot = (DOT_TYPE *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	cudaMemsetAsync(dot, 0, sizeof(DOT_TYPE), starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -111,6 +110,7 @@ static struct starpu_codelet init_codelet =
 	.cpu_funcs_name = {"init_cpu_func", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {init_cuda_func, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {init_opencl_func, NULL},
@@ -174,15 +174,10 @@ void redux_opencl_func(void *buffers[], void *args)
                 if (local > global)
 			local=global;
 
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);
 	}
-
-	clFinish(queue);
-	starpu_opencl_collect_stats(event);
-	clReleaseEvent(event);
-
 	starpu_opencl_release_kernel(kernel);
 }
 #endif
@@ -194,9 +189,11 @@ static struct starpu_codelet redux_codelet =
 	.cpu_funcs_name = {"redux_cpu_func", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {redux_cuda_func, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {redux_opencl_func, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2,
@@ -247,7 +244,6 @@ void dot_cuda_func(void *descr[], void *cl_arg)
 	current_dot += local_dot;
 
 	cudaMemcpyAsync(dot, &current_dot, sizeof(DOT_TYPE), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -293,15 +289,10 @@ void dot_opencl_func(void *buffers[], void *args)
                 if (local > global)
 			local=global;
 
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS)
 			STARPU_OPENCL_REPORT_ERROR(err);
 	}
-
-	clFinish(queue);
-	starpu_opencl_collect_stats(event);
-	clReleaseEvent(event);
-
 	starpu_opencl_release_kernel(kernel);
 }
 #endif
@@ -313,9 +304,11 @@ static struct starpu_codelet dot_codelet =
 	.cpu_funcs_name = {"dot_cpu_func", NULL},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {dot_cuda_func, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {dot_opencl_func, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_REDUX},
