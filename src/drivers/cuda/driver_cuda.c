@@ -42,8 +42,8 @@ static unsigned ncudagpus;
 static size_t global_mem[STARPU_MAXCUDADEVS];
 #ifdef STARPU_USE_CUDA
 static cudaStream_t streams[STARPU_NMAXWORKERS];
-static cudaStream_t out_transfer_streams[STARPU_NMAXWORKERS];
-static cudaStream_t in_transfer_streams[STARPU_NMAXWORKERS];
+static cudaStream_t out_transfer_streams[STARPU_MAXCUDADEVS];
+static cudaStream_t in_transfer_streams[STARPU_MAXCUDADEVS];
 static cudaStream_t peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
 static cudaEvent_t task_events[STARPU_NMAXWORKERS];
@@ -116,18 +116,18 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 }
 
 #ifdef STARPU_USE_CUDA
-cudaStream_t starpu_cuda_get_local_in_transfer_stream(void)
+cudaStream_t starpu_cuda_get_in_transfer_stream(unsigned node)
 {
-	int worker = starpu_worker_get_id();
+	int devid = _starpu_memory_node_get_devid(node);
 
-	return in_transfer_streams[worker];
+	return in_transfer_streams[devid];
 }
 
-cudaStream_t starpu_cuda_get_local_out_transfer_stream(void)
+cudaStream_t starpu_cuda_get_out_transfer_stream(unsigned node)
 {
-	int worker = starpu_worker_get_id();
+	int devid = _starpu_memory_node_get_devid(node);
 
-	return out_transfer_streams[worker];
+	return out_transfer_streams[devid];
 }
 
 cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned dst_node)
@@ -263,11 +263,11 @@ static void init_context(struct _starpu_worker_set *worker_set, unsigned devid)
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 
-		cures = cudaStreamCreate(&in_transfer_streams[workerid]);
+		cures = cudaStreamCreate(&in_transfer_streams[devid]);
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 
-		cures = cudaStreamCreate(&out_transfer_streams[workerid]);
+		cures = cudaStreamCreate(&out_transfer_streams[devid]);
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
@@ -293,8 +293,8 @@ static void deinit_context(struct _starpu_worker_set *worker_set)
 
 		cudaEventDestroy(task_events[workerid]);
 		cudaStreamDestroy(streams[workerid]);
-		cudaStreamDestroy(in_transfer_streams[workerid]);
-		cudaStreamDestroy(out_transfer_streams[workerid]);
+		cudaStreamDestroy(in_transfer_streams[devid]);
+		cudaStreamDestroy(out_transfer_streams[devid]);
 	}
 
 	for (i = 0; i < ncudagpus; i++)
@@ -588,6 +588,9 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 #endif
 		/* Synchronous execution */
 		{
+#if defined(STARPU_DEBUG) && !defined(STARPU_SIMGRID)
+			STARPU_ASSERT_MSG(cudaStreamQuery(starpu_cuda_get_local_stream()) == cudaSuccess, "CUDA codelets have to wait for termination of their kernels on the starpu_cuda_get_local_stream() stream");
+#endif
 			finish_job_on_cuda(j, args);
 		}
 		_STARPU_TRACE_START_PROGRESS(memnode);
