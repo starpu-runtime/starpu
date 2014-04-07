@@ -588,6 +588,9 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 #endif
 		/* Synchronous execution */
 		{
+#if defined(STARPU_DEBUG) && !defined(STARPU_SIMGRID)
+			STARPU_ASSERT_MSG(cudaStreamQuery(starpu_cuda_get_local_stream()) == cudaSuccess, "CUDA codelets have to wait for termination of their kernels on the starpu_cuda_get_local_stream() stream");
+#endif
 			finish_job_on_cuda(j, args);
 		}
 		_STARPU_TRACE_START_PROGRESS(memnode);
