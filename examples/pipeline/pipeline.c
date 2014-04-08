@@ -101,6 +101,7 @@ void pipeline_cublas_axpy(void *descr[], void *arg)
 	int n = STARPU_VECTOR_GET_NX(descr[0]);
 
 	cublasSaxpy(n, 1., x, 1, y, 1);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
 #endif
 
