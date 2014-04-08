@@ -67,7 +67,7 @@ able to submit and complete data transfers while kernels are executing, instead 
 kernel submission. The kernel just has to make sure that StarPU can use the
 local stream to synchronize with the kernel startup and completion.
 
-Using the STARPU_CUDA_ASYNC flag also permits to enabled concurrent kernel
+Using the STARPU_CUDA_ASYNC flag also permits to enable concurrent kernel
 execution, on cards which support it (Kepler and later, notably). This is
 enabled by setting the STARPU_NWORKER_PER_CUDA environment variable to the
 number of kernels to execute concurrently.  This is useful when kernels are
