@@ -67,7 +67,12 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 
 	STARPU_PTHREAD_MUTEX_LOCK(&job->sync_mutex);
 	if (check)
-		STARPU_ASSERT_MSG(!job->submitted || !task->destroy || task->detach, "Task dependencies have to be set before submission (submitted %u destroy %d detach %d)", job->submitted, task->destroy, task->detach);
+		STARPU_ASSERT_MSG(
+				!job->submitted || !task->destroy || task->detach
+#ifdef STARPU_OPENMP
+				|| job->continuation
+#endif
+				, "Task dependencies have to be set before submission (submitted %u destroy %d detach %d)", job->submitted, task->destroy, task->detach);
 	else
 		STARPU_ASSERT_MSG(job->terminated <= 1, "Task dependencies have to be set before termination (terminated %u)", job->terminated);
 

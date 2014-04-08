@@ -59,6 +59,11 @@ int
 _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 				     enum starpu_node_kind node_kind);
 
+#ifdef STARPU_OPENMP
+/* Prepare the current task for accepting new dependencies before becoming a continuation. */
+void _starpu_task_prepare_for_continuation(void);
+#endif
+
 int _starpu_task_uses_multiformat_handles(struct starpu_task *task);
 
 int _starpu_task_submit_conversion_task(struct starpu_task *task,

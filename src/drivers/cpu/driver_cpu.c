@@ -114,7 +114,12 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	{
 		_starpu_driver_update_job_feedback(j, cpu_args,
 				perf_arch, &codelet_start, &codelet_end, profiling);
-		_starpu_push_task_output(j);
+#ifdef STARPU_OPENMP
+		if (!j->continuation)
+#endif
+		{
+			_starpu_push_task_output(j);
+		}
 	}
 
 	return 0;

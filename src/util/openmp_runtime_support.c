@@ -119,7 +119,7 @@ static void omp_initial_thread_func(void)
 
 static struct starpu_omp_thread *create_omp_thread_struct(struct starpu_omp_region *owner_region)
 {
-	struct starpu_omp_thread *thread = malloc(sizeof(*thread));
+	struct starpu_omp_thread *thread = starpu_omp_thread_new();
 	if (thread == NULL)
 		_STARPU_ERROR("memory allocation failed");
 	/* .current_task */
@@ -141,7 +141,7 @@ static void destroy_omp_thread_struct(struct starpu_omp_thread *thread)
 	STARPU_ASSERT(thread->current_task == NULL);
 	STARPU_ASSERT(thread->primary_task == NULL);
 	memset(thread, 0, sizeof(*thread));
-	free(thread);
+	starpu_omp_thread_delete(thread);
 }
 
 static void starpu_omp_task_entry(struct starpu_omp_task *task)
@@ -175,16 +175,6 @@ static void starpu_omp_task_preempt(void)
 	 */
 	swapcontext(&task->ctx, &thread->ctx);
 	/* now running on the task stack again */
-}
-
-/*
- * set a flag in starpu_task to indicate that the terminating/destroying sequence should not be applied on this task upon return,
- * the preempting sequence should be performed instead
- */
-static void _starpu_task_set_preempted(struct starpu_task *starpu_task)
-{
-	(void)starpu_task;
-	abort();/* TODO: implement */
 }
 
 /*
@@ -255,32 +245,14 @@ static void starpu_omp_task_exec(void *buffers[], void *cl_arg)
 			task = NULL;
 		}
 	}
-	else if (task->state == starpu_omp_task_state_preempted)
-	{
-		_starpu_task_set_preempted(task->starpu_task);
-	}
-	else
+	else if (task->state != starpu_omp_task_state_preempted)
 		_STARPU_ERROR("invalid omp task state");
-}
-
-/*
- * prepare the starpu_task fields of a currently running task
- * for accepting a new set of dependencies in anticipation of a preemption
- *
- * when the task becomes preempted, it will only be queued again when the new
- * set of dependencies is fulfilled
- */
-static void _starpu_task_prepare_for_preemption(struct starpu_task *starpu_task)
-{
-	/* TODO: implement function */
-	(void)starpu_task;
-	abort();/* TODO: implement */
 }
 
 static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *parent_task,
 		struct starpu_omp_thread *owner_thread, struct starpu_omp_region *owner_region, int is_implicit)
 {
-	struct starpu_omp_task *task = malloc(sizeof(*task));
+	struct starpu_omp_task *task = starpu_omp_task_new();
 	if (task == NULL)
 		_STARPU_ERROR("memory allocation failed");
 	task->parent_task = parent_task;
@@ -335,7 +307,7 @@ static void destroy_omp_task_struct(struct starpu_omp_task *task)
 		free(task->stack);
 	}
 	memset(task, 0, sizeof(*task));
-	free(task);
+	starpu_omp_task_delete(task);
 }
 
 /*
@@ -502,7 +474,7 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 	else
 	{
 		/* through the preemption, the parent starpu task becomes the continuation task */
-		_starpu_task_prepare_for_preemption(parent_task->starpu_task);
+		_starpu_task_prepare_for_continuation();
 		new_region->continuation_starpu_task = parent_task->starpu_task;
 	}
 

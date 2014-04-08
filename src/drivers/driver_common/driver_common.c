@@ -116,6 +116,9 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	int calibrate_model = 0;
 	int updated = 0;
 
+#ifdef STARPU_OPENMP
+#warning "TODO: [OPENMP] split profiling for discontinuous tasks"
+#endif
 #ifndef STARPU_SIMGRID
 	if (cl->model && cl->model->benchmarking)
 		calibrate_model = 1;

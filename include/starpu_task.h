@@ -62,6 +62,9 @@ enum starpu_task_status
 	STARPU_TASK_BLOCKED_ON_TAG,
 	STARPU_TASK_BLOCKED_ON_TASK,
 	STARPU_TASK_BLOCKED_ON_DATA
+#ifdef STARPU_OPENMP
+	, STARPU_TASK_STOPPED
+#endif
 };
 
 typedef uint64_t starpu_tag_t;

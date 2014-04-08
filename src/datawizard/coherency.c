@@ -799,6 +799,9 @@ enomem:
 
 void _starpu_push_task_output(struct _starpu_job *j)
 {
+#ifdef STARPU_OPENMP
+	STARPU_ASSERT(!j->continuation);
+#endif
 	_STARPU_TRACE_START_PUSH_OUTPUT(NULL);
 
 	int profiling = starpu_profiling_status_get();
