@@ -685,11 +685,16 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *args)
 		int err;
 		cl_command_queue queue;
 		starpu_opencl_get_queue(args->devid, &queue);
-#if defined(HAVE_CLENQUEUEMARKERWITHWAITLIST) && defined(CL_VERSION_1_2)
-		err = clEnqueueMarkerWithWaitList(queue, 0, NULL, &task_events[args->devid]);
-#else
+		/* the function clEnqueueMarker is deprecated from
+		 * OpenCL version 1.2. We would like to use the new
+		 * function clEnqueueMarkerWithWaitList. We could do
+		 * it by checking its availability through our own
+		 * configure macro HAVE_CLENQUEUEMARKERWITHWAITLIST
+		 * and the OpenCL macro CL_VERSION_1_2. However these
+		 * 2 macros detect the function availability in the
+		 * ICD and not in the device implementation.
+		 */
 		err = clEnqueueMarker(queue, &task_events[args->devid]);
-#endif
 		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	}
 	else
