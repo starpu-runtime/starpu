@@ -60,14 +60,14 @@ StarPU already does appropriate calls for the CUBLAS library.
 If the kernel can be made to only use this local stream or other self-allocated
 streams, i.e. the whole kernel submission can be made asynchronous, then
 one should enable asynchronous execution of the kernel.  That means setting
-the STARPU_CUDA_FLAG flag in cuda_flags[] in the codelet, and dropping the
+the STARPU_CUDA_ASYNC flag in cuda_flags[] in the codelet, and dropping the
 cudaStreamSynchronize() call at the end of the cuda_func function, so that it
 returns immediately after having queued the kernel to the local stream. That way, StarPU will be
 able to submit and complete data transfers while kernels are executing, instead of only at each
 kernel submission. The kernel just has to make sure that StarPU can use the
 local stream to synchronize with the kernel startup and completion.
 
-Using the STARPU_CUDA_FLAG flag also permits to enabled concurrent kernel
+Using the STARPU_CUDA_ASYNC flag also permits to enabled concurrent kernel
 execution, on cards which support it (Kepler and later, notably). This is
 enabled by setting the STARPU_NWORKER_PER_CUDA environment variable to the
 number of kernels to execute concurrently.  This is useful when kernels are
