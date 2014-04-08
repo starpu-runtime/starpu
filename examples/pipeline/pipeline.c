@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2012  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -142,6 +142,7 @@ void pipeline_cublas_sum(void *descr[], void *arg)
 
 	y = cublasSasum(n, x, 1);
 
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 	FPRINTF(stderr,"CUBLAS finished with %f\n", y);
 }
 #endif
