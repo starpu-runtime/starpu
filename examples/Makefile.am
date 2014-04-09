@@ -39,6 +39,7 @@ EXTRA_DIST = 					\
 	spmd/vector_scal_spmd.c			\
 	spmv/spmv_cuda.cu			\
 	spmv/spmv_opencl.cl			\
+	spmv/matrix_market/examples/fidapm05.mtx \
 	mult/xgemm.c				\
 	lu/xlu.c				\
 	lu/xlu_pivot.c				\
