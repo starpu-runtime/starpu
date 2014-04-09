@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -93,7 +93,7 @@ static tmp_block_t *search_block(tmp_block_t *block_list, unsigned i, unsigned j
 
 	while (current_block)
 	{
-		if ((current_block->i == i) && (current_block->j == j)) 
+		if ((current_block->i == i) && (current_block->j == j))
 		{
 			/* we found the block */
 			return current_block;
@@ -194,7 +194,7 @@ static void insert_elem(tmp_block_t **block_list, unsigned abs_i, unsigned abs_j
 
 		block->i = i;
 		block->j = j;
-		
+
 		/* printf("create block %d %d !\n", i, j); */
 
 		/* insert it in the block list */
@@ -207,7 +207,7 @@ static void insert_elem(tmp_block_t **block_list, unsigned abs_i, unsigned abs_j
 	local_i = abs_i % c;
 	local_j = abs_j % r;
 	local_index = local_j * c + local_i;
-	
+
 	block->val[local_index] = val;
 }
 
@@ -240,7 +240,7 @@ static void fill_bcsr(tmp_block_t *block_list, unsigned c, unsigned r, bcsr_t *b
 		/* copy the val from the block to the contiguous area in the BCSR */
 		memcpy(&bcsr->val[current_offset], current_block->val, block_size);
 
-		/* write the the index of the block 
+		/* write the the index of the block
 		 * XXX should it be in blocks ? */
 		bcsr->colind[block] = current_block->i;
 
@@ -262,7 +262,7 @@ static void fill_bcsr(tmp_block_t *block_list, unsigned c, unsigned r, bcsr_t *b
 	unsigned row;
 	for (row = 1; row < bcsr->nrows_blocks; row++)
 	{
-		if (bcsr->rowptr[row] == 0) 
+		if (bcsr->rowptr[row] == 0)
 			bcsr->rowptr[row] = bcsr->rowptr[row-1];
 	}
 
@@ -282,7 +282,7 @@ static bcsr_t * blocks_to_bcsr(tmp_block_t *block_list, unsigned c, unsigned r)
 	bcsr->nnz_blocks = nblocks;
 	bcsr->r = r;
 	bcsr->c = c;
-	
+
 	unsigned nrows_blocks = count_row_blocks(block_list);
 	bcsr->nrows_blocks = nrows_blocks;
 
@@ -314,15 +314,18 @@ bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 	MM_typecode matcode;
 	int ret_code;
 	int M, N;
-	int nz;   
+	int nz;
 	int i;
 	unsigned *I, *J;
 	float *val;
 
 	bcsr_t *bcsr;
 
-	if ((f = fopen(filename, "r")) == NULL) 
+	if ((f = fopen(filename, "r")) == NULL)
+	{
+		fprintf(stderr, "File <%s> not found\n", filename);
 		exit(1);
+	}
 
 	if (mm_read_banner(f, &matcode) != 0)
 	{
@@ -332,36 +335,36 @@ bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 
 	/*  This is how one can screen matrix types if their application */
 	/*  only supports a subset of the Matrix Market data types.      */
-	
+
 	if (mm_is_complex(matcode) && mm_is_matrix(matcode) &&  mm_is_sparse(matcode) )
 	{
 		printf("Sorry, this application does not support ");
 		printf("Market Market type: [%s]\n", mm_typecode_to_str(matcode));
 		exit(1);
 	}
-	
+
 	/* find out size of sparse matrix .... */
-	
+
 	if ((ret_code = mm_read_mtx_crd_size(f, &M, &N, &nz)) !=0)
 		exit(1);
-	
-	
+
+
 	/* reseve memory for matrices */
-	
+
 	I = malloc(nz * sizeof(unsigned));
 	J = malloc(nz * sizeof(unsigned));
 	/* XXX float ! */
 	val = (float *) malloc(nz * sizeof(float));
-	
+
 	for (i=0; i<nz; i++)
 	{
 		fscanf(f, "%d %d %f\n", &I[i], &J[i], &val[i]);
 		I[i]--;  /* adjust from 1-based to 0-based */
 		J[i]--;
 	}
-	
+
 	if (f !=stdin) fclose(f);
-	
+
 	bcsr = mm_to_bcsr((unsigned)nz, I, J, val, c, r);
 
 	free(I);
