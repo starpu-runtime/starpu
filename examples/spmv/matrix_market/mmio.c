@@ -43,7 +43,7 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
     {
 	    fprintf(stderr, "File <%s> not found\n", fname);
             return -1;
-
+    }
 
     if (mm_read_banner(f, &matcode) != 0)
     {

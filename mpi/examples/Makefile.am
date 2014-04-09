@@ -120,7 +120,7 @@ mpi_lu_plu_example_float_SOURCES =	\
 	mpi_lu/plu_solve_float.c	\
 	mpi_lu/pslu_kernels.c		\
 	mpi_lu/pslu.c			\
-	$(top_srcdir)/examples/common/blas.c
+	../../examples/common/blas.c
 
 mpi_lu_plu_example_double_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
@@ -132,7 +132,7 @@ mpi_lu_plu_example_double_SOURCES =	\
 	mpi_lu/plu_solve_double.c  	\
 	mpi_lu/pdlu_kernels.c	    	\
 	mpi_lu/pdlu.c		    	\
-	$(top_srcdir)/examples/common/blas.c
+	../../examples/common/blas.c
 
 mpi_lu_plu_implicit_example_float_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
@@ -144,7 +144,7 @@ mpi_lu_plu_implicit_example_float_SOURCES =	\
 	mpi_lu/plu_solve_float.c		\
 	mpi_lu/pslu_kernels.c			\
 	mpi_lu/pslu_implicit.c			\
-	$(top_srcdir)/examples/common/blas.c
+	../../examples/common/blas.c
 
 mpi_lu_plu_implicit_example_double_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
@@ -156,7 +156,7 @@ mpi_lu_plu_implicit_example_double_SOURCES =	\
 	mpi_lu/plu_solve_double.c		\
 	mpi_lu/pdlu_kernels.c			\
 	mpi_lu/pdlu_implicit.c			\
-	$(top_srcdir)/examples/common/blas.c
+	../../examples/common/blas.c
 
 mpi_lu_plu_outofcore_example_float_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
@@ -168,7 +168,7 @@ mpi_lu_plu_outofcore_example_float_SOURCES =	\
 	mpi_lu/plu_solve_float.c		\
 	mpi_lu/pslu_kernels.c			\
 	mpi_lu/pslu_implicit.c			\
-	$(top_srcdir)/examples/common/blas.c
+	../../examples/common/blas.c
 
 mpi_lu_plu_outofcore_example_double_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
@@ -180,7 +180,7 @@ mpi_lu_plu_outofcore_example_double_SOURCES =	\
 	mpi_lu/plu_solve_double.c		\
 	mpi_lu/pdlu_kernels.c			\
 	mpi_lu/pdlu_implicit.c			\
-	$(top_srcdir)/examples/common/blas.c
+	../../examples/common/blas.c
 endif
 
 
@@ -200,7 +200,7 @@ matrix_decomposition_mpi_cholesky_SOURCES	=		\
 	matrix_decomposition/mpi_cholesky_codelets.c	\
 	matrix_decomposition/mpi_decomposition_params.c	\
 	matrix_decomposition/mpi_decomposition_matrix.c	\
-	$(top_srcdir)/examples/common/blas.c
+	../../examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
@@ -213,7 +213,7 @@ matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
 	matrix_decomposition/mpi_cholesky_codelets.c	\
 	matrix_decomposition/mpi_decomposition_params.c	\
 	matrix_decomposition/mpi_decomposition_matrix.c	\
-	$(top_srcdir)/examples/common/blas.c
+	../../examples/common/blas.c
 
 matrix_decomposition_mpi_cholesky_distributed_LDADD =	\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la	\
@@ -233,7 +233,7 @@ examplebin_PROGRAMS +=			\
 
 complex_mpi_complex_SOURCES =		\
 	complex/mpi_complex.c		\
-	$(top_srcdir)/examples/interface/complex_interface.c
+	../../examples/interface/complex_interface.c
 
 complex_mpi_complex_LDADD =		\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
