@@ -229,10 +229,12 @@ struct starpu_omp_region
 	/* the first nested region of the initial region */
 	struct starpu_omp_region *initial_nested_region;
 	struct starpu_omp_device *owner_device;
-	/* note: the list of threads includes the master_thread as first element */
+	struct starpu_omp_thread *master_thread;
+	/* note: the list of threads does not include the master_thread */
 	struct starpu_omp_thread_list *thread_list;
 	/* list of implicit omp tasks created to run the region */
 	struct starpu_omp_task_list *implicit_task_list;
+	/* include both the master thread and the region own threads */
 	int nb_threads;
 	int level;
 	struct starpu_task *continuation_starpu_task;

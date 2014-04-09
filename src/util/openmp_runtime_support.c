@@ -112,6 +112,7 @@ static void omp_initial_thread_func(void)
 		 */
 		if (_starpu_task_test_termination(continuation_task))
 		{
+			init_region->initial_nested_region->continuation_starpu_task = NULL;
 			swapcontext(&init_thread->ctx, &init_task->ctx);
 		}
 	}
@@ -239,6 +240,8 @@ static void starpu_omp_task_exec(void *buffers[], void *cl_arg)
 	/* TODO: analyse the cause of the return and take appropriate steps */
 	if (task->state == starpu_omp_task_state_terminated)
 	{
+		task->starpu_task->omp_task = NULL;
+		task->starpu_task = NULL;
 		if (!task->is_implicit)
 		{
 			destroy_omp_task_struct(task);
@@ -350,6 +353,8 @@ static void omp_initial_thread_setup(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	ret = starpu_driver_init(&initial_thread->starpu_driver);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_init");
+	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, initial_task);
+	STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, initial_thread);
 }
 
 static void omp_initial_thread_exit()
@@ -368,8 +373,7 @@ static void omp_initial_thread_exit()
 
 static void omp_initial_region_setup(void)
 {
-	starpu_omp_thread_list_push_back(_global_state.initial_region->thread_list,
-			_global_state.initial_thread);
+	_global_state.initial_region->master_thread = _global_state.initial_thread;
 	_global_state.initial_region->nb_threads++;
 	starpu_omp_task_list_push_back(_global_state.initial_region->implicit_task_list,
 			_global_state.initial_task);
@@ -381,7 +385,7 @@ static void omp_initial_region_exit(void)
 	omp_initial_thread_exit();
 	_global_state.initial_task->state = starpu_omp_task_state_terminated;
 	starpu_omp_task_list_pop_front(_global_state.initial_region->implicit_task_list);
-	starpu_omp_thread_list_pop_front(_global_state.initial_region->thread_list);
+	_global_state.initial_region->master_thread = NULL;
 	_global_state.initial_region->nb_threads--;
 }
 
@@ -445,11 +449,20 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 	int i;
 	for (i = 0; i < nb_threads; i++)
 	{
-		struct starpu_omp_thread *new_thread =
-			(i == 0) ? master_thread : create_omp_thread_struct(new_region);
-		/* TODO: specify actual starpu worker */
+		struct starpu_omp_thread *new_thread;
+		
+		if (i == 0)
+		{
+			new_thread = master_thread;
+			new_region->master_thread = master_thread;
+		}
+		else
+		{
+			/* TODO: specify actual starpu worker */
+			new_thread = create_omp_thread_struct(new_region);
+			starpu_omp_thread_list_push_back(new_region->thread_list, new_thread);
+		}
 
-		starpu_omp_thread_list_push_back(new_region->thread_list, new_thread);
 		new_region->nb_threads++;
 		struct starpu_omp_task *new_task = create_omp_task_struct(parent_task, new_thread, new_region, 1);
 		starpu_omp_task_list_push_back(new_region->implicit_task_list, new_task);
@@ -468,6 +481,8 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 
 		/* in that case, the continuation starpu task is only used for synchronisation */
 		new_region->continuation_starpu_task->cl = NULL;
+		/* this sync task will be tested for completion in omp_initial_thread_func() */
+		new_region->continuation_starpu_task->detach = 0;
 		parent_region->initial_nested_region = new_region;
 
 	}
@@ -504,6 +519,7 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 		implicit_task->starpu_task = starpu_task_create();
 		implicit_task->starpu_task->cl = parallel_region_cl;
 		implicit_task->starpu_task->cl_arg = parallel_region_cl_arg;
+		implicit_task->starpu_task->omp_task = implicit_task;
 		starpu_task_declare_deps_array(new_region->continuation_starpu_task, 1, &implicit_task->starpu_task);
 	}
 
@@ -537,10 +553,13 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 	 */
 	for (i = 0; i < nb_threads; i++)
 	{
-		struct starpu_omp_thread *region_thread = starpu_omp_thread_list_pop_front(new_region->thread_list);
-		/* do not destroy the struct of the master thread */
-		if (i > 0)
+		if (i == 0)
 		{
+			new_region->master_thread = NULL;
+		}
+		else
+		{
+			struct starpu_omp_thread *region_thread = starpu_omp_thread_list_pop_front(new_region->thread_list);
 			destroy_omp_thread_struct(region_thread);
 		}
 		new_region->nb_threads--;
@@ -549,6 +568,10 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 	}
 	STARPU_ASSERT(new_region->nb_threads == 0);
 
+	if (parent_task == _global_state.initial_task)
+	{
+		parent_region->initial_nested_region = NULL;
+	}
 	destroy_omp_region_struct(new_region);
 }
 
