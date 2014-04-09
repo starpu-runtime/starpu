@@ -51,6 +51,11 @@ Changes:
   * Interfaces: Allow interface implementation to change pointers at will, in
     unpack notably.
 
+Small changes:
+  * By default, StarPU FFT examples are not compiled and checked, the
+    configure option --enable-starpufft-examples needs to be specified
+    to change this behaviour.
+
 StarPU 1.1.0 (svn revision 11960)
 ==============================================
 The scheduling context release
