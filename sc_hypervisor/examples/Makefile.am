@@ -40,7 +40,7 @@ cholesky_cholesky_implicit_SOURCES =		\
 	cholesky/cholesky_models.c		\
 	cholesky/cholesky_kernels.c		\
 	sched_ctx_utils/sched_ctx_utils.c	\
-	$(top_srcdir)/examples/common/blas.c
+	../../examples/common/blas.c
 
 cholesky_cholesky_implicit_LDADD =		\
 	$(top_builddir)/sc_hypervisor/src/libsc_hypervisor.la \
