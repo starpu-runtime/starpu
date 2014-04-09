@@ -106,7 +106,8 @@ chapters =	\
 	chapters/api/tree.doxy \
 	chapters/api/toolbox.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
-	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy
+	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy \
+	chapters/api/modularized_scheduler.doxy
 
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
