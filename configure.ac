@@ -2241,6 +2241,11 @@ if test x$enable_starpufft = xyes -a \( \( x$enable_cpu = xyes -a x$have_fftw = 
 fi
 AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
 
+AC_ARG_ENABLE(starpufft-examples, [AS_HELP_STRING([--enable-starpufft-examples],
+			[disable execution of StarPU FFT examples])],
+			enable_starpufft_examples=$enableval, enable_starpufft_examples=no)
+AM_CONDITIONAL(BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_examples = xyes])
+
 ##########################################
 # hwloc                                  #
 ##########################################

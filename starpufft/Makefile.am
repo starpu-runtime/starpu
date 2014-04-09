@@ -15,7 +15,11 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-SUBDIRS=src tests
+SUBDIRS=src
+
+if BUILD_STARPUFFT_EXAMPLES
+SUBDIRS += tests
+endif
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
