@@ -102,8 +102,22 @@ if (nrow(df)==0)
   stop("Result is empty!")
 
 # Plotting histograms
-plot <- ggplot(df, aes(x=Duration, fill=..count..)) + geom_histogram(binwidth = diff(range(df$Duration))/30)
+plot <- ggplot(df, aes(x=Duration)) + geom_histogram(aes(y=..count.., fill=..count..),binwidth = diff(range(df$Duration))/30)
 plot <- plot + theme_bw()  + scale_fill_gradient(high = "#132B43", low = "#56B1F7") + ggtitle("Histograms for state distribution") + ylab("Count") + xlab("Time [ms]") + theme(legend.position="none") + facet_grid(Origin~Value,scales = "free_y")
+
+# Adding text for total duration
+ad<-ggplot_build(plot)$data[[1]]
+al<-ggplot_build(plot)$panel$layout
+ad<-merge(ad,al)
+anno1 <- ddply(ad, .(ROW), summarise, x = max(x)*0.7, y = max(y)*0.9)
+anno1<-merge(anno1,al)
+anno2 <- ddply(df, .(Origin,Value), summarise, tot=as.integer(sum(Duration)))
+anno2$PANEL <- row.names(anno2)
+anno2$lab <- sprintf("Total duration: \n%ims",anno2$tot)
+anno <- merge(anno1,anno2)
+plot <- plot + geom_text(data = anno, aes(x=x, y=y, label=lab, colour="red"))
+
+# Printing plot
 plot
 
 # End
