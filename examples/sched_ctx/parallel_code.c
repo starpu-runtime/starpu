@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,17 +36,13 @@ int parallel_code(int sched_ctx)
 	starpu_sched_ctx_get_available_cpuids(sched_ctx, &cpuids, &ncpuids);
 
 //	printf("execute task of %d threads \n", ncpuids);
-	omp_set_nested(1);
-#pragma omp parallel num_threads(1)
-	{
 #pragma omp parallel num_threads(ncpuids)
-		{
-			starpu_sched_ctx_bind_current_thread_to_cpuid(cpuids[omp_get_thread_num()]);
+	{
+		starpu_sched_ctx_bind_current_thread_to_cpuid(cpuids[omp_get_thread_num()]);
 // 			printf("cpu = %d ctx%d nth = %d\n", sched_getcpu(), sched_ctx, omp_get_num_threads());
 #pragma omp for
-			for(i = 0; i < NTASKS; i++)
-				t++;
-		}
+		for(i = 0; i < NTASKS; i++)
+			t++;
 	}
 	free(cpuids);
 	return t;
@@ -104,9 +100,8 @@ int main(int argc, char **argv)
 #else
 	procs1 = (int*)malloc(nprocs1*sizeof(int));
 	procs2 = (int*)malloc(nprocs2*sizeof(int));
-	procs1[0] = 0:
-	procs2[0] = 0:
-
+	procs1[0] = 0;
+	procs2[0] = 0;
 #endif
 
 	int p;

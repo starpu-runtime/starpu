@@ -47,7 +47,7 @@ New features:
   * New functions starpu_mpi_task_build() and starpu_mpi_task_post_build()
   * New functions starpu_pause() and starpu_resume()
   * New codelet specific_nodes field to specify explicit target nodes for data.
-  * Use streams for GPUA->GPUB and GPUB->GPUA transfers.
+  * Use streams for all CUDA transfers, even initiated by CPUs.
   * Add STARPU_CUDA_ASYNC and STARPU_OPENCL_ASYNC flags to allow asynchronous
     CUDA and OpenCL kernel execution.
   * Add paje traces statistics tools.

@@ -853,6 +853,10 @@ if test x$enable_opencl = xyes -o x$enable_opencl = xmaybe; then
 	  enable_opencl=$have_valid_opencl
           ;;
    esac
+   save_LIBS="$LIBS"
+   LIBS="$LIBS $STARPU_OPENCL_LDFLAGS"
+   AC_CHECK_FUNCS([clEnqueueMarkerWithWaitList])
+   LIBS="$save_LIBS"
 fi
 
 AC_MSG_CHECKING(whether OpenCL should be used)
@@ -1365,6 +1369,7 @@ AC_MSG_RESULT($enable_debug)
 AC_ARG_ENABLE(spinlock_check, [AS_HELP_STRING([--enable-spinlock-check], [enable spinlock check])], enable_spinlock_check=$enableval, enable_spinlock_check=no)
 
 if test x$enable_debug = xyes; then
+	AC_DEFINE(STARPU_DEBUG, [1], [enable debugging statements])
 	CFLAGS="$CFLAGS -O0"
 	enable_spinlock_check=yes
 else

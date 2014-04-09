@@ -52,29 +52,37 @@ func <<<grid,block,0,starpu_cuda_get_local_stream()>>> (foo, bar);
 cudaStreamSynchronize(starpu_cuda_get_local_stream());
 \endcode
 
+Unfortunately, some CUDA libraries do not have stream variants of
+kernels. That will lower the potential for overlapping.
+
 StarPU already does appropriate calls for the CUBLAS library.
 
 If the kernel can be made to only use this local stream or other self-allocated
 streams, i.e. the whole kernel submission can be made asynchronous, then
-one should enable asynchronous execution of the kernel. This means setting
-the corresponding cuda_flags[] flag in the codelet and dropping the
-cudaStreamSynchronize() call at the end of the kernel. That way, StarPU will be
-able to pipeline submitting tasks to GPUs, instead of synchronizing at each
+one should enable asynchronous execution of the kernel.  That means setting
+the STARPU_CUDA_ASYNC flag in cuda_flags[] in the codelet, and dropping the
+cudaStreamSynchronize() call at the end of the cuda_func function, so that it
+returns immediately after having queued the kernel to the local stream. That way, StarPU will be
+able to submit and complete data transfers while kernels are executing, instead of only at each
 kernel submission. The kernel just has to make sure that StarPU can use the
 local stream to synchronize with the kernel startup and completion.
 
-Unfortunately, some CUDA libraries do not have stream variants of
-kernels. That will lower the potential for overlapping.
+Using the STARPU_CUDA_ASYNC flag also permits to enable concurrent kernel
+execution, on cards which support it (Kepler and later, notably). This is
+enabled by setting the STARPU_NWORKER_PER_CUDA environment variable to the
+number of kernels to execute concurrently.  This is useful when kernels are
+small and do not feed the whole GPU with threads to run.
 
 \section OpenCL-specificOptimizations OpenCL-specific Optimizations
 
 If the kernel can be made to only use the StarPU-provided command queue or other self-allocated
-streams, i.e. the whole kernel submission can be made asynchronous, then
+queues, i.e. the whole kernel submission can be made asynchronous, then
 one should enable asynchronous execution of the kernel. This means setting
 the corresponding opencl_flags[] flag in the codelet and dropping the
-clFinish() and starpu_opencl_collect_stats() calls at the end of the kernel.
-That way, StarPU will be able to pipeline submitting tasks to GPUs, instead of
-synchronizing at each kernel submission. The kernel just has to make sure
+clFinish() and starpu_opencl_collect_stats() calls at the end of the kernel, so
+that it returns immediately after having queued the kernel to the provided queue.
+That way, StarPU will be able to submit and complete data transfers while kernels are executing, instead of
+only at each kernel submission. The kernel just has to make sure
 that StarPU can use the command queue it has provided to synchronize with the
 kernel startup and completion.
 
