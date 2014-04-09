@@ -219,7 +219,8 @@ noinst_PROGRAMS =				\
 	microbenchs/redundant_buffer		\
 	microbenchs/local_pingpong		\
 	microbenchs/matrix_as_vector		\
-	openmp/init_exit			\
+	openmp/init_exit_01			\
+	openmp/init_exit_02			\
 	openmp/environment			\
 	overlap/overlap				\
 	overlap/gpu_concurrency			\
@@ -431,8 +432,11 @@ main_subgraph_repeat_regenerate_tag_SOURCES +=		\
 	main/increment.cu
 endif
 
-openmp_init_exit_SOURCES = 	\
-	openmp/init_exit.c
+openmp_init_exit_01_SOURCES = 	\
+	openmp/init_exit_01.c
+
+openmp_init_exit_02_SOURCES = 	\
+	openmp/init_exit_02.c
 
 openmp_environment_SOURCES = 	\
 	openmp/environment.c
