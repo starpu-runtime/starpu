@@ -302,6 +302,7 @@ int main(STARPU_ATTRIBUTE_UNUSED int argc,
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
+	fprintf(stderr, "init: %d\n", ret);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	sem_init(&sem, 0, 0U);
