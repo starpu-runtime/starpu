@@ -2013,6 +2013,8 @@ AC_OUTPUT([
 	mpi/starpumpi-1.0.pc
 	mpi/starpumpi-1.1.pc
 	starpufft/Makefile
+	starpufft/src/Makefile
+	starpufft/tests/Makefile
 	starpufft/libstarpufft.pc
 	starpufft/starpufft-1.0.pc
 	starpufft/starpufft-1.1.pc
