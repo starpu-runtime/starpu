@@ -54,8 +54,8 @@ AC_CANONICAL_SYSTEM
 dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
 dnl when they're available.
 m4_ifdef([AM_SILENT_RULES],
-  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests subdir-objects])],
-  [AM_INIT_AUTOMAKE([1.10 -Wall foreign subdir-objects])])
+  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests])],
+  [AM_INIT_AUTOMAKE([1.10 -Wall foreign])])
 
 m4_ifdef([AM_SILENT_RULES],
   [AM_SILENT_RULES(yes)])
@@ -2259,6 +2259,11 @@ if test x$enable_starpufft = xyes -a \( \( x$enable_cpu = xyes -a x$have_fftw = 
    fft_support=yes
 fi
 AM_CONDITIONAL(BUILD_STARPUFFT, [test x$fft_support = xyes])
+
+AC_ARG_ENABLE(starpufft-examples, [AS_HELP_STRING([--enable-starpufft-examples],
+			[disable execution of StarPU FFT examples])],
+			enable_starpufft_examples=$enableval, enable_starpufft_examples=no)
+AM_CONDITIONAL(BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_examples = xyes])
 
 ##########################################
 # hwloc                                  #
