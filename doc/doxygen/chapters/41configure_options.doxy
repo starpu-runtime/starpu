@@ -426,6 +426,14 @@ library has to be 'atlas' or 'goto'.
 Disable the build of libstarpufft, even if <c>fftw</c> or <c>cuFFT</c> is available.
 </dd>
 
+<dt>--enable-starpufft-examples</dt>
+<dd>
+\anchor enable-starpufft-examples
+\addindex __configure__--enable-starpufft-examples
+Enable the compilation and the execution of the libstarpufft examples.
+By default, they are neither compiled nor checked.
+</dd>
+
 <dt>--with-magma=<c>prefix</c></dt>
 <dd>
 \anchor with-magma

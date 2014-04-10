@@ -15,111 +15,20 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS)
+SUBDIRS=src
 
-lib_LTLIBRARIES = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la
-
-EXTRA_DIST =			\
-	starpufft-float.h	\
-	starpufft-double.h	\
-	cudax_kernels.h		\
-	starpufftx.c		\
-	starpufftx1d.c		\
-	starpufftx2d.c		\
-	cuda_kernels.cu		\
-	cudaf_kernels.cu	\
-	cudax_kernels.cu	\
-	examples/testx.c	\
-	examples/testx_threads.c\
-	examples/testf_threads.c\
-	examples/test_threads.c
+if BUILD_STARPUFFT_EXAMPLES
+SUBDIRS += tests
+endif
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
-	starpufft.h
+	include/starpufft.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpufft.pc starpufft-1.0.pc starpufft-1.1.pc starpufft-1.2.pc
 
-libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = starpufft.c starpufftf.c starpufft_common.c
-libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS) $(FFTWF_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_CUFFT_LDFLAGS)
-libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_CFLAGS = $(FFTWF_CFLAGS)
-libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined					\
-  -version-info $(LIBSTARPUFFT_INTERFACE_CURRENT):$(LIBSTARPUFFT_INTERFACE_REVISION):$(LIBSTARPUFFT_INTERFACE_AGE)
-
-if STARPU_USE_CUDA
-NVCCFLAGS += -Xcompiler -fPIC -Xlinker -fPIC
-
-cudaf_kernels.o: cudaf_kernels.cu
-	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
-
-libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += cudaf_kernels.cu
-am_libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_OBJECTS = cudaf_kernels.o starpufft.lo starpufftf.lo starpufft_common.lo
-
-if STARPU_HAVE_CUFFTDOUBLECOMPLEX
-cuda_kernels.o: cuda_kernels.cu
-	$(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS) -I${includedir}
-
-libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += cuda_kernels.cu
-am_libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_OBJECTS += cuda_kernels.o
-endif
-
-libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD +=  $(STARPU_CUDA_LDFLAGS)
-endif
-
-CLEANFILES = starpu_idle_microsec.log
-examplebindir = $(libdir)/starpu/examples/starpufft
-
-if STARPU_HAVE_WINDOWS
-check_PROGRAMS	=	$(STARPU_FFT_EXAMPLES)
-else
-check_PROGRAMS	=	$(LOADER) $(STARPU_FFT_EXAMPLES)
-endif
-
-if !STARPU_HAVE_WINDOWS
-## test loader program
-LOADER			=	loader
-loader_CPPFLAGS 	=  	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
-LOADER_BIN		=	$(abs_top_builddir)/starpufft/$(LOADER)
-loader_SOURCES		=	../tests/loader.c
-
-if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER		=	$(LOADER_BIN)
-else
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
-endif
-
-endif
-
-examplebin_PROGRAMS =
-if BUILD_EXAMPLES
-examplebin_PROGRAMS +=				\
-	examples/testf \
-	examples/test
-endif
-STARPU_FFT_EXAMPLES = examples/testf
-examples_testf_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTWF_LIBS)
-
-# If we don't have CUDA, we assume that we have fftw available in double
-# precision anyway, we just want to make sure that if CUFFT is used, it also
-# supports double precision.
-if !STARPU_USE_CUDA
-STARPU_FFT_EXAMPLES += examples/test
-else
-if STARPU_HAVE_CUFFTDOUBLECOMPLEX
-STARPU_FFT_EXAMPLES += examples/test
-endif
-endif
-examples_test_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS)
-
-TESTS = $(STARPU_FFT_EXAMPLES)
-
-
-#check_PROGRAMS += examples/test_threads examples/testf_threads
-#examples_test_threads_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
-#examples_testf_threads_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
-
 showcheck:
-	-cat $(TEST_LOGS) /dev/null
+	for i in $(SUBDIRS) ; do \
+		make -C $$i showcheck ; \
+	done

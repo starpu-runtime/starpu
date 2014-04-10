@@ -344,6 +344,9 @@ Small changes:
   * Use C99 variadic macro support, not GNU.
   * Fix performance regression: dmda queues were inadvertently made
     LIFOs in r9611.
+  * By default, StarPU FFT examples are not compiled and checked, the
+    configure option --enable-starpufft-examples needs to be specified
+    to change this behaviour.
 
 StarPU 1.0.3 (svn revision 7379)
 ==============================================

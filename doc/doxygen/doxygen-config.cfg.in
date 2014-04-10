@@ -57,7 +57,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu_worker.h \
 			 @top_srcdir@/include/starpu_sched_component.h \
 			 @top_srcdir@/mpi/include/ \
-			 @top_srcdir@/starpufft/starpufft.h \
+			 @top_srcdir@/starpufft/include/starpufft.h \
 			 @top_srcdir@/sc_hypervisor/include
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
