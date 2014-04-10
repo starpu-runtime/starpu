@@ -74,7 +74,7 @@ void *th(void* p)
 int main(int argc, char **argv)
 {
 	int ntasks = NTASKS;
-	int ret;
+	int ret, j, k;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
 	nprocs1 = ncpus/2;
 	nprocs2 =  nprocs1;
-	int j, k = 0;
+	k = 0;
 	for(j = nprocs1; j < nprocs1+nprocs2; j++)
 		procs2[k++] = j;
 #else
