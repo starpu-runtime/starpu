@@ -223,6 +223,7 @@ noinst_PROGRAMS =				\
 	openmp/init_exit_02			\
 	openmp/environment			\
 	openmp/parallel_01			\
+	openmp/parallel_02			\
 	overlap/overlap				\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
@@ -444,6 +445,9 @@ openmp_environment_SOURCES = 	\
 
 openmp_parallel_01_SOURCES = 	\
 	openmp/parallel_01.c
+
+openmp_parallel_02_SOURCES = 	\
+	openmp/parallel_02.c
 
 ###################
 # Block interface #

@@ -173,6 +173,7 @@ LIST_TYPE(starpu_omp_task,
 	struct starpu_omp_task *parent_task;
 	struct starpu_omp_thread *owner_thread;
 	struct starpu_omp_region *owner_region;
+	struct starpu_omp_region *nested_region;
 	int is_implicit;
 	struct starpu_omp_data_environment_icvs data_env_icvs;
 	struct starpu_omp_implicit_task_icvs implicit_task_icvs;
@@ -221,13 +222,12 @@ LIST_TYPE(starpu_omp_thread,
 	ucontext_t ctx;
 
 	struct starpu_driver starpu_driver;
+	unsigned starpu_worker_id;
 )
 
 struct starpu_omp_region
 {
 	struct starpu_omp_region *parent_region;
-	/* the first nested region of the initial region */
-	struct starpu_omp_region *initial_nested_region;
 	struct starpu_omp_device *owner_device;
 	struct starpu_omp_thread *master_thread;
 	/* note: the list of threads does not include the master_thread */

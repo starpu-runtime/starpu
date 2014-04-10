@@ -72,7 +72,6 @@ static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_regi
 		_STARPU_ERROR("memory allocation failed");
 
 	region->parent_region = parent_region;
-	region->initial_nested_region = NULL;
 	region->owner_device = owner_device;
 	region->thread_list = starpu_omp_thread_list_new();
 	region->implicit_task_list = starpu_omp_task_list_new();
@@ -89,7 +88,6 @@ static void destroy_omp_region_struct(struct starpu_omp_region *region)
 	STARPU_ASSERT(starpu_omp_thread_list_empty(region->thread_list));
 	STARPU_ASSERT(starpu_omp_task_list_empty(region->implicit_task_list));
 	STARPU_ASSERT(region->continuation_starpu_task == NULL);
-	STARPU_ASSERT(region->initial_nested_region == NULL);
 	starpu_omp_thread_list_delete(region->thread_list);
 	starpu_omp_task_list_delete(region->implicit_task_list);
 	memset(region, 0, sizeof(*region));
@@ -98,10 +96,9 @@ static void destroy_omp_region_struct(struct starpu_omp_region *region)
 
 static void omp_initial_thread_func(void)
 {
-	struct starpu_omp_region *init_region = _global_state.initial_region;
 	struct starpu_omp_thread *init_thread = _global_state.initial_thread;
 	struct starpu_omp_task *init_task = _global_state.initial_task;
-	struct starpu_task *continuation_task = init_region->initial_nested_region->continuation_starpu_task;
+	struct starpu_task *continuation_starpu_task = init_task->nested_region->continuation_starpu_task;
 	while (1)
 	{
 		starpu_driver_run_once(&init_thread->starpu_driver);
@@ -110,9 +107,9 @@ static void omp_initial_thread_func(void)
 		 * if we are leaving the first nested region we give control back to initial task
 		 * otherwise, we should continue to execute work
 		 */
-		if (_starpu_task_test_termination(continuation_task))
+		if (_starpu_task_test_termination(continuation_starpu_task))
 		{
-			init_region->initial_nested_region->continuation_starpu_task = NULL;
+			init_task->nested_region->continuation_starpu_task = NULL;
 			swapcontext(&init_thread->ctx, &init_task->ctx);
 		}
 	}
@@ -134,6 +131,7 @@ static struct starpu_omp_thread *create_omp_thread_struct(struct starpu_omp_regi
 	/* .ctx */
 	memset(&thread->ctx, 0, sizeof(thread->ctx));
 	/* .starpu_driver will be initialized later on */
+	/* .starpu_worker_id will be initialized later on */
 	return thread;
 }
 
@@ -261,6 +259,7 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 	task->parent_task = parent_task;
 	task->owner_thread = owner_thread;
 	task->owner_region = owner_region;
+	task->nested_region = NULL;
 	task->is_implicit = is_implicit;
 	/* TODO: initialize task->data_env_icvs with proper values */ 
 	memset(&task->data_env_icvs, 0, sizeof(task->data_env_icvs));
@@ -304,6 +303,7 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 static void destroy_omp_task_struct(struct starpu_omp_task *task)
 {
 	STARPU_ASSERT(task->state == starpu_omp_task_state_terminated);
+	STARPU_ASSERT(task->nested_region == NULL);
 	STARPU_ASSERT(task->starpu_task == NULL);
 	if (task->stack != NULL)
 	{
@@ -341,6 +341,7 @@ static void omp_initial_thread_setup(void)
 	 * we configure starpu to not launch CPU worker 0
 	 * because we will use the main thread to play the role of worker 0
 	 */
+	initial_thread->starpu_worker_id = 0;
 	struct starpu_conf conf;
 	int ret = starpu_conf_init(&conf);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_conf_init");
@@ -431,8 +432,10 @@ void starpu_omp_shutdown(void)
 	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
 }
 
-void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *parallel_region_cl_arg)
+void starpu_parallel_region(const struct starpu_codelet * const _parallel_region_cl,
+		void * const parallel_region_cl_arg)
 {
+	struct starpu_codelet parallel_region_cl = *_parallel_region_cl;
 	struct starpu_omp_thread *master_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
 	struct starpu_omp_task *parent_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_region *parent_region = parent_task->owner_region;
@@ -460,6 +463,16 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 		{
 			/* TODO: specify actual starpu worker */
 			new_thread = create_omp_thread_struct(new_region);
+
+			/* TODO: use a less arbitrary thread/worker mapping scheme */
+			if (parent_region->level == 0)
+			{
+				new_thread->starpu_worker_id = i;
+			}
+			else
+			{
+				new_thread->starpu_worker_id = master_thread->starpu_worker_id;
+			}
 			starpu_omp_thread_list_push_back(new_region->thread_list, new_thread);
 		}
 
@@ -481,9 +494,10 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 
 		/* in that case, the continuation starpu task is only used for synchronisation */
 		new_region->continuation_starpu_task->cl = NULL;
+		new_region->continuation_starpu_task->workerid = master_thread->starpu_worker_id;
+		new_region->continuation_starpu_task->execute_on_a_specific_worker = 1;
 		/* this sync task will be tested for completion in omp_initial_thread_func() */
 		new_region->continuation_starpu_task->detach = 0;
-		parent_region->initial_nested_region = new_region;
 
 	}
 	else
@@ -492,18 +506,19 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 		_starpu_task_prepare_for_continuation();
 		new_region->continuation_starpu_task = parent_task->starpu_task;
 	}
+	parent_task->nested_region = new_region;
 
 	/*
 	 * save pointer to the regions user function from the parallel region codelet
 	 *
 	 * TODO: add support for multiple/heterogeneous implementations
 	 */
-	void (*parallel_region_f)(void **starpu_buffers, void *starpu_cl_arg) = parallel_region_cl->cpu_funcs[0];
+	void (*parallel_region_f)(void **starpu_buffers, void *starpu_cl_arg) = parallel_region_cl.cpu_funcs[0];
 
 	/*
 	 * plug the task wrapper into the parallel region codelet instead, to support task preemption
 	 */
-	parallel_region_cl->cpu_funcs[0] = starpu_omp_task_exec;
+	parallel_region_cl.cpu_funcs[0] = starpu_omp_task_exec;
 
 	/*
 	 * create the starpu tasks for the implicit omp tasks,
@@ -517,9 +532,11 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 		implicit_task->f = parallel_region_f;
 
 		implicit_task->starpu_task = starpu_task_create();
-		implicit_task->starpu_task->cl = parallel_region_cl;
+		implicit_task->starpu_task->cl = &parallel_region_cl;
 		implicit_task->starpu_task->cl_arg = parallel_region_cl_arg;
 		implicit_task->starpu_task->omp_task = implicit_task;
+		implicit_task->starpu_task->workerid = implicit_task->owner_thread->starpu_worker_id;
+		implicit_task->starpu_task->execute_on_a_specific_worker = 1;
 		starpu_task_declare_deps_array(new_region->continuation_starpu_task, 1, &implicit_task->starpu_task);
 	}
 
@@ -547,7 +564,15 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 	 * preempt for completion of the region
 	 */
 	starpu_omp_task_preempt();
-
+	if (parent_task == _global_state.initial_task)
+	{
+		STARPU_ASSERT(new_region->continuation_starpu_task == NULL);
+	}
+	else
+	{
+		STARPU_ASSERT(new_region->continuation_starpu_task != NULL);
+		new_region->continuation_starpu_task = NULL;
+	}
 	/*
 	 * TODO: free region resources
 	 */
@@ -567,11 +592,7 @@ void starpu_parallel_region(struct starpu_codelet *parallel_region_cl, void *par
 		destroy_omp_task_struct(implicit_task);
 	}
 	STARPU_ASSERT(new_region->nb_threads == 0);
-
-	if (parent_task == _global_state.initial_task)
-	{
-		parent_region->initial_nested_region = NULL;
-	}
+	parent_task->nested_region = NULL;
 	destroy_omp_region_struct(new_region);
 }
 
