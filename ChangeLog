@@ -29,6 +29,7 @@ New features:
 	  starpu_data_set_tag() and starpu_data_set_rank()
   * Use streams for all CUDA transfers, even initiated by CPUs.
   * Add paje traces statistics tools.
+  * Use streams for GPUA->GPUB and GPUB->GPUA transfers.
 
 Small features:
   * New STARPU_EXECUTE_ON_WORKER flag to specify the worker on which
@@ -52,6 +53,8 @@ Changes:
     unpack notably.
 
 Small changes:
+  * Use big fat abortions when one tries to make a task or callback
+    sleep, instead of just returning EDEADLCK which few people will test
   * By default, StarPU FFT examples are not compiled and checked, the
     configure option --enable-starpufft-examples needs to be specified
     to change this behaviour.
