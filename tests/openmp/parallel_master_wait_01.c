@@ -38,7 +38,16 @@ static void omp_destructor(void)
 	starpu_omp_shutdown();
 }
 
-void parallel_region_2_f(void *buffers[], void *args)
+void master_g(void)
+{
+	int worker_id;
+	pthread_t tid;
+	tid = pthread_self();
+	worker_id = starpu_worker_get_id();
+	printf("[tid %p] task thread = %d -- master\n", (void *)tid, worker_id);
+}
+
+void parallel_region_f(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
@@ -46,33 +55,17 @@ void parallel_region_2_f(void *buffers[], void *args)
 	pthread_t tid;
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
-	printf("[tid %p] parallel region 2: task thread = %d\n", (void *)tid, worker_id);
+	printf("[tid %p] task thread = %d -- parallel -->\n", (void *)tid, worker_id);
+	starpu_omp_master(master_g, 0);
+	starpu_omp_master(master_g, 0);
+	starpu_omp_master(master_g, 0);
+	starpu_omp_master(master_g, 0);
+	printf("[tid %p] task thread = %d -- parallel <--\n", (void *)tid, worker_id);
 }
 
-static struct starpu_codelet parallel_region_2_cl =
+static struct starpu_codelet parallel_region_cl =
 {
-	.cpu_funcs    = { parallel_region_2_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
-
-void parallel_region_1_f(void *buffers[], void *args)
-{
-	(void) buffers;
-	(void) args;
-	int worker_id;
-	pthread_t tid;
-	tid = pthread_self();
-	worker_id = starpu_worker_get_id();
-	printf("[tid %p] parallel region 1: task thread = %d\n", (void *)tid, worker_id);
-
-	starpu_omp_parallel_region(&parallel_region_2_cl, NULL);
-}
-
-static struct starpu_codelet parallel_region_1_cl =
-{
-	.cpu_funcs    = { parallel_region_1_f, NULL },
+	.cpu_funcs    = { parallel_region_f, NULL },
 	.where        = STARPU_CPU,
 	.nbuffers     = 0
 
@@ -80,7 +73,13 @@ static struct starpu_codelet parallel_region_1_cl =
 
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region(&parallel_region_1_cl, NULL);
+	pthread_t tid;
+	tid = pthread_self();
+	printf("<main>\n");
+	starpu_omp_parallel_region(&parallel_region_cl, NULL);
+	printf("<main>\n");
+	starpu_omp_parallel_region(&parallel_region_cl, NULL);
+	printf("<main>\n");
 	return 0;
 }
 #endif

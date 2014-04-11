@@ -224,6 +224,11 @@ noinst_PROGRAMS =				\
 	openmp/environment			\
 	openmp/parallel_01			\
 	openmp/parallel_02			\
+	openmp/parallel_barrier_01		\
+	openmp/parallel_master_wait_01		\
+	openmp/parallel_master_nowait_01	\
+	openmp/parallel_single_wait_01		\
+	openmp/parallel_single_nowait_01	\
 	overlap/overlap				\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
@@ -448,6 +453,21 @@ openmp_parallel_01_SOURCES = 	\
 
 openmp_parallel_02_SOURCES = 	\
 	openmp/parallel_02.c
+
+openmp_parallel_barrier_01_SOURCES = 	\
+	openmp/parallel_barrier_01.c
+
+openmp_parallel_master_wait_01_SOURCES = 	\
+	openmp/parallel_master_wait_01.c
+
+openmp_parallel_master_nowait_01_SOURCES = 	\
+	openmp/parallel_master_nowait_01.c
+
+openmp_parallel_single_wait_01_SOURCES = 	\
+	openmp/parallel_single_wait_01.c
+
+openmp_parallel_single_nowait_01_SOURCES = 	\
+	openmp/parallel_single_nowait_01.c
 
 ###################
 # Block interface #

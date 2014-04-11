@@ -59,7 +59,7 @@ static struct starpu_codelet parallel_region_cl =
 
 int
 main (int argc, char *argv[]) {
-	starpu_parallel_region(&parallel_region_cl, NULL);
+	starpu_omp_parallel_region(&parallel_region_cl, NULL);
 	return 0;
 }
 #endif

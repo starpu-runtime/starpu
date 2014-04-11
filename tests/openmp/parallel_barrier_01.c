@@ -38,7 +38,7 @@ static void omp_destructor(void)
 	starpu_omp_shutdown();
 }
 
-void parallel_region_2_f(void *buffers[], void *args)
+void parallel_region_f(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
@@ -46,33 +46,19 @@ void parallel_region_2_f(void *buffers[], void *args)
 	pthread_t tid;
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
-	printf("[tid %p] parallel region 2: task thread = %d\n", (void *)tid, worker_id);
+	printf("[tid %p] task thread = %d -- barrier 1\n", (void *)tid, worker_id);
+	starpu_omp_barrier();
+	printf("[tid %p] task thread = %d -- barrier 2\n", (void *)tid, worker_id);
+	starpu_omp_barrier();
+	printf("[tid %p] task thread = %d -- barrier 3\n", (void *)tid, worker_id);
+	starpu_omp_barrier();
+	printf("[tid %p] task thread = %d -- barrier 4\n", (void *)tid, worker_id);
+	starpu_omp_barrier();
 }
 
-static struct starpu_codelet parallel_region_2_cl =
+static struct starpu_codelet parallel_region_cl =
 {
-	.cpu_funcs    = { parallel_region_2_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
-
-void parallel_region_1_f(void *buffers[], void *args)
-{
-	(void) buffers;
-	(void) args;
-	int worker_id;
-	pthread_t tid;
-	tid = pthread_self();
-	worker_id = starpu_worker_get_id();
-	printf("[tid %p] parallel region 1: task thread = %d\n", (void *)tid, worker_id);
-
-	starpu_omp_parallel_region(&parallel_region_2_cl, NULL);
-}
-
-static struct starpu_codelet parallel_region_1_cl =
-{
-	.cpu_funcs    = { parallel_region_1_f, NULL },
+	.cpu_funcs    = { parallel_region_f, NULL },
 	.where        = STARPU_CPU,
 	.nbuffers     = 0
 
@@ -80,7 +66,9 @@ static struct starpu_codelet parallel_region_1_cl =
 
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region(&parallel_region_1_cl, NULL);
+	pthread_t tid;
+	tid = pthread_self();
+	starpu_omp_parallel_region(&parallel_region_cl, NULL);
 	return 0;
 }
 #endif
