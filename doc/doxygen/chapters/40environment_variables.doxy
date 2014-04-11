@@ -587,7 +587,7 @@ end of the execution of an application (\ref DataStatistics).
 \anchor STARPU_WATCHDOG_TIMEOUT
 \addindex __env__STARPU_WATCHDOG_TIMEOUT
 When set to a value other than 0, allows to make StarPU print an error
-message whenever StarPU does not terminate any task for 10ms. Should
+message whenever StarPU does not terminate any task for the given time (in µs). Should
 be used in combination with \ref STARPU_WATCHDOG_CRASH (see \ref
 DetectionStuckConditions).
 </dd>

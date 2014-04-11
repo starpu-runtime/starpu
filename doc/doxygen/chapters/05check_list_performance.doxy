@@ -100,8 +100,9 @@ any task for 10ms. In addition to that,
 
 <c>export STARPU_WATCHDOG_CRASH=1</c>
 
-triggers a crash in that condition, thus allowing to catch the situation in gdb
-etc.
+raises SIGABRT in that condition, thus allowing to catch the situation in gdb.
+It can also be useful to type "handle SIGABRT nopass" in gdb to be able to let
+the process continue, after inspecting the state of the process.
 
 \section HowToLimitMemoryPerNode How to limit memory per node
 
