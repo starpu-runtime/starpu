@@ -21,6 +21,7 @@
 
 #ifdef STARPU_OPENMP
 #include <common/list.h>
+#include <common/starpu_spinlock.h>
 
 /* ucontexts have been deprecated as of POSIX 1-2004
  * _XOPEN_SOURCE required at least on OS/X
@@ -175,6 +176,9 @@ LIST_TYPE(starpu_omp_task,
 	struct starpu_omp_region *owner_region;
 	struct starpu_omp_region *nested_region;
 	int is_implicit;
+	struct _starpu_spinlock lock;
+	int barrier_count;
+	int single_id;
 	struct starpu_omp_data_environment_icvs data_env_icvs;
 	struct starpu_omp_implicit_task_icvs implicit_task_icvs;
 
@@ -236,6 +240,8 @@ struct starpu_omp_region
 	struct starpu_omp_task_list *implicit_task_list;
 	/* include both the master thread and the region own threads */
 	int nb_threads;
+	int barrier_count;
+	int single_id;
 	int level;
 	struct starpu_task *continuation_starpu_task;
 };
