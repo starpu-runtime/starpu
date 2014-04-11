@@ -262,15 +262,15 @@ static void init_context(struct _starpu_worker_set *worker_set, unsigned devid)
 		cures = cudaStreamCreate(&streams[workerid]);
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
-
-		cures = cudaStreamCreate(&in_transfer_streams[devid]);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
-
-		cures = cudaStreamCreate(&out_transfer_streams[devid]);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
 	}
+
+	cures = cudaStreamCreate(&in_transfer_streams[devid]);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+
+	cures = cudaStreamCreate(&out_transfer_streams[devid]);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	for (i = 0; i < ncudagpus; i++)
 	{
@@ -284,7 +284,8 @@ static void deinit_context(struct _starpu_worker_set *worker_set)
 {
 	cudaError_t cures;
 	unsigned i;
-	int workerid, devid;
+	int workerid = worker_set->workers[0].workerid;
+	int devid = starpu_worker_get_devid(workerid);
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
@@ -293,9 +294,10 @@ static void deinit_context(struct _starpu_worker_set *worker_set)
 
 		cudaEventDestroy(task_events[workerid]);
 		cudaStreamDestroy(streams[workerid]);
-		cudaStreamDestroy(in_transfer_streams[devid]);
-		cudaStreamDestroy(out_transfer_streams[devid]);
 	}
+
+	cudaStreamDestroy(in_transfer_streams[devid]);
+	cudaStreamDestroy(out_transfer_streams[devid]);
 
 	for (i = 0; i < ncudagpus; i++)
 		cudaStreamDestroy(peer_transfer_streams[i][devid]);
