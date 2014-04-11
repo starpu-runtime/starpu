@@ -956,6 +956,11 @@ void _starpu_task_prepare_for_continuation(void)
 {
 	_starpu_job_prepare_for_continuation(_starpu_get_job_associated_to_task(starpu_task_get_current()));
 }
+
+void _starpu_task_prepare_for_conditional_continuation(struct _starpu_spinlock *lock_ptr)
+{
+	_starpu_job_prepare_for_conditional_continuation(_starpu_get_job_associated_to_task(starpu_task_get_current()), lock_ptr);
+}
 #endif
 
 /*

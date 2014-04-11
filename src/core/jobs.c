@@ -155,6 +155,15 @@ void _starpu_job_prepare_for_continuation(struct _starpu_job *j)
 	STARPU_ASSERT(j->task_size == 1);
 	j->continuation = 1;
 }
+
+void _starpu_job_prepare_for_conditional_continuation(struct _starpu_job *j, struct _starpu_spinlock *lock_ptr)
+{
+	STARPU_ASSERT(!j->continuation);
+	/* continuation are not supported for parallel tasks for now */
+	STARPU_ASSERT(j->task_size == 1);
+	j->continuation_lock_ptr = lock_ptr;
+	j->continuation = 1;
+}
 #endif
 
 void _starpu_handle_job_termination(struct _starpu_job *j)
@@ -365,9 +374,20 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		}
 #endif
 
-		/* We reuse the same job structure */
-		int ret = _starpu_submit_job(j);
-		STARPU_ASSERT(!ret);
+#ifdef STARPU_OPENMP
+		if (continuation && j->continuation_lock_ptr != NULL)
+		{
+			struct _starpu_spinlock *lock_ptr = j->continuation_lock_ptr;
+			j->continuation_lock_ptr = NULL;
+			_starpu_spin_unlock(lock_ptr);
+		}
+		else
+#endif
+		{
+			/* We reuse the same job structure */
+			int ret = _starpu_submit_job(j);
+			STARPU_ASSERT(!ret);
+		}
 	}
 
 	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
