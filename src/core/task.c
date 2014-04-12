@@ -957,9 +957,11 @@ void _starpu_task_prepare_for_continuation(void)
 	_starpu_job_prepare_for_continuation(_starpu_get_job_associated_to_task(starpu_task_get_current()));
 }
 
-void _starpu_task_prepare_for_conditional_continuation(struct _starpu_spinlock *lock_ptr)
+void _starpu_task_prepare_for_continuation_ext(unsigned continuation_resubmit,
+		void (*continuation_callback_on_sleep)(void *arg), void *continuation_callback_on_sleep_arg)
 {
-	_starpu_job_prepare_for_conditional_continuation(_starpu_get_job_associated_to_task(starpu_task_get_current()), lock_ptr);
+	_starpu_job_prepare_for_continuation_ext(_starpu_get_job_associated_to_task(starpu_task_get_current()),
+		continuation_resubmit, continuation_callback_on_sleep, continuation_callback_on_sleep_arg);
 }
 #endif
 

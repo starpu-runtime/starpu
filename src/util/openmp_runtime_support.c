@@ -603,6 +603,12 @@ void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_re
 	destroy_omp_region_struct(new_region);
 }
 
+static void barrier__sleep_callback(void *_task)
+{
+	struct starpu_omp_task *task = _task;
+	_starpu_spin_unlock(&task->lock);
+}
+
 void starpu_omp_barrier(void)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
@@ -638,7 +644,7 @@ void starpu_omp_barrier(void)
 		 * . sleep
 		 */
 
-		_starpu_task_prepare_for_conditional_continuation(&task->lock);
+		_starpu_task_prepare_for_continuation_ext(0, barrier__sleep_callback, task);
 		starpu_omp_task_preempt();
 	}
 }

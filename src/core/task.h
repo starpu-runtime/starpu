@@ -61,9 +61,10 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 
 #ifdef STARPU_OPENMP
 /* Prepare the current task for accepting new dependencies before becoming a continuation. */
-void _starpu_task_prepare_for_continuation(void);
+void _starpu_task_prepare_for_continuation_ext(unsigned continuation_resubmit,
+		void (*continuation_callback_on_sleep)(void *arg), void *continuation_callback_on_sleep_arg);
 
-void _starpu_task_prepare_for_conditional_continuation(struct _starpu_spinlock *lock_ptr);
+void _starpu_task_prepare_for_continuation(void);
 #endif
 
 int _starpu_task_uses_multiformat_handles(struct starpu_task *task);

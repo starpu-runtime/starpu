@@ -146,23 +146,22 @@ int _starpu_test_job_termination(struct _starpu_job *j)
 	STARPU_ASSERT(!j->task->detach);
 	return (j->terminated == 2);
 }
+void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned continuation_resubmit,
+		void (*continuation_callback_on_sleep)(void *arg), void *continuation_callback_on_sleep_arg)
+{
+	STARPU_ASSERT(!j->continuation);
+	/* continuation are not supported for parallel tasks for now */
+	STARPU_ASSERT(j->task_size == 1);
+	j->continuation = 1;
+	j->continuation_resubmit = continuation_resubmit;
+	j->continuation_callback_on_sleep = continuation_callback_on_sleep;
+	j->continuation_callback_on_sleep_arg = continuation_callback_on_sleep_arg;
+}
 /* Prepare a currently running job for accepting a new set of
  * dependencies in anticipation of becoming a continuation. */
 void _starpu_job_prepare_for_continuation(struct _starpu_job *j)
 {
-	STARPU_ASSERT(!j->continuation);
-	/* continuation are not supported for parallel tasks for now */
-	STARPU_ASSERT(j->task_size == 1);
-	j->continuation = 1;
-}
-
-void _starpu_job_prepare_for_conditional_continuation(struct _starpu_job *j, struct _starpu_spinlock *lock_ptr)
-{
-	STARPU_ASSERT(!j->continuation);
-	/* continuation are not supported for parallel tasks for now */
-	STARPU_ASSERT(j->task_size == 1);
-	j->continuation_lock_ptr = lock_ptr;
-	j->continuation = 1;
+	_starpu_job_prepare_for_continuation_ext(j, 1, NULL, NULL);
 }
 #endif
 
@@ -374,19 +373,27 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		}
 #endif
 
+		{
 #ifdef STARPU_OPENMP
-		if (continuation && j->continuation_lock_ptr != NULL)
-		{
-			struct _starpu_spinlock *lock_ptr = j->continuation_lock_ptr;
-			j->continuation_lock_ptr = NULL;
-			_starpu_spin_unlock(lock_ptr);
-		}
-		else
+			unsigned continuation_resubmit = j->continuation_resubmit;
+			void (*continuation_callback_on_sleep)(void *arg) = j->continuation_callback_on_sleep;
+			void *continuation_callback_on_sleep_arg = j->continuation_callback_on_sleep_arg;
+			j->continuation_resubmit = 1;
+			j->continuation_callback_on_sleep = NULL;
+			j->continuation_callback_on_sleep_arg = NULL;
+			if (!continuation || continuation_resubmit)
 #endif
-		{
-			/* We reuse the same job structure */
-			int ret = _starpu_submit_job(j);
-			STARPU_ASSERT(!ret);
+			{
+				/* We reuse the same job structure */
+				int ret = _starpu_submit_job(j);
+				STARPU_ASSERT(!ret);
+			}
+#ifdef STARPU_OPENMP
+			if (continuation && continuation_callback_on_sleep != NULL)
+			{
+				continuation_callback_on_sleep(continuation_callback_on_sleep_arg);
+			}
+#endif
 		}
 	}
 
