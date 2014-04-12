@@ -22,6 +22,7 @@
 #ifdef STARPU_OPENMP
 #include <common/list.h>
 #include <common/starpu_spinlock.h>
+#include <common/uthash.h>
 
 /* ucontexts have been deprecated as of POSIX 1-2004
  * _XOPEN_SOURCE required at least on OS/X
@@ -162,6 +163,21 @@ struct starpu_omp_initial_icv_values
 	struct starpu_omp_place places;
 };
 
+struct starpu_omp_task_link
+{
+	struct starpu_omp_task *task;
+	struct starpu_omp_task_link *next;
+};
+
+struct starpu_omp_critical
+{
+	UT_hash_handle hh;
+	struct _starpu_spinlock lock;
+	unsigned state;
+	struct starpu_omp_task_link *contention_list_head;
+	const char *name;
+};
+
 enum starpu_omp_task_state
 {
 	starpu_omp_task_state_clear      = 0,
@@ -258,6 +274,9 @@ struct starpu_omp_global
 	struct starpu_omp_thread *initial_thread;
 	struct starpu_omp_region *initial_region;
 	struct starpu_omp_device *initial_device;
+	struct starpu_omp_critical *default_critical;
+	struct starpu_omp_critical *named_criticals;
+	struct _starpu_spinlock named_criticals_lock;
 };
 
 /* 

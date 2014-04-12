@@ -24,7 +24,9 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <util/openmp_runtime_support.h>
 #include <core/task.h>
+#include <common/list.h>
 #include <common/starpu_spinlock.h>
+#include <common/uthash.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <strings.h>
@@ -47,6 +49,25 @@ static void destroy_omp_thread_struct(struct starpu_omp_thread *thread);
 static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *parent_task,
 		struct starpu_omp_thread *owner_thread, struct starpu_omp_region *owner_region, int is_implicit);
 static void destroy_omp_task_struct(struct starpu_omp_task *task);
+
+static struct starpu_omp_critical *create_omp_critical_struct(void)
+{
+	struct starpu_omp_critical *critical = malloc(sizeof(*critical));
+	_starpu_spin_init(&critical->lock);
+	critical->state = 0;
+	critical->contention_list_head = NULL;
+	critical->name = NULL;
+	return critical;
+}
+
+static void destroy_omp_critical_struct(struct starpu_omp_critical *critical)
+{
+	STARPU_ASSERT(critical->state == 0);
+	STARPU_ASSERT(critical->contention_list_head == NULL);
+	_starpu_spin_destroy(&critical->lock);
+	critical->name = NULL;
+	free(critical);
+}
 
 static struct starpu_omp_device *create_omp_device_struct(void)
 {
@@ -413,6 +434,9 @@ int starpu_omp_init(void)
 	_global_state.initial_thread = create_omp_thread_struct(_global_state.initial_region);
 	_global_state.initial_task = create_omp_task_struct(NULL,
 			_global_state.initial_thread, _global_state.initial_region, 1);
+	_global_state.default_critical = create_omp_critical_struct();
+	_global_state.named_criticals = NULL;
+	_starpu_spin_init(&_global_state.named_criticals_lock);
 	_starpu_omp_global_state = &_global_state;
 
 	omp_initial_region_setup();
@@ -436,6 +460,20 @@ void starpu_omp_shutdown(void)
 	_global_state.initial_region = NULL;
 	destroy_omp_device_struct(_global_state.initial_device);
 	_global_state.initial_device = NULL;
+	destroy_omp_critical_struct(_global_state.default_critical);
+	_global_state.default_critical = NULL;
+	_starpu_spin_lock(&_global_state.named_criticals_lock);
+	if (_global_state.named_criticals)
+	{
+		struct starpu_omp_critical *critical, *tmp;
+		HASH_ITER(hh, _global_state.named_criticals, critical, tmp);
+		{
+			HASH_DEL(_global_state.named_criticals, critical);
+			destroy_omp_critical_struct(critical);
+		}
+	}
+	_starpu_spin_unlock(&_global_state.named_criticals_lock);
+	_starpu_spin_destroy(&_global_state.named_criticals_lock);
 	STARPU_PTHREAD_KEY_DELETE(omp_task_key);
 	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
 }
@@ -649,7 +687,7 @@ void starpu_omp_barrier(void)
 	}
 }
 
-void starpu_omp_master(void (*f)(void), int nowait)
+void starpu_omp_master(void (*f)(void *arg), void *arg, int nowait)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
@@ -659,7 +697,7 @@ void starpu_omp_master(void (*f)(void), int nowait)
 
 	if (thread == region->master_thread)
 	{
-		f();
+		f(arg);
 	}
 
 	if (!nowait)
@@ -668,7 +706,7 @@ void starpu_omp_master(void (*f)(void), int nowait)
 	}
 }
 
-void starpu_omp_single(void (*f)(void), int nowait)
+void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	/* Assume singles are performed in by the implicit tasks of a region */
@@ -679,7 +717,7 @@ void starpu_omp_single(void (*f)(void), int nowait)
 
 	if (first)
 	{
-		f();
+		f(arg);
 	}
 
 	if (!nowait)
@@ -687,6 +725,67 @@ void starpu_omp_single(void (*f)(void), int nowait)
 		starpu_omp_barrier();
 	}
 }
+
+static void critical__sleep_callback(void *_critical)
+{
+	struct starpu_omp_critical *critical = _critical;
+	_starpu_spin_unlock(&critical->lock);
+}
+
+void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *name)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_critical *critical = NULL;
+	struct starpu_omp_task_link link;
+
+	if (name)
+	{
+		_starpu_spin_lock(&_global_state.named_criticals_lock);
+		HASH_FIND_STR(_global_state.named_criticals, name, critical);
+		if (critical == NULL)
+		{
+			critical = create_omp_critical_struct();
+			critical->name = name;
+			HASH_ADD_STR(_global_state.named_criticals, name, critical);
+		}
+		_starpu_spin_unlock(&_global_state.named_criticals_lock);
+	}
+	else
+	{
+		critical = _global_state.default_critical;
+	}
+
+	_starpu_spin_lock(&critical->lock);
+	while (critical->state != 0)
+	{
+		link.task = task;
+		link.next = critical->contention_list_head;
+		critical->contention_list_head = &link;
+		_starpu_task_prepare_for_continuation_ext(0, critical__sleep_callback, critical);
+		starpu_omp_task_preempt();
+
+		/* re-acquire the spin lock */
+		_starpu_spin_lock(&critical->lock);
+	}
+	critical->state = 1;
+	_starpu_spin_unlock(&critical->lock);
+
+	f(arg);
+
+	_starpu_spin_lock(&critical->lock);
+	STARPU_ASSERT(critical->state == 1);
+	critical->state = 0;
+	if (critical->contention_list_head != NULL)
+	{
+		int ret;
+		struct starpu_omp_task *next_task = critical->contention_list_head->task;
+		critical->contention_list_head = critical->contention_list_head->next;
+		ret = starpu_task_submit(next_task->starpu_task);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+	_starpu_spin_unlock(&critical->lock);
+}
+
 /*
  * restore deprecated diagnostics (-Wdeprecated-declarations)
  */

@@ -38,14 +38,14 @@ static void omp_destructor(void)
 	starpu_omp_shutdown();
 }
 
-void master_g(void *arg)
+void critical_g(void *arg)
 {
 	(void) arg;
 	int worker_id;
 	pthread_t tid;
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
-	printf("[tid %p] task thread = %d -- master nowait\n", (void *)tid, worker_id);
+	printf("[tid %p] task thread = %d -- critical\n", (void *)tid, worker_id);
 }
 
 void parallel_region_f(void *buffers[], void *args)
@@ -57,10 +57,10 @@ void parallel_region_f(void *buffers[], void *args)
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
 	printf("[tid %p] task thread = %d -- parallel -->\n", (void *)tid, worker_id);
-	starpu_omp_master(master_g, NULL, 1);
-	starpu_omp_master(master_g, NULL, 1);
-	starpu_omp_master(master_g, NULL, 1);
-	starpu_omp_master(master_g, NULL, 1);
+	starpu_omp_critical(critical_g, NULL, NULL);
+	starpu_omp_critical(critical_g, NULL, NULL);
+	starpu_omp_critical(critical_g, NULL, NULL);
+	starpu_omp_critical(critical_g, NULL, NULL);
 	printf("[tid %p] task thread = %d -- parallel <--\n", (void *)tid, worker_id);
 }
 
