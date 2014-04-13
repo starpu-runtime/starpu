@@ -463,15 +463,16 @@ void starpu_omp_shutdown(void)
 	destroy_omp_critical_struct(_global_state.default_critical);
 	_global_state.default_critical = NULL;
 	_starpu_spin_lock(&_global_state.named_criticals_lock);
-	if (_global_state.named_criticals)
 	{
 		struct starpu_omp_critical *critical, *tmp;
-		HASH_ITER(hh, _global_state.named_criticals, critical, tmp);
+		HASH_ITER(hh, _global_state.named_criticals, critical, tmp)
 		{
+			STARPU_ASSERT(critical != NULL);
 			HASH_DEL(_global_state.named_criticals, critical);
 			destroy_omp_critical_struct(critical);
 		}
 	}
+	STARPU_ASSERT(_global_state.named_criticals == NULL);
 	_starpu_spin_unlock(&_global_state.named_criticals_lock);
 	_starpu_spin_destroy(&_global_state.named_criticals_lock);
 	STARPU_PTHREAD_KEY_DELETE(omp_task_key);
