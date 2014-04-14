@@ -169,10 +169,7 @@ If a kernel source code was modified (e.g. performance improvement), the
 calibration information is stale and should be dropped, to re-calibrate from
 start. This can be done by using <c>export STARPU_CALIBRATE=2</c>.
 
-Note: due to CUDA limitations, to be able to measure kernel duration,
-calibration mode needs to disable asynchronous data transfers. Calibration thus
-disables data transfer / computation overlapping, and should thus not be used
-for eventual benchmarks. Note 2: history-based performance models get calibrated
+Note: history-based performance models get calibrated
 only if a performance-model-based scheduler is chosen.
 
 The history-based performance models can also be explicitly filled by the
