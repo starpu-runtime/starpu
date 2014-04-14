@@ -163,6 +163,12 @@ struct starpu_omp_initial_icv_values
 	struct starpu_omp_place places;
 };
 
+struct starpu_omp_task_group
+{
+	int descendent_task_count;
+	struct starpu_omp_task_group *next;
+};
+
 struct starpu_omp_task_link
 {
 	struct starpu_omp_task *task;
@@ -192,6 +198,11 @@ LIST_TYPE(starpu_omp_task,
 	struct starpu_omp_region *owner_region;
 	struct starpu_omp_region *nested_region;
 	int is_implicit;
+	int is_undeferred;
+	int is_final;
+	int is_untied;
+	int child_task_count;
+	struct starpu_omp_task_group *task_group;
 	struct _starpu_spinlock lock;
 	int barrier_count;
 	int single_id;
@@ -257,6 +268,7 @@ struct starpu_omp_region
 	/* include both the master thread and the region own threads */
 	int nb_threads;
 	int barrier_count;
+	int bound_explicit_task_count;
 	int single_id;
 	int level;
 	struct starpu_task *continuation_starpu_task;

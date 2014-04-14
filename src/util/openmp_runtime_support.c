@@ -659,21 +659,33 @@ void starpu_omp_barrier(void)
 
 	if (inc_barrier_count == region->nb_threads)
 	{
-		struct starpu_omp_task * implicit_task;
 		/* last task reaching the barrier */
 		region->barrier_count = 0;
-		_starpu_spin_unlock(&task->lock);
-		for (implicit_task  = starpu_omp_task_list_begin(region->implicit_task_list);
-				implicit_task != starpu_omp_task_list_end(region->implicit_task_list);
-				implicit_task  = starpu_omp_task_list_next(implicit_task))
+		if (task->child_task_count > 0)
 		{
-			int ret;
-			if (implicit_task == task)
-				continue;
-			_starpu_spin_lock(&implicit_task->lock);
-			ret = starpu_task_submit(implicit_task->starpu_task);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-			_starpu_spin_unlock(&implicit_task->lock);
+			_starpu_task_prepare_for_continuation_ext(0, barrier__sleep_callback, task);
+			starpu_omp_task_preempt();
+		}
+		else
+		{
+			_starpu_spin_unlock(&task->lock);
+		}
+		STARPU_ASSERT(task->child_task_count == 0);
+		STARPU_ASSERT(region->bound_explicit_task_count == 0);
+		{
+			struct starpu_omp_task * implicit_task;
+			for (implicit_task  = starpu_omp_task_list_begin(region->implicit_task_list);
+					implicit_task != starpu_omp_task_list_end(region->implicit_task_list);
+					implicit_task  = starpu_omp_task_list_next(implicit_task))
+			{
+				int ret;
+				if (implicit_task == task)
+					continue;
+				_starpu_spin_lock(&implicit_task->lock);
+				ret = starpu_task_submit(implicit_task->starpu_task);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+				_starpu_spin_unlock(&implicit_task->lock);
+			}
 		}
 	}
 	else
@@ -685,6 +697,7 @@ void starpu_omp_barrier(void)
 
 		_starpu_task_prepare_for_continuation_ext(0, barrier__sleep_callback, task);
 		starpu_omp_task_preempt();
+		STARPU_ASSERT(task->child_task_count == 0);
 	}
 }
 
@@ -785,6 +798,103 @@ void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *name)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 	_starpu_spin_unlock(&critical->lock);
+}
+
+void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
+		void * const task_region_cl_arg,
+		int if_clause, int final_clause, int untied_clause, int mergeable_clause)
+{
+	struct starpu_codelet task_region_cl = *_task_region_cl;
+	struct starpu_omp_task *generating_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_region *parallel_region = generating_task->owner_region;
+	int is_undeferred = 0;
+	int is_final = 0;
+	int is_included = 0;
+	int is_merged = 0;
+	int is_untied = 0;
+	int ret;
+
+	if (!if_clause)
+	{
+		is_undeferred = 1;
+	}
+	if (generating_task->is_final)
+	{
+		is_final = 1;
+		is_included = 1;
+	}
+	else if (final_clause)
+	{
+		is_final = 1;
+	}
+	if (is_included)
+	{
+		is_undeferred = 1;
+	}
+	if ((is_undeferred || is_included) & mergeable_clause)
+	{
+		is_merged = 1;
+	}
+	if (is_merged)
+	{
+		_STARPU_ERROR("omp merged task unimplemented\n");
+	}
+	else
+	{
+		struct starpu_omp_task *generated_task =
+			create_omp_task_struct(generating_task, NULL, parallel_region, 0);
+		if (untied_clause)
+		{
+			is_untied = 1;
+		}
+		generated_task->is_undeferred = is_undeferred;
+		generated_task->is_final = is_final;
+		generated_task->is_untied = is_untied;
+		generated_task->task_group = generating_task->task_group;
+
+		void (*task_region_f)(void **starpu_buffers, void *starpu_cl_arg) = task_region_cl.cpu_funcs[0];
+		task_region_cl.cpu_funcs[0] = starpu_omp_task_exec;
+		generated_task->f = task_region_f;
+
+		generated_task->starpu_task = starpu_task_create();
+		generated_task->starpu_task->cl = &task_region_cl;
+		generated_task->starpu_task->cl_arg = task_region_cl_arg;
+		generated_task->starpu_task->omp_task = generated_task;
+		/* if the task is tied, execute_on_a_specific_worker will be changed to 1
+		 * upon the first preemption of the generated task, once we know
+		 * which worker thread has been selected */
+		generated_task->starpu_task->execute_on_a_specific_worker = 0;
+
+		if (is_included)
+		{
+			_STARPU_ERROR("omp included task unimplemented\n");
+		}
+		else
+		{
+			(void)STARPU_ATOMIC_ADD(&generating_task->child_task_count, 1);
+			(void)STARPU_ATOMIC_ADD(&parallel_region->bound_explicit_task_count, 1);
+			{
+				struct starpu_omp_task_group *_task_group = generated_task->task_group;
+				while (_task_group)
+				{
+					(void)STARPU_ATOMIC_ADD(&_task_group->descendent_task_count, 1);
+					_task_group = _task_group->next;
+				}
+			}
+			if (is_undeferred)
+			{
+				_starpu_task_prepare_for_continuation();
+				starpu_task_declare_deps_array(generating_task->starpu_task, 1,
+						&generated_task->starpu_task);
+			}
+			ret = starpu_task_submit(generated_task->starpu_task);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+			if (is_undeferred)
+			{
+				starpu_omp_task_preempt();
+			}
+		}
+	}
 }
 
 /*
