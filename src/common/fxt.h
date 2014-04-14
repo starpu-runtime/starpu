@@ -188,7 +188,7 @@ void _starpu_fxt_register_thread(unsigned);
 #define _STARPU_FUT_COMMIT(size) do { } while (0)
 #endif
 
-#if def FUT_DO_PROBE2STR
+#ifdef FUT_DO_PROBE2STR
 #define _STARPU_FUT_DO_PROBE2STR(CODE, P1, P2, str) FUT_DO_PROBE2STR(CODE, P1, P2, str)
 #else
 /* Sometimes we need something a little more specific than the wrappers from
@@ -214,7 +214,7 @@ do {									\
 } while (0);
 #endif
 
-#if /def FUT_DO_PROBE3STR
+#ifdef FUT_DO_PROBE3STR
 #define _STARPU_FUT_DO_PROBE3STR(CODE, P1, P2, P3, str) FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)
 #else
 #define _STARPU_FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)			\
@@ -238,7 +238,7 @@ do {									\
 } while (0);
 #endif
 
-#if /def FUT_DO_PROBE4STR
+#ifdef FUT_DO_PROBE4STR
 #define _STARPU_FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str) FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str)
 #else
 #define _STARPU_FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str)		\
@@ -263,7 +263,7 @@ do {									\
 } while (0);
 #endif
 
-#if def FUT_DO_PROBE5STR
+#ifdef FUT_DO_PROBE5STR
 #define _STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str) FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)
 #else
 #define _STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)		\
