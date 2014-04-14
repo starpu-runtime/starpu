@@ -191,6 +191,15 @@ enum starpu_omp_task_state
 	starpu_omp_task_state_terminated = 2,
 };
 
+enum starpu_omp_task_wait_on
+{
+	starpu_omp_task_wait_on_task_childs  = 1 << 0,
+	starpu_omp_task_wait_on_region_tasks = 1 << 1,
+	starpu_omp_task_wait_on_barrier      = 1 << 2,
+	starpu_omp_task_wait_on_group        = 1 << 3,
+	starpu_omp_task_wait_on_critical     = 1 << 4
+};
+
 LIST_TYPE(starpu_omp_task,
 
 	struct starpu_omp_task *parent_task;
@@ -204,6 +213,7 @@ LIST_TYPE(starpu_omp_task,
 	int child_task_count;
 	struct starpu_omp_task_group *task_group;
 	struct _starpu_spinlock lock;
+	int wait_on;
 	int barrier_count;
 	int single_id;
 	struct starpu_omp_data_environment_icvs data_env_icvs;
@@ -267,6 +277,8 @@ struct starpu_omp_region
 	struct starpu_omp_task_list *implicit_task_list;
 	/* include both the master thread and the region own threads */
 	int nb_threads;
+	struct _starpu_spinlock lock;
+	struct starpu_omp_task *waiting_task;
 	int barrier_count;
 	int bound_explicit_task_count;
 	int single_id;
