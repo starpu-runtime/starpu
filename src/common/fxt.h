@@ -182,6 +182,15 @@ void _starpu_stop_fxt_profiling(void);
  * the worker. */
 void _starpu_fxt_register_thread(unsigned);
 
+#ifdef FUT_NEEDS_COMMIT
+#define _STARPU_FUT_COMMIT(size) fut_commitstampedbuffer(size)
+#else
+#define _STARPU_FUT_COMMIT(size) do { } while (0)
+#endif
+
+#if def FUT_DO_PROBE2STR
+#define _STARPU_FUT_DO_PROBE2STR(CODE, P1, P2, str) FUT_DO_PROBE2STR(CODE, P1, P2, str)
+#else
 /* Sometimes we need something a little more specific than the wrappers from
  * FxT: these macro permit to put add an event with 3 (or 4) numbers followed
  * by a string. */
@@ -200,9 +209,14 @@ do {									\
 	*(futargs++) = (unsigned long)(P2);				\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
     }									\
 } while (0);
+#endif
 
+#if /def FUT_DO_PROBE3STR
+#define _STARPU_FUT_DO_PROBE3STR(CODE, P1, P2, P3, str) FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)
+#else
 #define _STARPU_FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)			\
 do {									\
     if(fut_active) {							\
@@ -219,9 +233,14 @@ do {									\
 	*(futargs++) = (unsigned long)(P3);				\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
     }									\
 } while (0);
+#endif
 
+#if /def FUT_DO_PROBE4STR
+#define _STARPU_FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str) FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str)
+#else
 #define _STARPU_FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str)		\
 do {									\
     if(fut_active) {							\
@@ -239,9 +258,14 @@ do {									\
 	*(futargs++) = (unsigned long)(P4);				\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
     }									\
 } while (0);
+#endif
 
+#if def FUT_DO_PROBE5STR
+#define _STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str) FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)
+#else
 #define _STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)		\
 do {									\
     if(fut_active) {							\
@@ -260,8 +284,10 @@ do {									\
 	*(futargs++) = (unsigned long)(P5);				\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
     }									\
 } while (0);
+#endif
 
 #ifndef FUT_RAW_PROBE7
 #define FUT_RAW_PROBE7(CODE,P1,P2,P3,P4,P5,P6,P7) do {		\
@@ -270,7 +296,8 @@ do {									\
 				fut_getstampedbuffer(CODE,		\
 						     FUT_SIZE(7)); \
 			*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);*(__args++)=(unsigned long)(P5);*(__args++)=(unsigned long)(P6);*(__args++)=(unsigned long)(P7);				\
-				}					\
+			_STARPU_FUT_COMMIT(FUT_SIZE(7));		\
+		}							\
 	} while (0)
 #endif
 
