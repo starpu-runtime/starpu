@@ -326,7 +326,7 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
  * Runtime initialization methods
  */
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 static struct _starpu_worker_set cuda_worker_set[STARPU_MAXCUDADEVS];
 #endif
 #ifdef STARPU_USE_MIC
