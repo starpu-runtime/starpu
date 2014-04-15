@@ -33,7 +33,12 @@ EXTRA_DIST =				\
 	mvsc/starpu_exec.bat		\
 	mvsc/starpu_var.bat		\
 	mvsc/starpu.sln			\
-	mvsc/starpu/starpu.vcxproj
+	mvsc/starpu/starpu.vcxproj	\
+	valgrind/hwloc.suppr		\
+	valgrind/libnuma.suppr		\
+	valgrind/openmpi.suppr		\
+	valgrind/pthread.suppr		\
+	valgrind/starpu.suppr
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
