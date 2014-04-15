@@ -208,7 +208,7 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	gettimeofday(&start, NULL);
 	for (iter = 0; iter < NITER; iter++)
 	{
-		cudaMemcpy(d_buffer, h_buffer, 1, cudaMemcpyHostToDevice);
+		cudaMemcpy(d_buffer, h_buffer, 1, cudaMemcpyDeviceToHost);
 		cudaThreadSynchronize();
 	}
 	gettimeofday(&end, NULL);
