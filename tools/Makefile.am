@@ -29,6 +29,11 @@ dist_pkgdata_DATA = gdbinit
 EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
+	valgrind/hwloc.suppr		\
+	valgrind/libnuma.suppr		\
+	valgrind/openmpi.suppr		\
+	valgrind/pthread.suppr		\
+	valgrind/starpu.suppr		\
 	msvc/starpu_clean.bat		\
 	msvc/starpu_open.bat		\
 	msvc/starpu_exec.bat		\
