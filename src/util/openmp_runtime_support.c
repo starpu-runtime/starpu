@@ -161,9 +161,26 @@ static void destroy_omp_thread_struct(struct starpu_omp_thread *thread)
 	starpu_omp_thread_delete(thread);
 }
 
-static void starpu_omp_task_entry(struct starpu_omp_task *task)
+static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 {
+	STARPU_ASSERT(!task->is_implicit);
 	task->f(task->starpu_buffers, task->starpu_cl_arg);
+	task->state = starpu_omp_task_state_terminated;
+	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+	/* 
+	 * the task reached the terminated state, definitively give hand back to the worker code.
+	 *
+	 * about to run on the worker stack...
+	 */
+	setcontext(&thread->ctx);
+	STARPU_ASSERT(0); /* unreachable code */
+}
+
+static void starpu_omp_implicit_task_entry(struct starpu_omp_task *task)
+{
+	STARPU_ASSERT(task->is_implicit);
+	task->f(task->starpu_buffers, task->starpu_cl_arg);
+	starpu_omp_barrier();
 	task->state = starpu_omp_task_state_terminated;
 	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
 	/* 
@@ -300,10 +317,9 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 		struct starpu_omp_task *parent_task = task->parent_task;
 		struct starpu_omp_region *parallel_region = task->owner_region;
 		_starpu_spin_lock(&parent_task->lock);
-		if (STARPU_ATOMIC_ADD(&task->parent_task->child_task_count, -1) == 0)
+		if (STARPU_ATOMIC_ADD(&parent_task->child_task_count, -1) == 0)
 		{
-			if (parent_task->child_task_count == 0
-					&& (parent_task->wait_on & starpu_omp_task_wait_on_task_childs))
+			if (parent_task->wait_on & starpu_omp_task_wait_on_task_childs)
 			{
 				parent_task->wait_on &= ~starpu_omp_task_wait_on_task_childs;
 				_wake_up_locked_task(parent_task);
@@ -320,7 +336,7 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 			{
 				_starpu_spin_lock(&waiting_task->lock);
 				_starpu_spin_lock(&parallel_region->lock);
-				parallel_region->waiting_task = 0;
+				parallel_region->waiting_task = NULL;
 				STARPU_ASSERT(waiting_task->wait_on & starpu_omp_task_wait_on_region_tasks);
 				waiting_task->wait_on &= ~starpu_omp_task_wait_on_region_tasks;
 				_wake_up_locked_task(waiting_task);
@@ -373,7 +389,14 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 		task->ctx.uc_link                 = NULL;
 		task->ctx.uc_stack.ss_sp          = task->stack;
 		task->ctx.uc_stack.ss_size        = _STARPU_STACKSIZE;
-		makecontext(&task->ctx, (void (*) ()) starpu_omp_task_entry, 1, task);
+		if (is_implicit)
+		{
+			makecontext(&task->ctx, (void (*) ()) starpu_omp_implicit_task_entry, 1, task);
+		}
+		else
+		{
+			makecontext(&task->ctx, (void (*) ()) starpu_omp_explicit_task_entry, 1, task);
+		}
 	}
 
 	return task;
@@ -533,7 +556,6 @@ void starpu_omp_shutdown(void)
 void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_region_cl,
 		void * const parallel_region_cl_arg)
 {
-	struct starpu_codelet parallel_region_cl = *_parallel_region_cl;
 	struct starpu_omp_thread *master_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_region *region = task->owner_region;
@@ -606,18 +628,6 @@ void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_re
 	task->nested_region = new_region;
 
 	/*
-	 * save pointer to the regions user function from the parallel region codelet
-	 *
-	 * TODO: add support for multiple/heterogeneous implementations
-	 */
-	void (*parallel_region_f)(void **starpu_buffers, void *starpu_cl_arg) = parallel_region_cl.cpu_funcs[0];
-
-	/*
-	 * plug the task wrapper into the parallel region codelet instead, to support task preemption
-	 */
-	parallel_region_cl.cpu_funcs[0] = starpu_omp_implicit_task_exec;
-
-	/*
 	 * create the starpu tasks for the implicit omp tasks,
 	 * create explicit dependencies between these starpu tasks and the continuation starpu task
 	 */
@@ -626,10 +636,21 @@ void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_re
 			implicit_task != starpu_omp_task_list_end(new_region->implicit_task_list);
 			implicit_task  = starpu_omp_task_list_next(implicit_task))
 	{
-		implicit_task->f = parallel_region_f;
+		implicit_task->cl = *_parallel_region_cl;
+		/*
+		 * save pointer to the regions user function from the parallel region codelet
+		 *
+		 * TODO: add support for multiple/heterogeneous implementations
+		 */
+		implicit_task->f = implicit_task->cl.cpu_funcs[0];
+
+		/*
+		 * plug the task wrapper into the parallel region codelet instead, to support task preemption
+		 */
+		implicit_task->cl.cpu_funcs[0] = starpu_omp_implicit_task_exec;
 
 		implicit_task->starpu_task = starpu_task_create();
-		implicit_task->starpu_task->cl = &parallel_region_cl;
+		implicit_task->starpu_task->cl = &implicit_task->cl;
 		implicit_task->starpu_task->cl_arg = parallel_region_cl_arg;
 		implicit_task->starpu_task->omp_task = implicit_task;
 		implicit_task->starpu_task->workerid = implicit_task->owner_thread->starpu_worker_id;
@@ -884,7 +905,6 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 		void * const task_region_cl_arg,
 		int if_clause, int final_clause, int untied_clause, int mergeable_clause)
 {
-	struct starpu_codelet task_region_cl = *_task_region_cl;
 	struct starpu_omp_task *generating_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_region *parallel_region = generating_task->owner_region;
 	int is_undeferred = 0;
@@ -917,12 +937,15 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 	}
 	if (is_merged)
 	{
+		struct starpu_codelet task_region_cl = *_task_region_cl;
+		(void)task_region_cl;
 		_STARPU_ERROR("omp merged task unimplemented\n");
 	}
 	else
 	{
 		struct starpu_omp_task *generated_task =
 			create_omp_task_struct(generating_task, NULL, parallel_region, 0);
+		generated_task->cl = *_task_region_cl;
 		if (untied_clause)
 		{
 			is_untied = 1;
@@ -932,12 +955,20 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 		generated_task->is_untied = is_untied;
 		generated_task->task_group = generating_task->task_group;
 
-		void (*task_region_f)(void **starpu_buffers, void *starpu_cl_arg) = task_region_cl.cpu_funcs[0];
-		task_region_cl.cpu_funcs[0] = starpu_omp_explicit_task_exec;
-		generated_task->f = task_region_f;
+		/*
+		 * save pointer to the regions user function from the task region codelet
+		 *
+		 * TODO: add support for multiple/heterogeneous implementations
+		 */
+		generated_task->f = generated_task->cl.cpu_funcs[0];
+
+		/*
+		 * plug the task wrapper into the task region codelet instead, to support task preemption
+		 */
+		generated_task->cl.cpu_funcs[0] = starpu_omp_explicit_task_exec;
 
 		generated_task->starpu_task = starpu_task_create();
-		generated_task->starpu_task->cl = &task_region_cl;
+		generated_task->starpu_task->cl = &generated_task->cl;
 		generated_task->starpu_task->cl_arg = task_region_cl_arg;
 		generated_task->starpu_task->omp_task = generated_task;
 		/* if the task is tied, execute_on_a_specific_worker will be changed to 1

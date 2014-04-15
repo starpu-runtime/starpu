@@ -52,6 +52,9 @@ extern "C"
 extern int starpu_omp_init(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_shutdown(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_parallel_region(const struct starpu_codelet * const parallel_region_cl, void * const parallel_region_cl_arg) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
+		void * const task_region_cl_arg,
+		int if_clause, int final_clause, int untied_clause, int mergeable_clause) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_barrier(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_master(void (*f)(void *arg), void *arg, int nowait) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait) __STARPU_OMP_NOTHROW;

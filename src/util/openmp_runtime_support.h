@@ -220,6 +220,7 @@ LIST_TYPE(starpu_omp_task,
 	struct starpu_omp_implicit_task_icvs implicit_task_icvs;
 
 	struct starpu_task *starpu_task;
+	struct starpu_codelet cl;
 	void **starpu_buffers;
 	void *starpu_cl_arg;
 
