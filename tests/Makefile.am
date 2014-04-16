@@ -234,6 +234,7 @@ noinst_PROGRAMS =				\
 	openmp/task_01				\
 	openmp/task_01				\
 	openmp/taskwait_01			\
+	openmp/taskgroup_01			\
 	overlap/overlap				\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
@@ -485,6 +486,9 @@ openmp_task_01_SOURCES = 	\
 
 openmp_taskwait_01_SOURCES = 	\
 	openmp/taskwait_01.c
+
+openmp_taskgroup_01_SOURCES = 	\
+	openmp/taskgroup_01.c
 
 ###################
 # Block interface #

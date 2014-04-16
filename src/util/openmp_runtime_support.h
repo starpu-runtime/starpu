@@ -166,7 +166,7 @@ struct starpu_omp_initial_icv_values
 struct starpu_omp_task_group
 {
 	int descendent_task_count;
-	struct starpu_omp_task_group *next;
+	struct starpu_omp_task *leader_task;
 };
 
 struct starpu_omp_task_link

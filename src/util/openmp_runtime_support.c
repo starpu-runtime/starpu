@@ -352,6 +352,21 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 		{
 			_starpu_spin_unlock(&parallel_region->lock);
 		}
+		if (task->task_group)
+		{
+			struct starpu_omp_task *leader_task = task->task_group->leader_task;
+			STARPU_ASSERT(leader_task != task);
+			_starpu_spin_lock(&leader_task->lock);
+			if (STARPU_ATOMIC_ADD(&task->task_group->descendent_task_count, -1) == 0)
+			{
+				if (leader_task->wait_on & starpu_omp_task_wait_on_group)
+				{
+					leader_task->wait_on &= ~starpu_omp_task_wait_on_group;
+					_wake_up_locked_task(leader_task);
+				}
+			}
+			_starpu_spin_unlock(&leader_task->lock);
+		}
 	}
 	else if (task->state != starpu_omp_task_state_preempted)
 		_STARPU_ERROR("invalid omp task state");
@@ -1015,13 +1030,9 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 		{
 			(void)STARPU_ATOMIC_ADD(&generating_task->child_task_count, 1);
 			(void)STARPU_ATOMIC_ADD(&parallel_region->bound_explicit_task_count, 1);
+			if (generated_task->task_group)
 			{
-				struct starpu_omp_task_group *_task_group = generated_task->task_group;
-				while (_task_group)
-				{
-					(void)STARPU_ATOMIC_ADD(&_task_group->descendent_task_count, 1);
-					_task_group = _task_group->next;
-				}
+				(void)STARPU_ATOMIC_ADD(&generated_task->task_group->descendent_task_count, 1);
 			}
 			if (is_undeferred)
 			{
@@ -1062,6 +1073,36 @@ void starpu_omp_taskwait(void)
 	}
 }
 
+static void group__sleep_callback(void *_task)
+{
+	struct starpu_omp_task *task = _task;
+	_starpu_spin_unlock(&task->lock);
+}
+
+void starpu_omp_taskgroup(void (*f)(void *arg), void *arg)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task_group *p_previous_task_group;
+	struct starpu_omp_task_group task_group;
+	p_previous_task_group = task->task_group;
+	task_group.descendent_task_count = 0;
+	task_group.leader_task = task;
+	task->task_group = &task_group;
+	f(arg);
+	_starpu_spin_lock(&task->lock);
+	if (task_group.descendent_task_count > 0)
+	{
+		task->wait_on |= starpu_omp_task_wait_on_group;
+		_starpu_task_prepare_for_continuation_ext(0, group__sleep_callback, task);
+		starpu_omp_task_preempt();
+		STARPU_ASSERT(task_group.descendent_task_count == 0);
+	}
+	else
+	{
+		_starpu_spin_unlock(&task->lock);
+	}
+	task->task_group = p_previous_task_group;
+}
 /*
  * restore deprecated diagnostics (-Wdeprecated-declarations)
  */
