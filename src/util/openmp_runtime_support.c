@@ -1039,6 +1039,29 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 	}
 }
 
+static void task_childs__sleep_callback(void *_task)
+{
+	struct starpu_omp_task *task = _task;
+	_starpu_spin_unlock(&task->lock);
+}
+
+void starpu_omp_taskwait(void)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	_starpu_spin_lock(&task->lock);
+	if (task->child_task_count > 0)
+	{
+		task->wait_on |= starpu_omp_task_wait_on_task_childs;
+		_starpu_task_prepare_for_continuation_ext(0, task_childs__sleep_callback, task);
+		starpu_omp_task_preempt();
+		STARPU_ASSERT(task->child_task_count == 0);
+	}
+	else
+	{
+		_starpu_spin_unlock(&task->lock);
+	}
+}
+
 /*
  * restore deprecated diagnostics (-Wdeprecated-declarations)
  */

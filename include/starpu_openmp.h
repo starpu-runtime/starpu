@@ -59,6 +59,7 @@ extern void starpu_omp_barrier(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_master(void (*f)(void *arg), void *arg, int nowait) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *name) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_set_num_threads(int threads) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_num_threads() __STARPU_OMP_NOTHROW;
