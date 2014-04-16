@@ -65,6 +65,9 @@ void _starpu_task_prepare_for_continuation_ext(unsigned continuation_resubmit,
 		void (*continuation_callback_on_sleep)(void *arg), void *continuation_callback_on_sleep_arg);
 
 void _starpu_task_prepare_for_continuation(void);
+
+void _starpu_task_set_omp_cleanup_callback(struct starpu_task *task, void (*omp_cleanup_callback)(void *arg),
+		void *omp_cleanup_callback_arg);
 #endif
 
 int _starpu_task_uses_multiformat_handles(struct starpu_task *task);

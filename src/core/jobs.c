@@ -156,12 +156,19 @@ void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned co
 	j->continuation_resubmit = continuation_resubmit;
 	j->continuation_callback_on_sleep = continuation_callback_on_sleep;
 	j->continuation_callback_on_sleep_arg = continuation_callback_on_sleep_arg;
+	j->job_successors.ndeps = 0;
 }
 /* Prepare a currently running job for accepting a new set of
  * dependencies in anticipation of becoming a continuation. */
 void _starpu_job_prepare_for_continuation(struct _starpu_job *j)
 {
 	_starpu_job_prepare_for_continuation_ext(j, 1, NULL, NULL);
+}
+void _starpu_job_set_omp_cleanup_callback(struct _starpu_job *j,
+		void (*omp_cleanup_callback)(void *arg), void *omp_cleanup_callback_arg)
+{
+	j->omp_cleanup_callback = omp_cleanup_callback;
+	j->omp_cleanup_callback_arg = omp_cleanup_callback_arg;
 }
 #endif
 
@@ -336,6 +343,14 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	if (!continuation)
 	{
+#ifdef STARPU_OPENMP
+		if (j->omp_cleanup_callback)
+		{
+			j->omp_cleanup_callback(j->omp_cleanup_callback_arg);
+			j->omp_cleanup_callback = NULL;
+			j->omp_cleanup_callback_arg = NULL;
+		}
+#endif
 		/* A value of 2 is put to specify that not only the codelet but
 		 * also the callback were executed. */
 		j->terminated = 2;

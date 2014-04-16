@@ -244,10 +244,9 @@ LIST_TYPE(starpu_omp_task,
 
 LIST_TYPE(starpu_omp_thread,
 
+	UT_hash_handle hh;
 	struct starpu_omp_task *current_task;
 	struct starpu_omp_region *owner_region;
-
-	struct starpu_omp_task *primary_task;
 
 	/*
 	 * stack to execute the initial thread over
@@ -264,7 +263,7 @@ LIST_TYPE(starpu_omp_thread,
 	ucontext_t ctx;
 
 	struct starpu_driver starpu_driver;
-	unsigned starpu_worker_id;
+	struct _starpu_worker *worker;
 )
 
 struct starpu_omp_region
@@ -302,6 +301,8 @@ struct starpu_omp_global
 	struct starpu_omp_critical *default_critical;
 	struct starpu_omp_critical *named_criticals;
 	struct _starpu_spinlock named_criticals_lock;
+	struct starpu_omp_thread *hash_workers;
+	struct _starpu_spinlock hash_workers_lock;
 };
 
 /* 

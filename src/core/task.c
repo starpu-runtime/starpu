@@ -964,6 +964,12 @@ void _starpu_task_prepare_for_continuation_ext(unsigned continuation_resubmit,
 	_starpu_job_prepare_for_continuation_ext(_starpu_get_job_associated_to_task(starpu_task_get_current()),
 		continuation_resubmit, continuation_callback_on_sleep, continuation_callback_on_sleep_arg);
 }
+
+void _starpu_task_set_omp_cleanup_callback(struct starpu_task *task, void (*omp_cleanup_callback)(void *arg), void *omp_cleanup_callback_arg)
+{
+	_starpu_job_set_omp_cleanup_callback(_starpu_get_job_associated_to_task(task),
+		omp_cleanup_callback, omp_cleanup_callback_arg);
+}
 #endif
 
 /*
