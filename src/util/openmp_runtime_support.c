@@ -833,7 +833,7 @@ void starpu_omp_barrier(void)
 	}
 }
 
-void starpu_omp_master(void (*f)(void *arg), void *arg, int nowait)
+void starpu_omp_master(void (*f)(void *arg), void *arg)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
@@ -844,11 +844,6 @@ void starpu_omp_master(void (*f)(void *arg), void *arg, int nowait)
 	if (thread == region->master_thread)
 	{
 		f(arg);
-	}
-
-	if (!nowait)
-	{
-		starpu_omp_barrier();
 	}
 }
 

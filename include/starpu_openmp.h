@@ -56,7 +56,7 @@ extern void starpu_omp_task_region(const struct starpu_codelet * const _task_reg
 		void * const task_region_cl_arg,
 		int if_clause, int final_clause, int untied_clause, int mergeable_clause) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_barrier(void) __STARPU_OMP_NOTHROW;
-extern void starpu_omp_master(void (*f)(void *arg), void *arg, int nowait) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_master(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *name) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;

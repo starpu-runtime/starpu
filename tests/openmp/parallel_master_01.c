@@ -45,7 +45,7 @@ void master_g(void *arg)
 	pthread_t tid;
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
-	printf("[tid %p] task thread = %d -- master nowait\n", (void *)tid, worker_id);
+	printf("[tid %p] task thread = %d -- master\n", (void *)tid, worker_id);
 }
 
 void parallel_region_f(void *buffers[], void *args)
@@ -57,10 +57,10 @@ void parallel_region_f(void *buffers[], void *args)
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
 	printf("[tid %p] task thread = %d -- parallel -->\n", (void *)tid, worker_id);
-	starpu_omp_master(master_g, NULL, 1);
-	starpu_omp_master(master_g, NULL, 1);
-	starpu_omp_master(master_g, NULL, 1);
-	starpu_omp_master(master_g, NULL, 1);
+	starpu_omp_master(master_g, NULL);
+	starpu_omp_master(master_g, NULL);
+	starpu_omp_master(master_g, NULL);
+	starpu_omp_master(master_g, NULL);
 	printf("[tid %p] task thread = %d -- parallel <--\n", (void *)tid, worker_id);
 }
 
