@@ -224,13 +224,14 @@ noinst_PROGRAMS =				\
 	openmp/environment			\
 	openmp/parallel_01			\
 	openmp/parallel_02			\
+	openmp/parallel_03			\
 	openmp/parallel_barrier_01		\
 	openmp/parallel_master_01		\
 	openmp/parallel_single_wait_01		\
 	openmp/parallel_single_nowait_01	\
 	openmp/parallel_critical_01		\
 	openmp/parallel_critical_named_01	\
-	openmp/task_01				\
+	openmp/parallel_for_01			\
 	openmp/task_01				\
 	openmp/taskwait_01			\
 	openmp/taskgroup_01			\
@@ -459,6 +460,9 @@ openmp_parallel_01_SOURCES = 	\
 openmp_parallel_02_SOURCES = 	\
 	openmp/parallel_02.c
 
+openmp_parallel_03_SOURCES = 	\
+	openmp/parallel_03.c
+
 openmp_parallel_barrier_01_SOURCES = 	\
 	openmp/parallel_barrier_01.c
 
@@ -476,6 +480,9 @@ openmp_parallel_critical_01_SOURCES = 	\
 
 openmp_parallel_critical_named_01_SOURCES = 	\
 	openmp/parallel_critical_named_01.c
+
+openmp_parallel_for_01_SOURCES = 	\
+	openmp/parallel_for_01.c
 
 openmp_task_01_SOURCES = 	\
 	openmp/task_01.c

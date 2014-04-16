@@ -53,10 +53,11 @@ enum starpu_omp_bind_mode
 
 enum starpu_omp_schedule_mode
 {
-	starpu_omp_schedule_static  = 0,
-	starpu_omp_schedule_dynamic = 1,
-	starpu_omp_schedule_guided  = 2,
-	starpu_omp_schedule_auto    = 3
+	starpu_omp_schedule_undefined = 0,
+	starpu_omp_schedule_static    = 1,
+	starpu_omp_schedule_dynamic   = 2,
+	starpu_omp_schedule_guided    = 3,
+	starpu_omp_schedule_auto      = 4
 };
 
 /*
@@ -210,12 +211,14 @@ LIST_TYPE(starpu_omp_task,
 	int is_undeferred;
 	int is_final;
 	int is_untied;
+	int rank;
 	int child_task_count;
 	struct starpu_omp_task_group *task_group;
 	struct _starpu_spinlock lock;
 	int wait_on;
 	int barrier_count;
 	int single_id;
+	int loop_id;
 	struct starpu_omp_data_environment_icvs data_env_icvs;
 	struct starpu_omp_implicit_task_icvs implicit_task_icvs;
 
@@ -266,6 +269,14 @@ LIST_TYPE(starpu_omp_thread,
 	struct _starpu_worker *worker;
 )
 
+struct starpu_omp_loop
+{
+	int id;
+	unsigned long next_iteration;
+	int nb_completed_threads;
+	struct starpu_omp_loop *next_loop;
+};
+
 struct starpu_omp_region
 {
 	struct starpu_omp_region *parent_region;
@@ -283,6 +294,7 @@ struct starpu_omp_region
 	int bound_explicit_task_count;
 	int single_id;
 	int level;
+	struct starpu_omp_loop *loop_list;
 	struct starpu_task *continuation_starpu_task;
 };
 
