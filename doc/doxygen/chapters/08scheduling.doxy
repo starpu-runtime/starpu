@@ -33,22 +33,24 @@ worker.
 
 The <b>dm</b> (deque model) scheduler uses task execution performance models into account to
 perform an HEFT-similar scheduling strategy: it schedules tasks where their
-termination time will be minimal.
+termination time will be minimal. The difference with HEFT is that tasks are
+scheduled in the order they become available.
 
-The <b>dmda</b> (deque model data aware) scheduler is similar to dm, it also takes
+The <b>dmda</b> (deque model data aware) scheduler is similar to dm, but it also takes
 into account data transfer time.
 
 The <b>dmdar</b> (deque model data aware ready) scheduler is similar to dmda,
 it also sorts tasks on per-worker queues by number of already-available data
-buffers.
+buffers on the target device.
 
-The <b>dmdas</b> (deque model data aware sorted) scheduler is similar to dmda, it
-also supports arbitrary priority values.
+The <b>dmdas</b> (deque model data aware sorted) scheduler is similar to dmdar,
+except that it sorts tasks by priority order, which allows to become even closer
+to HEFT.
 
-The <b>heft</b> (heterogeneous earliest finish time) scheduler is deprecated. It
-is now just an alias for <b>dmda</b>.
+The <b>heft</b> (heterogeneous earliest finish time) scheduler is a deprecated
+alias for <b>dmda</b>.
 
-The <b>pheft</b> (parallel HEFT) scheduler is similar to heft, it also supports
+The <b>pheft</b> (parallel HEFT) scheduler is similar to dmda, it also supports
 parallel tasks (still experimental). Should not be used when several contexts using
 it are being executed simultaneously.
 
