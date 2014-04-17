@@ -364,7 +364,7 @@ static void convert_num_threads_string(const char *_str, int *num_threads_list, 
 			level++;
 			if (level == max_levels)
 				break;
-			i++;
+			i = endptr - str;
 			state = state_split;
 		}
 		else

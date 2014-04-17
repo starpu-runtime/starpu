@@ -37,7 +37,7 @@ main (int argc, char *argv[]) {
 	setenv("OMP_CANCELLATION","false", 1);
 	setenv("OMP_DEFAULT_DEVICE","0", 1);
 	setenv("OMP_PROC_BIND","spread, spread, close", 1);
-	setenv("OMP_NUM_THREADS","4, 2, 2", 1);
+	setenv("OMP_NUM_THREADS","4, 16, 2", 1);
 	setenv("OMP_PLACES","{1,2,3,4},{5,6,7,8}", 1);
 	setenv("OMP_DISPLAY_ENV","verbose", 1);
 	int ret = starpu_omp_init();
