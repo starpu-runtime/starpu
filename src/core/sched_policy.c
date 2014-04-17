@@ -788,6 +788,12 @@ pick:
 	if (task->mf_skip)
 		goto profiling;
 
+	/*
+	 * This worker may not be able to execute this task. In this case, we
+	 * should return the task anyway. It will be pushed back almost immediatly.
+	 * This way, we avoid computing and executing the conversions tasks.
+	 * Here, we do not care about what implementation is used.
+	 */
 	worker_id = starpu_worker_get_id();
 	if (!starpu_worker_can_execute_task(worker_id, task, 0))
 		return task;
