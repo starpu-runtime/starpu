@@ -502,7 +502,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		*task = starpu_task_create();
 		(*task)->cl_arg_free = 1;
 
-		if (codelet->nbuffers > STARPU_NMAXBUFS)
+		if (codelet && codelet->nbuffers > STARPU_NMAXBUFS)
 		{
 			(*task)->dyn_handles = malloc(codelet->nbuffers * sizeof(starpu_data_handle_t));
 		}
