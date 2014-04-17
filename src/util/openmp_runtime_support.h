@@ -225,6 +225,7 @@ LIST_TYPE(starpu_omp_task,
 	int barrier_count;
 	int single_id;
 	int loop_id;
+	int sections_id;
 	struct starpu_omp_data_environment_icvs data_env_icvs;
 	struct starpu_omp_implicit_task_icvs implicit_task_icvs;
 
@@ -286,6 +287,14 @@ struct starpu_omp_loop
 	unsigned long long ordered_iteration;
 };
 
+struct starpu_omp_sections
+{
+	int id;
+	int next_section_num;
+	int nb_completed_threads;
+	struct starpu_omp_sections *next_sections;
+};
+
 struct starpu_omp_region
 {
 	struct starpu_omp_region *parent_region;
@@ -304,6 +313,7 @@ struct starpu_omp_region
 	int single_id;
 	int level;
 	struct starpu_omp_loop *loop_list;
+	struct starpu_omp_sections *sections_list;
 	struct starpu_task *continuation_starpu_task;
 };
 

@@ -1606,6 +1606,85 @@ void starpu_omp_ordered_inline_end(void)
 	_starpu_spin_unlock(&loop->ordered_lock);
 }
 
+static inline struct starpu_omp_sections *_starpu_omp_get_sections(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task)
+{
+	struct starpu_omp_sections *sections;
+	sections = parallel_region->sections_list;
+	while (sections && sections->id != task->sections_id)
+	{
+		sections = sections->next_sections;
+	}
+	return sections;
+}
+
+static inline struct starpu_omp_sections *_starpu_omp_sections_begin(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task)
+{
+	struct starpu_omp_sections *sections;
+	_starpu_spin_lock(&parallel_region->lock);
+	sections = _starpu_omp_get_sections(parallel_region, task);
+	if (!sections)
+	{
+		sections = malloc(sizeof(*sections));
+		if (sections == NULL)
+			_STARPU_ERROR("memory allocation failed\n");
+		sections->id = task->sections_id;
+		sections->next_section_num = 0;
+		sections->nb_completed_threads = 0;
+		sections->next_sections = parallel_region->sections_list;
+		parallel_region->sections_list = sections;
+	}
+	_starpu_spin_unlock(&parallel_region->lock);
+	return sections;
+}
+static inline void _starpu_omp_sections_end(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task,
+		struct starpu_omp_sections *sections)
+{
+	_starpu_spin_lock(&parallel_region->lock);
+	sections->nb_completed_threads++;
+	if (sections->nb_completed_threads == parallel_region->nb_threads)
+	{
+		struct starpu_omp_sections **p_sections;
+		STARPU_ASSERT(sections->next_sections == NULL);
+		p_sections = &(parallel_region->sections_list);
+		while (*p_sections != sections)
+		{
+			p_sections = &((*p_sections)->next_sections);
+		}
+		*p_sections = NULL;
+		free(sections);
+	}
+	_starpu_spin_unlock(&parallel_region->lock);
+	task->sections_id++;
+}
+
+void starpu_omp_sections(int nb_sections, void (**section_f)(void *arg), void **section_arg, int nowait)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_region *parallel_region = task->owner_region;
+	struct starpu_omp_sections *sections = _starpu_omp_sections_begin(parallel_region, task);
+	for (;;)
+	{
+		void (*f)(void *arg) = NULL;
+		void *arg = NULL;
+		_starpu_spin_lock(&parallel_region->lock);
+		if (sections->next_section_num < nb_sections)
+		{
+			f = section_f[sections->next_section_num];
+			arg = section_arg[sections->next_section_num];
+			sections->next_section_num ++;
+		}
+		_starpu_spin_unlock(&parallel_region->lock);
+		if (f == NULL)
+			break;
+		f(arg);
+	}
+	_starpu_omp_sections_end(parallel_region, task, sections);
+	if (!nowait)
+	{
+		starpu_omp_barrier();
+	}
+}
+
 /*
  * restore deprecated diagnostics (-Wdeprecated-declarations)
  */

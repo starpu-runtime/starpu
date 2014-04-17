@@ -84,6 +84,8 @@ extern void starpu_omp_ordered_inline_begin(unsigned long long i) __STARPU_OMP_N
 extern void starpu_omp_ordered_inline_end(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_ordered(void (*f)(unsigned long long _i, void *arg), void *arg, unsigned long long i) __STARPU_OMP_NOTHROW;
 
+extern void starpu_omp_sections(int nb_sections, void (**section_f)(void *arg), void **section_arg, int nowait) __STARPU_OMP_NOTHROW;
+
 extern void starpu_omp_set_num_threads(int threads) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_num_threads() __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_thread_num() __STARPU_OMP_NOTHROW;

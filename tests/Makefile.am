@@ -239,6 +239,7 @@ noinst_PROGRAMS =				\
 	openmp/parallel_for_01			\
 	openmp/parallel_for_02			\
 	openmp/parallel_for_ordered_01		\
+	openmp/parallel_sections_01		\
 	openmp/task_01				\
 	openmp/taskwait_01			\
 	openmp/taskgroup_01			\
@@ -508,6 +509,9 @@ openmp_parallel_for_02_SOURCES = 	\
 
 openmp_parallel_for_ordered_01_SOURCES = 	\
 	openmp/parallel_for_ordered_01.c
+
+openmp_parallel_sections_01_SOURCES = 	\
+	openmp/parallel_sections_01.c
 
 openmp_task_01_SOURCES = 	\
 	openmp/task_01.c
