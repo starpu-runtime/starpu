@@ -1207,10 +1207,120 @@ void starpu_omp_taskgroup(void (*f)(void *arg), void *arg)
 	task->task_group = p_previous_task_group;
 }
 
-void starpu_omp_for(void (*f)(unsigned long _first_i, unsigned long _nb_i, void *arg), void *arg, unsigned long nb_iterations, unsigned long chunk, int schedule, int ordered, int nowait)
+static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task,
+		struct starpu_omp_loop *loop, int first_call,
+		unsigned long nb_iterations, unsigned long chunk, int schedule, unsigned long *_first_i, unsigned long *_nb_i)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
-	struct starpu_omp_region *parallel_region = task->owner_region;
+	*_nb_i = 0;
+	if (schedule == starpu_omp_schedule_static || schedule == starpu_omp_schedule_auto)
+	{
+		if (chunk > 0)
+		{
+			if (first_call)
+			{
+				*_first_i = task->rank * chunk;
+			}
+			else
+			{
+				*_first_i += parallel_region->nb_threads * chunk;
+			}
+
+			if (*_first_i < nb_iterations)
+			{
+				if (*_first_i + chunk > nb_iterations)
+				{
+					*_nb_i = nb_iterations - *_first_i;
+				}
+				else
+				{
+					*_nb_i = chunk;
+				}
+			}
+		}
+		else
+		{
+			if (first_call)
+			{
+				*_nb_i = nb_iterations / parallel_region->nb_threads;
+				*_first_i = (unsigned)task->rank * (*_nb_i);
+				unsigned long remainder = nb_iterations % parallel_region->nb_threads;
+
+				if (remainder > 0)
+				{
+					if ((unsigned)task->rank < remainder)
+					{
+						(*_nb_i)++;
+						*_first_i += (unsigned)task->rank;
+					}
+					else
+					{
+						*_first_i += remainder;
+					}
+				}
+			}
+		}
+	}
+	else if (schedule == starpu_omp_schedule_dynamic)
+	{
+		if (chunk == 0)
+		{
+			chunk = 1;
+		}
+		if (first_call)
+		{
+			*_first_i = 0;
+		}
+		_starpu_spin_lock(&parallel_region->lock);
+		if (loop->next_iteration < nb_iterations)
+		{
+			*_first_i = loop->next_iteration;
+			if (*_first_i + chunk > nb_iterations)
+			{
+				*_nb_i = nb_iterations - *_first_i;
+			}
+			else
+			{
+				*_nb_i = chunk;
+			}
+			loop->next_iteration += *_nb_i;
+		}
+		_starpu_spin_unlock(&parallel_region->lock);
+	}
+	else if (schedule == starpu_omp_schedule_guided)
+	{
+		if (chunk == 0)
+		{
+			chunk = 1;
+		}
+		if (first_call)
+		{
+			*_first_i = 0;
+		}
+		_starpu_spin_lock(&parallel_region->lock);
+		if (loop->next_iteration < nb_iterations)
+		{
+			*_first_i = loop->next_iteration;
+			*_nb_i = (nb_iterations - *_first_i)/parallel_region->nb_threads;
+			if (*_nb_i < chunk)
+			{
+				if (*_first_i+chunk > nb_iterations)
+				{
+					*_nb_i = nb_iterations - *_first_i;
+				}
+				else
+				{
+					*_nb_i = chunk;
+				}
+			}
+			loop->next_iteration += *_nb_i;
+		}
+		_starpu_spin_unlock(&parallel_region->lock);
+	}
+}
+
+static inline struct starpu_omp_loop *_starpu_omp_for_loop_begin(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task,
+		int ordered)
+{
 	struct starpu_omp_loop *loop;
 	if (ordered)
 		/* TODO: implement ordered statement */
@@ -1233,122 +1343,12 @@ void starpu_omp_for(void (*f)(unsigned long _first_i, unsigned long _nb_i, void 
 		parallel_region->loop_list = loop;
 	}
 	_starpu_spin_unlock(&parallel_region->lock);
-
-	if (schedule == starpu_omp_schedule_static || schedule == starpu_omp_schedule_auto)
-	{
-		if (chunk > 0)
-		{
-			const unsigned long stride = parallel_region->nb_threads * chunk;
-			unsigned long nb_strides = 0;
-			unsigned long first_i = task->rank * chunk;
-			unsigned long nb_i;
-			while (first_i < nb_iterations)
-			{
-				if (first_i + chunk <= nb_iterations)
-				{
-					nb_i = chunk;
-				}
-				else
-				{
-					nb_i = nb_iterations - first_i;
-				}
-				f(first_i, nb_i, arg);
-				nb_strides++;
-				first_i = stride * nb_strides;
-			}
-		}
-		else
-		{
-			unsigned long nb_i = nb_iterations / parallel_region->nb_threads;
-			unsigned long first_i = (unsigned)task->rank * nb_i;
-			unsigned long remainder = nb_iterations % parallel_region->nb_threads;
-
-			if (nb_iterations % parallel_region->nb_threads > 0)
-			{
-				if ((unsigned)task->rank < remainder)
-				{
-					nb_i++;
-					first_i += (unsigned)task->rank;
-				}
-				else
-				{
-					first_i += remainder;
-				}
-			}
-			if (nb_i > 0)
-			{
-				f(first_i, nb_i, arg);
-			}
-		}
-
-		/* re-acquire lock before performing loop completion */
-		_starpu_spin_lock(&parallel_region->lock);
-	}
-	else if (schedule == starpu_omp_schedule_dynamic)
-	{
-		if (chunk == 0)
-		{
-			chunk = 1;
-		}
-		for (;;)
-		{
-			unsigned long first_i;
-			unsigned long nb_i;
-
-			_starpu_spin_lock(&parallel_region->lock);
-			/* upon exiting the loop, the parallel_region-lock will already be held
-			 * for performing loop completion */
-			if (loop->next_iteration >= nb_iterations)
-				break;
-			first_i = loop->next_iteration;
-			if (first_i + chunk > nb_iterations)
-			{
-				nb_i = nb_iterations - first_i;
-			}
-			else
-			{
-				nb_i = chunk;
-			}
-			loop->next_iteration += nb_i;
-			_starpu_spin_unlock(&parallel_region->lock);
-			f(first_i, nb_i, arg);
-		}
-	}
-	else if (schedule == starpu_omp_schedule_guided)
-	{
-		if (chunk == 0)
-		{
-			chunk = 1;
-		}
-		for (;;)
-		{
-			unsigned long first_i;
-			unsigned long nb_i;
-
-			_starpu_spin_lock(&parallel_region->lock);
-			/* upon exiting the loop, the parallel_region-lock will already be held
-			 * for performing loop completion */
-			if (loop->next_iteration >= nb_iterations)
-				break;
-			first_i = loop->next_iteration;
-			nb_i = (nb_iterations - first_i)/parallel_region->nb_threads;
-			if (nb_i < chunk)
-			{
-				if (first_i+chunk > nb_iterations)
-				{
-					nb_i = nb_iterations - first_i;
-				}
-				else
-				{
-					nb_i = chunk;
-				}
-			}
-			loop->next_iteration += nb_i;
-			_starpu_spin_unlock(&parallel_region->lock);
-			f(first_i, nb_i, arg);
-		}
-	}
-
+	return loop;
+}
+static inline void _starpu_omp_for_loop_end(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task,
+		struct starpu_omp_loop *loop)
+{
+	_starpu_spin_lock(&parallel_region->lock);
 	loop->nb_completed_threads++;
 	if (loop->nb_completed_threads == parallel_region->nb_threads)
 	{
@@ -1363,12 +1363,53 @@ void starpu_omp_for(void (*f)(unsigned long _first_i, unsigned long _nb_i, void 
 		free(loop);
 	}
 	_starpu_spin_unlock(&parallel_region->lock);
+	task->loop_id++;
+}
 
+int starpu_omp_for_inline_first(unsigned long nb_iterations, unsigned long chunk, int schedule, int ordered, unsigned long *_first_i, unsigned long *_nb_i)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_region *parallel_region = task->owner_region;
+	struct starpu_omp_loop *loop = _starpu_omp_for_loop_begin(parallel_region, task, ordered);
+
+	_starpu_omp_for_loop(parallel_region, task, loop, 1, nb_iterations, chunk, schedule, _first_i, _nb_i);
+	if (*_nb_i == 0)
+	{
+		_starpu_omp_for_loop_end(parallel_region, task, loop);
+	}
+	return (*_nb_i != 0);
+}
+
+int starpu_omp_for_inline_next(unsigned long nb_iterations, unsigned long chunk, int schedule, int ordered, unsigned long *_first_i, unsigned long *_nb_i)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_region *parallel_region = task->owner_region;
+	struct starpu_omp_loop *loop = _starpu_omp_for_loop_begin(parallel_region, task, ordered);
+
+	_starpu_omp_for_loop(parallel_region, task, loop, 0, nb_iterations, chunk, schedule, _first_i, _nb_i);
+	if (*_nb_i == 0)
+	{
+		_starpu_omp_for_loop_end(parallel_region, task, loop);
+	}
+	return (*_nb_i != 0);
+}
+
+void starpu_omp_for(void (*f)(unsigned long _first_i, unsigned long _nb_i, void *arg), void *arg, unsigned long nb_iterations, unsigned long chunk, int schedule, int ordered, int nowait)
+{
+	unsigned long _first_i = 0;
+	unsigned long _nb_i = 0;
+	if (starpu_omp_for_inline_first(nb_iterations, chunk, schedule, ordered, &_first_i, &_nb_i))
+	{
+		do
+		{
+			f(_first_i, _nb_i, arg);
+		}
+		while (starpu_omp_for_inline_next(nb_iterations, chunk, schedule, ordered, &_first_i, &_nb_i));
+	}
 	if (!nowait)
 	{
 		starpu_omp_barrier();
 	}
-	task->loop_id++;
 }
 
 /*

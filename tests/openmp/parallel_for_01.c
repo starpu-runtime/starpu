@@ -27,6 +27,8 @@ int main(int argc, char **argv)
 #else
 #define NB_ITERS 256
 #define CHUNK 16
+unsigned long array[NB_ITERS];
+
 __attribute__((constructor))
 static void omp_constructor(void)
 {
@@ -42,13 +44,14 @@ static void omp_destructor(void)
 
 void for_g(unsigned long i, unsigned long nb_i, void *arg)
 {
+	int worker_id;
+	pthread_t tid;
+	tid = pthread_self();
+	worker_id = starpu_worker_get_id();
+	printf("[tid %p] task thread = %d, for [%s] iterations first=%lu:nb=%lu\n", (void *)tid, worker_id, (const char *)arg, i, nb_i);
 	for (; nb_i > 0; i++, nb_i--)
 	{
-		int worker_id;
-		pthread_t tid;
-		tid = pthread_self();
-		worker_id = starpu_worker_get_id();
-		printf("[tid %p] task thread = %d, for [%s] iteration %lu\n", (void *)tid, worker_id, (const char *)arg, i);
+		array[i] = 1;
 	}
 }
 
@@ -172,14 +175,50 @@ static struct starpu_codelet parallel_region_6_cl =
 
 };
 
+static void clear_array(void)
+{
+	memset(array, 0, NB_ITERS*sizeof(unsigned long));
+}
+
+static void check_array(void)
+{
+	unsigned long i;
+	unsigned long s = 0;
+	for (i = 0; i < NB_ITERS; i++)
+	{
+		s += array[i];
+	}
+	if (s != NB_ITERS)
+	{
+		printf("missing iterations\n");
+		exit(1);
+	}
+}
 int
 main (int argc, char *argv[]) {
+	clear_array();
 	starpu_omp_parallel_region(&parallel_region_1_cl, NULL);
+	check_array();
+
+	clear_array();
 	starpu_omp_parallel_region(&parallel_region_2_cl, NULL);
+	check_array();
+
+	clear_array();
 	starpu_omp_parallel_region(&parallel_region_3_cl, NULL);
+	check_array();
+
+	clear_array();
 	starpu_omp_parallel_region(&parallel_region_4_cl, NULL);
+	check_array();
+
+	clear_array();
 	starpu_omp_parallel_region(&parallel_region_5_cl, NULL);
+	check_array();
+
+	clear_array();
 	starpu_omp_parallel_region(&parallel_region_6_cl, NULL);
+	check_array();
 	return 0;
 }
 #endif

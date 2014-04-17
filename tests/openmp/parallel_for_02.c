@@ -42,12 +42,13 @@ static void omp_destructor(void)
 
 void for_g(unsigned long i, unsigned long nb_i, void *arg)
 {
+	int worker_id;
+	pthread_t tid;
+	tid = pthread_self();
+	worker_id = starpu_worker_get_id();
+	printf("[tid %p] task thread = %d, for [%s] iterations first=%lu:nb=%lu\n", (void *)tid, worker_id, (const char *)arg, i, nb_i);
 	for (; nb_i > 0; i++, nb_i--)
 	{
-		int worker_id;
-		pthread_t tid;
-		tid = pthread_self();
-		worker_id = starpu_worker_get_id();
 		printf("[tid %p] task thread = %d, for [%s] iteration %lu\n", (void *)tid, worker_id, (const char *)arg, i);
 	}
 }
