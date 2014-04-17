@@ -278,12 +278,12 @@ LIST_TYPE(starpu_omp_thread,
 struct starpu_omp_loop
 {
 	int id;
-	unsigned long next_iteration;
+	unsigned long long next_iteration;
 	int nb_completed_threads;
 	struct starpu_omp_loop *next_loop;
 	struct _starpu_spinlock ordered_lock;
 	struct starpu_omp_condition ordered_cond;
-	unsigned long ordered_iteration;
+	unsigned long long ordered_iteration;
 };
 
 struct starpu_omp_region

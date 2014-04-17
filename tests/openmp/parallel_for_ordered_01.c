@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 #else
 #define NB_ITERS 256
 #define CHUNK 16
-unsigned long array[NB_ITERS];
+unsigned long long array[NB_ITERS];
 
 __attribute__((constructor))
 static void omp_constructor(void)
@@ -42,22 +42,22 @@ static void omp_destructor(void)
 	starpu_omp_shutdown();
 }
 
-void ordered_f(unsigned long i, void *arg)
+void ordered_f(unsigned long long i, void *arg)
 {
 	int worker_id;
 	pthread_t tid;
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
-	printf("[tid %p] task thread = %d, for [%s] iteration (ordered) %lu\n", (void *)tid, worker_id, (const char *)arg, i);
+	printf("[tid %p] task thread = %d, for [%s] iteration (ordered) %llu\n", (void *)tid, worker_id, (const char *)arg, i);
 }
 
-void for_g(unsigned long i, unsigned long nb_i, void *arg)
+void for_g(unsigned long long i, unsigned long long nb_i, void *arg)
 {
 	int worker_id;
 	pthread_t tid;
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
-	printf("[tid %p] task thread = %d, for [%s] iterations first=%lu:nb=%lu\n", (void *)tid, worker_id, (const char *)arg, i, nb_i);
+	printf("[tid %p] task thread = %d, for [%s] iterations first=%llu:nb=%llu\n", (void *)tid, worker_id, (const char *)arg, i, nb_i);
 	for (; nb_i > 0; i++, nb_i--)
 	{
 		array[i] = 1;
@@ -187,13 +187,13 @@ static struct starpu_codelet parallel_region_6_cl =
 
 static void clear_array(void)
 {
-	memset(array, 0, NB_ITERS*sizeof(unsigned long));
+	memset(array, 0, NB_ITERS*sizeof(unsigned long long));
 }
 
 static void check_array(void)
 {
-	unsigned long i;
-	unsigned long s = 0;
+	unsigned long long i;
+	unsigned long long s = 0;
 	for (i = 0; i < NB_ITERS; i++)
 	{
 		s += array[i];
@@ -207,28 +207,28 @@ static void check_array(void)
 int
 main (int argc, char *argv[]) {
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_1_cl, NULL);
+	starpu_omp_parallel_region(&parallel_region_1_cl, NULL, NULL);
 	check_array();
 	return 0;
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_2_cl, NULL);
+	starpu_omp_parallel_region(&parallel_region_2_cl, NULL, NULL);
 	check_array();
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_3_cl, NULL);
+	starpu_omp_parallel_region(&parallel_region_3_cl, NULL, NULL);
 	check_array();
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_4_cl, NULL);
+	starpu_omp_parallel_region(&parallel_region_4_cl, NULL, NULL);
 	check_array();
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_5_cl, NULL);
+	starpu_omp_parallel_region(&parallel_region_5_cl, NULL, NULL);
 	check_array();
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_6_cl, NULL);
+	starpu_omp_parallel_region(&parallel_region_6_cl, NULL, NULL);
 	check_array();
 	return 0;
 }

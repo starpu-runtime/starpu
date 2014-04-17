@@ -40,16 +40,16 @@ static void omp_destructor(void)
 	starpu_omp_shutdown();
 }
 
-void for_g(unsigned long i, unsigned long nb_i, void *arg)
+void for_g(unsigned long long i, unsigned long long nb_i, void *arg)
 {
 	int worker_id;
 	pthread_t tid;
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
-	printf("[tid %p] task thread = %d, for [%s] iterations first=%lu:nb=%lu\n", (void *)tid, worker_id, (const char *)arg, i, nb_i);
+	printf("[tid %p] task thread = %d, for [%s] iterations first=%llu:nb=%llu\n", (void *)tid, worker_id, (const char *)arg, i, nb_i);
 	for (; nb_i > 0; i++, nb_i--)
 	{
-		printf("[tid %p] task thread = %d, for [%s] iteration %lu\n", (void *)tid, worker_id, (const char *)arg, i);
+		printf("[tid %p] task thread = %d, for [%s] iteration %llu\n", (void *)tid, worker_id, (const char *)arg, i);
 	}
 }
 
@@ -86,7 +86,7 @@ static struct starpu_codelet parallel_region_1_cl =
 
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region(&parallel_region_1_cl, NULL);
+	starpu_omp_parallel_region(&parallel_region_1_cl, NULL, NULL);
 	return 0;
 }
 #endif

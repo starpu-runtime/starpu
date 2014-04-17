@@ -74,10 +74,10 @@ void parallel_region_f(void *buffers[], void *args)
 	 * untied_clause: 1
 	 * mergeable_clause: 0
 	 */
-	starpu_omp_task_region(&task_region_cl, NULL, 1, 0, 1, 0);
-	starpu_omp_task_region(&task_region_cl, NULL, 1, 0, 1, 0);
-	starpu_omp_task_region(&task_region_cl, NULL, 1, 0, 1, 0);
-	starpu_omp_task_region(&task_region_cl, NULL, 1, 0, 1, 0);
+	starpu_omp_task_region(&task_region_cl, NULL, NULL, 1, 0, 1, 0);
+	starpu_omp_task_region(&task_region_cl, NULL, NULL, 1, 0, 1, 0);
+	starpu_omp_task_region(&task_region_cl, NULL, NULL, 1, 0, 1, 0);
+	starpu_omp_task_region(&task_region_cl, NULL, NULL, 1, 0, 1, 0);
 }
 
 static struct starpu_codelet parallel_region_cl =
@@ -90,7 +90,7 @@ static struct starpu_codelet parallel_region_cl =
 
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region(&parallel_region_cl, NULL);
+	starpu_omp_parallel_region(&parallel_region_cl, NULL, NULL);
 	return 0;
 }
 #endif
