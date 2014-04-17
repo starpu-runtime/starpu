@@ -227,10 +227,14 @@ noinst_PROGRAMS =				\
 	openmp/parallel_03			\
 	openmp/parallel_barrier_01		\
 	openmp/parallel_master_01		\
+	openmp/parallel_master_inline_01	\
 	openmp/parallel_single_wait_01		\
 	openmp/parallel_single_nowait_01	\
+	openmp/parallel_single_inline_01	\
 	openmp/parallel_critical_01		\
+	openmp/parallel_critical_inline_01	\
 	openmp/parallel_critical_named_01	\
+	openmp/parallel_critical_named_inline_01\
 	openmp/parallel_for_01			\
 	openmp/parallel_for_02			\
 	openmp/task_01				\
@@ -470,17 +474,29 @@ openmp_parallel_barrier_01_SOURCES = 	\
 openmp_parallel_master_01_SOURCES = 	\
 	openmp/parallel_master_01.c
 
+openmp_parallel_master_inline_01_SOURCES = 	\
+	openmp/parallel_master_inline_01.c
+
 openmp_parallel_single_wait_01_SOURCES = 	\
 	openmp/parallel_single_wait_01.c
 
 openmp_parallel_single_nowait_01_SOURCES = 	\
 	openmp/parallel_single_nowait_01.c
 
+openmp_parallel_single_inline_01_SOURCES = 	\
+	openmp/parallel_single_inline_01.c
+
 openmp_parallel_critical_01_SOURCES = 	\
 	openmp/parallel_critical_01.c
 
+openmp_parallel_critical_inline_01_SOURCES = 	\
+	openmp/parallel_critical_inline_01.c
+
 openmp_parallel_critical_named_01_SOURCES = 	\
 	openmp/parallel_critical_named_01.c
+
+openmp_parallel_critical_named_inline_01_SOURCES = 	\
+	openmp/parallel_critical_named_inline_01.c
 
 openmp_parallel_for_01_SOURCES = 	\
 	openmp/parallel_for_01.c

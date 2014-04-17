@@ -840,7 +840,7 @@ void starpu_omp_master(void (*f)(void *arg), void *arg)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
-	/* Assume singles are performed in by the implicit tasks of a region */
+	/* Assume master is performed in by the implicit tasks of a region */
 	STARPU_ASSERT(task->is_implicit);
 	struct starpu_omp_region *region = task->owner_region;
 
@@ -848,6 +848,20 @@ void starpu_omp_master(void (*f)(void *arg), void *arg)
 	{
 		f(arg);
 	}
+}
+
+/* variant of omp_master for inlined code
+ * return !0 for the task that should perform the master section
+ * return  0 for the tasks that should not perform the master section */
+int starpu_omp_master_inline(void)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+	/* Assume master is performed in by the implicit tasks of a region */
+	STARPU_ASSERT(task->is_implicit);
+	struct starpu_omp_region *region = task->owner_region;
+
+	return thread == region->master_thread;
 }
 
 void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait)
@@ -868,6 +882,22 @@ void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait)
 	{
 		starpu_omp_barrier();
 	}
+}
+
+/* variant of omp_single for inlined code
+ * return !0 for the task that should perform the single section
+ * return  0 for the tasks that should not perform the single section
+ * wait/nowait should be handled directly by the calling code using starpu_omp_barrier */
+int starpu_omp_single_inline(void)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	/* Assume singles are performed in by the implicit tasks of a region */
+	STARPU_ASSERT(task->is_implicit);
+	struct starpu_omp_region *region = task->owner_region;
+	int first = STARPU_BOOL_COMPARE_AND_SWAP(&region->single_id, task->single_id, task->single_id+1);
+	task->single_id++;
+
+	return first;
 }
 
 static void critical__sleep_callback(void *_critical)
@@ -918,6 +948,82 @@ void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *name)
 	_starpu_spin_unlock(&critical->lock);
 
 	f(arg);
+
+	_starpu_spin_lock(&critical->lock);
+	STARPU_ASSERT(critical->state == 1);
+	critical->state = 0;
+	if (critical->contention_list_head != NULL)
+	{
+		struct starpu_omp_task *next_task = critical->contention_list_head->task;
+		critical->contention_list_head = critical->contention_list_head->next;
+		_starpu_spin_lock(&next_task->lock);
+		STARPU_ASSERT(next_task->wait_on & starpu_omp_task_wait_on_critical);
+		next_task->wait_on &= ~starpu_omp_task_wait_on_critical;
+		_wake_up_locked_task(next_task);
+		_starpu_spin_unlock(&next_task->lock);
+	}
+	_starpu_spin_unlock(&critical->lock);
+}
+
+void starpu_omp_critical_inline_begin(const char *name)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_critical *critical = NULL;
+	struct starpu_omp_task_link link;
+
+	if (name)
+	{
+		_starpu_spin_lock(&_global_state.named_criticals_lock);
+		HASH_FIND_STR(_global_state.named_criticals, name, critical);
+		if (critical == NULL)
+		{
+			critical = create_omp_critical_struct();
+			critical->name = name;
+			HASH_ADD_STR(_global_state.named_criticals, name, critical);
+		}
+		_starpu_spin_unlock(&_global_state.named_criticals_lock);
+	}
+	else
+	{
+		critical = _global_state.default_critical;
+	}
+
+	_starpu_spin_lock(&critical->lock);
+	while (critical->state != 0)
+	{
+		_starpu_spin_lock(&task->lock);
+		task->wait_on |= starpu_omp_task_wait_on_critical;
+		_starpu_spin_unlock(&task->lock);
+		link.task = task;
+		link.next = critical->contention_list_head;
+		critical->contention_list_head = &link;
+		_starpu_task_prepare_for_continuation_ext(0, critical__sleep_callback, critical);
+		starpu_omp_task_preempt();
+
+		/* re-acquire the spin lock */
+		_starpu_spin_lock(&critical->lock);
+	}
+	critical->state = 1;
+	_starpu_spin_unlock(&critical->lock);
+}
+
+void starpu_omp_critical_inline_end(const char *name)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_critical *critical = NULL;
+	struct starpu_omp_task_link link;
+
+	if (name)
+	{
+		_starpu_spin_lock(&_global_state.named_criticals_lock);
+		HASH_FIND_STR(_global_state.named_criticals, name, critical);
+		STARPU_ASSERT(critical != NULL);
+		_starpu_spin_unlock(&_global_state.named_criticals_lock);
+	}
+	else
+	{
+		critical = _global_state.default_critical;
+	}
 
 	_starpu_spin_lock(&critical->lock);
 	STARPU_ASSERT(critical->state == 1);
