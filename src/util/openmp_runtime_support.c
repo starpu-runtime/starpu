@@ -1545,6 +1545,24 @@ void starpu_omp_for(void (*f)(unsigned long long _first_i, unsigned long long _n
 	}
 }
 
+void starpu_omp_for_alt(void (*f)(unsigned long long _begin_i, unsigned long long _end_i, void *arg), void *arg, unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, int nowait)
+{
+	unsigned long long _begin_i = 0;
+	unsigned long long _end_i = 0;
+	if (starpu_omp_for_inline_first_alt(nb_iterations, chunk, schedule, ordered, &_begin_i, &_end_i))
+	{
+		do
+		{
+			f(_begin_i, _end_i, arg);
+		}
+		while (starpu_omp_for_inline_next_alt(nb_iterations, chunk, schedule, ordered, &_begin_i, &_end_i));
+	}
+	if (!nowait)
+	{
+		starpu_omp_barrier();
+	}
+}
+
 void starpu_omp_ordered(void (*f)(unsigned long long _i, void *arg), void *arg, unsigned long long i)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);

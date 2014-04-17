@@ -51,25 +51,35 @@ extern "C"
 
 extern int starpu_omp_init(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_shutdown(void) __STARPU_OMP_NOTHROW;
+
 extern void starpu_omp_parallel_region(const struct starpu_codelet * const parallel_region_cl, starpu_data_handle_t *handles, void * const parallel_region_cl_arg) __STARPU_OMP_NOTHROW;
-extern void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl, starpu_data_handle_t *handles,
-		void * const task_region_cl_arg,
-		int if_clause, int final_clause, int untied_clause, int mergeable_clause) __STARPU_OMP_NOTHROW;
+
 extern void starpu_omp_barrier(void) __STARPU_OMP_NOTHROW;
+
 extern void starpu_omp_master(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_master_inline(void) __STARPU_OMP_NOTHROW;
+
 extern void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_single_inline(void) __STARPU_OMP_NOTHROW;
+
 extern void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *name) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_critical_inline_begin(const char *name) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_critical_inline_end(const char *name) __STARPU_OMP_NOTHROW;
+
+extern void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl, starpu_data_handle_t *handles,
+		void * const task_region_cl_arg,
+		int if_clause, int final_clause, int untied_clause, int mergeable_clause) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskgroup(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
+
 extern void starpu_omp_for(void (*f)(unsigned long long _first_i, unsigned long long _nb_i, void *arg), void *arg, unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, int nowait) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_for_inline_first(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_for_inline_next(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i) __STARPU_OMP_NOTHROW;
-extern int starpu_omp_for_inline_first_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i);
-extern int starpu_omp_for_inline_next_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i);
+
+extern void starpu_omp_for_alt(void (*f)(unsigned long long _begin_i, unsigned long long _end_i, void *arg), void *arg, unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, int nowait) __STARPU_OMP_NOTHROW;
+extern int starpu_omp_for_inline_first_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i) __STARPU_OMP_NOTHROW;
+extern int starpu_omp_for_inline_next_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i) __STARPU_OMP_NOTHROW;
+
 extern void starpu_omp_ordered_inline_begin(unsigned long long i) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_ordered_inline_end(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_ordered(void (*f)(unsigned long long _i, void *arg), void *arg, unsigned long long i) __STARPU_OMP_NOTHROW;
