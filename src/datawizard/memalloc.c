@@ -698,7 +698,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 	{
 		static int warned;
 		if (!warned) {
-			_STARPU_DISP("Not enough memory left on node %u. Trying to purge %lu bytes out. This message will not be printed again for further purges\n", node, (unsigned long) reclaim);
+			_STARPU_DISP("Not enough memory left on node %u. Your application working set is probably simply just hard to fit in the devices, but StarPU will cope with it by trying to purge %lu bytes out. This message will not be printed again for further purges\n", node, (unsigned long) reclaim);
 			warned = 1;
 		}
 	}
