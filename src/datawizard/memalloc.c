@@ -789,6 +789,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	mc->replicate = NULL;
 	replicate->allocated = 0;
 	replicate->automatically_allocated = 0;
+	replicate->initialized = 0;
 
 	_starpu_spin_lock(&mc_lock[node]);
 

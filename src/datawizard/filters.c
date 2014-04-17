@@ -220,6 +220,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 			child_replicate->refcnt = 0;
 			child_replicate->memory_node = node;
 			child_replicate->relaxed_coherency = 0;
+			child_replicate->initialized = initial_replicate->initialized;
 
 			/* update the interface */
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);

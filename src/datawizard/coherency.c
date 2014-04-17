@@ -27,7 +27,7 @@
 #include <starpu_scheduler.h>
 
 static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node);
-unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
+int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 {
 	int src_node = -1;
 	unsigned i;
@@ -48,6 +48,12 @@ unsigned _starpu_select_src_node(starpu_data_handle_t handle, unsigned destinati
 			/* we found a copy ! */
 			src_node_mask |= (1<<node);
 		}
+	}
+
+	if (src_node_mask == 0 && handle->init_cl)
+	{
+		/* No copy yet, but applicationg told us how to build it.  */
+		return -1;
 	}
 
 	/* we should have found at least one copy ! */
@@ -427,16 +433,23 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	STARPU_ASSERT(dst_replicate->state == STARPU_INVALID);
 
 	/* find someone who already has the data */
-	unsigned src_node = 0;
+	int src_node = 0;
 
 	if (mode & STARPU_R)
 	{
 		src_node = _starpu_select_src_node(handle, requesting_node);
-		STARPU_ASSERT(src_node != requesting_node);
+		STARPU_ASSERT(src_node != (int) requesting_node);
+		if (src_node < 0)
+		{
+			/* We will create it, no need to read an existing value */
+			mode &= ~STARPU_R;
+		}
 	}
 	else
 	{
-		/* if the data is in write only mode, there is no need for a source */
+		/* if the data is in write only mode (and not SCRATCH or REDUX), there is no need for a source, data will be initialized by the task itself */
+		if (mode & STARPU_W)
+			dst_replicate->initialized = 1;
 		if (requesting_node == STARPU_MAIN_RAM) {
 			/* And this is the main RAM, really no need for a
 			 * request, just allocate */
@@ -752,12 +765,9 @@ int _starpu_fetch_task_input(struct _starpu_job *j)
 
 		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
 
-		if (mode & STARPU_REDUX)
-		{
-			/* If the replicate was not initialized yet, we have to do it now */
-			if (!local_replicate->initialized)
-				_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
-		}
+		/* If the replicate was not initialized yet, we have to do it now */
+		if (!local_replicate->initialized)
+			_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
 	}
 
 	if (profiling && task->profiling_info)

@@ -17,6 +17,18 @@
 StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 
+StarPU 1.1.2 (svn revision xxxx)
+==============================================
+The scheduling context release
+
+New features:
+  * The reduction init codelet is automatically used to initialize temporary
+    buffers.
+
+StarPU 1.1.1 (svn revision 12638)
+==============================================
+The scheduling context release
+
 New features:
   * Xeon Phi support
   * SCC support

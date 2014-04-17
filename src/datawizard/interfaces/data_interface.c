@@ -246,12 +246,14 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 			replicate->state = STARPU_OWNER;
 			replicate->allocated = 1;
 			replicate->automatically_allocated = 0;
+			replicate->initialized = 1;
 		}
 		else
 		{
 			/* the value is not available here yet */
 			replicate->state = STARPU_INVALID;
 			replicate->allocated = 0;
+			replicate->initialized = 0;
 		}
 	}
 
