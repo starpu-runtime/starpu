@@ -176,6 +176,11 @@ struct starpu_omp_task_link
 	struct starpu_omp_task_link *next;
 };
 
+struct starpu_omp_condition
+{
+	struct starpu_omp_task_link *contention_list_head;
+};
+
 struct starpu_omp_critical
 {
 	UT_hash_handle hh;
@@ -198,7 +203,8 @@ enum starpu_omp_task_wait_on
 	starpu_omp_task_wait_on_region_tasks = 1 << 1,
 	starpu_omp_task_wait_on_barrier      = 1 << 2,
 	starpu_omp_task_wait_on_group        = 1 << 3,
-	starpu_omp_task_wait_on_critical     = 1 << 4
+	starpu_omp_task_wait_on_critical     = 1 << 4,
+	starpu_omp_task_wait_on_condition    = 1 << 5
 };
 
 LIST_TYPE(starpu_omp_task,
@@ -275,6 +281,9 @@ struct starpu_omp_loop
 	unsigned long next_iteration;
 	int nb_completed_threads;
 	struct starpu_omp_loop *next_loop;
+	struct _starpu_spinlock ordered_lock;
+	struct starpu_omp_condition ordered_cond;
+	unsigned long ordered_iteration;
 };
 
 struct starpu_omp_region

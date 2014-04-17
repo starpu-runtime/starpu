@@ -54,6 +54,73 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 static void destroy_omp_task_struct(struct starpu_omp_task *task);
 static void _wake_up_locked_task(struct starpu_omp_task *task);
 static void wake_up_barrier(struct starpu_omp_region *parallel_region);
+static void starpu_omp_task_preempt(void);
+
+static void condition_init(struct starpu_omp_condition *condition)
+{
+	condition->contention_list_head = NULL;
+}
+
+static void condition_exit(struct starpu_omp_condition *condition)
+{
+	STARPU_ASSERT(condition->contention_list_head == NULL);
+	condition->contention_list_head = NULL;
+}
+
+static void condition__sleep_callback(void *_lock)
+{
+	struct _starpu_spinlock *lock = _lock;
+	_starpu_spin_unlock(lock);
+}
+
+static void condition_wait(struct starpu_omp_condition *condition, struct _starpu_spinlock *lock)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task_link link;
+	_starpu_spin_lock(&task->lock);
+	task->wait_on |= starpu_omp_task_wait_on_condition;
+	_starpu_spin_unlock(&task->lock);
+	link.task = task;
+	link.next = condition->contention_list_head;
+	condition->contention_list_head = &link;
+
+	_starpu_task_prepare_for_continuation_ext(0, condition__sleep_callback, lock);
+	starpu_omp_task_preempt();
+
+	/* re-acquire the lock released by the callback */
+	_starpu_spin_lock(lock);
+}
+
+#if 0
+/* unused for now */
+static void condition_signal(struct starpu_omp_condition *condition)
+{
+	if (condition->contention_list_head != NULL)
+	{
+		struct starpu_omp_task *next_task = condition->contention_list_head->task;
+		condition->contention_list_head = condition->contention_list_head->next;
+		_starpu_spin_lock(&next_task->lock);
+		STARPU_ASSERT(next_task->wait_on & starpu_omp_task_wait_on_condition);
+		next_task->wait_on &= ~starpu_omp_task_wait_on_condition;
+		_wake_up_locked_task(next_task);
+		_starpu_spin_unlock(&next_task->lock);
+	}
+}
+#endif
+
+static void condition_broadcast(struct starpu_omp_condition *condition)
+{
+	while (condition->contention_list_head != NULL)
+	{
+		struct starpu_omp_task *next_task = condition->contention_list_head->task;
+		condition->contention_list_head = condition->contention_list_head->next;
+		_starpu_spin_lock(&next_task->lock);
+		STARPU_ASSERT(next_task->wait_on & starpu_omp_task_wait_on_condition);
+		next_task->wait_on &= ~starpu_omp_task_wait_on_condition;
+		_wake_up_locked_task(next_task);
+		_starpu_spin_unlock(&next_task->lock);
+	}
+}
 
 static void register_thread_worker(struct starpu_omp_thread *thread)
 {
@@ -1318,19 +1385,23 @@ static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_regio
 	}
 }
 
-static inline struct starpu_omp_loop *_starpu_omp_for_loop_begin(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task,
-		int ordered)
+static inline struct starpu_omp_loop *_starpu_omp_for_get_loop(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task)
 {
 	struct starpu_omp_loop *loop;
-	if (ordered)
-		/* TODO: implement ordered statement */
-		_STARPU_ERROR("omp for / ordered not implemented\n");
-	_starpu_spin_lock(&parallel_region->lock);
 	loop = parallel_region->loop_list;
 	while (loop && loop->id != task->loop_id)
 	{
 		loop = loop->next_loop;
 	}
+	return loop;
+}
+
+static inline struct starpu_omp_loop *_starpu_omp_for_loop_begin(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task,
+		int ordered)
+{
+	struct starpu_omp_loop *loop;
+	_starpu_spin_lock(&parallel_region->lock);
+	loop = _starpu_omp_for_get_loop(parallel_region, task);
 	if (!loop)
 	{
 		loop = malloc(sizeof(*loop));
@@ -1341,18 +1412,30 @@ static inline struct starpu_omp_loop *_starpu_omp_for_loop_begin(struct starpu_o
 		loop->nb_completed_threads = 0;
 		loop->next_loop = parallel_region->loop_list;
 		parallel_region->loop_list = loop;
+		if (ordered)
+		{
+			loop->ordered_iteration = 0;
+			_starpu_spin_init(&loop->ordered_lock);
+			condition_init(&loop->ordered_cond);
+		}
 	}
 	_starpu_spin_unlock(&parallel_region->lock);
 	return loop;
 }
 static inline void _starpu_omp_for_loop_end(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task,
-		struct starpu_omp_loop *loop)
+		struct starpu_omp_loop *loop, int ordered)
 {
 	_starpu_spin_lock(&parallel_region->lock);
 	loop->nb_completed_threads++;
 	if (loop->nb_completed_threads == parallel_region->nb_threads)
 	{
 		struct starpu_omp_loop **p_loop;
+		if (ordered)
+		{
+			loop->ordered_iteration = 0;
+			condition_exit(&loop->ordered_cond);
+			_starpu_spin_destroy(&loop->ordered_lock);
+		}
 		STARPU_ASSERT(loop->next_loop == NULL);
 		p_loop = &(parallel_region->loop_list);
 		while (*p_loop != loop)
@@ -1375,7 +1458,7 @@ int starpu_omp_for_inline_first(unsigned long nb_iterations, unsigned long chunk
 	_starpu_omp_for_loop(parallel_region, task, loop, 1, nb_iterations, chunk, schedule, _first_i, _nb_i);
 	if (*_nb_i == 0)
 	{
-		_starpu_omp_for_loop_end(parallel_region, task, loop);
+		_starpu_omp_for_loop_end(parallel_region, task, loop, ordered);
 	}
 	return (*_nb_i != 0);
 }
@@ -1389,7 +1472,7 @@ int starpu_omp_for_inline_next(unsigned long nb_iterations, unsigned long chunk,
 	_starpu_omp_for_loop(parallel_region, task, loop, 0, nb_iterations, chunk, schedule, _first_i, _nb_i);
 	if (*_nb_i == 0)
 	{
-		_starpu_omp_for_loop_end(parallel_region, task, loop);
+		_starpu_omp_for_loop_end(parallel_region, task, loop, ordered);
 	}
 	return (*_nb_i != 0);
 }
@@ -1410,6 +1493,49 @@ void starpu_omp_for(void (*f)(unsigned long _first_i, unsigned long _nb_i, void 
 	{
 		starpu_omp_barrier();
 	}
+}
+
+void starpu_omp_ordered(void (*f)(unsigned long _i, void *arg), void *arg, unsigned long i)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_region *parallel_region = task->owner_region;
+	struct starpu_omp_loop *loop = _starpu_omp_for_get_loop(parallel_region, task);
+
+	_starpu_spin_lock(&loop->ordered_lock);
+	while (i != loop->ordered_iteration)
+	{
+		STARPU_ASSERT(i > loop->ordered_iteration);
+		condition_wait(&loop->ordered_cond, &loop->ordered_lock);
+	}
+	f(i, arg);
+	loop->ordered_iteration++;	
+	condition_broadcast(&loop->ordered_cond);
+	_starpu_spin_unlock(&loop->ordered_lock);
+}
+
+void starpu_omp_ordered_inline_begin(unsigned long i)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_region *parallel_region = task->owner_region;
+	struct starpu_omp_loop *loop = _starpu_omp_for_get_loop(parallel_region, task);
+
+	_starpu_spin_lock(&loop->ordered_lock);
+	while (i != loop->ordered_iteration)
+	{
+		STARPU_ASSERT(i > loop->ordered_iteration);
+		condition_wait(&loop->ordered_cond, &loop->ordered_lock);
+	}
+}
+
+void starpu_omp_ordered_inline_end(void)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_region *parallel_region = task->owner_region;
+	struct starpu_omp_loop *loop = _starpu_omp_for_get_loop(parallel_region, task);
+
+	loop->ordered_iteration++;	
+	condition_broadcast(&loop->ordered_cond);
+	_starpu_spin_unlock(&loop->ordered_lock);
 }
 
 /*

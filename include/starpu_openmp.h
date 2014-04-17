@@ -68,6 +68,9 @@ extern void starpu_omp_taskgroup(void (*f)(void *arg), void *arg) __STARPU_OMP_N
 extern void starpu_omp_for(void (*f)(unsigned long _first_i, unsigned long _nb_i, void *arg), void *arg, unsigned long nb_iterations, unsigned long chunk, int schedule, int ordered, int nowait) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_for_inline_first(unsigned long nb_iterations, unsigned long chunk, int schedule, int ordered, unsigned long *_first_i, unsigned long *_nb_i) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_for_inline_next(unsigned long nb_iterations, unsigned long chunk, int schedule, int ordered, unsigned long *_first_i, unsigned long *_nb_i) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_ordered_inline_begin(unsigned long i) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_ordered_inline_end(void) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_ordered(void (*f)(unsigned long _i, void *arg), void *arg, unsigned long i) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_set_num_threads(int threads) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_num_threads() __STARPU_OMP_NOTHROW;
