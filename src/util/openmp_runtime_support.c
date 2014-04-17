@@ -1009,9 +1009,7 @@ void starpu_omp_critical_inline_begin(const char *name)
 
 void starpu_omp_critical_inline_end(const char *name)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_critical *critical = NULL;
-	struct starpu_omp_task_link link;
 
 	if (name)
 	{
@@ -1303,24 +1301,52 @@ void starpu_omp_for(void (*f)(unsigned long _first_i, unsigned long _nb_i, void 
 			if (loop->next_iteration >= nb_iterations)
 				break;
 			first_i = loop->next_iteration;
-			loop->next_iteration += chunk;
-			_starpu_spin_unlock(&parallel_region->lock);
-
-			if (first_i + chunk <= nb_iterations)
-			{
-				nb_i = chunk;
-			}
-			else
+			if (first_i + chunk > nb_iterations)
 			{
 				nb_i = nb_iterations - first_i;
 			}
+			else
+			{
+				nb_i = chunk;
+			}
+			loop->next_iteration += nb_i;
+			_starpu_spin_unlock(&parallel_region->lock);
 			f(first_i, nb_i, arg);
 		}
 	}
 	else if (schedule == starpu_omp_schedule_guided)
 	{
-		/* TODO: implement omp_schedule_guided */
-		_STARPU_ERROR("omp for / guided schedule not implemented\n");
+		if (chunk == 0)
+		{
+			chunk = 1;
+		}
+		for (;;)
+		{
+			unsigned long first_i;
+			unsigned long nb_i;
+
+			_starpu_spin_lock(&parallel_region->lock);
+			/* upon exiting the loop, the parallel_region-lock will already be held
+			 * for performing loop completion */
+			if (loop->next_iteration >= nb_iterations)
+				break;
+			first_i = loop->next_iteration;
+			nb_i = (nb_iterations - first_i)/parallel_region->nb_threads;
+			if (nb_i < chunk)
+			{
+				if (first_i+chunk > nb_iterations)
+				{
+					nb_i = nb_iterations - first_i;
+				}
+				else
+				{
+					nb_i = chunk;
+				}
+			}
+			loop->next_iteration += nb_i;
+			_starpu_spin_unlock(&parallel_region->lock);
+			f(first_i, nb_i, arg);
+		}
 	}
 
 	loop->nb_completed_threads++;
