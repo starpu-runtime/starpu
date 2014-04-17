@@ -1103,7 +1103,7 @@ void starpu_omp_taskgroup(void (*f)(void *arg), void *arg)
 	task->task_group = p_previous_task_group;
 }
 
-void starpu_omp_for(void (*f)(unsigned long i, void *arg), void *arg, unsigned long nb_iterations, unsigned long chunk, int schedule, int ordered, int nowait)
+void starpu_omp_for(void (*f)(unsigned long _first_i, unsigned long _nb_i, void *arg), void *arg, unsigned long nb_iterations, unsigned long chunk, int schedule, int ordered, int nowait)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_region *parallel_region = task->owner_region;
@@ -1136,47 +1136,44 @@ void starpu_omp_for(void (*f)(unsigned long i, void *arg), void *arg, unsigned l
 		{
 			const unsigned long stride = parallel_region->nb_threads * chunk;
 			unsigned long nb_strides = 0;
-			unsigned long iteration = task->rank * chunk;
-			unsigned long current_chunk = chunk;
-			while (iteration < nb_iterations)
+			unsigned long first_i = task->rank * chunk;
+			unsigned long nb_i;
+			while (first_i < nb_iterations)
 			{
-				f(iteration, arg);
-				if (current_chunk > 0)
+				if (first_i + chunk <= nb_iterations)
 				{
-					current_chunk--;
-					iteration++;
+					nb_i = chunk;
 				}
 				else
 				{
-					nb_strides++;
-					iteration = nb_strides * stride;
-					current_chunk = chunk;
+					nb_i = nb_iterations - first_i;
 				}
+				f(first_i, nb_i, arg);
+				nb_strides++;
+				first_i = stride * nb_strides;
 			}
 		}
 		else
 		{
-			chunk = nb_iterations / parallel_region->nb_threads;
-			unsigned long iteration = (unsigned)task->rank * chunk;
-			unsigned long extra = nb_iterations % parallel_region->nb_threads;
+			unsigned long nb_i = nb_iterations / parallel_region->nb_threads;
+			unsigned long first_i = (unsigned)task->rank * nb_i;
+			unsigned long remainder = nb_iterations % parallel_region->nb_threads;
 
 			if (nb_iterations % parallel_region->nb_threads > 0)
 			{
-				if ((unsigned)task->rank < extra)
+				if ((unsigned)task->rank < remainder)
 				{
-					chunk++;
-					iteration += (unsigned)task->rank;
+					nb_i++;
+					first_i += (unsigned)task->rank;
 				}
 				else
 				{
-					iteration += extra;
+					first_i += remainder;
 				}
 			}
-			while (chunk > 0 && iteration < nb_iterations)
+			if (nb_i > 0)
 			{
-				f(iteration, arg);
-				chunk--;
-				iteration++;
+				f(first_i, nb_i, arg);
 			}
 		}
 
@@ -1191,23 +1188,27 @@ void starpu_omp_for(void (*f)(unsigned long i, void *arg), void *arg, unsigned l
 		}
 		for (;;)
 		{
-			unsigned long iteration;
-			unsigned long current_chunk;
+			unsigned long first_i;
+			unsigned long nb_i;
+
 			_starpu_spin_lock(&parallel_region->lock);
 			/* upon exiting the loop, the parallel_region-lock will already be held
 			 * for performing loop completion */
 			if (loop->next_iteration >= nb_iterations)
 				break;
-			iteration = loop->next_iteration;
+			first_i = loop->next_iteration;
 			loop->next_iteration += chunk;
 			_starpu_spin_unlock(&parallel_region->lock);
-			current_chunk = chunk;
-			while (current_chunk > 0 && iteration < nb_iterations)
+
+			if (first_i + chunk <= nb_iterations)
 			{
-				f(iteration, arg);
-				iteration++;
-				current_chunk--;
+				nb_i = chunk;
 			}
+			else
+			{
+				nb_i = nb_iterations - first_i;
+			}
+			f(first_i, nb_i, arg);
 		}
 	}
 	else if (schedule == starpu_omp_schedule_guided)

@@ -25,8 +25,8 @@ int main(int argc, char **argv)
 	return STARPU_TEST_SKIPPED;
 }
 #else
-#define NB_ITERS 256
-#define CHUNK 16
+#define NB_ITERS 4321
+#define CHUNK 42
 __attribute__((constructor))
 static void omp_constructor(void)
 {
@@ -61,7 +61,11 @@ void parallel_region_1_f(void *buffers[], void *args)
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
 	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
-	starpu_omp_for(for_g, (void*)"static chunk", NB_ITERS, CHUNK, starpu_omp_sched_static, 0, 0);
+	starpu_omp_for(for_g, (void*)"static chunk", NB_ITERS, CHUNK, starpu_omp_sched_static, 0, 1);
+	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
+	starpu_omp_for(for_g, (void*)"static nochunk", NB_ITERS, 0, starpu_omp_sched_static, 0, 1);
+	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
+	starpu_omp_for(for_g, (void*)"dynamic", NB_ITERS, CHUNK, starpu_omp_sched_dynamic, 0, 1);
 }
 
 static struct starpu_codelet parallel_region_1_cl =
@@ -69,54 +73,11 @@ static struct starpu_codelet parallel_region_1_cl =
 	.cpu_funcs    = { parallel_region_1_f, NULL },
 	.where        = STARPU_CPU,
 	.nbuffers     = 0
-
-};
-
-void parallel_region_2_f(void *buffers[], void *args)
-{
-	(void) buffers;
-	(void) args;
-	int worker_id;
-	pthread_t tid;
-	tid = pthread_self();
-	worker_id = starpu_worker_get_id();
-	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
-	starpu_omp_for(for_g, (void*)"static nochunk", NB_ITERS, 0, starpu_omp_sched_static, 0, 0);
-}
-
-static struct starpu_codelet parallel_region_2_cl =
-{
-	.cpu_funcs    = { parallel_region_2_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
-
-void parallel_region_3_f(void *buffers[], void *args)
-{
-	(void) buffers;
-	(void) args;
-	int worker_id;
-	pthread_t tid;
-	tid = pthread_self();
-	worker_id = starpu_worker_get_id();
-	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
-	starpu_omp_for(for_g, (void*)"dynamic", NB_ITERS, CHUNK, starpu_omp_sched_dynamic, 0, 0);
-}
-
-static struct starpu_codelet parallel_region_3_cl =
-{
-	.cpu_funcs    = { parallel_region_3_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
 };
 
 int
 main (int argc, char *argv[]) {
 	starpu_omp_parallel_region(&parallel_region_1_cl, NULL);
-	starpu_omp_parallel_region(&parallel_region_2_cl, NULL);
-	starpu_omp_parallel_region(&parallel_region_3_cl, NULL);
 	return 0;
 }
 #endif
