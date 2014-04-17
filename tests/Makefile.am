@@ -173,6 +173,7 @@ noinst_PROGRAMS =				\
 	datawizard/mpi_like			\
 	datawizard/mpi_like_async		\
 	datawizard/critical_section_with_void_interface\
+	datawizard/increment_init		\
 	datawizard/increment_redux		\
 	datawizard/increment_redux_v2		\
 	datawizard/increment_redux_lazy		\

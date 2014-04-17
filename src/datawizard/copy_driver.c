@@ -493,6 +493,8 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 			req->com_id = com_id;
 #endif
 
+		dst_replicate->initialized = 1;
+
 		_STARPU_TRACE_START_DRIVER_COPY(src_node, dst_node, size, com_id);
 		ret_copy = copy_data_1_to_1_generic(handle, src_replicate, dst_replicate, req);
 		if (!req)
