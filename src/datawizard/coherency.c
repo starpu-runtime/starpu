@@ -716,7 +716,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, index);
 
 		/* If the replicate was not initialized yet, we have to do it now */
-		if (!local_replicate->initialized)
+		if (!(mode & STARPU_SCRATCH) && !local_replicate->initialized)
 			_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
 	}
 
