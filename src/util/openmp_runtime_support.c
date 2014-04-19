@@ -325,7 +325,22 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 	{
 		task->starpu_buffers = buffers;
 		task->starpu_cl_arg = cl_arg;
+		STARPU_ASSERT (task->stack == NULL);
+		/* TODO: use ICV stack size info instead */
+		task->stack = malloc(_STARPU_STACKSIZE);
+		if (task->stack == NULL)
+			_STARPU_ERROR("memory allocation failed");
+		getcontext(&task->ctx);
+		/*
+		 * we do not use uc_link, starpu_omp_task_entry will handle
+		 * the end of the task
+		 */
+		task->ctx.uc_link                 = NULL;
+		task->ctx.uc_stack.ss_sp          = task->stack;
+		task->ctx.uc_stack.ss_size        = _STARPU_STACKSIZE;
+		makecontext(&task->ctx, (void (*) ()) starpu_omp_implicit_task_entry, 1, task);
 	}
+
 	task->state = starpu_omp_task_state_clear;
 
 	/* 
@@ -344,6 +359,9 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 	{
 		task->starpu_task->omp_task = NULL;
 		task->starpu_task = NULL;
+		free(task->stack);
+		task->stack = NULL;
+		memset(&task->ctx, 0, sizeof(task->ctx));
 	}
 	else if (task->state != starpu_omp_task_state_preempted)
 		_STARPU_ERROR("invalid omp task state");
@@ -367,6 +385,20 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 		}
 		task->starpu_buffers = buffers;
 		task->starpu_cl_arg = cl_arg;
+		STARPU_ASSERT (task->stack == NULL);
+		/* TODO: use ICV stack size info instead */
+		task->stack = malloc(_STARPU_STACKSIZE);
+		if (task->stack == NULL)
+			_STARPU_ERROR("memory allocation failed");
+		getcontext(&task->ctx);
+		/*
+		 * we do not use uc_link, starpu_omp_task_entry will handle
+		 * the end of the task
+		 */
+		task->ctx.uc_link                 = NULL;
+		task->ctx.uc_stack.ss_sp          = task->stack;
+		task->ctx.uc_stack.ss_size        = _STARPU_STACKSIZE;
+		makecontext(&task->ctx, (void (*) ()) starpu_omp_explicit_task_entry, 1, task);
 	}
 	task->state = starpu_omp_task_state_clear;
 
@@ -385,10 +417,20 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 	{
 		struct starpu_omp_task *parent_task = task->parent_task;
 		struct starpu_omp_region *parallel_region = task->owner_region;
+
+		free(task->stack);
+		task->stack = NULL;
+		memset(&task->ctx, 0, sizeof(task->ctx));
+
 		_starpu_spin_lock(&parent_task->lock);
 		if (STARPU_ATOMIC_ADD(&parent_task->child_task_count, -1) == 0)
 		{
-			if (parent_task->wait_on & starpu_omp_task_wait_on_task_childs)
+			if (parent_task->state == starpu_omp_task_state_zombie)
+			{
+				STARPU_ASSERT(!parent_task->is_implicit);
+				destroy_omp_task_struct(parent_task);
+			}
+			else if (parent_task->wait_on & starpu_omp_task_wait_on_task_childs)
 			{
 				parent_task->wait_on &= ~starpu_omp_task_wait_on_task_childs;
 				_wake_up_locked_task(parent_task);
@@ -458,30 +500,6 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 		memset(&task->implicit_task_icvs, 0, sizeof(task->implicit_task_icvs));
 	}
 
-	if (parent_task != NULL)
-	{
-		/* TODO: use ICV stack size info instead */
-		task->stack = malloc(_STARPU_STACKSIZE);
-		if (task->stack == NULL)
-			_STARPU_ERROR("memory allocation failed");
-		getcontext(&task->ctx);
-		/*
-		 * we do not use uc_link, starpu_omp_task_entry will handle
-		 * the end of the task
-		 */
-		task->ctx.uc_link                 = NULL;
-		task->ctx.uc_stack.ss_sp          = task->stack;
-		task->ctx.uc_stack.ss_size        = _STARPU_STACKSIZE;
-		if (is_implicit)
-		{
-			makecontext(&task->ctx, (void (*) ()) starpu_omp_implicit_task_entry, 1, task);
-		}
-		else
-		{
-			makecontext(&task->ctx, (void (*) ()) starpu_omp_explicit_task_entry, 1, task);
-		}
-	}
-
 	return task;
 }
 
@@ -490,10 +508,7 @@ static void destroy_omp_task_struct(struct starpu_omp_task *task)
 	STARPU_ASSERT(task->state == starpu_omp_task_state_terminated);
 	STARPU_ASSERT(task->nested_region == NULL);
 	STARPU_ASSERT(task->starpu_task == NULL);
-	if (task->stack != NULL)
-	{
-		free(task->stack);
-	}
+	STARPU_ASSERT(task->stack == NULL);
 	_starpu_spin_destroy(&task->lock);
 	memset(task, 0, sizeof(*task));
 	starpu_omp_task_delete(task);
@@ -1119,7 +1134,16 @@ static void explicit_task__destroy_callback(void *_task)
 	STARPU_ASSERT(!task->is_implicit);
 	task->starpu_task->omp_task = NULL;
 	task->starpu_task = NULL;
-	destroy_omp_task_struct(task);
+	_starpu_spin_lock(&task->lock);
+	if (task->child_task_count != 0)
+	{
+		task->state = starpu_omp_task_state_zombie;
+		_starpu_spin_unlock(&task->lock);
+	}
+	else
+	{
+		destroy_omp_task_struct(task);
+	}
 }
 
 void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl, starpu_data_handle_t *handles,

@@ -195,6 +195,7 @@ enum starpu_omp_task_state
 	starpu_omp_task_state_clear      = 0,
 	starpu_omp_task_state_preempted  = 1,
 	starpu_omp_task_state_terminated = 2,
+	starpu_omp_task_state_zombie     = 3,
 };
 
 enum starpu_omp_task_wait_on
