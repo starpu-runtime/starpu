@@ -28,18 +28,40 @@ void starpu_omp_set_num_threads(int threads)
 
 int starpu_omp_get_num_threads()
 {
-	return starpu_cpu_worker_get_count();
+	struct starpu_omp_task *task = _starpu_omp_get_task();
+	struct starpu_omp_region *region;
+	if (task == NULL)
+		return 1;
+
+	region = task->owner_region;
+	return region->nb_threads;
 }
 
 int starpu_omp_get_thread_num()
 {
-	int tid = starpu_worker_get_id();
-	/* TODO: handle master thread case */
-	if (tid < 0)
+	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
+	struct starpu_omp_task *task = _starpu_omp_get_task();
+	struct starpu_omp_region *region;
+	if (thread == NULL || task == NULL)
+		return 0;
+
+	region = task->owner_region;
+	if (thread == region->master_thread)
+		return 0;
+
+	struct starpu_omp_thread * region_thread;
+	int tid = 1;
+	for (region_thread  = starpu_omp_thread_list_begin(region->thread_list);
+			region_thread != starpu_omp_thread_list_end(region->thread_list);
+			region_thread  = starpu_omp_thread_list_next(region_thread))
 	{
-		_STARPU_ERROR("starpu_omp_get_thread_num: no worker associated to this thread\n");
+		if (thread == region_thread)
+		{
+			return tid;
+		}
+		tid++;
 	}
-	return tid;
+	_STARPU_ERROR("unrecognized omp thread\n");
 }
 
 int starpu_omp_get_max_threads()

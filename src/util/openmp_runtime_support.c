@@ -56,6 +56,18 @@ static void _wake_up_locked_task(struct starpu_omp_task *task);
 static void wake_up_barrier(struct starpu_omp_region *parallel_region);
 static void starpu_omp_task_preempt(void);
 
+struct starpu_omp_thread *_starpu_omp_get_thread(void)
+{
+	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+	return thread;
+}
+
+struct starpu_omp_task *_starpu_omp_get_task(void)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	return task;
+}
+
 static void condition_init(struct starpu_omp_condition *condition)
 {
 	condition->contention_list_head = NULL;
@@ -668,7 +680,7 @@ void starpu_omp_shutdown(void)
 }
 
 void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_region_cl, starpu_data_handle_t *handles,
-		void * const cl_arg, size_t cl_arg_size, unsigned cl_arg_free)
+		void * const cl_arg, size_t cl_arg_size, unsigned cl_arg_free, int if_clause)
 {
 	struct starpu_omp_thread *master_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
@@ -678,7 +690,7 @@ void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_re
 	/* TODO: compute the proper nb_threads and launch additional workers as needed.
 	 * for now, the level 1 parallel region spans all the threads
 	 * and level >= 2 parallel regions have only one thread */
-	int nb_threads = (region->level == 0)?starpu_cpu_worker_get_count():1;
+	int nb_threads = (if_clause != 0 && region->level == 0)?starpu_cpu_worker_get_count():1;
 
 	struct starpu_omp_region *new_region = 
 		create_omp_region_struct(region, _global_state.initial_device);

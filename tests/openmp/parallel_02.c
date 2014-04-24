@@ -67,7 +67,7 @@ void parallel_region_1_f(void *buffers[], void *args)
 	worker_id = starpu_worker_get_id();
 	printf("[tid %p] parallel region 1: task thread = %d\n", (void *)tid, worker_id);
 
-	starpu_omp_parallel_region(&parallel_region_2_cl, NULL, NULL, 0, 0);
+	starpu_omp_parallel_region(&parallel_region_2_cl, NULL, NULL, 0, 0, 1);
 }
 
 static struct starpu_codelet parallel_region_1_cl =
@@ -80,7 +80,7 @@ static struct starpu_codelet parallel_region_1_cl =
 
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region(&parallel_region_1_cl, NULL, NULL, 0, 0);
+	starpu_omp_parallel_region(&parallel_region_1_cl, NULL, NULL, 0, 0, 1);
 	return 0;
 }
 #endif
