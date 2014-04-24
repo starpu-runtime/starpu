@@ -52,7 +52,7 @@ extern "C"
 extern int starpu_omp_init(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_shutdown(void) __STARPU_OMP_NOTHROW;
 
-extern void starpu_omp_parallel_region(const struct starpu_codelet * const parallel_region_cl, starpu_data_handle_t *handles, void * const parallel_region_cl_arg) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_parallel_region(const struct starpu_codelet * const parallel_region_cl, starpu_data_handle_t *handles, void * const cl_arg, size_t cl_arg_size, unsigned cl_arg_free) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_barrier(void) __STARPU_OMP_NOTHROW;
 
@@ -67,7 +67,7 @@ extern void starpu_omp_critical_inline_begin(const char *name) __STARPU_OMP_NOTH
 extern void starpu_omp_critical_inline_end(const char *name) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl, starpu_data_handle_t *handles,
-		void * const task_region_cl_arg,
+		void * const cl_arg, size_t cl_arg_size, unsigned cl_arg_free,
 		int if_clause, int final_clause, int untied_clause, int mergeable_clause) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskgroup(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;

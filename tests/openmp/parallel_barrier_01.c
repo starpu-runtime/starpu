@@ -68,7 +68,7 @@ int
 main (int argc, char *argv[]) {
 	pthread_t tid;
 	tid = pthread_self();
-	starpu_omp_parallel_region(&parallel_region_cl, NULL, NULL);
+	starpu_omp_parallel_region(&parallel_region_cl, NULL, NULL, 0, 0);
 	return 0;
 }
 #endif

@@ -207,28 +207,28 @@ static void check_array(void)
 int
 main (int argc, char *argv[]) {
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_1_cl, NULL, NULL);
+	starpu_omp_parallel_region(&parallel_region_1_cl, NULL, NULL, 0, 0);
 	check_array();
 	return 0;
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_2_cl, NULL, NULL);
+	starpu_omp_parallel_region(&parallel_region_2_cl, NULL, NULL, 0, 0);
 	check_array();
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_3_cl, NULL, NULL);
+	starpu_omp_parallel_region(&parallel_region_3_cl, NULL, NULL, 0, 0);
 	check_array();
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_4_cl, NULL, NULL);
+	starpu_omp_parallel_region(&parallel_region_4_cl, NULL, NULL, 0, 0);
 	check_array();
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_5_cl, NULL, NULL);
+	starpu_omp_parallel_region(&parallel_region_5_cl, NULL, NULL, 0, 0);
 	check_array();
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_6_cl, NULL, NULL);
+	starpu_omp_parallel_region(&parallel_region_6_cl, NULL, NULL, 0, 0);
 	check_array();
 	return 0;
 }

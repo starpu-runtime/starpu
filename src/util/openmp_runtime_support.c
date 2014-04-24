@@ -668,7 +668,7 @@ void starpu_omp_shutdown(void)
 }
 
 void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_region_cl, starpu_data_handle_t *handles,
-		void * const parallel_region_cl_arg)
+		void * const cl_arg, size_t cl_arg_size, unsigned cl_arg_free)
 {
 	struct starpu_omp_thread *master_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
@@ -779,7 +779,9 @@ void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_re
 				implicit_task->starpu_task->handles[i] = handles[i];
 			}
 		}
-		implicit_task->starpu_task->cl_arg = parallel_region_cl_arg;
+		implicit_task->starpu_task->cl_arg = cl_arg;
+		implicit_task->starpu_task->cl_arg_size = cl_arg_size;
+		implicit_task->starpu_task->cl_arg_free = cl_arg_free;
 		implicit_task->starpu_task->omp_task = implicit_task;
 		implicit_task->starpu_task->workerid = implicit_task->owner_thread->worker->workerid;
 		implicit_task->starpu_task->execute_on_a_specific_worker = 1;
@@ -1147,7 +1149,7 @@ static void explicit_task__destroy_callback(void *_task)
 }
 
 void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl, starpu_data_handle_t *handles,
-		void * const task_region_cl_arg,
+		void * const cl_arg, size_t cl_arg_size, unsigned cl_arg_free,
 		int if_clause, int final_clause, int untied_clause, int mergeable_clause)
 {
 	struct starpu_omp_task *generating_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
@@ -1190,10 +1192,14 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 		}
 		void (*f)(void **starpu_buffers, void *starpu_cl_arg) = _task_region_cl->cpu_funcs[0];
-		f((void**)handles, task_region_cl_arg);
+		f((void**)handles, cl_arg);
 		for (i = 0; i < _task_region_cl->nbuffers; i++)
 		{
 			starpu_data_release(handles[i]);
+		}
+		if (cl_arg_free)
+		{
+			free(cl_arg);
 		}
 	}
 	else if (is_included)
@@ -1206,10 +1212,14 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 		}
 		void (*f)(void **starpu_buffers, void *starpu_cl_arg) = _task_region_cl->cpu_funcs[0];
-		f((void**)handles, task_region_cl_arg);
+		f((void**)handles, cl_arg);
 		for (i = 0; i < _task_region_cl->nbuffers; i++)
 		{
 			starpu_data_release(handles[i]);
+		}
+		if (cl_arg_free)
+		{
+			free(cl_arg);
 		}
 		/* TODO: restore backuped ICVs */
 	}
@@ -1242,7 +1252,9 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 
 		generated_task->starpu_task = starpu_task_create();
 		generated_task->starpu_task->cl = &generated_task->cl;
-		generated_task->starpu_task->cl_arg = task_region_cl_arg;
+		generated_task->starpu_task->cl_arg = cl_arg;
+		generated_task->starpu_task->cl_arg_size = cl_arg_size;
+		generated_task->starpu_task->cl_arg_free = cl_arg_free;
 		{
 			unsigned i;
 			for (i = 0; i < generated_task->cl.nbuffers; i++)

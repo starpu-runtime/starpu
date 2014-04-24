@@ -66,8 +66,8 @@ void taskgroup_f(void *arg)
 	 * untied_clause: 1
 	 * mergeable_clause: 0
 	 */
-	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)(*p_i)++, 1, 0, 1, 0);
-	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)(*p_i)++, 1, 0, 1, 0);
+	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)(*p_i)++, sizeof(void *), 0, 1, 0, 1, 0);
+	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)(*p_i)++, sizeof(void *), 0, 1, 0, 1, 0);
 }
 
 void parallel_region_f(void *buffers[], void *args)
@@ -88,8 +88,8 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_taskgroup(taskgroup_f, (void *)&i);
 	printf("[tid %p] task thread = %d: implicit task \"f\": taskgroup\n", (void *)tid, worker_id);
 
-	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)i++, 1, 0, 1, 0);
-	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)i++, 1, 0, 1, 0);
+	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)i++, sizeof(void *), 0, 1, 0, 1, 0);
+	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)i++, sizeof(void *), 0, 1, 0, 1, 0);
 }
 
 static struct starpu_codelet parallel_region_cl =
@@ -102,7 +102,7 @@ static struct starpu_codelet parallel_region_cl =
 
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region(&parallel_region_cl, NULL, NULL);
+	starpu_omp_parallel_region(&parallel_region_cl, NULL, NULL, 0, 0);
 	return 0;
 }
 #endif
