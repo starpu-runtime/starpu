@@ -67,22 +67,19 @@ void parallel_region_f(void *buffers[], void *args)
 	printf("[tid %p] task thread = %d -- parallel <--\n", (void *)tid, worker_id);
 }
 
-static struct starpu_codelet parallel_region_cl =
-{
-	.cpu_funcs    = { parallel_region_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
-
 int
 main (int argc, char *argv[]) {
+	starpu_omp_parallel_region_attr_t attr;
 	pthread_t tid;
 	tid = pthread_self();
 	printf("<main>\n");
-	starpu_omp_parallel_region(&parallel_region_cl, NULL, NULL, 0, 0, 1);
+	memset(&attr, 0, sizeof(attr));
+	attr.cl.cpu_funcs[0] = parallel_region_f;
+	attr.cl.where        = STARPU_CPU;
+	attr.if_clause       = 1;
+	starpu_omp_parallel_region(&attr);
 	printf("<main>\n");
-	starpu_omp_parallel_region(&parallel_region_cl, NULL, NULL, 0, 0, 1);
+	starpu_omp_parallel_region(&attr);
 	printf("<main>\n");
 	return 0;
 }

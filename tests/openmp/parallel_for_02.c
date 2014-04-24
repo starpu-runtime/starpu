@@ -53,7 +53,7 @@ void for_g(unsigned long long i, unsigned long long nb_i, void *arg)
 	}
 }
 
-void parallel_region_1_f(void *buffers[], void *args)
+void parallel_region_f(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
@@ -77,16 +77,14 @@ void parallel_region_1_f(void *buffers[], void *args)
 	starpu_omp_for(for_g, (void*)"guided nochunk", NB_ITERS, 0, starpu_omp_sched_guided, 0, 1);
 }
 
-static struct starpu_codelet parallel_region_1_cl =
-{
-	.cpu_funcs    = { parallel_region_1_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-};
-
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region(&parallel_region_1_cl, NULL, NULL, 0, 0, 1);
+	starpu_omp_parallel_region_attr_t attr;
+	memset(&attr, 0, sizeof(attr));
+	attr.cl.cpu_funcs[0] = parallel_region_f;
+	attr.cl.where        = STARPU_CPU;
+	attr.if_clause       = 1;
+	starpu_omp_parallel_region(&attr);
 	return 0;
 }
 #endif

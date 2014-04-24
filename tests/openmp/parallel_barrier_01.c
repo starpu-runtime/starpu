@@ -56,19 +56,16 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_barrier();
 }
 
-static struct starpu_codelet parallel_region_cl =
-{
-	.cpu_funcs    = { parallel_region_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
-
 int
 main (int argc, char *argv[]) {
 	pthread_t tid;
+	starpu_omp_parallel_region_attr_t attr;
 	tid = pthread_self();
-	starpu_omp_parallel_region(&parallel_region_cl, NULL, NULL, 0, 0, 1);
+	memset(&attr, 0, sizeof(attr));
+	attr.cl.cpu_funcs[0] = parallel_region_f;
+	attr.cl.where        = STARPU_CPU;
+	attr.if_clause       = 1;
+	starpu_omp_parallel_region(&attr);
 	return 0;
 }
 #endif

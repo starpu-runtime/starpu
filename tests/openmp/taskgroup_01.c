@@ -49,25 +49,25 @@ void task_region_g(void *buffers[], void *args)
 	printf("[tid %p] task thread = %d: explicit task \"g[%d]\"\n", (void *)tid, worker_id, i);
 }
 
-static struct starpu_codelet task_region_cl =
-{
-	.cpu_funcs    = { task_region_g, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0,
-	.model        = NULL
-};
-
 void taskgroup_f(void *arg)
 {
+	starpu_omp_task_region_attr_t attr;
 	int *p_i = (int *)arg;
-	/*
-	 * if_clause: 1
-	 * final_clause: 0
-	 * untied_clause: 1
-	 * mergeable_clause: 0
-	 */
-	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)(*p_i)++, sizeof(void *), 0, 1, 0, 1, 0);
-	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)(*p_i)++, sizeof(void *), 0, 1, 0, 1, 0);
+	memset(&attr, 0, sizeof(attr));
+	attr.cl.cpu_funcs[0]  = task_region_g;
+	attr.cl.where         = STARPU_CPU;
+	attr.cl_arg_size      = sizeof(void *);
+	attr.cl_arg_free      = 0;
+	attr.if_clause        = 1;
+	attr.final_clause     = 0;
+	attr.untied_clause    = 1;
+	attr.mergeable_clause = 0;
+
+	attr.cl_arg = (void *)(intptr_t)(*p_i)++;
+	starpu_omp_task_region(&attr);
+
+	attr.cl_arg = (void *)(intptr_t)(*p_i)++;
+	starpu_omp_task_region(&attr);
 }
 
 void parallel_region_f(void *buffers[], void *args)
@@ -76,6 +76,7 @@ void parallel_region_f(void *buffers[], void *args)
 	(void) args;
 	int worker_id;
 	pthread_t tid;
+	starpu_omp_task_region_attr_t attr;
 	int i = 0;
 
 	tid = pthread_self();
@@ -88,21 +89,31 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_taskgroup(taskgroup_f, (void *)&i);
 	printf("[tid %p] task thread = %d: implicit task \"f\": taskgroup\n", (void *)tid, worker_id);
 
-	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)i++, sizeof(void *), 0, 1, 0, 1, 0);
-	starpu_omp_task_region(&task_region_cl, NULL, (void *)(intptr_t)i++, sizeof(void *), 0, 1, 0, 1, 0);
-}
+	memset(&attr, 0, sizeof(attr));
+	attr.cl.cpu_funcs[0]  = task_region_g;
+	attr.cl.where         = STARPU_CPU;
+	attr.cl_arg_size      = sizeof(void *);
+	attr.cl_arg_free      = 0;
+	attr.if_clause        = 1;
+	attr.final_clause     = 0;
+	attr.untied_clause    = 1;
+	attr.mergeable_clause = 0;
 
-static struct starpu_codelet parallel_region_cl =
-{
-	.cpu_funcs    = { parallel_region_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0,
-	.model        = NULL
-};
+	attr.cl_arg = (void *)(intptr_t)i++;
+	starpu_omp_task_region(&attr);
+
+	attr.cl_arg = (void *)(intptr_t)i++;
+	starpu_omp_task_region(&attr);
+}
 
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region(&parallel_region_cl, NULL, NULL, 0, 0, 1);
+	starpu_omp_parallel_region_attr_t attr;
+	memset(&attr, 0, sizeof(attr));
+	attr.cl.cpu_funcs[0] = parallel_region_f;
+	attr.cl.where        = STARPU_CPU;
+	attr.if_clause       = 1;
+	starpu_omp_parallel_region(&attr);
 	return 0;
 }
 #endif

@@ -77,14 +77,6 @@ void parallel_region_1_f(void *buffers[], void *args)
 	starpu_omp_for(for_g, (void*)"static chunk", NB_ITERS, CHUNK, starpu_omp_sched_static, 1, 0);
 }
 
-static struct starpu_codelet parallel_region_1_cl =
-{
-	.cpu_funcs    = { parallel_region_1_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
-
 void parallel_region_2_f(void *buffers[], void *args)
 {
 	(void) buffers;
@@ -96,14 +88,6 @@ void parallel_region_2_f(void *buffers[], void *args)
 	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
 	starpu_omp_for(for_g, (void*)"static nochunk", NB_ITERS, 0, starpu_omp_sched_static, 1, 0);
 }
-
-static struct starpu_codelet parallel_region_2_cl =
-{
-	.cpu_funcs    = { parallel_region_2_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
 
 void parallel_region_3_f(void *buffers[], void *args)
 {
@@ -117,14 +101,6 @@ void parallel_region_3_f(void *buffers[], void *args)
 	starpu_omp_for(for_g, (void*)"dynamic chunk", NB_ITERS, CHUNK, starpu_omp_sched_dynamic, 1, 0);
 }
 
-static struct starpu_codelet parallel_region_3_cl =
-{
-	.cpu_funcs    = { parallel_region_3_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
-
 void parallel_region_4_f(void *buffers[], void *args)
 {
 	(void) buffers;
@@ -136,14 +112,6 @@ void parallel_region_4_f(void *buffers[], void *args)
 	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
 	starpu_omp_for(for_g, (void*)"dynamic nochunk", NB_ITERS, 0, starpu_omp_sched_dynamic, 1, 0);
 }
-
-static struct starpu_codelet parallel_region_4_cl =
-{
-	.cpu_funcs    = { parallel_region_4_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
 
 void parallel_region_5_f(void *buffers[], void *args)
 {
@@ -157,14 +125,6 @@ void parallel_region_5_f(void *buffers[], void *args)
 	starpu_omp_for(for_g, (void*)"guided nochunk", NB_ITERS, 0, starpu_omp_sched_guided, 1, 0);
 }
 
-static struct starpu_codelet parallel_region_5_cl =
-{
-	.cpu_funcs    = { parallel_region_5_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
-
 void parallel_region_6_f(void *buffers[], void *args)
 {
 	(void) buffers;
@@ -176,14 +136,6 @@ void parallel_region_6_f(void *buffers[], void *args)
 	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
 	starpu_omp_for(for_g, (void*)"guided nochunk", NB_ITERS, 0, starpu_omp_sched_guided, 1, 0);
 }
-
-static struct starpu_codelet parallel_region_6_cl =
-{
-	.cpu_funcs    = { parallel_region_6_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
 
 static void clear_array(void)
 {
@@ -204,31 +156,43 @@ static void check_array(void)
 		exit(1);
 	}
 }
+
 int
 main (int argc, char *argv[]) {
-	clear_array();
-	starpu_omp_parallel_region(&parallel_region_1_cl, NULL, NULL, 0, 0, 1);
-	check_array();
-	return 0;
+	starpu_omp_parallel_region_attr_t attr;
+
+	memset(&attr, 0, sizeof(attr));
+	attr.cl.where        = STARPU_CPU;
+	attr.if_clause       = 1;
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_2_cl, NULL, NULL, 0, 0, 1);
-	check_array();
-
-	clear_array();
-	starpu_omp_parallel_region(&parallel_region_3_cl, NULL, NULL, 0, 0, 1);
+	attr.cl.cpu_funcs[0] = parallel_region_1_f;
+	starpu_omp_parallel_region(&attr);
 	check_array();
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_4_cl, NULL, NULL, 0, 0, 1);
+	attr.cl.cpu_funcs[0] = parallel_region_2_f;
+	starpu_omp_parallel_region(&attr);
 	check_array();
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_5_cl, NULL, NULL, 0, 0, 1);
+	attr.cl.cpu_funcs[0] = parallel_region_3_f;
+	starpu_omp_parallel_region(&attr);
 	check_array();
 
 	clear_array();
-	starpu_omp_parallel_region(&parallel_region_6_cl, NULL, NULL, 0, 0, 1);
+	attr.cl.cpu_funcs[0] = parallel_region_4_f;
+	starpu_omp_parallel_region(&attr);
+	check_array();
+
+	clear_array();
+	attr.cl.cpu_funcs[0] = parallel_region_5_f;
+	starpu_omp_parallel_region(&attr);
+	check_array();
+
+	clear_array();
+	attr.cl.cpu_funcs[0] = parallel_region_6_f;
+	starpu_omp_parallel_region(&attr);
 	check_array();
 	return 0;
 }

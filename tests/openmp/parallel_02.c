@@ -49,38 +49,31 @@ void parallel_region_2_f(void *buffers[], void *args)
 	printf("[tid %p] parallel region 2: task thread = %d\n", (void *)tid, worker_id);
 }
 
-static struct starpu_codelet parallel_region_2_cl =
-{
-	.cpu_funcs    = { parallel_region_2_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
-
 void parallel_region_1_f(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
 	int worker_id;
 	pthread_t tid;
+	starpu_omp_parallel_region_attr_t attr;
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
 	printf("[tid %p] parallel region 1: task thread = %d\n", (void *)tid, worker_id);
-
-	starpu_omp_parallel_region(&parallel_region_2_cl, NULL, NULL, 0, 0, 1);
+	memset(&attr, 0, sizeof(attr));
+	attr.cl.cpu_funcs[0] = parallel_region_2_f;
+	attr.cl.where        = STARPU_CPU;
+	attr.if_clause       = 1;
+	starpu_omp_parallel_region(&attr);
 }
-
-static struct starpu_codelet parallel_region_1_cl =
-{
-	.cpu_funcs    = { parallel_region_1_f, NULL },
-	.where        = STARPU_CPU,
-	.nbuffers     = 0
-
-};
 
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region(&parallel_region_1_cl, NULL, NULL, 0, 0, 1);
+	starpu_omp_parallel_region_attr_t attr;
+	memset(&attr, 0, sizeof(attr));
+	attr.cl.cpu_funcs[0] = parallel_region_1_f;
+	attr.cl.where        = STARPU_CPU;
+	attr.if_clause       = 1;
+	starpu_omp_parallel_region(&attr);
 	return 0;
 }
 #endif

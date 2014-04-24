@@ -679,8 +679,7 @@ void starpu_omp_shutdown(void)
 	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
 }
 
-void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_region_cl, starpu_data_handle_t *handles,
-		void * const cl_arg, size_t cl_arg_size, unsigned cl_arg_free, int if_clause)
+void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *attr)
 {
 	struct starpu_omp_thread *master_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
@@ -690,7 +689,7 @@ void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_re
 	/* TODO: compute the proper nb_threads and launch additional workers as needed.
 	 * for now, the level 1 parallel region spans all the threads
 	 * and level >= 2 parallel regions have only one thread */
-	int nb_threads = (if_clause != 0 && region->level == 0)?starpu_cpu_worker_get_count():1;
+	int nb_threads = (attr->if_clause != 0 && region->level == 0)?starpu_cpu_worker_get_count():1;
 
 	struct starpu_omp_region *new_region = 
 		create_omp_region_struct(region, _global_state.initial_device);
@@ -769,7 +768,7 @@ void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_re
 			implicit_task != starpu_omp_task_list_end(new_region->implicit_task_list);
 			implicit_task  = starpu_omp_task_list_next(implicit_task))
 	{
-		implicit_task->cl = *_parallel_region_cl;
+		implicit_task->cl = attr->cl;
 		/*
 		 * save pointer to the regions user function from the parallel region codelet
 		 *
@@ -788,17 +787,19 @@ void starpu_omp_parallel_region(const struct starpu_codelet * const _parallel_re
 			unsigned i;
 			for (i = 0; i < implicit_task->cl.nbuffers; i++)
 			{
-				implicit_task->starpu_task->handles[i] = handles[i];
+				implicit_task->starpu_task->handles[i] = attr->handles[i];
 			}
 		}
-		implicit_task->starpu_task->cl_arg = cl_arg;
-		implicit_task->starpu_task->cl_arg_size = cl_arg_size;
-		implicit_task->starpu_task->cl_arg_free = cl_arg_free;
+		implicit_task->starpu_task->cl_arg = attr->cl_arg;
+		implicit_task->starpu_task->cl_arg_size = attr->cl_arg_size;
+		implicit_task->starpu_task->cl_arg_free = attr->cl_arg_free;
 		implicit_task->starpu_task->omp_task = implicit_task;
 		implicit_task->starpu_task->workerid = implicit_task->owner_thread->worker->workerid;
 		implicit_task->starpu_task->execute_on_a_specific_worker = 1;
 		starpu_task_declare_deps_array(new_region->continuation_starpu_task, 1, &implicit_task->starpu_task);
 	}
+
+	attr = NULL;
 
 	/*
 	 * submit all the region implicit starpu tasks
@@ -1160,9 +1161,7 @@ static void explicit_task__destroy_callback(void *_task)
 	}
 }
 
-void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl, starpu_data_handle_t *handles,
-		void * const cl_arg, size_t cl_arg_size, unsigned cl_arg_free,
-		int if_clause, int final_clause, int untied_clause, int mergeable_clause)
+void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 {
 	struct starpu_omp_task *generating_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_region *parallel_region = generating_task->owner_region;
@@ -1173,7 +1172,7 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 	int is_untied = 0;
 	int ret;
 
-	if (!if_clause)
+	if (!attr->if_clause)
 	{
 		is_undeferred = 1;
 	}
@@ -1182,7 +1181,7 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 		is_final = 1;
 		is_included = 1;
 	}
-	else if (final_clause)
+	else if (attr->final_clause)
 	{
 		is_final = 1;
 	}
@@ -1190,7 +1189,7 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 	{
 		is_undeferred = 1;
 	}
-	if ((is_undeferred || is_included) & mergeable_clause)
+	if ((is_undeferred || is_included) & attr->mergeable_clause)
 	{
 		is_merged = 1;
 	}
@@ -1198,40 +1197,40 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 	{
 		/* note: no need to backup/restore ICVs for merged tasks, merged tasks use the data environment of the caller */
 		unsigned i;
-		for (i = 0; i < _task_region_cl->nbuffers; i++)
+		for (i = 0; i < attr->cl.nbuffers; i++)
 		{
-			ret = starpu_data_acquire(handles[i], _task_region_cl->modes[i]);
+			ret = starpu_data_acquire(attr->handles[i], attr->cl.modes[i]);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 		}
-		void (*f)(void **starpu_buffers, void *starpu_cl_arg) = _task_region_cl->cpu_funcs[0];
-		f((void**)handles, cl_arg);
-		for (i = 0; i < _task_region_cl->nbuffers; i++)
+		void (*f)(void **starpu_buffers, void *starpu_cl_arg) = attr->cl.cpu_funcs[0];
+		f((void**)attr->handles, attr->cl_arg);
+		for (i = 0; i < attr->cl.nbuffers; i++)
 		{
-			starpu_data_release(handles[i]);
+			starpu_data_release(attr->handles[i]);
 		}
-		if (cl_arg_free)
+		if (attr->cl_arg_free)
 		{
-			free(cl_arg);
+			free(attr->cl_arg);
 		}
 	}
 	else if (is_included)
 	{
 		/* TODO: backup current ICVs and setup new ICVs for the included task */
 		unsigned i;
-		for (i = 0; i < _task_region_cl->nbuffers; i++)
+		for (i = 0; i < attr->cl.nbuffers; i++)
 		{
-			ret = starpu_data_acquire(handles[i], _task_region_cl->modes[i]);
+			ret = starpu_data_acquire(attr->handles[i], attr->cl.modes[i]);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 		}
-		void (*f)(void **starpu_buffers, void *starpu_cl_arg) = _task_region_cl->cpu_funcs[0];
-		f((void**)handles, cl_arg);
-		for (i = 0; i < _task_region_cl->nbuffers; i++)
+		void (*f)(void **starpu_buffers, void *starpu_cl_arg) = attr->cl.cpu_funcs[0];
+		f((void**)attr->handles, attr->cl_arg);
+		for (i = 0; i < attr->cl.nbuffers; i++)
 		{
-			starpu_data_release(handles[i]);
+			starpu_data_release(attr->handles[i]);
 		}
-		if (cl_arg_free)
+		if (attr->cl_arg_free)
 		{
-			free(cl_arg);
+			free(attr->cl_arg);
 		}
 		/* TODO: restore backuped ICVs */
 	}
@@ -1239,8 +1238,8 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 	{
 		struct starpu_omp_task *generated_task =
 			create_omp_task_struct(generating_task, NULL, parallel_region, 0);
-		generated_task->cl = *_task_region_cl;
-		if (untied_clause)
+		generated_task->cl = attr->cl;
+		if (attr->untied_clause)
 		{
 			is_untied = 1;
 		}
@@ -1264,14 +1263,14 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 
 		generated_task->starpu_task = starpu_task_create();
 		generated_task->starpu_task->cl = &generated_task->cl;
-		generated_task->starpu_task->cl_arg = cl_arg;
-		generated_task->starpu_task->cl_arg_size = cl_arg_size;
-		generated_task->starpu_task->cl_arg_free = cl_arg_free;
+		generated_task->starpu_task->cl_arg = attr->cl_arg;
+		generated_task->starpu_task->cl_arg_size = attr->cl_arg_size;
+		generated_task->starpu_task->cl_arg_free = attr->cl_arg_free;
 		{
 			unsigned i;
 			for (i = 0; i < generated_task->cl.nbuffers; i++)
 			{
-				generated_task->starpu_task->handles[i] = handles[i];
+				generated_task->starpu_task->handles[i] = attr->handles[i];
 			}
 		}
 		generated_task->starpu_task->omp_task = generated_task;
@@ -1287,6 +1286,10 @@ void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl,
 		{
 			(void)STARPU_ATOMIC_ADD(&generated_task->task_group->descendent_task_count, 1);
 		}
+
+		/* do not use the attribute struct afterward as it may become out of scope */
+		attr = NULL;
+
 		if (is_undeferred)
 		{
 			_starpu_task_prepare_for_continuation();

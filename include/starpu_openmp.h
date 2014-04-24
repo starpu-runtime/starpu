@@ -41,6 +41,31 @@ typedef enum e_starpu_omp_proc_bind
 	starpu_omp_proc_bind_spread = 4,
 } starpu_omp_proc_bind_t;
 
+typedef struct starpu_omp_parallel_region_attr
+{
+	struct starpu_codelet  cl;
+	starpu_data_handle_t  *handles;
+	void     *cl_arg;
+	size_t    cl_arg_size;
+	unsigned  cl_arg_free;
+
+	int if_clause;
+} starpu_omp_parallel_region_attr_t;
+
+typedef struct starpu_omp_task_region_attr
+{
+	struct starpu_codelet  cl;
+	starpu_data_handle_t  *handles;
+	void     *cl_arg;
+	size_t    cl_arg_size;
+	unsigned  cl_arg_free;
+
+	int if_clause;
+	int final_clause;
+	int untied_clause;
+	int mergeable_clause;
+} starpu_omp_task_region_attr_t;
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -52,7 +77,7 @@ extern "C"
 extern int starpu_omp_init(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_shutdown(void) __STARPU_OMP_NOTHROW;
 
-extern void starpu_omp_parallel_region(const struct starpu_codelet * const parallel_region_cl, starpu_data_handle_t *handles, void * const cl_arg, size_t cl_arg_size, unsigned cl_arg_free, int if_clause) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_parallel_region(const starpu_omp_parallel_region_attr_t *attr) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_barrier(void) __STARPU_OMP_NOTHROW;
 
@@ -66,9 +91,7 @@ extern void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *nam
 extern void starpu_omp_critical_inline_begin(const char *name) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_critical_inline_end(const char *name) __STARPU_OMP_NOTHROW;
 
-extern void starpu_omp_task_region(const struct starpu_codelet * const _task_region_cl, starpu_data_handle_t *handles,
-		void * const cl_arg, size_t cl_arg_size, unsigned cl_arg_free,
-		int if_clause, int final_clause, int untied_clause, int mergeable_clause) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_task_region(const starpu_omp_task_region_attr_t *attr) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskgroup(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
 
