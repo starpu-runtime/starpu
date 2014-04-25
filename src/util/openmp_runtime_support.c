@@ -28,6 +28,7 @@
 #include <common/list.h>
 #include <common/starpu_spinlock.h>
 #include <common/uthash.h>
+#include <datawizard/interfaces/data_interface.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <strings.h>
@@ -218,6 +219,7 @@ static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_regi
 	region->implicit_task_list = starpu_omp_task_list_new();
 
 	_starpu_spin_init(&region->lock);
+	_starpu_spin_init(&region->registered_handles_lock);
 	region->level = (parent_region != NULL)?parent_region->level+1:0;
 	return region;
 }
@@ -230,6 +232,7 @@ static void destroy_omp_region_struct(struct starpu_omp_region *region)
 	STARPU_ASSERT(region->continuation_starpu_task == NULL);
 	starpu_omp_thread_list_delete(region->thread_list);
 	starpu_omp_task_list_delete(region->implicit_task_list);
+	_starpu_spin_destroy(&region->registered_handles_lock);
 	_starpu_spin_destroy(&region->lock);
 	memset(region, 0, sizeof(*region));
 	free(region);
@@ -278,6 +281,7 @@ static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 {
 	STARPU_ASSERT(!task->is_implicit);
 	task->f(task->starpu_buffers, task->starpu_cl_arg);
+	_starpu_omp_unregister_task_handles(task);
 	task->state = starpu_omp_task_state_terminated;
 	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
 	/* 
@@ -291,11 +295,15 @@ static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 
 static void starpu_omp_implicit_task_entry(struct starpu_omp_task *task)
 {
+	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
 	STARPU_ASSERT(task->is_implicit);
 	task->f(task->starpu_buffers, task->starpu_cl_arg);
 	starpu_omp_barrier();
+	if (thread == task->owner_region->master_thread)
+	{
+		_starpu_omp_unregister_region_handles(task->owner_region);
+	}
 	task->state = starpu_omp_task_state_terminated;
-	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
 	/* 
 	 * the task reached the terminated state, definitively give hand back to the worker code.
 	 *
@@ -517,7 +525,7 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 
 static void destroy_omp_task_struct(struct starpu_omp_task *task)
 {
-	STARPU_ASSERT(task->state == starpu_omp_task_state_terminated);
+	STARPU_ASSERT(task->state == starpu_omp_task_state_terminated || (task->state == starpu_omp_task_state_zombie && task->child_task_count == 0));
 	STARPU_ASSERT(task->nested_region == NULL);
 	STARPU_ASSERT(task->starpu_task == NULL);
 	STARPU_ASSERT(task->stack == NULL);

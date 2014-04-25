@@ -231,6 +231,7 @@ LIST_TYPE(starpu_omp_task,
 	int sections_id;
 	struct starpu_omp_data_environment_icvs data_env_icvs;
 	struct starpu_omp_implicit_task_icvs implicit_task_icvs;
+	struct handle_entry *registered_handles;
 
 	struct starpu_task *starpu_task;
 	struct starpu_codelet cl;
@@ -318,6 +319,8 @@ struct starpu_omp_region
 	struct starpu_omp_loop *loop_list;
 	struct starpu_omp_sections *sections_list;
 	struct starpu_task *continuation_starpu_task;
+	struct handle_entry *registered_handles;
+	struct _starpu_spinlock registered_handles_lock;
 };
 
 struct starpu_omp_device

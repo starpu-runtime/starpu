@@ -210,6 +210,10 @@ struct _starpu_data_state
 
 	unsigned lazy_unregister;
 
+#ifdef STARPU_OPENMP
+	unsigned removed_from_context_hash;
+#endif
+
         /* Used for MPI */
         int rank;
 	int tag;

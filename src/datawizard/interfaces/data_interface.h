@@ -20,6 +20,18 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <common/uthash.h>
+#ifdef STARPU_OPENMP
+#include <util/openmp_runtime_support.h>
+#endif
+
+/* Entry in the `registered_handles' hash table.  */
+struct handle_entry
+{
+	UT_hash_handle hh;
+	void *pointer;
+	starpu_data_handle_t handle;
+};
 
 /* Generic type representing an interface, for now it's only used before
  * execution on message-passing devices but it can be useful in other cases.
@@ -56,6 +68,11 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 extern void _starpu_data_interface_init(void) STARPU_ATTRIBUTE_INTERNAL;
 extern int _starpu_data_check_not_busy(starpu_data_handle_t handle) STARPU_ATTRIBUTE_INTERNAL;
 extern void _starpu_data_interface_shutdown(void) STARPU_ATTRIBUTE_INTERNAL;
+
+#ifdef STARPU_OPENMP
+void _starpu_omp_unregister_region_handles(struct starpu_omp_region *region);
+void _starpu_omp_unregister_task_handles(struct starpu_omp_task *task);
+#endif
 
 struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interface_id);
 

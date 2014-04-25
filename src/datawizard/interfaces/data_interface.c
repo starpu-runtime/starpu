@@ -24,14 +24,9 @@
 #include <core/task.h>
 #include <core/workers.h>
 #include <datawizard/memstats.h>
-
-/* Entry in the `registered_handles' hash table.  */
-struct handle_entry
-{
-	UT_hash_handle hh;
-	void *pointer;
-	starpu_data_handle_t handle;
-};
+#ifdef STARPU_OPENMP
+#include <util/openmp_runtime_support.h>
+#endif
 
 /* Hash table mapping host pointers to data handles.  */
 static struct handle_entry *registered_handles;
@@ -85,6 +80,34 @@ void _starpu_data_interface_shutdown()
 	registered_tag_handles = NULL;
 }
 
+#ifdef STARPU_OPENMP
+void _starpu_omp_unregister_region_handles(struct starpu_omp_region *region)
+{
+	_starpu_spin_lock(&region->registered_handles_lock);
+	struct handle_entry *entry, *tmp;
+	HASH_ITER(hh, (region->registered_handles), entry, tmp)
+	{
+		entry->handle->removed_from_context_hash = 1;
+		HASH_DEL(region->registered_handles, entry);
+		starpu_data_unregister_submit(entry->handle);
+		free(entry);
+	}
+	_starpu_spin_unlock(&region->registered_handles_lock);
+}
+
+void _starpu_omp_unregister_task_handles(struct starpu_omp_task *task)
+{
+	struct handle_entry *entry, *tmp;
+	HASH_ITER(hh, task->registered_handles, entry, tmp)
+	{
+		entry->handle->removed_from_context_hash = 1;
+		HASH_DEL(task->registered_handles, entry);
+		starpu_data_unregister_submit(entry->handle);
+		free(entry);
+	}
+}
+#endif
+
 struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interface_id)
 {
 	switch (interface_id)
@@ -131,26 +154,80 @@ void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
 	entry->pointer = ptr;
 	entry->handle = handle;
 
-	_starpu_spin_lock(&registered_handles_lock);
-	HASH_ADD_PTR(registered_handles, pointer, entry);
-	_starpu_spin_unlock(&registered_handles_lock);
+#ifdef STARPU_OPENMP
+	struct starpu_omp_task *task = _starpu_omp_get_task();
+	if (task)
+	{
+		if (task->is_implicit)
+		{
+			struct starpu_omp_region *parallel_region = task->owner_region;
+			_starpu_spin_lock(&parallel_region->registered_handles_lock);
+			HASH_ADD_PTR(parallel_region->registered_handles, pointer, entry);
+			_starpu_spin_unlock(&parallel_region->registered_handles_lock);
+		}
+		else
+		{
+			HASH_ADD_PTR(task->registered_handles, pointer, entry);
+		}
+	}
+	else
+#endif
+	{
+		_starpu_spin_lock(&registered_handles_lock);
+		HASH_ADD_PTR(registered_handles, pointer, entry);
+		_starpu_spin_unlock(&registered_handles_lock);
+	}
 }
 
 starpu_data_handle_t starpu_data_lookup(const void *ptr)
 {
 	starpu_data_handle_t result;
 
-	_starpu_spin_lock(&registered_handles_lock);
+#ifdef STARPU_OPENMP
+	struct starpu_omp_task *task = _starpu_omp_get_task();
+	if (task)
 	{
-		struct handle_entry *entry;
+		if (task->is_implicit)
+		{
+			struct starpu_omp_region *parallel_region = task->owner_region;
+			_starpu_spin_lock(&parallel_region->registered_handles_lock);
+			{
+				struct handle_entry *entry;
 
-		HASH_FIND_PTR(registered_handles, &ptr, entry);
-		if(STARPU_UNLIKELY(entry == NULL))
-			result = NULL;
+				HASH_FIND_PTR(parallel_region->registered_handles, &ptr, entry);
+				if(STARPU_UNLIKELY(entry == NULL))
+					result = NULL;
+				else
+					result = entry->handle;
+			}
+			_starpu_spin_unlock(&parallel_region->registered_handles_lock);
+		}
 		else
-			result = entry->handle;
+		{
+			struct handle_entry *entry;
+
+			HASH_FIND_PTR(task->registered_handles, &ptr, entry);
+			if(STARPU_UNLIKELY(entry == NULL))
+				result = NULL;
+			else
+				result = entry->handle;
+		}
 	}
-	_starpu_spin_unlock(&registered_handles_lock);
+	else
+#endif
+	{
+		_starpu_spin_lock(&registered_handles_lock);
+		{
+			struct handle_entry *entry;
+
+			HASH_FIND_PTR(registered_handles, &ptr, entry);
+			if(STARPU_UNLIKELY(entry == NULL))
+				result = NULL;
+			else
+				result = entry->handle;
+		}
+		_starpu_spin_unlock(&registered_handles_lock);
+	}
 
 	return result;
 }
@@ -489,21 +566,53 @@ struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_hand
 void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 {
 	const void *ram_ptr = starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM);
+#ifdef STARPU_OPENMP
+	if (handle->removed_from_context_hash)
+		return;
+#endif
 	if (ram_ptr != NULL)
 	{
 		/* Remove the PTR -> HANDLE mapping.  If a mapping from PTR
 		 * to another handle existed before (e.g., when using
 		 * filters), it becomes visible again.  */
-		struct handle_entry *entry;
+#ifdef STARPU_OPENMP
+		struct starpu_omp_task *task = _starpu_omp_get_task();
+		if (task)
+		{
+			if (task->is_implicit)
+			{
+				struct starpu_omp_region *parallel_region = task->owner_region;
+				struct handle_entry *entry;
+				_starpu_spin_lock(&parallel_region->registered_handles_lock);
+				HASH_FIND_PTR(parallel_region->registered_handles, &ram_ptr, entry);
+				STARPU_ASSERT(entry != NULL);
+				HASH_DEL(registered_handles, entry);
+				free(entry);
+				_starpu_spin_unlock(&parallel_region->registered_handles_lock);
+			}
+			else
+			{
+				struct handle_entry *entry;
+				HASH_FIND_PTR(task->registered_handles, &ram_ptr, entry);
+				STARPU_ASSERT(entry != NULL);
+				HASH_DEL(task->registered_handles, entry);
+				free(entry);
+			}
+		}
+		else
+#endif
+		{
+			struct handle_entry *entry;
 
-		_starpu_spin_lock(&registered_handles_lock);
-		HASH_FIND_PTR(registered_handles, &ram_ptr, entry);
-		STARPU_ASSERT(entry != NULL);
+			_starpu_spin_lock(&registered_handles_lock);
+			HASH_FIND_PTR(registered_handles, &ram_ptr, entry);
+			STARPU_ASSERT(entry != NULL);
 
-		HASH_DEL(registered_handles, entry);
-		free(entry);
+			HASH_DEL(registered_handles, entry);
+			free(entry);
 
-		_starpu_spin_unlock(&registered_handles_lock);
+			_starpu_spin_unlock(&registered_handles_lock);
+		}
 	}
 }
 
