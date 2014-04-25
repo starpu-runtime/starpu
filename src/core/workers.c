@@ -39,6 +39,7 @@
 
 #ifdef STARPU_SIMGRID
 #include <msg/msg.h>
+#include <core/simgrid.h>
 #endif
 
 #ifdef __MINGW32__
@@ -943,7 +944,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	int ret;
 
-#ifndef STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
+	_starpu_simgrid_init();
+#else
 #ifdef __GNUC__
 #ifndef __OPTIMIZE__
 	_STARPU_DISP("Warning: StarPU was configured with --enable-debug (-O0), and is thus not optimized\n");
@@ -1316,7 +1319,9 @@ void starpu_shutdown(void)
 	_starpu_delete_all_sched_ctxs();
 
 	_starpu_disk_unregister();
+#ifdef STARPU_HAVE_HWLOC
 	starpu_tree_free(config.topology.tree);
+#endif
 	_starpu_destroy_topology(&config);
 #ifdef STARPU_USE_FXT
 	_starpu_stop_fxt_profiling();
