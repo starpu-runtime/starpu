@@ -226,6 +226,8 @@ LIST_TYPE(starpu_omp_task,
 	int barrier_count;
 	int single_id;
 	int loop_id;
+	unsigned long long ordered_first_i;
+	unsigned long long ordered_nb_i;
 	int sections_id;
 	struct starpu_omp_data_environment_icvs data_env_icvs;
 	struct starpu_omp_implicit_task_icvs implicit_task_icvs;

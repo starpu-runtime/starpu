@@ -42,13 +42,20 @@ static void omp_destructor(void)
 	starpu_omp_shutdown();
 }
 
-void ordered_f(unsigned long long i, void *arg)
+struct s_ordered_arg
 {
+	const char *msg;
+	unsigned long long i;
+};
+
+void ordered_f(void *_arg)
+{
+	struct s_ordered_arg *arg = _arg;
 	int worker_id;
 	pthread_t tid;
 	tid = pthread_self();
 	worker_id = starpu_worker_get_id();
-	printf("[tid %p] task thread = %d, for [%s] iteration (ordered) %llu\n", (void *)tid, worker_id, (const char *)arg, i);
+	printf("[tid %p] task thread = %d, for [%s] iteration (ordered) %llu\n", (void *)tid, worker_id, arg->msg, arg->i);
 }
 
 void for_g(unsigned long long i, unsigned long long nb_i, void *arg)
@@ -60,8 +67,9 @@ void for_g(unsigned long long i, unsigned long long nb_i, void *arg)
 	printf("[tid %p] task thread = %d, for [%s] iterations first=%llu:nb=%llu\n", (void *)tid, worker_id, (const char *)arg, i, nb_i);
 	for (; nb_i > 0; i++, nb_i--)
 	{
+		struct s_ordered_arg ordered_arg = { arg, i };
 		array[i] = 1;
-		starpu_omp_ordered(ordered_f, arg, i);
+		starpu_omp_ordered(ordered_f, &ordered_arg);
 	}
 }
 

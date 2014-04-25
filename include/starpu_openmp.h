@@ -103,9 +103,9 @@ extern void starpu_omp_for_alt(void (*f)(unsigned long long _begin_i, unsigned l
 extern int starpu_omp_for_inline_first_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_for_inline_next_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i) __STARPU_OMP_NOTHROW;
 
-extern void starpu_omp_ordered_inline_begin(unsigned long long i) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_ordered_inline_begin(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_ordered_inline_end(void) __STARPU_OMP_NOTHROW;
-extern void starpu_omp_ordered(void (*f)(unsigned long long _i, void *arg), void *arg, unsigned long long i) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_ordered(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_sections(unsigned long long nb_sections, void (**section_f)(void *arg), void **section_arg, int nowait) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section_f)(unsigned long long section_num, void *arg), void **section_arg, int nowait) __STARPU_OMP_NOTHROW;

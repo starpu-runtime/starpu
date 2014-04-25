@@ -1361,7 +1361,7 @@ void starpu_omp_taskgroup(void (*f)(void *arg), void *arg)
 
 static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task,
 		struct starpu_omp_loop *loop, int first_call,
-		unsigned long long nb_iterations, unsigned long long chunk, int schedule, unsigned long long *_first_i, unsigned long long *_nb_i)
+		unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i)
 {
 	*_nb_i = 0;
 	if (schedule == starpu_omp_schedule_static || schedule == starpu_omp_schedule_auto)
@@ -1468,6 +1468,11 @@ static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_regio
 		}
 		_starpu_spin_unlock(&parallel_region->lock);
 	}
+	if (ordered)
+	{
+		task->ordered_first_i = *_first_i;
+		task->ordered_nb_i = *_nb_i;
+	}
 }
 
 static inline struct starpu_omp_loop *_starpu_omp_for_get_loop(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task)
@@ -1540,7 +1545,7 @@ int starpu_omp_for_inline_first(unsigned long long nb_iterations, unsigned long 
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	struct starpu_omp_loop *loop = _starpu_omp_for_loop_begin(parallel_region, task, ordered);
 
-	_starpu_omp_for_loop(parallel_region, task, loop, 1, nb_iterations, chunk, schedule, _first_i, _nb_i);
+	_starpu_omp_for_loop(parallel_region, task, loop, 1, nb_iterations, chunk, schedule, ordered, _first_i, _nb_i);
 	if (*_nb_i == 0)
 	{
 		_starpu_omp_for_loop_end(parallel_region, task, loop, ordered);
@@ -1554,7 +1559,7 @@ int starpu_omp_for_inline_next(unsigned long long nb_iterations, unsigned long l
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	struct starpu_omp_loop *loop = _starpu_omp_for_loop_begin(parallel_region, task, ordered);
 
-	_starpu_omp_for_loop(parallel_region, task, loop, 0, nb_iterations, chunk, schedule, _first_i, _nb_i);
+	_starpu_omp_for_loop(parallel_region, task, loop, 0, nb_iterations, chunk, schedule, ordered, _first_i, _nb_i);
 	if (*_nb_i == 0)
 	{
 		_starpu_omp_for_loop_end(parallel_region, task, loop, ordered);
@@ -1614,30 +1619,39 @@ void starpu_omp_for_alt(void (*f)(unsigned long long _begin_i, unsigned long lon
 	}
 }
 
-void starpu_omp_ordered(void (*f)(unsigned long long _i, void *arg), void *arg, unsigned long long i)
+void starpu_omp_ordered(void (*f)(void *arg), void *arg)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	struct starpu_omp_loop *loop = _starpu_omp_for_get_loop(parallel_region, task);
+	unsigned long long i;
 
+	STARPU_ASSERT(task->ordered_nb_i > 0);
+	i = task->ordered_first_i;
+	task->ordered_first_i++;
+	task->ordered_nb_i--;
 	_starpu_spin_lock(&loop->ordered_lock);
 	while (i != loop->ordered_iteration)
 	{
 		STARPU_ASSERT(i > loop->ordered_iteration);
 		condition_wait(&loop->ordered_cond, &loop->ordered_lock);
 	}
-	f(i, arg);
+	f(arg);
 	loop->ordered_iteration++;	
 	condition_broadcast(&loop->ordered_cond);
 	_starpu_spin_unlock(&loop->ordered_lock);
 }
 
-void starpu_omp_ordered_inline_begin(unsigned long long i)
+void starpu_omp_ordered_inline_begin(void)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_region *parallel_region = task->owner_region;
 	struct starpu_omp_loop *loop = _starpu_omp_for_get_loop(parallel_region, task);
-
+	unsigned long long i;
+	STARPU_ASSERT(task->ordered_nb_i > 0);
+	i = task->ordered_first_i;
+	task->ordered_first_i++;
+	task->ordered_nb_i--;
 	_starpu_spin_lock(&loop->ordered_lock);
 	while (i != loop->ordered_iteration)
 	{
