@@ -291,7 +291,7 @@ struct starpu_omp_loop
 struct starpu_omp_sections
 {
 	int id;
-	int next_section_num;
+	unsigned long long next_section_num;
 	int nb_completed_threads;
 	struct starpu_omp_sections *next_sections;
 };
