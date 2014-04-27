@@ -23,25 +23,25 @@
 typedef void *starpu_omp_lock_t; /* TODO: select a proper type */
 typedef void *starpu_omp_nest_lock_t; /* TODO: select a proper type */
 
-typedef enum e_starpu_omp_sched
+enum starpu_omp_sched_value
 {
 	starpu_omp_sched_undefined = 0,
 	starpu_omp_sched_static    = 1,
 	starpu_omp_sched_dynamic   = 2,
 	starpu_omp_sched_guided    = 3,
 	starpu_omp_sched_auto      = 4,
-} starpu_omp_sched_t;
+};
 
-typedef enum e_starpu_omp_proc_bind
+enum starpu_omp_proc_bind_value
 {
 	starpu_omp_proc_bind_false  = 0,
 	starpu_omp_proc_bind_true   = 1,
 	starpu_omp_proc_bind_master = 2,
 	starpu_omp_proc_bind_close  = 3,
 	starpu_omp_proc_bind_spread = 4,
-} starpu_omp_proc_bind_t;
+};
 
-typedef struct starpu_omp_parallel_region_attr
+struct starpu_omp_parallel_region_attr
 {
 	struct starpu_codelet  cl;
 	starpu_data_handle_t  *handles;
@@ -50,9 +50,9 @@ typedef struct starpu_omp_parallel_region_attr
 	unsigned  cl_arg_free;
 
 	int if_clause;
-} starpu_omp_parallel_region_attr_t;
+};
 
-typedef struct starpu_omp_task_region_attr
+struct starpu_omp_task_region_attr
 {
 	struct starpu_codelet  cl;
 	starpu_data_handle_t  *handles;
@@ -64,7 +64,7 @@ typedef struct starpu_omp_task_region_attr
 	int final_clause;
 	int untied_clause;
 	int mergeable_clause;
-} starpu_omp_task_region_attr_t;
+};
 
 #ifdef __cplusplus
 extern "C"
@@ -77,7 +77,7 @@ extern "C"
 extern int starpu_omp_init(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_shutdown(void) __STARPU_OMP_NOTHROW;
 
-extern void starpu_omp_parallel_region(const starpu_omp_parallel_region_attr_t *attr) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *attr) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_barrier(void) __STARPU_OMP_NOTHROW;
 
@@ -91,7 +91,7 @@ extern void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *nam
 extern void starpu_omp_critical_inline_begin(const char *name) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_critical_inline_end(const char *name) __STARPU_OMP_NOTHROW;
 
-extern void starpu_omp_task_region(const starpu_omp_task_region_attr_t *attr) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskgroup(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
 
@@ -121,8 +121,8 @@ extern int starpu_omp_get_dynamic (void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_set_nested (int nested) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_nested (void) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_cancellation(void) __STARPU_OMP_NOTHROW;
-extern void starpu_omp_set_schedule (starpu_omp_sched_t kind, int modifier) __STARPU_OMP_NOTHROW;
-extern void starpu_omp_get_schedule (starpu_omp_sched_t *kind, int *modifier) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_set_schedule (enum starpu_omp_sched_value kind, int modifier) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_get_schedule (enum starpu_omp_sched_value *kind, int *modifier) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_thread_limit (void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_set_max_active_levels (int max_levels) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_max_active_levels (void) __STARPU_OMP_NOTHROW;
@@ -131,7 +131,7 @@ extern int starpu_omp_get_ancestor_thread_num (int level) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_team_size (int level) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_active_level (void) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_in_final(void) __STARPU_OMP_NOTHROW;
-extern starpu_omp_proc_bind_t starpu_omp_get_proc_bind(void) __STARPU_OMP_NOTHROW;
+extern enum starpu_omp_proc_bind_value starpu_omp_get_proc_bind(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_set_default_device(int device_num) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_default_device(void) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_num_devices(void) __STARPU_OMP_NOTHROW;

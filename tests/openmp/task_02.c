@@ -84,7 +84,7 @@ void task_region_g(void *buffers[], void *args)
 
 	{
 		starpu_data_handle_t task_vector_handle;
-		starpu_omp_task_region_attr_t attr;
+		struct starpu_omp_task_region_attr attr;
 		int i;
 
 		task_vector_handle = starpu_data_lookup(v);
@@ -132,7 +132,7 @@ void master_g1(void *arg)
 void master_g2(void *arg)
 {
 	starpu_data_handle_t region_vector_handle;
-	starpu_omp_task_region_attr_t attr;
+	struct starpu_omp_task_region_attr attr;
 	int i;
 
 	region_vector_handle = starpu_data_lookup(global_vector);
@@ -184,7 +184,7 @@ void parallel_region_f(void *buffers[], void *args)
 
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region_attr_t attr;
+	struct starpu_omp_parallel_region_attr attr;
 
 	memset(&attr, 0, sizeof(attr));
 	attr.cl.cpu_funcs[0] = parallel_region_f;

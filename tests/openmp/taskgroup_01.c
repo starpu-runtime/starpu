@@ -51,7 +51,7 @@ void task_region_g(void *buffers[], void *args)
 
 void taskgroup_f(void *arg)
 {
-	starpu_omp_task_region_attr_t attr;
+	struct starpu_omp_task_region_attr attr;
 	int *p_i = (int *)arg;
 	memset(&attr, 0, sizeof(attr));
 	attr.cl.cpu_funcs[0]  = task_region_g;
@@ -76,7 +76,7 @@ void parallel_region_f(void *buffers[], void *args)
 	(void) args;
 	int worker_id;
 	pthread_t tid;
-	starpu_omp_task_region_attr_t attr;
+	struct starpu_omp_task_region_attr attr;
 	int i = 0;
 
 	tid = pthread_self();
@@ -108,7 +108,7 @@ void parallel_region_f(void *buffers[], void *args)
 
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region_attr_t attr;
+	struct starpu_omp_parallel_region_attr attr;
 	memset(&attr, 0, sizeof(attr));
 	attr.cl.cpu_funcs[0] = parallel_region_f;
 	attr.cl.where        = STARPU_CPU;

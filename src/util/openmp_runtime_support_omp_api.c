@@ -114,7 +114,7 @@ int starpu_omp_get_cancellation(void)
 	return 0;
 }
 
-void starpu_omp_set_schedule (starpu_omp_sched_t kind, int modifier)
+void starpu_omp_set_schedule (enum starpu_omp_sched_value kind, int modifier)
 {
 	(void) kind;
 	(void) modifier;
@@ -123,7 +123,7 @@ void starpu_omp_set_schedule (starpu_omp_sched_t kind, int modifier)
 	assert(kind >= 1 && kind <=4);
 }
 
-void starpu_omp_get_schedule (starpu_omp_sched_t *kind, int *modifier)
+void starpu_omp_get_schedule (enum starpu_omp_sched_value *kind, int *modifier)
 {
 	(void) kind;
 	(void) modifier;
@@ -201,7 +201,7 @@ int starpu_omp_in_final(void)
 	return 0;
 }
 
-starpu_omp_proc_bind_t starpu_omp_get_proc_bind(void)
+enum starpu_omp_proc_bind_value starpu_omp_get_proc_bind(void)
 {
 	/* TODO: proc_bind not supported for now
 	 * assumre false */

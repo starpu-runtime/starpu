@@ -149,7 +149,7 @@ static void check_array(void)
 
 int
 main (int argc, char *argv[]) {
-	starpu_omp_parallel_region_attr_t attr;
+	struct starpu_omp_parallel_region_attr attr;
 
 	memset(&attr, 0, sizeof(attr));
 	attr.cl.where        = STARPU_CPU;
