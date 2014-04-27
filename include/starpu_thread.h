@@ -39,7 +39,7 @@ extern "C"
 
 #ifdef STARPU_SIMGRID
 
-typedef int starpu_pthread_t;
+typedef msg_process_t starpu_pthread_t;
 typedef int starpu_pthread_attr_t;
 
 int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, int where);

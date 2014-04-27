@@ -1093,11 +1093,11 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 void
 _starpu_bind_thread_on_cpu (
 	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED,
-	int cpuid)
+	int cpuid STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
 	return;
-#endif
+#else
 	if (starpu_get_env_number("STARPU_WORKERS_NOBIND") > 0)
 		return;
 	if (cpuid < 0)
@@ -1156,6 +1156,7 @@ _starpu_bind_thread_on_cpu (
 	}
 #else
 #warning no CPU binding support
+#endif
 #endif
 }
 
@@ -1217,7 +1218,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 
 #ifdef STARPU_SIMGRID
 	char name[16];
-	msg_host_t host = MSG_get_host_by_name("RAM");
+	msg_host_t host = _starpu_simgrid_get_host_by_name("RAM");
 	STARPU_ASSERT(host);
 	_starpu_simgrid_memory_node_set_host(STARPU_MAIN_RAM, host);
 #endif
@@ -1277,7 +1278,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					memory_node = numa_memory_nodes[numaid] = _starpu_memory_node_register(STARPU_CPU_RAM, numaid);
 #ifdef STARPU_SIMGRID
 					snprintf(name, sizeof(name), "RAM%d", numaid);
-					host = MSG_get_host_by_name(name);
+					host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif
@@ -1315,7 +1316,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef STARPU_SIMGRID
 					snprintf(name, sizeof(name), "CUDA%d", devid);
-					host = MSG_get_host_by_name(name);
+					host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif /* SIMGRID */
@@ -1365,7 +1366,7 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef STARPU_SIMGRID
 					snprintf(name, sizeof(name), "OpenCL%d", devid);
-					host = MSG_get_host_by_name(name);
+					host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
 #endif /* SIMGRID */

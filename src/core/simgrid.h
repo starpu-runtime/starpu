@@ -30,11 +30,13 @@ struct _starpu_pthread_args
 
 #define MAX_TSD 16
 
+void _starpu_simgrid_init(void);
 void _starpu_simgrid_execute_job(struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length);
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req);
 /* Return the number of hosts prefixed by PREFIX */
 int _starpu_simgrid_get_nbhosts(const char *prefix);
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid);
+msg_host_t _starpu_simgrid_get_host_by_name(const char *name);
 void _starpu_simgrid_get_platform_path(char *path, size_t maxlen);
 #endif
 

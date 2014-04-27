@@ -994,6 +994,7 @@ if test x$enable_simgrid = xyes ; then
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
 		]
 	)
+   	AC_CHECK_FUNCS([MSG_process_join])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		    		[[#include <msg/msg.h>]],
 				[[msg_host_t foo; ]]

@@ -1511,13 +1511,15 @@ static void _starpu_sched_ctx_bind_thread_to_ctx_cpus(unsigned sched_ctx_id)
 	return;
 }
 
-void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid)
+void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid STARPU_ATTRIBUTE_UNUSED)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
+	/* FIXME: why not factorize with _starpu_bind_thread_on_cpu? */
+
 #ifdef STARPU_SIMGRID
 	return;
-#endif
+#else
 	if (starpu_get_env_number("STARPU_WORKERS_NOBIND") > 0)
 		return;
 
@@ -1564,6 +1566,7 @@ void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid)
 	}
 #else
 #warning no CPU binding support
+#endif
 #endif
 
 }
