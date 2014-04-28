@@ -37,18 +37,12 @@ int starpu_omp_get_num_threads()
 	return region->nb_threads;
 }
 
-int starpu_omp_get_thread_num()
+static int _starpu_omp_get_region_thread_num(const struct starpu_omp_region * const region)
 {
 	struct starpu_omp_thread *thread = _starpu_omp_get_thread();
-	struct starpu_omp_task *task = _starpu_omp_get_task();
-	struct starpu_omp_region *region;
-	if (thread == NULL || task == NULL)
-		return 0;
-
-	region = task->owner_region;
+	STARPU_ASSERT(thread != NULL);
 	if (thread == region->master_thread)
 		return 0;
-
 	struct starpu_omp_thread * region_thread;
 	int tid = 1;
 	for (region_thread  = starpu_omp_thread_list_begin(region->thread_list);
@@ -64,10 +58,27 @@ int starpu_omp_get_thread_num()
 	_STARPU_ERROR("unrecognized omp thread\n");
 }
 
+int starpu_omp_get_thread_num()
+{
+	struct starpu_omp_task *task = _starpu_omp_get_task();
+	if (task == NULL)
+		return 0;
+	return _starpu_omp_get_region_thread_num(task->owner_region);
+}
+
 int starpu_omp_get_max_threads()
 {
-	/* arbitrary limit */
-	return starpu_cpu_worker_get_count();
+	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
+	int max_threads = parallel_region->icvs.nthreads_var[0];
+	/* TODO: for now, nested parallel sections are not supported, thus we
+	 * open an active parallel section only if the generating region is the
+	 * initial region */
+	if (parallel_region->level > 0)
+	{
+		max_threads = 1;
+	}
+
+	return max_threads;
 }
 
 int starpu_omp_get_num_procs (void)
@@ -78,7 +89,8 @@ int starpu_omp_get_num_procs (void)
 
 int starpu_omp_in_parallel (void)
 {
-	__not_implemented__;
+	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
+	return parallel_region->icvs.active_levels_var > 0;
 }
 
 void starpu_omp_set_dynamic (int dynamic_threads)
@@ -89,9 +101,8 @@ void starpu_omp_set_dynamic (int dynamic_threads)
 
 int starpu_omp_get_dynamic (void)
 {
-	/* TODO: dynamic adjustment of the number of threads is not supported for now 
-	 * return false as required */
-	return 0;
+	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
+	return parallel_region->icvs.dyn_var;
 }
 
 void starpu_omp_set_nested (int nested)
@@ -102,110 +113,113 @@ void starpu_omp_set_nested (int nested)
 
 int starpu_omp_get_nested (void)
 {
-	/* TODO: nested parallelism not supported for now
-	 * return false as required */
-	return 0;
+	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
+	return parallel_region->icvs.nest_var;
 }
 
 int starpu_omp_get_cancellation(void)
 {
-	/* TODO: cancellation not supported for now
-	 * return false as required */
-	return 0;
+	return _starpu_omp_global_state->icvs.cancel_var;
 }
 
 void starpu_omp_set_schedule (enum starpu_omp_sched_value kind, int modifier)
 {
-	(void) kind;
-	(void) modifier;
-	/* TODO: no starpu_omp scheduler scheme implemented for now */
-	__not_implemented__;
-	assert(kind >= 1 && kind <=4);
+	struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
+	STARPU_ASSERT(     kind == starpu_omp_sched_static
+			|| kind == starpu_omp_sched_dynamic
+			|| kind == starpu_omp_sched_guided
+			|| kind == starpu_omp_sched_auto);
+	STARPU_ASSERT(modifier >= 0);
+	parallel_region->icvs.run_sched_var = kind;
+	parallel_region->icvs.run_sched_chunk_var = (unsigned long long)modifier;
 }
 
 void starpu_omp_get_schedule (enum starpu_omp_sched_value *kind, int *modifier)
 {
-	(void) kind;
-	(void) modifier;
-	/* TODO: no starpu_omp scheduler scheme implemented for now */
-	__not_implemented__;
+	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
+	*kind = parallel_region->icvs.run_sched_var;
+	*modifier = (int)parallel_region->icvs.run_sched_chunk_var;
 }
 
 int starpu_omp_get_thread_limit (void)
 {
-	/* arbitrary limit */
-	return 1024;
+	return starpu_cpu_worker_get_count();
 }
 
 void starpu_omp_set_max_active_levels (int max_levels)
 {
-	(void) max_levels;
-	/* TODO: nested parallelism not supported for now */
+	struct starpu_omp_device * const device = _starpu_omp_get_task()->owner_region->owner_device;
+	if (max_levels > 1)
+	{
+		/* TODO: nested parallelism not supported for now */
+		max_levels = 1;
+	}
+	device->icvs.max_active_levels_var = max_levels;
 }
 
 int starpu_omp_get_max_active_levels (void)
 {
-	/* TODO: nested parallelism not supported for now
-	 * assume a single level */
-	return 1;
+	const struct starpu_omp_device * const device = _starpu_omp_get_task()->owner_region->owner_device;
+	return device->icvs.max_active_levels_var;
 }
 
 int starpu_omp_get_level (void)
 {
-	/* TODO: nested parallelism not supported for now
-	 * assume a single level */
-	return 1;
+	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
+	return parallel_region->icvs.levels_var;
 }
 
 int starpu_omp_get_ancestor_thread_num (int level)
 {
-	if (level == 0) {
-		return 0; /* spec required answer */
+	if (level == 0)
+		return 0;
+	const struct starpu_omp_task *task = _starpu_omp_get_task();
+	if (task == NULL)
+		return -1;
+	const struct starpu_omp_region *parallel_region = task->owner_region;
+	if (level < 0 || level > parallel_region->icvs.levels_var)
+		return -1;
+	while (level < parallel_region->icvs.levels_var)
+	{
+		parallel_region = parallel_region->parent_region;
 	}
-
-	if (level == starpu_omp_get_level()) {
-		return starpu_omp_get_thread_num(); /* spec required answer */
-	}
-
-	/* TODO: nested parallelism not supported for now
-	 * assume ancestor is thread number '0' */
-	return 0;
+	return _starpu_omp_get_region_thread_num(parallel_region);
 }
 
 int starpu_omp_get_team_size (int level)
 {
-	if (level == 0) {
-		return 1; /* spec required answer */
+	if (level == 0)
+		return 1;
+	const struct starpu_omp_task *task = _starpu_omp_get_task();
+	if (task == NULL)
+		return -1;
+	const struct starpu_omp_region *parallel_region = task->owner_region;
+	if (level < 0 || level > parallel_region->icvs.levels_var)
+		return -1;
+	while (level < parallel_region->icvs.levels_var)
+	{
+		parallel_region = parallel_region->parent_region;
 	}
-
-	if (level == starpu_omp_get_level()) {
-		return starpu_omp_get_num_threads(); /* spec required answer */
-	}
-
-	/* TODO: nested parallelism not supported for now
-	 * assume the team size to be the number of cpu workers */
-	return starpu_cpu_worker_get_count();
+	return parallel_region->nb_threads;
 }
 
 int starpu_omp_get_active_level (void)
 {
-	/* TODO: nested parallelism not supported for now
-	 * assume a single active level */
-	return 1;
+	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
+	return parallel_region->icvs.active_levels_var;
 }
 
 int starpu_omp_in_final(void)
 {
-	/* TODO: final not supported for now
-	 * assume not in final */
-	return 0;
+	const struct starpu_omp_task *task = _starpu_omp_get_task();
+	return task->is_final;
 }
 
 enum starpu_omp_proc_bind_value starpu_omp_get_proc_bind(void)
 {
-	/* TODO: proc_bind not supported for now
-	 * assumre false */
-	return starpu_omp_proc_bind_false;
+	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
+	int proc_bind = parallel_region->icvs.bind_var[0];
+	return proc_bind;
 }
 
 void starpu_omp_set_default_device(int device_num)
@@ -216,9 +230,8 @@ void starpu_omp_set_default_device(int device_num)
 
 int starpu_omp_get_default_device(void)
 {
-	/* TODO: set_default_device not supported for now
-	 * assume device 0 as default */
-	return 0;
+	const struct starpu_omp_region * const parallel_region = _starpu_omp_get_task()->owner_region;
+	return parallel_region->icvs.default_device_var;
 }
 
 int starpu_omp_get_num_devices(void)

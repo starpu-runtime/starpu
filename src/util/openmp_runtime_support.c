@@ -594,9 +594,10 @@ static void omp_initial_thread_exit()
 static void omp_initial_region_setup(void)
 {
 	omp_initial_thread_setup();
-	const int max_levels = _starpu_omp_initial_icv_values->max_active_levels_var;
+	const int max_active_levels = _starpu_omp_initial_icv_values->max_active_levels_var;
 	const int max_threads = (int)starpu_cpu_worker_get_count();
 	
+	/* implementation specific initial ICV values override */
 	if (_starpu_omp_initial_icv_values->nthreads_var[0] == 0)
 	{
 		_starpu_omp_initial_icv_values->nthreads_var[0] = max_threads;
@@ -605,7 +606,7 @@ static void omp_initial_region_setup(void)
 	else
 	{
 		int i;
-		for (i = 0; i < max_levels; i++)
+		for (i = 0; i < max_active_levels; i++)
 		{
 			if (_starpu_omp_initial_icv_values->nthreads_var[i] == 0)
 				break;
@@ -615,8 +616,10 @@ static void omp_initial_region_setup(void)
 			}
 		}
 	}
+	_starpu_omp_initial_icv_values->dyn_var = 0;
+	_starpu_omp_initial_icv_values->nest_var = 0;
 
-	_global_state.initial_device->icvs.max_active_levels_var = max_levels;
+	_global_state.initial_device->icvs.max_active_levels_var = max_active_levels;
 	_global_state.initial_device->icvs.stacksize_var = _starpu_omp_initial_icv_values->stacksize_var;
 	_global_state.initial_device->icvs.wait_policy_var = _starpu_omp_initial_icv_values->wait_policy_var;
 
@@ -626,9 +629,9 @@ static void omp_initial_region_setup(void)
 	_global_state.initial_region->icvs.nest_var = _starpu_omp_initial_icv_values->nest_var;
 	if (_starpu_omp_initial_icv_values->nthreads_var[1] != 0)
 	{
-		_global_state.initial_region->icvs.nthreads_var = malloc((1+max_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.nthreads_var));
+		_global_state.initial_region->icvs.nthreads_var = malloc((1+max_active_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.nthreads_var));
 		int i,j;
-		for (i = _global_state.initial_region->level, j = 0; i < max_levels; i++, j++)
+		for (i = _global_state.initial_region->level, j = 0; i < max_active_levels; i++, j++)
 		{
 			_global_state.initial_region->icvs.nthreads_var[j] = _starpu_omp_initial_icv_values->nthreads_var[j];
 		}
@@ -641,25 +644,27 @@ static void omp_initial_region_setup(void)
 		_global_state.initial_region->icvs.nthreads_var[1] = 0;
 	}
 
-	if (_starpu_omp_initial_icv_values->bind_var[1] != starpu_omp_bind_undefined)
+	if (_starpu_omp_initial_icv_values->bind_var[1] != starpu_omp_proc_bind_undefined)
 	{
-		_global_state.initial_region->icvs.bind_var = malloc((1+max_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.bind_var));
+		_global_state.initial_region->icvs.bind_var = malloc((1+max_active_levels-_global_state.initial_region->level) * sizeof(*_global_state.initial_region->icvs.bind_var));
 		int i,j;
-		for (i = _global_state.initial_region->level, j = 0; i < max_levels; i++, j++)
+		for (i = _global_state.initial_region->level, j = 0; i < max_active_levels; i++, j++)
 		{
 			_global_state.initial_region->icvs.bind_var[j] = _starpu_omp_initial_icv_values->bind_var[j];
 		}
-		_global_state.initial_region->icvs.bind_var[j] = starpu_omp_bind_undefined;
+		_global_state.initial_region->icvs.bind_var[j] = starpu_omp_proc_bind_undefined;
 	}
 	else
 	{
 		_global_state.initial_region->icvs.bind_var = malloc(2 * sizeof(*_global_state.initial_region->icvs.bind_var));
 		_global_state.initial_region->icvs.bind_var[0] = _starpu_omp_initial_icv_values->bind_var[0];
-		_global_state.initial_region->icvs.bind_var[1] = starpu_omp_bind_undefined;
+		_global_state.initial_region->icvs.bind_var[1] = starpu_omp_proc_bind_undefined;
 	}
 	_global_state.initial_region->icvs.thread_limit_var = _starpu_omp_initial_icv_values->thread_limit_var;
 	_global_state.initial_region->icvs.active_levels_var = 0;
 	_global_state.initial_region->icvs.levels_var = 0;
+	_global_state.initial_region->icvs.run_sched_var = _starpu_omp_initial_icv_values->run_sched_var;
+	_global_state.initial_region->icvs.run_sched_chunk_var = _starpu_omp_initial_icv_values->run_sched_chunk_var;
 	_global_state.initial_region->icvs.default_device_var = _starpu_omp_initial_icv_values->default_device_var;
 	starpu_omp_task_list_push_back(_global_state.initial_region->implicit_task_list,
 			_global_state.initial_task);
@@ -684,8 +689,6 @@ int starpu_omp_init(void)
 {
 	STARPU_PTHREAD_KEY_CREATE(&omp_thread_key, NULL);
 	STARPU_PTHREAD_KEY_CREATE(&omp_task_key, NULL);
-	_starpu_omp_environment_init();
-	_global_state.icvs.cancel_var = _starpu_omp_initial_icv_values->cancel_var;
 	_global_state.initial_device = create_omp_device_struct();
 	_global_state.initial_region = create_omp_region_struct(NULL, _global_state.initial_device);
 	_global_state.initial_thread = create_omp_thread_struct(_global_state.initial_region);
@@ -696,12 +699,15 @@ int starpu_omp_init(void)
 	_starpu_spin_init(&_global_state.named_criticals_lock);
 	_global_state.hash_workers = NULL;
 	_starpu_spin_init(&_global_state.hash_workers_lock);
-	_starpu_omp_global_state = &_global_state;
 
+	_starpu_omp_environment_init();
+	_global_state.icvs.cancel_var = _starpu_omp_initial_icv_values->cancel_var;
 	omp_initial_region_setup();
 
 	/* init clock reference for starpu_omp_get_wtick */
 	_starpu_omp_clock_ref = starpu_timing_now();
+
+	_starpu_omp_global_state = &_global_state;
 
 	return 0;
 }
@@ -755,43 +761,45 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	struct starpu_omp_thread *master_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_region *generating_region = task->owner_region;
-	int ret;
-
-	const int max_levels = generating_region->owner_device->icvs.max_active_levels_var;
+	const int max_active_levels = generating_region->owner_device->icvs.max_active_levels_var;
 	struct starpu_omp_region *new_region = 
 		create_omp_region_struct(generating_region, _global_state.initial_device);
-
+	int ret;
 	int nb_threads = 1;
 
 	/* TODO: for now, nested parallel sections are not supported, thus we
 	 * open an active parallel section only if the generating region is the
 	 * initial region */
-	if (generating_region->level == 0)
+	if (attr->if_clause != 0)
 	{
-		if (attr->if_clause != 0)
+		const int max_threads = (int)starpu_cpu_worker_get_count();
+		if (generating_region->icvs.nthreads_var[0] < max_threads)
 		{
-			const int max_threads = (int)starpu_cpu_worker_get_count();
-			if (generating_region->icvs.nthreads_var[0] < max_threads)
-			{
-				nb_threads = generating_region->icvs.nthreads_var[0];
-			}
-			else
-			{
-				nb_threads = max_threads;
-			}
+			nb_threads = generating_region->icvs.nthreads_var[0];
+		}
+		else
+		{
+			nb_threads = max_threads;
+		}
+		if (nb_threads > 1 && generating_region->icvs.active_levels_var+1 > max_active_levels)
+		{
+			nb_threads = 1;
 		}
 	}
 	STARPU_ASSERT(nb_threads > 0);
 
 	new_region->icvs.dyn_var = generating_region->icvs.dyn_var;
 	new_region->icvs.nest_var = generating_region->icvs.nest_var;
-	if (new_region->level < max_levels)
+	/* the nthreads_var and bind_var arrays do not hold more than
+	 * max_active_levels entries at most, even if some in-between levels
+	 * are inactive */
+	if (new_region->level < max_active_levels)
 	{
 		if (generating_region->icvs.nthreads_var[1] != 0)
 		{
-			new_region->icvs.nthreads_var = malloc((1+max_levels-new_region->level) * sizeof(*new_region->icvs.nthreads_var));
+			new_region->icvs.nthreads_var = malloc((1+max_active_levels-new_region->level) * sizeof(*new_region->icvs.nthreads_var));
 			int i,j;
-			for (i = new_region->level, j = 0; i < max_levels; i++, j++)
+			for (i = new_region->level, j = 0; i < max_active_levels; i++, j++)
 			{
 				new_region->icvs.nthreads_var[j] = generating_region->icvs.nthreads_var[j+1];
 			}
@@ -804,21 +812,21 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 			new_region->icvs.nthreads_var[1] = 0;
 		}
 
-		if (generating_region->icvs.bind_var[1] != starpu_omp_bind_undefined)
+		if (generating_region->icvs.bind_var[1] != starpu_omp_proc_bind_undefined)
 		{
-			new_region->icvs.bind_var = malloc((1+max_levels-new_region->level) * sizeof(*new_region->icvs.bind_var));
+			new_region->icvs.bind_var = malloc((1+max_active_levels-new_region->level) * sizeof(*new_region->icvs.bind_var));
 			int i,j;
-			for (i = new_region->level, j = 0; i < max_levels; i++, j++)
+			for (i = new_region->level, j = 0; i < max_active_levels; i++, j++)
 			{
 				new_region->icvs.bind_var[j] = generating_region->icvs.bind_var[j+1];
 			}
-			new_region->icvs.bind_var[j] = starpu_omp_bind_undefined;
+			new_region->icvs.bind_var[j] = starpu_omp_proc_bind_undefined;
 		}
 		else
 		{
 			new_region->icvs.bind_var = malloc(2 * sizeof(*new_region->icvs.bind_var));
 			new_region->icvs.bind_var[0] = generating_region->icvs.bind_var[0];
-			new_region->icvs.bind_var[1] = starpu_omp_bind_undefined;
+			new_region->icvs.bind_var[1] = starpu_omp_proc_bind_undefined;
 		}
 	}
 	else
@@ -832,13 +840,15 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	new_region->icvs.thread_limit_var = generating_region->icvs.thread_limit_var;
 	new_region->icvs.active_levels_var = (nb_threads > 1)?generating_region->icvs.active_levels_var+1:generating_region->icvs.active_levels_var;
 	new_region->icvs.levels_var = generating_region->icvs.levels_var+1;
+	new_region->icvs.run_sched_var = generating_region->icvs.run_sched_var;
+	new_region->icvs.run_sched_chunk_var = generating_region->icvs.run_sched_chunk_var;
 	new_region->icvs.default_device_var = generating_region->icvs.default_device_var;
 
 	int i;
 	for (i = 0; i < nb_threads; i++)
 	{
 		struct starpu_omp_thread *new_thread;
-		
+
 		if (i == 0)
 		{
 			new_thread = master_thread;
@@ -1504,7 +1514,16 @@ static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_regio
 		unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i)
 {
 	*_nb_i = 0;
-	if (schedule == starpu_omp_schedule_static || schedule == starpu_omp_schedule_auto)
+	if (schedule == starpu_omp_sched_runtime)
+	{
+		schedule = parallel_region->icvs.run_sched_var;
+		chunk = parallel_region->icvs.run_sched_chunk_var;
+	}
+	STARPU_ASSERT(     schedule == starpu_omp_sched_static
+			|| schedule == starpu_omp_sched_dynamic
+			|| schedule == starpu_omp_sched_guided
+			|| schedule == starpu_omp_sched_auto);
+	if (schedule == starpu_omp_sched_static || schedule == starpu_omp_sched_auto)
 	{
 		if (chunk > 0)
 		{
@@ -1552,7 +1571,7 @@ static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_regio
 			}
 		}
 	}
-	else if (schedule == starpu_omp_schedule_dynamic)
+	else if (schedule == starpu_omp_sched_dynamic)
 	{
 		if (chunk == 0)
 		{
@@ -1578,7 +1597,7 @@ static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_regio
 		}
 		_starpu_spin_unlock(&parallel_region->lock);
 	}
-	else if (schedule == starpu_omp_schedule_guided)
+	else if (schedule == starpu_omp_sched_guided)
 	{
 		if (chunk == 0)
 		{

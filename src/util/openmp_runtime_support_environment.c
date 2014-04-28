@@ -185,7 +185,7 @@ static void read_size_var(const char *var, int *dest)
 	}
 }
 
-static void read_sched_var(const char *var, int *dest, int *dest_chunk)
+static void read_sched_var(const char *var, int *dest, unsigned long long *dest_chunk)
 {
 	const char *env = getenv(var);
 	if (env)
@@ -208,10 +208,13 @@ static void read_sched_var(const char *var, int *dest, int *dest_chunk)
 		if (str[offset] == ',')
 		{
 			offset++;
-			int v = (int)strtol(str+offset, NULL, 10);
+			long long v = strtoll(str+offset, NULL, 10);
 			if (errno != 0)
 				_STARPU_ERROR("could not parse environment variable %s, strtol failed with error %s\n", var, strerror(errno));
-			*dest_chunk = v;
+			if (v < 0)
+				_STARPU_ERROR("invalid negative modifier in environment variable %s\n", var);
+			unsigned long long uv = (unsigned long long) v;
+			*dest_chunk = uv;
 		}
 		else
 		{
@@ -310,7 +313,7 @@ static void convert_bind_string(const char *_str, int *bind_list, const int max_
 			if (n == 0)
 				_STARPU_ERROR("proc_bind list parse error\n");
 			int mode = convert_bind_mode(str+i,n);
-			STARPU_ASSERT(mode >= starpu_omp_bind_false && mode <= starpu_omp_bind_spread);
+			STARPU_ASSERT(mode >= starpu_omp_proc_bind_false && mode <= starpu_omp_proc_bind_spread);
 			bind_list[level] = mode;
 			level++;
 			if (level == max_levels)
@@ -679,7 +682,7 @@ static void read_omp_environment(void)
 		for (level = 0;level < max_levels;level++)
 		{
 			/* TODO: check what should be used as default value */
-			bind_list[level] = starpu_omp_bind_true;
+			bind_list[level] = starpu_omp_proc_bind_true;
 		}
 		const char *env = getenv("OMP_PROC_BIND");
 		if (env)
@@ -760,17 +763,17 @@ static void display_omp_environment(int verbosity_level)
 		printf("  [host] OMP_SCHEDULE='");
 		switch (_starpu_omp_initial_icv_values->run_sched_var)
 		{
-			case starpu_omp_schedule_static:
-				printf("static, %d", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+			case starpu_omp_sched_static:
+				printf("static, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
-			case starpu_omp_schedule_dynamic:
-				printf("dynamic, %d", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+			case starpu_omp_sched_dynamic:
+				printf("dynamic, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
-			case starpu_omp_schedule_guided:
-				printf("guided, %d", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+			case starpu_omp_sched_guided:
+				printf("guided, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
-			case starpu_omp_schedule_auto:
-				printf("auto, %d", _starpu_omp_initial_icv_values->run_sched_chunk_var);
+			case starpu_omp_sched_auto:
+				printf("auto, %llu", _starpu_omp_initial_icv_values->run_sched_chunk_var);
 				break;
 			default:
 				printf("<unknown>");
@@ -794,19 +797,19 @@ static void display_omp_environment(int verbosity_level)
 				}
 				switch (_starpu_omp_initial_icv_values->bind_var[level])
 				{
-					case starpu_omp_bind_false:
+					case starpu_omp_proc_bind_false:
 						printf("false");
 						break;
-					case starpu_omp_bind_true:
+					case starpu_omp_proc_bind_true:
 						printf("true");
 						break;
-					case starpu_omp_bind_master:
+					case starpu_omp_proc_bind_master:
 						printf("master");
 						break;
-					case starpu_omp_bind_close:
+					case starpu_omp_proc_bind_close:
 						printf("close");
 						break;
-					case starpu_omp_bind_spread:
+					case starpu_omp_proc_bind_spread:
 						printf("spread");
 						break;
 					default:

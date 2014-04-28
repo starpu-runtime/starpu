@@ -30,15 +30,17 @@ enum starpu_omp_sched_value
 	starpu_omp_sched_dynamic   = 2,
 	starpu_omp_sched_guided    = 3,
 	starpu_omp_sched_auto      = 4,
+	starpu_omp_sched_runtime   = 5
 };
 
 enum starpu_omp_proc_bind_value
 {
+	starpu_omp_proc_bind_undefined  = -1,
 	starpu_omp_proc_bind_false  = 0,
 	starpu_omp_proc_bind_true   = 1,
 	starpu_omp_proc_bind_master = 2,
 	starpu_omp_proc_bind_close  = 3,
-	starpu_omp_proc_bind_spread = 4,
+	starpu_omp_proc_bind_spread = 4
 };
 
 struct starpu_omp_parallel_region_attr

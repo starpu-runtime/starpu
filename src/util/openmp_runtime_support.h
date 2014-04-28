@@ -37,29 +37,7 @@
 /*
  * Arbitrary limit on the number of nested parallel sections
  */
-#define STARPU_OMP_MAX_ACTIVE_LEVELS 4
-
-/*
- * Proc bind modes defined by the OpenMP spec
- */
-enum starpu_omp_bind_mode
-{
-	starpu_omp_bind_undefined  = -1,
-	starpu_omp_bind_false  = 0,
-	starpu_omp_bind_true   = 1,
-	starpu_omp_bind_master = 2,
-	starpu_omp_bind_close  = 3,
-	starpu_omp_bind_spread = 4
-};
-
-enum starpu_omp_schedule_mode
-{
-	starpu_omp_schedule_undefined = 0,
-	starpu_omp_schedule_static    = 1,
-	starpu_omp_schedule_dynamic   = 2,
-	starpu_omp_schedule_guided    = 3,
-	starpu_omp_schedule_auto      = 4
-};
+#define STARPU_OMP_MAX_ACTIVE_LEVELS 1
 
 /*
  * Possible abstract names for OpenMP places
@@ -111,7 +89,8 @@ struct starpu_omp_data_environment_icvs
 	int *bind_var; /* bind_var ICV is a list */
 
 	/* loop region icvs */
-	/* unused: int run_sched_var; */
+	int run_sched_var;
+	unsigned long long run_sched_chunk_var;
 
 	/* program execution icvs */
 	int default_device_var;
@@ -148,7 +127,7 @@ struct starpu_omp_initial_icv_values
 	int nest_var;
 	int *nthreads_var;
 	int run_sched_var;
-	int run_sched_chunk_var;
+	unsigned long long run_sched_chunk_var;
 	int def_sched_var;
 	int *bind_var;
 	int stacksize_var;
