@@ -189,6 +189,7 @@ examplebin_PROGRAMS +=				\
 	sched_ctx/parallel_code			\
 	sched_ctx/dummy_sched_with_ctx		\
 	sched_ctx/prio				\
+	sched_ctx/sched_ctx_without_sched_policy\
 	worker_collections/worker_tree_example  \
 	worker_collections/worker_list_example  \
 	reductions/dot_product			\
@@ -268,6 +269,7 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/sched_ctx			\
 	sched_ctx/prio				\
 	sched_ctx/dummy_sched_with_ctx		\
+	sched_ctx/sched_ctx_without_sched_policy\
 	worker_collections/worker_tree_example  \
 	worker_collections/worker_list_example  \
 	reductions/dot_product			\
@@ -918,6 +920,9 @@ openmp_vector_scal_omp_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
 sched_ctx_parallel_code_CFLAGS = \
+	$(AM_CFLAGS) -fopenmp
+
+sched_ctx_sched_ctx_without_sched_policy_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
 endif

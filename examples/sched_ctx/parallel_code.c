@@ -44,14 +44,17 @@ int parallel_code(int sched_ctx)
 		for(i = 0; i < NTASKS; i++)
 			t++;
 	}
+
 	free(cpuids);
 	return t;
 }
 
 static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
+	int w = starpu_worker_get_id();
 	unsigned sched_ctx = (unsigned)arg;
-	tasks_executed[sched_ctx-1] = parallel_code(sched_ctx);
+	int n = parallel_code(sched_ctx);
+	printf("w %d executed %d it \n", w, n);
 }
 
 
@@ -68,11 +71,13 @@ static struct starpu_codelet sched_ctx_codelet =
 void *th(void* p)
 {
 	unsigned sched_ctx = (unsigned)p;
-	tasks_executed[sched_ctx-1] = (int)starpu_sched_ctx_exec_parallel_code((void*)parallel_code, (void*)sched_ctx, sched_ctx); 
+	tasks_executed[sched_ctx-1] += (int)starpu_sched_ctx_exec_parallel_code((void*)parallel_code, (void*)sched_ctx, sched_ctx); 
 }
 
 int main(int argc, char **argv)
 {
+	tasks_executed[0] = 0;
+	tasks_executed[1] = 0;
 	int ntasks = NTASKS;
 	int ret, j, k;
 
@@ -104,13 +109,6 @@ int main(int argc, char **argv)
 	procs2[0] = 0;
 #endif
 
-	int p;
-	for(p = 0; p <nprocs1; p++)
-		printf("w %d in ctx 1 \n", procs1[p]);
-
-	for(p = 0; p <nprocs2; p++)
-		printf("w %d in ctx 2 \n", procs2[p]);
-
 	/*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
 	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
@@ -141,14 +139,14 @@ int main(int argc, char **argv)
 	for(j = nprocs5; j < nprocs5+nprocs6; j++)
 		procs6[k++] = procs2[j];
 
-	int master3 = starpu_sched_ctx_book_workers_for_task(sched_ctx1, procs3, nprocs3);
-	int master4 = starpu_sched_ctx_book_workers_for_task(sched_ctx1, procs4, nprocs4);
+	int master3 = starpu_sched_ctx_book_workers_for_task(procs3, nprocs3);
+	int master4 = starpu_sched_ctx_book_workers_for_task(procs4, nprocs4);
 
-	int master5 = starpu_sched_ctx_book_workers_for_task(sched_ctx2, procs5, nprocs5);
-	int master6 = starpu_sched_ctx_book_workers_for_task(sched_ctx2, procs6, nprocs6);
+	int master5 = starpu_sched_ctx_book_workers_for_task(procs5, nprocs5);
+	int master6 = starpu_sched_ctx_book_workers_for_task(procs6, nprocs6);
 
-/* 	int master1 = starpu_sched_ctx_book_workers_for_task(sched_ctx1, procs1, nprocs1); */
-/* 	int master2 = starpu_sched_ctx_book_workers_for_task(sched_ctx2, procs2, nprocs2); */
+/* 	int master1 = starpu_sched_ctx_book_workers_for_task(procs1, nprocs1); */
+/* 	int master2 = starpu_sched_ctx_book_workers_for_task(procs2, nprocs2); */
 
 
 	int i;
