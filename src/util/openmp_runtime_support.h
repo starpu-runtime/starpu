@@ -44,6 +44,7 @@
  */
 enum starpu_omp_bind_mode
 {
+	starpu_omp_bind_undefined  = -1,
 	starpu_omp_bind_false  = 0,
 	starpu_omp_bind_true   = 1,
 	starpu_omp_bind_master = 2,
@@ -110,7 +111,7 @@ struct starpu_omp_data_environment_icvs
 	int *bind_var; /* bind_var ICV is a list */
 
 	/* loop region icvs */
-	int run_sched_var;
+	/* unused: int run_sched_var; */
 
 	/* program execution icvs */
 	int default_device_var;
@@ -122,7 +123,7 @@ struct starpu_omp_device_icvs
 	int max_active_levels_var;
 
 	/* loop region icvs */
-	int def_sched_var;
+	/* unused: int def_sched_var; */
 
 	/* program execution icvs */
 	int stacksize_var;
@@ -209,7 +210,7 @@ enum starpu_omp_task_wait_on
 };
 
 LIST_TYPE(starpu_omp_task,
-
+	struct starpu_omp_implicit_task_icvs icvs;
 	struct starpu_omp_task *parent_task;
 	struct starpu_omp_thread *owner_thread;
 	struct starpu_omp_region *owner_region;
@@ -301,6 +302,7 @@ struct starpu_omp_sections
 
 struct starpu_omp_region
 {
+	struct starpu_omp_data_environment_icvs icvs;
 	struct starpu_omp_region *parent_region;
 	struct starpu_omp_device *owner_device;
 	struct starpu_omp_thread *master_thread;
