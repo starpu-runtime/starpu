@@ -201,18 +201,18 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 {
 	struct starpu_task *task;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&args->parallel_sect_mutex);
 	if(args->parallel_sect)
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&args->parallel_sect_mutex);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 		_starpu_sched_ctx_signal_worker_blocked(args->workerid);
 		STARPU_PTHREAD_COND_WAIT(&args->parallel_sect_cond, &args->parallel_sect_mutex);
 		starpu_sched_ctx_bind_current_thread_to_cpuid(args->bindid);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&args->parallel_sect_mutex);
+		_starpu_sched_ctx_signal_worker_woke_up(workerid);
 		args->parallel_sect = 0;
 	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&args->parallel_sect_mutex);
 
+	STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
 	task = _starpu_pop_task(args);
 
 	if (task == NULL)

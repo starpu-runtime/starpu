@@ -51,10 +51,8 @@ int parallel_code(int sched_ctx)
 
 static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
-	int w = starpu_worker_get_id();
 	unsigned sched_ctx = (unsigned)arg;
-	int n = parallel_code(sched_ctx);
-	printf("w %d executed %d it \n", w, n);
+	tasks_executed[sched_ctx-1] += parallel_code(sched_ctx);
 }
 
 
@@ -68,11 +66,6 @@ static struct starpu_codelet sched_ctx_codelet =
 	.name = "sched_ctx"
 };
 
-void *th(void* p)
-{
-	unsigned sched_ctx = (unsigned)p;
-	tasks_executed[sched_ctx-1] += (int)starpu_sched_ctx_exec_parallel_code((void*)parallel_code, (void*)sched_ctx, sched_ctx); 
-}
 
 int main(int argc, char **argv)
 {
@@ -110,44 +103,8 @@ int main(int argc, char **argv)
 #endif
 
 	/*create contexts however you want*/
-	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
-	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
-
-	/*indicate what to do with the resources when context 2 finishes (it depends on your application)*/
-//	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
-
-	int nprocs3 = nprocs1/2;
-	int nprocs4 = nprocs1/2;
-	int nprocs5 = nprocs2/2;
-	int nprocs6 = nprocs2/2;
-	int procs3[nprocs3];
-	int procs4[nprocs4];
-	int procs5[nprocs5];
-	int procs6[nprocs6];
-
-	k = 0;
-	for(j = 0; j < nprocs3; j++)
-		procs3[k++] = procs1[j];
-	k = 0;
-	for(j = nprocs3; j < nprocs3+nprocs4; j++)
-		procs4[k++] = procs1[j];
-
-	k = 0;
-	for(j = 0; j < nprocs5; j++)
-		procs5[k++] = procs2[j];
-	k = 0;
-	for(j = nprocs5; j < nprocs5+nprocs6; j++)
-		procs6[k++] = procs2[j];
-
-	int master3 = starpu_sched_ctx_book_workers_for_task(procs3, nprocs3);
-	int master4 = starpu_sched_ctx_book_workers_for_task(procs4, nprocs4);
-
-	int master5 = starpu_sched_ctx_book_workers_for_task(procs5, nprocs5);
-	int master6 = starpu_sched_ctx_book_workers_for_task(procs6, nprocs6);
-
-/* 	int master1 = starpu_sched_ctx_book_workers_for_task(procs1, nprocs1); */
-/* 	int master2 = starpu_sched_ctx_book_workers_for_task(procs2, nprocs2); */
-
+	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", 0);
+	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", 0);
 
 	int i;
 	for (i = 0; i < ntasks; i++)
@@ -186,26 +143,10 @@ int main(int argc, char **argv)
 	/* wait for all tasks at the end*/
 	starpu_task_wait_for_all();
 
-/* 	starpu_sched_ctx_unbook_workers_for_task(sched_ctx1, master1); */
-/* 	starpu_sched_ctx_unbook_workers_for_task(sched_ctx2, master2); */
-
-	starpu_sched_ctx_unbook_workers_for_task(sched_ctx1, master3);
-	starpu_sched_ctx_unbook_workers_for_task(sched_ctx1, master4);
-
-	starpu_sched_ctx_unbook_workers_for_task(sched_ctx2, master5);
-	starpu_sched_ctx_unbook_workers_for_task(sched_ctx2, master6);
-
-	pthread_t mp[2];
-	pthread_create(&mp[0], NULL, th, sched_ctx1);
-	pthread_create(&mp[1], NULL, th, sched_ctx2);
-
-	pthread_join(mp[0], NULL);
-	pthread_join(mp[1], NULL);
-
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
-	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed[0], NTASKS);
-	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS);
+	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed[0], NTASKS*NTASKS);
+	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS*NTASKS);
 	starpu_shutdown();
 
 	return 0;

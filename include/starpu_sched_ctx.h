@@ -121,7 +121,7 @@ void starpu_sched_ctx_get_available_cpuids(unsigned sched_ctx_id, int **cpuids, 
 
 void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid);
 
-int starpu_sched_ctx_book_workers_for_task(unsigned sched_ctx_id, int *workerids, int nworkers);
+int starpu_sched_ctx_book_workers_for_task(int *workerids, int nworkers);
 
 void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int master);
 

@@ -119,6 +119,11 @@ struct _starpu_sched_ctx
 	
 	/* value placing the contexts in their hierarchy */
 	unsigned hierarchy_level;
+
+	/* if we execute non-StarPU code inside the context 
+	   we have a single master worker that stays awake, 
+	   if not master is -1 */
+	int master;
 };
 
 struct _starpu_machine_config;
@@ -178,6 +183,9 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);
 
 /* let the appl know that the worker blocked to execute parallel code */
 void _starpu_sched_ctx_signal_worker_blocked(int workerid);
+
+/* let the appl know that the worker woke up */
+void _starpu_sched_ctx_signal_worker_woke_up(int workerid);
 
 /* If starpu_sched_ctx_set_context() has been called, returns the context
  * id set by its last call, or the id of the initial context */

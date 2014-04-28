@@ -865,7 +865,7 @@ AC_SUBST(STARPU_USE_OPENCL, $enable_opencl)
 AM_CONDITIONAL(STARPU_USE_OPENCL, test x$enable_opencl = xyes)
 if test x$enable_opencl = xyes ; then
 	AC_DEFINE(STARPU_USE_OPENCL, [1], [OpenCL support is activated])
-	STARPU_OPENCL_CPPFLAGS="${STARPU_OPENCL_CPPFLAGS} -DSTARPU_OPENCL_DATADIR=${datarootdir}/starpu/opencl"
+	STARPU_OPENCL_CPPFLAGS="${STARPU_OPENCL_CPPFLAGS} -DSTARPU_OPENCL_DATADIR=${datarootdir}/starpu/opencl -DCL_USE_DEPRECATED_OPENCL_1_1_APIS"
         AC_SUBST(STARPU_OPENCL_DATAdir, "$(eval echo ${datarootdir}/starpu/opencl/examples)")
         AC_SUBST(STARPU_OPENCL_CPPFLAGS)
         AC_SUBST(STARPU_OPENCL_LDFLAGS)
