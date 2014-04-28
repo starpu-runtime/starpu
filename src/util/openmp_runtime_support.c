@@ -877,8 +877,8 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 
 	/* 
 	 * if task == initial_task, create a starpu task as a continuation to all the implicit
-	 * tasks of the new generating_region, else prepare the task for preemption,
-	 * to become itself a continuation to the implicit tasks of the new generating_region
+	 * tasks of the new region, else prepare the task for preemption,
+	 * to become itself a continuation to the implicit tasks of the new region
 	 */
 	if (task == _global_state.initial_task)
 	{
@@ -910,14 +910,14 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	{
 		implicit_task->cl = attr->cl;
 		/*
-		 * save pointer to the regions user function from the parallel generating_region codelet
+		 * save pointer to the regions user function from the parallel region codelet
 		 *
 		 * TODO: add support for multiple/heterogeneous implementations
 		 */
 		implicit_task->f = implicit_task->cl.cpu_funcs[0];
 
 		/*
-		 * plug the task wrapper into the parallel generating_region codelet instead, to support task preemption
+		 * plug the task wrapper into the parallel region codelet instead, to support task preemption
 		 */
 		implicit_task->cl.cpu_funcs[0] = starpu_omp_implicit_task_exec;
 
@@ -942,7 +942,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	attr = NULL;
 
 	/*
-	 * submit all the generating_region implicit starpu tasks
+	 * submit all the region implicit starpu tasks
 	 */
 	for (implicit_task  = starpu_omp_task_list_begin(new_region->implicit_task_list);
 			implicit_task != starpu_omp_task_list_end(new_region->implicit_task_list);
@@ -953,7 +953,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	}
 
 	/*
-	 * submit the generating_region continuation starpu task if task == initial_task
+	 * submit the region continuation starpu task if task == initial_task
 	 */
 	if (task == _global_state.initial_task)
 	{
@@ -962,7 +962,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	}
 
 	/*
-	 * preempt for completion of the generating_region
+	 * preempt for completion of the region
 	 */
 	starpu_omp_task_preempt();
 	if (task == _global_state.initial_task)
@@ -975,7 +975,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		new_region->continuation_starpu_task = NULL;
 	}
 	/*
-	 * TODO: free generating_region resources
+	 * TODO: free region resources
 	 */
 	for (i = 0; i < nb_threads; i++)
 	{
