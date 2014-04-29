@@ -1957,6 +1957,206 @@ void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section
 	}
 }
 
+static void _starpu_omp_lock_init(void **_internal)
+{
+	struct _starpu_omp_lock_internal * _lock;
+	_lock = malloc(sizeof(*_lock));
+	STARPU_ASSERT(_lock != NULL);
+	memset(_lock, 0, sizeof(*_lock));
+	_starpu_spin_init(&_lock->lock);
+	condition_init(&_lock->cond);
+	*_internal = _lock;
+}
+
+static void _starpu_omp_lock_destroy(void **_internal)
+{
+	struct _starpu_omp_lock_internal * const _lock = *_internal;
+	STARPU_ASSERT(_lock->state == 0);
+	condition_exit(&_lock->cond);
+	_starpu_spin_destroy(&_lock->lock);
+	memset(_lock, 0, sizeof(*_lock));
+	*_internal = NULL;
+}
+
+static void _starpu_omp_lock_set(void **_internal)
+{
+	struct _starpu_omp_lock_internal * const _lock = *_internal;
+	_starpu_spin_lock(&_lock->lock);
+	while (_lock->state != 0)
+	{
+		condition_wait(&_lock->cond, &_lock->lock);
+	}
+	_lock->state = 1;
+	_starpu_spin_unlock(&_lock->lock);
+}
+
+static void _starpu_omp_lock_unset(void **_internal)
+{
+	struct _starpu_omp_lock_internal * const _lock = *_internal;
+	_starpu_spin_lock(&_lock->lock);
+	STARPU_ASSERT(_lock->state == 1);
+	_lock->state = 0;
+	condition_broadcast(&_lock->cond);
+	_starpu_spin_unlock(&_lock->lock);
+}
+
+static int _starpu_omp_lock_test(void **_internal)
+{
+	struct _starpu_omp_lock_internal * const _lock = *_internal;
+	int ret = 0;
+	_starpu_spin_lock(&_lock->lock);
+	if (_lock->state == 0)
+	{
+		_lock->state = 1;
+		ret = 1;
+	}
+	_starpu_spin_unlock(&_lock->lock);
+	return ret;
+}
+
+static void _starpu_omp_nest_lock_init(void **_internal)
+{
+	struct _starpu_omp_nest_lock_internal * _nest_lock;
+	_nest_lock = malloc(sizeof(*_nest_lock));
+	STARPU_ASSERT(_nest_lock != NULL);
+	memset(_nest_lock, 0, sizeof(*_nest_lock));
+	_starpu_spin_init(&_nest_lock->lock);
+	condition_init(&_nest_lock->cond);
+	*_internal = _nest_lock;
+}
+
+static void _starpu_omp_nest_lock_destroy(void **_internal)
+{
+	struct _starpu_omp_nest_lock_internal * const _nest_lock = *_internal;
+	STARPU_ASSERT(_nest_lock->state == 0);
+	STARPU_ASSERT(_nest_lock->nesting == 0);
+	STARPU_ASSERT(_nest_lock->owner_task == NULL);
+	condition_exit(&_nest_lock->cond);
+	_starpu_spin_destroy(&_nest_lock->lock);
+	memset(_nest_lock, 0, sizeof(*_nest_lock));
+	*_internal = NULL;
+}
+
+static void _starpu_omp_nest_lock_set(void **_internal)
+{
+	struct _starpu_omp_nest_lock_internal * const _nest_lock = *_internal;
+	struct starpu_omp_task * const task = _starpu_omp_get_task();
+	_starpu_spin_lock(&_nest_lock->lock);
+	if (_nest_lock->owner_task == task)
+	{
+		STARPU_ASSERT(_nest_lock->state == 1);
+		STARPU_ASSERT(_nest_lock->nesting > 0);
+		_nest_lock->nesting++;
+	}
+	else
+	{
+		while (_nest_lock->state != 0)
+		{
+			condition_wait(&_nest_lock->cond, &_nest_lock->lock);
+		}
+		STARPU_ASSERT(_nest_lock->nesting == 0);
+		STARPU_ASSERT(_nest_lock->owner_task == NULL);
+		_nest_lock->state = 1;
+		_nest_lock->owner_task = task;
+		_nest_lock->nesting = 1;
+	}
+	_starpu_spin_unlock(&_nest_lock->lock);
+}
+
+static void _starpu_omp_nest_lock_unset(void **_internal)
+{
+	struct _starpu_omp_nest_lock_internal * const _nest_lock = *_internal;
+	struct starpu_omp_task * const task = _starpu_omp_get_task();
+	_starpu_spin_lock(&_nest_lock->lock);
+	STARPU_ASSERT(_nest_lock->owner_task == task);
+	STARPU_ASSERT(_nest_lock->state == 1);
+	STARPU_ASSERT(_nest_lock->nesting > 0);
+	_nest_lock->nesting--;
+	if (_nest_lock->nesting == 0)
+	{
+		_nest_lock->state = 0;
+		_nest_lock->owner_task = NULL;
+		condition_broadcast(&_nest_lock->cond);
+	}
+	_starpu_spin_unlock(&_nest_lock->lock);
+}
+
+static int _starpu_omp_nest_lock_test(void **_internal)
+{
+	struct _starpu_omp_nest_lock_internal * const _nest_lock = *_internal;
+	struct starpu_omp_task * const task = _starpu_omp_get_task();
+	int ret = 0;
+	_starpu_spin_lock(&_nest_lock->lock);
+	if (_nest_lock->state == 0)
+	{
+		STARPU_ASSERT(_nest_lock->nesting == 0);
+		STARPU_ASSERT(_nest_lock->owner_task == NULL);
+		_nest_lock->state = 1;
+		_nest_lock->owner_task = task;
+		_nest_lock->nesting = 1;
+		ret = 1;
+	}
+	else if (_nest_lock->owner_task == task)
+	{
+		STARPU_ASSERT(_nest_lock->state == 1);
+		STARPU_ASSERT(_nest_lock->nesting > 0);
+		_nest_lock->nesting++;
+		ret = 1;
+	}
+	_starpu_spin_unlock(&_nest_lock->lock);
+	return ret;
+}
+
+void starpu_omp_init_lock (starpu_omp_lock_t *lock)
+{
+	_starpu_omp_lock_init(&lock->internal);
+}
+
+void starpu_omp_destroy_lock (starpu_omp_lock_t *lock)
+{
+	_starpu_omp_lock_destroy(&lock->internal);
+}
+
+void starpu_omp_set_lock (starpu_omp_lock_t *lock)
+{
+	_starpu_omp_lock_set(&lock->internal);
+}
+
+void starpu_omp_unset_lock (starpu_omp_lock_t *lock)
+{
+	_starpu_omp_lock_unset(&lock->internal);
+}
+
+int starpu_omp_test_lock (starpu_omp_lock_t *lock)
+{
+	return _starpu_omp_lock_test(&lock->internal);
+}
+
+void starpu_omp_init_nest_lock (starpu_omp_nest_lock_t *nest_lock)
+{
+	_starpu_omp_nest_lock_init(&nest_lock->internal);
+}
+
+void starpu_omp_destroy_nest_lock (starpu_omp_nest_lock_t *nest_lock)
+{
+	_starpu_omp_nest_lock_destroy(&nest_lock->internal);
+}
+
+void starpu_omp_set_nest_lock (starpu_omp_nest_lock_t *nest_lock)
+{
+	_starpu_omp_nest_lock_set(&nest_lock->internal);
+}
+
+void starpu_omp_unset_nest_lock (starpu_omp_nest_lock_t *nest_lock)
+{
+	_starpu_omp_nest_lock_unset(&nest_lock->internal);
+}
+
+int starpu_omp_test_nest_lock (starpu_omp_nest_lock_t *nest_lock)
+{
+	return _starpu_omp_nest_lock_test(&nest_lock->internal);
+}
+
 /*
  * restore deprecated diagnostics (-Wdeprecated-declarations)
  */

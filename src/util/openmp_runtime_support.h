@@ -264,6 +264,22 @@ LIST_TYPE(starpu_omp_thread,
 	struct _starpu_worker *worker;
 )
 
+struct _starpu_omp_lock_internal
+{
+	struct _starpu_spinlock lock;
+	struct starpu_omp_condition cond;
+	unsigned state;
+};
+
+struct _starpu_omp_nest_lock_internal
+{
+	struct _starpu_spinlock lock;
+	struct starpu_omp_condition cond;
+	unsigned state;
+	struct starpu_omp_task *owner_task;
+	unsigned nesting;
+};
+
 struct starpu_omp_loop
 {
 	int id;

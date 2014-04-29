@@ -20,8 +20,8 @@
 #include <starpu_config.h>
 
 #if defined STARPU_OPENMP
-typedef void *starpu_omp_lock_t; /* TODO: select a proper type */
-typedef void *starpu_omp_nest_lock_t; /* TODO: select a proper type */
+typedef struct { void *internal; } starpu_omp_lock_t;
+typedef struct { void *internal; } starpu_omp_nest_lock_t;
 
 enum starpu_omp_sched_value
 {

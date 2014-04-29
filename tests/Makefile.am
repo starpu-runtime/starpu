@@ -237,6 +237,8 @@ noinst_PROGRAMS =				\
 	openmp/parallel_critical_inline_01	\
 	openmp/parallel_critical_named_01	\
 	openmp/parallel_critical_named_inline_01\
+	openmp/parallel_simple_lock_01		\
+	openmp/parallel_nested_lock_01		\
 	openmp/parallel_for_01			\
 	openmp/parallel_for_02			\
 	openmp/parallel_for_ordered_01		\
@@ -506,6 +508,12 @@ openmp_parallel_critical_named_01_SOURCES = 	\
 
 openmp_parallel_critical_named_inline_01_SOURCES = 	\
 	openmp/parallel_critical_named_inline_01.c
+
+openmp_parallel_simple_lock_01_SOURCES = 	\
+	openmp/parallel_simple_lock_01.c
+
+openmp_parallel_nested_lock_01_SOURCES = 	\
+	openmp/parallel_nested_lock_01.c
 
 openmp_parallel_for_01_SOURCES = 	\
 	openmp/parallel_for_01.c

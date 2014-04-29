@@ -261,67 +261,6 @@ int starpu_omp_is_initial_device(void)
 	return device == _starpu_omp_global_state->initial_device;
 }
 
-
-void starpu_omp_init_lock (starpu_omp_lock_t *lock)
-{
-	(void) lock;
-	__not_implemented__;
-}
-
-void starpu_omp_destroy_lock (starpu_omp_lock_t *lock)
-{
-	(void) lock;
-	__not_implemented__;
-}
-
-void starpu_omp_set_lock (starpu_omp_lock_t *lock)
-{
-	(void) lock;
-	__not_implemented__;
-}
-
-void starpu_omp_unset_lock (starpu_omp_lock_t *lock)
-{
-	(void) lock;
-	__not_implemented__;
-}
-
-int starpu_omp_test_lock (starpu_omp_lock_t *lock)
-{
-	(void) lock;
-	__not_implemented__;
-}
-
-void starpu_omp_init_nest_lock (starpu_omp_nest_lock_t *lock)
-{
-	(void) lock;
-	__not_implemented__;
-}
-
-void starpu_omp_destroy_nest_lock (starpu_omp_nest_lock_t *lock)
-{
-	(void) lock;
-	__not_implemented__;
-}
-
-void starpu_omp_set_nest_lock (starpu_omp_nest_lock_t *lock)
-{
-	(void) lock;
-	__not_implemented__;
-}
-
-void starpu_omp_unset_nest_lock (starpu_omp_nest_lock_t *lock)
-{
-	(void) lock;
-	__not_implemented__;
-}
-
-int starpu_omp_test_nest_lock (starpu_omp_nest_lock_t *lock)
-{
-	(void) lock;
-	__not_implemented__;
-}
-
 double starpu_omp_get_wtime (void)
 {
 	return starpu_timing_now() - _starpu_omp_clock_ref;
