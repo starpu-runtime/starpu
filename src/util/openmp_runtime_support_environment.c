@@ -678,14 +678,14 @@ static void read_omp_environment(void)
 
 	/* read OMP_PROC_BIND */
 	{
-		int *bind_list = malloc(max_levels * sizeof(*bind_list));
+		int *bind_list = malloc((1+max_levels) * sizeof(*bind_list));
 		if (bind_list == NULL)
 			_STARPU_ERROR("memory allocation failed\n");
 		int level;
-		for (level = 0;level < max_levels;level++)
+		for (level = 0;level < max_levels+1;level++)
 		{
 			/* TODO: check what should be used as default value */
-			bind_list[level] = starpu_omp_proc_bind_true;
+			bind_list[level] = starpu_omp_proc_bind_undefined;
 		}
 		const char *env = getenv("OMP_PROC_BIND");
 		if (env)
@@ -697,11 +697,11 @@ static void read_omp_environment(void)
 
 	/* read OMP_NUM_THREADS */
 	{
-		int *num_threads_list = malloc(max_levels * sizeof(*num_threads_list));
+		int *num_threads_list = malloc((1+max_levels) * sizeof(*num_threads_list));
 		if (num_threads_list == NULL)
 			_STARPU_ERROR("memory allocation failed\n");
 		int level;
-		for (level = 0;level < max_levels;level++)
+		for (level = 0;level < max_levels+1;level++)
 		{
 			/* TODO: check what should be used as default value */
 			num_threads_list[level] = 0;
