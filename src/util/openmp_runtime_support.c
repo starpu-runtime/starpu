@@ -33,7 +33,7 @@
 #include <ctype.h>
 #include <strings.h>
 
-#define _STARPU_STACKSIZE 2097152
+#define _STARPU_INITIAL_THREAD_STACKSIZE 2097152
 
 static struct starpu_omp_global _global_state;
 static starpu_pthread_key_t omp_thread_key;
@@ -343,7 +343,7 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 		task->starpu_cl_arg = cl_arg;
 		STARPU_ASSERT (task->stack == NULL);
 		/* TODO: use ICV stack size info instead */
-		task->stack = malloc(_STARPU_STACKSIZE);
+		task->stack = malloc(task->stacksize);
 		if (task->stack == NULL)
 			_STARPU_ERROR("memory allocation failed");
 		getcontext(&task->ctx);
@@ -353,7 +353,7 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 		 */
 		task->ctx.uc_link                 = NULL;
 		task->ctx.uc_stack.ss_sp          = task->stack;
-		task->ctx.uc_stack.ss_size        = _STARPU_STACKSIZE;
+		task->ctx.uc_stack.ss_size        = task->stacksize;
 		makecontext(&task->ctx, (void (*) ()) starpu_omp_implicit_task_entry, 1, task);
 	}
 
@@ -403,7 +403,7 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 		task->starpu_cl_arg = cl_arg;
 		STARPU_ASSERT (task->stack == NULL);
 		/* TODO: use ICV stack size info instead */
-		task->stack = malloc(_STARPU_STACKSIZE);
+		task->stack = malloc(task->stacksize);
 		if (task->stack == NULL)
 			_STARPU_ERROR("memory allocation failed");
 		getcontext(&task->ctx);
@@ -413,7 +413,7 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 		 */
 		task->ctx.uc_link                 = NULL;
 		task->ctx.uc_stack.ss_sp          = task->stack;
-		task->ctx.uc_stack.ss_size        = _STARPU_STACKSIZE;
+		task->ctx.uc_stack.ss_size        = task->stacksize;
 		makecontext(&task->ctx, (void (*) ()) starpu_omp_explicit_task_entry, 1, task);
 	}
 	task->state = starpu_omp_task_state_clear;
@@ -516,6 +516,11 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 		memset(&task->implicit_task_icvs, 0, sizeof(task->implicit_task_icvs));
 	}
 
+	if (owner_region->level > 0)
+	{
+		task->stacksize = owner_region->owner_device->icvs.stacksize_var;
+	}
+
 	return task;
 }
 
@@ -541,7 +546,7 @@ static void omp_initial_thread_setup(void)
 	initial_thread->current_task = initial_task;
 	/* .owner_region already set in create_omp_thread_struct */
 	/* .initial_thread_stack */
-	initial_thread->initial_thread_stack = malloc(_STARPU_STACKSIZE);
+	initial_thread->initial_thread_stack = malloc(_STARPU_INITIAL_THREAD_STACKSIZE);
 	if (initial_thread->initial_thread_stack == NULL)
 		_STARPU_ERROR("memory allocation failed");
 	/* .ctx */
@@ -551,7 +556,7 @@ static void omp_initial_thread_setup(void)
 	 */
 	initial_thread->ctx.uc_link          = NULL;
 	initial_thread->ctx.uc_stack.ss_sp   = initial_thread->initial_thread_stack;
-	initial_thread->ctx.uc_stack.ss_size = _STARPU_STACKSIZE;
+	initial_thread->ctx.uc_stack.ss_size = _STARPU_INITIAL_THREAD_STACKSIZE;
 	makecontext(&initial_thread->ctx, omp_initial_thread_func, 0);
 	/* .starpu_driver */
 	/*
@@ -620,6 +625,8 @@ static void omp_initial_region_setup(void)
 	_starpu_omp_initial_icv_values->nest_var = 0;
 
 	_global_state.initial_device->icvs.max_active_levels_var = max_active_levels;
+	_global_state.initial_device->icvs.def_sched_var = _starpu_omp_initial_icv_values->def_sched_var;
+	_global_state.initial_device->icvs.def_sched_chunk_var = _starpu_omp_initial_icv_values->def_sched_chunk_var;
 	_global_state.initial_device->icvs.stacksize_var = _starpu_omp_initial_icv_values->stacksize_var;
 	_global_state.initial_device->icvs.wait_policy_var = _starpu_omp_initial_icv_values->wait_policy_var;
 
@@ -1514,7 +1521,12 @@ static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_regio
 		unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i)
 {
 	*_nb_i = 0;
-	if (schedule == starpu_omp_sched_runtime)
+	if (schedule == starpu_omp_sched_undefined)
+	{
+		schedule = parallel_region->owner_device->icvs.def_sched_var;
+		chunk = parallel_region->owner_device->icvs.def_sched_chunk_var;
+	}
+	else if (schedule == starpu_omp_sched_runtime)
 	{
 		schedule = parallel_region->icvs.run_sched_var;
 		chunk = parallel_region->icvs.run_sched_chunk_var;
@@ -1523,7 +1535,12 @@ static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_regio
 			|| schedule == starpu_omp_sched_dynamic
 			|| schedule == starpu_omp_sched_guided
 			|| schedule == starpu_omp_sched_auto);
-	if (schedule == starpu_omp_sched_static || schedule == starpu_omp_sched_auto)
+	if (schedule == starpu_omp_sched_auto)
+	{
+		schedule = starpu_omp_sched_static;
+		chunk = 0;
+	}
+	if (schedule == starpu_omp_sched_static)
 	{
 		if (chunk > 0)
 		{

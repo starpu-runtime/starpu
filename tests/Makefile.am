@@ -223,6 +223,7 @@ noinst_PROGRAMS =				\
 	openmp/init_exit_01			\
 	openmp/init_exit_02			\
 	openmp/environment			\
+	openmp/api_01				\
 	openmp/parallel_01			\
 	openmp/parallel_02			\
 	openmp/parallel_03			\
@@ -463,6 +464,9 @@ openmp_init_exit_02_SOURCES = 	\
 
 openmp_environment_SOURCES = 	\
 	openmp/environment.c
+
+openmp_api_01_SOURCES = 	\
+	openmp/api_01.c
 
 openmp_parallel_01_SOURCES = 	\
 	openmp/parallel_01.c

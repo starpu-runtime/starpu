@@ -102,7 +102,8 @@ struct starpu_omp_device_icvs
 	int max_active_levels_var;
 
 	/* loop region icvs */
-	/* unused: int def_sched_var; */
+	int def_sched_var;
+	unsigned long long def_sched_chunk_var;
 
 	/* program execution icvs */
 	int stacksize_var;
@@ -129,6 +130,7 @@ struct starpu_omp_initial_icv_values
 	int run_sched_var;
 	unsigned long long run_sched_chunk_var;
 	int def_sched_var;
+	unsigned long long def_sched_chunk_var;
 	int *bind_var;
 	int stacksize_var;
 	int wait_policy_var;
@@ -234,6 +236,8 @@ LIST_TYPE(starpu_omp_task,
 	 * in case blocking/recursive task operation
 	 */
 	void *stack;
+
+	size_t stacksize;
 )
 
 LIST_TYPE(starpu_omp_thread,

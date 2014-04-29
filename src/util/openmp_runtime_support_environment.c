@@ -23,16 +23,19 @@
 
 #define _STARPU_INITIAL_PLACES_LIST_SIZE      4
 #define _STARPU_INITIAL_PLACE_ITEMS_LIST_SIZE 4
+#define _STARPU_DEFAULT_STACKSIZE 2097152
 
 static struct starpu_omp_initial_icv_values _initial_icv_values =
 {
 	.dyn_var = 0,
 	.nest_var = 0,
 	.nthreads_var = NULL,
-	.run_sched_var = 0,
-	.def_sched_var = 0,
+	.run_sched_var = starpu_omp_sched_static,
+	.run_sched_chunk_var = 0,
+	.def_sched_var = starpu_omp_sched_static,
+	.def_sched_chunk_var = 0,
 	.bind_var = NULL,
-	.stacksize_var = 0,
+	.stacksize_var = _STARPU_DEFAULT_STACKSIZE,
 	.wait_policy_var = 0,
 	.max_active_levels_var = STARPU_OMP_MAX_ACTIVE_LEVELS,
 	.active_levels_var = 0,

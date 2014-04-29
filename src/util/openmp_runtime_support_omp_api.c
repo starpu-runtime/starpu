@@ -257,9 +257,8 @@ int starpu_omp_get_team_num(void)
 
 int starpu_omp_is_initial_device(void)
 {
-	/* TODO: is_initial_device not supported for now
-	 * assume host device */
-	return 1;
+	const struct starpu_omp_device * const device = _starpu_omp_get_task()->owner_region->owner_device;
+	return device == _starpu_omp_global_state->initial_device;
 }
 
 
