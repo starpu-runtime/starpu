@@ -270,7 +270,8 @@ static int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, 
 
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
-	if(config.workers[workerid].parallel_sect) return 0;
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	if(sched_ctx->parallel_sect[workerid]) return 0;
 	/* TODO: check that the task operand sizes will fit on that device */
 	return (task->cl->where & config.workers[workerid].worker_mask) &&
 		_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl) &&
@@ -412,8 +413,6 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	starpu_task_list_init(&workerarg->local_tasks);
 	workerarg->current_task = NULL;
 	workerarg->set = NULL;
-	sem_init(&workerarg->fall_asleep_sem, 0, 0);
-	sem_init(&workerarg->wake_up_sem, 0, 0);
 
 	/* if some codelet's termination cannot be handled directly :
 	 * for instance in the Gordon driver, Gordon tasks' callbacks
@@ -430,6 +429,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->run_by_starpu = 1;
 
 	workerarg->sched_ctx_list = NULL;
+	workerarg->tmp_sched_ctx_list = NULL;
 	workerarg->nsched_ctxs = 0;
 	_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
 
@@ -441,10 +441,6 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 
 	workerarg->spinning_backoff = 1;
 
-	STARPU_PTHREAD_COND_INIT(&workerarg->parallel_sect_cond, NULL);
-	STARPU_PTHREAD_MUTEX_INIT(&workerarg->parallel_sect_mutex, NULL);
-
-	workerarg->parallel_sect = 0;
 
 	for(ctx = 0; ctx < STARPU_NMAX_SCHED_CTXS; ctx++)
 	{
@@ -455,7 +451,6 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->reverse_phase[1] = 0;
 	workerarg->pop_ctx_priority = 1;
 	workerarg->sched_mutex_locked = 0;
-	workerarg->master = -1;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
@@ -1183,6 +1178,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 out:
 		STARPU_ASSERT(starpu_task_list_empty(&worker->local_tasks));
 		_starpu_sched_ctx_list_delete(&worker->sched_ctx_list);
+		_starpu_sched_ctx_list_delete(&worker->tmp_sched_ctx_list);
 		_starpu_job_list_delete(worker->terminated_jobs);
 	}
 }

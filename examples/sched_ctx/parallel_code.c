@@ -139,11 +139,11 @@ int main(int argc, char **argv)
 	for(j = nprocs5; j < nprocs5+nprocs6; j++)
 		procs6[k++] = procs2[j];
 
-	int master3 = starpu_sched_ctx_book_workers_for_task(procs3, nprocs3);
-	int master4 = starpu_sched_ctx_book_workers_for_task(procs4, nprocs4);
+	int master3 = starpu_sched_ctx_book_workers_for_task(sched_ctx1, procs3, nprocs3);
+	int master4 = starpu_sched_ctx_book_workers_for_task(sched_ctx1, procs4, nprocs4);
 
-	int master5 = starpu_sched_ctx_book_workers_for_task(procs5, nprocs5);
-	int master6 = starpu_sched_ctx_book_workers_for_task(procs6, nprocs6);
+	int master5 = starpu_sched_ctx_book_workers_for_task(sched_ctx2, procs5, nprocs5);
+	int master6 = starpu_sched_ctx_book_workers_for_task(sched_ctx2, procs6, nprocs6);
 
 /* 	int master1 = starpu_sched_ctx_book_workers_for_task(procs1, nprocs1); */
 /* 	int master2 = starpu_sched_ctx_book_workers_for_task(procs2, nprocs2); */

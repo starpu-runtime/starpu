@@ -446,7 +446,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 		if(!sched_ctx->sched_policy)
 		{
-			ret = _starpu_push_task_on_specific_worker(task, sched_ctx->master);
+			ret = _starpu_push_task_on_specific_worker(task, sched_ctx->main_master);
 		}
 		else
 		{
