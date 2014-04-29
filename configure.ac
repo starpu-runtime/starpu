@@ -2197,7 +2197,7 @@ AM_CONDITIONAL(ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
 AM_CONDITIONAL(GOTO_BLAS_LIB, test x$blas_lib = xgoto)
 AM_CONDITIONAL(MKL_BLAS_LIB, test x$blas_lib = xmkl)
 AM_CONDITIONAL(SYSTEM_BLAS_LIB, test x$blas_lib = xsystem)
-AM_CONDITIONAL(NO_BLAS_LIB, test x$blas_lib = xnone)
+AM_CONDITIONAL(NO_BLAS_LIB, test x$blas_lib = xnone -a x$enable_simgrid = xno)
 
 AC_MSG_CHECKING(which BLAS lib should be used)
 AC_MSG_RESULT($blas_lib)
