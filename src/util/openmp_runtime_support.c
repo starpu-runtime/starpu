@@ -759,6 +759,7 @@ void starpu_omp_shutdown(void)
 	STARPU_ASSERT(_global_state.hash_workers == NULL);
 	_starpu_spin_unlock(&_global_state.hash_workers_lock);
 	_starpu_spin_destroy(&_global_state.hash_workers_lock);
+	_starpu_omp_environment_exit();
 	STARPU_PTHREAD_KEY_DELETE(omp_task_key);
 	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
 }
@@ -1011,6 +1012,8 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	}
 	STARPU_ASSERT(new_region->nb_threads == 0);
 	task->nested_region = NULL;
+	free(new_region->icvs.bind_var);
+	free(new_region->icvs.nthreads_var);
 	destroy_omp_region_struct(new_region);
 }
 
@@ -1975,6 +1978,7 @@ static void _starpu_omp_lock_destroy(void **_internal)
 	condition_exit(&_lock->cond);
 	_starpu_spin_destroy(&_lock->lock);
 	memset(_lock, 0, sizeof(*_lock));
+	free(_lock);
 	*_internal = NULL;
 }
 
@@ -2034,6 +2038,7 @@ static void _starpu_omp_nest_lock_destroy(void **_internal)
 	condition_exit(&_nest_lock->cond);
 	_starpu_spin_destroy(&_nest_lock->lock);
 	memset(_nest_lock, 0, sizeof(*_nest_lock));
+	free(_nest_lock);
 	*_internal = NULL;
 }
 
