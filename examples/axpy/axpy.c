@@ -31,7 +31,7 @@
 
 #include "axpy.h"
 
-#define AXPY	SAXPY
+#define AXPY	STARPU_SAXPY
 #define CUBLASAXPY	cublasSaxpy
 
 #define N	(16*1024*1024)

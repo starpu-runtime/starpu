@@ -90,7 +90,7 @@ void pipeline_cpu_axpy(void *descr[], void *arg)
 	float *y = (float *) STARPU_VECTOR_GET_PTR(descr[1]);
 	int n = STARPU_VECTOR_GET_NX(descr[0]);
 
-	SAXPY(n, 1., x, 1, y, 1);
+	STARPU_SAXPY(n, 1., x, 1, y, 1);
 }
 
 #ifdef STARPU_USE_CUDA
@@ -129,7 +129,7 @@ void pipeline_cpu_sum(void *descr[], void *_args)
 	int n = STARPU_VECTOR_GET_NX(descr[0]);
 	float y;
 
-	y = SASUM(n, x, 1);
+	y = STARPU_SASUM(n, x, 1);
 
 	FPRINTF(stderr,"CPU finished with %f\n", y);
 }

@@ -203,7 +203,7 @@ int main(int argc, char **argv)
 		}
 	}
 	float test_mat[size * size] __heap;
-	SSYRK("L", "N", size, size, 1.0f,
+	STARPU_SSYRK("L", "N", size, size, 1.0f,
 	      rmat, size, 0.0f, test_mat, size);
 
 	fprintf(stderr, "comparing results ...\n");

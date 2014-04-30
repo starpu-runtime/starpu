@@ -17,9 +17,9 @@
 #define TYPE	double
 
 #define CUBLAS_GEMM cublasDgemm
-#define CPU_GEMM	DGEMM
-#define CPU_ASUM	DASUM
-#define CPU_IAMAX	IDAMAX
+#define CPU_GEMM	STARPU_DGEMM
+#define CPU_ASUM	STARPU_DASUM
+#define CPU_IAMAX	STARPU_IDAMAX
 #define STARPU_GEMM(name)	starpu_dgemm_##name
 
 #define str(s) #s
