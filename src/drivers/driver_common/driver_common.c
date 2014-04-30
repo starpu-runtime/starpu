@@ -212,6 +212,17 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	}
 }
 
+static void _starpu_worker_set_status_scheduling(int workerid)
+{
+	if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING
+		&& _starpu_worker_get_status(workerid) != STATUS_SCHEDULING)
+	{
+		_STARPU_TRACE_WORKER_SCHEDULING_START;
+		_starpu_worker_set_status(workerid, STATUS_SCHEDULING);
+	}
+
+}
+
 static void _starpu_worker_set_status_sleeping(int workerid)
 {
 	if ( _starpu_worker_get_status(workerid) == STATUS_WAKING_UP)
@@ -252,20 +263,59 @@ static void _starpu_exponential_backoff(struct _starpu_worker *args)
 /* Workers may block when there is no work to do at all. */
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode)
 {
-	struct starpu_task *task;
-
-	STARPU_PTHREAD_MUTEX_LOCK(&args->parallel_sect_mutex);
-	if(args->parallel_sect)
-	{
-		_starpu_sched_ctx_signal_worker_blocked(args->workerid);
-		STARPU_PTHREAD_COND_WAIT(&args->parallel_sect_cond, &args->parallel_sect_mutex);
-		starpu_sched_ctx_bind_current_thread_to_cpuid(args->bindid);
-		_starpu_sched_ctx_signal_worker_woke_up(workerid);
-		args->parallel_sect = 0;
-	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&args->parallel_sect_mutex);
-
 	STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
+	struct starpu_task *task;
+	unsigned needed = 1;
+	_starpu_worker_set_status_scheduling(workerid);
+	while(needed)
+	{
+		struct _starpu_sched_ctx *sched_ctx = NULL;
+		struct _starpu_sched_ctx_list *l = NULL;
+		for (l = args->sched_ctx_list; l; l = l->next)
+		{
+			sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+			if(sched_ctx && sched_ctx->id > 0 && sched_ctx->id < STARPU_NMAX_SCHED_CTXS)
+			{
+				STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->parallel_sect_mutex[workerid]);
+				if(sched_ctx->parallel_sect[workerid])
+				{
+					/* don't let the worker sleep with the sched_mutex taken */
+					/* we need it until here bc of the list of ctxs of the workers
+					   that can change in another thread */
+					STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+					needed = 0;
+					_starpu_sched_ctx_signal_worker_blocked(sched_ctx->id, workerid);
+					STARPU_PTHREAD_COND_WAIT(&sched_ctx->parallel_sect_cond[workerid], &sched_ctx->parallel_sect_mutex[workerid]);
+					_starpu_sched_ctx_signal_worker_woke_up(sched_ctx->id, workerid);
+					sched_ctx->parallel_sect[workerid] = 0;
+					STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
+				}
+				STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->parallel_sect_mutex[workerid]);
+			}
+			if(!needed)
+				break;
+		}
+		/* don't worry if the value is not correct (no lock) it will do it next time */
+		if(args->tmp_sched_ctx != -1)
+		{
+			sched_ctx = _starpu_get_sched_ctx_struct(args->tmp_sched_ctx);
+			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->parallel_sect_mutex[workerid]);
+			if(sched_ctx->parallel_sect[workerid])
+			{
+//				needed = 0;
+				STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+				_starpu_sched_ctx_signal_worker_blocked(sched_ctx->id, workerid);
+				STARPU_PTHREAD_COND_WAIT(&sched_ctx->parallel_sect_cond[workerid], &sched_ctx->parallel_sect_mutex[workerid]);
+				_starpu_sched_ctx_signal_worker_woke_up(sched_ctx->id, workerid);
+				sched_ctx->parallel_sect[workerid] = 0;
+				STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
+			}
+			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->parallel_sect_mutex[workerid]);
+		}
+
+		needed = !needed;
+	}
+
 	task = _starpu_pop_task(args);
 
 	if (task == NULL)

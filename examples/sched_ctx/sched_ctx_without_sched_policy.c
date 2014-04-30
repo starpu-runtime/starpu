@@ -59,8 +59,8 @@ static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 static struct starpu_codelet sched_ctx_codelet =
 {
 	.cpu_funcs = {sched_ctx_func, NULL},
-	.cuda_funcs = {sched_ctx_func, NULL},
-	.opencl_funcs = {sched_ctx_func, NULL},
+	.cuda_funcs = { NULL},
+	.opencl_funcs = {NULL},
 	.model = NULL,
 	.nbuffers = 0,
 	.name = "sched_ctx"
@@ -90,11 +90,22 @@ int main(int argc, char **argv)
 	procs2 = (int*)malloc(ncpus*sizeof(int));
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
 
-	nprocs1 = ncpus/2;
-	nprocs2 =  nprocs1;
-	k = 0;
-	for(j = nprocs1; j < nprocs1+nprocs2; j++)
-		procs2[k++] = j;
+	if(ncpus > 1)
+	{
+		nprocs1 = ncpus/2;
+		nprocs2 =  ncpus-nprocs1;
+		k = 0;
+		for(j = nprocs1; j < nprocs1+nprocs2; j++)
+			procs2[k++] = j;
+	}
+	else
+	{
+		procs1 = (int*)malloc(nprocs1*sizeof(int));
+		procs2 = (int*)malloc(nprocs2*sizeof(int));
+		procs1[0] = 0;
+		procs2[0] = 0;
+
+	}
 #else
 	procs1 = (int*)malloc(nprocs1*sizeof(int));
 	procs2 = (int*)malloc(nprocs2*sizeof(int));

@@ -84,6 +84,7 @@ LIST_TYPE(_starpu_worker,
 	unsigned run_by_starpu; /* Is this run by StarPU or directly by the application ? */
 
 	struct _starpu_sched_ctx_list *sched_ctx_list;
+	int tmp_sched_ctx;
 	unsigned nsched_ctxs; /* the no of contexts a worker belongs to*/
 	struct _starpu_barrier_counter tasks_barrier; /* wait for the tasks submitted */
 
@@ -93,13 +94,6 @@ LIST_TYPE(_starpu_worker,
 
 	unsigned spinning_backoff ; /* number of cycles to pause when spinning  */
 
-	/* conditions variables used when parallel sections are executed in contexts */
-	starpu_pthread_cond_t parallel_sect_cond;
-	starpu_pthread_mutex_t parallel_sect_mutex;
-
-	/* boolean indicating that workers should block in order to allow
-	   parallel sections to be executed on their allocated resources */
-	unsigned parallel_sect;
 
 	/* indicate whether the workers shares tasks lists with other workers*/
 	/* in this case when removing him from a context it disapears instantly */
@@ -117,17 +111,6 @@ LIST_TYPE(_starpu_worker,
 
 	/* flag to know if sched_mutex is locked or not */
 	unsigned sched_mutex_locked;
-
-	/* id of the master worker */
-	int master;
-
-	/* semaphore that block appl thread until starpu threads are 
-	   all blocked and ready to exec the parallel code */
-	sem_t fall_asleep_sem;
-
-	/* semaphore that block appl thread until starpu threads are 
-	   all woke up and ready continue appl */
-	sem_t wake_up_sem;
 
 #ifdef __GLIBC__
 	cpu_set_t cpu_set;
