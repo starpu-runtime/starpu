@@ -155,6 +155,17 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	}
 }
 
+static void _starpu_worker_set_status_scheduling(int workerid)
+{
+	if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING
+		&& _starpu_worker_get_status(workerid) != STATUS_SCHEDULING)
+	{
+		_STARPU_TRACE_WORKER_SCHEDULING_START;
+		_starpu_worker_set_status(workerid, STATUS_SCHEDULING);
+	}
+
+}
+
 static void _starpu_worker_set_status_sleeping(int workerid)
 {
 	if ( _starpu_worker_get_status(workerid) == STATUS_WAKING_UP)
@@ -198,6 +209,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 	STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
 	struct starpu_task *task;
 	unsigned needed = 1;
+	_starpu_worker_set_status_scheduling(workerid);
 	while(needed)
 	{
 		struct _starpu_sched_ctx *sched_ctx = NULL;
