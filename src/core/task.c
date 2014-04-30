@@ -264,6 +264,8 @@ int _starpu_submit_job(struct _starpu_job *j)
 	int ret;
 #ifdef STARPU_OPENMP
 	const unsigned continuation = j->continuation;
+#else
+	const unsigned continuation = 0;
 #endif
 
 	_STARPU_LOG_IN();
@@ -298,7 +300,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 #endif//STARPU_USE_SC_HYPERVISOR
 
 	/* We retain handle reference count */
-	if (task->cl)
+	if (task->cl && !continuation)
 	{
 		unsigned i;
 		for (i=0; i<task->cl->nbuffers; i++)

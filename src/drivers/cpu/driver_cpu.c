@@ -58,10 +58,17 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
+#ifdef STARPU_OPENMP
+	/* At this point, j->continuation as been cleared as the task is being
+	 * woken up, thus we use j->discontinuous instead for the check */
+	const unsigned continuation = j->discontinuous;
+#else
+	const unsigned continuation = 0;
+#endif
 
 	STARPU_ASSERT(cl);
 
-	if (rank == 0)
+	if (rank == 0 && !continuation)
 	{
 		ret = _starpu_fetch_task_input(j);
 		if (ret != 0)
