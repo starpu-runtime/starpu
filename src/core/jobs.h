@@ -130,6 +130,12 @@ LIST_TYPE(_starpu_job,
 
 	/* Job has been stopped at least once. */
 	unsigned discontinuous;
+
+	/* Cumulated execution time for discontinuous jobs */
+	struct timespec cumulated_ts;
+
+	/* Cumulated power consumption for discontinuous jobs */
+	double cumulated_power_consumed;
 #endif
 
 	/* Should that task appear in the debug tools ? (eg. the DAG generated
