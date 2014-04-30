@@ -126,7 +126,7 @@ void cpu_codelet_func_3(void *descr[], void *arg)
 	vec = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	size = (int)STARPU_VECTOR_GET_NX(descr[0]);
 
-	dot = SDOT(size, vec, 1, vec, 1);
+	dot = STARPU_SDOT(size, vec, 1, vec, 1);
 
 	fprintf(stderr, "func 3 : DOT = %f\n", dot);
 
@@ -218,7 +218,7 @@ void cpu_codelet_func_5(void *descr[], void *arg)
 	STARPU_ASSERT(STARPU_VECTOR_GET_NX(descr[0]) == STARPU_VECTOR_GET_NX(descr[1]));
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	dot = SDOT(size, vecd, 1, vecq, 1);
+	dot = STARPU_SDOT(size, vecd, 1, vecq, 1);
 
 	pb->alpha = pb->delta_new / dot;
 }
@@ -265,7 +265,7 @@ void cpu_codelet_func_6(void *descr[], void *arg)
 
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	SAXPY(size, pb->alpha, vecd, 1, vecx, 1);
+	STARPU_SAXPY(size, pb->alpha, vecd, 1, vecx, 1);
 }
 
 #ifdef STARPU_USE_CUDA
@@ -304,7 +304,7 @@ void cpu_codelet_func_7(void *descr[], void *arg)
 
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	SAXPY(size, -pb->alpha, vecq, 1, vecr, 1);
+	STARPU_SAXPY(size, -pb->alpha, vecq, 1, vecr, 1);
 }
 
 #ifdef STARPU_USE_CUDA
@@ -344,7 +344,7 @@ void cpu_codelet_func_8(void *descr[], void *arg)
 	vecr = (float *)STARPU_VECTOR_GET_PTR(descr[0]);
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
-	dot = SDOT(size, vecr, 1, vecr, 1);
+	dot = STARPU_SDOT(size, vecr, 1, vecr, 1);
 
 	pb->delta_old = pb->delta_new;
 	pb->delta_new = dot;
@@ -392,10 +392,10 @@ void cpu_codelet_func_9(void *descr[], void *arg)
 	size = STARPU_VECTOR_GET_NX(descr[0]);
 
 	/* d = beta d */
-	SSCAL(size, pb->beta, vecd, 1);
+	STARPU_SSCAL(size, pb->beta, vecd, 1);
 
 	/* d = r + d */
-	SAXPY (size, 1.0f, vecr, 1, vecd, 1);
+	STARPU_SAXPY (size, 1.0f, vecr, 1, vecd, 1);
 }
 
 #ifdef STARPU_USE_CUDA
