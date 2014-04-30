@@ -105,6 +105,8 @@
 
 #define _STARPU_FUT_EVENT	0x513c
 
+#define _STARPU_FUT_WORKER_SCHEDULING_START	0x513e
+
 #define _STARPU_FUT_START_UNPARTITION 0x5154
 #define _STARPU_FUT_END_UNPARTITION 0x5155
 
@@ -373,6 +375,9 @@ do {										\
 #define _STARPU_TRACE_WORKER_DEINIT_END(workerkind)		\
 	FUT_DO_PROBE2(_STARPU_FUT_WORKER_DEINIT_END, workerkind, _starpu_gettid());
 
+#define _STARPU_TRACE_WORKER_SCHEDULING_START	\
+	FUT_DO_PROBE1(_STARPU_FUT_WORKER_SCHEDULING_START, _starpu_gettid());
+
 #define _STARPU_TRACE_WORKER_SLEEP_START	\
 	FUT_DO_PROBE1(_STARPU_FUT_WORKER_SLEEP_START, _starpu_gettid());
 
@@ -481,6 +486,7 @@ do {										\
 #define _STARPU_TRACE_WORK_STEALING(a, b)	do {} while(0)
 #define _STARPU_TRACE_WORKER_DEINIT_START	do {} while(0)
 #define _STARPU_TRACE_WORKER_DEINIT_END(a)	do {} while(0)
+#define _STARPU_TRACE_WORKER_SCHEDULING_START		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_START		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_END		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_START		do {} while(0)

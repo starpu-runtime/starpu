@@ -164,6 +164,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	poti_DefineEntityValue("Po", "S", "PushingOutput", "0.1 1.0 1.0");
 	poti_DefineEntityValue("C", "S", "Callback", ".0 .3 .8");
 	poti_DefineEntityValue("B", "S", "Overhead", ".5 .18 .0");
+	poti_DefineEntityValue("Sc", "S", "Scheduling", ".7 .36 .0");
 	poti_DefineEntityValue("Sl", "S", "Sleeping", ".9 .1 .0");
 	poti_DefineEntityValue("P", "S", "Progressing", ".4 .1 .6");
 	poti_DefineEntityValue("U", "S", "Unpartitioning", ".0 .0 1.0");
@@ -192,6 +193,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 		poti_DefineEntityValue("Po", ctx, "PushingOutput", "0.1 1.0 1.0");
 		poti_DefineEntityValue("C", ctx, "Callback", ".0 .3 .8");
 		poti_DefineEntityValue("B", ctx, "Overhead", ".5 .18 .0");
+		poti_DefineEntityValue("Sc", ctx, "Scheduling", ".7 .36 .0");
 		poti_DefineEntityValue("Sl", ctx, "Sleeping", ".9 .1 .0");
 		poti_DefineEntityValue("P", ctx, "Progressing", ".4 .1 .6");
 		poti_DefineEntityValue("U", ctx, "Unpartitioning", ".0 .0 1.0");
@@ -234,6 +236,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 6       Po       S      PushingOutput       \"0.1 1.0 1.0\"            \n\
 6       C       S       Callback       \".0 .3 .8\"            \n\
 6       B       S       Overhead         \".5 .18 .0\"		\n\
+6       Sc       S      Scheduling         \".7 .36 .0\"		\n\
 6       Sl       S      Sleeping         \".9 .1 .0\"		\n\
 6       P       S       Progressing         \".4 .1 .6\"		\n\
 6       U       S       Unpartitioning      \".0 .0 1.0\"		\n\
@@ -255,10 +258,11 @@ void _starpu_fxt_write_paje_header(FILE *file)
 6       Po       Ctx%u      PushingOutput       \"0.1 1.0 1.0\"            \n\
 6       C       Ctx%u       Callback       \".0 .3 .8\"            \n\
 6       B       Ctx%u       Overhead         \".5 .18 .0\"		\n\
+6       Sc       Ctx%u      Scheduling         \".7 .36 .0\"		\n\
 6       Sl       Ctx%u      Sleeping         \".9 .1 .0\"		\n\
 6       P       Ctx%u       Progressing         \".4 .1 .6\"		\n\
 6       U       Ctx%u       Unpartitioning         \".0 .0 1.0\"		\n",
-		i, i, i, i, i, i, i, i, i);
+		i, i, i, i, i, i, i, i, i, i);
 	fprintf(file, "\
 6       A       MS      Allocating         \".4 .1 .0\"		\n\
 6       Ar       MS      AllocatingReuse       \".1 .1 .8\"		\n\

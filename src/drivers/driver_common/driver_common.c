@@ -155,7 +155,6 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	}
 }
 
-
 static void _starpu_exponential_backoff(struct _starpu_worker *args)
 {
 	int delay = args->spinning_backoff;
@@ -173,6 +172,13 @@ static void _starpu_exponential_backoff(struct _starpu_worker *args)
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode)
 {
 	struct starpu_task *task;
+
+	if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING
+		&& _starpu_worker_get_status(workerid) != STATUS_SCHEDULING)
+	{
+		_STARPU_TRACE_WORKER_SCHEDULING_START;
+		_starpu_worker_set_status(workerid, STATUS_SCHEDULING);
+	}
 
 	STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
 	task = _starpu_pop_task(args);
