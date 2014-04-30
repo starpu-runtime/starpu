@@ -55,7 +55,7 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STAR
 	switch (s)
 	{
 		case 0:
-			SGEMM("N", "T", dy, dx, dz, -1.0f, left, ld21,
+			STARPU_SGEMM("N", "T", dy, dx, dz, -1.0f, left, ld21,
 				right, ld12, 1.0f, center, ld22);
 			break;
 #ifdef STARPU_USE_CUDA
@@ -111,7 +111,7 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, STARPU_A
 	switch (s)
 	{
 		case 0:
-			STRSM("R", "L", "T", "N", nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
+			STARPU_STRSM("R", "L", "T", "N", nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
@@ -171,9 +171,9 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 
 				STARPU_ASSERT(lambda11 != 0.0f);
 
-				SSCAL(nx - z - 1, 1.0f/lambda11, &sub11[(z+1)+z*ld], 1);
+				STARPU_SSCAL(nx - z - 1, 1.0f/lambda11, &sub11[(z+1)+z*ld], 1);
 
-				SSYR("L", nx - z - 1, -1.0f,
+				STARPU_SSYR("L", nx - z - 1, -1.0f,
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}

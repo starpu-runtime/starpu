@@ -141,7 +141,7 @@ static void STARPU_ATTRIBUTE_UNUSED compare_A_LU(float *A, float *LU,
 
 
         /* now A_err = L, compute L*U */
-	STRMM("R", "U", "N", "U", size, size, 1.0f, U, size, L, size);
+	STARPU_STRMM("R", "U", "N", "U", size, size, 1.0f, U, size, L, size);
 
 	float max_err = 0.0f;
 	for (i = 0; i < size ; i++)

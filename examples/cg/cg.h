@@ -30,11 +30,11 @@
 
 #ifdef DOUBLE
 #define TYPE	double
-#define GEMV	DGEMV
-#define DOT	DDOT
-#define GEMV	DGEMV
-#define AXPY	DAXPY
-#define SCAL	DSCAL
+#define GEMV	STARPU_DGEMV
+#define DOT	STARPU_DDOT
+#define GEMV	STARPU_DGEMV
+#define AXPY	STARPU_DAXPY
+#define SCAL	STARPU_DSCAL
 #define cublasdot	cublasDdot
 #define cublasscal	cublasDscal
 #define cublasaxpy	cublasDaxpy
@@ -42,11 +42,11 @@
 #define cublasscal	cublasDscal
 #else
 #define TYPE	float
-#define GEMV	SGEMV
-#define DOT	SDOT
-#define GEMV	SGEMV
-#define AXPY	SAXPY
-#define SCAL	SSCAL
+#define GEMV	STARPU_SGEMV
+#define DOT	STARPU_SDOT
+#define GEMV	STARPU_SGEMV
+#define AXPY	STARPU_SAXPY
+#define SCAL	STARPU_SSCAL
 #define cublasdot	cublasSdot
 #define cublasscal	cublasSscal
 #define cublasaxpy	cublasSaxpy

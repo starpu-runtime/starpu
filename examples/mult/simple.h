@@ -17,9 +17,9 @@
 #define TYPE	float
 
 #define CUBLAS_GEMM cublasSgemm
-#define CPU_GEMM	SGEMM
-#define CPU_ASUM	SASUM
-#define CPU_IAMAX	ISAMAX
+#define CPU_GEMM	STARPU_SGEMM
+#define CPU_ASUM	STARPU_SASUM
+#define CPU_IAMAX	STARPU_ISAMAX
 #define STARPU_GEMM(name)	starpu_sgemm_##name
 
 #define str(s) #s

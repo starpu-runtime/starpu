@@ -24,63 +24,63 @@
 #include <cblas.h>
 #endif
 
-void SGEMM(char *transa, char *transb, int M, int N, int K, float alpha, const float *A, int lda, 
+void STARPU_SGEMM(char *transa, char *transb, int M, int N, int K, float alpha, const float *A, int lda, 
 		const float *B, int ldb, float beta, float *C, int ldc);
-void DGEMM(char *transa, char *transb, int M, int N, int K, double alpha, double *A, int lda, 
+void STARPU_DGEMM(char *transa, char *transb, int M, int N, int K, double alpha, double *A, int lda, 
 		double *B, int ldb, double beta, double *C, int ldc);
-void SGEMV(char *transa, int M, int N, float alpha, float *A, int lda,
+void STARPU_SGEMV(char *transa, int M, int N, float alpha, float *A, int lda,
 		float *X, int incX, float beta, float *Y, int incY);
-void DGEMV(char *transa, int M, int N, double alpha, double *A, int lda,
+void STARPU_DGEMV(char *transa, int M, int N, double alpha, double *A, int lda,
 		double *X, int incX, double beta, double *Y, int incY);
-float SASUM(int N, float *X, int incX);
-double DASUM(int N, double *X, int incX);
-void SSCAL(int N, float alpha, float *X, int incX);
-void DSCAL(int N, double alpha, double *X, int incX);
-void STRSM (const char *side, const char *uplo, const char *transa,
+float STARPU_SASUM(int N, float *X, int incX);
+double STARPU_DASUM(int N, double *X, int incX);
+void STARPU_SSCAL(int N, float alpha, float *X, int incX);
+void STARPU_DSCAL(int N, double alpha, double *X, int incX);
+void STARPU_STRSM (const char *side, const char *uplo, const char *transa,
                    const char *diag, const int m, const int n,
                    const float alpha, const float *A, const int lda,
                    float *B, const int ldb);
-void DTRSM (const char *side, const char *uplo, const char *transa,
+void STARPU_DTRSM (const char *side, const char *uplo, const char *transa,
                    const char *diag, const int m, const int n,
                    const double alpha, const double *A, const int lda,
                    double *B, const int ldb);
-void DGEMM(char *transa, char *transb, int M, int N, int K, 
+void STARPU_DGEMM(char *transa, char *transb, int M, int N, int K, 
 			double alpha, double *A, int lda, double *B, int ldb, 
 			double beta, double *C, int ldc);
-void SSYR (const char *uplo, const int n, const float alpha,
+void STARPU_SSYR (const char *uplo, const int n, const float alpha,
                   const float *x, const int incx, float *A, const int lda);
-void SSYRK (const char *uplo, const char *trans, const int n,
+void STARPU_SSYRK (const char *uplo, const char *trans, const int n,
                    const int k, const float alpha, const float *A,
                    const int lda, const float beta, float *C,
                    const int ldc);
-void SGER (const int m, const int n, const float alpha,
+void STARPU_SGER (const int m, const int n, const float alpha,
                   const float *x, const int incx, const float *y,
                   const int incy, float *A, const int lda);
-void DGER(const int m, const int n, const double alpha,
+void STARPU_DGER(const int m, const int n, const double alpha,
                   const double *x, const int incx, const double *y,
                   const int incy, double *A, const int lda);
-void STRSV (const char *uplo, const char *trans, const char *diag, 
+void STARPU_STRSV (const char *uplo, const char *trans, const char *diag, 
                    const int n, const float *A, const int lda, float *x, 
                    const int incx);
-void STRMM(const char *side, const char *uplo, const char *transA,
+void STARPU_STRMM(const char *side, const char *uplo, const char *transA,
                  const char *diag, const int m, const int n,
                  const float alpha, const float *A, const int lda,
                  float *B, const int ldb);
-void DTRMM(const char *side, const char *uplo, const char *transA,
+void STARPU_DTRMM(const char *side, const char *uplo, const char *transA,
                  const char *diag, const int m, const int n,
                  const double alpha, const double *A, const int lda,
                  double *B, const int ldb);
-void STRMV(const char *uplo, const char *transA, const char *diag,
+void STARPU_STRMV(const char *uplo, const char *transA, const char *diag,
                  const int n, const float *A, const int lda, float *X,
                  const int incX);
-void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, const int incy);
-void DAXPY(const int n, const double alpha, double *X, const int incX, double *Y, const int incY);
-int ISAMAX (const int n, float *X, const int incX);
-int IDAMAX (const int n, double *X, const int incX);
-float SDOT(const int n, const float *x, const int incx, const float *y, const int incy);
-double DDOT(const int n, const double *x, const int incx, const double *y, const int incy);
-void SSWAP(const int n, float *x, const int incx, float *y, const int incy);
-void DSWAP(const int n, double *x, const int incx, double *y, const int incy);
+void STARPU_SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, const int incy);
+void STARPU_DAXPY(const int n, const double alpha, double *X, const int incX, double *Y, const int incY);
+int STARPU_ISAMAX (const int n, float *X, const int incX);
+int STARPU_IDAMAX (const int n, double *X, const int incX);
+float STARPU_SDOT(const int n, const float *x, const int incx, const float *y, const int incy);
+double STARPU_DDOT(const int n, const double *x, const int incx, const double *y, const int incy);
+void STARPU_SSWAP(const int n, float *x, const int incx, float *y, const int incy);
+void STARPU_DSWAP(const int n, double *x, const int incx, double *y, const int incy);
 
 #if defined(STARPU_GOTO) || defined(STARPU_SYSTEM_BLAS) || defined(STARPU_MKL)
 
