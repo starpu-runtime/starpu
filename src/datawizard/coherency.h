@@ -51,8 +51,7 @@ LIST_TYPE(_starpu_data_replicate,
 	 * filters. */
 	unsigned relaxed_coherency;
 
-	/* In the case of a SCRATCH access, we need to initialize the replicate
-	 * with a neutral element before using it. */
+	/* We may need to initialize the replicate with some value before using it. */
 	unsigned initialized;
 
 	/* describes the state of the local data in term of coherency */
@@ -255,7 +254,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j);
 
 unsigned _starpu_is_data_present_or_requested(struct _starpu_data_state *state, unsigned node);
 
-unsigned _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
+int _starpu_select_src_node(struct _starpu_data_state *state, unsigned destination);
 
 /* is_prefetch is whether the DSM may drop the request (when there is not enough memory for instance
  * async is whether the caller wants a reference on the last request, to be

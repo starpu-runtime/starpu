@@ -865,7 +865,7 @@ AC_SUBST(STARPU_USE_OPENCL, $enable_opencl)
 AM_CONDITIONAL(STARPU_USE_OPENCL, test x$enable_opencl = xyes)
 if test x$enable_opencl = xyes ; then
 	AC_DEFINE(STARPU_USE_OPENCL, [1], [OpenCL support is activated])
-	STARPU_OPENCL_CPPFLAGS="${STARPU_OPENCL_CPPFLAGS} -DSTARPU_OPENCL_DATADIR=${datarootdir}/starpu/opencl"
+	STARPU_OPENCL_CPPFLAGS="${STARPU_OPENCL_CPPFLAGS} -DSTARPU_OPENCL_DATADIR=${datarootdir}/starpu/opencl -DCL_USE_DEPRECATED_OPENCL_1_1_APIS"
         AC_SUBST(STARPU_OPENCL_DATAdir, "$(eval echo ${datarootdir}/starpu/opencl/examples)")
         AC_SUBST(STARPU_OPENCL_CPPFLAGS)
         AC_SUBST(STARPU_OPENCL_LDFLAGS)
@@ -994,6 +994,7 @@ if test x$enable_simgrid = xyes ; then
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
 		]
 	)
+   	AC_CHECK_FUNCS([MSG_process_join])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		    		[[#include <msg/msg.h>]],
 				[[msg_host_t foo; ]]
@@ -2196,7 +2197,7 @@ AM_CONDITIONAL(ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
 AM_CONDITIONAL(GOTO_BLAS_LIB, test x$blas_lib = xgoto)
 AM_CONDITIONAL(MKL_BLAS_LIB, test x$blas_lib = xmkl)
 AM_CONDITIONAL(SYSTEM_BLAS_LIB, test x$blas_lib = xsystem)
-AM_CONDITIONAL(NO_BLAS_LIB, test x$blas_lib = xnone)
+AM_CONDITIONAL(NO_BLAS_LIB, test x$blas_lib = xnone -a x$enable_simgrid = xno)
 
 AC_MSG_CHECKING(which BLAS lib should be used)
 AC_MSG_RESULT($blas_lib)

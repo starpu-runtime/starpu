@@ -107,6 +107,8 @@
 
 #define _STARPU_FUT_EVENT	0x513c
 
+#define _STARPU_FUT_WORKER_SCHEDULING_START	0x513e
+
 #define _STARPU_FUT_LOCKING_MUTEX	0x5140	
 #define _STARPU_FUT_MUTEX_LOCKED	0x5141	
 
@@ -185,6 +187,15 @@ void _starpu_stop_fxt_profiling(void);
  * the worker. */
 void _starpu_fxt_register_thread(unsigned);
 
+#ifdef FUT_NEEDS_COMMIT
+#define _STARPU_FUT_COMMIT(size) fut_commitstampedbuffer(size)
+#else
+#define _STARPU_FUT_COMMIT(size) do { } while (0)
+#endif
+
+#ifdef FUT_DO_PROBE2STR
+#define _STARPU_FUT_DO_PROBE2STR(CODE, P1, P2, str) FUT_DO_PROBE2STR(CODE, P1, P2, str)
+#else
 /* Sometimes we need something a little more specific than the wrappers from
  * FxT: these macro permit to put add an event with 3 (or 4) numbers followed
  * by a string. */
@@ -203,9 +214,14 @@ do {									\
 	*(futargs++) = (unsigned long)(P2);				\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
     }									\
 } while (0);
+#endif
 
+#ifdef FUT_DO_PROBE3STR
+#define _STARPU_FUT_DO_PROBE3STR(CODE, P1, P2, P3, str) FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)
+#else
 #define _STARPU_FUT_DO_PROBE3STR(CODE, P1, P2, P3, str)			\
 do {									\
     if(fut_active) {							\
@@ -222,9 +238,14 @@ do {									\
 	*(futargs++) = (unsigned long)(P3);				\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
     }									\
 } while (0);
+#endif
 
+#ifdef FUT_DO_PROBE4STR
+#define _STARPU_FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str) FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str)
+#else
 #define _STARPU_FUT_DO_PROBE4STR(CODE, P1, P2, P3, P4, str)		\
 do {									\
     if(fut_active) {							\
@@ -242,9 +263,14 @@ do {									\
 	*(futargs++) = (unsigned long)(P4);				\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
     }									\
 } while (0);
+#endif
 
+#ifdef FUT_DO_PROBE5STR
+#define _STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str) FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)
+#else
 #define _STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, str)		\
 do {									\
     if(fut_active) {							\
@@ -263,8 +289,65 @@ do {									\
 	*(futargs++) = (unsigned long)(P5);				\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
     }									\
 } while (0);
+#endif
+
+#ifdef FUT_DO_PROBE6STR
+#define _STARPU_FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str) FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str)
+#else
+#define _STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, P6, str)	\
+do {									\
+    if(fut_active) {							\
+	/* No more than FXT_MAX_PARAMS args are allowed */		\
+	/* we add a \0 just in case ... */				\
+	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 6)*sizeof(unsigned long));\
+	unsigned nbargs_str = (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	unsigned nbargs = 6 + nbargs_str;				\
+	size_t total_len = FUT_SIZE(nbargs);				\
+	unsigned long *futargs =					\
+		fut_getstampedbuffer(FUT_CODE(CODE, nbargs), total_len);\
+	*(futargs++) = (unsigned long)(P1);				\
+	*(futargs++) = (unsigned long)(P2);				\
+	*(futargs++) = (unsigned long)(P3);				\
+	*(futargs++) = (unsigned long)(P4);				\
+	*(futargs++) = (unsigned long)(P5);				\
+	*(futargs++) = (unsigned long)(P6);				\
+	snprintf((char *)futargs, len, "%s", str);			\
+	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
+    }									\
+} while (0);
+#endif
+
+#ifdef FUT_DO_PROBE7STR
+#define _STARPU_FUT_DO_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str) FUT_DO_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)
+#else
+#define _STARPU_FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)	\
+do {									\
+    if(fut_active) {							\
+	/* No more than FXT_MAX_PARAMS args are allowed */		\
+	/* we add a \0 just in case ... */				\
+	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 7)*sizeof(unsigned long));\
+	unsigned nbargs_str = (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	unsigned nbargs = 7 + nbargs_str;				\
+	size_t total_len = FUT_SIZE(nbargs);				\
+	unsigned long *futargs =					\
+		fut_getstampedbuffer(FUT_CODE(CODE, nbargs), total_len);\
+	*(futargs++) = (unsigned long)(P1);				\
+	*(futargs++) = (unsigned long)(P2);				\
+	*(futargs++) = (unsigned long)(P3);				\
+	*(futargs++) = (unsigned long)(P4);				\
+	*(futargs++) = (unsigned long)(P5);				\
+	*(futargs++) = (unsigned long)(P6);				\
+	*(futargs++) = (unsigned long)(P7);				\
+	snprintf((char *)futargs, len, "%s", str);			\
+	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
+    }									\
+} while (0);
+#endif
 
 #ifndef FUT_RAW_PROBE7
 #define FUT_RAW_PROBE7(CODE,P1,P2,P3,P4,P5,P6,P7) do {		\
@@ -273,7 +356,8 @@ do {									\
 				fut_getstampedbuffer(CODE,		\
 						     FUT_SIZE(7)); \
 			*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);*(__args++)=(unsigned long)(P5);*(__args++)=(unsigned long)(P6);*(__args++)=(unsigned long)(P7);				\
-				}					\
+			_STARPU_FUT_COMMIT(FUT_SIZE(7));		\
+		}							\
 	} while (0)
 #endif
 
@@ -402,6 +486,9 @@ do {										\
 
 #define _STARPU_TRACE_WORKER_DEINIT_END(workerkind)		\
 	FUT_DO_PROBE2(_STARPU_FUT_WORKER_DEINIT_END, workerkind, _starpu_gettid());
+
+#define _STARPU_TRACE_WORKER_SCHEDULING_START	\
+	FUT_DO_PROBE1(_STARPU_FUT_WORKER_SCHEDULING_START, _starpu_gettid());
 
 #define _STARPU_TRACE_WORKER_SLEEP_START	\
 	FUT_DO_PROBE1(_STARPU_FUT_WORKER_SLEEP_START, _starpu_gettid());
@@ -681,6 +768,7 @@ do {										\
 #define _STARPU_TRACE_WORK_STEALING(a, b)	do {} while(0)
 #define _STARPU_TRACE_WORKER_DEINIT_START	do {} while(0)
 #define _STARPU_TRACE_WORKER_DEINIT_END(a)	do {} while(0)
+#define _STARPU_TRACE_WORKER_SCHEDULING_START		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_START		do {} while(0)
 #define _STARPU_TRACE_WORKER_SLEEP_END		do {} while(0)
 #define _STARPU_TRACE_USER_DEFINED_START		do {} while(0)

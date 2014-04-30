@@ -93,6 +93,7 @@ starpu_mpi_TESTS =				\
 	ring_async_implicit			\
 	block_interface				\
 	block_interface_pinned			\
+	callback				\
 	insert_task				\
 	insert_task_compute			\
 	insert_task_sent_cache			\
@@ -125,6 +126,7 @@ noinst_PROGRAMS =				\
 	ring_async_implicit			\
 	block_interface				\
 	block_interface_pinned			\
+	callback				\
 	insert_task				\
 	insert_task_compute			\
 	insert_task_sent_cache			\
@@ -171,6 +173,8 @@ ring_async_implicit_LDADD =			\
 block_interface_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 block_interface_pinned_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+callback_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la

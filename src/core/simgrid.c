@@ -23,9 +23,18 @@
 
 #ifdef STARPU_SIMGRID
 #include <msg/msg.h>
+#include <smpi/smpif.h>
+
+#define STARPU_MPI_AS_PREFIX "StarPU-MPI"
 
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
+#pragma weak smpi_main
+extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *argv[]);
+#pragma weak smpi_simulated_main_
+extern int smpi_simulated_main_(int argc, char *argv[]);
+
+#define _starpu_simgrid_running_smpi() (getenv("SMPI_GLOBAL_SIZE") != NULL)
 
 struct main_args
 {
@@ -39,12 +48,44 @@ int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBU
 	return starpu_main(args->argc, args->argv);
 }
 
+static msg_as_t __starpu_simgrid_get_as_by_name(msg_as_t root, const char *name)
+{
+	xbt_dict_t dict;
+	xbt_dict_cursor_t cursor;
+	const char *key;
+	msg_as_t as, ret;
+	dict = MSG_environment_as_get_routing_sons(root);
+	xbt_dict_foreach(dict, cursor, key, as) {
+		if (!strcmp(MSG_environment_as_get_name(as), name))
+			return as;
+		ret = __starpu_simgrid_get_as_by_name(as, name);
+		if (ret)
+			return ret;
+	}
+	return NULL;
+}
+
+static msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
+{
+	return __starpu_simgrid_get_as_by_name(MSG_environment_get_routing_root(), name);
+}
+
 int _starpu_simgrid_get_nbhosts(const char *prefix)
 {
 	int ret;
-	xbt_dynar_t hosts = MSG_hosts_as_dynar();
-	unsigned i, nb = xbt_dynar_length(hosts);
+	xbt_dynar_t hosts;
+	unsigned i, nb;
 	unsigned len = strlen(prefix);
+
+	if (_starpu_simgrid_running_smpi())
+	{
+		char name[16];
+		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%u", smpi_current_rank);
+		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
+	}
+	else
+		hosts = MSG_hosts_as_dynar();
+	nb = xbt_dynar_length(hosts);
 
 	ret = 0;
 	for (i = 0; i < nb; i++) {
@@ -65,7 +106,7 @@ unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devi
 
 	snprintf(name, sizeof(name), "%s%u", prefix, devid);
 
-	host = MSG_get_host_by_name(name);
+	host = _starpu_simgrid_get_host_by_name(name);
 	if (!host)
 		return 0;
 
@@ -79,20 +120,37 @@ unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devi
 	return atoll(memsize);
 }
 
+msg_host_t _starpu_simgrid_get_host_by_name(const char *name)
+{
+	if (_starpu_simgrid_running_smpi())
+	{
+		char mpiname[16];
+		snprintf(mpiname, sizeof(mpiname), "%d-%s", smpi_current_rank, name);
+		return MSG_get_host_by_name(mpiname);
+	}
+	else
+		return MSG_get_host_by_name(name);
+}
+
 #ifdef STARPU_DEVEL
 #warning TODO: use another way to start main, when simgrid provides it, and then include the application-provided configuration for platform numbers
 #endif
 #undef main
 int main(int argc, char **argv)
 {
-	xbt_dynar_t hosts;
-	int i;
 	char path[256];
 
-	if (!starpu_main)
+	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
 	{
 		_STARPU_ERROR("The main file of this application needs to be compiled with starpu.h included, to properly define starpu_main\n");
 		exit(EXIT_FAILURE);
+	}
+
+	if (_starpu_simgrid_running_smpi())
+	{
+		/* Oops, we are running SMPI, let it start Simgrid, and we'll
+		 * take back hand in _starpu_simgrid_init from starpu_init() */
+		return smpi_main(smpi_simulated_main_, argc, argv);
 	}
 
 	MSG_init(&argc, argv);
@@ -108,17 +166,59 @@ int main(int argc, char **argv)
 	_starpu_simgrid_get_platform_path(path, sizeof(path));
 	MSG_create_environment(path);
 
-	hosts = MSG_hosts_as_dynar();
+	struct main_args args = { .argc = argc, .argv = argv };
+	MSG_process_create("main", &do_starpu_main, &args, MSG_get_host_by_name("MAIN"));
+
+	MSG_main();
+	return 0;
+}
+
+void _starpu_simgrid_init()
+{
+	xbt_dynar_t hosts;
+	int i;
+
+	if (_starpu_simgrid_running_smpi())
+	{
+		/* Take back hand to create the local platform for this MPI
+		 * node */
+
+		char asname[16];
+		char path[256];
+		char cmdline[1024];
+		FILE *in;
+		int out;
+		char template[] = "/tmp/"STARPU_MPI_AS_PREFIX"-platform-XXXXXX.xml";
+		int ret;
+
+		snprintf(asname, sizeof(asname), STARPU_MPI_AS_PREFIX"%u", smpi_current_rank);
+
+		/* Get XML platform */
+		_starpu_simgrid_get_platform_path(path, sizeof(path));
+		in = fopen(path, "r");
+		STARPU_ASSERT_MSG(in, "Could not open platform file %s", path);
+		out = mkstemps(template, strlen(".xml"));
+
+		/* Generate modified XML platform */
+		STARPU_ASSERT_MSG(out >= 0, "Could not create temporary file like %s", template);
+		close(out);
+		snprintf(cmdline, sizeof(cmdline), "xsltproc --novalid --stringparam ASname %s -o %s "STARPU_DATADIR"/starpu/starpu_smpi.xslt %s", asname, template, path);
+		ret = system(cmdline);
+		STARPU_ASSERT_MSG(ret == 0, "running xsltproc to generate SMPI platforms %s from %s failed", template, path);
+
+		/* And create it */
+		MSG_create_environment(template);
+		unlink(template);
+		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(asname));
+	}
+	else
+		hosts = MSG_hosts_as_dynar();
+
 	int nb = xbt_dynar_length(hosts);
 	for (i = 0; i < nb; i++)
 		MSG_host_set_data(xbt_dynar_get_as(hosts, i, msg_host_t), calloc(MAX_TSD, sizeof(void*)));
 
-	struct main_args args = { .argc = argc, .argv = argv };
-	MSG_process_create("main", &do_starpu_main, &args, xbt_dynar_get_as(hosts, 0, msg_host_t));
 	xbt_dynar_free(&hosts);
-
-	MSG_main();
-	return 0;
 }
 
 /* Task execution submitted by StarPU */
@@ -247,7 +347,7 @@ static int transfer_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARP
 		if (!wake->nwait)
 		{
 			_STARPU_DEBUG("triggering transfer %p\n", wake);
-			MSG_process_create("transfer task", transfer_execute, wake, MSG_get_host_by_name("MAIN"));
+			MSG_process_create("transfer task", transfer_execute, wake, _starpu_simgrid_get_host_by_name("MAIN"));
 		}
 	}
 
@@ -288,7 +388,7 @@ static void transfer_submit(struct transfer *transfer)
 	if (!transfer->nwait)
 	{
 		_STARPU_DEBUG("transfer %p waits for nobody, starting\n", transfer);
-		MSG_process_create("transfer task", transfer_execute, transfer, MSG_get_host_by_name("MAIN"));
+		MSG_process_create("transfer task", transfer_execute, transfer, _starpu_simgrid_get_host_by_name("MAIN"));
 	}
 }
 

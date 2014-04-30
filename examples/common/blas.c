@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2014  Université de Bordeaux 1
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -413,6 +413,90 @@ void DSWAP(const int n, double *X, const int incX, double *Y, const int incY)
 {
 	dswap_(&n, X, &incX, Y, &incY);
 }
+
+
+#elif defined(STARPU_SIMGRID)
+inline void SGEMM(char *transa, char *transb, int M, int N, int K, 
+			float alpha, const float *A, int lda, const float *B, int ldb, 
+			float beta, float *C, int ldc) { }
+
+inline void DGEMM(char *transa, char *transb, int M, int N, int K, 
+			double alpha, double *A, int lda, double *B, int ldb, 
+			double beta, double *C, int ldc) { }
+
+inline void SGEMV(char *transa, int M, int N, float alpha, float *A, int lda,
+		float *X, int incX, float beta, float *Y, int incY) { }
+
+inline void DGEMV(char *transa, int M, int N, double alpha, double *A, int lda,
+		double *X, int incX, double beta, double *Y, int incY) { }
+
+inline float SASUM(int N, float *X, int incX) { }
+
+inline double DASUM(int N, double *X, int incX) { }
+
+void SSCAL(int N, float alpha, float *X, int incX) { }
+
+void DSCAL(int N, double alpha, double *X, int incX) { }
+
+void STRSM (const char *side, const char *uplo, const char *transa,
+                   const char *diag, const int m, const int n,
+                   const float alpha, const float *A, const int lda,
+                   float *B, const int ldb) { }
+
+void DTRSM (const char *side, const char *uplo, const char *transa,
+                   const char *diag, const int m, const int n,
+                   const double alpha, const double *A, const int lda,
+                   double *B, const int ldb) { }
+
+void SSYR (const char *uplo, const int n, const float alpha,
+                  const float *x, const int incx, float *A, const int lda) { }
+
+void SSYRK (const char *uplo, const char *trans, const int n,
+                   const int k, const float alpha, const float *A,
+                   const int lda, const float beta, float *C,
+                   const int ldc) { }
+
+void SGER(const int m, const int n, const float alpha,
+                  const float *x, const int incx, const float *y,
+                  const int incy, float *A, const int lda) { }
+
+void DGER(const int m, const int n, const double alpha,
+                  const double *x, const int incx, const double *y,
+                  const int incy, double *A, const int lda) { }
+
+void STRSV (const char *uplo, const char *trans, const char *diag, 
+                   const int n, const float *A, const int lda, float *x, 
+                   const int incx) { }
+
+void STRMM(const char *side, const char *uplo, const char *transA,
+                 const char *diag, const int m, const int n,
+                 const float alpha, const float *A, const int lda,
+                 float *B, const int ldb) { }
+
+void DTRMM(const char *side, const char *uplo, const char *transA,
+                 const char *diag, const int m, const int n,
+                 const double alpha, const double *A, const int lda,
+                 double *B, const int ldb) { }
+
+void STRMV(const char *uplo, const char *transA, const char *diag,
+                 const int n, const float *A, const int lda, float *X,
+                 const int incX) { }
+
+void SAXPY(const int n, const float alpha, float *X, const int incX, float *Y, const int incY) { }
+
+void DAXPY(const int n, const double alpha, double *X, const int incX, double *Y, const int incY) { }
+
+int ISAMAX (const int n, float *X, const int incX) { }
+
+int IDAMAX (const int n, double *X, const int incX) { }
+
+float SDOT(const int n, const float *x, const int incx, const float *y, const int incy) { }
+
+double DDOT(const int n, const double *x, const int incx, const double *y, const int incy) { }
+
+void SSWAP(const int n, float *X, const int incX, float *Y, const int incY) { }
+
+void DSWAP(const int n, double *X, const int incX, double *Y, const int incY) { }
 
 
 #else

@@ -455,13 +455,20 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				starpu_prefetch_task_input_on_node(task, config->scc_nodeid);
 		}
 
-		STARPU_ASSERT(sched_ctx->sched_policy->push_task);
-		/* check out if there are any workers in the context */
-		starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
-		STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
-		nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
-		ret = nworkers == 0 ? -1 : sched_ctx->sched_policy->push_task(task);
-		STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
+		if(!sched_ctx->sched_policy)
+		{
+			ret = _starpu_push_task_on_specific_worker(task, sched_ctx->main_master);
+		}
+		else
+		{
+			STARPU_ASSERT(sched_ctx->sched_policy->push_task);
+			/* check out if there are any workers in the context */
+			starpu_pthread_rwlock_t *changing_ctx_mutex = _starpu_sched_ctx_get_changing_ctx_mutex(sched_ctx->id);
+			STARPU_PTHREAD_RWLOCK_RDLOCK(changing_ctx_mutex);
+			nworkers = starpu_sched_ctx_get_nworkers(sched_ctx->id);
+			ret = nworkers == 0 ? -1 : sched_ctx->sched_policy->push_task(task);
+			STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
+		}
 
 		if(ret == -1)
 		{
@@ -799,6 +806,12 @@ pick:
 	if (task->mf_skip)
 		goto profiling;
 
+	/*
+	 * This worker may not be able to execute this task. In this case, we
+	 * should return the task anyway. It will be pushed back almost immediatly.
+	 * This way, we avoid computing and executing the conversions tasks.
+	 * Here, we do not care about what implementation is used.
+	 */
 	worker_id = starpu_worker_get_id();
 	if (!starpu_worker_can_execute_task(worker_id, task, 0))
 		return task;
@@ -858,18 +871,21 @@ profiling:
 
 struct starpu_task *_starpu_pop_every_task(struct _starpu_sched_ctx *sched_ctx)
 {
-	STARPU_ASSERT(sched_ctx->sched_policy->pop_every_task);
-
-	/* TODO set profiling info */
-	if(sched_ctx->sched_policy->pop_every_task)
-		return sched_ctx->sched_policy->pop_every_task(sched_ctx->id);
+	if(sched_ctx->sched_policy)
+	{
+		STARPU_ASSERT(sched_ctx->sched_policy->pop_every_task);
+		
+		/* TODO set profiling info */
+		if(sched_ctx->sched_policy->pop_every_task)
+			return sched_ctx->sched_policy->pop_every_task(sched_ctx->id);
+	}
 	return NULL;
 }
 
 void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-	if (sched_ctx->sched_policy->pre_exec_hook)
+	if (sched_ctx->sched_policy && sched_ctx->sched_policy->pre_exec_hook)
 		sched_ctx->sched_policy->pre_exec_hook(task);
 }
 
@@ -877,7 +893,7 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 
-	if (sched_ctx->sched_policy->post_exec_hook)
+	if (sched_ctx->sched_policy && sched_ctx->sched_policy->post_exec_hook)
 		sched_ctx->sched_policy->post_exec_hook(task);
 }
 

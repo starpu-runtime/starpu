@@ -10,6 +10,19 @@
 
 \section TaskSchedulingPolicy Task Scheduling Policy
 
+The basics of the scheduling policy are that
+
+<ul>
+<li>The scheduler gets to schedule tasks (<c>push</c> operation) when they become
+ready to be executed, i.e. they are not waiting for some tags, data dependencies
+or task dependencies.</li>
+<li>Workers pull tasks (<c>pop</c> operation) one by one from the scheduler.
+</ul>
+
+This means scheduling policies usually contain at least one queue of tasks to
+store them between the time when they become available, and the time when a
+worker gets to grab them.
+
 By default, StarPU uses the simple greedy scheduler <c>eager</c>. This is
 because it provides correct load balance even if the application codelets do not
 have performance models. If your application codelets have performance models
@@ -17,38 +30,43 @@ have performance models. If your application codelets have performance models
 to the environment variable \ref STARPU_SCHED. For instance <c>export
 STARPU_SCHED=dmda</c> . Use <c>help</c> to get the list of available schedulers.
 
-The <b>eager</b> scheduler uses a central task queue, from which workers draw tasks
-to work on. This however does not permit to prefetch data since the scheduling
+The <b>eager</b> scheduler uses a central task queue, from which all workers draw tasks
+to work on concurrently. This however does not permit to prefetch data since the scheduling
 decision is taken late. If a task has a non-0 priority, it is put at the front of the queue.
 
 The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
 priority (between -5 and 5).
 
-The <b>random</b> scheduler distributes tasks randomly according to assumed worker
+The <b>random</b> scheduler uses a queue per worker, and distributes tasks randomly according to assumed worker
 overall performance.
 
-The <b>ws</b> (work stealing) scheduler schedules tasks on the local worker by
+The <b>ws</b> (work stealing) scheduler uses a queue per worker, and schedules
+a task on the worker which released it by
 default. When a worker becomes idle, it steals a task from the most loaded
 worker.
 
 The <b>dm</b> (deque model) scheduler uses task execution performance models into account to
-perform an HEFT-similar scheduling strategy: it schedules tasks where their
-termination time will be minimal.
+perform a HEFT-similar scheduling strategy: it schedules tasks where their
+termination time will be minimal. The difference with HEFT is that <b>dm</b>
+schedules tasks as soon as they become available, and thus in the order they
+become available, without taking priorities into account.
 
-The <b>dmda</b> (deque model data aware) scheduler is similar to dm, it also takes
+The <b>dmda</b> (deque model data aware) scheduler is similar to dm, but it also takes
 into account data transfer time.
 
 The <b>dmdar</b> (deque model data aware ready) scheduler is similar to dmda,
-it also sorts tasks on per-worker queues by number of already-available data
-buffers.
+but it also sorts tasks on per-worker queues by number of already-available data
+buffers on the target device.
 
-The <b>dmdas</b> (deque model data aware sorted) scheduler is similar to dmda, it
-also supports arbitrary priority values.
+The <b>dmdas</b> (deque model data aware sorted) scheduler is similar to dmdar,
+except that it sorts tasks by priority order, which allows to become even closer
+to HEFT by respecting priorities after having made the scheduling decision (but
+it still schedules tasks in the order they become available).
 
-The <b>heft</b> (heterogeneous earliest finish time) scheduler is deprecated. It
-is now just an alias for <b>dmda</b>.
+The <b>heft</b> (heterogeneous earliest finish time) scheduler is a deprecated
+alias for <b>dmda</b>.
 
-The <b>pheft</b> (parallel HEFT) scheduler is similar to heft, it also supports
+The <b>pheft</b> (parallel HEFT) scheduler is similar to dmda, it also supports
 parallel tasks (still experimental). Should not be used when several contexts using
 it are being executed simultaneously.
 

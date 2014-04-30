@@ -516,9 +516,9 @@ void _starpu_opencl_init(void)
 				else
 					_STARPU_DEBUG("Platform invalid\n");
 #endif
-				if (platform_valid)
+				if (platform_valid && nb_devices <= STARPU_MAXOPENCLDEVS)
 				{
-					err = clGetDeviceIDs(platform_id[j], device_type, STARPU_MAXOPENCLDEVS-nb_devices, &devices[nb_devices], &num);
+					err = clGetDeviceIDs(platform_id[j], device_type, STARPU_MAXOPENCLDEVS-nb_devices, STARPU_MAXOPENCLDEVS == nb_devices ? NULL : &devices[nb_devices], &num);
 					if (err == CL_DEVICE_NOT_FOUND)
 					{
 						_STARPU_DEBUG("  No devices detected on this platform\n");

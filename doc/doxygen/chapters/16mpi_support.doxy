@@ -320,6 +320,39 @@ application can prune the task for loops according to the data distribution,
 so as to only submit tasks on nodes which have to care about them (either to
 execute them, or to send the required data).
 
+A way to do some of this quite easily can be to just add an <c>if</c> like this:
+
+\code{.c}
+    for(loop=0 ; loop<niter; loop++)
+        for (x = 1; x < X-1; x++)
+            for (y = 1; y < Y-1; y++)
+                if (my_distrib(x,y,size) == my_rank
+                 || my_distrib(x-1,y,size) == my_rank
+                 || my_distrib(x+1,y,size) == my_rank
+                 || my_distrib(x,y-1,size) == my_rank
+                 || my_distrib(x,y+1,size) == my_rank)
+                    starpu_mpi_insert_task(MPI_COMM_WORLD, &stencil5_cl,
+                                           STARPU_RW, data_handles[x][y],
+                                           STARPU_R, data_handles[x-1][y],
+                                           STARPU_R, data_handles[x+1][y],
+                                           STARPU_R, data_handles[x][y-1],
+                                           STARPU_R, data_handles[x][y+1],
+                                           0);
+    starpu_task_wait_for_all();
+\endcode
+
+This permits to drop the cost of function call argument passing and parsing.
+
+If the <c>my_distrib</c> function can be inlined by the compiler, the latter can
+improve the test.
+
+If the <c>size</c> can be made a compile-time constant, the compiler can
+considerably improve the test further.
+
+If the distribution function is not too complex and the compiler is very good,
+the latter can even optimize the <c>for</c> loops, thus dramatically reducing
+the cost of task submission.
+
 A function starpu_mpi_task_build() is also provided with the aim to
 only construct the task structure. All MPI nodes need to call the
 function, only the node which is to execute the task will return a

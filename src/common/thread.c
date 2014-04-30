@@ -34,7 +34,7 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	_args->f = start_routine;
 	_args->arg = arg;
 	_hosts = MSG_hosts_as_dynar();
-	MSG_process_create(name, _starpu_simgrid_thread_start, _args,
+	*thread = MSG_process_create(name, _starpu_simgrid_thread_start, _args,
 			   xbt_dynar_get_as(_hosts, (where), msg_host_t));
 	xbt_dynar_free(&_hosts);
 	return 0;
@@ -47,10 +47,11 @@ int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t 
 
 int starpu_pthread_join(starpu_pthread_t thread, void **retval)
 {
-#ifdef STARPU_DEVEL
-#warning TODO: use a simgrid_join when it becomes available
-#endif
+#if 0 //def HAVE_MSG_PROCESS_JOIN
+	MSG_process_join(thread, 100);
+#else
 	MSG_process_sleep(1);
+#endif
 	return 0;
 }
 

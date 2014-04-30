@@ -697,8 +697,10 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 	if (reclaim && !force)
 	{
 		static int warned;
+		char name[32];
+		_starpu_memory_node_get_name(node, name, sizeof(name));
 		if (!warned) {
-			_STARPU_DISP("Not enough memory left on node %u. Trying to purge %lu bytes out. This message will not be printed again for further purges\n", node, (unsigned long) reclaim);
+			_STARPU_DISP("Not enough memory left on node %s. Your application working set is probably simply just hard to fit in the devices, but StarPU will cope with it by trying to purge %lu bytes out. This message will not be printed again for further purges\n", name, (unsigned long) reclaim);
 			warned = 1;
 		}
 	}
@@ -789,6 +791,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	mc->replicate = NULL;
 	replicate->allocated = 0;
 	replicate->automatically_allocated = 0;
+	replicate->initialized = 0;
 
 	_starpu_spin_lock(&mc_lock[node]);
 

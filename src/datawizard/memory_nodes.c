@@ -106,6 +106,37 @@ unsigned starpu_memory_nodes_get_count(void)
 	return descr.nnodes;
 }
 
+void _starpu_memory_node_get_name(unsigned node, char *name, int size)
+{
+	const char *prefix;
+	switch (descr.nodes[node]) {
+	case STARPU_CPU_RAM:
+		prefix = "RAM";
+		break;
+	case STARPU_CUDA_RAM:
+		prefix = "CUDA";
+		break;
+	case STARPU_OPENCL_RAM:
+		prefix = "OpenCL";
+		break;
+	case STARPU_DISK_RAM:
+		prefix = "Disk";
+		break;
+	case STARPU_MIC_RAM:
+		prefix = "MIC";
+		break;
+	case STARPU_SCC_RAM:
+		prefix = "SCC_RAM";
+		break;
+	case STARPU_SCC_SHM:
+		prefix = "SCC_shared";
+		break;
+	case STARPU_UNUSED:
+		STARPU_ASSERT(0);
+	}
+	snprintf(name, size, "%s %u\n", prefix, descr.devid[node]);
+}
+
 unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 {
 	unsigned node;

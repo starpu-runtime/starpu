@@ -232,7 +232,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			// the flag is decoded and set later when
 			// calling function _starpu_task_insert_create()
-			va_arg(varg_list_copy, int);
+			(void)va_arg(varg_list_copy, int);
 		}
 		else if (arg_type_nocommute==STARPU_R || arg_type_nocommute==STARPU_W || arg_type_nocommute==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
 		{
@@ -265,41 +265,41 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
-			va_arg(varg_list_copy, void *);
-			va_arg(varg_list_copy, size_t);
+			(void)va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list_copy, size_t);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
-			va_arg(varg_list_copy, void (*)(void *));
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
 		{
-			va_arg(varg_list_copy, void (*)(void *));
-			va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			(void)va_arg(varg_list_copy, void *);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
 		{
-			va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list_copy, void *);
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
                 {
-                        (void)va_arg(varg_list, _starpu_callback_func_t);
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
 		}
                 else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
                 {
-                        (void)va_arg(varg_list, void *);
+                        (void)va_arg(varg_list_copy, void *);
                 }
                 else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
                 {
-			(void)va_arg(varg_list, _starpu_callback_func_t);
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
                 }
                 else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
                 {
-                        (void)va_arg(varg_list, void *);
+                        (void)va_arg(varg_list_copy, void *);
 		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
-			va_arg(varg_list_copy, int);
+			(void)va_arg(varg_list_copy, int);
 		}
 		else if (arg_type==STARPU_HYPERVISOR_TAG)
 		{
@@ -502,7 +502,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		*task = starpu_task_create();
 		(*task)->cl_arg_free = 1;
 
-		if (codelet->nbuffers > STARPU_NMAXBUFS)
+		if (codelet && codelet->nbuffers > STARPU_NMAXBUFS)
 		{
 			(*task)->dyn_handles = malloc(codelet->nbuffers * sizeof(starpu_data_handle_t));
 		}

@@ -119,6 +119,34 @@ struct _starpu_sched_ctx
 	
 	/* value placing the contexts in their hierarchy */
 	unsigned hierarchy_level;
+
+	/* if we execute non-StarPU code inside the context 
+	   we have a single master worker that stays awake, 
+	   if not master is -1 */
+	int main_master;
+
+	/* conditions variables used when parallel sections are executed in contexts */
+	starpu_pthread_cond_t parallel_sect_cond[STARPU_NMAXWORKERS];
+	starpu_pthread_mutex_t parallel_sect_mutex[STARPU_NMAXWORKERS];
+
+	/* boolean indicating that workers should block in order to allow
+	   parallel sections to be executed on their allocated resources */
+	unsigned parallel_sect[STARPU_NMAXWORKERS];
+
+	/* id of the master worker */
+	int master[STARPU_NMAXWORKERS];
+
+	/* semaphore that block appl thread until starpu threads are 
+	   all blocked and ready to exec the parallel code */
+	sem_t fall_asleep_sem[STARPU_NMAXWORKERS];
+
+	/* semaphore that block appl thread until starpu threads are 
+	   all woke up and ready continue appl */
+	sem_t wake_up_sem[STARPU_NMAXWORKERS];
+       
+	/* bool indicating if the workers is sleeping in this ctx */
+	unsigned sleeping[STARPU_NMAXWORKERS];
+
 };
 
 struct _starpu_machine_config;
@@ -177,7 +205,10 @@ starpu_pthread_rwlock_t* _starpu_sched_ctx_get_changing_ctx_mutex(unsigned sched
 unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);
 
 /* let the appl know that the worker blocked to execute parallel code */
-void _starpu_sched_ctx_signal_worker_blocked(int workerid);
+void _starpu_sched_ctx_signal_worker_blocked(unsigned sched_ctx_id, int workerid);
+
+/* let the appl know that the worker woke up */
+void _starpu_sched_ctx_signal_worker_woke_up(unsigned sched_ctx_id, int workerid);
 
 /* If starpu_sched_ctx_set_context() has been called, returns the context
  * id set by its last call, or the id of the initial context */

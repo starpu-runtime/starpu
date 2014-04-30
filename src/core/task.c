@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
  *
@@ -34,6 +34,7 @@
 #include <core/debug.h>
 #include <core/sched_ctx.h>
 #include <time.h>
+#include <signal.h>
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
@@ -1047,11 +1048,13 @@ static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
 			if (getenv("STARPU_WATCHDOG_CRASH"))
 			{
 				fprintf(stderr,"Crashing the process\n");
-				assert(0);
+				raise(SIGABRT);
 			}
 			else
 				fprintf(stderr,"Set the STARPU_WATCHDOG_CRASH environment variable if you want to abort the process in such a case\n");
 		}
+		/* Only shout again after another period */
+		config->watchdog_ok = 1;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&config->submitted_mutex);
 	return NULL;

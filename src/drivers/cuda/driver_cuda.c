@@ -44,7 +44,10 @@ static size_t global_mem[STARPU_MAXCUDADEVS];
 static cudaStream_t streams[STARPU_NMAXWORKERS];
 static cudaStream_t out_transfer_streams[STARPU_MAXCUDADEVS];
 static cudaStream_t in_transfer_streams[STARPU_MAXCUDADEVS];
-static cudaStream_t peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
+/* Note: streams are not thread-safe, so we define them for each CUDA worker
+ * emitting a GPU-GPU transfer */
+static cudaStream_t in_peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
+static cudaStream_t out_peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
 static cudaEvent_t task_events[STARPU_NMAXWORKERS];
 #endif /* STARPU_USE_CUDA */
@@ -116,26 +119,44 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 }
 
 #ifdef STARPU_USE_CUDA
-cudaStream_t starpu_cuda_get_in_transfer_stream(unsigned node)
+cudaStream_t starpu_cuda_get_local_in_transfer_stream()
 {
-	int devid = _starpu_memory_node_get_devid(node);
+	int worker = starpu_worker_get_id();
+	int devid = starpu_worker_get_devid(worker);
+	cudaStream_t stream;
 
-	return in_transfer_streams[devid];
+	stream = in_transfer_streams[devid];
+	STARPU_ASSERT(stream);
+	return stream;
 }
 
-cudaStream_t starpu_cuda_get_out_transfer_stream(unsigned node)
+cudaStream_t starpu_cuda_get_local_out_transfer_stream()
 {
-	int devid = _starpu_memory_node_get_devid(node);
+	int worker = starpu_worker_get_id();
+	int devid = starpu_worker_get_devid(worker);
+	cudaStream_t stream;
 
-	return out_transfer_streams[devid];
+	stream = out_transfer_streams[devid];
+	STARPU_ASSERT(stream);
+	return stream;
 }
 
 cudaStream_t starpu_cuda_get_peer_transfer_stream(unsigned src_node, unsigned dst_node)
 {
+	int worker = starpu_worker_get_id();
+	int devid = starpu_worker_get_devid(worker);
 	int src_devid = _starpu_memory_node_get_devid(src_node);
 	int dst_devid = _starpu_memory_node_get_devid(dst_node);
+	cudaStream_t stream;
 
-	return peer_transfer_streams[src_devid][dst_devid];
+	STARPU_ASSERT(devid == src_devid || devid == dst_devid);
+
+	if (devid == dst_devid)
+		stream = in_peer_transfer_streams[src_devid][dst_devid];
+	else
+		stream = out_peer_transfer_streams[src_devid][dst_devid];
+	STARPU_ASSERT(stream);
+	return stream;
 }
 
 cudaStream_t starpu_cuda_get_local_stream(void)
@@ -262,19 +283,22 @@ static void init_context(struct _starpu_worker_set *worker_set, unsigned devid)
 		cures = cudaStreamCreate(&streams[workerid]);
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
-
-		cures = cudaStreamCreate(&in_transfer_streams[devid]);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
-
-		cures = cudaStreamCreate(&out_transfer_streams[devid]);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_CUDA_REPORT_ERROR(cures);
 	}
+
+	cures = cudaStreamCreate(&in_transfer_streams[devid]);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
+
+	cures = cudaStreamCreate(&out_transfer_streams[devid]);
+	if (STARPU_UNLIKELY(cures))
+		STARPU_CUDA_REPORT_ERROR(cures);
 
 	for (i = 0; i < ncudagpus; i++)
 	{
-		cures = cudaStreamCreate(&peer_transfer_streams[i][devid]);
+		cures = cudaStreamCreate(&in_peer_transfer_streams[i][devid]);
+		if (STARPU_UNLIKELY(cures))
+			STARPU_CUDA_REPORT_ERROR(cures);
+		cures = cudaStreamCreate(&out_peer_transfer_streams[devid][i]);
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
@@ -284,7 +308,8 @@ static void deinit_context(struct _starpu_worker_set *worker_set)
 {
 	cudaError_t cures;
 	unsigned i;
-	int workerid, devid;
+	int workerid = worker_set->workers[0].workerid;
+	int devid = starpu_worker_get_devid(workerid);
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
@@ -293,12 +318,16 @@ static void deinit_context(struct _starpu_worker_set *worker_set)
 
 		cudaEventDestroy(task_events[workerid]);
 		cudaStreamDestroy(streams[workerid]);
-		cudaStreamDestroy(in_transfer_streams[devid]);
-		cudaStreamDestroy(out_transfer_streams[devid]);
 	}
 
+	cudaStreamDestroy(in_transfer_streams[devid]);
+	cudaStreamDestroy(out_transfer_streams[devid]);
+
 	for (i = 0; i < ncudagpus; i++)
-		cudaStreamDestroy(peer_transfer_streams[i][devid]);
+	{
+		cudaStreamDestroy(in_peer_transfer_streams[i][devid]);
+		cudaStreamDestroy(out_peer_transfer_streams[devid][i]);
+	}
 
 	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
 	cures = cudaThreadExit();

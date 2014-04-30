@@ -780,6 +780,16 @@ static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 static double last_sleep_start[STARPU_NMAXWORKERS];
 
+static void handle_start_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	int worker;
+	worker = find_worker_id(ev->param[0]);
+	if (worker < 0) return;
+
+	if (out_paje_file)
+		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
+}
+
 static void handle_start_sleep(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
@@ -1490,6 +1500,10 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 			case _STARPU_FUT_END_PUSH_OUTPUT:
 			case _STARPU_FUT_END_UNPARTITION:
 				handle_worker_status(&ev, options, "B");
+				break;
+
+			case _STARPU_FUT_WORKER_SCHEDULING_START:
+				handle_start_scheduling(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SLEEP_START:

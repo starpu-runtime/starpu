@@ -325,6 +325,11 @@ starpu_task_insert(&summarize_data, STARPU_R, handle, STARPU_W, result_handle, 0
 starpu_data_unregister_submit(handle);
 \endcode
 
+The application may also want to see the temporary data initialized
+on the fly before being used by the task. This can be done by using
+starpu_data_set_reduction_methods() to set an initialization codelet (no redux
+codelet is needed).
+
 \subsection ScratchData Scratch Data
 
 Some kernels sometimes need temporary data to achieve the computations, i.e. a
