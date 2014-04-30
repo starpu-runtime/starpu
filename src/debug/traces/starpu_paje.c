@@ -87,14 +87,14 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	fprintf(file, "%%EndEventDef\n");
 	fprintf(file, "%%EventDef	PajePushState	11\n");
 	fprintf(file, "%%	Time	date\n");
-	fprintf(file, "%%	Type	string\n");
 	fprintf(file, "%%	Container	string\n");
+	fprintf(file, "%%	Type	string\n");
 	fprintf(file, "%%	Value	string\n");
 	fprintf(file, "%%EndEventDef\n");
 	fprintf(file, "%%EventDef	PajePopState	12\n");
 	fprintf(file, "%%	Time	date\n");
-	fprintf(file, "%%	Type	string\n");
 	fprintf(file, "%%	Container	string\n");
+	fprintf(file, "%%	Type	string\n");
 	fprintf(file, "%%EndEventDef\n");
 	fprintf(file, "%%EventDef	PajeSetVariable	13\n");
 	fprintf(file, "%%	Time	date\n");
