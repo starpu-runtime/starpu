@@ -429,7 +429,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->run_by_starpu = 1;
 
 	workerarg->sched_ctx_list = NULL;
-	workerarg->tmp_sched_ctx_list = NULL;
+	workerarg->tmp_sched_ctx = -1;
 	workerarg->nsched_ctxs = 0;
 	_starpu_barrier_counter_init(&workerarg->tasks_barrier, 0);
 
@@ -1178,7 +1178,6 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 out:
 		STARPU_ASSERT(starpu_task_list_empty(&worker->local_tasks));
 		_starpu_sched_ctx_list_delete(&worker->sched_ctx_list);
-		_starpu_sched_ctx_list_delete(&worker->tmp_sched_ctx_list);
 		_starpu_job_list_delete(worker->terminated_jobs);
 	}
 }

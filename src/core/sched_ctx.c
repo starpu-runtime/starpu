@@ -47,6 +47,8 @@ static void _starpu_worker_gets_into_ctx(unsigned sched_ctx_id, struct _starpu_w
 		worker->nsched_ctxs++;
 	}
 	worker->removed_from_ctx[sched_ctx_id] = 0;
+	if(worker->tmp_sched_ctx == sched_ctx_id)
+		worker->tmp_sched_ctx = -1;
 	return;
 }
 
@@ -167,12 +169,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 			workers->add(workers, worker);
 			workers_to_add[i] = worker;
 			struct _starpu_worker *str_worker = _starpu_get_worker_struct(worker);
-			if(!str_worker->tmp_sched_ctx_list)
-			{
-				str_worker->tmp_sched_ctx_list = (struct _starpu_sched_ctx_list*)malloc(sizeof(struct _starpu_sched_ctx_list));
-				_starpu_sched_ctx_list_init(str_worker->tmp_sched_ctx_list);
-			}
-			_starpu_sched_ctx_list_add(&str_worker->tmp_sched_ctx_list, sched_ctx->id);
+			str_worker->tmp_sched_ctx = (int)sched_ctx->id;
 
 		}
 	}
@@ -605,8 +602,7 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 		free(sched_ctx->sched_policy);
 		sched_ctx->sched_policy = NULL;
 	}
-	else
-		starpu_sched_ctx_unbook_workers_for_task(sched_ctx->id, sched_ctx->main_master);
+	
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->empty_ctx_mutex);
 	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
@@ -658,6 +654,8 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 
 	if(!_starpu_wait_for_all_tasks_of_sched_ctx(sched_ctx_id))
 	{
+		if(!sched_ctx->sched_policy)
+			starpu_sched_ctx_unbook_workers_for_task(sched_ctx->id, sched_ctx->main_master);
 		/*if btw the mutex release & the mutex lock the context has changed take care to free all
 		  scheduling data before deleting the context */
 		_starpu_update_workers_without_ctx(workerids, nworkers_ctx, sched_ctx_id, 1);

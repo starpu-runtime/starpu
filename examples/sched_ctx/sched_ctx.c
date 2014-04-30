@@ -36,8 +36,8 @@ static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STAR
 static struct starpu_codelet sched_ctx_codelet =
 {
 	.cpu_funcs = {sched_ctx_func, NULL},
-	.cuda_funcs = {sched_ctx_func, NULL},
-	.opencl_funcs = {sched_ctx_func, NULL},
+	.cuda_funcs = {NULL},
+	.opencl_funcs = {NULL},
 	.model = NULL,
 	.nbuffers = 0,
 	.name = "sched_ctx"
