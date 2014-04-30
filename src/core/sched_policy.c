@@ -470,9 +470,9 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				ret = -1;
 			else
 			{
-				_STARPU_TRACE_WORKER_SCHEDULING_PUSH
+				_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
 				ret = sched_ctx->sched_policy->push_task(task);
-				_STARPU_TRACE_WORKER_SCHEDULING_POP
+				_STARPU_TRACE_WORKER_SCHEDULING_POP;
 			}
 			STARPU_PTHREAD_RWLOCK_UNLOCK(changing_ctx_mutex);
 		}
