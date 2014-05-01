@@ -32,22 +32,28 @@ Shutdown StarPU and its OpenMP Runtime support.
 Generates and launch an OpenMP parallel region and return after its
 completion. \p attr specifies the attributes for the generated parallel region.
 If this function is called from inside another, generating, parallel region, the
-generated parallel region is nested within the generating parallel region. This
-function can be used to implement <c>pragma omp parallel</c>.
+generated parallel region is nested within the generating parallel region.
+
+This function can be used to implement <c>\#pragma omp parallel</c>.
 
 \fn void starpu_omp_master(void (*f)(void *arg), void *arg)
 \ingroup API_OpenMP_Runtime_Support
 Executes a function only on the master thread of the OpenMP
 parallel region it is called from. When called from a thread that is not the
 master of the parallel region it is called from, this function does nothing. \p
-f is the function to be called. \p arg is an argument passed to \p arg. This
-function can be used to implement <c>pragma omp master</c>.
+f is the function to be called. \p arg is an argument passed to function \p f.
+
+This function can be used to implement <c>\#pragma omp master</c>.
 
 \fn int starpu_omp_master_inline(void)
 \ingroup API_OpenMP_Runtime_Support
-Returns whether the calling thread is the master of the OpenMP parallel region
-it is called from or not. This function can be used to implement <c>pragma omp
-master</c> without code outlining.
+Determines whether the calling thread is the master of the OpenMP parallel region
+it is called from or not.
+
+This function can be used to implement <c>\#pragma omp master</c> without code
+outlining.
+\return <c>!0</c> if called by the region's master thread.
+\return <c>0</c> if not called by the region's master thread.
 
 @name Synchronization
 \anchor ORS_Synchronization
@@ -55,20 +61,42 @@ master</c> without code outlining.
 
 \fn void starpu_omp_barrier(void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Waits until each participating thread of the innermost OpenMP parallel region
+has reached the barrier and each explicit OpenMP task bound to this region has
+completed its execution.
+
+This function can be used to implement <c>\#pragma omp barrier</c>.
 
 \fn void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *name)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Waits until no other thread is executing within the context of the selected
+critical section, then proceeds to the exclusive execution of a function within
+the critical section. \p f is the function to be executed in the critical
+section. \p arg is an argument passed to function \p f. \p name is the name of
+the selected critical section. If <c>name == NULL</c>, the selected critical
+section is the unique anonymous critical section.
+
+This function can be used to implement <c>\#pragma omp critical</c>.
 
 \fn void starpu_omp_critical_inline_begin(const char *name)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Waits until execution can proceed exclusively within the context of the
+selected critical section. \p name is the name of the selected critical
+section. If <c>name == NULL</c>, the selected critical section is the unique
+anonymous critical section.
+
+This function together with #starpu_omp_critical_inline_end can be used to
+implement <c>\#pragma omp critical</c> without code outlining.
 
 \fn void starpu_omp_critical_inline_end(const char *name)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Ends the exclusive execution within the context of the selected critical
+section. \p name is the name of the selected critical section. If
+<c>name==NULL</c>, the selected critical section is the unique anonymous
+critical section.
 
+This function together with #starpu_omp_critical_inline_begin can be used to
+implement <c>\#pragma omp critical</c> without code outlining.
 
 @name Worksharing
 \anchor ORS_Worksharing
@@ -76,57 +104,168 @@ This function .
 
 \fn void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Ensures that a single participating thread of the innermost OpenMP parallel
+region executes a function. \p f is the function to be executed by a single
+thread. \p arg is an argument passed to function \p f. \p nowait is a flag
+indicating whether an implicit barrier is requested after the single section
+(<c>nowait==0</c>) or not (<c>nowait==!0</c>).
+
+This function can be used to implement <c>\#pragma omp single</c>.
 
 \fn int starpu_omp_single_inline(void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Decides whether the current thread is elected to run the following single
+section among the participating threads of the innermost OpenMP parallel
+region.
+
+This function can be used to implement <c>\#pragma omp single</c> without code
+outlining.
+\return <c>!0</c> if the calling thread has won the election.
+\return <c>0</c> if the calling thread has lost the election.
 
 \fn void starpu_omp_for(void (*f)(unsigned long long _first_i, unsigned long long _nb_i, void *arg), void *arg, unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, int nowait)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Executes a parallel loop together with the other threads participating to the
+innermost parallel region. \p f is the function to be executed iteratively. \p
+arg is an argument passed to function \p f. \p nb_iterations is the number of
+iterations to be performed by the parallel loop. \p chunk is the number of
+consecutive iterations that should be affected to the same thread when
+scheduling the loop workshares, it follows the semantics of the \c modifier
+argument in OpenMP <c>\#pragma omp for</c> specification. \p schedule is the
+scheduling mode according to the OpenMP specification. \p ordered is a flag
+indicating whether the loop region may contain an ordered section
+(<c>ordered==!0</c>) or not (<c>ordered==0</c>). \p nowait is a flag
+indicating whether an implicit barrier is requested after the for section
+(<c>nowait==0</c>) or not (<c>nowait==!0</c>).
+
+The function \p f will be called with arguments \p _first_i, the first iteration
+to perform, \p _nb_i, the number of consecutive iterations to perform before
+returning, \p arg, the free \p arg argument.
+
+This function can be used to implement <c>\#pragma omp for</c>.
 
 \fn int starpu_omp_for_inline_first(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Decides whether the current thread should start to execute a parallel loop
+section. See #starpu_omp_for for the argument description.
+
+This function together with #starpu_omp_for_inline_next can be used to
+implement <c>\#pragma omp for</c> without code outlining.
+
+\return <c>!0</c> if the calling thread participates to the loop region and
+should execute a first chunk of iterations. In that case, \p *_first_i will be
+set to the first iteration of the chunk to perform and \p *_nb_i will be set to
+the number of iterations of the chunk to perform.
+
+\return <c>0</c> if the calling thread does not participate to the loop region
+because all the available iterations have been affected to the other threads of
+the parallel region.
+
+\sa starpu_omp_for
 
 \fn int starpu_omp_for_inline_next(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Decides whether the current thread should continue to execute a parallel loop
+section. See #starpu_omp_for for the argument description.
+
+This function together with #starpu_omp_for_inline_first can be used to
+implement <c>\#pragma omp for</c> without code outlining.
+
+\return <c>!0</c> if the calling thread should execute a next chunk of
+iterations. In that case, \p *_first_i will be set to the first iteration of the
+chunk to perform and \p *_nb_i will be set to the number of iterations of the
+chunk to perform.
+
+\return <c>0</c> if the calling thread does not participate anymore to the loop
+region because all the available iterations have been affected to the other
+threads of the parallel region.
+
+\sa starpu_omp_for
 
 \fn void starpu_omp_for_alt(void (*f)(unsigned long long _begin_i, unsigned long long _end_i, void *arg), void *arg, unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, int nowait)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Alternative implementation of a parallel loop. This function differs from
+#starpu_omp_for in the expected arguments of the loop function \c f.
+
+The function \p f will be called with arguments \p _begin_i, the first iteration
+to perform, \p _end_i, the first iteration not to perform before
+returning, \p arg, the free \p arg argument.
+
+This function can be used to implement <c>\#pragma omp for</c>.
+
+\sa starpu_omp_for
 
 \fn int starpu_omp_for_inline_first_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Inline version of the alternative implementation of a parallel loop.
+
+This function together with #starpu_omp_for_inline_next_alt can be used to
+implement <c>\#pragma omp for</c> without code outlining.
+
+\sa starpu_omp_for
+\sa starpu_omp_for_alt
+\sa starpu_omp_for_inline_first
 
 \fn int starpu_omp_for_inline_next_alt(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_begin_i, unsigned long long *_end_i)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Inline version of the alternative implementation of a parallel loop.
 
-\fn void starpu_omp_ordered_inline_begin(void)
-\ingroup API_OpenMP_Runtime_Support
-This function .
+This function together with #starpu_omp_for_inline_first_alt can be used to
+implement <c>\#pragma omp for</c> without code outlining.
 
-\fn void starpu_omp_ordered_inline_end(void)
-\ingroup API_OpenMP_Runtime_Support
-This function .
+\sa starpu_omp_for
+\sa starpu_omp_for_alt
+\sa starpu_omp_for_inline_next
 
 \fn void starpu_omp_ordered(void (*f)(void *arg), void *arg)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Ensures that a function is sequentially executed once for each iteration in
+order within a parallel loop, by the thread that own the iteration. \p f is the
+function to be executed by the thread that own the current iteration. \p arg is
+an argument passed to function \p f.
+
+This function can be used to implement <c>\#pragma omp ordered</c>.
+
+\fn void starpu_omp_ordered_inline_begin(void)
+\ingroup API_OpenMP_Runtime_Support
+Waits until all the iterations of a parallel loop below the iteration owned by
+the current thread have been executed.
+
+This function together with #starpu_omp_ordered_inline_end can be used to
+implement <c>\#pragma omp ordered</c> without code code outlining.
+
+\fn void starpu_omp_ordered_inline_end(void)
+\ingroup API_OpenMP_Runtime_Support
+Notifies that the ordered section for the current iteration has been completed.
+
+This function together with #starpu_omp_ordered_inline_begin can be used to
+implement <c>\#pragma omp ordered</c> without code code outlining.
 
 \fn void starpu_omp_sections(unsigned long long nb_sections, void (**section_f)(void *arg), void **section_arg, int nowait)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Ensures that each function of a given array of functions is executed by one and
+only one thread. \p nb_sections is the number of functions in the array \p
+section_f. \p section_f is the array of functions to be executed as sections. \p
+section_arg is an array of arguments to be passed to the corresponding function.
+\p nowait is a flag indicating whether an implicit barrier is requested after
+the execution of all the sections (<c>nowait==0</c>) or not (<c>nowait==!0</c>).
+
+This function can be used to implement <c>\#pragma omp sections</c> and <c>\#pragma omp section</c>.
 
 \fn void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section_f)(unsigned long long section_num, void *arg), void **section_arg, int nowait)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Alternative implementation of sections. This function differs from
+#starpu_omp_sections in that all the sections are combined within a single
+function in this version. \p section_f is the function implementing the combined
+sections.
 
+The function \p section_f will be called with arguments \p section_num, the
+section number to be executed, \p arg, the entry of \p section_arg corresponding
+to this section.
 
+This function can be used to implement <c>\#pragma omp sections</c> and <c>\#pragma omp section</c>.
+
+\sa starpu_omp_sections
 
 @name Task
 \anchor ORS_Task
@@ -134,16 +273,26 @@ This function .
 
 \fn void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Generates an explicit child task. The execution of the generated task is
+asynchronous with respect to the calling code unless specified otherwise.
+\p attr specifies the attributes for the generated task region.
+
+This function can be used to implement <c>\#pragma omp task</c>.
 
 \fn void starpu_omp_taskwait(void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Waits for the completion of the tasks generated by the current task. This
+function does not wait for the descendants of the tasks generated by the current
+task.
+
+This function can be used to implement <c>\#pragma omp taskwait</c>.
 
 \fn void starpu_omp_taskgroup(void (*f)(void *arg), void *arg)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+Launches a function and wait for the completion of every descendant task
+generated during the execution of the function.
 
+This function can be used to implement <c>\#pragma omp taskgroup</c>.
 
 @name API
 \anchor ORS_API
