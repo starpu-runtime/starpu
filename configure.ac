@@ -1393,11 +1393,15 @@ fi
 
 AC_MSG_CHECKING(whether debug messages should be displayed)
 AC_ARG_ENABLE(verbose, [AS_HELP_STRING([--enable-verbose],
-			[display verbose debug messages])],
+			[display verbose debug messages (--enable-verbose=extra increase the verbosity)])],
 			enable_verbose=$enableval, enable_verbose=no)
 AC_MSG_RESULT($enable_verbose)
 if test x$enable_verbose = xyes; then
 	AC_DEFINE(STARPU_VERBOSE, [1], [display verbose debug messages])
+fi
+if test x$enable_verbose = xextra; then
+	AC_DEFINE(STARPU_VERBOSE, [1], [display verbose debug messages])
+	AC_DEFINE(STARPU_EXTRA_VERBOSE, [1], [display verbose debug messages])
 fi
 
 AC_MSG_CHECKING(whether coverage testing should be enabled)

@@ -17,6 +17,10 @@
 StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 
+Small features:
+  * The option --enable-verbose can be called with
+    --enable-verbose=extra to increase the verbosity
+
 StarPU 1.1.2 (svn revision xxxx)
 ==============================================
 The scheduling context release

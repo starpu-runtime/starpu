@@ -42,7 +42,7 @@ Disable assertion checks, which saves computation time.
 \addindex __configure__--enable-verbose
 Increase the verbosity of the debugging messages.  This can be disabled
 at runtime by setting the environment variable \ref STARPU_SILENT to
-any value.
+any value. <c>--enable-verbose=extra</c> increase even more the verbosity.
 
 \verbatim
 $ STARPU_SILENT=1 ./vector_scal
