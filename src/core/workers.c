@@ -95,12 +95,17 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 						      enum starpu_worker_archtype arch)
 {
 	int i;
-	int nworkers = starpu_worker_get_count();
-
 	_starpu_codelet_check_deprecated_fields(task->cl);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	struct starpu_worker_collection *workers = sched_ctx->workers;
 
-	for (i = 0; i < nworkers; i++)
-	{
+        struct starpu_sched_ctx_iterator it;
+        if(workers->init_iterator)
+                workers->init_iterator(workers, &it);
+
+        while(workers->has_next(workers, &it))
+        {
+                i = workers->get_next(workers, &it);
 		if (starpu_worker_get_type(i) != arch)
 			continue;
 
@@ -141,7 +146,10 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 			if (!test_implementation)
 				break;
 
-			if (task->cl->can_execute(i, task, impl))
+			if (task->cl->can_execute && task->cl->can_execute(i, task, impl))
+				return 1;
+
+			if(test_implementation)
 				return 1;
 		}
 	}
@@ -155,11 +163,18 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 {
 	_starpu_codelet_check_deprecated_fields(task->cl);
 
-	if (!(task->cl->where & config.worker_mask))
-		return 0;
-
-	if (!task->cl->can_execute)
-		return 1;
+	/* if the task belongs to the init context we can
+	   check out all the worker mask of the machine
+	   if not we should iterate on the workers of the ctx
+	   and verify if it exists a worker able to exec the task */
+	if(task->sched_ctx == 0)
+	{
+		if (!(task->cl->where & config.worker_mask))
+			return 0;
+		
+		if (!task->cl->can_execute)
+			return 1;
+	}
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 	if ((task->cl->where & STARPU_CPU) &&
@@ -186,6 +201,7 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 	    _starpu_worker_exists_and_can_execute(task, STARPU_SCC_WORKER))
 		return 1;
 #endif
+
 	return 0;
 }
 

@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
- */
+OB */
 
 #include <starpu.h>
 
@@ -26,17 +26,32 @@
 int tasks_executed = 0;
 starpu_pthread_mutex_t mut;
 
-static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+static void sched_ctx_cpu_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	starpu_pthread_mutex_lock(&mut);
 	tasks_executed++;
 	starpu_pthread_mutex_unlock(&mut);
 }
 
-static struct starpu_codelet sched_ctx_codelet =
+static void sched_ctx_cuda_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
-	.cpu_funcs = {sched_ctx_func, NULL},
+	
+}
+
+static struct starpu_codelet sched_ctx_codelet1 =
+{
+	.cpu_funcs = {sched_ctx_cpu_func, NULL},
 	.cuda_funcs = {NULL},
+	.opencl_funcs = {NULL},
+	.model = NULL,
+	.nbuffers = 0,
+	.name = "sched_ctx"
+};
+
+static struct starpu_codelet sched_ctx_codelet2 =
+{
+	.cpu_funcs = {sched_ctx_cpu_func, NULL},
+	.cuda_funcs = {sched_ctx_cuda_func, NULL},
 	.opencl_funcs = {NULL},
 	.model = NULL,
 	.nbuffers = 0,
@@ -87,12 +102,11 @@ int main(int argc, char **argv)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &sched_ctx_codelet;
+		task->cl = &sched_ctx_codelet1;
 		task->cl_arg = NULL;
 
 		/*submit tasks to context*/
 		ret = starpu_task_submit_to_ctx(task,sched_ctx1);
-
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
@@ -102,11 +116,22 @@ int main(int argc, char **argv)
 
 	starpu_sched_ctx_finished_submit(sched_ctx1);
 
+	/* task with no cuda impl submitted to a ctx with gpus only */
+	struct starpu_task *task2 = starpu_task_create();
+	
+	task2->cl = &sched_ctx_codelet1;
+	task2->cl_arg = NULL;
+	
+	/*submit tasks to context*/
+	ret = starpu_task_submit_to_ctx(task2,sched_ctx2);
+	STARPU_ASSERT_MSG(ret == -ENODEV, "submit task should ret enodev when the ctx does not have the PUs needed by the task");	
+//	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+
 	for (i = 0; i < ntasks/2; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &sched_ctx_codelet;
+		task->cl = &sched_ctx_codelet2;
 		task->cl_arg = NULL;
 
 		ret = starpu_task_submit_to_ctx(task,sched_ctx2);
@@ -121,7 +146,7 @@ int main(int argc, char **argv)
 
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
-	printf("tasks executed %d out of %d\n", tasks_executed, ntasks);
+	printf("tasks executed %d out of %d\n", tasks_executed, ntasks/2);
 	starpu_shutdown();
 
 	return 0;
