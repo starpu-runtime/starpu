@@ -67,6 +67,7 @@ main(int argc, char **argv)
 	task = starpu_task_create();
 	task->cl = &cl;
 	task->destroy = 0;
+	task->sched_ctx = 0;
 
 	cl.can_execute = NULL;
 	ret = _starpu_worker_exists(task);
