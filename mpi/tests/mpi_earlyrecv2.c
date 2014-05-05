@@ -131,7 +131,7 @@ int exchange_variable(int rank, int detached)
 	{
 		value[i]=i*rank;
 		starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&value[i], sizeof(int));
-		starpu_data_set_tag(tab_handle[i], i);
+		starpu_mpi_data_register(tab_handle[i], i, rank);
 	}
 	ret = exchange(rank, tab_handle, check_variable, detached);
 	for(i=0 ; i<NB ; i++)
@@ -154,7 +154,7 @@ int exchange_void(int rank, int detached)
 	for(i=0 ; i<NB ; i++)
 	{
 		starpu_void_data_register(&tab_handle[i]);
-		starpu_data_set_tag(tab_handle[i], i);
+		starpu_mpi_data_register(tab_handle[i], i, rank);
 	}
 	ret = exchange(rank, tab_handle, check_void, detached);
 	for(i=0 ; i<NB ; i++)
@@ -191,7 +191,7 @@ int exchange_complex(int rank, int detached)
 		real[i] = (i*rank)+12;
 		imaginary[i] = (i*rank)+45;
 		starpu_complex_data_register(&handle[i], STARPU_MAIN_RAM, &real[i], &imaginary[i], 1);
-		starpu_data_set_tag(handle[i], i);
+		starpu_mpi_data_register(handle[i], i, rank);
 	}
 	ret = exchange(rank, handle, check_complex, detached);
 	for(i=0 ; i<NB ; i++)
