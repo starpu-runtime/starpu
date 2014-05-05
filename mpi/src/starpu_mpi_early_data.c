@@ -21,71 +21,71 @@
 #include <starpu_mpi_private.h>
 #include <common/uthash.h>
 
-struct _starpu_mpi_copy_handle_hashlist
+struct _starpu_mpi_early_data_handle_hashlist
 {
-	struct _starpu_mpi_copy_handle_list *list;
+	struct _starpu_mpi_early_data_handle_list *list;
 	UT_hash_handle hh;
 	int mpi_tag;
 };
 
 /** stores data which have been received by MPI but have not been requested by the application */
-static struct _starpu_mpi_copy_handle_hashlist **_starpu_mpi_copy_handle_hashmap = NULL;
-static int _starpu_mpi_copy_handle_hashmap_count = 0;
+static struct _starpu_mpi_early_data_handle_hashlist **_starpu_mpi_early_data_handle_hashmap = NULL;
+static int _starpu_mpi_early_data_handle_hashmap_count = 0;
 
 void _starpu_mpi_early_data_init(int world_size)
 {
 	int k;
 
-	_starpu_mpi_copy_handle_hashmap = malloc(world_size * sizeof(struct _starpu_mpi_copy_handle_hash_list *));
-	for(k=0 ; k<world_size ; k++) _starpu_mpi_copy_handle_hashmap[k] = NULL;
+	_starpu_mpi_early_data_handle_hashmap = malloc(world_size * sizeof(struct _starpu_mpi_early_data_handle_hash_list *));
+	for(k=0 ; k<world_size ; k++) _starpu_mpi_early_data_handle_hashmap[k] = NULL;
 }
 
 void _starpu_mpi_early_data_check_termination()
 {
-	STARPU_ASSERT_MSG(_starpu_mpi_copy_handle_hashmap_count == 0, "Number of copy requests left is not zero");
+	STARPU_ASSERT_MSG(_starpu_mpi_early_data_handle_hashmap_count == 0, "Number of copy requests left is not zero");
 }
 
 void _starpu_mpi_early_data_free(int world_size)
 {
 	int n;
-	struct _starpu_mpi_copy_handle_hashlist *hashlist;
+	struct _starpu_mpi_early_data_handle_hashlist *hashlist;
 
 	for(n=0 ; n<world_size; n++)
 	{
-		for(hashlist=_starpu_mpi_copy_handle_hashmap[n]; hashlist != NULL; hashlist=hashlist->hh.next)
+		for(hashlist=_starpu_mpi_early_data_handle_hashmap[n]; hashlist != NULL; hashlist=hashlist->hh.next)
 		{
-			_starpu_mpi_copy_handle_list_delete(hashlist->list);
+			_starpu_mpi_early_data_handle_list_delete(hashlist->list);
 		}
-		struct _starpu_mpi_copy_handle_hashlist *current, *tmp;
-		HASH_ITER(hh, _starpu_mpi_copy_handle_hashmap[n], current, tmp)
+		struct _starpu_mpi_early_data_handle_hashlist *current, *tmp;
+		HASH_ITER(hh, _starpu_mpi_early_data_handle_hashmap[n], current, tmp)
 		{
-			HASH_DEL(_starpu_mpi_copy_handle_hashmap[n], current);
+			HASH_DEL(_starpu_mpi_early_data_handle_hashmap[n], current);
 			free(current);
 		}
 	}
-	free(_starpu_mpi_copy_handle_hashmap);
+	free(_starpu_mpi_early_data_handle_hashmap);
 }
 
 #ifdef STARPU_VERBOSE
-static void _starpu_mpi_copy_handle_display_hash(int source, int tag)
+static void _starpu_mpi_early_data_handle_display_hash(int source, int tag)
 {
-	struct _starpu_mpi_copy_handle_hashlist *hashlist;
-	HASH_FIND_INT(_starpu_mpi_copy_handle_hashmap[source], &tag, hashlist);
+	struct _starpu_mpi_early_data_handle_hashlist *hashlist;
+	HASH_FIND_INT(_starpu_mpi_early_data_handle_hashmap[source], &tag, hashlist);
 
 	if (hashlist == NULL)
 	{
 		_STARPU_MPI_DEBUG(60, "Hashlist for source %d and tag %d does not exist\n", source, tag);
 	}
-	else if (_starpu_mpi_copy_handle_list_empty(hashlist->list))
+	else if (_starpu_mpi_early_data_handle_list_empty(hashlist->list))
 	{
 		_STARPU_MPI_DEBUG(60, "Hashlist for source %d and tag %d is empty\n", source, tag);
 	}
 	else
 	{
-		struct _starpu_mpi_copy_handle *cur;
-		for (cur = _starpu_mpi_copy_handle_list_begin(hashlist->list) ;
-		     cur != _starpu_mpi_copy_handle_list_end(hashlist->list);
-		     cur = _starpu_mpi_copy_handle_list_next(cur))
+		struct _starpu_mpi_early_data_handle *cur;
+		for (cur = _starpu_mpi_early_data_handle_list_begin(hashlist->list) ;
+		     cur != _starpu_mpi_early_data_handle_list_end(hashlist->list);
+		     cur = _starpu_mpi_early_data_handle_list_next(cur))
 		{
 			_STARPU_MPI_DEBUG(60, "Element for source %d and tag %d: %p\n", source, tag, cur);
 		}
@@ -93,75 +93,76 @@ static void _starpu_mpi_copy_handle_display_hash(int source, int tag)
 }
 #endif
 
-struct _starpu_mpi_copy_handle *find_chandle(int mpi_tag, int source)
+static
+struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_pop(int mpi_tag, int source, int delete)
 {
-	return pop_chandle(mpi_tag, source, 0);
-}
+	struct _starpu_mpi_early_data_handle_hashlist *hashlist;
+	struct _starpu_mpi_early_data_handle *early_data_handle;
 
-void add_chandle(struct _starpu_mpi_copy_handle *chandle)
-{
-	_STARPU_MPI_DEBUG(60, "Trying to add chandle %p with tag %d in the hashmap[%d]\n", chandle, chandle->mpi_tag, chandle->source);
-
-	struct _starpu_mpi_copy_handle_hashlist *hashlist;
-	HASH_FIND_INT(_starpu_mpi_copy_handle_hashmap[chandle->source], &chandle->mpi_tag, hashlist);
+	_STARPU_MPI_DEBUG(60, "Looking for early_data_handle with tag %d in the hashmap[%d]\n", mpi_tag, source);
+	HASH_FIND_INT(_starpu_mpi_early_data_handle_hashmap[source], &mpi_tag, hashlist);
 	if (hashlist == NULL)
 	{
-		hashlist = malloc(sizeof(struct _starpu_mpi_copy_handle_hashlist));
-		hashlist->list = _starpu_mpi_copy_handle_list_new();
-		hashlist->mpi_tag = chandle->mpi_tag;
-		HASH_ADD_INT(_starpu_mpi_copy_handle_hashmap[chandle->source], mpi_tag, hashlist);
-	}
-	_starpu_mpi_copy_handle_list_push_back(hashlist->list, chandle);
-	_starpu_mpi_copy_handle_hashmap_count ++;
-#ifdef STARPU_VERBOSE
-	_starpu_mpi_copy_handle_display_hash(chandle->source, chandle->mpi_tag);
-#endif
-}
-
-void delete_chandle(struct _starpu_mpi_copy_handle *chandle)
-{
-	_STARPU_MPI_DEBUG(60, "Trying to delete chandle %p with tag %d in the hashmap[%d]\n", chandle, chandle->mpi_tag, chandle->source);
-	struct _starpu_mpi_copy_handle *found = pop_chandle(chandle->mpi_tag, chandle->source, 1);
-
-	STARPU_ASSERT_MSG(found == chandle,
-			  "Error delete_chandle : chandle %p with tag %d is NOT in the hashmap[%d]\n", chandle, chandle->mpi_tag, chandle->source);
-
-	_starpu_mpi_copy_handle_hashmap_count --;
-#ifdef STARPU_VERBOSE
-	_starpu_mpi_copy_handle_display_hash(chandle->source, chandle->mpi_tag);
-#endif
-}
-
-struct _starpu_mpi_copy_handle *pop_chandle(int mpi_tag, int source, int delete)
-{
-	struct _starpu_mpi_copy_handle_hashlist *hashlist;
-	struct _starpu_mpi_copy_handle *chandle;
-
-	_STARPU_MPI_DEBUG(60, "Looking for chandle with tag %d in the hashmap[%d]\n", mpi_tag, source);
-	HASH_FIND_INT(_starpu_mpi_copy_handle_hashmap[source], &mpi_tag, hashlist);
-	if (hashlist == NULL)
-	{
-		chandle = NULL;
+		early_data_handle = NULL;
 	}
 	else
 	{
-		if (_starpu_mpi_copy_handle_list_empty(hashlist->list))
+		if (_starpu_mpi_early_data_handle_list_empty(hashlist->list))
 		{
-			chandle = NULL;
+			early_data_handle = NULL;
 		}
 		else
 		{
 			if (delete == 1)
 			{
-				chandle = _starpu_mpi_copy_handle_list_pop_front(hashlist->list);
+				early_data_handle = _starpu_mpi_early_data_handle_list_pop_front(hashlist->list);
 			}
 			else
 			{
-				chandle = _starpu_mpi_copy_handle_list_front(hashlist->list);
+				early_data_handle = _starpu_mpi_early_data_handle_list_front(hashlist->list);
 			}
 		}
 	}
-	_STARPU_MPI_DEBUG(60, "Found chandle %p with tag %d in the hashmap[%d]\n", chandle, mpi_tag, source);
-	return chandle;
+	_STARPU_MPI_DEBUG(60, "Found early_data_handle %p with tag %d in the hashmap[%d]\n", early_data_handle, mpi_tag, source);
+	return early_data_handle;
+}
+
+struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(int mpi_tag, int source)
+{
+	return _starpu_mpi_early_data_pop(mpi_tag, source, 0);
+}
+
+void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data_handle)
+{
+	_STARPU_MPI_DEBUG(60, "Trying to add early_data_handle %p with tag %d in the hashmap[%d]\n", early_data_handle, early_data_handle->mpi_tag, early_data_handle->source);
+
+	struct _starpu_mpi_early_data_handle_hashlist *hashlist;
+	HASH_FIND_INT(_starpu_mpi_early_data_handle_hashmap[early_data_handle->source], &early_data_handle->mpi_tag, hashlist);
+	if (hashlist == NULL)
+	{
+		hashlist = malloc(sizeof(struct _starpu_mpi_early_data_handle_hashlist));
+		hashlist->list = _starpu_mpi_early_data_handle_list_new();
+		hashlist->mpi_tag = early_data_handle->mpi_tag;
+		HASH_ADD_INT(_starpu_mpi_early_data_handle_hashmap[early_data_handle->source], mpi_tag, hashlist);
+	}
+	_starpu_mpi_early_data_handle_list_push_back(hashlist->list, early_data_handle);
+	_starpu_mpi_early_data_handle_hashmap_count ++;
+#ifdef STARPU_VERBOSE
+	_starpu_mpi_early_data_handle_display_hash(early_data_handle->source, early_data_handle->mpi_tag);
+#endif
+}
+
+void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_data_handle)
+{
+	_STARPU_MPI_DEBUG(60, "Trying to delete early_data_handle %p with tag %d in the hashmap[%d]\n", early_data_handle, early_data_handle->mpi_tag, early_data_handle->source);
+	struct _starpu_mpi_early_data_handle *found = _starpu_mpi_early_data_pop(early_data_handle->mpi_tag, early_data_handle->source, 1);
+
+	STARPU_ASSERT_MSG(found == early_data_handle,
+			  "[_starpu_mpi_early_data_delete][error] early_data_handle %p with tag %d is NOT in the hashmap[%d]\n", early_data_handle, early_data_handle->mpi_tag, early_data_handle->source);
+
+	_starpu_mpi_early_data_handle_hashmap_count --;
+#ifdef STARPU_VERBOSE
+	_starpu_mpi_early_data_handle_display_hash(early_data_handle->source, early_data_handle->mpi_tag);
+#endif
 }
 

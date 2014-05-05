@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-LIST_TYPE(_starpu_mpi_copy_handle,
+LIST_TYPE(_starpu_mpi_early_data_handle,
 	  starpu_data_handle_t handle;
 	  struct _starpu_mpi_envelope *env;
 	  struct _starpu_mpi_req *req;
@@ -44,10 +44,9 @@ void _starpu_mpi_early_data_init(int world_size);
 void _starpu_mpi_early_data_check_termination();
 void _starpu_mpi_early_data_free(int world_size);
 
-struct _starpu_mpi_copy_handle *find_chandle(int mpi_tag, int source);
-void add_chandle(struct _starpu_mpi_copy_handle *chandle);
-void delete_chandle(struct _starpu_mpi_copy_handle *chandle);
-struct _starpu_mpi_copy_handle *pop_chandle(int mpi_tag, int source, int delete);
+struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(int mpi_tag, int source);
+void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data_handle);
+void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_data_handle);
 
 #ifdef __cplusplus
 }
