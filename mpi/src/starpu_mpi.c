@@ -492,7 +492,6 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	int ret;
 
 	struct _starpu_mpi_req *waiting_req = malloc(sizeof(struct _starpu_mpi_req));
-	_starpu_mpi_request_init(waiting_req);
 	STARPU_ASSERT_MSG(waiting_req, "Allocation failed");
 
 	struct _starpu_mpi_req *req = *public_req;
