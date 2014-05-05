@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,6 @@ static void sched_ctx_cpu_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg 
 
 static void sched_ctx_cuda_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
-	
 }
 
 static struct starpu_codelet sched_ctx_codelet1 =
@@ -63,6 +62,7 @@ int main(int argc, char **argv)
 {
 	int ntasks = NTASKS;
 	int ret;
+	unsigned ncuda = 0;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef STARPU_USE_CUDA
-	unsigned ncuda = starpu_cuda_worker_get_count();
+	ncuda = starpu_cuda_worker_get_count();
 	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procs2, ncuda);
 
 	nprocs2 = ncuda == 0 ? 1 : ncuda;
@@ -118,14 +118,19 @@ int main(int argc, char **argv)
 
 	/* task with no cuda impl submitted to a ctx with gpus only */
 	struct starpu_task *task2 = starpu_task_create();
-	
 	task2->cl = &sched_ctx_codelet1;
 	task2->cl_arg = NULL;
-	
+
 	/*submit tasks to context*/
 	ret = starpu_task_submit_to_ctx(task2,sched_ctx2);
-	STARPU_ASSERT_MSG(ret == -ENODEV, "submit task should ret enodev when the ctx does not have the PUs needed by the task");	
-//	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	if (ncuda == 0)
+	{
+	     STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+	else
+	{
+	     STARPU_ASSERT_MSG(ret == -ENODEV, "submit task should ret enodev when the ctx does not have the PUs needed by the task");
+	}
 
 	for (i = 0; i < ntasks/2; i++)
 	{
