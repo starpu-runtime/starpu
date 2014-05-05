@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 		nprocs2 =  ncpus-nprocs1;
 		k = 0;
 		for(j = nprocs1; j < nprocs1+nprocs2; j++)
-			procs2[k++] = j;
+			procs2[k++] = procs1[j];
 	}
 	else
 	{
