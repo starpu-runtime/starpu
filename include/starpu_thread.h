@@ -200,6 +200,11 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 
 #if defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_BARRIER)
 
+#if defined(STARPU_SIMGRID) && defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)
+typedef xbt_bar_t starpu_pthread_barrier_t;
+typedef int starpu_pthread_barrierattr_t;
+#define STARPU_PTHREAD_BARRIER_SERIAL_THREAD -1
+#else
 typedef struct {
 	starpu_pthread_mutex_t mutex;
 	starpu_pthread_cond_t cond;
@@ -208,6 +213,7 @@ typedef struct {
 } starpu_pthread_barrier_t;
 typedef int starpu_pthread_barrierattr_t;
 #define STARPU_PTHREAD_BARRIER_SERIAL_THREAD -1
+#endif
 
 int starpu_pthread_barrier_init(starpu_pthread_barrier_t *barrier, const starpu_pthread_barrierattr_t *attr, unsigned count);
 int starpu_pthread_barrier_destroy(starpu_pthread_barrier_t *barrier);
