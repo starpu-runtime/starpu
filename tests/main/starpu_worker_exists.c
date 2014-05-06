@@ -67,21 +67,31 @@ main(int argc, char **argv)
 	task = starpu_task_create();
 	task->cl = &cl;
 	task->destroy = 0;
+	task->sched_ctx = 0;
 
 	cl.can_execute = NULL;
 	ret = _starpu_worker_exists(task);
 	if (!ret)
+	{
+		FPRINTF(stderr, "failure with can_execute=NULL\n");
 		return EXIT_FAILURE;
+	}
 
 	cl.can_execute = can_always_execute;
 	ret = _starpu_worker_exists(task);
 	if (!ret)
+	{
+		FPRINTF(stderr, "failure with can_always_execute\n");
 		return EXIT_FAILURE;
+	}
 
 	cl.can_execute = can_never_execute;
 	ret = _starpu_worker_exists(task);
 	if (ret)
+	{
+		FPRINTF(stderr, "failure with can_never_execute\n");
 		return EXIT_FAILURE;
+	}
 
 	starpu_task_destroy(task);
 	starpu_shutdown();

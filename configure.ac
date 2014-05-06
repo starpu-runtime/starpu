@@ -994,7 +994,8 @@ if test x$enable_simgrid = xyes ; then
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
 		]
 	)
-   	AC_CHECK_FUNCS([MSG_process_join])
+   	AC_CHECK_FUNCS([MSG_process_join MSG_get_as_by_name])
+	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		    		[[#include <msg/msg.h>]],
 				[[msg_host_t foo; ]]
@@ -1393,11 +1394,15 @@ fi
 
 AC_MSG_CHECKING(whether debug messages should be displayed)
 AC_ARG_ENABLE(verbose, [AS_HELP_STRING([--enable-verbose],
-			[display verbose debug messages])],
+			[display verbose debug messages (--enable-verbose=extra increase the verbosity)])],
 			enable_verbose=$enableval, enable_verbose=no)
 AC_MSG_RESULT($enable_verbose)
 if test x$enable_verbose = xyes; then
 	AC_DEFINE(STARPU_VERBOSE, [1], [display verbose debug messages])
+fi
+if test x$enable_verbose = xextra; then
+	AC_DEFINE(STARPU_VERBOSE, [1], [display verbose debug messages])
+	AC_DEFINE(STARPU_EXTRA_VERBOSE, [1], [display verbose debug messages])
 fi
 
 AC_MSG_CHECKING(whether coverage testing should be enabled)

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -13,7 +13,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
- */
+OB */
 
 #include <starpu.h>
 
@@ -26,17 +26,31 @@
 int tasks_executed = 0;
 starpu_pthread_mutex_t mut;
 
-static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
+static void sched_ctx_cpu_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	starpu_pthread_mutex_lock(&mut);
 	tasks_executed++;
 	starpu_pthread_mutex_unlock(&mut);
 }
 
-static struct starpu_codelet sched_ctx_codelet =
+static void sched_ctx_cuda_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED)
 {
-	.cpu_funcs = {sched_ctx_func, NULL},
+}
+
+static struct starpu_codelet sched_ctx_codelet1 =
+{
+	.cpu_funcs = {sched_ctx_cpu_func, NULL},
 	.cuda_funcs = {NULL},
+	.opencl_funcs = {NULL},
+	.model = NULL,
+	.nbuffers = 0,
+	.name = "sched_ctx"
+};
+
+static struct starpu_codelet sched_ctx_codelet2 =
+{
+	.cpu_funcs = {sched_ctx_cpu_func, NULL},
+	.cuda_funcs = {sched_ctx_cuda_func, NULL},
 	.opencl_funcs = {NULL},
 	.model = NULL,
 	.nbuffers = 0,
@@ -48,6 +62,10 @@ int main(int argc, char **argv)
 {
 	int ntasks = NTASKS;
 	int ret;
+	unsigned ncuda = 0;
+	int nprocs1 = 0;
+	int nprocs2 = 0;
+	int procs1[STARPU_NMAXWORKERS], procs2[STARPU_NMAXWORKERS];
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -55,25 +73,23 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_pthread_mutex_init(&mut, NULL);
-	int nprocs1 = 1;
-	int nprocs2 = 1;
-	int procs1[STARPU_NMAXWORKERS], procs2[STARPU_NMAXWORKERS];
-	procs1[0] = 0;
-	procs2[0] = 0;
 
 #ifdef STARPU_USE_CPU
-	unsigned ncpus =  starpu_cpu_worker_get_count();
-	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
-
-	nprocs1 = ncpus;
+	nprocs1 = starpu_cpu_worker_get_count();
+	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, nprocs1);
 #endif
+	// if there is no cpu, skip
+	if (nprocs1 == 0) goto enodev;
 
 #ifdef STARPU_USE_CUDA
-	unsigned ncuda = starpu_cuda_worker_get_count();
-	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procs2, ncuda);
-
-	nprocs2 = ncuda == 0 ? 1 : ncuda;
+	ncuda = nprocs2 = starpu_cuda_worker_get_count();
+	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procs2, nprocs2);
 #endif
+	if (nprocs2 == 0)
+	{
+	     nprocs2 = 1;
+	     procs2[0] = procs1[0];
+	}
 
 	/*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
@@ -82,17 +98,18 @@ int main(int argc, char **argv)
 	/*indicate what to do with the resources when context 2 finishes (it depends on your application)*/
 	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
 
+	starpu_sched_ctx_display_workers(sched_ctx2, stderr);
+
 	int i;
 	for (i = 0; i < ntasks/2; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &sched_ctx_codelet;
+		task->cl = &sched_ctx_codelet1;
 		task->cl_arg = NULL;
 
 		/*submit tasks to context*/
 		ret = starpu_task_submit_to_ctx(task,sched_ctx1);
-
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
@@ -102,11 +119,27 @@ int main(int argc, char **argv)
 
 	starpu_sched_ctx_finished_submit(sched_ctx1);
 
+	/* task with no cuda impl submitted to a ctx with gpus only */
+	struct starpu_task *task2 = starpu_task_create();
+	task2->cl = &sched_ctx_codelet1;
+	task2->cl_arg = NULL;
+
+	/*submit tasks to context*/
+	ret = starpu_task_submit_to_ctx(task2,sched_ctx2);
+	if (ncuda == 0)
+	{
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+	else
+	{
+		STARPU_ASSERT_MSG(ret == -ENODEV, "submit task should ret enodev when the ctx does not have the PUs needed by the task");
+	}
+
 	for (i = 0; i < ntasks/2; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &sched_ctx_codelet;
+		task->cl = &sched_ctx_codelet2;
 		task->cl_arg = NULL;
 
 		ret = starpu_task_submit_to_ctx(task,sched_ctx2);
@@ -121,8 +154,9 @@ int main(int argc, char **argv)
 
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
-	printf("tasks executed %d out of %d\n", tasks_executed, ntasks);
-	starpu_shutdown();
+	printf("tasks executed %d out of %d\n", tasks_executed, ntasks/2);
 
-	return 0;
+enodev:
+	starpu_shutdown();
+	return nprocs1 == 0 ? 77 : 0;
 }

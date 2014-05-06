@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,9 +21,9 @@
 
 int main(int argc, char **argv)
 {
-	int ret, rank, size, i, nb_requests;
-	starpu_data_handle_t tab_handle[3];
-	starpu_mpi_req request[3];
+	int ret, rank, size, i;
+	starpu_data_handle_t tab_handle[4];
+	starpu_mpi_req request[2] = {NULL, NULL};
 
 	MPI_Init(NULL, NULL);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -43,11 +43,14 @@ int main(int argc, char **argv)
 	ret = starpu_mpi_init(NULL, NULL, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
-	for(i=0 ; i<3 ; i++)
+	for(i=0 ; i<4 ; i++)
 	{
-		starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
-		starpu_data_set_tag(tab_handle[i], i);
-		request[i] = NULL;
+		if (i<3 || rank%2)
+		{
+			// all data are registered on all nodes, bu the 4th data which is not registered on the receiving node
+			starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
+			starpu_mpi_data_register(tab_handle[i], i, rank);
+		}
 	}
 
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
@@ -56,23 +59,30 @@ int main(int argc, char **argv)
 
 	if (rank%2)
 	{
+		// this data will be received as an early registered data
 		starpu_mpi_isend(tab_handle[0], &request[0], other_rank, 0, MPI_COMM_WORLD);
+		// this data will be received as an early UNregistered data
+		starpu_mpi_isend(tab_handle[3], &request[1], other_rank, 3, MPI_COMM_WORLD);
+
+		starpu_mpi_send(tab_handle[1], other_rank, 1, MPI_COMM_WORLD);
 		starpu_mpi_recv(tab_handle[2], other_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		starpu_mpi_isend(tab_handle[1], &request[1], other_rank, 1, MPI_COMM_WORLD);
-		nb_requests = 2;
 	}
 	else
 	{
+		starpu_mpi_recv(tab_handle[1], other_rank, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		starpu_mpi_send(tab_handle[2], other_rank, 2, MPI_COMM_WORLD);
+
+		// we register the data
+		starpu_variable_data_register(&tab_handle[3], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
+		starpu_mpi_data_register(tab_handle[3], 3, rank);
+		starpu_mpi_irecv(tab_handle[3], &request[1], other_rank, 3, MPI_COMM_WORLD);
 		starpu_mpi_irecv(tab_handle[0], &request[0], other_rank, 0, MPI_COMM_WORLD);
-		starpu_mpi_irecv(tab_handle[1], &request[1], other_rank, 1, MPI_COMM_WORLD);
-		starpu_mpi_isend(tab_handle[2], &request[2], other_rank, 2, MPI_COMM_WORLD);
-		nb_requests = 3;
 	}
 
 	int finished=0;
 	while (!finished)
 	{
-		for(i=0 ; i<nb_requests ; i++)
+		for(i=0 ; i<2 ; i++)
 		{
 			if (request[i])
 			{
@@ -83,11 +93,10 @@ int main(int argc, char **argv)
 					FPRINTF_MPI("request[%d] = %d %p\n", i, flag, request[i]);
 			}
 		}
-		finished = request[0] == NULL;
-		for(i=1 ; i<nb_requests ; i++) finished = finished && request[i] == NULL;
+		finished = request[0] == NULL && request[1] == NULL;
 	}
 
-	for(i=0 ; i<3 ; i++)
+	for(i=0 ; i<4 ; i++)
 		starpu_data_unregister(tab_handle[i]);
 
 	starpu_mpi_shutdown();

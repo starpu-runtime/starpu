@@ -40,6 +40,8 @@ void starpu_sched_ctx_add_workers(int *workerids_ctx, int nworkers_ctx, unsigned
 
 void starpu_sched_ctx_remove_workers(int *workerids_ctx, int nworkers_ctx, unsigned sched_ctx_id);
 
+void starpu_sched_ctx_display_workers(unsigned sched_ctx_id, FILE *f);
+
 void starpu_sched_ctx_delete(unsigned sched_ctx_id);
 
 void starpu_sched_ctx_set_inheritor(unsigned sched_ctx_id, unsigned inheritor);

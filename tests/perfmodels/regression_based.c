@@ -80,6 +80,7 @@ static struct starpu_codelet nl_memset_cl =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {memset_cuda, NULL},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {memset_opencl, NULL},
