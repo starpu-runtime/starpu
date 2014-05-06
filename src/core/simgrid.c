@@ -48,6 +48,12 @@ int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBU
 	return starpu_main(args->argc, args->argv);
 }
 
+#ifdef HAVE_MSG_GET_AS_BY_NAME
+static msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
+{
+	return MSG_get_as_by_name(name);
+}
+#else /* HAVE_MSG_GET_AS_BY_NAME */
 static msg_as_t __starpu_simgrid_get_as_by_name(msg_as_t root, const char *name)
 {
 	xbt_dict_t dict;
@@ -69,6 +75,7 @@ static msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return __starpu_simgrid_get_as_by_name(MSG_environment_get_routing_root(), name);
 }
+#endif /* HAVE_MSG_GET_AS_BY_NAME */
 
 int _starpu_simgrid_get_nbhosts(const char *prefix)
 {

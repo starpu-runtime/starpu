@@ -995,6 +995,7 @@ if test x$enable_simgrid = xyes ; then
 		]
 	)
    	AC_CHECK_FUNCS([MSG_process_join])
+   	AC_CHECK_FUNCS([MSG_get_as_by_name])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		    		[[#include <msg/msg.h>]],
 				[[msg_host_t foo; ]]
