@@ -243,7 +243,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 		float *test_mat = malloc(size*size*sizeof(float));
 		STARPU_ASSERT(test_mat);
 
-		SSYRK("L", "N", size, size, 1.0f,
+		STARPU_SSYRK("L", "N", size, size, 1.0f,
 					mat, size, 0.0f, test_mat, size);
 
 		FPRINTF(stderr, "comparing results ...\n");

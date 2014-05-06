@@ -1157,6 +1157,22 @@ struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsig
 	return sched_ctx->workers;
 }
 
+void starpu_sched_ctx_display_workers(unsigned sched_ctx_id, FILE *f)
+{
+	int *workerids = NULL;
+	unsigned nworkers;
+	unsigned i;
+
+	nworkers = starpu_sched_ctx_get_workers_list(sched_ctx_id, &workerids);
+	fprintf(f, "[sched_ctx %d]: %d worker%s\n", sched_ctx_id, nworkers, nworkers>1?"s":"");
+	for (i = 0; i < nworkers; i++)
+	{
+		char name[256];
+		starpu_worker_get_name(workerids[i], name, 256);
+		fprintf(f, "\t\t%s\n", name);
+	}
+}
+
 unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);

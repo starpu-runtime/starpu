@@ -108,6 +108,10 @@ This function removes the workers in \p workerids_ctx from the context
 \p sched_ctx_id. The last argument cannot be greater than
 STARPU_NMAX_SCHED_CTXS.
 
+\fn void starpu_sched_ctx_display_workers(unsigned sched_ctx_id, FILE *f)
+\ingroup API_Scheduling_Contexts
+This function prints on the file \p f the worker names belonging to the context \p sched_ctx_id
+
 \fn void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 \ingroup API_Scheduling_Contexts
 Delete scheduling context \p sched_ctx_id and transfer remaining

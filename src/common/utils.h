@@ -82,10 +82,10 @@
 #  define _STARPU_DEBUG(fmt, ...) do { } while (0)
 #endif
 
-#ifdef STARPU_VERBOSE0
-#  define _STARPU_LOG_IN()             do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s] -->\n", pthread_self(), __starpu_func__ ); }} while(0)
-#  define _STARPU_LOG_OUT()            do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s] <--\n", pthread_self(), __starpu_func__ ); }} while(0)
-#  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s] <-- (%s)\n", pthread_self(), __starpu_func__, outtag); }} while(0)
+#ifdef STARPU_EXTRA_VERBOSE
+#  define _STARPU_LOG_IN()             do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] -->\n", pthread_self(), __starpu_func__,__FILE__,  __LINE__); }} while(0)
+#  define _STARPU_LOG_OUT()            do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] <--\n", pthread_self(), __starpu_func__, __FILE__,  __LINE__); }} while(0)
+#  define _STARPU_LOG_OUT_TAG(outtag)  do { if (!getenv("STARPU_SILENT")) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%ld][%s:%s@%d] <-- (%s)\n", pthread_self(), __starpu_func__, __FILE__, __LINE__, outtag); }} while(0)
 #else
 #  define _STARPU_LOG_IN()
 #  define _STARPU_LOG_OUT()

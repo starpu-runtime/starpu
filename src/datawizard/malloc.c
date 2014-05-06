@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2010, 2012-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -217,7 +217,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 end:
 	if (ret == 0)
 	{
-		STARPU_ASSERT(*A);
+		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %ld b\n", dim);
 	}
 
 	return ret;

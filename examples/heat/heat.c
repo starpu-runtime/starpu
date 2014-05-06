@@ -362,10 +362,10 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 	}
 
 		/* L */
-		STRSV("L", "N", "N", subsize, A, subsize, B, 1);
+		STARPU_STRSV("L", "N", "N", subsize, A, subsize, B, 1);
 	
 		/* U */
-	        STRSV("U", "N", "U", subsize, A, subsize, B, 1);
+	        STARPU_STRSV("U", "N", "U", subsize, A, subsize, B, 1);
 	
 		STARPU_ASSERT(DIM == size);
 	
@@ -378,19 +378,19 @@ static void solve_system(unsigned size, unsigned subsize, float *result, int *Re
 	
 	
 		/* LUB = U * LUB */
-		STRMV("U", "N", "U", subsize, A, subsize, LUB, 1);
+		STARPU_STRMV("U", "N", "U", subsize, A, subsize, LUB, 1);
 		
 		/* LUB = L * LUB */
-		STRMV("L", "N", "N", subsize, A, subsize, LUB, 1);
+		STARPU_STRMV("L", "N", "N", subsize, A, subsize, LUB, 1);
 	
 		/* LUB -= B */
-		SAXPY(subsize, -1.0f, savedB, 1, LUB, 1);
+		STARPU_SAXPY(subsize, -1.0f, savedB, 1, LUB, 1);
 	
 		/* check if LUB is close to the 0 vector */
-		int maxind = ISAMAX(subsize, LUB, 1);
+		int maxind = STARPU_ISAMAX(subsize, LUB, 1);
 		FPRINTF(stderr, "max error (LUX - B) = %e\n",LUB[maxind - 1]);
 
-		float sum = SASUM(subsize, LUB, 1);
+		float sum = STARPU_SASUM(subsize, LUB, 1);
 		FPRINTF(stderr,"avg. error %e\n", sum/subsize);
 	
 		free(LUB);

@@ -203,7 +203,7 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 	float *test_mat = malloc(size*size*sizeof(float));
 	STARPU_ASSERT(test_mat);
 
-	SSYRK("L", "N", size, size, 1.0f,
+	STARPU_SSYRK("L", "N", size, size, 1.0f,
 			rmat, size, 0.0f, test_mat, size);
 
 	FPRINTF(stderr, "[%d] comparing results ...\n", rank);

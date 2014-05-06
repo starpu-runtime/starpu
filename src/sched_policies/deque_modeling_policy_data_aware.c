@@ -547,10 +547,6 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	{
 		worker = workers->get_next(workers, &it);
 
-		if (worker >= nworkers)
-			/* This is a just-added worker, discard it */
-			continue;
-
 		struct _starpu_fifo_taskq *fifo = dt->queue_array[worker];
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker);
 		unsigned memory_node = starpu_worker_get_memory_node(worker);

@@ -220,7 +220,15 @@ static void _starpu_worker_set_status_scheduling(int workerid)
 		_STARPU_TRACE_WORKER_SCHEDULING_START;
 		_starpu_worker_set_status(workerid, STATUS_SCHEDULING);
 	}
+}
 
+static void _starpu_worker_set_status_scheduling_done(int workerid)
+{
+	if (_starpu_worker_get_status(workerid) == STATUS_SCHEDULING)
+	{
+		_STARPU_TRACE_WORKER_SCHEDULING_END;
+		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
+	}
 }
 
 static void _starpu_worker_set_status_sleeping(int workerid)
@@ -354,6 +362,8 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+
+	_starpu_worker_set_status_scheduling_done(workerid);
 
 	_starpu_worker_set_status_wakeup(workerid);
 	args->spinning_backoff = BACKOFF_MIN;

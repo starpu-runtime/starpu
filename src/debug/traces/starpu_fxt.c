@@ -275,6 +275,28 @@ static void worker_set_state(double time, const char *prefix, long unsigned int 
 #endif
 }
 
+static void worker_push_state(double time, const char *prefix, long unsigned int workerid, const char *name)
+{
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
+	poti_PushState(time, container, "S", name);
+#else
+	fprintf(out_paje_file, "11	%.9f	%st%lu	S	%s\n", time, prefix, workerid, name);
+#endif
+}
+
+static void worker_pop_state(double time, const char *prefix, long unsigned int workerid)
+{
+#ifdef STARPU_HAVE_POTI
+	char container[STARPU_POTI_STR_LEN];
+	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
+	poti_PopState(time, container, "S");
+#else
+	fprintf(out_paje_file, "12	%.9f	%st%lu	S\n", time, prefix, workerid);
+#endif
+}
+
 static void mpicommthread_set_state(double time, const char *prefix, const char *name)
 {
 #ifdef STARPU_HAVE_POTI
@@ -788,6 +810,36 @@ static void handle_start_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 	if (out_paje_file)
 		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
+}
+
+static void handle_end_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	int worker;
+	worker = find_worker_id(ev->param[0]);
+	if (worker < 0) return;
+
+	if (out_paje_file)
+		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
+}
+
+static void handle_push_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	int worker;
+	worker = find_worker_id(ev->param[0]);
+	if (worker < 0) return;
+
+	if (out_paje_file)
+		worker_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
+}
+
+static void handle_pop_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	int worker;
+	worker = find_worker_id(ev->param[0]);
+	if (worker < 0) return;
+
+	if (out_paje_file)
+		worker_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
 }
 
 static void handle_start_sleep(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1504,6 +1556,18 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 
 			case _STARPU_FUT_WORKER_SCHEDULING_START:
 				handle_start_scheduling(&ev, options);
+				break;
+
+			case _STARPU_FUT_WORKER_SCHEDULING_END:
+				handle_end_scheduling(&ev, options);
+				break;
+
+			case _STARPU_FUT_WORKER_SCHEDULING_PUSH:
+				handle_push_scheduling(&ev, options);
+				break;
+
+			case _STARPU_FUT_WORKER_SCHEDULING_POP:
+				handle_pop_scheduling(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SLEEP_START:

@@ -73,6 +73,7 @@ int main(int argc, char **argv)
 	tasks_executed[1] = 0;
 	int ntasks = NTASKS;
 	int ret, j, k;
+	unsigned ncpus = 0;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -85,7 +86,7 @@ int main(int argc, char **argv)
 	int *procs1, *procs2;
 
 #ifdef STARPU_USE_CPU
-	unsigned ncpus =  starpu_cpu_worker_get_count();
+	ncpus = starpu_cpu_worker_get_count();
 	procs1 = (int*)malloc(ncpus*sizeof(int));
 	procs2 = (int*)malloc(ncpus*sizeof(int));
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
@@ -96,7 +97,7 @@ int main(int argc, char **argv)
 		nprocs2 =  ncpus-nprocs1;
 		k = 0;
 		for(j = nprocs1; j < nprocs1+nprocs2; j++)
-			procs2[k++] = j;
+			procs2[k++] = procs1[j];
 	}
 	else
 	{
@@ -112,6 +113,8 @@ int main(int argc, char **argv)
 	procs1[0] = 0;
 	procs2[0] = 0;
 #endif
+
+	if (ncpus == 0) goto enodev;
 
 	/*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", 0);
@@ -158,7 +161,8 @@ int main(int argc, char **argv)
 	starpu_sched_ctx_delete(sched_ctx2);
 	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed[0], NTASKS*NTASKS);
 	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS*NTASKS);
-	starpu_shutdown();
 
-	return 0;
+enodev:
+	starpu_shutdown();
+	return ncpus == 0 ? 77 : 0;
 }
