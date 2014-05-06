@@ -30,6 +30,8 @@ The scheduling context release
 New features:
   * The reduction init codelet is automatically used to initialize temporary
     buffers.
+  * Traces now include a "scheduling" state, to show the overhead of the
+    scheduler.
 
 StarPU 1.1.1 (svn revision 12638)
 ==============================================
