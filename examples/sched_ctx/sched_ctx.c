@@ -63,6 +63,7 @@ int main(int argc, char **argv)
 	int ntasks = NTASKS;
 	int ret;
 	unsigned ncuda = 0;
+	unsigned ncpus = 0;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -77,11 +78,12 @@ int main(int argc, char **argv)
 	procs2[0] = 0;
 
 #ifdef STARPU_USE_CPU
-	unsigned ncpus =  starpu_cpu_worker_get_count();
+	ncpus = starpu_cpu_worker_get_count();
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
 
 	nprocs1 = ncpus;
 #endif
+	if (ncpus == 0) goto enodev;
 
 #ifdef STARPU_USE_CUDA
 	ncuda = starpu_cuda_worker_get_count();
@@ -125,11 +127,11 @@ int main(int argc, char **argv)
 	ret = starpu_task_submit_to_ctx(task2,sched_ctx2);
 	if (ncuda == 0)
 	{
-	     STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 	else
 	{
-	     STARPU_ASSERT_MSG(ret == -ENODEV, "submit task should ret enodev when the ctx does not have the PUs needed by the task");
+		STARPU_ASSERT_MSG(ret == -ENODEV, "submit task should ret enodev when the ctx does not have the PUs needed by the task");
 	}
 
 	for (i = 0; i < ntasks/2; i++)
@@ -152,7 +154,8 @@ int main(int argc, char **argv)
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
 	printf("tasks executed %d out of %d\n", tasks_executed, ntasks/2);
-	starpu_shutdown();
 
-	return 0;
+enodev:
+	starpu_shutdown();
+	return ncpus == 0 ? 77 : 0;
 }
