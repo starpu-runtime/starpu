@@ -63,7 +63,9 @@ int main(int argc, char **argv)
 	int ntasks = NTASKS;
 	int ret;
 	unsigned ncuda = 0;
-	unsigned ncpus = 0;
+	int nprocs1 = 0;
+	int nprocs2 = 0;
+	int procs1[STARPU_NMAXWORKERS], procs2[STARPU_NMAXWORKERS];
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -71,26 +73,23 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_pthread_mutex_init(&mut, NULL);
-	int nprocs1 = 1;
-	int nprocs2 = 1;
-	int procs1[STARPU_NMAXWORKERS], procs2[STARPU_NMAXWORKERS];
-	procs1[0] = 0;
-	procs2[0] = 0;
 
 #ifdef STARPU_USE_CPU
-	ncpus = starpu_cpu_worker_get_count();
-	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
-
-	nprocs1 = ncpus;
+	nprocs1 = starpu_cpu_worker_get_count();
+	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, nprocs1);
 #endif
-	if (ncpus == 0) goto enodev;
+	// if there is no cpu, skip
+	if (nprocs1 == 0) goto enodev;
 
 #ifdef STARPU_USE_CUDA
-	ncuda = starpu_cuda_worker_get_count();
-	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procs2, ncuda);
-
-	nprocs2 = ncuda == 0 ? 1 : ncuda;
+	ncuda = nprocs2 = starpu_cuda_worker_get_count();
+	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procs2, nprocs2);
 #endif
+	if (nprocs2 == 0)
+	{
+	     nprocs2 = 1;
+	     procs2[0] = procs1[0];
+	}
 
 	/*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
@@ -98,6 +97,8 @@ int main(int argc, char **argv)
 
 	/*indicate what to do with the resources when context 2 finishes (it depends on your application)*/
 	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
+
+	starpu_sched_ctx_display_workers(sched_ctx2, stderr);
 
 	int i;
 	for (i = 0; i < ntasks/2; i++)
@@ -157,5 +158,5 @@ int main(int argc, char **argv)
 
 enodev:
 	starpu_shutdown();
-	return ncpus == 0 ? 77 : 0;
+	return nprocs1 == 0 ? 77 : 0;
 }
