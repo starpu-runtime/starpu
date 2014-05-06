@@ -1929,7 +1929,7 @@ void starpu_omp_sections(unsigned long long nb_sections, void (**section_f)(void
 	}
 }
 
-void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section_f)(unsigned long long section_num, void *arg), void **section_arg, int nowait)
+void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section_f)(unsigned long long section_num, void *arg), void *section_arg, int nowait)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_region *parallel_region = task->owner_region;
@@ -1942,7 +1942,7 @@ void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section
 		if (sections->next_section_num < nb_sections)
 		{
 			section_num = sections->next_section_num;
-			arg = section_arg[sections->next_section_num];
+			arg = section_arg;
 			sections->next_section_num ++;
 		}
 		else

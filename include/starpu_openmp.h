@@ -110,7 +110,7 @@ extern void starpu_omp_ordered_inline_end(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_ordered(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_sections(unsigned long long nb_sections, void (**section_f)(void *arg), void **section_arg, int nowait) __STARPU_OMP_NOTHROW;
-extern void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section_f)(unsigned long long section_num, void *arg), void **section_arg, int nowait) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section_f)(unsigned long long section_num, void *arg), void *section_arg, int nowait) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_set_num_threads(int threads) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_get_num_threads() __STARPU_OMP_NOTHROW;
