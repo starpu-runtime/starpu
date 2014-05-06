@@ -203,7 +203,7 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 #if defined(STARPU_SIMGRID) && defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)
 typedef xbt_bar_t starpu_pthread_barrier_t;
 typedef int starpu_pthread_barrierattr_t;
-#define STARPU_PTHREAD_BARRIER_SERIAL_THREAD -1
+#define STARPU_PTHREAD_BARRIER_SERIAL_THREAD XBT_BARRIER_SERIAL_PROCESS
 #else
 typedef struct {
 	starpu_pthread_mutex_t mutex;
