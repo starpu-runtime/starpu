@@ -18,6 +18,8 @@ StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 
 Small features:
+  * New function starpu_sched_ctx_display_workers() to display worker
+    information belonging to a given scheduler context
   * The option --enable-verbose can be called with
     --enable-verbose=extra to increase the verbosity
 
