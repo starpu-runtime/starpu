@@ -174,14 +174,20 @@ void _starpu_init_sched_policy(struct _starpu_machine_config *config, struct _st
 
 	load_sched_policy(selected_policy, sched_ctx);
 
+	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
 	sched_ctx->sched_policy->init_sched(sched_ctx->id);
+	_STARPU_TRACE_WORKER_SCHEDULING_POP;
 }
 
 void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 {
 	struct starpu_sched_policy *policy = sched_ctx->sched_policy;
 	if (policy->deinit_sched)
+	{
+		_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
 		policy->deinit_sched(sched_ctx->id);
+		_STARPU_TRACE_WORKER_SCHEDULING_POP;
+	}
 }
 
 static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task *task, struct _starpu_worker *worker, int workerid, int perf_workerid)
@@ -193,7 +199,11 @@ static void _starpu_push_task_on_specific_worker_notify_sched(struct starpu_task
         {
 		sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
 		if (sched_ctx->sched_policy != NULL && sched_ctx->sched_policy->push_task_notify)
+		{
+			_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
 			sched_ctx->sched_policy->push_task_notify(task, workerid, perf_workerid, sched_ctx->id);
+			_STARPU_TRACE_WORKER_SCHEDULING_POP;
+		}
 	}
 }
 
@@ -867,22 +877,31 @@ profiling:
 
 struct starpu_task *_starpu_pop_every_task(struct _starpu_sched_ctx *sched_ctx)
 {
+	struct starpu_task *task = NULL;
 	if(sched_ctx->sched_policy)
 	{
 		STARPU_ASSERT(sched_ctx->sched_policy->pop_every_task);
 		
 		/* TODO set profiling info */
 		if(sched_ctx->sched_policy->pop_every_task)
-			return sched_ctx->sched_policy->pop_every_task(sched_ctx->id);
+		{
+			_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+			task = sched_ctx->sched_policy->pop_every_task(sched_ctx->id);
+			_STARPU_TRACE_WORKER_SCHEDULING_POP;
+		}
 	}
-	return NULL;
+	return task;
 }
 
 void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	if (sched_ctx->sched_policy && sched_ctx->sched_policy->pre_exec_hook)
+	{
+		_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
 		sched_ctx->sched_policy->pre_exec_hook(task);
+		_STARPU_TRACE_WORKER_SCHEDULING_POP;
+	}
 }
 
 void _starpu_sched_post_exec_hook(struct starpu_task *task)
@@ -890,7 +909,11 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 
 	if (sched_ctx->sched_policy && sched_ctx->sched_policy->post_exec_hook)
+	{
+		_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
 		sched_ctx->sched_policy->post_exec_hook(task);
+		_STARPU_TRACE_WORKER_SCHEDULING_POP;
+	}
 }
 
 void _starpu_wait_on_sched_event(void)
