@@ -249,6 +249,14 @@ static __starpu_inline int starpu_get_env_number(const char *str)
 	}
 }
 
+static __starpu_inline int starpu_get_env_number_default(const char *str, int defval)
+{
+	int ret = starpu_get_env_number(str);
+	if (ret == -1)
+		ret = defval;
+	return ret;
+}
+
 /* Add an event in the execution trace if FxT is enabled */
 void starpu_trace_user_event(unsigned long code);
 
