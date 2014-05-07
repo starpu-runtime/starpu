@@ -543,13 +543,13 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		if (cures != cudaSuccess)
 		{
 			STARPU_ASSERT(cures == cudaErrorNotReady);
-			idle++;
 		}
 		else
 		{
 			/* Asynchronous task completed! */
 			_starpu_set_local_worker_key(args);
 			finish_job_on_cuda(_starpu_get_job_associated_to_task(task), args);
+			idle++;
 		}
 	}
 
