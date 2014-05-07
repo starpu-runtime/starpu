@@ -297,7 +297,7 @@ do {									\
 #ifdef FUT_DO_PROBE6STR
 #define _STARPU_FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str) FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str)
 #else
-#define _STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, P6, str)	\
+#define _STARPU_FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str)	\
 do {									\
     if(fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
@@ -324,7 +324,7 @@ do {									\
 #ifdef FUT_DO_PROBE7STR
 #define _STARPU_FUT_DO_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str) FUT_DO_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)
 #else
-#define _STARPU_FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)	\
+#define _STARPU_FUT_DO_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)	\
 do {									\
     if(fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
