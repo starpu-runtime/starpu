@@ -106,6 +106,7 @@
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL	0x513b
 
 #define _STARPU_FUT_EVENT	0x513c
+#define _STARPU_FUT_THREAD_EVENT	0x513d
 
 #define _STARPU_FUT_LOCKING_MUTEX	0x5140	
 #define _STARPU_FUT_MUTEX_LOCKED	0x5141	
@@ -194,6 +195,31 @@ void _starpu_fxt_register_thread(unsigned);
 #define _STARPU_FUT_COMMIT(size) fut_commitstampedbuffer(size)
 #else
 #define _STARPU_FUT_COMMIT(size) do { } while (0)
+#endif
+
+#ifdef FUT_DO_PROBE1STR
+#define _STARPU_FUT_DO_PROBE1STR(CODE, P1, str) FUT_DO_PROBE1STR(CODE, P1, str)
+#else
+/* Sometimes we need something a little more specific than the wrappers from
+ * FxT: these macro permit to put add an event with 3 (or 4) numbers followed
+ * by a string. */
+#define _STARPU_FUT_DO_PROBE1STR(CODE, P1, str)			\
+do {									\
+    if(fut_active) {							\
+	/* No more than FXT_MAX_PARAMS args are allowed */		\
+	/* we add a \0 just in case ... */				\
+	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 1)*sizeof(unsigned long));\
+	unsigned nbargs_str = (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	unsigned nbargs = 1 + nbargs_str;				\
+	size_t total_len = FUT_SIZE(nbargs);				\
+	unsigned long *futargs =					\
+		fut_getstampedbuffer(FUT_CODE(CODE, nbargs), total_len);\
+	*(futargs++) = (unsigned long)(P1);				\
+	snprintf((char *)futargs, len, "%s", str);			\
+	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
+    }									\
+} while (0);
 #endif
 
 #ifdef FUT_DO_PROBE2STR
@@ -566,6 +592,9 @@ do {										\
 #define _STARPU_TRACE_EVENT(S)			\
 	FUT_DO_PROBESTR(_STARPU_FUT_EVENT,S)
 
+#define _STARPU_TRACE_THREAD_EVENT(S)			\
+	_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_THREAD_EVENT, _starpu_gettid(), S)
+
 #define _STARPU_TRACE_HYPERVISOR_BEGIN()  \
 	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_BEGIN, _starpu_gettid());
 
@@ -803,6 +832,8 @@ do {										\
 #define _STARPU_TRACE_USER_EVENT(code)		do {} while(0)
 #define _STARPU_TRACE_SET_PROFILING(status)	do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL		do {} while(0)
+#define _STARPU_TRACE_EVENT(S)		do {} while(0)
+#define _STARPU_TRACE_THREAD_EVENT(S)		do {} while(0)
 #define _STARPU_TRACE_LOCKING_MUTEX()			do {} while(0)
 #define _STARPU_TRACE_MUTEX_LOCKED()			do {} while(0)
 #define _STARPU_TRACE_UNLOCKING_MUTEX()		do {} while(0)
