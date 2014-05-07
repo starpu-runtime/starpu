@@ -156,6 +156,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	poti_DefineEntityValue("No", "MS", "Nothing", ".0 .0 .0");
 
 	/* Types for the Worker of the Memory Node */
+	poti_DefineEventType("user_event", "T", "user event type");
 	poti_DefineEventType("thread_event", "T", "thread event type");
 	poti_DefineStateType("S", "T", "Thread State");
 	poti_DefineEntityValue("I", "S", "Initializing", "0.0 .7 1.0");
@@ -220,6 +221,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 1       MPICt   T       \"MPI Communication Thread\"              \n\
 1       Sc       P       \"Scheduler State\"                        \n\
 2       prog_event   P       \"program event type\"				\n\
+2       user_event   T       \"user event type\"				\n\
 2       thread_event   T       \"thread event type\"				\n\
 2       MPIev   MPICt    \"MPI event type\"			\n\
 3       S       T       \"Thread State\"                        \n\

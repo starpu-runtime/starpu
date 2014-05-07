@@ -727,7 +727,7 @@ static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 #ifdef STARPU_HAVE_POTI
 			program_container_alias (container, STARPU_POTI_STR_LEN, prefix);
 #else
-			fprintf(out_paje_file, "9	%.9f	event	%sp	%lu\n", get_event_time_stamp(ev, options), prefix, code);
+			fprintf(out_paje_file, "9	%.9f	user_event	%sp	%lu\n", get_event_time_stamp(ev, options), prefix, code);
 #endif
 	}
 	else
@@ -736,12 +736,12 @@ static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 #ifdef STARPU_HAVE_POTI
 			thread_container_alias (container, STARPU_POTI_STR_LEN, prefix, ev->param[1]);
 #else
-			fprintf(out_paje_file, "9	%.9f	event	%st%"PRIu64"	%lu\n", get_event_time_stamp(ev, options), prefix, ev->param[1], code);
+			fprintf(out_paje_file, "9	%.9f	user_event	%st%"PRIu64"	%lu\n", get_event_time_stamp(ev, options), prefix, ev->param[1], code);
 #endif
 	}
 #ifdef STARPU_HAVE_POTI
 	if (out_paje_file)
-		poti_NewEvent(get_event_time_stamp(ev, options), container, "thread_event", paje_value);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "user_event", paje_value);
 #endif
 }
 
@@ -1380,6 +1380,23 @@ static void handle_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *option
 	}
 }
 
+static void handle_thread_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	/* Add an event in the trace */
+	if (out_paje_file)
+	{
+		char *event = (char*)&ev->param[1];
+
+#ifdef STARPU_HAVE_POTI
+		char container[STARPU_POTI_STR_LEN];
+		thread_container_alias(container, STARPU_POTI_STR_LEN, prefix);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "thread_event", event);
+#else
+		fprintf(out_paje_file, "9	%.9f	thread_event	%st%"PRIu64"	%s\n", get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], event);
+#endif
+	}
+}
+
 static
 void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 {
@@ -1795,6 +1812,10 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 
 			case _STARPU_FUT_EVENT:
 				handle_event(&ev, options);
+				break;
+
+			case _STARPU_FUT_THREAD_EVENT:
+				handle_thread_event(&ev, options);
 				break;
 
 			case _STARPU_FUT_LOCKING_MUTEX:
