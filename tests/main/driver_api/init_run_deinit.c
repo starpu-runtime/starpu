@@ -49,8 +49,11 @@ run(struct starpu_task *task, struct starpu_driver *d)
 	int ret;
 	ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-	ret = starpu_driver_run_once(d);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_run_once");
+	while (!starpu_task_finished(task))
+	{
+		ret = starpu_driver_run_once(d);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_run_once");
+	}
 	ret = starpu_task_wait(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 }
