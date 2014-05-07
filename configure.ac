@@ -975,16 +975,19 @@ AC_ARG_ENABLE(simgrid, [AS_HELP_STRING([--enable-simgrid],
 if test x$enable_simgrid = xyes ; then
    	if test -n "$SIMGRID_CFLAGS" ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
+	   	CXXFLAGS="$SIMGRID_CFLAGS $CXXFLAGS"
 	fi
 	if test -n "$SIMGRID_LIBS" ; then
 		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
 	fi
 	if test "$simgrid_dir" != "no" ; then
 	   	CFLAGS="-I$simgrid_dir/include $CFLAGS"
+	   	CXXFLAGS="-I$simgrid_dir/include $CXXFLAGS"
 	   	LDFLAGS="-L$simgrid_dir/lib $LDFLAGS"
 	fi
 	if test "$simgrid_include_dir" != "no" ; then
 	   	CFLAGS="-I$simgrid_include_dir $CFLAGS"
+	   	CXXFLAGS="-I$simgrid_include_dir $CXXFLAGS"
 	fi
 	if test "$simgrid_lib_dir" != "no" ; then
 	   	LDFLAGS="-L$simgrid_lib_dir $LDFLAGS"
