@@ -517,7 +517,10 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	unsigned memnode = worker0->memory_node;
 	struct starpu_task *tasks[worker_set->nworkers], *task;
 	struct _starpu_job *j;
-	int i, res, idle;
+	int i, res;
+
+#ifndef STARPU_SIMGRID
+	int idle;
 
 	/* First poll for completed jobs */
 	idle = 0;
@@ -556,6 +559,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		__starpu_datawizard_progress(memnode, 1, 0);
 		return 0;
 	}
+#endif /* STARPU_SIMGRID */
 
 	/* Something done, make some progress */
 	__starpu_datawizard_progress(memnode, 1, 1);
