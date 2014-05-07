@@ -32,6 +32,8 @@ New features:
     buffers.
   * Traces now include a "scheduling" state, to show the overhead of the
     scheduler.
+  * Add STARPU_CALIBRATE_MINIMUM environment variable to specify the minimum
+    number of calibration measurements.
 
 StarPU 1.1.1 (svn revision 12638)
 ==============================================
