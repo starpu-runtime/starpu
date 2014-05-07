@@ -341,6 +341,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		/*else try to pop a task*/
 		else
 		{
+			_starpu_worker_set_status_scheduling(workers[i].workerid);
 			STARPU_PTHREAD_MUTEX_LOCK(&workers[i].sched_mutex);
 			_starpu_set_local_worker_key(&workers[i]);
 			tasks[i] = _starpu_pop_task(&workers[i]);
@@ -370,6 +371,7 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 					workers[i].current_rank = 0;
 				}
 
+				_starpu_worker_set_status_scheduling_done(workers[i].workerid);
 				_starpu_worker_set_status_wakeup(workers[i].workerid);
 			}
 			else
