@@ -101,17 +101,10 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		procs1 = (int*)malloc(nprocs1*sizeof(int));
 		procs2 = (int*)malloc(nprocs2*sizeof(int));
-		procs1[0] = 0;
-		procs2[0] = 0;
+		procs2[0] = procs1[0];
 
 	}
-#else
-	procs1 = (int*)malloc(nprocs1*sizeof(int));
-	procs2 = (int*)malloc(nprocs2*sizeof(int));
-	procs1[0] = 0;
-	procs2[0] = 0;
 #endif
 
 	if (ncpus == 0) goto enodev;

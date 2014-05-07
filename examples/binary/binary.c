@@ -29,6 +29,7 @@ struct starpu_codelet cl =
 {
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {opencl_codelet, NULL},
+	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW}
