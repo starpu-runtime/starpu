@@ -467,6 +467,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->reverse_phase[1] = 0;
 	workerarg->pop_ctx_priority = 1;
 	workerarg->sched_mutex_locked = 0;
+	workerarg->slave = 0;
 
 	/* cpu_set/hwloc_cpu_set initialized in topology.c */
 }
@@ -1372,6 +1373,11 @@ void starpu_shutdown(void)
 unsigned starpu_worker_get_count(void)
 {
 	return config.topology.nworkers;
+}
+
+unsigned starpu_worker_is_slave(int workerid)
+{
+	return config.workers[workerid].slave;
 }
 
 int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
