@@ -1702,7 +1702,6 @@ static void _starpu_sched_ctx_get_workers_to_sleep(unsigned sched_ctx_id, int *w
 		workerid = workerids[w];
 		if((current_worker_id == -1 || workerid != current_worker_id) && !sleeping[w])
 		{
-			sched_ctx->sleeping[workerids[w]] = 1;
 			sem_wait(&sched_ctx->fall_asleep_sem[master]);
 		}
 	}
@@ -1714,6 +1713,7 @@ void _starpu_sched_ctx_signal_worker_blocked(unsigned sched_ctx_id, int workerid
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	worker->slave = 1;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	sched_ctx->sleeping[workerid] = 1;
 	int master = sched_ctx->master[workerid];
 	sem_post(&sched_ctx->fall_asleep_sem[master]);
 
@@ -1784,7 +1784,6 @@ void starpu_sched_ctx_get_available_cpuids(unsigned sched_ctx_id, int **cpuids, 
 	int current_worker_id = starpu_worker_get_id();
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
-
 	(*cpuids) = (int*)malloc(workers->nworkers*sizeof(int));
 	int w = 0;
 
