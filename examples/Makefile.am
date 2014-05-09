@@ -271,7 +271,7 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/prio				\
 	sched_ctx/dummy_sched_with_ctx		\
 	sched_ctx/sched_ctx_without_sched_policy\
-	sched_ctx/nested_sched_ctx		\
+	sched_ctx/nested_sched_ctxs		\
 	worker_collections/worker_tree_example  \
 	worker_collections/worker_list_example  \
 	reductions/dot_product			\
