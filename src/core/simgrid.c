@@ -48,6 +48,7 @@ int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBU
 	return starpu_main(args->argc, args->argv);
 }
 
+#ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 #ifdef HAVE_MSG_GET_AS_BY_NAME
 static msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
@@ -76,6 +77,7 @@ static msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 	return __starpu_simgrid_get_as_by_name(MSG_environment_get_routing_root(), name);
 }
 #endif /* HAVE_MSG_GET_AS_BY_NAME */
+#endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
 
 int _starpu_simgrid_get_nbhosts(const char *prefix)
 {
@@ -84,6 +86,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	unsigned i, nb;
 	unsigned len = strlen(prefix);
 
+#ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 	if (_starpu_simgrid_running_smpi())
 	{
 		char name[16];
@@ -91,6 +94,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
 	}
 	else
+#endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
 		hosts = MSG_hosts_as_dynar();
 	nb = xbt_dynar_length(hosts);
 
@@ -185,6 +189,7 @@ void _starpu_simgrid_init()
 	xbt_dynar_t hosts;
 	int i;
 
+#ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 	if (_starpu_simgrid_running_smpi())
 	{
 		/* Take back hand to create the local platform for this MPI
@@ -219,6 +224,7 @@ void _starpu_simgrid_init()
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(asname));
 	}
 	else
+#endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
 		hosts = MSG_hosts_as_dynar();
 
 	int nb = xbt_dynar_length(hosts);
