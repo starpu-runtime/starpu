@@ -89,7 +89,6 @@ int main(int argc, char **argv)
 #ifdef STARPU_USE_CPU
 	ncpus =  starpu_cpu_worker_get_count();
 	procs1 = (int*)malloc(ncpus*sizeof(int));
-	procs2 = (int*)malloc(ncpus*sizeof(int));
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
 
 	if (ncpus > 1)
@@ -97,6 +96,7 @@ int main(int argc, char **argv)
 		nprocs1 = ncpus/2;
 		nprocs2 =  nprocs1;
 		k = 0;
+		procs2 = (int*)malloc(nprocs2*sizeof(int));
 		for(j = nprocs1; j < nprocs1+nprocs2; j++)
 			procs2[k++] = procs1[j];
 	}
