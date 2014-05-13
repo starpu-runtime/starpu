@@ -67,6 +67,7 @@ Small features:
     information belonging to a given scheduler context
   * The option --enable-verbose can be called with
     --enable-verbose=extra to increase the verbosity
+  * Add codelet size, footprint and tag id in the paje trace.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

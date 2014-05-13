@@ -81,7 +81,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	}
 
 	/* Give profiling variable */
-	_starpu_driver_start_job(cpu_args, j, &codelet_start, rank, profiling);
+	_starpu_driver_start_job(cpu_args, j, perf_arch, &codelet_start, rank, profiling);
 
 	/* In case this is a Fork-join parallel task, the worker does not
 	 * execute the kernel at all. */

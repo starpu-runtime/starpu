@@ -118,6 +118,9 @@ $ vite paje.trace
 
 To get names of tasks instead of "unknown", fill the optional
 starpu_codelet::name, or use a performance model for them.
+Details of the codelet execution can be obtained by passing
+<c>--enable-paje-codelet-details</c> and using a recent enough version of ViTE
+(at least r1430).
 
 In the MPI execution case, collect the trace files from the MPI nodes, and
 specify them all on the command <c>starpu_fxt_tool</c>, for instance:

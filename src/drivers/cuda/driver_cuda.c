@@ -396,7 +396,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
 		return -EAGAIN;
 	}
 
-	_starpu_driver_start_job(args, j, &j->cl_start, 0, profiling);
+	_starpu_driver_start_job(args, j, &args->perf_arch, &j->cl_start, 0, profiling);
 
 #if defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 	/* We make sure we do manipulate the proper device */

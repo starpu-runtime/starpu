@@ -825,7 +825,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 		return -EAGAIN;
 	}
 
-	_starpu_driver_start_job(args, j, &j->cl_start, 0, profiling);
+	_starpu_driver_start_job(args, j, &args->perf_arch, &j->cl_start, 0, profiling);
 
 	starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, j->nimpl);
 	STARPU_ASSERT_MSG(func, "when STARPU_OPENCL is defined in 'where', opencl_func or opencl_funcs has to be defined");
