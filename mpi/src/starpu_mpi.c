@@ -800,11 +800,10 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 	{
 		/* Case : the request is the internal receive request submitted
 		 * by StarPU-MPI to receive incoming data without a matching
-		 * pending receive already submitted by the application. We
-		 * immediately allocate the pointer associated to the data_handle,
-		 * and push it into list of ready_requests, so as the real MPI
-		 * request can be submitted before the next submission of the
-		 * envelope-catching request. */
+		 * early_request from the application. We immediately allocate the
+		 * pointer associated to the data_handle, and push it into the
+		 * ready_requests list, so as the real MPI request can be submitted
+		 * before the next submission of the envelope-catching request. */
 		if (req->is_internal_req)
 		{
 			_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->user_datatype);
@@ -820,7 +819,9 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				STARPU_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
 			}
 
-			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
+			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n",
+					  req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr,
+					  _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
 			_starpu_mpi_req_list_push_front(ready_requests, req);
 
 			/* inform the starpu mpi thread that the request has been pushed in the ready_requests list */
@@ -836,10 +837,10 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 			/* test whether the receive request has already been submitted internally by StarPU-MPI*/
 			struct _starpu_mpi_early_data_handle *early_data_handle = _starpu_mpi_early_data_find(req->mpi_tag, req->srcdst);
 
-			/* Case : the request has already been submitted internally by StarPU.
-			 * We'll asynchronously ask a Read permission over the temporary handle, so as when
-			 * the internal receive will be over, the _starpu_mpi_early_data_cb function will be called to
-			 * bring the data back to the original data handle associated to the request.*/
+			/* Case: a receive request for a data with the given tag and source has already been
+			 * posted by StarPU. Asynchronously requests a Read permission over the temporary handle ,
+			 * so as when the internal receive is completed, the _starpu_mpi_early_data_cb function
+			 * will be called to bring the data back to the original data handle associated to the request.*/
 			if (early_data_handle)
 			{
 				STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -863,8 +864,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 				_STARPU_MPI_DEBUG(3, "Calling data_acquire_cb on starpu_mpi_copy_cb..\n");
 				starpu_data_acquire_cb(early_data_handle->handle,STARPU_R,_starpu_mpi_early_data_cb,(void*) cb_args);
 			}
-			/* Case : a classic receive request with no send received earlier than expected.
-			 * We just add the pending receive request to the requests' hashmap. */
+			/* Case: no matching data has been received. Store the receive request as an early_request. */
 			else
 			{
 				_STARPU_MPI_DEBUG(3, "Adding the pending receive request %p (srcdst %d tag %d) into the request hashmap\n", req, req->srcdst, req->mpi_tag);
@@ -1154,12 +1154,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 				struct _starpu_mpi_req *found_req = _starpu_mpi_early_request_find(recv_env->mpi_tag, status.MPI_SOURCE);
 
-				/* Case : a data will arrive before the matching receive
-				 * has been submitted on our side of the application.
-				 * We will allow a temporary handle to store the incoming
-				 * data, by submitting a starpu_mpi_irecv_detached on this
-				 * handle, and register this so as the StarPU-MPI layer can
-				 * remember it.*/
+				/* Case: a data will arrive before a matching receive is
+				 * posted by the application. Create a temporary handle to
+				 * store the incoming data, submit a starpu_mpi_irecv_detached
+				 * on this handle, and store it as an early_data
+				 */
 				if (!found_req)
 				{
 
@@ -1221,10 +1220,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					STARPU_PTHREAD_MUTEX_UNLOCK(&early_data_handle->req_mutex);
 					STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 				}
-				/* Case : a matching receive has been found for the incoming
-				 * data, we handle the correct allocation of the pointer
-				 * associated to the data handle, then submit the corresponding
-				 * receive with _starpu_mpi_handle_ready_request. */
+				/* Case: a matching application request has been found for
+				 * the incoming data, we handle the correct allocation
+				 * of the pointer associated to the data handle, then
+				 * submit the corresponding receive with
+				 * _starpu_mpi_handle_ready_request. */
 				else
 				{
 					_STARPU_MPI_DEBUG(3, "A matching receive has been found for the incoming data with tag %d\n", recv_env->mpi_tag);
