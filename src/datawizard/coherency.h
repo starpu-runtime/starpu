@@ -78,7 +78,7 @@ LIST_TYPE(_starpu_data_replicate,
 	   flag when it assigns a task to a queue, policies which do not
 	   use this hint can simply ignore it.
 	 */
-	uint8_t requested[STARPU_MAXNODES];
+	uint32_t requested;
 	struct _starpu_data_request *request[STARPU_MAXNODES];
 )
 

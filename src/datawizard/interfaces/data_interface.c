@@ -269,10 +269,10 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 		replicate->state = STARPU_INVALID;
 		replicate->refcnt = 0;
 		replicate->handle = handle;
+		replicate->requested = 0;
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			replicate->requested[node] = 0;
 			replicate->request[node] = NULL;
 		}
 
