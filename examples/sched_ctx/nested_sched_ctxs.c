@@ -109,6 +109,10 @@ int main(int argc, char **argv)
 
 	if (ncpus == 0)
 	{
+#ifdef STARPU_USE_CPU
+		free(procs1);
+		free(procs2);
+#endif
 		starpu_shutdown();
 		return 77;
 	}
@@ -199,6 +203,10 @@ int main(int argc, char **argv)
 	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed[0], NTASKS);
 	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS);
 
+#ifdef STARPU_USE_CPU
+	free(procs1);
+	free(procs2);
+#endif
 	starpu_shutdown();
 	return 0;
 }
