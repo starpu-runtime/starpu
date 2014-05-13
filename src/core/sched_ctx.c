@@ -1191,6 +1191,7 @@ void starpu_sched_ctx_display_workers(unsigned sched_ctx_id, FILE *f)
 		starpu_worker_get_name(workerids[i], name, 256);
 		fprintf(f, "\t\t%s\n", name);
 	}
+	free(workerids);
 }
 
 unsigned starpu_sched_ctx_get_workers_list(unsigned sched_ctx_id, int **workerids)
