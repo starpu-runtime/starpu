@@ -171,6 +171,7 @@ int main(int argc, char **argv)
 		test(STARPU_R, STARPU_RW, i);
 	}
 
+	starpu_data_unregister(x_handle);
 	starpu_shutdown();
 	STARPU_RETURN(0);
 
