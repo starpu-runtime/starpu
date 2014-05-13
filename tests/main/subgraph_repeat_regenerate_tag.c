@@ -183,7 +183,6 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(*check_cnt == (4*loop_cnt));
 
 	starpu_free(check_cnt);
-	starpu_data_unregister(check_data);
 
 	starpu_shutdown();
 
