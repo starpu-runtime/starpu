@@ -798,11 +798,13 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 
 	if (req->request_type == RECV_REQ)
 	{
-		/* Case : the request is the internal receive request submitted by StarPU-MPI to receive
-		 * incoming data without a matching pending receive already submitted by the application.
-		 * We immediately allocate the pointer associated to the data_handle, and pushing it into
-		 * the list of new_requests, so as the real MPI request can be submitted before the next
-		 * submission of the envelope-catching request. */
+		/* Case : the request is the internal receive request submitted
+		 * by StarPU-MPI to receive incoming data without a matching
+		 * pending receive already submitted by the application. We
+		 * immediately allocate the pointer associated to the data_handle,
+		 * and push it into list of new_requests, so as the real MPI
+		 * request can be submitted before the next submission of the
+		 * envelope-catching request. */
 		if (req->is_internal_req)
 		{
 			_starpu_mpi_handle_allocate_datatype(req->data_handle, &req->datatype, &req->user_datatype);
@@ -821,7 +823,7 @@ static void _starpu_mpi_submit_new_mpi_request(void *arg)
 			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n", req, _starpu_mpi_request_type(req->request_type), req->mpi_tag, req->srcdst, req->data_handle, req->ptr, _starpu_mpi_datatype(req->datatype), (int)req->count, req->user_datatype);
 			_starpu_mpi_req_list_push_front(new_requests, req);
 
-			/* inform the starpu mpi thread that the request has beenbe pushed in the new_requests list */
+			/* inform the starpu mpi thread that the request has been pushed in the new_requests list */
 			STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 			STARPU_PTHREAD_MUTEX_LOCK(&req->posted_mutex);
 			req->posted = 1;
@@ -1120,8 +1122,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 		}
 
-		/* If there is no currently submitted header_req submitted to catch envelopes from senders, and there is some pending receive
-		 * requests in our side, we resubmit a header request. */
+		/* If there is no currently submitted header_req submitted to
+                 * catch envelopes from senders, and there is some pending
+                 * receive requests on our side, we resubmit a header request. */
 		MPI_Request header_req;
 		if ((_starpu_mpi_early_request_count() > 0) && (header_req_submitted == 0))// && (HASH_COUNT(_starpu_mpi_early_data_handle_hashmap) == 0))
 		{
@@ -1151,11 +1154,15 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 				struct _starpu_mpi_req *found_req = _starpu_mpi_early_request_find(recv_env->mpi_tag, status.MPI_SOURCE);
 
-				/* Case : a data will arrive before the matching receive has been submitted in our side of the application.
-				 * We will allow a temporary handle to store the incoming data, by submitting a starpu_mpi_irecv_detached
-				 * on this handle, and register this so as the StarPU-MPI layer can remember it.*/
+				/* Case : a data will arrive before the matching receive
+				 * has been submitted on our side of the application.
+				 * We will allow a temporary handle to store the incoming
+				 * data, by submitting a starpu_mpi_irecv_detached on this
+				 * handle, and register this so as the StarPU-MPI layer can
+				 * remember it.*/
 				if (!found_req)
 				{
+
 					_STARPU_MPI_DEBUG(3, "Request with tag %d and source %d not found, creating a early_handle to receive incoming data..\n", recv_env->mpi_tag, status.MPI_SOURCE);
 
 					starpu_data_handle_t data_handle = NULL;
@@ -1214,8 +1221,10 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 					STARPU_PTHREAD_MUTEX_UNLOCK(&early_data_handle->req_mutex);
 					STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 				}
-				/* Case : a matching receive has been found for the incoming data, we handle the correct allocation of the pointer associated to
-				 * the data handle, then submit the corresponding receive with _starpu_mpi_handle_new_request. */
+				/* Case : a matching receive has been found for the incoming
+				 * data, we handle the correct allocation of the pointer
+				 * associated to the data handle, then submit the corresponding
+				 * receive with _starpu_mpi_handle_new_request. */
 				else
 				{
 					_STARPU_MPI_DEBUG(3, "A matching receive has been found for the incoming data with tag %d\n", recv_env->mpi_tag);
