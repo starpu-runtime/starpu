@@ -213,6 +213,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	handle->reduction_refcnt = 0;
 	handle->reduction_req_list = _starpu_data_requester_list_new();
+	handle->reduction_tmp_handles = NULL;
 
 #ifdef STARPU_USE_FXT
 	handle->last_submitted_ghost_sync_id_is_valid = 0;

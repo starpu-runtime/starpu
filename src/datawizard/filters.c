@@ -176,6 +176,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		/* initialize the chunk lock */
 		child->req_list = _starpu_data_requester_list_new();
 		child->reduction_req_list = _starpu_data_requester_list_new();
+		child->reduction_tmp_handles = NULL;
 		child->refcnt = 0;
 		child->busy_count = 0;
 		child->busy_waiting = 0;

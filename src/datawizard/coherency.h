@@ -206,7 +206,7 @@ struct _starpu_data_state
 	 * the end of the reduction. */
 	struct _starpu_data_requester_list *reduction_req_list;
 
-	starpu_data_handle_t reduction_tmp_handles[STARPU_NMAXWORKERS];
+	starpu_data_handle_t *reduction_tmp_handles;
 
 	unsigned lazy_unregister;
 
