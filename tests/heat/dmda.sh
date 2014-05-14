@@ -2,7 +2,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 # 
-# Copyright (C) 2009, 2010  Université de Bordeaux 1
+# Copyright (C) 2009, 2010, 2014  Université de Bordeaux 1
 # Copyright (C) 2010  Centre National de la Recherche Scientifique
 # 
 # StarPU is free software; you can redistribute it and/or modify
@@ -52,7 +52,7 @@ export STARPU_PERF_MODEL_DIR=$SAMPLINGDIR
 mkdir -p $TIMINGDIR
 mkdir -p $SAMPLINGDIR
 
-#schedlist="ws no-prio greedy prio dm random"
+#schedlist="ws lws no-prio greedy prio dm random"
 #schedlist="random random random random"
 
 export STARPU_NCUDA=3

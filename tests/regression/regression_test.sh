@@ -2,7 +2,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 # 
-# Copyright (C) 2008, 2009, 2010  Université de Bordeaux 1
+# Copyright (C) 2008, 2009, 2010, 2014  Université de Bordeaux 1
 # Copyright (C) 2010  Centre National de la Recherche Scientifique
 # 
 # StarPU is free software; you can redistribute it and/or modify
@@ -64,6 +64,10 @@ save_cov "heat.dm.8k.v2";
 echo "heat.ws.8k.v2"
 timing=`STARPU_SCHED="ws" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
 save_cov "heat.ws.8k.v2";
+
+echo "heat.lws.8k.v2"
+timing=`STARPU_SCHED="lws" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
+save_cov "heat.lws.8k.v2";
 
 echo "heat.greedy.8k.v2"
 timing=`STARPU_SCHED="greedy" $ROOTDIR/examples/heat/heat -ntheta 66 -nthick 130 -nblocks 8 -pin -v2 2> log`
