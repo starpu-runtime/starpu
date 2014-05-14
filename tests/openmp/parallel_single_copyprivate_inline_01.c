@@ -57,13 +57,12 @@ void parallel_region_f(void *buffers[], void *args)
 		{
 			printf("[tid %p] task thread = %d -- single\n", (void *)tid, worker_id);
 			single_worker_id = worker_id;
-			starpu_omp_single_copyprivate_inline_end();
 		}
 		else
 		{
 			memcpy(&single_worker_id, single_data, sizeof(single_worker_id));
-			starpu_omp_single_copyprivate_inline_end();
 		}
+		starpu_omp_single_copyprivate_inline_end();
 		printf("[tid %p] task thread = %d -- single_worker_id = %d\n", (void *)tid, worker_id, single_worker_id);
 	}
 
