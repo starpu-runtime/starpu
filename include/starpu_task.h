@@ -121,7 +121,9 @@ struct starpu_task
 {
 	struct starpu_codelet *cl;
 
+	/* TODO: remove someday, this is costly */
 	struct starpu_data_descr buffers[STARPU_NMAXBUFS] STARPU_DEPRECATED;
+
 	starpu_data_handle_t handles[STARPU_NMAXBUFS];
 	void *interfaces[STARPU_NMAXBUFS];
 
