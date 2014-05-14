@@ -104,9 +104,17 @@ struct starpu_tree* starpu_tree_get_neighbour(struct starpu_tree *tree, struct s
 {
 	struct starpu_tree *father = node == NULL ? tree : node->father;
 	
-	int i;
-	for(i = 0; i < father->arity; i++)
+	int i, st, n;
+
+	for(st = 0; st < father->arity; st++)
 	{
+		if(father->nodes[st] == node)
+			break;
+	}
+
+	for(n = 0; n < father->arity; n++)
+	{
+		i = (st+n)%father->arity;
 		if(father->nodes[i] != node)
 		{
 			if(father->nodes[i]->arity == 0)
