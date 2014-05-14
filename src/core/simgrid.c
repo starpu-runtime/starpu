@@ -33,6 +33,8 @@ extern int starpu_main(int argc, char *argv[]);
 extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *argv[]);
 #pragma weak smpi_simulated_main_
 extern int smpi_simulated_main_(int argc, char *argv[]);
+#pragma weak starpu_mpi_world_rank
+extern int starpu_mpi_world_rank(void);
 
 #define _starpu_simgrid_running_smpi() (getenv("SMPI_GLOBAL_SIZE") != NULL)
 
@@ -90,7 +92,8 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	if (_starpu_simgrid_running_smpi())
 	{
 		char name[16];
-		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%u", smpi_current_rank);
+		STARPU_ASSERT(starpu_mpi_world_rank);
+		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
 	}
 	else
@@ -136,7 +139,8 @@ msg_host_t _starpu_simgrid_get_host_by_name(const char *name)
 	if (_starpu_simgrid_running_smpi())
 	{
 		char mpiname[16];
-		snprintf(mpiname, sizeof(mpiname), "%d-%s", smpi_current_rank, name);
+		STARPU_ASSERT(starpu_mpi_world_rank);
+		snprintf(mpiname, sizeof(mpiname), "%d-%s", starpu_mpi_world_rank(), name);
 		return MSG_get_host_by_name(mpiname);
 	}
 	else
@@ -203,7 +207,8 @@ void _starpu_simgrid_init()
 		char template[] = "/tmp/"STARPU_MPI_AS_PREFIX"-platform-XXXXXX.xml";
 		int ret;
 
-		snprintf(asname, sizeof(asname), STARPU_MPI_AS_PREFIX"%u", smpi_current_rank);
+		STARPU_ASSERT(starpu_mpi_world_rank);
+		snprintf(asname, sizeof(asname), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
 
 		/* Get XML platform */
 		_starpu_simgrid_get_platform_path(path, sizeof(path));

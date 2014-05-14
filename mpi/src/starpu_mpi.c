@@ -1432,3 +1432,10 @@ void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int ran
 	_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
 
 }
+
+int starpu_mpi_world_rank(void)
+{
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	return rank;
+}
