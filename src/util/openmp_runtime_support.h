@@ -207,6 +207,7 @@ LIST_TYPE(starpu_omp_task,
 	int wait_on;
 	int barrier_count;
 	int single_id;
+	int single_first;
 	int loop_id;
 	unsigned long long ordered_first_i;
 	unsigned long long ordered_nb_i;
@@ -316,6 +317,7 @@ struct starpu_omp_region
 	int barrier_count;
 	int bound_explicit_task_count;
 	int single_id;
+	void *copy_private_data;
 	int level;
 	struct starpu_omp_loop *loop_list;
 	struct starpu_omp_sections *sections_list;
