@@ -782,7 +782,7 @@ do {										\
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0)
 #define _STARPU_TRACE_WORKER_INIT_START(a,b,c)	do {} while(0)
 #define _STARPU_TRACE_WORKER_INIT_END(workerid)	do {} while(0)
-#define _STARPU_TRACE_START_CODELET_BODY(job)	do {} while(0)
+#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, archtype)	do {} while(0)
 #define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, a)	do {} while(0)
 #define _STARPU_TRACE_START_CALLBACK(job)	do {} while(0)
 #define _STARPU_TRACE_END_CALLBACK(job)		do {} while(0)
