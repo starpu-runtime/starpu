@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010  Université de Bordeaux 1
+# Copyright (C) 2010, 2014  Université de Bordeaux 1
 # Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -15,7 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 sizelist <- seq(2048, 24576, 2048);
-#schedlist <- c("greedy", "prio", "dm", "random", "no-prio", "ws");
+#schedlist <- c("greedy", "prio", "dm", "random", "no-prio", "ws", "lws");
 schedlist <- c("prio","random");
 
 print(schedlist);
@@ -97,13 +97,14 @@ display_sched <- function()
 	trace_sched("prio", "red", 4);
 	#trace_sched("no-prio", "black");
 	#trace_sched("ws", "purple");
+	#trace_sched("lws", "purple");
 
 	axis(1, at=sizelist)
 	axis(2, at=seq(0, 100, 10), tck=1)
 #	axis(4, at=seq(0, 100, 10))
 	box(bty="u")
 
-        #labels <- c("greedy", "priority", "model", "random", "black", "ws")
+        #labels <- c("greedy", "priority", "model", "random", "black", "ws", "lws")
 #        labels <- c("greedy", "priority", "model", "random")
 	#labels <- c("model", "weighted random", "greedy", "priority")
 	labels <- c("weighted random", "priority")

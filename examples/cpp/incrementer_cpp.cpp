@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011, 2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -61,9 +61,11 @@ int main(int argc, char **argv)
         cl.cpu_funcs[0] = cpu_codelet;
 #ifdef STARPU_USE_CUDA
         cl.cuda_funcs[0] = cuda_codelet;
+	cl.cuda_flags[0] = STARPU_CUDA_ASYNC;
 #endif
 #ifdef STARPU_USE_OPENCL
 	cl.opencl_funcs[0] = opencl_codelet;
+	cl.opencl_flags[0] = STARPU_OPENCL_ASYNC;
 #endif
         cl.nbuffers = 1;
         cl.modes[0] = STARPU_RW;

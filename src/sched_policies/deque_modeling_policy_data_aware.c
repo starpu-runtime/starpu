@@ -286,6 +286,13 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	/* make sure someone coule execute that task ! */
 	STARPU_ASSERT(best_workerid != -1);
+	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(best_workerid, sched_ctx_id);
+        if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+        {
+		starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
+                starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx);
+                return 0;
+        }
 
 	struct _starpu_fifo_taskq *fifo = dt->queue_array[best_workerid];
 
@@ -405,9 +412,9 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 
-	while(workers->has_next(workers, &it))
+	while(workers->has_next_master(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		worker = workers->get_next_master(workers, &it);
 		struct _starpu_fifo_taskq *fifo  = dt->queue_array[worker];
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker);
@@ -543,9 +550,9 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 
-	while(workers->has_next(workers, &it))
+	while(workers->has_next_master(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		worker = workers->get_next_master(workers, &it);
 
 		struct _starpu_fifo_taskq *fifo = dt->queue_array[worker];
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker);
@@ -692,10 +699,6 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 
 	double fitness[nworkers_ctx][STARPU_MAXIMPLEMENTATIONS];
 
-	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-
 	compute_all_performance_predictions(task,
 					    nworkers_ctx,
 					    local_task_length,
@@ -712,9 +715,13 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	unsigned nimpl;
 	if (forced_best == -1)
 	{
-		while(workers->has_next(workers, &it))
+		struct starpu_sched_ctx_iterator it;
+		if(workers->init_iterator)
+			workers->init_iterator(workers, &it);
+
+		while(workers->has_next_master(workers, &it))
 		{
-			worker = workers->get_next(workers, &it);
+			worker = workers->get_next_master(workers, &it);
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
 				if (!starpu_worker_can_execute_task(worker, task, nimpl))

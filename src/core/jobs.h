@@ -182,6 +182,9 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 /* Destroy the data structure associated to the job structure */
 void _starpu_job_destroy(struct _starpu_job *j);
 
+/* Test for the termination of the job */
+int _starpu_job_finished(struct _starpu_job *j);
+
 /* Wait for the termination of the job */
 void _starpu_wait_job(struct _starpu_job *j);
 

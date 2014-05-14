@@ -29,6 +29,7 @@ extern "C"
 #define STARPU_SCHED_CTX_POLICY_MIN_PRIO	 (3<<16)
 #define STARPU_SCHED_CTX_POLICY_MAX_PRIO	 (4<<16)
 #define STARPU_SCHED_CTX_HIERARCHY_LEVEL         (5<<16)
+#define STARPU_SCHED_CTX_NESTED                  (6<<16)
 
 unsigned starpu_sched_ctx_create(int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name, ...);
 
@@ -126,6 +127,13 @@ void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid);
 int starpu_sched_ctx_book_workers_for_task(unsigned sched_ctx_id, int *workerids, int nworkers);
 
 void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int master);
+
+/* return the first context (child of sched_ctx_id) where the workerid is master */
+unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned sched_ctx_id);
+
+void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double flops);
+
+void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);

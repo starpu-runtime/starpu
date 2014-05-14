@@ -58,6 +58,7 @@ void _starpu_print_idle_time();
 /*
  *	Predefined policies
  */
+extern struct starpu_sched_policy _starpu_sched_lws_policy;
 extern struct starpu_sched_policy _starpu_sched_ws_policy;
 extern struct starpu_sched_policy _starpu_sched_prio_policy;
 extern struct starpu_sched_policy _starpu_sched_random_policy;

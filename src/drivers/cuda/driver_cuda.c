@@ -396,7 +396,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
 		return -EAGAIN;
 	}
 
-	_starpu_driver_start_job(args, j, &j->cl_start, 0, profiling);
+	_starpu_driver_start_job(args, j, &args->perf_arch, &j->cl_start, 0, profiling);
 
 #if defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 	/* We make sure we do manipulate the proper device */
@@ -517,7 +517,10 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	unsigned memnode = worker0->memory_node;
 	struct starpu_task *tasks[worker_set->nworkers], *task;
 	struct _starpu_job *j;
-	int i, res, idle;
+	int i, res;
+
+#ifndef STARPU_SIMGRID
+	int idle;
 
 	/* First poll for completed jobs */
 	idle = 0;
@@ -540,13 +543,13 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		if (cures != cudaSuccess)
 		{
 			STARPU_ASSERT(cures == cudaErrorNotReady);
-			idle++;
 		}
 		else
 		{
 			/* Asynchronous task completed! */
 			_starpu_set_local_worker_key(args);
 			finish_job_on_cuda(_starpu_get_job_associated_to_task(task), args);
+			idle++;
 		}
 	}
 
@@ -556,6 +559,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		__starpu_datawizard_progress(memnode, 1, 0);
 		return 0;
 	}
+#endif /* STARPU_SIMGRID */
 
 	/* Something done, make some progress */
 	__starpu_datawizard_progress(memnode, 1, 1);

@@ -106,6 +106,9 @@
 #define _STARPU_FUT_TASK_WAIT_FOR_ALL	0x513b
 
 #define _STARPU_FUT_EVENT	0x513c
+#define _STARPU_FUT_THREAD_EVENT	0x513d
+
+#define	_STARPU_FUT_CODELET_DETAILS	0x513e
 
 #define _STARPU_FUT_LOCKING_MUTEX	0x5140	
 #define _STARPU_FUT_MUTEX_LOCKED	0x5141	
@@ -191,6 +194,31 @@ void _starpu_fxt_register_thread(unsigned);
 #define _STARPU_FUT_COMMIT(size) fut_commitstampedbuffer(size)
 #else
 #define _STARPU_FUT_COMMIT(size) do { } while (0)
+#endif
+
+#ifdef FUT_DO_PROBE1STR
+#define _STARPU_FUT_DO_PROBE1STR(CODE, P1, str) FUT_DO_PROBE1STR(CODE, P1, str)
+#else
+/* Sometimes we need something a little more specific than the wrappers from
+ * FxT: these macro permit to put add an event with 3 (or 4) numbers followed
+ * by a string. */
+#define _STARPU_FUT_DO_PROBE1STR(CODE, P1, str)			\
+do {									\
+    if(fut_active) {							\
+	/* No more than FXT_MAX_PARAMS args are allowed */		\
+	/* we add a \0 just in case ... */				\
+	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 1)*sizeof(unsigned long));\
+	unsigned nbargs_str = (len + sizeof(unsigned long) - 1)/(sizeof(unsigned long));\
+	unsigned nbargs = 1 + nbargs_str;				\
+	size_t total_len = FUT_SIZE(nbargs);				\
+	unsigned long *futargs =					\
+		fut_getstampedbuffer(FUT_CODE(CODE, nbargs), total_len);\
+	*(futargs++) = (unsigned long)(P1);				\
+	snprintf((char *)futargs, len, "%s", str);			\
+	((char *)futargs)[len - 1] = '\0';				\
+	_STARPU_FUT_COMMIT(total_len);					\
+    }									\
+} while (0);
 #endif
 
 #ifdef FUT_DO_PROBE2STR
@@ -297,7 +325,7 @@ do {									\
 #ifdef FUT_DO_PROBE6STR
 #define _STARPU_FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str) FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str)
 #else
-#define _STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, P6, str)	\
+#define _STARPU_FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str)	\
 do {									\
     if(fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
@@ -324,7 +352,7 @@ do {									\
 #ifdef FUT_DO_PROBE7STR
 #define _STARPU_FUT_DO_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str) FUT_DO_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)
 #else
-#define _STARPU_FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)	\
+#define _STARPU_FUT_DO_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)	\
 do {									\
     if(fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
@@ -378,7 +406,7 @@ do {									\
 #define _STARPU_TRACE_WORKER_INIT_END(workerid)				\
 	FUT_DO_PROBE2(_STARPU_FUT_WORKER_INIT_END, _starpu_gettid(), (workerid));
 
-#define _STARPU_TRACE_START_CODELET_BODY(job)				\
+#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, archtype)				\
 do {									\
         const char *model_name = _starpu_job_get_model_name((job));         \
 	if (model_name)                                                 \
@@ -388,6 +416,11 @@ do {									\
 	}								\
 	else {                                                          \
 		FUT_DO_PROBE4(_STARPU_FUT_START_CODELET_BODY, (job), ((job)->task)->sched_ctx, _starpu_gettid(), 0); \
+	}								\
+	{								\
+		const size_t __job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));	\
+		const uint32_t __job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));\
+		FUT_DO_PROBE6(_STARPU_FUT_CODELET_DETAILS, (job), ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->tag_id, _starpu_gettid());	\
 	}								\
 } while(0);
 
@@ -562,6 +595,9 @@ do {										\
 
 #define _STARPU_TRACE_EVENT(S)			\
 	FUT_DO_PROBESTR(_STARPU_FUT_EVENT,S)
+
+#define _STARPU_TRACE_THREAD_EVENT(S)			\
+	_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_THREAD_EVENT, _starpu_gettid(), S)
 
 #define _STARPU_TRACE_HYPERVISOR_BEGIN()  \
 	FUT_DO_PROBE1(_STARPU_FUT_HYPERVISOR_BEGIN, _starpu_gettid());
@@ -746,7 +782,7 @@ do {										\
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0)
 #define _STARPU_TRACE_WORKER_INIT_START(a,b,c)	do {} while(0)
 #define _STARPU_TRACE_WORKER_INIT_END(workerid)	do {} while(0)
-#define _STARPU_TRACE_START_CODELET_BODY(job)	do {} while(0)
+#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, archtype)	do {} while(0)
 #define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, a)	do {} while(0)
 #define _STARPU_TRACE_START_CALLBACK(job)	do {} while(0)
 #define _STARPU_TRACE_END_CALLBACK(job)		do {} while(0)
@@ -794,6 +830,8 @@ do {										\
 #define _STARPU_TRACE_USER_EVENT(code)		do {} while(0)
 #define _STARPU_TRACE_SET_PROFILING(status)	do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL		do {} while(0)
+#define _STARPU_TRACE_EVENT(S)		do {} while(0)
+#define _STARPU_TRACE_THREAD_EVENT(S)		do {} while(0)
 #define _STARPU_TRACE_LOCKING_MUTEX()			do {} while(0)
 #define _STARPU_TRACE_MUTEX_LOCKED()			do {} while(0)
 #define _STARPU_TRACE_UNLOCKING_MUTEX()		do {} while(0)

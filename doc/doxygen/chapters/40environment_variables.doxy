@@ -314,6 +314,14 @@ is the default behaviour.
 Note: this currently only applies to <c>dm</c> and <c>dmda</c> scheduling policies.
 </dd>
 
+<dt>STARPU_CALIBRATE_MINIMUM</dt>
+<dd>
+\anchor STARPU_CALIBRATE_MINIMUM
+\addindex __env__STARPU_CALIBRATE_MINIMUM
+This defines the minimum number of calibration measurements that will be made
+before considering that the performance model is calibrated. The default value is 10.
+</dd>
+
 <dt>STARPU_BUS_CALIBRATE</dt>
 <dd>
 \anchor STARPU_BUS_CALIBRATE

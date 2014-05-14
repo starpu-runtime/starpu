@@ -48,26 +48,26 @@ LIST_TYPE(_starpu_data_replicate,
 
 	unsigned memory_node;
 
-	/* A buffer that is used for SCRATCH or reduction cannnot be used with
-	 * filters. */
-	unsigned relaxed_coherency;
-
-	/* We may need to initialize the replicate with some value before using it. */
-	unsigned initialized;
-
 	/* describes the state of the local data in term of coherency */
 	enum _starpu_cache_state	state;
 
 	int refcnt;
 
+	/* A buffer that is used for SCRATCH or reduction cannnot be used with
+	 * filters. */
+	unsigned relaxed_coherency:2;
+
+	/* We may need to initialize the replicate with some value before using it. */
+	unsigned initialized:1;
+
 	/* is the data locally allocated ? */
-	uint8_t allocated;
+	unsigned allocated:1;
 	/* was it automatically allocated ? (else it's the application-provided
 	 * buffer, don't ever try to free it!) */
 	/* perhaps the allocation was perform higher in the hiearchy
 	 * for now this is just translated into !automatically_allocated
 	 * */
-	uint8_t automatically_allocated;
+	unsigned automatically_allocated:1;
 
         /* Pointer to memchunk for LRU strategy */
 	struct _starpu_mem_chunk * mc;
@@ -79,7 +79,7 @@ LIST_TYPE(_starpu_data_replicate,
 	   flag when it assigns a task to a queue, policies which do not
 	   use this hint can simply ignore it.
 	 */
-	uint8_t requested[STARPU_MAXNODES];
+	uint32_t requested;
 	struct _starpu_data_request *request[STARPU_MAXNODES];
 )
 
@@ -207,7 +207,7 @@ struct _starpu_data_state
 	 * the end of the reduction. */
 	struct _starpu_data_requester_list *reduction_req_list;
 
-	starpu_data_handle_t reduction_tmp_handles[STARPU_NMAXWORKERS];
+	starpu_data_handle_t *reduction_tmp_handles;
 
 	unsigned lazy_unregister;
 

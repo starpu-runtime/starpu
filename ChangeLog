@@ -17,24 +17,6 @@
 StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 
-Small features:
-  * New function starpu_sched_ctx_display_workers() to display worker
-    information belonging to a given scheduler context
-  * The option --enable-verbose can be called with
-    --enable-verbose=extra to increase the verbosity
-
-StarPU 1.1.2 (svn revision xxxx)
-==============================================
-The scheduling context release
-
-New features:
-  * The reduction init codelet is automatically used to initialize temporary
-    buffers.
-
-StarPU 1.1.1 (svn revision 12638)
-==============================================
-The scheduling context release
-
 New features:
   * Xeon Phi support
   * SCC support
@@ -48,56 +30,44 @@ New features:
 	  before the corresponding data, which allows the receiver to
 	  allocate data correctly, and to submit the matching receive of
 	  the envelope.
+        - New function
+   	  starpu_mpi_irecv_detached_sequential_consistency which
+	  allows to enable or disable the sequential consistency for
+	  the given data handle (sequential consistency will be
+	  enabled or disabled based on the value of the function
+	  parameter and the value of the sequential consistency
+	  defined for the given data)
+        - New functions starpu_mpi_task_build() and
+  	  starpu_mpi_task_post_build()
   * New STARPU_COMMUTE flag which can be passed along STARPU_W or STARPU_RW to
     let starpu commute write accesses.
   * Out-of-core support, through registration of disk areas as additional memory
     nodes.
-  * StarPU-MPI: new function
-    starpu_mpi_irecv_detached_sequential_consistency which allows to
-    enable or disable the sequential consistency for the given data
-    handle (sequential consistency will be enabled or disabled based
-    on the value of the function parameter and the value of the
-    sequential consistency defined for the given data)
-  * New functions starpu_mpi_task_build() and starpu_mpi_task_post_build()
-  * New functions starpu_pause() and starpu_resume()
-  * New codelet specific_nodes field to specify explicit target nodes for data.
-  * Use streams for all CUDA transfers, even initiated by CPUs.
   * Add STARPU_CUDA_ASYNC and STARPU_OPENCL_ASYNC flags to allow asynchronous
     CUDA and OpenCL kernel execution.
-  * Add paje traces statistics tools.
   * Add CUDA concurrent kernel execution support through
     the STARPU_NWORKER_PER_CUDA environment variable.
-  * Use streams for GPUA->GPUB and GPUB->GPUA transfers.
 
 Small features:
+  * Tasks can now have a name (via the field const char *name of
+    struct starpu_task)
   * New functions starpu_data_acquire_cb_sequential_consistency() and
     starpu_data_acquire_on_node_cb_sequential_consistency() which allows
     to enable or disable sequential consistency
   * New configure option --enable-fxt-lock which enables additional
     trace events focused on locks behaviour during the execution
-  * New function starpu_perfmodel_directory() to print directory
-    storing performance models. Available through the new option -d of
-    the tool starpu_perfmodel_display
-  * New batch files to execute StarPU applications under Microsoft
-    Visual Studio (They are installed in path_to_starpu/bin/msvc)/
   * Functions starpu_insert_task and starpu_mpi_insert_task are
     renamed in starpu_task_insert and starpu_mpi_task_insert. Old
     names are kept to avoid breaking old codes.
   * New configure option --enable-calibration-heuristic which allows
     the user to set the maximum authorized deviation of the
     history-based calibrator.
-  * Tasks can now have a name (via the field const char *name of
-    struct starpu_task)
-  * New STARPU_EXECUTE_ON_WORKER flag to specify the worker on which
-    to execute the task.
-  * New STARPU_DISABLE_PINNING environment variable to disable host memory
-    pinning.
-  * New STARPU_DISABLE_KERNELS environment variable to disable actual kernel
-    execution.
-  * New starpu_memory_get_total function to get the size of a memory node.
-  * New starpu_parallel_task_barrier_init_n function to let a scheduler decide
-    a set of workers without going through combined workers.
   * Allow application to provide the task footprint itself.
+  * New function starpu_sched_ctx_display_workers() to display worker
+    information belonging to a given scheduler context
+  * The option --enable-verbose can be called with
+    --enable-verbose=extra to increase the verbosity
+  * Add codelet size, footprint and tag id in the paje trace.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
@@ -107,13 +77,67 @@ Changes:
     starpu_data_set_tag(), data are received as a raw memory)
   * StarPU-MPI: Fix for being able to receive data with the same tag
     from several nodes (see mpi/tests/gather.c)
+
+Small changes:
+  * Rename function starpu_trace_user_event() as
+    starpu_fxt_trace_user_event()
+
+StarPU 1.1.2 (svn revision xxx)
+==============================================
+The scheduling context release
+
+New features:
+  * The reduction init codelet is automatically used to initialize temporary
+    buffers.
+  * Traces now include a "scheduling" state, to show the overhead of the
+    scheduler.
+  * Add STARPU_CALIBRATE_MINIMUM environment variable to specify the minimum
+    number of calibration measurements.
+
+StarPU 1.1.1 (svn revision 12638)
+==============================================
+The scheduling context release
+
+New features:
+  * MPI:
+        - New variable STARPU_MPI_CACHE_STATS to print statistics on
+   	  cache holding received data.
+        - New function starpu_mpi_data_register() which sets the rank
+  	  and tag of a data, and also allows to automatically clear
+	  the MPI communication cache when unregistering the data. It
+	  should be called instead of both calling
+	  starpu_data_set_tag() and starpu_data_set_rank()
+  * Use streams for all CUDA transfers, even initiated by CPUs.
+  * Add paje traces statistics tools.
+  * Use streams for GPUA->GPUB and GPUB->GPUA transfers.
+
+Small features:
+  * New STARPU_EXECUTE_ON_WORKER flag to specify the worker on which
+    to execute the task.
+  * New STARPU_DISABLE_PINNING environment variable to disable host memory
+    pinning.
+  * New STARPU_DISABLE_KERNELS environment variable to disable actual kernel
+    execution.
+  * New starpu_memory_get_total function to get the size of a memory node.
+  * New starpu_parallel_task_barrier_init_n function to let a scheduler decide
+    a set of workers without going through combined workers.
+
+Changes:
+  * Fix simgrid execution.
+  * Rename starpu_get_nready_tasks_of_sched_ctx to starpu_sched_ctx_get_nready_tasks
+  * Rename starpu_get_nready_flops_of_sched_ctx to starpu_sched_ctx_get_nready_flops
+  * New functions starpu_pause() and starpu_resume()
+  * New codelet specific_nodes field to specify explicit target nodes for data.
   * StarPU-MPI: Fix overzealous allocation of memory.
   * Interfaces: Allow interface implementation to change pointers at will, in
     unpack notably.
 
 Small changes:
-  * Rename function starpu_trace_user_event() as
-    starpu_fxt_trace_user_event()
+  * Use big fat abortions when one tries to make a task or callback
+    sleep, instead of just returning EDEADLCK which few people will test
+  * By default, StarPU FFT examples are not compiled and checked, the
+    configure option --enable-starpufft-examples needs to be specified
+    to change this behaviour.
 
 StarPU 1.1.0 (svn revision 11960)
 ==============================================

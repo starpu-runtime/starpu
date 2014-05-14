@@ -57,10 +57,15 @@ struct starpu_worker_collection
 {
 	void *workerids;
 	unsigned nworkers;
+	void *masters;
+	unsigned nmasters;
 	int present[STARPU_NMAXWORKERS];
+	int is_master[STARPU_NMAXWORKERS];
 	enum starpu_worker_collection_type type;
 	unsigned (*has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	int (*get_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
+	unsigned (*has_next_master)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
+	int (*get_next_master)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it);
 	int (*add)(struct starpu_worker_collection *workers, int worker);
 	int (*remove)(struct starpu_worker_collection *workers, int worker);
 	void (*init)(struct starpu_worker_collection *workers);
@@ -109,6 +114,8 @@ int starpu_worker_get_mp_nodeid(int id);
 struct starpu_tree* starpu_workers_get_tree(void);
 
 unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx);
+
+unsigned starpu_worker_is_slave(int workerid);
 #ifdef __cplusplus
 }
 #endif

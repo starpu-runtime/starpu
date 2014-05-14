@@ -3,7 +3,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 # 
-# Copyright (C) 2008, 2009  Université de Bordeaux 1
+# Copyright (C) 2008, 2009, 2014  Université de Bordeaux 1
 # Copyright (C) 2010  Centre National de la Recherche Scientifique
 # 
 # StarPU is free software; you can redistribute it and/or modify
@@ -30,7 +30,8 @@ set key right bottom
 set datafile missing 'x'
 plot "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$2* 1000000)) with linespoint title "greedy"  ,\
      "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$4* 1000000)) with linespoint title "prio" 	    ,\
-     "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$6* 1000000)) with linespoint title "ws" 
+     "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$4* 1000000)) with linespoint title "ws" 	    ,\
+     "timings/gflops.merged.data" usi 1:(2*$1*$1*$1 / (3*$6* 1000000)) with linespoint title "lws" 
 
 set output "gflops_sched_gain.eps"
 set title "LU Decomposition : scheduling strategies : gain"
@@ -43,4 +44,5 @@ set logscale x
 set key right bottom
 set datafile missing 'x'
 plot "timings/gflops.merged.data" usi 1:(100*(($2 / $4)-1)) with linespoint title "gain prio"	,\
-	"timings/gflops.merged.data" usi 1:(100*(($2 / $6)-1)) with linespoint title "gain ws"    
+	"timings/gflops.merged.data" usi 1:(100*(($2 / $6)-1)) with linespoint title "gain ws"    ,\
+	"timings/gflops.merged.data" usi 1:(100*(($2 / $6)-1)) with linespoint title "gain lws"    

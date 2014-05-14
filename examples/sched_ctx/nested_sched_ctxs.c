@@ -21,7 +21,7 @@
 #ifdef STARPU_QUICK_CHECK
 #define NTASKS 64
 #else
-#define NTASKS 10
+#define NTASKS 100
 #endif
 
 int tasks_executed[2];
@@ -51,21 +51,22 @@ int parallel_code(int sched_ctx)
 
 static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
+	int w = starpu_worker_get_id();
 	unsigned sched_ctx = (unsigned)arg;
-	tasks_executed[sched_ctx-1] += parallel_code(sched_ctx);
+	int n = parallel_code(sched_ctx);
+//	printf("w %d executed %d it \n", w, n);
 }
 
 
 static struct starpu_codelet sched_ctx_codelet =
 {
 	.cpu_funcs = {sched_ctx_func, NULL},
-	.cuda_funcs = { NULL},
+	.cuda_funcs = {NULL},
 	.opencl_funcs = {NULL},
 	.model = NULL,
 	.nbuffers = 0,
 	.name = "sched_ctx"
 };
-
 
 int main(int argc, char **argv)
 {
@@ -86,14 +87,14 @@ int main(int argc, char **argv)
 	int *procs1, *procs2;
 
 #ifdef STARPU_USE_CPU
-	ncpus = starpu_cpu_worker_get_count();
+	ncpus =  starpu_cpu_worker_get_count();
 	procs1 = (int*)malloc(ncpus*sizeof(int));
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs1, ncpus);
 
-	if(ncpus > 1)
+	if (ncpus > 1)
 	{
 		nprocs1 = ncpus/2;
-		nprocs2 =  ncpus-nprocs1;
+		nprocs2 =  nprocs1;
 		k = 0;
 		procs2 = (int*)malloc(nprocs2*sizeof(int));
 		for(j = nprocs1; j < nprocs1+nprocs2; j++)
@@ -103,15 +104,55 @@ int main(int argc, char **argv)
 	{
 		procs2 = (int*)malloc(nprocs2*sizeof(int));
 		procs2[0] = procs1[0];
-
 	}
 #endif
 
-	if (ncpus == 0) goto enodev;
+	if (ncpus == 0)
+	{
+#ifdef STARPU_USE_CPU
+		free(procs1);
+		free(procs2);
+#endif
+		starpu_shutdown();
+		return 77;
+	}
 
 	/*create contexts however you want*/
-	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", 0);
-	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", 0);
+	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
+	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", STARPU_SCHED_CTX_POLICY_NAME, "dmda", 0);
+
+	/*indicate what to do with the resources when context 2 finishes (it depends on your application)*/
+//	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
+
+	int nprocs3 = nprocs1/2;
+	int nprocs4 = nprocs1/2;
+	int nprocs5 = nprocs2/2;
+	int nprocs6 = nprocs2/2;
+	int procs3[nprocs3];
+	int procs4[nprocs4];
+	int procs5[nprocs5];
+	int procs6[nprocs6];
+
+	k = 0;
+	for(j = 0; j < nprocs3; j++)
+		procs3[k++] = procs1[j];
+	k = 0;
+	for(j = nprocs3; j < nprocs3+nprocs4; j++)
+		procs4[k++] = procs1[j];
+
+	k = 0;
+	for(j = 0; j < nprocs5; j++)
+		procs5[k++] = procs2[j];
+	k = 0;
+	for(j = nprocs5; j < nprocs5+nprocs6; j++)
+		procs6[k++] = procs2[j];
+
+	unsigned sched_ctx3 = starpu_sched_ctx_create(procs3, nprocs3, "ctx3", STARPU_SCHED_CTX_NESTED, sched_ctx1, 0);
+	unsigned sched_ctx4 = starpu_sched_ctx_create(procs4, nprocs4, "ctx4", STARPU_SCHED_CTX_NESTED, sched_ctx1, 0);
+
+	unsigned sched_ctx5 = starpu_sched_ctx_create(procs5, nprocs5, "ctx5", STARPU_SCHED_CTX_NESTED, sched_ctx2, 0);
+	unsigned sched_ctx6 = starpu_sched_ctx_create(procs6, nprocs6, "ctx6", STARPU_SCHED_CTX_NESTED, sched_ctx2, 0);
+
 
 	int i;
 	for (i = 0; i < ntasks; i++)
@@ -150,16 +191,22 @@ int main(int argc, char **argv)
 	/* wait for all tasks at the end*/
 	starpu_task_wait_for_all();
 
+	starpu_sched_ctx_delete(sched_ctx3);
+	starpu_sched_ctx_delete(sched_ctx4);
+
+	starpu_sched_ctx_delete(sched_ctx5);
+	starpu_sched_ctx_delete(sched_ctx6);
+
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
-	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed[0], NTASKS*NTASKS);
-	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS*NTASKS);
 
-enodev:
+	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx1, tasks_executed[0], NTASKS);
+	printf("ctx%d: tasks starpu executed %d out of %d\n", sched_ctx2, tasks_executed[1], NTASKS);
+
 #ifdef STARPU_USE_CPU
 	free(procs1);
 	free(procs2);
 #endif
 	starpu_shutdown();
-	return ncpus == 0 ? 77 : 0;
+	return 0;
 }

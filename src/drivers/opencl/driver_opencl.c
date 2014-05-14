@@ -619,6 +619,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *args)
 	struct starpu_task *task;
 	int res;
 
+#ifndef STARPU_SIMGRID
 	task = starpu_task_get_current();
 
 	if (task)
@@ -642,6 +643,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *args)
 		/* Asynchronous task completed! */
 		_starpu_opencl_stop_job(_starpu_get_job_associated_to_task(task), args);
 	}
+#endif /* STARPU_SIMGRID */
 
 	__starpu_datawizard_progress(memnode, 1, 1);
 
@@ -700,7 +702,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *args)
 	else
 #else
 #ifdef STARPU_DEVEL
-#warning No CUDA asynchronous execution with simgrid yet.
+#warning No OpenCL asynchronous execution with simgrid yet.
 #endif
 #endif
 	/* Synchronous execution */
@@ -823,7 +825,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 		return -EAGAIN;
 	}
 
-	_starpu_driver_start_job(args, j, &j->cl_start, 0, profiling);
+	_starpu_driver_start_job(args, j, &args->perf_arch, &j->cl_start, 0, profiling);
 
 	starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, j->nimpl);
 	STARPU_ASSERT_MSG(func, "when STARPU_OPENCL is defined in 'where', opencl_func or opencl_funcs has to be defined");

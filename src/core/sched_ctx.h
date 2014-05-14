@@ -147,6 +147,9 @@ struct _starpu_sched_ctx
 	/* bool indicating if the workers is sleeping in this ctx */
 	unsigned sleeping[STARPU_NMAXWORKERS];
 
+	/* ctx nesting the current ctx */
+	unsigned nesting_sched_ctx;
+
 };
 
 struct _starpu_machine_config;

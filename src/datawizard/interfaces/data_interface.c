@@ -291,6 +291,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	handle->reduction_refcnt = 0;
 	handle->reduction_req_list = _starpu_data_requester_list_new();
+	handle->reduction_tmp_handles = NULL;
 
 #ifdef STARPU_USE_FXT
 	handle->last_submitted_ghost_sync_id_is_valid = 0;
@@ -346,10 +347,10 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 		replicate->state = STARPU_INVALID;
 		replicate->refcnt = 0;
 		replicate->handle = handle;
+		replicate->requested = 0;
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			replicate->requested[node] = 0;
 			replicate->request[node] = NULL;
 		}
 
