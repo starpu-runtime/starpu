@@ -967,8 +967,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	int ret;
 
-	printf("%u %u\n", sizeof(struct starpu_task), sizeof(struct _starpu_job));
-
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_init();
 #else
