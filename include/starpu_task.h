@@ -119,6 +119,8 @@ struct starpu_codelet
 
 struct starpu_task
 {
+	const char *name;
+
 	struct starpu_codelet *cl;
 
 	/* TODO: remove someday, this is costly */
@@ -132,61 +134,61 @@ struct starpu_task
 
 	void *cl_arg;
 	size_t cl_arg_size;
-	unsigned cl_arg_free;
 
 	void (*callback_func)(void *);
 	void *callback_arg;
 	/* must StarPU release callback_arg ? - 0 by default */
-	unsigned callback_arg_free;
 
 	void (*prologue_callback_func)(void *);
 	void *prologue_callback_arg;
-	/* must StarPU release prologue_callback_arg ? - 0 by default */
-	unsigned prologue_callback_arg_free;
 
 	void (*prologue_callback_pop_func)(void *);
 	void *prologue_callback_pop_arg;
-	/* must StarPU release prologue_callback_pop_arg ? - 0 by default */
-	unsigned prologue_callback_pop_arg_free;
 
-	unsigned use_tag;
 	starpu_tag_t tag_id;
 
-	unsigned sequential_consistency;
+	unsigned cl_arg_free:1;
+	unsigned callback_arg_free:1;
+	/* must StarPU release prologue_callback_arg ? - 0 by default */
+	unsigned prologue_callback_arg_free:1;
+	/* must StarPU release prologue_callback_pop_arg ? - 0 by default */
+	unsigned prologue_callback_pop_arg_free:1;
 
-	unsigned synchronous;
-	int priority;
+	unsigned use_tag:1;
+	unsigned sequential_consistency:1;
+	unsigned synchronous:1;
+	unsigned execute_on_a_specific_worker:1;
 
-	unsigned execute_on_a_specific_worker;
+	unsigned detach:1;
+	unsigned destroy:1;
+	unsigned regenerate:1;
+
+	unsigned scheduled:1;
+
+	unsigned int mf_skip:1;
+
 	unsigned workerid;
 
-	starpu_task_bundle_t bundle;
-
-	int detach;
-	int destroy;
-	int regenerate;
+	int priority;
 
 	enum starpu_task_status status;
 
+	int magic;
+
+	unsigned sched_ctx;
+	int hypervisor_tag;
+
+	starpu_task_bundle_t bundle;
+
 	struct starpu_profiling_task_info *profiling_info;
 
+	double flops;
 	double predicted;
 	double predicted_transfer;
-
-	unsigned int mf_skip;
 
 	struct starpu_task *prev;
 	struct starpu_task *next;
 	void *starpu_private;
-	int magic;
-
-	const char *name;
-
-	unsigned sched_ctx;
-	int hypervisor_tag;
-	double flops;
-
-	unsigned scheduled;
 };
 
 #define STARPU_TASK_INITIALIZER 			\
