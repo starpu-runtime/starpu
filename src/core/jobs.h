@@ -62,8 +62,8 @@ struct _starpu_data_descr {
 /* A job is the internal representation of a task. */
 LIST_TYPE(_starpu_job,
 
-	/* The implementation associated to the job */
-	unsigned nimpl;
+	/* Each job is attributed a unique id. */
+	unsigned long job_id;
 
 	/* The task associated to that job */
 	struct starpu_task *task;
@@ -94,40 +94,34 @@ LIST_TYPE(_starpu_job,
 
 	/* The value of the footprint that identifies the job may be stored in
 	 * this structure. */
-	unsigned footprint_is_computed;
 	uint32_t footprint;
+	unsigned footprint_is_computed:1;
 
 	/* Indicates whether the task associated to that job has already been
 	 * submitted to StarPU (1) or not (0) (using starpu_task_submit).
 	 * Becomes and stays 2 when the task is submitted several times.
 	 */
-	unsigned submitted;
+	unsigned submitted:2;
 
 	/* Indicates whether the task associated to this job is terminated or
 	 * not. */
-	unsigned terminated;
+	unsigned terminated:2;
 
 	/* Should that task appear in the debug tools ? (eg. the DAG generated
 	 * with dot) */
-        unsigned exclude_from_dag;
+	unsigned exclude_from_dag:1;
 
 	/* Is that task internal to StarPU? */
-	unsigned internal;
-
-	/* Each job is attributed a unique id. */
-	unsigned long job_id;
+	unsigned internal:1;
 
 	/* During the reduction of a handle, StarPU may have to submit tasks to
 	 * perform the reduction itself: those task should not be stalled while
 	 * other tasks are blocked until the handle has been properly reduced,
 	 * so we need a flag to differentiate them from "normal" tasks. */
-	unsigned reduction_task;
+	unsigned reduction_task:1;
 
-	/* Used to record codelet start time instead of using a
-	 * local variable */
-	struct timespec cl_start;
-
-	struct bound_task *bound_task;
+	/* The implementation associated to the job */
+	unsigned nimpl;
 
 	/* Number of workers executing that task (>1 if the task is parallel)
 	 * */
@@ -139,6 +133,12 @@ LIST_TYPE(_starpu_job,
 	/* How many workers are currently running an alias of that job (for
 	 * parallel tasks only). */
 	int active_task_alias_count;
+
+	/* Used to record codelet start time instead of using a
+	 * local variable */
+	struct timespec cl_start;
+
+	struct bound_task *bound_task;
 
 	/* Parallel workers may have to synchronize before/after the execution of a parallel task. */
 	starpu_pthread_barrier_t before_work_barrier;
