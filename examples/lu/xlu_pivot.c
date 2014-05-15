@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,17 +17,6 @@
 
 #include "xlu.h"
 #include "xlu_kernels.h"
-
-#define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
-#define TAG12(k,i)	((starpu_tag_t)(((2ULL<<60) | (((unsigned long long)(k))<<32)	\
-					| (unsigned long long)(i))))
-#define TAG21(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
-					| (unsigned long long)(j))))
-#define TAG22(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
-					| ((unsigned long long)(i)<<16)	\
-					| (unsigned long long)(j))))
-#define PIVOT(k,i)	((starpu_tag_t)(((5ULL<<60) | (((unsigned long long)(k))<<32)	\
-					| (unsigned long long)(i))))
 
 static unsigned no_prio = 0;
 
