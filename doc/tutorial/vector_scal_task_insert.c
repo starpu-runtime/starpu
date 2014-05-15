@@ -97,6 +97,9 @@ int main(int argc, char **argv)
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
+	/* Wait for tasks completion */
+	starpu_task_wait_for_all();
+
 	/* StarPU does not need to manipulate the array anymore so we can stop
 	 * monitoring it */
 	starpu_data_unregister(vector_handle);
