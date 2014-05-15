@@ -68,6 +68,8 @@ Small features:
   * The option --enable-verbose can be called with
     --enable-verbose=extra to increase the verbosity
   * Add codelet size, footprint and tag id in the paje trace.
+  * Add STARPU_TAG_ONLY, to specify a tag for traces without making StarPU
+    manage the tag.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

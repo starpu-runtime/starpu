@@ -132,6 +132,11 @@ $ starpu_fxt_tool -i filename1 -i filename2
 By default, all tasks are displayed using a green color. To display tasks with
 varying colors, pass option <c>-c</c> to <c>starpu_fxt_tool</c>.
 
+To identify tasks precisely, the application can set the ::tag_id field of the
+tasks (or use STARPU_TAG_ONY when using starpu_task_insert), and with a recent
+enough version of vite (>= r1430) and the <c>--enable-paje-codelet-details</c>
+configure option, the value of the tag will show up in the trace.
+
 Traces can also be inspected by hand by using the tool <c>fxt_print</c>, for instance:
 
 \verbatim

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2014       INRIA
  *
@@ -49,6 +49,7 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_PROLOGUE_CALLBACK_POP   (15<<18)
 #define STARPU_PROLOGUE_CALLBACK_POP_ARG (16<<18)
 #define STARPU_EXECUTE_ON_WORKER (17<<18)
+#define STARPU_TAG_ONLY          (18<<18)
 
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 int starpu_task_insert(struct starpu_codelet *cl, ...);
