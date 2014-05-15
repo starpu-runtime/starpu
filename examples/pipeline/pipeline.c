@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012, 2013, 2014  Centre National de la Recherche Scientifique
- * Copyright (C) 2012  Université de Bordeaux 1
+ * Copyright (C) 2012, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -205,6 +205,7 @@ int main(void)
 		ret = starpu_task_insert(&pipeline_codelet_x,
 				STARPU_W, buffersX[l%K],
 				STARPU_VALUE, &x, sizeof(x),
+				STARPU_TAG_ONLY, (starpu_tag_t) (100*l),
 				0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert x");
@@ -212,6 +213,7 @@ int main(void)
 		ret = starpu_task_insert(&pipeline_codelet_x,
 				STARPU_W, buffersY[l%K],
 				STARPU_VALUE, &y, sizeof(y),
+				STARPU_TAG_ONLY, (starpu_tag_t) (100*l+1),
 				0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert y");
@@ -219,6 +221,7 @@ int main(void)
 		ret = starpu_task_insert(&pipeline_codelet_axpy,
 				STARPU_R, buffersX[l%K],
 				STARPU_RW, buffersY[l%K],
+				STARPU_TAG_ONLY, (starpu_tag_t) l,
 				0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert axpy");
@@ -226,6 +229,7 @@ int main(void)
 		ret = starpu_task_insert(&pipeline_codelet_sum,
 				STARPU_R, buffersY[l%K],
 				STARPU_CALLBACK_WITH_ARG, (void (*)(void*))sem_post, &sems[l%C],
+				STARPU_TAG_ONLY, (starpu_tag_t) l,
 				0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert sum");

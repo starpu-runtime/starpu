@@ -108,6 +108,8 @@
 #define _STARPU_FUT_EVENT	0x513c
 #define _STARPU_FUT_THREAD_EVENT	0x513d
 
+#define	_STARPU_FUT_CODELET_DETAILS	0x513e
+
 #define _STARPU_FUT_LOCKING_MUTEX	0x5140	
 #define _STARPU_FUT_MUTEX_LOCKED	0x5141	
 
@@ -326,7 +328,7 @@ do {									\
 #ifdef FUT_DO_PROBE6STR
 #define _STARPU_FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str) FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str)
 #else
-#define _STARPU_FUT_DO_PROBE5STR(CODE, P1, P2, P3, P4, P5, P6, str)	\
+#define _STARPU_FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str)	\
 do {									\
     if(fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
@@ -353,7 +355,7 @@ do {									\
 #ifdef FUT_DO_PROBE7STR
 #define _STARPU_FUT_DO_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str) FUT_DO_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)
 #else
-#define _STARPU_FUT_DO_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)	\
+#define _STARPU_FUT_DO_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str)	\
 do {									\
     if(fut_active) {							\
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
@@ -407,7 +409,7 @@ do {									\
 #define _STARPU_TRACE_WORKER_INIT_END(workerid)				\
 	FUT_DO_PROBE2(_STARPU_FUT_WORKER_INIT_END, _starpu_gettid(), (workerid));
 
-#define _STARPU_TRACE_START_CODELET_BODY(job)				\
+#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, archtype)				\
 do {									\
         const char *model_name = _starpu_job_get_model_name((job));         \
 	if (model_name)                                                 \
@@ -417,6 +419,11 @@ do {									\
 	}								\
 	else {                                                          \
 		FUT_DO_PROBE4(_STARPU_FUT_START_CODELET_BODY, (job), ((job)->task)->sched_ctx, _starpu_gettid(), 0); \
+	}								\
+	{								\
+		const size_t __job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));	\
+		const uint32_t __job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));\
+		FUT_DO_PROBE6(_STARPU_FUT_CODELET_DETAILS, (job), ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->tag_id, _starpu_gettid());	\
 	}								\
 } while(0);
 
@@ -784,7 +791,7 @@ do {										\
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0)
 #define _STARPU_TRACE_WORKER_INIT_START(a,b,c)	do {} while(0)
 #define _STARPU_TRACE_WORKER_INIT_END(workerid)	do {} while(0)
-#define _STARPU_TRACE_START_CODELET_BODY(job)	do {} while(0)
+#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, archtype)	do {} while(0)
 #define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, a)	do {} while(0)
 #define _STARPU_TRACE_START_CALLBACK(job)	do {} while(0)
 #define _STARPU_TRACE_END_CALLBACK(job)		do {} while(0)

@@ -94,9 +94,9 @@ static int push_task_eager_policy(struct starpu_task *task)
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 	
-	while(workers->has_next(workers, &it))
+	while(workers->has_next_master(workers, &it))
 	{
-		worker = workers->get_next(workers, &it);
+		worker = workers->get_next_master(workers, &it);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 		if (!starpu_bitmap_get(data->waiters, worker))
@@ -166,6 +166,17 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 		starpu_bitmap_set(data->waiters, workerid);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+
+	if(task)
+	{
+		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
+		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+		{
+			starpu_sched_ctx_revert_task_counters(sched_ctx_id, task->flops);
+			starpu_sched_ctx_move_task_to_ctx(task, child_sched_ctx);
+			return NULL;
+		}
+	}
 
 	return task;
 }

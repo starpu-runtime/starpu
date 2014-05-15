@@ -176,6 +176,7 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		/* initialize the chunk lock */
 		child->req_list = _starpu_data_requester_list_new();
 		child->reduction_req_list = _starpu_data_requester_list_new();
+		child->reduction_tmp_handles = NULL;
 		child->refcnt = 0;
 		child->busy_count = 0;
 		child->busy_waiting = 0;
@@ -240,10 +241,10 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 			child_replicate->automatically_allocated = 0;
 			child_replicate->refcnt = 0;
 			child_replicate->memory_node = starpu_worker_get_memory_node(worker);
+			child_replicate->requested = 0;
 
 			for (node = 0; node < STARPU_MAXNODES; node++)
 			{
-				child_replicate->requested[node] = 0;
 				child_replicate->request[node] = NULL;
 			}
 

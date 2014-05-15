@@ -121,49 +121,53 @@ automatically released. This mechanism is similar to the pthread
 detach state attribute which determines whether a thread will be
 created in a joinable or a detached state.
 
-For any communication, the call of the function will result in the
-creation of a StarPU-MPI request, the function
-starpu_data_acquire_cb() is then called to asynchronously request
-StarPU to fetch the data in main memory; when the data is available in
-main memory, a StarPU-MPI function is called to put the new request in
-the list of the ready requests if it is a send request, or in an
-hashmap if it is a receive request.
-
-Internally, all MPI communications submitted by StarPU uses a unique
-tag which has a default value, and can be accessed with the functions
+Internally, all communication are divided in 2 communications, a first
+message is used to exchange an envelope describing the data (i.e its
+tag and its size), the data itself is sent in a second message. All
+MPI communications submitted by StarPU uses a unique tag which has a
+default value, and can be accessed with the functions
 starpu_mpi_get_communication_tag() and
-starpu_mpi_set_communication_tag().
+starpu_mpi_set_communication_tag(). The matching of tags with
+corresponding requests is done within StarPU-MPI.
 
-The matching of tags with corresponding requests is done into StarPU-MPI.
-To handle this, any communication is a double-communication based on a
-envelope + data system. Every data which will be sent needs to send an
-envelope which describes the data (particularly its tag) before sending
-the data, so the receiver can get the matching pending receive request
-from the hashmap, and submit it to recieve the data correctly.
+For any userland communication, the call of the corresponding function
+(e.g starpu_mpi_isend()) will result in the creation of a StarPU-MPI
+request, the function starpu_data_acquire_cb() is then called to
+asynchronously request StarPU to fetch the data in main memory; when
+the data is ready and the corresponding buffer has already been
+received by MPI, it will be copied in the memory of the data,
+otherwise the request is stored in the <em>early requests list</em>. Sending
+requests are stored in the <em>ready requests list</em>.
 
-To this aim, the StarPU-MPI progression thread has a permanent-submitted
-request destined to receive incoming envelopes from all sources.
+While requests need to be processed, the StarPU-MPI progression thread
+does the following:
 
-The StarPU-MPI progression thread regularly polls this list of ready
-requests. For each new ready request, the appropriate function is
-called to post the corresponding MPI call. For example, calling
-starpu_mpi_isend() will result in posting <c>MPI_Isend</c>. If
-the request is marked as detached, the request will be put in the list
-of detached requests.
+<ol>
+<li> it polls the <em>ready requests list</em>. For all the ready
+requests, the appropriate function is called to post the corresponding
+MPI call. For example, an initial call to starpu_mpi_isend() will
+result in a call to <c>MPI_Isend</c>. If the request is marked as
+detached, the request will then be added in the <em>detached requests
+list</em>.
+</li>
+<li> it posts a <c>MPI_Irecv()</c> to retrieve a data envelope.
+</li>
+<li> it polls the <em>detached requests list</em>. For all the detached
+requests, it tests its completion of the MPI request by calling
+<c>MPI_Test</c>. On completion, the data handle is released, and if a
+callback was defined, it is called.
+</li>
+<li> finally, it checks if a data envelope has been received. If so,
+if the data envelope matches a request in the <em>early requests list</em> (i.e
+the request has already been posted by the application), the
+corresponding MPI call is posted (similarly to the first step above).
 
-The StarPU-MPI progression thread also polls the list of detached
-requests. For each detached request, it regularly tests the completion
-of the MPI request by calling <c>MPI_Test</c>. On completion, the data
-handle is released, and if a callback was defined, it is called.
-
-Finally, the StarPU-MPI progression thread checks if an envelope has
-arrived. If it is, it'll check if the corresponding receive has already
-been submitted by the application. If it is, it'll submit the request
-just as like as it does with those on the list of ready requests.
-If it is not, it'll allocate a temporary handle to store the data that
-will arrive just after, so as when the corresponding receive request
-will be submitted by the application, it'll copy this temporary handle
-into its one instead of submitting a new StarPU-MPI request.
+If the data envelope does not match any application request, a
+temporary handle is created to receive the data, a StarPU-MPI request
+is created and added into the <em>ready requests list</em>, and thus will be
+processed in the first step of the next loop.
+</li>
+</ol>
 
 \ref MPIPtpCommunication "Communication" gives the list of all the
 point to point communications defined in StarPU-MPI.

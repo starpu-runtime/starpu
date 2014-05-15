@@ -28,7 +28,7 @@ specifying the worker on which to execute the task (as specified by
 starpu_task::execute_on_a_specific_worker)
 <li> the specific values ::STARPU_VALUE, ::STARPU_CALLBACK,
 ::STARPU_CALLBACK_ARG, ::STARPU_CALLBACK_WITH_ARG, ::STARPU_PRIORITY,
-::STARPU_TAG, ::STARPU_FLOPS, ::STARPU_SCHED_CTX followed by the
+::STARPU_TAG, ::STARPU_TAG_ONLY, ::STARPU_FLOPS, ::STARPU_SCHED_CTX followed by the
 appropriated objects as defined elsewhere.
 </ul>
 
@@ -83,6 +83,11 @@ the task (as specified by starpu_task::execute_on_a_specific_worker)
 \def STARPU_TAG
 \ingroup API_Insert_Task
 this macro is used when calling starpu_task_insert(), and must be followed by a tag.
+
+\def STARPU_TAG_ONLY
+\ingroup API_Insert_Task
+this macro is used when calling starpu_task_insert(), and must be followed by a tag.
+It sets ::tag_id, but leaves ::use_tag as 0.
 
 \def STARPU_FLOPS
 \ingroup API_Insert_Task

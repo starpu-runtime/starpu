@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010  Université de Bordeaux 1
+# Copyright (C) 2010, 2014  Université de Bordeaux 1
 # Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 max <- 30
 
 sizelist <- seq(64, max*1024, 64);
-#schedlist <- c("greedy", "prio", "dm", "random", "no-prio", "ws");
+#schedlist <- c("greedy", "prio", "dm", "random", "no-prio", "ws", "lws");
 #schedlist <- c("greedy", "prio", "dm", "random");
 #grainlist <- c(256, 512, 1024)
 grainlist <- c(512, 1024)

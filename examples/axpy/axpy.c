@@ -183,6 +183,8 @@ int main(int argc, char **argv)
 		task->handles[0] = starpu_data_get_sub_data(_handle_x, 1, b);
 		task->handles[1] = starpu_data_get_sub_data(_handle_y, 1, b);
 
+		task->tag_id = b;
+
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV)
 		{

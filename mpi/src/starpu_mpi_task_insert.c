@@ -309,6 +309,10 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			(void)va_arg(varg_list_copy, double);
 		}
+		else if (arg_type==STARPU_TAG_ONLY)
+		{
+			(void)va_arg(varg_list, starpu_tag_t);
+		}
 		else if (arg_type==STARPU_TAG)
 		{
 			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
@@ -471,6 +475,10 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		{
 			(void)va_arg(varg_list_copy, double);
 		}
+		else if (arg_type==STARPU_TAG_ONLY)
+		{
+			(void)va_arg(varg_list, starpu_tag_t);
+		}
 		else if (arg_type==STARPU_TAG)
 		{
 			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
@@ -608,6 +616,10 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, struct starpu_codelet *codelet, 
 		else if (arg_type==STARPU_FLOPS)
 		{
 			(void)va_arg(varg_list_copy, double);
+		}
+		else if (arg_type==STARPU_TAG_ONLY)
+		{
+			(void)va_arg(varg_list, starpu_tag_t);
 		}
 		else if (arg_type==STARPU_TAG)
 		{

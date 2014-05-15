@@ -45,6 +45,11 @@ a task on the worker which released it by
 default. When a worker becomes idle, it steals a task from the most loaded
 worker.
 
+The <b>lws</b> (locality work stealing) scheduler uses a queue per worker, and schedules
+a task on the worker which released it by
+default. When a worker becomes idle, it steals a task from neighbour workers. It
+also takes into account priorities.
+
 The <b>dm</b> (deque model) scheduler uses task execution performance models into account to
 perform a HEFT-similar scheduling strategy: it schedules tasks where their
 termination time will be minimal. The difference with HEFT is that <b>dm</b>

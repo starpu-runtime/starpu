@@ -39,7 +39,7 @@ int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsig
 	/* in case some other driver requested data */
 	if (_starpu_handle_pending_node_data_requests(memory_node))
 		ret = 1;
-	if (push_requests)
+	if (ret || push_requests)
 	{
 		unsigned pushed;
 		if (_starpu_handle_node_data_requests(memory_node, may_alloc, &pushed) == 0)

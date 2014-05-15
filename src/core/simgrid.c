@@ -33,6 +33,8 @@ extern int starpu_main(int argc, char *argv[]);
 extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *argv[]);
 #pragma weak smpi_simulated_main_
 extern int smpi_simulated_main_(int argc, char *argv[]);
+#pragma weak starpu_mpi_world_rank
+extern int starpu_mpi_world_rank(void);
 
 #define _starpu_simgrid_running_smpi() (getenv("SMPI_GLOBAL_SIZE") != NULL)
 
@@ -48,6 +50,7 @@ int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBU
 	return starpu_main(args->argc, args->argv);
 }
 
+#ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 #ifdef HAVE_MSG_GET_AS_BY_NAME
 static msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
@@ -76,6 +79,7 @@ static msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 	return __starpu_simgrid_get_as_by_name(MSG_environment_get_routing_root(), name);
 }
 #endif /* HAVE_MSG_GET_AS_BY_NAME */
+#endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
 
 int _starpu_simgrid_get_nbhosts(const char *prefix)
 {
@@ -84,13 +88,16 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	unsigned i, nb;
 	unsigned len = strlen(prefix);
 
+#ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 	if (_starpu_simgrid_running_smpi())
 	{
 		char name[16];
-		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%u", smpi_current_rank);
+		STARPU_ASSERT(starpu_mpi_world_rank);
+		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
 	}
 	else
+#endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
 		hosts = MSG_hosts_as_dynar();
 	nb = xbt_dynar_length(hosts);
 
@@ -132,7 +139,8 @@ msg_host_t _starpu_simgrid_get_host_by_name(const char *name)
 	if (_starpu_simgrid_running_smpi())
 	{
 		char mpiname[16];
-		snprintf(mpiname, sizeof(mpiname), "%d-%s", smpi_current_rank, name);
+		STARPU_ASSERT(starpu_mpi_world_rank);
+		snprintf(mpiname, sizeof(mpiname), "%d-%s", starpu_mpi_world_rank(), name);
 		return MSG_get_host_by_name(mpiname);
 	}
 	else
@@ -185,6 +193,7 @@ void _starpu_simgrid_init()
 	xbt_dynar_t hosts;
 	int i;
 
+#ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 	if (_starpu_simgrid_running_smpi())
 	{
 		/* Take back hand to create the local platform for this MPI
@@ -195,16 +204,25 @@ void _starpu_simgrid_init()
 		char cmdline[1024];
 		FILE *in;
 		int out;
+#ifdef HAVE_MKSTEMPS
 		char template[] = "/tmp/"STARPU_MPI_AS_PREFIX"-platform-XXXXXX.xml";
+#else
+		char template[] = "/tmp/"STARPU_MPI_AS_PREFIX"-platform-XXXXXX";
+#endif
 		int ret;
 
-		snprintf(asname, sizeof(asname), STARPU_MPI_AS_PREFIX"%u", smpi_current_rank);
+		STARPU_ASSERT(starpu_mpi_world_rank);
+		snprintf(asname, sizeof(asname), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
 
 		/* Get XML platform */
 		_starpu_simgrid_get_platform_path(path, sizeof(path));
 		in = fopen(path, "r");
 		STARPU_ASSERT_MSG(in, "Could not open platform file %s", path);
+#ifdef HAVE_MKSTEMPS
 		out = mkstemps(template, strlen(".xml"));
+#else
+		out = mkstemp(template);
+#endif
 
 		/* Generate modified XML platform */
 		STARPU_ASSERT_MSG(out >= 0, "Could not create temporary file like %s", template);
@@ -219,6 +237,7 @@ void _starpu_simgrid_init()
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(asname));
 	}
 	else
+#endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
 		hosts = MSG_hosts_as_dynar();
 
 	int nb = xbt_dynar_length(hosts);

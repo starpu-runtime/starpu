@@ -33,7 +33,7 @@
 #define BACKOFF_MAX 32  /* TODO : use parameter to define them */
 #define BACKOFF_MIN 1
 
-void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct timespec *codelet_start, int rank, int profiling)
+void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, struct timespec *codelet_start, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
@@ -73,7 +73,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	if (starpu_top)
 		_starpu_top_task_started(task,workerid,codelet_start);
 
-	_STARPU_TRACE_START_CODELET_BODY(j);
+	_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch);
 }
 
 void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)

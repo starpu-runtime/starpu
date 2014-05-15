@@ -85,6 +85,7 @@ int main()
 
 	FPRINTF(stderr, "timing init = %lf \n", timing);
 	co->deinit(co);
+	free(co);
 	starpu_shutdown();
 
 	return 0;

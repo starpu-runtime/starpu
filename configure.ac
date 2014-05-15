@@ -278,6 +278,8 @@ AC_CHECK_FUNC([sched_yield], [AC_DEFINE([STARPU_HAVE_SCHED_YIELD], [1], [Define 
 
 AC_CHECK_HEADERS([aio.h])
 
+AC_CHECK_FUNCS([mkstemps])
+
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
 STARPU_CHECK_SYNC_VAL_COMPARE_AND_SWAP
 
@@ -997,7 +999,7 @@ if test x$enable_simgrid = xyes ; then
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
 		]
 	)
-   	AC_CHECK_FUNCS([MSG_process_join MSG_get_as_by_name])
+   	AC_CHECK_FUNCS([MSG_process_join MSG_get_as_by_name MSG_environment_get_routing_root])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		    		[[#include <msg/msg.h>]],
@@ -1482,6 +1484,12 @@ if test x$use_fxt = xyes; then
 	AC_CHECK_DECLS([fut_set_filename])
 	CFLAGS="$save_CFLAGS"
 
+        AC_ARG_ENABLE(paje-codelet-details, [AS_HELP_STRING([--enable-paje-codelet-details],
+			[enable details about codelets in the paje trace])],
+			enable_paje_codelet_details=$enableval, enable_paje_codelet_details=no)
+        if  test x$enable_paje_codelet_details = xyes; then
+        	AC_DEFINE(STARPU_ENABLE_PAJE_CODELET_DETAILS, [1], [enable details about codelets in the paje trace])
+        fi
 	##########################################
 	# Poti is a library to generate paje trace files
 	##########################################

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -39,6 +39,8 @@ static int create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, i);
 
+	task->tag_id = PIVOT(k, i);
+
 	task->cl_arg = &piv_description[k];
 
 	/* this is an important task */
@@ -65,6 +67,8 @@ static int create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
 
+	task->tag_id = TAG11(k);
+
 	/* this is an important task */
 	if (!no_prio)
 		task->priority = STARPU_MAX_PRIO;
@@ -86,6 +90,8 @@ static int create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
 	task->handles[1] = get_block(dataAp, nblocks, j, k);
 
+	task->tag_id = TAG12(k,j);
+
 	if (!no_prio && (j == k+1))
 		task->priority = STARPU_MAX_PRIO;
 
@@ -105,6 +111,8 @@ static int create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
 	task->handles[1] = get_block(dataAp, nblocks, k, i);
+
+	task->tag_id = TAG21(k,i);
 
 	if (!no_prio && (i == k+1))
 		task->priority = STARPU_MAX_PRIO;
@@ -126,6 +134,8 @@ static int create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	task->handles[0] = get_block(dataAp, nblocks, k, i);
 	task->handles[1] = get_block(dataAp, nblocks, j, k);
 	task->handles[2] = get_block(dataAp, nblocks, j, i);
+
+	task->tag_id = TAG22(k,i,j);
 
 	if (!no_prio &&  (i == k + 1) && (j == k +1) )
 		task->priority = STARPU_MAX_PRIO;
@@ -237,6 +247,8 @@ int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size,
 
 	double timing;
 	int ret = dw_codelet_facto_pivot(&dataA, piv_description, nblocks, get_block_with_striding, &timing);
+	if (ret)
+		return ret;
 
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stderr, "%2.2f\n", timing/1000);
@@ -290,6 +302,8 @@ int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, uns
 
 	double timing;
 	int ret = dw_codelet_facto_pivot(dataAp, piv_description, nblocks, get_block_with_no_striding, &timing);
+	if (ret)
+		return ret;
 
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stderr, "%2.2f\n", timing/1000);

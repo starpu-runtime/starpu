@@ -50,8 +50,11 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	 if(starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) < 2)
+	 if (starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) < 2)
+	 {
+		 starpu_shutdown();
 		 return STARPU_TEST_SKIPPED;
+	 }
 
 	starpu_task_init(&task);
 	task.cl = &cl;
@@ -76,7 +79,7 @@ int main(int argc, char **argv)
 		arch.devid = 0;
 		starpu_perfmodel_update_history(&model, &task, &arch, 0, 0, measured_fast);
 		starpu_perfmodel_update_history(&nl_model, &task, &arch, 0, 0, measured_fast);
-		
+
 		/* Simulate Slow GPU */
 		arch.devid = 1;
 		starpu_perfmodel_update_history(&model, &task, &arch, 0, 0, measured_slow);
