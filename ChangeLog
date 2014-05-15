@@ -47,6 +47,7 @@ New features:
     CUDA and OpenCL kernel execution.
   * Add CUDA concurrent kernel execution support through
     the STARPU_NWORKER_PER_CUDA environment variable.
+  * New locality work stealing scheduler (lws).
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
