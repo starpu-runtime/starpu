@@ -204,7 +204,11 @@ void _starpu_simgrid_init()
 		char cmdline[1024];
 		FILE *in;
 		int out;
+#ifdef HAVE_MKSTEMPS
 		char template[] = "/tmp/"STARPU_MPI_AS_PREFIX"-platform-XXXXXX.xml";
+#else
+		char template[] = "/tmp/"STARPU_MPI_AS_PREFIX"-platform-XXXXXX";
+#endif
 		int ret;
 
 		STARPU_ASSERT(starpu_mpi_world_rank);
@@ -214,7 +218,11 @@ void _starpu_simgrid_init()
 		_starpu_simgrid_get_platform_path(path, sizeof(path));
 		in = fopen(path, "r");
 		STARPU_ASSERT_MSG(in, "Could not open platform file %s", path);
+#ifdef HAVE_MKSTEMPS
 		out = mkstemps(template, strlen(".xml"));
+#else
+		out = mkstemp(template);
+#endif
 
 		/* Generate modified XML platform */
 		STARPU_ASSERT_MSG(out >= 0, "Could not create temporary file like %s", template);
