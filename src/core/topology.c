@@ -590,7 +590,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config)
 		if (ncpu == -1)
 		{
 			unsigned already_busy_cpus = topology->ncudagpus + topology->nopenclgpus;
-			long avail_cpus = topology->nhwcpus - already_busy_cpus;
+			long avail_cpus = (long) topology->nhwcpus - (long) already_busy_cpus;
 			if (avail_cpus < 0)
 				avail_cpus = 0;
 			ncpu = STARPU_MIN(avail_cpus, STARPU_MAXCPUS);
