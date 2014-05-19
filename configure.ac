@@ -978,6 +978,7 @@ if test x$enable_simgrid = xyes ; then
    	if test -n "$SIMGRID_CFLAGS" ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
 	   	CXXFLAGS="$SIMGRID_CFLAGS $CXXFLAGS"
+	   	NVCCFLAGS="$SIMGRID_CFLAGS $NVCCFLAGS"
 	fi
 	if test -n "$SIMGRID_LIBS" ; then
 		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
@@ -985,11 +986,13 @@ if test x$enable_simgrid = xyes ; then
 	if test "$simgrid_dir" != "no" ; then
 	   	CFLAGS="-I$simgrid_dir/include $CFLAGS"
 	   	CXXFLAGS="-I$simgrid_dir/include $CXXFLAGS"
+	   	NVCCFLAGS="-I$simgrid_dir/include $NVCCFLAGS"
 	   	LDFLAGS="-L$simgrid_dir/lib $LDFLAGS"
 	fi
 	if test "$simgrid_include_dir" != "no" ; then
 	   	CFLAGS="-I$simgrid_include_dir $CFLAGS"
 	   	CXXFLAGS="-I$simgrid_include_dir $CXXFLAGS"
+	   	NVCCFLAGS="-I$simgrid_include_dir $NVCCFLAGS"
 	fi
 	if test "$simgrid_lib_dir" != "no" ; then
 	   	LDFLAGS="-L$simgrid_lib_dir $LDFLAGS"
