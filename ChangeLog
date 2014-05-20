@@ -71,8 +71,8 @@ Small features:
   * Add codelet size, footprint and tag id in the paje trace.
   * Add STARPU_TAG_ONLY, to specify a tag for traces without making StarPU
     manage the tag.
-  * Spinlocks now block after a hundred tries. This avoids typical 10ms pauses
-    when the application thread tries to submit tasks.
+  * On Linux x86, spinlocks now block after a hundred tries. This avoids
+    typical 10ms pauses when the application thread tries to submit tasks.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
