@@ -176,6 +176,12 @@ STARPU_ATOMIC_SOMETHING(or, old | value)
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)) == (old))
 #endif
 
+#ifdef STARPU_HAVE_SYNC_VAL_COMPARE_AND_SWAP
+#define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_val_compare_and_swap ((ptr), (old), (value)))
+#elif defined(STARPU_HAVE_XCHG)
+#define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value) (starpu_cmpxchg((ptr), (old), (value)))
+#endif
+
 #ifdef STARPU_HAVE_SYNC_LOCK_TEST_AND_SET
 #define STARPU_TEST_AND_SET(ptr, value) (__sync_lock_test_and_set ((ptr), (value)))
 #define STARPU_RELEASE(ptr) (__sync_lock_release ((ptr)))
