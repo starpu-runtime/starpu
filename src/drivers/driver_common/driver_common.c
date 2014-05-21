@@ -173,6 +173,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 {
 	struct starpu_task *task;
 
+	STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
 	if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING
 		&& _starpu_worker_get_status(workerid) != STATUS_SCHEDULING)
 	{
@@ -180,7 +181,6 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		_starpu_worker_set_status(workerid, STATUS_SCHEDULING);
 	}
 
-	STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
 	task = _starpu_pop_task(args);
 
 	if (task == NULL)
@@ -225,8 +225,6 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		return NULL;
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
-
 	if (_starpu_worker_get_status(workerid) == STATUS_SCHEDULING)
 	{
 		_STARPU_TRACE_WORKER_SCHEDULING_END;
@@ -240,6 +238,8 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
 	}
 	args->spinning_backoff = BACKOFF_MIN;
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 
 
 #ifdef HAVE_AYUDAME_H
