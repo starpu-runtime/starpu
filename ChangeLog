@@ -98,6 +98,8 @@ New features:
     scheduler.
   * Add STARPU_CALIBRATE_MINIMUM environment variable to specify the minimum
     number of calibration measurements.
+  * Add STARPU_TRACE_BUFFER_SIZE environment variable to specify the size of
+    the trace buffer.
 
 StarPU 1.1.1 (svn revision 12638)
 ==============================================
