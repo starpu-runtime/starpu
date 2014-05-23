@@ -172,6 +172,7 @@ static int register_worker_id(unsigned long tid, int workerid)
 	entry->workerid = workerid;
 
 	HASH_ADD(hh, worker_ids, tid, sizeof(tid), entry);
+	return 1;
 }
 
 static int find_worker_id(unsigned long tid)
@@ -263,26 +264,26 @@ static void memnode_set_state(double time, const char *prefix, unsigned int memn
 #endif
 }
 
-static void worker_set_state(double time, const char *prefix, long unsigned int workerid, const char *name)
+static void thread_set_state(double time, const char *prefix, long unsigned int threadid, const char *name)
 {
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
-	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
+	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
 	poti_SetState(time, container, "S", name);
 #else
-	fprintf(out_paje_file, "10	%.9f	%st%lu	S	%s\n", time, prefix, workerid, name);
+	fprintf(out_paje_file, "10	%.9f	%st%lu	S	%s\n", time, prefix, threadid, name);
 #endif
 }
 
-static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, unsigned long footprint, unsigned long long tag)
+static void thread_set_detailed_state(double time, const char *prefix, long unsigned int threadid, const char *name, unsigned long size, unsigned long footprint, unsigned long long tag)
 {
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
-	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, workerid);
+	thread_container_alias(container, STARPU_POTI_STR_LEN, prefix, threadid);
 	/* TODO: set detailed state */
 	poti_SetState(time, container, "S", name);
 #else
-	fprintf(out_paje_file, "20	%.9f	%st%lu	S	%s	%lu	%08lx	%016llx\n", time, prefix, workerid, name, size, footprint, tag);
+	fprintf(out_paje_file, "20	%.9f	%st%lu	S	%s	%lu	%08lx	%016llx\n", time, prefix, threadid, name, size, footprint, tag);
 #endif
 }
 
@@ -449,7 +450,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 	/* start initialization */
 	if (out_paje_file)
-		worker_set_state(get_event_time_stamp(ev, options), prefix, threadid, "I");
+		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "I");
 
 	if (activity_file)
 	fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
@@ -464,7 +465,7 @@ static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	int worker;
 
 	if (out_paje_file)
-		worker_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B");
+		thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B");
 
 	if (ev->nb_params < 2)
 		worker = find_worker_id(ev->param[0]);
@@ -482,7 +483,7 @@ static void handle_worker_deinit_start(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	char *prefix = options->file_prefix;
 
 	if (out_paje_file)
-		worker_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "D");
+		thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "D");
 }
 
 static void handle_worker_deinit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -663,7 +664,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[1];
 
-		worker_set_state(start_codelet_time, prefix, ev->param[2], name);
+		thread_set_state(start_codelet_time, prefix, ev->param[2], name);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -694,7 +695,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	if (out_paje_file)
 	{
-		worker_set_detailed_state(last_codelet_start[worker], prefix, ev->param[5], last_codelet_symbol[worker], ev->param[2], ev->param[3], ev->param[4]);
+		thread_set_detailed_state(last_codelet_start[worker], prefix, ev->param[5], last_codelet_symbol[worker], ev->param[2], ev->param[3], ev->param[4]);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -728,7 +729,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	uint32_t codelet_hash = ev->param[2];
 
 	if (out_paje_file)
-		worker_set_state(end_codelet_time, prefix, ev->param[6], "B");
+		thread_set_state(end_codelet_time, prefix, ev->param[6], "B");
 
 	double codelet_length = (end_codelet_time - last_codelet_start[worker]);
 
@@ -799,7 +800,7 @@ static void handle_start_callback(struct fxt_ev_64 *ev, struct starpu_fxt_option
 		return;
 
 	if (out_paje_file)
-		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
+		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
 }
 
 static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -810,7 +811,7 @@ static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		return;
 
 	if (out_paje_file)
-		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "B");
+		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "B");
 }
 
 static void handle_hyp_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -821,7 +822,7 @@ static void handle_hyp_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		return;
 
 	if (out_paje_file)
-		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H");
+		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H");
 }
 
 static void handle_hyp_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -832,7 +833,7 @@ static void handle_hyp_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 		return;
 
 	if (out_paje_file)
-		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
+		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
 }
 
 static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
@@ -843,7 +844,7 @@ static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		return;
 
 	if (out_paje_file)
-		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
+		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
 }
 
 static double last_sleep_start[STARPU_NMAXWORKERS];
@@ -855,7 +856,7 @@ static void handle_start_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	if (worker < 0) return;
 
 	if (out_paje_file)
-		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
+		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
 }
 
 static void handle_end_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -865,7 +866,7 @@ static void handle_end_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	if (worker < 0) return;
 
 	if (out_paje_file)
-		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
+		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
 }
 
 static void handle_push_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -898,7 +899,7 @@ static void handle_start_sleep(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	last_sleep_start[worker] = start_sleep_time;
 
 	if (out_paje_file)
-		worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sl");
+		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sl");
 }
 
 static void handle_end_sleep(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -910,7 +911,7 @@ static void handle_end_sleep(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	double end_sleep_timestamp = get_event_time_stamp(ev, options);
 
 	if (out_paje_file)
-		worker_set_state(end_sleep_timestamp, options->file_prefix, ev->param[0], "B");
+		thread_set_state(end_sleep_timestamp, options->file_prefix, ev->param[0], "B");
 
 	double sleep_length = end_sleep_timestamp - last_sleep_start[worker];
 
