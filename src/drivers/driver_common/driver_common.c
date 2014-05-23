@@ -73,7 +73,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	if (starpu_top)
 		_starpu_top_task_started(task,workerid,codelet_start);
 
-	_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch);
+	_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
 }
 
 void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)
@@ -85,7 +85,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	int workerid = args->workerid;
 	unsigned calibrate_model = 0;
 
-	_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch);
+	_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
 
 	if (cl && cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
