@@ -154,7 +154,7 @@ struct worker_entry
 	int workerid;
 } *worker_ids;
 
-static void register_worker_id(unsigned long tid, int workerid)
+static int register_worker_id(unsigned long tid, int workerid)
 {
 	nworkers++;
 	struct worker_entry *entry;
@@ -164,9 +164,8 @@ static void register_worker_id(unsigned long tid, int workerid)
 	STARPU_ASSERT_MSG(workerid < STARPU_NMAXWORKERS, "Too many workers in this trace, please increase in ./configure invocation the maximum number of CPUs and GPUs to the same value as was used for execution");
 
 	/* only register a thread once */
-	//STARPU_ASSERT(entry == NULL);
 	if (entry)
-		return;
+		return 0;
 
 	entry = malloc(sizeof(*entry));
 	entry->tid = tid;
@@ -371,8 +370,9 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	int workerid = ev->param[1];
 	int nodeid = ev->param[3];
 	int threadid = ev->param[4];
+	int new_thread;
 
-	register_worker_id(threadid, workerid);
+	new_thread = register_worker_id(threadid, workerid);
 
 	char *kindstr = "";
 	struct starpu_perfmodel_arch arch;
@@ -435,11 +435,13 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		snprintf(new_thread_container_name, STARPU_POTI_STR_LEN, "%s%d", prefix, threadid);
 		char new_worker_container_name[STARPU_POTI_STR_LEN];
 		snprintf(new_worker_container_name, STARPU_POTI_STR_LEN, "%s%s%d", prefix, kindstr, devid);
-		poti_CreateContainer(get_event_time_stamp(ev, options), new_thread_container_alias, "T", memnode_container, new_thread_container_name);
+		if (new_thread)
+			poti_CreateContainer(get_event_time_stamp(ev, options), new_thread_container_alias, "T", memnode_container, new_thread_container_name);
 		poti_CreateContainer(get_event_time_stamp(ev, options), new_worker_container_alias, "W", new_thread_container_alias, new_worker_container_name);
 #else
-		fprintf(out_paje_file, "7	%.9f	%st%d	T	%smn%d	%s%d\n",
-			get_event_time_stamp(ev, options), prefix, threadid, prefix, nodeid, prefix, threadid);
+		if (new_thread)
+			fprintf(out_paje_file, "7	%.9f	%st%d	T	%smn%d	%s%d\n",
+				get_event_time_stamp(ev, options), prefix, threadid, prefix, nodeid, prefix, threadid);
 		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%d	%s%s%d\n",
 			get_event_time_stamp(ev, options), prefix, workerid, prefix, threadid, prefix, kindstr, devid);
 #endif
