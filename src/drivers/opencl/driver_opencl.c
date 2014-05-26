@@ -635,12 +635,14 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *args)
 
 		if (status != CL_COMPLETE)
 		{
+			_STARPU_TRACE_START_EXECUTING();
 			/* Not ready yet, no better thing to do than waiting */
 			__starpu_datawizard_progress(memnode, 1, 0);
 			return 0;
 		}
 
 		/* Asynchronous task completed! */
+		_STARPU_TRACE_END_EXECUTING();
 		_starpu_opencl_stop_job(_starpu_get_job_associated_to_task(task), args);
 	}
 #endif /* STARPU_SIMGRID */
@@ -698,6 +700,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *args)
 		 */
 		err = clEnqueueMarker(queue, &task_events[args->devid]);
 		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+		_STARPU_TRACE_START_EXECUTING();
 	}
 	else
 #else
@@ -832,6 +835,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 
 	if (starpu_get_env_number("STARPU_DISABLE_KERNELS") <= 0)
 	{
+		_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_SIMGRID
 		double length = NAN;
 	  #ifdef STARPU_OPENCL_SIMULATOR
@@ -851,6 +855,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
+		_STARPU_TRACE_END_EXECUTING();
 	}
 	return 0;
 }

@@ -1302,17 +1302,19 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				STARPU_HG_DISABLE_CHECKING(entry->nsample);
 				STARPU_HG_DISABLE_CHECKING(entry->mean);
 
-				entry->mean = measured;
-				entry->sum = measured;
+				/* Do not take the first measurement into account, it is very often quite bogus */
+				/* TODO: it'd be good to use a better estimation heuristic, like the median, or latest n values, etc. */
+				entry->mean = 0;
+				entry->sum = 0;
 
 				entry->deviation = 0.0;
-				entry->sum2 = measured*measured;
+				entry->sum2 = 0;
 
 				entry->size = _starpu_job_get_data_size(model, arch, nimpl, j);
 				entry->flops = j->task->flops;
 
 				entry->footprint = key;
-				entry->nsample = 1;
+				entry->nsample = 0;
 				entry->nerror = 0;
 
 				insert_history_entry(entry, list, &per_arch_model->history);
