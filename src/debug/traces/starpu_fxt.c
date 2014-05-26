@@ -388,6 +388,8 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 	char *kindstr = "";
 	struct starpu_perfmodel_arch arch;
+	arch.ndevices = 1;
+	arch.devices = (struct starpu_perfmodel_device *)malloc(sizeof(struct starpu_perfmodel_device));
 
 	switch (ev->param[0])
 	{
@@ -398,37 +400,37 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		case _STARPU_FUT_CPU_KEY:
 			set_next_cpu_worker_color(workerid);
 			kindstr = "CPU";
-			arch.type = STARPU_CPU_WORKER;
-			arch.devid = 0;
-			arch.ncore = 0;
+			arch.devices[0].type = STARPU_CPU_WORKER;
+			arch.devices[0].devid = 0;
+			arch.devices[0].ncores = 1;
 			break;
 		case _STARPU_FUT_CUDA_KEY:
 			set_next_cuda_worker_color(workerid);
 			kindstr = "CUDA";
-			arch.type = STARPU_CUDA_WORKER;
-			arch.devid = devid;
-			arch.ncore = 0;
+			arch.devices[0].type = STARPU_CUDA_WORKER;
+			arch.devices[0].devid = devid;
+			arch.devices[0].ncores = 1;
 			break;
 		case _STARPU_FUT_OPENCL_KEY:
 			set_next_opencl_worker_color(workerid);
 			kindstr = "OPENCL";
-			arch.type = STARPU_OPENCL_WORKER;
-			arch.devid = devid;
-			arch.ncore = 0;
+			arch.devices[0].type = STARPU_OPENCL_WORKER;
+			arch.devices[0].devid = devid;
+			arch.devices[0].ncores = 1;
 			break;
 		case _STARPU_FUT_MIC_KEY:
 			set_next_mic_worker_color(workerid);
 			kindstr = "mic";
-			arch.type = STARPU_MIC_WORKER;
-			arch.devid = devid;
-			arch.ncore = 0;
+			arch.devices[0].type = STARPU_MIC_WORKER;
+			arch.devices[0].devid = devid;
+			arch.devices[0].ncores = 1;
 			break;
 		case _STARPU_FUT_SCC_KEY:
 			set_next_scc_worker_color(workerid);
 			kindstr = "scc";
-			arch.type = STARPU_SCC_WORKER;
-			arch.devid = devid;
-			arch.ncore = 0;
+			arch.devices[0].type = STARPU_SCC_WORKER;
+			arch.devices[0].devid = devid;
+			arch.devices[0].ncores = 1;
 			break;
 		default:
 			STARPU_ABORT();
@@ -757,9 +759,11 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, 256, "%s", last_codelet_symbol[worker]);
 		dumped_codelets[dumped_codelets_count - 1].workerid = worker;
-		dumped_codelets[dumped_codelets_count - 1].arch.type = ev->param[3];
-		dumped_codelets[dumped_codelets_count - 1].arch.devid = ev->param[4];
-		dumped_codelets[dumped_codelets_count - 1].arch.ncore = ev->param[5];
+		dumped_codelets[dumped_codelets_count - 1].arch.ndevices = 1;
+		dumped_codelets[dumped_codelets_count - 1].arch.devices = (struct starpu_perfmodel_device *)malloc(sizeof(struct starpu_perfmodel_device));
+		dumped_codelets[dumped_codelets_count - 1].arch.devices[0].type = ev->param[3];
+		dumped_codelets[dumped_codelets_count - 1].arch.devices[0].devid = ev->param[4];
+		dumped_codelets[dumped_codelets_count - 1].arch.devices[0].ncores = ev->param[5];
 
 		dumped_codelets[dumped_codelets_count - 1].size = codelet_size;
 		dumped_codelets[dumped_codelets_count - 1].hash = codelet_hash;

@@ -150,6 +150,8 @@ struct _starpu_sched_ctx
 	/* ctx nesting the current ctx */
 	unsigned nesting_sched_ctx;
 
+	/* perf model for the device comb of the ctx */
+	struct starpu_perfmodel_arch perf_arch;
 };
 
 struct _starpu_machine_config;
@@ -224,6 +226,7 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 
 unsigned _starpu_sched_ctx_allow_hypervisor(unsigned sched_ctx_id);
 
+struct starpu_perfmodel_arch * _starpu_sched_ctx_get_perf_archtype(unsigned sched_ctx);
 #ifdef STARPU_USE_SC_HYPERVISOR
 /* Notifies the hypervisor that a tasks was poped from the workers' list */
 void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint);

@@ -101,9 +101,9 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 
 	combined_worker->worker_size = nworkers;
 
-	combined_worker->perf_arch.type = config->workers[workerid_array[0]].perf_arch.type;
-	combined_worker->perf_arch.devid = config->workers[workerid_array[0]].perf_arch.devid; 
-	combined_worker->perf_arch.ncore = nworkers - 1;
+	combined_worker->perf_arch.devices[0].type = config->workers[workerid_array[0]].perf_arch.devices[0].type;
+	combined_worker->perf_arch.devices[0].devid = config->workers[workerid_array[0]].perf_arch.devices[0].devid; 
+	combined_worker->perf_arch.devices[0].ncores = nworkers - 1;
 	combined_worker->worker_mask = config->workers[workerid_array[0]].worker_mask;
 	
 #ifdef STARPU_USE_MP

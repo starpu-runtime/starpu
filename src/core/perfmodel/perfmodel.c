@@ -37,7 +37,6 @@
  *	2: models must be calibrated, existing models are overwritten.
  */
 static unsigned calibrate_flag = 0;
-
 void _starpu_set_calibrate_flag(unsigned val)
 {
 	calibrate_flag = val;
@@ -48,8 +47,15 @@ unsigned _starpu_get_calibrate_flag(void)
 	return calibrate_flag;
 }
 
-struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid)
+struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid, unsigned sched_ctx_id)
 {
+	if(sched_ctx_id != STARPU_NMAX_SCHED_CTXS)
+	{
+		unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx_id);
+		if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+			return _starpu_sched_ctx_get_perf_archtype(child_sched_ctx);
+	}
+
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
 	/* This workerid may either be a basic worker or a combined worker */
@@ -57,6 +63,7 @@ struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid)
 
 	if (workerid < (int)config->topology.nworkers)
 		return &config->workers[workerid].perf_arch;
+	
 
 	/* We have a combined worker */
 	unsigned ncombinedworkers = config->topology.ncombinedworkers;
@@ -71,11 +78,14 @@ struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid)
 static double per_arch_task_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, struct starpu_task *task, unsigned nimpl)
 {
 	double exp = NAN;
+	int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	if(comb == -1) return exp;
+		
 	double (*per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 	double (*per_arch_cost_model)(struct starpu_data_descr *);
 
-	per_arch_cost_function = model->per_arch[arch->type][arch->devid][arch->ncore][nimpl].cost_function;
-	per_arch_cost_model = model->per_arch[arch->type][arch->devid][arch->ncore][nimpl].cost_model;
+	per_arch_cost_function = model->per_arch[comb][nimpl].cost_function;
+	per_arch_cost_model = model->per_arch[comb][nimpl].cost_model;
 
 	if (per_arch_cost_function)
 		exp = per_arch_cost_function(task, arch, nimpl);
@@ -91,26 +101,23 @@ static double per_arch_task_expected_perf(struct starpu_perfmodel *model, struct
 
 double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arch)
 {
-	if (perf_arch->type == STARPU_CPU_WORKER)
+	double speedup = 0;
+	int dev;
+	for(dev = 0; dev < perf_arch->ndevices; dev++)
 	{
-		return _STARPU_CPU_ALPHA * (perf_arch->ncore + 1);
+		double coef = 0.0;
+		if (perf_arch->devices[dev].type == STARPU_CPU_WORKER)
+			coef = _STARPU_CPU_ALPHA;
+		else if (perf_arch->devices[dev].type == STARPU_CUDA_WORKER)
+			coef = _STARPU_CUDA_ALPHA;
+		else if (perf_arch->devices[dev].type == STARPU_OPENCL_WORKER)
+			coef = _STARPU_OPENCL_ALPHA;
+		else if (perf_arch->devices[dev].type == STARPU_MIC_WORKER)
+			coef =  _STARPU_MIC_ALPHA;
+		
+		speedup += coef * (perf_arch->devices[dev].ncores + 1);
 	}
-	else if (perf_arch->type == STARPU_CUDA_WORKER)
-	{
-		return _STARPU_CUDA_ALPHA;
-	}
-	else if (perf_arch->type == STARPU_OPENCL_WORKER)
-	{
-		return _STARPU_OPENCL_ALPHA;
-	}
-	else if (perf_arch->type == STARPU_MIC_WORKER)
-	{
-		return _STARPU_MIC_ALPHA * (perf_arch->ncore + 1);
-	}
-	STARPU_ABORT();
-
-	/* Never reached ! */
-	return NAN;
+	return speedup == 0 ? NAN : speedup;
 }
 
 static double common_task_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct starpu_task *task, unsigned nimpl)
@@ -184,22 +191,15 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 		switch (model->type)
 		{
 			case STARPU_PER_ARCH:
-
 				return per_arch_task_expected_perf(model, arch, task, nimpl);
 			case STARPU_COMMON:
 				return common_task_expected_perf(model, arch, task, nimpl);
-
 			case STARPU_HISTORY_BASED:
-
 				return _starpu_history_based_job_expected_perf(model, arch, j, nimpl);
 			case STARPU_REGRESSION_BASED:
-
 				return _starpu_regression_based_job_expected_perf(model, arch, j, nimpl);
-
 			case STARPU_NL_REGRESSION_BASED:
-
 				return _starpu_non_linear_regression_based_job_expected_perf(model, arch, j,nimpl);
-
 			default:
 				STARPU_ABORT();
 		}
@@ -223,6 +223,8 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 					    struct starpu_perfmodel_arch* arch,
 					    unsigned nimpl)
 {
+	if(arch->ndevices > 1)
+		return -1.0;
 	unsigned i;
 	double sum = 0.0;
 	enum starpu_node_kind node_kind;
@@ -236,7 +238,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
 		
-		switch(arch->type)
+		switch(arch->devices[0].type)
 		{
 			case STARPU_CPU_WORKER:
 				node_kind = STARPU_CPU_RAM;
@@ -503,3 +505,4 @@ void _starpu_create_sampling_directory_if_needed(void)
 		directory_existence_was_tested = 1;
 	}
 }
+

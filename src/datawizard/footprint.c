@@ -37,7 +37,7 @@ uint32_t starpu_task_data_footprint(struct starpu_task *task)
 	return footprint;
 }
 
-uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, unsigned nimpl, struct _starpu_job *j)
+uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned nimpl, struct _starpu_job *j)
 {
 	if (j->footprint_is_computed)
 		return j->footprint;
@@ -50,23 +50,26 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struc
 	{
 		footprint = model->footprint(task);
 	}
-	else if (model != NULL && model->per_arch &&
-			model->per_arch[arch->type] != NULL &&
-			model->per_arch[arch->type][arch->devid] != NULL &&
-			model->per_arch[arch->type][arch->devid][arch->ncore] != NULL &&
-			model->per_arch[arch->type][arch->devid][arch->ncore][nimpl].size_base)
-	{
-		size_t size = model->per_arch[arch->type][arch->devid][arch->ncore][nimpl].size_base(task, arch, nimpl);
-		footprint = starpu_hash_crc32c_be_n(&size, sizeof(size), footprint);
-	}
-	else if (model && model->size_base)
-	{
-		size_t size = model->size_base(task, nimpl);
-		footprint = starpu_hash_crc32c_be_n(&size, sizeof(size), footprint);
-	}
 	else
-	{
-		footprint = starpu_task_data_footprint(task);
+	{ 
+		if (model != NULL && model->per_arch)
+		{
+			struct starpu_perfmodel_per_arch *per_arch = starpu_perfmodel_get_model_per_arch(model, arch, nimpl);
+			if(per_arch != NULL && per_arch->size_base)
+			{
+				size_t size = per_arch->size_base(task, arch, nimpl);
+				footprint = starpu_hash_crc32c_be_n(&size, sizeof(size), footprint);
+			}
+		}
+		else if (model && model->size_base)
+		{
+			size_t size = model->size_base(task, nimpl);
+			footprint = starpu_hash_crc32c_be_n(&size, sizeof(size), footprint);
+		}
+		else
+		{
+			footprint = starpu_task_data_footprint(task);
+		}
 	}
 
 	j->footprint = footprint;

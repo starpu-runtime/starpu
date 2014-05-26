@@ -862,12 +862,15 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		for (i = 0; i < nworker_per_cuda; i++)
 		{
 			int worker_idx = topology->nworkers + cudagpu * nworker_per_cuda + i;
+
 			config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
-			config->workers[worker_idx].perf_arch.type = STARPU_CUDA_WORKER;
-			config->workers[worker_idx].perf_arch.devid = devid;
+			config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device)malloc(sizeof(struct starpu_perfmodel_device));
+			config->workers[worker_idx].perf_arch.ndevices = 1;
+			config->workers[worker_idx].perf_arch.devices[0].type = STARPU_CUDA_WORKER;
+			config->workers[worker_idx].perf_arch.devices[0].devid = devid;
 			// TODO: fix perfmodels etc.
 			//config->workers[worker_idx].perf_arch.ncore = nworker_per_cuda - 1;
-			config->workers[worker_idx].perf_arch.ncore = 0;
+			config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
 			config->workers[worker_idx].devid = devid;
 			config->workers[worker_idx].subworkerid = i;
 			config->workers[worker_idx].worker_mask = STARPU_CUDA;
@@ -940,9 +943,11 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 			break;
 		}
 		config->workers[worker_idx].arch = STARPU_OPENCL_WORKER;
-		config->workers[worker_idx].perf_arch.type = STARPU_OPENCL_WORKER;
-		config->workers[worker_idx].perf_arch.devid = devid;
-		config->workers[worker_idx].perf_arch.ncore = 0;
+		config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device)malloc(sizeof(struct starpu_perfmodel_device));
+		config->workers[worker_idx].perf_arch.ndevices = 1;
+		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_OPENCL_WORKER;
+		config->workers[worker_idx].perf_arch.devices[0].devid = devid;
+		config->workers[worker_idx].perf_arch.devices[0].ncore = 1;
 		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
@@ -1002,9 +1007,12 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	{
 		config->workers[topology->nworkers + sccdev].arch = STARPU_SCC_WORKER;
 		int devid = _starpu_get_next_scc_deviceid(config);
-		config->workers[topology->nworkers + sccdev].perf_arch.type = STARPU_SCC_WORKER;
-		config->workers[topology->nworkers + sccdev].perf_arch.devid = sccdev;
-		config->workers[topology->nworkers + sccdev].perf_arch.ncore = 0;
+		config->workers[topology->nworkers + sccdev].perf_arch.devices = (struct starpu_perfmodel_device)malloc(sizeof(struct starpu_perfmodel_device));
+		config->workers[topology->nworkers + sccdev].perf_arch.ndevices = 1;
+
+		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].type = STARPU_SCC_WORKER;
+		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].devid = sccdev;
+		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].ncore = 1;
 		config->workers[topology->nworkers + sccdev].subworkerid = 0;
 		config->workers[topology->nworkers + sccdev].devid = devid;
 		config->workers[topology->nworkers + sccdev].worker_mask = STARPU_SCC;
@@ -1068,9 +1076,11 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	{
 		int worker_idx = topology->nworkers + cpu;
 		config->workers[worker_idx].arch = STARPU_CPU_WORKER;
-		config->workers[worker_idx].perf_arch.type = STARPU_CPU_WORKER;
-		config->workers[worker_idx].perf_arch.devid = 0;
-		config->workers[worker_idx].perf_arch.ncore = 0;
+		config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		config->workers[worker_idx].perf_arch.ndevices = 1;
+		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_CPU_WORKER;
+		config->workers[worker_idx].perf_arch.devices[0].devid = 0;
+		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
 		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].devid = cpu;
 		config->workers[worker_idx].worker_mask = STARPU_CPU;

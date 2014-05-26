@@ -255,10 +255,13 @@ int _starpu_submit_job(struct _starpu_job *j)
 	   && sched_ctx->perf_counters != NULL)
 	{
 		struct starpu_perfmodel_arch arch;
-		arch.type = STARPU_CPU_WORKER;
-		arch.devid = 0;
-		arch.ncore = 0;
+		arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		arch.ndevices = 1;
+		arch.devices[0].type = STARPU_CPU_WORKER;
+		arch.devices[0].devid = 0;
+		arch.devices[0].ncores = 1;
 		_starpu_compute_buffers_footprint(j->task->cl->model, &arch, 0, j);
+		free(arch.devices);
 		int i;
 		size_t data_size = 0;
 		for(i = 0; i < STARPU_NMAXBUFS; i++)

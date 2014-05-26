@@ -38,7 +38,10 @@ extern "C"
  * differents versions of StarPU having different performance model
  * formats.
  */
-#define _STARPU_PERFMODEL_VERSION 43
+#define _STARPU_PERFMODEL_VERSION 44
+
+struct starpu_perfmodel_arch **arch_combs;
+int narch_combs;
 
 struct _starpu_perfmodel_list
 {

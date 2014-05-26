@@ -35,12 +35,19 @@ struct starpu_data_descr;
 
 #define STARPU_NARCH STARPU_ANY_WORKER
 
-struct starpu_perfmodel_arch
+struct starpu_perfmodel_device
 {
 	enum starpu_worker_archtype type;
 	int devid;	/* identifier of the precise device */
-	int ncore;	/* number of execution in parallel, minus 1 */
+	int ncores;	/* number of execution in parallel, minus 1 */	
 };
+
+struct starpu_perfmodel_arch
+{
+	int ndevices;
+	struct starpu_perfmodel_device *devices;
+};
+
 
 struct starpu_perfmodel_history_entry
 {
@@ -125,7 +132,7 @@ struct starpu_perfmodel
 	size_t (*size_base)(struct starpu_task *, unsigned nimpl);
 	uint32_t (*footprint)(struct starpu_task *);
 
-	struct starpu_perfmodel_per_arch**** per_arch; /*STARPU_MAXIMPLEMENTATIONS*/
+	struct starpu_perfmodel_per_arch** per_arch; /*STARPU_MAXIMPLEMENTATIONS*/
 
 	const char *symbol;
 
@@ -133,15 +140,22 @@ struct starpu_perfmodel
 	unsigned is_loaded;
 	unsigned benchmarking;
 	starpu_pthread_rwlock_t model_rwlock;
+	int *nimpls;
+	int ncombs;
 };
 
-void starpu_perfmodel_init(struct starpu_perfmodel *model);
-void starpu_perfmodel_init_with_file(FILE*f, struct starpu_perfmodel *model);
+void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model);
+//void starpu_perfmodel_init_with_file(FILE*f, struct starpu_perfmodel *model);
 
-struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid);
+struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid, unsigned sched_ctx_id);
+
+struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned impl);
 
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model);
 int starpu_perfmodel_unload_model(struct starpu_perfmodel *model);
+int starpu_get_narch_combs();
+int starpu_add_arch_comb(int ndevices, struct starpu_perfmodel_device* devices);
+int starpu_get_arch_comb(int ndevices, struct starpu_perfmodel_device *devices);
 
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, char *path, size_t maxlen, unsigned nimpl);
 char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);

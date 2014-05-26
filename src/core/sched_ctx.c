@@ -1951,3 +1951,9 @@ void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int master)
 	/* wake up starpu workers */
 	_starpu_sched_ctx_wake_up_workers(sched_ctx_id, master);
 }
+
+struct starpu_perfmodel_arch * _starpu_sched_ctx_get_perf_archtype(unsigned sched_ctx_id)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	return &sched_ctx->perf_arch;
+}

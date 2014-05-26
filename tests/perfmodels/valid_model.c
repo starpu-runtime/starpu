@@ -77,12 +77,11 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	lmodel.is_init=0;
 	lmodel.type = model->type;
 	ret = starpu_perfmodel_load_symbol(codelet->model->symbol, &lmodel);
+	int narch_combs = starpu_get_narch_combs();
+	int comb;
 	if (ret != 1)
-		for (archtype = 0; archtype < STARPU_NARCH; archtype++)
-			if(lmodel.per_arch[archtype] != NULL)
-				for(devid=0; lmodel.per_arch[archtype][devid] != NULL; devid++)
-					for(ncore=0; lmodel.per_arch[archtype][devid][ncore] != NULL; ncore++)
-						old_nsamples += lmodel.per_arch[archtype][devid][ncore][0].regression.nsample;
+		for(comb = 0; comb < narch_combs; comb++)
+			old_nsamples += lmodel.per_arch[comb][0].regression.nsample;
 
         starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, 100, sizeof(int));
 	for (loop = 0; loop < nloops; loop++)
@@ -107,11 +106,8 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	}
 
 	new_nsamples = 0;
-	for (archtype = 0; archtype < STARPU_NARCH; archtype++)
-		if(lmodel.per_arch[archtype] != NULL)
-			for(devid=0; lmodel.per_arch[archtype][devid] != NULL; devid++)
-				for(ncore=0; lmodel.per_arch[archtype][devid][ncore] != NULL; ncore++)
-					new_nsamples += lmodel.per_arch[archtype][devid][ncore][0].regression.nsample;
+	for(comb = 0; comb < narch_combs; comb++)
+		new_nsamples += lmodel.per_arch[comb][0].regression.nsample;
 
 	ret = starpu_perfmodel_unload_model(&lmodel);
 	starpu_shutdown();

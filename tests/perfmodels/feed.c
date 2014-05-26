@@ -73,15 +73,17 @@ int main(int argc, char **argv)
 		measured_slow = 0.001+size*0.0000001;
 
 		struct starpu_perfmodel_arch arch;
-		arch.type = STARPU_CUDA_WORKER;
-		arch.ncore = 0;
+		arch.ndevices = 1;
+		arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		arch.devices[0].type = STARPU_CUDA_WORKER;
+		arch.devices[0].ncores = 0;
 		/* Simulate Fast GPU */
-		arch.devid = 0;
+		arch.devices[0].devid = 0;
 		starpu_perfmodel_update_history(&model, &task, &arch, 0, 0, measured_fast);
 		starpu_perfmodel_update_history(&nl_model, &task, &arch, 0, 0, measured_fast);
 
 		/* Simulate Slow GPU */
-		arch.devid = 1;
+		arch.devices[0].devid = 1;
 		starpu_perfmodel_update_history(&model, &task, &arch, 0, 0, measured_slow);
 		starpu_perfmodel_update_history(&nl_model, &task, &arch, 0, 0, measured_slow);
 		starpu_task_clean(&task);
