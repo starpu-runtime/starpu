@@ -46,21 +46,29 @@ static unsigned other_index = 0;
 
 static void set_next_other_worker_color(int workerid)
 {
+	if (workerid >= STARPU_NMAXWORKERS)
+		return;
 	worker_colors[workerid] = other_worker_colors[other_index++];
 }
 
 static void set_next_cpu_worker_color(int workerid)
 {
+	if (workerid >= STARPU_NMAXWORKERS)
+		return;
 	worker_colors[workerid] = cpus_worker_colors[cpus_index++];
 }
 
 static void set_next_cuda_worker_color(int workerid)
 {
+	if (workerid >= STARPU_NMAXWORKERS)
+		return;
 	worker_colors[workerid] = cuda_worker_colors[cuda_index++];
 }
 
 static void set_next_opencl_worker_color(int workerid)
 {
+	if (workerid >= STARPU_NMAXWORKERS)
+		return;
 	worker_colors[workerid] = opencl_worker_colors[opencl_index++];
 }
 
@@ -76,6 +84,8 @@ static void set_next_scc_worker_color(int workerid)
 
 static const char *get_worker_color(int workerid)
 {
+	if (workerid >= STARPU_NMAXWORKERS)
+		workerid = STARPU_NMAXWORKERS - 1;
 	return worker_colors[workerid];
 }
 
