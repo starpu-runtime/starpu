@@ -971,7 +971,7 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 
 	FILE *f = fopen(path, "r");
 	STARPU_ASSERT(f);
-
+	starpu_perfmodel_init(NULL, model);
 	parse_model_file(f, model, 1);
 
 	STARPU_ASSERT(fclose(f) == 0);
@@ -1277,6 +1277,8 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		{
 			struct starpu_perfmodel_regression_model *reg_model;
 			reg_model = &per_arch_model->regression;
+			if(reg_model->nsample == 0)
+				model->nimpls[comb]++;
 
 			/* update the regression model */
 			size_t job_size = _starpu_job_get_data_size(model, arch, impl, j);

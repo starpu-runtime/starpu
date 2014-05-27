@@ -77,11 +77,15 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	lmodel.is_init=0;
 	lmodel.type = model->type;
 	ret = starpu_perfmodel_load_symbol(codelet->model->symbol, &lmodel);
-	int narch_combs = starpu_get_narch_combs();
-	int comb;
+	int narch_combs = lmodel.ncombs;
+	int comb, impl;
 	if (ret != 1)
 		for(comb = 0; comb < narch_combs; comb++)
-			old_nsamples += lmodel.per_arch[comb][0].regression.nsample;
+		{
+			int nimpls = lmodel.nimpls[lmodel.combs[comb]];
+			for(impl = 0; impl < nimpls; impl++)
+				old_nsamples += lmodel.per_arch[lmodel.combs[comb]][impl].regression.nsample;
+		}
 
         starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, 100, sizeof(int));
 	for (loop = 0; loop < nloops; loop++)
@@ -105,9 +109,14 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 		return 1;
 	}
 
+	narch_combs = lmodel.ncombs;
 	new_nsamples = 0;
 	for(comb = 0; comb < narch_combs; comb++)
-		new_nsamples += lmodel.per_arch[comb][0].regression.nsample;
+	{
+		int nimpls = lmodel.nimpls[lmodel.combs[comb]];
+		for(impl = 0; impl < nimpls; impl++)
+			new_nsamples += lmodel.per_arch[lmodel.combs[comb]][impl].regression.nsample;
+	}
 
 	ret = starpu_perfmodel_unload_model(&lmodel);
 	starpu_shutdown();
