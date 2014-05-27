@@ -864,7 +864,7 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 			int worker_idx = topology->nworkers + cudagpu * nworker_per_cuda + i;
 
 			config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
-			config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device)malloc(sizeof(struct starpu_perfmodel_device));
+			config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
 			config->workers[worker_idx].perf_arch.ndevices = 1;
 			config->workers[worker_idx].perf_arch.devices[0].type = STARPU_CUDA_WORKER;
 			config->workers[worker_idx].perf_arch.devices[0].devid = devid;
@@ -943,11 +943,11 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 			break;
 		}
 		config->workers[worker_idx].arch = STARPU_OPENCL_WORKER;
-		config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device)malloc(sizeof(struct starpu_perfmodel_device));
+		config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
 		config->workers[worker_idx].perf_arch.ndevices = 1;
 		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_OPENCL_WORKER;
 		config->workers[worker_idx].perf_arch.devices[0].devid = devid;
-		config->workers[worker_idx].perf_arch.devices[0].ncore = 1;
+		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
 		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
