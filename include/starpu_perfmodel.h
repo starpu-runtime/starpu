@@ -142,6 +142,7 @@ struct starpu_perfmodel
 	starpu_pthread_rwlock_t model_rwlock;
 	int *nimpls;
 	int ncombs;
+	int *combs;
 };
 
 void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model);
