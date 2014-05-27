@@ -2111,7 +2111,8 @@ AC_ARG_ENABLE(blas-lib,
  [  --enable-blas-lib[=blaslibname]:
                       none [default]: no BLAS lib is used
                       atlas: use ATLAS library
-                      goto: use GotoBLAS library],
+                      goto: use GotoBLAS library
+		      mkl: use MKL library (you may need to set specific CFLAGS and LDFLAGS with --with-mkl-cflags and --with-mkl-ldflags)],
  [
      if   test "x$enableval" = "xatlas" ; then
         blas_lib=atlas
@@ -2119,6 +2120,8 @@ AC_ARG_ENABLE(blas-lib,
         blas_lib=goto
      elif test "x$enableval" = "xnone" ; then
         blas_lib=none
+     elif test "x$enableval" = "xmkl" ; then
+        blas_lib=mkl
      elif test x$enableval = xno; then
 	blas_lib=none
      else
@@ -2176,7 +2179,7 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xatlas; then
     fi
 fi
 
-if test x$blas_lib = xmaybe; then
+if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
     # Should we use MKL ?
     AC_ARG_WITH(mkl-cflags, [AS_HELP_STRING([--with-mkl-cflags], [specify MKL compilation flags])],
 	[
