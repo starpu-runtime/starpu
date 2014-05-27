@@ -351,11 +351,12 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 	{
 		/* Parsing each implementation */
 		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
-		if(implmax > 0)
-		{
-			model->nimpls[comb] = implmax;
-			model->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc(implmax*sizeof(struct starpu_perfmodel_per_arch));
-		}
+		model->nimpls[comb] = implmax;
+		model->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(struct starpu_perfmodel_per_arch));
+		int i;
+		for(i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			memset(&model->per_arch[comb][i], 0, sizeof(struct starpu_perfmodel_per_arch));
+
 
 		for (impl = 0; impl < implmax; impl++)
 			parse_per_arch_model_file(f, &model->per_arch[comb][impl], scan_history);
