@@ -36,7 +36,7 @@
 
 #define N	(16*1024*1024)
 
-#define NBLOCKS	(8)
+#define NBLOCKS	8
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
@@ -70,7 +70,6 @@ void axpy_gpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *arg)
 	TYPE *block_x = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *block_y = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	cublasSetKernelStream(starpu_cuda_get_local_stream());
 	CUBLASAXPY((int)n, alpha, block_x, 1, block_y, 1);
 }
 #endif

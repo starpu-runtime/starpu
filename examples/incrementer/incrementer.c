@@ -18,7 +18,7 @@
 #include <starpu.h>
 #include <sys/time.h>
 
-static unsigned niter = 50;
+static unsigned niter = 50000;
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 #ifdef STARPU_USE_CUDA
