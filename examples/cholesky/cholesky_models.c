@@ -133,6 +133,7 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
 {
 	model->symbol = symbol;
 	model->type = STARPU_HISTORY_BASED;
+
 	starpu_perfmodel_init(NULL, model);
 
 	struct starpu_perfmodel_arch arch_cpu;
@@ -154,6 +155,13 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
 
 	if(starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) != 0)
 	{
+		struct starpu_perfmodel_arch arch_cuda;
+		arch_cuda.ndevices = 1;
+		arch_cuda.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		arch_cuda.devices[0].type = STARPU_CUDA_WORKER;
+		arch_cuda.devices[0].devid = 0;
+		arch_cuda.devices[0].ncores = 1;
+
 		int comb_cuda = starpu_get_arch_comb(arch_cuda.ndevices, arch_cuda.devices);
 		if(comb_cuda == -1)
 			comb_cuda = starpu_add_arch_comb(arch_cuda.ndevices, arch_cuda.devices);
