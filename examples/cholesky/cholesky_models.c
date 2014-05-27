@@ -150,7 +150,7 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
 
         model->per_arch[comb_cpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
 	memset(&model->per_arch[comb_cpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-        model->nimpls[comb_cpu] = 1;
+//        model->nimpls[comb_cpu] = 1;
         model->per_arch[comb_cpu][0].cost_function = cpu_cost_function;
 
 	if(starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) != 0)
@@ -168,7 +168,7 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
 
 		model->per_arch[comb_cuda] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
 		memset(&model->per_arch[comb_cuda][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-		model->nimpls[comb_cuda] = 1;
+//		model->nimpls[comb_cuda] = 1;
 		model->per_arch[comb_cuda][0].cost_function = cuda_cost_function;
 
 	}

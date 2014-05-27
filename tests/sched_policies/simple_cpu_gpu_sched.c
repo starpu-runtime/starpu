@@ -141,12 +141,12 @@ init_perfmodels(void)
 
 	model_cpu_task.per_arch[comb_cuda] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
 	memset(&model_cpu_task.per_arch[comb_cuda][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-	model_cpu_task.nimpls[comb_cuda] = 1;
+//	model_cpu_task.nimpls[comb_cuda] = 1;
 	model_cpu_task.per_arch[comb_cuda][0].cost_function = cpu_task_cpu;
 
 	model_gpu_task.per_arch[comb_cuda] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
 	memset(&model_gpu_task.per_arch[comb_cuda][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-	model_gpu_task.nimpls[comb_cuda] = 1;
+//	model_gpu_task.nimpls[comb_cuda] = 1;
 	model_gpu_task.per_arch[comb_cuda][0].cost_function = gpu_task_cpu;
 
 
