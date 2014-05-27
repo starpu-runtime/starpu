@@ -133,8 +133,39 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
 {
 	model->symbol = symbol;
 	model->type = STARPU_HISTORY_BASED;
-	starpu_perfmodel_init(model);
-	model->per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = cpu_cost_function;
+	starpu_perfmodel_init(NULL, model);
+
+	struct starpu_perfmodel_arch arch_cpu;
+	arch_cpu.ndevices = 1;
+        arch_cpu.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+        arch_cpu.devices[0].type = STARPU_CPU_WORKER;
+        arch_cpu.devices[0].devid = 0;
+        arch_cpu.devices[0].ncores = 1;
+
+        int comb_cpu = starpu_get_arch_comb(arch_cpu.ndevices, arch_cpu.devices);
+        if(comb_cpu == -1)
+                comb_cpu = starpu_add_arch_comb(arch_cpu.ndevices, arch_cpu.devices);
+
+
+        model->per_arch[comb_cpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
+	memset(&model->per_arch[comb_cpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
+        model->nimpls[comb_cpu] = 1;
+        model->per_arch[comb_cpu][0].cost_function = cpu_cost_function;
+
 	if(starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) != 0)
-		model->per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = cuda_cost_function;
+	{
+		int comb_cuda = starpu_get_arch_comb(arch_cuda.ndevices, arch_cuda.devices);
+		if(comb_cuda == -1)
+			comb_cuda = starpu_add_arch_comb(arch_cuda.ndevices, arch_cuda.devices);
+
+		model->per_arch[comb_cuda] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
+		memset(&model->per_arch[comb_cuda][0], 0, sizeof(struct starpu_perfmodel_per_arch));
+		model->nimpls[comb_cuda] = 1;
+		model->per_arch[comb_cuda][0].cost_function = cuda_cost_function;
+
+	}
+
+/* 	model->per_arch[STARPU_CPU_WORKER][0][0][0].cost_function = cpu_cost_function; */
+/* 	if(starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) != 0) */
+/* 		model->per_arch[STARPU_CUDA_WORKER][0][0][0].cost_function = cuda_cost_function; */
 }
