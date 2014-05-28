@@ -143,7 +143,10 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 	int nworkers_to_add = nworkers == -1 ? (int)config->topology.nworkers : nworkers;
 	int workers_to_add[nworkers_to_add];
 
-
+	struct starpu_perfmodel_device devices[nworkers];
+	int ndevices = 0;
+	struct _starpu_worker *str_worker = NULL;
+	int worker;
 	int i = 0;
 	for(i = 0; i < nworkers_to_add; i++)
 	{
@@ -151,7 +154,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 		/* if the function is called at the creation of the context it's no need to do this verif */
 		if(added_workers)
 		{
-			int worker = workers->add(workers, (workerids == NULL ? i : workerids[i]));
+			worker = workers->add(workers, (workerids == NULL ? i : workerids[i]));
 			if(worker >= 0)
 				added_workers[(*n_added_workers)++] = worker;
 			else
@@ -169,11 +172,82 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 		}
 		else
 		{
-			int worker = (workerids == NULL ? i : workerids[i]);
+			worker = (workerids == NULL ? i : workerids[i]);
 			workers->add(workers, worker);
 			workers_to_add[i] = worker;
-			struct _starpu_worker *str_worker = _starpu_get_worker_struct(worker);
+			str_worker = _starpu_get_worker_struct(worker);
 			str_worker->tmp_sched_ctx = (int)sched_ctx->id;
+		}
+	}
+	int *wa;
+	int na;
+	if(added_workers)
+	{
+		na = *n_added_workers;
+		wa = added_workers;
+	}
+	else
+	{
+		na = nworkers_to_add;
+		wa = workers_to_add;
+	}
+
+	for(i = 0; i < na; i++)
+	{
+		worker = wa[i];
+		str_worker = _starpu_get_worker_struct(worker);
+		int dev1, dev2;
+		unsigned found = 0;
+		for(dev1 = 0; dev1 < str_worker->perf_arch.ndevices; dev1++)
+		{
+			for(dev2 = 0; dev2 < ndevices; dev2++)
+			{
+				if(devices[dev2].type == str_worker->perf_arch.devices[dev1].type && devices[dev2].devid == str_worker->perf_arch.devices[dev1].devid)
+				{
+					devices[dev2].ncores += str_worker->perf_arch.devices[dev1].ncores;
+					found = 1;
+				}
+			}
+			if(!found)
+			{
+				devices[ndevices].type = str_worker->perf_arch.devices[dev1].type;
+				devices[ndevices].devid = str_worker->perf_arch.devices[dev1].devid;
+				devices[ndevices].ncores = str_worker->perf_arch.devices[dev1].ncores;
+				ndevices++;
+			}
+			else
+				found = 0;
+		}	
+	}
+
+	if(ndevices > 0)
+	{
+		if(sched_ctx->perf_arch.devices == NULL)
+			sched_ctx->perf_arch.devices = (struct starpu_perfmodel_device*)malloc(ndevices*sizeof(struct starpu_perfmodel_device));
+		else
+			sched_ctx->perf_arch.devices = (struct starpu_perfmodel_device*)realloc(sched_ctx->perf_arch.devices, (sched_ctx->perf_arch.ndevices+ndevices)*sizeof(struct starpu_perfmodel_device));
+		int dev1, dev2;
+		unsigned found = 0;
+		for(dev1 = 0; dev1 < ndevices; dev1++)
+		{
+			for(dev2 = 0; dev2 < sched_ctx->perf_arch.ndevices; dev2++)
+			{
+				if(sched_ctx->perf_arch.devices[dev2].type == devices[dev1].type && sched_ctx->perf_arch.devices[dev2].devid == devices[dev1].devid)
+				{
+					sched_ctx->perf_arch.devices[dev2].ncores += devices[dev1].ncores;
+					found = 1;
+				}
+			}
+
+			if(!found)
+			{
+				sched_ctx->perf_arch.devices[sched_ctx->perf_arch.ndevices].type = devices[dev1].type;
+				sched_ctx->perf_arch.devices[sched_ctx->perf_arch.ndevices].devid = devices[dev1].devid;
+				sched_ctx->perf_arch.devices[sched_ctx->perf_arch.ndevices].ncores = devices[dev1].ncores;
+				sched_ctx->perf_arch.ndevices++;
+			}
+			else
+				found = 0;
 
 		}
 	}
@@ -222,6 +296,79 @@ static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sche
 		}
 	}
 
+
+	struct starpu_perfmodel_device devices[workers->nworkers];
+	int ndevices = 0;
+
+	for(i = 0; i < *n_removed_workers; i++)
+	{
+		struct _starpu_worker *str_worker = _starpu_get_worker_struct(removed_workers[i]);
+		int dev1, dev2;
+		unsigned found = 0;
+		for(dev1 = 0; dev1 < sched_ctx->perf_arch.ndevices; dev1++)
+		{
+			for(dev2 = 0; dev2 < str_worker->perf_arch.ndevices; dev2++)
+			{
+				if(sched_ctx->perf_arch.devices[dev1].type == str_worker->perf_arch.devices[dev2].type && 
+				   sched_ctx->perf_arch.devices[dev1].devid == str_worker->perf_arch.devices[dev2].devid)
+				{
+					if(sched_ctx->perf_arch.devices[dev1].ncores > str_worker->perf_arch.devices[dev2].ncores)
+					{
+						devices[ndevices].ncores =  sched_ctx->perf_arch.devices[dev1].ncores - 
+							str_worker->perf_arch.devices[dev2].ncores;
+						devices[ndevices].type = sched_ctx->perf_arch.devices[dev1].type;
+						devices[ndevices].devid = sched_ctx->perf_arch.devices[dev1].devid;
+						ndevices++;
+						found = 1;
+					}
+				}
+			}
+			if(found)
+				found = 0;
+		}	
+
+	}
+
+	int worker;
+	unsigned found = 0;
+	int dev;
+	struct starpu_sched_ctx_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		for(i = 0; i < *n_removed_workers; i++)
+		{
+			if(worker == removed_workers[i])
+			{
+				found = 1;
+				break;
+			}
+		}
+		if(!found)
+		{
+			struct _starpu_worker *str_worker = _starpu_get_worker_struct(worker);
+			for(dev = 0; dev < str_worker->perf_arch.ndevices; dev++)
+			{
+				devices[ndevices].type = str_worker->perf_arch.devices[dev].type;
+				devices[ndevices].devid = str_worker->perf_arch.devices[dev].devid;
+				devices[ndevices].ncores = str_worker->perf_arch.devices[dev].ncores;
+				ndevices++;
+			}
+		}
+		else 
+			found = 0;
+	}
+	sched_ctx->perf_arch.ndevices = ndevices;
+	for(dev = 0; dev < ndevices; dev++)
+	{
+		sched_ctx->perf_arch.devices[dev].type = devices[dev].type;
+		sched_ctx->perf_arch.devices[dev].devid = devices[dev].devid;
+		sched_ctx->perf_arch.devices[dev].ncores = devices[dev].ncores;
+	}
+		
 	if(!sched_ctx->sched_policy)
 		_starpu_sched_ctx_wake_these_workers_up(sched_ctx->id, removed_workers, *n_removed_workers);
 
@@ -315,6 +462,8 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 
 	sched_ctx->ready_flops = 0.0;
 	sched_ctx->main_master = -1;
+	sched_ctx->perf_arch.devices = NULL;
+	sched_ctx->perf_arch.ndevices = 0;
 	
 	int w;
 	for(w = 0; w < nworkers; w++)
@@ -617,6 +766,7 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 		_starpu_deinit_sched_policy(sched_ctx);
 		free(sched_ctx->sched_policy);
 		sched_ctx->sched_policy = NULL;
+		free(sched_ctx->perf_arch.devices);
 	}
 	
 
