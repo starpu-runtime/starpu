@@ -672,7 +672,7 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 			int nimpls = model->nimpls[model->combs[comb]];
 			for(impl = 0; impl < nimpls; impl++)
 			{
-				starpu_perfmodel_debugfilepath(model, model->per_arch[comb][impl], model->per_arch[comb][impl].debug_path, 256, impl);
+				starpu_perfmodel_debugfilepath(model, arch_combs[comb], model->per_arch[comb][impl].debug_path, 256, impl);
 			}
 		}
 	}
@@ -1320,7 +1320,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		}
 
 		if (!j->footprint_is_computed)
-			(void) _starpu_compute_buffers_footprint(model, arch, comb, impl, j);
+			(void) _starpu_compute_buffers_footprint(model, arch, impl, j);
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
