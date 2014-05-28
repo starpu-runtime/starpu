@@ -16,6 +16,16 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#if 1
+#include <stdio.h>
+#include <stdlib.h>
+int main(int argc, char **argv)
+{
+	fprintf(stderr, "disabled tool\n");
+	return 0;
+}
+#else
+
 #include <config.h>
 #include <assert.h>
 #include <unistd.h>
@@ -708,3 +718,4 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+#endif
