@@ -263,7 +263,7 @@ int starpu_omp_is_initial_device(void)
 
 double starpu_omp_get_wtime (void)
 {
-	return starpu_timing_now() - _starpu_omp_clock_ref;
+	return 1e-6 * (starpu_timing_now() - _starpu_omp_clock_ref);
 }
 
 double starpu_omp_get_wtick (void)
