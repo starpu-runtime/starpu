@@ -143,7 +143,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 	int nworkers_to_add = nworkers == -1 ? (int)config->topology.nworkers : nworkers;
 	int workers_to_add[nworkers_to_add];
 
-	struct starpu_perfmodel_device devices[nworkers];
+	struct starpu_perfmodel_device devices[nworkers_to_add];
 	int ndevices = 0;
 	struct _starpu_worker *str_worker = NULL;
 	int worker;
@@ -179,6 +179,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 			str_worker->tmp_sched_ctx = (int)sched_ctx->id;
 		}
 	}
+
 	int *wa;
 	int na;
 	if(added_workers)
@@ -202,10 +203,12 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 		{
 			for(dev2 = 0; dev2 < ndevices; dev2++)
 			{
-				if(devices[dev2].type == str_worker->perf_arch.devices[dev1].type && devices[dev2].devid == str_worker->perf_arch.devices[dev1].devid)
+				if(devices[dev2].type == str_worker->perf_arch.devices[dev1].type && 
+				   devices[dev2].devid == str_worker->perf_arch.devices[dev1].devid)
 				{
 					devices[dev2].ncores += str_worker->perf_arch.devices[dev1].ncores;
 					found = 1;
+					break;
 				}
 			}
 			if(!found)
@@ -217,7 +220,7 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 			}
 			else
 				found = 0;
-		}	
+		}
 	}
 
 	if(ndevices > 0)
@@ -270,7 +273,9 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 				sched_ctx->sched_policy->add_workers(sched_ctx->id, added_workers, *n_added_workers);
 		}
 		else
+		{
 			sched_ctx->sched_policy->add_workers(sched_ctx->id, workers_to_add, nworkers_to_add);
+		}
 		_STARPU_TRACE_WORKER_SCHEDULING_POP;
 	}
 	return;
