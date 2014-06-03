@@ -193,13 +193,32 @@ static struct starpu_omp_device *create_omp_device_struct(void)
 	if (device == NULL)
 		_STARPU_ERROR("memory allocation failed");
 	memset(device, 0, sizeof(*device));
+	_starpu_spin_init(&device->atomic_lock);
 	return device;
 }
 
 static void destroy_omp_device_struct(struct starpu_omp_device *device)
 {
+	_starpu_spin_destroy(&device->atomic_lock);
 	memset(device, 0, sizeof(*device));
 	free(device);
+}
+
+static struct starpu_omp_device *get_caller_device(void)
+{
+	struct starpu_omp_task *task = _starpu_omp_get_task();
+	struct starpu_omp_device *device;
+	if (task)
+	{
+		STARPU_ASSERT(task->owner_region != NULL);
+		device = task->owner_region->owner_device;
+	}
+	else
+	{
+		device = _global_state.initial_device;
+	}
+	STARPU_ASSERT(device != NULL);
+	return device;
 }
 
 static struct starpu_omp_region *create_omp_region_struct(struct starpu_omp_region *parent_region, struct starpu_omp_device *owner_device)
@@ -2218,6 +2237,19 @@ void starpu_omp_unset_nest_lock (starpu_omp_nest_lock_t *nest_lock)
 int starpu_omp_test_nest_lock (starpu_omp_nest_lock_t *nest_lock)
 {
 	return _starpu_omp_nest_lock_test(&nest_lock->internal);
+}
+
+void starpu_omp_atomic_fallback_start(void)
+{
+	struct starpu_omp_device *device = get_caller_device();
+	_starpu_spin_lock(&device->atomic_lock);
+
+}
+
+void starpu_omp_atomic_fallback_end(void)
+{
+	struct starpu_omp_device *device = get_caller_device();
+	_starpu_spin_unlock(&device->atomic_lock);
 }
 
 /*

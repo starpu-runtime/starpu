@@ -154,6 +154,8 @@ extern void starpu_omp_destroy_nest_lock (starpu_omp_nest_lock_t *lock) __STARPU
 extern void starpu_omp_set_nest_lock (starpu_omp_nest_lock_t *lock) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_unset_nest_lock (starpu_omp_nest_lock_t *lock) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_test_nest_lock (starpu_omp_nest_lock_t *lock) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_atomic_fallback_start(void) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_atomic_fallback_end(void) __STARPU_OMP_NOTHROW;
 extern double starpu_omp_get_wtime (void) __STARPU_OMP_NOTHROW;
 extern double starpu_omp_get_wtick (void) __STARPU_OMP_NOTHROW;
 

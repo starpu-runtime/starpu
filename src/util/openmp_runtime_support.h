@@ -329,6 +329,9 @@ struct starpu_omp_region
 struct starpu_omp_device
 {
 	struct starpu_omp_device_icvs icvs;
+
+	/* atomic fallback implementation lock */
+	struct _starpu_spinlock atomic_lock;
 };
 
 struct starpu_omp_global
