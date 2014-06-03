@@ -23,6 +23,21 @@
 #include <xbt/synchro_core.h>
 #endif
 
+#if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+#include <linux/futex.h>
+#include <sys/syscall.h>
+
+/* Private futexes are not so old, cope with old kernels.  */
+#ifdef FUTEX_WAIT_PRIVATE
+static int _starpu_futex_wait = FUTEX_WAIT_PRIVATE;
+static int _starpu_futex_wake = FUTEX_WAKE_PRIVATE;
+#else
+static int _starpu_futex_wait = FUTEX_WAIT;
+static int _starpu_futex_wake = FUTEX_WAKE;
+#endif
+
+#endif
+
 #ifdef STARPU_SIMGRID
 
 extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
@@ -490,15 +505,15 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier)
 }
 #endif /* STARPU_SIMGRID, _MSC_VER, STARPU_HAVE_PTHREAD_BARRIER */
 
-#if defined(STARPU_SIMGRID) || !defined(HAVE_PTHREAD_SPIN_LOCK)
+#if defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(HAVE_PTHREAD_SPIN_LOCK)
 
-int starpu_pthread_spin_init(starpu_pthread_spinlock_t *lock, int pshared)
+int starpu_pthread_spin_init(starpu_pthread_spinlock_t *lock, int pshared STARPU_ATTRIBUTE_UNUSED)
 {
 	lock->taken = 0;
 	return 0;
 }
 
-int starpu_pthread_spin_destroy(starpu_pthread_spinlock_t *lock)
+int starpu_pthread_spin_destroy(starpu_pthread_spinlock_t *lock STARPU_ATTRIBUTE_UNUSED)
 {
 	/* we don't do anything */
 	return 0;
@@ -519,7 +534,53 @@ int starpu_pthread_spin_lock(starpu_pthread_spinlock_t *lock)
 		MSG_process_sleep(0.000001);
 		STARPU_UYIELD();
 	}
-#else
+#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+	if (STARPU_VAL_COMPARE_AND_SWAP(&lock->taken, 0, 1) == 0)
+		/* Got it on first try! */
+		return 0;
+
+	/* Busy, spin a bit.  */
+	unsigned i;
+	for (i = 0; i < 128; i++)
+	{
+		/* Pause a bit before retrying */
+		STARPU_UYIELD();
+		/* And synchronize with other threads */
+		STARPU_SYNCHRONIZE();
+		if (!lock->taken)
+			/* Holder released it, try again */
+			if (STARPU_VAL_COMPARE_AND_SWAP(&lock->taken, 0, 1) == 0)
+				/* Got it! */
+				return 0;
+	}
+
+	/* We have spent enough time with spinning, let's block */
+	while (1)
+	{
+		/* Tell releaser to wake us */
+		unsigned prev = starpu_xchg(&lock->taken, 2);
+		if (prev == 0)
+			/* Ah, it just got released and we actually acquired
+			 * it!
+			 * Note: the sad thing is that we have just written 2,
+			 * so will spuriously try to wake a thread on unlock,
+			 * but we can not avoid it since we do not know whether
+			 * there are other threads sleeping or not.
+			 */
+			return 0;
+
+		/* Now start sleeping (unless it was released in between)
+		 * We are sure to get woken because either
+		 * - some thread has not released the lock yet, and lock->taken
+		 *   is 2, so it will wake us.
+		 * - some other thread started blocking, and will set
+		 *   lock->taken back to 2
+		 */
+		if (syscall(SYS_futex, &lock->taken, _starpu_futex_wait, 2, NULL, NULL, 0))
+			if (errno == ENOSYS)
+				_starpu_futex_wait = FUTEX_WAIT;
+	}
+#else /* !SIMGRID && !LINUX */
 	uint32_t prev;
 	do
 	{
@@ -539,7 +600,11 @@ int starpu_pthread_spin_trylock(starpu_pthread_spinlock_t *lock)
 		return EBUSY;
 	lock->taken = 1;
 	return 0;
-#else
+#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+	unsigned prev;
+	prev = STARPU_VAL_COMPARE_AND_SWAP(&lock->taken, 0, 1);
+	return (prev == 0)?0:EBUSY;
+#else /* !SIMGRID && !LINUX */
 	uint32_t prev;
 	prev = STARPU_TEST_AND_SET(&lock->taken, 1);
 	return (prev == 0)?0:EBUSY;
@@ -550,11 +615,27 @@ int starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
 {
 #ifdef STARPU_SIMGRID
 	lock->taken = 0;
-	return 0;
-#else
+#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+	STARPU_ASSERT(lock->taken != 0);
+	unsigned next = STARPU_ATOMIC_ADD(&lock->taken, -1);
+	if (next == 0)
+		/* Nobody to wake, we are done */
+		return 0;
+
+	/*
+	 * Somebody to wake. Clear 'taken' and wake him.
+	 * Note that he may not be sleeping yet, but if he is not, we won't
+	 * since the value of 'taken' will have changed.
+	 */
+	lock->taken = 0;
+	STARPU_SYNCHRONIZE();
+	if (syscall(SYS_futex, &lock->taken, _starpu_futex_wake, 1, NULL, NULL, 0))
+		if (errno == ENOSYS)
+			_starpu_futex_wake = FUTEX_WAKE;
+#else /* !SIMGRID && !LINUX */
 	STARPU_RELEASE(&lock->taken);
-	return 0;
 #endif
+	return 0;
 }
 
 #endif /* defined(STARPU_SIMGRID) || !defined(HAVE_PTHREAD_SPIN_LOCK) */
@@ -564,6 +645,9 @@ int _starpu_pthread_spin_checklocked(starpu_pthread_spinlock_t *lock)
 #ifdef STARPU_SIMGRID
 	STARPU_ASSERT(lock->taken);
 	return !lock->taken;
+#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+	STARPU_ASSERT(lock->taken == 1 || lock->taken == 2);
+	return lock->taken == 0;
 #elif defined(HAVE_PTHREAD_SPIN_LOCK)
 	int ret = pthread_spin_trylock((pthread_spinlock_t *)lock);
 	STARPU_ASSERT(ret != 0);

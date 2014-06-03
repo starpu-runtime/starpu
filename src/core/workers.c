@@ -863,7 +863,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 #endif
 
 	/* 64MiB by default */
-	conf->trace_buffer_size = 64<<20;
+	conf->trace_buffer_size = starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64) << 20;
 	return 0;
 }
 

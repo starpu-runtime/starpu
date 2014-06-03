@@ -93,19 +93,19 @@ LIST_TYPE(_starpu_job,
 	 * last_writer/readers */
 	starpu_data_handle_t implicit_dep_handle;
 
-	/* The value of the footprint that identifies the job may be stored in
-	 * this structure. */
-	uint32_t footprint;
-	unsigned footprint_is_computed:1;
-
 	/* Indicates whether the task associated to that job has already been
 	 * submitted to StarPU (1) or not (0) (using starpu_task_submit).
 	 * Becomes and stays 2 when the task is submitted several times.
+	 *
+	 * Protected by j->sync_mutex.
 	 */
 	unsigned submitted:2;
 
 	/* Indicates whether the task associated to this job is terminated or
-	 * not. */
+	 * not.
+	 *
+	 * Protected by j->sync_mutex.
+	 */
 	unsigned terminated:2;
 
 #ifdef STARPU_OPENMP
@@ -137,6 +137,11 @@ LIST_TYPE(_starpu_job,
 	/* Cumulated power consumption for discontinuous jobs */
 	double cumulated_power_consumed;
 #endif
+
+	/* The value of the footprint that identifies the job may be stored in
+	 * this structure. */
+	uint32_t footprint;
+	unsigned footprint_is_computed:1;
 
 	/* Should that task appear in the debug tools ? (eg. the DAG generated
 	 * with dot) */

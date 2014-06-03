@@ -58,7 +58,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 	}
 
 	/* we should have found at least one copy ! */
-	STARPU_ASSERT(src_node_mask != 0);
+	STARPU_ASSERT_MSG(src_node_mask != 0, "The data for this handle is requested, but this handle does not have a valid value. Perhaps some initialization task is missing?");
 
 	/* Without knowing the size, we won't know the cost */
 	if (!size)

@@ -548,6 +548,15 @@ intended to be used for experimental purposes as it emulates devices
 that have a limited amount of memory.
 </dd>
 
+<dt>STARPU_TRACE_BUFFER_SIZE</dt>
+<dd>
+\anchor STARPU_TRACE_BUFFER_SIZE
+\addindex __env__STARPU_TRACE_BUFFER_SIZE
+This sets the buffer size for recording trace events in MiB. Setting it to a big
+size allows to avoid pauses in the trace while it is recorded on the disk. This
+however also consumes memory, of course. The default value is 64.
+</dd>
+
 <dt>STARPU_GENERATE_TRACE</dt>
 <dd>
 \anchor STARPU_GENERATE_TRACE

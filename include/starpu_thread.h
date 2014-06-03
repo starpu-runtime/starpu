@@ -236,12 +236,14 @@ int starpu_pthread_barrier_wait(starpu_pthread_barrier_t *barrier);
  * Encapsulation of the pthread_spin_* functions.
  */
 
-#if defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)
+#if defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)
 
 typedef struct
 {
 #ifdef STARPU_SIMGRID
 	int taken;
+#elif defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
+	unsigned taken STARPU_ATTRIBUTE_ALIGNED(16);
 #else /* we only have a trivial implementation yet ! */
 	uint32_t taken STARPU_ATTRIBUTE_ALIGNED(16);
 #endif
