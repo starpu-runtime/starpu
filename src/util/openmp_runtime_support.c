@@ -2157,14 +2157,14 @@ static int _starpu_omp_nest_lock_test(void **_internal)
 		_nest_lock->state = 1;
 		_nest_lock->owner_task = task;
 		_nest_lock->nesting = 1;
-		ret = 1;
+		ret = _nest_lock->nesting;
 	}
 	else if (_nest_lock->owner_task == task)
 	{
 		STARPU_ASSERT(_nest_lock->state == 1);
 		STARPU_ASSERT(_nest_lock->nesting > 0);
 		_nest_lock->nesting++;
-		ret = 1;
+		ret = _nest_lock->nesting;
 	}
 	_starpu_spin_unlock(&_nest_lock->lock);
 	return ret;
