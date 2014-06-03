@@ -781,11 +781,15 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 	if (attr->if_clause != 0)
 	{
 		const int max_threads = (int)starpu_cpu_worker_get_count();
-		if (generating_region->icvs.nthreads_var[0] < max_threads)
+		if (attr->num_threads > 0)
+		{
+			nb_threads = attr->num_threads;
+		}
+		else
 		{
 			nb_threads = generating_region->icvs.nthreads_var[0];
 		}
-		else
+		if (nb_threads > max_threads)
 		{
 			nb_threads = max_threads;
 		}

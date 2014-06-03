@@ -52,6 +52,7 @@ struct starpu_omp_parallel_region_attr
 	unsigned  cl_arg_free;
 
 	int if_clause;
+	int num_threads;
 };
 
 struct starpu_omp_task_region_attr

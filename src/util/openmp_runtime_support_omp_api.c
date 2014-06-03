@@ -22,8 +22,13 @@
 
 void starpu_omp_set_num_threads(int threads)
 {
-	(void) threads;
-	__not_implemented__;
+	STARPU_ASSERT(threads > 0);
+	struct starpu_omp_task *task = _starpu_omp_get_task();
+	STARPU_ASSERT(task != NULL);
+	struct starpu_omp_region *region;
+	region = task->owner_region;
+	STARPU_ASSERT(region != NULL);
+	region->icvs.nthreads_var[0] = threads;
 }
 
 int starpu_omp_get_num_threads()
