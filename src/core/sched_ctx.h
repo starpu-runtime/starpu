@@ -233,4 +233,7 @@ void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task,
 
 #endif //STARPU_USE_SC_HYPERVISOR
 
+/* if the worker is the master of a parallel context, and the job is meant to be executed on this parallel context, return a pointer to the context */
+struct _starpu_sched_ctx *_starpu_sched_ctx_get_sched_ctx_for_worker_and_job(struct _starpu_worker *worker, struct _starpu_job *j);
+
 #endif // __SCHED_CONTEXT_H__

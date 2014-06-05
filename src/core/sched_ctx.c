@@ -1796,6 +1796,19 @@ unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned 
 
 }
 
+/* if the worker is the master of a parallel context, and the job is meant to be executed on this parallel context, return a pointer to the context */
+struct _starpu_sched_ctx *_starpu_sched_ctx_get_sched_ctx_for_worker_and_job(struct _starpu_worker *worker, struct _starpu_job *j)
+{
+	struct _starpu_sched_ctx_list *l = NULL;
+	for (l = worker->sched_ctx_list; l; l = l->next)
+	{
+		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
+		if (sched_ctx->main_master == worker->workerid && j->task->sched_ctx == sched_ctx->id)
+			return sched_ctx;
+	}
+	return NULL;
+}
+
 void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double flops)
 {
         _starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx_id);
