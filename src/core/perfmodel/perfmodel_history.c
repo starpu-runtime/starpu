@@ -38,6 +38,10 @@
 #define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
 #define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
 
+struct starpu_perfmodel_arch **arch_combs;
+int current_arch_comb;
+unsigned nb_arch_combs;
+
 struct starpu_perfmodel_history_table
 {
 	UT_hash_handle hh;
@@ -54,18 +58,18 @@ static struct _starpu_perfmodel_list *registered_models = NULL;
 
 int starpu_add_arch_comb(int ndevices, struct starpu_perfmodel_device* devices)
 {
-	arch_combs[narch_combs] = (struct starpu_perfmodel_arch*)malloc(sizeof(struct starpu_perfmodel_arch));
-	arch_combs[narch_combs]->devices = (struct starpu_perfmodel_device*)malloc(ndevices*sizeof(struct starpu_perfmodel_device));
-	arch_combs[narch_combs]->ndevices = ndevices;
+	arch_combs[current_arch_comb] = (struct starpu_perfmodel_arch*)malloc(sizeof(struct starpu_perfmodel_arch));
+	arch_combs[current_arch_comb]->devices = (struct starpu_perfmodel_device*)malloc(ndevices*sizeof(struct starpu_perfmodel_device));
+	arch_combs[current_arch_comb]->ndevices = ndevices;
 	int dev;
 	for(dev = 0; dev < ndevices; dev++)
 	{
-		arch_combs[narch_combs]->devices[dev].type = devices[dev].type;
-		arch_combs[narch_combs]->devices[dev].devid = devices[dev].devid;
-		arch_combs[narch_combs]->devices[dev].ncores = devices[dev].ncores;
+		arch_combs[current_arch_comb]->devices[dev].type = devices[dev].type;
+		arch_combs[current_arch_comb]->devices[dev].devid = devices[dev].devid;
+		arch_combs[current_arch_comb]->devices[dev].ncores = devices[dev].ncores;
 	}
-	narch_combs++;
-	return narch_combs-1;
+	current_arch_comb++;
+	return current_arch_comb-1;
 }
 
 int starpu_get_arch_comb(int ndevices, struct starpu_perfmodel_device *devices)
@@ -73,7 +77,7 @@ int starpu_get_arch_comb(int ndevices, struct starpu_perfmodel_device *devices)
 	int nfounded = 0;
 	unsigned found = 0;
 	int comb;
-	for(comb = 0; comb < narch_combs; comb++)
+	for(comb = 0; comb < current_arch_comb; comb++)
 	{
 		if(arch_combs[comb]->ndevices == ndevices)
 		{
@@ -82,8 +86,8 @@ int starpu_get_arch_comb(int ndevices, struct starpu_perfmodel_device *devices)
 			{
 				for(dev2 = 0; dev2 < ndevices; dev2++)
 				{
-					if(arch_combs[comb]->devices[dev1].type == devices[dev2].type && 
-					   arch_combs[comb]->devices[dev1].devid == devices[dev2].devid && 
+					if(arch_combs[comb]->devices[dev1].type == devices[dev2].type &&
+					   arch_combs[comb]->devices[dev1].devid == devices[dev2].devid &&
 					   arch_combs[comb]->devices[dev1].ncores == devices[dev2].ncores)
 						nfounded++;
 				}
@@ -93,24 +97,29 @@ int starpu_get_arch_comb(int ndevices, struct starpu_perfmodel_device *devices)
 		}
 		if(found)
 			return comb;
-	}	
+	}
 	return -1;
 }
 
 static 	void _free_arch_combs(void)
 {
 	int i;
-	for(i = 0; i < narch_combs; i++)
+	for(i = 0; i < current_arch_comb; i++)
 	{
 		free(arch_combs[i]->devices);
 		free(arch_combs[i]);
 	}
-	narch_combs = 0;
+	current_arch_comb = 0;
 }
 
 int starpu_get_narch_combs()
 {
-	return narch_combs;
+	return current_arch_comb;
+}
+
+struct starpu_perfmodel_arch *_starpu_arch_comb_get(int comb)
+{
+	return arch_combs[comb];
 }
 
 size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned impl, struct _starpu_job *j)
@@ -353,7 +362,6 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 		model->nimpls[comb] = implmax;
 		model->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(struct starpu_perfmodel_per_arch));
-		int i;
 		for(i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 			memset(&model->per_arch[comb][i], 0, sizeof(struct starpu_perfmodel_per_arch));
 
@@ -381,7 +389,7 @@ static enum starpu_worker_archtype _get_enum_type(int type)
 			return STARPU_CPU_WORKER;
         	case 1:
 			return STARPU_CUDA_WORKER;
-	        case 2: 
+	        case 2:
 			return STARPU_OPENCL_WORKER;
         	case 3:
 			return STARPU_MIC_WORKER;
@@ -400,7 +408,7 @@ static void parse_comb(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 
 	struct starpu_perfmodel_device devices[ndevices];
-	
+
 	int dev;
 	for(dev = 0; dev < ndevices; dev++)
 	{
@@ -418,14 +426,14 @@ static void parse_comb(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%d\n", &ncores);
 		STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
-		devices[dev].type = dev_type;	
+		devices[dev].type = dev_type;
 		devices[dev].devid = dev_id;
 		devices[dev].ncores = ncores;
 	}
 	int id_comb = starpu_get_arch_comb(ndevices, devices);
 	if(id_comb == -1)
 		id_comb = starpu_add_arch_comb(ndevices, devices);
-	
+
 	model->combs[comb] = id_comb;
 	parse_arch(f, model, scan_history, id_comb);
 }
@@ -440,14 +448,30 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	STARPU_ASSERT_MSG(version == _STARPU_PERFMODEL_VERSION, "Incorrect performance model file with a model version %d not being the current model version (%d)\n",
 			  version, _STARPU_PERFMODEL_VERSION);
 	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
-	
-	
+
 	int ncombs = 0;
 	_starpu_drop_comments(f);
 	ret = fscanf(f, "%d\n", &ncombs);
 	STARPU_ASSERT_MSG(ret == 1, "Incorrect performance model file");
 	if(ncombs > 0)
 		model->ncombs = ncombs;
+
+	if (ncombs > nb_arch_combs)
+	{
+		int i;
+
+		arch_combs = (struct starpu_perfmodel_arch**) realloc(arch_combs, ncombs*sizeof(struct starpu_perfmodel_arch*));
+		model->per_arch = (struct starpu_perfmodel_per_arch**) realloc(model->per_arch, ncombs*sizeof(struct starpu_perfmodel_per_arch*));
+		model->nimpls = (int *)realloc(model->nimpls, ncombs*sizeof(int));
+		model->combs = (int*)realloc(model->combs, ncombs*sizeof(int));
+
+		for(i = ncombs; i < nb_arch_combs; i++)
+		{
+			model->per_arch[i] = NULL;
+			model->nimpls[i] = 0;
+		}
+		nb_arch_combs = ncombs;
+	}
 
 	int comb;
 	for(comb = 0; comb < ncombs; comb++)
@@ -519,7 +543,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		fprintf(f, "# COMB_%d\n", comb);
 		fprintf(f, "# number of types devices\n");
 		fprintf(f, "%u\n", ndevices);
-		
+
 		for(dev = 0; dev < ndevices; dev++)
 		{
 			fprintf(f, "####################\n");
@@ -537,7 +561,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 			fprintf(f, "# number of cores \n");
 			fprintf(f, "%u\n", arch_combs[model->combs[comb]]->devices[dev].ncores);
 		}
-		
+
 		int nimpls = model->nimpls[model->combs[comb]];
 		fprintf(f, "##########\n");
 		fprintf(f, "# number of implementations\n");
@@ -585,15 +609,15 @@ void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 		for(i = 0; i < conf->topology.nhwmicdevices; i++)
 			nmic += conf->topology.nhwmiccores[i];
 		unsigned nscc = conf->topology.nhwscc;
-		unsigned npossible_combs= pow(2, (ncores + ncuda + nopencl + nmic + nscc));
-		arch_combs = (struct starpu_perfmodel_arch**) malloc(npossible_combs*sizeof(struct starpu_perfmodel_arch*));
-		narch_combs = 0;
-		model->per_arch = (struct starpu_perfmodel_per_arch**) malloc(npossible_combs*sizeof(struct starpu_perfmodel_per_arch*));
-		model->nimpls = (int *)malloc(npossible_combs*sizeof(int));
-		model->combs = (int*)malloc(npossible_combs*sizeof(int));
+		nb_arch_combs = pow(2, (ncores + ncuda + nopencl + nmic + nscc));
+		arch_combs = (struct starpu_perfmodel_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
+		current_arch_comb = 0;
+		model->per_arch = (struct starpu_perfmodel_per_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_per_arch*));
+		model->nimpls = (int *)malloc(nb_arch_combs*sizeof(int));
+		model->combs = (int*)malloc(nb_arch_combs*sizeof(int));
 		model->ncombs = 0;
 
-		for(i = 0; i < npossible_combs; i++)
+		for(i = 0; i < nb_arch_combs; i++)
 		{
 			model->per_arch[i] = NULL;
 			model->nimpls[i] = 0;
@@ -757,14 +781,14 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 				struct starpu_perfmodel_per_arch *archmodel = &model->per_arch[model->combs[comb]][impl];
 				struct starpu_perfmodel_history_list *list, *plist;
 				struct starpu_perfmodel_history_table *entry, *tmp;
-				
+
 				HASH_ITER(hh, archmodel->history, entry, tmp)
 				{
 					HASH_DEL(archmodel->history, entry);
 					free(entry);
 				}
 				archmodel->history = NULL;
-				
+
 				list = archmodel->list;
 				while (list)
 				{
@@ -777,7 +801,7 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 			}
 			free(model->per_arch[model->combs[comb]]);
 			model->per_arch[model->combs[comb]] = NULL;
-		}		
+		}
 		free(model->per_arch);
 		model->per_arch = NULL;
 
@@ -1229,7 +1253,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 				double local_deviation = measured/entry->mean;
 				int historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
-				
+
 				if (entry->nsample &&
 					(100 * local_deviation > (100 + historymaxerror)
 					 || (100 / local_deviation > (100 + historymaxerror))))

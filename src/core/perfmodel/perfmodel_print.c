@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2013  Université de Bordeaux 1
- * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 #include <starpu_perfmodel.h>
 #include <common/config.h>
 #include "perfmodel.h"
+
 static
 void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per_arch_model, char *parameter, uint32_t *footprint, FILE *output)
 {
@@ -173,11 +174,12 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 	if (arch == NULL)
 	{
 		int comb, impl;
-		for(comb = 0; comb < narch_combs; comb++)
+		for(comb = 0; comb < starpu_get_narch_combs(); comb++)
 		{
+			struct starpu_perfmodel_arch *arch_comb = _starpu_arch_comb_get(comb);
 			int nimpls = model->nimpls[comb];
 			for(impl = 0; impl < nimpls; impl++)
-				starpu_perfmodel_print(model, arch_combs[comb], impl, parameter, footprint, output);
+				starpu_perfmodel_print(model, arch_comb, impl, parameter, footprint, output);
 		}
 	}
 	else
@@ -238,11 +240,12 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			perf_arch.devices[0].type = STARPU_CUDA_WORKER;
 			perf_arch.devices[0].ncores = 1;
 			int comb;
-			for(comb = 0; comb < narch_combs; comb++)
+			for(comb = 0; comb < starpu_get_narch_combs(); comb++)
 			{
-				if(arch_combs[comb]->ndevices == 1 && arch_combs[comb]->devices[0].type == STARPU_CUDA_WORKER)
+				struct starpu_perfmodel_arch *arch_comb = _starpu_arch_comb_get(comb);
+				if(arch_comb->ndevices == 1 && arch_comb->devices[0].type == STARPU_CUDA_WORKER)
 				{
-					perf_arch.devices[0].devid = arch_combs[comb]->devices[0].devid;
+					perf_arch.devices[0].devid = arch_comb->devices[0].devid;
 					int nimpls = model->nimpls[comb];
 
 					for (implid = 0; implid < nimpls; implid++)
