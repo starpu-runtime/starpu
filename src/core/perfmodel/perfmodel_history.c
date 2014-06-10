@@ -540,7 +540,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	{
 		int ndevices = arch_combs[model->combs[comb]]->ndevices;
 		fprintf(f, "####################\n");
-		fprintf(f, "# COMB_%d\n", comb);
+		fprintf(f, "# COMB_%d\n", model->combs[comb]);
 		fprintf(f, "# number of types devices\n");
 		fprintf(f, "%u\n", ndevices);
 
@@ -562,7 +562,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 			fprintf(f, "%u\n", arch_combs[model->combs[comb]]->devices[dev].ncores);
 		}
 
-		int nimpls = model->nimpls[model->combs[comb]];
+		int nimpls = model->nimpls[comb];
 		fprintf(f, "##########\n");
 		fprintf(f, "# number of implementations\n");
 		fprintf(f, "%u\n", nimpls);
@@ -693,7 +693,7 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 		int comb, impl;
 		for(comb = 0; comb < ncombs; comb++)
 		{
-			int nimpls = model->nimpls[model->combs[comb]];
+			int nimpls = model->nimpls[comb];
 			for(impl = 0; impl < nimpls; impl++)
 			{
 				starpu_perfmodel_debugfilepath(model, arch_combs[comb], model->per_arch[comb][impl].debug_path, 256, impl);
@@ -775,7 +775,7 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 		int comb, impl;
 		for(comb = 0; comb < ncombs; comb++)
 		{
-			int nimpls = model->nimpls[model->combs[comb]];
+			int nimpls = model->nimpls[comb];
 			for(impl = 0; impl < nimpls; impl++)
 			{
 				struct starpu_perfmodel_per_arch *archmodel = &model->per_arch[model->combs[comb]][impl];
