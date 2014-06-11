@@ -113,6 +113,9 @@ static unsigned get_colour_symbol_blue(char *name)
 static double last_codelet_start[STARPU_NMAXWORKERS];
 /* _STARPU_FUT_DO_PROBE4STR records only 4 longs */
 static char last_codelet_symbol[STARPU_NMAXWORKERS][4*sizeof(unsigned long)];
+static int last_codelet_parameter[STARPU_NMAXWORKERS];
+#define MAX_PARAMETERS 8
+static char last_codelet_parameter_description[STARPU_NMAXWORKERS][MAX_PARAMETERS][FXT_MAX_PARAMS*sizeof(unsigned long)];
 
 /* If more than a period of time has elapsed, we flush the profiling info,
  * otherwise they are accumulated everytime there is a new relevant event. */
@@ -318,7 +321,7 @@ static void thread_pop_state(double time, const char *prefix, long unsigned int 
 #endif
 }
 
-static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, unsigned long footprint, unsigned long long tag)
+static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag)
 {
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
@@ -326,7 +329,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	/* TODO: set detailed state */
 	poti_SetState(time, container, "WS", name);
 #else
-	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%08lx	%016llx\n", time, prefix, workerid, name, size, footprint, tag);
+	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx\n", time, prefix, workerid, name, size, parameters, footprint, tag);
 #endif
 }
 
@@ -675,6 +678,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	char *name = has_name?(char *)&ev->param[4]:"unknown";
 
 	snprintf(last_codelet_symbol[worker], sizeof(last_codelet_symbol[worker]), "%s", name);
+	last_codelet_parameter[worker] = 0;
 
 	double start_codelet_time = get_event_time_stamp(ev, options);
 	last_codelet_start[worker] = start_codelet_time;
@@ -705,6 +709,21 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 }
 
+static void handle_codelet_data(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
+	int worker = ev->param[0];
+	if (worker < 0) return;
+	if (out_paje_file)
+	{
+		int num = last_codelet_parameter[worker]++;
+		if (num >= MAX_PARAMETERS)
+			return;
+		snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num]), "%s", (char*) &ev->param[1]);
+	}
+#endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
+}
+
 static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 #ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
@@ -717,7 +736,15 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 
 	if (out_paje_file)
 	{
-		worker_set_detailed_state(last_codelet_start[worker], prefix, ev->param[5], last_codelet_symbol[worker], ev->param[2], ev->param[3], ev->param[4]);
+		int i;
+		char parameters[256];
+		size_t eaten = 0;
+		for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
+		{
+			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
+		}
+
+		worker_set_detailed_state(last_codelet_start[worker], prefix, ev->param[5], last_codelet_symbol[worker], ev->param[2], parameters, ev->param[3], ev->param[4]);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -1641,6 +1668,9 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 			/* detect when the workers were idling or not */
 			case _STARPU_FUT_START_CODELET_BODY:
 				handle_start_codelet_body(&ev, options);
+				break;
+			case _STARPU_FUT_CODELET_DATA:
+				handle_codelet_data(&ev, options);
 				break;
 			case _STARPU_FUT_CODELET_DETAILS:
 				handle_codelet_details(&ev, options);

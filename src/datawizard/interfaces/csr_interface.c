@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -43,6 +43,7 @@ static void free_csr_buffer_on_node(void *data_interface, unsigned node);
 static size_t csr_interface_get_size(starpu_data_handle_t handle);
 static int csr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle_t handle);
+static ssize_t describe(void *interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_csr_ops =
 {
@@ -55,6 +56,7 @@ struct starpu_data_interface_ops starpu_interface_csr_ops =
 	.interface_size = sizeof(struct starpu_csr_interface),
 	.footprint = footprint_csr_interface_crc32,
 	.compare = csr_compare,
+	.describe = describe
 };
 
 static void register_csr_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
@@ -289,4 +291,13 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nnz*elemsize + (nnz+nrow+1)*sizeof(uint32_t));
 
 	return ret;
+}
+
+static ssize_t describe(void *interface, char *buf, size_t size)
+{
+	struct starpu_csr_interface *csr = (struct starpu_csr_interface *) interface;
+	return snprintf(buf, size, "C%ux%ux%u",
+			(unsigned) csr->nnz,
+			(unsigned) csr->nrow,
+			(unsigned) csr->elemsize);
 }
