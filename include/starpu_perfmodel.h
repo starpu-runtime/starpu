@@ -167,6 +167,8 @@ int starpu_perfmodel_list(FILE *output);
 void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output);
 int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output);
 
+int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model);
+
 void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned cpuid, unsigned nimpl, double measured);
 void starpu_perfmodel_directory(FILE *output);
 

@@ -1388,3 +1388,24 @@ struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct sta
 
 	return &model->per_arch[comb][impl];
 }
+
+int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model)
+{
+	int comb;
+
+	fprintf(output, "Model <%s>\n", model->symbol);
+	for(comb = 0; comb < model->ncombs; comb++)
+	{
+		struct starpu_perfmodel_arch *arch;
+		int device;
+
+		arch = _starpu_arch_comb_get(model->combs[comb]);
+		fprintf(output, "\tComb %d: %d device%s\n", model->combs[comb], arch->ndevices, arch->ndevices>1?"s":"");
+		for(device=0 ; device<arch->ndevices ; device++)
+		{
+			char *name = starpu_worker_get_as_string(arch->devices[device].type);
+			fprintf(output, "\t\tDevice %d: type: %s - devid: %d - ncores: %d\n", device, name, arch->devices[device].devid, arch->devices[device].ncores);
+		}
+	}
+	return 0;
+}
