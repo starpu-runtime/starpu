@@ -1403,7 +1403,7 @@ int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model)
 		fprintf(output, "\tComb %d: %d device%s\n", model->combs[comb], arch->ndevices, arch->ndevices>1?"s":"");
 		for(device=0 ; device<arch->ndevices ; device++)
 		{
-			char *name = starpu_worker_get_as_string(arch->devices[device].type);
+			char *name = starpu_perfmodel_get_archtype_name(arch->devices[device].type);
 			fprintf(output, "\t\tDevice %d: type: %s - devid: %d - ncores: %d\n", device, name, arch->devices[device].devid, arch->devices[device].ncores);
 		}
 	}
