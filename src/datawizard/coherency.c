@@ -724,7 +724,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j)
 	int workerid = starpu_worker_get_id();
 
 #ifdef STARPU_USE_FXT
-	unsigned total_size = 0;
+	unsigned long total_size = 0;
 #endif
 
 	unsigned index;
