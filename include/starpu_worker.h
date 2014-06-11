@@ -116,6 +116,9 @@ struct starpu_tree* starpu_workers_get_tree(void);
 unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx);
 
 unsigned starpu_worker_is_slave(int workerid);
+
+char *starpu_worker_get_as_string(enum starpu_worker_archtype type);
+
 #ifdef __cplusplus
 }
 #endif

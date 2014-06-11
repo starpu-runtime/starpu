@@ -1987,3 +1987,14 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 	return nsched_ctxs;
 }
 
+char *starpu_worker_get_as_string(enum starpu_worker_archtype type)
+{
+	if (type == STARPU_CPU_WORKER) return "CPU";
+	if (type == STARPU_CUDA_WORKER) return "CUDA";
+	if (type == STARPU_OPENCL_WORKER) return "OPENCL";
+	if (type == STARPU_MIC_WORKER) return "MIC";
+	if (type == STARPU_SCC_WORKER) return "SCC";
+	if (type == STARPU_ANY_WORKER) return "ANY";
+	return "undefined";
+}
+
