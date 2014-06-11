@@ -1041,7 +1041,7 @@ void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *ar
 	int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
 	STARPU_ASSERT(comb != -1);
 
-	snprintf(archname, maxlen, "%d_impl%u", comb, impl);
+	snprintf(archname, maxlen, "Comb%d_impl%u", comb, impl);
 }
 
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
