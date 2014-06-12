@@ -476,7 +476,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "I");
 
 	if (activity_file)
-	fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
+		fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
 
 	snprintf(options->worker_names[workerid], 256, "%s %d", kindstr, devid);
 	options->worker_archtypes[workerid] = arch;
@@ -1011,10 +1011,10 @@ static void handle_work_stealing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	unsigned src = ev->param[1];
 	unsigned size = 0;
 	unsigned comid = 0;
-	
+
 	char *prefix = options->file_prefix;
 
-	
+
 	if (out_paje_file)
 	{
 		double time = get_event_time_stamp(ev, options);
@@ -1559,12 +1559,8 @@ void _starpu_fxt_display_bandwidth(struct starpu_fxt_options *options)
 	}
 }
 
-/*
- *	Public functions
- */
-
 static
-void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *options)
+void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *options)
 {
 	/* Open the trace file */
 	int fd_in;
@@ -2053,7 +2049,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 }
 
 static
-void starpu_fxt_distrib_file_init(struct starpu_fxt_options *options)
+void _starpu_fxt_distrib_file_init(struct starpu_fxt_options *options)
 {
 	dumped_codelets_count = 0;
 	dumped_codelets = NULL;
@@ -2069,7 +2065,7 @@ void starpu_fxt_distrib_file_init(struct starpu_fxt_options *options)
 }
 
 static
-void starpu_fxt_distrib_file_close(struct starpu_fxt_options *options)
+void _starpu_fxt_distrib_file_close(struct starpu_fxt_options *options)
 {
 	if (distrib_time)
 		fclose(distrib_time);
@@ -2082,7 +2078,7 @@ void starpu_fxt_distrib_file_close(struct starpu_fxt_options *options)
 }
 
 static
-void starpu_fxt_activity_file_init(struct starpu_fxt_options *options)
+void _starpu_fxt_activity_file_init(struct starpu_fxt_options *options)
 {
 	if (options->activity_path)
 		activity_file = fopen(options->activity_path, "w+");
@@ -2091,14 +2087,14 @@ void starpu_fxt_activity_file_init(struct starpu_fxt_options *options)
 }
 
 static
-void starpu_fxt_activity_file_close(void)
+void _starpu_fxt_activity_file_close(void)
 {
 	if (activity_file)
 		fclose(activity_file);
 }
 
 static
-void starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
+void _starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 {
 	/* create a new file */
 	if (options->out_paje_path)
@@ -2123,13 +2119,14 @@ void starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 }
 
 static
-void starpu_fxt_paje_file_close(void)
+void _starpu_fxt_paje_file_close(void)
 {
 	if (out_paje_file)
 		fclose(out_paje_file);
 }
 
-static uint64_t starpu_fxt_find_start_time(char *filename_in)
+static
+uint64_t _starpu_fxt_find_start_time(char *filename_in)
 {
 	/* Open the trace file */
 	int fd_in;
@@ -2168,24 +2165,24 @@ static uint64_t starpu_fxt_find_start_time(char *filename_in)
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 {
 	_starpu_fxt_dag_init(options->dag_path);
-	starpu_fxt_distrib_file_init(options);
-	starpu_fxt_activity_file_init(options);
+	_starpu_fxt_distrib_file_init(options);
+	_starpu_fxt_activity_file_init(options);
 
-	starpu_fxt_paje_file_init(options);
+	_starpu_fxt_paje_file_init(options);
 
 	if (options->ninputfiles == 0)
 	{
-	     return;
+		return;
 	}
 	else if (options->ninputfiles == 1)
 	{
 		/* we usually only have a single trace */
-		uint64_t file_start_time = starpu_fxt_find_start_time(options->filenames[0]);
+		uint64_t file_start_time = _starpu_fxt_find_start_time(options->filenames[0]);
 		options->file_prefix = "";
 		options->file_offset = file_start_time;
 		options->file_rank = -1;
 
-		starpu_fxt_parse_new_file(options->filenames[0], options);
+		_starpu_fxt_parse_new_file(options->filenames[0], options);
 	}
 	else
 	{
@@ -2218,7 +2215,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		/* Compute all start_k */
 		for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
 		{
-			uint64_t file_start = starpu_fxt_find_start_time(options->filenames[inputfile]);
+			uint64_t file_start = _starpu_fxt_find_start_time(options->filenames[inputfile]);
 			start_k[inputfile] = file_start;
 		}
 
@@ -2226,9 +2223,9 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
 		{
 			int ret = _starpu_fxt_mpi_find_sync_point(options->filenames[inputfile],
-						&sync_k[inputfile],
-						&unique_keys[inputfile],
-						&rank_k[inputfile]);
+								  &sync_k[inputfile],
+								  &unique_keys[inputfile],
+								  &rank_k[inputfile]);
 			if (ret == -1)
 			{
 				/* There was no sync point, we assume there is no offset */
@@ -2285,7 +2282,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 			options->file_offset = offsets[inputfile];
 			options->file_rank = filerank;
 
-			starpu_fxt_parse_new_file(options->filenames[inputfile], options);
+			_starpu_fxt_parse_new_file(options->filenames[inputfile], options);
 		}
 
 		/* display the MPI transfers if possible */
@@ -2296,9 +2293,9 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	_starpu_fxt_display_bandwidth(options);
 
 	/* close the different files */
-	starpu_fxt_paje_file_close();
-	starpu_fxt_activity_file_close();
-	starpu_fxt_distrib_file_close(options);
+	_starpu_fxt_paje_file_close();
+	_starpu_fxt_activity_file_close();
+	_starpu_fxt_distrib_file_close(options);
 
 	_starpu_fxt_dag_terminate();
 
