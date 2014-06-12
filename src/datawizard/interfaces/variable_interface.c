@@ -119,6 +119,16 @@ void starpu_variable_data_register(starpu_data_handle_t *handleptr, unsigned hom
 	starpu_data_register(handleptr, home_node, &variable, &starpu_interface_variable_ops);
 }
 
+void starpu_variable_ptr_register(starpu_data_handle_t handle, unsigned node,
+			uintptr_t ptr, uintptr_t dev_handle, size_t offset)
+{
+	struct starpu_variable_interface *interface = starpu_data_get_interface_on_node(handle, node);
+	starpu_data_ptr_register(handle, node);
+	interface->ptr = ptr;
+	interface->dev_handle = dev_handle;
+	interface->offset = offset;
+}
+
 
 static uint32_t footprint_variable_interface_crc32(starpu_data_handle_t handle)
 {

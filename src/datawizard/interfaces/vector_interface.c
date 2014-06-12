@@ -124,6 +124,16 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, unsigned home_
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_vector_ops);
 }
 
+void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node,
+			uintptr_t ptr, uintptr_t dev_handle, size_t offset)
+{
+	struct starpu_vector_interface *interface = starpu_data_get_interface_on_node(handle, node);
+	starpu_data_ptr_register(handle, node);
+	interface->ptr = ptr;
+	interface->dev_handle = dev_handle;
+	interface->offset = offset;
+}
+
 
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle_t handle)
 {

@@ -169,6 +169,18 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, unsigned home_n
 	starpu_data_register(handleptr, home_node, &block_interface, &starpu_interface_block_ops);
 }
 
+void starpu_block_ptr_register(starpu_data_handle_t handle, unsigned node,
+			uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz)
+{
+	struct starpu_block_interface *interface = starpu_data_get_interface_on_node(handle, node);
+	starpu_data_ptr_register(handle, node);
+	interface->ptr = ptr;
+	interface->dev_handle = dev_handle;
+	interface->offset = offset;
+	interface->ldy = ldy;
+	interface->ldz = ldz;
+}
+
 static uint32_t footprint_block_interface_crc32(starpu_data_handle_t handle)
 {
 	uint32_t hash;

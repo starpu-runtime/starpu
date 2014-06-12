@@ -241,6 +241,12 @@ starpu_data_handle_t var_handle;
 starpu_variable_data_register(&var_handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
 \endcode
 
+\fn void starpu_variable_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset)
+\ingroup API_Data_Interfaces
+Register into the \p handle that to store data on node \p node it should use the
+buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
+(for OpenCL, notably)
+
 \fn void starpu_vector_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize)
 \ingroup API_Data_Interfaces
 Register the \p nx elemsize-byte elements pointed to by \p ptr and initialize \p handle to represent it.
@@ -251,6 +257,12 @@ float vector[NX];
 starpu_data_handle_t vector_handle;
 starpu_vector_data_register(&vector_handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
 \endcode
+
+\fn void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset)
+\ingroup API_Data_Interfaces
+Register into the \p handle that to store data on node \p node it should use the
+buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
+(for OpenCL, notably)
 
 \fn void starpu_matrix_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ld, uint32_t nx, uint32_t ny, size_t elemsize)
 \ingroup API_Data_Interfaces
@@ -267,6 +279,12 @@ matrix = (float*)malloc(width * height * sizeof(float));
 starpu_matrix_data_register(&matrix_handle, STARPU_MAIN_RAM, (uintptr_t)matrix, width, width, height, sizeof(float));
 \endcode
 
+\fn void starpu_matrix_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ld)
+\ingroup API_Data_Interfaces
+Register into the \p handle that to store data on node \p node it should use the
+buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
+(for OpenCL, notably), with \p ld elements between rows.
+
 \fn void starpu_block_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx, uint32_t ny, uint32_t nz, size_t elemsize)
 \ingroup API_Data_Interfaces
 Register the \p nx x \p ny x \p nz 3D matrix of \p elemsize byte elements
@@ -280,6 +298,12 @@ starpu_data_handle_t block_handle;
 block = (float*)malloc(nx*ny*nz*sizeof(float));
 starpu_block_data_register(&block_handle, STARPU_MAIN_RAM, (uintptr_t)block, nx, nx*ny, nx, ny, nz, sizeof(float));
 \endcode
+
+\fn void starpu_block_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz)
+\ingroup API_Data_Interfaces
+Register into the \p handle that to store data on node \p node it should use the
+buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
+(for OpenCL, notably), with \p ldy elements between rows and \ldz elements between z planes.
 
 \fn void starpu_bcsr_data_register(starpu_data_handle_t *handle, unsigned home_node, uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind, uint32_t *rowptr, uint32_t firstentry, uint32_t r, uint32_t c, size_t elemsize)
 \ingroup API_Data_Interfaces
