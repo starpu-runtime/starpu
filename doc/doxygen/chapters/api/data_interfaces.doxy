@@ -29,6 +29,8 @@ Return a 32bit footprint which characterizes the data size.
 Compare the data size of two interfaces.
 \var starpu_data_interface_ops::display
 Dump the sizes of a handle to a file.
+\var starpu_data_interface_ops::describe
+Describe the data into a string.
 \var starpu_data_interface_ops::interfaceid
 An identifier that is unique to each interface.
 \var starpu_data_interface_ops::interface_size
