@@ -201,7 +201,7 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *mode
 	if (!options->gflops && options->with_fxt_file && impl == 0)
 	{
 //		print_comma(gnuplot_file, first);
-//		fprintf(gnuplot_file, "\"< grep -w \\^%d_%d_%d %s\" using 2:3 title \"Profiling %s\"", arch->type, arch->devid, arch->ncore, data_file_name, arch_name);
+//		fprintf(gnuplot_file, "\"< grep -w \\^%d_%d_%d %s\" using 2:3 title \"Profiling %s\"", arch->type, arch->devid, arch->ncore, options->data_file_name, arch_name);
 	}
 #endif
 
