@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -122,11 +122,11 @@ void starpu_variable_data_register(starpu_data_handle_t *handleptr, unsigned hom
 void starpu_variable_ptr_register(starpu_data_handle_t handle, unsigned node,
 			uintptr_t ptr, uintptr_t dev_handle, size_t offset)
 {
-	struct starpu_variable_interface *interface = starpu_data_get_interface_on_node(handle, node);
+	struct starpu_variable_interface *variable_interface = starpu_data_get_interface_on_node(handle, node);
 	starpu_data_ptr_register(handle, node);
-	interface->ptr = ptr;
-	interface->dev_handle = dev_handle;
-	interface->offset = offset;
+	variable_interface->ptr = ptr;
+	variable_interface->dev_handle = dev_handle;
+	variable_interface->offset = offset;
 }
 
 
