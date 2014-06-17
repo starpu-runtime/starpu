@@ -74,14 +74,14 @@ int starpu_add_arch_comb(int ndevices, struct starpu_perfmodel_device* devices)
 
 int starpu_get_arch_comb(int ndevices, struct starpu_perfmodel_device *devices)
 {
-	int nfounded = 0;
-	unsigned found = 0;
 	int comb;
 	for(comb = 0; comb < current_arch_comb; comb++)
 	{
+		int found = 0;
 		if(arch_combs[comb]->ndevices == ndevices)
 		{
 			int dev1, dev2;
+			int nfounded = 0;
 			for(dev1 = 0; dev1 < arch_combs[comb]->ndevices; dev1++)
 			{
 				for(dev2 = 0; dev2 < ndevices; dev2++)
@@ -95,7 +95,7 @@ int starpu_get_arch_comb(int ndevices, struct starpu_perfmodel_device *devices)
 			if(nfounded == ndevices)
 				found = 1;
 		}
-		if(found)
+		if (found)
 			return comb;
 	}
 	return -1;
@@ -600,18 +600,8 @@ void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 	STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
 	if(model->type != STARPU_COMMON)
 	{
-		struct _starpu_machine_config *conf = _starpu_get_machine_config();
-		unsigned ncores = conf->topology.nhwcpus;
-		unsigned ncuda =  conf->topology.nhwcudagpus;
-		unsigned nopencl = conf->topology.nhwopenclgpus;
-		unsigned nmic = 0;
 		unsigned i;
-		for(i = 0; i < conf->topology.nhwmicdevices; i++)
-			nmic += conf->topology.nhwmiccores[i];
-		unsigned nscc = conf->topology.nhwscc;
-		nb_arch_combs = pow(2, (ncores + ncuda + nopencl + nmic + nscc));
-		arch_combs = (struct starpu_perfmodel_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
-		current_arch_comb = 0;
+
 		model->per_arch = (struct starpu_perfmodel_per_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_per_arch*));
 		model->nimpls = (int *)malloc(nb_arch_combs*sizeof(int));
 		model->combs = (int*)malloc(nb_arch_combs*sizeof(int));
@@ -765,6 +755,19 @@ void _starpu_initialize_registered_performance_models(void)
 	registered_models = NULL;
 
 	STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
+
+	struct _starpu_machine_config *conf = _starpu_get_machine_config();
+	unsigned ncores = conf->topology.nhwcpus;
+	unsigned ncuda =  conf->topology.nhwcudagpus;
+	unsigned nopencl = conf->topology.nhwopenclgpus;
+	unsigned nmic = 0;
+	unsigned i;
+	for(i = 0; i < conf->topology.nhwmicdevices; i++)
+		nmic += conf->topology.nhwmiccores[i];
+	unsigned nscc = conf->topology.nhwscc;
+	nb_arch_combs = pow(2, (ncores + ncuda + nopencl + nmic + nscc));
+	arch_combs = (struct starpu_perfmodel_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
+	current_arch_comb = 0;
 }
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
@@ -1059,13 +1062,20 @@ void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
 
 double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl)
 {
-	int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	int comb;
 	double exp = NAN;
-	if(comb == -1) return exp;
-	size_t size = _starpu_job_get_data_size(model, arch, nimpl, j);
+	size_t size;
 	struct starpu_perfmodel_regression_model *regmodel;
 
+	comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	if(comb == -1)
+		return NAN;
+	if (model->per_arch[comb] == NULL)
+		// The model has not been executed on this combination
+		return NAN;
+
 	regmodel = &model->per_arch[comb][nimpl].regression;
+	size = _starpu_job_get_data_size(model, arch, nimpl, j);
 
 	if (regmodel->valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
                 exp = regmodel->alpha*pow((double)size, regmodel->beta);
@@ -1075,13 +1085,20 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 
 double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j,unsigned nimpl)
 {
-	int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	int comb;
 	double exp = NAN;
-	if(comb == -1) return exp;
-	size_t size = _starpu_job_get_data_size(model, arch, nimpl, j);
+	size_t size;
 	struct starpu_perfmodel_regression_model *regmodel;
 
+	comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	if(comb == -1)
+		return NAN;
+	if (model->per_arch[comb] == NULL)
+		// The model has not been executed on this combination
+		return NAN;
+
 	regmodel = &model->per_arch[comb][nimpl].regression;
+	size = _starpu_job_get_data_size(model, arch, nimpl, j);
 
 	if (regmodel->nl_valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
 		exp = regmodel->a*pow((double)size, regmodel->b) + regmodel->c;
