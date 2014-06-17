@@ -88,6 +88,7 @@ static struct starpu_perfmodel model_cpu_task =
 	.type = STARPU_PER_ARCH,
 	.symbol = "model_cpu_task"
 };
+
 static struct starpu_perfmodel model_gpu_task =
 {
 	.type = STARPU_PER_ARCH,
@@ -105,14 +106,13 @@ init_perfmodels(void)
 	struct starpu_perfmodel_arch arch_cpu;
 	arch_cpu.ndevices = 1;
 	arch_cpu.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
-	arch_cpu.devices[0].type = STARPU_CPU_WORKER;	
+	arch_cpu.devices[0].type = STARPU_CPU_WORKER;
 	arch_cpu.devices[0].devid = 0;
 	arch_cpu.devices[0].ncores = 1;
 
 	int comb_cpu = starpu_get_arch_comb(arch_cpu.ndevices, arch_cpu.devices);
 	if(comb_cpu == -1)
 		comb_cpu = starpu_add_arch_comb(arch_cpu.ndevices, arch_cpu.devices);
-
 
 	model_cpu_task.per_arch[comb_cpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
 	memset(&model_cpu_task.per_arch[comb_cpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
@@ -124,16 +124,12 @@ init_perfmodels(void)
 	model_gpu_task.nimpls[comb_cpu] = 1;
 	model_gpu_task.per_arch[comb_cpu][0].cost_function = gpu_task_cpu;
 
-
-
 	struct starpu_perfmodel_arch arch_cuda;
 	arch_cuda.ndevices = 1;
 	arch_cuda.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
-	arch_cuda.devices[0].type = STARPU_CUDA_WORKER;	
+	arch_cuda.devices[0].type = STARPU_CUDA_WORKER;
 	arch_cuda.devices[0].devid = 0;
 	arch_cuda.devices[0].ncores = 1;
-	
-
 
 	int comb_cuda = starpu_get_arch_comb(arch_cuda.ndevices, arch_cuda.devices);
 	if(comb_cuda == -1)
@@ -141,13 +137,13 @@ init_perfmodels(void)
 
 	model_cpu_task.per_arch[comb_cuda] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
 	memset(&model_cpu_task.per_arch[comb_cuda][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-//	model_cpu_task.nimpls[comb_cuda] = 1;
-	model_cpu_task.per_arch[comb_cuda][0].cost_function = cpu_task_cpu;
+	model_cpu_task.nimpls[comb_cuda] = 1;
+	model_cpu_task.per_arch[comb_cuda][0].cost_function = cpu_task_gpu;
 
 	model_gpu_task.per_arch[comb_cuda] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
 	memset(&model_gpu_task.per_arch[comb_cuda][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-//	model_gpu_task.nimpls[comb_cuda] = 1;
-	model_gpu_task.per_arch[comb_cuda][0].cost_function = gpu_task_cpu;
+	model_gpu_task.nimpls[comb_cuda] = 1;
+	model_gpu_task.per_arch[comb_cuda][0].cost_function = gpu_task_gpu;
 
 
 /* 	if(model_cpu_task.per_arch[STARPU_CPU_WORKER] != NULL) */
@@ -214,17 +210,19 @@ run(struct starpu_sched_policy *policy)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.sched_policy = policy;
+
 	int ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
 
 	/* At least 1 CPU and 1 GPU are needed. */
-	if (starpu_cpu_worker_get_count() == 0) {
+	if (starpu_cpu_worker_get_count() == 0)
+	{
 		starpu_shutdown();
 		exit(STARPU_TEST_SKIPPED);
 	}
-	if (starpu_cuda_worker_get_count() == 0 &&
-	    starpu_opencl_worker_get_count() == 0) {
+	if (starpu_cuda_worker_get_count() == 0 && starpu_opencl_worker_get_count() == 0)
+	{
 		starpu_shutdown();
 		exit(STARPU_TEST_SKIPPED);
 	}
@@ -250,10 +248,11 @@ run(struct starpu_sched_policy *policy)
 	enum starpu_worker_archtype cpu_task_worker, gpu_task_worker;
 	cpu_task_worker = starpu_worker_get_type(cpu_task->profiling_info->workerid);
 	gpu_task_worker = starpu_worker_get_type(gpu_task->profiling_info->workerid);
-	if (cpu_task_worker != STARPU_CPU_WORKER ||
-			(gpu_task_worker != STARPU_CUDA_WORKER &&
-			 gpu_task_worker != STARPU_OPENCL_WORKER))
+	if (cpu_task_worker != STARPU_CPU_WORKER || (gpu_task_worker != STARPU_CUDA_WORKER && gpu_task_worker != STARPU_OPENCL_WORKER))
+	{
+		FPRINTF(stderr, "Task did not execute on expected worker\n");
 		ret = 1;
+	}
 	else
 		ret = 0;
 
