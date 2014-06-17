@@ -96,6 +96,41 @@ static struct starpu_perfmodel model_gpu_task =
 };
 
 static void
+init_perfmodels_gpu(int gpu_type)
+{
+	int nb_worker_gpu = starpu_worker_get_count_by_type(gpu_type);
+	int *worker_gpu_ids = malloc(nb_worker_gpu * sizeof(int));
+	int worker_gpu;
+
+	starpu_worker_get_ids_by_type(gpu_type, worker_gpu_ids, nb_worker_gpu);
+	for(worker_gpu = 0 ; worker_gpu < nb_worker_gpu ; worker_gpu ++)
+	{
+		struct starpu_perfmodel_arch arch_gpu;
+		arch_gpu.ndevices = 1;
+		arch_gpu.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		arch_gpu.devices[0].type = gpu_type;
+		arch_gpu.devices[0].devid = starpu_worker_get_devid(worker_gpu_ids[worker_gpu]);
+		arch_gpu.devices[0].ncores = 1;
+
+		int comb_gpu = starpu_get_arch_comb(arch_gpu.ndevices, arch_gpu.devices);
+		if(comb_gpu == -1)
+		{
+			comb_gpu = starpu_add_arch_comb(arch_gpu.ndevices, arch_gpu.devices);
+
+			model_cpu_task.per_arch[comb_gpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
+			memset(&model_cpu_task.per_arch[comb_gpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
+			model_cpu_task.nimpls[comb_gpu] = 1;
+			model_cpu_task.per_arch[comb_gpu][0].cost_function = cpu_task_gpu;
+
+			model_gpu_task.per_arch[comb_gpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
+			memset(&model_gpu_task.per_arch[comb_gpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
+			model_gpu_task.nimpls[comb_gpu] = 1;
+			model_gpu_task.per_arch[comb_gpu][0].cost_function = gpu_task_gpu;
+		}
+	}
+}
+
+static void
 init_perfmodels(void)
 {
 	unsigned devid, ncore;
@@ -124,39 +159,9 @@ init_perfmodels(void)
 	model_gpu_task.nimpls[comb_cpu] = 1;
 	model_gpu_task.per_arch[comb_cpu][0].cost_function = gpu_task_cpu;
 
-	{
-		// We need to set the cost function for each combination with a CUDA worker
-		int nb_worker_cuda = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
-		int *worker_cuda_ids = malloc(nb_worker_cuda * sizeof(int));
-		int worker_cuda;
-
-		starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, worker_cuda_ids, nb_worker_cuda);
-		for(worker_cuda = 0 ; worker_cuda < nb_worker_cuda ; worker_cuda ++)
-		{
-			struct starpu_perfmodel_arch arch_cuda;
-			arch_cuda.ndevices = 1;
-			arch_cuda.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
-			arch_cuda.devices[0].type = STARPU_CUDA_WORKER;
-			arch_cuda.devices[0].devid = starpu_worker_get_devid(worker_cuda_ids[worker_cuda]);
-			arch_cuda.devices[0].ncores = 1;
-
-			int comb_cuda = starpu_get_arch_comb(arch_cuda.ndevices, arch_cuda.devices);
-			if(comb_cuda == -1)
-			{
-				comb_cuda = starpu_add_arch_comb(arch_cuda.ndevices, arch_cuda.devices);
-
-				model_cpu_task.per_arch[comb_cuda] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
-				memset(&model_cpu_task.per_arch[comb_cuda][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-				model_cpu_task.nimpls[comb_cuda] = 1;
-				model_cpu_task.per_arch[comb_cuda][0].cost_function = cpu_task_gpu;
-
-				model_gpu_task.per_arch[comb_cuda] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
-				memset(&model_gpu_task.per_arch[comb_cuda][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-				model_gpu_task.nimpls[comb_cuda] = 1;
-				model_gpu_task.per_arch[comb_cuda][0].cost_function = gpu_task_gpu;
-			}
-		}
-	}
+	// We need to set the cost function for each combination with a CUDA or a OpenCL worker
+	init_perfmodels_gpu(STARPU_CUDA_WORKER);
+	init_perfmodels_gpu(STARPU_OPENCL_WORKER);
 
 /* 	if(model_cpu_task.per_arch[STARPU_CPU_WORKER] != NULL) */
 /* 	{ */
