@@ -432,7 +432,7 @@ define starpu-print-arch
   set $arch = (struct starpu_perfmodel_arch *)$arg0
   set $device = 0
   while $device < $arch->ndevices
-    printf "  Device type %d - devid: %d - ncores: %d\n", arch->devices[$device].type, arch->devices[$device].devid, arch->devices[$device].ncores
+    printf "  Device type %d - devid: %d - ncores: %d\n", $arch->devices[$device].type, $arch->devices[$device].devid, $arch->devices[$device].ncores
     set $device = $device + 1
   end
 end
