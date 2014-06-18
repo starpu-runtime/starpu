@@ -110,6 +110,7 @@ static 	void _free_arch_combs(void)
 		free(arch_combs[i]);
 	}
 	current_arch_comb = 0;
+	free(arch_combs);
 }
 
 int starpu_get_narch_combs()
