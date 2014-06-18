@@ -109,6 +109,12 @@ vector or matrix) which can be registered by the means of helper
 functions (e.g. starpu_vector_data_register() or
 starpu_matrix_data_register()).
 
+\fn void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node)
+\ingroup API_Data_Management
+Register that a buffer for \p handle on \p node will be set. This is typically
+used by starpu_*_ptr_register helpers before setting the interface pointers for
+this node, to tell the core that that is now allocated.
+
 \fn void starpu_data_register_same(starpu_data_handle_t *handledst, starpu_data_handle_t handlesrc)
 \ingroup API_Data_Management
 Register a new piece of data into the handle \p handledst with the

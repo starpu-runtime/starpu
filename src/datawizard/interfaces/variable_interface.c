@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +44,7 @@ static int variable_compare(void *data_interface_a, void *data_interface_b);
 static void display_variable_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_variable_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
 static int unpack_variable_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+static ssize_t describe(void *interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_variable_ops =
 {
@@ -59,7 +60,8 @@ struct starpu_data_interface_ops starpu_interface_variable_ops =
 	.interface_size = sizeof(struct starpu_variable_interface),
 	.display = display_variable_interface,
 	.pack_data = pack_variable_handle,
-	.unpack_data = unpack_variable_handle
+	.unpack_data = unpack_variable_handle,
+	.describe = describe
 };
 
 static void *variable_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
@@ -115,6 +117,16 @@ void starpu_variable_data_register(starpu_data_handle_t *handleptr, unsigned hom
 #endif
 
 	starpu_data_register(handleptr, home_node, &variable, &starpu_interface_variable_ops);
+}
+
+void starpu_variable_ptr_register(starpu_data_handle_t handle, unsigned node,
+			uintptr_t ptr, uintptr_t dev_handle, size_t offset)
+{
+	struct starpu_variable_interface *variable_interface = starpu_data_get_interface_on_node(handle, node);
+	starpu_data_ptr_register(handle, node);
+	variable_interface->ptr = ptr;
+	variable_interface->dev_handle = dev_handle;
+	variable_interface->offset = offset;
 }
 
 
@@ -234,4 +246,10 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, elemsize);
 
 	return ret;
+}
+static ssize_t describe(void *interface, char *buf, size_t size)
+{
+	struct starpu_variable_interface *variable = (struct starpu_variable_interface *) interface;
+	return snprintf(buf, size, "v%u",
+			(unsigned) variable->elemsize);
 }

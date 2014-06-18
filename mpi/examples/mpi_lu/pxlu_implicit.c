@@ -133,13 +133,13 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 	{
 		create_task_11(k);
 
-		starpu_mpi_cache_flush(MPI_COMM_WORLD, STARPU_PLU(get_block_handle)(k,k));
-
 		for (i = k+1; i<nblocks; i++)
 		{
 			create_task_12(k, i);
 			create_task_21(k, i);
 		}
+
+		starpu_mpi_cache_flush(MPI_COMM_WORLD, STARPU_PLU(get_block_handle)(k,k));
 
 		for (i = k+1; i<nblocks; i++)
 		{
