@@ -1139,17 +1139,23 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 
 double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j,unsigned nimpl)
 {
-	int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	int comb;
 	double exp = NAN;
-	if(comb == -1) return exp;
 	struct starpu_perfmodel_per_arch *per_arch_model;
 	struct starpu_perfmodel_history_entry *entry;
 	struct starpu_perfmodel_history_table *history, *elt;
+	uint32_t key;
 
-	uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
+	comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	if(comb == -1)
+		return NAN;
+	if (model->per_arch[comb] == NULL)
+		// The model has not been executed on this combination
+		return NAN;
 
 	per_arch_model = &model->per_arch[comb][nimpl];
 
+	key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->model_rwlock);
 	history = per_arch_model->history;
 	HASH_FIND_UINT32_T(history, &key, elt);
