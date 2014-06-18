@@ -334,7 +334,6 @@ _starpu_init_mic_topology (struct _starpu_machine_config *config, long mic_idx)
 	topology->nhwmiccores[mic_idx] = nbcores;
 }
 
-
 static int
 _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 		       COIENGINE *coi_handle, COIPROCESS *coi_process)
@@ -402,8 +401,6 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 	return 0;
 }
 #endif
-
-
 
 static void
 _starpu_init_topology (struct _starpu_machine_config *config)
@@ -731,7 +728,6 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 
 	topology->nworkers += topology->nmiccores[mic_idx];
     }
-
 
 #ifdef STARPU_USE_MIC
 static COIENGINE handles[2];
@@ -1098,8 +1094,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	return 0;
 }
 
-
-
 void
 _starpu_bind_thread_on_cpu (
 	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED,
@@ -1170,7 +1164,6 @@ _starpu_bind_thread_on_cpu (
 #endif
 }
 
-
 void
 _starpu_bind_thread_on_cpus (
 	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED,
@@ -1212,7 +1205,6 @@ _starpu_bind_thread_on_cpus (
 #endif
 #endif
 }
-
 
 static void
 _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
@@ -1469,7 +1461,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	}
 }
 
-
 int
 _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 {
@@ -1546,8 +1537,9 @@ _starpu_destroy_topology (
 	unsigned worker;
 	for (worker = 0; worker < config->topology.nworkers; worker++)
 	{
-#ifdef STARPU_HAVE_HWLOC
 		struct _starpu_worker *workerarg = &config->workers[worker];
+		free(workerarg->perf_arch.devices);
+#ifdef STARPU_HAVE_HWLOC
 		hwloc_bitmap_free(workerarg->hwloc_cpu_set);
 		if (workerarg->bindid != -1)
 		{
