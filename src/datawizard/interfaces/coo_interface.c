@@ -190,6 +190,16 @@ display_coo_interface(starpu_data_handle_t handle, FILE *f)
 	fprintf(f, "%u\t%u", coo_interface->nx, coo_interface->ny);
 }
 
+static ssize_t describe(void *interface, char *buf, size_t size)
+{
+	struct starpu_coo_interface *coo = (struct starpu_coo_interface *) interface;
+	return snprintf(buf, size, "M%ux%ux%ux%u",
+			(unsigned) coo->nx,
+			(unsigned) coo->ny,
+			(unsigned) coo->n_values,
+			(unsigned) coo->elemsize);
+}
+
 struct starpu_data_interface_ops starpu_interface_coo_ops =
 {
 	.register_data_handle  = register_coo_handle,
@@ -202,7 +212,8 @@ struct starpu_data_interface_ops starpu_interface_coo_ops =
 	.compare               = coo_compare,
 	.interfaceid           = STARPU_COO_INTERFACE_ID,
 	.interface_size        = sizeof(struct starpu_coo_interface),
-	.display               = display_coo_interface
+	.display               = display_coo_interface,
+	.describe              = describe
 };
 
 void

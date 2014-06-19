@@ -373,6 +373,17 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	}
 }
 
+void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node)
+{
+	struct _starpu_data_replicate *replicate = &handle->per_node[node];
+
+	_starpu_spin_lock(&handle->header_lock);
+	STARPU_ASSERT_MSG(replicate->allocated == 0, "starpu_data_ptr_register must be called right after starpu_data_register");
+	replicate->allocated = 1;
+	replicate->automatically_allocated = 0;
+	_starpu_spin_unlock(&handle->header_lock);
+}
+
 int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops, unsigned int mf_node)
 {
 	unsigned node;

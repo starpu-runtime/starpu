@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -77,6 +77,7 @@ static int block_compare(void *data_interface_a, void *data_interface_b);
 static void display_block_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
 static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+static ssize_t describe(void *interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_block_ops =
 {
@@ -92,7 +93,8 @@ struct starpu_data_interface_ops starpu_interface_block_ops =
 	.interface_size = sizeof(struct starpu_block_interface),
 	.display = display_block_interface,
 	.pack_data = pack_block_handle,
-	.unpack_data = unpack_block_handle
+	.unpack_data = unpack_block_handle,
+	.describe = describe
 };
 
 static void *block_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
@@ -165,6 +167,18 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, unsigned home_n
 #endif
 
 	starpu_data_register(handleptr, home_node, &block_interface, &starpu_interface_block_ops);
+}
+
+void starpu_block_ptr_register(starpu_data_handle_t handle, unsigned node,
+			uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ldy, uint32_t ldz)
+{
+	struct starpu_block_interface *block_interface = starpu_data_get_interface_on_node(handle, node);
+	starpu_data_ptr_register(handle, node);
+	block_interface->ptr = ptr;
+	block_interface->dev_handle = dev_handle;
+	block_interface->offset = offset;
+	block_interface->ldy = ldy;
+	block_interface->ldz = ldz;
 }
 
 static uint32_t footprint_block_interface_crc32(starpu_data_handle_t handle)
@@ -715,4 +729,14 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, nx*ny*nz*elemsize);
 
 	return ret;
+}
+
+static ssize_t describe(void *interface, char *buf, size_t size)
+{
+	struct starpu_block_interface *block = (struct starpu_block_interface *) interface;
+	return snprintf(buf, size, "B%ux%ux%ux%u",
+			(unsigned) block->nx,
+			(unsigned) block->ny,
+			(unsigned) block->nz,
+			(unsigned) block->elemsize);
 }

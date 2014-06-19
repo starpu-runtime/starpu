@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -90,6 +90,7 @@ static int matrix_compare(void *data_interface_a, void *data_interface_b);
 static void display_matrix_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
 static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+static ssize_t describe(void *interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_matrix_ops =
 {
@@ -105,7 +106,8 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.interface_size = sizeof(struct starpu_matrix_interface),
 	.display = display_matrix_interface,
 	.pack_data = pack_matrix_handle,
-	.unpack_data = unpack_matrix_handle
+	.unpack_data = unpack_matrix_handle,
+	.describe = describe
 };
 
 static void register_matrix_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
@@ -174,6 +176,17 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, unsigned home_
 #endif
 
 	starpu_data_register(handleptr, home_node, &matrix_interface, &starpu_interface_matrix_ops);
+}
+
+void starpu_matrix_ptr_register(starpu_data_handle_t handle, unsigned node,
+			uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t ld)
+{
+	struct starpu_matrix_interface *matrix_interface = starpu_data_get_interface_on_node(handle, node);
+	starpu_data_ptr_register(handle, node);
+	matrix_interface->ptr = ptr;
+	matrix_interface->dev_handle = dev_handle;
+	matrix_interface->offset = offset;
+	matrix_interface->ld = ld;
 }
 
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle)
@@ -664,4 +677,13 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)nx*ny*elemsize);
 
 	return ret;
+}
+
+static ssize_t describe(void *interface, char *buf, size_t size)
+{
+	struct starpu_matrix_interface *matrix = (struct starpu_matrix_interface *) interface;
+	return snprintf(buf, size, "M%ux%ux%u",
+			(unsigned) matrix->nx,
+			(unsigned) matrix->ny,
+			(unsigned) matrix->elemsize);
 }

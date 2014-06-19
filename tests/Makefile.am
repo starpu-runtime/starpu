@@ -198,6 +198,7 @@ noinst_PROGRAMS =				\
 	datawizard/in_place_partition   	\
 	datawizard/partition_lazy		\
 	datawizard/gpu_register   		\
+	datawizard/gpu_ptr_register   		\
 	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
 	datawizard/readonly			\
@@ -410,6 +411,18 @@ datawizard_gpu_register_SOURCES +=	\
 endif
 if STARPU_USE_OPENCL
 datawizard_gpu_register_SOURCES +=	\
+	datawizard/scal_opencl.cl
+endif
+
+datawizard_gpu_ptr_register_SOURCES =	\
+	datawizard/gpu_ptr_register.c	\
+	datawizard/scal.c
+if STARPU_USE_CUDA
+datawizard_gpu_ptr_register_SOURCES +=	\
+	datawizard/scal_cuda.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_gpu_ptr_register_SOURCES +=	\
 	datawizard/scal_opencl.cl
 endif
 
