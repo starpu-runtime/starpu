@@ -44,7 +44,7 @@ static int vector_compare(void *data_interface_a, void *data_interface_b);
 static void display_vector_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_vector_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
 static int unpack_vector_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
-static ssize_t describe(void *interface, char *buf, size_t size);
+static ssize_t describe(void *data_interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_vector_ops =
 {
@@ -285,9 +285,9 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 	return ret;
 }
 
-static ssize_t describe(void *interface, char *buf, size_t size)
+static ssize_t describe(void *data_interface, char *buf, size_t size)
 {
-	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) interface;
+	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) data_interface;
 	return snprintf(buf, size, "V%ux%u",
 			(unsigned) vector->nx,
 			(unsigned) vector->elemsize);

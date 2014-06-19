@@ -90,7 +90,7 @@ static int matrix_compare(void *data_interface_a, void *data_interface_b);
 static void display_matrix_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
 static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
-static ssize_t describe(void *interface, char *buf, size_t size);
+static ssize_t describe(void *data_interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_matrix_ops =
 {
@@ -679,9 +679,9 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	return ret;
 }
 
-static ssize_t describe(void *interface, char *buf, size_t size)
+static ssize_t describe(void *data_interface, char *buf, size_t size)
 {
-	struct starpu_matrix_interface *matrix = (struct starpu_matrix_interface *) interface;
+	struct starpu_matrix_interface *matrix = (struct starpu_matrix_interface *) data_interface;
 	return snprintf(buf, size, "M%ux%ux%u",
 			(unsigned) matrix->nx,
 			(unsigned) matrix->ny,
