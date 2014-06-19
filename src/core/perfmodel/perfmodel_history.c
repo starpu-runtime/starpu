@@ -732,6 +732,9 @@ static void _starpu_dump_registered_models(void)
 
 void _starpu_initialize_registered_performance_models(void)
 {
+	/* make sure the performance model directory exists (or create it) */
+	_starpu_create_sampling_directory_if_needed();
+
 	registered_models = NULL;
 
 	STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
@@ -859,9 +862,6 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 
 	if(!model->is_loaded)
 	{
-		/* make sure the performance model directory exists (or create it) */
-		_starpu_create_sampling_directory_if_needed();
-
 		char path[256];
 		get_model_path(model, path, 256);
 
