@@ -672,27 +672,6 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 	node->next = registered_models;
 	registered_models = node;
 
-#ifdef STARPU_MODEL_DEBUG
-	_starpu_create_sampling_directory_if_needed();
-
-	_STARPU_DEBUG("\n\n ###\nHere\n ###\n\n");
-
-	if(model->is_init)
-	{
-		_STARPU_DEBUG("Init\n");
-		int ncombs = model->ncombs;
-		int comb, impl;
-		for(comb = 0; comb < ncombs; comb++)
-		{
-			int nimpls = model->nimpls[comb];
-			for(impl = 0; impl < nimpls; impl++)
-			{
-				starpu_perfmodel_debugfilepath(model, arch_combs[comb], model->per_arch[comb][impl].debug_path, 256, impl);
-			}
-		}
-	}
-#endif
-
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 	return 1;
 }
@@ -1360,6 +1339,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 #ifdef STARPU_MODEL_DEBUG
 		struct starpu_task *task = j->task;
+		starpu_perfmodel_debugfilepath(model, arch_combs[comb], per_arch_model->debug_path, 256, impl);
 		FILE *f = fopen(per_arch_model->debug_path, "a+");
 		if (f == NULL)
 		{
