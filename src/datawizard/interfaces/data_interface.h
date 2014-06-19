@@ -26,14 +26,6 @@
 #include <util/openmp_runtime_support.h>
 #endif
 
-/* Entry in the `registered_handles' hash table.  */
-struct handle_entry
-{
-	UT_hash_handle hh;
-	void *pointer;
-	starpu_data_handle_t handle;
-};
-
 /* Generic type representing an interface, for now it's only used before
  * execution on message-passing devices but it can be useful in other cases.
  */

@@ -29,6 +29,14 @@
 #include <util/openmp_runtime_support.h>
 #endif
 
+/* Entry in the `registered_handles' hash table.  */
+struct handle_entry
+{
+	UT_hash_handle hh;
+	void *pointer;
+	starpu_data_handle_t handle;
+};
+
 /* Hash table mapping host pointers to data handles.  */
 static struct handle_entry *registered_handles;
 static struct _starpu_spinlock    registered_handles_lock;
