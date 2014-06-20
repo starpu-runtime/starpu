@@ -189,8 +189,6 @@ STARPU_EXAMPLES =				\
 	sched_ctx/sched_ctx			\
 	sched_ctx/prio				\
 	sched_ctx/dummy_sched_with_ctx		\
-	sched_ctx/sched_ctx_without_sched_policy\
-	sched_ctx/nested_sched_ctxs		\
 	worker_collections/worker_tree_example  \
 	worker_collections/worker_list_example  \
 	reductions/dot_product			\
@@ -253,7 +251,8 @@ if !STARPU_HAVE_WINDOWS
 STARPU_EXAMPLES +=				\
 	openmp/vector_scal_omp			\
 	sched_ctx/sched_ctx_without_sched_policy\
-	sched_ctx/nested_sched_ctxs
+	sched_ctx/nested_sched_ctxs		\
+	sched_ctx/sched_ctx_without_sched_policy
 
 if STARPU_LONG_CHECK
 STARPU_EXAMPLES +=				\
@@ -789,6 +788,8 @@ top_hello_world_top_SOURCES =			\
 # Pi #
 ######
 
+if !STARPU_HAVE_WINDOWS
+
 examplebin_PROGRAMS +=				\
 	pi/pi					\
 	pi/pi_redux
@@ -812,6 +813,7 @@ pi_pi_redux_SOURCES +=				\
 	pi/pi_redux_kernel.cu
 pi_pi_redux_LDADD =				\
 	$(STARPU_CURAND_LDFLAGS)
+endif
 endif
 
 ###########################
