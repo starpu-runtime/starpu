@@ -62,6 +62,11 @@ void _starpu_data_interface_shutdown()
 {
 	struct handle_entry *entry, *tmp;
 
+	if (registered_handles)
+	{
+		_STARPU_DISP("[warning] The application has not unregistered all data handles.\n");
+	}
+
 	_starpu_spin_destroy(&registered_handles_lock);
 
 	HASH_ITER(hh, registered_handles, entry, tmp)
