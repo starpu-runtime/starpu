@@ -207,6 +207,8 @@ $(DOX_TAG): $(dox_inputs)
 	$(DOXYGEN) $(DOX_CONFIG)
 	sed -i 's/ModuleDocumentation <\/li>/<a class="el" href="modules.html">Modules<\/a>/' html/index.html
 	sed -i 's/FileDocumentation <\/li>/<a class="el" href="files.html">Files<\/a>/' html/index.html
+	@$(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex
+	@cat $(top_srcdir)/doc/doxygen/refman.tex >> $(DOX_LATEX_DIR)/refman.tex
 
 dist_pdf_DATA = $(DOX_PDF)
 
