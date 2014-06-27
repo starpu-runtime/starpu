@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -63,7 +63,7 @@ struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid, unsi
 
 	if (workerid < (int)config->topology.nworkers)
 		return &config->workers[workerid].perf_arch;
-	
+
 
 	/* We have a combined worker */
 	unsigned ncombinedworkers = config->topology.ncombinedworkers;
@@ -77,12 +77,17 @@ struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid, unsi
 
 static double per_arch_task_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, struct starpu_task *task, unsigned nimpl)
 {
+	int comb;
 	double exp = NAN;
-	int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
-	if(comb == -1) return exp;
-		
 	double (*per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 	double (*per_arch_cost_model)(struct starpu_data_descr *);
+
+	comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	if (comb == -1)
+		return NAN;
+	if (model->per_arch[comb] == NULL)
+		// The model has not been executed on this combination
+		return NAN;
 
 	per_arch_cost_function = model->per_arch[comb][nimpl].cost_function;
 	per_arch_cost_model = model->per_arch[comb][nimpl].cost_model;
@@ -114,7 +119,7 @@ double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arc
 			coef = _STARPU_OPENCL_ALPHA;
 		else if (perf_arch->devices[dev].type == STARPU_MIC_WORKER)
 			coef =  _STARPU_MIC_ALPHA;
-		
+
 		speedup += coef * (perf_arch->devices[dev].ncores + 1);
 	}
 	return speedup == 0 ? NAN : speedup;
@@ -237,7 +242,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		handle = STARPU_TASK_GET_HANDLE(task, i);
 		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
-		
+
 		switch(arch->devices[0].type)
 		{
 			case STARPU_CPU_WORKER:
@@ -505,4 +510,3 @@ void _starpu_create_sampling_directory_if_needed(void)
 		directory_existence_was_tested = 1;
 	}
 }
-
