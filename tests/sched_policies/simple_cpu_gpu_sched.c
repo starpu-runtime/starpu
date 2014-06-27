@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include "../helper.h"
+#include <core/perfmodel/perfmodel.h>
 
 /*
  * Schedulers that are aware of the expected task length provided by the
@@ -114,19 +115,23 @@ init_perfmodels_gpu(int gpu_type)
 
 		int comb_gpu = starpu_get_arch_comb(arch_gpu.ndevices, arch_gpu.devices);
 		if(comb_gpu == -1)
-		{
 			comb_gpu = starpu_add_arch_comb(arch_gpu.ndevices, arch_gpu.devices);
 
-			model_cpu_task.per_arch[comb_gpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
-			memset(&model_cpu_task.per_arch[comb_gpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-			model_cpu_task.nimpls[comb_gpu] = 1;
-			model_cpu_task.per_arch[comb_gpu][0].cost_function = cpu_task_gpu;
+//#error per_arch[comb_gpu] peut ne pas etre alloue, on doit fournir des fonctions publiques pour eviter de taper directtement dedans, la fonction se chargerait d allouer per_arch[comb_gpu] si necessaire
+		if (comb_gpu >= model_cpu_task.ncombs_set)
+			_starpu_perfmodel_realloc(&model_cpu_task, comb_gpu+1);
+		if (comb_gpu >= model_gpu_task.ncombs_set)
+			_starpu_perfmodel_realloc(&model_gpu_task, comb_gpu+1);
 
-			model_gpu_task.per_arch[comb_gpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
-			memset(&model_gpu_task.per_arch[comb_gpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-			model_gpu_task.nimpls[comb_gpu] = 1;
-			model_gpu_task.per_arch[comb_gpu][0].cost_function = gpu_task_gpu;
-		}
+		model_cpu_task.per_arch[comb_gpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
+		memset(&model_cpu_task.per_arch[comb_gpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
+		model_cpu_task.nimpls[comb_gpu] = 1;
+		model_cpu_task.per_arch[comb_gpu][0].cost_function = cpu_task_gpu;
+
+		model_gpu_task.per_arch[comb_gpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
+		memset(&model_gpu_task.per_arch[comb_gpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
+		model_gpu_task.nimpls[comb_gpu] = 1;
+		model_gpu_task.per_arch[comb_gpu][0].cost_function = gpu_task_gpu;
 	}
 }
 
@@ -148,6 +153,12 @@ init_perfmodels(void)
 	int comb_cpu = starpu_get_arch_comb(arch_cpu.ndevices, arch_cpu.devices);
 	if (comb_cpu == -1)
 		comb_cpu = starpu_add_arch_comb(arch_cpu.ndevices, arch_cpu.devices);
+
+//#error per_arch[comb_cpu] peut ne pas etre alloue, on doit fournir des fonctions publiques pour eviter de taper directtement dedans, la fonction se chargerait d allouer per_arch[comb_cpu] si necessaire
+	if (comb_cpu >= model_cpu_task.ncombs_set)
+		_starpu_perfmodel_realloc(&model_cpu_task, comb_cpu+1);
+	if (comb_cpu >= model_gpu_task.ncombs_set)
+		_starpu_perfmodel_realloc(&model_gpu_task, comb_cpu+1);
 
 	model_cpu_task.per_arch[comb_cpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
 	memset(&model_cpu_task.per_arch[comb_cpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
@@ -271,8 +282,10 @@ run(struct starpu_sched_policy *policy)
 		ret = 1;
 	}
 	else
+	{
+		FPRINTF(stderr, "Task DID execute on expected worker\n");
 		ret = 0;
-
+	}
 
 	starpu_task_destroy(cpu_task);
 	starpu_task_destroy(gpu_task);
