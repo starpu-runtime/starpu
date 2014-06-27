@@ -40,7 +40,7 @@
 
 struct starpu_perfmodel_arch **arch_combs;
 int current_arch_comb;
-unsigned nb_arch_combs;
+int nb_arch_combs;
 
 struct starpu_perfmodel_history_table
 {
@@ -58,6 +58,12 @@ static struct _starpu_perfmodel_list *registered_models = NULL;
 
 int starpu_add_arch_comb(int ndevices, struct starpu_perfmodel_device* devices)
 {
+	if (current_arch_comb >= nb_arch_combs)
+	{
+		// We need to allocate more arch_combs
+		nb_arch_combs += 10;
+		arch_combs = (struct starpu_perfmodel_arch**) realloc(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
+	}
 	arch_combs[current_arch_comb] = (struct starpu_perfmodel_arch*)malloc(sizeof(struct starpu_perfmodel_arch));
 	arch_combs[current_arch_comb]->devices = (struct starpu_perfmodel_device*)malloc(ndevices*sizeof(struct starpu_perfmodel_device));
 	arch_combs[current_arch_comb]->ndevices = ndevices;
@@ -401,6 +407,7 @@ static enum starpu_worker_archtype _get_enum_type(int type)
 	}
 
 }
+
 static void parse_comb(FILE *f, struct starpu_perfmodel *model, unsigned scan_history, int comb)
 {
 	int ndevices = 0;
@@ -459,19 +466,11 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 
 	if (ncombs > nb_arch_combs)
 	{
-		int i;
-
-		arch_combs = (struct starpu_perfmodel_arch**) realloc(arch_combs, ncombs*sizeof(struct starpu_perfmodel_arch*));
-		model->per_arch = (struct starpu_perfmodel_per_arch**) realloc(model->per_arch, ncombs*sizeof(struct starpu_perfmodel_per_arch*));
-		model->nimpls = (int *)realloc(model->nimpls, ncombs*sizeof(int));
-		model->combs = (int*)realloc(model->combs, ncombs*sizeof(int));
-
-		for(i = ncombs; i < nb_arch_combs; i++)
-		{
-			model->per_arch[i] = NULL;
-			model->nimpls[i] = 0;
-		}
+		// The model has more combs than the original number of arch_combs, we need to reallocate
 		nb_arch_combs = ncombs;
+		arch_combs = (struct starpu_perfmodel_arch**) realloc(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
+
+		_starpu_perfmodel_realloc(model, nb_arch_combs);
 	}
 
 	int comb;
@@ -574,6 +573,22 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	}
 }
 
+void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb)
+{
+	int i;
+
+	STARPU_ASSERT(nb > model->ncombs_set);
+	model->per_arch = (struct starpu_perfmodel_per_arch**) realloc(model->per_arch, nb*sizeof(struct starpu_perfmodel_per_arch*));
+	model->nimpls = (int *)realloc(model->nimpls, nb*sizeof(int));
+	model->combs = (int*)realloc(model->combs, nb*sizeof(int));
+	for(i = model->ncombs_set; i < nb; i++)
+	{
+		model->per_arch[i] = NULL;
+		model->nimpls[i] = 0;
+	}
+	model->ncombs_set = nb;
+}
+
 void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 {
 	STARPU_ASSERT(model && model->symbol);
@@ -601,12 +616,13 @@ void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 	STARPU_PTHREAD_RWLOCK_INIT(&model->model_rwlock, NULL);
 	if(model->type != STARPU_COMMON)
 	{
-		unsigned i;
+		int i;
 
 		model->per_arch = (struct starpu_perfmodel_per_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_per_arch*));
 		model->nimpls = (int *)malloc(nb_arch_combs*sizeof(int));
 		model->combs = (int*)malloc(nb_arch_combs*sizeof(int));
 		model->ncombs = 0;
+		model->ncombs_set = nb_arch_combs;
 
 		for(i = 0; i < nb_arch_combs; i++)
 		{
@@ -748,7 +764,10 @@ void _starpu_initialize_registered_performance_models(void)
 	for(i = 0; i < conf->topology.nhwmicdevices; i++)
 		nmic += conf->topology.nhwmiccores[i];
 	unsigned nscc = conf->topology.nhwscc;
-	nb_arch_combs = pow(2, (ncores + ncuda + nopencl + nmic + nscc));
+
+	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nscc), this is too big
+	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nscc), and reallocate when necessary in starpu_add_arch_comb
+	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nscc);
 	arch_combs = (struct starpu_perfmodel_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
 }
@@ -1194,7 +1213,14 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			}
 		}
 		if(!found)
+		{
+			if (model->ncombs + 1 >= model->ncombs_set)
+			{
+				// The number of combinations is bigger than the one which was initially allocated, we need to reallocate
+				_starpu_perfmodel_realloc(model, nb_arch_combs);
+			}
 			model->combs[model->ncombs++] = comb;
+		}
 
 		STARPU_PTHREAD_RWLOCK_WRLOCK(&model->model_rwlock);
 

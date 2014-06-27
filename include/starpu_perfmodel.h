@@ -136,12 +136,16 @@ struct starpu_perfmodel
 
 	const char *symbol;
 
+#ifdef STARPU_DEVEL
+#warning move all the fields in a private structure
+#endif
 	unsigned is_init;
 	unsigned is_loaded;
 	unsigned benchmarking;
 	starpu_pthread_rwlock_t model_rwlock;
 	int *nimpls;
-	int ncombs;
+	int ncombs;  /* The number of combinations currently used by the model */
+	int ncombs_set; /* The number of combinations allocated in the array nimpls and ncombs */
 	int *combs;
 };
 
