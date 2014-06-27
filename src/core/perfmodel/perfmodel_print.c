@@ -64,7 +64,7 @@ void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per
 
 void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output)
 {
-	int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT(comb != -1);
 	struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[comb][nimpl];
 	char archname[32];
@@ -193,7 +193,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			perf_arch.devices[0].type = STARPU_CPU_WORKER;
 			perf_arch.devices[0].devid = 0;
 			perf_arch.devices[0].ncores = 1;
-			int comb = starpu_get_arch_comb(perf_arch.ndevices, perf_arch.devices);
+			int comb = starpu_perfmodel_arch_comb_get(perf_arch.ndevices, perf_arch.devices);
 			STARPU_ASSERT(comb != -1);
 			int nimpls = model->nimpls[comb];
 			for (implid = 0; implid < nimpls; implid++)
@@ -219,7 +219,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			perf_arch.devices[0].type = STARPU_CPU_WORKER;
 			perf_arch.devices[0].devid = 0;
 			perf_arch.devices[0].ncores = k-1;
-			int comb = starpu_get_arch_comb(perf_arch.ndevices, perf_arch.devices);
+			int comb = starpu_perfmodel_arch_comb_get(perf_arch.ndevices, perf_arch.devices);
 			STARPU_ASSERT(comb != -1);
 			int nimpls = model->nimpls[comb];
 
@@ -270,7 +270,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			perf_arch.devices[0].devid = gpuid;
 			perf_arch.devices[0].ncores = 1;
 
-			int comb = starpu_get_arch_comb(perf_arch.ndevices, perf_arch.devices);
+			int comb = starpu_perfmodel_arch_comb_get(perf_arch.ndevices, perf_arch.devices);
 			STARPU_ASSERT(comb != -1);
 			int nimpls = model->nimpls[comb];
 

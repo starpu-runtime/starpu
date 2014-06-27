@@ -113,9 +113,9 @@ init_perfmodels_gpu(int gpu_type)
 		arch_gpu.devices[0].devid = starpu_worker_get_devid(worker_gpu_ids[worker_gpu]);
 		arch_gpu.devices[0].ncores = 1;
 
-		int comb_gpu = starpu_get_arch_comb(arch_gpu.ndevices, arch_gpu.devices);
+		int comb_gpu = starpu_perfmodel_arch_comb_get(arch_gpu.ndevices, arch_gpu.devices);
 		if(comb_gpu == -1)
-			comb_gpu = starpu_add_arch_comb(arch_gpu.ndevices, arch_gpu.devices);
+			comb_gpu = starpu_perfmodel_arch_comb_add(arch_gpu.ndevices, arch_gpu.devices);
 
 //#error per_arch[comb_gpu] peut ne pas etre alloue, on doit fournir des fonctions publiques pour eviter de taper directtement dedans, la fonction se chargerait d allouer per_arch[comb_gpu] si necessaire
 		if (comb_gpu >= model_cpu_task.ncombs_set)
@@ -150,9 +150,9 @@ init_perfmodels(void)
 	arch_cpu.devices[0].devid = 0;
 	arch_cpu.devices[0].ncores = 1;
 
-	int comb_cpu = starpu_get_arch_comb(arch_cpu.ndevices, arch_cpu.devices);
+	int comb_cpu = starpu_perfmodel_arch_comb_get(arch_cpu.ndevices, arch_cpu.devices);
 	if (comb_cpu == -1)
-		comb_cpu = starpu_add_arch_comb(arch_cpu.ndevices, arch_cpu.devices);
+		comb_cpu = starpu_perfmodel_arch_comb_add(arch_cpu.ndevices, arch_cpu.devices);
 
 //#error per_arch[comb_cpu] peut ne pas etre alloue, on doit fournir des fonctions publiques pour eviter de taper directtement dedans, la fonction se chargerait d allouer per_arch[comb_cpu] si necessaire
 	if (comb_cpu >= model_cpu_task.ncombs_set)

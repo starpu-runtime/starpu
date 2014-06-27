@@ -159,8 +159,8 @@ struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct sta
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model);
 int starpu_perfmodel_unload_model(struct starpu_perfmodel *model);
 int starpu_get_narch_combs();
-int starpu_add_arch_comb(int ndevices, struct starpu_perfmodel_device* devices);
-int starpu_get_arch_comb(int ndevices, struct starpu_perfmodel_device *devices);
+int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices);
+int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices);
 
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, char *path, size_t maxlen, unsigned nimpl);
 char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);

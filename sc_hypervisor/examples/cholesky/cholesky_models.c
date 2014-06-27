@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -139,9 +139,9 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
         arch_cpu.devices[0].devid = 0;
         arch_cpu.devices[0].ncores = 1;
 
-	int comb_cpu = starpu_get_arch_comb(arch_cpu.ndevices, arch_cpu.devices);
+	int comb_cpu = starpu_perfmodel_arch_comb_get(arch_cpu.ndevices, arch_cpu.devices);
         if(comb_cpu == -1)
-                comb_cpu = starpu_add_arch_comb(arch_cpu.ndevices, arch_cpu.devices);
+                comb_cpu = starpu_perfmodel_arch_comb_add(arch_cpu.ndevices, arch_cpu.devices);
 
 
 	model->per_arch[comb_cpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
@@ -158,9 +158,9 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
                 arch_cuda.devices[0].devid = 0;
 		arch_cuda.devices[0].ncores = 1;
 
-		int comb_cuda = starpu_get_arch_comb(arch_cuda.ndevices, arch_cuda.devices);
+		int comb_cuda = starpu_perfmodel_arch_comb_get(arch_cuda.ndevices, arch_cuda.devices);
 		if(comb_cuda == -1)
-			comb_cuda = starpu_add_arch_comb(arch_cuda.ndevices, arch_cuda.devices);
+			comb_cuda = starpu_perfmodel_arch_comb_add(arch_cuda.ndevices, arch_cuda.devices);
 
                 model->per_arch[comb_cuda] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
                 memset(&model->per_arch[comb_cuda][0], 0, sizeof(struct starpu_perfmodel_per_arch));

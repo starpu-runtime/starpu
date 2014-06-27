@@ -56,7 +56,7 @@ struct starpu_perfmodel_history_table
 static starpu_pthread_rwlock_t registered_models_rwlock;
 static struct _starpu_perfmodel_list *registered_models = NULL;
 
-int starpu_add_arch_comb(int ndevices, struct starpu_perfmodel_device* devices)
+int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices)
 {
 	if (current_arch_comb >= nb_arch_combs)
 	{
@@ -78,7 +78,7 @@ int starpu_add_arch_comb(int ndevices, struct starpu_perfmodel_device* devices)
 	return current_arch_comb-1;
 }
 
-int starpu_get_arch_comb(int ndevices, struct starpu_perfmodel_device *devices)
+int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices)
 {
 	int comb;
 	for(comb = 0; comb < current_arch_comb; comb++)
@@ -132,7 +132,7 @@ struct starpu_perfmodel_arch *_starpu_arch_comb_get(int comb)
 size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned impl, struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
-	int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 
 	if (model && model->per_arch && comb != -1 && model->per_arch[comb] && model->per_arch[comb][impl].size_base)
 	{
@@ -438,9 +438,9 @@ static void parse_comb(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		devices[dev].devid = dev_id;
 		devices[dev].ncores = ncores;
 	}
-	int id_comb = starpu_get_arch_comb(ndevices, devices);
+	int id_comb = starpu_perfmodel_arch_comb_get(ndevices, devices);
 	if(id_comb == -1)
-		id_comb = starpu_add_arch_comb(ndevices, devices);
+		id_comb = starpu_perfmodel_arch_comb_add(ndevices, devices);
 
 	model->combs[comb] = id_comb;
 	parse_arch(f, model, scan_history, id_comb);
@@ -766,7 +766,7 @@ void _starpu_initialize_registered_performance_models(void)
 	unsigned nscc = conf->topology.nhwscc;
 
 	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nscc), this is too big
-	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nscc), and reallocate when necessary in starpu_add_arch_comb
+	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nscc), and reallocate when necessary in starpu_perfmodel_arch_comb_add
 	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nscc);
 	arch_combs = (struct starpu_perfmodel_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
@@ -1040,7 +1040,7 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *archname, size_t maxlen,unsigned impl)
 {
-	int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT(comb != -1);
 
 	snprintf(archname, maxlen, "Comb%d_impl%u", comb, impl);
@@ -1049,7 +1049,7 @@ void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *ar
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
 				    struct starpu_perfmodel_arch* arch, char *path, size_t maxlen, unsigned nimpl)
 {
-	int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT(comb != -1);
 	char archname[32];
 	starpu_perfmodel_get_arch_name(arch, archname, 32, nimpl);
@@ -1066,7 +1066,7 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 	size_t size;
 	struct starpu_perfmodel_regression_model *regmodel;
 
-	comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if(comb == -1)
 		return NAN;
 	if (model->per_arch[comb] == NULL)
@@ -1089,7 +1089,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	size_t size;
 	struct starpu_perfmodel_regression_model *regmodel;
 
-	comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if(comb == -1)
 		return NAN;
 	if (model->per_arch[comb] == NULL)
@@ -1144,7 +1144,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 	struct starpu_perfmodel_history_table *history, *elt;
 	uint32_t key;
 
-	comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if(comb == -1)
 		return NAN;
 	if (model->per_arch[comb] == NULL)
@@ -1198,9 +1198,9 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 {
 	if (model)
 	{
-		int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+		int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 		if(comb == -1)
-			comb = starpu_add_arch_comb(arch->ndevices, arch->devices);
+			comb = starpu_perfmodel_arch_comb_add(arch->ndevices, arch->devices);
 
 		int c;
 		unsigned found = 0;
@@ -1413,7 +1413,7 @@ void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct star
 
 struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned impl)
 {
-	int comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if(comb == -1) return NULL;
 
 	return &model->per_arch[comb][impl];

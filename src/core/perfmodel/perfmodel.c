@@ -82,7 +82,7 @@ static double per_arch_task_expected_perf(struct starpu_perfmodel *model, struct
 	double (*per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 	double (*per_arch_cost_model)(struct starpu_data_descr *);
 
-	comb = starpu_get_arch_comb(arch->ndevices, arch->devices);
+	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if (comb == -1)
 		return NAN;
 	if (model->per_arch[comb] == NULL)
