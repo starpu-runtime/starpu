@@ -152,7 +152,7 @@ mpi_lu_plu_implicit_example_double_LDADD =	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 mpi_lu_plu_implicit_example_double_SOURCES =	\
-	mpi_lu/plu_outofcore_example_double.c	\
+	mpi_lu/plu_implicit_example_double.c	\
 	mpi_lu/plu_solve_double.c		\
 	mpi_lu/pdlu_kernels.c			\
 	mpi_lu/pdlu_implicit.c			\
