@@ -38,7 +38,7 @@ static unsigned check = 0;
 static int p = 1;
 static int q = 1;
 static unsigned display = 0;
-static char *path = "/tmp/starpu-mpi_LU";
+static char *path = "./starpu-ooc-files";
 
 #ifdef STARPU_HAVE_LIBNUMA
 static unsigned numa = 0;
