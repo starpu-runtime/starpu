@@ -124,9 +124,12 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "AFTER: First element is %f\n", vector[0]);
 	FPRINTF(stderr, "AFTER: Last element is %f\n", vector[NX-1]);
 
+	free(vector);
 	return 0;
 
 enodev:
+	starpu_data_unregister(vector_handle);
+	free(vector);
 	starpu_shutdown();
 	return 77;
 }
