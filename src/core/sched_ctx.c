@@ -491,10 +491,6 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	else
 		starpu_sched_ctx_create_worker_collection(sched_ctx->id, STARPU_WORKER_LIST);
 
-        /* construct the collection of workers(list/tree/etc.) */
-	sched_ctx->workers->init(sched_ctx->workers);
-
-
 	/* after having an worker_collection on the ressources add them */
 	_starpu_add_workers_to_sched_ctx(sched_ctx, workerids, nworkers_ctx, NULL, NULL);
 
@@ -772,6 +768,10 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 		free(sched_ctx->sched_policy);
 		sched_ctx->sched_policy = NULL;
 	}
+	else
+	{
+		starpu_sched_ctx_delete_worker_collection(sched_ctx->id);
+	}
 
 	if (sched_ctx->perf_arch.devices)
 	{
@@ -836,8 +836,8 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		_starpu_update_workers_without_ctx(workerids, nworkers_ctx, sched_ctx_id, 1);
 //		_starpu_sched_ctx_free_scheduling_data(sched_ctx);
 		_starpu_delete_sched_ctx(sched_ctx);
-
 	}
+
 	/* workerids is malloc-ed in starpu_sched_ctx_get_workers_list, don't forget to free it when
 	   you don't use it anymore */
 	free(workerids);
@@ -1333,6 +1333,9 @@ struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsig
 
 	}
 
+        /* construct the collection of workers(list/tree/etc.) */
+	sched_ctx->workers->init(sched_ctx->workers);
+
 	return sched_ctx->workers;
 }
 
@@ -1378,6 +1381,7 @@ void starpu_sched_ctx_delete_worker_collection(unsigned sched_ctx_id)
 	sched_ctx->workers->deinit(sched_ctx->workers);
 
 	free(sched_ctx->workers);
+	sched_ctx->workers = NULL;
 }
 
 struct starpu_worker_collection* starpu_sched_ctx_get_worker_collection(unsigned sched_ctx_id)
