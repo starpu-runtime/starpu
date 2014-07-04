@@ -771,9 +771,13 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 		_starpu_deinit_sched_policy(sched_ctx);
 		free(sched_ctx->sched_policy);
 		sched_ctx->sched_policy = NULL;
-		free(sched_ctx->perf_arch.devices);
 	}
-	
+
+	if (sched_ctx->perf_arch.devices)
+	{
+		free(sched_ctx->perf_arch.devices);
+		sched_ctx->perf_arch.devices = NULL;
+	}
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->empty_ctx_mutex);
 	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
