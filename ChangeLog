@@ -93,6 +93,7 @@ The scheduling context release
 
 New features:
   * One can register an existing on-GPU buffer to be used by a handle.
+  * Add the starpu_paje_summary statistics tool.
 
 StarPU 1.1.2 (svn revision xxx)
 ==============================================
