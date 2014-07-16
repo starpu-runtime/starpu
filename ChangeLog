@@ -18,7 +18,7 @@ StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 
 New features:
-  * Xeon Phi support
+  * MIC Xeon Phi support
   * SCC support
   * New function starpu_sched_ctx_exec_parallel_code to execute a
     parallel code on the workers of the given scheduler context
@@ -73,6 +73,7 @@ Small features:
     manage the tag.
   * On Linux x86, spinlocks now block after a hundred tries. This avoids
     typical 10ms pauses when the application thread tries to submit tasks.
+  * New function char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
@@ -93,6 +94,7 @@ The scheduling context release
 
 New features:
   * One can register an existing on-GPU buffer to be used by a handle.
+  * Add the starpu_paje_summary statistics tool.
 
 StarPU 1.1.2 (svn revision xxx)
 ==============================================

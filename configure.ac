@@ -54,8 +54,8 @@ AC_CANONICAL_SYSTEM
 dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
 dnl when they're available.
 m4_ifdef([AM_SILENT_RULES],
-  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests])],
-  [AM_INIT_AUTOMAKE([1.10 -Wall foreign])])
+  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests subdir-objects])],
+  [AM_INIT_AUTOMAKE([1.10 -Wall foreign subdir-objects])])
 
 m4_ifdef([AM_SILENT_RULES],
   [AM_SILENT_RULES(yes)])
@@ -92,7 +92,7 @@ AC_PATH_PROG(svnversioncommand, svnversion)
 
 # use svnversion to record the current repository revision only if
 # subversion is installed and we are in a working copy
-if test "$svnversioncommand" = "" || test `LC_ALL=C $svnversioncommand -n $srcdir` = "exported" ; then
+if test "$svnversioncommand" = "" || test "`LC_ALL=C $svnversioncommand -n $srcdir`" = "exported" ; then
    if test -f $srcdir/STARPU-REVISION ; then
       cp $srcdir/STARPU-REVISION .
    else
@@ -2458,6 +2458,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_workers_activity
   chmod +x tools/starpu_paje_draw_histogram
   chmod +x tools/starpu_paje_state_stats
+  chmod +x tools/starpu_paje_summary
   chmod +x doc/doxygen/doxygen_filter.sh
 ])
 
@@ -2487,6 +2488,7 @@ AC_OUTPUT([
 	tools/starpu_workers_activity
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats
+	tools/starpu_paje_summary
 	socl/Makefile
 	socl/src/Makefile
 	socl/examples/Makefile
