@@ -92,7 +92,7 @@ AC_PATH_PROG(svnversioncommand, svnversion)
 
 # use svnversion to record the current repository revision only if
 # subversion is installed and we are in a working copy
-if test "$svnversioncommand" = "" || test `LC_ALL=C $svnversioncommand -n $srcdir` = "exported" ; then
+if test "$svnversioncommand" = "" || test "`LC_ALL=C $svnversioncommand -n $srcdir`" = "exported" ; then
    if test -f $srcdir/STARPU-REVISION ; then
       cp $srcdir/STARPU-REVISION .
    else
