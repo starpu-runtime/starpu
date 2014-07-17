@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2013  Université de Bordeaux 1
- * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -194,7 +194,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 	{
 		if (strcmp(arch, "cpu") == 0)
 		{
-			unsigned implid;
+			int implid;
 			struct starpu_perfmodel_arch perf_arch;
 			perf_arch.type = STARPU_CPU_WORKER;
 			perf_arch.devid = 0;
@@ -214,7 +214,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 				exit(-1);
 			}
 
-			unsigned implid;
+			int implid;
 			struct starpu_perfmodel_arch perf_arch;
 			perf_arch.type = STARPU_CPU_WORKER;
 			perf_arch.devid = 0;
@@ -227,7 +227,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 		if (strcmp(arch, "cuda") == 0)
 		{
 			unsigned devid;
-			unsigned implid;
+			int implid;
 			struct starpu_perfmodel_arch perf_arch;
 			perf_arch.type = STARPU_CUDA_WORKER;
 			perf_arch.ncore = 0;
@@ -251,7 +251,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			perf_arch.type = STARPU_CUDA_WORKER;
 			perf_arch.devid = gpuid;
 			perf_arch.ncore = 0;
-			unsigned implid;
+			int implid;
 			for (implid = 0; implid < STARPU_MAXIMPLEMENTATIONS; implid++)
 				starpu_perfmodel_print(model, &perf_arch, implid, parameter, footprint, output);
 			return 0;
