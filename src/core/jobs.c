@@ -166,20 +166,23 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 #ifdef STARPU_USE_SC_HYPERVISOR
-	int workerid = starpu_worker_get_id();
-	int i;
 	size_t data_size = 0;
-	for(i = 0; i < STARPU_NMAXBUFS; i++)
-	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
-		if (handle != NULL)
-			data_size += _starpu_data_get_size(handle);
-	}
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	/* We release handle reference count */
 	if (task->cl)
 	{
+#ifdef STARPU_USE_SC_HYPERVISOR
+		int workerid = starpu_worker_get_id();
+		int i;
+		for(i = 0; i < task->cl->nbuffers; i++)
+		{
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+			if (handle != NULL)
+				data_size += _starpu_data_get_size(handle);
+		}
+#endif //STARPU_USE_SC_HYPERVISOR
+
 		unsigned i;
 		for (i=0; i<task->cl->nbuffers; i++)
 		{
