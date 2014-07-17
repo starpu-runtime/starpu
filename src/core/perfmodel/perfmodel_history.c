@@ -1410,14 +1410,6 @@ void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct star
 	_starpu_set_calibrate_flag(1);
 }
 
-struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned impl)
-{
-	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
-	if(comb == -1) return NULL;
-
-	return &model->per_arch[comb][impl];
-}
-
 int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model)
 {
 	int comb;
@@ -1439,7 +1431,15 @@ int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model)
 	return 0;
 }
 
-struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_per_arch(struct starpu_perfmodel *model, int impl, va_list varg_list)
+struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned impl)
+{
+	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	if(comb == -1) return NULL;
+
+	return &model->per_arch[comb][impl];
+}
+
+struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_model_per_devices(struct starpu_perfmodel *model, int impl, va_list varg_list)
 {
 	struct starpu_perfmodel_arch arch;
 	va_list varg_list_copy;
@@ -1500,38 +1500,38 @@ struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_per_arch(struct starpu_p
 	return &model->per_arch[comb][impl];
 }
 
-struct starpu_perfmodel_per_arch *starpu_perfmodel_get_per_arch(struct starpu_perfmodel *model, int impl, ...)
+struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_devices(struct starpu_perfmodel *model, int impl, ...)
 {
 	va_list varg_list;
 	struct starpu_perfmodel_per_arch *per_arch;
 
 	va_start(varg_list, impl);
-	per_arch = _starpu_perfmodel_get_per_arch(model, impl, varg_list);
+	per_arch = _starpu_perfmodel_get_model_per_devices(model, impl, varg_list);
 	va_end(varg_list);
 
 	return per_arch;
 }
 
-int starpu_perfmodel_set_per_arch_cost_function(struct starpu_perfmodel *model, int impl, starpu_perfmodel_per_arch_cost_function func, ...)
+int starpu_perfmodel_set_per_devices_cost_function(struct starpu_perfmodel *model, int impl, starpu_perfmodel_per_arch_cost_function func, ...)
 {
 	va_list varg_list;
 	struct starpu_perfmodel_per_arch *per_arch;
 
 	va_start(varg_list, func);
-	per_arch = _starpu_perfmodel_get_per_arch(model, impl, varg_list);
+	per_arch = _starpu_perfmodel_get_model_per_devices(model, impl, varg_list);
 	per_arch->cost_function = func;
 	va_end(varg_list);
 
 	return 0;
 }
 
-int starpu_perfmodel_set_per_arch_size_base(struct starpu_perfmodel *model, int impl, starpu_perfmodel_per_arch_size_base func, ...)
+int starpu_perfmodel_set_per_devices_size_base(struct starpu_perfmodel *model, int impl, starpu_perfmodel_per_arch_size_base func, ...)
 {
 	va_list varg_list;
 	struct starpu_perfmodel_per_arch *per_arch;
 
 	va_start(varg_list, func);
-	per_arch = _starpu_perfmodel_get_per_arch(model, impl, varg_list);
+	per_arch = _starpu_perfmodel_get_model_per_devices(model, impl, varg_list);
 	per_arch->size_base = func;
 	va_end(varg_list);
 

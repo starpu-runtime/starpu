@@ -106,13 +106,13 @@ init_perfmodels_gpu(int gpu_type)
 	starpu_worker_get_ids_by_type(gpu_type, worker_gpu_ids, nb_worker_gpu);
 	for(worker_gpu = 0 ; worker_gpu < nb_worker_gpu ; worker_gpu ++)
 	{
-		starpu_perfmodel_set_per_arch_cost_function(&model_cpu_task, 0, cpu_task_gpu,
-							    gpu_type, starpu_worker_get_devid(worker_gpu_ids[worker_gpu]), 1,
-							    -1);
+		starpu_perfmodel_set_per_devices_cost_function(&model_cpu_task, 0, cpu_task_gpu,
+							       gpu_type, starpu_worker_get_devid(worker_gpu_ids[worker_gpu]), 1,
+							       -1);
 
-		starpu_perfmodel_set_per_arch_cost_function(&model_gpu_task, 0, gpu_task_gpu,
-							    gpu_type, starpu_worker_get_devid(worker_gpu_ids[worker_gpu]), 1,
-						    -1);
+		starpu_perfmodel_set_per_devices_cost_function(&model_gpu_task, 0, gpu_task_gpu,
+							       gpu_type, starpu_worker_get_devid(worker_gpu_ids[worker_gpu]), 1,
+							       -1);
 	}
 }
 
@@ -124,8 +124,8 @@ init_perfmodels(void)
 	starpu_perfmodel_init(NULL, &model_cpu_task);
 	starpu_perfmodel_init(NULL, &model_gpu_task);
 
-	starpu_perfmodel_set_per_arch_cost_function(&model_cpu_task, 0, cpu_task_cpu, STARPU_CPU_WORKER, 0, 1, -1);
-	starpu_perfmodel_set_per_arch_cost_function(&model_gpu_task, 0, gpu_task_cpu, STARPU_CPU_WORKER, 0, 1, -1);
+	starpu_perfmodel_set_per_devices_cost_function(&model_cpu_task, 0, cpu_task_cpu, STARPU_CPU_WORKER, 0, 1, -1);
+	starpu_perfmodel_set_per_devices_cost_function(&model_gpu_task, 0, gpu_task_cpu, STARPU_CPU_WORKER, 0, 1, -1);
 
 	// We need to set the cost function for each combination with a CUDA or a OpenCL worker
 	init_perfmodels_gpu(STARPU_CUDA_WORKER);

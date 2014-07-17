@@ -224,10 +224,10 @@ void initialize_lu_kernels_model(struct starpu_perfmodel* model, char * symbol,
 
 	starpu_perfmodel_init(NULL, model);
 
-	starpu_perfmodel_set_per_arch_cost_function(model, 0, cpu_cost_function, STARPU_CPU_WORKER, 0, 1, -1);
+	starpu_perfmodel_set_per_devices_cost_function(model, 0, cpu_cost_function, STARPU_CPU_WORKER, 0, 1, -1);
 
 	if(starpu_worker_get_count_by_type(STARPU_CUDA_WORKER) != 0)
 	{
-		starpu_perfmodel_set_per_arch_cost_function(model, 0, cuda_cost_function, STARPU_CUDA_WORKER, 0, 1, -1);
+		starpu_perfmodel_set_per_devices_cost_function(model, 0, cuda_cost_function, STARPU_CUDA_WORKER, 0, 1, -1);
 	}
 }
