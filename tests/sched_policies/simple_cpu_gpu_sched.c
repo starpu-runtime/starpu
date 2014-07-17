@@ -106,32 +106,13 @@ init_perfmodels_gpu(int gpu_type)
 	starpu_worker_get_ids_by_type(gpu_type, worker_gpu_ids, nb_worker_gpu);
 	for(worker_gpu = 0 ; worker_gpu < nb_worker_gpu ; worker_gpu ++)
 	{
-		struct starpu_perfmodel_arch arch_gpu;
-		arch_gpu.ndevices = 1;
-		arch_gpu.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
-		arch_gpu.devices[0].type = gpu_type;
-		arch_gpu.devices[0].devid = starpu_worker_get_devid(worker_gpu_ids[worker_gpu]);
-		arch_gpu.devices[0].ncores = 1;
+		starpu_perfmodel_set_per_arch_cost_function(&model_cpu_task, 0, cpu_task_gpu,
+							    gpu_type, starpu_worker_get_devid(worker_gpu_ids[worker_gpu]), 1,
+							    -1);
 
-		int comb_gpu = starpu_perfmodel_arch_comb_get(arch_gpu.ndevices, arch_gpu.devices);
-		if(comb_gpu == -1)
-			comb_gpu = starpu_perfmodel_arch_comb_add(arch_gpu.ndevices, arch_gpu.devices);
-
-//#error per_arch[comb_gpu] peut ne pas etre alloue, on doit fournir des fonctions publiques pour eviter de taper directtement dedans, la fonction se chargerait d allouer per_arch[comb_gpu] si necessaire
-		if (comb_gpu >= model_cpu_task.ncombs_set)
-			_starpu_perfmodel_realloc(&model_cpu_task, comb_gpu+1);
-		if (comb_gpu >= model_gpu_task.ncombs_set)
-			_starpu_perfmodel_realloc(&model_gpu_task, comb_gpu+1);
-
-		model_cpu_task.per_arch[comb_gpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
-		memset(&model_cpu_task.per_arch[comb_gpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-		model_cpu_task.nimpls[comb_gpu] = 1;
-		model_cpu_task.per_arch[comb_gpu][0].cost_function = cpu_task_gpu;
-
-		model_gpu_task.per_arch[comb_gpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
-		memset(&model_gpu_task.per_arch[comb_gpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-		model_gpu_task.nimpls[comb_gpu] = 1;
-		model_gpu_task.per_arch[comb_gpu][0].cost_function = gpu_task_gpu;
+		starpu_perfmodel_set_per_arch_cost_function(&model_gpu_task, 0, gpu_task_gpu,
+							    gpu_type, starpu_worker_get_devid(worker_gpu_ids[worker_gpu]), 1,
+						    -1);
 	}
 }
 
@@ -143,72 +124,12 @@ init_perfmodels(void)
 	starpu_perfmodel_init(NULL, &model_cpu_task);
 	starpu_perfmodel_init(NULL, &model_gpu_task);
 
-	struct starpu_perfmodel_arch arch_cpu;
-	arch_cpu.ndevices = 1;
-	arch_cpu.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
-	arch_cpu.devices[0].type = STARPU_CPU_WORKER;
-	arch_cpu.devices[0].devid = 0;
-	arch_cpu.devices[0].ncores = 1;
-
-	int comb_cpu = starpu_perfmodel_arch_comb_get(arch_cpu.ndevices, arch_cpu.devices);
-	if (comb_cpu == -1)
-		comb_cpu = starpu_perfmodel_arch_comb_add(arch_cpu.ndevices, arch_cpu.devices);
-
-//#error per_arch[comb_cpu] peut ne pas etre alloue, on doit fournir des fonctions publiques pour eviter de taper directtement dedans, la fonction se chargerait d allouer per_arch[comb_cpu] si necessaire
-	if (comb_cpu >= model_cpu_task.ncombs_set)
-		_starpu_perfmodel_realloc(&model_cpu_task, comb_cpu+1);
-	if (comb_cpu >= model_gpu_task.ncombs_set)
-		_starpu_perfmodel_realloc(&model_gpu_task, comb_cpu+1);
-
-	model_cpu_task.per_arch[comb_cpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
-	memset(&model_cpu_task.per_arch[comb_cpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-	model_cpu_task.nimpls[comb_cpu] = 1;
-	model_cpu_task.per_arch[comb_cpu][0].cost_function = cpu_task_cpu;
-
-	model_gpu_task.per_arch[comb_cpu] = (struct starpu_perfmodel_per_arch*)malloc(sizeof(struct starpu_perfmodel_per_arch));
-	memset(&model_gpu_task.per_arch[comb_cpu][0], 0, sizeof(struct starpu_perfmodel_per_arch));
-	model_gpu_task.nimpls[comb_cpu] = 1;
-	model_gpu_task.per_arch[comb_cpu][0].cost_function = gpu_task_cpu;
+	starpu_perfmodel_set_per_arch_cost_function(&model_cpu_task, 0, cpu_task_cpu, STARPU_CPU_WORKER, 0, 1, -1);
+	starpu_perfmodel_set_per_arch_cost_function(&model_gpu_task, 0, gpu_task_cpu, STARPU_CPU_WORKER, 0, 1, -1);
 
 	// We need to set the cost function for each combination with a CUDA or a OpenCL worker
 	init_perfmodels_gpu(STARPU_CUDA_WORKER);
 	init_perfmodels_gpu(STARPU_OPENCL_WORKER);
-
-/* 	if(model_cpu_task.per_arch[STARPU_CPU_WORKER] != NULL) */
-/* 	{ */
-/* 		for(devid=0; model_cpu_task.per_arch[STARPU_CPU_WORKER][devid] != NULL; devid++) */
-/* 		{ */
-/* 			for(ncore=0; model_cpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore] != NULL; ncore++) */
-/* 			{ */
-/* 				model_cpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore][0].cost_function = cpu_task_cpu; */
-/* 				model_gpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore][0].cost_function = gpu_task_cpu; */
-/* 			} */
-/* 		} */
-/* 	} */
-
-/* 	if(model_cpu_task.per_arch[STARPU_CUDA_WORKER] != NULL) */
-/* 	{ */
-/* 		for(devid=0; model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid] != NULL; devid++) */
-/* 		{ */
-/* 			for(ncore=0; model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore] != NULL; ncore++) */
-/* 			{ */
-/* 				model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = cpu_task_gpu; */
-/* 				model_gpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = gpu_task_gpu; */
-/* 			} */
-/* 		} */
-/* 	} */
-
-/* 	if(model_cpu_task.per_arch[STARPU_OPENCL_WORKER] != NULL) */
-/* 	{ */
-/* 		for(devid=0; model_cpu_task.per_arch[STARPU_OPENCL_WORKER][devid] != NULL; devid++) */
-/* 		{ */
-/* 			for(ncore=0; model_cpu_task.per_arch[STARPU_OPENCL_WORKER][devid][ncore] != NULL; ncore++) */
-/* 			{ */
-/* 				model_cpu_task.per_arch[STARPU_OPENCL_WORKER][devid][ncore][0].cost_function = cpu_task_gpu; */
-/* 				model_gpu_task.per_arch[STARPU_OPENCL_WORKER][devid][ncore][0].cost_function = gpu_task_gpu; */
-/* 			} */
-/* 		} */
-/* 	} */
 }
 
 /*
@@ -278,12 +199,12 @@ run(struct starpu_sched_policy *policy)
 	gpu_task_worker = starpu_worker_get_type(gpu_task->profiling_info->workerid);
 	if (cpu_task_worker != STARPU_CPU_WORKER || (gpu_task_worker != STARPU_CUDA_WORKER && gpu_task_worker != STARPU_OPENCL_WORKER))
 	{
-		FPRINTF(stderr, "Task did not execute on expected worker\n");
+		FPRINTF(stderr, "Tasks did not execute on expected worker\n");
 		ret = 1;
 	}
 	else
 	{
-		FPRINTF(stderr, "Task DID execute on expected worker\n");
+		FPRINTF(stderr, "Tasks DID execute on expected worker\n");
 		ret = 0;
 	}
 
