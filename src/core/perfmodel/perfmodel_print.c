@@ -186,7 +186,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 	{
 		if (strcmp(arch, "cpu") == 0)
 		{
-			unsigned implid;
+			int implid;
 			struct starpu_perfmodel_arch perf_arch;
 			perf_arch.ndevices = 1;
 			perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
@@ -212,7 +212,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 				exit(-1);
 			}
 
-			unsigned implid;
+			int implid;
 			struct starpu_perfmodel_arch perf_arch;
 			perf_arch.ndevices = 1;
 			perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
@@ -232,7 +232,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 		if (strcmp(arch, "cuda") == 0)
 		{
 			unsigned devid;
-			unsigned implid;
+			int implid;
 			struct starpu_perfmodel_arch perf_arch;
 
 			perf_arch.ndevices = 1;
@@ -274,7 +274,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			STARPU_ASSERT(comb != -1);
 			int nimpls = model->nimpls[comb];
 
-			unsigned implid;
+			int implid;
 			for (implid = 0; implid < nimpls; implid++)
 				starpu_perfmodel_print(model, &perf_arch, implid, parameter, footprint, output);
 			return 0;
