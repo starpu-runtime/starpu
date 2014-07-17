@@ -98,11 +98,14 @@ struct starpu_perfmodel_history_table;
 
 #define starpu_per_arch_perfmodel starpu_perfmodel_per_arch STARPU_DEPRECATED
 
+typedef double (*starpu_perfmodel_per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+typedef size_t (*starpu_perfmodel_per_arch_size_base)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+
 struct starpu_perfmodel_per_arch
 {
 	double (*cost_model)(struct starpu_data_descr *t) STARPU_DEPRECATED;
-	double (*cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-	size_t (*size_base)(struct starpu_task *, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+	starpu_perfmodel_per_arch_cost_function cost_function;
+	starpu_perfmodel_per_arch_size_base size_base;
 
 	struct starpu_perfmodel_history_table *history;
 	struct starpu_perfmodel_history_list *list;
@@ -132,13 +135,13 @@ struct starpu_perfmodel
 	size_t (*size_base)(struct starpu_task *, unsigned nimpl);
 	uint32_t (*footprint)(struct starpu_task *);
 
-	struct starpu_perfmodel_per_arch** per_arch; /*STARPU_MAXIMPLEMENTATIONS*/
-
 	const char *symbol;
 
-#ifdef STARPU_DEVEL
-#warning move all the fields in a private structure
-#endif
+//#ifdef STARPU_DEVEL
+//#warning move all the fields in a private structure. may be difficult as it is not mandatory to call starpu_perfmodel_init when using a perfmodel
+//#endif
+	struct starpu_perfmodel_per_arch** per_arch; /*STARPU_MAXIMPLEMENTATIONS*/
+
 	unsigned is_init;
 	unsigned is_loaded;
 	unsigned benchmarking;
@@ -161,6 +164,10 @@ int starpu_perfmodel_unload_model(struct starpu_perfmodel *model);
 int starpu_get_narch_combs();
 int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices);
 int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices);
+
+struct starpu_perfmodel_per_arch *starpu_perfmodel_get_per_arch(struct starpu_perfmodel *model, int impl, ...);
+int starpu_perfmodel_set_per_arch_cost_function(struct starpu_perfmodel *model, int impl, starpu_perfmodel_per_arch_cost_function func, ...);
+int starpu_perfmodel_set_per_arch_size_base(struct starpu_perfmodel *model, int impl, starpu_perfmodel_per_arch_size_base func, ...);
 
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, char *path, size_t maxlen, unsigned nimpl);
 char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);

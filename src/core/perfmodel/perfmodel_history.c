@@ -812,7 +812,6 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 
 		free(model->nimpls);
 		model->nimpls = NULL;
-		model->nimpls = 0;
 
 		free(model->combs);
 		model->combs = NULL;
@@ -1437,5 +1436,104 @@ int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model)
 			fprintf(output, "\t\tDevice %d: type: %s - devid: %d - ncores: %d\n", device, name, arch->devices[device].devid, arch->devices[device].ncores);
 		}
 	}
+	return 0;
+}
+
+struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_per_arch(struct starpu_perfmodel *model, int impl, va_list varg_list)
+{
+	struct starpu_perfmodel_arch arch;
+	va_list varg_list_copy;
+	int i, arg_type;
+	int is_cpu_set = 0;
+
+	// We first count the number of devices
+	arch.ndevices = 0;
+	va_copy(varg_list_copy, varg_list);
+	while ((arg_type = va_arg(varg_list_copy, int)) != -1)
+	{
+		int devid = va_arg(varg_list_copy, int);
+		int ncores = va_arg(varg_list_copy, int);
+
+		arch.ndevices ++;
+		if (arg_type == STARPU_CPU_WORKER)
+		{
+			STARPU_ASSERT_MSG(is_cpu_set == 0, "STARPU_CPU_WORKER can only be specified once\n");
+			STARPU_ASSERT_MSG(devid==0, "STARPU_CPU_WORKER must be followed by a value 0 for the device id");
+			is_cpu_set = 1;
+		}
+		else
+		{
+			STARPU_ASSERT_MSG(ncores==1, "%s must be followed by a value 1 for ncores", starpu_worker_get_type_as_string(arg_type));
+		}
+	}
+	va_end(varg_list_copy);
+
+	// We set the devices
+	arch.devices = (struct starpu_perfmodel_device*)malloc(arch.ndevices * sizeof(struct starpu_perfmodel_device));
+	va_copy(varg_list_copy, varg_list);
+	for(i=0 ; i<arch.ndevices ; i++)
+	{
+		arch.devices[i].type = va_arg(varg_list_copy, int);
+		arch.devices[i].devid = va_arg(varg_list_copy, int);
+		arch.devices[i].ncores = va_arg(varg_list_copy, int);
+	}
+	va_end(varg_list_copy);
+
+	// Get the combination for this set of devices
+	int comb = starpu_perfmodel_arch_comb_get(arch.ndevices, arch.devices);
+	if (comb == -1)
+		comb = starpu_perfmodel_arch_comb_add(arch.ndevices, arch.devices);
+
+	// Realloc if necessary
+	if (comb >= model->ncombs_set)
+		_starpu_perfmodel_realloc(model, comb+1);
+
+	// Get the per_arch object
+	if (model->per_arch[comb] == NULL)
+	{
+		model->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc((impl+1) * sizeof(struct starpu_perfmodel_per_arch));
+		model->nimpls[comb] = 0;
+	}
+	memset(&model->per_arch[comb][impl], 0, sizeof(struct starpu_perfmodel_per_arch));
+	model->nimpls[comb] ++;
+
+	return &model->per_arch[comb][impl];
+}
+
+struct starpu_perfmodel_per_arch *starpu_perfmodel_get_per_arch(struct starpu_perfmodel *model, int impl, ...)
+{
+	va_list varg_list;
+	struct starpu_perfmodel_per_arch *per_arch;
+
+	va_start(varg_list, impl);
+	per_arch = _starpu_perfmodel_get_per_arch(model, impl, varg_list);
+	va_end(varg_list);
+
+	return per_arch;
+}
+
+int starpu_perfmodel_set_per_arch_cost_function(struct starpu_perfmodel *model, int impl, starpu_perfmodel_per_arch_cost_function func, ...)
+{
+	va_list varg_list;
+	struct starpu_perfmodel_per_arch *per_arch;
+
+	va_start(varg_list, func);
+	per_arch = _starpu_perfmodel_get_per_arch(model, impl, varg_list);
+	per_arch->cost_function = func;
+	va_end(varg_list);
+
+	return 0;
+}
+
+int starpu_perfmodel_set_per_arch_size_base(struct starpu_perfmodel *model, int impl, starpu_perfmodel_per_arch_size_base func, ...)
+{
+	va_list varg_list;
+	struct starpu_perfmodel_per_arch *per_arch;
+
+	va_start(varg_list, func);
+	per_arch = _starpu_perfmodel_get_per_arch(model, impl, varg_list);
+	per_arch->size_base = func;
+	va_end(varg_list);
+
 	return 0;
 }
