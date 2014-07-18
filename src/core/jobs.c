@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011  INRIA
  *
@@ -172,9 +172,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	/* We release handle reference count */
 	if (task->cl)
 	{
+		int i;
 #ifdef STARPU_USE_SC_HYPERVISOR
 		int workerid = starpu_worker_get_id();
-		int i;
 		for(i = 0; i < task->cl->nbuffers; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
@@ -183,7 +183,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		}
 #endif //STARPU_USE_SC_HYPERVISOR
 
-		unsigned i;
 		for (i=0; i<task->cl->nbuffers; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
