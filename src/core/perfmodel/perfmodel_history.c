@@ -369,12 +369,19 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 		model->nimpls[comb] = implmax;
 		model->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(struct starpu_perfmodel_per_arch));
+		model->per_arch_is_set[comb] = (int *)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(int));
 		for(i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+		{
 			memset(&model->per_arch[comb][i], 0, sizeof(struct starpu_perfmodel_per_arch));
-
+			model->per_arch_is_set[comb][i] = 0;
+		}
 
 		for (impl = 0; impl < implmax; impl++)
-			parse_per_arch_model_file(f, &model->per_arch[comb][impl], scan_history);
+		{
+			struct starpu_perfmodel_per_arch *per_arch_model = &model->per_arch[comb][impl];
+			model->per_arch_is_set[comb][impl] = 1;
+			parse_per_arch_model_file(f, per_arch_model, scan_history);
+		}
 	}
 	else
 	{
@@ -579,11 +586,13 @@ void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb)
 
 	STARPU_ASSERT(nb > model->ncombs_set);
 	model->per_arch = (struct starpu_perfmodel_per_arch**) realloc(model->per_arch, nb*sizeof(struct starpu_perfmodel_per_arch*));
+	model->per_arch_is_set = (int**) realloc(model->per_arch_is_set, nb*sizeof(struct starpu_perfmodel_per_arch*));
 	model->nimpls = (int *)realloc(model->nimpls, nb*sizeof(int));
 	model->combs = (int*)realloc(model->combs, nb*sizeof(int));
 	for(i = model->ncombs_set; i < nb; i++)
 	{
 		model->per_arch[i] = NULL;
+		model->per_arch_is_set[i] = NULL;
 		model->nimpls[i] = 0;
 	}
 	model->ncombs_set = nb;
@@ -619,6 +628,7 @@ void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 		int i;
 
 		model->per_arch = (struct starpu_perfmodel_per_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_per_arch*));
+		model->per_arch_is_set = (int**) malloc(nb_arch_combs*sizeof(int*));
 		model->nimpls = (int *)malloc(nb_arch_combs*sizeof(int));
 		model->combs = (int*)malloc(nb_arch_combs*sizeof(int));
 		model->ncombs = 0;
@@ -627,6 +637,7 @@ void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 		for(i = 0; i < nb_arch_combs; i++)
 		{
 			model->per_arch[i] = NULL;
+			model->per_arch_is_set[i] = NULL;
 			model->nimpls[i] = 0;
 		}
 		if(f)
@@ -806,9 +817,14 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 			}
 			free(model->per_arch[model->combs[comb]]);
 			model->per_arch[model->combs[comb]] = NULL;
+			free(model->per_arch_is_set[model->combs[comb]]);
+			model->per_arch_is_set[model->combs[comb]] = NULL;
 		}
 		free(model->per_arch);
 		model->per_arch = NULL;
+
+		free(model->per_arch_is_set);
+		model->per_arch_is_set = NULL;
 
 		free(model->nimpls);
 		model->nimpls = NULL;
@@ -1226,12 +1242,22 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		if(!model->per_arch[comb])
 		{
 			model->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(struct starpu_perfmodel_per_arch));
+			model->per_arch_is_set[comb] = (int*)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(int));
 			int i;
 			for(i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			{
 				memset(&model->per_arch[comb][i], 0, sizeof(struct starpu_perfmodel_per_arch));
+				model->per_arch_is_set[comb][i] = 0;
+			}
 		}
 
 		struct starpu_perfmodel_per_arch *per_arch_model = &model->per_arch[comb][impl];
+		if (model->per_arch_is_set[comb][impl] == 0)
+		{
+			// We are adding a new implementation for the given comb and the given impl
+			model->nimpls[comb]++;
+			model->per_arch_is_set[comb][impl] = 1;
+		}
 
 		if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED)
 		{
@@ -1273,7 +1299,6 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				entry->nerror = 0;
 
 				insert_history_entry(entry, list, &per_arch_model->history);
-				model->nimpls[comb]++;
 			}
 			else
 			{
@@ -1330,8 +1355,6 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		{
 			struct starpu_perfmodel_regression_model *reg_model;
 			reg_model = &per_arch_model->regression;
-			if(reg_model->nsample == 0)
-				model->nimpls[comb]++;
 
 			/* update the regression model */
 			size_t job_size = _starpu_job_get_data_size(model, arch, impl, j);
@@ -1492,9 +1515,11 @@ struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_model_per_devices(struct
 	if (model->per_arch[comb] == NULL)
 	{
 		model->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc((impl+1) * sizeof(struct starpu_perfmodel_per_arch));
+		model->per_arch_is_set[comb] = (int*)malloc((impl+1) * sizeof(int));
 		model->nimpls[comb] = 0;
 	}
 	memset(&model->per_arch[comb][impl], 0, sizeof(struct starpu_perfmodel_per_arch));
+	model->per_arch_is_set[comb][impl] = 1;
 	model->nimpls[comb] ++;
 
 	return &model->per_arch[comb][impl];

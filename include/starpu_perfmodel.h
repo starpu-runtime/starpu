@@ -141,6 +141,7 @@ struct starpu_perfmodel
 //#warning move all the fields in a private structure. may be difficult as it is not mandatory to call starpu_perfmodel_init when using a perfmodel
 //#endif
 	struct starpu_perfmodel_per_arch** per_arch; /*STARPU_MAXIMPLEMENTATIONS*/
+	int** per_arch_is_set; /*STARPU_MAXIMPLEMENTATIONS*/
 
 	unsigned is_init;
 	unsigned is_loaded;
