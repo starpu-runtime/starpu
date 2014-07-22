@@ -44,7 +44,7 @@ static int variable_compare(void *data_interface_a, void *data_interface_b);
 static void display_variable_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_variable_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
 static int unpack_variable_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
-static ssize_t describe(void *interface, char *buf, size_t size);
+static ssize_t describe(void *data_interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_variable_ops =
 {
@@ -247,9 +247,9 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 
 	return ret;
 }
-static ssize_t describe(void *interface, char *buf, size_t size)
+static ssize_t describe(void *data_interface, char *buf, size_t size)
 {
-	struct starpu_variable_interface *variable = (struct starpu_variable_interface *) interface;
+	struct starpu_variable_interface *variable = (struct starpu_variable_interface *) data_interface;
 	return snprintf(buf, size, "v%u",
 			(unsigned) variable->elemsize);
 }

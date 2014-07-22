@@ -123,22 +123,22 @@ noinst_HEADERS = 				\
 # What to install and what to check #
 #####################################
 
-STARPU_EXAMPLES	=
-TESTS		=	$(STARPU_EXAMPLES)
-TESTS		+=	scheduler/schedulers.sh
+examplebin_PROGRAMS 	+=	$(STARPU_EXAMPLES)
 
+TESTS			=	$(STARPU_EXAMPLES)
+TESTS			+=	scheduler/schedulers.sh
 
 if STARPU_HAVE_WINDOWS
-check_PROGRAMS	=	$(STARPU_EXAMPLES)
+check_PROGRAMS		=	$(STARPU_EXAMPLES)
 else
-check_PROGRAMS	=	$(LOADER) $(STARPU_EXAMPLES)
+check_PROGRAMS		=	$(LOADER) $(STARPU_EXAMPLES)
 endif
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
 if !STARPU_CROSS_COMPILING
 LOADER			=	loader
-loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+loader_CPPFLAGS 	=	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
 else
@@ -155,93 +155,11 @@ endif
 
 endif
 
-examplebin_PROGRAMS +=				\
-	basic_examples/hello_world		\
-	basic_examples/vector_scal		\
-	basic_examples/mult			\
-	basic_examples/block			\
-	basic_examples/variable			\
-	basic_examples/multiformat              \
-	basic_examples/dynamic_handles		\
-	cpp/incrementer_cpp			\
-	filters/custom_mf/custom_mf_filter      \
-	filters/fvector				\
-	filters/fblock				\
-	filters/fmatrix				\
-	filters/shadow				\
-	filters/shadow2d			\
-	filters/shadow3d			\
-	tag_example/tag_example			\
-	tag_example/tag_example2		\
-	tag_example/tag_example3		\
-	tag_example/tag_example4		\
-	tag_example/tag_restartable		\
-	spmd/vector_scal_spmd			\
-	spmv/spmv				\
-	callback/callback			\
-	callback/prologue			\
-	incrementer/incrementer			\
-	binary/binary				\
-	interface/complex			\
-	matvecmult/matvecmult			\
-	profiling/profiling			\
-	sched_ctx/sched_ctx			\
-	sched_ctx/parallel_code			\
-	sched_ctx/dummy_sched_with_ctx		\
-	sched_ctx/prio				\
-	sched_ctx/sched_ctx_without_sched_policy\
-	sched_ctx/nested_sched_ctxs		\
-	worker_collections/worker_tree_example  \
-	worker_collections/worker_list_example  \
-	reductions/dot_product			\
-	reductions/minmax_reduction		\
-	mandelbrot/mandelbrot			\
-	ppm_downscaler/ppm_downscaler		\
-	ppm_downscaler/yuv_downscaler
+# STARPU_EXAMPLES list all applications which have to be compiled and checked
+# Applications which should only be compiled are added directly in examplebin_PROGRAMS
+# see for instance mandelbrot/mandelbrot
 
-if !STARPU_SIMGRID
-examplebin_PROGRAMS +=				\
-	scheduler/dummy_sched
-
-if STARPU_HAVE_F77_H
-examplebin_PROGRAMS +=				\
-	basic_examples/vector_scal_fortran	\
-	fortran/hello
-endif
-endif
-
-if !NO_BLAS_LIB
-examplebin_PROGRAMS +=				\
-	axpy/axpy				\
-	mult/sgemm 				\
-	mult/dgemm				\
-	cholesky/cholesky_tag			\
-	cholesky/cholesky_tile_tag		\
-	cholesky/cholesky_grain_tag		\
-	cholesky/cholesky_implicit		\
-	lu/lu_example_float			\
-	lu/lu_example_double			\
-	lu/lu_implicit_example_float		\
-	lu/lu_implicit_example_double		\
-	heat/heat				\
-	cg/cg					\
-	pipeline/pipeline
-endif
-
-if MKL_BLAS_LIB
-examplebin_PROGRAMS +=				\
-	lu/lu_example_complex_float		\
-	lu/lu_example_complex_double		\
-	lu/lu_implicit_example_complex_float	\
-	lu/lu_implicit_example_complex_double
-endif
-
-if ATLAS_BLAS_LIB
-examplebin_PROGRAMS +=				\
-	spmv/dw_block_spmv
-endif
-
-STARPU_EXAMPLES +=				\
+STARPU_EXAMPLES =				\
 	basic_examples/hello_world		\
 	basic_examples/vector_scal		\
 	basic_examples/mult			\
@@ -270,22 +188,20 @@ STARPU_EXAMPLES +=				\
 	sched_ctx/sched_ctx			\
 	sched_ctx/prio				\
 	sched_ctx/dummy_sched_with_ctx		\
-	sched_ctx/sched_ctx_without_sched_policy\
-	sched_ctx/nested_sched_ctxs		\
 	worker_collections/worker_tree_example  \
 	worker_collections/worker_list_example  \
 	reductions/dot_product			\
 	reductions/minmax_reduction
 
-if STARPU_LONG_CHECK
+if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
-	sched_ctx/parallel_code
-endif
+	scheduler/dummy_sched
 
 if STARPU_HAVE_F77_H
 STARPU_EXAMPLES +=				\
 	basic_examples/vector_scal_fortran	\
 	fortran/hello
+endif
 endif
 
 if !NO_BLAS_LIB
@@ -317,6 +233,30 @@ endif
 if ATLAS_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	spmv/dw_block_spmv
+endif
+
+if STARPU_LONG_CHECK
+STARPU_EXAMPLES +=				\
+	sched_ctx/parallel_code
+endif
+
+if STARPU_HAVE_F77_H
+STARPU_EXAMPLES +=				\
+	basic_examples/vector_scal_fortran	\
+	fortran/hello
+endif
+
+if !STARPU_HAVE_WINDOWS
+STARPU_EXAMPLES +=				\
+	openmp/vector_scal_omp			\
+	sched_ctx/sched_ctx_without_sched_policy\
+	sched_ctx/nested_sched_ctxs		\
+	sched_ctx/sched_ctx_without_sched_policy
+
+if STARPU_LONG_CHECK
+STARPU_EXAMPLES +=				\
+	sched_ctx/parallel_code
+endif
 endif
 
 ##################
@@ -428,7 +368,6 @@ nobase_STARPU_OPENCL_DATA_DATA += 		\
 	basic_examples/variable_kernels_opencl_kernel.cl
 endif
 
-
 ###########
 # Filters #
 ###########
@@ -448,10 +387,16 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 	filters/fblock_opencl_kernel.cl
 endif
 
-
 #############################
 # Custom multiformat filter #
 #############################
+
+#TODO: see why the application is failing
+#lt-custom_mf_filter: .../src/datawizard/malloc.c:784: starpu_free_on_node: Assertion `chunk != _starpu_chunk_list_end(chunks[dst_node])' failed.
+
+examplebin_PROGRAMS +=				\
+	filters/custom_mf/custom_mf_filter
+
 filters_custom_mf_custom_mf_filter_SOURCES=\
 	filters/custom_mf/custom_mf_filter.c \
 	filters/custom_mf/custom_interface.c   \
@@ -826,6 +771,9 @@ endif
 # Mandelbrot Set #
 ##################
 
+examplebin_PROGRAMS +=				\
+	mandelbrot/mandelbrot
+
 mandelbrot_mandelbrot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS)
 if HAVE_X11
 mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
@@ -846,9 +794,7 @@ top_hello_world_top_SOURCES =			\
 # Pi #
 ######
 
-check_PROGRAMS +=				\
-	pi/pi					\
-	pi/pi_redux
+if !STARPU_HAVE_WINDOWS
 
 examplebin_PROGRAMS +=				\
 	pi/pi					\
@@ -873,6 +819,7 @@ pi_pi_redux_SOURCES +=				\
 	pi/pi_redux_kernel.cu
 pi_pi_redux_LDADD =				\
 	$(STARPU_CURAND_LDFLAGS)
+endif
 endif
 
 ###########################
@@ -915,9 +862,6 @@ endif
 ##################
 
 if !STARPU_HAVE_WINDOWS
-examplebin_PROGRAMS +=		\
-	openmp/vector_scal_omp
-
 openmp_vector_scal_omp_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
@@ -937,3 +881,4 @@ showcheck:
 	for i in $(SUBDIRS) ; do \
 		make -C $$i showcheck ; \
 	done
+

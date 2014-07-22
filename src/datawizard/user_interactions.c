@@ -322,7 +322,8 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 	 * We enqueue the "post" sync task in the list associated to the handle
 	 * so that it is submitted by the starpu_data_release
 	 * function. */
-	_starpu_add_post_sync_tasks(wrapper.post_sync_task, handle);
+	if (sequential_consistency)
+		_starpu_add_post_sync_tasks(wrapper.post_sync_task, handle);
 
         _STARPU_LOG_OUT();
 	return 0;

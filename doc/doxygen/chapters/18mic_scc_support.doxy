@@ -6,13 +6,13 @@
  * See the file version.doxy for copying conditions.
  */
 
-/*! \page MICSCCSupport MIC/SCC Support
+/*! \page MICSCCSupport MIC Xeon Phi / SCC Support
 
 \section Compilation Compilation
 
 SCC support just needs the presence of the RCCE library.
 
-MIC support actually needs two compilations of StarPU, one for the host and one for
+MIC Xeon Phi support actually needs two compilations of StarPU, one for the host and one for
 the device. The PATH environment variable has to include the path to the
 cross-compilation toolchain, for instance <c>/usr/linux-k1om-4.7/bin</c>
 The script <c>mic-configure</c> can then be used to achieve the two compilations: it basically
@@ -20,12 +20,12 @@ calls <c>configure</c> as appropriate from two new directories: <c>build_mic</c>
 <c>build_host</c>. <c>make</c> and <c>make install</c> can then be used as usual and will
 recurse into both directories.
 
-\section PortingApplicationsToMICSCC Porting Applications To MIC/SCC
+\section PortingApplicationsToMICSCC Porting Applications To MIC Xeon Phi / SCC
 
-The simplest way to port an application to MIC/SCC is to set the field
+The simplest way to port an application to MIC Xeon Phi or SCC is to set the field
 starpu_codelet::cpu_funcs_name, to provide StarPU with the function
 name of the CPU implementation. StarPU will thus simply use the
-existing CPU implementation (cross-rebuilt in the MIC case). The
+existing CPU implementation (cross-rebuilt in the MIC Xeon Phi case). The
 functions have to be globally-visible (i.e. not <c>static</c>) for
 StarPU to be able to look them up.
 

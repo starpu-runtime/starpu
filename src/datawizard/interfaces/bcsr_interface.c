@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,7 +44,7 @@ static void free_bcsr_buffer_on_node(void *data_interface, unsigned node);
 static size_t bcsr_interface_get_size(starpu_data_handle_t handle);
 static int bcsr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_bcsr_interface_crc32(starpu_data_handle_t handle);
-static ssize_t describe(void *interface, char *buf, size_t size);
+static ssize_t describe(void *data_interface, char *buf, size_t size);
 
 
 struct starpu_data_interface_ops starpu_interface_bcsr_ops =
@@ -327,9 +327,9 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	return ret;
 }
 
-static ssize_t describe(void *interface, char *buf, size_t size)
+static ssize_t describe(void *data_interface, char *buf, size_t size)
 {
-	struct starpu_bcsr_interface *bcsr = (struct starpu_bcsr_interface *) interface;
+	struct starpu_bcsr_interface *bcsr = (struct starpu_bcsr_interface *) data_interface;
 	return snprintf(buf, size, "b%ux%ux%ux%ux%u",
 			(unsigned) bcsr->nnz,
 			(unsigned) bcsr->nrow,

@@ -77,7 +77,7 @@ static int block_compare(void *data_interface_a, void *data_interface_b);
 static void display_block_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
 static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
-static ssize_t describe(void *interface, char *buf, size_t size);
+static ssize_t describe(void *data_interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_block_ops =
 {
@@ -731,9 +731,9 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	return ret;
 }
 
-static ssize_t describe(void *interface, char *buf, size_t size)
+static ssize_t describe(void *data_interface, char *buf, size_t size)
 {
-	struct starpu_block_interface *block = (struct starpu_block_interface *) interface;
+	struct starpu_block_interface *block = (struct starpu_block_interface *) data_interface;
 	return snprintf(buf, size, "B%ux%ux%ux%u",
 			(unsigned) block->nx,
 			(unsigned) block->ny,

@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -221,5 +221,9 @@ Returns the type of the given node as defined by
 ::starpu_node_kind. For example, when defining a new data interface,
 this function should be used in the allocation function to determine
 on which device the memory needs to be allocated.
+
+\fn char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
+\ingroup API_Workers_Properties
+Returns the given worker type as a string.
 
 */

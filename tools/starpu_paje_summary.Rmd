@@ -1,0 +1,284 @@
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. Introduction</a>
+<ul>
+<li>
+<ul>
+<li><a href="#sec-1-0-1">1.0.1. How to compile</a></li>
+<li><a href="#sec-1-0-2">1.0.2. Software dependencies</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#sec-2">2. Gantt Charts of the whole Trace</a></li>
+<li><a href="#sec-3">3. Table Summary</a></li>
+<li><a href="#sec-4">4. State Duration during the Execution Time</a></li>
+<li><a href="#sec-5">5. Distribution Histograms</a></li>
+</ul>
+</div>
+</div>
+```{r Setup, echo=FALSE}
+opts_chunk$set(echo=FALSE)
+```
+
+
+
+```{r Install_R_libraries}
+InstalledPackage <- function(package) 
+{
+    available <- suppressMessages(suppressWarnings(sapply(package, require, quietly = TRUE, character.only = TRUE, warn.conflicts = FALSE)))
+    missing <- package[!available]
+    if (length(missing) > 0) return(FALSE)
+    return(TRUE)
+}
+
+CRANChoosen <- function()
+{
+    return(getOption("repos")["CRAN"] != "@CRAN@")
+}
+
+UsePackage <- function(package, defaultCRANmirror = "http://cran.at.r-project.org") 
+{
+    if(!InstalledPackage(package))
+    {
+	if(!CRANChoosen())
+	{       
+	    chooseCRANmirror()
+	    if(!CRANChoosen())
+	    {
+		options(repos = c(CRAN = defaultCRANmirror))
+	    }
+	}
+
+	suppressMessages(suppressWarnings(install.packages(package)))
+	if(!InstalledPackage(package)) return(FALSE)
+    }
+    return(TRUE)
+}
+
+# Now install desired libraries
+libraries <- c("ggplot2", "plyr", "data.table", "RColorBrewer")
+for(libr in libraries) 
+{ 
+    if(!UsePackage(libr))
+    {
+	stop("Error!", libr)
+    }
+}
+```
+
+```{r Load_R_files}
+# Load ggplot and plyr just for the following cases
+   library(ggplot2)
+   library(plyr)
+   library(data.table)
+   library(RColorBrewer) 
+
+# Defining non-computation states:
+def_states<-c("Initializing","Deinitializing","Overhead","Nothing","Sleeping","Freeing","Allocating","WritingBack","FetchingInput","PushingOutput","Callback","Progressing","Unpartitioning","AllocatingReuse","Reclaiming","DriverCopy","DriverCopyAsync","Scheduling","Executing")
+
+# Function for reading .csv file
+read_df <- function(file,range1,range2) {
+  df<-read.csv(file, header=FALSE, strip.white=TRUE)
+  names(df) <- c("Nature","ResourceId","Type","Start","End","Duration", "Depth", "Value")
+  df = df[!(names(df) %in% c("Nature","Type", "Depth"))]
+  df$Origin<-as.factor(as.character(file))
+
+# Changing names if needed:
+  df$Value <- as.character(df$Value)
+  df$Value <- ifelse(df$Value == "F", "Freeing", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "A", "Allocating", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "W", "WritingBack", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "No", "Nothing", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "I", "Initializing", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "D", "Deinitializing", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "Fi", "FetchingInput", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "Po", "PushingOutput", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "C", "Callback", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "B", "Overhead", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "Sc", "Scheduling", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "E", "Executing", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "Sl", "Sleeping", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "P", "Progressing", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "U", "Unpartitioning", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "Ar", "AllocatingReuse", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "R", "Reclaiming", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "Co", "DriverCopy", as.character(df$Value))
+  df$Value <- ifelse(df$Value == "CoA", "DriverCopyAsync", as.character(df$Value))
+
+# Small cleanup
+df$Start<-round(df$Start,digit=1)
+df$End<-round(df$End,digit=1)
+df$ResourceId<-as.factor(df$ResourceId)
+df$Value<-as.factor(df$Value)
+
+# Start from zero
+  m <- min(df$Start)
+  df$Start <- df$Start - m
+  df$End <- df$Start+df$Duration
+
+# Return data frame
+  df
+}
+```
+
+```{r Load_traces}
+df<-data.frame()
+if( !exists("input_traces") )
+  input_traces<-c("example.native.trace.csv", "example.simgrid.trace.csv")
+
+for (i in 1:length(input_traces)){
+  dfs<-read_df(input_traces[i])
+  df<-rbindlist(list(df,dfs))
+}
+
+# Color palettes
+colourCount = length(unique(df$Value))
+getPalette = colorRampPalette(brewer.pal(9, "Set1"))
+
+# Order of Value so we can have good colors
+ker_states<-as.character(unique(df[!(df$Value %in% def_states),Value]))
+ordered_states<-append(sort(ker_states), def_states)
+df$Value <- factor(df$Value, levels=ordered_states)
+
+# Order of ResourceId so we can have y-axis
+df$ResourceId <- factor(df$ResourceId, levels=sort(as.character(unique(df$ResourceId))))
+```
+
+# Introduction
+
+This document presents a basic analysis of multiple StarPU
+traces. First, paje *traces* will be transferred into *.csv* files and
+then we analyze them with **R**. This summary is a first step that
+should help researchers verify their hypothesis or find problematic
+areas that require more exhaustive investigation.
+
+Be cautious, as the following results are only a brief analysis of
+the traces and many important phenomena could still be hidden. Also,
+be very careful when comparing different states or traces. Even
+though some large discrepancies can be irrelevant, in other cases
+even the smallest differences can be essential in understanding what
+exactly happened during the StarPU execution.
+
+### How to compile
+
+    ./starpu_summary.sh example.native.trace example.simgrid.trace
+
+### Software dependencies
+
+In order to run this analysis you need to have R installed:
+
+    sudo apt-get install r-base 
+
+Easiest way to transform *paje* traces generated by StarPU to *.csv* is to use *pjdump* program (<https://github.com/schnorr/pajeng>), so we encourage users to install it.
+
+When R is installed, one will need to start R (e.g., from terminal) and install *knitr* package:
+
+    R> install.packages("knitr")
+
+Additional R packages used in this analysis (*ggplot2, plyr, data.table, RColorBrewer*) will be installed automatically when the document is compiled for the first time. If there is any trouble, install them by hand directly from R (the same way as *knitr*)
+
+# Gantt Charts of the whole Trace
+
+First, we show a simple gantt chart of every trace. X-axis is a
+simple timeline of the execution, *Resources* on y-axis correspond
+to different CPUs/GPUs that were used and finally different colors
+represent different *States* of the application.
+
+This kind of figures can often point to the idle time or
+synchronization problems. Small disadvantage is that in most cases
+there are too many states, thus it is impossible to display them all
+on a single plot without aggregation. Therefore for any strange
+behavior at a certain part of the trace, we strongly suggest to zoom
+on the interval it occurred.
+
+```{r Gantt1}
+ggplot(df,aes(x=Start,xend=End, y=factor(ResourceId), yend=factor(ResourceId),color=Value)) + 
+ theme_bw() + scale_color_manual(name="State",values=getPalette(colourCount)) + 
+ geom_segment(size=8) + ylab("Resource") + xlab("Time [ms]") + 
+ facet_wrap(~Origin,ncol=1,scale="free_y")
+```
+
+Second, we will concentrate only on computation kernel states, to
+get rid of visualization artifacts that can be introduced by other
+(sometimes irrelevant) states. Normally, this plot should not be too
+different from the previous one.
+
+```{r Gantt2}
+# Select only computation kernels
+ df1 <- df[!(df$Value %in% c("Initializing","Deinitializing","Overhead","Nothing","Sleeping","Freeing","Allocating","WritingBack","FetchingInput","PushingOutput","Callback","Progressing","Unpartitioning","AllocatingReuse","Reclaiming","DriverCopy","DriverCopyAsync","Scheduling","Executing")),]
+
+# Start from zero
+  m <- min(df1$Start)
+  df1$Start <- df1$Start - m
+  df1$End <- df1$Start+df1$Duration
+
+# Plot
+ ggplot(df1,aes(x=Start,xend=End, y=factor(ResourceId), yend=factor(ResourceId),color=Value)) + 
+  theme_bw() + scale_color_manual(name="State",values=getPalette(colourCount)) + 
+  geom_segment(size=8) + ylab("Resource") + xlab("Time [ms]") + 
+  facet_wrap(~Origin,ncol=1,scale="free_y")
+```
+
+# Table Summary
+
+Here we present how much time application spent in each state
+(OverallDuration), how many times it was in that state (Count),
+mean and median values of duration (Mean and Median), and finally
+what is a standard deviation (StandDev).
+
+General information provided by this table can sometimes give an
+idea to application experts which parts of code are not working as
+desired. Be aware that this kind of tables hide many important
+things, such as outliers, multiple modes, etc.
+
+```{r Table}
+options(width=120)
+ddply(df,.(Value,Origin), summarize, OverallDuration=sum(Duration), Count=length(Duration), Mean=mean(Duration), Median=median(Duration), StandDev=sd(Duration))
+```
+
+# State Duration during the Execution Time
+
+Now, we show how duration of each state was changing during the
+execution. This can display a general behavior of a state; show if
+there are outliers or multiple modes; are some events occurring in
+groups, etc. . It can also suggest a strange behavior of a state
+during a certain time interval, which should be later investigated
+more carefully.
+
+  However, since each event is represented by a single point (and
+there is no "alpha" factor), those events that happen almost
+simultaneously are overplotted. Therefore density of events along
+execution time may not be easy to read.
+
+```{r Dur}
+ggplot(df,aes(x=Start,y=Duration)) + geom_point(aes(color=Value)) + theme_bw() + scale_color_manual(name="State",values=getPalette(colourCount)) + ggtitle("State Duration during the Execution Time") + theme(legend.position="none") + ylab("Duration [ms]") + xlab("Time [ms]") + facet_grid(Value~Origin, scale="free_y")
+```
+
+# Distribution Histograms
+
+Finally, we show a distribution of *Duration* for each state in form
+of histograms. X-axis is partitioned into bins with equidistant time
+intervals in milliseconds, while y-axis represents the number of
+occurrences inside such intervals for a certain state. Note that for
+the first plot y-axis is not fixed, meaning that the scale changes
+from one row to another. This plot allows to not only to see what
+was the most frequent duration of a state, but also to compare
+duration between different states.
+
+```{r Hist1}
+ggplot(df, aes(x=Duration)) + geom_histogram(aes(y=..count..,fill=factor(Value)),binwidth = diff(range(df$Duration))/30) + theme_bw() + scale_fill_manual(name="State",values=getPalette(colourCount)) + ggtitle("Histograms for State Distribution") + ylab("Count") + xlab("Duration [ms]") + theme(legend.position="none") + facet_grid(Value~Origin,scales = "free_y")
+```
+
+Similar to the previous figure, only now traces are showed vertically
+instead of horizontally. Note that for this plot x-axis is not fixed,
+meaning that the scale changes from one column to another. This plot
+allows to compare frequency of different states and in case of
+multiple traces to easily compare duration distribution for each
+state.
+
+```{r Hist2}
+ggplot(df, aes(x=Duration)) + geom_histogram(aes(y=..count..,fill=factor(Value)),binwidth = diff(range(df$Duration))/30) + theme_bw() + scale_fill_manual(name="State",values=getPalette(colourCount)) + ggtitle("Histograms for State Distribution") + ylab("Count") + xlab("Duration [ms]") + theme(legend.position="none") + facet_grid(Origin~Value,scales = "free_x")
+```

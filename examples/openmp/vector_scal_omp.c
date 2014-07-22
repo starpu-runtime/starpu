@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2010-2013  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -93,6 +93,7 @@ int main(int argc, char **argv)
 	conf.sched_policy_name = "pheft";
 
 	ret = starpu_init(&conf);
+	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_data_handle_t vector_handle;
@@ -111,6 +112,7 @@ int main(int argc, char **argv)
 		task->cl_arg_size = sizeof(factor);
 
 		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
@@ -122,5 +124,12 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "AFTER: First element is %f\n", vector[0]);
 	FPRINTF(stderr, "AFTER: Last element is %f\n", vector[NX-1]);
 
+	free(vector);
 	return 0;
+
+enodev:
+	starpu_data_unregister(vector_handle);
+	free(vector);
+	starpu_shutdown();
+	return 77;
 }
