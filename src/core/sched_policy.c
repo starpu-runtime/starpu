@@ -261,7 +261,8 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		unsigned node = starpu_worker_get_memory_node(workerid);
 		if (_starpu_task_uses_multiformat_handles(task))
 		{
-			for (i = 0; i < task->cl->nbuffers; i++)
+			unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+			for (i = 0; i < nbuffers; i++)
 			{
 				struct starpu_task *conversion_task;
 				starpu_data_handle_t handle;
@@ -278,7 +279,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 				//_STARPU_DEBUG("Pushing a conversion task\n");
 			}
 
-			for (i = 0; i < task->cl->nbuffers; i++)
+			for (i = 0; i < nbuffers; i++)
 			{
 				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 				handle->mf_node = node;
@@ -607,7 +608,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 		STARPU_ABORT();
 	}
 
-	STARPU_CODELET_SET_MODE(conversion_task->cl, STARPU_RW, 0);
+	STARPU_TASK_SET_MODE(conversion_task, STARPU_RW, 0);
 	return conversion_task;
 }
 
@@ -830,7 +831,8 @@ pick:
 	 * required conversion tasks.
 	 */
 	unsigned i;
-	for (i = 0; i < task->cl->nbuffers; i++)
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	for (i = 0; i < nbuffers; i++)
 	{
 		struct starpu_task *conversion_task;
 		starpu_data_handle_t handle;

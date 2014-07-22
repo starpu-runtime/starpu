@@ -424,7 +424,7 @@ do {									\
 	{								\
 		if ((job)->task->cl)					\
 		{							\
-			const int __nbuffers = (job)->task->cl->nbuffers;	\
+			const int __nbuffers = STARPU_TASK_GET_NBUFFERS((job)->task);	\
 			char __buf[FXT_MAX_PARAMS*sizeof(long)];	\
 			int __i;					\
 			for (__i = 0; __i < __nbuffers; __i++)		\

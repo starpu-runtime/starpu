@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@ void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 
 	/* Compute the size */
 	va_start(varg_list, arg_buffer_size);
-	*arg_buffer_size = _starpu_task_insert_get_arg_size(varg_list);
+	_starpu_task_insert_get_args_size(varg_list, NULL, arg_buffer_size);
 	va_end(varg_list);
 
 	va_start(varg_list, arg_buffer_size);
@@ -71,11 +71,12 @@ struct starpu_task *_starpu_task_build_v(struct starpu_codelet *cl, const char* 
 	void *arg_buffer = NULL;
 	va_list varg_list_copy;
 	size_t arg_buffer_size = 0;
+	unsigned nbuffers;
 
 	/* Compute the size */
 
 	va_copy(varg_list_copy, varg_list);
-	arg_buffer_size = _starpu_task_insert_get_arg_size(varg_list_copy);
+	_starpu_task_insert_get_args_size(varg_list_copy, &nbuffers, &arg_buffer_size);
 	va_end(varg_list_copy);
 
 	if (arg_buffer_size)
@@ -89,9 +90,13 @@ struct starpu_task *_starpu_task_build_v(struct starpu_codelet *cl, const char* 
 	task->name = task_name;
 	task->cl_arg_free = cl_arg_free;
 
-	if (cl && cl->nbuffers > STARPU_NMAXBUFS)
+	if (cl && cl->nbuffers != STARPU_VARIABLE_NBUFFERS)
 	{
-		task->dyn_handles = malloc(cl->nbuffers * sizeof(starpu_data_handle_t));
+		STARPU_ASSERT_MSG(nbuffers == (unsigned) cl->nbuffers, "Incoherent number of buffers between cl (%d) and number of parameters (%u)", cl->nbuffers, nbuffers);
+	}
+	if (nbuffers > STARPU_NMAXBUFS)
+	{
+		task->dyn_handles = malloc(nbuffers * sizeof(starpu_data_handle_t));
 	}
 
 	va_copy(varg_list_copy, varg_list);

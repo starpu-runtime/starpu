@@ -307,13 +307,13 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	if (j->reduction_task)
 		return;
 
-	unsigned nbuffers = task->cl->nbuffers;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
-		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, buffer);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
 		struct starpu_task *new_task;
 
 		/* Scratch memory does not introduce any deps */
@@ -438,7 +438,7 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 	if (!task->cl)
 		return;
 
-        unsigned nbuffers = task->cl->nbuffers;
+        unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
 	unsigned index;
 	for (index = 0; index < nbuffers; index++)

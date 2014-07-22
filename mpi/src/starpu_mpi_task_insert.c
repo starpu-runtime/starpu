@@ -494,7 +494,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	{
 		/* Get the number of buffers and the size of the arguments */
 		va_copy(varg_list_copy, varg_list);
-		arg_buffer_size = _starpu_task_insert_get_arg_size(varg_list_copy);
+		_starpu_task_insert_get_args_size(varg_list_copy, NULL, &arg_buffer_size);
 		va_end(varg_list_copy);
 
 		/* Pack arguments if needed */

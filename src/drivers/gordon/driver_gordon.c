@@ -99,10 +99,10 @@ static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_jo
 	}
 
 	/* count the number of in/inout/out buffers */
-	unsigned nbuffers = cl->nbuffers;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
-		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(cl, buffer);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
 
 		switch (mode)
 		{
@@ -122,7 +122,7 @@ static void starpu_to_gordon_buffers(struct _starpu_job *j, struct gordon_ppu_jo
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		unsigned gordon_buffer;
-		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(cl, buffer);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
 
 		switch (mode)
 		{

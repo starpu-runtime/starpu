@@ -79,6 +79,8 @@ typedef starpu_scc_kernel_t (*starpu_scc_func_t)(void);
 #define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   ((starpu_cuda_func_t) -1)
 #define STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS ((starpu_opencl_func_t) -1)
 
+#define STARPU_VARIABLE_NBUFFERS (-1)
+
 struct starpu_task;
 struct starpu_codelet
 {
@@ -101,7 +103,7 @@ struct starpu_codelet
 
 	char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];
 
-	unsigned nbuffers;
+	int nbuffers;
 	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
 	enum starpu_data_access_mode *dyn_modes;
 
@@ -123,14 +125,15 @@ struct starpu_task
 
 	struct starpu_codelet *cl;
 
-	/* TODO: remove someday, this is costly */
-	struct starpu_data_descr buffers[STARPU_NMAXBUFS] STARPU_DEPRECATED;
+	int nbuffers;
 
 	starpu_data_handle_t handles[STARPU_NMAXBUFS];
 	void *interfaces[STARPU_NMAXBUFS];
+	enum starpu_data_access_mode modes[STARPU_NMAXBUFS];
 
 	starpu_data_handle_t *dyn_handles;
 	void **dyn_interfaces;
+	enum starpu_data_access_mode *dyn_modes;
 
 	void *cl_arg;
 	size_t cl_arg_size;
@@ -218,17 +221,30 @@ struct starpu_task
 	.scheduled = 0,					\
 	.dyn_handles = NULL,				\
 	.dyn_interfaces = NULL,				\
+	.dyn_modes = NULL,				\
 	.name = NULL                        		\
 }
 
-#define STARPU_TASK_GET_HANDLE(task, i) ((task->dyn_handles) ? task->dyn_handles[i] : task->handles[i])
-#define STARPU_TASK_SET_HANDLE(task, handle, i) do { if (task->dyn_handles) task->dyn_handles[i] = handle; else task->handles[i] = handle; } while(0)
+#define STARPU_TASK_GET_NBUFFERS(task) ((unsigned)((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS ? ((task)->nbuffers) : ((task)->cl->nbuffers)))
 
-#define STARPU_CODELET_GET_MODE(codelet, i) ((codelet->dyn_modes) ? codelet->dyn_modes[i] : codelet->modes[i])
-#define STARPU_CODELET_SET_MODE(codelet, mode, i) do { if (codelet->dyn_modes) codelet->dyn_modes[i] = mode; else codelet->modes[i] = mode; } while(0)
+#define STARPU_TASK_GET_HANDLE(task, i) (((task)->dyn_handles) ? (task)->dyn_handles[i] : (task)->handles[i])
+#define STARPU_TASK_SET_HANDLE(task, handle, i) do { if ((task)->dyn_handles) (task)->dyn_handles[i] = handle; else (task)->handles[i] = handle; } while(0)
 
-#define STARPU_CODELET_GET_NODE(codelet, i) ((codelet->dyn_nodes) ? codelet->dyn_nodes[i] : codelet->nodes[i])
-#define STARPU_CODELET_SET_NODE(codelet, __node, i) do { if (codelet->dyn_nodes) codelet->dyn_nodes[i] = __node; else codelet->nodes[i] = __node; } while(0)
+#define STARPU_CODELET_GET_MODE(codelet, i) (((codelet)->dyn_modes) ? (codelet)->dyn_modes[i] : (codelet)->modes[i])
+#define STARPU_CODELET_SET_MODE(codelet, mode, i) do { if ((codelet)->dyn_modes) (codelet)->dyn_modes[i] = mode; else (codelet)->modes[i] = mode; } while(0)
+
+#define STARPU_TASK_GET_MODE(task, i) ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS ? \
+						(((task)->dyn_modes) ? (task)->dyn_modes[i] : (task)->modes[i]) : \
+						STARPU_CODELET_GET_MODE((task)->cl, i) )
+#define STARPU_TASK_SET_MODE(task, mode, i) do { \
+					if ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS) \
+						if ((task)->dyn_modes) (task)->dyn_modes[i] = mode; else (task)->modes[i] = mode; \
+					else \
+						STARPU_CODELET_SET_MODE((task)->cl, mode, i); \
+					} while(0)
+
+#define STARPU_CODELET_GET_NODE(codelet, i) (((codelet)->dyn_nodes) ? (codelet)->dyn_nodes[i] : (codelet)->nodes[i])
+#define STARPU_CODELET_SET_NODE(codelet, __node, i) do { if ((codelet)->dyn_nodes) (codelet)->dyn_nodes[i] = __node; else (codelet)->nodes[i] = __node; } while(0)
 
 void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
 void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
