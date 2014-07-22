@@ -222,7 +222,10 @@ LIST_TYPE(starpu_omp_task,
 	void *starpu_cl_arg;
 
 	/* actual task function to be run */
-	void (*f)(void **starpu_buffers, void *starpu_cl_arg);
+	void (*cpu_f)(void **starpu_buffers, void *starpu_cl_arg);
+#if STARPU_USE_CUDA
+	void (*cuda_f)(void **starpu_buffers, void *starpu_cl_arg);
+#endif
 
 	enum starpu_omp_task_state state;
 
@@ -346,6 +349,8 @@ struct starpu_omp_global
 	struct _starpu_spinlock named_criticals_lock;
 	struct starpu_omp_thread *hash_workers;
 	struct _starpu_spinlock hash_workers_lock;
+	int nb_starpu_cpu_workers;
+	int *starpu_cpu_worker_ids;
 };
 
 /* 

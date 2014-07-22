@@ -295,7 +295,19 @@ static void destroy_omp_thread_struct(struct starpu_omp_thread *thread)
 static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 {
 	STARPU_ASSERT(!task->is_implicit);
-	task->f(task->starpu_buffers, task->starpu_cl_arg);
+	struct _starpu_worker *starpu_worker = _starpu_get_local_worker_key();
+	if (starpu_worker->arch == STARPU_CPU_WORKER)
+	{
+		task->cpu_f(task->starpu_buffers, task->starpu_cl_arg);
+	}
+#if STARPU_USE_CUDA
+	else if (starpu_worker->arch == STARPU_CUDA_WORKER)
+	{
+		task->cuda_f(task->starpu_buffers, task->starpu_cl_arg);
+	}
+#endif
+	else
+		_STARPU_ERROR("invalid worker architecture");
 	_starpu_omp_unregister_task_handles(task);
 	task->state = starpu_omp_task_state_terminated;
 	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
@@ -312,7 +324,7 @@ static void starpu_omp_implicit_task_entry(struct starpu_omp_task *task)
 {
 	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
 	STARPU_ASSERT(task->is_implicit);
-	task->f(task->starpu_buffers, task->starpu_cl_arg);
+	task->cpu_f(task->starpu_buffers, task->starpu_cl_arg);
 	starpu_omp_barrier();
 	if (thread == task->owner_region->master_thread)
 	{
@@ -412,6 +424,32 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 	struct starpu_omp_thread *thread = get_local_thread();
 	if (task->state != starpu_omp_task_state_preempted)
 	{
+		if (thread == NULL)
+		{
+			struct _starpu_worker *starpu_worker = _starpu_get_local_worker_key();
+			if (starpu_worker->arch != STARPU_CPU_WORKER)
+			{
+				if (
+#if STARPU_USE_CUDA
+						(starpu_worker->arch != STARPU_CUDA_WORKER)
+						&&
+#endif
+						1
+				   )
+				{
+					_STARPU_ERROR("invalid worker architecture");
+				}
+
+				struct starpu_omp_thread *new_thread;
+				new_thread = create_omp_thread_struct(NULL);
+				new_thread->worker = starpu_worker;
+				register_thread_worker(new_thread);
+			}
+			else
+			{
+				_STARPU_ERROR("orphaned CPU thread");
+			}
+		}
 		if (!task->is_untied)
 		{
 			struct _starpu_worker *starpu_worker = _starpu_get_local_worker_key();
@@ -595,8 +633,16 @@ static void omp_initial_thread_setup(void)
 	ret = starpu_driver_init(&initial_thread->starpu_driver);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_init");
 	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, initial_task);
-	initial_thread->worker = _starpu_get_worker_struct(0);
+
+	_global_state.nb_starpu_cpu_workers = starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
+	_global_state.starpu_cpu_worker_ids = malloc(_global_state.nb_starpu_cpu_workers * sizeof(int));
+	if (_global_state.starpu_cpu_worker_ids == NULL)
+		_STARPU_ERROR("memory allocation failed");
+	ret = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, _global_state.starpu_cpu_worker_ids, _global_state.nb_starpu_cpu_workers);
+	STARPU_ASSERT(ret == _global_state.nb_starpu_cpu_workers);
+	initial_thread->worker = _starpu_get_worker_struct(_global_state.starpu_cpu_worker_ids[0]);
 	STARPU_ASSERT(initial_thread->worker);
+	STARPU_ASSERT(initial_thread->worker->arch == STARPU_CPU_WORKER);
 	STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, initial_thread);
 	register_thread_worker(initial_thread);
 }
@@ -609,6 +655,9 @@ static void omp_initial_thread_exit()
 	memset(&initial_thread->starpu_driver, 0, sizeof (initial_thread->starpu_driver));
 	/* the driver for the main thread is now de-inited, we can shutdown Starpu */
 	starpu_shutdown();
+	free(_global_state.starpu_cpu_worker_ids);
+	_global_state.starpu_cpu_worker_ids = NULL;
+	_global_state.nb_starpu_cpu_workers = 0;
 	free(initial_thread->initial_thread_stack);
 	initial_thread->initial_thread_stack = NULL;
 	memset(&initial_thread->ctx, 0, sizeof (initial_thread->ctx));
@@ -892,12 +941,12 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 			/* TODO: use a less arbitrary thread/worker mapping scheme */
 			if (generating_region->level == 0)
 			{
-				struct _starpu_worker *worker = _starpu_get_worker_struct(i);
+				struct _starpu_worker *worker = _starpu_get_worker_struct(_global_state.starpu_cpu_worker_ids[i]);
 				new_thread = get_worker_thread(worker);
 				if (new_thread == NULL)
 				{
 					new_thread = create_omp_thread_struct(new_region);
-					new_thread->worker = _starpu_get_worker_struct(i);
+					new_thread->worker = _starpu_get_worker_struct(_global_state.starpu_cpu_worker_ids[i]);
 					register_thread_worker(new_thread);
 				}
 			}
@@ -955,7 +1004,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		 *
 		 * TODO: add support for multiple/heterogeneous implementations
 		 */
-		implicit_task->f = implicit_task->cl.cpu_funcs[0];
+		implicit_task->cpu_f = implicit_task->cl.cpu_funcs[0];
 
 		/*
 		 * plug the task wrapper into the parallel region codelet instead, to support task preemption
@@ -1491,12 +1540,23 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 		 *
 		 * TODO: add support for multiple/heterogeneous implementations
 		 */
-		generated_task->f = generated_task->cl.cpu_funcs[0];
+		if (generated_task->cl.cpu_funcs[0])
+		{
+			generated_task->cpu_f = generated_task->cl.cpu_funcs[0];
 
-		/*
-		 * plug the task wrapper into the task region codelet instead, to support task preemption
-		 */
-		generated_task->cl.cpu_funcs[0] = starpu_omp_explicit_task_exec;
+			/*
+			 * plug the task wrapper into the task region codelet instead, to support task preemption
+			 */
+			generated_task->cl.cpu_funcs[0] = starpu_omp_explicit_task_exec;
+		}
+#if STARPU_USE_CUDA
+		if (generated_task->cl.cuda_funcs[0])
+		{
+			generated_task->cuda_f = generated_task->cl.cuda_funcs[0];
+			generated_task->cl.cuda_funcs[0] = starpu_omp_explicit_task_exec;
+		}
+#endif
+		/* TODO: add opencl and other accelerator support */
 
 		generated_task->starpu_task = starpu_task_create();
 		generated_task->starpu_task->cl = &generated_task->cl;
