@@ -21,10 +21,10 @@
 #include <starpu.h>
 #include <common/config.h>
 
-struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task,
+struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task, struct _starpu_task_wrapper_dlist *post_sync_task_dependency_slot,
 						   starpu_data_handle_t handle, enum starpu_data_access_mode mode);
 void _starpu_detect_implicit_data_deps(struct starpu_task *task);
-void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, starpu_data_handle_t handle);
+void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, struct _starpu_task_wrapper_dlist *task_dependency_slot, starpu_data_handle_t handle);
 void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j);
 
 void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data_handle_t handle);

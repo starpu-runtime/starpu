@@ -157,7 +157,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 		wrapper->post_sync_task->name = "acquire_cb_post";
 		wrapper->post_sync_task->detach = 1;
 
-		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, handle, mode);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper->pre_sync_task, wrapper->post_sync_task, &_starpu_get_job_associated_to_task(wrapper->post_sync_task)->implicit_dep_slot, handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		if (new_task)
@@ -277,7 +277,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 		wrapper.post_sync_task->name = "acquire_post";
 		wrapper.post_sync_task->detach = 1;
 
-		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, handle, mode);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(wrapper.pre_sync_task, wrapper.post_sync_task, &_starpu_get_job_associated_to_task(wrapper.post_sync_task)->implicit_dep_slot, handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 		if (new_task)
 		{

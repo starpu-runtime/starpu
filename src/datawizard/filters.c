@@ -190,7 +190,9 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		STARPU_PTHREAD_MUTEX_INIT(&child->sequential_consistency_mutex, NULL);
 		child->last_submitted_mode = STARPU_R;
 		child->last_sync_task = NULL;
-		child->last_submitted_accessors = NULL;
+		child->last_submitted_accessors.task = NULL;
+		child->last_submitted_accessors.next = &child->last_submitted_accessors;
+		child->last_submitted_accessors.prev = &child->last_submitted_accessors;
 		child->post_sync_tasks = NULL;
 		/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
 		STARPU_HG_DISABLE_CHECKING(child->post_sync_tasks_cnt);

@@ -87,6 +87,7 @@ Changes:
   * StarPU-MPI: Fix for being able to receive data with the same tag
     from several nodes (see mpi/tests/gather.c)
   * Remove the long-deprecated cost_model fields and task->buffers field.
+  * Fix complexity of implicit task/data dependency, from quadratic to linear.
 
 Small changes:
   * Rename function starpu_trace_user_event() as

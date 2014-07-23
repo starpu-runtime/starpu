@@ -97,6 +97,13 @@ struct _starpu_task_wrapper_list
 	struct _starpu_task_wrapper_list *next;
 };
 
+/* This structure describes a doubly-linked list of task */
+struct _starpu_task_wrapper_dlist {
+	struct starpu_task *task;
+	struct _starpu_task_wrapper_dlist *next;
+	struct _starpu_task_wrapper_dlist *prev;
+};
+
 extern int _starpu_has_not_important_data;
 
 typedef void (*_starpu_data_handle_unregister_hook)(starpu_data_handle_t);
@@ -169,7 +176,7 @@ struct _starpu_data_state
 	 * sequential_consistency flag is enabled. */
 	enum starpu_data_access_mode last_submitted_mode;
 	struct starpu_task *last_sync_task;
-	struct _starpu_task_wrapper_list *last_submitted_accessors;
+	struct _starpu_task_wrapper_dlist last_submitted_accessors;
 
 	/* If FxT is enabled, we keep track of "ghost dependencies": that is to
 	 * say the dependencies that are not needed anymore, but that should
