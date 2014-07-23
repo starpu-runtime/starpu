@@ -494,8 +494,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
-		struct _starpu_worker *worker = &worker_set->workers[i];
-		_STARPU_TRACE_WORKER_INIT_END(worker->workerid);
+		_STARPU_TRACE_WORKER_INIT_END(worker_set->workers[i].workerid);
 	}
 
 	/* tell the main thread that this one is ready */
