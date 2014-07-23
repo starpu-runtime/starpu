@@ -24,13 +24,13 @@ starpu_pthread_rwlock_t changing_ctx_mutex[STARPU_NMAX_SCHED_CTXS];
 extern struct starpu_worker_collection worker_list;
 static starpu_pthread_mutex_t sched_ctx_manag = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static starpu_pthread_mutex_t finished_submit_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
-struct starpu_task stop_submission_task = STARPU_TASK_INITIALIZER;
+static struct starpu_task stop_submission_task = STARPU_TASK_INITIALIZER;
 starpu_pthread_key_t sched_ctx_key;
-unsigned with_hypervisor = 0;
-double hyp_start_sample[STARPU_NMAX_SCHED_CTXS];
-double hyp_start_allow_sample[STARPU_NMAX_SCHED_CTXS];
-double flops[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
-size_t data_size[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
+static unsigned with_hypervisor = 0;
+static double hyp_start_sample[STARPU_NMAX_SCHED_CTXS];
+static double hyp_start_allow_sample[STARPU_NMAX_SCHED_CTXS];
+static double flops[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
+static size_t data_size[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
 
 static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *config);
 
