@@ -124,6 +124,9 @@ enum starpu_perfmodel_type
 	STARPU_NL_REGRESSION_BASED
 };
 
+struct _starpu_perfmodel_state;
+typedef struct _starpu_perfmodel_state* starpu_perfmodel_state_t;
+
 struct starpu_perfmodel
 {
 	enum starpu_perfmodel_type type;
@@ -135,20 +138,10 @@ struct starpu_perfmodel
 
 	const char *symbol;
 
-//#ifdef STARPU_DEVEL
-//#warning move all the fields in a private structure. may be difficult as it is not mandatory to call starpu_perfmodel_init when using a perfmodel
-//#endif
-	struct starpu_perfmodel_per_arch** per_arch; /*STARPU_MAXIMPLEMENTATIONS*/
-	int** per_arch_is_set; /*STARPU_MAXIMPLEMENTATIONS*/
-
-	unsigned is_init;
 	unsigned is_loaded;
 	unsigned benchmarking;
-	starpu_pthread_rwlock_t model_rwlock;
-	int *nimpls;
-	int ncombs;  /* The number of combinations currently used by the model */
-	int ncombs_set; /* The number of combinations allocated in the array nimpls and ncombs */
-	int *combs;
+
+	starpu_perfmodel_state_t state;
 };
 
 void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model);

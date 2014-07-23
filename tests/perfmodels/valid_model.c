@@ -16,6 +16,7 @@
 
 #include <config.h>
 #include <starpu.h>
+#include <core/perfmodel/perfmodel.h>
 #include "../helper.h"
 
 void func(void *descr[], void *arg)
@@ -79,11 +80,11 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	if (ret != 1)
 	{
 		int i, impl;
-		for(i = 0; i < lmodel.ncombs; i++)
+		for(i = 0; i < lmodel.state->ncombs; i++)
 		{
-			int comb = lmodel.combs[i];
-			for(impl = 0; impl < lmodel.nimpls[i]; impl++)
-				old_nsamples += lmodel.per_arch[comb][impl].regression.nsample;
+			int comb = lmodel.state->combs[i];
+			for(impl = 0; impl < lmodel.state->nimpls[i]; impl++)
+				old_nsamples += lmodel.state->per_arch[comb][impl].regression.nsample;
 		}
 	}
 
@@ -112,12 +113,12 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	{
 		int i;
 		new_nsamples = 0;
-		for(i = 0; i < lmodel.ncombs; i++)
+		for(i = 0; i < lmodel.state->ncombs; i++)
 		{
-			int comb = lmodel.combs[i];
+			int comb = lmodel.state->combs[i];
 			int impl;
-			for(impl = 0; impl < lmodel.nimpls[i]; impl++)
-			     new_nsamples += lmodel.per_arch[comb][impl].regression.nsample;
+			for(impl = 0; impl < lmodel.state->nimpls[i]; impl++)
+			     new_nsamples += lmodel.state->per_arch[comb][impl].regression.nsample;
 		}
 	}
 

@@ -66,7 +66,8 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmo
 {
 	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	STARPU_ASSERT(comb != -1);
-	struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[comb][nimpl];
+
+	struct starpu_perfmodel_per_arch *arch_model = &model->state->per_arch[comb][nimpl];
 	char archname[32];
 
 	if (arch_model->regression.nsample || arch_model->regression.valid || arch_model->regression.nl_valid || arch_model->list)
@@ -177,7 +178,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 		for(comb = 0; comb < starpu_get_narch_combs(); comb++)
 		{
 			struct starpu_perfmodel_arch *arch_comb = _starpu_arch_comb_get(comb);
-			int nimpls = model->nimpls[comb];
+			int nimpls = model->state ? model->state->nimpls[comb] : 0;
 			for(impl = 0; impl < nimpls; impl++)
 				starpu_perfmodel_print(model, arch_comb, impl, parameter, footprint, output);
 		}
@@ -195,7 +196,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			perf_arch.devices[0].ncores = 1;
 			int comb = starpu_perfmodel_arch_comb_get(perf_arch.ndevices, perf_arch.devices);
 			STARPU_ASSERT(comb != -1);
-			int nimpls = model->nimpls[comb];
+			int nimpls = model->state->nimpls[comb];
 			for (implid = 0; implid < nimpls; implid++)
 				starpu_perfmodel_print(model, &perf_arch,implid, parameter, footprint, output); /* Display all codelets on cpu */
 			free(perf_arch.devices);
@@ -221,7 +222,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 			perf_arch.devices[0].ncores = k-1;
 			int comb = starpu_perfmodel_arch_comb_get(perf_arch.ndevices, perf_arch.devices);
 			STARPU_ASSERT(comb != -1);
-			int nimpls = model->nimpls[comb];
+			int nimpls = model->state->nimpls[comb];
 
 			for (implid = 0; implid < nimpls; implid++)
 				starpu_perfmodel_print(model, &perf_arch, implid, parameter, footprint, output);
@@ -246,7 +247,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 				if(arch_comb->ndevices == 1 && arch_comb->devices[0].type == STARPU_CUDA_WORKER)
 				{
 					perf_arch.devices[0].devid = arch_comb->devices[0].devid;
-					int nimpls = model->nimpls[comb];
+					int nimpls = model->state->nimpls[comb];
 
 					for (implid = 0; implid < nimpls; implid++)
 						starpu_perfmodel_print(model, &perf_arch, implid, parameter, footprint, output);
@@ -272,7 +273,7 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 
 			int comb = starpu_perfmodel_arch_comb_get(perf_arch.ndevices, perf_arch.devices);
 			STARPU_ASSERT(comb != -1);
-			int nimpls = model->nimpls[comb];
+			int nimpls = model->state->nimpls[comb];
 
 			int implid;
 			for (implid = 0; implid < nimpls; implid++)

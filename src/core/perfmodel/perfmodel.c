@@ -83,11 +83,11 @@ static double per_arch_task_expected_perf(struct starpu_perfmodel *model, struct
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if (comb == -1)
 		return NAN;
-	if (model->per_arch[comb] == NULL)
+	if (model->state->per_arch[comb] == NULL)
 		// The model has not been executed on this combination
 		return NAN;
 
-	per_arch_cost_function = model->per_arch[comb][nimpl].cost_function;
+	per_arch_cost_function = model->state->per_arch[comb][nimpl].cost_function;
 	STARPU_ASSERT_MSG(per_arch_cost_function, "STARPU_PER_ARCH needs per-arch cost_function to be defined");
 
 	return per_arch_cost_function(task, arch, nimpl);

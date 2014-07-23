@@ -40,6 +40,19 @@ extern "C"
  */
 #define _STARPU_PERFMODEL_VERSION 44
 
+struct _starpu_perfmodel_state
+{
+	struct starpu_perfmodel_per_arch** per_arch; /*STARPU_MAXIMPLEMENTATIONS*/
+	int** per_arch_is_set; /*STARPU_MAXIMPLEMENTATIONS*/
+
+	unsigned is_init;
+	starpu_pthread_rwlock_t model_rwlock;
+	int *nimpls;
+	int ncombs;  /* The number of combinations currently used by the model */
+	int ncombs_set; /* The number of combinations allocated in the array nimpls and ncombs */
+	int *combs;
+};
+
 struct _starpu_perfmodel_list
 {
 	struct _starpu_perfmodel_list *next;
