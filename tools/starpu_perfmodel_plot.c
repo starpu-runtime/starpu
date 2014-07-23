@@ -243,18 +243,19 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 	datafile = fopen(options->avg_file_name, "w");
 	col = 2;
 
-	int comb;
-	for(comb = 0; comb < model->ncombs; comb++)
+	int i;
+	for(i = 0; i < model->ncombs; i++)
 	{
-		if (options->comb_is_set == 0 || options->comb == model->combs[comb])
+		int comb = model->combs[i];
+		if (options->comb_is_set == 0 || options->comb == comb)
 		{
 			struct starpu_perfmodel_arch *arch;
 			int impl;
 
-			arch = _starpu_arch_comb_get(model->combs[comb]);
-			for(impl = 0; impl < model->nimpls[comb]; impl++)
+			arch = _starpu_arch_comb_get(comb);
+			for(impl = 0; impl < model->nimpls[i]; impl++)
 			{
-				struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[model->combs[comb]][impl];
+				struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[comb][impl];
 				starpu_perfmodel_get_arch_name(arch, arch_name, 32, impl);
 
 				if (arch_model->list)
@@ -274,14 +275,15 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 
 		minimum = ULONG_MAX;
 		/* Get the next minimum */
-		for(comb = 0; comb < model->ncombs; comb++)
+		for(i = 0; i < model->ncombs; i++)
 		{
-			if (options->comb_is_set == 0 || options->comb == model->combs[comb])
+			int comb = model->combs[i];
+			if (options->comb_is_set == 0 || options->comb == comb)
 			{
 				int impl;
-				for(impl = 0; impl < model->nimpls[comb]; impl++)
+				for(impl = 0; impl < model->nimpls[i]; impl++)
 				{
-					struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[model->combs[comb]][impl];
+					struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[comb][impl];
 					for (ptr = arch_model->list; ptr; ptr = ptr->next)
 					{
 						unsigned long size = ptr->entry->size;
@@ -296,15 +298,16 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 
 		fprintf(stderr, "%lu ", minimum);
 		fprintf(datafile, "%-15lu ", minimum);
-		for(comb = 0; comb < model->ncombs; comb++)
+		for(i = 0; i < model->ncombs; i++)
 		{
-			if (options->comb_is_set == 0 || options->comb == model->combs[comb])
+			int comb = model->combs[i];
+			if (options->comb_is_set == 0 || options->comb == comb)
 			{
 				int impl;
 
-				for(impl = 0; impl < model->nimpls[comb]; impl++)
+				for(impl = 0; impl < model->nimpls[i]; impl++)
 				{
-					struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[model->combs[comb]][impl];
+					struct starpu_perfmodel_per_arch *arch_model = &model->per_arch[comb][impl];
 					for (ptr = arch_model->list; ptr; ptr = ptr->next)
 					{
 						struct starpu_perfmodel_history_entry *entry = ptr->entry;
@@ -335,18 +338,19 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 
 static void display_all_perf_models(FILE *gnuplot_file, struct starpu_perfmodel *model, int *first, struct _perfmodel_plot_options *options)
 {
-	int comb;
-	for(comb = 0; comb < model->ncombs; comb++)
+	int i;
+	for(i = 0; i < model->ncombs; i++)
 	{
-		if (options->comb_is_set == 0 || options->comb == model->combs[comb])
+		int comb = model->combs[i];
+		if (options->comb_is_set == 0 || options->comb == comb)
 		{
 			struct starpu_perfmodel_arch *arch;
 			int impl;
 
-			arch = _starpu_arch_comb_get(model->combs[comb]);
-			for(impl = 0; impl < model->nimpls[model->combs[comb]]; impl++)
+			arch = _starpu_arch_comb_get(comb);
+			for(impl = 0; impl < model->nimpls[i]; impl++)
 			{
-				struct starpu_perfmodel_per_arch *archmodel = &model->per_arch[model->combs[comb]][impl];
+				struct starpu_perfmodel_per_arch *archmodel = &model->per_arch[comb][impl];
 				display_perf_model(gnuplot_file, model, arch, archmodel, comb, impl, first, options);
 			}
 		}
