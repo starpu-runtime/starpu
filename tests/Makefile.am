@@ -108,7 +108,6 @@ XFAIL_TESTS=	errorcheck/invalid_blocking_calls
 
 noinst_PROGRAMS =				\
 	main/deprecated_func			\
-	main/deprecated_buffer			\
 	main/driver_api/init_run_deinit         \
 	main/driver_api/run_driver              \
 	main/deploop                            \
@@ -199,6 +198,7 @@ noinst_PROGRAMS =				\
 	datawizard/partition_lazy		\
 	datawizard/gpu_register   		\
 	datawizard/gpu_ptr_register   		\
+	datawizard/variable_parameters		\
 	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
 	datawizard/readonly			\
@@ -413,7 +413,6 @@ datawizard_specific_node_SOURCES +=			\
 endif
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
-main_deprecated_buffer_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 
 main_subgraph_repeat_SOURCES =		\
 	main/subgraph_repeat.c

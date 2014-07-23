@@ -82,7 +82,7 @@ static const float idle_power_maximum=10000.0;
 static int count_non_ready_buffers(struct starpu_task *task, unsigned node)
 {
 	int cnt = 0;
-	unsigned nbuffers = task->cl->nbuffers;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 
 	for (index = 0; index < nbuffers; index++)

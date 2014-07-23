@@ -48,6 +48,9 @@ New features:
   * Add CUDA concurrent kernel execution support through
     the STARPU_NWORKER_PER_CUDA environment variable.
   * New locality work stealing scheduler (lws).
+  * Add STARPU_VARIABLE_NBUFFERS to be set in cl.nbuffers, and nbuffers and
+    modes field to the task structure, which permit to define codelets taking a
+    variable number of data.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
@@ -83,6 +86,7 @@ Changes:
     starpu_data_set_tag(), data are received as a raw memory)
   * StarPU-MPI: Fix for being able to receive data with the same tag
     from several nodes (see mpi/tests/gather.c)
+  * Remove the long-deprecated cost_model fields and task->buffers field.
 
 Small changes:
   * Rename function starpu_trace_user_event() as

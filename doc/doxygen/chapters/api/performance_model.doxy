@@ -94,8 +94,6 @@ arch-specific factor.
 is the symbol name for the performance model, which will be used as
 file name to store the model. It must be set otherwise the model will
 be ignored.
-\var starpu_perfmodel::cost_model
-\deprecated
 This field is deprecated. Use instead the field starpu_perfmodel::cost_function field.
 \var starpu_perfmodel::cost_function
 Used by ::STARPU_COMMON: takes a task and implementation number, and
@@ -158,8 +156,6 @@ number of sample values for non-linear regression
 contains information about the performance model of a given
 arch.
 \ingroup API_Performance_Model
-\var starpu_perfmodel_per_arch::cost_model
-\deprecated
 This field is deprecated. Use instead the field
 starpu_perfmodel_per_arch::cost_function.
 \var starpu_perfmodel_per_arch::cost_function

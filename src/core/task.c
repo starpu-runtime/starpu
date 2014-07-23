@@ -265,12 +265,15 @@ int _starpu_submit_job(struct _starpu_job *j)
 		int i;
 		size_t data_size = 0;
 		if (j->task->cl)
-			for(i = 0; i < j->task->cl->nbuffers; i++)
+		{
+			unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+			for(i = 0; i < nbuffers; i++)
 			{
 				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 				if (handle != NULL)
 					data_size += _starpu_data_get_size(handle);
 			}
+		}
 
 		_STARPU_TRACE_HYPERVISOR_BEGIN();
 		sched_ctx->perf_counters->notify_submitted_job(j->task, j->footprint, data_size);
@@ -282,7 +285,8 @@ int _starpu_submit_job(struct _starpu_job *j)
 	if (task->cl)
 	{
 		unsigned i;
-		for (i=0; i<task->cl->nbuffers; i++)
+		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+		for (i=0; i<nbuffers; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			_starpu_spin_lock(&handle->header_lock);
@@ -395,26 +399,9 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 }
 
-void _starpu_task_check_deprecated_fields(struct starpu_task *task)
+void _starpu_task_check_deprecated_fields(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED)
 {
-	if (task->cl)
-	{
-		unsigned i;
-		for(i=0; i<STARPU_MIN(task->cl->nbuffers, STARPU_NMAXBUFS) ; i++)
-		{
-			if (task->buffers[i].handle && task->handles[i])
-			{
-				_STARPU_DISP("[warning][struct starpu_task] task->buffers[%u] and task->handles[%u] both set. Ignoring task->buffers[%u] ?\n", i, i, i);
-				STARPU_ASSERT(task->buffers[i].mode == task->cl->modes[i]);
-				STARPU_ABORT();
-			}
-			if (task->buffers[i].handle)
-			{
-				task->handles[i] = task->buffers[i].handle;
-				task->cl->modes[i] = task->buffers[i].mode;
-			}
-		}
-	}
+	/* None any more */
 }
 
 /* application should submit new tasks to StarPU through this function */
@@ -458,17 +445,18 @@ int starpu_task_submit(struct starpu_task *task)
 	if (task->cl)
 	{
 		unsigned i;
+		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
 		/* Check buffers */
 		if (task->dyn_handles == NULL)
-			STARPU_ASSERT_MSG(task->cl->nbuffers <= STARPU_NMAXBUFS, "Codelet %p has too many buffers (%d vs max %d). Either use --enable-maxbuffers configure option to increase the max, or use dyn_handles instead of handles.", task->cl, task->cl->nbuffers, STARPU_NMAXBUFS);
+			STARPU_ASSERT_MSG(STARPU_TASK_GET_NBUFFERS(task) <= STARPU_NMAXBUFS, "Codelet %p has too many buffers (%d vs max %d). Either use --enable-maxbuffers configure option to increase the max, or use dyn_handles instead of handles.", task->cl, STARPU_TASK_GET_NBUFFERS(task), STARPU_NMAXBUFS);
 
 		if (task->dyn_handles)
 		{
-			task->dyn_interfaces = malloc(task->cl->nbuffers * sizeof(void *));
+			task->dyn_interfaces = malloc(nbuffers * sizeof(void *));
 		}
 
-		for (i = 0; i < task->cl->nbuffers; i++)
+		for (i = 0; i < nbuffers; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			/* Make sure handles are not partitioned */
@@ -609,11 +597,12 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	{
 		/* This would be done by data dependencies checking */
 		unsigned i;
-		for (i=0 ; i<task->cl->nbuffers ; i++)
+		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+		for (i=0 ; i<nbuffers ; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
 			_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
-			enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
+			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(j->task, i);
 			_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
 			int node = -1;
 			if (j->task->cl->specific_nodes)
@@ -648,7 +637,8 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	/* We retain handle reference count */
 	unsigned i;
-	for (i=0; i<task->cl->nbuffers; i++)
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	for (i=0; i<nbuffers; i++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 		_starpu_spin_lock(&handle->header_lock);
@@ -673,11 +663,11 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	j->submitted = 1;
 	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops);
-	for (i=0 ; i<task->cl->nbuffers ; i++)
+	for (i=0 ; i<nbuffers ; i++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
-		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(j->task, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
 		int node = -1;
 		if (j->task->cl->specific_nodes)
@@ -908,7 +898,8 @@ int
 _starpu_task_uses_multiformat_handles(struct starpu_task *task)
 {
 	unsigned i;
-	for (i = 0; i < task->cl->nbuffers; i++)
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	for (i = 0; i < nbuffers; i++)
 	{
 		if (_starpu_data_is_multiformat_handle(STARPU_TASK_GET_HANDLE(task, i)))
 			return 1;

@@ -144,7 +144,7 @@ size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_p
 	}
 	else
 	{
-		unsigned nbuffers = task->cl->nbuffers;
+		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 		size_t size = 0;
 
 		unsigned buffer;
@@ -1402,8 +1402,9 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 		fprintf(f, "0x%x\t%lu\t%f\t%f\t%f\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(model, arch, impl, j), measured, task->predicted, task->predicted_transfer, cpuid);
 		unsigned i;
+		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
-		for (i = 0; i < task->cl->nbuffers; i++)
+		for (i = 0; i < nbuffers; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 
