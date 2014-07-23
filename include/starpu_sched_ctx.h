@@ -30,6 +30,7 @@ extern "C"
 #define STARPU_SCHED_CTX_POLICY_MAX_PRIO	 (4<<16)
 #define STARPU_SCHED_CTX_HIERARCHY_LEVEL         (5<<16)
 #define STARPU_SCHED_CTX_NESTED                  (6<<16)
+#define STARPU_SCHED_CTX_AWAKE_WORKERS           (7<<16)
 
 unsigned starpu_sched_ctx_create(int *workerids_ctx, int nworkers_ctx, const char *sched_ctx_name, ...);
 

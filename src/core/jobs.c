@@ -151,7 +151,27 @@ void _starpu_wait_job(struct _starpu_job *j)
 void _starpu_handle_job_termination(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
+	/* if sched_ctx without policy and awake workers, task may be destroyed in handle_job_termination by the master
+	   so pointless to continue */
+	if(!j->task) return;
+
 	unsigned sched_ctx = task->sched_ctx;
+	int workerid = starpu_worker_get_id();
+	/* if parallel task (managed by a context) only the master should execute this function */
+	struct _starpu_sched_ctx *sched_ctx_str = _starpu_get_sched_ctx_struct(sched_ctx);
+	if(!sched_ctx_str->sched_policy && sched_ctx_str->awake_workers)
+	{
+		if(sched_ctx_str->main_master != workerid)
+		{
+			return;
+		}
+		else
+		{
+			STARPU_PTHREAD_BARRIER_DESTROY(&j->before_work_barrier);
+			STARPU_PTHREAD_BARRIER_DESTROY(&j->after_work_barrier);
+		}
+	}
+
 	double flops = task->flops;
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
@@ -167,7 +187,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 	size_t data_size = 0;
-	int workerid = starpu_worker_get_id();
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	/* We release handle reference count */

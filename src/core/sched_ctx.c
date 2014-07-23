@@ -34,6 +34,8 @@ size_t data_size[STARPU_NMAX_SCHED_CTXS][STARPU_NMAXWORKERS];
 static unsigned _starpu_get_first_free_sched_ctx(struct _starpu_machine_config *config);
 static void _starpu_sched_ctx_add_workers_to_master(unsigned sched_ctx_id, int *workerids, int nworkers, int new_master);
 static void _starpu_sched_ctx_wake_these_workers_up(unsigned sched_ctx_id, int *workerids, int nworkers);
+static int _starpu_sched_ctx_find_master(unsigned sched_ctx_id, int *workerids, int nworkers);
+static void _starpu_sched_ctx_set_master(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers, int master);
 
 static void _starpu_worker_gets_into_ctx(unsigned sched_ctx_id, struct _starpu_worker *worker)
 {
@@ -257,11 +259,19 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 
 	if(!sched_ctx->sched_policy)
 	{
-		if(sched_ctx->main_master == -1)
-			sched_ctx->main_master = starpu_sched_ctx_book_workers_for_task(sched_ctx->id, workerids, nworkers);
+		if(!sched_ctx->awake_workers)
+		{
+			if(sched_ctx->main_master == -1)
+				sched_ctx->main_master = starpu_sched_ctx_book_workers_for_task(sched_ctx->id, workerids, nworkers);
+			else
+			{
+				_starpu_sched_ctx_add_workers_to_master(sched_ctx->id, workerids, nworkers, sched_ctx->main_master);
+			}
+		}
 		else
 		{
-			_starpu_sched_ctx_add_workers_to_master(sched_ctx->id, workerids, nworkers, sched_ctx->main_master);
+			sched_ctx->main_master = _starpu_sched_ctx_find_master(sched_ctx->id, workerids, nworkers);
+			_starpu_sched_ctx_set_master(sched_ctx, workerids, nworkers, sched_ctx->main_master);
 		}
 	}
 	else if(sched_ctx->sched_policy->add_workers)
@@ -375,7 +385,12 @@ static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sche
 	}
 
 	if(!sched_ctx->sched_policy)
-		_starpu_sched_ctx_wake_these_workers_up(sched_ctx->id, removed_workers, *n_removed_workers);
+	{
+		if(!sched_ctx->awake_workers)
+		{
+			_starpu_sched_ctx_wake_these_workers_up(sched_ctx->id, removed_workers, *n_removed_workers);
+		}
+	}
 
 	return;
 }
@@ -428,7 +443,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 						   int nworkers_ctx, unsigned is_initial_sched,
 						   const char *sched_ctx_name,
 						   int min_prio_set, int min_prio,
-						   int max_prio_set, int max_prio)
+						   int max_prio_set, int max_prio, unsigned awake_workers)
 {
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
 
@@ -487,9 +502,15 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 
         /*init the strategy structs and the worker_collection of the ressources of the context */
 	if(policy)
+	{
 		_starpu_init_sched_policy(config, sched_ctx, policy);
+		sched_ctx->awake_workers = 1;
+	}
 	else
+	{
+		sched_ctx->awake_workers = awake_workers;
 		starpu_sched_ctx_create_worker_collection(sched_ctx->id, STARPU_WORKER_LIST);
+	}
 
 	/* after having an worker_collection on the ressources add them */
 	_starpu_add_workers_to_sched_ctx(sched_ctx, workerids, nworkers_ctx, NULL, NULL);
@@ -655,7 +676,7 @@ unsigned starpu_sched_ctx_create_inside_interval(const char *policy_name, const 
 	for(i = 0; i < nw; i++)
 		printf("%d ", workers[i]);
 	printf("\n");
-	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_ctx_name, 0, 0, 0, 0);
+	sched_ctx = _starpu_create_sched_ctx(selected_policy, workers, nw, 0, sched_ctx_name, 0, 0, 0, 0, 1);
 	sched_ctx->min_ncpus = min_ncpus;
 	sched_ctx->max_ncpus = max_ncpus;
 	sched_ctx->min_ngpus = min_ngpus;
@@ -684,6 +705,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	struct starpu_sched_policy *sched_policy = NULL;
 	unsigned hierarchy_level = 0;
 	unsigned nesting_sched_ctx = STARPU_NMAX_SCHED_CTXS;
+	unsigned awake_workers = 0;
 
 	va_start(varg_list, sched_ctx_name);
 	while ((arg_type = va_arg(varg_list, int)) != 0)
@@ -716,6 +738,10 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 		{
 			nesting_sched_ctx = va_arg(varg_list, unsigned);
 		}
+		else if (arg_type == STARPU_SCHED_CTX_AWAKE_WORKERS)
+		{
+			awake_workers = 1;
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
@@ -725,7 +751,7 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	va_end(varg_list);
 
 	struct _starpu_sched_ctx *sched_ctx = NULL;
-	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio);
+	sched_ctx = _starpu_create_sched_ctx(sched_policy, workerids, nworkers, 0, sched_ctx_name, min_prio_set, min_prio, max_prio_set, max_prio, awake_workers);
 	sched_ctx->hierarchy_level = hierarchy_level;
 	sched_ctx->nesting_sched_ctx = nesting_sched_ctx;
 
@@ -1804,14 +1830,13 @@ unsigned starpu_sched_ctx_worker_is_master_for_child_ctx(int workerid, unsigned 
 
 }
 
-/* if the worker is the master of a parallel context, and the job is meant to be executed on this parallel context, return a pointer to the context */
 struct _starpu_sched_ctx *_starpu_sched_ctx_get_sched_ctx_for_worker_and_job(struct _starpu_worker *worker, struct _starpu_job *j)
 {
 	struct _starpu_sched_ctx_list *l = NULL;
 	for (l = worker->sched_ctx_list; l; l = l->next)
 	{
 		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
-		if (sched_ctx->main_master == worker->workerid && j->task->sched_ctx == sched_ctx->id)
+		if (j->task->sched_ctx == sched_ctx->id)
 			return sched_ctx;
 	}
 	return NULL;
@@ -2113,6 +2138,16 @@ static void _starpu_sched_ctx_add_workers_to_master(unsigned sched_ctx_id, int *
 	if(nput_to_sleep > 0)
 		_starpu_sched_ctx_get_workers_to_sleep(sched_ctx_id, put_to_sleep, nput_to_sleep, new_master);
 
+}
+
+static void _starpu_sched_ctx_set_master(struct _starpu_sched_ctx *sched_ctx, int *workerids, int nworkers, int master)
+{
+	int i;
+	for(i = 0; i < nworkers; i++)
+	{
+		if(workerids[i] != master)
+			sched_ctx->master[workerids[i]] = master;
+	}
 }
 
 int starpu_sched_ctx_book_workers_for_task(unsigned sched_ctx_id, int *workerids, int nworkers)
