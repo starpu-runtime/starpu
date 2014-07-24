@@ -108,6 +108,15 @@ $ cd build
 $ ../configure
 \endverbatim
 
+By default, StarPU will be installed in <c>/usr/local/bin</c>,
+<c>/usr/local/lib</c>, etc. You can specify an installation prefix
+other than <c>/usr/local</c> using the option <c>--prefix</c>, for
+instance:
+
+\verbatim
+$ ../configure --prefix=$HOME/starpu
+\endverbatim
+
 \subsection BuildingStarPU Building StarPU
 
 \verbatim

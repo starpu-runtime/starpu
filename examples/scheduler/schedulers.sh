@@ -23,7 +23,11 @@ check_success()
     fi
 }
 
-[ -x ./cholesky/cholesky_tag ] || exit 77
+if test ! -x ./cholesky/cholesky_tag
+then
+    echo "Application ./cholesky/cholesky_tag unavailable"
+    exit 77
+fi
 
 SCHEDULERS=`STARPU_SCHED="help" ./basic_examples/hello_world 2>&1 | awk '/\t->/ {print $1}'`
 

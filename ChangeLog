@@ -18,7 +18,7 @@ StarPU 1.2.0 (svn revision xxxx)
 ==============================================
 
 New features:
-  * Xeon Phi support
+  * MIC Xeon Phi support
   * SCC support
   * New function starpu_sched_ctx_exec_parallel_code to execute a
     parallel code on the workers of the given scheduler context
@@ -52,6 +52,9 @@ New features:
   * Add CUDA concurrent kernel execution support through
     the STARPU_NWORKER_PER_CUDA environment variable.
   * New locality work stealing scheduler (lws).
+  * Add STARPU_VARIABLE_NBUFFERS to be set in cl.nbuffers, and nbuffers and
+    modes field to the task structure, which permit to define codelets taking a
+    variable number of data.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
@@ -75,6 +78,9 @@ Small features:
   * Add codelet size, footprint and tag id in the paje trace.
   * Add STARPU_TAG_ONLY, to specify a tag for traces without making StarPU
     manage the tag.
+  * On Linux x86, spinlocks now block after a hundred tries. This avoids
+    typical 10ms pauses when the application thread tries to submit tasks.
+  * New function char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
@@ -84,10 +90,20 @@ Changes:
     starpu_data_set_tag(), data are received as a raw memory)
   * StarPU-MPI: Fix for being able to receive data with the same tag
     from several nodes (see mpi/tests/gather.c)
+  * Remove the long-deprecated cost_model fields and task->buffers field.
+  * Fix complexity of implicit task/data dependency, from quadratic to linear.
 
 Small changes:
   * Rename function starpu_trace_user_event() as
     starpu_fxt_trace_user_event()
+
+StarPU 1.1.3 (svn revision xxx)
+==============================================
+The scheduling context release
+
+New features:
+  * One can register an existing on-GPU buffer to be used by a handle.
+  * Add the starpu_paje_summary statistics tool.
 
 StarPU 1.1.2 (svn revision xxx)
 ==============================================
@@ -100,6 +116,8 @@ New features:
     scheduler.
   * Add STARPU_CALIBRATE_MINIMUM environment variable to specify the minimum
     number of calibration measurements.
+  * Add STARPU_TRACE_BUFFER_SIZE environment variable to specify the size of
+    the trace buffer.
 
 StarPU 1.1.1 (svn revision 12638)
 ==============================================

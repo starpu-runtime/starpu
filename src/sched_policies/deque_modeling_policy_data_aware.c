@@ -82,7 +82,7 @@ static const float idle_power_maximum=10000.0;
 static int count_non_ready_buffers(struct starpu_task *task, unsigned node)
 {
 	int cnt = 0;
-	unsigned nbuffers = task->cl->nbuffers;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 
 	for (index = 0; index < nbuffers; index++)
@@ -1019,7 +1019,7 @@ struct starpu_sched_policy _starpu_sched_dm_policy =
 	.remove_workers = dmda_remove_workers,
 	.push_task = dm_push_task,
 	.pop_task = dmda_pop_task,
-	.pre_exec_hook = NULL,
+	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dm",

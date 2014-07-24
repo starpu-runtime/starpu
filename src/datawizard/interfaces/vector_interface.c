@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +44,7 @@ static int vector_compare(void *data_interface_a, void *data_interface_b);
 static void display_vector_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_vector_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
 static int unpack_vector_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+static ssize_t describe(void *data_interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_vector_ops =
 {
@@ -59,7 +60,8 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.interface_size = sizeof(struct starpu_vector_interface),
 	.display = display_vector_interface,
 	.pack_data = pack_vector_handle,
-	.unpack_data = unpack_vector_handle
+	.unpack_data = unpack_vector_handle,
+	.describe = describe
 };
 
 static void *vector_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
@@ -120,6 +122,16 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, unsigned home_
 #endif
 
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_vector_ops);
+}
+
+void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node,
+			uintptr_t ptr, uintptr_t dev_handle, size_t offset)
+{
+	struct starpu_vector_interface *vector_interface = starpu_data_get_interface_on_node(handle, node);
+	starpu_data_ptr_register(handle, node);
+	vector_interface->ptr = ptr;
+	vector_interface->dev_handle = dev_handle;
+	vector_interface->offset = offset;
 }
 
 
@@ -273,3 +285,10 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 	return ret;
 }
 
+static ssize_t describe(void *data_interface, char *buf, size_t size)
+{
+	struct starpu_vector_interface *vector = (struct starpu_vector_interface *) data_interface;
+	return snprintf(buf, size, "V%ux%u",
+			(unsigned) vector->nx,
+			(unsigned) vector->elemsize);
+}

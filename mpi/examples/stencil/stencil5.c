@@ -165,11 +165,12 @@ int main(int argc, char **argv)
 		{
 			int mpi_rank = my_distrib2(x, y, size);
 			if (!data_handles[x][y] && (mpi_rank == my_rank
-				 || my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
-				 || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size)))
+				 || my_rank == my_distrib2(x+1, y, size) || my_rank == my_distrib2(x-1, y, size)
+				 || my_rank == my_distrib2(x, y+1, size) || my_rank == my_distrib2(x, y-1, size)))
 			{
 				/* Register newly-needed data */
 				starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
+				starpu_mpi_data_register(data_handles[x][y], (y*X)+x, mpi_rank);
 			}
 			if (data_handles[x][y] && mpi_rank != starpu_data_get_rank(data_handles[x][y]))
 			{

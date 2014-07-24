@@ -70,19 +70,13 @@ struct starpu_perfmodel_arch* starpu_worker_get_perf_archtype(int workerid)
 
 static double per_arch_task_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, struct starpu_task *task, unsigned nimpl)
 {
-	double exp = NAN;
 	double (*per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-	double (*per_arch_cost_model)(struct starpu_data_descr *);
 
 	per_arch_cost_function = model->per_arch[arch->type][arch->devid][arch->ncore][nimpl].cost_function;
-	per_arch_cost_model = model->per_arch[arch->type][arch->devid][arch->ncore][nimpl].cost_model;
 
-	if (per_arch_cost_function)
-		exp = per_arch_cost_function(task, arch, nimpl);
-	else if (per_arch_cost_model)
-		exp = per_arch_cost_model(task->buffers);
+	STARPU_ASSERT_MSG(per_arch_cost_function, "STARPU_PER_ARCH needs per-arch cost_function to be defined");
 
-	return exp;
+	return per_arch_cost_function(task, arch, nimpl);
 }
 
 /*
@@ -118,26 +112,14 @@ static double common_task_expected_perf(struct starpu_perfmodel *model, struct s
 	double exp;
 	double alpha;
 
-	if (model->cost_function)
-	{
-		exp = model->cost_function(task, nimpl);
-		alpha = starpu_worker_get_relative_speedup(arch);
+	STARPU_ASSERT_MSG(model->cost_function, "STARPU_COMMON requires common cost_function to be defined");
 
-		STARPU_ASSERT(!_STARPU_IS_ZERO(alpha));
+	exp = model->cost_function(task, nimpl);
+	alpha = starpu_worker_get_relative_speedup(arch);
 
-		return (exp/alpha);
-	}
-	else if (model->cost_model)
-	{
-		exp = model->cost_model(task->buffers);
-		alpha = starpu_worker_get_relative_speedup(arch);
+	STARPU_ASSERT(!_STARPU_IS_ZERO(alpha));
 
-		STARPU_ASSERT(!_STARPU_IS_ZERO(alpha));
-
-		return (exp/alpha);
-	}
-
-	return NAN;
+	return (exp/alpha);
 }
 
 void _starpu_load_perfmodel(struct starpu_perfmodel *model)
@@ -226,8 +208,9 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	unsigned i;
 	double sum = 0.0;
 	enum starpu_node_kind node_kind;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
-	for (i = 0; i < task->cl->nbuffers; i++)
+	for (i = 0; i < nbuffers; i++)
 	{
 		starpu_data_handle_t handle;
 		struct starpu_task *conversion_task;
@@ -304,7 +287,7 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 /* Data transfer performance modeling */
 double starpu_task_expected_data_transfer_time(unsigned memory_node, struct starpu_task *task)
 {
-	unsigned nbuffers = task->cl->nbuffers;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned buffer;
 
 	double penalty = 0.0;
@@ -312,7 +295,7 @@ double starpu_task_expected_data_transfer_time(unsigned memory_node, struct star
 	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
-		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, buffer);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
 
 		penalty += starpu_data_expected_transfer_time(handle, memory_node, mode);
 	}
@@ -397,10 +380,11 @@ double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundl
 		if (task->cl)
 		{
 			unsigned b;
-			for (b = 0; b < task->cl->nbuffers; b++)
+			unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+			for (b = 0; b < nbuffers; b++)
 			{
 				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, b);
-				enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, b);
+				enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, b);
 
 				if (!(mode & STARPU_R))
 					continue;

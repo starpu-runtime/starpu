@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
  * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -41,6 +41,7 @@ static int void_compare(void *data_interface_a, void *data_interface_b);
 static void display_void_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_void_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
 static int unpack_void_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+static ssize_t describe(void *data_interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_void_ops =
 {
@@ -55,7 +56,8 @@ struct starpu_data_interface_ops starpu_interface_void_ops =
 	.interface_size = 0,
 	.display = display_void_interface,
 	.pack_data = pack_void_handle,
-	.unpack_data = unpack_void_handle
+	.unpack_data = unpack_void_handle,
+	.describe = describe
 };
 
 static void register_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
@@ -136,4 +138,9 @@ static int dummy_copy(void *src_interface STARPU_ATTRIBUTE_UNUSED,
 			void *async_data STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
+}
+
+static ssize_t describe(void *data_interface STARPU_ATTRIBUTE_UNUSED, char *buf, size_t size)
+{
+	return snprintf(buf, size, "0");
 }

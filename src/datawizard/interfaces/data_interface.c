@@ -62,6 +62,11 @@ void _starpu_data_interface_shutdown()
 {
 	struct handle_entry *entry, *tmp;
 
+	if (registered_handles)
+	{
+		_STARPU_DISP("[warning] The application has not unregistered all data handles.\n");
+	}
+
 	_starpu_spin_destroy(&registered_handles_lock);
 
 	HASH_ITER(hh, registered_handles, entry, tmp)
@@ -200,7 +205,9 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	STARPU_PTHREAD_MUTEX_INIT(&handle->sequential_consistency_mutex, NULL);
 	handle->last_submitted_mode = STARPU_R;
 	handle->last_sync_task = NULL;
-	handle->last_submitted_accessors = NULL;
+	handle->last_submitted_accessors.task = NULL;
+	handle->last_submitted_accessors.next = &handle->last_submitted_accessors;
+	handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
 	handle->post_sync_tasks = NULL;
 
 	/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
@@ -293,6 +300,17 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	{
 		_starpu_data_register_ram_pointer(handle, ptr);
 	}
+}
+
+void starpu_data_ptr_register(starpu_data_handle_t handle, unsigned node)
+{
+	struct _starpu_data_replicate *replicate = &handle->per_node[node];
+
+	_starpu_spin_lock(&handle->header_lock);
+	STARPU_ASSERT_MSG(replicate->allocated == 0, "starpu_data_ptr_register must be called right after starpu_data_register");
+	replicate->allocated = 1;
+	replicate->automatically_allocated = 0;
+	_starpu_spin_unlock(&handle->header_lock);
 }
 
 int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_interface_ops *interface_ops, unsigned int mf_node)
@@ -406,7 +424,12 @@ int _starpu_data_set_rank(starpu_data_handle_t handle, int rank)
 
 int starpu_data_set_rank(starpu_data_handle_t handle, int rank)
 {
-	_STARPU_DISP("Warning: You should call starpu_mpi_data_register which will insure MPI cache will be cleared when unregistering the data\n");
+	static int first=1;
+	if (first)
+	{
+		_STARPU_DISP("Warning: You should call starpu_mpi_data_register which will insure MPI cache will be cleared when unregistering the data\n");
+		first=0;
+	}
 	return _starpu_data_set_rank(handle, rank);
 }
 
@@ -455,7 +478,12 @@ int _starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 
 int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
 {
-	_STARPU_DISP("Warning: You should call starpu_mpi_data_register which will insure MPI cache will be cleared when unregistering the data\n");
+	static int first=1;
+	if (first)
+	{
+		_STARPU_DISP("Warning: You should call starpu_mpi_data_register which will insure MPI cache will be cleared when unregistering the data\n");
+		first=0;
+	}
 	return _starpu_data_set_tag(handle, tag);
 }
 

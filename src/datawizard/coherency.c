@@ -57,7 +57,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 	}
 
 	/* we should have found at least one copy ! */
-	STARPU_ASSERT(src_node_mask != 0);
+	STARPU_ASSERT_MSG(src_node_mask != 0, "The data for this handle is requested, but this handle does not have a valid value. Perhaps some initialization task is missing?");
 
 	/* Without knowing the size, we won't know the cost */
 	if (!size)
@@ -679,13 +679,13 @@ static void _starpu_set_data_requested_flag_if_needed(starpu_data_handle_t handl
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 {
 	STARPU_ASSERT(!task->prefetched);
-	unsigned nbuffers = task->cl->nbuffers;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
-		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, index);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
@@ -719,14 +719,14 @@ int _starpu_fetch_task_input(struct _starpu_job *j)
 		_starpu_clock_gettime(&task->profiling_info->acquire_data_start_time);
 
 	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
-	unsigned nbuffers = task->cl->nbuffers;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
 	unsigned local_memory_node = _starpu_memory_node_get_local_key();
 
 	int workerid = starpu_worker_get_id();
 
 #ifdef STARPU_USE_FXT
-	unsigned total_size = 0;
+	unsigned long total_size = 0;
 #endif
 
 	unsigned index;
@@ -763,7 +763,7 @@ int _starpu_fetch_task_input(struct _starpu_job *j)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
-		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(task->cl, index);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
 		int node = descrs[index].node;
 		if (node == -1)
 			node = local_memory_node;
@@ -826,7 +826,7 @@ void _starpu_push_task_output(struct _starpu_job *j)
 		_starpu_clock_gettime(&task->profiling_info->release_data_start_time);
 
         struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
-        unsigned nbuffers = task->cl->nbuffers;
+        unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
 	int workerid = starpu_worker_get_id();
 	unsigned local_memory_node = _starpu_memory_node_get_local_key();

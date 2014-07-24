@@ -24,8 +24,9 @@ uint32_t starpu_task_data_footprint(struct starpu_task *task)
 {
 	uint32_t footprint = 0;
 	unsigned buffer;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
-	for (buffer = 0; buffer < task->cl->nbuffers; buffer++)
+	for (buffer = 0; buffer < nbuffers; buffer++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, buffer);
 

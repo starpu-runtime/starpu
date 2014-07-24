@@ -93,7 +93,6 @@ struct starpu_perfmodel_history_table;
 
 struct starpu_perfmodel_per_arch
 {
-	double (*cost_model)(struct starpu_data_descr *t) STARPU_DEPRECATED;
 	double (*cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 	size_t (*size_base)(struct starpu_task *, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 
@@ -119,7 +118,6 @@ struct starpu_perfmodel
 {
 	enum starpu_perfmodel_type type;
 
-	double (*cost_model)(struct starpu_data_descr *) STARPU_DEPRECATED;
 	double (*cost_function)(struct starpu_task *, unsigned nimpl);
 
 	size_t (*size_base)(struct starpu_task *, unsigned nimpl);

@@ -33,7 +33,7 @@
 #define BACKOFF_MAX 32  /* TODO : use parameter to define them */
 #define BACKOFF_MIN 1
 
-void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, struct timespec *codelet_start, int rank, int profiling)
+void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_start, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
@@ -73,7 +73,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	if (starpu_top)
 		_starpu_top_task_started(task,workerid,codelet_start);
 
-	_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch);
+	_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
 }
 
 void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)
@@ -85,7 +85,7 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	int workerid = args->workerid;
 	unsigned calibrate_model = 0;
 
-	_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch);
+	_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
 
 	if (cl && cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
@@ -304,12 +304,12 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		return NULL;
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
-
 	_starpu_worker_set_status_scheduling_done(workerid);
 
 	_starpu_worker_set_status_wakeup(workerid);
 	args->spinning_backoff = BACKOFF_MIN;
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
 
 
 #ifdef HAVE_AYUDAME_H
@@ -341,13 +341,16 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		/*else try to pop a task*/
 		else
 		{
-			_starpu_worker_set_status_scheduling(workers[i].workerid);
 			STARPU_PTHREAD_MUTEX_LOCK(&workers[i].sched_mutex);
+			_starpu_worker_set_status_scheduling(workers[i].workerid);
 			_starpu_set_local_worker_key(&workers[i]);
 			tasks[i] = _starpu_pop_task(&workers[i]);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&workers[i].sched_mutex);
 			if(tasks[i] != NULL)
 			{
+				_starpu_worker_set_status_scheduling_done(workers[i].workerid);
+				_starpu_worker_set_status_wakeup(workers[i].workerid);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&workers[i].sched_mutex);
+
 				count ++;
 				j = _starpu_get_job_associated_to_task(tasks[i]);
 				is_parallel_task = (j->task_size > 1);
@@ -370,13 +373,11 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 					workers[i].worker_size = 1;
 					workers[i].current_rank = 0;
 				}
-
-				_starpu_worker_set_status_scheduling_done(workers[i].workerid);
-				_starpu_worker_set_status_wakeup(workers[i].workerid);
 			}
 			else
 			{
 				_starpu_worker_set_status_sleeping(workers[i].workerid);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&workers[i].sched_mutex);
 			}
 		}
 	}

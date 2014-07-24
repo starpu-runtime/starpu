@@ -408,11 +408,13 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
 
 	if (starpu_get_env_number("STARPU_DISABLE_KERNELS") <= 0)
 	{
+		_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_SIMGRID
 		_starpu_simgrid_execute_job(j, &args->perf_arch, NAN);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
+		_STARPU_TRACE_END_EXECUTING();
 	}
 
 	return 0;
@@ -492,8 +494,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
-		struct _starpu_worker *worker = &worker_set->workers[i];
-		_STARPU_TRACE_WORKER_INIT_END(worker->workerid);
+		_STARPU_TRACE_WORKER_INIT_END(worker_set->workers[i].workerid);
 	}
 
 	/* tell the main thread that this one is ready */
@@ -550,6 +551,15 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			_starpu_set_local_worker_key(args);
 			finish_job_on_cuda(_starpu_get_job_associated_to_task(task), args);
 			idle++;
+#ifdef STARPU_USE_FXT
+			int k;
+			for (k = 0; k < (int) worker_set->nworkers; k++)
+				if (worker_set->workers[k].current_task)
+					break;
+			if (k == (int) worker_set->nworkers)
+				/* Everybody busy */
+				_STARPU_TRACE_END_EXECUTING()
+#endif
 		}
 	}
 
@@ -612,6 +622,15 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		{
 			/* Record event to synchronize with task termination later */
 			cudaEventRecord(task_events[workerid], starpu_cuda_get_local_stream());
+#ifdef STARPU_USE_FXT
+			int k;
+			for (k = 0; k < (int) worker_set->nworkers; k++)
+				if (worker_set->workers[k].current_task)
+					break;
+			if (k < (int) worker_set->nworkers)
+				/* Everybody busy */
+				_STARPU_TRACE_START_EXECUTING()
+#endif
 		}
 		else
 #else

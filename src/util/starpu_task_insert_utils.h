@@ -21,7 +21,7 @@
 #include <stdarg.h>
 #include <starpu.h>
 
-size_t _starpu_task_insert_get_arg_size(va_list varg_list);
+void _starpu_task_insert_get_args_size(va_list varg_list, unsigned *nbuffers, size_t *cl_arg_size);
 int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list varg_list);
 void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list);
 

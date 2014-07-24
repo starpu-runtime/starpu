@@ -863,7 +863,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 #endif
 
 	/* 64MiB by default */
-	conf->trace_buffer_size = 64<<20;
+	conf->trace_buffer_size = starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64) << 20;
 	return 0;
 }
 
@@ -1987,3 +1987,13 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 	return nsched_ctxs;
 }
 
+char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
+{
+	if (type == STARPU_CPU_WORKER) return "STARPU_CPU_WORKER";
+	if (type == STARPU_CUDA_WORKER) return "STARPU_CUDA_WORKER";
+	if (type == STARPU_OPENCL_WORKER) return "STARPU_OPENCL_WORKER";
+	if (type == STARPU_MIC_WORKER) return "STARPU_MIC_WORKER";
+	if (type == STARPU_SCC_WORKER) return "STARPU_SCC_WORKER";
+	if (type == STARPU_ANY_WORKER) return "STARPU_ANY_WORKER";
+	return "STARPU_unknown_WORKER";
+}

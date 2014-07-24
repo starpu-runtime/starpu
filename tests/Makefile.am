@@ -108,7 +108,6 @@ XFAIL_TESTS=	errorcheck/invalid_blocking_calls
 
 noinst_PROGRAMS =				\
 	main/deprecated_func			\
-	main/deprecated_buffer			\
 	main/driver_api/init_run_deinit         \
 	main/driver_api/run_driver              \
 	main/deploop                            \
@@ -198,6 +197,8 @@ noinst_PROGRAMS =				\
 	datawizard/in_place_partition   	\
 	datawizard/partition_lazy		\
 	datawizard/gpu_register   		\
+	datawizard/gpu_ptr_register   		\
+	datawizard/variable_parameters		\
 	datawizard/wt_host			\
 	datawizard/wt_broadcast			\
 	datawizard/readonly			\
@@ -383,6 +384,18 @@ datawizard_gpu_register_SOURCES +=	\
 	datawizard/scal_opencl.cl
 endif
 
+datawizard_gpu_ptr_register_SOURCES =	\
+	datawizard/gpu_ptr_register.c	\
+	datawizard/scal.c
+if STARPU_USE_CUDA
+datawizard_gpu_ptr_register_SOURCES +=	\
+	datawizard/scal_cuda.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_gpu_ptr_register_SOURCES +=	\
+	datawizard/scal_opencl.cl
+endif
+
 datawizard_wt_host_SOURCES =			\
 	datawizard/wt_host.c
 datawizard_wt_broadcast_SOURCES =		\
@@ -400,7 +413,6 @@ datawizard_specific_node_SOURCES +=			\
 endif
 
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
-main_deprecated_buffer_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 
 main_subgraph_repeat_SOURCES =		\
 	main/subgraph_repeat.c

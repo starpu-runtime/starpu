@@ -237,6 +237,8 @@ $(DOX_TAG): $(dox_inputs)
 	@if test -f html/navtree.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
 	@$(SED) -i 's/.*"Files.html".*//' html/pages.html
 	@if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
+	@$(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex
+	@cat $(top_srcdir)/doc/doxygen/refman.tex >> $(DOX_LATEX_DIR)/refman.tex
 
 dist_pdf_DATA = $(DOX_PDF)
 

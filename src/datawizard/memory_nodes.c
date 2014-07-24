@@ -132,6 +132,7 @@ void _starpu_memory_node_get_name(unsigned node, char *name, int size)
 		prefix = "SCC_shared";
 		break;
 	case STARPU_UNUSED:
+		prefix = "unknown";
 		STARPU_ASSERT(0);
 	}
 	snprintf(name, size, "%s %u\n", prefix, descr.devid[node]);

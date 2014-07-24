@@ -88,11 +88,21 @@ AC_C_RESTRICT
 AC_CHECK_PROGS([BASH], [bash])
 
 # Check whether subversion is installed
+AC_PATH_PROG(svncommand, svn)
 AC_PATH_PROG(svnversioncommand, svnversion)
+
+# find out if we are are in a subversion directory
+svndir=0
+if test "$svncommand" != "" ; then
+   $svncommand info $srcdir >/dev/null 2>&1
+   if test $? -eq 0; then
+      svndir=1
+   fi
+fi
 
 # use svnversion to record the current repository revision only if
 # subversion is installed and we are in a working copy
-if test "$svnversioncommand" = "" || test `LC_ALL=C $svnversioncommand -n $srcdir` = "exported" ; then
+if test "$svnversioncommand" = "" || test "`LC_ALL=C $svnversioncommand -n $srcdir`" = "exported" ; then
    if test -f $srcdir/STARPU-REVISION ; then
       cp $srcdir/STARPU-REVISION .
    else
@@ -978,6 +988,7 @@ if test x$enable_simgrid = xyes ; then
    	if test -n "$SIMGRID_CFLAGS" ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
 	   	CXXFLAGS="$SIMGRID_CFLAGS $CXXFLAGS"
+	   	NVCCFLAGS="$SIMGRID_CFLAGS $NVCCFLAGS"
 	fi
 	if test -n "$SIMGRID_LIBS" ; then
 		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
@@ -985,11 +996,13 @@ if test x$enable_simgrid = xyes ; then
 	if test "$simgrid_dir" != "no" ; then
 	   	CFLAGS="-I$simgrid_dir/include $CFLAGS"
 	   	CXXFLAGS="-I$simgrid_dir/include $CXXFLAGS"
+	   	NVCCFLAGS="-I$simgrid_dir/include $NVCCFLAGS"
 	   	LDFLAGS="-L$simgrid_dir/lib $LDFLAGS"
 	fi
 	if test "$simgrid_include_dir" != "no" ; then
 	   	CFLAGS="-I$simgrid_include_dir $CFLAGS"
 	   	CXXFLAGS="-I$simgrid_include_dir $CXXFLAGS"
+	   	NVCCFLAGS="-I$simgrid_include_dir $NVCCFLAGS"
 	fi
 	if test "$simgrid_lib_dir" != "no" ; then
 	   	LDFLAGS="-L$simgrid_lib_dir $LDFLAGS"
@@ -1758,7 +1771,7 @@ AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
 running_mpi_check=no
-if test -d "$srcdir/.svn" -o -d "$srcdir/.git" ; then
+if test $svndir = 1 -o -d "$srcdir/.git" ; then
     running_mpi_check=yes
 fi
 if test x$enable_mpi_check = xyes ; then
@@ -2108,7 +2121,8 @@ AC_ARG_ENABLE(blas-lib,
  [  --enable-blas-lib[=blaslibname]:
                       none [default]: no BLAS lib is used
                       atlas: use ATLAS library
-                      goto: use GotoBLAS library],
+                      goto: use GotoBLAS library
+		      mkl: use MKL library (you may need to set specific CFLAGS and LDFLAGS with --with-mkl-cflags and --with-mkl-ldflags)],
  [
      if   test "x$enableval" = "xatlas" ; then
         blas_lib=atlas
@@ -2116,6 +2130,8 @@ AC_ARG_ENABLE(blas-lib,
         blas_lib=goto
      elif test "x$enableval" = "xnone" ; then
         blas_lib=none
+     elif test "x$enableval" = "xmkl" ; then
+        blas_lib=mkl
      elif test x$enableval = xno; then
 	blas_lib=none
      else
@@ -2173,7 +2189,7 @@ if test x$blas_lib = xmaybe -o x$blas_lib = xatlas; then
     fi
 fi
 
-if test x$blas_lib = xmaybe; then
+if test x$blas_lib = xmaybe -o x$blas_lib = xmkl; then
     # Should we use MKL ?
     AC_ARG_WITH(mkl-cflags, [AS_HELP_STRING([--with-mkl-cflags], [specify MKL compilation flags])],
 	[
@@ -2452,6 +2468,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_workers_activity
   chmod +x tools/starpu_paje_draw_histogram
   chmod +x tools/starpu_paje_state_stats
+  chmod +x tools/starpu_paje_summary
   chmod +x doc/doxygen/doxygen_filter.sh
 ])
 
@@ -2481,6 +2498,7 @@ AC_OUTPUT([
 	tools/starpu_workers_activity
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats
+	tools/starpu_paje_summary
 	socl/Makefile
 	socl/src/Makefile
 	socl/examples/Makefile

@@ -209,7 +209,7 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 {
 	unsigned buf;
 
-	unsigned nbuffers = j->task->cl->nbuffers;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 	for (buf = start_buffer_index; buf < nbuffers; buf++)
 	{
 		if (buf)
@@ -241,18 +241,18 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 {
 	struct starpu_codelet *cl = j->task->cl;
 
-	if ((cl == NULL) || (cl->nbuffers == 0))
+	if ((cl == NULL) || (STARPU_TASK_GET_NBUFFERS(j->task) == 0))
 		return 0;
 
 	/* Compute an ordered list of the different pieces of data so that we
 	 * grab then according to a total order, thus avoiding a deadlock
 	 * condition */
 	unsigned i;
-	for (i=0 ; i<cl->nbuffers ; i++)
+	for (i=0 ; i<STARPU_TASK_GET_NBUFFERS(j->task); i++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_HANDLE(j, handle, i);
-		enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(j->task->cl, i);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(j->task, i);
 		_STARPU_JOB_SET_ORDERED_BUFFER_MODE(j, mode, i);
 		int node = -1;
 		if (j->task->cl->specific_nodes)
@@ -260,7 +260,7 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 		_STARPU_JOB_SET_ORDERED_BUFFER_NODE(j, node, i);
 	}
 
-	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), cl->nbuffers);
+	_starpu_sort_task_handles(_STARPU_JOB_GET_ORDERED_BUFFERS(j), STARPU_TASK_GET_NBUFFERS(j->task));
 
 	return _submit_job_enforce_data_deps(j, 0);
 }
@@ -268,7 +268,7 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 static unsigned unlock_one_requester(struct _starpu_data_requester *r)
 {
 	struct _starpu_job *j = r->j;
-	unsigned nbuffers = j->task->cl->nbuffers;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
 	unsigned buffer_index = r->buffer_index;
 
 	if (buffer_index + 1 < nbuffers)
