@@ -1949,3 +1949,26 @@ void starpu_sched_ctx_unbook_workers_for_task(unsigned sched_ctx_id, int master)
 	/* wake up starpu workers */
 	_starpu_sched_ctx_wake_up_workers(sched_ctx_id, master);
 }
+
+int starpu_sched_ctx_get_worker_rank(unsigned sched_ctx_id)
+{
+	int idx = 0;
+	int curr_workerid = starpu_worker_get_id();
+	int worker;
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct starpu_worker_collection *workers = sched_ctx->workers;
+
+	struct starpu_sched_ctx_iterator it;
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		if(worker == curr_workerid)
+			return idx;
+		idx++;
+	}
+
+	return -1;
+}
