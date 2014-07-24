@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -410,7 +410,7 @@ do {									\
 #define _STARPU_TRACE_WORKER_INIT_END(workerid)				\
 	FUT_DO_PROBE2(_STARPU_FUT_WORKER_INIT_END, _starpu_gettid(), (workerid));
 
-#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, archtype, workerid)				\
+#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)				\
 do {									\
         const char *model_name = _starpu_job_get_model_name((job));         \
 	if (model_name)                                                 \
@@ -438,17 +438,17 @@ do {									\
 				}					\
 			}						\
 		}							\
-		const size_t __job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));	\
-		const uint32_t __job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));\
+		const size_t __job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
+		const uint32_t __job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
 		FUT_DO_PROBE6(_STARPU_FUT_CODELET_DETAILS, (job), ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->tag_id, workerid);	\
 	}								\
 } while(0);
 
-#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, archtype, workerid)			\
+#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)			\
 do {									\
-	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));	\
-	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, archtype, nimpl, (job));\
-	FUT_DO_PROBE7(_STARPU_FUT_END_CODELET_BODY, (job), (job_size), (job_hash), (archtype->devices[0]).type, (archtype->devices[0]).devid, (archtype->devices[0]).ncores, workerid);	\
+	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
+	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
+	FUT_DO_PROBE7(_STARPU_FUT_END_CODELET_BODY, (job), (job_size), (job_hash), ((perf_arch)->devices[0]).type, ((perf_arch)->devices[0]).devid, ((perf_arch)->devices[0]).ncores, workerid); \
 } while(0);
 
 #define _STARPU_TRACE_START_EXECUTING()				\
@@ -808,8 +808,8 @@ do {										\
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0)
 #define _STARPU_TRACE_WORKER_INIT_START(a,b,c)	do {} while(0)
 #define _STARPU_TRACE_WORKER_INIT_END(workerid)	do {} while(0)
-#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, archtype, workerid)	do {} while(0)
-#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, a, workerid)	do {} while(0)
+#define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)	do {} while(0)
+#define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)	do {} while(0)
 #define _STARPU_TRACE_START_EXECUTING()	do {} while(0)
 #define _STARPU_TRACE_END_EXECUTING()	do {} while(0)
 #define _STARPU_TRACE_START_CALLBACK(job)	do {} while(0)
