@@ -136,6 +136,8 @@ void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double flops);
 
 void starpu_sched_ctx_move_task_to_ctx(struct starpu_task *task, unsigned sched_ctx);
 
+int starpu_sched_ctx_get_worker_rank(unsigned sched_ctx_id);
+
 #ifdef STARPU_USE_SC_HYPERVISOR
 void starpu_sched_ctx_call_pushed_task_cb(int workerid, unsigned sched_ctx_id);
 #endif /* STARPU_USE_SC_HYPERVISOR */
