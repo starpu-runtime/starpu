@@ -565,25 +565,25 @@ static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
 static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker *worker);
 static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker *worker);
 
-int _starpu_opencl_driver_init(struct _starpu_worker *args)
+int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 {
-	int devid = args->devid;
+	int devid = worker->devid;
 
-	_starpu_worker_start(args, _STARPU_FUT_OPENCL_KEY);
+	_starpu_worker_start(worker, _STARPU_FUT_OPENCL_KEY);
 
 #ifndef STARPU_SIMGRID
 	_starpu_opencl_init_context(devid);
 #endif
 
 	/* one more time to avoid hacks from third party lib :) */
-	_starpu_bind_thread_on_cpu(args->config, args->bindid);
+	_starpu_bind_thread_on_cpu(worker->config, worker->bindid);
 
 	_starpu_opencl_limit_gpu_mem_if_needed(devid);
-	_starpu_memory_manager_set_global_memory_size(args->memory_node, _starpu_opencl_get_global_mem_size(devid));
+	_starpu_memory_manager_set_global_memory_size(worker->memory_node, _starpu_opencl_get_global_mem_size(devid));
 
-	_starpu_malloc_init(args->memory_node);
+	_starpu_malloc_init(worker->memory_node);
 
-	args->status = STATUS_UNKNOWN;
+	worker->status = STATUS_UNKNOWN;
 	float size = (float) global_mem[devid] / (1<<30);
 
 #ifdef STARPU_SIMGRID
@@ -593,18 +593,18 @@ int _starpu_opencl_driver_init(struct _starpu_worker *args)
 	char devname[128];
 	_starpu_opencl_get_device_name(devid, devname, 128);
 #endif
-	snprintf(args->name, sizeof(args->name), "OpenCL %u (%s %.1f GiB)", devid, devname, size);
-	snprintf(args->short_name, sizeof(args->short_name), "OpenCL %u", devid);
+	snprintf(worker->name, sizeof(worker->name), "OpenCL %u (%s %.1f GiB)", devid, devname, size);
+	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %u", devid);
 
-	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
+	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, worker->bindid);
 
-	_STARPU_TRACE_WORKER_INIT_END(args->workerid);
+	_STARPU_TRACE_WORKER_INIT_END(worker->workerid);
 
 	/* tell the main thread that this one is ready */
-	STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
-	args->worker_is_initialized = 1;
-	STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
+	worker->worker_is_initialized = 1;
+	STARPU_PTHREAD_COND_SIGNAL(&worker->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
 
 	return 0;
 }
