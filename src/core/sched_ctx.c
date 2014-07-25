@@ -262,16 +262,16 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 		if(!sched_ctx->awake_workers)
 		{
 			if(sched_ctx->main_master == -1)
-				sched_ctx->main_master = starpu_sched_ctx_book_workers_for_task(sched_ctx->id, workerids, nworkers);
+				sched_ctx->main_master = starpu_sched_ctx_book_workers_for_task(sched_ctx->id, wa, na);
 			else
 			{
-				_starpu_sched_ctx_add_workers_to_master(sched_ctx->id, workerids, nworkers, sched_ctx->main_master);
+				_starpu_sched_ctx_add_workers_to_master(sched_ctx->id, wa, na, sched_ctx->main_master);
 			}
 		}
 		else
 		{
-			sched_ctx->main_master = _starpu_sched_ctx_find_master(sched_ctx->id, workerids, nworkers);
-			_starpu_sched_ctx_set_master(sched_ctx, workerids, nworkers, sched_ctx->main_master);
+			sched_ctx->main_master = _starpu_sched_ctx_find_master(sched_ctx->id, wa, na);
+			_starpu_sched_ctx_set_master(sched_ctx, wa, na, sched_ctx->main_master);
 		}
 	}
 	else if(sched_ctx->sched_policy->add_workers)
@@ -397,18 +397,21 @@ static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sche
 
 static void _starpu_sched_ctx_free_scheduling_data(struct _starpu_sched_ctx *sched_ctx)
 {
-	int *workerids = NULL;
-
-	unsigned nworkers_ctx = starpu_sched_ctx_get_workers_list(sched_ctx->id, &workerids);
-
-	if(nworkers_ctx > 0 && sched_ctx->sched_policy->remove_workers)
+	if(sched_ctx->sched_policy && sched_ctx->sched_policy->remove_workers)
 	{
-		_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
-		sched_ctx->sched_policy->remove_workers(sched_ctx->id, workerids, nworkers_ctx);
-		_STARPU_TRACE_WORKER_SCHEDULING_POP;
+		int *workerids = NULL;
+		
+		unsigned nworkers_ctx = starpu_sched_ctx_get_workers_list(sched_ctx->id, &workerids);
+		
+		if(nworkers_ctx > 0)
+		{
+			_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
+			sched_ctx->sched_policy->remove_workers(sched_ctx->id, workerids, nworkers_ctx);
+			_STARPU_TRACE_WORKER_SCHEDULING_POP;
+		}
+		
+		free(workerids);
 	}
-
-	free(workerids);
 	return;
 
 }
@@ -2167,6 +2170,8 @@ int starpu_sched_ctx_get_worker_rank(unsigned sched_ctx_id)
 	int curr_workerid = starpu_worker_get_id();
 	int worker;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	if(sched_ctx->sched_policy || !sched_ctx->awake_workers)
+		return -1;
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 
 	struct starpu_sched_ctx_iterator it;

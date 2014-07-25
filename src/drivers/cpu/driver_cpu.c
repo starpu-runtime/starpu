@@ -228,13 +228,16 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		rank = j->active_task_alias_count++;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-		struct _starpu_combined_worker *combined_worker;
-		combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
-
-		cpu_worker->combined_workerid = j->combined_workerid;
-		cpu_worker->worker_size = combined_worker->worker_size;
-		cpu_worker->current_rank = rank;
-		perf_arch = &combined_worker->perf_arch;
+		if(j->combined_workerid != -1)
+		{
+			struct _starpu_combined_worker *combined_worker;
+			combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
+			
+			cpu_worker->combined_workerid = j->combined_workerid;
+			cpu_worker->worker_size = combined_worker->worker_size;
+			cpu_worker->current_rank = rank;
+			perf_arch = &combined_worker->perf_arch;
+		}
 	}
 	else
 	{

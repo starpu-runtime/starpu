@@ -817,19 +817,6 @@ enomem:
 
 void _starpu_push_task_output(struct _starpu_job *j)
 {
-	/* if sched_ctx without policy and awake workers, task may be destroyed in handle_job_termination by the master
-	   so pointless to continue */
-	if(!j->task) return;
-	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
-	STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a the ctx of this job \n");
-
-	if (!sched_ctx->sched_policy)
-	{
-		int workerid = starpu_worker_get_id();
-       		if(sched_ctx->main_master != workerid)
-			return;
-	}
-
 	_STARPU_TRACE_START_PUSH_OUTPUT(NULL);
 
 	int profiling = starpu_profiling_status_get();

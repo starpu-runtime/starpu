@@ -79,27 +79,20 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a worker %d in the ctx of this job \n", worker->workerid);
 	if(!sched_ctx->sched_policy)
 	{
-		if(sched_ctx->awake_workers)
+		if(!sched_ctx->awake_workers && sched_ctx->main_master == worker->workerid)
 		{
-			STARPU_PTHREAD_BARRIER_WAIT(&j->before_work_barrier);
-		}
-		else
-		{
-			if(sched_ctx->main_master == worker->workerid)
-			{
-				struct starpu_worker_collection *workers = sched_ctx->workers;
-				struct starpu_sched_ctx_iterator it;
+			struct starpu_worker_collection *workers = sched_ctx->workers;
+			struct starpu_sched_ctx_iterator it;
 
-				if (workers->init_iterator)
-					workers->init_iterator(workers, &it);
-				while (workers->has_next(workers, &it))
+			if (workers->init_iterator)
+				workers->init_iterator(workers, &it);
+			while (workers->has_next(workers, &it))
+			{
+				int _workerid = workers->get_next(workers, &it);
+				if (_workerid != workerid)
 				{
-					int _workerid = workers->get_next(workers, &it);
-					if (_workerid != workerid)
-					{
-						struct _starpu_worker *_worker = _starpu_get_worker_struct(_workerid);
-						_starpu_driver_start_job(_worker, j, &_worker->perf_arch, codelet_start, rank, profiling);
-					}
+					struct _starpu_worker *worker = _starpu_get_worker_struct(_workerid);
+					_starpu_driver_start_job(worker, j, &worker->perf_arch, codelet_start, rank, profiling);
 				}
 			}
 		}
@@ -123,9 +116,6 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	// Find out if the worker is the master of a parallel context
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
 	STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a worker %d in the ctx of this job \n", worker->workerid);
-
-	if(!sched_ctx->sched_policy && sched_ctx->awake_workers)
-		STARPU_PTHREAD_BARRIER_WAIT(&j->after_work_barrier);
 
 	if (!sched_ctx->sched_policy)
 	{
@@ -176,9 +166,6 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 					struct starpu_perfmodel_arch* perf_arch,
 					struct timespec *codelet_start, struct timespec *codelet_end, int profiling)
 {
-	/* if sched_ctx without policy and awake workers, task may be destroyed in handle_job_termination by the master
-	   so pointless to continue */
-	if(!j->task) return;
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
 	STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a worker %d in the ctx of this job \n", worker->workerid);
 
@@ -310,6 +297,9 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 			if(sched_ctx && sched_ctx->id > 0 && sched_ctx->id < STARPU_NMAX_SCHED_CTXS)
 			{
 				STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->parallel_sect_mutex[workerid]);
+				if(!sched_ctx->sched_policy && sched_ctx->awake_workers) 
+					worker->slave = sched_ctx->main_master != workerid;
+
 				if(sched_ctx->parallel_sect[workerid])
 				{
 					/* don't let the worker sleep with the sched_mutex taken */
@@ -445,9 +435,12 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 					workers[i].current_rank = j->active_task_alias_count++;
 					STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-					combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
-					workers[i].combined_workerid = j->combined_workerid;
-					workers[i].worker_size = combined_worker->worker_size;
+					if(j->combined_workerid != -1)
+					{
+						combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
+						workers[i].combined_workerid = j->combined_workerid;
+						workers[i].worker_size = combined_worker->worker_size;
+					}
 				}
 				else
 				{

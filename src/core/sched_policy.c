@@ -465,7 +465,10 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				struct starpu_worker_collection *workers = sched_ctx->workers;
 				
 				struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
-				
+				job->task_size = workers->nworkers;
+				job->combined_workerid = -1; // workerid; its a ctx not combined worker
+				job->active_task_alias_count = 0;
+
 				STARPU_PTHREAD_BARRIER_INIT(&job->before_work_barrier, NULL, workers->nworkers);
 				STARPU_PTHREAD_BARRIER_INIT(&job->after_work_barrier, NULL, workers->nworkers);
 				
@@ -481,13 +484,8 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				while(workers->has_next(workers, &it))
 				{
 					workerid = workers->get_next(workers, &it);
-					if(workerid != sched_ctx->main_master)
-					{
-						struct starpu_task *alias = starpu_task_dup(task);
-						ret |= _starpu_push_task_on_specific_worker(alias, workerid);
-					}
-					else
-						ret |= _starpu_push_task_on_specific_worker(task, workerid);
+					struct starpu_task *alias = starpu_task_dup(task);
+					ret |= _starpu_push_task_on_specific_worker(alias, workerid);
 				}
 			}
 		}
