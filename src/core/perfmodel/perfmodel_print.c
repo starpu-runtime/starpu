@@ -232,7 +232,6 @@ int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char 
 
 		if (strcmp(arch, "cuda") == 0)
 		{
-			unsigned devid;
 			int implid;
 			struct starpu_perfmodel_arch perf_arch;
 
