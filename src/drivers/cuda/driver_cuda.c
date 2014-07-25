@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -372,7 +372,7 @@ void _starpu_init_cuda(void)
 	STARPU_ASSERT(ncudagpus <= STARPU_MAXCUDADEVS);
 }
 
-static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
+static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker)
 {
 	int ret;
 
@@ -396,11 +396,11 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
 		return -EAGAIN;
 	}
 
-	_starpu_driver_start_job(args, j, &args->perf_arch, &j->cl_start, 0, profiling);
+	_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, profiling);
 
 #if defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 	/* We make sure we do manipulate the proper device */
-	starpu_cuda_set_device(args->devid);
+	starpu_cuda_set_device(worker->devid);
 #endif
 
 	starpu_cuda_func_t func = _starpu_task_get_cuda_nth_implementation(cl, j->nimpl);
@@ -410,7 +410,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
 	{
 		_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_SIMGRID
-		_starpu_simgrid_execute_job(j, &args->perf_arch, NAN);
+		_starpu_simgrid_execute_job(j, &worker->perf_arch, NAN);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
@@ -420,18 +420,18 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
 	return 0;
 }
 
-static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *args)
+static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker)
 {
 	struct timespec codelet_end;
 
 	int profiling = starpu_profiling_status_get();
 
 	_starpu_set_current_task(NULL);
-	args->current_task = NULL;
+	worker->current_task = NULL;
 
-	_starpu_driver_end_job(args, j, &args->perf_arch, &codelet_end, 0, profiling);
+	_starpu_driver_end_job(worker, j, &worker->perf_arch, &codelet_end, 0, profiling);
 
-	_starpu_driver_update_job_feedback(j, args, &args->perf_arch, &j->cl_start, &codelet_end, profiling);
+	_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, &j->cl_start, &codelet_end, profiling);
 
 	_starpu_push_task_output(j);
 
@@ -441,18 +441,18 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *arg
 /* XXX Should this be merged with _starpu_init_cuda ? */
 int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 {
-	struct _starpu_worker *args = &worker_set->workers[0];
-	unsigned devid = args->devid;
+	struct _starpu_worker *worker = &worker_set->workers[0];
+	unsigned devid = worker->devid;
 	unsigned i;
 
-	_starpu_worker_start(args, _STARPU_FUT_CUDA_KEY);
+	_starpu_worker_start(worker, _STARPU_FUT_CUDA_KEY);
 
 #ifdef STARPU_USE_FXT
-	unsigned memnode = args->memory_node;
+	unsigned memnode = worker->memory_node;
 	for (i = 1; i < worker_set->nworkers; i++)
 	{
-		struct _starpu_worker *worker = &worker_set->workers[i];
-		_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_CUDA_KEY, worker->workerid, devid, memnode);
+		struct _starpu_worker *_worker = &worker_set->workers[i];
+		_STARPU_TRACE_WORKER_INIT_START(_STARPU_FUT_CUDA_KEY, _worker->workerid, devid, memnode);
 	}
 #endif
 
@@ -461,14 +461,14 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 #endif
 
 	_starpu_cuda_limit_gpu_mem_if_needed(devid);
-	_starpu_memory_manager_set_global_memory_size(args->memory_node, _starpu_cuda_get_global_mem_size(devid));
+	_starpu_memory_manager_set_global_memory_size(worker->memory_node, _starpu_cuda_get_global_mem_size(devid));
 
-	_starpu_malloc_init(args->memory_node);
+	_starpu_malloc_init(worker->memory_node);
 
 	/* one more time to avoid hacks from third party lib :) */
-	_starpu_bind_thread_on_cpu(args->config, args->bindid);
+	_starpu_bind_thread_on_cpu(worker->config, worker->bindid);
 
-	args->status = STATUS_UNKNOWN;
+	worker->status = STATUS_UNKNOWN;
 
 	float size = (float) global_mem[devid] / (1<<30);
 #ifdef STARPU_SIMGRID
@@ -482,15 +482,15 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 #if defined(STARPU_HAVE_BUSID) && !defined(STARPU_SIMGRID)
 #if defined(STARPU_HAVE_DOMAINID) && !defined(STARPU_SIMGRID)
 	if (props[devid].pciDomainID)
-		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %04x:%02x:%02x.0)", devid, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
+		snprintf(worker->name, sizeof(worker->name), "CUDA %u (%s %.1f GiB %04x:%02x:%02x.0)", devid, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
 	else
 #endif
-		snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB %02x:%02x.0)", devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
+		snprintf(worker->name, sizeof(worker->name), "CUDA %u (%s %.1f GiB %02x:%02x.0)", devid, devname, size, props[devid].pciBusID, props[devid].pciDeviceID);
 #else
-	snprintf(args->name, sizeof(args->name), "CUDA %u (%s %.1f GiB)", devid, devname, size);
+	snprintf(worker->name, sizeof(worker->name), "CUDA %u (%s %.1f GiB)", devid, devname, size);
 #endif
-	snprintf(args->short_name, sizeof(args->short_name), "CUDA %u", devid);
-	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, args->bindid);
+	snprintf(worker->short_name, sizeof(worker->short_name), "CUDA %u", devid);
+	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, worker->bindid);
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
@@ -498,10 +498,10 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	}
 
 	/* tell the main thread that this one is ready */
-	STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
-	args->worker_is_initialized = 1;
-	STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
+	worker->worker_is_initialized = 1;
+	STARPU_PTHREAD_COND_SIGNAL(&worker->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
 
 	/* tell the main thread that this one is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
@@ -527,10 +527,10 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	idle = 0;
 	for (i = 0; i < (int) worker_set->nworkers; i++)
 	{
-		struct _starpu_worker *args = &worker_set->workers[i];
-		int workerid = args->workerid;
+		struct _starpu_worker *worker = &worker_set->workers[i];
+		int workerid = worker->workerid;
 
-		task = args->current_task;
+		task = worker->current_task;
 
 		if (!task)
 		{
@@ -548,8 +548,8 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		else
 		{
 			/* Asynchronous task completed! */
-			_starpu_set_local_worker_key(args);
-			finish_job_on_cuda(_starpu_get_job_associated_to_task(task), args);
+			_starpu_set_local_worker_key(worker);
+			finish_job_on_cuda(_starpu_get_job_associated_to_task(task), worker);
 			idle++;
 #ifdef STARPU_USE_FXT
 			int k;
@@ -582,14 +582,14 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 
 	for (i = 0; i < (int) worker_set->nworkers; i++)
 	{
-		struct _starpu_worker *args = &worker_set->workers[i];
-		int workerid = args->workerid;
+		struct _starpu_worker *worker = &worker_set->workers[i];
+		int workerid = worker->workerid;
 
 		task = tasks[i];
 		if (!task)
 			continue;
 
-		_starpu_set_local_worker_key(args);
+		_starpu_set_local_worker_key(worker);
 
 		j = _starpu_get_job_associated_to_task(task);
 
@@ -602,7 +602,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		}
 
 		_STARPU_TRACE_END_PROGRESS(memnode);
-		res = start_job_on_cuda(j, args);
+		res = start_job_on_cuda(j, worker);
 
 		if (res)
 		{
@@ -643,7 +643,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 #if defined(STARPU_DEBUG) && !defined(STARPU_SIMGRID)
 			STARPU_ASSERT_MSG(cudaStreamQuery(starpu_cuda_get_local_stream()) == cudaSuccess, "CUDA codelets have to wait for termination of their kernels on the starpu_cuda_get_local_stream() stream");
 #endif
-			finish_job_on_cuda(j, args);
+			finish_job_on_cuda(j, worker);
 		}
 		_STARPU_TRACE_START_PROGRESS(memnode);
 	}
@@ -653,8 +653,8 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 
 int _starpu_cuda_driver_deinit(struct _starpu_worker_set *arg)
 {
-	struct _starpu_worker *args = &arg->workers[0];
-	unsigned memnode = args->memory_node;
+	struct _starpu_worker *worker = &arg->workers[0];
+	unsigned memnode = worker->memory_node;
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
 	_starpu_handle_all_pending_node_data_requests(memnode);
@@ -675,16 +675,16 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *arg)
 	return 0;
 }
 
-void *_starpu_cuda_worker(void *arg)
+void *_starpu_cuda_worker(void *_arg)
 {
-	struct _starpu_worker_set* args = arg;
+	struct _starpu_worker_set* worker = _arg;
 
-	_starpu_cuda_driver_init(args);
+	_starpu_cuda_driver_init(worker);
 	_STARPU_TRACE_START_PROGRESS(memnode);
 	while (_starpu_machine_is_running())
-		_starpu_cuda_driver_run_once(args);
+		_starpu_cuda_driver_run_once(worker);
 	_STARPU_TRACE_END_PROGRESS(memnode);
-	_starpu_cuda_driver_deinit(args);
+	_starpu_cuda_driver_deinit(worker);
 
 	return NULL;
 }
