@@ -91,8 +91,8 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 				int _workerid = workers->get_next(workers, &it);
 				if (_workerid != workerid)
 				{
-					struct _starpu_worker *worker = _starpu_get_worker_struct(_workerid);
-					_starpu_driver_start_job(worker, j, &worker->perf_arch, codelet_start, rank, profiling);
+					struct _starpu_worker *_worker = _starpu_get_worker_struct(_workerid);
+					_starpu_driver_start_job(_worker, j, &_worker->perf_arch, codelet_start, rank, profiling);
 				}
 			}
 		}
