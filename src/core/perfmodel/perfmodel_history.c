@@ -653,9 +653,9 @@ static void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
 
 void starpu_perfmodel_init(struct starpu_perfmodel *model)
 {
-	STARPU_ASSERT(model && model->symbol);
-
 	int already_init;
+
+	STARPU_ASSERT(model);
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
 	already_init = model->is_init;
