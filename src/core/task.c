@@ -492,8 +492,12 @@ int starpu_task_submit(struct starpu_task *task)
 				_starpu_load_perfmodel(task->cl->model);
 		}
 
-		if (task->cl->power_model && task->cl->power_model->symbol)
-			_starpu_load_perfmodel(task->cl->power_model);
+		if (task->cl->power_model)
+		{
+			starpu_perfmodel_init(NULL, task->cl->power_model);
+			if (task->cl->power_model->symbol)
+				_starpu_load_perfmodel(task->cl->power_model);
+		}
 	}
 
 	if (bundle)
