@@ -179,6 +179,18 @@ static void parse_args(int argc, char **argv, struct _perfmodel_plot_options *op
 	}
 }
 
+static char *replace_char(char *str, char old, char new)
+{
+	char *p = strdup(str);
+	char *ptr = p;
+	while (*ptr)
+	{
+		if (*ptr == old) *ptr = new;
+		ptr ++;
+	}
+	return p;
+}
+
 static void print_comma(FILE *gnuplot_file, int *first)
 {
 	if (*first)
@@ -261,7 +273,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 				if (arch_model->list)
 				{
 					print_comma(gnuplot_file, first);
-					fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Average %s\"", options->avg_file_name, col, col+1, arch_name);
+					fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Average %s\"", options->avg_file_name, col, col+1, replace_char(arch_name, '_', '-'));
 					col += 2;
 				}
 			}
@@ -383,7 +395,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	fprintf(gnuplot_file, "\n");
 	fprintf(gnuplot_file, "set term postscript eps enhanced color\n");
 	fprintf(gnuplot_file, "set output \"starpu_%s.eps\"\n", options->symbol);
-	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", options->symbol);
+	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", replace_char(options->symbol, '_', '-'));
 	fprintf(gnuplot_file, "set xlabel \"Total data size\"\n");
 	if (options->gflops)
 		fprintf(gnuplot_file, "set ylabel \"GFlops\"\n");
