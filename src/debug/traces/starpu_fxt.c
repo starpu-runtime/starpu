@@ -115,7 +115,9 @@ static double last_codelet_start[STARPU_NMAXWORKERS];
 static char last_codelet_symbol[STARPU_NMAXWORKERS][4*sizeof(unsigned long)];
 static int last_codelet_parameter[STARPU_NMAXWORKERS];
 #define MAX_PARAMETERS 8
+#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 static char last_codelet_parameter_description[STARPU_NMAXWORKERS][MAX_PARAMETERS][FXT_MAX_PARAMS*sizeof(unsigned long)];
+#endif
 
 /* If more than a period of time has elapsed, we flush the profiling info,
  * otherwise they are accumulated everytime there is a new relevant event. */
@@ -321,6 +323,7 @@ static void thread_pop_state(double time, const char *prefix, long unsigned int 
 #endif
 }
 
+#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag)
 {
 #ifdef STARPU_HAVE_POTI
@@ -332,6 +335,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx\n", time, prefix, workerid, name, size, parameters, footprint, tag);
 #endif
 }
+#endif
 
 static void mpicommthread_set_state(double time, const char *prefix, const char *name)
 {
