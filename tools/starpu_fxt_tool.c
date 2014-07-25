@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014  Universite de Bordeaux 1
- * Copyright (C) 2012-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012-2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@
 
 #define PROGNAME "starpu_fxt_tool"
 
-static void usage(char **argv)
+static void usage()
 {
 	fprintf(stderr, "Generate a trace in the Paje format\n\n");
 	fprintf(stderr, "Usage: %s [ options ]\n", PROGNAME);
@@ -53,40 +53,46 @@ static void parse_args(int argc, char **argv)
 	unsigned reading_input_filenames = 0;
 
 	int i;
-	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-c") == 0) {
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-c") == 0)
+		{
 			options.per_task_colour = 1;
 			reading_input_filenames = 0;
 			continue;
 		}
 
-		if (strcmp(argv[i], "-o") == 0) {
+		if (strcmp(argv[i], "-o") == 0)
+		{
 			options.out_paje_path = argv[++i];
 			reading_input_filenames = 0;
 			continue;
 		}
 
-		if (strcmp(argv[i], "-i") == 0) {
+		if (strcmp(argv[i], "-i") == 0)
+		{
 			options.filenames[options.ninputfiles++] = argv[++i];
 			reading_input_filenames = 1;
 			continue;
 		}
 
-		if (strcmp(argv[i], "-no-counter") == 0) {
+		if (strcmp(argv[i], "-no-counter") == 0)
+		{
 			options.no_counter = 1;
 			reading_input_filenames = 0;
 			continue;
 		}
 
-		if (strcmp(argv[i], "-no-bus") == 0) {
+		if (strcmp(argv[i], "-no-bus") == 0)
+		{
 			options.no_bus = 1;
 			reading_input_filenames = 0;
 			continue;
 		}
 
-		if (strcmp(argv[i], "-h") == 0
-		 || strcmp(argv[i], "--help") == 0) {
-			usage(argv);
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
+		{
+			usage();
 			exit(EXIT_SUCCESS);
 		}
 
@@ -109,7 +115,7 @@ static void parse_args(int argc, char **argv)
 	if (!options.ninputfiles)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
-                usage(argv);
+                usage();
 		exit(77);
 	}
 }
