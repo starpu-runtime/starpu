@@ -603,9 +603,9 @@ void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb)
 
 void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 {
-	STARPU_ASSERT(model && model->symbol);
-
 	int already_init;
+
+	STARPU_ASSERT(model);
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
 	already_init = model->state && model->state->is_init;
