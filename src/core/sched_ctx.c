@@ -799,12 +799,6 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 		starpu_sched_ctx_delete_worker_collection(sched_ctx->id);
 	}
 
-	if (sched_ctx->perf_arch.devices)
-	{
-		free(sched_ctx->perf_arch.devices);
-		sched_ctx->perf_arch.devices = NULL;
-	}
-
 	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->empty_ctx_mutex);
 	sched_ctx->id = STARPU_NMAX_SCHED_CTXS;
 #ifdef STARPU_HAVE_HWLOC
