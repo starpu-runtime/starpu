@@ -238,6 +238,13 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 			cpu_worker->current_rank = rank;
 			perf_arch = &combined_worker->perf_arch;
 		}
+		else
+		{
+			struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(cpu_worker, j);
+			STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a worker %d in the ctx of this job \n", cpu_worker->workerid);
+
+			perf_arch = &sched_ctx->perf_arch;
+		}
 	}
 	else
 	{
