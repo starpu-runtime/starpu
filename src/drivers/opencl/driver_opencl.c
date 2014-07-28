@@ -871,7 +871,7 @@ static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker
 
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
 	STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a worker %d in the ctx of this job \n", worker->workerid);
-	if(!sched_ctx->policy)
+	if(!sched_ctx->sched_policy)
 		_starpu_driver_update_job_feedback(j, worker, &sched_ctx->perf_arch, &j->cl_start, &codelet_end, profiling);
 	else
 		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, &j->cl_start, &codelet_end, profiling);
