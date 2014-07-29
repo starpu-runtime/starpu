@@ -487,16 +487,18 @@ int starpu_task_submit(struct starpu_task *task)
 
 		if (task->cl->model)
 		{
-			_starpu_register_model(task->cl->model);
 			if (task->cl->model->symbol)
 				_starpu_load_perfmodel(task->cl->model);
+			else
+				_starpu_register_model(task->cl->model);
 		}
 
 		if (task->cl->power_model)
 		{
-			_starpu_register_model(task->cl->power_model);
 			if (task->cl->power_model->symbol)
 				_starpu_load_perfmodel(task->cl->power_model);
+			else
+				_starpu_register_model(task->cl->power_model);
 		}
 	}
 
