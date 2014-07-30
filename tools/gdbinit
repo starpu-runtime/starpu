@@ -534,6 +534,25 @@ define starpu-memusage
   end
 end
 
+define starpu-print-model
+    set $model = (struct starpu_perfmodel *)$arg0
+    printf "Model %p type %d symbol ", $model, $model->type
+    if $model->symbol
+       printf "%s", $model->symbol
+    else
+       printf "NULL"
+    end
+    printf "\n"
+end
+
+define starpu-print-registered-models
+    set $node = registered_models
+    while $node
+    	  starpu-print-model $node->model
+	  set $node = $node->next
+    end
+end
+
 document starpu
 List of StarPU-specific gdb functions:
 starpu-workers          prints a list of the StarPU workers
@@ -553,4 +572,6 @@ starpu-tags             prints a list of the tags known to StarPU
 starpu-memusage         prints the memory node usage
 starpu-print-archs      prints all known arch combinations
 starpu-print-arch       prints a given arch combination
+starpu-print-registered-models prints all registered performance models
+starpu-print-model      prints a given performance model
 end
