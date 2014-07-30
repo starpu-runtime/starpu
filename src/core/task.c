@@ -486,10 +486,10 @@ int starpu_task_submit(struct starpu_task *task)
 		_starpu_detect_implicit_data_deps(task);
 
 		if (task->cl->model)
-			_starpu_load_perfmodel(task->cl->model);
+			_starpu_init_and_load_perfmodel(task->cl->model);
 
 		if (task->cl->power_model)
-			_starpu_load_perfmodel(task->cl->power_model);
+			_starpu_init_and_load_perfmodel(task->cl->power_model);
 	}
 
 	if (bundle)
@@ -505,10 +505,10 @@ int starpu_task_submit(struct starpu_task *task)
 		while (entry)
 		{
 			if (entry->task->cl->model)
-				_starpu_load_perfmodel(entry->task->cl->model);
+				_starpu_init_and_load_perfmodel(entry->task->cl->model);
 
 			if (entry->task->cl->power_model)
-				_starpu_load_perfmodel(entry->task->cl->power_model);
+				_starpu_init_and_load_perfmodel(entry->task->cl->power_model);
 
 			entry = entry->next;
 		}
@@ -568,10 +568,10 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	if (task->cl)
 	{
 		if (task->cl->model)
-			_starpu_load_perfmodel(task->cl->model);
+			_starpu_init_and_load_perfmodel(task->cl->model);
 
 		if (task->cl->power_model)
-			_starpu_load_perfmodel(task->cl->power_model);
+			_starpu_init_and_load_perfmodel(task->cl->power_model);
 	}
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -629,10 +629,10 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	/* We should factorize that */
 	if (task->cl->model)
-		_starpu_load_perfmodel(task->cl->model);
+		_starpu_init_and_load_perfmodel(task->cl->model);
 
 	if (task->cl->power_model)
-		_starpu_load_perfmodel(task->cl->power_model);
+		_starpu_init_and_load_perfmodel(task->cl->power_model);
 
 	/* We retain handle reference count */
 	unsigned i;

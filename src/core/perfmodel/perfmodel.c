@@ -133,7 +133,7 @@ static double common_task_expected_perf(struct starpu_perfmodel *model, struct s
 	return (exp/alpha);
 }
 
-void _starpu_load_perfmodel(struct starpu_perfmodel *model)
+void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
 {
 	if (!model || model->is_loaded)
 		return;
@@ -174,7 +174,7 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 {
 	if (model)
 	{
-		_starpu_load_perfmodel(model);
+		_starpu_init_and_load_perfmodel(model);
 
 		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 

@@ -72,7 +72,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 void _starpu_load_per_arch_based_model(struct starpu_perfmodel *model);
 void _starpu_load_common_based_model(struct starpu_perfmodel *model);
 void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned scan_history);
-void _starpu_load_perfmodel(struct starpu_perfmodel *model);
+void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model);
 void _starpu_initialize_registered_performance_models(void);
 void _starpu_deinitialize_registered_performance_models(void);
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model);
