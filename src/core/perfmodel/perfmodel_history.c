@@ -645,6 +645,16 @@ void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 	if(f)
 		parse_model_file(f, model, 0);
 
+	/* add the model to a linked list */
+	struct _starpu_perfmodel_list *node = (struct _starpu_perfmodel_list *) malloc(sizeof(struct _starpu_perfmodel_list));
+
+	node->model = model;
+	//model->debug_modelid = debug_modelid++;
+
+	/* put this model at the beginning of the list */
+	node->next = registered_models;
+	registered_models = node;
+
 	model->state->is_init = 1;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 }
@@ -689,16 +699,6 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 		return 0;
 	}
-
-	/* add the model to a linked list */
-	struct _starpu_perfmodel_list *node = (struct _starpu_perfmodel_list *) malloc(sizeof(struct _starpu_perfmodel_list));
-
-	node->model = model;
-	//model->debug_modelid = debug_modelid++;
-
-	/* put this model at the beginning of the list */
-	node->next = registered_models;
-	registered_models = node;
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 	return 1;
