@@ -138,8 +138,9 @@ void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 	if (!model || model->is_loaded)
 		return;
 
-	int load_model = _starpu_register_model(model);
-	if (!load_model)
+	starpu_perfmodel_init(NULL, model);
+
+	if (model->is_loaded)
 		return;
 
 	switch (model->type)

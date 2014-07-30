@@ -675,35 +675,6 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
 	strncat(path, ".debug", maxlen);
 }
 
-/*
- * Returns 0 if the model was already loaded, 1 otherwise.
- */
-int _starpu_register_model(struct starpu_perfmodel *model)
-{
-	starpu_perfmodel_init(NULL, model);
-
-	/* If the model has already been loaded, there is nothing to do */
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
-	if (model->is_loaded)
-	{
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
-		return 0;
-	}
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
-
-	/* We have to make sure the model has not been loaded since the
-         * last time we took the lock */
-	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
-	if (model->is_loaded)
-	{
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
-		return 0;
-	}
-
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
-	return 1;
-}
-
 static void get_model_path(struct starpu_perfmodel *model, char *path, size_t maxlen)
 {
 	_starpu_get_perf_model_dir_codelets(path, maxlen);
