@@ -140,6 +140,10 @@ void _starpu_load_perfmodel(struct starpu_perfmodel *model)
 
 	starpu_perfmodel_init(NULL, model);
 
+	// Check if a symbol is defined before trying to load the model from a file
+	if (!model->symbol)
+		return;
+
 	if (model->is_loaded)
 		return;
 
@@ -170,8 +174,7 @@ static double starpu_model_expected_perf(struct starpu_task *task, struct starpu
 {
 	if (model)
 	{
-		if (model->symbol)
-			_starpu_load_perfmodel(model);
+		_starpu_load_perfmodel(model);
 
 		struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 

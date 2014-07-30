@@ -486,20 +486,10 @@ int starpu_task_submit(struct starpu_task *task)
 		_starpu_detect_implicit_data_deps(task);
 
 		if (task->cl->model)
-		{
-			if (task->cl->model->symbol)
-				_starpu_load_perfmodel(task->cl->model);
-			else
-				_starpu_register_model(task->cl->model);
-		}
+			_starpu_load_perfmodel(task->cl->model);
 
 		if (task->cl->power_model)
-		{
-			if (task->cl->power_model->symbol)
-				_starpu_load_perfmodel(task->cl->power_model);
-			else
-				_starpu_register_model(task->cl->power_model);
-		}
+			_starpu_load_perfmodel(task->cl->power_model);
 	}
 
 	if (bundle)
@@ -514,10 +504,10 @@ int starpu_task_submit(struct starpu_task *task)
 
 		while (entry)
 		{
-			if (entry->task->cl->model && entry->task->cl->model->symbol)
+			if (entry->task->cl->model)
 				_starpu_load_perfmodel(entry->task->cl->model);
 
-			if (entry->task->cl->power_model && entry->task->cl->power_model->symbol)
+			if (entry->task->cl->power_model)
 				_starpu_load_perfmodel(entry->task->cl->power_model);
 
 			entry = entry->next;
