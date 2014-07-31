@@ -544,12 +544,13 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 	fprintf(f, "# number of combinations\n");
 	fprintf(f, "%u\n", ncombs);
 
-	int comb, impl, dev;
-	for(comb = 0; comb < ncombs; comb++)
+	int i, impl, dev;
+	for(i = 0; i < ncombs; i++)
 	{
-		int ndevices = arch_combs[model->state->combs[comb]]->ndevices;
+		int comb = model->state->combs[i];
+		int ndevices = arch_combs[comb]->ndevices;
 		fprintf(f, "####################\n");
-		fprintf(f, "# COMB_%d\n", model->state->combs[comb]);
+		fprintf(f, "# COMB_%d\n", comb);
 		fprintf(f, "# number of types devices\n");
 		fprintf(f, "%u\n", ndevices);
 
@@ -558,20 +559,20 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 			fprintf(f, "####################\n");
 			fprintf(f, "# DEV_%d\n", dev);
 			fprintf(f, "# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, SCC - 4)\n");
-			fprintf(f, "%u\n", arch_combs[model->state->combs[comb]]->devices[dev].type);
+			fprintf(f, "%u\n", arch_combs[comb]->devices[dev].type);
 
 			fprintf(f, "####################\n");
 			fprintf(f, "# DEV_%d\n", dev);
 			fprintf(f, "# device id \n");
-			fprintf(f, "%u\n", arch_combs[model->state->combs[comb]]->devices[dev].devid);
+			fprintf(f, "%u\n", arch_combs[comb]->devices[dev].devid);
 
 			fprintf(f, "####################\n");
 			fprintf(f, "# DEV_%d\n", dev);
 			fprintf(f, "# number of cores \n");
-			fprintf(f, "%u\n", arch_combs[model->state->combs[comb]]->devices[dev].ncores);
+			fprintf(f, "%u\n", arch_combs[comb]->devices[dev].ncores);
 		}
 
-		int nimpls = model->state->nimpls[comb];
+		int nimpls = model->state->nimpls[i];
 		fprintf(f, "##########\n");
 		fprintf(f, "# number of implementations\n");
 		fprintf(f, "%u\n", nimpls);
@@ -759,13 +760,14 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 	if(model->is_init && model->state && model->state->per_arch != NULL)
 	{
 		int ncombs = model->state->ncombs;
-		int comb, impl;
-		for(comb = 0; comb < ncombs; comb++)
+		int i, impl;
+		for(i=0; i < ncombs; i++)
 		{
-			int nimpls = model->state->nimpls[comb];
+			int comb = model->state->combs[i];
+			int nimpls = model->state->nimpls[i];
 			for(impl = 0; impl < nimpls; impl++)
 			{
-				struct starpu_perfmodel_per_arch *archmodel = &model->state->per_arch[model->state->combs[comb]][impl];
+				struct starpu_perfmodel_per_arch *archmodel = &model->state->per_arch[comb][impl];
 				struct starpu_perfmodel_history_list *list, *plist;
 				struct starpu_perfmodel_history_table *entry, *tmp;
 
@@ -786,11 +788,11 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 				}
 				archmodel->list = NULL;
 			}
-			free(model->state->per_arch[model->state->combs[comb]]);
-			model->state->per_arch[model->state->combs[comb]] = NULL;
+			free(model->state->per_arch[comb]);
+			model->state->per_arch[comb] = NULL;
 
-			free(model->state->per_arch_is_set[model->state->combs[comb]]);
-			model->state->per_arch_is_set[model->state->combs[comb]] = NULL;
+			free(model->state->per_arch_is_set[comb]);
+			model->state->per_arch_is_set[comb] = NULL;
 		}
 		free(model->state->per_arch);
 		model->state->per_arch = NULL;
