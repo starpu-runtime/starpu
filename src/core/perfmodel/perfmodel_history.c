@@ -757,7 +757,7 @@ void _starpu_initialize_registered_performance_models(void)
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 {
-	if(model->state->is_init && model->state->per_arch != NULL)
+	if(model->state && model->state->is_init && model->state->per_arch != NULL)
 	{
 		int ncombs = model->state->ncombs;
 		int comb, impl;
@@ -807,7 +807,7 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 		model->state->ncombs = 0;
 	}
 
-	model->state->is_init = 0;
+	if (model->state) model->state->is_init = 0;
 	model->is_loaded = 0;
 }
 
