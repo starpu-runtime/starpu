@@ -231,6 +231,8 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 			sched_ctx->perf_arch.devices = (struct starpu_perfmodel_device*)malloc(ndevices*sizeof(struct starpu_perfmodel_device));
 		else
 			sched_ctx->perf_arch.devices = (struct starpu_perfmodel_device*)realloc(sched_ctx->perf_arch.devices, (sched_ctx->perf_arch.ndevices+ndevices)*sizeof(struct starpu_perfmodel_device));
+
+		fprintf(stderr, "---------------------------- allocating %p\n", sched_ctx->perf_arch.devices);
 		int dev1, dev2;
 		unsigned found = 0;
 		for(dev1 = 0; dev1 < ndevices; dev1++)
@@ -800,6 +802,12 @@ static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 	else
 	{
 		starpu_sched_ctx_delete_worker_collection(sched_ctx->id);
+	}
+
+	if (sched_ctx->perf_arch.devices)
+	{
+		free(sched_ctx->perf_arch.devices);
+		sched_ctx->perf_arch.devices = NULL;
 	}
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&sched_ctx->empty_ctx_mutex);
