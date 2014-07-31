@@ -83,7 +83,7 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 		for(i = 0; i < lmodel.state->ncombs; i++)
 		{
 			int comb = lmodel.state->combs[i];
-			for(impl = 0; impl < lmodel.state->nimpls[i]; impl++)
+			for(impl = 0; impl < lmodel.state->nimpls[comb]; impl++)
 				old_nsamples += lmodel.state->per_arch[comb][impl].regression.nsample;
 		}
 	}
@@ -117,7 +117,7 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 		{
 			int comb = lmodel.state->combs[i];
 			int impl;
-			for(impl = 0; impl < lmodel.state->nimpls[i]; impl++)
+			for(impl = 0; impl < lmodel.state->nimpls[comb]; impl++)
 			     new_nsamples += lmodel.state->per_arch[comb][impl].regression.nsample;
 		}
 	}

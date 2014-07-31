@@ -265,7 +265,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 			int impl;
 
 			arch = _starpu_arch_comb_get(comb);
-			for(impl = 0; impl < model->state->nimpls[i]; impl++)
+			for(impl = 0; impl < model->state->nimpls[comb]; impl++)
 			{
 				struct starpu_perfmodel_per_arch *arch_model = &model->state->per_arch[comb][impl];
 				starpu_perfmodel_get_arch_name(arch, arch_name, 32, impl);
@@ -293,7 +293,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 			if (options->comb_is_set == 0 || options->comb == comb)
 			{
 				int impl;
-				for(impl = 0; impl < model->state->nimpls[i]; impl++)
+				for(impl = 0; impl < model->state->nimpls[comb]; impl++)
 				{
 					struct starpu_perfmodel_per_arch *arch_model = &model->state->per_arch[comb][impl];
 					for (ptr = arch_model->list; ptr; ptr = ptr->next)
@@ -317,7 +317,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 			{
 				int impl;
 
-				for(impl = 0; impl < model->state->nimpls[i]; impl++)
+				for(impl = 0; impl < model->state->nimpls[comb]; impl++)
 				{
 					struct starpu_perfmodel_per_arch *arch_model = &model->state->per_arch[comb][impl];
 					for (ptr = arch_model->list; ptr; ptr = ptr->next)
@@ -360,7 +360,7 @@ static void display_all_perf_models(FILE *gnuplot_file, struct starpu_perfmodel 
 			int impl;
 
 			arch = _starpu_arch_comb_get(comb);
-			for(impl = 0; impl < model->state->nimpls[i]; impl++)
+			for(impl = 0; impl < model->state->nimpls[comb]; impl++)
 			{
 				struct starpu_perfmodel_per_arch *archmodel = &model->state->per_arch[comb][impl];
 				display_perf_model(gnuplot_file, model, arch, archmodel, comb, impl, first, options);

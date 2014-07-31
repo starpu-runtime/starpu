@@ -572,7 +572,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 			fprintf(f, "%u\n", arch_combs[comb]->devices[dev].ncores);
 		}
 
-		int nimpls = model->state->nimpls[i];
+		int nimpls = model->state->nimpls[comb];
 		fprintf(f, "##########\n");
 		fprintf(f, "# number of implementations\n");
 		fprintf(f, "%u\n", nimpls);
@@ -765,7 +765,7 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 		for(i=0; i < ncombs; i++)
 		{
 			int comb = model->state->combs[i];
-			int nimpls = model->state->nimpls[i];
+			int nimpls = model->state->nimpls[comb];
 			for(impl = 0; impl < nimpls; impl++)
 			{
 				struct starpu_perfmodel_per_arch *archmodel = &model->state->per_arch[comb][impl];
