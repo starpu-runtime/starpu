@@ -608,7 +608,7 @@ void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 	STARPU_ASSERT(model);
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
-	already_init = model->state && model->state->is_init;
+	already_init = model->is_init;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 
 	if (already_init)
@@ -619,7 +619,7 @@ void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&registered_models_rwlock);
 
 	/* Was the model initialized since the previous test ? */
-	if (model->state && model->state->is_init)
+	if (model->is_init)
 	{
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 		return;
@@ -654,7 +654,7 @@ void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 	node->next = registered_models;
 	registered_models = node;
 
-	model->state->is_init = 1;
+	model->is_init = 1;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 }
 
@@ -756,7 +756,7 @@ void _starpu_initialize_registered_performance_models(void)
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 {
-	if(model->state && model->state->is_init && model->state->per_arch != NULL)
+	if(model->is_init && model->state && model->state->per_arch != NULL)
 	{
 		int ncombs = model->state->ncombs;
 		int comb, impl;
@@ -806,7 +806,7 @@ void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
 		model->state->ncombs = 0;
 	}
 
-	if (model->state) model->state->is_init = 0;
+	model->is_init = 0;
 	model->is_loaded = 0;
 }
 

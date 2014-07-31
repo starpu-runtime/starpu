@@ -140,6 +140,7 @@ struct starpu_perfmodel
 
 	unsigned is_loaded;
 	unsigned benchmarking;
+	unsigned is_init;
 
 	starpu_perfmodel_state_t state;
 };
