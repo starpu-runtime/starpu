@@ -721,7 +721,8 @@ static void _starpu_dump_registered_models(void)
 
 	while (node)
 	{
-		save_history_based_model(node->model);
+		if (node->model->is_init)
+			save_history_based_model(node->model);
 		node = node->next;
 	}
 
