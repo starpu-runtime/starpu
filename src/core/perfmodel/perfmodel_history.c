@@ -370,7 +370,6 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		model->state->nimpls[comb] = implmax;
 		model->state->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(struct starpu_perfmodel_per_arch));
 		model->state->per_arch_is_set[comb] = (int *)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(int));
-		model->state->per_arch_is_set[comb] = (int *)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(int));
 		for(i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 		{
 			memset(&model->state->per_arch[comb][i], 0, sizeof(struct starpu_perfmodel_per_arch));
@@ -1218,7 +1217,6 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		if(!model->state->per_arch[comb])
 		{
 			model->state->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(struct starpu_perfmodel_per_arch));
-			model->state->per_arch_is_set[comb] = (int*)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(int));
 			model->state->per_arch_is_set[comb] = (int*)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(int));
 			int i;
 			for(i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
