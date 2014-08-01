@@ -232,7 +232,6 @@ static void _starpu_add_workers_to_sched_ctx(struct _starpu_sched_ctx *sched_ctx
 		else
 			sched_ctx->perf_arch.devices = (struct starpu_perfmodel_device*)realloc(sched_ctx->perf_arch.devices, (sched_ctx->perf_arch.ndevices+ndevices)*sizeof(struct starpu_perfmodel_device));
 
-		fprintf(stderr, "---------------------------- allocating %p\n", sched_ctx->perf_arch.devices);
 		int dev1, dev2;
 		unsigned found = 0;
 		for(dev1 = 0; dev1 < ndevices; dev1++)
