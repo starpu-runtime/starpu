@@ -25,10 +25,10 @@
 #define debug(fmt, ...)
 #endif
 
-static struct starpu_perfmodel model_11;
-static struct starpu_perfmodel model_12;
-static struct starpu_perfmodel model_21;
-static struct starpu_perfmodel model_22;
+struct starpu_perfmodel model_11;
+struct starpu_perfmodel model_12;
+struct starpu_perfmodel model_21;
+struct starpu_perfmodel model_22;
 
 static unsigned *advance_11; /* size nblocks, whether the 11 task is done */
 static unsigned *advance_12_21; /* size nblocks*nblocks */
