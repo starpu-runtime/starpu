@@ -1555,6 +1555,13 @@ _starpu_destroy_topology (
 #endif
 	}
 
+	unsigned combined_worker_id;
+	for(combined_worker_id=0 ; combined_worker_id < config->topology.ncombinedworkers ; combined_worker_id++)
+	{
+		struct _starpu_combined_worker *combined_worker = &config->combined_workers[combined_worker_id];
+		free(combined_worker->perf_arch.devices);
+	}
+
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_destroy(config->topology.hwtopology);
 #endif
