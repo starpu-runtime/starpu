@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011, 2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -217,8 +217,8 @@ static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	int ret;
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	struct starpu_task *entry_task = NULL;
 
@@ -256,7 +256,7 @@ static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 	}
 
 	/* schedule the codelet */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	ret = starpu_task_submit(entry_task);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
@@ -269,9 +269,9 @@ static void dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 	/* stall the application until the end of computations */
 	starpu_tag_wait(TAG11(nblocks-1));
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	printf("%2.2f\n", timing/1000);
 

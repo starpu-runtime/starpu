@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2012, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -294,9 +294,9 @@ static int cg(void)
 	FPRINTF(stderr, "*************** INITIAL ************ \n");
 	FPRINTF(stderr, "Delta 0: %e\n", delta_new);
 
-	struct timeval start;
-	struct timeval end;
-	gettimeofday(&start, NULL);
+	double start;
+	double end;
+	start = starpu_timing_now();
 
 	while ((i < i_max) && ((double)delta_new > (double)(eps*eps*delta_0)))
 	{
@@ -351,9 +351,9 @@ static int cg(void)
 		i++;
 	}
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)(((double)end.tv_sec - (double)start.tv_sec)*10e6 + ((double)end.tv_usec - (double)start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Total timing : %2.2f seconds\n", timing/10e6);
 	FPRINTF(stderr, "Seconds per iteration : %2.2e\n", timing/10e6/i);
 	return 0;

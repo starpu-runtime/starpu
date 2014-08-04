@@ -59,8 +59,8 @@ float *A;
 starpu_data_handle_t A_handle;
 
 /* For performance evaluation */
-static struct timeval start;
-static struct timeval end;
+static double start;
+static double end;
 static unsigned task_per_worker[STARPU_NMAXWORKERS] = {0};
 
 /* 
@@ -426,7 +426,7 @@ int main(int argc, char **argv)
 	for (iter = 0; iter < niter; iter++)
 		starpu_data_set_wt_mask(starpu_data_get_sub_data(A_handle, 1, iter), 1<<0);
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	for (iter = 0; iter < niter; iter++)
 	{
@@ -435,9 +435,9 @@ int main(int argc, char **argv)
 
 	starpu_task_wait_for_all();
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	fprintf(stderr, "Computation took %2.2f ms\n", timing/1000);
 
 	int worker;
