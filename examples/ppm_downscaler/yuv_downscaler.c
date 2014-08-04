@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -27,13 +27,13 @@
 
 #include "yuv_downscaler.h"
 
-struct timeval start;
-struct timeval end;
+static double start;
+static double end;
 
-const char *filename_in_default = "hugefile.2s.yuv";
-const char *filename_out_default = "hugefile.2s.out.yuv";
-char filename_in[1024];
-char filename_out[1024];
+static const char *filename_in_default = "hugefile.2s.yuv";
+static const char *filename_out_default = "hugefile.2s.out.yuv";
+static char filename_in[1024];
+static char filename_out[1024];
 
 void parse_args(int argc, char **argv)
 {
@@ -206,7 +206,7 @@ int main(int argc, char **argv)
 	unsigned ntasks = (nblocks_y + 2*nblocks_uv)*nframes;
 
 	fprintf(stderr, "Start computation: there will be %u tasks for %u frames\n", ntasks, nframes);
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	/* do the computation */
 	for (frame = 0; frame < nframes; frame++)
@@ -275,9 +275,9 @@ int main(int argc, char **argv)
 	/* There is an implicit barrier: the unregister methods will block
 	 * until the computation is done and that the result was put back into
 	 * memory. */
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	fprintf(stderr, "Computation took %f seconds\n", timing/1000000);
 	fprintf(stderr, "FPS %f\n", (1000000*nframes)/timing);
 

@@ -115,8 +115,8 @@ static void create_task_22(unsigned k, unsigned i, unsigned j)
 
 double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 {
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	nblocks = _nblocks;
 	rank = _rank;
@@ -127,7 +127,7 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	for (k = 0; k < nblocks; k++)
 	{
@@ -160,9 +160,9 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	
 //	fprintf(stderr, "RANK %d -> took %f ms\n", rank, timing/1000);
 	

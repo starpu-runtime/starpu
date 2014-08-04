@@ -80,10 +80,10 @@ int main(int argc, char **argv)
 		.name = "increment"
 	};
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	unsigned i;
 	for (i = 0; i < niter; i++)
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 	/* update the array in RAM */
 	starpu_data_unregister(float_array_handle);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
 	FPRINTF(stderr, "array -> %f, %f, %f, %f\n", float_array[0],
                 float_array[1], float_array[2], float_array[3]);
@@ -120,8 +120,7 @@ int main(int argc, char **argv)
 		ret = 1;
 	}
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
-					(end.tv_usec - start.tv_usec));
+	double timing = end - start;
 
 	FPRINTF(stderr, "%u elems took %f ms\n", niter, timing/1000);
 
