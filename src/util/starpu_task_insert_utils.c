@@ -126,6 +126,10 @@ void _starpu_task_insert_get_args_size(va_list varg_list, unsigned *nbuffers, si
 		{
 			(void)va_arg(varg_list, int);
 		}
+		else if (arg_type==STARPU_POSSIBLY_PARALLEL)
+		{
+			(void)va_arg(varg_list, unsigned);
+		}
 		else if (arg_type==STARPU_FLOPS)
 		{
 			(void)va_arg(varg_list, double);
@@ -238,6 +242,10 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 		else if (arg_type==STARPU_HYPERVISOR_TAG)
 		{
 			(void)va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_POSSIBLY_PARALLEL)
+		{
+			(void)va_arg(varg_list, unsigned);
 		}
 		else if (arg_type==STARPU_FLOPS)
 		{
@@ -414,6 +422,11 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 		{
 			int hypervisor_tag = va_arg(varg_list, int);
 			(*task)->hypervisor_tag = hypervisor_tag;
+		}
+		else if (arg_type==STARPU_POSSIBLY_PARALLEL)
+		{
+			unsigned possibly_parallel = va_arg(varg_list, unsigned);
+			(*task)->possibly_parallel = possibly_parallel;
 		}
 		else if (arg_type==STARPU_FLOPS)
 		{

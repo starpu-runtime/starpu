@@ -1069,7 +1069,7 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 
-	while(workers->has_next(workers, &it))
+	while(workers->has_next_master(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
 		STARPU_ASSERT_MSG(worker < STARPU_NMAXWORKERS, "worker id %d", worker);
