@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -346,16 +346,16 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			struct timeval start;
-			struct timeval end;
+			double start;
+			double end;
 
-			gettimeofday(&start, NULL);
+			start = starpu_timing_now();
 
 			ret = STARPU_LU(lu_decomposition_pivot)(A, ipiv, size, size, nblocks);
 
-			gettimeofday(&end, NULL);
+			end = starpu_timing_now();
 
-			double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+			double timing = end - start;
 
 			unsigned n = size;
 			double flop = (2.0f*n*n*n)/3.0f;
