@@ -1486,6 +1486,8 @@ struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_model_per_devices(struct
 	if (comb == -1)
 		comb = starpu_perfmodel_arch_comb_add(arch.ndevices, arch.devices);
 
+	free(arch.devices);
+
 	// Realloc if necessary
 	if (comb >= model->state->ncombs_set)
 		_starpu_perfmodel_realloc(model, comb+1);
