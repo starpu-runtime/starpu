@@ -232,8 +232,8 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 {
 	int ret;
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	struct starpu_task *entry_task = NULL;
 
@@ -298,7 +298,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 	}
 
 	/* schedule the codelet */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	ret = starpu_task_submit(entry_task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
@@ -307,9 +307,9 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 /*	starpu_task_wait_for_all(); */
 	free(tags);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	*timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	*timing = end - start;
 	return 0;
 }
 

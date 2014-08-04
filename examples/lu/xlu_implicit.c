@@ -110,14 +110,14 @@ static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, un
 
 static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 {
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 	int ret;
 
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	for (k = 0; k < nblocks; k++)
 	{
@@ -142,9 +142,9 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 	/* stall the application until the end of computations */
 	starpu_task_wait_for_all();
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
