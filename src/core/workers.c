@@ -288,15 +288,13 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 
-#warning TODO: dirty fix by commenting ou the following lines. Otherwise sched_ctx/nested_sched_ctxs fails with branches/perf_model/src/sched_policies/deque_modeling_policy_data_aware.c:759: _dmda_push_task: Assertion forced_best != -1 || best != -1 failed.
 	/* if the task can't be parallel don't submit it to a ctx */
-//	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx->id);
-//        if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
-//		if(!task->possibly_parallel) return 0;
+	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx->id);
+        if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+		if(!task->possibly_parallel) return 0;
 
-#warning TODO: dirty fix by commenting out the following line. Otherwise sched_ctx_without_sched_policy fails as it calls _starpu_sched_ctx_get_workers_to_sleep (<-- _starpu_sched_ctx_add_workers_to_master <-- starpu_sched_ctx_book_workers_for_task <-- _starpu_add_workers_to_sched_ctx <-- _starpu_create_sched_ctx <--starpu_sched_ctx_create)
 	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
-//	if(sched_ctx->parallel_sect[workerid] ) return 0;
+	if(sched_ctx->parallel_sect[workerid] ) return 0;
 
 	/* TODO: check that the task operand sizes will fit on that device */
 	return (task->cl->where & config.workers[workerid].worker_mask) &&
