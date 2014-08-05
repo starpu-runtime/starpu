@@ -589,7 +589,7 @@ void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb)
 
 	STARPU_ASSERT(nb > model->state->ncombs_set);
 	model->state->per_arch = (struct starpu_perfmodel_per_arch**) realloc(model->state->per_arch, nb*sizeof(struct starpu_perfmodel_per_arch*));
-	model->state->per_arch_is_set = (int**) realloc(model->state->per_arch_is_set, nb*sizeof(struct starpu_perfmodel_per_arch*));
+	model->state->per_arch_is_set = (int**) realloc(model->state->per_arch_is_set, nb*sizeof(int*));
 	model->state->nimpls = (int *)realloc(model->state->nimpls, nb*sizeof(int));
 	model->state->combs = (int*)realloc(model->state->combs, nb*sizeof(int));
 	for(i = model->state->ncombs_set; i < nb; i++)
