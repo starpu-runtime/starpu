@@ -30,12 +30,12 @@ struct starpu_perfmodel model_12;
 struct starpu_perfmodel model_21;
 struct starpu_perfmodel model_22;
 
-unsigned *advance_11; /* size nblocks, whether the 11 task is done */
-unsigned *advance_12_21; /* size nblocks*nblocks */
-unsigned *advance_22; /* array of nblocks *nblocks*nblocks */
+static unsigned *advance_11; /* size nblocks, whether the 11 task is done */
+static unsigned *advance_12_21; /* size nblocks*nblocks */
+static unsigned *advance_22; /* array of nblocks *nblocks*nblocks */
 
-struct timeval start;
-struct timeval end;
+static double start;
+static double end;
 
 static unsigned no_prio = 0;
 
@@ -618,7 +618,7 @@ void dw_codelet_facto(starpu_data_handle_t dataA, unsigned nblocks)
 	args->nblocks = nblocks;
 	args->dataA = dataA;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	/* inject a new task with this codelet into the system */ 
 	struct starpu_task *task = starpu_task_create();
@@ -635,9 +635,9 @@ void dw_codelet_facto(starpu_data_handle_t dataA, unsigned nblocks)
 
 	starpu_task_wait_for_all();
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
@@ -664,7 +664,7 @@ void dw_codelet_facto_v2(starpu_data_handle_t dataA, unsigned nblocks)
 	args->nblocks = nblocks;
 	args->dataA = dataA;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	/* inject a new task with this codelet into the system */ 
 	struct starpu_task *task = starpu_task_create();
@@ -685,9 +685,9 @@ void dw_codelet_facto_v2(starpu_data_handle_t dataA, unsigned nblocks)
 
 	starpu_task_wait_for_all();
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 

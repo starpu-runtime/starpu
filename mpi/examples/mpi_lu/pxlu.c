@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -821,8 +821,8 @@ static void wait_termination(void)
 
 double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 {
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	nblocks = _nblocks;
 	rank = _rank;
@@ -854,15 +854,15 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size)
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 
 	/* schedule the codelet */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	starpu_tag_notify_from_apps(STARPU_TAG_INIT);
 
 	wait_termination();
 	
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	
 //	fprintf(stderr, "RANK %d -> took %f ms\n", rank, timing/1000);
 	

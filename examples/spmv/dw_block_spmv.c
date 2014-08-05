@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,25 +21,25 @@
 #include "matrix_market/mm_to_bcsr.h"
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-struct timeval start;
-struct timeval end;
+static double start;
+static double end;
 
-sem_t sem;
+static sem_t sem;
 
-unsigned c = 256;
-unsigned r = 256;
+static unsigned c = 256;
+static unsigned r = 256;
 
-unsigned remainingtasks = -1;
+static unsigned remainingtasks = -1;
 
-starpu_data_handle_t sparse_matrix;
-starpu_data_handle_t vector_in, vector_out;
+static starpu_data_handle_t sparse_matrix;
+static starpu_data_handle_t vector_in, vector_out;
 
-uint32_t size;
-char *inputfile;
-bcsr_t *bcsr_matrix;
+static uint32_t size;
+static char *inputfile;
+static bcsr_t *bcsr_matrix;
 
-float *vector_in_ptr;
-float *vector_out_ptr;
+static float *vector_in_ptr;
+static float *vector_out_ptr;
 
 void create_data(void)
 {
@@ -96,7 +96,7 @@ void init_problem_callback(void *arg)
 	if ( val == 0 )
 	{
 		printf("DONE ...\n");
-		gettimeofday(&end, NULL);
+		end = starpu_timing_now();
 
 /*		starpu_data_unpartition(sparse_matrix, STARPU_MAIN_RAM); */
 		starpu_data_unpartition(vector_out, STARPU_MAIN_RAM);
@@ -181,7 +181,7 @@ void launch_spmv_codelets(void)
 	uint32_t *rowptr = starpu_bcsr_get_local_rowptr(sparse_matrix);
 	uint32_t *colind = starpu_bcsr_get_local_colind(sparse_matrix);
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	unsigned loop;
 	for (loop = 0; loop < NSPMV; loop++)
@@ -318,7 +318,7 @@ int main(STARPU_ATTRIBUTE_UNUSED int argc,
 
 	double totalflop = 2.0*c*r*totaltasks;
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 	FPRINTF(stderr, "Flop %e\n", totalflop);

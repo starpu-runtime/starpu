@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -156,10 +156,10 @@ int main(int argc, char **argv)
 	
 	starpu_data_partition(cnt_array_handle, &f);
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	for (i = 0; i < ntasks; i++)
 	{
@@ -188,9 +188,9 @@ int main(int argc, char **argv)
 	for (i = 0; i < ntasks; i++)
 		total_cnt += cnt_array[i];
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 
 	unsigned long total_shot_cnt = ntasks * nshot_per_task;
 

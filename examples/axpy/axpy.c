@@ -166,10 +166,10 @@ int main(int argc, char **argv)
 	starpu_data_partition(_handle_x, &block_filter);
 	starpu_data_partition(_handle_y, &block_filter);
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	unsigned b;
 	for (b = 0; b < NBLOCKS; b++)
@@ -202,9 +202,8 @@ enodev:
 	starpu_data_unregister(_handle_x);
 	starpu_data_unregister(_handle_y);
 
-	gettimeofday(&end, NULL);
-        double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
-                                        (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+        double timing = end - start;
 
 	FPRINTF(stderr, "timing -> %2.2f us %2.2f MB/s\n", timing, 3*N*sizeof(TYPE)/timing);
 

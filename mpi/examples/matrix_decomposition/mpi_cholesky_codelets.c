@@ -67,8 +67,8 @@ static struct starpu_codelet cl22 =
  */
 void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing, double *flops)
 {
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 	starpu_data_handle_t **data_handles;
 	unsigned x,y,i,j,k;
 
@@ -104,7 +104,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	}
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	for (k = 0; k < nblocks; k++)
 	{
@@ -161,11 +161,11 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	free(data_handles);
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
 	if (rank == 0)
 	{
-		*timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+		*timing = end - start;
 		*flops = (1.0f*size*size*size)/3.0f;
 	}
 }
