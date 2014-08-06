@@ -375,7 +375,6 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 			{
 				memset(&model->state->per_arch[comb][i], 0, sizeof(struct starpu_perfmodel_per_arch));
 			}
-			fprintf(stderr, "[parse] allocating per_arch for model %p %s and comb %d --> %p\n", model, model->symbol, comb, model->state->per_arch[comb]);
 		}
 		if (!model->state->per_arch_is_set[comb])
 		{
