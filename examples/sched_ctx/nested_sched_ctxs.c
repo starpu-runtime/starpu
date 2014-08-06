@@ -161,6 +161,7 @@ int main(int argc, char **argv)
 
 		task->cl = &sched_ctx_codelet;
 		task->cl_arg = sched_ctx1;
+		task->possibly_parallel = 1;
 
 		/*submit tasks to context*/
 		ret = starpu_task_submit_to_ctx(task,sched_ctx1);
@@ -174,6 +175,7 @@ int main(int argc, char **argv)
 
 		task->cl = &sched_ctx_codelet;
 		task->cl_arg = sched_ctx2;
+		task->possibly_parallel = 1;
 
 		/*submit tasks to context*/
 		ret = starpu_task_submit_to_ctx(task,sched_ctx2);
