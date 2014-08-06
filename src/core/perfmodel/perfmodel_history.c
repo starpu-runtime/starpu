@@ -368,12 +368,22 @@ static void parse_arch(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 		/* Parsing each implementation */
 		implmax = STARPU_MIN(nimpls, STARPU_MAXIMPLEMENTATIONS);
 		model->state->nimpls[comb] = implmax;
-		model->state->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(struct starpu_perfmodel_per_arch));
-		model->state->per_arch_is_set[comb] = (int *)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(int));
-		for(i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+		if (!model->state->per_arch[comb])
 		{
-			memset(&model->state->per_arch[comb][i], 0, sizeof(struct starpu_perfmodel_per_arch));
-			model->state->per_arch_is_set[comb][i] = 0;
+			model->state->per_arch[comb] = (struct starpu_perfmodel_per_arch*)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(struct starpu_perfmodel_per_arch));
+			for(i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			{
+				memset(&model->state->per_arch[comb][i], 0, sizeof(struct starpu_perfmodel_per_arch));
+			}
+			fprintf(stderr, "[parse] allocating per_arch for model %p %s and comb %d --> %p\n", model, model->symbol, comb, model->state->per_arch[comb]);
+		}
+		if (!model->state->per_arch_is_set[comb])
+		{
+			model->state->per_arch_is_set[comb] = (int *)malloc(STARPU_MAXIMPLEMENTATIONS*sizeof(int));
+			for(i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			{
+				model->state->per_arch_is_set[comb][i] = 0;
+			}
 		}
 
 		for (impl = 0; impl < implmax; impl++)
