@@ -44,6 +44,8 @@ static unsigned niter = 16384;
 static struct starpu_task taskA, taskB, taskC, taskD;
 
 static unsigned loop_cnt = 0;
+static unsigned loop_cnt_B = 0;
+static unsigned loop_cnt_C = 0;
 static unsigned *check_cnt;
 static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
@@ -70,6 +72,28 @@ static struct starpu_codelet dummy_codelet =
 	.modes = { STARPU_RW },
 	.nbuffers = 1
 };
+
+static void callback_task_B(void *arg STARPU_ATTRIBUTE_UNUSED)
+{
+	loop_cnt_B++;
+
+	if (loop_cnt_B == niter)
+	{
+		/* We are done */
+		taskB.regenerate = 0;
+	}
+}
+
+static void callback_task_C(void *arg STARPU_ATTRIBUTE_UNUSED)
+{
+	loop_cnt_C++;
+
+	if (loop_cnt_C == niter)
+	{
+		/* We are done */
+		taskC.regenerate = 0;
+	}
+}
 
 static void callback_task_D(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
@@ -126,6 +150,7 @@ int main(int argc, char **argv)
 	taskB.cl_arg = &taskB;
 	taskB.cl_arg_size = sizeof(&taskB);
 	taskB.regenerate = 1;
+	taskB.callback_func = callback_task_B;
 	taskB.handles[0] = check_data;
 
 	starpu_task_init(&taskC);
@@ -133,6 +158,7 @@ int main(int argc, char **argv)
 	taskC.cl_arg = &taskC;
 	taskC.cl_arg_size = sizeof(&taskC);
 	taskC.regenerate = 1;
+	taskC.callback_func = callback_task_C;
 	taskC.handles[0] = check_data;
 
 	starpu_task_init(&taskD);
@@ -167,6 +193,8 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(*check_cnt == (4*loop_cnt));
 
 	starpu_free(check_cnt);
+
+	starpu_data_unregister(check_data);
 
 	starpu_shutdown();
 
