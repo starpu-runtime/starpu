@@ -105,7 +105,7 @@ Small changes:
   * Lock performance model files while writing and reading them to avoid
     issues on parallel launches, MPI runs notably.
 
-StarPU 1.1.2 (svn revision xxx)
+StarPU 1.1.2 (svn revision 13011)
 ==============================================
 The scheduling context release
 
