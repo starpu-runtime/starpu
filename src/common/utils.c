@@ -21,6 +21,7 @@
 #include <libgen.h>
 #include <errno.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #ifdef __MINGW32__
 #include <io.h>
@@ -100,6 +101,49 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 			STARPU_ABORT();
 		}
 	}
+}
+
+int _starpu_ftruncate(FILE *file)
+{
+	return ftruncate(fileno(file), 0);
+}
+
+int _starpu_frdlock(FILE *file)
+{
+	struct flock lock = {
+		.l_type = F_RDLCK,
+		.l_whence = SEEK_SET,
+		.l_start = 0,
+		.l_len = 0
+	};
+	return fcntl(fileno(file), F_SETLKW, &lock);
+}
+
+int _starpu_frdunlock(FILE *file)
+{
+	struct flock lock = {
+		.l_type = F_UNLCK,
+		.l_whence = SEEK_SET,
+		.l_start = 0,
+		.l_len = 0
+	};
+	return fcntl(fileno(file), F_SETLKW, &lock);
+}
+
+int _starpu_fwrlock(FILE *file)
+{
+	struct flock lock = {
+		.l_type = F_WRLCK,
+		.l_whence = SEEK_SET,
+		.l_start = 0,
+		.l_len = 0
+	};
+	return fcntl(fileno(file), F_SETLKW, &lock);
+}
+
+int _starpu_fwrunlock(FILE *file)
+{
+	return _starpu_frdunlock(file);
 }
 
 int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex)

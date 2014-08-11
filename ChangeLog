@@ -101,6 +101,10 @@ New features:
   * One can register an existing on-GPU buffer to be used by a handle.
   * Add the starpu_paje_summary statistics tool.
 
+Small changes:
+  * Lock performance model files while writing and reading them to avoid
+    issues on parallel launches, MPI runs notably.
+
 StarPU 1.1.2 (svn revision xxx)
 ==============================================
 The scheduling context release
