@@ -759,6 +759,8 @@ static void load_bus_affinity_file_content(void)
 	f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
+	_starpu_frdlock(f);
+
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
         unsigned gpu;
@@ -811,6 +813,7 @@ static void load_bus_affinity_file_content(void)
 		STARPU_ASSERT(ret == 0);
 	}
 #endif /* !STARPU_USE_OPENCL */
+	_starpu_frdunlock(f);
 
 	fclose(f);
 #endif /* !(STARPU_USE_CUDA_ || STARPU_USE_OPENCL */
@@ -838,6 +841,7 @@ static void write_bus_affinity_file_content(void)
 		STARPU_ABORT();
 	}
 
+	_starpu_frdlock(f);
 	unsigned cpu;
         unsigned gpu;
 
@@ -873,6 +877,7 @@ static void write_bus_affinity_file_content(void)
 	}
 #endif
 
+	_starpu_frdunlock(f);
 	fclose(f);
 #endif
 }
@@ -982,6 +987,7 @@ static int load_bus_latency_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
+	_starpu_frdlock(f);
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
@@ -1049,13 +1055,14 @@ static int load_bus_latency_file_content(void)
 			break;
 		ungetc(n, f);
 	}
+	_starpu_frdunlock(f);
+	fclose(f);
 
 	/* No more values, take NAN */
 	for ( ; src < STARPU_MAXNODES; src++)
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 			latency_matrix[src][dst] = NAN;
 
-	fclose(f);
 	return 1;
 }
 
@@ -1080,6 +1087,8 @@ static void write_bus_latency_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
+	_starpu_fwrlock(f);
+	_starpu_ftruncate(f);
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1136,6 +1145,7 @@ static void write_bus_latency_file_content(void)
 
 		fprintf(f, "\n");
 	}
+	_starpu_fwrunlock(f);
 
 	fclose(f);
 }
@@ -1196,6 +1206,7 @@ static int load_bus_bandwidth_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
+	_starpu_frdlock(f);
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
@@ -1263,13 +1274,14 @@ static int load_bus_bandwidth_file_content(void)
 			break;
 		ungetc(n, f);
 	}
+	_starpu_frdunlock(f);
+	fclose(f);
 
 	/* No more values, take NAN */
 	for ( ; src < STARPU_MAXNODES; src++)
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 			latency_matrix[src][dst] = NAN;
 
-	fclose(f);
 	return 1;
 }
 
@@ -1288,6 +1300,9 @@ static void write_bus_bandwidth_file_content(void)
 
 	f = fopen(path, "w+");
 	STARPU_ASSERT(f);
+
+	_starpu_fwrlock(f);
+	_starpu_ftruncate(f);
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1350,6 +1365,7 @@ static void write_bus_bandwidth_file_content(void)
 		fprintf(f, "\n");
 	}
 
+	_starpu_fwrunlock(f);
 	fclose(f);
 }
 #endif /* STARPU_SIMGRID */
@@ -1505,6 +1521,7 @@ static void check_bus_config_file(void)
                 // Loading configuration from file
                 f = fopen(path, "r");
                 STARPU_ASSERT(f);
+		_starpu_frdlock(f);
                 _starpu_drop_comments(f);
                 ret = fscanf(f, "%u\t", &read_cpus);
 		STARPU_ASSERT(ret == 1);
@@ -1515,6 +1532,7 @@ static void check_bus_config_file(void)
 		ret = fscanf(f, "%d\t", &read_opencl);
 		STARPU_ASSERT(ret == 1);
                 _starpu_drop_comments(f);
+		_starpu_frdunlock(f);
                 fclose(f);
 
                 // Loading current configuration
@@ -1560,12 +1578,15 @@ static void write_bus_config_file_content(void)
 
         f = fopen(path, "w+");
 	STARPU_ASSERT(f);
+	_starpu_fwrlock(f);
+	_starpu_ftruncate(f);
 
         fprintf(f, "# Current configuration\n");
         fprintf(f, "%u # Number of CPUs\n", ncpus);
         fprintf(f, "%d # Number of CUDA devices\n", ncuda);
         fprintf(f, "%d # Number of OpenCL devices\n", nopencl);
 
+	_starpu_fwrunlock(f);
         fclose(f);
 }
 
@@ -1604,6 +1625,8 @@ static void write_bus_platform_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
+	_starpu_fwrlock(f);
+	_starpu_ftruncate(f);
 
 	fprintf(f,
 "<?xml version='1.0'?>\n"
@@ -1762,6 +1785,7 @@ static void write_bus_platform_file_content(void)
 " </platform>\n"
 		);
 
+	_starpu_fwrunlock(f);
 	fclose(f);
 }
 
