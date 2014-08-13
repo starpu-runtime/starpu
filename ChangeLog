@@ -100,6 +100,7 @@ The scheduling context release
 New features:
   * One can register an existing on-GPU buffer to be used by a handle.
   * Add the starpu_paje_summary statistics tool.
+  * Enable gpu-gpu transfers for matrices.
 
 Small changes:
   * Lock performance model files while writing and reading them to avoid
