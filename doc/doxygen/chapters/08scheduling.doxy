@@ -128,6 +128,10 @@ the user can for instance run a given task a thousand times, measure the global
 consumption for that series of tasks, divide it by a thousand, repeat for
 varying kinds of tasks and task sizes, and eventually feed StarPU
 with these manual measurements through starpu_perfmodel_update_history().
+For instance, for CUDA devices, <c>nvidia-smi -q -d POWER</c> can be used to get
+the current consumption in Watt. Multiplying that value by the average duration
+of a single task gives the consumption of the task in Joules, which can be given
+to starpu_perfmodel_update_history().
 
 \section StaticScheduling Static Scheduling
 

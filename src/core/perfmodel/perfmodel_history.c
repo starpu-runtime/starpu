@@ -66,7 +66,7 @@ size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_p
 	}
 	else
 	{
-		unsigned nbuffers = task->cl->nbuffers;
+		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 		size_t size = 0;
 
 		unsigned buffer;
@@ -653,9 +653,9 @@ static void initialize_model_with_file(FILE*f, struct starpu_perfmodel *model)
 
 void starpu_perfmodel_init(struct starpu_perfmodel *model)
 {
-	STARPU_ASSERT(model && model->symbol);
-
 	int already_init;
+
+	STARPU_ASSERT(model);
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&registered_models_rwlock);
 	already_init = model->is_init;
@@ -834,7 +834,10 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 	f = fopen(path, "w+");
 	STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", path);
 
+	_starpu_fwrlock(f);
+	_starpu_ftruncate(f);
 	dump_model_file(f, model);
+	_starpu_fwrunlock(f);
 
 	fclose(f);
 }
@@ -1009,7 +1012,9 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 				f = fopen(path, "r");
 				STARPU_ASSERT(f);
 
+				_starpu_frdlock(f);
 				parse_model_file(f, model, scan_history);
+				_starpu_frdunlock(f);
 
 				fclose(f);
 			}
@@ -1099,10 +1104,12 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 	FILE *f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
+	_starpu_frdlock(f);
 	starpu_perfmodel_init_with_file(f, model);
 	rewind(f);
 
 	parse_model_file(f, model, 1);
+	_starpu_frdunlock(f);
 
 	STARPU_ASSERT(fclose(f) == 0);
 
@@ -1412,6 +1419,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			_STARPU_DISP("Error <%s> when opening file <%s>\n", strerror(errno), per_arch_model->debug_path);
 			STARPU_ABORT();
 		}
+		_starpu_fwrlock(f);
 
 		if (!j->footprint_is_computed)
 			(void) _starpu_compute_buffers_footprint(model, arch, nimpl, j);
@@ -1420,8 +1428,9 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 		fprintf(f, "0x%x\t%lu\t%f\t%f\t%f\t%d\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(model, arch, nimpl, j), measured, task->predicted, task->predicted_transfer, cpuid);
 		unsigned i;
+		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
-		for (i = 0; i < task->cl->nbuffers; i++)
+		for (i = 0; i < nbuffers; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 
@@ -1430,6 +1439,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			handle->ops->display(handle, f);
 		}
 		fprintf(f, "\n");
+		_starpu_fwrunlock(f);
 		fclose(f);
 #endif
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->model_rwlock);

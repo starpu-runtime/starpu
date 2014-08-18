@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012  INRIA
  *
@@ -258,9 +258,7 @@ static inline unsigned select_worker(unsigned sched_ctx_id)
 }
 
 
-#ifdef STARPU_DEVEL
-#warning TODO rewrite ... this will not scale at all now
-#endif
+/* Note: this is not scalable work stealing,  use lws instead */
 static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);

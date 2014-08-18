@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  Inria
  *
@@ -34,13 +34,13 @@
 #define BACKOFF_MAX 32  /* TODO : use parameter to define them */
 #define BACKOFF_MIN 1
 
-void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, struct timespec *codelet_start, int rank, int profiling)
+void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_start, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
 	struct starpu_profiling_task_info *profiling_info;
 	int starpu_top=_starpu_top_status_get();
-	int workerid = args->workerid;
+	int workerid = worker->workerid;
 	unsigned calibrate_model = 0;
 
 	if (cl->model && cl->model->benchmarking)
@@ -52,7 +52,7 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	if (j->task_size == 1)
 		_starpu_sched_pre_exec_hook(task);
 
-	args->status = STATUS_EXECUTING;
+	worker->status = STATUS_EXECUTING;
 	task->status = STARPU_TASK_RUNNING;
 
 	if (rank == 0)
@@ -77,13 +77,13 @@ void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j
 	_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
 }
 
-void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)
+void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)
 {
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
 	struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 	int starpu_top=_starpu_top_status_get();
-	int workerid = args->workerid;
+	int workerid = worker->workerid;
 	unsigned calibrate_model = 0;
 
 	_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
@@ -103,16 +103,16 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 	if (starpu_top)
 		_starpu_top_task_ended(task,workerid,codelet_end);
 
-	args->status = STATUS_UNKNOWN;
+	worker->status = STATUS_UNKNOWN;
 }
-void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker_args,
+void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker,
 					struct starpu_perfmodel_arch* perf_arch,
 					struct timespec *codelet_start, struct timespec *codelet_end, int profiling)
 {
 	struct starpu_profiling_task_info *profiling_info = j->task->profiling_info;
 	struct timespec measured_ts;
 	double measured;
-	int workerid = worker_args->workerid;
+	int workerid = worker->workerid;
 	struct starpu_codelet *cl = j->task->cl;
 	int calibrate_model = 0;
 	int updated = 0;
@@ -171,7 +171,6 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 			const unsigned do_update_time_model = 1;
 			const double time_consumed = measured;
 #endif
-
 			if (do_update_time_model)
 			{
 				_starpu_update_perfmodel_history(j, j->task->cl->model, perf_arch, worker_args->devid, time_consumed, j->nimpl);
@@ -255,12 +254,12 @@ static void _starpu_worker_set_status_wakeup(int workerid)
 }
 
 
-static void _starpu_exponential_backoff(struct _starpu_worker *args)
+static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 {
-	int delay = args->spinning_backoff;
+	int delay = worker->spinning_backoff;
 	
-	if (args->spinning_backoff < BACKOFF_MAX)
-		args->spinning_backoff<<=1; 
+	if (worker->spinning_backoff < BACKOFF_MAX)
+		worker->spinning_backoff<<=1; 
 	
 	while(delay--)
 		STARPU_UYIELD();
@@ -269,9 +268,9 @@ static void _starpu_exponential_backoff(struct _starpu_worker *args)
 
 
 /* Workers may block when there is no work to do at all. */
-struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode)
+struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int workerid, unsigned memnode)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 	struct starpu_task *task;
 	unsigned needed = 1;
 	_starpu_worker_set_status_scheduling(workerid);
@@ -279,7 +278,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 	{
 		struct _starpu_sched_ctx *sched_ctx = NULL;
 		struct _starpu_sched_ctx_list *l = NULL;
-		for (l = args->sched_ctx_list; l; l = l->next)
+		for (l = worker->sched_ctx_list; l; l = l->next)
 		{
 			sched_ctx = _starpu_get_sched_ctx_struct(l->sched_ctx);
 			if(sched_ctx && sched_ctx->id > 0 && sched_ctx->id < STARPU_NMAX_SCHED_CTXS)
@@ -290,13 +289,13 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 					/* don't let the worker sleep with the sched_mutex taken */
 					/* we need it until here bc of the list of ctxs of the workers
 					   that can change in another thread */
-					STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+					STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 					needed = 0;
 					_starpu_sched_ctx_signal_worker_blocked(sched_ctx->id, workerid);
 					STARPU_PTHREAD_COND_WAIT(&sched_ctx->parallel_sect_cond[workerid], &sched_ctx->parallel_sect_mutex[workerid]);
 					_starpu_sched_ctx_signal_worker_woke_up(sched_ctx->id, workerid);
 					sched_ctx->parallel_sect[workerid] = 0;
-					STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
+					STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 				}
 				STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->parallel_sect_mutex[workerid]);
 			}
@@ -304,19 +303,19 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 				break;
 		}
 		/* don't worry if the value is not correct (no lock) it will do it next time */
-		if(args->tmp_sched_ctx != -1)
+		if(worker->tmp_sched_ctx != -1)
 		{
-			sched_ctx = _starpu_get_sched_ctx_struct(args->tmp_sched_ctx);
+			sched_ctx = _starpu_get_sched_ctx_struct(worker->tmp_sched_ctx);
 			STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->parallel_sect_mutex[workerid]);
 			if(sched_ctx->parallel_sect[workerid])
 			{
 //				needed = 0;
-				STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 				_starpu_sched_ctx_signal_worker_blocked(sched_ctx->id, workerid);
 				STARPU_PTHREAD_COND_WAIT(&sched_ctx->parallel_sect_cond[workerid], &sched_ctx->parallel_sect_mutex[workerid]);
 				_starpu_sched_ctx_signal_worker_woke_up(sched_ctx->id, workerid);
 				sched_ctx->parallel_sect[workerid] = 0;
-				STARPU_PTHREAD_MUTEX_LOCK(&args->sched_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 			}
 			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->parallel_sect_mutex[workerid]);
 		}
@@ -324,7 +323,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 		needed = !needed;
 	}
 
-	task = _starpu_pop_task(args);
+	task = _starpu_pop_task(worker);
 
 	if (task == NULL)
 	{
@@ -335,17 +334,17 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 
 		_starpu_worker_set_status_sleeping(workerid);
 
-		if (_starpu_worker_can_block(memnode) && !_starpu_sched_ctx_last_worker_awake(args))
+		if (_starpu_worker_can_block(memnode) && !_starpu_sched_ctx_last_worker_awake(worker))
 		{
-			STARPU_PTHREAD_COND_WAIT(&args->sched_cond, &args->sched_mutex);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 		}
 		else
 		{
-			STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);			
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 			if (_starpu_machine_is_running())
 			{
-				_starpu_exponential_backoff(args);
+				_starpu_exponential_backoff(worker);
 #ifdef STARPU_SIMGRID
 				static int warned;
 				if (!warned)
@@ -364,9 +363,9 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 	_starpu_worker_set_status_scheduling_done(workerid);
 
 	_starpu_worker_set_status_wakeup(workerid);
-	args->spinning_backoff = BACKOFF_MIN;
+	worker->spinning_backoff = BACKOFF_MIN;
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&args->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
 
 
 #ifdef HAVE_AYUDAME_H

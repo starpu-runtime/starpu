@@ -54,8 +54,8 @@ AC_CANONICAL_SYSTEM
 dnl Automake 1.11 introduced `silent-rules' and `color-tests'.  Use them
 dnl when they're available.
 m4_ifdef([AM_SILENT_RULES],
-  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests subdir-objects])],
-  [AM_INIT_AUTOMAKE([1.10 -Wall foreign subdir-objects])])
+  [AM_INIT_AUTOMAKE([1.11 -Wall foreign silent-rules color-tests parallel-tests])],
+  [AM_INIT_AUTOMAKE([1.10 -Wall foreign])])
 
 m4_ifdef([AM_SILENT_RULES],
   [AM_SILENT_RULES(yes)])
@@ -88,7 +88,17 @@ AC_C_RESTRICT
 AC_CHECK_PROGS([BASH], [bash])
 
 # Check whether subversion is installed
+AC_PATH_PROG(svncommand, svn)
 AC_PATH_PROG(svnversioncommand, svnversion)
+
+# find out if we are are in a subversion directory
+svndir=0
+if test "$svncommand" != "" ; then
+   $svncommand info $srcdir >/dev/null 2>&1
+   if test $? -eq 0; then
+      svndir=1
+   fi
+fi
 
 # use svnversion to record the current repository revision only if
 # subversion is installed and we are in a working copy
@@ -1761,7 +1771,7 @@ AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]))
 running_mpi_check=no
-if test -d "$srcdir/.svn" -o -d "$srcdir/.git" ; then
+if test $svndir = 1 -o -d "$srcdir/.git" ; then
     running_mpi_check=yes
 fi
 if test x$enable_mpi_check = xyes ; then

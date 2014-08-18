@@ -291,7 +291,9 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	STARPU_PTHREAD_MUTEX_INIT(&handle->sequential_consistency_mutex, NULL);
 	handle->last_submitted_mode = STARPU_R;
 	handle->last_sync_task = NULL;
-	handle->last_submitted_accessors = NULL;
+	handle->last_submitted_accessors.task = NULL;
+	handle->last_submitted_accessors.next = &handle->last_submitted_accessors;
+	handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
 	handle->post_sync_tasks = NULL;
 
 	/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */

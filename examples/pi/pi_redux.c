@@ -340,8 +340,8 @@ int main(int argc, char **argv)
 	starpu_data_set_reduction_methods(shot_cnt_handle,
 					&redux_codelet, &init_codelet);
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	for (i = 0; i < ntasks_warmup; i++)
 	{
@@ -357,7 +357,7 @@ int main(int argc, char **argv)
 	}
 
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	for (i = 0; i < ntasks; i++)
 	{
@@ -375,8 +375,8 @@ int main(int argc, char **argv)
 	starpu_data_unregister(shot_cnt_handle);
 	starpu_data_unregister(xy_scratchpad_handle);
 
-	gettimeofday(&end, NULL);
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	double timing = end - start;
 	/* Total surface : Pi * r^ 2 = Pi*1^2, total square surface : 2^2 = 4,
 	 * probability to impact the disk: pi/4 */
 	unsigned long total = (ntasks + ntasks_warmup)*nshot_per_task;

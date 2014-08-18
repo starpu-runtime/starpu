@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 	int ret;
 	unsigned part;
 	double timing;
-	struct timeval start, end;
+	double start, end;
 	unsigned row, pos;
 	unsigned ind;
 
@@ -213,7 +213,7 @@ int main(int argc, char **argv)
 	compile_spmv_opencl_kernel();
 #endif
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	/*
 	 *	Create and submit StarPU tasks
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
 	}
 
 	starpu_task_wait_for_all();
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
 	/*
 	 *	Unregister the CSR matrix and the output vector
@@ -270,7 +270,7 @@ int main(int argc, char **argv)
 	 */
 	starpu_shutdown();
 
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 

@@ -155,14 +155,15 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 				  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned),
 				  double *timing)
 {
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 	int ret;
-
-	gettimeofday(&start, NULL);
 
 	/* create all the DAG nodes */
 	unsigned i,j,k;
+
+	start = starpu_timing_now();
+
 	for (k = 0; k < nblocks; k++)
 	{
 	     ret = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block);
@@ -196,9 +197,9 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 	/* stall the application until the end of computations */
 	starpu_task_wait_for_all();
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	*timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	*timing = end - start;
 	return 0;
 }
 

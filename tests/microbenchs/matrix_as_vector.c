@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -186,7 +186,7 @@ int check_size_on_device(uint32_t where, char *device_name)
 	matrix_codelet.nbuffers = 1;
 	if (where == STARPU_CPU) matrix_codelet.cpu_funcs[0] = matrix_cpu_func;
 	if (where == STARPU_CUDA) matrix_codelet.cuda_funcs[0] = matrix_cuda_func;
-	if (where == STARPU_CUDA) vector_codelet.cuda_flags[0] = STARPU_CUDA_ASYNC;
+	if (where == STARPU_CUDA) matrix_codelet.cuda_flags[0] = STARPU_CUDA_ASYNC;
 //	if (where == STARPU_OPENCL) matrix_codelet.opencl_funcs[0] = matrix_opencl_func;
 
 	for(nx=NX_MIN ; nx<=NX_MAX ; nx*=2)

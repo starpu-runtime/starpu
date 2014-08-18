@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Université de Bordeaux 1
+ * Copyright (C) 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2012-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2013  INRIA
  *
@@ -173,7 +173,7 @@ static int list_remove(struct starpu_worker_collection *workers, int worker)
 static void _init_workers(int *workerids)
 {
 	unsigned i;
-	int nworkers = starpu_worker_get_count();
+	unsigned nworkers = starpu_worker_get_count();
 	for(i = 0; i < nworkers; i++)
 		workerids[i] = -1;
 	return;

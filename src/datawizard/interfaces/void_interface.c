@@ -140,7 +140,7 @@ static int dummy_copy(void *src_interface STARPU_ATTRIBUTE_UNUSED,
 	return 0;
 }
 
-static ssize_t describe(void *data_interface, char *buf, size_t size)
+static ssize_t describe(void *data_interface STARPU_ATTRIBUTE_UNUSED, char *buf, size_t size)
 {
 	return snprintf(buf, size, "0");
 }

@@ -41,12 +41,14 @@ void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 		cl_arg_wrapper->callback_func(cl_arg_wrapper->callback_arg);
 }
 
-size_t _starpu_task_insert_get_arg_size(va_list varg_list)
+void _starpu_task_insert_get_args_size(va_list varg_list, unsigned *nbuffers, size_t *cl_arg_size)
 {
 	int arg_type;
 	size_t arg_buffer_size;
+	unsigned n;
 
 	arg_buffer_size = 0;
+	n = 0;
 
 	arg_buffer_size += sizeof(char);
 
@@ -55,11 +57,13 @@ size_t _starpu_task_insert_get_arg_size(va_list varg_list)
 		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
+			n++;
 		}
 		else if (arg_type==STARPU_DATA_ARRAY)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t*);
-			(void)va_arg(varg_list, int);
+			int nb_handles = va_arg(varg_list, int);
+			n += nb_handles;
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
@@ -136,7 +140,10 @@ size_t _starpu_task_insert_get_arg_size(va_list varg_list)
 		}
 	}
 
-	return arg_buffer_size;
+	if (cl_arg_size)
+		*cl_arg_size = arg_buffer_size;
+	if (nbuffers)
+		*nbuffers = n;
 }
 
 int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list varg_list)
@@ -280,6 +287,8 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 
 	prologue_pop_cl_arg_wrapper->callback_func = NULL;
 
+	(*task)->cl = cl;
+
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
 		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
@@ -292,7 +301,9 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 			STARPU_ASSERT(cl != NULL);
 
 			STARPU_TASK_SET_HANDLE((*task), handle, current_buffer);
-			if (STARPU_CODELET_GET_MODE(cl, current_buffer))
+			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
+				STARPU_TASK_SET_MODE(*task, mode, current_buffer);
+			else if (STARPU_CODELET_GET_MODE(cl, current_buffer))
 			{
 				STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, current_buffer) == mode,
 						   "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
@@ -426,9 +437,9 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 		}
 	}
 
-	STARPU_ASSERT(cl == NULL || current_buffer == cl->nbuffers);
+	if (cl && cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
+		(*task)->nbuffers = current_buffer;
 
-	(*task)->cl = cl;
 	(*task)->cl_arg = arg_buffer;
 	(*task)->cl_arg_size = arg_buffer_size;
 

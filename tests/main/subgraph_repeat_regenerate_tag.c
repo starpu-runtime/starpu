@@ -51,6 +51,9 @@ static unsigned niter = 16384;
 static struct starpu_task taskA, taskB, taskC, taskD;
 
 static unsigned loop_cnt = 0;
+static unsigned loop_cnt_A = 0;
+static unsigned loop_cnt_B = 0;
+static unsigned loop_cnt_C = 0;
 static unsigned *check_cnt;
 static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
@@ -77,6 +80,39 @@ static struct starpu_codelet dummy_codelet =
 	.modes = { STARPU_RW },
 	.nbuffers = 1
 };
+
+static void callback_task_A(void *arg STARPU_ATTRIBUTE_UNUSED)
+{
+	loop_cnt_A++;
+
+	if (loop_cnt_A == niter)
+	{
+		/* We are done */
+		taskA.regenerate = 0;
+	}
+}
+
+static void callback_task_B(void *arg STARPU_ATTRIBUTE_UNUSED)
+{
+	loop_cnt_B++;
+
+	if (loop_cnt_B == niter)
+	{
+		/* We are done */
+		taskB.regenerate = 0;
+	}
+}
+
+static void callback_task_C(void *arg STARPU_ATTRIBUTE_UNUSED)
+{
+	loop_cnt_C++;
+
+	if (loop_cnt_C == niter)
+	{
+		/* We are done */
+		taskC.regenerate = 0;
+	}
+}
 
 static void callback_task_D(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
@@ -127,6 +163,7 @@ int main(int argc, char **argv)
 	taskA.regenerate = 1; /* this task will be explicitely resubmitted if needed */
 	taskA.use_tag = 1;
 	taskA.tag_id = TAG_A;
+	taskA.callback_func = callback_task_A;
 	taskA.handles[0] = check_data;
 
 	starpu_task_init(&taskB);
@@ -136,6 +173,7 @@ int main(int argc, char **argv)
 	taskB.regenerate = 1;
 	taskB.use_tag = 1;
 	taskB.tag_id = TAG_B;
+	taskB.callback_func = callback_task_B;
 	taskB.handles[0] = check_data;
 
 	starpu_task_init(&taskC);
@@ -145,6 +183,7 @@ int main(int argc, char **argv)
 	taskC.regenerate = 1;
 	taskC.use_tag = 1;
 	taskC.tag_id = TAG_C;
+	taskC.callback_func = callback_task_C;
 	taskC.handles[0] = check_data;
 
 	starpu_task_init(&taskD);
@@ -183,6 +222,8 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(*check_cnt == (4*loop_cnt));
 
 	starpu_free(check_cnt);
+
+	starpu_data_unregister(check_data);
 
 	starpu_shutdown();
 

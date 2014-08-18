@@ -78,7 +78,9 @@ LIST_TYPE(_starpu_job,
 	 * the task so that we always grab the rw-lock associated to the
 	 * handles in the same order. */
 	struct _starpu_data_descr ordered_buffers[STARPU_NMAXBUFS];
+	struct _starpu_task_wrapper_dlist dep_slots[STARPU_NMAXBUFS];
 	struct _starpu_data_descr *dyn_ordered_buffers;
+	struct _starpu_task_wrapper_dlist *dyn_dep_slots;
 
 	/* If a tag is associated to the job, this points to the internal data
 	 * structure that describes the tag status. */
@@ -92,6 +94,7 @@ LIST_TYPE(_starpu_job,
 	 * the handle for this dependency, so as to remove the task from the
 	 * last_writer/readers */
 	starpu_data_handle_t implicit_dep_handle;
+	struct _starpu_task_wrapper_dlist implicit_dep_slot;
 
 	/* Indicates whether the task associated to that job has already been
 	 * submitted to StarPU (1) or not (0) (using starpu_task_submit).
@@ -244,5 +247,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 
 #define _STARPU_JOB_SET_ORDERED_BUFFER(job, buffer, i) do { if (job->dyn_ordered_buffers) job->dyn_ordered_buffers[i] = buffer; else job->ordered_buffers[i] = buffer;} while(0)
 #define _STARPU_JOB_GET_ORDERED_BUFFERS(job) (job->dyn_ordered_buffers) ? job->dyn_ordered_buffers : job->ordered_buffers
+
+#define _STARPU_JOB_GET_DEP_SLOTS(job) (((job)->dyn_dep_slots) ? (job)->dyn_dep_slots : (job)->dep_slots)
 
 #endif // __JOBS_H__

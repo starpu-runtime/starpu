@@ -53,7 +53,10 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	memset(job, 0, sizeof(*job));
 
 	if (task->dyn_handles)
-	     job->dyn_ordered_buffers = malloc(task->cl->nbuffers * sizeof(job->dyn_ordered_buffers[0]));
+	{
+	     job->dyn_ordered_buffers = malloc(STARPU_TASK_GET_NBUFFERS(task) * sizeof(job->dyn_ordered_buffers[0]));
+	     job->dyn_dep_slots = malloc(STARPU_TASK_GET_NBUFFERS(task) * sizeof(job->dyn_dep_slots[0]));
+	}
 
 	job->task = task;
 
@@ -109,8 +112,13 @@ void _starpu_job_destroy(struct _starpu_job *j)
 	_starpu_cg_list_deinit(&j->job_successors);
 	if (j->dyn_ordered_buffers)
 	{
-	     free(j->dyn_ordered_buffers);
-	     j->dyn_ordered_buffers = NULL;
+		free(j->dyn_ordered_buffers);
+		j->dyn_ordered_buffers = NULL;
+	}
+	if (j->dyn_dep_slots)
+	{
+		free(j->dyn_dep_slots);
+		j->dyn_dep_slots = NULL;
 	}
 
 	_starpu_job_delete(j);
@@ -223,8 +231,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	if (task->cl && !continuation)
 	{
 		unsigned i;
+		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 #ifdef STARPU_USE_SC_HYPERVISOR
-		for(i = 0; i < task->cl->nbuffers; i++)
+		for(i = 0; i < nbuffers; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			if (handle != NULL)
@@ -232,7 +241,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		}
 #endif //STARPU_USE_SC_HYPERVISOR
 
-		for (i = 0; i < task->cl->nbuffers; i++)
+		for (i = 0; i < nbuffers; i++)
 		{
 			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
 			_starpu_spin_lock(&handle->header_lock);
@@ -259,7 +268,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	if (j->implicit_dep_handle && !continuation)
 	{
 		starpu_data_handle_t handle = j->implicit_dep_handle;
-		_starpu_release_data_enforce_sequential_consistency(j->task, handle);
+		_starpu_release_data_enforce_sequential_consistency(j->task, &j->implicit_dep_slot, handle);
 		/* Release reference taken while setting implicit_dep_handle */
 		_starpu_spin_lock(&handle->header_lock);
 		handle->busy_count--;
