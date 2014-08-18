@@ -2221,7 +2221,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	{
 		unsigned inputfile;
 
-		uint64_t offsets[64];
+		uint64_t offsets[options->ninputfiles];
 
 		/*
 		 * Find the trace offsets:
@@ -2234,11 +2234,11 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		 *	- psi_k(x) = x - offset_k
 		 */
 
-		int unique_keys[64];
-		int rank_k[64];
-		uint64_t start_k[64];
-		uint64_t sync_k[64];
-		unsigned sync_k_exists[64];
+		int unique_keys[options->ninputfiles];
+		int rank_k[options->ninputfiles];
+		uint64_t start_k[options->ninputfiles];
+		uint64_t sync_k[options->ninputfiles];
+		unsigned sync_k_exists[options->ninputfiles];
 		uint64_t M = 0;
 
 		unsigned found_one_sync_point = 0;
@@ -2309,7 +2309,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 #endif
 
 			char file_prefix[32];
-			snprintf(file_prefix, 32, "%d_", filerank);
+			snprintf(file_prefix, sizeof(file_prefix), "%d_", filerank);
 
 			options->file_prefix = file_prefix;
 			options->file_offset = offsets[inputfile];
