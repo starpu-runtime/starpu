@@ -398,6 +398,7 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 
 static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, int is_async, cudaStream_t stream)
 {
+#ifdef HAVE_CUDA_MEMCPY_PEER
 	struct starpu_matrix_interface *src_matrix = src_interface;
 	struct starpu_matrix_interface *dst_matrix = dst_interface;
 
@@ -432,6 +433,9 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)src_matrix->nx*src_matrix->ny*src_matrix->elemsize);
 
 	return 0;
+#else
+	STARPU_ABORT_MSG("CUDA memcpy peer not available, but core triggered one ?!");
+#endif
 }
 
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
