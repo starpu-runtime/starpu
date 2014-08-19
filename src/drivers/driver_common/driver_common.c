@@ -173,7 +173,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 #endif
 			if (do_update_time_model)
 			{
-				_starpu_update_perfmodel_history(j, j->task->cl->model, perf_arch, worker_args->devid, time_consumed, j->nimpl);
+				_starpu_update_perfmodel_history(j, j->task->cl->model, perf_arch, worker->devid, time_consumed, j->nimpl);
 			}
 		}
 	}
@@ -206,7 +206,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 
 		if (do_update_power_model)
 		{
-			_starpu_update_perfmodel_history(j, j->task->cl->power_model, perf_arch, worker_args->devid, power_consumed, j->nimpl);
+			_starpu_update_perfmodel_history(j, j->task->cl->power_model, perf_arch, worker->devid, power_consumed, j->nimpl);
 		}
 	}
 }
