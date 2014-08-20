@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -227,7 +227,7 @@ static void new_task(struct _starpu_job *j)
 	t->tag_id = j->task->tag_id;
 	t->use_tag = j->task->use_tag;
 	t->cl = j->task->cl;
-	t->footprint = _starpu_compute_buffers_footprint(NULL, STARPU_CPU_WORKER, 0, j);
+	t->footprint = _starpu_compute_buffers_footprint(j->task->cl?j->task->cl->model:NULL, STARPU_CPU_WORKER, 0, j);
 	t->priority = j->task->priority;
 	t->deps = NULL;
 	t->depsn = 0;
