@@ -101,6 +101,8 @@ New features:
   * One can register an existing on-GPU buffer to be used by a handle.
   * Add the starpu_paje_summary statistics tool.
   * Enable gpu-gpu transfers for matrices.
+  * Let interfaces declare which transfers they allow with the can_copy
+    methode.
 
 Small changes:
   * Lock performance model files while writing and reading them to avoid
