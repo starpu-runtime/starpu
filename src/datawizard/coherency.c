@@ -39,6 +39,8 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 	size_t size = _starpu_data_get_size(handle);
 	double cost = INFINITY;
 
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+
 	for (node = 0; node < nnodes; node++)
 	{
 		if (handle->per_node[node].state != STARPU_INVALID)
@@ -70,6 +72,15 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 				double time = starpu_transfer_predict(i, destination, size);
 				unsigned handling_node;
 
+				/* Avoid transfers which the interface does not want */
+				if (copy_methods->can_copy)
+				{
+					void *src_interface = handle->per_node[i].data_interface;
+					void *dst_interface = handle->per_node[destination].data_interface;
+					if (!copy_methods->can_copy(src_interface, i, dst_interface, destination))
+						continue;
+				}
+
 				/* Avoid indirect transfers */
 				if (!link_supports_direct_transfers(handle, i, destination, &handling_node))
 					continue;
@@ -97,11 +108,31 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 	{
 		if (src_node_mask & (1<<i))
 		{
+			/* Avoid transfers which the interface does not want */
+			if (copy_methods->can_copy)
+			{
+				void *src_interface = handle->per_node[i].data_interface;
+				void *dst_interface = handle->per_node[destination].data_interface;
+				unsigned handling_node;
+
+				if (!copy_methods->can_copy(src_interface, i, dst_interface, destination))
+					continue;
+
+				if (!link_supports_direct_transfers(handle, i, destination, &handling_node))
+				{
+					/* Avoid through RAM if the interface does not want it */
+					void *ram_interface = handle->per_node[0].data_interface;
+					if (!copy_methods->can_copy(src_interface, i, ram_interface, 0)
+					 || !copy_methods->can_copy(ram_interface, 0, dst_interface, destination))
+						continue;
+				}
+			}
+
 			/* this is a potential candidate */
 			src_node = i;
 
 			/* however GPU are expensive sources, really !
-			 * 	Unless peer transfer is supported.
+			 * 	Unless peer transfer is supported (and it would then have been selected above).
 			 * 	Other should be ok */
 
 			if (
@@ -195,7 +226,7 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 {
 	(void) handle; // unused
 
-	/* XXX That's a hack until we get cudaMemcpy3DPeerAsync to work !
+	/* XXX That's a hack until we fix cudaMemcpy3DPeerAsync in the block interface
 	 * Perhaps not all data interface provide a direct GPU-GPU transfer
 	 * method ! */
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
