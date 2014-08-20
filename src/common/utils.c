@@ -111,6 +111,13 @@ int _starpu_ftruncate(FILE *file)
 
 int _starpu_frdlock(FILE *file)
 {
+#ifdef __MINGW32__
+	int ret;
+	do {
+		ret = _locking(fileno(file), _LK_RLCK, 10);
+	} while (ret == EDEADLOCK);
+	return ret;
+#else
 	struct flock lock = {
 		.l_type = F_RDLCK,
 		.l_whence = SEEK_SET,
@@ -118,10 +125,17 @@ int _starpu_frdlock(FILE *file)
 		.l_len = 0
 	};
 	return fcntl(fileno(file), F_SETLKW, &lock);
+#endif
 }
 
 int _starpu_frdunlock(FILE *file)
 {
+#ifdef __MINGW32__
+#  ifndef _LK_UNLCK
+#    define _LK_UNLCK _LK_UNLOCK
+#  endif
+	return _locking(fileno(file), _LK_UNLCK, 10);
+#else
 	struct flock lock = {
 		.l_type = F_UNLCK,
 		.l_whence = SEEK_SET,
@@ -129,10 +143,18 @@ int _starpu_frdunlock(FILE *file)
 		.l_len = 0
 	};
 	return fcntl(fileno(file), F_SETLKW, &lock);
+#endif
 }
 
 int _starpu_fwrlock(FILE *file)
 {
+#ifdef __MINGW32__
+	int ret;
+	do {
+		ret = _locking(fileno(file), _LK_LOCK, 10);
+	} while (ret == EDEADLOCK);
+	return ret;
+#else
 	struct flock lock = {
 		.l_type = F_WRLCK,
 		.l_whence = SEEK_SET,
@@ -140,6 +162,7 @@ int _starpu_fwrlock(FILE *file)
 		.l_len = 0
 	};
 	return fcntl(fileno(file), F_SETLKW, &lock);
+#endif
 }
 
 int _starpu_fwrunlock(FILE *file)
