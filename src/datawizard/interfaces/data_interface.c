@@ -530,9 +530,10 @@ void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 		STARPU_ASSERT(entry != NULL);
 
 		HASH_DEL(registered_handles, entry);
-		free(entry);
 
 		_starpu_spin_unlock(&registered_handles_lock);
+
+		free(entry);
 	}
 }
 
