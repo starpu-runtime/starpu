@@ -431,6 +431,7 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	workerarg->first_task = 0;
 	workerarg->ntasks = 0;
 	workerarg->pipeline_length = 0;
+	workerarg->pipeline_stuck = 0;
 	workerarg->set = NULL;
 
 	/* if some codelet's termination cannot be handled directly :

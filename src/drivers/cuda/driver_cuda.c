@@ -477,9 +477,9 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 #ifdef STARPU_USE_FXT
 		int k;
 		for (k = 0; k < (int) worker->set->nworkers; k++)
-			if (worker->set->workers[k].ntasks)
+			if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
 				break;
-		if (k < (int) worker->set->nworkers)
+		if (k == (int) worker->set->nworkers)
 			/* Everybody busy */
 			_STARPU_TRACE_START_EXECUTING()
 #endif
@@ -596,6 +596,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		if (!worker->ntasks)
 		{
 			idle++;
+			/* Even nothing to test */
 			continue;
 		}
 
@@ -623,8 +624,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 					/* An asynchronous task, it was already
 					 * queued, it's now running, record its start time.  */
 					_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, starpu_profiling_status_get());
-					/* Skip the idle handling part, we are still busy */
-					continue;
 				}
 				else
 				{
@@ -633,12 +632,13 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 					 * last execute it.  */
 
 					_STARPU_TRACE_END_PROGRESS(memnode);
+					_STARPU_TRACE_EVENT("sync_task");
 					execute_job_on_cuda(task, worker);
+					_STARPU_TRACE_EVENT("end_sync_task");
 					_STARPU_TRACE_START_PROGRESS(memnode);
 					worker->pipeline_stuck = 0;
 				}
 			}
-			idle++;
 #ifdef STARPU_USE_FXT
 			int k;
 			for (k = 0; k < (int) worker_set->nworkers; k++)
@@ -649,6 +649,9 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 				_STARPU_TRACE_END_EXECUTING()
 #endif
 		}
+
+		if (worker->ntasks < worker->pipeline_length)
+			idle++;
 	}
 
 	if (!idle)
