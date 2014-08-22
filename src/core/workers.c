@@ -428,6 +428,9 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
 	starpu_task_list_init(&workerarg->local_tasks);
 	workerarg->current_task = NULL;
+	workerarg->first_task = 0;
+	workerarg->ntasks = 0;
+	workerarg->pipeline_length = 0;
 	workerarg->set = NULL;
 
 	/* if some codelet's termination cannot be handled directly :

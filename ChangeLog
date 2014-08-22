@@ -47,6 +47,8 @@ New features:
     CUDA and OpenCL kernel execution.
   * Add CUDA concurrent kernel execution support through
     the STARPU_NWORKER_PER_CUDA environment variable.
+  * Add CUDA kernel submission pipelining, to overlap costs and allow concurrent
+    kernel execution on Fermi cards.
   * New locality work stealing scheduler (lws).
   * Add STARPU_VARIABLE_NBUFFERS to be set in cl.nbuffers, and nbuffers and
     modes field to the task structure, which permit to define codelets taking a

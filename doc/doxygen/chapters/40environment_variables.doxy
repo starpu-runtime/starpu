@@ -51,6 +51,16 @@ Specify the number of workers per CUDA device, and thus the number of kernels
 which will be concurrently running on the devices. The default value is 1.
 </dd>
 
+<dt>STARPU_CUDA_PIPELINE</dt>
+<dd>
+\anchor STARPU_CUDA_PIPELINE
+\addindex __env__STARPU_CUDA_PIPELINE
+Specify how many asynchronous tasks are submitted in advance on CUDA
+devices. This for instance permits to overlap task management with the execution
+of previous tasks, but it also allows concurrent execution on Fermi cards, which
+otherwise bring spurious synchronizations. The default is 2.
+</dd>
+
 <dt>STARPU_NOPENCL</dt>
 <dd>
 \anchor STARPU_NOPENCL
