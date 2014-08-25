@@ -25,6 +25,7 @@
 
 #ifdef __MINGW32__
 #include <io.h>
+#include <sys/locking.h>
 #define mkdir(path, mode) mkdir(path)
 #endif
 
