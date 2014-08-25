@@ -564,6 +564,7 @@ static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
 #endif
 static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker *worker);
 static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker *worker);
+static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_worker *worker);
 
 int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 {
@@ -616,7 +617,6 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 	struct _starpu_job *j;
 	struct starpu_task *task;
-	int res;
 
 #ifndef STARPU_SIMGRID
 	task = starpu_task_get_current();
@@ -665,52 +665,8 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		return 0;
 	}
 
-	res = _starpu_opencl_start_job(j, worker);
+	_starpu_opencl_execute_job(task, worker);
 
-	if (res)
-	{
-		switch (res)
-		{
-			case -EAGAIN:
-				_STARPU_DISP("ouch, OpenCL could not actually run task %p, putting it back...\n", task);
-				_starpu_push_task_to_workers(task);
-				STARPU_ABORT();
-				return 0;
-			default:
-				STARPU_ABORT();
-		}
-	}
-
-#ifndef STARPU_SIMGRID
-	if (task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC)
-	{
-		/* Record event to synchronize with task termination later */
-		int err;
-		cl_command_queue queue;
-		starpu_opencl_get_queue(worker->devid, &queue);
-		/* the function clEnqueueMarker is deprecated from
-		 * OpenCL version 1.2. We would like to use the new
-		 * function clEnqueueMarkerWithWaitList. We could do
-		 * it by checking its availability through our own
-		 * configure macro HAVE_CLENQUEUEMARKERWITHWAITLIST
-		 * and the OpenCL macro CL_VERSION_1_2. However these
-		 * 2 macros detect the function availability in the
-		 * ICD and not in the device implementation.
-		 */
-		err = clEnqueueMarker(queue, &task_events[worker->devid]);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
-		_STARPU_TRACE_START_EXECUTING();
-	}
-	else
-#else
-#ifdef STARPU_DEVEL
-#warning No OpenCL asynchronous execution with simgrid yet.
-#endif
-#endif
-	/* Synchronous execution */
-	{
-		_starpu_opencl_stop_job(j, worker);
-	}
 	_STARPU_TRACE_START_PROGRESS(memnode);
 
 	return 0;
@@ -875,6 +831,59 @@ static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker
 
 	_starpu_handle_job_termination(j);
 
+}
+
+static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_worker *worker)
+{
+	int res;
+
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+
+	res = _starpu_opencl_start_job(j, worker);
+
+	if (res)
+	{
+		switch (res)
+		{
+			case -EAGAIN:
+				_STARPU_DISP("ouch, OpenCL could not actually run task %p, putting it back...\n", task);
+				_starpu_push_task_to_workers(task);
+				STARPU_ABORT();
+			default:
+				STARPU_ABORT();
+		}
+	}
+
+#ifndef STARPU_SIMGRID
+	if (task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC)
+	{
+		/* Record event to synchronize with task termination later */
+		int err;
+		cl_command_queue queue;
+		starpu_opencl_get_queue(worker->devid, &queue);
+		/* the function clEnqueueMarker is deprecated from
+		 * OpenCL version 1.2. We would like to use the new
+		 * function clEnqueueMarkerWithWaitList. We could do
+		 * it by checking its availability through our own
+		 * configure macro HAVE_CLENQUEUEMARKERWITHWAITLIST
+		 * and the OpenCL macro CL_VERSION_1_2. However these
+		 * 2 macros detect the function availability in the
+		 * ICD and not in the device implementation.
+		 */
+		err = clEnqueueMarker(queue, &task_events[worker->devid]);
+		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+		_STARPU_TRACE_START_EXECUTING();
+	}
+	else
+#else
+#ifdef STARPU_DEVEL
+#warning No OpenCL asynchronous execution with simgrid yet.
+#endif
+#endif
+	/* Synchronous execution */
+	{
+		_starpu_opencl_stop_job(j, worker);
+	}
 }
 
 #ifdef STARPU_USE_OPENCL
