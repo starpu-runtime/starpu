@@ -519,10 +519,10 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 
 #ifndef STARPU_SIMGRID
 	init_context(worker_set, devid);
-#endif
 
 	if (worker_set->nworkers > 1 && props[devid].concurrentKernels == 0)
 		_STARPU_DISP("Warning: STARPU_NWORKER_PER_CUDA is %u, but the device does not support concurrent kernel execution!\n", worker_set->nworkers);
+#endif
 
 	_starpu_cuda_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(worker0->memory_node, _starpu_cuda_get_global_mem_size(devid));
