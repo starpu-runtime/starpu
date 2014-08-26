@@ -42,6 +42,8 @@ static int _starpu_written = 0;
 
 static int _starpu_id;
 
+static starpu_pthread_key_t _starpu_tid;
+
 #ifdef STARPU_SIMGRID
 /* Give virtual time to FxT */
 uint64_t fut_getstamp(void)
@@ -52,21 +54,25 @@ uint64_t fut_getstamp(void)
 
 long _starpu_gettid(void)
 {
+	long cached = (uintptr_t) starpu_pthread_getspecific(_starpu_tid);
+	if (cached)
+		return cached;
+
 #ifdef STARPU_SIMGRID
-	return (uintptr_t) MSG_process_self();
+	cached = (uintptr_t) MSG_process_self();
 #else
 #if defined(__linux__)
-	return syscall(SYS_gettid);
+	cached = syscall(SYS_gettid);
 #elif defined(__FreeBSD__)
-	long tid;
-	thr_self(&tid);
-	return tid;
+	thr_self(&cached);
 #elif defined(__MINGW32__)
-	return (long) GetCurrentThreadId();
+	cached = (long) GetCurrentThreadId();
 #else
-	return (long) pthread_self();
+	cached = (long) pthread_self();
 #endif
 #endif
+	starpu_pthread_setspecific(_starpu_tid, (void*) (uintptr_t) cached);
+	return cached;
 }
 
 static void _starpu_profile_set_tracefile(void *last, ...)
@@ -144,6 +150,8 @@ void _starpu_init_fxt_profiling(unsigned trace_buffer_size)
 
 	atexit(_starpu_stop_fxt_profiling);
 
+	starpu_pthread_key_create(&_starpu_tid, NULL);
+
 	unsigned int key_mask = FUT_KEYMASKALL;
 
 	if (fut_setup(trace_buffer_size / sizeof(unsigned long), key_mask, threadid) < 0)
@@ -190,6 +198,7 @@ void _starpu_stop_fxt_profiling(void)
 		if (generate_trace == 1)
 			_starpu_generate_paje_trace(_STARPU_PROF_FILE_USER, "paje.trace");
 
+		starpu_pthread_key_delete(_starpu_tid);
 		int ret = fut_done();
 		if (ret < 0)
 		{
