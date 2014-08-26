@@ -217,6 +217,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 	struct starpu_task *task;
 	unsigned needed = 1;
+
 	_starpu_worker_set_status_scheduling(workerid);
 	while(needed)
 	{
@@ -267,7 +268,10 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		needed = !needed;
 	}
 
-	task = _starpu_pop_task(worker);
+	if (worker->pipeline_length && (worker->ntasks == worker->pipeline_length || worker->pipeline_stuck))
+		task = NULL;
+	else
+		task = _starpu_pop_task(worker);
 
 	if (task == NULL)
 	{

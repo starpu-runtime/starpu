@@ -68,6 +68,16 @@ otherwise bring spurious synchronizations. The default is 2.
 OpenCL equivalent of the environment variable \ref STARPU_NCUDA.
 </dd>
 
+<dt>STARPU_OPENCL_PIPELINE</dt>
+<dd>
+\anchor STARPU_OPENCL_PIPELINE
+\addindex __env__STARPU_OPENCL_PIPELINE
+Specify how many asynchronous tasks are submitted in advance on OpenCL
+devices. This for instance permits to overlap task management with the execution
+of previous tasks, but it also allows concurrent execution on Fermi cards, which
+otherwise bring spurious synchronizations. The default is 2.
+</dd>
+
 <dt>STARPU_NMICDEVS</dt>
 <dd>
 \anchor STARPU_NMICDEVS
