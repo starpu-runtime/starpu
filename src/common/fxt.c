@@ -198,7 +198,6 @@ void _starpu_stop_fxt_profiling(void)
 		if (generate_trace == 1)
 			_starpu_generate_paje_trace(_STARPU_PROF_FILE_USER, "paje.trace");
 
-		starpu_pthread_key_delete(_starpu_tid);
 		int ret = fut_done();
 		if (ret < 0)
 		{
@@ -206,6 +205,8 @@ void _starpu_stop_fxt_profiling(void)
 			 * was too many events) */
 			fprintf(stderr, "Warning: the FxT trace could not be generated properly\n");
 		}
+
+		starpu_pthread_key_delete(_starpu_tid);
 
 		_starpu_written = 1;
 		_starpu_fxt_started = 0;
