@@ -42,8 +42,6 @@ static int _starpu_written = 0;
 
 static int _starpu_id;
 
-static starpu_pthread_key_t _starpu_tid;
-
 #ifdef STARPU_SIMGRID
 /* Give virtual time to FxT */
 uint64_t fut_getstamp(void)
@@ -54,25 +52,25 @@ uint64_t fut_getstamp(void)
 
 long _starpu_gettid(void)
 {
-	long cached = (uintptr_t) starpu_pthread_getspecific(_starpu_tid);
-	if (cached)
-		return cached;
-
+	/* TODO: test at configure whether __thread is available, and use that
+	 * to cache the value.
+	 * Don't use the TSD, this is getting called before we would have the
+	 * time to allocate it.  */
 #ifdef STARPU_SIMGRID
-	cached = (uintptr_t) MSG_process_self();
+	return (uintptr_t) MSG_process_self();
 #else
 #if defined(__linux__)
-	cached = syscall(SYS_gettid);
+	return syscall(SYS_gettid);
 #elif defined(__FreeBSD__)
-	thr_self(&cached);
+	long tid;
+	thr_self(&tid);
+	return tid;
 #elif defined(__MINGW32__)
-	cached = (long) GetCurrentThreadId();
+	return (long) GetCurrentThreadId();
 #else
-	cached = (long) pthread_self();
+	return (long) pthread_self();
 #endif
 #endif
-	starpu_pthread_setspecific(_starpu_tid, (void*) (uintptr_t) cached);
-	return cached;
 }
 
 static void _starpu_profile_set_tracefile(void *last, ...)
@@ -150,8 +148,6 @@ void _starpu_init_fxt_profiling(unsigned trace_buffer_size)
 
 	atexit(_starpu_stop_fxt_profiling);
 
-	starpu_pthread_key_create(&_starpu_tid, NULL);
-
 	unsigned int key_mask = FUT_KEYMASKALL;
 
 	if (fut_setup(trace_buffer_size / sizeof(unsigned long), key_mask, threadid) < 0)
@@ -205,8 +201,6 @@ void _starpu_stop_fxt_profiling(void)
 			 * was too many events) */
 			fprintf(stderr, "Warning: the FxT trace could not be generated properly\n");
 		}
-
-		starpu_pthread_key_delete(_starpu_tid);
 
 		_starpu_written = 1;
 		_starpu_fxt_started = 0;
