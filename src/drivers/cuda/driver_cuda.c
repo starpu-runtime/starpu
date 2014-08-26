@@ -689,6 +689,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		if (!_STARPU_CUDA_MAY_PERFORM(j))
 		{
 			/* this is neither a cuda or a cublas task */
+			worker->ntasks--;
 			_starpu_push_task_to_workers(task);
 			continue;
 		}
