@@ -30,6 +30,8 @@
 #include <starpu_mpi_cache_stats.h>
 #include <starpu_mpi_private.h>
 
+typedef void (*_starpu_callback_func_t)(void *);
+
 static
 int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *dest, size_t *size_on_nodes)
 {
@@ -276,11 +278,11 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
-			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
 		{
-			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, _starpu_callback_func_t);
 			va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
@@ -385,11 +387,11 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
-			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
 		{
-			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, _starpu_callback_func_t);
 			va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
@@ -489,11 +491,11 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			}
 			else if (arg_type==STARPU_CALLBACK)
 			{
-				va_arg(varg_list, void (*)(void *));
+				va_arg(varg_list, _starpu_callback_func_t);
 			}
 			else if (arg_type==STARPU_CALLBACK_WITH_ARG)
 			{
-				va_arg(varg_list, void (*)(void *));
+				va_arg(varg_list, _starpu_callback_func_t);
 				va_arg(varg_list, void *);
 			}
 			else if (arg_type==STARPU_CALLBACK_ARG)
@@ -559,11 +561,11 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
-			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
 		{
-			va_arg(varg_list, void (*)(void *));
+			va_arg(varg_list, _starpu_callback_func_t);
 			va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
