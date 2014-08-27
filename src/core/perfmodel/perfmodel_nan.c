@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <config.h>
+#include <common/config.h>
 #include <core/perfmodel/perfmodel.h>
 #include <ctype.h>
 
