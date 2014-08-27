@@ -19,9 +19,14 @@
 
 #include <starpu_config.h>
 
-#ifdef STARPU_HAVE_WINDOWS
+#ifdef __MINGW__
 #  include <w32api.h>
+#  define WINVER WindowsXP
+#endif
+
+#ifdef STARPU_HAVE_WINDOWS
 #  include <ws2tcpip.h>
+#  include <io.h>
 #else
 #  include <sys/socket.h>
 #  include <netinet/in.h>
@@ -122,7 +127,7 @@ void _starpu_top_communications_threads_launcher(void)
    	}
   	int sock=socket(ans->ai_family, ans->ai_socktype, ans->ai_protocol);
 	int optval = 1;
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void*) &optval, sizeof(optval));
 
 	if (bind(sock, ans->ai_addr, ans->ai_addrlen) < 0)
 	{
