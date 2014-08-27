@@ -422,11 +422,11 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
-			va_arg(varg_list_copy, void (*)(void *));
+			va_arg(varg_list_copy, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
 		{
-			va_arg(varg_list_copy, void (*)(void *));
+			va_arg(varg_list_copy, _starpu_callback_func_t);
 			va_arg(varg_list_copy, void *);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
@@ -566,11 +566,11 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, struct starpu_codelet *codelet, 
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
-			va_arg(varg_list_copy, void (*)(void *));
+			va_arg(varg_list_copy, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
 		{
-			va_arg(varg_list_copy, void (*)(void *));
+			va_arg(varg_list_copy, _starpu_callback_func_t);
 			va_arg(varg_list_copy, void *);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG)
