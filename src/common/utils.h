@@ -101,7 +101,11 @@
 	} while (0)
 
 
+#ifdef _MSC_VER
+#define _STARPU_IS_ZERO(a) (a == 0.0)
+#else
 #define _STARPU_IS_ZERO(a) (fpclassify(a) == FP_ZERO)
+#endif
 
 int _starpu_mkpath(const char *s, mode_t mode);
 void _starpu_mkpath_and_check(const char *s, mode_t mode);
