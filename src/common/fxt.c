@@ -65,7 +65,7 @@ long _starpu_gettid(void)
 	long tid;
 	thr_self(&tid);
 	return tid;
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#elif defined(_WIN32) && !defined(__CYGWIN__)
 	return (long) GetCurrentThreadId();
 #else
 	return (long) pthread_self();
