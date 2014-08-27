@@ -18,7 +18,6 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
-#include <libgen.h>
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -27,6 +26,24 @@
 #include <io.h>
 #include <sys/locking.h>
 #define mkdir(path, mode) mkdir(path)
+#endif
+
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
+#include <direct.h>
+static char * dirname(char * path)
+{
+   char drive[_MAX_DRIVE];
+   char dir[_MAX_DIR];
+   /* Remove trailing slash */
+   while (strlen(path) > 0 && (*(path+strlen(path)-1) == '/' || *(path+strlen(p
+th)-1) == '\\'))
+      *(path+strlen(path)-1) = '\0';
+   _splitpath(path, drive, dir, NULL, NULL);
+   _makepath(path, drive, dir, NULL, NULL);
+   return path;
+}
+#else
+#include <libgen.h>
 #endif
 
 /* Function with behaviour like `mkdir -p'. This function was adapted from
