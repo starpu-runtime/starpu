@@ -16,9 +16,11 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <dirent.h>
 #include <unistd.h>
+#if !defined(_WIN32) || defined(__MINGW__) || defined(__CYGWIN__)
+#include <dirent.h>
 #include <sys/stat.h>
+#endif
 #include <errno.h>
 #include <common/config.h>
 #include <common/utils.h>
@@ -1043,6 +1045,7 @@ void starpu_perfmodel_directory(FILE *output)
  * the performance model files */
 int starpu_perfmodel_list(FILE *output)
 {
+#if !defined(_WIN32) || defined(__MINGW__) || defined(__CYGWIN__)
         char path[256];
         DIR *dp;
         struct dirent *ep;
@@ -1066,6 +1069,10 @@ int starpu_perfmodel_list(FILE *output)
 		_STARPU_DISP("Could not open the perfmodel directory <%s>: %s\n", path, strerror(errno));
         }
 	return 0;
+#else
+	fprintf(stderr,"Listing perfmodels is not implemented on pure Windows yet\n");
+	return 1;
+#endif
 }
 
 /* This function is intended to be used by external tools that should read the
