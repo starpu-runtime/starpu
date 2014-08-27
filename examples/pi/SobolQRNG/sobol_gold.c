@@ -62,6 +62,10 @@
 
 #define k_2powneg32 2.3283064E-10F
 
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
+#define ffs(arg) _bit_scan_forward(arg)
+#endif
+
 /* Create the direction numbers, based on the primitive polynomials. */
 void initSobolDirectionVectors(int n_dimensions, unsigned int *directions)
 {
