@@ -22,7 +22,7 @@
 #ifdef STARPU_SIMGRID
 #include <xbt/synchro_core.h>
 #include <msg/msg.h>
-#elif !defined(_MSC_VER)
+#elif !defined(_MSC_VER) || defined(BUILDING_STARPU)
 #include <pthread.h>
 #endif
 
@@ -47,7 +47,7 @@ int starpu_pthread_attr_init(starpu_pthread_attr_t *attr);
 int starpu_pthread_attr_destroy(starpu_pthread_attr_t *attr);
 int starpu_pthread_attr_setdetachstate(starpu_pthread_attr_t *attr, int detachstate);
 
-#elif !defined(_MSC_VER) /* STARPU_SIMGRID */
+#elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* STARPU_SIMGRID */
 
 typedef pthread_t starpu_pthread_t;
 typedef pthread_attr_t starpu_pthread_attr_t;
@@ -77,7 +77,7 @@ int starpu_pthread_mutex_lock(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex);
 int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex);
 
-#elif !defined(_MSC_VER) /* !STARPU_SIMGRID */
+#elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* !STARPU_SIMGRID */
 
 typedef pthread_mutex_t starpu_pthread_mutex_t;
 typedef pthread_mutexattr_t starpu_pthread_mutexattr_t;
@@ -103,7 +103,7 @@ int starpu_pthread_key_delete(starpu_pthread_key_t key);
 int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer);
 void *starpu_pthread_getspecific(starpu_pthread_key_t key);
 
-#elif !defined(_MSC_VER) /* STARPU_SIMGRID */
+#elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* !STARPU_SIMGRID */
 
 typedef pthread_key_t starpu_pthread_key_t;
 
@@ -131,7 +131,7 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 int starpu_pthread_cond_timedwait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex, const struct timespec *abstime);
 int starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond);
 
-#elif !defined(_MSC_VER) /* STARPU_SIMGRID */
+#elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* !STARPU_SIMGRID */
 
 typedef pthread_cond_t starpu_pthread_cond_t;
 typedef pthread_condattr_t starpu_pthread_condattr_t;
@@ -163,7 +163,7 @@ int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock);
 int starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock);
 int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 
-#elif !defined(_MSC_VER) /* STARPU_SIMGRID */
+#elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* !STARPU_SIMGRID */
 
 typedef pthread_rwlock_t starpu_pthread_rwlock_t;
 typedef pthread_rwlockattr_t starpu_pthread_rwlockattr_t;
@@ -209,7 +209,7 @@ typedef pthread_barrierattr_t starpu_pthread_barrierattr_t;
 
 #endif /* STARPU_SIMGRID, !STARPU_HAVE_PTHREAD_BARRIER, _MSC_VER */
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(BUILDING_STARPU)
 typedef void* starpu_pthread_rwlock_t;
 typedef void* starpu_pthread_mutex_t;
 typedef void* starpu_pthread_cond_t;
