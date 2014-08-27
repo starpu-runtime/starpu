@@ -1017,7 +1017,11 @@ static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
 	if (! (timeout_env = getenv("STARPU_WATCHDOG_TIMEOUT")))
 		return NULL;
 
+#ifdef _MSC_VER
+	timeout = (unsigned long long) _atoi64(timeout_env);
+#else
 	timeout = atoll(timeout_env);
+#endif
 	ts.tv_sec = timeout / 1000000;
 	ts.tv_nsec = (timeout % 1000000) * 1000;
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
