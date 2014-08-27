@@ -66,7 +66,7 @@
 const struct primitive sobol_primitives[] =
 {
     /* First dimension is a special case so this entry is actually ignored */
-    {1, 0, 0, {}},
+    {1, 0, 0, 0},
     {2, 1, 0, {1}},
     {3, 2, 1, {1, 3}},
     {4, 3, 1, {1, 3, 1}},
