@@ -254,7 +254,9 @@ typedef pthread_mutex_t pthread_rwlock_t;
 typedef int pthread_rwlockattr_t;
 #define pthread_rwlock_init(lock, attr) pthread_mutex_init(lock, NULL)
 #define pthread_rwlock_wrlock(lock) pthread_mutex_lock(lock)
+#define pthread_rwlock_trywrlock(lock) pthread_mutex_trylock(lock)
 #define pthread_rwlock_rdlock(lock) pthread_mutex_lock(lock)
+#define pthread_rwlock_tryrdlock(lock) pthread_mutex_trylock(lock)
 #define pthread_rwlock_unlock(lock) pthread_mutex_unlock(lock)
 #define pthread_rwlock_destroy(lock) pthread_mutex_destroy(lock)
 
