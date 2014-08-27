@@ -1613,7 +1613,7 @@ void starpu_sched_ctx_bind_current_thread_to_cpuid(unsigned cpuid STARPU_ATTRIBU
 		STARPU_ABORT();
 	}
 
-#elif defined(__MINGW32__) || defined(__CYGWIN__)
+#elif defined(_WIN32)
 	DWORD mask = 1 << cpuid;
 	if (!SetThreadAffinityMask(GetCurrentThread(), mask))
 	{

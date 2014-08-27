@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <io.h>
 #include <sys/locking.h>
 #define mkdir(path, mode) mkdir(path)
@@ -40,7 +40,7 @@ int _starpu_mkpath(const char *s, mode_t mode)
 
 	rv = -1;
 	if (strcmp(s, ".") == 0 || strcmp(s, "/") == 0
-#ifdef __MINGW32__
+#if defined(_WIN32)
 		/* C:/ or C:\ */
 		|| (s[0] && s[1] == ':' && (s[2] == '/' || s[2] == '\\') && !s[3])
 #endif
@@ -111,7 +111,7 @@ int _starpu_ftruncate(FILE *file)
 
 int _starpu_frdlock(FILE *file)
 {
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	int ret;
 	do {
 		ret = _locking(fileno(file), _LK_RLCK, 10);
@@ -130,7 +130,7 @@ int _starpu_frdlock(FILE *file)
 
 int _starpu_frdunlock(FILE *file)
 {
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #  ifndef _LK_UNLCK
 #    define _LK_UNLCK _LK_UNLOCK
 #  endif
@@ -148,7 +148,7 @@ int _starpu_frdunlock(FILE *file)
 
 int _starpu_fwrlock(FILE *file)
 {
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	int ret;
 	do {
 		ret = _locking(fileno(file), _LK_LOCK, 10);
