@@ -690,7 +690,7 @@ _starpu_bind_thread_on_cpu (
 		STARPU_ABORT();
 	}
 
-#elif defined(__MINGW32__) || defined(__CYGWIN__)
+#elif defined(_WIN32)
 	DWORD mask = 1 << cpuid;
 	if (!SetThreadAffinityMask(GetCurrentThread(), mask))
 	{
