@@ -147,7 +147,7 @@ void _starpu_timing_init(void)
 
 		STARPU_GET_TICK(t1);
 		gettimeofday(&tv1,0);
-		_starpu_sleep((&ts);
+		_starpu_sleep(&ts);
 		STARPU_GET_TICK(t2);
 		gettimeofday(&tv2,0);
 		_starpu_scale = ((tv2.tv_sec*1e6 + tv2.tv_usec) -
