@@ -939,6 +939,7 @@ if test x$enable_simgrid = xyes ; then
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
 		]
 	)
+   	AC_CHECK_FUNCS([xbt_mutex_try_acquire])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		    		[[#include <msg/msg.h>]],
 				[[msg_host_t foo; ]]
