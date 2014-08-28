@@ -115,7 +115,9 @@ static double last_codelet_start[STARPU_NMAXWORKERS];
 static char last_codelet_symbol[STARPU_NMAXWORKERS][4*sizeof(unsigned long)];
 static int last_codelet_parameter[STARPU_NMAXWORKERS];
 #define MAX_PARAMETERS 8
+#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 static char last_codelet_parameter_description[STARPU_NMAXWORKERS][MAX_PARAMETERS][FXT_MAX_PARAMS*sizeof(unsigned long)];
+#endif
 
 /* If more than a period of time has elapsed, we flush the profiling info,
  * otherwise they are accumulated everytime there is a new relevant event. */
@@ -321,6 +323,7 @@ static void thread_pop_state(double time, const char *prefix, long unsigned int 
 #endif
 }
 
+#ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag)
 {
 #ifdef STARPU_HAVE_POTI
@@ -332,6 +335,7 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx\n", time, prefix, workerid, name, size, parameters, footprint, tag);
 #endif
 }
+#endif
 
 static void mpicommthread_set_state(double time, const char *prefix, const char *name)
 {
@@ -2223,7 +2227,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	{
 		unsigned inputfile;
 
-		uint64_t offsets[64];
+		uint64_t offsets[options->ninputfiles];
 
 		/*
 		 * Find the trace offsets:
@@ -2236,11 +2240,11 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		 *	- psi_k(x) = x - offset_k
 		 */
 
-		int unique_keys[64];
-		int rank_k[64];
-		uint64_t start_k[64];
-		uint64_t sync_k[64];
-		unsigned sync_k_exists[64];
+		int unique_keys[options->ninputfiles];
+		int rank_k[options->ninputfiles];
+		uint64_t start_k[options->ninputfiles];
+		uint64_t sync_k[options->ninputfiles];
+		unsigned sync_k_exists[options->ninputfiles];
 		uint64_t M = 0;
 
 		unsigned found_one_sync_point = 0;
@@ -2311,7 +2315,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 #endif
 
 			char file_prefix[32];
-			snprintf(file_prefix, 32, "%d_", filerank);
+			snprintf(file_prefix, sizeof(file_prefix), "%d_", filerank);
 
 			options->file_prefix = file_prefix;
 			options->file_offset = offsets[inputfile];

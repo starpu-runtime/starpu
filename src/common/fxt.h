@@ -410,8 +410,8 @@ do {									\
 #define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode)	\
 	FUT_DO_PROBE5(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, _starpu_gettid());
 
-#define _STARPU_TRACE_WORKER_INIT_END(workerid)				\
-	FUT_DO_PROBE2(_STARPU_FUT_WORKER_INIT_END, _starpu_gettid(), (workerid));
+#define _STARPU_TRACE_WORKER_INIT_END(__workerid)				\
+	FUT_DO_PROBE2(_STARPU_FUT_WORKER_INIT_END, _starpu_gettid(), (__workerid));
 
 #define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, archtype, workerid)				\
 do {									\

@@ -506,10 +506,10 @@ int main(int argc, char **argv)
 
 	unsigned iter = 0;
 
-	struct timeval start, end;
+	double start, end;
 
 	if (demo)
-		gettimeofday(&start, NULL);
+		start = starpu_timing_now();
 
 	while (niter-- != 0)
 	{
@@ -573,15 +573,15 @@ int main(int argc, char **argv)
 				topY = -49.35016705749115;
 				bottomY = 49.64891691946615;
 
-				gettimeofday(&end, NULL);
-				double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+				end = starpu_timing_now();
+				double timing = end - start;
 
 				fprintf(stderr, "Time to generate %u frames : %f s\n", iter, timing/1000000.0);
 				fprintf(stderr, "Average FPS: %f\n", ((double)iter*1e+6)/timing);
 
 				/* Reset counters */
 				iter = 0;
-				gettimeofday(&start, NULL);
+				start = starpu_timing_now();
 			}
 			else
 			{

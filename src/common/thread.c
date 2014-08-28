@@ -131,13 +131,17 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 
 int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 {
+	int ret;
 	_STARPU_TRACE_TRYLOCK_MUTEX();
 
-	xbt_mutex_acquire(*mutex);
+	/* TODO: use what simgrid will provide some day */
+	/* xbt_mutex_try_acquire(*mutex); */
+	ret = simcall_mutex_trylock((smx_mutex_t)*mutex);
+	ret = ret ? 0 : -EBUSY;
 
 	_STARPU_TRACE_MUTEX_LOCKED();
 
-	return 0;
+	return ret;
 }
 
 int starpu_pthread_mutexattr_gettype(const starpu_pthread_mutexattr_t *attr, int *type)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -55,13 +55,16 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <strings.h>
 
 #include "sobol.h"
 #include "sobol_gold.h"
 #include "sobol_primitives.h"
 
 #define k_2powneg32 2.3283064E-10F
+
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
+#define ffs(arg) _bit_scan_forward(arg)
+#endif
 
 /* Create the direction numbers, based on the primitive polynomials. */
 void initSobolDirectionVectors(int n_dimensions, unsigned int *directions)

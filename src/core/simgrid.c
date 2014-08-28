@@ -217,6 +217,7 @@ void _starpu_simgrid_init()
 		/* Get XML platform */
 		_starpu_simgrid_get_platform_path(path, sizeof(path));
 		in = fopen(path, "r");
+		_starpu_frdlock(in);
 		STARPU_ASSERT_MSG(in, "Could not open platform file %s", path);
 #ifdef HAVE_MKSTEMPS
 		out = mkstemps(template, strlen(".xml"));
@@ -230,6 +231,8 @@ void _starpu_simgrid_init()
 		snprintf(cmdline, sizeof(cmdline), "xsltproc --novalid --stringparam ASname %s -o %s "STARPU_DATADIR"/starpu/starpu_smpi.xslt %s", asname, template, path);
 		ret = system(cmdline);
 		STARPU_ASSERT_MSG(ret == 0, "running xsltproc to generate SMPI platforms %s from %s failed", template, path);
+		_starpu_frdunlock(in);
+		fclose(in);
 
 		/* And create it */
 		MSG_create_environment(template);

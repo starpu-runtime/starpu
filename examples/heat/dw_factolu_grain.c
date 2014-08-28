@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2011, 2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
@@ -345,18 +345,18 @@ void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks,
 	memcpy(Asaved, matA, ld*ld*sizeof(float));
 #endif
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	/* schedule the codelet */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	/* that's only ok for powers of 2 yet ! */
 	dw_factoLU_grain_inner(matA, size, (size/nblocks) * nbigblocks, ld, size/nblocks, 0);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 

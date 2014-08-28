@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014  Université de Bordeaux 1
- * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@
 #include <core/perfmodel/perfmodel.h> // we need to browse the list associated to history-based models
 #include <core/workers.h>
 
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 #endif
 
@@ -168,6 +168,18 @@ static void parse_args(int argc, char **argv)
 		exit(-1);
 	}
 
+}
+
+static char *replace_char(char *str, char old, char new)
+{
+	char *p = strdup(str);
+	char *ptr = p;
+	while (*ptr)
+	{
+		if (*ptr == old) *ptr = new;
+		ptr ++;
+	}
+	return p;
 }
 
 static void print_comma(FILE *gnuplot_file, int *first)
@@ -308,7 +320,7 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 						if (arch_model->list)
 						{
 							print_comma(gnuplot_file, first);
-							fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Average %s\"", avg_file_name, col, col+1, arch_name);
+							fprintf(gnuplot_file, "\"%s\" using 1:%d:%d with errorlines title \"Average %s\"", avg_file_name, col, col+1, replace_char(arch_name, '_', '-'));
 							col += 2;
 						}
 					}
@@ -503,7 +515,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	fprintf(gnuplot_file, "\n");
 	fprintf(gnuplot_file, "set term postscript eps enhanced color\n");
 	fprintf(gnuplot_file, "set output \"starpu_%s.eps\"\n", symbol);
-	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", symbol);
+	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", replace_char(symbol, '_', '-'));
 	fprintf(gnuplot_file, "set xlabel \"Total data size\"\n");
 	if (gflops)
 		fprintf(gnuplot_file, "set ylabel \"GFlops\"\n");
@@ -637,7 +649,7 @@ int main(int argc, char **argv)
 	int ret;
 	struct starpu_perfmodel model = {};
 
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
 #endif

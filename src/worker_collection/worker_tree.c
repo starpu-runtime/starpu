@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2013  Université de Bordeaux 1
- * Copyright (C) 2012-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2013  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 
 	struct starpu_tree *tree = (struct starpu_tree*)workers->workerids;
 	struct starpu_tree *neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->present);
-	
+
 	if(!neighbour)
 	{
 		starpu_tree_reset_visited(tree, it->visited);
@@ -58,7 +58,7 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 static int tree_get_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	int ret = -1;
-	
+
 	struct starpu_tree *tree = (struct starpu_tree *)workers->workerids;
 	struct starpu_tree *neighbour = NULL;
 	if(it->possible_value)
@@ -68,10 +68,10 @@ static int tree_get_next(struct starpu_worker_collection *workers, struct starpu
 	}
 	else
 		neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->present);
-	
+
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
-	
-	
+
+
 	int workerids[STARPU_NMAXWORKERS];
 	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
 	int w;
@@ -97,7 +97,7 @@ static unsigned tree_has_next_master(struct starpu_worker_collection *workers, s
 
 	struct starpu_tree *tree = (struct starpu_tree*)workers->workerids;
 	struct starpu_tree *neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->is_master);
-	
+
 	if(!neighbour)
 	{
 		starpu_tree_reset_visited(tree, it->visited);
@@ -126,7 +126,7 @@ static unsigned tree_has_next_master(struct starpu_worker_collection *workers, s
 static int tree_get_next_master(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	int ret = -1;
-	
+
 	struct starpu_tree *tree = (struct starpu_tree *)workers->workerids;
 	struct starpu_tree *neighbour = NULL;
 	if(it->possible_value)
@@ -136,10 +136,10 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 	}
 	else
 		neighbour = starpu_tree_get_neighbour(tree, (struct starpu_tree*)it->value, it->visited, workers->is_master);
-	
+
 	STARPU_ASSERT_MSG(neighbour, "no element anymore");
-	
-	
+
+
 	int workerids[STARPU_NMAXWORKERS];
 	int nworkers = _starpu_worker_get_workerids(neighbour->id, workerids);
 	int w;
@@ -160,23 +160,19 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 
 static int tree_add(struct starpu_worker_collection *workers, int worker)
 {
-	struct starpu_tree *tree = (struct starpu_tree *)workers->workerids;
-
 	if(!workers->present[worker])
 	{
 		workers->present[worker] = 1;
 		workers->nworkers++;
 		return worker;
 	}
-	else 
+	else
 		return -1;
 }
 
 
 static int tree_remove(struct starpu_worker_collection *workers, int worker)
 {
-	struct starpu_tree *tree = (struct starpu_tree *)workers->workerids;
-
 	if(workers->present[worker])
 	{
 		workers->present[worker] = 0;
@@ -184,7 +180,7 @@ static int tree_remove(struct starpu_worker_collection *workers, int worker)
 		workers->nworkers--;
 		return worker;
 	}
-	else 
+	else
 		return -1;
 }
 
@@ -200,7 +196,7 @@ static void tree_init(struct starpu_worker_collection *workers)
 		workers->present[i] = 0;
 		workers->is_master[i] = 0;
 	}
-	
+
 	return;
 }
 

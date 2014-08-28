@@ -499,9 +499,10 @@ int _starpu_data_release_tag(starpu_data_handle_t handle)
 		STARPU_ASSERT_MSG((tag_entry != NULL),"Data handle %p with tag %d isn't in the hashmap !",handle,handle->tag);
 
 		HASH_DEL(registered_tag_handles, tag_entry);
-		free(tag_entry);
 
 		_starpu_spin_unlock(&registered_tag_handles_lock);
+
+		free(tag_entry);
 	}
 	return 0;
 }
@@ -530,9 +531,10 @@ void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 		STARPU_ASSERT(entry != NULL);
 
 		HASH_DEL(registered_handles, entry);
-		free(entry);
 
 		_starpu_spin_unlock(&registered_handles_lock);
+
+		free(entry);
 	}
 }
 

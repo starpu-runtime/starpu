@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <config.h>
+#include <common/config.h>
 #include <core/perfmodel/perfmodel.h>
 #include <ctype.h>
 
@@ -54,8 +54,14 @@ int _starpu_read_double(FILE *f, char *format, double *val)
 	     int x3 = getc(f);
 	     if (x2 == 'a' && x3 == 'n')
 	     {
+#ifdef _MSC_VER
+		     unsigned long long _mynan = 0x7fffffffffffffffull;
+		     double mynan = *(double*)&_mynan;
+#else
+		     double mynan = NAN;
+#endif
 		     _starpu_read_spaces(f);
-		     *val = NAN;
+		     *val = mynan;
 		     return 1;
 	     }
 	     else
