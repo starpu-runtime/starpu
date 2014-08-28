@@ -137,7 +137,7 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 	/* TODO: use what simgrid will provide some day */
 	/* xbt_mutex_try_acquire(*mutex); */
 	ret = simcall_mutex_trylock((smx_mutex_t)*mutex);
-	ret = ret ? 0 : -EBUSY;
+	ret = ret ? 0 : EBUSY;
 
 	_STARPU_TRACE_MUTEX_LOCKED();
 
