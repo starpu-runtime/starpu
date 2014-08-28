@@ -25,6 +25,7 @@
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <io.h>
+#include <sys/locking.h>
 #define mkdir(path, mode) mkdir(path)
 #endif
 
