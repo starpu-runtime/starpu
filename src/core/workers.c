@@ -30,6 +30,7 @@
 #include <datawizard/malloc.h>
 #include <profiling/profiling.h>
 #include <starpu_task_list.h>
+#include <sched_policies/sched_component.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/scc/driver_scc_common.h>
 
@@ -1344,6 +1345,7 @@ void starpu_shutdown(void)
 	}
 
 	_starpu_delete_all_sched_ctxs();
+	_starpu_sched_component_workers_destroy();
 
 	_starpu_disk_unregister();
 #ifdef STARPU_HAVE_HWLOC

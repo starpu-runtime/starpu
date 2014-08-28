@@ -168,8 +168,6 @@ void starpu_sched_component_prefetch_on_node(struct starpu_sched_component * com
 void starpu_sched_component_destroy(struct starpu_sched_component *component)
 {
 	STARPU_ASSERT(component);
-	if(starpu_sched_component_is_worker(component))
-		return;
 	int i,j;
 	for(i = 0; i < component->nchildren; i++)
 	{
@@ -211,7 +209,8 @@ void starpu_sched_component_destroy_rec(struct starpu_sched_component * componen
 			starpu_sched_component_destroy_rec(component->children[i]);
 	}
 
-	starpu_sched_component_destroy(component);
+	if (!starpu_sched_component_is_worker(component))
+		starpu_sched_component_destroy(component);
 }
 
 void set_properties(struct starpu_sched_component * component)

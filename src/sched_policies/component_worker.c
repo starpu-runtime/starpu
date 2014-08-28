@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2013  INRIA
@@ -573,7 +573,7 @@ static void _worker_component_deinit_data(struct starpu_sched_component * compon
 		if(_worker_components[i] == component)
 		{
 			_worker_components[i] = NULL;
-			return;
+			break;
 		}
 	free(d);
 }
@@ -817,17 +817,12 @@ void _starpu_sched_component_unlock_all_workers(void)
 		_starpu_sched_component_unlock_worker(i);
 }
 
-void starpu_sched_component_worker_destroy(struct starpu_sched_component *component)
+void _starpu_sched_component_workers_destroy(void)
 {
-	struct _starpu_worker * worker = _starpu_sched_component_worker_get_worker(component);
-	unsigned id = worker->workerid;
-	assert(_worker_components[id] == component);
 	int i;
-	for(i = 0; i < STARPU_NMAX_SCHED_CTXS ; i++)
-		if(component->parents[i] != NULL)
-			return;//this component is shared between several contexts
-	starpu_sched_component_destroy(component);
-	_worker_components[id] = NULL;
+	for(i = 0; i < STARPU_NMAXWORKERS; i++)
+		if (_worker_components[i])
+			starpu_sched_component_destroy(_worker_components[i]);
 }
 
 int starpu_sched_component_worker_get_workerid(struct starpu_sched_component * worker_component)
