@@ -28,7 +28,6 @@ static void initialize_eager_prefetching_center_policy(unsigned sched_ctx_id)
 
 	_STARPU_DISP("Warning: you are running the default modular-eager-prefetching scheduler, which is not very smart. Make sure to read the StarPU documentation about adding performance models in order to be able to use the modular-heft scheduler instead.\n");
 
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	const char *strval_ntasks_threshold = getenv("STARPU_NTASKS_THRESHOLD");
 	if (strval_ntasks_threshold)
 		ntasks_threshold = atof(strval_ntasks_threshold);
