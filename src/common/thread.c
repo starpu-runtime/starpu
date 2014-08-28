@@ -97,8 +97,12 @@ int starpu_pthread_mutex_unlock(starpu_pthread_mutex_t *mutex)
 
 int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 {
-	xbt_mutex_acquire(*mutex);
-	return 0;
+	int ret;
+	/* TODO: use what simgrid will provide some day */
+	/* xbt_mutex_try_acquire(*mutex); */
+	ret = simcall_mutex_trylock((smx_mutex_t)*mutex);
+	ret = ret ? 0 : -EBUSY;
+	return ret;
 }
 
 static int used_key[MAX_TSD];
