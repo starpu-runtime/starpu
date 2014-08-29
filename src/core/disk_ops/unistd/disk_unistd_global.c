@@ -18,7 +18,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <stdint.h>
 #ifdef HAVE_AIO_H
 #include <aio.h>
