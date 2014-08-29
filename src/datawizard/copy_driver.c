@@ -404,30 +404,30 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
 	{
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
-		memcpy((void *) dst + dst_offset, (void *) src + src_offset, size);
+		memcpy((void *) (dst + dst_offset), (void *) (src + src_offset), size);
 		return 0;
 
 #ifdef STARPU_USE_CUDA
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
 		return starpu_cuda_copy_async_sync(
-				(void*) src + src_offset, src_node,
-				(void*) dst + dst_offset, dst_node,
+				(void*) (src + src_offset), src_node,
+				(void*) (dst + dst_offset), dst_node,
 				size,
 				async_channel?starpu_cuda_get_local_out_transfer_stream():NULL,
 				cudaMemcpyDeviceToHost);
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
 		return starpu_cuda_copy_async_sync(
-				(void*) src + src_offset, src_node,
-				(void*) dst + dst_offset, dst_node,
+				(void*) (src + src_offset), src_node,
+				(void*) (dst + dst_offset), dst_node,
 				size,
 				async_channel?starpu_cuda_get_local_in_transfer_stream():NULL,
 				cudaMemcpyHostToDevice);
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CUDA_RAM):
 		return starpu_cuda_copy_async_sync(
-				(void*) src + src_offset, src_node,
-				(void*) dst + dst_offset, dst_node,
+				(void*) (src + src_offset), src_node,
+				(void*) (dst + dst_offset), dst_node,
 				size,
 				async_channel?starpu_cuda_get_peer_transfer_stream(src_node, dst_node):NULL,
 				cudaMemcpyDeviceToDevice);

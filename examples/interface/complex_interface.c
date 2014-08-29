@@ -128,9 +128,10 @@ static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **
 	*count = complex_get_size(handle);
 	if (ptr != NULL)
 	{
-		*ptr = malloc(*count);
-		memcpy(*ptr, complex_interface->real, complex_interface->nx*sizeof(double));
-		memcpy(*ptr+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
+		char *data;
+		data = *ptr = malloc(*count);
+		memcpy(data, complex_interface->real, complex_interface->nx*sizeof(double));
+		memcpy(data+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
 	}
 
 	return 0;
@@ -138,13 +139,14 @@ static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **
 
 static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
+	char *data = ptr;
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
-	memcpy(complex_interface->real, ptr, complex_interface->nx*sizeof(double));
-	memcpy(complex_interface->imaginary, ptr+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
+	memcpy(complex_interface->real, data, complex_interface->nx*sizeof(double));
+	memcpy(complex_interface->imaginary, data+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
 
 	return 0;
 }
