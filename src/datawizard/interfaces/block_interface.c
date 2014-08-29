@@ -225,14 +225,14 @@ static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **
 	if (ptr != NULL)
 	{
 		uint32_t z, y;
-		void *block = (void *)block_interface->ptr;
+		char *block = (void *)block_interface->ptr;
 
 		*ptr = malloc(*count);
 
-		void *cur = *ptr;
+		char *cur = *ptr;
 		for(z=0 ; z<block_interface->nz ; z++)
 		{
-			void *block_z = block;
+			char *block_z = block;
 			for(y=0 ; y<block_interface->ny ; y++)
 			{
 				memcpy(cur, block, block_interface->nx*block_interface->elemsize);
@@ -256,11 +256,11 @@ static int unpack_block_handle(starpu_data_handle_t handle, unsigned node, void 
 	STARPU_ASSERT(count == block_interface->elemsize * block_interface->nx * block_interface->ny * block_interface->nz);
 
 	uint32_t z, y;
-	void *cur = ptr;
-	void *block = (void *)block_interface->ptr;
+	char *cur = ptr;
+	char *block = (void *)block_interface->ptr;
 	for(z=0 ; z<block_interface->nz ; z++)
 	{
-		void *block_z = block;
+		char *block_z = block;
 		for(y=0 ; y<block_interface->ny ; y++)
 		{
 			memcpy(block, cur, block_interface->nx*block_interface->elemsize);

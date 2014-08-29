@@ -1348,7 +1348,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 	argc_argv->argv = argv;
 
 #ifdef STARPU_MPI_ACTIVITY
-	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
+	hookid = starpu_progression_hook_register(_starpu_mpi_progression_hook_func, NULL);
 	STARPU_ASSERT_MSG(hookid >= 0, "starpu_progression_hook_register failed");
 #endif /* STARPU_MPI_ACTIVITY */
 

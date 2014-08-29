@@ -18,8 +18,8 @@
 #ifndef __DRIVER_COMMON_H__
 #define __DRIVER_COMMON_H__
 
-#include <sys/time.h>
 #include <starpu.h>
+#include <starpu_util.h>
 #include <core/jobs.h>
 #include <common/utils.h>
 

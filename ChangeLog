@@ -113,6 +113,7 @@ New features:
 Small changes:
   * Lock performance model files while writing and reading them to avoid
     issues on parallel launches, MPI runs notably.
+  * Lots of build fixes for icc on Windows.
 
 StarPU 1.1.2 (svn revision 13011)
 ==============================================

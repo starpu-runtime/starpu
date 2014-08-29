@@ -15,8 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#define WINVER WindowsXP
-
 #include <starpu_config.h>
 
 #ifdef __MINGW__
@@ -42,7 +40,9 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 
 const char *STARPU_TOP_PORT = "2011";
 const int STARPU_TOP_BUFFER_SIZE=1024;

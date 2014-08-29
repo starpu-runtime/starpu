@@ -1939,6 +1939,7 @@ IS_SUPPORTED_CFLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Wextra)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
 IS_SUPPORTED_CFLAG(-Werror=implicit-function-declaration)
+IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
@@ -1946,6 +1947,7 @@ if test "x$STARPU_DEVEL" != x; then
 	IS_SUPPORTED_CFLAG(-Wundef)
 	IS_SUPPORTED_CFLAG(-Wshadow)
 fi
+AM_CONDITIONAL([STARPU_DEVEL],[test "x$STARPU_DEVEL" != x])
 
 AC_SUBST(GLOBAL_AM_CFLAGS)
 
@@ -2488,6 +2490,18 @@ AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h)
+
+AH_BOTTOM([
+#if defined(STARPU_DEVEL) && defined(BUILDING_STARPU)
+#  ifndef STARPU_CHECKED_UNISTD_H
+#    define STARPU_CHECKED_UNISTD_H
+#    ifdef _UNISTD_H
+#      define _UNISTD_H PLEASE_DONT_INCLUDE_IT
+#      error Please do not unconditionally include unistd.h, it is not available on Windows, include config.h and test for HAVE_UNISTD_H
+#    endif
+#  endif
+#endif
+])
 
 AC_OUTPUT([
 	Makefile
