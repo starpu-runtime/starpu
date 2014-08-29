@@ -26,6 +26,10 @@
 #include <msg/msg.h>
 #endif
 
+#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
+#include <windows.h>
+#endif
+
 #ifdef STARPU_SIMGRID
 void _starpu_timing_init(void)
 {
@@ -125,6 +129,30 @@ static unsigned long long _starpu_residual = 0;
 
 static int _starpu_inited = 0;
 
+#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
+static int mygettimeofday(struct timeval tv, void *tz)
+{
+	if (tv)
+	{
+		FILETIME ft;
+		unsigned long long res;
+		GetSystemTimeAsFileTime(&ft);
+		/* 100-nanosecond intervals since January 1, 1601 */
+		res = ft.dwHighDateTime;
+		res <<= 32;
+		res |= ft.dwLowDateTime;
+		res /= 10;
+		/* Now we have microseconds */
+		res -= (((1970-1601)*365) + 89) * 24ULL * 3600ULL * 1000000ULL;
+		/* Now we are based on epoch */
+		tv->tv_sec = res / 1000000ULL;
+		tv->tv_usec = res % 1000000ULL;
+	}
+}
+#else
+#define mygettimeofday(tv,tz) gettimeofday(tv,tz)
+#endif
+
 void _starpu_timing_init(void)
 {
 	static union starpu_u_tick t1, t2;
@@ -146,10 +174,10 @@ void _starpu_timing_init(void)
 		struct timespec ts = { .tv_sec = 0, .tv_nsec = 500000000UL };
 
 		STARPU_GET_TICK(t1);
-		gettimeofday(&tv1,0);
+		mygettimeofday(&tv1,0);
 		_starpu_sleep(ts);
 		STARPU_GET_TICK(t2);
-		gettimeofday(&tv2,0);
+		mygettimeofday(&tv2,0);
 		_starpu_scale = ((tv2.tv_sec*1e6 + tv2.tv_usec) -
 				 (tv1.tv_sec*1e6 + tv1.tv_usec)) /
 			(double)(STARPU_TICK_DIFF(t1, t2));
