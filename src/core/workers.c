@@ -1022,7 +1022,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	initialized = CHANGING;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
 #endif
