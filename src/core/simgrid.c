@@ -16,7 +16,10 @@
 
 #include <starpu.h>
 #include <datawizard/memory_nodes.h>
+#include <common/config.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <core/perfmodel/perfmodel.h>
 #include <core/workers.h>
 #include <core/simgrid.h>

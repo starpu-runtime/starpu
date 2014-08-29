@@ -20,7 +20,9 @@
 #include <common/utils.h>
 #include <common/thread.h>
 #include <errno.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
