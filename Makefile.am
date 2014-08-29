@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2009-2014  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -126,6 +126,15 @@ txt_DATA = AUTHORS COPYING.LGPL README STARPU-REVISION
 EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl mic-configure
 
 DISTCLEANFILES = STARPU-REVISION
+
+if STARPU_DEVEL
+all-local:
+	if grep -r sys/time.h $$( find $(srcdir)/src $(srcdir)/mpi/src $(srcdir)/include -name \*.[ch] -a \! -name starpu_util.h ) ; \
+	then \
+		echo "Please do not include sys/time, it is not available on Windows, include starpu_util.h and use starpu_timing_now() instead" ; \
+		false ; \
+	fi
+endif
 
 include starpu-top/extradist
 
