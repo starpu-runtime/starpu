@@ -23,9 +23,11 @@
  * functions.
  */
 
-#include <unistd.h>
 #include <stdint.h>
 #include <common/config.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <starpu.h>
 #include <starpu_util.h>
 

@@ -22,7 +22,6 @@
 #endif
 #include <sched.h>
 #endif
-#include <unistd.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -30,6 +29,9 @@
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <common/config.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/simgrid.h>

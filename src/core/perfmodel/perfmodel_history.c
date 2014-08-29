@@ -16,13 +16,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <unistd.h>
 #if !defined(_WIN32) || defined(__MINGW__) || defined(__CYGWIN__)
 #include <dirent.h>
 #include <sys/stat.h>
 #endif
 #include <errno.h>
 #include <common/config.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <common/utils.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/jobs.h>

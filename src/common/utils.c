@@ -19,7 +19,9 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <errno.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)

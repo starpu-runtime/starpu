@@ -15,7 +15,6 @@
  */
 
 #include <fcntl.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <stdint.h>
@@ -24,6 +23,10 @@
 #endif
 #include <errno.h>
 
+#include <common/config.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <starpu.h>
 #include <core/disk.h>
 #include <core/perfmodel/perfmodel.h>

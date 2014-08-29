@@ -24,10 +24,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <unistd.h>
 #include <string.h>
 #include <stdarg.h>
 #include <common/config.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <common/timing.h>
 #include <common/list.h>
 #include <common/fxt.h>
