@@ -376,7 +376,7 @@ cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_OPENCL_RAM,STARPU_CPU_RAM):
 		err = starpu_opencl_copy_opencl_to_ram(
 				(cl_mem) src, src_node,
-				(void*) dst + dst_offset, dst_node,
+				(void*) (dst + dst_offset), dst_node,
 				size, src_offset, event, &ret);
 		if (STARPU_UNLIKELY(err))
 			STARPU_OPENCL_REPORT_ERROR(err);
@@ -384,7 +384,7 @@ cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned 
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_OPENCL_RAM):
 		err = starpu_opencl_copy_ram_to_opencl(
-				(void*) src + src_offset, src_node,
+				(void*) (src + src_offset), src_node,
 				(cl_mem) dst, dst_node,
 				size, dst_offset, event, &ret);
 		if (STARPU_UNLIKELY(err))

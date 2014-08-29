@@ -216,11 +216,11 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 	if (ptr != NULL)
 	{
 		uint32_t y;
-		void *matrix = (void *)matrix_interface->ptr;
+		char *matrix = (void *)matrix_interface->ptr;
 
 		*ptr = malloc(*count);
 
-		void *cur = *ptr;
+		char *cur = *ptr;
 		for(y=0 ; y<matrix_interface->ny ; y++)
 		{
 			memcpy(cur, matrix, matrix_interface->nx*matrix_interface->elemsize);
@@ -242,8 +242,8 @@ static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void
 	STARPU_ASSERT(count == matrix_interface->elemsize * matrix_interface->nx * matrix_interface->ny);
 
 	uint32_t y;
-	void *cur = ptr;
-	void *matrix = (void *)matrix_interface->ptr;
+	char *cur = ptr;
+	char *matrix = (void *)matrix_interface->ptr;
 	for(y=0 ; y<matrix_interface->ny ; y++)
 	{
 		memcpy(matrix, cur, matrix_interface->nx*matrix_interface->elemsize);
