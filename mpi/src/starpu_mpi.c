@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -964,7 +964,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 #ifdef STARPU_MPI_ACTIVITY
-	hookid = starpu_progression_hook_register(progression_hook_func, NULL);
+	hookid = starpu_progression_hook_register(_starpu_mpi_progression_hook_func, NULL);
 	STARPU_ASSERT_MSG(hookid >= 0, "starpu_progression_hook_register failed");
 #endif /* STARPU_MPI_ACTIVITY */
 
