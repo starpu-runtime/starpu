@@ -165,54 +165,54 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 
 	unsigned iter;
 	double timing;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	/* Measure upload bandwidth */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(d_buffer, h_buffer, size, cudaMemcpyHostToDevice);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_htod = timing/NITER/size;
 
 	/* Measure download bandwidth */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(h_buffer, d_buffer, size, cudaMemcpyDeviceToHost);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh = timing/NITER/size;
 
 	/* Measure upload latency */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(d_buffer, h_buffer, 1, cudaMemcpyHostToDevice);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_htod = timing/NITER;
 
 	/* Measure download latency */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(h_buffer, d_buffer, 1, cudaMemcpyDeviceToHost);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_dtoh = timing/NITER;
 
@@ -286,30 +286,30 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 
 	unsigned iter;
 	double timing;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	/* Measure upload bandwidth */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpyPeer(d_buffer, dst, s_buffer, src, size);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	cudadev_timing_dtod[src+1][dst+1] = timing/NITER/size;
 
 	/* Measure upload latency */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpyPeer(d_buffer, dst, s_buffer, src, 1);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	cudadev_latency_dtod[src+1][dst+1] = timing/NITER;
 
@@ -391,58 +391,58 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 
         unsigned iter;
 	double timing;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	/* Measure upload bandwidth */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
                 err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
                 clFinish(queue);
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_htod = timing/NITER/size;
 
 	/* Measure download bandwidth */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
                 err = clEnqueueReadBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
                 clFinish(queue);
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh = timing/NITER/size;
 
 	/* Measure upload latency */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, 1, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
                 clFinish(queue);
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_htod = timing/NITER;
 
 	/* Measure download latency */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		err = clEnqueueReadBuffer(queue, d_buffer, CL_TRUE, 0, 1, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
                 clFinish(queue);
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_dtoh = timing/NITER;
 
