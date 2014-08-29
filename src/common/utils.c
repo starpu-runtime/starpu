@@ -35,8 +35,7 @@ static char * dirname(char * path)
    char drive[_MAX_DRIVE];
    char dir[_MAX_DIR];
    /* Remove trailing slash */
-   while (strlen(path) > 0 && (*(path+strlen(path)-1) == '/' || *(path+strlen(p
-th)-1) == '\\'))
+   while (strlen(path) > 0 && (*(path+strlen(path)-1) == '/' || *(path+strlen(path)-1) == '\\'))
       *(path+strlen(path)-1) = '\0';
    _splitpath(path, drive, dir, NULL, NULL);
    _makepath(path, drive, dir, NULL, NULL);
