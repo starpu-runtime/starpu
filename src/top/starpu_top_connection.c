@@ -15,8 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#define WINVER WindowsXP
-
 #include <starpu_config.h>
 
 #ifdef __MINGW__

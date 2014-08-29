@@ -26,6 +26,9 @@
 #include <io.h>
 #include <sys/locking.h>
 #define mkdir(path, mode) mkdir(path)
+#if !defined(__MINGW32__)
+#define ftruncate(fd, length) _chsize(fd, length)
+#endif
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
