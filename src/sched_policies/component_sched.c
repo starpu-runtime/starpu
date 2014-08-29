@@ -202,10 +202,12 @@ void starpu_sched_component_destroy_rec(struct starpu_sched_component * componen
 	if(component == NULL)
 		return;
 
-	int i;
-	if(component->nchildren > 0)
+	int i = 0;
+	while(i < component->nchildren)
 	{
-		for(i=0; i < component->nchildren; i++)
+		if (starpu_sched_component_is_worker(component->children[i]))
+			i++;
+		else
 			starpu_sched_component_destroy_rec(component->children[i]);
 	}
 
