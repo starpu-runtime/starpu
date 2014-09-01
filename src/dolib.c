@@ -16,9 +16,12 @@
 
 /* Wrapper to avoid msys' tendency to turn / into \ and : into ;  */
 
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <common/config.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 int main(int argc, char *argv[])
 {
