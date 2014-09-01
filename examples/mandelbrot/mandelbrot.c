@@ -16,7 +16,6 @@
  */
 
 #include <starpu.h>
-#include <sys/time.h>
 #include <math.h>
 #include <limits.h>
 #ifdef STARPU_HAVE_X11

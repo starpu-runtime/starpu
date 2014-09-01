@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include <sys/time.h>
 #include <math.h>
 
 #include <common/blas.h>

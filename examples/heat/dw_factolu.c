@@ -17,7 +17,6 @@
  */
 
 #include "dw_factolu.h"
-#include <sys/time.h>
 
 #if 0
 #define debug(fmt, ...) fprintf(stderr, fmt, ## __VA_ARGS__)

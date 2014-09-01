@@ -16,7 +16,6 @@
 
 #include <starpu.h>
 #include <stdlib.h>
-#include <sys/time.h>
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PI	3.14159265358979323846
