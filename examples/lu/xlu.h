@@ -18,7 +18,6 @@
 #ifndef __XLU_H__
 #define __XLU_H__
 
-#include <sys/time.h>
 #include <starpu.h>
 #include <common/blas.h>
 

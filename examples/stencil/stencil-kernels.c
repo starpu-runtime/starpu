@@ -16,7 +16,6 @@
  */
 
 #include "stencil.h"
-#include <sys/time.h>
 
 /* Computation Kernels */
 

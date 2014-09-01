@@ -16,7 +16,6 @@
 
 #include <math.h>
 #include <assert.h>
-#include <sys/time.h>
 #include <starpu.h>
 #include <common/blas.h>
 
