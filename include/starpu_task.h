@@ -166,11 +166,11 @@ struct starpu_task
 	unsigned destroy:1;
 	unsigned regenerate:1;
 
+	unsigned workerid;
+
 	unsigned scheduled:1;
 
 	unsigned int mf_skip:1;
-
-	unsigned workerid;
 
 	int priority;
 

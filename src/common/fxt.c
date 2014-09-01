@@ -52,6 +52,10 @@ uint64_t fut_getstamp(void)
 
 long _starpu_gettid(void)
 {
+	/* TODO: test at configure whether __thread is available, and use that
+	 * to cache the value.
+	 * Don't use the TSD, this is getting called before we would have the
+	 * time to allocate it.  */
 #ifdef STARPU_SIMGRID
 	return (uintptr_t) MSG_process_self();
 #else
@@ -61,7 +65,7 @@ long _starpu_gettid(void)
 	long tid;
 	thr_self(&tid);
 	return tid;
-#elif defined(__MINGW32__)
+#elif defined(_WIN32) && !defined(__CYGWIN__)
 	return (long) GetCurrentThreadId();
 #else
 	return (long) pthread_self();

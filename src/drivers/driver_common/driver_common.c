@@ -275,6 +275,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 	struct starpu_task *task;
 	unsigned needed = 1;
+
 	_starpu_worker_set_status_scheduling(workerid);
 	while(needed)
 	{
@@ -328,7 +329,10 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		needed = !needed;
 	}
 
-	task = _starpu_pop_task(worker);
+	if (worker->pipeline_length && (worker->ntasks == worker->pipeline_length || worker->pipeline_stuck))
+		task = NULL;
+	else
+		task = _starpu_pop_task(worker);
 
 	if (task == NULL)
 	{
@@ -394,8 +398,11 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	/*for each worker*/
 	for (i = 0; i < nworkers; i++)
 	{
-		/*if the worker is already executinf a task then */
-		if(workers[i].current_task)
+		/*if the worker is already executing a task then */
+		if((workers[i].pipeline_length == 0 && workers[i].current_task)
+			|| (workers[i].pipeline_length != 0 &&
+				(workers[i].ntasks == workers[i].pipeline_length
+				 || workers[i].pipeline_stuck)))
 		{
 			tasks[i] = NULL;
 		}
@@ -415,7 +422,13 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 				count ++;
 				j = _starpu_get_job_associated_to_task(tasks[i]);
 				is_parallel_task = (j->task_size > 1);
-				workers[i].current_task = j->task;
+				if (workers[i].pipeline_length)
+				{
+					workers[i].current_tasks[(workers[i].first_task + workers[i].ntasks)%STARPU_MAX_PIPELINE] = tasks[i];
+					workers[i].ntasks++;
+				}
+				else
+					workers[i].current_task = j->task;
 				/* Get the rank in case it is a parallel task */
 				if (is_parallel_task)
 				{

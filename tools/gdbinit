@@ -1,7 +1,7 @@
 
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2013  Université de Bordeaux 1
+# Copyright (C) 2010-2014  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -30,7 +30,7 @@ define starpu-print-job
     printf "\tsubmitted:\t\t\t<%d>\n", $job->submitted
     printf "\tterminated:\t\t\t<%d>\n", $job->terminated
     printf "\tjob_id:\t\t\t\t<%d>\n", $job->job_id
-    if $job->task
+    if $job->task && $job->task->name
         printf "\tname:\t\t\t\t<%s>\n", $job->task->name
     end
   end
@@ -71,7 +71,9 @@ define starpu-print-task
   end
 
   printf "StarPU Task (%p)\n", $task
-  printf "\tname:\t\t\t\t<%s>\n", $task->name
+  if $task->name
+    printf "\tname:\t\t\t\t<%s>\n", $task->name
+  end
   printf "\tcodelet:\t\t\t<%p>\n", $task->cl
   printf "\tcallback:\t\t\t<%p>\n", $task->callback_func
   printf "\tsynchronous:\t\t\t<%d>\n", $task->synchronous
@@ -87,6 +89,32 @@ define starpu-print-task
   printf "\tnsuccs:\t\t\t\t<%u>\n", $job->job_successors->nsuccs
   if $job
     starpu-print-job $job
+  end
+end
+
+define starpu-print-task-and-successor
+  set language c
+  set $t = (struct starpu_task *) ($arg0)
+  starpu-print-task $t
+  set $j = (struct _starpu_job *) $t->starpu_private
+  set $nsuccs = $j->job_successors.nsuccs
+  set $i = 0
+  while $i < $nsuccs
+    set $cg = $j->job_successors.succ[$i]
+    if ($cg->cg_type == 1)
+      # STARPU_CG_APPS
+      printf "waited for by application"
+    end
+    if ($cg->cg_type == 2)
+      # STARPU_CG_TAG
+      printf "will produce tag %x\n", $cg->succ.tag
+    end
+    if ($cg->cg_type == 4)
+      # STARPU_CG_TASK
+      printf "dep of task %p\n", $cg->succ.job
+      starpu-print-task $cg->succ.job->task
+    end
+    set $i = $i + 1
   end
 end
 
@@ -150,30 +178,18 @@ define starpu-tasks
   printf "Tasks being run:\n"
   set $n = 0
   while $n < config.topology.nworkers
+    printf "worker %d %s:\n", $n, config.workers[$n].short_name
+    if config.workers[$n].pipeline_length > 0
+      set $m = 0
+      while $m < config.workers[$n].ntasks
+        set $t = config.workers[$n].current_tasks[(config.workers[$n].first_task + $m) % (sizeof(config.workers[$n].current_tasks)/sizeof(config.workers[$n].current_tasks[0]))]
+        starpu-print-task-and-successor $t
+        set $m = $m + 1
+      end
+    end
     set $task = config.workers[$n].current_task
     if ($task)
-      printf "worker %d:\n", $n
-      starpu-print-task $task
-      set $j = (struct _starpu_job *) $task->starpu_private
-      set $nsuccs = $j->job_successors.nsuccs
-      set $i = 0
-      while $i < $nsuccs
-        set $cg = $j->job_successors.succ[$i]
-	if ($cg->cg_type == 1)
-	  # STARPU_CG_APPS
-	  printf "waited for by application"
-	end
-	if ($cg->cg_type == 2)
-	  # STARPU_CG_TAG
-	  printf "will produce tag %x\n", $cg->succ.tag
-	end
-	if ($cg->cg_type == 4)
-	  # STARPU_CG_TASK
-	  printf "dep of task %p\n", $cg->succ.job
-	  starpu-print-task $cg->succ.job->task
-	end
-        set $i = $i + 1
-      end
+      starpu-print-task-and-successor $task
     end
     set $n = $n + 1
   end

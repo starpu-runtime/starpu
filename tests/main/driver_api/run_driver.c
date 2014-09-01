@@ -80,6 +80,8 @@ test_cpu(void)
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0)
 	{
 		FPRINTF(stderr, "WARNING: No CPU worker found\n");
+		if (ret == 0)
+			starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -138,6 +140,8 @@ test_cuda(void)
 	if (ret == -ENODEV || starpu_cuda_worker_get_count() == 0)
 	{
 		FPRINTF(stderr, "WARNING: No CUDA worker found\n");
+		if (ret == 0)
+			starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
@@ -222,6 +226,8 @@ test_opencl(void)
 	if (ret == -ENODEV || starpu_opencl_worker_get_count() == 0)
 	{
 		FPRINTF(stderr, "WARNING: No OpenCL workers found\n");
+		if (ret == 0)
+			starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 

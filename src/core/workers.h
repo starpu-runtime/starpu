@@ -52,6 +52,8 @@
 
 #include <starpu_parameters.h>
 
+#define STARPU_MAX_PIPELINE 4
+
 /* This is initialized from in _starpu_worker_init */
 LIST_TYPE(_starpu_worker,
 	struct _starpu_machine_config *config;
@@ -73,7 +75,12 @@ LIST_TYPE(_starpu_worker,
 	starpu_pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
         starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
-	struct starpu_task *current_task; /* task currently executed by this worker */
+	struct starpu_task *current_task; /* task currently executed by this worker (non-pipelined version) */
+	struct starpu_task *current_tasks[STARPU_MAX_PIPELINE]; /* tasks currently executed by this worker (pipelined version) */
+	unsigned char first_task; /* Index of first task in the pipeline */
+	unsigned char ntasks; /* number of tasks in the pipeline */
+	unsigned char pipeline_length; /* number of tasks to be put in the pipeline */
+	unsigned char pipeline_stuck; /* whether a task prevents us from pipelining */
 	struct _starpu_worker_set *set; /* in case this worker belongs to a set */
 	struct _starpu_job_list *terminated_jobs; /* list of pending jobs which were executed */
 	unsigned worker_is_running;

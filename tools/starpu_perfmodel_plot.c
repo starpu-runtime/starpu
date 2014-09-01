@@ -31,7 +31,7 @@
 #include <core/perfmodel/perfmodel.h> // we need to browse the list associated to history-based models
 #include <core/workers.h>
 
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 #endif
 
@@ -427,7 +427,7 @@ int main(int argc, char **argv)
 	char gnuplot_file_name[256];
 	struct _perfmodel_plot_options options;
 
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
 #endif

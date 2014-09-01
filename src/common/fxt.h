@@ -23,12 +23,13 @@
 #define _GNU_SOURCE  /* ou _BSD_SOURCE ou _SVID_SOURCE */
 #endif
 
-#include <unistd.h>
-
 #include <string.h>
 #include <sys/types.h>
 #include <stdlib.h>
 #include <common/config.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <common/utils.h>
 #include <starpu.h>
 

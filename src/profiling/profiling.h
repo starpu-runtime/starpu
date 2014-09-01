@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,9 +18,9 @@
 #ifndef __PROFILING_H__
 #define __PROFILING_H__
 
-#include <sys/time.h>
 #include <starpu.h>
 #include <starpu_profiling.h>
+#include <starpu_util.h>
 #include <common/config.h>
 
 /* Create a task profiling info structure (with the proper time stamps) in case

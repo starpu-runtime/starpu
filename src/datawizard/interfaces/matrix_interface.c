@@ -27,18 +27,13 @@
 #include <drivers/scc/driver_scc_source.h>
 #include <drivers/mic/driver_mic_source.h>
 
-/* If you can promise that there is no stride in your matrices, you can define this */
-// #define NO_STRIDE
-
 #ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
 static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream);
 static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream);
-#ifdef NO_STRIDE
 static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream);
-#endif
 #endif
 #ifdef STARPU_USE_OPENCL
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED);
@@ -58,15 +53,11 @@ static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
 	.ram_to_cuda_async = copy_ram_to_cuda_async,
 	.cuda_to_ram_async = copy_cuda_to_ram_async,
 	.cuda_to_cuda = copy_cuda_to_cuda,
-#ifdef NO_STRIDE
 	.cuda_to_cuda_async = copy_cuda_to_cuda_async,
-#endif
 #else
 #ifdef STARPU_SIMGRID
-#ifdef NO_STRIDE
 	/* Enable GPU-GPU transfers in simgrid */
 	.cuda_to_cuda_async = 1,
-#endif
 #endif
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -225,11 +216,11 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 	if (ptr != NULL)
 	{
 		uint32_t y;
-		void *matrix = (void *)matrix_interface->ptr;
+		char *matrix = (void *)matrix_interface->ptr;
 
 		*ptr = malloc(*count);
 
-		void *cur = *ptr;
+		char *cur = *ptr;
 		for(y=0 ; y<matrix_interface->ny ; y++)
 		{
 			memcpy(cur, matrix, matrix_interface->nx*matrix_interface->elemsize);
@@ -251,8 +242,8 @@ static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void
 	STARPU_ASSERT(count == matrix_interface->elemsize * matrix_interface->nx * matrix_interface->ny);
 
 	uint32_t y;
-	void *cur = ptr;
-	void *matrix = (void *)matrix_interface->ptr;
+	char *cur = ptr;
+	char *matrix = (void *)matrix_interface->ptr;
 	for(y=0 ; y<matrix_interface->ny ; y++)
 	{
 		memcpy(matrix, cur, matrix_interface->nx*matrix_interface->elemsize);
@@ -379,29 +370,6 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 	size_t elemsize = src_matrix->elemsize;
 	cudaError_t cures;
 
-#if 0
-	struct cudaMemcpy3DParms p;
-	memset(&p, 0, sizeof(p));
-
-	p.srcPtr = make_cudaPitchedPtr((char *)src_matrix->ptr, src_matrix->ld * elemsize, src_matrix->ld * elemsize, src_matrix->ny);
-	p.dstPtr = make_cudaPitchedPtr((char *)dst_matrix->ptr, dst_matrix->ld * elemsize, dst_matrix->ld * elemsize, dst_matrix->ny);
-	p.extent = make_cudaExtent(src_matrix->nx * elemsize, src_matrix->ny, 1);
-	p.kind = kind;
-
-	if (is_async)
-	{
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-		cures = cudaMemcpy3DAsync(&p, stream);
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-		if (!cures)
-			return -EAGAIN;
-	}
-
-	cures = cudaMemcpy3D(&p);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-#else
-
 	if (is_async)
 	{
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
@@ -422,17 +390,15 @@ static int copy_cuda_common(void *src_interface, unsigned src_node STARPU_ATTRIB
 		if (ret == -EAGAIN) return ret;
 		if (ret) STARPU_CUDA_REPORT_ERROR(cures);
 	}
-#endif
 
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)src_matrix->nx*src_matrix->ny*src_matrix->elemsize);
 
 	return 0;
 }
 
-/* XXX this is broken : We need to properly call cudaDeviceEnablePeerAccess(), and avoid crossing NUMA nodes... */
-#ifdef NO_STRIDE
 static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, int is_async, cudaStream_t stream)
 {
+#ifdef HAVE_CUDA_MEMCPY_PEER
 	struct starpu_matrix_interface *src_matrix = src_interface;
 	struct starpu_matrix_interface *dst_matrix = dst_interface;
 
@@ -442,69 +408,14 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 	int src_dev = _starpu_memory_node_get_devid(src_node);
 	int dst_dev = _starpu_memory_node_get_devid(dst_node);
 
-
-#if 0
-	/* That code is not even working!! */
-	struct cudaExtent extent = make_cudaExtent(128, 128, 128);
-
-	starpu_cuda_set_device(src_dev);
-
-	struct cudaPitchedPtr mem_device1;
-	cures = cudaMalloc3D(&mem_device1, extent);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-
-	starpu_cuda_set_device(dst_dev);
-
-	struct cudaPitchedPtr mem_device2;
-	cures = cudaMalloc3D(&mem_device2, extent);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-
-	struct cudaMemcpy3DPeerParms p;
-	memset(&p, 0, sizeof(p));
-	p.srcDevice = src_dev;
-	p.dstDevice = dst_dev;
-	p.srcPtr = mem_device1;
-	p.dstPtr = mem_device2;
-	p.extent = extent;
-
-	fprintf(stderr,"%u %u\n", p.srcDevice, p.dstDevice);
-	fprintf(stderr,"%p %p\n", p.srcArray, p.dstArray);
-	fprintf(stderr,"%p %lu %lu %lu\n", p.srcPtr.ptr, p.srcPtr.pitch, p.srcPtr.xsize, p.srcPtr.ysize);
-	fprintf(stderr,"%p %lu %lu %lu\n", p.dstPtr.ptr, p.dstPtr.pitch, p.dstPtr.xsize, p.dstPtr.ysize);
-	fprintf(stderr,"%lu %lu %lu\n", p.srcPos.x, p.srcPos.y, p.srcPos.z);
-	fprintf(stderr,"%lu %lu %lu\n", p.dstPos.x, p.dstPos.y, p.dstPos.z);
-	fprintf(stderr,"%lu %lu %lu\n", p.extent.width, p.extent.height, p.extent.depth);
-	cures = cudaMemcpy3DPeer(&p);
-	if (STARPU_UNLIKELY(cures))
-	        STARPU_CUDA_REPORT_ERROR(cures);
-#endif
-
-#if 0
 	struct cudaMemcpy3DPeerParms p;
 	memset(&p, 0, sizeof(p));
 
 	p.srcDevice = src_dev;
 	p.dstDevice = dst_dev;
-	p.srcPtr = make_cudaPitchedPtr((char *)src_matrix->ptr, src_matrix->ld * elemsize, src_matrix->nx * elemsize, src_matrix->ny);
-	p.dstPtr = make_cudaPitchedPtr((char *)dst_matrix->ptr, dst_matrix->ld * elemsize, dst_matrix->nx * elemsize, dst_matrix->ny);
+	p.srcPtr = make_cudaPitchedPtr((char *)src_matrix->ptr, src_matrix->ld * elemsize, src_matrix->nx, src_matrix->ny);
+	p.dstPtr = make_cudaPitchedPtr((char *)dst_matrix->ptr, dst_matrix->ld * elemsize, dst_matrix->nx, dst_matrix->ny);
 	p.extent = make_cudaExtent(src_matrix->nx * elemsize, src_matrix->ny, 1);
-
-#if 1
-	fprintf(stderr,"%u %u\n", p.srcDevice, p.dstDevice);
-	fprintf(stderr,"%p %p\n", p.srcArray, p.dstArray);
-	fprintf(stderr,"%p %lu %lu %lu\n", p.srcPtr.ptr, p.srcPtr.pitch, p.srcPtr.xsize, p.srcPtr.ysize);
-	fprintf(stderr,"%p %lu %lu %lu\n", p.dstPtr.ptr, p.dstPtr.pitch, p.dstPtr.xsize, p.dstPtr.ysize);
-	fprintf(stderr,"%lu %lu %lu\n", p.srcPos.x, p.srcPos.y, p.srcPos.z);
-	fprintf(stderr,"%lu %lu %lu\n", p.dstPos.x, p.dstPos.y, p.dstPos.z);
-	fprintf(stderr,"%lu %lu %lu\n", p.extent.width, p.extent.height, p.extent.depth);
-#endif
-
-	cures = cudaMemcpy3DPeerAsync(&p, stream);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-	cudaStreamSynchronize(stream);
 
 	if (is_async)
 	{
@@ -519,30 +430,13 @@ static int copy_cuda_peer(void *src_interface, unsigned src_node STARPU_ATTRIBUT
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 
-#else
-	/* XXX FIXME !!*/
-	STARPU_ASSERT(src_matrix->nx == src_matrix->ld);
-	STARPU_ASSERT(dst_matrix->nx == dst_matrix->ld);
-
-	if (is_async)
-	{
-		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-		cures = cudaMemcpyPeerAsync((char *)dst_matrix->ptr, dst_dev, (char *)src_matrix->ptr, src_dev, dst_matrix->nx*dst_matrix->ny*elemsize, stream);
-		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
-		if (!cures)
-			return -EAGAIN;
-	}
-
-	cures = cudaMemcpyPeer((char *)dst_matrix->ptr, dst_dev, (char *)src_matrix->ptr, src_dev, dst_matrix->nx*dst_matrix->ny*elemsize);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_CUDA_REPORT_ERROR(cures);
-#endif
-
 	_STARPU_TRACE_DATA_COPY(src_node, dst_node, (size_t)src_matrix->nx*src_matrix->ny*src_matrix->elemsize);
 
 	return 0;
-}
+#else
+	STARPU_ABORT_MSG("CUDA memcpy peer not available, but core triggered one ?!");
 #endif
+}
 
 static int copy_cuda_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
@@ -559,11 +453,7 @@ static int copy_cuda_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRI
 	if (src_node == dst_node)
 		return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyDeviceToDevice, 0, 0);
 	else
-	{
-		/* XXX not implemented */
-		STARPU_ABORT();
-		return 0;
-	}
+		return copy_cuda_peer(src_interface, src_node, dst_interface, dst_node, 0, 0);
 }
 
 static int copy_cuda_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream)
@@ -576,7 +466,6 @@ static int copy_ram_to_cuda_async(void *src_interface, unsigned src_node STARPU_
 	return copy_cuda_common(src_interface, src_node, dst_interface, dst_node, cudaMemcpyHostToDevice, 1, stream);
 }
 
-#ifdef NO_STRIDE
 static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, cudaStream_t stream)
 {
 	if (src_node == dst_node)
@@ -584,7 +473,6 @@ static int copy_cuda_to_cuda_async(void *src_interface, unsigned src_node STARPU
 	else
 		return copy_cuda_peer(src_interface, src_node, dst_interface, dst_node, 1, stream);
 }
-#endif
 #endif // STARPU_USE_CUDA
 
 #ifdef STARPU_USE_OPENCL

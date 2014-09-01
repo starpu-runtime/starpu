@@ -18,13 +18,36 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <common/utils.h>
-#include <libgen.h>
 #include <errno.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#include <fcntl.h>
 
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <io.h>
+#include <sys/locking.h>
 #define mkdir(path, mode) mkdir(path)
+#if !defined(__MINGW32__)
+#define ftruncate(fd, length) _chsize(fd, length)
+#endif
+#endif
+
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
+#include <direct.h>
+static char * dirname(char * path)
+{
+   char drive[_MAX_DRIVE];
+   char dir[_MAX_DIR];
+   /* Remove trailing slash */
+   while (strlen(path) > 0 && (*(path+strlen(path)-1) == '/' || *(path+strlen(path)-1) == '\\'))
+      *(path+strlen(path)-1) = '\0';
+   _splitpath(path, drive, dir, NULL, NULL);
+   _makepath(path, drive, dir, NULL, NULL);
+   return path;
+}
+#else
+#include <libgen.h>
 #endif
 
 /* Function with behaviour like `mkdir -p'. This function was adapted from
@@ -38,7 +61,7 @@ int _starpu_mkpath(const char *s, mode_t mode)
 
 	rv = -1;
 	if (strcmp(s, ".") == 0 || strcmp(s, "/") == 0
-#ifdef __MINGW32__
+#if defined(_WIN32)
 		/* C:/ or C:\ */
 		|| (s[0] && s[1] == ':' && (s[2] == '/' || s[2] == '\\') && !s[3])
 #endif
@@ -100,6 +123,72 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 			STARPU_ABORT();
 		}
 	}
+}
+
+int _starpu_ftruncate(FILE *file)
+{
+	return ftruncate(fileno(file), 0);
+}
+
+int _starpu_frdlock(FILE *file)
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+	int ret;
+	do {
+		ret = _locking(fileno(file), _LK_RLCK, 10);
+	} while (ret == EDEADLOCK);
+	return ret;
+#else
+	struct flock lock = {
+		.l_type = F_RDLCK,
+		.l_whence = SEEK_SET,
+		.l_start = 0,
+		.l_len = 0
+	};
+	return fcntl(fileno(file), F_SETLKW, &lock);
+#endif
+}
+
+int _starpu_frdunlock(FILE *file)
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#  ifndef _LK_UNLCK
+#    define _LK_UNLCK _LK_UNLOCK
+#  endif
+	return _locking(fileno(file), _LK_UNLCK, 10);
+#else
+	struct flock lock = {
+		.l_type = F_UNLCK,
+		.l_whence = SEEK_SET,
+		.l_start = 0,
+		.l_len = 0
+	};
+	return fcntl(fileno(file), F_SETLKW, &lock);
+#endif
+}
+
+int _starpu_fwrlock(FILE *file)
+{
+#if defined(_WIN32) && !defined(__CYGWIN__)
+	int ret;
+	do {
+		ret = _locking(fileno(file), _LK_LOCK, 10);
+	} while (ret == EDEADLOCK);
+	return ret;
+#else
+	struct flock lock = {
+		.l_type = F_WRLCK,
+		.l_whence = SEEK_SET,
+		.l_start = 0,
+		.l_len = 0
+	};
+	return fcntl(fileno(file), F_SETLKW, &lock);
+#endif
+}
+
+int _starpu_fwrunlock(FILE *file)
+{
+	return _starpu_frdunlock(file);
 }
 
 int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex)

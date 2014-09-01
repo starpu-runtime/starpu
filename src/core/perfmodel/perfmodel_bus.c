@@ -22,8 +22,6 @@
 #endif
 #include <sched.h>
 #endif
-#include <unistd.h>
-#include <sys/time.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -31,6 +29,9 @@
 #include <starpu_cuda.h>
 #include <starpu_opencl.h>
 #include <common/config.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/simgrid.h>
@@ -165,54 +166,54 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 
 	unsigned iter;
 	double timing;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	/* Measure upload bandwidth */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(d_buffer, h_buffer, size, cudaMemcpyHostToDevice);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_htod = timing/NITER/size;
 
 	/* Measure download bandwidth */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(h_buffer, d_buffer, size, cudaMemcpyDeviceToHost);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh = timing/NITER/size;
 
 	/* Measure upload latency */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(d_buffer, h_buffer, 1, cudaMemcpyHostToDevice);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_htod = timing/NITER;
 
 	/* Measure download latency */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpy(h_buffer, d_buffer, 1, cudaMemcpyDeviceToHost);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_dtoh = timing/NITER;
 
@@ -286,30 +287,30 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 
 	unsigned iter;
 	double timing;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	/* Measure upload bandwidth */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpyPeer(d_buffer, dst, s_buffer, src, size);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	cudadev_timing_dtod[src+1][dst+1] = timing/NITER/size;
 
 	/* Measure upload latency */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		cudaMemcpyPeer(d_buffer, dst, s_buffer, src, 1);
 		cudaThreadSynchronize();
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	cudadev_latency_dtod[src+1][dst+1] = timing/NITER;
 
@@ -391,58 +392,58 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_opencl(int dev, i
 
         unsigned iter;
 	double timing;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	/* Measure upload bandwidth */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
                 err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
                 clFinish(queue);
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_htod = timing/NITER/size;
 
 	/* Measure download bandwidth */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
                 err = clEnqueueReadBuffer(queue, d_buffer, CL_TRUE, 0, size, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
                 clFinish(queue);
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].timing_dtoh = timing/NITER/size;
 
 	/* Measure upload latency */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		err = clEnqueueWriteBuffer(queue, d_buffer, CL_TRUE, 0, 1, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
                 clFinish(queue);
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_htod = timing/NITER;
 
 	/* Measure download latency */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; iter++)
 	{
 		err = clEnqueueReadBuffer(queue, d_buffer, CL_TRUE, 0, 1, h_buffer, 0, NULL, NULL);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
                 clFinish(queue);
 	}
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	dev_timing_per_cpu[(dev+1)*STARPU_MAXCPUS+cpu].latency_dtoh = timing/NITER;
 
@@ -783,6 +784,8 @@ static void load_bus_affinity_file_content(void)
 	f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
+	_starpu_frdlock(f);
+
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	ncpus = _starpu_topology_get_nhwcpu(config);
         unsigned gpu;
@@ -835,6 +838,7 @@ static void load_bus_affinity_file_content(void)
 		STARPU_ASSERT(ret == 0);
 	}
 #endif /* !STARPU_USE_OPENCL */
+	_starpu_frdunlock(f);
 
 	fclose(f);
 #endif /* !(STARPU_USE_CUDA_ || STARPU_USE_OPENCL */
@@ -862,6 +866,7 @@ static void write_bus_affinity_file_content(void)
 		STARPU_ABORT();
 	}
 
+	_starpu_frdlock(f);
 	unsigned cpu;
         unsigned gpu;
 
@@ -897,6 +902,7 @@ static void write_bus_affinity_file_content(void)
 	}
 #endif
 
+	_starpu_frdunlock(f);
 	fclose(f);
 #endif
 }
@@ -1006,6 +1012,7 @@ static int load_bus_latency_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
+	_starpu_frdlock(f);
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
@@ -1073,13 +1080,14 @@ static int load_bus_latency_file_content(void)
 			break;
 		ungetc(n, f);
 	}
+	_starpu_frdunlock(f);
+	fclose(f);
 
 	/* No more values, take NAN */
 	for ( ; src < STARPU_MAXNODES; src++)
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 			latency_matrix[src][dst] = NAN;
 
-	fclose(f);
 	return 1;
 }
 
@@ -1104,6 +1112,8 @@ static void write_bus_latency_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
+	_starpu_fwrlock(f);
+	_starpu_ftruncate(f);
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1163,6 +1173,7 @@ static void write_bus_latency_file_content(void)
 
 		fprintf(f, "\n");
 	}
+	_starpu_fwrunlock(f);
 
 	fclose(f);
 }
@@ -1223,6 +1234,7 @@ static int load_bus_bandwidth_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
+	_starpu_frdlock(f);
 
 	for (src = 0; src < STARPU_MAXNODES; src++)
 	{
@@ -1290,13 +1302,14 @@ static int load_bus_bandwidth_file_content(void)
 			break;
 		ungetc(n, f);
 	}
+	_starpu_frdunlock(f);
+	fclose(f);
 
 	/* No more values, take NAN */
 	for ( ; src < STARPU_MAXNODES; src++)
 		for (dst = 0; dst < STARPU_MAXNODES; dst++)
 			latency_matrix[src][dst] = NAN;
 
-	fclose(f);
 	return 1;
 }
 
@@ -1315,6 +1328,9 @@ static void write_bus_bandwidth_file_content(void)
 
 	f = fopen(path, "w+");
 	STARPU_ASSERT(f);
+
+	_starpu_fwrlock(f);
+	_starpu_ftruncate(f);
 
 	fprintf(f, "# ");
 	for (dst = 0; dst < STARPU_MAXNODES; dst++)
@@ -1387,6 +1403,7 @@ static void write_bus_bandwidth_file_content(void)
 		fprintf(f, "\n");
 	}
 
+	_starpu_fwrunlock(f);
 	fclose(f);
 }
 #endif /* STARPU_SIMGRID */
@@ -1551,6 +1568,7 @@ static void check_bus_config_file(void)
                 // Loading configuration from file
                 f = fopen(path, "r");
                 STARPU_ASSERT(f);
+		_starpu_frdlock(f);
                 _starpu_drop_comments(f);
                 ret = fscanf(f, "%u\t", &read_cpus);
 		STARPU_ASSERT(ret == 1);
@@ -1565,6 +1583,7 @@ static void check_bus_config_file(void)
 		if (ret == 0)
 			read_mic = 0;
                 _starpu_drop_comments(f);
+		_starpu_frdunlock(f);
                 fclose(f);
 
                 // Loading current configuration
@@ -1619,6 +1638,8 @@ static void write_bus_config_file_content(void)
 
         f = fopen(path, "w+");
 	STARPU_ASSERT(f);
+	_starpu_fwrlock(f);
+	_starpu_ftruncate(f);
 
         fprintf(f, "# Current configuration\n");
         fprintf(f, "%u # Number of CPUs\n", ncpus);
@@ -1626,6 +1647,7 @@ static void write_bus_config_file_content(void)
         fprintf(f, "%d # Number of OpenCL devices\n", nopencl);
         fprintf(f, "%d # Number of MIC devices\n", nmic);
 
+	_starpu_fwrunlock(f);
         fclose(f);
 }
 
@@ -1664,6 +1686,8 @@ static void write_bus_platform_file_content(void)
 		fflush(stderr);
 		STARPU_ABORT();
 	}
+	_starpu_fwrlock(f);
+	_starpu_ftruncate(f);
 
 	fprintf(f,
 "<?xml version='1.0'?>\n"
@@ -1810,6 +1834,7 @@ static void write_bus_platform_file_content(void)
 " </platform>\n"
 		);
 
+	_starpu_fwrunlock(f);
 	fclose(f);
 }
 

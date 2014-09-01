@@ -25,7 +25,7 @@
 #include <sched.h>
 #endif
 
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 #endif
 

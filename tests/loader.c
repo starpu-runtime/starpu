@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -136,14 +136,13 @@ static int _decode(char **src, char *motif, const char *value)
 	found = strstr(*src, motif);
 	if (found == NULL) return 0;
 
-	char *new_src = malloc((strlen(*src)+strlen(value))*sizeof(char));
-	strcpy(new_src, "");
+	char *new_src = malloc(strlen(*src)-strlen(motif)+strlen(value)+1);
 
-	strncat(new_src, *src, strlen(*src)-strlen(found));
+	strncpy(new_src, *src, found - *src);
 	strcat(new_src, value);
 	strcat(new_src, found+strlen(motif));
 
-	*src = strdup(new_src);
+	*src = new_src;
 	return 1;
 }
 

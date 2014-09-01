@@ -16,11 +16,15 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#if !defined(_WIN32) || defined(__MINGW__) || defined(__CYGWIN__)
 #include <dirent.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#endif
 #include <errno.h>
 #include <common/config.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include <common/utils.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/jobs.h>
@@ -732,7 +736,10 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 	f = fopen(path, "w+");
 	STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", path);
 
+	_starpu_fwrlock(f);
+	_starpu_ftruncate(f);
 	dump_model_file(f, model);
+	_starpu_fwrunlock(f);
 
 	fclose(f);
 }
@@ -937,7 +944,9 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 				f = fopen(path, "r");
 				STARPU_ASSERT(f);
 
+				_starpu_frdlock(f);
 				parse_model_file(f, model, scan_history);
+				_starpu_frdunlock(f);
 
 				fclose(f);
 			}
@@ -966,6 +975,7 @@ void starpu_perfmodel_directory(FILE *output)
  * the performance model files */
 int starpu_perfmodel_list(FILE *output)
 {
+#if !defined(_WIN32) || defined(__MINGW__) || defined(__CYGWIN__)
         char path[256];
         DIR *dp;
         struct dirent *ep;
@@ -989,6 +999,10 @@ int starpu_perfmodel_list(FILE *output)
 		_STARPU_DISP("Could not open the perfmodel directory <%s>: %s\n", path, strerror(errno));
         }
 	return 0;
+#else
+	fprintf(stderr,"Listing perfmodels is not implemented on pure Windows yet\n");
+	return 1;
+#endif
 }
 
 /* This function is intended to be used by external tools that should read the
@@ -1026,8 +1040,13 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 
 	FILE *f = fopen(path, "r");
 	STARPU_ASSERT(f);
+
+	_starpu_frdlock(f);
 	starpu_perfmodel_init(NULL, model);
+	rewind(f);
+
 	parse_model_file(f, model, 1);
+	_starpu_frdunlock(f);
 
 	STARPU_ASSERT(fclose(f) == 0);
 
@@ -1401,6 +1420,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			_STARPU_DISP("Error <%s> when opening file <%s>\n", strerror(errno), per_arch_model->debug_path);
 			STARPU_ABORT();
 		}
+		_starpu_fwrlock(f);
 
 		if (!j->footprint_is_computed)
 			(void) _starpu_compute_buffers_footprint(model, arch, impl, j);
@@ -1420,6 +1440,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			handle->ops->display(handle, f);
 		}
 		fprintf(f, "\n");
+		_starpu_fwrunlock(f);
 		fclose(f);
 #endif
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
