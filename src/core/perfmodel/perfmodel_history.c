@@ -479,7 +479,7 @@ static void parse_comb(FILE *f, struct starpu_perfmodel *model, unsigned scan_hi
 
 static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned scan_history)
 {
-	int ret, version;
+	int ret, version=0;
 
 	/* Parsing performance model version */
 	_starpu_drop_comments(f);
