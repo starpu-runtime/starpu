@@ -80,9 +80,9 @@
 } while (0)
 
 #define STARPU_PTHREAD_MUTEX_TRYLOCK(mutex) \
-	_STARPU_PTHREAD_MUTEX_TRYLOCK(mutex, __FILE__, __LINE__)
+	_starpu_pthread_mutex_trylock(mutex, __FILE__, __LINE__)
 static STARPU_INLINE
-int _STARPU_PTHREAD_MUTEX_TRYLOCK(starpu_pthread_mutex_t *mutex, char *file, int line)
+int _starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex, char *file, int line)
 {
 	int p_ret = starpu_pthread_mutex_trylock(mutex);
 	if (STARPU_UNLIKELY(p_ret != 0 && p_ret != EBUSY)) {
