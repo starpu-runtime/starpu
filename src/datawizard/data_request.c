@@ -616,9 +616,13 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 		return 0;
 
 	empty_list = _starpu_data_request_list_new();
-	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_pending_list_mutex[src_node]) && !force)
-		/* List is busy, do not bother with it */
-		return 0;
+	if (force)
+		/* We really want to handle requests */
+		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
+	else
+		if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_pending_list_mutex[src_node]))
+			/* List is busy, do not bother with it */
+			return 0;
 
 	/* for all entries of the list */
 	struct _starpu_data_request_list *local_list = data_requests_pending[src_node];

@@ -47,6 +47,8 @@ New features:
     CUDA and OpenCL kernel execution.
   * Add CUDA concurrent kernel execution support through
     the STARPU_NWORKER_PER_CUDA environment variable.
+  * Add CUDA and OpenCL kernel submission pipelining, to overlap costs and allow
+    concurrent kernel execution on Fermi cards.
   * New locality work stealing scheduler (lws).
   * Add STARPU_VARIABLE_NBUFFERS to be set in cl.nbuffers, and nbuffers and
     modes field to the task structure, which permit to define codelets taking a
@@ -101,10 +103,13 @@ New features:
   * One can register an existing on-GPU buffer to be used by a handle.
   * Add the starpu_paje_summary statistics tool.
   * Enable gpu-gpu transfers for matrices.
+  * Let interfaces declare which transfers they allow with the can_copy
+    methode.
 
 Small changes:
   * Lock performance model files while writing and reading them to avoid
     issues on parallel launches, MPI runs notably.
+  * Lots of build fixes for icc on Windows.
 
 StarPU 1.1.2 (svn revision 13011)
 ==============================================

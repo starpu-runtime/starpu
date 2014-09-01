@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <errno.h>
 #include <time.h>
 
@@ -269,8 +268,8 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 {
 	unsigned iter;
 	double timing_slowness, timing_latency;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	srand (time (NULL));
 	char * buf = malloc(SIZE_DISK_MIN);
@@ -286,7 +285,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	memset(buf, 0, SIZE_DISK_MIN);
 
 	/* Measure upload slowness */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; ++iter)
 	{
 		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, 0, SIZE_DISK_MIN, NULL);
@@ -301,8 +300,8 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 #endif
 		STARPU_ASSERT_MSG(res == 0, "Slowness computation failed \n");
 	}
-	gettimeofday(&end, NULL);
-	timing_slowness = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing_slowness = end - start;
 
 
 	/* free memory */
@@ -314,7 +313,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	*buf = 0;
 
 	/* Measure latency */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; ++iter)
 	{
 		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_DISK_MIN -1) , 1, NULL);
@@ -329,8 +328,8 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 #endif
 		STARPU_ASSERT_MSG(res == 0, "Latency computation failed");
 	}
-	gettimeofday(&end, NULL);
-	timing_latency = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing_latency = end - start;
 
 	_starpu_disk_free(node, mem, SIZE_DISK_MIN);
 	free(buf);

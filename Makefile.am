@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2009-2014  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 # Copyright (C) 2014  Inria
 #
@@ -99,6 +99,13 @@ if BUILD_STARPU_TOP
 starpu-top/starpu_top$(EXEEXT): all-local
 all-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE)
+if STARPU_DEVEL
+	@if grep -r sys/time.h $$( find $(srcdir)/src $(srcdir)/mpi/src $(srcdir)/include -name \*.[ch] -a \! -name starpu_util.h ) ; \
+	then \
+		echo "Please do not include sys/time, it is not available on Windows, include starpu_util.h and use starpu_timing_now() instead" ; \
+		false ; \
+	fi
+endif
 clean-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE) clean ; $(RM) Makefile
 	$(RM) starpu-top/starpu_top.1 starpu-top/starpu_top$(EXEEXT)
@@ -128,6 +135,7 @@ txt_DATA = AUTHORS COPYING.LGPL README STARPU-REVISION
 EXTRA_DIST = AUTHORS COPYING.LGPL README STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl mic-configure
 
 DISTCLEANFILES = STARPU-REVISION
+
 
 include starpu-top/extradist
 

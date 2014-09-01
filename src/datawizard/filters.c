@@ -437,12 +437,15 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 	}
 
 	/* there is no child anymore */
-	free(root_handle->children);
+	starpu_data_handle_t children = root_handle->children;
 	root_handle->children = NULL;
 	root_handle->nchildren = 0;
 
 	/* now the parent may be used again so we release the lock */
 	_starpu_spin_unlock(&root_handle->header_lock);
+
+	free(children);
+
 	_STARPU_TRACE_END_UNPARTITION(root_handle, gathering_node);
 }
 

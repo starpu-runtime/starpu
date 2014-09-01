@@ -17,7 +17,7 @@
 #include <config.h>
 #include <starpu.h>
 #include <stdio.h>
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 #endif
 

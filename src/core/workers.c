@@ -42,7 +42,7 @@
 #include <core/simgrid.h>
 #endif
 
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 #endif
 
@@ -428,6 +428,10 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
 	starpu_task_list_init(&workerarg->local_tasks);
 	workerarg->current_task = NULL;
+	workerarg->first_task = 0;
+	workerarg->ntasks = 0;
+	workerarg->pipeline_length = 0;
+	workerarg->pipeline_stuck = 0;
 	workerarg->set = NULL;
 
 	/* if some codelet's termination cannot be handled directly :
@@ -1018,7 +1022,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	initialized = CHANGING;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
 #endif

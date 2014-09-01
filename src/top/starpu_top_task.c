@@ -22,7 +22,6 @@
 #include <core/task.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/time.h>
 #include <common/timing.h>
 
 /********************************************

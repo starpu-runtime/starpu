@@ -461,7 +461,7 @@ _starpu_init_topology (struct _starpu_machine_config *config)
 
 	config->topology.nhwcpus = config->topology.nhwpus = sysconf(_SC_NPROCESSORS_ONLN);
 
-#elif defined(__MINGW32__) || defined(__CYGWIN__)
+#elif defined(_WIN32)
 	/* Discover the CPUs on Cygwin and MinGW systems. */
 
 	SYSTEM_INFO sysinfo;
@@ -1148,7 +1148,7 @@ _starpu_bind_thread_on_cpu (
 		STARPU_ABORT();
 	}
 
-#elif defined(__MINGW32__) || defined(__CYGWIN__)
+#elif defined(_WIN32)
 	DWORD mask = 1 << cpuid;
 	if (!SetThreadAffinityMask(GetCurrentThread(), mask))
 	{

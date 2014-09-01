@@ -20,7 +20,9 @@
 #include <starpu_profiling.h>
 #include <common/config.h>
 #include <common/utils.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <sys/stat.h>
 #include <core/perfmodel/perfmodel.h>
 #include <core/jobs.h>

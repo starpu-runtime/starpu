@@ -24,7 +24,7 @@
 
 #include <starpu.h>
 
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
 #endif
 
@@ -141,7 +141,7 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-#ifdef __MINGW32__
+#if defined(_WIN32) && !defined(__CYGWIN__)
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
 #endif

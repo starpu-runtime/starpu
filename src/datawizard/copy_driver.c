@@ -524,30 +524,30 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 	switch (_STARPU_MEMORY_NODE_TUPLE(src_kind,dst_kind))
 	{
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CPU_RAM):
-		memcpy((void *) dst + dst_offset, (void *) src + src_offset, size);
+		memcpy((void *) (dst + dst_offset), (void *) (src + src_offset), size);
 		return 0;
 
 #ifdef STARPU_USE_CUDA
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CPU_RAM):
 		return starpu_cuda_copy_async_sync(
-				(void*) src + src_offset, src_node,
-				(void*) dst + dst_offset, dst_node,
+				(void*) (src + src_offset), src_node,
+				(void*) (dst + dst_offset), dst_node,
 				size,
 				async_channel?starpu_cuda_get_local_out_transfer_stream():NULL,
 				cudaMemcpyDeviceToHost);
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_CUDA_RAM):
 		return starpu_cuda_copy_async_sync(
-				(void*) src + src_offset, src_node,
-				(void*) dst + dst_offset, dst_node,
+				(void*) (src + src_offset), src_node,
+				(void*) (dst + dst_offset), dst_node,
 				size,
 				async_channel?starpu_cuda_get_local_in_transfer_stream():NULL,
 				cudaMemcpyHostToDevice);
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CUDA_RAM,STARPU_CUDA_RAM):
 		return starpu_cuda_copy_async_sync(
-				(void*) src + src_offset, src_node,
-				(void*) dst + dst_offset, dst_node,
+				(void*) (src + src_offset), src_node,
+				(void*) (dst + dst_offset), dst_node,
 				size,
 				async_channel?starpu_cuda_get_peer_transfer_stream(src_node, dst_node):NULL,
 				cudaMemcpyDeviceToDevice);
@@ -567,54 +567,54 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_MIC_RAM,STARPU_CPU_RAM):
 		if (async_data)
 			return _starpu_mic_copy_mic_to_ram_async(
-					(void*) src + src_offset, src_node,
-					(void*) dst + dst_offset, dst_node,
+					(void*) (src + src_offset), src_node,
+					(void*) (dst + dst_offset), dst_node,
 					size);
 		else
 			return _starpu_mic_copy_mic_to_ram(
-					(void*) src + src_offset, src_node,
-					(void*) dst + dst_offset, dst_node,
+					(void*) (src + src_offset), src_node,
+					(void*) (dst + dst_offset), dst_node,
 					size);
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_MIC_RAM):
 		if (async_data)
 			return _starpu_mic_copy_ram_to_mic_async(
-					(void*) src + src_offset, src_node,
-					(void*) dst + dst_offset, dst_node,
+					(void*) (src + src_offset), src_node,
+					(void*) (dst + dst_offset), dst_node,
 					size);
 		else
 			return _starpu_mic_copy_ram_to_mic(
-					(void*) src + src_offset, src_node,
-					(void*) dst + dst_offset, dst_node,
+					(void*) (src + src_offset), src_node,
+					(void*) (dst + dst_offset), dst_node,
 					size);
 #endif
 #ifdef STARPU_USE_SCC
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_CPU_RAM):
 		return _starpu_scc_copy_sink_to_src(
-				(void*) src + src_offset, src_node,
-				(void*) dst + dst_offset, dst_node,
+				(void*) (src + src_offset), src_node,
+				(void*) (dst + dst_offset), dst_node,
 				size);
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM,STARPU_SCC_RAM):
 		return _starpu_scc_copy_src_to_sink(
-				(void*) src + src_offset, src_node,
-				(void*) dst + dst_offset, dst_node,
+				(void*) (src + src_offset), src_node,
+				(void*) (dst + dst_offset), dst_node,
 				size);
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_SCC_RAM,STARPU_SCC_RAM):
 		return _starpu_scc_copy_sink_to_sink(
-				(void*) src + src_offset, src_node,
-				(void*) dst + dst_offset, dst_node,
+				(void*) (src + src_offset), src_node,
+				(void*) (dst + dst_offset), dst_node,
 				size);
 #endif
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_CPU_RAM, STARPU_DISK_RAM):
 	{
 		return _starpu_disk_copy_src_to_disk(
-			(void*) src + src_offset, src_node,
+			(void*) (src + src_offset), src_node,
 			(void*) dst, dst_offset, dst_node,
 			size, async_channel);
 	}
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_CPU_RAM):
 		return _starpu_disk_copy_disk_to_src(
 			(void*) src, src_offset, src_node,
-			(void*) dst + dst_offset, dst_node,
+			(void*) (dst + dst_offset), dst_node,
 			size, async_channel);
 
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_DISK_RAM, STARPU_DISK_RAM):

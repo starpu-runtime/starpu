@@ -585,9 +585,10 @@ int _starpu_data_release_tag(starpu_data_handle_t handle)
 		STARPU_ASSERT_MSG((tag_entry != NULL),"Data handle %p with tag %d isn't in the hashmap !",handle,handle->tag);
 
 		HASH_DEL(registered_tag_handles, tag_entry);
-		free(tag_entry);
 
 		_starpu_spin_unlock(&registered_tag_handles_lock);
+
+		free(tag_entry);
 	}
 	return 0;
 }
@@ -613,6 +614,7 @@ void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 		/* Remove the PTR -> HANDLE mapping.  If a mapping from PTR
 		 * to another handle existed before (e.g., when using
 		 * filters), it becomes visible again.  */
+		struct handle_entry *entry;
 #ifdef STARPU_OPENMP
 		struct starpu_omp_task *task = _starpu_omp_get_task();
 		if (task)
@@ -620,37 +622,30 @@ void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 			if (task->is_implicit)
 			{
 				struct starpu_omp_region *parallel_region = task->owner_region;
-				struct handle_entry *entry;
 				_starpu_spin_lock(&parallel_region->registered_handles_lock);
 				HASH_FIND_PTR(parallel_region->registered_handles, &ram_ptr, entry);
 				STARPU_ASSERT(entry != NULL);
 				HASH_DEL(registered_handles, entry);
-				free(entry);
 				_starpu_spin_unlock(&parallel_region->registered_handles_lock);
 			}
 			else
 			{
-				struct handle_entry *entry;
 				HASH_FIND_PTR(task->registered_handles, &ram_ptr, entry);
 				STARPU_ASSERT(entry != NULL);
 				HASH_DEL(task->registered_handles, entry);
-				free(entry);
 			}
 		}
 		else
 #endif
 		{
-			struct handle_entry *entry;
 
 			_starpu_spin_lock(&registered_handles_lock);
 			HASH_FIND_PTR(registered_handles, &ram_ptr, entry);
 			STARPU_ASSERT(entry != NULL);
-
 			HASH_DEL(registered_handles, entry);
-			free(entry);
-
 			_starpu_spin_unlock(&registered_handles_lock);
 		}
+		free(entry);
 	}
 }
 

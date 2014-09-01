@@ -1012,7 +1012,7 @@ if test x$enable_simgrid = xyes ; then
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
 		]
 	)
-   	AC_CHECK_FUNCS([MSG_process_join MSG_get_as_by_name MSG_environment_get_routing_root])
+   	AC_CHECK_FUNCS([MSG_process_join MSG_get_as_by_name MSG_environment_get_routing_root xbt_mutex_try_acquire])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		    		[[#include <msg/msg.h>]],
@@ -1945,7 +1945,9 @@ if test "x$STARPU_DEVEL" != x; then
 	IS_SUPPORTED_CFLAG(-Wunused)
 	IS_SUPPORTED_CFLAG(-Wundef)
 	IS_SUPPORTED_CFLAG(-Wshadow)
+	IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
 fi
+AM_CONDITIONAL([STARPU_DEVEL],[test "x$STARPU_DEVEL" != x])
 
 AC_SUBST(GLOBAL_AM_CFLAGS)
 
@@ -2507,6 +2509,18 @@ AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h gcc-plugin/include/starpu-gcc/config.h starpu-top/config.h)
+
+AH_BOTTOM([
+#if defined(STARPU_DEVEL) && defined(BUILDING_STARPU)
+#  ifndef STARPU_CHECKED_UNISTD_H
+#    define STARPU_CHECKED_UNISTD_H
+#    ifdef _UNISTD_H
+#      define _UNISTD_H PLEASE_DONT_INCLUDE_IT
+#      error Please do not unconditionally include unistd.h, it is not available on Windows, include config.h and test for HAVE_UNISTD_H
+#    endif
+#  endif
+#endif
+])
 
 AC_OUTPUT([
 	Makefile
