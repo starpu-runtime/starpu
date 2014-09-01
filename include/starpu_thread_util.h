@@ -21,6 +21,7 @@
 #include <starpu_util.h>
 #include <errno.h>
 
+#if !(defined(_MSC_VER) && !defined(BUILDING_STARPU))
 /*
  * Encapsulation of the starpu_pthread_create_* functions.
  */
@@ -305,5 +306,6 @@ int _starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock, char *file
 			STARPU_ABORT();                                        \
 	}                                                                      \
 } while (0)
+#endif /* _MSC_VER */
 
 #endif /* __STARPU_THREAD_UTIL_H__ */
