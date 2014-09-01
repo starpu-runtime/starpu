@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux 1
+ * Copyright (C) 2009-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -130,6 +130,7 @@ static unsigned long long _starpu_residual = 0;
 static int _starpu_inited = 0;
 
 #if defined(_WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
+#define usleep(mu)  Sleep(mu/1000)
 static int mygettimeofday(struct timeval *tv, void *tz)
 {
 	if (tv)
