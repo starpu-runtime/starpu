@@ -16,7 +16,6 @@
  */
 
 #include <starpu.h>
-#include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
 #include "../helper.h"

@@ -23,7 +23,6 @@
  * Thanks Martin Tillenius for the idea.
  */
 
-#include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
 
