@@ -1939,13 +1939,13 @@ IS_SUPPORTED_CFLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Wextra)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
 IS_SUPPORTED_CFLAG(-Werror=implicit-function-declaration)
-IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
 	IS_SUPPORTED_CFLAG(-Wunused)
 	IS_SUPPORTED_CFLAG(-Wundef)
 	IS_SUPPORTED_CFLAG(-Wshadow)
+	IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
 fi
 AM_CONDITIONAL([STARPU_DEVEL],[test "x$STARPU_DEVEL" != x])
 
