@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,8 +23,8 @@
 #include <stdlib.h>
 #include "../helper.h"
 
-struct timeval start;
-struct timeval end;
+static double start;
+static double end;
 
 //static float *data = NULL;
 
@@ -41,15 +41,15 @@ int main(int argc, char **argv)
 	double init_timing;
 	double shutdown_timing;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	starpu_cublas_init();
-	gettimeofday(&end, NULL);
-	init_timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	init_timing = end - start;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	starpu_cublas_shutdown();
-	gettimeofday(&end, NULL);
-	shutdown_timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	shutdown_timing = end - start;
 
 	FPRINTF(stderr, "Total:\n");
 	FPRINTF(stderr, "\tinit: %2.2f us\n", init_timing/(1000));

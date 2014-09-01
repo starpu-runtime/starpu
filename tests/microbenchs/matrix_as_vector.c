@@ -91,8 +91,8 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 	starpu_data_handle_t vector_handle, matrix_handle;
 	int ret, i, loop, maxloops;
 	double vector_timing, matrix_timing;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	starpu_malloc((void **) &matrix, nx*sizeof(matrix[0]));
 	maxloops = LOOPS;
@@ -102,7 +102,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 		maxloops=1;
 #endif /* STARPU_HAVE_VALGRIND_H */
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for(loop=1 ; loop<=maxloops ; loop++)
 	{
 		for(i=0 ; i<nx ; i++) matrix[i] = i;
@@ -111,13 +111,13 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 		starpu_data_unregister(vector_handle);
 		if (ret == -ENODEV) goto end;
 	}
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	vector_timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	vector_timing = end - start;
 	vector_timing /= maxloops;
 	mean = matrix[0];
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for(loop=1 ; loop<=maxloops ; loop++)
 	{
 		for(i=0 ; i<nx ; i++) matrix[i] = i;
@@ -126,9 +126,9 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 		starpu_data_unregister(matrix_handle);
 		if (ret == -ENODEV) goto end;
 	}
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	matrix_timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	matrix_timing = end - start;
 	matrix_timing /= maxloops;
 
 	if (mean == matrix[0])

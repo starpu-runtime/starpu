@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -66,8 +66,8 @@ static void parse_args(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	double timing;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 	int ret;
 
 	parse_args(argc, argv);
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	unsigned i;
 	for (i = 0; i < ntasks; i++)
@@ -107,9 +107,9 @@ int main(int argc, char **argv)
 		starpu_task_destroy(task);
 	}
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	timing = end - start;
 
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/ntasks);

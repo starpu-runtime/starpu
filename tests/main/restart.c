@@ -30,8 +30,8 @@
   #define N	10
 #endif
 
-static struct timeval start;
-static struct timeval end;
+static double start;
+static double end;
 
 int main(int argc, char **argv)
 {
@@ -43,20 +43,20 @@ int main(int argc, char **argv)
 
 	for (iter = 0; iter < N; iter++)
 	{
-		gettimeofday(&start, NULL);
+		start = starpu_timing_now();
 		/* Initialize StarPU */
 		ret = starpu_initialize(NULL, &argc, &argv);
-		gettimeofday(&end, NULL);
+		end = starpu_timing_now();
 		if (ret == -ENODEV)
 			goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-		init_timing += (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+		init_timing += end - start;
 
-		gettimeofday(&start, NULL);
+		start = starpu_timing_now();
 		/* Shutdown StarPU */
 		starpu_shutdown();
-		gettimeofday(&end, NULL);
-		shutdown_timing += (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+		end = starpu_timing_now();
+		shutdown_timing += end - start;
 	}
 
 	FPRINTF(stderr, "starpu_init: %2.2f seconds\n", init_timing/(N*1000000));
