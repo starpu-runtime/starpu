@@ -31,8 +31,6 @@
 #include <pthread.h>
 #include <assert.h>
 
-#include <sys/time.h>
-
 int GPU_LD	=	2048;
 int CPU_LD	=	2048;
 int MATRIXSIZE	=	1024;

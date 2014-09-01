@@ -19,7 +19,6 @@
 #include <cuda_runtime.h>
 #include <assert.h>
 #include <sys/types.h>
-#include <sys/time.h>
 
 static starpu_pthread_t thread[2];
 static unsigned thread_is_initialized[2];

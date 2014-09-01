@@ -16,7 +16,6 @@
 
 #include <starpu.h>
 #include "../helper.h"
-#include <sys/time.h>
 
 #ifdef STARPU_USE_CUDA
 #  include <cublas.h>
