@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,33 +19,6 @@
 #include <sys/time.h>
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
-
-#ifndef timersub
-#define	timersub(x, y, res) \
-	do \
-	{						   \
-		(res)->tv_sec = (x)->tv_sec - (y)->tv_sec; \
-		(res)->tv_usec = (x)->tv_usec - (y)->tv_usec; \
-		if ((res)->tv_usec < 0) \
-		{			 \
-			(res)->tv_sec--; \
-			(res)->tv_usec += 1000000; \
-		} \
-	} while (0)
-#endif
-#ifndef timeradd
-#define	timeradd(x, y, res) \
-	do \
-	{						   \
-		(res)->tv_sec = (x)->tv_sec + (y)->tv_sec; \
-		(res)->tv_usec = (x)->tv_usec + (y)->tv_usec; \
-		if ((res)->tv_usec >= 1000000) \
-		{			       \
-			(res)->tv_sec++; \
-			(res)->tv_usec -= 1000000; \
-		} \
-	} while (0)
-#endif
 
 /* Computation Kernels */
 
@@ -125,7 +98,7 @@
 int who_runs_what_len;
 int *who_runs_what;
 int *who_runs_what_index;
-struct timeval *last_tick;
+double *last_tick;
 
 /* Achieved iterations */
 static int achieved_iter;
@@ -135,16 +108,16 @@ unsigned update_per_worker[STARPU_NMAXWORKERS];
 
 static void record_who_runs_what(struct block_description *block)
 {
-	struct timeval tv, tv2, diff, delta = {.tv_sec = 0, .tv_usec = get_ticks() * 1000};
+	double now, now2, diff, delta = get_ticks() * 1000;
 	int workerid = starpu_worker_get_id();
 
-	gettimeofday(&tv, NULL);
-	timersub(&tv, &start, &tv2);
-	timersub(&tv2, &last_tick[block->bz], &diff);
-	while (timercmp(&diff, &delta, >=))
+	now = starpu_timing_now();
+	now2 = now - start;
+	diff = now2 - last_tick[block->bz];
+	while (diff >= delta)
 	{
-		timeradd(&last_tick[block->bz], &delta, &last_tick[block->bz]);
-		timersub(&tv2, &last_tick[block->bz], &diff);
+		last_tick[block->bz] += delta;
+		diff = now2 - last_tick[block->bz];
 		if (who_runs_what_index[block->bz] < who_runs_what_len)
 			who_runs_what[block->bz + (who_runs_what_index[block->bz]++) * get_nbz()] = -1;
 	}
