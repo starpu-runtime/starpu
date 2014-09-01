@@ -198,7 +198,7 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
  * Encapsulation of the pthread_barrier_* functions.
  */
 
-#if defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_BARRIER)
+#if defined(STARPU_SIMGRID) || (!defined(STARPU_HAVE_PTHREAD_BARRIER) && (!defined(_MSC_VER) || defined(BUILDING_STARPU)))
 
 #if defined(STARPU_SIMGRID) && defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)
 typedef xbt_bar_t starpu_pthread_barrier_t;
