@@ -182,7 +182,7 @@ typedef pthread_rwlockattr_t starpu_pthread_rwlockattr_t;
  * Encapsulation of the pthread_barrier_* functions.
  */
 
-#if defined(STARPU_SIMGRID) || !defined(STARPU_HAVE_PTHREAD_BARRIER)
+#if defined(STARPU_SIMGRID) || (!defined(STARPU_HAVE_PTHREAD_BARRIER) && (!defined(_MSC_VER) || defined(BUILDING_STARPU)))
 
 typedef struct {
 	starpu_pthread_mutex_t mutex;
