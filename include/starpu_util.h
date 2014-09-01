@@ -274,7 +274,13 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 double starpu_timing_now(void);
 
 #ifdef _WIN32
+/* Try to fetch the system definition of timespec */
+#include <time.h>
+#if !defined(_MSC_VER) || defined(BUILDING_STARPU)
+#include <pthread.h>
+#endif
 #ifndef _TIMESPEC_DEFINED
+/* If it didn't get defined in the standard places, then define it ourself */
 #ifndef STARPU_TIMESPEC_DEFINED
 #define STARPU_TIMESPEC_DEFINED 1
 struct timespec {

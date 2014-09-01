@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -89,12 +88,12 @@ int main(int argc, char **argv)
 	unsigned i;
 
 	double timing_submit;
-	struct timeval start_submit;
-	struct timeval end_submit;
+	double start_submit;
+	double end_submit;
 
 	double timing_exec;
-	struct timeval start_exec;
-	struct timeval end_exec;
+	double start_exec;
+	double end_exec;
 
 	parse_args(argc, argv);
 
@@ -114,7 +113,7 @@ int main(int argc, char **argv)
 	/* submit tasks (but don't execute them yet !) */
 	tasks = (struct starpu_task *) calloc(1, ntasks*sizeof(struct starpu_task));
 
-	gettimeofday(&start_submit, NULL);
+	start_submit = starpu_timing_now();
 	for (i = 0; i < ntasks; i++)
 	{
 		starpu_task_init(&tasks[i]);
@@ -133,7 +132,7 @@ int main(int argc, char **argv)
 	}
 	tasks[ntasks-1].detach = 0;
 
-	gettimeofday(&start_submit, NULL);
+	start_submit = starpu_timing_now();
 	for (i = 1; i < ntasks; i++)
 	{
 		starpu_tag_declare_deps((starpu_tag_t)i, 1, (starpu_tag_t)(i-1));
@@ -148,13 +147,13 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-	gettimeofday(&end_submit, NULL);
+	end_submit = starpu_timing_now();
 
 	/* wait for the execution of the tasks */
-	gettimeofday(&start_exec, NULL);
+	start_exec = starpu_timing_now();
 	ret = starpu_task_wait(&tasks[ntasks-1]);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_tag_wait");
-	gettimeofday(&end_exec, NULL);
+	end_exec = starpu_timing_now();
 
 	starpu_task_wait_for_all();
 
@@ -164,8 +163,8 @@ int main(int argc, char **argv)
 	for (buffer = 0; buffer < nbuffers; buffer++)
 		starpu_data_unregister(data_handles[buffer]);
 
-	timing_submit = (double)((end_submit.tv_sec - start_submit.tv_sec)*1000000 + (end_submit.tv_usec - start_submit.tv_usec));
-	timing_exec = (double)((end_exec.tv_sec - start_exec.tv_sec)*1000000 + (end_exec.tv_usec - start_exec.tv_usec));
+	timing_submit = end_submit - start_submit;
+	timing_exec = end_exec - start_exec;
 
 	fprintf(stderr, "Total submit: %f secs\n", timing_submit/1000000);
 	fprintf(stderr, "Per task submit: %f usecs\n", timing_submit/ntasks);

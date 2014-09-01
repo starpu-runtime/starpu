@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +16,6 @@
 
 #include <common/config.h>
 
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -136,14 +135,13 @@ static int _decode(char **src, char *motif, const char *value)
 	found = strstr(*src, motif);
 	if (found == NULL) return 0;
 
-	char *new_src = malloc((strlen(*src)+strlen(value))*sizeof(char));
-	strcpy(new_src, "");
+	char *new_src = malloc(strlen(*src)-strlen(motif)+strlen(value)+1);
 
-	strncat(new_src, *src, strlen(*src)-strlen(found));
+	strncpy(new_src, *src, found - *src);
 	strcat(new_src, value);
 	strcat(new_src, found+strlen(motif));
 
-	*src = strdup(new_src);
+	*src = new_src;
 	return 1;
 }
 
@@ -171,8 +169,8 @@ int main(int argc, char *argv[])
 	char *launcher_args;
 	struct sigaction sa;
 	int   ret;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 	double timing;
 
 	test_args = NULL;
@@ -282,7 +280,7 @@ int main(int argc, char *argv[])
 	}
 
 	ret = EXIT_SUCCESS;
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	alarm(timeout);
 	if (child_pid == waitpid(child_pid, &child_exit_status, 0))
 	{
@@ -316,8 +314,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 	fprintf(stderr, "#Execution_time_in_seconds %f %s\n", timing/1000000, test_name);
 
 	return ret;

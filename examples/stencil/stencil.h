@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -130,11 +130,11 @@ extern unsigned update_per_worker[STARPU_NMAXWORKERS];
 extern unsigned top_per_worker[STARPU_NMAXWORKERS];
 extern unsigned bottom_per_worker[STARPU_NMAXWORKERS];
 
-extern struct timeval start;
+extern double start;
 extern int who_runs_what_len;
 extern int *who_runs_what;
 extern int *who_runs_what_index;
-extern struct timeval *last_tick;
+extern double *last_tick;
 
 #ifndef _externC
 #define _externC

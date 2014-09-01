@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <starpu.h>
@@ -71,8 +70,8 @@ int main(int argc, char **argv)
 {
 	int ret;
 	double timing;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	parse_args(argc, argv);
 
@@ -99,7 +98,7 @@ int main(int argc, char **argv)
 
 	FPRINTF(stderr, "#tasks : %d x %u tasks\n", K, ntasks);
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	
 	for (i = 0; i < K; i++)
 	{
@@ -114,7 +113,7 @@ int main(int argc, char **argv)
 
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
 	/* Check that all the tasks have been properly executed */
 	unsigned total_cnt = 0;
@@ -123,8 +122,7 @@ int main(int argc, char **argv)
 
 	STARPU_ASSERT(total_cnt == K*ntasks);
 
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000
-				+ (end.tv_usec - start.tv_usec));
+	timing = end - start;
 
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/(K*ntasks));

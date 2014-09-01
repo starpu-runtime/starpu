@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,7 +23,6 @@
  * Thanks Martin Tillenius for the idea.
  */
 
-#include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -52,20 +51,14 @@ struct starpu_task *tasks;
 
 void func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
-	struct timeval tv1, tv2;
+	double tv1, tv2;
 	unsigned n = (uintptr_t)arg;
 	long usec = 0;
-	gettimeofday(&tv1, NULL);
+	tv1 = starpu_timing_now();
 	do
 	{
-		gettimeofday(&tv2, NULL);
-		if (tv2.tv_usec < tv1.tv_usec)
-		{
-			tv2.tv_usec += 1000000;
-			tv2.tv_sec--;
-		}
-		usec = (tv2.tv_sec-tv1.tv_sec)*1000000
-			+ (tv2.tv_usec - tv1.tv_usec);
+		tv2 = starpu_timing_now();
+		usec = tv2 - tv1;
 	}
 	while (usec < n);
 }
@@ -104,8 +97,8 @@ int main(int argc, char **argv)
 	unsigned totcpus, ncpus;
 
 	double timing;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	struct starpu_conf conf;
 
@@ -167,7 +160,7 @@ int main(int argc, char **argv)
 		for (size = START; size <= STOP; size *= FACTOR)
 		{
 			/* submit tasks */
-			gettimeofday(&start, NULL);
+			start = starpu_timing_now();
 			for (i = 0; i < ntasks; i++)
 			{
 				starpu_task_init(&tasks[i]);
@@ -188,12 +181,12 @@ int main(int argc, char **argv)
 			}
 			ret = starpu_task_wait_for_all();
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
-			gettimeofday(&end, NULL);
+			end = starpu_timing_now();
 
 			for (i = 0; i < ntasks; i++)
 				starpu_task_clean(&tasks[i]);
 
-			timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+			timing = end - start;
 
 			FPRINTF(stdout, "%u\t%f\t", size, timing/1000000);
 			fflush(stdout);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2012, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -131,10 +131,10 @@ void start_2benchs(void (*bench)(unsigned, unsigned))
 	starpu_pthread_t tid[2];
 	starpu_pthread_mutex_init(&mut, NULL);
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	starpu_pthread_create(&tid[0], NULL, (void*)start_bench, (void*)&p1);
 	starpu_pthread_create(&tid[1], NULL, (void*)start_bench, (void*)&p2);
@@ -142,11 +142,11 @@ void start_2benchs(void (*bench)(unsigned, unsigned))
 	starpu_pthread_join(tid[0], NULL);
 	starpu_pthread_join(tid[1], NULL);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
 	starpu_pthread_mutex_destroy(&mut);
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	timing /= 1000000;
 
 	printf("%2.2f %2.2f ", rv[0].flops, rv[1].flops);
@@ -160,18 +160,18 @@ void start_1stbench(void (*bench)(unsigned, unsigned))
 	p1.size = size1;
 	p1.nblocks = nblocks1;
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	start_bench((void*)&p1);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
 	starpu_pthread_mutex_destroy(&mut);
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	timing /= 1000000;
 
 	printf("%2.2f ", rv[0].flops);
@@ -184,18 +184,18 @@ void start_2ndbench(void (*bench)(unsigned, unsigned))
 	p2.size = size2;
 	p2.nblocks = nblocks2;
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	start_bench((void*)&p2);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
 	starpu_pthread_mutex_destroy(&mut);
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	double timing = end - start;
 	timing /= 1000000;
 
 	printf("%2.2f ", rv[1].flops);

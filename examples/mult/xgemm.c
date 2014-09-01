@@ -20,7 +20,6 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
-#include <sys/time.h>
 #include <starpu.h>
 
 #include <common/blas.h>
