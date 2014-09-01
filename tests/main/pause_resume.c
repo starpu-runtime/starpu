@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011, 2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -45,8 +45,8 @@ static struct starpu_codelet dummy_codelet =
 int main(int argc, char **argv)
 {
 	double timing;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 	int ret;
 
 #ifdef STARPU_HAVE_VALGRIND_H
@@ -68,11 +68,11 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	starpu_resume();
 	starpu_task_wait_for_all();
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	FPRINTF(stderr, "Without interruptions:\n\tTotal: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "\tPer task: %f usecs\n", timing/ntasks);
@@ -87,14 +87,14 @@ int main(int argc, char **argv)
 	}
 	starpu_resume();
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	for (i = 0; i < 100; i++) {
 		starpu_pause();
 		starpu_resume();
 	}
 	starpu_task_wait_for_all();
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 
 	FPRINTF(stderr, "With 100 interruptions:\n\tTotal: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "\tPer task: %f usecs\n", timing/ntasks);

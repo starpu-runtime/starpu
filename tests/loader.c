@@ -163,8 +163,8 @@ int main(int argc, char *argv[])
 	char *launcher_args;
 	struct sigaction sa;
 	int   ret;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 	double timing;
 
 	test_args = NULL;
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
 	}
 
 	ret = EXIT_SUCCESS;
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 	alarm(timeout);
 	if (child_pid == waitpid(child_pid, &child_exit_status, 0))
 	{
@@ -308,8 +308,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	gettimeofday(&end, NULL);
-	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
+	end = starpu_timing_now();
+	timing = end - start;
 	fprintf(stderr, "#Execution_time_in_seconds %f %s\n", timing/1000000, test_name);
 
 	return ret;

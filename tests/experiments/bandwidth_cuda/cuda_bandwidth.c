@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -116,7 +116,7 @@ void benchmark_memcpy(void)
 {
 	unsigned count;
 
-	struct timeval tv_start, tv_end;
+	double tv_start, tv_end;
 	unsigned long long usecs;
 
 	double bytes = 4.0*MATRIXSIZE*MATRIXSIZE*ITER;
@@ -138,7 +138,7 @@ void benchmark_memcpy(void)
 	cublasAlloc(GPU_LD*GPU_LD, sizeof(float), &d_A);
 	STARPU_ASSERT(d_A);
 
-	gettimeofday(&tv_start, NULL);	
+	tv_start = starpu_timing_now();	
 
 	if (!pinned)
 	{
@@ -186,8 +186,8 @@ void benchmark_memcpy(void)
 	
 	}
 
-	gettimeofday(&tv_end, NULL);
-	usecs = (tv_end.tv_usec - tv_start.tv_usec) + 1000000*(tv_end.tv_sec - tv_start.tv_sec);
+	tv_end = starpu_timing_now();
+	usecs = tv_end - tv_start;
 	printf("%2.2f\n", bytes/usecs);
 
 	if (pinned)
