@@ -59,8 +59,6 @@ static void neutral_opencl_kernel(void *descr[], void *arg)
 
 static void neutral_cpu_kernel(void *descr[], void *arg)
 {
-	STARPU_SKIP_IF_VALGRIND;
-
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*dst = 0;
 }
