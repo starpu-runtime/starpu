@@ -152,6 +152,7 @@ int main(int argc, char **argv)
 	/* wait for all tasks at the end*/
 	starpu_task_wait_for_all();
 
+	starpu_sched_ctx_add_workers(procs1, nprocs2, sched_ctx2);
 	starpu_sched_ctx_delete(sched_ctx1);
 	starpu_sched_ctx_delete(sched_ctx2);
 	printf("tasks executed %d out of %d\n", tasks_executed, ntasks/2);

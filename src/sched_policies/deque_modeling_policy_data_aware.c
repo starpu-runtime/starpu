@@ -307,7 +307,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 
         /* Sometimes workers didn't take the tasks as early as we expected */
-	fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
+	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	if ((starpu_timing_now() + predicted_transfer) < fifo->exp_end)
@@ -420,7 +420,7 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker, sched_ctx_id);
 
 		/* Sometimes workers didn't take the tasks as early as we expected */
-		double exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
+		double exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
 
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
@@ -559,8 +559,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 		unsigned memory_node = starpu_worker_get_memory_node(worker);
 
 		/* Sometimes workers didn't take the tasks as early as we expected */
-		double exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
-
+		double exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
 		for(nimpl  = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 	 	{
 			if (!starpu_worker_can_execute_task(worker, task, nimpl))
@@ -582,6 +581,7 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 				local_task_length[worker_ctx][nimpl] = starpu_task_bundle_expected_length(bundle, perf_arch, nimpl);
 				local_data_penalty[worker_ctx][nimpl] = starpu_task_bundle_expected_data_transfer_time(bundle, memory_node);
 				local_power[worker_ctx][nimpl] = starpu_task_bundle_expected_power(bundle, perf_arch,nimpl);
+
 			}
 			else
 			{
@@ -750,12 +750,12 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 					selected_impl = nimpl;
 
 					//_STARPU_DEBUG("best fitness (worker %d) %e = alpha*(%e) + beta(%e) +gamma(%e)\n", worker, best_fitness, exp_end[worker][nimpl] - best_exp_end, local_data_penalty[worker][nimpl], local_power[worker][nimpl]);
+
 				}
 			}
 			worker_ctx++;
 		}
 	}
-
 	STARPU_ASSERT(forced_best != -1 || best != -1);
 
 	if (forced_best != -1)
@@ -783,7 +783,7 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 
 	//_STARPU_DEBUG("Scheduler dmda: kernel (%u)\n", best_impl);
 	starpu_task_set_implementation(task, selected_impl);
-
+	
 	/* we should now have the best worker in variable "best" */
 	return push_task_on_best_worker(task, best, model_best, transfer_model_best, prio, sched_ctx_id);
 }
@@ -958,7 +958,7 @@ static void dmda_push_task_notify(struct starpu_task *task, int workerid, int pe
 	/* Update the predictions */
 	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 	/* Sometimes workers didn't take the tasks as early as we expected */
-	fifo->exp_start = STARPU_MAX(fifo->exp_start, starpu_timing_now());
+	fifo->exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
 	/* If there is no prediction available, we consider the task has a null length */

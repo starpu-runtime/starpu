@@ -76,7 +76,8 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 
 	// Find out if the worker is the master of a parallel context
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
-	STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a worker %d in the ctx of this job \n", worker->workerid);
+	if(!sched_ctx)
+		sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
 	if(!sched_ctx->sched_policy)
 	{
 		if(!sched_ctx->awake_workers && sched_ctx->main_master == worker->workerid)
@@ -115,7 +116,9 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 
 	// Find out if the worker is the master of a parallel context
 	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
-	STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a worker %d in the ctx of this job \n", worker->workerid);
+	unsigned worker_left_ctx = 0;
+	if(!sched_ctx)
+		sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
 
 	if (!sched_ctx->sched_policy)
 	{
