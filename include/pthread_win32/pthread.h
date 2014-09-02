@@ -33,7 +33,6 @@ extern "C" {
 
 #include <windows.h>
 #include <sys/types.h>
-#undef interface
 #include <stdio.h>
 #include <errno.h>
 
