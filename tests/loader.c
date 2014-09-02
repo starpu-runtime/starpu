@@ -26,11 +26,41 @@
 #include <signal.h>
 #include <string.h>
 
+#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
+#include <windows.h>
+#else
+#include <sys/time.h>
+#endif
+
 #define  DEFAULT_TIMEOUT       600
 #define  AUTOTEST_SKIPPED_TEST 77
 
 static pid_t child_pid = 0;
 static int   timeout;
+
+#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
+static int mygettimeofday(struct timeval *tv, void *tz)
+{
+	if (tv)
+	{
+		FILETIME ft;
+		unsigned long long res;
+		GetSystemTimeAsFileTime(&ft);
+		/* 100-nanosecond intervals since January 1, 1601 */
+		res = ft.dwHighDateTime;
+		res <<= 32;
+		res |= ft.dwLowDateTime;
+		res /= 10;
+		/* Now we have microseconds */
+		res -= (((1970-1601)*365) + 89) * 24ULL * 3600ULL * 1000000ULL;
+		/* Now we are based on epoch */
+		tv->tv_sec = res / 1000000ULL;
+		tv->tv_usec = res % 1000000ULL;
+	}
+}
+#else
+#define mygettimeofday(tv,tz) gettimeofday(tv,tz)
+#endif
 
 static void launch_gdb(const char *exe)
 {
@@ -169,8 +199,8 @@ int main(int argc, char *argv[])
 	char *launcher_args;
 	struct sigaction sa;
 	int   ret;
-	double start;
-	double end;
+	struct timeval start;
+	struct timeval end;
 	double timing;
 
 	test_args = NULL;
@@ -280,7 +310,7 @@ int main(int argc, char *argv[])
 	}
 
 	ret = EXIT_SUCCESS;
-	start = starpu_timing_now();
+	gettimeofday(&start, NULL);
 	alarm(timeout);
 	if (child_pid == waitpid(child_pid, &child_exit_status, 0))
 	{
@@ -314,8 +344,8 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	end = starpu_timing_now();
-	timing = end - start;
+	gettimeofday(&end, NULL);
+	timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
 	fprintf(stderr, "#Execution_time_in_seconds %f %s\n", timing/1000000, test_name);
 
 	return ret;
