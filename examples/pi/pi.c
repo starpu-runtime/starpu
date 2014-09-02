@@ -19,7 +19,6 @@
 #include "SobolQRNG/sobol.h"
 #include "SobolQRNG/sobol_gold.h"
 #include "pi.h"
-#include <sys/time.h>
 
 #ifdef STARPU_USE_CUDA
 void cuda_kernel(void **descr, void *cl_arg);

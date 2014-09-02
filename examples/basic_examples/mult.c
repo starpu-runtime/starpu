@@ -34,7 +34,6 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
-#include <sys/time.h>
 #include <signal.h>
 
 #include <starpu.h>

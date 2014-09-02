@@ -21,7 +21,6 @@
 #include <semaphore.h>
 #include <string.h>
 #include <math.h>
-#include <sys/time.h>
 #include <starpu.h>
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>

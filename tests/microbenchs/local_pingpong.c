@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010  Université de Bordeaux 1
+ * Copyright (C) 2010, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <sys/time.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
@@ -39,8 +38,8 @@ static char worker_1_name[128];
 static unsigned memory_node_0;
 static unsigned memory_node_1;
 
-struct timeval start;
-struct timeval end;
+double start;
+double end;
 
 int main(int argc, char **argv)
 {
@@ -93,14 +92,13 @@ int main(int argc, char **argv)
 	//	unsigned nwarmupiter = 128;
 	_starpu_benchmark_ping_pong(v_handle, memory_node_0, memory_node_1, 128);
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	_starpu_benchmark_ping_pong(v_handle, memory_node_0, memory_node_1, niter);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
-					(end.tv_usec - start.tv_usec));
+	double timing = end - start;
 
 	fprintf(stderr, "Took %f ms\n", timing/1000);
 	fprintf(stderr, "Avg. transfer time : %f us\n", timing/(2*niter));
