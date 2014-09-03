@@ -113,7 +113,7 @@ struct starpu_data_interface_ops
 	uint32_t 	 (*footprint)			(starpu_data_handle_t handle);
 	int 		 (*compare)			(void *data_interface_a, void *data_interface_b);
 	void 		 (*display)			(starpu_data_handle_t handle, FILE *f);
-	ssize_t		 (*describe)			(void *data_interface, char *buf, size_t size);
+	starpu_ssize_t	 (*describe)			(void *data_interface, char *buf, size_t size);
 	enum starpu_data_interface_id interfaceid;
 	size_t interface_size;
 
