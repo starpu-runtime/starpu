@@ -15,9 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu_config.h>
-#include <starpu.h>
-
 #ifdef __MINGW__
 #  define WINVER WindowsXP
 #  include <w32api.h>
@@ -31,6 +28,9 @@
 #  include <netinet/in.h>
 #  include <netdb.h>
 #endif
+
+#include <starpu_config.h>
+#include <starpu.h>
 
 #include <top/starpu_top_core.h>
 #include <top/starpu_top_connection.h>
