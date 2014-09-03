@@ -276,6 +276,9 @@ double starpu_timing_now(void);
 #ifdef _WIN32
 /* Try to fetch the system definition of timespec */
 #include <time.h>
+#if defined(__MINGW32__) || defined(__CYGWIN__)
+#include <sys/time.h>
+#endif
 #if !defined(_MSC_VER) || defined(BUILDING_STARPU)
 #include <pthread.h>
 #endif
