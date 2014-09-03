@@ -23,6 +23,7 @@
 #endif
 
 #ifdef STARPU_HAVE_WINDOWS
+#  include <winsock2.h>
 #  include <ws2tcpip.h>
 #  include <io.h>
 #else
