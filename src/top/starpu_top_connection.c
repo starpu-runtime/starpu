@@ -16,7 +16,7 @@
  */
 
 #include <starpu_config.h>
-#include <starpu_util.h>
+#include <starpu.h>
 
 #ifdef __MINGW__
 #  define WINVER WindowsXP
