@@ -15,10 +15,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifdef __MINGW32__
+#  define WINVER WindowsXP
+#endif
+
 #include <starpu_config.h>
 
 #ifdef __MINGW32__
-#  define WINVER WindowsXP
 #  include <w32api.h>
 #endif
 
