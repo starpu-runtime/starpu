@@ -18,7 +18,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <common/config.h>
 #if defined(_WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
 #include <unistd.h>
 #endif
