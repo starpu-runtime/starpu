@@ -533,8 +533,6 @@ void *_starpu_mic_src_worker(void *arg)
 		snprintf(worker->name, sizeof(worker->name), "MIC %d core %u", devid, i);
 	}
 
-	baseworker->status = STATUS_UNKNOWN;
-
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
 		struct _starpu_worker *worker = &worker_set->workers[i];
@@ -543,6 +541,7 @@ void *_starpu_mic_src_worker(void *arg)
 
 	/* tell the main thread that this one is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+	baseworker->status = STATUS_UNKNOWN;
 	worker_set->set_is_initialized = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);

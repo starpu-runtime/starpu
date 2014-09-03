@@ -16,10 +16,11 @@
  */
 
 #include <starpu_config.h>
+#include <starpu.h>
 
 #ifdef __MINGW__
-#  include <w32api.h>
 #  define WINVER WindowsXP
+#  include <w32api.h>
 #endif
 
 #ifdef STARPU_HAVE_WINDOWS

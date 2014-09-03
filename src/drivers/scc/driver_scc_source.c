@@ -295,8 +295,6 @@ void *_starpu_scc_src_worker(void *arg)
 
 	_starpu_scc_src_init_context(subworkerid);
 
-	args->status = STATUS_UNKNOWN;
-
 	for (i = 0; i < config->topology.nmiccores[devid]; i++)
 	{
 		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
@@ -307,6 +305,7 @@ void *_starpu_scc_src_worker(void *arg)
 
 	/* tell the main thread that this one is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&args->mutex);
+	args->status = STATUS_UNKNOWN;
 	args->worker_is_initialized = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&args->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&args->mutex);

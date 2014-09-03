@@ -584,7 +584,6 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 
 	_starpu_malloc_init(worker->memory_node);
 
-	worker->status = STATUS_UNKNOWN;
 	float size = (float) global_mem[devid] / (1<<30);
 
 #ifdef STARPU_SIMGRID
@@ -605,6 +604,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 
 	/* tell the main thread that this one is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
+	worker->status = STATUS_UNKNOWN;
 	worker->worker_is_initialized = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&worker->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
