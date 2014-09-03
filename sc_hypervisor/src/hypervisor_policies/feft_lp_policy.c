@@ -320,7 +320,7 @@ static void feft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 		int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
 		if(ret != EBUSY)
 		{
-			printf("trigger idle \n");
+//			printf("trigger idle \n");
 			_resize_leaves(worker);
 			starpu_pthread_mutex_unlock(&act_hypervisor_mutex);
 		}

@@ -60,13 +60,16 @@ void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker
 	/* remove context from worker */
 	if(ret_sched_ctx != STARPU_NMAX_SCHED_CTXS)
 	{
-		struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-		if(sched_ctx && sched_ctx->sched_policy && sched_ctx->sched_policy->remove_workers)
-		{
-			_STARPU_TRACE_WORKER_SCHEDULING_PUSH;
-			sched_ctx->sched_policy->remove_workers(sched_ctx_id, &worker->workerid, 1);
-			_STARPU_TRACE_WORKER_SCHEDULING_POP;
-		}
+		/* don't remove scheduling data here, there might be tasks running and when post_exec
+		   executes scheduling data is not there any more, do it when deleting context, then
+		   we really won't need it anymore */
+		/* struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id); */
+		/* if(sched_ctx && sched_ctx->sched_policy && sched_ctx->sched_policy->remove_workers) */
+		/* { */
+		/* 	_STARPU_TRACE_WORKER_SCHEDULING_PUSH; */
+		/* 	sched_ctx->sched_policy->remove_workers(sched_ctx_id, &worker->workerid, 1); */
+		/* 	_STARPU_TRACE_WORKER_SCHEDULING_POP; */
+		/* } */
 		_starpu_sched_ctx_list_remove(&worker->sched_ctx_list, sched_ctx_id);
 		worker->nsched_ctxs--;
 	}
@@ -325,8 +328,10 @@ static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sche
 {
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 
-	int i = 0;
+	struct starpu_perfmodel_device devices[workers->nworkers];
+	int ndevices = 0;
 
+	int i = 0;
 	for(i = 0; i < nworkers; i++)
 	{
 		if(workers->nworkers > 0)
@@ -340,35 +345,6 @@ static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sche
 		}
 	}
 
-
-	struct starpu_perfmodel_device devices[workers->nworkers];
-	int ndevices = 0;
-
-	for(i = 0; i < *n_removed_workers; i++)
-	{
-		struct _starpu_worker *str_worker = _starpu_get_worker_struct(removed_workers[i]);
-		int dev1, dev2;
-		for(dev1 = 0; dev1 < sched_ctx->perf_arch.ndevices; dev1++)
-		{
-			for(dev2 = 0; dev2 < str_worker->perf_arch.ndevices; dev2++)
-			{
-				if(sched_ctx->perf_arch.devices[dev1].type == str_worker->perf_arch.devices[dev2].type &&
-				   sched_ctx->perf_arch.devices[dev1].devid == str_worker->perf_arch.devices[dev2].devid)
-				{
-					if(sched_ctx->perf_arch.devices[dev1].ncores > str_worker->perf_arch.devices[dev2].ncores)
-					{
-						devices[ndevices].ncores =  sched_ctx->perf_arch.devices[dev1].ncores -
-							str_worker->perf_arch.devices[dev2].ncores;
-						devices[ndevices].type = sched_ctx->perf_arch.devices[dev1].type;
-						devices[ndevices].devid = sched_ctx->perf_arch.devices[dev1].devid;
-						ndevices++;
-					}
-				}
-			}
-		}
-
-	}
-
 	int worker;
 	unsigned found = 0;
 	int dev;
@@ -379,40 +355,33 @@ static void _starpu_remove_workers_from_sched_ctx(struct _starpu_sched_ctx *sche
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
-		for(i = 0; i < *n_removed_workers; i++)
+		struct _starpu_worker *str_worker = _starpu_get_worker_struct(worker);
+		for(dev = 0; dev < str_worker->perf_arch.ndevices; dev++)
 		{
-			if(worker == removed_workers[i])
+			int dev2;
+			for(dev2 = 0; dev2 < ndevices; dev2++)
 			{
-				found = 1;
-				break;
+				if(devices[dev2].type == str_worker->perf_arch.devices[dev].type &&
+				   devices[dev2].devid == str_worker->perf_arch.devices[dev].devid)
+				{
+					if(devices[dev2].type == STARPU_CPU_WORKER)
+						devices[dev2].ncores += str_worker->perf_arch.devices[dev].ncores;
+				}
+
+					found = 1;
 			}
-		}
-		if(!found)
-		{
-			struct _starpu_worker *str_worker = _starpu_get_worker_struct(worker);
-			for(dev = 0; dev < str_worker->perf_arch.ndevices; dev++)
+			if(!found)
 			{
-				int dev2;
-				for(dev2 = 0; dev2 < ndevices; dev2++)
-				{
-					if(devices[dev2].type == str_worker->perf_arch.devices[dev].type &&
-					   devices[dev2].devid == str_worker->perf_arch.devices[dev].devid)
-						found = 1;
-				}
-				if(!found)
-				{
-					devices[ndevices].type = str_worker->perf_arch.devices[dev].type;
-					devices[ndevices].devid = str_worker->perf_arch.devices[dev].devid;
-					devices[ndevices].ncores = str_worker->perf_arch.devices[dev].ncores;
-					ndevices++;
-				}
-				else 
-					found = 0;
+				devices[ndevices].type = str_worker->perf_arch.devices[dev].type;
+				devices[ndevices].devid = str_worker->perf_arch.devices[dev].devid;
+				devices[ndevices].ncores = str_worker->perf_arch.devices[dev].ncores;
+				ndevices++;
 			}
-			found = 0;
+			else 
+				found = 0;
 		}
-		else
-			found = 0;
+		found = 0;
+		
 	}
 	sched_ctx->perf_arch.ndevices = ndevices;
 	for(dev = 0; dev < ndevices; dev++)
@@ -901,7 +870,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		/*if btw the mutex release & the mutex lock the context has changed take care to free all
 		  scheduling data before deleting the context */
 		_starpu_update_workers_without_ctx(workerids, nworkers_ctx, sched_ctx_id, 1);
-//		_starpu_sched_ctx_free_scheduling_data(sched_ctx);
+		_starpu_sched_ctx_free_scheduling_data(sched_ctx);
 		_starpu_delete_sched_ctx(sched_ctx);
 	}
 
