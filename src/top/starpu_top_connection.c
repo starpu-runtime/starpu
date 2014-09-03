@@ -16,14 +16,10 @@
  */
 
 #ifdef __MINGW32__
-#  define WINVER WindowsXP
+#  define WINVER 0x0501 /* WindowsXP, for getaddrinfo */
 #endif
 
 #include <starpu_config.h>
-
-#ifdef __MINGW32__
-#  include <w32api.h>
-#endif
 
 #ifdef STARPU_HAVE_WINDOWS
 #  include <winsock2.h>
