@@ -17,7 +17,7 @@
 
 #include <starpu_config.h>
 
-#ifdef __MINGW__
+#ifdef __MINGW32__
 #  define WINVER WindowsXP
 #  include <w32api.h>
 #endif
