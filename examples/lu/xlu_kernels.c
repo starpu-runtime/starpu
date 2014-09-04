@@ -132,6 +132,8 @@ struct starpu_codelet cl22 =
 	.cuda_funcs = {STARPU_LU(cublas_u22), NULL},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
@@ -218,6 +220,8 @@ struct starpu_codelet cl12 =
 	.cuda_funcs = {STARPU_LU(cublas_u12), NULL},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -302,6 +306,8 @@ struct starpu_codelet cl21 =
 	.cuda_funcs = {STARPU_LU(cublas_u21), NULL},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -402,6 +408,8 @@ struct starpu_codelet cl11 =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u11), NULL},
 	CAN_EXECUTE
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
@@ -543,6 +551,8 @@ struct starpu_codelet cl11_pivot =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {STARPU_LU(cublas_u11_pivot), NULL},
 	CAN_EXECUTE
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
@@ -632,6 +642,8 @@ struct starpu_codelet cl_pivot =
 	.cuda_funcs = {STARPU_LU(cublas_pivot), NULL},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1, NULL},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},

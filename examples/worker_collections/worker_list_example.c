@@ -16,7 +16,6 @@
  */
 
 #include <starpu.h>
-#include <sys/time.h>
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
@@ -40,18 +39,16 @@ int main()
 
 	FPRINTF(stderr, "ncpus %d \n", ncpus);
 
-	struct timeval start_time;
-        struct timeval end_time;
-        gettimeofday(&start_time, NULL);
+	double start_time;
+	double end_time;
+
+	start_time = starpu_timing_now();
 
 	co->init(co);
 
-	gettimeofday(&end_time, NULL);
+	end_time = starpu_timing_now();
 
-        long diff_s = end_time.tv_sec  - start_time.tv_sec;
-        long diff_us = end_time.tv_usec  - start_time.tv_usec;
-
-	float timing = (float)(diff_s*1000000 + diff_us)/1000;
+	double timing = (end_time - start_time) / 1000;
 
 	int i;
 	for(i = 0; i < ncpus; i++)

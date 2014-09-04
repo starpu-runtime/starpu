@@ -17,7 +17,6 @@
 #include <limits.h>
 #include <string.h>
 #include <math.h>
-#include <sys/time.h>
 #include <stdlib.h>
 
 void parse_args_ctx(int argc, char **argv);

@@ -19,7 +19,6 @@
 #include <cuda_runtime.h>
 #include <assert.h>
 #include <sys/types.h>
-#include <sys/time.h>
 
 static starpu_pthread_t thread[2];
 static unsigned thread_is_initialized[2];
@@ -181,11 +180,11 @@ int main(int argc, char **argv)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
 
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
 	/* Start the ping pong */
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	ready = 1;
@@ -200,10 +199,9 @@ int main(int argc, char **argv)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-	gettimeofday(&end, NULL);
+	end = starpu_timing_now();
 	
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 +
-		(end.tv_usec - start.tv_usec));
+	double timing = end - start;
 
 	fprintf(stderr, "Took %.0f ms for %d iterations\n", timing/1000, niter);
 	fprintf(stderr, "Latency: %.2f us\n", timing/(2*niter));

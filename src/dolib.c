@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,9 +16,11 @@
 
 /* Wrapper to avoid msys' tendency to turn / into \ and : into ;  */
 
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
+#include <unistd.h>
+#endif
 
 int main(int argc, char *argv[])
 {

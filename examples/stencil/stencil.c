@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2012  Université de Bordeaux 1
+ * Copyright (C) 2010-2012, 2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <sys/time.h>
 #include "stencil.h"
 
 /* Main application */
@@ -149,7 +148,7 @@ static void init_problem(int argc, char **argv, int rank, int world_size)
 	who_runs_what_len = 2*niter;
 	who_runs_what = (int *) calloc(nbz * who_runs_what_len, sizeof(*who_runs_what));
 	who_runs_what_index = (int *) calloc(nbz, sizeof(*who_runs_what_index));
-	last_tick = (struct timeval *) calloc(nbz, sizeof(*last_tick));
+	last_tick = (double *) calloc(nbz, sizeof(*last_tick));
 }
 
 static void free_problem(int rank)
@@ -165,7 +164,7 @@ static void free_problem(int rank)
  *	Main body
  */
 
-struct timeval start;
+double start;
 double begin, end;
 double timing; 
 
@@ -254,7 +253,7 @@ int main(int argc, char **argv)
 	if (rank == 0)
 		FPRINTF(stderr, "GO !\n");
 
-	gettimeofday(&start, NULL);
+	start = starpu_timing_now();
 
 	begin = starpu_timing_now();
 

@@ -16,7 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#if !defined(_WIN32) || defined(__MINGW__) || defined(__CYGWIN__)
+#if !defined(_WIN32) || defined(__MINGW32__) || defined(__CYGWIN__)
 #include <dirent.h>
 #include <sys/stat.h>
 #endif
@@ -1047,7 +1047,7 @@ void starpu_perfmodel_directory(FILE *output)
  * the performance model files */
 int starpu_perfmodel_list(FILE *output)
 {
-#if !defined(_WIN32) || defined(__MINGW__) || defined(__CYGWIN__)
+#if !defined(_WIN32) || defined(__MINGW32__) || defined(__CYGWIN__)
         char path[256];
         DIR *dp;
         struct dirent *ep;

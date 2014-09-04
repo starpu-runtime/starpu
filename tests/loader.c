@@ -16,7 +16,6 @@
 
 #include <common/config.h>
 
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -27,11 +26,41 @@
 #include <signal.h>
 #include <string.h>
 
+#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
+#include <windows.h>
+#else
+#include <sys/time.h>
+#endif
+
 #define  DEFAULT_TIMEOUT       600
 #define  AUTOTEST_SKIPPED_TEST 77
 
 static pid_t child_pid = 0;
 static int   timeout;
+
+#if defined(_WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
+static int mygettimeofday(struct timeval *tv, void *tz)
+{
+	if (tv)
+	{
+		FILETIME ft;
+		unsigned long long res;
+		GetSystemTimeAsFileTime(&ft);
+		/* 100-nanosecond intervals since January 1, 1601 */
+		res = ft.dwHighDateTime;
+		res <<= 32;
+		res |= ft.dwLowDateTime;
+		res /= 10;
+		/* Now we have microseconds */
+		res -= (((1970-1601)*365) + 89) * 24ULL * 3600ULL * 1000000ULL;
+		/* Now we are based on epoch */
+		tv->tv_sec = res / 1000000ULL;
+		tv->tv_usec = res % 1000000ULL;
+	}
+}
+#else
+#define mygettimeofday(tv,tz) gettimeofday(tv,tz)
+#endif
 
 static void launch_gdb(const char *exe)
 {

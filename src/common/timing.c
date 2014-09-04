@@ -130,7 +130,7 @@ static unsigned long long _starpu_residual = 0;
 static int _starpu_inited = 0;
 
 #if defined(_WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
-static int mygettimeofday(struct timeval tv, void *tz)
+static int mygettimeofday(struct timeval *tv, void *tz)
 {
 	if (tv)
 	{

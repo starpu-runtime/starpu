@@ -100,9 +100,9 @@ starpu-top/starpu_top$(EXEEXT): all-local
 all-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE)
 if STARPU_DEVEL
-	@if grep -r sys/time.h $$( find $(srcdir)/src $(srcdir)/mpi/src $(srcdir)/include -name \*.[ch] -a \! -name starpu_util.h ) ; \
+	@if grep -r sys/time.h $$( find $(srcdir)/examples $(srcdir)/tests $(srcdir)/src $(srcdir)/mpi/src $(srcdir)/include -name \*.[ch] -a \! -name starpu_util.h -a \! -name timer.h -a \! -name loader.c ) ; \
 	then \
-		echo "Please do not include sys/time, it is not available on Windows, include starpu_util.h and use starpu_timing_now() instead" ; \
+		echo "Please do not include sys/time, it is not available on Windows, include starpu_util.h and use starpu_timing_now() instead" ; \
 		false ; \
 	fi
 endif
