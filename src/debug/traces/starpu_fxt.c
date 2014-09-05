@@ -808,7 +808,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	}
 }
 
-static void handle_start_thread_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 
@@ -816,7 +816,7 @@ static void handle_start_thread_executing(struct fxt_ev_64 *ev, struct starpu_fx
 		thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "E");
 }
 
-static void handle_end_thread_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 
@@ -882,7 +882,7 @@ static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "B");
 }
 
-static void handle_hyp_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -893,7 +893,7 @@ static void handle_hyp_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H");
 }
 
-static void handle_hyp_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -917,7 +917,7 @@ static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 static double last_sleep_start[STARPU_NMAXWORKERS];
 
-static void handle_start_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -927,7 +927,7 @@ static void handle_start_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
 }
 
-static void handle_end_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -937,7 +937,7 @@ static void handle_end_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_option
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
 }
 
-static void handle_push_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -947,7 +947,7 @@ static void handle_push_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
 }
 
-static void handle_pop_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -957,7 +957,7 @@ static void handle_pop_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_option
 		thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
 }
 
-static void handle_start_sleep(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_sleep_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -970,7 +970,7 @@ static void handle_start_sleep(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sl");
 }
 
-static void handle_end_sleep(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -1209,7 +1209,7 @@ void handle_update_task_cnt(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	fprintf(activity_file, "cnt_submitted\t%.9f\t%lu\n", current_timestamp, nsubmitted);
 }
 
-static void handle_codelet_tag(struct fxt_ev_64 *ev)
+static void handle_tag(struct fxt_ev_64 *ev)
 {
 	uint64_t tag;
 	unsigned long job;
@@ -1220,7 +1220,7 @@ static void handle_codelet_tag(struct fxt_ev_64 *ev)
 	_starpu_fxt_dag_add_tag(tag, job);
 }
 
-static void handle_codelet_tag_deps(struct fxt_ev_64 *ev)
+static void handle_tag_deps(struct fxt_ev_64 *ev)
 {
 	uint64_t child;
 	uint64_t father;
@@ -1684,10 +1684,10 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 
 			case _STARPU_FUT_START_EXECUTING:
-				handle_start_thread_executing(&ev, options);
+				handle_start_executing(&ev, options);
 				break;
 			case _STARPU_FUT_END_EXECUTING:
-				handle_end_thread_executing(&ev, options);
+				handle_end_executing(&ev, options);
 				break;
 
 			case _STARPU_FUT_START_CALLBACK:
@@ -1713,19 +1713,15 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 			case _STARPU_FUT_START_FETCH_INPUT:
 				handle_worker_status(&ev, options, "Fi");
 				break;
-
 			case _STARPU_FUT_START_PUSH_OUTPUT:
 				handle_worker_status(&ev, options, "Po");
 				break;
-
 			case _STARPU_FUT_START_PROGRESS:
 				handle_worker_status(&ev, options, "P");
 				break;
-
 			case _STARPU_FUT_START_UNPARTITION:
 				handle_worker_status(&ev, options, "U");
 				break;
-
 			case _STARPU_FUT_END_FETCH_INPUT:
 			case _STARPU_FUT_END_PROGRESS:
 			case _STARPU_FUT_END_PUSH_OUTPUT:
@@ -1734,35 +1730,35 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 
 			case _STARPU_FUT_WORKER_SCHEDULING_START:
-				handle_start_scheduling(&ev, options);
+				handle_worker_scheduling_start(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SCHEDULING_END:
-				handle_end_scheduling(&ev, options);
+				handle_worker_scheduling_end(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SCHEDULING_PUSH:
-				handle_push_scheduling(&ev, options);
+				handle_worker_scheduling_push(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SCHEDULING_POP:
-				handle_pop_scheduling(&ev, options);
+				handle_worker_scheduling_pop(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SLEEP_START:
-				handle_start_sleep(&ev, options);
+				handle_worker_sleep_start(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SLEEP_END:
-				handle_end_sleep(&ev, options);
+				handle_worker_sleep_end(&ev, options);
 				break;
 
 			case _STARPU_FUT_TAG:
-				handle_codelet_tag(&ev);
+				handle_tag(&ev);
 				break;
 
 			case _STARPU_FUT_TAG_DEPS:
-				handle_codelet_tag_deps(&ev);
+				handle_tag_deps(&ev);
 				break;
 
 			case _STARPU_FUT_TASK_DEPS:
@@ -1779,27 +1775,27 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 
 			case _STARPU_FUT_DATA_COPY:
 				if (!options->no_bus)
-				handle_data_copy();
+				     handle_data_copy();
 				break;
 
 			case _STARPU_FUT_START_DRIVER_COPY:
 				if (!options->no_bus)
-				handle_start_driver_copy(&ev, options);
+					handle_start_driver_copy(&ev, options);
 				break;
 
 			case _STARPU_FUT_END_DRIVER_COPY:
 				if (!options->no_bus)
-				handle_end_driver_copy(&ev, options);
+					handle_end_driver_copy(&ev, options);
 				break;
 
 			case _STARPU_FUT_START_DRIVER_COPY_ASYNC:
 				if (!options->no_bus)
-				handle_start_driver_copy_async(&ev, options);
+					handle_start_driver_copy_async(&ev, options);
 				break;
 
 			case _STARPU_FUT_END_DRIVER_COPY_ASYNC:
 				if (!options->no_bus)
-				handle_end_driver_copy_async(&ev, options);
+					handle_end_driver_copy_async(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORK_STEALING:
@@ -1816,27 +1812,23 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 
 			case _STARPU_FUT_START_ALLOC:
 				if (!options->no_bus)
-				handle_memnode_event(&ev, options, "A");
+					handle_memnode_event(&ev, options, "A");
 				break;
-
 			case _STARPU_FUT_START_ALLOC_REUSE:
 				if (!options->no_bus)
-				handle_memnode_event(&ev, options, "Ar");
+					handle_memnode_event(&ev, options, "Ar");
 				break;
-
 			case _STARPU_FUT_END_ALLOC:
 			case _STARPU_FUT_END_ALLOC_REUSE:
 				if (!options->no_bus)
 				handle_memnode_event(&ev, options, "No");
 				break;
-
 			case _STARPU_FUT_START_FREE:
 				if (!options->no_bus)
 				{
 					handle_memnode_event(&ev, options, "F");
 				}
 				break;
-
 			case _STARPU_FUT_END_FREE:
 				if (!options->no_bus)
 				{
@@ -1847,14 +1839,12 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 						handle_memnode_event(&ev, options, "No");
 				}
 				break;
-
 			case _STARPU_FUT_START_WRITEBACK:
 				if (!options->no_bus)
 				{
 					handle_memnode_event(&ev, options, "W");
 				}
 				break;
-
 			case _STARPU_FUT_END_WRITEBACK:
 				if (!options->no_bus)
 				{
@@ -1865,7 +1855,6 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 						handle_memnode_event(&ev, options, "No");
 				}
 				break;
-
 			case _STARPU_FUT_START_MEMRECLAIM:
 				if (!options->no_bus)
 				{
@@ -1874,7 +1863,6 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 					handle_memnode_event(&ev, options, "R");
 				}
 				break;
-
 			case _STARPU_FUT_END_MEMRECLAIM:
 				if (!options->no_bus)
 				{
@@ -2044,11 +2032,11 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 
 			case _STARPU_FUT_HYPERVISOR_BEGIN:
-				handle_hyp_begin(&ev, options);
+				handle_hypervisor_begin(&ev, options);
 				break;
 
 			case _STARPU_FUT_HYPERVISOR_END:
-				handle_hyp_end(&ev, options);
+				handle_hypervisor_end(&ev, options);
 				break;
 
 			default:
