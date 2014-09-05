@@ -539,8 +539,6 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(worker0->config, worker0->bindid);
 
-	worker0->status = STATUS_UNKNOWN;
-
 	float size = (float) global_mem[devid] / (1<<30);
 #ifdef STARPU_SIMGRID
 	const char *devname = "Simgrid";
@@ -572,6 +570,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 
 	/* tell the main thread that this one is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&worker0->mutex);
+	worker0->status = STATUS_UNKNOWN;
 	worker0->worker_is_initialized = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&worker0->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker0->mutex);
