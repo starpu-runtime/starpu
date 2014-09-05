@@ -21,7 +21,12 @@
 
 int main()
 {
-	starpu_init(NULL);
+	int ret;
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	int procs[STARPU_NMAXWORKERS];
 	unsigned ncpus =  starpu_cpu_worker_get_count();
