@@ -83,7 +83,7 @@ void test_multiformat_mic_func(void *buffers[], void *args)
 	printf("MIC\n");
 
 	struct struct_of_arrays *soa;
-	unsigned int n, i;
+	int n, i;
 	int factor;
 
 	soa = (struct struct_of_arrays *) STARPU_MULTIFORMAT_GET_MIC_PTR(buffers[0]);
@@ -92,7 +92,7 @@ void test_multiformat_mic_func(void *buffers[], void *args)
 
 	for (i = 0; i < n; i++)
 	{
-			FPRINTF(stderr, "(%d %d) [%d]", soa->x[i], soa->y[i], factor);
+		FPRINTF(stderr, "(%d %d) [%d]", soa->x[i], soa->y[i], factor);
 		if (soa->x[i] != i * factor || soa->y[i] != i * factor)
 		{
 			multiformat_config.copy_failed = 1;
