@@ -15,15 +15,14 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu_config.h>
-#include <starpu.h>
-
-#ifdef __MINGW__
-#  define WINVER WindowsXP
-#  include <w32api.h>
+#ifdef __MINGW32__
+#  define WINVER 0x0501 /* WindowsXP, for getaddrinfo */
 #endif
 
+#include <starpu_config.h>
+
 #ifdef STARPU_HAVE_WINDOWS
+#  include <winsock2.h>
 #  include <ws2tcpip.h>
 #  include <io.h>
 #else
@@ -31,6 +30,8 @@
 #  include <netinet/in.h>
 #  include <netdb.h>
 #endif
+
+#include <starpu.h>
 
 #include <top/starpu_top_core.h>
 #include <top/starpu_top_connection.h>
