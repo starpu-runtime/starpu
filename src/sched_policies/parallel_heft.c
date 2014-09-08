@@ -516,7 +516,7 @@ static void parallel_heft_add_workers(__attribute__((unused)) unsigned sched_ctx
 			workerarg->has_prev_init = 1;
 		}
 	}
-//	_starpu_sched_find_worker_combinations(workerids, nworkers);
+       _starpu_sched_find_worker_combinations(workerids, nworkers);
 
 // start_unclear_part: not very clear where this is used
 /* 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config(); */
