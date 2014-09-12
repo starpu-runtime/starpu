@@ -434,10 +434,6 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	else
 		data_interface = mc->chunk_interface;
 
-	new_replicate->allocated = 1;
-	new_replicate->automatically_allocated = 1;
-	new_replicate->initialized = 0;
-
 	STARPU_ASSERT(new_replicate->data_interface);
 	STARPU_ASSERT(data_interface);
 	memcpy(new_replicate->data_interface, data_interface, mc->size_interface);
@@ -522,7 +518,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(unsigned n
 	     mc = _starpu_mem_chunk_list_next(mc))
 	{
 		/* Is that a false hit ? (this is _very_ unlikely) */
-		if (_starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->chunk_interface, mc->ops))
+		if (_starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->chunk_interface, mc->ops) != 1)
 			continue;
 
 		/* Cache hit */
