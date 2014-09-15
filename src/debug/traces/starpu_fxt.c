@@ -29,12 +29,19 @@
 #include <inttypes.h>
 #include <starpu_hash.h>
 
-static char *cpus_worker_colors[STARPU_NMAXWORKERS] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4",  "/greens9/9", "/greens9/3",  "/greens9/2",  "/greens9/1"  };
-static char *cuda_worker_colors[STARPU_NMAXWORKERS] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
-static char *opencl_worker_colors[STARPU_NMAXWORKERS] = {"/blues9/9", "/blues9/6", "/blues9/3", "/blues9/1", "/blues9/8", "/blues9/7", "/blues9/4", "/blues9/2",  "/blues9/1"};
-static char *mic_worker_colors[STARPU_NMAXWORKERS] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
-static char *scc_worker_colors[STARPU_NMAXWORKERS] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
-static char *other_worker_colors[STARPU_NMAXWORKERS] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
+#define CPUS_WORKER_COLORS_NB	8
+#define CUDA_WORKER_COLORS_NB	9
+#define OPENCL_WORKER_COLORS_NB 8
+#define MIC_WORKER_COLORS_NB	9
+#define SCC_WORKER_COLORS_NB	9
+#define OTHER_WORKER_COLORS_NB	4
+
+static char *cpus_worker_colors[CPUS_WORKER_COLORS_NB] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4",  "/greens9/9", "/greens9/3",  "/greens9/2",  "/greens9/1"  };
+static char *cuda_worker_colors[CUDA_WORKER_COLORS_NB] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
+static char *opencl_worker_colors[OPENCL_WORKER_COLORS_NB] = {"/blues9/9", "/blues9/6", "/blues9/3", "/blues9/1", "/blues9/8", "/blues9/7", "/blues9/4", "/blues9/2",  "/blues9/1"};
+static char *mic_worker_colors[MIC_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
+static char *scc_worker_colors[SCC_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
+static char *other_worker_colors[OTHER_WORKER_COLORS_NB] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
 static char *worker_colors[STARPU_NMAXWORKERS];
 
 static unsigned opencl_index = 0;
@@ -49,6 +56,7 @@ static void set_next_other_worker_color(int workerid)
 	if (workerid >= STARPU_NMAXWORKERS)
 		return;
 	worker_colors[workerid] = other_worker_colors[other_index++];
+	if (other_index == OTHER_WORKER_COLORS_NB) other_index = 0;
 }
 
 static void set_next_cpu_worker_color(int workerid)
@@ -56,6 +64,7 @@ static void set_next_cpu_worker_color(int workerid)
 	if (workerid >= STARPU_NMAXWORKERS)
 		return;
 	worker_colors[workerid] = cpus_worker_colors[cpus_index++];
+	if (cpus_index == CPUS_WORKER_COLORS_NB) cpus_index = 0;
 }
 
 static void set_next_cuda_worker_color(int workerid)
@@ -63,6 +72,7 @@ static void set_next_cuda_worker_color(int workerid)
 	if (workerid >= STARPU_NMAXWORKERS)
 		return;
 	worker_colors[workerid] = cuda_worker_colors[cuda_index++];
+	if (cuda_index == CUDA_WORKER_COLORS_NB) cuda_index = 0;
 }
 
 static void set_next_opencl_worker_color(int workerid)
@@ -70,16 +80,23 @@ static void set_next_opencl_worker_color(int workerid)
 	if (workerid >= STARPU_NMAXWORKERS)
 		return;
 	worker_colors[workerid] = opencl_worker_colors[opencl_index++];
+	if (opencl_index == OPENCL_WORKER_COLORS_NB) opencl_index = 0;
 }
 
 static void set_next_mic_worker_color(int workerid)
 {
+	if (workerid >= STARPU_NMAXWORKERS)
+		return;
 	worker_colors[workerid] = mic_worker_colors[mic_index++];
+	if (mic_index == MIC_WORKER_COLORS_NB) mic_index = 0;
 }
 
 static void set_next_scc_worker_color(int workerid)
 {
+	if (workerid >= STARPU_NMAXWORKERS)
+		return;
 	worker_colors[workerid] = scc_worker_colors[scc_index++];
+	if (scc_index == SCC_WORKER_COLORS_NB) scc_index = 0;
 }
 
 static const char *get_worker_color(int workerid)
