@@ -73,7 +73,7 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmo
 	if (arch_model->regression.nsample || arch_model->regression.valid || arch_model->regression.nl_valid || arch_model->list)
 	{
 		starpu_perfmodel_get_arch_name(arch, archname, 32, nimpl);
-		fprintf(output, "performance model for %s\n", archname);
+		fprintf(output, "# performance model for %s\n", archname);
 	}
 
 	if (parameter == NULL)
