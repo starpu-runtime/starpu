@@ -203,7 +203,7 @@ static void print_comma(FILE *gnuplot_file, int *first)
 	}
 }
 
-static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct starpu_perfmodel_per_arch *arch_model, int comb, int impl, int *first, struct _perfmodel_plot_options *options)
+static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_arch* arch, struct starpu_perfmodel_per_arch *arch_model, int impl, int *first, struct _perfmodel_plot_options *options)
 {
 	char arch_name[256];
 
@@ -212,8 +212,8 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel *mode
 #ifdef STARPU_USE_FXT
 	if (!options->gflops && options->with_fxt_file && impl == 0)
 	{
-//		print_comma(gnuplot_file, first);
-//		fprintf(gnuplot_file, "\"< grep -w \\^%d_%d_%d %s\" using 2:3 title \"Profiling %s\"", arch->type, arch->devid, arch->ncore, options->data_file_name, arch_name);
+		print_comma(gnuplot_file, first);
+		fprintf(gnuplot_file, "\"< grep -w \\^%s %s\" using 2:3 title \"Profiling %s\"", arch_name, options->data_file_name, replace_char(arch_name, '_', '-'));
 	}
 #endif
 
@@ -363,14 +363,14 @@ static void display_all_perf_models(FILE *gnuplot_file, struct starpu_perfmodel 
 			for(impl = 0; impl < model->state->nimpls[comb]; impl++)
 			{
 				struct starpu_perfmodel_per_arch *archmodel = &model->state->per_arch[comb][impl];
-				display_perf_model(gnuplot_file, model, arch, archmodel, comb, impl, first, options);
+				display_perf_model(gnuplot_file, arch, archmodel, impl, first, options);
 			}
 		}
 	}
 }
 
 #ifdef STARPU_USE_FXT
-static void dump_data_file(FILE *data_file, struct starpu_perfmodel *model, struct _perfmodel_plot_options *options)
+static void dump_data_file(FILE *data_file, struct _perfmodel_plot_options *options)
 {
 	int i;
 	for (i = 0; i < options->fxt_options.dumped_codelets_count; i++)
@@ -379,11 +379,13 @@ static void dump_data_file(FILE *data_file, struct starpu_perfmodel *model, stru
 		if (strncmp(options->dumped_codelets[i].symbol, options->symbol, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long)-1) == 0)
 		{
 			struct starpu_perfmodel_arch* arch = &options->dumped_codelets[i].arch;
+			char archname[32];
 
 			size_t size = options->dumped_codelets[i].size;
 			float time = options->dumped_codelets[i].time;
 
-//			fprintf(data_file, "%d_%d_%d	%f	%f\n", arch->type, arch->devid, arch->ncore, (float)size, time);
+			starpu_perfmodel_get_arch_name(arch, archname, 32, 0);
+			fprintf(data_file, "%s	%f	%f\n", archname, (float)size, time);
 		}
 	}
 }
@@ -475,7 +477,7 @@ int main(int argc, char **argv)
 
 		FILE *data_file = fopen(options.data_file_name, "w+");
 		STARPU_ASSERT(data_file);
-		dump_data_file(data_file, &model, &options);
+		dump_data_file(data_file, &options);
 		fclose(data_file);
 	}
 #endif
