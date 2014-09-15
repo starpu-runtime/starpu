@@ -339,9 +339,9 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 						/* No value for this arch. */
 						fprintf(datafile, "\t\"\"\t\"\"");
 				}
-				fprintf(datafile, "\n");
 			}
 		}
+		fprintf(datafile, "\n");
 	}
 	fprintf(stderr, "\n");
 
