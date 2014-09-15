@@ -712,10 +712,14 @@ static void get_model_path(struct starpu_perfmodel *model, char *path, size_t ma
 	_starpu_get_perf_model_dir_codelets(path, maxlen);
 	strncat(path, model->symbol, maxlen);
 
-	char hostname[65];
-	_starpu_gethostname(hostname, sizeof(hostname));
-	strncat(path, ".", maxlen);
-	strncat(path, hostname, maxlen);
+	const char *dot = strrchr(model->symbol, '.');
+	if (dot == NULL)
+	{
+		char hostname[65];
+		_starpu_gethostname(hostname, sizeof(hostname));
+		strncat(path, ".", maxlen);
+		strncat(path, hostname, maxlen);
+	}
 }
 
 static void save_history_based_model(struct starpu_perfmodel *model)
