@@ -23,7 +23,7 @@ The arguments following the codelet can be of the following types:
 ::STARPU_REDUX an access mode followed by a data handle;
 <li> ::STARPU_DATA_ARRAY followed by an array of data handles and its
 number of elements;
-<li> ::STARPU_EXECUTE_ON_WORKER followed by an integer value
+<li> ::STARPU_EXECUTE_ON_WORKER, ::STARPU_WORKER_ORDER followed by an integer value
 specifying the worker on which to execute the task (as specified by
 starpu_task::execute_on_a_specific_worker)
 <li> the specific values ::STARPU_VALUE, ::STARPU_CALLBACK,
@@ -79,6 +79,12 @@ TODO
 this macro is used when calling starpu_task_insert(), and must be
 followed by an integer value specifying the worker on which to execute
 the task (as specified by starpu_task::execute_on_a_specific_worker)
+
+\def STARPU_WORKER_ORDER
+\ingroup API_Insert_Task
+this macro is used when calling starpu_task_insert(), and must be
+followed by an integer value specifying the worker order in which to execute
+the tasks (as specified by starpu_task::workerorder)
 
 \def STARPU_TAG
 \ingroup API_Insert_Task
