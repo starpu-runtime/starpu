@@ -167,6 +167,7 @@ struct starpu_task
 	unsigned regenerate:1;
 
 	unsigned workerid;
+	unsigned workerorder;
 
 	unsigned scheduled:1;
 
@@ -205,6 +206,7 @@ struct starpu_task
 	.use_tag = 0,					\
 	.synchronous = 0,				\
 	.execute_on_a_specific_worker = 0,		\
+	.workerorder = 0,				\
 	.bundle = NULL,					\
 	.detach = 1,					\
 	.destroy = 0,					\
