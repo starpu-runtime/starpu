@@ -83,6 +83,8 @@ Small features:
   * On Linux x86, spinlocks now block after a hundred tries. This avoids
     typical 10ms pauses when the application thread tries to submit tasks.
   * New function char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
+  * Improve static scheduling by adding support for specifying the task
+    execution order.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

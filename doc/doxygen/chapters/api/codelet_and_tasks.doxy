@@ -549,6 +549,14 @@ process this task (as returned by starpu_worker_get_id()). This field
 is ignored if the field starpu_task::execute_on_a_specific_worker is
 set to 0.
 
+\var starpu_task::workerorder
+Optional field. If the field starpu_task::execute_on_a_specific_worker is
+set, this field indicates the per-worker consecutive order in which tasks
+should be executed on the worker. Tasks will be executed in consecutive
+starpu_task::workerorder values, thus ignoring the availability order or task
+priority. See \ref StaticScheduling for more details. This field is ignored if
+the field starpu_task::execute_on_a_specific_worker is set to 0.
+
 \var starpu_task::bundle
 Optional field. The bundle that includes this task. If no bundle is
 used, this should be NULL.

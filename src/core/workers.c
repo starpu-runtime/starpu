@@ -428,6 +428,10 @@ static void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu
 	STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
 	starpu_task_list_init(&workerarg->local_tasks);
+	workerarg->local_ordered_tasks = NULL;
+	workerarg->local_ordered_tasks_size = 0;
+	workerarg->current_ordered_task = 0;
+	workerarg->current_ordered_task_order = 1;
 	workerarg->current_task = NULL;
 	workerarg->first_task = 0;
 	workerarg->ntasks = 0;
@@ -1157,6 +1161,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 {
 	int status = 0;
 	unsigned workerid;
+	unsigned n;
 
 	for (workerid = 0; workerid < pconfig->topology.nworkers; workerid++)
 	{
@@ -1209,6 +1214,8 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 
 out:
 		STARPU_ASSERT(starpu_task_list_empty(&worker->local_tasks));
+		for (n = 0; n < worker->local_ordered_tasks_size; n++)
+			STARPU_ASSERT(worker->local_ordered_tasks[n] == NULL);
 		_starpu_sched_ctx_list_delete(&worker->sched_ctx_list);
 		_starpu_job_list_delete(worker->terminated_jobs);
 	}
