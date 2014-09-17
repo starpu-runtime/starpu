@@ -474,10 +474,8 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 	{
 		if (worker->pipeline_length == 0)
 		{
+			/* Forced synchronous execution */
 			cudaStreamSynchronize(starpu_cuda_get_local_stream());
-#if defined(STARPU_DEBUG) && !defined(STARPU_SIMGRID)
-			STARPU_ASSERT_MSG(cudaStreamQuery(starpu_cuda_get_local_stream()) == cudaSuccess, "CUDA codelets have to wait for termination of their kernels on the starpu_cuda_get_local_stream() stream");
-#endif
 			finish_job_on_cuda(j, worker);
 		}
 		else
