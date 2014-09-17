@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 
 		for (n = 0; n < N; n++)
 		{
-			i = random()%(N-n);
+			i = (int)starpu_drand48()%(N-n);
 			ret = starpu_task_submit(dep_task[i]);
 			memmove(&dep_task[i], &dep_task[i+1], (N-i-1)*sizeof(dep_task[i]));
 			if (ret == -ENODEV) goto enodev;
