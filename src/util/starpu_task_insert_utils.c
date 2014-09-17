@@ -118,6 +118,10 @@ void _starpu_task_insert_get_args_size(va_list varg_list, unsigned *nbuffers, si
 		{
 			va_arg(varg_list, int);
 		}
+		else if (arg_type==STARPU_WORKER_ORDER)
+		{
+			va_arg(varg_list, unsigned);
+		}
 		else if (arg_type==STARPU_SCHED_CTX)
 		{
 			(void)va_arg(varg_list, unsigned);
@@ -234,6 +238,10 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
 			va_arg(varg_list, int);
+		}
+		else if (arg_type==STARPU_WORKER_ORDER)
+		{
+			va_arg(varg_list, unsigned);
 		}
 		else if (arg_type==STARPU_SCHED_CTX)
 		{
@@ -411,6 +419,15 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 			{
 				(*task)->workerid = worker;
 				(*task)->execute_on_a_specific_worker = 1;
+			}
+		}
+		else if (arg_type==STARPU_WORKER_ORDER)
+		{
+			unsigned order = va_arg(varg_list, unsigned);
+			if (order != 0)
+			{
+				STARPU_ASSERT_MSG((*task)->execute_on_a_specific_worker, "worker order only makes sense if a workerid is provided");
+				(*task)->workerorder = order;
 			}
 		}
 		else if (arg_type==STARPU_SCHED_CTX)
