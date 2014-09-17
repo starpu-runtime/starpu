@@ -45,6 +45,9 @@ New features:
     nodes.
   * Add STARPU_CUDA_ASYNC and STARPU_OPENCL_ASYNC flags to allow asynchronous
     CUDA and OpenCL kernel execution.
+  * Add STARPU_CUDA_PIPELINE and STARPU_OPENCL_PIPELINE to specify how
+    many asynchronous tasks are submitted in advance on CUDA and
+    OpenCL devices.
   * Add CUDA concurrent kernel execution support through
     the STARPU_NWORKER_PER_CUDA environment variable.
   * Add CUDA and OpenCL kernel submission pipelining, to overlap costs and allow
