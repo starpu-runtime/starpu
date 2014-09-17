@@ -903,18 +903,28 @@ static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_
 		int err;
 		cl_command_queue queue;
 		starpu_opencl_get_queue(worker->devid, &queue);
-		/* the function clEnqueueMarker is deprecated from
-		 * OpenCL version 1.2. We would like to use the new
-		 * function clEnqueueMarkerWithWaitList. We could do
-		 * it by checking its availability through our own
-		 * configure macro HAVE_CLENQUEUEMARKERWITHWAITLIST
-		 * and the OpenCL macro CL_VERSION_1_2. However these
-		 * 2 macros detect the function availability in the
-		 * ICD and not in the device implementation.
-		 */
-		err = clEnqueueMarker(queue, &task_events[worker->devid][(worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE]);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
-		_STARPU_TRACE_START_EXECUTING();
+
+		if (worker->pipeline_length == 0)
+		{
+			starpu_opencl_get_queue(worker->devid, &queue);
+			clFinish(queue);
+			_starpu_opencl_stop_job(j, worker);
+		}
+		else
+		{
+			/* the function clEnqueueMarker is deprecated from
+			 * OpenCL version 1.2. We would like to use the new
+			 * function clEnqueueMarkerWithWaitList. We could do
+			 * it by checking its availability through our own
+			 * configure macro HAVE_CLENQUEUEMARKERWITHWAITLIST
+			 * and the OpenCL macro CL_VERSION_1_2. However these
+			 * 2 macros detect the function availability in the
+			 * ICD and not in the device implementation.
+			 */
+			err = clEnqueueMarker(queue, &task_events[worker->devid][(worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE]);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+			_STARPU_TRACE_START_EXECUTING();
+		}
 	}
 	else
 #else
