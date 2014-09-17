@@ -463,6 +463,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 
 /* Ordered tasks are simply recorded as they arrive in the local_ordered_tasks
  * ring buffer, indexed by order, and pulled from its head. */
+/* TODO: replace with perhaps a heap */
 
 /* This function must be called with worker->sched_mutex taken */
 struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker)
