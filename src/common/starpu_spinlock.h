@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,7 +25,6 @@
 struct _starpu_spinlock
 {
 #if defined(STARPU_SPINLOCK_CHECK)
-	starpu_pthread_mutexattr_t errcheck_attr;
 	starpu_pthread_mutex_t errcheck_lock;
 	const char *last_taker;
 #else
