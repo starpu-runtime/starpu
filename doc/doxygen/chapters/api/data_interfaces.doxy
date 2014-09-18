@@ -1000,11 +1000,12 @@ DefiningANewDataInterface.
 \ingroup API_Data_Interfaces
 Allocate \p size bytes on node \p dst_node. This returns 0 if
 allocation failed, the allocation method should then return <c>-ENOMEM</c> as
-allocated size.
+allocated size. Deallocation must be done with starpu_free_on_node.
 
 \fn void starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 \ingroup API_Data_Interfaces
-Free \p addr of \p size bytes on node \p dst_node.
+Free \p addr of \p size bytes on node \p dst_node which was previously allocated
+with starpu_malloc_on_node.
 
 \fn int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, void *async_data)
 \ingroup API_Data_Interfaces
