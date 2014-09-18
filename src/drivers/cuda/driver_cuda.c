@@ -490,8 +490,8 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 			if (k == (int) worker->set->nworkers)
 				/* Everybody busy */
 				_STARPU_TRACE_START_EXECUTING();
-		}
 #endif
+		}
 	}
 	else
 #else
