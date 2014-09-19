@@ -100,6 +100,8 @@ extern void starpu_omp_critical_inline_end(const char *name) __STARPU_OMP_NOTHRO
 extern void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskwait(void) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_taskgroup(void (*f)(void *arg), void *arg) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_taskgroup_begin(void) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_taskgroup_end(void) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_for(void (*f)(unsigned long long _first_i, unsigned long long _nb_i, void *arg), void *arg, unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, int nowait) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_for_inline_first(unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, unsigned long long *_first_i, unsigned long long *_nb_i) __STARPU_OMP_NOTHROW;

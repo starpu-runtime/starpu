@@ -1634,9 +1634,8 @@ static void group__sleep_callback(void *_task)
 void starpu_omp_taskgroup(void (*f)(void *arg), void *arg)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
-	struct starpu_omp_task_group *p_previous_task_group;
 	struct starpu_omp_task_group task_group;
-	p_previous_task_group = task->task_group;
+	task_group.p_previous_task_group = task->task_group;
 	task_group.descendent_task_count = 0;
 	task_group.leader_task = task;
 	task->task_group = &task_group;
@@ -1653,7 +1652,39 @@ void starpu_omp_taskgroup(void (*f)(void *arg), void *arg)
 	{
 		_starpu_spin_unlock(&task->lock);
 	}
-	task->task_group = p_previous_task_group;
+	task->task_group = task_group.p_previous_task_group;
+}
+
+void starpu_omp_taskgroup_begin(void)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task_group *p_task_group = malloc(sizeof(*p_task_group));
+	if (p_task_group == NULL)
+		_STARPU_ERROR("memory allocation failed\n");
+	p_task_group->p_previous_task_group = task->task_group;
+	p_task_group->descendent_task_count = 0;
+	p_task_group->leader_task = task;
+	task->task_group = p_task_group;
+}
+
+void starpu_omp_taskgroup_end(void)
+{
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	_starpu_spin_lock(&task->lock);
+	struct starpu_omp_task_group *p_task_group = task->task_group;
+	if (p_task_group->descendent_task_count > 0)
+	{
+		task->wait_on |= starpu_omp_task_wait_on_group;
+		_starpu_task_prepare_for_continuation_ext(0, group__sleep_callback, task);
+		starpu_omp_task_preempt();
+		STARPU_ASSERT(p_task_group->descendent_task_count == 0);
+	}
+	else
+	{
+		_starpu_spin_unlock(&task->lock);
+	}
+	task->task_group = p_task_group->p_previous_task_group;
+	free(p_task_group);
 }
 
 static inline void _starpu_omp_for_loop(struct starpu_omp_region *parallel_region, struct starpu_omp_task *task,

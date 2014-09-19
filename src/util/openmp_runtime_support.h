@@ -150,6 +150,7 @@ struct starpu_omp_task_group
 {
 	int descendent_task_count;
 	struct starpu_omp_task *leader_task;
+	struct starpu_omp_task_group *p_previous_task_group;
 };
 
 struct starpu_omp_task_link
