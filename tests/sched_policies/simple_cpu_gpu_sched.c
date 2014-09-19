@@ -205,7 +205,18 @@ run(struct starpu_sched_policy *policy)
 	if (cpu_task_worker != STARPU_CPU_WORKER ||
 			(gpu_task_worker != STARPU_CUDA_WORKER &&
 			 gpu_task_worker != STARPU_OPENCL_WORKER))
+	{
+		if (cpu_task_worker != STARPU_CPU_WORKER)
+		{
+			FPRINTF(stderr, "The CPU task did not run on a CPU worker\n");
+		}
+		if (gpu_task_worker != STARPU_CUDA_WORKER && gpu_task_worker != STARPU_OPENCL_WORKER))
+		{
+			FPRINTF(stderr, "The GPU task did not run on a Cuda or OpenCL worker\n");
+		}
+
 		ret = 1;
+	}
 	else
 		ret = 0;
 
