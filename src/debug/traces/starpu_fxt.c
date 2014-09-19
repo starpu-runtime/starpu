@@ -29,12 +29,19 @@
 #include <inttypes.h>
 #include <starpu_hash.h>
 
-static char *cpus_worker_colors[STARPU_NMAXWORKERS] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4",  "/greens9/9", "/greens9/3",  "/greens9/2",  "/greens9/1"  };
-static char *cuda_worker_colors[STARPU_NMAXWORKERS] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
-static char *opencl_worker_colors[STARPU_NMAXWORKERS] = {"/blues9/9", "/blues9/6", "/blues9/3", "/blues9/1", "/blues9/8", "/blues9/7", "/blues9/4", "/blues9/2",  "/blues9/1"};
-static char *mic_worker_colors[STARPU_NMAXWORKERS] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
-static char *scc_worker_colors[STARPU_NMAXWORKERS] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
-static char *other_worker_colors[STARPU_NMAXWORKERS] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
+#define CPUS_WORKER_COLORS_NB	8
+#define CUDA_WORKER_COLORS_NB	9
+#define OPENCL_WORKER_COLORS_NB 8
+#define MIC_WORKER_COLORS_NB	9
+#define SCC_WORKER_COLORS_NB	9
+#define OTHER_WORKER_COLORS_NB	4
+
+static char *cpus_worker_colors[CPUS_WORKER_COLORS_NB] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4",  "/greens9/9", "/greens9/3",  "/greens9/2",  "/greens9/1"  };
+static char *cuda_worker_colors[CUDA_WORKER_COLORS_NB] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
+static char *opencl_worker_colors[OPENCL_WORKER_COLORS_NB] = {"/blues9/9", "/blues9/6", "/blues9/3", "/blues9/1", "/blues9/8", "/blues9/7", "/blues9/4", "/blues9/2",  "/blues9/1"};
+static char *mic_worker_colors[MIC_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
+static char *scc_worker_colors[SCC_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
+static char *other_worker_colors[OTHER_WORKER_COLORS_NB] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
 static char *worker_colors[STARPU_NMAXWORKERS];
 
 static unsigned opencl_index = 0;
@@ -49,6 +56,7 @@ static void set_next_other_worker_color(int workerid)
 	if (workerid >= STARPU_NMAXWORKERS)
 		return;
 	worker_colors[workerid] = other_worker_colors[other_index++];
+	if (other_index == OTHER_WORKER_COLORS_NB) other_index = 0;
 }
 
 static void set_next_cpu_worker_color(int workerid)
@@ -56,6 +64,7 @@ static void set_next_cpu_worker_color(int workerid)
 	if (workerid >= STARPU_NMAXWORKERS)
 		return;
 	worker_colors[workerid] = cpus_worker_colors[cpus_index++];
+	if (cpus_index == CPUS_WORKER_COLORS_NB) cpus_index = 0;
 }
 
 static void set_next_cuda_worker_color(int workerid)
@@ -63,6 +72,7 @@ static void set_next_cuda_worker_color(int workerid)
 	if (workerid >= STARPU_NMAXWORKERS)
 		return;
 	worker_colors[workerid] = cuda_worker_colors[cuda_index++];
+	if (cuda_index == CUDA_WORKER_COLORS_NB) cuda_index = 0;
 }
 
 static void set_next_opencl_worker_color(int workerid)
@@ -70,16 +80,23 @@ static void set_next_opencl_worker_color(int workerid)
 	if (workerid >= STARPU_NMAXWORKERS)
 		return;
 	worker_colors[workerid] = opencl_worker_colors[opencl_index++];
+	if (opencl_index == OPENCL_WORKER_COLORS_NB) opencl_index = 0;
 }
 
 static void set_next_mic_worker_color(int workerid)
 {
+	if (workerid >= STARPU_NMAXWORKERS)
+		return;
 	worker_colors[workerid] = mic_worker_colors[mic_index++];
+	if (mic_index == MIC_WORKER_COLORS_NB) mic_index = 0;
 }
 
 static void set_next_scc_worker_color(int workerid)
 {
+	if (workerid >= STARPU_NMAXWORKERS)
+		return;
 	worker_colors[workerid] = scc_worker_colors[scc_index++];
+	if (scc_index == SCC_WORKER_COLORS_NB) scc_index = 0;
 }
 
 static const char *get_worker_color(int workerid)
@@ -808,7 +825,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	}
 }
 
-static void handle_start_thread_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 
@@ -816,7 +833,7 @@ static void handle_start_thread_executing(struct fxt_ev_64 *ev, struct starpu_fx
 		thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "E");
 }
 
-static void handle_end_thread_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
 
@@ -882,7 +899,7 @@ static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "B");
 }
 
-static void handle_hyp_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -893,7 +910,7 @@ static void handle_hyp_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H");
 }
 
-static void handle_hyp_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -917,7 +934,7 @@ static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options
 
 static double last_sleep_start[STARPU_NMAXWORKERS];
 
-static void handle_start_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -927,7 +944,7 @@ static void handle_start_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
 }
 
-static void handle_end_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -937,7 +954,7 @@ static void handle_end_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_option
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
 }
 
-static void handle_push_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -947,7 +964,7 @@ static void handle_push_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
 }
 
-static void handle_pop_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_scheduling_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -957,7 +974,7 @@ static void handle_pop_scheduling(struct fxt_ev_64 *ev, struct starpu_fxt_option
 		thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
 }
 
-static void handle_start_sleep(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_sleep_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -970,7 +987,7 @@ static void handle_start_sleep(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sl");
 }
 
-static void handle_end_sleep(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_worker_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int worker;
 	worker = find_worker_id(ev->param[0]);
@@ -1209,7 +1226,7 @@ void handle_update_task_cnt(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 	fprintf(activity_file, "cnt_submitted\t%.9f\t%lu\n", current_timestamp, nsubmitted);
 }
 
-static void handle_codelet_tag(struct fxt_ev_64 *ev)
+static void handle_tag(struct fxt_ev_64 *ev)
 {
 	uint64_t tag;
 	unsigned long job;
@@ -1220,7 +1237,7 @@ static void handle_codelet_tag(struct fxt_ev_64 *ev)
 	_starpu_fxt_dag_add_tag(tag, job);
 }
 
-static void handle_codelet_tag_deps(struct fxt_ev_64 *ev)
+static void handle_tag_deps(struct fxt_ev_64 *ev)
 {
 	uint64_t child;
 	uint64_t father;
@@ -1684,10 +1701,10 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 
 			case _STARPU_FUT_START_EXECUTING:
-				handle_start_thread_executing(&ev, options);
+				handle_start_executing(&ev, options);
 				break;
 			case _STARPU_FUT_END_EXECUTING:
-				handle_end_thread_executing(&ev, options);
+				handle_end_executing(&ev, options);
 				break;
 
 			case _STARPU_FUT_START_CALLBACK:
@@ -1713,19 +1730,15 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 			case _STARPU_FUT_START_FETCH_INPUT:
 				handle_worker_status(&ev, options, "Fi");
 				break;
-
 			case _STARPU_FUT_START_PUSH_OUTPUT:
 				handle_worker_status(&ev, options, "Po");
 				break;
-
 			case _STARPU_FUT_START_PROGRESS:
 				handle_worker_status(&ev, options, "P");
 				break;
-
 			case _STARPU_FUT_START_UNPARTITION:
 				handle_worker_status(&ev, options, "U");
 				break;
-
 			case _STARPU_FUT_END_FETCH_INPUT:
 			case _STARPU_FUT_END_PROGRESS:
 			case _STARPU_FUT_END_PUSH_OUTPUT:
@@ -1734,35 +1747,35 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 
 			case _STARPU_FUT_WORKER_SCHEDULING_START:
-				handle_start_scheduling(&ev, options);
+				handle_worker_scheduling_start(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SCHEDULING_END:
-				handle_end_scheduling(&ev, options);
+				handle_worker_scheduling_end(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SCHEDULING_PUSH:
-				handle_push_scheduling(&ev, options);
+				handle_worker_scheduling_push(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SCHEDULING_POP:
-				handle_pop_scheduling(&ev, options);
+				handle_worker_scheduling_pop(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SLEEP_START:
-				handle_start_sleep(&ev, options);
+				handle_worker_sleep_start(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORKER_SLEEP_END:
-				handle_end_sleep(&ev, options);
+				handle_worker_sleep_end(&ev, options);
 				break;
 
 			case _STARPU_FUT_TAG:
-				handle_codelet_tag(&ev);
+				handle_tag(&ev);
 				break;
 
 			case _STARPU_FUT_TAG_DEPS:
-				handle_codelet_tag_deps(&ev);
+				handle_tag_deps(&ev);
 				break;
 
 			case _STARPU_FUT_TASK_DEPS:
@@ -1779,27 +1792,27 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 
 			case _STARPU_FUT_DATA_COPY:
 				if (!options->no_bus)
-				handle_data_copy();
+				     handle_data_copy();
 				break;
 
 			case _STARPU_FUT_START_DRIVER_COPY:
 				if (!options->no_bus)
-				handle_start_driver_copy(&ev, options);
+					handle_start_driver_copy(&ev, options);
 				break;
 
 			case _STARPU_FUT_END_DRIVER_COPY:
 				if (!options->no_bus)
-				handle_end_driver_copy(&ev, options);
+					handle_end_driver_copy(&ev, options);
 				break;
 
 			case _STARPU_FUT_START_DRIVER_COPY_ASYNC:
 				if (!options->no_bus)
-				handle_start_driver_copy_async(&ev, options);
+					handle_start_driver_copy_async(&ev, options);
 				break;
 
 			case _STARPU_FUT_END_DRIVER_COPY_ASYNC:
 				if (!options->no_bus)
-				handle_end_driver_copy_async(&ev, options);
+					handle_end_driver_copy_async(&ev, options);
 				break;
 
 			case _STARPU_FUT_WORK_STEALING:
@@ -1816,27 +1829,23 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 
 			case _STARPU_FUT_START_ALLOC:
 				if (!options->no_bus)
-				handle_memnode_event(&ev, options, "A");
+					handle_memnode_event(&ev, options, "A");
 				break;
-
 			case _STARPU_FUT_START_ALLOC_REUSE:
 				if (!options->no_bus)
-				handle_memnode_event(&ev, options, "Ar");
+					handle_memnode_event(&ev, options, "Ar");
 				break;
-
 			case _STARPU_FUT_END_ALLOC:
 			case _STARPU_FUT_END_ALLOC_REUSE:
 				if (!options->no_bus)
 				handle_memnode_event(&ev, options, "No");
 				break;
-
 			case _STARPU_FUT_START_FREE:
 				if (!options->no_bus)
 				{
 					handle_memnode_event(&ev, options, "F");
 				}
 				break;
-
 			case _STARPU_FUT_END_FREE:
 				if (!options->no_bus)
 				{
@@ -1847,14 +1856,12 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 						handle_memnode_event(&ev, options, "No");
 				}
 				break;
-
 			case _STARPU_FUT_START_WRITEBACK:
 				if (!options->no_bus)
 				{
 					handle_memnode_event(&ev, options, "W");
 				}
 				break;
-
 			case _STARPU_FUT_END_WRITEBACK:
 				if (!options->no_bus)
 				{
@@ -1865,7 +1872,6 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 						handle_memnode_event(&ev, options, "No");
 				}
 				break;
-
 			case _STARPU_FUT_START_MEMRECLAIM:
 				if (!options->no_bus)
 				{
@@ -1874,7 +1880,6 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 					handle_memnode_event(&ev, options, "R");
 				}
 				break;
-
 			case _STARPU_FUT_END_MEMRECLAIM:
 				if (!options->no_bus)
 				{
@@ -2044,11 +2049,11 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 				break;
 
 			case _STARPU_FUT_HYPERVISOR_BEGIN:
-				handle_hyp_begin(&ev, options);
+				handle_hypervisor_begin(&ev, options);
 				break;
 
 			case _STARPU_FUT_HYPERVISOR_END:
-				handle_hyp_end(&ev, options);
+				handle_hypervisor_end(&ev, options);
 				break;
 
 			default:

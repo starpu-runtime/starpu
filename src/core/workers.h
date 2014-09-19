@@ -75,6 +75,10 @@ LIST_TYPE(_starpu_worker,
 	starpu_pthread_cond_t sched_cond; /* condition variable used when the worker waits for tasks. */
         starpu_pthread_mutex_t sched_mutex; /* mutex protecting sched_cond */
 	struct starpu_task_list local_tasks; /* this queue contains tasks that have been explicitely submitted to that queue */
+	struct starpu_task **local_ordered_tasks; /* this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
+	unsigned local_ordered_tasks_size; /* this records the size of local_ordered_tasks */
+	unsigned current_ordered_task; /* this records the index (within local_ordered_tasks) of the next ordered task to be executed */
+	unsigned current_ordered_task_order; /* this records the order of the next ordered task to be executed */
 	struct starpu_task *current_task; /* task currently executed by this worker (non-pipelined version) */
 	struct starpu_task *current_tasks[STARPU_MAX_PIPELINE]; /* tasks currently executed by this worker (pipelined version) */
 	unsigned char first_task; /* Index of first task in the pipeline */

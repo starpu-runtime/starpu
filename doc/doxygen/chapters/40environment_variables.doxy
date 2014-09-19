@@ -58,7 +58,8 @@ which will be concurrently running on the devices. The default value is 1.
 Specify how many asynchronous tasks are submitted in advance on CUDA
 devices. This for instance permits to overlap task management with the execution
 of previous tasks, but it also allows concurrent execution on Fermi cards, which
-otherwise bring spurious synchronizations. The default is 2.
+otherwise bring spurious synchronizations. The default is 2. Setting the value to 0 forces a synchronous
+execution of all tasks.
 </dd>
 
 <dt>STARPU_NOPENCL</dt>
@@ -75,7 +76,8 @@ OpenCL equivalent of the environment variable \ref STARPU_NCUDA.
 Specify how many asynchronous tasks are submitted in advance on OpenCL
 devices. This for instance permits to overlap task management with the execution
 of previous tasks, but it also allows concurrent execution on Fermi cards, which
-otherwise bring spurious synchronizations. The default is 2.
+otherwise bring spurious synchronizations. The default is 2. Setting the value to 0 forces a synchronous
+execution of all tasks.
 </dd>
 
 <dt>STARPU_NMICDEVS</dt>

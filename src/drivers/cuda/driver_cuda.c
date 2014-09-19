@@ -472,17 +472,26 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 #ifndef STARPU_SIMGRID
 	if (task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC)
 	{
-		/* Record event to synchronize with task termination later */
-		cudaEventRecord(task_events[workerid][(worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE], starpu_cuda_get_local_stream());
+		if (worker->pipeline_length == 0)
+		{
+			/* Forced synchronous execution */
+			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			finish_job_on_cuda(j, worker);
+		}
+		else
+		{
+			/* Record event to synchronize with task termination later */
+			cudaEventRecord(task_events[workerid][(worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE], starpu_cuda_get_local_stream());
 #ifdef STARPU_USE_FXT
-		int k;
-		for (k = 0; k < (int) worker->set->nworkers; k++)
-			if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
-				break;
-		if (k == (int) worker->set->nworkers)
-			/* Everybody busy */
-			_STARPU_TRACE_START_EXECUTING()
+			int k;
+			for (k = 0; k < (int) worker->set->nworkers; k++)
+				if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
+					break;
+			if (k == (int) worker->set->nworkers)
+				/* Everybody busy */
+				_STARPU_TRACE_START_EXECUTING();
 #endif
+		}
 	}
 	else
 #else
@@ -558,6 +567,11 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 		_STARPU_DEBUG("cuda (%s) dev id %u worker %u thread is ready to run on CPU %d !\n", devname, devid, i, worker->bindid);
 
 		worker->pipeline_length = starpu_get_env_number_default("STARPU_CUDA_PIPELINE", 2);
+		if (worker->pipeline_length > STARPU_MAX_PIPELINE)
+		{
+			_STARPU_DISP("Warning: STARPU_CUDA_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
+			worker->pipeline_length = STARPU_MAX_PIPELINE;
+		}
 		_STARPU_TRACE_WORKER_INIT_END(worker_set->workers[i].workerid);
 	}
 

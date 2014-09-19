@@ -814,10 +814,14 @@ static void get_model_path(struct starpu_perfmodel *model, char *path, size_t ma
 	_starpu_get_perf_model_dir_codelets(path, maxlen);
 	strncat(path, model->symbol, maxlen);
 
-	char hostname[65];
-	_starpu_gethostname(hostname, sizeof(hostname));
-	strncat(path, ".", maxlen);
-	strncat(path, hostname, maxlen);
+	const char *dot = strrchr(model->symbol, '.');
+	if (dot == NULL)
+	{
+		char hostname[65];
+		_starpu_gethostname(hostname, sizeof(hostname));
+		strncat(path, ".", maxlen);
+		strncat(path, hostname, maxlen);
+	}
 }
 
 static void save_history_based_model(struct starpu_perfmodel *model)
@@ -1226,7 +1230,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 			char archname[32];
 
 			starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
-			_STARPU_DISP("Warning: model %s is not calibrated enough for %s, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname);
+			_STARPU_DISP("Warning: model %s is not calibrated enough for %s (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, entry && entry->history_entry ? entry->history_entry->nsample : 0);
 			_starpu_set_calibrate_flag(1);
 			model->benchmarking = 1;
 		}
@@ -1268,7 +1272,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 		char archname[32];
 
 		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
-		_STARPU_DISP("Warning: model %s is not calibrated enough for %s, forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname);
+		_STARPU_DISP("Warning: model %s is not calibrated enough for %s (only %u measurements), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, entry ? entry->nsample : 0);
 		_starpu_set_calibrate_flag(1);
 		model->benchmarking = 1;
 	}

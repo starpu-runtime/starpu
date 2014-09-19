@@ -597,6 +597,11 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %u", devid);
 
 	worker->pipeline_length = starpu_get_env_number_default("STARPU_OPENCL_PIPELINE", 2);
+	if (worker->pipeline_length > STARPU_MAX_PIPELINE)
+	{
+		_STARPU_DISP("Warning: STARPU_OPENCL_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
+		worker->pipeline_length = STARPU_MAX_PIPELINE;
+	}
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, worker->bindid);
 
@@ -903,18 +908,28 @@ static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_
 		int err;
 		cl_command_queue queue;
 		starpu_opencl_get_queue(worker->devid, &queue);
-		/* the function clEnqueueMarker is deprecated from
-		 * OpenCL version 1.2. We would like to use the new
-		 * function clEnqueueMarkerWithWaitList. We could do
-		 * it by checking its availability through our own
-		 * configure macro HAVE_CLENQUEUEMARKERWITHWAITLIST
-		 * and the OpenCL macro CL_VERSION_1_2. However these
-		 * 2 macros detect the function availability in the
-		 * ICD and not in the device implementation.
-		 */
-		err = clEnqueueMarker(queue, &task_events[worker->devid][(worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE]);
-		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
-		_STARPU_TRACE_START_EXECUTING();
+
+		if (worker->pipeline_length == 0)
+		{
+			starpu_opencl_get_queue(worker->devid, &queue);
+			clFinish(queue);
+			_starpu_opencl_stop_job(j, worker);
+		}
+		else
+		{
+			/* the function clEnqueueMarker is deprecated from
+			 * OpenCL version 1.2. We would like to use the new
+			 * function clEnqueueMarkerWithWaitList. We could do
+			 * it by checking its availability through our own
+			 * configure macro HAVE_CLENQUEUEMARKERWITHWAITLIST
+			 * and the OpenCL macro CL_VERSION_1_2. However these
+			 * 2 macros detect the function availability in the
+			 * ICD and not in the device implementation.
+			 */
+			err = clEnqueueMarker(queue, &task_events[worker->devid][(worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE]);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+			_STARPU_TRACE_START_EXECUTING();
+		}
 	}
 	else
 #else

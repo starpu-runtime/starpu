@@ -45,6 +45,10 @@ New features:
     nodes.
   * Add STARPU_CUDA_ASYNC and STARPU_OPENCL_ASYNC flags to allow asynchronous
     CUDA and OpenCL kernel execution.
+  * Add STARPU_CUDA_PIPELINE and STARPU_OPENCL_PIPELINE to specify how
+    many asynchronous tasks are submitted in advance on CUDA and
+    OpenCL devices. Setting the value to 0 forces a synchronous
+    execution of all tasks.
   * Add CUDA concurrent kernel execution support through
     the STARPU_NWORKER_PER_CUDA environment variable.
   * Add CUDA and OpenCL kernel submission pipelining, to overlap costs and allow
@@ -79,6 +83,8 @@ Small features:
   * On Linux x86, spinlocks now block after a hundred tries. This avoids
     typical 10ms pauses when the application thread tries to submit tasks.
   * New function char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
+  * Improve static scheduling by adding support for specifying the task
+    execution order.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
@@ -95,7 +101,14 @@ Small changes:
   * Rename function starpu_trace_user_event() as
     starpu_fxt_trace_user_event()
 
-StarPU 1.1.3 (svn revision xxx)
+StarPU 1.1.4 (svn revision xxx)
+==============================================
+The scheduling context release
+
+New features:
+  * Fix and actually enable the cache allocation.
+
+StarPU 1.1.3 (svn revision 13450)
 ==============================================
 The scheduling context release
 
