@@ -155,17 +155,22 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 {
 	int retval;
 	int do_delete = 0;
+	int completed;
 
 	unsigned local_node = _starpu_memory_node_get_local_key();
 
 	do
 	{
-		_starpu_spin_lock(&r->lock);
-
-		if (r->completed)
-			break;
-
-		_starpu_spin_unlock(&r->lock);
+		STARPU_HG_DISABLE_CHECKING(r->completed);
+		completed = r->completed;
+		STARPU_HG_ENABLE_CHECKING(r->completed);
+		if (completed)
+		{
+			_starpu_spin_lock(&r->lock);
+			if (r->completed)
+				break;
+			_starpu_spin_unlock(&r->lock);
+		}
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 		_starpu_wake_all_blocked_workers_on_node(r->handling_node);

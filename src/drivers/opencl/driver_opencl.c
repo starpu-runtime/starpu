@@ -597,6 +597,11 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %u", devid);
 
 	worker->pipeline_length = starpu_get_env_number_default("STARPU_OPENCL_PIPELINE", 2);
+	if (worker->pipeline_length > STARPU_MAX_PIPELINE)
+	{
+		_STARPU_DISP("Warning: STARPU_OPENCL_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
+		worker->pipeline_length = STARPU_MAX_PIPELINE;
+	}
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, worker->bindid);
 

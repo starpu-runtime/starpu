@@ -1225,6 +1225,7 @@ out:
 			STARPU_ASSERT(worker->local_ordered_tasks[n] == NULL);
 		_starpu_sched_ctx_list_delete(&worker->sched_ctx_list);
 		_starpu_job_list_delete(worker->terminated_jobs);
+		free(worker->local_ordered_tasks);
 	}
 }
 
