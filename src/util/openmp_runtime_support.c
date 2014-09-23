@@ -307,6 +307,12 @@ static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 		task->cuda_f(task->starpu_buffers, task->starpu_cl_arg);
 	}
 #endif
+#if STARPU_USE_OPENCL
+	else if (starpu_worker->arch == STARPU_OPENCL_WORKER)
+	{
+		task->opencl_f(task->starpu_buffers, task->starpu_cl_arg);
+	}
+#endif
 	else
 		_STARPU_ERROR("invalid worker architecture");
 	_starpu_omp_unregister_task_handles(task);
@@ -433,6 +439,10 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 				if (
 #if STARPU_USE_CUDA
 						(starpu_worker->arch != STARPU_CUDA_WORKER)
+						&&
+#endif
+#if STARPU_USE_OPENCL
+						(starpu_worker->arch != STARPU_OPENCL_WORKER)
 						&&
 #endif
 						1
@@ -1556,7 +1566,14 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 			generated_task->cl.cuda_funcs[0] = starpu_omp_explicit_task_exec;
 		}
 #endif
-		/* TODO: add opencl and other accelerator support */
+#if STARPU_USE_OPENCL
+		if (generated_task->cl.opencl_funcs[0])
+		{
+			generated_task->opencl_f = generated_task->cl.opencl_funcs[0];
+			generated_task->cl.opencl_funcs[0] = starpu_omp_explicit_task_exec;
+		}
+#endif
+		/* TODO: add other accelerator support */
 
 		generated_task->starpu_task = starpu_task_create();
 		generated_task->starpu_task->cl = &generated_task->cl;
