@@ -39,6 +39,7 @@ static struct starpu_omp_global _global_state;
 static starpu_pthread_key_t omp_thread_key;
 static starpu_pthread_key_t omp_task_key;
 static struct starpu_conf omp_starpu_conf;
+static int omp_dummy_init = 0;
 
 struct starpu_omp_global *_starpu_omp_global_state = NULL;
 double _starpu_omp_clock_ref = 0.0; /* clock reference for starpu_omp_get_wtick */
@@ -766,12 +767,49 @@ static void omp_initial_region_exit(void)
 	_global_state.initial_region->nb_threads--;
 }
 
+/*
+ * If StarPU was compiled with --enable-openmp, but the OpenMP runtime support
+ * is not in use, starpu_init() may have been called directly instead of
+ * through starpu_omp_init(). However, some starpu_omp functions may be still
+ * be called such as _starpu_omp_get_task(). So let's setup a basic environment
+ * for them.
+ */
+void _starpu_omp_dummy_init(void)
+{
+	if (_starpu_omp_global_state != &_global_state)
+	{
+		if (omp_dummy_init == 0)
+		{
+			STARPU_PTHREAD_KEY_CREATE(&omp_thread_key, NULL);
+			STARPU_PTHREAD_KEY_CREATE(&omp_task_key, NULL);
+		}
+		omp_dummy_init++;
+	}
+}
+
+/*
+ * Free data structures allocated by _starpu_omp_dummy_init().
+ */
+void _starpu_omp_dummy_shutdown(void)
+{
+	if (omp_dummy_init > 0)
+	{
+		if (omp_dummy_init == 1)
+		{
+			STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
+			STARPU_PTHREAD_KEY_DELETE(omp_task_key);
+		}
+		omp_dummy_init--;
+	}
+}
 
 /*
  * Entry point to be called by the OpenMP runtime constructor
  */
 int starpu_omp_init(void)
 {
+	_starpu_omp_global_state = &_global_state;
+
 	STARPU_PTHREAD_KEY_CREATE(&omp_thread_key, NULL);
 	STARPU_PTHREAD_KEY_CREATE(&omp_task_key, NULL);
 	_global_state.initial_device = create_omp_device_struct();
@@ -791,8 +829,6 @@ int starpu_omp_init(void)
 
 	/* init clock reference for starpu_omp_get_wtick */
 	_starpu_omp_clock_ref = starpu_timing_now();
-
-	_starpu_omp_global_state = &_global_state;
 
 	return 0;
 }
