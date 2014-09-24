@@ -1060,7 +1060,7 @@ void starpu_omp_parallel_region(const struct starpu_omp_parallel_region_attr *at
 		implicit_task->starpu_task = starpu_task_create();
 		implicit_task->starpu_task->cl = &implicit_task->cl;
 		{
-			unsigned i;
+			int i;
 			for (i = 0; i < implicit_task->cl.nbuffers; i++)
 			{
 				implicit_task->starpu_task->handles[i] = attr->handles[i];
@@ -1528,7 +1528,7 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 	if (is_merged)
 	{
 		/* note: no need to backup/restore ICVs for merged tasks, merged tasks use the data environment of the caller */
-		unsigned i;
+		int i;
 		for (i = 0; i < attr->cl.nbuffers; i++)
 		{
 			ret = starpu_data_acquire(attr->handles[i], attr->cl.modes[i]);
@@ -1548,7 +1548,7 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 	else if (is_included)
 	{
 		/* TODO: backup current ICVs and setup new ICVs for the included task */
-		unsigned i;
+		int i;
 		for (i = 0; i < attr->cl.nbuffers; i++)
 		{
 			ret = starpu_data_acquire(attr->handles[i], attr->cl.modes[i]);
@@ -1617,7 +1617,7 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 		generated_task->starpu_task->cl_arg_size = attr->cl_arg_size;
 		generated_task->starpu_task->cl_arg_free = attr->cl_arg_free;
 		{
-			unsigned i;
+			int i;
 			for (i = 0; i < generated_task->cl.nbuffers; i++)
 			{
 				generated_task->starpu_task->handles[i] = attr->handles[i];
