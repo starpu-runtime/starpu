@@ -140,6 +140,7 @@ static void read_int_var(const char *var, int *dest)
 			free(str);
 			return;
 		}
+		errno = 0;
 		int v = (int)strtol(str, NULL, 10);
 		if (errno != 0)
 			_STARPU_ERROR("could not parse environment variable %s, strtol failed with error %s\n", var, strerror(errno));
@@ -164,6 +165,7 @@ static void read_size_var(const char *var, int *dest)
 		}
 		char *endptr = NULL;
 		int mult = 1024;
+		errno = 0;
 		int v = (int)strtol(str, &endptr, 10);
 		if (errno != 0)
 			_STARPU_ERROR("could not parse environment variable %s, strtol failed with error %s\n", var, strerror(errno));
@@ -211,6 +213,7 @@ static void read_sched_var(const char *var, int *dest, unsigned long long *dest_
 		if (str[offset] == ',')
 		{
 			offset++;
+			errno = 0;
 			long long v = strtoll(str+offset, NULL, 10);
 			if (errno != 0)
 				_STARPU_ERROR("could not parse environment variable %s, strtol failed with error %s\n", var, strerror(errno));
@@ -361,6 +364,7 @@ static void convert_num_threads_string(const char *_str, int *num_threads_list, 
 		else if (state == state_read)
 		{
 			char *endptr = NULL;
+			errno = 0;
 			int num_threads = (int)strtol(str+i, &endptr, 10);
 			if (errno != 0)
 				_STARPU_ERROR("num_threads list parse error, strtol failed with error %s\n", strerror(errno));
@@ -411,6 +415,7 @@ static void read_a_place_name(char *str, struct starpu_omp_place *places)
 			_STARPU_ERROR("parse error in places list\n");
 		*begin_length_spec = '\0';
 		*end_length_spec = '\0';
+		errno = 0;
 		int v = (int)strtol(begin_length_spec+1, NULL, 10);
 		if (errno != 0)
 			_STARPU_ERROR("parse error in places list\n");
@@ -507,6 +512,7 @@ static void read_a_places_list(const char *str, struct starpu_omp_place *places)
 			case state_read_numeric:
 				{
 					char *endptr = NULL;
+					errno = 0;
 					int v = (int)strtol(str+i, &endptr, 10);
 					if (errno != 0)
 						_STARPU_ERROR("parse error in places list, strtol failed with error %s\n", strerror(errno));
