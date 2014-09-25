@@ -300,163 +300,389 @@ This function can be used to implement <c>\#pragma omp taskgroup</c>.
 
 \fn void starpu_omp_set_num_threads(int threads)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function sets ICVS nthreads_var for the parallel regions to be created
+with the current region.
+
+Note: The StarPU OpenMP runtime support currently ignores
+this setting for nested parallel regions.
+
+\sa starpu_omp_get_num_threads
+\sa starpu_omp_get_thread_num
+\sa starpu_omp_get_max_threads
+\sa starpu_omp_get_num_procs
 
 \fn int starpu_omp_get_num_threads()
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the number of threads of the current region.
+
+\return the number of threads of the current region.
+
+\sa starpu_omp_set_num_threads
+\sa starpu_omp_get_thread_num
+\sa starpu_omp_get_max_threads
+\sa starpu_omp_get_num_procs
 
 \fn int starpu_omp_get_thread_num()
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the rank of the current thread among the threads
+of the current region.
+
+\return the rank of the current thread in the current region.
+
+\sa starpu_omp_set_num_threads
+\sa starpu_omp_get_num_threads
+\sa starpu_omp_get_max_threads
+\sa starpu_omp_get_num_procs
 
 \fn int starpu_omp_get_max_threads()
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the maximum number of threads that can be used to
+create a region from the current region.
+
+\return the maximum number of threads that can be used to create a region from the current region.
+
+\sa starpu_omp_set_num_threads
+\sa starpu_omp_get_num_threads
+\sa starpu_omp_get_thread_num
+\sa starpu_omp_get_num_procs
 
 \fn int starpu_omp_get_num_procs (void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the number of StarPU CPU workers.
+
+\return the number of StarPU CPU workers.
+
+\sa starpu_omp_set_num_threads
+\sa starpu_omp_get_num_threads
+\sa starpu_omp_get_thread_num
+\sa starpu_omp_get_max_threads
 
 \fn int starpu_omp_in_parallel (void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns whether it is called from the scope of a parallel region or not.
+
+\return <c>!0</c> if called from a parallel region scope.
+\return <c>0</c> otherwise.
 
 \fn void starpu_omp_set_dynamic (int dynamic_threads)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function enables (1) or disables (0) dynamically adjusting the number of parallel threads.
+
+Note: The StarPU OpenMP runtime support currently ignores the argument of this function.
+
+\sa starpu_omp_get_dynamic
 
 \fn int starpu_omp_get_dynamic (void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the state of dynamic thread number adjustment.
+
+\return <c>!0</c> if dynamic thread number adjustment is enabled.
+\return <c>0</c> otherwise.
+
+\sa starpu_omp_set_dynamic
 
 \fn void starpu_omp_set_nested (int nested)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function enables (1) or disables (0) nested parallel regions.
+
+Note: The StarPU OpenMP runtime support currently ignores the argument of this function.
+
+\sa starpu_omp_get_nested
+\sa starpu_omp_get_max_active_levels
+\sa starpu_omp_set_max_active_levels
+\sa starpu_omp_get_level
+\sa starpu_omp_get_active_level
 
 \fn int starpu_omp_get_nested (void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns whether nested parallel sections are enabled or not.
+
+\return <c>!0</c> if nested parallel sections are enabled.
+\return <c>0</c> otherwise.
+
+\sa starpu_omp_set_nested
+\sa starpu_omp_get_max_active_levels
+\sa starpu_omp_set_max_active_levels
+\sa starpu_omp_get_level
+\sa starpu_omp_get_active_level
 
 \fn int starpu_omp_get_cancellation(void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the state of the cancel ICVS var.
 
 \fn void starpu_omp_set_schedule (enum starpu_omp_sched_value kind, int modifier)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function sets the default scheduling kind for upcoming loops within the
+current parallel section. \p kind is the scheduler kind, \p modifier
+complements the scheduler kind with informations such as the chunk size,
+in accordance with the OpenMP specification.
+
+\sa starpu_omp_get_schedule
 
 \fn void starpu_omp_get_schedule (enum starpu_omp_sched_value *kind, int *modifier)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the current selected default loop scheduler.
+
+\return the kind and the modifier of the current default loop scheduler.
+
+\sa starpu_omp_set_schedule
 
 \fn int starpu_omp_get_thread_limit (void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the number of StarPU CPU workers.
+
+\return the number of StarPU CPU workers.
 
 \fn void starpu_omp_set_max_active_levels (int max_levels)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function sets the maximum number of allowed active parallel section levels.
+
+Note: The StarPU OpenMP runtime support currently ignores the argument of this function and assume \p max_levels equals <c>1</c> instead.
+
+\sa starpu_omp_set_nested
+\sa starpu_omp_get_nested
+\sa starpu_omp_get_max_active_levels
+\sa starpu_omp_get_level
+\sa starpu_omp_get_active_level
 
 \fn int starpu_omp_get_max_active_levels (void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the current maximum number of allowed active parallel section levels
+
+\return the current maximum number of allowed active parallel section levels.
+
+\sa starpu_omp_set_nested
+\sa starpu_omp_get_nested
+\sa starpu_omp_set_max_active_levels
+\sa starpu_omp_get_level
+\sa starpu_omp_get_active_level
 
 \fn int starpu_omp_get_level (void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the nesting level of the current parallel section.
+
+\return the nesting level of the current parallel section.
+
+\sa starpu_omp_set_nested
+\sa starpu_omp_get_nested
+\sa starpu_omp_get_max_active_levels
+\sa starpu_omp_set_max_active_levels
+\sa starpu_omp_get_active_level
 
 \fn int starpu_omp_get_ancestor_thread_num (int level)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the number of the ancestor of the current parallel section.
+
+\return the number of the ancestor of the current parallel section.
 
 \fn int starpu_omp_get_team_size (int level)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the size of the team of the current parallel section.
+
+\return the size of the team of the current parallel section.
 
 \fn int starpu_omp_get_active_level (void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the nestinglevel of the current innermost active parallel section.
+
+\return the nestinglevel of the current innermost active parallel section.
+
+\sa starpu_omp_set_nested
+\sa starpu_omp_get_nested
+\sa starpu_omp_get_max_active_levels
+\sa starpu_omp_set_max_active_levels
+\sa starpu_omp_get_level
 
 \fn int starpu_omp_in_final(void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function checks whether the current task is final or not.
+
+\return <c>!0</c> if called from a final task.
+\return <c>0</c> otherwise.
 
 \fn enum starpu_omp_proc_bind_value starpu_omp_get_proc_bind(void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the proc_bind setting of the current parallel region.
+
+\return the proc_bind setting of the current parallel region.
 
 \fn void starpu_omp_set_default_device(int device_num)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function sets the number of the device to use as default.
+
+Note: The StarPU OpenMP runtime support currently ignores the argument of this function.
+
+\sa starpu_omp_get_default_device
+\sa starpu_omp_is_initial_device
 
 \fn int starpu_omp_get_default_device(void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the number of the device used as default.
+
+\return the number of the device used as default.
+
+\sa starpu_omp_set_default_device
+\sa starpu_omp_is_initial_device
 
 \fn int starpu_omp_get_num_devices(void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the number of the devices.
+
+\return the number of the devices.
 
 \fn int starpu_omp_get_num_teams(void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the number of teams in the current teams region.
+
+\return the number of teams in the current teams region.
+
+\sa starpu_omp_get_num_teams
 
 \fn int starpu_omp_get_team_num(void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the team number of the calling thread.
+
+\return the team number of the calling thread.
+
+\sa starpu_omp_get_num_teams
 
 \fn int starpu_omp_is_initial_device(void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function checks whether the current device is the initial device or not.
+
+\return <c>!0</c> if called from the host device.
+\return <c>0</c> otherwise.
+
+\sa starpu_omp_set_default_device
+\sa starpu_omp_get_default_device
 
 \fn void starpu_omp_init_lock (starpu_omp_lock_t *lock)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function initializes an opaque lock object.
+
+\sa starpu_omp_destroy_lock
+\sa starpu_omp_set_lock
+\sa starpu_omp_unset_lock
+\sa starpu_omp_test_lock
 
 \fn void starpu_omp_destroy_lock (starpu_omp_lock_t *lock)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function destroys an opaque lock object.
+
+\sa starpu_omp_init_lock
+\sa starpu_omp_set_lock
+\sa starpu_omp_unset_lock
+\sa starpu_omp_test_lock
 
 \fn void starpu_omp_set_lock (starpu_omp_lock_t *lock)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function locks an opaque lock object. If the lock is already locked, the
+function will block until it succeeds in exclusively acquiring the lock.
+
+\sa starpu_omp_init_lock
+\sa starpu_omp_destroy_lock
+\sa starpu_omp_unset_lock
+\sa starpu_omp_test_lock
 
 \fn void starpu_omp_unset_lock (starpu_omp_lock_t *lock)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function unlocks a previously locked lock object. The behaviour of this
+function is unspecified if it is called on an unlocked lock object.
+
+\sa starpu_omp_init_lock
+\sa starpu_omp_destroy_lock
+\sa starpu_omp_set_lock
+\sa starpu_omp_test_lock
 
 \fn int starpu_omp_test_lock (starpu_omp_lock_t *lock)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function unblockingly attempts to lock a lock object and returns whether
+it succeeded or not.
+
+\return <c>!0</c> if the function succeeded in acquiring the lock.
+\return <c>0</c> if the lock was already locked.
+
+\sa starpu_omp_init_lock
+\sa starpu_omp_destroy_lock
+\sa starpu_omp_set_lock
+\sa starpu_omp_unset_lock
 
 \fn void starpu_omp_init_nest_lock (starpu_omp_nest_lock_t *lock)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function initializes an opaque lock object supporting nested locking operations.
+
+\sa starpu_omp_destroy_nest_lock
+\sa starpu_omp_set_nest_lock
+\sa starpu_omp_unset_nest_lock
+\sa starpu_omp_test_nest_lock
 
 \fn void starpu_omp_destroy_nest_lock (starpu_omp_nest_lock_t *lock)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function destroys an opaque lock object supporting nested locking operations.
+
+\sa starpu_omp_init_nest_lock
+\sa starpu_omp_set_nest_lock
+\sa starpu_omp_unset_nest_lock
+\sa starpu_omp_test_nest_lock
 
 \fn void starpu_omp_set_nest_lock (starpu_omp_nest_lock_t *lock)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function locks an opaque lock object supporting nested locking operations.
+If the lock is already locked by another task, the function will block until
+it succeeds in exclusively acquiring the lock. If the lock is already taken by
+the current task, the function will increase the nested locking level of the
+lock object.
+
+\sa starpu_omp_init_nest_lock
+\sa starpu_omp_destroy_nest_lock
+\sa starpu_omp_unset_nest_lock
+\sa starpu_omp_test_nest_lock
 
 \fn void starpu_omp_unset_nest_lock (starpu_omp_nest_lock_t *lock)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function unlocks a previously locked lock object supporting nested locking
+operations. If the lock has been locked multiple times in nested fashion, the
+nested locking level is decreased and the lock remains locked. Otherwise, if
+the lock has only been locked once, it becomes unlocked. The behaviour of this
+function is unspecified if it is called on an unlocked lock object. The
+behaviour of this function is unspecified if it is called from a different task
+than the one that locked the lock object.
+
+\sa starpu_omp_init_nest_lock
+\sa starpu_omp_destroy_nest_lock
+\sa starpu_omp_set_nest_lock
+\sa starpu_omp_test_nest_lock
 
 \fn int starpu_omp_test_nest_lock (starpu_omp_nest_lock_t *lock)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function unblocking attempts to lock an opaque lock object supporting
+nested locking operations and returns whether it succeeded or not. If the lock
+is already locked by another task, the function will return without having
+acquired the lock. If the lock is already taken by the current task, the
+function will increase the nested locking level of the lock object.
+
+\return <c>!0</c> if the function succeeded in acquiring the lock.
+\return <c>0</c> if the lock was already locked.
+
+\sa starpu_omp_init_nest_lock
+\sa starpu_omp_destroy_nest_lock
+\sa starpu_omp_set_nest_lock
+\sa starpu_omp_unset_nest_lock
 
 \fn double starpu_omp_get_wtime (void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the elapsed wallclock time in seconds.
+
+\return the elapsed wallclock time in seconds.
+
+\sa starpu_omp_get_wtick
 
 \fn double starpu_omp_get_wtick (void)
 \ingroup API_OpenMP_Runtime_Support
-This function .
+This function returns the precision of the time used by \p starpu_omp_get_wtime.
 
+\return the precision of the time used by \p starpu_omp_get_wtime.
+
+\sa starpu_omp_get_wtime
 
 */
