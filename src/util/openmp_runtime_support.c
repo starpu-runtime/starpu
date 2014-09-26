@@ -1708,7 +1708,7 @@ void starpu_omp_taskgroup(void (*f)(void *arg), void *arg)
 	task->task_group = task_group.p_previous_task_group;
 }
 
-void starpu_omp_taskgroup_begin(void)
+void starpu_omp_taskgroup_inline_begin(void)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	struct starpu_omp_task_group *p_task_group = malloc(sizeof(*p_task_group));
@@ -1720,7 +1720,7 @@ void starpu_omp_taskgroup_begin(void)
 	task->task_group = p_task_group;
 }
 
-void starpu_omp_taskgroup_end(void)
+void starpu_omp_taskgroup_inline_end(void)
 {
 	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
 	_starpu_spin_lock(&task->lock);
@@ -2383,14 +2383,14 @@ int starpu_omp_test_nest_lock (starpu_omp_nest_lock_t *nest_lock)
 	return _starpu_omp_nest_lock_test(&nest_lock->internal);
 }
 
-void starpu_omp_atomic_fallback_start(void)
+void starpu_omp_atomic_fallback_inline_begin(void)
 {
 	struct starpu_omp_device *device = get_caller_device();
 	_starpu_spin_lock(&device->atomic_lock);
 
 }
 
-void starpu_omp_atomic_fallback_end(void)
+void starpu_omp_atomic_fallback_inline_end(void)
 {
 	struct starpu_omp_device *device = get_caller_device();
 	_starpu_spin_unlock(&device->atomic_lock);

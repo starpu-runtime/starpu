@@ -83,14 +83,14 @@ void parallel_region_f(void *buffers[], void *args)
 	worker_id = starpu_worker_get_id();
 	printf("[tid %p] task thread = %d: implicit task \"f\"\n", (void *)tid, worker_id);
 	
-	starpu_omp_taskgroup_begin();
+	starpu_omp_taskgroup_inline_begin();
 	taskgroup_f((void *)&i);
-	starpu_omp_taskgroup_end();
+	starpu_omp_taskgroup_inline_end();
 	printf("[tid %p] task thread = %d: implicit task \"f\": taskgroup\n", (void *)tid, worker_id);
 
-	starpu_omp_taskgroup_begin();
+	starpu_omp_taskgroup_inline_begin();
 	taskgroup_f((void *)&i);
-	starpu_omp_taskgroup_end();
+	starpu_omp_taskgroup_inline_end();
 	printf("[tid %p] task thread = %d: implicit task \"f\": taskgroup\n", (void *)tid, worker_id);
 
 	memset(&attr, 0, sizeof(attr));
