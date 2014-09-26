@@ -123,6 +123,43 @@ outlining.
 \return <c>!0</c> if the calling thread has won the election.
 \return <c>0</c> if the calling thread has lost the election.
 
+\fn void starpu_omp_single_copyprivate(void (*f)(void *arg, void *data, unsigned long long data_size), void *arg, void *data, unsigned long long data_size)
+\ingroup API_OpenMP_Runtime_Support
+This function executes \p f on a single task of the current parallel region
+task, and then broadcast the contents of the memory block pointed by the
+copyprivate pointer \p data and of size \p data_size to the corresponding \p
+data pointed memory blocks of all the other participating region tasks. This
+function can be used to implement <c>\#pragma omp single</c> with a copyprivate
+clause.
+
+\sa starpu_omp_single_copyprivate_inline
+\sa starpu_omp_single_copyprivate_inline_begin
+\sa starpu_omp_single_copyprivate_inline_end
+
+\fn void *starpu_omp_single_copyprivate_inline_begin(void *data)
+\ingroup API_OpenMP_Runtime_Support
+This function elects one task among the tasks of the current parallel region
+task to execute the following single section, and then broadcast the
+copyprivate pointer \p data to all the other participating region tasks. This
+function can be used to implement <c>\#pragma omp single</c> with a copyprivate
+clause without code outlining.
+
+\sa starpu_omp_single_copyprivate_inline
+\sa starpu_omp_single_copyprivate_inline_end
+
+\fn void starpu_omp_single_copyprivate_inline_end(void)
+\ingroup API_OpenMP_Runtime_Support
+This function completes the execution of a single section and returns the
+broadcasted copyprivate pointer for tasks that lost the election and NULL for
+the task that won the election. This function can be used to implement
+<c>\#pragma omp single</c> with a copyprivate clause without code outlining.
+
+\return the copyprivate pointer for tasks that lost the election and therefore did not execute the code of the single section.
+\return NULL for the task that won the election and executed the code of the single section.
+
+\sa starpu_omp_single_copyprivate_inline
+\sa starpu_omp_single_copyprivate_inline_begin
+
 \fn void starpu_omp_for(void (*f)(unsigned long long _first_i, unsigned long long _nb_i, void *arg), void *arg, unsigned long long nb_iterations, unsigned long long chunk, int schedule, int ordered, int nowait)
 \ingroup API_OpenMP_Runtime_Support
 Executes a parallel loop together with the other threads participating to the
@@ -293,6 +330,30 @@ Launches a function and wait for the completion of every descendant task
 generated during the execution of the function.
 
 This function can be used to implement <c>\#pragma omp taskgroup</c>.
+
+\sa starpu_omp_taskgroup_inline_begin
+\sa starpu_omp_taskgroup_inline_end
+
+\fn void starpu_omp_taskgroup_inline_begin(void)
+\ingroup API_OpenMP_Runtime_Support
+Launches a function and gets ready to wait for the completion of every descendant task
+generated during the dynamic scope of the taskgroup.
+
+This function can be used to implement <c>\#pragma omp taskgroup</c> without code outlining.
+
+\sa starpu_omp_taskgroup
+\sa starpu_omp_taskgroup_inline_end
+
+\fn void starpu_omp_taskgroup_inline_end(void)
+\ingroup API_OpenMP_Runtime_Support
+Waits for the completion of every descendant task
+generated during the dynamic scope of the taskgroup.
+
+This function can be used to implement <c>\#pragma omp taskgroup</c> without code outlining.
+
+\sa starpu_omp_taskgroup
+\sa starpu_omp_taskgroup_inline_begin
+
 
 @name API
 \anchor ORS_API
@@ -668,6 +729,21 @@ function will increase the nested locking level of the lock object.
 \sa starpu_omp_destroy_nest_lock
 \sa starpu_omp_set_nest_lock
 \sa starpu_omp_unset_nest_lock
+
+\fn void starpu_omp_atomic_fallback_inline_begin(void)
+\ingroup API_OpenMP_Runtime_Support
+This function implements the entry point of a fallback global atomic region. It
+blocks until it succeeds in acquiring exclusive access to the global atomic
+region.
+
+\sa starpu_omp_atomic_fallback_inline_end
+
+\fn void starpu_omp_atomic_fallback_inline_end(void)
+\ingroup API_OpenMP_Runtime_Support
+This function implements the exit point of a fallback global atomic region. It
+release the exclusive access to the global atomic region.
+
+\sa starpu_omp_atomic_fallback_inline_begin
 
 \fn double starpu_omp_get_wtime (void)
 \ingroup API_OpenMP_Runtime_Support
