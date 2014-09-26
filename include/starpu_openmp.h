@@ -89,9 +89,9 @@ extern int starpu_omp_master_inline(void) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_single(void (*f)(void *arg), void *arg, int nowait) __STARPU_OMP_NOTHROW;
 extern int starpu_omp_single_inline(void) __STARPU_OMP_NOTHROW;
-extern void starpu_omp_single_copyprivate(void (*f)(void *arg, void *data, unsigned long long data_size), void *arg, void *data, unsigned long long data_size);
-extern void *starpu_omp_single_copyprivate_inline_begin(void *data);
-extern void starpu_omp_single_copyprivate_inline_end(void);
+extern void starpu_omp_single_copyprivate(void (*f)(void *arg, void *data, unsigned long long data_size), void *arg, void *data, unsigned long long data_size) __STARPU_OMP_NOTHROW;
+extern void *starpu_omp_single_copyprivate_inline_begin(void *data) __STARPU_OMP_NOTHROW;
+extern void starpu_omp_single_copyprivate_inline_end(void) __STARPU_OMP_NOTHROW;
 
 extern void starpu_omp_critical(void (*f)(void *arg), void *arg, const char *name) __STARPU_OMP_NOTHROW;
 extern void starpu_omp_critical_inline_begin(const char *name) __STARPU_OMP_NOTHROW;
