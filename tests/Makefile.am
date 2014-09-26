@@ -143,6 +143,7 @@ noinst_PROGRAMS =				\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
+	datawizard/cache			\
 	datawizard/copy				\
 	datawizard/data_implicit_deps		\
 	datawizard/data_lookup			\
