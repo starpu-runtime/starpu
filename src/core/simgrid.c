@@ -253,6 +253,10 @@ void _starpu_simgrid_init()
 	xbt_dynar_free(&hosts);
 }
 
+/*
+ * Tasks
+ */
+
 /* Task execution submitted by StarPU */
 void _starpu_simgrid_execute_job(struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length)
 {
@@ -278,6 +282,10 @@ void _starpu_simgrid_execute_job(struct _starpu_job *j, struct starpu_perfmodel_
 	MSG_task_execute(simgrid_task);
 	MSG_task_destroy(simgrid_task);
 }
+
+/*
+ * Transfers
+ */
 
 /* Note: simgrid is not parallel, so there is no need to hold locks for management of transfers.  */
 LIST_TYPE(transfer,
