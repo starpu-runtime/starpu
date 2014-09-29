@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2011-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2012 inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -55,11 +55,13 @@ submit_tasks(starpu_data_handle_t handle, int pieces, int n)
 static int
 find_a_worker(enum starpu_worker_archtype type)
 {
-	int worker;
-	int ret = starpu_worker_get_ids_by_type(type, &worker, 1);
+	int worker[STARPU_NMAXWORKERS];
+	int ret = starpu_worker_get_ids_by_type(type, worker, STARPU_NMAXWORKERS);
 	if (ret == 0)
 		return -ENODEV;
-	return worker;
+	if (ret == -ERANGE)
+		return worker[STARPU_NMAXWORKERS-1];
+	return worker[ret-1];
 }
 
 static int
@@ -100,8 +102,7 @@ test_cuda(void)
 	size = 10 * n;
 
 	devid = starpu_worker_get_devid(chosen);
-	starpu_cuda_set_device(devid);
-	cudaMalloc((void**)&foo_gpu, size * sizeof(*foo_gpu));
+	foo_gpu = (void*) starpu_malloc_on_node(starpu_worker_get_memory_node(chosen), size * sizeof(*foo_gpu));
 
 	foo = calloc(size, sizeof(*foo));
 	for (i = 0; i < size; i++)
@@ -182,9 +183,7 @@ test_opencl(void)
 	starpu_opencl_get_context(devid, &context);
 	starpu_opencl_get_queue(devid, &queue);
 
-	foo_gpu = clCreateBuffer(context, CL_MEM_READ_WRITE, size*sizeof(int), NULL, &err);
-	if (STARPU_UNLIKELY(err != CL_SUCCESS))
-		STARPU_OPENCL_REPORT_ERROR(err);
+	foo_gpu = (void*) starpu_malloc_on_node(starpu_worker_get_memory_node(chosen), size * sizeof(int));
 
 	unsigned int *foo = malloc(size*sizeof(*foo));
 	for (i = 0; i < size; i++)
