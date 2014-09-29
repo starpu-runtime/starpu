@@ -404,6 +404,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 			STARPU_ASSERT(last[dst_node] >= addr);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
+			starpu_cuda_set_device(_starpu_memory_node_get_devid(dst_node));
 			status = cudaMalloc((void **)&addr, size);
 			if (!addr || (status != cudaSuccess))
 			{
@@ -505,6 +506,7 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			cudaError_t err;
+			starpu_cuda_set_device(_starpu_memory_node_get_devid(dst_node));
 			err = cudaFree((void*)addr);
 			if (STARPU_UNLIKELY(err != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(err);
