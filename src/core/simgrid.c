@@ -276,6 +276,7 @@ void _starpu_simgrid_execute_job(struct _starpu_job *j, struct starpu_perfmodel_
 			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
 			0, NULL);
 	MSG_task_execute(simgrid_task);
+	MSG_task_destroy(simgrid_task);
 }
 
 /* Note: simgrid is not parallel, so there is no need to hold locks for management of transfers.  */
