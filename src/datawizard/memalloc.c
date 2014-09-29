@@ -440,12 +440,15 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 
 	if (!old_replicate)
 	{
+		/* Free the copy that we made */
 		free(mc->chunk_interface);
 		mc->chunk_interface = NULL;
 	}
 
-	mc->data = new_replicate->handle;
-	/* mc->ops, mc->footprint and mc->interface should be
+	/* XXX: We do not actually reuse the mc at the moment, only the interface */
+
+	/* mc->data = new_replicate->handle; */
+	/* mc->footprint, mc->ops, mc->size_interface, mc->automatically_allocated should be
  	 * unchanged ! */
 
 	/* remove the mem chunk from the list of active memory chunks, register_mem_chunk will put it back later */
@@ -453,6 +456,8 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	{
 		_starpu_mem_chunk_list_delete(mc);
 	}
+
+	free(mc);
 }
 
 static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list)
@@ -543,6 +548,7 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 	mc = _starpu_memchunk_cache_lookup_locked(node, data, footprint);
 	if (mc)
 	{
+		/* TODO: return the MC !! */
 		/* We found an entry in the cache so we can reuse it */
 		reuse_mem_chunk(node, replicate, mc, 0);
 		return 1;
