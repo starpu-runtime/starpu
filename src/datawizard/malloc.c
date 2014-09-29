@@ -404,7 +404,6 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 			STARPU_ASSERT(last[dst_node] >= addr);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
-			//starpu_cuda_set_device(devid); /* !!! */
 			status = cudaMalloc((void **)&addr, size);
 			if (!addr || (status != cudaSuccess))
 			{

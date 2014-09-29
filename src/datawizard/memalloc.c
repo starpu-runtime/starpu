@@ -548,7 +548,6 @@ static unsigned try_to_find_reusable_mem_chunk(unsigned node, starpu_data_handle
 	mc = _starpu_memchunk_cache_lookup_locked(node, data, footprint);
 	if (mc)
 	{
-		/* TODO: return the MC !! */
 		/* We found an entry in the cache so we can reuse it */
 		reuse_mem_chunk(node, replicate, mc, 0);
 		return 1;
