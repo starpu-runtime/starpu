@@ -260,7 +260,7 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 	if (src_node != dst_node && starpu_node_get_kind(src_node) == STARPU_CUDA_RAM && starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
 	{
 		const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-		if (!copy_methods->cuda_to_cuda_async)
+		if (!copy_methods->cuda_to_cuda_async && !copy_methods->any_to_any)
 			return 0;
 	}
 #endif
