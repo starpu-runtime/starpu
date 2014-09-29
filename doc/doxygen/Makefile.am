@@ -46,6 +46,7 @@ chapters =	\
 	chapters/19c_extensions.doxy \
 	chapters/20socl_opencl_extensions.doxy \
 	chapters/21simgrid.doxy \
+	chapters/22openmp_runtime_support.doxy \
 	chapters/40environment_variables.doxy \
 	chapters/41configure_options.doxy \
 	chapters/45files.doxy \
