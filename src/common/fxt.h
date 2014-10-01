@@ -449,7 +449,9 @@ do {									\
 do {									\
 	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
 	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
-	FUT_DO_PROBE7(_STARPU_FUT_END_CODELET_BODY, (job), (job_size), (job_hash), ((perf_arch)->devices[0]).type, ((perf_arch)->devices[0]).devid, ((perf_arch)->devices[0]).ncores, workerid); \
+	char _archname[32]=""; \
+	starpu_perfmodel_get_arch_name(perf_arch, _archname, 32, 0);	\
+	_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_END_CODELET_BODY, (job), (job_size), (job_hash), workerid, _archname); \
 } while(0);
 
 #define _STARPU_TRACE_START_EXECUTING()				\

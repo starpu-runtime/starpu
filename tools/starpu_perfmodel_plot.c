@@ -378,13 +378,10 @@ static void dump_data_file(FILE *data_file, struct _perfmodel_plot_options *opti
 		/* Dump only if the symbol matches user's request */
 		if (strncmp(options->dumped_codelets[i].symbol, options->symbol, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long)-1) == 0)
 		{
-			struct starpu_perfmodel_arch* arch = &options->dumped_codelets[i].arch;
-			char archname[32];
-
+			char *archname = options->dumped_codelets[i].perfmodel_archname;
 			size_t size = options->dumped_codelets[i].size;
 			float time = options->dumped_codelets[i].time;
 
-			starpu_perfmodel_get_arch_name(arch, archname, 32, 0);
 			fprintf(data_file, "%s	%f	%f\n", archname, (float)size, time);
 		}
 	}

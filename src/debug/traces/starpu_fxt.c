@@ -789,7 +789,7 @@ static struct starpu_fxt_codelet_event *dumped_codelets;
 
 static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker = ev->param[6];
+	int worker = ev->param[3];
 	if (worker < 0) return;
 
 	char *prefix = options->file_prefix;
@@ -800,15 +800,15 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	uint32_t codelet_hash = ev->param[2];
 
 	if (out_paje_file)
-		worker_set_state(end_codelet_time, prefix, ev->param[6], "I");
+		worker_set_state(end_codelet_time, prefix, worker, "I");
 
 	double codelet_length = (end_codelet_time - last_codelet_start[worker]);
 
 	update_accumulated_time(worker, 0.0, codelet_length, end_codelet_time, 0);
 
 	if (distrib_time)
-	fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx32"\t%.9f\n", last_codelet_symbol[worker],
-			prefix, worker, (unsigned long) codelet_size, codelet_hash, codelet_length);
+	     fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx32"\t%.9f\n", last_codelet_symbol[worker],
+		     prefix, worker, (unsigned long) codelet_size, codelet_hash, codelet_length);
 
 	if (options->dumped_codelets)
 	{
@@ -817,12 +817,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, 256, "%s", last_codelet_symbol[worker]);
 		dumped_codelets[dumped_codelets_count - 1].workerid = worker;
-		dumped_codelets[dumped_codelets_count - 1].arch.ndevices = 1;
-		dumped_codelets[dumped_codelets_count - 1].arch.devices = (struct starpu_perfmodel_device *)malloc(sizeof(struct starpu_perfmodel_device));
-		dumped_codelets[dumped_codelets_count - 1].arch.devices[0].type = ev->param[3];
-		dumped_codelets[dumped_codelets_count - 1].arch.devices[0].devid = ev->param[4];
-		dumped_codelets[dumped_codelets_count - 1].arch.devices[0].ncores = ev->param[5];
-
+		snprintf(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname, 256, "%s", (char *)&ev->param[4]);
 		dumped_codelets[dumped_codelets_count - 1].size = codelet_size;
 		dumped_codelets[dumped_codelets_count - 1].hash = codelet_hash;
 		dumped_codelets[dumped_codelets_count - 1].time = codelet_length;
