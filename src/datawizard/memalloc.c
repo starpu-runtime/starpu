@@ -454,7 +454,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	/* remove the mem chunk from the list of active memory chunks, register_mem_chunk will put it back later */
 	if (is_already_in_mc_list)
 	{
-		_starpu_mem_chunk_list_delete(mc);
+		_starpu_mem_chunk_list_erase(mc_list[node], mc);
 	}
 
 	free(mc);
