@@ -97,9 +97,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 				}
 			}
 		}
-		if(sched_ctx->main_master == worker->workerid)
-			/* if the worker is the master of a ctx trace the perf_arch of the context */
-			_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, &sched_ctx->perf_arch, workerid);
+		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, &sched_ctx->perf_arch, workerid);
 	}
 	else
 		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
@@ -123,8 +121,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	_starpu_perfmodel_create_comb_if_needed(perf_arch);
 	if (!sched_ctx->sched_policy)
 	{
-		if(sched_ctx->main_master == worker->workerid)
-			_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, &(sched_ctx->perf_arch), workerid);
+		_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, &(sched_ctx->perf_arch), workerid);
 	}
 	else
 		_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
