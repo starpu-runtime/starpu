@@ -1245,16 +1245,21 @@ double starpu_permodel_history_based_expected_perf(struct starpu_perfmodel *mode
 	return _starpu_history_based_job_expected_perf(model, arch, &j, j.nimpl);
 }
 
+void _starpu_perfmodel_create_comb_if_needed(struct starpu_perfmodel_arch* arch)
+{
+	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	if(comb == -1)
+		comb = starpu_perfmodel_arch_comb_add(arch->ndevices, arch->devices);
+}
+
 void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned cpuid STARPU_ATTRIBUTE_UNUSED, double measured, unsigned impl)
 {
 	if (model)
 	{
-		int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
-		if(comb == -1)
-			comb = starpu_perfmodel_arch_comb_add(arch->ndevices, arch->devices);
-
 		int c;
 		unsigned found = 0;
+		int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+		STARPU_ASSERT(comb != -1);
 		for(c = 0; c < model->state->ncombs; c++)
 		{
 			if(model->state->combs[c] == comb)

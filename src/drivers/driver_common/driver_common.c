@@ -120,6 +120,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	if(!sched_ctx)
 		sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
 
+	_starpu_perfmodel_create_comb_if_needed(perf_arch);
 	if (!sched_ctx->sched_policy)
 	{
 		if(sched_ctx->main_master == worker->workerid)
@@ -176,6 +177,8 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	struct starpu_codelet *cl = j->task->cl;
 	int calibrate_model = 0;
 	int updated = 0;
+
+	_starpu_perfmodel_create_comb_if_needed(perf_arch);
 
 #ifndef STARPU_SIMGRID
 	if (cl->model && cl->model->benchmarking)
