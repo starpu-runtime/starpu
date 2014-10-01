@@ -1790,6 +1790,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				     handle_data_copy();
 				break;
 
+			case _STARPU_FUT_DATA_LOAD:
+			     	break;
+
 			case _STARPU_FUT_START_DRIVER_COPY:
 				if (!options->no_bus)
 					handle_start_driver_copy(&ev, options);
