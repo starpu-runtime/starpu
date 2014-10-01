@@ -118,13 +118,16 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	if(!sched_ctx)
 		sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
 
-	_starpu_perfmodel_create_comb_if_needed(perf_arch);
 	if (!sched_ctx->sched_policy)
 	{
+		_starpu_perfmodel_create_comb_if_needed(&(sched_ctx->perf_arch));
 		_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, &(sched_ctx->perf_arch), workerid);
 	}
 	else
+	{
+		_starpu_perfmodel_create_comb_if_needed(perf_arch);
 		_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
+	}
 
 	if (cl && cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
