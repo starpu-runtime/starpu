@@ -375,8 +375,12 @@ static void dump_data_file(FILE *data_file, struct _perfmodel_plot_options *opti
 	int i;
 	for (i = 0; i < options->fxt_options.dumped_codelets_count; i++)
 	{
-		/* Dump only if the symbol matches user's request */
-		if (strncmp(options->dumped_codelets[i].symbol, options->symbol, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long)-1) == 0)
+		/* Dump only if the codelet symbol matches user's request (with or without the machine name) */
+		char *tmp = strdup(options->symbol);
+		char *dot = strchr(tmp, '.');
+		if (dot) tmp[strlen(tmp)-strlen(dot)] = '\0';
+		if ((strncmp(options->dumped_codelets[i].symbol, options->symbol, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long)-1) == 0)
+		    || (strncmp(options->dumped_codelets[i].symbol, tmp, (FXT_MAX_PARAMS - 4)*sizeof(unsigned long)-1) == 0))
 		{
 			char *archname = options->dumped_codelets[i].perfmodel_archname;
 			size_t size = options->dumped_codelets[i].size;
@@ -384,6 +388,7 @@ static void dump_data_file(FILE *data_file, struct _perfmodel_plot_options *opti
 
 			fprintf(data_file, "%s	%f	%f\n", archname, (float)size, time);
 		}
+		free(tmp);
 	}
 }
 #endif
