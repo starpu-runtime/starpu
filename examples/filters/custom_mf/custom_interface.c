@@ -425,7 +425,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 	size = src_custom->nx * 2 * sizeof(float);
 	if (dst_custom->cpu_ptr == NULL)
 	{
-		ret = starpu_opencl_allocate_memory((cl_mem*)&dst_custom->cpu_ptr,
+		ret = starpu_opencl_allocate_memory(devid, (cl_mem*)&dst_custom->cpu_ptr,
 				size, CL_MEM_READ_WRITE);
 		assert(ret == CL_SUCCESS);
 	}
