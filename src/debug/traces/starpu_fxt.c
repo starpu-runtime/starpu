@@ -2054,6 +2054,16 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_hypervisor_end(&ev, options);
 				break;
 
+			/* We can safely ignore FUT internal events */
+			case FUT_SETUP_CODE:
+			case FUT_CALIBRATE0_CODE:
+			case FUT_CALIBRATE1_CODE:
+			case FUT_CALIBRATE2_CODE:
+			case FUT_KEYCHANGE_CODE:
+			case FUT_NEW_LWP_CODE:
+			case FUT_GCC_INSTRUMENT_ENTRY_CODE:
+				break;
+
 			default:
 #ifdef STARPU_VERBOSE
 				fprintf(stderr, "unknown event.. %x at time %llx WITH OFFSET %llx\n",
