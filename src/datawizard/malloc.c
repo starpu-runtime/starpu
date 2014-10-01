@@ -50,7 +50,7 @@ struct malloc_pinned_codelet_struct
 //{
 //	struct malloc_pinned_codelet_struct *s = arg;
 //        //        *(s->ptr) = malloc(s->dim);
-//        starpu_opencl_allocate_memory((void **)(s->ptr), s->dim, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR);
+//        starpu_opencl_allocate_memory(devid, (void **)(s->ptr), s->dim, CL_MEM_READ_WRITE|CL_MEM_ALLOC_HOST_PTR);
 //}
 //#endif
 
@@ -404,6 +404,14 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 			STARPU_ASSERT(last[dst_node] >= addr);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
+			struct _starpu_worker *worker = _starpu_get_local_worker_key();
+			unsigned devid = _starpu_memory_node_get_devid(dst_node);
+			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
+#if defined(HAVE_CUDA_MEMCPY_PEER)
+				starpu_cuda_set_device(devid);
+#else
+				STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
+#endif
 			status = cudaMalloc((void **)&addr, size);
 			if (!addr || (status != cudaSuccess))
 			{
@@ -433,7 +441,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
                                 int ret;
 				cl_mem ptr;
 
-				ret = starpu_opencl_allocate_memory(&ptr, size, CL_MEM_READ_WRITE);
+				ret = starpu_opencl_allocate_memory(_starpu_memory_node_get_devid(dst_node), &ptr, size, CL_MEM_READ_WRITE);
 				if (ret)
 				{
 					addr = 0;
@@ -505,6 +513,14 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			cudaError_t err;
+			struct _starpu_worker *worker = _starpu_get_local_worker_key();
+			unsigned devid = _starpu_memory_node_get_devid(dst_node);
+			if (!worker || worker->arch != STARPU_CUDA_WORKER || worker->devid != devid)
+#if defined(HAVE_CUDA_MEMCPY_PEER)
+				starpu_cuda_set_device(devid);
+#else
+				STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
+#endif
 			err = cudaFree((void*)addr);
 			if (STARPU_UNLIKELY(err != cudaSuccess))
 				STARPU_CUDA_REPORT_ERROR(err);

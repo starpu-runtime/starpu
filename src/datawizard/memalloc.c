@@ -440,19 +440,24 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 
 	if (!old_replicate)
 	{
+		/* Free the copy that we made */
 		free(mc->chunk_interface);
 		mc->chunk_interface = NULL;
 	}
 
-	mc->data = new_replicate->handle;
-	/* mc->ops, mc->footprint and mc->interface should be
+	/* XXX: We do not actually reuse the mc at the moment, only the interface */
+
+	/* mc->data = new_replicate->handle; */
+	/* mc->footprint, mc->ops, mc->size_interface, mc->automatically_allocated should be
  	 * unchanged ! */
 
-	/* reinsert the mem chunk in the list of active memory chunks */
-	if (!is_already_in_mc_list)
+	/* remove the mem chunk from the list of active memory chunks, register_mem_chunk will put it back later */
+	if (is_already_in_mc_list)
 	{
-		_starpu_mem_chunk_list_push_back(mc_list[node], mc);
+		_starpu_mem_chunk_list_erase(mc_list[node], mc);
 	}
+
+	free(mc);
 }
 
 static unsigned try_to_reuse_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list)

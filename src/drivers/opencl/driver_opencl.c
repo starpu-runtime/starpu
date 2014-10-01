@@ -214,16 +214,15 @@ cl_int _starpu_opencl_deinit_context(int devid)
 }
 #endif
 
-cl_int starpu_opencl_allocate_memory(cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, cl_mem_flags flags STARPU_ATTRIBUTE_UNUSED)
+cl_int starpu_opencl_allocate_memory(int devid, cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, cl_mem_flags flags STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
 	STARPU_ABORT();
 #else
 	cl_int err;
         cl_mem memory;
-        struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
-	memory = clCreateBuffer(contexts[worker->devid], flags, size, NULL, &err);
+	memory = clCreateBuffer(contexts[devid], flags, size, NULL, &err);
 	if (err == CL_OUT_OF_HOST_MEMORY) return err;
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -234,7 +233,7 @@ cl_int starpu_opencl_allocate_memory(cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t
 	 */
 	char dummy = 0;
 	cl_event ev;
-	err = clEnqueueWriteBuffer(alloc_queues[worker->devid], memory, CL_TRUE,
+	err = clEnqueueWriteBuffer(alloc_queues[devid], memory, CL_TRUE,
 				   0, sizeof(dummy), &dummy,
 				   0, NULL, &ev);
 	if (err == CL_MEM_OBJECT_ALLOCATION_FAILURE)

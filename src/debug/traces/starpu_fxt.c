@@ -1891,79 +1891,79 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_user_event(&ev, options);
 				break;
 
-			case FUT_MPI_START:
+			case _STARPU_MPI_FUT_START:
 				handle_mpi_start(&ev, options);
 				break;
 
-			case FUT_MPI_STOP:
+			case _STARPU_MPI_FUT_STOP:
 				handle_mpi_stop(&ev, options);
 				break;
 
-			case FUT_MPI_BARRIER:
+			case _STARPU_MPI_FUT_BARRIER:
 				handle_mpi_barrier(&ev, options);
 				break;
 
-			case FUT_MPI_ISEND_SUBMIT_BEGIN:
+			case _STARPU_MPI_FUT_ISEND_SUBMIT_BEGIN:
 				handle_mpi_isend_submit_begin(&ev, options);
 				break;
 
-			case FUT_MPI_ISEND_SUBMIT_END:
+			case _STARPU_MPI_FUT_ISEND_SUBMIT_END:
 				handle_mpi_isend_submit_end(&ev, options);
 				break;
 
-			case FUT_MPI_IRECV_SUBMIT_BEGIN:
+			case _STARPU_MPI_FUT_IRECV_SUBMIT_BEGIN:
 				handle_mpi_irecv_submit_begin(&ev, options);
 				break;
 
-			case FUT_MPI_IRECV_SUBMIT_END:
+			case _STARPU_MPI_FUT_IRECV_SUBMIT_END:
 				handle_mpi_irecv_submit_end(&ev, options);
 				break;
 
-			case FUT_MPI_ISEND_COMPLETE_BEGIN:
+			case _STARPU_MPI_FUT_ISEND_COMPLETE_BEGIN:
 				handle_mpi_isend_complete_begin(&ev, options);
 				break;
 
-			case FUT_MPI_ISEND_COMPLETE_END:
+			case _STARPU_MPI_FUT_ISEND_COMPLETE_END:
 				handle_mpi_isend_complete_end(&ev, options);
 				break;
 
-			case FUT_MPI_IRECV_COMPLETE_BEGIN:
+			case _STARPU_MPI_FUT_IRECV_COMPLETE_BEGIN:
 				handle_mpi_irecv_complete_begin(&ev, options);
 				break;
 
-			case FUT_MPI_IRECV_COMPLETE_END:
+			case _STARPU_MPI_FUT_IRECV_COMPLETE_END:
 				handle_mpi_irecv_complete_end(&ev, options);
 				break;
 
-			case FUT_MPI_SLEEP_BEGIN:
+			case _STARPU_MPI_FUT_SLEEP_BEGIN:
 				handle_mpi_sleep_begin(&ev, options);
 				break;
 
-			case FUT_MPI_SLEEP_END:
+			case _STARPU_MPI_FUT_SLEEP_END:
 				handle_mpi_sleep_end(&ev, options);
 				break;
 
-			case FUT_MPI_DTESTING_BEGIN:
+			case _STARPU_MPI_FUT_DTESTING_BEGIN:
 				handle_mpi_dtesting_begin(&ev, options);
 				break;
 
-			case FUT_MPI_DTESTING_END:
+			case _STARPU_MPI_FUT_DTESTING_END:
 				handle_mpi_dtesting_end(&ev, options);
 				break;
 
-			case FUT_MPI_UTESTING_BEGIN:
+			case _STARPU_MPI_FUT_UTESTING_BEGIN:
 				handle_mpi_utesting_begin(&ev, options);
 				break;
 
-			case FUT_MPI_UTESTING_END:
+			case _STARPU_MPI_FUT_UTESTING_END:
 				handle_mpi_utesting_end(&ev, options);
 				break;
 
-			case FUT_MPI_UWAIT_BEGIN:
+			case _STARPU_MPI_FUT_UWAIT_BEGIN:
 				handle_mpi_uwait_begin(&ev, options);
 				break;
 
-			case FUT_MPI_UWAIT_END:
+			case _STARPU_MPI_FUT_UWAIT_END:
 				handle_mpi_uwait_end(&ev, options);
 				break;
 
