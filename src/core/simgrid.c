@@ -160,7 +160,7 @@ int main(int argc, char **argv)
 
 	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
 	{
-		_STARPU_ERROR("The main file of this application needs to be compiled with starpu.h included, to properly define starpu_main\n");
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -195,6 +195,12 @@ void _starpu_simgrid_init()
 {
 	xbt_dynar_t hosts;
 	int i;
+
+	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
+	{
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
+		exit(EXIT_FAILURE);
+	}
 
 #ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 	if (_starpu_simgrid_running_smpi())
