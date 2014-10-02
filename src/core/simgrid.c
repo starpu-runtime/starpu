@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2012-2014  Université de Bordeaux 1
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
 	if (!starpu_main)
 	{
-		_STARPU_ERROR("The main file of this application needs to be compiled with starpu.h included, to properly define starpu_main\n");
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -122,6 +122,15 @@ int main(int argc, char **argv)
 
 	MSG_main();
 	return 0;
+}
+
+void _starpu_simgrid_init()
+{
+	if (!starpu_main)
+	{
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
+		exit(EXIT_FAILURE);
+	}
 }
 
 /* Task execution submitted by StarPU */

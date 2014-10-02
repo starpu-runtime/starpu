@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
@@ -36,6 +36,7 @@
 
 #ifdef STARPU_SIMGRID
 #include <msg/msg.h>
+#include <core/simgrid.h>
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -689,7 +690,9 @@ int starpu_init(struct starpu_conf *user_conf)
 	unsigned worker;
 	int ret;
 
-#ifndef STARPU_SIMGRID
+#ifdef STARPU_SIMGRID
+	_starpu_simgrid_init();
+#else
 #ifdef __GNUC__
 #ifndef __OPTIMIZE__
 	_STARPU_DISP("Warning: StarPU was configured with --enable-debug (-O0), and is thus not optimized\n");
