@@ -68,6 +68,9 @@ static void omp_destructor(void)
 }
 \endcode
 
+\sa starpu_omp_init()
+\sa starpu_omp_shutdown()
+
 \section Parallel Parallel Regions and Worksharing
 
 The SORS provides functions to create OpenMP parallel regions as well as
@@ -111,6 +114,9 @@ void f(void)
 }
 \endcode
 
+\sa struct starpu_omp_parallel_region_attr
+\sa starpu_omp_parallel_region()
+
 \subsection OMPFor Parallel For
 
 OpenMP <c>for</c> loops are provided by the starpu_omp_for() group of
@@ -123,6 +129,17 @@ OMP_SCHEDULE or the starpu_omp_set_schedule() function. For loops with
 the <c>ordered</c> clause are also supported. An implicit barrier can be
 enforced or skipped at the end of the worksharing construct, according
 to the value of the <c>nowait</c> parameter.
+
+The canonical family of starpu_omp_for() functions provide each instance
+with the first iteration number and the number of iterations (possibly
+zero) to perform. The alternate family of starpu_omp_for_alt() functions
+provide each instance with the (possibly empty) range of iterations to
+perform, including the first and excluding the last.
+
+The family of starpu_omp_ordered() functions enable to implement
+OpenMP's ordered construct, a region with a parallel for loop that is
+guaranteed to be executed in the sequential order of the loop
+iterations.
 
 \code{.c}
 void for_g(unsigned long long i, unsigned long long nb_i, void *arg)
@@ -141,6 +158,17 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_for(for_g, NULL, NB_ITERS, CHUNK, starpu_omp_sched_static, 0, 0);
 }
 \endcode
+
+\sa starpu_omp_for()
+\sa starpu_omp_for_inline_first()
+\sa starpu_omp_for_inline_next()
+\sa starpu_omp_for_alt()
+\sa starpu_omp_for_inline_first_alt()
+\sa starpu_omp_for_inline_next_alt()
+\sa starpu_omp_ordered()
+\sa starpu_omp_ordered_inline_begin()
+\sa starpu_omp_ordered_inline_end()
+
 
 \subsection OMPSections Sections
 OpenMP <c>sections</c> worksharing constructs are supported using the
@@ -171,6 +199,9 @@ void parallel_region_f(void *buffers[], void *args)
 }
 \endcode
 
+\sa starpu_omp_sections()
+\sa starpu_omp_sections_combined()
+
 \subsection OMPSingle Single
 OpenMP <c>single</c> workharing constructs are supported using the set
 of starpu_omp_single() variants. An
@@ -200,6 +231,14 @@ with <c>copyprivate</c> clauses through the
 starpu_omp_single_copyprivate() function variants. The OpenMP
 <c>master</c> directive is supported as well using the
 starpu_omp_master() function variants.
+
+\sa starpu_omp_master()
+\sa starpu_omp_master_inline()
+\sa starpu_omp_single()
+\sa starpu_omp_single_inline()
+\sa starpu_omp_single_copyprivate()
+\sa starpu_omp_single_copyprivate_inline_begin()
+\sa starpu_omp_single_copyprivate_inline_end()
 
 \section Task Tasks
 
@@ -259,6 +298,9 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_task_region(&attr);
 }
 \endcode
+
+\sa struct starpu_omp_task_region_attr
+\sa starpu_omp_task_region()
 
 \subsection DataDependencies Data Dependencies
 The SORS implements inter-tasks data dependencies as specified in OpenMP
@@ -344,8 +386,78 @@ void parallel_region_f(void *buffers[], void *args)
 }
 \endcode
 
+\sa starpu_omp_task_region()
+\sa starpu_omp_taskwait()
+\sa starpu_omp_taskgroup()
+\sa starpu_omp_taskgroup_inline_begin()
+\sa starpu_omp_taskgroup_inline_end()
+
 \section Synchronization Synchronization Support
 
-Synchronization objects and methods.
+The SORS implements objects and method to build common OpenMP
+synchronization constructs.
+
+\subsection SimpleLock Simple Locks
+
+The SORS Simple Locks are opaque starpu_omp_lock_t objects enabling multiple
+tasks to synchronize with each others, following the Simple Lock
+constructs defined by the OpenMP specification. In accordance with such
+specification, simple locks may not by acquired multiple times by the
+same task, without being released in-between; otherwise, deadlocks may
+result. Codes requiring the possibility to lock multiple times
+recursively should use Nestable Locks (\ref NestableLock). Codes NOT
+requiring the possibility to lock multiple times recursively should use
+Simple Locks as they incur less processing overhead than Nestable Locks.
+
+\sa starpu_omp_lock_t
+\sa starpu_omp_init_lock()
+\sa starpu_omp_destroy_lock()
+\sa starpu_omp_set_lock()
+\sa starpu_omp_unset_lock()
+\sa starpu_omp_test_lock()
+
+\subsection NestableLock Nestable Locks
+
+The SORS Nestable Locks are opaque starpu_omp_nest_lock_t objects enabling
+multiple tasks to synchronize with each others, following the Nestable
+Lock constructs defined by the OpenMP specification. In accordance with
+such specification, nestable locks may by acquired multiple times
+recursively by the same task without deadlocking. Nested locking and
+unlocking operations must be well parenthesized at any time, otherwise
+deadlock and/or undefined behaviour may occur.  Codes requiring the
+possibility to lock multiple times recursively should use Nestable
+Locks. Codes NOT requiring the possibility to lock multiple times
+recursively should use Simple Locks (\ref SimpleLock) instead, as they
+incur less processing overhead than Nestable Locks.
+
+\sa starpu_omp_nest_lock_t
+\sa starpu_omp_init_nest_lock()
+\sa starpu_omp_destroy_nest_lock()
+\sa starpu_omp_set_nest_lock()
+\sa starpu_omp_unset_nest_lock()
+\sa starpu_omp_test_nest_lock()
+
+\subsection Critical Critical Sections
+
+The SORS implements support for OpenMP critical sections through the
+family of starpu_omp_critical functions. Critical sections may optionally
+be named. There is a single, common anonymous critical section. Mutual
+exclusion only occur within the scope of single critical section, either
+a named one or the anonymous one.
+
+\sa starpu_omp_critical()
+\sa starpu_omp_critical_inline_begin()
+\sa starpu_omp_critical_inline_end()
+
+\subsection Barrier Barriers
+
+The SORS provides the starpu_omp_barrier() function to implement
+barriers over parallel region teams. In accordance with the OpenMP
+specification, the starpu_omp_barrier() function waits for every
+implicit task of the parallel region to reach the barrier and every
+explicit task launched by the parallel region to complete, before
+returning.
+
+\sa starpu_omp_barrier()
 
 */

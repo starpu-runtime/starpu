@@ -6,6 +6,197 @@
 
 /*! \defgroup API_OpenMP_Runtime_Support OpenMP Runtime Support
 
+\brief This section describes the interface provided for implementing OpenMP runtimes on top of StarPU.
+
+
+\struct starpu_omp_lock_t
+\ingroup API_OpenMP_Runtime_Support
+Opaque Simple Lock object (\ref SimpleLock) for inter-task synchronization operations.
+
+\sa starpu_omp_init_lock()
+\sa starpu_omp_destroy_lock()
+\sa starpu_omp_set_lock()
+\sa starpu_omp_unset_lock()
+\sa starpu_omp_test_lock()
+
+\var starpu_omp_lock_t::internal
+Is an opaque pointer for internal use.
+
+
+\struct starpu_omp_nest_lock_t
+\ingroup API_OpenMP_Runtime_Support
+Opaque Nestable Lock object (\ref NestableLock) for inter-task synchronization operations.
+
+\sa starpu_omp_init_nest_lock()
+\sa starpu_omp_destroy_nest_lock()
+\sa starpu_omp_set_nest_lock()
+\sa starpu_omp_unset_nest_lock()
+\sa starpu_omp_test_nest_lock()
+\var starpu_omp_nest_lock_t::internal
+Is an opaque pointer for internal use.
+
+
+\enum starpu_omp_sched_value
+\ingroup API_OpenMP_Runtime_Support
+Set of constants for selecting the for loop iteration scheduling algorithm
+(\ref OMPFor) as defined by the OpenMP specification.
+
+\var starpu_omp_sched_value::starpu_omp_sched_undefined
+\ingroup API_OpenMP_Runtime_Support
+Undefined iteration scheduling algorithm.
+
+\var starpu_omp_sched_value::starpu_omp_sched_static
+\ingroup API_OpenMP_Runtime_Support
+\b Static iteration scheduling algorithm.
+
+\var starpu_omp_sched_value::starpu_omp_sched_dynamic
+\ingroup API_OpenMP_Runtime_Support
+\b Dynamic iteration scheduling algorithm.
+
+\var starpu_omp_sched_value::starpu_omp_sched_guided
+\ingroup API_OpenMP_Runtime_Support
+\b Guided iteration scheduling algorithm.
+
+\var starpu_omp_sched_value::starpu_omp_sched_auto
+\ingroup API_OpenMP_Runtime_Support
+\b Automatically choosen iteration scheduling algorithm.
+
+\var starpu_omp_sched_value::starpu_omp_sched_runtime
+\ingroup API_OpenMP_Runtime_Support
+Choice of iteration scheduling algorithm deferred at \b runtime.
+
+\sa starpu_omp_for()
+\sa starpu_omp_for_inline_first()
+\sa starpu_omp_for_inline_next()
+\sa starpu_omp_for_alt()
+\sa starpu_omp_for_inline_first_alt()
+\sa starpu_omp_for_inline_next_alt()
+
+
+\enum starpu_omp_proc_bind_value
+\ingroup API_OpenMP_Runtime_Support
+Set of constants for selecting the processor binding method, as defined in the
+OpenMP specification.
+
+\var starpu_omp_proc_bind_value::starpu_omp_proc_bind_undefined
+\ingroup API_OpenMP_Runtime_Support
+Undefined processor binding method.
+
+\var starpu_omp_proc_bind_value::starpu_omp_proc_bind_false
+\ingroup API_OpenMP_Runtime_Support
+Team threads may be moved between places at any time.
+
+\var starpu_omp_proc_bind_value::starpu_omp_proc_bind_true
+\ingroup API_OpenMP_Runtime_Support
+Team threads may not be moved between places.
+
+\var starpu_omp_proc_bind_value::starpu_omp_proc_bind_master
+\ingroup API_OpenMP_Runtime_Support
+Assign every thread in the team to the same place as the \b master thread.
+
+\var starpu_omp_proc_bind_value::starpu_omp_proc_bind_close
+\ingroup API_OpenMP_Runtime_Support
+Assign every thread in the team to a place \b close to the parent thread.
+
+\var starpu_omp_proc_bind_value::starpu_omp_proc_bind_spread
+\ingroup API_OpenMP_Runtime_Support
+Assign team threads as a sparse distribution over the selected places.
+
+\sa starpu_omp_get_proc_bind()
+
+
+\struct starpu_omp_parallel_region_attr
+\ingroup API_OpenMP_Runtime_Support
+Set of attributes used for creating a new parallel region.
+
+\sa starpu_omp_parallel_region()
+
+\var starpu_omp_parallel_region_attr::cl
+
+Is a ::starpu_codelet (\ref API_Codelet_And_Tasks) to use for the parallel region
+implicit tasks. The codelet must provide a CPU implementation function.
+
+\var starpu_omp_parallel_region_attr::handles
+
+Is an array of zero or more ::starpu_data_handle_t data handle to be passed to
+the parallel region implicit tasks.
+
+\var starpu_omp_parallel_region_attr::cl_arg
+
+Is an optional pointer to an inline argument to be passed to the region implicit tasks.
+
+\var starpu_omp_parallel_region_attr::cl_arg_size
+
+Is the size of the optional inline argument to be passed to the region implicit tasks, or 0 if unused.
+
+\var starpu_omp_parallel_region_attr::cl_arg_free
+
+Is a boolean indicating whether the optional inline argument should be automatically freed (true), or not (false).
+
+\var starpu_omp_parallel_region_attr::if_clause
+
+Is a boolean indicating whether the \b if clause of the corresponding <c>pragma
+omp parallel</c> is true or false.
+
+\var starpu_omp_parallel_region_attr::num_threads
+
+Is an integer indicating the requested number of threads in the team of the
+newly created parallel region, or 0 to let the runtime choose the number of
+threads alone. This attribute may be ignored by the runtime system if the
+requested number of threads is higher than the number of threads that the
+runtime can create.
+
+\struct starpu_omp_task_region_attr
+\ingroup API_OpenMP_Runtime_Support
+Set of attributes used for creating a new task region.
+
+\sa starpu_omp_task_region()
+
+\var starpu_omp_task_region_attr::cl
+
+Is a ::starpu_codelet (\ref API_Codelet_And_Tasks) to use for the task region
+explicit task. The codelet must provide a CPU implementation function or an
+accelerator implementation for offloaded target regions.
+
+\var starpu_omp_task_region_attr::handles
+
+Is an array of zero or more ::starpu_data_handle_t data handle to be passed to
+the task region explicit tasks.
+
+\var starpu_omp_task_region_attr::cl_arg
+
+Is an optional pointer to an inline argument to be passed to the region implicit tasks.
+
+\var starpu_omp_task_region_attr::cl_arg_size
+
+Is the size of the optional inline argument to be passed to the region implicit
+tasks, or 0 if unused.
+
+\var starpu_omp_task_region_attr::cl_arg_free
+
+Is a boolean indicating whether the optional inline argument should be
+automatically freed (true), or not (false).
+
+\var starpu_omp_task_region_attr::if_clause
+
+Is a boolean indicating whether the \b if clause of the corresponding <c>pragma
+omp task</c> is true or false.
+
+\var starpu_omp_task_region_attr::final_clause
+
+Is a boolean indicating whether the \b final clause of the corresponding <c>pragma
+omp task</c> is true or false.
+
+\var starpu_omp_task_region_attr::untied_clause
+
+Is a boolean indicating whether the \b untied clause of the corresponding <c>pragma
+omp task</c> is true or false.
+
+\var starpu_omp_task_region_attr::mergeable_clause
+
+Is a boolean indicating whether the \b mergeable clause of the corresponding <c>pragma
+omp task</c> is true or false.
+
 @name Initialisation
 \ingroup API_OpenMP_Runtime_Support
 
