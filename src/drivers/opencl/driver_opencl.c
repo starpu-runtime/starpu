@@ -690,7 +690,10 @@ void *_starpu_opencl_worker(void *arg)
 
 	_starpu_opencl_driver_init(args);
 	while (_starpu_machine_is_running())
+	{
+		_starpu_may_pause();
 		_starpu_opencl_driver_run_once(args);
+	}
 	_starpu_opencl_driver_deinit(args);
 
 	return NULL;

@@ -343,6 +343,7 @@ void *gordon_worker_inject(struct _starpu_worker_set *arg)
 
 	while(_starpu_machine_is_running())
 	{
+		_starpu_may_pause();
 		if (gordon_busy_enough())
 		{
 			/* gordon already has enough work, wait a little TODO */
