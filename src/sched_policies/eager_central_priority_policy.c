@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -139,6 +139,9 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	
 	struct starpu_sched_ctx_iterator it;
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	char dowake[STARPU_NMAXWORKERS] = { 0 };
+#endif
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 	
@@ -160,19 +163,34 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 				starpu_bitmap_unset(data->waiters, worker);
 				/* We really woke at least somebody, no need to wake somebody else */
-				goto out;
+				break;
 #else
-				starpu_pthread_mutex_t *sched_mutex;
-				starpu_pthread_cond_t *sched_cond;
-				starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-
-				if (starpu_wakeup_worker(worker, sched_cond, sched_mutex))
-				    goto out; // wake up a single worker
+				dowake[worker] = 1;
 #endif
 			}
 	}
-out:
+	/* Let the task free */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	/* Now that we have a list of potential workers, try to wake one */
+	if(workers->init_iterator)
+		workers->init_iterator(workers, &it);
+	
+	while(workers->has_next(workers, &it))
+	{
+		worker = workers->get_next(workers, &it);
+		if (dowake[worker])
+		{
+			starpu_pthread_mutex_t *sched_mutex;
+			starpu_pthread_cond_t *sched_cond;
+			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
+
+			if (starpu_wakeup_worker(worker, sched_cond, sched_mutex))
+				break; // wake up a single worker
+		}
+	}
+#endif
 
 	return 0;
 }
@@ -194,9 +212,11 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	if (taskq->total_ntasks == 0)
 		return NULL;
 
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (starpu_bitmap_get(data->waiters, workerid))
 		/* Nobody woke us, avoid bothering the mutex */
 		return NULL;
+#endif
 
 	/* release this mutex before trying to wake up other workers */
 	starpu_pthread_mutex_t *curr_sched_mutex;
