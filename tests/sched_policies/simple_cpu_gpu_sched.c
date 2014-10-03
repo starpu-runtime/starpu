@@ -200,7 +200,6 @@ run(struct starpu_sched_policy *policy)
 	if (cpu_task_worker != STARPU_CPU_WORKER || (gpu_task_worker != STARPU_CUDA_WORKER && gpu_task_worker != STARPU_OPENCL_WORKER))
 	{
 		FPRINTF(stderr, "Tasks did not execute on expected worker\n");
-	{
 		if (cpu_task_worker != STARPU_CPU_WORKER)
 		{
 			FPRINTF(stderr, "The CPU task did not run on a CPU worker\n");
