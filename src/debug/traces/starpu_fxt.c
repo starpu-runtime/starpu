@@ -762,11 +762,13 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	{
 		int i;
 		char parameters[256];
-		size_t eaten;
-		eaten = sprintf(parameters,"data");
+		size_t eaten = 0;
+		if (!last_codelet_parameter[worker])
+			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten, "nodata");
+		else
 		for (i = 0; i < last_codelet_parameter[worker] && i < MAX_PARAMETERS; i++)
 		{
-			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten, "_%s", last_codelet_parameter_description[worker][i]);
+			eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten, "%s%s", i?"_":"", last_codelet_parameter_description[worker][i]);
 		}
 
 		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, last_codelet_symbol[worker], ev->param[2], parameters, ev->param[3], ev->param[4], job_id);
