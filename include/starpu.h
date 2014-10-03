@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -64,14 +64,11 @@ typedef UINT_PTR uintptr_t;
 #include <starpu_top.h>
 #include <starpu_fxt.h>
 #include <starpu_driver.h>
+#include <starpu_simgrid_wrap.h>
 
 #ifdef __cplusplus
 extern "C"
 {
-#endif
-
-#ifdef STARPU_SIMGRID
-#define main starpu_main
 #endif
 
 struct starpu_conf
