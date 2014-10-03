@@ -59,7 +59,8 @@ static void sched_ctx_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 static struct starpu_codelet sched_ctx_codelet =
 {
 	.cpu_funcs = {sched_ctx_func, NULL},
-	.cuda_funcs = { NULL},
+#warning FIXME: cuda_funcs should not need to be defined
+	.cuda_funcs = {sched_ctx_func, NULL},
 	.opencl_funcs = {NULL},
 	.model = NULL,
 	.nbuffers = 0,
@@ -83,8 +84,14 @@ int main(int argc, char **argv)
 	starpu_pthread_mutex_init(&mut, NULL);
 	int nprocs1 = 1;
 	int nprocs2 = 1;
-	int *procs1, *procs2;
+	int ncuda = 0;
+	int *procs1, *procs2, *procscuda;
 
+#ifdef STARPU_USE_CUDA
+	ncuda = starpu_cuda_worker_get_count();
+	procscuda = (int*)malloc(ncuda*sizeof(int));
+	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procscuda, ncuda);
+#endif
 #ifdef STARPU_USE_CPU
 	ncpus = starpu_cpu_worker_get_count();
 	procs1 = (int*)malloc(ncpus*sizeof(int));
@@ -108,6 +115,10 @@ int main(int argc, char **argv)
 #endif
 
 	if (ncpus == 0) goto enodev;
+	if (ncuda > 0 && nprocs1 > 1)
+	{
+		procs1[nprocs1-1] = procscuda[0];
+	}
 
 	/*create contexts however you want*/
 	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", 0);
