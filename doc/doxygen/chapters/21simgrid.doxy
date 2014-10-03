@@ -22,9 +22,9 @@ get the simulated time, it has to use starpu_timing_now() which returns the
 virtual timestamp in us.
 
 For some technical reason, the application's .c file which contains main() has
-to be recompiled with starpu.h, which in the simgrid case will # define main()
+to be recompiled with starpu_simgrid_wrap.h, which in the simgrid case will # define main()
 into starpu_main(), and it is libstarpu which will provide the real main() and
-call the application's main().
+will call the application's main().
 
 To be able to test with crazy data sizes, one may want to only allocate
 application data if STARPU_SIMGRID is not defined.  Passing a NULL pointer to
