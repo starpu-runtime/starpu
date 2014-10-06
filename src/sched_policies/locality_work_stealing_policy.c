@@ -367,6 +367,6 @@ struct starpu_sched_policy _starpu_sched_lws_policy =
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
-	.policy_name = "nws",
-	.policy_description = "new work stealing"
+	.policy_name = "lws",
+	.policy_description = "locality work stealing"
 };

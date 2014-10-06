@@ -745,7 +745,10 @@ void *_starpu_opencl_worker(void *_arg)
 	_starpu_opencl_driver_init(worker);
 	_STARPU_TRACE_START_PROGRESS(memnode);
 	while (_starpu_machine_is_running())
+	{
+		_starpu_may_pause();
 		_starpu_opencl_driver_run_once(worker);
+	}
 	_starpu_opencl_driver_deinit(worker);
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
