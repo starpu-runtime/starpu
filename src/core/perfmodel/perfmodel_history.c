@@ -42,9 +42,10 @@
 #define HASH_ADD_UINT32_T(head,field,add) HASH_ADD(hh,head,field,sizeof(uint32_t),add)
 #define HASH_FIND_UINT32_T(head,find,out) HASH_FIND(hh,head,find,sizeof(uint32_t),out)
 
-struct starpu_perfmodel_arch **arch_combs;
-int current_arch_comb;
-int nb_arch_combs;
+static struct starpu_perfmodel_arch **arch_combs;
+static int current_arch_comb;
+static int nb_arch_combs;
+static starpu_pthread_mutex_t arch_combs_mutex;
 
 struct starpu_perfmodel_history_table
 {
@@ -85,6 +86,7 @@ void _starpu_perfmodel_malloc_per_arch_is_set(struct starpu_perfmodel *model, in
 
 int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices)
 {
+	STARPU_PTHREAD_MUTEX_LOCK(&arch_combs_mutex);
 	if (current_arch_comb >= nb_arch_combs)
 	{
 		// We need to allocate more arch_combs
@@ -102,6 +104,7 @@ int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device*
 		arch_combs[current_arch_comb]->devices[dev].ncores = devices[dev].ncores;
 	}
 	current_arch_comb++;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&arch_combs_mutex);
 	return current_arch_comb-1;
 }
 
@@ -137,6 +140,7 @@ int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device 
 static 	void _free_arch_combs(void)
 {
 	int i;
+	STARPU_PTHREAD_MUTEX_LOCK(&arch_combs_mutex);
 	for(i = 0; i < current_arch_comb; i++)
 	{
 		free(arch_combs[i]->devices);
@@ -144,6 +148,8 @@ static 	void _free_arch_combs(void)
 	}
 	current_arch_comb = 0;
 	free(arch_combs);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&arch_combs_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&arch_combs_mutex);
 }
 
 int starpu_get_narch_combs()
@@ -504,8 +510,10 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	if (ncombs > nb_arch_combs)
 	{
 		// The model has more combs than the original number of arch_combs, we need to reallocate
+		STARPU_PTHREAD_MUTEX_LOCK(&arch_combs_mutex);
 		nb_arch_combs = ncombs;
 		arch_combs = (struct starpu_perfmodel_arch**) realloc(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
+		STARPU_PTHREAD_MUTEX_UNLOCK(&arch_combs_mutex);
 
 		_starpu_perfmodel_realloc(model, nb_arch_combs);
 	}
@@ -793,6 +801,7 @@ void _starpu_initialize_registered_performance_models(void)
 	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nscc);
 	arch_combs = (struct starpu_perfmodel_arch**) malloc(nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
+	STARPU_PTHREAD_MUTEX_INIT(&arch_combs_mutex, NULL);
 }
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
