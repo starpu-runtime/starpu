@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2012  Institut National de Recherche en Informatique et Automatique
  *
@@ -37,7 +37,7 @@ extern "C"
 
 struct starpu_data_copy_methods
 {
-	int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node);
 
 	int (*ram_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*ram_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
