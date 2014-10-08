@@ -58,6 +58,7 @@ static void parse_args(int argc, char **argv)
 			nblocks = strtol(argv[++i], &argptr, 10);
 		}
 
+#ifndef STARPU_SIMGRID
 		else if (strcmp(argv[i], "-check") == 0)
 		{
 			check = 1;
@@ -72,6 +73,7 @@ static void parse_args(int argc, char **argv)
 		{
 			no_stride = 1;
 		}
+#endif
 
 		else if (strcmp(argv[i], "-profile") == 0)
 		{
@@ -315,6 +317,7 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 
+#ifndef STARPU_SIMGRID
 	init_matrix();
 
 	unsigned *ipiv = NULL;
@@ -364,6 +367,7 @@ int main(int argc, char **argv)
 		}
 	}
 	else
+#endif
 	{
 		ret = STARPU_LU(lu_decomposition)(A, size, size, nblocks);
 	}
@@ -403,6 +407,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+#ifndef STARPU_SIMGRID
 	if (check)
 	{
 		FPRINTF(stderr, "Checking result\n");
@@ -413,6 +418,7 @@ int main(int argc, char **argv)
 
 		check_result();
 	}
+#endif
 
 	starpu_free(A);
 
