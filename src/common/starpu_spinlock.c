@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,15 +24,17 @@
 int _starpu_spin_init(struct _starpu_spinlock *lock)
 {
 #if defined(STARPU_SPINLOCK_CHECK)
+	starpu_pthread_mutexattr_t errcheck_attr;
 //	memcpy(&lock->errcheck_lock, PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP, sizeof(PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP));
 	int ret;
-	ret = starpu_pthread_mutexattr_init(&lock->errcheck_attr);
+	ret = starpu_pthread_mutexattr_init(&errcheck_attr);
 	STARPU_CHECK_RETURN_VALUE(ret, "pthread_mutexattr_init");
 
-	ret = starpu_pthread_mutexattr_settype(&lock->errcheck_attr, PTHREAD_MUTEX_ERRORCHECK);
+	ret = starpu_pthread_mutexattr_settype(&errcheck_attr, PTHREAD_MUTEX_ERRORCHECK);
 	STARPU_ASSERT(!ret);
 
-	ret = starpu_pthread_mutex_init(&lock->errcheck_lock, &lock->errcheck_attr);
+	ret = starpu_pthread_mutex_init(&lock->errcheck_lock, &errcheck_attr);
+	starpu_pthread_mutexattr_destroy(&errcheck_attr);
 	return ret;
 #else
 	int ret = starpu_pthread_spin_init(&lock->lock, 0);
@@ -44,7 +46,6 @@ int _starpu_spin_init(struct _starpu_spinlock *lock)
 int _starpu_spin_destroy(struct _starpu_spinlock *lock STARPU_ATTRIBUTE_UNUSED)
 {
 #if defined(STARPU_SPINLOCK_CHECK)
-	starpu_pthread_mutexattr_destroy(&lock->errcheck_attr);
 	return starpu_pthread_mutex_destroy(&lock->errcheck_lock);
 #else
 	return starpu_pthread_spin_destroy(&lock->lock);

@@ -567,6 +567,11 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 		_STARPU_DEBUG("cuda (%s) dev id %u worker %u thread is ready to run on CPU %d !\n", devname, devid, i, worker->bindid);
 
 		worker->pipeline_length = starpu_get_env_number_default("STARPU_CUDA_PIPELINE", 2);
+		if (worker->pipeline_length > STARPU_MAX_PIPELINE)
+		{
+			_STARPU_DISP("Warning: STARPU_CUDA_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
+			worker->pipeline_length = STARPU_MAX_PIPELINE;
+		}
 		_STARPU_TRACE_WORKER_INIT_END(worker_set->workers[i].workerid);
 	}
 
@@ -752,7 +757,10 @@ void *_starpu_cuda_worker(void *_arg)
 	_starpu_cuda_driver_init(worker);
 	_STARPU_TRACE_START_PROGRESS(memnode);
 	while (_starpu_machine_is_running())
+	{
+		_starpu_may_pause();
 		_starpu_cuda_driver_run_once(worker);
+	}
 	_STARPU_TRACE_END_PROGRESS(memnode);
 	_starpu_cuda_driver_deinit(worker);
 

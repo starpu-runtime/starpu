@@ -224,13 +224,12 @@ static int lws_push_task(struct starpu_task *task)
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_sched_ctx_iterator it;
+	unsigned worker;
 	if(workers->init_iterator)
 		workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
-		starpu_pthread_mutex_t *sched_mutex;
-		starpu_pthread_cond_t *sched_cond;
 		starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
 		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 	}
@@ -368,6 +367,6 @@ struct starpu_sched_policy _starpu_sched_lws_policy =
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
-	.policy_name = "nws",
-	.policy_description = "new work stealing"
+	.policy_name = "lws",
+	.policy_description = "locality work stealing"
 };

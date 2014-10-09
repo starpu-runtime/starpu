@@ -41,8 +41,6 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 	double cost = INFINITY;
 	unsigned src_node_mask = 0;
 
-	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-
 	for (node = 0; node < nnodes; node++)
 	{
 		if (handle->per_node[node].state != STARPU_INVALID)
@@ -73,15 +71,6 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 			{
 				double time = starpu_transfer_predict(i, destination, size);
 				unsigned handling_node;
-
-				/* Avoid transfers which the interface does not want */
-				if (copy_methods->can_copy)
-				{
-					void *src_interface = handle->per_node[i].data_interface;
-					void *dst_interface = handle->per_node[destination].data_interface;
-					if (!copy_methods->can_copy(src_interface, i, dst_interface, destination))
-						continue;
-				}
 
 				/* Avoid indirect transfers */
 				if (!link_supports_direct_transfers(handle, i, destination, &handling_node))
@@ -115,22 +104,22 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 		
 		if (src_node_mask & (1<<i))
 		{
+			int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node) = handle->ops->copy_methods->can_copy;
 			/* Avoid transfers which the interface does not want */
-			if (copy_methods->can_copy)
+			if (can_copy)
 			{
 				void *src_interface = handle->per_node[i].data_interface;
 				void *dst_interface = handle->per_node[destination].data_interface;
 				unsigned handling_node;
 
-				if (!copy_methods->can_copy(src_interface, i, dst_interface, destination))
-					continue;
-
 				if (!link_supports_direct_transfers(handle, i, destination, &handling_node))
 				{
 					/* Avoid through RAM if the interface does not want it */
 					void *ram_interface = handle->per_node[STARPU_MAIN_RAM].data_interface;
-					if (!copy_methods->can_copy(src_interface, i, ram_interface, STARPU_MAIN_RAM)
-					 || !copy_methods->can_copy(ram_interface, STARPU_MAIN_RAM, dst_interface, destination))
+					if ((!can_copy(src_interface, i, ram_interface, STARPU_MAIN_RAM, i)
+					  && !can_copy(src_interface, i, ram_interface, STARPU_MAIN_RAM, STARPU_MAIN_RAM))
+					 || (!can_copy(ram_interface, STARPU_MAIN_RAM, dst_interface, destination, STARPU_MAIN_RAM)
+					  && !can_copy(ram_interface, STARPU_MAIN_RAM, dst_interface, destination, destination)))
 						continue;
 				}
 			}
@@ -251,7 +240,9 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 
 static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node)
 {
-	(void) handle; // unused
+	int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node) = handle->ops->copy_methods->can_copy;
+	void *src_interface = handle->per_node[src_node].data_interface;
+	void *dst_interface = handle->per_node[dst_node].data_interface;
 
 	/* XXX That's a hack until we fix cudaMemcpy3DPeerAsync in the block interface
 	 * Perhaps not all data interface provide a direct GPU-GPU transfer
@@ -260,19 +251,19 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 	if (src_node != dst_node && starpu_node_get_kind(src_node) == STARPU_CUDA_RAM && starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
 	{
 		const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-		if (!copy_methods->cuda_to_cuda_async)
+		if (!copy_methods->cuda_to_cuda_async && !copy_methods->any_to_any)
 			return 0;
 	}
 #endif
 
 	/* Note: with CUDA, performance seems a bit better when issuing the transfer from the destination (tested without GPUDirect, but GPUDirect probably behave the same) */
-	if (worker_supports_direct_access(src_node, dst_node))
+	if (worker_supports_direct_access(src_node, dst_node) && (!can_copy || can_copy(src_interface, src_node, dst_interface, dst_node, dst_node)))
 	{
 		*handling_node = dst_node;
 		return 1;
 	}
 
-	if (worker_supports_direct_access(dst_node, src_node))
+	if (worker_supports_direct_access(dst_node, src_node) && (!can_copy || can_copy(src_interface, src_node, dst_interface, dst_node, src_node)))
 	{
 		*handling_node = src_node;
 		return 1;
@@ -319,6 +310,10 @@ static int determine_request_path(starpu_data_handle_t handle,
 
 	if (!link_is_valid)
 	{
+		int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node) = handle->ops->copy_methods->can_copy;
+		void *src_interface = handle->per_node[src_node].data_interface;
+		void *dst_interface = handle->per_node[dst_node].data_interface;
+
 		/* We need an intermediate hop to implement data staging
 		 * through main memory. */
 		STARPU_ASSERT(max_len >= 2);
@@ -326,12 +321,36 @@ static int determine_request_path(starpu_data_handle_t handle,
 		/* GPU -> RAM */
 		src_nodes[0] = src_node;
 		dst_nodes[0] = STARPU_MAIN_RAM;
-		handling_nodes[0] = starpu_node_get_kind(src_node) == STARPU_DISK_RAM ? dst_node : src_node;
+
+		if (starpu_node_get_kind(src_node) == STARPU_DISK_RAM)
+			/* Disks don't have their own driver thread */
+			handling_nodes[0] = dst_node;
+		else if (!can_copy || can_copy(src_interface, src_node, dst_interface, dst_node, src_node))
+		{
+			handling_nodes[0] = src_node;
+		}
+		else
+		{
+			STARPU_ASSERT_MSG(can_copy(src_interface, src_node, dst_interface, dst_node, dst_node), "interface %d refuses all kinds of transfers from node %u to node %u\n", handle->ops->interfaceid, src_node, dst_node);
+			handling_nodes[0] = dst_node;
+		}
 
 		/* RAM -> GPU */
 		src_nodes[1] = STARPU_MAIN_RAM;
 		dst_nodes[1] = dst_node;
-		handling_nodes[1] = starpu_node_get_kind(dst_node) == STARPU_DISK_RAM ? src_node : dst_node;
+
+		if (starpu_node_get_kind(dst_node) == STARPU_DISK_RAM)
+			/* Disks don't have their own driver thread */
+			handling_nodes[1] = src_node;
+		else if (!can_copy || can_copy(src_interface, src_node, dst_interface, dst_node, dst_node))
+		{
+			handling_nodes[1] = dst_node;
+		}
+		else
+		{
+			STARPU_ASSERT_MSG(can_copy(src_interface, src_node, dst_interface, dst_node, src_node), "interface %d refuses all kinds of transfers from node %u to node %u\n", handle->ops->interfaceid, src_node, dst_node);
+			handling_nodes[1] = src_node;
+		}
 
 		return 2;
 	}

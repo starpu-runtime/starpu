@@ -74,7 +74,7 @@ int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *ke
 			break;
 		}
 
-		if (ev.code == FUT_MPI_BARRIER)
+		if (ev.code == _STARPU_MPI_FUT_BARRIER)
 		{
 			/* We found the sync point */
 			*offset = ev.time;

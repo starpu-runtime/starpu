@@ -214,16 +214,15 @@ cl_int _starpu_opencl_deinit_context(int devid)
 }
 #endif
 
-cl_int starpu_opencl_allocate_memory(cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, cl_mem_flags flags STARPU_ATTRIBUTE_UNUSED)
+cl_int starpu_opencl_allocate_memory(int devid, cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, cl_mem_flags flags STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
 	STARPU_ABORT();
 #else
 	cl_int err;
         cl_mem memory;
-        struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
-	memory = clCreateBuffer(contexts[worker->devid], flags, size, NULL, &err);
+	memory = clCreateBuffer(contexts[devid], flags, size, NULL, &err);
 	if (err == CL_OUT_OF_HOST_MEMORY) return err;
         if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -234,7 +233,7 @@ cl_int starpu_opencl_allocate_memory(cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t
 	 */
 	char dummy = 0;
 	cl_event ev;
-	err = clEnqueueWriteBuffer(alloc_queues[worker->devid], memory, CL_TRUE,
+	err = clEnqueueWriteBuffer(alloc_queues[devid], memory, CL_TRUE,
 				   0, sizeof(dummy), &dummy,
 				   0, NULL, &ev);
 	if (err == CL_MEM_OBJECT_ALLOCATION_FAILURE)
@@ -597,6 +596,11 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	snprintf(worker->short_name, sizeof(worker->short_name), "OpenCL %u", devid);
 
 	worker->pipeline_length = starpu_get_env_number_default("STARPU_OPENCL_PIPELINE", 2);
+	if (worker->pipeline_length > STARPU_MAX_PIPELINE)
+	{
+		_STARPU_DISP("Warning: STARPU_OPENCL_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
+		worker->pipeline_length = STARPU_MAX_PIPELINE;
+	}
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, worker->bindid);
 
@@ -741,7 +745,10 @@ void *_starpu_opencl_worker(void *_arg)
 	_starpu_opencl_driver_init(worker);
 	_STARPU_TRACE_START_PROGRESS(memnode);
 	while (_starpu_machine_is_running())
+	{
+		_starpu_may_pause();
 		_starpu_opencl_driver_run_once(worker);
+	}
 	_starpu_opencl_driver_deinit(worker);
 	_STARPU_TRACE_END_PROGRESS(memnode);
 
