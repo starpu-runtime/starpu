@@ -1820,6 +1820,8 @@ AC_SUBST(USE_MPI, $use_mpi)
 AM_CONDITIONAL(USE_MPI, test x$use_mpi = xyes)
 if test x$use_mpi = xyes; then
 	AC_DEFINE(STARPU_USE_MPI,[],[whether the StarPU MPI library is available])
+else
+	running_mpi_check=no
 fi
 
 AC_ARG_ENABLE(mpi-progression-hook, [AS_HELP_STRING([--enable-mpi-progression-hook],
