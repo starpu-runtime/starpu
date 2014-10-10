@@ -3,6 +3,7 @@
  * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2014  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -205,9 +206,40 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 		}
 
 		if (calibrate_model)
-			_starpu_update_perfmodel_history(j, j->task->cl->model,  perf_arch, worker->devid, measured,j->nimpl);
-
-
+		{
+#ifdef STARPU_OPENMP
+			double time_consumed = measured;
+			unsigned do_update_time_model;
+			if (j->continuation)
+			{
+				/* The job is only paused, thus we accumulate
+				 * its timing, but we don't update its
+				 * perfmodel now. */
+				starpu_timespec_accumulate(&j->cumulated_ts, &measured_ts);
+				do_update_time_model = 0;
+			}
+			else
+			{
+				if (j->discontinuous)
+				{
+					/* The job was paused at least once but is now
+					 * really completing. We need to take into
+					 * account its past execution time in its
+					 * perfmodel. */
+					starpu_timespec_accumulate(&measured_ts, &j->cumulated_ts);
+					time_consumed = starpu_timing_timespec_to_us(&measured_ts);
+				}
+				do_update_time_model = 1;
+			}
+#else
+			const unsigned do_update_time_model = 1;
+			const double time_consumed = measured;
+#endif
+			if (do_update_time_model)
+			{
+				_starpu_update_perfmodel_history(j, j->task->cl->model, perf_arch, worker->devid, time_consumed, j->nimpl);
+			}
+		}
 	}
 
 	if (!updated)
@@ -215,7 +247,31 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 
 	if (profiling_info && profiling_info->power_consumed && cl->power_model && cl->power_model->benchmarking)
 	{
-		_starpu_update_perfmodel_history(j, j->task->cl->power_model, perf_arch, worker->devid, profiling_info->power_consumed,j->nimpl);
+#ifdef STARPU_OPENMP
+		double power_consumed = profiling_info->power_consumed;
+		unsigned do_update_power_model;
+		if (j->continuation)
+		{
+			j->cumulated_power_consumed += power_consumed;
+			do_update_power_model = 0;
+		}
+		else 
+		{
+			if (j->discontinuous)
+			{
+				power_consumed += j->cumulated_power_consumed;
+			}
+			do_update_power_model = 1;
+		}
+#else
+		const double power_consumed = profiling_info->power_consumed;
+		const unsigned do_update_power_model = 1;
+#endif
+
+		if (do_update_power_model)
+		{
+			_starpu_update_perfmodel_history(j, j->task->cl->power_model, perf_arch, worker->devid, power_consumed, j->nimpl);
+		}
 	}
 }
 

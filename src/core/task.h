@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
- * Copyright (C) 2011 INRIA
+ * Copyright (C) 2011, 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,12 @@
 
 /* Internal version of starpu_task_destroy: don't check task->destroy flag */
 void _starpu_task_destroy(struct starpu_task *task);
+
+#ifdef STARPU_OPENMP
+/* Test for the termination of the task.
+ * Call starpu_task_destroy if required and the task is terminated. */
+int _starpu_task_test_termination(struct starpu_task *task);
+#endif
 
 /* A pthread key is used to store the task currently executed on the thread.
  * _starpu_initialize_current_task_key initializes this pthread key and
@@ -52,6 +58,17 @@ int _starpu_handle_needs_conversion_task(starpu_data_handle_t handle,
 int
 _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 				     enum starpu_node_kind node_kind);
+
+#ifdef STARPU_OPENMP
+/* Prepare the current task for accepting new dependencies before becoming a continuation. */
+void _starpu_task_prepare_for_continuation_ext(unsigned continuation_resubmit,
+		void (*continuation_callback_on_sleep)(void *arg), void *continuation_callback_on_sleep_arg);
+
+void _starpu_task_prepare_for_continuation(void);
+
+void _starpu_task_set_omp_cleanup_callback(struct starpu_task *task, void (*omp_cleanup_callback)(void *arg),
+		void *omp_cleanup_callback_arg);
+#endif
 
 int _starpu_task_uses_multiformat_handles(struct starpu_task *task);
 

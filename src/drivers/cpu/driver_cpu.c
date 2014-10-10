@@ -4,6 +4,7 @@
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
+ * Copyright (C) 2014  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -57,10 +58,17 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 
 	struct starpu_task *task = j->task;
 	struct starpu_codelet *cl = task->cl;
+#ifdef STARPU_OPENMP
+	/* At this point, j->continuation as been cleared as the task is being
+	 * woken up, thus we use j->discontinuous instead for the check */
+	const unsigned continuation_wake_up = j->discontinuous;
+#else
+	const unsigned continuation_wake_up = 0;
+#endif
 
 	STARPU_ASSERT(cl);
 
-	if (rank == 0)
+	if (rank == 0 && !continuation_wake_up)
 	{
 		ret = _starpu_fetch_task_input(j);
 		if (ret != 0)
@@ -116,7 +124,12 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	{
 		_starpu_driver_update_job_feedback(j, cpu_args,
 				perf_arch, &codelet_start, &codelet_end, profiling);
-		_starpu_push_task_output(j);
+#ifdef STARPU_OPENMP
+		if (!j->continuation)
+#endif
+		{
+			_starpu_push_task_output(j);
+		}
 	}
 
 	return 0;
