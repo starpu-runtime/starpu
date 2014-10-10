@@ -975,6 +975,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	int ret;
 
+#ifdef STARPU_OPENMP
+	_starpu_omp_dummy_init();
+#endif
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_init();
 #else
@@ -1374,6 +1377,9 @@ void starpu_shutdown(void)
 	/* Drop all remaining tags */
 	_starpu_tag_clear();
 
+#ifdef STARPU_OPENMP
+	_starpu_omp_dummy_shutdown();
+#endif
 	_starpu_close_debug_logfile();
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);

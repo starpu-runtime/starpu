@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2014  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -216,6 +217,10 @@ struct _starpu_data_state
 	starpu_data_handle_t *reduction_tmp_handles;
 
 	unsigned lazy_unregister;
+
+#ifdef STARPU_OPENMP
+	unsigned removed_from_context_hash;
+#endif
 
         /* Used for MPI */
         int rank;

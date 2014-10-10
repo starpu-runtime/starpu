@@ -3,7 +3,7 @@
 # Copyright (C) 2009-2014  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
-# Copyright (C) 2011, 2012  Institut National de Recherche en Informatique et Automatique
+# Copyright (C) 2011, 2012, 2014  Institut National de Recherche en Informatique et Automatique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -2031,6 +2031,25 @@ AM_CONDITIONAL([RUN_GCC_PLUGIN_TESTS],
 
 ###############################################################################
 #                                                                             #
+#                            OpenMP runtime support                           #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
+			[build the OpenMP runtime support (experimental)])],
+			enable_openmp=$enableval, enable_openmp=no)
+
+AC_MSG_CHECKING(for OpenMP runtime support)
+
+if test x$enable_openmp = xyes; then
+	AC_DEFINE(STARPU_OPENMP, 1, [Define this to enable OpenMP runtime support])
+fi
+
+AM_CONDITIONAL([STARPU_OPENMP], [test "x$enable_openmp" = "xyes"])
+AC_MSG_RESULT($enable_openmp)
+
+###############################################################################
+#                                                                             #
 #                               SOCL interface                                #
 #                                                                             #
 ###############################################################################
@@ -2602,6 +2621,7 @@ AC_MSG_NOTICE([
 	       FFT Support:                                 $fft_support
 	       GCC plug-in:                                 $build_gcc_plugin
 	       GCC plug-in test suite (requires GNU Guile): $run_gcc_plugin_test_suite
+	       OpenMP runtime support enabled:              $enable_openmp
 	       SOCL enabled:                                $build_socl
                SOCL test suite:                             $run_socl_check
                Scheduler Hypervisor:                        $build_sc_hypervisor

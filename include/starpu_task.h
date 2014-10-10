@@ -3,7 +3,7 @@
  * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011, 2014  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,6 +62,9 @@ enum starpu_task_status
 	STARPU_TASK_BLOCKED_ON_TAG,
 	STARPU_TASK_BLOCKED_ON_TASK,
 	STARPU_TASK_BLOCKED_ON_DATA
+#ifdef STARPU_OPENMP
+	, STARPU_TASK_STOPPED
+#endif
 };
 
 typedef uint64_t starpu_tag_t;
@@ -193,6 +196,9 @@ struct starpu_task
 	struct starpu_task *prev;
 	struct starpu_task *next;
 	void *starpu_private;
+#ifdef STARPU_OPENMP
+	struct starpu_omp_task *omp_task;
+#endif
 };
 
 #define STARPU_TASK_INITIALIZER 			\
