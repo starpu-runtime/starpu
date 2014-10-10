@@ -683,6 +683,8 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 		int res;
 		struct _starpu_job * j;
 
+		_starpu_may_pause();
+
 		_STARPU_TRACE_START_PROGRESS(memnode);
 		_starpu_datawizard_progress(memnode, 1);
 		_STARPU_TRACE_END_PROGRESS(memnode);

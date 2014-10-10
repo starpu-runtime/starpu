@@ -57,8 +57,9 @@ case of e.g. available particular CUDA or OpenCL support.
 \ingroup API_Data_Interfaces
 \var starpu_data_copy_methods::can_copy
 If defined, allows the interface to declare whether it supports transferring
-from \p src_interface on node \p src_node to \p dst_interface on node \p. If not
-defined, it is assumed that the interface supports all transfers.
+from \p src_interface on node \p src_node to \p dst_interface on node \p
+dst_node, run from node \p handling_node. If not defined, it is assumed that the
+interface supports all transfers.
 \var starpu_data_copy_methods::ram_to_ram
 Define how to copy data from the \p src_interface interface on the \p
 src_node CPU node to the \p dst_interface interface on the \p dst_node

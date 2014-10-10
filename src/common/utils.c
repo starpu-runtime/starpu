@@ -83,10 +83,24 @@ int _starpu_mkpath(const char *s, mode_t mode)
 	if ((_starpu_mkpath(up, mode) == -1) && (errno != EEXIST))
 		goto out;
 
-	if ((mkdir(path, mode) == -1) && (errno != EEXIST))
-		rv = -1;
-	else
+	struct stat sb;
+	if (stat(path, &sb) == 0)
+	{
+		if (!S_ISDIR(sb.st_mode))
+		{
+			fprintf(stderr,"Error: %s is not a directory:\n", path);
+			STARPU_ABORT();
+		}
+		/* It already exists and is a directory.  */
 		rv = 0;
+	}
+	else
+	{
+		if ((mkdir(path, mode) == -1) && (errno != EEXIST))
+			rv = -1;
+		else
+			rv = 0;
+	}
 
 out:
 	olderrno = errno;
@@ -105,23 +119,11 @@ void _starpu_mkpath_and_check(const char *path, mode_t mode)
 
 	ret = _starpu_mkpath(path, mode);
 
-	if (ret == -1)
+	if (ret == -1 && errno != EEXIST)
 	{
-		if (errno != EEXIST)
-		{
-			fprintf(stderr,"Error making StarPU directory %s:\n", path);
-			perror("mkdir");
-			STARPU_ABORT();
-		}
-
-		/* make sure that it is actually a directory */
-		struct stat sb;
-		stat(path, &sb);
-		if (!S_ISDIR(sb.st_mode))
-		{
-			fprintf(stderr,"Error: %s is not a directory:\n", path);
-			STARPU_ABORT();
-		}
+		fprintf(stderr,"Error making StarPU directory %s:\n", path);
+		perror("mkdir");
+		STARPU_ABORT();
 	}
 }
 

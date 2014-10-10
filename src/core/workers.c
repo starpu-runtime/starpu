@@ -1227,10 +1227,10 @@ out:
 /* Condition variable and mutex used to pause/resume. */
 static starpu_pthread_cond_t pause_cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t pause_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
-unsigned _starpu_machine_is_running(void)
+
+void _starpu_may_pause(void)
 {
-	unsigned ret;
-	/* running and pause_depth are just protected by a memory barrier */
+	/* pause_depth is just protected by a memory barrier */
 	STARPU_RMB();
 
 	if (STARPU_UNLIKELY(config.pause_depth > 0)) {
@@ -1240,6 +1240,13 @@ unsigned _starpu_machine_is_running(void)
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
 	}
+}
+
+unsigned _starpu_machine_is_running(void)
+{
+	unsigned ret;
+	/* running is just protected by a memory barrier */
+	STARPU_RMB();
 
 	ANNOTATE_HAPPENS_AFTER(&config.running);
 	ret = config.running;

@@ -68,16 +68,11 @@ typedef UINT_PTR uintptr_t;
 #include <starpu_driver.h>
 #include <starpu_tree.h>
 #include <starpu_openmp.h>
+#include <starpu_simgrid_wrap.h>
 
 #ifdef __cplusplus
 extern "C"
 {
-#endif
-
-#ifdef STARPU_SIMGRID
-#ifndef main
-#define main starpu_main
-#endif
 #endif
 
 struct starpu_conf

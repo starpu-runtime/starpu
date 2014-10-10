@@ -767,7 +767,10 @@ void *_starpu_cuda_worker(void *_arg)
 	_starpu_cuda_driver_init(worker);
 	_STARPU_TRACE_START_PROGRESS(memnode);
 	while (_starpu_machine_is_running())
+	{
+		_starpu_may_pause();
 		_starpu_cuda_driver_run_once(worker);
+	}
 	_STARPU_TRACE_END_PROGRESS(memnode);
 	_starpu_cuda_driver_deinit(worker);
 

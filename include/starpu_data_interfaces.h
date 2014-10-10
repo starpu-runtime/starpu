@@ -37,7 +37,7 @@ extern "C"
 
 struct starpu_data_copy_methods
 {
-	int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node);
 
 	int (*ram_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*ram_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);

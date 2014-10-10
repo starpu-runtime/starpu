@@ -27,6 +27,7 @@
 #ifdef STARPU_SIMGRID
 #include <msg/msg.h>
 #include <smpi/smpif.h>
+#include <sys/resource.h>
 
 #define STARPU_MPI_AS_PREFIX "StarPU-MPI"
 
@@ -160,7 +161,7 @@ int main(int argc, char **argv)
 
 	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
 	{
-		_STARPU_ERROR("The main file of this application needs to be compiled with starpu.h included, to properly define starpu_main\n");
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -178,7 +179,12 @@ int main(int argc, char **argv)
 #endif
 	/* Simgrid uses tiny stacks by default.  This comes unexpected to our users.  */
 	extern xbt_cfg_t _sg_cfg_set;
-	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", 8192);
+	unsigned stack_size = 8192;
+	struct rlimit rlim;
+	if (getrlimit(RLIMIT_STACK, &rlim) == 0 && rlim.rlim_cur != 0 && rlim.rlim_cur != RLIM_INFINITY)
+		stack_size = rlim.rlim_cur / 1024;
+
+	xbt_cfg_set_int(_sg_cfg_set, "contexts/stack_size", stack_size);
 
 	/* Load XML platform */
 	_starpu_simgrid_get_platform_path(path, sizeof(path));
@@ -195,6 +201,12 @@ void _starpu_simgrid_init()
 {
 	xbt_dynar_t hosts;
 	int i;
+
+	if (!starpu_main && !(smpi_main && smpi_simulated_main_))
+	{
+		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h included, to properly rename it into starpu_main\n");
+		exit(EXIT_FAILURE);
+	}
 
 #ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 	if (_starpu_simgrid_running_smpi())
