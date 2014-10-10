@@ -3,7 +3,7 @@
  * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011, 2014  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -156,20 +156,69 @@ void _starpu_wait_job(struct _starpu_job *j)
         _STARPU_LOG_OUT();
 }
 
+#ifdef STARPU_OPENMP
+int _starpu_test_job_termination(struct _starpu_job *j)
+{
+	STARPU_ASSERT(j->task);
+	STARPU_ASSERT(!j->task->detach);
+	return (j->terminated == 2);
+}
+void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned continuation_resubmit,
+		void (*continuation_callback_on_sleep)(void *arg), void *continuation_callback_on_sleep_arg)
+{
+	STARPU_ASSERT(!j->continuation);
+	/* continuation are not supported for parallel tasks for now */
+	STARPU_ASSERT(j->task_size == 1);
+	j->continuation = 1;
+	j->continuation_resubmit = continuation_resubmit;
+	j->continuation_callback_on_sleep = continuation_callback_on_sleep;
+	j->continuation_callback_on_sleep_arg = continuation_callback_on_sleep_arg;
+	j->job_successors.ndeps = 0;
+}
+/* Prepare a currently running job for accepting a new set of
+ * dependencies in anticipation of becoming a continuation. */
+void _starpu_job_prepare_for_continuation(struct _starpu_job *j)
+{
+	_starpu_job_prepare_for_continuation_ext(j, 1, NULL, NULL);
+}
+void _starpu_job_set_omp_cleanup_callback(struct _starpu_job *j,
+		void (*omp_cleanup_callback)(void *arg), void *omp_cleanup_callback_arg)
+{
+	j->omp_cleanup_callback = omp_cleanup_callback;
+	j->omp_cleanup_callback_arg = omp_cleanup_callback_arg;
+}
+#endif
+
 void _starpu_handle_job_termination(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
 	unsigned sched_ctx = task->sched_ctx;
 	double flops = task->flops;
+	const unsigned continuation =
+#ifdef STARPU_OPENMP
+		j->continuation
+#else
+		0
+#endif
+		;
+
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+#ifdef STARPU_OPENMP
+	if (continuation)
+	{
+		task->status = STARPU_TASK_STOPPED;
+	}
+	else
+#endif
+	{
+		task->status = STARPU_TASK_FINISHED;
 
-	task->status = STARPU_TASK_FINISHED;
-
-	/* We must have set the j->terminated flag early, so that it is
-	 * possible to express task dependencies within the callback
-	 * function. A value of 1 means that the codelet was executed but that
-	 * the callback is not done yet. */
-	j->terminated = 1;
+		/* We must have set the j->terminated flag early, so that it is
+		 * possible to express task dependencies within the callback
+		 * function. A value of 1 means that the codelet was executed but that
+		 * the callback is not done yet. */
+		j->terminated = 1;
+	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
@@ -179,7 +228,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	/* We release handle reference count */
-	if (task->cl)
+	if (task->cl && !continuation)
 	{
 		unsigned i;
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
@@ -201,14 +250,23 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 				_starpu_spin_unlock(&handle->header_lock);
 		}
 	}
-
-	/* Tell other tasks that we don't exist any more, thus no need for
-	 * implicit dependencies any more.  */
-	_starpu_release_task_enforce_sequential_consistency(j);
+	/* If this is a continuation, we do not release task dependencies now.
+	 * Task dependencies will be released only when the continued task
+	 * fully completes */
+	if (!continuation)
+	{
+		/* Tell other tasks that we don't exist any more, thus no need for
+		 * implicit dependencies any more.  */
+		_starpu_release_task_enforce_sequential_consistency(j);
+	}
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the
-	 * tasks waiting for us */
-	if (j->implicit_dep_handle) {
+	 * tasks waiting for us
+	 *
+	 * For continuations, implicit dependency handles are only released 
+	 * when the task fully completes */
+	if (j->implicit_dep_handle && !continuation)
+	{
 		starpu_data_handle_t handle = j->implicit_dep_handle;
 		_starpu_release_data_enforce_sequential_consistency(j->task, &j->implicit_dep_slot, handle);
 		/* Release reference taken while setting implicit_dep_handle */
@@ -218,46 +276,68 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_spin_unlock(&handle->header_lock);
 	}
 
-	/* in case there are dependencies, wake up the proper tasks */
-	_starpu_notify_dependencies(j);
-
-	/* the callback is executed after the dependencies so that we may remove the tag
- 	 * of the task itself */
-	if (task->callback_func)
+	/* If this is a continuation, we do not notify task/tag dependencies
+	 * now. Task/tag dependencies will be notified only when the continued
+	 * task fully completes */
+	if (!continuation)
 	{
-		int profiling = starpu_profiling_status_get();
-		if (profiling && task->profiling_info)
-			_starpu_clock_gettime(&task->profiling_info->callback_start_time);
+		/* in case there are dependencies, wake up the proper tasks */
+		_starpu_notify_dependencies(j);
+	}
 
-		/* so that we can check whether we are doing blocking calls
-		 * within the callback */
-		_starpu_set_local_worker_status(STATUS_CALLBACK);
+	/* If this is a continuation, we do not execute the callback
+	 * now. The callback will be executed only when the continued
+	 * task fully completes */
+	if (!continuation)
+	{
+		/* the callback is executed after the dependencies so that we may remove the tag
+		 * of the task itself */
+		if (task->callback_func)
+		{
+			int profiling = starpu_profiling_status_get();
+			if (profiling && task->profiling_info)
+				_starpu_clock_gettime(&task->profiling_info->callback_start_time);
+
+			/* so that we can check whether we are doing blocking calls
+			 * within the callback */
+			_starpu_set_local_worker_status(STATUS_CALLBACK);
 
 
-		/* Perhaps we have nested callbacks (eg. with chains of empty
-		 * tasks). So we store the current task and we will restore it
-		 * later. */
-		struct starpu_task *current_task = starpu_task_get_current();
+			/* Perhaps we have nested callbacks (eg. with chains of empty
+			 * tasks). So we store the current task and we will restore it
+			 * later. */
+			struct starpu_task *current_task = starpu_task_get_current();
 
-		_starpu_set_current_task(task);
+			_starpu_set_current_task(task);
 
-		_STARPU_TRACE_START_CALLBACK(j);
-		task->callback_func(task->callback_arg);
-		_STARPU_TRACE_END_CALLBACK(j);
+			_STARPU_TRACE_START_CALLBACK(j);
+			task->callback_func(task->callback_arg);
+			_STARPU_TRACE_END_CALLBACK(j);
 
-		_starpu_set_current_task(current_task);
+			_starpu_set_current_task(current_task);
 
-		_starpu_set_local_worker_status(STATUS_UNKNOWN);
+			_starpu_set_local_worker_status(STATUS_UNKNOWN);
 
-		if (profiling && task->profiling_info)
-			_starpu_clock_gettime(&task->profiling_info->callback_end_time);
+			if (profiling && task->profiling_info)
+				_starpu_clock_gettime(&task->profiling_info->callback_end_time);
+		}
 	}
 
 	/* If the job was executed on a combined worker there is no need for the
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
 	/* control task should not execute post_exec_hook */
-	if(j->task_size == 1 && task->cl != NULL && !j->internal)
+	if(j->task_size == 1 && task->cl != NULL && !j->internal
+#ifdef STARPU_OPENMP
+	/* If this is a continuation, we do not execute the post_exec_hook. The
+	 * post_exec_hook will be run only when the continued task fully
+	 * completes.
+	 *
+	 * Note: If needed, a specific hook could be added to handle stopped
+	 * tasks */
+	&& !continuation
+#endif
+			)
 	{
 		_starpu_sched_post_exec_hook(task);
 #ifdef STARPU_USE_SC_HYPERVISOR
@@ -266,6 +346,9 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 	}
 
+	/* Note: For now, we keep the TASK_DONE trace event for continuation,
+	 * however we could add a specific event for stopped tasks if needed.
+	 */
 	_STARPU_TRACE_TASK_DONE(j);
 
 	/* NB: we do not save those values before the callback, in case the
@@ -278,9 +361,20 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	/* we do not desallocate the job structure if some is going to
 	 * wait after the task */
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-	/* A value of 2 is put to specify that not only the codelet but
-	 * also the callback were executed. */
-	j->terminated = 2;
+	if (!continuation)
+	{
+#ifdef STARPU_OPENMP
+		if (j->omp_cleanup_callback)
+		{
+			j->omp_cleanup_callback(j->omp_cleanup_callback_arg);
+			j->omp_cleanup_callback = NULL;
+			j->omp_cleanup_callback_arg = NULL;
+		}
+#endif
+		/* A value of 2 is put to specify that not only the codelet but
+		 * also the callback were executed. */
+		j->terminated = 2;
+	}
 	STARPU_PTHREAD_COND_BROADCAST(&j->sync_cond);
 
 #ifdef HAVE_AYUDAME_H
@@ -289,7 +383,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-	if (detach)
+	if (detach && !continuation)
 	{
 		/* no one is going to synchronize with that task so we release
 		 * the data structures now. In case the job was already locked
@@ -299,9 +393,12 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_task_destroy(task);
 	}
 
-	if (regenerate)
+	/* A continuation is not much different from a regenerated task. */
+	if (regenerate || continuation)
 	{
-		STARPU_ASSERT_MSG(detach && !destroy && !task->synchronous, "Regenerated task must be detached (was %d), and not have detroy=1 (was %d) or synchronous=1 (was %d)", detach, destroy, task->synchronous);
+		STARPU_ASSERT_MSG((detach && !destroy && !task->synchronous)
+				|| continuation
+				, "Regenerated task must be detached (was %d), and not have detroy=1 (was %d) or synchronous=1 (was %d)", detach, destroy, task->synchronous);
 
 #ifdef HAVE_AYUDAME_H
 		if (AYU_event)
@@ -311,9 +408,28 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		}
 #endif
 
-		/* We reuse the same job structure */
-		int ret = _starpu_submit_job(j);
-		STARPU_ASSERT(!ret);
+		{
+#ifdef STARPU_OPENMP
+			unsigned continuation_resubmit = j->continuation_resubmit;
+			void (*continuation_callback_on_sleep)(void *arg) = j->continuation_callback_on_sleep;
+			void *continuation_callback_on_sleep_arg = j->continuation_callback_on_sleep_arg;
+			j->continuation_resubmit = 1;
+			j->continuation_callback_on_sleep = NULL;
+			j->continuation_callback_on_sleep_arg = NULL;
+			if (!continuation || continuation_resubmit)
+#endif
+			{
+				/* We reuse the same job structure */
+				int ret = _starpu_submit_job(j);
+				STARPU_ASSERT(!ret);
+			}
+#ifdef STARPU_OPENMP
+			if (continuation && continuation_callback_on_sleep != NULL)
+			{
+				continuation_callback_on_sleep(continuation_callback_on_sleep_arg);
+			}
+#endif
+		}
 	}
 
 	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx);
@@ -460,6 +576,29 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 
 	return ret;
 }
+
+#ifdef STARPU_OPENMP
+/* When waking up a continuation, we only enforce new task dependencies */
+unsigned _starpu_reenforce_task_deps_and_schedule(struct _starpu_job *j)
+{
+	unsigned ret;
+        _STARPU_LOG_IN();
+	STARPU_ASSERT(j->discontinuous);
+
+	/* enfore task dependencies */
+	if (_starpu_not_all_task_deps_are_fulfilled(j))
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+		_STARPU_LOG_OUT_TAG("not_all_task_deps_are_fulfilled");
+		return 0;
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	ret = _starpu_push_task(j);
+
+	_STARPU_LOG_OUT();
+	return ret;
+}
+#endif
 
 /* Ordered tasks are simply recorded as they arrive in the local_ordered_tasks
  * ring buffer, indexed by order, and pulled from its head. */

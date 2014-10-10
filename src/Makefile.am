@@ -2,7 +2,7 @@
 #
 # Copyright (C) 2009-2014  Université de Bordeaux 1
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
-# Copyright (C) 2011  INRIA
+# Copyright (C) 2011, 2014  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -128,6 +128,7 @@ noinst_HEADERS = 						\
 	debug/traces/starpu_fxt.h				\
 	profiling/bound.h					\
 	profiling/profiling.h					\
+	util/openmp_runtime_support.h				\
 	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
 	starpu_parameters.h					\
@@ -228,6 +229,9 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	util/starpu_create_sync_task.c				\
 	util/file.c						\
 	util/misc.c						\
+	util/openmp_runtime_support.c				\
+	util/openmp_runtime_support_environment.c		\
+	util/openmp_runtime_support_omp_api.c			\
 	util/starpu_data_cpy.c					\
 	util/starpu_task_insert.c				\
 	util/starpu_task_insert_utils.c				\

@@ -3,7 +3,7 @@
  * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
- * Copyright (C) 2011  INRIA
+ * Copyright (C) 2011, 2014  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -224,6 +224,33 @@ int starpu_task_wait(struct starpu_task *task)
 	return 0;
 }
 
+#ifdef STARPU_OPENMP
+int _starpu_task_test_termination(struct starpu_task *task)
+{
+	STARPU_ASSERT(task);
+	STARPU_ASSERT_MSG(!task->detach, "starpu_task_wait can only be called on tasks with detach = 0");
+
+	if (task->detach || task->synchronous)
+	{
+		_STARPU_DEBUG("Task is detached or synchronous\n");
+		_STARPU_LOG_OUT_TAG("einval");
+		return -EINVAL;
+	}
+
+	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
+
+	int ret = _starpu_test_job_termination(j);
+
+	if (ret)
+	{
+		if (task->destroy)
+			_starpu_task_destroy(task);
+	}
+
+	return ret;
+}
+#endif
+
 struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
@@ -241,8 +268,13 @@ struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
  * already counted. */
 int _starpu_submit_job(struct _starpu_job *j)
 {
-
 	struct starpu_task *task = j->task;
+	int ret;
+#ifdef STARPU_OPENMP
+	const unsigned continuation = j->continuation;
+#else
+	const unsigned continuation = 0;
+#endif
 
 	_STARPU_LOG_IN();
 	/* notify bound computation of a new task */
@@ -280,7 +312,7 @@ int _starpu_submit_job(struct _starpu_job *j)
 #endif//STARPU_USE_SC_HYPERVISOR
 
 	/* We retain handle reference count */
-	if (task->cl)
+	if (task->cl && !continuation)
 	{
 		unsigned i;
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
@@ -298,12 +330,29 @@ int _starpu_submit_job(struct _starpu_job *j)
 	/* Need to atomically set submitted to 1 and check dependencies, since
 	 * this is concucrent with _starpu_notify_cg */
 	j->terminated = 0;
+#ifdef STARPU_OPENMP
+	if (continuation)
+	{
+		j->discontinuous = 1;
+		j->continuation  = 0;
+	}
+#endif
+
 	if (!j->submitted)
 		j->submitted = 1;
 	else
 		j->submitted = 2;
 
-	int ret = _starpu_enforce_deps_and_schedule(j);
+#ifdef STARPU_OPENMP
+	if (continuation)
+	{
+		ret = _starpu_reenforce_task_deps_and_schedule(j);
+	}
+	else
+#endif
+	{
+		ret = _starpu_enforce_deps_and_schedule(j);
+	}
 
 	_STARPU_LOG_OUT();
 	return ret;
@@ -412,11 +461,18 @@ int starpu_task_submit(struct starpu_task *task)
 	int ret;
 	unsigned is_sync = task->synchronous;
 	starpu_task_bundle_t bundle = task->bundle;
-
 	/* internally, StarPU manipulates a struct _starpu_job * which is a wrapper around a
 	* task structure, it is possible that this job structure was already
 	* allocated. */
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	const unsigned continuation =
+#ifdef STARPU_OPENMP
+		j->continuation
+#else
+		0
+#endif
+		;
+
 
 	if (j->internal)
 	{
@@ -481,8 +537,11 @@ int starpu_task_submit(struct starpu_task *task)
 			return -ENODEV;
 		}
 
-		_starpu_detect_implicit_data_deps(task);
-
+		/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
+		if (!continuation)
+		{
+			_starpu_detect_implicit_data_deps(task);
+		}
 
 		if (task->cl->model && task->cl->model->symbol)
 			_starpu_load_perfmodel(task->cl->model);
@@ -888,6 +947,31 @@ void _starpu_set_current_task(struct starpu_task *task)
 {
 	STARPU_PTHREAD_SETSPECIFIC(current_task_key, task);
 }
+
+#ifdef STARPU_OPENMP
+/* Prepare the fields of the currentl task for accepting a new set of
+ * dependencies in anticipation of becoming a continuation.
+ *
+ * When the task becomes 'continued', it will only be queued again when the new
+ * set of dependencies is fulfilled. */
+void _starpu_task_prepare_for_continuation(void)
+{
+	_starpu_job_prepare_for_continuation(_starpu_get_job_associated_to_task(starpu_task_get_current()));
+}
+
+void _starpu_task_prepare_for_continuation_ext(unsigned continuation_resubmit,
+		void (*continuation_callback_on_sleep)(void *arg), void *continuation_callback_on_sleep_arg)
+{
+	_starpu_job_prepare_for_continuation_ext(_starpu_get_job_associated_to_task(starpu_task_get_current()),
+		continuation_resubmit, continuation_callback_on_sleep, continuation_callback_on_sleep_arg);
+}
+
+void _starpu_task_set_omp_cleanup_callback(struct starpu_task *task, void (*omp_cleanup_callback)(void *arg), void *omp_cleanup_callback_arg)
+{
+	_starpu_job_set_omp_cleanup_callback(_starpu_get_job_associated_to_task(task),
+		omp_cleanup_callback, omp_cleanup_callback_arg);
+}
+#endif
 
 /*
  * Returns 0 if tasks does not use any multiformat handle, 1 otherwise.

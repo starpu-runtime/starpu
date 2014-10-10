@@ -26,6 +26,7 @@
 \file starpu_hash.h
 \file starpu_mic.h
 \file starpu_opencl.h
+\file starpu_openmp.h
 \file starpu_perfmodel.h
 \file starpu_profiling.h
 \file starpu_rand.h

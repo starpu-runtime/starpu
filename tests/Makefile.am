@@ -223,6 +223,37 @@ noinst_PROGRAMS =				\
 	microbenchs/redundant_buffer		\
 	microbenchs/local_pingpong		\
 	microbenchs/matrix_as_vector		\
+	openmp/init_exit_01			\
+	openmp/init_exit_02			\
+	openmp/environment			\
+	openmp/api_01				\
+	openmp/parallel_01			\
+	openmp/parallel_02			\
+	openmp/parallel_03			\
+	openmp/parallel_barrier_01		\
+	openmp/parallel_master_01		\
+	openmp/parallel_master_inline_01	\
+	openmp/parallel_single_wait_01		\
+	openmp/parallel_single_nowait_01	\
+	openmp/parallel_single_inline_01	\
+	openmp/parallel_single_copyprivate_01	\
+	openmp/parallel_single_copyprivate_inline_01	\
+	openmp/parallel_critical_01		\
+	openmp/parallel_critical_inline_01	\
+	openmp/parallel_critical_named_01	\
+	openmp/parallel_critical_named_inline_01\
+	openmp/parallel_simple_lock_01		\
+	openmp/parallel_nested_lock_01		\
+	openmp/parallel_for_01			\
+	openmp/parallel_for_02			\
+	openmp/parallel_for_ordered_01		\
+	openmp/parallel_sections_01		\
+	openmp/parallel_sections_combined_01	\
+	openmp/task_01				\
+	openmp/task_02				\
+	openmp/taskwait_01			\
+	openmp/taskgroup_01			\
+	openmp/taskgroup_02			\
 	overlap/overlap				\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
@@ -443,6 +474,99 @@ if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_tag_SOURCES +=		\
 	main/increment.cu
 endif
+
+openmp_init_exit_01_SOURCES = 	\
+	openmp/init_exit_01.c
+
+openmp_init_exit_02_SOURCES = 	\
+	openmp/init_exit_02.c
+
+openmp_environment_SOURCES = 	\
+	openmp/environment.c
+
+openmp_api_01_SOURCES = 	\
+	openmp/api_01.c
+
+openmp_parallel_01_SOURCES = 	\
+	openmp/parallel_01.c
+
+openmp_parallel_02_SOURCES = 	\
+	openmp/parallel_02.c
+
+openmp_parallel_03_SOURCES = 	\
+	openmp/parallel_03.c
+
+openmp_parallel_barrier_01_SOURCES = 	\
+	openmp/parallel_barrier_01.c
+
+openmp_parallel_master_01_SOURCES = 	\
+	openmp/parallel_master_01.c
+
+openmp_parallel_master_inline_01_SOURCES = 	\
+	openmp/parallel_master_inline_01.c
+
+openmp_parallel_single_wait_01_SOURCES = 	\
+	openmp/parallel_single_wait_01.c
+
+openmp_parallel_single_nowait_01_SOURCES = 	\
+	openmp/parallel_single_nowait_01.c
+
+openmp_parallel_single_inline_01_SOURCES = 	\
+	openmp/parallel_single_inline_01.c
+
+openmp_parallel_single_copyprivate_01_SOURCES = 	\
+	openmp/parallel_single_copyprivate_01.c
+
+openmp_parallel_single_copyprivate_inline_01_SOURCES = 	\
+	openmp/parallel_single_copyprivate_inline_01.c
+
+openmp_parallel_critical_01_SOURCES = 	\
+	openmp/parallel_critical_01.c
+
+openmp_parallel_critical_inline_01_SOURCES = 	\
+	openmp/parallel_critical_inline_01.c
+
+openmp_parallel_critical_named_01_SOURCES = 	\
+	openmp/parallel_critical_named_01.c
+
+openmp_parallel_critical_named_inline_01_SOURCES = 	\
+	openmp/parallel_critical_named_inline_01.c
+
+openmp_parallel_simple_lock_01_SOURCES = 	\
+	openmp/parallel_simple_lock_01.c
+
+openmp_parallel_nested_lock_01_SOURCES = 	\
+	openmp/parallel_nested_lock_01.c
+
+openmp_parallel_for_01_SOURCES = 	\
+	openmp/parallel_for_01.c
+
+openmp_parallel_for_02_SOURCES = 	\
+	openmp/parallel_for_02.c
+
+openmp_parallel_for_ordered_01_SOURCES = 	\
+	openmp/parallel_for_ordered_01.c
+
+openmp_parallel_sections_01_SOURCES = 	\
+	openmp/parallel_sections_01.c
+
+openmp_parallel_sections_combined_01_SOURCES = 	\
+	openmp/parallel_sections_combined_01.c
+
+openmp_task_01_SOURCES = 	\
+	openmp/task_01.c
+
+openmp_task_02_SOURCES = 	\
+	openmp/task_02.c
+
+openmp_taskwait_01_SOURCES = 	\
+	openmp/taskwait_01.c
+
+openmp_taskgroup_01_SOURCES = 	\
+	openmp/taskgroup_01.c
+
+openmp_taskgroup_02_SOURCES = 	\
+	openmp/taskgroup_02.c
 
 ###################
 # Block interface #

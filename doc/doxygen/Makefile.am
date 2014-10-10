@@ -46,6 +46,7 @@ chapters =	\
 	chapters/19c_extensions.doxy \
 	chapters/20socl_opencl_extensions.doxy \
 	chapters/21simgrid.doxy \
+	chapters/22openmp_runtime_support.doxy \
 	chapters/40environment_variables.doxy \
 	chapters/41configure_options.doxy \
 	chapters/45files.doxy \
@@ -87,6 +88,7 @@ chapters =	\
 	chapters/api/mpi.doxy \
 	chapters/api/multiformat_data_interface.doxy \
 	chapters/api/opencl_extensions.doxy \
+	chapters/api/openmp_runtime_support.doxy \
 	chapters/api/mic_extensions.doxy \
 	chapters/api/scc_extensions.doxy \
 	chapters/api/parallel_tasks.doxy \
@@ -204,6 +206,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_fxt.h		\
 	$(top_srcdir)/include/starpu_cuda.h		\
 	$(top_srcdir)/include/starpu_opencl.h		\
+	$(top_srcdir)/include/starpu_openmp.h		\
 	$(top_srcdir)/include/starpu_sink.h		\
 	$(top_srcdir)/include/starpu_mic.h		\
 	$(top_srcdir)/include/starpu_scc.h		\
