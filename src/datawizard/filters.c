@@ -186,8 +186,10 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 
 		STARPU_PTHREAD_MUTEX_INIT(&child->sequential_consistency_mutex, NULL);
 		child->last_submitted_mode = STARPU_R;
-		child->last_submitted_writer = NULL;
-		child->last_submitted_readers = NULL;
+		child->last_sync_task = NULL;
+		child->last_submitted_accessors.task = NULL;
+		child->last_submitted_accessors.next = &child->last_submitted_accessors;
+		child->last_submitted_accessors.prev = &child->last_submitted_accessors;
 		child->post_sync_tasks = NULL;
 		/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
 		STARPU_HG_DISABLE_CHECKING(child->post_sync_tasks_cnt);
@@ -199,9 +201,9 @@ void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_da
 		child->init_cl = initial_handle->init_cl;
 
 #ifdef STARPU_USE_FXT
-		child->last_submitted_ghost_writer_id_is_valid = 0;
-		child->last_submitted_ghost_writer_id = 0;
-		child->last_submitted_ghost_readers_id = NULL;
+		child->last_submitted_ghost_sync_id_is_valid = 0;
+		child->last_submitted_ghost_sync_id = 0;
+		child->last_submitted_ghost_accessors_id = NULL;
 #endif
 
 		for (node = 0; node < STARPU_MAXNODES; node++)

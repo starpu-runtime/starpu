@@ -47,22 +47,23 @@ static void _starpu_add_dependency(starpu_data_handle_t handle STARPU_ATTRIBUTE_
 }
 
 /* Read after Write (RAW) or Read after Read (RAR) */
-static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
+static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task, struct _starpu_task_wrapper_dlist *post_sync_task_dependency_slot)
 {
 	/* Add this task to the list of readers */
-	struct _starpu_task_wrapper_list *link = (struct _starpu_task_wrapper_list *) malloc(sizeof(struct _starpu_task_wrapper_list));
-	link->task = post_sync_task;
-	link->next = handle->last_submitted_readers;
-	handle->last_submitted_readers = link;
+	post_sync_task_dependency_slot->task = post_sync_task;
+	post_sync_task_dependency_slot->next = handle->last_submitted_accessors.next;
+	post_sync_task_dependency_slot->prev = &handle->last_submitted_accessors;
+	post_sync_task_dependency_slot->next->prev = post_sync_task_dependency_slot;
+	handle->last_submitted_accessors.next = post_sync_task_dependency_slot;
 
 	/* This task depends on the previous writer if any */
-	if (handle->last_submitted_writer && handle->last_submitted_writer != post_sync_task)
+	if (handle->last_sync_task && handle->last_sync_task != post_sync_task)
 	{
 		_STARPU_DEP_DEBUG("RAW %p\n", handle);
-		struct starpu_task *task_array[1] = {handle->last_submitted_writer};
+		struct starpu_task *task_array[1] = {handle->last_sync_task};
 		_starpu_task_declare_deps_array(pre_sync_task, 1, task_array, 0);
-		_starpu_add_dependency(handle, handle->last_submitted_writer, pre_sync_task);
-		_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_submitted_writer, pre_sync_task);
+		_starpu_add_dependency(handle, handle->last_sync_task, pre_sync_task);
+		_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_sync_task, pre_sync_task);
 	}
         else
         {
@@ -82,12 +83,12 @@ static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct 
 #ifdef HAVE_AYUDAME_H
 		|| AYU_event
 #endif
-		) && handle->last_submitted_ghost_writer_id_is_valid)
+		) && handle->last_submitted_ghost_sync_id_is_valid)
 	{
-		_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id,
+		_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_sync_id,
 			_starpu_get_job_associated_to_task(pre_sync_task)->job_id);
-		_starpu_add_ghost_dependency(handle, handle->last_submitted_ghost_writer_id, pre_sync_task);
-		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
+		_starpu_add_ghost_dependency(handle, handle->last_submitted_ghost_sync_id, pre_sync_task);
+		_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_sync_id, pre_sync_task);
 	}
 
 	if (!pre_sync_task->cl) {
@@ -102,25 +103,25 @@ static void _starpu_add_reader_after_writer(starpu_data_handle_t handle, struct 
 /* Write after Read (WAR) */
 static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
 {
-	/* Count the readers */
-	unsigned nreaders = 0;
-	struct _starpu_task_wrapper_list *l;
-	l = handle->last_submitted_readers;
-	while (l)
+	/* Count the existing accessors */
+	unsigned naccessors = 0;
+	struct _starpu_task_wrapper_dlist *l;
+	l = handle->last_submitted_accessors.next;
+	while (l != &handle->last_submitted_accessors)
 	{
 		if (l->task != post_sync_task)
-			nreaders++;
+			naccessors++;
 		l = l->next;
 	}
-	_STARPU_DEP_DEBUG("%d readers\n", nreaders);
+	_STARPU_DEP_DEBUG("%d accessors\n", naccessors);
 
-	if (nreaders > 0)
+	if (naccessors > 0)
 	{
 		/* Put all tasks in the list into task_array */
-		struct starpu_task *task_array[nreaders];
+		struct starpu_task *task_array[naccessors];
 		unsigned i = 0;
-		l = handle->last_submitted_readers;
-		while (l)
+		l = handle->last_submitted_accessors.next;
+		while (l != &handle->last_submitted_accessors)
 		{
 			STARPU_ASSERT(l->task);
 			if (l->task != post_sync_task)
@@ -130,35 +131,37 @@ static void _starpu_add_writer_after_readers(starpu_data_handle_t handle, struct
 				_STARPU_DEP_DEBUG("dep %p -> %p\n", l->task, pre_sync_task);
 			}
 
-			struct _starpu_task_wrapper_list *prev = l;
+			struct _starpu_task_wrapper_dlist *prev = l;
 			l = l->next;
-			free(prev);
+			prev->next = NULL;
+			prev->prev = NULL;
 		}
-		_starpu_task_declare_deps_array(pre_sync_task, nreaders, task_array, 0);
+		_starpu_task_declare_deps_array(pre_sync_task, naccessors, task_array, 0);
 	}
 #ifndef STARPU_USE_FXT
 	if (_starpu_bound_recording)
 #endif
 	{
-		/* Declare all dependencies with ghost readers */
-		struct _starpu_jobid_list *ghost_readers_id = handle->last_submitted_ghost_readers_id;
-		while (ghost_readers_id)
+		/* Declare all dependencies with ghost accessors */
+		struct _starpu_jobid_list *ghost_accessors_id = handle->last_submitted_ghost_accessors_id;
+		while (ghost_accessors_id)
 		{
-			unsigned long id = ghost_readers_id->id;
+			unsigned long id = ghost_accessors_id->id;
 			_STARPU_TRACE_GHOST_TASK_DEPS(id,
 				_starpu_get_job_associated_to_task(pre_sync_task)->job_id);
 			_starpu_add_ghost_dependency(handle, id, pre_sync_task);
 			_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", id, pre_sync_task);
 
-			struct _starpu_jobid_list *prev = ghost_readers_id;
-			ghost_readers_id = ghost_readers_id->next;
+			struct _starpu_jobid_list *prev = ghost_accessors_id;
+			ghost_accessors_id = ghost_accessors_id->next;
 			free(prev);
 		}
-		handle->last_submitted_ghost_readers_id = NULL;
+		handle->last_submitted_ghost_accessors_id = NULL;
 	}
 
-	handle->last_submitted_readers = NULL;
-	handle->last_submitted_writer = post_sync_task;
+	handle->last_submitted_accessors.next = &handle->last_submitted_accessors;
+	handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
+	handle->last_sync_task = post_sync_task;
 
 	if (!post_sync_task->cl) {
 		/* Add a reference to be released in _starpu_handle_job_termination */
@@ -174,12 +177,12 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
 {
 	/* (Read) Write */
 	/* This task depends on the previous writer */
-	if (handle->last_submitted_writer && handle->last_submitted_writer != post_sync_task)
+	if (handle->last_sync_task && handle->last_sync_task != post_sync_task)
 	{
-		struct starpu_task *task_array[1] = {handle->last_submitted_writer};
+		struct starpu_task *task_array[1] = {handle->last_sync_task};
 		_starpu_task_declare_deps_array(pre_sync_task, 1, task_array, 0);
-		_starpu_add_dependency(handle, handle->last_submitted_writer, pre_sync_task);
-		_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_submitted_writer, pre_sync_task);
+		_starpu_add_dependency(handle, handle->last_sync_task, pre_sync_task);
+		_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_sync_task, pre_sync_task);
 	}
         else
         {
@@ -193,13 +196,13 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
 	if (_starpu_bound_recording)
 #endif
 	{
-		if (handle->last_submitted_ghost_writer_id_is_valid)
+		if (handle->last_submitted_ghost_sync_id_is_valid)
 		{
-			_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_writer_id, 
+			_STARPU_TRACE_GHOST_TASK_DEPS(handle->last_submitted_ghost_sync_id, 
 				_starpu_get_job_associated_to_task(pre_sync_task)->job_id);
-			_starpu_add_ghost_dependency(handle, handle->last_submitted_ghost_writer_id, pre_sync_task);
-			_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_writer_id, pre_sync_task);
-			handle->last_submitted_ghost_writer_id_is_valid = 0;
+			_starpu_add_ghost_dependency(handle, handle->last_submitted_ghost_sync_id, pre_sync_task);
+			_STARPU_DEP_DEBUG("dep ID%lu -> %p\n", handle->last_submitted_ghost_sync_id, pre_sync_task);
+			handle->last_submitted_ghost_sync_id_is_valid = 0;
 		}
                 else
                 {
@@ -207,7 +210,7 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
                 }
 	}
 
-	handle->last_submitted_writer = post_sync_task;
+	handle->last_sync_task = post_sync_task;
 
 	if (!post_sync_task->cl) {
 		/* Add a reference to be released in _starpu_handle_job_termination */
@@ -227,7 +230,7 @@ static void _starpu_add_writer_after_writer(starpu_data_handle_t handle, struct 
  * */
 /* NB : handle->sequential_consistency_mutex must be hold by the caller;
  * returns a task, to be submitted after releasing that mutex. */
-struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task,
+struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task, struct _starpu_task_wrapper_dlist *post_sync_task_dependency_slot,
 						   starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
 	struct starpu_task *task = NULL;
@@ -308,7 +311,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 
 				task = new_sync_task;
 			}
-			_starpu_add_reader_after_writer(handle, pre_sync_task, post_sync_task);
+			_starpu_add_reader_after_writer(handle, pre_sync_task, post_sync_task, post_sync_task_dependency_slot);
 		}
 		handle->last_submitted_mode = mode;
 	}
@@ -332,6 +335,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 		return;
 
 	unsigned nbuffers = task->cl->nbuffers;
+	struct _starpu_task_wrapper_dlist *dep_slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
 	unsigned buffer;
 	for (buffer = 0; buffer < nbuffers; buffer++)
@@ -345,7 +349,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 			continue;
 
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
-		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, handle, mode);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(task, task, &dep_slots[buffer], handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 		if (new_task)
 		{
@@ -365,7 +369,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
  * if h is submitted after the termination of f or g, StarPU will not create a
  * dependency as this is not needed anymore. */
 /* the sequential_consistency_mutex of the handle has to be already held */
-void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, starpu_data_handle_t handle)
+void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *task, struct _starpu_task_wrapper_dlist *task_dependency_slot, starpu_data_handle_t handle)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 
@@ -374,78 +378,50 @@ void _starpu_release_data_enforce_sequential_consistency(struct starpu_task *tas
 
 		/* If this is the last writer, there is no point in adding
 		 * extra deps to that tasks that does not exists anymore */
-		if (task == handle->last_submitted_writer)
+		if (task == handle->last_sync_task)
 		{
-			handle->last_submitted_writer = NULL;
+			handle->last_sync_task = NULL;
 
 #ifndef STARPU_USE_FXT
 			if (_starpu_bound_recording)
 #endif
 			{
 				/* Save the previous writer as the ghost last writer */
-				handle->last_submitted_ghost_writer_id_is_valid = 1;
+				handle->last_submitted_ghost_sync_id_is_valid = 1;
 				struct _starpu_job *ghost_job = _starpu_get_job_associated_to_task(task);
-				handle->last_submitted_ghost_writer_id = ghost_job->job_id;
+				handle->last_submitted_ghost_sync_id = ghost_job->job_id;
 			}
 		}
 
-		/* XXX can a task be both the last writer associated to a data
-		 * and be in its list of readers ? If not, we should not go
-		 * through the entire list once we have detected it was the
-		 * last writer. */
-
 		/* Same if this is one of the readers: we go through the list
 		 * of readers and remove the task if it is found. */
-		struct _starpu_task_wrapper_list *l;
-		l = handle->last_submitted_readers;
-		struct _starpu_task_wrapper_list *prev = NULL;
-#ifdef STARPU_DEVEL
-#warning TODO: use double-linked list to make finding ourself fast
-#endif
-		while (l)
+		if (task_dependency_slot && task_dependency_slot->next)
 		{
-			struct _starpu_task_wrapper_list *next = l->next;
-
-			if (l->task == task)
-			{
-				/* If we found the task in the reader list */
-				free(l);
-
-#ifndef STARPU_USE_FXT
-				if (_starpu_bound_recording)
+#ifdef STARPU_DEBUG
+			/* Make sure we are removing ourself from the proper handle */
+			struct _starpu_task_wrapper_dlist *l;
+			for (l = task_dependency_slot->prev; l->task; l = l->prev)
+				;
+			STARPU_ASSERT(l == &handle->last_submitted_accessors);
+			for (l = task_dependency_slot->next; l->task; l = l->next)
+				;
+			STARPU_ASSERT(l == &handle->last_submitted_accessors);
 #endif
-				{
-					/* Save the job id of the reader task in the ghost reader linked list list */
-					struct _starpu_job *ghost_reader_job = _starpu_get_job_associated_to_task(task);
-					struct _starpu_jobid_list *link = (struct _starpu_jobid_list *) malloc(sizeof(struct _starpu_jobid_list));
-					STARPU_ASSERT(link);
-					link->next = handle->last_submitted_ghost_readers_id;
-					link->id = ghost_reader_job->job_id;
-					handle->last_submitted_ghost_readers_id = link;
-				}
 
-				if (prev)
-				{
-					prev->next = next;
-				}
-				else
-				{
-					/* This is the first element of the list */
-					handle->last_submitted_readers = next;
-				}
-
-				/* XXX can we really find the same task again
-				 * once we have found it ? Otherwise, we should
-				 * avoid going through the entire list and stop
-				 * as soon as we find the task. TODO: check how
-				 * duplicate dependencies are treated. */
-			}
-			else
+			task_dependency_slot->next->prev = task_dependency_slot->prev;
+			task_dependency_slot->prev->next = task_dependency_slot->next;
+#ifndef STARPU_USE_FXT
+			if (_starpu_bound_recording)
+#endif
 			{
-				prev = l;
+				/* Save the job id of the reader task in the ghost reader linked list list */
+				struct _starpu_job *ghost_reader_job = _starpu_get_job_associated_to_task(task);
+				struct _starpu_jobid_list *link = (struct _starpu_jobid_list *) malloc(sizeof(struct _starpu_jobid_list));
+				STARPU_ASSERT(link);
+				link->next = handle->last_submitted_ghost_accessors_id;
+				link->id = ghost_reader_job->job_id;
+				handle->last_submitted_ghost_accessors_id = link;
 			}
-
-			l = next;
 		}
 	}
 
@@ -458,13 +434,22 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
         struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	struct _starpu_task_wrapper_dlist *slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
 	if (!task->cl)
 		return;
 
         unsigned nbuffers = task->cl->nbuffers;
-
 	unsigned index;
+
+	/* Release all implicit dependencies */
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+
+		_starpu_release_data_enforce_sequential_consistency(task, &slots[index], handle);
+	}
+
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle = descrs[index].handle;
@@ -475,7 +460,6 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 			 * _starpu_compar_handles */
 			continue;
 
-		_starpu_release_data_enforce_sequential_consistency(task, handle);
 		/* Release the reference acquired in _starpu_push_task_output */
 		_starpu_spin_lock(&handle->header_lock);
 		STARPU_ASSERT(handle->busy_count > 0);
@@ -536,7 +520,7 @@ void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
 		while (link)
 		{
 			/* There is no need to depend on that task now, since it was already unlocked */
-			_starpu_release_data_enforce_sequential_consistency(link->task, handle);
+			_starpu_release_data_enforce_sequential_consistency(link->task, &_starpu_get_job_associated_to_task(link->task)->implicit_dep_slot, handle);
 
 			int ret = _starpu_task_submit_internally(link->task);
 			STARPU_ASSERT(!ret);
@@ -566,7 +550,7 @@ int _starpu_data_wait_until_available(starpu_data_handle_t handle, enum starpu_d
 
 		/* It is not really a RW access, but we want to make sure that
 		 * all previous accesses are done */
-		new_task = _starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, handle, mode);
+		new_task = _starpu_detect_implicit_data_deps_with_handle(sync_task, sync_task, &_starpu_get_job_associated_to_task(sync_task)->implicit_dep_slot, handle, mode);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 
 		if (new_task)

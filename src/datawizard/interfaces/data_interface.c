@@ -145,8 +145,10 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	STARPU_PTHREAD_MUTEX_INIT(&handle->sequential_consistency_mutex, NULL);
 	handle->last_submitted_mode = STARPU_R;
-	handle->last_submitted_writer = NULL;
-	handle->last_submitted_readers = NULL;
+	handle->last_sync_task = NULL;
+	handle->last_submitted_accessors.task = NULL;
+	handle->last_submitted_accessors.next = &handle->last_submitted_accessors;
+	handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
 	handle->post_sync_tasks = NULL;
 
 	/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
@@ -162,9 +164,9 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->reduction_tmp_handles = NULL;
 
 #ifdef STARPU_USE_FXT
-	handle->last_submitted_ghost_writer_id_is_valid = 0;
-	handle->last_submitted_ghost_writer_id = 0;
-	handle->last_submitted_ghost_readers_id = NULL;
+	handle->last_submitted_ghost_sync_id_is_valid = 0;
+	handle->last_submitted_ghost_sync_id = 0;
+	handle->last_submitted_ghost_accessors_id = NULL;
 #endif
 
 	handle->wt_mask = wt_mask;
