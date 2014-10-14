@@ -108,6 +108,9 @@ The scheduling context release
 New features:
   * Fix and actually enable the cache allocation.
 
+Changes:
+  * Fix complexity of implicit task/data dependency, from quadratic to linear.
+
 StarPU 1.1.3 (svn revision 13450)
 ==============================================
 The scheduling context release
