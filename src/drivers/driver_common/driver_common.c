@@ -338,7 +338,11 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 
 		_starpu_worker_set_status_sleeping(workerid);
 
-		if (_starpu_worker_can_block(memnode) && !_starpu_sched_ctx_last_worker_awake(worker))
+		if (_starpu_worker_can_block(memnode)
+#ifndef STARPU_SIMGRID
+				&& !_starpu_sched_ctx_last_worker_awake(worker)
+#endif
+				)
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
