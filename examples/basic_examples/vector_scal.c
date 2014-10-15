@@ -65,7 +65,6 @@ static struct starpu_codelet cl =
 		, scal_sse_func_icc
 #endif
 #endif
-		, NULL
 	},
 #ifdef STARPU_USE_CUDA
 	/* CUDA implementation of the codelet */
