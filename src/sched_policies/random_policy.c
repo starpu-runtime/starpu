@@ -44,18 +44,15 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	while(workers->has_next(workers, &it))
 	{
                 worker = workers->get_next(workers, &it);
-		int impl = 0;
-		for(impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
+		unsigned impl;
+		if(starpu_worker_can_execute_task_first_impl(worker, task, &impl))
 		{
-			if(starpu_worker_can_execute_task(worker, task, impl))
-			{
-				struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker);
-				double speedup = starpu_worker_get_relative_speedup(perf_arch);
-				alpha_sum += speedup;
-				speedup_arr[size] = speedup;
-				worker_arr[size++] = worker;
-				break;
-			}
+			struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker);
+			double speedup = starpu_worker_get_relative_speedup(perf_arch);
+			alpha_sum += speedup;
+			speedup_arr[size] = speedup;
+			worker_arr[size++] = worker;
+			break;
 		}
 	}
 

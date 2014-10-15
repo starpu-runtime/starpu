@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -141,15 +141,14 @@ struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue,
 		unsigned nimpl;
 		STARPU_ASSERT(task);
 
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-			if (starpu_worker_can_execute_task(workerid, task, nimpl))
-			{
-				starpu_task_set_implementation(task, nimpl);
-				starpu_task_list_erase(&fifo_queue->taskq, task);
-				fifo_queue->ntasks--;
-				_STARPU_TRACE_JOB_POP(task, 0);
-				return task;
-			}
+		if (starpu_worker_can_execute_task_first_impl(workerid, task, &nimpl))
+		{
+			starpu_task_set_implementation(task, nimpl);
+			starpu_task_list_erase(&fifo_queue->taskq, task);
+			fifo_queue->ntasks--;
+			_STARPU_TRACE_JOB_POP(task, 0);
+			return task;
+		}
 	}
 
 	return NULL;
@@ -197,8 +196,7 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_
 			unsigned nimpl;
 			next_task = task->next;
 
-			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-			if (starpu_worker_can_execute_task(workerid, task, nimpl))
+			if (starpu_worker_can_execute_task_first_impl(workerid, task, &nimpl))
 			{
 				/* this elements can be moved into the new list */
 				new_list_size++;
@@ -220,7 +218,6 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_
 					task->next = NULL;
 				}
 				starpu_task_set_implementation(task, nimpl);
-				break;
 			}
 
 			task = next_task;

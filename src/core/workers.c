@@ -224,7 +224,7 @@ uint32_t _starpu_can_submit_scc_task(void)
 	return (STARPU_SCC & config.worker_mask);
 }
 
-static int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
+static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
 {
 	switch(arch)
 	{
@@ -291,6 +291,74 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 	return (task->cl->where & config.workers[workerid].worker_mask) &&
 		_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl) &&
 		(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl));
+}
+
+int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	unsigned mask;
+	int i;
+	enum starpu_worker_archtype arch;
+	struct starpu_codelet *cl;
+	if(sched_ctx->parallel_sect[workerid]) return 0;
+	/* TODO: check that the task operand sizes will fit on that device */
+	cl = task->cl;
+	if (!(cl->where & config.workers[workerid].worker_mask)) return 0;
+
+	mask = 0;
+	arch = config.workers[workerid].arch;
+	if (!task->cl->can_execute)
+	{
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)) {
+				mask |= 1U << i;
+				if (!impl_mask)
+					break;
+			}
+	} else {
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)
+			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i))) {
+				mask |= 1U << i;
+				if (!impl_mask)
+					break;
+			}
+	}
+	if (impl_mask)
+		*impl_mask = mask;
+	return mask != 0;
+}
+
+int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_task *task, unsigned *nimpl)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	int i;
+	enum starpu_worker_archtype arch;
+	struct starpu_codelet *cl;
+	if(sched_ctx->parallel_sect[workerid]) return 0;
+	/* TODO: check that the task operand sizes will fit on that device */
+	cl = task->cl;
+	if (!(cl->where & config.workers[workerid].worker_mask)) return 0;
+
+	arch = config.workers[workerid].arch;
+	if (!task->cl->can_execute)
+	{
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)) {
+				if (nimpl)
+					*nimpl = i;
+				return 1;
+			}
+	} else {
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)
+			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i))) {
+				if (nimpl)
+					*nimpl = i;
+				return 1;
+			}
+	}
+	return 0;
 }
 
 

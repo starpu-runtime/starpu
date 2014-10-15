@@ -106,19 +106,17 @@ static int push_task_eager_policy(struct starpu_task *task)
 			continue;
 #endif
 
-		unsigned nimpl;
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-			if (starpu_worker_can_execute_task(worker, task, nimpl))
-			{
-				/* It can execute this one, tell him! */
+		if (starpu_worker_can_execute_task_first_impl(worker, task, NULL))
+		{
+			/* It can execute this one, tell him! */
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-				starpu_bitmap_unset(data->waiters, worker);
-				/* We really woke at least somebody, no need to wake somebody else */
-				break;
+			starpu_bitmap_unset(data->waiters, worker);
+			/* We really woke at least somebody, no need to wake somebody else */
+			break;
 #else
-				dowake[worker] = 1;
+			dowake[worker] = 1;
 #endif
-			}
+		}
 	}
 	/* Let the task free */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);

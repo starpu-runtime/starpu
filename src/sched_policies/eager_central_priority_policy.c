@@ -154,19 +154,17 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 			continue;
 #endif
 
-		unsigned nimpl;
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-			if (starpu_worker_can_execute_task(worker, task, nimpl))
-			{
-				/* It can execute this one, tell him! */
+		if (starpu_worker_can_execute_task_first_impl(worker, task, NULL))
+		{
+			/* It can execute this one, tell him! */
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-				starpu_bitmap_unset(data->waiters, worker);
-				/* We really woke at least somebody, no need to wake somebody else */
-				break;
+			starpu_bitmap_unset(data->waiters, worker);
+			/* We really woke at least somebody, no need to wake somebody else */
+			break;
 #else
-				dowake[worker] = 1;
+			dowake[worker] = 1;
 #endif
-			}
+		}
 	}
 	/* Let the task free */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -237,20 +235,17 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 			{
 				unsigned nimpl;
 				nexttask = starpu_task_list_next(task);
-				for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+				if (starpu_worker_can_execute_task_first_impl(workerid, task, &nimpl))
 				{
-					if (starpu_worker_can_execute_task(workerid, task, nimpl))
-					{
-						/* there is some task that we can grab */
-						starpu_task_set_implementation(task, nimpl);
-						starpu_task_list_erase(&taskq->taskq[priolevel], task);
-						chosen_task = task;
-						taskq->ntasks[priolevel]--;
-						taskq->total_ntasks--;
-						_STARPU_TRACE_JOB_POP(task, 0);
-						break;
-					} else skipped = 1;
-				}
+					/* there is some task that we can grab */
+					starpu_task_set_implementation(task, nimpl);
+					starpu_task_list_erase(&taskq->taskq[priolevel], task);
+					chosen_task = task;
+					taskq->ntasks[priolevel]--;
+					taskq->total_ntasks--;
+					_STARPU_TRACE_JOB_POP(task, 0);
+					break;
+				} else skipped = 1;
 			}
 		}
 	}

@@ -821,7 +821,7 @@ pick:
 	 * Here, we do not care about what implementation is used.
 	 */
 	worker_id = starpu_worker_get_id();
-	if (!starpu_worker_can_execute_task(worker_id, task, 0))
+	if (!starpu_worker_can_execute_task_first_impl(worker_id, task, NULL))
 		return task;
 
 	node = starpu_worker_get_memory_node(worker_id);
