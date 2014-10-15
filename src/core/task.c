@@ -1049,21 +1049,6 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 	return -EINVAL;
 }
 
-starpu_cpu_func_t _starpu_task_get_cpu_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->cpu_funcs[nimpl];
-}
-
-starpu_cuda_func_t _starpu_task_get_cuda_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->cuda_funcs[nimpl];
-}
-
-starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->opencl_funcs[nimpl];
-}
-
 void starpu_task_set_implementation(struct starpu_task *task, unsigned impl)
 {
 	_starpu_get_job_associated_to_task(task)->nimpl = impl;
@@ -1072,21 +1057,6 @@ void starpu_task_set_implementation(struct starpu_task *task, unsigned impl)
 unsigned starpu_task_get_implementation(struct starpu_task *task)
 {
 	return _starpu_get_job_associated_to_task(task)->nimpl;
-}
-
-starpu_mic_func_t _starpu_task_get_mic_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->mic_funcs[nimpl];
-}
-
-starpu_scc_func_t _starpu_task_get_scc_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->scc_funcs[nimpl];
-}
-
-char *_starpu_task_get_cpu_name_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->cpu_funcs_name[nimpl];
 }
 
 static starpu_pthread_t watchdog_thread;
