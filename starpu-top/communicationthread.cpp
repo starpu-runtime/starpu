@@ -7,7 +7,7 @@ Yann Courtois
 Jean-Marie Couteyen
 Anthony Roy
 
-Copyright (C) 2011 Université de Bordeaux 1
+Copyright (C) 2011 Université de Bordeaux
 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
