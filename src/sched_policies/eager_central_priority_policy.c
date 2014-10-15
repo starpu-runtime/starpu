@@ -142,9 +142,8 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	char dowake[STARPU_NMAXWORKERS] = { 0 };
 #endif
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-	
+
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -174,9 +173,8 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* Now that we have a list of potential workers, try to wake one */
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-	
+
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -266,9 +264,8 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 		struct starpu_sched_ctx_iterator it;
-		if(workers->init_iterator)
-			workers->init_iterator(workers, &it);
-		
+
+		workers->init_iterator(workers, &it);
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);

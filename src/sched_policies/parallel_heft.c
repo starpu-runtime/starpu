@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012 inria
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux 1
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -309,12 +309,11 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	/* A priori, we know all estimations */
 	int unknown = 0;
 	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
 
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
-        {
-                worker = workers->get_next(workers, &it);
+	{
+		worker = workers->get_next(workers, &it);
 
 		if(!starpu_worker_is_combined_worker(worker))
 		{

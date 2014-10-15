@@ -99,12 +99,11 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 
-        struct starpu_sched_ctx_iterator it;
-        if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
+	struct starpu_sched_ctx_iterator it;
 
-        while(workers->has_next(workers, &it))
-        {
+	workers->init_iterator(workers, &it);
+	while(workers->has_next(workers, &it))
+	{
                 i = workers->get_next(workers, &it);
 		if (starpu_worker_get_type(i) != arch)
 			continue;
@@ -1766,9 +1765,8 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 				{
 					struct starpu_worker_collection *workers = config.sched_ctxs[s].workers;
 					struct starpu_sched_ctx_iterator it;
-					if(workers->init_iterator)
-						workers->init_iterator(workers, &it);
 
+					workers->init_iterator(workers, &it);
 					while(workers->has_next(workers, &it))
 					{
 						worker = workers->get_next(workers, &it);

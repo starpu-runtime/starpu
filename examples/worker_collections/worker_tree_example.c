@@ -71,10 +71,9 @@ int main()
 	}
 
 	struct starpu_sched_ctx_iterator it;
-        if(co->init_iterator)
-                co->init_iterator(co, &it);
 
 	int pu;
+	co->init_iterator(co, &it);
 	while(co->has_next(co, &it))
 	{
 		pu = co->get_next(co, &it);
