@@ -246,11 +246,6 @@ starpu_data_handle_t starpu_data_lookup(const void *ptr)
 	return result;
 }
 
-int
-_starpu_data_is_multiformat_handle(starpu_data_handle_t handle)
-{
-	return handle->ops->is_multiformat;
-}
 /*
  * Start monitoring a piece of data
  */
