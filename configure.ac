@@ -1703,7 +1703,7 @@ AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
 AC_MSG_CHECKING(maximum number of implementations)
 AC_ARG_ENABLE(maximplementations, [AS_HELP_STRING([--enable-maximplementations=<number>],
 		[maximum number of implementations])],
-		maximplementations=$enableval, maximplementations=8)
+		maximplementations=$enableval, maximplementations=4)
 AC_MSG_RESULT($maximplementations)
 AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
 		[maximum number of implementations])

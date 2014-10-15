@@ -65,7 +65,6 @@ static struct starpu_codelet cl =
 		, scal_sse_func_icc
 #endif
 #endif
-		, NULL
 	},
 	.cpu_funcs_name = {
 		"scal_cpu_func",
