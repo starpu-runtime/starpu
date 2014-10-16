@@ -591,7 +591,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	unsigned nworkers = pconfig->topology.nworkers;
 
 	/* Launch workers asynchronously */
-	unsigned cpu = 0;
 	unsigned worker, i;
 
 #if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
@@ -629,7 +628,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		{
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 			case STARPU_CPU_WORKER:
-				driver.id.cpu_id = cpu;
+				driver.id.cpu_id = workerarg->devid;
 				if (_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
@@ -655,7 +654,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				{
 					workerarg->run_by_starpu = 0;
 				}
-				cpu++;
 				break;
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -794,7 +792,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		}
 	}
 
-	cpu  = 0;
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
@@ -804,18 +801,14 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		switch (workerarg->arch)
 		{
 			case STARPU_CPU_WORKER:
-				driver.id.cpu_id = cpu;
+				driver.id.cpu_id = workerarg->devid;
 				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
-				{
-					cpu++;
 					break;
-				}
 				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_initialized)
 					STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-				cpu++;
 				break;
 			case STARPU_CUDA_WORKER:
 				/* Already waited above */
