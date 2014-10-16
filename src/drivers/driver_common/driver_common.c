@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  Inria
@@ -405,7 +405,11 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 
 		_starpu_worker_set_status_sleeping(workerid);
 
-		if (_starpu_worker_can_block(memnode) && !_starpu_sched_ctx_last_worker_awake(worker))
+		if (_starpu_worker_can_block(memnode)
+#ifndef STARPU_SIMGRID
+				&& !_starpu_sched_ctx_last_worker_awake(worker)
+#endif
+				)
 		{
 			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);

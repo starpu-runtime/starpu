@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -850,7 +850,7 @@ pick:
 	 * Here, we do not care about what implementation is used.
 	 */
 	worker_id = starpu_worker_get_id();
-	if (!starpu_worker_can_execute_task(worker_id, task, 0))
+	if (!starpu_worker_can_execute_task_first_impl(worker_id, task, NULL))
 		return task;
 
 	node = starpu_worker_get_memory_node(worker_id);

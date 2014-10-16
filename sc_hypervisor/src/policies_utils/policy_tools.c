@@ -28,9 +28,8 @@ static int _compute_priority(unsigned sched_ctx)
 	int worker;
 
 	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
 
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -118,9 +117,8 @@ int* sc_hypervisor_get_idlest_workers(unsigned sched_ctx, int *nworkers, enum st
 	int considered = 0;
 
 	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
 
+	workers->init_iterator(workers, &it);
 	for(index = 0; index < *nworkers; index++)
 	{
 		while(workers->has_next(workers, &it))
@@ -185,8 +183,8 @@ int sc_hypervisor_get_movable_nworkers(struct sc_hypervisor_policy_config *confi
 	int worker;
 
 	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
+
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);

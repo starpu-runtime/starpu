@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
@@ -99,12 +99,11 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 
-        struct starpu_sched_ctx_iterator it;
-        if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
+	struct starpu_sched_ctx_iterator it;
 
-        while(workers->has_next(workers, &it))
-        {
+	workers->init_iterator(workers, &it);
+	while(workers->has_next(workers, &it))
+	{
                 i = workers->get_next(workers, &it);
 		if (starpu_worker_get_type(i) != arch)
 			continue;
@@ -225,7 +224,7 @@ uint32_t _starpu_can_submit_scc_task(void)
 	return (STARPU_SCC & config.worker_mask);
 }
 
-static int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
+static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
 {
 	switch(arch)
 	{
@@ -300,6 +299,74 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 	return (task->cl->where & config.workers[workerid].worker_mask) &&
 		_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl) &&
 		(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl));
+}
+
+int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	unsigned mask;
+	int i;
+	enum starpu_worker_archtype arch;
+	struct starpu_codelet *cl;
+	if(sched_ctx->parallel_sect[workerid]) return 0;
+	/* TODO: check that the task operand sizes will fit on that device */
+	cl = task->cl;
+	if (!(cl->where & config.workers[workerid].worker_mask)) return 0;
+
+	mask = 0;
+	arch = config.workers[workerid].arch;
+	if (!task->cl->can_execute)
+	{
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)) {
+				mask |= 1U << i;
+				if (!impl_mask)
+					break;
+			}
+	} else {
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)
+			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i))) {
+				mask |= 1U << i;
+				if (!impl_mask)
+					break;
+			}
+	}
+	if (impl_mask)
+		*impl_mask = mask;
+	return mask != 0;
+}
+
+int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_task *task, unsigned *nimpl)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	int i;
+	enum starpu_worker_archtype arch;
+	struct starpu_codelet *cl;
+	if(sched_ctx->parallel_sect[workerid]) return 0;
+	/* TODO: check that the task operand sizes will fit on that device */
+	cl = task->cl;
+	if (!(cl->where & config.workers[workerid].worker_mask)) return 0;
+
+	arch = config.workers[workerid].arch;
+	if (!task->cl->can_execute)
+	{
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)) {
+				if (nimpl)
+					*nimpl = i;
+				return 1;
+			}
+	} else {
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)
+			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i))) {
+				if (nimpl)
+					*nimpl = i;
+				return 1;
+			}
+	}
+	return 0;
 }
 
 
@@ -1774,9 +1841,8 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 				{
 					struct starpu_worker_collection *workers = config.sched_ctxs[s].workers;
 					struct starpu_sched_ctx_iterator it;
-					if(workers->init_iterator)
-						workers->init_iterator(workers, &it);
 
+					workers->init_iterator(workers, &it);
 					while(workers->has_next(workers, &it))
 					{
 						worker = workers->get_next(workers, &it);

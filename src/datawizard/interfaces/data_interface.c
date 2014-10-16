@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2014  Inria
  *
@@ -246,11 +246,6 @@ starpu_data_handle_t starpu_data_lookup(const void *ptr)
 	return result;
 }
 
-int
-_starpu_data_is_multiformat_handle(starpu_data_handle_t handle)
-{
-	return handle->ops->is_multiformat;
-}
 /*
  * Start monitoring a piece of data
  */

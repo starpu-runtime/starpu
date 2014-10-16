@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012  INRIA
  *
@@ -167,11 +167,10 @@ static unsigned select_victim_overload(unsigned sched_ctx_id)
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	struct starpu_sched_ctx_iterator it;
-        if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
 
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
-        {
+	{
                 worker = workers->get_next(workers, &it);
 		worker_ratio = overload_metric(sched_ctx_id, worker);
 
@@ -207,12 +206,11 @@ static unsigned select_worker_overload(unsigned sched_ctx_id)
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	struct starpu_sched_ctx_iterator it;
-        if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
 
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
-        {
-                worker = workers->get_next(workers, &it);
+	{
+		worker = workers->get_next(workers, &it);
 
 		worker_ratio = overload_metric(sched_ctx_id, worker);
 
@@ -343,9 +341,8 @@ int ws_push_task(struct starpu_task *task)
 	unsigned worker = 0;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
 	
+	workers->init_iterator(workers, &it);
 	/* !! C'est ballot de tout locker! */
 	while(workers->has_next(workers, &it))
 	{

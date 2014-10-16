@@ -635,9 +635,8 @@ int _lp_get_unwanted_workers(int *workers_add, int nw_add, unsigned sched_ctx, i
 	int worker;
 
 	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
 
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);

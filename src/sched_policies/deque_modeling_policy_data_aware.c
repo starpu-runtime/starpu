@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2012  INRIA
@@ -406,12 +406,12 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 
 	unsigned best_impl = 0;
 	unsigned nimpl;
+	unsigned impl_mask;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
 
+	workers->init_iterator(workers, &it);
 	while(workers->has_next_master(workers, &it))
 	{
 		worker = workers->get_next_master(workers, &it);
@@ -422,9 +422,12 @@ static int _dm_push_task(struct starpu_task *task, unsigned prio, unsigned sched
 		/* Sometimes workers didn't take the tasks as early as we expected */
 		double exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
 
+		if (!starpu_worker_can_execute_task_impl(worker, task, &impl_mask))
+			continue;
+
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
-			if (!starpu_worker_can_execute_task(worker, task, nimpl))
+			if (!(impl_mask & (1U << nimpl)))
 			{
 				/* no one on that queue may execute this task */
 				//			worker_ctx++;
@@ -541,15 +544,15 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 	unsigned worker, worker_ctx = 0;
 
 	unsigned nimpl;
+	unsigned impl_mask;
 
 	starpu_task_bundle_t bundle = task->bundle;
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
 
+	workers->init_iterator(workers, &it);
 	while(workers->has_next_master(workers, &it))
 	{
 		worker = workers->get_next_master(workers, &it);
@@ -560,9 +563,12 @@ static void compute_all_performance_predictions(struct starpu_task *task,
 
 		/* Sometimes workers didn't take the tasks as early as we expected */
 		double exp_start = isnan(fifo->exp_start) ? starpu_timing_now() : STARPU_MAX(fifo->exp_start, starpu_timing_now());
-		for(nimpl  = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-	 	{
-			if (!starpu_worker_can_execute_task(worker, task, nimpl))
+		if (!starpu_worker_can_execute_task_impl(worker, task, &impl_mask))
+			continue;
+
+		for (nimpl  = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+		{
+			if (!(impl_mask & (1U << nimpl)))
 			{
 				/* no one on that queue may execute this task */
 				continue;
@@ -713,18 +719,20 @@ static int _dmda_push_task(struct starpu_task *task, unsigned prio, unsigned sch
 	double best_fitness = -1;
 
 	unsigned nimpl;
+	unsigned impl_mask;
 	if (forced_best == -1)
 	{
 		struct starpu_sched_ctx_iterator it;
-		if(workers->init_iterator)
-			workers->init_iterator(workers, &it);
 
+		workers->init_iterator(workers, &it);
 		while(workers->has_next_master(workers, &it))
 		{
 			worker = workers->get_next_master(workers, &it);
+			if (!starpu_worker_can_execute_task_impl(worker, task, &impl_mask))
+				continue;
 			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 			{
-				if (!starpu_worker_can_execute_task(worker, task, nimpl))
+				if (!(impl_mask & (1U << nimpl)))
 				{
 					/* no one on that queue may execute this task */
 					continue;

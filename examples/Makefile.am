@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013  Université de Bordeaux 1
+# Copyright (C) 2009-2013  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
@@ -31,8 +31,10 @@ nobase_STARPU_OPENCL_DATA_DATA =
 endif
 
 EXTRA_DIST = 					\
+	axpy/axpy.h				\
 	axpy/axpy_opencl_kernel.cl		\
 	basic_examples/vector_scal_opencl_kernel.cl \
+	basic_examples/multiformat_types.h  \
 	basic_examples/multiformat_opencl_kernel.cl  \
 	basic_examples/multiformat_conversion_codelets_opencl_kernel.cl \
 	common/blas_model.c			\
@@ -54,7 +56,9 @@ EXTRA_DIST = 					\
 	filters/fblock_opencl_kernel.cl		\
 	filters/custom_mf/conversion_opencl.cl  \
 	filters/custom_mf/custom_opencl.cl \
+	filters/custom_mf/custom_types.h \
 	interface/complex_kernels.cl \
+	reductions/dot_product.h	\
 	reductions/dot_product_opencl_kernels.cl	\
 	scheduler/schedulers.sh
 
