@@ -1341,12 +1341,33 @@ void starpu_resume()
 	STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
 }
 
-unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED)
+unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *worker STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	return 0;
 #else
 	unsigned can_block = 1;
+
+	struct starpu_driver driver;
+	switch (driver.type)
+	{
+	case STARPU_CPU_WORKER:
+		driver.id.cpu_id = worker->devid;
+		break;
+	case STARPU_CUDA_WORKER:
+		driver.id.cuda_id = worker->devid;
+		break;
+	case STARPU_OPENCL_WORKER:
+		starpu_opencl_get_device(worker->devid, &driver.id.opencl_id);
+		break;
+	default:
+		goto always_launch;
+	}
+	driver.type = worker->arch;
+	if (!_starpu_may_launch_driver(config.conf, &driver))
+		return 0;
+
+always_launch:
 
 #ifndef STARPU_SIMGRID
 	if (!_starpu_check_that_no_data_request_exists(memnode))
