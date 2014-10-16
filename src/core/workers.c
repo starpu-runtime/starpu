@@ -692,6 +692,10 @@ int starpu_init(struct starpu_conf *user_conf)
 
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_init();
+	/* Warn when the lots of stacks malloc()-ated by simgrid for transfer
+	 * processes will take a long time to get initialized */
+	if (getenv("MALLOC_PERTURB_"))
+		_STARPU_DISP("Warning: MALLOC_PERTURB_ is set, this makes simgrid runs very slow\n");
 #else
 #ifdef __GNUC__
 #ifndef __OPTIMIZE__
