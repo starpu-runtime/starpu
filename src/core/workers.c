@@ -1349,6 +1349,7 @@ unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, stru
 	unsigned can_block = 1;
 
 	struct starpu_driver driver;
+	driver.type = worker->arch;
 	switch (driver.type)
 	{
 	case STARPU_CPU_WORKER:
@@ -1363,7 +1364,6 @@ unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, stru
 	default:
 		goto always_launch;
 	}
-	driver.type = worker->arch;
 	if (!_starpu_may_launch_driver(config.conf, &driver))
 		return 0;
 
