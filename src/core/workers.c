@@ -599,7 +599,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	unsigned nworkers = pconfig->topology.nworkers;
 
 	/* Launch workers asynchronously */
-	unsigned cpu = 0;
 	unsigned worker, i;
 
 #if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
@@ -637,7 +636,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		{
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 			case STARPU_CPU_WORKER:
-				driver.id.cpu_id = cpu;
+				driver.id.cpu_id = workerarg->devid;
 				if (_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
@@ -663,7 +662,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				{
 					workerarg->run_by_starpu = 0;
 				}
-				cpu++;
 				break;
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -802,7 +800,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		}
 	}
 
-	cpu  = 0;
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
@@ -812,18 +809,14 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		switch (workerarg->arch)
 		{
 			case STARPU_CPU_WORKER:
-				driver.id.cpu_id = cpu;
+				driver.id.cpu_id = workerarg->devid;
 				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
-				{
-					cpu++;
 					break;
-				}
 				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_initialized)
 					STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-				cpu++;
 				break;
 			case STARPU_CUDA_WORKER:
 				/* Already waited above */
@@ -1055,6 +1048,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_init();
+	/* Warn when the lots of stacks malloc()-ated by simgrid for transfer
+	 * processes will take a long time to get initialized */
+	if (getenv("MALLOC_PERTURB_"))
+		_STARPU_DISP("Warning: MALLOC_PERTURB_ is set, this makes simgrid runs very slow\n");
 #else
 #ifdef __GNUC__
 #ifndef __OPTIMIZE__
@@ -1345,12 +1342,33 @@ void starpu_resume()
 	STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
 }
 
-unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED)
+unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *worker STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	return 0;
 #else
 	unsigned can_block = 1;
+
+	struct starpu_driver driver;
+	driver.type = worker->arch;
+	switch (driver.type)
+	{
+	case STARPU_CPU_WORKER:
+		driver.id.cpu_id = worker->devid;
+		break;
+	case STARPU_CUDA_WORKER:
+		driver.id.cuda_id = worker->devid;
+		break;
+	case STARPU_OPENCL_WORKER:
+		starpu_opencl_get_device(worker->devid, &driver.id.opencl_id);
+		break;
+	default:
+		goto always_launch;
+	}
+	if (!_starpu_may_launch_driver(config.conf, &driver))
+		return 0;
+
+always_launch:
 
 #ifndef STARPU_SIMGRID
 	if (!_starpu_check_that_no_data_request_exists(memnode))

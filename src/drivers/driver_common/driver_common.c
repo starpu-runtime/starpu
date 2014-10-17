@@ -405,7 +405,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 
 		_starpu_worker_set_status_sleeping(workerid);
 
-		if (_starpu_worker_can_block(memnode)
+		if (_starpu_worker_can_block(memnode, worker)
 #ifndef STARPU_SIMGRID
 				&& !_starpu_sched_ctx_last_worker_awake(worker)
 #endif
