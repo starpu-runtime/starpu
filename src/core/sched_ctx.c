@@ -1072,6 +1072,7 @@ int _starpu_nworkers_able_to_execute_task(struct starpu_task *task, struct _star
 
 	struct starpu_sched_ctx_iterator it;
 
+	workers->init_iterator(workers, &it);
 	while(workers->has_next_master(workers, &it))
 	{
 		worker = workers->get_next_master(workers, &it);
