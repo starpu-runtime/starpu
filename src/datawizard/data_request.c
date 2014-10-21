@@ -511,6 +511,10 @@ int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, uns
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
 		_starpu_data_request_list_push_list_front(new_data_requests, data_requests[src_node]);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+		_starpu_wake_all_blocked_workers_on_node(src_node);
+#endif
 	}
 
 	_starpu_data_request_list_delete(new_data_requests);
@@ -618,6 +622,10 @@ void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc
 		if (!(_starpu_data_request_list_empty(new_prefetch_requests)))
 			_starpu_data_request_list_push_list_front(new_prefetch_requests, prefetch_requests[src_node]);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+		_starpu_wake_all_blocked_workers_on_node(src_node);
+#endif
 	}
 
 	_starpu_data_request_list_delete(new_data_requests);
@@ -794,4 +802,8 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r)
 		}
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[r->handling_node]);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	_starpu_wake_all_blocked_workers_on_node(r->handling_node);
+#endif
 }
