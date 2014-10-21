@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
- * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010, 2011, 2012, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -64,7 +64,7 @@ int _starpu_opencl_locate_file(const char *source_file_name, char *located_file_
 
 	if (ret == EXIT_FAILURE)
 	{
-		sprintf(located_file_name, "%s/%s", _STARPU_STRINGIFY(STARPU_OPENCL_DATADIR), source_file_name);
+		sprintf(located_file_name, "%s/%s", STARPU_SRC_DIR, source_file_name);
 		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
 		if (access(located_file_name, R_OK) == 0)
 			ret = EXIT_SUCCESS;
@@ -72,7 +72,7 @@ int _starpu_opencl_locate_file(const char *source_file_name, char *located_file_
 
 	if (ret == EXIT_FAILURE)
 	{
-		sprintf(located_file_name, "%s/%s", STARPU_SRC_DIR, source_file_name);
+		sprintf(located_file_name, "%s/%s", _STARPU_STRINGIFY(STARPU_OPENCL_DATADIR), source_file_name);
 		_STARPU_DEBUG("Trying to locate <%s>\n", located_file_name);
 		if (access(located_file_name, R_OK) == 0)
 			ret = EXIT_SUCCESS;

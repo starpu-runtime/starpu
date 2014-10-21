@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012, 2014  Université de Bordeaux 1
+ * Copyright (C) 2009-2012, 2014  Université de Bordeaux
  * Copyright (C) 2010, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2014  Inria
  *
@@ -76,7 +76,7 @@ extern void _starpu_data_register_ram_pointer(starpu_data_handle_t handle,
 extern void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle)
 	STARPU_ATTRIBUTE_INTERNAL;
 
-extern int _starpu_data_is_multiformat_handle(starpu_data_handle_t handle);
+#define _starpu_data_is_multiformat_handle(handle) handle->ops->is_multiformat
 extern starpu_data_handle_t _starpu_data_get_data_handle_from_tag(int tag);
 
 extern int _starpu_data_set_rank(starpu_data_handle_t handle, int rank);

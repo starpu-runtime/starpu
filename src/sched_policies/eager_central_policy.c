@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -94,9 +94,8 @@ static int push_task_eager_policy(struct starpu_task *task)
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	char dowake[STARPU_NMAXWORKERS] = { 0 };
 #endif
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-	
+
+	workers->init_iterator(workers, &it);
 	while(workers->has_next_master(workers, &it))
 	{
 		worker = workers->get_next_master(workers, &it);
@@ -107,28 +106,25 @@ static int push_task_eager_policy(struct starpu_task *task)
 			continue;
 #endif
 
-		unsigned nimpl;
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-			if (starpu_worker_can_execute_task(worker, task, nimpl))
-			{
-				/* It can execute this one, tell him! */
+		if (starpu_worker_can_execute_task_first_impl(worker, task, NULL))
+		{
+			/* It can execute this one, tell him! */
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-				starpu_bitmap_unset(data->waiters, worker);
-				/* We really woke at least somebody, no need to wake somebody else */
-				break;
+			starpu_bitmap_unset(data->waiters, worker);
+			/* We really woke at least somebody, no need to wake somebody else */
+			break;
 #else
-				dowake[worker] = 1;
+			dowake[worker] = 1;
 #endif
-			}
+		}
 	}
 	/* Let the task free */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* Now that we have a list of potential workers, try to wake one */
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-	
+
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);

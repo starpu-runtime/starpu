@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2011  Université de Bordeaux 1
+ * Copyright (C) 2010-2011, 2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
@@ -74,14 +74,13 @@ struct starpu_task *_starpu_deque_pop_task(struct _starpu_deque_jobq *deque_queu
 		unsigned nimpl;
 		STARPU_ASSERT(j);
 
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-			if (starpu_worker_can_execute_task(workerid, j->task, nimpl))
-			{
-				j->nimpl = nimpl;
-				j = _starpu_job_list_pop_front(deque_queue->jobq);
-				_STARPU_TRACE_JOB_POP(j, 0);
-				return j->task;
-			}
+		if (starpu_worker_can_execute_task_first_impl(workerid, j->task, &nimpl))
+		{
+			j->nimpl = nimpl;
+			j = _starpu_job_list_pop_front(deque_queue->jobq);
+			_STARPU_TRACE_JOB_POP(j, 0);
+			return j->task;
+		}
 	}
 
 	return NULL;
@@ -117,8 +116,7 @@ struct _starpu_job_list *_starpu_deque_pop_every_task(struct _starpu_deque_jobq 
 			unsigned nimpl;
 			next_job = _starpu_job_list_next(i);
 
-			for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-			if (starpu_worker_can_execute_task(workerid, i->task, nimpl))
+			if (starpu_worker_can_execute_task_first_impl(workerid, i->task, &nimpl))
 			{
 				/* this elements can be moved into the new list */
 				new_list_size++;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2013  Université de Bordeaux 1
+ * Copyright (C) 2011-2014  Université de Bordeaux
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2013  INRIA
  *
@@ -155,16 +155,15 @@ static int push_task_peager_policy(struct starpu_task *task)
 	starpu_push_task_end(task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-        /*if there are no tasks block */
-        /* wake people waiting for a task */
-        struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-
-        struct starpu_sched_ctx_iterator it;
-        if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
+	/*if there are no tasks block */
+	/* wake people waiting for a task */
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-        int worker = -1;
+	struct starpu_sched_ctx_iterator it;
+	int worker = -1;
+
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);

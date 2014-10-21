@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
@@ -100,12 +100,11 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 
-        struct starpu_sched_ctx_iterator it;
-        if(workers->init_iterator)
-                workers->init_iterator(workers, &it);
+	struct starpu_sched_ctx_iterator it;
 
-        while(workers->has_next(workers, &it))
-        {
+	workers->init_iterator(workers, &it);
+	while(workers->has_next(workers, &it))
+	{
                 i = workers->get_next(workers, &it);
 		if (starpu_worker_get_type(i) != arch)
 			continue;
@@ -226,7 +225,7 @@ uint32_t _starpu_can_submit_scc_task(void)
 	return (STARPU_SCC & config.worker_mask);
 }
 
-static int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
+static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype arch, struct starpu_codelet *cl, unsigned nimpl)
 {
 	switch(arch)
 	{
@@ -293,6 +292,74 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 	return (task->cl->where & config.workers[workerid].worker_mask) &&
 		_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl) &&
 		(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl));
+}
+
+int starpu_worker_can_execute_task_impl(unsigned workerid, struct starpu_task *task, unsigned *impl_mask)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	unsigned mask;
+	int i;
+	enum starpu_worker_archtype arch;
+	struct starpu_codelet *cl;
+	if(sched_ctx->parallel_sect[workerid]) return 0;
+	/* TODO: check that the task operand sizes will fit on that device */
+	cl = task->cl;
+	if (!(cl->where & config.workers[workerid].worker_mask)) return 0;
+
+	mask = 0;
+	arch = config.workers[workerid].arch;
+	if (!task->cl->can_execute)
+	{
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)) {
+				mask |= 1U << i;
+				if (!impl_mask)
+					break;
+			}
+	} else {
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)
+			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i))) {
+				mask |= 1U << i;
+				if (!impl_mask)
+					break;
+			}
+	}
+	if (impl_mask)
+		*impl_mask = mask;
+	return mask != 0;
+}
+
+int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_task *task, unsigned *nimpl)
+{
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
+	int i;
+	enum starpu_worker_archtype arch;
+	struct starpu_codelet *cl;
+	if(sched_ctx->parallel_sect[workerid]) return 0;
+	/* TODO: check that the task operand sizes will fit on that device */
+	cl = task->cl;
+	if (!(cl->where & config.workers[workerid].worker_mask)) return 0;
+
+	arch = config.workers[workerid].arch;
+	if (!task->cl->can_execute)
+	{
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)) {
+				if (nimpl)
+					*nimpl = i;
+				return 1;
+			}
+	} else {
+		for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+			if (_starpu_can_use_nth_implementation(arch, cl, i)
+			 && (!task->cl->can_execute || task->cl->can_execute(workerid, task, i))) {
+				if (nimpl)
+					*nimpl = i;
+				return 1;
+			}
+	}
+	return 0;
 }
 
 
@@ -525,7 +592,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	unsigned nworkers = pconfig->topology.nworkers;
 
 	/* Launch workers asynchronously */
-	unsigned cpu = 0;
 	unsigned worker, i;
 
 #if defined(STARPU_PERF_DEBUG) && !defined(STARPU_SIMGRID)
@@ -563,7 +629,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		{
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 			case STARPU_CPU_WORKER:
-				driver.id.cpu_id = cpu;
+				driver.id.cpu_id = workerarg->devid;
 				if (_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
@@ -589,7 +655,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				{
 					workerarg->run_by_starpu = 0;
 				}
-				cpu++;
 				break;
 #endif
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
@@ -728,7 +793,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		}
 	}
 
-	cpu  = 0;
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
@@ -738,18 +802,14 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		switch (workerarg->arch)
 		{
 			case STARPU_CPU_WORKER:
-				driver.id.cpu_id = cpu;
+				driver.id.cpu_id = workerarg->devid;
 				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
-				{
-					cpu++;
 					break;
-				}
 				_STARPU_DEBUG("waiting for worker %u initialization\n", worker);
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_initialized)
 					STARPU_PTHREAD_COND_WAIT(&workerarg->ready_cond, &workerarg->mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-				cpu++;
 				break;
 			case STARPU_CUDA_WORKER:
 				/* Already waited above */
@@ -981,6 +1041,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_init();
+	/* Warn when the lots of stacks malloc()-ated by simgrid for transfer
+	 * processes will take a long time to get initialized */
+	if (getenv("MALLOC_PERTURB_"))
+		_STARPU_DISP("Warning: MALLOC_PERTURB_ is set, this makes simgrid runs very slow\n");
 #else
 #ifdef __GNUC__
 #ifndef __OPTIMIZE__
@@ -1271,12 +1335,33 @@ void starpu_resume()
 	STARPU_PTHREAD_MUTEX_UNLOCK(&pause_mutex);
 }
 
-unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED)
+unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *worker STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	return 0;
 #else
 	unsigned can_block = 1;
+
+	struct starpu_driver driver;
+	driver.type = worker->arch;
+	switch (driver.type)
+	{
+	case STARPU_CPU_WORKER:
+		driver.id.cpu_id = worker->devid;
+		break;
+	case STARPU_CUDA_WORKER:
+		driver.id.cuda_id = worker->devid;
+		break;
+	case STARPU_OPENCL_WORKER:
+		starpu_opencl_get_device(worker->devid, &driver.id.opencl_id);
+		break;
+	default:
+		goto always_launch;
+	}
+	if (!_starpu_may_launch_driver(config.conf, &driver))
+		return 0;
+
+always_launch:
 
 #ifndef STARPU_SIMGRID
 	if (!_starpu_check_that_no_data_request_exists(memnode))
@@ -1768,9 +1853,8 @@ int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, in
 				{
 					struct starpu_worker_collection *workers = config.sched_ctxs[s].workers;
 					struct starpu_sched_ctx_iterator it;
-					if(workers->init_iterator)
-						workers->init_iterator(workers, &it);
 
+					workers->init_iterator(workers, &it);
 					while(workers->has_next(workers, &it))
 					{
 						worker = workers->get_next(workers, &it);

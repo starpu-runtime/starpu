@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2014  Université de Bordeaux 1
+# Copyright (C) 2009-2014  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011, 2012, 2014  Institut National de Recherche en Informatique et Automatique
@@ -1703,7 +1703,7 @@ AC_DEFINE_UNQUOTED(STARPU_NMAX_COMBINEDWORKERS,
 AC_MSG_CHECKING(maximum number of implementations)
 AC_ARG_ENABLE(maximplementations, [AS_HELP_STRING([--enable-maximplementations=<number>],
 		[maximum number of implementations])],
-		maximplementations=$enableval, maximplementations=8)
+		maximplementations=$enableval, maximplementations=4)
 AC_MSG_RESULT($maximplementations)
 AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
 		[maximum number of implementations])

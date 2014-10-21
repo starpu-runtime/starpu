@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -377,7 +377,7 @@ uint32_t _starpu_can_submit_scc_task(void);
 
 /* Check whether there is anything that the worker should do instead of
  * sleeping (waiting on something to happen). */
-unsigned _starpu_worker_can_block(unsigned memnode);
+unsigned _starpu_worker_can_block(unsigned memnode, struct _starpu_worker *worker);
 
 /* This function must be called to block a worker. It puts the worker in a
  * sleeping state until there is some event that forces the worker to wake up.

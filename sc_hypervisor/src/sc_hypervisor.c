@@ -438,9 +438,8 @@ int sc_hypervisor_get_nworkers_ctx(unsigned sched_ctx, enum starpu_worker_archty
 	int worker;
 
 	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
 
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -473,9 +472,8 @@ double sc_hypervisor_get_elapsed_flops_per_sched_ctx(struct sc_hypervisor_wrappe
 	int worker;
 	
 	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-		
+
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -492,9 +490,8 @@ double sc_hypervisor_get_total_elapsed_flops_per_sched_ctx(struct sc_hypervisor_
 	int worker;
 	
 	struct starpu_sched_ctx_iterator it;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-		
+
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -981,12 +978,12 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs,
 		int worker;
 		
 		struct starpu_sched_ctx_iterator it;
-		if(workers->init_iterator)
-			workers->init_iterator(workers, &it);
 		
 		double elapsed_time_worker[STARPU_NMAXWORKERS];
 		double norm_idle_time = 0.0;
 		double end_time  = starpu_timing_now();
+
+		workers->init_iterator(workers, &it);
 		while(workers->has_next(workers, &it))
 		{
 			double idle_time = 0.0;

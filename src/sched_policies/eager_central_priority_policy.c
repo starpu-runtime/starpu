@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -142,9 +142,8 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	char dowake[STARPU_NMAXWORKERS] = { 0 };
 #endif
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-	
+
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -155,28 +154,25 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 			continue;
 #endif
 
-		unsigned nimpl;
-		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
-			if (starpu_worker_can_execute_task(worker, task, nimpl))
-			{
-				/* It can execute this one, tell him! */
+		if (starpu_worker_can_execute_task_first_impl(worker, task, NULL))
+		{
+			/* It can execute this one, tell him! */
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-				starpu_bitmap_unset(data->waiters, worker);
-				/* We really woke at least somebody, no need to wake somebody else */
-				break;
+			starpu_bitmap_unset(data->waiters, worker);
+			/* We really woke at least somebody, no need to wake somebody else */
+			break;
 #else
-				dowake[worker] = 1;
+			dowake[worker] = 1;
 #endif
-			}
+		}
 	}
 	/* Let the task free */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* Now that we have a list of potential workers, try to wake one */
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
-	
+
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -239,20 +235,17 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 			{
 				unsigned nimpl;
 				nexttask = starpu_task_list_next(task);
-				for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+				if (starpu_worker_can_execute_task_first_impl(workerid, task, &nimpl))
 				{
-					if (starpu_worker_can_execute_task(workerid, task, nimpl))
-					{
-						/* there is some task that we can grab */
-						starpu_task_set_implementation(task, nimpl);
-						starpu_task_list_erase(&taskq->taskq[priolevel], task);
-						chosen_task = task;
-						taskq->ntasks[priolevel]--;
-						taskq->total_ntasks--;
-						_STARPU_TRACE_JOB_POP(task, 0);
-						break;
-					} else skipped = 1;
-				}
+					/* there is some task that we can grab */
+					starpu_task_set_implementation(task, nimpl);
+					starpu_task_list_erase(&taskq->taskq[priolevel], task);
+					chosen_task = task;
+					taskq->ntasks[priolevel]--;
+					taskq->total_ntasks--;
+					_STARPU_TRACE_JOB_POP(task, 0);
+					break;
+				} else skipped = 1;
 			}
 		}
 	}
@@ -266,9 +259,8 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 		struct starpu_sched_ctx_iterator it;
-		if(workers->init_iterator)
-			workers->init_iterator(workers, &it);
-		
+
+		workers->init_iterator(workers, &it);
 		while(workers->has_next(workers, &it))
 		{
 			worker = workers->get_next(workers, &it);

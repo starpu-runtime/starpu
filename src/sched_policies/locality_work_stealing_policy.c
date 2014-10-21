@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012  INRIA
  *
@@ -225,8 +225,8 @@ static int lws_push_task(struct starpu_task *task)
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_sched_ctx_iterator it;
 	unsigned worker;
-	if(workers->init_iterator)
-		workers->init_iterator(workers, &it);
+
+	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
 		worker = workers->get_next(workers, &it);
@@ -278,9 +278,9 @@ static void lws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nwork
 		
 		struct starpu_tree *neighbour = NULL;
 		struct starpu_sched_ctx_iterator it;
-		if(workers->init_iterator)
-			workers->init_iterator(workers, &it);
-	
+
+		workers->init_iterator(workers, &it);
+
 		bindid   = starpu_worker_get_bindid(workerid);
 		it.value = starpu_tree_get(tree, bindid);
 		int cnt = 0;

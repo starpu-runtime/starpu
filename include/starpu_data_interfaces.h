@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2012  Institut National de Recherche en Informatique et Automatique
  *
@@ -251,6 +251,9 @@ struct starpu_vector_interface
 };
 
 void starpu_vector_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize);
+#ifdef STARPU_OPENMP
+void starpu_vector_data_register_with_offset(starpu_data_handle_t *handleptr, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize, size_t offset);
+#endif /* STARPU_OPENMP */
 void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
 uint32_t starpu_vector_get_nx(starpu_data_handle_t handle);
 size_t starpu_vector_get_elemsize(starpu_data_handle_t handle);
