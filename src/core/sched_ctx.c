@@ -1672,8 +1672,10 @@ static unsigned _worker_sleeping_in_other_ctx(unsigned sched_ctx_id, int workeri
 static void _starpu_sched_ctx_get_workers_to_sleep(unsigned sched_ctx_id, int *workerids, int nworkers, int master)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
+#endif
 	int current_worker_id = starpu_worker_get_id();
 	unsigned sleeping[nworkers];
 	int w;
@@ -1686,8 +1688,8 @@ static void _starpu_sched_ctx_get_workers_to_sleep(unsigned sched_ctx_id, int *w
 		sched_ctx->parallel_sect[workerids[w]] = 1;
 		if(current_worker_id == -1 || workerids[w] != current_worker_id)
 			STARPU_PTHREAD_MUTEX_UNLOCK(&sched_ctx->parallel_sect_mutex[workerids[w]]);
-		starpu_worker_get_sched_condition(workerids[w], &sched_mutex, &sched_cond);
 #ifndef STARPU_NON_BLOCKING_DRIVERS
+		starpu_worker_get_sched_condition(workerids[w], &sched_mutex, &sched_cond);
 		STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
 		STARPU_PTHREAD_COND_SIGNAL(sched_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
