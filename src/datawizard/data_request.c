@@ -633,23 +633,29 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 	struct _starpu_data_request_list *empty_list;
 	unsigned taken, kept;
 
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 	/* Here helgrind would should that this is an un protected access.
 	 * We however don't care about missing an entry, we will get called
 	 * again sooner or later. */
 	if (!RUNNING_ON_VALGRIND && _starpu_data_request_list_empty(data_requests_pending[src_node]))
 		return 0;
+#endif
 
 	empty_list = _starpu_data_request_list_new();
-	if (force)
-		/* We really want to handle requests */
-		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
-	else
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+	if (!force)
+	{
 		if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_pending_list_mutex[src_node]))
 		{
 			/* List is busy, do not bother with it */
 			_starpu_data_request_list_delete(empty_list);
 			return 0;
 		}
+	}
+	else
+#endif
+		/* We really want to handle requests */
+		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
 
 	/* for all entries of the list */
 	struct _starpu_data_request_list *local_list = data_requests_pending[src_node];
