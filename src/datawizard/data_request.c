@@ -630,12 +630,14 @@ static void _handle_pending_node_data_requests(unsigned src_node, unsigned force
 	empty_list = _starpu_data_request_list_new();
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (!force)
+	{
 		if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_pending_list_mutex[src_node]))
 		{
 			/* List is busy, do not bother with it */
 			_starpu_data_request_list_delete(empty_list);
 			return;
 		}
+	}
 	else
 #endif
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
