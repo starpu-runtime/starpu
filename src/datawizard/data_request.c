@@ -444,7 +444,10 @@ int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, uns
 	/* take all the entries from the request list */
 	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_list_mutex[src_node]))
 		/* List is busy, do not bother with it */
+	{
+		_starpu_data_request_list_delete(empty_list);
 		return -EBUSY;
+	}
 #else
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
 #endif
@@ -538,8 +541,11 @@ void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	/* take all the entries from the request list */
 	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_list_mutex[src_node]))
+	{
 		/* List is busy, do not bother with it */
+		_starpu_data_request_list_delete(empty_list);
 		return;
+	}
 #else
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
 #endif
@@ -639,8 +645,11 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
 	else
 		if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_pending_list_mutex[src_node]))
+		{
 			/* List is busy, do not bother with it */
+			_starpu_data_request_list_delete(empty_list);
 			return 0;
+		}
 
 	/* for all entries of the list */
 	struct _starpu_data_request_list *local_list = data_requests_pending[src_node];
