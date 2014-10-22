@@ -165,9 +165,26 @@ static struct starpu_omp_thread *get_local_thread(void)
 		STARPU_ASSERT(starpu_worker != NULL);
 		_starpu_spin_lock(&_global_state.hash_workers_lock);
 		HASH_FIND_PTR(_global_state.hash_workers, &starpu_worker, thread);
-		STARPU_ASSERT(thread != NULL);
 		_starpu_spin_unlock(&_global_state.hash_workers_lock);
-		STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, thread);
+
+		if (
+#if STARPU_USE_CUDA
+				(starpu_worker->arch != STARPU_CUDA_WORKER)
+				&&
+#endif
+#if STARPU_USE_OPENCL
+				(starpu_worker->arch != STARPU_OPENCL_WORKER)
+				&&
+#endif
+				1
+		   )
+		{
+			STARPU_ASSERT(thread != NULL);
+		}
+
+		if (thread != NULL) {
+			STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, thread);
+		}
 	}
 	return thread;
 }
@@ -456,6 +473,7 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 				new_thread = create_omp_thread_struct(NULL);
 				new_thread->worker = starpu_worker;
 				register_thread_worker(new_thread);
+				thread = new_thread;
 			}
 			else
 			{
