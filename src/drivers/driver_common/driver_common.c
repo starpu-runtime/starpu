@@ -52,7 +52,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	if (j->task_size == 1)
 		_starpu_sched_pre_exec_hook(task);
 
-	worker->status = STATUS_EXECUTING;
+	_starpu_set_worker_status(worker, STATUS_EXECUTING);
 	task->status = STARPU_TASK_RUNNING;
 
 	if (rank == 0)
@@ -103,7 +103,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	if (starpu_top)
 		_starpu_top_task_ended(task,workerid,codelet_end);
 
-	worker->status = STATUS_UNKNOWN;
+	_starpu_set_worker_status(worker, STATUS_UNKNOWN);
 }
 void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker,
 					struct starpu_perfmodel_arch* perf_arch,

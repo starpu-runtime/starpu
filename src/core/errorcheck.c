@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,16 @@
 #include <core/errorcheck.h>
 #include <core/workers.h>
 
+void _starpu_set_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status st)
+{
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(worker->workerid, &sched_mutex, &sched_cond);
+	STARPU_PTHREAD_MUTEX_LOCK(sched_mutex);
+	worker->status = st;
+	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
+}
+
 void _starpu_set_local_worker_status(enum _starpu_worker_status st)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
@@ -26,7 +36,7 @@ void _starpu_set_local_worker_status(enum _starpu_worker_status st)
 	 * thereforce outside a worker), for instance if we are executing the
 	 * callback function of a task with a "NULL" codelet. */
 	if (worker)
-		worker->status = st;
+		_starpu_set_worker_status(worker, st);
 }
 
 enum _starpu_worker_status _starpu_get_local_worker_status(void)

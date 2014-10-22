@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
  *
@@ -196,6 +196,7 @@ struct starpu_task
 	struct starpu_task *prev;
 	struct starpu_task *next;
 	void *starpu_private;
+	unsigned prefetched;
 #ifdef STARPU_OPENMP
 	struct starpu_omp_task *omp_task;
 #endif
@@ -227,6 +228,7 @@ struct starpu_task
 	.hypervisor_tag = 0,				\
 	.flops = 0.0,					\
 	.scheduled = 0,					\
+	.prefetched = 0,					\
 	.dyn_handles = NULL,				\
 	.dyn_interfaces = NULL,				\
 	.dyn_modes = NULL,				\

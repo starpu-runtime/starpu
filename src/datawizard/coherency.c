@@ -729,6 +729,7 @@ static void _starpu_set_data_requested_flag_if_needed(starpu_data_handle_t handl
 
 int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 {
+	STARPU_ASSERT(!task->prefetched);
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 

@@ -22,6 +22,24 @@
 
 #include <sched_policies/fifo_queues.h>
 #include <common/fxt.h>
+/*
+static int is_sorted_task_list(struct starpu_task * task)
+{
+	if(!task)
+		return 1;
+	struct starpu_task * next = task->next;
+	if(!next)
+		return 1;
+	while(next)
+	{
+		if(task->priority < next->priority)
+			return 0;
+		task = next;
+		next = next->next;
+	}
+	return 1;
+}
+*/
 
 struct _starpu_fifo_taskq *_starpu_create_fifo(void)
 {
@@ -125,6 +143,23 @@ int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_
 
 		fifo_queue->ntasks++;
 		fifo_queue->nprocessed++;
+	}
+
+	return 0;
+}
+
+int _starpu_fifo_push_back_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task)
+{
+
+	if (task->priority > 0)
+	{
+		_starpu_fifo_push_sorted_task(fifo_queue, task);
+	}
+	else
+	{
+		starpu_task_list_push_front(&fifo_queue->taskq, task);
+
+		fifo_queue->ntasks++;
 	}
 
 	return 0;

@@ -79,6 +79,7 @@ noinst_HEADERS = 						\
 	core/simgrid.h						\
 	core/task_bundle.h					\
 	core/detect_combined_workers.h				\
+	sched_policies/helper_mct.h				\
 	sched_policies/fifo_queues.h				\
 	sched_policies/deque_queues.h				\
 	sched_policies/stack_queues.h				\
@@ -133,12 +134,14 @@ noinst_HEADERS = 						\
 	starpu_parameters.h					\
 	top/starpu_top_message_queue.h				\
 	top/starpu_top_connection.h				\
-	top/starpu_top_core.h					
+	top/starpu_top_core.h					\
+	sched_policies/prio_deque.h				\
+	sched_policies/sched_component.h
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	common/barrier.c					\
-	common/bitmap.c						\
 	common/barrier_counter.c				\
+	common/bitmap.c						\
 	common/hash.c 						\
 	common/rwlock.c						\
 	common/starpu_spinlock.c				\
@@ -244,9 +247,31 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	top/starpu_top.c					\
 	top/starpu_top_task.c					\
 	top/starpu_top_message_queue.c				\
-	top/starpu_top_connection.c                          	\
+	top/starpu_top_connection.c                        	\
 	worker_collection/worker_list.c				\
-	worker_collection/worker_tree.c				
+	worker_collection/worker_tree.c				\
+	sched_policies/component_worker.c				\
+	sched_policies/component_sched.c				\
+	sched_policies/component_fifo.c 				\
+	sched_policies/prio_deque.c				\
+	sched_policies/helper_mct.c				\
+	sched_policies/component_prio.c 				\
+	sched_policies/component_random.c				\
+	sched_policies/component_eager.c				\
+	sched_policies/component_eager_calibration.c				\
+	sched_policies/component_mct.c				\
+	sched_policies/component_heft.c				\
+	sched_policies/component_best_implementation.c		\
+	sched_policies/component_perfmodel_select.c				\
+	sched_policies/component_composed.c				\
+	sched_policies/modular_eager.c				\
+	sched_policies/modular_eager_prefetching.c				\
+	sched_policies/modular_prio.c				\
+	sched_policies/modular_prio_prefetching.c				\
+	sched_policies/modular_random.c				\
+	sched_policies/modular_random_prefetching.c			\
+	sched_policies/modular_heft.c				\
+	sched_policies/modular_heft2.c
 
 
 if STARPU_HAVE_LEVELDB
