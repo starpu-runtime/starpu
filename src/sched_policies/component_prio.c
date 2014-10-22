@@ -253,9 +253,9 @@ int starpu_sched_component_is_prio(struct starpu_sched_component * component)
 	return component->push_task == prio_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu_prio_data * params)
+struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_prio_data * params)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create();
+	struct starpu_sched_component * component = starpu_sched_component_create(tree);
 	struct _starpu_prio_data * data = malloc(sizeof(*data));
 	_starpu_prio_deque_init(&data->prio);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);

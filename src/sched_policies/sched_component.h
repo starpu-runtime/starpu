@@ -21,10 +21,10 @@
 
 
 /* lock and unlock drivers for modifying schedulers */
-void _starpu_sched_component_lock_all_workers(void);
-void _starpu_sched_component_unlock_all_workers(void);
-void _starpu_sched_component_lock_worker(int workerid);
-void _starpu_sched_component_unlock_worker(int workerid);
+void _starpu_sched_component_lock_all_workers(unsigned sched_ctx_id);
+void _starpu_sched_component_unlock_all_workers(unsigned sched_ctx_id);
+void _starpu_sched_component_lock_worker(unsigned sched_ctx_id, int workerid);
+void _starpu_sched_component_unlock_worker(unsigned sched_ctx_id, int workerid);
 
 void _starpu_sched_component_workers_destroy(void);
 

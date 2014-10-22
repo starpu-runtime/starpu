@@ -242,7 +242,7 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 		return starpu_sched_tree_push_task(task);
 
 	unsigned sched_ctx_id = task->sched_ctx;
-	struct starpu_sched_component * component =starpu_sched_component_worker_get(workerid);
+	struct starpu_sched_component * component =starpu_sched_component_worker_get(sched_ctx_id, workerid);
 	while(component->parents[sched_ctx_id] != NULL)
 	{
 		component = component->parents[sched_ctx_id];
@@ -335,9 +335,9 @@ int starpu_sched_component_is_work_stealing(struct starpu_sched_component * comp
 	return component->push_task == push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_work_stealing_create(void * arg STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component * starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create();
+	struct starpu_sched_component * component = starpu_sched_component_create(tree);
 	struct _starpu_work_stealing_data * wsd = malloc(sizeof(*wsd));
 	memset(wsd, 0, sizeof(*wsd));
 	component->pull_task = pull_task;

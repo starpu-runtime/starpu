@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Université de Bordeaux 1
+ * Copyright (C) 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -115,9 +115,9 @@ int starpu_sched_component_is_mct(struct starpu_sched_component * component)
 	return component->push_task == mct_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_mct_create(struct starpu_mct_data * params)
+struct starpu_sched_component * starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_mct_data * params)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create();
+	struct starpu_sched_component * component = starpu_sched_component_create(tree);
 	struct _starpu_mct_data *data = starpu_mct_init_parameters(params);
 
 	component->data = data;

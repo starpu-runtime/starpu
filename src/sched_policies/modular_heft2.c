@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Université de Bordeaux 1
+ * Copyright (C) 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -48,9 +48,9 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 
 	struct starpu_sched_tree * t = starpu_sched_tree_create(sched_ctx_id);
 
-	struct starpu_sched_component * perfmodel_component = starpu_sched_component_heft_create(NULL);
-	struct starpu_sched_component * no_perfmodel_component = starpu_sched_component_eager_create(NULL);
-	struct starpu_sched_component * calibrator_component = starpu_sched_component_eager_create(NULL);
+	struct starpu_sched_component * perfmodel_component = starpu_sched_component_heft_create(t, NULL);
+	struct starpu_sched_component * no_perfmodel_component = starpu_sched_component_eager_create(t, NULL);
+	struct starpu_sched_component * calibrator_component = starpu_sched_component_eager_create(t, NULL);
 	
 	struct starpu_perfmodel_select_data perfmodel_select_data =
 		{
@@ -59,10 +59,10 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 			.perfmodel_component = perfmodel_component,
 		};
 
-	struct starpu_sched_component * window_component = starpu_sched_component_prio_create(NULL);
+	struct starpu_sched_component * window_component = starpu_sched_component_prio_create(t, NULL);
 	t->root = window_component;
 
-	struct starpu_sched_component * perfmodel_select_component = starpu_sched_component_perfmodel_select_create(&perfmodel_select_data);
+	struct starpu_sched_component * perfmodel_select_component = starpu_sched_component_perfmodel_select_create(t, &perfmodel_select_data);
 	window_component->add_child(window_component, perfmodel_select_component);
 	perfmodel_select_component->add_parent(perfmodel_select_component, window_component);
 
@@ -82,14 +82,14 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(i);
+		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
 		STARPU_ASSERT(worker_component);
 
-		struct starpu_sched_component * prio_component = starpu_sched_component_prio_create(&prio_data);
+		struct starpu_sched_component * prio_component = starpu_sched_component_prio_create(t, &prio_data);
 		prio_component->add_child(prio_component, worker_component);
 		worker_component->add_parent(worker_component, prio_component);
 
-		struct starpu_sched_component * impl_component = starpu_sched_component_best_implementation_create(NULL);
+		struct starpu_sched_component * impl_component = starpu_sched_component_best_implementation_create(t, NULL);
 		impl_component->add_child(impl_component, prio_component);
 		prio_component->add_parent(prio_component, impl_component);
 

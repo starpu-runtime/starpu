@@ -53,7 +53,7 @@ static void add_component(struct sched_component_list *list, struct starpu_sched
 	list->size++;
 }
 /* this is the function that actualy built the scheduler, but without workers */
-static struct sched_component_list helper_make_scheduler(hwloc_obj_t obj, struct starpu_sched_specs specs, unsigned sched_ctx_id)
+static struct sched_component_list helper_make_scheduler(struct starpu_sched_tree *tree, hwloc_obj_t obj, struct starpu_sched_specs specs, unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(obj);
 
@@ -63,7 +63,7 @@ static struct sched_component_list helper_make_scheduler(hwloc_obj_t obj, struct
 #define CASE(ENUM,spec_member)						\
 		case ENUM:						\
 			if(specs.spec_member)				\
-				component = starpu_sched_component_composed_component_create(specs.spec_member); \
+				component = starpu_sched_component_composed_component_create(tree, specs.spec_member); \
 			break
 	switch(obj->type)
 	{
@@ -81,7 +81,7 @@ static struct sched_component_list helper_make_scheduler(hwloc_obj_t obj, struct
 	/* collect childs component's */
 	for(i = 0; i < obj->arity; i++)
 	{
-		struct sched_component_list lc = helper_make_scheduler(obj->children[i],specs, sched_ctx_id);
+		struct sched_component_list lc = helper_make_scheduler(tree, obj->children[i],specs, sched_ctx_id);
 		unsigned j;
 		for(j = 0; j < lc.size; j++)
 			add_component(&l, lc.arr[j]);
@@ -171,7 +171,7 @@ static struct starpu_sched_component * where_should_we_plug_this(struct starpu_s
 	}
 	if(obj->type == HWLOC_OBJ_NODE)
 	{	
-		struct starpu_sched_component * component = starpu_sched_component_composed_component_create(specs.hwloc_component_composed_sched_component);
+		struct starpu_sched_component * component = starpu_sched_component_composed_component_create(root->tree, specs.hwloc_component_composed_sched_component);
 		component->obj = obj;
 		parent->add_child(parent, component);
 		starpu_sched_component_add_parent(component, parent);
@@ -190,7 +190,7 @@ static void set_worker_leaf(struct starpu_sched_component * root, struct starpu_
 	STARPU_ASSERT(component);
 	if(recipe)
 	{
-		struct starpu_sched_component * tmp = starpu_sched_component_composed_component_create(recipe);
+		struct starpu_sched_component * tmp = starpu_sched_component_composed_component_create(root->tree, recipe);
 #ifdef STARPU_DEVEL
 #warning FIXME component->obj is set to worker_component->obj even for accelerators workers
 #endif
@@ -248,7 +248,7 @@ struct starpu_sched_tree * starpu_sched_component_make_scheduler(unsigned sched_
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	hwloc_topology_t topology = config->topology.hwtopology;
 
-	struct sched_component_list list = helper_make_scheduler(hwloc_get_root_obj(topology), specs, sched_ctx_id);
+	struct sched_component_list list = helper_make_scheduler(tree, hwloc_get_root_obj(topology), specs, sched_ctx_id);
 	STARPU_ASSERT(list.size == 1);
 
 	tree->root = list.arr[0];
@@ -258,7 +258,7 @@ struct starpu_sched_tree * starpu_sched_component_make_scheduler(unsigned sched_
 	for(i = 0; i < starpu_worker_get_count(); i++)
 	{
 		struct _starpu_worker * worker = _starpu_get_worker_struct(i);
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(i);
+		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
 		STARPU_ASSERT(worker);
 		set_worker_leaf(tree->root,worker_component, sched_ctx_id, specs);
 	}

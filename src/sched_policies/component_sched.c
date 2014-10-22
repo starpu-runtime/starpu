@@ -335,10 +335,10 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 	return ret_val;
 }
 
-struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx STARPU_ATTRIBUTE_UNUSED)
+struct starpu_task * starpu_sched_tree_pop_task(unsigned sched_ctx)
 {
 	int workerid = starpu_worker_get_id();
-	struct starpu_sched_component * component = starpu_sched_component_worker_get(workerid);
+	struct starpu_sched_component * component = starpu_sched_component_worker_get(sched_ctx, workerid);
 
 	/* _starpu_sched_component_lock_worker(workerid) is called by component->pull_task()
 	 */
@@ -353,7 +353,7 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
 	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&t->lock);
-	_starpu_sched_component_lock_all_workers();
+	_starpu_sched_component_lock_all_workers(sched_ctx_id);
 
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
@@ -361,7 +361,7 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
 
 	starpu_sched_tree_update_workers_in_ctx(t);
 
-	_starpu_sched_component_unlock_all_workers();
+	_starpu_sched_component_unlock_all_workers(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&t->lock);
 }
 
@@ -372,7 +372,7 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&t->lock);
-	_starpu_sched_component_lock_all_workers();
+	_starpu_sched_component_lock_all_workers(sched_ctx_id);
 
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
@@ -380,24 +380,30 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 
 	starpu_sched_tree_update_workers_in_ctx(t);
 
-	_starpu_sched_component_unlock_all_workers();
+	_starpu_sched_component_unlock_all_workers(sched_ctx_id);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&t->lock);
 }
+
+static struct starpu_sched_tree *trees[STARPU_NMAX_SCHED_CTXS];
 
 struct starpu_sched_tree * starpu_sched_tree_create(unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
+	STARPU_ASSERT(!trees[sched_ctx_id]);
 	struct starpu_sched_tree * t = malloc(sizeof(*t));
 	memset(t, 0, sizeof(*t));
 	t->sched_ctx_id = sched_ctx_id;
 	t->workers = starpu_bitmap_create();
 	STARPU_PTHREAD_MUTEX_INIT(&t->lock,NULL);
+	trees[sched_ctx_id] = t;
 	return t;
 }
 
 void starpu_sched_tree_destroy(struct starpu_sched_tree * tree)
 {
 	STARPU_ASSERT(tree);
+	STARPU_ASSERT(trees[tree->sched_ctx_id] == tree);
+	trees[tree->sched_ctx_id] = NULL;
 	if(tree->root)
 		starpu_sched_component_destroy_rec(tree->root);
 	starpu_bitmap_destroy(tree->workers);
@@ -405,6 +411,10 @@ void starpu_sched_tree_destroy(struct starpu_sched_tree * tree)
 	free(tree);
 }
 
+struct starpu_sched_tree * starpu_get_tree(unsigned sched_ctx_id)
+{
+	return trees[sched_ctx_id];
+}
 
 
 /******************************************************************************
@@ -553,10 +563,11 @@ static void take_component_and_does_nothing(struct starpu_sched_component * comp
 {
 }
 
-struct starpu_sched_component * starpu_sched_component_create(void)
+struct starpu_sched_component * starpu_sched_component_create(struct starpu_sched_tree *tree)
 {
 	struct starpu_sched_component * component = malloc(sizeof(*component));
 	memset(component,0,sizeof(*component));
+	component->tree = tree;
 	component->workers = starpu_bitmap_create();
 	component->workers_in_ctx = starpu_bitmap_create();
 	component->add_child = starpu_sched_component_add_child;

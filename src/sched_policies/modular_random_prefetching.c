@@ -38,8 +38,8 @@ static void initialize_random_fifo_prefetching_center_policy(unsigned sched_ctx_
 
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
- 	t->root = starpu_sched_component_fifo_create(NULL);
-	struct starpu_sched_component * random_component = starpu_sched_component_random_create(NULL);
+ 	t->root = starpu_sched_component_fifo_create(t, NULL);
+	struct starpu_sched_component * random_component = starpu_sched_component_random_create(t, NULL);
 	t->root->add_child(t->root, random_component);
 	random_component->add_parent(random_component, t->root);
 
@@ -52,10 +52,10 @@ static void initialize_random_fifo_prefetching_center_policy(unsigned sched_ctx_
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(i);
+		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
 		STARPU_ASSERT(worker_component);
 
-		struct starpu_sched_component * fifo_component = starpu_sched_component_fifo_create(&fifo_data);
+		struct starpu_sched_component * fifo_component = starpu_sched_component_fifo_create(t, &fifo_data);
 		fifo_component->add_child(fifo_component, worker_component);
 		worker_component->add_parent(worker_component, fifo_component);
 
@@ -105,8 +105,8 @@ static void initialize_random_prio_prefetching_center_policy(unsigned sched_ctx_
 
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
- 	t->root = starpu_sched_component_prio_create(NULL);
-	struct starpu_sched_component * random_component = starpu_sched_component_random_create(NULL);
+ 	t->root = starpu_sched_component_prio_create(t, NULL);
+	struct starpu_sched_component * random_component = starpu_sched_component_random_create(t, NULL);
 	t->root->add_child(t->root, random_component);
 	random_component->add_parent(random_component, t->root);
 
@@ -119,10 +119,10 @@ static void initialize_random_prio_prefetching_center_policy(unsigned sched_ctx_
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
-		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(i);
+		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
 		STARPU_ASSERT(worker_component);
 
-		struct starpu_sched_component * prio_component = starpu_sched_component_prio_create(&prio_data);
+		struct starpu_sched_component * prio_component = starpu_sched_component_prio_create(t, &prio_data);
 		prio_component->add_child(prio_component, worker_component);
 		worker_component->add_parent(worker_component, prio_component);
 

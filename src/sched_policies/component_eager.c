@@ -64,9 +64,9 @@ int starpu_sched_component_is_eager(struct starpu_sched_component * component)
 	return component->push_task == eager_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_eager_create(void * ARG STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component * starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_sched_component * component = starpu_sched_component_create();
+	struct starpu_sched_component * component = starpu_sched_component_create(tree);
 	component->push_task = eager_push_task;
 
 	return component;

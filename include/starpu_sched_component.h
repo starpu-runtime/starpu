@@ -44,6 +44,9 @@ enum starpu_sched_component_properties
  */
 struct starpu_sched_component
 {
+	/* The tree containing the component */
+	struct starpu_sched_tree *tree;
+
 	/* the set of workers in the component's subtree
 	 */
 	struct starpu_bitmap * workers;
@@ -144,6 +147,10 @@ struct starpu_sched_tree
 	struct starpu_sched_component * root;
 	struct starpu_bitmap * workers;
 	unsigned sched_ctx_id;
+
+	/* this array store worker components */
+	struct starpu_sched_component * worker_components[STARPU_NMAXWORKERS];
+
 	/* this lock is used to protect the scheduler,
 	 * it is taken in read mode pushing a task
 	 * and in write mode for adding or removing workers
@@ -159,6 +166,7 @@ struct starpu_sched_tree
  */
 struct starpu_sched_tree * starpu_sched_tree_create(unsigned sched_ctx_id);
 void starpu_sched_tree_destroy(struct starpu_sched_tree * tree);
+struct starpu_sched_tree * starpu_get_tree(unsigned sched_ctx_id);
 
 /* destroy component and all his child
  * except if they are shared between several contexts
@@ -182,7 +190,7 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
  *					Generic Scheduling Component's Interface 				   *
  ******************************************************************************/
 
-struct starpu_sched_component * starpu_sched_component_create(void);
+struct starpu_sched_component * starpu_sched_component_create(struct starpu_sched_tree *tree);
 void starpu_sched_component_destroy(struct starpu_sched_component * component);
 
 int starpu_sched_component_can_execute_task(struct starpu_sched_component * component, struct starpu_task * task);
@@ -195,7 +203,7 @@ void starpu_sched_component_prefetch_on_node(struct starpu_sched_component * com
  ******************************************************************************/
 
 /* no public create function for workers because we dont want to have several component_worker for a single workerid */
-struct starpu_sched_component * starpu_sched_component_worker_get(int workerid);
+struct starpu_sched_component * starpu_sched_component_worker_get(unsigned sched_ctx, int workerid);
 int starpu_sched_component_worker_get_workerid(struct starpu_sched_component * worker_component);
 
 /* this function compare the available function of the component with the standard available for worker components*/
@@ -216,7 +224,7 @@ struct starpu_fifo_data
 	double exp_len_threshold;
 };
 
-struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu_fifo_data * fifo_data);
+struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_fifo_data * fifo_data);
 int starpu_sched_component_is_fifo(struct starpu_sched_component * component);
 
 /*******************************************************************************
@@ -229,14 +237,14 @@ struct starpu_prio_data
 	double exp_len_threshold;
 };
 
-struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu_prio_data * prio_data);
+struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_prio_data * prio_data);
 int starpu_sched_component_is_prio(struct starpu_sched_component * component);
 
 /*******************************************************************************
  *			Resource-mapping Work-Stealing Component's Interface 			   *
  ******************************************************************************/
 
-struct starpu_sched_component * starpu_sched_component_work_stealing_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+struct starpu_sched_component * starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_component_is_work_stealing(struct starpu_sched_component * component);
 int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task);
 
@@ -244,21 +252,21 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task);
  *				Resource-mapping Random Component's Interface 			   	   *
  ******************************************************************************/
 
-struct starpu_sched_component * starpu_sched_component_random_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+struct starpu_sched_component * starpu_sched_component_random_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_component_is_random(struct starpu_sched_component *);
 
 /*******************************************************************************
  *				Resource-mapping Eager Component's Interface 				   *
  ******************************************************************************/
 
-struct starpu_sched_component * starpu_sched_component_eager_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+struct starpu_sched_component * starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_component_is_eager(struct starpu_sched_component *);
 
 /*******************************************************************************
  *			Resource-mapping Eager-Calibration Component's Interface 		   *
  ******************************************************************************/
 
-struct starpu_sched_component * starpu_sched_component_eager_calibration_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+struct starpu_sched_component * starpu_sched_component_eager_calibration_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED);
 int starpu_sched_component_is_eager_calibration(struct starpu_sched_component *);
 
 /*******************************************************************************
@@ -277,14 +285,14 @@ struct starpu_mct_data
    a copy the struct starpu_mct_data * given is performed during the init_data call
    the mct component doesnt do anything but pushing tasks on no_perf_model_component and calibrating_component
 */
-struct starpu_sched_component * starpu_sched_component_mct_create(struct starpu_mct_data * mct_data);
+struct starpu_sched_component * starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_mct_data * mct_data);
 int starpu_sched_component_is_mct(struct starpu_sched_component * component);
 
 /*******************************************************************************
  *				Resource-mapping HEFT Component's Interface 				   *
  ******************************************************************************/
 
-struct starpu_sched_component * starpu_sched_component_heft_create(struct starpu_mct_data * mct_data);
+struct starpu_sched_component * starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_mct_data * mct_data);
 int starpu_sched_component_is_heft(struct starpu_sched_component * component);
 
 /*******************************************************************************
@@ -295,7 +303,7 @@ int starpu_sched_component_is_heft(struct starpu_sched_component * component);
  * and fill task->predicted and task->predicted_transfer
  * cannot have several child if push_task is called
  */
-struct starpu_sched_component * starpu_sched_component_best_implementation_create(void * arg STARPU_ATTRIBUTE_UNUSED);
+struct starpu_sched_component * starpu_sched_component_best_implementation_create(struct starpu_sched_tree *tree, void * arg STARPU_ATTRIBUTE_UNUSED);
 
 struct starpu_perfmodel_select_data
 {
@@ -308,7 +316,7 @@ struct starpu_perfmodel_select_data
  *			Special-purpose Perfmodel_Select Component's Interface	 		   *
  ******************************************************************************/
 
-struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(struct starpu_perfmodel_select_data * perfmodel_select_data);
+struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_perfmodel_select_data * perfmodel_select_data);
 int starpu_sched_component_is_perfmodel_select(struct starpu_sched_component * component);
 
 /*******************************************************************************
@@ -319,13 +327,13 @@ struct starpu_sched_component_composed_recipe;
 
 /* create empty recipe */
 struct starpu_sched_component_composed_recipe * starpu_sched_component_create_recipe(void);
-struct starpu_sched_component_composed_recipe * starpu_sched_component_create_recipe_singleton(struct starpu_sched_component *(*create_component)(void * arg), void * arg);
+struct starpu_sched_component_composed_recipe * starpu_sched_component_create_recipe_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void * arg), void * arg);
 
 /* add a function creation component to recipe */
-void starpu_sched_recipe_add_component(struct starpu_sched_component_composed_recipe * recipe, struct starpu_sched_component *(*create_component)(void * arg), void * arg);
+void starpu_sched_recipe_add_component(struct starpu_sched_component_composed_recipe * recipe, struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void * arg), void * arg);
 
 void starpu_destroy_composed_sched_component_recipe(struct starpu_sched_component_composed_recipe *);
-struct starpu_sched_component * starpu_sched_component_composed_component_create(struct starpu_sched_component_composed_recipe * recipe);
+struct starpu_sched_component * starpu_sched_component_composed_component_create(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe * recipe);
 
 
 #ifdef STARPU_HAVE_HWLOC
