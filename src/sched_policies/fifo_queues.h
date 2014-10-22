@@ -48,6 +48,7 @@ int _starpu_fifo_empty(struct _starpu_fifo_taskq *fifo);
 int _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task);
 
 int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo, struct starpu_task *task);
+int _starpu_fifo_push_back_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task);
 
 struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo, int workerid);
 struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo);

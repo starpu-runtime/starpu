@@ -488,6 +488,13 @@ designated by \p interface.
 Return the size of each element of the array designated by
 \p interface.
 
+\def STARPU_VECTOR_GET_SLICE_BASE(interface)
+\ingroup API_Data_Interfaces
+Return the OpenMP slice base annotation of each element of the array designated by
+\p interface.
+
+\sa starpu_omp_vector_annotate
+
 @name Accessing Matrix Data Interfaces
 \ingroup API_Data_Interfaces
 

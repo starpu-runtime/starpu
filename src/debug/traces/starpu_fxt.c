@@ -2050,6 +2050,12 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			case _STARPU_FUT_MEMORY_FULL:
 				break;
 
+			case _STARPU_FUT_SCHED_COMPONENT_POP_PRIO:
+				break;
+
+			case _STARPU_FUT_SCHED_COMPONENT_PUSH_PRIO:
+				break;
+
 			case _STARPU_FUT_HYPERVISOR_BEGIN:
 				handle_hypervisor_begin(&ev, options);
 				break;

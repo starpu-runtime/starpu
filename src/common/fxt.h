@@ -153,6 +153,9 @@
 #define	_STARPU_FUT_START_WRITEBACK	0x5158
 #define	_STARPU_FUT_END_WRITEBACK	0x5159
 
+#define _STARPU_FUT_SCHED_COMPONENT_PUSH_PRIO 	0x515a
+#define _STARPU_FUT_SCHED_COMPONENT_POP_PRIO 	0x515b
+
 #define	_STARPU_FUT_HYPERVISOR_BEGIN    0x5160
 #define	_STARPU_FUT_HYPERVISOR_END	0x5161
 
@@ -805,6 +808,12 @@ do {										\
 #define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		\
 	FUT_DO_PROBE3(_STARPU_FUT_END_UNPARTITION, memnode, _starpu_gettid(), handle);
 
+#define _STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(workerid, ntasks, exp_len)		\
+	FUT_DO_PROBE4(_STARPU_FUT_SCHED_COMPONENT_PUSH_PRIO, _starpu_gettid(), workerid, ntasks, exp_len);
+
+#define _STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(workerid, ntasks, exp_len)		\
+	FUT_DO_PROBE4(_STARPU_FUT_SCHED_COMPONENT_POP_PRIO, _starpu_gettid(), workerid, ntasks, exp_len);
+
 #else // !STARPU_USE_FXT
 
 /* Dummy macros in case FxT is disabled */
@@ -887,6 +896,8 @@ do {										\
 #define _STARPU_TRACE_DATA_LOAD(workerid,size)		do {} while(0)
 #define _STARPU_TRACE_START_UNPARTITION(handle, memnode)	do {} while(0)
 #define _STARPU_TRACE_END_UNPARTITION(handle, memnode)		do {} while(0)
+#define _STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(workerid, ntasks, exp_len)	do {} while(0)
+#define _STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(workerid, ntasks, exp_len)	do {} while(0)
 #define _STARPU_TRACE_HYPERVISOR_BEGIN()        do {} while(0)
 #define _STARPU_TRACE_HYPERVISOR_END()                  do {} while(0)
 

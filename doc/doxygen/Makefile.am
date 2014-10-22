@@ -52,6 +52,7 @@ chapters =	\
 	chapters/45files.doxy \
 	chapters/50scaling-vector-example.doxy \
 	chapters/51fdl-1.3.doxy \
+	chapters/modularized_scheduler.doxy \
 	chapters/code/hello_pragma2.c \
 	chapters/code/hello_pragma.c \
 	chapters/code/scal_pragma.cu \
@@ -107,7 +108,8 @@ chapters =	\
 	chapters/api/tree.doxy \
 	chapters/api/toolbox.doxy \
 	chapters/api/sc_hypervisor/sc_hypervisor.doxy \
-	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy
+	chapters/api/sc_hypervisor/sc_hypervisor_usage.doxy \
+	chapters/api/modularized_scheduler.doxy
 
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@

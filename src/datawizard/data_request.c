@@ -173,6 +173,7 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigne
 		}
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
+		/* XXX: shouldn't be needed, and doesn't work with chained requests anyway */
 		_starpu_wake_all_blocked_workers_on_node(r->handling_node);
 #endif
 
@@ -429,18 +430,27 @@ int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, uns
 
 	*pushed = 0;
 
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* This is racy, but not posing problems actually, since we know we
 	 * will come back here to probe again regularly anyway.
 	 * Thus, do not expose this optimization to helgrind */
 	if (!RUNNING_ON_VALGRIND && _starpu_data_request_list_empty(data_requests[src_node]))
 		return 0;
+#endif
 
 	empty_list = _starpu_data_request_list_new();
 
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 	/* take all the entries from the request list */
 	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_list_mutex[src_node]))
 		/* List is busy, do not bother with it */
+	{
+		_starpu_data_request_list_delete(empty_list);
 		return -EBUSY;
+	}
+#else
+	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
+#endif
 
 	struct _starpu_data_request_list *local_list = data_requests[src_node];
 
@@ -501,6 +511,10 @@ int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, uns
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
 		_starpu_data_request_list_push_list_front(new_data_requests, data_requests[src_node]);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+		_starpu_wake_all_blocked_workers_on_node(src_node);
+#endif
 	}
 
 	_starpu_data_request_list_delete(new_data_requests);
@@ -518,18 +532,27 @@ void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc
 
 	*pushed = 0;
 
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* This is racy, but not posing problems actually, since we know we
 	 * will come back here to probe again regularly anyway.
 	 * Thus, do not expose this optimization to valgrind */
 	if (!RUNNING_ON_VALGRIND && _starpu_data_request_list_empty(prefetch_requests[src_node]))
 		return;
+#endif
 
 	empty_list = _starpu_data_request_list_new();
 
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 	/* take all the entries from the request list */
 	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_list_mutex[src_node]))
+	{
 		/* List is busy, do not bother with it */
+		_starpu_data_request_list_delete(empty_list);
 		return;
+	}
+#else
+	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[src_node]);
+#endif
 
 	struct _starpu_data_request_list *local_list = prefetch_requests[src_node];
 
@@ -599,6 +622,10 @@ void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc
 		if (!(_starpu_data_request_list_empty(new_prefetch_requests)))
 			_starpu_data_request_list_push_list_front(new_prefetch_requests, prefetch_requests[src_node]);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[src_node]);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+		_starpu_wake_all_blocked_workers_on_node(src_node);
+#endif
 	}
 
 	_starpu_data_request_list_delete(new_data_requests);
@@ -614,20 +641,29 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 	struct _starpu_data_request_list *empty_list;
 	unsigned taken, kept;
 
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 	/* Here helgrind would should that this is an un protected access.
 	 * We however don't care about missing an entry, we will get called
 	 * again sooner or later. */
 	if (!RUNNING_ON_VALGRIND && _starpu_data_request_list_empty(data_requests_pending[src_node]))
 		return 0;
+#endif
 
 	empty_list = _starpu_data_request_list_new();
-	if (force)
+#ifdef STARPU_NON_BLOCKING_DRIVERS
+	if (!force)
+	{
+		if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_pending_list_mutex[src_node]))
+		{
+			/* List is busy, do not bother with it */
+			_starpu_data_request_list_delete(empty_list);
+			return 0;
+		}
+	}
+	else
+#endif
 		/* We really want to handle requests */
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[src_node]);
-	else
-		if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_pending_list_mutex[src_node]))
-			/* List is busy, do not bother with it */
-			return 0;
 
 	/* for all entries of the list */
 	struct _starpu_data_request_list *local_list = data_requests_pending[src_node];
@@ -724,7 +760,8 @@ int _starpu_check_that_no_data_request_exists(unsigned node)
 	int no_pending;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[node]);
-	no_request = _starpu_data_request_list_empty(data_requests[node]);
+	no_request = _starpu_data_request_list_empty(data_requests[node])
+	          && _starpu_data_request_list_empty(prefetch_requests[node]);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[node]);
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[node]);
 	no_pending = !data_requests_npending[node];
@@ -766,4 +803,8 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r)
 		}
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[r->handling_node]);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	_starpu_wake_all_blocked_workers_on_node(r->handling_node);
+#endif
 }

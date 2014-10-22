@@ -42,9 +42,11 @@ enum _starpu_worker_status
 	STATUS_WAKING_UP
 };
 
+struct _starpu_worker;
 /* Specify what the local worker is currently doing (eg. executing a callback).
  * This permits to detect if this is legal to do a blocking call for instance.
  * */
+void _starpu_set_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status st);
 void _starpu_set_local_worker_status(enum _starpu_worker_status st);
 
 /* Indicate what type of operation the worker is currently doing. */

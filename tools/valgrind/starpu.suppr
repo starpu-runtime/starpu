@@ -70,3 +70,22 @@
    fun:_starpu_load_bus_performance_files
    ...
 }
+
+{
+   TODO1: This is temporary. It perhaps does not pose problem because only the worker takes this mutex. Fixing this will require changing the scheduler interface, so that the schedulers themselves take the scheduling lock, not the caller. Filter it out for now, so we can see other races more easily.
+   Helgrind:LockOrder
+   fun:pthread_mutex_lock
+   fun:starpu_pthread_mutex_lock
+   fun:simple_worker_pull_task
+   ...
+}
+
+{
+   TODO2: This is temporary. It perhaps does not pose problem because only the worker takes this mutex. Fixing this will require changing the scheduler interface, so that the schedulers themselves take the scheduling lock, not the caller. Filter it out for now, so we can see other races more easily.
+   Helgrind:LockOrder
+   fun:pthread_mutex_lock
+   fun:starpu_pthread_mutex_lock
+   fun:_starpu_sched_component_lock_worker
+   fun:simple_worker_pull_task
+   ...
+}

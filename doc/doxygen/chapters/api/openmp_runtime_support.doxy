@@ -952,4 +952,13 @@ This function returns the precision of the time used by \p starpu_omp_get_wtime.
 
 \sa starpu_omp_get_wtime
 
+\fn void starpu_omp_vector_annotate (starpu_data_handle_t handle, uint32_t slice_base)
+\ingroup API_OpenMP_Runtime_Support
+This function enables setting additional vector metadata needed by the OpenMP Runtime Support.
+
+\p handle is vector data handle.
+\p slice_base is the base of an array slice, expressed in number of vector elements from the array base.
+
+\sa STARPU_VECTOR_GET_SLICE_BASE
+
 */
