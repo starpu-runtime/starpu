@@ -100,9 +100,7 @@ static void register_vector_handle(starpu_data_handle_t handle, unsigned home_no
 		local_interface->id = vector_interface->id;
 		local_interface->nx = vector_interface->nx;
 		local_interface->elemsize = vector_interface->elemsize;
-#ifdef STARPU_OPENMP
 		local_interface->slice_base = vector_interface->slice_base;
-#endif /* STARPU_OPENMP */
 	}
 }
 
@@ -117,9 +115,7 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, unsigned home_
 		.nx = nx,
 		.elemsize = elemsize,
                 .dev_handle = ptr,
-#ifdef STARPU_OPENMP
 		.slice_base = 0,
-#endif /* STARPU_OPENMP */
                 .offset = 0
 	};
 
