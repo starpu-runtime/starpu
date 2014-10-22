@@ -760,7 +760,8 @@ int _starpu_check_that_no_data_request_exists(unsigned node)
 	int no_pending;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[node]);
-	no_request = _starpu_data_request_list_empty(data_requests[node]);
+	no_request = _starpu_data_request_list_empty(data_requests[node])
+	          && _starpu_data_request_list_empty(prefetch_requests[node]);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[node]);
 	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[node]);
 	no_pending = !data_requests_npending[node];

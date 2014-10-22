@@ -432,9 +432,16 @@ define starpu-print-request
   end
   printf "\n"
   printf "completed: %d\n", $r->completed
+  printf "prefetch: %d\n", $r->prefetch
   printf "retval: %d\n", $r->retval
   printf "ndeps: %d\n", $r->ndeps
   printf "next_req_count: %d\n", $r->next_req_count
+  printf "comid: %u\n", $r->com_id
+  set $c = $r->callbacks
+  while $c != 0
+    printf "callback: %p %p\n", $c->callback_func, $c->callback_arg
+    set $c = $c->next
+  end
 end
 
 define starpu-print-requests
