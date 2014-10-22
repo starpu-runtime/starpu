@@ -416,6 +416,7 @@ define starpu-print-request
   printf "retval: %d\n", $r->retval
   printf "ndeps: %d\n", $r->ndeps
   printf "next_req_count: %d\n", $r->next_req_count
+  printf "comid: %u\n", $r->com_id
   set $c = $r->callbacks
   while $c != 0
     printf "callback: %p %p\n", $c->callback_func, $c->callback_arg
