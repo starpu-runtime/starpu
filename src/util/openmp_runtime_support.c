@@ -2396,6 +2396,14 @@ void starpu_omp_atomic_fallback_inline_end(void)
 	_starpu_spin_unlock(&device->atomic_lock);
 }
 
+void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t slice_base)
+{
+	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
+		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	assert(vector_interface->id == STARPU_VECTOR_INTERFACE_ID);
+	vector_interface->slice_base = slice_base;
+}
+
 /*
  * restore deprecated diagnostics (-Wdeprecated-declarations)
  */

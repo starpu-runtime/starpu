@@ -100,16 +100,10 @@ static void register_vector_handle(starpu_data_handle_t handle, unsigned home_no
 		local_interface->id = vector_interface->id;
 		local_interface->nx = vector_interface->nx;
 		local_interface->elemsize = vector_interface->elemsize;
+#ifdef STARPU_OPENMP
+		local_interface->slice_base = vector_interface->slice_base;
+#endif /* STARPU_OPENMP */
 	}
-}
-
-static void _starpu_vector_data_register(starpu_data_handle_t * const handleptr, unsigned home_node, struct starpu_vector_interface * const vector)
-{
-#ifdef STARPU_USE_SCC
-	_starpu_scc_set_offset_in_shared_memory((void*)vector->ptr, (void**)&(vector->dev_handle), &(vector->offset));
-#endif
-
-	starpu_data_register(handleptr, home_node, vector, &starpu_interface_vector_ops);
 }
 
 /* declare a new data with the vector interface */
@@ -123,27 +117,18 @@ void starpu_vector_data_register(starpu_data_handle_t *handleptr, unsigned home_
 		.nx = nx,
 		.elemsize = elemsize,
                 .dev_handle = ptr,
+#ifdef STARPU_OPENMP
+		.slice_base = 0,
+#endif /* STARPU_OPENMP */
                 .offset = 0
 	};
-	_starpu_vector_data_register(handleptr, home_node, &vector);
-}
 
-#ifdef STARPU_OPENMP
-void starpu_vector_data_register_with_offset(starpu_data_handle_t *handleptr, unsigned home_node,
-                        uintptr_t ptr, uint32_t nx, size_t elemsize, size_t offset)
-{
-	struct starpu_vector_interface vector =
-	{
-		.id = STARPU_VECTOR_INTERFACE_ID,
-		.ptr = ptr,
-		.nx = nx,
-		.elemsize = elemsize,
-                .dev_handle = ptr,
-                .offset = offset
-	};
-	_starpu_vector_data_register(handleptr, home_node, &vector);
+#ifdef STARPU_USE_SCC
+	_starpu_scc_set_offset_in_shared_memory((void*)vector.ptr, (void**)&(vector.dev_handle), &(vector.offset));
+#endif
+
+	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_vector_ops);
 }
-#endif /* STARPU_OPENMP */
 
 void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node,
 			uintptr_t ptr, uintptr_t dev_handle, size_t offset)

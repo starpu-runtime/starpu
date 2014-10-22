@@ -248,12 +248,12 @@ struct starpu_vector_interface
 	size_t offset;
 	uint32_t nx;
 	size_t elemsize;
+#ifdef STARPU_OPENMP
+	uint32_t slice_base;
+#endif /* STARPU_OPENMP */
 };
 
 void starpu_vector_data_register(starpu_data_handle_t *handle, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize);
-#ifdef STARPU_OPENMP
-void starpu_vector_data_register_with_offset(starpu_data_handle_t *handleptr, unsigned home_node, uintptr_t ptr, uint32_t nx, size_t elemsize, size_t offset);
-#endif /* STARPU_OPENMP */
 void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
 uint32_t starpu_vector_get_nx(starpu_data_handle_t handle);
 size_t starpu_vector_get_elemsize(starpu_data_handle_t handle);
@@ -264,6 +264,9 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 #define STARPU_VECTOR_GET_OFFSET(interface)	(((struct starpu_vector_interface *)(interface))->offset)
 #define STARPU_VECTOR_GET_NX(interface)	(((struct starpu_vector_interface *)(interface))->nx)
 #define STARPU_VECTOR_GET_ELEMSIZE(interface)	(((struct starpu_vector_interface *)(interface))->elemsize)
+#ifdef STARPU_OPENMP
+#define STARPU_VECTOR_GET_SLICE_BASE(interface)	(((struct starpu_vector_interface *)(interface))->slice_base)
+#endif /* STARPU_OPENMP */
 
 struct starpu_variable_interface
 {
