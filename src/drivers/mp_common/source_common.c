@@ -697,7 +697,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set,
 			_starpu_src_common_recv_async(mp_node);
 
 		/* get task for each worker*/
-		res = _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers);
+		res = _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
 
 		/*if at least one worker have pop a task*/
 		if(res != 0)

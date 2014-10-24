@@ -49,9 +49,16 @@ static cl_command_queue queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue in_transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue out_transfer_queues[STARPU_MAXOPENCLDEVS];
 static cl_command_queue peer_transfer_queues[STARPU_MAXOPENCLDEVS];
+#ifndef STARPU_SIMGRID
 static cl_command_queue alloc_queues[STARPU_MAXOPENCLDEVS];
 static cl_event task_events[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
+#endif /* !STARPU_SIMGRID */
 #endif
+#ifdef STARPU_SIMGRID
+static unsigned task_finished[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
+static starpu_pthread_mutex_t task_mutex[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
+static starpu_pthread_cond_t task_cond[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
+#endif /* STARPU_SIMGRID */
 
 void
 _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
@@ -137,9 +144,17 @@ void starpu_opencl_get_current_context(cl_context *context)
         *context = contexts[worker->devid];
 }
 
-#ifndef STARPU_SIMGRID
-cl_int _starpu_opencl_init_context(int devid)
+int _starpu_opencl_init_context(int devid)
 {
+#ifdef STARPU_SIMGRID
+	int j;
+	for (j = 0; j < STARPU_MAX_PIPELINE; j++)
+	{
+		task_finished[devid][j] = 0;
+		STARPU_PTHREAD_MUTEX_INIT(&task_mutex[devid][j], NULL);
+		STARPU_PTHREAD_COND_INIT(&task_cond[devid][j], NULL);
+	}
+#else /* !STARPU_SIMGRID */
 	cl_int err;
 	cl_uint uint;
 
@@ -178,12 +193,21 @@ cl_int _starpu_opencl_init_context(int devid)
         if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
-
-	return CL_SUCCESS;
+#endif /* !STARPU_SIMGRID */
+	return 0;
 }
 
-cl_int _starpu_opencl_deinit_context(int devid)
+int _starpu_opencl_deinit_context(int devid)
 {
+#ifdef STARPU_SIMGRID
+	int j;
+	for (j = 0; j < STARPU_MAX_PIPELINE; j++)
+	{
+		task_finished[devid][j] = 0;
+		STARPU_PTHREAD_MUTEX_DESTROY(&task_mutex[devid][j]);
+		STARPU_PTHREAD_COND_DESTROY(&task_cond[devid][j]);
+	}
+#else /* !STARPU_SIMGRID */
         cl_int err;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
@@ -209,12 +233,12 @@ cl_int _starpu_opencl_deinit_context(int devid)
         contexts[devid] = NULL;
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
-
-        return CL_SUCCESS;
-}
 #endif
 
-cl_int starpu_opencl_allocate_memory(int devid, cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, cl_mem_flags flags STARPU_ATTRIBUTE_UNUSED)
+        return 0;
+}
+
+cl_int starpu_opencl_allocate_memory(int devid STARPU_ATTRIBUTE_UNUSED, cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, cl_mem_flags flags STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
 	STARPU_ABORT();
@@ -561,7 +585,7 @@ void _starpu_opencl_init(void)
 #ifndef STARPU_SIMGRID
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
 #endif
-static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker *worker);
+static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker *worker, unsigned char pipeline_idx);
 static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker *worker);
 static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_worker *worker);
 
@@ -571,9 +595,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 
 	_starpu_worker_start(worker, _STARPU_FUT_OPENCL_KEY);
 
-#ifndef STARPU_SIMGRID
 	_starpu_opencl_init_context(devid);
-#endif
 
 	/* one more time to avoid hacks from third party lib :) */
 	_starpu_bind_thread_on_cpu(worker->config, worker->bindid);
@@ -601,6 +623,25 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 		_STARPU_DISP("Warning: STARPU_OPENCL_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
 		worker->pipeline_length = STARPU_MAX_PIPELINE;
 	}
+#if defined(STARPU_SIMGRID) && defined(STARPU_NON_BLOCKING_DRIVERS)
+	if (worker->pipeline_length >= 1)
+	{
+		/* We need blocking drivers, otherwise idle drivers
+		 * would keep consuming real CPU time while just
+		 * polling for task termination */
+		_STARPU_DISP("Warning: reducing STARPU_OPENCL_PIPELINE to 0 because simgrid is enabled and blocking drivers are not enabled\n");
+		worker->pipeline_length = 0;
+	}
+#endif
+#if !defined(STARPU_SIMGRID) && !defined(STARPU_NON_BLOCKING_DRIVERS)
+	if (worker->pipeline_length >= 1)
+	{
+		/* We need non-blocking drivers, to poll for OPENCL task
+		 * termination */
+		_STARPU_DISP("Warning: reducing STARPU_OPENCL_PIPELINE to 0 because blocking drivers are not enabled (and simgrid is not enabled)\n");
+		worker->pipeline_length = 0;
+	}
+#endif
 
 	_STARPU_DEBUG("OpenCL (%s) dev id %d thread is ready to run on CPU %d !\n", devname, devid, worker->bindid);
 
@@ -624,7 +665,6 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	struct _starpu_job *j;
 	struct starpu_task *task;
 
-#ifndef STARPU_SIMGRID
 	if (worker->ntasks)
 	{
 		cl_int status;
@@ -635,47 +675,54 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 		task = worker->current_tasks[worker->first_task];
 
+#ifdef STARPU_SIMGRID
+		if (task_finished[worker->devid][worker->first_task])
+#else /* !STARPU_SIMGRID */
 		err = clGetEventInfo(task_events[worker->devid][worker->first_task], CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &status, &size);
 		STARPU_ASSERT(size == sizeof(cl_int));
 		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 		if (status != CL_COMPLETE)
+#endif /* !STARPU_SIMGRID */
 		{
 			_STARPU_TRACE_START_EXECUTING();
 			/* Not ready yet, no better thing to do than waiting */
 			__starpu_datawizard_progress(memnode, 1, 0);
 			return 0;
 		}
-
-		task_events[worker->devid][worker->first_task] = 0;
-
-		/* Asynchronous task completed! */
-		_starpu_opencl_stop_job(_starpu_get_job_associated_to_task(task), worker);
-		/* See next task if any */
-		if (worker->ntasks)
+		else
 		{
-			task = worker->current_tasks[worker->first_task];
-			j = _starpu_get_job_associated_to_task(task);
-			if (task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC)
+#ifndef STARPU_SIMGRID
+			task_events[worker->devid][worker->first_task] = 0;
+#endif
+
+			/* Asynchronous task completed! */
+			_starpu_opencl_stop_job(_starpu_get_job_associated_to_task(task), worker);
+			/* See next task if any */
+			if (worker->ntasks)
 			{
-				/* An asynchronous task, it was already queued,
-				 * it's now running, record its start time.  */
-				_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, starpu_profiling_status_get());
+				task = worker->current_tasks[worker->first_task];
+				j = _starpu_get_job_associated_to_task(task);
+				if (task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC)
+				{
+					/* An asynchronous task, it was already queued,
+					 * it's now running, record its start time.  */
+					_starpu_driver_start_job(worker, j, &worker->perf_arch, &j->cl_start, 0, starpu_profiling_status_get());
+				}
+				else
+				{
+					/* A synchronous task, we have finished flushing the pipeline, we can now at last execute it.  */
+					_STARPU_TRACE_END_PROGRESS(memnode);
+					_STARPU_TRACE_EVENT("sync_task");
+					_starpu_opencl_execute_job(task, worker);
+					_STARPU_TRACE_EVENT("end_sync_task");
+					_STARPU_TRACE_START_PROGRESS(memnode);
+					worker->pipeline_stuck = 0;
+				}
 			}
-			else
-			{
-				/* A synchronous task, we have finished flushing the pipeline, we can now at last execute it.  */
-				_STARPU_TRACE_END_PROGRESS(memnode);
-				_STARPU_TRACE_EVENT("sync_task");
-				_starpu_opencl_execute_job(task, worker);
-				_STARPU_TRACE_EVENT("end_sync_task");
-				_STARPU_TRACE_START_PROGRESS(memnode);
-				worker->pipeline_stuck = 0;
-			}
+			_STARPU_TRACE_END_EXECUTING();
 		}
-		_STARPU_TRACE_END_EXECUTING();
 	}
-#endif /* STARPU_SIMGRID */
 
 	__starpu_datawizard_progress(memnode, 1, 1);
 
@@ -728,10 +775,8 @@ int _starpu_opencl_driver_deinit(struct _starpu_worker *worker)
 
 	_starpu_malloc_shutdown(memnode);
 
-#ifndef STARPU_SIMGRID
 	unsigned devid   = worker->devid;
         _starpu_opencl_deinit_context(devid);
-#endif
 
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_OPENCL_KEY);
 
@@ -802,7 +847,7 @@ cl_device_type _starpu_opencl_get_device_type(int devid)
 }
 #endif /* STARPU_USE_OPENCL */
 
-static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker *worker)
+static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker *worker, unsigned char pipeline_idx STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret;
 
@@ -853,7 +898,11 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 		STARPU_ASSERT_MSG(profiling_info->used_cycles, "Application kernel must call starpu_opencl_collect_stats to collect simulated time");
 		length = ((double) profiling_info->used_cycles)/MSG_get_host_speed(MSG_host_self());
 	  #endif
-		_starpu_simgrid_execute_job(j, &worker->perf_arch, length);
+		int async = task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC;
+		_starpu_simgrid_submit_job(worker->workerid, j, &worker->perf_arch, length,
+				async ? &task_finished[worker->devid][pipeline_idx] : NULL,
+				async ? &task_mutex[worker->devid][pipeline_idx] : NULL,
+				async ? &task_cond[worker->devid][pipeline_idx] : NULL);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
@@ -868,7 +917,10 @@ static void _starpu_opencl_stop_job(struct _starpu_job *j, struct _starpu_worker
 	int profiling = starpu_profiling_status_get();
 
 	_starpu_set_current_task(NULL);
-	worker->current_tasks[worker->first_task] = NULL;
+	if (worker->pipeline_length)
+		worker->current_tasks[worker->first_task] = NULL;
+	else
+		worker->current_task = NULL;
 	worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
 	worker->ntasks--;
 
@@ -888,7 +940,9 @@ static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	res = _starpu_opencl_start_job(j, worker);
+	unsigned char pipeline_idx = (worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE;
+
+	res = _starpu_opencl_start_job(j, worker, pipeline_idx);
 
 	if (res)
 	{
@@ -903,22 +957,28 @@ static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_
 		}
 	}
 
-#ifndef STARPU_SIMGRID
 	if (task->cl->opencl_flags[j->nimpl] & STARPU_OPENCL_ASYNC)
 	{
 		/* Record event to synchronize with task termination later */
-		int err;
+#ifndef STARPU_SIMGRID
 		cl_command_queue queue;
 		starpu_opencl_get_queue(worker->devid, &queue);
+#endif
 
 		if (worker->pipeline_length == 0)
 		{
+#ifdef STARPU_SIMGRID
+			_starpu_simgrid_wait_tasks(worker->workerid);
+#else
 			starpu_opencl_get_queue(worker->devid, &queue);
 			clFinish(queue);
+#endif
 			_starpu_opencl_stop_job(j, worker);
 		}
 		else
 		{
+#ifndef STARPU_SIMGRID
+			int err;
 			/* the function clEnqueueMarker is deprecated from
 			 * OpenCL version 1.2. We would like to use the new
 			 * function clEnqueueMarkerWithWaitList. We could do
@@ -928,17 +988,13 @@ static void _starpu_opencl_execute_job(struct starpu_task *task, struct _starpu_
 			 * 2 macros detect the function availability in the
 			 * ICD and not in the device implementation.
 			 */
-			err = clEnqueueMarker(queue, &task_events[worker->devid][(worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE]);
+			err = clEnqueueMarker(queue, &task_events[worker->devid][pipeline_idx]);
 			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+#endif
 			_STARPU_TRACE_START_EXECUTING();
 		}
 	}
 	else
-#else
-#ifdef STARPU_DEVEL
-#warning No OpenCL asynchronous execution with simgrid yet.
-#endif
-#endif
 	/* Synchronous execution */
 	{
 		_starpu_opencl_stop_job(j, worker);

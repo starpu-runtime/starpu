@@ -104,7 +104,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 		{
 			_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_SIMGRID
-			_starpu_simgrid_execute_job(j, perf_arch, NAN);
+			_starpu_simgrid_submit_job(cpu_args->workerid, j, perf_arch, NAN, NULL, NULL, NULL);
 #else
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
@@ -135,7 +135,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	return 0;
 }
 
-static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config)
+static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 	size_t global_mem;
 	starpu_ssize_t limit;

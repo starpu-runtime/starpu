@@ -825,6 +825,14 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 
 	STARPU_ASSERT_MSG(nworker_per_cuda > 0, "STARPU_NWORKER_PER_CUDA has to be > 0");
 
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	if (nworker_per_cuda > 1)
+	{
+		_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
+		nworker_per_cuda = 1;
+	}
+#endif
+
 	if (ncuda != 0)
 	{
 		/* The user did not disable CUDA. We need to initialize CUDA

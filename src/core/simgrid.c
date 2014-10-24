@@ -269,10 +269,65 @@ void _starpu_simgrid_init()
  * Tasks
  */
 
-/* Task execution submitted by StarPU */
-void _starpu_simgrid_execute_job(struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length)
+struct task {
+	msg_task_t task;
+	int workerid;
+
+	/* communication termination signalization */
+	unsigned *finished;
+	starpu_pthread_mutex_t *mutex;
+	starpu_pthread_cond_t *cond;
+
+	/* Task which waits for this task */
+	struct task *next;
+};
+
+static struct task *last_task[STARPU_NMAXWORKERS];
+
+/* Actually execute the task.  */
+static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_task *task = j->task;
+	struct task *task = MSG_process_get_data(MSG_process_self());
+	_STARPU_DEBUG("task %p started\n", transfer);
+	MSG_task_execute(task->task);
+	MSG_task_destroy(task->task);
+	_STARPU_DEBUG("task %p finished\n", transfer);
+	STARPU_PTHREAD_MUTEX_LOCK(task->mutex);
+	*task->finished = 1;
+	STARPU_PTHREAD_COND_BROADCAST(task->cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(task->mutex);
+
+	/* The worker which started this task may be sleeping out of tasks, wake it  */
+	starpu_wake_worker(task->workerid);
+
+	if (last_task[task->workerid] == task)
+		last_task[task->workerid] = NULL;
+	if (task->next)
+		MSG_process_create("task", task_execute, task->next, MSG_host_self());
+	free(task);
+	return 0;
+}
+
+/* Wait for completion of all asynchronous tasks for this worker */
+void _starpu_simgrid_wait_tasks(int workerid)
+{
+	struct task *task = last_task[workerid];
+	if (!task)
+		return;
+
+	unsigned *finished = task->finished;
+	starpu_pthread_mutex_t *mutex = task->mutex;
+	starpu_pthread_cond_t *cond = task->cond;
+	STARPU_PTHREAD_MUTEX_LOCK(mutex);
+	while (!*finished)
+		STARPU_PTHREAD_COND_WAIT(cond, mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
+}
+
+/* Task execution submitted by StarPU */
+void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished, starpu_pthread_mutex_t *mutex, starpu_pthread_cond_t *cond)
+{
+	struct starpu_task *starpu_task = j->task;
 	msg_task_t simgrid_task;
 
 	if (j->internal)
@@ -282,7 +337,7 @@ void _starpu_simgrid_execute_job(struct _starpu_job *j, struct starpu_perfmodel_
 
 	if (isnan(length))
 	{
-		length = starpu_task_expected_length(task, perf_arch, j->nimpl);
+		length = starpu_task_expected_length(starpu_task, perf_arch, j->nimpl);
 		STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
 				"Codelet %s does not have a perfmodel, or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
 			_starpu_job_get_model_name(j));
@@ -291,8 +346,40 @@ void _starpu_simgrid_execute_job(struct _starpu_job *j, struct starpu_perfmodel_
 	simgrid_task = MSG_task_create(_starpu_job_get_model_name(j),
 			length/1000000.0*MSG_get_host_speed(MSG_host_self()),
 			0, NULL);
-	MSG_task_execute(simgrid_task);
-	MSG_task_destroy(simgrid_task);
+
+	if (finished == NULL)
+	{
+		/* Synchronous execution */
+		/* First wait for previous tasks */
+		_starpu_simgrid_wait_tasks(workerid);
+		MSG_task_execute(simgrid_task);
+		MSG_task_destroy(simgrid_task);
+	}
+	else
+	{
+		/* Asynchronous execution */
+		struct task *task = malloc(sizeof(*task));
+		task->task = simgrid_task;
+		task->workerid = workerid;
+		task->finished = finished;
+		*finished = 0;
+		task->mutex = mutex;
+		task->cond = cond;
+		task->next = NULL;
+		/* Sleep 10µs for the GPU task queueing */
+		MSG_process_sleep(0.000010);
+		if (last_task[workerid])
+		{
+			/* Make this task depend on the previous */
+			last_task[workerid]->next = task;
+			last_task[workerid] = task;
+		}
+		else
+		{
+			last_task[workerid] = task;
+			MSG_process_create("task", task_execute, task, MSG_host_self());
+		}
+	}
 }
 
 /*
