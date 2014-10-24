@@ -288,10 +288,10 @@ static struct task *last_task[STARPU_NMAXWORKERS];
 static int task_execute(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBUTE_UNUSED)
 {
 	struct task *task = MSG_process_get_data(MSG_process_self());
-	_STARPU_DEBUG("task %p started\n", transfer);
+	_STARPU_DEBUG("task %p started\n", task);
 	MSG_task_execute(task->task);
 	MSG_task_destroy(task->task);
-	_STARPU_DEBUG("task %p finished\n", transfer);
+	_STARPU_DEBUG("task %p finished\n", task);
 	STARPU_PTHREAD_MUTEX_LOCK(task->mutex);
 	*task->finished = 1;
 	STARPU_PTHREAD_COND_BROADCAST(task->cond);
