@@ -677,6 +677,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					break;
 
 				cuda_worker_set[devid].nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+				if (cuda_worker_set[devid].nworkers > 1)
+				{
+					_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
+					cuda_worker_set[devid].nworkers = 1;
+				}
+#endif
 				cuda_worker_set[devid].workers = workerarg;
 				cuda_worker_set[devid].set_is_initialized = 0;
 
@@ -1813,6 +1820,14 @@ int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthre
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
 	return success;
+}
+
+int starpu_wake_worker(int workerid)
+{
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
+	return starpu_wakeup_worker(workerid, sched_cond, sched_mutex);
 }
 
 

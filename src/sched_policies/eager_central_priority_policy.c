@@ -177,14 +177,8 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 	{
 		worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-		{
-			starpu_pthread_mutex_t *sched_mutex;
-			starpu_pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-
-			if (starpu_wakeup_worker(worker, sched_cond, sched_mutex))
+			if (starpu_wake_worker(worker))
 				break; // wake up a single worker
-		}
 	}
 #endif
 

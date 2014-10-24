@@ -455,13 +455,18 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 }
 
 
-int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_task ** tasks, int nworkers)
+int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_task ** tasks, int nworkers, unsigned memnode STARPU_ATTRIBUTE_UNUSED)
 {
 	int i, count = 0;
 	struct _starpu_job * j;
 	int is_parallel_task;
 	struct _starpu_combined_worker *combined_worker;
 	/*for each worker*/
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	/* This assumes only 1 worker */
+	STARPU_ASSERT_MSG(nworkers == 1, "Multiple workers is not yet possible in block drivers mode\n");
+	STARPU_PTHREAD_MUTEX_LOCK(&workers[0].sched_mutex);
+#endif
 	for (i = 0; i < nworkers; i++)
 	{
 		/*if the worker is already executing a task then */
@@ -475,7 +480,9 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 		/*else try to pop a task*/
 		else
 		{
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 			STARPU_PTHREAD_MUTEX_LOCK(&workers[i].sched_mutex);
+#endif
 			_starpu_worker_set_status_scheduling(workers[i].workerid);
 			_starpu_set_local_worker_key(&workers[i]);
 			tasks[i] = _starpu_pop_task(&workers[i]);
@@ -483,18 +490,18 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 			{
 				_starpu_worker_set_status_scheduling_done(workers[i].workerid);
 				_starpu_worker_set_status_wakeup(workers[i].workerid);
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workers[i].sched_mutex);
+#endif
 
 				count ++;
 				j = _starpu_get_job_associated_to_task(tasks[i]);
 				is_parallel_task = (j->task_size > 1);
 				if (workers[i].pipeline_length)
-				{
 					workers[i].current_tasks[(workers[i].first_task + workers[i].ntasks)%STARPU_MAX_PIPELINE] = tasks[i];
-					workers[i].ntasks++;
-				}
 				else
 					workers[i].current_task = j->task;
+				workers[i].ntasks++;
 				/* Get the rank in case it is a parallel task */
 				if (is_parallel_task)
 				{
@@ -516,13 +523,70 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 					workers[i].worker_size = 1;
 					workers[i].current_rank = 0;
 				}
+#ifdef HAVE_AYUDAME_H
+				if (AYU_event)
+				{
+					intptr_t id = workers[i].workerid;
+					AYU_event(AYU_PRERUNTASK, _starpu_get_job_associated_to_task(tasks[i])->job_id, &id);
+				}
+#endif
 			}
 			else
 			{
 				_starpu_worker_set_status_sleeping(workers[i].workerid);
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workers[i].sched_mutex);
+#endif
 			}
 		}
 	}
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	/* Block the assumed-to-be-only worker */
+	struct _starpu_worker *worker = &workers[0];
+	unsigned workerid = workers[0].workerid;
+
+	if (!count) {
+		/* Note: we need to keep the sched condition mutex all along the path
+		 * from popping a task from the scheduler to blocking. Otherwise the
+		 * driver may go block just after the scheduler got a new task to be
+		 * executed, and thus hanging. */
+		_starpu_worker_set_status_sleeping(workerid);
+
+		if (_starpu_worker_can_block(memnode, worker)
+#ifndef STARPU_SIMGRID
+				&& !_starpu_sched_ctx_last_worker_awake(worker)
+#endif
+				)
+		{
+			STARPU_PTHREAD_COND_WAIT(&worker->sched_cond, &worker->sched_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+		}
+		else
+		{
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+			if (_starpu_machine_is_running())
+			{
+				_starpu_exponential_backoff(worker);
+#ifdef STARPU_SIMGRID
+				static int warned;
+				if (!warned)
+				{
+					warned = 1;
+					_STARPU_DISP("Has to make simgrid spin for CPU idle time.  You can try to pass --enable-blocking-drivers to ./configure to avoid this\n");
+				}
+				MSG_process_sleep(0.000010);
+#endif
+			}
+		}
+		return 0;
+	}
+
+	_starpu_worker_set_status_wakeup(workerid);
+	worker->spinning_backoff = BACKOFF_MIN;
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->sched_mutex);
+#endif /* !STARPU_NON_BLOCKING_DRIVERS */
+
 	return count;
 }

@@ -49,8 +49,15 @@ static cudaStream_t in_transfer_streams[STARPU_MAXCUDADEVS];
 static cudaStream_t in_peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
 static cudaStream_t out_peer_transfer_streams[STARPU_MAXCUDADEVS][STARPU_MAXCUDADEVS];
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
+#ifndef STARPU_SIMGRID
 static cudaEvent_t task_events[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
+#endif
 #endif /* STARPU_USE_CUDA */
+#ifdef STARPU_SIMGRID
+static unsigned task_finished[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
+static starpu_pthread_mutex_t task_mutex[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
+static starpu_pthread_cond_t task_cond[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
+#endif /* STARPU_SIMGRID */
 
 void
 _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
@@ -216,12 +223,24 @@ done:
 #endif
 }
 
-#ifndef STARPU_SIMGRID
-static void init_context(struct _starpu_worker_set *worker_set, unsigned devid)
+static void init_context(struct _starpu_worker_set *worker_set, unsigned devid STARPU_ATTRIBUTE_UNUSED)
 {
-	cudaError_t cures;
 	int workerid;
 	unsigned i, j;
+
+#ifdef STARPU_SIMGRID
+	for (i = 0; i < worker_set->nworkers; i++)
+	{
+		workerid = worker_set->workers[i].workerid;
+		for (j = 0; j < STARPU_MAX_PIPELINE; j++)
+		{
+			task_finished[workerid][j] = 0;
+			STARPU_PTHREAD_MUTEX_INIT(&task_mutex[workerid][j], NULL);
+			STARPU_PTHREAD_COND_INIT(&task_cond[workerid][j], NULL);
+		}
+	}
+#else /* !SIMGRID */
+	cudaError_t cures;
 
 	/* TODO: cudaSetDeviceFlag(cudaDeviceMapHost) */
 
@@ -303,13 +322,27 @@ static void init_context(struct _starpu_worker_set *worker_set, unsigned devid)
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
+#endif /* !SIMGRID */
 }
 
 static void deinit_context(struct _starpu_worker_set *worker_set)
 {
-	cudaError_t cures;
 	unsigned i, j;
-	int workerid = worker_set->workers[0].workerid;
+	int workerid;
+
+#ifdef STARPU_SIMGRID
+	for (i = 0; i < worker_set->nworkers; i++)
+	{
+		workerid = worker_set->workers[i].workerid;
+		for (j = 0; j < STARPU_MAX_PIPELINE; j++)
+		{
+			STARPU_PTHREAD_MUTEX_DESTROY(&task_mutex[workerid][j]);
+			STARPU_PTHREAD_COND_DESTROY(&task_cond[workerid][j]);
+		}
+	}
+#else /* !STARPU_SIMGRID */
+	cudaError_t cures;
+	workerid = worker_set->workers[0].workerid;
 	int devid = starpu_worker_get_devid(workerid);
 
 	for (i = 0; i < worker_set->nworkers; i++)
@@ -345,8 +378,8 @@ static void deinit_context(struct _starpu_worker_set *worker_set)
 #endif /* STARPU_OPENMP */
 	)
 		STARPU_CUDA_REPORT_ERROR(cures);
-}
 #endif /* !SIMGRID */
+}
 
 static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 {
@@ -384,7 +417,7 @@ void _starpu_init_cuda(void)
 	STARPU_ASSERT(ncudagpus <= STARPU_MAXCUDADEVS);
 }
 
-static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker)
+static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker, unsigned char pipeline_idx STARPU_ATTRIBUTE_UNUSED)
 {
 	int ret;
 
@@ -426,7 +459,12 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 	{
 		_STARPU_TRACE_START_EXECUTING();
 #ifdef STARPU_SIMGRID
-		_starpu_simgrid_execute_job(j, &worker->perf_arch, NAN);
+		int async = task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC;
+		unsigned workerid = worker->workerid;
+		_starpu_simgrid_submit_job(workerid, j, &worker->perf_arch, NAN,
+				async ? &task_finished[workerid][pipeline_idx] : NULL,
+				async ? &task_mutex[workerid][pipeline_idx] : NULL,
+				async ? &task_cond[workerid][pipeline_idx] : NULL);
 #else
 		func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #endif
@@ -443,7 +481,10 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 	int profiling = starpu_profiling_status_get();
 
 	_starpu_set_current_task(NULL);
-	worker->current_tasks[worker->first_task] = NULL;
+	if (worker->pipeline_length)
+		worker->current_tasks[worker->first_task] = NULL;
+	else
+		worker->current_task = NULL;
 	worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
 	worker->ntasks--;
 
@@ -471,7 +512,9 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	res = start_job_on_cuda(j, worker);
+	unsigned char pipeline_idx = (worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE;
+
+	res = start_job_on_cuda(j, worker, pipeline_idx);
 
 	if (res)
 	{
@@ -486,19 +529,24 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 		}
 	}
 
-#ifndef STARPU_SIMGRID
 	if (task->cl->cuda_flags[j->nimpl] & STARPU_CUDA_ASYNC)
 	{
 		if (worker->pipeline_length == 0)
 		{
+#ifdef STARPU_SIMGRID
+			_starpu_simgrid_wait_tasks(workerid);
+#else
 			/* Forced synchronous execution */
 			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+#endif
 			finish_job_on_cuda(j, worker);
 		}
 		else
 		{
+#ifndef STARPU_SIMGRID
 			/* Record event to synchronize with task termination later */
-			cudaEventRecord(task_events[workerid][(worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE], starpu_cuda_get_local_stream());
+			cudaEventRecord(task_events[workerid][pipeline_idx], starpu_cuda_get_local_stream());
+#endif
 #ifdef STARPU_USE_FXT
 			int k;
 			for (k = 0; k < (int) worker->set->nworkers; k++)
@@ -511,11 +559,6 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 		}
 	}
 	else
-#else
-#ifdef STARPU_DEVEL
-#warning No CUDA asynchronous execution with simgrid yet.
-#endif
-#endif
 	/* Synchronous execution */
 	{
 #if defined(STARPU_DEBUG) && !defined(STARPU_SIMGRID)
@@ -543,12 +586,14 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	}
 #endif
 
-#ifndef STARPU_SIMGRID
 	init_context(worker_set, devid);
 
+#ifdef STARPU_SIMGRID
+	STARPU_ASSERT_MSG (worker_set->nworkers = 1, "Simgrid mode does not support concurrent kernel execution yet\n");
+#else /* !STARPU_SIMGRID */
 	if (worker_set->nworkers > 1 && props[devid].concurrentKernels == 0)
 		_STARPU_DISP("Warning: STARPU_NWORKER_PER_CUDA is %u, but the device does not support concurrent kernel execution!\n", worker_set->nworkers);
-#endif
+#endif /* !STARPU_SIMGRID */
 
 	_starpu_cuda_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(worker0->memory_node, _starpu_cuda_get_global_mem_size(devid));
@@ -589,6 +634,25 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 			_STARPU_DISP("Warning: STARPU_CUDA_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
 			worker->pipeline_length = STARPU_MAX_PIPELINE;
 		}
+#if defined(STARPU_SIMGRID) && defined(STARPU_NON_BLOCKING_DRIVERS)
+		if (worker->pipeline_length >= 1)
+		{
+			/* We need blocking drivers, otherwise idle drivers
+			 * would keep consuming real CPU time while just
+			 * polling for task termination */
+			_STARPU_DISP("Warning: reducing STARPU_CUDA_PIPELINE to 0 because simgrid is enabled and blocking drivers are not enabled\n");
+			worker->pipeline_length = 0;
+		}
+#endif
+#if !defined(STARPU_SIMGRID) && !defined(STARPU_NON_BLOCKING_DRIVERS)
+		if (worker->pipeline_length >= 1)
+		{
+			/* We need non-blocking drivers, to poll for CUDA task
+			 * termination */
+			_STARPU_DISP("Warning: reducing STARPU_CUDA_PIPELINE to 0 because blocking drivers are not enabled (and simgrid is not enabled)\n");
+			worker->pipeline_length = 0;
+		}
+#endif
 		_STARPU_TRACE_WORKER_INIT_END(worker_set->workers[i].workerid);
 	}
 
@@ -616,7 +680,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	struct _starpu_job *j;
 	int i, res;
 
-#ifndef STARPU_SIMGRID
 	int idle;
 
 	/* First poll for completed jobs */
@@ -636,6 +699,9 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		task = worker->current_tasks[worker->first_task];
 
 		/* On-going asynchronous task, check for its termination first */
+#ifdef STARPU_SIMGRID
+		if (task_finished[workerid][worker->first_task])
+#else /* !STARPU_SIMGRID */
 		cudaError_t cures = cudaEventQuery(task_events[workerid][worker->first_task]);
 
 		if (cures != cudaSuccess)
@@ -643,6 +709,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			STARPU_ASSERT(cures == cudaErrorNotReady);
 		}
 		else
+#endif /* !STARPU_SIMGRID */
 		{
 			/* Asynchronous task completed! */
 			_starpu_set_local_worker_key(worker);
@@ -687,19 +754,20 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 			idle++;
 	}
 
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (!idle)
 	{
 		/* Nothing ready yet, no better thing to do than waiting */
 		__starpu_datawizard_progress(memnode, 1, 0);
 		return 0;
 	}
-#endif /* STARPU_SIMGRID */
+#endif
 
 	/* Something done, make some progress */
 	__starpu_datawizard_progress(memnode, 1, 1);
 
 	/* And pull tasks */
-	res = _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers);
+	res = _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
 
 	if (!res)
 		return 0;
@@ -758,9 +826,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *arg)
 
 	_starpu_malloc_shutdown(memnode);
 
-#ifndef STARPU_SIMGRID
 	deinit_context(arg);
-#endif
 
 	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CUDA_KEY);
 

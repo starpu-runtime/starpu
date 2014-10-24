@@ -129,14 +129,8 @@ static int push_task_eager_policy(struct starpu_task *task)
 	{
 		worker = workers->get_next(workers, &it);
 		if (dowake[worker])
-		{
-			starpu_pthread_mutex_t *sched_mutex;
-			starpu_pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(worker, &sched_mutex, &sched_cond);
-
-			if (starpu_wakeup_worker(worker, sched_cond, sched_mutex))
+			if (starpu_wake_worker(worker))
 				break; // wake up a single worker
-		}
 	}
 #endif
 
@@ -207,12 +201,7 @@ static void eager_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 		workerid = workerids[i];
 		int curr_workerid = starpu_worker_get_id();
 		if(workerid != curr_workerid)
-		{
-			starpu_pthread_mutex_t *sched_mutex;
-			starpu_pthread_cond_t *sched_cond;
-			starpu_worker_get_sched_condition(workerid, &sched_mutex, &sched_cond);
-			starpu_wakeup_worker(workerid, sched_cond, sched_mutex);
-		}
+			starpu_wake_worker(workerid);
 
 		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
 	}

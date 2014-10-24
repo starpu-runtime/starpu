@@ -53,6 +53,7 @@ void starpu_worker_get_sched_condition(int workerid, starpu_pthread_mutex_t **sc
 
 /* This function must be called to wake up a worker that is sleeping on the cond. 
  * It returns 0 whenever the worker is not in a sleeping state */
+int starpu_wake_worker(int workerid);
 int starpu_wakeup_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
 
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl);
