@@ -701,7 +701,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 		char name[32];
 		_starpu_memory_node_get_name(node, name, sizeof(name));
 		if (!warned) {
-			_STARPU_DISP("Not enough memory left on node %s. Your application working set is probably simply just hard to fit in the devices, but StarPU will cope with it by trying to purge %lu bytes out. This message will not be printed again for further purges\n", name, (unsigned long) reclaim);
+			_STARPU_DISP("Not enough memory left on node %s. Your application data set seems to huge to fit on the device, StarPU will cope by trying to purge %lu bytes out. This message will not be printed again for further purges\n", name, (unsigned long) reclaim);
 			warned = 1;
 		}
 	}

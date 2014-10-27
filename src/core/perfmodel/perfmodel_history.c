@@ -1026,13 +1026,12 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 
 				fclose(f);
 			}
+			_STARPU_DEBUG("Performance model file %s for model %s is loaded\n", path, model->symbol);
 		}
 		else
 		{
-			_STARPU_DEBUG("File does not exists\n");
+			_STARPU_DEBUG("Performance model file %s does not exist\n", path);
 		}
-
-		_STARPU_DEBUG("Performance model file %s for model %s is loaded\n", path, model->symbol);
 
 		model->is_loaded = 1;
 	}
