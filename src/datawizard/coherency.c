@@ -39,8 +39,6 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 	size_t size = _starpu_data_get_size(handle);
 	double cost = INFINITY;
 
-	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-
 	for (node = 0; node < nnodes; node++)
 	{
 		if (handle->per_node[node].state != STARPU_INVALID)

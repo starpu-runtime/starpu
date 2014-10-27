@@ -902,7 +902,7 @@ int
 _starpu_build_topology (struct _starpu_machine_config *config)
 {
 	int ret;
-	int i;
+	unsigned i;
 
 	ret = _starpu_init_machine_config(config);
 	if (ret)
