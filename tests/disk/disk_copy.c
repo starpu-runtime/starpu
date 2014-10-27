@@ -42,14 +42,20 @@ int main(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
-	double * A,*B,*C,*D,*E,*F;
+	double *A,*B,*C,*D,*E,*F;
+	int ret;
 
 	/* limit main ram to force to push in disk */
 	setenv("STARPU_LIMIT_CPU_MEM", "160", 1);
 
-	/* Initialize StarPU with default configuration */
-	int ret = starpu_init(NULL);
-
+	/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
+	struct starpu_conf conf;
+	ret = starpu_conf_init(&conf);
+	if (ret == -EINVAL)
+		return EXIT_FAILURE;
+	conf.ncuda = 0;
+	conf.nopencl = 0;
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) goto enodev;
 
 	/* register a disk */
