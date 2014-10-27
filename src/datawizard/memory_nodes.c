@@ -136,7 +136,7 @@ void _starpu_memory_node_get_name(unsigned node, char *name, int size)
 		prefix = "unknown";
 		STARPU_ASSERT(0);
 	}
-	snprintf(name, size, "%s %u\n", prefix, descr.devid[node]);
+	snprintf(name, size, "%s %u", prefix, descr.devid[node]);
 }
 
 unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
