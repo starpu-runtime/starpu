@@ -430,7 +430,7 @@ int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, uns
 
 	*pushed = 0;
 
-#ifndef STARPU_NON_BLOCKING_DRIVERS
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 	/* This is racy, but not posing problems actually, since we know we
 	 * will come back here to probe again regularly anyway.
 	 * Thus, do not expose this optimization to helgrind */
@@ -532,7 +532,7 @@ void _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc
 
 	*pushed = 0;
 
-#ifndef STARPU_NON_BLOCKING_DRIVERS
+#ifdef STARPU_NON_BLOCKING_DRIVERS
 	/* This is racy, but not posing problems actually, since we know we
 	 * will come back here to probe again regularly anyway.
 	 * Thus, do not expose this optimization to valgrind */
