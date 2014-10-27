@@ -288,10 +288,13 @@ int _starpu_submit_job(struct _starpu_job *j)
 	   && sched_ctx->perf_counters != NULL)
 	{
 		struct starpu_perfmodel_arch arch;
-		arch.type = STARPU_CPU_WORKER;
-		arch.devid = 0;
-		arch.ncore = 0;
+		arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		arch.ndevices = 1;
+		arch.devices[0].type = STARPU_CPU_WORKER;
+		arch.devices[0].devid = 0;
+		arch.devices[0].ncores = 1;
 		_starpu_compute_buffers_footprint(j->task->cl->model, &arch, 0, j);
+		free(arch.devices);
 		int i;
 		size_t data_size = 0;
 		if (j->task->cl)
@@ -543,11 +546,11 @@ int starpu_task_submit(struct starpu_task *task)
 			_starpu_detect_implicit_data_deps(task);
 		}
 
-		if (task->cl->model && task->cl->model->symbol)
-			_starpu_load_perfmodel(task->cl->model);
+		if (task->cl->model)
+			_starpu_init_and_load_perfmodel(task->cl->model);
 
-		if (task->cl->power_model && task->cl->power_model->symbol)
-			_starpu_load_perfmodel(task->cl->power_model);
+		if (task->cl->power_model)
+			_starpu_init_and_load_perfmodel(task->cl->power_model);
 	}
 
 	if (bundle)
@@ -562,11 +565,11 @@ int starpu_task_submit(struct starpu_task *task)
 
 		while (entry)
 		{
-			if (entry->task->cl->model && entry->task->cl->model->symbol)
-				_starpu_load_perfmodel(entry->task->cl->model);
+			if (entry->task->cl->model)
+				_starpu_init_and_load_perfmodel(entry->task->cl->model);
 
-			if (entry->task->cl->power_model && entry->task->cl->power_model->symbol)
-				_starpu_load_perfmodel(entry->task->cl->power_model);
+			if (entry->task->cl->power_model)
+				_starpu_init_and_load_perfmodel(entry->task->cl->power_model);
 
 			entry = entry->next;
 		}
@@ -626,10 +629,10 @@ int _starpu_task_submit_nodeps(struct starpu_task *task)
 	if (task->cl)
 	{
 		if (task->cl->model)
-			_starpu_load_perfmodel(task->cl->model);
+			_starpu_init_and_load_perfmodel(task->cl->model);
 
 		if (task->cl->power_model)
-			_starpu_load_perfmodel(task->cl->power_model);
+			_starpu_init_and_load_perfmodel(task->cl->power_model);
 	}
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -687,10 +690,10 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	/* We should factorize that */
 	if (task->cl->model)
-		_starpu_load_perfmodel(task->cl->model);
+		_starpu_init_and_load_perfmodel(task->cl->model);
 
 	if (task->cl->power_model)
-		_starpu_load_perfmodel(task->cl->power_model);
+		_starpu_init_and_load_perfmodel(task->cl->power_model);
 
 	/* We retain handle reference count */
 	unsigned i;

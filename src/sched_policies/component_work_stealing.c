@@ -211,7 +211,7 @@ double _ws_estimated_load(struct starpu_sched_component * component)
 	    -1 != workerid;
 	    workerid = starpu_bitmap_next(component->workers_in_ctx, workerid))
 	{
-		speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(workerid));
+		speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(workerid, component->tree->sched_ctx_id));
 	}
 	
 	return ntasks / speedup;

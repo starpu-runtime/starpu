@@ -140,6 +140,7 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	fprintf(file, "%%	Params	string\n");
 	fprintf(file, "%%	Footprint	string\n");
 	fprintf(file, "%%	Tag	string\n");
+	fprintf(file, "%%	JobId	string\n");
 	fprintf(file, "%%EndEventDef\n");
 #endif
 #endif

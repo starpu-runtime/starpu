@@ -26,6 +26,7 @@
 #include <math.h>
 #include <core/task.h>
 #include <starpu_scheduler.h>
+#include <core/workers.h>
 
 static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node);
 int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)

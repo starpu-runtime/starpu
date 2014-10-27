@@ -49,7 +49,7 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 	    workerid != -1;
 	    workerid = starpu_bitmap_next(component->workers_in_ctx, workerid))
 	{
-		struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid);
+		struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid, component->tree->sched_ctx_id);
 		int nimpl;
 		for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
@@ -137,7 +137,7 @@ double starpu_sched_component_transfer_length(struct starpu_sched_component * co
 		else
 		{
 			sum += starpu_task_expected_data_transfer_time(memory_node, task);
-			/* sum += starpu_task_expected_conversion_time(task, starpu_worker_get_perf_archtype(worker), impl ?)
+			/* sum += starpu_task_expected_conversion_time(task, starpu_worker_get_perf_archtype(worker, component->tree->sched_ctx_id), impl ?)
 			 * I dont know what to do as we dont know what implementation would be used here...
 			 */
 		}

@@ -35,12 +35,19 @@ struct starpu_data_descr;
 
 #define STARPU_NARCH STARPU_ANY_WORKER
 
-struct starpu_perfmodel_arch
+struct starpu_perfmodel_device
 {
 	enum starpu_worker_archtype type;
 	int devid;	/* identifier of the precise device */
-	int ncore;	/* number of execution in parallel, minus 1 */
+	int ncores;	/* number of execution in parallel, minus 1 */	
 };
+
+struct starpu_perfmodel_arch
+{
+	int ndevices;
+	struct starpu_perfmodel_device *devices;
+};
+
 
 struct starpu_perfmodel_history_entry
 {
@@ -91,10 +98,13 @@ struct starpu_perfmodel_history_table;
 
 #define starpu_per_arch_perfmodel starpu_perfmodel_per_arch STARPU_DEPRECATED
 
+typedef double (*starpu_perfmodel_per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+typedef size_t (*starpu_perfmodel_per_arch_size_base)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+
 struct starpu_perfmodel_per_arch
 {
-	double (*cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-	size_t (*size_base)(struct starpu_task *, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+	starpu_perfmodel_per_arch_cost_function cost_function;
+	starpu_perfmodel_per_arch_size_base size_base;
 
 	struct starpu_perfmodel_history_table *history;
 	struct starpu_perfmodel_history_list *list;
@@ -114,6 +124,9 @@ enum starpu_perfmodel_type
 	STARPU_NL_REGRESSION_BASED
 };
 
+struct _starpu_perfmodel_state;
+typedef struct _starpu_perfmodel_state* starpu_perfmodel_state_t;
+
 struct starpu_perfmodel
 {
 	enum starpu_perfmodel_type type;
@@ -123,23 +136,31 @@ struct starpu_perfmodel
 	size_t (*size_base)(struct starpu_task *, unsigned nimpl);
 	uint32_t (*footprint)(struct starpu_task *);
 
-	struct starpu_perfmodel_per_arch**** per_arch; /*STARPU_MAXIMPLEMENTATIONS*/
-
 	const char *symbol;
 
-	unsigned is_init;
 	unsigned is_loaded;
 	unsigned benchmarking;
-	starpu_pthread_rwlock_t model_rwlock;
+	unsigned is_init;
+
+	starpu_perfmodel_state_t state;
 };
 
-void starpu_perfmodel_init(struct starpu_perfmodel *model);
-void starpu_perfmodel_init_with_file(FILE*f, struct starpu_perfmodel *model);
+void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model);
+//void starpu_perfmodel_init_with_file(FILE*f, struct starpu_perfmodel *model);
 
-struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid);
+struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid, unsigned sched_ctx_id);
 
 int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model);
 int starpu_perfmodel_unload_model(struct starpu_perfmodel *model);
+int starpu_get_narch_combs();
+int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device* devices);
+int starpu_perfmodel_arch_comb_get(int ndevices, struct starpu_perfmodel_device *devices);
+
+struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned impl);
+struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_devices(struct starpu_perfmodel *model, int impl, ...);
+
+int starpu_perfmodel_set_per_devices_cost_function(struct starpu_perfmodel *model, int impl, starpu_perfmodel_per_arch_cost_function func, ...);
+int starpu_perfmodel_set_per_devices_size_base(struct starpu_perfmodel *model, int impl, starpu_perfmodel_per_arch_size_base func, ...);
 
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, char *path, size_t maxlen, unsigned nimpl);
 char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);
@@ -149,6 +170,8 @@ double starpu_permodel_history_based_expected_perf(struct starpu_perfmodel *mode
 int starpu_perfmodel_list(FILE *output);
 void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, unsigned nimpl, char *parameter, uint32_t *footprint, FILE *output);
 int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output);
+
+int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model);
 
 void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned cpuid, unsigned nimpl, double measured);
 void starpu_perfmodel_directory(FILE *output);

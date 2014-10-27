@@ -557,7 +557,7 @@ static double simple_worker_estimated_load(struct starpu_sched_component * compo
 	int ntasks_in_fifo = l ? l->ntasks : 0;
 	return (double) (nb_task + ntasks_in_fifo)
 		/ starpu_worker_get_relative_speedup(
-				starpu_worker_get_perf_archtype(starpu_bitmap_first(component->workers)));
+				starpu_worker_get_perf_archtype(starpu_bitmap_first(component->workers), component->tree->sched_ctx_id));
 }
 
 static void _worker_component_deinit_data(struct starpu_sched_component * component)

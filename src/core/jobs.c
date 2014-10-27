@@ -193,6 +193,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
 	unsigned sched_ctx = task->sched_ctx;
+	int workerid = starpu_worker_get_id();
 	double flops = task->flops;
 	const unsigned continuation =
 #ifdef STARPU_OPENMP
@@ -219,12 +220,11 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		 * the callback is not done yet. */
 		j->terminated = 1;
 	}
-
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
 
 #ifdef STARPU_USE_SC_HYPERVISOR
 	size_t data_size = 0;
-	int workerid = starpu_worker_get_id();
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	/* We release handle reference count */
@@ -259,6 +259,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		 * implicit dependencies any more.  */
 		_starpu_release_task_enforce_sequential_consistency(j);
 	}
+
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the
 	 * tasks waiting for us

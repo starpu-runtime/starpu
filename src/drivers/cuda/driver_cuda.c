@@ -490,7 +490,14 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 
 	_starpu_driver_end_job(worker, j, &worker->perf_arch, &codelet_end, 0, profiling);
 
-	_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, &j->cl_start, &codelet_end, profiling);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
+	if(!sched_ctx)
+		sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
+
+	if(!sched_ctx->sched_policy)
+		_starpu_driver_update_job_feedback(j, worker, &sched_ctx->perf_arch, &j->cl_start, &codelet_end, profiling);
+	else
+		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, &j->cl_start, &codelet_end, profiling);
 
 	_starpu_push_task_output(j);
 

@@ -438,7 +438,7 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 	_starpu_profiling_set_task_push_start_time(task);
 
-	int ret;
+	int ret = 0;
 	if (STARPU_UNLIKELY(task->execute_on_a_specific_worker))
 	{
 		unsigned node = starpu_worker_get_memory_node(task->workerid);
@@ -469,7 +469,36 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 
 		if(!sched_ctx->sched_policy)
 		{
-			ret = _starpu_push_task_on_specific_worker(task, sched_ctx->main_master);
+			if(!sched_ctx->awake_workers)
+				ret = _starpu_push_task_on_specific_worker(task, sched_ctx->main_master);
+			else
+			{
+				struct starpu_worker_collection *workers = sched_ctx->workers;
+				
+				struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
+				job->task_size = workers->nworkers;
+				job->combined_workerid = -1; // workerid; its a ctx not combined worker
+				job->active_task_alias_count = 0;
+
+				STARPU_PTHREAD_BARRIER_INIT(&job->before_work_barrier, NULL, workers->nworkers);
+				STARPU_PTHREAD_BARRIER_INIT(&job->after_work_barrier, NULL, workers->nworkers);
+				
+				/* Note: we have to call that early, or else the task may have
+				 * disappeared already */
+				starpu_push_task_end(task);
+
+				unsigned workerid;
+				struct starpu_sched_ctx_iterator it;
+				if(workers->init_iterator)
+					workers->init_iterator(workers, &it);
+
+				while(workers->has_next(workers, &it))
+				{
+					workerid = workers->get_next(workers, &it);
+					struct starpu_task *alias = starpu_task_dup(task);
+					ret |= _starpu_push_task_on_specific_worker(alias, workerid);
+				}
+			}
 		}
 		else
 		{

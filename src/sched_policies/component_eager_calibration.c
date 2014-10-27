@@ -29,7 +29,7 @@ static int eager_calibration_push_task(struct starpu_sched_component * component
 	    workerid != -1;
 	    workerid = starpu_bitmap_next(component->workers_in_ctx, workerid))
 	{
-		struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid);
+		struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid, component->tree->sched_ctx_id);
 		int nimpl;
 		for(nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{

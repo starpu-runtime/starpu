@@ -166,7 +166,7 @@ static int list_remove(struct starpu_worker_collection *workers, int worker)
 	_rearange_workerids(masters, nmasters);
 	if(found_master != -1)
 		workers->nmasters--;
-	printf("rem %d\n", found_worker);
+
 	return found_worker;
 }
 

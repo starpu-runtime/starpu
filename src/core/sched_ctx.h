@@ -150,6 +150,13 @@ struct _starpu_sched_ctx
 	/* ctx nesting the current ctx */
 	unsigned nesting_sched_ctx;
 
+	/* perf model for the device comb of the ctx */
+	struct starpu_perfmodel_arch perf_arch;
+
+	/* for ctxs without policy: flag to indicate that we want to get
+	   the threads to sleep in order to replace them with other threads or leave
+	   them awake & use them in the parallel code*/
+	unsigned awake_workers;
 };
 
 struct _starpu_machine_config;
@@ -160,7 +167,7 @@ void _starpu_init_all_sched_ctxs(struct _starpu_machine_config *config);
 /* allocate all structures belonging to a context */
 struct _starpu_sched_ctx*  _starpu_create_sched_ctx(struct starpu_sched_policy *policy, int *workerid, int nworkerids, unsigned is_init_sched, const char *sched_name,
 						    int min_prio_set, int min_prio,
-						    int max_prio_set, int max_prio);
+						    int max_prio_set, int max_prio, unsigned awake_workers);
 
 /* delete all sched_ctx */
 void _starpu_delete_all_sched_ctxs();
@@ -224,10 +231,14 @@ void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx
 
 unsigned _starpu_sched_ctx_allow_hypervisor(unsigned sched_ctx_id);
 
+struct starpu_perfmodel_arch * _starpu_sched_ctx_get_perf_archtype(unsigned sched_ctx);
 #ifdef STARPU_USE_SC_HYPERVISOR
 /* Notifies the hypervisor that a tasks was poped from the workers' list */
 void _starpu_sched_ctx_post_exec_task_cb(int workerid, struct starpu_task *task, size_t data_size, uint32_t footprint);
 
 #endif //STARPU_USE_SC_HYPERVISOR
+
+/* if the worker is the master of a parallel context, and the job is meant to be executed on this parallel context, return a pointer to the context */
+struct _starpu_sched_ctx *_starpu_sched_ctx_get_sched_ctx_for_worker_and_job(struct _starpu_worker *worker, struct _starpu_job *j);
 
 #endif // __SCHED_CONTEXT_H__

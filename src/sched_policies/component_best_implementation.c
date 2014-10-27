@@ -23,7 +23,7 @@
 /* return true if workerid can execute task, and fill task->predicted and task->predicted_transfer
  *  according to best implementation predictions
  */
-static int find_best_impl(struct starpu_task * task, int workerid)
+static int find_best_impl(unsigned sched_ctx_id, struct starpu_task * task, int workerid)
 {
 	double len = DBL_MAX;
 	int best_impl = -1;
@@ -32,7 +32,7 @@ static int find_best_impl(struct starpu_task * task, int workerid)
 	{
 		if(starpu_worker_can_execute_task(workerid, task, impl))
 		{
-			struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid);
+			struct starpu_perfmodel_arch* archtype = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
 			double d = starpu_task_expected_length(task, archtype, impl);
 			if(isnan(d))
 			{
@@ -61,20 +61,20 @@ static int find_best_impl(struct starpu_task * task, int workerid)
 /* set implementation, task->predicted and task->predicted_transfer with the first worker of workers that can execute that task
  * or have to be calibrated
  */
-static void select_best_implementation_and_set_preds(struct starpu_bitmap * workers, struct starpu_task * task)
+static void select_best_implementation_and_set_preds(unsigned sched_ctx_id, struct starpu_bitmap * workers, struct starpu_task * task)
 {
 	int workerid;
 	for(workerid = starpu_bitmap_first(workers);
 	    -1 != workerid;
 	    workerid = starpu_bitmap_next(workers, workerid))
-		if(find_best_impl(task, workerid))
+		if(find_best_impl(sched_ctx_id, task, workerid))
 			break;
 }
 
 static int best_implementation_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
 	STARPU_ASSERT(component->nchildren == 1);
-	select_best_implementation_and_set_preds(component->workers_in_ctx, task);
+	select_best_implementation_and_set_preds(component->tree->sched_ctx_id, component->workers_in_ctx, task);
 	return component->children[0]->push_task(component->children[0],task);
 }
 
@@ -100,7 +100,7 @@ static struct starpu_task * best_implementation_pull_task(struct starpu_sched_co
 	}
 	if(task)
 		/* this worker can execute this task as it was returned by a pop*/
-		(void)find_best_impl(task, starpu_worker_get_id());
+		(void)find_best_impl(component->tree->sched_ctx_id, task, starpu_worker_get_id());
 	return task;
 }
 

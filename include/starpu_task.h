@@ -184,6 +184,7 @@ struct starpu_task
 
 	unsigned sched_ctx;
 	int hypervisor_tag;
+	unsigned possibly_parallel;
 
 	starpu_task_bundle_t bundle;
 
@@ -232,7 +233,8 @@ struct starpu_task
 	.dyn_handles = NULL,				\
 	.dyn_interfaces = NULL,				\
 	.dyn_modes = NULL,				\
-	.name = NULL                        		\
+	.name = NULL,                        		\
+	.possibly_parallel = 0                        	\
 }
 
 #define STARPU_TASK_GET_NBUFFERS(task) ((unsigned)((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS ? ((task)->nbuffers) : ((task)->cl->nbuffers)))

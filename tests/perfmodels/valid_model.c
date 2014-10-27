@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,7 @@
 
 #include <config.h>
 #include <starpu.h>
+#include <core/perfmodel/perfmodel.h>
 #include "../helper.h"
 
 void func(void *descr[], void *arg)
@@ -66,7 +67,6 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	conf.sched_policy_name = "eager";
 	conf.calibrate = 1;
 
-
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -74,15 +74,19 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 	codelet->model = model;
 
 	old_nsamples = 0;
-	lmodel.is_init=0;
+	memset(&lmodel, 0, sizeof(struct starpu_perfmodel));
 	lmodel.type = model->type;
 	ret = starpu_perfmodel_load_symbol(codelet->model->symbol, &lmodel);
 	if (ret != 1)
-		for (archtype = 0; archtype < STARPU_NARCH; archtype++)
-			if(lmodel.per_arch[archtype] != NULL)
-				for(devid=0; lmodel.per_arch[archtype][devid] != NULL; devid++)
-					for(ncore=0; lmodel.per_arch[archtype][devid][ncore] != NULL; ncore++)
-						old_nsamples += lmodel.per_arch[archtype][devid][ncore][0].regression.nsample;
+	{
+		int i, impl;
+		for(i = 0; i < lmodel.state->ncombs; i++)
+		{
+			int comb = lmodel.state->combs[i];
+			for(impl = 0; impl < lmodel.state->nimpls[comb]; impl++)
+				old_nsamples += lmodel.state->per_arch[comb][impl].regression.nsample;
+		}
+	}
 
         starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, 100, sizeof(int));
 	for (loop = 0; loop < nloops; loop++)
@@ -105,13 +109,18 @@ static int submit(struct starpu_codelet *codelet, struct starpu_perfmodel *model
 		starpu_shutdown();
 		return 1;
 	}
-
-	new_nsamples = 0;
-	for (archtype = 0; archtype < STARPU_NARCH; archtype++)
-		if(lmodel.per_arch[archtype] != NULL)
-			for(devid=0; lmodel.per_arch[archtype][devid] != NULL; devid++)
-				for(ncore=0; lmodel.per_arch[archtype][devid][ncore] != NULL; ncore++)
-					new_nsamples += lmodel.per_arch[archtype][devid][ncore][0].regression.nsample;
+	else
+	{
+		int i;
+		new_nsamples = 0;
+		for(i = 0; i < lmodel.state->ncombs; i++)
+		{
+			int comb = lmodel.state->combs[i];
+			int impl;
+			for(impl = 0; impl < lmodel.state->nimpls[comb]; impl++)
+			     new_nsamples += lmodel.state->per_arch[comb][impl].regression.nsample;
+		}
+	}
 
 	ret = starpu_perfmodel_unload_model(&lmodel);
 	starpu_shutdown();

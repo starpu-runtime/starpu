@@ -31,7 +31,7 @@ struct starpu_fxt_codelet_event
 {
 	char symbol[256];
 	int workerid;
-	struct starpu_perfmodel_arch arch;
+	char perfmodel_archname[256];
 	uint32_t hash;
 	size_t size;
 	float time;

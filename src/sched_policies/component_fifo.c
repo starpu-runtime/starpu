@@ -66,7 +66,7 @@ static double fifo_estimated_load(struct starpu_sched_component * component)
 	if(STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(component))
 	{		
 		int first_worker = starpu_bitmap_first(component->workers_in_ctx);
-		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker));
+		relative_speedup = starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(first_worker, component->tree->sched_ctx_id));
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);
 		load = fifo->ntasks / relative_speedup;
 		STARPU_PTHREAD_MUTEX_UNLOCK(mutex);
@@ -78,7 +78,7 @@ static double fifo_estimated_load(struct starpu_sched_component * component)
 		for(i = starpu_bitmap_first(component->workers_in_ctx);
 		    i != -1;
 		    i = starpu_bitmap_next(component->workers_in_ctx, i))
-			relative_speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(i));
+			relative_speedup += starpu_worker_get_relative_speedup(starpu_worker_get_perf_archtype(i, component->tree->sched_ctx_id));
 		relative_speedup /= starpu_bitmap_cardinal(component->workers_in_ctx);
 		STARPU_ASSERT(!_STARPU_IS_ZERO(relative_speedup));
 		STARPU_PTHREAD_MUTEX_LOCK(mutex);

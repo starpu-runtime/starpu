@@ -17,6 +17,7 @@
 #include <starpu.h>
 #include <starpu_scheduler.h>
 #include "../helper.h"
+#include <core/perfmodel/perfmodel.h>
 
 /*
  * Schedulers that are aware of the expected task length provided by the
@@ -88,6 +89,7 @@ static struct starpu_perfmodel model_cpu_task =
 	.type = STARPU_PER_ARCH,
 	.symbol = "model_cpu_task"
 };
+
 static struct starpu_perfmodel model_gpu_task =
 {
 	.type = STARPU_PER_ARCH,
@@ -95,48 +97,39 @@ static struct starpu_perfmodel model_gpu_task =
 };
 
 static void
+init_perfmodels_gpu(int gpu_type)
+{
+	int nb_worker_gpu = starpu_worker_get_count_by_type(gpu_type);
+	int *worker_gpu_ids = malloc(nb_worker_gpu * sizeof(int));
+	int worker_gpu;
+
+	starpu_worker_get_ids_by_type(gpu_type, worker_gpu_ids, nb_worker_gpu);
+	for(worker_gpu = 0 ; worker_gpu < nb_worker_gpu ; worker_gpu ++)
+	{
+		starpu_perfmodel_set_per_devices_cost_function(&model_cpu_task, 0, cpu_task_gpu,
+							       gpu_type, starpu_worker_get_devid(worker_gpu_ids[worker_gpu]), 1,
+							       -1);
+
+		starpu_perfmodel_set_per_devices_cost_function(&model_gpu_task, 0, gpu_task_gpu,
+							       gpu_type, starpu_worker_get_devid(worker_gpu_ids[worker_gpu]), 1,
+							       -1);
+	}
+}
+
+static void
 init_perfmodels(void)
 {
 	unsigned devid, ncore;
 
-	starpu_perfmodel_init(&model_cpu_task);
-	starpu_perfmodel_init(&model_gpu_task);
+	starpu_perfmodel_init(NULL, &model_cpu_task);
+	starpu_perfmodel_init(NULL, &model_gpu_task);
 
-	if(model_cpu_task.per_arch[STARPU_CPU_WORKER] != NULL)
-	{
-		for(devid=0; model_cpu_task.per_arch[STARPU_CPU_WORKER][devid] != NULL; devid++)
-		{
-			for(ncore=0; model_cpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore] != NULL; ncore++)
-			{
-				model_cpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore][0].cost_function = cpu_task_cpu;
-				model_gpu_task.per_arch[STARPU_CPU_WORKER][devid][ncore][0].cost_function = gpu_task_cpu;
-			}
-		}
-	}
+	starpu_perfmodel_set_per_devices_cost_function(&model_cpu_task, 0, cpu_task_cpu, STARPU_CPU_WORKER, 0, 1, -1);
+	starpu_perfmodel_set_per_devices_cost_function(&model_gpu_task, 0, gpu_task_cpu, STARPU_CPU_WORKER, 0, 1, -1);
 
-	if(model_cpu_task.per_arch[STARPU_CUDA_WORKER] != NULL)
-	{
-		for(devid=0; model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid] != NULL; devid++)
-		{
-			for(ncore=0; model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore] != NULL; ncore++)
-			{
-				model_cpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = cpu_task_gpu;
-				model_gpu_task.per_arch[STARPU_CUDA_WORKER][devid][ncore][0].cost_function = gpu_task_gpu;
-			}
-		}
-	}
-
-	if(model_cpu_task.per_arch[STARPU_OPENCL_WORKER] != NULL)
-	{
-		for(devid=0; model_cpu_task.per_arch[STARPU_OPENCL_WORKER][devid] != NULL; devid++)
-		{
-			for(ncore=0; model_cpu_task.per_arch[STARPU_OPENCL_WORKER][devid][ncore] != NULL; ncore++)
-			{
-				model_cpu_task.per_arch[STARPU_OPENCL_WORKER][devid][ncore][0].cost_function = cpu_task_gpu;
-				model_gpu_task.per_arch[STARPU_OPENCL_WORKER][devid][ncore][0].cost_function = gpu_task_gpu;
-			}
-		}
-	}
+	// We need to set the cost function for each combination with a CUDA or a OpenCL worker
+	init_perfmodels_gpu(STARPU_CUDA_WORKER);
+	init_perfmodels_gpu(STARPU_OPENCL_WORKER);
 }
 
 /*
@@ -166,17 +159,19 @@ run(struct starpu_sched_policy *policy)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.sched_policy = policy;
+
 	int ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		exit(STARPU_TEST_SKIPPED);
 
 	/* At least 1 CPU and 1 GPU are needed. */
-	if (starpu_cpu_worker_get_count() == 0) {
+	if (starpu_cpu_worker_get_count() == 0)
+	{
 		starpu_shutdown();
 		exit(STARPU_TEST_SKIPPED);
 	}
-	if (starpu_cuda_worker_get_count() == 0 &&
-	    starpu_opencl_worker_get_count() == 0) {
+	if (starpu_cuda_worker_get_count() == 0 && starpu_opencl_worker_get_count() == 0)
+	{
 		starpu_shutdown();
 		exit(STARPU_TEST_SKIPPED);
 	}
@@ -202,10 +197,9 @@ run(struct starpu_sched_policy *policy)
 	enum starpu_worker_archtype cpu_task_worker, gpu_task_worker;
 	cpu_task_worker = starpu_worker_get_type(cpu_task->profiling_info->workerid);
 	gpu_task_worker = starpu_worker_get_type(gpu_task->profiling_info->workerid);
-	if (cpu_task_worker != STARPU_CPU_WORKER ||
-			(gpu_task_worker != STARPU_CUDA_WORKER &&
-			 gpu_task_worker != STARPU_OPENCL_WORKER))
+	if (cpu_task_worker != STARPU_CPU_WORKER || (gpu_task_worker != STARPU_CUDA_WORKER && gpu_task_worker != STARPU_OPENCL_WORKER))
 	{
+		FPRINTF(stderr, "Tasks did not execute on expected worker\n");
 		if (cpu_task_worker != STARPU_CPU_WORKER)
 		{
 			FPRINTF(stderr, "The CPU task did not run on a CPU worker\n");
@@ -218,8 +212,10 @@ run(struct starpu_sched_policy *policy)
 		ret = 1;
 	}
 	else
+	{
+		FPRINTF(stderr, "Tasks DID execute on expected worker\n");
 		ret = 0;
-
+	}
 
 	starpu_task_destroy(cpu_task);
 	starpu_task_destroy(gpu_task);

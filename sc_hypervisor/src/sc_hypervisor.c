@@ -382,9 +382,12 @@ void sc_hypervisor_unregister_ctx(unsigned sched_ctx)
 	int *pus;
 	unsigned npus = starpu_sched_ctx_get_workers_list(sched_ctx, &pus);
 
-	starpu_sched_ctx_set_priority(pus, npus, father, 1);
-	starpu_sched_ctx_set_priority_on_level(pus, npus, father, 1);
-	free(pus);
+	if(npus)
+	{
+		starpu_sched_ctx_set_priority(pus, npus, father, 1);
+		starpu_sched_ctx_set_priority_on_level(pus, npus, father, 1);
+		free(pus);
+	}
 
 	unsigned i;
 	for(i = 0; i < hypervisor.nsched_ctxs; i++)

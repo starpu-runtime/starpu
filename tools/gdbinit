@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2014  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -475,6 +475,24 @@ define starpu-print-prequests
   end
 end
 
+define starpu-print-arch
+  set $arch = (struct starpu_perfmodel_arch *)$arg0
+  set $device = 0
+  while $device < $arch->ndevices
+    printf "  Device type %d - devid: %d - ncores: %d\n", $arch->devices[$device].type, $arch->devices[$device].devid, $arch->devices[$device].ncores
+    set $device = $device + 1
+  end
+end
+
+define starpu-print-archs
+  set $comb = 0
+  while $comb < current_arch_comb
+    printf "Combination %d with %d devices\n", $comb, arch_combs[$comb]->ndevices
+    starpu-print-arch arch_combs[$comb]
+    set $comb = $comb + 1
+  end
+end
+
 define starpu-print-frequests
   set $node = 0
   while $node < descr.nnodes
@@ -563,6 +581,25 @@ define starpu-memusage
   end
 end
 
+define starpu-print-model
+    set $model = (struct starpu_perfmodel *)$arg0
+    printf "Model %p type %d symbol ", $model, $model->type
+    if $model->symbol
+       printf "%s", $model->symbol
+    else
+       printf "NULL"
+    end
+    printf "\n"
+end
+
+define starpu-print-registered-models
+    set $node = registered_models
+    while $node
+    	  starpu-print-model $node->model
+	  set $node = $node->next
+    end
+end
+
 document starpu
 List of StarPU-specific gdb functions:
 starpu-workers          prints a list of the StarPU workers
@@ -580,4 +617,8 @@ starpu-print-frequests  prints all StarPU prefetch data requests
 starpu-tasks            prints a list of the tasks flowing in StarPU
 starpu-tags             prints a list of the tags known to StarPU
 starpu-memusage         prints the memory node usage
+starpu-print-archs      prints all known arch combinations
+starpu-print-arch       prints a given arch combination
+starpu-print-registered-models prints all registered performance models
+starpu-print-model      prints a given performance model
 end

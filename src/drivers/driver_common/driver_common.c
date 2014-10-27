@@ -74,7 +74,34 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	if (starpu_top)
 		_starpu_top_task_started(task,workerid,codelet_start);
 
-	_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
+
+	// Find out if the worker is the master of a parallel context
+	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
+	if(!sched_ctx)
+		sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
+	if(!sched_ctx->sched_policy)
+	{
+		if(!sched_ctx->awake_workers && sched_ctx->main_master == worker->workerid)
+		{
+			struct starpu_worker_collection *workers = sched_ctx->workers;
+			struct starpu_sched_ctx_iterator it;
+
+			if (workers->init_iterator)
+				workers->init_iterator(workers, &it);
+			while (workers->has_next(workers, &it))
+			{
+				int _workerid = workers->get_next(workers, &it);
+				if (_workerid != workerid)
+				{
+					struct _starpu_worker *_worker = _starpu_get_worker_struct(_workerid);
+					_starpu_driver_start_job(_worker, j, &_worker->perf_arch, codelet_start, rank, profiling);
+				}
+			}
+		}
+		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, &sched_ctx->perf_arch, workerid);
+	}
+	else
+		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
 }
 
 void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, struct timespec *codelet_end, int rank, int profiling)
@@ -86,7 +113,22 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	int workerid = worker->workerid;
 	unsigned calibrate_model = 0;
 
-	_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
+	// Find out if the worker is the master of a parallel context
+	struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(worker, j);
+	unsigned worker_left_ctx = 0;
+	if(!sched_ctx)
+		sched_ctx = _starpu_get_sched_ctx_struct(j->task->sched_ctx);
+
+	if (!sched_ctx->sched_policy)
+	{
+		_starpu_perfmodel_create_comb_if_needed(&(sched_ctx->perf_arch));
+		_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, &(sched_ctx->perf_arch), workerid);
+	}
+	else
+	{
+		_starpu_perfmodel_create_comb_if_needed(perf_arch);
+		_STARPU_TRACE_END_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
+	}
 
 	if (cl && cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
@@ -104,7 +146,27 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 		_starpu_top_task_ended(task,workerid,codelet_end);
 
 	_starpu_set_worker_status(worker, STATUS_UNKNOWN);
+
+	if(!sched_ctx->sched_policy && !sched_ctx->awake_workers &&
+	   sched_ctx->main_master == worker->workerid)
+	{
+		struct starpu_worker_collection *workers = sched_ctx->workers;
+		struct starpu_sched_ctx_iterator it;
+
+		if (workers->init_iterator)
+			workers->init_iterator(workers, &it);
+		while (workers->has_next(workers, &it))
+		{
+			int _workerid = workers->get_next(workers, &it);
+			if (_workerid != workerid)
+			{
+				struct _starpu_worker *_worker = _starpu_get_worker_struct(_workerid);
+				_starpu_driver_end_job(_worker, j, &_worker->perf_arch, codelet_end, rank, profiling);
+			}
+		}
+	}
 }
+
 void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker,
 					struct starpu_perfmodel_arch* perf_arch,
 					struct timespec *codelet_start, struct timespec *codelet_end, int profiling)
@@ -116,6 +178,8 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	struct starpu_codelet *cl = j->task->cl;
 	int calibrate_model = 0;
 	int updated = 0;
+
+	_starpu_perfmodel_create_comb_if_needed(perf_arch);
 
 #ifndef STARPU_SIMGRID
 	if (cl->model && cl->model->benchmarking)
@@ -257,10 +321,10 @@ static void _starpu_worker_set_status_wakeup(int workerid)
 static void _starpu_exponential_backoff(struct _starpu_worker *worker)
 {
 	int delay = worker->spinning_backoff;
-	
+
 	if (worker->spinning_backoff < BACKOFF_MAX)
-		worker->spinning_backoff<<=1; 
-	
+		worker->spinning_backoff<<=1;
+
 	while(delay--)
 		STARPU_UYIELD();
 }
@@ -285,6 +349,9 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 			if(sched_ctx && sched_ctx->id > 0 && sched_ctx->id < STARPU_NMAX_SCHED_CTXS)
 			{
 				STARPU_PTHREAD_MUTEX_LOCK(&sched_ctx->parallel_sect_mutex[workerid]);
+				if(!sched_ctx->sched_policy && sched_ctx->awake_workers) 
+					worker->slave = sched_ctx->main_master != workerid;
+
 				if(sched_ctx->parallel_sect[workerid])
 				{
 					/* don't let the worker sleep with the sched_mutex taken */
@@ -442,10 +509,13 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 					STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 					workers[i].current_rank = j->active_task_alias_count++;
 					STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-					
-					combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
-					workers[i].combined_workerid = j->combined_workerid;
-					workers[i].worker_size = combined_worker->worker_size;
+
+					if(j->combined_workerid != -1)
+					{
+						combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
+						workers[i].combined_workerid = j->combined_workerid;
+						workers[i].worker_size = combined_worker->worker_size;
+					}
 				}
 				else
 				{
@@ -520,4 +590,3 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 
 	return count;
 }
-

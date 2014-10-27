@@ -426,7 +426,7 @@ static void _starpu_get_tasks_times(int nw, int nt, double *times)
 				.footprint = tp->footprint,
 				.footprint_is_computed = 1,
 			};
-			struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w);
+			struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w, STARPU_NMAX_SCHED_CTXS);
 			double length = _starpu_history_based_job_expected_perf(tp->cl->model, arch, &j, j.nimpl);
 			if (isnan(length))
 				times[w*nt+t] = NAN;
@@ -512,15 +512,15 @@ void starpu_bound_print_lp(FILE *output)
 			};
 			for (w = 0; w < nw; w++)
 			{
-				struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w);
-				if (_STARPU_IS_ZERO(t1->duration[arch->type][arch->devid][arch->ncore]))
+				struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w, STARPU_NMAX_SCHED_CTXS);
+				if (_STARPU_IS_ZERO(t1->duration[arch->devices[0].type][arch->devices[0].devid][arch->devices[0].ncores]))
 				{
 					double length = _starpu_history_based_job_expected_perf(t1->cl->model, arch, &j,j.nimpl);
 					if (isnan(length))
 						/* Avoid problems with binary coding of doubles */
-						t1->duration[arch->type][arch->devid][arch->ncore] = NAN;
+						t1->duration[arch->devices[0].type][arch->devices[0].devid][arch->devices[0].ncores] = NAN;
 					else
-						t1->duration[arch->type][arch->devid][arch->ncore] = length / 1000.;
+						t1->duration[arch->devices[0].type][arch->devices[0].devid][arch->devices[0].ncores] = length / 1000.;
 				}
 			}
 			nt++;
@@ -545,8 +545,8 @@ void starpu_bound_print_lp(FILE *output)
 		{
 			for (w = 0; w < nw; w++)
 			{
-				struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w);
-				if (!isnan(t1->duration[arch->type][arch->devid][arch->ncore]))
+				struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w, STARPU_NMAX_SCHED_CTXS);
+				if (!isnan(t1->duration[arch->devices[0].type][arch->devices[0].devid][arch->devices[0].ncores]))
 					fprintf(output, " +t%luw%d", t1->id, w);
 			}
 			fprintf(output, " = 1;\n");
@@ -559,9 +559,9 @@ void starpu_bound_print_lp(FILE *output)
 			fprintf(output, "/* %s %x */\tc%lu = s%lu", _starpu_codelet_get_model_name(t1->cl), (unsigned) t1->footprint, t1->id, t1->id);
 			for (w = 0; w < nw; w++)
 			{
-				struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w);
-				if (!isnan(t1->duration[arch->type][arch->devid][arch->ncore]))
-					fprintf(output, " + %f t%luw%d", t1->duration[arch->type][arch->devid][arch->ncore], t1->id, w);
+				struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w, STARPU_NMAX_SCHED_CTXS);
+				if (!isnan(t1->duration[arch->devices[0].type][arch->devices[0].devid][arch->devices[0].ncores]))
+					fprintf(output, " + %f t%luw%d", t1->duration[arch->devices[0].type][arch->devices[0].devid][arch->devices[0].ncores], t1->id, w);
 			}
 			fprintf(output, ";\n");
 		}
@@ -642,8 +642,8 @@ void starpu_bound_print_lp(FILE *output)
 				{
 					for (w = 0; w < nw; w++)
 					{
-						struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w);
-						if (!isnan(t1->duration[arch->type][arch->devid][arch->ncore]))
+						struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(w, STARPU_NMAX_SCHED_CTXS);
+						if (!isnan(t1->duration[arch->devices[0].type][arch->devices[0].devid][arch->devices[0].ncores]))
 						{
 							fprintf(output, "s%lu - c%lu >= -3e5 + 1e5 t%luw%d + 1e5 t%luw%d + 1e5 t%luafter%lu;\n",
 									t1->id, t2->id, t1->id, w, t2->id, w, t1->id, t2->id);

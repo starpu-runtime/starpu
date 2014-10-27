@@ -287,7 +287,15 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
-	if(sched_ctx->parallel_sect[workerid]) return 0;
+
+	/* if the task can't be parallel don't submit it to a ctx */
+	unsigned child_sched_ctx = starpu_sched_ctx_worker_is_master_for_child_ctx(workerid, sched_ctx->id);
+        if(child_sched_ctx != STARPU_NMAX_SCHED_CTXS)
+		if(!task->possibly_parallel) return 0;
+
+	/* if the worker is blocked in a parallel ctx don't submit tasks on it */
+	if(sched_ctx->parallel_sect[workerid] ) return 0;
+
 	/* TODO: check that the task operand sizes will fit on that device */
 	return (task->cl->where & config.workers[workerid].worker_mask) &&
 		_starpu_can_use_nth_implementation(config.workers[workerid].arch, task->cl, nimpl) &&
@@ -1192,7 +1200,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	if (!is_a_sink)
 	{
 		struct starpu_sched_policy *selected_policy = _starpu_select_sched_policy(&config, config.conf->sched_policy_name);
-		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", 0, 0, 0, 0);
+		_starpu_create_sched_ctx(selected_policy, NULL, -1, 1, "init", 0, 0, 0, 0, 1);
 	}
 
 	_starpu_initialize_registered_performance_models();

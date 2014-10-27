@@ -334,7 +334,6 @@ _starpu_init_mic_topology (struct _starpu_machine_config *config, long mic_idx)
 	topology->nhwmiccores[mic_idx] = nbcores;
 }
 
-
 static int
 _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 		       COIENGINE *coi_handle, COIPROCESS *coi_process)
@@ -402,8 +401,6 @@ _starpu_init_mic_node (struct _starpu_machine_config *config, int mic_idx,
 	return 0;
 }
 #endif
-
-
 
 static void
 _starpu_init_topology (struct _starpu_machine_config *config)
@@ -732,7 +729,6 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	topology->nworkers += topology->nmiccores[mic_idx];
     }
 
-
 #ifdef STARPU_USE_MIC
 static COIENGINE handles[2];
 static COIPROCESS process[2];
@@ -870,12 +866,15 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 		for (i = 0; i < nworker_per_cuda; i++)
 		{
 			int worker_idx = topology->nworkers + cudagpu * nworker_per_cuda + i;
+
 			config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
-			config->workers[worker_idx].perf_arch.type = STARPU_CUDA_WORKER;
-			config->workers[worker_idx].perf_arch.devid = devid;
+			config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+			config->workers[worker_idx].perf_arch.ndevices = 1;
+			config->workers[worker_idx].perf_arch.devices[0].type = STARPU_CUDA_WORKER;
+			config->workers[worker_idx].perf_arch.devices[0].devid = devid;
 			// TODO: fix perfmodels etc.
 			//config->workers[worker_idx].perf_arch.ncore = nworker_per_cuda - 1;
-			config->workers[worker_idx].perf_arch.ncore = 0;
+			config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
 			config->workers[worker_idx].devid = devid;
 			config->workers[worker_idx].subworkerid = i;
 			config->workers[worker_idx].worker_mask = STARPU_CUDA;
@@ -948,9 +947,11 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 			break;
 		}
 		config->workers[worker_idx].arch = STARPU_OPENCL_WORKER;
-		config->workers[worker_idx].perf_arch.type = STARPU_OPENCL_WORKER;
-		config->workers[worker_idx].perf_arch.devid = devid;
-		config->workers[worker_idx].perf_arch.ncore = 0;
+		config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		config->workers[worker_idx].perf_arch.ndevices = 1;
+		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_OPENCL_WORKER;
+		config->workers[worker_idx].perf_arch.devices[0].devid = devid;
+		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
 		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].devid = devid;
 		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
@@ -1010,9 +1011,12 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	{
 		config->workers[topology->nworkers + sccdev].arch = STARPU_SCC_WORKER;
 		int devid = _starpu_get_next_scc_deviceid(config);
-		config->workers[topology->nworkers + sccdev].perf_arch.type = STARPU_SCC_WORKER;
-		config->workers[topology->nworkers + sccdev].perf_arch.devid = sccdev;
-		config->workers[topology->nworkers + sccdev].perf_arch.ncore = 0;
+		config->workers[topology->nworkers + sccdev].perf_arch.devices = (struct starpu_perfmodel_device)malloc(sizeof(struct starpu_perfmodel_device));
+		config->workers[topology->nworkers + sccdev].perf_arch.ndevices = 1;
+
+		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].type = STARPU_SCC_WORKER;
+		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].devid = sccdev;
+		config->workers[topology->nworkers + sccdev].perf_arch.devices[0].ncore = 1;
 		config->workers[topology->nworkers + sccdev].subworkerid = 0;
 		config->workers[topology->nworkers + sccdev].devid = devid;
 		config->workers[topology->nworkers + sccdev].worker_mask = STARPU_SCC;
@@ -1076,9 +1080,11 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	{
 		int worker_idx = topology->nworkers + cpu;
 		config->workers[worker_idx].arch = STARPU_CPU_WORKER;
-		config->workers[worker_idx].perf_arch.type = STARPU_CPU_WORKER;
-		config->workers[worker_idx].perf_arch.devid = 0;
-		config->workers[worker_idx].perf_arch.ncore = 0;
+		config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		config->workers[worker_idx].perf_arch.ndevices = 1;
+		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_CPU_WORKER;
+		config->workers[worker_idx].perf_arch.devices[0].devid = 0;
+		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
 		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].devid = cpu;
 		config->workers[worker_idx].worker_mask = STARPU_CPU;
@@ -1095,8 +1101,6 @@ _starpu_init_machine_config (struct _starpu_machine_config *config, int no_mp_co
 	}
 	return 0;
 }
-
-
 
 void
 _starpu_bind_thread_on_cpu (
@@ -1168,7 +1172,6 @@ _starpu_bind_thread_on_cpu (
 #endif
 }
 
-
 void
 _starpu_bind_thread_on_cpus (
 	struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED,
@@ -1210,7 +1213,6 @@ _starpu_bind_thread_on_cpus (
 #endif
 #endif
 }
-
 
 static void
 _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED)
@@ -1467,7 +1469,6 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 	}
 }
 
-
 int
 _starpu_build_topology (struct _starpu_machine_config *config, int no_mp_config)
 {
@@ -1544,8 +1545,9 @@ _starpu_destroy_topology (
 	unsigned worker;
 	for (worker = 0; worker < config->topology.nworkers; worker++)
 	{
-#ifdef STARPU_HAVE_HWLOC
 		struct _starpu_worker *workerarg = &config->workers[worker];
+		free(workerarg->perf_arch.devices);
+#ifdef STARPU_HAVE_HWLOC
 		hwloc_bitmap_free(workerarg->hwloc_cpu_set);
 		if (workerarg->bindid != -1)
 		{
@@ -1559,6 +1561,13 @@ _starpu_destroy_topology (
 			}
 		}
 #endif
+	}
+
+	unsigned combined_worker_id;
+	for(combined_worker_id=0 ; combined_worker_id < config->topology.ncombinedworkers ; combined_worker_id++)
+	{
+		struct _starpu_combined_worker *combined_worker = &config->combined_workers[combined_worker_id];
+		free(combined_worker->perf_arch.devices);
 	}
 
 #ifdef STARPU_HAVE_HWLOC

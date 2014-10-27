@@ -63,6 +63,9 @@ New features:
     modes field to the task structure, which permit to define codelets taking a
     variable number of data.
   * Add support for implementing OpenMP runtimes on top of StarPU
+  * New performance model format to better represent parallel tasks.
+    Used to provide estimations for the execution times of the
+    parallel tasks on scheduling contexts or combined workers.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
