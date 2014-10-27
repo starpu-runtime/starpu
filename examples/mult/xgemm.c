@@ -16,6 +16,10 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#ifndef TYPE
+#error "Do not compile xgemm.c directly, compile sgemm.c or dgemm.c"
+#endif
+
 #include <limits.h>
 #include <string.h>
 #include <math.h>
