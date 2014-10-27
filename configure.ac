@@ -20,6 +20,12 @@ AC_INIT([StarPU], [1.2.0], [starpu-devel@lists.gforge.inria.fr], [starpu], [http
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
+# libtool doesn't actually properly manage a space in the workdir
+case `pwd` in
+  *[[\\\"\#\$\&\'\`$am_lf\ \	]]*)
+    AC_MSG_ERROR([unsafe absolute working directory name]);;
+esac
+
 dnl Versioning.
 
 STARPU_MAJOR_VERSION="`echo $PACKAGE_VERSION | cut -d . -f 1`"
