@@ -58,6 +58,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 void _starpu_load_perfmodel(struct starpu_perfmodel *model);
 void _starpu_initialize_registered_performance_models(void);
 void _starpu_deinitialize_registered_performance_models(void);
+void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model);
 
 double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model,
 					enum starpu_perfmodel_archtype arch, struct _starpu_job *j, unsigned nimpl);
@@ -81,5 +82,6 @@ int *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 #endif
 
 int _starpu_read_double(FILE *f, char *format, double *val);
+void _starpu_simgrid_get_platform_path(char *path, size_t maxlen);
 
 #endif // __PERFMODEL_H__

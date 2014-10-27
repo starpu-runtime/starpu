@@ -42,7 +42,7 @@
 /* XXX this should be reinitialized when StarPU is shutdown (or we should make
  * sure that no task remains !) */
 /* TODO we could make this hierarchical to avoid contention ? */
-static starpu_pthread_cond_t submitted_cond = STARPU_PTHREAD_COND_INITIALIZER;
+//static starpu_pthread_cond_t submitted_cond = STARPU_PTHREAD_COND_INITIALIZER;
 
 /* This key stores the task currently handled by the thread, note that we
  * cannot use the worker structure to store that information because it is

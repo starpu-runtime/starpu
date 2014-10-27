@@ -23,6 +23,7 @@
 #include <string.h>
 #include <common/config.h>
 #include <ctype.h>
+#include <core/perfmodel/perfmodel.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 static

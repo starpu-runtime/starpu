@@ -184,7 +184,7 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	return 0;
 }
 
-static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine_config *config)
+static size_t _starpu_cpu_get_global_mem_size(int nodeid STARPU_ATTRIBUTE_UNUSED, struct _starpu_machine_config *config)
 {
 	size_t global_mem;
 	starpu_ssize_t limit;
@@ -195,12 +195,11 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine
 #endif
 
 #if defined(STARPU_HAVE_HWLOC)
-        int depth_node;
 	struct _starpu_machine_topology *topology = &config->topology;
 
 #if 0
 	/* Do not limit ourself to a single NUMA node yet, as we don't have real NUMA support for now */
-        depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
+        int depth_node = hwloc_get_type_depth(topology->hwtopology, HWLOC_OBJ_NODE);
 
 	if (depth_node == HWLOC_TYPE_DEPTH_UNKNOWN)
 	     global_mem = hwloc_get_root_obj(topology->hwtopology)->memory.total_memory;
