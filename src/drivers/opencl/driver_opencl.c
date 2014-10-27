@@ -143,6 +143,7 @@ void starpu_opencl_get_current_context(cl_context *context)
 	STARPU_ASSERT(context);
         *context = contexts[worker->devid];
 }
+#endif /* STARPU_USE_OPENCL */
 
 int _starpu_opencl_init_context(int devid)
 {
@@ -238,6 +239,7 @@ int _starpu_opencl_deinit_context(int devid)
         return 0;
 }
 
+#ifdef STARPU_USE_OPENCL
 cl_int starpu_opencl_allocate_memory(int devid STARPU_ATTRIBUTE_UNUSED, cl_mem *mem STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBUTE_UNUSED, cl_mem_flags flags STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_SIMGRID
@@ -386,7 +388,6 @@ cl_int starpu_opencl_copy_opencl_to_opencl(cl_mem src, unsigned src_node STARPU_
 	return err;
 }
 
-#ifdef STARPU_USE_OPENCL
 cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, cl_event *event)
 {
 	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
@@ -428,7 +429,6 @@ cl_int starpu_opencl_copy_async_sync(uintptr_t src, size_t src_offset, unsigned 
 		break;
 	}
 }
-#endif
 
 #if 0
 cl_int _starpu_opencl_copy_rect_opencl_to_ram(cl_mem buffer, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *ptr, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, const size_t buffer_origin[3], const size_t host_origin[3],
@@ -667,7 +667,6 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 	if (worker->ntasks)
 	{
-		cl_int status;
 		size_t size;
 		int err;
 
@@ -678,6 +677,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 #ifdef STARPU_SIMGRID
 		if (task_finished[worker->devid][worker->first_task])
 #else /* !STARPU_SIMGRID */
+		cl_int status;
 		err = clGetEventInfo(task_events[worker->devid][worker->first_task], CL_EVENT_COMMAND_EXECUTION_STATUS, sizeof(cl_int), &status, &size);
 		STARPU_ASSERT(size == sizeof(cl_int));
 		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
