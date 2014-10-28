@@ -19,6 +19,11 @@
 
 #include <starpu.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
 #endif
@@ -360,5 +365,8 @@ struct starpu_sched_specs
 struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_specs);
 #endif /* STARPU_HAVE_HWLOC */
 
-
+#ifdef __cplusplus
+}
 #endif
+
+#endif /* __STARPU_SCHED_COMPONENT_H__ */
