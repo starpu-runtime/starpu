@@ -76,7 +76,7 @@ int starpu_mpi_world_rank(void);
 int starpu_mpi_get_communication_tag(void);
 void starpu_mpi_set_communication_tag(int tag);
 
-void starpu_mpi_data_register(starpu_data_handle_t data_handle,int tag, int rank);
+void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int rank);
 
 #ifdef __cplusplus
 }
