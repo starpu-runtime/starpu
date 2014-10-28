@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -693,7 +693,7 @@ starpu_codelet::modes or the \p i th element of the field
 starpu_codelet::dyn_modes (see \ref
 SettingTheDataHandlesForATask)
 
-\def STARPU_TASK_GET_MODE(codelet, i)
+\def STARPU_TASK_GET_MODE(task, i)
 \ingroup API_Codelet_And_Tasks
 Return the access mode of the \p i th data handle of the given
 task. If the task is defined with a static or dynamic number of
