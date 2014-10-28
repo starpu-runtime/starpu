@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux
+ * Copyright (C) 2009-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -508,7 +508,7 @@ static struct starpu_codelet STARPUFFT(fft_1d_codelet) = {
 STARPUFFT(plan)
 STARPUFFT(plan_dft_1d)(int n, int sign, unsigned flags)
 {
-	int workerid;
+	unsigned workerid;
 	int n1 = DIV_1D;
 	int n2 = n / n1;
 	int n3;
@@ -848,7 +848,7 @@ if (PARALLEL) {
 static void
 STARPUFFT(free_1d_tags)(STARPUFFT(plan) plan)
 {
-	unsigned i;
+	int i;
 	int n1 = plan->n1[0];
 
 	if (!PARALLEL)

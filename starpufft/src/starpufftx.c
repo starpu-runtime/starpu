@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -174,7 +174,7 @@ compute_roots(STARPUFFT(plan) plan)
 
 /* Only CUDA capability >= 1.3 supports doubles, rule old card out.  */
 #ifdef DOUBLE
-static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl) {
+static int can_execute(unsigned workerid, struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED) {
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 		return 1;
 #ifdef STARPU_USE_CUDA
@@ -307,7 +307,8 @@ STARPUFFT(execute_handle)(STARPUFFT(plan) plan, starpu_data_handle_t in, starpu_
 void
 STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 {
-	int workerid, dim, i;
+	unsigned workerid;
+	int dim, i;
 
 	for (workerid = 0; workerid < starpu_worker_get_count(); workerid++)
 	{
@@ -436,7 +437,7 @@ STARPUFFT(free)(void *p)
 void
 STARPUFFT(showstats)(FILE *out)
 {
-	int worker;
+	unsigned worker;
 	unsigned total;
 
 #define TIMING(begin,end) (double)((end.tv_sec - begin.tv_sec)*1000000 + (end.tv_usec - begin.tv_usec))
