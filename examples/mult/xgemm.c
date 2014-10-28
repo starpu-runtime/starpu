@@ -180,10 +180,10 @@ static void cpu_mult(void *descr[], STARPU_ATTRIBUTE_UNUSED  void *arg)
 	else
 	{
 		/* Parallel CPU task */
-		int rank = starpu_combined_worker_get_rank();
+		unsigned rank = starpu_combined_worker_get_rank();
 
-		int block_size = (nyC + worker_size - 1)/worker_size;
-		int new_nyC = STARPU_MIN(nyC, block_size*(rank+1)) - block_size*rank;
+		unsigned block_size = (nyC + worker_size - 1)/worker_size;
+		unsigned new_nyC = STARPU_MIN(nyC, block_size*(rank+1)) - block_size*rank;
 
 		STARPU_ASSERT(nyC = STARPU_MATRIX_GET_NY(descr[1]));
 

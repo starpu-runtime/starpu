@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2013  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2013-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -57,7 +57,7 @@ void prologue_callback_func(void *callback_arg)
 
 void pop_prologue_callback_func(void *args)
 {
-	unsigned val = (unsigned) args;
+	unsigned val = (uintptr_t) args;
 	printf("pop_prologue_callback val %d \n", val);
 }
 

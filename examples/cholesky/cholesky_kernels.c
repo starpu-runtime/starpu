@@ -55,10 +55,10 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STAR
 		else
 		{
 			/* Parallel CPU kernel */
-			int rank = starpu_combined_worker_get_rank();
+			unsigned rank = starpu_combined_worker_get_rank();
 
-			int block_size = (dx + worker_size - 1)/worker_size;
-			int new_dx = STARPU_MIN(dx, block_size*(rank+1)) - block_size*rank;
+			unsigned block_size = (dx + worker_size - 1)/worker_size;
+			unsigned new_dx = STARPU_MIN(dx, block_size*(rank+1)) - block_size*rank;
 			
 			float *new_left = &left[block_size*rank];
 			float *new_center = &center[block_size*rank];

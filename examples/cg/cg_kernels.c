@@ -395,10 +395,10 @@ static void gemv_kernel_cpu(void *descr[], void *cl_arg)
 	if (worker_size > 1)
 	{
 		/* Parallel CPU task */
-		int rank = starpu_combined_worker_get_rank();
+		unsigned rank = starpu_combined_worker_get_rank();
 		
-		int block_size = (ny + worker_size - 1)/worker_size;
-		int new_nx = STARPU_MIN(nx, block_size*(rank+1)) - block_size*rank;
+		unsigned block_size = (ny + worker_size - 1)/worker_size;
+		unsigned new_nx = STARPU_MIN(nx, block_size*(rank+1)) - block_size*rank;
 
 		nx = new_nx;
 		v1 = &v1[block_size*rank];
