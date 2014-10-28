@@ -55,7 +55,7 @@ int main()
 
 	double timing = (end_time - start_time) / 1000;
 
-	int i;
+	unsigned i;
 	for(i = 0; i < ncpus; i++)
 	{
 		int added = co->add(co, procs[i]);
