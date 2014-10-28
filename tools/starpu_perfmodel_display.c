@@ -158,7 +158,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		struct starpu_perfmodel model = {};
+		struct starpu_perfmodel model = { .type = STARPU_PERFMODEL_INVALID };
                 int ret = starpu_perfmodel_load_symbol(psymbol, &model);
                 if (ret == 1)
 		{

@@ -427,7 +427,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 int main(int argc, char **argv)
 {
 	int ret = 0;
-	struct starpu_perfmodel model = {};
+	struct starpu_perfmodel model = { .type = STARPU_PERFMODEL_INVALID };
 	char gnuplot_file_name[256];
 	struct _perfmodel_plot_options options;
 
