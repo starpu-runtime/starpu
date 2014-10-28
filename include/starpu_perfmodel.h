@@ -146,7 +146,6 @@ struct starpu_perfmodel
 };
 
 void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model);
-//void starpu_perfmodel_init_with_file(FILE*f, struct starpu_perfmodel *model);
 
 struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid, unsigned sched_ctx_id);
 
