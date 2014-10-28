@@ -200,7 +200,7 @@ Tell StarPU-MPI which MPI tag to use when exchanging the data.
 \ingroup API_MPI_Support
 Returns the MPI tag to be used when exchanging the data.
 
-\fn int starpu_mpi_data_register(starpu_data_handle_t handle, int tag, int rank)
+\fn void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int rank)
 \ingroup API_MPI_Support
 Calling this function should be prefered to calling both
 starpu_data_set_rank() and starpu_data_set_tag() as it also allows to

@@ -207,11 +207,7 @@ in bytes
 \var starpu_perfmodel_history_entry::flops
 Provided by the application
 
-\fn void starpu_perfmodel_init(struct starpu_perfmodel *model)
-\ingroup API_Performance_Model
-todo
-
-\fn void starpu_perfmodel_init_with_file(FILE*f, struct starpu_perfmodel *model)
+\fn void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model)
 \ingroup API_Performance_Model
 todo
 

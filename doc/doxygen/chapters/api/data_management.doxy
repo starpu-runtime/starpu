@@ -250,18 +250,18 @@ Similarly to starpu_data_acquire_cb(), this function is
 non-blocking and may be called from task callbacks. Upon successful
 completion, this function returns 0.
 
-\fn int starpu_data_acquire_on_node(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode)
+\fn int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode)
 \ingroup API_Data_Management
 This is the same as starpu_data_acquire(), except that the data
 will be available on the given memory node instead of main memory.
 
-\fn int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
+\fn int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
 \ingroup API_Data_Management
 This is the same as starpu_data_acquire_cb(), except that the
 data will be available on the given memory node instead of main
 memory.
 
-\fn int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, unsigned node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
+\fn int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency)
 \ingroup API_Data_Management
 This is the same as starpu_data_acquire_cb_sequential_consistency(), except that the
 data will be available on the given memory node instead of main
@@ -282,7 +282,7 @@ This function releases the piece of data acquired by the
 application either by starpu_data_acquire() or by
 starpu_data_acquire_cb().
 
-\fn void starpu_data_release_on_node(starpu_data_handle_t handle, unsigned node)
+\fn void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
 \ingroup API_Data_Management
 This is the same as starpu_data_release(), except that the data
 will be available on the given memory \p node instead of main memory.

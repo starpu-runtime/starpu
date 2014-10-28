@@ -210,7 +210,7 @@ the runtime support for OpenMP.
 \ingroup API_OpenMP_Runtime_Support
 Initializes StarPU and its OpenMP Runtime support.
 
-\fn int starpu_omp_shutdown(void)
+\fn void starpu_omp_shutdown(void)
 \ingroup API_OpenMP_Runtime_Support
 Shutdown StarPU and its OpenMP Runtime support.
 
@@ -480,7 +480,7 @@ the execution of all the sections (<c>nowait==0</c>) or not (<c>nowait==!0</c>).
 
 This function can be used to implement <c>\#pragma omp sections</c> and <c>\#pragma omp section</c>.
 
-\fn void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section_f)(unsigned long long section_num, void *arg), void **section_arg, int nowait)
+\fn void starpu_omp_sections_combined(unsigned long long nb_sections, void (*section_f)(unsigned long long section_num, void *arg), void *section_arg, int nowait)
 \ingroup API_OpenMP_Runtime_Support
 Alternative implementation of sections. This function differs from
 #starpu_omp_sections in that all the sections are combined within a single
@@ -952,7 +952,7 @@ This function returns the precision of the time used by \p starpu_omp_get_wtime.
 
 \sa starpu_omp_get_wtime
 
-\fn void starpu_omp_vector_annotate (starpu_data_handle_t handle, uint32_t slice_base)
+\fn void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t slice_base)
 \ingroup API_OpenMP_Runtime_Support
 This function enables setting additional vector metadata needed by the OpenMP Runtime Support.
 
