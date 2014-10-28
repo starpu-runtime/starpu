@@ -732,7 +732,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 }
 
-static void handle_codelet_data(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_codelet_data(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 	int worker = ev->param[0];
@@ -747,7 +747,7 @@ static void handle_codelet_data(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 #endif /* STARPU_ENABLE_PAJE_CODELET_DETAILS */
 }
 
-static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void handle_codelet_details(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_ENABLE_PAJE_CODELET_DETAILS
 	int worker = ev->param[5];
