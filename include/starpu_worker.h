@@ -47,9 +47,7 @@ struct starpu_sched_ctx_iterator
 
 enum starpu_worker_collection_type
 {
-#ifdef STARPU_HAVE_HWLOC
 	STARPU_WORKER_TREE,
-#endif
 	STARPU_WORKER_LIST
 };
 
