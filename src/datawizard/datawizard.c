@@ -28,9 +28,6 @@ int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsig
 {
 	int ret = 0;
 
-#if STARPU_DEVEL
-#warning FIXME
-#endif
 #ifdef STARPU_SIMGRID
 	MSG_process_sleep(0.000010);
 #endif
