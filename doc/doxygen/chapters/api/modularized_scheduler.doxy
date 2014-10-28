@@ -72,7 +72,7 @@ The actual scheduler
 \var starpu_sched_tree::sched_ctx_id
 	the context id of the scheduler
 
-\fn struct starpu_sched_component *starpu_sched_component_create(void)
+\fn struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree)
 \ingroup API_Modularized_Scheduler
 	 allocate and initialize component field with defaults values :
 	.pop_task make recursive call on father
@@ -93,23 +93,11 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 	 set component->fathers[sched_ctx_id] to father_component
 
-\fn void starpu_sched_component_add_child(struct starpu_sched_component *component, struct starpu_sched_component *child)
-\ingroup API_Modularized_Scheduler
-	 add child to component->children and increment nchildren as well.
-	 and do not modify child->fathers
-	 \p child must not be already in starpu_sched_component::children of \p component
-
-\fn void starpu_sched_component_remove_child(struct starpu_sched_component *component, struct starpu_sched_component *child)
-\ingroup API_Modularized_Scheduler
-	 remove child from component->children and decrements nchildren
-	 \p child must be in starpu_sched_component::child of \p component
-
-
 \fn int starpu_sched_component_can_execute_task(struct starpu_sched_component *component, struct starpu_task *task)
 \ingroup API_Modularized_Scheduler
 	 return true iff \p component can execute \p task, this function take into account the workers available in the scheduling context
 
-\fn int STARPU_WARN_UNUSED_RESULT starpu_sched_component_execute_preds(struct starpu_sched_component *component, struct starpu_task *task, double *length);
+\fn int starpu_sched_component_execute_preds(struct starpu_sched_component *component, struct starpu_task *task, double *length);
 \ingroup API_Modularized_Scheduler
 	 return a non null value if \p component can execute \p task.
 	 write the execution prediction length for the best implementation of the best worker available and write this at \p length address.
@@ -139,7 +127,7 @@ The actual scheduler
 	 return the workerid of \p worker_component, undefined if starpu_sched_component_is_worker(worker_component) == 0
 
 
-\fn struct starpu_sched_component *starpu_sched_component_fifo_create(void *arg STARPU_ATTRIBUTE_UNUSED)
+\fn struct starpu_sched_component *starpu_sched_component_fifo_create(void *arg)
 \ingroup API_Modularized_Scheduler
 	 Return a struct starpu_sched_component with a fifo. A stable sort is performed according to tasks priorities.
 	 A push_task call on this component does not perform recursive calls, underlying components will have to call pop_task to get it.
@@ -149,7 +137,7 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 	 return true iff \p component is a fifo component
 
-\fn struct starpu_sched_component *starpu_sched_component_work_stealing_create(void *arg STARPU_ATTRIBUTE_UNUSED)
+\fn struct starpu_sched_component *starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void *arg)
 \ingroup API_Modularized_Scheduler
 	 return a component that perform a work stealing scheduling. Tasks are pushed in a round robin way. estimated_end return the average of expected length of fifos, starting at the average of the expected_end of his children. When a worker have to steal a task, it steal a task in a round robin way, and get the last pushed task of the higher priority.
 
@@ -162,7 +150,7 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 	 return true iff \p component is a work stealing component
 
-\fn struct starpu_sched_component *starpu_sched_component_random_create(void *arg STARPU_ATTRIBUTE_UNUSED)
+\fn struct starpu_sched_component *starpu_sched_component_random_create(struct starpu_sched_tree *tree, void *arg)
 \ingroup API_Modularized_Scheduler
 	 create a component that perform a random scheduling
 
@@ -170,7 +158,7 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 	 return true iff \p component is a random component
 
-\fn struct starpu_sched_component *starpu_sched_component_heft_create(struct starpu_heft_data *heft_data)
+\fn struct starpu_sched_component *starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_mct_data *mct_data)
 \ingroup API_Modularized_Scheduler
 	 this component perform a heft scheduling
 
@@ -199,7 +187,7 @@ starpu_sched_component_heft_create parameters
 	 argument passed to starpu_heft_data::calibrating_component_create
 
 
-\fn struct starpu_sched_component *starpu_sched_component_best_implementation_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED)
+\fn struct starpu_sched_component *starpu_sched_component_best_implementation_create(struct starpu_sched_tree *tree, void *arg)
 \ingroup API_Modularized_Scheduler
 	 Select the implementation that offer the shortest computation length for the first worker that can execute the task.
 	 Or an implementation that need to be calibrated.
@@ -211,7 +199,7 @@ starpu_sched_component_heft_create parameters
 \fn struct starpu_sched_tree *starpu_sched_tree_create(void)
 \ingroup API_Modularized_Scheduler
 	 create a empty initialized starpu_sched_tree
-\fn void starpu_sched_tree_destroy(struct starpu_sched_tree *tree, unsigned sched_ctx_id)
+\fn void starpu_sched_tree_destroy(struct starpu_sched_tree *tree)
 \ingroup API_Modularized_Scheduler
 	 destroy tree and free all non shared component in it.
 \fn void starpu_sched_component_destroy_rec (struct starpu_sched_component *component, unsigned sched_ctx_id)

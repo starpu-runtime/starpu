@@ -39,7 +39,7 @@ todo
 \ingroup API_Tree
 todo
 
-\fn int starpu_tree_free(struct starpu_tree *tree)
+\fn void starpu_tree_free(struct starpu_tree *tree)
 \ingroup API_Tree
 todo
 
