@@ -508,8 +508,7 @@ int main(int argc, char **argv)
 
 	double start, end;
 
-	if (demo)
-		start = starpu_timing_now();
+	start = starpu_timing_now();
 
 	while (niter-- != 0)
 	{

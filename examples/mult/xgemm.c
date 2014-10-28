@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2013  Université de Bordeaux 1
+ * Copyright (C) 2009-2014  Université de Bordeaux 1
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
@@ -162,10 +162,10 @@ static void mult_kernel_common(void *descr[], int type)
 		else
 		{
 			/* Parallel CPU task */
-			int rank = starpu_combined_worker_get_rank();
+			unsigned rank = starpu_combined_worker_get_rank();
 
-			int block_size = (nyC + worker_size - 1)/worker_size;
-			int new_nyC = STARPU_MIN(nyC, block_size*(rank+1)) - block_size*rank;
+			unsigned block_size = (nyC + worker_size - 1)/worker_size;
+			unsigned new_nyC = STARPU_MIN(nyC, block_size*(rank+1)) - block_size*rank;
 
 			STARPU_ASSERT(nyC = STARPU_MATRIX_GET_NY(descr[1]));
 
