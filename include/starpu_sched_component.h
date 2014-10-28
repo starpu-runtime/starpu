@@ -137,6 +137,8 @@ struct starpu_sched_component
 	 * component that would balance load between underlying sockets
 	 */
 	hwloc_obj_t obj;
+#else
+	void *obj;
 #endif
 };
 
