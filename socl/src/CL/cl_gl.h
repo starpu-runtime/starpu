@@ -104,7 +104,9 @@ clEnqueueReleaseGLObjects(cl_command_queue      /* command_queue */,
 
 
 #ifdef CL_USE_DEPRECATED_OPENCL_1_1_APIS
+#ifndef BUILDING_SOCL
 #warning CL_USE_DEPRECATED_OPENCL_1_1_APIS is defined. These APIs are unsupported and untested in OpenCL 1.2!
+#endif
     extern CL_API_ENTRY cl_mem CL_API_CALL
     clCreateFromGLTexture2D(cl_context      /* context */,
                             cl_mem_flags    /* flags */,
