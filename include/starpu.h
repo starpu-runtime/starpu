@@ -69,6 +69,7 @@ typedef UINT_PTR uintptr_t;
 #include <starpu_tree.h>
 #include <starpu_openmp.h>
 #include <starpu_simgrid_wrap.h>
+#include <starpu_bitmap.h>
 
 #ifdef __cplusplus
 extern "C"
