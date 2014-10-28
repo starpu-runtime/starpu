@@ -193,7 +193,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
 	unsigned sched_ctx = task->sched_ctx;
-	int workerid = starpu_worker_get_id();
 	double flops = task->flops;
 	const unsigned continuation =
 #ifdef STARPU_OPENMP
@@ -342,6 +341,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		_starpu_sched_post_exec_hook(task);
 #ifdef STARPU_USE_SC_HYPERVISOR
+		int workerid = starpu_worker_get_id();
 		_starpu_sched_ctx_post_exec_task_cb(workerid, task, data_size, j->footprint);
 #endif //STARPU_USE_SC_HYPERVISOR
 

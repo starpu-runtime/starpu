@@ -155,11 +155,11 @@ static int push_task_peager_policy(struct starpu_task *task)
 	starpu_push_task_end(task);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
-	/*if there are no tasks block */
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	/* if there are no tasks block */
 	/* wake people waiting for a task */
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
-#ifndef STARPU_NON_BLOCKING_DRIVERS
 	struct starpu_sched_ctx_iterator it;
 	int worker = -1;
 
