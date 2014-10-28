@@ -16,6 +16,7 @@
 
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
+#include <common/fxt.h>
 
 #include "prio_deque.h"
 #include "sched_component.h"
