@@ -22,24 +22,31 @@
 
 /* list of functions to use on disk */
 struct starpu_disk_ops {
- 	 void *  (*alloc)  (void *base, size_t size);
-	 void    (*free)   (void *base, void *obj, size_t size);
-	 void *  (*open)   (void *base, void *pos, size_t size);     /* open an existing file */
-	 void    (*close)  (void *base, void *obj, size_t size);
-	 int     (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size);
-	 int     (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size);
-	 void *  (*async_write)  (void *base, void *obj, void *buf, off_t offset, size_t size); 
-	 void *  (*async_read)   (void *base, void *obj, void *buf, off_t offset, size_t size); 
-	/* readv, writev, read2d, write2d, etc. */
 	 void *  (*plug)   (void *parameter);
 	 void    (*unplug) (void *base);
-	 void *  (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
+
 	 int    (*bandwidth)    (unsigned node);
+
+	 void *  (*alloc)  (void *base, size_t size);
+	 void    (*free)   (void *base, void *obj, size_t size);
+
+	 void *  (*open)   (void *base, void *pos, size_t size);     /* open an existing file */
+	 void    (*close)  (void *base, void *obj, size_t size);
+
+	 int     (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size);
+	 int     (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size);
+
+	 int	(*full_read)    (unsigned node, void * base, void * obj, void ** ptr, size_t * size);
+	 int 	(*full_write)   (unsigned node, void * base, void * obj, void * ptr, size_t size);
+
+	 void *  (*async_write)  (void *base, void *obj, void *buf, off_t offset, size_t size); 
+	 void *  (*async_read)   (void *base, void *obj, void *buf, off_t offset, size_t size); 
+	 void *  (*copy)   (void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
 	 void   (*wait_request) (void * async_channel);
 	 int    (*test_request) (void * async_channel);
 	 void   (*free_request)(void * async_channel);
-	 int	(*full_read)    (unsigned node, void * base, void * obj, void ** ptr, size_t * size);
-	 int 	(*full_write)   (unsigned node, void * base, void * obj, void * ptr, size_t size);
+
+	/* TODO: readv, writev, read2d, write2d, etc. */
 };
 
 /* Posix functions to use disk memory */
