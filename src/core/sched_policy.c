@@ -136,7 +136,7 @@ static void display_sched_help_message(void)
 		for(policy=predefined_policies ; *policy!=NULL ; policy++)
 		{
 			struct starpu_sched_policy *p = *policy;
-			fprintf(stderr, "%s\t-> %s\n", p->policy_name, p->policy_description);
+			fprintf(stderr, "%-30s\t-> %s\n", p->policy_name, p->policy_description);
 		}
 		fprintf(stderr, "\n");
 	 }
