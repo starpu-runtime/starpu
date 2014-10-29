@@ -53,7 +53,7 @@ static void add_component(struct sched_component_list *list, struct starpu_sched
 	list->size++;
 }
 /* this is the function that actualy built the scheduler, but without workers */
-static struct sched_component_list helper_make_scheduler(struct starpu_sched_tree *tree, hwloc_obj_t obj, struct starpu_sched_specs specs, unsigned sched_ctx_id)
+static struct sched_component_list helper_make_scheduler(struct starpu_sched_tree *tree, hwloc_obj_t obj, struct starpu_sched_component_specs specs, unsigned sched_ctx_id)
 {
 	STARPU_ASSERT(obj);
 
@@ -155,7 +155,7 @@ static struct starpu_sched_component * find_mem_component(struct starpu_sched_co
 	return component;
 }
 
-static struct starpu_sched_component * where_should_we_plug_this(struct starpu_sched_component *root, struct starpu_sched_component * worker_component, struct starpu_sched_specs specs, unsigned sched_ctx_id)
+static struct starpu_sched_component * where_should_we_plug_this(struct starpu_sched_component *root, struct starpu_sched_component * worker_component, struct starpu_sched_component_specs specs, unsigned sched_ctx_id)
 {
 	struct starpu_sched_component * mem = find_mem_component(root ,worker_component);
 	if(specs.mix_heterogeneous_workers || mem->parents[sched_ctx_id] == NULL)
@@ -181,7 +181,7 @@ static struct starpu_sched_component * where_should_we_plug_this(struct starpu_s
 }
 
 static void set_worker_leaf(struct starpu_sched_component * root, struct starpu_sched_component * worker_component, unsigned sched_ctx_id,
-			    struct starpu_sched_specs specs)
+			    struct starpu_sched_component_specs specs)
 {
 	struct _starpu_worker * worker = worker_component->data;
 	struct starpu_sched_component * component = where_should_we_plug_this(root,worker_component,specs, sched_ctx_id);
@@ -241,7 +241,7 @@ static void helper_display_scheduler(FILE* out, unsigned depth, struct starpu_sc
 		helper_display_scheduler(out, depth + 1, component->children[i]);
 }
 #endif //STARPU_DEVEL
-struct starpu_sched_tree * starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_specs specs)
+struct starpu_sched_tree * starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs specs)
 {
 	struct starpu_sched_tree * tree = starpu_sched_tree_create(sched_ctx_id);
 	

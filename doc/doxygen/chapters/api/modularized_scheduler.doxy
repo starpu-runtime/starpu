@@ -377,7 +377,7 @@ todo
 	 create a component that behave as all component of recipe where linked. Except that you cant use starpu_sched_component_is_foo function
 	 if recipe contain a single create_foo arg_foo pair, create_foo(arg_foo) is returned instead of a composed component
 
-\struct starpu_sched_specs
+\struct starpu_sched_component_specs
 \ingroup API_Modularized_Scheduler
 	 Define how build a scheduler according to topology. Each level (except for hwloc_machine_composed_sched_component) can be NULL, then
 	 the level is just skipped. Bugs everywhere, do not rely on.
@@ -399,7 +399,7 @@ todo
      If this flag is not set, a new fifo will be built for each of them (if they have the same starpu_perf_arch and the same
      numa component it will be shared
 
-\fn struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_specs s)
+\fn struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs s)
 \ingroup API_Modularized_Scheduler
 	 this function build a scheduler for \p sched_ctx_id according to \p s and the hwloc topology of the machine.
 

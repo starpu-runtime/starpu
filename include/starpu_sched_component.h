@@ -172,7 +172,7 @@ struct starpu_sched_component *starpu_sched_component_composed_component_create(
 
 #ifdef STARPU_HAVE_HWLOC
 /* null pointer mean to ignore a level L of hierarchy, then components of levels > L become children of level L - 1 */
-struct starpu_sched_specs
+struct starpu_sched_component_specs
 {
 	/* hw_loc_machine_composed_sched_component must be set as its the root of the topology */
 	struct starpu_sched_component_composed_recipe *hwloc_machine_composed_sched_component;
@@ -191,7 +191,7 @@ struct starpu_sched_specs
 	int mix_heterogeneous_workers;
 };
 
-struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_specs s);
+struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs s);
 #endif /* STARPU_HAVE_HWLOC */
 
 #ifdef __cplusplus

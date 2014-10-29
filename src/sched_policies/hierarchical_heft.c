@@ -16,7 +16,7 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 
-	struct starpu_sched_specs specs;
+	struct starpu_sched_component_specs specs;
 	memset(&specs,0,sizeof(specs));
 
 	struct starpu_heft_data heft_data =
