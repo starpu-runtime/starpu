@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,9 +37,9 @@ static struct starpu_codelet dummy_codelet =
 
 static void callback(void *tag)
 {
-//	fflush(stderr);
-//	FPRINTF(stderr, "Callback for tag %p\n", tag);
-//	fflush(stderr);
+	fflush(stderr);
+	FPRINTF(stderr, "Callback for tag %p\n", tag);
+	fflush(stderr);
 }
 
 static struct starpu_task *create_dummy_task(starpu_tag_t tag)
