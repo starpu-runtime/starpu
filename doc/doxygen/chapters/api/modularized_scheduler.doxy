@@ -285,7 +285,7 @@ todo
 @name Resource-mapping Eager Component API
 \ingroup API_Modularized_Scheduler
 
-\fn struct starpu_sched_component *starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED);
+\fn struct starpu_sched_component *starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void *arg)
 \ingroup API_Modularized_Scheduler
 todo
 
@@ -296,7 +296,7 @@ todo
 @name Resource-mapping Eager-Calibration Component API
 \ingroup API_Modularized_Scheduler
 
-\fn struct starpu_sched_component *starpu_sched_component_eager_calibration_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED)
+\fn struct starpu_sched_component *starpu_sched_component_eager_calibration_create(struct starpu_sched_tree *tree, void *arg)
 \ingroup API_Modularized_Scheduler
 todo
 
