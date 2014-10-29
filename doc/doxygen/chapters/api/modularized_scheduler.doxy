@@ -381,23 +381,23 @@ todo
 \ingroup API_Modularized_Scheduler
 	 Define how build a scheduler according to topology. Each level (except for hwloc_machine_composed_sched_component) can be NULL, then
 	 the level is just skipped. Bugs everywhere, do not rely on.
-\var starpu_sched_specs::hwloc_machine_composed_sched_component
+\var struct starpu_sched_component_composed_recipe *starpu_sched_specs::hwloc_machine_composed_sched_component
      the composed component to put on the top of the scheduler
-     this member must not be NULL
-\var starpu_sched_specs::hwloc_component_composed_sched_component
+     this member must not be NULL as it is the root of the topology
+\var struct starpu_sched_component_composed_recipe *starpu_sched_specs::hwloc_component_composed_sched_component
      the composed component to put for each memory component
-\var starpu_sched_specs::hwloc_socket_composed_sched_component
+\var struct starpu_sched_component_composed_recipe *starpu_sched_specs::hwloc_socket_composed_sched_component
      the composed component to put for each socket
-\var starpu_sched_specs::hwloc_cache_composed_sched_component
+\var struct starpu_sched_component_composed_recipe *starpu_sched_specs::hwloc_cache_composed_sched_component
      the composed component to put for each cache
-\var starpu_sched_specs::worker_composed_sched_component
+\var struct starpu_sched_component_composed_recipe *(*starpu_sched_specs::worker_composed_sched_component)(enum starpu_worker_archtype archtype)
      a function that return a starpu_sched_component_composed_recipe to put on top of a worker of type \p archtype.
      NULL is a valid return value, then no component will be added on top
 \var starpu_sched_specs::mix_heterogeneous_workers
      this flag is a dirty hack because of the poor expressivity of this interface. As example, if you want to build
      a heft component with a fifo component per numa component, and you also have GPUs, if this flag is set, GPUs will share those fifos.
      If this flag is not set, a new fifo will be built for each of them (if they have the same starpu_perf_arch and the same
-     numa component it will be shared
+     numa component it will be shared. it indicates if heterogenous workers should be brothers or cousins, as example, if a gpu and a cpu should share or not there numa node
 
 \fn struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_component_specs s)
 \ingroup API_Modularized_Scheduler

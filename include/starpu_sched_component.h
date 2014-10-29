@@ -171,23 +171,14 @@ void starpu_sched_component_composed_recipe_destroy(struct starpu_sched_componen
 struct starpu_sched_component *starpu_sched_component_composed_component_create(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe *recipe);
 
 #ifdef STARPU_HAVE_HWLOC
-/* null pointer mean to ignore a level L of hierarchy, then components of levels > L become children of level L - 1 */
 struct starpu_sched_component_specs
 {
-	/* hw_loc_machine_composed_sched_component must be set as its the root of the topology */
 	struct starpu_sched_component_composed_recipe *hwloc_machine_composed_sched_component;
 	struct starpu_sched_component_composed_recipe *hwloc_component_composed_sched_component;
 	struct starpu_sched_component_composed_recipe *hwloc_socket_composed_sched_component;
 	struct starpu_sched_component_composed_recipe *hwloc_cache_composed_sched_component;
 
-	/* this member should return a new allocated starpu_sched_component_composed_recipe or NULL
-	 * the starpu_sched_component_composed_recipe_t must not include the worker component
-	 */
 	struct starpu_sched_component_composed_recipe *(*worker_composed_sched_component)(enum starpu_worker_archtype archtype);
-
-	/* this flag indicate if heterogenous workers should be brothers or cousins,
-	 * as example, if a gpu and a cpu should share or not there numa node
-	 */
 	int mix_heterogeneous_workers;
 };
 
