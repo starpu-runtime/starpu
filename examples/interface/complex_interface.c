@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -52,9 +52,17 @@ static void complex_register_data_handle(starpu_data_handle_t handle, unsigned h
 		struct starpu_complex_interface *local_interface = (struct starpu_complex_interface *)
 			starpu_data_get_interface_on_node(handle, node);
 
-		local_interface->real = complex_interface->real;
-		local_interface->imaginary = complex_interface->imaginary;
 		local_interface->nx = complex_interface->nx;
+		if (node == home_node)
+		{
+			local_interface->real = complex_interface->real;
+			local_interface->imaginary = complex_interface->imaginary;
+		}
+		else
+		{
+			local_interface->real = 0;
+			local_interface->imaginary = 0;
+		}
 	}
 }
 
@@ -145,10 +153,17 @@ static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void 
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *)
 		starpu_data_get_interface_on_node(handle, node);
 
+	STARPU_ASSERT(count == 2 * complex_interface->nx * sizeof(double));
 	memcpy(complex_interface->real, data, complex_interface->nx*sizeof(double));
 	memcpy(complex_interface->imaginary, data+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
 
 	return 0;
+}
+
+static ssize_t complex_describe(void *data_interface, char *buf, size_t size)
+{
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
+	return snprintf(buf, size, "Complex%d", complex_interface->nx);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node,
@@ -189,7 +204,8 @@ static struct starpu_data_interface_ops interface_complex_ops =
 	.interface_size = sizeof(struct starpu_complex_interface),
 	.handle_to_pointer = complex_handle_to_pointer,
 	.pack_data = complex_pack_data,
-	.unpack_data = complex_unpack_data
+	.unpack_data = complex_unpack_data,
+	.describe = complex_describe
 };
 
 void starpu_complex_data_register(starpu_data_handle_t *handleptr, unsigned home_node, double *real, double *imaginary, int nx)
