@@ -127,6 +127,9 @@ The actual scheduler
 \var struct starpu_sched_component *starpu_sched_tree::worker_components[STARPU_NMAXWORKERS]
      	worker components
 
+@name Scheduling Tree API
+\ingroup API_Modularized_Scheduler
+
 \fn struct starpu_sched_tree *starpu_sched_tree_create(unsigned sched_ctx_id)
 \ingroup API_Modularized_Scheduler
 	 create a empty initialized starpu_sched_tree
@@ -135,107 +138,13 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 	 destroy tree and free all non shared component in it.
 
-
-
-\fn struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree)
+\fn void starpu_sched_tree_update_workers(struct starpu_sched_tree *t)
 \ingroup API_Modularized_Scheduler
-	 allocate and initialize component field with defaults values :
-	.pop_task make recursive call on father
-	.estimated_load compute relative speedup and tasks in sub tree
-	.estimated_end return the average of recursive call on children
-	.add_child is starpu_sched_component_add_child
-	.remove_child is starpu_sched_component_remove_child
-	.notify_change_workers does nothing
-	.deinit_data does nothing
+	 recursively set all starpu_sched_component::workers, do not take into account shared parts (except workers).
 
-\fn void starpu_sched_component_destroy(struct starpu_sched_component *component)
+\fn void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree *t)
 \ingroup API_Modularized_Scheduler
-	 free data allocated by starpu_sched_component_create and call component->deinit_data(component)
-	 set to null the member starpu_sched_component::fathers[sched_ctx_id] of all child if its equal to \p component
-
-\fn int starpu_sched_component_can_execute_task(struct starpu_sched_component *component, struct starpu_task *task)
-\ingroup API_Modularized_Scheduler
-	 return true iff \p component can execute \p task, this function take into account the workers available in the scheduling context
-
-\fn int starpu_sched_component_execute_preds(struct starpu_sched_component *component, struct starpu_task *task, double *length)
-\ingroup API_Modularized_Scheduler
-	 return a non null value if \p component can execute \p task.
-	 write the execution prediction length for the best implementation of the best worker available and write this at \p length address.
-	 this result is more relevant if starpu_sched_component::is_homogeneous is non null.
-	 if a worker need to be calibrated for an implementation, nan is set to \p length.
-
-\fn double starpu_sched_component_transfer_length(struct starpu_sched_component *component, struct starpu_task *task)
-\ingroup API_Modularized_Scheduler
-	 return the average time to transfer \p task data to underlying \p component workers.
-
-\fn struct starpu_sched_component *starpu_sched_component_worker_get(unsigned sched_ctx, int workerid)
-\ingroup API_Modularized_Scheduler
-	 return the struct starpu_sched_component corresponding to \p workerid. Undefined if \p workerid is not a valid workerid
-
-\fn int starpu_sched_component_is_worker(struct starpu_sched_component *component)
-\ingroup API_Modularized_Scheduler
-	 return true iff \p component is a worker component
-
-\fn int starpu_sched_component_is_simple_worker(struct starpu_sched_component *component)
-\ingroup API_Modularized_Scheduler
-	 return true iff \p component is a simple worker component
-
-\fn int starpu_sched_component_is_combined_worker(struct starpu_sched_component *component)
-\ingroup API_Modularized_Scheduler
-	 return true iff \p component is a combined worker component
-
-\fn int starpu_sched_component_worker_get_workerid(struct starpu_sched_component *worker_component)
-\ingroup API_Modularized_Scheduler
-	 return the workerid of \p worker_component, undefined if starpu_sched_component_is_worker(worker_component) == 0
-
-\fn struct starpu_sched_component *starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_fifo_data *fifo_data)
-\ingroup API_Modularized_Scheduler
-	 Return a struct starpu_sched_component with a fifo. A stable sort is performed according to tasks priorities.
-	 A push_task call on this component does not perform recursive calls, underlying components will have to call pop_task to get it.
-	 starpu_sched_component::estimated_end function compute the estimated length by dividing the sequential length by the number of underlying workers. Do not take into account tasks that are currently executed.
-
-\fn int starpu_sched_component_is_fifo(struct starpu_sched_component *component)
-\ingroup API_Modularized_Scheduler
-	 return true iff \p component is a fifo component
-
-\fn struct starpu_sched_component *starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void *arg)
-\ingroup API_Modularized_Scheduler
-	 return a component that perform a work stealing scheduling. Tasks are pushed in a round robin way. estimated_end return the average of expected length of fifos, starting at the average of the expected_end of his children. When a worker have to steal a task, it steal a task in a round robin way, and get the last pushed task of the higher priority.
-
-\fn int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
-\ingroup API_Modularized_Scheduler
-	 undefined if there is no work stealing component in the scheduler. If any, \p task is pushed in a default way if the caller is the application, and in the caller's fifo if its a worker.
-
-\fn int starpu_sched_component_is_work_stealing(struct starpu_sched_component *component)
-\ingroup API_Modularized_Scheduler
-	 return true iff \p component is a work stealing component
-
-\fn struct starpu_sched_component *starpu_sched_component_random_create(struct starpu_sched_tree *tree, void *arg)
-\ingroup API_Modularized_Scheduler
-	 create a component that perform a random scheduling
-
-\fn int starpu_sched_component_is_random(struct starpu_sched_component *)
-\ingroup API_Modularized_Scheduler
-	 return true iff \p component is a random component
-
-\fn struct starpu_sched_component *starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_mct_data *mct_data)
-\ingroup API_Modularized_Scheduler
-	 this component perform a heft scheduling
-
-\fn int starpu_sched_component_is_heft(struct starpu_sched_component *component)
-\ingroup API_Modularized_Scheduler
-	 return true iff \p component is a heft component
-
-\fn struct starpu_sched_component *starpu_sched_component_best_implementation_create(struct starpu_sched_tree *tree, void *arg)
-\ingroup API_Modularized_Scheduler
-	 Select the implementation that offer the shortest computation length for the first worker that can execute the task.
-	 Or an implementation that need to be calibrated.
-	 Also set starpu_task::predicted and starpu_task::predicted_transfer for memory component of the first suitable workerid.
-	 If starpu_sched_component::push method is called and starpu_sched_component::nchild > 1 the result is undefined.
-
-\fn void starpu_sched_component_destroy_rec(struct starpu_sched_component *component)
-\ingroup API_Modularized_Scheduler
-	 recursively destroy non shared parts of a \p component 's tree
+	 recursively set all starpu_sched_component::workers_in_ctx, do not take into account shared parts (except workers)
 
 \fn int starpu_sched_tree_push_task(struct starpu_task *task)
 \ingroup API_Modularized_Scheduler
@@ -253,6 +162,67 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 	 compatibility with starpu_sched_policy interface
 
+@name Generic Scheduling Component API
+\ingroup API_Modularized_Scheduler
+
+\fn struct starpu_sched_component *starpu_sched_component_create(struct starpu_sched_tree *tree)
+\ingroup API_Modularized_Scheduler
+	 allocate and initialize component field with defaults values :
+	.pop_task make recursive call on father
+	.estimated_load compute relative speedup and tasks in sub tree
+	.estimated_end return the average of recursive call on children
+	.add_child is starpu_sched_component_add_child
+	.remove_child is starpu_sched_component_remove_child
+	.notify_change_workers does nothing
+	.deinit_data does nothing
+
+\fn void starpu_sched_component_destroy(struct starpu_sched_component *component)
+\ingroup API_Modularized_Scheduler
+	 free data allocated by starpu_sched_component_create and call component->deinit_data(component)
+	 set to null the member starpu_sched_component::fathers[sched_ctx_id] of all child if its equal to \p component
+
+\fn void starpu_sched_component_destroy_rec(struct starpu_sched_component *component)
+\ingroup API_Modularized_Scheduler
+	 recursively destroy non shared parts of a \p component 's tree
+
+\fn int starpu_sched_component_can_execute_task(struct starpu_sched_component *component, struct starpu_task *task)
+\ingroup API_Modularized_Scheduler
+	 return true iff \p component can execute \p task, this function take into account the workers available in the scheduling context
+
+\fn int starpu_sched_component_execute_preds(struct starpu_sched_component *component, struct starpu_task *task, double *length)
+\ingroup API_Modularized_Scheduler
+	 return a non null value if \p component can execute \p task.
+	 write the execution prediction length for the best implementation of the best worker available and write this at \p length address.
+	 this result is more relevant if starpu_sched_component::is_homogeneous is non null.
+	 if a worker need to be calibrated for an implementation, nan is set to \p length.
+
+\fn double starpu_sched_component_transfer_length(struct starpu_sched_component *component, struct starpu_task *task)
+\ingroup API_Modularized_Scheduler
+	 return the average time to transfer \p task data to underlying \p component workers.
+
+@name Worker Component API
+\ingroup API_Modularized_Scheduler
+
+\fn struct starpu_sched_component *starpu_sched_component_worker_get(unsigned sched_ctx, int workerid)
+\ingroup API_Modularized_Scheduler
+	 return the struct starpu_sched_component corresponding to \p workerid. Undefined if \p workerid is not a valid workerid
+
+\fn int starpu_sched_component_worker_get_workerid(struct starpu_sched_component *worker_component)
+\ingroup API_Modularized_Scheduler
+	 return the workerid of \p worker_component, undefined if starpu_sched_component_is_worker(worker_component) == 0
+
+\fn int starpu_sched_component_is_worker(struct starpu_sched_component *component)
+\ingroup API_Modularized_Scheduler
+	 return true iff \p component is a worker component
+
+\fn int starpu_sched_component_is_simple_worker(struct starpu_sched_component *component)
+\ingroup API_Modularized_Scheduler
+	 return true iff \p component is a simple worker component
+
+\fn int starpu_sched_component_is_combined_worker(struct starpu_sched_component *component)
+\ingroup API_Modularized_Scheduler
+	 return true iff \p component is a combined worker component
+
 \fn void starpu_sched_component_worker_pre_exec_hook(struct starpu_task *task)
 \ingroup API_Modularized_Scheduler
 	 compatibility with starpu_sched_policy interface
@@ -262,57 +232,125 @@ The actual scheduler
 \ingroup API_Modularized_Scheduler
 	 compatibility with starpu_sched_policy interface
 
-\fn void starpu_sched_tree_update_workers(struct starpu_sched_tree *t)
+@name Flow-control Fifo Component API
 \ingroup API_Modularized_Scheduler
-	 recursively set all starpu_sched_component::workers, do not take into account shared parts (except workers).
 
-\fn void starpu_sched_tree_update_workers_in_ctx(struct starpu_sched_tree *t)
+\fn struct starpu_sched_component *starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_fifo_data *fifo_data)
 \ingroup API_Modularized_Scheduler
-	 recursively set all starpu_sched_component::workers_in_ctx, do not take into account shared parts (except workers)
+	 Return a struct starpu_sched_component with a fifo. A stable sort is performed according to tasks priorities.
+	 A push_task call on this component does not perform recursive calls, underlying components will have to call pop_task to get it.
+	 starpu_sched_component::estimated_end function compute the estimated length by dividing the sequential length by the number of underlying workers. Do not take into account tasks that are currently executed.
 
-\struct starpu_bitmap
+\fn int starpu_sched_component_is_fifo(struct starpu_sched_component *component)
 \ingroup API_Modularized_Scheduler
-	 implement a simple bitmap
+	 return true iff \p component is a fifo component
 
-\fn struct starpu_bitmap *starpu_bitmap_create(void)
+@name Flow-control Prio Component API
 \ingroup API_Modularized_Scheduler
-	 create a empty starpu_bitmap
 
-\fn void starpu_bitmap_destroy(struct starpu_bitmap *b)
+\fn struct starpu_sched_component *starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_prio_data *prio_data)
 \ingroup API_Modularized_Scheduler
-	 free a starpu_bitmap
+todo
 
-\fn void starpu_bitmap_set(struct starpu_bitmap *b, int e)
+\fn int starpu_sched_component_is_prio(struct starpu_sched_component *component)
 \ingroup API_Modularized_Scheduler
-	 set bit \p e in \p b
+todo
 
-\fn void starpu_bitmap_unset(struct starpu_bitmap *b, int e)
+@name Resource-mapping Work-Stealing Component API
 \ingroup API_Modularized_Scheduler
-	 unset bit \p e in \p b
 
-\fn void starpu_bitmap_unset_all(struct starpu_bitmap *b)
+\fn struct starpu_sched_component *starpu_sched_component_work_stealing_create(struct starpu_sched_tree *tree, void *arg)
 \ingroup API_Modularized_Scheduler
-	 unset all bits in \b b
+	 return a component that perform a work stealing scheduling. Tasks are pushed in a round robin way. estimated_end return the average of expected length of fifos, starting at the average of the expected_end of his children. When a worker have to steal a task, it steal a task in a round robin way, and get the last pushed task of the higher priority.
 
-\fn int starpu_bitmap_get(struct starpu_bitmap *b, int e)
+\fn int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 \ingroup API_Modularized_Scheduler
-	 return true iff bit \p e is set in \p b
+	 undefined if there is no work stealing component in the scheduler. If any, \p task is pushed in a default way if the caller is the application, and in the caller's fifo if its a worker.
 
-\fn int starpu_bitmap_cardinal(struct starpu_bitmap *b)
+\fn int starpu_sched_component_is_work_stealing(struct starpu_sched_component *component)
 \ingroup API_Modularized_Scheduler
-	 return the number of set bits in \p b
+	 return true iff \p component is a work stealing component
 
-\fn int starpu_bitmap_first(struct starpu_bitmap *b)
+@name Resource-mapping Random Component API
 \ingroup API_Modularized_Scheduler
-	 return the position of the first set bit of \p b, -1 if none
 
-\fn int starpu_bitmap_last(struct starpu_bitmap *b)
+\fn struct starpu_sched_component *starpu_sched_component_random_create(struct starpu_sched_tree *tree, void *arg)
 \ingroup API_Modularized_Scheduler
-	 return the position of the last set bit of \p b, -1 if none
+	 create a component that perform a random scheduling
 
-\fn int starpu_bitmap_next(struct starpu_bitmap *b, int e)
+\fn int starpu_sched_component_is_random(struct starpu_sched_component *)
 \ingroup API_Modularized_Scheduler
-	 return the position of set bit right after \p e in \p b, -1 if none
+	 return true iff \p component is a random component
+
+@name Resource-mapping Eager Component API
+\ingroup API_Modularized_Scheduler
+
+\fn struct starpu_sched_component *starpu_sched_component_eager_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED);
+\ingroup API_Modularized_Scheduler
+todo
+
+\fn int starpu_sched_component_is_eager(struct starpu_sched_component *)
+\ingroup API_Modularized_Scheduler
+todo
+
+@name Resource-mapping Eager-Calibration Component API
+\ingroup API_Modularized_Scheduler
+
+\fn struct starpu_sched_component *starpu_sched_component_eager_calibration_create(struct starpu_sched_tree *tree, void *arg STARPU_ATTRIBUTE_UNUSED)
+\ingroup API_Modularized_Scheduler
+todo
+
+\fn int starpu_sched_component_is_eager_calibration(struct starpu_sched_component *)
+\ingroup API_Modularized_Scheduler
+todo
+
+@name Resource-mapping MCT Component API
+\ingroup API_Modularized_Scheduler
+
+\fn struct starpu_sched_component *starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_mct_data *mct_data)
+\ingroup API_Modularized_Scheduler
+create a component with mct_data paremeters. the mct component doesnt
+do anything but pushing tasks on no_perf_model_component and
+calibrating_component
+
+\fn int starpu_sched_component_is_mct(struct starpu_sched_component *component);
+\ingroup API_Modularized_Scheduler
+todo
+
+@name Resource-mapping Heft Component API
+\ingroup API_Modularized_Scheduler
+
+\fn struct starpu_sched_component *starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_mct_data *mct_data)
+\ingroup API_Modularized_Scheduler
+	 this component perform a heft scheduling
+
+\fn int starpu_sched_component_is_heft(struct starpu_sched_component *component)
+\ingroup API_Modularized_Scheduler
+	 return true iff \p component is a heft component
+
+@name Special-purpose Best_Implementation Component API
+\ingroup API_Modularized_Scheduler
+
+\fn struct starpu_sched_component *starpu_sched_component_best_implementation_create(struct starpu_sched_tree *tree, void *arg)
+\ingroup API_Modularized_Scheduler
+	 Select the implementation that offer the shortest computation length for the first worker that can execute the task.
+	 Or an implementation that need to be calibrated.
+	 Also set starpu_task::predicted and starpu_task::predicted_transfer for memory component of the first suitable workerid.
+	 If starpu_sched_component::push method is called and starpu_sched_component::nchild > 1 the result is undefined.
+
+@name Special-purpose Perfmodel_Select Component API
+\ingroup API_Modularized_Scheduler
+
+\fn struct starpu_sched_component *starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_perfmodel_select_data *perfmodel_select_data)
+\ingroup API_Modularized_Scheduler
+todo
+
+\fn int starpu_sched_component_is_perfmodel_select(struct starpu_sched_component *component)
+\ingroup API_Modularized_Scheduler
+todo
+
+@name Recipe Component API
+\ingroup API_Modularized_Scheduler
 
 \struct starpu_sched_component_composed_recipe
 \ingroup API_Modularized_Scheduler
