@@ -38,45 +38,15 @@ enum starpu_sched_component_properties
 #define STARPU_SCHED_COMPONENT_IS_HOMOGENEOUS(component) ((component)->properties & STARPU_SCHED_COMPONENT_HOMOGENEOUS)
 #define STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component) ((component)->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE)
 
-/* struct starpu_sched_component are scheduler modules, a scheduler is a tree-like
- * structure of them, some parts of scheduler can be shared by several contexes
- * to perform some local optimisations, so, for all components, a list of parent is
- * defined indexed by sched_ctx_id
- *
- * they embed there specialised method in a pseudo object-style, so calls are like component->push_task(component,task)
- *
- */
 struct starpu_sched_component
 {
-	/* The tree containing the component */
 	struct starpu_sched_tree *tree;
-
-	/* the set of workers in the component's subtree
-	 */
 	struct starpu_bitmap *workers;
-	/* the workers available in context
-	 * this member is set with :
-	 * component->workers UNION tree->workers UNION
-	 * component->child[i]->workers_in_ctx iff exist x such as component->children[i]->parents[x] == component
-	 */
 	struct starpu_bitmap *workers_in_ctx;
-
-	/* component's private data, no restriction on use
-	 */
 	void *data;
-
-	/* the numbers of component's children
-	 */
 	int nchildren;
-	/* the vector of component's children
-	 */
 	struct starpu_sched_component **children;
-	/* the numbers of component's parents
-	 */
 	int nparents;
-	/* may be shared by several contexts
-	 * so we need several parents
-	 */
 	struct starpu_sched_component **parents;
 
 	void (*add_child)(struct starpu_sched_component *component, struct starpu_sched_component *child);
@@ -84,63 +54,20 @@ struct starpu_sched_component
 	void (*add_parent)(struct starpu_sched_component *component, struct starpu_sched_component *parent);
 	void (*remove_parent)(struct starpu_sched_component *component, struct starpu_sched_component *parent);
 
-	/* component->push_task(component, task)
-	 * this function is called to push a task on component subtree, this can either
-	 * perform a recursive call on a child or store the task in the component, then
-	 * it will be returned by a further pull_task call
-	 *
-	 * the caller must ensure that component is able to execute task
-	 */
 	int (*push_task)(struct starpu_sched_component *, struct starpu_task *);
-	/* this function is called by workers to get a task on them parents
-	 * this function should first return a localy stored task or perform
-	 * a recursive call on parent
-	 *
-	 * a default implementation simply do a recursive call on parent
-	 */
 	struct starpu_task * (*pull_task)(struct starpu_sched_component *);
 
-	/* This function is called by a component which implements a queue, allowing it to
-	 * signify to its parents that an empty slot is available in its queue.
-	 * The basic implementation of this function is a recursive call to its
-	 * parents, the user have to specify a personally-made function to catch those
-	 * calls.
-	 */
 	int (*can_push)(struct starpu_sched_component *component);
-	/* This function allow a component to wake up a worker.
-	 * It is currently called by component which implements a queue, to signify to
-	 * its children that a task have been pushed in its local queue, and is
-	 * available to been popped by a worker, for example.
-	 * The basic implementation of this function is a recursive call to
-	 * its children, until at least one worker have been woken up.
-	 */
 	void (*can_pull)(struct starpu_sched_component *component);
 
-	/* this function is an heuristic that compute load of subtree, basicaly
-	 * it compute
-	 * estimated_load(component) = sum(estimated_load(component_children)) +
-	 *          nb_local_tasks / average(relative_speedup(underlying_worker))
-	 */
 	double (*estimated_load)(struct starpu_sched_component *component);
 	double (*estimated_end)(struct starpu_sched_component *component);
 
-	/* this function is called by starpu_sched_component_destroy just before freeing component
-	 */
 	void (*deinit_data)(struct starpu_sched_component *component);
-	/* this function is called for each component when workers are added or removed from a context
-	 */
 	void (*notify_change_workers)(struct starpu_sched_component *component);
-
-	/* is_homogeneous is 0 if workers in the component's subtree are heterogeneous,
-	 * this field is set and updated automaticaly, you shouldn't write on it
-	 */
 	int properties;
 
 #ifdef STARPU_HAVE_HWLOC
-	/* in case of a modularized scheduler, this is set to the part of
-	 * topology that is binded to this component, eg: a numa node for a ws
-	 * component that would balance load between underlying sockets
-	 */
 	hwloc_obj_t obj;
 #else
 	void *obj;
@@ -152,14 +79,7 @@ struct starpu_sched_tree
 	struct starpu_sched_component *root;
 	struct starpu_bitmap *workers;
 	unsigned sched_ctx_id;
-
-	/* this array store worker components */
 	struct starpu_sched_component *worker_components[STARPU_NMAXWORKERS];
-
-	/* this lock is used to protect the scheduler,
-	 * it is taken in read mode pushing a task
-	 * and in write mode for adding or removing workers
-	 */
 	starpu_pthread_mutex_t lock;
 };
 
@@ -167,8 +87,6 @@ struct starpu_sched_tree
  *							Scheduling Tree's Interface 					   *
  ******************************************************************************/
 
-/* create an empty tree
- */
 struct starpu_sched_tree *starpu_sched_tree_create(unsigned sched_ctx_id);
 void starpu_sched_tree_destroy(struct starpu_sched_tree *tree);
 struct starpu_sched_tree *starpu_get_tree(unsigned sched_ctx_id);
