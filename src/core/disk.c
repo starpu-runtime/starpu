@@ -134,15 +134,15 @@ _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, 
 		else
 		{
 			channel->type = STARPU_DISK_RAM;
-			channel->event.memory_node = src_node;	
+			channel->event.disk_event.memory_node = src_node;	
 
 			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-			channel->event.disk_event = disk_register_list[pos]->functions->async_read(disk_register_list[pos]->base, obj, buf, offset, size);
+			channel->event.disk_event.backend_event = disk_register_list[pos]->functions->async_read(disk_register_list[pos]->base, obj, buf, offset, size);
 			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 		}
 	}
 	/* asynchronous request failed or synchronous request is asked */	
-	if (channel == NULL || !channel->event.disk_event)
+	if (channel == NULL || !channel->event.disk_event.backend_event)
 	{
 		disk_register_list[pos]->functions->read(disk_register_list[pos]->base, obj, buf, offset, size);
 		return 0;
@@ -163,15 +163,15 @@ _starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node,
 		else
                 {
 			channel->type = STARPU_DISK_RAM;
-			channel->event.memory_node = dst_node;
+			channel->event.disk_event.memory_node = dst_node;
 
 			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
-			channel->event.disk_event = disk_register_list[pos]->functions->async_write(disk_register_list[pos]->base, obj, buf, offset, size);
+			channel->event.disk_event.backend_event = disk_register_list[pos]->functions->async_write(disk_register_list[pos]->base, obj, buf, offset, size);
         		_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
 		}
         }
         /* asynchronous request failed or synchronous request is asked */
-	if (channel == NULL || !channel->event.disk_event)
+	if (channel == NULL || !channel->event.disk_event.backend_event)
         {
 		disk_register_list[pos]->functions->write(disk_register_list[pos]->base, obj, buf, offset, size);
         	return 0;
@@ -186,10 +186,11 @@ _starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned n
 	int pos_src = get_location_with_node(node_src);
 	int pos_dst = get_location_with_node(node_dst);
 	/* both nodes have same copy function */
-	channel->event.disk_event = disk_register_list[pos_src]->functions->copy(disk_register_list[pos_src]->base, obj_src, offset_src, 
+	channel->event.disk_event.memory_node = node_src;
+	channel->event.disk_event.backend_event = disk_register_list[pos_src]->functions->copy(disk_register_list[pos_src]->base, obj_src, offset_src, 
 						        disk_register_list[pos_dst]->base, obj_dst, offset_dst,
 							size);
-	STARPU_ASSERT(channel->event.disk_event);
+	STARPU_ASSERT(channel->event.disk_event.backend_event);
 	return -EAGAIN;
 }
 
@@ -221,21 +222,21 @@ starpu_disk_close(unsigned node, void *obj, size_t size)
 
 void starpu_disk_wait_request(struct _starpu_async_channel *async_channel)
 {
-	int position = get_location_with_node(async_channel->event.memory_node);
-	disk_register_list[position]->functions->wait_request(async_channel->event.disk_event);
+	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
+	disk_register_list[position]->functions->wait_request(async_channel->event.disk_event.backend_event);
 }
 
 int starpu_disk_test_request(struct _starpu_async_channel *async_channel)
 {
-	int position = get_location_with_node(async_channel->event.memory_node);
-	return disk_register_list[position]->functions->test_request(async_channel->event.disk_event);
+	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
+	return disk_register_list[position]->functions->test_request(async_channel->event.disk_event.backend_event);
 }	
 
 void starpu_disk_free_request(struct _starpu_async_channel *async_channel)
 {
-	int position = get_location_with_node(async_channel->event.memory_node);
-	if (async_channel->event.disk_event)
-		disk_register_list[position]->functions->free_request(async_channel->event.disk_event);
+	int position = get_location_with_node(async_channel->event.disk_event.memory_node);
+	if (async_channel->event.disk_event.backend_event)
+		disk_register_list[position]->functions->free_request(async_channel->event.disk_event.backend_event);
 }
 
 static void 

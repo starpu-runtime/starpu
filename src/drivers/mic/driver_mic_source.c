@@ -437,7 +437,7 @@ int _starpu_mic_copy_mic_to_ram_async(void *src, unsigned src_node, void *dst, u
 }
 
 /* Initialize a _starpu_mic_async_event. */
-int _starpu_mic_init_event(struct _starpu_async_channel_event *event, unsigned memory_node)
+int _starpu_mic_init_event(struct _starpu_mic_async_event *event, unsigned memory_node)
 {
 	const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(memory_node);
 	scif_epd_t epd = mp_node->host_sink_dt_connection.mic_endpoint;
@@ -445,60 +445,60 @@ int _starpu_mic_init_event(struct _starpu_async_channel_event *event, unsigned m
 	event->memory_node = memory_node;
 
 	/* Address of allocation must be multiple of the page size. */
-	if (posix_memalign((void **)&(event->mic_event.signal), 0x1000, sizeof(*(event->mic_event.signal))) != 0)
+	if (posix_memalign((void **)&(event->signal), 0x1000, sizeof(*(event->signal))) != 0)
 		return -ENOMEM;
-	*(event->mic_event.signal) = 0;
+	*(event->signal) = 0;
 
 	/* The size pass to scif_register is 0x1000 because it should be a multiple of the page size. */
-	if (scif_register(epd, event->mic_event.signal, 0x1000, (off_t)(event->mic_event.signal), SCIF_PROT_WRITE, SCIF_MAP_FIXED) < 0)
+	if (scif_register(epd, event->signal, 0x1000, (off_t)(event->signal), SCIF_PROT_WRITE, SCIF_MAP_FIXED) < 0)
 		STARPU_MIC_SRC_REPORT_SCIF_ERROR(errno);
 
 	/* Mark for a futur wait. */
-	if (scif_fence_mark(epd, SCIF_FENCE_INIT_SELF, &(event->mic_event.mark)) < 0)
+	if (scif_fence_mark(epd, SCIF_FENCE_INIT_SELF, &(event->mark)) < 0)
 		STARPU_MIC_SRC_REPORT_SCIF_ERROR(errno);
 
-	/* Tell to scif to write STARPU_MIC_REQUEST_COMPLETE in event->mic_event.signal when the transfer is complete.
+	/* Tell to scif to write STARPU_MIC_REQUEST_COMPLETE in event->signal when the transfer is complete.
 	 * We use this for test the end of a transfer. */
-	if (scif_fence_signal(epd, (off_t)event->mic_event.signal, STARPU_MIC_REQUEST_COMPLETE, 0, 0, SCIF_FENCE_INIT_SELF | SCIF_SIGNAL_LOCAL) < 0)
+	if (scif_fence_signal(epd, (off_t)event->signal, STARPU_MIC_REQUEST_COMPLETE, 0, 0, SCIF_FENCE_INIT_SELF | SCIF_SIGNAL_LOCAL) < 0)
 		STARPU_MIC_SRC_REPORT_SCIF_ERROR(errno);
 
 	return 0;
 }
 
 /* Wait the end of the asynchronous request */
-void _starpu_mic_wait_request_completion(struct _starpu_async_channel_event *event)
+void _starpu_mic_wait_request_completion(struct _starpu_mic_async_event *event)
 {
-	if (event->mic_event.signal != NULL)
+	if (event->signal != NULL)
 	{
 		const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(event->memory_node);
 		scif_epd_t epd = mp_node->host_sink_dt_connection.mic_endpoint;
 
-		if (scif_fence_wait(epd, event->mic_event.mark) < 0)
+		if (scif_fence_wait(epd, event->mark) < 0)
 			STARPU_MIC_SRC_REPORT_SCIF_ERROR(errno);
 
-		if (scif_unregister(epd, (off_t)(event->mic_event.signal), 0x1000) < 0)
+		if (scif_unregister(epd, (off_t)(event->signal), 0x1000) < 0)
 			STARPU_MIC_SRC_REPORT_SCIF_ERROR(errno);
 
-		free(event->mic_event.signal);
-		event->mic_event.signal = NULL;
+		free(event->signal);
+		event->signal = NULL;
 	}
 }
 
 /* Test if a asynchronous request is end.
  * Return 1 if is end, 0 else. */
-int _starpu_mic_request_is_complete(struct _starpu_async_channel_event *event)
+int _starpu_mic_request_is_complete(struct _starpu_mic_async_event *event)
 {
-	if (event->mic_event.signal != NULL && *(event->mic_event.signal) != STARPU_MIC_REQUEST_COMPLETE)
+	if (event->signal != NULL && *(event->signal) != STARPU_MIC_REQUEST_COMPLETE)
 		return 0;
 
 	const struct _starpu_mp_node *mp_node = _starpu_mic_src_get_mp_node_from_memory_node(event->memory_node);
 	scif_epd_t epd = mp_node->host_sink_dt_connection.mic_endpoint;
 
-	if (scif_unregister(epd, (off_t)(event->mic_event.signal), 0x1000) < 0)
+	if (scif_unregister(epd, (off_t)(event->signal), 0x1000) < 0)
 		STARPU_MIC_SRC_REPORT_SCIF_ERROR(errno);
 
-	free(event->mic_event.signal);
-	event->mic_event.signal = NULL;
+	free(event->signal);
+	event->signal = NULL;
 	return 1;
 }
 

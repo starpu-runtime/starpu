@@ -54,9 +54,9 @@ starpu_leveldb_alloc (void *base, size_t size)
 
         STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
 
-	char * key = (char *) malloc(256*sizeof(char));
-	strcpy(key, "STARPU");
-	strcat(key,(char *) obj);
+	size_t len = 6 + 1 + 2+sizeof(void*)*2 + 1;
+	char * key = (char *) malloc(len*sizeof(char));
+	snprintf(key, len, "STARPU-%p", (uintptr_t) obj);
 
 	/* create and add a key with a small memory */
 	leveldb::Status s = base_tmp->db->Put(leveldb::WriteOptions(), key, "a");
@@ -95,10 +95,7 @@ starpu_leveldb_open (void *base, void *pos, size_t size)
 
         STARPU_PTHREAD_MUTEX_INIT(&obj->mutex, NULL);
 
-	char * key = (char *) malloc((strlen((char *) pos)+1)*sizeof(char));
-	strcpy(key, (char *) pos);
-
-	obj->key = key;	
+	obj->key = strdup((char*) pos);
 	obj->size = size;
 
 	return (void *) obj;
@@ -162,25 +159,33 @@ starpu_leveldb_write (void *base, void *obj, const void *buf, off_t offset, size
 {
         struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
         struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
+	void *buffer;
+	leveldb::Status s;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
-	uintptr_t buf_tmp = (uintptr_t) buf;
-	void * buffer = (void *) malloc((tmp->size > size) ? tmp->size : size);
+	if (offset == 0 && size >= tmp->size)
+	{
+		/* We overwrite everything, no need to get the old value */
+		buffer = (void*) buf;
+	}
+	else
+	{
+		uintptr_t buf_tmp = (uintptr_t) buf;
+		buffer = (void *) malloc((tmp->size > size) ? tmp->size : size);
 
-	/* we read the data */
-        std::string value;
+		/* we read the data */
+		std::string value;
 
-        leveldb::Status s = base_tmp->db->Get(leveldb::ReadOptions(), tmp->key, &value);
-        uintptr_t value_read = (uintptr_t)(value.c_str());
+		s = base_tmp->db->Get(leveldb::ReadOptions(), tmp->key, &value);
+		uintptr_t value_read = (uintptr_t)(value.c_str());
 
-        if(s.ok())
-                memcpy(buffer, (void *) value_read, tmp->size);
-        else
-                STARPU_ASSERT(s.ok());
+		STARPU_ASSERT(s.ok());
+		memcpy(buffer, (void *) value_read, tmp->size);
 
-	/* put the new data on their new place */
-	memcpy(buffer, (void *) (buf_tmp+offset), size); 
+		/* put the new data on their new place */
+		memcpy(buffer, (void *) (buf_tmp+offset), size); 
+	}
 
 	/* and write them */
 	s = base_tmp->db->Put(leveldb::WriteOptions(), tmp->key, (char *)buffer);
@@ -188,7 +193,8 @@ starpu_leveldb_write (void *base, void *obj, const void *buf, off_t offset, size
 
 	/* if the new size is higher than the old, we update it - first write after the alloc */
 	tmp->size = (tmp->size > size) ? tmp->size : size;
-	free(buffer);
+	if (buffer != buf)
+		free(buffer);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 
 	return 0;

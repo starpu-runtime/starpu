@@ -51,18 +51,22 @@ struct _starpu_data_replicate;
  * signal is used to test asynchronous request. */
 struct _starpu_mic_async_event
 {
+	unsigned memory_node;
 	int mark;
 	uint64_t *signal;
 };
 #endif
 
+struct _starpu_disk_async_event
+{
+	unsigned memory_node;
+	void *backend_event;
+};
+
 /* this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
 union _starpu_async_channel_event
 {
-	/* Only used for disks and mic atm */
-	unsigned memory_node;
-
 #ifdef STARPU_SIMGRID
 	struct {
 		unsigned finished;
@@ -79,7 +83,7 @@ union _starpu_async_channel_event
 #ifdef STARPU_USE_MIC
 	struct _starpu_mic_async_event mic_event;
 #endif
-	void *disk_event;
+	struct _starpu_disk_async_event disk_event;
 };
 
 struct _starpu_async_channel

@@ -70,9 +70,9 @@ int _starpu_mic_copy_mic_to_ram(void *src, unsigned src_node, void *dst, unsigne
 int _starpu_mic_copy_ram_to_mic_async(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size);
 int _starpu_mic_copy_mic_to_ram_async(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size);
 
-int _starpu_mic_init_event(struct _starpu_async_channel_event *event, unsigned memory_node);
-void _starpu_mic_wait_request_completion(struct _starpu_async_channel_event *event);
-int _starpu_mic_request_is_complete(struct _starpu_async_channel_event *event);
+int _starpu_mic_init_event(struct _starpu_mic_async_event *event, unsigned memory_node);
+void _starpu_mic_wait_request_completion(struct _starpu_mic_async_event *event);
+int _starpu_mic_request_is_complete(struct _starpu_mic_async_event *event);
 
 void *_starpu_mic_src_worker(void *arg);
 

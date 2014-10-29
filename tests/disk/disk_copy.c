@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 }
 #else
 
-int main(int argc, char **argv)
+int dotest(struct starpu_disk_ops *ops)
 {
 	double *A,*B,*C,*D,*E,*F;
 	int ret;
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) goto enodev;
 
 	/* register a disk */
-	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) "/tmp", 1024*1024*200);
+	int new_dd = starpu_disk_register(ops, (void *) "/tmp", 1024*1024*200);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 
@@ -132,6 +132,30 @@ int main(int argc, char **argv)
 enodev:
 	return STARPU_TEST_SKIPPED;
 enoent:
+	FPRINTF(stderr, "Couldn't write data: ENOENT\n");
+	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
+}
+
+static int merge_result(int old, int new)
+{
+	if (new == EXIT_FAILURE)
+		return EXIT_FAILURE;
+	if (old == 0)
+		return 0;
+	return new;
+}
+
+int main(void) {
+	int ret = 0;
+	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops));
+#ifdef STARPU_LINUX_SYS
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops));
+#endif
+#ifdef STARPU_HAVE_LEVELDB
+	ret = merge_result(ret, dotest(&starpu_disk_leveldb_ops));
+#endif
+	return ret;
 }
 #endif

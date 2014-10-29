@@ -26,6 +26,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <math.h>
+#include <common/config.h>
+#include "../helper.h"
 
 #ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
@@ -33,8 +35,10 @@
 
 #define NX (1024)
 
-int main(int argc, char **argv)
+int dotest(struct starpu_disk_ops *ops)
 {
+	int *A, *C;
+
 	/* Initialize StarPU with default configuration */
 	int ret = starpu_init(NULL);
 
@@ -62,21 +66,18 @@ int main(int argc, char **argv)
 
 
 	/* register a disk */
-	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) base, 1024*1024*1);
+	int new_dd = starpu_disk_register(ops, (void *) base, 1024*1024*1);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 	
 	unsigned dd = (unsigned) new_dd;
 
-	printf("TEST DISK MEMORY \n");
-
-	/* Imagine, you want to compute datas */
-	int *A;
-	int *C;
-
+	/* allocate two memory spaces */
 	starpu_malloc_flags((void **)&A, NX*sizeof(int), STARPU_MALLOC_COUNT);
 	starpu_malloc_flags((void **)&C, NX*sizeof(int), STARPU_MALLOC_COUNT);
-	
+
+	FPRINTF(stderr, "TEST DISK MEMORY \n");
+
 	unsigned int j;
 	/* you register them in a vector */
 	for(j = 0; j < NX; ++j)
@@ -163,7 +164,7 @@ int main(int argc, char **argv)
 	for (j = 0; j < NX; ++j)
 		if (A[j] != C[j])
 		{
-			printf("Fail A %d != C %d \n", A[j], C[j]);
+			FPRINTF(stderr, "Fail A %d != C %d \n", A[j], C[j]);
 			try = 0;
 		}
 
@@ -180,13 +181,34 @@ int main(int argc, char **argv)
 	starpu_shutdown();
 
 	if(try)
-		printf("TEST SUCCESS\n");
+		FPRINTF(stderr, "TEST SUCCESS\n");
 	else
-		printf("TEST FAIL\n");
+		FPRINTF(stderr, "TEST FAIL\n");
 	return (try ? EXIT_SUCCESS : EXIT_FAILURE);
 
 enodev:
-	return 77;
+	return STARPU_TEST_SKIPPED;
 enoent:
-	return 77;
+	FPRINTF(stderr, "Couldn't write data: ENOENT\n");
+	starpu_shutdown();
+	return STARPU_TEST_SKIPPED;
+}
+
+static int merge_result(int old, int new)
+{
+	if (new == EXIT_FAILURE)
+		return EXIT_FAILURE;
+	if (old == 0)
+		return 0;
+	return new;
+}
+
+int main(void) {
+	int ret = 0;
+	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops));
+#ifdef STARPU_LINUX_SYS
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops));
+#endif
+	return ret;
 }
