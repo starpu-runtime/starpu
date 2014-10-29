@@ -122,7 +122,7 @@ starpu_leveldb_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t size
 /* in the leveldb, we are obliged to read and to write the entire data 
  * so, we have to use buffers to have offset and size options */
 static int 
-starpu_leveldb_read (void *base, void *obj, void *buf, off_t offset, size_t size, void * async_channel STARPU_ATTRIBUTE_UNUSED)
+starpu_leveldb_read (void *base, void *obj, void *buf, off_t offset, size_t size)
 {
 	struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
 	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;	
@@ -158,7 +158,7 @@ starpu_leveldb_full_read(unsigned node, void *base, void * obj, void ** ptr, siz
 
 /* write on the memory disk */
 static int 
-starpu_leveldb_write (void *base, void *obj, const void *buf, off_t offset, size_t size, void * async_channel)
+starpu_leveldb_write (void *base, void *obj, const void *buf, off_t offset, size_t size)
 {
         struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
         struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;

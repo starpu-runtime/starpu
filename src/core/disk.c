@@ -144,7 +144,7 @@ _starpu_disk_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, 
 	/* asynchronous request failed or synchronous request is asked */	
 	if (async_channel == NULL || values < 0)
 	{
-		disk_register_list[pos]->functions->read(disk_register_list[pos]->base, obj, buf, offset, size, async_channel);
+		disk_register_list[pos]->functions->read(disk_register_list[pos]->base, obj, buf, offset, size);
 		return 0;
 	}
 	return -EAGAIN;
@@ -185,7 +185,7 @@ _starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node,
         /* asynchronous request failed or synchronous request is asked */
         if (async_channel == NULL || values < 0)
         {
-		disk_register_list[pos]->functions->write(disk_register_list[pos]->base, obj, buf, offset, size, async_channel);
+		disk_register_list[pos]->functions->write(disk_register_list[pos]->base, obj, buf, offset, size);
         	return 0;
         }
         return -EAGAIN;

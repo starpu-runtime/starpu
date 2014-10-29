@@ -26,8 +26,8 @@ struct starpu_disk_ops {
 	 void    (*free)   (void *base, void *obj, size_t size);
 	 void *  (*open)   (void *base, void *pos, size_t size);     /* open an existing file */
 	 void    (*close)  (void *base, void *obj, size_t size);
-	 int     (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size, void * async); 
-	 int     (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size, void * async); 
+	 int     (*read)   (void *base, void *obj, void *buf, off_t offset, size_t size);
+	 int     (*write)  (void *base, void *obj, const void *buf, off_t offset, size_t size);
 	 int     (*async_write)  (void *base, void *obj, void *buf, off_t offset, size_t size, void * async); 
 	 int     (*async_read)   (void *base, void *obj, void *buf, off_t offset, size_t size, void * async); 
 	/* readv, writev, read2d, write2d, etc. */
