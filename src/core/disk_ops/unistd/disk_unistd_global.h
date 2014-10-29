@@ -26,7 +26,7 @@
 struct starpu_unistd_global_obj {
         int descriptor;
         char * path;
-        double size;
+        size_t size;
 	int flags;
 	starpu_pthread_mutex_t mutex;
 };
@@ -45,6 +45,6 @@ void* starpu_unistd_global_async_write (void *base, void *obj, void *buf, off_t 
 void starpu_unistd_global_wait_request(void * async_channel);
 int starpu_unistd_global_test_request(void * async_channel);
 void starpu_unistd_global_free_request(void * async_channel);
-int starpu_unistd_global_full_read(unsigned node, void *base, void * obj, void ** ptr, size_t * size);
-int starpu_unistd_global_full_write (unsigned node, void * base, void * obj, void * ptr, size_t size);
+int starpu_unistd_global_full_read(void *base, void * obj, void ** ptr, size_t * size);
+int starpu_unistd_global_full_write (void * base, void * obj, void * ptr, size_t size);
 #endif

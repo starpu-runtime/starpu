@@ -417,14 +417,17 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 
 		else
 		{
-			struct starpu_disk_interface * disk_interface = (struct starpu_disk_interface *) dst_interface; 
-			void * obj = (void *) disk_interface->dev_handle;
+			void *obj = starpu_data_handle_to_pointer(handle, dst_node);
 			void * ptr = NULL;
 			starpu_ssize_t size = 0;
 			handle->ops->pack_data(handle, src_node, &ptr, &size);
-			ret = _starpu_disk_full_write(src_node, dst_node, obj, ptr, size);
-			/* ptr is allocated in pack_data */
-			free(ptr);
+			ret = _starpu_disk_full_write(src_node, dst_node, obj, ptr, size, &req->async_channel);
+			if (ret == 0)
+				/* write is already finished, ptr was allocated in pack_data */
+				free(ptr);
+
+			/* For now, asynchronous is not supported */
+			STARPU_ASSERT(ret == 0);
 		}
 		break;
 		
@@ -433,14 +436,20 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req && !starpu_asynchronous_copy_disabled()  ? &req->async_channel : NULL);
 		else
 		{
-			struct starpu_disk_interface * disk_interface = (struct starpu_disk_interface *) src_interface; 
-			void * obj = (void *) disk_interface->dev_handle;
+			void *obj = starpu_data_handle_to_pointer(handle, src_node);
 			void * ptr = NULL;
 			size_t size = 0;
-			ret = _starpu_disk_full_read(src_node, dst_node, obj, &ptr, &size);
-			handle->ops->unpack_data(handle, dst_node, ptr, size); 
-			/* ptr is allocated in full_read */
-			free(ptr);
+			ret = _starpu_disk_full_read(src_node, dst_node, obj, &ptr, &size, &req->async_channel);
+			if (ret == 0)
+			{
+				/* read is already finished, we can already unpack */
+				handle->ops->unpack_data(handle, dst_node, ptr, size); 
+				/* ptr is allocated in full_read */
+				free(ptr);
+			}
+
+			/* For now, asynchronous is not supported */
+			STARPU_ASSERT(ret == 0);
 		}
 		break;
 

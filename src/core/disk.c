@@ -177,7 +177,6 @@ _starpu_disk_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node,
         	return 0;
         }
         return -EAGAIN;
-
 }
 
 int
@@ -194,16 +193,58 @@ _starpu_disk_copy(unsigned node_src, void* obj_src, off_t offset_src, unsigned n
 	return -EAGAIN;
 }
 
-int _starpu_disk_full_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
+int _starpu_disk_full_read(unsigned src_node, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size, struct _starpu_async_channel *channel)
 {
 	int pos = get_location_with_node(src_node);
-        return disk_register_list[pos]->functions->full_read(src_node, disk_register_list[pos]->base, obj, ptr, size);
+
+	if (channel != NULL)
+	{
+		if (disk_register_list[pos]->functions->async_full_read == NULL)
+			channel = NULL;
+		else
+		{
+			channel->type = STARPU_DISK_RAM;
+			channel->event.disk_event.memory_node = src_node;
+
+			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+			channel->event.disk_event.backend_event = disk_register_list[pos]->functions->async_full_read(disk_register_list[pos]->base, obj, ptr, size);
+			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		}
+	}
+	/* asynchronous request failed or synchronous request is asked */
+	if (channel == NULL || !channel->event.disk_event.backend_event)
+	{
+		disk_register_list[pos]->functions->full_read(disk_register_list[pos]->base, obj, ptr, size);
+		return 0;
+	}
+	return -EAGAIN;
 }
 
-int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void * obj, void * ptr, size_t size)
+int _starpu_disk_full_write(unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, void * obj, void * ptr, size_t size, struct _starpu_async_channel *channel)
 {
 	int pos = get_location_with_node(dst_node);
-        return disk_register_list[pos]->functions->full_write(dst_node, disk_register_list[pos]->base, obj, ptr, size);
+
+	if (channel != NULL)
+	{
+		if (disk_register_list[pos]->functions->async_full_write == NULL)
+			channel = NULL;
+		else
+		{
+			channel->type = STARPU_DISK_RAM;
+			channel->event.disk_event.memory_node = dst_node;
+
+			_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
+			channel->event.disk_event.backend_event = disk_register_list[pos]->functions->async_full_write(disk_register_list[pos]->base, obj, ptr, size);
+			_STARPU_TRACE_END_DRIVER_COPY_ASYNC(src_node, dst_node);
+		}
+	}
+	/* asynchronous request failed or synchronous request is asked */
+	if (channel == NULL || !channel->event.disk_event.backend_event)
+	{
+		disk_register_list[pos]->functions->full_write(disk_register_list[pos]->base, obj, ptr, size);
+		return 0;
+	}
+	return -EAGAIN;
 }
 
 void * 

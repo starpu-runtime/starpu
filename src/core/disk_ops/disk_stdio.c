@@ -40,7 +40,7 @@ struct starpu_stdio_obj
 	int descriptor;
 	FILE * file;
 	char * path;
-	double size;
+	size_t size;
 	starpu_pthread_mutex_t mutex;
 };
 
@@ -196,13 +196,20 @@ static int starpu_stdio_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void
 	return 0;
 }
 
-static int starpu_stdio_full_read(unsigned node, void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
+static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
-	*size = tmp->size;
+	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+
+	int res = fseek(tmp->file, 0, SEEK_END);
+	STARPU_ASSERT_MSG(res == 0, "Stdio write failed");
+	*size = ftell(tmp->file);
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+
 	*ptr = malloc(*size);
-	return _starpu_disk_read(node, STARPU_MAIN_RAM, obj, *ptr, 0, *size, NULL);
+	return starpu_stdio_read(base, obj, *ptr, 0, *size);
 }
 
 /* write on the memory disk */
@@ -222,31 +229,26 @@ static int starpu_stdio_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, con
 	return 0;
 }
 
-static int starpu_stdio_full_write(unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
+static int starpu_stdio_full_write(void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
 {
 	struct starpu_stdio_obj * tmp = (struct starpu_stdio_obj *) obj;
 
 	/* update file size to realise the next good full_read */
 	if(size != tmp->size)
 	{
-		_starpu_memory_manager_deallocate_size(tmp->size, node);
-		if (_starpu_memory_manager_can_allocate_size(size, node))
-		{
 #ifdef STARPU_HAVE_WINDOWS
-			int val = _chsize(tmp->descriptor, size);
+		int val = _chsize(tmp->descriptor, size);
 #else
-			int val = ftruncate(tmp->descriptor,size);
+		int val = ftruncate(tmp->descriptor,size);
 #endif
+		STARPU_ASSERT(val == 0);
 
-			STARPU_ASSERT_MSG(val >= 0,"StarPU Error to truncate file in STDIO full_write function");
-			tmp->size = size;
-		}
-		else
-		{
-			STARPU_ASSERT_MSG(0, "Can't allocate size %u on the disk !", (int) size);
-		}
+		tmp->size = size;
 	}
-	return _starpu_disk_write(STARPU_MAIN_RAM, node, obj, ptr, 0, tmp->size, NULL);
+
+	starpu_stdio_write(base, obj, ptr, 0, size);
+
+	return 0;
 }
 
 /* create a new copy of parameter == base */

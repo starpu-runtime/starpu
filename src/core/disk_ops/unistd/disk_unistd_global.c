@@ -213,13 +213,21 @@ starpu_unistd_global_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, 
 #endif
 
 int
-starpu_unistd_global_full_read(unsigned node, void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
+starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void * obj, void ** ptr, size_t * size)
 {
         struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
 
-        *size = tmp->size;
+#ifdef STARPU_HAVE_WINDOWS
+	*size = _filelength(tmp->descriptor);
+#else
+	struct stat st;
+	fstat(tmp->descriptor, &st);
+
+	*size = st.st_size;
+#endif
+
         *ptr = malloc(*size);
-	return _starpu_disk_read(node, STARPU_MAIN_RAM, obj, *ptr, 0, *size, NULL);
+	return starpu_unistd_global_read(base, obj, *ptr, 0, *size);
 }
 
 
@@ -268,32 +276,23 @@ starpu_unistd_global_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
 #endif
 
 int
-starpu_unistd_global_full_write (unsigned node, void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
+starpu_unistd_global_full_write (void * base STARPU_ATTRIBUTE_UNUSED, void * obj, void * ptr, size_t size)
 {
         struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
 
         /* update file size to realise the next good full_read */
         if(size != tmp->size)
         {
-                _starpu_memory_manager_deallocate_size(tmp->size, node);
-                if (_starpu_memory_manager_can_allocate_size(size, node))
-                {
 #ifdef STARPU_HAVE_WINDOWS
-                        int val = _chsize(tmp->descriptor, size);
+		int val = _chsize(tmp->descriptor, size);
 #else
-                        int val = ftruncate(tmp->descriptor,size);
+		int val = ftruncate(tmp->descriptor,size);
 #endif
-
-                        STARPU_ASSERT_MSG(val >= 0,"StarPU Error to truncate file in UNISTD full_write function");
-			tmp->size = size;
-                }
-                else
-                {
-                        STARPU_ASSERT_MSG(0, "Can't allocate size %u on the disk !", (int) size);
-                }
-
+		STARPU_ASSERT(val == 0);
+		tmp->size = size;
         }
-	return _starpu_disk_write(STARPU_MAIN_RAM, node, obj, ptr, 0, tmp->size, NULL);
+
+	return starpu_unistd_global_write(base, obj, ptr, 0, size);
 }
 
 

@@ -30,6 +30,13 @@ into \p buf. Returns the actual number of read bytes.
 \var int (*starpu_disk_ops::write)(void *base, void *obj, const void *buf, off_t offset, size_t size)
 Write \p size bytes of data to \p obj in \p base, at offset \p offset, from \p buf. Returns 0 on success.
 
+\var int (*starpu_disk_ops::full_read)(void * base, void * obj, void ** ptr, size_t * size)
+Read all data from \p obj of \p base, from offset 0. Returns it in an allocated buffer \p ptr, of size \p size
+
+\var int (*starpu_disk_ops::full_write)(void * base, void * obj, void * ptr, size_t size)
+Write data in \p ptr to \p obj of \p base, from offset 0, and truncate \p obj to
+\p size, so that a \c full_read will get it.
+
 \var void* (*starpu_disk_ops::plug) (void *parameters, size_t size)
 Connect a disk memory at location \p parameter with size \p size, and return a
 base as void*, which will be passed by StarPU to all other methods.
@@ -46,6 +53,13 @@ offset, and put into \p buf. Returns a void* pointer that StarPU will pass to \c
 Asynchronously write \p size bytes of data to \p obj in \p base, at offset \p
 offset, from \p buf. Returns a void* pointer that StarPU will pass to \c
 *_request methods for testing for the completion.
+
+\var void * (*starpu_disk_ops::async_full_read)(void * base, void * obj, void ** ptr, size_t * size)
+Read all data from \p obj of \p base, from offset 0. Returns it in an allocated buffer \p ptr, of size \p size
+
+\var void * (*starpu_disk_ops::async_full_write)(void * base, void * obj, void * ptr, size_t size)
+Write data in \p ptr to \p obj of \p base, from offset 0, and truncate \p obj to
+\p size, so that a \c full_read will get it.
 
 \var void* (*starpu_disk_ops::copy)(void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size)
 Copy from offset \p offset_src of disk object \p obj_src in \p base_src to
@@ -67,13 +81,6 @@ asynchronous read, write or copy. Returns 1 on completion, 0 otherwise.
 
 \var void (*starpu_disk_ops::free_request)(void *async_channel)
 Free the request allocated by a previous asynchronous read, write or copy.
-
-\var int (*starpu_disk_ops::full_read)(void * base, void * obj, void ** ptr, size_t * size)
-Read all data from \p obj of \p base, from offset 0. Returns it in an allocated buffer \p ptr, of size \p size
-
-\var int (*starpu_disk_ops::full_write)(void * base, void * obj, void * ptr, size_t size)
-Write data in \p ptr to \p obj of \p base, from offset 0, and truncate \p obj to
-\p size, so that a \c full_read will get it.
 
 \fn int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, size_t size)
 \ingroup API_Out_Of_Core

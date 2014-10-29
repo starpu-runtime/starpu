@@ -207,6 +207,7 @@ noinst_PROGRAMS =				\
 	datawizard/specific_node		\
 	disk/disk_copy				\
 	disk/disk_compute			\
+	disk/disk_pack				\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\

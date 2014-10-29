@@ -33,7 +33,7 @@
 
 struct starpu_leveldb_obj {
 	char * key;
-	double size;
+	size_t size;
 	starpu_pthread_mutex_t mutex;
 };
 
@@ -143,14 +143,28 @@ starpu_leveldb_read (void *base, void *obj, void *buf, off_t offset, size_t size
 }
 
 static int
-starpu_leveldb_full_read(unsigned node, void *base, void * obj, void ** ptr, size_t * size)
+starpu_leveldb_full_read(void *base, void * obj, void ** ptr, size_t * size)
 {
         struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
         struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
 
-	*size = tmp->size;
-	*ptr = (size_t *)malloc(*size);
-	return _starpu_disk_read(node, STARPU_MAIN_RAM, obj, *ptr, 0, *size, NULL);
+	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
+
+	/* leveldb need a string to store datas */
+	std::string value;
+	leveldb::Status s = base_tmp->db->Get(leveldb::ReadOptions(), tmp->key, &value);
+
+	STARPU_ASSERT(s.ok());
+
+	*size = value.length();
+	*ptr = malloc(*size);
+
+	/* use buffer */
+	memcpy(*ptr, value.c_str(), *size);
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+
+	return 0;
 }
 
 /* write on the memory disk */
@@ -201,20 +215,14 @@ starpu_leveldb_write (void *base, void *obj, const void *buf, off_t offset, size
 }
 
 static int
-starpu_leveldb_full_write (unsigned node, void * base, void * obj, void * ptr, size_t size)
+starpu_leveldb_full_write (void * base, void * obj, void * ptr, size_t size)
 {
 	struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) obj;
 	struct starpu_leveldb_base * base_tmp = (struct starpu_leveldb_base *) base;
-	
-	/* update file size to realise the next good full_read */
-	if(size != tmp->size)
-	{
-		_starpu_memory_manager_deallocate_size(tmp->size, node);
-		if (_starpu_memory_manager_can_allocate_size(size, node))
-			tmp->size = size;
-		else
-			STARPU_ASSERT_MSG(0, "Can't allocate size %u on the disk !", (int) size); 
-	}	
+
+	/* update file size to achieve correct writes */
+	tmp->size = size;
+
 	leveldb::WriteOptions write_options;
 	write_options.sync = true;
 
@@ -335,6 +343,8 @@ struct starpu_disk_ops starpu_disk_leveldb_ops = {
 	.full_write = starpu_leveldb_full_write,
 	.async_write = NULL,
 	.async_read = NULL,
+	.async_full_read = NULL,
+	.async_full_write = NULL,
 	.copy = NULL,
 	.wait_request = NULL,
 	.test_request = NULL,
@@ -353,6 +363,8 @@ struct starpu_disk_ops starpu_disk_leveldb_ops = {
 	starpu_leveldb_write,
 	starpu_leveldb_full_read,
 	starpu_leveldb_full_write,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
