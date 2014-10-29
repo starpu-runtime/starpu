@@ -11,41 +11,41 @@
 \struct starpu_data_interface_ops
 Per-interface data transfer methods.
 \ingroup API_Data_Interfaces
-\var starpu_data_interface_ops::register_data_handle
+\var void (*starpu_data_interface_ops::register_data_handle)(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
 Register an existing interface into a data handle.
-\var starpu_data_interface_ops::allocate_data_on_node
+\var starpu_ssize_t (*starpu_data_interface_ops::allocate_data_on_node)(void *data_interface, unsigned node)
 Allocate data for the interface on a given node.
-\var starpu_data_interface_ops::free_data_on_node
+\var void (*starpu_data_interface_ops::free_data_on_node)(void *data_interface, unsigned node)
 Free data of the interface on a given node.
-\var starpu_data_interface_ops::copy_methods
+\var const struct starpu_data_copy_methods *starpu_data_interface_ops::copy_methods
 ram/cuda/opencl synchronous and asynchronous transfer methods.
-\var starpu_data_interface_ops::handle_to_pointer
+\var void *(*starpu_data_interface_ops::handle_to_pointer)(starpu_data_handle_t handle, unsigned node)
 Return the current pointer (if any) for the handle on the given node.
-\var starpu_data_interface_ops::get_size
+\var size_t (*starpu_data_interface_ops::get_size)(starpu_data_handle_t handle)
 Return an estimation of the size of data, for performance models.
-\var starpu_data_interface_ops::footprint
+\var uint32_t (*starpu_data_interface_ops::footprint)(starpu_data_handle_t handle)
 Return a 32bit footprint which characterizes the data size.
-\var starpu_data_interface_ops::compare
+\var int (*starpu_data_interface_ops::compare)(void *data_interface_a, void *data_interface_b)
 Compare the data size of two interfaces.
-\var starpu_data_interface_ops::display
+\var void (*starpu_data_interface_ops::display)(starpu_data_handle_t handle, FILE *f)
 Dump the sizes of a handle to a file.
-\var starpu_data_interface_ops::describe
+\var starpu_ssize_t (*starpu_data_interface_ops::describe)(void *data_interface, char *buf, size_t size)
 Describe the data into a string.
-\var starpu_data_interface_ops::interfaceid
+\var enum starpu_data_interface_id starpu_data_interface_ops::interfaceid
 An identifier that is unique to each interface.
-\var starpu_data_interface_ops::interface_size
+\var size_t starpu_data_interface_ops::interface_size
 The size of the interface data descriptor.
-\var starpu_data_interface_ops::is_multiformat
+\var int starpu_data_interface_ops::is_multiformat
 todo
-\var starpu_data_interface_ops::get_mf_ops
+\var struct starpu_multiformat_data_interface_ops* (*starpu_data_interface_ops::get_mf_ops)(void *data_interface)
 todo
-\var starpu_data_interface_ops::pack_data
+\var int (*starpu_data_interface_ops::pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 Pack the data handle into a contiguous buffer at the address ptr and
 set the size of the newly created buffer in count. If ptr is NULL, the
 function should not copy the data in the buffer but just set count to
 the size of the buffer which would have been allocated. The special
 value -1 indicates the size is yet unknown.
-\var starpu_data_interface_ops::unpack_data
+\var int (*starpu_data_interface_ops::unpack_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 Unpack the data handle from the contiguous buffer at the address ptr
 of size count
 
