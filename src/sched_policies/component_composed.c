@@ -34,14 +34,14 @@ struct starpu_sched_component_composed_recipe
 };
 
 
-struct starpu_sched_component_composed_recipe * starpu_sched_component_create_recipe(void)
+struct starpu_sched_component_composed_recipe * starpu_sched_component_composed_recipe_create(void)
 {
 	struct starpu_sched_component_composed_recipe * recipe = malloc(sizeof(*recipe));
 	recipe->list = fun_create_component_list_new();
 	return recipe;
 }
 
-void starpu_sched_component_recipe_add(struct starpu_sched_component_composed_recipe * recipe,
+void starpu_sched_component_composed_recipe_add(struct starpu_sched_component_composed_recipe * recipe,
 				       struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void * arg),
 				       void * arg)
 {
@@ -50,14 +50,14 @@ void starpu_sched_component_recipe_add(struct starpu_sched_component_composed_re
 	e->arg = arg;
 	fun_create_component_list_push_back(recipe->list, e);
 }
-struct starpu_sched_component_composed_recipe * starpu_sched_component_create_recipe_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void * arg),
+struct starpu_sched_component_composed_recipe * starpu_sched_component_composed_recipe_create_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void * arg),
 										      void * arg)
 {
-	struct starpu_sched_component_composed_recipe * r = starpu_sched_component_create_recipe();
-	starpu_sched_component_recipe_add(r, create_component, arg);
+	struct starpu_sched_component_composed_recipe * r = starpu_sched_component_composed_recipe_create();
+	starpu_sched_component_composed_recipe_add(r, create_component, arg);
 	return r;
 }
-void starpu_destroy_composed_sched_component_recipe(struct starpu_sched_component_composed_recipe * recipe)
+void starpu_sched_component_composed_recipe_destroy(struct starpu_sched_component_composed_recipe * recipe)
 {
 	if(!recipe)
 		return;

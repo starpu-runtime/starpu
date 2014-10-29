@@ -66,7 +66,7 @@ int starpu_sched_component_is_perfmodel_select(struct starpu_sched_component * c
 	return component->push_task == perfmodel_select_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_perfmodel_select_data * params)
+struct starpu_sched_component * starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_sched_component_perfmodel_select_data * params)
 {
 	STARPU_ASSERT(params);
 	STARPU_ASSERT(params->calibrator_component && params->no_perfmodel_component && params->perfmodel_component);

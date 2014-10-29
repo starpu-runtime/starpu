@@ -40,7 +40,7 @@ static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
 	t->root->add_child(t->root, eager_component);
 	eager_component->add_parent(eager_component, t->root);
 
-	struct starpu_prio_data prio_data =
+	struct starpu_sched_component_prio_data prio_data =
 		{
 			.ntasks_threshold = ntasks_threshold,
 			.exp_len_threshold = exp_len_threshold,

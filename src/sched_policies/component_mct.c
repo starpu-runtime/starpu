@@ -115,7 +115,7 @@ int starpu_sched_component_is_mct(struct starpu_sched_component * component)
 	return component->push_task == mct_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_mct_data * params)
+struct starpu_sched_component * starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data * params)
 {
 	struct starpu_sched_component * component = starpu_sched_component_create(tree);
 	struct _starpu_mct_data *data = starpu_mct_init_parameters(params);

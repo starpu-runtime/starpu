@@ -22,7 +22,7 @@ struct _starpu_mct_data
 	double idle_power;
 };
 
-struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_mct_data *params);
+struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_component_mct_data *params);
 
 int starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,
 		double *estimated_lengths, double *estimated_transfer_length, double *estimated_ends_with_task,

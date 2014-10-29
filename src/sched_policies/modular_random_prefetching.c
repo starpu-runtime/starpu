@@ -110,7 +110,7 @@ static void initialize_random_prio_prefetching_center_policy(unsigned sched_ctx_
 	t->root->add_child(t->root, random_component);
 	random_component->add_parent(random_component, t->root);
 
-	struct starpu_prio_data prio_data =
+	struct starpu_sched_component_prio_data prio_data =
 		{
 			.ntasks_threshold = ntasks_threshold,
 			.exp_len_threshold = exp_len_threshold,

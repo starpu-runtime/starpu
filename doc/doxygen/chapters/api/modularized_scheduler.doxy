@@ -248,7 +248,7 @@ The actual scheduler
 @name Flow-control Prio Component API
 \ingroup API_Modularized_Scheduler
 
-\fn struct starpu_sched_component *starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_prio_data *prio_data)
+\fn struct starpu_sched_component *starpu_sched_component_prio_create(struct starpu_sched_tree *tree, struct starpu_sched_component_prio_data *prio_data)
 \ingroup API_Modularized_Scheduler
 todo
 
@@ -307,7 +307,7 @@ todo
 @name Resource-mapping MCT Component API
 \ingroup API_Modularized_Scheduler
 
-\fn struct starpu_sched_component *starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_mct_data *mct_data)
+\fn struct starpu_sched_component *starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data *mct_data)
 \ingroup API_Modularized_Scheduler
 create a component with mct_data paremeters. the mct component doesnt
 do anything but pushing tasks on no_perf_model_component and
@@ -320,7 +320,7 @@ todo
 @name Resource-mapping Heft Component API
 \ingroup API_Modularized_Scheduler
 
-\fn struct starpu_sched_component *starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_mct_data *mct_data)
+\fn struct starpu_sched_component *starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data *mct_data)
 \ingroup API_Modularized_Scheduler
 	 this component perform a heft scheduling
 
@@ -341,7 +341,7 @@ todo
 @name Special-purpose Perfmodel_Select Component API
 \ingroup API_Modularized_Scheduler
 
-\fn struct starpu_sched_component *starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_perfmodel_select_data *perfmodel_select_data)
+\fn struct starpu_sched_component *starpu_sched_component_perfmodel_select_create(struct starpu_sched_tree *tree, struct starpu_sched_component_perfmodel_select_data *perfmodel_select_data)
 \ingroup API_Modularized_Scheduler
 todo
 
@@ -356,19 +356,19 @@ todo
 \ingroup API_Modularized_Scheduler
 	parameters for starpu_sched_component_composed_component_create
 
-\fn struct starpu_sched_component_composed_recipe *starpu_sched_component_create_recipe(void)
+\fn struct starpu_sched_component_composed_recipe *starpu_sched_component_composed_recipe_create(void)
 \ingroup API_Modularized_Scheduler
 	 return an empty recipe for a composed component, it should not be used without modification
 
-\fn struct starpu_sched_component_composed_recipe *starpu_sched_component_create_recipe_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg)
+\fn struct starpu_sched_component_composed_recipe *starpu_sched_component_composed_recipe_create_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg)
 \ingroup API_Modularized_Scheduler
 	 return a recipe to build a composed component with a \p create_component
 
-\fn void starpu_sched_component_recipe_add(struct starpu_sched_component_composed_recipe *recipe, struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg)
+\fn void starpu_sched_component_composed_recipe_add(struct starpu_sched_component_composed_recipe *recipe, struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg)
 \ingroup API_Modularized_Scheduler
 	 add \p create_component under all previous components in recipe
 
-\fn void starpu_destroy_composed_sched_component_recipe(struct starpu_sched_component_composed_recipe *)
+\fn void starpu_sched_component_composed_recipe_destroy(struct starpu_sched_component_composed_recipe *)
 \ingroup API_Modularized_Scheduler
 	 destroy composed_sched_component, this should be done after starpu_sched_component_composed_component_create was called
 

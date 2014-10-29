@@ -200,7 +200,7 @@ static void set_worker_leaf(struct starpu_sched_component * root, struct starpu_
 		component = tmp;
 		
 	}
-	starpu_destroy_composed_sched_component_recipe(recipe);
+	starpu_sched_component_composed_recipe_destroy(recipe);
 	starpu_sched_component_add_parent(worker_component, component);
 	component->add_child(component, worker_component);
 }

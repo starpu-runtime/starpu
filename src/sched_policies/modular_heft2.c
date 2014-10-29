@@ -52,7 +52,7 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 	struct starpu_sched_component * no_perfmodel_component = starpu_sched_component_eager_create(t, NULL);
 	struct starpu_sched_component * calibrator_component = starpu_sched_component_eager_create(t, NULL);
 	
-	struct starpu_perfmodel_select_data perfmodel_select_data =
+	struct starpu_sched_component_perfmodel_select_data perfmodel_select_data =
 		{
 			.calibrator_component = calibrator_component,
 			.no_perfmodel_component = no_perfmodel_component,
@@ -73,7 +73,7 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 	perfmodel_select_component->add_child(perfmodel_select_component, no_perfmodel_component);
 	no_perfmodel_component->add_parent(no_perfmodel_component, perfmodel_select_component);
 
-	struct starpu_prio_data prio_data =
+	struct starpu_sched_component_prio_data prio_data =
 		{
 			.ntasks_threshold = ntasks_threshold,
 			.exp_len_threshold = exp_len_threshold,

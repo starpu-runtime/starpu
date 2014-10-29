@@ -48,7 +48,7 @@ static const float idle_power_minimum=0;
 static const float idle_power_maximum=10000.0;
 #endif /* !STARPU_USE_TOP */
 
-struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_mct_data *params)
+struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_component_mct_data *params)
 {
 	struct _starpu_mct_data * data = malloc(sizeof(*data));
 	if (params)

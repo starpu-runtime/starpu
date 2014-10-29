@@ -223,7 +223,7 @@ int starpu_sched_component_is_heft(struct starpu_sched_component * component)
 	return component->push_task == heft_push_task;
 }
 
-struct starpu_sched_component * starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_mct_data * params)
+struct starpu_sched_component * starpu_sched_component_heft_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data * params)
 {
 	struct starpu_sched_component * component = starpu_sched_component_create(tree);
 	struct _starpu_mct_data *mct_data = starpu_mct_init_parameters(params);
