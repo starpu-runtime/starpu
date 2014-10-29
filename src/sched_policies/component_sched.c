@@ -411,7 +411,7 @@ void starpu_sched_tree_destroy(struct starpu_sched_tree * tree)
 	free(tree);
 }
 
-struct starpu_sched_tree * starpu_get_tree(unsigned sched_ctx_id)
+struct starpu_sched_tree * starpu_sched_tree_get(unsigned sched_ctx_id)
 {
 	return trees[sched_ctx_id];
 }

@@ -89,7 +89,7 @@ struct starpu_sched_tree
 
 struct starpu_sched_tree *starpu_sched_tree_create(unsigned sched_ctx_id);
 void starpu_sched_tree_destroy(struct starpu_sched_tree *tree);
-struct starpu_sched_tree *starpu_get_tree(unsigned sched_ctx_id);
+struct starpu_sched_tree *starpu_sched_tree_get(unsigned sched_ctx_id);
 
 /* destroy component and all his child
  * except if they are shared between several contexts

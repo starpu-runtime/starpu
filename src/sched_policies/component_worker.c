@@ -1,11 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011-2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
-
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -894,9 +893,9 @@ struct starpu_sched_component * starpu_sched_component_worker_get(unsigned sched
 	{
 		struct starpu_sched_component * component;
 		if(workerid < (int) starpu_worker_get_count())
-			component = starpu_sched_component_worker_create(starpu_get_tree(sched_ctx), workerid);
+			component = starpu_sched_component_worker_create(starpu_sched_tree_get(sched_ctx), workerid);
 		else
-			component = starpu_sched_component_combined_worker_create(starpu_get_tree(sched_ctx), workerid);
+			component = starpu_sched_component_combined_worker_create(starpu_sched_tree_get(sched_ctx), workerid);
 		_worker_components[sched_ctx][workerid] = component;
 		return component;
 	}
