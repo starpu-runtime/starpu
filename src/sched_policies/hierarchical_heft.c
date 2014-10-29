@@ -4,8 +4,8 @@
 static struct  starpu_sched_component_composed_recipe *  recipe_for_worker(enum starpu_worker_archtype a STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_component_composed_recipe * r = starpu_sched_component_create_recipe();
-	starpu_sched_recipe_add_component(r, starpu_sched_component_best_implementation_create, NULL);
-	starpu_sched_recipe_add_component(r, starpu_sched_component_fifo_create, NULL);
+	starpu_sched_component_recipe_add(r, starpu_sched_component_best_implementation_create, NULL);
+	starpu_sched_component_recipe_add(r, starpu_sched_component_fifo_create, NULL);
 	return r;
 }
 
@@ -31,12 +31,12 @@ static void initialize_heft_center_policy(unsigned sched_ctx_id)
 		.arg_calibrating_component = NULL,
 	};
 	struct starpu_sched_component_composed_recipe * r = starpu_sched_component_create_recipe();
-	starpu_sched_recipe_add_component(r,(struct starpu_sched_component * (*)(void*))starpu_sched_component_heft_create,&heft_data);
+	starpu_sched_component_recipe_add(r,(struct starpu_sched_component * (*)(void*))starpu_sched_component_heft_create,&heft_data);
 	specs.hwloc_machine_composed_sched_component = r;
 
 	r = starpu_sched_component_create_recipe();
-	starpu_sched_recipe_add_component(r, starpu_sched_component_best_implementation_create, NULL);
-	starpu_sched_recipe_add_component(r, starpu_sched_component_fifo_create ,NULL);
+	starpu_sched_component_recipe_add(r, starpu_sched_component_best_implementation_create, NULL);
+	starpu_sched_component_recipe_add(r, starpu_sched_component_fifo_create ,NULL);
 
 	specs.hwloc_component_composed_sched_component = r;
 	specs.worker_composed_sched_component = recipe_for_worker;

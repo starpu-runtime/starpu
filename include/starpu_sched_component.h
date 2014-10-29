@@ -166,10 +166,9 @@ int starpu_sched_component_is_perfmodel_select(struct starpu_sched_component *co
 struct starpu_sched_component_composed_recipe;
 struct starpu_sched_component_composed_recipe *starpu_sched_component_create_recipe(void);
 struct starpu_sched_component_composed_recipe *starpu_sched_component_create_recipe_singleton(struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg);
-void starpu_sched_recipe_add_component(struct starpu_sched_component_composed_recipe *recipe, struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg);
+void starpu_sched_component_recipe_add(struct starpu_sched_component_composed_recipe *recipe, struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg);
 void starpu_destroy_composed_sched_component_recipe(struct starpu_sched_component_composed_recipe *);
 struct starpu_sched_component *starpu_sched_component_composed_component_create(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe *recipe);
-
 
 #ifdef STARPU_HAVE_HWLOC
 /* null pointer mean to ignore a level L of hierarchy, then components of levels > L become children of level L - 1 */

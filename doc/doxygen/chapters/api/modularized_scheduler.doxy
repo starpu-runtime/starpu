@@ -364,7 +364,7 @@ todo
 \ingroup API_Modularized_Scheduler
 	 return a recipe to build a composed component with a \p create_component
 
-\fn void starpu_sched_recipe_add_component(struct starpu_sched_component_composed_recipe *recipe, struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg)
+\fn void starpu_sched_component_recipe_add(struct starpu_sched_component_composed_recipe *recipe, struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void *arg), void *arg)
 \ingroup API_Modularized_Scheduler
 	 add \p create_component under all previous components in recipe
 

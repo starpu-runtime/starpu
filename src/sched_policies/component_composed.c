@@ -41,9 +41,9 @@ struct starpu_sched_component_composed_recipe * starpu_sched_component_create_re
 	return recipe;
 }
 
-void starpu_sched_recipe_add_component(struct starpu_sched_component_composed_recipe * recipe,
-				  struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void * arg),
-				  void * arg)
+void starpu_sched_component_recipe_add(struct starpu_sched_component_composed_recipe * recipe,
+				       struct starpu_sched_component *(*create_component)(struct starpu_sched_tree *tree, void * arg),
+				       void * arg)
 {
 	struct fun_create_component * e = fun_create_component_new();
 	e->create_component = create_component;
@@ -54,7 +54,7 @@ struct starpu_sched_component_composed_recipe * starpu_sched_component_create_re
 										      void * arg)
 {
 	struct starpu_sched_component_composed_recipe * r = starpu_sched_component_create_recipe();
-	starpu_sched_recipe_add_component(r, create_component, arg);
+	starpu_sched_component_recipe_add(r, create_component, arg);
 	return r;
 }
 void starpu_destroy_composed_sched_component_recipe(struct starpu_sched_component_composed_recipe * recipe)
