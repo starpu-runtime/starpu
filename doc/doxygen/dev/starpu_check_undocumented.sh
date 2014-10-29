@@ -28,6 +28,18 @@ STARPU_H_FILES=$(find $dirname/../../../include $dirname/../../../mpi/include -n
 SC_H_FILES=$(find $dirname/../../../sc_hypervisor/include -name '*.h')
 SRC="$dirname/../../../src $dirname/../../../mpi/src $dirname/../../../sc_hypervisor/src"
 
+if [ "$1" == "--starpu" ]
+then
+    SC_H_FILES="$0"
+    shift
+else
+    if [ "$1" == "--sc" ]
+    then
+	STARPU_H_FILES="$0"
+	shift
+    fi
+fi
+
 if [ "$1" == "--func" ] || [ "$1" == "" ] ; then
     starpu_functions=$(spatch -very_quiet -sp_file $dirname/starpu_funcs.cocci $STARPU_H_FILES)
     sc_functions=$(spatch -very_quiet -sp_file $dirname/sc_funcs.cocci $SC_H_FILES)

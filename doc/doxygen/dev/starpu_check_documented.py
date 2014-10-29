@@ -30,9 +30,9 @@ for docfile in os.listdir(docfile_dir):
     if docfile.count(".doxy"):
         loadFunctionsAndDatatypes(functions, datatypes, docfile_dir+docfile)
 
-incfiles=dirname+"/../../../include/*.h " + dirname + "/../../../mpi/include/*.h " + dirname + "/../../../starpufft/*h " + dirname + "/../../../sc_hypervisor/include/*.h " + dirname + "/../../../include/starpu_config.h.in"
+incfiles=dirname+"/../../../include/*.h " + dirname + "/../../../mpi/include/*.h " + dirname + "/../../../starpufft/include/*.h " + dirname + "/../../../sc_hypervisor/include/*.h " + dirname + "/../../../include/starpu_config.h.in"
 for function in functions:
-    x = os.system("fgrep -l \"" + function[0] + "\" " + incfiles + " > /dev/null")
+    x = os.system("sed 's/ *STARPU_ATTRIBUTE_UNUSED *//g' " + incfiles + "| sed 's/ STARPU_WARN_UNUSED_RESULT//g' | fgrep \"" + function[0] + "\" > /dev/null")
     if x != 0:
         print "Function <" + bcolors.FAILURE + function[0] + bcolors.NORMAL + "> documented in <" + function[1] + "> does not exist in StarPU's API"
 
