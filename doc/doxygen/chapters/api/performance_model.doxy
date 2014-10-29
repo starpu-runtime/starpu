@@ -235,7 +235,7 @@ todo
 \ingroup API_Performance_Model
 returns the architecture name for \p arch
 
-\fn struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid)
+\fn struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid, unsigned sched_ctx_id)
 \ingroup API_Performance_Model
 returns the architecture type of a given worker.
 
