@@ -1284,8 +1284,9 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 		{
 			if (model->state->ncombs + 1 >= model->state->ncombs_set)
 			{
-				// The number of combinations is bigger than the one which was initially allocated, we need to reallocate
-				_starpu_perfmodel_realloc(model, nb_arch_combs);
+				// The number of combinations is bigger than the one which was initially allocated, we need to reallocate,
+				// do not only reallocate 1 extra comb, rather reallocate 5 to avoid too frequent calls to _starpu_perfmodel_realloc
+				_starpu_perfmodel_realloc(model, model->state->ncombs_set+5);
 			}
 			model->state->combs[model->state->ncombs++] = comb;
 		}
