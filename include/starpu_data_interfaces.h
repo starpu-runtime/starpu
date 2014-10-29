@@ -166,6 +166,8 @@ size_t starpu_matrix_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_MATRIX_GET_LD(interface)	(((struct starpu_matrix_interface *)(interface))->ld)
 #define STARPU_MATRIX_GET_ELEMSIZE(interface)	(((struct starpu_matrix_interface *)(interface))->elemsize)
 
+extern struct starpu_data_interface_ops starpu_interface_coo_ops;
+
 struct starpu_coo_interface
 {
 	enum starpu_data_interface_id id;
@@ -203,6 +205,8 @@ void starpu_coo_data_register(starpu_data_handle_t *handleptr, unsigned home_nod
 #define STARPU_COO_GET_ELEMSIZE(interface) \
 	(((struct starpu_coo_interface *)(interface))->elemsize)
 
+extern struct starpu_data_interface_ops starpu_interface_block_ops;
+
 /* TODO: rename to 3dmatrix? */
 struct starpu_block_interface
 {
@@ -239,6 +243,8 @@ size_t starpu_block_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_BLOCK_GET_LDZ(interface)	(((struct starpu_block_interface *)(interface))->ldz)
 #define STARPU_BLOCK_GET_ELEMSIZE(interface)	(((struct starpu_block_interface *)(interface))->elemsize)
 
+extern struct starpu_data_interface_ops starpu_interface_vector_ops;
+
 struct starpu_vector_interface
 {
 	enum starpu_data_interface_id id;
@@ -266,6 +272,8 @@ uintptr_t starpu_vector_get_local_ptr(starpu_data_handle_t handle);
 #define STARPU_VECTOR_GET_ELEMSIZE(interface)	(((struct starpu_vector_interface *)(interface))->elemsize)
 #define STARPU_VECTOR_GET_SLICE_BASE(interface)	(((struct starpu_vector_interface *)(interface))->slice_base)
 
+extern struct starpu_data_interface_ops starpu_interface_variable_ops;
+
 struct starpu_variable_interface
 {
 	enum starpu_data_interface_id id;
@@ -287,7 +295,11 @@ uintptr_t starpu_variable_get_local_ptr(starpu_data_handle_t handle);
 #define STARPU_VARIABLE_GET_DEV_HANDLE(interface) \
 	(((struct starpu_variable_interface *)(interface))->ptr)
 
+extern struct starpu_data_interface_ops starpu_interface_void_ops;
+
 void starpu_void_data_register(starpu_data_handle_t *handle);
+
+extern struct starpu_data_interface_ops starpu_interface_csr_ops;
 
 struct starpu_csr_interface
 {
@@ -327,6 +339,8 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
 #define STARPU_CSR_GET_OFFSET 0
 #define STARPU_CSR_GET_FIRSTENTRY(interface)	(((struct starpu_csr_interface *)(interface))->firstentry)
 #define STARPU_CSR_GET_ELEMSIZE(interface)	(((struct starpu_csr_interface *)(interface))->elemsize)
+
+extern struct starpu_data_interface_ops starpu_interface_bcsr_ops;
 
 struct starpu_bcsr_interface
 {
