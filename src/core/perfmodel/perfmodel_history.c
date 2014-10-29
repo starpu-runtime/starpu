@@ -84,7 +84,7 @@ void _starpu_perfmodel_malloc_per_arch_is_set(struct starpu_perfmodel *model, in
 	}
 }
 
-void _starpu_perfmodel_arch_combs_realloc(int new_nb_arch_combs)
+void _starpu_perfmodel_arch_combs_realloc_and_set_nb_arch_combs(int new_nb_arch_combs)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&arch_combs_mutex);
 	nb_arch_combs = new_nb_arch_combs;
@@ -97,7 +97,7 @@ int starpu_perfmodel_arch_comb_add(int ndevices, struct starpu_perfmodel_device*
 	if (current_arch_comb >= nb_arch_combs)
 	{
 		// We need to allocate more arch_combs
-		_starpu_perfmodel_arch_combs_realloc(nb_arch_combs + 10);
+		_starpu_perfmodel_arch_combs_realloc_and_set_nb_arch_combs(nb_arch_combs + 10);
 	}
 	STARPU_PTHREAD_MUTEX_LOCK(&arch_combs_mutex);
 	arch_combs[current_arch_comb] = (struct starpu_perfmodel_arch*)malloc(sizeof(struct starpu_perfmodel_arch));
@@ -517,7 +517,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 	if (ncombs > nb_arch_combs)
 	{
 		// The model has more combs than the original number of arch_combs, we need to reallocate
-		_starpu_perfmodel_arch_combs_realloc(ncombs);
+		_starpu_perfmodel_arch_combs_realloc_and_set_nb_arch_combs(ncombs);
 		_starpu_perfmodel_realloc(model, nb_arch_combs);
 	}
 
