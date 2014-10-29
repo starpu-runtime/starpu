@@ -326,13 +326,13 @@ struct starpu_disk_ops starpu_disk_leveldb_ops = {
 	.read = starpu_leveldb_read,
 	.write = starpu_leveldb_write,
 	.full_read = starpu_leveldb_full_read,
-	.full_write = starpu_leveldb_full_write
+	.full_write = starpu_leveldb_full_write,
 	.async_write = NULL,
 	.async_read = NULL,
 	.copy = NULL,
 	.wait_request = NULL,
 	.test_request = NULL,
-	.free_request = NULL,
+	.free_request = NULL
 };
 #else
 struct starpu_disk_ops starpu_disk_leveldb_ops = {
@@ -346,12 +346,12 @@ struct starpu_disk_ops starpu_disk_leveldb_ops = {
 	starpu_leveldb_read,
 	starpu_leveldb_write,
 	starpu_leveldb_full_read,
-	starpu_leveldb_full_write
+	starpu_leveldb_full_write,
 	NULL,
 	NULL,
 	NULL,
 	NULL,
 	NULL,
-	NULL,
+	NULL
 };
 #endif
