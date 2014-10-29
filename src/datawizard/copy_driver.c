@@ -356,7 +356,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				STARPU_ASSERT(copy_methods->any_to_any);
 				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 			}
-			_starpu_mic_init_event(&(req->async_channel.event.mic_event), dst_node);
+			_starpu_mic_init_event(&(req->async_channel.event), dst_node);
 		}
 		break;
 	case _STARPU_MEMORY_NODE_TUPLE(STARPU_MIC_RAM,STARPU_CPU_RAM):
@@ -381,7 +381,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				STARPU_ASSERT(copy_methods->any_to_any);
 				ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 			}
-			_starpu_mic_init_event(&(req->async_channel.event.mic_event), src_node);
+			_starpu_mic_init_event(&(req->async_channel.event), src_node);
 		}
 		break;
 #endif
@@ -688,7 +688,7 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 #endif
 #ifdef STARPU_USE_MIC
 	case STARPU_MIC_RAM:
-		_starpu_mic_wait_request_completion(&(async_channel->event.mic_event));
+		_starpu_mic_wait_request_completion(&(async_channel->event));
 		break;
 #endif
 	case STARPU_MAIN_RAM:
@@ -746,7 +746,7 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 #endif
 #ifdef STARPU_USE_MIC
 	case STARPU_MIC_RAM:
-		success = _starpu_mic_request_is_complete(&(async_channel->event.mic_event));
+		success = _starpu_mic_request_is_complete(&(async_channel->event));
 		break;
 #endif
 	case STARPU_DISK_RAM:

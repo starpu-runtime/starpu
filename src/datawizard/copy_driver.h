@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -51,25 +51,18 @@ struct _starpu_data_replicate;
  * signal is used to test asynchronous request. */
 struct _starpu_mic_async_event
 {
-	unsigned memory_node;
 	int mark;
 	uint64_t *signal;
 };
 #endif
 
-struct _starpu_disk_async_event
-{
-#ifdef HAVE_AIO_H
-        struct aiocb _starpu_aiocb_disk;
-#endif
-	unsigned memory_node;
-};
-
 /* this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
 union _starpu_async_channel_event
 {
-	int dummy;
+	/* Only used for disks and mic atm */
+	unsigned memory_node;
+
 #ifdef STARPU_SIMGRID
 	struct {
 		unsigned finished;
@@ -86,7 +79,7 @@ union _starpu_async_channel_event
 #ifdef STARPU_USE_MIC
 	struct _starpu_mic_async_event mic_event;
 #endif
-	struct _starpu_disk_async_event disk_event;
+	void *disk_event;
 };
 
 struct _starpu_async_channel

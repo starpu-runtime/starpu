@@ -188,15 +188,12 @@ starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *
 
 
 #ifdef HAVE_AIO_H
-int
-starpu_unistd_global_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
+void *
+starpu_unistd_global_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
-        struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+        struct starpu_unistd_global_obj * tmp = obj;
 
-        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
-        struct aiocb *aiocb = &channel->event.disk_event._starpu_aiocb_disk;
-
-        memset(aiocb, 0, sizeof(struct aiocb));
+        struct aiocb *aiocb = calloc(1,sizeof(*aiocb));
 
         aiocb->aio_fildes = tmp->descriptor;
         aiocb->aio_offset = offset;
@@ -205,7 +202,13 @@ starpu_unistd_global_async_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, 
         aiocb->aio_reqprio = 0;
         aiocb->aio_lio_opcode = LIO_NOP;
 
-        return aio_read(aiocb);
+        if (aio_read(aiocb) < 0)
+        {
+                free(aiocb);
+                aiocb = NULL;
+        }
+
+        return aiocb;
 }
 #endif
 
@@ -241,14 +244,11 @@ starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const
 
 
 #ifdef HAVE_AIO_H
-int
-starpu_unistd_global_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size, void * async_channel)
+void *
+starpu_unistd_global_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
-        struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
-
-        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
-        struct aiocb *aiocb = &channel->event.disk_event._starpu_aiocb_disk ;
-        memset(aiocb, 0, sizeof(struct aiocb));
+        struct starpu_unistd_global_obj * tmp = obj;
+        struct aiocb *aiocb = calloc(1,sizeof(*aiocb));
 
         aiocb->aio_fildes = tmp->descriptor;
         aiocb->aio_offset = offset;
@@ -257,7 +257,13 @@ starpu_unistd_global_async_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj,
         aiocb->aio_reqprio = 0;
         aiocb->aio_lio_opcode = LIO_NOP;
 
-        return aio_write(aiocb);
+        if (aio_write(aiocb) < 0)
+        {
+                free(aiocb);
+                aiocb = NULL;
+        }
+
+        return aiocb;
 }
 #endif
 
@@ -386,16 +392,13 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 void
 starpu_unistd_global_wait_request(void * async_channel)
 {
-        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
-        const struct aiocb * aiocb = &channel->event.disk_event._starpu_aiocb_disk;
-        const struct aiocb * list[1];
-        list[0] = aiocb;
+        const struct aiocb * aiocb = async_channel;
         int values = -1;
         int error_disk = EAGAIN;
         while(values < 0 || error_disk == EAGAIN)
         {
                 /* Wait the answer of the request TIMESTAMP IS NULL */
-                values = aio_suspend(list, 1, NULL);
+                values = aio_suspend(&aiocb, 1, NULL);
                 error_disk = errno;
         }
 }
@@ -407,15 +410,12 @@ starpu_unistd_global_test_request(void * async_channel)
         time_wait_request.tv_sec = 0;
         time_wait_request.tv_nsec = 0;
 
-        struct _starpu_async_channel * channel = (struct _starpu_async_channel *) async_channel;
-        const struct aiocb * aiocb = &channel->event.disk_event._starpu_aiocb_disk;
-        const struct aiocb * list[1];
-        list[0] = aiocb;
+        const struct aiocb * aiocb = async_channel;
         int values = -1;
         int error_disk = EAGAIN;
 
         /* Wait the answer of the request */
-        values = aio_suspend(list, 1, &time_wait_request);
+        values = aio_suspend(&aiocb, 1, &time_wait_request);
         error_disk = errno;
         /* request is finished */
         if (values == 0)
@@ -425,5 +425,11 @@ starpu_unistd_global_test_request(void * async_channel)
                 return 0;
         /* an error occured */
         STARPU_ABORT();
+}
+
+void
+starpu_unistd_global_free_request(void *async_channel)
+{
+        free(async_channel);
 }
 #endif

@@ -12,6 +12,20 @@ When using StarPU, one may need to store more data than what the main memory
 (RAM) can store. This part describes the method to add a new memory node on a
 disk and to use it.
 
+The principle is that one first registers a disk location, seen by StarPU as
+a void*, which can be for instance a Unix path for the stdio or unistd case,
+or a database file path for a leveldb case, etc. The disk backend opens this
+place with the plug method.
+
+If the disk backend provides an alloc method, StarPU can then start using it
+to allocate room and store data there with the write method, without user
+intervention.
+
+The user can also use starpu_disk_open to explicitly open an object within the
+disk, e.g. a file name in the stdio or unistd cases, or a database key in the
+leveldb case, and then use starpu_*_register functions to turn it into a StarPU
+data handle. StarPU will then automatically read and write data as appropriate.
+
 \section UseANewDiskMemory Use a new disk memory
 
 To use a disk memory node, you have to register it with this function:
@@ -32,7 +46,7 @@ take some time.
 <strong>Warning: the size thus has to be at least 1 MB!</strong> 
 
 StarPU will automatically try to evict unused data to this new disk. One can
-also use the standard StarPU node API, see the \ref API_Standard_Memory_Library
+also use the standard StarPU memory node API, see the \ref API_Standard_Memory_Library
 and the \ref API_Data_Interfaces .
 
 The disk is unregistered during the starpu_shutdown().

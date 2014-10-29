@@ -330,6 +330,7 @@ struct starpu_disk_ops starpu_disk_leveldb_ops = {
 	.bandwidth = get_leveldb_bandwidth_between_disk_and_main_ram,
 	.wait_request = NULL,
 	.test_request = NULL,
+	.free_request = NULL,
 	.full_read = starpu_leveldb_full_read,
 	.full_write = starpu_leveldb_full_write
 };
@@ -347,6 +348,7 @@ struct starpu_disk_ops starpu_disk_leveldb_ops = {
 	starpu_leveldb_unplug,
 	NULL,
 	get_leveldb_bandwidth_between_disk_and_main_ram,
+	NULL,
 	NULL,
 	NULL,
 	starpu_leveldb_full_read,

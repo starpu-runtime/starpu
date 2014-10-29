@@ -19,6 +19,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <datawizard/datawizard.h>
+#include <core/disk.h>
 
 /* TODO: This should be tuned according to driver capabilities
  * Data interfaces should also have to declare how many asynchronous requests
@@ -93,6 +94,14 @@ static void starpu_data_request_destroy(struct _starpu_data_request *r)
 
 	STARPU_ASSERT(r->dst_replicate->request[node] == r);
 	r->dst_replicate->request[node] = NULL;
+
+	switch (r->async_channel.type) {
+		case STARPU_DISK_RAM:
+			starpu_disk_free_request(&r->async_channel);
+			break;
+		default:
+			break;
+	}
 	//fprintf(stderr, "DESTROY REQ %p (%d) refcnt %d\n", r, node, r->refcnt);
 	_starpu_data_request_delete(r);
 }
