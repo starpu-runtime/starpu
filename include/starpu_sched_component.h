@@ -91,8 +91,7 @@ struct starpu_sched_component
 	 *
 	 * the caller must ensure that component is able to execute task
 	 */
-	int (*push_task)(struct starpu_sched_component *,
-			 struct starpu_task *);
+	int (*push_task)(struct starpu_sched_component *, struct starpu_task *);
 	/* this function is called by workers to get a task on them parents
 	 * this function should first return a localy stored task or perform
 	 * a recursive call on parent
@@ -363,7 +362,7 @@ struct starpu_sched_specs
 	int mix_heterogeneous_workers;
 };
 
-struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_specs);
+struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_ctx_id, struct starpu_sched_specs s);
 #endif /* STARPU_HAVE_HWLOC */
 
 #ifdef __cplusplus
