@@ -64,7 +64,7 @@ starpu_disk_register(struct starpu_disk_ops * func, void *parameter, size_t size
 	_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 
 	/* connect disk */
-	void * base = func->plug(parameter);
+	void * base = func->plug(parameter, size);
 
 	/* remember it */
 	add_disk_in_list(memory_node,func,base);

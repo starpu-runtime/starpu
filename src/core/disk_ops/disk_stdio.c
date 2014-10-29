@@ -250,7 +250,7 @@ static int starpu_stdio_full_write(unsigned node, void * base STARPU_ATTRIBUTE_U
 }
 
 /* create a new copy of parameter == base */
-static void *starpu_stdio_plug(void *parameter)
+static void *starpu_stdio_plug(void *parameter, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	char * tmp = malloc(sizeof(char)*(strlen(parameter)+1));
 	STARPU_ASSERT(tmp != NULL);

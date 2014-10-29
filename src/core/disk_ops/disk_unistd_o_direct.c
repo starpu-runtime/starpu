@@ -80,11 +80,11 @@ starpu_unistd_o_direct_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, con
 
 /* create a new copy of parameter == base */
 static void * 
-starpu_unistd_o_direct_plug (void *parameter)
+starpu_unistd_o_direct_plug (void *parameter, size_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	starpu_malloc_set_align(getpagesize());
 
-	return starpu_unistd_global_plug (parameter);
+	return starpu_unistd_global_plug (parameter, size);
 }
 
 struct starpu_disk_ops starpu_disk_unistd_o_direct_ops = {

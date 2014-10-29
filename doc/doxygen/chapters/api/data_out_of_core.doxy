@@ -30,9 +30,9 @@ into \p buf. Returns the actual number of read bytes.
 \var int (*starpu_disk_ops::write)(void *base, void *obj, const void *buf, off_t offset, size_t size)
 Write \p size bytes of data to \p obj in \p base, at offset \p offset, from \p buf. Returns 0 on success.
 
-\var void* (*starpu_disk_ops::plug) (void *parameters)
-Connect a disk memory at location \p parameter, and return a base as void*,
-which will be passed by StarPU to all other methods.
+\var void* (*starpu_disk_ops::plug) (void *parameters, size_t size)
+Connect a disk memory at location \p parameter with size \p size, and return a
+base as void*, which will be passed by StarPU to all other methods.
 
 \var void (*starpu_disk_ops::unplug) (void* base)
 Disconnect a disk memory \p base.

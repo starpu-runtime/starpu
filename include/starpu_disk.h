@@ -22,7 +22,7 @@
 
 /* list of functions to use on disk */
 struct starpu_disk_ops {
-	 void *  (*plug)   (void *parameter);
+	 void *  (*plug)   (void *parameter, size_t size);
 	 void    (*unplug) (void *base);
 
 	 int    (*bandwidth)    (unsigned node);
