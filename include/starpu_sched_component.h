@@ -109,13 +109,13 @@ int starpu_sched_component_is_combined_worker(struct starpu_sched_component *com
 void starpu_sched_component_worker_pre_exec_hook(struct starpu_task *task);
 void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task);
 
-struct starpu_fifo_data
+struct starpu_sched_component_fifo_data
 {
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
 };
 
-struct starpu_sched_component *starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_fifo_data *fifo_data);
+struct starpu_sched_component *starpu_sched_component_fifo_create(struct starpu_sched_tree *tree, struct starpu_sched_component_fifo_data *fifo_data);
 int starpu_sched_component_is_fifo(struct starpu_sched_component *component);
 
 struct starpu_sched_component_prio_data
