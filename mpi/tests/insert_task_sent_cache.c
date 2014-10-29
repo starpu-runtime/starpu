@@ -47,7 +47,7 @@ int my_distrib(int x)
 	return x;
 }
 
-void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
+void test_cache(int rank, char *enabled, size_t *comm_amount)
 {
 	int i;
 	int ret;
@@ -129,8 +129,8 @@ int main(int argc, char **argv)
 	comm_amount_with_cache = malloc(size * sizeof(size_t));
 	comm_amount_without_cache = malloc(size * sizeof(size_t));
 
-	test_cache(rank, size, "0", comm_amount_with_cache);
-	test_cache(rank, size, "1", comm_amount_without_cache);
+	test_cache(rank, "0", comm_amount_with_cache);
+	test_cache(rank, "1", comm_amount_without_cache);
 
 	if (rank == 0 || rank == 1)
 	{
@@ -139,7 +139,9 @@ int main(int argc, char **argv)
 		FPRINTF_MPI("Communication cache mechanism is %sworking\n", result?"":"NOT ");
 	}
 	else
+	{
 		result = 1;
+	}
 
 	free(comm_amount_without_cache);
 	free(comm_amount_with_cache);

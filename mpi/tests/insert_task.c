@@ -40,7 +40,7 @@ struct starpu_codelet mycodelet =
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int x, int y, int nb_nodes)
 {
-	return x % nb_nodes;
+	return (x + y) % nb_nodes;
 }
 
 
