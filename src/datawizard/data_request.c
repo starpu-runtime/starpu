@@ -125,6 +125,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->src_replicate = src_replicate;
 	r->dst_replicate = dst_replicate;
 	r->mode = mode;
+	r->async_channel.type = STARPU_UNUSED;
 	r->handling_node = handling_node;
 	r->completed = 0;
 	r->prefetch = is_prefetch;
