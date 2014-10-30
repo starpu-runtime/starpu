@@ -237,10 +237,7 @@ int main(void) {
 	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops));
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops));
 #ifdef STARPU_LINUX_SYS
-#ifdef STARPU_DEVEL
-#warning This fails for now...
-#endif
-	//ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops));
 #endif
 	return ret;
 }
