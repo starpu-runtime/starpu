@@ -146,15 +146,19 @@ static int merge_result(int old, int new)
 	return new;
 }
 
-int main(void) {
+int main(void)
+{
 	int ret = 0;
-	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, "/tmp"));
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, "/tmp"));
+	char s[128];
+	snprintf(s, sizeof(s), "/tmp/%s-disk", getenv("USER"));
+	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s));
 #ifdef STARPU_LINUX_SYS
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, "/tmp"));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s));
 #endif
 #ifdef STARPU_HAVE_LEVELDB
-	ret = merge_result(ret, dotest(&starpu_disk_leveldb_ops, "/tmp/starpu-leveldb"));
+	snprintf(s, sizeof(s), "/tmp/%s-disk-leveldb", getenv("USER"));
+	ret = merge_result(ret, dotest(&starpu_disk_leveldb_ops, s));
 #endif
 	return ret;
 }

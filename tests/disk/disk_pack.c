@@ -55,7 +55,7 @@ void starpu_my_vector_data_register(starpu_data_handle_t *handleptr, unsigned ho
 	starpu_data_register(handleptr, home_node, &vector, &starpu_interface_my_vector_ops);
 }
 
-int dotest(struct starpu_disk_ops *ops)
+int dotest(struct starpu_disk_ops *ops, char *base)
 {
 	int *A, *C;
 
@@ -74,8 +74,6 @@ int dotest(struct starpu_disk_ops *ops)
 	int pid = getpid();
 	snprintf(pid_str, 16, "%d", pid);
 
-	char * base = "/tmp";
-
 	const char *name_file_start = "STARPU_DISK_COMPUTE_DATA_";
 	const char *name_file_end = "STARPU_DISK_COMPUTE_DATA_RESULT_";
 
@@ -88,7 +86,6 @@ int dotest(struct starpu_disk_ops *ops)
 	strcpy(path_file_end, base);
 	strcat(path_file_end, "/");
 	strcat(path_file_end, name_file_end);
-
 
 	/* register a disk */
 	int new_dd = starpu_disk_register(ops, (void *) base, 1024*1024*1);
@@ -111,13 +108,10 @@ int dotest(struct starpu_disk_ops *ops)
 		C[j] = 0;
 	}
 
-
-
-
 	/* you create a file to store the vector ON the disk */
 	FILE * f = fopen(path_file_start, "wb+");
 	if (f == NULL)
-		goto enoent;
+		goto enoent2;
 
 	/* store it in the file */
 	fwrite(A, sizeof(int), NX, f);
@@ -217,6 +211,9 @@ int dotest(struct starpu_disk_ops *ops)
 
 enodev:
 	return STARPU_TEST_SKIPPED;
+enoent2:
+	starpu_free_flags(A, NX*sizeof(double), STARPU_MALLOC_COUNT);
+	starpu_free_flags(C, NX*sizeof(double), STARPU_MALLOC_COUNT);
 enoent:
 	FPRINTF(stderr, "Couldn't write data: ENOENT\n");
 	starpu_shutdown();
@@ -232,12 +229,15 @@ static int merge_result(int old, int new)
 	return new;
 }
 
-int main(void) {
+int main(void)
+{
 	int ret = 0;
-	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops));
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops));
+	char s[128];
+	snprintf(s, sizeof(s), "/tmp/%s-disk", getenv("USER"));
+	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s));
 #ifdef STARPU_LINUX_SYS
-	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops));
+	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s));
 #endif
 	return ret;
 }
