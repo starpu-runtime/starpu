@@ -200,6 +200,8 @@ struct starpu_task
 	unsigned prefetched;
 #ifdef STARPU_OPENMP
 	struct starpu_omp_task *omp_task;
+#else
+	void *omp_task;
 #endif
 };
 
