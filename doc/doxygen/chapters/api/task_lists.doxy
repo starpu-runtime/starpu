@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -11,9 +11,9 @@
 \struct starpu_task_list
 Stores a double-chained list of tasks
 \ingroup API_Task_Lists
-\var starpu_task_list::head
+\var struct starpu_task *starpu_task_list::head
 head of the list
-\var starpu_task_list::tail
+\var struct starpu_task *starpu_task_list::tail
 tail of the list
 
 \fn void starpu_task_list_init(struct starpu_task_list *list)

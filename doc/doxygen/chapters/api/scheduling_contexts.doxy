@@ -20,19 +20,17 @@ dynamically.
 Performance counters used by the starpu to indicate the
 hypervisor how the application and the resources are executing.
 \ingroup API_Scheduling_Contexts
-\var starpu_sched_ctx_performance_counters::notify_idle_cycle
+\var void (*starpu_sched_ctx_performance_counters::notify_idle_cycle)(unsigned sched_ctx_id, int worker, double idle_time)
         Informs the hypervisor for how long a worker has been idle in the specified context
-\var starpu_sched_ctx_performance_counters::notify_idle_end
-        Informs the hypervisor that after a period of idle, the worker has just executed a task in the specified context. The idle counter it though reset.
-\var starpu_sched_ctx_performance_counters::notify_pushed_task
+\var void (*starpu_sched_ctx_performance_counters::notify_pushed_task)(unsigned sched_ctx_id, int worker)
         Notifies the hypervisor that a task has been scheduled on the queue of the worker corresponding to the specified context
-\var starpu_sched_ctx_performance_counters::notify_poped_task
+\var void (*starpu_sched_ctx_performance_counters::notify_poped_task)(unsigned sched_ctx_id, int worker)
         Informs the hypervisor that a task executing a specified number of instructions has been poped from the worker
-\var starpu_sched_ctx_performance_counters::notify_post_exec_hook
+\var void (*starpu_sched_ctx_performance_counters::notify_post_exec_task)(struct starpu_task *task, size_t data_size, uint32_t footprint, int hypervisor_tag, double flops)
         Notifies the hypervisor that a task has just been executed
-\var starpu_sched_ctx_performance_counters::notify_submitted_job
+\var void (*starpu_sched_ctx_performance_counters::notify_submitted_job)(struct starpu_task *task, uint32_t footprint, size_t data_size)
         Notifies the hypervisor that a task has just been submitted
-\var starpu_sched_ctx_performance_counters::notify_delete_context
+\var void (*starpu_sched_ctx_performance_counters::notify_delete_context)(unsigned sched_ctx)
         Notifies the hypervisor that the context was deleted
 
 

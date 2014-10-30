@@ -69,25 +69,25 @@ be memorized using different data structures. Thus, a generic
 structure is available in order to simplify the choice of its type.
 Only the list data structure is available but further data
 structures(like tree) implementations are foreseen.
-\var starpu_worker_collection::workerids
+\var void *starpu_worker_collection::workerids
         The workerids managed by the collection
-\var starpu_worker_collection::nworkers
+\var unsigned starpu_worker_collection::nworkers
         The number of workers in the collection
-\var starpu_worker_collection::type
+\var enum starpu_worker_collection_type starpu_worker_collection::type
         The type of structure (currently ::STARPU_WORKER_LIST is the only one available)
-\var starpu_worker_collection::has_next
+\var unsigned (*starpu_worker_collection::has_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
         Checks if there is another element in collection
-\var starpu_worker_collection::get_next
+\var int (*starpu_worker_collection::get_next)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
         return the next element in the collection
-\var starpu_worker_collection::add
+\var int (*starpu_worker_collection::add)(struct starpu_worker_collection *workers, int worker)
         add a new element in the collection
-\var starpu_worker_collection::remove
+\var int (*starpu_worker_collection::remove)(struct starpu_worker_collection *workers, int worker)
         remove an element from the collection
-\var starpu_worker_collection::init
+\var void (*starpu_worker_collection::init)(struct starpu_worker_collection *workers)
         Initialize the collection
-\var starpu_worker_collection::deinit
+\var void (*starpu_worker_collection::deinit)(struct starpu_worker_collection *workers)
         Deinitialize the colection
-\var starpu_worker_collection::init_iterator
+\var void (*starpu_worker_collection::init_iterator)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
         Initialize the cursor if there is one
 
 \enum starpu_worker_collection_type
@@ -100,7 +100,7 @@ The collection is an array
 \struct starpu_sched_ctx_iterator
 \ingroup API_Workers_Properties
 Structure needed to iterate on the collection
-\var starpu_sched_ctx_iterator::cursor
+\var int starpu_sched_ctx_iterator::cursor
 The index of the current worker in the collection, needed when iterating on
 the collection.
 

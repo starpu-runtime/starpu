@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -65,51 +65,51 @@ todo
 \struct starpu_top_data
 todo
 \ingroup API_StarPUTop_Interface
-\var starpu_top_data::id
+\var unsigned int starpu_top_data::id
 todo
-\var starpu_top_data::name
+\var const char *starpu_top_data::name
 todo
-\var starpu_top_data::int_min_value
+\var int starpu_top_data::int_min_value
 todo
-\var starpu_top_data::int_max_value
+\var int starpu_top_data::int_max_value
 todo
-\var starpu_top_data::double_min_value
+\var double starpu_top_data::double_min_value
 todo
-\var starpu_top_data::double_max_value
+\var double starpu_top_data::double_max_value
 todo
-\var starpu_top_data::active
+\var int starpu_top_data::active
 todo
-\var starpu_top_data::type
+\var enum starpu_top_data_type starpu_top_data::type
 todo
-\var starpu_top_data::next
+\var struct starpu_top_data *starpu_top_data::next
 todo
 
 \struct starpu_top_param
 todo
 \ingroup API_StarPUTop_Interface
-\var starpu_top_param::id
+\var unsigned int starpu_top_param::id
 todo
-\var starpu_top_param::name
+\var const char *starpu_top_param::name
 todo
-\var starpu_top_param::type
+\var enum starpu_top_param_type starpu_top_param::type
 todo
-\var starpu_top_param::value
+\var void *starpu_top_param::value
 todo
-\var starpu_top_param::enum_values
+\var char **starpu_top_param::enum_values
 only for enum type can be NULL
-\var starpu_top_param::nb_values
+\var int starpu_top_param::nb_values
 todo
-\var starpu_top_param::callback
+\var void (*starpu_top_param::callback)(struct starpu_top_param*)
 todo
-\var starpu_top_param::int_min_value
+\var int starpu_top_param::int_min_value
 only for integer type
-\var starpu_top_param::int_max_value
+\var int starpu_top_param::int_max_value
 todo
-\var starpu_top_param::double_min_value
+\var double starpu_top_param::double_min_value
 only for double type
-\var starpu_top_param::double_max_value
+\var double starpu_top_param::double_max_value
 todo
-\var starpu_top_param::next
+\var struct starpu_top_param *starpu_top_param::next
 todo
 
 @name Functions to call before the initialisation

@@ -45,13 +45,13 @@ like component->push_task(component,task)
      this member is set with :
      component->workers UNION tree->workers UNION
      component->child[i]->workers_in_ctx iff exist x such as component->children[i]->parents[x] == component
-\var starpu_sched_component::data
+\var void *starpu_sched_component::data
      private data
-\var starpu_sched_component::nchildren
+\var int starpu_sched_component::nchildren
      the number of compoments's children
-\var starpu_sched_component::children
+\var struct starpu_sched_component **starpu_sched_component::children
      the vector of component's children
-\var starpu_sched_component::nparents
+\var int starpu_sched_component::nparents
      the numbers of component's parents
 \var struct starpu_sched_component **starpu_sched_component::parents
      the vector of component's parents

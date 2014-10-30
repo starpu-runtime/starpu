@@ -111,34 +111,34 @@ Set of attributes used for creating a new parallel region.
 
 \sa starpu_omp_parallel_region()
 
-\var starpu_omp_parallel_region_attr::cl
+\var struct starpu_codelet starpu_omp_parallel_region_attr::cl
 
 Is a ::starpu_codelet (\ref API_Codelet_And_Tasks) to use for the parallel region
 implicit tasks. The codelet must provide a CPU implementation function.
 
-\var starpu_omp_parallel_region_attr::handles
+\var starpu_data_handle_t *starpu_omp_parallel_region_attr::handles
 
 Is an array of zero or more ::starpu_data_handle_t data handle to be passed to
 the parallel region implicit tasks.
 
-\var starpu_omp_parallel_region_attr::cl_arg
+\var void *starpu_omp_parallel_region_attr::cl_arg
 
 Is an optional pointer to an inline argument to be passed to the region implicit tasks.
 
-\var starpu_omp_parallel_region_attr::cl_arg_size
+\var size_t starpu_omp_parallel_region_attr::cl_arg_size
 
 Is the size of the optional inline argument to be passed to the region implicit tasks, or 0 if unused.
 
-\var starpu_omp_parallel_region_attr::cl_arg_free
+\var unsigned starpu_omp_parallel_region_attr::cl_arg_free
 
 Is a boolean indicating whether the optional inline argument should be automatically freed (true), or not (false).
 
-\var starpu_omp_parallel_region_attr::if_clause
+\var int starpu_omp_parallel_region_attr::if_clause
 
 Is a boolean indicating whether the \b if clause of the corresponding <c>pragma
 omp parallel</c> is true or false.
 
-\var starpu_omp_parallel_region_attr::num_threads
+\var int starpu_omp_parallel_region_attr::num_threads
 
 Is an integer indicating the requested number of threads in the team of the
 newly created parallel region, or 0 to let the runtime choose the number of
@@ -152,47 +152,47 @@ Set of attributes used for creating a new task region.
 
 \sa starpu_omp_task_region()
 
-\var starpu_omp_task_region_attr::cl
+\var struct starpu_codelet starpu_omp_task_region_attr::cl
 
 Is a ::starpu_codelet (\ref API_Codelet_And_Tasks) to use for the task region
 explicit task. The codelet must provide a CPU implementation function or an
 accelerator implementation for offloaded target regions.
 
-\var starpu_omp_task_region_attr::handles
+\var starpu_data_handle_t *starpu_omp_task_region_attr::handles
 
 Is an array of zero or more ::starpu_data_handle_t data handle to be passed to
 the task region explicit tasks.
 
-\var starpu_omp_task_region_attr::cl_arg
+\var void *starpu_omp_task_region_attr::cl_arg
 
 Is an optional pointer to an inline argument to be passed to the region implicit tasks.
 
-\var starpu_omp_task_region_attr::cl_arg_size
+\var size_t starpu_omp_task_region_attr::cl_arg_size
 
 Is the size of the optional inline argument to be passed to the region implicit
 tasks, or 0 if unused.
 
-\var starpu_omp_task_region_attr::cl_arg_free
+\var unsigned starpu_omp_task_region_attr::cl_arg_free
 
 Is a boolean indicating whether the optional inline argument should be
 automatically freed (true), or not (false).
 
-\var starpu_omp_task_region_attr::if_clause
+\var int starpu_omp_task_region_attr::if_clause
 
 Is a boolean indicating whether the \b if clause of the corresponding <c>pragma
 omp task</c> is true or false.
 
-\var starpu_omp_task_region_attr::final_clause
+\var int starpu_omp_task_region_attr::final_clause
 
 Is a boolean indicating whether the \b final clause of the corresponding <c>pragma
 omp task</c> is true or false.
 
-\var starpu_omp_task_region_attr::untied_clause
+\var int starpu_omp_task_region_attr::untied_clause
 
 Is a boolean indicating whether the \b untied clause of the corresponding <c>pragma
 omp task</c> is true or false.
 
-\var starpu_omp_task_region_attr::mergeable_clause
+\var int starpu_omp_task_region_attr::mergeable_clause
 
 Is a boolean indicating whether the \b mergeable clause of the corresponding <c>pragma
 omp task</c> is true or false.

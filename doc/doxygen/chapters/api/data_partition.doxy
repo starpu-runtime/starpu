@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -12,22 +12,22 @@
 The filter structure describes a data partitioning operation, to be
 given to the starpu_data_partition() function.
 \ingroup API_Data_Partition
-\var starpu_data_filter::filter_func
+\var void (*starpu_data_filter::filter_func)(void *father_interface, void *child_interface, struct starpu_data_filter *, unsigned id, unsigned nparts)
 This function fills the child_interface structure with interface
 information for the id-th child of the parent father_interface (among
 nparts).
-\var starpu_data_filter::nchildren
+\var unsigned starpu_data_filter::nchildren
 This is the number of parts to partition the data into.
-\var starpu_data_filter::get_nchildren
+\var unsigned (*starpu_data_filter::get_nchildren)(struct starpu_data_filter *, starpu_data_handle_t initial_handle)
 This returns the number of children. This can be used instead of
 nchildren when the number of children depends on the actual data (e.g.
 the number of blocks in a sparse matrix).
-\var starpu_data_filter::get_child_ops
+\var struct starpu_data_interface_ops *(*starpu_data_filter::get_child_ops)(struct starpu_data_filter *, unsigned id)
 In case the resulting children use a different data interface, this
 function returns which interface is used by child number id.
-\var starpu_data_filter::filter_arg
+\var unsigned starpu_data_filter::filter_arg
 Allow to define an additional parameter for the filter function.
-\var starpu_data_filter::filter_arg_ptr
+\var void *starpu_data_filter::filter_arg_ptr
 Allow to define an additional pointer parameter for the filter
 function, such as the sizes of the different parts.
 

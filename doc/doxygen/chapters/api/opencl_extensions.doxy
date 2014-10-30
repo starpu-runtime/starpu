@@ -28,7 +28,7 @@ applications provided with StarPU have been installed.
 \ingroup API_OpenCL_Extensions
 Stores the OpenCL programs as compiled for the different OpenCL
 devices.
-\var starpu_opencl_program::programs
+\var cl_program starpu_opencl_program::programs[STARPU_MAXOPENCLDEVS]
 Stores each program for each OpenCL device.
 
 @name Writing OpenCL kernels

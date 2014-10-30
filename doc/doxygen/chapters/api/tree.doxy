@@ -10,17 +10,17 @@
 
 \struct starpu_tree
 \ingroup API_Tree
-\var starpu_tree::nodes
+\var struct starpu_tree **starpu_tree::nodes
 todo
-\var starpu_tree::father
+\var struct starpu_tree *starpu_tree::father
 todo
-\var starpu_tree::arity
+\var int starpu_tree::arity
 todo
-\var starpu_tree::id
+\var int starpu_tree::id
 todo
-\var starpu_tree::level
+\var int starpu_tree::level
 todo
-\var starpu_tree::is_pu
+\var int starpu_tree::is_pu
 todo
 
 \fn void starpu_tree_reset_visited(struct starpu_tree *tree, int *visited)

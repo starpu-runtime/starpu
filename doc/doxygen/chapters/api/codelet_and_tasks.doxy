@@ -155,7 +155,7 @@ initialize the whole structure to zero, either by using explicit
 memset, or the function starpu_codelet_init(), or by letting the
 compiler implicitly do it in e.g. static storage case.
 \ingroup API_Codelet_And_Tasks
-\var starpu_codelet::where
+\var uint32_t starpu_codelet::where
 Optional field to indicate which types of processing units are able to
 execute the codelet. The different values ::STARPU_CPU, ::STARPU_CUDA,
 ::STARPU_OPENCL can be combined to specify on which types of processing
@@ -165,38 +165,38 @@ devices while ::STARPU_OPENCL indicates that it is only available on
 OpenCL devices. If the field is unset, its value will be automatically
 set based on the availability of the XXX_funcs fields defined below.
 
-\var starpu_codelet::can_execute
+\var int (*starpu_codelet::can_execute)(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 Define a function which should return 1 if the worker designated by
 workerid can execute the <c>nimpl</c>th implementation of the given
 task, 0 otherwise.
 
-\var starpu_codelet::type
+\var enum starpu_codelet_type starpu_codelet::type
 Optional field to specify the type of the codelet. The default is
 ::STARPU_SEQ, i.e. usual sequential implementation. Other values
 (::STARPU_SPMD or ::STARPU_FORKJOIN declare that a parallel implementation
 is also available. See \ref ParallelTasks for details.
 
-\var starpu_codelet::max_parallelism
+\var int starpu_codelet::max_parallelism
 Optional field. If a parallel implementation is available, this
 denotes the maximum combined worker size that StarPU will use to
 execute parallel tasks for this codelet.
 
-\var starpu_codelet::cpu_func
+\var starpu_cpu_func_t starpu_codelet::cpu_func
 \deprecated
 Optional field which has been made deprecated. One should use instead
 the field starpu_codelet::cpu_funcs.
 
-\var starpu_codelet::cuda_func
+\var starpu_cuda_func_t starpu_codelet::cuda_func
 \deprecated
 Optional field which has been made deprecated. One should use instead
 the starpu_codelet::cuda_funcs field.
 
-\var starpu_codelet::opencl_func
+\var starpu_opencl_func_t starpu_codelet::opencl_func
 \deprecated
 Optional field which has been made deprecated. One should use instead
 the starpu_codelet::opencl_funcs field.
 
-\var starpu_codelet::cpu_funcs
+\var starpu_cpu_func_t starpu_codelet::cpu_funcs[STARPU_MAXIMPLEMENTATIONS]
 Optional array of function pointers to the CPU implementations of the
 codelet. It must be terminated by a NULL value. The functions
 prototype must be:
@@ -210,13 +210,13 @@ starpu_codelet::where is set, then the field starpu_codelet::cpu_funcs
 is ignored if ::STARPU_CPU does not appear in the field
 starpu_codelet::where, it must be non-null otherwise.
 
-\var starpu_codelet::cpu_funcs_name
+\var char *starpu_codelet::cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS]
 Optional array of strings which provide the name of the CPU functions
 referenced in the array starpu_codelet::cpu_funcs. This can be used
 when running on MIC devices or the SCC platform, for StarPU to simply
 look up the MIC function implementation through its name.
 
-\var starpu_codelet::cuda_funcs
+\var starpu_cuda_func_t starpu_codelet::cuda_funcs[STARPU_MAXIMPLEMENTATIONS]
 Optional array of function pointers to the CUDA implementations of the
 codelet. It must be terminated by a NULL value. The functions must be
 host-functions written in the CUDA runtime API. Their prototype must
@@ -228,11 +228,11 @@ If the field starpu_codelet::where is set, then the field
 starpu_codelet::cuda_funcs is ignored if ::STARPU_CUDA does not appear
 in the field starpu_codelet::where, it must be non-null otherwise.
 
-\var starpu_codelet::cuda_flags
+\var char starpu_codelet::cuda_flags[STARPU_MAXIMPLEMENTATIONS]
 Optional array of flags for CUDA execution. They specify some semantic details
 about CUDA kernel execution, such as asynchronous execution.
 
-\var starpu_codelet::opencl_funcs
+\var starpu_opencl_func_t starpu_codelet::opencl_funcs[STARPU_MAXIMPLEMENTATIONS]
 Optional array of function pointers to the OpenCL implementations of
 the codelet. It must be terminated by a NULL value. The functions
 prototype must be:
@@ -244,11 +244,11 @@ starpu_codelet::opencl_funcs is ignored if ::STARPU_OPENCL does not
 appear in the field starpu_codelet::where, it must be non-null
 otherwise.
 
-\var starpu_codelet::opencl_flags
+\var char starpu_codelet::opencl_flags[STARPU_MAXIMPLEMENTATIONS]
 Optional array of flags for OpenCL execution. They specify some semantic details
 about OpenCL kernel execution, such as asynchronous execution.
 
-\var starpu_codelet::mic_funcs
+\var starpu_mic_func_t starpu_codelet::mic_funcs[STARPU_MAXIMPLEMENTATIONS]
 Optional array of function pointers to a function which returns the
 MIC implementation of the codelet. It must be terminated by a NULL
 value. The functions prototype must be:
@@ -261,7 +261,7 @@ in the field starpu_codelet::where. It can be null if
 starpu_codelet::cpu_funcs_name is non-NULL, in which case StarPU will
 simply make a symbol lookup to get the implementation.
 
-\var starpu_codelet::scc_funcs
+\var starpu_scc_func_t starpu_codelet::scc_funcs[STARPU_MAXIMPLEMENTATIONS]
 Optional array of function pointers to a function which returns the
 SCC implementation of the codelet. It must be terminated by a NULL value.
 The functions prototype must be:
@@ -274,7 +274,7 @@ in the field starpu_codelet::where. It can be null if
 starpu_codelet::cpu_funcs_name is non-NULL, in which case StarPU will
 simply make a symbol lookup to get the implementation.
 
-\var starpu_codelet::nbuffers
+\var int starpu_codelet::nbuffers
 Specify the number of arguments taken by the codelet. These arguments are
 managed by the DSM and are accessed from the <c>void *buffers[]</c> array. The
 constant argument passed with the field starpu_task::cl_arg is not counted in
@@ -284,7 +284,7 @@ access modes will be set in starpu_task::nbuffers and starpu_task::modes or
 starpu_task::dyn_modes, which thus permits to define codelets with a varying
 number of data.
 
-\var starpu_codelet::modes
+\var enum starpu_data_access_mode starpu_codelet::modes[STARPU_NMAXBUFS]
 Is an array of ::starpu_data_access_mode. It describes the required
 access modes to the data neeeded by the codelet (e.g. ::STARPU_RW). The
 number of entries in this array must be specified in the field
@@ -292,7 +292,7 @@ starpu_codelet::nbuffers, and should not exceed \ref STARPU_NMAXBUFS. If
 unsufficient, this value can be set with the configure option
 \ref enable-maxbuffers "--enable-maxbuffers".
 
-\var starpu_codelet::dyn_modes
+\var enum starpu_data_access_mode *starpu_codelet::dyn_modes
 Is an array of ::starpu_data_access_mode. It describes the required
 access modes to the data needed by the codelet (e.g. ::STARPU_RW).
 The number of entries in this array must be specified in the field
@@ -301,20 +301,20 @@ number of datas greater than \ref STARPU_NMAXBUFS (see \ref
 SettingTheDataHandlesForATask). When defining a codelet, one
 should either define this field or the field starpu_codelet::modes defined above.
 
-\var starpu_codelet::specific_nodes.
+\var unsigned starpu_codelet::specific_nodes
 Default value is 0. If this flag is set, StarPU will not systematically
 send all data to the memory node where the task will be executing, it
 will read the starpu_codelet::nodes or starpu_codelet::dyn_nodes array to
 determine, for each data, whether to send it on the memory node where the task
 will be executing (-1), or on a specific node (!= -1).
 
-\var starpu_codelet::nodes.
+\var int starpu_codelet::nodes[STARPU_NMAXBUFS]
 Optional field. When starpu_codelet::specific_nodes is 1, this specifies
 the memory nodes where each data should be sent to for task execution.
 The number of entries in this array is starpu_codelet::nbuffers, and should
 not exceed \ref STARPU_NMAXBUFS.
 
-\var starpu_codelet::dyn_nodes
+\var int *starpu_codelet::dyn_nodes
 Optional field. When starpu_codelet::specific_nodes is 1, this specifies
 the memory nodes where each data should be sent to for task execution.
 The number of entries in this array is starpu_codelet::nbuffers.
@@ -324,25 +324,25 @@ SettingTheDataHandlesForATask). When defining a codelet, one
 should either define this field or the field starpu_codelet::nodes defined
 above.
 
-\var starpu_codelet::model
+\var struct starpu_perfmodel *starpu_codelet::model
 Optional pointer to the task duration performance model associated to
 this codelet. This optional field is ignored when set to <c>NULL</c> or when
 its field starpu_perfmodel::symbol is not set.
 
-\var starpu_codelet::power_model
+\var struct starpu_perfmodel *starpu_codelet::power_model
 Optional pointer to the task power consumption performance model
 associated to this codelet. This optional field is ignored when set to
 <c>NULL</c> or when its field starpu_perfmodel::field is not set. In
 the case of parallel codelets, this has to account for all processing
 units involved in the parallel execution.
 
-\var starpu_codelet::per_worker_stats
+\var unsigned long starpu_codelet::per_worker_stats[STARPU_NMAXWORKERS]
 Optional array for statistics collected at runtime: this is filled by
 StarPU and should not be accessed directly, but for example by calling
 the function starpu_codelet_display_stats() (See
 starpu_codelet_display_stats() for details).
 
-\var starpu_codelet::name
+\var const char *starpu_codelet::name
 Optional name of the codelet. This can be useful for debugging
 purposes.
 
@@ -356,9 +356,9 @@ possible, e.g. when using C++.
 \struct starpu_data_descr
 \ingroup API_Codelet_And_Tasks
 This type is used to describe a data handle along with an access mode.
-\var starpu_data_descr::handle
+\var starpu_data_handle_t starpu_data_descr::handle
 describes a data
-\var starpu_data_descr::mode
+\var enum starpu_data_access_mode starpu_data_descr::mode
 describes its access mode
 
 \struct starpu_task
@@ -371,11 +371,11 @@ programmer has to zero the structure starpu_task and to fill the
 different fields properly. The indicated default values correspond to
 the configuration of a task allocated with starpu_task_create().
 
-\var starpu_task::name
+\var const char *starpu_task::name
 Optional name of the task. This can be useful for debugging
 purposes.
 
-\var starpu_task::cl
+\var struct starpu_codelet *starpu_task::cl
 Is a pointer to the corresponding structure starpu_codelet. This
 describes where the kernel should be executed, and supplies the
 appropriate implementations. When set to NULL, no code is executed
@@ -386,18 +386,18 @@ field starpu_task::handles to specify the data handles accessed
 by the task. The access modes are now defined in the field
 starpu_codelet::modes.
 
-\var starpu_task::nbuffers
+\var int starpu_task::nbuffers
 Specifies the number of buffers. This is only used when starpu_codelet::nbuffers
 is STARPU_VARIABLE_NBUFFERS.
 
-\var starpu_task::handles
+\var starpu_data_handle_t starpu_task::handles[STARPU_NMAXBUFS]
 Is an array of ::starpu_data_handle_t. It specifies the handles to the
 different pieces of data accessed by the task. The number of entries
 in this array must be specified in the field starpu_codelet::nbuffers,
 and should not exceed \ref STARPU_NMAXBUFS. If unsufficient, this value can
 be set with the configure option \ref enable-maxbuffers "--enable-maxbuffers".
 
-\var starpu_task::dyn_handles
+\var starpu_data_handle_t *starpu_task::dyn_handles
 Is an array of ::starpu_data_handle_t. It specifies the handles to the
 different pieces of data accessed by the task. The number of entries
 in this array must be specified in the field starpu_codelet::nbuffers.
@@ -406,16 +406,16 @@ than \ref STARPU_NMAXBUFS (see \ref SettingTheDataHandlesForATask).
 When defining a task, one should either define this field or the field
 starpu_task::handles defined above.
 
-\var starpu_task::interfaces
+\var void *starpu_task::interfaces[STARPU_NMAXBUFS]
 The actual data pointers to the memory node where execution will
 happen, managed by the DSM.
 
-\var starpu_task::dyn_interfaces
+\var void **starpu_task::dyn_interfaces
 The actual data pointers to the memory node where execution will
 happen, managed by the DSM. Is used when the field
 starpu_task::dyn_handles is defined.
 
-\var starpu_task::modes
+\var enum starpu_data_access_mode starpu_task::modes[STARPU_NMAXBUFS]
 Is used only when starpu_codelet::nbuffers is STARPU_VARIABLE_NBUFFERS.
 It is an array of ::starpu_data_access_mode. It describes the required
 access modes to the data neeeded by the codelet (e.g. ::STARPU_RW). The
@@ -424,7 +424,7 @@ starpu_task::nbuffers, and should not exceed \ref STARPU_NMAXBUFS. If
 unsufficient, this value can be set with the configure option
 \ref enable-maxbuffers "--enable-maxbuffers".
 
-\var starpu_task::dyn_modes
+\var enum starpu_data_access_mode *starpu_task::dyn_modes
 Is used only when starpu_codelet::nbuffers is STARPU_VARIABLE_NBUFFERS.
 It is an array of ::starpu_data_access_mode. It describes the required
 access modes to the data needed by the codelet (e.g. ::STARPU_RW).
@@ -434,12 +434,12 @@ number of datas greater than \ref STARPU_NMAXBUFS (see \ref
 SettingTheDataHandlesForATask). When defining a codelet, one
 should either define this field or the field starpu_task::modes defined above.
 
-\var starpu_task::cl_arg
+\var void *starpu_task::cl_arg
 Optional pointer which is passed to the codelet through the second
 argument of the codelet implementation (e.g. starpu_codelet::cpu_func
 or starpu_codelet::cuda_func). The default value is <c>NULL</c>.
 
-\var starpu_task::cl_arg_size
+\var size_t starpu_task::cl_arg_size
 Optional field. For some specific drivers, the pointer
 starpu_task::cl_arg cannot not be directly given to the driver
 function. A buffer of size starpu_task::cl_arg_size needs to be
@@ -451,7 +451,7 @@ the buffer in local store (LS) instead. This field is ignored for CPU,
 CUDA and OpenCL codelets, where the starpu_task::cl_arg pointer is
 given as such.
 
-\var starpu_task::cl_arg_free
+\var unsigned starpu_task::cl_arg_free
 Optional field. In case starpu_task::cl_arg was allocated by the
 application through <c>malloc()</c>, setting starpu_task::cl_arg_free
 to 1 makes StarPU automatically call <c>free(cl_arg)</c> when
@@ -459,7 +459,7 @@ destroying the task. This saves the user from defining a callback just
 for that. This is mostly useful when targetting MIC or SCC, where the
 codelet does not execute in the same memory space as the main thread.
 
-\var starpu_task::callback_func
+\var void (*starpu_task::callback_func)(void *)
 Optional field, the default value is <c>NULL</c>. This is a function
 pointer of prototype <c>void (*f)(void *)</c> which specifies a
 possible callback. If this pointer is non-null, the callback function
@@ -468,18 +468,18 @@ depend on it might already be executing. The callback is passed the
 value contained in the starpu_task::callback_arg field. No callback is
 executed if the field is set to NULL.
 
-\var starpu_task::callback_arg (optional) (default: NULL)
+\var void *starpu_task::callback_arg (optional) (default: NULL)
 Optional field, the default value is <c>NULL</c>. This is the pointer
 passed to the callback function. This field is ignored if the field
 starpu_task::callback_func is set to <c>NULL</c>.
 
-\var starpu_task::callback_arg_free
+\var unsigned starpu_task::callback_arg_free
 Optional field. In case starpu_task::callback_arg was allocated by the
 application through <c>malloc()</c>, setting starpu_task::callback_arg_free
 to 1 makes StarPU automatically call <c>free(callback_arg)</c> when
 destroying the task.
 
-\var starpu_task::prologue_callback_func
+\var void (*starpu_task::prologue_callback_func)(void *)
 Optional field, the default value is <c>NULL</c>. This is a function
 pointer of prototype <c>void (*f)(void *)</c> which specifies a
 possible callback. 
@@ -489,40 +489,40 @@ before getting scheduled. The callback is passed the
 value contained in the starpu_task::prologue_callback_arg field. No callback is
 executed if the field is set to NULL.
 
-\var starpu_task::prologue_callback_arg (optional) (default: NULL)
+\var void *starpu_task::prologue_callback_arg (optional) (default: NULL)
 Optional field, the default value is <c>NULL</c>. This is the pointer
 passed to the prologue callback function. This field is ignored if the field
 starpu_task::prologue_callback_func is set to <c>NULL</c>.
 
-\var starpu_task::prologue_callback_arg_free
+\var unsigned starpu_task::prologue_callback_arg_free
 Optional field. In case starpu_task::prologue_callback_arg was allocated by the
 application through <c>malloc()</c>, setting starpu_task::prologue_callback_arg_free
 to 1 makes StarPU automatically call <c>free(prologue_callback_arg)</c> when
 destroying the task.
 
-\var starpu_task::use_tag
+\var unsigned starpu_task::use_tag
 Optional field, the default value is 0. If set, this flag indicates
 that the task should be associated with the tag contained in the
 starpu_task::tag_id field. Tag allow the application to synchronize
 with the task and to express task dependencies easily.
 
-\var starpu_task::tag_id
+\var starpu_tag_t starpu_task::tag_id
 This optional field contains the tag associated to the task if the
 field starpu_task::use_tag is set, it is ignored otherwise.
 
-\var starpu_task::sequential_consistency
+\var unsigned starpu_task::sequential_consistency
 If this flag is set (which is the default), sequential consistency is
 enforced for the data parameters of this task for which sequential
 consistency is enabled. Clearing this flag permits to disable
 sequential consistency for this task, even if data have it enabled.
 
-\var starpu_task::synchronous
+\var unsigned starpu_task::synchronous
 If this flag is set, the function starpu_task_submit() is blocking and
 returns only when the task has been executed (or if no worker is able
 to process the task). Otherwise, starpu_task_submit() returns
 immediately.
 
-\var starpu_task::priority
+\var int starpu_task::priority
 Optional field, the default value is ::STARPU_DEFAULT_PRIO. This field
 indicates a level of priority for the task. This is an integer value
 that must be set between the return values of the function
@@ -537,19 +537,19 @@ static task initialization. Scheduling strategies that take priorities
 into account can use this parameter to take better scheduling
 decisions, but the scheduling policy may also ignore it.
 
-\var starpu_task::execute_on_a_specific_worker
+\var unsigned starpu_task::execute_on_a_specific_worker
 Default value is 0. If this flag is set, StarPU will bypass the
 scheduler and directly affect this task to the worker specified by the
 field starpu_task::workerid.
 
-\var starpu_task::workerid
+\var unsigned starpu_task::workerid
 Optional field. If the field starpu_task::execute_on_a_specific_worker
 is set, this field indicates the identifier of the worker that should
 process this task (as returned by starpu_worker_get_id()). This field
 is ignored if the field starpu_task::execute_on_a_specific_worker is
 set to 0.
 
-\var starpu_task::workerorder
+\var unsigned starpu_task::workerorder
 Optional field. If the field starpu_task::execute_on_a_specific_worker is
 set, this field indicates the per-worker consecutive order in which tasks
 should be executed on the worker. Tasks will be executed in consecutive
@@ -557,17 +557,17 @@ starpu_task::workerorder values, thus ignoring the availability order or task
 priority. See \ref StaticScheduling for more details. This field is ignored if
 the field starpu_task::execute_on_a_specific_worker is set to 0.
 
-\var starpu_task::bundle
+\var starpu_task_bundle_t starpu_task::bundle
 Optional field. The bundle that includes this task. If no bundle is
 used, this should be NULL.
 
-\var starpu_task::detach
+\var unsigned starpu_task::detach
 Optional field, default value is 1. If this flag is set, it is not
 possible to synchronize with the task by the means of starpu_task_wait()
 later on. Internal data structures are only guaranteed to be freed
 once starpu_task_wait() is called if the flag is not set.
 
-\var starpu_task::destroy
+\var unsigned starpu_task::destroy
 Optional value. Default value is 0 for starpu_task_init(), and 1 for
 starpu_task_create(). If this flag is set, the task structure will
 automatically be freed, either after the execution of the callback if
@@ -579,64 +579,64 @@ undefined behaviour. The flag is set to 1 when the task is created by
 calling starpu_task_create(). Note that starpu_task_wait_for_all()
 will not free any task.
 
-\var starpu_task::regenerate
+\var unsigned starpu_task::regenerate
 Optional field. If this flag is set, the task will be re-submitted to
 StarPU once it has been executed. This flag must not be set if the
 flag starpu_task::destroy is set.
 
-\var starpu_task::status
+\var enum starpu_task_status starpu_task::status
 Optional field. Current state of the task.
 
-\var starpu_task::profiling_info
+\var struct starpu_profiling_task_info *starpu_task::profiling_info
 Optional field. Profiling information for the task.
 
-\var starpu_task::predicted
+\var double starpu_task::predicted
 Output field. Predicted duration of the task. This field is only set
 if the scheduling strategy uses performance models.
 
-\var starpu_task::predicted_transfer
+\var double starpu_task::predicted_transfer
 Optional field. Predicted data transfer duration for the task in
 microseconds. This field is only valid if the scheduling strategy uses
 performance models.
 
-\var starpu_task::prev
+\var struct starpu_task *starpu_task::prev
 \private
 A pointer to the previous task. This should only be used by StarPU.
 
-\var starpu_task::next
+\var struct starpu_task *starpu_task::next
 \private
 A pointer to the next task. This should only be used by StarPU.
 
-\var starpu_task::mf_skip
+\var unsigned int starpu_task::mf_skip
 \private
 This is only used for tasks that use multiformat handle. This should
 only be used by StarPU.
 
-\var starpu_task::flops
+\var double starpu_task::flops
 This can be set to the number of floating points operations that the
 task will have to achieve. This is useful for easily getting GFlops
 curves from the tool <c>starpu_perfmodel_plot</c>, and for the
 hypervisor load balancing.
 
-\var starpu_task::starpu_private
+\var void *starpu_task::starpu_private
 \private
 This is private to StarPU, do not modify. If the task is allocated by
 hand (without starpu_task_create()), this field should be set to NULL.
 
-\var starpu_task::magic
+\var int starpu_task::magic
 \private
 This field is set when initializing a task. The function
 starpu_task_submit() will fail if the field does not have the right
 value. This will hence avoid submitting tasks which have not been
 properly initialised.
 
-\var starpu_task::sched_ctx
+\var unsigned starpu_task::sched_ctx
 Scheduling context.
 
-\var starpu_task::hypervisor_tag
+\var int starpu_task::hypervisor_tag
 Helps the hypervisor monitor the execution of this task.
 
-\var starpu_task::scheduled
+\var unsigned starpu_task::scheduled
 Whether the scheduler has pushed the task on some queue
 
 \fn void starpu_task_init(struct starpu_task *task)
