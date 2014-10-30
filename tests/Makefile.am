@@ -153,6 +153,7 @@ noinst_PROGRAMS =				\
 	datawizard/acquire_release2		\
 	datawizard/cache			\
 	datawizard/commute			\
+	datawizard/commute2			\
 	datawizard/copy				\
 	datawizard/data_implicit_deps		\
 	datawizard/data_lookup			\
