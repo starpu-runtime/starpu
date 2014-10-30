@@ -40,7 +40,8 @@ todo
 \var struct starpu_multiformat_data_interface_ops* (*starpu_data_interface_ops::get_mf_ops)(void *data_interface)
 todo
 \var int (*starpu_data_interface_ops::pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
-Pack the data handle into a contiguous buffer at the address ptr and
+Pack the data handle into a contiguous buffer at the address allocated with
+starpu_malloc_flags(ptr, size, 0) (and thus returned in ptr) and
 set the size of the newly created buffer in count. If ptr is NULL, the
 function should not copy the data in the buffer but just set count to
 the size of the buffer which would have been allocated. The special
