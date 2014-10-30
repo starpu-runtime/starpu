@@ -163,7 +163,7 @@ static int pack_variable_handle(starpu_data_handle_t handle, unsigned node, void
 
 	if (ptr != NULL)
 	{
-		*ptr = malloc(*count);
+		starpu_malloc_flags(ptr, *count, 0);
 		memcpy(*ptr, (void*)variable_interface->ptr, variable_interface->elemsize);
 	}
 

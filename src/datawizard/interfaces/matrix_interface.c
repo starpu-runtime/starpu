@@ -218,7 +218,7 @@ static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *
 		uint32_t y;
 		char *matrix = (void *)matrix_interface->ptr;
 
-		*ptr = malloc(*count);
+		starpu_malloc_flags(ptr, *count, 0);
 
 		char *cur = *ptr;
 		for(y=0 ; y<matrix_interface->ny ; y++)

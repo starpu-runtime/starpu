@@ -208,7 +208,8 @@ static int starpu_stdio_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void * obj
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 
-	*ptr = malloc(*size);
+	/* Alloc aligned buffer */
+	starpu_malloc_flags(ptr, *size, 0);
 	return starpu_stdio_read(base, obj, *ptr, 0, *size);
 }
 
@@ -272,9 +273,10 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	double timing_slowness, timing_latency;
 	double start;
 	double end;
+	char *buf;
 
 	srand (time (NULL));
-	char * buf = malloc(SIZE_DISK_MIN);
+	starpu_malloc_flags((void **) &buf, SIZE_DISK_MIN, 0);
 	STARPU_ASSERT(buf != NULL);
 
 	/* allocate memory */
@@ -309,7 +311,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	/* free memory */
 	free(buf);
 
-	buf = malloc(sizeof(char));
+	starpu_malloc_flags((void**) &buf, sizeof(char), 0);
 	STARPU_ASSERT(buf != NULL);
 
 	*buf = 0;

@@ -227,7 +227,7 @@ static int pack_block_handle(starpu_data_handle_t handle, unsigned node, void **
 		uint32_t z, y;
 		char *block = (void *)block_interface->ptr;
 
-		*ptr = malloc(*count);
+		starpu_malloc_flags(ptr, *count, 0);
 
 		char *cur = *ptr;
 		for(z=0 ; z<block_interface->nz ; z++)

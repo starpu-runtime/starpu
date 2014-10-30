@@ -226,7 +226,8 @@ starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void * obj, v
 	*size = st.st_size;
 #endif
 
-        *ptr = malloc(*size);
+	/* Allocated aligned buffer */
+	starpu_malloc_flags(ptr, *size, 0);
 	return starpu_unistd_global_read(base, obj, *ptr, 0, *size);
 }
 
@@ -327,7 +328,7 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 
 	srand (time (NULL)); 
 	char * buf;
-	starpu_malloc((void *) &buf, SIZE_DISK_MIN*sizeof(char));
+	starpu_malloc_flags((void *) &buf, SIZE_DISK_MIN, 0);
 	STARPU_ASSERT(buf != NULL);
 	
 	/* allocate memory */
@@ -357,9 +358,9 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 
 
 	/* free memory */
-	starpu_free(buf);
+	starpu_free_flags(buf, SIZE_DISK_MIN, 0);
 
-	starpu_malloc((void *) &buf, MEM_SIZE*sizeof(char));
+	starpu_malloc_flags((void *) &buf, MEM_SIZE, 0);
 	STARPU_ASSERT(buf != NULL);
 
 	/* Measure latency */
@@ -380,7 +381,7 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	timing_latency = end - start;
 
 	_starpu_disk_free(node, mem, SIZE_DISK_MIN);
-	starpu_free(buf);
+	starpu_free_flags(buf, MEM_SIZE, 0);
 
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*1000000, (NITER/timing_slowness)*1000000,
 					       timing_latency/NITER, timing_latency/NITER, node);

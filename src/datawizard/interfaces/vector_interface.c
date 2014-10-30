@@ -171,7 +171,7 @@ static int pack_vector_handle(starpu_data_handle_t handle, unsigned node, void *
 
 	if (ptr != NULL)
 	{
-		*ptr = malloc(*count);
+		starpu_malloc_flags(ptr, *count, 0);
 		memcpy(*ptr, (void*)vector_interface->ptr, vector_interface->elemsize*vector_interface->nx);
 	}
 

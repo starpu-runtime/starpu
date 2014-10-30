@@ -1064,7 +1064,7 @@ int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 	STARPU_ASSERT(handle->ops->unpack_data);
 	int ret;
 	ret = handle->ops->unpack_data(handle, _starpu_memory_node_get_local_key(), ptr, count);
-	free(ptr);
+	starpu_free_flags(ptr, count, 0);
 	return ret;
 }
 
