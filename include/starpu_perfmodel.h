@@ -58,11 +58,7 @@ struct starpu_perfmodel_history_entry
 	unsigned nsample;
 	unsigned nerror;
 	uint32_t footprint;
-#ifdef STARPU_HAVE_WINDOWS
-	unsigned size;
-#else
 	size_t size;
-#endif
 	double flops;
 };
 
@@ -109,9 +105,8 @@ struct starpu_perfmodel_per_arch
 	struct starpu_perfmodel_history_table *history;
 	struct starpu_perfmodel_history_list *list;
 	struct starpu_perfmodel_regression_model regression;
-#ifdef STARPU_MODEL_DEBUG
+
 	char debug_path[256];
-#endif
 };
 
 enum starpu_perfmodel_type
