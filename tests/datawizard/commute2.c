@@ -87,7 +87,11 @@ int main()
 		task->cl_arg = (void*)(uintptr_t)i;
 
 		ret = starpu_task_submit(task);
-		if (ret == -ENODEV) goto enodev;
+		if (ret == -ENODEV)
+		{
+			starpu_data_release(a_handle);
+			goto enodev;
+		}
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
