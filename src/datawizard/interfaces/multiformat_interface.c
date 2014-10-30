@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2012  Institut National de Recherche en Informatique et Automatique
- * Copyright (C) 2012, 2013       Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2014       Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,7 +62,7 @@ static const struct starpu_data_copy_methods multiformat_copy_data_methods_s =
 #else
 #ifdef STARPU_SIMGRID
 	/* Enable GPU-GPU transfers in simgrid */
-	.cuda_to_cuda_async = 1,
+	.cuda_to_cuda_async = (void *)1,
 #endif
 #endif
 #ifdef STARPU_USE_OPENCL

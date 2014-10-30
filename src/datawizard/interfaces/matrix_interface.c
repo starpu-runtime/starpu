@@ -57,7 +57,7 @@ static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
 #else
 #ifdef STARPU_SIMGRID
 	/* Enable GPU-GPU transfers in simgrid */
-	.cuda_to_cuda_async = 1,
+	.cuda_to_cuda_async = (void *)1,
 #endif
 #endif
 #ifdef STARPU_USE_OPENCL

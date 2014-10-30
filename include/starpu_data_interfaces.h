@@ -63,21 +63,23 @@ struct starpu_data_copy_methods
 	int (*cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
 	int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
 #else
-#ifdef STARPU_SIMGRID
-	int cuda_to_cuda_async;
-#endif
+	int (*ram_to_cuda_async)();
+	int (*cuda_to_ram_async)();
+	int (*cuda_to_cuda_async)();
 #endif
 
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
 	int (*ram_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 	int (*opencl_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 	int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
+#else
+	int (*ram_to_opencl_async)();
+	int (*opencl_to_ram_async)();
+	int (*opencl_to_opencl_async)();
 #endif
 
-#ifdef STARPU_USE_MIC
-	int (*ram_to_mic_async)(void *src_intreface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*ram_to_mic_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 	int (*mic_to_ram_async)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);
-#endif
 
 	int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 };
