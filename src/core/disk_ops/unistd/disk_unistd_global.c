@@ -330,6 +330,7 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	char * buf;
 	starpu_malloc_flags((void *) &buf, SIZE_DISK_MIN, 0);
 	STARPU_ASSERT(buf != NULL);
+	memset(buf, 0, SIZE_DISK_MIN);
 	
 	/* allocate memory */
 	void * mem = _starpu_disk_alloc(node, SIZE_DISK_MIN);
@@ -362,6 +363,8 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 
 	starpu_malloc_flags((void *) &buf, MEM_SIZE, 0);
 	STARPU_ASSERT(buf != NULL);
+
+	memset(buf, 0, MEM_SIZE);
 
 	/* Measure latency */
 	start = starpu_timing_now();
