@@ -225,7 +225,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 		 * In other cases, the tasks have to depend on each other.
 		 */
 
-		if ((mode & STARPU_W && mode & STARPU_COMMUTE && previous_mode & STARPU_W && previous_mode && STARPU_COMMUTE)
+		if ((mode & STARPU_W && mode & STARPU_COMMUTE && previous_mode & STARPU_W && previous_mode & STARPU_COMMUTE)
 		  || (mode == STARPU_R && previous_mode == STARPU_R)
 		  || (mode == STARPU_REDUX && previous_mode == STARPU_REDUX))
 		{
@@ -246,6 +246,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 
 				if (mode == STARPU_W)
 				{
+					_STARPU_DEP_DEBUG("several predecessors, and this is a W-only task, thus can serve directly as a synchronization task.\n");
 					/* Optimization: this task can not
 					 * combine with others anyway, use it
 					 * as synchronization task by making it
@@ -259,7 +260,12 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					 * number of dependencies. */
 					struct starpu_task *sync_task = starpu_task_create();
 					STARPU_ASSERT(sync_task);
-					sync_task->name = "sync_task_redux";
+					if (previous_mode == STARPU_REDUX)
+						sync_task->name = "sync_task_redux";
+					else if (mode ==  STARPU_COMMUTE || previous_mode == STARPU_COMMUTE)
+						sync_task->name = "sync_task_commute";
+					else
+						sync_task->name = "sync_task";
 					sync_task->cl = NULL;
 
 					/* Make this task wait for the previous ones */
@@ -276,6 +282,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 				 * task, and start depending on it. */
 				if (l != &handle->last_submitted_accessors)
 				{
+					_STARPU_DEP_DEBUG("One previous accessor, depending on it\n");
 					handle->last_sync_task = l->task;
 					l->next = NULL;
 					l->prev = NULL;
@@ -284,10 +291,15 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 				}
 				else if (handle->last_submitted_ghost_accessors_id)
 				{
+					_STARPU_DEP_DEBUG("No more currently running accessor, but a ghost id, taking it.\n");
 					handle->last_submitted_ghost_sync_id = handle->last_submitted_ghost_accessors_id->id;
 					handle->last_submitted_ghost_sync_id_is_valid = 1;
 					free(handle->last_submitted_ghost_accessors_id);
 					handle->last_submitted_ghost_accessors_id = NULL;
+				}
+				else
+				{
+					_STARPU_DEP_DEBUG("No previous accessor, no dependency\n");
 				}
 				_starpu_add_accessor(handle, pre_sync_task, post_sync_task, post_sync_task_dependency_slot);
 			}

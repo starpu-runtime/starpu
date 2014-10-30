@@ -1,5 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
+ * Copyright (C) 2014 Université Bordeaux
  * Copyright (C) 2014 Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,25 +22,24 @@
 #ifdef STARPU_USE_CUDA
 #include <starpu_cuda.h>
 #endif
+#include "../helper.h"
 
 static unsigned cnt;
 
 static void cpu_memcpy(void *descr[], void *cl_arg)
 {
-	double *res = (double *)STARPU_VECTOR_GET_PTR(descr[0]);
-	double *dst = (double *)STARPU_VECTOR_GET_PTR(descr[1]);
-	int n = (int) STARPU_VECTOR_GET_NX(descr[0]);
 	int me = (uintptr_t)cl_arg;
+
+	FPRINTF(stderr,"%d\n", me);
 
 	if (me == 0)
 	{
+		/* let commute tasks potentially happen */
 		sleep(1);
 		STARPU_ASSERT(STARPU_ATOMIC_ADD(&cnt,1) == 1);
 	}
 	else
 		STARPU_ASSERT(STARPU_ATOMIC_ADD(&cnt,1) != 1);
-
-	memcpy(dst, res, n*sizeof(double));
 }
 
 
@@ -58,7 +58,7 @@ main()
 	unsigned nb_tasks = 10, worker;
 
 	if (starpu_init(NULL)) 
-		exit(-1);
+		exit(EXIT_FAILURE);
 
 	starpu_malloc((void**)&res, n*sizeof(double));
 	starpu_malloc((void**)&a,   n*sizeof(double));
@@ -69,10 +69,12 @@ main()
 	starpu_vector_data_register(&res_handle, 0, (uintptr_t)res, (uint32_t)n, sizeof(double));
 	starpu_vector_data_register(&a_handle,   0, (uintptr_t)a,   (uint32_t)n, sizeof(double));
 
+	starpu_data_acquire(a_handle, STARPU_RW);
+
 	for (i = 0; i < nb_tasks; i++) {
 		struct starpu_task *task = starpu_task_create();
 		task->cl=&my_cl;
-		task->nbuffers = 2;
+		task->nbuffers = i == 0 ? 2 : 1;
 		task->handles[0] = res_handle;
 
 		if (i == 0)
@@ -89,6 +91,10 @@ main()
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	/* let commute tasks potentially happen */
+	sleep(1);
+	starpu_data_release(a_handle);
 
 	starpu_task_wait_for_all ();
 
