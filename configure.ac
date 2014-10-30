@@ -1397,11 +1397,14 @@ AC_ARG_ENABLE(spinlock_check, [AS_HELP_STRING([--enable-spinlock-check], [enable
 if test x$enable_debug = xyes; then
 	AC_DEFINE(STARPU_DEBUG, [1], [enable debugging statements])
 	CFLAGS="$CFLAGS -O0"
+	CXXFLAGS="$CFLAGS -O0"
 	enable_spinlock_check=yes
 else
 	CFLAGS="-O3 $CFLAGS"
+	CXXFLAGS="-O3 $CFLAGS"
 fi
 CFLAGS+=" -gdwarf-2 -g3 "
+CXXFLAGS+=" -gdwarf-2 -g3 "
 
 if test x$enable_spinlock_check = xyes; then
 	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
