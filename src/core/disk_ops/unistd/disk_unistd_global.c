@@ -433,6 +433,8 @@ starpu_unistd_global_test_request(void * async_channel)
 void
 starpu_unistd_global_free_request(void *async_channel)
 {
-        free(async_channel);
+        struct aiocb * aiocb = async_channel;
+        aio_return(aiocb);
+        free(aiocb);
 }
 #endif
