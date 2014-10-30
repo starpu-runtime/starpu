@@ -32,8 +32,8 @@ can be used to install StarPU.
 
 \subsection OptionalDependencies Optional Dependencies
 
-The <a href="http://www.open-mpi.org/software/hwloc"><c>hwloc</c> topology
-discovery library</a> is not mandatory to use StarPU but strongly
+The <c>hwloc</c> (http://www.open-mpi.org/software/hwloc) topology
+discovery library is not mandatory to use StarPU but strongly
 recommended.  It allows for topology aware scheduling, which improves
 performance.  <c>hwloc</c> is available in major free operating system
 distributions, and for most operating systems.
@@ -46,17 +46,17 @@ no option is required, it will be detected automatically, otherwise
 
 \subsection GettingSources Getting Sources
 
-StarPU's sources can be obtained from the <a href="http://runtime.bordeaux.inria.fr/StarPU/files/">download page of
-the StarPU website</a>.
+StarPU's sources can be obtained from the download page of
+the StarPU website (http://runtime.bordeaux.inria.fr/StarPU/files/).
 
 All releases and the development tree of StarPU are freely available
 on INRIA's gforge under the LGPL license. Some releases are available
 under the BSD license.
 
-The latest release can be downloaded from the <a href="http://gforge.inria.fr/frs/?group_id=1570">INRIA's gforge</a> or
-directly from the <a href="http://runtime.bordeaux.inria.fr/StarPU/files/">StarPU download page</a>.
+The latest release can be downloaded from the INRIA's gforge (http://gforge.inria.fr/frs/?group_id=1570) or
+directly from the StarPU download page (http://runtime.bordeaux.inria.fr/StarPU/files/).
 
-The latest nightly snapshot can be downloaded from the <a href="http://starpu.gforge.inria.fr/testing/">StarPU gforge website</a>.
+The latest nightly snapshot can be downloaded from the StarPU gforge website (http://starpu.gforge.inria.fr/testing/).
 
 \verbatim
 $ wget http://starpu.gforge.inria.fr/testing/starpu-nightly-latest.tar.gz
@@ -66,7 +66,7 @@ And finally, current development version is also accessible via svn.
 It should be used only if you need the very latest changes (i.e. less
 than a day!). Note that the client side of the software Subversion can
 be obtained from http://subversion.tigris.org. If you
-are running on Windows, you will probably prefer to use <a href="http://tortoisesvn.tigris.org/">TortoiseSVN</a>.
+are running on Windows, you will probably prefer to use TortoiseSVN (http://tortoisesvn.tigris.org/).
 
 \verbatim
 $ svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk StarPU
@@ -126,7 +126,7 @@ $ make
 Once everything is built, you may want to test the result. An
 extensive set of regression tests is provided with StarPU. Running the
 tests is done by calling <c>make check</c>. These tests are run every night
-and the result from the main profile is publicly <a href="http://starpu.gforge.inria.fr/testing/">available</a>.
+and the result from the main profile is publicly available (http://starpu.gforge.inria.fr/testing/).
 
 \verbatim
 $ make check

@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -15,8 +15,8 @@ code. This feature is only available for GCC 4.5 and later; it
 is known to work with GCC 4.5, 4.6, and 4.7.  You
 may need to install a specific <c>-dev</c> package of your distro, such
 as <c>gcc-4.6-plugin-dev</c> on Debian and derivatives.  In addition,
-the plug-in's test suite is only run when <a href="http://www.gnu.org/software/guile/">GNU Guile</a> is found at
-<c>configure</c>-time.  Building the GCC plug-in
+the plug-in's test suite is only run when GNU Guile (http://www.gnu.org/software/guile/)
+is found at <c>configure</c>-time.  Building the GCC plug-in
 can be disabled by configuring with \ref disable-gcc-extensions "--disable-gcc-extensions".
 
 Those extensions include syntactic sugar for defining

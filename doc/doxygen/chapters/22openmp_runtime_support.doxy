@@ -6,8 +6,8 @@
 
 /*! \page OpenMPRuntimeSupport The StarPU OpenMP Runtime Support (SORS)
 
-StarPU provides the necessary routines and support to implement an <a
-href="http://www.openmp.org/">OpenMP</a> runtime compliant with the
+StarPU provides the necessary routines and support to implement an OpenMP
+(http://www.openmp.org/) runtime compliant with the
 revision 3.1 of the language specification, and compliant with the
 task-related data dependency functionalities introduced in the revision
 4.0 of the language. This StarPU OpenMP Runtime Support (SORS) has been

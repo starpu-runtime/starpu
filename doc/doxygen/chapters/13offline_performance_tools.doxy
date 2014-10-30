@@ -108,8 +108,8 @@ to <c>1</c> before application execution will make StarPU do it automatically at
 application shutdown.
 
 This will create a file <c>paje.trace</c> in the current directory that
-can be inspected with the <a href="http://vite.gforge.inria.fr/">ViTE trace
-visualizing open-source tool</a>.  It is possible to open the
+can be inspected with the ViTE (http://vite.gforge.inria.fr/) trace
+visualizing open-source tool.  It is possible to open the
 file <c>paje.trace</c> with ViTE by using the following command:
 
 \verbatim
@@ -133,8 +133,8 @@ $ starpu_fxt_tool -i filename1 -i filename2
 By default, all tasks are displayed using a green color. To display tasks with
 varying colors, pass option <c>-c</c> to <c>starpu_fxt_tool</c>.
 
-To identify tasks precisely, the application can set the ::tag_id field of the
-tasks (or use STARPU_TAG_ONLY when using starpu_task_insert()), and with a recent
+To identify tasks precisely, the application can set the starpu_task::tag_id field of the
+task (or use STARPU_TAG_ONLY when using starpu_task_insert()), and with a recent
 enough version of vite (>= r1430) and the
 \ref enable-paje-codelet-details "--enable-paje-codelet-details"
 StarPU configure option, the value of the tag will show up in the trace.
