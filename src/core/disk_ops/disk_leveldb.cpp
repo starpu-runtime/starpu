@@ -56,7 +56,7 @@ starpu_leveldb_alloc (void *base, size_t size)
 
 	size_t len = 6 + 1 + 2+sizeof(void*)*2 + 1;
 	char * key = (char *) malloc(len*sizeof(char));
-	snprintf(key, len, "STARPU-%p", (uintptr_t) obj);
+	snprintf(key, len, "STARPU-%p", obj);
 
 	/* create and add a key with a small memory */
 	leveldb::Status s = base_tmp->db->Put(leveldb::WriteOptions(), key, "a");
@@ -293,7 +293,6 @@ get_leveldb_bandwidth_between_disk_and_main_ram(unsigned node)
 	/* fail to alloc */
 	if (mem == NULL)
 		return 0;
-	struct starpu_leveldb_obj * tmp = (struct starpu_leveldb_obj *) mem;
 
 	/* Measure upload slowness */
 	start = starpu_timing_now();
