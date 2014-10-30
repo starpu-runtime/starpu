@@ -401,8 +401,8 @@ the cholesky example in mpi/examples/matrix_decomposition), or at least not in
 the close future. If a newly-submitted task actually needs the value again,
 another transmission of D will be initiated from A to B.
 
-The whole caching behavior can be disabled thanks to the ::STARPU_MPI_CACHE
-environment variable. The variable ::STARPU_MPI_CACHE_STATS can be set to 1
+The whole caching behavior can be disabled thanks to the \ref STARPU_MPI_CACHE
+environment variable. The variable \ref STARPU_MPI_CACHE_STATS can be set to 1
 to enable the runtime to display messages when data are added or removed
 from the cache holding the received data.
 
