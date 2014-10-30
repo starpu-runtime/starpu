@@ -186,7 +186,7 @@ starpu_leveldb_write (void *base, void *obj, const void *buf, off_t offset, size
 	else
 	{
 		uintptr_t buf_tmp = (uintptr_t) buf;
-		buffer = (void *) malloc((tmp->size > size) ? tmp->size : size);
+		buffer = (void *) malloc((tmp->size > (offset + size)) ? tmp->size : (offset + size));
 
 		/* we read the data */
 		std::string value;
