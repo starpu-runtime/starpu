@@ -157,10 +157,6 @@ int main(void)
 #ifdef STARPU_LINUX_SYS
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s));
 #endif
-#ifdef STARPU_HAVE_LEVELDB
-	snprintf(s, sizeof(s), "/tmp/%s-disk-leveldb", getenv("USER"));
-	ret = merge_result(ret, dotest(&starpu_disk_leveldb_ops, s));
-#endif
 	return ret;
 }
 #endif
