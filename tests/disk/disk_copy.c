@@ -27,9 +27,9 @@
 
 /* size of one vector */
 #if SIZEOF_VOID_P == 4
-#define	NX	(30*1000/sizeof(double))
+#define	NX	(32*1024/sizeof(double))
 #else
-#define	NX	(30*1000000/sizeof(double))
+#define	NX	(32*1048576/sizeof(double))
 #endif
 
 #if !defined(STARPU_HAVE_SETENV)
