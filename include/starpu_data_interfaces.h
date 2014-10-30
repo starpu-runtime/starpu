@@ -255,7 +255,6 @@ struct starpu_vector_interface
 	uint32_t nx;
 	size_t elemsize;
 
-	/* vector slice base, used by the StarPU OpenMP runtime support */
 	uint32_t slice_base;
 };
 

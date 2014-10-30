@@ -451,6 +451,8 @@ offset in the vector
 number of elements on the x-axis of the vector
 \var size_t starpu_vector_interface::elemsize
 size of the elements of the vector
+\var uint32_t starpu_vector_interface::slice_base
+vector slice base, used by the StarPU OpenMP runtime support
 
 \fn uint32_t starpu_vector_get_nx(starpu_data_handle_t handle)
 \ingroup API_Data_Interfaces
