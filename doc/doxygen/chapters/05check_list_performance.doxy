@@ -60,16 +60,16 @@ StarPU already does appropriate calls for the CUBLAS library.
 If the kernel can be made to only use this local stream or other self-allocated
 streams, i.e. the whole kernel submission can be made asynchronous, then
 one should enable asynchronous execution of the kernel.  That means setting
-the STARPU_CUDA_ASYNC flag in cuda_flags[] in the codelet, and dropping the
+the flag ::STARPU_CUDA_ASYNC in the corresponding field starpu_codelet::cuda_flags, and dropping the
 cudaStreamSynchronize() call at the end of the cuda_func function, so that it
 returns immediately after having queued the kernel to the local stream. That way, StarPU will be
 able to submit and complete data transfers while kernels are executing, instead of only at each
 kernel submission. The kernel just has to make sure that StarPU can use the
 local stream to synchronize with the kernel startup and completion.
 
-Using the STARPU_CUDA_ASYNC flag also permits to enable concurrent kernel
+Using the flag ::STARPU_CUDA_ASYNC also permits to enable concurrent kernel
 execution, on cards which support it (Kepler and later, notably). This is
-enabled by setting the STARPU_NWORKER_PER_CUDA environment variable to the
+enabled by setting the environment variable \ref STARPU_NWORKER_PER_CUDA to the
 number of kernels to execute concurrently.  This is useful when kernels are
 small and do not feed the whole GPU with threads to run.
 
@@ -78,7 +78,7 @@ small and do not feed the whole GPU with threads to run.
 If the kernel can be made to only use the StarPU-provided command queue or other self-allocated
 queues, i.e. the whole kernel submission can be made asynchronous, then
 one should enable asynchronous execution of the kernel. This means setting
-the corresponding opencl_flags[] flag in the codelet and dropping the
+the flag ::STARPU_OPENCL_ASYNC in the corresponding field starpu_codelet::opencl_flags and dropping the
 clFinish() and starpu_opencl_collect_stats() calls at the end of the kernel, so
 that it returns immediately after having queued the kernel to the provided queue.
 That way, StarPU will be able to submit and complete data transfers while kernels are executing, instead of
@@ -93,12 +93,12 @@ period of time.  Reason are sometimes due to contention inside StarPU, but
 sometimes this is due to external reasons, such as stuck MPI driver, or CUDA
 driver, etc.
 
-<c>export STARPU_WATCHDOG_TIMEOUT=10000</c>
+<c>export STARPU_WATCHDOG_TIMEOUT=10000</c> (\ref STARPU_WATCHDOG_TIMEOUT)
 
 allows to make StarPU print an error message whenever StarPU does not terminate
 any task for 10ms. In addition to that,
 
-<c>export STARPU_WATCHDOG_CRASH=1</c>
+<c>export STARPU_WATCHDOG_CRASH=1</c> (\ref STARPU_WATCHDOG_CRASH)
 
 raises SIGABRT in that condition, thus allowing to catch the situation in gdb.
 It can also be useful to type "handle SIGABRT nopass" in gdb to be able to let
@@ -128,8 +128,8 @@ which have never been calibrated yet, and save the result in
 <c>$STARPU_HOME/.starpu/sampling/codelets</c>.
 The models are indexed by machine name. To share the models between
 machines (e.g. for a homogeneous cluster), use <c>export
-STARPU_HOSTNAME=some_global_name</c>. To force continuing calibration,
-use <c>export STARPU_CALIBRATE=1</c> . This may be necessary if your application
+STARPU_HOSTNAME=some_global_name</c> (\ref STARPU_HOSTNAME). To force continuing calibration,
+use <c>export STARPU_CALIBRATE=1</c> (\ref STARPU_CALIBRATE). This may be necessary if your application
 has not-so-stable performance. StarPU will force calibration (and thus ignore
 the current result) until 10 (<c>_STARPU_CALIBRATION_MINIMUM</c>) measurements have been
 made on each architecture, to avoid badly scheduling tasks just because the
@@ -167,7 +167,7 @@ $ gv starpu_starpu_slu_lu_model_11.eps
 
 If a kernel source code was modified (e.g. performance improvement), the
 calibration information is stale and should be dropped, to re-calibrate from
-start. This can be done by using <c>export STARPU_CALIBRATE=2</c>.
+start. This can be done by using <c>export STARPU_CALIBRATE=2</c> (\ref STARPU_CALIBRATE).
 
 Note: history-based performance models get calibrated
 only if a performance-model-based scheduler is chosen.
@@ -216,17 +216,18 @@ and in Joules for the energy consumption models.
 \section Profiling Profiling
 
 A quick view of how many tasks each worker has executed can be obtained by setting
-<c>export STARPU_WORKER_STATS=1</c> This is a convenient way to check that
+<c>export STARPU_WORKER_STATS=1</c> (\ref STARPU_WORKER_STATS). This is a convenient way to check that
 execution did happen on accelerators, without penalizing performance with
 the profiling overhead.
 
 A quick view of how much data transfers have been issued can be obtained by setting
-<c>export STARPU_BUS_STATS=1</c> .
+<c>export STARPU_BUS_STATS=1</c> (\ref STARPU_BUS_STATS).
 
-More detailed profiling information can be enabled by using <c>export STARPU_PROFILING=1</c> or by
+More detailed profiling information can be enabled by using <c>export STARPU_PROFILING=1</c> (\ref STARPU_PROFILING)
+or by
 calling starpu_profiling_status_set() from the source code.
 Statistics on the execution can then be obtained by using <c>export
 STARPU_BUS_STATS=1</c> and <c>export STARPU_WORKER_STATS=1</c> .
- More details on performance feedback are provided by the next chapter.
+ More details on performance feedback are provided in the next chapter.
 
 */

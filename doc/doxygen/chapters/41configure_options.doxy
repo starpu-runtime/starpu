@@ -352,6 +352,13 @@ Specify the precise MIC architecture host identifier.
 The default value is <c>x86_64-k1om-linux</c>
 </dd>
 
+<dt>--enable-openmp</dt>
+<dd>
+\anchor enable-openmp
+\addindex __configure__--enable-openmp
+Enable OpenMP Support (\ref OpenMPRuntimeSupport)
+</dd>
+
 </dl>
 
 \section AdvancedConfiguration Advanced Configuration

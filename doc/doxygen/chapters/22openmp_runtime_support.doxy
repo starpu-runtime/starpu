@@ -37,17 +37,17 @@ SORS API functions inherit from extended semantics.
 
 \section Configuration Configuration
 
-The SORS can be compiled into <c>libstarpu</c>
-by providing the <c>--enable-openmp</c> flag to StarPU's
-<c>configure</c>. Conditional compiled source codes may check for the
+The SORS can be compiled into <c>libstarpu</c> through
+the configure option \ref enable-openmp "--enable-openmp".
+Conditional compiled source codes may check for the
 availability of the OpenMP Runtime Support by testing whether the C
 preprocessor macro <c>STARPU_OPENMP</c> is defined or not.
 
 \section InitExit Initialization and Shutdown
 
 The SORS needs to be executed/terminated by the
-starpu_omp_init()/starpu_omp_shutdown() instead of
-starpu_init()/starpu_shutdown(). This requirement is necessary to make
+starpu_omp_init() / starpu_omp_shutdown() instead of
+starpu_init() / starpu_shutdown(). This requirement is necessary to make
 sure that the main thread gets the proper execution environment to run
 OpenMP tasks. These calls will usually be performed by a compiler
 runtime. Thus, they can be executed from a constructor/destructor such
@@ -88,8 +88,9 @@ SORS calls, enabling constructs such as barriers.
 Parallel regions can be created with the function
 starpu_omp_parallel_region() which accepts a set of attributes as
 parameter. The execution of the calling task is suspended until the
-parallel region completes. The <c>attr.cl</c> field is a regular StarPU
-codelet. However only CPU codelets are supported for parallel regions.
+parallel region completes. The field starpu_omp_parallel_region_attr::cl
+is a regular StarPU codelet. However only CPU codelets are
+supported for parallel regions.
 Here is an example of use:
 
 \code{.c}
@@ -305,7 +306,7 @@ void parallel_region_f(void *buffers[], void *args)
 \subsection DataDependencies Data Dependencies
 The SORS implements inter-tasks data dependencies as specified in OpenMP
 4.0. Data dependencies are expressed using regular StarPU data handles
-(<c>starpu_data_handle_t</c>) plugged into the task's <c>attr.cl</c>
+(starpu_data_handle_t) plugged into the task's <c>attr.cl</c>
 codelet. The family of starpu_vector_data_register() -like functions and the
 starpu_data_lookup() function may be used to register a memory area and
 to retrieve the current data handle associated with a pointer

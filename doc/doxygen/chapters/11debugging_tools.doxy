@@ -24,7 +24,7 @@ time, to tell valgrind about some known false positives and disable host memory
 pinning. Other known false positives can be suppressed by giving the suppression
 files in tools/valgrind/ *.suppr to valgrind's --suppressions option.
 
-The STARPU_DISABLE_KERNELS environment variable can also be set to 1 to make
+The environment variable \ref STARPU_DISABLE_KERNELS can also be set to 1 to make
 StarPU do everything (schedule tasks, transfer memory, etc.) except actually
 calling the application-provided kernel functions, i.e. the computation will not
 happen. This permits to quickly check that the task scheme is working properly.

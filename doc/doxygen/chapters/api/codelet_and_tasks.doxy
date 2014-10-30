@@ -120,6 +120,12 @@ configure option \ref enable-maxbuffers "--enable-maxbuffers".
 Value to set in starpu_codelet::nbuffers to specify that the codelet can accept
 a variable number of buffers, specified in starpu_task::nbuffers.
 
+\def STARPU_CUDA_ASYNC
+Value to be set in starpu_codelet::cuda_flags to allow asynchronous CUDA kernel execution.
+
+\def STARPU_OPENCL_ASYNC
+Value to be set in starpu_codelet::opencl_flags to allow asynchronous OpenCL kernel execution.
+
 \typedef starpu_cpu_func_t
 \ingroup API_Codelet_And_Tasks
 CPU implementation of a codelet.
