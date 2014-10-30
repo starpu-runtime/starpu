@@ -31,7 +31,7 @@
 
 #ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
-#endif 
+#endif
 
 #define NX (1024)
 
@@ -64,12 +64,11 @@ int dotest(struct starpu_disk_ops *ops)
 	strcat(path_file_end, "/");
 	strcat(path_file_end, name_file_end);
 
-
 	/* register a disk */
 	int new_dd = starpu_disk_register(ops, (void *) base, 1024*1024*1);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
-	
+
 	unsigned dd = (unsigned) new_dd;
 
 	/* allocate two memory spaces */
@@ -85,9 +84,6 @@ int dotest(struct starpu_disk_ops *ops)
 		A[j] = j;
 		C[j] = 0;
 	}
-
-
-
 
 	/* you create a file to store the vector ON the disk */
 	FILE * f = fopen(path_file_start, "wb+");
@@ -137,8 +133,8 @@ int dotest(struct starpu_disk_ops *ops)
 	/* register vector in starpu */
 	starpu_vector_data_register(&vector_handleA, dd, (uintptr_t) data, NX, sizeof(int));
 
-	/* and do what you want with it, here we copy it into an other vector */ 
-	starpu_vector_data_register(&vector_handleC, dd, (uintptr_t) data_result, NX, sizeof(int));	
+	/* and do what you want with it, here we copy it into an other vector */
+	starpu_vector_data_register(&vector_handleC, dd, (uintptr_t) data_result, NX, sizeof(int));
 
 	starpu_data_cpy(vector_handleC, vector_handleA, 0, NULL, NULL);
 
@@ -150,7 +146,7 @@ int dotest(struct starpu_disk_ops *ops)
 	starpu_disk_close(dd, data, NX*sizeof(int));
 	starpu_disk_close(dd, data_result, NX*sizeof(int));
 
-	/* check results */	
+	/* check results */
 	f = fopen(path_file_end, "rb+");
 	if (f == NULL)
 		goto enoent;
@@ -189,6 +185,8 @@ int dotest(struct starpu_disk_ops *ops)
 enodev:
 	return STARPU_TEST_SKIPPED;
 enoent:
+	starpu_free_flags(A, NX*sizeof(double), STARPU_MALLOC_COUNT);
+	starpu_free_flags(C, NX*sizeof(double), STARPU_MALLOC_COUNT);
 	FPRINTF(stderr, "Couldn't write data: ENOENT\n");
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
@@ -203,7 +201,8 @@ static int merge_result(int old, int new)
 	return new;
 }
 
-int main(void) {
+int main(void)
+{
 	int ret = 0;
 	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops));
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops));

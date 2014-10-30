@@ -21,7 +21,8 @@
 #include <sys/types.h>
 
 /* list of functions to use on disk */
-struct starpu_disk_ops {
+struct starpu_disk_ops
+{
 	 void *  (*plug)   (void *parameter, size_t size);
 	 void    (*unplug) (void *base);
 
@@ -39,8 +40,8 @@ struct starpu_disk_ops {
 	 int	(*full_read)    (void * base, void * obj, void ** ptr, size_t * size);
 	 int 	(*full_write)   (void * base, void * obj, void * ptr, size_t size);
 
-	 void *  (*async_write)  (void *base, void *obj, void *buf, off_t offset, size_t size); 
-	 void *  (*async_read)   (void *base, void *obj, void *buf, off_t offset, size_t size); 
+	 void *  (*async_write)  (void *base, void *obj, void *buf, off_t offset, size_t size);
+	 void *  (*async_read)   (void *base, void *obj, void *buf, off_t offset, size_t size);
 
 	 void *	(*async_full_read)    (void * base, void * obj, void ** ptr, size_t * size);
 	 void *	(*async_full_write)   (void * base, void * obj, void * ptr, size_t size);
