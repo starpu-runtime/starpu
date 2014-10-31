@@ -172,16 +172,22 @@ starpu_unistd_global_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_
 starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+	int res;
 
+#ifdef HAVE_PREAD
+	ssize_t nb = pread(tmp->descriptor, buf, size, offset);
+#else
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
-	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
+	res = lseek(tmp->descriptor, offset, SEEK_SET); 
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
 	ssize_t nb = read(tmp->descriptor, buf, size);
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd read failed: size %lu got errno %d", (unsigned long) size, errno);
 	
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+#endif
+
+	STARPU_ASSERT_MSG(nb >= 0, "Starpu Disk unistd read failed: size %lu got errno %d", (unsigned long) size, errno);
 
 	return nb;
 }
@@ -237,16 +243,22 @@ starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void * obj, v
 starpu_unistd_global_write (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, const void *buf, off_t offset, size_t size)
 {
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
+	int res;
 
+#ifdef HAVE_PWRITE
+	res = pwrite (tmp->descriptor, buf, size, offset);
+#else
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 	
-	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
+	res = lseek(tmp->descriptor, offset, SEEK_SET); 
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for write failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
-	write (tmp->descriptor, buf, size);
-	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: size %lu got errno %d", (unsigned long) size, errno);
+	res = write (tmp->descriptor, buf, size);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
+#endif
+
+	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd write failed: size %lu got errno %d", (unsigned long) size, errno);
 
 	return 0;
 }
