@@ -47,8 +47,10 @@ LIST_TYPE(_starpu_mem_chunk,
 	unsigned automatically_allocated;
 
 	/* the size of the data is only set when calling _starpu_request_mem_chunk_removal(),
-         * it is needed by free_memory_on_node() which is called when
-         * the handle is no longer valid. It should not be used otherwise.
+	 * it is needed to estimate how much memory is in mc_cache, and by
+	 * free_memory_on_node() which is called when the handle is no longer
+	 * valid.
+	 * It should not be used otherwise.
 	 */
 	size_t size;
 

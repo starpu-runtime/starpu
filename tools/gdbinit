@@ -515,7 +515,7 @@ define starpu-memusage
   set scheduler-locking on
   set $node = 0
   while $node < descr.nnodes
-    printf "Node %u:\n", $node
+    printf "\n\nNode %u:\n", $node
     set $total = 0
     set $total_b = 0
     set $wt = 0
@@ -572,14 +572,15 @@ define starpu-memusage
       end
       set $mc = $mc->_next
     end
-    printf "  Total: %u, %u\n", $total, $total_b
-    printf "  WT: %u, %u\n", $wt, $wt_b
-    printf "  home: %u, %u\n", $home, $home_b
-    printf "  redux: %u, %u\n", $redux, $redux_b
-    printf "  relax: %u, %u\n", $relax, $relax_b
-    printf "  noref: %u, %u\n", $noref, $noref_b
-    printf "  nosubdataref: %u, %u\n", $nosubdataref, $nosubdataref_b
-    printf "  nodataref: %u, %u\n", $nodataref, $nodataref_b
+    printf "  Total used: %u, %uMiB\n", $total, $total_b / 1048576
+    printf "  WT: %u, %uMiB\n", $wt, $wt_b / 1048576
+    printf "  home: %u, %uMiB\n", $home, $home_b / 1048576
+    printf "  redux: %u, %uMiB\n", $redux, $redux_b / 1048576
+    printf "  relax: %u, %uMiB\n", $relax, $relax_b / 1048576
+    printf "  noref: %u, %uMiB\n", $noref, $noref_b / 1048576
+    printf "  nosubdataref: %u, %uMiB\n", $nosubdataref, $nosubdataref_b / 1048576
+    printf "  nodataref: %u, %uMiB\n", $nodataref, $nodataref_b / 1048576
+    printf "\n  cached: %u, %uMiB\n", mc_cache_nb[$node], mc_cache_size[$node] / 1048576
     set $node = $node + 1
   end
 end

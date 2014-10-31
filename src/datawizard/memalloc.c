@@ -37,6 +37,8 @@ struct mc_cache_entry
 	uint32_t footprint;
 };
 static struct mc_cache_entry *mc_cache[STARPU_MAXNODES];
+static int mc_cache_nb[STARPU_MAXNODES];
+static ssize_t mc_cache_size[STARPU_MAXNODES];
 
 
 /* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */
@@ -68,6 +70,8 @@ void _starpu_deinit_mem_chunk_lists(void)
 			_starpu_mem_chunk_list_delete(entry->list);
 			free(entry);
 		}
+		STARPU_ASSERT(mc_cache_nb[i] == 0);
+		STARPU_ASSERT(mc_cache_size[i] == 0);
 		_starpu_spin_destroy(&mc_lock[i]);
 	}
 }
@@ -530,6 +534,10 @@ static struct _starpu_mem_chunk *_starpu_memchunk_cache_lookup_locked(unsigned n
 
 		/* Remove from the cache */
 		_starpu_mem_chunk_list_erase(entry->list, mc);
+		mc_cache_nb[node]--;
+		STARPU_ASSERT(mc_cache_nb[node] >= 0);
+		mc_cache_size[node] -= mc->size;
+		STARPU_ASSERT(mc_cache_size[node] >= 0);
 		return mc;
 	}
 
@@ -606,6 +614,10 @@ static size_t flush_memchunk_cache(unsigned node, size_t reclaim)
 					continue;
 				}
 
+			mc_cache_nb[node]--;
+			STARPU_ASSERT(mc_cache_nb[node] >= 0);
+			mc_cache_size[node] -= mc->size;
+			STARPU_ASSERT(mc_cache_size[node] >= 0);
 			freed += free_memory_on_node(mc, node);
 			if (handle)
 				_starpu_spin_unlock(&handle->header_lock);
@@ -834,6 +846,8 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 			entry->footprint = footprint;
 			HASH_ADD(hh, mc_cache[node], footprint, sizeof(entry->footprint), entry);
 		}
+		mc_cache_nb[node]++;
+		mc_cache_size[node] += mc->size;
 		_starpu_mem_chunk_list_push_front(entry->list, mc);
 		_starpu_spin_unlock(&mc_lock[node]);
 	}
