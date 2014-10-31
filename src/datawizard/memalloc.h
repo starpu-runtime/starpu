@@ -60,11 +60,6 @@ LIST_TYPE(_starpu_mem_chunk,
 	struct _starpu_data_replicate *replicate;
 )
 
-/* LRU list */
-LIST_TYPE(_starpu_mem_chunk_lru,
-	struct _starpu_mem_chunk *mc;
-)
-
 void _starpu_init_mem_chunk_lists(void);
 void _starpu_deinit_mem_chunk_lists(void);
 void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node, size_t size);
