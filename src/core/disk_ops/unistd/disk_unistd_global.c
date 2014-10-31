@@ -370,7 +370,7 @@ get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node)
 	start = starpu_timing_now();
 	for (iter = 0; iter < NITER; ++iter)
 	{
-		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_DISK_MIN -1) , MEM_SIZE, NULL);
+		_starpu_disk_write(STARPU_MAIN_RAM, node, mem, buf, rand() % (SIZE_DISK_MIN -MEM_SIZE) , MEM_SIZE, NULL);
 
 #ifdef STARPU_HAVE_WINDOWS
 		res = _commit(tmp->descriptor);
