@@ -382,13 +382,20 @@ _starpu_swap_init(void)
 	else if (!strcmp(backend, "unistd"))
 		ops = &starpu_disk_unistd_ops;
 	else if (!strcmp(backend, "unistd_o_direct"))
+	{
+#ifdef STARPU_LINUX_SYS
 		ops = &starpu_disk_unistd_o_direct_ops;
+#else
+		_STARPU_DISP("Warning: o_direct support is not compiled in, could not enable disk swap");
+		return;
+#endif
+	}
 	else if (!strcmp(backend, "leveldb"))
 	{
 #ifdef STARPU_HAVE_LEVELDB
 		ops = &starpu_disk_leveldb_ops;
 #else
-		_STARPU_DISP("Warnin: leveldb support is not compiled in, could not enable disk swap");
+		_STARPU_DISP("Warning: leveldb support is not compiled in, could not enable disk swap");
 		return;
 #endif
 	}
