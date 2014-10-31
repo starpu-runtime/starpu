@@ -296,6 +296,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		return;
 
 	int is_where_unset = cl->where == 0;
+	unsigned i, some_impl;
 
 	/* Check deprecated and unset fields (where, <device>_func,
  	 * <device>_funcs) */
@@ -311,11 +312,18 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		cl->cpu_funcs[0] = cl->cpu_func;
 		cl->cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS;
 	}
-	if (cl->cpu_funcs[0] && cl->cpu_func == 0)
+	some_impl = 0;
+	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+		if (cl->cpu_funcs[i])
+		{
+			some_impl = 1;
+			break;
+		}
+	if (some_impl && cl->cpu_func == 0)
 	{
 		cl->cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS;
 	}
-	if (cl->cpu_funcs[0] && is_where_unset)
+	if (some_impl && is_where_unset)
 	{
 		cl->where |= STARPU_CPU;
 	}
@@ -331,11 +339,18 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		cl->cuda_funcs[0] = cl->cuda_func;
 		cl->cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS;
 	}
-	if (cl->cuda_funcs[0] && cl->cuda_func == 0)
+	some_impl = 0;
+	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+		if (cl->cuda_funcs[i])
+		{
+			some_impl = 1;
+			break;
+		}
+	if (some_impl && cl->cuda_func == 0)
 	{
 		cl->cuda_func = STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS;
 	}
-	if (cl->cuda_funcs[0] && is_where_unset)
+	if (some_impl && is_where_unset)
 	{
 		cl->where |= STARPU_CUDA;
 	}
@@ -351,11 +366,18 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		cl->opencl_funcs[0] = cl->opencl_func;
 		cl->opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS;
 	}
-	if (cl->opencl_funcs[0] && cl->opencl_func == 0)
+	some_impl = 0;
+	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+		if (cl->opencl_funcs[i])
+		{
+			some_impl = 1;
+			break;
+		}
+	if (some_impl && cl->opencl_func == 0)
 	{
 		cl->opencl_func = STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS;
 	}
-	if (cl->opencl_funcs[0] && is_where_unset)
+	if (some_impl && is_where_unset)
 	{
 		cl->where |= STARPU_OPENCL;
 	}
