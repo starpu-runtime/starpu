@@ -108,7 +108,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	/* create a file to store result */
 	f = fopen(path_file_end, "wb+");
 	if (f == NULL)
-		goto enoent;
+		goto enoent2;
 
 	/* replace all datas by 0 */
 	fwrite(C, sizeof(int), NX, f);
@@ -150,7 +150,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	/* check results */
 	f = fopen(path_file_end, "rb+");
 	if (f == NULL)
-		goto enoent;
+		goto enoent2;
 	/* take datas */
 	int size = fread(C, sizeof(int), NX, f);
 

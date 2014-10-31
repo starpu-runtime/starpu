@@ -53,10 +53,10 @@ static int size_register_list = 2;
 
 
 int
-starpu_disk_register(struct starpu_disk_ops * func, void *parameter, size_t size)
+starpu_disk_register(struct starpu_disk_ops * func, void *parameter, ssize_t size)
 {
 
-	STARPU_ASSERT_MSG(size >= SIZE_DISK_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) SIZE_DISK_MIN, (int) size);
+	STARPU_ASSERT_MSG(size < 0 || size >= SIZE_DISK_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) SIZE_DISK_MIN, (int) size);
 	/* register disk */
 	unsigned memory_node = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
@@ -73,7 +73,8 @@ starpu_disk_register(struct starpu_disk_ops * func, void *parameter, size_t size
 	/* have a problem with the disk */
 	if(ret == 0)
 		return -ENOENT;
-	_starpu_memory_manager_set_global_memory_size(memory_node, size);
+	if (size >= 0)
+		_starpu_memory_manager_set_global_memory_size(memory_node, size);
 	return memory_node;
 }
 
@@ -358,4 +359,51 @@ _starpu_get_disk_flag(unsigned node)
 {
 	int pos = get_location_with_node(node);
 	return disk_register_list[pos]->flag;
+}
+
+void
+_starpu_swap_init(void)
+{
+	char *backend;
+	char *path;
+	ssize_t size;
+	struct starpu_disk_ops *ops;
+	int dd;
+
+	path = getenv("STARPU_DISK_SWAP");
+	if (!path)
+		return;
+
+	backend = getenv("STARPU_DISK_SWAP_BACKEND");
+	if (!backend)
+		ops = &starpu_disk_unistd_ops;
+	else if (!strcmp(backend, "stdio"))
+		ops = &starpu_disk_stdio_ops;
+	else if (!strcmp(backend, "unistd"))
+		ops = &starpu_disk_unistd_ops;
+	else if (!strcmp(backend, "unistd_o_direct"))
+		ops = &starpu_disk_unistd_o_direct_ops;
+	else if (!strcmp(backend, "leveldb"))
+	{
+#ifdef STARPU_HAVE_LEVELDB
+		ops = &starpu_disk_leveldb_ops;
+#else
+		_STARPU_DISP("Warnin: leveldb support is not compiled in, could not enable disk swap");
+		return;
+#endif
+	}
+	else
+	{
+		_STARPU_DISP("Warning: unknown disk swap backend %s, could not enable disk swap", backend);
+		return;
+	}
+
+	size = starpu_get_env_number_default("STARPU_DISK_SWAP_SIZE", -1);
+
+	dd = starpu_disk_register(ops, path, size);
+	if (dd < 0)
+	{
+		_STARPU_DISP("Warning: could not enable disk swap %s on %s with size %ld, could not enable disk swap", backend, path, (long) size);
+		return;
+	}
 }

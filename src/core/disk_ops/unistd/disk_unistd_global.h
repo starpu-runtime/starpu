@@ -37,7 +37,7 @@ void * starpu_unistd_global_open (struct starpu_unistd_global_obj * obj, void *b
 void starpu_unistd_global_close (void *base, void *obj, size_t size);
 int starpu_unistd_global_read (void *base, void *obj, void *buf, off_t offset, size_t size);
 int starpu_unistd_global_write (void *base, void *obj, const void *buf, off_t offset, size_t size);
-void * starpu_unistd_global_plug (void *parameter, size_t size);
+void * starpu_unistd_global_plug (void *parameter, ssize_t size);
 void starpu_unistd_global_unplug (void *base);
 int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node);
 void* starpu_unistd_global_async_read (void *base, void *obj, void *buf, off_t offset, size_t size);

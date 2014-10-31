@@ -234,7 +234,7 @@ starpu_leveldb_full_write (void * base, void * obj, void * ptr, size_t size)
 
 /* create a new copy of parameter == base */
 static void * 
-starpu_leveldb_plug (void *parameter, size_t size STARPU_ATTRIBUTE_UNUSED)
+starpu_leveldb_plug (void *parameter, ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_leveldb_base * tmp = (struct starpu_leveldb_base *) malloc(sizeof(struct starpu_leveldb_base));
 	STARPU_ASSERT(tmp != NULL);

@@ -1186,6 +1186,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		return ret;
 	}
 
+	/* Allocate swap, if any */
+	_starpu_swap_init();
+
 	/* We need to store the current task handled by the different
 	 * threads */
 	_starpu_initialize_current_task_key();

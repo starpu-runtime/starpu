@@ -62,6 +62,8 @@ int _starpu_get_disk_flag(unsigned node);
 
 void _starpu_disk_unregister(void);
 
+void _starpu_swap_init(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -69,8 +69,6 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 
-	unsigned dd = (unsigned) new_dd;
-
 	/* allocate two memory spaces */
 	starpu_malloc_flags((void **)&A, NX*sizeof(double), STARPU_MALLOC_COUNT);
 	starpu_malloc_flags((void **)&F, NX*sizeof(double), STARPU_MALLOC_COUNT);

@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <math.h>
 
-#define NX (100)
+#define NX (1024)
 
 int main(int argc, char **argv)
 {
@@ -39,27 +39,21 @@ int main(int argc, char **argv)
 	int pid = getpid();
 	snprintf(pid_str, 16, "%d", pid);
 
-	char * base = "/tmp/";
+	const char *name_file_start = "STARPU_DISK_COMPUTE_DATA_";
+	const char *name_file_end = "STARPU_DISK_COMPUTE_DATA_RESULT_";
 
-	char * name_file_start = malloc(128*sizeof(char));
-	strcpy(name_file_start, "STARPU_DISK_COMPUTE_DATA_");
-	strcat(name_file_start, pid_str);
-
-	char * name_file_end = malloc(128*sizeof(char));
-	strcpy(name_file_end, "STARPU_DISK_COMPUTE_DATA_RESULT_");
-	strcat(name_file_end, pid_str);
-
-	char * path_file_start = malloc(128*sizeof(char));
+	char * path_file_start = malloc(strlen(base) + 1 + strlen(name_file_start) + 1);
 	strcpy(path_file_start, base);
+	strcat(path_file_start, "/");
 	strcat(path_file_start, name_file_start);
 
-	char * path_file_end = malloc(128*sizeof(char));
+	char * path_file_end = malloc(strlen(base) + 1 + strlen(name_file_end) + 1);
 	strcpy(path_file_end, base);
+	strcat(path_file_end, "/");
 	strcat(path_file_end, name_file_end);
 
-
 	/* register a disk */
-	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) base, 1024*1024*1);
+	int new_dd = starpu_disk_register(&starpu_disk_unistd_ops, (void *) base, 1024*1024*1);
 	/* can't write on /tmp/ */
 	if (new_dd == -ENOENT) goto enoent;
 	
@@ -88,7 +82,7 @@ int main(int argc, char **argv)
 	/* you create a file to store the vector ON the disk */
 	FILE * f = fopen(path_file_start, "wb+");
 	if (f == NULL)
-		goto enoent;
+		goto enoent2;
 
 	/* store it in the file */
 	fwrite(A, sizeof(int), NX, f);
@@ -100,7 +94,7 @@ int main(int argc, char **argv)
 	/* create a file to store result */
 	f = fopen(path_file_end, "wb+");
 	if (f == NULL)
-		goto enoent;
+		goto enoent2;
 
 	/* replace all datas by 0 */
 	fwrite(C, sizeof(int), NX, f);
@@ -112,7 +106,6 @@ int main(int argc, char **argv)
 	/* Open the file ON the disk */
 	void * data = starpu_disk_open(dd, (void *) name_file_start, NX*sizeof(int));
 	void * data_result = starpu_disk_open(dd, (void *) name_file_end, NX*sizeof(int));
-
 
 	starpu_data_handle_t vector_handleA, vector_handleC;
 
@@ -150,14 +143,12 @@ int main(int argc, char **argv)
 			try = 0;
 		}
 
-	starpu_free_flags(A, NX*sizeof(double), STARPU_MALLOC_COUNT);
-	starpu_free_flags(C, NX*sizeof(double), STARPU_MALLOC_COUNT);
+	starpu_free_flags(A, NX*sizeof(int), STARPU_MALLOC_COUNT);
+	starpu_free_flags(C, NX*sizeof(int), STARPU_MALLOC_COUNT);
 
 	unlink(path_file_start);
 	unlink(path_file_end);
 
-	free(name_file_start);
-	free(name_file_end);
 	free(path_file_start);
 	free(path_file_end);
 
@@ -172,7 +163,17 @@ int main(int argc, char **argv)
 
 enodev:
 	return 77;
+enoent2:
+	starpu_free_flags(A, NX*sizeof(int), STARPU_MALLOC_COUNT);
+	starpu_free_flags(C, NX*sizeof(int), STARPU_MALLOC_COUNT);
 enoent:
+	unlink(path_file_start);
+	unlink(path_file_end);
+
+	free(path_file_start);
+	free(path_file_end);
+
+	starpu_shutdown();
 	return 77;
 }
 //! [To be included. You should update doxygen if you see this text.]

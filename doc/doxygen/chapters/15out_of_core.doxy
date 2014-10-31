@@ -31,14 +31,22 @@ data handle. StarPU will then automatically read and write data as appropriate.
 To use a disk memory node, you have to register it with this function:
 
 \code{.c}
-	int new_dd = starpu_disk_register(&starpu_disk_stdio_ops, (void *) "/tmp/", 1024*1024*200);
+	int new_dd = starpu_disk_register(&starpu_disk_unistd_ops, (void *) "/tmp/", 1024*1024*200);
 \endcode
 
-Here, we use the stdio library to realize the read/write operations, i.e.
+Here, we use the unistd library to realize the read/write operations, i.e.
 fread/fwrite. This structure must have a path where to store files, as well as
 the maximum size the software can afford storing on the disk.
 
 Don't forget to check if the result is correct!
+
+This can also be achieved by just setting environment variables:
+
+\verbatim
+exoprt STARPU_DISK_SWAP=/tmp
+exoprt STARPU_DISK_SWAP_BACKEND=unistd
+exoprt STARPU_DISK_SWAP_SIZE=$((200*1024*1024))
+\endverbatim
 
 When the register function is called, StarPU will benchmark the disk. This can
 take some time.
@@ -54,8 +62,8 @@ The disk is unregistered during the starpu_shutdown().
 \section DiskFunctions Disk functions
 
 There are various ways to operate a disk memory node, described by the structure
-starpu_disk_ops. For instance, the variable #starpu_disk_stdio_ops
-uses fread/fwrite functions.
+starpu_disk_ops. For instance, the variable #starpu_disk_unistd_ops
+uses read/write functions.
 
 All structures are in \ref API_Out_Of_Core .
 

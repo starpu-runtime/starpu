@@ -89,6 +89,7 @@ plug member of \p func will be passed \p parameter, and return a \c base which w
 SUCCESS: return the disk node. <br />
 FAIL: return an error code. <br />
 The \p size must be at least 1 MB !
+\p size being negative means infinite size.
 
 \fn void *starpu_disk_open(unsigned node, void *pos, size_t size)
 \ingroup API_Out_Of_Core

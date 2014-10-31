@@ -23,7 +23,7 @@
 /* list of functions to use on disk */
 struct starpu_disk_ops
 {
-	 void *  (*plug)   (void *parameter, size_t size);
+	 void *  (*plug)   (void *parameter, ssize_t size);
 	 void    (*unplug) (void *base);
 
 	 int    (*bandwidth)    (unsigned node);
@@ -64,6 +64,6 @@ void starpu_disk_close(unsigned node, void *obj, size_t size);
 
 void *starpu_disk_open(unsigned node, void *pos, size_t size);
 
-int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, size_t size);
+int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, ssize_t size);
 
 #endif /* __STARPU_DISK_H__ */
