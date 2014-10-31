@@ -144,7 +144,7 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 			}
 
 			if (!test_implementation)
-				break;
+				continue;
 
 			if (task->cl->can_execute)
 				return task->cl->can_execute(i, task, impl);
