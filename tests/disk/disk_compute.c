@@ -31,6 +31,9 @@
 
 #ifdef STARPU_HAVE_WINDOWS
         #include <io.h>
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#define mkdir(path, mode) mkdir(path)
+#endif
 #endif
 
 #define NX (1024)

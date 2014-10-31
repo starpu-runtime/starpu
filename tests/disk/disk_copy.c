@@ -25,6 +25,12 @@
 #include <common/config.h>
 #include "../helper.h"
 
+#ifdef STARPU_HAVE_WINDOWS
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#define mkdir(path, mode) mkdir(path)
+#endif
+#endif
+
 /* size of one vector */
 #if SIZEOF_VOID_P == 4
 #define	NX	(32*1024/sizeof(double))
