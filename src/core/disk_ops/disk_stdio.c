@@ -80,9 +80,10 @@ static void *starpu_stdio_alloc (void *base, size_t size)
 	if (f == NULL)
 	{
 		/* delete fic */
-		free(obj);
-		free(baseCpy);
+		close(id);
 		unlink(baseCpy);
+		free(baseCpy);
+		free(obj);
 		return NULL;
 	}
 
@@ -94,9 +95,11 @@ static void *starpu_stdio_alloc (void *base, size_t size)
 	/* fail */
 	if (val < 0)
 	{
-		free(obj);
-		free(baseCpy);
+		fclose(f);
+		close(id);
 		unlink(baseCpy);
+		free(baseCpy);
+		free(obj);
 		return NULL;
 	}
 
@@ -117,9 +120,9 @@ static void starpu_stdio_free(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, siz
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
 
-	unlink(tmp->path);
 	fclose(tmp->file);
 	close(tmp->descriptor);
+	unlink(tmp->path);
 
 	free(tmp->path);
 	free(tmp);

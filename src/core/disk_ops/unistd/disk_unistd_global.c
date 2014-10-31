@@ -78,8 +78,8 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 	/* fail */
 	if (id < 0)
 	{
-		free(obj);
 		free(baseCpy);
+		free(obj);
 		return NULL;
 	}
 	
@@ -91,9 +91,10 @@ starpu_unistd_global_alloc (struct starpu_unistd_global_obj * obj, void *base, s
 	/* fail */
 	if (val < 0)
 	{
-		free(obj);
-		free(baseCpy);
+		close(id);
 		unlink(baseCpy);
+		free(baseCpy);
+		free(obj);
 		return NULL;
 	}
 
@@ -115,8 +116,8 @@ starpu_unistd_global_free (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_t
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&tmp->mutex);
 
-	unlink(tmp->path);
 	close(tmp->descriptor);
+	unlink(tmp->path);
 
 	free(tmp->path);
 	free(tmp);
@@ -172,18 +173,18 @@ starpu_unistd_global_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_
 starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
-	int res;
+	ssize_t nb;
 
 #ifdef HAVE_PREAD
-	ssize_t nb = pread(tmp->descriptor, buf, size, offset);
+	nb = pread(tmp->descriptor, buf, size, offset);
 #else
 	STARPU_PTHREAD_MUTEX_LOCK(&tmp->mutex);
 
-	res = lseek(tmp->descriptor, offset, SEEK_SET); 
+	int res = lseek(tmp->descriptor, offset, SEEK_SET); 
 	STARPU_ASSERT_MSG(res >= 0, "Starpu Disk unistd lseek for read failed: offset %lu got errno %d", (unsigned long) offset, errno);
 
-	ssize_t nb = read(tmp->descriptor, buf, size);
-	
+	nb = read(tmp->descriptor, buf, size);
+
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
 #endif
 
