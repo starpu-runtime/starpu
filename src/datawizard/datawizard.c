@@ -34,8 +34,6 @@ int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsig
 #endif
 	STARPU_UYIELD();
 
-	_starpu_memchunk_tidy(memory_node);
-
 	/* in case some other driver requested data */
 	if (_starpu_handle_pending_node_data_requests(memory_node))
 		ret = 1;

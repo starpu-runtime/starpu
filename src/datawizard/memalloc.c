@@ -741,7 +741,7 @@ size_t _starpu_free_all_automatically_allocated_buffers(unsigned node)
 }
 
 /* Periodic tidy of available memory  */
-void _starpu_memchunk_tidy(unsigned node)
+void starpu_memchunk_tidy(unsigned node)
 {
 	starpu_ssize_t total = starpu_memory_get_total(node);
 	starpu_ssize_t available = starpu_memory_get_available(node);

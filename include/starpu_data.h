@@ -129,6 +129,9 @@ struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_hand
 
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
+void starpu_memchunk_tidy(unsigned memory_node);
+
+
 #ifdef __cplusplus
 }
 #endif
