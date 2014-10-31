@@ -213,9 +213,6 @@ struct starpu_codelet cl = {
 };
 \endcode
 
-Note: the most generic variant should be provided first, as some schedulers are
-not able to try the different variants.
-
 Another example is having specialized implementations for some given common
 sizes, for instance here we have a specialized implementation for 1024x1024
 matrices:
@@ -250,6 +247,9 @@ struct starpu_codelet cl = {
     .modes = { STARPU_RW }
 };
 \endcode
+
+Note: the most generic variant should be provided first, as some schedulers are
+not able to try the different variants.
 
 \section InsertTaskUtility Insert Task Utility
 
