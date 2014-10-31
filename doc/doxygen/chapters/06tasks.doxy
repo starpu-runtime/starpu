@@ -216,6 +216,41 @@ struct starpu_codelet cl = {
 Note: the most generic variant should be provided first, as some schedulers are
 not able to try the different variants.
 
+Another example is having specialized implementations for some given common
+sizes, for instance here we have a specialized implementation for 1024x1024
+matrices:
+
+\code{.c}
+static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
+{
+  const struct cudaDeviceProp *props;
+  if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
+    return 1;
+  /* Cuda device */
+  switch (nimpl)
+  {
+    case 0:
+      /* Trying to execute the generic capability variant.  */
+      return 1;
+    case 1:
+    {
+      /* Trying to execute the size == 1024 specific variant.  */
+      struct starpu_matrix_interface *interface = starpu_data_get_interface_on_node(task->handles[0]);
+      return STARPU_MATRIX_GET_NX(interface) == 1024 && STARPU_MATRIX_GET_NY(interface == 1024);
+    }
+  }
+}
+
+struct starpu_codelet cl = {
+    .can_execute = can_execute,
+    .cpu_funcs = { cpu_func, NULL },
+    .cpu_funcs_name = { "cpu_func", NULL },
+    .cuda_funcs = { potrf_gpu_generic, potrf_gpu_1024, NULL },
+    .nbuffers = 1,
+    .modes = { STARPU_RW }
+};
+\endcode
+
 \section InsertTaskUtility Insert Task Utility
 
 StarPU provides the wrapper function starpu_task_insert() to ease
