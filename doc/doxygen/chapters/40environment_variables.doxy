@@ -570,12 +570,16 @@ available to the application on each CPU device.
 
 <dt>STARPU_DISK_SWAP</dt>
 <dd>
+\anchor STARPU_DISK_SWAP
+\addindex __env__STARPU_DISK_SWAP
 This specifies a path where StarPU can push data when the main memory is getting
 full.
 </dd>
 
 <dt>STARPU_DISK_SWAP_BACKEND</dt>
 <dd>
+\anchor STARPU_DISK_SWAP_BACKEND
+\addindex __env__STARPU_DISK_SWAP_BACKEND
 This specifies then backend to be used by StarPU to push data when the main
 memory is getting full. The default is unistd (i.e. using read/write functions),
 other values are stdio (i.e. using fread/fwrite), unistd_o_direct (i.e. using
@@ -584,6 +588,8 @@ read/write with O_DIRECT), and leveldb (i.e. using a leveldb database).
 
 <dt>STARPU_DISK_SWAP_SIZE</dt>
 <dd>
+\anchor STARPU_DISK_SWAP_SIZE
+\addindex __env__STARPU_DISK_SWAP_SIZE
 This specifies then size to be used by StarPU to push data when the main
 memory is getting full. The default is unlimited.
 </dd>
