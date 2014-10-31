@@ -1103,6 +1103,17 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 	if (regmodel->valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
                 exp = regmodel->alpha*pow((double)size, regmodel->beta);
 
+	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
+	if (isnan(exp) && !model->benchmarking)
+	{
+		char archname[32];
+
+		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
+		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %lu (only %u measurements from size %lu to %lu), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, (unsigned long) size, regmodel->nsample, regmodel->minx, regmodel->maxx);
+		_starpu_set_calibrate_flag(1);
+		model->benchmarking = 1;
+	}
+
 	return exp;
 }
 
