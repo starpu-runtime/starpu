@@ -195,8 +195,8 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 			try = 0;
 		}
 
-	starpu_free_flags(A, NX*sizeof(double), STARPU_MALLOC_COUNT);
-	starpu_free_flags(C, NX*sizeof(double), STARPU_MALLOC_COUNT);
+	starpu_free_flags(A, NX*sizeof(int), STARPU_MALLOC_COUNT);
+	starpu_free_flags(C, NX*sizeof(int), STARPU_MALLOC_COUNT);
 
 	unlink(path_file_start);
 	unlink(path_file_end);
@@ -216,9 +216,15 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 enodev:
 	return STARPU_TEST_SKIPPED;
 enoent2:
-	starpu_free_flags(A, NX*sizeof(double), STARPU_MALLOC_COUNT);
-	starpu_free_flags(C, NX*sizeof(double), STARPU_MALLOC_COUNT);
+	starpu_free_flags(A, NX*sizeof(int), STARPU_MALLOC_COUNT);
+	starpu_free_flags(C, NX*sizeof(int), STARPU_MALLOC_COUNT);
 enoent:
+	unlink(path_file_start);
+	unlink(path_file_end);
+
+	free(path_file_start);
+	free(path_file_end);
+
 	FPRINTF(stderr, "Couldn't write data: ENOENT\n");
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
