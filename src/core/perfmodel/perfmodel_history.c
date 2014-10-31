@@ -1510,6 +1510,7 @@ struct starpu_perfmodel_per_arch *starpu_perfmodel_get_model_per_arch(struct sta
 {
 	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if(comb == -1) return NULL;
+	if(!model->state->per_arch[comb]) return NULL;
 
 	return &model->state->per_arch[comb][impl];
 }
@@ -1568,8 +1569,8 @@ struct starpu_perfmodel_per_arch *_starpu_perfmodel_get_model_per_devices(struct
 	// Get the per_arch object
 	if (model->state->per_arch[comb] == NULL)
 	{
-		_starpu_perfmodel_malloc_per_arch(model, comb, impl+1);
-		_starpu_perfmodel_malloc_per_arch_is_set(model, comb, impl+1);
+		_starpu_perfmodel_malloc_per_arch(model, comb, STARPU_MAXIMPLEMENTATIONS);
+		_starpu_perfmodel_malloc_per_arch_is_set(model, comb, STARPU_MAXIMPLEMENTATIONS);
 		model->state->nimpls[comb] = 0;
 	}
 	model->state->per_arch_is_set[comb][impl] = 1;
