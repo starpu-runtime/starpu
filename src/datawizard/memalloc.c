@@ -72,6 +72,7 @@ void _starpu_deinit_mem_chunk_lists(void)
 		}
 		STARPU_ASSERT(mc_cache_nb[i] == 0);
 		STARPU_ASSERT(mc_cache_size[i] == 0);
+		STARPU_HG_DISABLE_CHECKING(mc_cache_size[i]);
 		_starpu_spin_destroy(&mc_lock[i]);
 	}
 }
@@ -710,10 +711,10 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 	if (reclaim && !force)
 	{
 		static int warned;
-		char name[32];
-		_starpu_memory_node_get_name(node, name, sizeof(name));
 		if (!warned) {
-			_STARPU_DISP("Not enough memory left on node %s. Your application data set seems to huge to fit on the device, StarPU will cope by trying to purge %lu bytes out. This message will not be printed again for further purges\n", name, (unsigned long) reclaim);
+			char name[32];
+			_starpu_memory_node_get_name(node, name, sizeof(name));
+			_STARPU_DISP("Not enough memory left on node %s. Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges\n", name, (unsigned long) (reclaim / 1048576));
 			warned = 1;
 		}
 	}
@@ -737,6 +738,43 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 size_t _starpu_free_all_automatically_allocated_buffers(unsigned node)
 {
 	return _starpu_memory_reclaim_generic(node, 1, 0);
+}
+
+/* Periodic tidy of available memory  */
+void _starpu_memchunk_tidy(unsigned node)
+{
+	starpu_ssize_t total = starpu_memory_get_total(node);
+	starpu_ssize_t available = starpu_memory_get_available(node);
+	size_t target, amount;
+	unsigned minimum_p = starpu_get_env_number_default("STARPU_MINIMUM_AVAILABLE_MEM", 5);
+	unsigned target_p = starpu_get_env_number_default("STARPU_TARGET_AVAILABLE_MEM", 10);
+
+	if (total <= 0)
+		return;
+
+	/* TODO: only request writebacks to get buffers clean, without waiting
+	 * for it */
+
+	/* Count cached allocation as being available */
+	available += mc_cache_size[node];
+
+	if (available >= (total * minimum_p) / 100)
+		/* Enough available space, do not trigger reclaiming */
+		return;
+
+	/* Not enough available space, reclaim until we reach the target.  */
+	target = (total * target_p) / 100;
+	amount = target - available;
+
+	static int warned;
+	if (!warned) {
+		char name[32];
+		_starpu_memory_node_get_name(node, name, sizeof(name));
+		_STARPU_DISP("Low memory left on node %s (%luMiB over %luMiB). Your application data set seems too huge to fit on the device, StarPU will cope by trying to purge %lu MiB out. This message will not be printed again for further purges. The thresholds can be tuned using the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment variables.\n", name, (unsigned long) (available / 1048576), (unsigned long) (total / 1048576), (unsigned long) (amount / 1048576));
+		warned = 1;
+	}
+
+	free_potentially_in_use_mc(node, 0, amount);
 }
 
 static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_replicate *replicate, size_t interface_size, unsigned automatically_allocated)

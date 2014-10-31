@@ -18,6 +18,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <datawizard/datawizard.h>
+#include <datawizard/memalloc.h>
 #include <core/workers.h>
 #include <core/progress_hook.h>
 #ifdef STARPU_SIMGRID
@@ -32,6 +33,8 @@ int __starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsig
 	MSG_process_sleep(0.000010);
 #endif
 	STARPU_UYIELD();
+
+	_starpu_memchunk_tidy(memory_node);
 
 	/* in case some other driver requested data */
 	if (_starpu_handle_pending_node_data_requests(memory_node))

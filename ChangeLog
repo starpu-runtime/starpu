@@ -45,6 +45,8 @@ New features:
   * Out-of-core support, through registration of disk areas as additional memory
     nodes. It can be enabled programmatically or through the STARPU_DISK_SWAP*
     environment variables.
+  * Reclaiming is now periodically done before memory becomes full. This can
+    be controlled through the STARPU_*_AVAILABLE_MEM environment variables.
   * New hierarchical schedulers which allow the user to easily build
     its own scheduler, by coding itself each "box" it wants, or by
     combining existing boxes in StarPU to build it. Hierarchical
