@@ -905,35 +905,21 @@ void _starpu_deinitialize_registered_performance_models(void)
 	_free_arch_combs();
 }
 
-/*
- * XXX: We should probably factorize the beginning of the _starpu_load_*_model
- * functions. This is a bit tricky though, because we must be sure to unlock
- * registered_models_rwlock at the right place.
- */
-void _starpu_load_per_arch_based_model(struct starpu_perfmodel *model)
-{
-	starpu_perfmodel_init(NULL, model);
-}
-
-void _starpu_load_common_based_model(struct starpu_perfmodel *model)
-{
-	starpu_perfmodel_init(NULL, model);
-}
-
 /* We first try to grab the global lock in read mode to check whether the model
  * was loaded or not (this is very likely to have been already loaded). If the
  * model was not loaded yet, we take the lock in write mode, and if the model
  * is still not loaded once we have the lock, we do load it.  */
 void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned scan_history)
 {
-	starpu_perfmodel_init(NULL, model);
-
 	STARPU_PTHREAD_RWLOCK_WRLOCK(&model->state->model_rwlock);
 
 	if(!model->is_loaded)
 	{
 		char path[256];
 		get_model_path(model, path, 256);
+
+		// Check if a symbol is defined before trying to load the model from a file
+		STARPU_ASSERT_MSG(model->symbol, "history-based performance models must have a symbol");
 
 		_STARPU_DEBUG("Opening performance model file %s for model %s ...\n", path, model->symbol);
 
@@ -1102,7 +1088,7 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *archname, size_t maxlen,unsigned impl)
 {
-	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	int comb = _starpu_perfmodel_create_comb_if_needed(arch);
 	STARPU_ASSERT(comb != -1);
 
 	snprintf(archname, maxlen, "Comb%d_impl%u", comb, impl);
@@ -1126,20 +1112,33 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 	int comb;
 	double exp = NAN;
 	size_t size;
-	struct starpu_perfmodel_regression_model *regmodel;
+	struct starpu_perfmodel_regression_model *regmodel = NULL;
 
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	size = _starpu_job_get_data_size(model, arch, nimpl, j);
+
 	if(comb == -1)
-		return NAN;
+		goto docal;
 	if (model->state->per_arch[comb] == NULL)
 		// The model has not been executed on this combination
-		return NAN;
+		goto docal;
 
 	regmodel = &model->state->per_arch[comb][nimpl].regression;
-	size = _starpu_job_get_data_size(model, arch, nimpl, j);
 
 	if (regmodel->valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
                 exp = regmodel->alpha*pow((double)size, regmodel->beta);
+
+docal:
+	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
+	if (isnan(exp) && !model->benchmarking)
+	{
+		char archname[32];
+
+		starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), nimpl);
+		_STARPU_DISP("Warning: model %s is not calibrated enough for %s size %lu (only %u measurements from size %lu to %lu), forcing calibration for this run. Use the STARPU_CALIBRATE environment variable to control this.\n", model->symbol, archname, (unsigned long) size, regmodel?regmodel->nsample:0, regmodel?regmodel->minx:0, regmodel?regmodel->maxx:0);
+		_starpu_set_calibrate_flag(1);
+		model->benchmarking = 1;
+	}
 
 	return exp;
 }
@@ -1150,13 +1149,14 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	double exp = NAN;
 	size_t size;
 	struct starpu_perfmodel_regression_model *regmodel;
+	struct starpu_perfmodel_history_table *entry = NULL;
 
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if(comb == -1)
-		return NAN;
+		goto docal;
 	if (model->state->per_arch[comb] == NULL)
 		// The model has not been executed on this combination
-		return NAN;
+		goto docal;
 
 	regmodel = &model->state->per_arch[comb][nimpl].regression;
 	size = _starpu_job_get_data_size(model, arch, nimpl, j);
@@ -1168,7 +1168,6 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 		struct starpu_perfmodel_per_arch *per_arch_model = &model->state->per_arch[comb][nimpl];
 		struct starpu_perfmodel_history_table *history;
-		struct starpu_perfmodel_history_table *entry;
 
 		STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
 		history = per_arch_model->history;
@@ -1182,6 +1181,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 		if (entry && entry->history_entry && entry->history_entry->nsample >= _STARPU_CALIBRATION_MINIMUM)
 			exp = entry->history_entry->mean;
 
+docal:
 		STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 		if (isnan(exp) && !model->benchmarking)
 		{
@@ -1202,16 +1202,16 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 	int comb;
 	double exp = NAN;
 	struct starpu_perfmodel_per_arch *per_arch_model;
-	struct starpu_perfmodel_history_entry *entry;
+	struct starpu_perfmodel_history_entry *entry = NULL;
 	struct starpu_perfmodel_history_table *history, *elt;
 	uint32_t key;
 
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if(comb == -1)
-		return NAN;
+		goto docal;
 	if (model->state->per_arch[comb] == NULL)
 		// The model has not been executed on this combination
-		return NAN;
+		goto docal;
 
 	per_arch_model = &model->state->per_arch[comb][nimpl];
 
@@ -1232,6 +1232,7 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 		/* Calibrated enough */
 		exp = entry->mean;
 
+docal:
 	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
 	if (isnan(exp) && !model->benchmarking)
 	{

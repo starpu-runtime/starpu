@@ -83,11 +83,8 @@ static double per_arch_task_expected_perf(struct starpu_perfmodel *model, struct
 	double (*per_arch_cost_function)(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
-	if (comb == -1)
-		return NAN;
-	if (model->state->per_arch[comb] == NULL)
-		// The model has not been executed on this combination
-		return NAN;
+	STARPU_ASSERT_MSG(comb != -1, "Didn't find the proper arch combination\n");
+	STARPU_ASSERT_MSG(model->state->per_arch[comb] != NULL, "STARPU_PER_ARCH needs per-arch cost_function to be defined");
 
 	per_arch_cost_function = model->state->per_arch[comb][nimpl].cost_function;
 	STARPU_ASSERT_MSG(per_arch_cost_function, "STARPU_PER_ARCH needs per-arch cost_function to be defined");
@@ -117,7 +114,7 @@ double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arc
 
 		speedup += coef * (perf_arch->devices[dev].ncores + 1);
 	}
-	return speedup == 0 ? NAN : speedup;
+	return speedup;
 }
 
 static double common_task_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct starpu_task *task, unsigned nimpl)
@@ -142,20 +139,14 @@ void _starpu_init_and_load_perfmodel(struct starpu_perfmodel *model)
 
 	starpu_perfmodel_init(NULL, model);
 
-	// Check if a symbol is defined before trying to load the model from a file
-	if (!model->symbol)
-		return;
-
 	if (model->is_loaded)
 		return;
 
 	switch (model->type)
 	{
 		case STARPU_PER_ARCH:
-			_starpu_load_per_arch_based_model(model);
-			break;
 		case STARPU_COMMON:
-			_starpu_load_common_based_model(model);
+			/* Nothing more to do than init */
 			break;
 		case STARPU_HISTORY_BASED:
 		case STARPU_NL_REGRESSION_BASED:
@@ -215,12 +206,15 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 					    struct starpu_perfmodel_arch* arch,
 					    unsigned nimpl)
 {
-	if(arch->ndevices > 1)
-		return -1.0;
 	unsigned i;
 	double sum = 0.0;
 	enum starpu_node_kind node_kind;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+
+#ifdef STARPU_DEVEL
+#warning TODO: conversion time with combined arch perfmodel
+#endif
+	STARPU_ASSERT_MSG(arch->ndevices == 1, "TODO");
 
 	for (i = 0; i < nbuffers; i++)
 	{
