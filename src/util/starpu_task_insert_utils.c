@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2013-2014              Université Bordeaux
- * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2014        INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -26,16 +26,16 @@ typedef void (*_starpu_callback_func_t)(void *);
 /* Deal with callbacks. The unpack function may be called multiple times when
  * we have a parallel task, and we should not free the cl_arg parameter from
  * the callback function. */
-struct task_insert_cb_wrapper
+struct _starpu_task_insert_cb_wrapper
 {
 	_starpu_callback_func_t callback_func;
 	void *callback_arg;
 };
 
 static
-void starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
+void _starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 {
-	struct task_insert_cb_wrapper *cl_arg_wrapper = (struct task_insert_cb_wrapper *) _cl_arg_wrapper;
+	struct _starpu_task_insert_cb_wrapper *cl_arg_wrapper = (struct _starpu_task_insert_cb_wrapper *) _cl_arg_wrapper;
 
 	/* Execute the callback specified by the application */
 	if (cl_arg_wrapper->callback_func)
@@ -289,17 +289,17 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 	int arg_type;
 	unsigned current_buffer = 0;
 
-	struct task_insert_cb_wrapper *cl_arg_wrapper = (struct task_insert_cb_wrapper *) malloc(sizeof(struct task_insert_cb_wrapper));
+	struct _starpu_task_insert_cb_wrapper *cl_arg_wrapper = (struct _starpu_task_insert_cb_wrapper *) malloc(sizeof(struct _starpu_task_insert_cb_wrapper));
 	STARPU_ASSERT(cl_arg_wrapper);
 
 	cl_arg_wrapper->callback_func = NULL;
 
-	struct task_insert_cb_wrapper *prologue_cl_arg_wrapper = (struct task_insert_cb_wrapper *) malloc(sizeof(struct task_insert_cb_wrapper));
+	struct _starpu_task_insert_cb_wrapper *prologue_cl_arg_wrapper = (struct _starpu_task_insert_cb_wrapper *) malloc(sizeof(struct _starpu_task_insert_cb_wrapper));
 	STARPU_ASSERT(prologue_cl_arg_wrapper);
 
 	prologue_cl_arg_wrapper->callback_func = NULL;
 
-	struct task_insert_cb_wrapper *prologue_pop_cl_arg_wrapper = (struct task_insert_cb_wrapper *) malloc(sizeof(struct task_insert_cb_wrapper));
+	struct _starpu_task_insert_cb_wrapper *prologue_pop_cl_arg_wrapper = (struct _starpu_task_insert_cb_wrapper *) malloc(sizeof(struct _starpu_task_insert_cb_wrapper));
 	STARPU_ASSERT(prologue_pop_cl_arg_wrapper);
 
 	prologue_pop_cl_arg_wrapper->callback_func = NULL;
@@ -476,15 +476,15 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 
 	/* The callback will free the argument stack and execute the
 	 * application's callback, if any. */
-	(*task)->callback_func = starpu_task_insert_callback_wrapper;
+	(*task)->callback_func = _starpu_task_insert_callback_wrapper;
 	(*task)->callback_arg = cl_arg_wrapper;
 	(*task)->callback_arg_free = 1;
 
-	(*task)->prologue_callback_func = starpu_task_insert_callback_wrapper;
+	(*task)->prologue_callback_func = _starpu_task_insert_callback_wrapper;
 	(*task)->prologue_callback_arg = prologue_cl_arg_wrapper;
 	(*task)->prologue_callback_arg_free = 1;
 
-	(*task)->prologue_callback_pop_func = starpu_task_insert_callback_wrapper;
+	(*task)->prologue_callback_pop_func = _starpu_task_insert_callback_wrapper;
 	(*task)->prologue_callback_pop_arg = prologue_pop_cl_arg_wrapper;
 	(*task)->prologue_callback_pop_arg_free = 1;
 }
