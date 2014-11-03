@@ -312,7 +312,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 
 
 	/* free memory */
-	free(buf);
+	starpu_free_flags(buf, SIZE_DISK_MIN, 0);
 
 	starpu_malloc_flags((void**) &buf, sizeof(char), 0);
 	STARPU_ASSERT(buf != NULL);
@@ -339,7 +339,7 @@ static int get_stdio_bandwidth_between_disk_and_main_ram(unsigned node)
 	timing_latency = end - start;
 
 	_starpu_disk_free(node, mem, SIZE_DISK_MIN);
-	free(buf);
+	starpu_free_flags(buf, sizeof(char), 0);
 
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*1000000, (NITER/timing_slowness)*1000000,
 					       timing_latency/NITER, timing_latency/NITER, node);
