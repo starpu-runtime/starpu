@@ -68,7 +68,8 @@ struct starpu_codelet mycodelet_r_r =
 int main(int argc, char **argv)
 {
 	int ret, rank, size, err, node;
-	int x0=32, x1=23;
+	long x0=32;
+	int x1=23;
 	starpu_data_handle_t data_handlesx0;
 	starpu_data_handle_t data_handlesx1;
 
@@ -85,14 +86,14 @@ int main(int argc, char **argv)
 	{
 		starpu_variable_data_register(&data_handlesx0, STARPU_MAIN_RAM, (uintptr_t)&x0, sizeof(x0));
 		starpu_mpi_data_register(data_handlesx0, 0, rank);
-		starpu_variable_data_register(&data_handlesx1, -1, (uintptr_t)NULL, sizeof(int));
+		starpu_variable_data_register(&data_handlesx1, -1, (uintptr_t)NULL, sizeof(x1));
 		starpu_mpi_data_register(data_handlesx1, 1, 1);
 	}
 	else if (rank == 1)
 	{
 		starpu_variable_data_register(&data_handlesx1, STARPU_MAIN_RAM, (uintptr_t)&x1, sizeof(x1));
 		starpu_mpi_data_register(data_handlesx1, 1, rank);
-		starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(int));
+		starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(x0));
 		starpu_mpi_data_register(data_handlesx0, 0, 0);
 	}
 
@@ -114,7 +115,7 @@ int main(int argc, char **argv)
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_RW, data_handlesx1,
 				     0);
-	assert(err == -EINVAL);
+	assert(err == 0);
 
 	node = 1;
 	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_rw_rw,
