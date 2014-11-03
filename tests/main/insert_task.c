@@ -46,16 +46,16 @@ void func_cpu_noargs(void *descr[], void *_args)
 struct starpu_codelet mycodelet_args =
 {
 	.modes = { STARPU_RW, STARPU_RW },
-	.cpu_funcs = {func_cpu_args, NULL},
-	.cpu_funcs_name = {"func_cpu_args", NULL},
+	.cpu_funcs = {func_cpu_args},
+	.cpu_funcs_name = {"func_cpu_args"},
         .nbuffers = 2
 };
 
 struct starpu_codelet mycodelet_noargs =
 {
 	.modes = { STARPU_RW, STARPU_RW },
-	.cpu_funcs = {func_cpu_noargs, NULL},
-	.cpu_funcs_name = {"func_cpu_noargs", NULL},
+	.cpu_funcs = {func_cpu_noargs},
+	.cpu_funcs_name = {"func_cpu_noargs"},
         .nbuffers = 2
 };
 

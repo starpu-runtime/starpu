@@ -62,8 +62,8 @@ static struct starpu_perfmodel copy_buffer_perfmodel = {
 static struct starpu_codelet codelet_copybuffer = {
    .where = STARPU_CPU | STARPU_OPENCL,
    .model = &copy_buffer_perfmodel,
-   .cpu_funcs = { &soclEnqueueCopyBuffer_cpu_task, NULL },
-   .opencl_funcs = { &soclEnqueueCopyBuffer_opencl_task, NULL },
+   .cpu_funcs = { &soclEnqueueCopyBuffer_cpu_task },
+   .opencl_funcs = { &soclEnqueueCopyBuffer_opencl_task },
    .modes = {STARPU_R, STARPU_RW},
    .nbuffers = 2
 };

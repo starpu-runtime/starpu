@@ -49,17 +49,17 @@ void cpu_codelet_B(void *descr[], void *_args)
 }
 
 struct starpu_codelet cl_A = {
-	.cpu_funcs = { cpu_codelet_A, NULL},
-	.cuda_funcs = { cpu_codelet_A, NULL},
-	.opencl_funcs = { cpu_codelet_A, NULL},
+	.cpu_funcs = { cpu_codelet_A},
+	.cuda_funcs = { cpu_codelet_A},
+	.opencl_funcs = { cpu_codelet_A},
 	.nbuffers = 0,
 	.name = "dummyA"
 };
 
 struct starpu_codelet cl_B = {
-	.cpu_funcs = { cpu_codelet_B, NULL},
-	.cuda_funcs = { cpu_codelet_B, NULL},
-	.opencl_funcs = { cpu_codelet_B, NULL},
+	.cpu_funcs = { cpu_codelet_B},
+	.cuda_funcs = { cpu_codelet_B},
+	.opencl_funcs = { cpu_codelet_B},
 	.nbuffers = 0,
 	.name = "dummyB"
 };

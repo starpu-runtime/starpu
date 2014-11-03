@@ -72,8 +72,8 @@ static struct starpu_perfmodel write_buffer_perfmodel = {
 static struct starpu_codelet codelet_writebuffer = {
    .where = STARPU_OPENCL,
    .model = &write_buffer_perfmodel,
-   .cpu_funcs = { &soclEnqueueWriteBuffer_cpu_task, NULL },
-   .opencl_funcs = { &soclEnqueueWriteBuffer_opencl_task, NULL },
+   .cpu_funcs = { &soclEnqueueWriteBuffer_cpu_task },
+   .opencl_funcs = { &soclEnqueueWriteBuffer_opencl_task },
    .modes = {STARPU_W},
    .nbuffers = 1
 };
@@ -81,8 +81,8 @@ static struct starpu_codelet codelet_writebuffer = {
 static struct starpu_codelet codelet_writebuffer_partial = {
    .where = STARPU_OPENCL,
    .model = &write_buffer_perfmodel,
-   .cpu_funcs = { &soclEnqueueWriteBuffer_cpu_task, NULL },
-   .opencl_funcs = { &soclEnqueueWriteBuffer_opencl_task, NULL },
+   .cpu_funcs = { &soclEnqueueWriteBuffer_cpu_task },
+   .opencl_funcs = { &soclEnqueueWriteBuffer_opencl_task },
    .modes = {STARPU_RW},
    .nbuffers = 1
 };

@@ -65,7 +65,7 @@ void func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 
 static struct starpu_codelet codelet =
 {
-	.cpu_funcs = {func, NULL},
+	.cpu_funcs = {func},
 	.nbuffers = 0,
 	.modes = {STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R, STARPU_R}
 };

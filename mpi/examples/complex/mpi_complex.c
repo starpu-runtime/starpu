@@ -28,7 +28,7 @@ void display_foo_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 struct starpu_codelet foo_display =
 {
-	.cpu_funcs = {display_foo_codelet, NULL},
+	.cpu_funcs = {display_foo_codelet},
 	.nbuffers = 1,
 	.modes = {STARPU_R}
 };

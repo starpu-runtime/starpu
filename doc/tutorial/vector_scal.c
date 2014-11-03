@@ -32,14 +32,14 @@ extern void vector_scal_opencl(void *buffers[], void *_args);
 
 static struct starpu_codelet cl = {
 	/* CPU implementation of the codelet */
-	.cpu_funcs = {vector_scal_cpu, NULL},
+	.cpu_funcs = {vector_scal_cpu},
 #ifdef STARPU_USE_CUDA
 	/* CUDA implementation of the codelet */
-	.cuda_funcs = {vector_scal_cuda, NULL},
+	.cuda_funcs = {vector_scal_cuda},
 #endif
 #ifdef STARPU_USE_OPENCL
 	/* OpenCL implementation of the codelet */
-	.opencl_funcs = {vector_scal_opencl, NULL},
+	.opencl_funcs = {vector_scal_opencl},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW}

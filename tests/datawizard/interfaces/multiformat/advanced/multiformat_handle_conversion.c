@@ -68,7 +68,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	struct starpu_codelet cl2 =
 	{
 		.modes = { STARPU_RW },
-		.cpu_funcs = {cpu_func, NULL},
+		.cpu_funcs = {cpu_func},
 		.nbuffers = 1,
 		.where = STARPU_CPU,
 	};

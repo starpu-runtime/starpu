@@ -62,15 +62,15 @@ static struct starpu_perfmodel nl_model =
 static struct starpu_codelet memset_cl =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {memset_cuda, NULL},
+	.cuda_funcs = {memset_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {memset_opencl, NULL},
+	.opencl_funcs = {memset_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs = {memset_cpu, NULL},
-	.cpu_funcs_name = {"memset_cpu", NULL},
+	.cpu_funcs = {memset_cpu},
+	.cpu_funcs_name = {"memset_cpu"},
 	.model = &model,
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -79,15 +79,15 @@ static struct starpu_codelet memset_cl =
 static struct starpu_codelet nl_memset_cl =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {memset_cuda, NULL},
+	.cuda_funcs = {memset_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {memset_opencl, NULL},
+	.opencl_funcs = {memset_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs = {memset_cpu, NULL},
-	.cpu_funcs_name = {"memset_cpu", NULL},
+	.cpu_funcs = {memset_cpu},
+	.cpu_funcs_name = {"memset_cpu"},
 	.model = &nl_model,
 	.nbuffers = 1,
 	.modes = {STARPU_W}

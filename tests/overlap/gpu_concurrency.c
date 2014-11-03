@@ -55,7 +55,7 @@ static struct starpu_perfmodel model_sync =
 
 static struct starpu_codelet cl_async =
 {
-	.cuda_funcs = {codelet_long_kernel_async, NULL},
+	.cuda_funcs = {codelet_long_kernel_async},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 0,
 	.model =  &model_async,
@@ -63,7 +63,7 @@ static struct starpu_codelet cl_async =
 
 static struct starpu_codelet cl =
 {
-	.cuda_funcs = {codelet_long_kernel_sync, NULL},
+	.cuda_funcs = {codelet_long_kernel_sync},
 	.nbuffers = 0,
 	.model =  &model_sync,
 };

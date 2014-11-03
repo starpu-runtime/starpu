@@ -95,13 +95,13 @@ static struct starpu_data_filter vector_f =
 
 static struct starpu_codelet spmv_cl =
 {
-	.cpu_funcs = {spmv_kernel_cpu, NULL},
+	.cpu_funcs = {spmv_kernel_cpu},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {spmv_kernel_cuda, NULL},
+	.cuda_funcs = {spmv_kernel_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-        .opencl_funcs = {spmv_kernel_opencl, NULL},
+        .opencl_funcs = {spmv_kernel_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 3,

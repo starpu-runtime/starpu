@@ -31,7 +31,7 @@ static struct starpu_perfmodel my_model =
 
 static struct starpu_codelet my_codelet =
 {
-	.cpu_funcs = {func, NULL},
+	.cpu_funcs = {func},
 	.model = &my_model
 };
 

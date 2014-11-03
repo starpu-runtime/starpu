@@ -41,14 +41,14 @@ void dummy_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 static struct starpu_codelet cl =
 {
 	.modes = { STARPU_RW },
-	.cpu_funcs = {dummy_codelet, NULL},
+	.cpu_funcs = {dummy_codelet},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dummy_codelet, NULL},
+	.cuda_funcs = {dummy_codelet},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {dummy_codelet, NULL},
+	.opencl_funcs = {dummy_codelet},
 #endif
-	.cpu_funcs_name = {"dummy_codelet", NULL},
+	.cpu_funcs_name = {"dummy_codelet"},
 	.nbuffers = 1
 };
 

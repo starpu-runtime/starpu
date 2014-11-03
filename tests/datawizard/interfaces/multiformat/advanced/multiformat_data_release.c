@@ -51,13 +51,13 @@ create_and_submit(int where)
 	{
 		.modes = { STARPU_RW },
 #ifdef STARPU_USE_CUDA
-		.cuda_funcs   = {cuda_func, NULL},
+		.cuda_funcs   = {cuda_func},
 #endif
 #ifdef STARPU_USE_OPENCL
-		.opencl_funcs = {opencl_func, NULL},
+		.opencl_funcs = {opencl_func},
 #endif
 #ifdef STARPU_USE_MIC
-		.mic_funcs = {mic_func, NULL},
+		.mic_funcs = {mic_func},
 #endif
 		.nbuffers    = 1
 	};

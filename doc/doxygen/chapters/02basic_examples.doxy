@@ -92,7 +92,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 
 struct starpu_codelet cl =
 {
-    .cpu_funcs = { cpu_func, NULL },
+    .cpu_funcs = { cpu_func },
     .nbuffers = 0
 };
 \endcode
@@ -297,8 +297,8 @@ Callback function (arg 42)
 struct starpu_codelet cl =
 {
     .where = STARPU_CPU,
-    .cpu_funcs = { cpu_func, NULL },
-    .cpu_funcs_name = { "cpu_func", NULL },
+    .cpu_funcs = { cpu_func },
+    .cpu_funcs_name = { "cpu_func" },
      .nbuffers = 0
 };
 \endcode
@@ -579,8 +579,8 @@ void scal_cpu_func(void *buffers[], void *cl_arg)
 
 struct starpu_codelet cl =
 {
-    .cpu_funcs = { scal_cpu_func, NULL },
-    .cpu_funcs_name = { "scal_cpu_func", NULL },
+    .cpu_funcs = { scal_cpu_func },
+    .cpu_funcs_name = { "scal_cpu_func" },
     .nbuffers = 1,
     .modes = { STARPU_RW }
 };

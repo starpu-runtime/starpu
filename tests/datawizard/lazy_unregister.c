@@ -30,7 +30,7 @@ void dummy_func(void ** buffers, void * args)
 static struct starpu_codelet dummy_cl =
 {
 	.modes = { STARPU_RW },
-	.cpu_funcs = { dummy_func, NULL },
+	.cpu_funcs = { dummy_func },
 	.nbuffers = 1
 };
 

@@ -204,9 +204,9 @@ static struct starpu_codelet cl =
 {
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
 	.max_parallelism = INT_MAX,
-	.cpu_funcs = {cpu_mult, NULL},
+	.cpu_funcs = {cpu_mult},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cublas_mult, NULL},
+	.cuda_funcs = {cublas_mult},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 3,

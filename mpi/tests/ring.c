@@ -40,9 +40,9 @@ void increment_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 static struct starpu_codelet increment_cl =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {increment_cuda, NULL},
+	.cuda_funcs = {increment_cuda},
 #endif
-	.cpu_funcs = {increment_cpu, NULL},
+	.cpu_funcs = {increment_cpu},
 	.nbuffers = 1,
 	.modes = {STARPU_RW}
 };

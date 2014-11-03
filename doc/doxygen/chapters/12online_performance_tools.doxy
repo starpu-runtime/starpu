@@ -298,8 +298,8 @@ static struct starpu_perfmodel mult_perf_model = {
 };
 
 struct starpu_codelet cl = {
-    .cpu_funcs = { cpu_mult, NULL },
-    .cpu_funcs_name = { "cpu_mult", NULL },
+    .cpu_funcs = { cpu_mult },
+    .cpu_funcs_name = { "cpu_mult" },
     .nbuffers = 3,
     .modes = { STARPU_R, STARPU_R, STARPU_W },
     /* for the scheduling policy to be able to use performance models */

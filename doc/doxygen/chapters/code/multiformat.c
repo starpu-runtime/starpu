@@ -32,7 +32,7 @@ starpu_data_handle_t handle;
 void cpu_to_opencl_opencl_func(void *buffers[], void *args);
 struct starpu_codelet cpu_to_opencl_cl = {
     .where = STARPU_OPENCL,
-    .opencl_funcs = { cpu_to_opencl_opencl_func, NULL },
+    .opencl_funcs = { cpu_to_opencl_opencl_func },
     .nbuffers = 1,
     .modes = { STARPU_RW }
 };
@@ -40,8 +40,8 @@ struct starpu_codelet cpu_to_opencl_cl = {
 void opencl_to_cpu_func(void *buffers[], void *args);
 struct starpu_codelet opencl_to_cpu_cl = {
     .where = STARPU_CPU,
-    .cpu_funcs = { opencl_to_cpu_func, NULL },
-    .cpu_funcs_name = { "opencl_to_cpu_func", NULL },
+    .cpu_funcs = { opencl_to_cpu_func },
+    .cpu_funcs_name = { "opencl_to_cpu_func" },
     .nbuffers = 1,
     .modes = { STARPU_RW }
 };

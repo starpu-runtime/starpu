@@ -204,8 +204,7 @@ the starpu_codelet::opencl_funcs field.
 
 \var starpu_cpu_func_t starpu_codelet::cpu_funcs[STARPU_MAXIMPLEMENTATIONS]
 Optional array of function pointers to the CPU implementations of the
-codelet. It must be terminated by a NULL value. The functions
-prototype must be:
+codelet. The functions prototype must be:
 \code{.c}
 void cpu_func(void *buffers[], void *cl_arg)
 \endcode
@@ -224,7 +223,7 @@ look up the MIC function implementation through its name.
 
 \var starpu_cuda_func_t starpu_codelet::cuda_funcs[STARPU_MAXIMPLEMENTATIONS]
 Optional array of function pointers to the CUDA implementations of the
-codelet. It must be terminated by a NULL value. The functions must be
+codelet. The functions must be
 host-functions written in the CUDA runtime API. Their prototype must
 be:
 \code{.c}
@@ -240,7 +239,7 @@ about CUDA kernel execution, such as asynchronous execution.
 
 \var starpu_opencl_func_t starpu_codelet::opencl_funcs[STARPU_MAXIMPLEMENTATIONS]
 Optional array of function pointers to the OpenCL implementations of
-the codelet. It must be terminated by a NULL value. The functions
+the codelet. The functions
 prototype must be:
 \code{.c}
 void opencl_func(void *buffers[], void *cl_arg)
@@ -256,8 +255,7 @@ about OpenCL kernel execution, such as asynchronous execution.
 
 \var starpu_mic_func_t starpu_codelet::mic_funcs[STARPU_MAXIMPLEMENTATIONS]
 Optional array of function pointers to a function which returns the
-MIC implementation of the codelet. It must be terminated by a NULL
-value. The functions prototype must be:
+MIC implementation of the codelet. The functions prototype must be:
 \code{.c}
 starpu_mic_kernel_t mic_func(struct starpu_codelet *cl, unsigned nimpl)
 \endcode
@@ -269,8 +267,7 @@ simply make a symbol lookup to get the implementation.
 
 \var starpu_scc_func_t starpu_codelet::scc_funcs[STARPU_MAXIMPLEMENTATIONS]
 Optional array of function pointers to a function which returns the
-SCC implementation of the codelet. It must be terminated by a NULL value.
-The functions prototype must be:
+SCC implementation of the codelet. The functions prototype must be:
 \code{.c}
 starpu_scc_kernel_t scc_func(struct starpu_codelet *cl, unsigned nimpl)
 \endcode

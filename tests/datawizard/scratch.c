@@ -64,16 +64,16 @@ void cpu_f(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 static struct starpu_codelet cl_f =
 {
-	.cpu_funcs = {cpu_f, NULL},
+	.cpu_funcs = {cpu_f},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_f, NULL},
+	.cuda_funcs = {cuda_f},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {opencl_f, NULL},
+	.opencl_funcs = {opencl_f},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs_name = {"cpu_f", NULL},
+	.cpu_funcs_name = {"cpu_f"},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_SCRATCH}
 };

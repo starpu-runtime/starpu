@@ -27,8 +27,8 @@ void begin(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
 
 static struct starpu_codelet codelet_begin =
 {
-	.cpu_funcs = {begin, NULL},
-	.cpu_funcs_name = {"begin", NULL},
+	.cpu_funcs = {begin},
+	.cpu_funcs_name = {"begin"},
 	.nbuffers = 1,
 	.name = "begin",
 };
@@ -42,8 +42,8 @@ void commute1(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
 
 static struct starpu_codelet codelet_commute1 =
 {
-	.cpu_funcs = {commute1, NULL},
-	.cpu_funcs_name = {"commute1", NULL},
+	.cpu_funcs = {commute1},
+	.cpu_funcs_name = {"commute1"},
 	.nbuffers = 1,
 	.modes = {STARPU_RW | STARPU_COMMUTE},
 	.name = "commute1",
@@ -58,8 +58,8 @@ void commute2(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
 
 static struct starpu_codelet codelet_commute2 =
 {
-	.cpu_funcs = {commute2, NULL},
-	.cpu_funcs_name = {"commute2", NULL},
+	.cpu_funcs = {commute2},
+	.cpu_funcs_name = {"commute2"},
 	.nbuffers = 1,
 	.modes = {STARPU_W | STARPU_COMMUTE},
 	.name = "commute2",
@@ -71,8 +71,8 @@ void commute3(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args STARPU_ATTRIBUT
 
 static struct starpu_codelet codelet_commute3 =
 {
-	.cpu_funcs = {commute3, NULL},
-	.cpu_funcs_name = {"commute3", NULL},
+	.cpu_funcs = {commute3},
+	.cpu_funcs_name = {"commute3"},
 	.nbuffers = 1,
 	.modes = {STARPU_RW | STARPU_COMMUTE},
 	.name = "commute3",
@@ -91,8 +91,8 @@ void end(void *descr[], void *_args STARPU_ATTRIBUTE_UNUSED)
 
 static struct starpu_codelet codelet_end =
 {
-	.cpu_funcs = {end, NULL},
-	.cpu_funcs_name = {"end", NULL},
+	.cpu_funcs = {end},
+	.cpu_funcs_name = {"end"},
 	.nbuffers = 1,
 	.name = "end",
 };

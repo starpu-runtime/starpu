@@ -58,14 +58,14 @@ void cpu_increment(void *descr[], void *arg STARPU_ATTRIBUTE_UNUSED)
 
 static struct starpu_codelet dummy_codelet =
 {
-	.cpu_funcs = {cpu_increment, NULL},
+	.cpu_funcs = {cpu_increment},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_host_increment, NULL},
+	.cuda_funcs = {cuda_host_increment},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	// TODO
-	//.opencl_funcs = {dummy_func, NULL},
-	.cpu_funcs_name = {"cpu_increment", NULL},
+	//.opencl_funcs = {dummy_func},
+	.cpu_funcs_name = {"cpu_increment"},
 	.model = NULL,
 	.modes = { STARPU_RW },
 	.nbuffers = 1

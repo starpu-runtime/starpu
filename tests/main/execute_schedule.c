@@ -41,9 +41,9 @@ void codelet(STARPU_ATTRIBUTE_UNUSED void *descr[], void *_args)
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs = {codelet, NULL},
-	.cuda_funcs = {codelet, NULL},
-	.opencl_funcs = {codelet, NULL},
+	.cpu_funcs = {codelet},
+	.cuda_funcs = {codelet},
+	.opencl_funcs = {codelet},
 	.nbuffers = 0,
 };
 

@@ -87,90 +87,90 @@ static enum starpu_data_access_mode select_random_mode(void)
 
 static struct starpu_codelet cl_r_r =
 {
-	.cpu_funcs = {cpu_codelet_null, NULL},
-	.cuda_funcs = {cuda_codelet_null, NULL},
-        .opencl_funcs = {opencl_codelet_null, NULL},
-	.cpu_funcs_name = {"cpu_codelet_null", NULL},
+	.cpu_funcs = {cpu_codelet_null},
+	.cuda_funcs = {cuda_codelet_null},
+        .opencl_funcs = {opencl_codelet_null},
+	.cpu_funcs_name = {"cpu_codelet_null"},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R}
 };
 
 static struct starpu_codelet cl_r_w =
 {
-	.cpu_funcs = {cpu_codelet_null, NULL},
-	.cuda_funcs = {cuda_codelet_null, NULL},
-        .opencl_funcs = {opencl_codelet_null, NULL},
-	.cpu_funcs_name = {"cpu_codelet_null", NULL},
+	.cpu_funcs = {cpu_codelet_null},
+	.cuda_funcs = {cuda_codelet_null},
+        .opencl_funcs = {opencl_codelet_null},
+	.cpu_funcs_name = {"cpu_codelet_null"},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W}
 };
 
 static struct starpu_codelet cl_r_rw =
 {
-	.cpu_funcs = {cpu_codelet_null, NULL},
-	.cuda_funcs = {cuda_codelet_null, NULL},
-        .opencl_funcs = {opencl_codelet_null, NULL},
-	.cpu_funcs_name = {"cpu_codelet_null", NULL},
+	.cpu_funcs = {cpu_codelet_null},
+	.cuda_funcs = {cuda_codelet_null},
+        .opencl_funcs = {opencl_codelet_null},
+	.cpu_funcs_name = {"cpu_codelet_null"},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW}
 };
 
 static struct starpu_codelet cl_w_r =
 {
-	.cpu_funcs = {cpu_codelet_null, NULL},
-	.cuda_funcs = {cuda_codelet_null, NULL},
-        .opencl_funcs = {opencl_codelet_null, NULL},
-	.cpu_funcs_name = {"cpu_codelet_null", NULL},
+	.cpu_funcs = {cpu_codelet_null},
+	.cuda_funcs = {cuda_codelet_null},
+        .opencl_funcs = {opencl_codelet_null},
+	.cpu_funcs_name = {"cpu_codelet_null"},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R}
 };
 
 static struct starpu_codelet cl_w_w =
 {
-	.cpu_funcs = {cpu_codelet_null, NULL},
-	.cuda_funcs = {cuda_codelet_null, NULL},
-        .opencl_funcs = {opencl_codelet_null, NULL},
-	.cpu_funcs_name = {"cpu_codelet_null", NULL},
+	.cpu_funcs = {cpu_codelet_null},
+	.cuda_funcs = {cuda_codelet_null},
+        .opencl_funcs = {opencl_codelet_null},
+	.cpu_funcs_name = {"cpu_codelet_null"},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_W}
 };
 
 static struct starpu_codelet cl_w_rw =
 {
-	.cpu_funcs = {cpu_codelet_null, NULL},
-	.cuda_funcs = {cuda_codelet_null, NULL},
-        .opencl_funcs = {opencl_codelet_null, NULL},
-	.cpu_funcs_name = {"cpu_codelet_null", NULL},
+	.cpu_funcs = {cpu_codelet_null},
+	.cuda_funcs = {cuda_codelet_null},
+        .opencl_funcs = {opencl_codelet_null},
+	.cpu_funcs_name = {"cpu_codelet_null"},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_RW}
 };
 
 static struct starpu_codelet cl_rw_r =
 {
-	.cpu_funcs = {cpu_codelet_null, NULL},
-	.cuda_funcs = {cuda_codelet_null, NULL},
-        .opencl_funcs = {opencl_codelet_null, NULL},
-	.cpu_funcs_name = {"cpu_codelet_null", NULL},
+	.cpu_funcs = {cpu_codelet_null},
+	.cuda_funcs = {cuda_codelet_null},
+        .opencl_funcs = {opencl_codelet_null},
+	.cpu_funcs_name = {"cpu_codelet_null"},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R}
 };
 
 static struct starpu_codelet cl_rw_w =
 {
-	.cpu_funcs = {cpu_codelet_null, NULL},
-	.cuda_funcs = {cuda_codelet_null, NULL},
-        .opencl_funcs = {opencl_codelet_null, NULL},
-	.cpu_funcs_name = {"cpu_codelet_null", NULL},
+	.cpu_funcs = {cpu_codelet_null},
+	.cuda_funcs = {cuda_codelet_null},
+        .opencl_funcs = {opencl_codelet_null},
+	.cpu_funcs_name = {"cpu_codelet_null"},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_W}
 };
 
 static struct starpu_codelet cl_rw_rw =
 {
-	.cpu_funcs = {cpu_codelet_null, NULL},
-	.cuda_funcs = {cuda_codelet_null, NULL},
-        .opencl_funcs = {opencl_codelet_null, NULL},
-	.cpu_funcs_name = {"cpu_codelet_null", NULL},
+	.cpu_funcs = {cpu_codelet_null},
+	.cuda_funcs = {cuda_codelet_null},
+        .opencl_funcs = {opencl_codelet_null},
+	.cpu_funcs_name = {"cpu_codelet_null"},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW}
 };

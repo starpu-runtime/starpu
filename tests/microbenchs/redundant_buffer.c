@@ -46,10 +46,10 @@ void cpu_codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 static
 struct starpu_codelet cl =
 {
-	.cpu_funcs = {cpu_codelet_null, NULL},
-	.cuda_funcs = {cuda_codelet_null, NULL},
-	.opencl_funcs = {opencl_codelet_null, NULL},
-	.cpu_funcs_name = {"cpu_codelet_null", NULL},
+	.cpu_funcs = {cpu_codelet_null},
+	.cuda_funcs = {cuda_codelet_null},
+	.opencl_funcs = {opencl_codelet_null},
+	.cpu_funcs_name = {"cpu_codelet_null"},
         .nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R}
 };

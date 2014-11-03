@@ -40,7 +40,7 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 struct starpu_codelet mycodelet =
 {
-	.cpu_funcs = {func_cpu, NULL},
+	.cpu_funcs = {func_cpu},
 	.nbuffers = 4,
 	.modes = {STARPU_R, STARPU_RW, STARPU_W, STARPU_W}
 };

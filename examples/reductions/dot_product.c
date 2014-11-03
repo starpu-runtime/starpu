@@ -106,14 +106,14 @@ void init_opencl_func(void *buffers[], void *args)
 static struct starpu_codelet init_codelet =
 {
 	.can_execute = can_execute,
-	.cpu_funcs = {init_cpu_func, NULL},
-	.cpu_funcs_name = {"init_cpu_func", NULL},
+	.cpu_funcs = {init_cpu_func},
+	.cpu_funcs_name = {"init_cpu_func"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {init_cuda_func, NULL},
+	.cuda_funcs = {init_cuda_func},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {init_opencl_func, NULL},
+	.opencl_funcs = {init_opencl_func},
 #endif
 	.modes = {STARPU_W},
 	.nbuffers = 1,
@@ -185,14 +185,14 @@ void redux_opencl_func(void *buffers[], void *args)
 static struct starpu_codelet redux_codelet =
 {
 	.can_execute = can_execute,
-	.cpu_funcs = {redux_cpu_func, NULL},
-	.cpu_funcs_name = {"redux_cpu_func", NULL},
+	.cpu_funcs = {redux_cpu_func},
+	.cpu_funcs_name = {"redux_cpu_func"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {redux_cuda_func, NULL},
+	.cuda_funcs = {redux_cuda_func},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {redux_opencl_func, NULL},
+	.opencl_funcs = {redux_opencl_func},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.modes = {STARPU_RW, STARPU_R},
@@ -300,14 +300,14 @@ void dot_opencl_func(void *buffers[], void *args)
 static struct starpu_codelet dot_codelet =
 {
 	.can_execute = can_execute,
-	.cpu_funcs = {dot_cpu_func, NULL},
-	.cpu_funcs_name = {"dot_cpu_func", NULL},
+	.cpu_funcs = {dot_cpu_func},
+	.cpu_funcs_name = {"dot_cpu_func"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dot_cuda_func, NULL},
+	.cuda_funcs = {dot_cuda_func},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {dot_opencl_func, NULL},
+	.opencl_funcs = {dot_opencl_func},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 3,

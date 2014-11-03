@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -39,9 +39,7 @@ static void sched_ctx_cuda_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg
 
 static struct starpu_codelet sched_ctx_codelet1 =
 {
-	.cpu_funcs = {sched_ctx_cpu_func, NULL},
-	.cuda_funcs = {NULL},
-	.opencl_funcs = {NULL},
+	.cpu_funcs = {sched_ctx_cpu_func},
 	.model = NULL,
 	.nbuffers = 0,
 	.name = "sched_ctx"
@@ -49,9 +47,8 @@ static struct starpu_codelet sched_ctx_codelet1 =
 
 static struct starpu_codelet sched_ctx_codelet2 =
 {
-	.cpu_funcs = {sched_ctx_cpu_func, NULL},
-	.cuda_funcs = {sched_ctx_cuda_func, NULL},
-	.opencl_funcs = {NULL},
+	.cpu_funcs = {sched_ctx_cpu_func},
+	.cuda_funcs = {sched_ctx_cuda_func},
 	.model = NULL,
 	.nbuffers = 0,
 	.name = "sched_ctx"

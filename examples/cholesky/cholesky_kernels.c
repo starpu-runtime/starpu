@@ -246,11 +246,11 @@ void chol_cublas_codelet_update_u11(void *descr[], void *_args)
 struct starpu_codelet cl11 =
 {
 	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
+	.cpu_funcs = {chol_cpu_codelet_update_u11},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
+	.cuda_funcs = {chol_cublas_codelet_update_u11},
 #elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
+	.cuda_funcs = {(void*)1},
 #endif
 #ifdef STARPU_HAVE_MAGMA
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -263,11 +263,11 @@ struct starpu_codelet cl11 =
 struct starpu_codelet cl21 =
 {
 	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u21, NULL},
+	.cpu_funcs = {chol_cpu_codelet_update_u21},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u21, NULL},
+	.cuda_funcs = {chol_cublas_codelet_update_u21},
 #elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
+	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
@@ -279,11 +279,11 @@ struct starpu_codelet cl22 =
 {
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
-	.cpu_funcs = {chol_cpu_codelet_update_u22, NULL},
+	.cpu_funcs = {chol_cpu_codelet_update_u22},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u22, NULL},
+	.cuda_funcs = {chol_cublas_codelet_update_u22},
 #elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
+	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,

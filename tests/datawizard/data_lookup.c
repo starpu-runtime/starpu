@@ -37,8 +37,8 @@ void task(void **buffers, void *args)
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs = {task, NULL},
-	.cpu_funcs_name = {"task", NULL},
+	.cpu_funcs = {task},
+	.cpu_funcs_name = {"task"},
 	.nbuffers = 1,
 	.modes = {STARPU_W}
 };

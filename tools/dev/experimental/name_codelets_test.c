@@ -22,7 +22,7 @@ struct starpu_codelet good_beginning = {
 struct starpu_codelet good_middle = { 
 	.where = STARPU_CPU,
 	.name = "lol",
-	.cpu_funcs = { foo, NULL }
+	.cpu_funcs = { foo }
 };
 struct starpu_codelet good_end = {
 	.where = STARPU_CPU,

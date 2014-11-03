@@ -27,20 +27,20 @@ void dummy_kernel(void *descr[], void *arg)
 
 static struct starpu_codelet r_cl =
 {
-	.cuda_funcs = {dummy_kernel, NULL},
-	.cpu_funcs = {dummy_kernel, NULL},
-	.opencl_funcs = {dummy_kernel, NULL},
-	.cpu_funcs_name = {"dummy_kernel", NULL},
+	.cuda_funcs = {dummy_kernel},
+	.cpu_funcs = {dummy_kernel},
+	.opencl_funcs = {dummy_kernel},
+	.cpu_funcs_name = {"dummy_kernel"},
 	.nbuffers = 1,
 	.modes = {STARPU_R}
 };
 
 static struct starpu_codelet w_cl =
 {
-	.cuda_funcs = {dummy_kernel, NULL},
-	.cpu_funcs = {dummy_kernel, NULL},
-	.opencl_funcs = {dummy_kernel, NULL},
-	.cpu_funcs_name = {"dummy_kernel", NULL},
+	.cuda_funcs = {dummy_kernel},
+	.cpu_funcs = {dummy_kernel},
+	.opencl_funcs = {dummy_kernel},
+	.cpu_funcs_name = {"dummy_kernel"},
 	.nbuffers = 1,
 	.modes = {STARPU_W}
 };

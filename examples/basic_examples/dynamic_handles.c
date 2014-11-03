@@ -52,14 +52,14 @@ static void dummy_big_kernel(void *descr[], void *cl_arg)
 
 static struct starpu_codelet dummy_small_cl =
 {
-	.cpu_funcs = {dummy_small_kernel, NULL},
+	.cpu_funcs = {dummy_small_kernel},
 	.modes = {STARPU_RW},
 	.nbuffers = 1
 };
 
 struct starpu_codelet dummy_big_cl =
 {
-	.cpu_funcs = {dummy_big_kernel, NULL},
+	.cpu_funcs = {dummy_big_kernel},
 	.nbuffers = STARPU_NMAXBUFS+1
 };
 

@@ -30,9 +30,9 @@ void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUT
 
 static struct starpu_codelet dummy_codelet =
 {
-	.cpu_funcs = {dummy_func, NULL},
-	.cuda_funcs = {dummy_func, NULL},
-	.opencl_funcs = {dummy_func, NULL},
+	.cpu_funcs = {dummy_func},
+	.cuda_funcs = {dummy_func},
+	.opencl_funcs = {dummy_func},
 	.model = NULL,
 	.nbuffers = 0
 };
@@ -49,9 +49,9 @@ static void callback(void *arg STARPU_ATTRIBUTE_UNUSED)
 
 static struct starpu_codelet callback_submit_codelet =
 {
-	.cpu_funcs = {dummy_func, NULL},
-	.cuda_funcs = {dummy_func, NULL},
-	.opencl_funcs = {dummy_func, NULL},
+	.cpu_funcs = {dummy_func},
+	.cuda_funcs = {dummy_func},
+	.opencl_funcs = {dummy_func},
 	.model = NULL,
 	.nbuffers = 0
 };
@@ -70,9 +70,9 @@ static void task_submit_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg ST
 
 static struct starpu_codelet task_submit_codelet =
 {
-	.cpu_funcs = {task_submit_func, NULL},
-	.cuda_funcs = {task_submit_func, NULL},
-	.opencl_funcs = {task_submit_func, NULL},
+	.cpu_funcs = {task_submit_func},
+	.cuda_funcs = {task_submit_func},
+	.opencl_funcs = {task_submit_func},
 	.model = NULL,
 	.nbuffers = 0
 };

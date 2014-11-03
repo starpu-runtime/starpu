@@ -39,9 +39,9 @@ void specific_kernel(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNU
 
 static struct starpu_codelet specific_cl =
 {
-	.cpu_funcs = {specific_kernel, NULL},
-	.cuda_funcs = {specific_kernel, NULL},
-	.opencl_funcs = {specific_kernel, NULL},
+	.cpu_funcs = {specific_kernel},
+	.cuda_funcs = {specific_kernel},
+	.opencl_funcs = {specific_kernel},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
 	.specific_nodes = 1,
@@ -57,13 +57,13 @@ void opencl_codelet_unsigned_inc(void *buffers[], void *args);
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs = {specific_kernel, NULL},
+	.cpu_funcs = {specific_kernel},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_codelet_unsigned_inc, NULL},
+	.cuda_funcs = {cuda_codelet_unsigned_inc},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {opencl_codelet_unsigned_inc, NULL},
+	.opencl_funcs = {opencl_codelet_unsigned_inc},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 1,

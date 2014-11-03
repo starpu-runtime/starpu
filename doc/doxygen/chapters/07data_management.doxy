@@ -208,9 +208,9 @@ the codelets for initialization and reduction:
 \code{.c}
 struct starpu_codelet bzero_variable_cl =
 {
-        .cpu_funcs = { bzero_variable_cpu, NULL },
-        .cpu_funcs_name = { "bzero_variable_cpu", NULL },
-        .cuda_funcs = { bzero_variable_cuda, NULL },
+        .cpu_funcs = { bzero_variable_cpu },
+        .cpu_funcs_name = { "bzero_variable_cpu" },
+        .cuda_funcs = { bzero_variable_cuda },
         .nbuffers = 1,
 }
 
@@ -231,9 +231,9 @@ static void accumulate_variable_cuda(void *descr[], void *cl_arg)
 
 struct starpu_codelet accumulate_variable_cl =
 {
-        .cpu_funcs = { accumulate_variable_cpu, NULL },
-        .cpu_funcs_name = { "accumulate_variable_cpu", NULL },
-        .cuda_funcs = { accumulate_variable_cuda, NULL },
+        .cpu_funcs = { accumulate_variable_cpu },
+        .cpu_funcs_name = { "accumulate_variable_cpu" },
+        .cuda_funcs = { accumulate_variable_cuda },
         .nbuffers = 1,
 }
 \endcode
@@ -524,7 +524,7 @@ where the task will be executed. For instance, with the following codelet:
 \code{.c}
 struct starpu_codelet cl =
 {
-	.cuda_funcs = { kernel, NULL },
+	.cuda_funcs = { kernel },
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW},
 	.specific_nodes = 1,

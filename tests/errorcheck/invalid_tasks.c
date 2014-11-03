@@ -33,8 +33,8 @@ void dummy_func(void *descr[], void *arg)
 
 static struct starpu_codelet gpu_only_cl =
 {
-	.cuda_funcs = {dummy_func, NULL},
-	.opencl_funcs = {dummy_func, NULL},
+	.cuda_funcs = {dummy_func},
+	.opencl_funcs = {dummy_func},
 	.model = NULL,
 	.nbuffers = 0
 };

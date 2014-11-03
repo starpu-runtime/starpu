@@ -48,10 +48,10 @@ run(struct starpu_sched_policy *p)
 	struct starpu_task *tasks[NTASKS] = { NULL };
 	struct starpu_codelet cl =
 	{
-		.cpu_funcs    = {dummy, NULL},
-		.cpu_funcs_name = {"dummy", NULL},
-		.cuda_funcs   = {dummy, NULL},
-		.opencl_funcs = {dummy, NULL},
+		.cpu_funcs    = {dummy},
+		.cpu_funcs_name = {"dummy"},
+		.cuda_funcs   = {dummy},
+		.opencl_funcs = {dummy},
 		.nbuffers     = 0
 	};
 

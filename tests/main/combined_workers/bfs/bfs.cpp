@@ -119,7 +119,6 @@ int main( int argc, char** argv)
 	bfs_cl.type = STARPU_FORKJOIN;
 	bfs_cl.max_parallelism = INT_MAX;
 	bfs_cl.cpu_funcs[0] = omp_bfs_func;
-	bfs_cl.cpu_funcs[1] = NULL;
 	bfs_cl.nbuffers = 6;
 	bfs_cl.model = &bfs_model;
 

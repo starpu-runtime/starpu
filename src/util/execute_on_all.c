@@ -45,9 +45,9 @@ void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigne
 	struct starpu_codelet wrapper_cl =
 	{
 		.where = 0xFF,
-		.cuda_funcs = {wrapper_func, NULL},
-		.cpu_funcs = {wrapper_func, NULL},
-		.opencl_funcs = {wrapper_func, NULL},
+		.cuda_funcs = {wrapper_func},
+		.cpu_funcs = {wrapper_func},
+		.opencl_funcs = {wrapper_func},
 		/* XXX we do not handle Cell .. */
 		.nbuffers = 0,
 		.name = name
@@ -114,9 +114,9 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
 	struct starpu_codelet wrapper_cl =
 	{
 		.where = where,
-		.cuda_funcs = {wrapper_func, NULL},
-		.cpu_funcs = {wrapper_func, NULL},
-		.opencl_funcs = {wrapper_func, NULL},
+		.cuda_funcs = {wrapper_func},
+		.cpu_funcs = {wrapper_func},
+		.opencl_funcs = {wrapper_func},
 		.nbuffers = 0,
 		.name = (name != NULL ? name : "execute_on_all_wrapper")
 	};

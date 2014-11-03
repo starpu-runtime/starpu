@@ -41,10 +41,10 @@ void f(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args STARPU_ATTRIBUTE_UNUSE
 static struct starpu_codelet cl_f =
 {
 	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
-	.cpu_funcs = {f, NULL},
-	.cuda_funcs = {f, NULL},
-	.opencl_funcs = {f, NULL},
-	.cpu_funcs_name = {"f", NULL},
+	.cpu_funcs = {f},
+	.cuda_funcs = {f},
+	.opencl_funcs = {f},
+	.cpu_funcs_name = {"f"},
 	.nbuffers = 3,
 };
 
@@ -74,13 +74,13 @@ void g_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 static struct starpu_codelet cl_g =
 {
 	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
-	.cpu_funcs = {g, NULL},
+	.cpu_funcs = {g},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {g_cuda, NULL},
+	.cuda_funcs = {g_cuda},
 #endif
 	// TODO
-	//.opencl_funcs = {g, NULL},
-	.cpu_funcs_name = {"g", NULL},
+	//.opencl_funcs = {g},
+	.cpu_funcs_name = {"g"},
 	.nbuffers = 3,
 };
 
@@ -111,13 +111,13 @@ void h_cuda(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 static struct starpu_codelet cl_h =
 {
 	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
-	.cpu_funcs = {h, NULL},
+	.cpu_funcs = {h},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {h_cuda, NULL},
+	.cuda_funcs = {h_cuda},
 #endif
 	// TODO
-	//.opencl_funcs = {h, NULL},
-	.cpu_funcs_name = {"h", NULL},
+	//.opencl_funcs = {h},
+	.cpu_funcs_name = {"h"},
 	.nbuffers = 3
 };
 

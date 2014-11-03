@@ -34,7 +34,7 @@ void stencil5_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 struct starpu_codelet stencil5_cl =
 {
-	.cpu_funcs = {stencil5_cpu, NULL},
+	.cpu_funcs = {stencil5_cpu},
 	.nbuffers = 5,
 	.modes = {STARPU_RW, STARPU_R, STARPU_R, STARPU_R, STARPU_R}
 };

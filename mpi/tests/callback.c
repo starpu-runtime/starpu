@@ -29,9 +29,9 @@ void my_func(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void
 
 struct starpu_codelet my_codelet =
 {
-	.cpu_funcs = {my_func, NULL},
-	.cuda_funcs = {my_func, NULL},
-	.opencl_funcs = {my_func, NULL}
+	.cpu_funcs = {my_func},
+	.cuda_funcs = {my_func},
+	.opencl_funcs = {my_func}
 };
 
 static

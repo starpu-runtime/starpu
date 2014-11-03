@@ -57,8 +57,8 @@ void minmax_neutral_cpu_func(void *descr[], void *cl_arg)
 
 static struct starpu_codelet minmax_init_codelet =
 {
-	.cpu_funcs = {minmax_neutral_cpu_func, NULL},
-	.cpu_funcs_name = {"minmax_neutral_cpu_func", NULL},
+	.cpu_funcs = {minmax_neutral_cpu_func},
+	.cpu_funcs_name = {"minmax_neutral_cpu_func"},
 	.modes = {STARPU_W},
 	.nbuffers = 1,
 	.name = "init"
@@ -86,8 +86,8 @@ void minmax_redux_cpu_func(void *descr[], void *cl_arg)
 
 static struct starpu_codelet minmax_redux_codelet =
 {
-	.cpu_funcs = {minmax_redux_cpu_func, NULL},
-	.cpu_funcs_name = {"minmax_redux_cpu_func", NULL},
+	.cpu_funcs = {minmax_redux_cpu_func},
+	.cpu_funcs_name = {"minmax_redux_cpu_func"},
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2,
 	.name = "redux"
@@ -123,8 +123,8 @@ void minmax_cpu_func(void *descr[], void *cl_arg)
 
 static struct starpu_codelet minmax_codelet =
 {
-	.cpu_funcs = {minmax_cpu_func, NULL},
-	.cpu_funcs_name = {"minmax_cpu_func", NULL},
+	.cpu_funcs = {minmax_cpu_func},
+	.cpu_funcs_name = {"minmax_cpu_func"},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_REDUX},
 	.name = "minmax"

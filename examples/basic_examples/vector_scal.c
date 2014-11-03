@@ -81,12 +81,12 @@ static struct starpu_codelet cl =
 
 #ifdef STARPU_USE_CUDA
 	/* CUDA implementation of the codelet */
-	.cuda_funcs = {scal_cuda_func, NULL},
+	.cuda_funcs = {scal_cuda_func},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	/* OpenCL implementation of the codelet */
-	.opencl_funcs = {scal_opencl_func, NULL},
+	.opencl_funcs = {scal_opencl_func},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 1,

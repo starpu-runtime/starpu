@@ -32,8 +32,8 @@ void which_index_cpu(void *descr[], void *_args)
 
 struct starpu_codelet which_index =
 {
-	.cpu_funcs = {which_index_cpu, NULL},
-	.cpu_funcs_name = {"which_index_cpu", NULL},
+	.cpu_funcs = {which_index_cpu},
+	.cpu_funcs_name = {"which_index_cpu"},
         .nbuffers = 1,
 	.modes = {STARPU_W}
 };
@@ -49,8 +49,8 @@ void work_cpu(void *descr[], void *_args)
 
 struct starpu_codelet work =
 {
-	.cpu_funcs = {work_cpu, NULL},
-	.cpu_funcs_name = {"work_cpu", NULL},
+	.cpu_funcs = {work_cpu},
+	.cpu_funcs_name = {"work_cpu"},
         .nbuffers = 1,
 	.modes = {STARPU_W}
 };

@@ -75,16 +75,16 @@ void cpu_codelet_incC(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 /* increment a = v[0] */
 static struct starpu_codelet cl_inc_a =
 {
-	.cpu_funcs = {cpu_codelet_incA, NULL},
+	.cpu_funcs = {cpu_codelet_incA},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_codelet_incA, NULL},
+	.cuda_funcs = {cuda_codelet_incA},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {opencl_codelet_incA, NULL},
+	.opencl_funcs = {opencl_codelet_incA},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs_name = {"cpu_codelet_incA", NULL},
+	.cpu_funcs_name = {"cpu_codelet_incA"},
 	.nbuffers = 1,
 	.modes = {STARPU_RW}
 };
@@ -92,16 +92,16 @@ static struct starpu_codelet cl_inc_a =
 /* increment c = v[2] */
 struct starpu_codelet cl_inc_c =
 {
-	.cpu_funcs = {cpu_codelet_incC, NULL},
+	.cpu_funcs = {cpu_codelet_incC},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_codelet_incC, NULL},
+	.cuda_funcs = {cuda_codelet_incC},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {opencl_codelet_incC, NULL},
+	.opencl_funcs = {opencl_codelet_incC},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs_name = {"cpu_codelet_incC", NULL},
+	.cpu_funcs_name = {"cpu_codelet_incC"},
 	.nbuffers = 1,
 	.modes = {STARPU_RW}
 };

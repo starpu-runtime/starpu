@@ -1,14 +1,14 @@
 /* Dont change anything ! */
 struct starpu_codelet cummy_cl = 
 {
-        .cpu_funcs = { foo, NULL },
+        .cpu_funcs = { foo },
         .nbuffers = 42
 };
 
 /* Now, there is some work to do */
 struct starpu_codelet cl1 = 
 {
-        .cpu_funcs = { foo, bar, NULL },
+        .cpu_funcs = { foo, bar },
         .nbuffers = 2,
 };
 
@@ -27,7 +27,7 @@ foo(void)
 
 struct starpu_codelet cl2 = 
 {
-	.cpu_funcs = {foo, NULL},
+	.cpu_funcs = {foo},
 	.nbuffers = 1
 };
 
@@ -46,7 +46,7 @@ bar(void)
 
 struct starpu_codelet cl3 = 
 {
-	.cpu_funcs = { bar, baz, NULL },
+	.cpu_funcs = { bar, baz },
 	.nbuffers = 1
 };
 

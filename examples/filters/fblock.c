@@ -91,14 +91,14 @@ int main(int argc, char **argv)
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func, NULL},
-                .cpu_funcs_name = {"cpu_func", NULL},
+                .cpu_funcs = {cpu_func},
+                .cpu_funcs_name = {"cpu_func"},
 #ifdef STARPU_USE_CUDA
-                .cuda_funcs = {cuda_func, NULL},
+                .cuda_funcs = {cuda_func},
 		.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-                .opencl_funcs = {opencl_func, NULL},
+                .opencl_funcs = {opencl_func},
 		.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 		.nbuffers = 1,

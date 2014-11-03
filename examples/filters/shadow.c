@@ -98,10 +98,10 @@ int main(int argc, char **argv)
 
         struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func, NULL},
-                .cpu_funcs_name = {"cpu_func", NULL},
+                .cpu_funcs = {cpu_func},
+                .cpu_funcs_name = {"cpu_func"},
 #ifdef STARPU_USE_CUDA
-                .cuda_funcs = {cuda_func, NULL},
+                .cuda_funcs = {cuda_func},
 		.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
                 .nbuffers = 2,

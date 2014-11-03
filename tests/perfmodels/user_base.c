@@ -65,9 +65,9 @@ static struct starpu_perfmodel hb_model_foot =
 
 static struct starpu_codelet mycodelet =
 {
-	.cuda_funcs = {func, NULL},
-	.opencl_funcs = {func, NULL},
-	.cpu_funcs = {func, NULL},
+	.cuda_funcs = {func},
+	.opencl_funcs = {func},
+	.cpu_funcs = {func},
 	.nbuffers = 1,
 	.modes = {STARPU_W}
 };

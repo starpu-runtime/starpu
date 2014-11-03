@@ -105,10 +105,10 @@ static struct starpu_perfmodel model =
 
 static struct starpu_codelet pi_cl =
 {
-	.cpu_funcs = {cpu_kernel, NULL},
-	.cpu_funcs_name = {"cpu_kernel", NULL},
+	.cpu_funcs = {cpu_kernel},
+	.cpu_funcs_name = {"cpu_kernel"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_kernel, NULL},
+	.cuda_funcs = {cuda_kernel},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W},

@@ -809,9 +809,9 @@ void _starpu_mpi_redux_data_dummy_func(STARPU_ATTRIBUTE_UNUSED void *buffers[], 
 static
 struct starpu_codelet _starpu_mpi_redux_data_read_cl =
 {
-	.cpu_funcs = {_starpu_mpi_redux_data_dummy_func, NULL},
-	.cuda_funcs = {_starpu_mpi_redux_data_dummy_func, NULL},
-	.opencl_funcs = {_starpu_mpi_redux_data_dummy_func, NULL},
+	.cpu_funcs = {_starpu_mpi_redux_data_dummy_func},
+	.cuda_funcs = {_starpu_mpi_redux_data_dummy_func},
+	.opencl_funcs = {_starpu_mpi_redux_data_dummy_func},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 	.name = "_starpu_mpi_redux_data_read_cl"
@@ -819,9 +819,9 @@ struct starpu_codelet _starpu_mpi_redux_data_read_cl =
 
 struct starpu_codelet _starpu_mpi_redux_data_readwrite_cl =
 {
-	.cpu_funcs = {_starpu_mpi_redux_data_dummy_func, NULL},
-	.cuda_funcs = {_starpu_mpi_redux_data_dummy_func, NULL},
-	.opencl_funcs = {_starpu_mpi_redux_data_dummy_func, NULL},
+	.cpu_funcs = {_starpu_mpi_redux_data_dummy_func},
+	.cuda_funcs = {_starpu_mpi_redux_data_dummy_func},
+	.opencl_funcs = {_starpu_mpi_redux_data_dummy_func},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
 	.name = "_starpu_mpi_redux_data_write_cl"

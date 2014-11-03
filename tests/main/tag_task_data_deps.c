@@ -34,7 +34,7 @@ void dummy_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 
 static struct starpu_codelet dummy_Rcodelet =
 {
-	.cpu_funcs = {dummy_func, NULL},
+	.cpu_funcs = {dummy_func},
 	.model = NULL,
 	.nbuffers = 1,
 	.modes = {STARPU_R}
@@ -42,7 +42,7 @@ static struct starpu_codelet dummy_Rcodelet =
 
 static struct starpu_codelet dummy_Wcodelet =
 {
-	.cpu_funcs = {dummy_func, NULL},
+	.cpu_funcs = {dummy_func},
 	.model = NULL,
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -50,7 +50,7 @@ static struct starpu_codelet dummy_Wcodelet =
 
 static struct starpu_codelet dummy_codelet =
 {
-	.cpu_funcs = {dummy_func, NULL},
+	.cpu_funcs = {dummy_func},
 	.model = NULL,
 	.nbuffers = 0,
 };

@@ -44,7 +44,7 @@ static void cpu_memcpy(void *descr[], void *cl_arg)
 static struct starpu_codelet my_cl =
 {
 	.where =  STARPU_CPU,
-	.cpu_funcs = {cpu_memcpy, NULL},
+	.cpu_funcs = {cpu_memcpy},
 	.nbuffers = STARPU_VARIABLE_NBUFFERS
 };
 

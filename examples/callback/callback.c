@@ -31,7 +31,7 @@ void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 struct starpu_codelet cl =
 {
 	.modes = { STARPU_RW },
-	.cpu_funcs = {cpu_codelet, NULL},
+	.cpu_funcs = {cpu_codelet},
 	.nbuffers = 1,
 	.name = "callback"
 };

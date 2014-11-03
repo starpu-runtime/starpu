@@ -17,31 +17,15 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // There is no need to specify STARPU_MULTIPLE_CPU_IMPLEMENTATIONS any more. //
-// XXX : We must find a way to make sure cpu_funcs is NULL-terminated.       //
 ///////////////////////////////////////////////////////////////////////////////
 @@
 identifier cl;
 @@
 struct starpu_codelet cl = {
 -	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
-	.cpu_funcs = { ...
-- }
-+ ,NULL}
+	.cpu_funcs = { ... }
 };
 
-
-////////////////////////////////////////////////////////////////////////////////
-// The previous rule may have added "NULL" twice in the initialization of the //
-// cpu_funcs field. Let's take care of that.                                  //
-////////////////////////////////////////////////////////////////////////////////
-@@
-identifier cl;
-@@
-struct starpu_codelet cl = {
-	.cpu_funcs = { ..., NULL
-- ,NULL
-}
-};
 
 
 ////////////////////////////////////////////////////
@@ -65,7 +49,7 @@ expression cpu_func.f;
 identifier cpu_func.cl;
 @@
 struct starpu_codelet cl = {
-	.cpu_funcs = { f, NULL }
+	.cpu_funcs = { f }
 };
 
 
@@ -79,7 +63,7 @@ expression cpu_func.f;
 @@
 struct starpu_codelet cl = {
 -	.cpu_func = f
-+	.cpu_funcs = { f, NULL }
++	.cpu_funcs = { f }
 };
 
 

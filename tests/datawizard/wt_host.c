@@ -72,14 +72,14 @@ void increment_cpu_kernel(void *descr[], void *arg)
 static struct starpu_codelet increment_cl =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {increment_cuda_kernel, NULL},
+	.cuda_funcs = {increment_cuda_kernel},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {increment_opencl_kernel, NULL},
+	.opencl_funcs = {increment_opencl_kernel},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs = {increment_cpu_kernel, NULL},
+	.cpu_funcs = {increment_cpu_kernel},
 	.nbuffers = 1,
 	.modes = {STARPU_RW}
 };

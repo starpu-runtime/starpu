@@ -40,10 +40,10 @@ static void check_task_callback(void *arg)
 
 static struct starpu_codelet dummy_cl =
 {
-	.cuda_funcs = {check_task_func, NULL},
-	.cpu_funcs = {check_task_func, NULL},
-	.opencl_funcs = {check_task_func, NULL},
-	.cpu_funcs_name = {"check_task_func", NULL},
+	.cuda_funcs = {check_task_func},
+	.cpu_funcs = {check_task_func},
+	.opencl_funcs = {check_task_func},
+	.cpu_funcs_name = {"check_task_func"},
 	.model = NULL,
 	.nbuffers = 0
 };

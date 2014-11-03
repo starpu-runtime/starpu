@@ -62,10 +62,10 @@ enum starpu_data_access_mode modes[STARPU_NMAXBUFS+1] = {
 
 struct starpu_codelet dummy_big_cl =
 {
-	.cuda_funcs = { dummy_big_kernel, NULL },
-	.opencl_funcs = { dummy_big_kernel, NULL },
-	.cpu_funcs = { dummy_big_kernel, NULL },
-	.cpu_funcs_name = { "dummy_big_kernel", NULL },
+	.cuda_funcs = { dummy_big_kernel },
+	.opencl_funcs = { dummy_big_kernel },
+	.cpu_funcs = { dummy_big_kernel },
+	.cpu_funcs_name = { "dummy_big_kernel" },
 	.nbuffers = STARPU_NMAXBUFS+1,
 	.dyn_modes = modes
 };
@@ -124,8 +124,8 @@ void scal_sse_func(void *buffers[], void *cl_arg)
 
 \code{.c}
 struct starpu_codelet cl = {
-    .cpu_funcs = { scal_cpu_func, scal_sse_func, NULL },
-    .cpu_funcs_name = { "scal_cpu_func", "scal_sse_func", NULL },
+    .cpu_funcs = { scal_cpu_func, scal_sse_func },
+    .cpu_funcs_name = { "scal_cpu_func", "scal_sse_func" },
     .nbuffers = 1,
     .modes = { STARPU_RW }
 };
@@ -160,9 +160,9 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 
 struct starpu_codelet cl = {
     .can_execute = can_execute,
-    .cpu_funcs = { cpu_func, NULL },
-    .cpu_funcs_name = { "cpu_func", NULL },
-    .cuda_funcs = { gpu_func, NULL }
+    .cpu_funcs = { cpu_func },
+    .cpu_funcs_name = { "cpu_func" },
+    .cuda_funcs = { gpu_func }
     .nbuffers = 1,
     .modes = { STARPU_RW }
 };
@@ -205,9 +205,9 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 
 struct starpu_codelet cl = {
     .can_execute = can_execute,
-    .cpu_funcs = { cpu_func, NULL },
-    .cpu_funcs_name = { "cpu_func", NULL },
-    .cuda_funcs = { scal_gpu_13, scal_gpu_20, NULL },
+    .cpu_funcs = { cpu_func },
+    .cpu_funcs_name = { "cpu_func" },
+    .cuda_funcs = { scal_gpu_13, scal_gpu_20 },
     .nbuffers = 1,
     .modes = { STARPU_RW }
 };
@@ -240,9 +240,9 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 
 struct starpu_codelet cl = {
     .can_execute = can_execute,
-    .cpu_funcs = { cpu_func, NULL },
-    .cpu_funcs_name = { "cpu_func", NULL },
-    .cuda_funcs = { potrf_gpu_generic, potrf_gpu_1024, NULL },
+    .cpu_funcs = { cpu_func },
+    .cpu_funcs_name = { "cpu_func" },
+    .cuda_funcs = { potrf_gpu_generic, potrf_gpu_1024 },
     .nbuffers = 1,
     .modes = { STARPU_RW }
 };
@@ -272,8 +272,8 @@ void func_cpu(void *descr[], void *_args)
 }
 
 struct starpu_codelet mycodelet = {
-        .cpu_funcs = { func_cpu, NULL },
-        .cpu_funcs_name = { "func_cpu", NULL },
+        .cpu_funcs = { func_cpu },
+        .cpu_funcs_name = { "func_cpu" },
         .nbuffers = 2,
         .modes = { STARPU_RW, STARPU_RW }
 };
@@ -408,8 +408,8 @@ static struct starpu_codelet cl =
     .modes = { STARPU_RW },
     .type = STARPU_SPMD,
     .max_parallelism = INT_MAX,
-    .cpu_funcs = { func, NULL },
-    .cpu_funcs_name = { "func", NULL },
+    .cpu_funcs = { func },
+    .cpu_funcs_name = { "func" },
     .nbuffers = 1,
 }
 \endcode

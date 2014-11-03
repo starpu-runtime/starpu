@@ -44,7 +44,7 @@ void dummy(void *buffers[], void *cl_arg)
 }
 
 struct starpu_codelet cl = {
-	.cuda_funcs = { dummy, NULL },
+	.cuda_funcs = { dummy },
 	.nbuffers = 1,
 	.modes = { STARPU_W },
 };

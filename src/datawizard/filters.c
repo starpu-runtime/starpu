@@ -311,7 +311,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 			struct starpu_codelet cl =
 			{
 				.where = STARPU_CPU,
-				.cpu_funcs = { _starpu_empty_codelet_function, NULL },
+				.cpu_funcs = { _starpu_empty_codelet_function },
 				.modes = { STARPU_RW },
 				.nbuffers = 1
 			};

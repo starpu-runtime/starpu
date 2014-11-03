@@ -82,16 +82,16 @@ static void opencl_task(void *buffers[], void *args)
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs = {cpu_task, NULL},
+	.cpu_funcs = {cpu_task},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_task, NULL},
+	.cuda_funcs = {cuda_task},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {opencl_task, NULL},
+	.opencl_funcs = {opencl_task},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs_name = {"cpu_task", NULL},
+	.cpu_funcs_name = {"cpu_task"},
 	.nbuffers = 1,
 	.modes = {STARPU_W}
 };

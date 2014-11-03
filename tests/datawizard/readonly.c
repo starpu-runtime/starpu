@@ -28,7 +28,7 @@ static void codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 static struct starpu_codelet cl =
 {
 #ifdef STARPU_USE_OPENCL
-     .opencl_funcs = {codelet, NULL},
+     .opencl_funcs = {codelet},
 #endif
      .nbuffers = 1,
      .modes = {STARPU_R}

@@ -48,10 +48,10 @@ static struct starpu_codelet cl =
 {
 	.type = STARPU_SPMD,
 	.max_parallelism = INT_MAX,
-	.cpu_funcs = {codelet_null, NULL},
-	.cpu_funcs_name = {"codelet_null", NULL},
-	.cuda_funcs = {codelet_null, NULL},
-        .opencl_funcs = {codelet_null, NULL},
+	.cpu_funcs = {codelet_null},
+	.cpu_funcs_name = {"codelet_null"},
+	.cuda_funcs = {codelet_null},
+        .opencl_funcs = {codelet_null},
 	.nbuffers = 1,
 	.modes = {STARPU_R}
 };

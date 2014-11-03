@@ -18,12 +18,12 @@
 //! [To be included. You should update doxygen if you see this text.]
 static struct starpu_codelet cl11 =
 {
-	.cpu_funcs = {chol_cpu_codelet_update_u11, NULL},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u11", NULL},
+	.cpu_funcs = {chol_cpu_codelet_update_u11},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_u11"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11, NULL},
+	.cuda_funcs = {chol_cublas_codelet_update_u11},
 #elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
+	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},

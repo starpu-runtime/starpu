@@ -68,8 +68,8 @@ static struct starpu_perfmodel read_buffer_perfmodel = {
 static struct starpu_codelet codelet_readbuffer = {
    .where = STARPU_OPENCL,
    .model = &read_buffer_perfmodel,
-   .cpu_funcs = { &soclEnqueueReadBuffer_cpu_task, NULL },
-   .opencl_funcs = { &soclEnqueueReadBuffer_opencl_task, NULL },
+   .cpu_funcs = { &soclEnqueueReadBuffer_cpu_task },
+   .opencl_funcs = { &soclEnqueueReadBuffer_opencl_task },
    .modes = {STARPU_R},
    .nbuffers = 1
 };

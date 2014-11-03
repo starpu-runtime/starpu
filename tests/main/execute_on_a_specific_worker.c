@@ -62,30 +62,30 @@ void codelet_null(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 static struct starpu_codelet cl_r =
 {
-	.cpu_funcs = {codelet_null, NULL},
-	.cuda_funcs = {codelet_null, NULL},
-        .opencl_funcs = {codelet_null, NULL},
-	.cpu_funcs_name = {"codelet_null", NULL},
+	.cpu_funcs = {codelet_null},
+	.cuda_funcs = {codelet_null},
+        .opencl_funcs = {codelet_null},
+	.cpu_funcs_name = {"codelet_null"},
 	.nbuffers = 1,
 	.modes = {STARPU_R}
 };
 
 static struct starpu_codelet cl_w =
 {
-	.cpu_funcs = {codelet_null, NULL},
-	.cuda_funcs = {codelet_null, NULL},
-        .opencl_funcs = {codelet_null, NULL},
-	.cpu_funcs_name = {"codelet_null", NULL},
+	.cpu_funcs = {codelet_null},
+	.cuda_funcs = {codelet_null},
+        .opencl_funcs = {codelet_null},
+	.cpu_funcs_name = {"codelet_null"},
 	.nbuffers = 1,
 	.modes = {STARPU_W}
 };
 
 static struct starpu_codelet cl_rw =
 {
-	.cpu_funcs = {codelet_null, NULL},
-	.cuda_funcs = {codelet_null, NULL},
-        .opencl_funcs = {codelet_null, NULL},
-	.cpu_funcs_name = {"codelet_null", NULL},
+	.cpu_funcs = {codelet_null},
+	.cuda_funcs = {codelet_null},
+        .opencl_funcs = {codelet_null},
+	.cpu_funcs_name = {"codelet_null"},
 	.nbuffers = 1,
 	.modes = {STARPU_RW}
 };

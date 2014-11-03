@@ -137,18 +137,18 @@ init_perfmodels(void)
  */
 static struct starpu_codelet cpu_cl =
 {
-	.cpu_funcs    = { dummy, NULL },
-	.cuda_funcs   = { dummy, NULL },
-	.opencl_funcs = { dummy, NULL },
+	.cpu_funcs    = { dummy },
+	.cuda_funcs   = { dummy },
+	.opencl_funcs = { dummy },
 	.nbuffers     = 0,
 	.model        = &model_cpu_task
 };
 
 static struct starpu_codelet gpu_cl =
 {
-	.cpu_funcs    = { dummy, NULL },
-	.cuda_funcs   = { dummy, NULL },
-	.opencl_funcs = { dummy, NULL },
+	.cpu_funcs    = { dummy },
+	.cuda_funcs   = { dummy },
+	.opencl_funcs = { dummy },
 	.nbuffers     = 0,
 	.model        = &model_gpu_task
 };

@@ -127,13 +127,13 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 struct starpu_codelet cl22 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_funcs = {STARPU_LU(cpu_u22), NULL},
+	.cpu_funcs = {STARPU_LU(cpu_u22)},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_LU(cublas_u22), NULL},
+	.cuda_funcs = {STARPU_LU(cublas_u22)},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
 #elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
+	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
@@ -215,13 +215,13 @@ static struct starpu_perfmodel STARPU_LU(model_12) =
 struct starpu_codelet cl12 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_funcs = {STARPU_LU(cpu_u12), NULL},
+	.cpu_funcs = {STARPU_LU(cpu_u12)},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_LU(cublas_u12), NULL},
+	.cuda_funcs = {STARPU_LU(cublas_u12)},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
 #elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
+	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -301,13 +301,13 @@ static struct starpu_perfmodel STARPU_LU(model_21) =
 struct starpu_codelet cl21 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_funcs = {STARPU_LU(cpu_u21), NULL},
+	.cpu_funcs = {STARPU_LU(cpu_u21)},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_LU(cublas_u21), NULL},
+	.cuda_funcs = {STARPU_LU(cublas_u21)},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
 #elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
+	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
@@ -404,12 +404,12 @@ static struct starpu_perfmodel STARPU_LU(model_11) =
 struct starpu_codelet cl11 =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_funcs = {STARPU_LU(cpu_u11), NULL},
+	.cpu_funcs = {STARPU_LU(cpu_u11)},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_LU(cublas_u11), NULL},
+	.cuda_funcs = {STARPU_LU(cublas_u11)},
 	CAN_EXECUTE
 #elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
+	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
@@ -547,12 +547,12 @@ static struct starpu_perfmodel STARPU_LU(model_11_pivot) =
 struct starpu_codelet cl11_pivot =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_funcs = {STARPU_LU(cpu_u11_pivot), NULL},
+	.cpu_funcs = {STARPU_LU(cpu_u11_pivot)},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_LU(cublas_u11_pivot), NULL},
+	.cuda_funcs = {STARPU_LU(cublas_u11_pivot)},
 	CAN_EXECUTE
 #elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
+	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
@@ -637,13 +637,13 @@ static struct starpu_perfmodel STARPU_LU(model_pivot) =
 struct starpu_codelet cl_pivot =
 {
 	.where = STARPU_CPU|STARPU_CUDA,
-	.cpu_funcs = {STARPU_LU(cpu_pivot), NULL},
+	.cpu_funcs = {STARPU_LU(cpu_pivot)},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_LU(cublas_pivot), NULL},
+	.cuda_funcs = {STARPU_LU(cublas_pivot)},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	CAN_EXECUTE
 #elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1, NULL},
+	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},

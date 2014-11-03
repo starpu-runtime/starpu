@@ -281,10 +281,10 @@ static struct starpu_codelet band_filter_cl =
 {
 	.modes = { STARPU_RW },
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {band_filter_kernel_gpu, NULL},
+	.cuda_funcs = {band_filter_kernel_gpu},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
-	.cpu_funcs = {band_filter_kernel_cpu, NULL},
+	.cpu_funcs = {band_filter_kernel_cpu},
 	.model = &band_filter_model,
 	.nbuffers = 1
 };

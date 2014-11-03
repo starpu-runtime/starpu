@@ -332,9 +332,9 @@ static struct starpu_codelet STARPUFFT(twist1_1d_codelet) = {
 #endif
 		STARPU_CPU,
 #ifdef __STARPU_USE_CUDA
-	.cuda_funcs = {STARPUFFT(twist1_1d_kernel_gpu), NULL},
+	.cuda_funcs = {STARPUFFT(twist1_1d_kernel_gpu)},
 #endif
-	.cpu_funcs = {STARPUFFT(twist1_1d_kernel_cpu), NULL},
+	.cpu_funcs = {STARPUFFT(twist1_1d_kernel_cpu)},
 	CAN_EXECUTE
 	.model = &STARPUFFT(twist1_1d_model),
 	.nbuffers = 2,
@@ -352,10 +352,10 @@ static struct starpu_codelet STARPUFFT(fft1_1d_codelet) = {
 #endif
 		0,
 #ifdef __STARPU_USE_CUDA
-	.cuda_funcs = {STARPUFFT(fft1_1d_kernel_gpu), NULL},
+	.cuda_funcs = {STARPUFFT(fft1_1d_kernel_gpu)},
 #endif
 #ifdef STARPU_HAVE_FFTW
-	.cpu_funcs = {STARPUFFT(fft1_1d_kernel_cpu), NULL},
+	.cpu_funcs = {STARPUFFT(fft1_1d_kernel_cpu)},
 #endif
 	CAN_EXECUTE
 	.model = &STARPUFFT(fft1_1d_model),
@@ -366,7 +366,7 @@ static struct starpu_codelet STARPUFFT(fft1_1d_codelet) = {
 
 static struct starpu_codelet STARPUFFT(twist2_1d_codelet) = {
 	.where = STARPU_CPU,
-	.cpu_funcs = {STARPUFFT(twist2_1d_kernel_cpu), NULL},
+	.cpu_funcs = {STARPUFFT(twist2_1d_kernel_cpu)},
 	CAN_EXECUTE
 	.model = &STARPUFFT(twist2_1d_model),
 	.nbuffers = 1,
@@ -384,10 +384,10 @@ static struct starpu_codelet STARPUFFT(fft2_1d_codelet) = {
 #endif
 		0,
 #ifdef __STARPU_USE_CUDA
-	.cuda_funcs = {STARPUFFT(fft2_1d_kernel_gpu), NULL},
+	.cuda_funcs = {STARPUFFT(fft2_1d_kernel_gpu)},
 #endif
 #ifdef STARPU_HAVE_FFTW
-	.cpu_funcs = {STARPUFFT(fft2_1d_kernel_cpu), NULL},
+	.cpu_funcs = {STARPUFFT(fft2_1d_kernel_cpu)},
 #endif
 	CAN_EXECUTE
 	.model = &STARPUFFT(fft2_1d_model),
@@ -398,7 +398,7 @@ static struct starpu_codelet STARPUFFT(fft2_1d_codelet) = {
 
 static struct starpu_codelet STARPUFFT(twist3_1d_codelet) = {
 	.where = STARPU_CPU,
-	.cpu_funcs = {STARPUFFT(twist3_1d_kernel_cpu), NULL},
+	.cpu_funcs = {STARPUFFT(twist3_1d_kernel_cpu)},
 	CAN_EXECUTE
 	.model = &STARPUFFT(twist3_1d_model),
 	.nbuffers = 1,
@@ -483,10 +483,10 @@ static struct starpu_codelet STARPUFFT(fft_1d_codelet) = {
 #endif
 		0,
 #ifdef __STARPU_USE_CUDA
-	.cuda_funcs = {STARPUFFT(fft_1d_kernel_gpu), NULL},
+	.cuda_funcs = {STARPUFFT(fft_1d_kernel_gpu)},
 #endif
 #ifdef STARPU_HAVE_FFTW
-	.cpu_funcs = {STARPUFFT(fft_1d_kernel_cpu), NULL},
+	.cpu_funcs = {STARPUFFT(fft_1d_kernel_cpu)},
 #endif
 	CAN_EXECUTE
 	.model = &STARPUFFT(fft_1d_model),

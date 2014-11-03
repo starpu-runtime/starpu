@@ -30,7 +30,7 @@ struct starpu_codelet cl1 = {
  * New format : it must not be changed !
  */
 struct starpu_codelet cl2 = {
-	.cpu_funcs = {foo, NULL}
+	.cpu_funcs = {foo}
 };
 
 /*
@@ -38,7 +38,7 @@ struct starpu_codelet cl2 = {
  */
 struct starpu_codelet cl3 = {
 	.cpu_func = foo,
-	.cpu_funcs = { foo, NULL }
+	.cpu_funcs = { foo }
 };
 
 /*
@@ -55,5 +55,5 @@ struct starpu_codelet cl4 = {
  */
 struct starpu_codelet cl5 = {
 	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
-	.cpu_funcs = { foo, bar, NULL }
+	.cpu_funcs = { foo, bar }
 };

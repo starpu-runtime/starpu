@@ -36,9 +36,9 @@ void critical_section(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs = {critical_section, NULL},
-	.cuda_funcs = {critical_section, NULL},
-	.opencl_funcs = {critical_section, NULL},
+	.cpu_funcs = {critical_section},
+	.cuda_funcs = {critical_section},
+	.opencl_funcs = {critical_section},
 	.nbuffers = 1,
 	.modes = {STARPU_RW}
 };

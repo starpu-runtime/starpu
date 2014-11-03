@@ -39,7 +39,7 @@ void cuda_to_cpu(void *buffers[], void *arg)
 extern void cpu_to_cuda_cuda_func(void *buffers[], void *args);
 struct starpu_codelet cpu_to_cuda_cl =
 {
-	.cuda_funcs = {cpu_to_cuda_cuda_func, NULL},
+	.cuda_funcs = {cpu_to_cuda_cuda_func},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.modes = { STARPU_RW },
 	.nbuffers = 1,
@@ -48,7 +48,7 @@ struct starpu_codelet cpu_to_cuda_cl =
 
 struct starpu_codelet cuda_to_cpu_cl =
 {
-	.cpu_funcs = {cuda_to_cpu, NULL},
+	.cpu_funcs = {cuda_to_cpu},
 	.modes = { STARPU_RW },
 	.nbuffers = 1,
 	.name = "codelet_cuda_to_cpu"
@@ -76,7 +76,7 @@ extern void cpu_to_opencl_opencl_func(void *buffers[], void *arg);
 
 struct starpu_codelet cpu_to_opencl_cl =
 {
-	.opencl_funcs = { cpu_to_opencl_opencl_func, NULL },
+	.opencl_funcs = { cpu_to_opencl_opencl_func },
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 	.modes = { STARPU_RW },
 	.nbuffers = 1,
@@ -85,7 +85,7 @@ struct starpu_codelet cpu_to_opencl_cl =
 
 struct starpu_codelet opencl_to_cpu_cl =
 {
-	.cpu_funcs = { opencl_to_cpu_cpu_func, NULL },
+	.cpu_funcs = { opencl_to_cpu_cpu_func },
 	.modes = { STARPU_RW },
 	.nbuffers = 1,
 	.name = "codelet_opencl_to_cpu"

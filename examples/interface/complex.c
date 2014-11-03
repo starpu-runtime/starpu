@@ -52,11 +52,11 @@ extern void copy_complex_codelet_opencl(void *buffers[], void *args);
 struct starpu_codelet cl_copy =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {copy_complex_codelet_cuda, NULL},
+	.cuda_funcs = {copy_complex_codelet_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {copy_complex_codelet_opencl, NULL},
+	.opencl_funcs = {copy_complex_codelet_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
 	.nbuffers = 2,

@@ -26,7 +26,7 @@ extern void display_cpu_func(void *descr[], void *cl_arg);
 
 static struct starpu_codelet init_codelet =
 {
-	.cpu_funcs = {init_cpu_func, NULL},
+	.cpu_funcs = {init_cpu_func},
 	.nbuffers = 1,
 	.modes = {STARPU_W},
 	.name = "init_codelet"
@@ -34,7 +34,7 @@ static struct starpu_codelet init_codelet =
 
 static struct starpu_codelet redux_codelet =
 {
-	.cpu_funcs = {redux_cpu_func, NULL},
+	.cpu_funcs = {redux_cpu_func},
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2,
 	.name = "redux_codelet"
@@ -42,7 +42,7 @@ static struct starpu_codelet redux_codelet =
 
 static struct starpu_codelet dot_codelet =
 {
-	.cpu_funcs = {dot_cpu_func, NULL},
+	.cpu_funcs = {dot_cpu_func},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_REDUX},
 	.name = "dot_codelet"
@@ -50,7 +50,7 @@ static struct starpu_codelet dot_codelet =
 
 static struct starpu_codelet display_codelet =
 {
-	.cpu_funcs = {display_cpu_func, NULL},
+	.cpu_funcs = {display_cpu_func},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 	.name = "display_codelet"

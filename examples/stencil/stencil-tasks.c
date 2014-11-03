@@ -216,10 +216,10 @@ void null_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE
 static struct starpu_codelet null =
 {
 	.modes = { STARPU_W, STARPU_W },
-	.cpu_funcs = {null_func, NULL},
-	.cpu_funcs_name = {"null_func", NULL},
-	.cuda_funcs = {null_func, NULL},
-	.opencl_funcs = {null_func, NULL},
+	.cpu_funcs = {null_func},
+	.cpu_funcs_name = {"null_func"},
+	.cuda_funcs = {null_func},
+	.opencl_funcs = {null_func},
 	.nbuffers = 2,
 	.name = "start"
 };
