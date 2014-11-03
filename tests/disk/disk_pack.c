@@ -243,12 +243,13 @@ int main(void)
 {
 	int ret = 0;
 	char s[128];
-	snprintf(s, sizeof(s), "/tmp/%s-disk", getenv("USER"));
+	snprintf(s, sizeof(s), "/tmp/%s-disk-%d", getenv("USER"), getpid());
 	mkdir(s, 0777);
 	ret = merge_result(ret, dotest(&starpu_disk_stdio_ops, s));
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_ops, s));
 #ifdef STARPU_LINUX_SYS
 	ret = merge_result(ret, dotest(&starpu_disk_unistd_o_direct_ops, s));
 #endif
+	rmdir(s);
 	return ret;
 }
