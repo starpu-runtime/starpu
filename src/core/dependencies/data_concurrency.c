@@ -175,7 +175,20 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		handle->refcnt++;
 		handle->busy_count++;
 
-		handle->current_mode = mode;
+		/* Do not write to handle->current_mode if it is already
+		 * R. This avoids a spurious warning from helgrind when
+		 * the following happens:
+		 * acquire(R) in thread A
+		 * acquire(R) in thread B
+		 * release_data_on_node() in thread A
+		 * helgrind would shout that the latter reads current_mode
+		 * unsafely.
+		 *
+		 * This actually basically explains helgrind that it is a
+		 * shared R acquisition.
+		 */
+		if (mode != STARPU_R || handle->current_mode != mode)
+			handle->current_mode = mode;
 
 		if ((mode == STARPU_REDUX) && (previous_mode != STARPU_REDUX))
 			_starpu_data_start_reduction_mode(handle);
