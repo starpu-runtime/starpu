@@ -25,7 +25,7 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 	starpu_codelet_unpack_args(_args, &node);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	FPRINTF(stderr, "Expected node: %d - Actual node: %d\n", node, rank);
+	FPRINTF_MPI("Expected node: %d - Actual node: %d\n", node, rank);
 
 	assert(node == rank);
 }
