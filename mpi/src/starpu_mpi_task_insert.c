@@ -493,7 +493,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	MPI_Comm_size(comm, &nb_nodes);
 
 	/* Find out whether we are to execute the data because we own the data to be written to. */
-	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &dest, &do_execute, varg_list);
+	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, varg_list);
 	if (ret < 0) return ret;
 
 	/* Send and receive data as requested */
