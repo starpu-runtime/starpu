@@ -29,21 +29,11 @@
 #include <starpu_mpi_private.h>
 #include <starpu_mpi_task_insert.h>
 #include <starpu_mpi_cache.h>
-
-typedef void (*_starpu_callback_func_t)(void *);
+#include <starpu_mpi_select_node.h>
 
 static
-int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *dest, size_t *size_on_nodes)
+int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *dest)
 {
-	if (data && mode & STARPU_R)
-	{
-		struct starpu_data_interface_ops *ops;
-		int rank = starpu_data_get_rank(data);
-
-		ops = data->ops;
-		size_on_nodes[rank] += ops->get_size(data);
-	}
-
 	if (mode & STARPU_W)
 	{
 		if (!data)
@@ -58,34 +48,42 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 			_STARPU_MPI_LOG_OUT();
 			return -EINVAL;
 		}
+
 		int mpi_rank = starpu_data_get_rank(data);
+		if (mpi_rank == -1)
+		{
+			_STARPU_ERROR("Data %p with mode STARPU_W needs to have a valid rank", data);
+		}
+
 		if (mpi_rank == me)
 		{
+			// This node owns the data
 			if (*do_execute == 0)
 			{
+				// Another node has already been selected to execute the codelet
 				*inconsistent_execute = 1;
 			}
 			else
 			{
+				// This node is going to execute the codelet
 				*do_execute = 1;
-			}
-		}
-		else if (mpi_rank != -1)
-		{
-			if (*do_execute == 1)
-			{
-				*inconsistent_execute = 1;
-			}
-			else
-			{
-				*do_execute = 0;
-				*dest = mpi_rank;
-				/* That's the rank which needs the data to be sent to */
 			}
 		}
 		else
 		{
-			_STARPU_ERROR("rank %d invalid\n", mpi_rank);
+			// Another node owns the data
+			if (*do_execute == 1)
+			{
+				// But this node has already been selected to execute the codelet
+				*inconsistent_execute = 1;
+			}
+			else
+			{
+				// This node will not execute the codelet
+				*do_execute = 0;
+				*dest = mpi_rank;
+				/* That's the rank which needs the data to be sent to */
+			}
 		}
 	}
 	return 0;
@@ -198,15 +196,128 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 }
 
 static
+int _starpu_mpi_task_select_node(struct starpu_codelet *codelet, int me, int nb_nodes, va_list varg_list, int nb_data)
+{
+	va_list varg_list_copy;
+	int arg_type, arg_type_nocommute;
+	int current_data=0;
+	int rank;
+	struct starpu_data_descr *descr;
+
+	descr = (struct starpu_data_descr *) malloc(nb_data * sizeof(struct starpu_data_descr));
+	va_copy(varg_list_copy, varg_list);
+	while ((arg_type = va_arg(varg_list_copy, int)) != 0)
+	{
+		arg_type_nocommute = arg_type & ~STARPU_COMMUTE;
+		if (arg_type==STARPU_EXECUTE_ON_NODE)
+		{
+			(void) va_arg(varg_list_copy, int);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_DATA)
+		{
+			(void) va_arg(varg_list_copy, starpu_data_handle_t);
+		}
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		{
+			(void)va_arg(varg_list_copy, int);
+		}
+		else if (arg_type==STARPU_WORKER_ORDER)
+		{
+			(void)va_arg(varg_list_copy, unsigned);
+		}
+		else if (arg_type_nocommute==STARPU_R || arg_type_nocommute==STARPU_W || arg_type_nocommute==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
+		{
+			descr[current_data].handle = va_arg(varg_list_copy, starpu_data_handle_t);
+			descr[current_data].mode = (enum starpu_data_access_mode) arg_type;
+			current_data ++;
+		}
+		else if (arg_type == STARPU_DATA_ARRAY)
+		{
+			starpu_data_handle_t *datas = va_arg(varg_list_copy, starpu_data_handle_t *);
+			int nb_handles = va_arg(varg_list_copy, int);
+			int i;
+			for(i=0 ; i<nb_handles ; i++)
+			{
+				descr[current_data].handle = datas[i];
+				descr[current_data].mode = STARPU_CODELET_GET_MODE(codelet, current_data);
+				current_data ++;
+			}
+		}
+		else if (arg_type==STARPU_VALUE)
+		{
+			(void)va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list_copy, size_t);
+		}
+		else if (arg_type==STARPU_CALLBACK)
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			(void)va_arg(varg_list_copy, void *);
+		}
+		else if (arg_type==STARPU_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list_copy, void *);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+                {
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+		}
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+                {
+                        (void)va_arg(varg_list_copy, void *);
+                }
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
+                {
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+                }
+                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+                {
+                        (void)va_arg(varg_list_copy, void *);
+		}
+		else if (arg_type==STARPU_PRIORITY)
+		{
+			(void)va_arg(varg_list_copy, int);
+		}
+		else if (arg_type==STARPU_HYPERVISOR_TAG)
+		{
+			(void)va_arg(varg_list_copy, int);
+		}
+		else if (arg_type==STARPU_FLOPS)
+		{
+			(void)va_arg(varg_list_copy, double);
+		}
+		else if (arg_type==STARPU_TAG_ONLY)
+		{
+			(void)va_arg(varg_list, starpu_tag_t);
+		}
+		else if (arg_type==STARPU_TAG)
+		{
+			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
+		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
+		}
+
+	}
+	va_end(varg_list_copy);
+
+	rank = _starpu_mpi_select_node(me, nb_nodes, descr, nb_data);
+	free(descr);
+	return rank;
+}
+
+static
 int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nodes, int *xrank, int *dest, int *do_execute, va_list varg_list)
 {
 	va_list varg_list_copy;
 	int inconsistent_execute = 0;
 	int arg_type, arg_type_nocommute;
-	size_t *size_on_nodes;
 	int current_data = 0;
 
-	size_on_nodes = (size_t *)calloc(1, nb_nodes * sizeof(size_t));
 	*do_execute = -1;
 	*xrank = -1;
 	va_copy(varg_list_copy, varg_list);
@@ -216,7 +327,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		if (arg_type==STARPU_EXECUTE_ON_NODE)
 		{
 			*xrank = va_arg(varg_list_copy, int);
-			_STARPU_MPI_DEBUG(1, "Executing on node %d\n", *xrank);
+			_STARPU_MPI_DEBUG(100, "Executing on node %d\n", *xrank);
 			*do_execute = 1;
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_DATA)
@@ -224,7 +335,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
 			*xrank = starpu_data_get_rank(data);
 			STARPU_ASSERT_MSG(*xrank != -1, "Rank of the data must be set using starpu_mpi_data_register() or starpu_data_set_rank()");
-			_STARPU_MPI_DEBUG(1, "Executing on data node %d\n", *xrank);
+			_STARPU_MPI_DEBUG(100, "Executing on data node %d\n", *xrank);
 			STARPU_ASSERT_MSG(*xrank <= nb_nodes, "Node %d to execute codelet is not a valid node (%d)", *xrank, nb_nodes);
 			*do_execute = 1;
 		}
@@ -244,10 +355,9 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
-			int ret = _starpu_mpi_find_executee_node(data, mode, me, do_execute, &inconsistent_execute, dest, size_on_nodes);
+			int ret = _starpu_mpi_find_executee_node(data, mode, me, do_execute, &inconsistent_execute, dest);
 			if (ret == -EINVAL)
 			{
-				free(size_on_nodes);
 				return ret;
 			}
 			current_data ++;
@@ -260,10 +370,9 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			for(i=0 ; i<nb_handles ; i++)
 			{
 				enum starpu_data_access_mode mode = STARPU_CODELET_GET_MODE(codelet, current_data);
-				int ret = _starpu_mpi_find_executee_node(datas[i], mode, me, do_execute, &inconsistent_execute, dest, size_on_nodes);
+				int ret = _starpu_mpi_find_executee_node(datas[i], mode, me, do_execute, &inconsistent_execute, dest);
 				if (ret == -EINVAL)
 				{
-					free(size_on_nodes);
 					return ret;
 				}
 				current_data ++;
@@ -331,42 +440,15 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	}
 	va_end(varg_list_copy);
 
-	if (*do_execute == -1)
+	if (inconsistent_execute == 1 && *xrank == -1)
 	{
-		int i;
-		size_t max_size = 0;
-		for(i=0 ; i<nb_nodes ; i++)
-		{
-			if (size_on_nodes[i] > max_size)
-			{
-				max_size = size_on_nodes[i];
-				*xrank = i;
-			}
-		}
-		if (*xrank != -1)
-		{
-			_STARPU_MPI_DEBUG(1, "Node %d is having the most R data\n", *xrank);
-			*do_execute = 1;
-		}
+		// We need to find out which node is going to execute the codelet.
+		_STARPU_MPI_DISP("Different nodes are owning W data. Need to specify which node is going to execute the codelet, using STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA\n");
+		*xrank = _starpu_mpi_task_select_node(codelet, me, nb_nodes, varg_list, current_data);
+		*do_execute = (me == *xrank);
+		*dest = *xrank;
 	}
-	free(size_on_nodes);
-
-	STARPU_ASSERT_MSG(*do_execute != -1, "StarPU needs to see a W or a REDUX data which will tell it where to execute the task");
-
-	if (inconsistent_execute == 1)
-	{
-		if (*xrank == -1)
-		{
-			_STARPU_MPI_DEBUG(1, "Different tasks are owning W data. Needs to specify which one is to execute the codelet, using STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA\n");
-			return -EINVAL;
-		}
-		else
-		{
-			*do_execute = (me == *xrank);
-			*dest = *xrank;
-		}
-	}
-	else if (*xrank != -1)
+	else
 	{
 		*do_execute = (me == *xrank);
 		*dest = *xrank;
@@ -517,7 +599,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 			va_end(varg_list_copy);
 		}
 
-		_STARPU_MPI_DEBUG(1, "Execution of the codelet %p (%s)\n", codelet, codelet->name);
+		_STARPU_MPI_DEBUG(100, "Execution of the codelet %p (%s)\n", codelet, codelet->name);
 
 		*task = starpu_task_create();
 		(*task)->cl_arg_free = 1;
