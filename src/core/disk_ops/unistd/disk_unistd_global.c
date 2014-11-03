@@ -46,6 +46,8 @@
 #  define MEM_SIZE 1
 #endif
 
+/* TODO: on Linux, use io_submit */
+
 /* ------------------- use UNISTD to write on disk -------------------  */
 
 /* allocation memory on disk */
