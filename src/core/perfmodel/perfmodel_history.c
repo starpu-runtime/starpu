@@ -1088,10 +1088,19 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *archname, size_t maxlen,unsigned impl)
 {
+	int i;
 	int comb = _starpu_perfmodel_create_comb_if_needed(arch);
-	STARPU_ASSERT(comb != -1);
 
-	snprintf(archname, maxlen, "Comb%d_impl%u", comb, impl);
+	STARPU_ASSERT(comb != -1);
+	char devices[1024];
+	strcpy(devices, "");
+	for(i=0 ; i<arch->ndevices ; i++)
+	{
+		strcat(devices, starpu_perfmodel_get_archtype_name(arch->devices[i].type));
+		if (i != arch->ndevices-1)
+			strcat(devices, ", ");
+	}
+	snprintf(archname, maxlen, "Comb%d_impl%u: %s", comb, impl, devices);
 }
 
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
