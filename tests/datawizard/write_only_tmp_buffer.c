@@ -77,12 +77,12 @@ static void display_var(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs = {cpu_codelet_null, NULL},
+	.cpu_funcs = {cpu_codelet_null},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_codelet_null, NULL},
+	.cuda_funcs = {cuda_codelet_null},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {opencl_codelet_null, NULL},
+	.opencl_funcs = {opencl_codelet_null},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -90,7 +90,7 @@ static struct starpu_codelet cl =
 
 static struct starpu_codelet display_cl =
 {
-	.cpu_funcs = {display_var, NULL},
+	.cpu_funcs = {display_var},
 	.nbuffers = 1,
 	.modes = {STARPU_R}
 };

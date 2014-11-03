@@ -65,7 +65,7 @@ expression cpu_func.f;
 identifier cpu_func.cl;
 @@
 struct starpu_codelet cl = {
-	.cpu_funcs = { f, NULL }
+	.cpu_funcs = { f}
 };
 
 
@@ -79,7 +79,7 @@ expression cpu_func.f;
 @@
 struct starpu_codelet cl = {
 -	.cpu_func = f
-+	.cpu_funcs = { f, NULL }
++	.cpu_funcs = { f}
 };
 
 

@@ -42,10 +42,10 @@ static struct starpu_codelet cl =
 {
 	.modes = { STARPU_RW },
 	/* CPU implementation of the codelet */
-	.cpu_funcs = {scal_cpu_func, NULL},
+	.cpu_funcs = {scal_cpu_func},
 #ifdef STARPU_USE_CUDA
 	/* CUDA implementation of the codelet */
-	.cuda_funcs = {scal_cuda_func, NULL},
+	.cuda_funcs = {scal_cuda_func},
 #endif
 	.nbuffers = 1,
 	.model = &vector_scal_model

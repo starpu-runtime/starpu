@@ -80,12 +80,12 @@ extern void axpy_opencl(void *buffers[], void *args);
 
 static struct starpu_codelet axpy_cl =
 {
-	.cpu_funcs = {axpy_cpu, NULL},
+	.cpu_funcs = {axpy_cpu},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {axpy_gpu, NULL},
+	.cuda_funcs = {axpy_gpu},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {axpy_opencl, NULL},
+	.opencl_funcs = {axpy_opencl},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},

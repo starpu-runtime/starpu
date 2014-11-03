@@ -62,7 +62,7 @@ int main(int argc, char **argv)
         starpu_data_handle_t handle;
         struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func, NULL},
+                .cpu_funcs = {cpu_func},
                 .nbuffers = 1,
 		.modes = {STARPU_RW},
 		.name = "matrix_scal"

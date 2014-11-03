@@ -120,12 +120,12 @@ static void neutral_cpu_kernel(void *descr[], void *arg)
 static struct starpu_codelet redux_cl =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {redux_cuda_kernel, NULL},
+	.cuda_funcs = {redux_cuda_kernel},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {redux_opencl_kernel, NULL},
+	.opencl_funcs = {redux_opencl_kernel},
 #endif
-	.cpu_funcs = {redux_cpu_kernel, NULL},
+	.cpu_funcs = {redux_cpu_kernel},
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2
 };
@@ -133,12 +133,12 @@ static struct starpu_codelet redux_cl =
 static struct starpu_codelet neutral_cl =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {neutral_cuda_kernel, NULL},
+	.cuda_funcs = {neutral_cuda_kernel},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {neutral_opencl_kernel, NULL},
+	.opencl_funcs = {neutral_opencl_kernel},
 #endif
-	.cpu_funcs = {neutral_cpu_kernel, NULL},
+	.cpu_funcs = {neutral_cpu_kernel},
 	.modes = {STARPU_W},
 	.nbuffers = 1
 };
@@ -197,12 +197,12 @@ static void increment_cpu_kernel(void *descr[], void *arg)
 static struct starpu_codelet increment_cl =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {increment_cuda_kernel, NULL},
+	.cuda_funcs = {increment_cuda_kernel},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {increment_opencl_kernel, NULL},
+	.opencl_funcs = {increment_opencl_kernel},
 #endif
-	.cpu_funcs = {increment_cpu_kernel, NULL},
+	.cpu_funcs = {increment_cpu_kernel},
 	.nbuffers = 1,
 	.modes = {STARPU_REDUX}
 };

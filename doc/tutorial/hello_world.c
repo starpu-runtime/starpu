@@ -32,7 +32,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 
 struct starpu_codelet cl =
 {
-	.cpu_funcs = {cpu_func, NULL},
+	.cpu_funcs = {cpu_func},
 	.nbuffers = 0
 };
 

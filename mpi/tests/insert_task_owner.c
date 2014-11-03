@@ -32,35 +32,35 @@ void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 struct starpu_codelet mycodelet_r_w =
 {
-	.cpu_funcs = {func_cpu, NULL},
+	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W}
 };
 
 struct starpu_codelet mycodelet_rw_r =
 {
-	.cpu_funcs = {func_cpu, NULL},
+	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_R}
 };
 
 struct starpu_codelet mycodelet_rw_rw =
 {
-	.cpu_funcs = {func_cpu, NULL},
+	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW}
 };
 
 struct starpu_codelet mycodelet_w_r =
 {
-	.cpu_funcs = {func_cpu, NULL},
+	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R}
 };
 
 struct starpu_codelet mycodelet_r_r =
 {
-	.cpu_funcs = {func_cpu, NULL},
+	.cpu_funcs = {func_cpu},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R}
 };

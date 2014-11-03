@@ -54,13 +54,13 @@ void cuda_to_cpu_func(void *buffers[], void *args)
 
 struct starpu_codelet cpu_to_cuda_cl =
 {
-	.cuda_funcs = {cpu_to_cuda_func, NULL},
+	.cuda_funcs = {cpu_to_cuda_func},
 	.nbuffers = 1
 };
 
 struct starpu_codelet cuda_to_cpu_cl =
 {
-	.cpu_funcs = {cuda_to_cpu_func, NULL},
+	.cpu_funcs = {cuda_to_cpu_func},
 	.nbuffers = 1
 };
 #endif /* !STARPU_USE_CUDA */
@@ -89,13 +89,13 @@ void opencl_to_cpu_func(void *buffers[], void *args)
 
 struct starpu_codelet cpu_to_opencl_cl =
 {
-	.opencl_funcs = {cpu_to_opencl_func, NULL},
+	.opencl_funcs = {cpu_to_opencl_func},
 	.nbuffers = 1
 };
 
 struct starpu_codelet opencl_to_cpu_cl =
 {
-	.cpu_funcs = {opencl_to_cpu_func, NULL},
+	.cpu_funcs = {opencl_to_cpu_func},
 	.nbuffers = 1
 };
 #endif /* !STARPU_USE_OPENCL */

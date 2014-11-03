@@ -29,7 +29,7 @@ void cpu_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 struct starpu_codelet cl_with_mode =
 {
 	.name = "with_mode",
-	.cpu_funcs = {cpu_codelet, NULL},
+	.cpu_funcs = {cpu_codelet},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_W},
 };
@@ -37,7 +37,7 @@ struct starpu_codelet cl_with_mode =
 struct starpu_codelet cl_without_mode =
 {
 	.name = "without_mode",
-	.cpu_funcs = {cpu_codelet, NULL},
+	.cpu_funcs = {cpu_codelet},
 	.nbuffers = 2
 };
 

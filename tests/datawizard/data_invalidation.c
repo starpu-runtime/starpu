@@ -90,12 +90,12 @@ static void cpu_memset_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_arg
 
 static struct starpu_codelet memset_cl =
 {
-	.cpu_funcs = {cpu_memset_codelet, NULL},
+	.cpu_funcs = {cpu_memset_codelet},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_memset_codelet, NULL},
+	.cuda_funcs = {cuda_memset_codelet},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {opencl_memset_codelet, NULL},
+	.opencl_funcs = {opencl_memset_codelet},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_W}
@@ -125,7 +125,7 @@ static void cpu_check_content_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED voi
 
 static struct starpu_codelet check_content_cl =
 {
-	.cpu_funcs = {cpu_check_content_codelet, NULL},
+	.cpu_funcs = {cpu_check_content_codelet},
 	.nbuffers = 1,
 	.modes = {STARPU_R}
 };

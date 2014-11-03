@@ -207,9 +207,9 @@ static struct starpu_perfmodel pi_model =
 
 static struct starpu_codelet pi_cl =
 {
-	.cpu_funcs = {pi_func_cpu, NULL},
+	.cpu_funcs = {pi_func_cpu},
 #ifdef STARPU_HAVE_CURAND
-	.cuda_funcs = {pi_func_cuda, NULL},
+	.cuda_funcs = {pi_func_cuda},
 #endif
 	.nbuffers = 2,
 	.modes    = {STARPU_SCRATCH, STARPU_RW},
@@ -225,9 +225,9 @@ static struct starpu_perfmodel pi_model_redux =
 
 static struct starpu_codelet pi_cl_redux =
 {
-	.cpu_funcs = {pi_func_cpu, NULL},
+	.cpu_funcs = {pi_func_cpu},
 #ifdef STARPU_HAVE_CURAND
-	.cuda_funcs = {pi_func_cuda, NULL},
+	.cuda_funcs = {pi_func_cuda},
 #endif
 	.nbuffers = 2,
 	.modes    = {STARPU_SCRATCH, STARPU_REDUX},
@@ -255,9 +255,9 @@ static void init_cuda_func(void *descr[], void *cl_arg)
 
 static struct starpu_codelet init_codelet =
 {
-        .cpu_funcs = {init_cpu_func, NULL},
+        .cpu_funcs = {init_cpu_func},
 #ifdef STARPU_HAVE_CURAND
-        .cuda_funcs = {init_cuda_func, NULL},
+        .cuda_funcs = {init_cuda_func},
 #endif
 	.modes = {STARPU_W},
         .nbuffers = 1
@@ -293,9 +293,9 @@ static void redux_cpu_func(void *descr[], void *cl_arg)
 
 static struct starpu_codelet redux_codelet =
 {
-	.cpu_funcs = {redux_cpu_func, NULL},
+	.cpu_funcs = {redux_cpu_func},
 #ifdef STARPU_HAVE_CURAND
-	.cuda_funcs = {redux_cuda_func, NULL},
+	.cuda_funcs = {redux_cuda_func},
 #endif
 	.modes = {STARPU_RW, STARPU_R},
 	.nbuffers = 2

@@ -48,7 +48,7 @@ void cpu_codelet(void *descr[], void *_args)
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs = {cpu_codelet, NULL},
+	.cpu_funcs = {cpu_codelet},
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
 };

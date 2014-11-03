@@ -48,9 +48,9 @@ static void fake(void *buffers[], void *args)
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs    = { fake, NULL},
-	.cuda_funcs   = { fake, NULL},
-	.opencl_funcs = { fake, NULL},
+	.cpu_funcs    = { fake},
+	.cuda_funcs   = { fake},
+	.opencl_funcs = { fake},
 	.nbuffers     = 0
 };
 

@@ -262,7 +262,7 @@ static struct starpu_codelet cl =
 {
         /* we can only execute that kernel on a CPU yet */
         /* CPU implementation of the codelet */
-        .cpu_funcs = {cpu_mult, NULL},
+        .cpu_funcs = {cpu_mult},
         /* the codelet manipulates 3 buffers that are managed by the
          * DSM */
         .nbuffers = 3,

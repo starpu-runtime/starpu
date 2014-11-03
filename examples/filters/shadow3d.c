@@ -120,9 +120,9 @@ int main(int argc, char **argv)
 
         struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func, NULL},
+                .cpu_funcs = {cpu_func},
 #ifdef STARPU_USE_CUDA
-                .cuda_funcs = {cuda_func, NULL},
+                .cuda_funcs = {cuda_func},
 #endif
                 .nbuffers = 2,
 		.modes = {STARPU_R, STARPU_W}

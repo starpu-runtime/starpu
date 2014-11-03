@@ -40,9 +40,9 @@ static void f(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *_args STARPU_ATTRIBUT
 static struct starpu_codelet cl_f =
 {
 	.modes = { STARPU_R, STARPU_RW },
-	.cpu_funcs = {f, NULL},
-	.cuda_funcs = {f, NULL},
-	.opencl_funcs = {f, NULL},
+	.cpu_funcs = {f},
+	.cuda_funcs = {f},
+	.opencl_funcs = {f},
 	.nbuffers = 2
 };
 
@@ -57,9 +57,9 @@ static void g(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 static struct starpu_codelet cl_g =
 {
 	.modes = { STARPU_R, STARPU_RW },
-	.cpu_funcs = {g, NULL},
-	.cuda_funcs = {g, NULL},
-	.opencl_funcs = {g, NULL},
+	.cpu_funcs = {g},
+	.cuda_funcs = {g},
+	.opencl_funcs = {g},
 	.nbuffers = 2
 };
 
@@ -74,9 +74,9 @@ static void h(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 static struct starpu_codelet cl_h =
 {
 	.modes = { STARPU_R, STARPU_RW },
-	.cpu_funcs = {h, NULL},
-	.cuda_funcs = {h, NULL},
-	.opencl_funcs = {h, NULL},
+	.cpu_funcs = {h},
+	.cuda_funcs = {h},
+	.opencl_funcs = {h},
 	.nbuffers = 2
 };
 

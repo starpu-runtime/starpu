@@ -29,7 +29,7 @@ static void codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 #ifdef STARPU_USE_CUDA
 static struct starpu_codelet cuda_cl =
 {
-     .cuda_funcs = {codelet, NULL},
+     .cuda_funcs = {codelet},
      .nbuffers = 1,
      .modes = {STARPU_R}
 };
@@ -38,7 +38,7 @@ static struct starpu_codelet cuda_cl =
 #ifdef STARPU_USE_OPENCL
 static struct starpu_codelet opencl_cl =
 {
-     .opencl_funcs = {codelet, NULL},
+     .opencl_funcs = {codelet},
      .nbuffers = 1,
      .modes = {STARPU_R}
 };

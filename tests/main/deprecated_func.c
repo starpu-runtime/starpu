@@ -37,7 +37,7 @@ void cpu2_codelet(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 struct starpu_codelet cl_cpu_funcs =
 {
 	.where = STARPU_CPU,
-	.cpu_funcs = {cpu_codelet, NULL},
+	.cpu_funcs = {cpu_codelet},
 	.nbuffers = 2,
 	.name = "cpu_funcs",
 };
@@ -54,7 +54,7 @@ struct starpu_codelet cl_cpu_multiple =
 {
 	.where = STARPU_CPU,
 	.cpu_func = STARPU_MULTIPLE_CPU_IMPLEMENTATIONS,
-	.cpu_funcs = {cpu_codelet, NULL},
+	.cpu_funcs = {cpu_codelet},
 	.nbuffers = 2,
 	.name = "cpu_multiple",
 };
@@ -63,7 +63,7 @@ struct starpu_codelet cl_cpu_func_funcs =
 {
 	.where = STARPU_CPU,
 	.cpu_func = cpu2_codelet,
-	.cpu_funcs = {cpu_codelet, NULL},
+	.cpu_funcs = {cpu_codelet},
 	.nbuffers = 2,
 	.name = "cpu_func_funcs",
 };

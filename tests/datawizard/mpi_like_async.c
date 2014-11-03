@@ -85,12 +85,12 @@ static void increment_handle_cpu_kernel(void *descr[], void *cl_arg STARPU_ATTRI
 static struct starpu_codelet increment_handle_cl =
 {
 	.modes = { STARPU_RW },
-	.cpu_funcs = {increment_handle_cpu_kernel, NULL},
+	.cpu_funcs = {increment_handle_cpu_kernel},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_codelet_unsigned_inc, NULL},
+	.cuda_funcs = {cuda_codelet_unsigned_inc},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = { opencl_codelet_unsigned_inc, NULL},
+	.opencl_funcs = { opencl_codelet_unsigned_inc},
 #endif
 	.nbuffers = 1
 };

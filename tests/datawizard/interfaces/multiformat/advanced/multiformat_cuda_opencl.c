@@ -46,7 +46,7 @@ test(void)
 
 	static struct starpu_codelet cl_cuda =
 	{
-		.cuda_funcs = {cuda_func, NULL},
+		.cuda_funcs = {cuda_func},
 		.nbuffers  = 1,
 		.modes = {STARPU_RW}
 	};
@@ -60,7 +60,7 @@ test(void)
 
 	static struct starpu_codelet cl_opencl =
 	{
-		.opencl_funcs = {opencl_func, NULL},
+		.opencl_funcs = {opencl_func},
 		.nbuffers    = 1,
 		.modes = {STARPU_RW}
 	};

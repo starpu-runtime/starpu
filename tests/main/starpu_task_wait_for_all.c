@@ -32,9 +32,9 @@ static void dummy_func(void *descr[], void *arg)
 
 static struct starpu_codelet dummy_codelet =
 {
-	.cpu_funcs = {dummy_func, NULL},
-	.cuda_funcs = {dummy_func, NULL},
-	.opencl_funcs = {dummy_func, NULL},
+	.cpu_funcs = {dummy_func},
+	.cuda_funcs = {dummy_func},
+	.opencl_funcs = {dummy_func},
 	.model = NULL,
 	.nbuffers = 0
 };

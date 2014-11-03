@@ -55,9 +55,9 @@ static void dummy_func(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 
 static struct starpu_codelet dummy_cl =
 {
-	.cpu_funcs = {dummy_func, NULL},
-	.cuda_funcs = {dummy_func, NULL},
-	.opencl_funcs = {dummy_func, NULL},
+	.cpu_funcs = {dummy_func},
+	.cuda_funcs = {dummy_func},
+	.opencl_funcs = {dummy_func},
 	.nbuffers = 3,
 	.modes = {STARPU_RW, STARPU_R, STARPU_R}
 };

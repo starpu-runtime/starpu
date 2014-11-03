@@ -64,7 +64,7 @@ static struct starpu_codelet cl =
 	.modes = { STARPU_RW },
 	.type = STARPU_FORKJOIN,
 	.max_parallelism = INT_MAX,
-	.cpu_funcs = {scal_cpu_func, NULL},
+	.cpu_funcs = {scal_cpu_func},
 	.nbuffers = 1,
 	.model = &vector_scal_model,
 };

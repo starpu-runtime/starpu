@@ -89,12 +89,12 @@ void scal_func_opencl(void *buffers[], void *_args)
 struct starpu_codelet scal_codelet =
 {
 		
-	.cpu_funcs = { scal_func_cpu, NULL },
+	.cpu_funcs = { scal_func_cpu},
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = { scal_func_opencl, NULL },
+	.opencl_funcs = { scal_func_opencl},
 #endif
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = { scal_func_cuda, NULL },
+	.cuda_funcs = { scal_func_cuda},
 #endif
 	.modes = { STARPU_RW },
         .model = NULL,

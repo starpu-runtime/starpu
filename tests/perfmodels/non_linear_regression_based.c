@@ -56,12 +56,12 @@ extern void memset_opencl(void *buffers[], void *args);
 static struct starpu_codelet memset_cl =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {memset_cuda, NULL},
+	.cuda_funcs = {memset_cuda},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {memset_opencl, NULL},
+	.opencl_funcs = {memset_opencl},
 #endif
-	.cpu_funcs = {memset_cpu, NULL},
+	.cpu_funcs = {memset_cpu},
 	.model = &model,
 	.nbuffers = 1,
 	.modes = {STARPU_W}

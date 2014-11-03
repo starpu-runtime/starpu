@@ -50,7 +50,7 @@ void compare_complex_codelet(void *descr[], void *_args)
 
 struct starpu_codelet cl_compare =
 {
-	.cpu_funcs = {compare_complex_codelet, NULL},
+	.cpu_funcs = {compare_complex_codelet},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_R},
 	.name = "cl_compare"
@@ -75,7 +75,7 @@ void display_complex_codelet(void *descr[], void *_args)
 
 struct starpu_codelet cl_display =
 {
-	.cpu_funcs = {display_complex_codelet, NULL},
+	.cpu_funcs = {display_complex_codelet},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 	.name = "cl_display"

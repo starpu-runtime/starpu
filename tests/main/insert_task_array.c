@@ -33,7 +33,7 @@ void func_cpu(void *descr[], void *_args)
 struct starpu_codelet mycodelet =
 {
 	.modes = { STARPU_RW, STARPU_RW },
-	.cpu_funcs = {func_cpu, NULL},
+	.cpu_funcs = {func_cpu},
         .nbuffers = 2
 };
 

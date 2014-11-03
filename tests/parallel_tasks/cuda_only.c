@@ -32,7 +32,7 @@ struct starpu_perfmodel model =
 
 static struct starpu_codelet cl =
 {
-	.cuda_funcs = {codelet_null, NULL},
+	.cuda_funcs = {codelet_null},
 	.model = &model,
 	.nbuffers = 1,
 	.modes = {STARPU_R}
@@ -46,7 +46,7 @@ struct starpu_perfmodel model2 =
 
 static struct starpu_codelet cl2 =
 {
-	.cuda_funcs = {codelet_null, NULL},
+	.cuda_funcs = {codelet_null},
 	.model = &model2,
 	.nbuffers = 1,
 	.modes = {STARPU_W}

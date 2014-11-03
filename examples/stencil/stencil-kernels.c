@@ -430,12 +430,12 @@ static struct starpu_perfmodel cl_update_model =
 
 struct starpu_codelet cl_update =
 {
-	.cpu_funcs = {update_func_cpu, NULL},
+	.cpu_funcs = {update_func_cpu},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {update_func_cuda, NULL},
+	.cuda_funcs = {update_func_cuda},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {update_func_opencl, NULL},
+	.opencl_funcs = {update_func_opencl},
 #endif
 	.model = &cl_update_model,
 	.nbuffers = 6,
@@ -630,12 +630,12 @@ static struct starpu_perfmodel save_cl_top_model =
 
 struct starpu_codelet save_cl_bottom =
 {
-	.cpu_funcs = {dummy_func_bottom_cpu, NULL},
+	.cpu_funcs = {dummy_func_bottom_cpu},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dummy_func_bottom_cuda, NULL},
+	.cuda_funcs = {dummy_func_bottom_cuda},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {dummy_func_bottom_opencl, NULL},
+	.opencl_funcs = {dummy_func_bottom_opencl},
 #endif
 	.model = &save_cl_bottom_model,
 	.nbuffers = 4,
@@ -644,12 +644,12 @@ struct starpu_codelet save_cl_bottom =
 
 struct starpu_codelet save_cl_top =
 {
-	.cpu_funcs = {dummy_func_top_cpu, NULL},
+	.cpu_funcs = {dummy_func_top_cpu},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dummy_func_top_cuda, NULL},
+	.cuda_funcs = {dummy_func_top_cuda},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {dummy_func_top_opencl, NULL},
+	.opencl_funcs = {dummy_func_top_opencl},
 #endif
 	.model = &save_cl_top_model,
 	.nbuffers = 4,
