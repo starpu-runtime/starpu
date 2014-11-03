@@ -41,6 +41,8 @@ struct _perfmodel_plot_options
 {
 	/* display all available models */
 	int list;
+	/* display directory */
+	int directory;
 	/* what kernel ? */
 	char *symbol;
 	/* which combination */
@@ -66,8 +68,9 @@ static void usage()
 	fprintf(stderr, "Draw a graph corresponding to the execution time of a given perfmodel\n");
 	fprintf(stderr, "Usage: %s [ options ]\n", PROGNAME);
         fprintf(stderr, "\n");
-	fprintf(stderr, "One must specify a symbol with the -s option or use -l\n");
+	fprintf(stderr, "One must specify a symbol with the -s option or use -l or -d\n");
         fprintf(stderr, "Options:\n");
+	fprintf(stderr, "   -d                  display the directory storing performance models\n");
         fprintf(stderr, "   -l                  display all available models\n");
         fprintf(stderr, "   -s <symbol>         specify the symbol\n");
 	fprintf(stderr, "   -f                  draw GFlops instead of time\n");
@@ -82,6 +85,7 @@ static void usage()
 
 static void parse_args(int argc, char **argv, struct _perfmodel_plot_options *options)
 {
+	int correct_usage = 0;
 	memset(options, 0, sizeof(struct _perfmodel_plot_options));
 
 #ifdef STARPU_USE_FXT
@@ -105,6 +109,7 @@ static void parse_args(int argc, char **argv, struct _perfmodel_plot_options *op
 		if (strcmp(argv[i], "-s") == 0)
 		{
 			options->symbol = argv[++i];
+			correct_usage = 1;
 			continue;
 		}
 
@@ -123,6 +128,7 @@ static void parse_args(int argc, char **argv, struct _perfmodel_plot_options *op
 		if (strcmp(argv[i], "-l") == 0)
 		{
 			options->list = 1;
+			correct_usage = 1;
 			continue;
 		}
 
@@ -142,6 +148,13 @@ static void parse_args(int argc, char **argv, struct _perfmodel_plot_options *op
 		{
 			options->comb_is_set = 1;
 			options->comb = atoi(argv[++i]);
+			continue;
+		}
+
+		if (strcmp(argv[i], "-d") == 0)
+		{
+			options->directory = 1;
+			correct_usage = 1;
 			continue;
 		}
 
@@ -171,7 +184,7 @@ static void parse_args(int argc, char **argv, struct _perfmodel_plot_options *op
 		}
 	}
 
-	if ((!options->symbol && !options->list) || (options->list_combs && !options->symbol))
+	if (correct_usage == 0)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
                 usage();
@@ -437,6 +450,12 @@ int main(int argc, char **argv)
 #endif
 
 	parse_args(argc, argv, &options);
+
+	if (options.directory)
+	{
+		starpu_perfmodel_directory(stdout);
+		return 0;
+	}
 
         if (options.list)
 	{
