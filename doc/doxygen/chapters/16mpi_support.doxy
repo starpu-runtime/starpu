@@ -399,7 +399,13 @@ cache by calling starpu_mpi_cache_flush() or starpu_mpi_cache_flush_all_data(),
 for instance in case the data will not be used at all any more (see for instance
 the cholesky example in mpi/examples/matrix_decomposition), or at least not in
 the close future. If a newly-submitted task actually needs the value again,
-another transmission of D will be initiated from A to B.
+another transmission of D will be initiated from A to B.  A mere
+starpu_mpi_cache_flush_all_data() can for instance be added at the end of the whole
+algorithm, to express that no data will be reused after that (or at least that
+it is not interesting to keep them in cache).  It may however be interesting to
+add fine-graph starpu_mpi_cache_flush() calls during the algorithm; the effect
+for the data deallocation will be the same, but it will additionally release some
+pressure from the StarPU-MPI cache hash table during task submission.
 
 The whole caching behavior can be disabled thanks to the \ref STARPU_MPI_CACHE
 environment variable. The variable \ref STARPU_MPI_CACHE_STATS can be set to 1
