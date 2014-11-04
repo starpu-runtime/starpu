@@ -473,13 +473,16 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 				new_thread = create_omp_thread_struct(NULL);
 				new_thread->worker = starpu_worker;
 				register_thread_worker(new_thread);
-				thread = new_thread;
+
+				thread = get_local_thread();
+				STARPU_ASSERT(thread == new_thread);
 			}
 			else
 			{
 				_STARPU_ERROR("orphaned CPU thread");
 			}
 		}
+		STARPU_ASSERT(thread != NULL);
 		if (!task->is_untied)
 		{
 			struct _starpu_worker *starpu_worker = _starpu_get_local_worker_key();
