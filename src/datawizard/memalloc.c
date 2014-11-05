@@ -852,18 +852,16 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 
 	_starpu_spin_unlock(&mc_lock[node]);
 
-	/* We would only flush the RAM nodes cache if memory gets tight, either
-	 * because StarPU automatically knows the total memory size of the
-	 * machine, or because the user has provided a limitation.
-	 *
-	 * We don't really want the former scenario to be eating a lot of
-	 * memory just for caching allocations. Allocating main memory is cheap
-	 * anyway.
+	/*
+	 * Unless the user has provided a main RAM limitation, we would fill
+	 * memory with cached data and then eventually swap.
 	 */
-	/* This is particularly important when
+	/*
+	 * This is particularly important when
 	 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
-	 * wouldn't even re-use these allocations! */
-	if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
+	 * wouldn't even re-use these allocations!
+	 */
+	if (starpu_node_get_kind(node) == STARPU_CPU_RAM && starpu_get_env_number("STARPU_LIMIT_CPU_MEM") < 0)
 	{
 		/* Free data immediately */
 		free_memory_on_node(mc, node);
