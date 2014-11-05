@@ -122,7 +122,10 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			cudaError_t cures;
 			cures = cudaHostAlloc(A, dim, cudaHostAllocPortable);
 			if (STARPU_UNLIKELY(cures))
+			{
 				STARPU_CUDA_REPORT_ERROR(cures);
+				ret = -ENOMEM;
+			}
 			goto end;
 #else
 			int push_res;
@@ -195,17 +198,25 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 		if (_malloc_align != sizeof(void*))
 		{
 			*A = memalign(_malloc_align, dim);
+			if (!*A)
+				ret = -ENOMEM;
 		}
 		else
 #endif /* STARPU_HAVE_POSIX_MEMALIGN */
 		{
 			*A = malloc(dim);
+			if (!*A)
+				ret = -ENOMEM;
 		}
 
 end:
 	if (ret == 0)
 	{
 		STARPU_ASSERT(*A);
+	}
+	else if (flags & STARPU_MALLOC_COUNT)
+	{
+		_starpu_memory_manager_deallocate_size(dim, 0);
 	}
 
 	return ret;
