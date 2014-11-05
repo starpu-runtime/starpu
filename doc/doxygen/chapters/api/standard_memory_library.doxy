@@ -34,6 +34,16 @@ If no memory is available, it tries to reclaim memory from StarPU.
 Memory allocated this way needs to be freed by calling the function
 starpu_free_flags() with the same flag.
 
+\def STARPU_MALLOC_NORECLAIM
+\ingroup API_Standard_Memory_Library
+Value passed to the function starpu_malloc_flags() along STARPU_MALLOC_COUNT
+to indicate that while the memory allocation should be kept in the limits
+defined for STARPU_MALLOC_COUNT, no reclaiming should be performed by
+starpu_malloc_flags itself, thus potentially overflowing the memory node a
+bit. StarPU will reclaim memory after next task termination, according to
+the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment
+variables.
+
 \fn int starpu_malloc_flags(void **A, size_t dim, int flags)
 \ingroup API_Standard_Memory_Library
 Performs a memory allocation based on the constraints defined

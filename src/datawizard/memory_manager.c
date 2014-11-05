@@ -72,6 +72,13 @@ int _starpu_memory_manager_can_allocate_size(size_t size, unsigned node)
 	return ret;
 }
 
+void _starpu_memory_manager_allocate_size(size_t size, unsigned node)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
+	used_size[node] += size;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
+}
+
 void _starpu_memory_manager_deallocate_size(size_t size, unsigned node)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);

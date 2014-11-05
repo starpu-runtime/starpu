@@ -27,6 +27,7 @@ extern "C"
 
 #define STARPU_MALLOC_PINNED	((1ULL)<<1)
 #define STARPU_MALLOC_COUNT	((1ULL)<<3)
+#define STARPU_MALLOC_NORECLAIM	((1ULL)<<4)
 
 void starpu_malloc_set_align(size_t align);
 

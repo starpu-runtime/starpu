@@ -92,21 +92,24 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 
 	if (flags & STARPU_MALLOC_COUNT)
 	{
-		while (_starpu_memory_manager_can_allocate_size(dim, STARPU_MAIN_RAM) == 0)
-		{
-			size_t freed;
-			size_t reclaim = 2 * dim;
-			_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
-			_STARPU_TRACE_START_MEMRECLAIM(0,0);
-			freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
-			_STARPU_TRACE_END_MEMRECLAIM(0,0);
-			if (freed < dim)
+		if (!(flags & STARPU_MALLOC_NORECLAIM))
+			while (_starpu_memory_manager_can_allocate_size(dim, STARPU_MAIN_RAM) == 0)
 			{
-				// We could not reclaim enough memory
-				*A = NULL;
-				return -ENOMEM;
+				size_t freed;
+				size_t reclaim = 2 * dim;
+				_STARPU_DEBUG("There is not enough memory left, we are going to reclaim %ld\n", reclaim);
+				_STARPU_TRACE_START_MEMRECLAIM(0,0);
+				freed = _starpu_memory_reclaim_generic(0, 0, reclaim);
+				_STARPU_TRACE_END_MEMRECLAIM(0,0);
+				if (freed < dim)
+				{
+					// We could not reclaim enough memory
+					*A = NULL;
+					return -ENOMEM;
+				}
 			}
-		}
+		else
+			_starpu_memory_manager_allocate_size(dim, STARPU_MAIN_RAM);
 	}
 
 	if (flags & STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0 && RUNNING_ON_VALGRIND == 0)
@@ -125,7 +128,10 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 			cudaError_t cures;
 			cures = cudaHostAlloc(A, dim, cudaHostAllocPortable);
 			if (STARPU_UNLIKELY(cures))
+			{
 				STARPU_CUDA_REPORT_ERROR(cures);
+				ret = -ENOMEM;
+			}
 			goto end;
 #else
 			int push_res;
@@ -207,17 +213,25 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 		if (_malloc_align != sizeof(void*))
 		{
 			*A = memalign(_malloc_align, dim);
+			if (!*A)
+				ret = -ENOMEM;
 		}
 		else
 #endif /* STARPU_HAVE_POSIX_MEMALIGN */
 		{
 			*A = malloc(dim);
+			if (!*A)
+				ret = -ENOMEM;
 		}
 
 end:
 	if (ret == 0)
 	{
 		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %ld b\n", dim);
+	}
+	else if (flags & STARPU_MALLOC_COUNT)
+	{
+		_starpu_memory_manager_deallocate_size(dim, 0);
 	}
 
 	return ret;
