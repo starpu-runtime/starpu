@@ -791,12 +791,16 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 
 	_starpu_spin_unlock(&mc_lock[node]);
 
-	/* We would never flush the node 0 cache, unless
-	 * malloc() returns NULL, which is very unlikely... */
-	/* This is particularly important when
+	/*
+	 * Unless the user has provided a main RAM limitation, we would fill
+	 * memory with cached data and then eventually swap.
+	 */
+	/*
+	 * This is particularly important when
 	 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
-	 * wouldn't even re-use these allocations! */
-	if (starpu_node_get_kind(node) == STARPU_CPU_RAM)
+	 * wouldn't even re-use these allocations!
+	 */
+	if (starpu_node_get_kind(node) == STARPU_CPU_RAM && starpu_get_env_number("STARPU_LIMIT_CPU_MEM") < 0)
 	{
 		free_memory_on_node(mc, node);
 

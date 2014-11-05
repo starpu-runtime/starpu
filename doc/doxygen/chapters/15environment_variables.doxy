@@ -487,7 +487,8 @@ that have a limited amount of memory.
 This variable specifies the maximum number of megabytes that should be
 available to the application on each CPU device. This variable is
 intended to be used for experimental purposes as it emulates devices
-that have a limited amount of memory.
+that have a limited amount of memory. Setting it enables allocation
+cache in main memory
 </dd>
 
 <dt>STARPU_TRACE_BUFFER_SIZE</dt>
