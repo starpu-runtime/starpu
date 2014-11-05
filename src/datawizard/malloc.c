@@ -89,7 +89,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 
 	if (flags & STARPU_MALLOC_COUNT)
 	{
-		if (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
+		while (_starpu_memory_manager_can_allocate_size(dim, 0) == 0)
 		{
 			size_t freed;
 			size_t reclaim = 2 * dim;
