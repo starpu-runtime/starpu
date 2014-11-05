@@ -103,7 +103,7 @@ void _starpu_omp_unregister_region_handles(struct starpu_omp_region *region)
 	{
 		entry->handle->removed_from_context_hash = 1;
 		HASH_DEL(region->registered_handles, entry);
-		starpu_data_unregister_submit(entry->handle);
+		starpu_data_unregister(entry->handle);
 		free(entry);
 	}
 	_starpu_spin_unlock(&region->registered_handles_lock);
@@ -116,7 +116,7 @@ void _starpu_omp_unregister_task_handles(struct starpu_omp_task *task)
 	{
 		entry->handle->removed_from_context_hash = 1;
 		HASH_DEL(task->registered_handles, entry);
-		starpu_data_unregister_submit(entry->handle);
+		starpu_data_unregister(entry->handle);
 		free(entry);
 	}
 }

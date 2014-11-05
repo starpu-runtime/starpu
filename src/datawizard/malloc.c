@@ -522,7 +522,17 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 				STARPU_ASSERT_MSG(0, "CUDA peer access is not available with this version of CUDA");
 #endif
 			err = cudaFree((void*)addr);
-			if (STARPU_UNLIKELY(err != cudaSuccess))
+			if (STARPU_UNLIKELY(err != cudaSuccess
+#ifdef STARPU_OPENMP
+		/* When StarPU is used as Open Runtime support,
+		 * starpu_omp_shutdown() will usually be called from a
+		 * destructor, in which case cudaThreadExit() reports a
+		 * cudaErrorCudartUnloading here. There should not
+		 * be any remaining tasks running at this point so
+		 * we can probably ignore it without much consequences. */
+		&& err != cudaErrorCudartUnloading
+#endif /* STARPU_OPENMP */
+						))
 				STARPU_CUDA_REPORT_ERROR(err);
 #endif
 			break;

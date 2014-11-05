@@ -53,6 +53,15 @@ enum _starpu_worker_status _starpu_get_local_worker_status(void)
 unsigned _starpu_worker_may_perform_blocking_calls(void)
 {
 	enum _starpu_worker_status st = _starpu_get_local_worker_status();
+#ifdef STARPU_OPENMP
+	/* When the current task is an OpenMP task, we may need to block,
+	 * especially when unregistering data used by child tasks. However,
+	 * we don't want to blindly disable the check for non OpenMP tasks. */
+	const struct starpu_task * const task = starpu_task_get_current();
+	const int blocking_call_check_override = task && task->omp_task;
+#else /* STARPU_OPENMP */
+	const int blocking_call_check_override = 0;
+#endif /* STARPU_OPENMP */
 
-	return ( !(st == STATUS_CALLBACK) && !(st == STATUS_EXECUTING));
+	return blocking_call_check_override || ( !(st == STATUS_CALLBACK) && !(st == STATUS_EXECUTING));
 }
