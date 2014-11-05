@@ -100,6 +100,8 @@ Small features:
   * Add starpu_worker_can_execute_task_impl and
     starpu_worker_can_execute_task_first_impl to optimize getting the
     working implementations
+  * Add STARPU_MALLOC_NORECLAIM flag to allocate without running a reclaim if
+    the node is out of memory.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
