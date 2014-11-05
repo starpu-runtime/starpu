@@ -42,7 +42,7 @@ void _starpu_mpi_early_data_init(int world_size)
 
 void _starpu_mpi_early_data_check_termination()
 {
-	STARPU_ASSERT_MSG(_starpu_mpi_early_data_handle_hashmap_count == 0, "Number of copy requests left is not zero, did you forget to post a receive corresponding to a send?");
+	STARPU_ASSERT_MSG(_starpu_mpi_early_data_handle_hashmap_count == 0, "Number of unexpected received messages left is not zero, did you forget to post a receive corresponding to a send?");
 }
 
 void _starpu_mpi_early_data_free(int world_size)
