@@ -51,7 +51,7 @@ void _starpu_task_insert_get_args_size(va_list varg_list, unsigned *nbuffers, si
 	arg_buffer_size = 0;
 	n = 0;
 
-	arg_buffer_size += sizeof(char);
+	arg_buffer_size += sizeof(int);
 
 	while ((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -159,15 +159,14 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 {
 	int arg_type;
 	unsigned current_arg_offset = 0;
-	unsigned char nargs = 0;
-	char *_arg_buffer;
+	int nargs = 0;
+	char *_arg_buffer; // We would like a void* but we use a char* to allow pointer arithmetic
 
 	/* The buffer will contain : nargs, {size, content} (x nargs)*/
-
 	_arg_buffer = malloc(arg_buffer_size);
 
-	/* We will begin the buffer with the number of args (which is stored as a char) */
-	current_arg_offset += sizeof(char);
+	/* We will begin the buffer with the number of args */
+	current_arg_offset += sizeof(nargs);
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -186,10 +185,10 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 			void *ptr = va_arg(varg_list, void *);
 			size_t cst_size = va_arg(varg_list, size_t);
 
-			*(size_t *)(&(_arg_buffer)[current_arg_offset]) = cst_size;
+			memcpy(_arg_buffer+current_arg_offset, (void *)&cst_size, sizeof(cst_size));
 			current_arg_offset += sizeof(size_t);
 
-			memcpy(&_arg_buffer[current_arg_offset], ptr, cst_size);
+			memcpy(_arg_buffer+current_arg_offset, ptr, cst_size);
 			current_arg_offset += cst_size;
 
 			nargs++;
@@ -272,7 +271,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 
 	if (nargs)
 	{
-		_arg_buffer[0] = nargs;
+		memcpy(_arg_buffer, (int *)&nargs, sizeof(nargs));
 	}
 	else
 	{

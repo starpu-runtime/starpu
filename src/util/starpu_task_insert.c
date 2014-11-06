@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010, 2012, 2014  Université de Bordeaux
- * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,25 +39,27 @@ void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 
 void starpu_codelet_unpack_args(void *_cl_arg, ...)
 {
-	unsigned char *cl_arg = (unsigned char *) _cl_arg;
-	unsigned current_arg_offset = 0;
+	char *cl_arg = (char *) _cl_arg;
+	int current_arg_offset = 0;
+	int nargs, arg;
 	va_list varg_list;
 
 	STARPU_ASSERT(cl_arg);
 	va_start(varg_list, _cl_arg);
 
 	/* We fill the different pointers with the appropriate arguments */
-	unsigned char nargs = cl_arg[0];
-	current_arg_offset += sizeof(char);
+	memcpy(&nargs, cl_arg, sizeof(nargs));
+	current_arg_offset += sizeof(nargs);
 
-	unsigned arg;
 	for (arg = 0; arg < nargs; arg++)
 	{
 		void *argptr = va_arg(varg_list, void *);
-		size_t arg_size = *(size_t *)&cl_arg[current_arg_offset];
+
+		size_t arg_size;
+		memcpy(&arg_size, cl_arg+current_arg_offset, sizeof(arg_size));
 		current_arg_offset += sizeof(size_t);
 
-		memcpy(argptr, &cl_arg[current_arg_offset], arg_size);
+		memcpy(argptr, cl_arg+current_arg_offset, arg_size);
 		current_arg_offset += arg_size;
 	}
 
@@ -65,8 +67,7 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 }
 
 static
-struct starpu_task *_starpu_task_build_v(struct starpu_codelet *cl, const char* task_name,
-					 int cl_arg_free, va_list varg_list)
+struct starpu_task *_starpu_task_build_v(struct starpu_codelet *cl, const char* task_name, int cl_arg_free, va_list varg_list)
 {
 	void *arg_buffer = NULL;
 	va_list varg_list_copy;
