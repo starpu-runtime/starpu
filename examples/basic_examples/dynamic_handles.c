@@ -65,19 +65,16 @@ struct starpu_codelet dummy_big_cl =
 
 int main(int argc, char **argv)
 {
-	starpu_data_handle_t handle, *handles;
+	starpu_data_handle_t handle;
+	struct starpu_data_descr *descrs;
 	int ret;
 	int val=42;
-	unsigned i;
+	int i;
 	struct starpu_task *task, *task2;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-
-	dummy_big_cl.dyn_modes = malloc(dummy_big_cl.nbuffers * sizeof(enum starpu_data_access_mode));
-	for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
-	     dummy_big_cl.dyn_modes[i] = STARPU_RW;
 
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(int));
 
@@ -117,20 +114,21 @@ int main(int argc, char **argv)
         ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
-	handles = malloc(dummy_big_cl.nbuffers * sizeof(starpu_data_handle_t));
+	descrs = malloc(dummy_big_cl.nbuffers * sizeof(struct starpu_data_descr));
 	for(i=0 ; i<dummy_big_cl.nbuffers ; i++)
 	{
-		handles[i] = handle;
+		descrs[i].handle = handle;
+		descrs[i].mode = STARPU_RW;
 	}
 	ret = starpu_task_insert(&dummy_big_cl,
 				 STARPU_VALUE, &dummy_big_cl.nbuffers, sizeof(dummy_big_cl.nbuffers),
-				 STARPU_DATA_ARRAY, handles, dummy_big_cl.nbuffers,
+				 STARPU_DATA_MODE_ARRAY, descrs, dummy_big_cl.nbuffers,
 				 0);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
         ret = starpu_task_wait_for_all();
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
-	free(handles);
+	free(descrs);
 
 	starpu_data_unregister(handle);
 	free(dummy_big_cl.dyn_modes);
