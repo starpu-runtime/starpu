@@ -27,13 +27,8 @@ void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 {
 	va_list varg_list;
 
-	/* Compute the size */
 	va_start(varg_list, arg_buffer_size);
-	_starpu_task_insert_get_args_size(varg_list, NULL, arg_buffer_size);
-	va_end(varg_list);
-
-	va_start(varg_list, arg_buffer_size);
-	_starpu_codelet_pack_args(arg_buffer, *arg_buffer_size, varg_list);
+	_starpu_codelet_pack_args(arg_buffer, arg_buffer_size, varg_list);
 	va_end(varg_list);
 }
 
@@ -69,39 +64,14 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 static
 struct starpu_task *_starpu_task_build_v(struct starpu_codelet *cl, const char* task_name, int cl_arg_free, va_list varg_list)
 {
-	void *arg_buffer = NULL;
 	va_list varg_list_copy;
-	size_t arg_buffer_size = 0;
-	unsigned nbuffers;
-
-	/* Compute the size */
-
-	va_copy(varg_list_copy, varg_list);
-	_starpu_task_insert_get_args_size(varg_list_copy, &nbuffers, &arg_buffer_size);
-	va_end(varg_list_copy);
-
-	if (arg_buffer_size)
-	{
-		va_copy(varg_list_copy, varg_list);
-		_starpu_codelet_pack_args(&arg_buffer, arg_buffer_size, varg_list_copy);
-		va_end(varg_list_copy);
-	}
 
 	struct starpu_task *task = starpu_task_create();
 	task->name = task_name;
 	task->cl_arg_free = cl_arg_free;
 
-	if (cl && cl->nbuffers != STARPU_VARIABLE_NBUFFERS)
-	{
-		STARPU_ASSERT_MSG(nbuffers == (unsigned) cl->nbuffers, "Incoherent number of buffers between cl (%d) and number of parameters (%u)", cl->nbuffers, nbuffers);
-	}
-	if (nbuffers > STARPU_NMAXBUFS)
-	{
-		task->dyn_handles = malloc(nbuffers * sizeof(starpu_data_handle_t));
-	}
-
 	va_copy(varg_list_copy, varg_list);
-	_starpu_task_insert_create(arg_buffer, arg_buffer_size, cl, &task, varg_list_copy);
+	_starpu_task_insert_create(cl, &task, varg_list_copy);
 	va_end(varg_list_copy);
 
 	return task;

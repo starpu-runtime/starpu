@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013-2014              Université Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2013-2014   Université Bordeaux
+ * Copyright (C) 2011-2014         Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2014        INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -42,131 +42,13 @@ void _starpu_task_insert_callback_wrapper(void *_cl_arg_wrapper)
 		cl_arg_wrapper->callback_func(cl_arg_wrapper->callback_arg);
 }
 
-void _starpu_task_insert_get_args_size(va_list varg_list, unsigned *nbuffers, size_t *cl_arg_size)
+int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_list varg_list)
 {
 	int arg_type;
-	size_t arg_buffer_size;
-	unsigned n;
-
-	arg_buffer_size = 0;
-	n = 0;
-
-	arg_buffer_size += sizeof(int);
-
-	while ((arg_type = va_arg(varg_list, int)) != 0)
-	{
-		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
-		{
-			(void)va_arg(varg_list, starpu_data_handle_t);
-			n++;
-		}
-		else if (arg_type==STARPU_DATA_ARRAY)
-		{
-			(void)va_arg(varg_list, starpu_data_handle_t*);
-			int nb_handles = va_arg(varg_list, int);
-			n += nb_handles;
-		}
-		else if (arg_type==STARPU_VALUE)
-		{
-			(void)va_arg(varg_list, void *);
-			size_t cst_size = va_arg(varg_list, size_t);
-
-			arg_buffer_size += sizeof(size_t);
-			arg_buffer_size += cst_size;
-		}
-		else if (arg_type==STARPU_CALLBACK)
-		{
-			(void)va_arg(varg_list, _starpu_callback_func_t);
-		}
-		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
-		{
-			va_arg(varg_list, _starpu_callback_func_t);
-			va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
-		{
-			(void)va_arg(varg_list, _starpu_callback_func_t);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
-		{
-			(void)va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
-		{
-			(void)va_arg(varg_list, _starpu_callback_func_t);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
-		{
-			(void)va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_CALLBACK_ARG)
-		{
-			(void)va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_PRIORITY)
-		{
-			(void)va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_EXECUTE_ON_NODE)
-		{
-			(void)va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_EXECUTE_ON_DATA)
-		{
-			(void)va_arg(varg_list, starpu_data_handle_t);
-		}
-		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
-		{
-			va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_WORKER_ORDER)
-		{
-			va_arg(varg_list, unsigned);
-		}
-		else if (arg_type==STARPU_SCHED_CTX)
-		{
-			(void)va_arg(varg_list, unsigned);
-		}
-		else if (arg_type==STARPU_HYPERVISOR_TAG)
-		{
-			(void)va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_POSSIBLY_PARALLEL)
-		{
-			(void)va_arg(varg_list, unsigned);
-		}
-		else if (arg_type==STARPU_FLOPS)
-		{
-			(void)va_arg(varg_list, double);
-		}
-		else if (arg_type==STARPU_TAG || arg_type==STARPU_TAG_ONLY)
-		{
-			(void)va_arg(varg_list, starpu_tag_t);
-		}
-		else
-		{
-			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
-		}
-	}
-
-	if (cl_arg_size)
-		*cl_arg_size = arg_buffer_size;
-	if (nbuffers)
-		*nbuffers = n;
-}
-
-int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list varg_list)
-{
-	int arg_type;
-	unsigned current_arg_offset = 0;
 	int nargs = 0;
-	char *_arg_buffer; // We would like a void* but we use a char* to allow pointer arithmetic
-
-	/* The buffer will contain : nargs, {size, content} (x nargs)*/
-	_arg_buffer = malloc(arg_buffer_size);
-
-	/* We will begin the buffer with the number of args */
-	current_arg_offset += sizeof(nargs);
+	char *_arg_buffer = NULL; // We would like a void* but we use a char* to allow pointer arithmetic
+	size_t _arg_buffer_size = 0;
+	size_t current_offset = sizeof(int);
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -179,20 +61,29 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 			(void)va_arg(varg_list, starpu_data_handle_t*);
 			(void)va_arg(varg_list, int);
 		}
+		else if (arg_type==STARPU_DATA_MODE_ARRAY)
+		{
+			(void)va_arg(varg_list, struct starpu_data_descr*);
+			(void)va_arg(varg_list, int);
+		}
 		else if (arg_type==STARPU_VALUE)
 		{
 			/* We have a constant value: this should be followed by a pointer to the cst value and the size of the constant */
 			void *ptr = va_arg(varg_list, void *);
-			size_t cst_size = va_arg(varg_list, size_t);
-
-			memcpy(_arg_buffer+current_arg_offset, (void *)&cst_size, sizeof(cst_size));
-			current_arg_offset += sizeof(size_t);
-
-			memcpy(_arg_buffer+current_arg_offset, ptr, cst_size);
-			current_arg_offset += cst_size;
+			size_t ptr_size = va_arg(varg_list, size_t);
 
 			nargs++;
-			STARPU_ASSERT(current_arg_offset <= arg_buffer_size);
+			if (current_offset > _arg_buffer_size)
+			{
+				if (_arg_buffer_size == 0) _arg_buffer_size = 1024; else _arg_buffer_size *= 2;
+				_arg_buffer = realloc(_arg_buffer, _arg_buffer_size);
+			}
+			memcpy(_arg_buffer+current_offset, (void *)&ptr_size, sizeof(ptr_size));
+			current_offset += sizeof(ptr_size);
+
+			memcpy(_arg_buffer+current_offset, ptr, ptr_size);
+			current_offset += ptr_size;
+			STARPU_ASSERT(current_offset <= _arg_buffer_size);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
@@ -280,13 +171,51 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 	}
 
 	*arg_buffer = _arg_buffer;
+	*arg_buffer_size = _arg_buffer_size;
 	return 0;
 }
 
-void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
+static
+void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct starpu_task **task, int *allocated_buffers, int nbuffers)
+{
+	if (nbuffers >= STARPU_NMAXBUFS)
+	{
+		if (*allocated_buffers == 0)
+		{
+			int i;
+			*allocated_buffers = STARPU_NMAXBUFS * 2;
+			(*task)->dyn_handles = malloc(*allocated_buffers * sizeof(starpu_data_handle_t));
+			(*task)->dyn_modes = malloc(*allocated_buffers * sizeof(enum starpu_data_access_mode));
+			for(i=0 ; i<nbuffers ; i++)
+			{
+				(*task)->dyn_handles[i] = (*task)->handles[i];
+			}
+			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
+			{
+				for(i=0 ; i<nbuffers ; i++)
+				{
+					(*task)->dyn_modes[i] = (*task)->modes[i];
+				}
+			}
+		}
+		else
+		{
+			*allocated_buffers *= 2;
+			(*task)->dyn_handles = realloc((*task)->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
+			(*task)->dyn_modes = realloc((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
+		}
+	}
+}
+
+void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **task, va_list varg_list)
 {
 	int arg_type;
-	unsigned current_buffer = 0;
+	char *arg_buffer_ = NULL;
+	size_t arg_buffer_size_ = 0;
+	size_t current_offset = sizeof(int);
+	int nbuffers;
+	int nargs = 0;
+	int allocated_buffers = 0;
 
 	struct _starpu_task_insert_cb_wrapper *cl_arg_wrapper = (struct _starpu_task_insert_cb_wrapper *) malloc(sizeof(struct _starpu_task_insert_cb_wrapper));
 	STARPU_ASSERT(cl_arg_wrapper);
@@ -304,6 +233,7 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 	prologue_pop_cl_arg_wrapper->callback_func = NULL;
 
 	(*task)->cl = cl;
+	nbuffers = 0;
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -316,15 +246,17 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 
 			STARPU_ASSERT(cl != NULL);
 
-			STARPU_TASK_SET_HANDLE((*task), handle, current_buffer);
+			_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, nbuffers);
+
+			STARPU_TASK_SET_HANDLE((*task), handle, nbuffers);
 			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
-				STARPU_TASK_SET_MODE(*task, mode, current_buffer);
-			else if (STARPU_CODELET_GET_MODE(cl, current_buffer))
+				STARPU_TASK_SET_MODE(*task, mode, nbuffers);
+			else if (STARPU_CODELET_GET_MODE(cl, nbuffers))
 			{
-				STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, current_buffer) == mode,
+				STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, nbuffers) == mode,
 						   "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
-						  cl->name, STARPU_CODELET_GET_MODE(cl, current_buffer),
-						  current_buffer, mode);
+						  cl->name, STARPU_CODELET_GET_MODE(cl, nbuffers),
+						  nbuffers, mode);
 			}
 			else
 			{
@@ -332,10 +264,10 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 #  warning shall we print a warning to the user
 /* Morse uses it to avoid having to set it in the codelet structure */
 #endif
-				STARPU_CODELET_SET_MODE(cl, mode, current_buffer);
+				STARPU_CODELET_SET_MODE(cl, mode, nbuffers);
 			}
 
-			current_buffer++;
+			nbuffers++;
 		}
 		else if (arg_type == STARPU_DATA_ARRAY)
 		{
@@ -343,18 +275,65 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 			starpu_data_handle_t *handles = va_arg(varg_list, starpu_data_handle_t *);
 			int nb_handles = va_arg(varg_list, int);
 
+			STARPU_ASSERT(cl != NULL);
+
 			int i;
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				STARPU_TASK_SET_HANDLE((*task), handles[i], current_buffer);
-				current_buffer++;
+				_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, nbuffers);
+				STARPU_TASK_SET_HANDLE((*task), handles[i], nbuffers);
+				nbuffers++;
+			}
+
+		}
+		else if (arg_type==STARPU_DATA_MODE_ARRAY)
+		{
+			// Expect to find a array of descr and its size
+			struct starpu_data_descr *descrs = va_arg(varg_list, struct starpu_data_descr *);
+			int nb_descrs = va_arg(varg_list, int);
+
+			STARPU_ASSERT(cl != NULL);
+
+			int i;
+			for(i=0 ; i<nb_descrs ; i++)
+			{
+				_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, nbuffers);
+				STARPU_TASK_SET_HANDLE((*task), descrs[i].handle, nbuffers);
+				if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
+					STARPU_TASK_SET_MODE(*task, descrs[i].mode, nbuffers);
+				else if (STARPU_CODELET_GET_MODE(cl, nbuffers))
+				{
+					STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, nbuffers) == descrs[i].mode,
+							  "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
+							  cl->name, STARPU_CODELET_GET_MODE(cl, nbuffers),
+							  nbuffers, descrs[i].mode);
+				}
+				else
+				{
+					STARPU_CODELET_SET_MODE(cl, descrs[i].mode, nbuffers);
+				}
+
+				nbuffers++;
 			}
 
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
-			(void)va_arg(varg_list, void *);
-			(void)va_arg(varg_list, size_t);
+			void *ptr = va_arg(varg_list, void *);
+			size_t ptr_size = va_arg(varg_list, size_t);
+
+			nargs++;
+			if (current_offset > arg_buffer_size_)
+			{
+				if (arg_buffer_size_ == 0) arg_buffer_size_ = 1024; else arg_buffer_size_ *= 2;
+				arg_buffer_ = realloc(arg_buffer_, arg_buffer_size_);
+			}
+			memcpy(arg_buffer_+current_offset, (void *)&ptr_size, sizeof(ptr_size));
+			current_offset += sizeof(ptr_size);
+
+			memcpy(arg_buffer_+current_offset, ptr, ptr_size);
+			current_offset += ptr_size;
+			STARPU_ASSERT(current_offset <= arg_buffer_size_);
 		}
 		else if (arg_type==STARPU_CALLBACK)
 		{
@@ -467,11 +446,29 @@ void _starpu_task_insert_create(void *arg_buffer, size_t arg_buffer_size, struct
 		}
 	}
 
-	if (cl && cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
-		(*task)->nbuffers = current_buffer;
+	if (cl)
+	{
+		if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
+		{
+			(*task)->nbuffers = nbuffers;
+		}
+		else
+		{
+			STARPU_ASSERT_MSG(nbuffers == cl->nbuffers, "Incoherent number of buffers between cl (%d) and number of parameters (%d)", cl->nbuffers, nbuffers);
+		}
+	}
 
-	(*task)->cl_arg = arg_buffer;
-	(*task)->cl_arg_size = arg_buffer_size;
+	if (nargs)
+	{
+		memcpy(arg_buffer_, (int *)&nargs, sizeof(nargs));
+		(*task)->cl_arg = arg_buffer_;
+		(*task)->cl_arg_size = arg_buffer_size_;
+	}
+	else
+	{
+		free(arg_buffer_);
+		arg_buffer_ = NULL;
+	}
 
 	/* The callback will free the argument stack and execute the
 	 * application's callback, if any. */

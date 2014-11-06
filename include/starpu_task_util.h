@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
- * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2014       INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -32,26 +32,27 @@ extern "C"
 
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
 
-#define STARPU_VALUE		 (1<<20)
-#define STARPU_CALLBACK		 (2<<20)
-#define STARPU_CALLBACK_WITH_ARG (3<<20)
-#define STARPU_CALLBACK_ARG	 (4<<20)
-#define STARPU_PRIORITY		 (5<<20)
-#define STARPU_EXECUTE_ON_NODE	 (6<<20)
-#define STARPU_EXECUTE_ON_DATA	 (7<<20)
-#define STARPU_DATA_ARRAY        (8<<20)
-#define STARPU_TAG               (9<<20)
-#define STARPU_HYPERVISOR_TAG	 (10<<20)
-#define STARPU_FLOPS	         (11<<20)
-#define STARPU_SCHED_CTX	 (12<<20)
-#define STARPU_PROLOGUE_CALLBACK   (13<<20)
-#define STARPU_PROLOGUE_CALLBACK_ARG (14<<20)
-#define STARPU_PROLOGUE_CALLBACK_POP   (15<<20)
-#define STARPU_PROLOGUE_CALLBACK_POP_ARG (16<<20)
-#define STARPU_EXECUTE_ON_WORKER (17<<20)
-#define STARPU_TAG_ONLY          (18<<20)
-#define STARPU_POSSIBLY_PARALLEL    (19<<20)
-#define STARPU_WORKER_ORDER      (20<<20)
+#define STARPU_VALUE		 (1<<16)
+#define STARPU_CALLBACK		 (2<<16)
+#define STARPU_CALLBACK_WITH_ARG (3<<16)
+#define STARPU_CALLBACK_ARG	 (4<<16)
+#define STARPU_PRIORITY		 (5<<16)
+#define STARPU_EXECUTE_ON_NODE	 (6<<16)
+#define STARPU_EXECUTE_ON_DATA	 (7<<16)
+#define STARPU_DATA_ARRAY        (8<<16)
+#define STARPU_DATA_MODE_ARRAY   (9<<16)
+#define STARPU_TAG               (10<<16)
+#define STARPU_HYPERVISOR_TAG	 (11<<16)
+#define STARPU_FLOPS	         (12<<16)
+#define STARPU_SCHED_CTX	 (13<<16)
+#define STARPU_PROLOGUE_CALLBACK   (14<<16)
+#define STARPU_PROLOGUE_CALLBACK_ARG (15<<16)
+#define STARPU_PROLOGUE_CALLBACK_POP   (16<<16)
+#define STARPU_PROLOGUE_CALLBACK_POP_ARG (17<<16)
+#define STARPU_EXECUTE_ON_WORKER (18<<16)
+#define STARPU_TAG_ONLY          (19<<16)
+#define STARPU_POSSIBLY_PARALLEL    (20<<16)
+#define STARPU_WORKER_ORDER      (21<<16)
 
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 int starpu_task_insert(struct starpu_codelet *cl, ...);

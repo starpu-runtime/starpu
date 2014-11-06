@@ -244,6 +244,11 @@ int _starpu_mpi_task_select_node(struct starpu_codelet *codelet, int me, int nb_
 				current_data ++;
 			}
 		}
+		else if (arg_type == STARPU_DATA_MODE_ARRAY)
+		{
+			(void)va_arg(varg_list, struct starpu_data_descr*);
+			(void)va_arg(varg_list, int);
+		}
 		else if (arg_type==STARPU_VALUE)
 		{
 			(void)va_arg(varg_list_copy, void *);
@@ -397,6 +402,11 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				}
 			}
 		}
+		else if (arg_type == STARPU_DATA_MODE_ARRAY)
+		{
+			(void)va_arg(varg_list, struct starpu_data_descr*);
+			(void)va_arg(varg_list, int);
+		}
 		else if (arg_type==STARPU_VALUE)
 		{
 			(void)va_arg(varg_list_copy, void *);
@@ -523,6 +533,11 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 				current_data++;
 			}
 		}
+		else if (arg_type == STARPU_DATA_MODE_ARRAY)
+		{
+			(void)va_arg(varg_list, struct starpu_data_descr*);
+			(void)va_arg(varg_list, int);
+		}
 		else if (arg_type==STARPU_VALUE)
 		{
 			va_arg(varg_list_copy, void *);
@@ -605,31 +620,13 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	if (do_execute == 0) return 1;
 	else
 	{
-		/* Get the number of buffers and the size of the arguments */
-		va_copy(varg_list_copy, varg_list);
-		_starpu_task_insert_get_args_size(varg_list_copy, NULL, &arg_buffer_size);
-		va_end(varg_list_copy);
-
-		/* Pack arguments if needed */
-		if (arg_buffer_size)
-		{
-			va_copy(varg_list_copy, varg_list);
-			_starpu_codelet_pack_args(&arg_buffer, arg_buffer_size, varg_list_copy);
-			va_end(varg_list_copy);
-		}
-
 		_STARPU_MPI_DEBUG(100, "Execution of the codelet %p (%s)\n", codelet, codelet?codelet->name:NULL);
 
 		*task = starpu_task_create();
 		(*task)->cl_arg_free = 1;
 
-		if (codelet && codelet->nbuffers > STARPU_NMAXBUFS)
-		{
-			(*task)->dyn_handles = malloc(codelet->nbuffers * sizeof(starpu_data_handle_t));
-		}
-
 		va_copy(varg_list_copy, varg_list);
-		_starpu_task_insert_create(arg_buffer, arg_buffer_size, codelet, task, varg_list_copy);
+		_starpu_task_insert_create(codelet, task, varg_list_copy);
 		va_end(varg_list_copy);
 		return 0;
 	}
@@ -671,6 +668,11 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, struct starpu_codelet *codelet, 
 				_starpu_mpi_clear_data_after_execution(datas[i], STARPU_CODELET_GET_MODE(codelet, current_data), me, do_execute, comm);
 				current_data++;
 			}
+		}
+		else if (arg_type == STARPU_DATA_MODE_ARRAY)
+		{
+			(void)va_arg(varg_list, struct starpu_data_descr*);
+			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
