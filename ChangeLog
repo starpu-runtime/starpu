@@ -102,6 +102,8 @@ Small features:
     working implementations
   * Add STARPU_MALLOC_NORECLAIM flag to allocate without running a reclaim if
     the node is out of memory.
+  * Add starpu_memory_allocate and _deallocate to let the application declare
+    its own allocation to the reclaiming engine.
   * New flag STARPU_DATA_MODE_ARRAY for the function family
     starpu_task_insert to allow to define a array of data handles
     along with their access modes.

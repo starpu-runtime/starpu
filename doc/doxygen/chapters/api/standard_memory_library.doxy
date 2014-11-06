@@ -87,4 +87,38 @@ If a memory limit is defined on the given node (see Section \ref
 HowToLimitMemoryPerNode), return the amount of available memory
 on the node. Otherwise return -1.
 
+\fn int starpu_memory_allocate(unsigned node, size_t size, int flags)
+\ingroup API_Standard_Memory_Library
+If a memory limit is defined on the given node (see Section \ref
+HowToLimitMemoryPerNode), try to allocate some of it. This does not actually
+allocate memory, but only accounts for it. This can be useful when the
+application allocates data another way, but want StarPU to be aware of the
+allocation size e.g. for memory reclaiming.
+By default, the function returns -ENOMEM if there is not enough room on
+the given node. \p flags can be either STARPU_MEMORY_MANAGER_WAIT or
+STARPU_MEMORY_MANAGER_OVERFLOW to change this.
+
+\fn int starpu_memory_deallocate(unsigned node, size_t size)
+\ingroup API_Standard_Memory_Library
+If a memory limit is defined on the given node (see Section \ref
+HowToLimitMemoryPerNode), free some of it. This does not actually free memory,
+but only accounts for it, like starpu_memory_allocate(). The amount does not
+have to be exactly the same as what was passed to starpu_memory_allocate(),
+only the eventual amount needs to be the same, i.e. one call to
+starpu_memory_allocate() can be followed by several calls to
+starpu_memory_deallocate() to declare the deallocation piece by piece.
+
+\def STARPU_MEMORY_MANAGER_WAIT
+\ingroup API_Standard_Memory_Library
+Value passed to starpu_memory_allocate() to specify that the function should
+wait for the requested amount of memory to become available, and atomically
+allocate it.
+
+\def STARPU_MEMORY_MANAGER_OVERFLOW
+\ingroup API_Standard_Memory_Library
+Value passed to starpu_memory_allocate() to specify that the function should
+allocate the amount of memory, even if that means overflowing the total size of
+the memory node.
+
+
 */

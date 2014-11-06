@@ -41,33 +41,7 @@ void _starpu_memory_manager_set_global_memory_size(unsigned node, size_t size);
  */
 size_t _starpu_memory_manager_get_global_memory_size(unsigned node);
 
-/**
- * Try to allocate memory on the given node
- *
- * @param size amount of memory to allocate
- * @param node node where the memory is to be allocated
- * @return 1 if the given amount of memory was allocated on the given node
- */
-int _starpu_memory_manager_can_allocate_size(size_t size, unsigned node) STARPU_WARN_UNUSED_RESULT;
-
-/**
- * Allocate memory on the given node, without caring about overflowing
- *
- * @param size amount of memory to allocate
- * @param node node where the memory is to be allocated
- */
-void _starpu_memory_manager_allocate_size(size_t size, unsigned node);
-
-/**
- * Indicates the given amount of memory is going to be deallocated from the given node
- *
- * @param size amount of memory to be deallocated
- * @param node node where the memory is going to be deallocated
- */
-void _starpu_memory_manager_deallocate_size(size_t size, unsigned node);
-
-
-int _starpu_memory_manager_test_allocate_size_(size_t size, unsigned node);
+int _starpu_memory_manager_test_allocate_size(unsigned node, size_t size);
 
 #ifdef __cplusplus
 }

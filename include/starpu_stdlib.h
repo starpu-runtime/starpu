@@ -40,6 +40,27 @@ int starpu_free_flags(void *A, size_t dim, int flags);
 starpu_ssize_t starpu_memory_get_total(unsigned node);
 starpu_ssize_t starpu_memory_get_available(unsigned node);
 
+#define STARPU_MEMORY_WAIT (1)
+#define STARPU_MEMORY_OVERFLOW (2)
+
+/**
+ * Try to allocate memory on the given node
+ *
+ * @param size amount of memory to allocate
+ * @param node node where the memory is to be allocated
+ * @return 1 if the given amount of memory was allocated on the given node
+ */
+int starpu_memory_allocate(unsigned node, size_t size, int flags);
+
+/**
+ * Indicates the given amount of memory is going to be deallocated from the given node
+ *
+ * @param size amount of memory to be deallocated
+ * @param node node where the memory is going to be deallocated
+ */
+void starpu_memory_deallocate(unsigned node, size_t size);
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -93,7 +93,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 	if (flags & STARPU_MALLOC_COUNT)
 	{
 		if (!(flags & STARPU_MALLOC_NORECLAIM))
-			while (_starpu_memory_manager_can_allocate_size(dim, STARPU_MAIN_RAM) == 0)
+			while (starpu_memory_allocate(STARPU_MAIN_RAM, dim, 0) != 0)
 			{
 				size_t freed;
 				size_t reclaim = 2 * dim;
@@ -109,7 +109,7 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				}
 			}
 		else
-			_starpu_memory_manager_allocate_size(dim, STARPU_MAIN_RAM);
+			starpu_memory_allocate(STARPU_MAIN_RAM, dim, STARPU_MEMORY_OVERFLOW);
 	}
 
 	if (flags & STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0 && RUNNING_ON_VALGRIND == 0)
@@ -231,7 +231,7 @@ end:
 	}
 	else if (flags & STARPU_MALLOC_COUNT)
 	{
-		_starpu_memory_manager_deallocate_size(dim, 0);
+		starpu_memory_deallocate(STARPU_MAIN_RAM, dim);
 	}
 
 	return ret;
@@ -359,7 +359,7 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 out:
 	if (flags & STARPU_MALLOC_COUNT)
 	{
-		_starpu_memory_manager_deallocate_size(dim, STARPU_MAIN_RAM);
+		starpu_memory_deallocate(STARPU_MAIN_RAM, dim);
 	}
 
 	return 0;
@@ -384,7 +384,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 	cudaError_t status;
 #endif
 
-	if (_starpu_memory_manager_can_allocate_size(size, dst_node) == 0)
+	if (starpu_memory_allocate(dst_node, size, 0) != 0)
 		return 0;
 
 	switch(starpu_node_get_kind(dst_node))
@@ -497,7 +497,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 		file = strrchr(__FILE__,'/');							
 		file += sizeof(char);										
 		_STARPU_TRACE_MEMORY_FULL(size);
-		_starpu_memory_manager_deallocate_size(size, dst_node);
+		starpu_memory_deallocate(dst_node, size);
 	}
 	return addr;
 }
@@ -588,7 +588,7 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 		default:
 			STARPU_ABORT();
 	}
-	_starpu_memory_manager_deallocate_size(size, dst_node);
+	starpu_memory_deallocate(dst_node, size);
 
 }
 
