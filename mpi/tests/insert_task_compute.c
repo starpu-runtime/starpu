@@ -33,7 +33,7 @@ struct starpu_codelet mycodelet =
 	.modes = {STARPU_RW, STARPU_R}
 };
 
-int test(int rank, int node, int *before, int *after, int task_insert)
+int test(int rank, int node, int *before, int *after, int task_insert, int data_array)
 {
 	int ok, ret, i, x[2];
 	starpu_data_handle_t data_handles[2];
@@ -61,22 +61,41 @@ int test(int rank, int node, int *before, int *after, int task_insert)
 
 	if (task_insert)
 	{
-		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
-					     STARPU_EXECUTE_ON_NODE, node, 0);
+		if (data_array)
+			ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
+						     STARPU_DATA_ARRAY, data_handles, 2,
+						     STARPU_EXECUTE_ON_NODE, node, 0);
+		else
+			ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
+						     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
+						     STARPU_EXECUTE_ON_NODE, node, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 	}
 	else
 	{
-		struct starpu_task *task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
-								 STARPU_EXECUTE_ON_NODE, node, 0);
+		struct starpu_task *task = NULL;
+		if (data_array)
+			task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
+						     STARPU_DATA_ARRAY, data_handles, 2,
+						     STARPU_EXECUTE_ON_NODE, node, 0);
+		else
+			task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
+						     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
+						     STARPU_EXECUTE_ON_NODE, node, 0);
 		if (task)
 		{
 			ret = starpu_task_submit(task);
 			if (ret == -ENODEV) goto enodev;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
-		starpu_mpi_task_post_build(MPI_COMM_WORLD, &mycodelet, STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
-					   STARPU_EXECUTE_ON_NODE, node, 0);
+		if (data_array)
+			starpu_mpi_task_post_build(MPI_COMM_WORLD, &mycodelet,
+						   STARPU_DATA_ARRAY, descrs, 2,
+						   STARPU_EXECUTE_ON_NODE, node, 0);
+		else
+			starpu_mpi_task_post_build(MPI_COMM_WORLD, &mycodelet,
+						   STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
+						   STARPU_EXECUTE_ON_NODE, node, 0);
 	}
 
 	starpu_task_wait_for_all();
@@ -107,28 +126,26 @@ nodata:
 
 int main(int argc, char **argv)
 {
-	int rank, size;
+	int rank;
 	int ret;
+	int before[4] = {10, 20, 11, 22};
+	int after_node[2][4] = {{220, 22, 11, 22}, {220, 20, 220, 22}};
+	int node, insert_task, data_array;
 
 	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-	int before[4] = {10, 20, 11, 22};
-	int after_node1[4] = {220, 20, 220, 22};
-	int after_node0[4] = {220, 22, 11, 22};
-
-	ret = test(rank, 0, before, after_node0, 1);
-	if (ret == -ENODEV || ret) goto end;
-
-	ret = test(rank, 0, before, after_node0, 0);
-	if (ret == -ENODEV || ret) goto end;
-
-	ret = test(rank, 1, before, after_node1, 1);
-	if (ret == -ENODEV || ret) goto end;
-
-	ret = test(rank, 1, before, after_node1, 0);
-	if (ret == -ENODEV || ret) goto end;
+	for(node=0 ; node<=1 ; node++)
+	{
+		for(insert_task=0 ; insert_task<=1 ; insert_task++)
+		{
+			for(data_array=0 ; data_array<=1 ; data_array++)
+			{
+				ret = test(rank, node, before, after_node[node], insert_task, data_array);
+				if (ret == -ENODEV || ret) goto end;
+			}
+		}
+	}
 
 end:
 	MPI_Finalize();
