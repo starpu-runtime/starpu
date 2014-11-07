@@ -246,8 +246,15 @@ int _starpu_mpi_task_select_node(struct starpu_codelet *codelet, int me, int nb_
 		}
 		else if (arg_type == STARPU_DATA_MODE_ARRAY)
 		{
-			(void)va_arg(varg_list, struct starpu_data_descr*);
-			(void)va_arg(varg_list, int);
+			struct starpu_data_descr *_descrs = va_arg(varg_list_copy, struct starpu_data_descr*);
+			int nb_handles = va_arg(varg_list_copy, int);
+			int i;
+			for(i=0 ; i<nb_handles ; i++)
+			{
+				descr[current_data].handle = _descrs[i].handle;
+				descr[current_data].mode = _descrs[i].mode;
+				current_data ++;
+			}
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
@@ -404,8 +411,23 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		}
 		else if (arg_type == STARPU_DATA_MODE_ARRAY)
 		{
-			(void)va_arg(varg_list, struct starpu_data_descr*);
-			(void)va_arg(varg_list, int);
+			struct starpu_data_descr *descrs = va_arg(varg_list_copy, struct starpu_data_descr*);
+			int nb_handles = va_arg(varg_list_copy, int);
+			if (node_selected) current_data += nb_handles;
+			else
+			{
+				int i;
+				for(i=0 ; i<nb_handles ; i++)
+				{
+					enum starpu_data_access_mode mode = descrs[i].mode;
+					int ret = _starpu_mpi_find_executee_node(descrs[i].handle, mode, me, do_execute, &inconsistent_execute, xrank);
+					if (ret == -EINVAL)
+					{
+						return ret;
+					}
+					current_data ++;
+				}
+			}
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
@@ -535,8 +557,15 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 		}
 		else if (arg_type == STARPU_DATA_MODE_ARRAY)
 		{
-			(void)va_arg(varg_list, struct starpu_data_descr*);
-			(void)va_arg(varg_list, int);
+			struct starpu_data_descr *descrs = va_arg(varg_list_copy, struct starpu_data_descr*);
+			int nb_handles = va_arg(varg_list_copy, int);
+			int i;
+
+			for(i=0 ; i<nb_handles ; i++)
+			{
+				_starpu_mpi_exchange_data_before_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, comm);
+				current_data++;
+			}
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
@@ -671,8 +700,16 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, struct starpu_codelet *codelet, 
 		}
 		else if (arg_type == STARPU_DATA_MODE_ARRAY)
 		{
-			(void)va_arg(varg_list, struct starpu_data_descr*);
-			(void)va_arg(varg_list, int);
+			struct starpu_data_descr *descrs = va_arg(varg_list_copy, struct starpu_data_descr*);
+			int nb_handles = va_arg(varg_list_copy, int);
+			int i;
+
+			for(i=0 ; i<nb_handles ; i++)
+			{
+				_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, comm);
+				_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute, comm);
+				current_data++;
+			}
 		}
 		else if (arg_type==STARPU_VALUE)
 		{
