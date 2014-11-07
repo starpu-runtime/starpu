@@ -52,7 +52,7 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 
 		size_t arg_size;
 		memcpy(&arg_size, cl_arg+current_arg_offset, sizeof(arg_size));
-		current_arg_offset += sizeof(size_t);
+		current_arg_offset += sizeof(arg_size);
 
 		memcpy(argptr, cl_arg+current_arg_offset, arg_size);
 		current_arg_offset += arg_size;

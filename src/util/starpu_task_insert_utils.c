@@ -48,7 +48,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 	int nargs = 0;
 	char *_arg_buffer = NULL; // We would like a void* but we use a char* to allow pointer arithmetic
 	size_t _arg_buffer_size = 0;
-	size_t current_offset = sizeof(int);
+	size_t current_offset = sizeof(nargs);
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -185,17 +185,14 @@ void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct star
 			int i;
 			*allocated_buffers = STARPU_NMAXBUFS * 2;
 			(*task)->dyn_handles = malloc(*allocated_buffers * sizeof(starpu_data_handle_t));
-			(*task)->dyn_modes = malloc(*allocated_buffers * sizeof(enum starpu_data_access_mode));
 			for(i=0 ; i<nbuffers ; i++)
 			{
 				(*task)->dyn_handles[i] = (*task)->handles[i];
 			}
-			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
+			(*task)->dyn_modes = malloc(*allocated_buffers * sizeof(enum starpu_data_access_mode));
+			for(i=0 ; i<nbuffers ; i++)
 			{
-				for(i=0 ; i<nbuffers ; i++)
-				{
-					(*task)->dyn_modes[i] = (*task)->modes[i];
-				}
+				(*task)->dyn_modes[i] = ((*task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS) ? (*task)->modes[i] : STARPU_CODELET_GET_MODE((*task)->cl, i);
 			}
 		}
 		else
@@ -299,7 +296,7 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 			{
 				_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, nbuffers);
 				STARPU_TASK_SET_HANDLE((*task), descrs[i].handle, nbuffers);
-				if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
+				if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (*task)->dyn_modes)
 					STARPU_TASK_SET_MODE(*task, descrs[i].mode, nbuffers);
 				else if (STARPU_CODELET_GET_MODE(cl, nbuffers))
 				{
