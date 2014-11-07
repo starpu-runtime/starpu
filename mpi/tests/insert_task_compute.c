@@ -37,6 +37,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 {
 	int ok, ret, i, x[2];
 	starpu_data_handle_t data_handles[2];
+	struct starpu_data_descr descrs[2];
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -57,45 +58,104 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 			FPRINTF_MPI("before computation x[%d] = %d\n", i, x[i]);
 		starpu_variable_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&x[i], sizeof(int));
 		starpu_mpi_data_register(data_handles[i], i, i);
+		descrs[i].handle = data_handles[i];
 	}
+	descrs[0].mode = STARPU_RW;
+	descrs[1].mode = STARPU_R;
 
-	if (task_insert)
+	switch(task_insert)
 	{
-		if (data_array)
-			ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
-						     STARPU_DATA_ARRAY, data_handles, 2,
-						     STARPU_EXECUTE_ON_NODE, node, 0);
-		else
-			ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
-						     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
-						     STARPU_EXECUTE_ON_NODE, node, 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
-	}
-	else
-	{
-		struct starpu_task *task = NULL;
-		if (data_array)
-			task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
-						     STARPU_DATA_ARRAY, data_handles, 2,
-						     STARPU_EXECUTE_ON_NODE, node, 0);
-		else
-			task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
-						     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
-						     STARPU_EXECUTE_ON_NODE, node, 0);
-		if (task)
+		case 0:
 		{
-			ret = starpu_task_submit(task);
-			if (ret == -ENODEV) goto enodev;
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+			struct starpu_task *task = NULL;
+			switch(data_array)
+			{
+				case 0:
+				{
+					task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 1:
+				{
+					task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_DATA_ARRAY, data_handles, 2,
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 2:
+				{
+					task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_DATA_MODE_ARRAY, descrs, 2,
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+			}
+
+			if (task)
+			{
+				ret = starpu_task_submit(task);
+				if (ret == -ENODEV) goto enodev;
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+			}
+
+			switch(data_array)
+			{
+				case 0:
+				{
+					starpu_mpi_task_post_build(MPI_COMM_WORLD, &mycodelet,
+								   STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
+								   STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 1:
+				{
+					starpu_mpi_task_post_build(MPI_COMM_WORLD, &mycodelet,
+								   STARPU_DATA_ARRAY, data_handles, 2,
+								   STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 2:
+				{
+					starpu_mpi_task_post_build(MPI_COMM_WORLD, &mycodelet,
+								   STARPU_DATA_MODE_ARRAY, descrs, 2,
+								   STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+			}
+
+			break;
 		}
-		if (data_array)
-			starpu_mpi_task_post_build(MPI_COMM_WORLD, &mycodelet,
-						   STARPU_DATA_ARRAY, descrs, 2,
-						   STARPU_EXECUTE_ON_NODE, node, 0);
-		else
-			starpu_mpi_task_post_build(MPI_COMM_WORLD, &mycodelet,
-						   STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
-						   STARPU_EXECUTE_ON_NODE, node, 0);
+		case 1:
+		{
+			switch(data_array)
+			{
+				case 0:
+				{
+					ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 1:
+				{
+					ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_DATA_ARRAY, data_handles, 2,
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+				case 2:
+				{
+					ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
+								     STARPU_DATA_MODE_ARRAY, descrs, 2,
+								     STARPU_EXECUTE_ON_NODE, node, 0);
+					break;
+				}
+			}
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
+			break;
+		}
 	}
 
 	starpu_task_wait_for_all();
@@ -139,7 +199,7 @@ int main(int argc, char **argv)
 	{
 		for(insert_task=0 ; insert_task<=1 ; insert_task++)
 		{
-			for(data_array=0 ; data_array<=1 ; data_array++)
+			for(data_array=0 ; data_array<=2 ; data_array++)
 			{
 				ret = test(rank, node, before, after_node[node], insert_task, data_array);
 				if (ret == -ENODEV || ret) goto end;
