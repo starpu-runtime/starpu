@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	task2->synchronous = 1;
 	task2->cl = &dummy_big_cl;
 	starpu_codelet_pack_args(&task2->cl_arg, &task2->cl_arg_size,
-				 STARPU_VALUE, &task2->cl->nbuffers, sizeof(task2->cl->nbuffers),
+				 STARPU_VALUE, &(task2->cl->nbuffers), sizeof(task2->cl->nbuffers),
 				 0);
 	task2->dyn_handles = malloc(task2->cl->nbuffers * sizeof(starpu_data_handle_t));
 	for(i=0 ; i<task2->cl->nbuffers ; i++)
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	ret = starpu_task_insert(&dummy_small_cl,
-				 STARPU_VALUE, &dummy_small_cl.nbuffers, sizeof(dummy_small_cl.nbuffers),
+				 STARPU_VALUE, &(dummy_small_cl.nbuffers), sizeof(dummy_small_cl.nbuffers),
 				 STARPU_RW, handle,
 				 0);
 	if (ret == -ENODEV) goto enodev;
@@ -121,7 +121,7 @@ int main(int argc, char **argv)
 		descrs[i].mode = STARPU_RW;
 	}
 	ret = starpu_task_insert(&dummy_big_cl,
-				 STARPU_VALUE, &dummy_big_cl.nbuffers, sizeof(dummy_big_cl.nbuffers),
+				 STARPU_VALUE, &(dummy_big_cl.nbuffers), sizeof(dummy_big_cl.nbuffers),
 				 STARPU_DATA_MODE_ARRAY, descrs, dummy_big_cl.nbuffers,
 				 0);
 	if (ret == -ENODEV) goto enodev;
@@ -131,14 +131,12 @@ int main(int argc, char **argv)
 	free(descrs);
 
 	starpu_data_unregister(handle);
-	free(dummy_big_cl.dyn_modes);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 
 enodev:
 	starpu_data_unregister(handle);
-	free(dummy_big_cl.dyn_modes);
 	starpu_shutdown();
 	return 77;
 }
