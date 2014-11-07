@@ -397,8 +397,8 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 	{
 		task->starpu_buffers = buffers;
 		task->starpu_cl_arg = cl_arg;
-		STARPU_ASSERT (task->stack == NULL);
-		/* TODO: use ICV stack size info instead */
+		STARPU_ASSERT(task->stack == NULL);
+		STARPU_ASSERT(task->stacksize > 0);
 		task->stack = malloc(task->stacksize);
 		if (task->stack == NULL)
 			_STARPU_ERROR("memory allocation failed");
@@ -491,8 +491,8 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 		}
 		task->starpu_buffers = buffers;
 		task->starpu_cl_arg = cl_arg;
-		STARPU_ASSERT (task->stack == NULL);
-		/* TODO: use ICV stack size info instead */
+		STARPU_ASSERT(task->stack == NULL);
+		STARPU_ASSERT(task->stacksize > 0);
 		task->stack = malloc(task->stacksize);
 		if (task->stack == NULL)
 			_STARPU_ERROR("memory allocation failed");
@@ -608,6 +608,7 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 
 	if (owner_region->level > 0)
 	{
+		STARPU_ASSERT(owner_region->owner_device->icvs.stacksize_var > 0);
 		task->stacksize = owner_region->owner_device->icvs.stacksize_var;
 	}
 
