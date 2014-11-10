@@ -117,6 +117,12 @@ void starpu_task_clean(struct starpu_task *task)
 		task->dyn_interfaces = NULL;
 	}
 
+	if (task->dyn_modes)
+	{
+		free(task->dyn_modes);
+		task->dyn_modes = NULL;
+	}
+
 	struct _starpu_job *j = (struct _starpu_job *)task->starpu_private;
 
 	if (j)
