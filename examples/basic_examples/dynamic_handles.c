@@ -86,6 +86,7 @@ int main(int argc, char **argv)
 				 0);
 	task->dyn_handles = malloc(sizeof(starpu_data_handle_t));
 	task->dyn_handles[0] = handle;
+	task->cl_arg_free = 1;
 	ret = starpu_task_submit(task);
 	if (ret == -ENODEV) goto enodev;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -93,6 +94,7 @@ int main(int argc, char **argv)
 	task2 = starpu_task_create();
 	task2->synchronous = 1;
 	task2->cl = &dummy_big_cl;
+	task2->cl_arg_free = 1;
 	starpu_codelet_pack_args(&task2->cl_arg, &task2->cl_arg_size,
 				 STARPU_VALUE, &(task2->cl->nbuffers), sizeof(task2->cl->nbuffers),
 				 0);
