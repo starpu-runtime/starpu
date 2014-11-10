@@ -54,6 +54,7 @@ int main(int argc, char **argv)
 	task = starpu_task_create();
 	task->synchronous = 1;
 	task->cl = &mycodelet;
+	task->cl_arg_free = 1;
 	starpu_codelet_pack_args(&task->cl_arg, &task->cl_arg_size,
 				 STARPU_VALUE, &factor, sizeof(factor),
 				 STARPU_VALUE, &c, sizeof(c),
