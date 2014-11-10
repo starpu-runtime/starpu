@@ -296,7 +296,11 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 			{
 				_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, nbuffers);
 				STARPU_TASK_SET_HANDLE((*task), descrs[i].handle, nbuffers);
-				if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (*task)->dyn_modes)
+				if ((*task)->dyn_modes)
+				{
+					(*task)->dyn_modes[i] = descrs[i].mode;
+				}
+				else if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
 					STARPU_TASK_SET_MODE(*task, descrs[i].mode, nbuffers);
 				else if (STARPU_CODELET_GET_MODE(cl, nbuffers))
 				{
