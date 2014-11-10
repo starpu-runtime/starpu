@@ -59,7 +59,6 @@ void starpu_codelet_unpack_args(void *_cl_arg, ...)
 	}
 
 	va_end(varg_list);
-	free(_cl_arg);
 }
 
 static
