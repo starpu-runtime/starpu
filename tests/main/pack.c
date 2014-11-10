@@ -33,7 +33,6 @@ void func_cpu(void *descr[], void *_args)
 struct starpu_codelet mycodelet =
 {
 	.cpu_funcs = {func_cpu},
-	.cpu_funcs_name = {"func_cpu"},
         .nbuffers = 0
 };
 
