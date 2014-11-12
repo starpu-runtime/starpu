@@ -49,7 +49,7 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struc
 
 	if (model)
 	{
-		if (model->footprint)
+		if (model && model->footprint)
 		{
 			footprint = model->footprint(task);
 		}
@@ -71,6 +71,10 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struc
 				footprint = starpu_task_data_footprint(task);
 			}
 		}
+	}
+	else
+	{
+		footprint = starpu_task_data_footprint(task);
 	}
 
 	j->footprint = footprint;
