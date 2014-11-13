@@ -206,11 +206,13 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	int nb_allocated_data = 16;
 	struct starpu_data_descr *descrs;
 	int nb_data;
+	char *select_node_policy = NULL;
 
 	descrs = (struct starpu_data_descr *)malloc(nb_allocated_data * sizeof(struct starpu_data_descr));
 	nb_data = 0;
 	*do_execute = -1;
 	*xrank = -1;
+
 	va_copy(varg_list_copy, varg_list);
 	while ((arg_type = va_arg(varg_list_copy, int)) != 0)
 	{
@@ -381,6 +383,10 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
 		}
+		else if (arg_type==STARPU_NODE_SELECTION_POLICY)
+		{
+			select_node_policy = va_arg(varg_list, char *);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
@@ -393,7 +399,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	{
 		// We need to find out which node is going to execute the codelet.
 		_STARPU_MPI_DISP("Different nodes are owning W data. Need to specify which node is going to execute the codelet, using STARPU_EXECUTE_ON_NODE or STARPU_EXECUTE_ON_DATA\n");
-		*xrank = _starpu_mpi_select_node(me, nb_nodes, descrs, nb_data);
+		*xrank = _starpu_mpi_select_node(me, nb_nodes, descrs, nb_data, select_node_policy);
 		*do_execute = (me == *xrank);
 	}
 	else

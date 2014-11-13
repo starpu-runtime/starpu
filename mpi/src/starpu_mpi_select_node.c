@@ -24,13 +24,27 @@
 #include <starpu_mpi_task_insert.h>
 #include <datawizard/coherency.h>
 
-int _starpu_mpi_select_node(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data)
+static char *_default_policy = "node_with_most_R_data";
+
+char *starpu_mpi_node_selection_get_default_policy()
+{
+	return _default_policy;
+}
+
+int starpu_mpi_node_selection_set_default_policy(char *policy)
+{
+	strcpy(_default_policy, policy);
+	return 0;
+}
+
+int _starpu_mpi_select_node_with_most_R_data(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data)
 {
 	size_t *size_on_nodes;
 	size_t max_size;
 	int i;
 	int xrank;
 
+	(void)me;
 	size_on_nodes = (size_t *)calloc(1, nb_nodes * sizeof(size_t));
 
 	for(i= 0 ; i<nb_data ; i++)
@@ -44,7 +58,6 @@ int _starpu_mpi_select_node(int me, int nb_nodes, struct starpu_data_descr *desc
 		}
 	}
 
-	// We select the node which has the most data in R mode
 	max_size = 0;
 	for(i=0 ; i<nb_nodes ; i++)
 	{
@@ -56,4 +69,15 @@ int _starpu_mpi_select_node(int me, int nb_nodes, struct starpu_data_descr *desc
 	}
 
 	return xrank;
+}
+
+int _starpu_mpi_select_node(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data, char *policy)
+{
+	char *current_policy = policy ? policy : _default_policy;
+	if (current_policy == NULL)
+		STARPU_ABORT_MSG("Node selection policy MUST be defined\n");
+	if (strcmp(current_policy, "node_with_most_R_data") == 0)
+		return _starpu_mpi_select_node_with_most_R_data(me, nb_nodes, descr, nb_data);
+	else
+		STARPU_ABORT_MSG("Node selection policy <%s> unknown\n", current_policy);
 }

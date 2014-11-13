@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-int _starpu_mpi_select_node(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data);
+int _starpu_mpi_select_node(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data, char *policy);
 
 #ifdef __cplusplus
 }

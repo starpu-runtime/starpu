@@ -40,6 +40,10 @@ New features:
 	  defined for the given data)
         - New functions starpu_mpi_task_build() and
   	  starpu_mpi_task_post_build()
+        - New flag STARPU_NODE_SELECTION_POLICY to specify a policy for
+          selecting a node to execute the codelet when several nodes
+	  own data in W mode.
+
   * New STARPU_COMMUTE flag which can be passed along STARPU_W or STARPU_RW to
     let starpu commute write accesses.
   * Out-of-core support, through registration of disk areas as additional memory

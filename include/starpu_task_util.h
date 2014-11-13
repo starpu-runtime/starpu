@@ -53,6 +53,7 @@ void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t
 #define STARPU_TAG_ONLY          (19<<16)
 #define STARPU_POSSIBLY_PARALLEL    (20<<16)
 #define STARPU_WORKER_ORDER      (21<<16)
+#define STARPU_NODE_SELECTION_POLICY (22<<16)
 
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 int starpu_task_insert(struct starpu_codelet *cl, ...);
