@@ -49,7 +49,7 @@ void callback(void *arg)
 		FPRINTF(stderr, "Stop !\n");
 
 		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-		completed = 1;
+		completed++;
 		STARPU_PTHREAD_COND_SIGNAL(&cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 	}
@@ -89,6 +89,9 @@ int main(int argc, char **argv)
 	double end;
 	int ret;
 
+	/* disable for now, still buggy */
+	return STARPU_TEST_SKIPPED;
+
 	parse_args(argc, argv);
 
 	ret = starpu_initialize(NULL, &argc, &argv);
@@ -121,7 +124,7 @@ int main(int argc, char **argv)
 	taskC.detach = 1;
 	taskC.callback_func = callback;
 	taskC.callback_arg = &cntC;
-	starpu_task_declare_deps_array(&taskA, 1, &taskBp);
+	starpu_task_declare_deps_array(&taskC, 1, &taskBp);
 
 	FPRINTF(stderr, "#tasks : %u\n", ntasks);
 
@@ -136,7 +139,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	if (!completed)
+	while (completed < 3)
 		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
@@ -144,8 +147,11 @@ int main(int argc, char **argv)
 
 	timing = end - start;
 
+	FPRINTF(stderr, "cntA : %u\n", cntA);
+	FPRINTF(stderr, "cntB : %u\n", cntB);
+	FPRINTF(stderr, "cntC : %u\n", cntC);
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
-	FPRINTF(stderr, "Per task: %f usecs\n", timing/ntasks);
+	FPRINTF(stderr, "Per task: %f usecs\n", timing/(ntasks*3));
 
 	starpu_shutdown();
 

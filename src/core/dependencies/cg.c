@@ -160,8 +160,6 @@ void _starpu_notify_cg(struct _starpu_cg *cg)
 				if (j->submitted && job_successors->ndeps == ndeps_completed &&
 					j->task->status == STARPU_TASK_BLOCKED_ON_TASK)
 				{
-					/* reset the counter so that we can reuse the completion group */
-					job_successors->ndeps_completed = 0;
 					/* That task has already passed tag checks,
 					 * do not do them again since the tag has been cleared! */
 					_starpu_enforce_deps_starting_from_task(j);
