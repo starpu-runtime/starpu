@@ -13,9 +13,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
-OB */
+ */
 
 #include <starpu.h>
+#include <stdlib.h>
 
 #ifdef STARPU_QUICK_CHECK
 #define NTASKS 64
@@ -63,6 +64,7 @@ int main(int argc, char **argv)
 	int nprocs1 = 0;
 	int nprocs2 = 0;
 	int procs1[STARPU_NMAXWORKERS], procs2[STARPU_NMAXWORKERS];
+	char *sched;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
@@ -89,8 +91,9 @@ int main(int argc, char **argv)
 	}
 
 	/*create contexts however you want*/
-	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
-	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", STARPU_SCHED_CTX_POLICY_NAME, "eager", 0);
+	sched = getenv("STARPU_SCHED");
+	unsigned sched_ctx1 = starpu_sched_ctx_create(procs1, nprocs1, "ctx1", STARPU_SCHED_CTX_POLICY_NAME, sched?sched:"eager", 0);
+	unsigned sched_ctx2 = starpu_sched_ctx_create(procs2, nprocs2, "ctx2", STARPU_SCHED_CTX_POLICY_NAME, sched?sched:"eager", 0);
 
 	/*indicate what to do with the resources when context 2 finishes (it depends on your application)*/
 	starpu_sched_ctx_set_inheritor(sched_ctx2, sched_ctx1);
