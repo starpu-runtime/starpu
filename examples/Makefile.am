@@ -60,7 +60,8 @@ EXTRA_DIST = 					\
 	interface/complex_kernels.cl \
 	reductions/dot_product.h	\
 	reductions/dot_product_opencl_kernels.cl	\
-	scheduler/schedulers.sh
+	scheduler/schedulers.sh				\
+	scheduler/schedulers_context.sh
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log
 
@@ -131,6 +132,7 @@ examplebin_PROGRAMS 	+=	$(STARPU_EXAMPLES)
 
 TESTS			=	$(STARPU_EXAMPLES)
 TESTS			+=	scheduler/schedulers.sh
+TESTS			+=	scheduler/schedulers_context.sh
 
 if STARPU_HAVE_WINDOWS
 check_PROGRAMS		=	$(STARPU_EXAMPLES)
