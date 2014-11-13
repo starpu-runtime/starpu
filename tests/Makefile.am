@@ -127,9 +127,10 @@ noinst_PROGRAMS =				\
 	main/static_restartable_using_initializer\
 	main/static_restartable_tag		\
 	main/regenerate				\
+	main/regenerate_pipeline		\
 	main/wait_all_regenerable_tasks		\
 	main/subgraph_repeat			\
-	main/subgraph_repeat_tag			\
+	main/subgraph_repeat_tag		\
 	main/subgraph_repeat_regenerate		\
 	main/subgraph_repeat_regenerate_tag	\
 	main/empty_task				\
