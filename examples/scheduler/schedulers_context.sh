@@ -33,11 +33,6 @@ SCHEDULERS=`STARPU_SCHED="help" ./basic_examples/hello_world 2>&1 | awk '/\t->/ 
 
 for sched in $SCHEDULERS
 do
-    # XXX peager often hangs, we have to fix it.
-    # Let's just disable it for now.
-    if [ "$sched" = "peager" ] ; then
-        continue
-    fi
     echo "sched_ctx.$sched"
     STARPU_SCHED=$sched ./sched_ctx/sched_ctx
     check_success $?
