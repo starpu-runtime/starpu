@@ -68,7 +68,7 @@ custom_filter(void *father, void *child, struct starpu_data_filter *f,
 	custom_child = (struct custom_data_interface *) child;
 
 	assert(N % nchunks == 0); // XXX 
-	ssize_t chunk_size = N/nchunks;
+	starpu_ssize_t chunk_size = N/nchunks;
 
 	if (custom_father->cpu_ptr)
 	{

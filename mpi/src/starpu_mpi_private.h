@@ -85,7 +85,7 @@ LIST_TYPE(_starpu_mpi_req,
 	/* description of the data to be sent/received */
 	MPI_Datatype datatype;
 	void *ptr;
-	ssize_t count;
+	starpu_ssize_t count;
 	int user_datatype;
 
 	/* who are we talking to ? */

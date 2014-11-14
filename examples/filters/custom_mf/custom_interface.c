@@ -69,7 +69,7 @@ static const struct starpu_data_copy_methods custom_copy_data_methods_s =
 static void     register_custom_handle(starpu_data_handle_t handle,
 				       unsigned home_node,
 				       void *data_interface);
-static ssize_t  allocate_custom_buffer_on_node(void *data_interface_,
+static starpu_ssize_t  allocate_custom_buffer_on_node(void *data_interface_,
 					       unsigned dst_node);
 static void*    custom_handle_to_pointer(starpu_data_handle_t data_handle,
 					 unsigned node);
@@ -143,9 +143,9 @@ register_custom_handle(starpu_data_handle_t handle, unsigned home_node, void *da
 	}
 }
 
-static ssize_t allocate_custom_buffer_on_node(void *data_interface, unsigned node)
+static starpu_ssize_t allocate_custom_buffer_on_node(void *data_interface, unsigned node)
 {
-	ssize_t size = 0;
+	starpu_ssize_t size = 0;
 	struct custom_data_interface *custom_interface;
 	custom_interface = (struct custom_data_interface *) data_interface;
 
@@ -294,7 +294,7 @@ copy_cuda_common_async(void *src_interface, unsigned src_node,
 	src_custom = (struct custom_data_interface *) src_interface;
 	dst_custom = (struct custom_data_interface *) dst_interface;
 
-	ssize_t size = 0;
+	starpu_ssize_t size = 0;
 	cudaError_t err;
 
 	switch (kind)
@@ -402,7 +402,7 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
 				    cl_event *event)
 {
-	ssize_t size;
+	starpu_ssize_t size;
 	struct custom_data_interface *src_custom, *dst_custom;
 
 	src_custom = (struct custom_data_interface *) src_interface;
@@ -445,7 +445,7 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 				    void *dst_interface, unsigned dst_node,
 				    cl_event *event)
 {
-	ssize_t size;
+	starpu_ssize_t size;
 	struct custom_data_interface *src_custom, *dst_custom;
 
 	src_custom = (struct custom_data_interface *) src_interface;

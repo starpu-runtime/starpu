@@ -64,7 +64,7 @@ static starpu_ssize_t complex_allocate_data_on_node(void *data_interface, unsign
 
 	double *addr_real = 0;
 	double *addr_imaginary = 0;
-	ssize_t requested_memory = complex_interface->nx * sizeof(complex_interface->real[0]);
+	starpu_ssize_t requested_memory = complex_interface->nx * sizeof(complex_interface->real[0]);
 
 	addr_real = (double*) starpu_malloc_on_node(node, requested_memory);
 	if (!addr_real)
@@ -88,7 +88,7 @@ fail_real:
 static void complex_free_data_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
-	ssize_t requested_memory = complex_interface->nx * sizeof(complex_interface->real[0]);
+	starpu_ssize_t requested_memory = complex_interface->nx * sizeof(complex_interface->real[0]);
 
 	starpu_free_on_node(node, (uintptr_t) complex_interface->real, requested_memory);
 	starpu_free_on_node(node, (uintptr_t) complex_interface->imaginary, requested_memory);
@@ -118,7 +118,7 @@ static void *complex_handle_to_pointer(starpu_data_handle_t handle, unsigned nod
 	return (void*) complex_interface->real;
 }
 
-static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)
+static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
