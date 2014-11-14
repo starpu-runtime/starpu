@@ -97,10 +97,7 @@ noinst_HEADERS = \
 	include/pthread_win32/pthread.h		\
 	include/pthread_win32/semaphore.h
 
-if BUILD_STARPU_TOP
-starpu-top/starpu_top$(EXEEXT): all-local
 all-local:
-	cd starpu-top ; $(QMAKE) ; $(MAKE)
 if STARPU_DEVEL
 	@if grep -r sys/time.h $$( find $(srcdir)/examples $(srcdir)/tests $(srcdir)/src $(srcdir)/mpi/src $(srcdir)/include -name \*.[ch] -a \! -name starpu_util.h -a \! -name timer.h -a \! -name loader.c ) ; \
 	then \
@@ -113,6 +110,11 @@ if STARPU_DEVEL
 		false ; \
 	fi
 endif
+
+if BUILD_STARPU_TOP
+all-local: starpu-top/starpu_top$(EXEEXT)
+starpu-top/starpu_top$(EXEEXT):
+	cd starpu-top ; $(QMAKE) ; $(MAKE)
 clean-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE) clean ; $(RM) Makefile
 	$(RM) starpu-top/starpu_top.1 starpu-top/starpu_top$(EXEEXT)
