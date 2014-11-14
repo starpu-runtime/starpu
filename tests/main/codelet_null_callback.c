@@ -71,6 +71,7 @@ int main(int argc, char **argv)
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
+#ifdef STARPU_DEVEL
 #warning the following code should work
 #if 0
 	expected_y ++;
@@ -79,6 +80,7 @@ int main(int argc, char **argv)
 				 STARPU_PROLOGUE_CALLBACK_ARG, &y,
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+#endif
 #endif
 
 	expected_y ++;
