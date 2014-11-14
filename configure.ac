@@ -1956,14 +1956,13 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 	CFLAGS="$SAVED_CFLAGS"
 ])
 
-IS_SUPPORTED_CFLAG(-W)
 IS_SUPPORTED_CFLAG(-Wall)
-IS_SUPPORTED_CFLAG(-Wextra)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
 IS_SUPPORTED_CFLAG(-Werror=implicit-function-declaration)
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
+	IS_SUPPORTED_CFLAG(-Wextra)
 	IS_SUPPORTED_CFLAG(-Wunused)
 	IS_SUPPORTED_CFLAG(-Wundef)
 	IS_SUPPORTED_CFLAG(-Wshadow)
