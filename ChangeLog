@@ -111,6 +111,8 @@ Small features:
   * New flag STARPU_DATA_MODE_ARRAY for the function family
     starpu_task_insert to allow to define a array of data handles
     along with their access modes.
+  * New configure option --enable-new-check to enable new testcases
+    which are known to fail
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define

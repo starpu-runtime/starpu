@@ -71,6 +71,13 @@ allowing a faster execution time
 Enable some exhaustive checks which take a really long time.
 </dd>
 
+<dt>--enable-new-check</dt>
+<dd>
+\anchor enable-new-check
+\addindex __configure__--enable-new-check
+Enable new testcases which are known to fail.
+</dd>
+
 <dt>--with-hwloc</dt>
 <dd>
 \anchor with-hwloc
