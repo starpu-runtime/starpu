@@ -43,7 +43,7 @@ static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t dat
 							int source, int mpi_tag, MPI_Comm comm,
 							unsigned detached, void (*callback)(void *), void *arg,
 							int sequential_consistency, int is_internal_req,
-							ssize_t count);
+							starpu_ssize_t count);
 static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req);
 
 /* The list of ready requests */
@@ -128,7 +128,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 							       enum starpu_data_access_mode mode,
 							       int sequential_consistency,
 							       int is_internal_req,
-							       ssize_t count)
+							       starpu_ssize_t count)
 {
 	struct _starpu_mpi_req *req;
 
@@ -205,7 +205,7 @@ static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 		req->ptr = starpu_data_get_local_ptr(req->data_handle);
 
 		MPI_Type_size(req->datatype, &size);
-		req->envelope->size = (ssize_t)req->count * size;
+		req->envelope->size = (starpu_ssize_t)req->count * size;
 		_STARPU_MPI_DEBUG(1, "Post MPI isend count (%ld) datatype_size %ld request to %d with tag %d\n",req->count,starpu_data_get_size(req->data_handle),req->srcdst, _starpu_mpi_tag);
 		MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, _starpu_mpi_tag, req->comm, &req->size_req);
 	}
@@ -322,7 +322,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, unsigned detached, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, ssize_t count)
+static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int mpi_tag, MPI_Comm comm, unsigned detached, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count)
 {
 	return _starpu_mpi_isend_irecv_common(data_handle, source, mpi_tag, comm, detached, callback, arg, RECV_REQ, _starpu_mpi_irecv_data_func, STARPU_W, sequential_consistency, is_internal_req, count);
 }

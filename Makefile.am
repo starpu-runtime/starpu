@@ -107,6 +107,11 @@ if STARPU_DEVEL
 		echo "Please do not include sys/time, it is not available on Windows, include starpu_util.h and use starpu_timing_now() instead" ; \
 		false ; \
 	fi
+	@if grep -re '\<ssize_t' $$( find $(srcdir)/examples $(srcdir)/tests $(srcdir)/src $(srcdir)/mpi/src $(srcdir)/include -name \*.[ch] -a \! -name starpu_config.h ) ; \
+	then \
+		echo "Please do not use ssize_t, it is not available on Windows, use starpu_ssize_t instead"; \
+		false ; \
+	fi
 endif
 clean-local:
 	cd starpu-top ; $(QMAKE) ; $(MAKE) clean ; $(RM) Makefile

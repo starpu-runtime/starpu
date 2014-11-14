@@ -90,7 +90,7 @@ static void *value_handle_to_pointer(starpu_data_handle_t handle, unsigned node)
 	return (void*) value_interface->value;
 }
 
-static int value_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)
+static int value_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 

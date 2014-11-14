@@ -191,7 +191,7 @@ static int starpu_stdio_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void
 	int res = fseek(tmp->file, offset, SEEK_SET);
 	STARPU_ASSERT_MSG(res == 0, "Stdio read failed");
 
-	ssize_t nb = fread (buf, 1, size, tmp->file);
+	starpu_ssize_t nb = fread (buf, 1, size, tmp->file);
 	STARPU_ASSERT_MSG(nb >= 0, "Stdio read failed");
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&tmp->mutex);
@@ -256,7 +256,7 @@ static int starpu_stdio_full_write(void * base STARPU_ATTRIBUTE_UNUSED, void * o
 }
 
 /* create a new copy of parameter == base */
-static void *starpu_stdio_plug(void *parameter, ssize_t size STARPU_ATTRIBUTE_UNUSED)
+static void *starpu_stdio_plug(void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	char * tmp = malloc(sizeof(char)*(strlen(parameter)+1));
 	STARPU_ASSERT(tmp != NULL);

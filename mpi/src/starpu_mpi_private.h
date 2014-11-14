@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2013  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -87,7 +87,7 @@ enum _starpu_mpi_request_type
 
 struct _starpu_mpi_envelope
 {
-	ssize_t size;
+	starpu_ssize_t size;
 	int mpi_tag;
 };
 
@@ -100,7 +100,7 @@ LIST_TYPE(_starpu_mpi_req,
 	/* description of the data to be sent/received */
 	MPI_Datatype datatype;
 	void *ptr;
-	ssize_t count;
+	starpu_ssize_t count;
 	int user_datatype;
 
 	/* who are we talking to ? */

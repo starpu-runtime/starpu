@@ -39,9 +39,9 @@ static size_t void_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_void_interface_crc32(starpu_data_handle_t handle);
 static int void_compare(void *data_interface_a, void *data_interface_b);
 static void display_void_interface(starpu_data_handle_t handle, FILE *f);
-static int pack_void_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
+static int pack_void_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 static int unpack_void_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
-static ssize_t describe(void *data_interface, char *buf, size_t size);
+static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_void_ops =
 {
@@ -95,7 +95,7 @@ static void display_void_interface(starpu_data_handle_t handle STARPU_ATTRIBUTE_
 static int pack_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
 			    unsigned node STARPU_ATTRIBUTE_UNUSED,
 			    void **ptr,
-			    ssize_t *count)
+			    starpu_ssize_t *count)
 {
 	*count = 0;
 	*ptr = NULL;
@@ -140,7 +140,7 @@ static int dummy_copy(void *src_interface STARPU_ATTRIBUTE_UNUSED,
 	return 0;
 }
 
-static ssize_t describe(void *data_interface STARPU_ATTRIBUTE_UNUSED, char *buf, size_t size)
+static starpu_ssize_t describe(void *data_interface STARPU_ATTRIBUTE_UNUSED, char *buf, size_t size)
 {
 	return snprintf(buf, size, "0");
 }

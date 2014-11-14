@@ -53,7 +53,7 @@ static int size_register_list = 2;
 
 
 int
-starpu_disk_register(struct starpu_disk_ops * func, void *parameter, ssize_t size)
+starpu_disk_register(struct starpu_disk_ops * func, void *parameter, starpu_ssize_t size)
 {
 
 	STARPU_ASSERT_MSG(size < 0 || size >= SIZE_DISK_MIN,"Minimum disk size is %u Bytes ! (Here %u) \n", (int) SIZE_DISK_MIN, (int) size);
@@ -366,7 +366,7 @@ _starpu_swap_init(void)
 {
 	char *backend;
 	char *path;
-	ssize_t size;
+	starpu_ssize_t size;
 	struct starpu_disk_ops *ops;
 	int dd;
 

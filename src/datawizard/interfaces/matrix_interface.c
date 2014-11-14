@@ -79,9 +79,9 @@ static size_t matrix_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle);
 static int matrix_compare(void *data_interface_a, void *data_interface_b);
 static void display_matrix_interface(starpu_data_handle_t handle, FILE *f);
-static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count);
+static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 static int unpack_matrix_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
-static ssize_t describe(void *data_interface, char *buf, size_t size);
+static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
 
 struct starpu_data_interface_ops starpu_interface_matrix_ops =
 {
@@ -204,7 +204,7 @@ static void display_matrix_interface(starpu_data_handle_t handle, FILE *f)
 	fprintf(f, "%u\t%u\t", matrix_interface->nx, matrix_interface->ny);
 }
 
-static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void **ptr, ssize_t *count)
+static int pack_matrix_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -567,7 +567,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 	return ret;
 }
 
-static ssize_t describe(void *data_interface, char *buf, size_t size)
+static starpu_ssize_t describe(void *data_interface, char *buf, size_t size)
 {
 	struct starpu_matrix_interface *matrix = (struct starpu_matrix_interface *) data_interface;
 	return snprintf(buf, size, "M%ux%ux%u",

@@ -151,7 +151,7 @@ static void create_matrix()
 				perror("open");
 				exit(1);
 			}
-			if (write(fd, blockptr, blocksize) != (ssize_t) blocksize) {
+			if (write(fd, blockptr, blocksize) != (starpu_ssize_t) blocksize) {
 				fprintf(stderr,"short write");
 				exit(1);
 			}

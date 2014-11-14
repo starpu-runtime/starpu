@@ -38,7 +38,7 @@ struct mc_cache_entry
 };
 static struct mc_cache_entry *mc_cache[STARPU_MAXNODES];
 static int mc_cache_nb[STARPU_MAXNODES];
-static ssize_t mc_cache_size[STARPU_MAXNODES];
+static starpu_ssize_t mc_cache_size[STARPU_MAXNODES];
 
 
 /* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */

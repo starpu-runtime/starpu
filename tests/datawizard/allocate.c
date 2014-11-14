@@ -38,7 +38,7 @@ int test_prefetch(unsigned memnodes)
 	float *buffers[4];
 	starpu_data_handle_t handles[4];
 	unsigned i;
-	ssize_t available_size;
+	starpu_ssize_t available_size;
 
 	buffers[0] = malloc(SIZE_ALLOC*1024*512);
 	STARPU_ASSERT(buffers[0]);
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 	unsigned memnodes, i;
-	ssize_t available_size;
+	starpu_ssize_t available_size;
 
 	setenv("STARPU_LIMIT_CUDA_MEM", STR_LIMIT, 1);
 	setenv("STARPU_LIMIT_OPENCL_MEM", STR_LIMIT, 1);

@@ -191,7 +191,7 @@ display_coo_interface(starpu_data_handle_t handle, FILE *f)
 	fprintf(f, "%u\t%u", coo_interface->nx, coo_interface->ny);
 }
 
-static ssize_t describe(void *data_interface, char *buf, size_t size)
+static starpu_ssize_t describe(void *data_interface, char *buf, size_t size)
 {
 	struct starpu_coo_interface *coo = (struct starpu_coo_interface *) data_interface;
 	return snprintf(buf, size, "M%ux%ux%ux%u",

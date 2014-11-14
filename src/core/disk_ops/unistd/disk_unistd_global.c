@@ -175,7 +175,7 @@ starpu_unistd_global_close (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, size_
 starpu_unistd_global_read (void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
 	struct starpu_unistd_global_obj * tmp = (struct starpu_unistd_global_obj *) obj;
-	ssize_t nb;
+	starpu_ssize_t nb;
 
 #ifdef HAVE_PREAD
 	nb = pread(tmp->descriptor, buf, size, offset);
@@ -314,7 +314,7 @@ starpu_unistd_global_full_write (void * base STARPU_ATTRIBUTE_UNUSED, void * obj
 
 /* create a new copy of parameter == base */
  void * 
-starpu_unistd_global_plug (void *parameter, ssize_t size STARPU_ATTRIBUTE_UNUSED)
+starpu_unistd_global_plug (void *parameter, starpu_ssize_t size STARPU_ATTRIBUTE_UNUSED)
 {
 	char * tmp = malloc(sizeof(char)*(strlen(parameter)+1));
 	STARPU_ASSERT(tmp != NULL);
