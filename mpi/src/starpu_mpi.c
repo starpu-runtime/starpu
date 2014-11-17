@@ -311,7 +311,10 @@ int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 	STARPU_ASSERT_MSG(public_req, "starpu_mpi_irecv needs a valid starpu_mpi_req");
 
 	struct _starpu_mpi_req *req;
+
+	TRACE_MPI_IRECV_COMPLETE_BEGIN(source, mpi_tag);
 	req = _starpu_mpi_irecv_common(data_handle, source, mpi_tag, comm, 0, NULL, NULL);
+	TRACE_MPI_IRECV_COMPLETE_END(source, mpi_tag);
 
 	STARPU_ASSERT_MSG(req, "Invalid return for _starpu_mpi_irecv_common");
 	*public_req = req;
