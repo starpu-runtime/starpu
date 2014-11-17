@@ -1,7 +1,7 @@
 /*
  * This file is part of the StarPU Handbook.
  * Copyright (C) 2009--2011  Universit@'e de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2012 Institut National de Recherche en Informatique et Automatique
  * See the file version.doxy for copying conditions.
  */
@@ -103,6 +103,12 @@ Similarly to the pthread detached functionality, when a detached
 communication completes, its resources are automatically released back
 to the system, there is no need to test or to wait for the completion
 of the request.
+
+\fn int starpu_mpi_issend(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, MPI_Comm comm)
+\ingroup API_MPI_Support
+Performs a synchronous-mode, non-blocking send of \p data_handle to the node
+\p dest using the message tag \p mpi_tag within the communicator \p
+comm.
 
 \fn int starpu_mpi_wait(starpu_mpi_req *req, MPI_Status *status)
 \ingroup API_MPI_Support
