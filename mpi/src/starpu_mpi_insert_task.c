@@ -242,7 +242,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			// calling function _starpu_task_insert_create()
 			va_arg(varg_list, int);
 		}
-		else if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
+		else if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
@@ -359,7 +359,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	current_data = 0;
 	while ((arg_type = va_arg(varg_list, int)) != 0)
 	{
-		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
+		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
@@ -458,87 +458,16 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		STARPU_ASSERT_MSG(ret==0, "_starpu_insert_task_create_and_submit failure %d", ret);
 	}
 
-	if (inconsistent_execute)
-	{
-		va_start(varg_list, codelet);
-		current_data = 0;
-		while ((arg_type = va_arg(varg_list, int)) != 0)
-		{
-			if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
-			{
-				starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
-				enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
-
-				_starpu_mpi_exchange_data_after_execution(data, mode, me, xrank, dest, do_execute, comm);
-				current_data++;
-			}
-			else if (arg_type == STARPU_DATA_ARRAY)
-			{
-				starpu_data_handle_t *datas = va_arg(varg_list, starpu_data_handle_t *);
-				int nb_handles = va_arg(varg_list, int);
-				int i;
-
-				for(i=0 ; i<nb_handles ; i++)
-				{
-					_starpu_mpi_exchange_data_after_execution(datas[i], STARPU_CODELET_GET_MODE(codelet, current_data), me, xrank, dest, do_execute, comm);
-					current_data++;
-				}
-			}
-			else if (arg_type==STARPU_VALUE)
-			{
-				va_arg(varg_list, void *);
-				va_arg(varg_list, size_t);
-			}
-			else if (arg_type==STARPU_CALLBACK)
-			{
-				va_arg(varg_list, _starpu_callback_func_t);
-			}
-			else if (arg_type==STARPU_CALLBACK_WITH_ARG)
-			{
-				va_arg(varg_list, _starpu_callback_func_t);
-				va_arg(varg_list, void *);
-			}
-			else if (arg_type==STARPU_CALLBACK_ARG)
-			{
-				va_arg(varg_list, void *);
-			}
-			else if (arg_type==STARPU_PRIORITY)
-			{
-				va_arg(varg_list, int);
-			}
-			else if (arg_type==STARPU_EXECUTE_ON_NODE)
-			{
-				va_arg(varg_list, int);
-			}
-			else if (arg_type==STARPU_EXECUTE_ON_DATA)
-			{
-				va_arg(varg_list, starpu_data_handle_t);
-			}
-			else if (arg_type==STARPU_HYPERVISOR_TAG)
-			{
-				(void)va_arg(varg_list, int);
-			}
-			else if (arg_type==STARPU_FLOPS)
-			{
-				(void)va_arg(varg_list, double);
-			}
-			else if (arg_type==STARPU_TAG)
-			{
-				STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
-			}
-			}
-		va_end(varg_list);
-	}
-
 	va_start(varg_list, codelet);
 	current_data = 0;
 	while ((arg_type = va_arg(varg_list, int)) != 0)
 	{
-		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
+		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
 
+			_starpu_mpi_exchange_data_after_execution(data, mode, me, xrank, dest, do_execute, comm);
 			_starpu_mpi_clear_data_after_execution(data, mode, me, do_execute, comm);
 			current_data++;
 		}
@@ -550,6 +479,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 
 			for(i=0 ; i<nb_handles ; i++)
 			{
+				_starpu_mpi_exchange_data_after_execution(datas[i], STARPU_CODELET_GET_MODE(codelet, current_data), me, xrank, dest, do_execute, comm);
 				_starpu_mpi_clear_data_after_execution(datas[i], STARPU_CODELET_GET_MODE(codelet, current_data), me, do_execute, comm);
 				current_data++;
 			}
@@ -584,10 +514,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			va_arg(varg_list, starpu_data_handle_t);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
-		{
-			va_arg(varg_list, int);
-		}
 		else if (arg_type==STARPU_HYPERVISOR_TAG)
 		{
 			(void)va_arg(varg_list, int);
@@ -601,8 +527,9 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
 		}
 	}
-
 	va_end(varg_list);
+
+
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
