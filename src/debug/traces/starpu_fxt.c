@@ -2328,9 +2328,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		{
 			int filerank = rank_k[inputfile];
 
-#ifdef STARPU_VERBOSE
-			fprintf(stderr, "Handle file %s (rank %d)\n", options->filenames[inputfile], filerank);
-#endif
+			_STARPU_DISP("Parsing file %s (rank %d)\n", options->filenames[inputfile], filerank);
 
 			char file_prefix[32];
 			snprintf(file_prefix, sizeof(file_prefix), "%d_", filerank);

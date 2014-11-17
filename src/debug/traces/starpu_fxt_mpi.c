@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2013  Université Bordeaux
- * Copyright (C) 2010, 2011  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -241,8 +241,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, int src)
 		}
 		else
 		{
-			fprintf(stderr, "Warning, could not match MPI transfer from %d to %d (tag %x) starting at %f\n",
-												src, dst, mpi_tag, start_date);
+			_STARPU_DISP("Warning, could not match MPI transfer from %d to %d (tag %x) starting at %f\n", src, dst, mpi_tag, start_date);
 		}
 
 	}
