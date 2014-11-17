@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -149,7 +149,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	}
 	else
 	{
-		ssize_t psize = -1;
+		starpu_ssize_t psize = -1;
 		int ret;
 
 		// Do not pack the data, just try to find out the size
