@@ -99,6 +99,7 @@ starpu_mpi_TESTS =				\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
+	insert_task_count			\
 	multiple_send				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
@@ -127,6 +128,7 @@ noinst_PROGRAMS =				\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
+	insert_task_count			\
 	multiple_send				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
@@ -176,6 +178,8 @@ insert_task_owner2_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_owner_data_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+insert_task_count_LDADD =				\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 multiple_send_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_scatter_gather_LDADD =			\
@@ -189,11 +193,13 @@ ring_SOURCES = ring.c
 ring_sync_SOURCES = ring_sync.c
 ring_async_SOURCES = ring_async.c
 ring_async_implicit_SOURCES = ring_async_implicit.c
+insert_task_count_SOURCES = insert_task_count.c
 if STARPU_USE_CUDA
 ring_SOURCES += ring_kernel.cu
 ring_sync_SOURCES += ring_kernel.cu
 ring_async_SOURCES += ring_kernel.cu
 ring_async_implicit_SOURCES += ring_kernel.cu
+insert_task_count_SOURCES += ring_kernel.cu
 endif
 mpi_reduction_SOURCES = mpi_reduction.c
 mpi_reduction_SOURCES += mpi_reduction_kernels.c
