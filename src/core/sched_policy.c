@@ -351,7 +351,6 @@ int _starpu_push_task(struct _starpu_job *j)
 
 	_STARPU_LOG_IN();
 
-	_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
 	_starpu_increment_nready_tasks_of_sched_ctx(task->sched_ctx, task->flops);
 	task->status = STARPU_TASK_READY;
 
@@ -408,6 +407,8 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	unsigned nworkers = 0;
+
+	_STARPU_TRACE_JOB_PUSH(task, task->priority > 0);
 
 	/* if the contexts still does not have workers put the task back to its place in
 	   the empty ctx list */
