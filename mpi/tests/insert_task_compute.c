@@ -51,15 +51,14 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 		goto nodata;
 	}
 
+	FPRINTF_MPI("Testing with task_insert=%d - data_array=%d\n", task_insert, data_array);
+
 	for(i=0 ; i<2 ; i++)
 	{
 		x[i] = before[rank*2+i];
 		if (rank <= 1)
 			FPRINTF_MPI("before computation x[%d] = %d\n", i, x[i]);
-		if (rank == i)
-			starpu_variable_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&x[i], sizeof(int));
-		else
-			starpu_variable_data_register(&data_handles[i], -1, (uintptr_t)NULL, sizeof(int));
+		starpu_variable_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&x[i], sizeof(int));
 		starpu_mpi_data_register(data_handles[i], i, i);
 		descrs[i].handle = data_handles[i];
 	}
