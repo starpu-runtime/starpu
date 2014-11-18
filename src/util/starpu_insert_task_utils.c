@@ -52,7 +52,7 @@ size_t _starpu_insert_task_get_arg_size(va_list varg_list)
 
 	while ((arg_type = va_arg(varg_list, int)) != 0)
 	{
-		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
+		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
@@ -150,7 +150,7 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t arg_buffer_size, va_list
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
-		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
+		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
 			(void)va_arg(varg_list, starpu_data_handle_t);
 		}
@@ -265,12 +265,11 @@ void _starpu_insert_task_create(void *arg_buffer, size_t arg_buffer_size, struct
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
-		if (arg_type==STARPU_R || arg_type==STARPU_W || arg_type==STARPU_RW || arg_type == STARPU_SCRATCH || arg_type == STARPU_REDUX)
+		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
 			/* We have an access mode : we expect to find a handle */
 			starpu_data_handle_t handle = va_arg(varg_list, starpu_data_handle_t);
-
-			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
+			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSYNC;
 
 			STARPU_ASSERT(cl != NULL);
 

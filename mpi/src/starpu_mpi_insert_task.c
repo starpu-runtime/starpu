@@ -32,6 +32,12 @@
 
 typedef void (*_starpu_callback_func_t)(void *);
 
+#define _SEND_DATA(data, mode, dest, mpi_tag, comm, callback, arg)	\
+	if (mode & STARPU_SSYNC) \
+		starpu_mpi_issend_detached(data, dest, mpi_tag, comm, callback, arg); \
+	else \
+		starpu_mpi_isend_detached(data, dest, mpi_tag, comm, callback, arg);
+
 static
 int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *dest, size_t *size_on_nodes)
 {
@@ -126,7 +132,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 			if (already_sent == NULL)
 			{
 				_STARPU_MPI_DEBUG(1, "Send data %p to %d\n", data, dest);
-				starpu_mpi_isend_detached(data, dest, mpi_tag, comm, NULL, NULL);
+				_SEND_DATA(data, mode, dest, mpi_tag, comm, NULL, NULL);
 			}
 		}
 	}
@@ -160,7 +166,7 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 		else if (do_execute)
 		{
 			_STARPU_MPI_DEBUG(1, "Send data %p back to its owner %d...\n", data, mpi_rank);
-			starpu_mpi_isend_detached(data, mpi_rank, mpi_tag, comm, NULL, NULL);
+			_SEND_DATA(data, mode, mpi_rank, mpi_tag, comm, NULL, NULL);
 		}
 	}
 }
