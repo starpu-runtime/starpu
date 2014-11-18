@@ -1431,10 +1431,15 @@ void _starpu_mpi_clear_cache(starpu_data_handle_t data_handle)
 
 void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int rank)
 {
+#ifdef STARPU_DEVEL
+#warning see if the following code is really needed, it deadlocks some applications
+#if 0
 	int my;
 	MPI_Comm_rank(MPI_COMM_WORLD, &my);
 	if (my != rank)
 		STARPU_ASSERT_MSG(data_handle->home_node == -1, "Data does not belong to node %d, it should be assigned a home node -1", my);
+#endif
+#endif
 	_starpu_data_set_rank(data_handle, rank);
 	_starpu_data_set_tag(data_handle, tag);
 	_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
