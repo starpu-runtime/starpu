@@ -137,8 +137,9 @@ New features:
   * Fix and actually enable the cache allocation.
   * Enable allocation cache in main RAM when STARPU_LIMIT_CPU_MEM is set by
     the user.
-  * New MPI function starpu_mpi_issend to send data using a synchronous
-    and non-blocking mode (internally uses MPI_Issend)
+  * New MPI functions starpu_mpi_issend and starpu_mpi_issend_detached
+    to send data using a synchronous and non-blocking mode (internally
+    uses MPI_Issend)
 
 Changes:
   * Fix complexity of implicit task/data dependency, from quadratic to linear.

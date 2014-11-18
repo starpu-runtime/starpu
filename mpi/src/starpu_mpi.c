@@ -318,6 +318,16 @@ int starpu_mpi_issend(starpu_data_handle_t data_handle, starpu_mpi_req *public_r
 	return 0;
 }
 
+int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, MPI_Comm comm, void (*callback)(void *), void *arg)
+{
+	_STARPU_MPI_LOG_IN();
+
+	_starpu_mpi_isend_common(data_handle, dest, mpi_tag, comm, 1, 1, callback, arg, 1);
+
+	_STARPU_MPI_LOG_OUT();
+	return 0;
+}
+
 /********************************************************/
 /*                                                      */
 /*  receive functionalities                             */
