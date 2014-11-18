@@ -113,6 +113,7 @@ LIST_TYPE(_starpu_mpi_req,
 	MPI_Status *status;
 	MPI_Request request;
 	int *flag;
+	unsigned sync;
 
 	int ret;
 	starpu_pthread_mutex_t req_mutex;

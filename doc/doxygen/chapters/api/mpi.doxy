@@ -120,6 +120,12 @@ communication completes, its resources are automatically released back
 to the system, there is no need to test or to wait for the completion
 of the request.
 
+\fn int starpu_mpi_issend(starpu_data_handle_t data_handle, starpu_mpi_req *req, int dest, int mpi_tag, MPI_Comm comm)
+\ingroup API_MPI_Support
+Performs a synchronous-mode, non-blocking send of \p data_handle to the node
+\p dest using the message tag \p mpi_tag within the communicator \p
+comm.
+
 \fn int starpu_mpi_wait(starpu_mpi_req *req, MPI_Status *status)
 \ingroup API_MPI_Support
 Returns when the operation identified by request \p req is complete.
