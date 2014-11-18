@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 		starpu_mpi_send(tab_handle[2], other_rank, 2, MPI_COMM_WORLD);
 
 		// we register the data
-		starpu_variable_data_register(&tab_handle[3], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
+		starpu_variable_data_register(&tab_handle[3], -1, (uintptr_t)NULL, sizeof(int));
 		starpu_mpi_data_register(tab_handle[3], 3, rank);
 		starpu_mpi_irecv(tab_handle[3], &request[1], other_rank, 3, MPI_COMM_WORLD);
 		starpu_mpi_irecv(tab_handle[0], &request[0], other_rank, 0, MPI_COMM_WORLD);
