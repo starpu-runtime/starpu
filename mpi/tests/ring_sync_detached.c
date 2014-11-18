@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 		else
 		{
 			int sent = 0;
-			starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, callback, &sent);
+			starpu_mpi_issend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, callback, &sent);
 
 			STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 			while (!sent)
