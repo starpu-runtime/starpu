@@ -55,8 +55,16 @@ int main(int argc, char **argv)
 
 	if (rank != 0 && rank != 1) goto end;
 
-	starpu_variable_data_register(&data_handlesx0, STARPU_MAIN_RAM, (uintptr_t)&x0, sizeof(x0));
-	starpu_variable_data_register(&data_handlesx1, STARPU_MAIN_RAM, (uintptr_t)&x1, sizeof(x1));
+	if (rank == 0)
+	{
+		starpu_variable_data_register(&data_handlesx0, STARPU_MAIN_RAM, (uintptr_t)&x0, sizeof(x0));
+		starpu_variable_data_register(&data_handlesx1, -1, (uintptr_t)NULL, sizeof(x1));
+	}
+	else
+	{
+		starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(x0));
+		starpu_variable_data_register(&data_handlesx1, STARPU_MAIN_RAM, (uintptr_t)&x1, sizeof(x1));
+	}
 	starpu_mpi_data_register(data_handlesx0, 100, 0);
 	starpu_mpi_data_register(data_handlesx1, 200, 1);
 

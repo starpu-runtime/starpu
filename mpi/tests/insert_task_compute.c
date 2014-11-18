@@ -56,7 +56,10 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 		x[i] = before[rank*2+i];
 		if (rank <= 1)
 			FPRINTF_MPI("before computation x[%d] = %d\n", i, x[i]);
-		starpu_variable_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&x[i], sizeof(int));
+		if (rank == i)
+			starpu_variable_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&x[i], sizeof(int));
+		else
+			starpu_variable_data_register(&data_handles[i], -1, (uintptr_t)NULL, sizeof(int));
 		starpu_mpi_data_register(data_handles[i], i, i);
 		descrs[i].handle = data_handles[i];
 	}
