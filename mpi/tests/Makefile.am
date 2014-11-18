@@ -89,6 +89,7 @@ starpu_mpi_TESTS =				\
 	mpi_detached_tag			\
 	mpi_redux				\
 	ring					\
+	ring_sync				\
 	ring_async				\
 	ring_async_implicit			\
 	block_interface				\
@@ -124,6 +125,7 @@ noinst_PROGRAMS =				\
 	mpi_detached_tag			\
 	mpi_redux				\
 	ring					\
+	ring_sync				\
 	ring_async				\
 	ring_async_implicit			\
 	block_interface				\
@@ -170,6 +172,8 @@ mpi_test_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 ring_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+ring_sync_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 ring_async_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 ring_async_implicit_LDADD =			\
@@ -214,11 +218,13 @@ gather2_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c
+ring_sync_SOURCES = ring_sync.c
 ring_async_SOURCES = ring_async.c
 ring_async_implicit_SOURCES = ring_async_implicit.c
 insert_task_count_SOURCES = insert_task_count.c
 if STARPU_USE_CUDA
 ring_SOURCES += ring_kernel.cu
+ring_sync_SOURCES += ring_kernel.cu
 ring_async_SOURCES += ring_kernel.cu
 ring_async_implicit_SOURCES += ring_kernel.cu
 insert_task_count_SOURCES += ring_kernel.cu
