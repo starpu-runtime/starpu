@@ -81,10 +81,16 @@ int main(int argc, char **argv)
 
 	for (loop = 0; loop < nloops; loop++)
 	{
-		starpu_mpi_insert_task(MPI_COMM_WORLD, &increment_cl,
-				       STARPU_RW, token_handle,
-				       STARPU_EXECUTE_ON_NODE, 0,
-				       0);
+		if (loop % 2)
+			starpu_mpi_insert_task(MPI_COMM_WORLD, &increment_cl,
+					       STARPU_RW|STARPU_SSYNC, token_handle,
+					       STARPU_EXECUTE_ON_NODE, 0,
+					       0);
+		else
+			starpu_mpi_insert_task(MPI_COMM_WORLD, &increment_cl,
+					       STARPU_RW, token_handle,
+					       STARPU_EXECUTE_ON_NODE, 0,
+					       0);
 	}
 
 	starpu_task_wait_for_all();
