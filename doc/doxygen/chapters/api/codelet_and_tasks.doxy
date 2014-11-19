@@ -585,7 +585,8 @@ will not free any task.
 \var unsigned starpu_task::regenerate
 Optional field. If this flag is set, the task will be re-submitted to
 StarPU once it has been executed. This flag must not be set if the
-flag starpu_task::destroy is set.
+flag starpu_task::destroy is set. This flag must be set before making another
+task depend on this one.
 
 \var enum starpu_task_status starpu_task::status
 Optional field. Current state of the task.
