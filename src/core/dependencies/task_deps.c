@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux 1
+ * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -80,6 +80,8 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 		struct starpu_task *dep_task = task_array[i];
 
 		struct _starpu_job *dep_job;
+		struct _starpu_cg *back_cg = NULL;
+
 		dep_job = _starpu_get_job_associated_to_task(dep_task);
 
 		STARPU_ASSERT_MSG(dep_job != job, "A task must not depend on itself.");
@@ -91,6 +93,13 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 			STARPU_ASSERT_MSG(!dep_job->submitted || !dep_job->task->regenerate, "For regenerated tasks, dependencies have to be set before first submission");
 		} else
 			STARPU_ASSERT_MSG(dep_job->terminated <= 1, "Task dependencies have to be set before termination (terminated %u)", dep_job->terminated);
+		if (dep_job->task->regenerate)
+		{
+			/* Make sure we don't regenerate the dependency before this task is finished */
+			back_cg = create_cg_task(1, dep_job);
+			/* Just do not take that dependency into account for the first submission */
+			dep_job->job_successors.ndeps_completed++;
+		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&dep_job->sync_mutex);
 
 		_STARPU_TRACE_TASK_DEPS(dep_job, job);
@@ -104,6 +113,8 @@ void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, s
 #endif
 
 		_starpu_task_add_succ(dep_job, cg);
+		if (dep_job->task->regenerate)
+			_starpu_task_add_succ(job, back_cg);
 	}
 }
 

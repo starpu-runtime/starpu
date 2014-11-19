@@ -88,9 +88,6 @@ int main(int argc, char **argv)
 	double end;
 	int ret;
 
-	/* disable for now, still buggy */
-	return STARPU_TEST_SKIPPED;
-
 	parse_args(argc, argv);
 
 	ret = starpu_init(NULL);
