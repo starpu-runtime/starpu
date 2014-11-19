@@ -60,6 +60,10 @@ or ::STARPU_RW to express that StarPU can let tasks commute, which is
 useful e.g. when bringing a contribution into some data, which can be
 done in any order (but still require sequential consistency against
 reads or non-commutative writes).
+\var starpu_data_access_mode::STARPU_SSYNC
+\ingroup API_Data_Management
+used in starpu_mpi_insert_task() to specify the data has to be sent
+using a synchronous and non-blocking mode (see starpu_mpi_issend())
 
 @name Basic Data Management API
 \ingroup API_Data_Management

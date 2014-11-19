@@ -31,6 +31,12 @@
 #include <starpu_mpi_cache.h>
 #include <starpu_mpi_select_node.h>
 
+#define _SEND_DATA(data, mode, dest, mpi_tag, comm, callback, arg)     \
+	if (mode & STARPU_SSYNC)					\
+		starpu_mpi_issend_detached(data, dest, mpi_tag, comm, callback, arg); \
+	else								\
+		starpu_mpi_isend_detached(data, dest, mpi_tag, comm, callback, arg);
+
 static
 int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *xrank)
 {
@@ -125,7 +131,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 			if (already_sent == NULL)
 			{
 				_STARPU_MPI_DEBUG(1, "Send data %p to %d\n", data, xrank);
-				starpu_mpi_isend_detached(data, xrank, mpi_tag, comm, NULL, NULL);
+				_SEND_DATA(data, mode, xrank, mpi_tag, comm, NULL, NULL);
 			}
 		}
 	}
@@ -159,7 +165,7 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 		else if (do_execute)
 		{
 			_STARPU_MPI_DEBUG(1, "Send data %p back to its owner %d...\n", data, mpi_rank);
-			starpu_mpi_isend_detached(data, mpi_rank, mpi_tag, comm, NULL, NULL);
+			_SEND_DATA(data, mode, mpi_rank, mpi_tag, comm, NULL, NULL);
 		}
 	}
 }
@@ -254,7 +260,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			// calling function _starpu_task_insert_create()
 			(void)va_arg(varg_list_copy, unsigned);
 		}
-		else if (arg_type_nocommute==STARPU_R || arg_type_nocommute==STARPU_W || arg_type_nocommute==STARPU_RW || arg_type==STARPU_SCRATCH || arg_type==STARPU_REDUX)
+		else if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;

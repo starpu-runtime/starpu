@@ -242,8 +242,7 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 		{
 			/* We have an access mode : we expect to find a handle */
 			starpu_data_handle_t handle = va_arg(varg_list, starpu_data_handle_t);
-
-			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
+			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSYNC;
 
 			STARPU_ASSERT(cl != NULL);
 

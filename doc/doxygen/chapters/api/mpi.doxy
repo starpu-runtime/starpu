@@ -254,8 +254,11 @@ This function does the same as the function starpu_mpi_task_insert(). It has bee
 Create and submit a task corresponding to codelet with the following
 arguments. The argument list must be zero-terminated.
 
-The arguments following the codelets are the same types as for the
-function starpu_task_insert(). The extra argument
+The arguments following the codelet are the same types as for the
+function starpu_task_insert(). Access modes for data can also be set
+with ::STARPU_SSYNC to specify the data has to be sent using a
+synchronous and non-blocking mode (see starpu_mpi_issend()).
+The extra argument
 ::STARPU_EXECUTE_ON_NODE followed by an integer allows to specify the
 MPI node to execute the codelet. It is also possible to specify that
 the node owning a specific data will execute the codelet, by using
