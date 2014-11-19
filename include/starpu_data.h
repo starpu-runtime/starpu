@@ -37,7 +37,7 @@ enum starpu_data_access_mode
 	STARPU_SCRATCH=(1<<2),
 	STARPU_REDUX=(1<<3),
 	STARPU_COMMUTE=(1<<4),
-	STARPU_SSYNC=(1<<5)
+	STARPU_SSEND=(1<<5)
 	/* Note: other STARPU_* values in include/starpu_task_util.h */
 };
 

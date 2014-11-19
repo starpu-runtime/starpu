@@ -140,7 +140,7 @@ New features:
   * New MPI functions starpu_mpi_issend and starpu_mpi_issend_detached
     to send data using a synchronous and non-blocking mode (internally
     uses MPI_Issend)
-  * New data access mode flag STARPU_SSYNC to be set when calling
+  * New data access mode flag STARPU_SSEND to be set when calling
     starpu_mpi_insert_task to specify the data has to be sent using a
     synchronous and non-blocking mode
 
