@@ -36,7 +36,7 @@ enum starpu_data_access_mode
 	STARPU_RW=(STARPU_R|STARPU_W),
 	STARPU_SCRATCH=(1<<2),
 	STARPU_REDUX=(1<<3),
-	STARPU_SSYNC=(1<<5),
+	STARPU_SSEND=(1<<5),
 };
 
 struct starpu_data_descr

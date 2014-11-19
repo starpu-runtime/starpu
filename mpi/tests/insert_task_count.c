@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	{
 		if (loop % 2)
 			starpu_mpi_insert_task(MPI_COMM_WORLD, &increment_cl,
-					       STARPU_RW|STARPU_SSYNC, token_handle,
+					       STARPU_RW|STARPU_SSEND, token_handle,
 					       STARPU_EXECUTE_ON_NODE, 0,
 					       0);
 		else
