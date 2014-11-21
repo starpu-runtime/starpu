@@ -471,7 +471,7 @@ main_subgraph_repeat_tag_SOURCES +=		\
 endif
 
 main_subgraph_repeat_regenerate_SOURCES =		\
-	main/subgraph_repeat.c
+	main/subgraph_repeat_regenerate.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_SOURCES +=		\
 	main/increment.cu
