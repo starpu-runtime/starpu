@@ -86,6 +86,11 @@ static void callback_task_D(void *arg STARPU_ATTRIBUTE_UNUSED)
 	else
 	{
 		int ret;
+		if (loop_cnt == niter-1)
+		{
+			taskB.regenerate = 0;
+			taskC.regenerate = 0;
+		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		/* Let's go for another iteration */
 		ret = starpu_task_submit(&taskA);
