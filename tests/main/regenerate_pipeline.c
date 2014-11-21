@@ -147,6 +147,9 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "cntA : %u\n", cntA);
 	FPRINTF(stderr, "cntB : %u\n", cntB);
 	FPRINTF(stderr, "cntC : %u\n", cntC);
+	STARPU_ASSERT(cntA == ntasks);
+	STARPU_ASSERT(cntB == ntasks);
+	STARPU_ASSERT(cntC == ntasks);
 	FPRINTF(stderr, "Total: %f secs\n", timing/1000000);
 	FPRINTF(stderr, "Per task: %f usecs\n", timing/(ntasks*3));
 
