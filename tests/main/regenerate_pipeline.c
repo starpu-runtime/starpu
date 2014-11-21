@@ -154,6 +154,7 @@ int main(int argc, char **argv)
 	/* Cleanup the statically allocated tasks after shutdown, as StarPU is still working on it after the callback */
 	starpu_task_clean(&taskA);
 	starpu_task_clean(&taskB);
+	starpu_task_clean(&taskC);
 
 	return EXIT_SUCCESS;
 
