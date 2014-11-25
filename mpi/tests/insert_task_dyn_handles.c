@@ -19,16 +19,19 @@
 #include <starpu_config.h>
 #include "helper.h"
 
+#define FFACTOR 42
+
 void func_cpu(void *descr[], void *_args)
 {
 	int num = starpu_task_get_current()->nbuffers;
+	int *factor = (int *)STARPU_VARIABLE_GET_PTR(descr[num-1]);
 	int i;
 
-	for (i = 0; i < num; i++)
+	for (i = 0; i < num-1; i++)
 	{
 		int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[i]);
 
-		*x = *x + 1;
+		*x = *x + 1**factor;
 	}
 }
 
@@ -44,6 +47,7 @@ int main(int argc, char **argv)
         int *x;
         int i, ret, loop;
 	int rank;
+	int factor=0;
 
 #ifdef STARPU_QUICK_CHECK
 	int nloops = 4;
@@ -51,6 +55,7 @@ int main(int argc, char **argv)
 	int nloops = 16;
 #endif
         starpu_data_handle_t *data_handles;
+        starpu_data_handle_t factor_handle;
 	struct starpu_data_descr *descrs;
 
 	MPI_Init(&argc, &argv);
@@ -71,17 +76,22 @@ int main(int argc, char **argv)
 		descrs[i].handle = data_handles[i];
 		descrs[i].mode = STARPU_RW;
 	}
+	if (rank == 1) factor=FFACTOR;
+	starpu_variable_data_register(&factor_handle, STARPU_MAIN_RAM, (uintptr_t)&factor, sizeof(factor));
+	starpu_mpi_data_register(factor_handle, FFACTOR, 1);
 
 	for (loop = 0; loop < nloops; loop++)
 	{
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &codelet,
 					     STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS-1,
+					     STARPU_R, factor_handle,
 					     0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
 
 		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &codelet,
 					     STARPU_DATA_MODE_ARRAY, descrs, STARPU_NMAXBUFS+15,
+					     STARPU_R, factor_handle,
 					     0);
 		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
@@ -92,6 +102,7 @@ enodev:
 	{
                 starpu_data_unregister(data_handles[i]);
         }
+	starpu_data_unregister(factor_handle);
 
 	free(data_handles);
 	free(descrs);
@@ -108,7 +119,7 @@ enodev:
 	{
 		for(i=0 ; i<STARPU_NMAXBUFS-1 ; i++)
 		{
-			if (x[i] != nloops * 2)
+			if (x[i] != nloops * FFACTOR * 2)
 			{
 				FPRINTF_MPI("[end loop] value[%d] = %d != Expected value %d\n", i, x[i], nloops*2);
 				ret = 1;
@@ -116,7 +127,7 @@ enodev:
 		}
 		for(i=STARPU_NMAXBUFS-1 ; i<STARPU_NMAXBUFS+15 ; i++)
 		{
-			if (x[i] != nloops)
+			if (x[i] != nloops * FFACTOR)
 			{
 				FPRINTF_MPI("[end loop] value[%d] = %d != Expected value %d\n", i, x[i], nloops);
 				ret = 1;
