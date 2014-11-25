@@ -325,7 +325,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 						return ret;
 					}
 				}
-				if (nb_data > nb_allocated_data)
+				if (nb_data >= nb_allocated_data)
 				{
 					nb_allocated_data *= 2;
 					descrs = (struct starpu_data_descr *)realloc(descrs, nb_allocated_data * sizeof(struct starpu_data_descr));
