@@ -1093,14 +1093,13 @@ void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *ar
 
 	STARPU_ASSERT(comb != -1);
 	char devices[1024];
+	int written = 0;
 	strcpy(devices, "");
 	for(i=0 ; i<arch->ndevices ; i++)
 	{
-		strcat(devices, starpu_perfmodel_get_archtype_name(arch->devices[i].type));
-		if (i != arch->ndevices-1)
-			strcat(devices, ", ");
+		written += snprintf(devices + written, sizeof(devices)-written, "%s%u%s", starpu_perfmodel_get_archtype_name(arch->devices[i].type), arch->devices[i].devid, i != arch->ndevices-1 ? "_":"");
 	}
-	snprintf(archname, maxlen, "Comb%d_impl%u: %s", comb, impl, devices);
+	snprintf(archname, maxlen, "%s_impl%u (Comb%d)", devices, impl, comb);
 }
 
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model,
