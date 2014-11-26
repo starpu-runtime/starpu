@@ -446,6 +446,7 @@ int starpu_task_submit(struct starpu_task *task)
 	if (task->cl)
 	{
 		unsigned i;
+		_STARPU_TRACE_UPDATE_TASK_CNT(0);
 
 		/* Check buffers */
 		if (task->dyn_handles == NULL)
