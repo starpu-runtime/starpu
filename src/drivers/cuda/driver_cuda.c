@@ -716,7 +716,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 
 		if (cures != cudaSuccess)
 		{
-			STARPU_ASSERT_MSG(cures == cudaErrorNotReady, "CUDA error on task %p, codelet %p: %d", task, task->cl, cures);
+			STARPU_ASSERT_MSG(cures == cudaErrorNotReady, "CUDA error on task %p, codelet %p: %s (%d)", task, task->cl, cudaGetErrorString(cures), cures);
 		}
 		else
 #endif /* !STARPU_SIMGRID */
