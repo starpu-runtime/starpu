@@ -219,7 +219,8 @@ void _starpu_fxt_write_paje_header(FILE *file)
 	}
 
 	/* Types for the Scheduler */
-	poti_DefineVariableType("ntask", "Sc", "Number of tasks", "0 0 0");
+	poti_DefineVariableType("nsubmitted", "Sc", "Number of Submitted Uncompleted Tasks", "0 0 0");
+	poti_DefineVariableType("nready", "Sc", "Number of Ready Tasks", "0 0 0");
 
 	/* Link types */
 	poti_DefineLinkType("MPIL", "P", "MPICt", "MPICt", "Links between two MPI Communication Threads");
@@ -247,7 +248,8 @@ void _starpu_fxt_write_paje_header(FILE *file)
 		fprintf(file, "3       Ctx%u      T     \"InCtx%u\"         		\n", i, i);
 	fprintf(file, "\
 3       MS       Mm       \"Memory Node State\"                        \n\
-4       ntask    Sc       \"Number of tasks\"                        \n\
+4       nsubmitted    Sc       \"Number of Submitted Uncompleted Tasks\"                        \n\
+4       nready    Sc       \"Number of Ready Tasks\"                        \n\
 4       bw      Mm       \"Bandwidth\"                        \n\
 6       I       S      Initializing       \"0.0 .7 1.0\"            \n\
 6       D       S      Deinitializing       \"0.0 .1 .7\"            \n\

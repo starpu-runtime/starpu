@@ -1176,6 +1176,7 @@ static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options
  *	Number of task submitted to the scheduler
  */
 static int curq_size = 0;
+static int nsubmitted = 0;
 
 static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
@@ -1189,9 +1190,9 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 		char container[STARPU_POTI_STR_LEN];
 
 		scheduler_container_alias(container, STARPU_POTI_STR_LEN, options->file_prefix);
-		poti_SetVariable(current_timestamp, container, "ntask", (double)curq_size);
+		poti_SetVariable(current_timestamp, container, "nready", (double)curq_size);
 #else
-		fprintf(out_paje_file, "13	%.9f	%ssched	ntask	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
+		fprintf(out_paje_file, "13	%.9f	%ssched	nready	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
 #endif
 	}
 
@@ -1204,29 +1205,48 @@ static void handle_job_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *opti
 	double current_timestamp = get_event_time_stamp(ev, options);
 
 	curq_size--;
+	nsubmitted--;
 
 	if (!options->no_counter && out_paje_file)
 	{
 #ifdef STARPU_HAVE_POTI
 		char container[STARPU_POTI_STR_LEN];
 		scheduler_container_alias(container, STARPU_POTI_STR_LEN, options->file_prefix);
-		poti_SetVariable(current_timestamp, container, "ntask", (double)curq_size);
+		poti_SetVariable(current_timestamp, container, "nready", (double)curq_size);
+	poti_SetVariable(current_timestamp, container, "nsubmitted", (double)nsubmitted);
 #else
-		fprintf(out_paje_file, "13	%.9f	%ssched	ntask	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
+		fprintf(out_paje_file, "13	%.9f	%ssched	nready	%f\n", current_timestamp, options->file_prefix, (float)curq_size);
+		fprintf(out_paje_file, "13	%.9f	%ssched	nsubmitted	%f\n", current_timestamp, options->file_prefix, (float)nsubmitted);
 #endif
 	}
 
 	if (activity_file)
+	{
 		fprintf(activity_file, "cnt_ready\t%.9f\t%d\n", current_timestamp, curq_size);
+		fprintf(activity_file, "cnt_submitted\t%.9f\t%d\n", current_timestamp, nsubmitted);
+	}
 }
 
 static
 void handle_update_task_cnt(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double current_timestamp = get_event_time_stamp(ev, options);
-	unsigned long nsubmitted = ev->param[0];
+
+	nsubmitted++;
+	if (!options->no_counter && out_paje_file)
+	{
+#ifdef STARPU_HAVE_POTI
+		char container[STARPU_POTI_STR_LEN];
+		scheduler_container_alias(container, STARPU_POTI_STR_LEN, options->file_prefix);
+		poti_SetVariable(current_timestamp, container, "nsubmitted", (double)nsubmitted);
+#else
+		fprintf(out_paje_file, "13	%.9f	%ssched nsubmitted	%f\n", current_timestamp, options->file_prefix, (float)nsubmitted);
+#endif
+	}
+
+
 	if (activity_file)
-	fprintf(activity_file, "cnt_submitted\t%.9f\t%lu\n", current_timestamp, nsubmitted);
+		fprintf(activity_file, "cnt_submitted\t%.9f\t%d\n", current_timestamp, nsubmitted);
 }
 
 static void handle_tag(struct fxt_ev_64 *ev)

@@ -552,6 +552,7 @@ int starpu_task_submit(struct starpu_task *task)
 	{
 		unsigned i;
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+		_STARPU_TRACE_UPDATE_TASK_CNT(0);
 
 		/* Check buffers */
 		if (task->dyn_handles == NULL)
