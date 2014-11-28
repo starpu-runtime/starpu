@@ -105,7 +105,7 @@ LIST_TYPE(_starpu_mpi_req,
 
 	/* who are we talking to ? */
 	int srcdst;
-	int mpi_tag;
+	int data_tag;
 	MPI_Comm comm;
 
 	void (*func)(struct _starpu_mpi_req *);

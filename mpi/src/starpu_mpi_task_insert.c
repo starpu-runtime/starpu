@@ -32,7 +32,7 @@
 #include <starpu_mpi_select_node.h>
 
 #define _SEND_DATA(data, mode, dest, data_tag, comm, callback, arg)     \
-	if (mode & STARPU_SSYNC)					\
+	if (mode & STARPU_SSEND)					\
 		starpu_mpi_issend_detached(data, dest, data_tag, comm, callback, arg); \
 	else								\
 		starpu_mpi_isend_detached(data, dest, data_tag, comm, callback, arg);
