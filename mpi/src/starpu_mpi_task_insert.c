@@ -31,11 +31,11 @@
 #include <starpu_mpi_cache.h>
 #include <starpu_mpi_select_node.h>
 
-#define _SEND_DATA(data, mode, dest, mpi_tag, comm, callback, arg)     \
-	if (mode & STARPU_SSEND)					\
-		starpu_mpi_issend_detached(data, dest, mpi_tag, comm, callback, arg); \
+#define _SEND_DATA(data, mode, dest, data_tag, comm, callback, arg)     \
+	if (mode & STARPU_SSYNC)					\
+		starpu_mpi_issend_detached(data, dest, data_tag, comm, callback, arg); \
 	else								\
-		starpu_mpi_isend_detached(data, dest, mpi_tag, comm, callback, arg);
+		starpu_mpi_isend_detached(data, dest, data_tag, comm, callback, arg);
 
 static
 int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int *do_execute, int *inconsistent_execute, int *xrank)
@@ -102,13 +102,13 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 	if (data && mode & STARPU_R)
 	{
 		int mpi_rank = starpu_data_get_rank(data);
-		int mpi_tag = starpu_data_get_tag(data);
+		int data_tag = starpu_data_get_tag(data);
 		if(mpi_rank == -1)
 		{
 			fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
 			STARPU_ABORT();
 		}
-		if(mpi_tag == -1)
+		if(data_tag == -1)
 		{
 			fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
 			STARPU_ABORT();
@@ -121,7 +121,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 			if (already_received == NULL)
 			{
 				_STARPU_MPI_DEBUG(1, "Receive data %p from %d\n", data, mpi_rank);
-				starpu_mpi_irecv_detached(data, mpi_rank, mpi_tag, comm, NULL, NULL);
+				starpu_mpi_irecv_detached(data, mpi_rank, data_tag, comm, NULL, NULL);
 			}
 		}
 		if (!do_execute && mpi_rank == me)
@@ -131,7 +131,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 			if (already_sent == NULL)
 			{
 				_STARPU_MPI_DEBUG(1, "Send data %p to %d\n", data, xrank);
-				_SEND_DATA(data, mode, xrank, mpi_tag, comm, NULL, NULL);
+				_SEND_DATA(data, mode, xrank, data_tag, comm, NULL, NULL);
 			}
 		}
 	}
@@ -143,13 +143,13 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 	if (mode & STARPU_W)
 	{
 		int mpi_rank = starpu_data_get_rank(data);
-		int mpi_tag = starpu_data_get_tag(data);
+		int data_tag = starpu_data_get_tag(data);
 		if(mpi_rank == -1)
 		{
 			fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
 			STARPU_ABORT();
 		}
-		if(mpi_tag == -1)
+		if(data_tag == -1)
 		{
 			fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
 			STARPU_ABORT();
@@ -159,13 +159,13 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 			if (xrank != -1 && me != xrank)
 			{
 				_STARPU_MPI_DEBUG(1, "Receive data %p back from the task %d which executed the codelet ...\n", data, xrank);
-				starpu_mpi_irecv_detached(data, xrank, mpi_tag, comm, NULL, NULL);
+				starpu_mpi_irecv_detached(data, xrank, data_tag, comm, NULL, NULL);
 			}
 		}
 		else if (do_execute)
 		{
 			_STARPU_MPI_DEBUG(1, "Send data %p back to its owner %d...\n", data, mpi_rank);
-			_SEND_DATA(data, mode, mpi_rank, mpi_tag, comm, NULL, NULL);
+			_SEND_DATA(data, mode, mpi_rank, data_tag, comm, NULL, NULL);
 		}
 	}
 }

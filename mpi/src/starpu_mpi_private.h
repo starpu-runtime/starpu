@@ -88,7 +88,7 @@ enum _starpu_mpi_request_type
 struct _starpu_mpi_envelope
 {
 	starpu_ssize_t size;
-	int mpi_tag;
+	int data_tag;
 };
 
 struct _starpu_mpi_req;

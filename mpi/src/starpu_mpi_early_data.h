@@ -33,7 +33,7 @@ LIST_TYPE(_starpu_mpi_early_data_handle,
 	  struct _starpu_mpi_envelope *env;
 	  struct _starpu_mpi_req *req;
 	  void *buffer;
-	  int mpi_tag;
+	  int data_tag;
 	  int source;
 	  int req_ready;
 	  starpu_pthread_mutex_t req_mutex;
@@ -44,7 +44,7 @@ void _starpu_mpi_early_data_init(int world_size);
 void _starpu_mpi_early_data_check_termination();
 void _starpu_mpi_early_data_free(int world_size);
 
-struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(int mpi_tag, int source);
+struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(int data_tag, int source);
 void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data_handle);
 void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_data_handle);
 

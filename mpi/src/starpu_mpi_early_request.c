@@ -48,11 +48,11 @@ void _starpu_mpi_early_request_check_termination()
 	STARPU_ASSERT_MSG(_starpu_mpi_early_request_count() == 0, "Number of receive requests left is not zero");
 }
 
-struct _starpu_mpi_req* _starpu_mpi_early_request_find(int mpi_tag, int source)
+struct _starpu_mpi_req* _starpu_mpi_early_request_find(int data_tag, int source)
 {
 	struct _starpu_mpi_req* req;
 
-	HASH_FIND_INT(_starpu_mpi_app_req_hashmap[source], &mpi_tag, req);
+	HASH_FIND_INT(_starpu_mpi_app_req_hashmap[source], &data_tag, req);
 
 	return req;
 }
@@ -61,25 +61,25 @@ void _starpu_mpi_early_request_add(struct _starpu_mpi_req *req)
 {
 	struct _starpu_mpi_req *test_req;
 
-	test_req = _starpu_mpi_early_request_find(req->mpi_tag, req->srcdst);
+	test_req = _starpu_mpi_early_request_find(req->data_tag, req->srcdst);
 
 	if (test_req == NULL)
 	{
-		HASH_ADD_INT(_starpu_mpi_app_req_hashmap[req->srcdst], mpi_tag, req);
+		HASH_ADD_INT(_starpu_mpi_app_req_hashmap[req->srcdst], data_tag, req);
 		_starpu_mpi_app_req_hashmap_count ++;
-		_STARPU_MPI_DEBUG(3, "Adding request %p with tag %d in the application request hashmap[%d]\n", req, req->mpi_tag, req->srcdst);
+		_STARPU_MPI_DEBUG(3, "Adding request %p with tag %d in the application request hashmap[%d]\n", req, req->data_tag, req->srcdst);
 	}
 	else
 	{
-		_STARPU_MPI_DEBUG(3, "[Error] request %p with tag %d already in the application request hashmap[%d]\n", req, req->mpi_tag, req->srcdst);
+		_STARPU_MPI_DEBUG(3, "[Error] request %p with tag %d already in the application request hashmap[%d]\n", req, req->data_tag, req->srcdst);
 		int seq_const = starpu_data_get_sequential_consistency_flag(req->data_handle);
 		if (seq_const &&  req->sequential_consistency)
 		{
-			STARPU_ASSERT_MSG(!test_req, "[Error] request %p with tag %d wanted to be added to the application request hashmap[%d], while another request %p with the same tag is already in it. \n Sequential consistency is activated : this is not supported by StarPU.", req, req->mpi_tag, req->srcdst, test_req);
+			STARPU_ASSERT_MSG(!test_req, "[Error] request %p with tag %d wanted to be added to the application request hashmap[%d], while another request %p with the same tag is already in it. \n Sequential consistency is activated : this is not supported by StarPU.", req, req->data_tag, req->srcdst, test_req);
 		}
 		else
 		{
-			STARPU_ASSERT_MSG(!test_req, "[Error] request %p with tag %d wanted to be added to the application request hashmap[%d], while another request %p with the same tag is already in it. \n Sequential consistency isn't activated for this handle : you should want to add dependencies between requests for which the sequential consistency is deactivated.", req, req->mpi_tag, req->srcdst, test_req);
+			STARPU_ASSERT_MSG(!test_req, "[Error] request %p with tag %d wanted to be added to the application request hashmap[%d], while another request %p with the same tag is already in it. \n Sequential consistency isn't activated for this handle : you should want to add dependencies between requests for which the sequential consistency is deactivated.", req, req->data_tag, req->srcdst, test_req);
 		}
 	}
 }
@@ -88,17 +88,17 @@ void _starpu_mpi_early_request_delete(struct _starpu_mpi_req *req)
 {
 	struct _starpu_mpi_req *test_req;
 
-	test_req = _starpu_mpi_early_request_find(req->mpi_tag, req->srcdst);
+	test_req = _starpu_mpi_early_request_find(req->data_tag, req->srcdst);
 
 	if (test_req != NULL)
 	{
 		HASH_DEL(_starpu_mpi_app_req_hashmap[req->srcdst], req);
 		_starpu_mpi_app_req_hashmap_count --;
-		_STARPU_MPI_DEBUG(3, "Deleting application request %p with tag %d from the application request hashmap[%d]\n", req, req->mpi_tag, req->srcdst);
+		_STARPU_MPI_DEBUG(3, "Deleting application request %p with tag %d from the application request hashmap[%d]\n", req, req->data_tag, req->srcdst);
 	}
 	else
 	{
-		_STARPU_MPI_DEBUG(3, "[Warning] request %p with tag %d is NOT in the application request hashmap[%d]\n", req, req->mpi_tag, req->srcdst);
+		_STARPU_MPI_DEBUG(3, "[Warning] request %p with tag %d is NOT in the application request hashmap[%d]\n", req, req->data_tag, req->srcdst);
 	}
 }
 

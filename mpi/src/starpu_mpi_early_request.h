@@ -34,7 +34,7 @@ int _starpu_mpi_early_request_count();
 void _starpu_mpi_early_request_check_termination();
 
 void _starpu_mpi_early_request_add(struct _starpu_mpi_req *req);
-struct _starpu_mpi_req* _starpu_mpi_early_request_find(int mpi_tag, int source);
+struct _starpu_mpi_req* _starpu_mpi_early_request_find(int data_tag, int source);
 void _starpu_mpi_early_request_delete(struct _starpu_mpi_req *req);
 
 #ifdef __cplusplus
