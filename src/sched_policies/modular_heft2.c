@@ -19,6 +19,7 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 #include <float.h>
+#include <limits.h>
 
 /* The two thresolds concerns the prio components, which contains queues
  * who can handle the priority of StarPU tasks. You can tune your
@@ -33,6 +34,12 @@
 static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+
+	/* The application may use any integer */
+	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_min_priority(sched_ctx_id, INT_MIN);
+	if (starpu_sched_ctx_max_priority_is_set(sched_ctx_id) == 0)
+		starpu_sched_ctx_set_max_priority(sched_ctx_id, INT_MAX);
 
 	unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
 	double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
