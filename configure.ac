@@ -1051,7 +1051,7 @@ AC_MSG_RESULT($enable_simgrid)
 
 AC_MSG_CHECKING(whether blocking drivers should be enabled)
 AC_ARG_ENABLE(blocking-drivers, [AS_HELP_STRING([--enable-blocking-drivers], [enable blocking drivers])],
-				enable_blocking=$enableval, enable_blocking=no)
+				enable_blocking=$enableval, enable_blocking=$enable_simgrid)
 AC_MSG_RESULT($enable_blocking)
 
 if test x$enable_blocking = xno ; then
