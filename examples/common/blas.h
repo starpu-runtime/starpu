@@ -94,12 +94,12 @@ extern void dgemm_ (const char *transa, const char *transb, const int *m,
                    const double *A, const int *lda, const double *B, 
                    const int *ldb, const double *beta, double *C, 
                    const int *ldc);
-extern void sgemv_(const char *trans, int *m, int *n, float *alpha,
-                   void *a, int *lda, void *x, int *incx, 
-                   float *beta, void *y, int *incy);
-extern void dgemv_(const char *trans, int *m, int *n, double *alpha,
-                   void *a, int *lda, void *x, int *incx,
-                   double *beta, void *y, int *incy);
+extern void sgemv_(const char *trans, const int *m, const int *n, const float *alpha,
+                   const float *a, const int *lda, const float *x, const int *incx, 
+                   const float *beta, float *y, const int *incy);
+extern void dgemv_(const char *trans, const int *m, const int *n, const double *alpha,
+                   const double *a, const int *lda, const double *x, const int *incx,
+                   const double *beta, double *y, const int *incy);
 extern void ssyr_ (const char *uplo, const int *n, const float *alpha,
                   const float *x, const int *incx, float *A, const int *lda);
 extern void ssyrk_ (const char *uplo, const char *trans, const int *n,
@@ -140,12 +140,12 @@ extern void dtrmm_(const char *side, const char *uplo, const char *transA,
 extern void strmv_(const char *uplo, const char *transA, const char *diag,
                  const int *n, const float *A, const int *lda, float *X,
                  const int *incX);
-extern void saxpy_(const int *n, const float *alpha, float *X, const int *incX,
+extern void saxpy_(const int *n, const float *alpha, const float *X, const int *incX,
 		float *Y, const int *incy);
-extern void daxpy_(const int *n, const double *alpha, double *X, const int *incX,
+extern void daxpy_(const int *n, const double *alpha, const double *X, const int *incX,
 		double *Y, const int *incy);
-extern int isamax_(const int *n, float *X, const int *incX);
-extern int idamax_(const int *n, double *X, const int *incX);
+extern int isamax_(const int *n, const float *X, const int *incX);
+extern int idamax_(const int *n, const double *X, const int *incX);
 /* for some reason, FLOATRET is not a float but a double in GOTOBLAS */
 extern double sdot_(const int *n, const float *x, const int *incx, const float *y, const int *incy);
 extern double ddot_(const int *n, const double *x, const int *incx, const double *y, const int *incy);
