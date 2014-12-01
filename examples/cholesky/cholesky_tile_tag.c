@@ -17,6 +17,10 @@
 
 #include "cholesky.h"
 
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
+#include "magma.h"
+#endif
+
 /* A [ y ] [ x ] */
 float *A[NMAXBLOCKS][NMAXBLOCKS];
 starpu_data_handle_t A_state[NMAXBLOCKS][NMAXBLOCKS];
@@ -215,6 +219,10 @@ int main(int argc, char **argv)
 	assert(nblocks <= NMAXBLOCKS);
 
 	FPRINTF(stderr, "BLOCK SIZE = %d\n", size / nblocks);
+
+#ifdef STARPU_HAVE_MAGMA
+	magma_init();
+#endif
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)

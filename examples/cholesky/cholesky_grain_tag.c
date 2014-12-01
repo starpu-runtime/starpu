@@ -18,6 +18,10 @@
 
 #include "cholesky.h"
 
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
+#include "magma.h"
+#endif
+
 /*
  *	Some useful functions
  */
@@ -253,6 +257,10 @@ static int cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned 
 static void initialize_system(float **A, unsigned dim, unsigned pinned)
 {
 	int ret;
+
+#ifdef STARPU_HAVE_MAGMA
+	magma_init();
+#endif
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)

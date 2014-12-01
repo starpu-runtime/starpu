@@ -19,6 +19,10 @@
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
 
+#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
+#include "magma.h"
+#endif
+
 /*
  *	code to bootstrap the factorization
  *	and construct the DAG
@@ -300,6 +304,10 @@ int main(int argc, char **argv)
 
 	if(with_ctxs || with_noctxs || chole1 || chole2)
 		parse_args_ctx(argc, argv);
+
+#ifdef STARPU_HAVE_MAGMA
+	magma_init();
+#endif
 
 	int ret;
 	ret = starpu_init(NULL);
