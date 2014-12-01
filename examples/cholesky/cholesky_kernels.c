@@ -185,7 +185,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 			{
 			int ret;
 			int info;
-			ret = magma_spotrf_gpu('L', nx, sub11, ld, &info);
+			ret = magma_spotrf_gpu(MagmaLower, nx, sub11, ld, &info);
 			if (ret != MAGMA_SUCCESS)
 			{
 				fprintf(stderr, "Error in Magma: %d\n", ret);
