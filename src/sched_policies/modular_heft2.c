@@ -48,6 +48,9 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 
 	struct starpu_sched_tree * t = starpu_sched_tree_create(sched_ctx_id);
 
+	struct starpu_sched_component * window_component = starpu_sched_component_prio_create(t, NULL);
+	t->root = window_component;
+
 	struct starpu_sched_component * perfmodel_component = starpu_sched_component_heft_create(t, NULL);
 	struct starpu_sched_component * no_perfmodel_component = starpu_sched_component_eager_create(t, NULL);
 	struct starpu_sched_component * calibrator_component = starpu_sched_component_eager_calibration_create(t, NULL);
@@ -58,9 +61,6 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 			.no_perfmodel_component = no_perfmodel_component,
 			.perfmodel_component = perfmodel_component,
 		};
-
-	struct starpu_sched_component * window_component = starpu_sched_component_prio_create(t, NULL);
-	t->root = window_component;
 
 	struct starpu_sched_component * perfmodel_select_component = starpu_sched_component_perfmodel_select_create(t, &perfmodel_select_data);
 	window_component->add_child(window_component, perfmodel_select_component);
