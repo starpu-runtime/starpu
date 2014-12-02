@@ -55,7 +55,11 @@ cudaStreamSynchronize(starpu_cuda_get_local_stream());
 Unfortunately, some CUDA libraries do not have stream variants of
 kernels. That will lower the potential for overlapping.
 
-StarPU already does appropriate calls for the CUBLAS library.
+Calling starpu_cublas_init() makes StarPU already do appropriate calls for the
+CUBLAS library. Some libraries like Magma may however change the current stream,
+one then has to call cublasSetKernelStream(starpu_cuda_get_local_stream()); at
+the beginning of the codelet to make sure that CUBLAS is really using the proper
+stream.
 
 If the kernel can be made to only use this local stream or other self-allocated
 streams, i.e. the whole kernel submission can be made asynchronous, then
