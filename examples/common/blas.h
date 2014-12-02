@@ -82,6 +82,11 @@ double STARPU_DDOT(const int n, const double *x, const int incx, const double *y
 void STARPU_SSWAP(const int n, float *x, const int incx, float *y, const int incy);
 void STARPU_DSWAP(const int n, double *x, const int incx, double *y, const int incy);
 
+#ifdef STARPU_MKL
+void STARPU_SPOTRF(const char*uplo, const int n, float *a, const int lda);
+void STARPU_DPOTRF(const char*uplo, const int n, double *a, const int lda);
+#endif
+
 #if defined(STARPU_GOTO) || defined(STARPU_SYSTEM_BLAS) || defined(STARPU_MKL)
 
 extern void sgemm_ (const char *transa, const char *transb, const int *m,
@@ -151,6 +156,11 @@ extern double sdot_(const int *n, const float *x, const int *incx, const float *
 extern double ddot_(const int *n, const double *x, const int *incx, const double *y, const int *incy);
 extern void sswap_(const int *n, float *x, const int *incx, float *y, const int *incy);
 extern void dswap_(const int *n, double *x, const int *incx, double *y, const int *incy);
+
+#ifdef STARPU_MKL
+extern void spotrf_(const char*uplo, const int *n, float *a, const int *lda, int *info);
+extern void dpotrf_(const char*uplo, const int *n, double *a, const int *lda, int *info);
+#endif
 
 #endif
 

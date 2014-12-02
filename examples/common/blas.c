@@ -414,6 +414,17 @@ void STARPU_DSWAP(const int n, double *X, const int incX, double *Y, const int i
 	dswap_(&n, X, &incX, Y, &incY);
 }
 
+void STARPU_SPOTRF(const char*uplo, const int n, float *a, const int lda)
+{
+	int info = 0;
+	spotrf_(uplo, &n, a, &lda, &info);
+}
+
+void STARPU_DPOTRF(const char*uplo, const int n, double *a, const int lda)
+{
+	int info = 0;
+	dpotrf_(uplo, &n, a, &lda, &info);
+}
 
 #elif defined(STARPU_SIMGRID)
 inline void STARPU_SGEMM(char *transa, char *transb, int M, int N, int K, 
@@ -497,6 +508,10 @@ double STARPU_DDOT(const int n, const double *x, const int incx, const double *y
 void STARPU_SSWAP(const int n, float *X, const int incX, float *Y, const int incY) { }
 
 void STARPU_DSWAP(const int n, double *X, const int incX, double *Y, const int incY) { }
+
+void STARPU_SPOTRF(const char*uplo, const int n, float *a, const int lda) { }
+
+void STARPU_DPOTRF(const char*uplo, const int n, double *a, const int lda) { }
 
 
 #else

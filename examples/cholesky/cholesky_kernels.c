@@ -158,6 +158,9 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 	{
 		case 0:
 
+#ifdef STARPU_MKL
+			STARPU_SPOTRF("L", nx, sub11, ld);
+#else
 			/*
 			 *	- alpha 11 <- lambda 11 = sqrt(alpha11)
 			 *	- alpha 21 <- l 21	= alpha 21 / lambda 11
@@ -178,6 +181,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
+#endif
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
@@ -191,6 +195,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 				fprintf(stderr, "Error in Magma: %d\n", ret);
 				STARPU_ABORT();
 			}
+			cudaThreadSynchronize();
 			}
 #else
 			{
@@ -251,9 +256,6 @@ struct starpu_codelet cl11 =
 	.cuda_funcs = {chol_cublas_codelet_update_u11},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
-#endif
-#ifdef STARPU_HAVE_MAGMA
-	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 1,
 	.modes = { STARPU_RW },
