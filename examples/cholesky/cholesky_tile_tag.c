@@ -242,8 +242,6 @@ int main(int argc, char **argv)
 	/* Disable sequential consistency */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
-	starpu_cublas_init();
-
 #ifndef STARPU_SIMGRID
 	for (y = 0; y < nblocks; y++)
 	for (x = 0; x < nblocks; x++)
@@ -302,8 +300,6 @@ int main(int argc, char **argv)
 			free(A[y][x]);
 		}
 	}
-
-	starpu_cublas_shutdown();
 
 	starpu_shutdown();
 	return ret;
