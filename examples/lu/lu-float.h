@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2014  Université de Bordeaux
  * Copyright (C) 2010  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,15 +21,8 @@
 
 #define STARPU_LU(name)       starpu_slu_##name
 
-#ifdef STARPU_HAVE_MAGMA
-#include <magmablas.h>
-#define CUBLAS_GEMM	magmablas_sgemm
-#define CUBLAS_TRSM	magmablas_strsm
-#else
 #define CUBLAS_GEMM	cublasSgemm
 #define CUBLAS_TRSM	cublasStrsm
-#endif
-
 #define CUBLAS_SCAL	cublasSscal
 #define CUBLAS_GER	cublasSger
 #define CUBLAS_SWAP	cublasSswap
