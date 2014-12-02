@@ -1371,7 +1371,11 @@ unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, stru
 		driver.id.cuda_id = worker->devid;
 		break;
 	case STARPU_OPENCL_WORKER:
+#ifndef STARPU_SIMGRID
 		starpu_opencl_get_device(worker->devid, &driver.id.opencl_id);
+#else
+		STARPU_ASSERT_MSG(0, "Can not let application run the OpenCL driver in simgrid mode");
+#endif
 		break;
 	default:
 		goto always_launch;
