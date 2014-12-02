@@ -300,8 +300,6 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	starpu_cublas_init();
-
 #ifndef STARPU_SIMGRID
 	if (pinned)
 	{
@@ -346,7 +344,6 @@ static void shutdown_system(float **matA, unsigned pinned)
 	     free(*matA);
 	}
 
-	starpu_cublas_shutdown();
 	starpu_shutdown();
 }
 
