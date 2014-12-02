@@ -124,7 +124,11 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 						 0);
 			if (ret == -ENODEV) return 77;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_insert_task");
+		}
 
+		for (j = k+1; j<nblocks; j++)
+		{
+                        starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
 			for (i = k+1; i<nblocks; i++)
 			{
 				if (i <= j)
