@@ -71,7 +71,9 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STAR
 	{
 		/* CUDA kernel */
 #ifdef STARPU_USE_CUDA
+#ifdef STARPU_HAVE_MAGMA
 		cublasSetKernelStream(starpu_cuda_get_local_stream());
+#endif
 		cublasSgemm('n', 't', dy, dx, dz, 
 				-1.0f, left, ld21, right, ld12, 
 				 1.0f, center, ld22);
@@ -118,7 +120,9 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, STARPU_A
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+#ifdef STARPU_HAVE_MAGMA
 			cublasSetKernelStream(starpu_cuda_get_local_stream());
+#endif
 			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			break;
 #endif

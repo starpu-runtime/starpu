@@ -244,6 +244,8 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,NULL);
 #endif
 
+	starpu_cublas_init();
+
 #ifndef STARPU_SIMGRID
 	if (pinned)
 	{
@@ -297,6 +299,7 @@ static void shutdown_system(float **matA, unsigned pinned)
 		free(*matA);
 	}
 
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 }
 

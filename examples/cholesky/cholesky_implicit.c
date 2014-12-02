@@ -331,6 +331,8 @@ int main(int argc, char **argv)
 	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,NULL);
 #endif
 
+	starpu_cublas_init();
+
 	if(with_ctxs)
 	{
 		construct_contexts(execute_cholesky);
@@ -345,6 +347,7 @@ int main(int argc, char **argv)
 	else
 		execute_cholesky(size, nblocks);
 
+	starpu_cublas_shutdown();
 	starpu_shutdown();
 
 	return ret;
