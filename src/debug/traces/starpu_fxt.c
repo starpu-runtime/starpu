@@ -1401,7 +1401,8 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 			scheduler_container_alias(new_scheduler_container_alias, STARPU_POTI_STR_LEN, prefix);
 			snprintf(new_scheduler_container_name, STARPU_POTI_STR_LEN, "scheduler %s", prefix);
 			poti_CreateContainer(0.0, new_scheduler_container_alias, "Sc", new_program_container_alias, new_scheduler_container_name);
-			poti_SetVariable(0.0, new_scheduler_container_alias, "ntask", 0.0);
+			poti_SetVariable(0.0, new_scheduler_container_alias, "nsubmitted", 0.0);
+			poti_SetVariable(0.0, new_scheduler_container_alias, "nready", 0.0);
 		}
 #else
 		fprintf(out_paje_file, "7	0.0	%sp	P	MPIroot	%sprogram \n", prefix, prefix);
@@ -1409,7 +1410,8 @@ void starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *opt
 		if (!options->no_counter)
 		{
 			fprintf(out_paje_file, "7	%.9f	%ssched	Sc	%sp	scheduler\n", 0.0, prefix, prefix);
-			fprintf(out_paje_file, "13	0.0	%ssched	ntask	0.0\n", prefix);
+			fprintf(out_paje_file, "13	0.0	%ssched	nsubmitted	0.0\n", prefix);
+			fprintf(out_paje_file, "13	0.0	%ssched	nready	0.0\n", prefix);
 		}
 #endif
 	}
