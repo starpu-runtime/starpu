@@ -252,9 +252,6 @@ struct starpu_codelet cl11 =
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
-#ifdef STARPU_HAVE_MAGMA
-	.cuda_flags = {STARPU_CUDA_ASYNC},
-#endif
 	.nbuffers = 1,
 	.modes = { STARPU_RW },
 	.model = &chol_model_11
