@@ -431,7 +431,11 @@ func <<<grid,block,0,starpu_cuda_get_local_stream()>>> (foo, bar);
 cudaStreamSynchronize(starpu_cuda_get_local_stream());
 \endcode
 
-StarPU already does appropriate calls for the CUBLAS library.
+Calling starpu_cublas_init() makes StarPU already do appropriate calls for the
+CUBLAS library. Some libraries like Magma may however change the current stream,
+one then has to call cublasSetKernelStream(starpu_cuda_get_local_stream()); at
+the beginning of the codelet to make sure that CUBLAS is really using the proper
+stream.
 
 Unfortunately, some CUDA libraries do not have stream variants of
 kernels. That will lower the potential for overlapping.
