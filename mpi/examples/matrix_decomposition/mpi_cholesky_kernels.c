@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2012-2013  Université de Bordeaux
+ * Copyright (C) 2009, 2010, 2012-2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -60,6 +60,9 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, STAR
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+#ifdef STARPU_HAVE_MAGMA
+			cublasSetKernelStream(starpu_cuda_get_local_stream());
+#endif
 			cublasSgemm('n', 't', dy, dx, dz,
 					-1.0f, left, ld21, right, ld12,
 					 1.0f, center, ld22);
@@ -115,6 +118,9 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, STARPU_A
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
+#ifdef STARPU_HAVE_MAGMA
+			cublasSetKernelStream(starpu_cuda_get_local_stream());
+#endif
 			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
 			cudaStreamSynchronize(starpu_cuda_get_local_stream());
 			break;
@@ -157,6 +163,9 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 	{
 		case 0:
 
+#ifdef STARPU_MKL
+			STARPU_SPOTRF("L", nx, sub11, ld);
+#else
 			/*
 			 *	- alpha 11 <- lambda 11 = sqrt(alpha11)
 			 *	- alpha 21 <- l 21	= alpha 21 / lambda 11
@@ -177,6 +186,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
+#endif
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
@@ -184,13 +194,13 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 			{
 				int ret;
 				int info;
-				ret = magma_spotrf_gpu('L', nx, sub11, ld, &info);
+				ret = magma_spotrf_gpu(MagmaLower, nx, sub11, ld, &info);
 				if (ret != MAGMA_SUCCESS)
 				{
 					fprintf(stderr, "Error in Magma: %d\n", ret);
 					STARPU_ABORT();
 				}
-				cudaError_t cures = cudaStreamSynchronize(starpu_cuda_get_local_stream());
+				cudaError_t cures = cudaThreadSynchronize();
 				STARPU_ASSERT(!cures);
 			}
 #else
