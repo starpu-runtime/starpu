@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010, 2011-2012  Université de Bordeaux 1
+ * Copyright (C) 2009, 2010, 2011-2012, 2014  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -160,6 +160,9 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 	{
 		case 0:
 
+#ifdef STARPU_MKL
+			STARPU_SPOTRF("L", nx, sub11, ld);
+#else
 			/*
 			 *	- alpha 11 <- lambda 11 = sqrt(alpha11)
 			 *	- alpha 21 <- l 21	= alpha 21 / lambda 11
@@ -180,6 +183,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
+#endif
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
@@ -193,8 +197,7 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 				fprintf(stderr, "Error in Magma: %d\n", ret);
 				STARPU_ABORT();
 			}
-			cudaError_t cures = cudaStreamSynchronize(starpu_cuda_get_local_stream());
-			STARPU_ASSERT(!cures);
+			cudaThreadSynchronize();
 			}
 #else
 			{
