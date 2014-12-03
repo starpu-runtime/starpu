@@ -1399,7 +1399,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				{
 					if (entry->flops == 0.)
 						entry->flops = j->task->flops;
-					else if (entry->flops != j->task->flops)
+					else if (((entry->flops - j->task->flops) / entry->flops) > 0.00001)
 						/* Incoherent flops! forget about trying to record flops */
 						entry->flops = NAN;
 				}
