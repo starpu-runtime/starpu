@@ -28,13 +28,15 @@
 #####
 # Model for cpu0_impl0 (Comb0)
 # number of entries
-1
+3
 # sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
 0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
 # a		b		c
 nan            	nan            	nan            
 # hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+cea37d6d	409600         	1.097392e+07   	9.221097e+02   	4.521529e+01   	7.930143e+04   	7.330044e+07   	86
 617e5fe6	3686400        	2.953730e+08   	1.884969e+04   	7.370619e+02   	2.111165e+06   	3.985565e+10   	112
+afdd228b	1638400        	8.758624e+07   	5.940712e+03   	2.434960e+02   	2.376285e+05   	1.414054e+09   	40
 
 ####################
 # COMB_1
@@ -58,13 +60,15 @@ nan            	nan            	nan
 #####
 # Model for cuda0_impl0 (Comb1)
 # number of entries
-1
+3
 # sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
 0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
 # a		b		c
 nan            	nan            	nan            
 # hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+cea37d6d	409600         	1.097392e+07   	2.918360e+03   	1.924750e+02   	2.918360e+04   	8.553869e+07   	10
 617e5fe6	3686400        	2.953730e+08   	1.239445e+04   	1.620572e+03   	1.363389e+05   	1.718735e+09   	11
+afdd228b	1638400        	8.758624e+07   	5.044027e+03   	9.860073e+02   	6.052832e+04   	3.169730e+08   	12
 
 ####################
 # COMB_2
@@ -88,13 +92,15 @@ nan            	nan            	nan
 #####
 # Model for cuda1_impl0 (Comb2)
 # number of entries
-1
+3
 # sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
 0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
 # a		b		c
 nan            	nan            	nan            
 # hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+cea37d6d	409600         	1.097392e+07   	3.820396e+03   	6.009552e+02   	3.820396e+04   	1.495658e+08   	10
 617e5fe6	3686400        	2.953730e+08   	4.056348e+04   	1.353308e+03   	4.056348e+05   	1.647228e+10   	10
+afdd228b	1638400        	8.758624e+07   	1.146929e+04   	1.466472e+03   	1.146929e+05   	1.336952e+09   	10
 
 ####################
 # COMB_3
@@ -118,10 +124,13 @@ nan            	nan            	nan
 #####
 # Model for cuda2_impl0 (Comb3)
 # number of entries
-1
+3
 # sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
 0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
 # a		b		c
 nan            	nan            	nan            
 # hash		size		flops		mean (us)	dev (us)	sum		sum2		n
+cea37d6d	409600         	1.097392e+07   	2.847962e+03   	2.297293e+02   	2.847962e+04   	8.163663e+07   	10
 617e5fe6	3686400        	2.953730e+08   	3.799962e+04   	4.946563e+03   	3.799962e+05   	1.468440e+10   	10
+afdd228b	1638400        	8.758624e+07   	1.204317e+04   	9.253606e+02   	1.204317e+05   	1.458942e+09   	10
+
