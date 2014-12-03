@@ -55,14 +55,13 @@ uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struc
 		}
 		else
 		{
+			struct starpu_perfmodel_per_arch *per_arch;
 			if (arch)
+				per_arch = starpu_perfmodel_get_model_per_arch(model, arch, nimpl);
+			if (arch && per_arch != NULL && per_arch->size_base)
 			{
-				struct starpu_perfmodel_per_arch *per_arch = starpu_perfmodel_get_model_per_arch(model, arch, nimpl);
-				if (per_arch != NULL && per_arch->size_base)
-				{
-					size_t size = per_arch->size_base(task, arch, nimpl);
-					footprint = starpu_hash_crc32c_be_n(&size, sizeof(size), footprint);
-				}
+				size_t size = per_arch->size_base(task, arch, nimpl);
+				footprint = starpu_hash_crc32c_be_n(&size, sizeof(size), footprint);
 			}
 			else if (model->size_base)
 			{
