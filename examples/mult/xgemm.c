@@ -354,20 +354,20 @@ int main(int argc, char **argv)
 		starpu_bound_stop();
 
 	double timing = end - start;
-	double min;
+	double min, min_int;
 	double flops = 2.0*((unsigned long long)niter)*((unsigned long long)xdim)
 		           *((unsigned long long)ydim)*((unsigned long long)zdim);
 
 	if (bound)
-	starpu_bound_compute(&min, NULL, 0);
+		starpu_bound_compute(&min, &min_int, 1);
 
 	PRINTF("# x\ty\tz\tms\tGFlops");
 	if (bound)
-		PRINTF("\tTms\tTGFlops");
+		PRINTF("\tTms\tTGFlops\tTims\tTiGFlops");
 	PRINTF("\n");
 	PRINTF("%u\t%u\t%u\t%.0f\t%.1f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0);
 	if (bound)
-		PRINTF("\t%.0f\t%.1f", min, flops/min/1000000.0);
+		PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0);
 	PRINTF("\n");
 
 enodev:
