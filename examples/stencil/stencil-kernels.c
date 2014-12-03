@@ -191,7 +191,7 @@ static void update_func_cuda(void *descr[], void *arg)
 fprintf(stderr,"!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid);
 	else
 	DEBUG( "!!! DO update_func_cuda z %d CUDA%d !!!\n", block->bz, workerid);
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	DEBUG( "!!!           RANK %d              !!!\n", rank);
@@ -285,7 +285,7 @@ static void update_func_opencl(void *descr[], void *arg)
 fprintf(stderr,"!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, workerid);
 	else
 	DEBUG( "!!! DO update_func_opencl z %d OPENCL%d !!!\n", block->bz, workerid);
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	DEBUG( "!!!           RANK %d              !!!\n", rank);
@@ -359,7 +359,7 @@ static void update_func_cpu(void *descr[], void *arg)
 		FPRINTF(stderr,"!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
 	else
 		DEBUG( "!!! DO update_func_cpu z %d CPU%d !!!\n", block->bz, workerid);
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	DEBUG( "!!!           RANK %d            !!!\n", rank);
