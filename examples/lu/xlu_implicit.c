@@ -145,12 +145,12 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 	end = starpu_timing_now();
 
 	double timing = end - start;
-	FPRINTF(stderr, "Computation took (in ms)\n");
-	FPRINTF(stdout, "%2.2f\n", timing/1000);
-
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
-	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+
+	PRINTF("# size\tms\tGFlops\n");
+	PRINTF("%u\t%.0f\t%.1f\n", n, timing/1000, flop/timing/1000.0f);
+
 	return 0;
 }
 

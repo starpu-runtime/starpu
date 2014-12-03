@@ -357,12 +357,12 @@ void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks,
 	end = starpu_timing_now();
 
 	double timing = end - start;
-	FPRINTF(stderr, "Computation took (in ms)\n");
-	FPRINTF(stdout, "%2.2f\n", timing/1000);
 
 	unsigned n = size;
 	double flop = (2.0f*n*n*n)/3.0f;
-	FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+
+	PRINTF("# size\tms\tGFlops\n");
+	PRINTF("%u\t%.0f\t%.1f\n", n, timing/1000, flop/timing/1000.0f);
 
 #ifdef CHECK_RESULTS
 	compare_A_LU(Asaved, matA, size, ld);

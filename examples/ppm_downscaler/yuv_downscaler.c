@@ -277,8 +277,8 @@ int main(int argc, char **argv)
 	end = starpu_timing_now();
 
 	double timing = end - start;
-	fprintf(stderr, "Computation took %f seconds\n", timing/1000000);
-	fprintf(stderr, "FPS %f\n", (1000000*nframes)/timing);
+	printf("# s\tFPS\n");
+	printf("%f\t%f\n", timing/1000000, (1000000*nframes)/timing);
 
 	fwrite(yuv_out_buffer, NEW_FRAMESIZE, nframes, f_out);
 

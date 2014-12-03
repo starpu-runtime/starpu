@@ -122,10 +122,12 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
 	else
 	{
-		FPRINTF(stderr, "Computation took (in ms)\n");
-		FPRINTF(stdout, "%2.2f\n", timing/1000);
-	
-		FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
+		PRINTF("# size\tms\tGFlops");
+		if (bound)
+			PRINTF("\tTms\tTGFlops");
+		PRINTF("\n");
+
+		PRINTF("%u\t%.0f\t%.1f", n, timing/1000, (flop/timing/1000.0f));
 		if (bound_lp)
 		{
 			FILE *f = fopen("cholesky.lp", "w");
@@ -140,9 +142,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
 			double res;
 			starpu_bound_compute(&res, NULL, 0);
-			FPRINTF(stderr, "Theoretical makespan: %2.2f\n", res);
-			FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
+			PRINTF("\t%.0f\t%.1f", res, (flop/res/1000000.0f));
 		}
+		PRINTF("\n");
 	}
 	return 0;
 }
