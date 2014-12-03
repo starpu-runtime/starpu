@@ -240,6 +240,9 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
+	if (bound)
+		starpu_bound_start(bounddeps, boundprio);
+
 	for (k = 0; k < nblocks; k++)
 	{
 		struct starpu_task *task = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block);
@@ -309,6 +312,9 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 
 	end = starpu_timing_now();
 
+	if (bound)
+		starpu_bound_stop();
+
 	*timing = end - start;
 	return 0;
 }
@@ -374,8 +380,18 @@ int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size,
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 
-	PRINTF("# size\tms\tGFlops\n");
-	PRINTF("%u\t%.0f\t%.1f\n", n, timing/1000, flop/timing/1000.0f);
+	PRINTF("# size\tms\tGFlops");
+	if (bound)
+		PRINTF("\tTms\tTGFlops");
+	PRINTF("\n");
+	PRINTF("%u\t%.0f\t%.1f", n, timing/1000, flop/timing/1000.0f);
+	if (bound)
+	{
+		double min;
+		starpu_bound_compute(&min, NULL, 0);
+		PRINTF("\t%.0f\t%.1f", min, flop/min/1000000.0f);
+	}
+	PRINTF("\n");
 
 	/* gather all the data */
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
@@ -428,8 +444,18 @@ int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, uns
 	unsigned n = starpu_matrix_get_nx(dataAp[0])*nblocks;
 	double flop = (2.0f*n*n*n)/3.0f;
 
-	PRINTF("# size\tms\tGFlops\n");
-	PRINTF("%u\t%.0f\t%.1f\n", n, timing/1000, flop/timing/1000.0f);
+	PRINTF("# size\tms\tGFlops");
+	if (bound)
+		PRINTF("\tTms\tTGFlops");
+	PRINTF("\n");
+	PRINTF("%u\t%.0f\t%.1f", n, timing/1000, flop/timing/1000.0f);
+	if (bound)
+	{
+		double min;
+		starpu_bound_compute(&min, NULL, 0);
+		PRINTF("\t%.0f\t%.1f", min, flop/min/1000000.0f);
+	}
+	PRINTF("\n");
 
 	for (bj = 0; bj < nblocks; bj++)
 	for (bi = 0; bi < nblocks; bi++)

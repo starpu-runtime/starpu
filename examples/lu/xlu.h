@@ -111,6 +111,9 @@ extern struct starpu_perfmodel model_11;
 extern struct starpu_perfmodel model_12;
 extern struct starpu_perfmodel model_21;
 extern struct starpu_perfmodel model_22;
+extern unsigned bound;
+extern unsigned bounddeps;
+extern unsigned boundprio;
 
 struct piv_s
 {

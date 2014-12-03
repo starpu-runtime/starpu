@@ -178,6 +178,9 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 	/* create all the DAG nodes */
 	unsigned i,j,k;
 
+	if (bound)
+		starpu_bound_start(bounddeps, boundprio);
+
 	for (k = 0; k < nblocks; k++)
 	{
 		struct starpu_task *task = create_task_11(dataA, k);
@@ -223,12 +226,25 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks)
 
 	end = starpu_timing_now();
 
+	if (bound)
+		starpu_bound_stop();
+
 	double timing = end - start;
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 
-	PRINTF("# size\tms\tGFlops\n");
-	PRINTF("%u\t%.0f\t%.1f\n", n, timing/1000, flop/timing/1000.0f);
+	PRINTF("# size\tms\tGFlops");
+	if (bound)
+		PRINTF("\tTms\tTGFlops");
+	PRINTF("\n");
+	PRINTF("%u\t%.0f\t%.1f", n, timing/1000, flop/timing/1000.0f);
+	if (bound)
+	{
+		double min;
+		starpu_bound_compute(&min, NULL, 0);
+		PRINTF("\t%.0f\t%.1f", min, flop/min/1000000.0f);
+	}
+	PRINTF("\n");
 
 	return 0;
 }
