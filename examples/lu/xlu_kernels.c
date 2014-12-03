@@ -108,6 +108,10 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 		return 1;
 
+#ifdef STARPU_SIMGRID
+	/* We don't know, let's assume it can */
+	return 1;
+#else
 	/* Cuda device */
 	const struct cudaDeviceProp *props;
 	props = starpu_cuda_get_device_properties(workerid);
@@ -121,6 +125,7 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 		/* Old card does not support doubles */
 		return 0;
 	}
+#endif
 }
 #endif
 

@@ -51,12 +51,17 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 		return 1;
 
 #ifdef STARPU_USE_CUDA
+#ifdef STARPU_SIMGRID
+	/* We don't know, let's assume it can */
+	return 1;
+#else
 	/* Cuda device */
 	const struct cudaDeviceProp *props;
 	props = starpu_cuda_get_device_properties(workerid);
 	if (props->major >= 2 || props->minor >= 3)
 		/* At least compute capability 1.3, supports doubles */
 		return 1;
+#endif
 #endif
 	/* Old card, does not support doubles */
 	return 0;
