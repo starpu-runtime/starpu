@@ -42,7 +42,7 @@ int _starpu_mpi_select_node_with_most_R_data(int me, int nb_nodes, struct starpu
 	size_t *size_on_nodes;
 	size_t max_size;
 	int i;
-	int xrank;
+	int xrank = me;
 
 	(void)me;
 	size_on_nodes = (size_t *)calloc(1, nb_nodes * sizeof(size_t));
