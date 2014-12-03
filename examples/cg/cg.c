@@ -67,14 +67,14 @@
 
 #include "cg.h"
 
-static int long long n = 1024;
+static int long long n = 4096;
 static int nblocks = 8;
 static int use_reduction = 1;
 
 static starpu_data_handle_t A_handle, b_handle, x_handle;
 static TYPE *A, *b, *x;
 
-static int i_max = 4000;
+static int i_max = 1000;
 static double eps = (10e-14);
 
 static starpu_data_handle_t r_handle, d_handle, q_handle;
@@ -392,7 +392,7 @@ static void parse_args(int argc, char **argv)
 			continue;
 		}
 
-	        if (strcmp(argv[i], "-h") == 0)
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-help") == 0)
 		{
 			FPRINTF(stderr, "usage: %s [-h] [-nblocks #blocks] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
 			exit(-1);
