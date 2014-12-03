@@ -41,9 +41,9 @@ static unsigned xdim = 256;
 static unsigned ydim = 256;
 static unsigned zdim = 64;
 #else
-static unsigned xdim = 1024;
-static unsigned ydim = 1024;
-static unsigned zdim = 1024;
+static unsigned xdim = 960*4;
+static unsigned ydim = 960*4;
+static unsigned zdim = 960*4;
 #endif
 static unsigned check = 0;
 static unsigned bound = 0;
