@@ -1,0 +1,5 @@
+This contains performance models for some architectures and examples
+
+mirage is composed of:
+- 2 Intel Xeon X5650 @2.67GHz, thus 12 CPU cores
+- 3 NVidia GF100 Tesla M2070, thus 3 GPUs
