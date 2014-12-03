@@ -205,7 +205,7 @@ int main(int argc, char **argv)
 	int world_size;
 	int ret;
 
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int thread_support;
 	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_SERIALIZED, &thread_support))
 	{
@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	starpu_mpi_init(NULL, NULL, 0);
 #endif
 
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 
 	create_tasks(rank);
 
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 #endif
@@ -263,7 +263,7 @@ int main(int argc, char **argv)
 
 	end = starpu_timing_now();
 
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 #endif
@@ -274,7 +274,7 @@ int main(int argc, char **argv)
 
 	/*display_debug(nbz, niter, rank);*/
 
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	starpu_mpi_shutdown();
 #endif
 
@@ -285,7 +285,7 @@ int main(int argc, char **argv)
 	double max_timing = timing;
 	double sum_timing = timing;
 
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	int reduce_ret;
 
 	reduce_ret = MPI_Reduce(&timing, &min_timing, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
@@ -366,7 +366,7 @@ int main(int argc, char **argv)
 	free_problem(rank);
 	starpu_shutdown();
 
-#ifdef STARPU_USE_MPI
+#if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID)
 	MPI_Finalize();
 #endif
 

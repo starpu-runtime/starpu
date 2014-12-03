@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013  Université de Bordeaux
+ * Copyright (C) 2010, 2013-2014  Université de Bordeaux
  * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -213,6 +213,20 @@ void create_task_update(unsigned iter, unsigned z, int local_rank)
 
 /* Dummy empty codelet taking one buffer */
 void null_func(void *descr[] STARPU_ATTRIBUTE_UNUSED, void *arg STARPU_ATTRIBUTE_UNUSED) { }
+
+static double null_cost_function(struct starpu_task *task, unsigned nimpl)
+{
+	(void) task;
+	(void) nimpl;
+	return 0.000001;
+}
+
+static struct starpu_perfmodel null_model =
+{
+	.type = STARPU_COMMON,
+	.cost_function = null_cost_function
+};
+
 static struct starpu_codelet null =
 {
 	.modes = { STARPU_W, STARPU_W },
@@ -221,6 +235,7 @@ static struct starpu_codelet null =
 	.cuda_funcs = {null_func},
 	.opencl_funcs = {null_func},
 	.nbuffers = 2,
+	.model = &null_model,
 	.name = "start"
 };
 

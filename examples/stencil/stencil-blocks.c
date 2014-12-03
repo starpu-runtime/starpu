@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2013  Université de Bordeaux
+ * Copyright (C) 2010, 2013-2014  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -254,6 +254,7 @@ static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, 
 	size_t block_size = nx*ny*nz*sizeof(TYPE);
 
 	/* Allocate memory */
+#ifndef STARPU_SIMGRID
 #if 1
 	ret = starpu_malloc((void **)ptr, block_size);
 	STARPU_ASSERT(ret == 0);
@@ -266,6 +267,7 @@ static void allocate_block_on_node(starpu_data_handle_t *handleptr, TYPE **ptr, 
 
 	/* Fill the blocks with 0 */
 	memset(*ptr, 0, block_size);
+#endif
 
 	/* Register it to StarPU */
 	starpu_block_data_register(handleptr, STARPU_MAIN_RAM, (uintptr_t)*ptr, nx, nx*ny, nx, ny, nz, sizeof(TYPE));
@@ -299,6 +301,7 @@ void allocate_memory_on_node(int rank)
 		{
 			allocate_block_on_node(&block->layers_handle[0], &block->layers[0],
 						(sizex + 2*K), (sizey + 2*K), (size_bz + 2*K));
+#ifndef STARPU_SIMGRID
 #ifdef LIFE
 			unsigned x, y, z;
 			unsigned sum = 0;
@@ -308,6 +311,7 @@ void allocate_memory_on_node(int rank)
 						/* Just random data */
 						sum += block->layers[0][(K+x)+(K+y)*(sizex + 2*K)+(K+z)*(sizex+2*K)*(sizey+2*K)] = (int)((x/7.+y/13.+(bz*size_bz + z)/17.) * 10.) % 2;
 /*			printf("block %d starts with %d/%d alive\n", bz, sum, sizex*sizey*size_bz);*/
+#endif
 #endif
 			allocate_block_on_node(&block->layers_handle[1], &block->layers[1],
 						(sizex + 2*K), (sizey + 2*K), (size_bz + 2*K));
