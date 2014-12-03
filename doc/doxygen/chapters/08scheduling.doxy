@@ -79,6 +79,8 @@ The <b>peager</b> (parallel eager) scheduler is similar to eager, it also
 supports parallel tasks (still experimental). Should not be used when several 
 contexts using it are being executed simultaneously.
 
+TODO: describe modular schedulers
+
 \section TaskDistributionVsDataTransfer Task Distribution Vs Data Transfer
 
 Distributing tasks to balance the load induces data transfer penalty. StarPU
