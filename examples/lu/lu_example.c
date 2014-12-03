@@ -422,7 +422,6 @@ int main(int argc, char **argv)
 
 	starpu_free(A);
 
-	FPRINTF(stderr, "Shutting down\n");
 	starpu_cublas_shutdown();
 
 	starpu_shutdown();

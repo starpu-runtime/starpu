@@ -31,6 +31,7 @@
 #include <starpu.h>
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+#define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); }} while(0)
 #define NMAXBLOCKS	32
 
 #define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
