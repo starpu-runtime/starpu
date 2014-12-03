@@ -112,7 +112,7 @@
 
 /* End of magma code */
 
-static unsigned size = 4*1024;
+static unsigned size = 960*16;
 static unsigned nblocks = 16;
 static unsigned nbigblocks = 8;
 static unsigned pinned = 1;
