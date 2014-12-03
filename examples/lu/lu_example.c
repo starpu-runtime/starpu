@@ -30,9 +30,9 @@ static unsigned check = 0;
 static unsigned pivot = 0;
 static unsigned no_stride = 0;
 static unsigned profile = 0;
-static unsigned bound = 0;
-static unsigned bounddeps = 0;
-static unsigned boundprio = 0;
+unsigned bound = 0;
+unsigned bounddeps = 0;
+unsigned boundprio = 0;
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
@@ -326,9 +326,6 @@ int main(int argc, char **argv)
 
 	display_matrix(A, size, size, "A");
 
-	if (bound)
-		starpu_bound_start(bounddeps, boundprio);
-
 	if (profile)
 		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
 
@@ -382,8 +379,6 @@ int main(int argc, char **argv)
 	if (bound)
 	{
 		double min;
-		FPRINTF(stderr, "Setting bound\n");
-		starpu_bound_stop();
 		if (bounddeps)
 		{
 			FILE *f = fopen("lu.pl", "w");
@@ -398,12 +393,6 @@ int main(int argc, char **argv)
 			starpu_bound_print_dot(f);
 			FPRINTF(stderr,"system printed to lu.mps\n");
 			fclose(f);
-		}
-		else
-		{
-			starpu_bound_compute(&min, NULL, 0);
-			if (min != 0.)
-				FPRINTF(stderr, "theoretical min: %f ms\n", min);
 		}
 	}
 
