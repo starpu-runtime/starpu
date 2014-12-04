@@ -24,9 +24,10 @@
 #ifdef STARPU_USE_CUDA
 /* to use CUDA streams */
 # ifdef STARPU_DONT_INCLUDE_CUDA_HEADERS
-typedef void *cudaStream_t;
+typedef void *starpu_cudaStream_t;
 # else
 #  include <cuda_runtime.h>
+typedef cudaStream_t starpu_cudaStream_t;
 # endif
 #endif
 
@@ -59,9 +60,9 @@ struct starpu_data_copy_methods
 	int (*scc_sink_to_sink)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 #ifdef STARPU_USE_CUDA
-	int (*ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
-	int (*cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
-	int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cudaStream_t stream);
+	int (*ram_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, starpu_cudaStream_t stream);
+	int (*cuda_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, starpu_cudaStream_t stream);
+	int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, starpu_cudaStream_t stream);
 #else
 	int (*ram_to_cuda_async)();
 	int (*cuda_to_ram_async)();
