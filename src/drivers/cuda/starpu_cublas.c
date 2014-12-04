@@ -18,9 +18,10 @@
 #include <starpu.h>
 #include <starpu_cuda.h>
 #include <common/config.h>
-#include <cublas.h>
 
 #ifdef STARPU_USE_CUDA
+#include <cublas.h>
+
 static void init_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
 {
 	cublasStatus cublasst = cublasInit();
