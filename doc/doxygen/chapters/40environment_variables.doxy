@@ -471,7 +471,7 @@ configuration files. The default is <c>$HOME</c> on Unix environments,
 and <c>$USERPROFILE</c> on Windows environments.
 </dd>
 
-<dt>STARPU_HOME</dt>
+<dt>STARPU_PERF_MODEL_DIR</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_DIR
 \addindex __env__STARPU_PERF_MODEL_DIR
