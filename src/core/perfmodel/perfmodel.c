@@ -427,42 +427,54 @@ double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundl
 }
 
 static int directory_existence_was_tested = 0;
+static char *_perf_model_dir = NULL;
+static char *_perf_model_dir_codelet = NULL;
+static char *_perf_model_dir_bus = NULL;
+static char *_perf_model_dir_debug = NULL;
+#define _PERF_MODEL_DIR_MAXLEN 256
 
-void _starpu_get_perf_model_dir(char *path, size_t maxlen)
+void _starpu_set_perf_model_dirs()
 {
+	_perf_model_dir = malloc(_PERF_MODEL_DIR_MAXLEN);
+	_perf_model_dir_codelet = malloc(_PERF_MODEL_DIR_MAXLEN);
+	_perf_model_dir_bus = malloc(_PERF_MODEL_DIR_MAXLEN);
+	_perf_model_dir_debug = malloc(_PERF_MODEL_DIR_MAXLEN);
+
 #ifdef STARPU_PERF_MODEL_DIR
 	/* use the directory specified at configure time */
-	snprintf(path, maxlen, "%s", STARPU_PERF_MODEL_DIR);
+	snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s", STARPU_PERF_MODEL_DIR);
 #else
-	snprintf(path, maxlen, "%s/.starpu/sampling/", _starpu_get_home_path());
+	snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s/.starpu/sampling/", _starpu_get_home_path());
 #endif
+
+	snprintf(_perf_model_dir_codelet, _PERF_MODEL_DIR_MAXLEN, "%s/codelets/%d/", _perf_model_dir, _STARPU_PERFMODEL_VERSION);
+	snprintf(_perf_model_dir_bus, _PERF_MODEL_DIR_MAXLEN, "%s/bus/", _perf_model_dir);
+	snprintf(_perf_model_dir_debug, _PERF_MODEL_DIR_MAXLEN, "%s/debug/", _perf_model_dir);
 }
 
-void _starpu_get_perf_model_dir_codelets(char *path, size_t maxlen)
+char *_starpu_get_perf_model_dir_codelet()
 {
-	char perf_model_path[256];
-	_starpu_get_perf_model_dir(perf_model_path, maxlen);
-	snprintf(path, maxlen, "%s/codelets/%d/", perf_model_path, _STARPU_PERFMODEL_VERSION);
+	_starpu_create_sampling_directory_if_needed();
+	return _perf_model_dir_codelet;
 }
 
-void _starpu_get_perf_model_dir_bus(char *path, size_t maxlen)
+char *_starpu_get_perf_model_dir_bus()
 {
-	_starpu_get_perf_model_dir(path, maxlen);
-	strncat(path, "/bus/", maxlen);
+	_starpu_create_sampling_directory_if_needed();
+	return _perf_model_dir_bus;
 }
 
-void _starpu_get_perf_model_dir_debug(char *path, size_t maxlen)
+char *_starpu_get_perf_model_dir_debug()
 {
-	_starpu_get_perf_model_dir(path, maxlen);
-	strncat(path, "/debug/", maxlen);
+	_starpu_create_sampling_directory_if_needed();
+	return _perf_model_dir_debug;
 }
 
 void _starpu_create_sampling_directory_if_needed(void)
 {
 	if (!directory_existence_was_tested)
 	{
-		char perf_model_dir[256];
-		_starpu_get_perf_model_dir(perf_model_dir, 256);
+		_starpu_set_perf_model_dirs();
 
 		/* The performance of the codelets are stored in
 		 * $STARPU_PERF_MODEL_DIR/codelets/ while those of the bus are stored in
@@ -472,24 +484,25 @@ void _starpu_create_sampling_directory_if_needed(void)
 		   may not be safe: it is possible that the permission are
 		   changed in between. Instead, we create it and check if
 		   it already existed before */
-		_starpu_mkpath_and_check(perf_model_dir, S_IRWXU);
-
+		_starpu_mkpath_and_check(_perf_model_dir, S_IRWXU);
 
 		/* Per-task performance models */
-		char perf_model_dir_codelets[256];
-		_starpu_get_perf_model_dir_codelets(perf_model_dir_codelets, 256);
-		_starpu_mkpath_and_check(perf_model_dir_codelets, S_IRWXU);
+		_starpu_mkpath_and_check(_perf_model_dir_codelet, S_IRWXU);
 
 		/* Performance of the memory subsystem */
-		char perf_model_dir_bus[256];
-		_starpu_get_perf_model_dir_bus(perf_model_dir_bus, 256);
-		_starpu_mkpath_and_check(perf_model_dir_bus, S_IRWXU);
+		_starpu_mkpath_and_check(_perf_model_dir_bus, S_IRWXU);
 
 		/* Performance debug measurements */
-		char perf_model_dir_debug[256];
-		_starpu_get_perf_model_dir_debug(perf_model_dir_debug, 256);
-		_starpu_mkpath_and_check(perf_model_dir_debug, S_IRWXU);
+		_starpu_mkpath_and_check(_perf_model_dir_debug, S_IRWXU);
 
 		directory_existence_was_tested = 1;
 	}
+}
+
+void _starpu_free_sampling_directory(void)
+{
+	free(_perf_model_dir);
+	free(_perf_model_dir_codelet);
+	free(_perf_model_dir_bus);
+	directory_existence_was_tested = 0;
 }

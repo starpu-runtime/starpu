@@ -706,8 +706,7 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
 {
 	STARPU_ASSERT(path);
 
-	_starpu_get_perf_model_dir_debug(path, maxlen);
-	strncat(path, model->symbol, maxlen);
+	snprintf(path, maxlen, "%s/%s", _starpu_get_perf_model_dir_debug(), model->symbol);
 
 	char hostname[65];
 	_starpu_gethostname(hostname, sizeof(hostname));
@@ -720,8 +719,7 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
 
 static void get_model_path(struct starpu_perfmodel *model, char *path, size_t maxlen)
 {
-	_starpu_get_perf_model_dir_codelets(path, maxlen);
-	strncat(path, model->symbol, maxlen);
+	snprintf(path, maxlen, "%s/%s", _starpu_get_perf_model_dir_codelet(), model->symbol);
 
 	const char *dot = strrchr(model->symbol, '.');
 	if (dot == NULL)
@@ -903,6 +901,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 	STARPU_PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
 	_free_arch_combs();
+	_starpu_free_sampling_directory();
 }
 
 /* We first try to grab the global lock in read mode to check whether the model
@@ -967,9 +966,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 
 void starpu_perfmodel_directory(FILE *output)
 {
-	char perf_model_dir[256];
-	_starpu_get_perf_model_dir_codelets(perf_model_dir, 256);
-	fprintf(output, "directory: <%s>\n", perf_model_dir);
+	fprintf(output, "directory: <%s>\n", _starpu_get_perf_model_dir_codelet());
 }
 
 /* This function is intended to be used by external tools that should read
@@ -977,14 +974,11 @@ void starpu_perfmodel_directory(FILE *output)
 int starpu_perfmodel_list(FILE *output)
 {
 #if !defined(_WIN32) || defined(__MINGW32__) || defined(__CYGWIN__)
-        char path[256];
+        char *path;
         DIR *dp;
         struct dirent *ep;
 
-	char perf_model_dir_codelets[256];
-	_starpu_get_perf_model_dir_codelets(perf_model_dir_codelets, 256);
-
-        strncpy(path, perf_model_dir_codelets, 256);
+	path = _starpu_get_perf_model_dir_codelet();
         dp = opendir(path);
         if (dp != NULL)
 	{
