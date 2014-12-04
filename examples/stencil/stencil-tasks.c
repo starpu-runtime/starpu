@@ -224,7 +224,8 @@ static double null_cost_function(struct starpu_task *task, unsigned nimpl)
 static struct starpu_perfmodel null_model =
 {
 	.type = STARPU_COMMON,
-	.cost_function = null_cost_function
+	.cost_function = null_cost_function,
+	.symbol = "null"
 };
 
 static struct starpu_codelet null =
