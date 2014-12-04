@@ -179,6 +179,9 @@ enum starpu_omp_task_state
 	starpu_omp_task_state_preempted  = 1,
 	starpu_omp_task_state_terminated = 2,
 	starpu_omp_task_state_zombie     = 3,
+
+	/* target tasks are non-preemptible tasks, without dedicated stack and OpenMP Runtime Support context */
+	starpu_omp_task_state_target     = 4,
 };
 
 enum starpu_omp_task_wait_on

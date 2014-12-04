@@ -438,6 +438,64 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 	else if (task->state != starpu_omp_task_state_preempted)
 		_STARPU_ERROR("invalid omp task state");
 }
+static void starpu_omp_task_completion_accounting(struct starpu_omp_task *task)
+{
+	struct starpu_omp_task *parent_task = task->parent_task;
+	struct starpu_omp_region *parallel_region = task->owner_region;
+
+	_starpu_spin_lock(&parent_task->lock);
+	if (STARPU_ATOMIC_ADD(&parent_task->child_task_count, -1) == 0)
+	{
+		if (parent_task->state == starpu_omp_task_state_zombie)
+		{
+			STARPU_ASSERT(!parent_task->is_implicit);
+			destroy_omp_task_struct(parent_task);
+		}
+		else if (parent_task->wait_on & starpu_omp_task_wait_on_task_childs)
+		{
+			parent_task->wait_on &= ~starpu_omp_task_wait_on_task_childs;
+			_wake_up_locked_task(parent_task);
+		}
+	}
+	_starpu_spin_unlock(&parent_task->lock);
+	_starpu_spin_lock(&parallel_region->lock);
+	if (STARPU_ATOMIC_ADD(&parallel_region->bound_explicit_task_count, -1) == 0)
+	{
+		struct starpu_omp_task *waiting_task = parallel_region->waiting_task;
+		_starpu_spin_unlock(&parallel_region->lock);
+
+		if (waiting_task)
+		{
+			_starpu_spin_lock(&waiting_task->lock);
+			_starpu_spin_lock(&parallel_region->lock);
+			parallel_region->waiting_task = NULL;
+			STARPU_ASSERT(waiting_task->wait_on & starpu_omp_task_wait_on_region_tasks);
+			waiting_task->wait_on &= ~starpu_omp_task_wait_on_region_tasks;
+			_wake_up_locked_task(waiting_task);
+			_starpu_spin_unlock(&parallel_region->lock);
+			_starpu_spin_unlock(&waiting_task->lock);
+		}
+	}
+	else
+	{
+		_starpu_spin_unlock(&parallel_region->lock);
+	}
+	if (task->task_group)
+	{
+		struct starpu_omp_task *leader_task = task->task_group->leader_task;
+		STARPU_ASSERT(leader_task != task);
+		_starpu_spin_lock(&leader_task->lock);
+		if (STARPU_ATOMIC_ADD(&task->task_group->descendent_task_count, -1) == 0)
+		{
+			if (leader_task->wait_on & starpu_omp_task_wait_on_group)
+			{
+				leader_task->wait_on &= ~starpu_omp_task_wait_on_group;
+				_wake_up_locked_task(leader_task);
+			}
+		}
+		_starpu_spin_unlock(&leader_task->lock);
+	}
+}
 /*
  * wrap a task function to allow the task to be preempted
  */
@@ -521,65 +579,11 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 	/* TODO: analyse the cause of the return and take appropriate steps */
 	if (task->state == starpu_omp_task_state_terminated)
 	{
-		struct starpu_omp_task *parent_task = task->parent_task;
-		struct starpu_omp_region *parallel_region = task->owner_region;
-
 		free(task->stack);
 		task->stack = NULL;
 		memset(&task->ctx, 0, sizeof(task->ctx));
 
-		_starpu_spin_lock(&parent_task->lock);
-		if (STARPU_ATOMIC_ADD(&parent_task->child_task_count, -1) == 0)
-		{
-			if (parent_task->state == starpu_omp_task_state_zombie)
-			{
-				STARPU_ASSERT(!parent_task->is_implicit);
-				destroy_omp_task_struct(parent_task);
-			}
-			else if (parent_task->wait_on & starpu_omp_task_wait_on_task_childs)
-			{
-				parent_task->wait_on &= ~starpu_omp_task_wait_on_task_childs;
-				_wake_up_locked_task(parent_task);
-			}
-		}
-		_starpu_spin_unlock(&parent_task->lock);
-		_starpu_spin_lock(&parallel_region->lock);
-		if (STARPU_ATOMIC_ADD(&parallel_region->bound_explicit_task_count, -1) == 0)
-		{
-			struct starpu_omp_task *waiting_task = parallel_region->waiting_task;
-			_starpu_spin_unlock(&parallel_region->lock);
-
-			if (waiting_task)
-			{
-				_starpu_spin_lock(&waiting_task->lock);
-				_starpu_spin_lock(&parallel_region->lock);
-				parallel_region->waiting_task = NULL;
-				STARPU_ASSERT(waiting_task->wait_on & starpu_omp_task_wait_on_region_tasks);
-				waiting_task->wait_on &= ~starpu_omp_task_wait_on_region_tasks;
-				_wake_up_locked_task(waiting_task);
-				_starpu_spin_unlock(&parallel_region->lock);
-				_starpu_spin_unlock(&waiting_task->lock);
-			}
-		}
-		else
-		{
-			_starpu_spin_unlock(&parallel_region->lock);
-		}
-		if (task->task_group)
-		{
-			struct starpu_omp_task *leader_task = task->task_group->leader_task;
-			STARPU_ASSERT(leader_task != task);
-			_starpu_spin_lock(&leader_task->lock);
-			if (STARPU_ATOMIC_ADD(&task->task_group->descendent_task_count, -1) == 0)
-			{
-				if (leader_task->wait_on & starpu_omp_task_wait_on_group)
-				{
-					leader_task->wait_on &= ~starpu_omp_task_wait_on_group;
-					_wake_up_locked_task(leader_task);
-				}
-			}
-			_starpu_spin_unlock(&leader_task->lock);
-		}
+		starpu_omp_task_completion_accounting(task);
 	}
 	else if (task->state != starpu_omp_task_state_preempted)
 		_STARPU_ERROR("invalid omp task state");
@@ -617,7 +621,11 @@ static struct starpu_omp_task *create_omp_task_struct(struct starpu_omp_task *pa
 
 static void destroy_omp_task_struct(struct starpu_omp_task *task)
 {
-	STARPU_ASSERT(task->state == starpu_omp_task_state_terminated || (task->state == starpu_omp_task_state_zombie && task->child_task_count == 0));
+	STARPU_ASSERT(task->state == starpu_omp_task_state_terminated || (task->state == starpu_omp_task_state_zombie && task->child_task_count == 0) || task->state == starpu_omp_task_state_target);
+	if (task->state == starpu_omp_task_state_target)
+	{
+		starpu_omp_task_completion_accounting(task);
+	}
 	STARPU_ASSERT(task->nested_region == NULL);
 	STARPU_ASSERT(task->starpu_task == NULL);
 	STARPU_ASSERT(task->stack == NULL);
@@ -1621,14 +1629,28 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 		if (generated_task->cl.cuda_funcs[0])
 		{
 			generated_task->cuda_f = generated_task->cl.cuda_funcs[0];
+#if 1
+			/* we assume for now that Cuda task won't block, thus we don't need
+			 * to initialize the StarPU OpenMP Runtime Support context for enabling
+			 * continuations on Cuda tasks */
+			generated_task->state  = starpu_omp_task_state_target;
+#else
 			generated_task->cl.cuda_funcs[0] = starpu_omp_explicit_task_exec;
+#endif
 		}
 #endif
 #if STARPU_USE_OPENCL
 		if (generated_task->cl.opencl_funcs[0])
 		{
 			generated_task->opencl_f = generated_task->cl.opencl_funcs[0];
+#if 1
+			/* we assume for now that OpenCL task won't block, thus we don't need
+			 * to initialize the StarPU OpenMP Runtime Support context for enabling
+			 * continuations on OpenCL tasks */
+			generated_task->state  = starpu_omp_task_state_target;
+#else
 			generated_task->cl.opencl_funcs[0] = starpu_omp_explicit_task_exec;
+#endif
 		}
 #endif
 		/* TODO: add other accelerator support */
