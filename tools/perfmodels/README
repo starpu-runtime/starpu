@@ -1,8 +1,17 @@
-This contains performance models for some architectures and examples
+This directory contains performance models for given architectures and
+examples.
 
-mirage is composed of:
+The architecture 'mirage' is composed of:
 - 2 Intel Xeon X5650 @2.67GHz, thus 12 CPU cores
   - MKL 11.1.3
 - 3 NVidia GF100 Tesla M2070, thus 3 GPUs
   - CUDA 6.0
   - Magma 1.6.0
+
+To use performance models stored in this directory, one needs to set
+the environment variable 'STARPU_PERF_MODEL_DIR' to the location of
+the directory, e.g.:
+
+export STARPU_PERF_MODEL_DIR=.../tools/perfmodels/sampling
+
+
