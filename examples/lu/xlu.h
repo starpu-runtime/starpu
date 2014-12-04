@@ -20,6 +20,7 @@
 
 #include <starpu.h>
 #include <common/blas.h>
+#include <cublas.h>
 
 #define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
 #define TAG12(k,i)	((starpu_tag_t)(((2ULL<<60) | (((unsigned long long)(k))<<32)	\
