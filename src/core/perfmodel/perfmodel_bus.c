@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2013  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -728,9 +728,9 @@ static void benchmark_all_gpu_devices(void)
 
 static void get_bus_path(const char *type, char *path, size_t maxlen)
 {
-	_starpu_get_perf_model_dir_bus(path, maxlen);
-
 	char hostname[65];
+
+	snprintf(path, maxlen, "%s", _starpu_get_perf_model_dir_bus());
 	_starpu_gethostname(hostname, sizeof(hostname));
 	strncat(path, hostname, maxlen);
 	strncat(path, ".", maxlen);

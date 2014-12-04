@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux 1
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -673,8 +673,7 @@ int _starpu_register_model(struct starpu_perfmodel *model)
 
 static void get_model_path(struct starpu_perfmodel *model, char *path, size_t maxlen)
 {
-	_starpu_get_perf_model_dir_codelets(path, maxlen);
-	strncat(path, model->symbol, maxlen);
+	snprintf(path, maxlen, "%s/%s", _starpu_get_perf_model_dir_codelet(), model->symbol);
 
 	const char *dot = strrchr(model->symbol, '.');
 	if (dot == NULL)
@@ -802,6 +801,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 	STARPU_PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
+	_starpu_free_sampling_directory();
 }
 
 /*
@@ -955,9 +955,7 @@ void _starpu_load_history_based_model(struct starpu_perfmodel *model, unsigned s
 
 void starpu_perfmodel_directory(FILE *output)
 {
-	char perf_model_dir[256];
-	_starpu_get_perf_model_dir_codelets(perf_model_dir, 256);
-	fprintf(output, "directory: <%s>\n", perf_model_dir);
+	fprintf(output, "directory: <%s>\n", _starpu_get_perf_model_dir_codelet());
 }
 
 /* This function is intended to be used by external tools that should read
@@ -965,14 +963,11 @@ void starpu_perfmodel_directory(FILE *output)
 int starpu_perfmodel_list(FILE *output)
 {
 #if !defined(_WIN32) || defined(__MINGW32__) || defined(__CYGWIN__)
-        char path[256];
+        char *path;
         DIR *dp;
         struct dirent *ep;
 
-	char perf_model_dir_codelets[256];
-	_starpu_get_perf_model_dir_codelets(perf_model_dir_codelets, 256);
-
-        strncpy(path, perf_model_dir_codelets, 256);
+	path = _starpu_get_perf_model_dir_codelet();
         dp = opendir(path);
         if (dp != NULL)
 	{
