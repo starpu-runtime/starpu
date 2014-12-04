@@ -861,7 +861,7 @@ void *_starpu_cuda_worker(void *_arg)
 }
 
 #ifdef STARPU_USE_CUDA
-void starpu_cublas_report_error(const char *func, const char *file, int line, cublasStatus status)
+void starpu_cublas_report_error(const char *func, const char *file, int line, int status)
 {
 	char *errormsg;
 	switch (status)
