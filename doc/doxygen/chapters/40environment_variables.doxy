@@ -471,6 +471,14 @@ configuration files. The default is <c>$HOME</c> on Unix environments,
 and <c>$USERPROFILE</c> on Windows environments.
 </dd>
 
+<dt>STARPU_HOME</dt>
+<dd>
+\anchor STARPU_PERF_MODEL_DIR
+\addindex __env__STARPU_PERF_MODEL_DIR
+This specifies the main directory in which StarPU stores its
+performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
+</dd>
+
 <dt>STARPU_HOSTNAME</dt>
 <dd>
 \anchor STARPU_HOSTNAME

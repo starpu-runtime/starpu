@@ -1660,7 +1660,7 @@ if test x$enable_allocation_cache = xyes; then
 	AC_DEFINE(STARPU_USE_ALLOCATION_CACHE, [1], [enable data allocation cache])
 fi
 
-AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [specify where performance models shoulds be stored])],
+AC_ARG_WITH(perf-model-dir, [AS_HELP_STRING([--with-perf-model-dir=<dir>], [specify where performance models should be stored])],
 	[
 		if test x$withval = xno; then
 			AC_MSG_ERROR(--without-perf-model-dir is not a valid option)

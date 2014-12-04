@@ -143,6 +143,9 @@ New features:
   * New data access mode flag STARPU_SSEND to be set when calling
     starpu_mpi_insert_task to specify the data has to be sent using a
     synchronous and non-blocking mode
+  * New environment variable STARPU_PERF_MODEL_DIR which can be set to
+    specify a directory where to store performance model files in.
+    When unset, the files are stored in $STARPU_HOME/.starpu/sampling
 
 Changes:
   * Fix complexity of implicit task/data dependency, from quadratic to linear.

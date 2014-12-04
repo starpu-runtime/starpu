@@ -446,6 +446,11 @@ void _starpu_set_perf_model_dirs()
 #else
 	snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s/.starpu/sampling/", _starpu_get_home_path());
 #endif
+	char *path = getenv("STARPU_PERF_MODEL_DIR");
+	if (path)
+	{
+		snprintf(_perf_model_dir, _PERF_MODEL_DIR_MAXLEN, "%s/", path);
+	}
 
 	snprintf(_perf_model_dir_codelet, _PERF_MODEL_DIR_MAXLEN, "%s/codelets/%d/", _perf_model_dir, _STARPU_PERFMODEL_VERSION);
 	snprintf(_perf_model_dir_bus, _PERF_MODEL_DIR_MAXLEN, "%s/bus/", _perf_model_dir);
