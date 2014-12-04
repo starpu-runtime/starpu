@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2012  Université de Bordeaux
+ * Copyright (C) 2009-2012, 2014  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,6 +18,7 @@
 #include <starpu.h>
 #include <starpu_cuda.h>
 #include <common/config.h>
+#include <cublas.h>
 
 #ifdef STARPU_USE_CUDA
 static void init_cublas_func(void *args STARPU_ATTRIBUTE_UNUSED)
