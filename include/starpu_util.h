@@ -263,6 +263,34 @@ static __starpu_inline int starpu_get_env_number_default(const char *str, int de
 	return ret;
 }
 
+static __starpu_inline float starpu_get_env_float_default(const char *str, float defval)
+{
+	char *strval;
+
+	strval = getenv(str);
+	if (strval)
+	{
+		/* the env variable was actually set */
+		float val;
+		char *check;
+
+		val = strtof(strval, &check);
+		if (*check) {
+			fprintf(stderr,"The %s environment variable must contain an integer\n", str);
+			STARPU_ABORT();
+		}
+
+		/* fprintf(stderr, "ENV %s WAS %f\n", str, val); */
+		return val;
+	}
+	else
+	{
+		/* there is no such env variable */
+		/* fprintf("There was no %s ENV\n", str); */
+		return defval;
+	}
+}
+
 void starpu_execute_on_each_worker(void (*func)(void *), void *arg, uint32_t where);
 
 void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t where, const char *name);

@@ -550,10 +550,6 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 {
 	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct _starpu_pheft_data *hd = (struct _starpu_pheft_data*)malloc(sizeof(struct _starpu_pheft_data));
-	hd->alpha = _STARPU_SCHED_ALPHA_DEFAULT;
-	hd->beta = _STARPU_SCHED_BETA_DEFAULT;
-	hd->_gamma = _STARPU_SCHED_GAMMA_DEFAULT;
-	hd->idle_power = 0.0;
 
 	if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
 		starpu_sched_ctx_set_min_priority(sched_ctx_id, DEFAULT_MIN_PRIORITY);
@@ -565,21 +561,10 @@ static void initialize_parallel_heft_policy(unsigned sched_ctx_id)
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)hd);
 
-	const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
-	if (strval_alpha)
-		hd->alpha = atof(strval_alpha);
-
-	const char *strval_beta = getenv("STARPU_SCHED_BETA");
-	if (strval_beta)
-		hd->beta = atof(strval_beta);
-
-	const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
-	if (strval_gamma)
-		hd->_gamma = atof(strval_gamma);
-
-	const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
-	if (strval_idle_power)
-		hd->idle_power = atof(strval_idle_power);
+	hd->alpha = starpu_get_env_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
+	hd->beta = starpu_get_env_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
+	hd->_gamma = starpu_get_env_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
+	hd->idle_power = starpu_get_env_float_default("STARPU_IDLE_POWER", 0.0);
 
 	STARPU_PTHREAD_MUTEX_INIT(&hd->global_push_mutex, NULL);
 

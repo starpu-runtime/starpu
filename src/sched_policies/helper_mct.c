@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Université de Bordeaux 1
+ * Copyright (C) 2013-2014  Université de Bordeaux 1
  * Copyright (C) 2013  INRIA
  * Copyright (C) 2013  Simon Archipoff
  *
@@ -55,36 +55,15 @@ struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_componen
 	{
 		data->alpha = params->alpha;
 		data->beta = params->beta;
-		data->gamma = params->gamma;
+		data->_gamma = params->_gamma;
 		data->idle_power = params->idle_power;
 	}
 	else
 	{
-		double alpha = _STARPU_SCHED_ALPHA_DEFAULT,
-		       beta = _STARPU_SCHED_BETA_DEFAULT,
-		       _gamma = _STARPU_SCHED_GAMMA_DEFAULT,
-		       idle_power = 0.0;
-
-		const char *strval_alpha = getenv("STARPU_SCHED_ALPHA");
-		if (strval_alpha)
-			alpha = atof(strval_alpha);
-
-		const char *strval_beta = getenv("STARPU_SCHED_BETA");
-		if (strval_beta)
-			beta = atof(strval_beta);
-
-		const char *strval_gamma = getenv("STARPU_SCHED_GAMMA");
-		if (strval_gamma)
-			_gamma = atof(strval_gamma);
-
-		const char *strval_idle_power = getenv("STARPU_IDLE_POWER");
-		if (strval_idle_power)
-			idle_power = atof(strval_idle_power);
-
-		data->alpha = alpha;
-		data->beta = beta;
-		data->gamma = _gamma;
-		data->idle_power = idle_power;
+		data->alpha = starpu_get_env_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
+		data->beta = starpu_get_env_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
+		data->_gamma = starpu_get_env_float_default("STARPU_SCHED_GAMMA", _STARPU_SCHED_GAMMA_DEFAULT);
+		data->idle_power = starpu_get_env_float_default("STARPU_IDLE_POWER", 0.0);
 	}
 
 #ifdef STARPU_USE_TOP
@@ -92,7 +71,7 @@ struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_componen
 					    alpha_minimum, alpha_maximum, param_modified);
 	starpu_top_register_parameter_float("MCT_BETA", &data->beta,
 					    beta_minimum, beta_maximum, param_modified);
-	starpu_top_register_parameter_float("MCT_GAMMA", &data->gamma,
+	starpu_top_register_parameter_float("MCT_GAMMA", &data->_gamma,
 					    gamma_minimum, gamma_maximum, param_modified);
 	starpu_top_register_parameter_float("MCT_IDLE_POWER", &data->idle_power,
 					    idle_power_minimum, idle_power_maximum, param_modified);
@@ -134,8 +113,8 @@ double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, d
 
 	return d->alpha * (exp_end - min_exp_end)
 		+ d->beta * transfer_len
-		+ d->gamma * local_power
-		+ d->gamma * d->idle_power * (exp_end - max_exp_end);
+		+ d->_gamma * local_power
+		+ d->_gamma * d->idle_power * (exp_end - max_exp_end);
 }
 
 int starpu_mct_compute_expected_times(struct starpu_sched_component *component, struct starpu_task *task,

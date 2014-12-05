@@ -22,18 +22,6 @@
 
 static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
 {
-	unsigned ntasks_threshold = _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT;
-	double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
-
-	const char *strval_ntasks_threshold = getenv("STARPU_NTASKS_THRESHOLD");
-	if (strval_ntasks_threshold)
-		ntasks_threshold = atof(strval_ntasks_threshold);
-
-	const char *strval_exp_len_threshold = getenv("STARPU_EXP_LEN_THRESHOLD");
-	if (strval_exp_len_threshold)
-		exp_len_threshold = atof(strval_exp_len_threshold);
-
-	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
 	struct starpu_sched_tree *t = starpu_sched_tree_create(sched_ctx_id);
  	t->root = starpu_sched_component_prio_create(t, NULL);
 	struct starpu_sched_component * eager_component = starpu_sched_component_eager_create(t, NULL);
@@ -42,8 +30,8 @@ static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
 
 	struct starpu_sched_component_prio_data prio_data =
 		{
-			.ntasks_threshold = ntasks_threshold,
-			.exp_len_threshold = exp_len_threshold,
+			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
+			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
 		};
 
 	unsigned i;
