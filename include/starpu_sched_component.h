@@ -143,7 +143,7 @@ struct starpu_sched_component_mct_data
 {
 	double alpha;
 	double beta;
-	double gamma;
+	double _gamma;
 	double idle_power;
 };
 struct starpu_sched_component *starpu_sched_component_mct_create(struct starpu_sched_tree *tree, struct starpu_sched_component_mct_data *mct_data);
