@@ -44,7 +44,6 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 	struct starpu_sched_tree * t = starpu_sched_tree_create(sched_ctx_id);
 
 	struct starpu_sched_component * window_component = starpu_sched_component_prio_create(t, NULL);
-	t->root = window_component;
 
 	struct starpu_sched_component * perfmodel_component = starpu_sched_component_heft_create(t, NULL);
 	struct starpu_sched_component * no_perfmodel_component = starpu_sched_component_eager_create(t, NULL);
@@ -58,15 +57,13 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 		};
 
 	struct starpu_sched_component * perfmodel_select_component = starpu_sched_component_perfmodel_select_create(t, &perfmodel_select_data);
-	window_component->add_child(window_component, perfmodel_select_component);
-	perfmodel_select_component->add_parent(perfmodel_select_component, window_component);
 
-	perfmodel_select_component->add_child(perfmodel_select_component, calibrator_component);
-	calibrator_component->add_parent(calibrator_component, perfmodel_select_component);
-	perfmodel_select_component->add_child(perfmodel_select_component, perfmodel_component);
-	perfmodel_component->add_parent(perfmodel_component, perfmodel_select_component);
-	perfmodel_select_component->add_child(perfmodel_select_component, no_perfmodel_component);
-	no_perfmodel_component->add_parent(no_perfmodel_component, perfmodel_select_component);
+	t->root = window_component;
+	starpu_sched_component_connect(window_component, perfmodel_select_component);
+
+	starpu_sched_component_connect(perfmodel_select_component, calibrator_component);
+	starpu_sched_component_connect(perfmodel_select_component, perfmodel_component);
+	starpu_sched_component_connect(perfmodel_select_component, no_perfmodel_component);
 
 	struct starpu_sched_component_prio_data prio_data =
 		{
@@ -78,22 +75,15 @@ static void initialize_heft2_center_policy(unsigned sched_ctx_id)
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)
 	{
 		struct starpu_sched_component * worker_component = starpu_sched_component_worker_get(sched_ctx_id, i);
-		STARPU_ASSERT(worker_component);
-
 		struct starpu_sched_component * prio_component = starpu_sched_component_prio_create(t, &prio_data);
-		prio_component->add_child(prio_component, worker_component);
-		worker_component->add_parent(worker_component, prio_component);
-
 		struct starpu_sched_component * impl_component = starpu_sched_component_best_implementation_create(t, NULL);
-		impl_component->add_child(impl_component, prio_component);
-		prio_component->add_parent(prio_component, impl_component);
 
-		perfmodel_component->add_child(perfmodel_component, impl_component);
-		impl_component->add_parent(impl_component, perfmodel_component);
-		no_perfmodel_component->add_child(no_perfmodel_component, impl_component);
-		impl_component->add_parent(impl_component, no_perfmodel_component);
-		calibrator_component->add_child(calibrator_component, impl_component);
-		impl_component->add_parent(impl_component, calibrator_component);
+		starpu_sched_component_connect(prio_component, worker_component);
+		starpu_sched_component_connect(impl_component, prio_component);
+
+		starpu_sched_component_connect(perfmodel_component, impl_component);
+		starpu_sched_component_connect(no_perfmodel_component, impl_component);
+		starpu_sched_component_connect(calibrator_component, impl_component);
 	}
 
 	starpu_sched_tree_update_workers(t);
