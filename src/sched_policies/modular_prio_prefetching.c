@@ -25,6 +25,8 @@ static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
 	struct starpu_sched_tree *t;
 	struct starpu_sched_component * eager_component;
 
+	starpu_sched_ctx_create_worker_collection(sched_ctx_id, STARPU_WORKER_LIST);
+
 	t = starpu_sched_tree_create(sched_ctx_id);
  	t->root = starpu_sched_component_prio_create(t, NULL);
 	eager_component = starpu_sched_component_eager_create(t, NULL);
