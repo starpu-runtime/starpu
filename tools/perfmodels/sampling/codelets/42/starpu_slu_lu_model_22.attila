@@ -1,0 +1,108 @@
+##################
+# Performance Model Version
+42
+
+####################
+# CPUs
+# number of CPU devices
+1
+###############
+# CPU_0
+# number of workers on device CPU_0
+1
+##########
+# 1 worker(s) in parallel
+# number of implementations
+1
+#####
+# Model for cpu_impl_0
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# hash		size		flops		mean (us)	dev (us)		sum		sum2		n
+f0ac7beb	4915200        	0.000000e+00   	2.587052e+04   	1.487038e+03   	5.386241e+07   	1.398052e+12   	2082
+24c84a50	11059200       	0.000000e+00   	8.218890e+04   	3.347888e+03   	1.244340e+08   	1.024406e+13   	1514
+d46431bb	1228800        	0.000000e+00   	3.265838e+03   	1.561177e+02   	8.347482e+06   	2.732382e+10   	2556
+
+####################
+# CUDAs
+# number of CUDA devices
+3
+###############
+# CUDA_0
+# number of workers on device CUDA_0
+1
+##########
+# 1 worker(s) in parallel
+# number of implementations
+1
+#####
+# Model for cuda_0_impl_0
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# hash		size		flops		mean (us)	dev (us)		sum		sum2		n
+f0ac7beb	4915200        	0.000000e+00   	9.047163e+02   	4.943457e+01   	7.022408e+06   	6.372255e+09   	7762
+24c84a50	11059200       	0.000000e+00   	2.963966e+03   	7.453353e+01   	1.530888e+07   	4.540369e+10   	5165
+d46431bb	1228800        	0.000000e+00   	1.924610e+02   	1.043827e+01   	8.556817e+05   	1.651698e+08   	4446
+
+###############
+# CUDA_1
+# number of workers on device CUDA_1
+1
+##########
+# 1 worker(s) in parallel
+# number of implementations
+1
+#####
+# Model for cuda_1_impl_0
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# hash		size		flops		mean (us)	dev (us)		sum		sum2		n
+f0ac7beb	4915200        	0.000000e+00   	8.810829e+02   	4.167975e+01   	6.874209e+06   	6.070301e+09   	7802
+24c84a50	11059200       	0.000000e+00   	2.960803e+03   	8.260112e+01   	1.519780e+07   	4.503271e+10   	5133
+d46431bb	1228800        	0.000000e+00   	1.894698e+02   	9.561378e+00   	8.340462e+05   	1.584290e+08   	4402
+
+###############
+# CUDA_2
+# number of workers on device CUDA_2
+1
+##########
+# 1 worker(s) in parallel
+# number of implementations
+1
+#####
+# Model for cuda_2_impl_0
+# number of entries
+3
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# hash		size		flops		mean (us)	dev (us)		sum		sum2		n
+f0ac7beb	4915200        	0.000000e+00   	8.953024e+02   	5.096374e+01   	6.835634e+06   	6.139790e+09   	7635
+24c84a50	11059200       	0.000000e+00   	2.963787e+03   	5.048433e+01   	1.524275e+07   	4.518938e+10   	5143
+d46431bb	1228800        	0.000000e+00   	1.803248e+02   	8.617192e+00   	8.859357e+05   	1.601210e+08   	4913
+
+####################
+# OPENCLs
+# number of OPENCLs devices
+0
+####################
+# MICs
+# number of MIC devices
+0
+####################
+# SCCs
+# number of SCC devices
+0
