@@ -276,7 +276,7 @@ static __starpu_inline float starpu_get_env_float_default(const char *str, float
 
 		val = strtof(strval, &check);
 		if (*check) {
-			fprintf(stderr,"The %s environment variable must contain an integer\n", str);
+			fprintf(stderr,"The %s environment variable must contain a float\n", str);
 			STARPU_ABORT();
 		}
 
