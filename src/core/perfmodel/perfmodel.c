@@ -509,5 +509,6 @@ void _starpu_free_sampling_directory(void)
 	free(_perf_model_dir);
 	free(_perf_model_dir_codelet);
 	free(_perf_model_dir_bus);
+	free(_perf_model_dir_debug);
 	directory_existence_was_tested = 0;
 }
