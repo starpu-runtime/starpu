@@ -124,7 +124,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	void *src_interface = src_replicate->data_interface;
 	void *dst_interface = dst_replicate->data_interface;
 
-#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_USE_CUDA) && defined(HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
 	if ((src_kind == STARPU_CUDA_RAM) || (dst_kind == STARPU_CUDA_RAM))
 	{
 		unsigned devid;
