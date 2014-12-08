@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2011, 2013-2014  Université de Bordeaux
+ * Copyright (C) 2014                  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,23 +23,25 @@
 
 #define PROGNAME "starpu_lp2paje"
 
-struct task {
+struct task
+{
 	double start;
 	double stop;
 	int num;
 	int worker;
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
 	int nw, nt;
 	double tmax;
 	int i, w, ww, t, tt, t2;
 	int foo;
 	double bar;
 
-	if (argc != 1) {
-		if (strcmp(argv[1], "-v") == 0
-		 || strcmp(argv[1], "--version") == 0)
+	if (argc != 1)
+	{
+		if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0)
 		{
 			fprintf(stderr, PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n");
 			exit(EXIT_SUCCESS);
@@ -144,5 +147,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	starpu_perfmodel_free_sampling_directories();
 	return 0;
 }

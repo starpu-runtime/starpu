@@ -83,7 +83,6 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 int _starpu_perfmodel_create_comb_if_needed(struct starpu_perfmodel_arch* arch);
 
 void _starpu_create_sampling_directory_if_needed(void);
-void _starpu_free_sampling_directory(void);
 
 void _starpu_load_bus_performance_files(void);
 

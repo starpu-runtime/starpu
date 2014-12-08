@@ -39,7 +39,7 @@ struct starpu_perfmodel_device
 {
 	enum starpu_worker_archtype type;
 	int devid;	/* identifier of the precise device */
-	int ncores;	/* number of execution in parallel, minus 1 */	
+	int ncores;	/* number of execution in parallel, minus 1 */
 };
 
 struct starpu_perfmodel_arch
@@ -141,6 +141,7 @@ struct starpu_perfmodel
 };
 
 void starpu_perfmodel_init(FILE *f, struct starpu_perfmodel *model);
+void starpu_perfmodel_free_sampling_directories(void);
 
 struct starpu_perfmodel_arch *starpu_worker_get_perf_archtype(int workerid, unsigned sched_ctx_id);
 

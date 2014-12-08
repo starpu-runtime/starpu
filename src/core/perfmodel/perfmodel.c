@@ -504,11 +504,15 @@ void _starpu_create_sampling_directory_if_needed(void)
 	}
 }
 
-void _starpu_free_sampling_directory(void)
+void starpu_perfmodel_free_sampling_directories(void)
 {
 	free(_perf_model_dir);
+	_perf_model_dir = NULL;
 	free(_perf_model_dir_codelet);
+	_perf_model_dir_codelet = NULL;
 	free(_perf_model_dir_bus);
+	_perf_model_dir_bus = NULL;
 	free(_perf_model_dir_debug);
+	_perf_model_dir_debug = NULL;
 	directory_existence_was_tested = 0;
 }

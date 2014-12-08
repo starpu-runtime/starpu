@@ -206,6 +206,13 @@ Provided by the application
 \ingroup API_Performance_Model
 todo
 
+\fn void starpu_perfmodel_free_sampling_directories(void)
+\ingroup API_Performance_Model
+this function frees internal memory used for sampling directory
+management. It should only be called by an application which is not
+calling starpu_shutdown as this function already calls it. See for
+example <c>tools/starpu_perfmodel_display.c</c>.
+
 \fn int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *model)
 \ingroup API_Performance_Model
 loads a given performance model. The model structure has to be

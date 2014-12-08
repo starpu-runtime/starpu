@@ -901,7 +901,7 @@ void _starpu_deinitialize_registered_performance_models(void)
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 	STARPU_PTHREAD_RWLOCK_DESTROY(&registered_models_rwlock);
 	_free_arch_combs();
-	_starpu_free_sampling_directory();
+	starpu_perfmodel_free_sampling_directories();
 }
 
 /* We first try to grab the global lock in read mode to check whether the model
