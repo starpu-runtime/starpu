@@ -113,8 +113,13 @@
 
 /* End of magma code */
 
+#ifdef STARPU_QUICK_CHECK
+static unsigned size = 960*4;
+static unsigned nblocks = 4;
+#else
 static unsigned size = 960*16;
 static unsigned nblocks = 16;
+#endif
 static unsigned nbigblocks = 8;
 static unsigned pinned = 1;
 static unsigned noprio = 0;
