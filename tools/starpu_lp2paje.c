@@ -147,6 +147,5 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	starpu_perfmodel_free_sampling_directories();
 	return 0;
 }
