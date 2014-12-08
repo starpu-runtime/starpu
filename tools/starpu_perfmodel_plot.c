@@ -539,5 +539,6 @@ int main(int argc, char **argv)
 
 	_STARPU_DISP("Gnuplot file <%s> generated\n", gnuplot_file_name);
 
+	starpu_perfmodel_free_sampling_directories();
 	return 0;
 }

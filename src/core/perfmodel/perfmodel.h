@@ -67,7 +67,6 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				unsigned cpuid, double measured, unsigned nimpl);
 
 void _starpu_create_sampling_directory_if_needed(void);
-void _starpu_free_sampling_directory(void);
 
 void _starpu_load_bus_performance_files(void);
 
