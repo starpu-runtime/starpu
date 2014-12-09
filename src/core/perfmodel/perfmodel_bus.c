@@ -1710,7 +1710,7 @@ static void write_bus_platform_file_content(void)
 	{
 		fprintf(f, "   <host id='CUDA%d' power='2000000000'>\n", i);
 		fprintf(f, "     <prop id='memsize' value='%llu'/>\n", (unsigned long long) cuda_size[i]);
-#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+#ifdef HAVE_CUDA_MEMCPY_PEER
 		fprintf(f, "     <prop id='memcpy_peer' value='1'/>\n");
 #endif
 		fprintf(f, "   </host>\n");
