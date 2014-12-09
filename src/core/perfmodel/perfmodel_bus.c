@@ -1656,7 +1656,7 @@ static void write_bus_platform_file_content(void)
 				0ULL
 #endif
 				);
-#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+#ifdef HAVE_CUDA_MEMCPY_PEER
 		fprintf(f, "     <prop id='memcpy_peer' value='1'/>\n");
 #endif
 		fprintf(f, "   </host>\n");
