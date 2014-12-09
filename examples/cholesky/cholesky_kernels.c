@@ -195,13 +195,21 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, STARPU_A
 			{
 			int ret;
 			int info;
+#if (MAGMA_VERSION_MAJOR > 1) || (MAGMA_VERSION_MAJOR == 1 && MAGMA_VERSION_MINOR >= 4)
+			cublasSetKernelStream(starpu_cuda_get_local_stream());
+			magmablasSetKernelStream(starpu_cuda_get_local_stream());
+#endif
 			ret = magma_spotrf_gpu(MagmaLower, nx, sub11, ld, &info);
 			if (ret != MAGMA_SUCCESS)
 			{
 				fprintf(stderr, "Error in Magma: %d\n", ret);
 				STARPU_ABORT();
 			}
+#if (MAGMA_VERSION_MAJOR > 1) || (MAGMA_VERSION_MAJOR == 1 && MAGMA_VERSION_MINOR >= 4)
+			cudaError_t cures = cudaStreamSynchronize(starpu_cuda_get_local_stream());
+#else
 			cudaError_t cures = cudaThreadSynchronize();
+#endif
 			STARPU_ASSERT(!cures);
 			}
 #else
