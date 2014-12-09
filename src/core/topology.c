@@ -1325,24 +1325,35 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
 					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
 #ifdef STARPU_SIMGRID
+					const char* cuda_memcpy_peer;
 					snprintf(name, sizeof(name), "CUDA%d", devid);
 					host = _starpu_simgrid_get_host_by_name(name);
 					STARPU_ASSERT(host);
 					_starpu_simgrid_memory_node_set_host(memory_node, host);
+					cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
 #endif /* SIMGRID */
-#ifdef HAVE_CUDA_MEMCPY_PEER
-					unsigned worker2;
-					for (worker2 = 0; worker2 < worker; worker2++)
+					if (
+#ifdef STARPU_SIMGRID
+						cuda_memcpy_peer && atoll(cuda_memcpy_peer)
+#elif defined(HAVE_CUDA_MEMCPY_PEER)
+						1
+#else /* MEMCPY_PEER */
+						0
+#endif /* MEMCPY_PEER */
+					   )
 					{
-						struct _starpu_worker *workerarg2 = &config->workers[worker2];
-						if (workerarg2->arch == STARPU_CUDA_WORKER)
+						unsigned worker2;
+						for (worker2 = 0; worker2 < worker; worker2++)
 						{
-							unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
-							_starpu_register_bus(memory_node2, memory_node);
-							_starpu_register_bus(memory_node, memory_node2);
+							struct _starpu_worker *workerarg2 = &config->workers[worker2];
+							if (workerarg2->arch == STARPU_CUDA_WORKER)
+							{
+								unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
+								_starpu_register_bus(memory_node2, memory_node);
+								_starpu_register_bus(memory_node, memory_node2);
+							}
 						}
 					}
-#endif /* MEMCPY_PEER */
 				}
 				_starpu_memory_node_add_nworkers(memory_node);
 				break;

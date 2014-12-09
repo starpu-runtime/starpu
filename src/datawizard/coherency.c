@@ -28,6 +28,11 @@
 #include <starpu_scheduler.h>
 #include <core/workers.h>
 
+#ifdef STARPU_SIMGRID
+#include <msg/msg.h>
+#include <core/simgrid.h>
+#endif
+
 static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node);
 int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 {
@@ -217,17 +222,31 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 	switch (type)
 	{
 		case STARPU_CUDA_RAM:
-#ifdef HAVE_CUDA_MEMCPY_PEER
 		{
-			enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
 			/* GPUs not always allow direct remote access: if CUDA4
 			 * is enabled, we allow two CUDA devices to communicate. */
+#ifdef STARPU_SIMGRID
+			if (starpu_node_get_kind(handling_node) == STARPU_CUDA_RAM)
+			{
+				char name[16];
+				msg_host_t host;
+				const char* cuda_memcpy_peer;
+				snprintf(name, sizeof(name), "CUDA%d", _starpu_memory_node_get_devid(handling_node));
+				host = _starpu_simgrid_get_host_by_name(name);
+				cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
+				return cuda_memcpy_peer && atoll(cuda_memcpy_peer);
+			}
+			else
+				return 0;
+#elif defined(HAVE_CUDA_MEMCPY_PEER)
+			/* simgrid */
+			enum starpu_node_kind kind = starpu_node_get_kind(handling_node);
 			return kind == STARPU_CUDA_RAM;
-		}
-#else
+#else /* HAVE_CUDA_MEMCPY_PEER */
 			/* Direct GPU-GPU transfers are not allowed in general */
 			return 0;
-#endif
+#endif /* HAVE_CUDA_MEMCPY_PEER */
+		}
 		case STARPU_OPENCL_RAM:
 			return 0;
 		case STARPU_MIC_RAM:
