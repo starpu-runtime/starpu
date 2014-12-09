@@ -127,7 +127,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			PRINTF("\tTms\tTGFlops");
 		PRINTF("\n");
 
-		PRINTF("%u\t%.0f\t%.1f", n, timing/1000, (flop/timing/1000.0f));
+		PRINTF("%lu\t%.0f\t%.1f", n, timing/1000, (flop/timing/1000.0f));
 		if (bound_lp)
 		{
 			FILE *f = fopen("cholesky.lp", "w");
