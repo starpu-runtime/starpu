@@ -29,6 +29,49 @@ dist_pkgdata_DATA = gdbinit
 EXTRA_DIST =				\
 	dev/rename.sed			\
 	dev/rename.sh			\
+	perfmodels/README		\
+	perfmodels/sampling/bus/attila.affinity	\
+	perfmodels/sampling/bus/attila.bandwidth	\
+	perfmodels/sampling/bus/attila.config	\
+	perfmodels/sampling/bus/attila.latency	\
+	perfmodels/sampling/bus/attila.platform.xml	\
+	perfmodels/sampling/bus/mirage.affinity	\
+	perfmodels/sampling/bus/mirage.bandwidth	\
+	perfmodels/sampling/bus/mirage.config	\
+	perfmodels/sampling/bus/mirage.latency	\
+	perfmodels/sampling/bus/mirage.platform.xml	\
+	perfmodels/sampling/codelets/42/chol_model_11.attila	\
+	perfmodels/sampling/codelets/42/chol_model_21.attila	\
+	perfmodels/sampling/codelets/42/chol_model_22.attila	\
+	perfmodels/sampling/codelets/42/cl_update.attila	\
+	perfmodels/sampling/codelets/42/save_cl_bottom.attila	\
+	perfmodels/sampling/codelets/42/save_cl_top.attila	\
+	perfmodels/sampling/codelets/42/starpu_sgemm_gemm.attila	\
+	perfmodels/sampling/codelets/42/starpu_dgemm_gemm.attila	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_11.attila	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_12.attila	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_21.attila	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_22.attila	\
+	perfmodels/sampling/codelets/42/starpu_dlu_lu_model_11.attila	\
+	perfmodels/sampling/codelets/42/starpu_dlu_lu_model_12.attila	\
+	perfmodels/sampling/codelets/42/starpu_dlu_lu_model_21.attila	\
+	perfmodels/sampling/codelets/42/starpu_dlu_lu_model_22.attila	\
+	perfmodels/sampling/codelets/42/chol_model_11.mirage	\
+	perfmodels/sampling/codelets/42/chol_model_21.mirage	\
+	perfmodels/sampling/codelets/42/chol_model_22.mirage	\
+	perfmodels/sampling/codelets/42/cl_update.mirage	\
+	perfmodels/sampling/codelets/42/save_cl_bottom.mirage	\
+	perfmodels/sampling/codelets/42/save_cl_top.mirage	\
+	perfmodels/sampling/codelets/42/starpu_sgemm_gemm.mirage	\
+	perfmodels/sampling/codelets/42/starpu_dgemm_gemm.mirage	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_11.mirage	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_12.mirage	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_21.mirage	\
+	perfmodels/sampling/codelets/42/starpu_slu_lu_model_22.mirage	\
+	perfmodels/sampling/codelets/42/starpu_dlu_lu_model_11.mirage	\
+	perfmodels/sampling/codelets/42/starpu_dlu_lu_model_12.mirage	\
+	perfmodels/sampling/codelets/42/starpu_dlu_lu_model_21.mirage	\
+	perfmodels/sampling/codelets/42/starpu_dlu_lu_model_22.mirage	\
 	valgrind/hwloc.suppr		\
 	valgrind/libnuma.suppr		\
 	valgrind/openmpi.suppr		\
