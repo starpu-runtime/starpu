@@ -116,11 +116,12 @@
 #ifdef STARPU_QUICK_CHECK
 static unsigned size = 960*4;
 static unsigned nblocks = 4;
+static unsigned nbigblocks = 2;
 #else
 static unsigned size = 960*16;
 static unsigned nblocks = 16;
-#endif
 static unsigned nbigblocks = 8;
+#endif
 static unsigned pinned = 1;
 static unsigned noprio = 0;
 static unsigned check = 0;
