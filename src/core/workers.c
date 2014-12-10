@@ -1173,6 +1173,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	ret = _starpu_build_topology(&config, is_a_sink);
 	if (ret)
 	{
+		starpu_perfmodel_free_sampling_directories();
 		STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 		init_count--;
 #ifdef STARPU_USE_SCC
