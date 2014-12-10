@@ -1420,6 +1420,7 @@ void starpu_shutdown(void)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
 	init_count--;
+	STARPU_ASSERT_MSG(init_count >= 0, "Number of calls to starpu_shutdown() can not be higher than the number of calls to starpu_init()\n");
 	if (init_count)
 	{
 		_STARPU_DEBUG("Still somebody needing StarPU, don't deinitialize\n");
