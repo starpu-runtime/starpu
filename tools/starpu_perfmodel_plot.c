@@ -29,7 +29,6 @@
 
 #include <starpu.h>
 #include <core/perfmodel/perfmodel.h> // we need to browse the list associated to history-based models
-#include <core/workers.h>
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
@@ -454,83 +453,76 @@ int main(int argc, char **argv)
 	if (options.directory)
 	{
 		starpu_perfmodel_directory(stdout);
-		return 0;
 	}
-
-        if (options.list)
+        else if (options.list)
 	{
                 ret = starpu_perfmodel_list(stdout);
                 if (ret)
 		{
-                        fprintf(stderr, "The performance model directory is invalid\n");
-                        return 1;
+                        _STARPU_DISP("The performance model directory is invalid\n");
                 }
-		return 0;
         }
-
-	/* Load the performance model associated to the symbol */
-	ret = starpu_perfmodel_load_symbol(options.symbol, &model);
-	if (ret == 1)
+	else
 	{
-		fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", options.symbol);
-		return 1;
-	}
-
-        if (options.list_combs)
-	{
-		ret = starpu_perfmodel_list_combs(stdout, &model);
-                if (ret)
+		/* Load the performance model associated to the symbol */
+		ret = starpu_perfmodel_load_symbol(options.symbol, &model);
+		if (ret)
 		{
-                        fprintf(stderr, "Error when listing combinations for model <%s>\n", options.symbol);
-                        return 1;
-                }
-		return 0;
-
-	}
-
-	/* If some FxT input was specified, we put the points on the graph */
+			_STARPU_DISP("The performance model for the symbol <%s> could not be loaded\n", options.symbol);
+		}
+		else if (options.list_combs)
+		{
+			ret = starpu_perfmodel_list_combs(stdout, &model);
+			if (ret)
+			{
+					fprintf(stderr, "Error when listing combinations for model <%s>\n", options.symbol);
+				}
+		}
+		else
+		{
+			/* If some FxT input was specified, we put the points on the graph */
 #ifdef STARPU_USE_FXT
-	if (options.with_fxt_file)
-	{
-		starpu_fxt_generate_trace(&options.fxt_options);
+			if (options.with_fxt_file)
+			{
+				starpu_fxt_generate_trace(&options.fxt_options);
 
-		snprintf(options.data_file_name, 256, "starpu_%s.data", options.symbol);
+				snprintf(options.data_file_name, 256, "starpu_%s.data", options.symbol);
 
-		FILE *data_file = fopen(options.data_file_name, "w+");
-		STARPU_ASSERT(data_file);
-		dump_data_file(data_file, &options);
-		fclose(data_file);
-	}
+				FILE *data_file = fopen(options.data_file_name, "w+");
+				STARPU_ASSERT(data_file);
+				dump_data_file(data_file, &options);
+				fclose(data_file);
+			}
 #endif
 
-	snprintf(gnuplot_file_name, 256, "starpu_%s.gp", options.symbol);
-	snprintf(options.avg_file_name, 256, "starpu_%s_avg.data", options.symbol);
+			snprintf(gnuplot_file_name, 256, "starpu_%s.gp", options.symbol);
+			snprintf(options.avg_file_name, 256, "starpu_%s_avg.data", options.symbol);
 
-	FILE *gnuplot_file = fopen(gnuplot_file_name, "w+");
-	STARPU_ASSERT(gnuplot_file);
-	display_selected_models(gnuplot_file, &model, &options);
-	fprintf(gnuplot_file,"\n");
-	fclose(gnuplot_file);
+			FILE *gnuplot_file = fopen(gnuplot_file_name, "w+");
+			STARPU_ASSERT(gnuplot_file);
+			display_selected_models(gnuplot_file, &model, &options);
+			fprintf(gnuplot_file,"\n");
+			fclose(gnuplot_file);
 
-	/* Retrieve the current mode of the gnuplot executable */
-	struct stat sb;
-	ret = stat(gnuplot_file_name, &sb);
-	if (ret)
-	{
-		perror("stat");
-		STARPU_ABORT();
+			/* Retrieve the current mode of the gnuplot executable */
+			struct stat sb;
+			ret = stat(gnuplot_file_name, &sb);
+			if (ret)
+			{
+				perror("stat");
+				STARPU_ABORT();
+			}
+
+			/* Make the gnuplot scrit executable for the owner */
+			ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR);
+			if (ret)
+			{
+				perror("chmod");
+				STARPU_ABORT();
+			}
+			_STARPU_DISP("Gnuplot file <%s> generated\n", gnuplot_file_name);
+		}
 	}
-
-	/* Make the gnuplot scrit executable for the owner */
-	ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR);
-	if (ret)
-	{
-		perror("chmod");
-		STARPU_ABORT();
-	}
-
-	_STARPU_DISP("Gnuplot file <%s> generated\n", gnuplot_file_name);
-
 	starpu_perfmodel_free_sampling_directories();
-	return 0;
+	return ret;
 }
