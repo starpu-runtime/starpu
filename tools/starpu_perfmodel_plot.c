@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011-2014  Université de Bordeaux 1
- * Copyright (C) 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -467,7 +467,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 
 int main(int argc, char **argv)
 {
-	int ret;
+	int ret = 0;
 	struct starpu_perfmodel model = {};
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -482,63 +482,64 @@ int main(int argc, char **argv)
                 ret = starpu_perfmodel_list(stdout);
                 if (ret)
 		{
-                        fprintf(stderr, "The performance model directory is invalid\n");
-                        return 1;
+                        _STARPU_DISP("The performance model directory is invalid\n");
                 }
-		return 0;
         }
-
-	/* Load the performance model associated to the symbol */
-	ret = starpu_perfmodel_load_symbol(symbol, &model);
-	if (ret == 1)
+	else
 	{
-		fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", symbol);
-		return 1;
-	}
-
-	/* If some FxT input was specified, we put the points on the graph */
+		/* Load the performance model associated to the symbol */
+		ret = starpu_perfmodel_load_symbol(symbol, &model);
+		if (ret)
+		{
+			_STARPU_DISP("The performance model for the symbol <%s> could not be loaded\n", symbol);
+		}
+		else
+		{
+			/* If some FxT input was specified, we put the points on the graph */
 #ifdef STARPU_USE_FXT
-	if (!no_fxt_file)
-	{
-		starpu_fxt_generate_trace(&options);
+			if (!no_fxt_file)
+			{
+				starpu_fxt_generate_trace(&options);
 
-		snprintf(data_file_name, 256, "starpu_%s.data", symbol);
+				snprintf(data_file_name, 256, "starpu_%s.data", symbol);
 
-		FILE *data_file = fopen(data_file_name, "w+");
-		STARPU_ASSERT(data_file);
-		dump_data_file(data_file);
-		fclose(data_file);
-	}
+				FILE *data_file = fopen(data_file_name, "w+");
+				STARPU_ASSERT(data_file);
+				dump_data_file(data_file);
+				fclose(data_file);
+			}
 #endif
 
-	snprintf(gnuplot_file_name, 256, "starpu_%s.gp", symbol);
+			snprintf(gnuplot_file_name, 256, "starpu_%s.gp", symbol);
 
-	snprintf(avg_file_name, 256, "starpu_%s_avg.data", symbol);
+			snprintf(avg_file_name, 256, "starpu_%s_avg.data", symbol);
 
-	FILE *gnuplot_file = fopen(gnuplot_file_name, "w+");
-	STARPU_ASSERT(gnuplot_file);
-	display_selected_models(gnuplot_file, &model);
-	fclose(gnuplot_file);
+			FILE *gnuplot_file = fopen(gnuplot_file_name, "w+");
+			STARPU_ASSERT(gnuplot_file);
+			display_selected_models(gnuplot_file, &model);
+			fclose(gnuplot_file);
 
-	/* Retrieve the current mode of the gnuplot executable */
-	struct stat sb;
-	ret = stat(gnuplot_file_name, &sb);
-	if (ret)
-	{
-		perror("stat");
-		STARPU_ABORT();
+			/* Retrieve the current mode of the gnuplot executable */
+			struct stat sb;
+			ret = stat(gnuplot_file_name, &sb);
+			if (ret)
+			{
+				perror("stat");
+				STARPU_ABORT();
+			}
+
+			/* Make the gnuplot scrit executable for the owner */
+			ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR);
+			if (ret)
+			{
+				perror("chmod");
+				STARPU_ABORT();
+			}
+
+			_STARPU_DISP("Gnuplot file <%s> generated\n", gnuplot_file_name);
+		}
 	}
-
-	/* Make the gnuplot scrit executable for the owner */
-	ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR);
-	if (ret)
-	{
-		perror("chmod");
-		STARPU_ABORT();
-	}
-
-	_STARPU_DISP("Gnuplot file <%s> generated\n", gnuplot_file_name);
 
 	starpu_perfmodel_free_sampling_directories();
-	return 0;
+	return ret;
 }
