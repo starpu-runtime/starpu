@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2013  Université de Bordeaux
+# Copyright (C) 2009-2014  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  Télécom-SudParis
 # Copyright (C) 2011-2012  INRIA
@@ -398,6 +398,11 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 	filters/fblock_opencl_kernel.cl
 endif
 
+examplebin_PROGRAMS +=				\
+	filters/shadow				\
+	filters/shadow2d			\
+	filters/shadow3d
+
 #############################
 # Custom multiformat filter #
 #############################
@@ -790,6 +795,14 @@ if HAVE_X11
 mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
 mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) -lX11
 endif
+
+####################
+# Image downscaler #
+####################
+
+examplebin_PROGRAMS +=				\
+	ppm_downscaler/ppm_downscaler		\
+	ppm_downscaler/yuv_downscaler
 
 ################
 # Top Examples #
