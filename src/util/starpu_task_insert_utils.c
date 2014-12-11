@@ -180,33 +180,33 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 }
 
 static
-void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct starpu_task **task, int *allocated_buffers, int nbuffers)
+void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct starpu_task **task, int *allocated_buffers, int current_buffer)
 {
-	if (nbuffers >= STARPU_NMAXBUFS)
+	if (current_buffer >= STARPU_NMAXBUFS)
 	{
 		if (*allocated_buffers == 0)
 		{
 			int i;
 			*allocated_buffers = STARPU_NMAXBUFS * 2;
 			(*task)->dyn_handles = malloc(*allocated_buffers * sizeof(starpu_data_handle_t));
-			for(i=0 ; i<nbuffers ; i++)
+			for(i=0 ; i<current_buffer ; i++)
 			{
 				(*task)->dyn_handles[i] = (*task)->handles[i];
 			}
 			if ((*task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
 			{
 				(*task)->dyn_modes = malloc(*allocated_buffers * sizeof(enum starpu_data_access_mode));
-				for(i=0 ; i<nbuffers ; i++)
+				for(i=0 ; i<current_buffer ; i++)
 				{
 					(*task)->dyn_modes[i] = (*task)->modes[i];
 				}
 			}
 		}
-		else if (nbuffers >= *allocated_buffers)
+		else if (current_buffer >= *allocated_buffers)
 		{
 			*allocated_buffers *= 2;
 			(*task)->dyn_handles = realloc((*task)->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
-			if (nbuffers == STARPU_VARIABLE_NBUFFERS)
+			if ((*task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
 				(*task)->dyn_modes = realloc((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
 		}
 	}
@@ -218,7 +218,7 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 	char *arg_buffer_ = NULL;
 	size_t arg_buffer_size_ = 0;
 	size_t current_offset = sizeof(int);
-	int nbuffers;
+	int current_buffer;
 	int nargs = 0;
 	int allocated_buffers = 0;
 
@@ -238,7 +238,7 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 	prologue_pop_cl_arg_wrapper->callback_func = NULL;
 
 	(*task)->cl = cl;
-	nbuffers = 0;
+	current_buffer = 0;
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
@@ -250,17 +250,17 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 
 			STARPU_ASSERT(cl != NULL);
 
-			_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, nbuffers);
+			_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, current_buffer);
 
-			STARPU_TASK_SET_HANDLE((*task), handle, nbuffers);
+			STARPU_TASK_SET_HANDLE((*task), handle, current_buffer);
 			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
-				STARPU_TASK_SET_MODE(*task, mode, nbuffers);
-			else if (STARPU_CODELET_GET_MODE(cl, nbuffers))
+				STARPU_TASK_SET_MODE(*task, mode, current_buffer);
+			else if (STARPU_CODELET_GET_MODE(cl, current_buffer))
 			{
-				STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, nbuffers) == mode,
+				STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, current_buffer) == mode,
 						   "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
-						  cl->name, STARPU_CODELET_GET_MODE(cl, nbuffers),
-						  nbuffers, mode);
+						  cl->name, STARPU_CODELET_GET_MODE(cl, current_buffer),
+						  current_buffer, mode);
 			}
 			else
 			{
@@ -268,10 +268,10 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 #  warning shall we print a warning to the user
 /* Morse uses it to avoid having to set it in the codelet structure */
 #endif
-				STARPU_CODELET_SET_MODE(cl, mode, nbuffers);
+				STARPU_CODELET_SET_MODE(cl, mode, current_buffer);
 			}
 
-			nbuffers++;
+			current_buffer++;
 		}
 		else if (arg_type == STARPU_DATA_ARRAY)
 		{
@@ -284,9 +284,9 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 			int i;
 			for(i=0 ; i<nb_handles ; i++)
 			{
-				_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, nbuffers);
-				STARPU_TASK_SET_HANDLE((*task), handles[i], nbuffers);
-				nbuffers++;
+				_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, current_buffer);
+				STARPU_TASK_SET_HANDLE((*task), handles[i], current_buffer);
+				current_buffer++;
 			}
 
 		}
@@ -301,27 +301,27 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 			int i;
 			for(i=0 ; i<nb_descrs ; i++)
 			{
-				_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, nbuffers);
-				STARPU_TASK_SET_HANDLE((*task), descrs[i].handle, nbuffers);
+				_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, current_buffer);
+				STARPU_TASK_SET_HANDLE((*task), descrs[i].handle, current_buffer);
 				if ((*task)->dyn_modes)
 				{
 					(*task)->dyn_modes[i] = descrs[i].mode;
 				}
 				else if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
-					STARPU_TASK_SET_MODE(*task, descrs[i].mode, nbuffers);
-				else if (STARPU_CODELET_GET_MODE(cl, nbuffers))
+					STARPU_TASK_SET_MODE(*task, descrs[i].mode, current_buffer);
+				else if (STARPU_CODELET_GET_MODE(cl, current_buffer))
 				{
-					STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, nbuffers) == descrs[i].mode,
+					STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, current_buffer) == descrs[i].mode,
 							  "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
-							  cl->name, STARPU_CODELET_GET_MODE(cl, nbuffers),
-							  nbuffers, descrs[i].mode);
+							  cl->name, STARPU_CODELET_GET_MODE(cl, current_buffer),
+							  current_buffer, descrs[i].mode);
 				}
 				else
 				{
-					STARPU_CODELET_SET_MODE(cl, descrs[i].mode, nbuffers);
+					STARPU_CODELET_SET_MODE(cl, descrs[i].mode, current_buffer);
 				}
 
-				nbuffers++;
+				current_buffer++;
 			}
 
 		}
@@ -462,11 +462,11 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 	{
 		if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
 		{
-			(*task)->nbuffers = nbuffers;
+			(*task)->nbuffers = current_buffer;
 		}
 		else
 		{
-			STARPU_ASSERT_MSG(nbuffers == cl->nbuffers, "Incoherent number of buffers between cl (%d) and number of parameters (%d)", cl->nbuffers, nbuffers);
+			STARPU_ASSERT_MSG(current_buffer == cl->nbuffers, "Incoherent number of buffers between cl (%d) and number of parameters (%d)", cl->nbuffers, current_buffer);
 		}
 	}
 
