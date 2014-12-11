@@ -310,11 +310,6 @@ static void deinit_context(int workerid)
 		cudaStreamDestroy(in_peer_transfer_streams[i][devid]);
 		cudaStreamDestroy(out_peer_transfer_streams[devid][i]);
 	}
-
-	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
-	cures = cudaThreadExit();
-	if (cures)
-		STARPU_CUDA_REPORT_ERROR(cures);
 }
 #endif /* !SIMGRID */
 
