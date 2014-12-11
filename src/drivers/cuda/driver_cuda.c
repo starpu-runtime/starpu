@@ -373,22 +373,6 @@ static void deinit_context(struct _starpu_worker_set *worker_set)
 		cudaStreamDestroy(in_peer_transfer_streams[i][devid]);
 		cudaStreamDestroy(out_peer_transfer_streams[devid][i]);
 	}
-
-	/* cleanup the runtime API internal stuffs (which CUBLAS is using) */
-	cures = cudaThreadExit();
-	if (cures
-#ifdef STARPU_OPENMP
-		/* When StarPU is used as Open Runtime support,
-		 * starpu_omp_shutdown() will usually be called from a
-		 * destructor, in which case cudaThreadExit() reports a
-		 * cudaErrorCudartUnloading here. There should not
-		 * be any remaining tasks running at this point so
-		 * we can probably ignore it without much consequences. */
-		&& cures != cudaErrorCudartUnloading
-#endif /* STARPU_OPENMP */
-	)
-		STARPU_CUDA_REPORT_ERROR(cures);
-#endif /* !SIMGRID */
 }
 
 static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
