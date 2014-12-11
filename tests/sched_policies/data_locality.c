@@ -157,7 +157,6 @@ run(struct starpu_sched_policy *policy)
 
 enodev:
 	FPRINTF(stderr, "No device found\n");
-	starpu_shutdown();
 	return -ENODEV;
 
 }
