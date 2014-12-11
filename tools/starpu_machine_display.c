@@ -164,13 +164,16 @@ int main(int argc, char **argv)
 
 	display_all_combined_workers();
 
-	fprintf(stdout, "\ntopology ...\n");
-	starpu_topology_print(stdout);
+	if (ret != -ENODEV)
+	{
+		fprintf(stdout, "\ntopology ...\n");
+		starpu_topology_print(stdout);
 
-	fprintf(stdout, "\nbandwidth and latency ...\n");
-	starpu_bus_print_bandwidth(stdout);
+		fprintf(stdout, "\nbandwidth and latency ...\n");
+		starpu_bus_print_bandwidth(stdout);
 
-	starpu_shutdown();
+		starpu_shutdown();
+	}
 
 	return 0;
 }
