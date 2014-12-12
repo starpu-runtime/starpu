@@ -91,11 +91,12 @@ run(struct starpu_sched_policy *policy)
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
-		goto enodev;
+	{
+		FPRINTF(stderr, "No device found\n");
+		return -ENODEV;
+	}
 
-	if (starpu_cpu_worker_get_count() == 0 ||
-	    (starpu_cuda_worker_get_count() == 0 &&
-	     starpu_opencl_worker_get_count() == 0))
+	if (starpu_cpu_worker_get_count() == 0 || (starpu_cuda_worker_get_count() == 0 && starpu_opencl_worker_get_count() == 0))
 		goto enodev;
 
 	starpu_profiling_status_set(1);
@@ -156,8 +157,8 @@ run(struct starpu_sched_policy *policy)
 
 enodev:
 	FPRINTF(stderr, "No device found\n");
+	starpu_shutdown();
 	return -ENODEV;
-
 }
 
 /* XXX: Does this test apply to other schedulers ? */
