@@ -89,7 +89,7 @@ void soclShutdown() {
          gc_print_remaining_entities();
       }
 
-      if( _starpu_init )
+      if( _starpu_init && _starpu_init_failed != -ENODEV)
          starpu_shutdown();
       pthread_mutex_unlock(&_socl_mutex);
 
