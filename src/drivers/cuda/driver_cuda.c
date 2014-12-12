@@ -373,6 +373,7 @@ static void deinit_context(struct _starpu_worker_set *worker_set)
 		cudaStreamDestroy(in_peer_transfer_streams[i][devid]);
 		cudaStreamDestroy(out_peer_transfer_streams[devid][i]);
 	}
+#endif /* STARPU_SIMGRID */
 }
 
 static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
