@@ -73,6 +73,8 @@ New features:
   * New performance model format to better represent parallel tasks.
     Used to provide estimations for the execution times of the
     parallel tasks on scheduling contexts or combined workers.
+  * New function starpu_memory_wait_available() which allows to wait
+    for a given size to become available on a given node.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of
