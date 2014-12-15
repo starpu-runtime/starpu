@@ -52,12 +52,11 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 			alpha_sum += speedup;
 			speedup_arr[size] = speedup;
 			worker_arr[size++] = worker;
-			break;
 		}
 	}
 
 	double random = starpu_drand48()*alpha_sum;
-//	_STARPU_DEBUG("my rand is %e\n", random);
+	//printf("my rand is %e over %e\n", random, alpha_sum);
 
 	if(size == 0)
 		return -ENODEV;
