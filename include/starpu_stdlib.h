@@ -39,6 +39,7 @@ int starpu_free_flags(void *A, size_t dim, int flags);
 
 starpu_ssize_t starpu_memory_get_total(unsigned node);
 starpu_ssize_t starpu_memory_get_available(unsigned node);
+void starpu_memory_wait_available(unsigned node, size_t size);
 
 #define STARPU_MEMORY_WAIT (1)
 #define STARPU_MEMORY_OVERFLOW (2)

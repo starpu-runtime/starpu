@@ -132,6 +132,28 @@ starpu_ssize_t starpu_memory_get_available(unsigned node)
 		return global_size[node] - used_size[node];
 }
 
+void starpu_memory_wait_available(unsigned node, size_t size)
+{
+	int ret;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
+	waiters[node]++;
+
+	/* Tell deallocators we need this amount */
+	if (!min_waiting_size[node] || size < min_waiting_size[node])
+		min_waiting_size[node] = size;
+
+	/* Wait for it */
+	while (used_size[node] + size > global_size[node])
+		STARPU_PTHREAD_COND_WAIT(&cond_nodes[node], &lock_nodes[node]);
+
+	if (!--waiters[node])
+		/* Nobody is waiting any more, we can reset the minimum
+		 */
+		min_waiting_size[node] = 0;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
+}
+
 int _starpu_memory_manager_test_allocate_size(unsigned node, size_t size)
 {
 	int ret;

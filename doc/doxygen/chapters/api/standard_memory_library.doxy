@@ -98,7 +98,7 @@ By default, the function returns -ENOMEM if there is not enough room on
 the given node. \p flags can be either STARPU_MEMORY_MANAGER_WAIT or
 STARPU_MEMORY_MANAGER_OVERFLOW to change this.
 
-\fn int starpu_memory_deallocate(unsigned node, size_t size)
+\fn void starpu_memory_deallocate(unsigned node, size_t size)
 \ingroup API_Standard_Memory_Library
 If a memory limit is defined on the given node (see Section \ref
 HowToLimitMemoryPerNode), free some of it. This does not actually free memory,
@@ -107,6 +107,15 @@ have to be exactly the same as what was passed to starpu_memory_allocate(),
 only the eventual amount needs to be the same, i.e. one call to
 starpu_memory_allocate() can be followed by several calls to
 starpu_memory_deallocate() to declare the deallocation piece by piece.
+
+\fn void starpu_memory_wait_available(unsigned node, size_t size)
+\ingroup API_Standard_Memory_Library If a memory limit is defined on the given
+node (see Section \ref HowToLimitMemoryPerNode), this will wait for \p size
+bytes to become available on \p node. Of course, since another thread may be
+allocating memory concurrently, this does not necessarily mean that this amount
+will be actually available, just that it was reached. To atomically wait for
+some amount of memory and reserve it, starpu_memory_allocate() should be used
+with the STARPU_MEMORY_MANAGER_WAIT flag.
 
 \def STARPU_MEMORY_MANAGER_WAIT
 \ingroup API_Standard_Memory_Library
