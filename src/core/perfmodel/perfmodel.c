@@ -112,7 +112,7 @@ double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arc
 		else if (perf_arch->devices[dev].type == STARPU_MIC_WORKER)
 			coef =  _STARPU_MIC_ALPHA;
 
-		speedup += coef * (perf_arch->devices[dev].ncores + 1);
+		speedup += coef * (perf_arch->devices[dev].ncores);
 	}
 	return speedup;
 }

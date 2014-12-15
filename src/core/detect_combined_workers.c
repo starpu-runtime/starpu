@@ -44,7 +44,7 @@ static void find_workers(hwloc_obj_t obj, int cpu_workers[STARPU_NMAXWORKERS], u
 	for(worker = _starpu_worker_list_begin(workers); worker != _starpu_worker_list_end(workers); worker = _starpu_worker_list_next(worker))
 	{
 		/* is it a CPU worker? */
-		if (worker->perf_arch.devices[0].type == STARPU_CPU_WORKER && worker->perf_arch.devices[0].ncores == 0)
+		if (worker->perf_arch.devices[0].type == STARPU_CPU_WORKER && worker->perf_arch.devices[0].ncores == 1)
 		{
 			_STARPU_DEBUG("worker %d is part of it\n", worker->workerid);
 			/* Add it to the combined worker */
@@ -178,7 +178,7 @@ static void find_and_assign_combinations_with_hwloc(int *workerids, int nworkers
 	for (i = 0; i < nworkers; i++)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
-		if (worker->perf_arch.devices[0].type == STARPU_CPU_WORKER && worker->perf_arch.devices[0].ncores == 0)
+		if (worker->perf_arch.devices[0].type == STARPU_CPU_WORKER && worker->perf_arch.devices[0].ncores == 1)
 		{
 			hwloc_obj_t obj = hwloc_get_obj_by_depth(topology->hwtopology, config->pu_depth, worker->bindid);
 			obj = obj->parent;
