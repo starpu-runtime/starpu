@@ -173,7 +173,7 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 static
 void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int do_execute, MPI_Comm comm)
 {
-	if (_cache_enabled)
+	if (_starpu_cache_enabled)
 	{
 		if (mode & STARPU_W || mode & STARPU_REDUX)
 		{

@@ -29,11 +29,11 @@
 extern "C" {
 #endif
 
-extern int _debug_rank;
+extern int _starpu_debug_rank;
 
 #ifdef STARPU_VERBOSE
-extern int _debug_level_min;
-extern int _debug_level_max;
+extern int _starpu_debug_level_min;
+extern int _starpu_debug_level_max;
 void _starpu_mpi_set_debug_level_min(int level);
 void _starpu_mpi_set_debug_level_max(int level);
 #endif
@@ -42,10 +42,10 @@ void _starpu_mpi_set_debug_level_max(int level);
 #  define _STARPU_MPI_DEBUG(level, fmt, ...) \
 	do \
 	{								\
-		if (!getenv("STARPU_SILENT") && _debug_level_min <= level && level <= _debug_level_max)	\
+		if (!getenv("STARPU_SILENT") && _starpu_debug_level_min <= level && level <= _starpu_debug_level_max)	\
 		{							\
-			if (_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank); \
-			fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] " fmt , (_debug_rank+1)*4, "", _debug_rank, __starpu_func__ , __LINE__,## __VA_ARGS__); \
+			if (_starpu_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
+			fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] " fmt , (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ , __LINE__,## __VA_ARGS__); \
 			fflush(stderr); \
 		}			\
 	} while(0);
@@ -54,18 +54,18 @@ void _starpu_mpi_set_debug_level_max(int level);
 #endif
 
 #define _STARPU_MPI_DISP(fmt, ...) do { if (!getenv("STARPU_SILENT")) { \
-	       				     if (_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank); \
-                                             fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] " fmt , (_debug_rank+1)*4, "", _debug_rank, __starpu_func__ , __LINE__ ,## __VA_ARGS__); \
+	       				     if (_starpu_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
+                                             fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] " fmt , (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ , __LINE__ ,## __VA_ARGS__); \
                                              fflush(stderr); }} while(0);
 
 #ifdef STARPU_VERBOSE0
 #  define _STARPU_MPI_LOG_IN()             do { if (!getenv("STARPU_SILENT")) { \
-                                               if (_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);                        \
-                                               fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] -->\n", (_debug_rank+1)*4, "", _debug_rank, __starpu_func__ , __LINE__); \
+                                               if (_starpu_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank);                        \
+                                               fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] -->\n", (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ , __LINE__); \
                                                fflush(stderr); }} while(0)
 #  define _STARPU_MPI_LOG_OUT()            do { if (!getenv("STARPU_SILENT")) { \
-                                               if (_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_debug_rank);                        \
-                                               fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] <--\n", (_debug_rank+1)*4, "", _debug_rank, __starpu_func__, __LINE__ ); \
+                                               if (_starpu_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank);                        \
+                                               fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] <--\n", (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__, __LINE__ ); \
                                                fflush(stderr); }} while(0)
 #else
 #  define _STARPU_MPI_LOG_IN()

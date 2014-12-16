@@ -34,20 +34,20 @@ static starpu_pthread_mutex_t *_cache_sent_mutex;
 static starpu_pthread_mutex_t *_cache_received_mutex;
 static struct _starpu_data_entry **_cache_sent_data = NULL;
 static struct _starpu_data_entry **_cache_received_data = NULL;
-int _cache_enabled=1;
+int _starpu_cache_enabled=1;
 
 void _starpu_mpi_cache_init(MPI_Comm comm)
 {
 	int nb_nodes;
 	int i;
 
-	_cache_enabled = starpu_get_env_number("STARPU_MPI_CACHE");
-	if (_cache_enabled == -1)
+	_starpu_cache_enabled = starpu_get_env_number("STARPU_MPI_CACHE");
+	if (_starpu_cache_enabled == -1)
 	{
-		_cache_enabled = 1;
+		_starpu_cache_enabled = 1;
 	}
 
-	if (_cache_enabled == 0)
+	if (_starpu_cache_enabled == 0)
 	{
 		if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU MPI Communication cache is disabled\n");
 		return;
@@ -75,7 +75,7 @@ void _starpu_mpi_cache_empty_tables(int world_size)
 {
 	int i;
 
-	if (_cache_enabled == 0) return;
+	if (_starpu_cache_enabled == 0) return;
 
 	_STARPU_MPI_DEBUG(2, "Clearing htable for cache\n");
 
@@ -106,7 +106,7 @@ void _starpu_mpi_cache_free(int world_size)
 {
 	int i;
 
-	if (_cache_enabled == 0) return;
+	if (_starpu_cache_enabled == 0) return;
 
 	_starpu_mpi_cache_empty_tables(world_size);
 	free(_cache_sent_data);
@@ -170,7 +170,7 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 	int nb_nodes, i;
 	int mpi_rank, my_rank;
 
-	if (_cache_enabled == 0) return;
+	if (_starpu_cache_enabled == 0) return;
 
 	MPI_Comm_size(comm, &nb_nodes);
 	MPI_Comm_rank(comm, &my_rank);
@@ -210,7 +210,7 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 	int i, my_rank, nb_nodes;
 	int mpi_rank;
 
-	if (_cache_enabled == 0) return;
+	if (_starpu_cache_enabled == 0) return;
 
 	MPI_Comm_size(comm, &nb_nodes);
 	MPI_Comm_rank(comm, &my_rank);
@@ -248,7 +248,7 @@ void *_starpu_mpi_already_received(int src, starpu_data_handle_t data, int mpi_r
 {
 	struct _starpu_data_entry *already_received;
 
-	if (_cache_enabled == 0) return NULL;
+	if (_starpu_cache_enabled == 0) return NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_received_mutex[mpi_rank]);
 	HASH_FIND_PTR(_cache_received_data[mpi_rank], &data, already_received);
@@ -271,7 +271,7 @@ void *_starpu_mpi_already_sent(starpu_data_handle_t data, int dest)
 {
 	struct _starpu_data_entry *already_sent;
 
-	if (_cache_enabled == 0) return NULL;
+	if (_starpu_cache_enabled == 0) return NULL;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_sent_mutex[dest]);
 	HASH_FIND_PTR(_cache_sent_data[dest], &data, already_sent);
