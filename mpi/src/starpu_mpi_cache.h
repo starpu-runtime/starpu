@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-extern int _cache_enabled;
+extern int _starpu_cache_enabled;
 void _starpu_mpi_cache_init(MPI_Comm comm);
 void *_starpu_mpi_already_received(int src, starpu_data_handle_t data, int mpi_rank);
 void *_starpu_mpi_already_sent(starpu_data_handle_t data, int dest);
