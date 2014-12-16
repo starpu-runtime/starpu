@@ -41,6 +41,9 @@ See the GNU Lesser General Public License in COPYING.LGPL for more details.
     <xsl:template match="platform/AS/host/@id">
 	    <xsl:attribute name="id"><xsl:value-of select="$ASname"/>-<xsl:value-of select="."/></xsl:attribute>
     </xsl:template>
+    <xsl:template match="platform/AS/link/@id">
+	    <xsl:attribute name="id"><xsl:value-of select="$ASname"/>-<xsl:value-of select="."/></xsl:attribute>
+    </xsl:template>
 
 </xsl:stylesheet>
 
