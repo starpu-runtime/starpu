@@ -26,7 +26,6 @@
 
 #ifdef STARPU_SIMGRID
 #include <msg/msg.h>
-#include <smpi/smpif.h>
 #include <sys/resource.h>
 
 #define STARPU_MPI_AS_PREFIX "StarPU-MPI"
