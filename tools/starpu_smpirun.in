@@ -65,6 +65,8 @@ EOF
 EOF
 ) > $PLATFORM
 
-$SMPIRUN -platform $PLATFORM -hostfile $MPI_HOSTFILE "$@" --cfg=smpi/privatize_global_variables:yes
+STACKSIZE=$(ulimit -s)
+[ "$STACKSIZE" != unlimited ] || STACKSIZE=8192
+$SMPIRUN -platform $PLATFORM -hostfile $MPI_HOSTFILE "$@" --cfg=smpi/privatize_global_variables:yes --cfg=contexts/stack_size=$STACKSIZE
 
 rm -f $TEMP
