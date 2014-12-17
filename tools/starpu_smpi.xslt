@@ -24,7 +24,7 @@ See the GNU Lesser General Public License in COPYING.LGPL for more details.
 
 -->
     <!-- Copy everything by default but keep applying templates.  -->
-    <xsl:template match="platform|AS|host|link|@*">
+    <xsl:template match="platform|AS|host|link|prop|@*">
         <xsl:copy>
             <xsl:apply-templates select="node()|@*"/>
         </xsl:copy>

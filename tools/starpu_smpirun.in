@@ -57,7 +57,7 @@ NODE_PLATFORM=$STARPU_PERF_MODEL_DIR/bus/${STARPU_HOSTNAME}.platform.xml
 EOF
 	tail -n +3 $MPI_PLATFORM | grep -v '<platform' | grep -v '</platform'
 	for i in $(seq 0 $((NP - 1))) ; do
-		xsltproc --novalid --stringparam ASname StarPU-MPI$i $STARPU_DATADIR/starpu/starpu_smpi.xslt $NODE_PLATFORM | tail -n +4 | head -n -1
+		xsltproc --novalid --stringparam ASname StarPU-MPI$i $STARPU_DATADIR/starpu/starpu_smpi.xslt $NODE_PLATFORM | grep -v network/ | tail -n +4 | head -n -1
 	done
 	cat << \EOF
 </AS>
