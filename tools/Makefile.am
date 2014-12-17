@@ -245,5 +245,9 @@ clean-local:
 
 endif
 
+if STARPU_SIMGRID
+dist_pkgdata_DATA = starpu_smpi.xslt
+endif
+
 showcheck:
 	-cat $(TEST_LOGS) /dev/null

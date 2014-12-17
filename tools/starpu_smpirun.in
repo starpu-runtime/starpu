@@ -1,0 +1,70 @@
+#!/bin/bash
+
+prefix=@prefix@
+SMPIRUN=@smpirun_path@
+STARPU_DATADIR=@datadir@
+
+MPI_PLATFORM=""
+MPI_HOSTFILE=""
+NP=""
+while true; do
+	case "$1" in
+		"-platform")
+			MPI_PLATFORM=$2
+			if [ ! -r "$MPI_PLATFORM" ]; then
+				echo "$MPI_PLATFORM can't be read"
+				exit 1
+			fi
+			shift 2
+			;;
+		"-hostfile")
+			MPI_HOSTFILE=$2
+			if [ ! -r "$MPI_HOSTFILE" ]; then
+				echo "$MPI_HOSTFILE can't be read"
+				exit 1
+			fi
+			shift 2
+			;;
+		"-np")
+			NP=$2
+			shift 2
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+if [ -z "$MPI_PLATFORM" ] || [ -z "$MPI_HOSTFILE" ]; then
+	echo "$0 -platform PLATFORM -hostfile HOSTFILE [ -np N ] [ ... ] program [ args ]"
+	exit 2
+fi
+
+PLATFORM=$(mktemp /tmp/StarPU-MPI-platform-XXXXXXXX.xml)
+
+[ -n "$STARPU_PERF_MODEL_DIR" ] || STARPU_PERF_MODEL_DIR=$HOME/.starpu/sampling
+[ -n "$STARPU_HOSTNAME" ] || STARPU_HOSTNAME=$(hostname)
+NODE_PLATFORM=$STARPU_PERF_MODEL_DIR/bus/${STARPU_HOSTNAME}.platform.xml
+
+[ -n "$NP" ] || NP=$(grep -v "^$" $MPI_HOSTFILE | wc -l)
+
+(
+	cat << \EOF
+<?xml version='1.0'?>
+<!DOCTYPE platform SYSTEM "http://simgrid.gforge.inria.fr/simgrid.dtd">
+<platform version="3">
+<AS id="ASroot" routing="None">
+EOF
+	tail -n +3 $MPI_PLATFORM | grep -v '<platform' | grep -v '</platform'
+	for i in $(seq 0 $((NP - 1))) ; do
+		xsltproc --novalid --stringparam ASname StarPU-MPI$i $STARPU_DATADIR/starpu/starpu_smpi.xslt $NODE_PLATFORM | tail -n +4 | head -n -1
+	done
+	cat << \EOF
+</AS>
+</platform>
+EOF
+) > $PLATFORM
+
+$SMPIRUN -platform $PLATFORM -hostfile $MPI_HOSTFILE "$@" --cfg=smpi/privatize_global_variables:yes
+
+rm -f $TEMP

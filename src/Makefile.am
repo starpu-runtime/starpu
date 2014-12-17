@@ -339,9 +339,5 @@ endif
 
 #########################################
 
-if STARPU_SIMGRID
-dist_pkgdata_DATA = starpu_smpi.xslt
-endif
-
 showcheck:
 	-cat /dev/null

@@ -214,47 +214,9 @@ void _starpu_simgrid_init()
 #ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 	if (_starpu_simgrid_running_smpi())
 	{
-		/* Take back hand to create the local platform for this MPI
-		 * node */
-
 		char asname[32];
-		char path[256];
-		char cmdline[1024];
-		FILE *in;
-		int out;
-#ifdef HAVE_MKSTEMPS
-		char template[] = "/tmp/"STARPU_MPI_AS_PREFIX"-platform-XXXXXX.xml";
-#else
-		char template[] = "/tmp/"STARPU_MPI_AS_PREFIX"-platform-XXXXXX";
-#endif
-		int ret;
-
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(asname, sizeof(asname), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
-
-		/* Get XML platform */
-		_starpu_simgrid_get_platform_path(path, sizeof(path));
-		in = fopen(path, "r");
-		_starpu_frdlock(in);
-		STARPU_ASSERT_MSG(in, "Could not open platform file %s", path);
-#ifdef HAVE_MKSTEMPS
-		out = mkstemps(template, strlen(".xml"));
-#else
-		out = mkstemp(template);
-#endif
-
-		/* Generate modified XML platform */
-		STARPU_ASSERT_MSG(out >= 0, "Could not create temporary file like %s", template);
-		close(out);
-		snprintf(cmdline, sizeof(cmdline), "xsltproc --novalid --stringparam ASname %s -o %s "STARPU_DATADIR"/starpu/starpu_smpi.xslt %s", asname, template, path);
-		ret = system(cmdline);
-		STARPU_ASSERT_MSG(ret == 0, "running xsltproc to generate SMPI platforms %s from %s failed", template, path);
-		_starpu_frdunlock(in);
-		fclose(in);
-
-		/* And create it */
-		MSG_create_environment(template);
-		unlink(template);
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(asname));
 	}
 	else
