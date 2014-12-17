@@ -121,6 +121,20 @@ case. Since during simgrid execution, the functions of the codelet are actually
 not called, one can use dummy functions such as the following to still permit
 CUDA or OpenCL execution:
 
+\section MPI applications
+
+StarPU-MPI applications can also be run in simgrid mode. It needs to be compiled
+with smpicc, and run using the starpu_smpirun script, for instance:
+
+\verbatim
+$ STARPU_SCHED=dmda starpu_smpirun -platform cluster.xml -hostfile hostfile ./mpi/tests/pingpong
+\endverbatim
+
+Where cluster.xml is a Simgrid-MPI platform description, and hostfile the
+list of MPI nodes to be used. StarPU currently only supports homogeneous MPI
+clusters: for each MPI node it will just replicate the architecture referred by
+\ref STARPU_HOSTNAME.
+
 \section Debugging applications
 
 By default, simgrid uses its own implementation of threads, which prevents gdb
