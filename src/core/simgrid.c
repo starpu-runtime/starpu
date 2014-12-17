@@ -90,14 +90,18 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	xbt_dynar_t hosts;
 	unsigned i, nb;
 	unsigned len = strlen(prefix);
-
 #ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
+	char new_prefix[32];
+
 	if (_starpu_simgrid_running_smpi())
 	{
-		char name[16];
+		char name[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
 		snprintf(name, sizeof(name), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
 		hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(name));
+		len = snprintf(new_prefix, sizeof(new_prefix), "%s-%s", name, prefix);
+		prefix = new_prefix;
+		len = strlen(prefix);
 	}
 	else
 #endif /* HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT */
@@ -117,7 +121,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid)
 {
-	char name[16];
+	char name[32];
 	msg_host_t host;
 	const char *memsize;
 
@@ -141,9 +145,9 @@ msg_host_t _starpu_simgrid_get_host_by_name(const char *name)
 {
 	if (_starpu_simgrid_running_smpi())
 	{
-		char mpiname[16];
+		char mpiname[32];
 		STARPU_ASSERT(starpu_mpi_world_rank);
-		snprintf(mpiname, sizeof(mpiname), "%d-%s", starpu_mpi_world_rank(), name);
+		snprintf(mpiname, sizeof(mpiname), STARPU_MPI_AS_PREFIX"%d-%s", starpu_mpi_world_rank(), name);
 		return MSG_get_host_by_name(mpiname);
 	}
 	else
@@ -213,7 +217,7 @@ void _starpu_simgrid_init()
 		/* Take back hand to create the local platform for this MPI
 		 * node */
 
-		char asname[16];
+		char asname[32];
 		char path[256];
 		char cmdline[1024];
 		FILE *in;
