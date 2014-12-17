@@ -30,6 +30,9 @@ struct _starpu_pthread_args
 
 #define MAX_TSD 16
 
+#define STARPU_MPI_AS_PREFIX "StarPU-MPI"
+#define _starpu_simgrid_running_smpi() (getenv("SMPI_GLOBAL_SIZE") != NULL)
+
 void _starpu_simgrid_init(void);
 void _starpu_simgrid_wait_tasks(int workerid);
 void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished, starpu_pthread_mutex_t *mutex, starpu_pthread_cond_t *cond);
@@ -39,6 +42,9 @@ int _starpu_simgrid_get_nbhosts(const char *prefix);
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid);
 msg_host_t _starpu_simgrid_get_host_by_name(const char *name);
 void _starpu_simgrid_get_platform_path(char *path, size_t maxlen);
+msg_as_t _starpu_simgrid_get_as_by_name(const char *name);
+#pragma weak starpu_mpi_world_rank
+extern int starpu_mpi_world_rank(void);
 #endif
 
 #endif // __SIMGRID_H__

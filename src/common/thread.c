@@ -48,7 +48,15 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	xbt_dynar_t _hosts;
 	_args->f = start_routine;
 	_args->arg = arg;
-	_hosts = MSG_hosts_as_dynar();
+	if (_starpu_simgrid_running_smpi())
+	{
+		char asname[32];
+		STARPU_ASSERT(starpu_mpi_world_rank);
+		snprintf(asname, sizeof(asname), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
+		_hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(asname));
+	}
+	else
+		_hosts = MSG_hosts_as_dynar();
 	*thread = MSG_process_create(name, _starpu_simgrid_thread_start, _args,
 			   xbt_dynar_get_as(_hosts, (where), msg_host_t));
 	xbt_dynar_free(&_hosts);
@@ -194,13 +202,16 @@ int starpu_pthread_key_delete(starpu_pthread_key_t key)
 int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array = MSG_host_get_data(MSG_host_self());
-	array[key] = pointer;
+	array[key] = (void*) pointer;
 	return 0;
 }
 
 void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
-	void **array = MSG_host_get_data(MSG_host_self());
+	msg_host_t host = MSG_host_self();
+	if (!host)
+		return NULL;
+	void **array = MSG_host_get_data(host);
 	return array[key];
 }
 

@@ -28,18 +28,12 @@
 #include <msg/msg.h>
 #include <sys/resource.h>
 
-#define STARPU_MPI_AS_PREFIX "StarPU-MPI"
-
 #pragma weak starpu_main
 extern int starpu_main(int argc, char *argv[]);
 #pragma weak smpi_main
 extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *argv[]);
 #pragma weak smpi_simulated_main_
 extern int smpi_simulated_main_(int argc, char *argv[]);
-#pragma weak starpu_mpi_world_rank
-extern int starpu_mpi_world_rank(void);
-
-#define _starpu_simgrid_running_smpi() (getenv("SMPI_GLOBAL_SIZE") != NULL)
 
 struct main_args
 {
@@ -55,7 +49,7 @@ int do_starpu_main(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[] STARPU_ATTRIBU
 
 #ifdef HAVE_MSG_ENVIRONMENT_GET_ROUTING_ROOT
 #ifdef HAVE_MSG_GET_AS_BY_NAME
-static msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
+msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return MSG_get_as_by_name(name);
 }
@@ -77,7 +71,7 @@ static msg_as_t __starpu_simgrid_get_as_by_name(msg_as_t root, const char *name)
 	return NULL;
 }
 
-static msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
+msg_as_t _starpu_simgrid_get_as_by_name(const char *name)
 {
 	return __starpu_simgrid_get_as_by_name(MSG_environment_get_routing_root(), name);
 }
