@@ -182,6 +182,7 @@ EXTRA_DIST	= 					\
 	chapters/tasks_size_overhead.png		\
 	chapters/tasks_size_overhead.eps		\
 	chapters/tasks_size_overhead.pdf		\
+	chapters/temanejo.png		\
 	doxygen.cfg 					\
 	refman.tex					\
 	$(DOX_HTML_DIR)
