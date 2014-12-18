@@ -158,6 +158,7 @@ EXTRA_DIST	= 		\
 	chapters/starpu_starpu_slu_lu_model_11.png	\
 	chapters/starpu_starpu_slu_lu_model_11.eps	\
 	chapters/starpu_starpu_slu_lu_model_11.pdf	\
+	chapters/temanejo.png		\
 	doxygen.cfg 		\
 	refman.tex					\
 	$(DOX_HTML_DIR)
