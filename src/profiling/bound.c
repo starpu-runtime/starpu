@@ -33,6 +33,8 @@
 
 /* TODO: output duration between starpu_bound_start and starpu_bound_stop */
 
+/* TODO: compute critical path and introduce it in the LP */
+
 /*
  * Record without dependencies: just count each kind of task
  *
