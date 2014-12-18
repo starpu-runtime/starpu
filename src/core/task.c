@@ -993,14 +993,11 @@ void _starpu_sleep(struct timespec ts)
 static starpu_pthread_t watchdog_thread;
 
 /* Check from times to times that StarPU does finish some tasks */
-static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
+static void *watchdog_func(void *arg)
 {
 	struct timespec ts;
-	char *timeout_env;
+	char *timeout_env = arg;
 	unsigned long long timeout;
-
-	if (! (timeout_env = getenv("STARPU_WATCHDOG_TIMEOUT")))
-		return NULL;
 
 #ifdef _MSC_VER
 	timeout = (unsigned long long) _atoi64(timeout_env);
@@ -1043,8 +1040,13 @@ static void *watchdog_func(void *foo STARPU_ATTRIBUTE_UNUSED)
 void _starpu_watchdog_init(void)
 {
 	struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config();
+	char *timeout_env = getenv("STARPU_WATCHDOG_TIMEOUT");
+
+	if (!timeout_env)
+		return;
+
 	STARPU_PTHREAD_MUTEX_INIT(&config->submitted_mutex, NULL);
-	STARPU_PTHREAD_CREATE(&watchdog_thread, NULL, watchdog_func, NULL);
+	STARPU_PTHREAD_CREATE(&watchdog_thread, NULL, watchdog_func, timeout_env);
 }
 
 void _starpu_watchdog_shutdown(void)
