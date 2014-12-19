@@ -266,8 +266,6 @@ New features:
         - Communication cache mechanism is enabled by default, and can
 	  only be disabled at execution time by setting the
 	  environment variable STARPU_MPI_CACHE to 0.
-        - New variable STARPU_MPI_CACHE_STATS to print statistics on
-   	  cache holding received data.
         - Initialisation functions starpu_mpi_initialize_extended()
   	  and starpu_mpi_initialize() have been made deprecated. One
 	  should now use starpu_mpi_init(int *, char ***, int). The
@@ -278,11 +276,6 @@ New features:
         - When exchanging user-defined data interfaces, the size of
 	  the data is the size returned by the pack operation, i.e
 	  data with dynamic size can now be exchanged with StarPU-MPI.
-        - New function starpu_mpi_data_register() which sets the rank
-  	  and tag of a data, and also allows to automatically clear
-	  the MPI communication cache when unregistering the data. It
-	  should be called instead of both calling
-	  starpu_data_set_tag() and starpu_data_set_rank()
   * Add experimental simgrid support, to simulate execution with various
     number of CPUs, GPUs, amount of memory, etc.
   * Add support for OpenCL simulators (which provide simulated execution time)
@@ -473,11 +466,6 @@ Small changes:
   * Use C99 variadic macro support, not GNU.
   * Fix performance regression: dmda queues were inadvertently made
     LIFOs in r9611.
-  * Use big fat abortions when one tries to make a task or callback
-    sleep, instead of just returning EDEADLCK which few people will test
-  * By default, StarPU FFT examples are not compiled and checked, the
-    configure option --enable-starpufft-examples needs to be specified
-    to change this behaviour.
 
 StarPU 1.0.3 (svn revision 7379)
 ==============================================
