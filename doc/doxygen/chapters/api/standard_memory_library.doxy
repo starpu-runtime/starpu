@@ -65,59 +65,24 @@ This function frees memory by specifying its size. The given
 flags should be consistent with the ones given to starpu_malloc_flags()
 when allocating the memory.
 
-\fn ssize_t starpu_memory_get_total(unsigned node)
+\fn starpu_ssize_t starpu_memory_get_total(unsigned node)
 \ingroup API_Standard_Memory_Library
 If a memory limit is defined on the given node (see Section \ref
 HowToLimitMemoryPerNode), return the amount of total memory
 on the node. Otherwise return -1.
 
-\fn ssize_t starpu_memory_get_available(unsigned node)
+\fn starpu_ssize_t starpu_memory_get_available(unsigned node)
 \ingroup API_Standard_Memory_Library
 If a memory limit is defined on the given node (see Section \ref
 HowToLimitMemoryPerNode), return the amount of available memory
 on the node. Otherwise return -1.
-
-\fn int starpu_memory_allocate(unsigned node, size_t size, int flags)
-\ingroup API_Standard_Memory_Library
-If a memory limit is defined on the given node (see Section \ref
-HowToLimitMemoryPerNode), try to allocate some of it. This does not actually
-allocate memory, but only accounts for it. This can be useful when the
-application allocates data another way, but want StarPU to be aware of the
-allocation size e.g. for memory reclaiming.
-By default, the function returns -ENOMEM if there is not enough room on
-the given node. \p flags can be either STARPU_MEMORY_WAIT or
-STARPU_MEMORY_OVERFLOW to change this.
-
-\fn void starpu_memory_deallocate(unsigned node, size_t size)
-\ingroup API_Standard_Memory_Library
-If a memory limit is defined on the given node (see Section \ref
-HowToLimitMemoryPerNode), free some of it. This does not actually free memory,
-but only accounts for it, like starpu_memory_allocate(). The amount does not
-have to be exactly the same as what was passed to starpu_memory_allocate(),
-only the eventual amount needs to be the same, i.e. one call to
-starpu_memory_allocate() can be followed by several calls to
-starpu_memory_deallocate() to declare the deallocation piece by piece.
 
 \fn void starpu_memory_wait_available(unsigned node, size_t size)
 \ingroup API_Standard_Memory_Library If a memory limit is defined on the given
 node (see Section \ref HowToLimitMemoryPerNode), this will wait for \p size
 bytes to become available on \p node. Of course, since another thread may be
 allocating memory concurrently, this does not necessarily mean that this amount
-will be actually available, just that it was reached. To atomically wait for
-some amount of memory and reserve it, starpu_memory_allocate() should be used
-with the STARPU_MEMORY_WAIT flag.
-
-\def STARPU_MEMORY_WAIT
-\ingroup API_Standard_Memory_Library
-Value passed to starpu_memory_allocate() to specify that the function should
-wait for the requested amount of memory to become available, and atomically
-allocate it.
-
-\def STARPU_MEMORY_OVERFLOW
-\ingroup API_Standard_Memory_Library
-Value passed to starpu_memory_allocate() to specify that the function should
-allocate the amount of memory, even if that means overflowing the total size of
-the memory node.
+will be actually available, just that it was reached.
 
 
 */
