@@ -31,6 +31,8 @@ New features:
   * New environment variable STARPU_PERF_MODEL_DIR which can be set to
     specify a directory where to store performance model files in.
     When unset, the files are stored in $STARPU_HOME/.starpu/sampling
+  * New function starpu_memory_wait_available() which allows to wait
+    for a given size to become available on a given node.
 
 Changes:
   * Fix complexity of implicit task/data dependency, from quadratic to linear.
