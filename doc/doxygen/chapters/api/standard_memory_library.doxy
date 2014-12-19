@@ -34,16 +34,6 @@ If no memory is available, it tries to reclaim memory from StarPU.
 Memory allocated this way needs to be freed by calling the function
 starpu_free_flags() with the same flag.
 
-\def STARPU_MALLOC_NORECLAIM
-\ingroup API_Standard_Memory_Library
-Value passed to the function starpu_malloc_flags() along STARPU_MALLOC_COUNT
-to indicate that while the memory allocation should be kept in the limits
-defined for STARPU_MALLOC_COUNT, no reclaiming should be performed by
-starpu_malloc_flags itself, thus potentially overflowing the memory node a
-bit. StarPU will reclaim memory after next task termination, according to
-the STARPU_MINIMUM_AVAILABLE_MEM and STARPU_TARGET_AVAILABLE_MEM environment
-variables.
-
 \fn int starpu_malloc_flags(void **A, size_t dim, int flags)
 \ingroup API_Standard_Memory_Library
 Performs a memory allocation based on the constraints defined
@@ -95,8 +85,8 @@ allocate memory, but only accounts for it. This can be useful when the
 application allocates data another way, but want StarPU to be aware of the
 allocation size e.g. for memory reclaiming.
 By default, the function returns -ENOMEM if there is not enough room on
-the given node. \p flags can be either STARPU_MEMORY_MANAGER_WAIT or
-STARPU_MEMORY_MANAGER_OVERFLOW to change this.
+the given node. \p flags can be either STARPU_MEMORY_WAIT or
+STARPU_MEMORY_OVERFLOW to change this.
 
 \fn void starpu_memory_deallocate(unsigned node, size_t size)
 \ingroup API_Standard_Memory_Library
@@ -115,15 +105,15 @@ bytes to become available on \p node. Of course, since another thread may be
 allocating memory concurrently, this does not necessarily mean that this amount
 will be actually available, just that it was reached. To atomically wait for
 some amount of memory and reserve it, starpu_memory_allocate() should be used
-with the STARPU_MEMORY_MANAGER_WAIT flag.
+with the STARPU_MEMORY_WAIT flag.
 
-\def STARPU_MEMORY_MANAGER_WAIT
+\def STARPU_MEMORY_WAIT
 \ingroup API_Standard_Memory_Library
 Value passed to starpu_memory_allocate() to specify that the function should
 wait for the requested amount of memory to become available, and atomically
 allocate it.
 
-\def STARPU_MEMORY_MANAGER_OVERFLOW
+\def STARPU_MEMORY_OVERFLOW
 \ingroup API_Standard_Memory_Library
 Value passed to starpu_memory_allocate() to specify that the function should
 allocate the amount of memory, even if that means overflowing the total size of
