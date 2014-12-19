@@ -111,6 +111,8 @@ Small features:
     along with their access modes.
   * New configure option --enable-new-check to enable new testcases
     which are known to fail
+  * Add starpu_memory_allocate and _deallocate to let the application declare
+    its own allocation to the reclaiming engine.
 
 Changes:
   * Data interfaces (variable, vector, matrix and block) now define
@@ -146,10 +148,8 @@ New features:
     When unset, the files are stored in $STARPU_HOME/.starpu/sampling
 
 Small features:
-  * Add starpu_memory_allocate and _deallocate to let the application declare
-    its own allocation to the reclaiming engine, and
-    starpu_memory_wait_available() to wait for a given size to become available
-    on a given node.
+  * Add starpu_memory_wait_available() to wait for a given size to become
+    available on a given node.
 
 Changes:
   * Fix complexity of implicit task/data dependency, from quadratic to linear.
