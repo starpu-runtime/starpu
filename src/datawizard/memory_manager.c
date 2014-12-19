@@ -61,48 +61,31 @@ size_t _starpu_memory_manager_get_global_memory_size(unsigned node)
 }
 
 
-int starpu_memory_allocate(unsigned node, size_t size, int flags)
+int _starpu_memory_manager_can_allocate_size(size_t size, unsigned node)
 {
 	int ret;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
-	if (flags == STARPU_MEMORY_WAIT)
+	if (global_size[node] == 0)
 	{
-		waiters[node]++;
-
-		/* Tell deallocators we need this amount */
-		if (!min_waiting_size[node] || size < min_waiting_size[node])
-			min_waiting_size[node] = size;
-
-		/* Wait for it */
-		while (used_size[node] + size > global_size[node])
-			STARPU_PTHREAD_COND_WAIT(&cond_nodes[node], &lock_nodes[node]);
-
-		/* And take it */
+		// We do not have information on the available size, let's suppose it is going to fit
 		used_size[node] += size;
-		ret = 0;
-
-		if (!--waiters[node])
-			/* Nobody is waiting any more, we can reset the minimum
-			 */
-			min_waiting_size[node] = 0;
+		ret = 1;
 	}
-	else if (flags == STARPU_MEMORY_OVERFLOW
-			|| global_size[node] == 0
-			|| used_size[node] + size <= global_size[node])
+	else if (used_size[node] + size <= global_size[node])
 	{
 		used_size[node] += size;
-		ret = 0;
+		ret = 1;
 	}
 	else
 	{
-		ret = -ENOMEM;
+		ret = 0;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
 	return ret;
 }
 
-void starpu_memory_deallocate(unsigned node, size_t size)
+void _starpu_memory_manager_deallocate_size(size_t size, unsigned node)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
 
@@ -152,19 +135,4 @@ void starpu_memory_wait_available(unsigned node, size_t size)
 		 */
 		min_waiting_size[node] = 0;
 	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
-}
-
-int _starpu_memory_manager_test_allocate_size(unsigned node, size_t size)
-{
-	int ret;
-
-	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
-	if (global_size[node] == 0)
-		ret = 1;
-	else if (used_size[node] + size <= global_size[node])
-		ret = 1;
-	else
-		ret = 0;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
-	return ret;
 }

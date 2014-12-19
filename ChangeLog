@@ -33,10 +33,8 @@ New features:
     When unset, the files are stored in $STARPU_HOME/.starpu/sampling
 
 Small features:
-  * Add starpu_memory_allocate and _deallocate to let the application declare
-    its own allocation to the reclaiming engine, and
-    starpu_memory_wait_available() to wait for a given size to become available
-    on a given node.
+  * Add starpu_memory_wait_available() to wait for a given size to become
+    available on a given node.
 
 Changes:
   * Fix complexity of implicit task/data dependency, from quadratic to linear.
