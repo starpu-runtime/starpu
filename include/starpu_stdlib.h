@@ -38,6 +38,7 @@ int starpu_free_flags(void *A, size_t dim, int flags);
 
 starpu_ssize_t starpu_memory_get_total(unsigned node);
 starpu_ssize_t starpu_memory_get_available(unsigned node);
+void starpu_memory_wait_available(unsigned node, size_t size);
 
 #ifdef __cplusplus
 }
