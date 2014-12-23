@@ -1174,5 +1174,10 @@ void _starpu_watchdog_init(void)
 
 void _starpu_watchdog_shutdown(void)
 {
+	char *timeout_env = getenv("STARPU_WATCHDOG_TIMEOUT");
+
+	if (!timeout_env)
+		return;
+
 	starpu_pthread_join(watchdog_thread, NULL);
 }
