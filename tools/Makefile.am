@@ -246,7 +246,7 @@ clean-local:
 endif
 
 if STARPU_SIMGRID
-dist_pkgdata_DATA = starpu_smpi.xslt
+dist_pkgdata_DATA += starpu_smpi.xslt
 dist_bin_SCRIPTS += starpu_smpirun
 endif
 
