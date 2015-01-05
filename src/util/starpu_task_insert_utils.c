@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2013-2014   Université Bordeaux
+ * Copyright (C) 2011, 2013-2015   Université Bordeaux
  * Copyright (C) 2011-2014         Centre National de la Recherche Scientifique
  * Copyright (C) 2011, 2014        INRIA
  *
@@ -203,8 +203,7 @@ void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct star
 		{
 			*allocated_buffers *= 2;
 			(*task)->dyn_handles = realloc((*task)->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
-			if ((*task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
-				(*task)->dyn_modes = realloc((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
+			(*task)->dyn_modes = realloc((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
 		}
 	}
 }
