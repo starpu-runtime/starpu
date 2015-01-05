@@ -193,13 +193,10 @@ void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct star
 			{
 				(*task)->dyn_handles[i] = (*task)->handles[i];
 			}
-			if ((*task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
+			(*task)->dyn_modes = malloc(*allocated_buffers * sizeof(enum starpu_data_access_mode));
+			for(i=0 ; i<current_buffer ; i++)
 			{
-				(*task)->dyn_modes = malloc(*allocated_buffers * sizeof(enum starpu_data_access_mode));
-				for(i=0 ; i<current_buffer ; i++)
-				{
-					(*task)->dyn_modes[i] = (*task)->modes[i];
-				}
+				(*task)->dyn_modes[i] = (*task)->modes[i];
 			}
 		}
 		else if (current_buffer >= *allocated_buffers)
