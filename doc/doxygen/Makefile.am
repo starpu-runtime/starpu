@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009, 2011, 2013-2014  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
 #
 # Permission is granted to copy, distribute and/or modify this document
 # under the terms of the GNU Free Documentation License, Version 1.3
@@ -243,9 +243,9 @@ CLEANFILES = $(DOX_TAG) starpu_config.h \
     $(DOX_PDF)
 
 # Rule to update documentation on web server. Should only be used locally.
-PUBLISHHOST	?= sync
+PUBLISHHOST	?= gforge
 update-web: $(DOX_PDF)
-	scp -pr starpu.pdf html $(PUBLISHHOST):/web/runtime/html/StarPU/doc
+	scp -pr starpu.pdf html $(PUBLISHHOST):/home/groups/starpu/htdocs/doc
 
 showcheck:
 	-cat /dev/null
