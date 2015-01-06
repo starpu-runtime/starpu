@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014 Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015 Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -714,12 +714,12 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	for (miccore_id = 0; miccore_id < topology->nmiccores[mic_idx]; miccore_id++)
 	{
 		int worker_idx = topology->nworkers + miccore_id;
-		struct starpu_perfmodel_arch arch;
-		arch.type = STARPU_MIC_WORKER;
-		arch.devid = mic_idx;
-		arch.ncore = 0; 
 		config->workers[worker_idx].arch = STARPU_MIC_WORKER;
-		config->workers[worker_idx].perf_arch = arch;
+		config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device *) malloc(sizeof(struct starpu_perfmodel_device));
+		config->workers[worker_idx].perf_arch.ndevices = 1;
+		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_MIC_WORKER;
+		config->workers[worker_idx].perf_arch.devices[0].devid = mic_idx;
+		config->workers[worker_idx].perf_arch.devices[0].ncores = 0;
 		config->workers[worker_idx].devid = mic_idx;
 		config->workers[worker_idx].subworkerid = miccore_id;
 		config->workers[worker_idx].worker_mask = STARPU_MIC;
