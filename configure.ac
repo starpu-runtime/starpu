@@ -1127,7 +1127,7 @@ AC_DEFUN([STARPU_CHECK_COI_RUNTIME],
         CPPFLAGS="${CPPFLAGS} -I$__coi_include_dir"
     fi
     if test "$__coi_lib_dir" != "no" ; then
-	LDFLAGS="${LDFLAGS} -L$__coi_lib_dir"
+	LDFLAGS="${LDFLAGS} -L$__coi_lib_dir ${STARPU_SCIF_LDFLAGS}"
     fi
 
     AC_CHECK_HEADER([source/COIEngine_source.h],[have_valid_coi=yes],[have_valid_coi=no])
@@ -1240,6 +1240,11 @@ AC_DEFUN([STARPU_CHECK_SCIF_RUNTIME],
 
 if test x$enable_mic = xyes ; then
 
+    STARPU_CHECK_SCIF_RUNTIME($scif_dir, $scif_include_dir, $scif_lib_dir)
+    if test "$have_valid_scif" = "no" ; then
+	AC_MSG_ERROR([cannot find MIC's SCIF runtime])
+    fi
+
     STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_host)
 
     # Host runtime is not compatible, we are probably cross-compiling
@@ -1248,13 +1253,8 @@ if test x$enable_mic = xyes ; then
 	    STARPU_CHECK_COI_RUNTIME($coi_dir, $coi_include_dir, $coi_lib_dir, coi_device)
     fi
 
-    STARPU_CHECK_SCIF_RUNTIME($scif_dir, $scif_include_dir, $scif_lib_dir)
-
     if test "$have_valid_coi" = "no" ; then
 	AC_MSG_ERROR([cannot find MIC's COI runtime])
-    fi
-    if test "$have_valid_scif" = "no" ; then
-	AC_MSG_ERROR([cannot find MIC's SCIF runtime])
     fi
 
     AC_SUBST(STARPU_COI_CPPFLAGS)
