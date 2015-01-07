@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2014  Université de Bordeaux
+ * Copyright (C) 2010, 2012-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -42,30 +42,20 @@ static int _starpu_futex_wake = FUTEX_WAKE;
 
 extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 
-int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, int where)
+int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, msg_host_t host)
 {
 	struct _starpu_pthread_args *_args = malloc(sizeof(*_args));
-	xbt_dynar_t _hosts;
 	_args->f = start_routine;
 	_args->arg = arg;
-	if (_starpu_simgrid_running_smpi())
-	{
-		char asname[32];
-		STARPU_ASSERT(starpu_mpi_world_rank);
-		snprintf(asname, sizeof(asname), STARPU_MPI_AS_PREFIX"%u", starpu_mpi_world_rank());
-		_hosts = MSG_environment_as_get_hosts(_starpu_simgrid_get_as_by_name(asname));
-	}
-	else
-		_hosts = MSG_hosts_as_dynar();
-	*thread = MSG_process_create(name, _starpu_simgrid_thread_start, _args,
-			   xbt_dynar_get_as(_hosts, (where), msg_host_t));
-	xbt_dynar_free(&_hosts);
+	if (!host)
+		host = MSG_get_host_by_name("MAIN");
+	*thread = MSG_process_create(name, _starpu_simgrid_thread_start, _args, host);
 	return 0;
 }
 
 int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg)
 {
-	return starpu_pthread_create_on("", thread, attr, start_routine, arg, 0);
+	return starpu_pthread_create_on("", thread, attr, start_routine, arg, NULL);
 }
 
 int starpu_pthread_join(starpu_pthread_t thread, void **retval)

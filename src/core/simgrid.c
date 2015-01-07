@@ -148,6 +148,30 @@ msg_host_t _starpu_simgrid_get_host_by_name(const char *name)
 		return MSG_get_host_by_name(name);
 }
 
+msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
+{
+	char *prefix;
+	char name[16];
+	msg_host_t host;
+	switch (worker->arch) {
+		case STARPU_CPU_WORKER:
+			prefix = "CPU";
+			break;
+		case STARPU_CUDA_WORKER:
+			prefix = "CUDA";
+			break;
+		case STARPU_OPENCL_WORKER:
+			prefix = "OpenCL";
+			break;
+		default:
+			STARPU_ASSERT(0);
+	}
+	snprintf(name, sizeof(name), "%s%d", prefix, worker->devid);
+	host =  _starpu_simgrid_get_host_by_name(name);
+	STARPU_ASSERT_MSG(host, "Could not find host %s!", name);
+	return host;
+}
+
 #ifdef STARPU_DEVEL
 #warning TODO: use another way to start main, when simgrid provides it, and then include the application-provided configuration for platform numbers
 #endif
