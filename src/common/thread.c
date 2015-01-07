@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010, 2012-2014  Université de Bordeaux 1
+ * Copyright (C) 2010, 2012-2015  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,22 +27,20 @@
 
 extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 
-int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, int where)
+int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, msg_host_t host)
 {
 	struct _starpu_pthread_args *_args = malloc(sizeof(*_args));
-	xbt_dynar_t _hosts;
 	_args->f = start_routine;
 	_args->arg = arg;
-	_hosts = MSG_hosts_as_dynar();
-	MSG_process_create(name, _starpu_simgrid_thread_start, _args,
-			   xbt_dynar_get_as(_hosts, (where), msg_host_t));
-	xbt_dynar_free(&_hosts);
+	if (!host)
+		host = MSG_get_host_by_name("MAIN");
+	*thread = MSG_process_create(name, _starpu_simgrid_thread_start, _args, host);
 	return 0;
 }
 
 int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg)
 {
-	return starpu_pthread_create_on("", thread, attr, start_routine, arg, 0);
+	return starpu_pthread_create_on("", thread, attr, start_routine, arg, NULL);
 }
 
 int starpu_pthread_join(starpu_pthread_t thread, void **retval)

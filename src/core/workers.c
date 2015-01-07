@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux 1
+ * Copyright (C) 2009-2015  Université de Bordeaux 1
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2010, 2011  Institut National de Recherche en Informatique et Automatique
  * Copyright (C) 2011  Télécom-SudParis
@@ -448,7 +448,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						NULL,
 						_starpu_cpu_worker,
 						workerarg,
-						worker+1);
+						_starpu_simgrid_get_host_by_worker(workerarg));
 #ifdef STARPU_USE_FXT
 					STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 					while (!workerarg->worker_is_running)
@@ -474,7 +474,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						NULL,
 						_starpu_cuda_worker,
 						workerarg,
-						worker+1);
+						_starpu_simgrid_get_host_by_worker(workerarg));
 #ifdef STARPU_USE_FXT
 					STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 					while (!workerarg->worker_is_running)
@@ -505,7 +505,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					NULL,
 					_starpu_opencl_worker,
 					workerarg,
-					worker+1);
+					_starpu_simgrid_get_host_by_worker(workerarg));
 #ifdef STARPU_USE_FXT
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
 				while (!workerarg->worker_is_running)

@@ -40,7 +40,7 @@ extern "C"
 typedef int starpu_pthread_t;
 typedef int starpu_pthread_attr_t;
 
-int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, int where);
+int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, msg_host_t host);
 int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg);
 int starpu_pthread_join(starpu_pthread_t thread, void **retval);
 int starpu_pthread_attr_init(starpu_pthread_attr_t *attr);
