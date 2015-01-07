@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -700,9 +700,15 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 
 		starpu_data_handle_t handle = r->handle;
 
+#ifndef STARPU_SIMGRID
 		if (force)
 			/* Have to wait for the handle, whatever it takes */
+#endif
+			/* Or when running in simgrid, in which case we can not
+			 * afford going to sleep, since nobody would wake us
+			 * up. */
 			_starpu_spin_lock(&handle->header_lock);
+#ifndef STARPU_SIMGRID
 		else
 			if (_starpu_spin_trylock(&handle->header_lock))
 			{
@@ -711,6 +717,7 @@ static int _handle_pending_node_data_requests(unsigned src_node, unsigned force)
 				kept++;
 				continue;
 			}
+#endif
 
 		/* This shouldn't be too hard to acquire */
 		_starpu_spin_lock(&r->lock);
