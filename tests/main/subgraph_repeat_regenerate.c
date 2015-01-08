@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,7 +43,9 @@ static unsigned niter = 16384;
 
 static struct starpu_task taskA, taskB, taskC, taskD;
 
-static unsigned loop_cnt = 0;
+static unsigned loop_cntB = 0;
+static unsigned loop_cntC = 0;
+static unsigned loop_cntD = 0;
 static unsigned *check_cnt;
 static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
@@ -71,12 +73,24 @@ static struct starpu_codelet dummy_codelet =
 	.nbuffers = 1
 };
 
+static void callback_task_B(void *arg STARPU_ATTRIBUTE_UNUSED)
+{
+	if (++loop_cntB == niter)
+		taskB.regenerate = 0;
+}
+
+static void callback_task_C(void *arg STARPU_ATTRIBUTE_UNUSED)
+{
+	if (++loop_cntC == niter)
+		taskC.regenerate = 0;
+}
+
 static void callback_task_D(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	loop_cnt++;
+	loop_cntD++;
 
-	if (loop_cnt == niter)
+	if (loop_cntD == niter)
 	{
 		/* We are done */
 		taskD.regenerate = 0;
@@ -86,11 +100,6 @@ static void callback_task_D(void *arg STARPU_ATTRIBUTE_UNUSED)
 	else
 	{
 		int ret;
-		if (loop_cnt == niter-1)
-		{
-			taskB.regenerate = 0;
-			taskC.regenerate = 0;
-		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 		/* Let's go for another iteration */
 		ret = starpu_task_submit(&taskA);
@@ -130,6 +139,7 @@ int main(int argc, char **argv)
 	taskB.cl = &dummy_codelet;
 	taskB.cl_arg = &taskB;
 	taskB.cl_arg_size = sizeof(&taskB);
+	taskB.callback_func = callback_task_B;
 	taskB.regenerate = 1;
 	taskB.handles[0] = check_data;
 
@@ -137,6 +147,7 @@ int main(int argc, char **argv)
 	taskC.cl = &dummy_codelet;
 	taskC.cl_arg = &taskC;
 	taskC.cl_arg_size = sizeof(&taskC);
+	taskC.callback_func = callback_task_C;
 	taskC.regenerate = 1;
 	taskC.handles[0] = check_data;
 
@@ -162,14 +173,14 @@ int main(int argc, char **argv)
 
 	/* Wait for the termination of all loops */
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	if (loop_cnt < niter)
+	while (loop_cntD < niter)
 		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	starpu_data_acquire(check_data, STARPU_R);
 	starpu_data_release(check_data);
 
-	STARPU_ASSERT(*check_cnt == (4*loop_cnt));
+	STARPU_ASSERT(*check_cnt == (4*niter));
 
 	starpu_free(check_cnt);
 	starpu_data_unregister(check_data);
