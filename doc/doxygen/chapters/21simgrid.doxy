@@ -121,6 +121,13 @@ case. Since during simgrid execution, the functions of the codelet are actually
 not called, one can use dummy functions such as the following to still permit
 CUDA or OpenCL execution:
 
+\section Tweaking simulation
+
+The simulation can be tweaked, to be able to tune it between a very accurate
+simulation and a very simple simulation (which is thus close to scheduling
+theory results), see the \ref STARPU_SIMGRID_CUDA_MALLOC_COST and \ref
+STARPU_SIMGRID_CUDA_QUEUE_COST environment variables.
+
 \section MPI applications
 
 StarPU-MPI applications can also be run in simgrid mode. It needs to be compiled

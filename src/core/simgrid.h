@@ -46,6 +46,10 @@ void _starpu_simgrid_get_platform_path(char *path, size_t maxlen);
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name);
 #pragma weak starpu_mpi_world_rank
 extern int starpu_mpi_world_rank(void);
+
+#define _starpu_simgrid_cuda_malloc_cost() starpu_get_env_number_default("STARPU_SIMGRID_CUDA_MALLOC_COST", 1)
+#define _starpu_simgrid_queue_malloc_cost() starpu_get_env_number_default("STARPU_SIMGRID_QUEUE_MALLOC_COST", 1)
+
 #endif
 
 #endif // __SIMGRID_H__

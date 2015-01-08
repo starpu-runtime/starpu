@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2010, 2012-2014  Université de Bordeaux
+ * Copyright (C) 2009-2010, 2012-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@
 #include <drivers/opencl/driver_opencl.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/malloc.h>
+#include <core/simgrid.h>
 
 static size_t _malloc_align = sizeof(void*);
 
@@ -119,7 +120,8 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 		 * Ideally we would simulate this batching in 1MiB requests
 		 * instead of computing an average value.
 		 */
-		MSG_process_sleep((float) dim * 0.000650 / 1048576.);
+		if (_starpu_simgrid_cuda_malloc_cost())
+			MSG_process_sleep((float) dim * 0.000650 / 1048576.);
 #else /* STARPU_SIMGRID */
 		if (_starpu_can_submit_cuda_task())
 		{
@@ -410,7 +412,8 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 #endif
 			/* Sleep for the allocation */
 			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
-			MSG_process_sleep(0.000175);
+			if (_starpu_simgrid_cuda_malloc_cost())
+				MSG_process_sleep(0.000175);
 			if (!last[dst_node])
 				last[dst_node] = 1<<10;
 			addr = last[dst_node];
@@ -444,7 +447,8 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 				static uintptr_t last[STARPU_MAXNODES];
 				/* Sleep for the allocation */
 				STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
-				MSG_process_sleep(0.000175);
+				if (_starpu_simgrid_cuda_malloc_cost())
+					MSG_process_sleep(0.000175);
 				if (!last[dst_node])
 					last[dst_node] = 1<<10;
 				addr = last[dst_node];
@@ -523,7 +527,8 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 #ifdef STARPU_SIMGRID
 			STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 			/* Sleep for the free */
-			MSG_process_sleep(0.000750);
+			if (_starpu_simgrid_cuda_malloc_cost())
+				MSG_process_sleep(0.000750);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 #else
 			cudaError_t err;
@@ -558,7 +563,8 @@ _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 #ifdef STARPU_SIMGRID
 			STARPU_PTHREAD_MUTEX_LOCK(&opencl_alloc_mutex);
 			/* Sleep for the free */
-			MSG_process_sleep(0.000750);
+			if (_starpu_simgrid_cuda_malloc_cost())
+				MSG_process_sleep(0.000750);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&opencl_alloc_mutex);
 #else
 			cl_int err;

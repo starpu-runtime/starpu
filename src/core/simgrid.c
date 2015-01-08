@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2014  Université de Bordeaux
+ * Copyright (C) 2012-2015  Université de Bordeaux
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -350,7 +350,8 @@ void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct star
 		task->cond = cond;
 		task->next = NULL;
 		/* Sleep 10µs for the GPU task queueing */
-		MSG_process_sleep(0.000010);
+		if (_starpu_simgrid_queue_malloc_cost())
+			MSG_process_sleep(0.000010);
 		if (last_task[workerid])
 		{
 			/* Make this task depend on the previous */
@@ -566,7 +567,8 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 		_STARPU_TRACE_START_DRIVER_COPY_ASYNC(src_node, dst_node);
 
 	/* Sleep 10µs for the GPU transfer queueing */
-	MSG_process_sleep(0.000010);
+	if (_starpu_simgrid_queue_malloc_cost())
+		MSG_process_sleep(0.000010);
 	transfer_submit(transfer);
 	/* Note: from here, transfer might be already freed */
 
