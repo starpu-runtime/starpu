@@ -372,6 +372,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 {
 	starpu_data_handle_t handle = r->handle;
 
+#ifndef STARPU_SIMGRID
 	if (_starpu_spin_trylock(&handle->header_lock))
 		return -EBUSY;
 	if (_starpu_spin_trylock(&r->lock))
@@ -379,6 +380,13 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 		_starpu_spin_unlock(&handle->header_lock);
 		return -EBUSY;
 	}
+#else
+	/* Have to wait for the handle, whatever it takes, in simgrid,
+	 * since we can not afford going to sleep, since nobody would wake us
+	 * up. */
+	_starpu_spin_lock(&handle->header_lock);
+	_starpu_spin_lock(&r->lock);
+#endif
 
 	struct _starpu_data_replicate *src_replicate = r->src_replicate;
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
