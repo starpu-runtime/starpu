@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux 1
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,7 +43,9 @@ static unsigned niter = 16384;
 
 static struct starpu_task taskA, taskB, taskC, taskD;
 
-static unsigned loop_cnt = 0;
+static unsigned loop_cntB = 0;
+static unsigned loop_cntC = 0;
+static unsigned loop_cntD = 0;
 static unsigned check_cnt = 0;
 static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
@@ -62,12 +64,24 @@ static struct starpu_codelet dummy_codelet =
 	.nbuffers = 0
 };
 
+static void callback_task_B(void *arg STARPU_ATTRIBUTE_UNUSED)
+{
+	if (++loop_cntB == niter)
+		taskB.regenerate = 0;
+}
+
+static void callback_task_C(void *arg STARPU_ATTRIBUTE_UNUSED)
+{
+	if (++loop_cntC == niter)
+		taskC.regenerate = 0;
+}
+
 static void callback_task_D(void *arg STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	loop_cnt++;
+	loop_cntD++;
 
-	if (loop_cnt == niter)
+	if (loop_cntD == niter)
 	{
 		/* We are done */
 		taskD.regenerate = 0;
@@ -107,11 +121,13 @@ int main(int argc, char **argv)
 	starpu_task_init(&taskB);
 	taskB.cl = &dummy_codelet;
 	taskB.cl_arg = &taskB;
+	taskB.callback_func = callback_task_B;
 	taskB.regenerate = 1;
 
 	starpu_task_init(&taskC);
 	taskC.cl = &dummy_codelet;
 	taskC.cl_arg = &taskC;
+	taskC.callback_func = callback_task_C;
 	taskC.regenerate = 1;
 
 	starpu_task_init(&taskD);
@@ -134,11 +150,11 @@ int main(int argc, char **argv)
 
 	/* Wait for the termination of all loops */
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	if (loop_cnt < niter)
+	while (loop_cntD < niter)
 		STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
-	STARPU_ASSERT(check_cnt == (4*loop_cnt));
+	STARPU_ASSERT(check_cnt == (4*niter));
 
 	starpu_shutdown();
 
