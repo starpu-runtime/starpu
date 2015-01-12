@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2012  Université de Bordeaux 1
-# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -94,6 +94,7 @@ starpu_mpi_TESTS =				\
 	block_interface				\
 	block_interface_pinned			\
 	insert_task				\
+	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
 	insert_task_block			\
@@ -124,6 +125,7 @@ noinst_PROGRAMS =				\
 	block_interface				\
 	block_interface_pinned			\
 	insert_task				\
+	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
 	insert_task_block			\
@@ -169,6 +171,8 @@ block_interface_LDADD =				\
 block_interface_pinned_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_LDADD =				\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+insert_task_compute_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_sent_cache_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
