@@ -706,7 +706,9 @@ _starpu_init_mic_config (struct _starpu_machine_config *config,
 	}
 
 	topology->nmiccores[mic_idx] = nmiccores;
-	STARPU_ASSERT(topology->nmiccores[mic_idx] + topology->nworkers <= STARPU_NMAXWORKERS);
+	STARPU_ASSERT_MSG(topology->nmiccores[mic_idx] + topology->nworkers <= STARPU_NMAXWORKERS,
+			  "topology->nmiccores[mic_idx(%d)] (%d) + topology->nworkers (%d) <= STARPU_NMAXWORKERS (%d)",
+			  mic_idx, topology->nmiccores[mic_idx], topology->nworkers, STARPU_NMAXWORKERS);
 
 	/* _starpu_initialize_workers_mic_deviceid (config); */
 
