@@ -1095,6 +1095,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 
 	STARPU_PTHREAD_MUTEX_LOCK(&init_mutex);
+	fprintf(stderr,"initialized is %d in %d\n", initialized, starpu_mpi_world_rank());
 	while (initialized == CHANGING)
 		/* Wait for the other one changing it */
 		STARPU_PTHREAD_COND_WAIT(&init_cond, &init_mutex);

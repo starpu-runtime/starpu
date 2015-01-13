@@ -49,6 +49,7 @@ int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_
 	_args->arg = arg;
 	if (!host)
 		host = MSG_get_host_by_name("MAIN");
+	fprintf(stderr,"starting %p on %s\n", start_routine, MSG_host_get_name(host));
 	*thread = MSG_process_create(name, _starpu_simgrid_thread_start, _args, host);
 	return 0;
 }

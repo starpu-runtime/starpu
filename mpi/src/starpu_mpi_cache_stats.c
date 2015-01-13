@@ -36,7 +36,7 @@ void _starpu_mpi_cache_stats_init(MPI_Comm comm)
 
 	if (!getenv("STARPU_SILENT")) fprintf(stderr,"Warning: StarPU is executed with STARPU_MPI_CACHE_STATS=1, which slows down a bit\n");
 
-	MPI_Comm_size(comm, &world_size);
+	starpu_mpi_comm_size(comm, &world_size);
 	_STARPU_MPI_DEBUG(1, "allocating for %d nodes\n", world_size);
 
 	comm_cache_amount = (size_t *) calloc(world_size, sizeof(size_t));

@@ -63,6 +63,11 @@ static starpu_pthread_mutex_t mutex;
 static starpu_pthread_t progress_thread;
 static int running = 0;
 
+#ifdef STARPU_SIMGRID
+static int _mpi_world_size;
+static int _mpi_world_rank;
+#endif
+
 /* Count requests posted by the application and not yet submitted to MPI */
 static starpu_pthread_mutex_t mutex_posted_requests;
 static int posted_requests = 0, newer_requests, barrier_running = 0;
@@ -1099,6 +1104,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 
 #ifdef STARPU_SIMGRID
+	_mpi_world_size = worldsize;
+	_mpi_world_rank = rank;
 	/* Now that MPI is set up, let the rest of simgrid get initialized */
 	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), *(argc_argv->argv));
 #endif
@@ -1349,8 +1356,8 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	int worldsize;
 	int ret;
 
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
 
 	ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier returning %d", ret);
@@ -1419,7 +1426,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
  * create MSG processes to run application's main */
 int _starpu_mpi_simgrid_init(int argc, char *argv[])
 {
-	_starpu_mpi_initialize(&argc, &argv, 1);
+	return _starpu_mpi_initialize(&argc, &argv, 1);
 }
 #endif
 
@@ -1445,6 +1452,11 @@ int starpu_mpi_initialize(void)
 
 int starpu_mpi_initialize_extended(int *rank, int *world_size)
 {
+#ifdef STARPU_SIMGRID
+	*world_size = _mpi_world_size;
+	*rank = _mpi_world_rank;
+	return 0;
+#else
 	int ret;
 
 	ret = _starpu_mpi_initialize(NULL, NULL, 1);
@@ -1455,6 +1467,7 @@ int starpu_mpi_initialize_extended(int *rank, int *world_size)
 		MPI_Comm_size(MPI_COMM_WORLD, world_size);
 	}
 	return ret;
+#endif
 }
 
 int starpu_mpi_shutdown(void)
@@ -1463,8 +1476,8 @@ int starpu_mpi_shutdown(void)
 	int rank, world_size;
 
 	/* We need to get the rank before calling MPI_Finalize to pass to _starpu_mpi_comm_amounts_display() */
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &world_size);
 
 	/* kill the progression thread */
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -1502,7 +1515,7 @@ void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int ran
 #warning see if the following code is really needed, it deadlocks some applications
 #if 0
 	int my;
-	MPI_Comm_rank(MPI_COMM_WORLD, &my);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &my);
 	if (my != rank)
 		STARPU_ASSERT_MSG(data_handle->home_node == -1, "Data does not belong to node %d, it should be assigned a home node -1", my);
 #endif
@@ -1512,9 +1525,31 @@ void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int ran
 	_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
 }
 
+int starpu_mpi_comm_size(MPI_Comm comm, int *size)
+{
+#ifdef STARPU_SIMGRID
+	STARPU_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with COMM_WORLD for now");
+	*size = _mpi_world_size;
+	return 0;
+#else
+	return MPI_Comm_size(comm, size);
+#endif
+}
+
+int starpu_mpi_comm_rank(MPI_Comm comm, int *rank)
+{
+#ifdef STARPU_SIMGRID
+	STARPU_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with COMM_WORLD for now");
+	*rank = _mpi_world_rank;
+	return 0;
+#else
+	return MPI_Comm_rank(comm, rank);
+#endif
+}
+
 int starpu_mpi_world_rank(void)
 {
 	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	return rank;
 }

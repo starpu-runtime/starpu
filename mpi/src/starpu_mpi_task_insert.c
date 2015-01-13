@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
- * Copyright (C) 2011-2014  Université de Bordeaux
+ * Copyright (C) 2011-2015  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -433,8 +433,8 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 
 	_STARPU_MPI_LOG_IN();
 
-	MPI_Comm_rank(comm, &me);
-	MPI_Comm_size(comm, &nb_nodes);
+	starpu_mpi_comm_rank(comm, &me);
+	starpu_mpi_comm_size(comm, &nb_nodes);
 
 	/* Find out whether we are to execute the data because we own the data to be written to. */
 	ret = _starpu_mpi_task_decode_v(codelet, me, nb_nodes, &xrank, &do_execute, &descrs, &nb_data, varg_list);
@@ -470,7 +470,7 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 {
 	int me, i;
 
-	MPI_Comm_rank(comm, &me);
+	starpu_mpi_comm_rank(comm, &me);
 
 	for(i=0 ; i<nb_data ; i++)
 	{
@@ -558,8 +558,8 @@ int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ..
 	struct starpu_data_descr *descrs;
 	int nb_data;
 
-	MPI_Comm_rank(comm, &me);
-	MPI_Comm_size(comm, &nb_nodes);
+	starpu_mpi_comm_rank(comm, &me);
+	starpu_mpi_comm_size(comm, &nb_nodes);
 
 	va_start(varg_list, codelet);
 	/* Find out whether we are to execute the data because we own the data to be written to. */
@@ -584,7 +584,7 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	{
 		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register() or starpu_data_set_tag()\n");
 	}
-	MPI_Comm_rank(comm, &me);
+	starpu_mpi_comm_rank(comm, &me);
 
 	if (node == rank) return;
 
@@ -614,7 +614,7 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 		fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
 		STARPU_ABORT();
 	}
-	MPI_Comm_rank(comm, &me);
+	starpu_mpi_comm_rank(comm, &me);
 
 	if (node == rank) return;
 
@@ -705,8 +705,8 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 		STARPU_ABORT();
 	}
 
-	MPI_Comm_rank(comm, &me);
-	MPI_Comm_size(comm, &nb_nodes);
+	starpu_mpi_comm_rank(comm, &me);
+	starpu_mpi_comm_size(comm, &nb_nodes);
 
 	_STARPU_MPI_DEBUG(1, "Doing reduction for data %p on node %d with %d nodes ...\n", data_handle, rank, nb_nodes);
 

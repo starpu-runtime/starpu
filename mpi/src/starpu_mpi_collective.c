@@ -47,7 +47,7 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 	void (*callback_func)(void *) = NULL;
 	void (*callback)(void *);
 
-	MPI_Comm_rank(comm, &rank);
+	starpu_mpi_comm_rank(comm, &rank);
 
 	callback = (rank == root) ? scallback : rcallback;
 	if (callback)
@@ -108,7 +108,7 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 	void (*callback_func)(void *) = NULL;
 	void (*callback)(void *);
 
-	MPI_Comm_rank(comm, &rank);
+	starpu_mpi_comm_rank(comm, &rank);
 
 	callback = (rank == root) ? scallback : rcallback;
 	if (callback)

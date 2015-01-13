@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
- * Copyright (C) 2011-2014  Université de Bordeaux
+ * Copyright (C) 2011-2015  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -53,7 +53,7 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 		return;
 	}
 
-	MPI_Comm_size(comm, &nb_nodes);
+	starpu_mpi_comm_size(comm, &nb_nodes);
 	_STARPU_MPI_DEBUG(2, "Initialising htable for cache\n");
 
 	_cache_sent_data = malloc(nb_nodes * sizeof(struct _starpu_data_entry *));
@@ -126,7 +126,7 @@ void _starpu_mpi_cache_free(int world_size)
 void _starpu_mpi_cache_flush_sent(MPI_Comm comm, starpu_data_handle_t data)
 {
 	int n, size;
-	MPI_Comm_size(comm, &size);
+	starpu_mpi_comm_size(comm, &size);
 
 	for(n=0 ; n<size ; n++)
 	{
@@ -172,8 +172,8 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm)
 
 	if (_starpu_cache_enabled == 0) return;
 
-	MPI_Comm_size(comm, &nb_nodes);
-	MPI_Comm_rank(comm, &my_rank);
+	starpu_mpi_comm_size(comm, &nb_nodes);
+	starpu_mpi_comm_rank(comm, &my_rank);
 
 	for(i=0 ; i<nb_nodes ; i++)
 	{
@@ -212,8 +212,8 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 
 	if (_starpu_cache_enabled == 0) return;
 
-	MPI_Comm_size(comm, &nb_nodes);
-	MPI_Comm_rank(comm, &my_rank);
+	starpu_mpi_comm_size(comm, &nb_nodes);
+	starpu_mpi_comm_rank(comm, &my_rank);
 	mpi_rank = starpu_data_get_rank(data_handle);
 
 	for(i=0 ; i<nb_nodes ; i++)
