@@ -1427,6 +1427,7 @@ int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 {
 #ifdef STARPU_SIMGRID
 	STARPU_ASSERT_MSG(initialize_mpi, "application has to let StarPU initialize MPI");
+	return 0;
 #else
 	return _starpu_mpi_initialize(argc, argv, initialize_mpi);
 #endif
@@ -1436,6 +1437,7 @@ int starpu_mpi_initialize(void)
 {
 #ifdef STARPU_SIMGRID
 	STARPU_ASSERT_MSG(0, "application has to let StarPU initialize MPI");
+	return 0;
 #else
 	return _starpu_mpi_initialize(NULL, NULL, 0);
 #endif
