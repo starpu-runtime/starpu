@@ -222,6 +222,7 @@ static int lws_push_task(struct starpu_task *task)
 	STARPU_PTHREAD_MUTEX_UNLOCK(sched_mutex);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
+	/* TODO: implement fine-grain signaling, similar to what eager does */
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 	struct starpu_sched_ctx_iterator it;
 	unsigned worker;
