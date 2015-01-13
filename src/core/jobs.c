@@ -55,7 +55,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	if (task->dyn_handles)
 	{
 	     job->dyn_ordered_buffers = malloc(STARPU_TASK_GET_NBUFFERS(task) * sizeof(job->dyn_ordered_buffers[0]));
-	     job->dyn_dep_slots = malloc(STARPU_TASK_GET_NBUFFERS(task) * sizeof(job->dyn_dep_slots[0]));
+	     job->dyn_dep_slots = calloc(STARPU_TASK_GET_NBUFFERS(task), sizeof(job->dyn_dep_slots[0]));
 	}
 
 	job->task = task;
