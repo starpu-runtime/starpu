@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009, 2010-2014  Université de Bordeaux
+ * Copyright (C) 2009, 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@
 #include <common/thread.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/coherency.h>
+#include <core/simgrid.h>
 
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 static void _starpu_mpi_submit_ready_request(void *arg);
@@ -67,6 +68,9 @@ static starpu_pthread_mutex_t mutex_posted_requests;
 static int posted_requests = 0, newer_requests, barrier_running = 0;
 
 #define _STARPU_MPI_INC_POSTED_REQUESTS(value) { STARPU_PTHREAD_MUTEX_LOCK(&mutex_posted_requests); posted_requests += value; STARPU_PTHREAD_MUTEX_UNLOCK(&mutex_posted_requests); }
+
+#pragma weak smpi_simulated_main_
+extern int smpi_simulated_main_(int argc, char *argv[]);
 
 static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 {
@@ -1094,6 +1098,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	MPI_Comm_size(MPI_COMM_WORLD, &worldsize);
 	MPI_Comm_set_errhandler(MPI_COMM_WORLD, MPI_ERRORS_RETURN);
 
+#ifdef STARPU_SIMGRID
+	/* Now that MPI is set up, let the rest of simgrid get initialized */
+	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), *(argc_argv->argv));
+#endif
+
 	{
 		_STARPU_MPI_TRACE_START(rank, worldsize);
 #ifdef STARPU_USE_FXT
@@ -1390,6 +1399,10 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 	STARPU_ASSERT_MSG(hookid >= 0, "starpu_progression_hook_register failed");
 #endif /* STARPU_MPI_ACTIVITY */
 
+#ifdef STARPU_SIMGRID
+	_starpu_mpi_progress_thread_func(argc_argv);
+	return 0;
+#else
 	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -1398,16 +1411,34 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	return 0;
+#endif
 }
+
+#ifdef STARPU_SIMGRID
+/* This is called before application's main, to initialize SMPI before we can
+ * create MSG processes to run application's main */
+int _starpu_mpi_simgrid_init(int argc, char *argv[])
+{
+	_starpu_mpi_initialize(&argc, &argv, 1);
+}
+#endif
 
 int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 {
+#ifdef STARPU_SIMGRID
+	STARPU_ASSERT_MSG(initialize_mpi, "application has to let StarPU initialize MPI");
+#else
 	return _starpu_mpi_initialize(argc, argv, initialize_mpi);
+#endif
 }
 
 int starpu_mpi_initialize(void)
 {
+#ifdef STARPU_SIMGRID
+	STARPU_ASSERT_MSG(0, "application has to let StarPU initialize MPI");
+#else
 	return _starpu_mpi_initialize(NULL, NULL, 0);
+#endif
 }
 
 int starpu_mpi_initialize_extended(int *rank, int *world_size)

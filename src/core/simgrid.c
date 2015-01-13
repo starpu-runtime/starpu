@@ -34,6 +34,8 @@ extern int starpu_main(int argc, char *argv[]);
 extern int smpi_main(int (*realmain) (int argc, char *argv[]), int argc, char *argv[]);
 #pragma weak smpi_simulated_main_
 extern int smpi_simulated_main_(int argc, char *argv[]);
+#pragma weak _starpu_mpi_simgrid_init
+extern int _starpu_mpi_simgrid_init(int argc, char *argv[]);
 
 struct main_args
 {
@@ -190,7 +192,7 @@ int main(int argc, char **argv)
 	{
 		/* Oops, we are running SMPI, let it start Simgrid, and we'll
 		 * take back hand in _starpu_simgrid_init from starpu_init() */
-		return smpi_main(smpi_simulated_main_, argc, argv);
+		return smpi_main(_starpu_mpi_simgrid_init, argc, argv);
 	}
 
 	MSG_init(&argc, argv);
