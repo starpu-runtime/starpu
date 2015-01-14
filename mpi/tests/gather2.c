@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,14 +48,14 @@ int main(int argc, char **argv)
 			MPI_Status status[3];
 			starpu_data_handle_t handle[2];
 
-			FPRINTF_MPI("receiving from node %d\n", n);
+			FPRINTF_MPI(stderr, "receiving from node %d\n", n);
 			for(i=0 ; i<2 ; i++)
 				starpu_variable_data_register(&handle[i], STARPU_MAIN_RAM, (uintptr_t)&var[i], sizeof(var[i]));
 
 			starpu_mpi_recv(handle[0], n, 42, MPI_COMM_WORLD, &status[0]);
 			starpu_data_acquire(handle[0], STARPU_R);
 			STARPU_ASSERT_MSG(var[0] == n, "Received incorrect value <%d> from node <%d>\n", var[0], n);
-			FPRINTF_MPI("received <%d> from node %d\n", var[0], n);
+			FPRINTF_MPI(stderr, "received <%d> from node %d\n", var[0], n);
 			starpu_data_release(handle[0]);
 
 			starpu_mpi_recv(handle[0], n, 42, MPI_COMM_WORLD, &status[1]);
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 				starpu_data_acquire(handle[i], STARPU_R);
 			STARPU_ASSERT_MSG(var[0] == n*2, "Received incorrect value <%d> from node <%d>\n", var[0], n);
 			STARPU_ASSERT_MSG(var[1] == n*4, "Received incorrect value <%d> from node <%d>\n", var[0], n);
-			FPRINTF_MPI("received <%d> and <%d> from node %d\n", var[0], var[1], n);
+			FPRINTF_MPI(stderr, "received <%d> and <%d> from node %d\n", var[0], var[1], n);
 			for(i=0 ; i<2 ; i++)
 				starpu_data_release(handle[i]);
 			for(i=0 ; i<2 ; i++)
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 		int i, var[3];
 		starpu_data_handle_t handle[3];
 
-		FPRINTF_MPI("sending to node %d\n", 0);
+		FPRINTF_MPI(stderr, "sending to node %d\n", 0);
 		var[0] = rank;
 		var[1] = var[0] * 2;
 		var[2] = var[0] * 4;

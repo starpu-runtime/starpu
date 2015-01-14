@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@ void init_cpu_func(void *descr[], void *cl_arg)
 {
 	long int *dot = (long int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*dot = 0;
-	FPRINTF_MPI("Init dot\n");
+	FPRINTF_MPI(stderr, "Init dot\n");
 }
 
 /*
@@ -38,7 +38,7 @@ void redux_cpu_func(void *descr[], void *cl_arg)
 	long int *dotb = (long int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
 	*dota = *dota + *dotb;
-	FPRINTF_MPI("Calling redux %ld=%ld+%ld\n", *dota, *dota-*dotb, *dotb);
+	FPRINTF_MPI(stderr, "Calling redux %ld=%ld+%ld\n", *dota, *dota-*dotb, *dotb);
 }
 
 /*
@@ -51,14 +51,14 @@ void dot_cpu_func(void *descr[], void *cl_arg)
 
 	long int *dot = (long int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-	//FPRINTF_MPI("Before dot=%ld (adding %d elements...)\n", *dot, n);
+	//FPRINTF_MPI(stderr, "Before dot=%ld (adding %d elements...)\n", *dot, n);
 	unsigned i;
 	for (i = 0; i < n; i++)
 	{
-		//FPRINTF_MPI("Adding %ld\n", local_x[i]);
+		//FPRINTF_MPI(stderr, "Adding %ld\n", local_x[i]);
 		*dot += local_x[i];
 	}
-	//FPRINTF_MPI("After dot=%ld\n", *dot);
+	//FPRINTF_MPI(stderr, "After dot=%ld\n", *dot);
 }
 
 /*
@@ -68,6 +68,6 @@ void display_cpu_func(void *descr[], void *cl_arg)
 {
 	long int *local_x = (long int *)STARPU_VECTOR_GET_PTR(descr[0]);
 
-	FPRINTF_MPI("Local=%ld\n", *local_x);
+	FPRINTF_MPI(stderr, "Local=%ld\n", *local_x);
 }
 

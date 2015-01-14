@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@ void callback(void *arg)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 	*received = *received + 1;
-	FPRINTF_MPI("Requests %d received\n", *received);
+	FPRINTF_MPI(stderr, "Requests %d received\n", *received);
 	STARPU_PTHREAD_COND_SIGNAL(&cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 }
@@ -90,7 +90,7 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func, int detac
 			STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 			while (received != NB)
 			{
-			     FPRINTF_MPI("Received %d messages\n", received);
+			     FPRINTF_MPI(stderr, "Received %d messages\n", received);
 			     STARPU_PTHREAD_COND_WAIT(&cond, &mutex);
 			}
 			STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
@@ -114,7 +114,7 @@ void check_variable(starpu_data_handle_t handle, int i, int rank, int *error)
 	int *rvalue = (int *)starpu_data_get_local_ptr(handle);
 	if (*rvalue != i*other_rank)
 	{
-		FPRINTF_MPI("Incorrect received value: %d != %d\n", *rvalue, i*other_rank);
+		FPRINTF_MPI(stderr, "Incorrect received value: %d != %d\n", *rvalue, i*other_rank);
 		*error = 1;
 	}
 }
@@ -125,7 +125,7 @@ int exchange_variable(int rank, int detached)
 	starpu_data_handle_t tab_handle[NB];
 	int value[NB];
 
-	FPRINTF_MPI("Exchanging variable data with detached=%d\n", detached);
+	FPRINTF_MPI(stderr, "Exchanging variable data with detached=%d\n", detached);
 
 	for(i=0 ; i<NB ; i++)
 	{
@@ -149,7 +149,7 @@ int exchange_void(int rank, int detached)
 	int ret, i;
 	starpu_data_handle_t tab_handle[NB];
 
-	FPRINTF_MPI("Exchanging void data with detached=%d\n", detached);
+	FPRINTF_MPI(stderr, "Exchanging void data with detached=%d\n", detached);
 
 	for(i=0 ; i<NB ; i++)
 	{
@@ -172,7 +172,7 @@ void check_complex(starpu_data_handle_t handle, int i, int rank, int *error)
 
 	if ((*real != ((i*other_rank)+12)) || (*imaginary != ((i*other_rank)+45)))
 	{
-		FPRINTF_MPI("Incorrect received value: %f != %d || %f != %d\n", *real, ((i*other_rank)+12), *imaginary, ((i*other_rank)+45));
+		FPRINTF_MPI(stderr, "Incorrect received value: %f != %d || %f != %d\n", *real, ((i*other_rank)+12), *imaginary, ((i*other_rank)+45));
 		*error = 1;
 	}
 }
@@ -184,7 +184,7 @@ int exchange_complex(int rank, int detached)
 	double real[NB];
 	double imaginary[NB];
 
-	FPRINTF_MPI("Exchanging complex data with detached=%d\n", detached);
+	FPRINTF_MPI(stderr, "Exchanging complex data with detached=%d\n", detached);
 
 	for(i=0 ; i<NB ; i++)
 	{

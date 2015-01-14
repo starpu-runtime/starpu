@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,13 +51,13 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 		goto nodata;
 	}
 
-	FPRINTF_MPI("Testing with task_insert=%d - data_array=%d\n", task_insert, data_array);
+	FPRINTF_MPI(stderr, "Testing with task_insert=%d - data_array=%d\n", task_insert, data_array);
 
 	for(i=0 ; i<2 ; i++)
 	{
 		x[i] = before[rank*2+i];
 		if (rank <= 1)
-			FPRINTF_MPI("before computation x[%d] = %d\n", i, x[i]);
+			FPRINTF_MPI(stderr, "before computation x[%d] = %d\n", i, x[i]);
 		starpu_variable_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&x[i], sizeof(int));
 		starpu_mpi_data_register(data_handles[i], i, i);
 		descrs[i].handle = data_handles[i];
@@ -174,9 +174,9 @@ enodev:
 		for(i=0; i<2; i++)
 		{
 			ok = ok && (x[i] == after[rank*2+i]);
-			FPRINTF_MPI("after computation x[%d] = %d, should be %d\n", i, x[i], after[rank*2+i]);
+			FPRINTF_MPI(stderr, "after computation x[%d] = %d, should be %d\n", i, x[i], after[rank*2+i]);
 		}
-		FPRINTF_MPI("result is %s\n", ok?"CORRECT":"NOT CORRECT");
+		FPRINTF_MPI(stderr, "result is %s\n", ok?"CORRECT":"NOT CORRECT");
 	}
 
 nodata:

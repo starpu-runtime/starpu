@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -121,7 +121,7 @@ enodev:
 		{
 			if (x[i] != nloops * FFACTOR * 2)
 			{
-				FPRINTF_MPI("[end loop] value[%d] = %d != Expected value %d\n", i, x[i], nloops*2);
+				FPRINTF_MPI(stderr, "[end loop] value[%d] = %d != Expected value %d\n", i, x[i], nloops*2);
 				ret = 1;
 			}
 		}
@@ -129,19 +129,19 @@ enodev:
 		{
 			if (x[i] != nloops * FFACTOR)
 			{
-				FPRINTF_MPI("[end loop] value[%d] = %d != Expected value %d\n", i, x[i], nloops);
+				FPRINTF_MPI(stderr, "[end loop] value[%d] = %d != Expected value %d\n", i, x[i], nloops);
 				ret = 1;
 			}
 		}
 		if (ret == 0)
 		{
-			FPRINTF_MPI("[end of loop] all values are correct\n");
+			FPRINTF_MPI(stderr, "[end of loop] all values are correct\n");
 		}
 		free(x);
 	}
 	else
 	{
-		FPRINTF_MPI("[end of loop] no computation on this node\n");
+		FPRINTF_MPI(stderr, "[end of loop] no computation on this node\n");
 		ret = 0;
 	}
 

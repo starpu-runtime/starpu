@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 	{
 		dst = (rank == 0) ? 1 : 0;
 		result = (comm_amount_with_cache[dst] == comm_amount_without_cache[dst] * 5);
-		FPRINTF_MPI("Communication cache mechanism is %sworking\n", result?"":"NOT ");
+		FPRINTF_MPI(stderr, "Communication cache mechanism is %sworking\n", result?"":"NOT ");
 	}
 	else
 	{

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@ int expected_y=12;
 
 void my_func(STARPU_ATTRIBUTE_UNUSED void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	FPRINTF_MPI("i am here\n");
+	FPRINTF_MPI(stderr, "i am here\n");
 }
 
 struct starpu_codelet my_codelet =
@@ -38,7 +38,7 @@ static
 void callback(void *ptr)
 {
 	int *x = (int *)ptr;
-	FPRINTF_MPI("x=%d\n", *x);
+	FPRINTF_MPI(stderr, "x=%d\n", *x);
 	STARPU_ASSERT_MSG(*x == expected_x, "%d != %d\n", *x, expected_x);
 	(*x)++;
 }
@@ -47,7 +47,7 @@ static
 void prologue_callback(void *ptr)
 {
 	int *y = (int *)ptr;
-	FPRINTF_MPI("y=%d\n", *y);
+	FPRINTF_MPI(stderr, "y=%d\n", *y);
 	STARPU_ASSERT_MSG(*y == expected_y, "%d != %d\n", *y, expected_y);
 	(*y)++;
 }

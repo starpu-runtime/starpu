@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 			float foo_compare=42.0;
 			int value_compare=36;
 
-			FPRINTF_MPI("\nTesting with function %p\n", f);
+			FPRINTF_MPI(stderr, "\nTesting with function %p\n", f);
 
 			if (rank == 0)
 			{
@@ -153,13 +153,13 @@ int main(int argc, char **argv)
 					compare = (foo[i] == foo_compare);
 					if (compare == 0)
 					{
-						FPRINTF_MPI("ERROR. foo[%d] == %f != %f\n", i, foo[i], foo_compare);
+						FPRINTF_MPI(stderr, "ERROR. foo[%d] == %f != %f\n", i, foo[i], foo_compare);
 						goto end;
 					}
 					compare = (values[i] == value_compare);
 					if (compare == 0)
 					{
-						FPRINTF_MPI("ERROR. value[%d] == %d != %d\n", i, values[i], value_compare);
+						FPRINTF_MPI(stderr, "ERROR. value[%d] == %d != %d\n", i, values[i], value_compare);
 						goto end;
 					}
 					for(j=0 ; j<2 ; j++)
@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 						compare = (real[i][j] == real_compare[j]);
 						if (compare == 0)
 						{
-							FPRINTF_MPI("ERROR. real[%d][%d] == %f != %f\n", i, j, real[i][j], real_compare[j]);
+							FPRINTF_MPI(stderr, "ERROR. real[%d][%d] == %f != %f\n", i, j, real[i][j], real_compare[j]);
 							goto end;
 						}
 					}
@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 						compare = (imaginary[i][j] == imaginary_compare[j]);
 						if (compare == 0)
 						{
-							FPRINTF_MPI("ERROR. imaginary[%d][%d] == %f != %f\n", i, j, imaginary[i][j], imaginary_compare[j]);
+							FPRINTF_MPI(stderr, "ERROR. imaginary[%d][%d] == %f != %f\n", i, j, imaginary[i][j], imaginary_compare[j]);
 							goto end;
 						}
 					}
