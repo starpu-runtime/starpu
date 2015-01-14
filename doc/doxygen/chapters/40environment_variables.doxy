@@ -726,6 +726,16 @@ froom the measured average. This specifies the allowed variation. The default is
 average.
 </dd>
 
+<dt>STARPU_RAND_SEED</dt>
+<dd>
+\anchor STARPU_RAND_SEED
+\addindex __env__STARPU_RAND_SEED
+The random scheduler and some examples use random numbers for their own
+working. Depending on the examples, the seed is by default juste always 0 or
+the current time() (unless simgrid mode is enabled, in which case it is always
+0). STARPU_RAND_SEED allows to set the seed to a specific value.
+</dd>
+
 </dl>
 
 \section ConfiguringTheHypervisor Configuring The Hypervisor

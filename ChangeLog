@@ -152,6 +152,8 @@ New features:
 Small features:
   * Add starpu_memory_wait_available() to wait for a given size to become
     available on a given node.
+  * New environment variable STARPU_RAND_SEED to set the seed used for random
+    numbers.
 
 Changes:
   * Fix complexity of implicit task/data dependency, from quadratic to linear.
