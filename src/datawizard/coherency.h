@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2014  Inria
  *
@@ -40,7 +40,7 @@ enum _starpu_cache_state
 };
 
 /* this should contain the information relative to a given data replicate  */
-LIST_TYPE(_starpu_data_replicate,
+struct _starpu_data_replicate {
 	starpu_data_handle_t handle;
 
 	/* describe the actual data layout, as manipulated by data interfaces in *_interface.c */
@@ -81,7 +81,7 @@ LIST_TYPE(_starpu_data_replicate,
 	 */
 	uint32_t requested;
 	struct _starpu_data_request *request[STARPU_MAXNODES];
-)
+};
 
 struct _starpu_data_requester_list;
 
