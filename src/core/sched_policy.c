@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -1003,9 +1003,15 @@ void _starpu_print_idle_time()
 	FILE *f;
 	const char *sched_env = getenv("STARPU_IDLE_FILE");
 	if(!sched_env)
-		f = fopen("starpu_idle_microsec.log", "a");
+		sched_env = "starpu_idle_microsec.log";
+	f = fopen(sched_env, "a");
+	if (!f)
+	{
+		fprintf(stderr, "couldn't open %s: %s\n", sched_env, strerror(errno));
+	}
 	else
-		f = fopen(sched_env, "a");
-	fprintf(f, "%lf \n", all_idle);
-	fclose(f);
+	{
+		fprintf(f, "%lf \n", all_idle);
+		fclose(f);
+	}
 }
