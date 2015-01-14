@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,7 +22,7 @@ typedef void (*check_func)(starpu_data_handle_t handle_s, starpu_data_handle_t h
 
 void check_void(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
 {
-	FPRINTF_MPI("Success with void value\n");
+	FPRINTF_MPI(stderr, "Success with void value\n");
 }
 
 void check_variable(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, int *error)
@@ -37,12 +37,12 @@ void check_variable(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r
 
 	if (*v_s == *v_r)
 	{
-		FPRINTF_MPI("Success with variable value: %f == %f\n", *v_s, *v_r);
+		FPRINTF_MPI(stderr, "Success with variable value: %f == %f\n", *v_s, *v_r);
 	}
 	else
 	{
 		*error = 1;
-		FPRINTF_MPI("Error with variable value: %f != %f\n", *v_s, *v_r);
+		FPRINTF_MPI(stderr, "Error with variable value: %f != %f\n", *v_s, *v_r);
 	}
 }
 
@@ -63,12 +63,12 @@ void check_vector(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, 
 	{
 		if (v_s[i] == v_r[i])
 		{
-			FPRINTF_MPI("Success with vector[%d] value: %d == %d\n", i, v_s[i], v_r[i]);
+			FPRINTF_MPI(stderr, "Success with vector[%d] value: %d == %d\n", i, v_s[i], v_r[i]);
 		}
 		else
 		{
 			*error = 1;
-			FPRINTF_MPI("Error with vector[%d] value: %d != %d\n", i, v_s[i], v_r[i]);
+			FPRINTF_MPI(stderr, "Error with vector[%d] value: %d != %d\n", i, v_s[i], v_r[i]);
 		}
 	}
 }
@@ -95,12 +95,12 @@ void check_matrix(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, 
 			int index=(y*ldy)+x;
 			if (matrix_s[index] == matrix_r[index])
 			{
-				FPRINTF_MPI("Success with matrix[%d,%d --> %d] value: %c == %c\n", x, y, index, matrix_s[index], matrix_r[index]);
+				FPRINTF_MPI(stderr, "Success with matrix[%d,%d --> %d] value: %c == %c\n", x, y, index, matrix_s[index], matrix_r[index]);
 			}
 			else
 			{
 				*error = 1;
-				FPRINTF_MPI("Error with matrix[%d,%d --> %d] value: %c != %c\n", x, y, index, matrix_s[index], matrix_r[index]);
+				FPRINTF_MPI(stderr, "Error with matrix[%d,%d --> %d] value: %c != %c\n", x, y, index, matrix_s[index], matrix_r[index]);
 			}
 		}
 }
@@ -133,12 +133,12 @@ void check_block(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r, i
 				int index=(z*ldz)+(y*ldy)+x;
 				if (block_s[index] == block_r[index])
 				{
-					FPRINTF_MPI("Success with block[%d,%d,%d --> %d] value: %f == %f\n", x, y, z, index, block_s[index], block_r[index]);
+					FPRINTF_MPI(stderr, "Success with block[%d,%d,%d --> %d] value: %f == %f\n", x, y, z, index, block_s[index], block_r[index]);
 				}
 				else
 				{
 					*error = 1;
-					FPRINTF_MPI("Error with block[%d,%d,%d --> %d] value: %f != %f\n", x, y, z, index, block_s[index], block_r[index]);
+					FPRINTF_MPI(stderr, "Error with block[%d,%d,%d --> %d] value: %f != %f\n", x, y, z, index, block_s[index], block_r[index]);
 				}
 			}
 }

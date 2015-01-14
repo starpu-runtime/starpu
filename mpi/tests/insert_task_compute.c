@@ -50,13 +50,13 @@ int test(int rank, int node, int *before, int *after, int data_array)
 		goto nodata;
 	}
 
-	FPRINTF_MPI("Testing with data_array=%d\n", data_array);
+	FPRINTF_MPI(stderr, "Testing with data_array=%d\n", data_array);
 
 	for(i=0 ; i<2 ; i++)
 	{
 		x[i] = before[rank*2+i];
 		if (rank <= 1)
-			FPRINTF_MPI("before computation x[%d] = %d\n", i, x[i]);
+			FPRINTF_MPI(stderr, "before computation x[%d] = %d\n", i, x[i]);
 		starpu_variable_data_register(&data_handles[i], 0, (uintptr_t)&x[i], sizeof(int));
 		starpu_data_set_rank(data_handles[i], i);
 		starpu_data_set_tag(data_handles[i], i);
@@ -93,9 +93,9 @@ int test(int rank, int node, int *before, int *after, int data_array)
 		for(i=0; i<2; i++)
 		{
 			ok = ok && (x[i] == after[rank*2+i]);
-			FPRINTF_MPI("after computation x[%d] = %d, should be %d\n", i, x[i], after[rank*2+i]);
+			FPRINTF_MPI(stderr, "after computation x[%d] = %d, should be %d\n", i, x[i], after[rank*2+i]);
 		}
-		FPRINTF_MPI("result is %s\n", ok?"CORRECT":"NOT CORRECT");
+		FPRINTF_MPI(stderr, "result is %s\n", ok?"CORRECT":"NOT CORRECT");
 	}
 
 nodata:
