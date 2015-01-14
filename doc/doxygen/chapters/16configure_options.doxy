@@ -277,6 +277,15 @@ fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
 </dd>
 
+<dt>--enable-maxnodes=<c>count</c></dt>
+<dd>
+\anchor enable-maxnodes
+\addindex __configure__--enable-maxnodes
+Use at most <c>count</c> memory nodes.  This information is then available as
+the macro ::STARPU_MAXNODES. Reducing it allows to considerably reduce memory
+used by StarPU data structures.
+</dd>
+
 </dl>
 
 \section ExtensionConfiguration Extension Configuration
