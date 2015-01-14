@@ -96,6 +96,7 @@ starpu_mpi_TESTS =				\
 	block_interface				\
 	block_interface_pinned			\
 	callback				\
+	matrix					\
 	insert_task				\
 	insert_task_compute			\
 	insert_task_sent_cache			\
@@ -134,6 +135,7 @@ noinst_PROGRAMS =				\
 	block_interface				\
 	block_interface_pinned			\
 	callback				\
+	matrix					\
 	insert_task				\
 	insert_task_compute			\
 	insert_task_sent_cache			\
@@ -189,6 +191,8 @@ block_interface_LDADD =				\
 block_interface_pinned_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 callback_LDADD =				\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+matrix_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
