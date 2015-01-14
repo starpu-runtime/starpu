@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2014  Université de Bordeaux
+# Copyright (C) 2009-2015  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -26,10 +26,10 @@ dist_bin_SCRIPTS =
 
 dist_pkgdata_DATA = gdbinit
 
-EXTRA_DIST =				\
-	dev/rename.sed			\
-	dev/rename.sh			\
-	perfmodels/README		\
+pkgdata_perfmodels_sampling_busdir = $(datarootdir)/starpu/perfmodels/sampling/bus
+pkgdata_perfmodels_sampling_codeletsdir = $(datarootdir)/starpu/perfmodels/sampling/codelets/44
+
+dist_pkgdata_perfmodels_sampling_bus_DATA = \
 	perfmodels/sampling/bus/attila.affinity	\
 	perfmodels/sampling/bus/attila.bandwidth	\
 	perfmodels/sampling/bus/attila.config	\
@@ -39,7 +39,9 @@ EXTRA_DIST =				\
 	perfmodels/sampling/bus/mirage.bandwidth	\
 	perfmodels/sampling/bus/mirage.config	\
 	perfmodels/sampling/bus/mirage.latency	\
-	perfmodels/sampling/bus/mirage.platform.xml	\
+	perfmodels/sampling/bus/mirage.platform.xml
+
+dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/44/chol_model_11.attila	\
 	perfmodels/sampling/codelets/44/chol_model_21.attila	\
 	perfmodels/sampling/codelets/44/chol_model_22.attila	\
@@ -71,7 +73,12 @@ EXTRA_DIST =				\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_11.mirage	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_12.mirage	\
 	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_21.mirage	\
-	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.mirage	\
+	perfmodels/sampling/codelets/44/starpu_dlu_lu_model_22.mirage
+
+EXTRA_DIST =				\
+	dev/rename.sed			\
+	dev/rename.sh			\
+	perfmodels/README		\
 	valgrind/hwloc.suppr		\
 	valgrind/libnuma.suppr		\
 	valgrind/openmpi.suppr		\
