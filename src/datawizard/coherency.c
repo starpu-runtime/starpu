@@ -1,7 +1,6 @@
-/* StarPU --- Runtime system for heterogeneous multicore architectures.
- *
+/* StarPU --- Runtime system for heterogeneous multicore architectures. *
  * Copyright (C) 2009-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2014  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -64,7 +63,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 	}
 
 	/* we should have found at least one copy ! */
-	STARPU_ASSERT_MSG(src_node_mask != 0, "The data for this handle is requested, but this handle does not have a valid value. Perhaps some initialization task is missing?");
+	STARPU_ASSERT_MSG(src_node_mask != 0, "The data for the handle %p is requested, but the handle does not have a valid value. Perhaps some initialization task is missing?", handle);
 
 	/* Without knowing the size, we won't know the cost */
 	if (!size)
