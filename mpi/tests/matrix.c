@@ -76,14 +76,26 @@ int main(int argc, char **argv)
 
 	for(n = 0; n < N; n++)
 	{
-		starpu_variable_data_register(&data_A[n], STARPU_MAIN_RAM, (uintptr_t)&A[n], sizeof(unsigned));
+		if (rank == n%2)
+			starpu_variable_data_register(&data_A[n], STARPU_MAIN_RAM, (uintptr_t)&A[n], sizeof(unsigned));
+		else
+			starpu_variable_data_register(&data_A[n], -1, (uintptr_t)NULL, sizeof(unsigned));
 		starpu_mpi_data_register(data_A[n], n+100, n%2);
+		FPRINTF_MPI(stderr, "Registering A[%d] to %p with tag %d and node %d\n", n, data_A[n], n+100, n%2);
 
-		starpu_variable_data_register(&data_X[n], STARPU_MAIN_RAM, (uintptr_t)&X[n], sizeof(unsigned));
+		if (rank == n%2)
+			starpu_variable_data_register(&data_X[n], STARPU_MAIN_RAM, (uintptr_t)&X[n], sizeof(unsigned));
+		else
+			starpu_variable_data_register(&data_X[n], -1, (uintptr_t)NULL, sizeof(unsigned));
 		starpu_mpi_data_register(data_X[n], n+200, n%2);
+		FPRINTF_MPI(stderr, "Registering X[%d] to %p with tag %d and node %d\n", n, data_X[n], n+200, n%2);
 	}
-	starpu_variable_data_register(&data_Y, STARPU_MAIN_RAM, (uintptr_t)&Y, sizeof(unsigned));
+	if (rank == 0)
+		starpu_variable_data_register(&data_Y, STARPU_MAIN_RAM, (uintptr_t)&Y, sizeof(unsigned));
+	else
+		starpu_variable_data_register(&data_Y, -1, (uintptr_t)NULL, sizeof(unsigned));
 	starpu_mpi_data_register(data_Y, 10, 0);
+	FPRINTF_MPI(stderr, "Registering Y to %p with tag %d and node %d\n", data_Y, 10, 0);
 
 	for(n = 0; n < N; n++)
 	{
@@ -105,10 +117,12 @@ int main(int argc, char **argv)
 		starpu_data_unregister(data_X[n]);
 	}
 	starpu_data_unregister(data_Y);
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	FPRINTF(stdout, "Y=%u\n", Y);
+	FPRINTF(stdout, "[%d] Y=%u\n", rank, Y);
+
 	if (rank == 0)
 	{
 		STARPU_ASSERT_MSG(Y==300, "Error when calculating Y=%u\n", Y);
