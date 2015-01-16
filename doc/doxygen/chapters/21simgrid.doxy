@@ -121,6 +121,11 @@ case. Since during simgrid execution, the functions of the codelet are actually
 not called, one can use dummy functions such as the following to still permit
 CUDA or OpenCL execution:
 
+\section SimulationExamples Simulation examples
+
+StarPU ships a few performance models for a couple of systems: attila and
+mirage. See section \ref SimulatedBenchmarks for the details.
+
 \section Tweaking simulation
 
 The simulation can be tweaked, to be able to tune it between a very accurate
