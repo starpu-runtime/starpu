@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2015  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
@@ -123,7 +123,7 @@ void _starpu_mpi_cache_free(int world_size)
 	_starpu_mpi_cache_stats_free();
 }
 
-void _starpu_mpi_cache_flush_sent(MPI_Comm comm, starpu_data_handle_t data)
+void _starpu_mpi_cache_sent_data_clear(MPI_Comm comm, starpu_data_handle_t data)
 {
 	int n, size;
 	starpu_mpi_comm_size(comm, &size);
@@ -144,7 +144,7 @@ void _starpu_mpi_cache_flush_sent(MPI_Comm comm, starpu_data_handle_t data)
 	}
 }
 
-void _starpu_mpi_cache_flush_recv(starpu_data_handle_t data, int me)
+void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data, int me)
 {
 	int mpi_rank = starpu_data_get_rank(data);
 	struct _starpu_data_entry *already_received;
@@ -244,7 +244,7 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 		starpu_data_invalidate_submit(data_handle);
 }
 
-void *_starpu_mpi_already_received(int src, starpu_data_handle_t data, int mpi_rank)
+void *_starpu_mpi_cache_received_data_set(int src, starpu_data_handle_t data, int mpi_rank)
 {
 	struct _starpu_data_entry *already_received;
 
@@ -267,7 +267,7 @@ void *_starpu_mpi_already_received(int src, starpu_data_handle_t data, int mpi_r
 	return already_received;
 }
 
-void *_starpu_mpi_already_sent(starpu_data_handle_t data, int dest)
+void *_starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest)
 {
 	struct _starpu_data_entry *already_sent;
 

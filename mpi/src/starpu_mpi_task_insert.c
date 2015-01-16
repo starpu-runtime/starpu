@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2015  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
@@ -117,20 +117,20 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		if (do_execute && mpi_rank != me && mpi_rank != -1)
 		{
 			/* I will have to execute but I don't have the data, receive */
-			void *already_received = _starpu_mpi_already_received(me, data, mpi_rank);
+			void *already_received = _starpu_mpi_cache_received_data_set(me, data, mpi_rank);
 			if (already_received == NULL)
 			{
-				_STARPU_MPI_DEBUG(1, "Receive data %p from %d\n", data, mpi_rank);
+				_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data, mpi_rank);
 				starpu_mpi_irecv_detached(data, mpi_rank, data_tag, comm, NULL, NULL);
 			}
 		}
 		if (!do_execute && mpi_rank == me)
 		{
 			/* Somebody else will execute it, and I have the data, send it. */
-			void *already_sent = _starpu_mpi_already_sent(data, xrank);
+			void *already_sent = _starpu_mpi_cache_sent_data_set(data, xrank);
 			if (already_sent == NULL)
 			{
-				_STARPU_MPI_DEBUG(1, "Send data %p to %d\n", data, xrank);
+				_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data, xrank);
 				_SEND_DATA(data, mode, xrank, data_tag, comm, NULL, NULL);
 			}
 		}
@@ -180,11 +180,11 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 			if (do_execute)
 			{
 				/* Note that all copies I've sent to neighbours are now invalid */
-				_starpu_mpi_cache_flush_sent(comm, data);
+				_starpu_mpi_cache_sent_data_clear(comm, data);
 			}
 			else
 			{
-				_starpu_mpi_cache_flush_recv(data, me);
+				_starpu_mpi_cache_received_data_clear(data, me);
 			}
 		}
 	}
