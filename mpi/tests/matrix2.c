@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 	for(n = 0; n < N; n++)
 	{
 		if (rank == n%2)
-			starpu_variable_data_register(&data_A[n], STARPU_MAIN_RAM, (uintptr_t)&A[n], sizeof(unsigned));
+			starpu_variable_data_register(&data_A[n], 0, (uintptr_t)&A[n], sizeof(unsigned));
 		else
 			starpu_variable_data_register(&data_A[n], -1, (uintptr_t)NULL, sizeof(unsigned));
 		starpu_mpi_data_register(data_A[n], n+100, n%2);
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 	for(n = 0; n < N; n++)
 	{
 		if (rank == 2)
-			starpu_variable_data_register(&data_X[n], STARPU_MAIN_RAM, (uintptr_t)&X[n], sizeof(unsigned));
+			starpu_variable_data_register(&data_X[n], 0, (uintptr_t)&X[n], sizeof(unsigned));
 		else
 			starpu_variable_data_register(&data_X[n], -1, (uintptr_t)NULL, sizeof(unsigned));
 		starpu_mpi_data_register(data_X[n], n+200, 2);
@@ -107,13 +107,13 @@ int main(int argc, char **argv)
 	for(n = 0; n < N-1; n++)
 	{
 	     fprintf(stderr, "loop %d\n", n);
-		ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
+		ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
 					     STARPU_R, data_A[n],
 					     STARPU_R, data_X[n],
 					     STARPU_RW, data_X[N-1],
 					     STARPU_EXECUTE_ON_DATA, data_A[n],
 					     0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_insert");
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_insert_task");
 	}
 
 	FPRINTF(stderr, "Waiting ...\n");

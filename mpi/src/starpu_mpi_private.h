@@ -28,8 +28,9 @@
 extern "C" {
 #endif
 
-#ifdef STARPU_VERBOSE
 extern int _starpu_debug_rank;
+
+#ifdef STARPU_VERBOSE
 extern int _starpu_debug_level;
 void _starpu_mpi_set_debug_level(int level);
 #endif
@@ -53,7 +54,7 @@ void _starpu_mpi_set_debug_level(int level);
 	       				     if (_starpu_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
                                              fprintf(stderr, "%*s[%d][starpu_mpi][%s] " fmt , (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ ,## __VA_ARGS__); \
                                              fflush(stderr); }} while(0);
-#define _STARPU_MPI_MSG(fmt, ...) do { if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
+#define _STARPU_MPI_MSG(fmt, ...) do { if (_starpu_debug_rank == -1) MPI_Comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
                                              fprintf(stderr, "[%d][starpu_mpi][%s:%d] " fmt , _starpu_debug_rank, __starpu_func__ , __LINE__ ,## __VA_ARGS__); \
                                              fflush(stderr); } while(0);
 
