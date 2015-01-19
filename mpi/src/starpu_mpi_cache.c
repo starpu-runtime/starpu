@@ -250,7 +250,7 @@ void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 		starpu_data_invalidate_submit(data_handle);
 }
 
-void *_starpu_mpi_cache_received_data_set(int src, starpu_data_handle_t data, int mpi_rank)
+void *_starpu_mpi_cache_received_data_set(starpu_data_handle_t data, int mpi_rank)
 {
 	struct _starpu_data_entry *already_received;
 

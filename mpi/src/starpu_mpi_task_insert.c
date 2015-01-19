@@ -103,36 +103,39 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 	{
 		int mpi_rank = starpu_data_get_rank(data);
 		int data_tag = starpu_data_get_tag(data);
-		if(mpi_rank == -1)
+		if (mpi_rank == -1)
 		{
 			fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
 			STARPU_ABORT();
 		}
-		if(data_tag == -1)
+		if (data_tag == -1)
 		{
 			fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
 			STARPU_ABORT();
 		}
-		/* The task needs to read this data */
-		if (do_execute && mpi_rank != me && mpi_rank != -1)
+
+		if (do_execute && mpi_rank != me)
 		{
-			/* I will have to execute but I don't have the data, receive */
-			void *already_received = _starpu_mpi_cache_received_data_set(me, data, mpi_rank);
-			if (already_received == NULL)
+			/* The node is going to execute the codelet, but it does not own the data, it needs to receive the data from the owner node */
+			void *already_received = _starpu_mpi_cache_received_data_set(data, mpi_rank);
+			if (already_received == NULL || (mode & STARPU_W))
 			{
 				_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data, mpi_rank);
 				starpu_mpi_irecv_detached(data, mpi_rank, data_tag, comm, NULL, NULL);
 			}
+			// else the node has already received the data
 		}
+
 		if (!do_execute && mpi_rank == me)
 		{
-			/* Somebody else will execute it, and I have the data, send it. */
+			/* The node owns the data, but another node is going to execute the codelet, the node needs to send the data to the executee node. */
 			void *already_sent = _starpu_mpi_cache_sent_data_set(data, xrank);
-			if (already_sent == NULL)
+			if (already_sent == NULL || (mode & STARPU_W))
 			{
 				_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data, xrank);
 				_SEND_DATA(data, mode, xrank, data_tag, comm, NULL, NULL);
 			}
+			// Else the data has already been sent
 		}
 	}
 }
@@ -177,15 +180,9 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 	{
 		if (mode & STARPU_W || mode & STARPU_REDUX)
 		{
-			if (do_execute)
-			{
-				/* Note that all copies I've sent to neighbours are now invalid */
-				_starpu_mpi_cache_sent_data_clear(comm, data);
-			}
-			else
-			{
-				_starpu_mpi_cache_received_data_clear(data);
-			}
+			/* The data has been modified, it MUST be removed from the cache */
+			_starpu_mpi_cache_sent_data_clear(comm, data);
+			_starpu_mpi_cache_received_data_clear(data);
 		}
 	}
 	else
