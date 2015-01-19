@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2014  Université de Bordeaux
  * Copyright (C) 2014 INRIA
  *
@@ -29,10 +29,20 @@ extern "C" {
 
 extern int _starpu_cache_enabled;
 void _starpu_mpi_cache_init(MPI_Comm comm);
-void *_starpu_mpi_already_received(int src, starpu_data_handle_t data, int mpi_rank);
-void *_starpu_mpi_already_sent(starpu_data_handle_t data, int dest);
-void _starpu_mpi_cache_flush_sent(MPI_Comm comm, starpu_data_handle_t data);
-void _starpu_mpi_cache_flush_recv(starpu_data_handle_t data, int me);
+
+/*
+ * If the data is already available in the cache, return a pointer to the data
+ * If the data is NOT available in the cache, add it to the cache and return NULL
+ */
+void *_starpu_mpi_cache_received_data_set(int src, starpu_data_handle_t data, int mpi_rank);
+void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data, int me);
+
+/*
+ * If the data is already available in the cache, return a pointer to the data
+ * If the data is NOT available in the cache, add it to the cache and return NULL
+ */
+void *_starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest);
+void _starpu_mpi_cache_sent_data_clear(MPI_Comm comm, starpu_data_handle_t data);
 
 #ifdef __cplusplus
 }
