@@ -120,7 +120,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
  		{
 			/* The node is going to execute the codelet, but it does not own the data, it needs to receive the data from the owner node */
 			void *already_received = _starpu_mpi_cache_received_data_set(data, mpi_rank);
-			if (already_received == NULL || (mode & STARPU_W))
+			if (already_received == NULL)
 			{
 				_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data, mpi_rank);
 				starpu_mpi_irecv_detached(data, mpi_rank, mpi_tag, comm, NULL, NULL);
@@ -133,7 +133,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		{
 			/* The node owns the data, but another node is going to execute the codelet, the node needs to send the data to the executee node. */
 			void *already_sent = _starpu_mpi_cache_sent_data_set(data, dest);
-			if (already_sent == NULL || (mode & STARPU_W))
+			if (already_sent == NULL)
 			{
 				_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data, dest);
 				_SEND_DATA(data, mode, dest, mpi_tag, comm, NULL, NULL);
