@@ -273,6 +273,17 @@ void *_starpu_mpi_cache_received_data_set(starpu_data_handle_t data, int mpi_ran
 	return already_received;
 }
 
+void *_starpu_mpi_cache_received_data_get(starpu_data_handle_t data, int mpi_rank)
+{
+	struct _starpu_data_entry *already_received;
+
+	if (_starpu_cache_enabled == 0) return NULL;
+	STARPU_PTHREAD_MUTEX_LOCK(&_cache_received_mutex[mpi_rank]);
+	HASH_FIND_PTR(_cache_received_data[mpi_rank], &data, already_received);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_received_mutex[mpi_rank]);
+	return already_received;
+}
+
 void *_starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest)
 {
 	struct _starpu_data_entry *already_sent;
