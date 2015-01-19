@@ -68,6 +68,7 @@ void _starpu_mpi_cache_init(MPI_Comm comm)
 		STARPU_PTHREAD_MUTEX_INIT(&_cache_sent_mutex[i], NULL);
 		STARPU_PTHREAD_MUTEX_INIT(&_cache_received_mutex[i], NULL);
 	}
+	_starpu_mpi_cache_stats_init(comm);
 }
 
 static
