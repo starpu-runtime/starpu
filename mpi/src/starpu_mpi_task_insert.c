@@ -184,7 +184,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 			}
 			else
 			{
-				_starpu_mpi_cache_received_data_clear(data, me);
+				_starpu_mpi_cache_received_data_clear(data);
 			}
 		}
 	}
