@@ -34,7 +34,7 @@ void _starpu_mpi_cache_init(MPI_Comm comm);
  * If the data is already available in the cache, return a pointer to the data
  * If the data is NOT available in the cache, add it to the cache and return NULL
  */
-void *_starpu_mpi_cache_received_data_set(int src, starpu_data_handle_t data, int mpi_rank);
+void *_starpu_mpi_cache_received_data_set(starpu_data_handle_t data, int mpi_rank);
 void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data);
 
 /*
