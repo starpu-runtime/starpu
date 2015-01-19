@@ -36,6 +36,11 @@ static struct _starpu_data_entry **_cache_sent_data = NULL;
 static struct _starpu_data_entry **_cache_received_data = NULL;
 int _starpu_cache_enabled=1;
 
+int starpu_mpi_cache_is_enabled()
+{
+	return _starpu_cache_enabled==1;
+}
+
 void _starpu_mpi_cache_init(MPI_Comm comm)
 {
 	int nb_nodes;
