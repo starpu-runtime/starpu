@@ -69,7 +69,7 @@ endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_srcdir)/examples/
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_srcdir)/examples/
 AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS)
 
 ########################
@@ -93,7 +93,9 @@ starpu_mpi_TESTS =				\
 	ring_async_implicit			\
 	block_interface				\
 	block_interface_pinned			\
+	cache					\
 	matrix					\
+	matrix2					\
 	insert_task				\
 	insert_task_compute			\
 	insert_task_sent_cache			\
@@ -125,7 +127,9 @@ noinst_PROGRAMS =				\
 	ring_async_implicit			\
 	block_interface				\
 	block_interface_pinned			\
+	cache					\
 	matrix					\
+	matrix2					\
 	insert_task				\
 	insert_task_compute			\
 	insert_task_sent_cache			\
@@ -172,7 +176,11 @@ block_interface_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 block_interface_pinned_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+cache_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 matrix_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+matrix2_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
