@@ -121,6 +121,25 @@ starpu_memory_get_total()
 
 starpu_memory_get_available()
 
+\section HowToReduceTheMemoryFootprintOfInternalDataStructures How To Reduce The Memory Footprint Of Internal Data Structures
+
+It is possible to reduce the memory footprint of the task and data internal
+structures of StarPU by describing the shape of your machine and/or your
+application at the configure step.
+
+To reduce the memory footprint of the data internal structures of StarPU, one
+can set the \ref enable-maxcpus "--enable-maxcpus", \ref enable-maxcudadev
+"--enable-maxcudadev" and \ref enable-maxopencldev "--enable-maxopencldev"
+configure parameters to give StarPU the architecture of the machine it will run
+on, thus tuning the size of the structures to the machine.
+
+To reduce the memory footprint of the task internal structures of StarPU, one
+can set the \ref enable-maxbuffers "--enable-maxbuffers" configure parameter to
+give StarPU the maximum number of buffers that a task can use during an
+execution. For example, in the Cholesky factorization (dense linear algebra
+application), the GEMM task uses up to 3 buffers, so it is possible to set the
+maximum number of task buffers to 3 to run a Cholesky factorization on StarPU.
+
 \section PerformanceModelCalibration Performance Model Calibration
 
 Most schedulers are based on an estimation of codelet duration on each kind
