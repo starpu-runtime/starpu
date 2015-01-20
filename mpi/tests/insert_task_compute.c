@@ -50,7 +50,7 @@ int test(int rank, int node, int *before, int *after, int data_array)
 		goto nodata;
 	}
 
-	FPRINTF_MPI(stderr, "Testing with data_array=%d\n", data_array);
+	FPRINTF_MPI(stderr, "Testing with data_array=%d and node=%d\n", data_array, node);
 
 	for(i=0 ; i<2 ; i++)
 	{
@@ -58,8 +58,7 @@ int test(int rank, int node, int *before, int *after, int data_array)
 		if (rank <= 1)
 			FPRINTF_MPI(stderr, "before computation x[%d] = %d\n", i, x[i]);
 		starpu_variable_data_register(&data_handles[i], 0, (uintptr_t)&x[i], sizeof(int));
-		starpu_data_set_rank(data_handles[i], i);
-		starpu_data_set_tag(data_handles[i], i);
+		starpu_mpi_data_register(data_handles[i], i, i);
 	}
 
 	switch(data_array)
@@ -84,7 +83,7 @@ int test(int rank, int node, int *before, int *after, int data_array)
 
 	for(i=0; i<2; i++)
 	{
-		starpu_data_unregister(data_handles[i]);
+		starpu_data_unregister_no_coherency(data_handles[i]);
 	}
 
 	ok = 1;
