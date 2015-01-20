@@ -51,7 +51,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 		goto nodata;
 	}
 
-	FPRINTF_MPI(stderr, "Testing with task_insert=%d - data_array=%d\n", task_insert, data_array);
+	FPRINTF_MPI(stderr, "Testing with task_insert=%d - data_array=%d - node=%d\n", task_insert, data_array, node);
 
 	for(i=0 ; i<2 ; i++)
 	{
@@ -165,7 +165,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 enodev:
 	for(i=0; i<2; i++)
 	{
-		starpu_data_unregister(data_handles[i]);
+		starpu_data_unregister_no_coherency(data_handles[i]);
 	}
 
 	ok = 1;
