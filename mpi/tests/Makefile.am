@@ -96,6 +96,7 @@ starpu_mpi_TESTS =				\
 	block_interface				\
 	block_interface_pinned			\
 	cache					\
+	cache_disable				\
 	callback				\
 	matrix					\
 	matrix2					\
@@ -137,6 +138,7 @@ noinst_PROGRAMS =				\
 	block_interface				\
 	block_interface_pinned			\
 	cache					\
+	cache_disable				\
 	callback				\
 	matrix					\
 	matrix2					\
@@ -195,6 +197,8 @@ block_interface_LDADD =				\
 block_interface_pinned_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 cache_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+cache_disable_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 callback_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
