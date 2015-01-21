@@ -41,6 +41,24 @@ int starpu_mpi_cache_is_enabled()
 	return _starpu_cache_enabled==1;
 }
 
+int starpu_mpi_cache_set(int enabled)
+{
+	if (enabled == 1)
+	{
+		_starpu_cache_enabled = 1;
+	}
+	else
+	{
+		if (_starpu_cache_enabled)
+		{
+			// We need to clean the cache
+			starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
+		}
+		_starpu_cache_enabled = 0;
+	}
+	return 0;
+}
+
 void _starpu_mpi_cache_init(MPI_Comm comm)
 {
 	int nb_nodes;

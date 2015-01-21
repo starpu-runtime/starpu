@@ -191,13 +191,16 @@ todo
 @name Communication Cache
 \ingroup API_MPI_Support
 
-\fn void starpu_mpi_cache_is_enabled()
+\fn int starpu_mpi_cache_is_enabled()
 \ingroup API_MPI_Support
 Return 1 if the communication cache is enabled, 0 otherwise
 
+\fn int starpu_mpi_cache_set(int enabled)
+\ingroup API_MPI_Support
+If \p enabled is 1, enable the communication cache. Otherwise, clean the cache if it was enabled and disable it.
+
 \fn void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle)
 \ingroup API_MPI_Support
-
 Clear the send and receive communication cache for the data
 \p data_handle and invalidate the value. The function has to be called synchronously by all the
 MPI nodes. The function does nothing if the cache mechanism is

@@ -86,6 +86,7 @@ char *starpu_mpi_node_selection_get_default_policy();
 int starpu_mpi_node_selection_set_default_policy(char *policy);
 
 int starpu_mpi_cache_is_enabled();
+int starpu_mpi_cache_set(int enabled);
 
 #ifdef __cplusplus
 }
