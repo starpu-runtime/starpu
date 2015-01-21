@@ -69,6 +69,7 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
 void starpu_mpi_data_register(starpu_data_handle_t data_handle,int tag, int rank);
 
 int starpu_mpi_cache_is_enabled();
+int starpu_mpi_cache_set(int enabled);
 
 #ifdef __cplusplus
 }
