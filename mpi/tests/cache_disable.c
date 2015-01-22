@@ -37,6 +37,7 @@ int main(int argc, char **argv)
 	unsigned val;
 	starpu_data_handle_t data;
 	void *ptr;
+	int cache;
 
 	ret = starpu_init(NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -44,7 +45,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	if (starpu_mpi_cache_is_enabled() == 0) goto skip;
+	cache = starpu_mpi_cache_is_enabled();
+	if (cache == 0) goto skip;
 
 	if (rank == 0)
 		starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t)&val, sizeof(unsigned));
@@ -89,5 +91,5 @@ skip:
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 
-	return starpu_mpi_cache_is_enabled() == 0 ? STARPU_TEST_SKIPPED : 0;
+	return cache == 0 ? STARPU_TEST_SKIPPED : 0;
 }
