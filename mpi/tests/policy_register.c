@@ -34,18 +34,20 @@ int starpu_mpi_select_node_my_policy_0(int me, int nb_nodes, struct starpu_data_
 {
 	(void) me;
 	(void) nb_nodes;
-	(void) descr;
 	(void) nb_data;
-	return 0;
+
+	starpu_data_handle_t data = descr[0].handle;
+	return starpu_data_get_rank(data);
 }
 
 int starpu_mpi_select_node_my_policy_1(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data)
 {
 	(void) me;
 	(void) nb_nodes;
-	(void) descr;
 	(void) nb_data;
-	return 1;
+
+	starpu_data_handle_t data = descr[1].handle;
+	return starpu_data_get_rank(data);
 }
 
 int main(int argc, char **argv)
