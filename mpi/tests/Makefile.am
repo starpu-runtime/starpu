@@ -116,7 +116,11 @@ starpu_mpi_TESTS =				\
 	mpi_reduction				\
 	user_defined_datatype			\
 	gather					\
-	gather2
+	gather2					\
+	policy_register				\
+	policy_register_many			\
+	policy_register_toomany			\
+	policy_unregister
 
 noinst_PROGRAMS =				\
 	datatypes				\
@@ -158,7 +162,15 @@ noinst_PROGRAMS =				\
 	mpi_reduction				\
 	user_defined_datatype			\
 	gather					\
-	gather2
+	gather2					\
+	policy_register				\
+	policy_register_many			\
+	policy_register_toomany			\
+	policy_unregister
+
+XFAIL_TESTS=					\
+	policy_register_toomany			\
+	policy_unregister
 
 mpi_isend_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -239,6 +251,14 @@ user_defined_datatype_LDADD =			\
 gather_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 gather2_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+policy_register_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+policy_register_many_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+policy_register_toomany_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+policy_unregister_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c
