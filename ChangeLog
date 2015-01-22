@@ -43,6 +43,9 @@ New features:
         - New flag STARPU_NODE_SELECTION_POLICY to specify a policy for
           selecting a node to execute the codelet when several nodes
 	  own data in W mode.
+	- New selection node policies can be un/registered with the
+	  functions starpu_mpi_node_selection_register_policy() and
+	  starpu_mpi_node_selection_unregister_policy()
 
   * New STARPU_COMMUTE flag which can be passed along STARPU_W or STARPU_RW to
     let starpu commute write accesses.

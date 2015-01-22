@@ -82,8 +82,12 @@ void starpu_mpi_set_communication_tag(int tag);
 
 void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int rank);
 
-#define STARPU_MPI_NODE_SELECTION_CURRENT_POLICY 0
-#define STARPU_MPI_NODE_SELECTION_MOST_R_DATA    1
+#define STARPU_MPI_NODE_SELECTION_CURRENT_POLICY -1
+#define STARPU_MPI_NODE_SELECTION_MOST_R_DATA    0
+
+typedef int (*starpu_mpi_select_node_policy_func_t)(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data);
+int starpu_mpi_node_selection_register_policy(starpu_mpi_select_node_policy_func_t policy_func);
+int starpu_mpi_node_selection_unregister_policy(int policy);
 
 int starpu_mpi_node_selection_get_current_policy();
 int starpu_mpi_node_selection_set_current_policy(int policy);

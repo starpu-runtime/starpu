@@ -327,6 +327,10 @@ owner if needed. At least the target node and the owner have to call
 the function. On reception, the \p callback function is called with
 the argument \p arg.
 
+@name Node Selection Policy
+\anchor MPINodeSelectionPolicy
+\ingroup API_MPI_Support
+
 \fn int starpu_mpi_node_selection_get_current_policy()
 \ingroup API_MPI_Support
 Return the current policy used to select the node which will execute the codelet
@@ -337,6 +341,39 @@ Set the current policy used to select the node which will
 execute the codelet. The policy "node_with_most_R_data" selects the
 node having the most data in R mode so as to minimize the amount of
 data to be transfered.
+
+\fn int starpu_mpi_node_selection_register_policy(starpu_mpi_select_node_policy_func_t policy_func)
+\ingroup API_MPI_Support
+Register a new policy which can then be used when there is several nodes owning data in W mode.
+Here an example of function defining a node selection policy.
+The codelet will be executed on the node owing the first data with a size bigger than 1M, or on the node
+0 if no data fits the given size.
+\code{.c}
+int my_node_selection_policy(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data)
+{
+	// me is the current MPI rank
+	// nb_nodes is the number of MPI nodes
+	// descr is the description of the data specified when calling starpu_mpi_task_insert
+	// nb_data is the number of data in descr
+	int i;
+	for(i= 0 ; i<nb_data ; i++)
+	{
+		starpu_data_handle_t data = descr[i].handle;
+		enum starpu_data_access_mode mode = descr[i].mode;
+		if (mode & STARPU_R)
+		{
+			int rank = starpu_data_get_rank(data);
+			size_t size = starpu_data_get_size(data);
+			if (size > 1024*1024) return rank;
+		}
+	}
+	return 0;
+}
+\endcode
+
+\fn int starpu_mpi_node_selection_unregister_policy(int policy)
+\ingroup API_MPI_Support
+Unregister a previously registered policy.
 
 @name Collective Operations
 \anchor MPICollectiveOperations

@@ -23,6 +23,9 @@
 extern "C" {
 #endif
 
+#define _STARPU_MPI_NODE_SELECTION_MAX_POLICY 24
+
+void _starpu_mpi_select_node_init();
 int _starpu_mpi_select_node(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data, int policy);
 
 #ifdef __cplusplus

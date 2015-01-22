@@ -18,6 +18,7 @@
 #include <mpi.h>
 
 #include <starpu.h>
+#include <starpu_mpi.h>
 #include <starpu_data.h>
 #include <starpu_mpi_private.h>
 #include <starpu_mpi_select_node.h>
@@ -25,6 +26,19 @@
 #include <datawizard/coherency.h>
 
 static int _current_policy = STARPU_MPI_NODE_SELECTION_MOST_R_DATA;
+static int _last_predefined_policy = STARPU_MPI_NODE_SELECTION_MOST_R_DATA;
+static starpu_mpi_select_node_policy_func_t _policies[_STARPU_MPI_NODE_SELECTION_MAX_POLICY];
+
+int _starpu_mpi_select_node_with_most_R_data(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data);
+
+void _starpu_mpi_select_node_init()
+{
+	int i;
+
+	_policies[STARPU_MPI_NODE_SELECTION_MOST_R_DATA] = _starpu_mpi_select_node_with_most_R_data;
+	for(i=_last_predefined_policy+1 ; i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY ; i++)
+		_policies[i] = NULL;
+}
 
 int starpu_mpi_node_selection_get_current_policy()
 {
@@ -33,10 +47,29 @@ int starpu_mpi_node_selection_get_current_policy()
 
 int starpu_mpi_node_selection_set_current_policy(int policy)
 {
-#ifdef STARPU_DEVEL
-#warning need to check the policy is valid
-#endif
+	STARPU_ASSERT_MSG(_policies[policy] != NULL, "Policy %d invalid.\n", policy);
 	_current_policy = policy;
+	return 0;
+}
+
+int starpu_mpi_node_selection_register_policy(starpu_mpi_select_node_policy_func_t policy_func)
+{
+	int i=_last_predefined_policy+1;
+	// Look for a unregistered policy
+	while(i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY)
+	{
+		if (_policies[i] == NULL) break;
+		i++;
+	}
+	STARPU_ASSERT_MSG(_policies[i] == NULL, "No unused policy available. Unregister existing policies before registering a new one.");
+	_policies[i] = policy_func;
+	return i;
+}
+
+int starpu_mpi_node_selection_unregister_policy(int policy)
+{
+	STARPU_ASSERT_MSG(policy > _last_predefined_policy, "Policy %d invalid. Only user-registered policies can be unregistered\n", policy);
+	_policies[policy] = NULL;
 	return 0;
 }
 
@@ -77,9 +110,9 @@ int _starpu_mpi_select_node_with_most_R_data(int me, int nb_nodes, struct starpu
 
 int _starpu_mpi_select_node(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data, int policy)
 {
-	int current_policy = policy == STARPU_MPI_NODE_SELECTION_CURRENT_POLICY ? _current_policy : policy;
-	if (current_policy == STARPU_MPI_NODE_SELECTION_MOST_R_DATA)
-		return _starpu_mpi_select_node_with_most_R_data(me, nb_nodes, descr, nb_data);
-	else
-		STARPU_ABORT_MSG("Node selection policy <%d> unknown\n", current_policy);
+	int ppolicy = policy == STARPU_MPI_NODE_SELECTION_CURRENT_POLICY ? _current_policy : policy;
+	STARPU_ASSERT_MSG(ppolicy < _STARPU_MPI_NODE_SELECTION_MAX_POLICY, "Invalid policy %d\n", ppolicy);
+	STARPU_ASSERT_MSG(_policies[ppolicy], "Unregistered policy %d\n", ppolicy);
+	starpu_mpi_select_node_policy_func_t func = _policies[ppolicy];
+	return func(me, nb_nodes, descr, nb_data);
 }
