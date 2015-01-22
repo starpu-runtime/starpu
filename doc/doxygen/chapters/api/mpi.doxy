@@ -278,7 +278,7 @@ The internal algorithm is as follows:
         Find out which MPI node is going to execute the codelet.
         <ul>
             <li>If there is only one node owning data in ::STARPU_W mode, it will be selected;
-            <li>If there is several nodes owning data in ::STARPU_W node, a node will be selected according to a given node selection policy (see ::STARPU_NODE_SELECTION_POLICY or starpu_mpi_node_selection_set_default_policy())
+            <li>If there is several nodes owning data in ::STARPU_W node, a node will be selected according to a given node selection policy (see ::STARPU_NODE_SELECTION_POLICY or starpu_mpi_node_selection_set_current_policy())
             <li>The argument ::STARPU_EXECUTE_ON_NODE followed by an integer can be used to specify the node;
             <li>The argument ::STARPU_EXECUTE_ON_DATA followed by a data handle can be used to specify that the node owing the given data will execute the codelet.
         </ul>
@@ -327,13 +327,13 @@ owner if needed. At least the target node and the owner have to call
 the function. On reception, the \p callback function is called with
 the argument \p arg.
 
-\fn char *starpu_mpi_node_selection_get_default_policy()
+\fn int starpu_mpi_node_selection_get_current_policy()
 \ingroup API_MPI_Support
-Return the current default policy used to select the node which will execute the codelet
+Return the current policy used to select the node which will execute the codelet
 
-\fn int starpu_mpi_node_selection_set_default_policy(char *policy)
+\fn int starpu_mpi_node_selection_set_current_policy(int policy)
 \ingroup API_MPI_Support
-Set the current default policy used to select the node which will
+Set the current policy used to select the node which will
 execute the codelet. The policy "node_with_most_R_data" selects the
 node having the most data in R mode so as to minimize the amount of
 data to be transfered.

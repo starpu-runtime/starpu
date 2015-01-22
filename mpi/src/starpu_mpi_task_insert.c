@@ -209,7 +209,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 	int nb_allocated_data = 16;
 	struct starpu_data_descr *descrs;
 	int nb_data;
-	char *select_node_policy = NULL;
+	int select_node_policy = STARPU_MPI_NODE_SELECTION_CURRENT_POLICY;
 
 	descrs = (struct starpu_data_descr *)malloc(nb_allocated_data * sizeof(struct starpu_data_descr));
 	nb_data = 0;
@@ -388,7 +388,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		}
 		else if (arg_type==STARPU_NODE_SELECTION_POLICY)
 		{
-			select_node_policy = va_arg(varg_list, char *);
+			select_node_policy = va_arg(varg_list, int);
 		}
 		else
 		{

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -24,16 +24,19 @@
 #include <starpu_mpi_task_insert.h>
 #include <datawizard/coherency.h>
 
-static char *_default_policy = "node_with_most_R_data";
+static int _current_policy = STARPU_MPI_NODE_SELECTION_MOST_R_DATA;
 
-char *starpu_mpi_node_selection_get_default_policy()
+int starpu_mpi_node_selection_get_current_policy()
 {
-	return _default_policy;
+	return _current_policy;
 }
 
-int starpu_mpi_node_selection_set_default_policy(char *policy)
+int starpu_mpi_node_selection_set_current_policy(int policy)
 {
-	strcpy(_default_policy, policy);
+#ifdef STARPU_DEVEL
+#warning need to check the policy is valid
+#endif
+	_current_policy = policy;
 	return 0;
 }
 
@@ -71,13 +74,11 @@ int _starpu_mpi_select_node_with_most_R_data(int me, int nb_nodes, struct starpu
 	return xrank;
 }
 
-int _starpu_mpi_select_node(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data, char *policy)
+int _starpu_mpi_select_node(int me, int nb_nodes, struct starpu_data_descr *descr, int nb_data, int policy)
 {
-	char *current_policy = policy ? policy : _default_policy;
-	if (current_policy == NULL)
-		STARPU_ABORT_MSG("Node selection policy MUST be defined\n");
-	if (strcmp(current_policy, "node_with_most_R_data") == 0)
+	int current_policy = policy == STARPU_MPI_NODE_SELECTION_CURRENT_POLICY ? _current_policy : policy;
+	if (current_policy == STARPU_MPI_NODE_SELECTION_MOST_R_DATA)
 		return _starpu_mpi_select_node_with_most_R_data(me, nb_nodes, descr, nb_data);
 	else
-		STARPU_ABORT_MSG("Node selection policy <%s> unknown\n", current_policy);
+		STARPU_ABORT_MSG("Node selection policy <%d> unknown\n", current_policy);
 }
