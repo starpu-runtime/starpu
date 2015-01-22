@@ -71,6 +71,7 @@ int _starpu_mpi_select_node_with_most_R_data(int me, int nb_nodes, struct starpu
 		}
 	}
 
+	free(size_on_nodes);
 	return xrank;
 }
 
