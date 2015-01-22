@@ -338,7 +338,7 @@ Return the current policy used to select the node which will execute the codelet
 \fn int starpu_mpi_node_selection_set_current_policy(int policy)
 \ingroup API_MPI_Support
 Set the current policy used to select the node which will
-execute the codelet. The policy "node_with_most_R_data" selects the
+execute the codelet. The policy STARPU_MPI_NODE_SELECTION_MOST_R_DATA selects the
 node having the most data in R mode so as to minimize the amount of
 data to be transfered.
 
