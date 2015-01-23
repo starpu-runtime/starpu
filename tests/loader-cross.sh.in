@@ -3,6 +3,12 @@
 top_srcdir="@top_srcdir@"
 top_builddir="@top_builddir@"
 
+if test -z "$1"
+then
+    echo "[Error] Syntax: $0 <executable>"
+    exit 1
+fi
+
 NATIVE=${PWD/\/build_mic\//\/build_host\/}
 DIR="$(dirname "$1")"
 FILE="$(basename "$1")"
