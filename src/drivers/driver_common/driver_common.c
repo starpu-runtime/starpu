@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2014  Inria
@@ -336,6 +336,7 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 	STARPU_PTHREAD_MUTEX_LOCK(&worker->sched_mutex);
 	struct starpu_task *task;
 	unsigned needed = 1;
+	unsigned executing = 0;
 
 	_starpu_worker_set_status_scheduling(workerid);
 	while(needed)
@@ -390,13 +391,20 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *worker, int w
 		needed = !needed;
 	}
 
+	if ((worker->pipeline_length == 0 && worker->current_task)
+		|| (worker->pipeline_length != 0 && worker->ntasks))
+		/* This worker is executing something */
+		executing = 1;
+
 	if (worker->pipeline_length && (worker->ntasks == worker->pipeline_length || worker->pipeline_stuck))
 		task = NULL;
 	else
 		task = _starpu_pop_task(worker);
 
-	if (task == NULL)
+	if (task == NULL && !executing)
 	{
+		/* Didn't get a task to run and none are running, go to sleep */
+
 		/* Note: we need to keep the sched condition mutex all along the path
 		 * from popping a task from the scheduler to blocking. Otherwise the
 		 * driver may go block just after the scheduler got a new task to be
@@ -460,14 +468,19 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	struct _starpu_job * j;
 	int is_parallel_task;
 	struct _starpu_combined_worker *combined_worker;
+	int executing = 0;
 	/*for each worker*/
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* This assumes only 1 worker */
-	STARPU_ASSERT_MSG(nworkers == 1, "Multiple workers is not yet possible in block drivers mode\n");
+	STARPU_ASSERT_MSG(nworkers == 1, "Multiple workers is not yet possible in blocking drivers mode\n");
 	STARPU_PTHREAD_MUTEX_LOCK(&workers[0].sched_mutex);
 #endif
 	for (i = 0; i < nworkers; i++)
 	{
+		if ((workers[i].pipeline_length == 0 && workers[i].current_task)
+			|| (workers[i].pipeline_length != 0 && workers[i].ntasks))
+			/* At least this worker is executing something */
+			executing = 1;
 		/*if the worker is already executing a task then */
 		if((workers[i].pipeline_length == 0 && workers[i].current_task)
 			|| (workers[i].pipeline_length != 0 &&
@@ -545,7 +558,9 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	struct _starpu_worker *worker = &workers[0];
 	unsigned workerid = workers[0].workerid;
 
-	if (!count) {
+	if (!count && !executing) {
+		/* Didn't get a task to run and none are running, go to sleep */
+
 		/* Note: we need to keep the sched condition mutex all along the path
 		 * from popping a task from the scheduler to blocking. Otherwise the
 		 * driver may go block just after the scheduler got a new task to be
