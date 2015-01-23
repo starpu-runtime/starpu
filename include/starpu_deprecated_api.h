@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2013  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,8 @@
 extern "C"
 {
 #endif
+
+#warning Rename function starpu_trace_user_event() as starpu_fxt_trace_user_event()
 
 #if defined(STARPU_USE_DEPRECATED_API) || defined(STARPU_USE_DEPRECATED_ONE_ZERO_API)
 #warning Your application is using deprecated types. You may want to update to use the latest API, by using tools/dev/rename.sh.
