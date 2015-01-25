@@ -126,7 +126,7 @@ showcheck:
 
 install:
 	\$(MAKE) -C build_mic install
-	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.2.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc"
+	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.3.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.3-mic.pc"
 EOF
 else
 cat > Makefile << EOF
@@ -152,6 +152,6 @@ showcheck:
 install:
 	\$(MAKE) -C build_host install
 	\$(MAKE) -C build_mic install
-	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.2.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.2-mic.pc"
+	ln -sf "${prefix}/mic/lib/pkgconfig/starpu-1.3.pc" "${prefix}/mic/lib/pkgconfig/starpu-1.3-mic.pc"
 EOF
 fi

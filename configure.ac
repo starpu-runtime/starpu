@@ -2572,10 +2572,12 @@ AC_OUTPUT([
 	starpu-1.0.pc
 	starpu-1.1.pc
 	starpu-1.2.pc
+	starpu-1.3.pc
 	mpi/libstarpumpi.pc
 	mpi/starpumpi-1.0.pc
 	mpi/starpumpi-1.1.pc
 	mpi/starpumpi-1.2.pc
+	mpi/starpumpi-1.3.pc
 	starpufft/Makefile
 	starpufft/src/Makefile
 	starpufft/tests/Makefile
@@ -2583,6 +2585,7 @@ AC_OUTPUT([
 	starpufft/starpufft-1.0.pc
 	starpufft/starpufft-1.1.pc
 	starpufft/starpufft-1.2.pc
+	starpufft/starpufft-1.3.pc
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
