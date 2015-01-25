@@ -21,7 +21,7 @@ $ apt-cache search starpu
 To install what you need, type for example:
 
 \verbatim
-$ sudo apt-get install libstarpu-1.2 libstarpu-dev
+$ sudo apt-get install libstarpu-1.3 libstarpu-dev
 \endverbatim
 
 \section InstallingFromSource Installing from Source
@@ -142,8 +142,8 @@ $ make install
 \endverbatim
 
 Libtool interface versioning information are included in
-libraries names (<c>libstarpu-1.2.so</c>, <c>libstarpumpi-1.2.so</c> and
-<c>libstarpufft-1.2.so</c>).
+libraries names (<c>libstarpu-1.3.so</c>, <c>libstarpumpi-1.3.so</c> and
+<c>libstarpufft-1.3.so</c>).
 
 \section SettingUpYourOwnCode Setting up Your Own Code
 
@@ -167,8 +167,8 @@ The flags required to compile or link against StarPU are then
 accessible with the following commands:
 
 \verbatim
-$ pkg-config --cflags starpu-1.2  # options for the compiler
-$ pkg-config --libs starpu-1.2    # options for the linker
+$ pkg-config --cflags starpu-1.3  # options for the compiler
+$ pkg-config --libs starpu-1.3    # options for the linker
 \endverbatim
 
 Note that it is still possible to use the API provided in the version
@@ -178,9 +178,9 @@ It is also possible to use the API provided in the version
 0.9 of StarPU by calling <c>pkg-config</c> with the <c>libstarpu</c> package.
 Similar packages are provided for <c>libstarpumpi</c> and <c>libstarpufft</c>.
 
-Make sure that <c>pkg-config --libs starpu-1.2</c> actually produces some output
+Make sure that <c>pkg-config --libs starpu-1.3</c> actually produces some output
 before going further: <c>PKG_CONFIG_PATH</c> has to point to the place where
-<c>starpu-1.2.pc</c> was installed during <c>make install</c>.
+<c>starpu-1.3.pc</c> was installed during <c>make install</c>.
 
 Also pass the option <c>--static</c> if the application is to be
 linked statically.
@@ -196,8 +196,8 @@ When using a Makefile, the following lines can be added to set the
 options for the compiler and the linker:
 
 \verbatim
-CFLAGS          +=      $$(pkg-config --cflags starpu-1.2)
-LDFLAGS         +=      $$(pkg-config --libs starpu-1.2)
+CFLAGS          +=      $$(pkg-config --cflags starpu-1.3)
+LDFLAGS         +=      $$(pkg-config --libs starpu-1.3)
 \endverbatim
 
 \subsection RunningABasicStarPUApplication Running a Basic StarPU Application
