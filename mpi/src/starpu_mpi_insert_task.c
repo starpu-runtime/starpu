@@ -308,14 +308,17 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			(void)va_arg(varg_list, double);
 		}
-		/* TODO: STARPU_SCHED_CTX */
+		else if (arg_type==STARPU_SCHED_CTX)
+		{
+			(void)va_arg(varg_list, unsigned);
+		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
 		{
-			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			(void)va_arg(varg_list, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
 		{
-			(void)va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
@@ -441,14 +444,17 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			(void)va_arg(varg_list, double);
 		}
-		/* TODO: STARPU_SCHED_CTX */
+		else if (arg_type==STARPU_SCHED_CTX)
+		{
+			(void)va_arg(varg_list, unsigned);
+		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
 		{
-			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			(void)va_arg(varg_list, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
 		{
-			(void)va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
@@ -559,14 +565,17 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			(void)va_arg(varg_list, double);
 		}
-		/* TODO: STARPU_SCHED_CTX */
+		else if (arg_type==STARPU_SCHED_CTX)
+		{
+			(void)va_arg(varg_list, unsigned);
+		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
 		{
-			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+			(void)va_arg(varg_list, _starpu_callback_func_t);
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
 		{
-			(void)va_arg(varg_list_copy, void *);
+			(void)va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
