@@ -309,8 +309,14 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			(void)va_arg(varg_list, double);
 		}
 		/* TODO: STARPU_SCHED_CTX */
-		/* TODO: STARPU_PROLOGUE_CALLBACK */
-		/* TODO: STARPU_PROLOGUE_CALLBACK_ARG */
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list_copy, void *);
+		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
 			// the flag is decoded and set later when
@@ -436,8 +442,14 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			(void)va_arg(varg_list, double);
 		}
 		/* TODO: STARPU_SCHED_CTX */
-		/* TODO: STARPU_PROLOGUE_CALLBACK */
-		/* TODO: STARPU_PROLOGUE_CALLBACK_ARG */
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list_copy, void *);
+		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
 			// the flag is decoded and set later when
@@ -548,8 +560,14 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			(void)va_arg(varg_list, double);
 		}
 		/* TODO: STARPU_SCHED_CTX */
-		/* TODO: STARPU_PROLOGUE_CALLBACK */
-		/* TODO: STARPU_PROLOGUE_CALLBACK_ARG */
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list_copy, void *);
+		}
 		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
 			// the flag is decoded and set later when
