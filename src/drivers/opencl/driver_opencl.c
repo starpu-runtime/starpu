@@ -502,6 +502,9 @@ void _starpu_opencl_init(void)
                 err = clGetPlatformIDs(_STARPU_OPENCL_PLATFORM_MAX, platform_id, &nb_platforms);
                 if (STARPU_UNLIKELY(err != CL_SUCCESS)) nb_platforms=0;
                 _STARPU_DEBUG("Platforms detected: %u\n", nb_platforms);
+		_STARPU_DEBUG("CPU device type: %s\n", device_type&CL_DEVICE_TYPE_CPU?"requested":"not requested");
+		_STARPU_DEBUG("GPU device type: %s\n", device_type&CL_DEVICE_TYPE_GPU?"requested":"not requested");
+		_STARPU_DEBUG("Accelerator device type: %s\n", device_type&CL_DEVICE_TYPE_ACCELERATOR?"requested":"not requested");
 
                 // Get devices
                 nb_devices = 0;
@@ -544,7 +547,12 @@ void _starpu_opencl_init(void)
 					err = clGetDeviceIDs(platform_id[j], device_type, STARPU_MAXOPENCLDEVS-nb_devices, STARPU_MAXOPENCLDEVS == nb_devices ? NULL : &devices[nb_devices], &num);
 					if (err == CL_DEVICE_NOT_FOUND)
 					{
-						_STARPU_DEBUG("  No devices detected on this platform\n");
+						const cl_device_type all_device_types = CL_DEVICE_TYPE_CPU|CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
+						if (device_type != all_device_types ) {
+							_STARPU_DEBUG("  No devices of the requested type(s) subset detected on this platform\n");
+						} else {
+							_STARPU_DEBUG("  No devices detected on this platform\n");
+						}
 					}
 					else
 					{
