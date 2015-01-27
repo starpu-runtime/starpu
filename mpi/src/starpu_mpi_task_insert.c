@@ -358,7 +358,10 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			(void)va_arg(varg_list_copy, double);
 		}
-		/* TODO: STARPU_SCHED_CTX */
+		else if (arg_type==STARPU_SCHED_CTX)
+		{
+			(void)va_arg(varg_list_copy, unsigned);
+		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
                 {
 			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
@@ -385,7 +388,10 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			(void)va_arg(varg_list_copy, starpu_tag_t);
 		}
-		/* TODO: STARPU_POSSIBLY_PARALLEL */
+		else if (arg_type==STARPU_POSSIBLY_PARALLEL)
+		{
+			(void)va_arg(varg_list_copy, unsigned);
+		}
 		else if (arg_type==STARPU_WORKER_ORDER)
 		{
 			// the flag is decoded and set later when
