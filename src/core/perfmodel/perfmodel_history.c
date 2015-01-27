@@ -1036,10 +1036,9 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
 	FILE *f = fopen(path, "r");
 	STARPU_ASSERT(f);
 
-	_starpu_frdlock(f);
 	starpu_perfmodel_init(NULL, model);
-	rewind(f);
 
+	_starpu_frdlock(f);
 	parse_model_file(f, model, 1);
 	_starpu_frdunlock(f);
 
