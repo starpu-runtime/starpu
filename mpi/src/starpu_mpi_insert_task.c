@@ -242,12 +242,6 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 			STARPU_ASSERT_MSG(xrank <= nb_nodes, "Node %d to execute codelet is not a valid node (%d)", xrank, nb_nodes);
 			do_execute = 1;
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
-		{
-			// the flag is decoded and set later when
-			// calling function _starpu_task_insert_create()
-			va_arg(varg_list, int);
-		}
 		else if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
@@ -299,6 +293,13 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			va_arg(varg_list, int);
 		}
+		/* STARPU_EXECUTE_ON_NODE handled above */
+		/* STARPU_EXECUTE_ON_DATA handled above */
+		/* STARPU_DATA_ARRAY handled above */
+		else if (arg_type==STARPU_TAG)
+		{
+			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
+		}
 		else if (arg_type==STARPU_HYPERVISOR_TAG)
 		{
 			(void)va_arg(varg_list, int);
@@ -307,9 +308,14 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			(void)va_arg(varg_list, double);
 		}
-		else if (arg_type==STARPU_TAG)
+		/* TODO: STARPU_SCHED_CTX */
+		/* TODO: STARPU_PROLOGUE_CALLBACK */
+		/* TODO: STARPU_PROLOGUE_CALLBACK_ARG */
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
-			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
+			// the flag is decoded and set later when
+			// calling function _starpu_task_insert_create()
+			va_arg(varg_list, int);
 		}
 		else
 		{
@@ -416,11 +422,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			va_arg(varg_list, starpu_data_handle_t);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		/* STARPU_DATA_ARRAY handled above */
+		else if (arg_type==STARPU_TAG)
 		{
-			// the flag is decoded and set later when
-			// calling function _starpu_task_insert_create()
-			va_arg(varg_list, int);
+			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
 		}
 		else if (arg_type==STARPU_HYPERVISOR_TAG)
 		{
@@ -430,9 +435,18 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			(void)va_arg(varg_list, double);
 		}
-		else if (arg_type==STARPU_TAG)
+		/* TODO: STARPU_SCHED_CTX */
+		/* TODO: STARPU_PROLOGUE_CALLBACK */
+		/* TODO: STARPU_PROLOGUE_CALLBACK_ARG */
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
-			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
+			// the flag is decoded and set later when
+			// calling function _starpu_task_insert_create()
+			va_arg(varg_list, int);
+		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
 		}
 	}
 	va_end(varg_list);
@@ -520,11 +534,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			va_arg(varg_list, starpu_data_handle_t);
 		}
-		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
+		/* STARPU_DATA_ARRAY handled above */
+		else if (arg_type==STARPU_TAG)
 		{
-			// the flag is decoded and set later when
-			// calling function _starpu_task_insert_create()
-			va_arg(varg_list, int);
+			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
 		}
 		else if (arg_type==STARPU_HYPERVISOR_TAG)
 		{
@@ -534,9 +547,18 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		{
 			(void)va_arg(varg_list, double);
 		}
-		else if (arg_type==STARPU_TAG)
+		/* TODO: STARPU_SCHED_CTX */
+		/* TODO: STARPU_PROLOGUE_CALLBACK */
+		/* TODO: STARPU_PROLOGUE_CALLBACK_ARG */
+		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
 		{
-			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
+			// the flag is decoded and set later when
+			// calling function _starpu_task_insert_create()
+			va_arg(varg_list, int);
+		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d\n", arg_type);
 		}
 	}
 	va_end(varg_list);
