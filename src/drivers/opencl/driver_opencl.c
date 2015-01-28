@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2010-2014  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -548,9 +548,12 @@ void _starpu_opencl_init(void)
 					if (err == CL_DEVICE_NOT_FOUND)
 					{
 						const cl_device_type all_device_types = CL_DEVICE_TYPE_CPU|CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR;
-						if (device_type != all_device_types ) {
+						if (device_type != all_device_types)
+						{
 							_STARPU_DEBUG("  No devices of the requested type(s) subset detected on this platform\n");
-						} else {
+						}
+						else
+						{
 							_STARPU_DEBUG("  No devices detected on this platform\n");
 						}
 					}
