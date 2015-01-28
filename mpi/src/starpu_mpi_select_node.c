@@ -61,7 +61,7 @@ int starpu_mpi_node_selection_register_policy(starpu_mpi_select_node_policy_func
 		if (_policies[i] == NULL) break;
 		i++;
 	}
-	STARPU_ASSERT_MSG(_policies[i] == NULL, "No unused policy available. Unregister existing policies before registering a new one.");
+	STARPU_ASSERT_MSG(i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY, "No unused policy available. Unregister existing policies before registering a new one.");
 	_policies[i] = policy_func;
 	return i;
 }
