@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -351,7 +351,6 @@ static void deinit_context(struct _starpu_worker_set *worker_set)
 		}
 	}
 #else /* !STARPU_SIMGRID */
-	cudaError_t cures;
 	workerid = worker_set->workers[0].workerid;
 	int devid = starpu_worker_get_devid(workerid);
 
