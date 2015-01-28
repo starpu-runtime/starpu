@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2014       INRIA
  *
@@ -32,6 +32,9 @@ extern "C"
 
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
 
+/* NOTE: when adding a value here, please make sure to update both
+ * src/util/starpu_task_insert_utils.c (in two places) and
+ * mpi/src/starpu_mpi_task_insert.c */
 #define STARPU_VALUE		 (1<<16)
 #define STARPU_CALLBACK		 (2<<16)
 #define STARPU_CALLBACK_WITH_ARG (3<<16)
