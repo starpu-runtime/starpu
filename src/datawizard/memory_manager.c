@@ -134,8 +134,6 @@ starpu_ssize_t starpu_memory_get_available(unsigned node)
 
 void starpu_memory_wait_available(unsigned node, size_t size)
 {
-	int ret;
-
 	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
 	waiters[node]++;
 
