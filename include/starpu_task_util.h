@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2013  Université de Bordeaux
+ * Copyright (C) 2010-2013, 2015  Université de Bordeaux
  * Copyright (C) 2010-2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2014       INRIA
  *
@@ -32,21 +32,23 @@ extern "C"
 
 void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg);
 
-#define STARPU_VALUE		 (1<<16)
-#define STARPU_CALLBACK		 (2<<16)
-#define STARPU_CALLBACK_WITH_ARG (3<<16)
-#define STARPU_CALLBACK_ARG	 (4<<16)
-#define STARPU_PRIORITY		 (5<<16)
-#define STARPU_EXECUTE_ON_NODE	 (6<<16)
-#define STARPU_EXECUTE_ON_DATA	 (7<<16)
-#define STARPU_DATA_ARRAY        (8<<16)
-#define STARPU_TAG               (9<<16)
-#define STARPU_HYPERVISOR_TAG	 (10<<16)
-#define STARPU_FLOPS	         (11<<16)
-#define STARPU_SCHED_CTX	 (12<<16)
-#define STARPU_PROLOGUE_CALLBACK   (13<<16)
-#define STARPU_PROLOGUE_CALLBACK_ARG (14<<16)
-#define STARPU_EXECUTE_ON_WORKER (15<<16)
+#define STARPU_MODE_SHIFT	16
+#define STARPU_VALUE		 (1<<STARPU_MODE_SHIFT)
+#define STARPU_CALLBACK		 (2<<STARPU_MODE_SHIFT)
+#define STARPU_CALLBACK_WITH_ARG (3<<STARPU_MODE_SHIFT)
+#define STARPU_CALLBACK_ARG	 (4<<STARPU_MODE_SHIFT)
+#define STARPU_PRIORITY		 (5<<STARPU_MODE_SHIFT)
+#define STARPU_EXECUTE_ON_NODE	 (6<<STARPU_MODE_SHIFT)
+#define STARPU_EXECUTE_ON_DATA	 (7<<STARPU_MODE_SHIFT)
+#define STARPU_DATA_ARRAY        (8<<STARPU_MODE_SHIFT)
+#define STARPU_TAG               (9<<STARPU_MODE_SHIFT)
+#define STARPU_HYPERVISOR_TAG	 (10<<STARPU_MODE_SHIFT)
+#define STARPU_FLOPS	         (11<<STARPU_MODE_SHIFT)
+#define STARPU_SCHED_CTX	 (12<<STARPU_MODE_SHIFT)
+#define STARPU_PROLOGUE_CALLBACK   (13<<STARPU_MODE_SHIFT)
+#define STARPU_PROLOGUE_CALLBACK_ARG (14<<STARPU_MODE_SHIFT)
+#define STARPU_EXECUTE_ON_WORKER (15<<STARPU_MODE_SHIFT)
+#define STARPU_SHIFTED_MODE_MAX (16<<STARPU_MODE_SHIFT)
 
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
 int starpu_insert_task(struct starpu_codelet *cl, ...);
