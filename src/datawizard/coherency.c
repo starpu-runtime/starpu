@@ -1,5 +1,5 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures. *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2014  Inria
  *
@@ -807,6 +807,9 @@ int _starpu_fetch_task_input(struct _starpu_job *j)
 		int node = descrs[index].node;
 		if (node == -1)
 			node = local_memory_node;
+		if ((mode & ((1<<STARPU_MODE_SHIFT) - 1)) >= STARPU_ACCESS_MODE_MAX ||
+			(mode >> STARPU_MODE_SHIFT) >= STARPU_SHIFTED_MODE_MAX)
+			STARPU_ASSERT_MSG(0, "mode %d (0x%x) is bogus\n", mode, mode);
 
 		struct _starpu_data_replicate *local_replicate;
 
