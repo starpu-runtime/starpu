@@ -187,23 +187,28 @@ void _starpu_task_insert_check_nb_buffers(struct starpu_codelet *cl, struct star
 		if (*allocated_buffers == 0)
 		{
 			int i;
+			struct starpu_codelet *cl = (*task)->cl;
 			*allocated_buffers = STARPU_NMAXBUFS * 2;
 			(*task)->dyn_handles = malloc(*allocated_buffers * sizeof(starpu_data_handle_t));
 			for(i=0 ; i<current_buffer ; i++)
 			{
 				(*task)->dyn_handles[i] = (*task)->handles[i];
 			}
-			(*task)->dyn_modes = malloc(*allocated_buffers * sizeof(enum starpu_data_access_mode));
-			for(i=0 ; i<current_buffer ; i++)
+			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || !cl->dyn_modes)
 			{
-				(*task)->dyn_modes[i] = (*task)->modes[i];
+				(*task)->dyn_modes = malloc(*allocated_buffers * sizeof(enum starpu_data_access_mode));
+				for(i=0 ; i<current_buffer ; i++)
+				{
+					(*task)->dyn_modes[i] = (*task)->modes[i];
+				}
 			}
 		}
 		else if (current_buffer >= *allocated_buffers)
 		{
 			*allocated_buffers *= 2;
 			(*task)->dyn_handles = realloc((*task)->dyn_handles, *allocated_buffers * sizeof(starpu_data_handle_t));
-			(*task)->dyn_modes = realloc((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
+			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || !cl->dyn_modes)
+				(*task)->dyn_modes = realloc((*task)->dyn_modes, *allocated_buffers * sizeof(enum starpu_data_access_mode));
 		}
 	}
 }
