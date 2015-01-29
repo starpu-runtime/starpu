@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 	ret = starpu_mpi_init(&argc, &argv, 1);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init");
 
-	for(i=0 ; i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY ; i++)
+	for(i=0 ; i<_STARPU_MPI_NODE_SELECTION_MAX_POLICY-1 ; i++)
 	{
 		policy = starpu_mpi_node_selection_register_policy(starpu_mpi_select_node_my_policy);
 		FPRINTF_MPI(stderr, "New policy %d\n", policy);
