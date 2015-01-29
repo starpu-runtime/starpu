@@ -753,7 +753,8 @@ int _starpu_fetch_task_input(struct _starpu_job *j, uint32_t mask)
 		int node = descrs[index].node;
 		if (node == -1)
 			node = local_memory_node;
-		if ((mode & ((1<<STARPU_MODE_SHIFT) - 1)) >= STARPU_ACCESS_MODE_MAX ||
+		if (mode == STARPU_NONE ||
+			(mode & ((1<<STARPU_MODE_SHIFT) - 1)) >= STARPU_ACCESS_MODE_MAX ||
 			(mode >> STARPU_MODE_SHIFT) >= STARPU_SHIFTED_MODE_MAX)
 			STARPU_ASSERT_MSG(0, "mode %d (0x%x) is bogus\n", mode, mode);
 
