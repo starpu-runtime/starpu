@@ -1,7 +1,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2009-2014  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
 # Copyright (C) 2011  INRIA
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ endif STARPU_HAVE_WINDOWS
 
 lib_LTLIBRARIES = libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS)
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(HWLOC_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LIBS) $(STARPU_GLPK_LDFLAGS)
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) $(FXT_LDFLAGS) -no-undefined									\
