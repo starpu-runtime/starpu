@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 			starpu_variable_data_register(&data_A[n], 0, (uintptr_t)&A[n], sizeof(unsigned));
 		else
 			starpu_variable_data_register(&data_A[n], -1, (uintptr_t)NULL, sizeof(unsigned));
-		starpu_mpi_data_register(data_A[n], n+100, n%2);
+		starpu_mpi_data_register(data_A[n], n+100, n%2, MPI_COMM_WORLD);
 		FPRINTF_MPI(stderr, "Registering A[%d] to %p with tag %d and node %d\n", n,data_A[n], n+100, n%2);
 	}
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 			starpu_variable_data_register(&data_X[n], 0, (uintptr_t)&X[n], sizeof(unsigned));
 		else
 			starpu_variable_data_register(&data_X[n], -1, (uintptr_t)NULL, sizeof(unsigned));
-		starpu_mpi_data_register(data_X[n], n+200, 2);
+		starpu_mpi_data_register(data_X[n], n+200, 2, MPI_COMM_WORLD);
 		FPRINTF_MPI(stderr, "Registering X[%d] to %p with tag %d and node %d\n", n, data_X[n], n+200, 2);
 	}
 

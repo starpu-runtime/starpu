@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 		starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(token));
 	else
 		starpu_vector_data_register(&token_handle, -1, (uintptr_t)NULL, 1, sizeof(token));
-	starpu_mpi_data_register(token_handle, 12, 1);
+	starpu_mpi_data_register(token_handle, 12, 1, MPI_COMM_WORLD);
 
 	int nloops = NITER;
 	int loop;

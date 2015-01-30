@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012, 2013  Centre National de la Recherche Scientifique
+ * Copyright (C) 2012, 2013, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,7 @@
 #include <interface/complex_interface.h>
 #include <interface/complex_codelet.h>
 #include <user_defined_datatype_value.h>
+#include "helper.h"
 
 #ifdef STARPU_QUICK_CHECK
 #  define ELEMENTS 10
@@ -33,8 +34,7 @@ void test_handle_irecv_isend_detached(starpu_data_handle_t *handles, int nb_hand
 
 	for(i=0 ; i<nb_handles ; i++)
 	{
-		starpu_data_set_rank(handles[i], 1);
-		starpu_data_set_tag(handles[i], i+tag);
+		starpu_mpi_data_register(handles[i], i+tag, 1, MPI_COMM_WORLD);
 	}
 
 	for(i=0 ; i<nb_handles ; i++)
@@ -100,18 +100,18 @@ int main(int argc, char **argv)
 			float foo_compare=42.0;
 			int value_compare=36;
 
-			fprintf(stderr, "\nTesting with function %p\n", f);
+			FPRINTF_MPI(stderr, "Testing with function %p\n", f);
 
 			if (rank == 0)
 			{
 				for(i=0 ; i<ELEMENTS; i++)
 				{
-					foo[i] = 8.0;
-					real[i][0] = 0.0;
-					real[i][1] = 0.0;
-					imaginary[i][0] = 0.0;
-					imaginary[i][1] = 0.0;
-					values[i] = 7;
+					foo[i] = -1.0;
+					real[i][0] = -1.0;
+					real[i][1] = -1.0;
+					imaginary[i][0] = -1.0;
+					imaginary[i][1] = -1.0;
+					values[i] = -1;
 				}
 			}
 			if (rank == 1)
@@ -137,54 +137,42 @@ int main(int argc, char **argv)
 			f(handle_complex, ELEMENTS, rank, 2*ELEMENTS);
 			f(handle_values, ELEMENTS, rank, 4*ELEMENTS);
 
+			starpu_task_wait_for_all();
+
 			for(i=0 ; i<ELEMENTS ; i++)
 			{
 				starpu_data_unregister(handle_complex[i]);
 				starpu_data_unregister(handle_values[i]);
 				starpu_data_unregister(handle_vars[i]);
 			}
-			starpu_task_wait_for_all();
 
 			if (rank == 0)
 			{
 				for(i=0 ; i<ELEMENTS ; i++)
 				{
 					int j;
+
 					compare = (foo[i] == foo_compare);
-					if (compare == 0)
-					{
-						fprintf(stderr, "ERROR. foo[%d] == %f != %f\n", i, foo[i], foo_compare);
-						goto end;
-					}
+					FPRINTF_MPI(stderr, "%s. foo[%d] = %f %s %f\n", compare==0?"ERROR":"SUCCESS", i, foo[i], compare==0?"!=":"==", foo_compare);
+
 					compare = (values[i] == value_compare);
-					if (compare == 0)
-					{
-						fprintf(stderr, "ERROR. value[%d] == %d != %d\n", i, values[i], value_compare);
-						goto end;
-					}
+					FPRINTF_MPI(stderr, "%s. value[%d] = %d %s %d\n", compare==0?"ERROR":"SUCCESS", i, values[i], compare==0?"!=":"==", value_compare);
+
 					for(j=0 ; j<2 ; j++)
 					{
 						compare = (real[i][j] == real_compare[j]);
-						if (compare == 0)
-						{
-							fprintf(stderr, "ERROR. real[%d][%d] == %f != %f\n", i, j, real[i][j], real_compare[j]);
-							goto end;
-						}
+						FPRINTF_MPI(stderr, "%s. real[%d][%d] = %f %s %f\n", compare==0?"ERROR":"SUCCESS", i, j, real[i][j], compare==0?"!=":"==", real_compare[j]);
 					}
 					for(j=0 ; j<2 ; j++)
 					{
 						compare = (imaginary[i][j] == imaginary_compare[j]);
-						if (compare == 0)
-						{
-							fprintf(stderr, "ERROR. imaginary[%d][%d] == %f != %f\n", i, j, imaginary[i][j], imaginary_compare[j]);
-							goto end;
-						}
+						FPRINTF_MPI(stderr, "%s. imaginary[%d][%d] = %f %s %f\n", compare==0?"ERROR":"SUCCESS", i, j, imaginary[i][j], compare==0?"!=":"==", imaginary_compare[j]);
 					}
 				}
 			}
 		}
 	}
-end:
+
 	starpu_mpi_shutdown();
 	starpu_shutdown();
 

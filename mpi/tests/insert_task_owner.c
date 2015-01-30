@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011, 2012  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -84,30 +84,24 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		starpu_variable_data_register(&data_handlesx0, 0, (uintptr_t)&x0, sizeof(x0));
-		starpu_data_set_rank(data_handlesx0, rank);
-		starpu_data_set_tag(data_handlesx0, 0);
 		starpu_variable_data_register(&data_handlesx1, -1, (uintptr_t)NULL, sizeof(int));
-		starpu_data_set_rank(data_handlesx1, 1);
-		starpu_data_set_tag(data_handlesx1, 1);
 	}
 	else if (rank == 1)
 	{
 		starpu_variable_data_register(&data_handlesx1, 0, (uintptr_t)&x1, sizeof(x1));
-		starpu_data_set_rank(data_handlesx1, rank);
-		starpu_data_set_tag(data_handlesx1, 1);
 		starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(int));
-		starpu_data_set_rank(data_handlesx0, 0);
-		starpu_data_set_tag(data_handlesx0, 0);
 	}
+	starpu_mpi_data_register(data_handlesx0, 0, 0, MPI_COMM_WORLD);
+	starpu_mpi_data_register(data_handlesx1, 1, 1, MPI_COMM_WORLD);
 
-	node = starpu_data_get_rank(data_handlesx1);
+	node = starpu_mpi_data_get_rank(data_handlesx1);
 	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_R, data_handlesx0, STARPU_W, data_handlesx1,
 				     0);
 	assert(err == 0);
 
-	node = starpu_data_get_rank(data_handlesx0);
+	node = starpu_mpi_data_get_rank(data_handlesx0);
 	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_rw_r,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_R, data_handlesx1,
