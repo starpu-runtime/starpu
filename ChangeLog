@@ -32,12 +32,10 @@ New features:
     specify a directory where to store performance model files in.
     When unset, the files are stored in $STARPU_HOME/.starpu/sampling
   * MPI:
-      - Functions starpu_data_set_rank() and starpu_data_set_tag() are
-        deprecated. One should use starpu_mpi_data_registe() instead.
       - New function starpu_mpi_data_register_comm to register a data
         with another communicator than MPI_COMM_WORLD
-      - New function starpu_mpi_data_update_rank to update the rank of
-        a given data.
+      - New functions starpu_mpi_data_set_rank() and starpu_mpi_data_set_tag()
+        which call starpu_mpi_data_register_comm()
 
 Small features:
   * Add starpu_memory_wait_available() to wait for a given size to become

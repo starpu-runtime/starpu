@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 		if (data_handles[x])
 		{
 			int mpi_rank = my_distrib(x, nodes);
-			starpu_mpi_data_update_rank(data_handles[x], mpi_rank, MPI_COMM_WORLD);
+			starpu_mpi_data_set_rank(data_handles[x], mpi_rank);
 		}
 	}
 	starpu_mpi_scatter_detached(data_handles, size, 0, MPI_COMM_WORLD, scallback, "scatter", NULL, NULL);
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 	{
 		if (data_handles[x])
 		{
-			starpu_mpi_data_update_rank(data_handles[x], 0, MPI_COMM_WORLD);
+			starpu_mpi_data_set_rank(data_handles[x], 0);
 		}
 	}
 

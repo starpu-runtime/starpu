@@ -1078,13 +1078,6 @@ void _starpu_mpi_clear_cache(starpu_data_handle_t data_handle)
 	free(data_handle->mpi_data);
 }
 
-void starpu_mpi_data_update_rank(starpu_data_handle_t data_handle, int rank, MPI_Comm comm)
-{
-	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
-	mpi_data->rank = rank;
-	mpi_data->comm = comm;
-}
-
 void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, int rank, MPI_Comm comm)
 {
 	struct _starpu_mpi_data *mpi_data;
@@ -1096,34 +1089,27 @@ void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle, int tag, in
 	{
 		mpi_data = malloc(sizeof(struct _starpu_mpi_data));
 		data_handle->mpi_data = mpi_data;
+		_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
 	}
 
-	mpi_data->tag = tag;
-	mpi_data->rank = rank;
-	mpi_data->comm = comm;
-
-	_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
+	if (tag != -1)
+	{
+		mpi_data->tag = tag;
+	}
+	if (rank != -1)
+	{
+		mpi_data->rank = rank;
+		mpi_data->comm = comm;
+	}
 }
 
-int starpu_data_set_rank(starpu_data_handle_t handle, int rank)
+int starpu_mpi_data_set_rank_comm(starpu_data_handle_t handle, int rank, MPI_Comm comm)
 {
-	static int _first_rank=1;
-	if (_first_rank)
-	{
-		_STARPU_DISP("Warning: The function 'starpu_data_set_rank' is deprecated. You should call starpu_mpi_data_register.\n");
-		_first_rank=0;
-	}
-	starpu_mpi_data_register_comm(handle, -1, rank, MPI_COMM_WORLD);
+	starpu_mpi_data_register_comm(handle, -1, rank, comm);
 }
 
-int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
+int starpu_mpi_data_set_tag(starpu_data_handle_t handle, int tag)
 {
-	static int _first_tag=1;
-	if (_first_tag)
-	{
-		_STARPU_DISP("Warning: The function 'starpu_data_set_tag' is deprecated. You should call starpu_mpi_data_register.\n");
-		_first_tag=0;
-	}
 	starpu_mpi_data_register_comm(handle, tag, -1, MPI_COMM_WORLD);
 }
 
