@@ -91,8 +91,8 @@ int main(int argc, char **argv)
 		starpu_variable_data_register(&data_handlesx1, 0, (uintptr_t)&x1, sizeof(x1));
 		starpu_variable_data_register(&data_handlesx0, -1, (uintptr_t)NULL, sizeof(int));
 	}
-	starpu_mpi_data_register(data_handlesx0, 0, 0, MPI_COMM_WORLD);
-	starpu_mpi_data_register(data_handlesx1, 1, 1, MPI_COMM_WORLD);
+	starpu_mpi_data_register(data_handlesx0, 0, 0);
+	starpu_mpi_data_register(data_handlesx1, 1, 1);
 
 	node = starpu_mpi_data_get_rank(data_handlesx1);
 	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r_w,

@@ -98,7 +98,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 			}
 			if (data_handles[x][y])
 			{
-				starpu_mpi_data_register(data_handles[x][y], (y*nblocks)+x, mpi_rank, MPI_COMM_WORLD);
+				starpu_mpi_data_register(data_handles[x][y], (y*nblocks)+x, mpi_rank);
 			}
 		}
 	}

@@ -66,7 +66,8 @@ void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts);
 void starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle);
 void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
 
-void starpu_mpi_data_register(starpu_data_handle_t data_handle,int tag, int rank, MPI_Comm comm);
+void starpu_mpi_data_register_comm(starpu_data_handle_t data_handle,int tag, int rank, MPI_Comm comm);
+#define starpu_mpi_data_register(data_handle, tag, rank) starpu_mpi_data_register_comm(data_handle, tag, rank, MPI_COMM_WORLD)
 void starpu_mpi_data_update_rank(starpu_data_handle_t data_handle, int rank, MPI_Comm comm);
 
 int starpu_mpi_cache_is_enabled();

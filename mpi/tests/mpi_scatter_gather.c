@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 		}
 		if (data_handles[x])
 		{
-			starpu_mpi_data_register(data_handles[x], x, 0, MPI_COMM_WORLD);
+			starpu_mpi_data_register(data_handles[x], x, 0);
 		}
 	}
 

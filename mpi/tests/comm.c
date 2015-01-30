@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 	}
 	else
 		starpu_variable_data_register(&data, -1, (uintptr_t)NULL, sizeof(unsigned));
-	starpu_mpi_data_register(data, 42, 0, newcomm);
+	starpu_mpi_data_register_comm(data, 42, 0, newcomm);
 	FPRINTF_MPI(stderr, "[%d] Registering data %p with tag %d and node %d\n", newrank, data, 42, 0);
 
 	if (newrank == 0)

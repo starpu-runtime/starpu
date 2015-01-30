@@ -34,7 +34,7 @@ void test_handle_irecv_isend_detached(starpu_data_handle_t *handles, int nb_hand
 
 	for(i=0 ; i<nb_handles ; i++)
 	{
-		starpu_mpi_data_register(handles[i], i+tag, 1, MPI_COMM_WORLD);
+		starpu_mpi_data_register(handles[i], i+tag, 1);
 	}
 
 	for(i=0 ; i<nb_handles ; i++)

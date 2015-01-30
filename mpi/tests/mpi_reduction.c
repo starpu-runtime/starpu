@@ -123,11 +123,11 @@ int main(int argc, char **argv)
 		}
 		if (handles[x])
 		{
-			starpu_mpi_data_register(handles[x], x, mpi_rank, MPI_COMM_WORLD);
+			starpu_mpi_data_register(handles[x], x, mpi_rank);
 		}
 	}
 
-	starpu_mpi_data_register(dot_handle, nb_elements+1, 0, MPI_COMM_WORLD);
+	starpu_mpi_data_register(dot_handle, nb_elements+1, 0);
 	starpu_data_set_reduction_methods(dot_handle, &redux_codelet, &init_codelet);
 
 	for (i = 0; i < loops; i++)

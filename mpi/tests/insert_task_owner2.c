@@ -87,9 +87,9 @@ int main(int argc, char **argv)
 
 	for(i=0 ; i<3 ; i++)
 	{
-		starpu_mpi_data_register(data_handles[i], i, 0, MPI_COMM_WORLD);
+		starpu_mpi_data_register(data_handles[i], i, 0);
 	}
-	starpu_mpi_data_register(data_handles[3], 3, 1, MPI_COMM_WORLD);
+	starpu_mpi_data_register(data_handles[3], 3, 1);
 
 	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
 				     STARPU_R, data_handles[0], STARPU_RW, data_handles[1],

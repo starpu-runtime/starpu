@@ -75,7 +75,7 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 			//FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", rank, x, y);
 			starpu_vector_data_register(&data_handles[i], -1, (uintptr_t)NULL, N, sizeof(unsigned));
 		}
-		starpu_mpi_data_register(data_handles[i], i, mpi_rank, MPI_COMM_WORLD);
+		starpu_mpi_data_register(data_handles[i], i, mpi_rank);
 	}
 
 	for(i = 0; i < 5; i++)

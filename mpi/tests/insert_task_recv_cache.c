@@ -74,7 +74,7 @@ void test_cache(int rank, int size, char *enabled, size_t *comm_amount)
 			/* I don't own that index, but will need it for my computations */
 			starpu_vector_data_register(&data_handles[i], -1, (uintptr_t)NULL, N, sizeof(unsigned));
 		}
-		starpu_mpi_data_register(data_handles[i], i, mpi_rank, MPI_COMM_WORLD);
+		starpu_mpi_data_register(data_handles[i], i, mpi_rank);
 	}
 
 	// We call starpu_mpi_insert_task twice, when the cache is enabled, the 1st time puts the

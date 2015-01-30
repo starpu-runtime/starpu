@@ -64,7 +64,7 @@ int test(int rank, int node, int *before, int *after, int data_array)
 			starpu_variable_data_register(&data_handles[i], 0, (uintptr_t)&x[i], sizeof(int));
 		else
 			starpu_variable_data_register(&data_handles[i], -1, (uintptr_t)NULL, sizeof(int));
-		starpu_mpi_data_register(data_handles[i], i, i, MPI_COMM_WORLD);
+		starpu_mpi_data_register(data_handles[i], i, i);
 	}
 
 	switch(data_array)

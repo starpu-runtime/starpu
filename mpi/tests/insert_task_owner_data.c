@@ -67,8 +67,8 @@ int main(int argc, char **argv)
 		starpu_variable_data_register(&data_handles[1], -1, (uintptr_t)NULL, sizeof(x[1]));
 	}
 
-	starpu_mpi_data_register(data_handles[0], 0, 0, MPI_COMM_WORLD);
-	starpu_mpi_data_register(data_handles[1], 1, 1, MPI_COMM_WORLD);
+	starpu_mpi_data_register(data_handles[0], 0, 0);
+	starpu_mpi_data_register(data_handles[1], 1, 1);
 
 	err = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet,
 				     STARPU_RW, data_handles[0], STARPU_RW, data_handles[1],

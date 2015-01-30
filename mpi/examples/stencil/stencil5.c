@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 			}
 			if (data_handles[x][y])
 			{
-				starpu_mpi_data_register(data_handles[x][y], (y*X)+x, mpi_rank, MPI_COMM_WORLD);
+				starpu_mpi_data_register(data_handles[x][y], (y*X)+x, mpi_rank);
 			}
 		}
 	}
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 			{
 				/* Register newly-needed data */
 				starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(float));
-				starpu_mpi_data_register(data_handles[x][y], (y*X)+x, mpi_rank, MPI_COMM_WORLD);
+				starpu_mpi_data_register(data_handles[x][y], (y*X)+x, mpi_rank);
 			}
 			if (data_handles[x][y] && mpi_rank != starpu_mpi_data_get_rank(data_handles[x][y]))
 			{

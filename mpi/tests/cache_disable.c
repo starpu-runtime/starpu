@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 		starpu_variable_data_register(&data, 0, (uintptr_t)&val, sizeof(unsigned));
 	else
 		starpu_variable_data_register(&data, -1, (uintptr_t)NULL, sizeof(unsigned));
-	starpu_mpi_data_register(data, 42, 0, MPI_COMM_WORLD);
+	starpu_mpi_data_register(data, 42, 0);
 	FPRINTF_MPI(stderr, "Registering data %p with tag %d and node %d\n", data, 42, 0);
 
 	ret = starpu_mpi_insert_task(MPI_COMM_WORLD, &mycodelet_r, STARPU_R, data, STARPU_EXECUTE_ON_NODE, 1, 0);
