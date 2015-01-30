@@ -254,7 +254,7 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 			_starpu_task_insert_check_nb_buffers(cl, task, &allocated_buffers, current_buffer);
 
 			STARPU_TASK_SET_HANDLE((*task), handle, current_buffer);
-			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
+			if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
 				STARPU_TASK_SET_MODE(*task, mode, current_buffer);
 			else if (STARPU_CODELET_GET_MODE(cl, current_buffer))
 			{
@@ -308,7 +308,7 @@ void _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task **
 				{
 					(*task)->dyn_modes[i] = descrs[i].mode;
 				}
-				else if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS)
+				else if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
 					STARPU_TASK_SET_MODE(*task, descrs[i].mode, current_buffer);
 				else if (STARPU_CODELET_GET_MODE(cl, current_buffer))
 				{

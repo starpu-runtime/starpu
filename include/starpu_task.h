@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
@@ -249,7 +249,7 @@ struct starpu_task
 						(((task)->dyn_modes) ? (task)->dyn_modes[i] : (task)->modes[i]) : \
 						STARPU_CODELET_GET_MODE((task)->cl, i) )
 #define STARPU_TASK_SET_MODE(task, mode, i) do { \
-					if ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS) \
+					if ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->cl->nbuffers > STARPU_NMAXBUFS) \
 						if ((task)->dyn_modes) (task)->dyn_modes[i] = mode; else (task)->modes[i] = mode; \
 					else \
 						STARPU_CODELET_SET_MODE((task)->cl, mode, i); \
