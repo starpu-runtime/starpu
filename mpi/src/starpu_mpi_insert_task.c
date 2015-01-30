@@ -44,7 +44,7 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 	if (data && mode & STARPU_R)
 	{
 		struct starpu_data_interface_ops *ops;
-		int rank = starpu_data_get_rank(data);
+		int rank = starpu_mpi_data_get_rank(data);
 
 		ops = data->ops;
 		size_on_nodes[rank] += ops->get_size(data);
@@ -64,7 +64,7 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 			_STARPU_MPI_LOG_OUT();
 			return -EINVAL;
 		}
-		int mpi_rank = starpu_data_get_rank(data);
+		int mpi_rank = starpu_mpi_data_get_rank(data);
 		if (mpi_rank == me)
 		{
 			if (*do_execute == 0)
@@ -102,16 +102,16 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 {
 	if (data && mode & STARPU_R)
 	{
-		int mpi_rank = starpu_data_get_rank(data);
-		int mpi_tag = starpu_data_get_tag(data);
+		int mpi_rank = starpu_mpi_data_get_rank(data);
+		int mpi_tag = starpu_mpi_data_get_tag(data);
 		if (mpi_rank == -1)
 		{
-			fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
+			fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 			STARPU_ABORT();
 		}
 		if (mpi_tag == -1)
 		{
-			fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
+			fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 			STARPU_ABORT();
 		}
 
@@ -149,16 +149,16 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 {
 	if (mode & STARPU_W)
 	{
-		int mpi_rank = starpu_data_get_rank(data);
-		int mpi_tag = starpu_data_get_tag(data);
+		int mpi_rank = starpu_mpi_data_get_rank(data);
+		int mpi_tag = starpu_mpi_data_get_tag(data);
 		if(mpi_rank == -1)
 		{
-			fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
+			fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 			STARPU_ABORT();
 		}
 		if(mpi_tag == -1)
 		{
-			fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
+			fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 			STARPU_ABORT();
 		}
 		if (mpi_rank == me)
@@ -193,7 +193,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 		/* We allocated a temporary buffer for the received data, now drop it */
 		if ((mode & STARPU_R) && do_execute)
 		{
-			int mpi_rank = starpu_data_get_rank(data);
+			int mpi_rank = starpu_mpi_data_get_rank(data);
 			if (mpi_rank != me && mpi_rank != -1)
 			{
 				starpu_data_invalidate_submit(data);
@@ -236,7 +236,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 		else if (arg_type==STARPU_EXECUTE_ON_DATA)
 		{
 			starpu_data_handle_t data = va_arg(varg_list, starpu_data_handle_t);
-			xrank = starpu_data_get_rank(data);
+			xrank = starpu_mpi_data_get_rank(data);
 			STARPU_ASSERT_MSG(xrank != -1, "Rank of the data must be set using starpu_mpi_data_register() or starpu_data_set_rank()");
 			_STARPU_MPI_DEBUG(1, "Executing on data node %d\n", xrank);
 			STARPU_ASSERT_MSG(xrank <= nb_nodes, "Node %d to execute codelet is not a valid node (%d)", xrank, nb_nodes);
@@ -599,15 +599,15 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 {
 	int me, rank, tag;
 
-	rank = starpu_data_get_rank(data_handle);
-	tag = starpu_data_get_tag(data_handle);
+	rank = starpu_mpi_data_get_rank(data_handle);
+	tag = starpu_mpi_data_get_tag(data_handle);
 	if (rank == -1)
 	{
-		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
+		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 	}
 	if (tag == -1)
 	{
-		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
+		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 	}
 	MPI_Comm_rank(comm, &me);
 
@@ -627,16 +627,16 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 {
 	int me, rank, tag;
 
-	rank = starpu_data_get_rank(data_handle);
-	tag = starpu_data_get_tag(data_handle);
+	rank = starpu_mpi_data_get_rank(data_handle);
+	tag = starpu_mpi_data_get_tag(data_handle);
 	if (rank == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
+		fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		STARPU_ABORT();
 	}
 	if (tag == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
+		fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 		STARPU_ABORT();
 	}
 	MPI_Comm_rank(comm, &me);
@@ -660,16 +660,16 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 {
 	int me, rank, tag, nb_nodes;
 
-	rank = starpu_data_get_rank(data_handle);
-	tag = starpu_data_get_tag(data_handle);
+	rank = starpu_mpi_data_get_rank(data_handle);
+	tag = starpu_mpi_data_get_tag(data_handle);
 	if (rank == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_data_set_rank\n");
+		fprintf(stderr,"StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		STARPU_ABORT();
 	}
 	if (tag == -1)
 	{
-		fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_data_set_tag\n");
+		fprintf(stderr,"StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 		STARPU_ABORT();
 	}
 

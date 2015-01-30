@@ -31,6 +31,11 @@ New features:
   * New environment variable STARPU_PERF_MODEL_DIR which can be set to
     specify a directory where to store performance model files in.
     When unset, the files are stored in $STARPU_HOME/.starpu/sampling
+  * MPI:
+      - It is now mandatory to call the function
+        starpu_mpi_data_register to register a MPI data.
+      - New function starpu_mpi_data_update_rank to update the rank of
+        a given data.
 
 Small features:
   * Add starpu_memory_wait_available() to wait for a given size to become

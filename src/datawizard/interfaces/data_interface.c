@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -130,8 +130,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 	handle->father_handle = NULL;
 	handle->sibling_index = 0; /* could be anything for the root */
 	handle->depth = 1; /* the tree is just a node yet */
-        handle->rank = -1; /* invalid until set */
-	handle->tag = -1; /* invalid until set */
+        handle->mpi_data = NULL; /* invalid until set */
 
 	handle->is_not_important = 0;
 
@@ -260,6 +259,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 
 	handle->ops = interface_ops;
 	handle->mf_node = mf_node;
+	handle->mpi_data = NULL;
 
 	size_t interfacesize = interface_ops->interface_size;
 
@@ -290,9 +290,6 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 		STARPU_ASSERT(replicate->data_interface);
 
 	}
-
-	handle->tag = -1;
-	handle->rank = -1;
 
 	return 0;
 }
@@ -345,50 +342,6 @@ void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
 {
 	return starpu_data_handle_to_pointer(handle,
 					_starpu_memory_node_get_local_key());
-}
-
-int starpu_data_get_rank(starpu_data_handle_t handle)
-{
-	return handle->rank;
-}
-
-int _starpu_data_set_rank(starpu_data_handle_t handle, int rank)
-{
-        handle->rank = rank;
-        return 0;
-}
-
-int starpu_data_set_rank(starpu_data_handle_t handle, int rank)
-{
-	static int first=1;
-	if (first)
-	{
-		_STARPU_DISP("Warning: You should call starpu_mpi_data_register which will insure MPI cache will be cleared when unregistering the data\n");
-		first=0;
-	}
-	return _starpu_data_set_rank(handle, rank);
-}
-
-int starpu_data_get_tag(starpu_data_handle_t handle)
-{
-	return handle->tag;
-}
-
-int _starpu_data_set_tag(starpu_data_handle_t handle, int tag)
-{
-        handle->tag = tag;
-        return 0;
-}
-
-int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
-{
-	static int first=1;
-	if (first)
-	{
-		_STARPU_DISP("Warning: You should call starpu_mpi_data_register which will insure MPI cache will be cleared when unregistering the data\n");
-		first=0;
-	}
-	return _starpu_data_set_tag(handle, tag);
 }
 
 /*

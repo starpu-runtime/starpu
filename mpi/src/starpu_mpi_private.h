@@ -126,6 +126,13 @@ LIST_TYPE(_starpu_mpi_req,
 	MPI_Request size_req;
 );
 
+struct _starpu_mpi_data
+{
+	int tag;
+	int rank;
+	MPI_Comm comm;
+};
+
 #ifdef __cplusplus
 }
 #endif

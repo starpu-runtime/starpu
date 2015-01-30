@@ -1072,21 +1072,46 @@ int starpu_mpi_shutdown(void)
 
 void _starpu_mpi_clear_cache(starpu_data_handle_t data_handle)
 {
-	starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handle);
+	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
+	starpu_mpi_cache_flush(mpi_data->comm, data_handle);
+	free(data_handle->mpi_data);
 }
 
-void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int rank)
+void starpu_mpi_data_update_rank(starpu_data_handle_t data_handle, int rank, MPI_Comm comm)
 {
-#ifdef STARPU_DEVEL
-#warning see if the following code is really needed, it deadlocks some applications
-#if 0
-	int my;
-	MPI_Comm_rank(MPI_COMM_WORLD, &my);
-	if (my != rank)
-		STARPU_ASSERT_MSG(data_handle->home_node == -1, "Data does not belong to node %d, it should be assigned a home node -1", my);
-#endif
-#endif
-	_starpu_data_set_rank(data_handle, rank);
-	_starpu_data_set_tag(data_handle, tag);
+	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
+	mpi_data->rank = rank;
+	mpi_data->comm = comm;
+}
+
+void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int rank, MPI_Comm comm)
+{
+	struct _starpu_mpi_data *mpi_data = malloc(sizeof(struct _starpu_mpi_data));
+	mpi_data->tag = tag;
+	mpi_data->rank = rank;
+	mpi_data->comm = comm;
+	data_handle->mpi_data = mpi_data;
 	_starpu_data_set_unregister_hook(data_handle, _starpu_mpi_clear_cache);
+}
+
+int starpu_data_set_rank(starpu_data_handle_t handle, int rank)
+{
+	STARPU_ASSERT_MSG(0, "The function 'starpu_data_set_rank' is no longer supported. Call starpu_mpi_data_register instead\n");
+}
+
+int starpu_data_set_tag(starpu_data_handle_t handle, int tag)
+{
+	STARPU_ASSERT_MSG(0, "The function 'starpu_data_set_tag' is no longer supported. Call starpu_mpi_data_register instead\n");
+}
+
+int starpu_mpi_data_get_rank(starpu_data_handle_t data)
+{
+	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
+	return ((struct _starpu_mpi_data *)(data->mpi_data))->rank;
+}
+
+int starpu_mpi_data_get_tag(starpu_data_handle_t data)
+{
+	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
+	return ((struct _starpu_mpi_data *)(data->mpi_data))->tag;
 }
