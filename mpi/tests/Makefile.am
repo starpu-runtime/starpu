@@ -98,6 +98,7 @@ starpu_mpi_TESTS =				\
 	matrix					\
 	matrix2					\
 	insert_task				\
+	insert_task_cache			\
 	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
@@ -109,7 +110,8 @@ starpu_mpi_TESTS =				\
 	multiple_send				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
-	user_defined_datatype
+	user_defined_datatype			\
+	comm
 
 noinst_PROGRAMS =				\
 	datatypes				\
@@ -133,6 +135,7 @@ noinst_PROGRAMS =				\
 	matrix					\
 	matrix2					\
 	insert_task				\
+	insert_task_cache			\
 	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
@@ -144,7 +147,8 @@ noinst_PROGRAMS =				\
 	multiple_send				\
 	mpi_scatter_gather			\
 	mpi_reduction				\
-	user_defined_datatype
+	user_defined_datatype			\
+	comm
 
 mpi_isend_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -188,6 +192,8 @@ matrix2_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+insert_task_cache_LDADD =				\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_compute_LDADD =				\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 insert_task_sent_cache_LDADD =				\
@@ -211,6 +217,8 @@ mpi_scatter_gather_LDADD =			\
 mpi_reduction_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 user_defined_datatype_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+comm_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 
 ring_SOURCES = ring.c
