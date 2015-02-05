@@ -157,7 +157,8 @@ showcheck:
 	done
 
 ctags-local:
-	$(CTAGS) -R -I LIST_TYPE
+	cd $(top_srcdir) ; $(CTAGS) -R -I LIST_TYPE
+	sed -i $(top_srcdir)/tags -e '/^[^	]* [^	]*	/d' -e '/^[^	]*$$/d' 
 
 
 # Cyclomatic complexity reports.
