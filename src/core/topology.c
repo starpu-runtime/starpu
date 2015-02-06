@@ -1626,7 +1626,7 @@ starpu_topology_print (FILE *output)
 			{
 				struct _starpu_worker *workerarg = &config->workers[worker];
 
-				if (workerarg->bindid == pu)
+				if (workerarg->bindid == (int) pu)
 				{
 					char name[256];
 					starpu_worker_get_name (worker, name,
