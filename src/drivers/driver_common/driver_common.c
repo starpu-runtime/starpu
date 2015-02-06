@@ -468,7 +468,9 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 	struct _starpu_job * j;
 	int is_parallel_task;
 	struct _starpu_combined_worker *combined_worker;
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 	int executing = 0;
+#endif
 	/*for each worker*/
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	/* This assumes only 1 worker */
@@ -477,10 +479,12 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 #endif
 	for (i = 0; i < nworkers; i++)
 	{
+#ifndef STARPU_NON_BLOCKING_DRIVERS
 		if ((workers[i].pipeline_length == 0 && workers[i].current_task)
 			|| (workers[i].pipeline_length != 0 && workers[i].ntasks))
 			/* At least this worker is executing something */
 			executing = 1;
+#endif
 		/*if the worker is already executing a task then */
 		if((workers[i].pipeline_length == 0 && workers[i].current_task)
 			|| (workers[i].pipeline_length != 0 &&

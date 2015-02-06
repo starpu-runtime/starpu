@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2013 Corentin Salingue
  *
@@ -66,18 +66,23 @@ struct dev_timing
 static double bandwidth_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static double latency_matrix[STARPU_MAXNODES][STARPU_MAXNODES];
 static unsigned was_benchmarked = 0;
+#ifndef STARPU_SIMGRID
 static unsigned ncpus = 0;
+#endif
 static unsigned ncuda = 0;
 static unsigned nopencl = 0;
 static unsigned nmic = 0;
 
 /* Benchmarking the performance of the bus */
 
+#ifndef STARPU_SIMGRID
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
+#endif
 #ifdef STARPU_USE_CUDA
 /* preference order of cores (logical indexes) */
 static int cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXCPUS];
 
+#ifndef STARPU_SIMGRID
 static double cudadev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_latency_htod[STARPU_MAXNODES] = {0.0};
 static double cudadev_timing_dtoh[STARPU_MAXNODES] = {0.0};
@@ -86,17 +91,22 @@ static double cudadev_latency_dtoh[STARPU_MAXNODES] = {0.0};
 static double cudadev_timing_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 #endif
+#endif
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
 
+#ifndef STARPU_SIMGRID
 static uint64_t opencl_size[STARPU_MAXCUDADEVS];
+#endif
 #ifdef STARPU_USE_OPENCL
 /* preference order of cores (logical indexes) */
 static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXCPUS];
+#ifndef STARPU_SIMGRID
 static double opencldev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double opencldev_latency_htod[STARPU_MAXNODES] = {0.0};
 static double opencldev_timing_dtoh[STARPU_MAXNODES] = {0.0};
 static double opencldev_latency_dtoh[STARPU_MAXNODES] = {0.0};
+#endif
 static struct dev_timing opencldev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
 

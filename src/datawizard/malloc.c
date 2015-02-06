@@ -226,7 +226,9 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 				ret = -ENOMEM;
 		}
 
+#ifndef STARPU_SIMGRID
 end:
+#endif
 	if (ret == 0)
 	{
 		STARPU_ASSERT_MSG(*A, "Failed to allocated memory of size %ld b\n", dim);
@@ -358,7 +360,9 @@ int starpu_free_flags(void *A, size_t dim, int flags)
 	} else
 	free(A);
 
+#ifndef STARPU_SIMGRID
 out:
+#endif
 	if (flags & STARPU_MALLOC_COUNT)
 	{
 		starpu_memory_deallocate(STARPU_MAIN_RAM, dim);
@@ -382,7 +386,7 @@ _starpu_malloc_on_node(unsigned dst_node, size_t size)
 {
 	uintptr_t addr = 0;
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_SIMGRID)
 	cudaError_t status;
 #endif
 
