@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015 Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -81,10 +81,10 @@ _starpu_initialize_workers_deviceid (int *explicit_workers_gpuid,
 
 	*current = 0;
 
-	/* conf->workers_bindid indicates the successive logical PU identifier that
+	/* conf->workers_gpuid indicates the successive GPU identifier that
 	 * should be used to bind the workers. It should be either filled
 	 * according to the user's explicit parameters (from starpu_conf) or
-	 * according to the STARPU_WORKERS_CPUID env. variable. Otherwise, a
+	 * according to the STARPU_WORKERS_CUDAID env. variable. Otherwise, a
 	 * round-robin policy is used to distributed the workers over the
 	 * cores. */
 
@@ -509,7 +509,7 @@ _starpu_initialize_workers_bindid (struct _starpu_machine_config *config)
 		unsigned number_of_entries = 0;
 
 		char *endptr;
-		/* we use the content of the STARPU_WORKERS_CUDAID
+		/* we use the content of the STARPU_WORKERS_CPUID
 		 * env. variable */
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		{
@@ -1624,7 +1624,9 @@ starpu_topology_print (FILE *output)
 		{
 			if (worker < nworkers)
 			{
-				if (topology->workers_bindid[worker] == pu)
+				struct _starpu_worker *workerarg = &config->workers[worker];
+
+				if (workerarg->bindid == pu)
 				{
 					char name[256];
 					starpu_worker_get_name (worker, name,
