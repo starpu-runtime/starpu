@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2011, 2012, 2013       Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -232,11 +232,14 @@ static void assign_combinations_without_hwloc(struct starpu_worker_collection* w
 static void find_and_assign_combinations_without_hwloc(int *workerids, int nworkers)
 {
 	int i;
-	unsigned j;
 	unsigned sched_ctx_id  = starpu_sched_ctx_get_context();
 	if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 		sched_ctx_id = 0;
-	int min, max, mic_min, mic_max;
+	int min, max;
+#ifdef STARPU_USE_MIC
+	unsigned j;
+	int mic_min, mic_max;
+#endif
 
 	struct starpu_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 

@@ -1248,17 +1248,23 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	unsigned cuda_init[STARPU_MAXCUDADEVS] = { };
 	unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
+#ifndef STARPU_SIMGRID
 	unsigned cuda_bindid[STARPU_MAXCUDADEVS];
+#endif
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	unsigned opencl_init[STARPU_MAXOPENCLDEVS] = { };
 	unsigned opencl_memory_nodes[STARPU_MAXOPENCLDEVS];
+#ifndef STARPU_SIMGRID
 	unsigned opencl_bindid[STARPU_MAXOPENCLDEVS];
+#endif
 #endif
 #ifdef STARPU_USE_MIC
 	unsigned mic_init[STARPU_MAXMICDEVS] = { };
 	unsigned mic_memory_nodes[STARPU_MAXMICDEVS];
+#ifndef STARPU_SIGMRID
 	unsigned mic_bindid[STARPU_MAXMICDEVS];
+#endif
 #endif
 
 	unsigned worker;
@@ -1268,9 +1274,11 @@ _starpu_init_workers_binding (struct _starpu_machine_config *config, int no_mp_c
 		struct _starpu_worker *workerarg = &config->workers[worker];
 		unsigned devid = workerarg->devid;
 
+#ifndef STARPU_SIMGRID
 		/* Perhaps the worker has some "favourite" bindings  */
 		int *preferred_binding = NULL;
 		int npreferred = 0;
+#endif
 
 		/* select the memory node that contains worker's memory */
 		switch (workerarg->arch)

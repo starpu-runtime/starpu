@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
@@ -678,8 +678,10 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 
 	if (worker->ntasks)
 	{
+#ifndef STARPU_SIMGRID
 		size_t size;
 		int err;
+#endif
 
 		/* On-going asynchronous task, check for its termination first */
 

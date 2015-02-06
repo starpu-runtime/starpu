@@ -21,7 +21,7 @@
 
 #ifdef STARPU_SIMGRID
 #include <xbt/synchro_core.h>
-#endif
+#else
 
 #if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
 #include <linux/futex.h>
@@ -37,6 +37,7 @@ static int _starpu_futex_wake = FUTEX_WAKE;
 #endif
 
 #endif
+#endif /* !STARPU_SIMGRID */
 
 #ifdef STARPU_SIMGRID
 
@@ -75,22 +76,22 @@ int starpu_pthread_exit(void *retval)
 }
 
 
-int starpu_pthread_attr_init(starpu_pthread_attr_t *attr)
+int starpu_pthread_attr_init(starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
 
-int starpu_pthread_attr_destroy(starpu_pthread_attr_t *attr)
+int starpu_pthread_attr_destroy(starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
 
-int starpu_pthread_attr_setdetachstate(starpu_pthread_attr_t *attr, int detachstate)
+int starpu_pthread_attr_setdetachstate(starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, int detachstate STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
 
-int starpu_pthread_mutex_init(starpu_pthread_mutex_t *mutex, const starpu_pthread_mutexattr_t *mutexattr)
+int starpu_pthread_mutex_init(starpu_pthread_mutex_t *mutex, const starpu_pthread_mutexattr_t *mutexattr STARPU_ATTRIBUTE_UNUSED)
 {
 	*mutex = xbt_mutex_init();
 	return 0;
@@ -144,22 +145,22 @@ int starpu_pthread_mutex_trylock(starpu_pthread_mutex_t *mutex)
 	return ret;
 }
 
-int starpu_pthread_mutexattr_gettype(const starpu_pthread_mutexattr_t *attr, int *type)
+int starpu_pthread_mutexattr_gettype(const starpu_pthread_mutexattr_t *attr STARPU_ATTRIBUTE_UNUSED, int *type STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
 
-int starpu_pthread_mutexattr_settype(starpu_pthread_mutexattr_t *attr, int type)
+int starpu_pthread_mutexattr_settype(starpu_pthread_mutexattr_t *attr STARPU_ATTRIBUTE_UNUSED, int type STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
 
-int starpu_pthread_mutexattr_destroy(starpu_pthread_mutexattr_t *attr)
+int starpu_pthread_mutexattr_destroy(starpu_pthread_mutexattr_t *attr STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
 
-int starpu_pthread_mutexattr_init(starpu_pthread_mutexattr_t *attr)
+int starpu_pthread_mutexattr_init(starpu_pthread_mutexattr_t *attr STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
@@ -205,7 +206,7 @@ void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 	return array[key];
 }
 
-int starpu_pthread_cond_init(starpu_pthread_cond_t *cond, starpu_pthread_condattr_t *cond_attr)
+int starpu_pthread_cond_init(starpu_pthread_cond_t *cond, starpu_pthread_condattr_t *cond_attr STARPU_ATTRIBUTE_UNUSED)
 {
 	*cond = xbt_cond_init();
 	return 0;
@@ -247,7 +248,7 @@ int starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
 	return 0;
 }
 
-int starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *restrict rwlock, const starpu_pthread_rwlockattr_t *restrict attr)
+int starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *restrict rwlock, const starpu_pthread_rwlockattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED)
 {
 	return starpu_pthread_mutex_init(rwlock, NULL);
 }
@@ -312,7 +313,7 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 }
 
 #if defined(STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT)
-int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr, unsigned count)
+int starpu_pthread_barrier_init(starpu_pthread_barrier_t *restrict barrier, const starpu_pthread_barrierattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED, unsigned count)
 {
 	*barrier = xbt_barrier_init(count);
 	return 0;

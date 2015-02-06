@@ -221,6 +221,7 @@ static void insert_history_entry(struct starpu_perfmodel_history_entry *entry, s
 	HASH_ADD_UINT32_T(*history_ptr, footprint, table);
 }
 
+#ifndef STARPU_SIMGRID
 static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, int impl)
 {
 	struct starpu_perfmodel_per_arch *per_arch_model;
@@ -259,6 +260,7 @@ static void dump_reg_model(FILE *f, struct starpu_perfmodel *model, int comb, in
 	fprintf(f, "# a\t\tb\t\tc\n");
 	fprintf(f, "%-15le\t%-15le\t%-15le\n", a, b, c);
 }
+#endif
 
 static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *reg_model)
 {
@@ -301,10 +303,12 @@ static void scan_reg_model(FILE *f, struct starpu_perfmodel_regression_model *re
 	reg_model->nl_valid = !nl_invalid && VALID_REGRESSION(reg_model);
 }
 
+#ifndef STARPU_SIMGRID
 static void dump_history_entry(FILE *f, struct starpu_perfmodel_history_entry *entry)
 {
 	fprintf(f, "%08x\t%-15lu\t%-15le\t%-15le\t%-15le\t%-15le\t%-15le\t%u\n", entry->footprint, (unsigned long) entry->size, entry->flops, entry->mean, entry->deviation, entry->sum, entry->sum2, entry->nsample);
 }
+#endif
 
 static void scan_history_entry(FILE *f, struct starpu_perfmodel_history_entry *entry)
 {
@@ -526,6 +530,7 @@ static void parse_model_file(FILE *f, struct starpu_perfmodel *model, unsigned s
 		parse_comb(f, model, scan_history, comb);
 }
 
+#ifndef STARPU_SIMGRID
 static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, int comb, unsigned impl)
 {
 	struct starpu_perfmodel_per_arch *per_arch_model;
@@ -621,6 +626,7 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		}
 	}
 }
+#endif
 
 void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb)
 {
@@ -731,6 +737,7 @@ static void get_model_path(struct starpu_perfmodel *model, char *path, size_t ma
 	}
 }
 
+#ifndef STARPU_SIMGRID
 static void save_history_based_model(struct starpu_perfmodel *model)
 {
 	STARPU_ASSERT(model);
@@ -756,6 +763,7 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 
 	fclose(f);
 }
+#endif
 
 static void _starpu_dump_registered_models(void)
 {

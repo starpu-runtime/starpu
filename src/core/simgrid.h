@@ -41,6 +41,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 int _starpu_simgrid_get_nbhosts(const char *prefix);
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid);
 msg_host_t _starpu_simgrid_get_host_by_name(const char *name);
+struct _starpu_worker;
 msg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker);
 void _starpu_simgrid_get_platform_path(char *path, size_t maxlen);
 msg_as_t _starpu_simgrid_get_as_by_name(const char *name);
