@@ -43,7 +43,7 @@ static int _starpu_futex_wake = FUTEX_WAKE;
 
 extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
 
-int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr, void *(*start_routine) (void *), void *arg, msg_host_t host)
+int starpu_pthread_create_on(char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, msg_host_t host)
 {
 	struct _starpu_pthread_args *_args = malloc(sizeof(*_args));
 	_args->f = start_routine;
@@ -59,7 +59,7 @@ int starpu_pthread_create(starpu_pthread_t *thread, const starpu_pthread_attr_t 
 	return starpu_pthread_create_on("", thread, attr, start_routine, arg, NULL);
 }
 
-int starpu_pthread_join(starpu_pthread_t thread, void **retval)
+int starpu_pthread_join(starpu_pthread_t thread STARPU_ATTRIBUTE_UNUSED, void **retval STARPU_ATTRIBUTE_UNUSED)
 {
 #if 0 //def HAVE_MSG_PROCESS_JOIN
 	MSG_process_join(thread, 100);
@@ -69,7 +69,7 @@ int starpu_pthread_join(starpu_pthread_t thread, void **retval)
 	return 0;
 }
 
-int starpu_pthread_exit(void *retval)
+int starpu_pthread_exit(void *retval STARPU_ATTRIBUTE_UNUSED)
 {
 	MSG_process_kill(MSG_process_self());
 	return 0;
