@@ -138,6 +138,8 @@ int starpu_malloc_flags(void **A, size_t dim, int flags)
 #else
 			int push_res;
 
+			/* Old versions of CUDA are not thread-safe, we have to
+			 * run cudaHostAlloc from CUDA workers */
 			STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "without CUDA peer allocation support, pinned allocation must not be done from task or callback");
 
 			struct malloc_pinned_codelet_struct s =
