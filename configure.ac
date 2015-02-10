@@ -128,9 +128,9 @@ AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
 ###############################################################################
 
 AC_ARG_ENABLE(mic, [AS_HELP_STRING([--enable-mic],
-	      [use MIC device(s)])], [enable_mic=yes], [enable_mic=no])
+	      [use MIC device(s)])], [enable_mic=$enableval], [enable_mic=no])
 AC_ARG_ENABLE(mic-rma, [AS_HELP_STRING([--disable-mic-rma],
-	      [use MIC RMA transfer])], [], [enable_mic_rma=yes])
+	      [use MIC RMA transfer])], [enable_mic_rma=$enableval], [enable_mic_rma=yes])
 
 if test x$enable_mic = xyes ; then
 	AC_DEFINE(STARPU_USE_MIC, [1], [MIC workers support is enabled])
