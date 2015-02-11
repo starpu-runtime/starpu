@@ -48,10 +48,12 @@ void test(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, sta
 {
 	void *ptr;
 	int ret;
+	struct starpu_task *task;
 
 	// We call starpu_mpi_task_build() and starpu_mpi_task_post_build() instead of
 	// starpu_mpi_task_insert() to avoid executing the codelet as we just want to test the cache mechanism
-	starpu_mpi_task_build(MPI_COMM_WORLD, codelet, mode, data, STARPU_EXECUTE_ON_NODE, 1, 0);
+	task = starpu_mpi_task_build(MPI_COMM_WORLD, codelet, mode, data, STARPU_EXECUTE_ON_NODE, 1, 0);
+	starpu_task_destroy(task);
 	ret = starpu_mpi_task_post_build(MPI_COMM_WORLD, codelet, mode, data, STARPU_EXECUTE_ON_NODE, 1, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_task_post_build");
 
