@@ -143,6 +143,7 @@ enodev:
 	{
 		FPRINTF_MPI(stderr, "[end of loop] no computation on this node\n");
 		ret = 0;
+		free(x);
 	}
 
 	starpu_mpi_shutdown();
