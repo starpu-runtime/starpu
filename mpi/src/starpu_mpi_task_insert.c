@@ -487,6 +487,8 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 		_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute, comm);
 	}
 
+	free(descrs);
+
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
