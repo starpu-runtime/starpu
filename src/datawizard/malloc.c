@@ -288,7 +288,7 @@ static struct starpu_codelet free_pinned_cl =
 int starpu_free_flags(void *A, size_t dim, int flags)
 {
 #ifndef STARPU_SIMGRID
-	if (flags & STARPU_MALLOC_PINNED)
+	if (flags & STARPU_MALLOC_PINNED && starpu_get_env_number("STARPU_DISABLE_PINNING") <= 0 && RUNNING_ON_VALGRIND == 0)
 	{
 		if (_starpu_can_submit_cuda_task())
 		{
