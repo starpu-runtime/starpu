@@ -456,8 +456,11 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 	}
 
 	if (xrank_p) *xrank_p = xrank;
-	if (descrs_p) *descrs_p = descrs;
 	if (nb_data_p) *nb_data_p = nb_data;
+	if (descrs_p)
+		*descrs_p = descrs;
+	else
+		free(descrs);
 
 	if (do_execute == 0) return 1;
 	else
