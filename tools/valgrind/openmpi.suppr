@@ -192,3 +192,39 @@
    ...
    fun:xmlParseElement
 }
+
+{
+   suppr25
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   ...
+   fun:ompi_datatype_commit
+   fun:PMPI_Type_commit
+}
+
+{
+   suppr26
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   fun:ompi_datatype_create_vector
+   fun:PMPI_Type_vector
+}
+
+{
+   suppr27
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   ...
+   fun:ompi_datatype_create_vector
+   fun:PMPI_Type_vector
+}
+
+{
+   suppr28
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:ompi_datatype_set_args
+   fun:PMPI_Type_vector
+}
