@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 	ptr = _starpu_mpi_cache_received_data_get(data, 0);
 	if (rank == 1)
 	{
-	     STARPU_ASSERT_MSG(ptr != NULL, "Data should be in cache\n");
+		STARPU_ASSERT_MSG(ptr != NULL, "Data should be in cache\n");
 	}
 
 	// We clean the cache
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 	ptr = _starpu_mpi_cache_received_data_get(data, 0);
 	if (rank == 1)
 	{
-	     STARPU_ASSERT_MSG(ptr == NULL, "Data should NOT be in cache\n");
+		STARPU_ASSERT_MSG(ptr == NULL, "Data should NOT be in cache\n");
 	}
 
 	ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_r, STARPU_R, data, STARPU_EXECUTE_ON_NODE, 1, 0);
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 	ptr = _starpu_mpi_cache_received_data_get(data, 0);
 	if (rank == 1)
 	{
-	     STARPU_ASSERT_MSG(ptr == NULL, "Data should NOT be in cache\n");
+		STARPU_ASSERT_MSG(ptr == NULL, "Data should NOT be in cache\n");
 	}
 
 	FPRINTF(stderr, "Waiting ...\n");
