@@ -21,7 +21,7 @@
 #include <starpu_mpi_private.h>
 #include <starpu_profiling.h>
 #include <starpu_mpi_stats.h>
-#include <starpu_mpi_task_insert.h>
+#include <starpu_mpi_cache.h>
 #include <starpu_mpi_early_data.h>
 #include <starpu_mpi_early_request.h>
 #include <starpu_mpi_select_node.h>

@@ -36,7 +36,6 @@ noinst_HEADERS =					\
 	starpu_mpi_private.h				\
 	starpu_mpi_fxt.h				\
 	starpu_mpi_stats.h				\
-	starpu_mpi_task_insert.h			\
 	starpu_mpi_datatype.h				\
 	starpu_mpi_cache.h				\
 	starpu_mpi_select_node.h			\
