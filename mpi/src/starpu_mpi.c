@@ -615,6 +615,10 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 
 	/* The internal request structure was automatically allocated */
 	*public_req = NULL;
+	if (req->internal_req)
+	{
+		free(req->internal_req); req->internal_req = NULL;
+	}
 	free(req);
 
 	free(waiting_req);
@@ -704,6 +708,10 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 			 * request structure which was automatically allocated
 			 * */
 			*public_req = NULL;
+			if (req->internal_req)
+			{
+				free(req->internal_req); req->internal_req = NULL;
+			}
 			free(req);
 		}
 
