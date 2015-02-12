@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009, 2010, 2014  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,13 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu_mpi.h>
+#include "mpi_cholesky.h"
 #include <common/blas.h>
-#include "mpi_decomposition_params.h"
-#include "mpi_decomposition_matrix.h"
-#include "mpi_cholesky_models.h"
-#include "mpi_cholesky_codelets.h"
-#include "mpi_cholesky_kernels.h"
 #include <sys/time.h>
 
 /*
