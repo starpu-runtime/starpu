@@ -21,8 +21,6 @@
 #include <common/utils.h>
 #include <core/task.h>
 
-typedef void (*_starpu_callback_func_t)(void *);
-
 /* Deal with callbacks. The unpack function may be called multiple times when
  * we have a parallel task, and we should not free the cl_arg parameter from
  * the callback function. */
