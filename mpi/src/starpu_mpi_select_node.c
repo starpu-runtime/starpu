@@ -22,7 +22,6 @@
 #include <starpu_data.h>
 #include <starpu_mpi_private.h>
 #include <starpu_mpi_select_node.h>
-#include <starpu_mpi_task_insert.h>
 #include <datawizard/coherency.h>
 
 static int _current_policy = STARPU_MPI_NODE_SELECTION_MOST_R_DATA;

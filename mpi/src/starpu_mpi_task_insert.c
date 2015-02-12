@@ -27,7 +27,6 @@
 #include <core/task.h>
 
 #include <starpu_mpi_private.h>
-#include <starpu_mpi_task_insert.h>
 #include <starpu_mpi_cache.h>
 #include <starpu_mpi_select_node.h>
 
