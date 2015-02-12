@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  Télécom-SudParis
  * Copyright (C) 2011, 2014  INRIA
  *
@@ -986,6 +986,11 @@ int starpu_task_nready(void)
 void _starpu_initialize_current_task_key(void)
 {
 	STARPU_PTHREAD_KEY_CREATE(&current_task_key, NULL);
+}
+
+void _starpu_deinitialize_current_task_key(void)
+{
+	STARPU_PTHREAD_KEY_DELETE(current_task_key);
 }
 
 /* Return the task currently executed by the worker, or NULL if this is called
