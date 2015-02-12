@@ -98,6 +98,7 @@ int main(int argc, char **argv)
 	if (rank == 1)
 	{
 		STARPU_ASSERT_MSG(task, "Task should be executed by rank 1\n");
+		task->destroy = 0;
 		starpu_task_destroy(task);
 	}
 	else
@@ -114,6 +115,7 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		STARPU_ASSERT_MSG(task, "Task should be executed by rank 0\n");
+		task->destroy = 0;
 		starpu_task_destroy(task);
 	}
 	else
