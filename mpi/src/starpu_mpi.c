@@ -1538,7 +1538,7 @@ void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int ran
 int starpu_mpi_comm_size(MPI_Comm comm, int *size)
 {
 #ifdef STARPU_SIMGRID
-	STARPU_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with COMM_WORLD for now");
+	STARPU_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
 	*size = _mpi_world_size;
 	return 0;
 #else
@@ -1549,7 +1549,7 @@ int starpu_mpi_comm_size(MPI_Comm comm, int *size)
 int starpu_mpi_comm_rank(MPI_Comm comm, int *rank)
 {
 #ifdef STARPU_SIMGRID
-	STARPU_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with COMM_WORLD for now");
+	STARPU_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
 	*rank = _mpi_world_rank;
 	return 0;
 #else
