@@ -635,7 +635,7 @@ static void _starpu_mpi_wait_func(struct _starpu_mpi_req *waiting_req)
 	_STARPU_MPI_TRACE_UWAIT_BEGIN(req->srcdst, req->data_tag);
 
 	req->ret = MPI_Wait(&req->request, waiting_req->status);
-	STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Wait returning %d", req->ret);
+	STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
 	_STARPU_MPI_TRACE_UWAIT_END(req->srcdst, req->data_tag);
 
@@ -707,7 +707,7 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	_STARPU_MPI_TRACE_UTESTING_BEGIN(req->srcdst, req->data_tag);
 
 	req->ret = MPI_Test(&req->request, testing_req->flag, testing_req->status);
-	STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %d", req->ret);
+	STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
 	_STARPU_MPI_TRACE_UTESTING_END(req->srcdst, req->data_tag);
 
@@ -800,7 +800,7 @@ static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 	_STARPU_MPI_LOG_IN();
 
 	barrier_req->ret = MPI_Barrier(barrier_req->comm);
-	STARPU_ASSERT_MSG(barrier_req->ret == MPI_SUCCESS, "MPI_Barrier returning %d", barrier_req->ret);
+	STARPU_ASSERT_MSG(barrier_req->ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_code(barrier_req->ret));
 
 	_starpu_mpi_handle_request_termination(barrier_req);
 	_STARPU_MPI_LOG_OUT();
@@ -885,8 +885,6 @@ static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type
 
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 {
-	int ret;
-
 	_STARPU_MPI_LOG_IN();
 
 	_STARPU_MPI_DEBUG(2, "complete MPI request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d internal_req %p\n",
@@ -912,8 +910,9 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 					// We need to make sure the communication for sending the size
 					// has completed, as MPI can re-order messages, let's call
 					// MPI_Wait to make sure data have been sent
+					int ret;
 					ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
-					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %d", ret);
+					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_code(ret));
 					free(req->ptr);
 				}
 				if (req->request_type == RECV_REQ)
@@ -1046,7 +1045,7 @@ static void _starpu_mpi_test_detached_requests(void)
 		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %d - TYPE %s %d\n", &req->request, req->data_tag, _starpu_mpi_request_type(req->request_type), req->srcdst);
 		req->ret = MPI_Test(&req->request, &flag, &status);
 
-		STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %d", req->ret);
+		STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
 		if (flag)
 		{
@@ -1486,7 +1485,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
 
 	ret = MPI_Barrier(MPI_COMM_WORLD);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier returning %d", ret);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_code(ret));
 
 	/* We generate a "unique" key so that we can make sure that different
 	 * FxT traces come from the same MPI run. */
@@ -1501,7 +1500,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	}
 
 	ret = MPI_Bcast(&random_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Bcast returning %d", ret);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Bcast returning %s", _starpu_mpi_get_mpi_code(ret));
 
 	_STARPU_MPI_TRACE_BARRIER(rank, worldsize, random_number);
 
