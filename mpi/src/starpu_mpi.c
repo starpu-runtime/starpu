@@ -83,7 +83,7 @@ extern int smpi_simulated_main_(int argc, char *argv[]);
 static void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 {
 	*req = malloc(sizeof(struct _starpu_mpi_req));
-	STARPU_ASSERT_MSG(*req, "Invalid request");
+	STARPU_MPI_ASSERT_MSG(*req, "Invalid request");
 
 	/* Initialize the request structure */
 	(*req)->data_handle = NULL;
@@ -174,7 +174,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 			{
 				STARPU_ASSERT(req->count);
 				req->ptr = malloc(req->count);
-				STARPU_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
+				STARPU_MPI_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
 			}
 
 			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n",
@@ -241,7 +241,7 @@ static void _starpu_mpi_submit_ready_request(void *arg)
 						req->count = sync_data_handle->req->count;
 						STARPU_ASSERT(req->count);
 						req->ptr = malloc(req->count);
-						STARPU_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
+						STARPU_MPI_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld\n", req->count);
 					}
 					_starpu_mpi_req_list_push_front(ready_requests, req);
 				}
@@ -325,13 +325,13 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	{
 		_STARPU_MPI_COMM_TO_DEBUG(req->count, req->datatype, req->srcdst, _STARPU_MPI_TAG_DATA);
 		 req->ret = MPI_Isend(req->ptr, req->count, req->datatype, req->srcdst, _STARPU_MPI_TAG_DATA, req->comm, &req->request);
-		 STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Isend returning %s", _starpu_mpi_get_mpi_code(req->ret));
+		 STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Isend returning %s", _starpu_mpi_get_mpi_code(req->ret));
 	 }
 	 else
 	 {
 		_STARPU_MPI_COMM_TO_DEBUG(req->count, req->datatype, req->srcdst, _STARPU_MPI_TAG_SYNC_DATA);
 		 req->ret = MPI_Issend(req->ptr, req->count, req->datatype, req->srcdst, _STARPU_MPI_TAG_SYNC_DATA, req->comm, &req->request);
-		 STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Issend returning %s", _starpu_mpi_get_mpi_code(req->ret));
+		 STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Issend returning %s", _starpu_mpi_get_mpi_code(req->ret));
 	 }
 
 	 _STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->srcdst, req->data_tag, 0);
@@ -382,7 +382,7 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 			req->count = req->envelope->size;
 			_STARPU_MPI_COMM_TO_DEBUG(sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, _STARPU_MPI_TAG_ENVELOPE);
 			ret = MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, _STARPU_MPI_TAG_ENVELOPE, req->comm, &req->size_req);
-			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %s", _starpu_mpi_get_mpi_code(ret));
+			STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %s", _starpu_mpi_get_mpi_code(ret));
  		}
 
  		// Pack the data
@@ -393,12 +393,12 @@ static void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 			_STARPU_MPI_DEBUG(1, "Sending size %ld (%ld %s) to node %d (second call to pack)\n", req->envelope->size, sizeof(req->count), _starpu_mpi_datatype(MPI_BYTE), req->srcdst);
 			_STARPU_MPI_COMM_TO_DEBUG(sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, _STARPU_MPI_TAG_ENVELOPE);
 			ret = MPI_Isend(req->envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, _STARPU_MPI_TAG_ENVELOPE, req->comm, &req->size_req);
-			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %s", _starpu_mpi_get_mpi_code(ret));
+			STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "when sending size, MPI_Isend returning %s", _starpu_mpi_get_mpi_code(ret));
  		}
  		else
  		{
  			// We check the size returned with the 2 calls to pack is the same
-			STARPU_ASSERT_MSG(req->count == req->envelope->size, "Calls to pack_data returned different sizes %ld != %ld", req->count, req->envelope->size);
+			STARPU_MPI_ASSERT_MSG(req->count == req->envelope->size, "Calls to pack_data returned different sizes %ld != %ld", req->count, req->envelope->size);
  		}
 		// We can send the data now
 	}
@@ -427,14 +427,14 @@ static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t dat
 int starpu_mpi_isend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int data_tag, MPI_Comm comm)
 {
 	_STARPU_MPI_LOG_IN();
-	STARPU_ASSERT_MSG(public_req, "starpu_mpi_isend needs a valid starpu_mpi_req");
+	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_isend needs a valid starpu_mpi_req");
 
 	struct _starpu_mpi_req *req;
 	_STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN(dest, data_tag, 0);
 	req = _starpu_mpi_isend_common(data_handle, dest, data_tag, comm, 0, 0, NULL, NULL, 1);
 	_STARPU_MPI_TRACE_ISEND_COMPLETE_END(dest, data_tag, 0);
 
-	STARPU_ASSERT_MSG(req, "Invalid return for _starpu_mpi_isend_common");
+	STARPU_MPI_ASSERT_MSG(req, "Invalid return for _starpu_mpi_isend_common");
 	*public_req = req;
 
 	_STARPU_MPI_LOG_OUT();
@@ -468,12 +468,12 @@ int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, int data_tag, MP
 int starpu_mpi_issend(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int dest, int data_tag, MPI_Comm comm)
 {
 	_STARPU_MPI_LOG_IN();
-	STARPU_ASSERT_MSG(public_req, "starpu_mpi_issend needs a valid starpu_mpi_req");
+	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_issend needs a valid starpu_mpi_req");
 
 	struct _starpu_mpi_req *req;
 	req = _starpu_mpi_isend_common(data_handle, dest, data_tag, comm, 0, 1, NULL, NULL, 1);
 
-	STARPU_ASSERT_MSG(req, "Invalid return for _starpu_mpi_isend_common");
+	STARPU_MPI_ASSERT_MSG(req, "Invalid return for _starpu_mpi_isend_common");
 	*public_req = req;
 
 	_STARPU_MPI_LOG_OUT();
@@ -512,7 +512,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 		_STARPU_MPI_DEBUG(20, "Telling node %d it can send the data and waiting for the data back ...\n", req->srcdst);
 		_STARPU_MPI_COMM_TO_DEBUG(sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, _STARPU_MPI_TAG_ENVELOPE);
 		req->ret = MPI_Send(_envelope, sizeof(struct _starpu_mpi_envelope), MPI_BYTE, req->srcdst, _STARPU_MPI_TAG_ENVELOPE, req->comm);
-		STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Send returning %s", _starpu_mpi_get_mpi_code(req->ret));
+		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Send returning %s", _starpu_mpi_get_mpi_code(req->ret));
 	}
 
 	if (req->sync)
@@ -525,7 +525,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 		_STARPU_MPI_COMM_FROM_DEBUG(req->count, req->datatype, req->srcdst, _STARPU_MPI_TAG_DATA);
 		req->ret = MPI_Irecv(req->ptr, req->count, req->datatype, req->srcdst, _STARPU_MPI_TAG_DATA, req->comm, &req->request);
 	}
-	STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_IRecv returning %s", _starpu_mpi_get_mpi_code(req->ret));
+	STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_IRecv returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_END(req->srcdst, req->data_tag);
 
@@ -548,7 +548,7 @@ static struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t dat
 int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_req, int source, int data_tag, MPI_Comm comm)
 {
 	_STARPU_MPI_LOG_IN();
-	STARPU_ASSERT_MSG(public_req, "starpu_mpi_irecv needs a valid starpu_mpi_req");
+	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_irecv needs a valid starpu_mpi_req");
 
 //	// We check if a tag is defined for the data handle, if not,
 //	// we define the one given for the communication.
@@ -561,7 +561,7 @@ int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 	_STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(source, data_tag);
 	req = _starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 0, 0, NULL, NULL, 1, 0, 0);
 	_STARPU_MPI_TRACE_IRECV_COMPLETE_END(source, data_tag);
-	STARPU_ASSERT_MSG(req, "Invalid return for _starpu_mpi_irecv_common");
+	STARPU_MPI_ASSERT_MSG(req, "Invalid return for _starpu_mpi_irecv_common");
 	*public_req = req;
 
 	_STARPU_MPI_LOG_OUT();
@@ -635,7 +635,7 @@ static void _starpu_mpi_wait_func(struct _starpu_mpi_req *waiting_req)
 	_STARPU_MPI_TRACE_UWAIT_BEGIN(req->srcdst, req->data_tag);
 
 	req->ret = MPI_Wait(&req->request, waiting_req->status);
-	STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_code(req->ret));
+	STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
 	_STARPU_MPI_TRACE_UWAIT_END(req->srcdst, req->data_tag);
 
@@ -707,7 +707,7 @@ static void _starpu_mpi_test_func(struct _starpu_mpi_req *testing_req)
 	_STARPU_MPI_TRACE_UTESTING_BEGIN(req->srcdst, req->data_tag);
 
 	req->ret = MPI_Test(&req->request, testing_req->flag, testing_req->status);
-	STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_code(req->ret));
+	STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
 	_STARPU_MPI_TRACE_UTESTING_END(req->srcdst, req->data_tag);
 
@@ -729,11 +729,11 @@ int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 	_STARPU_MPI_LOG_IN();
 	int ret = 0;
 
-	STARPU_ASSERT_MSG(public_req, "starpu_mpi_test needs a valid starpu_mpi_req");
+	STARPU_MPI_ASSERT_MSG(public_req, "starpu_mpi_test needs a valid starpu_mpi_req");
 
 	struct _starpu_mpi_req *req = *public_req;
 
-	STARPU_ASSERT_MSG(!req->detached, "MPI_Test cannot be called on a detached request");
+	STARPU_MPI_ASSERT_MSG(!req->detached, "MPI_Test cannot be called on a detached request");
 
 	STARPU_PTHREAD_MUTEX_LOCK(&req->req_mutex);
 	unsigned submitted = req->submitted;
@@ -800,7 +800,7 @@ static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 	_STARPU_MPI_LOG_IN();
 
 	barrier_req->ret = MPI_Barrier(barrier_req->comm);
-	STARPU_ASSERT_MSG(barrier_req->ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_code(barrier_req->ret));
+	STARPU_MPI_ASSERT_MSG(barrier_req->ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_code(barrier_req->ret));
 
 	_starpu_mpi_handle_request_termination(barrier_req);
 	_STARPU_MPI_LOG_OUT();
@@ -818,7 +818,7 @@ int starpu_mpi_barrier(MPI_Comm comm)
 	 * some tasks generate MPI requests, MPI requests generate tasks, etc.
 	 */
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
-	STARPU_ASSERT_MSG(!barrier_running, "Concurrent starpu_mpi_barrier is not implemented, even on different communicators");
+	STARPU_MPI_ASSERT_MSG(!barrier_running, "Concurrent starpu_mpi_barrier is not implemented, even on different communicators");
 	barrier_running = 1;
 	do
 	{
@@ -894,7 +894,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 	if (req->internal_req)
 	{
 		struct _starpu_mpi_early_data_handle *early_data_handle = _starpu_mpi_early_data_find(req->data_tag, req->srcdst);
-		STARPU_ASSERT_MSG(early_data_handle, "Could not find a copy data handle with the tag %d and the node %d\n", req->data_tag, req->srcdst);
+		STARPU_MPI_ASSERT_MSG(early_data_handle, "Could not find a copy data handle with the tag %d and the node %d\n", req->data_tag, req->srcdst);
 		_STARPU_MPI_DEBUG(3, "Handling deleting of early_data structure from the hashmap..\n");
 		_starpu_mpi_early_data_delete(early_data_handle);
 		free(early_data_handle);
@@ -912,7 +912,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 					// MPI_Wait to make sure data have been sent
 					int ret;
 					ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
-					STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_code(ret));
+					STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %s", _starpu_mpi_get_mpi_code(ret));
 					free(req->ptr);
 				}
 				if (req->request_type == RECV_REQ)
@@ -964,7 +964,7 @@ static void _starpu_mpi_early_data_cb(void* arg)
 		/* Data has been received as a raw memory, it has to be unpacked */
 		struct starpu_data_interface_ops *itf_src = starpu_data_get_interface_ops(args->early_handle);
 		struct starpu_data_interface_ops *itf_dst = starpu_data_get_interface_ops(args->data_handle);
-		STARPU_ASSERT_MSG(itf_dst->unpack_data, "The data interface does not define an unpack function\n");
+		STARPU_MPI_ASSERT_MSG(itf_dst->unpack_data, "The data interface does not define an unpack function\n");
 		itf_dst->unpack_data(args->data_handle, STARPU_MAIN_RAM, args->buffer, itf_src->get_size(args->early_handle));
 		free(args->buffer);
 	}
@@ -1045,7 +1045,7 @@ static void _starpu_mpi_test_detached_requests(void)
 		//_STARPU_MPI_DEBUG(3, "Test detached request %p - mpitag %d - TYPE %s %d\n", &req->request, req->data_tag, _starpu_mpi_request_type(req->request_type), req->srcdst);
 		req->ret = MPI_Test(&req->request, &flag, &status);
 
-		STARPU_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_code(req->ret));
+		STARPU_MPI_ASSERT_MSG(req->ret == MPI_SUCCESS, "MPI_Test returning %s", _starpu_mpi_get_mpi_code(req->ret));
 
 		if (flag)
 		{
@@ -1109,7 +1109,7 @@ static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
-	STARPU_ASSERT_MSG(req, "Invalid request");
+	STARPU_MPI_ASSERT_MSG(req, "Invalid request");
 
 	/* submit the request to MPI */
 	_STARPU_MPI_DEBUG(2, "Handling new request %p type %s tag %d src %d data %p ptr %p datatype '%s' count %d user_datatype %d \n",
@@ -1338,7 +1338,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				{
 					struct _starpu_mpi_sync_data_handle *_sync_data = _starpu_mpi_sync_data_find(envelope->data_tag, status.MPI_SOURCE);
 					_STARPU_MPI_DEBUG(2000, "Sending data with tag %d to node %d\n", _sync_data->req->data_tag, status.MPI_SOURCE);
-					STARPU_ASSERT_MSG(envelope->data_tag == _sync_data->req->data_tag, "Tag mismatch (envelope %d != req %d)\n", envelope->data_tag, _sync_data->req->data_tag);
+					STARPU_MPI_ASSERT_MSG(envelope->data_tag == _sync_data->req->data_tag, "Tag mismatch (envelope %d != req %d)\n", envelope->data_tag, _sync_data->req->data_tag);
 					STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 					_starpu_mpi_isend_data_func(_sync_data->req);
 					STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -1410,7 +1410,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 							early_request->count = envelope->size;
 							early_request->ptr = malloc(early_request->count);
 
-							STARPU_ASSERT_MSG(early_request->ptr, "cannot allocate message of size %ld\n", early_request->count);
+							STARPU_MPI_ASSERT_MSG(early_request->ptr, "cannot allocate message of size %ld\n", early_request->count);
 						}
 
 						_STARPU_MPI_DEBUG(3, "Handling new request... \n");
@@ -1440,9 +1440,9 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		envelope_request_submitted = 0;
 	}
 
-	STARPU_ASSERT_MSG(_starpu_mpi_req_list_empty(detached_requests), "List of detached requests not empty");
-	STARPU_ASSERT_MSG(_starpu_mpi_req_list_empty(ready_requests), "List of ready requests not empty");
-	STARPU_ASSERT_MSG(posted_requests == 0, "Number of posted request is not zero");
+	STARPU_MPI_ASSERT_MSG(_starpu_mpi_req_list_empty(detached_requests), "List of detached requests not empty");
+	STARPU_MPI_ASSERT_MSG(_starpu_mpi_req_list_empty(ready_requests), "List of ready requests not empty");
+	STARPU_MPI_ASSERT_MSG(posted_requests == 0, "Number of posted request is not zero");
 	_starpu_mpi_early_request_check_termination();
 	_starpu_mpi_early_data_check_termination();
 	_starpu_mpi_sync_data_check_termination();
@@ -1485,7 +1485,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
 
 	ret = MPI_Barrier(MPI_COMM_WORLD);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_code(ret));
+	STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_code(ret));
 
 	/* We generate a "unique" key so that we can make sure that different
 	 * FxT traces come from the same MPI run. */
@@ -1500,7 +1500,7 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	}
 
 	ret = MPI_Bcast(&random_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Bcast returning %s", _starpu_mpi_get_mpi_code(ret));
+	STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Bcast returning %s", _starpu_mpi_get_mpi_code(ret));
 
 	_STARPU_MPI_TRACE_BARRIER(rank, worldsize, random_number);
 
@@ -1528,7 +1528,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi)
 
 #ifdef STARPU_MPI_ACTIVITY
 	hookid = starpu_progression_hook_register(_starpu_mpi_progression_hook_func, NULL);
-	STARPU_ASSERT_MSG(hookid >= 0, "starpu_progression_hook_register failed");
+	STARPU_MPI_ASSERT_MSG(hookid >= 0, "starpu_progression_hook_register failed");
 #endif /* STARPU_MPI_ACTIVITY */
 
 #ifdef STARPU_SIMGRID
@@ -1558,7 +1558,7 @@ int _starpu_mpi_simgrid_init(int argc, char *argv[])
 int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 {
 #ifdef STARPU_SIMGRID
-	STARPU_ASSERT_MSG(initialize_mpi, "application has to let StarPU initialize MPI");
+	STARPU_MPI_ASSERT_MSG(initialize_mpi, "application has to let StarPU initialize MPI");
 	return 0;
 #else
 	return _starpu_mpi_initialize(argc, argv, initialize_mpi);
@@ -1568,7 +1568,7 @@ int starpu_mpi_init(int *argc, char ***argv, int initialize_mpi)
 int starpu_mpi_initialize(void)
 {
 #ifdef STARPU_SIMGRID
-	STARPU_ASSERT_MSG(0, "application has to let StarPU initialize MPI");
+	STARPU_MPI_ASSERT_MSG(0, "application has to let StarPU initialize MPI");
 	return 0;
 #else
 	return _starpu_mpi_initialize(NULL, NULL, 0);
@@ -1642,7 +1642,7 @@ void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int ran
 	int my;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &my);
 	if (my != rank)
-		STARPU_ASSERT_MSG(data_handle->home_node == -1, "Data does not belong to node %d, it should be assigned a home node -1", my);
+		STARPU_MPI_ASSERT_MSG(data_handle->home_node == -1, "Data does not belong to node %d, it should be assigned a home node -1", my);
 #endif
 #endif
 	_starpu_data_set_rank(data_handle, rank);
@@ -1653,7 +1653,7 @@ void starpu_mpi_data_register(starpu_data_handle_t data_handle, int tag, int ran
 int starpu_mpi_comm_size(MPI_Comm comm, int *size)
 {
 #ifdef STARPU_SIMGRID
-	STARPU_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
+	STARPU_MPI_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
 	*size = _mpi_world_size;
 	return 0;
 #else
@@ -1664,7 +1664,7 @@ int starpu_mpi_comm_size(MPI_Comm comm, int *size)
 int starpu_mpi_comm_rank(MPI_Comm comm, int *rank)
 {
 #ifdef STARPU_SIMGRID
-	STARPU_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
+	STARPU_MPI_ASSERT_MSG(comm == MPI_COMM_WORLD, "StarPU-SMPI only works with MPI_COMM_WORLD for now");
 	*rank = _mpi_world_rank;
 	return 0;
 #else
