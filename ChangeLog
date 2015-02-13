@@ -49,6 +49,8 @@ New features:
 	- New selection node policies can be un/registered with the
 	  functions starpu_mpi_node_selection_register_policy() and
 	  starpu_mpi_node_selection_unregister_policy()
+	- New environment variable STARPU_MPI_COMM which enables
+	  basic tracing of communications.
 
   * New STARPU_COMMUTE flag which can be passed along STARPU_W or STARPU_RW to
     let starpu commute write accesses.
