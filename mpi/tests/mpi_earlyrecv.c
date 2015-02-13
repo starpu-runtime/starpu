@@ -111,7 +111,8 @@ int main(int argc, char **argv)
 		starpu_data_release(tab_handle[3]);
 
 		ret = (*((int *)ptr0) == (other_rank+1)*1) && (*((int *)ptr3) == (other_rank+1)*4);
-		FPRINTF_MPI(stderr, "[%s] Received values %d and %d from node %d\n", ret?"SUCCESS":"FAILURE", *((int *)ptr0), *((int *)ptr3), other_rank);
+		ret = !ret;
+		FPRINTF_MPI(stderr, "[%s] Received values %d and %d from node %d\n", ret?"FAILURE":"SUCCESS", *((int *)ptr0), *((int *)ptr3), other_rank);
 	}
 
 	for(i=0 ; i<4 ; i++)
