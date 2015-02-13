@@ -83,6 +83,7 @@ starpu_mpi_TESTS =				\
 	mpi_isend				\
 	mpi_earlyrecv				\
 	mpi_earlyrecv2				\
+	mpi_earlyrecv2_sync			\
 	mpi_irecv				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
@@ -129,6 +130,7 @@ noinst_PROGRAMS =				\
 	mpi_isend				\
 	mpi_earlyrecv				\
 	mpi_earlyrecv2				\
+	mpi_earlyrecv2_sync			\
 	mpi_irecv				\
 	mpi_isend_detached			\
 	mpi_irecv_detached			\
@@ -177,6 +179,8 @@ mpi_isend_LDADD =					\
 mpi_earlyrecv_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_earlyrecv2_LDADD =					\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+mpi_earlyrecv2_sync_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 mpi_irecv_LDADD =					\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
@@ -282,6 +286,8 @@ user_defined_datatype_SOURCES += ../../examples/interface/complex_interface.c
 
 mpi_earlyrecv2_SOURCES = mpi_earlyrecv2.c
 mpi_earlyrecv2_SOURCES += ../../examples/interface/complex_interface.c
+mpi_earlyrecv2_sync_SOURCES = mpi_earlyrecv2_sync.c
+mpi_earlyrecv2_sync_SOURCES += ../../examples/interface/complex_interface.c
 
 showcheck:
 	-cat $(TEST_LOGS) /dev/null
