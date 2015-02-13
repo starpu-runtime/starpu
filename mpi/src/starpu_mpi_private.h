@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 extern int _starpu_debug_rank;
+char *_starpu_mpi_get_mpi_code(int code);
 
 #ifdef STARPU_VERBOSE
 extern int _starpu_debug_level_min;
@@ -38,7 +39,50 @@ void _starpu_mpi_set_debug_level_min(int level);
 void _starpu_mpi_set_debug_level_max(int level);
 #endif
 
+#ifdef STARPU_NO_ASSERT
+#  define STARPU_MPI_ASSERT_MSG(x, msg, ...)	do { } while(0)
+#else
+#  if defined(__CUDACC__) && defined(STARPU_HAVE_WINDOWS)
+int _starpu_debug_rank;
+#    define STARPU_MPI_ASSERT_MSG(x, msg, ...)									\
+	do													\
+	{ 													\
+		if (STARPU_UNLIKELY(!(x))) 									\
+		{												\
+			if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
+			fprintf(stderr, "\n[%d][starpu_mpi][%s][assert failure] " msg "\n\n", _starpu_debug_rank, __starpu_func__, ## __VA_ARGS__); *(int*)NULL = 0; \
+		} \
+	} while(0)
+#  else
+#    define STARPU_MPI_ASSERT_MSG(x, msg, ...)	\
+	do \
+	{ \
+		if (STARPU_UNLIKELY(!(x))) \
+		{ \
+			if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
+			fprintf(stderr, "\n[%d][starpu_mpi][%s][assert failure] " msg "\n\n", _starpu_debug_rank, __starpu_func__, ## __VA_ARGS__); \
+		} \
+		assert(x); \
+	} while(0)
+
+#  endif
+#endif
+
 #ifdef STARPU_VERBOSE
+#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, way)	\
+	do \
+	{ \
+	     	if (getenv("STARPU_MPI_COMM"))	\
+	     	{ \
+     			int __size; \
+			if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
+			MPI_Type_size(datatype, &__size); \
+			fprintf(stderr, "[%d][starpu_mpi] %s %d:%d %12ld     [%s:%d]\n", _starpu_debug_rank, way, node, tag, count*__size, __starpu_func__ , __LINE__); \
+			fflush(stderr); \
+		} \
+	} while(0);
+#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag) 	_STARPU_MPI_COMM_DEBUG(count, datatype, dest, tag, "-->")
+#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag) 	_STARPU_MPI_COMM_DEBUG(count, datatype, source, tag, "<--")
 #  define _STARPU_MPI_DEBUG(level, fmt, ...) \
 	do \
 	{								\
@@ -50,7 +94,10 @@ void _starpu_mpi_set_debug_level_max(int level);
 		}			\
 	} while(0);
 #else
-#  define _STARPU_MPI_DEBUG(level, fmt, ...)
+#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, way)	do { } while(0)
+#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag)		do { } while(0)
+#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag)	do { } while(0)
+#  define _STARPU_MPI_DEBUG(level, fmt, ...)		do { } while(0)
 #endif
 
 #define _STARPU_MPI_DISP(fmt, ...) do { if (!getenv("STARPU_SILENT")) { \
@@ -76,6 +123,9 @@ void _starpu_mpi_set_debug_level_max(int level);
 #endif
 
 extern int _starpu_mpi_tag;
+#define _STARPU_MPI_TAG_ENVELOPE  _starpu_mpi_tag
+#define _STARPU_MPI_TAG_DATA      _starpu_mpi_tag+1
+#define _STARPU_MPI_TAG_SYNC_DATA _starpu_mpi_tag+2
 
 enum _starpu_mpi_request_type
 {
@@ -88,10 +138,15 @@ enum _starpu_mpi_request_type
 	UNKNOWN_REQ=6,
 };
 
+#define _STARPU_MPI_ENVELOPE_DATA       0
+#define _STARPU_MPI_ENVELOPE_SYNC_READY 1
+
 struct _starpu_mpi_envelope
 {
+	int mode;
 	starpu_ssize_t size;
 	int data_tag;
+	unsigned sync;
 };
 
 struct _starpu_mpi_req;
