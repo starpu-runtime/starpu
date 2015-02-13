@@ -23,6 +23,7 @@ int main(int argc, char **argv)
 {
 	int ret, rank, size, i;
 	starpu_data_handle_t tab_handle[4];
+	int values[4];
 	starpu_mpi_req request[2] = {NULL, NULL};
 
 	MPI_Init(&argc, &argv);
@@ -31,9 +32,7 @@ int main(int argc, char **argv)
 
 	if (size%2 != 0)
 	{
-		if (rank == 0)
-			FPRINTF(stderr, "We need a even number of processes.\n");
-
+		FPRINTF_MPI(stderr, "We need a even number of processes.\n");
 		MPI_Finalize();
 		return STARPU_TEST_SKIPPED;
 	}
@@ -47,8 +46,9 @@ int main(int argc, char **argv)
 	{
 		if (i<3 || rank%2)
 		{
-			// all data are registered on all nodes, bu the 4th data which is not registered on the receiving node
-			starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&rank, sizeof(int));
+			// all data are registered on all nodes, but the 4th data which is not registered on the receiving node
+			values[i] = (rank+1) * (i+1);
+			starpu_variable_data_register(&tab_handle[i], STARPU_MAIN_RAM, (uintptr_t)&values[i], sizeof(values[i]));
 			starpu_mpi_data_register(tab_handle[i], i, rank);
 		}
 	}
@@ -59,6 +59,7 @@ int main(int argc, char **argv)
 
 	if (rank%2)
 	{
+		FPRINTF_MPI(stderr, "Sending values %d and %d to node %d\n", values[0], values[3], other_rank);
 		// this data will be received as an early registered data
 		starpu_mpi_isend(tab_handle[0], &request[0], other_rank, 0, MPI_COMM_WORLD);
 		// this data will be received as an early UNregistered data
@@ -96,6 +97,23 @@ int main(int argc, char **argv)
 		finished = request[0] == NULL && request[1] == NULL;
 	}
 
+	if (rank%2 == 0)
+	{
+		void *ptr0;
+		void *ptr3;
+
+		starpu_data_acquire(tab_handle[0], STARPU_RW);
+		ptr0 = starpu_data_get_local_ptr(tab_handle[0]);
+		starpu_data_release(tab_handle[0]);
+
+		starpu_data_acquire(tab_handle[3], STARPU_RW);
+		ptr3 = starpu_data_get_local_ptr(tab_handle[3]);
+		starpu_data_release(tab_handle[3]);
+
+		ret = (*((int *)ptr0) == (other_rank+1)*1) && (*((int *)ptr3) == (other_rank+1)*4);
+		FPRINTF_MPI(stderr, "[%s] Received values %d and %d from node %d\n", ret?"SUCCESS":"FAILURE", *((int *)ptr0), *((int *)ptr3), other_rank);
+	}
+
 	for(i=0 ; i<4 ; i++)
 		starpu_data_unregister(tab_handle[i]);
 
@@ -104,5 +122,5 @@ int main(int argc, char **argv)
 
 	MPI_Finalize();
 
-	return 0;
+	return ret;
 }
