@@ -206,7 +206,7 @@ char *_starpu_mpi_get_mpi_code(int code)
 #ifdef MPI_ERR_WIN
 	case MPI_ERR_WIN: return "MPI_ERR_WIN";
 #endif
-#ifdef MPI_ERR_LASTCODE
+#if defined(MPI_ERR_LASTCODE) && MPI_ERR_LASTCODE != MPI_SUCCESS
 	case MPI_ERR_LASTCODE: return "MPI_ERR_LASTCODE";
 #endif
 	default: return "UNKNOWN_MPI_CODE";
