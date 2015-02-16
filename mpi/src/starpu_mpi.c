@@ -1160,8 +1160,9 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	data_handle = _starpu_data_get_data_handle_from_tag(envelope->data_tag);
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
-	if (data_handle)
+	if (data_handle && starpu_data_get_interface_id(data_handle) < STARPU_MAX_INTERFACE_ID)
 	{
+		/* We know which data will receive it and we won't have to unpack, use just the same kind of data.  */
 		early_data_handle->buffer = NULL;
 		starpu_data_register_same(&early_data_handle->handle, data_handle);
 		_starpu_mpi_early_data_add(early_data_handle);
