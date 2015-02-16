@@ -384,6 +384,7 @@ static __inline int pthread_once (pthread_once_t *once, void (*oncefun)(void)) {
 }
 
 static __inline int pthread_key_create (pthread_key_t *key, void (*freefun)(void *)) {
+  (void)freefun;
   pthread_key_t res;
   winPthreadAssertWindows((res = TlsAlloc()) != 0xFFFFFFFF);
   *key = res;
