@@ -347,7 +347,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		/* STARPU_DATA_MODE_ARRAY handled above */
 		else if (arg_type==STARPU_TAG)
 		{
-			STARPU_ASSERT_MSG(0, "STARPU_TAG is not supported in MPI mode\n");
+			(void)va_arg(varg_list_copy, starpu_tag_t);
 		}
 		else if (arg_type==STARPU_HYPERVISOR_TAG)
 		{
