@@ -207,6 +207,9 @@ then
 else
     AC_CHECK_LIB([pthread], [pthread_create])
 fi
+AC_CHECK_TYPES([struct timespec], 
+	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[],[struct timespec is defined by time.h]),
+	       [], [#include <time.h>])
 
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
 AC_HAVE_LIBRARY([ws2_32])
