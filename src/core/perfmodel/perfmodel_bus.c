@@ -1071,7 +1071,7 @@ static int load_bus_latency_file_content(void)
 			n = _starpu_read_double(f, "%lf", &latency);
 			if (n && !isnan(latency))
 			{
-				_STARPU_DISP("Too many nodes in latency file %s for this configuration (%d)\n", path, STARPU_MAXNODES);
+				_STARPU_DISP("Too many nodes in latency file %s for this configuration (%d), use --enable-maxnodes to increase it\n", path, STARPU_MAXNODES);
 				fclose(f);
 				return 0;
 			}
@@ -1293,7 +1293,7 @@ static int load_bus_bandwidth_file_content(void)
 			n = _starpu_read_double(f, "%lf", &bandwidth);
 			if (n && !isnan(bandwidth))
 			{
-				_STARPU_DISP("Too many nodes in bandwidth file %s for this configuration (%d)\n", path, STARPU_MAXNODES);
+				_STARPU_DISP("Too many nodes in bandwidth file %s for this configuration (%d), use --enable-maxnodes to increase it\n", path, STARPU_MAXNODES);
 				fclose(f);
 				return 0;
 			}
