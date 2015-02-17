@@ -33,6 +33,7 @@ extern "C" {
 
 #include <windows.h>
 #include <sys/types.h>
+#include <time.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -269,7 +270,7 @@ typedef struct {
 } pthread_cond_t;
 #define PTHREAD_COND_INITIALIZER { NULL, 0}
 
-#ifndef _TIMESPEC_DEFINED
+#ifndef STARPU_HAVE_STRUCT_TIMESPEC
 #ifndef STARPU_TIMESPEC_DEFINED
 #define STARPU_TIMESPEC_DEFINED 1
 struct timespec {
@@ -277,7 +278,7 @@ struct timespec {
   long    tv_nsec; /* Nanoseconds */
 };
 #endif /* STARPU_TIMESPEC_DEFINED */
-#endif
+#endif /* STARPU_HAVE_STRUCT_TIMESPEC */
 
 typedef unsigned pthread_condattr_t;
 
