@@ -34,6 +34,7 @@ extern "C" {
 #include <windows.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #include <time.h>
 #undef interface
 #include <stdio.h>
