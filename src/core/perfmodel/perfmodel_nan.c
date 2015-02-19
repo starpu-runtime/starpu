@@ -46,6 +46,8 @@ int _starpu_read_double(FILE *f, char *format, double *val)
 {
 #ifdef STARPU_HAVE_WINDOWS
 /** Windows cannot read NAN values, yes, it is really bad ... */
+	_starpu_read_spaces(f);
+
 	int x1 = getc(f);
 
 	if (x1 == 'n')
@@ -60,7 +62,6 @@ int _starpu_read_double(FILE *f, char *format, double *val)
 #else
 		     double mynan = NAN;
 #endif
-		     _starpu_read_spaces(f);
 		     *val = mynan;
 		     return 1;
 	     }
