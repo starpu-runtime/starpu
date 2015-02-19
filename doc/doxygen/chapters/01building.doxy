@@ -348,14 +348,14 @@ at CPU-GPU scheduling without actually having a GPU at hand. This can be done by
 using the simgrid version of StarPU: first install the simgrid simulator from
 http://simgrid.gforge.inria.fr/ , then configure StarPU with \ref enable-simgrid "--enable-simgrid"
 and rebuild and install it, and then you can simulate the performance for a
-couple of virtualized system shipped along StarPU: attila and mirage.
+few virtualized systems shipped along StarPU: attila, mirage and idgraf.
 
 For instance:
 
 \verbatim
 $ export STARPU_PERF_MODEL_DIR=$STARPU_PATH/share/starpu/perfmodels/sampling
 $ export STARPU_HOSTNAME=attila
-$ $STARPU_PATH/lib/starpu/examples/cholesky_implicit
+$ $STARPU_PATH/lib/starpu/examples/cholesky_implicit -size $((960*20)) -nblocks 20
 \endverbatim
 
 Will show the performance of the cholesky factorization with the attila

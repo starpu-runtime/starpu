@@ -11,7 +11,13 @@ The architecture 'mirage' is composed of:
 The architecture 'attila' is composed of:
 - 2 Intel Xeon X5650 @2.67GHz, thus 12 CPU cores
   - OpenBlas 0.2.12-1
-- 3 NVidia GF100 Tesla C2050 / C2070, thus 3 GPUs
+- 3 NVidia GF100 Tesla C2050, thus 3 GPUs
+  - CUDA 6.0
+
+The architecture 'idgraf' is composed of:
+- 2 Intel Xeon X5650 @2.67GHz, thus 12 CPU cores
+  - MKL 11.1.0
+- 8 NVIDIA GF100 Tesla C2050, thus 8 GPUs
   - CUDA 6.0
 
 To use performance models stored in this directory, one needs to set
