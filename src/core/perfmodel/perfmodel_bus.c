@@ -45,6 +45,10 @@
 #include <windows.h>
 #endif
 
+#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+#include <hwloc/cuda.h>
+#endif
+
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	128
 
@@ -1071,7 +1075,7 @@ static int load_bus_latency_file_content(void)
 			n = _starpu_read_double(f, "%lf", &latency);
 			if (n && !isnan(latency))
 			{
-				_STARPU_DISP("Too many nodes in latency file %s for this configuration (%d), use --enable-maxnodes to increase it\n", path, STARPU_MAXNODES);
+				_STARPU_DISP("Too many nodes in latency file %s for this configuration (%d)\n", path, STARPU_MAXNODES);
 				fclose(f);
 				return 0;
 			}
@@ -1293,7 +1297,7 @@ static int load_bus_bandwidth_file_content(void)
 			n = _starpu_read_double(f, "%lf", &bandwidth);
 			if (n && !isnan(bandwidth))
 			{
-				_STARPU_DISP("Too many nodes in bandwidth file %s for this configuration (%d), use --enable-maxnodes to increase it\n", path, STARPU_MAXNODES);
+				_STARPU_DISP("Too many nodes in bandwidth file %s for this configuration (%d)\n", path, STARPU_MAXNODES);
 				fclose(f);
 				return 0;
 			}
@@ -1676,6 +1680,395 @@ void _starpu_simgrid_get_platform_path(char *path, size_t maxlen)
 }
 
 #ifndef STARPU_SIMGRID
+/*
+ * Compute the precise PCI tree bandwidth and link shares
+ *
+ * We only have measurements from one leaf to another. We assume that the
+ * available bandwidth is greater at lower levels, and thus measurements from
+ * increasingly far GPUs provide the PCI bridges bandwidths at each level.
+ *
+ * The bandwidth of a PCI bridge is thus computed as the maximum of the speed
+ * of the various transfers that we have achieved through it.  We thus browse
+ * the PCI tree three times:
+ *
+ * - first through all CUDA-CUDA possible transfers to compute the maximum
+ *   measured bandwidth on each PCI link and hub used for that.
+ * - then through the whole tree to emit links for each PCI link and hub.
+ * - then through all CUDA-CUDA possible transfers again to emit routes.
+ */
+
+#if defined(STARPU_USE_CUDA) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
+
+/* Records, for each PCI link and hub, the maximum bandwidth seen through it */
+struct pci_userdata {
+	/* Uplink max measurement */
+	double bw_up;
+	double bw_down;
+
+	/* Hub max measurement */
+	double bw;
+};
+
+/* Allocate a pci_userdata structure for the given object */
+static void allocate_userdata(hwloc_obj_t obj)
+{
+	struct pci_userdata *data;
+
+	if (obj->userdata)
+		return;
+
+	data = obj->userdata = malloc(sizeof(*data));
+	data->bw_up = 0.0;
+	data->bw_down = 0.0;
+	data->bw = 0.0;
+}
+
+/* Update the maximum bandwidth seen going to upstream */
+static void update_bandwidth_up(hwloc_obj_t obj, double bandwidth)
+{
+	struct pci_userdata *data;
+	if (obj->type != HWLOC_OBJ_BRIDGE && obj->type != HWLOC_OBJ_PCI_DEVICE)
+		return;
+	allocate_userdata(obj);
+
+	data = obj->userdata;
+	if (data->bw_up < bandwidth)
+		data->bw_up = bandwidth;
+}
+
+/* Update the maximum bandwidth seen going from upstream */
+static void update_bandwidth_down(hwloc_obj_t obj, double bandwidth)
+{
+	struct pci_userdata *data;
+	if (obj->type != HWLOC_OBJ_BRIDGE && obj->type != HWLOC_OBJ_PCI_DEVICE)
+		return;
+	allocate_userdata(obj);
+
+	data = obj->userdata;
+	if (data->bw_down < bandwidth)
+		data->bw_down = bandwidth;
+}
+
+/* Update the maximum bandwidth seen going through this Hub */
+static void update_bandwidth_through(hwloc_obj_t obj, double bandwidth)
+{
+	struct pci_userdata *data;
+	allocate_userdata(obj);
+
+	data = obj->userdata;
+	if (data->bw < bandwidth)
+		data->bw = bandwidth;
+}
+
+/* find_* functions perform the first step: computing maximum bandwidths */
+
+/* Our trafic had to go through the host, go back from target up to the host,
+ * updating uplink downstream bandwidth along the way */
+static void find_platform_backward_path(hwloc_obj_t obj, double bandwidth)
+{
+	/* Update uplink bandwidth of PCI Hub */
+	update_bandwidth_down(obj, bandwidth);
+	/* Update internal bandwidth of PCI Hub */
+	update_bandwidth_through(obj, bandwidth);
+
+	if (obj->type == HWLOC_OBJ_BRIDGE && obj->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
+		/* Finished */
+		return;
+
+	/* Continue up */
+	find_platform_backward_path(obj->parent, bandwidth);
+}
+/* Same, but update uplink upstream bandwidth */
+static void find_platform_forward_path(hwloc_obj_t obj, double bandwidth)
+{
+	/* Update uplink bandwidth of PCI Hub */
+	update_bandwidth_up(obj, bandwidth);
+	/* Update internal bandwidth of PCI Hub */
+	update_bandwidth_through(obj, bandwidth);
+
+	if (obj->type == HWLOC_OBJ_BRIDGE && obj->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
+		/* Finished */
+		return;
+
+	/* Continue up */
+	find_platform_forward_path(obj->parent, bandwidth);
+}
+
+/* Find the path from obj1 through parent down to obj2 (without ever going up),
+ * and update the maximum bandwidth along the path */
+static int find_platform_path_down(hwloc_obj_t parent, hwloc_obj_t obj1, hwloc_obj_t obj2, double bandwidth)
+{
+	unsigned i;
+
+	/* Base case, path is empty */
+	if (parent == obj2)
+		return 1;
+
+	/* Try to go down from parent */
+	for (i = 0; i < parent->arity; i++)
+		if (parent->children[i] != obj1 && find_platform_path_down(parent->children[i], NULL, obj2, bandwidth))
+		{
+			/* Found it down there, update bandwidth of parent */
+			update_bandwidth_down(parent->children[i], bandwidth);
+			update_bandwidth_through(parent, bandwidth);
+			return 1;
+		}
+	return 0;
+}
+
+/* Find the path from obj1 to obj2, and update the maximum bandwidth along the
+ * path */
+static int find_platform_path_up(hwloc_obj_t obj1, hwloc_obj_t obj2, double bandwidth)
+{
+	int ret;
+	hwloc_obj_t parent = obj1->parent;
+
+	if (find_platform_path_down(parent, obj1, obj2, bandwidth))
+		/* obj2 was a mere (sub)child of our parent */
+		return 1;
+
+	/* obj2 is not a (sub)child of our parent, we have to go up through the parent */
+	if (parent->type == HWLOC_OBJ_BRIDGE && parent->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
+	{
+		/* We have to go up to the Host, so obj2 is not in the same PCI
+		 * tree, so we're for for obj1 to Host, and just find the path
+		 * from obj2 to Host too.
+		 */
+		find_platform_backward_path(obj2, bandwidth);
+
+		update_bandwidth_up(parent, bandwidth);
+		update_bandwidth_through(parent, bandwidth);
+
+		return 1;
+	}
+
+	/* Not at host yet, just go up */
+	ret = find_platform_path_up(parent, obj2, bandwidth);
+	update_bandwidth_up(parent, bandwidth);
+	update_bandwidth_through(parent, bandwidth);
+	return ret;
+}
+
+/* find the path between cuda i and cuda j, and update the maximum bandwidth along the path */
+static int find_platform_cuda_path(hwloc_topology_t topology, unsigned i, unsigned j, double bandwidth)
+{
+	hwloc_obj_t cudai, cudaj;
+	cudai = hwloc_cuda_get_device_osdev_by_index(topology, i);
+	cudaj = hwloc_cuda_get_device_osdev_by_index(topology, j);
+
+	if (!cudai || !cudaj)
+		return 0;
+
+	return find_platform_path_up(cudai, cudaj, bandwidth);
+}
+
+/* emit_topology_bandwidths performs the second step: emitting link names */
+
+/* Emit the link name of the object */
+static void emit_pci_hub(FILE *f, hwloc_obj_t obj)
+{
+	STARPU_ASSERT(obj->type == HWLOC_OBJ_BRIDGE);
+	fprintf(f, "PCI:%04x:[%02x-%02x]", obj->attr->bridge.downstream.pci.domain, obj->attr->bridge.downstream.pci.secondary_bus, obj->attr->bridge.downstream.pci.subordinate_bus);
+}
+
+static void emit_pci_dev(FILE *f, struct hwloc_pcidev_attr_s *pcidev)
+{
+	fprintf(f, "PCI:%04x:%02x:%02x.%1x", pcidev->domain, pcidev->bus, pcidev->dev, pcidev->func);
+}
+
+/* Emit the links of the object */
+static void emit_topology_bandwidths(FILE *f, hwloc_obj_t obj)
+{
+	unsigned i;
+	if (obj->userdata) {
+		struct pci_userdata *data = obj->userdata;
+
+		if (obj->type == HWLOC_OBJ_BRIDGE)
+		{
+			/* Uplink */
+			fprintf(f, "   <link id='");
+			emit_pci_hub(f, obj);
+			fprintf(f, " up' bandwidth='%f' latency='0.000000'/>\n", data->bw_up);
+			fprintf(f, "   <link id='");
+			emit_pci_hub(f, obj);
+			fprintf(f, " down' bandwidth='%f' latency='0.000000'/>\n", data->bw_down);
+
+			/* PCI Switches are assumed to have infinite internal bandwidth */
+			if (!obj->name || !strstr(obj->name, "Switch"))
+			{
+				/* We assume that PCI Hubs have double bandwidth in
+				 * order to support full duplex but not more */
+				fprintf(f, "   <link id='");
+				emit_pci_hub(f, obj);
+				fprintf(f, " through' bandwidth='%f' latency='0.000000'/>\n", data->bw * 2);
+			}
+		}
+		else if (obj->type == HWLOC_OBJ_PCI_DEVICE)
+		{
+			fprintf(f, "   <link id='");
+			emit_pci_dev(f, &obj->attr->pcidev);
+			fprintf(f, " up' bandwidth='%f' latency='0.000000'/>\n", data->bw_up);
+			fprintf(f, "   <link id='");
+			emit_pci_dev(f, &obj->attr->pcidev);
+			fprintf(f, " down' bandwidth='%f' latency='0.000000'/>\n", data->bw_down);
+		}
+	}
+
+	for (i = 0; i < obj->arity; i++)
+		emit_topology_bandwidths(f, obj->children[i]);
+}
+
+/* emit_pci_link_* functions perform the third step: emitting the routes */
+
+static void emit_pci_link(FILE *f, hwloc_obj_t obj, const char *suffix)
+{
+	if (obj->type == HWLOC_OBJ_BRIDGE)
+	{
+		fprintf(f, "    <link_ctn id='");
+		emit_pci_hub(f, obj);
+		fprintf(f, " %s'/>\n", suffix);
+	}
+	else if (obj->type == HWLOC_OBJ_PCI_DEVICE)
+	{
+		fprintf(f, "    <link_ctn id='");
+		emit_pci_dev(f, &obj->attr->pcidev);
+		fprintf(f, " %s'/>\n", suffix);
+	}
+}
+
+/* Go to upstream */
+static void emit_pci_link_up(FILE *f, hwloc_obj_t obj)
+{
+	emit_pci_link(f, obj, "up");
+}
+
+/* Go from upstream */
+static void emit_pci_link_down(FILE *f, hwloc_obj_t obj)
+{
+	emit_pci_link(f, obj, "down");
+}
+
+/* Go through PCI hub */
+static void emit_pci_link_through(FILE *f, hwloc_obj_t obj)
+{
+	/* We don't care about trafic going through PCI switches */
+	if (obj->type == HWLOC_OBJ_BRIDGE)
+	{
+		if (!obj->name || !strstr(obj->name, "Switch"))
+			emit_pci_link(f, obj, "through");
+		else
+		{
+			fprintf(f, "    <!--   Switch ");
+			emit_pci_hub(f, obj);
+			fprintf(f, " through -->\n");
+		}
+	}
+}
+
+/* Our trafic has to go through the host, go back from target up to the host,
+ * using uplink downstream along the way */
+static void emit_platform_backward_path(FILE *f, hwloc_obj_t obj)
+{
+	/* Go through PCI Hub */
+	emit_pci_link_through(f, obj);
+	/* Go through uplink */
+	emit_pci_link_down(f, obj);
+
+	if (obj->type == HWLOC_OBJ_BRIDGE && obj->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
+	{
+		/* Finished, go through host */
+		fprintf(f, "    <link_ctn id='Host'/>\n");
+		return;
+	}
+
+	/* Continue up */
+	emit_platform_backward_path(f, obj->parent);
+}
+/* Same, but use upstream link */
+static void emit_platform_forward_path(FILE *f, hwloc_obj_t obj)
+{
+	/* Go through PCI Hub */
+	emit_pci_link_through(f, obj);
+	/* Go through uplink */
+	emit_pci_link_up(f, obj);
+
+	if (obj->type == HWLOC_OBJ_BRIDGE && obj->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
+	{
+		/* Finished, go through host */
+		fprintf(f, "    <link_ctn id='Host'/>\n");
+		return;
+	}
+
+	/* Continue up */
+	emit_platform_forward_path(f, obj->parent);
+}
+
+/* Find the path from obj1 through parent down to obj2 (without ever going up),
+ * and use the links along the path */
+static int emit_platform_path_down(FILE *f, hwloc_obj_t parent, hwloc_obj_t obj1, hwloc_obj_t obj2)
+{
+	unsigned i;
+
+	/* Base case, path is empty */
+	if (parent == obj2)
+		return 1;
+
+	/* Try to go down from parent */
+	for (i = 0; i < parent->arity; i++)
+		if (parent->children[i] != obj1 && emit_platform_path_down(f, parent->children[i], NULL, obj2))
+		{
+			/* Found it down there, path goes through this hub */
+			emit_pci_link_down(f, parent->children[i]);
+			emit_pci_link_through(f, parent);
+			return 1;
+		}
+	return 0;
+}
+
+/* Find the path from obj1 to obj2, and use the links along the path */
+static int emit_platform_path_up(FILE *f, hwloc_obj_t obj1, hwloc_obj_t obj2)
+{
+	int ret;
+	hwloc_obj_t parent = obj1->parent;
+
+	if (emit_platform_path_down(f, parent, obj1, obj2))
+		/* obj2 was a mere (sub)child of our parent */
+		return 1;
+
+	/* obj2 is not a (sub)child of our parent, we have to go up through the parent */
+	if (parent->type == HWLOC_OBJ_BRIDGE && parent->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_HOST)
+	{
+		/* We have to go up to the Host, so obj2 is not in the same PCI
+		 * tree, so we're for for obj1 to Host, and just find the path
+		 * from obj2 to Host too.
+		 */
+		emit_platform_backward_path(f, obj2);
+		fprintf(f, "    <link_ctn id='Host'/>\n");
+
+		emit_pci_link_up(f, parent);
+		emit_pci_link_through(f, parent);
+
+		return 1;
+	}
+
+	/* Not at host yet, just go up */
+	ret = emit_platform_path_up(f, parent, obj2);
+	emit_pci_link_up(f, parent);
+	emit_pci_link_through(f, parent);
+	return ret;
+}
+
+/* Clean our mess in the topology before destroying it */
+static void clean_topology(hwloc_obj_t obj)
+{
+	unsigned i;
+	if (obj->userdata)
+		free(obj->userdata);
+	for (i = 0; i < obj->arity; i++)
+		clean_topology(obj->children[i]);
+}
+#endif
+
 static void write_bus_platform_file_content(void)
 {
 	FILE *f;
@@ -1735,7 +2128,9 @@ static void write_bus_platform_file_content(void)
 
 	fprintf(f, "\n   <host id='RAM' power='1'/>\n");
 
-	/* Compute maximum bandwidth, taken as machine bandwidth */
+	/*
+	 * Compute maximum bandwidth, taken as host bandwidth
+	 */
 	double max_bandwidth = 0;
 #ifdef STARPU_USE_CUDA
 	for (i = 0; i < ncuda; i++)
@@ -1759,10 +2154,35 @@ static void write_bus_platform_file_content(void)
 			max_bandwidth = up_bw;
 	}
 #endif
-	fprintf(f, "\n   <link id='Share' bandwidth='%f' latency='0.000000'/>\n\n", max_bandwidth*1000000);
+	fprintf(f, "\n   <link id='Host' bandwidth='%f' latency='0.000000'/>\n\n", max_bandwidth*1000000);
 
-	/* Write bandwidths & latencies */
+	/*
+	 * OpenCL links
+	 */
+
+#ifdef STARPU_USE_OPENCL
+	for (i = 0; i < nopencl; i++)
+	{
+		char i_name[16];
+		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
+		fprintf(f, "   <link id='RAM-%s' bandwidth='%f' latency='%f'/>\n",
+			i_name,
+			1000000 / opencldev_timing_htod[1+i],
+			opencldev_latency_htod[1+i]/1000000.);
+		fprintf(f, "   <link id='%s-RAM' bandwidth='%f' latency='%f'/>\n",
+			i_name,
+			1000000 / opencldev_timing_dtoh[1+i],
+			opencldev_latency_dtoh[1+i]/1000000.);
+	}
+	fprintf(f, "\n");
+#endif
+
+	/*
+	 * CUDA links and routes
+	 */
+
 #ifdef STARPU_USE_CUDA
+	/* Write RAM/CUDA bandwidths and latencies */
 	for (i = 0; i < ncuda; i++)
 	{
 		char i_name[16];
@@ -1776,7 +2196,9 @@ static void write_bus_platform_file_content(void)
 			1000000. / cudadev_timing_dtoh[1+i],
 			cudadev_latency_dtoh[1+i]/1000000.);
 	}
+	fprintf(f, "\n");
 #ifdef HAVE_CUDA_MEMCPY_PEER
+	/* Write CUDA/CUDA bandwidths and latencies */
 	for (i = 0; i < ncuda; i++)
 	{
 		unsigned j;
@@ -1795,32 +2217,75 @@ static void write_bus_platform_file_content(void)
 		}
 	}
 #endif
-#endif
 
-#ifdef STARPU_USE_OPENCL
-	for (i = 0; i < nopencl; i++)
+#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(HAVE_CUDA_MEMCPY_PEER)
+	/* If we have enough hwloc information, write PCI bandwidths and routes */
+	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0)) {
+		hwloc_topology_t topology;
+		hwloc_topology_init(&topology);
+		hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_IO_DEVICES | HWLOC_TOPOLOGY_FLAG_IO_BRIDGES);
+		hwloc_topology_load(topology);
+
+		/* First find paths and record measured bandwidth along the path */
+		for (i = 0; i < ncuda; i++)
+		{
+			unsigned j;
+			for (j = 0; j < ncuda; j++)
+				if (i != j)
+					if (!find_platform_cuda_path(topology, i, j, 1000000. / cudadev_timing_dtod[1+i][1+j]))
+					{
+						clean_topology(hwloc_get_root_obj(topology));
+						hwloc_topology_destroy(topology);
+						goto flat_cuda;
+					}
+			/* Record RAM/CUDA bandwidths */
+			find_platform_forward_path(hwloc_cuda_get_device_osdev_by_index(topology, i), 1000000. / cudadev_timing_dtoh[1+i]);
+			find_platform_backward_path(hwloc_cuda_get_device_osdev_by_index(topology, i), 1000000. / cudadev_timing_htod[1+i]);
+		}
+
+		/* Ok, found path in all cases, can emit advanced platform routes */
+		fprintf(f, "\n");
+		emit_topology_bandwidths(f, hwloc_get_root_obj(topology));
+		fprintf(f, "\n");
+		for (i = 0; i < ncuda; i++)
+		{
+			unsigned j;
+			for (j = 0; j < ncuda; j++)
+				if (i != j)
+				{
+					fprintf(f, "   <route src='CUDA%u' dst='CUDA%u' symmetrical='NO'>\n", i, j);
+					fprintf(f, "    <link_ctn id='CUDA%d-CUDA%d'/>\n", i, j);
+					emit_platform_path_up(f,
+						hwloc_cuda_get_device_osdev_by_index(topology, i),
+						hwloc_cuda_get_device_osdev_by_index(topology, j));
+					fprintf(f, "   </route>\n");
+				}
+
+			fprintf(f, "   <route src='CUDA%d' dst='RAM' symmetrical='NO'>\n", i);
+			fprintf(f, "    <link_ctn id='CUDA%d-RAM'/>\n", i);
+			emit_platform_forward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
+			fprintf(f, "   </route>\n");
+
+			fprintf(f, "   <route src='RAM' dst='CUDA%d' symmetrical='NO'>\n", i);
+			fprintf(f, "    <link_ctn id='RAM-CUDA%d'/>\n", i);
+			emit_platform_backward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
+			fprintf(f, "   </route>\n");
+		}
+
+		clean_topology(hwloc_get_root_obj(topology));
+		hwloc_topology_destroy(topology);
+	} else {
+flat_cuda:
+#else
 	{
-		char i_name[16];
-		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
-		fprintf(f, "   <link id='RAM-%s' bandwidth='%f' latency='%f'/>\n",
-			i_name,
-			1000000 / opencldev_timing_htod[1+i],
-			opencldev_latency_htod[1+i]/1000000.);
-		fprintf(f, "   <link id='%s-RAM' bandwidth='%f' latency='%f'/>\n",
-			i_name,
-			1000000 / opencldev_timing_dtoh[1+i],
-			opencldev_latency_dtoh[1+i]/1000000.);
-	}
 #endif
-
-	/* Write routes */
-#ifdef STARPU_USE_CUDA
+	/* If we don't have enough hwloc information, write trivial routes always through host */
 	for (i = 0; i < ncuda; i++)
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "CUDA%d", i);
-		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Share'/></route>\n", i_name, i_name);
-		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Share'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Host'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Host'/></route>\n", i_name, i_name);
 	}
 #ifdef HAVE_CUDA_MEMCPY_PEER
 	for (i = 0; i < ncuda; i++)
@@ -1834,19 +2299,25 @@ static void write_bus_platform_file_content(void)
 			if (j == i)
 				continue;
 			snprintf(j_name, sizeof(j_name), "CUDA%d", j);
-			fprintf(f, "   <route src='%s' dst='%s' symmetrical='NO'><link_ctn id='%s-%s'/><link_ctn id='Share'/></route>\n", i_name, j_name, i_name, j_name);
+			fprintf(f, "   <route src='%s' dst='%s' symmetrical='NO'><link_ctn id='%s-%s'/><link_ctn id='Host'/></route>\n", i_name, j_name, i_name, j_name);
 		}
 	}
 #endif
-#endif
+	} /* defined(STARPU_HAVE_HWLOC) && defined(HAVE_CUDA_MEMCPY_PEER) */
+	fprintf(f, "\n");
+#endif /* STARPU_USE_CUDA */
+
+	/*
+	 * OpenCL routes
+	 */
 
 #ifdef STARPU_USE_OPENCL
 	for (i = 0; i < nopencl; i++)
 	{
 		char i_name[16];
 		snprintf(i_name, sizeof(i_name), "OpenCL%d", i);
-		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Share'/></route>\n", i_name, i_name);
-		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Share'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src='RAM' dst='%s' symmetrical='NO'><link_ctn id='RAM-%s'/><link_ctn id='Host'/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src='%s' dst='RAM' symmetrical='NO'><link_ctn id='%s-RAM'/><link_ctn id='Host'/></route>\n", i_name, i_name);
 	}
 #endif
 

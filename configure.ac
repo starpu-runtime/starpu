@@ -2397,6 +2397,7 @@ AS_IF([test "$have_valid_hwloc" = "yes"],
       [AC_DEFINE([STARPU_HAVE_HWLOC], [1], [Define to 1 if you have the hwloc library.])
        HWLOC_REQUIRES=hwloc
        AC_SUBST([STARPU_HAVE_HWLOC], [1])
+       AC_CHECK_DECLS([hwloc_cuda_get_device_osdev_by_index], [], [], [[#include <hwloc/cuda.h>]])
        AS_IF([test "$have_pkgconfig_hwloc" = "no"],
              [HWLOC_CFLAGS="-I$hwloc_dir/include"
 	      HWLOC_LIBS="-L$hwloc_dir/lib -lhwloc"]
