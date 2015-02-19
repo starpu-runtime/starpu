@@ -324,8 +324,9 @@ static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 
 unsigned _starpu_get_cuda_device_count(void)
 {
+	int cnt;
 #ifdef STARPU_SIMGRID
-	return _starpu_simgrid_get_nbhosts("CUDA");
+	cnt = _starpu_simgrid_get_nbhosts("CUDA");
 #else
 	int cnt;
 
@@ -333,6 +334,7 @@ unsigned _starpu_get_cuda_device_count(void)
 	cures = cudaGetDeviceCount(&cnt);
 	if (STARPU_UNLIKELY(cures))
 		 return 0;
+#endif
 
 	if (cnt > STARPU_MAXCUDADEVS)
 	{
@@ -340,7 +342,6 @@ unsigned _starpu_get_cuda_device_count(void)
 		cnt = STARPU_MAXCUDADEVS;
 	}
 	return (unsigned)cnt;
-#endif
 }
 
 void _starpu_init_cuda(void)
