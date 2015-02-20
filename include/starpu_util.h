@@ -305,7 +305,9 @@ double starpu_timing_now(void);
 /* Try to fetch the system definition of timespec */
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 #include <time.h>
 #if !defined(_MSC_VER) || defined(BUILDING_STARPU)
 #include <pthread.h>
