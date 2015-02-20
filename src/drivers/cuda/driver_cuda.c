@@ -390,8 +390,6 @@ unsigned _starpu_get_cuda_device_count(void)
 #ifdef STARPU_SIMGRID
 	cnt = _starpu_simgrid_get_nbhosts("CUDA");
 #else
-	int cnt;
-
 	cudaError_t cures;
 	cures = cudaGetDeviceCount(&cnt);
 	if (STARPU_UNLIKELY(cures))
