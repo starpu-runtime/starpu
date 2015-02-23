@@ -200,10 +200,11 @@ then
     CPPFLAGS+=" -I$STARPU_SRC_DIR/include/pthread_win32 "
     AC_COMPILE_IFELSE(
           [AC_LANG_PROGRAM([[
-    	        #include <pthread.h>
-	  	]],
-		[[ pthread_t t; pthread_create(&t, NULL, NULL, NULL); ]])]
-		,,AC_MSG_ERROR([pthread_create unavailable]))
+		#include <pthread.h>
+		]],
+		[[ pthread_t t; pthread_create(&t, NULL, NULL, NULL); ]])],
+		AC_DEFINE(STARPU_NATIVE_WINTHREADS,[],[Using native windows threads]),
+		AC_MSG_ERROR([pthread_create unavailable]))
 else
     AC_CHECK_LIB([pthread], [pthread_create])
 fi
@@ -216,6 +217,9 @@ AC_CHECK_TYPES([struct timespec],
 #include <unistd.h>
 #endif
 #include <time.h>
+#ifndef STARPU_NATIVE_WINTHREADS
+#include <pthread.h>
+#endif
 ])
 
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
