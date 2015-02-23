@@ -1766,6 +1766,10 @@ static void update_bandwidth_through(hwloc_obj_t obj, double bandwidth)
  * updating uplink downstream bandwidth along the way */
 static void find_platform_backward_path(hwloc_obj_t obj, double bandwidth)
 {
+	if (!obj)
+		/* Oops, we should have seen a host bridge. Well, too bad. */
+		return;
+
 	/* Update uplink bandwidth of PCI Hub */
 	update_bandwidth_down(obj, bandwidth);
 	/* Update internal bandwidth of PCI Hub */
@@ -1781,6 +1785,10 @@ static void find_platform_backward_path(hwloc_obj_t obj, double bandwidth)
 /* Same, but update uplink upstream bandwidth */
 static void find_platform_forward_path(hwloc_obj_t obj, double bandwidth)
 {
+	if (!obj)
+		/* Oops, we should have seen a host bridge. Well, too bad. */
+		return;
+
 	/* Update uplink bandwidth of PCI Hub */
 	update_bandwidth_up(obj, bandwidth);
 	/* Update internal bandwidth of PCI Hub */
@@ -1822,6 +1830,13 @@ static int find_platform_path_up(hwloc_obj_t obj1, hwloc_obj_t obj2, double band
 {
 	int ret;
 	hwloc_obj_t parent = obj1->parent;
+
+	if (!parent)
+	{
+		/* Oops, we should have seen a host bridge. Act as if we had seen it.  */
+		find_platform_backward_path(obj2, bandwidth);
+		return 1;
+	}
 
 	if (find_platform_path_down(parent, obj1, obj2, bandwidth))
 		/* obj2 was a mere (sub)child of our parent */
@@ -1969,6 +1984,10 @@ static void emit_pci_link_through(FILE *f, hwloc_obj_t obj)
  * using uplink downstream along the way */
 static void emit_platform_backward_path(FILE *f, hwloc_obj_t obj)
 {
+	if (!obj)
+		/* Oops, we should have seen a host bridge. Well, too bad. */
+		return;
+
 	/* Go through PCI Hub */
 	emit_pci_link_through(f, obj);
 	/* Go through uplink */
@@ -1987,6 +2006,10 @@ static void emit_platform_backward_path(FILE *f, hwloc_obj_t obj)
 /* Same, but use upstream link */
 static void emit_platform_forward_path(FILE *f, hwloc_obj_t obj)
 {
+	if (!obj)
+		/* Oops, we should have seen a host bridge. Well, too bad. */
+		return;
+
 	/* Go through PCI Hub */
 	emit_pci_link_through(f, obj);
 	/* Go through uplink */
@@ -2030,6 +2053,13 @@ static int emit_platform_path_up(FILE *f, hwloc_obj_t obj1, hwloc_obj_t obj2)
 {
 	int ret;
 	hwloc_obj_t parent = obj1->parent;
+
+	if (!parent)
+	{
+		/* Oops, we should have seen a host bridge. Act as if we had seen it.  */
+		emit_platform_backward_path(f, obj2);
+		return 1;
+	}
 
 	if (emit_platform_path_down(f, parent, obj1, obj2))
 		/* obj2 was a mere (sub)child of our parent */
