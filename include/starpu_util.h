@@ -323,7 +323,7 @@ struct timespec {
 #endif /* STARPU_TIMESPEC_DEFINED */
 #endif /* STARPU_HAVE_STRUCT_TIMESPEC */
 /* Fetch gettimeofday on mingw/cygwin */
-#if defined(__MING32__) || defined(__CYGWIN__)
+#if defined(__MINGW32__) || defined(__CYGWIN__)
 #include <sys/time.h>
 #endif
 #else
