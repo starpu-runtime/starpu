@@ -208,7 +208,7 @@ then
 else
     AC_CHECK_LIB([pthread], [pthread_create])
 fi
-AC_CHECK_TYPES([struct timespec], 
+AC_CHECK_TYPE([struct timespec], 
 	       AC_DEFINE(STARPU_HAVE_STRUCT_TIMESPEC,[],[struct timespec is defined]),
 	       [], [
 #include <sys/types.h>
