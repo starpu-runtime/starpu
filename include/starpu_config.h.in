@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  * Copyright (C) 2014  Inria
  *
@@ -129,5 +129,6 @@ typedef ssize_t starpu_ssize_t;
 #undef STARPU_HAVE_HWLOC
 #undef STARPU_HAVE_PTHREAD_SPIN_LOCK
 #undef STARPU_HAVE_PTHREAD_BARRIER
+#undef STARPU_HAVE_STRUCT_TIMESPEC
 
 #endif
