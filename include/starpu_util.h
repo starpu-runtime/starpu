@@ -310,8 +310,6 @@ double starpu_timing_now(void);
 #endif
 #include <time.h>
 #if !defined(_MSC_VER) || defined(BUILDING_STARPU)
-#undef HAVE_CONFIG_H
-#undef HAVE_STRUCT_TIMESPEC
 #include <pthread.h>
 #endif
 #ifndef STARPU_HAVE_STRUCT_TIMESPEC
