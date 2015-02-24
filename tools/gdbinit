@@ -17,8 +17,8 @@
 
 # To set a breakpoint when starting gdb with option "-ex run",
 # here what you need to do:
-set breakpoint pending on
-break starpu_mpi.c:419
+#set breakpoint pending on
+#break starpu_mpi.c:419
 
 define starpu-print-job
   set language c
