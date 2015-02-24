@@ -100,7 +100,7 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 }
 
 /* This adds a new synchronization task which depends on all the previous accessors */
-static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task)
+static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_task *pre_sync_task, struct starpu_task *post_sync_task, struct starpu_task *ignored_task)
 {
 	/* Count the existing accessors */
 	unsigned naccessors = 0;
@@ -108,7 +108,7 @@ static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_tas
 	l = handle->last_submitted_accessors.next;
 	while (l != &handle->last_submitted_accessors)
 	{
-		if (l->task != post_sync_task)
+		if (l->task != ignored_task)
 			naccessors++;
 		l = l->next;
 	}
@@ -123,7 +123,7 @@ static void _starpu_add_sync_task(starpu_data_handle_t handle, struct starpu_tas
 		while (l != &handle->last_submitted_accessors)
 		{
 			STARPU_ASSERT(l->task);
-			if (l->task != post_sync_task)
+			if (l->task != ignored_task)
 			{
 				task_array[i++] = l->task;
 				_starpu_add_dependency(handle, l->task, pre_sync_task);
@@ -251,7 +251,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					 * combine with others anyway, use it
 					 * as synchronization task by making it
 					 * wait for the previous ones. */
-					_starpu_add_sync_task(handle, pre_sync_task, post_sync_task);
+					_starpu_add_sync_task(handle, pre_sync_task, post_sync_task, post_sync_task);
 				} else {
 					_STARPU_DEP_DEBUG("several predecessors, adding sync task\n");
 					/* insert an empty synchronization task
@@ -269,7 +269,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 					sync_task->cl = NULL;
 
 					/* Make this task wait for the previous ones */
-					_starpu_add_sync_task(handle, sync_task, sync_task);
+					_starpu_add_sync_task(handle, sync_task, sync_task, post_sync_task);
 					/* And the requested task wait for this one */
 					_starpu_add_accessor(handle, pre_sync_task, post_sync_task, post_sync_task_dependency_slot);
 
