@@ -2,7 +2,7 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2010-2015  Université de Bordeaux
-# Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+# Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,8 +17,8 @@
 
 # To set a breakpoint when starting gdb with option "-ex run",
 # here what you need to do:
-#set breakpoint pending on
-#break starpu_mpi.c:419
+set breakpoint pending on
+break starpu_mpi.c:419
 
 define starpu-print-job
   set language c
@@ -604,6 +604,20 @@ define starpu-print-registered-models
     end
 end
 
+define starpu-mpi-print-request
+    set $request = (struct _starpu_mpi_req *)$arg0
+    printf "Request %p data %p type %d\n", $request, $request->data_handle, $request->request_type
+end
+
+define starpu-mpi-print-ready-requests
+    set $entry = ready_requests
+    while $entry->_head
+        starpu-mpi-print-request $entry->_head
+        printf "\n"
+        set $entry = (struct handle_entry *) $entry.hh.next
+    end
+end
+
 document starpu
 List of StarPU-specific gdb functions:
 starpu-workers          prints a list of the StarPU workers
@@ -626,4 +640,9 @@ starpu-print-archs      prints all known arch combinations
 starpu-print-arch       prints a given arch combination
 starpu-print-registered-models prints all registered performance models
 starpu-print-model      prints a given performance model
+end
+
+document starpu-mpi
+List of StarPU-MPI-specific gdb functions:
+starpu-mpi-print-ready-requests prints all ready requests
 end
