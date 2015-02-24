@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2014  Université de Bordeaux
+# Copyright (C) 2009-2015  Université de Bordeaux
 # Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
 # Copyright (C) 2010, 2011, 2012  Institut National de Recherche en Informatique et Automatique
 #
@@ -197,6 +197,7 @@ noinst_PROGRAMS =				\
 	datawizard/wt_broadcast			\
 	datawizard/readonly			\
 	datawizard/specific_node		\
+	datawizard/task_with_multiple_time_the_same_handle	\
 	errorcheck/starpu_init_noworker		\
 	errorcheck/invalid_blocking_calls	\
 	errorcheck/invalid_tasks		\
