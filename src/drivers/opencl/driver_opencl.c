@@ -82,9 +82,11 @@ static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
 #elif defined(STARPU_USE_OPENCL)
 	/* Request the size of the current device's memory */
 	cl_int err;
-	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(totalGlobalMem), &totalGlobalMem, NULL);
+	cl_ulong size;
+	err = clGetDeviceInfo(devices[devid], CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(size), &size, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
+	totalGlobalMem = size;
 #endif
 
 	limit = starpu_get_env_number("STARPU_LIMIT_OPENCL_MEM");
