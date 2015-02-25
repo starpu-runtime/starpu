@@ -76,7 +76,7 @@ int main(int argc, char * argv[])
 	starpu_data_unregister(handle);
 	if (value != 36)
 	{
-		FPRINTF(stderr, "value is %f instead of %f\n", value, 36);
+		FPRINTF(stderr, "value is %f instead of %f\n", value, 36.);
 		ret = EXIT_FAILURE;
 	}
 
