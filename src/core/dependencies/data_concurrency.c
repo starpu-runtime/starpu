@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -22,14 +22,39 @@
 #include <datawizard/sort_data_handles.h>
 
 /*
- * The different types of data accesses are STARPU_R, STARPU_RW, STARPU_W,
+ * We have a kind of dining philosophers problem: various tasks are accessing
+ * various data concurrently in different modes: STARPU_R, STARPU_RW, STARPU_W,
  * STARPU_SCRATCH and STARPU_REDUX. STARPU_RW is managed as a STARPU_W access.
+ * We have the following constraints:
+ *
  * - A single STARPU_W access is allowed at a time.
  * - Concurrent STARPU_R accesses are allowed.
  * - Concurrent STARPU_SCRATCH accesses are allowed.
  * - Concurrent STARPU_REDUX accesses are allowed.
+ *
+ * What we do here is implementing the Dijkstra solutions: handles are sorted
+ * by pointer value order, and tasks call
+ * _starpu_attempt_to_submit_data_request for each requested data in that order
+ * (see _starpu_sort_task_handles call in _starpu_submit_job_enforce_data_deps).
+ *
+ * _starpu_attempt_to_submit_data_request will either:
+ * - obtain access to the data, and thus the task can proceed with acquiring
+ *   other data (see _submit_job_enforce_data_deps)
+ * - queue a request on the data handle
+ *
+ * When a task finishes, it calls _starpu_notify_data_dependencies for each
+ * data, to free its acquisitions. This will look whether the first queued
+ * request can be fulfilled, and in such case make the task try to acquire its
+ * next data.
+ *
+ * The same mechanism is used for application data aquisition
+ * (starpu_data_acquire).
  */
 
+/*
+ * Check to see whether the first queued request can proceed, and return it in
+ * such case.
+ */
 /* the header lock must be taken by the caller */
 static struct _starpu_data_requester *may_unlock_data_req_list_head(starpu_data_handle_t handle)
 {
@@ -218,6 +243,8 @@ static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, u
 	return _starpu_attempt_to_submit_data_request(1, handle, mode, NULL, NULL, j, buffer_index);
 }
 
+/* Acquire all data of the given job, one by one in handle pointer value order
+ */
 static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned start_buffer_index)
 {
 	unsigned buf;
@@ -246,10 +273,8 @@ static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned st
 	return 0;
 }
 
-/* When a new task is submitted, we make sure that there cannot be codelets
-   with concurrent data-access at the same time in the scheduling engine (eg.
-   there can be 2 tasks reading a piece of data, but there cannot be one
-   reading and another writing) */
+/* Sort the data used by the given job by handle pointer value order, and
+ * acquire them in that order */
 unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 {
 	struct starpu_codelet *cl = j->task->cl;
@@ -278,6 +303,8 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 	return _submit_job_enforce_data_deps(j, 0);
 }
 
+/* This request got fulfilled, continue with the other requests of the
+ * corresponding job */
 static unsigned unlock_one_requester(struct _starpu_data_requester *r)
 {
 	struct _starpu_job *j = r->j;
@@ -291,7 +318,10 @@ static unsigned unlock_one_requester(struct _starpu_data_requester *r)
 		return 0;
 }
 
-/* The header lock must already be taken by the caller.
+/* This is called when a task is finished with a piece of data
+ * (or on starpu_data_release)
+ *
+ * The header lock must already be taken by the caller.
  * This may free the handle if it was lazily unregistered (1 is returned in
  * that case). The handle pointer thus becomes invalid for the caller.
  */
