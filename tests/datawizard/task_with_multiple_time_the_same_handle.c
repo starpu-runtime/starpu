@@ -55,6 +55,7 @@ int main(int argc, char * argv[])
 
 	ret=starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	if (starpu_worker_get_count_by_type(STARPU_CPU_WORKER) == 0) return STARPU_TEST_SKIPPED;
 
 	starpu_variable_data_register(&handle,0,(uintptr_t)&value,sizeof(double));
 
