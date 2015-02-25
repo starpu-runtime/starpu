@@ -61,11 +61,11 @@ int main(int argc, char * argv[])
 
 	for (i=0; i<2; i++)
 	{
-		starpu_insert_task(&sum_cl,
+		starpu_task_insert(&sum_cl,
 		                   STARPU_RW, handle,
 		                   STARPU_R, handle,
 		                   0);
-		starpu_insert_task(&sum3_cl,
+		starpu_task_insert(&sum3_cl,
 		                   STARPU_R, handle,
 		                   STARPU_R, handle,
 		                   STARPU_RW, handle,
