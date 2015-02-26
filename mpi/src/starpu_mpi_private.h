@@ -69,7 +69,7 @@ int _starpu_debug_rank;
 #endif
 
 #ifdef STARPU_VERBOSE
-#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, way)	\
+#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, utag, way)	\
 	do \
 	{ \
 	     	if (getenv("STARPU_MPI_COMM"))	\
@@ -77,12 +77,12 @@ int _starpu_debug_rank;
      			int __size; \
 			if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
 			MPI_Type_size(datatype, &__size); \
-			fprintf(stderr, "[%d][starpu_mpi] %s %d:%d %12ld     [%s:%d]\n", _starpu_debug_rank, way, node, tag, count*__size, __starpu_func__ , __LINE__); \
+			fprintf(stderr, "[%d][starpu_mpi] %s %d:%d(%d) %12ld     [%s:%d]\n", _starpu_debug_rank, way, node, tag, utag, count*__size, __starpu_func__ , __LINE__); \
 			fflush(stderr); \
 		} \
 	} while(0);
-#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag) 	_STARPU_MPI_COMM_DEBUG(count, datatype, dest, tag, "-->")
-#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag) 	_STARPU_MPI_COMM_DEBUG(count, datatype, source, tag, "<--")
+#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag, utag) 		_STARPU_MPI_COMM_DEBUG(count, datatype, dest, tag, utag, "-->")
+#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag, utag) 	_STARPU_MPI_COMM_DEBUG(count, datatype, source, tag, utag, "<--")
 #  define _STARPU_MPI_DEBUG(level, fmt, ...) \
 	do \
 	{								\
@@ -94,9 +94,9 @@ int _starpu_debug_rank;
 		}			\
 	} while(0);
 #else
-#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, way)	do { } while(0)
-#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag)		do { } while(0)
-#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag)	do { } while(0)
+#  define _STARPU_MPI_COMM_DEBUG(count, datatype, node, tag, utag, way)		do { } while(0)
+#  define _STARPU_MPI_COMM_TO_DEBUG(count, datatype, dest, tag, utag)		do { } while(0)
+#  define _STARPU_MPI_COMM_FROM_DEBUG(count, datatype, source, tag, utag)	do { } while(0)
 #  define _STARPU_MPI_DEBUG(level, fmt, ...)		do { } while(0)
 #endif
 
