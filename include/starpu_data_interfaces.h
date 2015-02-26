@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010-2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011-2012  Institut National de Recherche en Informatique et Automatique
  *
@@ -120,7 +120,8 @@ struct starpu_data_interface_ops
 	enum starpu_data_interface_id interfaceid;
 	size_t interface_size;
 
-	int is_multiformat;
+	char is_multiformat;
+	char dontcache;
 	struct starpu_multiformat_data_interface_ops* (*get_mf_ops)(void *data_interface);
 
 	int (*pack_data) (starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);

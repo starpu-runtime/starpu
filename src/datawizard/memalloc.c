@@ -861,7 +861,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
 	 * wouldn't even re-use these allocations!
 	 */
-	if (starpu_node_get_kind(node) == STARPU_CPU_RAM && starpu_get_env_number("STARPU_LIMIT_CPU_MEM") < 0)
+	if (handle->ops->dontcache || (starpu_node_get_kind(node) == STARPU_CPU_RAM && starpu_get_env_number("STARPU_LIMIT_CPU_MEM") < 0))
 	{
 		/* Free data immediately */
 		free_memory_on_node(mc, node);
