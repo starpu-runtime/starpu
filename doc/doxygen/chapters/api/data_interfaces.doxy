@@ -35,8 +35,13 @@ Describe the data into a string.
 An identifier that is unique to each interface.
 \var size_t starpu_data_interface_ops::interface_size
 The size of the interface data descriptor.
-\var int starpu_data_interface_ops::is_multiformat
+\var char starpu_data_interface_ops::is_multiformat
 todo
+\var char starpu_data_interface_ops::dontcache
+If set to non-zero, StarPU will never try to reuse an allocated buffer for a
+different handle. This can be notably useful for application-defined interfaces
+which have a dynamic size, and for which it thus does not make sense to reuse
+the buffer since will probably not have the proper size.
 \var struct starpu_multiformat_data_interface_ops* (*starpu_data_interface_ops::get_mf_ops)(void *data_interface)
 todo
 \var int (*starpu_data_interface_ops::pack_data)(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
