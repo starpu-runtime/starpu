@@ -384,17 +384,26 @@ unsigned _starpu_worker_can_block(unsigned memnode, struct _starpu_worker *worke
  * */
 void _starpu_block_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
 
+/* This function initializes the current thread for the given worker */
+void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key);
+
 /* The _starpu_worker structure describes all the state of a StarPU worker.
  * This function sets the pthread key which stores a pointer to this structure.
  * */
 void _starpu_set_local_worker_key(struct _starpu_worker *worker);
 
-/* This function initializes the current thread for the given worker */
-void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key);
-
 /* Returns the _starpu_worker structure that describes the state of the
  * current worker. */
 struct _starpu_worker *_starpu_get_local_worker_key(void);
+
+/* The _starpu_worker_set structure describes all the state of a StarPU worker_set.
+ * This function sets the pthread key which stores a pointer to this structure.
+ * */
+void _starpu_set_local_worker_set_key(struct _starpu_worker_set *worker_set);
+
+/* Returns the _starpu_worker_set structure that describes the state of the
+ * current worker_set. */
+struct _starpu_worker_set *_starpu_get_local_worker_set_key(void);
 
 /* Returns the _starpu_worker structure that describes the state of the
  * specified worker. */
