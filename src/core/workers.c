@@ -54,6 +54,7 @@ static int init_count = 0;
 static enum { UNINITIALIZED, CHANGING, INITIALIZED } initialized = UNINITIALIZED;
 
 static starpu_pthread_key_t worker_key;
+static starpu_pthread_key_t worker_set_key;
 
 static struct _starpu_machine_config config;
 
@@ -626,6 +627,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_MIC) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		unsigned devid = workerarg->devid;
 #endif
+#ifdef STARPU_USE_CUDA
+		struct _starpu_worker_set *worker_set;
+#endif
 
 		_STARPU_DEBUG("initialising worker %u/%u\n", worker, nworkers);
 
@@ -668,24 +672,27 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
 				driver.id.cuda_id = workerarg->devid;
-				workerarg->set = &cuda_worker_set[devid];
+				worker_set = &cuda_worker_set[devid];
+				workerarg->set = worker_set;
 
-				/* We spawn only one thread per CUDA device,
+				/* We spawn only one thread per CUDA driver,
 				 * which will control all CUDA workers of this
-				 * device. (by using a worker set). */
-				if (cuda_worker_set[devid].workers)
+				 * driver. (by using a worker set). */
+				if (worker_set->workers)
 					break;
 
-				cuda_worker_set[devid].nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
+				worker_set->nworkers = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
+
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-				if (cuda_worker_set[devid].nworkers > 1)
+				if (worker_set->nworkers > 1)
 				{
 					_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
-					cuda_worker_set[devid].nworkers = 1;
+					worker_set->nworkers = 1;
 				}
 #endif
-				cuda_worker_set[devid].workers = workerarg;
-				cuda_worker_set[devid].set_is_initialized = 0;
+
+				worker_set->workers = workerarg;
+				worker_set->set_is_initialized = 0;
 
 				if (!_starpu_may_launch_driver(pconfig->conf, &driver))
 				{
@@ -695,10 +702,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 				STARPU_PTHREAD_CREATE_ON(
 					workerarg->name,
-					&cuda_worker_set[devid].worker_thread,
+					&worker_set->worker_thread,
 					NULL,
 					_starpu_cuda_worker,
-					&cuda_worker_set[devid],
+					worker_set,
 					_starpu_simgrid_get_host_by_worker(workerarg));
 #ifdef STARPU_USE_FXT
 				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
@@ -706,12 +713,12 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
 #endif
-				STARPU_PTHREAD_MUTEX_LOCK(&cuda_worker_set[devid].mutex);
-				while (!cuda_worker_set[devid].set_is_initialized)
-					STARPU_PTHREAD_COND_WAIT(&cuda_worker_set[devid].ready_cond,
-								 &cuda_worker_set[devid].mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_worker_set[devid].mutex);
-				cuda_worker_set[devid].started = 1;
+				STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+				while (!worker_set->set_is_initialized)
+					STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
+								 &worker_set->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+				worker_set->started = 1;
 
 				break;
 #endif
@@ -870,6 +877,16 @@ void _starpu_set_local_worker_key(struct _starpu_worker *worker)
 struct _starpu_worker *_starpu_get_local_worker_key(void)
 {
 	return (struct _starpu_worker *) STARPU_PTHREAD_GETSPECIFIC(worker_key);
+}
+
+void _starpu_set_local_worker_set_key(struct _starpu_worker_set *worker)
+{
+	STARPU_PTHREAD_SETSPECIFIC(worker_set_key, worker);
+}
+
+struct _starpu_worker_set *_starpu_get_local_worker_set_key(void)
+{
+	return (struct _starpu_worker_set *) STARPU_PTHREAD_GETSPECIFIC(worker_set_key);
 }
 
 /* Initialize the starpu_conf with default values */
@@ -1198,6 +1215,7 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_starpu_worker_init(&config.workers[worker], &config);
 
 	STARPU_PTHREAD_KEY_CREATE(&worker_key, NULL);
+	STARPU_PTHREAD_KEY_CREATE(&worker_set_key, NULL);
 
 	_starpu_build_tree();
 
