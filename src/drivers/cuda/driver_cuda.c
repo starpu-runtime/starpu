@@ -586,7 +586,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 #endif
 
 #ifdef STARPU_SIMGRID
-	STARPU_ASSERT_MSG (worker_set->nworkers = 1, "Simgrid mode does not support concurrent kernel execution yet\n");
+	STARPU_ASSERT_MSG(worker_set->nworkers == 1, "Simgrid mode does not support concurrent kernel execution yet\n");
 #else /* !STARPU_SIMGRID */
 	if (worker_set->nworkers > 1 && props[devid].concurrentKernels == 0)
 		_STARPU_DISP("Warning: STARPU_NWORKER_PER_CUDA is %u, but the device does not support concurrent kernel execution!\n", worker_set->nworkers);
