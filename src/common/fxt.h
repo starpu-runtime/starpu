@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -408,8 +408,8 @@ do {									\
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			\
 	FUT_DO_PROBE2(_STARPU_FUT_NEW_MEM_NODE, nodeid, _starpu_gettid());
 
-#define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode)	\
-	FUT_DO_PROBE5(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, _starpu_gettid());
+#define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode, sync)	\
+	FUT_DO_PROBE6(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, sync, _starpu_gettid());
 
 #define _STARPU_TRACE_WORKER_INIT_END(__workerid)				\
 	FUT_DO_PROBE2(_STARPU_FUT_WORKER_INIT_END, _starpu_gettid(), (__workerid));
@@ -818,7 +818,7 @@ do {										\
 
 /* Dummy macros in case FxT is disabled */
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)	do {} while(0)
-#define _STARPU_TRACE_WORKER_INIT_START(a,b,c)	do {} while(0)
+#define _STARPU_TRACE_WORKER_INIT_START(a,b,c,d,e)	do {} while(0)
 #define _STARPU_TRACE_WORKER_INIT_END(workerid)	do {} while(0)
 #define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)	do {} while(0)
 #define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)	do {} while(0)

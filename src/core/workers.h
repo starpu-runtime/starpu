@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2014  Université de Bordeaux
+ * Copyright (C) 2009-2015  Université de Bordeaux
  * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
  * Copyright (C) 2011  INRIA
  *
@@ -384,8 +384,10 @@ unsigned _starpu_worker_can_block(unsigned memnode, struct _starpu_worker *worke
  * */
 void _starpu_block_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
 
+/* This function initializes the current driver for the given worker */
+void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
 /* This function initializes the current thread for the given worker */
-void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key);
+void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
 
 /* The _starpu_worker structure describes all the state of a StarPU worker.
  * This function sets the pthread key which stores a pointer to this structure.

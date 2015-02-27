@@ -606,7 +606,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 {
 	int devid = worker->devid;
 
-	_starpu_worker_start(worker, _STARPU_FUT_OPENCL_KEY);
+	_starpu_driver_start(worker, _STARPU_FUT_OPENCL_KEY, 0);
 
 	_starpu_opencl_init_context(devid);
 
