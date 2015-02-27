@@ -627,7 +627,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_MIC) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		unsigned devid = workerarg->devid;
 #endif
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		struct _starpu_worker_set *worker_set;
 #endif
 
