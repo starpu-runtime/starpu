@@ -43,14 +43,16 @@ void _starpu_init_data_request_lists(void)
 	unsigned i;
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
-		prefetch_requests[i] = _starpu_data_request_list_new();
 		data_requests[i] = _starpu_data_request_list_new();
+		prefetch_requests[i] = _starpu_data_request_list_new();
 
 		/* Tell helgrind that we are fine with checking for list_empty
 		 * in _starpu_handle_node_data_requests, we will call it
 		 * periodically anyway */
 		STARPU_HG_DISABLE_CHECKING(data_requests[i]);
 		STARPU_HG_DISABLE_CHECKING(data_requests[i]->_head);
+		STARPU_HG_DISABLE_CHECKING(prefetch_requests[i]);
+		STARPU_HG_DISABLE_CHECKING(prefetch_requests[i]->_head);
 
 		STARPU_PTHREAD_MUTEX_INIT(&data_requests_list_mutex[i], NULL);
 
