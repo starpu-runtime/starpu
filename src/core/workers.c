@@ -562,7 +562,7 @@ void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsig
 {
 	unsigned devid = worker->devid;
 	unsigned memnode = worker->memory_node;
-	_STARPU_TRACE_WORKER_INIT_START(fut_key, worker->workerid, devid, memnode, sync);
+	_STARPU_TRACE_WORKER_INIT_START(fut_key, worker->workerid, devid, memnode, worker->bindid, sync);
 }
 #endif
 

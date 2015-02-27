@@ -463,8 +463,9 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	int devid = ev->param[2];
 	int workerid = ev->param[1];
 	int nodeid = ev->param[3];
-	int set = ev->param[4];
-	int threadid = ev->param[5];
+	int bindid = ev->param[4];
+	int set = ev->param[5];
+	int threadid = ev->param[6];
 	int new_thread;
 
 	new_thread = register_worker_id(threadid, workerid, set);
@@ -529,7 +530,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		char memnode_container[STARPU_POTI_STR_LEN];
 		memnode_container_alias(memnode_container, STARPU_POTI_STR_LEN, prefix, nodeid);
 		char new_thread_container_name[STARPU_POTI_STR_LEN];
-		snprintf(new_thread_container_name, STARPU_POTI_STR_LEN, "%s%d", prefix, threadid);
+		snprintf(new_thread_container_name, STARPU_POTI_STR_LEN, "%s%d", prefix, bindid);
 		char new_worker_container_name[STARPU_POTI_STR_LEN];
 		snprintf(new_worker_container_name, STARPU_POTI_STR_LEN, "%s%s%d", prefix, kindstr, devid);
 		if (new_thread)
@@ -538,7 +539,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 #else
 		if (new_thread)
 			fprintf(out_paje_file, "7	%.9f	%st%d	T	%smn%d	%s%d\n",
-				get_event_time_stamp(ev, options), prefix, threadid, prefix, nodeid, prefix, threadid);
+				get_event_time_stamp(ev, options), prefix, threadid, prefix, nodeid, prefix, bindid);
 		fprintf(out_paje_file, "7	%.9f	%sw%d	W	%st%d	%s%s%d\n",
 			get_event_time_stamp(ev, options), prefix, workerid, prefix, threadid, prefix, kindstr, devid);
 #endif
@@ -2520,7 +2521,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		switch (ev.code)
 		{
 		case _STARPU_FUT_WORKER_INIT_START:
-			register_worker_id(ev.param[5], ev.param[1], ev.param[4]);
+			register_worker_id(ev.param[6], ev.param[1], ev.param[5]);
 			break;
 
 		case _STARPU_FUT_START_CODELET_BODY:
