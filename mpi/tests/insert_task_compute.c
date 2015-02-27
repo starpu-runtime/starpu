@@ -17,12 +17,15 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 
-void func_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
+void func_cpu(void *descr[], void *_args)
 {
+	int rank;
 	int *x = (int *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	int *y = (int *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-	FPRINTF(stdout, "VALUES: %u %u\n", *x, *y);
+	starpu_codelet_unpack_args(_args, &rank);
+
+	FPRINTF(stdout, "[%d] VALUES: %u %u\n", rank, *x, *y);
 	*x = *x * *y;
 }
 
@@ -58,7 +61,10 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 		x[i] = before[rank*2+i];
 		if (rank <= 1)
 			FPRINTF_MPI(stderr, "before computation x[%d] = %d\n", i, x[i]);
-		starpu_variable_data_register(&data_handles[i], STARPU_MAIN_RAM, (uintptr_t)&x[i], sizeof(int));
+		if (rank == i)
+			starpu_variable_data_register(&data_handles[i], 0, (uintptr_t)&x[i], sizeof(int));
+		else
+			starpu_variable_data_register(&data_handles[i], -1, (uintptr_t)NULL, sizeof(int));
 		starpu_mpi_data_register(data_handles[i], i, i);
 		descrs[i].handle = data_handles[i];
 	}
@@ -76,6 +82,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 				{
 					task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
 								     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
+								     STARPU_VALUE, &rank, sizeof(rank),
 								     STARPU_EXECUTE_ON_NODE, node, 0);
 					break;
 				}
@@ -83,6 +90,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 				{
 					task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
 								     STARPU_DATA_ARRAY, data_handles, 2,
+								     STARPU_VALUE, &rank, sizeof(rank),
 								     STARPU_EXECUTE_ON_NODE, node, 0);
 					break;
 				}
@@ -90,6 +98,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 				{
 					task = starpu_mpi_task_build(MPI_COMM_WORLD, &mycodelet,
 								     STARPU_DATA_MODE_ARRAY, descrs, 2,
+								     STARPU_VALUE, &rank, sizeof(rank),
 								     STARPU_EXECUTE_ON_NODE, node, 0);
 					break;
 				}
@@ -137,6 +146,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 				{
 					ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
 								     STARPU_RW, data_handles[0], STARPU_R, data_handles[1],
+								     STARPU_VALUE, &rank, sizeof(rank),
 								     STARPU_EXECUTE_ON_NODE, node, 0);
 					break;
 				}
@@ -144,6 +154,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 				{
 					ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
 								     STARPU_DATA_ARRAY, data_handles, 2,
+								     STARPU_VALUE, &rank, sizeof(rank),
 								     STARPU_EXECUTE_ON_NODE, node, 0);
 					break;
 				}
@@ -151,6 +162,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 				{
 					ret = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet,
 								     STARPU_DATA_MODE_ARRAY, descrs, 2,
+								     STARPU_VALUE, &rank, sizeof(rank),
 								     STARPU_EXECUTE_ON_NODE, node, 0);
 					break;
 				}
@@ -165,7 +177,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 enodev:
 	for(i=0; i<2; i++)
 	{
-		starpu_data_unregister_no_coherency(data_handles[i]);
+		starpu_data_unregister(data_handles[i]);
 	}
 
 	ok = 1;
@@ -191,7 +203,7 @@ int main(int argc, char **argv)
 	int rank;
 	int ret;
 	int before[4] = {10, 20, 11, 22};
-	int after_node[2][4] = {{220, 22, 11, 22}, {220, 20, 220, 22}};
+	int after_node[2][4] = {{220, 20, 11, 22}, {220, 20, 11, 22}};
 	int node, insert_task, data_array;
 
 	MPI_Init(&argc, &argv);

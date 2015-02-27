@@ -97,14 +97,14 @@ int main(int argc, char **argv)
 		starpu_mpi_data_register(data_handlesx0, 0, 0);
 	}
 
-	node = starpu_data_get_rank(data_handlesx1);
+	node = starpu_mpi_data_get_rank(data_handlesx1);
 	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_r_w,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_R, data_handlesx0, STARPU_W, data_handlesx1,
 				     0);
 	assert(err == 0);
 
-	node = starpu_data_get_rank(data_handlesx0);
+	node = starpu_mpi_data_get_rank(data_handlesx0);
 	err = starpu_mpi_task_insert(MPI_COMM_WORLD, &mycodelet_rw_r,
 				     STARPU_VALUE, &node, sizeof(node),
 				     STARPU_RW, data_handlesx0, STARPU_R, data_handlesx1,

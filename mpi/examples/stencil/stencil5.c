@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2011, 2013              Université Bordeaux
- * Copyright (C) 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,17 +19,22 @@
 #include <math.h>
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+#define FPRINTF_MPI(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) { \
+    						int _disp_rank; MPI_Comm_rank(MPI_COMM_WORLD, &_disp_rank);       \
+                                                fprintf(ofile, "[%d][starpu_mpi][%s] " fmt , _disp_rank, __starpu_func__ ,## __VA_ARGS__); \
+                                                fflush(ofile); }} while(0);
 
 void stencil5_cpu(void *descr[], STARPU_ATTRIBUTE_UNUSED void *_args)
 {
-	unsigned *xy = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	unsigned *xm1y = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
-	unsigned *xp1y = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[2]);
-	unsigned *xym1 = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[3]);
-	unsigned *xyp1 = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[4]);
+	float *xy = (float *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	float *xm1y = (float *)STARPU_VARIABLE_GET_PTR(descr[1]);
+	float *xp1y = (float *)STARPU_VARIABLE_GET_PTR(descr[2]);
+	float *xym1 = (float *)STARPU_VARIABLE_GET_PTR(descr[3]);
+	float *xyp1 = (float *)STARPU_VARIABLE_GET_PTR(descr[4]);
 
-	//FPRINTF(stdout, "VALUES: %d %d %d %d %d\n", *xy, *xm1y, *xp1y, *xym1, *xyp1);
+//	fprintf(stdout, "VALUES: %2.2f %2.2f %2.2f %2.2f %2.2f\n", *xy, *xm1y, *xp1y, *xym1, *xyp1);
 	*xy = (*xy + *xm1y + *xp1y + *xym1 + *xyp1) / 5;
+//	fprintf(stdout, "VALUES: %2.2f %2.2f %2.2f %2.2f %2.2f\n", *xy, *xm1y, *xp1y, *xym1, *xyp1);
 }
 
 struct starpu_codelet stencil5_cl =
@@ -40,9 +45,9 @@ struct starpu_codelet stencil5_cl =
 };
 
 #ifdef STARPU_QUICK_CHECK
-#  define NITER_DEF	5
-#  define X         	3
-#  define Y         	3
+#  define NITER_DEF	100
+#  define X         	5
+#  define Y         	5
 #else
 #  define NITER_DEF	500
 #  define X         	20
@@ -65,7 +70,6 @@ int my_distrib2(int x, int y, int nb_nodes)
 	return (my_distrib(x, y, nb_nodes) + 1) % nb_nodes;
 }
 
-
 static void parse_args(int argc, char **argv)
 {
 	int i;
@@ -86,8 +90,8 @@ static void parse_args(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	int my_rank, size, x, y, loop;
-	int value=0, mean=0;
-	unsigned matrix[X][Y];
+	float mean=0;
+	float matrix[X][Y];
 	starpu_data_handle_t data_handles[X][Y];
 
 	int ret = starpu_init(NULL);
@@ -99,16 +103,30 @@ int main(int argc, char **argv)
 	parse_args(argc, argv);
 
 	/* Initial data values */
+	starpu_srand48((long int)time(NULL));
 	for(x = 0; x < X; x++)
 	{
 		for (y = 0; y < Y; y++)
 		{
-			matrix[x][y] = (my_rank+1)*10 + value;
-			value++;
+			matrix[x][y] = (float)starpu_drand48();
 			mean += matrix[x][y];
 		}
 	}
-	mean /= value;
+	mean /= (X*Y);
+
+	if (display)
+	{
+		FPRINTF_MPI(stdout, "mean=%2.2f\n", mean);
+		for(x = 0; x < X; x++)
+		{
+			fprintf(stdout, "[%d] ", my_rank);
+			for (y = 0; y < Y; y++)
+			{
+				fprintf(stdout, "%2.2f ", matrix[x][y]);
+			}
+			fprintf(stdout, "\n");
+		}
+	}
 
 	/* Initial distribution */
 	for(x = 0; x < X; x++)
@@ -119,14 +137,14 @@ int main(int argc, char **argv)
 			if (mpi_rank == my_rank)
 			{
 				//FPRINTF(stderr, "[%d] Owning data[%d][%d]\n", my_rank, x, y);
-				starpu_variable_data_register(&data_handles[x][y], STARPU_MAIN_RAM, (uintptr_t)&(matrix[x][y]), sizeof(unsigned));
+				starpu_variable_data_register(&data_handles[x][y], 0, (uintptr_t)&(matrix[x][y]), sizeof(float));
 			}
 			else if (my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
 				 || my_rank == my_distrib(x, y+1, size) || my_rank == my_distrib(x, y-1, size))
 			{
 				/* I don't own that index, but will need it for my computations */
 				//FPRINTF(stderr, "[%d] Neighbour of data[%d][%d]\n", my_rank, x, y);
-				starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
+				starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(float));
 			}
 			else
 			{
@@ -170,15 +188,15 @@ int main(int argc, char **argv)
 				 || my_rank == my_distrib2(x, y+1, size) || my_rank == my_distrib2(x, y-1, size)))
 			{
 				/* Register newly-needed data */
-				starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
+				starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(float));
 				starpu_mpi_data_register(data_handles[x][y], (y*X)+x, mpi_rank);
 			}
-			if (data_handles[x][y] && mpi_rank != starpu_data_get_rank(data_handles[x][y]))
+			if (data_handles[x][y] && mpi_rank != starpu_mpi_data_get_rank(data_handles[x][y]))
 			{
 				/* Migrate the data */
 				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
 				/* And register new rank of the matrix */
-				starpu_data_set_rank(data_handles[x][y], mpi_rank);
+				starpu_mpi_data_set_rank(data_handles[x][y], mpi_rank);
 			}
 		}
 	}
@@ -211,7 +229,7 @@ int main(int argc, char **argv)
 				/* Get back data to original place where the user-provided buffer is. */
 				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
 				/* Register original rank of the matrix (although useless) */
-				starpu_data_set_rank(data_handles[x][y], mpi_rank);
+				starpu_mpi_data_set_rank(data_handles[x][y], mpi_rank);
 				/* And unregister it */
 				starpu_data_unregister(data_handles[x][y]);
 			}
@@ -223,13 +241,13 @@ int main(int argc, char **argv)
 
 	if (display)
 	{
-		FPRINTF(stdout, "[%d] mean=%d\n", my_rank, mean);
+		FPRINTF(stdout, "[%d] mean=%2.2f\n", my_rank, mean);
 		for(x = 0; x < X; x++)
 		{
 			FPRINTF(stdout, "[%d] ", my_rank);
 			for (y = 0; y < Y; y++)
 			{
-				FPRINTF(stdout, "%3u ", matrix[x][y]);
+				FPRINTF(stdout, "%2.2f ", matrix[x][y]);
 			}
 			FPRINTF(stdout, "\n");
 		}
