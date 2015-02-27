@@ -344,7 +344,7 @@ static void worker_pop_state(double time, const char *prefix, long unsigned int 
 
 static void thread_set_state(double time, const char *prefix, long unsigned int threadid, const char *name)
 {
-	if (!find_sync(threadid))
+	if (find_sync(threadid))
 		/* Unless using worker sets, collapse thread and worker */
 		return worker_set_state(time, prefix, find_worker_id(threadid), name);
 
@@ -359,7 +359,7 @@ static void thread_set_state(double time, const char *prefix, long unsigned int 
 
 static void thread_push_state(double time, const char *prefix, long unsigned int threadid, const char *name)
 {
-	if (!find_sync(threadid))
+	if (find_sync(threadid))
 		/* Unless using worker sets, collapse thread and worker */
 		return worker_push_state(time, prefix, find_worker_id(threadid), name);
 
@@ -374,7 +374,7 @@ static void thread_push_state(double time, const char *prefix, long unsigned int
 
 static void thread_pop_state(double time, const char *prefix, long unsigned int threadid)
 {
-	if (!find_sync(threadid))
+	if (find_sync(threadid))
 		/* Unless using worker sets, collapse thread and worker */
 		return worker_pop_state(time, prefix, find_worker_id(threadid));
 
@@ -880,17 +880,19 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
+	int threadid = ev->param[0];
 
-	if (out_paje_file)
-		thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "E");
+	if (out_paje_file && !find_sync(threadid))
+		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "E");
 }
 
 static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
+	int threadid = ev->param[0];
 
-	if (out_paje_file)
-		thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B");
+	if (out_paje_file && !find_sync(threadid))
+		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "B");
 }
 
 static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
