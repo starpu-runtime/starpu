@@ -50,7 +50,10 @@ int starpu_mpi_cache_set(int enabled)
 		if (_starpu_cache_enabled)
 		{
 			// We need to clean the cache
+			int world_size;
 			starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
+			MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+			_starpu_mpi_cache_free(world_size);
 		}
 		_starpu_cache_enabled = 0;
 	}
