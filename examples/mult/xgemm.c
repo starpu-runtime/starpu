@@ -322,15 +322,6 @@ int main(int argc, char **argv)
 	start = starpu_timing_now();
 
 	unsigned x, y, iter;
-
-		for (x = 0; x < nslicesx; x++)
-		for (y = 0; y < nslicesy; y++)
-		{
-			starpu_data_idle_prefetch_on_node(starpu_data_get_sub_data(A_handle, 1, y), 1, 1);
-			starpu_data_idle_prefetch_on_node(starpu_data_get_sub_data(B_handle, 1, x), 1, 1);
-			starpu_data_idle_prefetch_on_node(starpu_data_get_sub_data(C_handle, 2, x, y), 1, 1);
-		}
-
 	for (iter = 0; iter < niter; iter++)
 	{
 		for (x = 0; x < nslicesx; x++)
