@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2014  Université de Bordeaux
+ * Copyright (C) 2010-2015  Université de Bordeaux
  * Copyright (C) 2010  Mehdi Juhoor <mjuhoor@gmail.com>
  * Copyright (C) 2010, 2011, 2012, 2013, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2012 INRIA
@@ -338,7 +338,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		} else
 		{
 			/* Simply transfer any pending data */
-			ret = _starpu_fetch_data_on_node(child_handle, &child_handle->per_node[gathering_node], STARPU_R, 0, 0, NULL, NULL);
+			ret = _starpu_fetch_data_on_node(child_handle, &child_handle->per_node[gathering_node], STARPU_R, 0, 0, 0, NULL, NULL);
 		}
 		STARPU_ASSERT(ret == 0);
 

@@ -83,6 +83,8 @@ New features:
   * New performance model format to better represent parallel tasks.
     Used to provide estimations for the execution times of the
     parallel tasks on scheduling contexts or combined workers.
+  * starpu_data_idle_prefetch_on_node allows to queue prefetches to be done
+    only when the bus is idle.
 
 Small features:
   * Tasks can now have a name (via the field const char *name of

@@ -65,7 +65,11 @@ LIST_TYPE(_starpu_data_request,
 	/* Whether the transfer is completed. */
 	unsigned completed;
 
-	/* Whether this is just a prefetch request */
+	/* Whether this is just a prefetch request:
+	 * 0 for fetch,
+	 * 1 for prefetch (dependencies have just been released)
+	 * 2 for idle (a good idea to do it some time, but no hurry at all)
+	 */
 	unsigned prefetch;
 
 	/* The value returned by the transfer function */
@@ -112,11 +116,13 @@ void _starpu_post_data_request(struct _starpu_data_request *r, unsigned handling
 /* returns 0 if we have pushed all requests, -EBUSY or -ENOMEM otherwise */
 int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
 int _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
+int _starpu_handle_node_idle_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
 
 int _starpu_handle_pending_node_data_requests(unsigned src_node);
 int _starpu_handle_all_pending_node_data_requests(unsigned src_node);
 
 int _starpu_check_that_no_data_request_exists(unsigned node);
+int _starpu_check_that_no_data_request_is_pending(unsigned node);
 
 struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t handle,
 							 struct _starpu_data_replicate *src_replicate,
@@ -132,5 +138,5 @@ void _starpu_data_request_append_callback(struct _starpu_data_request *r,
 					  void (*callback_func)(void *),
 					  void *callback_arg);
 
-void _starpu_update_prefetch_status(struct _starpu_data_request *r);
+void _starpu_update_prefetch_status(struct _starpu_data_request *r, unsigned prefetch);
 #endif // __DATA_REQUEST_H__

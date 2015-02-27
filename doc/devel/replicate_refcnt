@@ -57,6 +57,7 @@ Function detail
   - _starpu_allocate_interface()
   - _starpu_prefetch_data_on_node_with_mode(), when produced by the call to _starpu_fetch_data_on_node (!detached)
   - starpu_data_prefetch_on_node(), 
+  - starpu_data_idle_prefetch_on_node(), 
   - starpu_data_invalidate()
   - _starpu_data_unregister()
   - _starpu_benchmark_ping_pong()

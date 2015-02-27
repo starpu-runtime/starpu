@@ -242,7 +242,7 @@ void _starpu_display_msi_stats(void);
  * async means that _starpu_fetch_data_on_node will wait for completion of the request
  */
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate,
-			       enum starpu_data_access_mode mode, unsigned detached, unsigned async,
+			       enum starpu_data_access_mode mode, unsigned detached, unsigned is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg);
 /* This releases a reference on the handle */
 void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t default_wt_mask,

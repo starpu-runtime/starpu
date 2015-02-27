@@ -177,6 +177,15 @@ block until the transfer is achieved, else the call will return immediately,
 after having just queued the request. In the latter case, the request will
 asynchronously wait for the completion of any task writing on the data.
 
+\fn int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
+\ingroup API_Data_Management
+Issue an idle prefetch request for a given data to a given node, i.e.
+requests that the data be replicated to the given node, so that it is
+available there for tasks, but only when the bus is really idle. If the \p async parameter is 0, the call will
+block until the transfer is achieved, else the call will return immediately,
+after having just queued the request. In the latter case, the request will
+asynchronously wait for the completion of any task writing on the data.
+
 \fn starpu_data_handle_t starpu_data_lookup(const void *ptr)
 \ingroup API_Data_Management
 Return the handle corresponding to the data pointed to by the \p ptr host pointer.
