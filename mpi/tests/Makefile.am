@@ -117,6 +117,7 @@ starpu_mpi_TESTS =				\
 	mpi_reduction				\
 	user_defined_datatype			\
 	tags					\
+	sync					\
 	gather					\
 	gather2					\
 	policy_register				\
@@ -165,6 +166,7 @@ noinst_PROGRAMS =				\
 	mpi_reduction				\
 	user_defined_datatype			\
 	tags					\
+	sync					\
 	gather					\
 	gather2					\
 	policy_register				\
@@ -255,6 +257,8 @@ mpi_reduction_LDADD =			\
 user_defined_datatype_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 tags_LDADD =			\
+	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
+sync_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 gather_LDADD =			\
 	../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
