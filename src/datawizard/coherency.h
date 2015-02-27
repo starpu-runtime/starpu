@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2015  Université de Bordeaux
- * Copyright (C) 2010, 2011, 2012, 2013, 2014  Centre National de la Recherche Scientifique
+ * Copyright (C) 2010, 2011, 2012, 2013, 2014, 2015  Centre National de la Recherche Scientifique
  * Copyright (C) 2014  Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -223,8 +223,7 @@ struct _starpu_data_state
 #endif
 
         /* Used for MPI */
-        int rank;
-	int tag;
+	void *mpi_data;
 
 	_starpu_memory_stats_t memory_stats;
 

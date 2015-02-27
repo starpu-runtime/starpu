@@ -122,11 +122,6 @@ struct starpu_codelet;
 
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl);
 
-int starpu_data_set_rank(starpu_data_handle_t handle, int rank);
-int starpu_data_get_rank(starpu_data_handle_t handle);
-
-int starpu_data_set_tag(starpu_data_handle_t handle, int tag);
-int starpu_data_get_tag(starpu_data_handle_t handle);
 struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_handle_t handle);
 
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node);

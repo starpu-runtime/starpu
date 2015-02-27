@@ -46,6 +46,8 @@ void _starpu_mpi_cache_received_data_clear(starpu_data_handle_t data);
 void *_starpu_mpi_cache_sent_data_set(starpu_data_handle_t data, int dest);
 void _starpu_mpi_cache_sent_data_clear(MPI_Comm comm, starpu_data_handle_t data);
 
+void _starpu_mpi_cache_flush(MPI_Comm comm, starpu_data_handle_t data_handle);
+
 #ifdef __cplusplus
 }
 #endif

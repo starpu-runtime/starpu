@@ -208,6 +208,13 @@ LIST_TYPE(_starpu_mpi_req,
 	int sequential_consistency;
 );
 
+struct _starpu_mpi_data
+{
+	int tag;
+	int rank;
+	MPI_Comm comm;
+};
+
 #ifdef __cplusplus
 }
 #endif
